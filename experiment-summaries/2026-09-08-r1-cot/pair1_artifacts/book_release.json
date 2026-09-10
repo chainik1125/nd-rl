@@ -1,0 +1,25 @@
+{
+  "status": "complete",
+  "role": "textbook_dev",
+  "rl_run_completed": true,
+  "evaluation_k": 16,
+  "labels_sha256": "1b04192d8a2d91b488a0884ccb096004003dbfcf40bb7aea55caa81c3f3cf53c",
+  "prediction_sha256": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_sft_book/attempts.jsonl": "12edb53b89641c8b25f8adaa03a60e5e99e0a16356c59b60bf0e2ff05aa2c125",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_rl_book/attempts.jsonl": "d994aaa399603fcfd94dc7af7749553bbe1af53d708edbc12398e60e6bca265c",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_sft_book/attempts.jsonl": "94e5db36efc40bf7eea17611a08d8539da66e5a04616a33d8d441aab9c2c40e2",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_rl_book/attempts.jsonl": "b6c82417e69ed3420b9b03546ba76ba92b740f481a2c2d09a1ddd9cdf66b2d7b"
+  },
+  "model_modes": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_sft_book/attempts.jsonl": "direct",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_rl_book/attempts.jsonl": "direct",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_sft_book/attempts.jsonl": "cot",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_rl_book/attempts.jsonl": "cot"
+  },
+  "model_names": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_sft_book/attempts.jsonl": "direct_sft",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_rl_book/attempts.jsonl": "direct_rl",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_sft_book/attempts.jsonl": "cot_sft",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_rl_book/attempts.jsonl": "cot_rl"
+  }
+}

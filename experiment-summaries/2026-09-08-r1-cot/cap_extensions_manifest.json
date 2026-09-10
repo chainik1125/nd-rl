@@ -1,0 +1,213 @@
+{
+  "arms": {
+    "cap12": {
+      "additional": {
+        "canonical_classes": 4969,
+        "family_counts": {
+          "case_ori_impe": 481,
+          "closed_case_two_ori": 977,
+          "double_impe_negi": 307,
+          "micro_one_ori": 962,
+          "micro_two_ori": 783,
+          "neg_and_impi_left": 336,
+          "neg_and_impi_right": 316,
+          "nested_and_ori_impe": 807
+        },
+        "length_counts": {
+          "7": 1281,
+          "8": 641,
+          "9": 653,
+          "10": 797,
+          "11": 810,
+          "12": 787
+        },
+        "records": 4969
+      },
+      "initial_generator_label_cap": 12,
+      "long_record_fraction": 0.07648263017746926,
+      "mixed": {
+        "canonical_classes": 64969,
+        "family_counts": {
+          "andi_known_left": 1990,
+          "andi_known_right": 1990,
+          "andi_ori_scope1": 1990,
+          "andi_ori_scope2": 1990,
+          "case_ori_impe": 481,
+          "closed_case_two_ori": 977,
+          "closed_ore_identity": 1991,
+          "closed_ore_one_ori": 1991,
+          "closed_ori1_negation": 1991,
+          "closed_ori2_negation": 1991,
+          "double_impe_negi": 307,
+          "generated_2": 2843,
+          "generated_3": 2842,
+          "generated_4": 2842,
+          "generated_5": 2842,
+          "generated_6": 2842,
+          "impe_ori": 1991,
+          "impe_ori_scope1": 1991,
+          "impe_ori_scope2": 1991,
+          "micro_one_ori": 962,
+          "micro_two_ori": 783,
+          "neg_and_impi_left": 336,
+          "neg_and_impi_right": 316,
+          "nested_and_ori_impe": 807,
+          "nested_impi_and": 1991,
+          "nested_impi_apply": 1991,
+          "ore_one_impe": 1991,
+          "ore_one_ori": 1991,
+          "ore_two_ande": 1991,
+          "ore_two_ori": 1991,
+          "ori1_negation": 1991,
+          "ori2_negation": 1991,
+          "ori_impe": 1991,
+          "ori_impe_scope1": 1991,
+          "ori_impe_scope2": 1991,
+          "scope_ori_impi": 1991
+        },
+        "length_counts": {
+          "2": 2843,
+          "3": 4833,
+          "4": 6824,
+          "5": 18770,
+          "6": 26730,
+          "7": 1281,
+          "8": 641,
+          "9": 653,
+          "10": 797,
+          "11": 810,
+          "12": 787
+        },
+        "records": 64969
+      }
+    },
+    "cap8": {
+      "additional": {
+        "canonical_classes": 1922,
+        "family_counts": {
+          "closed_case_two_ori": 320,
+          "double_impe_negi": 307,
+          "micro_one_ori": 324,
+          "micro_two_ori": 155,
+          "neg_and_impi_left": 336,
+          "neg_and_impi_right": 316,
+          "nested_and_ori_impe": 164
+        },
+        "length_counts": {
+          "7": 1281,
+          "8": 641
+        },
+        "records": 1922
+      },
+      "initial_generator_label_cap": 8,
+      "long_record_fraction": 0.03103904912632021,
+      "mixed": {
+        "canonical_classes": 61922,
+        "family_counts": {
+          "andi_known_left": 1990,
+          "andi_known_right": 1990,
+          "andi_ori_scope1": 1990,
+          "andi_ori_scope2": 1990,
+          "closed_case_two_ori": 320,
+          "closed_ore_identity": 1991,
+          "closed_ore_one_ori": 1991,
+          "closed_ori1_negation": 1991,
+          "closed_ori2_negation": 1991,
+          "double_impe_negi": 307,
+          "generated_2": 2843,
+          "generated_3": 2842,
+          "generated_4": 2842,
+          "generated_5": 2842,
+          "generated_6": 2842,
+          "impe_ori": 1991,
+          "impe_ori_scope1": 1991,
+          "impe_ori_scope2": 1991,
+          "micro_one_ori": 324,
+          "micro_two_ori": 155,
+          "neg_and_impi_left": 336,
+          "neg_and_impi_right": 316,
+          "nested_and_ori_impe": 164,
+          "nested_impi_and": 1991,
+          "nested_impi_apply": 1991,
+          "ore_one_impe": 1991,
+          "ore_one_ori": 1991,
+          "ore_two_ande": 1991,
+          "ore_two_ori": 1991,
+          "ori1_negation": 1991,
+          "ori2_negation": 1991,
+          "ori_impe": 1991,
+          "ori_impe_scope1": 1991,
+          "ori_impe_scope2": 1991,
+          "scope_ori_impi": 1991
+        },
+        "length_counts": {
+          "2": 2843,
+          "3": 4833,
+          "4": 6824,
+          "5": 18770,
+          "6": 26730,
+          "7": 1281,
+          "8": 641
+        },
+        "records": 61922
+      }
+    }
+  },
+  "created_utc": "2026-09-09T05:46:59.327052+00:00",
+  "filter_counts": {
+    "long_source_rows": 6600
+  },
+  "heldout_reference_files_opened": false,
+  "input_sha256": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/all_textbook_guards.json": "408ce2ea9bb136566db7745f268077e9ef79fa033de2ef04791544d4130b8bd4",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/sft_cap6.jsonl": "281cc6525814fbf936f6add25c965f19f1ce5e1115561d4b5255f61f2bec14e4",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/synthetic_dev.jsonl": "b7f5e2a1de1fd7fb3806703344cab56e338ca642b62b810c5e6a5aedb283596f",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/synthetic_long_dev.jsonl": "1d875066487db369420bf2896e11de6a3e31db32f8fa3027ebc12993d1e65995",
+    "/data/users/dmitry/nd-rl/take-home/transfer_sprint_20260907/data/negation_long_v1/references/rl_targets.analysis_only.jsonl": "51f0a7cd95bd880e61a920cf074edcf934d03a7769cd894e3bceead58839cde4",
+    "/data/users/dmitry/nd-rl/take-home/transfer_sprint_20260907/data/structural_long_v1/references/rl_targets.analysis_only.jsonl": "75d3d186c755a62784f1196f2bf4df938485b3b9c4ead0afd7550bcb1e920e21"
+  },
+  "limitations": [
+    "Long RL prompts omit proof bodies and are disjoint from new supervised labels.",
+    "Existing historical RL checkpoints might have sampled these old RL targets.",
+    "Mixtures preserve surviving cap6 rows once; longer labels receive no repeats."
+  ],
+  "lineage": "NEW initial-cap8/cap12 generator-label arms; never describe as cap6-only",
+  "output_sha256": {
+    "additional_cap12.jsonl": "502f595ca1f5a156fdcd4a21202986525152f5430b40dd87897ca6c7a6e07fee",
+    "additional_cap8.jsonl": "45f2674d55ffe367d98fbb45b088fc91f4a1956b7b1f168effbadd0f6a274a5c",
+    "rl_long_disjoint.jsonl": "f2e0eb10d3de8fe9fed3543394c921cdf3872690d2853e2ac7b8da5f32cba523",
+    "sft_cap12_mixed.jsonl": "8f81475e8e23f5f57349258affc07699d79a95e12ccd67c81c2bc9ea5210eb06",
+    "sft_cap8_mixed.jsonl": "e785039f510c0ecfa74299a67cb924bc186d45da07f05ce21def9af69cd49d55"
+  },
+  "prior_reference_role": "Previously analysis-only RL-target references, now explicitly authorized for longer-initial-cap arms; old experiments unchanged",
+  "protected_synthetic_dev_classes": 640,
+  "rl_prompt_only": {
+    "canonical_classes": 1303,
+    "family_counts": {
+      "case_ori_impe": 191,
+      "closed_case_two_ori": 223,
+      "double_impe_negi": 93,
+      "micro_one_ori": 238,
+      "micro_two_ori": 217,
+      "neg_and_impi_left": 64,
+      "neg_and_impi_right": 84,
+      "nested_and_ori_impe": 193
+    },
+    "length_counts": {
+      "7": 319,
+      "8": 159,
+      "9": 147,
+      "10": 203,
+      "11": 190,
+      "12": 213,
+      "13": 34,
+      "14": 38
+    },
+    "records": 1303
+  },
+  "seed": 2026090912,
+  "source_sha256": "a94a251abd31d3e2c2ffebd03f662d62ccc3eac57d10988bd48e7ce0657776c8",
+  "split": "Canonical classes globally assigned 80% supervised / 20% RL by seeded hash",
+  "status": "complete",
+  "textbook_inputs_opened": false
+}

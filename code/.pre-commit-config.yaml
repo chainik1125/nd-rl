@@ -1,0 +1,33 @@
+# Hook paths are relative to the Git root, even though this config lives in code/.
+default_install_hook_types: [pre-commit, pre-push]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1000, --enforce-all]
+        stages: [pre-commit, pre-push]
+  - repo: local
+    hooks:
+      - id: pyright
+        name: Pyright
+        entry: uv run --project code --no-sync pyright --project code
+        pass_filenames: false
+        language: system
+        types: [python]
+        files: ^code/
+        stages: [pre-commit]
+      - id: ruff-lint
+        name: Ruff lint
+        entry: uv run --project code --no-sync ruff check --config code/pyproject.toml --cache-dir code/.ruff_cache
+        language: system
+        types: [python]
+        files: ^code/
+        stages: [pre-commit]
+      - id: ruff-format
+        name: Ruff format
+        entry: uv run --project code --no-sync ruff format --check --config code/pyproject.toml --cache-dir code/.ruff_cache
+        language: system
+        types: [python]
+        files: ^code/
+        stages: [pre-commit]

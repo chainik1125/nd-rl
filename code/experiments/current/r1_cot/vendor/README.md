@@ -1,0 +1,1 @@
+Vendored unchanged from simplex1 `/data/users/dmitry/nd-rl/take-home` on 2026-09-09. `strict_verify.py` comes from its `transfer_sprint_20260907/code`. Exact bytes are pinned in `source_hashes.json`. Add this directory to PYTHONPATH. The base verifier remains archived as-is; all sprint rewards use the strict wrapper.

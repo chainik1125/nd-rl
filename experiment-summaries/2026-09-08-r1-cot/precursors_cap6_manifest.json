@@ -1,0 +1,41 @@
+{
+  "already_in_cap6_pool": 64,
+  "created_utc": "2026-09-09T05:52:36.112521+00:00",
+  "exact_permitted_textbook_classes": 0,
+  "family_counts": {
+    "biconditional_forward_half": 537,
+    "imp_double_neg_elim": 537,
+    "neg_conjunction_given_left": 536,
+    "neg_disjunction_component": 535,
+    "neg_neg_disjunction_component": 537,
+    "negated_antecedent_explosion": 292
+  },
+  "filter_counts": {
+    "canonical_duplicates": 438,
+    "heldout_guard_rejected": 338
+  },
+  "formula_bank_size": 25,
+  "initial_generator_label_cap": 6,
+  "input_sha256": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/heldout_guards.json": "533ed4c15f229159d2a3aacbe745bc0df3ec1175ccba96f579dd9c78866dc2ce",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/sft_cap6.jsonl": "281cc6525814fbf936f6add25c965f19f1ce5e1115561d4b5255f61f2bec14e4",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/synthetic_dev.jsonl": "b7f5e2a1de1fd7fb3806703344cab56e338ca642b62b810c5e6a5aedb283596f",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/synthetic_long_dev.jsonl": "1d875066487db369420bf2896e11de6a3e31db32f8fa3027ebc12993d1e65995",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/data/textbook_train.jsonl": "a34e8587ae8f067dc085b8647927524dbefc9c4f84abe842abdbcd9eb98c193c"
+  },
+  "length_counts": {
+    "5": 1364,
+    "6": 1610
+  },
+  "limitations": [
+    "Synthetic precursors are supervised repair labels, not model discoveries.",
+    "Formula fragments were selected from the permitted training slice.",
+    "A targeted versus retained-data continuation control is still needed."
+  ],
+  "output_sha256": "a7f1d3f968e25573c6e765d7f9043f5631f878a12c88df343b914d08a5dbf110",
+  "permitted_textbook_population_unchanged": 14,
+  "records": 2974,
+  "source_sha256": "cca3488af063f8640c0ef9ee21d84aabf940e0e580af8bb277a398c5e816afee",
+  "status": "complete",
+  "textbook_dev_or_final_payload_reads": 0
+}

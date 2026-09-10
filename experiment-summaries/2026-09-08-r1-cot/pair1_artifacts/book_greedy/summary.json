@@ -1,0 +1,4754 @@
+{
+  "analysis_only": true,
+  "labels_sha256": "1b04192d8a2d91b488a0884ccb096004003dbfcf40bb7aea55caa81c3f3cf53c",
+  "limitations": [
+    "All reference and found lengths are upper bounds, not proven minimum lengths.",
+    "Compression is analysis-only and reverified with the strict checker.",
+    "Pass@k is first-k empirical coverage, not the unbiased combinatorial estimator.",
+    "Token curves admit complete attempts in recorded order; no skipped expensive attempts.",
+    "Recorded token costs exclude prompt prefill, padding and batching overhead; equal generated tokens are not equal FLOPs.",
+    "Curves are censored by the saved number of attempts and their response caps.",
+    "Paired intervals resample targets, not independent training seeds or textbook sources.",
+    "A sprint-final-only partition does not erase historical benchmark exposure."
+  ],
+  "models": {
+    "cot_rl": {
+      "all_attempts": {
+        "k": null,
+        "minimum_completed_attempts_per_target": 1,
+        "per_target_generated_token_budget": null,
+        "rate": 0.06896551724137931,
+        "solved": 4,
+        "summed_completed_attempts": 58,
+        "summed_consumed_final_tokens": 5383,
+        "summed_consumed_generated_tokens": 9909,
+        "summed_consumed_scratch_tokens": 2793,
+        "total": 58,
+        "wilson95": [
+          0.027144247017578338,
+          0.1643366631438035
+        ]
+      },
+      "beyond_initial_cap": {
+        "initial_cap": 6,
+        "solved": 0,
+        "total": 43
+      },
+      "failed_reason_counts": {
+        "bad line cite (line 4)": 1,
+        "bad line cite (line 5)": 2,
+        "depth jump at line 4": 1,
+        "depth jump at line 5": 1,
+        "final formula is not the conclusion": 2,
+        "parse: missing )": 1,
+        "premise block does not match declared premises": 3,
+        "response-format-invalid": 2,
+        "rule check failed: ANDE1 (line 2)": 1,
+        "rule check failed: ANDE1 (line 3)": 1,
+        "rule check failed: ANDE2 (line 2)": 1,
+        "rule check failed: ANDE2 (line 3)": 5,
+        "rule check failed: ANDE2 (line 4)": 1,
+        "rule check failed: ANDI (line 4)": 1,
+        "rule check failed: ANDI (line 6)": 1,
+        "rule check failed: BOTE (line 3)": 1,
+        "rule check failed: IMPE (line 3)": 5,
+        "rule check failed: IMPE (line 4)": 7,
+        "rule check failed: IMPE (line 5)": 1,
+        "rule check failed: IMPE (line 7)": 1,
+        "rule check failed: IMPI (line 4)": 1,
+        "rule check failed: IMPI (line 5)": 1,
+        "rule check failed: NEGE (line 3)": 1,
+        "rule check failed: NEGE (line 4)": 1,
+        "rule check failed: ORE (line 4)": 1,
+        "rule check failed: ORE (line 5)": 2,
+        "rule check failed: ORE (line 6)": 1,
+        "rule check failed: ORE (line 7)": 1,
+        "rule check failed: ORI1 (line 3)": 1,
+        "rule check failed: ORI1 (line 4)": 1,
+        "rule check failed: ORI2 (line 2)": 1,
+        "rule check failed: ORI2 (line 3)": 1,
+        "rule check failed: ORI2 (line 5)": 1,
+        "rule check failed: R (line 4)": 1
+      },
+      "found_length_upper_bounds": {
+        "shortest_compressed_lines": {
+          "five_target_length_frontier": null,
+          "histogram": {
+            "6": 4
+          },
+          "longest_shortest_found_upper_bound": 6
+        },
+        "shortest_raw_lines": {
+          "five_target_length_frontier": null,
+          "histogram": {
+            "6": 4
+          },
+          "longest_shortest_found_upper_bound": 6
+        }
+      },
+      "pass_at_k_prefix": [
+        {
+          "k": 1,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": null,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 9909,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        }
+      ],
+      "per_target": {
+        "textbook_03549baa1134033548d6": {
+          "attempts": 1,
+          "final_tokens": 123,
+          "generated_tokens": 199,
+          "reference_lines": 11,
+          "scratch_tokens": 73,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0713eb0885a366161011": {
+          "attempts": 1,
+          "final_tokens": 46,
+          "generated_tokens": 82,
+          "reference_lines": 11,
+          "scratch_tokens": 33,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_078f26deb57f268c2fae": {
+          "attempts": 1,
+          "final_tokens": 120,
+          "generated_tokens": 209,
+          "reference_lines": 15,
+          "scratch_tokens": 86,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0824150e3d98b3ab201f": {
+          "attempts": 1,
+          "final_tokens": 52,
+          "generated_tokens": 83,
+          "reference_lines": 6,
+          "scratch_tokens": 28,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0b9b989cc2f245db9021": {
+          "attempts": 1,
+          "final_tokens": 87,
+          "generated_tokens": 125,
+          "reference_lines": 10,
+          "scratch_tokens": 35,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_1e1d3b9a628f0b73c258": {
+          "attempts": 1,
+          "final_tokens": 104,
+          "generated_tokens": 166,
+          "reference_lines": 18,
+          "scratch_tokens": 59,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_201dc6c52fcdedeac240": {
+          "attempts": 1,
+          "final_tokens": 38,
+          "generated_tokens": 65,
+          "reference_lines": 12,
+          "scratch_tokens": 24,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_245a0349bb058006b821": {
+          "attempts": 1,
+          "final_tokens": 104,
+          "generated_tokens": 176,
+          "reference_lines": 8,
+          "scratch_tokens": 69,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_287ceb6c7a54a42f3829": {
+          "attempts": 1,
+          "final_tokens": 126,
+          "generated_tokens": 181,
+          "reference_lines": 5,
+          "scratch_tokens": 52,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_330042a43256968ac526": {
+          "attempts": 1,
+          "final_tokens": 127,
+          "generated_tokens": 185,
+          "reference_lines": 9,
+          "scratch_tokens": 55,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33a5b9f5c6c6ad7582e7": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 114,
+          "reference_lines": 13,
+          "scratch_tokens": 29,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33e465a968d29efbb443": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 122,
+          "reference_lines": 15,
+          "scratch_tokens": 44,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_34f93da8bd82c5f421bc": {
+          "attempts": 1,
+          "final_tokens": 74,
+          "generated_tokens": 124,
+          "reference_lines": 1,
+          "scratch_tokens": 47,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_35e75d37fcd6e6fc7dfe": {
+          "attempts": 1,
+          "final_tokens": 112,
+          "generated_tokens": 185,
+          "reference_lines": 33,
+          "scratch_tokens": 70,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3af838bf624ac899a441": {
+          "attempts": 1,
+          "final_tokens": 66,
+          "generated_tokens": 118,
+          "reference_lines": 14,
+          "scratch_tokens": 49,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d2b05bca4cbb83ed73b": {
+          "attempts": 1,
+          "final_tokens": 143,
+          "generated_tokens": 226,
+          "reference_lines": 29,
+          "scratch_tokens": 80,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d573ac42c0db3988c20": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 137,
+          "reference_lines": 11,
+          "scratch_tokens": 44,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3ed45280e6c686e76ac6": {
+          "attempts": 1,
+          "final_tokens": 80,
+          "generated_tokens": 105,
+          "reference_lines": 7,
+          "scratch_tokens": 22,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3f4b5ba98e9f3445b303": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 126,
+          "reference_lines": 14,
+          "scratch_tokens": 41,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_418e4b67e7e59d93fa6b": {
+          "attempts": 1,
+          "final_tokens": 85,
+          "generated_tokens": 155,
+          "reference_lines": 16,
+          "scratch_tokens": 67,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_44157a16ce8876875ce1": {
+          "attempts": 1,
+          "final_tokens": 32,
+          "generated_tokens": 61,
+          "reference_lines": 3,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_48e30865966e132d65ad": {
+          "attempts": 1,
+          "final_tokens": 79,
+          "generated_tokens": 129,
+          "reference_lines": 16,
+          "scratch_tokens": 47,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_49c48adca28f05789420": {
+          "attempts": 1,
+          "final_tokens": 74,
+          "generated_tokens": 110,
+          "reference_lines": 13,
+          "scratch_tokens": 33,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_4f666c992cac7dcfd117": {
+          "attempts": 1,
+          "final_tokens": 86,
+          "generated_tokens": 131,
+          "reference_lines": 2,
+          "scratch_tokens": 42,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_55c0251debc570e4f3e3": {
+          "attempts": 1,
+          "final_tokens": 97,
+          "generated_tokens": 153,
+          "reference_lines": 18,
+          "scratch_tokens": 53,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_5758428c8c74f96345ad": {
+          "attempts": 1,
+          "final_tokens": 145,
+          "generated_tokens": 219,
+          "reference_lines": 10,
+          "scratch_tokens": 71,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_68c64ac26ce426bfc04e": {
+          "attempts": 1,
+          "final_tokens": 139,
+          "generated_tokens": 225,
+          "reference_lines": 25,
+          "scratch_tokens": 83,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7020fd7d40d48f1e47f4": {
+          "attempts": 1,
+          "final_tokens": 95,
+          "generated_tokens": 128,
+          "reference_lines": 6,
+          "scratch_tokens": 30,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_72338b1cd817d75fdda2": {
+          "attempts": 1,
+          "final_tokens": 58,
+          "generated_tokens": 91,
+          "reference_lines": 9,
+          "scratch_tokens": 30,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_757636e8f5ff1662c1c8": {
+          "attempts": 1,
+          "final_tokens": 123,
+          "generated_tokens": 190,
+          "reference_lines": 10,
+          "scratch_tokens": 64,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_79e3c381d248c69d315c": {
+          "attempts": 1,
+          "final_tokens": 145,
+          "generated_tokens": 235,
+          "reference_lines": 15,
+          "scratch_tokens": 87,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7ea17063b2c61d0c16d9": {
+          "attempts": 1,
+          "final_tokens": 69,
+          "generated_tokens": 122,
+          "reference_lines": 20,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8244c4b1090af406e68f": {
+          "attempts": 1,
+          "final_tokens": 135,
+          "generated_tokens": 198,
+          "reference_lines": 12,
+          "scratch_tokens": 60,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8270cf21f3f79e6a1281": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 128,
+          "reference_lines": 7,
+          "scratch_tokens": 35,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_902dbc2045265febcddf": {
+          "attempts": 1,
+          "final_tokens": 100,
+          "generated_tokens": 153,
+          "reference_lines": 6,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_920bfc2896e73d80d8cd": {
+          "attempts": 1,
+          "final_tokens": 42,
+          "generated_tokens": 70,
+          "reference_lines": 15,
+          "scratch_tokens": 25,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_94b2fb662310a6f7ac8d": {
+          "attempts": 1,
+          "final_tokens": 65,
+          "generated_tokens": 108,
+          "reference_lines": 8,
+          "scratch_tokens": 40,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_970fbf60225a4d6e78b3": {
+          "attempts": 1,
+          "final_tokens": 137,
+          "generated_tokens": 242,
+          "reference_lines": 20,
+          "scratch_tokens": 102,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_98cdc8d06ea0d36428a2": {
+          "attempts": 1,
+          "final_tokens": 79,
+          "generated_tokens": 133,
+          "reference_lines": 6,
+          "scratch_tokens": 51,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9ad08632649f4911b2cd": {
+          "attempts": 1,
+          "final_tokens": 88,
+          "generated_tokens": 146,
+          "reference_lines": 7,
+          "scratch_tokens": 55,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9f83d4425b7684ef58e7": {
+          "attempts": 1,
+          "final_tokens": 101,
+          "generated_tokens": 165,
+          "reference_lines": 18,
+          "scratch_tokens": 61,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a104fab36312807439b0": {
+          "attempts": 1,
+          "final_tokens": 122,
+          "generated_tokens": 187,
+          "reference_lines": 9,
+          "scratch_tokens": 62,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a2cda4772846af3ccedb": {
+          "attempts": 1,
+          "final_tokens": 119,
+          "generated_tokens": 165,
+          "reference_lines": 14,
+          "scratch_tokens": 43,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_ab0622acfa2bdb298f46": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 110,
+          "reference_lines": 6,
+          "scratch_tokens": 37,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b3af45532093373816b1": {
+          "attempts": 1,
+          "final_tokens": 127,
+          "generated_tokens": 217,
+          "reference_lines": 6,
+          "scratch_tokens": 87,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b5920d6d8c128e48b958": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 100,
+          "reference_lines": 6,
+          "scratch_tokens": 27,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b6439372a23eedd8d70e": {
+          "attempts": 1,
+          "final_tokens": 130,
+          "generated_tokens": 187,
+          "reference_lines": 6,
+          "scratch_tokens": 54,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b98931f273313e2c32e7": {
+          "attempts": 1,
+          "final_tokens": 62,
+          "generated_tokens": 88,
+          "reference_lines": 18,
+          "scratch_tokens": 23,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c070bcc0c3bc8e3b8386": {
+          "attempts": 1,
+          "final_tokens": 118,
+          "generated_tokens": 160,
+          "reference_lines": 22,
+          "scratch_tokens": 39,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c18068b3bc4dc6b6894a": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 131,
+          "reference_lines": 7,
+          "scratch_tokens": 38,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd75f8b41bdf4097bd34": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 121,
+          "reference_lines": 11,
+          "scratch_tokens": 36,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd80d9db9d060cdb3f53": {
+          "attempts": 1,
+          "final_tokens": 0,
+          "generated_tokens": 1536,
+          "reference_lines": 2,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd8d30b16bfb0b99a5d7": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 107,
+          "reference_lines": 6,
+          "scratch_tokens": 29,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_ea2a86a786bde0e260cc": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 139,
+          "reference_lines": 10,
+          "scratch_tokens": 45,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_eec1f557a49c79cc7081": {
+          "attempts": 1,
+          "final_tokens": 95,
+          "generated_tokens": 152,
+          "reference_lines": 6,
+          "scratch_tokens": 54,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_f15b4e7e289f788cc70d": {
+          "attempts": 1,
+          "final_tokens": 81,
+          "generated_tokens": 113,
+          "reference_lines": 10,
+          "scratch_tokens": 29,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_f900b1d7c659ef00e06b": {
+          "attempts": 1,
+          "final_tokens": 170,
+          "generated_tokens": 249,
+          "reference_lines": 20,
+          "scratch_tokens": 76,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_fef8f88a0e6c1c196603": {
+          "attempts": 1,
+          "final_tokens": 86,
+          "generated_tokens": 127,
+          "reference_lines": 13,
+          "scratch_tokens": 38,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        }
+      },
+      "reference_length_bins": [
+        {
+          "rate": 0.0,
+          "reference_lines": 1,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.5,
+          "reference_lines": 2,
+          "solved": 1,
+          "total": 2,
+          "wilson95": [
+            0.09453120573423074,
+            0.9054687942657693
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 3,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 5,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.3,
+          "reference_lines": 6,
+          "solved": 3,
+          "total": 10,
+          "wilson95": [
+            0.10779126740630099,
+            0.6032218525388546
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 7,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 8,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 9,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 10,
+          "solved": 0,
+          "total": 5,
+          "wilson95": [
+            0,
+            0.43448246478317476
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 11,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 12,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 13,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 14,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 15,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 16,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 18,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 20,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 22,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 25,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 29,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 33,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        }
+      ],
+      "token_budget_prefix": [
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 0,
+          "per_target_generated_token_budget": 512,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 57,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 8373,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 0,
+          "per_target_generated_token_budget": 1024,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 57,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 8373,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 2048,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 9909,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 4096,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 9909,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 8192,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 9909,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 16384,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 9909,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 24576,
+          "rate": 0.06896551724137931,
+          "solved": 4,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5383,
+          "summed_consumed_generated_tokens": 9909,
+          "summed_consumed_scratch_tokens": 2793,
+          "total": 58,
+          "wilson95": [
+            0.027144247017578338,
+            0.1643366631438035
+          ]
+        }
+      ]
+    },
+    "cot_sft": {
+      "all_attempts": {
+        "k": null,
+        "minimum_completed_attempts_per_target": 1,
+        "per_target_generated_token_budget": null,
+        "rate": 0.10344827586206896,
+        "solved": 6,
+        "summed_completed_attempts": 58,
+        "summed_consumed_final_tokens": 5051,
+        "summed_consumed_generated_tokens": 12657,
+        "summed_consumed_scratch_tokens": 2833,
+        "total": 58,
+        "wilson95": [
+          0.048281407423628964,
+          0.2078810299248423
+        ]
+      },
+      "beyond_initial_cap": {
+        "initial_cap": 6,
+        "solved": 0,
+        "total": 43
+      },
+      "failed_reason_counts": {
+        "bad box cite (line 5)": 2,
+        "bad line cite (line 4)": 2,
+        "bad line cite (line 5)": 1,
+        "final formula is not the conclusion": 1,
+        "parse: bad formula token ';'": 1,
+        "ref out of range (line 2)": 1,
+        "response-format-invalid": 3,
+        "rule check failed: ANDE1 (line 3)": 1,
+        "rule check failed: ANDE2 (line 2)": 1,
+        "rule check failed: ANDE2 (line 3)": 3,
+        "rule check failed: ANDE2 (line 4)": 3,
+        "rule check failed: ANDI (line 4)": 3,
+        "rule check failed: ANDI (line 5)": 2,
+        "rule check failed: DN (line 4)": 3,
+        "rule check failed: IMPE (line 3)": 3,
+        "rule check failed: IMPE (line 4)": 3,
+        "rule check failed: IMPE (line 5)": 3,
+        "rule check failed: IMPE (line 7)": 1,
+        "rule check failed: IMPI (line 4)": 1,
+        "rule check failed: NEGE (line 3)": 1,
+        "rule check failed: NEGE (line 4)": 1,
+        "rule check failed: ORE (line 4)": 1,
+        "rule check failed: ORE (line 5)": 3,
+        "rule check failed: ORI1 (line 3)": 1,
+        "rule check failed: ORI1 (line 4)": 2,
+        "rule check failed: ORI2 (line 3)": 1,
+        "rule check failed: ORI2 (line 4)": 2,
+        "rule check failed: R (line 3)": 1,
+        "rule check failed: R (line 4)": 1
+      },
+      "found_length_upper_bounds": {
+        "shortest_compressed_lines": {
+          "five_target_length_frontier": 6,
+          "histogram": {
+            "2": 1,
+            "6": 5
+          },
+          "longest_shortest_found_upper_bound": 6
+        },
+        "shortest_raw_lines": {
+          "five_target_length_frontier": 6,
+          "histogram": {
+            "2": 1,
+            "6": 5
+          },
+          "longest_shortest_found_upper_bound": 6
+        }
+      },
+      "pass_at_k_prefix": [
+        {
+          "k": 1,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": null,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 12657,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        }
+      ],
+      "per_target": {
+        "textbook_03549baa1134033548d6": {
+          "attempts": 1,
+          "final_tokens": 138,
+          "generated_tokens": 211,
+          "reference_lines": 11,
+          "scratch_tokens": 70,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0713eb0885a366161011": {
+          "attempts": 1,
+          "final_tokens": 46,
+          "generated_tokens": 82,
+          "reference_lines": 11,
+          "scratch_tokens": 33,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_078f26deb57f268c2fae": {
+          "attempts": 1,
+          "final_tokens": 118,
+          "generated_tokens": 200,
+          "reference_lines": 15,
+          "scratch_tokens": 79,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0824150e3d98b3ab201f": {
+          "attempts": 1,
+          "final_tokens": 52,
+          "generated_tokens": 87,
+          "reference_lines": 6,
+          "scratch_tokens": 32,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0b9b989cc2f245db9021": {
+          "attempts": 1,
+          "final_tokens": 86,
+          "generated_tokens": 124,
+          "reference_lines": 10,
+          "scratch_tokens": 35,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_1e1d3b9a628f0b73c258": {
+          "attempts": 1,
+          "final_tokens": 132,
+          "generated_tokens": 194,
+          "reference_lines": 18,
+          "scratch_tokens": 59,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_201dc6c52fcdedeac240": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 125,
+          "reference_lines": 12,
+          "scratch_tokens": 31,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_245a0349bb058006b821": {
+          "attempts": 1,
+          "final_tokens": 104,
+          "generated_tokens": 172,
+          "reference_lines": 8,
+          "scratch_tokens": 65,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_287ceb6c7a54a42f3829": {
+          "attempts": 1,
+          "final_tokens": 117,
+          "generated_tokens": 168,
+          "reference_lines": 5,
+          "scratch_tokens": 48,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_330042a43256968ac526": {
+          "attempts": 1,
+          "final_tokens": 85,
+          "generated_tokens": 143,
+          "reference_lines": 9,
+          "scratch_tokens": 55,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33a5b9f5c6c6ad7582e7": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 135,
+          "reference_lines": 13,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33e465a968d29efbb443": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 122,
+          "reference_lines": 15,
+          "scratch_tokens": 44,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_34f93da8bd82c5f421bc": {
+          "attempts": 1,
+          "final_tokens": 74,
+          "generated_tokens": 124,
+          "reference_lines": 1,
+          "scratch_tokens": 47,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_35e75d37fcd6e6fc7dfe": {
+          "attempts": 1,
+          "final_tokens": 117,
+          "generated_tokens": 175,
+          "reference_lines": 33,
+          "scratch_tokens": 55,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3af838bf624ac899a441": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 160,
+          "reference_lines": 14,
+          "scratch_tokens": 66,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d2b05bca4cbb83ed73b": {
+          "attempts": 1,
+          "final_tokens": 116,
+          "generated_tokens": 197,
+          "reference_lines": 29,
+          "scratch_tokens": 78,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d573ac42c0db3988c20": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 143,
+          "reference_lines": 11,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3ed45280e6c686e76ac6": {
+          "attempts": 1,
+          "final_tokens": 0,
+          "generated_tokens": 1536,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3f4b5ba98e9f3445b303": {
+          "attempts": 1,
+          "final_tokens": 94,
+          "generated_tokens": 130,
+          "reference_lines": 14,
+          "scratch_tokens": 33,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_418e4b67e7e59d93fa6b": {
+          "attempts": 1,
+          "final_tokens": 85,
+          "generated_tokens": 155,
+          "reference_lines": 16,
+          "scratch_tokens": 67,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_44157a16ce8876875ce1": {
+          "attempts": 1,
+          "final_tokens": 0,
+          "generated_tokens": 1536,
+          "reference_lines": 3,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_48e30865966e132d65ad": {
+          "attempts": 1,
+          "final_tokens": 79,
+          "generated_tokens": 129,
+          "reference_lines": 16,
+          "scratch_tokens": 47,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_49c48adca28f05789420": {
+          "attempts": 1,
+          "final_tokens": 78,
+          "generated_tokens": 117,
+          "reference_lines": 13,
+          "scratch_tokens": 36,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_4f666c992cac7dcfd117": {
+          "attempts": 1,
+          "final_tokens": 86,
+          "generated_tokens": 131,
+          "reference_lines": 2,
+          "scratch_tokens": 42,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_55c0251debc570e4f3e3": {
+          "attempts": 1,
+          "final_tokens": 97,
+          "generated_tokens": 153,
+          "reference_lines": 18,
+          "scratch_tokens": 53,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_5758428c8c74f96345ad": {
+          "attempts": 1,
+          "final_tokens": 100,
+          "generated_tokens": 168,
+          "reference_lines": 10,
+          "scratch_tokens": 65,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_68c64ac26ce426bfc04e": {
+          "attempts": 1,
+          "final_tokens": 122,
+          "generated_tokens": 208,
+          "reference_lines": 25,
+          "scratch_tokens": 83,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7020fd7d40d48f1e47f4": {
+          "attempts": 1,
+          "final_tokens": 95,
+          "generated_tokens": 128,
+          "reference_lines": 6,
+          "scratch_tokens": 30,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_72338b1cd817d75fdda2": {
+          "attempts": 1,
+          "final_tokens": 92,
+          "generated_tokens": 131,
+          "reference_lines": 9,
+          "scratch_tokens": 36,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_757636e8f5ff1662c1c8": {
+          "attempts": 1,
+          "final_tokens": 102,
+          "generated_tokens": 172,
+          "reference_lines": 10,
+          "scratch_tokens": 67,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_79e3c381d248c69d315c": {
+          "attempts": 1,
+          "final_tokens": 145,
+          "generated_tokens": 235,
+          "reference_lines": 15,
+          "scratch_tokens": 87,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7ea17063b2c61d0c16d9": {
+          "attempts": 1,
+          "final_tokens": 83,
+          "generated_tokens": 139,
+          "reference_lines": 20,
+          "scratch_tokens": 53,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8244c4b1090af406e68f": {
+          "attempts": 1,
+          "final_tokens": 0,
+          "generated_tokens": 1536,
+          "reference_lines": 12,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8270cf21f3f79e6a1281": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 128,
+          "reference_lines": 7,
+          "scratch_tokens": 35,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_902dbc2045265febcddf": {
+          "attempts": 1,
+          "final_tokens": 100,
+          "generated_tokens": 153,
+          "reference_lines": 6,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_920bfc2896e73d80d8cd": {
+          "attempts": 1,
+          "final_tokens": 42,
+          "generated_tokens": 70,
+          "reference_lines": 15,
+          "scratch_tokens": 25,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_94b2fb662310a6f7ac8d": {
+          "attempts": 1,
+          "final_tokens": 65,
+          "generated_tokens": 108,
+          "reference_lines": 8,
+          "scratch_tokens": 40,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_970fbf60225a4d6e78b3": {
+          "attempts": 1,
+          "final_tokens": 138,
+          "generated_tokens": 243,
+          "reference_lines": 20,
+          "scratch_tokens": 102,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_98cdc8d06ea0d36428a2": {
+          "attempts": 1,
+          "final_tokens": 79,
+          "generated_tokens": 133,
+          "reference_lines": 6,
+          "scratch_tokens": 51,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9ad08632649f4911b2cd": {
+          "attempts": 1,
+          "final_tokens": 87,
+          "generated_tokens": 140,
+          "reference_lines": 7,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9f83d4425b7684ef58e7": {
+          "attempts": 1,
+          "final_tokens": 101,
+          "generated_tokens": 171,
+          "reference_lines": 18,
+          "scratch_tokens": 67,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a104fab36312807439b0": {
+          "attempts": 1,
+          "final_tokens": 105,
+          "generated_tokens": 180,
+          "reference_lines": 9,
+          "scratch_tokens": 72,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a2cda4772846af3ccedb": {
+          "attempts": 1,
+          "final_tokens": 102,
+          "generated_tokens": 155,
+          "reference_lines": 14,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_ab0622acfa2bdb298f46": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 110,
+          "reference_lines": 6,
+          "scratch_tokens": 37,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b3af45532093373816b1": {
+          "attempts": 1,
+          "final_tokens": 127,
+          "generated_tokens": 217,
+          "reference_lines": 6,
+          "scratch_tokens": 87,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b5920d6d8c128e48b958": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 100,
+          "reference_lines": 6,
+          "scratch_tokens": 27,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b6439372a23eedd8d70e": {
+          "attempts": 1,
+          "final_tokens": 104,
+          "generated_tokens": 167,
+          "reference_lines": 6,
+          "scratch_tokens": 60,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b98931f273313e2c32e7": {
+          "attempts": 1,
+          "final_tokens": 54,
+          "generated_tokens": 87,
+          "reference_lines": 18,
+          "scratch_tokens": 30,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c070bcc0c3bc8e3b8386": {
+          "attempts": 1,
+          "final_tokens": 118,
+          "generated_tokens": 177,
+          "reference_lines": 22,
+          "scratch_tokens": 56,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c18068b3bc4dc6b6894a": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 131,
+          "reference_lines": 7,
+          "scratch_tokens": 38,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd75f8b41bdf4097bd34": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 135,
+          "reference_lines": 11,
+          "scratch_tokens": 50,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd80d9db9d060cdb3f53": {
+          "attempts": 1,
+          "final_tokens": 20,
+          "generated_tokens": 53,
+          "reference_lines": 2,
+          "scratch_tokens": 30,
+          "shortest_compressed_lines": 2,
+          "shortest_raw_lines": 2,
+          "solved": true
+        },
+        "textbook_dd8d30b16bfb0b99a5d7": {
+          "attempts": 1,
+          "final_tokens": 65,
+          "generated_tokens": 102,
+          "reference_lines": 6,
+          "scratch_tokens": 34,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_ea2a86a786bde0e260cc": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 136,
+          "reference_lines": 10,
+          "scratch_tokens": 42,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_eec1f557a49c79cc7081": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 148,
+          "reference_lines": 6,
+          "scratch_tokens": 54,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_f15b4e7e289f788cc70d": {
+          "attempts": 1,
+          "final_tokens": 81,
+          "generated_tokens": 113,
+          "reference_lines": 10,
+          "scratch_tokens": 29,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_f900b1d7c659ef00e06b": {
+          "attempts": 1,
+          "final_tokens": 121,
+          "generated_tokens": 207,
+          "reference_lines": 20,
+          "scratch_tokens": 83,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_fef8f88a0e6c1c196603": {
+          "attempts": 1,
+          "final_tokens": 86,
+          "generated_tokens": 127,
+          "reference_lines": 13,
+          "scratch_tokens": 38,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        }
+      },
+      "reference_length_bins": [
+        {
+          "rate": 0.0,
+          "reference_lines": 1,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 1.0,
+          "reference_lines": 2,
+          "solved": 2,
+          "total": 2,
+          "wilson95": [
+            0.34238022750665303,
+            1
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 3,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 5,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.4,
+          "reference_lines": 6,
+          "solved": 4,
+          "total": 10,
+          "wilson95": [
+            0.16818032970623614,
+            0.6873262302663417
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 7,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 8,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 9,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 10,
+          "solved": 0,
+          "total": 5,
+          "wilson95": [
+            0,
+            0.43448246478317476
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 11,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 12,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 13,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 14,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 15,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 16,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 18,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 20,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 22,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 25,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 29,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 33,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        }
+      ],
+      "token_budget_prefix": [
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 0,
+          "per_target_generated_token_budget": 512,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 55,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 8049,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 0,
+          "per_target_generated_token_budget": 1024,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 55,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 8049,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 2048,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 12657,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 4096,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 12657,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 8192,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 12657,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 16384,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 12657,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 24576,
+          "rate": 0.10344827586206896,
+          "solved": 6,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5051,
+          "summed_consumed_generated_tokens": 12657,
+          "summed_consumed_scratch_tokens": 2833,
+          "total": 58,
+          "wilson95": [
+            0.048281407423628964,
+            0.2078810299248423
+          ]
+        }
+      ]
+    },
+    "direct_rl": {
+      "all_attempts": {
+        "k": null,
+        "minimum_completed_attempts_per_target": 1,
+        "per_target_generated_token_budget": null,
+        "rate": 0.1724137931034483,
+        "solved": 10,
+        "summed_completed_attempts": 58,
+        "summed_consumed_final_tokens": 5394,
+        "summed_consumed_generated_tokens": 5394,
+        "summed_consumed_scratch_tokens": 0,
+        "total": 58,
+        "wilson95": [
+          0.09644292662938801,
+          0.2890825650932622
+        ]
+      },
+      "beyond_initial_cap": {
+        "initial_cap": 6,
+        "solved": 0,
+        "total": 43
+      },
+      "failed_reason_counts": {
+        "bad box cite (line 5)": 1,
+        "bad box cite (line 6)": 1,
+        "bad line cite (line 5)": 3,
+        "final formula is not the conclusion": 1,
+        "parse: missing ;": 1,
+        "rule check failed: ANDE1 (line 4)": 1,
+        "rule check failed: ANDI (line 3)": 1,
+        "rule check failed: ANDI (line 4)": 4,
+        "rule check failed: ANDI (line 5)": 1,
+        "rule check failed: ANDI (line 6)": 1,
+        "rule check failed: BOTE (line 6)": 1,
+        "rule check failed: DN (line 3)": 1,
+        "rule check failed: IMPE (line 3)": 1,
+        "rule check failed: IMPE (line 4)": 8,
+        "rule check failed: IMPE (line 5)": 3,
+        "rule check failed: IMPI (line 4)": 2,
+        "rule check failed: IMPI (line 6)": 2,
+        "rule check failed: IMPI (line 7)": 1,
+        "rule check failed: NEGE (line 4)": 2,
+        "rule check failed: NEGE (line 5)": 5,
+        "rule check failed: ORE (line 4)": 2,
+        "rule check failed: ORE (line 5)": 2,
+        "rule check failed: ORI1 (line 3)": 1,
+        "rule check failed: ORI1 (line 4)": 1,
+        "rule check failed: ORI2 (line 3)": 1
+      },
+      "found_length_upper_bounds": {
+        "shortest_compressed_lines": {
+          "five_target_length_frontier": 6,
+          "histogram": {
+            "2": 2,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 5
+          },
+          "longest_shortest_found_upper_bound": 6
+        },
+        "shortest_raw_lines": {
+          "five_target_length_frontier": 6,
+          "histogram": {
+            "2": 2,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 5
+          },
+          "longest_shortest_found_upper_bound": 6
+        }
+      },
+      "pass_at_k_prefix": [
+        {
+          "k": 1,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": null,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        }
+      ],
+      "per_target": {
+        "textbook_03549baa1134033548d6": {
+          "attempts": 1,
+          "final_tokens": 140,
+          "generated_tokens": 140,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0713eb0885a366161011": {
+          "attempts": 1,
+          "final_tokens": 71,
+          "generated_tokens": 71,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_078f26deb57f268c2fae": {
+          "attempts": 1,
+          "final_tokens": 108,
+          "generated_tokens": 108,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0824150e3d98b3ab201f": {
+          "attempts": 1,
+          "final_tokens": 61,
+          "generated_tokens": 61,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0b9b989cc2f245db9021": {
+          "attempts": 1,
+          "final_tokens": 87,
+          "generated_tokens": 87,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_1e1d3b9a628f0b73c258": {
+          "attempts": 1,
+          "final_tokens": 114,
+          "generated_tokens": 114,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_201dc6c52fcdedeac240": {
+          "attempts": 1,
+          "final_tokens": 83,
+          "generated_tokens": 83,
+          "reference_lines": 12,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_245a0349bb058006b821": {
+          "attempts": 1,
+          "final_tokens": 104,
+          "generated_tokens": 104,
+          "reference_lines": 8,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_287ceb6c7a54a42f3829": {
+          "attempts": 1,
+          "final_tokens": 88,
+          "generated_tokens": 88,
+          "reference_lines": 5,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 5,
+          "shortest_raw_lines": 5,
+          "solved": true
+        },
+        "textbook_330042a43256968ac526": {
+          "attempts": 1,
+          "final_tokens": 132,
+          "generated_tokens": 132,
+          "reference_lines": 9,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33a5b9f5c6c6ad7582e7": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 82,
+          "reference_lines": 13,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33e465a968d29efbb443": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 75,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_34f93da8bd82c5f421bc": {
+          "attempts": 1,
+          "final_tokens": 67,
+          "generated_tokens": 67,
+          "reference_lines": 1,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 4,
+          "shortest_raw_lines": 4,
+          "solved": true
+        },
+        "textbook_35e75d37fcd6e6fc7dfe": {
+          "attempts": 1,
+          "final_tokens": 130,
+          "generated_tokens": 130,
+          "reference_lines": 33,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3af838bf624ac899a441": {
+          "attempts": 1,
+          "final_tokens": 131,
+          "generated_tokens": 131,
+          "reference_lines": 14,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d2b05bca4cbb83ed73b": {
+          "attempts": 1,
+          "final_tokens": 152,
+          "generated_tokens": 152,
+          "reference_lines": 29,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d573ac42c0db3988c20": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 91,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3ed45280e6c686e76ac6": {
+          "attempts": 1,
+          "final_tokens": 74,
+          "generated_tokens": 74,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3f4b5ba98e9f3445b303": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 70,
+          "reference_lines": 14,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_418e4b67e7e59d93fa6b": {
+          "attempts": 1,
+          "final_tokens": 85,
+          "generated_tokens": 85,
+          "reference_lines": 16,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_44157a16ce8876875ce1": {
+          "attempts": 1,
+          "final_tokens": 27,
+          "generated_tokens": 27,
+          "reference_lines": 3,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 3,
+          "shortest_raw_lines": 3,
+          "solved": true
+        },
+        "textbook_48e30865966e132d65ad": {
+          "attempts": 1,
+          "final_tokens": 78,
+          "generated_tokens": 78,
+          "reference_lines": 16,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_49c48adca28f05789420": {
+          "attempts": 1,
+          "final_tokens": 79,
+          "generated_tokens": 79,
+          "reference_lines": 13,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_4f666c992cac7dcfd117": {
+          "attempts": 1,
+          "final_tokens": 26,
+          "generated_tokens": 26,
+          "reference_lines": 2,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 2,
+          "shortest_raw_lines": 2,
+          "solved": true
+        },
+        "textbook_55c0251debc570e4f3e3": {
+          "attempts": 1,
+          "final_tokens": 103,
+          "generated_tokens": 103,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_5758428c8c74f96345ad": {
+          "attempts": 1,
+          "final_tokens": 116,
+          "generated_tokens": 116,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_68c64ac26ce426bfc04e": {
+          "attempts": 1,
+          "final_tokens": 124,
+          "generated_tokens": 124,
+          "reference_lines": 25,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7020fd7d40d48f1e47f4": {
+          "attempts": 1,
+          "final_tokens": 96,
+          "generated_tokens": 96,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_72338b1cd817d75fdda2": {
+          "attempts": 1,
+          "final_tokens": 105,
+          "generated_tokens": 105,
+          "reference_lines": 9,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_757636e8f5ff1662c1c8": {
+          "attempts": 1,
+          "final_tokens": 121,
+          "generated_tokens": 121,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_79e3c381d248c69d315c": {
+          "attempts": 1,
+          "final_tokens": 126,
+          "generated_tokens": 126,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7ea17063b2c61d0c16d9": {
+          "attempts": 1,
+          "final_tokens": 62,
+          "generated_tokens": 62,
+          "reference_lines": 20,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8244c4b1090af406e68f": {
+          "attempts": 1,
+          "final_tokens": 71,
+          "generated_tokens": 71,
+          "reference_lines": 12,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8270cf21f3f79e6a1281": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 75,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_902dbc2045265febcddf": {
+          "attempts": 1,
+          "final_tokens": 100,
+          "generated_tokens": 100,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_920bfc2896e73d80d8cd": {
+          "attempts": 1,
+          "final_tokens": 42,
+          "generated_tokens": 42,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_94b2fb662310a6f7ac8d": {
+          "attempts": 1,
+          "final_tokens": 94,
+          "generated_tokens": 94,
+          "reference_lines": 8,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_970fbf60225a4d6e78b3": {
+          "attempts": 1,
+          "final_tokens": 153,
+          "generated_tokens": 153,
+          "reference_lines": 20,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_98cdc8d06ea0d36428a2": {
+          "attempts": 1,
+          "final_tokens": 118,
+          "generated_tokens": 118,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9ad08632649f4911b2cd": {
+          "attempts": 1,
+          "final_tokens": 86,
+          "generated_tokens": 86,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9f83d4425b7684ef58e7": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 82,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a104fab36312807439b0": {
+          "attempts": 1,
+          "final_tokens": 171,
+          "generated_tokens": 171,
+          "reference_lines": 9,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a2cda4772846af3ccedb": {
+          "attempts": 1,
+          "final_tokens": 96,
+          "generated_tokens": 96,
+          "reference_lines": 14,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_ab0622acfa2bdb298f46": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 70,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b3af45532093373816b1": {
+          "attempts": 1,
+          "final_tokens": 127,
+          "generated_tokens": 127,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b5920d6d8c128e48b958": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 70,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b6439372a23eedd8d70e": {
+          "attempts": 1,
+          "final_tokens": 89,
+          "generated_tokens": 89,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b98931f273313e2c32e7": {
+          "attempts": 1,
+          "final_tokens": 62,
+          "generated_tokens": 62,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c070bcc0c3bc8e3b8386": {
+          "attempts": 1,
+          "final_tokens": 112,
+          "generated_tokens": 112,
+          "reference_lines": 22,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c18068b3bc4dc6b6894a": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 90,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd75f8b41bdf4097bd34": {
+          "attempts": 1,
+          "final_tokens": 88,
+          "generated_tokens": 88,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd80d9db9d060cdb3f53": {
+          "attempts": 1,
+          "final_tokens": 20,
+          "generated_tokens": 20,
+          "reference_lines": 2,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 2,
+          "shortest_raw_lines": 2,
+          "solved": true
+        },
+        "textbook_dd8d30b16bfb0b99a5d7": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 75,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_ea2a86a786bde0e260cc": {
+          "attempts": 1,
+          "final_tokens": 108,
+          "generated_tokens": 108,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_eec1f557a49c79cc7081": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 91,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_f15b4e7e289f788cc70d": {
+          "attempts": 1,
+          "final_tokens": 81,
+          "generated_tokens": 81,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_f900b1d7c659ef00e06b": {
+          "attempts": 1,
+          "final_tokens": 134,
+          "generated_tokens": 134,
+          "reference_lines": 20,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_fef8f88a0e6c1c196603": {
+          "attempts": 1,
+          "final_tokens": 81,
+          "generated_tokens": 81,
+          "reference_lines": 13,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        }
+      },
+      "reference_length_bins": [
+        {
+          "rate": 1.0,
+          "reference_lines": 1,
+          "solved": 1,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1
+          ]
+        },
+        {
+          "rate": 1.0,
+          "reference_lines": 2,
+          "solved": 2,
+          "total": 2,
+          "wilson95": [
+            0.34238022750665303,
+            1
+          ]
+        },
+        {
+          "rate": 1.0,
+          "reference_lines": 3,
+          "solved": 1,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1
+          ]
+        },
+        {
+          "rate": 1.0,
+          "reference_lines": 5,
+          "solved": 1,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1
+          ]
+        },
+        {
+          "rate": 0.5,
+          "reference_lines": 6,
+          "solved": 5,
+          "total": 10,
+          "wilson95": [
+            0.236593090512564,
+            0.7634069094874361
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 7,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 8,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 9,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 10,
+          "solved": 0,
+          "total": 5,
+          "wilson95": [
+            0,
+            0.43448246478317476
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 11,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 12,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 13,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 14,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 15,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 16,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 18,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 20,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 22,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 25,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 29,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 33,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        }
+      ],
+      "token_budget_prefix": [
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 512,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 1024,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 2048,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 4096,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 8192,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 16384,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 24576,
+          "rate": 0.1724137931034483,
+          "solved": 10,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5394,
+          "summed_consumed_generated_tokens": 5394,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.09644292662938801,
+            0.2890825650932622
+          ]
+        }
+      ]
+    },
+    "direct_sft": {
+      "all_attempts": {
+        "k": null,
+        "minimum_completed_attempts_per_target": 1,
+        "per_target_generated_token_budget": null,
+        "rate": 0.15517241379310345,
+        "solved": 9,
+        "summed_completed_attempts": 58,
+        "summed_consumed_final_tokens": 5263,
+        "summed_consumed_generated_tokens": 5263,
+        "summed_consumed_scratch_tokens": 0,
+        "total": 58,
+        "wilson95": [
+          0.0838449195301804,
+          0.2693398085989251
+        ]
+      },
+      "beyond_initial_cap": {
+        "initial_cap": 6,
+        "solved": 0,
+        "total": 43
+      },
+      "failed_reason_counts": {
+        "bad AS depth at line 4": 1,
+        "bad box cite (line 5)": 1,
+        "bad box cite (line 6)": 1,
+        "bad line cite (line 5)": 2,
+        "proof ends inside a subproof": 1,
+        "rule check failed: ANDE1 (line 4)": 1,
+        "rule check failed: ANDI (line 3)": 1,
+        "rule check failed: ANDI (line 4)": 3,
+        "rule check failed: ANDI (line 5)": 1,
+        "rule check failed: ANDI (line 6)": 1,
+        "rule check failed: BOTE (line 6)": 1,
+        "rule check failed: DN (line 3)": 1,
+        "rule check failed: IMPE (line 3)": 2,
+        "rule check failed: IMPE (line 4)": 8,
+        "rule check failed: IMPE (line 5)": 5,
+        "rule check failed: IMPI (line 4)": 3,
+        "rule check failed: IMPI (line 7)": 1,
+        "rule check failed: NEGE (line 4)": 3,
+        "rule check failed: NEGE (line 5)": 4,
+        "rule check failed: ORE (line 4)": 2,
+        "rule check failed: ORE (line 5)": 2,
+        "rule check failed: ORI1 (line 3)": 1,
+        "rule check failed: ORI2 (line 3)": 2,
+        "rule check failed: ORI2 (line 4)": 1
+      },
+      "found_length_upper_bounds": {
+        "shortest_compressed_lines": {
+          "five_target_length_frontier": null,
+          "histogram": {
+            "2": 2,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 4
+          },
+          "longest_shortest_found_upper_bound": 6
+        },
+        "shortest_raw_lines": {
+          "five_target_length_frontier": null,
+          "histogram": {
+            "2": 2,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 4
+          },
+          "longest_shortest_found_upper_bound": 6
+        }
+      },
+      "pass_at_k_prefix": [
+        {
+          "k": 1,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": null,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        }
+      ],
+      "per_target": {
+        "textbook_03549baa1134033548d6": {
+          "attempts": 1,
+          "final_tokens": 124,
+          "generated_tokens": 124,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0713eb0885a366161011": {
+          "attempts": 1,
+          "final_tokens": 77,
+          "generated_tokens": 77,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_078f26deb57f268c2fae": {
+          "attempts": 1,
+          "final_tokens": 109,
+          "generated_tokens": 109,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0824150e3d98b3ab201f": {
+          "attempts": 1,
+          "final_tokens": 61,
+          "generated_tokens": 61,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_0b9b989cc2f245db9021": {
+          "attempts": 1,
+          "final_tokens": 87,
+          "generated_tokens": 87,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_1e1d3b9a628f0b73c258": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 91,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_201dc6c52fcdedeac240": {
+          "attempts": 1,
+          "final_tokens": 50,
+          "generated_tokens": 50,
+          "reference_lines": 12,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_245a0349bb058006b821": {
+          "attempts": 1,
+          "final_tokens": 104,
+          "generated_tokens": 104,
+          "reference_lines": 8,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_287ceb6c7a54a42f3829": {
+          "attempts": 1,
+          "final_tokens": 88,
+          "generated_tokens": 88,
+          "reference_lines": 5,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 5,
+          "shortest_raw_lines": 5,
+          "solved": true
+        },
+        "textbook_330042a43256968ac526": {
+          "attempts": 1,
+          "final_tokens": 130,
+          "generated_tokens": 130,
+          "reference_lines": 9,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33a5b9f5c6c6ad7582e7": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 82,
+          "reference_lines": 13,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_33e465a968d29efbb443": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 75,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_34f93da8bd82c5f421bc": {
+          "attempts": 1,
+          "final_tokens": 67,
+          "generated_tokens": 67,
+          "reference_lines": 1,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 4,
+          "shortest_raw_lines": 4,
+          "solved": true
+        },
+        "textbook_35e75d37fcd6e6fc7dfe": {
+          "attempts": 1,
+          "final_tokens": 122,
+          "generated_tokens": 122,
+          "reference_lines": 33,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3af838bf624ac899a441": {
+          "attempts": 1,
+          "final_tokens": 131,
+          "generated_tokens": 131,
+          "reference_lines": 14,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d2b05bca4cbb83ed73b": {
+          "attempts": 1,
+          "final_tokens": 149,
+          "generated_tokens": 149,
+          "reference_lines": 29,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3d573ac42c0db3988c20": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 90,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3ed45280e6c686e76ac6": {
+          "attempts": 1,
+          "final_tokens": 74,
+          "generated_tokens": 74,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_3f4b5ba98e9f3445b303": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 70,
+          "reference_lines": 14,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_418e4b67e7e59d93fa6b": {
+          "attempts": 1,
+          "final_tokens": 85,
+          "generated_tokens": 85,
+          "reference_lines": 16,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_44157a16ce8876875ce1": {
+          "attempts": 1,
+          "final_tokens": 27,
+          "generated_tokens": 27,
+          "reference_lines": 3,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 3,
+          "shortest_raw_lines": 3,
+          "solved": true
+        },
+        "textbook_48e30865966e132d65ad": {
+          "attempts": 1,
+          "final_tokens": 78,
+          "generated_tokens": 78,
+          "reference_lines": 16,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_49c48adca28f05789420": {
+          "attempts": 1,
+          "final_tokens": 83,
+          "generated_tokens": 83,
+          "reference_lines": 13,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_4f666c992cac7dcfd117": {
+          "attempts": 1,
+          "final_tokens": 26,
+          "generated_tokens": 26,
+          "reference_lines": 2,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 2,
+          "shortest_raw_lines": 2,
+          "solved": true
+        },
+        "textbook_55c0251debc570e4f3e3": {
+          "attempts": 1,
+          "final_tokens": 103,
+          "generated_tokens": 103,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_5758428c8c74f96345ad": {
+          "attempts": 1,
+          "final_tokens": 124,
+          "generated_tokens": 124,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_68c64ac26ce426bfc04e": {
+          "attempts": 1,
+          "final_tokens": 109,
+          "generated_tokens": 109,
+          "reference_lines": 25,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7020fd7d40d48f1e47f4": {
+          "attempts": 1,
+          "final_tokens": 96,
+          "generated_tokens": 96,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_72338b1cd817d75fdda2": {
+          "attempts": 1,
+          "final_tokens": 92,
+          "generated_tokens": 92,
+          "reference_lines": 9,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_757636e8f5ff1662c1c8": {
+          "attempts": 1,
+          "final_tokens": 124,
+          "generated_tokens": 124,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_79e3c381d248c69d315c": {
+          "attempts": 1,
+          "final_tokens": 126,
+          "generated_tokens": 126,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_7ea17063b2c61d0c16d9": {
+          "attempts": 1,
+          "final_tokens": 62,
+          "generated_tokens": 62,
+          "reference_lines": 20,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8244c4b1090af406e68f": {
+          "attempts": 1,
+          "final_tokens": 71,
+          "generated_tokens": 71,
+          "reference_lines": 12,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_8270cf21f3f79e6a1281": {
+          "attempts": 1,
+          "final_tokens": 75,
+          "generated_tokens": 75,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_902dbc2045265febcddf": {
+          "attempts": 1,
+          "final_tokens": 100,
+          "generated_tokens": 100,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_920bfc2896e73d80d8cd": {
+          "attempts": 1,
+          "final_tokens": 42,
+          "generated_tokens": 42,
+          "reference_lines": 15,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_94b2fb662310a6f7ac8d": {
+          "attempts": 1,
+          "final_tokens": 89,
+          "generated_tokens": 89,
+          "reference_lines": 8,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_970fbf60225a4d6e78b3": {
+          "attempts": 1,
+          "final_tokens": 153,
+          "generated_tokens": 153,
+          "reference_lines": 20,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_98cdc8d06ea0d36428a2": {
+          "attempts": 1,
+          "final_tokens": 123,
+          "generated_tokens": 123,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9ad08632649f4911b2cd": {
+          "attempts": 1,
+          "final_tokens": 86,
+          "generated_tokens": 86,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_9f83d4425b7684ef58e7": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 82,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a104fab36312807439b0": {
+          "attempts": 1,
+          "final_tokens": 161,
+          "generated_tokens": 161,
+          "reference_lines": 9,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_a2cda4772846af3ccedb": {
+          "attempts": 1,
+          "final_tokens": 96,
+          "generated_tokens": 96,
+          "reference_lines": 14,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_ab0622acfa2bdb298f46": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 70,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b3af45532093373816b1": {
+          "attempts": 1,
+          "final_tokens": 127,
+          "generated_tokens": 127,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b5920d6d8c128e48b958": {
+          "attempts": 1,
+          "final_tokens": 70,
+          "generated_tokens": 70,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_b6439372a23eedd8d70e": {
+          "attempts": 1,
+          "final_tokens": 89,
+          "generated_tokens": 89,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_b98931f273313e2c32e7": {
+          "attempts": 1,
+          "final_tokens": 62,
+          "generated_tokens": 62,
+          "reference_lines": 18,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c070bcc0c3bc8e3b8386": {
+          "attempts": 1,
+          "final_tokens": 111,
+          "generated_tokens": 111,
+          "reference_lines": 22,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_c18068b3bc4dc6b6894a": {
+          "attempts": 1,
+          "final_tokens": 90,
+          "generated_tokens": 90,
+          "reference_lines": 7,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd75f8b41bdf4097bd34": {
+          "attempts": 1,
+          "final_tokens": 88,
+          "generated_tokens": 88,
+          "reference_lines": 11,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_dd80d9db9d060cdb3f53": {
+          "attempts": 1,
+          "final_tokens": 20,
+          "generated_tokens": 20,
+          "reference_lines": 2,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 2,
+          "shortest_raw_lines": 2,
+          "solved": true
+        },
+        "textbook_dd8d30b16bfb0b99a5d7": {
+          "attempts": 1,
+          "final_tokens": 47,
+          "generated_tokens": 47,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_ea2a86a786bde0e260cc": {
+          "attempts": 1,
+          "final_tokens": 107,
+          "generated_tokens": 107,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_eec1f557a49c79cc7081": {
+          "attempts": 1,
+          "final_tokens": 91,
+          "generated_tokens": 91,
+          "reference_lines": 6,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": 6,
+          "shortest_raw_lines": 6,
+          "solved": true
+        },
+        "textbook_f15b4e7e289f788cc70d": {
+          "attempts": 1,
+          "final_tokens": 82,
+          "generated_tokens": 82,
+          "reference_lines": 10,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_f900b1d7c659ef00e06b": {
+          "attempts": 1,
+          "final_tokens": 134,
+          "generated_tokens": 134,
+          "reference_lines": 20,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        },
+        "textbook_fef8f88a0e6c1c196603": {
+          "attempts": 1,
+          "final_tokens": 81,
+          "generated_tokens": 81,
+          "reference_lines": 13,
+          "scratch_tokens": 0,
+          "shortest_compressed_lines": null,
+          "shortest_raw_lines": null,
+          "solved": false
+        }
+      },
+      "reference_length_bins": [
+        {
+          "rate": 1.0,
+          "reference_lines": 1,
+          "solved": 1,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1
+          ]
+        },
+        {
+          "rate": 1.0,
+          "reference_lines": 2,
+          "solved": 2,
+          "total": 2,
+          "wilson95": [
+            0.34238022750665303,
+            1
+          ]
+        },
+        {
+          "rate": 1.0,
+          "reference_lines": 3,
+          "solved": 1,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1
+          ]
+        },
+        {
+          "rate": 1.0,
+          "reference_lines": 5,
+          "solved": 1,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1
+          ]
+        },
+        {
+          "rate": 0.4,
+          "reference_lines": 6,
+          "solved": 4,
+          "total": 10,
+          "wilson95": [
+            0.16818032970623614,
+            0.6873262302663417
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 7,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 8,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 9,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 10,
+          "solved": 0,
+          "total": 5,
+          "wilson95": [
+            0,
+            0.43448246478317476
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 11,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 12,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 13,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 14,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 15,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 16,
+          "solved": 0,
+          "total": 2,
+          "wilson95": [
+            0,
+            0.6576197724933469
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 18,
+          "solved": 0,
+          "total": 4,
+          "wilson95": [
+            0,
+            0.4898908364545973
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 20,
+          "solved": 0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 22,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 25,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 29,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        },
+        {
+          "rate": 0.0,
+          "reference_lines": 33,
+          "solved": 0,
+          "total": 1,
+          "wilson95": [
+            0,
+            0.7934506856227626
+          ]
+        }
+      ],
+      "token_budget_prefix": [
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 512,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 1024,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 2048,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 4096,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 8192,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 16384,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        },
+        {
+          "k": null,
+          "minimum_completed_attempts_per_target": 1,
+          "per_target_generated_token_budget": 24576,
+          "rate": 0.15517241379310345,
+          "solved": 9,
+          "summed_completed_attempts": 58,
+          "summed_consumed_final_tokens": 5263,
+          "summed_consumed_generated_tokens": 5263,
+          "summed_consumed_scratch_tokens": 0,
+          "total": 58,
+          "wilson95": [
+            0.0838449195301804,
+            0.2693398085989251
+          ]
+        }
+      ]
+    }
+  },
+  "paired": [
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "difference_b_minus_a": 0.017241379310344827,
+      "k": 1,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "budget": 512,
+      "difference_b_minus_a": 0.017241379310344827,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "budget": 1024,
+      "difference_b_minus_a": 0.017241379310344827,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "budget": 2048,
+      "difference_b_minus_a": 0.017241379310344827,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "budget": 4096,
+      "difference_b_minus_a": 0.017241379310344827,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "budget": 8192,
+      "difference_b_minus_a": 0.017241379310344827,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "budget": 16384,
+      "difference_b_minus_a": 0.017241379310344827,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 0,
+      "b": "direct_rl",
+      "b_only": 1,
+      "budget": 24576,
+      "difference_b_minus_a": 0.017241379310344827,
+      "n_targets": 58,
+      "percentile95": [
+        0.0,
+        0.05172413793103448
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "difference_b_minus_a": -0.05172413793103448,
+      "k": 1,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 512,
+      "difference_b_minus_a": -0.05172413793103448,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 1024,
+      "difference_b_minus_a": -0.05172413793103448,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 2048,
+      "difference_b_minus_a": -0.05172413793103448,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 4096,
+      "difference_b_minus_a": -0.05172413793103448,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 8192,
+      "difference_b_minus_a": -0.05172413793103448,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 16384,
+      "difference_b_minus_a": -0.05172413793103448,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 3,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 24576,
+      "difference_b_minus_a": -0.05172413793103448,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1206896551724138,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "difference_b_minus_a": -0.08620689655172414,
+      "k": 1,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 512,
+      "difference_b_minus_a": -0.08620689655172414,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 1024,
+      "difference_b_minus_a": -0.08620689655172414,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 2048,
+      "difference_b_minus_a": -0.08620689655172414,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 4096,
+      "difference_b_minus_a": -0.08620689655172414,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 8192,
+      "difference_b_minus_a": -0.08620689655172414,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 16384,
+      "difference_b_minus_a": -0.08620689655172414,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_sft",
+      "a_only": 5,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 24576,
+      "difference_b_minus_a": -0.08620689655172414,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1724137931034483,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "difference_b_minus_a": -0.06896551724137931,
+      "k": 1,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 512,
+      "difference_b_minus_a": -0.06896551724137931,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 1024,
+      "difference_b_minus_a": -0.06896551724137931,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 2048,
+      "difference_b_minus_a": -0.06896551724137931,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 4096,
+      "difference_b_minus_a": -0.06896551724137931,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 8192,
+      "difference_b_minus_a": -0.06896551724137931,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 16384,
+      "difference_b_minus_a": -0.06896551724137931,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 4,
+      "b": "cot_sft",
+      "b_only": 0,
+      "budget": 24576,
+      "difference_b_minus_a": -0.06896551724137931,
+      "n_targets": 58,
+      "percentile95": [
+        -0.13793103448275862,
+        -0.017241379310344827
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "difference_b_minus_a": -0.10344827586206896,
+      "k": 1,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 512,
+      "difference_b_minus_a": -0.10344827586206896,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 1024,
+      "difference_b_minus_a": -0.10344827586206896,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 2048,
+      "difference_b_minus_a": -0.10344827586206896,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 4096,
+      "difference_b_minus_a": -0.10344827586206896,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 8192,
+      "difference_b_minus_a": -0.10344827586206896,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 16384,
+      "difference_b_minus_a": -0.10344827586206896,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "direct_rl",
+      "a_only": 6,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 24576,
+      "difference_b_minus_a": -0.10344827586206896,
+      "n_targets": 58,
+      "percentile95": [
+        -0.1896551724137931,
+        -0.034482758620689655
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "difference_b_minus_a": -0.034482758620689655,
+      "k": 1,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 512,
+      "difference_b_minus_a": -0.034482758620689655,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 1024,
+      "difference_b_minus_a": -0.034482758620689655,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 2048,
+      "difference_b_minus_a": -0.034482758620689655,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 4096,
+      "difference_b_minus_a": -0.034482758620689655,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 8192,
+      "difference_b_minus_a": -0.034482758620689655,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 16384,
+      "difference_b_minus_a": -0.034482758620689655,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    },
+    {
+      "a": "cot_sft",
+      "a_only": 2,
+      "b": "cot_rl",
+      "b_only": 0,
+      "budget": 24576,
+      "difference_b_minus_a": -0.034482758620689655,
+      "n_targets": 58,
+      "percentile95": [
+        -0.08620689655172414,
+        0.0
+      ],
+      "resamples": 5000,
+      "seed": 20260909
+    }
+  ],
+  "prediction_sha256": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_rl_book_greedy/attempts.jsonl": "0ec472ecd87567d894d550260f2da848bcfaa3e2e8300bceaeb66ae43c20644d",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_sft_book_greedy/attempts.jsonl": "a93f43b865ed3423a13b583db9f86cefb4bb54db6e5fd417c71170973c622d3d",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_rl_book_greedy/attempts.jsonl": "63900eba1cb35351ef205fdfda44a87190ee6b63f4a4bab755faccc4df10ec2f",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_sft_book_greedy/attempts.jsonl": "8dd93c581c5255ff354d224060a9b8235b34d6b83199b6fbaa02dedf93878594"
+  },
+  "release_sha256": "3571400876245b1aeb56669738b7fba9d6655f1b2ab55e3b72ecd2e3e5d4a994",
+  "role": "textbook_dev",
+  "source_sha256": {
+    "analysis": "061bb17456448ce747f9fa6302de1c69c378b79387c24826ae191cd9f5585d1e",
+    "compression": "872579988d74449061997da62a894fe1cb450e1d9dd04eaa745080de062315d0",
+    "official_safe_verify": "8a02b4aa560a18d1fda7d45071d24cac13f9eb7e85bd1bf42e5d41fcbfeb468d",
+    "official_verify": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+    "response_parser": "648dabf09249341e5aace0f64216b6164fbf6545ca99a3b749ab063b5b397417",
+    "strict_verify": "73362291ec996114f609cd8650bd5fc664d1ceb88e6166d966ad334ae743a1c7"
+  },
+  "status": "complete",
+  "written_utc": "2026-09-09T05:59:18.435662+00:00"
+}

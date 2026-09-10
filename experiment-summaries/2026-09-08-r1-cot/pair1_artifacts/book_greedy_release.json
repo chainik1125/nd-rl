@@ -1,0 +1,25 @@
+{
+  "status": "complete",
+  "role": "textbook_dev",
+  "rl_run_completed": true,
+  "evaluation_k": 1,
+  "labels_sha256": "1b04192d8a2d91b488a0884ccb096004003dbfcf40bb7aea55caa81c3f3cf53c",
+  "prediction_sha256": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_sft_book_greedy/attempts.jsonl": "8dd93c581c5255ff354d224060a9b8235b34d6b83199b6fbaa02dedf93878594",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_rl_book_greedy/attempts.jsonl": "63900eba1cb35351ef205fdfda44a87190ee6b63f4a4bab755faccc4df10ec2f",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_sft_book_greedy/attempts.jsonl": "a93f43b865ed3423a13b583db9f86cefb4bb54db6e5fd417c71170973c622d3d",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_rl_book_greedy/attempts.jsonl": "0ec472ecd87567d894d550260f2da848bcfaa3e2e8300bceaeb66ae43c20644d"
+  },
+  "model_modes": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_sft_book_greedy/attempts.jsonl": "direct",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_rl_book_greedy/attempts.jsonl": "direct",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_sft_book_greedy/attempts.jsonl": "cot",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_rl_book_greedy/attempts.jsonl": "cot"
+  },
+  "model_names": {
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_sft_book_greedy/attempts.jsonl": "direct_sft",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_direct_rl_book_greedy/attempts.jsonl": "direct_rl",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_sft_book_greedy/attempts.jsonl": "cot_sft",
+    "/data/users/dmitry/nd-rl/r1-cot-20260909/runs/pair1_8m_cot_rl_book_greedy/attempts.jsonl": "cot_rl"
+  }
+}
