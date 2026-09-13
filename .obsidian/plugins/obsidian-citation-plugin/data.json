@@ -3,7 +3,7 @@
   "citationExportFormat": "biblatex",
   "literatureNoteTitleTemplate": "{{citekey}}",
   "literatureNoteFolder": "docs/literature",
-  "literatureNoteContentTemplate": "---\nwritten_on: YYYY-MM-DD\nwritten_by: \"\"\ncitekey: {{citekey}}\n---\n\n# {{title}}\n\n<!-- Fill in the original writing date and writer. Full update history belongs in Git. -->\n\nPaper: [@{{citekey}}]\n\n{{#if URL}}[Read paper]({{URL}}){{/if}}\n\n## Learnings\n\n## Evidence and limitations\n\n## Connections and questions\n",
+  "literatureNoteContentTemplate": "---\nwritten_on: YYYY-MM-DD\nwritten_by: \"\"\npapers:\n  - {{citekey}}\n---\n\n# {{title}}\n\n<!-- Fill in the original writing date and writer. Full update history belongs in Git. The Markdown title may be changed. Rename this plugin-managed file only if you will not use Open literature note to reopen it. -->\n\nPaper: [@{{citekey}}]\n\n{{#if URL}}[Read paper]({{URL}}){{/if}}\n\n## Learnings\n\n## Evidence and limitations\n\n## Connections and questions\n",
   "markdownCitationTemplate": "[@{{citekey}}]",
   "alternativeMarkdownCitationTemplate": "@{{citekey}}"
 }

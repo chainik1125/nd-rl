@@ -18,16 +18,12 @@
 ## Store context
 
 - Keep reusable code in `code/` and meaningful regression tests in `code/tests/`.
-- Use `experiment-summaries/YYYY-MM-DD-short-slug/README.md` for each research effort. Copy
-  `experiment-summaries/TEMPLATE.md` and include the question, status, commands, configuration, seed,
-  code revision, observations, limitations, and artifact locations.
-- Keep tentative claims in experiment records. Promote supported conclusions to `docs/findings/`
-  using its template and link the supporting evidence. Preserve negative and inconclusive results.
-- Add an index link when adding a durable record. Update `docs/STATE.md` when the project state
-  changes, including the next concrete step. Do not treat a template or planned run as a result.
-- Put one-off work in ignored `scratch/`, and large generated outputs in ignored `artifacts/`
-  or external storage. Important findings must not exist only in ignored files or chat history.
-- Record secrets by variable name only. Use stable artifact locations and hashes where useful.
+- For each experiment that we run, we should create two files
+  - A working folder in nd-rl/code/experiments/current containing writeups, proposals, code etc...
+  - A summary folder in /Users/dmitrymanning-coe/Documents/Research/natural-deduction/nd-rl/experiment-summaries that contains clear, human-readable summary docs from the experiment alongside key figures, and references to the working folder.
+  - NOTE: This is only for experiments that have graduated to the stage of having a hypothesis to test, it is not for one-off literature reviews, quick tests etc... . Broadly, anything that is over 5h of human-equivalent effort.
+
+
 
 ## Work safely and quickly
 
@@ -62,7 +58,9 @@
 - Read `docs/literature/README.md` before adding papers or citations.
 - `references.bib` is generated from Zotero; do not edit it manually. Use
   `uv run --script code/tools/literature.py add <arxiv-id, DOI, or .bib path>`.
-- Cite papers as `[@citekey]`. Learning notes in `docs/literature/<citekey>.md` are optional;
-  link them with ordinary relative Markdown links and follow the research-note date convention.
+- Cite papers as `[@citekey]`. Research-note filenames and titles are free-form; associate a note
+  with one or more papers using a `papers:` YAML list of citekeys. Optional learning notes may live
+  in `docs/literature/`; link notes with ordinary relative Markdown links and follow the
+  research-note date convention.
 - Adding a paper is not evidence of having read or validated it. Keep claims and interpretations
   distinct, and preserve citation keys used by existing notes.

@@ -1,13 +1,15 @@
 ---
 written_on: YYYY-MM-DD
 written_by: "" # human:Name, agent:claude, or agent:codex
-citekey: ""
+papers:
+  - citekey
 ---
 
-# Paper title — learnings
+# Note title
 
 <!-- Preserve written_on after the first save. Full update history and editor attribution
-live in Git. Name the file <citekey>.md. A bibliography entry alone does not require a note. -->
+live in Git. The filename and title are free-form. List every paper this note is substantially
+about under papers; a bibliography entry alone does not require a note. -->
 
 Paper: [@citekey]
 Source: <!-- DOI/arXiv/publisher URL; specify the version reviewed. -->
