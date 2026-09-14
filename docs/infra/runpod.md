@@ -11,9 +11,12 @@ How to set up a personal RunPod account so that you, or an agent acting for you,
 right-sized GPU pods on demand. It records the decisions made, the costs expected for this
 project's model sizes, and what has been checked so far.
 
-**Status:** account, MCP connection, SSH key and pod template are set up. The first test pod
-has **not** started: RunPod refused it because the account had no balance (HTTP 402). The
-environment is not yet validated on a GPU.
+**Status (2026-09-14): validated on a GPU.** On a Secure Cloud A40 pod with a CUDA 13.0 host,
+`make -C code install-dev` succeeded. The project's locked `torch 2.14.0+cu130` ran CUDA work,
+and all 53 R1 tests passed with GPU tests enabled
+(`R1_TEST_CUDA=1 R1_REVIEW_DEVICE=cuda`). An earlier RTX 4090 pod on a CUDA 12.8 host passed the
+51 CPU tests but failed CUDA initialization; see the CUDA requirement under step 5. Both test
+pods were deleted afterwards.
 
 ## Decisions
 
@@ -22,9 +25,11 @@ environment is not yet validated on a GPU.
   run a job and remove the pod without a person present. Vast.ai is cheaper (roughly 40–60%)
   for interruptible jobs and is a reasonable backup for throwaway sweeps. Lambda, AWS and GCP
   are aimed at multi-GPU clusters, which this project does not need.
-- **Default GPU: 1× RTX 4090 (24 GB) on Secure Cloud.** The models are 8M and 85M parameters,
-  so an H100 buys faster wall-clock time, not more capability. Move to an A100 80GB or larger
-  only if memory or throughput becomes a real constraint.
+- **Default GPU: one mid-range card on Secure Cloud, such as an RTX 4090 (24 GB) or an A40
+  (48 GB).** The models are 8M and 85M parameters, so an H100 buys faster wall-clock time, not
+  more capability. The host must also support CUDA 13.0 or newer (see step 5), which often
+  decides which card is actually available. Move to an A100 80GB or larger only if memory or
+  throughput becomes a real constraint.
 - **Secure vs Community Cloud.** Use Community Cloud (about half the price) for diagnostic runs
   that can tolerate an interruption. Use Secure Cloud for runs that cannot be interrupted, such
   as a frozen evaluation.
@@ -38,7 +43,8 @@ Live RunPod catalog prices, read on 2026-09-14 (per GPU-hour, one GPU; prices ch
 
 | GPU | Secure | Community | Availability (Secure) |
 |---|---:|---:|---|
-| RTX 4090 24GB | $0.74 | $0.34 | Medium (best: EU-RO-1) |
+| RTX 4090 24GB | $0.74 | $0.34 | Medium (best: EU-RO-1); CUDA 13 hosts scarce |
+| A40 48GB | $0.49 | $0.35 | Low–medium; CUDA 13 hosts available |
 | A100 SXM 80GB | $1.59 | $1.39 | Low |
 | A100 PCIe 80GB | $1.59 | $1.19 | None at time of reading |
 | H100 SXM 80GB | $3.49 | $2.69 | High |
@@ -99,11 +105,16 @@ during analysis and writing weeks. Other costs:
    | Container disk | 30 GB (ephemeral) |
    | `/workspace` | 20 GB persistent mount |
    | Ports | `22/tcp` only; SSH on, Jupyter off |
-   | CUDA hosts | 12.8–13.3 |
+   | CUDA hosts | **13.0 or newer** (required; see below) |
 
-   Private templates belong to one account, so each person creates their own. RunPod's
-   dev-pod guide tested this image on an RTX 4090. Only `/workspace` survives a pod stop;
-   anything else, including installed packages, is wiped.
+   Private templates belong to one account, so each person creates their own. Only
+   `/workspace` survives a pod stop; anything else, including installed packages, is wiped.
+
+   **The host must support CUDA 13.0 or newer.** `code/uv.lock` pins `torch 2.14.0+cu130`.
+   On a host whose NVIDIA driver supports CUDA 12.8 at most (driver 570), the project's
+   PyTorch cannot initialize CUDA, even though the image's own PyTorch 2.8 works. Set
+   `allowedCudaVersions` (template) or `gpu.minCudaVersion` (pod) to 13.0. The name
+   `nd-rl-dev-4090` is historical: pass the GPU type when creating each pod.
 6. **Test pod, then automation.** Start one pod by hand and check it end to end before letting
    an agent start pods:
    - SSH in.
@@ -118,6 +129,25 @@ during analysis and writing weeks. Other costs:
 
 ## Gotchas
 
+- **GPU stock filtered by CUDA version is thin.** On 2026-09-14, no Secure Cloud RTX 4090 with
+  a CUDA 13 host could be created, although the catalog briefly listed one. An A40 (48 GB,
+  $0.49/hr Secure) with a CUDA 13 host was available and is a good, cheaper default for these
+  model sizes. Check `list-gpu-types` with `include=AVAILABILITY`, `product=POD` and
+  `minCudaVersion=13.0` before choosing a GPU.
+- **SSH keys reach the pod a few minutes after boot.** sshd accepted connections about 10
+  seconds after start but rejected the registered key for roughly the first two minutes.
+  Retry before assuming the key is wrong. `ssh -v` shows `Server accepts key` once the key is
+  installed.
+- **Passphrase-protected keys need `ssh-agent` for unattended use.** An agent running SSH
+  without a terminal cannot type a passphrase. Load the key once in your own terminal with
+  `ssh-add --apple-use-keychain ~/.ssh/id_ed25519` (macOS), and never give the passphrase to
+  an agent.
+- **Getting the private repo onto a pod.** Stream a local checkout over SSH rather than
+  putting a GitHub token on the pod:
+  `tar czf - --exclude='nd-rl/code/.venv' nd-rl | ssh <pod> 'tar xzf - -C /workspace'`.
+  Warnings that ownership can't be changed on `/workspace` are harmless; then run
+  `git config --global --add safe.directory /workspace/nd-rl`. On the first pod,
+  `make -C code install-dev` took about 6.5 minutes and the R1 CPU tests about 2 minutes.
 - A network volume is tied to one data center, and the pod must run in that same data center.
   Check GPU availability there before creating the volume.
 - A pod showing "Running" does not mean SSH is ready yet. Retry for up to about 90 seconds.
@@ -128,8 +158,8 @@ during analysis and writing weeks. Other costs:
 
 ## Next steps
 
-1. Add credit to the RunPod account, then start the test pod from `nd-rl-dev-4090`
-   (RTX 4090, Secure Cloud, EU-RO-1, $0.74/hr) and run the checks in step 6.
+1. Decide on the default GPU given CUDA-13 stock: A40 ($0.49/hr, verified) or RTX 4090
+   ($0.74/hr, when a CUDA 13 host is available). Consider renaming the template to match.
 2. Ask Dmitry whether an existing image or environment for the `simplex1` code should replace
    the stock PyTorch image. The `r1_cot` code expects vendored modules on `PYTHONPATH`; see
    [its README](../../code/experiments/current/r1_cot/README.md).
