@@ -25,11 +25,12 @@ pods were deleted afterwards.
   run a job and remove the pod without a person present. Vast.ai is cheaper (roughly 40–60%)
   for interruptible jobs and is a reasonable backup for throwaway sweeps. Lambda, AWS and GCP
   are aimed at multi-GPU clusters, which this project does not need.
-- **Default GPU: one mid-range card on Secure Cloud, such as an RTX 4090 (24 GB) or an A40
-  (48 GB).** The models are 8M and 85M parameters, so an H100 buys faster wall-clock time, not
-  more capability. The host must also support CUDA 13.0 or newer (see step 5), which often
-  decides which card is actually available. Move to an A100 80GB or larger only if memory or
-  throughput becomes a real constraint.
+- **Default GPU: 1× A40 (48 GB) on Secure Cloud, $0.49/hr.** The models are 8M and 85M
+  parameters, so an H100 buys faster wall-clock time, not more capability. The A40 is the card
+  the environment was validated on. It was available with the CUDA 13.0+ host the project
+  requires (see step 5), and it costs less than an RTX 4090, whose CUDA 13 hosts were scarce.
+  An RTX 4090 ($0.74/hr) is an acceptable fallback when a CUDA 13 host is free. Move to an
+  A100 80GB or larger only if memory or throughput becomes a real constraint.
 - **Secure vs Community Cloud.** Use Community Cloud (about half the price) for diagnostic runs
   that can tolerate an interruption. Use Secure Cloud for runs that cannot be interrupted, such
   as a frozen evaluation.
@@ -56,6 +57,7 @@ probably lower. At five sprints a week:
 
 | GPU (Secure) | Per sprint | Per week | 13 weeks, if sustained |
 |---|---:|---:|---:|
+| **A40 (default)** | ~$10 | ~$49 | ~$640 |
 | RTX 4090 | ~$15 | ~$74 | ~$960 |
 | A100 80GB | ~$32 | ~$160 | ~$2,070 |
 | H100 SXM | ~$70 | ~$350 | ~$4,540 |
@@ -100,7 +102,8 @@ during analysis and writing weeks. Other costs:
 
    | Field | Value |
    |---|---|
-   | Name | `nd-rl-dev-4090` |
+   | Name | `nd-rl-dev-a40` |
+   | GPU | Not stored in a template; request `NVIDIA A40` when creating the pod |
    | Image | `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404` (PyTorch 2.8, CUDA 12.8) |
    | Container disk | 30 GB (ephemeral) |
    | `/workspace` | 20 GB persistent mount |
@@ -113,8 +116,7 @@ during analysis and writing weeks. Other costs:
    **The host must support CUDA 13.0 or newer.** `code/uv.lock` pins `torch 2.14.0+cu130`.
    On a host whose NVIDIA driver supports CUDA 12.8 at most (driver 570), the project's
    PyTorch cannot initialize CUDA, even though the image's own PyTorch 2.8 works. Set
-   `allowedCudaVersions` (template) or `gpu.minCudaVersion` (pod) to 13.0. The name
-   `nd-rl-dev-4090` is historical: pass the GPU type when creating each pod.
+   `allowedCudaVersions` (template) or `gpu.minCudaVersion` (pod) to 13.0.
 6. **Test pod, then automation.** Start one pod by hand and check it end to end before letting
    an agent start pods:
    - SSH in.
@@ -134,8 +136,9 @@ during analysis and writing weeks. Other costs:
   $0.49/hr Secure) with a CUDA 13 host was available and is a good, cheaper default for these
   model sizes. Check `list-gpu-types` with `include=AVAILABILITY`, `product=POD` and
   `minCudaVersion=13.0` before choosing a GPU.
-- **SSH keys reach the pod a few minutes after boot.** sshd accepted connections about 10
-  seconds after start but rejected the registered key for roughly the first two minutes.
+- **SSH keys reach the pod a few minutes after boot.** sshd accepted connections soon after
+  start but rejected the registered key for about two minutes on the RTX 4090 host and about
+  seven minutes on the A40 host.
   Retry before assuming the key is wrong. `ssh -v` shows `Server accepts key` once the key is
   installed.
 - **Passphrase-protected keys need `ssh-agent` for unattended use.** An agent running SSH
@@ -158,9 +161,7 @@ during analysis and writing weeks. Other costs:
 
 ## Next steps
 
-1. Decide on the default GPU given CUDA-13 stock: A40 ($0.49/hr, verified) or RTX 4090
-   ($0.74/hr, when a CUDA 13 host is available). Consider renaming the template to match.
-2. Ask Dmitry whether an existing image or environment for the `simplex1` code should replace
+1. Ask Dmitry whether an existing image or environment for the `simplex1` code should replace
    the stock PyTorch image. The `r1_cot` code expects vendored modules on `PYTHONPATH`; see
    [its README](../../code/experiments/current/r1_cot/README.md).
-3. Set up the always-on agent host, and give it `RUNPOD_API_KEY` as an environment variable.
+2. Set up the always-on agent host, and give it `RUNPOD_API_KEY` as an environment variable.
