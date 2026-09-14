@@ -158,8 +158,18 @@ a standard host; until then, this is the working setup (set up 2026-09-14).
     with `repo` scope and a short expiry; fine-grained tokens may not reach repositories you
     collaborate on but don't own. Log in with `gh auth login --with-token`.
 - **Working pattern:** run each long session in `tmux` so it survives disconnects. The agent
-  starts pods only for GPU work, with `--terminate-after` as a cost guard, and checks for
-  leftover pods at the end of the session.
+  starts pods only for GPU work and checks for leftover pods at the end of the session.
+- **Cost guard:** `runpodctl` 2.14.0 has no `--terminate-after` flag. Wrap pod work in a
+  script whose `trap ... EXIT` runs `runpodctl pod remove`, and start it with `nohup` so a
+  dropped SSH connection doesn't skip the cleanup. `~/pod_smoke_test.sh` on the host
+  follows this pattern.
+- **Checked 2026-09-14:** from the host, the smoke-test script created a Secure Cloud A40 pod
+  from the `nd-rl-dev-a40` template (CUDA 13.0 host). The host's own key was accepted after
+  about 30 seconds, `nvidia-smi` and PyTorch saw the GPU, and the script deleted the pod.
+  Total run time was about 40 seconds.
+- **MCP pitfall:** run `claude mcp add ... --header "Authorization: Bearer $RUNPOD_API_KEY"`
+  only after the key is loaded into the shell. Otherwise it registers an empty `Bearer`
+  header and `claude mcp list` shows HTTP 401.
 
 ## Gotchas
 
@@ -196,5 +206,5 @@ a standard host; until then, this is the working setup (set up 2026-09-14).
 1. Ask Dmitry whether an existing image or environment for the `simplex1` code should replace
    the stock PyTorch image. The `r1_cot` code expects vendored modules on `PYTHONPATH`; see
    [its README](../../code/experiments/current/r1_cot/README.md).
-2. Finish the agent host's sign-ins (RunPod API key, Claude login, GitHub token), clone
-   `nd-rl` there, and run a first agent-driven pod cycle from the host.
+2. Swap in Dmitry's image and standard agent-host setup when they're available, and
+   update this note.
