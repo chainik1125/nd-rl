@@ -129,6 +129,38 @@ during analysis and writing weeks. Other costs:
    guard. For a dev box you will come back to, use `--stop-after` instead; a stopped pod keeps
    its disk and still pays for it.
 
+## Always-on agent host (interim)
+
+A small VPS runs long agent sessions so they don't depend on a laptop. Dmitry may later provide
+a standard host; until then, this is the working setup (set up 2026-09-14).
+
+- **Provider and size:** DigitalOcean droplet, Ubuntu 24.04, 2 vCPU / 2 GB RAM plus a 2 GB swap
+  file. 2 vCPU / 4 GB (about $24/month) is the safer size if several Claude Code sessions run
+  at once. Hetzner's EU CX33 (4 vCPU / 8 GB, about €8.50/month) is cheaper if its signup ID
+  check isn't a problem. Its US regions got more expensive in 2026.
+- **Hardening:**
+  - Log in as a regular user (`dan`) with passwordless sudo and SSH keys only.
+  - Root login and password login are disabled (`/etc/ssh/sshd_config.d/99-hardening.conf`).
+  - The `ufw` firewall allows inbound SSH only.
+  - Ubuntu's automatic security updates are on by default.
+  - Before disabling root login, confirm the new user can log in and use sudo.
+- **Tools:** `git`, `tmux`, `jq`, `gh` (GitHub's apt repository), `uv` (Astral's installer),
+  `runpodctl` (`curl -sSL https://cli.runpod.net | sudo bash`), Claude Code
+  (`curl -fsSL https://claude.ai/install.sh | bash`), and the RunPod Claude Code plugin.
+- **Credentials (separate from your laptop's; each can be revoked on its own):**
+  - **Pod SSH:** `~/.ssh/runpod_ed25519` has no passphrase and is set as the default key in
+    `~/.ssh/config`. Its public key is registered on RunPod next to the laptop key. The
+    key-update call replaces the whole list, so read the current keys first.
+  - **RunPod:** use a separate API key for the host, stored as `RUNPOD_API_KEY` in
+    `~/.config/nd-rl/env` (chmod 600, sourced from `~/.bashrc`).
+  - **GitHub:** first try a fine-grained token with Contents and Pull requests set to
+    read/write. If `gh repo view chainik1125/nd-rl` then fails, fall back to a classic token
+    with `repo` scope and a short expiry; fine-grained tokens may not reach repositories you
+    collaborate on but don't own. Log in with `gh auth login --with-token`.
+- **Working pattern:** run each long session in `tmux` so it survives disconnects. The agent
+  starts pods only for GPU work, with `--terminate-after` as a cost guard, and checks for
+  leftover pods at the end of the session.
+
 ## Gotchas
 
 - **GPU stock filtered by CUDA version is thin.** On 2026-09-14, no Secure Cloud RTX 4090 with
@@ -164,4 +196,5 @@ during analysis and writing weeks. Other costs:
 1. Ask Dmitry whether an existing image or environment for the `simplex1` code should replace
    the stock PyTorch image. The `r1_cot` code expects vendored modules on `PYTHONPATH`; see
    [its README](../../code/experiments/current/r1_cot/README.md).
-2. Set up the always-on agent host, and give it `RUNPOD_API_KEY` as an environment variable.
+2. Finish the agent host's sign-ins (RunPod API key, Claude login, GitHub token), clone
+   `nd-rl` there, and run a first agent-driven pod cycle from the host.
