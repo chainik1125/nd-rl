@@ -96,13 +96,39 @@ not reach). This reproduces the R1-CoT sprint's textbook wall and locates it: th
 that move are those the base model already assigns ≥ 10⁻⁴ to; the rest need a derived
 disjunction or a derived contradiction, which no arm produces.
 
+## Follow-up run (2026-09-16, reviewed)
+
+Design from the review's limitations (`FOLLOWUP_BRIEF.md`, results in `followup.md`,
+`phase2.md` §Follow-up, review in `review_followup.md` on the branch). 4.3 h, three A40s, ≈ $6.
+
+- **Depth-3 at f = 0 replicates.** Three new f = 0 pretraining sets × two training seeds
+  (8 arms total): acquisition 0.271–0.364, mean 0.339 ± 0.029; six f = 0.1 arms 0.122–0.355
+  (0.307 ± 0.092). Distributions overlap; between-set SD 0.010 vs between-training-seed SD
+  0.031. Correction to the first campaign: on some Stage-1 draws the base model does open a
+  third box at p ≈ 10⁻²–10⁻³ on a few `A > (B > (C > D))` targets (frozen controls 0–10
+  theorems), so "the base never does" is draw-dependent; ≥ 94% of each arm's depth-3 proofs
+  stay below 10⁻⁴ under the base. Expert-iteration ignition is seed-driven and not specific to
+  f = 0: one f = 0.1 arm reached 0.122 after igniting at round 7.
+- **Reductio on 606 targets whose double negation must be derived** (21 classical-only
+  schemata without `~~`, hand-checked): f = 0 seeds 1 and 2 solve 0/606; seed 0 solves 58, all
+  with the strict `NEGI(~G)…DN` shape, confined to two 7-line schemata — and that seed's base
+  model already produces the shape at 2×10⁻⁴–4×10⁻³ (pass@10⁴: 5/300, all reductio-shaped).
+  Elicitation of a rare base-model generalisation, not RL composition. Peirce, excluded
+  middle, De Morgan, converse contraposition: 0 in every arm including f = 0.1.
+- **Cap-8 strict derived-ORE dial is flat**: 0.008 / 0.008 / 0.022 / 0.022 at f = 0, 0, 10⁻³,
+  10⁻², against a pre-registered 10–35%; the arms solve ~40% of targets by other routes. The
+  pattern is base-reachable but never required.
+- Reviewed: every count re-derived independently and matched. Carried-forward issue: no pool
+  yet *requires* a rule-sequence pattern, so "RL does not invent rule sequences" rests on
+  absence-when-optional plus the base-reachability of the one positive case.
+
 ## Limitations and next step
 
 - Two training seeds at the extremes, one elsewhere; cap 6 makes the derived-ORE dial measure
   a degenerate template; the reductio dial is uninformative (targets did not require it); the
   base pass@10⁴ files store only distinct proofs, so "0 depth-3 in 3×10⁶ samples" rests on the
   sampler's bookkeeping; one model size; one generator.
-- Next: (1) more seeds at f = 0 for depth-3 and a reductio pool whose double negation must be
+- Next (after the follow-up): the ignition dynamics of expert iteration (why one seed reaches 86 depth-3 theorems by round 2 and another needs seven rounds); the base rate at which cap-6 Stage-1 draws generalise NEGI-then-DN (many seeds, sampling only); a target pool that *requires* a rule-sequence pattern. Earlier list: (1) more seeds at f = 0 for depth-3 and a reductio pool whose double negation must be
   derived (e.g. targets of the form `( P > Q ) , ( ~ Q ) |- ( ~ P )`-style contradictions
   with the negated goal only reachable through a box); (2) a cap-8 arm so a non-degenerate
   derived ORE is expressible in pretraining and its dial can be run; (3) the same dial on the
