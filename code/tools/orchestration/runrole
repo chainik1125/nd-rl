@@ -23,9 +23,9 @@ When finished, create the file $DONE."
 Phase-1 workspace (executor write-ups removed): ~/review/$RUN"
 cd "$REPO" || exit 1
 for i in $(seq 1 200); do
-  [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; break; }
-  [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; break; }
-  [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; break; }
+  [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; notify "$RUN: $ROLE hit its hard stop" "Session ended by time limit; check STATUS.md." high; break; }
+  [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E 'DONE|QUARANTINE' "$REPO/STATUS.md" 2>/dev/null | tail -2)"; break; }
+  [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E "$DONEGREP" "$REPO/STATUS.md" | tail -1)"; break; }
   OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i" >> "$LOG"
   if [ "$i" = 1 ]; then
     claude -p "$(cat "$REPO/AGENT_POLICY.md")
@@ -41,7 +41,7 @@ Begin." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
   fi
   rc=$?; echo "[driver] $(date -u +%FT%TZ) invocation $i exited rc=$rc" >> "$LOG"
   if { tail -c 6000 "$OUT"; tail -c 3000 "$LOG"; } | grep -qiE "usage limit|rate.?limit|limit reached|hit your limit|resets at|429"; then
-    echo "[driver] LIMIT_HIT $(date -u +%FT%TZ)" >> "$LOG"; echo "LIMIT_HIT $(date -u +%FT%TZ) $RUN/$ROLE" >> ~/LIMIT_HITS; sleep 1800
+    echo "[driver] LIMIT_HIT $(date -u +%FT%TZ)" >> "$LOG"; echo "LIMIT_HIT $(date -u +%FT%TZ) $RUN/$ROLE" >> ~/LIMIT_HITS; notify "$RUN: usage limit hit ($ROLE)" "Sleeping 30 min, then resuming." low; sleep 1800
   else sleep 90; fi
 done
 echo "[driver] $(date -u +%FT%TZ) loop finished" >> "$LOG"

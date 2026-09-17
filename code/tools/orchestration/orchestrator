@@ -13,11 +13,13 @@ while IFS='|' read -r RUN REPO DG BRIEF; do
     review_workspace "$RUN" "$REPO" >> $L 2>&1
     tmux new-session -d -s "rev-$RUN" "bash -lc 'runrole reviewer $RUN --repo $REPO ${BRIEF:+--brief $BRIEF} --stop \"+12 hours\"'"
     echo "$(date -u +%FT%TZ) $RUN: reviewer session started (tmux rev-$RUN)" >> $L
+    notify "$RUN: executor finished, reviewer started" "$(grep -E "$DG" "$REPO/STATUS.md" | tail -1)"
   fi
   if [ -f "$D/reviewer.done" ] && [ ! -f "$D/librarian.started" ]; then
     if gate2 "$REPO" "$RUN" >> $L 2>&1; then
       tmux new-session -d -s "lib-$RUN" "bash -lc 'runrole librarian $RUN --repo $HOME/nd-rl --stop \"+6 hours\"'"
       echo "$(date -u +%FT%TZ) $RUN: librarian session started" >> $L
-    else echo "$(date -u +%FT%TZ) $RUN: gate2 failed; librarian not started" >> $L; touch "$D/librarian.started"; fi
+      notify "$RUN: review passed gate 2, librarian started" "$(grep -iA3 '^## .*verdict' "$REPO/review_$RUN.md" | tail -3 | tr '\n' ' ')"
+    else echo "$(date -u +%FT%TZ) $RUN: gate2 failed; librarian not started" >> $L; touch "$D/librarian.started"; notify "$RUN: review failed gate 2" "Librarian not started; see ~/orchestrator.log" high; fi
   fi
 done < ~/orchestrator.conf

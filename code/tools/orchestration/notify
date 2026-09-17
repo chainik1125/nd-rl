@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Send Dan a message.  notify "<title>" "<body>" [priority: low|default|high]
+# Channels: ntfy (NTFY_TOPIC) and, if RESEND_API_KEY is set, email (NOTIFY_EMAIL, default dantweinand@gmail.com).
+. ~/.config/nd-rl/env 2>/dev/null
+T=$1; B=$2; P=${3:-default}; ok=0
+echo "$(date -u +%FT%TZ) [$P] $T — $B" >> ~/notify.log
+if [ -n "${NTFY_TOPIC:-}" ]; then
+  curl -s -m 15 -H "Title: $T" -H "Priority: $P" -H "Tags: robot" -d "$B" "https://ntfy.sh/$NTFY_TOPIC" >/dev/null && ok=1
+fi
+if [ -n "${RESEND_API_KEY:-}" ]; then
+  curl -s -m 15 -X POST https://api.resend.com/emails -H "Authorization: Bearer $RESEND_API_KEY" -H "Content-Type: application/json" \
+    -d "$(jq -n --arg to "${NOTIFY_EMAIL:-dantweinand@gmail.com}" --arg s "[nd-rl] $T" --arg b "$B" '{from:"nd-rl agents <onboarding@resend.dev>",to:[$to],subject:$s,text:$b}')" >/dev/null && ok=1
+fi
+[ $ok = 1 ] || echo "notify: no channel configured (set NTFY_TOPIC and/or RESEND_API_KEY)" >&2
