@@ -122,6 +122,31 @@ Design from the review's limitations (`FOLLOWUP_BRIEF.md`, results in `followup.
   yet *requires* a rule-sequence pattern, so "RL does not invent rule sequences" rests on
   absence-when-optional plus the base-reachability of the one positive case.
 
+## Ignition study (2026-09-16, reviewed)
+
+Eight new Stage-1 seeds each on the depth-3 f = 0 set `a1` and the reductio f = 0 set, a
+pre-RL sample (300 targets × 2,000) per draw, identical expert iteration, and interventions
+from the round-4 state on the non-igniting arms (`ignition.md`, `review_ignition.md`).
+
+- **Reductio (a rule sequence): ignition is the pre-RL base rate.** 4 of 11 draws produce the
+  strict `NEGI(~G)…DN` shape before RL (8×10⁻⁶ – 2.3×10⁻⁴ per sample); exactly those four
+  ignite, in rate order; the seven zero-rate draws end at 0/606 after 155k attempts. The
+  first-proof round matches 1/(r·k·N) within ~2.5×.
+- **Depth-3 (a structural pattern): the base rate predicts early ignition and nothing else.**
+  Draws with rate ≥ 2.5×10⁻⁴ ignite by round 3; of five draws with zero depth-3 samples in
+  600k, three ignite (rounds 3–5) and two never — decided during training on depth-≤2
+  proofs, not by sampling luck. Round-8 acquisition depends only on ignition (0.30–0.36 if
+  ignited by round 5, ≤ 0.004 otherwise).
+- **Interventions from round 4:** one training step on a sibling arm's found proofs ignites
+  11/11 non-igniters in the next round and reaches the plateau (depth-3 0.33–0.35; reductio
+  0.11–0.18, above every self-ignited reductio arm). One round at k = 128 or T = 1.0 changes
+  almost nothing in either direction (review refinement of the study's wording).
+- Base generalisation: 10/16 depth-3 f = 0 draws and 4/11 reductio draws emit the pattern at
+  all in 600k samples.
+- Next measurements (review): the pattern's base rate on intermediate checkpoints of
+  zero-hit draws that later ignite (does the prior drift before the first proof?); a pre-RL
+  sample over all targets.
+
 ## Limitations and next step
 
 - Two training seeds at the extremes, one elsewhere; cap 6 makes the derived-ORE dial measure
