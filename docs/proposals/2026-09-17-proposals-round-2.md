@@ -127,3 +127,7 @@ real negative result.
 
 5 → 2 → 3 are cheap and sharpen the existing claim; 1 opens the Lean track and needs a
 decision on Qwen hosting; 4 is the one that speaks directly to the sprint's method.
+
+## Added 2026-09-17: proposal 6
+
+[A ladder of RL techniques to maximise the true proof-length frontier](2026-09-17-rl-technique-ladder.md) — the original L − P objective with true length from the necessity oracle and the technique choice run as a pre-registered tournament (requested by Dan).
