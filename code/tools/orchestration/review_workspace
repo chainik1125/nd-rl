@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Copy a run's repository for the reviewer with the executor's write-ups removed.  review_workspace <run-id> [repo]
+RUN=$1; REPO=${2:-$HOME/nd-takehome}; W=~/review/$RUN; mkdir -p "$W"
+rsync -a --delete --exclude .git --exclude '__pycache__' --exclude 'run*.md' --exclude '*summary*.md' --exclude campaign.md --exclude followup.md --exclude ignition.md --exclude 'phase*.md' --exclude numbers.md --exclude 'STATUS*.md' --exclude 'writeup.md' --exclude 'review_*.md' "$REPO/" "$W/"
+echo "review workspace: $W ($(du -sh "$W" | cut -f1)); write-ups withheld"

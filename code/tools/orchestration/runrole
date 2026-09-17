@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Start one role session for one run, with the resume loop.
+#   runrole <role> <run-id> [--repo DIR] [--brief FILE] [--stop "YYYY-MM-DD HH:MM"] [--model NAME] [--done FILE] [--done-grep REGEX]
+# role ∈ executor|reviewer|librarian|proposer. Role briefs live in $ORCH_BRIEFS (default ~/nd-rl/docs/proposals/orchestration).
+set -u
+ROLE=$1; RUN=$2; shift 2
+REPO=~/nd-takehome; BRIEF=""; STOP=""; MODEL=fable; DONE=""; DONEGREP=""
+while [ $# -gt 0 ]; do case $1 in
+  --repo) REPO=$2; shift 2;; --brief) BRIEF=$2; shift 2;; --stop) STOP=$2; shift 2;; --model) MODEL=$2; shift 2;;
+  --done) DONE=$2; shift 2;; --done-grep) DONEGREP=$2; shift 2;; *) echo "unknown arg $1"; exit 1;; esac; done
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env
+BRIEFS=${ORCH_BRIEFS:-$HOME/nd-rl/docs/proposals/orchestration}
+D=~/runs/$RUN; mkdir -p "$D"; LOG=$D/$ROLE.driver.log
+[ -n "$DONE" ] || DONE=$D/$ROLE.done
+date -u +%FT%TZ > "$D/$ROLE.started"
+STOPTS=$(date -u -d "${STOP:-+30 hours}" +%s)
+export GIT_AUTHOR_NAME="agent:claude ($ROLE)" GIT_AUTHOR_EMAIL="dantweinand@gmail.com" GIT_COMMITTER_NAME="Dan Pandori" GIT_COMMITTER_EMAIL="dantweinand@gmail.com"
+COMMON=(--model "$MODEL" --dangerously-skip-permissions --verbose --output-format stream-json)
+CTX="Run id: $RUN. Role: $ROLE. Repository: $REPO. Runs directory: $D. Current UTC time: $(date -u).
+Commit trailers to use: 'Edited-by: agent:claude', 'Agent-role: $ROLE', 'Run-id: $RUN'.
+When finished, create the file $DONE."
+[ "$ROLE" = reviewer ] && CTX="$CTX
+Phase-1 workspace (executor write-ups removed): ~/review/$RUN"
+cd "$REPO" || exit 1
+for i in $(seq 1 200); do
+  [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; break; }
+  [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; break; }
+  [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; break; }
+  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i" >> "$LOG"
+  if [ "$i" = 1 ]; then
+    claude -p "$(cat "$REPO/AGENT_POLICY.md")
+
+$(cat "$BRIEFS/$ROLE.md")
+
+$( [ -n "$BRIEF" ] && cat "$BRIEF" )
+
+$CTX
+Begin." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
+  else
+    claude -p --continue "Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
+  fi
+  rc=$?; echo "[driver] $(date -u +%FT%TZ) invocation $i exited rc=$rc" >> "$LOG"
+  if { tail -c 6000 "$OUT"; tail -c 3000 "$LOG"; } | grep -qiE "usage limit|rate.?limit|limit reached|hit your limit|resets at|429"; then
+    echo "[driver] LIMIT_HIT $(date -u +%FT%TZ)" >> "$LOG"; echo "LIMIT_HIT $(date -u +%FT%TZ) $RUN/$ROLE" >> ~/LIMIT_HITS; sleep 1800
+  else sleep 90; fi
+done
+echo "[driver] $(date -u +%FT%TZ) loop finished" >> "$LOG"

@@ -1,0 +1,16 @@
+# Orchestration tools
+
+Shell tools for the role loop described in `docs/proposals/orchestration/README.md`. Install
+on the agent host with `bash install.sh` (adds them to `~/bin`, a `~/pods.log` line to
+`podnew`, and a 10-minute `orchestrator` cron tick).
+
+| tool | does |
+|---|---|
+| `runrole <role> <run-id> [--repo] [--brief] [--stop] [--model] [--done] [--done-grep]` | starts one role session with the resume loop; policy + role brief + run brief as the first prompt; per-role git author; transcripts and driver log under `~/runs/<run-id>/` |
+| `gate0 <repo> <run-id>` | `preregistration/<run-id>.md` committed before the first pod in `~/pods.log` |
+| `gate1 <repo> <run-id> [--status] [--done-grep] [--strict-pods]` | done line present; not quarantined; pods (warn or fail); `nd_verify` hash equals main; test marker unchanged; `numbers.md` sources exist |
+| `gate2 <repo> <run-id>` | `review_<run-id>.md` committed with Recount, claims table, Verdict; not quarantined |
+| `review_workspace <run-id> [repo]` | copy of the run repo with the executor's write-ups removed, for the reviewer's phase 1 |
+| `orchestrator` | cron tick over `~/orchestrator.conf` (`<run-id> <repo> <done-regex> [brief]`): done line → gate1 → workspace → reviewer; `reviewer.done` → gate2 → librarian |
+
+Gate 3 (summary only from reviewed numbers) is the librarian's brief, not a script yet.

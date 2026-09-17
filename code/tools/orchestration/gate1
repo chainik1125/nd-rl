@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Gate 1: execution done and clean.  gate1 <repo> <run-id> [--status FILE] [--done-grep REGEX] [--strict-pods]
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env
+REPO=$1; RUN=$2; shift 2; STATUS=STATUS.md; DG='^(RUN[0-9a-z]* )?DONE '; STRICT=0
+while [ $# -gt 0 ]; do case $1 in --status) STATUS=$2; shift 2;; --done-grep) DG=$2; shift 2;; --strict-pods) STRICT=1; shift;; *) shift;; esac; done
+cd "$REPO" || exit 2; fail=0; warn=0
+grep -qE "$DG" "$STATUS" || { echo "GATE1 FAIL: no done line matching /$DG/ in $STATUS"; fail=1; }
+grep -q "QUARANTINE" "$STATUS" && { echo "GATE1 FAIL: run quarantined"; fail=1; }
+NP=$(runpodctl pod list 2>/dev/null | jq -r 'length' 2>/dev/null); NP=${NP:-?}
+if [ "$NP" != "0" ]; then if [ $STRICT = 1 ]; then echo "GATE1 FAIL: $NP pods still running"; fail=1; else echo "GATE1 WARN: $NP pods running (other runs may own them)"; warn=1; fi; fi
+git fetch -q upstream 2>/dev/null || git fetch -q origin 2>/dev/null
+REF=$(git rev-parse -q --verify upstream/main 2>/dev/null || git rev-parse -q --verify origin/main)
+[ "$(git show $REF:nd_verify/verify.py | sha256sum | cut -c1-16)" = "$(sha256sum nd_verify/verify.py | cut -c1-16)" ] || { echo "GATE1 FAIL: nd_verify/verify.py differs from $REF"; fail=1; }
+B=~/runs/baseline.test_marker; M=$(stat -c %Y artifacts/TEST_RUN_DONE 2>/dev/null)
+if [ -f "$B" ]; then [ "$(cat $B)" = "$M" ] || { echo "GATE1 FAIL: artifacts/TEST_RUN_DONE mtime changed"; fail=1; }; else echo "${M:-none}" > "$B"; fi
+missing=0; for f in $(grep -oE '`(artifacts|data|ckpts|figures)/[^`]+`' numbers.md | tr -d '`' | sort -u); do g=${f%%/\{*}; [ -e "$g" ] || [ -n "$(ls -d $g* 2>/dev/null)" ] || missing=$((missing+1)); done
+[ $missing -gt 0 ] && { echo "GATE1 WARN: $missing source paths cited in numbers.md not found locally"; warn=1; }
+[ $fail = 0 ] && echo "GATE1 PASS (warnings: $warn)" || echo "GATE1 FAILED"; exit $fail

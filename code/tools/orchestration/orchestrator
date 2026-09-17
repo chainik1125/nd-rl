@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Cron tick. Config ~/orchestrator.conf lines:  <run-id> <repo> <done-regex> [review-brief]
+# When the executor's done line appears: gate1 → review_workspace → runrole reviewer.  When reviewer.done: gate2 → runrole librarian.
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; L=~/orchestrator.log
+[ -f ~/orchestrator.conf ] || exit 0
+while read -r RUN REPO DG BRIEF; do
+  [ -z "$RUN" ] || [ "${RUN:0:1}" = "#" ] && continue
+  D=~/runs/$RUN; mkdir -p "$D"
+  if [ ! -f "$D/reviewer.started" ] && grep -qE "$DG" "$REPO/STATUS.md" 2>/dev/null; then
+    echo "$(date -u +%FT%TZ) $RUN: executor done line seen" >> $L
+    gate1 "$REPO" "$RUN" --done-grep "$DG" >> $L 2>&1 || echo "$(date -u +%FT%TZ) $RUN: gate1 failed — reviewer still started with the failure noted" >> $L
+    review_workspace "$RUN" "$REPO" >> $L 2>&1
+    tmux new-session -d -s "rev-$RUN" "bash -lc 'runrole reviewer $RUN --repo $REPO ${BRIEF:+--brief $BRIEF} --stop \"+12 hours\"'"
+    echo "$(date -u +%FT%TZ) $RUN: reviewer session started (tmux rev-$RUN)" >> $L
+  fi
+  if [ -f "$D/reviewer.done" ] && [ ! -f "$D/librarian.started" ]; then
+    if gate2 "$REPO" "$RUN" >> $L 2>&1; then
+      tmux new-session -d -s "lib-$RUN" "bash -lc 'runrole librarian $RUN --repo $HOME/nd-rl --stop \"+6 hours\"'"
+      echo "$(date -u +%FT%TZ) $RUN: librarian session started" >> $L
+    else echo "$(date -u +%FT%TZ) $RUN: gate2 failed; librarian not started" >> $L; touch "$D/librarian.started"; fi
+  fi
+done < ~/orchestrator.conf
