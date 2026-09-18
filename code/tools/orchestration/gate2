@@ -2,8 +2,8 @@
 # Gate 2: a review exists with a recount, a claims table, and a verdict.  gate2 <repo> <run-id>
 REPO=$1; RUN=$2; cd "$REPO" || exit 2; F=review_$RUN.md; fail=0
 [ -f "$F" ] || { echo "GATE2 FAIL: $F missing"; exit 1; }
-grep -qiE "^## .*recount" "$F" || { echo "GATE2 FAIL: no Recount section"; fail=1; }
-grep -qiE "^## .*verdict" "$F" || { echo "GATE2 FAIL: no Verdict section"; fail=1; }
+grep -qiE "^#{1,4} .*recount|^\*\*recount" "$F" || { echo "GATE2 FAIL: no Recount section"; fail=1; }
+grep -qiE "^#{1,4} .*verdict|^\*\*verdict" "$F" || { echo "GATE2 FAIL: no Verdict section"; fail=1; }
 rows=$(grep -cE '^\|[^|]+\|[^|]+\|[^|]+\|' "$F"); [ "$rows" -ge 3 ] || { echo "GATE2 FAIL: claims table has $rows rows"; fail=1; }
 git log --format=%cI -1 -- "$F" >/dev/null 2>&1 && git diff --quiet -- "$F" || { echo "GATE2 FAIL: $F not committed or has uncommitted changes"; fail=1; }
 grep -q "QUARANTINE" STATUS.md 2>/dev/null && { echo "GATE2: run is QUARANTINED — stop"; exit 1; }
