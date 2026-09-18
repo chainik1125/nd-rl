@@ -16,6 +16,8 @@
 
 4. [@yueDoesReinforcementLearning2025]: One of the more careful measurements suggesting that RL is nothing more than elicitation. We should be sure to evaluate our claimed new capability emergence against the pass@k measures here.
 
+5. A gentle introduction to RL in scale LLMs [@clayDemystifyingReinforcementLearning2026]: Very good baseline for us to consider, both sceptically (i.e. if this pipeline fails we should question how relevant our results are to real language models) and optimistically (i.e. this is a good starting point for our own RL pipelines).
+
 
 ## Autoresearch and working with agents
 
@@ -33,6 +35,10 @@
 2. Excess Description Length [@donoway2026excessdescriptionlengthlearning]: An aproach to quantifying elicitation vs. capability emergence. One direction for the project is to use the ND setting to refine and propose new measures of elicitation/emergence and this is a good starting point for the current SOTA on that.
 
 3. Olmo RL pipelines [@allenaiOLMo3RLZero2025]: Olmo open sources the training data, model checkpoints, and training code. Their RL implementation is a decent reasonable-effort version at what happens in frontier models.
+
+4. Conjecture-proving [@poesia2024learningformalmathematicsintrinsic]: An interesting approach to having models conjecture and then prove. It might be interesting to try this in our pipeline, especially if we tried to do Multi-Agent RL.
+
+5. Data collapse [@gerstgrasserModelCollapseInevitable2024]. An interesting question is why the intuition from pre-training that models trained on their own outputs collapse fails in RL.
 
 
 

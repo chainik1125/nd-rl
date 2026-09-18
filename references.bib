@@ -26,6 +26,20 @@
   howpublished = {GitHub repository documentation}
 }
 
+@online{clayDemystifyingReinforcementLearning2026,
+  title = {Demystifying {{Reinforcement Learning Post-Training}} of {{Language Models}}},
+  author = {Clay, Donovan and Gollapudi, Saket and Harilal, Sankar and Jang, Min and Morrison, Jacob and Oh, Sewoong and Jaques, Natasha},
+  date = {2026-09-01T00:14:00Z},
+  doi = {10.48550/ARXIV.2608.24949},
+  url = {https://arxiv.org/abs/2608.24949},
+  urldate = {2026-09-14},
+  abstract = {Reinforcement learning (RL) post-training has emerged as a powerful framework for enhancing the capabilities of large language models (LLMs), enabling impressive reasoning, math, and coding capabilities. Yet for many researchers and practitioners, the principles behind classical RL remain a “black box”. In this work, we deconstruct the RL post-training algorithm, investigating each step to clarify what is actually happening beneath the surface. By isolating the mechanics of RL with Verifiable Rewards in a controlled and simplified environment, we examine how RL outcomes are shaped by the base model’s prior distribution, the granularity of the reward signal, the diversity of the prompt distribution, and model scale. We use the entropy of the policy’s output distribution as a lens to compare the distributions learned through pretraining, SFT, and RL post-training, revealing how each stage shapes model certainty. Our investigation sheds light on how these choices interact to affect posttraining success. For example, we show that the effect of so-called ‘spurious rewards’ depends on the prompt distribution used for posttraining. We also provide insight into why the success of RL post-training depends on whether the base model already places sufficient probability mass on the desired behavior, linking it to the classical concept of exploration in RL. Ultimately, we provide this primer as a resource to those in the NLP community wishing to incorporate RL as a tool in their toolbox.},
+  pubstate = {prepublished},
+  version = {2},
+  keywords = {Artificial Intelligence (cs.AI),Computation and Language (cs.CL),FOS: Computer and information sciences,Machine Learning (cs.LG)},
+  file = {/Users/dmitrymanning-coe/Zotero/storage/4CIAKNUJ/Clay et al. - 2026 - Demystifying Reinforcement Learning Post-Training of Language Models.pdf}
+}
+
 @online{deepseek-aiDeepSeekV4HighlyEfficient2026,
   title = {{{DeepSeek-V4}}: {{Towards Highly Efficient Million-Token Context Intelligence}}},
   shorttitle = {{{DeepSeek-V4}}},
@@ -86,6 +100,22 @@
   eprinttype = {arXiv},
   eprintclass = {cs.AI},
   url = {https://arxiv.org/abs/2006.08381}
+}
+
+@online{gerstgrasserModelCollapseInevitable2024,
+  title = {Is {{Model Collapse Inevitable}}? {{Breaking}} the {{Curse}} of {{Recursion}} by {{Accumulating Real}} and {{Synthetic Data}}},
+  shorttitle = {Is {{Model Collapse Inevitable}}?},
+  author = {Gerstgrasser, Matthias and Schaeffer, Rylan and Dey, Apratim and Rafailov, Rafael and Sleight, Henry and Hughes, John and Korbak, Tomasz and Agrawal, Rajashree and Pai, Dhruv and Gromov, Andrey and Roberts, Daniel A. and Yang, Diyi and Donoho, David L. and Koyejo, Sanmi},
+  date = {2024-04-29},
+  eprint = {2404.01413},
+  eprinttype = {arXiv},
+  eprintclass = {cs.LG},
+  doi = {10.48550/arXiv.2404.01413},
+  url = {http://arxiv.org/abs/2404.01413},
+  urldate = {2026-09-16},
+  abstract = {The proliferation of generative models, combined with pretraining on web-scale data, raises a timely question: what happens when these models are trained on their own generated outputs? Recent investigations into model-data feedback loops proposed that such loops would lead to a phenomenon termed model collapse, under which performance progressively degrades with each model-data feedback iteration until fitted models become useless. However, those studies largely assumed that new data replace old data over time, where an arguably more realistic assumption is that data accumulate over time. In this paper, we ask: what effect does accumulating data have on model collapse? We empirically study this question by pretraining sequences of language models on text corpora. We confirm that replacing the original real data by each generation's synthetic data does indeed tend towards model collapse, then demonstrate that accumulating the successive generations of synthetic data alongside the original real data avoids model collapse; these results hold across a range of model sizes, architectures, and hyperparameters. We obtain similar results for deep generative models on other types of real data: diffusion models for molecule conformation generation and variational autoencoders for image generation. To understand why accumulating data can avoid model collapse, we use an analytically tractable framework introduced by prior work in which a sequence of linear models are fit to the previous models' outputs. Previous work used this framework to show that if data are replaced, the test error increases with the number of model-fitting iterations; we extend this argument to prove that if data instead accumulate, the test error has a finite upper bound independent of the number of iterations, meaning model collapse no longer occurs.},
+  pubstate = {prepublished},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computation and Language,Computer Science - Emerging Technologies,Computer Science - Machine Learning,Statistics - Machine Learning}
 }
 
 @article{guoDeepSeekR1IncentivizesReasoning2025,
@@ -218,6 +248,18 @@
   url = {https://github.com/verl-project/verl-recipe/tree/main/dapo},
   urldate = {2026-09-13},
   howpublished = {GitHub repository recipe}
+}
+
+@online{venhoffBaseModelsKnow2025,
+  title = {Base {{Models Know How}} to {{Reason}}, {{Thinking Models Learn When}}},
+  author = {Venhoff, Constantin and Arcuschin, Iván and Torr, Philip and Conmy, Arthur and Nanda, Neel},
+  date = {2025-10-08},
+  url = {https://arxiv.org/abs/2510.07364v4},
+  urldate = {2026-09-14},
+  abstract = {What do thinking language models learn during training that their base models lack? We first present an unsupervised method that discovers a model's reasoning behaviors by training small Sparse Autoencoders on sentence-level activations of reasoning traces, yielding interpretable reasoning taxonomies. Building on this, we introduce constructive model diffing, which aims to reconstruct the base-to-fine-tuned difference from interpretable components: reasoning mechanisms (category vectors that can induce a reasoning behavior in the base model) and reasoning heuristics (a classifier determining when a mechanism should fire). Across nine base/thinking pairs (four RL-trained, four SFT-distilled, one mixed), two independent findings agree: category vectors in the base model converge to far lower loss for taxonomies derived from purely RL-trained models, and hybrid models recover roughly 76\% of the RL base-to-thinking gap but only 11\% of the SFT gap. This indicates RL primarily teaches heuristics for orchestrating pre-existing base mechanisms, whereas SFT-distillation installs new ones, offering a new lens on what training paradigms teach, with implications for efficient reasoning-model development.},
+  langid = {english},
+  organization = {arXiv.org},
+  file = {/Users/dmitrymanning-coe/Zotero/storage/4NJI9Y7F/Venhoff et al. - 2025 - Base Models Know How to Reason, Thinking Models Learn When.pdf}
 }
 
 @misc{wenAutomatedWeakToStrongResearcher2026,

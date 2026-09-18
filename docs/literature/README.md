@@ -10,7 +10,13 @@ This folder is meant to store information about literature related to this proje
 
 2. The repo is set up to use a Zotero library (natural-deduction-rl) as the primary reference. Add the paper in Zotero/Zotero extension and it will appear here.
 
-3. I also sometime find it helpful to add papers manually. You can do this by running uv run --script code/tools/literature.py add arxiv:2501.12948 or similar. Note that this still routes via Zotero so you will need to have it open. If this gets annoying we can add a fully manual add.
+3. I also sometime find it helpful to add papers manually. You can do this by running:
+
+```
+uv run --script code/tools/literature.py add arxiv:2501.12948
+```
+
+ or similar. Note that this still routes via Zotero so you will need to have it open. If this gets annoying we can add a fully manual add.
 
 4. It may be helpful to store research notes about key papers. You can do this by adding a .md file formatted similarly to /literature/TEMPLATE.md. The metadata at the top is linked to Obsidian, which will allow both humans and Claude's to more effectively find which papers are relevant for what.
 
@@ -33,7 +39,6 @@ From the repository root, with Zotero running:
 ```bash
 uv run --script code/tools/literature.py status
 uv run --script code/tools/literature.py add arxiv:2601.04728
-uv run --script code/tools/literature.py add arxiv:2601.04728 --citekey nd2026
 uv run --script code/tools/literature.py add '10.48550/arXiv.2601.04728'
 uv run --script code/tools/literature.py add scratch/paper.bib
 ```
@@ -43,8 +48,6 @@ arXiv identifier when available. Existing project papers are skipped. If a match
 already elsewhere in the same library, add the existing item to this collection in Zotero;
 the command refuses to create another copy. This is a conservative check, not a general
 bibliographic deduplication system: materially different metadata can still need manual merging.
-Use `--citekey KEY` (or `-k KEY`) to choose the exact key for a new import, without the `@` or
-brackets. The command rejects invalid or already-used keys. It does not rename an existing item.
 
 Zotero's local import API uses the selected collection. Leave `natural-deduction-rl` selected
 when adding from the terminal, and avoid switching collections during import. The command checks
