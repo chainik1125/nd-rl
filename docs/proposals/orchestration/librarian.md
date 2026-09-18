@@ -16,6 +16,9 @@ authority), then the run's files.
    wrong and by how much; spend this week and cumulative; usage-limit pauses; ranked open
    questions; anything needing Dan's decision at the top.
 
-Work on a branch `dan_<slug>` from `origin/main`, commit with the trailers, push, open a
-**draft** PR with no reviewers (`gh pr create --draft`), then `touch
-~/runs/<run-id>/librarian.done`. Never add reviewers; never message anyone.
+Work on a branch `dan_<slug>` from **`origin/dan`** (Dan's integration branch, the source of
+truth for his work), commit with the trailers, push, then **merge the branch into `dan`**
+(`git checkout dan && git pull && git merge --no-ff dan_<slug> && git push origin dan`; the
+additive index files use a union merge driver via `.gitattributes`). Do not open a new PR per
+run: one standing draft PR `dan` → `main` exists. Then `touch ~/runs/<run-id>/librarian.done`.
+Never add reviewers; never message anyone.
