@@ -31,6 +31,10 @@ for l in open(sys.argv[1]):
 sys.exit(0 if hit else 1)
 PY
 }
+
+# True when the result is an authentication failure (expired OAuth, invalid key): stop, do not spin.
+auth_failed() { grep -qiE "Failed to authenticate|OAuth session expired|authentication_error|invalid x-api-key|Not logged in" "$1" 2>/dev/null; }
+fails=0
 COMMON=(--model "$MODEL" --dangerously-skip-permissions --verbose --output-format stream-json)
 CTX="Run id: $RUN. Role: $ROLE. Repository: $REPO. Runs directory: $D. Current UTC time: $(date -u).
 Commit trailers to use: 'Edited-by: agent:claude', 'Agent-role: $ROLE', 'Run-id: $RUN'.
@@ -56,6 +60,9 @@ Begin." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
     claude -p --continue "Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
   fi
   rc=$?; echo "[driver] $(date -u +%FT%TZ) invocation $i exited rc=$rc" >> "$LOG"
+  if auth_failed "$OUT"; then echo "[driver] AUTH FAILURE — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped — Claude authentication failed" "OAuth/API auth failed on $(hostname); the session cannot continue. Pods it created are still running: check podls. Log in again on this host (claude) or provide an API key, then relaunch." high; break; fi
+  if [ "$rc" != 0 ] || grep -q '"is_error":true' "$OUT" 2>/dev/null; then fails=$((fails+1)); else fails=0; fi
+  if [ "$fails" -ge 3 ]; then echo "[driver] three consecutive failed invocations — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped after 3 consecutive failures" "Last result: $(tail -c 300 "$OUT" | tr -d '\n' | cut -c1-280)" high; break; fi
   if limit_hit "$OUT"; then
     echo "[driver] LIMIT_HIT $(date -u +%FT%TZ)" >> "$LOG"; echo "LIMIT_HIT $(date -u +%FT%TZ) $RUN/$ROLE" >> ~/LIMIT_HITS; notify "$RUN: usage limit hit ($ROLE)" "Sleeping 30 min, then resuming." low; sleep 1800
   else sleep 90; fi

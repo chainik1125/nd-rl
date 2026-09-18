@@ -15,4 +15,9 @@ on the agent host with `bash install.sh` (adds them to `~/bin`, a `~/pods.log` l
 
 | `notify "<title>" "<body>" [priority]` | push to Dan via ntfy (`NTFY_TOPIC`) and email via Resend if `RESEND_API_KEY` is set; used by the driver (done, limit, hard stop), the orchestrator, the kill switch and the balance alert |
 
+| `pod_watchdog` | cron: registered pods but no live agent session for 30 min → pull, delete this host's pods, notify |
+| `podtoken <pod>` | install the HF token on a pod via stdin |
+
+The driver stops (and notifies) on an authentication failure or three consecutive failed invocations instead of spinning.
+
 Gate 3 (summary only from reviewed numbers) is the librarian's brief, not a script yet.
