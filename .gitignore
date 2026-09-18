@@ -169,6 +169,10 @@ scratch/
 artifacts/
 logs/
 /docs/group_docs/
+!/docs/group_docs/
+/docs/group_docs/*
+!/docs/group_docs/README.md
+!/docs/group_docs/reading_group/
 .ruff_cache/
 .DS_Store
 .env.*
