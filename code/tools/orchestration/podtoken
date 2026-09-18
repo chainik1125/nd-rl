@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Install the HF token on a pod via stdin (never on a command line). Usage: podtoken <pod>
+. ~/.config/nd-rl/env; N=$1; F=~/.config/nd-rl/pods/$N; [ -f "$F" ] || { echo "no pod $N"; exit 1; }; . "$F"
+[ -n "${HF_TOKEN:-}" ] || { echo "HF_TOKEN not set"; exit 1; }
+printf '%s' "$HF_TOKEN" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -p "$POD_PORT" "root@$POD_IP" 'umask 077; mkdir -p ~/.cache/huggingface; cat > ~/.cache/huggingface/token; echo "hf token installed"'

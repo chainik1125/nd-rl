@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Gate 0: pre-registration committed before the first pod of the run.  gate0 <repo> <run-id>
+REPO=$1; RUN=$2; cd "$REPO" || exit 2
+F=preregistration/$RUN.md
+[ -f "$F" ] || { echo "GATE0 FAIL: $F missing"; exit 1; }
+C=$(git log --diff-filter=A --format=%cI -- "$F" | tail -1); [ -n "$C" ] || { echo "GATE0 FAIL: $F not committed"; exit 1; }
+CT=$(date -u -d "$C" +%s)
+START=$(cat ~/runs/$RUN/executor.started 2>/dev/null || echo "$C")
+P=$(awk -v s="$START" '$1 >= s {print $1; exit}' ~/pods.log 2>/dev/null)
+grep -qiE "expect|predict" "$F" || { echo "GATE0 FAIL: no expectations wording in $F"; exit 1; }
+if [ -z "$P" ]; then echo "GATE0 PASS: preregistration committed $C; no pod created yet"; exit 0; fi
+PT=$(date -u -d "$P" +%s)
+[ "$CT" -le "$PT" ] && { echo "GATE0 PASS: preregistration $C precedes first pod $P"; exit 0; } || { echo "GATE0 FAIL: first pod $P precedes preregistration commit $C — mark run 'not pre-registered'"; exit 1; }

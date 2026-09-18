@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Hard stop for THIS host's registered pods: salvage small results, delete them, stop this host's agent sessions.
+# killswitch --all additionally deletes every pod on the account (used only by balance_floor).
+. ~/.config/nd-rl/env; export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; ALL=0; [ "${1:-}" = "--all" ] && ALL=1
+echo "[killswitch] $(date -u +%FT%TZ) start (all=$ALL) on $(hostname)" >> ~/killswitch.log
+for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] || continue; N=$(basename "$f")
+  for p in artifacts numbers.md log.md STATUS.md; do timeout 900 podpull "$N" "$p" >> ~/killswitch.log 2>&1 || true; done
+  podrm "$N" >> ~/killswitch.log 2>&1 || true; done
+if [ $ALL = 1 ]; then for id in $(runpodctl pod list 2>/dev/null | jq -r ".[].id"); do runpodctl pod remove "$id" >> ~/killswitch.log 2>&1 || true; done; fi
+for s in campaign followup handoff round2; do tmux kill-session -t $s 2>/dev/null || true; done
+echo "[killswitch] $(date -u +%FT%TZ) done; account pods now: $(runpodctl pod list 2>&1 | jq -r 'map(.name)|join(",")' 2>/dev/null)" >> ~/killswitch.log
+notify "kill switch fired on $(hostname) (all=$ALL)" "This host's registered pods were pulled and deleted; see ~/killswitch.log" high
