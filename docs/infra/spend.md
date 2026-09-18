@@ -7,10 +7,13 @@ written_by: agent:claude
 
 One row per run, appended by the librarian when a run clears review. Dollars come from
 RunPod balance deltas where a reading exists and from pod-hours × list price otherwise.
-`~/balance.log` on the VPS did not exist when this ledger was created (2026-09-17 22:30 UTC),
-so balance readings are the ones the executor wrote in `log.md` plus a live `rpbalance` call;
-`~/pods.log` starts at p3 of round 2 (2026-09-17 19:46 UTC). Rows for runs that were not
-processed by a librarian carry the executor's own figures and are marked as such.
+`~/balance.log` on the VPS did not exist when this ledger was created (2026-09-17 22:30 UTC)
+and still did not at 2026-09-18 01:45 UTC, so balance readings are the ones the executor
+wrote in `log.md` / `QUESTIONS.md` plus live `rpbalance` calls; `~/pods.log` starts at p3 of
+round 2 (2026-09-17 19:46 UTC) and records creations only, so deletion times come from
+`log.md`. Rows for runs that were not processed by a librarian carry the executor's own
+figures and are marked as such. Pods that this VPS did not create (`r4-*`, `r1-a100`, `la-*`;
+see `QUESTIONS.md` 23:25 and `~/QUEUE.md`) draw on the same balance and are not in this ledger.
 Policy (`AGENT_POLICY.md`): per-run pod budget $50 unless Dan authorises more; the prepaid
 balance is the hard cap.
 
@@ -21,9 +24,16 @@ balance is the hard cap.
 | follow-up | 2026-09-16 01:29–05:46 | p1–p3, A40 $0.49/h | ≈ 12.9 | ≈ $6.3 | – | executor's figure (`log.md` 05:46), reviewed (`review_followup.md`) |
 | ignition study (hand-off task 2) | 2026-09-16 18:28–22:19 | p1 RTX 3090 $0.50/h; p2, p3 A100 80 GB $1.59/h | 9.35 | ≈ $11.5 | ≈ $9, ceiling $25 | executor's figure (`log.md` 21:58: 3.3 h + 3.0 h + 3.05 h + orphan ≈ 2 min); reviewed (`review_ignition.md`) |
 | **round2-run5** (required-pattern pools) | 2026-09-17 19:12–22:05 | p1, p2 RTX 3090 $0.50/h (created 19:12 / 19:20; shared with run 2 from 21:34; not deleted at RUN5 DONE, handed to run 2) | 5.6 (2.9 + 2.75) | **≈ $2.8** by list price; balance $121.40 (18:57) → $117.50 (22:04) = $3.90, which also covers run 2's p3 (3090 from 19:46, ≈ $1.15) | 2 × 3090 ≈ 4 h → $4–13, ceiling $50 (`log.md` 19:05, `d0d8f16`) | reviewed (`review_round2-run5.md`); the reviewer did not re-derive spend; executor's own estimate ≈ $3 |
-| round 2, runs 2 and 3 | 2026-09-17 19:46 – (open) | p1–p3 (run 2), p4, p5 (run 3), all RTX 3090 $0.50/h; p4 22:05, p5 22:17 | open | open | run 2 ≈ $8 (3 × 5 h), run 3 ≈ $3; ceiling $50 each | in progress, not reviewed |
+| **round2-run3** (minimum outside data for ignition) | 2026-09-17 22:05 – 09-18 01:06 | p4 RTX 3090 $0.50/h (created 22:05, deleted 01:14), p5 RTX 3090 $0.50/h (created 22:17, handed to run 4); both shared with run 4 from ≈ 23:15 | ≈ 5.0 of wall time with run-3 jobs on the card (p4 22:05–01:01 ≈ 2.9, p5 22:17–00:20 ≈ 2.05), ≈ 2.1 before run 4 shared the cards | **≈ $1.6** (executor's share estimate, `numbers.md` "2 × 1.6 h"); bounds $1.1 (exclusive hours) – $2.5 (all wall hours) at list price. No balance delta: $117.50 (22:04) → ≈ $113 (23:24) covers five own pods plus seven foreign pods, and the account was topped up before 01:44 | p4 ≈ 4 h + p5 ≈ 1.5 h on 3090s ≈ $3, ceiling $50 (`log.md` 22:14, `734d51f`) | reviewed (`review_round2-run3.md`); the reviewer did not re-derive spend; the two OOM re-runs (one round, one arm) are inside these hours |
+| round 2, runs 2, 1 and 4 | 2026-09-17 19:46 – (run 4 open) | run 2: p1–p3 3090 (19:12 / 19:20 / 19:46 → 01:14); run 1: p6 A100 80 GB $1.59/h (23:22 → 01:30); run 4: p4 (from 23:15 → 01:14), p5 (from 23:15, running at 01:45) | run 2 ≈ 17.4 (3090); run 1 ≈ 2.1 (A100); run 4 ≈ 2 + ≥ 2.5 | run 2 ≈ $8.7 by list price (shared with run 5 until 22:05, see above); run 1 ≈ $3.4; run 4 open | run 2 ≈ $8 (3 × 5 h); run 1 / run 4 not read by this librarian | runs 2 and 1 DONE 01:30 / 01:32, reviewers started 01:40, not yet reviewed; run 4 in progress |
 
 Balance readings: $121.40 at 2026-09-17 18:57 UTC (`log.md`); $117.50 at 22:04 (`log.md`);
-**$116.39 at 22:30 (`rpbalance`)**. Round 2 to date: $5.01. Week 38 (2026-09-14 → 09-20)
-to date by these rows: ≈ $31, plus the unlogged take-home baseline. No `~/ALERTS.md` line
-(balance above $50).
+$116.39 at 22:30 (`rpbalance`); ≈ $113 at 23:24 (`QUESTIONS.md`); **$293.59 at 2026-09-18
+01:44 UTC (`rpbalance`)** — a top-up of ≥ $180 happened between 23:24 and 01:44. Round 2 to
+date by list price: ≈ $15.4 for this VPS's six pods (p1–p5 3090 ≈ 24 pod-hours through 01:14 /
+01:45, p6 A100 2.1 h), p5 still running for run 4. Foreign pods at 01:44: `r4-1`…`r4-6`
+(3090), `r1-a100` (A100), `la-1`…`la-3` (ladder-A, second host), none costed here. Week 38
+(2026-09-14 → 09-20) to date by these rows: ≈ $41 (campaign ≈ $8, follow-up ≈ $6.3, ignition
+≈ $11.5, round 2 ≈ $15.4), plus the unlogged take-home baseline and the foreign pods. No
+`~/ALERTS.md` line (balance never below $50). Kill switch: cron 2026-09-19 00:00 UTC deletes
+every pod on the account (`~/bin/killswitch`), including the foreign ones.
