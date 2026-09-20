@@ -208,3 +208,46 @@ a standard host; until then, this is the working setup (set up 2026-09-14).
    [its README](../../code/experiments/current/r1_cot/README.md).
 2. Swap in Dmitry's image and standard agent-host setup when they're available, and
    update this note.
+
+## Current state (2026-09-20)
+
+Everything above still applies; this section is the map of what exists now.
+
+- **Hosts.** Two DigitalOcean droplets (Ubuntu 24.04, 2 vCPU / 4 GB, key-only SSH, root login
+  off, `ufw`, swap): the original agent host and `nd-rl-agent2`, created with `newvps <name>`
+  from the first. New droplets are self-service through `doctl` (the DigitalOcean token lives on
+  the hosts and on Dan's laptop; power actions are issued from a machine other than the target).
+  Each host needs its own interactive Claude login — credential files must not be copied between
+  machines (OAuth refresh tokens rotate; a copied file expires and takes the sessions with it).
+- **Credentials layout.** `~/.config/nd-rl/env` on each host (mode 600) holds `RUNPOD_API_KEY`,
+  `HF_TOKEN`, `DIGITALOCEAN_ACCESS_TOKEN`, `NTFY_TOPIC`; `gh` uses a classic token with `repo`,
+  `read:org`, `gist`. Pods receive the HF token through `podtoken` (over stdin into the pod's hf
+  token file), never on a command line.
+- **GPU pods.** Template `nd-rl-dev-a40` (RunPod's PyTorch 2.8 image, CUDA 13 host required by
+  the locked `torch 2.14+cu130`). The A40 is the default; agents choose the card per experiment
+  (3090s for Stage-1 sweeps, A100s when A40s are out of stock or a brief needs the memory).
+  Helpers take a pod name: `podnew`, `podrm`, `podls`, `podrun`, `podsync`, `podpush`,
+  `podpull`, `podtoken`; `~/pods.log` records every creation.
+- **Storage.** Public HF bucket `dan-pandori/nd-rl` (`hf buckets sync` at the end of every run;
+  nothing that could contain a token is uploaded). Checkpoints and raw artefacts otherwise stay
+  on the hosts; small results live in git.
+- **Safety nets.** Per-run pod budget $50 unless authorised; the prepaid RunPod balance is the
+  hard cap. `killswitch` (cron at each run's hard stop; scoped to the host's own pods),
+  `pod_watchdog` (15 min; deletes a host's pods when no agent session has been alive for 30
+  min), `balance_floor` (hourly; below $25 pulls results and deletes every pod on the account),
+  `balance_alert` (daily; below $50 warns).
+- **Orchestration.** Role briefs in `docs/proposals/orchestration/`, tools in
+  `code/tools/orchestration/` (`runrole`, `gate0–2`, `review_workspace`, `orchestrator`,
+  `notify`): an executor runs a brief; when its `STATUS.md` reports done, a reviewer session
+  re-derives every number from raw files with its own code; when the review passes gate 2, a
+  librarian writes the summary into `nd-rl` and merges it into the `dan` branch. The design and
+  what it caught are in `docs/proposals/2026-09-16-automated-research-orchestration.md`.
+- **Notifications.** Push messages to Dan via an ntfy topic on run completion, review start and
+  outcome, agent questions (`QUESTIONS.md`), usage-limit pauses, kill switch, and low balance.
+- **Standing policy for agents.** `AGENT_POLICY.md` in the fork `dan-pandori/nd-takehome`
+  (branch `dan_novelty`): one hard rule (no other humans are contacted), standards with reasons,
+  everything else a suggestion.
+- **Cost to date (2026-09-20).** About $170 of pods over six days across the take-home, the
+  novelty campaign, its follow-up, the ignition study, rounds 2–3 (11 runs) and ladder Phase A;
+  ~$32 of that was pods left idle by a session outage before the watchdog existed. Hosts: two
+  droplets at $24/month each.
