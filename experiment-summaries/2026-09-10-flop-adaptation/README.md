@@ -17,6 +17,14 @@ The symbolic curriculum enabled narrow depth extrapolation, including 129-line p
 statements. On the token-LM experiment, RL did not improve observed held-out coverage and all 21 LM
 endpoints solved zero of 384 structured statements, even with four samples.
 
+## Success by reference length
+
+![Greedy token-LM success on the primary and structured held-out evaluations](figures/success_by_reference_length.png)
+
+The [underlying counts and source hashes](figures/success_by_reference_length.json) cover the
+initialization and all eight primary RL endpoints. The structured set is shown separately; this
+experiment did not evaluate a textbook benchmark.
+
 ## Imported evidence
 
 - [Final summary and key depth-challenge figure](summary.md)

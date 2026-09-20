@@ -18,6 +18,14 @@ most six reference lines. The best sampled coverage was Direct cap 12 at 10/58; 
 the best greedy coverage at 7/58. Larger caps greatly improved long synthetic training success but
 did not produce comparable textbook transfer.
 
+## Success by reference length
+
+![Sampled theorem-proving success on the textbook development set by supplied reference length](reports/success_by_reference_length.png)
+
+The figure uses the final RL checkpoints and 16 samples per problem. The [underlying counts and
+source hashes](reports/success_by_reference_length.json) record the derivation from the strictly
+replayed outcomes and the 58-problem population.
+
 ## Imported evidence
 
 - [Detailed final report and seven key figures](reports/summary.md)

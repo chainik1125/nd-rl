@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "title": "Proof-cap comparison: sampled textbook success by reference length",
+  "subtitle": "Final RL checkpoints, 16 samples per problem. The 58-problem adaptive textbook development set is disjoint from training but is not an untouched final test.",
+  "note": "Bins use supplied textbook witness lengths, not minimum proof difficulty. Only one of 43 problems above six reference lines was solved by any condition.",
+  "columns": [
+    {"key": "1-6", "label": "1–6", "total": 15},
+    {"key": "7-9", "label": "7–9", "total": 9},
+    {"key": "10-12", "label": "10–12", "total": 11},
+    {"key": "13+", "label": "13+", "total": 23},
+    {"key": "overall", "label": "Overall", "total": 58, "emphasis": true}
+  ],
+  "rows": [
+    {"label": "Direct cap 6", "values": {"1-6": 9, "7-9": 0, "10-12": 0, "13+": 0, "overall": 9}},
+    {"label": "Direct cap 10", "values": {"1-6": 8, "7-9": 1, "10-12": 0, "13+": 0, "overall": 9}},
+    {"label": "Direct cap 12", "values": {"1-6": 9, "7-9": 1, "10-12": 0, "13+": 0, "overall": 10}},
+    {"label": "Symbolic CoT cap 6", "separator_before": true, "values": {"1-6": 4, "7-9": 0, "10-12": 0, "13+": 0, "overall": 4}},
+    {"label": "Symbolic CoT cap 10", "values": {"1-6": 7, "7-9": 0, "10-12": 0, "13+": 0, "overall": 7}},
+    {"label": "Symbolic CoT cap 12", "values": {"1-6": 7, "7-9": 0, "10-12": 0, "13+": 0, "overall": 7}}
+  ],
+  "source": {
+    "analysis_remote_path": "simplex3:/data/users/dmitry/nd-rl/cap-comparison-20260910-1958/reports/analysis_results.json",
+    "analysis_sha256": "50398966829584ee12f435b4e321f39534bf3df0d4f5865cbaf379b61e2e714e",
+    "population_remote_path": "simplex3:/data/users/dmitry/nd-rl/cap-comparison-20260910-1958/evaluation/textbook_dev.jsonl",
+    "population_sha256": "1b04192d8a2d91b488a0884ccb096004003dbfcf40bb7aea55caa81c3f3cf53c",
+    "derived_on": "2026-09-20"
+  }
+}

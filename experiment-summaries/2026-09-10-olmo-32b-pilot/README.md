@@ -17,6 +17,13 @@ On the fixed 24-target greedy pilot, ICL, SFT, SFT+DPO, and SFT+DPO+RL all solve
 respectively. The small panel therefore showed no longer-proof benefit from training beyond ICL.
 The original 120-target and sampled-K4 evaluations were not run.
 
+## Success by reference length
+
+![Greedy theorem-proving success by supplied reference length](figures/success_by_reference_length.png)
+
+The [underlying counts and source hash](figures/success_by_reference_length.json) make the figure
+reproducible. No textbook result is shown because that evaluation was not run.
+
 ## Imported evidence
 
 - [Latest handoff](LATEST_REPORT.md)

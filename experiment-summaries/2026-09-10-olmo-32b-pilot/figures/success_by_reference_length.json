@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "title": "OLMo-32B pilot: greedy theorem-proving success by reference length",
+  "subtitle": "Fixed 24-target held-out pilot. Each cell reports the fraction of theorems proved; reference length counts supplied proof lines.",
+  "note": "The original 120-target evaluation and the textbook benchmark were not run. Small exact-length cohorts (n=1 or n=2) make the per-length rates descriptive rather than stable estimates.",
+  "columns": [
+    {"key": "2", "label": "2", "total": 1},
+    {"key": "3", "label": "3", "total": 1},
+    {"key": "5", "label": "5", "total": 2},
+    {"key": "6", "label": "6", "total": 4},
+    {"key": "7", "label": "7", "total": 2},
+    {"key": "8", "label": "8", "total": 2},
+    {"key": "9", "label": "9", "total": 2},
+    {"key": "10", "label": "10", "total": 2},
+    {"key": "11", "label": "11", "total": 2},
+    {"key": "12", "label": "12", "total": 2},
+    {"key": "13", "label": "13", "total": 2},
+    {"key": "14", "label": "14", "total": 2},
+    {"key": "overall", "label": "Overall", "total": 24, "emphasis": true}
+  ],
+  "rows": [
+    {"label": "Base (zero-shot)", "values": {"2": 0, "3": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "14": 0, "overall": 0}},
+    {"label": "Base + 32-shot ICL", "values": {"2": 0, "3": 0, "5": 2, "6": 1, "7": 1, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "14": 0, "overall": 4}},
+    {"label": "SFT", "values": {"2": 0, "3": 1, "5": 2, "6": 1, "7": 1, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "14": 0, "overall": 5}},
+    {"label": "SFT + DPO", "values": {"2": 1, "3": 0, "5": 0, "6": 1, "7": 1, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "14": 0, "overall": 3}},
+    {"label": "SFT + DPO + RL", "values": {"2": 0, "3": 1, "5": 2, "6": 2, "7": 1, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "14": 0, "overall": 6}}
+  ],
+  "source": {
+    "remote_path": "simplex3:/data/users/dmitry/nd-rl/olmo-single-gpu-20260909-2014/reports/reconciled_pilot_v2/summary.json",
+    "sha256": "da4d95478e7aa49a1dba85b2a5c94aac840168cace4af0b5e53863bef9a52c11",
+    "derived_on": "2026-09-20"
+  }
+}

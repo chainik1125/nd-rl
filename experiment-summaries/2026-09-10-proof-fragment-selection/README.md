@@ -18,6 +18,14 @@ long-RL conditions reduced coverage from the adapted starting model: endpoints s
 768 targets versus 351/768 initially. A separately fitted reset diagnostic increased mixed-reward
 groups, but it was not tested as a training curriculum.
 
+## Success by reference length
+
+![Eight-attempt final coverage by supplied reference-length bin](figures/success_by_reference_length.png)
+
+The [underlying counts and source hash](figures/success_by_reference_length.json) cover the common
+adapted start and all four main RL endpoints. This experiment used a held-out synthetic final
+population and did not evaluate a textbook benchmark.
+
 ## Imported evidence
 
 - [Detailed final summary and four key figures](summary.md)

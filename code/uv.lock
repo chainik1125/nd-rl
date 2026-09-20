@@ -723,6 +723,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fire" },
     { name = "ipykernel" },
+    { name = "pillow" },
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "torch" },
@@ -748,6 +749,7 @@ dev = [
 requires-dist = [
     { name = "fire" },
     { name = "ipykernel" },
+    { name = "pillow" },
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pydantic" },
     { name = "pyright", marker = "extra == 'dev'" },

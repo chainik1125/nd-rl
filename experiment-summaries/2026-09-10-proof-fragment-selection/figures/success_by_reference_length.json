@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "title": "Proof-fragment experiment: held-out coverage by reference length",
+  "subtitle": "Fraction of the 768-target synthetic final population proved in eight attempts. Each reference-length bin contains 256 targets.",
+  "note": "This experiment did not evaluate a textbook benchmark. Reference length is a supplied witness length, not minimum difficulty; many longer-reference targets had shorter observed proofs.",
+  "columns": [
+    {"key": "2-6", "label": "2–6", "total": 256},
+    {"key": "7-9", "label": "7–9", "total": 256},
+    {"key": "10-12", "label": "10–12", "total": 256},
+    {"key": "overall", "label": "Overall", "total": 768, "emphasis": true}
+  ],
+  "rows": [
+    {"label": "Adapted start", "emphasis": true, "values": {"2-6": 215, "7-9": 77, "10-12": 59, "overall": 351}},
+    {"label": "Selected · full start", "separator_before": true, "values": {"2-6": 181, "7-9": 43, "10-12": 45, "overall": 269}},
+    {"label": "Selected · reset", "values": {"2-6": 175, "7-9": 52, "10-12": 47, "overall": 274}},
+    {"label": "Matched uniform · full start", "values": {"2-6": 178, "7-9": 53, "10-12": 43, "overall": 274}},
+    {"label": "Matched uniform · reset", "values": {"2-6": 179, "7-9": 50, "10-12": 50, "overall": 279}}
+  ],
+  "source": {
+    "remote_path": "simplex3:/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/final_certificate_lengths_v1.json",
+    "sha256": "959f5201a88b7b92885725a19fb984af912f49506782e6ac71dc563635a429c2",
+    "derived_on": "2026-09-20"
+  }
+}
