@@ -1,0 +1,6 @@
+{
+  "controller_sha256": "54ec63ba5dd5a3c8bad0a8ed1e5a5aa645139b551da17ee94af66e9264c57440",
+  "previous_controller": "jobs/remaining_v1/superseded.json",
+  "rule": "Optional follow-up failure does not prevent final evaluation of completed primary endpoints. Controls start only with>=7200s remaining before04:25; online continuations with>=5400s. Omitted or failed groups are recorded, never relabeled as completed. No model-performance-based choice.",
+  "status": "frozen_before_followup_launch"
+}

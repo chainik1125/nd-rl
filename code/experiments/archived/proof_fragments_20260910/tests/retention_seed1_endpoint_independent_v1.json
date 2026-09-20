@@ -1,0 +1,174 @@
+{
+  "audit_code_sha256": "c82758688ca3d6ebbe00fc60c20a11caa1e95b1edeece4c6db2c67c0d45d3f88",
+  "directory": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1",
+  "elapsed_seconds": 2.251791000366211,
+  "exposure_checkpoints": {
+    "1063": {
+      "actual_flop_proxy": 132270993838080,
+      "checkpoint_sha256": "6169985369139840d77ed33a955616202b6748c314784a736127953a30c0c103",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 17008,
+      "retention_response_tokens": 1239493,
+      "retention_schedule_sha256": "3b6dc274e28c043b61bc674d5029ed355c7f9feb9d69547e3604f1a25b56d77a",
+      "step": 1063
+    },
+    "1087": {
+      "actual_flop_proxy": 135287771811840,
+      "checkpoint_sha256": "f1a02f640e641b2a445017466cbac7c362d7ab77621cd9c07a1c48b1ef96ad75",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 17392,
+      "retention_response_tokens": 1267432,
+      "retention_schedule_sha256": "548a60b1fbbc50e38e9283dbbd6d8278cc5ab8996d968fdfb9c66b30a4ae48b9",
+      "step": 1087
+    },
+    "1107": {
+      "actual_flop_proxy": 137708215418880,
+      "checkpoint_sha256": "1b3138c8ec642a5a59175cb18ce42cc3d312a7911741119a1f47cdb65775ea01",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 17712,
+      "retention_response_tokens": 1290442,
+      "retention_schedule_sha256": "970cfc7568b64fbec495115fada6817512f757a07269a1e9e3ff6f27760da560",
+      "step": 1107
+    },
+    "2159": {
+      "actual_flop_proxy": 268741933240320,
+      "checkpoint_sha256": "b289c23ec8407a61d4f7c85ae09e62b9cf090a72420766ef64930939d1c3044d",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 34544,
+      "retention_response_tokens": 2520038,
+      "retention_schedule_sha256": "74d0be360521880c872037e8368236b27e20d299aded72f03dd7b38dbef6e9cf",
+      "step": 2159
+    },
+    "2203": {
+      "actual_flop_proxy": 274300616724480,
+      "checkpoint_sha256": "25a1944688b07ad3fa752a7a35346c815768040a7253d0e7d00ada932b8b2c56",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 35248,
+      "retention_response_tokens": 2571548,
+      "retention_schedule_sha256": "a83c5dfbc50ad6694a1fc18e75056e1569d5585f13fcdc40fa8772f7e46391e6",
+      "step": 2203
+    },
+    "2234": {
+      "actual_flop_proxy": 278169374822400,
+      "checkpoint_sha256": "4063d3cbf5cea8e86bb7e946bde70de765595beebf71d2286e2b772e93b82143",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 35744,
+      "retention_response_tokens": 2607071,
+      "retention_schedule_sha256": "7254d2580a07c66e99b4353ab096cba1ba7cdc9d30b6f4ea6403bf54e20efa92",
+      "step": 2234
+    },
+    "2237": {
+      "actual_flop_proxy": 278570933821440,
+      "checkpoint_sha256": "b7d122f657125d6e24f6a08acf57a3d46df78cd4b3be5ad0031bb2c512459de5",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 35792,
+      "retention_response_tokens": 2610718,
+      "retention_schedule_sha256": "666fc46591754275f3e1cc2c54ebc765c35b4c5fe91f37e30848bef6bb0a9b98",
+      "step": 2237
+    },
+    "4354": {
+      "actual_flop_proxy": 543836659875840,
+      "checkpoint_sha256": "a92bf15d9b8d87b348a13e38dc4c3605375e65e5cc93d7a9868d0fddfd2d4241",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 69664,
+      "retention_response_tokens": 5088913,
+      "retention_schedule_sha256": "02c5ad4a0694f1cc55ca26ac81e4be96c16774452defe377d6014d772eed8ebc",
+      "step": 4354
+    },
+    "4463": {
+      "actual_flop_proxy": 557587872829440,
+      "checkpoint_sha256": "520125a60572864ea24e9d12659fa26f1fa4e80d2900513ee28b18f37f4042c2",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 71408,
+      "retention_response_tokens": 5216193,
+      "retention_schedule_sha256": "e3f73157d1394d820976f397b13b006f9e421eb88c37317cfb93e8d2f6250715",
+      "step": 4463
+    },
+    "4492": {
+      "actual_flop_proxy": 561144107888640,
+      "checkpoint_sha256": "4f5350c43cce82fe0fae797d4461a841a5755a2dfd360983999db6a8da4479c6",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 71872,
+      "retention_response_tokens": 5249637,
+      "retention_schedule_sha256": "cad6e1c82388e90bb28c55a68aff19b2e4e7c5c0becb05dea803a909c0a9cacd",
+      "step": 4492
+    },
+    "4504": {
+      "actual_flop_proxy": 562642008145920,
+      "checkpoint_sha256": "0071e210fdecdcb801ee41d2bfa1dbc6d672dfe81ca0c3c7c44c51e8dc1d228a",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 72064,
+      "retention_response_tokens": 5263091,
+      "retention_schedule_sha256": "411aae553fd644cd5fbbdfdfd20ba060c5bf3e2a287209baa6ae181c58915aad",
+      "step": 4504
+    },
+    "8827": {
+      "actual_flop_proxy": 1101932892979200,
+      "checkpoint_sha256": "39a4107dfdfe6d2a4c8a94b9acd76a1b44a73c01960a72482719060b7d75eb49",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 141232,
+      "retention_response_tokens": 10326916,
+      "retention_schedule_sha256": "f54910e2011233ded3557291c7977f02c226836334d61029c05345f3ee1eb741",
+      "step": 8827
+    },
+    "9054": {
+      "actual_flop_proxy": 1130315043225600,
+      "checkpoint_sha256": "dafc65b261f89c6dca84cdf6431417eeb10347e2812adb15e5b606f0886d579e",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 144864,
+      "retention_response_tokens": 10593273,
+      "retention_schedule_sha256": "54c56bc28ea3e9576bd235507c1e7979bc69009fef4f0704bd57a4fa55520f20",
+      "step": 9054
+    },
+    "9056": {
+      "actual_flop_proxy": 1130553752186880,
+      "checkpoint_sha256": "cbd3461ffce134e84825807ae579ed40ae85d943b9d1135ec422d8e7221dec15",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 144896,
+      "retention_response_tokens": 10595436,
+      "retention_schedule_sha256": "a41ddd6fa410a8e7eb16fa76f0a2ab80424523edbe74aa78e3c1277cc1c18e9d",
+      "step": 9056
+    },
+    "9096": {
+      "actual_flop_proxy": 1135620257587200,
+      "checkpoint_sha256": "80e5a76c4dcb5556415ba5749e7b4ddb51400ea8d17f9adb02f176d9da2e14fd",
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 145536,
+      "retention_response_tokens": 10643069,
+      "retention_schedule_sha256": "bc5e830645d6927fccaa5fa998b8b8495d92011ed4c93202cb25e8facf16319d",
+      "step": 9096
+    }
+  },
+  "final_checkpoint_sha256": "d5171d5a50fe0c8f7fe635b625286f61310182740135425ae071ab5b6a12cc7c",
+  "final_population_accessed": false,
+  "gpu_work_launched": false,
+  "limitation": "Audit checks all schedules, costs and saved metadata, not every parameter/Adam update; zero-policy equivalence was tested separately",
+  "manifest_sha256": "dbc98e474077ddd2a77017b93770f84e7335e1c986a921f9b462003dbbcd943f",
+  "model_forward_or_backward_executed": false,
+  "overshoot": 52734894080,
+  "result_sha256": "e4041909c7e66b59c124fb426eac4f04e6e4a102d33b1abb3646392bcc1965a0",
+  "retention_examples": 512544,
+  "retention_response_tokens": 37456511,
+  "retention_schedule_sha256": "0225071e3e53a27807169065cdef80787e079c0229437b4bab48bfc7af5e2f6f",
+  "status": "passed",
+  "steps": 32034,
+  "total_flop_proxy": 4000052734894080,
+  "unique_sources": 512,
+  "updates_sha256": "e85f5aee068b1251decd32acf103f310e280141b5312503f114a0e98f1c20559",
+  "worst_case_one_step_flop_proxy": 159364177920
+}

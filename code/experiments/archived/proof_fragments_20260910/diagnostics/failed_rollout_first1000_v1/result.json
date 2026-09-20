@@ -1,0 +1,57 @@
+{
+  "confirmation_payloads_opened": false,
+  "counts": {
+    "failed_original_attempts": 3343,
+    "first_invalid_inference": 3233,
+    "merely_premise_conclusion": 4685,
+    "open_scope_prefix": 2857,
+    "original_target_conclusion": 4,
+    "strictly_verified_local_prefix_occurrences": 2251,
+    "successful_original_attempts_skipped": 28657,
+    "total_rollouts": 32000
+  },
+  "elapsed_seconds": 14.611918449401855,
+  "known_training_canonical_theorems": 63293,
+  "model_flop_proxy": 0,
+  "new_model_rollouts": 0,
+  "no_open_scope_rewriting": true,
+  "novel_canonical_certificates": 85,
+  "novel_contexts": 51,
+  "novel_families": {
+    "ANDE1": 24,
+    "ANDE2": 27,
+    "ANDI": 1,
+    "BOTE": 2,
+    "DN": 4,
+    "IMPE": 13,
+    "IMPI_flat": 3,
+    "IMPI_nested": 1,
+    "NEGE": 1,
+    "NEGI": 5,
+    "ORE": 1,
+    "ORI1": 1,
+    "ORI2": 2
+  },
+  "novel_lengths": {
+    "2": 10,
+    "3": 36,
+    "4": 27,
+    "5": 11,
+    "6": 1
+  },
+  "novel_prefix_occurrences_before_canonical_dedup": 1662,
+  "original_failed_target_success_not_changed": true,
+  "parent_main_training_flop_proxy_through_step": 452109096222720,
+  "parent_rollout_cost_already_charged_in_main_ledger": true,
+  "policy_updates": 0,
+  "provenance_note": "Only retained complete certificates are capped at6; complete original failed-attempt lengths and raw actions are retained separately.",
+  "rejection_counts": {
+    "ambiguous_or_missing_FINAL": 5,
+    "canonical_duplicate_within_mining": 1577,
+    "canonical_theorem_already_known": 220,
+    "context_outside_candidate_partition": 369
+  },
+  "status": "diagnostic_only_not_training_ready",
+  "textbook_payloads_opened": false,
+  "through_step": 1000
+}

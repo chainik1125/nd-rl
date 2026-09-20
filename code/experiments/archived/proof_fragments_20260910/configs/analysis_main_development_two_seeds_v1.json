@@ -1,0 +1,691 @@
+{
+  "utc": "2026-09-10T20:06:45.095401+00:00",
+  "data": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/confirmation.jsonl",
+  "samples": 8,
+  "bootstrap_draws": 5000,
+  "bootstrap_seed": 20260911,
+  "models": {
+    "selected_full_s1_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f05_v1/attempts.jsonl"
+    },
+    "selected_full_s1_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f10_v1/attempts.jsonl"
+    },
+    "selected_full_s1_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f20_v1/attempts.jsonl"
+    },
+    "selected_full_s1_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s1_f40_v1/attempts.jsonl"
+    },
+    "selected_reset_s1_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f05_v1/attempts.jsonl"
+    },
+    "selected_reset_s1_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f10_v1/attempts.jsonl"
+    },
+    "selected_reset_s1_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f20_v1/attempts.jsonl"
+    },
+    "selected_reset_s1_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s1_f40_v1/attempts.jsonl"
+    },
+    "uniform_reset_s1_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f05_v1/attempts.jsonl"
+    },
+    "uniform_reset_s1_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f10_v1/attempts.jsonl"
+    },
+    "uniform_reset_s1_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f20_v1/attempts.jsonl"
+    },
+    "uniform_reset_s1_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s1_f40_v1/attempts.jsonl"
+    },
+    "uniform_full_s1_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f05_v1/attempts.jsonl"
+    },
+    "uniform_full_s1_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f10_v1/attempts.jsonl"
+    },
+    "uniform_full_s1_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f20_v1/attempts.jsonl"
+    },
+    "uniform_full_s1_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s1_f40_v1/attempts.jsonl"
+    },
+    "adapt": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/attempts.jsonl"
+    },
+    "selected_full_s2_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f05_v1/attempts.jsonl"
+    },
+    "selected_full_s2_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f10_v1/attempts.jsonl"
+    },
+    "selected_full_s2_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f20_v1/attempts.jsonl"
+    },
+    "selected_full_s2_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_full_s2_f40_v1/attempts.jsonl"
+    },
+    "selected_reset_s2_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f05_v1/attempts.jsonl"
+    },
+    "selected_reset_s2_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f10_v1/attempts.jsonl"
+    },
+    "selected_reset_s2_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f20_v1/attempts.jsonl"
+    },
+    "selected_reset_s2_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_selected_reset_s2_f40_v1/attempts.jsonl"
+    },
+    "uniform_reset_s2_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f05_v1/attempts.jsonl"
+    },
+    "uniform_reset_s2_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f10_v1/attempts.jsonl"
+    },
+    "uniform_reset_s2_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f20_v1/attempts.jsonl"
+    },
+    "uniform_reset_s2_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_reset_s2_f40_v1/attempts.jsonl"
+    },
+    "uniform_full_s2_f05": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f05_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f05_v1/attempts.jsonl"
+    },
+    "uniform_full_s2_f10": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f10_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f10_v1/attempts.jsonl"
+    },
+    "uniform_full_s2_f20": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f20_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f20_v1/attempts.jsonl"
+    },
+    "uniform_full_s2_f40": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f40_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_full_s2_f40_v1/attempts.jsonl"
+    }
+  },
+  "comparisons": [
+    [
+      "selected_reset_s1_f05",
+      "selected_full_s1_f05"
+    ],
+    [
+      "uniform_reset_s1_f05",
+      "uniform_full_s1_f05"
+    ],
+    [
+      "selected_reset_s1_f05",
+      "uniform_reset_s1_f05"
+    ],
+    [
+      "selected_full_s1_f05",
+      "uniform_full_s1_f05"
+    ],
+    [
+      "selected_reset_s1_f10",
+      "selected_full_s1_f10"
+    ],
+    [
+      "uniform_reset_s1_f10",
+      "uniform_full_s1_f10"
+    ],
+    [
+      "selected_reset_s1_f10",
+      "uniform_reset_s1_f10"
+    ],
+    [
+      "selected_full_s1_f10",
+      "uniform_full_s1_f10"
+    ],
+    [
+      "selected_reset_s1_f20",
+      "selected_full_s1_f20"
+    ],
+    [
+      "uniform_reset_s1_f20",
+      "uniform_full_s1_f20"
+    ],
+    [
+      "selected_reset_s1_f20",
+      "uniform_reset_s1_f20"
+    ],
+    [
+      "selected_full_s1_f20",
+      "uniform_full_s1_f20"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "selected_full_s1_f40"
+    ],
+    [
+      "uniform_reset_s1_f40",
+      "uniform_full_s1_f40"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "uniform_reset_s1_f40"
+    ],
+    [
+      "selected_full_s1_f40",
+      "uniform_full_s1_f40"
+    ],
+    [
+      "selected_full_s1_f05",
+      "adapt"
+    ],
+    [
+      "selected_full_s1_f10",
+      "adapt"
+    ],
+    [
+      "selected_full_s1_f20",
+      "adapt"
+    ],
+    [
+      "selected_full_s1_f40",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f05",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f10",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f20",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f05",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f10",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f20",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f40",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f05",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f10",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f20",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f40",
+      "adapt"
+    ],
+    [
+      "selected_reset_s2_f05",
+      "selected_full_s2_f05"
+    ],
+    [
+      "uniform_reset_s2_f05",
+      "uniform_full_s2_f05"
+    ],
+    [
+      "selected_reset_s2_f05",
+      "uniform_reset_s2_f05"
+    ],
+    [
+      "selected_full_s2_f05",
+      "uniform_full_s2_f05"
+    ],
+    [
+      "selected_reset_s2_f10",
+      "selected_full_s2_f10"
+    ],
+    [
+      "uniform_reset_s2_f10",
+      "uniform_full_s2_f10"
+    ],
+    [
+      "selected_reset_s2_f10",
+      "uniform_reset_s2_f10"
+    ],
+    [
+      "selected_full_s2_f10",
+      "uniform_full_s2_f10"
+    ],
+    [
+      "selected_reset_s2_f20",
+      "selected_full_s2_f20"
+    ],
+    [
+      "uniform_reset_s2_f20",
+      "uniform_full_s2_f20"
+    ],
+    [
+      "selected_reset_s2_f20",
+      "uniform_reset_s2_f20"
+    ],
+    [
+      "selected_full_s2_f20",
+      "uniform_full_s2_f20"
+    ],
+    [
+      "selected_reset_s2_f40",
+      "selected_full_s2_f40"
+    ],
+    [
+      "uniform_reset_s2_f40",
+      "uniform_full_s2_f40"
+    ],
+    [
+      "selected_reset_s2_f40",
+      "uniform_reset_s2_f40"
+    ],
+    [
+      "selected_full_s2_f40",
+      "uniform_full_s2_f40"
+    ],
+    [
+      "selected_full_s2_f05",
+      "adapt"
+    ],
+    [
+      "selected_full_s2_f10",
+      "adapt"
+    ],
+    [
+      "selected_full_s2_f20",
+      "adapt"
+    ],
+    [
+      "selected_full_s2_f40",
+      "adapt"
+    ],
+    [
+      "selected_reset_s2_f05",
+      "adapt"
+    ],
+    [
+      "selected_reset_s2_f10",
+      "adapt"
+    ],
+    [
+      "selected_reset_s2_f20",
+      "adapt"
+    ],
+    [
+      "selected_reset_s2_f40",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s2_f05",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s2_f10",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s2_f20",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s2_f40",
+      "adapt"
+    ],
+    [
+      "uniform_full_s2_f05",
+      "adapt"
+    ],
+    [
+      "uniform_full_s2_f10",
+      "adapt"
+    ],
+    [
+      "uniform_full_s2_f20",
+      "adapt"
+    ],
+    [
+      "uniform_full_s2_f40",
+      "adapt"
+    ]
+  ],
+  "contrasts": {
+    "mean_selected_full_f05": {
+      "selected_full_s1_f05": 0.5,
+      "selected_full_s2_f05": 0.5
+    },
+    "mean_selected_full_minus_adapt_f05": {
+      "selected_full_s1_f05": 0.5,
+      "selected_full_s2_f05": 0.5,
+      "adapt": -1
+    },
+    "mean_selected_reset_f05": {
+      "selected_reset_s1_f05": 0.5,
+      "selected_reset_s2_f05": 0.5
+    },
+    "mean_selected_reset_minus_adapt_f05": {
+      "selected_reset_s1_f05": 0.5,
+      "selected_reset_s2_f05": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_reset_f05": {
+      "uniform_reset_s1_f05": 0.5,
+      "uniform_reset_s2_f05": 0.5
+    },
+    "mean_uniform_reset_minus_adapt_f05": {
+      "uniform_reset_s1_f05": 0.5,
+      "uniform_reset_s2_f05": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_full_f05": {
+      "uniform_full_s1_f05": 0.5,
+      "uniform_full_s2_f05": 0.5
+    },
+    "mean_uniform_full_minus_adapt_f05": {
+      "uniform_full_s1_f05": 0.5,
+      "uniform_full_s2_f05": 0.5,
+      "adapt": -1
+    },
+    "mean_interaction_f05": {
+      "selected_reset_s1_f05": 0.5,
+      "selected_full_s1_f05": -0.5,
+      "uniform_reset_s1_f05": -0.5,
+      "uniform_full_s1_f05": 0.5,
+      "selected_reset_s2_f05": 0.5,
+      "selected_full_s2_f05": -0.5,
+      "uniform_reset_s2_f05": -0.5,
+      "uniform_full_s2_f05": 0.5
+    },
+    "mean_selection_main_effect_f05": {
+      "selected_reset_s1_f05": 0.25,
+      "selected_full_s1_f05": 0.25,
+      "uniform_reset_s1_f05": -0.25,
+      "uniform_full_s1_f05": -0.25,
+      "selected_reset_s2_f05": 0.25,
+      "selected_full_s2_f05": 0.25,
+      "uniform_reset_s2_f05": -0.25,
+      "uniform_full_s2_f05": -0.25
+    },
+    "mean_reset_main_effect_f05": {
+      "selected_reset_s1_f05": 0.25,
+      "uniform_reset_s1_f05": 0.25,
+      "selected_full_s1_f05": -0.25,
+      "uniform_full_s1_f05": -0.25,
+      "selected_reset_s2_f05": 0.25,
+      "uniform_reset_s2_f05": 0.25,
+      "selected_full_s2_f05": -0.25,
+      "uniform_full_s2_f05": -0.25
+    },
+    "mean_selected_reset_minus_uniform_reset_f05": {
+      "selected_reset_s1_f05": 0.5,
+      "selected_reset_s2_f05": 0.5,
+      "uniform_reset_s1_f05": -0.5,
+      "uniform_reset_s2_f05": -0.5
+    },
+    "mean_selected_full_f10": {
+      "selected_full_s1_f10": 0.5,
+      "selected_full_s2_f10": 0.5
+    },
+    "mean_selected_full_minus_adapt_f10": {
+      "selected_full_s1_f10": 0.5,
+      "selected_full_s2_f10": 0.5,
+      "adapt": -1
+    },
+    "mean_selected_reset_f10": {
+      "selected_reset_s1_f10": 0.5,
+      "selected_reset_s2_f10": 0.5
+    },
+    "mean_selected_reset_minus_adapt_f10": {
+      "selected_reset_s1_f10": 0.5,
+      "selected_reset_s2_f10": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_reset_f10": {
+      "uniform_reset_s1_f10": 0.5,
+      "uniform_reset_s2_f10": 0.5
+    },
+    "mean_uniform_reset_minus_adapt_f10": {
+      "uniform_reset_s1_f10": 0.5,
+      "uniform_reset_s2_f10": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_full_f10": {
+      "uniform_full_s1_f10": 0.5,
+      "uniform_full_s2_f10": 0.5
+    },
+    "mean_uniform_full_minus_adapt_f10": {
+      "uniform_full_s1_f10": 0.5,
+      "uniform_full_s2_f10": 0.5,
+      "adapt": -1
+    },
+    "mean_interaction_f10": {
+      "selected_reset_s1_f10": 0.5,
+      "selected_full_s1_f10": -0.5,
+      "uniform_reset_s1_f10": -0.5,
+      "uniform_full_s1_f10": 0.5,
+      "selected_reset_s2_f10": 0.5,
+      "selected_full_s2_f10": -0.5,
+      "uniform_reset_s2_f10": -0.5,
+      "uniform_full_s2_f10": 0.5
+    },
+    "mean_selection_main_effect_f10": {
+      "selected_reset_s1_f10": 0.25,
+      "selected_full_s1_f10": 0.25,
+      "uniform_reset_s1_f10": -0.25,
+      "uniform_full_s1_f10": -0.25,
+      "selected_reset_s2_f10": 0.25,
+      "selected_full_s2_f10": 0.25,
+      "uniform_reset_s2_f10": -0.25,
+      "uniform_full_s2_f10": -0.25
+    },
+    "mean_reset_main_effect_f10": {
+      "selected_reset_s1_f10": 0.25,
+      "uniform_reset_s1_f10": 0.25,
+      "selected_full_s1_f10": -0.25,
+      "uniform_full_s1_f10": -0.25,
+      "selected_reset_s2_f10": 0.25,
+      "uniform_reset_s2_f10": 0.25,
+      "selected_full_s2_f10": -0.25,
+      "uniform_full_s2_f10": -0.25
+    },
+    "mean_selected_reset_minus_uniform_reset_f10": {
+      "selected_reset_s1_f10": 0.5,
+      "selected_reset_s2_f10": 0.5,
+      "uniform_reset_s1_f10": -0.5,
+      "uniform_reset_s2_f10": -0.5
+    },
+    "mean_selected_full_f20": {
+      "selected_full_s1_f20": 0.5,
+      "selected_full_s2_f20": 0.5
+    },
+    "mean_selected_full_minus_adapt_f20": {
+      "selected_full_s1_f20": 0.5,
+      "selected_full_s2_f20": 0.5,
+      "adapt": -1
+    },
+    "mean_selected_reset_f20": {
+      "selected_reset_s1_f20": 0.5,
+      "selected_reset_s2_f20": 0.5
+    },
+    "mean_selected_reset_minus_adapt_f20": {
+      "selected_reset_s1_f20": 0.5,
+      "selected_reset_s2_f20": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_reset_f20": {
+      "uniform_reset_s1_f20": 0.5,
+      "uniform_reset_s2_f20": 0.5
+    },
+    "mean_uniform_reset_minus_adapt_f20": {
+      "uniform_reset_s1_f20": 0.5,
+      "uniform_reset_s2_f20": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_full_f20": {
+      "uniform_full_s1_f20": 0.5,
+      "uniform_full_s2_f20": 0.5
+    },
+    "mean_uniform_full_minus_adapt_f20": {
+      "uniform_full_s1_f20": 0.5,
+      "uniform_full_s2_f20": 0.5,
+      "adapt": -1
+    },
+    "mean_interaction_f20": {
+      "selected_reset_s1_f20": 0.5,
+      "selected_full_s1_f20": -0.5,
+      "uniform_reset_s1_f20": -0.5,
+      "uniform_full_s1_f20": 0.5,
+      "selected_reset_s2_f20": 0.5,
+      "selected_full_s2_f20": -0.5,
+      "uniform_reset_s2_f20": -0.5,
+      "uniform_full_s2_f20": 0.5
+    },
+    "mean_selection_main_effect_f20": {
+      "selected_reset_s1_f20": 0.25,
+      "selected_full_s1_f20": 0.25,
+      "uniform_reset_s1_f20": -0.25,
+      "uniform_full_s1_f20": -0.25,
+      "selected_reset_s2_f20": 0.25,
+      "selected_full_s2_f20": 0.25,
+      "uniform_reset_s2_f20": -0.25,
+      "uniform_full_s2_f20": -0.25
+    },
+    "mean_reset_main_effect_f20": {
+      "selected_reset_s1_f20": 0.25,
+      "uniform_reset_s1_f20": 0.25,
+      "selected_full_s1_f20": -0.25,
+      "uniform_full_s1_f20": -0.25,
+      "selected_reset_s2_f20": 0.25,
+      "uniform_reset_s2_f20": 0.25,
+      "selected_full_s2_f20": -0.25,
+      "uniform_full_s2_f20": -0.25
+    },
+    "mean_selected_reset_minus_uniform_reset_f20": {
+      "selected_reset_s1_f20": 0.5,
+      "selected_reset_s2_f20": 0.5,
+      "uniform_reset_s1_f20": -0.5,
+      "uniform_reset_s2_f20": -0.5
+    },
+    "mean_selected_full_f40": {
+      "selected_full_s1_f40": 0.5,
+      "selected_full_s2_f40": 0.5
+    },
+    "mean_selected_full_minus_adapt_f40": {
+      "selected_full_s1_f40": 0.5,
+      "selected_full_s2_f40": 0.5,
+      "adapt": -1
+    },
+    "mean_selected_reset_f40": {
+      "selected_reset_s1_f40": 0.5,
+      "selected_reset_s2_f40": 0.5
+    },
+    "mean_selected_reset_minus_adapt_f40": {
+      "selected_reset_s1_f40": 0.5,
+      "selected_reset_s2_f40": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_reset_f40": {
+      "uniform_reset_s1_f40": 0.5,
+      "uniform_reset_s2_f40": 0.5
+    },
+    "mean_uniform_reset_minus_adapt_f40": {
+      "uniform_reset_s1_f40": 0.5,
+      "uniform_reset_s2_f40": 0.5,
+      "adapt": -1
+    },
+    "mean_uniform_full_f40": {
+      "uniform_full_s1_f40": 0.5,
+      "uniform_full_s2_f40": 0.5
+    },
+    "mean_uniform_full_minus_adapt_f40": {
+      "uniform_full_s1_f40": 0.5,
+      "uniform_full_s2_f40": 0.5,
+      "adapt": -1
+    },
+    "mean_interaction_f40": {
+      "selected_reset_s1_f40": 0.5,
+      "selected_full_s1_f40": -0.5,
+      "uniform_reset_s1_f40": -0.5,
+      "uniform_full_s1_f40": 0.5,
+      "selected_reset_s2_f40": 0.5,
+      "selected_full_s2_f40": -0.5,
+      "uniform_reset_s2_f40": -0.5,
+      "uniform_full_s2_f40": 0.5
+    },
+    "mean_selection_main_effect_f40": {
+      "selected_reset_s1_f40": 0.25,
+      "selected_full_s1_f40": 0.25,
+      "uniform_reset_s1_f40": -0.25,
+      "uniform_full_s1_f40": -0.25,
+      "selected_reset_s2_f40": 0.25,
+      "selected_full_s2_f40": 0.25,
+      "uniform_reset_s2_f40": -0.25,
+      "uniform_full_s2_f40": -0.25
+    },
+    "mean_reset_main_effect_f40": {
+      "selected_reset_s1_f40": 0.25,
+      "uniform_reset_s1_f40": 0.25,
+      "selected_full_s1_f40": -0.25,
+      "uniform_full_s1_f40": -0.25,
+      "selected_reset_s2_f40": 0.25,
+      "uniform_reset_s2_f40": 0.25,
+      "selected_full_s2_f40": -0.25,
+      "uniform_full_s2_f40": -0.25
+    },
+    "mean_selected_reset_minus_uniform_reset_f40": {
+      "selected_reset_s1_f40": 0.5,
+      "selected_reset_s2_f40": 0.5,
+      "uniform_reset_s1_f40": -0.5,
+      "uniform_reset_s2_f40": -0.5
+    }
+  },
+  "output": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/main_development_two_seeds_v1.json",
+  "note": "The two online seeds share initial weights. Average per-source outcomes and contrasts before paired context resampling. This conditions on both observed training seeds and is not a training-seed confidence interval. Preserve individual seed estimates and their range; do not treat the two seeds as independent problem populations. All milestones remain in the analysis."
+}

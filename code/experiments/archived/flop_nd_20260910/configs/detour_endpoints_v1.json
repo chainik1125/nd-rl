@@ -1,0 +1,62 @@
+{
+  "endpoints": [
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_clean_reset_s4501_v1/symbolic_general_checkpoint.pt",
+      "method": "reset",
+      "name": "detour_clean_reset_s4501_v1",
+      "seed": 4501,
+      "variant": "clean"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_noisy_reset_s4501_v1/symbolic_general_checkpoint.pt",
+      "method": "reset",
+      "name": "detour_noisy_reset_s4501_v1",
+      "seed": 4501,
+      "variant": "noisy"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_clean_bc_s4501_v1/symbolic_general_checkpoint.pt",
+      "method": "bc",
+      "name": "detour_clean_bc_s4501_v1",
+      "seed": 4501,
+      "variant": "clean"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_noisy_bc_s4501_v1/symbolic_general_checkpoint.pt",
+      "method": "bc",
+      "name": "detour_noisy_bc_s4501_v1",
+      "seed": 4501,
+      "variant": "noisy"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_noisy_reset_s4502_v1/symbolic_general_checkpoint.pt",
+      "method": "reset",
+      "name": "detour_noisy_reset_s4502_v1",
+      "seed": 4502,
+      "variant": "noisy"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_clean_reset_s4502_v1/symbolic_general_checkpoint.pt",
+      "method": "reset",
+      "name": "detour_clean_reset_s4502_v1",
+      "seed": 4502,
+      "variant": "clean"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_noisy_bc_s4502_v1/symbolic_general_checkpoint.pt",
+      "method": "bc",
+      "name": "detour_noisy_bc_s4502_v1",
+      "seed": 4502,
+      "variant": "noisy"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/detour_clean_bc_s4502_v1/symbolic_general_checkpoint.pt",
+      "method": "bc",
+      "name": "detour_clean_bc_s4502_v1",
+      "seed": 4502,
+      "variant": "clean"
+    }
+  ],
+  "protocol_sha256": "7ef2dbade5ff434219efdc8d462b3917848da1ffa3dd427e8101214a18f3c2d9",
+  "status": "prospective_all_endpoints"
+}

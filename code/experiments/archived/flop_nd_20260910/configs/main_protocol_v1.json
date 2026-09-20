@@ -1,0 +1,84 @@
+{
+  "status": "frozen_before_main_training",
+  "frozen_utc": "2026-09-10T19:55:45.098316+00:00",
+  "primary_conditions": [
+    "relative_full",
+    "relative_reset",
+    "ppo_full",
+    "ppo_reset"
+  ],
+  "training_seeds": [
+    20260920,
+    20260921
+  ],
+  "initialization_sha256": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+  "data_manifest_sha256": "c369e098a618bb80c2c2dea442a75d3506c20e50ca43f3d1881e2ae359c10b42",
+  "budget": {
+    "primary": "same declared dense-FLOP proxy ceiling",
+    "per_arm_flop_proxy": 10000000000000000,
+    "max_wall_seconds_per_arm": 4500,
+    "max_updates": 40000,
+    "max_generated_tokens": 1000000000,
+    "stop_policy": "complete current update; report overshoot",
+    "expected_seconds_per_arm_from_pilot": {
+      "relative_full": 2161,
+      "relative_reset": 2277,
+      "ppo_full": 2486,
+      "ppo_reset": 2391
+    }
+  },
+  "procedure": {
+    "epochs": 4,
+    "relative_baseline": "leave-one-out within eight attempts, repeated clipped updates",
+    "ppo": "shared transformer critic, terminal-only reward, gamma=lambda1",
+    "reset": "source tasks only:80% reset,20% empty;64samples percut;earlier ifsuccess>=.8,later ifsuccess<.1",
+    "target_fraction": 0.5,
+    "training_target_labels": "theorem statements only",
+    "online_admission": false,
+    "retention_weight": 0.1,
+    "entropy_coef": 0
+  },
+  "evaluation": {
+    "primary": "unaided greedy verified coverage on final reference>=7 stratum; also actual dependency-pruned>6 certificate counts",
+    "secondary": [
+      "overall greedy coverage",
+      "sampled first and any-of4 at temperature.8",
+      "training target discoveries",
+      "actual and pruned certificate length",
+      "fullstart vs assisted training signal",
+      "curriculum cut progress",
+      "common-update development snapshots"
+    ],
+    "max_new_tokens": 512,
+    "sampled_attempts": 4,
+    "sample_temperature": 0.8,
+    "greedy_attempts": 1,
+    "batch_size": 32,
+    "seed": 202609101935,
+    "inference_search": false,
+    "model_selection": "all declared final endpoints; no best-checkpoint selection",
+    "final_release": "after configurations and endpoints freeze; all768 finaltheorems; no main hyperparameter changes basedonfinal"
+  },
+  "analysis": {
+    "paired_context_cluster_bootstrap": true,
+    "bootstrap_seed": 202609101936,
+    "bootstrap_replicates": 4000,
+    "training_seed_reporting": "each seed separately plus mean; two seeds do not support precise training-variance estimates",
+    "factorial_effects": "reset within objective, PPO within start condition, interaction difference of differences",
+    "novelty": "canonical/context-heldout theorem and valid newcertificate; no claim of semantic novelty or minimum length"
+  },
+  "secondary_prospective": [
+    "PPO gamma1lambda.95 full/reset at bounded budget to compare temporal-difference mechanism",
+    "retention-only control matched to outer-update retention exposure",
+    "structured longproof family transfer with theorem-only training and sealedreferences",
+    "richer finite legal-action MLP ND baseline after actioncoverage audit"
+  ],
+  "pilot_health": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/pilot_health_root_v1.json",
+  "interpretation_limits": [
+    "starting LM already broadcap6SFT+formatadaptation; notsingleproofseeding",
+    "resets apply only to source half of tasks",
+    "reference length is an upper bound on minimum",
+    "equal compute can entail unequal updates,retentionexposures,tokens"
+  ],
+  "new_paid_spending_cap_usd": 0
+}

@@ -1,0 +1,150 @@
+{
+  "args": {
+    "adaptation": 16,
+    "exclude_training": [],
+    "families": [
+      "ANDI",
+      "ANDE1",
+      "ANDE2",
+      "IMPE",
+      "IMPI_flat",
+      "IMPI_nested",
+      "ORI1",
+      "ORI2",
+      "NEGE",
+      "NEGI",
+      "BOTE",
+      "DN"
+    ],
+    "formula_limit": 23,
+    "guard_json": null,
+    "max_attempts": 100000,
+    "output": "proof-fragments-20260910-1800/code/tests/synthetic_smoke_v2",
+    "per_family": 2,
+    "probes_per_bin": 2,
+    "retention": 8,
+    "seed": 20260910
+  },
+  "attempts": 12366,
+  "baseline_exposed_contexts": 0,
+  "baseline_exposed_theorems": 0,
+  "dependency_sha256": {
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/nd_data.py": "0b59406358e690970e373a73e151f10956ad6aeed8cbff7c020e3025ca3ace46",
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/nd_grpo.py": "c230d1e901e2902e0fabb72bcb81fde18cce97cf705110128d81fd7e9038eea4",
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/nd_metrics.py": "8a02b4aa560a18d1fda7d45071d24cac13f9eb7e85bd1bf42e5d41fcbfeb468d",
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/nd_model.py": "35d012802c87b8b9b71904f28e5ce9f3581a22418e6a2fe87e48cd6785769602",
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/proof_diagnostics.py": "872579988d74449061997da62a894fe1cb450e1d9dd04eaa745080de062315d0",
+    "/data/users/dmitry/nd-rl/r1-sprint-20260909-1625/code/vendor/strict_verify.py": "73362291ec996114f609cd8650bd5fc664d1ceb88e6166d966ad334ae743a1c7"
+  },
+  "elapsed_seconds": 5.11053685285151,
+  "input_sha256": {},
+  "ok": true,
+  "population_sha256": {
+    "adaptation": "4e7cf2680c10d0cb42ee8357307e62b7aceeffa35bb58fbb855894540caf7568",
+    "candidate": "2cd7ffc0b9f0b92070dadc7a77d4a62e0ead8eb365ad74ca990132e8552138ae",
+    "confirmation": "b708a2fb44a982cf438dba7ebd7c76ba5e37b465cb1c8f76cf377149b364eeb5",
+    "retention": "69277d756f60eb6b31e539e85e6f631ed6cec3dd92b1d16711a0703f706db286",
+    "selection": "54a9fc511befce55eee05d37868aec2bc15f53c2f840351063176ae4888f49f9"
+  },
+  "role_statistics": {
+    "adaptation": {
+      "contexts": 11,
+      "families": {
+        "ANDI": 3,
+        "IMPI_flat": 6,
+        "NEGI": 1,
+        "ORI1": 2,
+        "ORI2": 4
+      },
+      "lengths": {
+        "3": 4,
+        "4": 4,
+        "5": 3,
+        "6": 5
+      },
+      "n": 16,
+      "theorems": 16
+    },
+    "candidate": {
+      "contexts": 17,
+      "families": {
+        "ANDE1": 2,
+        "ANDE2": 2,
+        "ANDI": 2,
+        "BOTE": 2,
+        "DN": 2,
+        "IMPE": 2,
+        "IMPI_flat": 2,
+        "IMPI_nested": 2,
+        "NEGE": 2,
+        "NEGI": 2,
+        "ORI1": 2,
+        "ORI2": 2
+      },
+      "lengths": {
+        "2": 7,
+        "3": 4,
+        "4": 6,
+        "5": 2,
+        "6": 5
+      },
+      "n": 24,
+      "theorems": 24
+    },
+    "confirmation": {
+      "contexts": 5,
+      "families": {
+        "ANDE2": 1,
+        "ANDI": 1,
+        "IMPE": 1,
+        "IMPI_flat": 2,
+        "IMPI_nested": 1
+      },
+      "lengths": {
+        "3": 2,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1
+      },
+      "n": 6,
+      "theorems": 6
+    },
+    "retention": {
+      "contexts": 6,
+      "families": {
+        "IMPI_flat": 5,
+        "IMPI_nested": 1,
+        "ORI1": 1,
+        "ORI2": 1
+      },
+      "lengths": {
+        "2": 1,
+        "3": 2,
+        "4": 4,
+        "6": 1
+      },
+      "n": 8,
+      "theorems": 8
+    },
+    "selection": {
+      "contexts": 5,
+      "families": {
+        "ANDI": 2,
+        "IMPI_flat": 2,
+        "IMPI_nested": 2
+      },
+      "lengths": {
+        "2": 1,
+        "4": 1,
+        "7": 1,
+        "8": 1,
+        "10": 2
+      },
+      "n": 6,
+      "theorems": 6
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "all_analysis_references_known": true,
+  "closure_stage": 12,
+  "fail_fast_stage_runner": true,
+  "final_eval_models": 32,
+  "final_evaluation_stages": [
+    15,
+    46
+  ],
+  "final_payload_accessed": false,
+  "final_release_stage": 13,
+  "future_audit_inputs_match_producer_schema": true,
+  "gpu_work_launched": false,
+  "inventory_matches_prior_independent_review": true,
+  "producer_completion_result_sha256_schema_matches": true,
+  "projected_diagnostic_stage": 11,
+  "provenance_limitation": "Final release binds the frozen closure plan, not the generated closure receipt; the fail-fast stage order enforces completed closure operationally",
+  "score_only_family_control_models": 24,
+  "score_only_stage": 14,
+  "source_hashes": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/analysis_final_seed1_v1.json": "1c8462983cc76e5bda73ca4cb331580d7fd025691ab8129d41fa58113d39b3b7",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_finish_seed1_v1.json": "3d7938d8cf06edf67796d3abffda0409a12ec8703e8b552525463fce3ef36c90",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/recipe_final_seed1_v1.json": "c9b57e92e2373a400b59b3679d4e3095eaaf19073555ca2c13d845e32787fab9",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/training_closure_plan_v1.json": "e6299a29b526260cea4a477c41e27bb82c27b708376f8f5b1afe0df1679cdf28",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/close_training.py": "4c63c6ca7d1e3be3a0592a55514c950eeaea2ae8f1958a3a7ba2a1f098bc3b65",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/prepare_finish_seed1.py": "4398aae920894b500ba42acc7b7b5953b956a15e167d5a25012264f4f89cd74d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/prepare_pipeline.py": "28b0fb18676320c2e4209029afc924c2a7b067490afa10c125843717413aba6d"
+  },
+  "stage_count": 47,
+  "status": "no_execution_or_schema_blocker_found",
+  "template_sampling_contract_checked": true,
+  "training_after_closure": false,
+  "training_stage_indices": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "unique_release_paths": 56
+}

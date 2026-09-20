@@ -1,0 +1,53 @@
+{
+  "base_run_names": [
+    "main_ppo_reset_seed1_v1",
+    "main_ppo_reset_seed2_v1"
+  ],
+  "budget": {
+    "max_generated_tokens": 1000000000,
+    "max_seconds": 1200,
+    "max_updates": 40000,
+    "per_arm_flop_proxy": 2000000000000000.0
+  },
+  "conditions": [
+    "online_on",
+    "online_off"
+  ],
+  "continuation_seeds": [
+    20260930,
+    20260931
+  ],
+  "deviations_from_flop": "Token LM, gamma1 pertoken, shared critic trunk, priorSFT and retention,20%empty starts, first-proof retention rather than replacement; not an exact reproduction.",
+  "estimand": "Incremental effect of admitting own discovered target proofs to backward curricula under a common EMA/TD/entropy continuation package. Difference from primary endpoint also changes common settings and is not a pure TD or EMA effect.",
+  "final_selection": "All declared endpoints, with no best-checkpoint selection.",
+  "inference": "Same unaided primary512-token greedy/4sample profiles; structured1024-token profiles.",
+  "initial_bank": "First strictly verified full-start target proof from the corresponding completed primary run, hash-bound to checkpoint and raw attempts; long online certificates allowed, external certificates remain cap6.",
+  "initialization_rule": "Use both predeclared primary PPO-reset final endpoints, one per primary training seed; never select by development performance.",
+  "new_paid_spending_cap_usd": 0,
+  "optimizer": "Saved policy+critic, fresh matched Adam and RNG per on/off pair; source curriculum restarts near end.",
+  "review_receipts": [
+    "reports/review_online.json",
+    "reports/review_online.md"
+  ],
+  "shared_settings": {
+    "advantage_normalization": "std",
+    "backward_threshold": 0.9,
+    "curriculum_ema_alpha": 0.4,
+    "curriculum_force_episodes": 20000,
+    "curriculum_mode": "flop_ema",
+    "empty_fraction": 0.2,
+    "entropy_coef": 0.01,
+    "epochs": 4,
+    "gae_lambda": 0.95,
+    "gamma": 1.0,
+    "group_size": 8,
+    "lr": 5e-05,
+    "max_new_tokens": 512,
+    "objective": "ppo",
+    "prompts_per_step": 4,
+    "retention_weight": 0.1,
+    "start": "reset",
+    "target_fraction": 0.5
+  },
+  "status": "frozen_before_continuation_training_and_final_evaluation"
+}

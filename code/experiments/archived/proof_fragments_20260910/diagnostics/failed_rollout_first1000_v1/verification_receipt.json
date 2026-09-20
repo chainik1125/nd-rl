@@ -1,0 +1,15 @@
+{
+  "both_whole_verifiers_pass": true,
+  "candidate_partition_and_blind_guards_rechecked": true,
+  "certificates_sha256": "a0a38316dc4ff61767941cbac859698d8fae073bc9827ada9dc4a9c02a39baaf",
+  "diagnostic_role_rejected_by_training_loader": true,
+  "extraction_semantic_tests_passed": 4,
+  "gpu_jobs_launched": 0,
+  "maximum_retained_certificate_lines": 6,
+  "mining_code_sha256": "6d55f37e59c51c1d7dcf500a295bf601d8cc97c5247798f993026536aef3bd15",
+  "novel_canonical_certificates_reverified": 85,
+  "optimizer_updates": 0,
+  "original_failed_rewards_rechecked": 85,
+  "original_premises_preserved": true,
+  "status": "verified_diagnostic_only"
+}

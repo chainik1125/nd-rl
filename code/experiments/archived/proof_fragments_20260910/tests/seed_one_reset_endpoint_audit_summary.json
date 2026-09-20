@@ -1,0 +1,61 @@
+{
+  "arms": {
+    "selected": {
+      "controller_moves": {
+        "backward": 709,
+        "forward": 74
+      },
+      "final_sources_at_empty_cut": 183,
+      "groups": 36216,
+      "mixed_groups": 959,
+      "overshoot": 295007068160.0,
+      "overshoot_fraction_of_budget": 7.375176704e-05,
+      "receipt_sha256": "8df08a796afa1a101d892fae796e1febf4fa06a0a727c918e09627942b0fd9de",
+      "retention_examples": 144864,
+      "rollouts": 289728,
+      "steps": 9054,
+      "total_flop_proxy": 4000295007068160,
+      "total_sources": 192,
+      "zero_advantage_updates": 8156
+    },
+    "uniform": {
+      "controller_moves": {
+        "backward": 724,
+        "forward": 94
+      },
+      "final_sources_at_empty_cut": 178,
+      "groups": 35308,
+      "mixed_groups": 1369,
+      "overshoot": 74479001600.0,
+      "overshoot_fraction_of_budget": 1.86197504e-05,
+      "receipt_sha256": "2f1d76bb600e4cb3ea0a378dd31890268b0720de40fe82706d93b3d474357a62",
+      "retention_examples": 141232,
+      "rollouts": 282464,
+      "steps": 8827,
+      "total_flop_proxy": 4000074479001600,
+      "total_sources": 192,
+      "zero_advantage_updates": 7574
+    }
+  },
+  "auditor_sha256": "dcf8435e0cb230bfa725e88046314a430670d87c415aeb3d2a573bd52bbe708d",
+  "common_retention_schedule_prefix_hashes": {
+    "1000": "cfd0675bccd1232654611fd42145b380b9acf7f248512ecd7063cdb8220fa872",
+    "8827": "f54910e2011233ded3557291c7977f02c226836334d61029c05345f3ee1eb741",
+    "9054": "54c56bc28ea3e9576bd235507c1e7979bc69009fef4f0704bd57a4fa55520f20"
+  },
+  "final_data_accessed": false,
+  "gpu_jobs_launched": 0,
+  "heldout_evaluation_performed": false,
+  "interpretation_limits": [
+    "Teacher probabilities come from saved runtime audits; changing policy logits cannot be independently recomputed without every update checkpoint",
+    "Matched compute produces different update counts and retention exposures; prepared retention-only ablation remains relevant",
+    "Most updates have zero policy advantages; all gradient-step and retention accounting still reconciles"
+  ],
+  "raw_logs_modified": false,
+  "retention_exposure_difference_examples": 3632,
+  "same_retention_stream_verified": true,
+  "scope": "Every completed rollout/state/reward, controller transition, mask, source/reset/retention RNG draw and phase/step compute checked for both reset runs",
+  "status": "both_completed_reset_endpoints_pass",
+  "uniform_full_endpoint": "Pending completion notification; not polled continuously",
+  "unresolved_correctness_concerns": []
+}

@@ -1,0 +1,83 @@
+{
+  "data": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/confirmation.jsonl",
+  "samples": 8,
+  "bootstrap_draws": 5000,
+  "bootstrap_seed": 20260911,
+  "models": {
+    "adapt": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/attempts.jsonl"
+    },
+    "transfer": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_transfer_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_transfer_v1/attempts.jsonl"
+    },
+    "surprise": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_surprise_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_surprise_v1/attempts.jsonl"
+    },
+    "uniform": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_v1/attempts.jsonl"
+    },
+    "uniform_matched": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_matched_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_uniform_matched_v1/attempts.jsonl"
+    },
+    "oracle_matched": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_oracle_matched_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_oracle_matched_v1/attempts.jsonl"
+    },
+    "oracle_total": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_oracle_total_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_oracle_total_v1/attempts.jsonl"
+    }
+  },
+  "comparisons": [
+    [
+      "transfer",
+      "adapt"
+    ],
+    [
+      "surprise",
+      "adapt"
+    ],
+    [
+      "uniform",
+      "adapt"
+    ],
+    [
+      "uniform_matched",
+      "adapt"
+    ],
+    [
+      "oracle_matched",
+      "adapt"
+    ],
+    [
+      "oracle_total",
+      "adapt"
+    ],
+    [
+      "transfer",
+      "uniform_matched"
+    ],
+    [
+      "transfer",
+      "surprise"
+    ],
+    [
+      "transfer",
+      "uniform"
+    ],
+    [
+      "oracle_matched",
+      "transfer"
+    ],
+    [
+      "oracle_total",
+      "transfer"
+    ]
+  ],
+  "output": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/calibration_confirmation_models_v1.json"
+}

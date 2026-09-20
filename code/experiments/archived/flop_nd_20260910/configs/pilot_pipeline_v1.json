@@ -1,0 +1,107 @@
+{
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/pilot_pipeline_v1",
+  "deadline_utc": "2026-09-10T21:00:00Z",
+  "stages": [
+    {
+      "name": "baseline_development_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/baseline_development_greedy_v1",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "pilot_relative_full",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_relative_full_v1.json"
+      ],
+      "timeout_seconds": 1000,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_relative_full_v1.json": "7f853d3bee12092079d2a02bc5308d8ca0a08715bfebd585350610586096df56",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "pilot_ppo_reset",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_ppo_reset_v1.json"
+      ],
+      "timeout_seconds": 1000,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_ppo_reset_v1.json": "02a1e5941d06d0190072f43892e0f390138abb416a13f2e98503a06c8356e76f",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "pilot_relative_reset",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_relative_reset_v1.json"
+      ],
+      "timeout_seconds": 1000,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_relative_reset_v1.json": "c107fb60601b860f6c5061026de71ee3b09e6149488b149819a811723fc6b397",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "pilot_ppo_full",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_ppo_full_v1.json"
+      ],
+      "timeout_seconds": 1000,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_ppo_full_v1.json": "d0052adc6872cccc5cfbaa68da564dd9423cdeeca60fe3067b9c774b12ae1324",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    }
+  ]
+}

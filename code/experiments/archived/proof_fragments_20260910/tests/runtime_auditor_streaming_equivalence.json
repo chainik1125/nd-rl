@@ -1,0 +1,20 @@
+{
+  "audit_code_sha256": "dcf8435e0cb230bfa725e88046314a430670d87c415aeb3d2a573bd52bbe708d",
+  "comparison_fields": [
+    "log_prefix_sha256",
+    "total_flop_proxy",
+    "phase_flop_proxy",
+    "mixed_groups",
+    "source_selection_schedule_sha256",
+    "retention_schedule_sha256",
+    "curriculum_moves",
+    "generated_tokens",
+    "active_advantage_tokens"
+  ],
+  "original_receipt_sha256": "055c2aa65da94b8870e9e8b5d681017c233814647efa8faa8c68fea0af679095",
+  "raw_logs_modified": false,
+  "rollouts": 32000,
+  "status": "passed",
+  "steps": 1000,
+  "streaming_receipt_sha256": "859314ad4dfecb0135bceeb383c93d7b686f384d895f06456046a7d6c13ab21b"
+}

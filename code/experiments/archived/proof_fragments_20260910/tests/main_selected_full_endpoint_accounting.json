@@ -1,0 +1,18 @@
+{
+  "final_sha256": "480102046bbd9995a5cfa81ba8533814e02148ee685f0f158f2fe3950839de05",
+  "first_crossing_is_final_step": true,
+  "max_logged_likelihood_error": 0.00013971328735351562,
+  "mixed_groups": 991,
+  "n_groups": 36224,
+  "overshoot": 109376860160.0,
+  "result_sha256": "67eea148e3eabd917e5cb8b20f4a402635ed9d1cf3843fd61bf2ed7d6490dc45",
+  "retention_examples": 144896,
+  "scope": "Complete selected-full scalar ledger and stop reconciliation; semantic reward/state audit separately covers first300updates",
+  "status": "passed_endpoint_accounting",
+  "steps": 9056,
+  "sum_phase_proxy_matches_final": true,
+  "sum_update_proxy_matches_final": true,
+  "total_flop_proxy": 4000109376860160,
+  "updates_sha256": "385792ef75033852a89c86972093f81c8d6580ad39dd00a84c91dc2971dc2ca9",
+  "zero_advantage_updates": 8157
+}

@@ -1,0 +1,42 @@
+{
+  "deadline_utc": "2026-09-10T20:45:00Z",
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/cpu_baseline_structured_sample4_v1",
+  "stages": [
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_lm_v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_lm_v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/baseline_structured_development_sample4_v1",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "1024",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cpu"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_lm_v1/audit/development.jsonl": "4edf3ee43972d7686f32766a3616bf4ec1ba259248a63720c10feb46b612fa67",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_lm_v1/development.jsonl": "c8d9cc119c90f395f9211a43745854288978e4b8a4a9cdf52975c49e8a95e04b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py": "855b81a8dd1e8139b55dc6cb1ece49e34f44201ae5eb76613a6a8eca5393ebfb",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/learning.py": "5c1fcc7cd85fe2de25ec76f520e2d5519eb3c2b504dd78f20dec44570ba0b550",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3"
+      },
+      "name": "baseline_structured_development_sample4_v1",
+      "timeout_seconds": 1200
+    }
+  ]
+}

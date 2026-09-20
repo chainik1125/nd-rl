@@ -1,0 +1,26 @@
+{
+  "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt",
+  "checkpoint_every": 500,
+  "checkpoint_steps": [
+    5147,
+    5361,
+    5857,
+    5932
+  ],
+  "cpu_threads": 4,
+  "device": "cuda",
+  "epochs": 4,
+  "grad_clip": 1.0,
+  "log_every": 100,
+  "lr": 5e-05,
+  "max_seconds": 1800,
+  "max_updates": 5932,
+  "microbatch": 16,
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_v1",
+  "precision": "fp32",
+  "retention": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl",
+  "retention_batch": 16,
+  "retention_weight": 0.1,
+  "seed": 20260921,
+  "weight_decay": 0.0
+}

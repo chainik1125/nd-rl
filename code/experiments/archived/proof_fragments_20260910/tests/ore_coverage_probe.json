@@ -1,0 +1,209 @@
+{
+  "diagnostic_only_never_train": true,
+  "examples": [
+    {
+      "diagnostic_only_never_train": true,
+      "generation_cap": 6,
+      "identities": {
+        "context_id": "147db81cc3593c7043721ae32786f2a7b595d8e4597bed0b4f62492b452aaeae",
+        "guard_ids": [
+          "9c7a04ef7ce002c7326683268084ed9f4c96b6c53dfbd8ad5bbb375e010e0257",
+          "bb61155fba01d5e42db0dd0a20b20c9d56f6bf114ee99b29ca92cf42c109829a",
+          null
+        ],
+        "theorem_id": "a75f3a6b4f67d9cdc06d97b1c1964dc83544467af49c17115e75b458d04518d2"
+      },
+      "raw": {
+        "max_depth": 1,
+        "n_lines": 5,
+        "n_premises": 1,
+        "prompt": "THM ( ~ ( ~ ( P v P ) ) ) SEQ P PRF",
+        "rules": [
+          "PR",
+          "DN",
+          "AS",
+          "AS",
+          "ORE"
+        ],
+        "text": "THM ( ~ ( ~ ( P v P ) ) ) SEQ P PRF\nN1 ( ~ ( ~ ( P v P ) ) ) : PR ;\nN2 ( P v P ) : DN N1 ;\nN3 | P : AS ;\nN4 | P : AS ;\nN5 P : ORE N2 N3 N3 N4 N4 ;\nQED",
+        "thm": "( ~ ( ~ ( P v P ) ) ) |- P"
+      }
+    },
+    {
+      "diagnostic_only_never_train": true,
+      "generation_cap": 6,
+      "identities": {
+        "context_id": "4dae9a79eae13433c01d61fae5a89d2b0077ef7066dc405cca877bb530cff91b",
+        "guard_ids": [
+          "71a2902f9d516a09de0d657edab81870d43e7a7dff4aa9cbda69f44bc396aab8",
+          "d1fac2861a4d22e66bc8ced3837413615cd02150b159ce155bfafb7bcaca1f7d",
+          null
+        ],
+        "theorem_id": "3396a6a1d3a884b104473b00bdc9036c2cd5ecdf91a3815f2b158b42125e6660"
+      },
+      "raw": {
+        "max_depth": 1,
+        "n_lines": 6,
+        "n_premises": 2,
+        "prompt": "THM ( Q v S ) , ( ( Q v S ) & S ) SEQ S PRF",
+        "rules": [
+          "PR",
+          "PR",
+          "AS",
+          "AS",
+          "ANDE2",
+          "ORE"
+        ],
+        "text": "THM ( Q v S ) , ( ( Q v S ) & S ) SEQ S PRF\nN1 ( Q v S ) : PR ;\nN2 ( ( Q v S ) & S ) : PR ;\nN3 | S : AS ;\nN4 | Q : AS ;\nN5 | S : ANDE2 N2 ;\nN6 S : ORE N1 N4 N5 N3 N3 ;\nQED",
+        "thm": "( Q v S ) , ( ( Q v S ) & S ) |- S"
+      }
+    },
+    {
+      "diagnostic_only_never_train": true,
+      "generation_cap": 6,
+      "identities": {
+        "context_id": "b13d26abd2ac921f4d0e36101008ff40efca78a2f9473bf72dae2bd567496262",
+        "guard_ids": [
+          "8c4c307d4af8dd34e699767ec17725129a99ccd9ca82c6fe5c2753f920cc3cfd",
+          "ee822e2d242459f46c3d2bb0a778fe3242f697e5ce138604263222a1278dc1d1",
+          null
+        ],
+        "theorem_id": "e674eef523b6f0360c88773e250024ec22f26f8d2ad50459567aa04944b99ad3"
+      },
+      "raw": {
+        "max_depth": 1,
+        "n_lines": 5,
+        "n_premises": 1,
+        "prompt": "THM ( S v ( S & ( ~ S ) ) ) SEQ S PRF",
+        "rules": [
+          "PR",
+          "AS",
+          "AS",
+          "ANDE1",
+          "ORE"
+        ],
+        "text": "THM ( S v ( S & ( ~ S ) ) ) SEQ S PRF\nN1 ( S v ( S & ( ~ S ) ) ) : PR ;\nN2 | S : AS ;\nN3 | ( S & ( ~ S ) ) : AS ;\nN4 | S : ANDE1 N3 ;\nN5 S : ORE N1 N2 N2 N3 N4 ;\nQED",
+        "thm": "( S v ( S & ( ~ S ) ) ) |- S"
+      }
+    },
+    {
+      "diagnostic_only_never_train": true,
+      "generation_cap": 12,
+      "identities": {
+        "context_id": "4908a9111aaec266245adb134ab0024477b8d5fc930c16b3e98e922bd9a8e0ea",
+        "guard_ids": [
+          "3db2d26686f9765fbce81115f8fed9c367d91736f24ca4e81ca125e4898a32fe",
+          "98d4f58884c993a36e3646e68b13e28f02fb697b5953710d21d55fee1a312f46",
+          null
+        ],
+        "theorem_id": "63b26281d16b22d0eadc53c305910d6ffcbf499f0f961b5d94f82679820b8fb8"
+      },
+      "raw": {
+        "max_depth": 1,
+        "n_lines": 6,
+        "n_premises": 2,
+        "prompt": "THM ( S v R ) , ( ( S v R ) & S ) SEQ S PRF",
+        "rules": [
+          "PR",
+          "PR",
+          "AS",
+          "AS",
+          "ANDE2",
+          "ORE"
+        ],
+        "text": "THM ( S v R ) , ( ( S v R ) & S ) SEQ S PRF\nN1 ( S v R ) : PR ;\nN2 ( ( S v R ) & S ) : PR ;\nN3 | S : AS ;\nN4 | R : AS ;\nN5 | S : ANDE2 N2 ;\nN6 S : ORE N1 N3 N3 N4 N5 ;\nQED",
+        "thm": "( S v R ) , ( ( S v R ) & S ) |- S"
+      }
+    },
+    {
+      "diagnostic_only_never_train": true,
+      "generation_cap": 12,
+      "identities": {
+        "context_id": "7c7c539ea8f849ee2de5019bb3508480a3c06373f5ff7a8334b7f96ab56f957b",
+        "guard_ids": [
+          "1a1b09e80010d1b9d7ace0cfdafef5ff43dda24f3ae4566aab23d17905ca0332",
+          "055d99f29cb43ee56beccdea965ebc50bb8fcb56898a369b9bee4a3279308e63",
+          null
+        ],
+        "theorem_id": "7e29578dd7a478b1759711eeff10b14177e971ee143b61b2a8149fa724ed136d"
+      },
+      "raw": {
+        "max_depth": 1,
+        "n_lines": 5,
+        "n_premises": 1,
+        "prompt": "THM ( ( S & S ) v S ) SEQ S PRF",
+        "rules": [
+          "PR",
+          "AS",
+          "AS",
+          "ANDE1",
+          "ORE"
+        ],
+        "text": "THM ( ( S & S ) v S ) SEQ S PRF\nN1 ( ( S & S ) v S ) : PR ;\nN2 | S : AS ;\nN3 | ( S & S ) : AS ;\nN4 | S : ANDE1 N3 ;\nN5 S : ORE N1 N3 N4 N2 N2 ;\nQED",
+        "thm": "( ( S & S ) v S ) |- S"
+      }
+    },
+    {
+      "diagnostic_only_never_train": true,
+      "generation_cap": 12,
+      "identities": {
+        "context_id": "b1464fcf8accc6b3adc40652481e4fa39fc7ec5d6e286faadebb1fefb5333647",
+        "guard_ids": [
+          "946db985cefcbfc905ec33a19cd8e43b59218d1534d421afaac2a4603bda9582",
+          "f84d28db8d21a348b85f4cadcd717c5d1b52685875c6533e8614d90f81cd1ecb",
+          null
+        ],
+        "theorem_id": "1970daaa6a7c52eeda2e7858026bd67df3eed74f5f139bb9c14e6f12486d6c17"
+      },
+      "raw": {
+        "max_depth": 1,
+        "n_lines": 6,
+        "n_premises": 1,
+        "prompt": "THM ( ( ~ P ) & S ) SEQ S PRF",
+        "rules": [
+          "PR",
+          "ORI1",
+          "AS",
+          "AS",
+          "ANDE2",
+          "ORE"
+        ],
+        "text": "THM ( ( ~ P ) & S ) SEQ S PRF\nN1 ( ( ~ P ) & S ) : PR ;\nN2 ( ( ( ~ P ) & S ) v S ) : ORI1 N1 ;\nN3 | S : AS ;\nN4 | ( ( ~ P ) & S ) : AS ;\nN5 | S : ANDE2 N4 ;\nN6 S : ORE N2 N4 N5 N3 N3 ;\nQED",
+        "thm": "( ( ~ P ) & S ) |- S"
+      }
+    }
+  ],
+  "results": [
+    {
+      "attempts": 50000,
+      "counts": {
+        "ORE_any_pruned_length": 5,
+        "ORE_cap6_candidate_bucket": 3,
+        "ORE_cap6_guard_passed": 5,
+        "ORE_cap6_other_role_bucket": 2,
+        "ORE_pruned_cap6": 5,
+        "accepted_all_rules": 45140
+      },
+      "elapsed_seconds": 9.92329346947372,
+      "generation_cap": 6,
+      "unique_candidate_contexts": 3,
+      "unique_candidate_theorems": 3
+    },
+    {
+      "attempts": 50000,
+      "counts": {
+        "ORE_any_pruned_length": 70,
+        "ORE_cap6_candidate_bucket": 3,
+        "ORE_cap6_guard_passed": 15,
+        "ORE_cap6_guard_rejected": 1,
+        "ORE_cap6_other_role_bucket": 12,
+        "ORE_pruned_cap6": 16,
+        "accepted_all_rules": 37172
+      },
+      "elapsed_seconds": 22.12464423291385,
+      "generation_cap": 12,
+      "unique_candidate_contexts": 3,
+      "unique_candidate_theorems": 3
+    }
+  ]
+}

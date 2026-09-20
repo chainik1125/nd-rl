@@ -1,0 +1,96 @@
+{
+  "active_advantage_tokens": 704448,
+  "checks": [
+    "frozen code/dependency/input hashes",
+    "actual cap6 certificates and source provenance",
+    "exact seeded source/reset/retention schedule",
+    "every saved state and strict reward",
+    "sourcewise LOO advantages and mixed groups",
+    "all action/context/padding masks",
+    "curriculum counters and threshold moves",
+    "unclipped fixed response budget",
+    "dense generation/audit/backward/retention proxy per update"
+  ],
+  "controller_move_directions": {},
+  "curriculum_moves": 0,
+  "cut_histogram": {
+    "0": 36384
+  },
+  "directory": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1",
+  "distinct_sampled_sources": 192,
+  "elapsed_seconds": 64.02320438902825,
+  "endpoint_accounting": {
+    "all_phase_and_step_compute_reconciled": true,
+    "completed_result_sha256": "a31b6d708d67efc8f0639ba638378f8b60dceeb1a6dfe22072afab7ecb8b1d8e",
+    "exact_final_curriculum_agreement": true,
+    "final_checkpoint_sha256": "7da1e11300eb630e99af8d603d8139f85669aceb243b547d91b7837a8bb5f0fc",
+    "first_budget_crossing_is_final_step": true,
+    "flop_proxy_overshoot": 59554611200.0,
+    "worst_case_one_step_flop_proxy": 2397295042560,
+    "zero_advantage_updates": 8040
+  },
+  "families": {
+    "ANDE1": 8,
+    "ANDE2": 9,
+    "ANDI": 18,
+    "BOTE": 14,
+    "DN": 8,
+    "IMPE": 22,
+    "IMPI_flat": 16,
+    "IMPI_nested": 21,
+    "NEGE": 18,
+    "NEGI": 29,
+    "ORI1": 15,
+    "ORI2": 14
+  },
+  "final_controller_cut_histogram": {
+    "1": 8,
+    "2": 37,
+    "3": 34,
+    "4": 83,
+    "5": 30
+  },
+  "final_controller_state_sha256": "abdde78aea5e27510279e18a497606e70d7166349a2e6b41c8adeeeab82a45bd",
+  "first_controller_move_step": null,
+  "generated_tokens": 18505563,
+  "input_sha256": {
+    "checkpoint": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "data": "fcd74c8ea226e30cb7fdfd63beaf5584de507dafde134d9bdf2d93720a427f1e",
+    "retention": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e"
+  },
+  "limitation": "Per-update policies were not saved, so teacher probabilities are bounded by the saved runtime audits; this read-only audit does not recompute changing-policy logits.",
+  "log_prefix_sha256": {
+    "groups": "82e7aa5b39da9845279dc69925c12545efd07d5d4ee15ec79530289f6a497e71",
+    "rollouts": "0e3366217723f8457dbb6acb93cd9ba3467504434e37eba9c1066c55e42c74a2",
+    "updates": "396ad6e6a34dd6c62eba95bf1b783f7d6079d734f200535c1ad03e6545b88cf2"
+  },
+  "manifest_sha256": "7e43463062b8a08acb1ca69786978e862dc36c5614f32f68568506e52fe96204",
+  "max_logged_behavior_teacher_error": 0.0001327991485595703,
+  "mixed_groups": 1182,
+  "n_groups": 36384,
+  "n_rollouts": 291072,
+  "n_sources": 192,
+  "outcome_success_count_histogram": {
+    "0": 1801,
+    "1": 89,
+    "2": 67,
+    "3": 63,
+    "4": 74,
+    "5": 90,
+    "6": 160,
+    "7": 639,
+    "8": 33401
+  },
+  "phase_flop_proxy": {
+    "behavior_audit": 557666028564480,
+    "generation": 633775182766080,
+    "rl_retention": 1135620257587200,
+    "rl_training": 1672998085693440
+  },
+  "retention_examples": 145536,
+  "retention_schedule_sha256": "bc5e830645d6927fccaa5fa998b8b8495d92011ed4c93202cb25e8facf16319d",
+  "source_selection_schedule_sha256": "4e69a09d41d380b7d40aec09cf7ea74d9b2a21b736f3d52e322fda161393930b",
+  "status": "passed",
+  "steps_audited": 9096,
+  "total_flop_proxy": 4000059554611200
+}

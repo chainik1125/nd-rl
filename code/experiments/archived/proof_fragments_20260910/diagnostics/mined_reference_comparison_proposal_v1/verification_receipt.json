@@ -1,0 +1,19 @@
+{
+  "all_full_local_certificates_roundtrip_checked": true,
+  "ancestry_and_acquired_exposure_classes_preserved": true,
+  "cohort_sha256": {
+    "mined": "b77cb195ad72eb8cfa5731e0d0717ac5fb711ff10ab5598c2e879fef612ef168",
+    "reference": "ff2dc9918d3d9491fbff7d9c1ebce1da33d4b1700d62ed2a94225f3d3cd8b3a2"
+  },
+  "cpu_tests_passed": 5,
+  "current_release_template_rejected_by_new_full_certificate_trainer": true,
+  "distinct_reference_endpoints_and_disjoint_from_all85_mined": true,
+  "exact_per_pair_line_length_match": true,
+  "excluded_length6": 1,
+  "existing_fragment_training_gate_still_rejects_both_arms": true,
+  "gpu_launches": 0,
+  "n_per_arm": 84,
+  "optimizer_updates": 0,
+  "proposal_manifest_sha256": "07b6eeddfe495bcc57f8b5b5d7c108382a0cfbf631c5b665d689df12fc71640e",
+  "status": "proposal_verified_not_released"
+}

@@ -1,0 +1,55 @@
+{
+  "checkpoint_sha256": "60b7c820f969f70e936b2fd797587c6911d5f958a040241e49eea8edf2c28568",
+  "elapsed_seconds": 0.03558685444295406,
+  "fixed_pad": 512,
+  "history": [
+    {
+      "elapsed_seconds": 0.019440535455942154,
+      "grad_norm": 1.2435537576675415,
+      "loss_nats_per_token": 3.765127182006836,
+      "step": 1
+    },
+    {
+      "elapsed_seconds": 0.0350517388433218,
+      "grad_norm": 1.1254920959472656,
+      "loss_nats_per_token": 3.7423291206359863,
+      "step": 2
+    }
+  ],
+  "ledger": {
+    "sft_training": {
+      "action_tokens": 516,
+      "actual_input_tokens": 706,
+      "calls": 2,
+      "flop_proxy": 743492736,
+      "padded_token_slots": 4088,
+      "supplied_tokens": 198
+    },
+    "teacher_scoring": {
+      "action_tokens": 1390,
+      "actual_input_tokens": 1650,
+      "calls": 4,
+      "flop_proxy": 63593472,
+      "padded_token_slots": 2176,
+      "supplied_tokens": 272
+    }
+  },
+  "optimizer": "AdamW reset to identical empty state at arm start",
+  "parameter_displacement_l2": 0.006995182696149533,
+  "primary_examples": 4,
+  "primary_response_tokens": 264,
+  "primary_schedule_sha256": "400ff30d2255f1653d23f179957655c91c4c235166a18d8fb8e99ef22588f0c4",
+  "probe_gradient_dot_displacement": -0.38899824066174915,
+  "retention_examples": 4,
+  "retention_fraction": 0.5,
+  "retention_response_tokens": 252,
+  "retention_schedule_sha256": "72d55a21e8410368959df18eacc50f343f502bdbbb63fea6916e4319557015ef",
+  "selection_by_length_bits": {
+    "10-12": 998.1300048828125,
+    "2-6": 204.40843200683594,
+    "7-9": 669.2519836425781
+  },
+  "selection_mean_bits": 623.9301401774088,
+  "step1_probe_gradient_dot_displacement": -0.19387814992296626,
+  "steps": 2
+}

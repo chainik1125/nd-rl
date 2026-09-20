@@ -1,0 +1,82 @@
+{
+  "architecture": "500x2 tanh state/action actor and separate statecritic; same frozengeneralNDfeatures/proposer",
+  "atom_augmentation": false,
+  "bc_control": {
+    "full_batch_updates": 1000,
+    "presentations": 10000,
+    "training_seeds": [
+      4401,
+      4402
+    ],
+    "unique_labeled_actions": 10
+  },
+  "conditions": [
+    "full",
+    "reset"
+  ],
+  "curriculum": "EMA=.6old+.4reward; moveonecutearlier ifEMA>.9 or>20000episodes; resetstatisticsafteradvance; no backoff or empty mixture",
+  "evaluation": {
+    "atom_transfer": "Report alltheorems plusprespecified structured target_atom==P vsotheratoms; bothseeds useP, so these are differentgeneralizationtests.",
+    "greedy_attempts": 1,
+    "populations": [
+      "primary",
+      "structured_all_lengths"
+    ],
+    "sample_temperature": 1,
+    "sampled_attempts": 4,
+    "scope_cap": 4,
+    "seed": 202609101935,
+    "token_eligibility": [
+      512,
+      1024,
+      2048
+    ],
+    "total_line_cap": 32
+  },
+  "hypotheses": [
+    "Reset startscreatefirstsuccesssignal whenfiveconsecutiveusefulinferences are rarefromfullstart.",
+    "A learnedrepeatedprojectionprocedure canextrapolateto7/9/13/17/25lineheldoutcertificates.",
+    "ComparewithBCtoavoidattributingallproceduregeneralizationuniquelytoRL."
+  ],
+  "initialization": "random policy and separate critic; no LM or otherSFT",
+  "limits": [
+    "Fixedformula/actionproposerandengineeredfeatures",
+    "Finite32line/scope4evaluation",
+    "Pureprojectionseeds; implication/scopecompositionandatomrenamingareadditionaltransferchallenges",
+    "NotanexactFLoPbackend/optimizerreproduction"
+  ],
+  "no_long_training_targets": true,
+  "ppo_actions_per_arm": 131072,
+  "ppo_settings": {
+    "clip": 0.2,
+    "entropy": 0.01,
+    "epochs": 4,
+    "gamma": 0.95,
+    "lambda": 0.95,
+    "lr": 0.0001,
+    "minibatch": 64,
+    "rollout_target": 512
+  },
+  "review": "Original generalenvironment sevensemanticchecks plusrootEMAchecks and exact512-actioncheckpointresume; newindependentagentreview unavailabledueaccountlimit.",
+  "scope_cap": 4,
+  "source_certificate_count": 2,
+  "source_goal_atoms": [
+    "P",
+    "P"
+  ],
+  "source_lines": [
+    6,
+    6
+  ],
+  "source_nonpremise_inferences": [
+    5,
+    5
+  ],
+  "source_sha256": "36e4b423052e84335f91eb8bf56c92d60b9ddc50177ccc10d1cdf328da6e1a62",
+  "status": "frozen_before_training",
+  "training_seeds": [
+    4401,
+    4402
+  ],
+  "training_total_line_cap": 6
+}

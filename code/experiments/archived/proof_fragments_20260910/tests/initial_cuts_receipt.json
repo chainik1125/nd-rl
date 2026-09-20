@@ -1,0 +1,20 @@
+{
+  "all_cut_fit_map_sha256": "80e4dd27a0f1609f33886225cb624398d886f7effb419b0fae56c9002c7c8445",
+  "all_cut_fit_sources": 4,
+  "fresh_audit_attempts": 96,
+  "fresh_audit_max_behavior_error": 4.76837158203125e-07,
+  "initial_cut_unit_tests": 5,
+  "mapped_rl_pilot_cost_bound": 226767360,
+  "mapped_rl_steps": 1,
+  "production_jobs_launched_by_implementation_agent": 0,
+  "scientific_performance_evidence": false,
+  "source_sha256": {
+    "all_cut_pilot.py": "e35e66e01bff3639bc222654f96b58616f6419f85c3f287a6334254b2ad8f05b",
+    "fragment_experiment.py": "2b498c7e7eeac80bd88eda052d3b3b43f7b9cc97ec4048212774ae41b81e5687",
+    "initial_cuts.py": "4cdcb6a57bd5879103f5834280f9119b7fb7c7326e7fa2cd39eee7acd2a6ac7c",
+    "score_only.py": "fd10001ee980a346b541a2f61410fd7e82e5874001656ca0a35e2c08282848af",
+    "test_initial_cuts.py": "35b048ee08e2c32ea774ad3aa9b312afd999d01b2602d179d9d022d4a288ee94",
+    "test_score_only.py": "eb3ad4636241c6f2bc620d5b9accd7d7ae42ae8039859c2bf91a36f40d126dee"
+  },
+  "status": "cpu_smoke_passed"
+}

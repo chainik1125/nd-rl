@@ -1,0 +1,370 @@
+{
+  "all_endpoint_generation_attempts_at_768x8": 196608,
+  "currently_present": 23,
+  "duplicate_avoidance": [
+    "Adapt is already one of the seven calibration/baseline endpoints",
+    "Do not add main flops_4000000000000000.pt alongside final.pt",
+    "Four close retention exposure steps are distinct requested controls, not four independent training seeds"
+  ],
+  "endpoints": [
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_500000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "743eb16fdf82af7f95ad608fadde05f3bba32a52437c3f1fd5f96a0e5867595b",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "3f26ee96193638ebbba8a705ee79ba18d1afe1404971d4ff10f2264f09345437"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_1000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "743eb16fdf82af7f95ad608fadde05f3bba32a52437c3f1fd5f96a0e5867595b",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "1a917210c38546ac2adc756d743499d54532fa4b036edf7fb3cc92972aef8acf"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_2000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "743eb16fdf82af7f95ad608fadde05f3bba32a52437c3f1fd5f96a0e5867595b",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "694de76dad259cf7866bbc1739d6afcf739682bc52db658479bba39662cd22e6"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "743eb16fdf82af7f95ad608fadde05f3bba32a52437c3f1fd5f96a0e5867595b",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "480102046bbd9995a5cfa81ba8533814e02148ee685f0f158f2fe3950839de05"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_500000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "d51f19956f65b14a1f526f02b994dafd0eb5f5e555068417d5e4e83bb9533e05",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "dc09c7ade39c42bf5651204f168423885a8fead00b1703114c216d7d763423c6"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_1000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "d51f19956f65b14a1f526f02b994dafd0eb5f5e555068417d5e4e83bb9533e05",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "81cdafdc5455408372e88c4dacac711f1eb8446c181e6f7eb308d06c3d8ca42c"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_2000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "d51f19956f65b14a1f526f02b994dafd0eb5f5e555068417d5e4e83bb9533e05",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "5ca816a03b48b6a471822c4d20f7d12dcccbfe1bcb9803b7d1e43cbd64fda1e4"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "d51f19956f65b14a1f526f02b994dafd0eb5f5e555068417d5e4e83bb9533e05",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "17993cc4fa7eb0262d22018cbe7bde4d5fd1a9b266ff208639221eec394f5b2e"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_500000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "a5b45e934dc44e334b77910a1ad138d6b66fc1f8b28260bf8007a7f5a091cfce",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "a927889b94ccf5ec366926aa4cf61a6ee96019227eec8c09fb4623fe1a6c8af6"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_1000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "a5b45e934dc44e334b77910a1ad138d6b66fc1f8b28260bf8007a7f5a091cfce",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "a3fed63d442a455048b106c39cc2eea938deaaa7c379e0a5c21af775a6c46a91"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_2000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "a5b45e934dc44e334b77910a1ad138d6b66fc1f8b28260bf8007a7f5a091cfce",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "4c7923626e6f99003dcfed29322f95e2110e3fbea932c7ead843e0db367469ea"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "a5b45e934dc44e334b77910a1ad138d6b66fc1f8b28260bf8007a7f5a091cfce",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "cd7ffe64545aec5f6f57d58d4953b42b164eb7f44d8dc392df800b6da9647c5a"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_500000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "0bc3f2752a0bd9dd5741fbcab29bfc0924e34fbd490aca8c46202185b208142a",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "7c45c3c953e3d5bf417c153c6a99124db7d4c25f968e0f58e32cec01c9190c8b"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_1000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "0bc3f2752a0bd9dd5741fbcab29bfc0924e34fbd490aca8c46202185b208142a",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "e184e45379fb5686e7c10a26c4182f9b3eff6d15180595ac7d00d5cd3143bf72"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_2000000000000000.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "0bc3f2752a0bd9dd5741fbcab29bfc0924e34fbd490aca8c46202185b208142a",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "6185a8f27521f2a79166f4297a5c7161b600a9de7157a7d3bbed4cf95fca165b"
+    },
+    {
+      "category": "main_seed1_learning_curve",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "0bc3f2752a0bd9dd5741fbcab29bfc0924e34fbd490aca8c46202185b208142a",
+      "required": true,
+      "role_note": "All four fixed compute horizons retained; use final.pt once for the 4e15 endpoint",
+      "sha256_at_review": "7da1e11300eb630e99af8d603d8139f85669aceb243b547d91b7837a8bb5f0fc"
+    },
+    {
+      "category": "existing_calibration_and_baseline_seven",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/adapt_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "12672fc5885c69ef85ee625b1cb7fa3016ba412ff3e40cb299c49ee677fc22ab",
+      "required": true,
+      "role_note": "Adapted policy, four SFT mixtures, two initial cap12 direct-supervision controls",
+      "sha256_at_review": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9"
+    },
+    {
+      "category": "existing_calibration_and_baseline_seven",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/mixture_transfer_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "fb45804adf6e86e90064e10b40922357faad99333aabc1fbbf0164aab8d6e721",
+      "required": true,
+      "role_note": "Adapted policy, four SFT mixtures, two initial cap12 direct-supervision controls",
+      "sha256_at_review": "e58ffde6d6fa7a81095fc13986b503370a3da62c00862afe785335cf139c032d"
+    },
+    {
+      "category": "existing_calibration_and_baseline_seven",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/mixture_surprise_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "8a81cb323cbf298fac341f9647008eeaf3838cbd39745a99d6925b2bcabc3efa",
+      "required": true,
+      "role_note": "Adapted policy, four SFT mixtures, two initial cap12 direct-supervision controls",
+      "sha256_at_review": "cedeab0089dd63687a1d2b73b8f7cfffb3e5279ffb3731fa6bffd0daa19910aa"
+    },
+    {
+      "category": "existing_calibration_and_baseline_seven",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/mixture_uniform_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "6a1168ce9e2358f6fa0c1b8b702dafc9fc439f7ab7e68201a251c94c1cc83318",
+      "required": true,
+      "role_note": "Adapted policy, four SFT mixtures, two initial cap12 direct-supervision controls",
+      "sha256_at_review": "f7e840141938fcf40e3b32919e28b6cc4bce120229fed84dc5f27c68cb200c34"
+    },
+    {
+      "category": "existing_calibration_and_baseline_seven",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/mixture_uniform_matched_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "c1f2ab53f42bf472c8c8d2be7596f87267acd9571accff131124e94edf468672",
+      "required": true,
+      "role_note": "Adapted policy, four SFT mixtures, two initial cap12 direct-supervision controls",
+      "sha256_at_review": "621adf39dd27b35d4a63d8520fadb496357e5ab086e0aeb2674b564acb7dfc41"
+    },
+    {
+      "category": "existing_calibration_and_baseline_seven",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/oracle_matched_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "e80737e182d7833c1d7dd105d06fe3341e18e620639def8c392aab57946a3011",
+      "required": true,
+      "role_note": "Adapted policy, four SFT mixtures, two initial cap12 direct-supervision controls",
+      "sha256_at_review": "fe1af013e507c52483fe569df80749bcf1e0247ce5abf955e33dfb7f3a2c98fd"
+    },
+    {
+      "category": "existing_calibration_and_baseline_seven",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/oracle_total_v1/final.pt",
+      "present_at_review": true,
+      "producer_completed_at_review": true,
+      "producer_completed_sha256": "7a3a01cddd1455028450a905378cdd24bdd297777866c58502b5974378a513c3",
+      "required": true,
+      "role_note": "Adapted policy, four SFT mixtures, two initial cap12 direct-supervision controls",
+      "sha256_at_review": "1c62fc4218754c96703902a96e372851f6dc7261164c9d42e5840ad704457839"
+    },
+    {
+      "category": "retention_exposure_control",
+      "paired_main_arm": "uniform_reset",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_008827.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "required_if_producer_completes": true,
+      "retention_examples": 141232,
+      "role_note": "Exposure matched only; not compute matched",
+      "sha256_at_review": null,
+      "step": 8827
+    },
+    {
+      "category": "retention_exposure_control",
+      "paired_main_arm": "selected_reset",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_009054.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "required_if_producer_completes": true,
+      "retention_examples": 144864,
+      "role_note": "Exposure matched only; not compute matched",
+      "sha256_at_review": null,
+      "step": 9054
+    },
+    {
+      "category": "retention_exposure_control",
+      "paired_main_arm": "selected_full",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_009056.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "required_if_producer_completes": true,
+      "retention_examples": 144896,
+      "role_note": "Exposure matched only; not compute matched",
+      "sha256_at_review": null,
+      "step": 9056
+    },
+    {
+      "category": "retention_exposure_control",
+      "paired_main_arm": "uniform_full",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_009096.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "required_if_producer_completes": true,
+      "retention_examples": 145536,
+      "role_note": "Exposure matched only; not compute matched",
+      "sha256_at_review": null,
+      "step": 9096
+    },
+    {
+      "category": "retention_total_compute_control",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/final.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "required_if_producer_completes": true,
+      "role_note": "Separate first crossing of 4e15 retention-only compute",
+      "sha256_at_review": null
+    },
+    {
+      "category": "main_cap12_oracle_control",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/main_oracle_control_v1/step_003762.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "required_if_producer_completes": true,
+      "role_note": "approximately 4e15 direct SFT compute; candidate+selection full certificates, selection loss in-sample",
+      "sha256_at_review": null
+    },
+    {
+      "category": "main_cap12_oracle_control",
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/main_oracle_control_v1/final.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "required_if_producer_completes": true,
+      "role_note": "approximately 6.6488e15 total-procedure budget control; candidate+selection full certificates, selection loss in-sample",
+      "sha256_at_review": null
+    },
+    {
+      "category": "optional_prefix_comparison",
+      "optional_pair_only": true,
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/prefix_reference_sft_v1/final.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "role_note": "Include both completed 84-source full-certificate arms, with frozen ancestry/exposure flags",
+      "sha256_at_review": null
+    },
+    {
+      "category": "optional_prefix_comparison",
+      "optional_pair_only": true,
+      "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/prefix_mined_sft_v1/final.pt",
+      "present_at_review": false,
+      "producer_completed_at_review": false,
+      "producer_completed_sha256": null,
+      "role_note": "Include both completed 84-source full-certificate arms, with frozen ancestry/exposure flags",
+      "sha256_at_review": null
+    }
+  ],
+  "freeze_requirements": [
+    "Freeze all admitted endpoints, exact checkpoint hashes, decoding, contrasts and omissions before opening final payload",
+    "Admission/omission follows completion and schedule only, not observed development success",
+    "No further training and no further selector changes must be true in root final release",
+    "Require complete producer receipts and matched declared provenance; retain shared common retention stream identity",
+    "Retain the registered final intermediate-prefix exposure flags and sensitivity analyses",
+    "Use fixed T=.8, eight samples, full starts, complete 512-action budget; score whole references at T=1",
+    "Keep all main horizons and the original primary endpoint; do not choose a best development checkpoint",
+    "Retain prefix comparison as a pair if both complete; preserve diagnostic origin and supervised ancestry classes"
+  ],
+  "maximum_unique_paths": 32,
+  "no_final_payload_access": true,
+  "no_model_weights_loaded": true,
+  "scope_limits": [
+    "Only training seed one completed; omit seed-two and RL-specific calibration claims",
+    "Original SFT family ranking is supported by calibration; the 32-endpoint final set does not validate a new RL-specific family ranking",
+    "Confirmation was used in calibration and remains reused development",
+    "Cap12 oracle arms directly train on candidate+selection references; selection loss is in-sample",
+    "Compute-matched and retention-exposure-matched endpoints answer different comparisons"
+  ],
+  "source_configs_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/comparisons_retention_control_seed1_v1.json": "1268cfe3e0d47a0be218d7076fc7daaf72d3adf4aa5efc8f8dd9af7fec61d2dc",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_main_oracle_control_v1.json": "0ff844d33e1f141f766ced537faf9526f40c3410dc09e679c8593b4eeff316ba",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_prefix_comparison_v1.json": "233f5484d4bcbd24ec5e9d23c6713f3d5174754684992a59a31f31c6ff437e92",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/recipe_main_development_seed1_v1.json": "5bd9b58c80e3fb7e9efc96055b6ba972ab38b4ab6ce586ba22a47268bbdc99fc"
+  },
+  "status": "proposed_endpoint_inventory_review_only_not_a_release"
+}

@@ -1,0 +1,26 @@
+{
+  "families": [
+    "ANDI",
+    "DN",
+    "IMPI_nested"
+  ],
+  "full_source_length_histogram": {
+    "2": 1,
+    "3": 1,
+    "4": 2
+  },
+  "sampling": "uniform-sources",
+  "source_cap": 6,
+  "source_counts": {
+    "ANDI": 1,
+    "DN": 1,
+    "IMPI_nested": 2
+  },
+  "source_ids": [
+    "69ea13a33f2eaeba6f256aa184f83e626914089843bd2434270da0148759bf34",
+    "3e8763f23adf282fbb8c3122181eb12ed1294ae93763cf87667119e90f5e87f5",
+    "1745b76a77501a2528e9a1dd40d2b0c5dc5151b64b6062bedd030461e2f4b7e7",
+    "a03986a9d6b1239d40d310f995d7bcab68c3c7145947494c644e4c24b05c4c23"
+  ],
+  "unique_contexts": 3
+}

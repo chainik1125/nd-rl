@@ -1,0 +1,18 @@
+{
+  "attempts_replayed": 107520,
+  "comparisons": 66,
+  "contrasts": 36,
+  "independent_aggregate_sha256": "cfd392ee64c7aa58094204091803394e697e2afde4ef3f323ed5c474a2555a88",
+  "models": 35,
+  "new_control_attempts": 55296,
+  "reused_main_and_adapt_attempts": 52224,
+  "root_aggregate_comparison": {
+    "path": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/retention_development_v1.json",
+    "sha256": "91f0b44070b28e2811d64464bd80cea9ca3ecaf571bd5c32a1d625d329471d63",
+    "status": "exact_agreement"
+  },
+  "scope": "All raw actions strictly replayed; saved NLL bound and independently aggregated without model forwards.",
+  "sources": 384,
+  "status": "passed",
+  "strict_replay_sha256": "fc78f95c72a764026f7c672f9455f8e1163e66717334a8a72470b1a10002fc77"
+}

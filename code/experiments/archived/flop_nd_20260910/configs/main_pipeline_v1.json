@@ -1,0 +1,686 @@
+{
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/main_pipeline_v1",
+  "deadline_utc": "2026-09-11T04:34:00Z",
+  "stages": [
+    {
+      "name": "baseline_development_sample4_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/baseline_development_sample4_v1",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_full_seed1_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_full_seed1_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_full_seed1_v1.json": "54dca8d67546febfecbf8930f3326969087054f4f19dfc3c589642a316ef77d1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_relative_full_seed1_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_full_seed1_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_reset_seed1_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_reset_seed1_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_reset_seed1_v1.json": "b7dd4b726eb2f852c8084c979a1bec5b4f2ae6b6d14b2a48fc2ea51bd6196dab",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_ppo_reset_seed1_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_reset_seed1_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_reset_seed1_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_reset_seed1_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_reset_seed1_v1.json": "cbe83a3b2edef61fc2b93db90a7ded281bbdee6fc3856187daa17c9e660c3e62",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_relative_reset_seed1_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_reset_seed1_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_full_seed1_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_full_seed1_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_full_seed1_v1.json": "b6cfd6b0154fbf50e68c151a0dbd97684082b453c63cb3a583b68e6af8d2dc08",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_ppo_full_seed1_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_full_seed1_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_full_seed2_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_full_seed2_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_full_seed2_v1.json": "284ba810e42440c89995117c17cb85ab4f325cbbab2aad88df87c7f0d039b37a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_ppo_full_seed2_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_full_seed2_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_reset_seed2_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_reset_seed2_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_reset_seed2_v1.json": "e1b2d31c555cea325bf953527ef47455fffd95ccd540349dd7edf672df709224",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_relative_reset_seed2_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_reset_seed2_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_reset_seed2_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_reset_seed2_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_reset_seed2_v1.json": "f0a86efb84cb441ffb79e53bb06aece41e7014dbe4e8b3c7b3d01b8241fc4550",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_ppo_reset_seed2_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_ppo_reset_seed2_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_full_seed2_v1",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py",
+        "--config",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_full_seed2_v1.json"
+      ],
+      "timeout_seconds": 4620,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_full_seed2_v1.json": "d7e1ff31975eb110229e40f3dc006beff039bd0e8ea97cdbf64c5168ad3416d6",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+      }
+    },
+    {
+      "name": "main_relative_full_seed2_v1_dev_greedy",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_dev_greedy",
+        "--temperature",
+        "0",
+        "--attempts",
+        "1",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    },
+    {
+      "name": "main_relative_full_seed2_v1_dev_sample4",
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/final.pt",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_dev_sample4",
+        "--temperature",
+        "0.8",
+        "--attempts",
+        "4",
+        "--max-new-tokens",
+        "512",
+        "--batch-size",
+        "32",
+        "--seed",
+        "202609101935",
+        "--device",
+        "cuda"
+      ],
+      "timeout_seconds": 600,
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff"
+      }
+    }
+  ]
+}

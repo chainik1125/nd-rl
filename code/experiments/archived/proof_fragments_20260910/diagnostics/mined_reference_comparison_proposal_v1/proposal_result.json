@@ -1,0 +1,117 @@
+{
+  "eligibility": {
+    "eligible_mined_by_length": {
+      "2": 10,
+      "3": 36,
+      "4": 27,
+      "5": 11
+    },
+    "reference_endpoints_excluded_for_any_mined_overlap": 47,
+    "reference_only_available_by_length": {
+      "2": 51,
+      "3": 110,
+      "4": 58,
+      "5": 40
+    }
+  },
+  "mined_exposure_classes": {
+    "in_acquired_candidate_or_selection_endpoint_inventory": 47,
+    "in_acquired_candidate_or_selection_exact_proof_inventory": 33,
+    "in_parent_supervised_ancestry_endpoint_inventory": 14,
+    "in_parent_supervised_ancestry_exact_proof_inventory": 12,
+    "retention_inventory_endpoint_match": 0,
+    "retention_inventory_exact_proof_match": 0
+  },
+  "proposal_manifest_sha256": "07b6eeddfe495bcc57f8b5b5d7c108382a0cfbf631c5b665d689df12fc71640e",
+  "residual_imbalance": {
+    "exact_line_histograms_match": true,
+    "exact_response_token_pairs": 50,
+    "family_total_variation": 0.38095238095238093,
+    "max_absolute_response_token_distance": 5,
+    "mean_absolute_response_token_distance": 0.5952380952380952,
+    "same_context_pairs": 1,
+    "same_family_pairs": 14,
+    "shared_contexts_between_arms": 6
+  },
+  "statistics": {
+    "mined": {
+      "context_effective_count": 40.55172413793103,
+      "family_histogram": {
+        "ANDE1": 24,
+        "ANDE2": 27,
+        "ANDI": 1,
+        "BOTE": 2,
+        "DN": 4,
+        "IMPE": 13,
+        "IMPI_flat": 3,
+        "IMPI_nested": 1,
+        "NEGE": 1,
+        "NEGI": 4,
+        "ORE": 1,
+        "ORI1": 1,
+        "ORI2": 2
+      },
+      "full_response_tokens": {
+        "max": 88,
+        "mean": 48.42857142857143,
+        "min": 26,
+        "total": 4068
+      },
+      "line_histogram": {
+        "2": 10,
+        "3": 36,
+        "4": 27,
+        "5": 11
+      },
+      "max_context_multiplicity": 4,
+      "max_encoded_length": 123,
+      "n": 84,
+      "prompt_tokens": {
+        "max": 49,
+        "mean": 28.583333333333332,
+        "min": 16,
+        "total": 2401
+      },
+      "unique_contexts": 51
+    },
+    "reference": {
+      "context_effective_count": 56.0,
+      "family_histogram": {
+        "ANDE1": 12,
+        "ANDE2": 16,
+        "ANDI": 10,
+        "BOTE": 2,
+        "DN": 2,
+        "IMPE": 11,
+        "IMPI_flat": 10,
+        "NEGE": 11,
+        "NEGI": 1,
+        "ORI1": 6,
+        "ORI2": 3
+      },
+      "full_response_tokens": {
+        "max": 88,
+        "mean": 48.642857142857146,
+        "min": 28,
+        "total": 4086
+      },
+      "line_histogram": {
+        "2": 10,
+        "3": 36,
+        "4": 27,
+        "5": 11
+      },
+      "max_context_multiplicity": 5,
+      "max_encoded_length": 129,
+      "n": 84,
+      "prompt_tokens": {
+        "max": 47,
+        "mean": 27.595238095238095,
+        "min": 17,
+        "total": 2318
+      },
+      "unique_contexts": 70
+    }
+  },
+  "status": "proposed_not_released"
+}

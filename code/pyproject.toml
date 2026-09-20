@@ -45,7 +45,13 @@ testpaths = ["tests"]
 
 [tool.ruff]
 # Frozen historical sources must retain their recorded bytes, including in hooks.
-extend-exclude = ["**/r1_cot/vendor/**"]
+extend-exclude = [
+    "**/r1_cot/vendor/**",
+    "**/archived/olmo_single_gpu_20260909/**",
+    "**/archived/cap_comparison_20260910/**",
+    "**/archived/proof_fragments_20260910/**",
+    "**/archived/flop_nd_20260910/**",
+]
 force-exclude = true
 line-length = 100
 fix = false

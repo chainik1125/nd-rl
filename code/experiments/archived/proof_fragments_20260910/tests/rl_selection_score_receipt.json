@@ -1,0 +1,32 @@
+{
+  "cpu_tests": {
+    "command": "python -m unittest test_score_rl_selection -v",
+    "coverage": [
+      "48 frozen endpoint identities and family/control labels",
+      "released selection hash and declared manifest only, no payload parse",
+      "completed producer input/code/checkpoint hashes",
+      "positive bounded per-step costs and exact intermediate cumulative reconciliation",
+      "first budget crossing and final ledger/budget/overshoot reconciliation",
+      "short checkpoint metadata",
+      "analytic whole-reference T=1 bits and equal-stratum gradient",
+      "actual displacement dot, unchanged base weights, cleared gradients"
+    ],
+    "passed": 5
+  },
+  "declared_endpoint_count": 48,
+  "gpu_jobs_launched": 0,
+  "model_optimizer_updates": 0,
+  "no_final_data_accessed": true,
+  "population_metadata_sha256": "74801e0a1e58001e3e858cf1502b79e95f9b1c1309ea3b5dbad0b9daae47e30d",
+  "selection_payload_parsed": false,
+  "source_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/learning.py": "5c1fcc7cd85fe2de25ec76f520e2d5519eb3c2b504dd78f20dec44570ba0b550",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/reference_scoring.py": "5f9181cdaa1af9638ad7bdbfdb4dbbd2fc71ef5c681f7f23468846a8be384783",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/score_rl_selection.py": "229dab9af7dd96a77f9ce1d593d20f4969ec4f39aadfe2eeae568cf53f7940a9",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/test_score_rl_selection.py": "2a804537f7a16f454a58c6aaf69a79bf99b394593ed8761f7eec845d8e052ed6",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_rl_calibration_v1.json": "bb82f74386a363cfe2a96c2ddce681d2ed299fae9408476bb4380759a07f459b",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/rl_calibration_design_v1.json": "122d80ff990e42a0fc36bd36faff583d80c662642e125b86eb067728bed5c605"
+  },
+  "status": "ready_for_root_freeze_and_launch",
+  "utc": "2026-09-10T20:25:04.847364+00:00"
+}

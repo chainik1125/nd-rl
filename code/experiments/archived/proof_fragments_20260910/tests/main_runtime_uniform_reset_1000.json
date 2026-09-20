@@ -1,0 +1,81 @@
+{
+  "active_advantage_tokens": 166828,
+  "checks": [
+    "frozen code/dependency/input hashes",
+    "actual cap6 certificates and source provenance",
+    "exact seeded source/reset/retention schedule",
+    "every saved state and strict reward",
+    "sourcewise LOO advantages and mixed groups",
+    "all action/context/padding masks",
+    "curriculum counters and threshold moves",
+    "unclipped fixed response budget",
+    "dense generation/audit/backward/retention proxy per update"
+  ],
+  "curriculum_moves": 289,
+  "cut_histogram": {
+    "0": 932,
+    "1": 395,
+    "2": 618,
+    "3": 905,
+    "4": 886,
+    "5": 264
+  },
+  "directory": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1",
+  "distinct_sampled_sources": 192,
+  "elapsed_seconds": 7.802070524543524,
+  "families": {
+    "ANDE1": 8,
+    "ANDE2": 9,
+    "ANDI": 18,
+    "BOTE": 14,
+    "DN": 8,
+    "IMPE": 22,
+    "IMPI_flat": 16,
+    "IMPI_nested": 21,
+    "NEGE": 18,
+    "NEGI": 29,
+    "ORI1": 15,
+    "ORI2": 14
+  },
+  "generated_tokens": 1244896,
+  "input_sha256": {
+    "checkpoint": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "data": "fcd74c8ea226e30cb7fdfd63beaf5584de507dafde134d9bdf2d93720a427f1e",
+    "retention": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e"
+  },
+  "limitation": "Per-update policies were not saved, so teacher probabilities are bounded by the saved runtime audits; this read-only audit does not recompute changing-policy logits.",
+  "log_prefix_sha256": {
+    "groups": "5ed20543fcaeedc71f86155bbb79b5892cc286e8b23a848564b462dec3b12f86",
+    "rollouts": "3b3679b23e262142a1e9d77b08864a27713adf3ca0cd2b34ffbd2260f43d776e",
+    "updates": "3b44e118d9d727d8e4c622b1820dd40cdb96feb4040b26d3648cb3c2e3121e8a"
+  },
+  "manifest_sha256": "79b4d94234a11ed69d4df0c97098fafa9c0c7f57dd5e5924e09a31e7e539e891",
+  "max_logged_behavior_teacher_error": 7.128715515136719e-05,
+  "mixed_groups": 410,
+  "n_groups": 4000,
+  "n_rollouts": 32000,
+  "n_sources": 192,
+  "outcome_success_count_histogram": {
+    "0": 284,
+    "1": 43,
+    "2": 22,
+    "3": 21,
+    "4": 38,
+    "5": 33,
+    "6": 72,
+    "7": 181,
+    "8": 3306
+  },
+  "phase_flop_proxy": {
+    "behavior_audit": 65285121146880,
+    "generation": 85470562590720,
+    "rl_retention": 124224307937280,
+    "rl_training": 195855363440640
+  },
+  "retention_examples": 16000,
+  "retention_schedule_sha256": "cfd0675bccd1232654611fd42145b380b9acf7f248512ecd7063cdb8220fa872",
+  "source_selection_schedule_sha256": "51f6e6095a9c869ad34f6ba1ec27d07287ab1180ec43c919d63bbc05e0390fa6",
+  "status": "passed",
+  "steps_audited": 1000,
+  "total_flop_proxy": 470835355115520
+}

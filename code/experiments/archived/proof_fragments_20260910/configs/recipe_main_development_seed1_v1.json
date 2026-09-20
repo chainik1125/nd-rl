@@ -1,0 +1,48 @@
+{
+  "frozen": true,
+  "utc": "2026-09-10T19:59:48.524240+00:00",
+  "role": "confirmation",
+  "no_further_training": false,
+  "data": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/confirmation.jsonl",
+  "population_manifest": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/manifest.json",
+  "checkpoint_paths": [
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_500000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_1000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_2000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/final.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_500000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_1000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_2000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/final.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_500000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_1000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_2000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/final.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_500000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_1000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_2000000000000000.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/final.pt"
+  ],
+  "output": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/release_main_development_seed1_v1.json",
+  "decoding": {
+    "start": "full",
+    "samples": 8,
+    "temperature": 0.8,
+    "max_new_tokens": 512,
+    "seed": 20260910
+  },
+  "prospective_input_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_factorial_seed1_v1.json": "9ead8854d24bad67e56bb0cf30eebcfc43463d954e30f3c7f5ca7b3df1757509",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/frozen_selectors_v1.json": "353c24a69d7086982da57b11eef170344e1196f5e36371687023b5af92982f0d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/calibration_gate_and_rl_budget_v1.json": "8bc749b0b73952cf75139c24a4744745d6919c56d9c590c0f665fef42a6cc950",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/manifest.json": "74801e0a1e58001e3e858cf1502b79e95f9b1c1309ea3b5dbad0b9daae47e30d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/bank_selected_v1/manifest.json": "5645adabadf732938904cfc66d1dad5eb38635916d8802231882dfd2ecbc9147",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/bank_uniform_v1/manifest.json": "ca7ef28d8cfb61396c064074b2181159e0a4a2e5a718db645a32895074708a0a",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/analysis_protocol_v1.md": "947e67390a6fe5ef6c6218ef9ff1b5af07c6903fce860c22887c59306f05228e",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/theory/final_prefix_exposure_analysis_rule_v1.json": "c16097e6a6284ac669808b07c7fd2a6b66304c644df5d82856df9cc074c4bfa3",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/analyze_evaluations.py": "a84ba6665dd8fa7e223471180278b69026445b2de5710c8825a4587f81af5637",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/prepare_main_development.py": "866a4acc26ed110892c5202d6434a7e53355803462ef5a9b19f87fcd5840910d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/analysis_main_development_seed1_v1.json": "b00e8f43e0e2cc5d6a999181916f49fc9aeae7f234d0d6217aefb4f88c69dc82"
+  },
+  "recipe_note": "Main architecture, banks, budgets, seeds, all curve checkpoints, contrasts and decoding fixed before main heldout predictions. Confirmation is development data already exposed by calibration. Final confirmation remains unopened."
+}

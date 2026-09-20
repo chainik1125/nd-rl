@@ -1,0 +1,235 @@
+{
+  "checkpoints": [
+    {
+      "aggregate_bits_per_token": 5.398856632991208,
+      "by_family": {
+        "ANDE2": {
+          "mean_bits": 1049.0894775390625,
+          "n": 1
+        },
+        "ANDI": {
+          "mean_bits": 679.811279296875,
+          "n": 1
+        },
+        "IMPE": {
+          "mean_bits": 584.626220703125,
+          "n": 1
+        },
+        "IMPI_flat": {
+          "mean_bits": 223.3425521850586,
+          "n": 2
+        },
+        "IMPI_nested": {
+          "mean_bits": 986.5944213867188,
+          "n": 1
+        }
+      },
+      "by_family_length": [
+        {
+          "family": "ANDE2",
+          "length_bin": "10-12",
+          "mean_bits": 1049.0894775390625,
+          "n": 1
+        },
+        {
+          "family": "ANDI",
+          "length_bin": "7-9",
+          "mean_bits": 679.811279296875,
+          "n": 1
+        },
+        {
+          "family": "IMPE",
+          "length_bin": "7-9",
+          "mean_bits": 584.626220703125,
+          "n": 1
+        },
+        {
+          "family": "IMPI_flat",
+          "length_bin": "2-6",
+          "mean_bits": 223.3425521850586,
+          "n": 2
+        },
+        {
+          "family": "IMPI_nested",
+          "length_bin": "10-12",
+          "mean_bits": 986.5944213867188,
+          "n": 1
+        }
+      ],
+      "by_length": {
+        "10-12": {
+          "mean_bits": 1017.8419494628906,
+          "n": 2
+        },
+        "2-6": {
+          "mean_bits": 223.3425521850586,
+          "n": 2
+        },
+        "7-9": {
+          "mean_bits": 632.21875,
+          "n": 2
+        }
+      },
+      "checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/tests/adapt_smoke/final.pt",
+      "checkpoint_sha256": "0706787a06111db42e38a9b0c8e481ff098bc686e02a0577efc860f2dbab40b4",
+      "elapsed_seconds": 0.004767656326293945,
+      "full_source_supervision_cap": null,
+      "ledger": {
+        "reference_scoring_contract": {
+          "normalization": "sum over reference action tokens; zero loss on supplied context and padding",
+          "score_temperature": 0.8,
+          "unit": "bits"
+        },
+        "teacher_scoring": {
+          "action_tokens": 694,
+          "actual_input_tokens": 825,
+          "calls": 1,
+          "flop_proxy": 43471584,
+          "padded_token_slots": 1326,
+          "supplied_tokens": 137
+        }
+      },
+      "length_balanced_mean_bits": 624.4677505493164,
+      "mean_bits": 624.4677505493164,
+      "n_theorems": 6,
+      "score_temperature": 0.8,
+      "scores_directory": "000_adapt_smoke",
+      "total_flop_proxy": 43471584
+    },
+    {
+      "aggregate_bits_per_token": 5.394298168699061,
+      "by_family": {
+        "ANDE2": {
+          "mean_bits": 1048.313720703125,
+          "n": 1
+        },
+        "ANDI": {
+          "mean_bits": 679.2172241210938,
+          "n": 1
+        },
+        "IMPE": {
+          "mean_bits": 584.1297607421875,
+          "n": 1
+        },
+        "IMPI_flat": {
+          "mean_bits": 223.1299057006836,
+          "n": 2
+        },
+        "IMPI_nested": {
+          "mean_bits": 985.722412109375,
+          "n": 1
+        }
+      },
+      "by_family_length": [
+        {
+          "family": "ANDE2",
+          "length_bin": "10-12",
+          "mean_bits": 1048.313720703125,
+          "n": 1
+        },
+        {
+          "family": "ANDI",
+          "length_bin": "7-9",
+          "mean_bits": 679.2172241210938,
+          "n": 1
+        },
+        {
+          "family": "IMPE",
+          "length_bin": "7-9",
+          "mean_bits": 584.1297607421875,
+          "n": 1
+        },
+        {
+          "family": "IMPI_flat",
+          "length_bin": "2-6",
+          "mean_bits": 223.1299057006836,
+          "n": 2
+        },
+        {
+          "family": "IMPI_nested",
+          "length_bin": "10-12",
+          "mean_bits": 985.722412109375,
+          "n": 1
+        }
+      ],
+      "by_length": {
+        "10-12": {
+          "mean_bits": 1017.01806640625,
+          "n": 2
+        },
+        "2-6": {
+          "mean_bits": 223.1299057006836,
+          "n": 2
+        },
+        "7-9": {
+          "mean_bits": 631.6734924316406,
+          "n": 2
+        }
+      },
+      "checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/tests/intervene_smoke/final.pt",
+      "checkpoint_sha256": "9e837a338b2662fa8d280618ef0435adfd62ee4a1cfd7c6ec23aba143ddf04c0",
+      "elapsed_seconds": 0.003676176071166992,
+      "full_source_supervision_cap": null,
+      "ledger": {
+        "reference_scoring_contract": {
+          "normalization": "sum over reference action tokens; zero loss on supplied context and padding",
+          "score_temperature": 0.8,
+          "unit": "bits"
+        },
+        "teacher_scoring": {
+          "action_tokens": 694,
+          "actual_input_tokens": 825,
+          "calls": 1,
+          "flop_proxy": 43471584,
+          "padded_token_slots": 1326,
+          "supplied_tokens": 137
+        }
+      },
+      "length_balanced_mean_bits": 623.9404881795248,
+      "mean_bits": 623.9404881795248,
+      "n_theorems": 6,
+      "score_temperature": 0.8,
+      "scores_directory": "001_intervene_smoke",
+      "total_flop_proxy": 43471584
+    }
+  ],
+  "elapsed_seconds": 0.0255734920501709,
+  "generation_executed": false,
+  "ledger": {
+    "000_adapt_smoke": {
+      "reference_scoring_contract": {
+        "normalization": "sum over reference action tokens; zero loss on supplied context and padding",
+        "score_temperature": 0.8,
+        "unit": "bits"
+      },
+      "teacher_scoring": {
+        "action_tokens": 694,
+        "actual_input_tokens": 825,
+        "calls": 1,
+        "flop_proxy": 43471584,
+        "padded_token_slots": 1326,
+        "supplied_tokens": 137
+      }
+    },
+    "001_intervene_smoke": {
+      "reference_scoring_contract": {
+        "normalization": "sum over reference action tokens; zero loss on supplied context and padding",
+        "score_temperature": 0.8,
+        "unit": "bits"
+      },
+      "teacher_scoring": {
+        "action_tokens": 694,
+        "actual_input_tokens": 825,
+        "calls": 1,
+        "flop_proxy": 43471584,
+        "padded_token_slots": 1326,
+        "supplied_tokens": 137
+      }
+    }
+  },
+  "optimizer_updates": 0,
+  "role": "confirmation",
+  "score_temperature": 0.8,
+  "start": "full",
+  "total_flop_proxy": 86943168
+}

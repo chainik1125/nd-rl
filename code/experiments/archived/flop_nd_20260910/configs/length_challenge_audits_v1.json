@@ -1,0 +1,519 @@
+{
+  "deadline_utc": "2026-09-11T01:35:00Z",
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/length_challenge_audits_v1",
+  "tasks": [
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_initial_s4401_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_full_s4401_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_reset_s4401_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_bc_s4401_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_initial_s4402_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_full_s4402_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_reset_s4402_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_bc_s4402_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_uniform_length33_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_uniform_length33_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_initial_s4401_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_full_s4401_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_reset_s4401_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_bc_s4401_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_initial_s4402_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_full_s4402_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_reset_s4402_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_bc_s4402_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_uniform_length65_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_uniform_length65_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_initial_s4401_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_full_s4401_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_reset_s4401_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_bc_s4401_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_initial_s4402_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_full_s4402_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_reset_s4402_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_bc_s4402_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_uniform_length129_challenge_greedy_v1.json"
+      ],
+      "name": "audit_minimal_uniform_length129_challenge_greedy_v1",
+      "timeout_seconds": 600,
+      "wait_for": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ]
+    }
+  ]
+}

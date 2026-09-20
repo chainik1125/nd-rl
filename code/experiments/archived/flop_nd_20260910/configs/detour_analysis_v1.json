@@ -1,0 +1,54 @@
+{
+  "bootstrap_replicates": 4000,
+  "bootstrap_seed": 202609101936,
+  "conditional_uncertainty": "Context clusters resampled jointly across all models; average the two seeds within each resample. Intervals do not represent training-seed uncertainty.",
+  "conditions": [
+    "clean_reset",
+    "noisy_reset",
+    "clean_bc",
+    "noisy_bc"
+  ],
+  "contrasts": {
+    "noise_effect_bc": {
+      "clean_bc": -1,
+      "noisy_bc": 1
+    },
+    "noise_effect_reset": {
+      "clean_reset": -1,
+      "noisy_reset": 1
+    },
+    "relative_noise_robustness": {
+      "clean_bc": 1,
+      "clean_reset": -1,
+      "noisy_bc": -1,
+      "noisy_reset": 1
+    },
+    "reset_vs_bc_clean": {
+      "clean_bc": -1,
+      "clean_reset": 1
+    },
+    "reset_vs_bc_noisy": {
+      "noisy_bc": -1,
+      "noisy_reset": 1
+    }
+  },
+  "frozen_utc": "2026-09-10T22:26:20.116053+00:00",
+  "primary_metric": "greedy any success, all 320 development theorems",
+  "profiles": [
+    "greedy",
+    "sample4"
+  ],
+  "protocol_sha256": "7ef2dbade5ff434219efdc8d462b3917848da1ffa3dd427e8101214a18f3c2d9",
+  "secondary_strata": [
+    "family",
+    "reference_lines",
+    "family_by_reference_lines",
+    "target_atom_is_P"
+  ],
+  "seed_indices": [
+    4501,
+    4502
+  ],
+  "selection": "All eight trained endpoints; no tuning or early selection.",
+  "status": "frozen_before_training"
+}

@@ -1,0 +1,17 @@
+{
+  "gpu_jobs_launched": 0,
+  "main_first300_retention_schedule_and_proxy_match": true,
+  "parameters_and_adam_states_bitwise_equal_cpu": true,
+  "plan_sha256": "4029a50e11f001c79b80861ea1c20ee1436480aac228fbc74079cce9e4bd1499",
+  "planned_overshoot": 52734894080,
+  "planned_total_compute_proxy": 4000052734894080,
+  "planned_total_compute_updates": 32034,
+  "production_plan_only_optimizer_updates": 0,
+  "production_retention_sources_verified": 512,
+  "retention_only_sha256": "65252d1a3be2fdcd65dae99232596c4852fdb9cbfd5a445348fc10bf54f27228",
+  "status": "cpu_ready",
+  "test_sha256": "ce7dbfabe6186a3eb85978455bde4031addf97a2cfe0bb7bb2f60ca229e321c6",
+  "unit_tests_passed": 4,
+  "worst_case_one_update_proxy": 159364177920,
+  "zero_advantage_equivalence_updates": 5
+}

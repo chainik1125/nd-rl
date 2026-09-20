@@ -1,0 +1,84 @@
+{
+  "active_advantage_tokens": 0,
+  "controller_initialization": "difficulty_pilot",
+  "curriculum": {
+    "1745b76a77501a2528e9a1dd40d2b0c5dc5151b64b6062bedd030461e2f4b7e7": {
+      "cut": 2,
+      "n": 0,
+      "success": 0
+    },
+    "3e8763f23adf282fbb8c3122181eb12ed1294ae93763cf87667119e90f5e87f5": {
+      "cut": 3,
+      "n": 0,
+      "success": 0
+    },
+    "69ea13a33f2eaeba6f256aa184f83e626914089843bd2434270da0148759bf34": {
+      "cut": 3,
+      "n": 8,
+      "success": 0
+    },
+    "a03986a9d6b1239d40d310f995d7bcab68c3c7145947494c644e4c24b05c4c23": {
+      "cut": 1,
+      "n": 0,
+      "success": 0
+    }
+  },
+  "elapsed_seconds": 0.7742972373962402,
+  "families": [
+    "ANDI",
+    "DN",
+    "IMPI_nested"
+  ],
+  "final_sha256": "f6d72fd16df09ac00eaf656af4901aacaaf1971e1e11b6c4841228c9c680942a",
+  "flop_proxy_overshoot": 0,
+  "generated_tokens": 165,
+  "initial_cuts_sha256": "80e4dd27a0f1609f33886225cb624398d886f7effb419b0fae56c9002c7c8445",
+  "initialization_pilot_flop_proxy": 226767360,
+  "initialization_pilot_not_in_direct_training_ceiling": true,
+  "ledger": {
+    "behavior_audit": {
+      "action_tokens": 165,
+      "actual_input_tokens": 661,
+      "calls": 1,
+      "flop_proxy": 13638912,
+      "padded_token_slots": 688,
+      "supplied_tokens": 504
+    },
+    "generation": {
+      "cache_token_pair_slots": 45552,
+      "executed_decode_slots": 192,
+      "flop_proxy": 12331776,
+      "prefill_actual_tokens": 504,
+      "prefill_padded_tokens": 504,
+      "sampled_tokens": 165
+    },
+    "rl_retention": {
+      "action_tokens": 86,
+      "actual_input_tokens": 126,
+      "calls": 1,
+      "flop_proxy": 9401184,
+      "padded_token_slots": 162,
+      "supplied_tokens": 42
+    },
+    "rl_training": {
+      "action_tokens": 165,
+      "actual_input_tokens": 661,
+      "calls": 1,
+      "flop_proxy": 40916736,
+      "padded_token_slots": 688,
+      "supplied_tokens": 504
+    }
+  },
+  "max_flop_proxy": 100000000.0,
+  "mixed_groups": 0,
+  "n_groups": 1,
+  "n_training_sources": 4,
+  "normalization": "fixed max_new_tokens shared by full and reset arms",
+  "overshoot_policy": "Complete the current on-policy update; stop before the next update after crossing the ceiling.",
+  "retention_total_examples": 2,
+  "start": "reset",
+  "steps": 1,
+  "stop_reason": "step_ceiling",
+  "total_flop_proxy": 76288608,
+  "worst_case_one_step_flop_proxy": 88357824
+}

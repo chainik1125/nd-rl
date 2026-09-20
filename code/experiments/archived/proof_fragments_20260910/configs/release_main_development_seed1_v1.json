@@ -1,0 +1,69 @@
+{
+  "frozen": true,
+  "no_further_selector_changes": true,
+  "no_further_training": false,
+  "role": "confirmation",
+  "data_sha256": [
+    "40a1d4c8ea1ebbdc0d959e7a44d2c8d83888983e6fa9a8a5c351519021aa4eac"
+  ],
+  "checkpoints": [
+    "3f26ee96193638ebbba8a705ee79ba18d1afe1404971d4ff10f2264f09345437",
+    "1a917210c38546ac2adc756d743499d54532fa4b036edf7fb3cc92972aef8acf",
+    "694de76dad259cf7866bbc1739d6afcf739682bc52db658479bba39662cd22e6",
+    "480102046bbd9995a5cfa81ba8533814e02148ee685f0f158f2fe3950839de05",
+    "dc09c7ade39c42bf5651204f168423885a8fead00b1703114c216d7d763423c6",
+    "81cdafdc5455408372e88c4dacac711f1eb8446c181e6f7eb308d06c3d8ca42c",
+    "5ca816a03b48b6a471822c4d20f7d12dcccbfe1bcb9803b7d1e43cbd64fda1e4",
+    "17993cc4fa7eb0262d22018cbe7bde4d5fd1a9b266ff208639221eec394f5b2e",
+    "a927889b94ccf5ec366926aa4cf61a6ee96019227eec8c09fb4623fe1a6c8af6",
+    "a3fed63d442a455048b106c39cc2eea938deaaa7c379e0a5c21af775a6c46a91",
+    "4c7923626e6f99003dcfed29322f95e2110e3fbea932c7ead843e0db367469ea",
+    "cd7ffe64545aec5f6f57d58d4953b42b164eb7f44d8dc392df800b6da9647c5a",
+    "7c45c3c953e3d5bf417c153c6a99124db7d4c25f968e0f58e32cec01c9190c8b",
+    "e184e45379fb5686e7c10a26c4182f9b3eff6d15180595ac7d00d5cd3143bf72",
+    "6185a8f27521f2a79166f4297a5c7161b600a9de7157a7d3bbed4cf95fca165b",
+    "7da1e11300eb630e99af8d603d8139f85669aceb243b547d91b7837a8bb5f0fc"
+  ],
+  "checkpoint_paths": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_500000000000000.pt": "3f26ee96193638ebbba8a705ee79ba18d1afe1404971d4ff10f2264f09345437",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_1000000000000000.pt": "1a917210c38546ac2adc756d743499d54532fa4b036edf7fb3cc92972aef8acf",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/flops_2000000000000000.pt": "694de76dad259cf7866bbc1739d6afcf739682bc52db658479bba39662cd22e6",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1/final.pt": "480102046bbd9995a5cfa81ba8533814e02148ee685f0f158f2fe3950839de05",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_500000000000000.pt": "dc09c7ade39c42bf5651204f168423885a8fead00b1703114c216d7d763423c6",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_1000000000000000.pt": "81cdafdc5455408372e88c4dacac711f1eb8446c181e6f7eb308d06c3d8ca42c",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/flops_2000000000000000.pt": "5ca816a03b48b6a471822c4d20f7d12dcccbfe1bcb9803b7d1e43cbd64fda1e4",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_reset_seed1_v1/final.pt": "17993cc4fa7eb0262d22018cbe7bde4d5fd1a9b266ff208639221eec394f5b2e",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_500000000000000.pt": "a927889b94ccf5ec366926aa4cf61a6ee96019227eec8c09fb4623fe1a6c8af6",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_1000000000000000.pt": "a3fed63d442a455048b106c39cc2eea938deaaa7c379e0a5c21af775a6c46a91",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/flops_2000000000000000.pt": "4c7923626e6f99003dcfed29322f95e2110e3fbea932c7ead843e0db367469ea",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_reset_seed1_v1/final.pt": "cd7ffe64545aec5f6f57d58d4953b42b164eb7f44d8dc392df800b6da9647c5a",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_500000000000000.pt": "7c45c3c953e3d5bf417c153c6a99124db7d4c25f968e0f58e32cec01c9190c8b",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_1000000000000000.pt": "e184e45379fb5686e7c10a26c4182f9b3eff6d15180595ac7d00d5cd3143bf72",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/flops_2000000000000000.pt": "6185a8f27521f2a79166f4297a5c7161b600a9de7157a7d3bbed4cf95fca165b",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_uniform_full_seed1_v1/final.pt": "7da1e11300eb630e99af8d603d8139f85669aceb243b547d91b7837a8bb5f0fc"
+  },
+  "recipe_sha256": "5bd9b58c80e3fb7e9efc96055b6ba972ab38b4ab6ce586ba22a47268bbdc99fc",
+  "recipe": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/recipe_main_development_seed1_v1.json",
+  "prospective_input_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_factorial_seed1_v1.json": "9ead8854d24bad67e56bb0cf30eebcfc43463d954e30f3c7f5ca7b3df1757509",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/frozen_selectors_v1.json": "353c24a69d7086982da57b11eef170344e1196f5e36371687023b5af92982f0d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/calibration_gate_and_rl_budget_v1.json": "8bc749b0b73952cf75139c24a4744745d6919c56d9c590c0f665fef42a6cc950",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/manifest.json": "74801e0a1e58001e3e858cf1502b79e95f9b1c1309ea3b5dbad0b9daae47e30d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/bank_selected_v1/manifest.json": "5645adabadf732938904cfc66d1dad5eb38635916d8802231882dfd2ecbc9147",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/bank_uniform_v1/manifest.json": "ca7ef28d8cfb61396c064074b2181159e0a4a2e5a718db645a32895074708a0a",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/analysis_protocol_v1.md": "947e67390a6fe5ef6c6218ef9ff1b5af07c6903fce860c22887c59306f05228e",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/theory/final_prefix_exposure_analysis_rule_v1.json": "c16097e6a6284ac669808b07c7fd2a6b66304c644df5d82856df9cc074c4bfa3",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/analyze_evaluations.py": "a84ba6665dd8fa7e223471180278b69026445b2de5710c8825a4587f81af5637",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/prepare_main_development.py": "866a4acc26ed110892c5202d6434a7e53355803462ef5a9b19f87fcd5840910d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/analysis_main_development_seed1_v1.json": "b00e8f43e0e2cc5d6a999181916f49fc9aeae7f234d0d6217aefb4f88c69dc82"
+  },
+  "utc": "2026-09-11T01:51:40.228867+00:00",
+  "decoding": {
+    "start": "full",
+    "samples": 8,
+    "temperature": 0.8,
+    "max_new_tokens": 512,
+    "seed": 20260910
+  },
+  "payload_parsed_by_release": false
+}

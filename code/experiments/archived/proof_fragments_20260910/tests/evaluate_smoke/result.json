@@ -1,0 +1,77 @@
+{
+  "by_length": {
+    "10-12": {
+      "n": 2,
+      "pass_at_k": 0.0,
+      "solved": 0,
+      "wilson95": [
+        0.0,
+        0.6576197724933469
+      ]
+    },
+    "2-6": {
+      "n": 2,
+      "pass_at_k": 0.0,
+      "solved": 0,
+      "wilson95": [
+        0.0,
+        0.6576197724933469
+      ]
+    },
+    "7-9": {
+      "n": 2,
+      "pass_at_k": 0.0,
+      "solved": 0,
+      "wilson95": [
+        0.0,
+        0.6576197724933469
+      ]
+    }
+  },
+  "elapsed_seconds": 0.03874349594116211,
+  "failure_reasons": {
+    "Exactly one sampled FINAL required": 9,
+    "Malformed sampled scratch boundary": 3
+  },
+  "ledger": {
+    "behavior_audit": {
+      "action_tokens": 214,
+      "actual_input_tokens": 474,
+      "calls": 1,
+      "flop_proxy": 12200256,
+      "padded_token_slots": 708,
+      "supplied_tokens": 272
+    },
+    "generation": {
+      "cache_token_pair_slots": 18976,
+      "executed_decode_slots": 288,
+      "flop_proxy": 8531136,
+      "prefill_actual_tokens": 272,
+      "prefill_padded_tokens": 304,
+      "sampled_tokens": 214
+    },
+    "teacher_scoring": {
+      "action_tokens": 695,
+      "actual_input_tokens": 825,
+      "calls": 2,
+      "flop_proxy": 31796736,
+      "padded_token_slots": 1088,
+      "supplied_tokens": 136
+    }
+  },
+  "likelihood_audit": {
+    "max_abs_error": 4.76837158203125e-07,
+    "mean_abs_error": 2.451032121604848e-08,
+    "n_action_tokens": 214,
+    "tolerance": 0.001
+  },
+  "max_solved_reference_length": 0,
+  "mean_whole_proof_bits": 624.3191922505697,
+  "n_theorems": 6,
+  "pass_at_k": 0.0,
+  "samples": 2,
+  "solved_above_cap6": 0,
+  "start": "full",
+  "strict_solved": 0,
+  "total_flop_proxy": 52528128
+}

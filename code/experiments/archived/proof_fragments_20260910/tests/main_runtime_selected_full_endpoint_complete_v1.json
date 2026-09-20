@@ -1,0 +1,87 @@
+{
+  "active_advantage_tokens": 569478,
+  "checks": [
+    "frozen code/dependency/input hashes",
+    "actual cap6 certificates and source provenance",
+    "exact seeded source/reset/retention schedule",
+    "every saved state and strict reward",
+    "sourcewise LOO advantages and mixed groups",
+    "all action/context/padding masks",
+    "curriculum counters and threshold moves",
+    "unclipped fixed response budget",
+    "dense generation/audit/backward/retention proxy per update"
+  ],
+  "controller_move_directions": {},
+  "curriculum_moves": 0,
+  "cut_histogram": {
+    "0": 36224
+  },
+  "directory": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1",
+  "distinct_sampled_sources": 192,
+  "elapsed_seconds": 65.14870071131736,
+  "endpoint_accounting": {
+    "all_phase_and_step_compute_reconciled": true,
+    "completed_result_sha256": "67eea148e3eabd917e5cb8b20f4a402635ed9d1cf3843fd61bf2ed7d6490dc45",
+    "exact_final_curriculum_agreement": true,
+    "final_checkpoint_sha256": "480102046bbd9995a5cfa81ba8533814e02148ee685f0f158f2fe3950839de05",
+    "first_budget_crossing_is_final_step": true,
+    "flop_proxy_overshoot": 109376860160.0,
+    "worst_case_one_step_flop_proxy": 2414381752320,
+    "zero_advantage_updates": 8157
+  },
+  "families": {
+    "IMPI_flat": 64,
+    "NEGE": 64,
+    "NEGI": 64
+  },
+  "final_controller_cut_histogram": {
+    "1": 8,
+    "2": 37,
+    "3": 34,
+    "4": 83,
+    "5": 30
+  },
+  "final_controller_state_sha256": "336f41a7c21d8199e95324436e449a0a9a63470051b6ec65aeb342875dcd25b4",
+  "first_controller_move_step": null,
+  "generated_tokens": 18690870,
+  "input_sha256": {
+    "checkpoint": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "data": "2d7bcc9fbb3208d2a5bc65d390d74193dfd5b1e82e9efe10de42d3fbddbe4b29",
+    "retention": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e"
+  },
+  "limitation": "Per-update policies were not saved, so teacher probabilities are bounded by the saved runtime audits; this read-only audit does not recompute changing-policy logits.",
+  "log_prefix_sha256": {
+    "groups": "f339cff9257b449df8edd8a165fac49069977edb741249b7034280351342f6c7",
+    "rollouts": "3484cd545c7878c68e6120373057288403c95af2240d742d9620af9a1b11b0df",
+    "updates": "385792ef75033852a89c86972093f81c8d6580ad39dd00a84c91dc2971dc2ca9"
+  },
+  "manifest_sha256": "22ad16999dc83f8c1fb55a5c1cf1ceba5c94f40988b68254e1d9421e7be1ae12",
+  "max_logged_behavior_teacher_error": 0.00013971328735351562,
+  "mixed_groups": 991,
+  "n_groups": 36224,
+  "n_rollouts": 289792,
+  "n_sources": 192,
+  "outcome_success_count_histogram": {
+    "0": 1685,
+    "1": 79,
+    "2": 67,
+    "3": 56,
+    "4": 48,
+    "5": 75,
+    "6": 142,
+    "7": 524,
+    "8": 33548
+  },
+  "phase_flop_proxy": {
+    "behavior_audit": 560979279052800,
+    "generation": 625638508462080,
+    "rl_retention": 1130553752186880,
+    "rl_training": 1682937837158400
+  },
+  "retention_examples": 144896,
+  "retention_schedule_sha256": "a41ddd6fa410a8e7eb16fa76f0a2ab80424523edbe74aa78e3c1277cc1c18e9d",
+  "source_selection_schedule_sha256": "6e3f891e3310f92e8eab5e396dd368af7a4691a26faf0897b41bce23a42987b2",
+  "status": "passed",
+  "steps_audited": 9056,
+  "total_flop_proxy": 4000109376860160
+}

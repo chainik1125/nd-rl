@@ -1,0 +1,38 @@
+{
+  "family_points": 12,
+  "family_spearman": 0.9580419580419581,
+  "final_context_count": 402,
+  "final_target_count": 768,
+  "primary_coverage_percent": {
+    "adapt": 45.703125,
+    "selected_full_s1_f40": 35.02604166666667,
+    "selected_reset_s1_f40": 35.67708333333333,
+    "uniform_full_s1_f40": 35.67708333333333,
+    "uniform_reset_s1_f40": 36.328125
+  },
+  "selected_family_points": 3,
+  "source_file_hashes": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_calibration_transfer_manifest_v1.json": "1c4c2958de700d706fe143d8b0b9749bf129f2a91f60e79590fe014ce9a310e6",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_calibration_transfer_v1.pdf": "379ad3114fcdb905bba4b389c3ac432b53223d67782a27e5bff0f852683bb3aa",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_calibration_transfer_v1.png": "40017cc8164fa9ca62bb38bf43d76f266a9ee16f2c7a2a7b361f540f0edff1a0",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_calibration_transfer_v1.svg": "e550e5b7889f22fa69b10d911eee5c8ac3ca4cda52b1515309a1d0b777cf6b68",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_controls_v1.pdf": "57edf3baf82bf2ed311843315fc4eccb238ba240a5ebb81c78d553e454d891a3",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_controls_v1.png": "92150e474d3df9b64111fdc386c562e48f31525c66d9f3265af79caac0b32396",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_controls_v1.svg": "060bda3d52fd213d300d14694bd1df3a6e9ad6f7156ca483f17b45932edf1217",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_factorial_plot_manifest_v1.json": "cbca90e621e2252b0e88330bf4ffd1821c5363d680a2f093c4380f70af8d5163",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_endpoint_contrasts_v1.pdf": "1af8298bd51d8c3adfe5bc798e165803fb5ac84e2b1985644a657b52104f8dd1",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_endpoint_contrasts_v1.png": "7a2d00b5491d14d24aac642a14f83d6943e0e874239511d783ad71c81460ce78",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_endpoint_contrasts_v1.svg": "199466ce66d8bb9fc34938ebce6f1f9c19c0cdbc7ce04ee84c9adc168560b4a0",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_learning_curves_v1.pdf": "d0afb7676f887da10f8e230260a714b9cf751d8bc08f3a834a7cf502db7ea7f8",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_learning_curves_v1.png": "915e2ba069d1f32496a8bb1ff270aef910e26ee72869a420b060d9e1b6237aa3",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_learning_curves_v1.svg": "c5889f493a442ae1f6b85c140f0f593abb7d4ff00c4c4376cd97c0859050e353",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_reference_length_manifest_v1.json": "12f9d1c05cad597f7b2dce9f25c85e8a7825f2a30d67fdc244d3868ca8eb0576",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_reference_length_v1.pdf": "0c264780b13936030409d950d2c4d4691649889225bb0a00c62301af80a4577d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_reference_length_v1.png": "e28c91c472212569ae96c6a9c5e49d5ea2d2af94e264436f68910ed83de8b712",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/figures/final_main_reference_length_v1.svg": "a52fab3572509e915fcd930243f31af47a43404291b2696f64d982685bbddf1d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/final_calibration_ranking_v1.json": "8a7eb5ca28b3467307476c5ef7998702ea83c369c9bd161d0f6e554f4da71d12",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/final_seed1_v1.json": "f9ac673dad9a6f803a03043476ac154a9eec4c09e1f274c3220c17cce2a9d6e4",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/plot_final_calibration.py": "6ced3ae11a0b1c3b1d3a5bb9f12ba1ba9090053b8f396e4730e8f90a655b4ae3",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/plot_final_length_results.py": "c0721272327c15305b23f885a7b85e4b3948d56d50acac8bbd90a480debf8f14"
+  }
+}

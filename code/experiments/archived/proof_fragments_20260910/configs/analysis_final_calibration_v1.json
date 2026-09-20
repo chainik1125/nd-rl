@@ -1,0 +1,243 @@
+{
+  "utc": "2026-09-11T02:03:20.436904+00:00",
+  "data": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/final_confirmation.jsonl",
+  "samples": 8,
+  "bootstrap_draws": 5000,
+  "bootstrap_seed": 20260911,
+  "models": {
+    "ANDE1_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/000_ANDE1_control/whole_proof_nll.jsonl"
+    },
+    "ANDE1_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/001_ANDE1_family/whole_proof_nll.jsonl"
+    },
+    "ANDE2_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/002_ANDE2_control/whole_proof_nll.jsonl"
+    },
+    "ANDE2_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/003_ANDE2_family/whole_proof_nll.jsonl"
+    },
+    "ANDI_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/004_ANDI_control/whole_proof_nll.jsonl"
+    },
+    "ANDI_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/005_ANDI_family/whole_proof_nll.jsonl"
+    },
+    "BOTE_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/006_BOTE_control/whole_proof_nll.jsonl"
+    },
+    "BOTE_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/007_BOTE_family/whole_proof_nll.jsonl"
+    },
+    "DN_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/008_DN_control/whole_proof_nll.jsonl"
+    },
+    "DN_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/009_DN_family/whole_proof_nll.jsonl"
+    },
+    "IMPE_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/010_IMPE_control/whole_proof_nll.jsonl"
+    },
+    "IMPE_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/011_IMPE_family/whole_proof_nll.jsonl"
+    },
+    "IMPI_flat_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/012_IMPI_flat_control/whole_proof_nll.jsonl"
+    },
+    "IMPI_flat_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/013_IMPI_flat_family/whole_proof_nll.jsonl"
+    },
+    "IMPI_nested_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/014_IMPI_nested_control/whole_proof_nll.jsonl"
+    },
+    "IMPI_nested_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/015_IMPI_nested_family/whole_proof_nll.jsonl"
+    },
+    "NEGE_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/016_NEGE_control/whole_proof_nll.jsonl"
+    },
+    "NEGE_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/017_NEGE_family/whole_proof_nll.jsonl"
+    },
+    "NEGI_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/018_NEGI_control/whole_proof_nll.jsonl"
+    },
+    "NEGI_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/019_NEGI_family/whole_proof_nll.jsonl"
+    },
+    "ORI1_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/020_ORI1_control/whole_proof_nll.jsonl"
+    },
+    "ORI1_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/021_ORI1_family/whole_proof_nll.jsonl"
+    },
+    "ORI2_control": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/022_ORI2_control/whole_proof_nll.jsonl"
+    },
+    "ORI2_family": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_calibration_scores_v1/023_ORI2_family/whole_proof_nll.jsonl"
+    },
+    "adapt": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_adapt_v1/whole_proof_nll.jsonl"
+    }
+  },
+  "comparisons": [
+    [
+      "ANDE1_control",
+      "ANDE1_family"
+    ],
+    [
+      "adapt",
+      "ANDE1_family"
+    ],
+    [
+      "adapt",
+      "ANDE1_control"
+    ],
+    [
+      "ANDE2_control",
+      "ANDE2_family"
+    ],
+    [
+      "adapt",
+      "ANDE2_family"
+    ],
+    [
+      "adapt",
+      "ANDE2_control"
+    ],
+    [
+      "ANDI_control",
+      "ANDI_family"
+    ],
+    [
+      "adapt",
+      "ANDI_family"
+    ],
+    [
+      "adapt",
+      "ANDI_control"
+    ],
+    [
+      "BOTE_control",
+      "BOTE_family"
+    ],
+    [
+      "adapt",
+      "BOTE_family"
+    ],
+    [
+      "adapt",
+      "BOTE_control"
+    ],
+    [
+      "DN_control",
+      "DN_family"
+    ],
+    [
+      "adapt",
+      "DN_family"
+    ],
+    [
+      "adapt",
+      "DN_control"
+    ],
+    [
+      "IMPE_control",
+      "IMPE_family"
+    ],
+    [
+      "adapt",
+      "IMPE_family"
+    ],
+    [
+      "adapt",
+      "IMPE_control"
+    ],
+    [
+      "IMPI_flat_control",
+      "IMPI_flat_family"
+    ],
+    [
+      "adapt",
+      "IMPI_flat_family"
+    ],
+    [
+      "adapt",
+      "IMPI_flat_control"
+    ],
+    [
+      "IMPI_nested_control",
+      "IMPI_nested_family"
+    ],
+    [
+      "adapt",
+      "IMPI_nested_family"
+    ],
+    [
+      "adapt",
+      "IMPI_nested_control"
+    ],
+    [
+      "NEGE_control",
+      "NEGE_family"
+    ],
+    [
+      "adapt",
+      "NEGE_family"
+    ],
+    [
+      "adapt",
+      "NEGE_control"
+    ],
+    [
+      "NEGI_control",
+      "NEGI_family"
+    ],
+    [
+      "adapt",
+      "NEGI_family"
+    ],
+    [
+      "adapt",
+      "NEGI_control"
+    ],
+    [
+      "ORI1_control",
+      "ORI1_family"
+    ],
+    [
+      "adapt",
+      "ORI1_family"
+    ],
+    [
+      "adapt",
+      "ORI1_control"
+    ],
+    [
+      "ORI2_control",
+      "ORI2_family"
+    ],
+    [
+      "adapt",
+      "ORI2_family"
+    ],
+    [
+      "adapt",
+      "ORI2_control"
+    ]
+  ],
+  "contrasts": {
+    "frozen_top3_average_utility": {
+      "NEGI_control": 0.3333333333333333,
+      "NEGI_family": -0.3333333333333333,
+      "IMPI_flat_control": 0.3333333333333333,
+      "IMPI_flat_family": -0.3333333333333333,
+      "NEGE_control": 0.3333333333333333,
+      "NEGE_family": -0.3333333333333333
+    }
+  },
+  "output": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/final_calibration_v1.json",
+  "status": "frozen_before_final_access",
+  "note": "Frozen original100-update SFT families and controls; positive control-minus-family bits indicates benefit. Fresh final evaluation follows globalclosure. Final does not select families or optimizer horizon."
+}

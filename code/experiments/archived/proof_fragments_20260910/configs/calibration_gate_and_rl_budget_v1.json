@@ -1,0 +1,70 @@
+{
+  "frozen": true,
+  "utc": "2026-09-10T19:03:09.272856+00:00",
+  "confirmation_predictions_opened": false,
+  "primary_inference_metric": "Unaided strict coverage within8samples, equally weighted reference-length bins",
+  "secondary_inference_metric": "Per-attempt strict success; whole-reference bits; actual/pruned certificate lengths",
+  "calibration_gate": {
+    "rank_spearman_min": 0.5,
+    "top3_mean_paired_confirmation_utility_bits_strictly_positive": true,
+    "selected_mixture_coverage_at8_at_least_length_matched_uniform": true,
+    "interpretation": "All three descriptive conditions required for the full budget. Context-cluster intervals reported separately; this gate is a development decision, not a significance claim."
+  },
+  "main_if_gate_passes": {
+    "training_flop_proxy_ceiling": 4000000000000000,
+    "milestones": [
+      500000000000000,
+      1000000000000000,
+      2000000000000000,
+      4000000000000000
+    ],
+    "max_steps": 20000,
+    "max_generated_tokens": 1000000000,
+    "expected_updates_from_pilot": 8333,
+    "expected_seconds_per_arm": 1700,
+    "factorial": [
+      "uniform_full",
+      "uniform_reset",
+      "selected_full",
+      "selected_reset"
+    ]
+  },
+  "diagnostic_if_gate_fails": {
+    "training_flop_proxy_ceiling": 1000000000000000,
+    "milestones": [
+      500000000000000,
+      1000000000000000
+    ],
+    "max_steps": 8000,
+    "max_generated_tokens": 1000000000,
+    "expected_updates_from_pilot": 2083,
+    "expected_seconds_per_arm": 430,
+    "factorial": [
+      "uniform_full",
+      "uniform_reset",
+      "selected_full",
+      "selected_reset"
+    ],
+    "label": "Exploratory reset/selector failure diagnostic; does not claim calibration justified scaling"
+  },
+  "shared_training": {
+    "checkpoint": "results/adapt_v1/final.pt",
+    "seed": 20260910,
+    "learning_rate": 5e-05,
+    "prompts_per_update": 4,
+    "group_size": 8,
+    "max_new_tokens": 512,
+    "temperature": 0.8,
+    "retention_batch": 16,
+    "retention_weight": 0.1,
+    "empty_fraction": 0.2,
+    "curriculum_rollouts_per_source_cut": 64,
+    "backward_threshold": 0.8,
+    "forward_threshold": 0.1,
+    "normalization": "Fixed512token denominator, sourcewise leave-one-out raw outcome advantage",
+    "optimizer": "AdamW reset to common empty initial state; no pilot checkpoint reuse"
+  },
+  "overshoot": "Finish current update, record overshoot bounded by2397295042560; actual per-arm bound saved by learner",
+  "information_regime": "cap6 direct training/reset sources with cap12 selector oracle; acquired labels and selector compute counted",
+  "seed_repetition": "At most one additional RL sampling seed per configuration; prospective second-seed decision before final confirmation."
+}

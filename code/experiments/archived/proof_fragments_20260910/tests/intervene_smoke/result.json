@@ -1,0 +1,40 @@
+{
+  "elapsed_seconds": 0.8068141937255859,
+  "final_sha256": "9e837a338b2662fa8d280618ef0435adfd62ee4a1cfd7c6ec23aba143ddf04c0",
+  "fixed_pad": 512,
+  "history": [
+    {
+      "elapsed_seconds": 0.01991093158721924,
+      "grad_norm": 1.2084674835205078,
+      "loss_nats_per_token": 3.7694857120513916,
+      "step": 1
+    },
+    {
+      "elapsed_seconds": 0.03688322938978672,
+      "grad_norm": 1.0993051528930664,
+      "loss_nats_per_token": 3.740323781967163,
+      "step": 2
+    }
+  ],
+  "ledger": {
+    "sft_training": {
+      "action_tokens": 508,
+      "actual_input_tokens": 701,
+      "calls": 2,
+      "flop_proxy": 743492736,
+      "padded_token_slots": 4088,
+      "supplied_tokens": 201
+    }
+  },
+  "optimizer": "AdamW reset to identical empty state at arm start",
+  "parameter_displacement_l2": 0.006817723932380637,
+  "primary_examples": 4,
+  "primary_response_tokens": 256,
+  "primary_schedule_sha256": "68eed0afdf2d7dac17a850511019bb0381a8b8c7e2c2b2c849854c1bdacba6a6",
+  "retention_examples": 4,
+  "retention_fraction": 0.5,
+  "retention_response_tokens": 252,
+  "retention_schedule_sha256": "72d55a21e8410368959df18eacc50f343f502bdbbb63fea6916e4319557015ef",
+  "steps": 2,
+  "total_flop_proxy": 743492736
+}

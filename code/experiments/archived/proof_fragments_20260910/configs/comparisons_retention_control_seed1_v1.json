@@ -1,0 +1,138 @@
+{
+  "utc": "2026-09-10T21:09:38.497423+00:00",
+  "seed_index": 1,
+  "seed": 20260910,
+  "exposure_controls": {
+    "selected_full_s1_f05": {
+      "main_run": "rl_selected_full_seed1_v1",
+      "main_step": 1107,
+      "main_actual_flop_proxy": 500219334942720,
+      "retention_examples": 17712,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_001107.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "selected_full_s1_f10": {
+      "main_run": "rl_selected_full_seed1_v1",
+      "main_step": 2234,
+      "main_actual_flop_proxy": 1000011845775360,
+      "retention_examples": 35744,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_002234.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "selected_full_s1_f20": {
+      "main_run": "rl_selected_full_seed1_v1",
+      "main_step": 4492,
+      "main_actual_flop_proxy": 2000029101404160,
+      "retention_examples": 71872,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_004492.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "selected_full_s1_f40": {
+      "main_run": "rl_selected_full_seed1_v1",
+      "main_step": 9056,
+      "main_actual_flop_proxy": 4000109376860160,
+      "retention_examples": 144896,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_009056.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "selected_reset_s1_f05": {
+      "main_run": "rl_selected_reset_seed1_v1",
+      "main_step": 1087,
+      "main_actual_flop_proxy": 500291487068160,
+      "retention_examples": 17392,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_001087.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "selected_reset_s1_f10": {
+      "main_run": "rl_selected_reset_seed1_v1",
+      "main_step": 2203,
+      "main_actual_flop_proxy": 1000064139816960,
+      "retention_examples": 35248,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_002203.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "selected_reset_s1_f20": {
+      "main_run": "rl_selected_reset_seed1_v1",
+      "main_step": 4463,
+      "main_actual_flop_proxy": 2000422442618880,
+      "retention_examples": 71408,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_004463.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "selected_reset_s1_f40": {
+      "main_run": "rl_selected_reset_seed1_v1",
+      "main_step": 9054,
+      "main_actual_flop_proxy": 4000295007068160,
+      "retention_examples": 144864,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_009054.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_reset_s1_f05": {
+      "main_run": "rl_uniform_reset_seed1_v1",
+      "main_step": 1063,
+      "main_actual_flop_proxy": 500382633676800,
+      "retention_examples": 17008,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_001063.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_reset_s1_f10": {
+      "main_run": "rl_uniform_reset_seed1_v1",
+      "main_step": 2159,
+      "main_actual_flop_proxy": 1000127020953600,
+      "retention_examples": 34544,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_002159.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_reset_s1_f20": {
+      "main_run": "rl_uniform_reset_seed1_v1",
+      "main_step": 4354,
+      "main_actual_flop_proxy": 2000473197158400,
+      "retention_examples": 69664,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_004354.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_reset_s1_f40": {
+      "main_run": "rl_uniform_reset_seed1_v1",
+      "main_step": 8827,
+      "main_actual_flop_proxy": 4000074479001600,
+      "retention_examples": 141232,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_008827.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_full_s1_f05": {
+      "main_run": "rl_uniform_full_seed1_v1",
+      "main_step": 1107,
+      "main_actual_flop_proxy": 500158119936000,
+      "retention_examples": 17712,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_001107.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_full_s1_f10": {
+      "main_run": "rl_uniform_full_seed1_v1",
+      "main_step": 2237,
+      "main_actual_flop_proxy": 1000252071075840,
+      "retention_examples": 35792,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_002237.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_full_s1_f20": {
+      "main_run": "rl_uniform_full_seed1_v1",
+      "main_step": 4504,
+      "main_actual_flop_proxy": 2000346868531200,
+      "retention_examples": 72064,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_004504.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    },
+    "uniform_full_s1_f40": {
+      "main_run": "rl_uniform_full_seed1_v1",
+      "main_step": 9096,
+      "main_actual_flop_proxy": 4000059554611200,
+      "retention_examples": 145536,
+      "control_checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/step_009096.pt",
+      "matching": "Same retention data, ordered draws, optimizer initialization and number of retained examples; total compute is lower and Adam history differs after removing the policy-loss term."
+    }
+  },
+  "total_compute_control": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/retention_control_seed1_v1/final.pt",
+  "total_compute_ceiling": 4000000000000000,
+  "note": "One retention-only trajectory supplies all declared exposure checkpoints and a separate equal-total-proxy endpoint. This removes the policy-loss term; it is not an additive causal decomposition of the joint Adam trajectory. Loss scale 0.1 can largely cancel in standalone Adam apart from epsilon and clipping."
+}

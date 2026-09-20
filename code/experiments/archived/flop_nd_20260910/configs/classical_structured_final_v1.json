@@ -1,0 +1,49 @@
+{
+  "code_sha256": {
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_run.py": "5369e00649fca27f81de36ee6a32c08dadf59f360fb78a682a5e40759d19d05a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_solver.py": "cf87fbd9bcf748c27e93bc3537f2b6cc077672a88b0cfb4091163d56acae5e2e",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_vendor/__init__.py": "785e8a563d281eb0bd7ec0510c2a0cef7746e2ead7122531cb02b6161f402ca5",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_vendor/engine.py": "89f37caeebb1ee9cff5e5fe9557fe871ca62acc9ab29a93e2e0ac62722c6b0ae",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_vendor/support.py": "e80dc7e32ed9d29074922f7aa73f607f5303537734252d3669115bb8fdb6d7cc",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_vendor/truth_assignment.py": "92d459f8397d23796e997385b12a06dc1200811c98f63752ab2ac782c03bd4ce",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_data.py": "0b59406358e690970e373a73e151f10956ad6aeed8cbff7c020e3025ca3ace46",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_model.py": "35d012802c87b8b9b71904f28e5ce9f3581a22418e6a2fe87e48cd6785769602",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/proof_diagnostics.py": "872579988d74449061997da62a894fe1cb450e1d9dd04eaa745080de062315d0",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/strict_verify.py": "73362291ec996114f609cd8650bd5fc664d1ceb88e6166d966ad334ae743a1c7"
+  },
+  "data_path": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/final.jsonl",
+  "data_sha256": "a4bdf15ae7cc35ef1674d209a93650d31ac73f9f475dd7dbf51e503c89b79c9a",
+  "hard_timeout_seconds": 15.0,
+  "max_certificate_lines": 10000,
+  "max_certificate_response_tokens": 1000000,
+  "methods": [
+    {
+      "budget": 128,
+      "kind": "heuristic",
+      "max_depth": 10,
+      "name": "heuristic_128",
+      "seed": 0
+    },
+    {
+      "budget": 4096,
+      "kind": "heuristic",
+      "max_depth": 10,
+      "name": "heuristic_4096",
+      "seed": 0
+    },
+    {
+      "atom_order": "alphabetical",
+      "budget": 100000,
+      "kind": "constructor",
+      "name": "truth_assignment_100000"
+    }
+  ],
+  "no_model_or_reference_inputs": true,
+  "operation_units_are_not_neural_tokens": true,
+  "scope": "Nonlearned bounded ND search plus separate bounded classical truth-assignment constructor; no minimum-length claim",
+  "status": "frozen",
+  "version": "classical-pure-prompt-v1"
+}

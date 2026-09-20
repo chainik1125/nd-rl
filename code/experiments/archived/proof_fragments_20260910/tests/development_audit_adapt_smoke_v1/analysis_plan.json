@@ -1,0 +1,17 @@
+{
+  "bootstrap_draws": 5000,
+  "bootstrap_seed": 20260911,
+  "comparisons": [],
+  "contrasts": {},
+  "data": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/confirmation.jsonl",
+  "models": {
+    "adapt": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/whole_proof_nll.jsonl"
+    }
+  },
+  "note": "All four milestones retained. Final endpoint is the 4e15 crossing; its duplicate milestone weights are not evaluated twice. NLL at T=1 is descriptive; verified sampling uses T=0.8. Interactions and main effects combine paired source outcomes before context resampling. No checkpoint selection by development outcomes is planned.",
+  "output": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/tests/development_audit_adapt_smoke_v1/paired_analysis.json",
+  "samples": 8,
+  "status": "prospectively_declared_development_analysis"
+}

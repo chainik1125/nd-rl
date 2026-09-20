@@ -1,0 +1,25 @@
+{
+  "admission": "First discovery per target at or before checkpoint step, matched to raw sampled full-start response and independently verified. Later rows are rejected from admission.",
+  "checkpoint_step": 5361,
+  "external_supervision": false,
+  "files": {
+    "attempts": {
+      "path": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/attempts.jsonl",
+      "sha256": "a869db9f887ca3332e3aecfc8d5714e43b7ee648c8f7c54fb754a6c7d51f7638"
+    },
+    "checkpoint": {
+      "path": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/final.pt",
+      "sha256": "0236b80bfe5cea79a2be3a5a181e4482c9c5cae18d206dcc84929945113c42bd"
+    },
+    "discoveries": {
+      "path": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/discoveries.jsonl",
+      "sha256": "6a407a3c675a77e5f23c7b9ea314a29e2316fbd13936acd0992e9f404ad72fc7"
+    },
+    "run_manifest": {
+      "path": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/manifest.json",
+      "sha256": "918987df07835634003fd59cd4b5879a3cb4769da6782d5bfa4689a2cfb27a62"
+    }
+  },
+  "training_identity_sha256": "3bce3dcea6b40b76f8f64dca4a70b5539be5fc45ec4cc5aa9f88f5c0dbde8507",
+  "version": "flop-main-discovery-import-v1"
+}

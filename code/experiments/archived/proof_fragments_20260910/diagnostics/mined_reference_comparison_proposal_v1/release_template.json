@@ -1,0 +1,24 @@
+{
+  "approved_for_diagnostic_full_certificate_sft": false,
+  "checkpoints": [
+    "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9"
+  ],
+  "cohort_sha256": [
+    "b77cb195ad72eb8cfa5731e0d0717ac5fb711ff10ab5598c2e879fef612ef168",
+    "ff2dc9918d3d9491fbff7d9c1ebce1da33d4b1700d62ed2a94225f3d3cd8b3a2"
+  ],
+  "frozen": false,
+  "full_source_supervision_cap": 6,
+  "proposal_manifest_sha256": "07b6eeddfe495bcc57f8b5b5d7c108382a0cfbf631c5b665d689df12fc71640e",
+  "retention_sha256": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+  "supervision": "full-certificate",
+  "training_config": {
+    "batch_size": 32,
+    "fixed_pad": 512,
+    "lr": 5e-05,
+    "precision": "fp32",
+    "retention_fraction": 0.5,
+    "seed": null,
+    "steps": null
+  }
+}

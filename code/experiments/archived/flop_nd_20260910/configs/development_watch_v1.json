@@ -1,0 +1,225 @@
+{
+  "audit": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl",
+  "data": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+  "deadline_utc": "2026-09-11T04:20:00Z",
+  "evaluations": [
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/step_000500.pt",
+      "name": "main_relative_full_seed1_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/step_001000.pt",
+      "name": "main_relative_full_seed1_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/step_002000.pt",
+      "name": "main_relative_full_seed1_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/step_004000.pt",
+      "name": "main_relative_full_seed1_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/step_005000.pt",
+      "name": "main_relative_full_seed1_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_dev_greedy_step005000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/step_000500.pt",
+      "name": "main_relative_reset_seed1_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/step_001000.pt",
+      "name": "main_relative_reset_seed1_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/step_002000.pt",
+      "name": "main_relative_reset_seed1_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/step_004000.pt",
+      "name": "main_relative_reset_seed1_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/step_005000.pt",
+      "name": "main_relative_reset_seed1_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_dev_greedy_step005000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/step_000500.pt",
+      "name": "main_ppo_full_seed1_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/step_001000.pt",
+      "name": "main_ppo_full_seed1_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/step_002000.pt",
+      "name": "main_ppo_full_seed1_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/step_004000.pt",
+      "name": "main_ppo_full_seed1_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/step_005000.pt",
+      "name": "main_ppo_full_seed1_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_dev_greedy_step005000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/step_000500.pt",
+      "name": "main_ppo_reset_seed1_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/step_001000.pt",
+      "name": "main_ppo_reset_seed1_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/step_002000.pt",
+      "name": "main_ppo_reset_seed1_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/step_004000.pt",
+      "name": "main_ppo_reset_seed1_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/step_005000.pt",
+      "name": "main_ppo_reset_seed1_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_dev_greedy_step005000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/step_000500.pt",
+      "name": "main_relative_full_seed2_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/step_001000.pt",
+      "name": "main_relative_full_seed2_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/step_002000.pt",
+      "name": "main_relative_full_seed2_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/step_004000.pt",
+      "name": "main_relative_full_seed2_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/step_005000.pt",
+      "name": "main_relative_full_seed2_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_dev_greedy_step005000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/step_000500.pt",
+      "name": "main_relative_reset_seed2_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/step_001000.pt",
+      "name": "main_relative_reset_seed2_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/step_002000.pt",
+      "name": "main_relative_reset_seed2_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/step_004000.pt",
+      "name": "main_relative_reset_seed2_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/step_005000.pt",
+      "name": "main_relative_reset_seed2_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_dev_greedy_step005000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/step_000500.pt",
+      "name": "main_ppo_full_seed2_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/step_001000.pt",
+      "name": "main_ppo_full_seed2_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/step_002000.pt",
+      "name": "main_ppo_full_seed2_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/step_004000.pt",
+      "name": "main_ppo_full_seed2_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/step_005000.pt",
+      "name": "main_ppo_full_seed2_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_dev_greedy_step005000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/step_000500.pt",
+      "name": "main_ppo_reset_seed2_v1_step000500",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_dev_greedy_step000500"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/step_001000.pt",
+      "name": "main_ppo_reset_seed2_v1_step001000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_dev_greedy_step001000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/step_002000.pt",
+      "name": "main_ppo_reset_seed2_v1_step002000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_dev_greedy_step002000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/step_004000.pt",
+      "name": "main_ppo_reset_seed2_v1_step004000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_dev_greedy_step004000"
+    },
+    {
+      "checkpoint": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/step_005000.pt",
+      "name": "main_ppo_reset_seed2_v1_step005000",
+      "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_dev_greedy_step005000"
+    }
+  ],
+  "evaluator": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py",
+  "input_sha256": {
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/development_watch_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/development_watch_v1/watch_development.py": "d9476e24b37622708ed9fb5d1dbae26108c6b5a80198b21d153a06c39372d6fd",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py": "855b81a8dd1e8139b55dc6cb1ece49e34f44201ae5eb76613a6a8eca5393ebfb",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/learning.py": "5c1fcc7cd85fe2de25ec76f520e2d5519eb3c2b504dd78f20dec44570ba0b550",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/ppo_core.py": "83e0fed80eb0c04e97c95f5ee29615267c33abd120b82007bd37cd9ec5c4392f",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py": "092ac4b749a64d13018ec650ce8c4cf5688bb2772f0a37419ae38ecf97f63733"
+  },
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/development_watch_v1",
+  "per_evaluation_timeout_seconds": 900,
+  "python": "/data/users/dmitry/simplex-research/.venv/bin/python",
+  "status": "frozen_before_checkpoint_model_evaluation"
+}
