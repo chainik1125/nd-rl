@@ -29,8 +29,10 @@ population and did not evaluate a textbook benchmark.
 ## Imported evidence
 
 - [Detailed final summary and four key figures](summary.md)
+- [Per-model certificate-length ledger](reports/final_certificate_lengths_v1.json), including
+  written and dependency-pruned maxima for every frozen endpoint
 - [Archived implementation, tools, and configurations](../../code/experiments/archived/proof_fragments_20260910/IMPORT.md)
 
-The summary and figures were copied from
-`simplex3:/data/users/dmitry/nd-rl/proof-fragments-20260910-1800`. Raw results and checkpoints
-remain remote.
+The summary, figures, and certificate-length ledger were copied from
+`simplex3:/data/users/dmitry/nd-rl/proof-fragments-20260910-1800`. Other raw results and
+checkpoints remain remote.

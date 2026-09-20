@@ -1,0 +1,49 @@
+{
+  "kind": "posthoc_training_growth_audit",
+  "arm": "cap6_direct_s20260910",
+  "cap": 6,
+  "rl_checkpoint_sha256": "cbe08b87589a60c078bc072172fa589adc91633638f5454630ced48642618b2a",
+  "rollouts_sha256": "cdcdabf4007848ce0928147cbc5531d3305440b92e563aca075abf5f34f1012e",
+  "data_sha256": "e6f5136aadd555fbe6da7ef718578732415f36b86e45600b30c1ca53244ff8c4",
+  "counts": {
+    "accepted_rollouts": 168374,
+    "raw_above_cap_rollouts": 1,
+    "compressed_above_cap_rollouts": 1
+  },
+  "maximum_raw_training_witness": 7,
+  "compressed_length_histogram_for_raw_above_cap_candidates": {
+    "7": 1
+  },
+  "unique_theorems_with_compressed_witness_above_cap": 1,
+  "unique_theorems_by_sampling_bucket": {
+    "short": 1
+  },
+  "unique_compressed_certificates_above_cap": 1,
+  "largest_compressed_above_cap_example": {
+    "step": 981,
+    "group": 4,
+    "attempt": 5,
+    "sampling_bucket": "short",
+    "family": "generated_3",
+    "prompt": "THM ( ( R v ( R v ( P & Q ) ) ) & ( R & ( ~ Q ) ) ) SEQ R PRF",
+    "original_proof": "N1 ( ( R v ( R v ( P & Q ) ) ) & ( R & ( ~ Q ) ) ) : PR ; N2 | ( ~ R ) : AS ; N3 | ( R & ( ~ Q ) ) : ANDE2 N1 ; N4 | R : ANDE1 N3 ; N5 | F : NEGE N4 N2 ; N6 ( ~ ( ~ R ) ) : NEGI N2 N5 ; N7 R : DN N6 ; QED",
+    "raw_length": 7,
+    "compressed_proof": "N1 ( ( R v ( R v ( P & Q ) ) ) & ( R & ( ~ Q ) ) ) : PR ;\nN2 | ( ~ R ) : AS ;\nN3 | ( R & ( ~ Q ) ) : ANDE2 N1 ;\nN4 | R : ANDE1 N3 ;\nN5 | F : NEGE N4 N2 ;\nN6 ( ~ ( ~ R ) ) : NEGI N2 N5 ;\nN7 R : DN N6 ;\nQED",
+    "compressed_length": 7
+  },
+  "largest_compressed_above_cap_example_by_bucket": {
+    "short": {
+      "step": 981,
+      "group": 4,
+      "attempt": 5,
+      "sampling_bucket": "short",
+      "family": "generated_3",
+      "prompt": "THM ( ( R v ( R v ( P & Q ) ) ) & ( R & ( ~ Q ) ) ) SEQ R PRF",
+      "original_proof": "N1 ( ( R v ( R v ( P & Q ) ) ) & ( R & ( ~ Q ) ) ) : PR ; N2 | ( ~ R ) : AS ; N3 | ( R & ( ~ Q ) ) : ANDE2 N1 ; N4 | R : ANDE1 N3 ; N5 | F : NEGE N4 N2 ; N6 ( ~ ( ~ R ) ) : NEGI N2 N5 ; N7 R : DN N6 ; QED",
+      "raw_length": 7,
+      "compressed_proof": "N1 ( ( R v ( R v ( P & Q ) ) ) & ( R & ( ~ Q ) ) ) : PR ;\nN2 | ( ~ R ) : AS ;\nN3 | ( R & ( ~ Q ) ) : ANDE2 N1 ;\nN4 | R : ANDE1 N3 ;\nN5 | F : NEGE N4 N2 ;\nN6 ( ~ ( ~ R ) ) : NEGI N2 N5 ;\nN7 R : DN N6 ;\nQED",
+      "compressed_length": 7
+    }
+  },
+  "scope": "Training-only generated certificates, not held-out transfer. Every raw-above-cap candidate was replayed and compressed; the recorded raw maximum was also replayed. Repeated certificates are not independent discoveries. Dependency/reiteration compression does not prove minimality."
+}

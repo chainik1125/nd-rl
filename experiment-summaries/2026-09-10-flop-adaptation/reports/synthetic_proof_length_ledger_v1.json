@@ -1,0 +1,756 @@
+{
+  "schema_version": 1,
+  "written_on": "2026-09-20",
+  "claim_scope": "Longest strictly verified dependency-pruned synthetic proof observed for each cap-six FLoP procedure in the frozen sampled evaluations and the later length challenge.",
+  "line_definition": "Total natural-deduction proof-body lines after dependency/reiteration pruning; premises and assumptions count and QED does not.",
+  "interpretation": [
+    "These are observed certificate lengths, not minimum theorem difficulty.",
+    "The token LM and the symbolic legal-action policies are different systems and should not be pooled.",
+    "The 129-line result is a narrow repeated atomic-projection execution."
+  ],
+  "sources": {
+    "token_lm_primary_sample4": {
+      "remote_path": "simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/analysis_primary_final_sample4_v1.json",
+      "sha256": "ec022e527b8de5fc579b84a5a23b27b024e296032a9ec354754f2ff660fcb8eb",
+      "original_bytes": 11214944,
+      "import": "Derived rows only because the source exceeds the 1 MB summary-file limit."
+    },
+    "minimal_action_primary_sample4": {
+      "remote_path": "simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/analysis_minimal_primary_final_sample4_v1.json",
+      "sha256": "53f3963f5e3bec0baa084fe16acf455d5bbb1425106f562ab92b446ea01b6e82",
+      "import": "Derived rows only."
+    },
+    "minimal_action_structured_sample4": {
+      "remote_path": "simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/analysis_minimal_structured_final_sample4_v1.json",
+      "sha256": "8ad22abf5201a32792db89182eceffeec3f2c54ca19f25ba8be8f1770840efee",
+      "import": "Derived rows only."
+    },
+    "length_challenge": {
+      "local_path": "analysis_length_challenge_v1.json",
+      "remote_path": "simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/analysis_length_challenge_v1.json",
+      "sha256": "cb94ea014501b7176eaba799ff8901510c14483b6debcb5edb813eb02368078b",
+      "import": "Complete source copied."
+    }
+  },
+  "token_lm_primary_sample4": [
+    {
+      "endpoint": "baseline",
+      "solved_targets": 201,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 22,
+        "3": 47,
+        "4": 52,
+        "5": 54,
+        "6": 19,
+        "7": 7
+      }
+    },
+    {
+      "endpoint": "main_ppo_full_seed1_v1",
+      "solved_targets": 113,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 13,
+        "3": 33,
+        "4": 34,
+        "5": 20,
+        "6": 11,
+        "7": 2
+      }
+    },
+    {
+      "endpoint": "main_ppo_full_seed2_v1",
+      "solved_targets": 112,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 10,
+        "3": 40,
+        "4": 31,
+        "5": 23,
+        "6": 6,
+        "7": 2
+      }
+    },
+    {
+      "endpoint": "main_ppo_reset_seed1_v1",
+      "solved_targets": 109,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 13,
+        "3": 41,
+        "4": 29,
+        "5": 18,
+        "6": 7,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "main_ppo_reset_seed2_v1",
+      "solved_targets": 105,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 6,
+      "shortest_pruned_histogram": {
+        "2": 15,
+        "3": 38,
+        "4": 29,
+        "5": 17,
+        "6": 6
+      }
+    },
+    {
+      "endpoint": "main_relative_full_seed1_v1",
+      "solved_targets": 157,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 15,
+        "3": 52,
+        "4": 43,
+        "5": 32,
+        "6": 13,
+        "7": 2
+      }
+    },
+    {
+      "endpoint": "main_relative_full_seed2_v1",
+      "solved_targets": 163,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 15,
+        "3": 48,
+        "4": 42,
+        "5": 34,
+        "6": 12,
+        "7": 12
+      }
+    },
+    {
+      "endpoint": "main_relative_reset_seed1_v1",
+      "solved_targets": 163,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 21,
+        "3": 61,
+        "4": 36,
+        "5": 33,
+        "6": 8,
+        "7": 4
+      }
+    },
+    {
+      "endpoint": "main_relative_reset_seed2_v1",
+      "solved_targets": 167,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 19,
+        "3": 49,
+        "4": 41,
+        "5": 38,
+        "6": 13,
+        "7": 7
+      }
+    },
+    {
+      "endpoint": "online_off_seed1_v1",
+      "solved_targets": 100,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 6,
+      "shortest_pruned_histogram": {
+        "2": 15,
+        "3": 41,
+        "4": 30,
+        "5": 13,
+        "6": 1
+      }
+    },
+    {
+      "endpoint": "online_off_seed2_v1",
+      "solved_targets": 111,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 12,
+        "3": 41,
+        "4": 36,
+        "5": 18,
+        "6": 3,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "online_on_seed1_v1",
+      "solved_targets": 73,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 5,
+      "shortest_pruned_histogram": {
+        "2": 12,
+        "3": 29,
+        "4": 26,
+        "5": 6
+      }
+    },
+    {
+      "endpoint": "online_on_seed2_v1",
+      "solved_targets": 80,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 6,
+      "shortest_pruned_histogram": {
+        "2": 10,
+        "3": 26,
+        "4": 30,
+        "5": 10,
+        "6": 4
+      }
+    },
+    {
+      "endpoint": "retention_seed1_step004405",
+      "solved_targets": 162,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 18,
+        "3": 45,
+        "4": 43,
+        "5": 41,
+        "6": 14,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "retention_seed1_step004793",
+      "solved_targets": 161,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 18,
+        "3": 45,
+        "4": 43,
+        "5": 41,
+        "6": 13,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "retention_seed1_step005860",
+      "solved_targets": 161,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 18,
+        "3": 44,
+        "4": 44,
+        "5": 41,
+        "6": 13,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "retention_seed1_step005934",
+      "solved_targets": 161,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 18,
+        "3": 44,
+        "4": 44,
+        "5": 41,
+        "6": 13,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "retention_seed2_step005147",
+      "solved_targets": 144,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 16,
+        "3": 41,
+        "4": 44,
+        "5": 30,
+        "6": 12,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "retention_seed2_step005361",
+      "solved_targets": 143,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 15,
+        "3": 42,
+        "4": 44,
+        "5": 29,
+        "6": 12,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "retention_seed2_step005857",
+      "solved_targets": 144,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 15,
+        "3": 41,
+        "4": 44,
+        "5": 31,
+        "6": 12,
+        "7": 1
+      }
+    },
+    {
+      "endpoint": "retention_seed2_step005932",
+      "solved_targets": 142,
+      "successful_attempts": null,
+      "maximum_pruned_lines": 7,
+      "shortest_pruned_histogram": {
+        "2": 15,
+        "3": 41,
+        "4": 43,
+        "5": 30,
+        "6": 12,
+        "7": 1
+      }
+    }
+  ],
+  "minimal_action_primary_sample4": [
+    {
+      "endpoint": "bc_s4401",
+      "solved_targets": 126,
+      "successful_attempts": 413,
+      "maximum_pruned_lines": 12,
+      "shortest_pruned_histogram": {
+        "2": 14,
+        "3": 29,
+        "4": 24,
+        "5": 28,
+        "6": 12,
+        "7": 11,
+        "8": 7,
+        "9": 1
+      }
+    },
+    {
+      "endpoint": "bc_s4402",
+      "solved_targets": 128,
+      "successful_attempts": 417,
+      "maximum_pruned_lines": 16,
+      "shortest_pruned_histogram": {
+        "11": 2,
+        "2": 14,
+        "3": 30,
+        "4": 25,
+        "5": 31,
+        "6": 11,
+        "7": 8,
+        "8": 5,
+        "9": 2
+      }
+    },
+    {
+      "endpoint": "full_s4401",
+      "solved_targets": 130,
+      "successful_attempts": 282,
+      "maximum_pruned_lines": 11,
+      "shortest_pruned_histogram": {
+        "11": 1,
+        "2": 18,
+        "3": 24,
+        "4": 28,
+        "5": 32,
+        "6": 15,
+        "7": 6,
+        "8": 3,
+        "9": 3
+      }
+    },
+    {
+      "endpoint": "full_s4402",
+      "solved_targets": 3,
+      "successful_attempts": 3,
+      "maximum_pruned_lines": 4,
+      "shortest_pruned_histogram": {
+        "2": 1,
+        "3": 1,
+        "4": 1
+      }
+    },
+    {
+      "endpoint": "initial_s4401",
+      "solved_targets": 125,
+      "successful_attempts": 227,
+      "maximum_pruned_lines": 12,
+      "shortest_pruned_histogram": {
+        "10": 3,
+        "12": 1,
+        "2": 17,
+        "3": 20,
+        "4": 29,
+        "5": 24,
+        "6": 17,
+        "7": 6,
+        "8": 5,
+        "9": 3
+      }
+    },
+    {
+      "endpoint": "initial_s4402",
+      "solved_targets": 133,
+      "successful_attempts": 252,
+      "maximum_pruned_lines": 12,
+      "shortest_pruned_histogram": {
+        "10": 1,
+        "11": 2,
+        "12": 1,
+        "2": 16,
+        "3": 30,
+        "4": 27,
+        "5": 26,
+        "6": 13,
+        "7": 7,
+        "8": 7,
+        "9": 3
+      }
+    },
+    {
+      "endpoint": "reset_s4401",
+      "solved_targets": 163,
+      "successful_attempts": 432,
+      "maximum_pruned_lines": 14,
+      "shortest_pruned_histogram": {
+        "11": 1,
+        "12": 3,
+        "2": 19,
+        "3": 25,
+        "4": 35,
+        "5": 40,
+        "6": 21,
+        "7": 15,
+        "9": 4
+      }
+    },
+    {
+      "endpoint": "reset_s4402",
+      "solved_targets": 187,
+      "successful_attempts": 492,
+      "maximum_pruned_lines": 18,
+      "shortest_pruned_histogram": {
+        "10": 2,
+        "11": 1,
+        "12": 1,
+        "2": 20,
+        "3": 33,
+        "4": 40,
+        "5": 50,
+        "6": 20,
+        "7": 10,
+        "8": 6,
+        "9": 4
+      }
+    },
+    {
+      "endpoint": "uniform",
+      "solved_targets": 122,
+      "successful_attempts": 241,
+      "maximum_pruned_lines": 12,
+      "shortest_pruned_histogram": {
+        "10": 1,
+        "11": 1,
+        "2": 19,
+        "3": 24,
+        "4": 26,
+        "5": 28,
+        "6": 12,
+        "7": 5,
+        "8": 1,
+        "9": 5
+      }
+    }
+  ],
+  "minimal_action_structured_sample4": [
+    {
+      "endpoint": "bc_s4401",
+      "solved_targets": 121,
+      "successful_attempts": 378,
+      "maximum_pruned_lines": 28,
+      "shortest_pruned_histogram": {
+        "10": 3,
+        "11": 1,
+        "13": 26,
+        "17": 26,
+        "25": 6,
+        "7": 28,
+        "8": 1,
+        "9": 30
+      }
+    },
+    {
+      "endpoint": "bc_s4402",
+      "solved_targets": 134,
+      "successful_attempts": 412,
+      "maximum_pruned_lines": 25,
+      "shortest_pruned_histogram": {
+        "10": 5,
+        "12": 1,
+        "13": 27,
+        "14": 1,
+        "16": 1,
+        "17": 28,
+        "18": 1,
+        "25": 8,
+        "7": 28,
+        "8": 2,
+        "9": 32
+      }
+    },
+    {
+      "endpoint": "full_s4401",
+      "solved_targets": 0,
+      "successful_attempts": 0,
+      "maximum_pruned_lines": 0,
+      "shortest_pruned_histogram": {}
+    },
+    {
+      "endpoint": "full_s4402",
+      "solved_targets": 0,
+      "successful_attempts": 0,
+      "maximum_pruned_lines": 0,
+      "shortest_pruned_histogram": {}
+    },
+    {
+      "endpoint": "initial_s4401",
+      "solved_targets": 1,
+      "successful_attempts": 1,
+      "maximum_pruned_lines": 9,
+      "shortest_pruned_histogram": {
+        "9": 1
+      }
+    },
+    {
+      "endpoint": "initial_s4402",
+      "solved_targets": 0,
+      "successful_attempts": 0,
+      "maximum_pruned_lines": 0,
+      "shortest_pruned_histogram": {}
+    },
+    {
+      "endpoint": "reset_s4401",
+      "solved_targets": 116,
+      "successful_attempts": 306,
+      "maximum_pruned_lines": 25,
+      "shortest_pruned_histogram": {
+        "11": 1,
+        "12": 1,
+        "13": 22,
+        "14": 2,
+        "17": 12,
+        "25": 4,
+        "7": 39,
+        "8": 4,
+        "9": 31
+      }
+    },
+    {
+      "endpoint": "reset_s4402",
+      "solved_targets": 142,
+      "successful_attempts": 363,
+      "maximum_pruned_lines": 26,
+      "shortest_pruned_histogram": {
+        "10": 5,
+        "11": 1,
+        "12": 2,
+        "13": 26,
+        "14": 3,
+        "16": 1,
+        "17": 20,
+        "18": 3,
+        "20": 1,
+        "25": 10,
+        "7": 33,
+        "8": 4,
+        "9": 33
+      }
+    },
+    {
+      "endpoint": "uniform",
+      "solved_targets": 0,
+      "successful_attempts": 0,
+      "maximum_pruned_lines": 0,
+      "shortest_pruned_histogram": {}
+    }
+  ],
+  "length_challenge": [
+    {
+      "endpoint": "initial_s4401",
+      "reference_lines": 33,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "full_s4401",
+      "reference_lines": 33,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "reset_s4401",
+      "reference_lines": 33,
+      "solved_targets": 3,
+      "maximum_pruned_lines": 34
+    },
+    {
+      "endpoint": "bc_s4401",
+      "reference_lines": 33,
+      "solved_targets": 3,
+      "maximum_pruned_lines": 33
+    },
+    {
+      "endpoint": "initial_s4402",
+      "reference_lines": 33,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "full_s4402",
+      "reference_lines": 33,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "reset_s4402",
+      "reference_lines": 33,
+      "solved_targets": 2,
+      "maximum_pruned_lines": 33
+    },
+    {
+      "endpoint": "bc_s4402",
+      "reference_lines": 33,
+      "solved_targets": 4,
+      "maximum_pruned_lines": 33
+    },
+    {
+      "endpoint": "uniform",
+      "reference_lines": 33,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "initial_s4401",
+      "reference_lines": 65,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "full_s4401",
+      "reference_lines": 65,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "reset_s4401",
+      "reference_lines": 65,
+      "solved_targets": 1,
+      "maximum_pruned_lines": 65
+    },
+    {
+      "endpoint": "bc_s4401",
+      "reference_lines": 65,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "initial_s4402",
+      "reference_lines": 65,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "full_s4402",
+      "reference_lines": 65,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "reset_s4402",
+      "reference_lines": 65,
+      "solved_targets": 3,
+      "maximum_pruned_lines": 65
+    },
+    {
+      "endpoint": "bc_s4402",
+      "reference_lines": 65,
+      "solved_targets": 2,
+      "maximum_pruned_lines": 65
+    },
+    {
+      "endpoint": "uniform",
+      "reference_lines": 65,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "initial_s4401",
+      "reference_lines": 129,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "full_s4401",
+      "reference_lines": 129,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "reset_s4401",
+      "reference_lines": 129,
+      "solved_targets": 1,
+      "maximum_pruned_lines": 129
+    },
+    {
+      "endpoint": "bc_s4401",
+      "reference_lines": 129,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "initial_s4402",
+      "reference_lines": 129,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "full_s4402",
+      "reference_lines": 129,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "reset_s4402",
+      "reference_lines": 129,
+      "solved_targets": 2,
+      "maximum_pruned_lines": 129
+    },
+    {
+      "endpoint": "bc_s4402",
+      "reference_lines": 129,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    },
+    {
+      "endpoint": "uniform",
+      "reference_lines": 129,
+      "solved_targets": 0,
+      "maximum_pruned_lines": 0
+    }
+  ]
+}

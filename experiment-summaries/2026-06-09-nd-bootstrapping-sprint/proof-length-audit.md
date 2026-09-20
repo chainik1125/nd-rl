@@ -23,6 +23,8 @@ final line, removes unused lines, and re-verifies the result.
 
 For the cap-6 endpoint, the original raw histogram was 105×7 and 7×8; dependency pruning shortens
 two of the seven-line certificates but leaves all seven eight-line certificates intact.
+The [exact seven eight-line discovery records](results/cap6_eight_line_witnesses.json) retain the
+source path, source-commit identity, and SHA-256 of the original round-three discovery buffer.
 
 ## Interpretation limits
 

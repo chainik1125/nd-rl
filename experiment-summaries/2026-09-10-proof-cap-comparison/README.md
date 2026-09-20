@@ -29,6 +29,8 @@ replayed outcomes and the 58-problem population.
 ## Imported evidence
 
 - [Detailed final report and seven key figures](reports/summary.md)
+- Cap-6 synthetic training-growth audits for [Direct](reports/cap6_direct_s20260910_training_growth.json)
+  and [symbolic CoT](reports/cap6_cot_s20260910_training_growth.json)
 - [Original remote README](REMOTE_README.md)
 - [Archived implementation](../../code/experiments/archived/cap_comparison_20260910/IMPORT.md)
 

@@ -28,8 +28,13 @@ experiment did not evaluate a textbook benchmark.
 ## Imported evidence
 
 - [Final summary and key depth-challenge figure](summary.md)
+- [Compact synthetic proof-length ledger](reports/synthetic_proof_length_ledger_v1.json), derived
+  from the oversized frozen analyses with their source hashes retained
+- [Exact eleven-line full-start PPO witness](reports/witness_full_start_11line_v1.json)
+- [Exact 129-line backward-reset witness](reports/witness_length_challenge_v1.json) and
+  [complete length-challenge analysis](reports/analysis_length_challenge_v1.json)
 - [Archived implementation, tools, and configurations](../../code/experiments/archived/flop_nd_20260910/IMPORT.md)
 
-The summary and figure were copied from
-`simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934`. Raw results and checkpoints remain
+The summary, figures, compact ledger, and key witness evidence were copied or derived from
+`simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934`. Other raw results and checkpoints remain
 remote.

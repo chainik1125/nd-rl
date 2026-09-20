@@ -1,0 +1,63 @@
+{
+  "kind": "posthoc_training_growth_audit",
+  "arm": "cap6_cot_s20260910",
+  "cap": 6,
+  "rl_checkpoint_sha256": "fd4844c352db5de489adf26f128d9723ee1195c8e6c8f41c5240deef39f173b4",
+  "rollouts_sha256": "fb69485d59802fadbd6cb45e6a3e2b0fb5e46d729c49455fe58529f8b749178e",
+  "data_sha256": "e6f5136aadd555fbe6da7ef718578732415f36b86e45600b30c1ca53244ff8c4",
+  "counts": {
+    "accepted_rollouts": 133457,
+    "raw_above_cap_rollouts": 14338,
+    "compressed_above_cap_rollouts": 14337
+  },
+  "maximum_raw_training_witness": 7,
+  "compressed_length_histogram_for_raw_above_cap_candidates": {
+    "6": 1,
+    "7": 14337
+  },
+  "unique_theorems_with_compressed_witness_above_cap": 192,
+  "unique_theorems_by_sampling_bucket": {
+    "long": 186,
+    "short": 6
+  },
+  "unique_compressed_certificates_above_cap": 193,
+  "largest_compressed_above_cap_example": {
+    "step": 47,
+    "group": 4,
+    "attempt": 4,
+    "sampling_bucket": "short",
+    "family": "generated_6",
+    "prompt": "THM ( ( S > Q ) & Q ) SEQ ( Q > ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) ) PRF",
+    "original_proof": "N1 ( ( S > Q ) & Q ) : PR ; N2 Q : ANDE2 N1 ; N3 | Q : AS ; N4 | | ( P v S ) : AS ; N5 | | ( ( ( S > Q ) & Q ) v Q ) : ORI2 N2 ; N6 | ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) : IMPI N4 N5 ; N7 ( Q > ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) ) : IMPI N3 N6 ; QED",
+    "raw_length": 7,
+    "compressed_proof": "N1 ( ( S > Q ) & Q ) : PR ;\nN2 Q : ANDE2 N1 ;\nN3 | Q : AS ;\nN4 | | ( P v S ) : AS ;\nN5 | | ( ( ( S > Q ) & Q ) v Q ) : ORI2 N2 ;\nN6 | ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) : IMPI N4 N5 ;\nN7 ( Q > ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) ) : IMPI N3 N6 ;\nQED",
+    "compressed_length": 7
+  },
+  "largest_compressed_above_cap_example_by_bucket": {
+    "short": {
+      "step": 47,
+      "group": 4,
+      "attempt": 4,
+      "sampling_bucket": "short",
+      "family": "generated_6",
+      "prompt": "THM ( ( S > Q ) & Q ) SEQ ( Q > ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) ) PRF",
+      "original_proof": "N1 ( ( S > Q ) & Q ) : PR ; N2 Q : ANDE2 N1 ; N3 | Q : AS ; N4 | | ( P v S ) : AS ; N5 | | ( ( ( S > Q ) & Q ) v Q ) : ORI2 N2 ; N6 | ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) : IMPI N4 N5 ; N7 ( Q > ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) ) : IMPI N3 N6 ; QED",
+      "raw_length": 7,
+      "compressed_proof": "N1 ( ( S > Q ) & Q ) : PR ;\nN2 Q : ANDE2 N1 ;\nN3 | Q : AS ;\nN4 | | ( P v S ) : AS ;\nN5 | | ( ( ( S > Q ) & Q ) v Q ) : ORI2 N2 ;\nN6 | ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) : IMPI N4 N5 ;\nN7 ( Q > ( ( P v S ) > ( ( ( S > Q ) & Q ) v Q ) ) ) : IMPI N3 N6 ;\nQED",
+      "compressed_length": 7
+    },
+    "long": {
+      "step": 86,
+      "group": 7,
+      "attempt": 0,
+      "sampling_bucket": "long",
+      "family": "neg_and_impi_right",
+      "prompt": "THM ( ~ ( ( ( S & Q ) & S ) & ( ~ P ) ) ) SEQ ( ( ~ P ) > ( ~ ( ( S & Q ) & S ) ) ) PRF",
+      "original_proof": "N1 ( ~ ( ( ( S & Q ) & S ) & ( ~ P ) ) ) : PR ; N2 | ( ~ P ) : AS ; N3 | | ( ( S & Q ) & S ) : AS ; N4 | | ( ( ( S & Q ) & S ) & ( ~ P ) ) : ANDI N3 N2 ; N5 | | F : NEGE N4 N1 ; N6 | ( ~ ( ( S & Q ) & S ) ) : NEGI N3 N5 ; N7 ( ( ~ P ) > ( ~ ( ( S & Q ) & S ) ) ) : IMPI N2 N6 ; QED",
+      "raw_length": 7,
+      "compressed_proof": "N1 ( ~ ( ( ( S & Q ) & S ) & ( ~ P ) ) ) : PR ;\nN2 | ( ~ P ) : AS ;\nN3 | | ( ( S & Q ) & S ) : AS ;\nN4 | | ( ( ( S & Q ) & S ) & ( ~ P ) ) : ANDI N3 N2 ;\nN5 | | F : NEGE N4 N1 ;\nN6 | ( ~ ( ( S & Q ) & S ) ) : NEGI N3 N5 ;\nN7 ( ( ~ P ) > ( ~ ( ( S & Q ) & S ) ) ) : IMPI N2 N6 ;\nQED",
+      "compressed_length": 7
+    }
+  },
+  "scope": "Training-only generated certificates, not held-out transfer. Every raw-above-cap candidate was replayed and compressed; the recorded raw maximum was also replayed. Repeated certificates are not independent discoveries. Dependency/reiteration compression does not prove minimality."
+}
