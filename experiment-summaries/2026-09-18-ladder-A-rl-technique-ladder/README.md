@@ -196,3 +196,18 @@ files with no pods (reviewer's count: 9 in every arm, on 5–21 theorems, agains
 premise-order-invariant before building Phase B pools. The executor's Phase B request
 (`QUESTIONS.md` 18:35, ≈ $15–20, default: not started) overlaps (1) and (2) and adds a sliding
 `L*` threshold; it awaits Dan's answer.
+
+## Addendum (2026-09-19): per-round curves and saturation
+
+`figures/ladder_saturation.png` (data in `curves_by_round.json`, computed from the arms' round
+files and training logs): cumulative transfer solves, solves at `L_true` ≥ 9 / ≥ 10, new
+accepted target proofs per round, and the fine-tune loss at step 600 of each round, for T1 and
+the two T6 siblings, with the frozen control. Reading: new proofs per round decay roughly
+geometrically after round 2 (T1 s0: 377, 813, 680, 417, 281, 213, 161, 172) and cumulative
+transfer solves grow by 112 → 74 → 43 → 43 per round over rounds 5–8, so the *count* is
+approaching a plateau — extrapolating the ~0.7 ratio gives ≈ 700–720 of 2,285 for T1 at this
+budget. Solves at `L_true` ≥ 10 were still rising (2, 12, 23, 27, 35) with no clear
+deceleration, and `L*` reached 10 at round 5 and did not move; ≥ 11 stayed at 0–1. Held-out
+accuracy is flat at 0.95, and the per-round fine-tune loss drifts down (0.053 → 0.038) as the
+mix changes, so neither signals over-fitting. A longer-horizon continuation (24–32 rounds) is
+the direct test of where the count plateaus and whether 11 is ever reached from this lineage.
