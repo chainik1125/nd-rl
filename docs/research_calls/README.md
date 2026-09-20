@@ -5,3 +5,6 @@ This folder contains transcripts of calls from different group meetings. It is n
 ## Group meetings
 
 - [September 20, 2026](group_meeting/group_meeting-20-09-2026.md)
+
+The earlier experiments described as not yet copied into the repository during that meeting are
+now indexed in the [experiment summaries](../../experiment-summaries/README.md).

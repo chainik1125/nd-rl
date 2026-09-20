@@ -5,6 +5,16 @@ written_by: agent:codex
 
 # Project state
 
+The three completed June natural-deduction sprints have been recovered from the earlier local
+repository, with their code, summaries, ledgers, and sub-1MB figures now indexed here. The
+[bootstrapping study](../experiment-summaries/2026-06-09-nd-bootstrapping-sprint/README.md)
+contains the strongest verified written-length result: cap-6 training produced seven distinct
+dependency-pruned eight-line certificates, while deeper cap-8 models reached 13 lines. The
+[proof-novelty study](../experiment-summaries/2026-06-10-proof-novelty-sprint/README.md) found a
+modest two-seed benefit from high-lemma-value target selection, and the
+[first-order study](../experiment-summaries/2026-06-11-fol-sprint/README.md) reproduced a token
+inventory wall while localizing eigenvariable failures to freshness bookkeeping.
+
 Four completed September 10 experiment records have now been imported from `simplex3` alongside
 archived code snapshots. Large raw runs and checkpoints remain remote.
 

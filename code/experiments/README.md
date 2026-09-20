@@ -10,6 +10,9 @@ Current experiments:
 
 Archived experiment snapshots:
 
+- [`nd_sprints_20260609_11/`](archived/nd_sprints_20260609_11/IMPORT.md): the connected
+  bootstrapping, proof-novelty, and first-order natural-deduction sprints from the earlier
+  repository.
 - [`olmo_single_gpu_20260909/`](archived/olmo_single_gpu_20260909/IMPORT.md): OLMo-32B ICL, SFT, DPO, and verifier-RL pilot.
 - [`cap_comparison_20260910/`](archived/cap_comparison_20260910/IMPORT.md): direct and symbolic-CoT proof-cap comparison.
 - [`proof_fragments_20260910/`](archived/proof_fragments_20260910/IMPORT.md): fragment selection and backward-reset curriculum.
