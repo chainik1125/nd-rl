@@ -16,6 +16,8 @@ During the run: one job per `podrun` call under `nohup`; pull raw files back oft
 brief are written down with the reason; delete pods whose work is pulled; upload `ckpts/`,
 `artifacts/`, `data/` for this run to `hf://buckets/dan-pandori/nd-rl/<run-id>/` at the end.
 
+**Lean is the checker of record** (decision 2026-09-20): every proof you count must translate with `nd2lean.py` and be accepted by Lean; report the agreement count with `nd_verify` and treat any disagreement as a bug. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form.
+
 At the end: `run<id>.md` (≤ 400 words + figures, expectations vs outcomes stated plainly);
 `STATUS.md` line `RUN<id> DONE <UTC>` (or `DONE <UTC>` for a single-run session); push; then
 `touch ~/runs/<run-id>/executor.done`. Keep every count reproducible from pulled files: a

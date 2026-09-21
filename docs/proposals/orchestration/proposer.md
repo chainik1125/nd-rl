@@ -12,6 +12,8 @@ the standing finding; the target pools and how you know they require what they t
 campaign's reductio and cap-8 dials were uninformative because no target required the
 pattern — ask this every time); controls and seeds; budget (dollars, within the $50 per-run
 rule unless you ask Dan for more in `QUESTIONS.md`), stop rule; deliverables. Prefer the
-experiment that could kill the current rule of thumb over the one that decorates it.
+experiment that could kill the current rule of thumb over the one that decorates it. Designs
+involving a pretrained model use Lean as the surface form (decision 2026-09-20); from-scratch
+training uses the token format until proposal 8 reports.
 
 End with `touch ~/runs/<slug>/proposer.done`.
