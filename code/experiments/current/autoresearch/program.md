@@ -6,14 +6,18 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 
 ## Setup
 
-- `harness.py` is FROZEN. It owns the wall-clock (10 min total from process start), the parameter
-  cap (10M), the RL stage (2 rounds of expert iteration, fixed in samples) and the eval. You never
-  edit it. Its sha256 is written into every result; a changed harness invalidates the run.
-- `pretrain.py` is the ONLY file you edit. Contract in its docstring. Your budget is 240 s of
-  wall-clock, compile and model construction included, then the harness takes the model.
+- `harness.py` is FROZEN. It owns the wall-clock (TOTAL_SECS from process start), the parameter
+  cap (PARAM_CAP), the RL stage (RL_ROUNDS rounds of expert iteration, fixed in samples) and the
+  eval. The numbers are the constants at the top of the file and are copied into every
+  params.json as `protocol` (runs 000-010: 600 s / 240 s / 2 rounds / 32 attempts; since 011:
+  1200 / 300 / 4 / 64). You never edit it. Its sha256 is written into every result; a changed
+  harness invalidates the run.
+- `pretrain.py` is the ONLY file you edit. Contract in its docstring. Your budget is
+  PRETRAIN_SECS of wall-clock, compile and model construction included, then the harness takes
+  the model.
 - Frozen data and verifier come from Dan's fork at the commit pinned in `remote.sh`.
 - The metric is `metric` in `summary.json`: dev-transfer theorems solved at true length >= 7
-  with 32 attempts each. Higher is better. The RL stage is what turns pretraining into that
+  with EVAL_K attempts each. Higher is better. The RL stage is what turns pretraining into that
   number, so think about what makes a model a good starting point for expert iteration, not
   only about pretrain loss.
 
