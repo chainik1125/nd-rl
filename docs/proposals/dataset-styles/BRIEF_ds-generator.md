@@ -2,7 +2,7 @@
 
 Run id `ds-generator`. Repository `~/work/ds-generator` (branch `dan_ds-generator`, a worktree
 from `origin/dan_lean_format`). Role: executor. `AGENT_POLICY.md` governs; designs are
-suggestions. Read first: `~/nd-rl/docs/proposals/2026-09-22-dataset-styles.md` (proposal 9; its
+suggestions. Read first: `~/nd-rl/docs/proposals/2026-09-22-dataset-styles.md` (proposal 10, numbered 9 in the executor copy; its
 "Protocol shared by every arm" section is this run's protocol), `gen.py` (docstring, `reach`,
 `step`, `step_local`, `open_box`, `sample_one`, `finish`), `make_coverage_sets.py gen`,
 `data/ladder/POOLS.md` (how the strict long generator built the ladder pools),
@@ -52,7 +52,7 @@ frozen and G1 should open the `ORE`-needing textbook schemata; if neither moves,
 
 Every set: shape table (length, box-depth, per-proof rule shares, boxes-inside-`ORE`, premise
 count, lazy-premise count if you can label it, contradictory-premise share, mean tokens),
-overlap table against all pools, render check (proposal 9, protocol). The generator is still
+overlap table against all pools, render check (proposal 10, protocol). The generator is still
 the generator: verified output only, no hand-written or LLM-written proofs; the knob changes
 are disclosed in `run_ds_generator.md` and in the set's README.
 

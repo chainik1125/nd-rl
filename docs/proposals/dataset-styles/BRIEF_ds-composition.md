@@ -3,7 +3,7 @@
 Run id `ds-composition`. Repository `~/work/ds-composition` (branch `dan_ds-composition`, a
 worktree from `origin/dan_lean_format`, which has the proposal-8 code: `lean_tok.py`,
 `lean_gate.py`, `ladder_ei.py`, `pod/lf/`). Role: executor. `AGENT_POLICY.md` governs; designs
-are suggestions. Read first: `~/nd-rl/docs/proposals/2026-09-22-dataset-styles.md` (proposal 9;
+are suggestions. Read first: `~/nd-rl/docs/proposals/2026-09-22-dataset-styles.md` (proposal 10, numbered 9 in the executor copy;
 its "Protocol shared by every arm" section is the protocol for this run),
 `preregistration/lean-format.md`, `run_lean_format.md`, `review_lean-format.md`,
 `~/nd-rl/experiment-summaries/2026-09-21-lean-format-training-format/README.md`. Pod ceiling
@@ -87,7 +87,7 @@ lower base rate than C0 and a larger EI − frozen on both seeds.
    round-4 files from the bucket (`hf buckets` … `lean-format/`).
 2. Build the four sets on the VPS (CPU; the assembler is fast; generation if needed on a CPU
    pod or the first GPU pod's cores). Shape table + overlap table + render check per set
-   (proposal 9, protocol) — commit these with the pre-registration or right after; they are
+   (proposal 10, protocol) — commit these with the pre-registration or right after; they are
    gate-0 material.
 3. Pods: four RTX 3090 ($0.50/h) as lean-format did (`pod/lf/` harness; `LEAN_GATE_WORKERS=12`),
    one arm per pod; Stage-1 (two seeds) → held-out greedy → coverage on the three pools →

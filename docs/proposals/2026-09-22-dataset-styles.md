@@ -3,10 +3,13 @@ written_on: 2026-09-22
 written_by: agent:claude
 ---
 
-# Proposal 9: pretraining dataset styles for the `lean_seq` model — three runs, $60
+# Proposal 10: pretraining dataset styles for the `lean_seq` model — three runs, $60
 
-Written by the proposer role (run id `dataset-styles-proposer`, 2026-09-22 05:30–08:00 UTC),
-with authority to launch. Dan's brief for the week: *"try different dataset generation formats
+Written by the proposer role (run id `dataset-styles-proposer`, 2026-09-22 05:30–06:15 UTC),
+with authority to launch. Numbered 10: Dan's [Lean-only checking and term size](2026-09-22-lean-only-checking-and-term-size.md)
+took number 9 concurrently; the brief copies committed in the run worktrees at launch still say
+"proposal 9" and mean this document. Those runs report lengths in lines only (no `term_size`
+yet); their reward is Lean ∧ `nd_verify`, as the 2026-09-22 (later) note keeps until `lean_check` is validated. Dan's brief for the week: *"try different dataset generation formats
 and styles. The goal is to get good performance on the pre-trained model and also set the model
 up well for the RL stage. $60 in total."* Evidence base: `docs/STATE.md`; the
 [Lean-default decision](../project_strategy/2026-09-20-lean-default.md) (updated 2026-09-22:

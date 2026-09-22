@@ -2,7 +2,7 @@
 
 Run id `ds-rendering`. Repository `~/work/ds-rendering` (branch `dan_ds-rendering`, a worktree
 from `origin/dan_lean_format`). Role: executor. `AGENT_POLICY.md` governs; designs are
-suggestions. Read first: `~/nd-rl/docs/proposals/2026-09-22-dataset-styles.md` (proposal 9; its
+suggestions. Read first: `~/nd-rl/docs/proposals/2026-09-22-dataset-styles.md` (proposal 10, numbered 9 in the executor copy; its
 "Protocol shared by every arm" section is this run's protocol), `lean_tok.py` (render, `decode`,
 `inverse`, the naming schemes), `nd2lean.py` (`translate`, `box_term`), `lean_gate.py`,
 `preregistration/lean-format.md`, `review_lean-format.md` (rows on `--no_shift`, wrong-name
@@ -76,7 +76,7 @@ in every `found_*.jsonl`. Vocabulary sizes reported.
 for the Lean base's depth-3 composition is supported if R2's frozen depth-3 rate halves
 (pre-registered as *not* expected). Finding 3 (RL amplifies what the base does) gets a
 counter-example if an arm has a lower base rate than C0 and a larger EI − frozen on both
-seeds. R3 is a performance arm: it "qualifies" (proposal 9's decision rule) if held-out is
+seeds. R3 is a performance arm: it "qualifies" (proposal 10's decision rule) if held-out is
 within 1 pp and no readiness number is worse.
 
 ## Design (suggestion)
