@@ -1,0 +1,27 @@
+{
+  "id": "002",
+  "slug": "length-buckets",
+  "commit": "943bd65",
+  "title": "Length-bucketed batches (sort by length, shuffle batch order)",
+  "description": "Profiling on the pod: fwd+bwd is 92 ms at bs 256 because each batch pads to its longest record (278 tokens) while the mean record is 109 tokens. Sort records by length once, cut the sorted order into batches of 256, shuffle the order of batches each epoch (fresh random tie-breaking inside equal lengths).",
+  "tags": [
+    "systems",
+    "data-order"
+  ],
+  "hypothesis": "~2x more steps in 240 s from removing padding compute. Length-homogeneous batches add a little gradient noise but that is a known mild effect at this scale. Combined with the 001 noise measurement (56 vs 67 on the same config), this needs to land above 67 to count.",
+  "p_keep": 0.5,
+  "expected_delta": "+0 to +15 at >=7 (more epochs); steps/s 10 -> ~20",
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": null,
+  "status": "timeout",
+  "pretrain_secs": 0,
+  "n_params": null,
+  "heldout_greedy": null,
+  "lstar": null,
+  "surprise": "Steps 2000 -> 5800 as predicted, but sampling fell from ~700 to ~410 samples/s in both EI rounds while fine-tune speed was unchanged, so the trained model produces runaway (no-QED) samples for some prompts and the 600 s cap hit during eval. Two candidate causes: (a) length-homogeneous batches, (b) 2.5x more epochs -> overconfident/looping at T=0.8. 003 (compile, more steps without bucketing) separates them.",
+  "total_secs": 600,
+  "pretrain_stats": {},
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "6573cbe2f1dc"
+}
