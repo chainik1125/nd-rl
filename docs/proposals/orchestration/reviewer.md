@@ -10,7 +10,7 @@ have the run brief, `preregistration/<run-id>.md`, the code, the data and the ra
 (`found_*.jsonl`, `round_*.json`, coverage files, checkpoints). Using **code you write
 yourself** — your own start-index normaliser, your own pattern predicates, your own depth
 counter — re-derive every quantity the pre-registration promised: per-arm counts, rates,
-frontiers, acquisition, base reachability. Re-run `nd_verify` on ≥ 100 counted proofs per arm, and **re-check the same proofs in Lean** through `nd2lean.py` (Lean is the checker of record); any disagreement is a finding.
+frontiers, acquisition, base reachability. Re-run `nd_verify` on ≥ 100 counted proofs per arm, and **re-check the same proofs in Lean** through `nd2lean.py` (Lean is the checker of record; once proposal 9's `lean_check` exists, run it too and confirm the allowlist and axiom checks on counted proofs); any disagreement is a finding. Re-derive term sizes as well as line counts.
 Recompute split disjointness by renaming class between every training file and every
 evaluation pool. Check the hard constraints: `nd_verify` hash equals `origin/main`'s;
 `artifacts/TEST_RUN_DONE` unchanged; no evaluation file read in training code (grep). Commit

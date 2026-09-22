@@ -47,6 +47,10 @@ than in tokens. Part of the campaign's "RL creates depth-3 from zero coverage" w
 format's unary depth prefix; the surviving account — RL amplifies what the base model already
 does — holds in both formats.
 
+## Update 2026-09-22 (later): Lean is the only checker
+
+Dan decided to retire `nd_verify` as reward and checker. Proposal 9 builds `lean_check` (elaborated-term allowlist: `And`/`Or`/`Not`/`False`/`Iff` constructors and eliminators plus `Classical.byContradiction`; no `sorryAx`; no automation) and `term_size`, relabels the pools in both units, and tests free-form un-automated Lean against the fragment. Until `lean_check` is validated, the reward stays Lean ∧ `nd_verify`. Lines stay the reported unit for now; term size is reported beside them.
+
 ## What did not change before proposal 8
 
 The from-scratch model (Stage-1 pretraining and expert iteration) kept the token format

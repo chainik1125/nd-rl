@@ -16,7 +16,7 @@ During the run: one job per `podrun` call under `nohup`; pull raw files back oft
 brief are written down with the reason; delete pods whose work is pulled; upload `ckpts/`,
 `artifacts/`, `data/` for this run to `hf://buckets/dan-pandori/nd-rl/<run-id>/` at the end.
 
-**Lean is the checker of record** (decision 2026-09-20): every proof you count must translate with `nd2lean.py` and be accepted by Lean; report the agreement count with `nd_verify` and treat any disagreement as a bug. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form. From-scratch training and RL use the Lean `lean_seq` format (decision 2026-09-22); reward is Lean ∧ `nd_verify` until the `BOTE` fix is verified; label any token-format arm as such.
+**Lean is the checker of record** (decision 2026-09-20): every proof you count must translate with `nd2lean.py` and be accepted by Lean; report the agreement count with `nd_verify` and treat any disagreement as a bug. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form. From-scratch training and RL use the Lean `lean_seq` format (decision 2026-09-22); reward is `lean_check` once proposal 9's phase 1 validates it (until then Lean ∧ `nd_verify`); report proof length in lines **and** term size; label any token-format arm as such.
 
 At the end: `run<id>.md` (≤ 400 words + figures, expectations vs outcomes stated plainly);
 `STATUS.md` line `RUN<id> DONE <UTC>` (or `DONE <UTC>` for a single-run session); push; then
