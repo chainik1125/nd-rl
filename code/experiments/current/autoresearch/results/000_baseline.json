@@ -1,0 +1,32 @@
+{
+  "id": "000",
+  "slug": "baseline",
+  "commit": "1db66e9",
+  "title": "Baseline: pretrain_poc run0 config under the 10-minute harness",
+  "description": "4-layer d=256 8-head GPT, abs codec, AdamW lr 1e-3 cosine over 240 s wall-clock, bs 256. Same as pretrain_poc run0 (which scored 38 at >=7 with 300 s pretrain and 2 RL rounds) minus 60 s of pretrain.",
+  "tags": [
+    "baseline"
+  ],
+  "hypothesis": "Establishes the bar. Expect somewhat below run0's 38 because pretrain is 20% shorter.",
+  "p_keep": 1.0,
+  "expected_delta": "30 to 38 theorems at >=7",
+  "baseline_id": null,
+  "baseline_metric": null,
+  "metric": 56,
+  "status": "keep",
+  "pretrain_secs": 240,
+  "n_params": 3210240,
+  "heldout_greedy": 0.9365,
+  "lstar": 9,
+  "surprise": "56 > run0's 38 despite 20% less pretrain; held-out greedy 0.93 vs 0.99, so a less-converged Stage-1 model transferred better after RL. Single seed, could be noise.",
+  "total_secs": 512,
+  "pretrain_stats": {
+    "steps": 2461,
+    "records_seen": 630016,
+    "epochs": 4.064881605264856,
+    "last_loss": 0.0641300156712532,
+    "heldout_greedy": 0.927
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "9b2f7f2e5fda"
+}
