@@ -1,0 +1,33 @@
+{
+  "id": "001",
+  "slug": "gpu-batching",
+  "commit": "ed3cdfc",
+  "title": "GPU-resident pre-tokenized data with on-GPU shift augmentation",
+  "description": "Baseline does 10 steps/s for a 3.2M model at bs 256, i.e. ~100 ms/step where the GPU needs ~5 ms: the Python per-batch tokenizing/padding/shift in the fork's batch() is the bottleneck. Pre-pad everything into one LongTensor on the GPU once and do the abs-shift augmentation as a vectorised op, so a step is an index + a few tensor ops.",
+  "tags": [
+    "systems",
+    "augmentation"
+  ],
+  "hypothesis": "5-8x more steps in the same 240 s (20-30 epochs instead of 4). More training gave run0 held-out greedy 0.99 vs 0.93 here, and a better-converged Stage-1 model should find more proofs in the first EI round, which compounds. Risk: overfitting the cap-6 distribution could hurt transfer beyond 6; the baseline's under-training might be why it beat run0.",
+  "p_keep": 0.6,
+  "expected_delta": "+5 to +20 at >=7; if overfitting dominates, -10",
+  "baseline_id": "000",
+  "baseline_metric": 56,
+  "metric": 67,
+  "status": "keep",
+  "pretrain_secs": 240,
+  "n_params": 3210240,
+  "heldout_greedy": 0.937,
+  "lstar": 9,
+  "surprise": "Throughput did NOT change (10 steps/s both), so the Python batching was not the bottleneck and this run is the baseline config with a different RNG stream: 56 -> 67 is a direct measurement of run-to-run noise (~+-10). Kept because the code is simpler on the hot path and GPU-resident data unlocks compile.",
+  "total_secs": 504,
+  "pretrain_stats": {
+    "steps": 2417,
+    "records_seen": 618752,
+    "epochs": 3.9922059487708883,
+    "last_loss": 0.06811236590147018,
+    "heldout_greedy": 0.9315
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "c8f8e6ab8ec9"
+}
