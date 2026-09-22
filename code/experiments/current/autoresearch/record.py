@@ -39,7 +39,7 @@ def results_from_summary(s: dict[str, Any], status: Status, surprise: str | None
         pretrain=PretrainStats(**{**pre, "secs": round(pre["secs"], 1) if "secs" in pre else None}),
         rl_rounds=[
             RlRound(
-                **{k: v for k, v in rd.items() if k not in ("sampling", "finetune")},
+                **{k: v for k, v in rd.items() if k not in ("sampling", "finetune", "secs")},
                 samples_per_sec=round(rd["sampling"]["samples_per_sec"]),
                 secs=round(rd["secs"]),
             )
