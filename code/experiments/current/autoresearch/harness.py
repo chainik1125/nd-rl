@@ -11,6 +11,8 @@ One timed run = harness owns the clock, RL and eval; `pretrain.py` (agent-editab
   5. eval on the dev half of the transfer pool; METRIC = dev theorems solved at L_true >= 7
   6. SIGALRM at TOTAL_SECS from process start kills everything -> status "timeout"
 
+Budget history: 600 s / 240 s pretrain / 2 rounds / k=32 for runs 000-010 (2026-09-22); then 1200 / 300 / 4 / 64.
+
 The holdout half of the transfer pool is never scored here (see holdout_split); score it offline
 from final.pt when checking in on the loop. Everything is written to --out.
 
@@ -30,14 +32,14 @@ from eval_set import judge, wilson  # noqa: E402
 from normalize import norm  # noqa: E402
 
 # ---------------------------------------------------------------- the rules (hash-checked into every result)
-TOTAL_SECS = 600            # process start -> summary written; SIGALRM kills the run past this
-PRETRAIN_SECS = 240         # agent's budget, compile included
+TOTAL_SECS = 1200           # process start -> summary written; SIGALRM kills the run past this
+PRETRAIN_SECS = 300         # agent's budget, compile included
 PRETRAIN_GRACE = 15         # seconds the agent may overrun before the run is a "timeout"
 PARAM_CAP = 10_000_000      # unique trainable params, embeddings included
-RL_ROUNDS = 2               # expert-iteration rounds, fixed in samples
+RL_ROUNDS = 4               # expert-iteration rounds, fixed in samples
 N_TARGETS, K, TEMP, MAX_NEW, SAMPLE_BATCH = 1500, 32, 0.8, 512, 1024
 FT_STEPS, FT_BS, FT_LR, RETAIN, MAX_PER_THM, RL_WEIGHT = 600, 128, 3e-4, 20000, 4, 4
-EVAL_K = 32
+EVAL_K = 64
 DEV = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
@@ -186,13 +188,15 @@ def stage_eval(a, tok, model, dev_pool, heldout_recs):
 
 
 def write_summary(a, status, **kw):
-    s = {'status': status, 'metric': kw.get('eval', {}).get('solved_ge7'), 'harness_sha': sha(f'{HERE}/harness.py'),
+    s = {'status': status, 'metric': kw.get('eval', {}).get('solved_ge7'),
+         'metric_rl': (kw.get('rl', {}).get('rounds') or [{}])[-1].get('targets_solved'),   # secondary: cumulative RL targets solved
+         'harness_sha': sha(f'{HERE}/harness.py'),
          'pretrain_sha': sha(f'{HERE}/pretrain.py'), 'device': DEV,
          'gpu': torch.cuda.get_device_name(0) if DEV == 'cuda' else 'cpu', 'total_secs': time.time() - a.T0,
          'rules': {k: globals()[k] for k in ('TOTAL_SECS', 'PRETRAIN_SECS', 'PARAM_CAP', 'RL_ROUNDS', 'N_TARGETS', 'K', 'EVAL_K')},
          **kw}
     json.dump(s, open(f'{a.out}/summary.json', 'w'), indent=1)
-    log(f'SUMMARY status={status} metric={s["metric"]} total {s["total_secs"]:.0f}s')
+    log(f'SUMMARY status={status} metric={s["metric"]} metric_rl={s["metric_rl"]} total {s["total_secs"]:.0f}s')
     return s
 
 

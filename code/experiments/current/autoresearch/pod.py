@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """One long-lived RunPod GPU for the autoresearch loop (boot + clone once, run many experiments).
 
-  python pod.py up                      # rent an A40, wait for ssh, clone the fork; saves pod.json
-  python pod.py run <name> [args...]    # upload harness.py + pretrain.py, run, pull artifacts/<name>
-  python pod.py down                    # terminate the pod in pod.json
+  python pod.py up [--pod P]                          # rent an A40, wait for ssh, clone the fork; saves pod_P.json
+  python pod.py run <name> [--pod P] [--pretrain F] [args...]   # upload harness + pretrain (F as pretrain.py), run, pull
+  python pod.py down [--pod P]                        # terminate the pod in pod_P.json
   python pod.py list | kill <id|all>
+--pod names a pod for parallel use (default "main"); sweep.py drives many at once.
 
 Adapted from pretrain_poc/pod.py, which rented one pod per run. Needs RUNPOD_API_KEY
 (~/repos/nd-takehome/.envrc.local has it) and ~/.ssh/id_ed25519.
@@ -16,7 +17,6 @@ IMAGE = 'runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04'
 GPU = 'NVIDIA A40'
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCAL_ART = os.path.join(HERE, '..', '..', '..', '..', 'artifacts', 'autoresearch')   # repo artifacts/ is gitignored
-STATE = os.path.join(LOCAL_ART, 'pod.json')
 REMOTE = '/workspace/autoresearch'
 
 
@@ -35,7 +35,12 @@ def create(key, name, pubkey, cloud):
          f'gpuTypeId: "{GPU}", name: "{name}", imageName: "{IMAGE}", ports: "22/tcp", volumeMountPath: "/workspace", '
          f'supportPublicIp: true, env: [{{key: "PUBLIC_KEY", value: "{pubkey}"}}]'
          '}) { id costPerHr } }')
-    return gql(q, key)['podFindAndDeployOnDemand']
+    try:
+        return gql(q, key)['podFindAndDeployOnDemand']
+    except SystemExit as e:
+        if 'SUPPLY_CONSTRAINT' in str(e):
+            return None
+        raise
 
 
 def wait_ssh(key, pod_id, timeout=600):
@@ -59,10 +64,13 @@ def ssh_run(st, cmd, check=True):
     return subprocess.run(['ssh', *ssh_args(st), 'bash', '-lc', shlex.quote(cmd)], check=check).returncode
 
 
-def upload(st, files):
+def upload(st, pretrain_file):
+    """remote.sh + harness.py verbatim; `pretrain_file` lands on the pod as pretrain.py (sweep variants)."""
     ssh = 'ssh ' + ' '.join(ssh_args(st))
-    subprocess.run(f'tar czf - -C {shlex.quote(HERE)} {" ".join(files)} | {ssh} "mkdir -p {REMOTE} && tar xzf - -C {REMOTE}"',
+    subprocess.run(f'tar czf - -C {shlex.quote(HERE)} remote.sh harness.py | {ssh} "mkdir -p {REMOTE} && tar xzf - -C {REMOTE}"',
                    shell=True, check=True)
+    subprocess.run(f'scp -q -P {st["port"]} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR '
+                   f'{shlex.quote(os.path.join(HERE, pretrain_file))} root@{st["ip"]}:{REMOTE}/pretrain.py', shell=True, check=True)
 
 
 def terminate(key, pod_id):
@@ -75,8 +83,21 @@ def load_state():
     return json.load(open(STATE))
 
 
+def pop_opt(rest, flag, default):
+    if flag in rest:
+        i = rest.index(flag)
+        val = rest[i + 1]
+        del rest[i:i + 2]
+        return val
+    return default
+
+
 def main():
+    global STATE
     cmd, rest = (sys.argv[1] if len(sys.argv) > 1 else 'list'), sys.argv[2:]
+    pod_name = pop_opt(rest, '--pod', 'main')
+    pretrain_file = pop_opt(rest, '--pretrain', 'pretrain.py')
+    STATE = os.path.join(LOCAL_ART, f'pod_{pod_name}.json')
     key = os.environ.get('RUNPOD_API_KEY') or sys.exit('RUNPOD_API_KEY unset')
     pods = gql('query { myself { clientBalance pods { id name desiredStatus costPerHr } } }', key)['myself']
     os.makedirs(LOCAL_ART, exist_ok=True)
@@ -102,12 +123,15 @@ def main():
         if os.path.exists(STATE):
             raise SystemExit(f'{STATE} exists; `pod.py down` first')
         pubkey = open(os.path.expanduser('~/.ssh/id_ed25519.pub')).read().strip()
-        pod = create(key, 'autoresearch', pubkey, 'SECURE')
+        pod = None
+        for attempt in range(60):   # up to ~30 min of waiting for capacity
+            pod = create(key, f'autoresearch-{pod_name}', pubkey, 'SECURE') or create(key, f'autoresearch-{pod_name}', pubkey, 'COMMUNITY')
+            if pod:
+                break
+            print(f'no {GPU} capacity (attempt {attempt + 1}), retrying in 30 s', flush=True)
+            time.sleep(30)
         if pod is None:
-            print('no secure-cloud capacity, trying community', flush=True)
-            pod = create(key, 'autoresearch', pubkey, 'COMMUNITY')
-        if pod is None:
-            raise SystemExit(f'no {GPU} capacity right now')
+            raise SystemExit(f'no {GPU} capacity after 30 min')
         st = {'id': pod['id'], 'cost': pod['costPerHr'], 't0': time.time()}
         json.dump(st, open(STATE, 'w'))   # saved before waiting, so `down` works if the wait is interrupted
         print(f"pod {pod['id']} at ${pod['costPerHr']}/hr", flush=True)
@@ -119,13 +143,13 @@ def main():
             time.sleep(5)
         else:
             raise SystemExit('ssh never accepted the key')
-        upload(st, ['remote.sh', 'harness.py', 'pretrain.py'])
+        upload(st, pretrain_file)
         ssh_run(st, f'cd {REMOTE} && bash remote.sh /tmp/warm --help > /dev/null 2>&1; nvidia-smi --query-gpu=name --format=csv,noheader')
         print(f'up after {time.time() - st["t0"]:.0f}s: ssh -p {st["port"]} root@{st["ip"]}')
     elif cmd == 'run':
         st = load_state()
         name, args = rest[0], rest[1:]
-        upload(st, ['remote.sh', 'harness.py', 'pretrain.py'])
+        upload(st, pretrain_file)
         out = f'{REMOTE}/artifacts/{name}'
         rc = ssh_run(st, f'mkdir -p {REMOTE}/artifacts && bash {REMOTE}/remote.sh {out} ' + ' '.join(map(shlex.quote, args)), check=False)
         ssh = 'ssh ' + ' '.join(ssh_args(st))
