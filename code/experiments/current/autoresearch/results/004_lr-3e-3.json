@@ -1,14 +1,32 @@
 {
-  "id": "004", "slug": "lr-3e-3", "commit": null,
+  "id": "004",
+  "slug": "lr-3e-3",
+  "commit": "4f9f6cd",
   "title": "Peak learning rate 1e-3 -> 3e-3",
   "description": "Short budget, small model, cosine over wall-clock: a 3x higher peak with the same 200-step warmup. Everything else unchanged.",
-  "tags": ["optimizer"],
+  "tags": [
+    "optimizer"
+  ],
   "hypothesis": "1e-3 was never tuned for a 4-minute budget. Small transformers with AdamW and grad clipping usually tolerate 3e-3 and converge faster in a fixed step budget. Risk: instability early -> loss spikes.",
   "p_keep": 0.4,
   "expected_delta": "-10 to +10 at >=7",
-  "baseline_id": null, "baseline_metric": null,
-
-  "metric": null, "status": null,
-  "pretrain_secs": null, "n_params": null, "heldout_greedy": null, "lstar": null,
-  "surprise": null
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": 7,
+  "status": "discard",
+  "pretrain_secs": 240,
+  "n_params": 3210240,
+  "heldout_greedy": 0.9405,
+  "lstar": 7,
+  "surprise": "Pretrain looked identical to baseline (greedy 0.926, EI r1 solved 76 = baseline's 76) yet r2 found only +39 and eval was 7 vs 67. The metric's variance is dominated by what happens after pretraining: with a fixed eval seed, 7 vs 56 vs 67 for near-identical models. Noise is far larger than +-10.",
+  "total_secs": 554,
+  "pretrain_stats": {
+    "steps": 2416,
+    "records_seen": 618496,
+    "epochs": 3.9905542293051166,
+    "last_loss": 0.07027770578861237,
+    "heldout_greedy": 0.926
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "e4739d23783e"
 }
