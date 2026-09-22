@@ -26,10 +26,31 @@ project's token format and 0.225 in plain-English rule names (paired Lean − to
 4. **Pretrained-model experiments** (in-context, fine-tuning, distillation) use Lean as the
    surface form by default; the token format is a control, not the default.
 
-## What does not change yet
+## Update 2026-09-22: Lean (`lean_seq` naming) is also the training format
 
-The from-scratch model (Stage-1 pretraining and expert iteration) keeps the token format
-until proposal 8 has run: the Lean result is about models with a prior over Lean syntax, and
+Proposal 8 ran on 2026-09-21 (reviewed; summary in `experiment-summaries/`). Under its
+pre-registered rule, the `lean_seq` naming scheme (hypotheses named in first-appearance order
+plus a random offset) was **not worse on all three predictions** and better on the two RL
+outcomes: depth-3 f = 0 acquisition 0.476 / 0.479 vs 0.335 / 0.364, ladder transfer `L*` 11 / 11
+vs 10 / 10 (one Stage-1 model per scheme; a second seed is being run). `lean_rand` failed the
+in-distribution prediction and is not used. **Dan adopted `lean_seq` as the training format on
+2026-09-22.** The token format is retired for new runs; existing token-format results stay on
+file with their format labelled. Two conditions attach: `nd2lean.py`'s `BOTE` rendering
+(`na.elim`, which Lean resolves to `Not.elim` on negations and thereby accepted 460 non-proofs in
+13.9 M) is fixed before Lean alone is the reward — until then the reward is Lean ∧ `nd_verify`;
+and the `L*` = 11 result carries "one Stage-1 model" until the second seed reports.
+
+A consequence for the project's question: Lean-format base models trained on zero depth-3
+proofs already write depth-3 proofs for 13–28 % of targets and have frozen `L*` 9–10 (token
+format: 0.5 % and 7); expert iteration's increment over the frozen control is no larger in Lean
+than in tokens. Part of the campaign's "RL creates depth-3 from zero coverage" was the token
+format's unary depth prefix; the surviving account — RL amplifies what the base model already
+does — holds in both formats.
+
+## What did not change before proposal 8
+
+The from-scratch model (Stage-1 pretraining and expert iteration) kept the token format
+until proposal 8 had run: the Lean result is about models with a prior over Lean syntax, and
 says nothing about a model trained from scratch. If proposal 8 shows Lean-format training is
 not worse on the depth-3 dial and a ladder rung, Lean becomes the training format too and the
 token format is retired.

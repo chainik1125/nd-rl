@@ -14,6 +14,7 @@ pattern — ask this every time); controls and seeds; budget (dollars, within th
 rule unless you ask Dan for more in `QUESTIONS.md`), stop rule; deliverables. Prefer the
 experiment that could kill the current rule of thumb over the one that decorates it. Designs
 involving a pretrained model use Lean as the surface form (decision 2026-09-20); from-scratch
-training uses the token format until proposal 8 reports.
+training uses the Lean `lean_seq` format (decision 2026-09-22); reward is Lean ∧ `nd_verify` until
+the `BOTE` rendering fix is verified.
 
 End with `touch ~/runs/<slug>/proposer.done`.
