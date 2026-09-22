@@ -1,0 +1,32 @@
+{
+  "id": "005",
+  "slug": "rel-tokenizer",
+  "commit": "5e1513f",
+  "title": "Relative citations (tok mode 'rel') instead of absolute line indices",
+  "description": "The fork's tokenizer has a 'rel' mode: line numbers are dropped and a citation becomes B<k> = k lines back, decoded deterministically. Same model and optimizer as 001.",
+  "tags": [
+    "tokenizer"
+  ],
+  "hypothesis": "Absolute indices N1..N64 tie the model to line positions seen in cap-6 data (with random-shift augmentation as a patch). Relative references are position-free, so a 7-9 line proof is made of the same local patterns as a 6-line one. This is the kind of structural change that could move transfer beyond the noise. Risk: Dan chose abs for a reason in later runs.",
+  "p_keep": 0.4,
+  "expected_delta": "-20 to +40 at >=7",
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": 6,
+  "status": "discard",
+  "pretrain_secs": 240,
+  "n_params": 3210240,
+  "heldout_greedy": 0.952,
+  "lstar": 7,
+  "surprise": "Loss 0.009 vs 0.064 (no shift augmentation noise in rel mode) and greedy 0.945, yet EI round 1 solved only 42 targets vs 76: the rel model samples less usefully at T=0.8 beyond cap 6. Looks like a real negative, not just noise, since r1 solved is the most stable intermediate stat so far (76, 76, 85, 30, 42).",
+  "total_secs": 497,
+  "pretrain_stats": {
+    "steps": 2464,
+    "records_seen": 630784,
+    "epochs": 4.069836763662172,
+    "last_loss": 0.00886104628443718,
+    "heldout_greedy": 0.945
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "fe2261573ec8"
+}
