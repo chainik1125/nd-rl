@@ -1,0 +1,29 @@
+{
+  "commit": "67566a1",
+  "recorded_at": null,
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "6573cbe2f1dc",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 600,
+  "reason": "exceeded TOTAL_SECS=600",
+  "pretrain": {
+    "secs": null
+  },
+  "rl_rounds": [],
+  "eval": {},
+  "holdout_metric": null,
+  "surprise": "Steps 2000 -> 5800 as predicted, but sampling fell from ~700 to ~410 samples/s in both EI rounds while fine-tune speed was unchanged, so the trained model produces runaway (no-QED) samples for some prompts and the 600 s cap hit during eval. Two candidate causes: (a) length-homogeneous batches, (b) 2.5x more epochs -> overconfident/looping at T=0.8. 003 (compile, more steps without bucketing) separates them.",
+  "migrated": true
+}

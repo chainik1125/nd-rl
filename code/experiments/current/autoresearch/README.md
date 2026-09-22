@@ -32,7 +32,9 @@ So:
 | `remote.sh` | no | pod-side runner, pins the fork commit |
 | `pod.py` | no | RunPod lifecycle and artifact transfer |
 | `program.md` | no | the agent's instructions |
-| `results/*.json` | written by the agent | prediction before, outcome after, one per experiment |
+| `params.py`, `record.py`, `table.py` | no | pre-register (params.json + patch), record results.json, regenerate RESULTS.md |
+| `pools.py`, `pools/<fork>.json` | no | pool sizes and proof-length histograms per fork commit, copied into every params.json |
+| `results/<NNN>_<slug>/` | written by the agent via the scripts | `params.json` + `pretrain.patch` before the run, `results.json` after |
 
 Artifacts (`summary.json`, `final.pt`, logs, found proofs) land in `artifacts/autoresearch/<id>/`
 (gitignored). `final.pt` is a state_dict plus tokenizer mode, so the holdout half of the

@@ -1,0 +1,13 @@
+diff --git a/pretrain.py b/pretrain.py
+index 2a226f5..faa0225 100644
+--- a/pretrain.py
++++ b/pretrain.py
+@@ -29,7 +29,7 @@ from train import loss_on               # fork
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 4, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+-TOK_MODE = 'abs'
++TOK_MODE = 'rel'
+ 
+ 
+ def to_gpu(data, tok, device):

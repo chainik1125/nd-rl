@@ -1,0 +1,166 @@
+{
+  "commit": "67566a1",
+  "recorded_at": null,
+  "status": "discard",
+  "metric": 7,
+  "metric_rl": 109,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "e4739d23783e",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 554,
+  "reason": null,
+  "pretrain": {
+    "steps": 2416,
+    "records_seen": 618496,
+    "epochs": 3.9905542293051166,
+    "last_loss": 0.07027770578861237,
+    "secs": 240.2,
+    "n_params": 3210240,
+    "heldout_greedy": 0.926
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.015541666666666667,
+      "new_proofs": 83,
+      "targets_solved": 76,
+      "lstar": 7,
+      "ge": {
+        "7": 76,
+        "8": 2,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 332,
+      "secs": 119,
+      "samples_per_sec": 580
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.049708333333333334,
+      "new_proofs": 39,
+      "targets_solved": 109,
+      "lstar": 8,
+      "ge": {
+        "7": 109,
+        "8": 5,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 488,
+      "secs": 116,
+      "samples_per_sec": 623
+    }
+  ],
+  "eval": {
+    "solved": 7,
+    "n": 1108,
+    "ge": {
+      "7": 7,
+      "8": 2,
+      "9": 1,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 7,
+    "heldout_greedy": 0.9405,
+    "max_pruned": 8,
+    "by_bin": {
+      "7": {
+        "solved": 5,
+        "n": 150,
+        "rate": 0.03333333333333333,
+        "ci": [
+          0.014320220695575196,
+          0.07565284250709559
+        ]
+      },
+      "8": {
+        "solved": 1,
+        "n": 152,
+        "rate": 0.006578947368421052,
+        "ci": [
+          0.0011622614078393885,
+          0.036321953333282364
+        ]
+      },
+      "9": {
+        "solved": 1,
+        "n": 477,
+        "rate": 0.0020964360587002098,
+        "ci": [
+          0.0003701588263313521,
+          0.01177854045426334
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Pretrain looked identical to baseline (greedy 0.926, EI r1 solved 76 = baseline's 76) yet r2 found only +39 and eval was 7 vs 67. The metric's variance is dominated by what happens after pretraining: with a fixed eval seed, 7 vs 56 vs 67 for near-identical models. Noise is far larger than +-10.",
+  "migrated": true
+}

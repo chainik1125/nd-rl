@@ -1,0 +1,166 @@
+{
+  "commit": "ed3cdfc",
+  "recorded_at": null,
+  "status": "keep",
+  "metric": 56,
+  "metric_rl": 225,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "9b2f7f2e5fda",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 512,
+  "reason": null,
+  "pretrain": {
+    "steps": 2461,
+    "records_seen": 630016,
+    "epochs": 4.064881605264856,
+    "last_loss": 0.0641300156712532,
+    "secs": 240.2,
+    "n_params": 3210240,
+    "heldout_greedy": 0.927
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.0145625,
+      "new_proofs": 86,
+      "targets_solved": 77,
+      "lstar": 7,
+      "ge": {
+        "7": 77,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 344,
+      "secs": 116,
+      "samples_per_sec": 612
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.07575,
+      "new_proofs": 167,
+      "targets_solved": 225,
+      "lstar": 8,
+      "ge": {
+        "7": 225,
+        "8": 44,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1008,
+      "secs": 99,
+      "samples_per_sec": 872
+    }
+  ],
+  "eval": {
+    "solved": 56,
+    "n": 1108,
+    "ge": {
+      "7": 56,
+      "8": 42,
+      "9": 8,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 9,
+    "heldout_greedy": 0.9365,
+    "max_pruned": 9,
+    "by_bin": {
+      "7": {
+        "solved": 14,
+        "n": 150,
+        "rate": 0.09333333333333334,
+        "ci": [
+          0.056411348659597745,
+          0.15056517784558682
+        ]
+      },
+      "8": {
+        "solved": 34,
+        "n": 152,
+        "rate": 0.2236842105263158,
+        "ci": [
+          0.16471584524275285,
+          0.29627531501227533
+        ]
+      },
+      "9": {
+        "solved": 8,
+        "n": 477,
+        "rate": 0.016771488469601678,
+        "ci": [
+          0.008522228888602353,
+          0.03274208767635376
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "56 > run0's 38 despite 20% less pretrain; held-out greedy 0.93 vs 0.99, so a less-converged Stage-1 model transferred better after RL. Single seed, could be noise.",
+  "migrated": true
+}

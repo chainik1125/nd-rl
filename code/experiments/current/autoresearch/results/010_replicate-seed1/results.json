@@ -1,0 +1,166 @@
+{
+  "commit": "61f8dcb",
+  "recorded_at": null,
+  "status": "discard",
+  "metric": 14,
+  "metric_rl": 126,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "c8f8e6ab8ec9",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 483,
+  "reason": null,
+  "pretrain": {
+    "steps": 2412,
+    "records_seen": 617472,
+    "epochs": 3.9839473514420285,
+    "last_loss": 0.06747783720493317,
+    "secs": 240.1,
+    "n_params": 3210240,
+    "heldout_greedy": 0.947
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.02675,
+      "new_proofs": 99,
+      "targets_solved": 85,
+      "lstar": 7,
+      "ge": {
+        "7": 85,
+        "8": 1,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 392,
+      "secs": 97,
+      "samples_per_sec": 742
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.057708333333333334,
+      "new_proofs": 50,
+      "targets_solved": 126,
+      "lstar": 8,
+      "ge": {
+        "7": 126,
+        "8": 8,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 572,
+      "secs": 85,
+      "samples_per_sec": 939
+    }
+  ],
+  "eval": {
+    "solved": 14,
+    "n": 1108,
+    "ge": {
+      "7": 14,
+      "8": 4,
+      "9": 1,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 7,
+    "heldout_greedy": 0.957,
+    "max_pruned": 8,
+    "by_bin": {
+      "7": {
+        "solved": 10,
+        "n": 150,
+        "rate": 0.06666666666666667,
+        "ci": [
+          0.03661146073480972,
+          0.11836352652481316
+        ]
+      },
+      "8": {
+        "solved": 3,
+        "n": 152,
+        "rate": 0.019736842105263157,
+        "ci": [
+          0.006734529912818171,
+          0.056416772435207
+        ]
+      },
+      "9": {
+        "solved": 1,
+        "n": 477,
+        "rate": 0.0020964360587002098,
+        "ci": [
+          0.0003701588263313521,
+          0.01177854045426334
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Same pretrain.py, seed 1: metric 14 vs 67 (seed 0). Best pretrain stats of any run (greedy 0.947, r1 solved 85) and the second-worst metric. The single-run keep rule cannot distinguish anything at this budget.",
+  "migrated": true
+}

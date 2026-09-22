@@ -1,0 +1,166 @@
+{
+  "commit": "67566a1",
+  "recorded_at": null,
+  "status": "discard",
+  "metric": 14,
+  "metric_rl": 107,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "4bf5df2c5b91",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 559,
+  "reason": null,
+  "pretrain": {
+    "steps": 1751,
+    "records_seen": 448256,
+    "epochs": 2.8921607845667463,
+    "last_loss": 0.10527938604354858,
+    "secs": 240.1,
+    "n_params": 3210240,
+    "heldout_greedy": 0.7785
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.0015833333333333333,
+      "new_proofs": 33,
+      "targets_solved": 30,
+      "lstar": 7,
+      "ge": {
+        "7": 30,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 132,
+      "secs": 134,
+      "samples_per_sec": 482
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.012145833333333333,
+      "new_proofs": 85,
+      "targets_solved": 107,
+      "lstar": 8,
+      "ge": {
+        "7": 107,
+        "8": 6,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 472,
+      "secs": 126,
+      "samples_per_sec": 545
+    }
+  ],
+  "eval": {
+    "solved": 14,
+    "n": 1108,
+    "ge": {
+      "7": 14,
+      "8": 5,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 8,
+    "heldout_greedy": 0.8225,
+    "max_pruned": 8,
+    "by_bin": {
+      "7": {
+        "solved": 9,
+        "n": 150,
+        "rate": 0.06,
+        "ci": [
+          0.031883682005327776,
+          0.11009092044290468
+        ]
+      },
+      "8": {
+        "solved": 5,
+        "n": 152,
+        "rate": 0.03289473684210526,
+        "ci": [
+          0.01413071279735818,
+          0.0746876771575704
+        ]
+      },
+      "9": {
+        "solved": 0,
+        "n": 477,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.007989325382828772
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Recompile storm: >10 distinct padded shapes at ~12 s each ate most of the budget (1000 steps at 197 s vs 2000 in eager), greedy 0.78, metric 14. Compile only pays with one fixed shape (pad every batch to a constant T). Side finding: this undertrained model also sampled slowly (482/s), so slow sampling in 002 is not proof of overtraining.",
+  "migrated": true
+}

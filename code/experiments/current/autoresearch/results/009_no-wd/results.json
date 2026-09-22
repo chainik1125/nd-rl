@@ -1,0 +1,166 @@
+{
+  "commit": "0fac5d4",
+  "recorded_at": null,
+  "status": "discard",
+  "metric": 30,
+  "metric_rl": 137,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "7e45b612a765",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 490,
+  "reason": null,
+  "pretrain": {
+    "steps": 2408,
+    "records_seen": 616448,
+    "epochs": 3.9773404735789404,
+    "last_loss": 0.06841062009334564,
+    "secs": 240.1,
+    "n_params": 3210240,
+    "heldout_greedy": 0.933
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.016375,
+      "new_proofs": 83,
+      "targets_solved": 76,
+      "lstar": 7,
+      "ge": {
+        "7": 76,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 332,
+      "secs": 94,
+      "samples_per_sec": 829
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.04889583333333333,
+      "new_proofs": 65,
+      "targets_solved": 137,
+      "lstar": 7,
+      "ge": {
+        "7": 137,
+        "8": 2,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 592,
+      "secs": 100,
+      "samples_per_sec": 810
+    }
+  ],
+  "eval": {
+    "solved": 30,
+    "n": 1108,
+    "ge": {
+      "7": 30,
+      "8": 16,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 8,
+    "heldout_greedy": 0.9455,
+    "max_pruned": 8,
+    "by_bin": {
+      "7": {
+        "solved": 14,
+        "n": 150,
+        "rate": 0.09333333333333334,
+        "ci": [
+          0.056411348659597745,
+          0.15056517784558682
+        ]
+      },
+      "8": {
+        "solved": 16,
+        "n": 152,
+        "rate": 0.10526315789473684,
+        "ci": [
+          0.06583727213184384,
+          0.16415009966105354
+        ]
+      },
+      "9": {
+        "solved": 0,
+        "n": 477,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.007989325382828772
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Pretrain and EI r1 identical to baseline again (greedy 0.933, r1 solved 76), eval 30. Same-config-looking runs now span 7, 30, 56, 67.",
+  "migrated": true
+}

@@ -1,0 +1,166 @@
+{
+  "commit": "da20e5f",
+  "recorded_at": null,
+  "status": "discard",
+  "metric": 23,
+  "metric_rl": 151,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "47bc9745c257",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 531,
+  "reason": null,
+  "pretrain": {
+    "steps": 1117,
+    "records_seen": 571904,
+    "epochs": 3.6899412865346153,
+    "last_loss": 0.07475919276475906,
+    "secs": 240.2,
+    "n_params": 3210240,
+    "heldout_greedy": 0.8455
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.004645833333333333,
+      "new_proofs": 50,
+      "targets_solved": 46,
+      "lstar": 7,
+      "ge": {
+        "7": 46,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 200,
+      "secs": 113,
+      "samples_per_sec": 622
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.030145833333333334,
+      "new_proofs": 115,
+      "targets_solved": 151,
+      "lstar": 8,
+      "ge": {
+        "7": 151,
+        "8": 9,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 660,
+      "secs": 114,
+      "samples_per_sec": 646
+    }
+  ],
+  "eval": {
+    "solved": 23,
+    "n": 1108,
+    "ge": {
+      "7": 23,
+      "8": 13,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 8,
+    "heldout_greedy": 0.882,
+    "max_pruned": 8,
+    "by_bin": {
+      "7": {
+        "solved": 10,
+        "n": 150,
+        "rate": 0.06666666666666667,
+        "ci": [
+          0.03661146073480972,
+          0.11836352652481316
+        ]
+      },
+      "8": {
+        "solved": 13,
+        "n": 152,
+        "rate": 0.08552631578947369,
+        "ci": [
+          0.050661713662540575,
+          0.1408250267200017
+        ]
+      },
+      "9": {
+        "solved": 0,
+        "n": 477,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.007989325382828772
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Step time scaled linearly with batch (~1100 steps), so the model is compute-bound at bs 256 after all; fewer updates -> greedy 0.85 -> metric 23. The profile's 92 ms/step is real GPU time for T~278 with padding, not launch overhead.",
+  "migrated": true
+}

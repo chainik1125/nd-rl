@@ -1,0 +1,166 @@
+{
+  "commit": "149e62c",
+  "recorded_at": null,
+  "status": "discard",
+  "metric": 6,
+  "metric_rl": 95,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "ff6fc1a7520e",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 476,
+  "reason": null,
+  "pretrain": {
+    "steps": 3183,
+    "records_seen": 814848,
+    "epochs": 5.257423059552229,
+    "last_loss": 0.06752463430166245,
+    "secs": 240.1,
+    "n_params": 2420480,
+    "heldout_greedy": 0.93
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.006666666666666667,
+      "new_proofs": 49,
+      "targets_solved": 46,
+      "lstar": 7,
+      "ge": {
+        "7": 46,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 196,
+      "secs": 95,
+      "samples_per_sec": 750
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.036125,
+      "new_proofs": 59,
+      "targets_solved": 95,
+      "lstar": 7,
+      "ge": {
+        "7": 95,
+        "8": 3,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 432,
+      "secs": 88,
+      "samples_per_sec": 873
+    }
+  ],
+  "eval": {
+    "solved": 6,
+    "n": 1108,
+    "ge": {
+      "7": 6,
+      "8": 1,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 7,
+    "heldout_greedy": 0.936,
+    "max_pruned": 7,
+    "by_bin": {
+      "7": {
+        "solved": 5,
+        "n": 150,
+        "rate": 0.03333333333333333,
+        "ci": [
+          0.014320220695575196,
+          0.07565284250709559
+        ]
+      },
+      "8": {
+        "solved": 1,
+        "n": 152,
+        "rate": 0.006578947368421052,
+        "ci": [
+          0.0011622614078393885,
+          0.036321953333282364
+        ]
+      },
+      "9": {
+        "solved": 0,
+        "n": 477,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.007989325382828772
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "3000 steps, greedy 0.93 (same as baseline), sampling 750-870/s (fastest yet), but EI r1 solved 46 and eval 6. Greedy accuracy on cap-6 held-out is not predictive of the metric at all: 0.93 has produced 67, 56, 7 and 6.",
+  "migrated": true
+}

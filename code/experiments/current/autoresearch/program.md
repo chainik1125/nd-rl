@@ -19,15 +19,24 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 
 ## Loop
 
-1. Read `results/*.json` (all previous experiments, kept and discarded) and `git log`.
-2. Pick one idea. Write `results/<NNN>_<slug>.json` BEFORE running with the prediction fields
-   filled in (schema below), including `provider` and `model` for the agent that is you. Committing to a prediction first is the rule, not a suggestion.
-3. Edit `pretrain.py`.
+1. Read `results/*/params.json` + `results.json` (all previous experiments, kept and discarded),
+   `RESULTS.md`, and `git log`.
+2. Pick one idea. Edit `pretrain.py`.
+3. Pre-register: `python3 params.py new <NNN> <slug>` writes `results/<NNN>_<slug>/params.json`
+   (mechanical fields, `protocol`, and `pretrain.patch` filled in) and leaves `TODO`s. Fill every
+   TODO: `provider`/`model` (the agent that is you), title, description, hypothesis, prediction,
+   and `config` (what your pretrain.py actually builds; read the file, do not guess). Then
+   `git add results/<NNN>_<slug> && git commit -m "autoresearch <NNN> <slug>: pre-registered" && git push`.
+   Committing the prediction BEFORE the run is the rule, not a suggestion; params.json is never
+   edited after this commit.
 4. Run: `source ~/repos/nd-takehome/.envrc.local && python3 pod.py run <NNN>_<slug>`.
    Read `artifacts/autoresearch/<NNN>_<slug>/summary.json` (repo `artifacts/` is gitignored).
-5. Fill in the outcome fields in the JSON.
-6. Keep if `metric` > current baseline's metric: `git commit` pretrain.py + the JSON. Otherwise
-   `git checkout pretrain.py` and commit only the JSON. Ties: keep only if simpler.
+5. Record: `python3 record.py <NNN>_<slug> keep|discard|crash|timeout "surprise"` writes
+   `results.json` (loss curve, per-round RL numbers, eval histograms) and refuses if the run does
+   not match what was pre-registered. Then `python3 table.py` to refresh `RESULTS.md`.
+6. Keep if `metric` > current baseline's metric: `git add pretrain.py results RESULTS.md`. Otherwise
+   `git checkout pretrain.py` and add only `results RESULTS.md`. Ties: keep only if simpler.
+   `git commit -m "autoresearch <NNN> <slug>: keep|discard, <metric>" && git push`.
 7. Go to 1.
 
 ## Rules
@@ -47,22 +56,48 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 - **NEVER STOP** to ask whether to continue. If out of ideas, re-read the fork's code, combine
   near-misses, try something radical.
 
-## Result JSON schema
+## Files per experiment: `results/<NNN>_<slug>/`
+
+- `params.json`: frozen before the run. `params.py new` fills the mechanical part; you fill the rest.
+- `pretrain.patch`: `git diff HEAD -- pretrain.py` at pre-registration. The code IS the config;
+  this is the ground truth for every run, kept or discarded.
+- `results.json`: written by `record.py` from `summary.json` after the run.
+
+### params.json (agent-filled fields marked `<...>`)
 
 ```json
 {
-  "id": "003", "slug": "wider-ffn", "commit": "<7 chars, filled after the run>",
-  "provider": "anthropic|openai", "model": "<exact model id you are running as, e.g. claude-fable-5-1, gpt-6-astra>",
-  "title": "one line",
-  "description": "two sentences: what changes and why it should help expert iteration",
-  "tags": ["architecture"],
-  "hypothesis": "what mechanism would make this work",
-  "p_keep": 0.35,
-  "expected_delta": "+3 to +8 theorems at >=7",
-  "baseline_id": "000", "baseline_metric": 38,
-
-  "metric": null, "status": "keep|discard|crash|timeout",
-  "pretrain_secs": null, "n_params": null, "heldout_greedy": null, "lstar": null,
-  "surprise": "one line: what you did not expect"
+  "id": "003", "slug": "wider-ffn", "written_at": "...", "base_commit": "<HEAD when written>",
+  "provider": "<anthropic|openai>", "model": "<exact model id you run as, e.g. claude-fable-5-1, gpt-6-astra>",
+  "harness_sha": "...", "pretrain_sha": "...", "patch_lines": 12,
+  "title": "<one line>",
+  "description": "<two sentences: what changes and why it should help expert iteration>",
+  "tags": ["<architecture>"],
+  "hypothesis": "<what mechanism would make this work>",
+  "p_keep": 0.35, "expected_delta": "<+3 to +8 theorems at >=7>",
+  "baseline_id": "<001>", "baseline_metric": 67,
+  "config": {
+    "arch": {"type": "gpt (fork model.py)", "n_layers": 4, "d_model": 256, "n_heads": 8, "d_ff": 1024,
+             "pos": "rope", "ctx": 1024, "norm": "layernorm", "act": "gelu", "dropout": 0.0, "tied_emb": false,
+             "n_params": 3210240},
+    "tokenizer": {"codec": "abs", "maxn": 64},
+    "optimizer": {"name": "adamw", "lr": 1e-3, "schedule": "cosine over wall-clock", "warmup_steps": 200,
+                  "min_lr_frac": 0.1, "wd": 0.1, "betas": [0.9, 0.95], "grad_clip": 1.0},
+    "batch": {"size": 256, "padding": "to max len in batch", "buckets": false},
+    "data": {"filter": null, "augmentation": "random ref shift (abs)", "order": "shuffle", "val_slice": 1024},
+    "precision": "bf16 autocast", "compile": false, "init": "fork default (normal 0.02)", "seed": 0
+  },
+  "protocol": "<mechanical: budget, pool sizes and proof-length histograms, RL and eval settings>"
 }
 ```
+
+`config` describes what your `pretrain.py` builds. Every key in the template must be filled;
+add keys when you add a knob. `n_params` is cross-checked against the harness after the run.
+
+### results.json (written by record.py, you only supply status and surprise)
+
+`commit`, `recorded_at`, `status` (keep|discard|crash|timeout), `metric`, `metric_rl`, `rules`,
+`gpu`, `total_secs`, `reason`, `pretrain` (steps, epochs, last_loss, heldout_greedy, secs,
+n_params, `curve` = [{secs, step, train_loss, val_loss}, ...]), `rl_rounds` (per round:
+targets_solved, sample_acc, lstar, ge histogram, new_proofs, samples_per_sec), `eval` (solved, n,
+ge, lstar, heldout_greedy, by_bin), `holdout_metric` (null; scored offline), `surprise`.

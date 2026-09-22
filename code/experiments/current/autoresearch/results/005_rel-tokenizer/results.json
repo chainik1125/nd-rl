@@ -1,0 +1,166 @@
+{
+  "commit": "9704e70",
+  "recorded_at": null,
+  "status": "discard",
+  "metric": 6,
+  "metric_rl": 75,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "fe2261573ec8",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 497,
+  "reason": null,
+  "pretrain": {
+    "steps": 2464,
+    "records_seen": 630784,
+    "epochs": 4.069836763662172,
+    "last_loss": 0.00886104628443718,
+    "secs": 240.1,
+    "n_params": 3210240,
+    "heldout_greedy": 0.945
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.008208333333333333,
+      "new_proofs": 47,
+      "targets_solved": 42,
+      "lstar": 7,
+      "ge": {
+        "7": 42,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 188,
+      "secs": 111,
+      "samples_per_sec": 621
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.033979166666666664,
+      "new_proofs": 34,
+      "targets_solved": 75,
+      "lstar": 7,
+      "ge": {
+        "7": 75,
+        "8": 2,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 324,
+      "secs": 97,
+      "samples_per_sec": 754
+    }
+  ],
+  "eval": {
+    "solved": 6,
+    "n": 1108,
+    "ge": {
+      "7": 6,
+      "8": 0,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 7,
+    "heldout_greedy": 0.952,
+    "max_pruned": 7,
+    "by_bin": {
+      "7": {
+        "solved": 6,
+        "n": 150,
+        "rate": 0.04,
+        "ci": [
+          0.018458908886903574,
+          0.08451453912715763
+        ]
+      },
+      "8": {
+        "solved": 0,
+        "n": 152,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.024650670937670042
+        ]
+      },
+      "9": {
+        "solved": 0,
+        "n": 477,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.007989325382828772
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Loss 0.009 vs 0.064 (no shift augmentation noise in rel mode) and greedy 0.945, yet EI round 1 solved only 42 targets vs 76: the rel model samples less usefully at T=0.8 beyond cap 6. Looks like a real negative, not just noise, since r1 solved is the most stable intermediate stat so far (76, 76, 85, 30, 42).",
+  "migrated": true
+}

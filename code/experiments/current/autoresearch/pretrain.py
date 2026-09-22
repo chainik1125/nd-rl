@@ -15,7 +15,10 @@ Contract with harness.py (frozen):
   tok          must provide encode_prompt, encode_proof, decode, shift_abs, pad, eos, mode.
                Decoder rule: decode() is deterministic and single-pass; it may not call the
                verifier or try alternatives.
-  stats        dict of anything you want recorded in summary.json (steps, val_loss, ...)
+  stats        dict recorded in summary.json and copied into results.json. MUST contain `curve`:
+               a list of {secs, step, train_loss, val_loss} taken every ~CURVE_EVERY seconds
+               (see log_point below), so a run's trajectory survives in git. Add anything else.
+               val_loss is on VAL_N records held out from train_recs by this file; keep that.
 
 Anything imported from the fork (ND_FORK) is fair game to copy in here and modify.
 """
@@ -30,6 +33,21 @@ from train import loss_on               # fork
 N_LAYER, D, N_HEAD = 4, 256, 8
 BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
 TOK_MODE = 'abs'
+VAL_N, CURVE_EVERY = 1024, 15      # records held out for val_loss; seconds between curve points
+
+
+def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+    """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+    model.eval()
+    tot = 0.0
+    with torch.no_grad(), autocast:
+        for i in range(0, VAL_N, BS):
+            idxs = torch.arange(i, min(i + BS, VAL_N), device=ids.device)
+            x, m = ids[idxs], mask[idxs]
+            T = int(lens[idxs].max())
+            tot += loss_on(model, x[:, :T], m[:, :T]).item() * len(idxs)
+    model.train()
+    return tot / VAL_N
 
 
 def to_gpu(data, tok, device):
@@ -71,6 +89,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
     autocast = torch.autocast('cuda', dtype=torch.bfloat16, enabled=(device == 'cuda'))
     model.train()
     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float('nan')
+    curve, recent, next_point = [], [], CURVE_EVERY
+    n_train = len(data) - VAL_N                     # records [0, VAL_N) are the val slice
     while True:
         frac = (time.time() - t0) / budget_secs      # cosine over wall-clock, so the cap is the schedule
         if frac >= 1.0:
@@ -80,7 +100,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         for g in opt.param_groups:
             g['lr'] = lr
         if len(perm) < BS:
-            perm = torch.randperm(len(data), device=device, generator=gen)
+            perm = torch.randperm(n_train, device=device, generator=gen) + VAL_N
         idxs, perm = perm[:BS], perm[BS:]
         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
         with autocast:
@@ -89,8 +109,15 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        if step % 1000 == 0:
+        if step % 20 == 0:
             last_loss = loss.item()
-            log(f'pretrain step {step} loss {last_loss:.4f} lr {lr:.2e} {time.time() - t0:.0f}s')
+            recent.append(last_loss)
+        if time.time() - t0 >= next_point:            # curve point: mean recent train loss + val loss on the held-out slice
+            curve.append({'secs': round(time.time() - t0), 'step': step,
+                          'train_loss': sum(recent) / len(recent) if recent else last_loss,
+                          'val_loss': val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast)})
+            log(f'pretrain step {step} train {curve[-1]["train_loss"]:.4f} val {curve[-1]["val_loss"]:.4f} lr {lr:.2e} {curve[-1]["secs"]}s')
+            recent, next_point = [], next_point + CURVE_EVERY
     model.eval()
-    return model, tok, {'steps': step, 'records_seen': step * BS, 'epochs': step * BS / len(data), 'last_loss': last_loss}
+    return model, tok, {'steps': step, 'records_seen': step * BS, 'epochs': step * BS / n_train, 'last_loss': last_loss,
+                        'curve': curve}

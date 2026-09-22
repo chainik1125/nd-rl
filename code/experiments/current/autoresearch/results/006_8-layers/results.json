@@ -1,0 +1,29 @@
+{
+  "commit": "151604b",
+  "recorded_at": null,
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "98d0da78a6cf",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 600,
+  "reason": "exceeded TOTAL_SECS=600",
+  "pretrain": {
+    "secs": null
+  },
+  "rl_rounds": [],
+  "eval": {},
+  "holdout_metric": null,
+  "surprise": "Half the steps (1000), greedy 0.81, and sampling at 296/s (2x the per-token cost plus more runaway generations from undertraining): EI round 1 alone took 219 s. Under a fixed total budget, depth pays twice, in pretrain steps and in sampling time.",
+  "migrated": true
+}

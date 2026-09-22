@@ -1,0 +1,175 @@
+{
+  "id": "010",
+  "slug": "replicate-seed1",
+  "written_at": null,
+  "migrated": true,
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "0fac5d4",
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "c8f8e6ab8ec9",
+  "patch_lines": 0,
+  "patch_note": "recovered: identical to pretrain.py at base_commit",
+  "title": "Exact replicate of 001 with harness --seed 1 (noise measurement, not an idea)",
+  "description": "No change to pretrain.py. The harness seed changes init, data order, the 1500-target subsample and the sampling RNG. Kept/discarded runs with near-identical pretrain stats have scored 7, 30, 56, 67, so the keep rule needs a same-config replicate to calibrate against.",
+  "tags": [
+    "replicate"
+  ],
+  "hypothesis": "If this lands anywhere in 7-67 the loop's single-run keep rule is not informative at this budget and the fix is on the harness side (more eval attempts, more targets, or the metric itself), not in pretrain.py.",
+  "p_keep": 0.0,
+  "expected_delta": "anything from 5 to 70",
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 0
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": 1
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 600,
+      "pretrain_secs": 240,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 2,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": {
+        "n": 1500,
+        "by_lines": {
+          "7": 590,
+          "8": 326,
+          "9": 341,
+          "10": 163,
+          "11": 37,
+          "12": 37,
+          "13": 4,
+          "14": 2
+        }
+      }
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 32,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": 1
+  }
+}

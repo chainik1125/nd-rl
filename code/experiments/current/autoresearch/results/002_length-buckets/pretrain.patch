@@ -1,0 +1,30 @@
+diff --git a/pretrain.py b/pretrain.py
+index 2a226f5..f5d4941 100644
+--- a/pretrain.py
++++ b/pretrain.py
+@@ -70,7 +70,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+     autocast = torch.autocast('cuda', dtype=torch.bfloat16, enabled=(device == 'cuda'))
+     model.train()
+-    perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float('nan')
++    # length buckets: batches of similar length so padding compute is small; batch order reshuffled every epoch
++    n_batches = len(data) // BS
++    batches, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float('nan')
+     while True:
+         frac = (time.time() - t0) / budget_secs      # cosine over wall-clock, so the cap is the schedule
+         if frac >= 1.0:
+@@ -79,9 +81,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         lr = LR * step / WARMUP if step < WARMUP else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+         for g in opt.param_groups:
+             g['lr'] = lr
+-        if len(perm) < BS:
+-            perm = torch.randperm(len(data), device=device, generator=gen)
+-        idxs, perm = perm[:BS], perm[BS:]
++        if len(batches) == 0:
++            noisy = lens + torch.rand(len(data), device=device, generator=gen)   # random tie-break within equal lengths
++            order = noisy.argsort()[:n_batches * BS].view(n_batches, BS)
++            batches = order[torch.randperm(n_batches, device=device, generator=gen)]
++        idxs, batches = batches[0], batches[1:]
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+             loss = loss_on(model, x, m)

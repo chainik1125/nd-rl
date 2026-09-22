@@ -1,0 +1,166 @@
+{
+  "commit": "943bd65",
+  "recorded_at": null,
+  "status": "keep",
+  "metric": 67,
+  "metric_rl": 147,
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "c8f8e6ab8ec9",
+  "rules": {
+    "TOTAL_SECS": 600,
+    "PRETRAIN_SECS": 240,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 2,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 32
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 504,
+  "reason": null,
+  "pretrain": {
+    "steps": 2417,
+    "records_seen": 618752,
+    "epochs": 3.9922059487708883,
+    "last_loss": 0.06811236590147018,
+    "secs": 240.1,
+    "n_params": 3210240,
+    "heldout_greedy": 0.9315
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.0183125,
+      "new_proofs": 81,
+      "targets_solved": 76,
+      "lstar": 7,
+      "ge": {
+        "7": 76,
+        "8": 1,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 324,
+      "secs": 106,
+      "samples_per_sec": 703
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.04816666666666667,
+      "new_proofs": 75,
+      "targets_solved": 147,
+      "lstar": 8,
+      "ge": {
+        "7": 147,
+        "8": 9,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 624,
+      "secs": 101,
+      "samples_per_sec": 789
+    }
+  ],
+  "eval": {
+    "solved": 67,
+    "n": 1108,
+    "ge": {
+      "7": 67,
+      "8": 48,
+      "9": 16,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 9,
+    "heldout_greedy": 0.937,
+    "max_pruned": 9,
+    "by_bin": {
+      "7": {
+        "solved": 19,
+        "n": 150,
+        "rate": 0.12666666666666668,
+        "ci": [
+          0.082610643407449,
+          0.18936780715468765
+        ]
+      },
+      "8": {
+        "solved": 32,
+        "n": 152,
+        "rate": 0.21052631578947367,
+        "ci": [
+          0.1532572000978816,
+          0.2820668725502431
+        ]
+      },
+      "9": {
+        "solved": 16,
+        "n": 477,
+        "rate": 0.033542976939203356,
+        "ci": [
+          0.02075042756056594,
+          0.05378888018651749
+        ]
+      },
+      "10": {
+        "solved": 0,
+        "n": 219,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.017239151038226253
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Throughput did NOT change (10 steps/s both), so the Python batching was not the bottleneck and this run is the baseline config with a different RNG stream: 56 -> 67 is a direct measurement of run-to-run noise (~+-10). Kept because the code is simpler on the hot path and GPU-resident data unlocks compile.",
+  "migrated": true
+}
