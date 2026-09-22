@@ -1,0 +1,26 @@
+{
+  "id": "006",
+  "slug": "8-layers",
+  "commit": "9704e70",
+  "title": "Depth 4 -> 8 layers (6.4M params, under the 10M cap)",
+  "description": "Same width 256, 8 heads, double the depth. Each step costs ~2x, so about 1000 steps (2 epochs) in 240 s instead of 2000.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Longer proofs need more sequential reasoning per token (find a citation, apply a rule); depth buys that more than width. Dan's scale runs (25M/85M) did not help, but those were width-and-depth at long budgets. Risk: half the steps at this budget leaves the model undertrained like 003 (greedy 0.78 -> metric 14).",
+  "p_keep": 0.3,
+  "expected_delta": "-30 to +20 at >=7",
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": null,
+  "status": "timeout",
+  "pretrain_secs": 0,
+  "n_params": null,
+  "heldout_greedy": null,
+  "lstar": null,
+  "surprise": "Half the steps (1000), greedy 0.81, and sampling at 296/s (2x the per-token cost plus more runaway generations from undertraining): EI round 1 alone took 219 s. Under a fixed total budget, depth pays twice, in pretrain steps and in sampling time.",
+  "total_secs": 600,
+  "pretrain_stats": {},
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "98d0da78a6cf"
+}
