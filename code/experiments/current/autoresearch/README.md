@@ -36,6 +36,34 @@ So:
 | `pools.py`, `pools/<fork>.json` | no | pool sizes and proof-length histograms per fork commit, copied into every params.json |
 | `results/<NNN>_<slug>/` | written by the agent via the scripts | `params.json` + `pretrain.patch` before the run, `results.json` after |
 
-Artifacts (`summary.json`, `final.pt`, logs, found proofs) land in `artifacts/autoresearch/<id>/`
-(gitignored). `final.pt` is a state_dict plus tokenizer mode, so the holdout half of the
-transfer pool can be scored later with the matching `pretrain.py` from git.
+Artifacts land in `artifacts/autoresearch/<id>/` (gitignored):
+
+- `pretrain.pt`: weights immediately after valid pretraining, before evaluation or RL.
+- `rl_round_01.pt`, etc.: weights after each completed RL round.
+- `final.pt`: weights after the final evaluation succeeds.
+- `source/`: exact `pretrain.py`, `harness.py`, and `remote.sh` used for the run, including
+  discarded variants. `remote.sh` identifies the required external fork commit.
+- `summary.json`, logs, found proofs, and development evaluation outputs.
+
+Checkpoints contain `state`, `tok_mode`, stage, seed, and source hashes. Reconstruct the model
+and tokenizer using the saved source and pinned fork, then load `state` with
+`torch.load(path, map_location='cpu', weights_only=True)`. These are weights for evaluation
+or new training, not exact training-resume snapshots (optimizer/RNG state is not included).
+Checkpoint writes are atomic; completed stages survive a later timeout. Saving is charged
+to the overall run budget. Existing runs cannot recover pretraining weights retroactively.
+
+For a checkpoint export without RL or evaluation, pass `--pretrain-only` to `pod.py run`.
+The summary records `stage: pretrain_only`, `status: ok`, and a null evaluation metric.
+
+The public checkpoint repository is
+[robbiethompson2018/nd-rl-checkpoints](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints).
+Automatic upload is not configured yet.
+Install the client with `uv tool install huggingface_hub`, then run `hf auth login`.
+Upload only the chosen run directory, not the artifact root (which also contains pod state):
+
+```bash
+hf upload robbiethompson2018/nd-rl-checkpoints artifacts/autoresearch/RUN_ID runs/RUN_ID
+```
+
+The destination must be created with the intended visibility before uploading. Preserve
+the checkpoint's stage in any sharing message: `final.pt` includes RL; `pretrain.pt` does not.

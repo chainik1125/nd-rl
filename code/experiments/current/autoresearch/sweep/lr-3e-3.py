@@ -1,3 +1,5 @@
+# imports the fork (model, tokenizer, train, ...), which is not resolvable here
+# pyright: reportMissingImports=false
 """AGENT-EDITABLE: the pretraining stage. This is the only file the autoresearch agent changes.
 
 Contract with harness.py (frozen):
@@ -19,17 +21,19 @@ Contract with harness.py (frozen):
 
 Anything imported from the fork (ND_FORK) is fair game to copy in here and modify.
 """
-import math, time
+
+import math
+import time
 
 import torch
-from model import GPT                    # fork
-from tokenizer import Tokenizer, MAXN    # fork
-from train import loss_on               # fork
+from model import GPT  # fork
+from tokenizer import MAXN, Tokenizer  # fork
+from train import loss_on  # fork
 
 # ---- knobs
 N_LAYER, D, N_HEAD = 4, 256, 8
 BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 3e-3, 0.1, 200, 0.1
-TOK_MODE = 'abs'
+TOK_MODE = "abs"
 
 
 def to_gpu(data, tok, device):
@@ -37,22 +41,29 @@ def to_gpu(data, tok, device):
     N, T = len(data), max(len(p) + len(q) for p, q in data)
     ids = torch.full((N, T), tok.pad, dtype=torch.long)
     mask = torch.zeros((N, T), dtype=torch.bool)
-    ref_max = torch.zeros(N, dtype=torch.long)   # largest N<k> index used in the proof, for the shift augmentation
+    ref_max = torch.zeros(
+        N, dtype=torch.long
+    )  # largest N<k> index used in the proof, for the shift augmentation
     for i, (p, q) in enumerate(data):
-        ids[i, :len(p) + len(q)] = torch.tensor(p + q)
-        mask[i, len(p):len(p) + len(q)] = True
+        ids[i, : len(p) + len(q)] = torch.tensor(p + q)
+        mask[i, len(p) : len(p) + len(q)] = True
         ref_max[i] = max((x - tok.ref0 + 1 for x in q if x >= tok.ref0), default=0)
     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
 
 
 def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
-    """Same as the fork's batch() + tok.shift_abs, vectorised: random per-row offset added to every ref token."""
+    """Same as the fork's batch() + tok.shift_abs, vectorised: random per-row offset added to
+    every ref token."""
     x, m = ids[idxs], mask[idxs]
     T = int(lens[idxs].max())
     x, m = x[:, :T].clone(), m[:, :T]
-    if tok.mode == 'abs':
+    if tok.mode == "abs":
         room = MAXN - ref_max[idxs]
-        shift = (torch.rand(len(idxs), device=x.device, generator=gen) * (room + 1)).long().clamp(max=room)
+        shift = (
+            (torch.rand(len(idxs), device=x.device, generator=gen) * (room + 1))
+            .long()
+            .clamp(max=room)
+        )
         is_ref = (x >= tok.ref0) & m
         x = torch.where(is_ref, x + shift[:, None], x)
     return x, m
@@ -61,24 +72,33 @@ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
 def pretrain(train_recs, budget_secs, device, seed, log):
     t0 = time.time()
     tok = Tokenizer(TOK_MODE)
-    data = [(tok.encode_prompt(r['prompt']), tok.encode_proof(r['proof'])) for r in train_recs]
+    data = [(tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])) for r in train_recs]
     ids, mask, ref_max, lens = to_gpu(data, tok, device)
     gen = torch.Generator(device=device)
     gen.manual_seed(seed)
     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
-    log(f'pretrain: {model.n_params():,} params, {len(data):,} records on {device} after {time.time() - t0:.0f}s, budget {budget_secs}s')
+    log(
+        f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+        f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+    )
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD, betas=(0.9, 0.95))
-    autocast = torch.autocast('cuda', dtype=torch.bfloat16, enabled=(device == 'cuda'))
+    autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
     model.train()
-    perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float('nan')
+    perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
     while True:
-        frac = (time.time() - t0) / budget_secs      # cosine over wall-clock, so the cap is the schedule
+        frac = (
+            time.time() - t0
+        ) / budget_secs  # cosine over wall-clock, so the cap is the schedule
         if frac >= 1.0:
             break
         step += 1
-        lr = LR * step / WARMUP if step < WARMUP else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+        lr = (
+            LR * step / WARMUP
+            if step < WARMUP
+            else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+        )
         for g in opt.param_groups:
-            g['lr'] = lr
+            g["lr"] = lr
         if len(perm) < BS:
             perm = torch.randperm(len(data), device=device, generator=gen)
         idxs, perm = perm[:BS], perm[BS:]
@@ -91,6 +111,15 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         opt.step()
         if step % 1000 == 0:
             last_loss = loss.item()
-            log(f'pretrain step {step} loss {last_loss:.4f} lr {lr:.2e} {time.time() - t0:.0f}s')
+            log(f"pretrain step {step} loss {last_loss:.4f} lr {lr:.2e} {time.time() - t0:.0f}s")
     model.eval()
-    return model, tok, {'steps': step, 'records_seen': step * BS, 'epochs': step * BS / len(data), 'last_loss': last_loss}
+    return (
+        model,
+        tok,
+        {
+            "steps": step,
+            "records_seen": step * BS,
+            "epochs": step * BS / len(data),
+            "last_loss": last_loss,
+        },
+    )

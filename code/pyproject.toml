@@ -82,7 +82,15 @@ known-third-party = ["wandb"]
 known-first-party = ["code"]
 
 [tool.pyright]
-include = ["__init__.py", "log.py", "utils.py", "models", "tests", "conftest.py"]
+include = [
+    "__init__.py",
+    "log.py",
+    "utils.py",
+    "models",
+    "tests",
+    "conftest.py",
+    "experiments/current/autoresearch",
+]
 ignore = ["tests/test_literature.py", "tests/test_r1_*.py"]
 extraPaths = ["..", "experiments/current", "experiments/current/r1_cot/vendor"]
 venvPath = "."
@@ -98,6 +106,12 @@ reportIncompatibleVariableOverride = true
 reportOverlappingOverload = true
 reportConstantRedefinition = true
 reportImportCycles = true
+
+# The autoresearch scripts are untyped research code that also runs on the pod's system Python;
+# the fork-importing ones carry a per-file reportMissingImports=false.
+[[tool.pyright.executionEnvironments]]
+root = "experiments/current/autoresearch"
+reportUnknownParameterType = false
 reportPropertyTypeMismatch = true
 reportMissingTypeArgument = true
 reportUnnecessaryCast = true

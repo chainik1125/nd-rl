@@ -19,10 +19,15 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 
 ## Loop
 
+All commands run from this directory. The scripts need the repo venv (pydantic), so
+`PY=$(git rev-parse --show-toplevel)/code/.venv/bin/python` and use `$PY` where `python3` is written.
+Run `make -C code check` from the repo root before each commit (Ruff + Pyright; the pre-commit hook
+runs the same).
+
 1. Read `results/*/params.json` + `results.json` (all previous experiments, kept and discarded),
    `RESULTS.md`, and `git log`.
 2. Pick one idea. Edit `pretrain.py`.
-3. Pre-register: `python3 params.py new <NNN> <slug>` writes `results/<NNN>_<slug>/params.json`
+3. Pre-register: `$PY params.py new <NNN> <slug>` writes `results/<NNN>_<slug>/params.json`
    (mechanical fields, `protocol`, and `pretrain.patch` filled in) and leaves `TODO`s. Fill every
    TODO: `provider`/`model` (the agent that is you), title, description, hypothesis, prediction,
    and `config` (what your pretrain.py actually builds; read the file, do not guess). Then
@@ -31,9 +36,9 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
    edited after this commit.
 4. Run: `source ~/repos/nd-takehome/.envrc.local && python3 pod.py run <NNN>_<slug>`.
    Read `artifacts/autoresearch/<NNN>_<slug>/summary.json` (repo `artifacts/` is gitignored).
-5. Record: `python3 record.py <NNN>_<slug> keep|discard|crash|timeout "surprise"` writes
+5. Record: `$PY record.py <NNN>_<slug> keep|discard|crash|timeout "surprise"` writes
    `results.json` (loss curve, per-round RL numbers, eval histograms) and refuses if the run does
-   not match what was pre-registered. Then `python3 table.py` to refresh `RESULTS.md`.
+   not match what was pre-registered. Then `$PY table.py` to refresh `RESULTS.md`.
 6. Keep if `metric` > current baseline's metric: `git add pretrain.py results RESULTS.md`. Otherwise
    `git checkout pretrain.py` and add only `results RESULTS.md`. Ties: keep only if simpler.
    `git commit -m "autoresearch <NNN> <slug>: keep|discard, <metric>" && git push`.
