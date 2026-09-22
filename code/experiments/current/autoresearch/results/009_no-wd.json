@@ -1,0 +1,32 @@
+{
+  "id": "009",
+  "slug": "no-wd",
+  "commit": "149e62c",
+  "title": "Weight decay 0.1 -> 0",
+  "description": "AdamW weight decay off. Everything else as 001.",
+  "tags": [
+    "regularization"
+  ],
+  "hypothesis": "With 4 epochs of 155k records there is little overfitting pressure and decay on a 3M model mostly shrinks embeddings and the head, flattening the output distribution. Removing it could sharpen the model and change the T=0.8 sampling behaviour that drives EI. Low prior; this is mostly a probe of whether any optimizer-side knob moves the metric outside noise.",
+  "p_keep": 0.3,
+  "expected_delta": "-20 to +15 at >=7",
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": 30,
+  "status": "discard",
+  "pretrain_secs": 240,
+  "n_params": 3210240,
+  "heldout_greedy": 0.9455,
+  "lstar": 8,
+  "surprise": "Pretrain and EI r1 identical to baseline again (greedy 0.933, r1 solved 76), eval 30. Same-config-looking runs now span 7, 30, 56, 67.",
+  "total_secs": 490,
+  "pretrain_stats": {
+    "steps": 2408,
+    "records_seen": 616448,
+    "epochs": 3.9773404735789404,
+    "last_loss": 0.06841062009334564,
+    "heldout_greedy": 0.933
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "7e45b612a765"
+}
