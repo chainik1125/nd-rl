@@ -1,0 +1,34 @@
+{
+  "id": "007",
+  "slug": "bs-512",
+  "commit": "151604b",
+  "title": "Batch 256 -> 512, lr 1e-3 -> 1.5e-3",
+  "description": "Double the batch with a modest lr bump (sqrt-ish scaling). At bs 256 the 3.2M model is launch/memory-bound (92 ms/step for ~14 ms of math), so a step at 512 should cost well under 2x and the run sees more tokens.",
+  "tags": [
+    "batch",
+    "systems",
+    "optimizer"
+  ],
+  "hypothesis": "More tokens per second at nearly the same step count in the early phase; better GPU utilisation. Risk: fewer optimizer steps (~1300) if the step time does scale.",
+  "p_keep": 0.4,
+  "expected_delta": "-15 to +15 at >=7",
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": 23,
+  "status": "discard",
+  "pretrain_secs": 240,
+  "n_params": 3210240,
+  "heldout_greedy": 0.882,
+  "lstar": 8,
+  "surprise": "Step time scaled linearly with batch (~1100 steps), so the model is compute-bound at bs 256 after all; fewer updates -> greedy 0.85 -> metric 23. The profile's 92 ms/step is real GPU time for T~278 with padding, not launch overhead.",
+  "total_secs": 531,
+  "pretrain_stats": {
+    "steps": 1117,
+    "records_seen": 571904,
+    "epochs": 3.6899412865346153,
+    "last_loss": 0.07475919276475906,
+    "heldout_greedy": 0.8455
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "47bc9745c257"
+}
