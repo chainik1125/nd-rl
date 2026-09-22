@@ -1,14 +1,32 @@
 {
-  "id": "003", "slug": "compile", "commit": null,
+  "id": "003",
+  "slug": "compile",
+  "commit": "67566a1",
   "title": "torch.compile the model with a fixed padded length per bucket",
   "description": "Profiling: compiled step 53 ms vs 92 ms eager at bs 256 x 278, compile ~17 s. Compile the model once; to avoid recompiles per distinct batch length, round each batch's T up to a multiple of 32 (dynamic=False, few shapes).",
-  "tags": ["systems"],
+  "tags": [
+    "systems"
+  ],
   "hypothesis": "~1.7x steps/s for ~17 s of budget spent compiling. A handful of distinct shapes cost a few recompiles each ~10 s; rounding to 32 keeps it to about 8 shapes.",
   "p_keep": 0.5,
   "expected_delta": "+0 to +10 at >=7",
-  "baseline_id": null, "baseline_metric": null,
-
-  "metric": null, "status": null,
-  "pretrain_secs": null, "n_params": null, "heldout_greedy": null, "lstar": null,
-  "surprise": null
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": 14,
+  "status": "discard",
+  "pretrain_secs": 240,
+  "n_params": 3210240,
+  "heldout_greedy": 0.8225,
+  "lstar": 8,
+  "surprise": "Recompile storm: >10 distinct padded shapes at ~12 s each ate most of the budget (1000 steps at 197 s vs 2000 in eager), greedy 0.78, metric 14. Compile only pays with one fixed shape (pad every batch to a constant T). Side finding: this undertrained model also sampled slowly (482/s), so slow sampling in 002 is not proof of overtraining.",
+  "total_secs": 559,
+  "pretrain_stats": {
+    "steps": 1751,
+    "records_seen": 448256,
+    "epochs": 2.8921607845667463,
+    "last_loss": 0.10527938604354858,
+    "heldout_greedy": 0.7785
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "4bf5df2c5b91"
 }
