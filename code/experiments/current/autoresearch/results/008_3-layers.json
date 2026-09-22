@@ -1,0 +1,33 @@
+{
+  "id": "008",
+  "slug": "3-layers",
+  "commit": "da20e5f",
+  "title": "Depth 4 -> 3 layers (2.4M params)",
+  "description": "Same width and heads, one fewer block. About 1.3x more steps in 240 s and faster sampling in RL and eval.",
+  "tags": [
+    "architecture",
+    "simplification"
+  ],
+  "hypothesis": "Every run so far that trained fewer steps scored worse (003, 006, 007), and every timeout came from slow sampling. A shallower model gets more updates and samples faster; if 4 layers is more capacity than a cap-6 proof needs, this is a free win. Risk: not enough depth to do citation lookup + rule application.",
+  "p_keep": 0.35,
+  "expected_delta": "-20 to +15 at >=7",
+  "baseline_id": "001",
+  "baseline_metric": 67,
+  "metric": 6,
+  "status": "discard",
+  "pretrain_secs": 240,
+  "n_params": 2420480,
+  "heldout_greedy": 0.936,
+  "lstar": 7,
+  "surprise": "3000 steps, greedy 0.93 (same as baseline), sampling 750-870/s (fastest yet), but EI r1 solved 46 and eval 6. Greedy accuracy on cap-6 held-out is not predictive of the metric at all: 0.93 has produced 67, 56, 7 and 6.",
+  "total_secs": 476,
+  "pretrain_stats": {
+    "steps": 3183,
+    "records_seen": 814848,
+    "epochs": 5.257423059552229,
+    "last_loss": 0.06752463430166245,
+    "heldout_greedy": 0.93
+  },
+  "harness_sha": "d602830d7e51",
+  "pretrain_sha": "ff6fc1a7520e"
+}
