@@ -2,6 +2,8 @@
   "id": "005",
   "slug": "rel-tokenizer",
   "commit": "5e1513f",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Relative citations (tok mode 'rel') instead of absolute line indices",
   "description": "The fork's tokenizer has a 'rel' mode: line numbers are dropped and a citation becomes B<k> = k lines back, decoded deterministically. Same model and optimizer as 001.",
   "tags": [

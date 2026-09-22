@@ -2,6 +2,8 @@
   "id": "004",
   "slug": "lr-3e-3",
   "commit": "4f9f6cd",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Peak learning rate 1e-3 -> 3e-3",
   "description": "Short budget, small model, cosine over wall-clock: a 3x higher peak with the same 200-step warmup. Everything else unchanged.",
   "tags": [

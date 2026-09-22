@@ -2,6 +2,8 @@
   "id": "007",
   "slug": "bs-512",
   "commit": "151604b",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Batch 256 -> 512, lr 1e-3 -> 1.5e-3",
   "description": "Double the batch with a modest lr bump (sqrt-ish scaling). At bs 256 the 3.2M model is launch/memory-bound (92 ms/step for ~14 ms of math), so a step at 512 should cost well under 2x and the run sees more tokens.",
   "tags": [

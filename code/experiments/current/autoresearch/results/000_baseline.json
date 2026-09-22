@@ -2,6 +2,8 @@
   "id": "000",
   "slug": "baseline",
   "commit": "1db66e9",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Baseline: pretrain_poc run0 config under the 10-minute harness",
   "description": "4-layer d=256 8-head GPT, abs codec, AdamW lr 1e-3 cosine over 240 s wall-clock, bs 256. Same as pretrain_poc run0 (which scored 38 at >=7 with 300 s pretrain and 2 RL rounds) minus 60 s of pretrain.",
   "tags": [

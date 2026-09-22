@@ -21,7 +21,7 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 
 1. Read `results/*.json` (all previous experiments, kept and discarded) and `git log`.
 2. Pick one idea. Write `results/<NNN>_<slug>.json` BEFORE running with the prediction fields
-   filled in (schema below). Committing to a prediction first is the rule, not a suggestion.
+   filled in (schema below), including `provider` and `model` for the agent that is you. Committing to a prediction first is the rule, not a suggestion.
 3. Edit `pretrain.py`.
 4. Run: `source ~/repos/nd-takehome/.envrc.local && python3 pod.py run <NNN>_<slug>`.
    Read `artifacts/autoresearch/<NNN>_<slug>/summary.json` (repo `artifacts/` is gitignored).
@@ -52,6 +52,7 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 ```json
 {
   "id": "003", "slug": "wider-ffn", "commit": "<7 chars, filled after the run>",
+  "provider": "anthropic|openai", "model": "<exact model id you are running as, e.g. claude-fable-5-1, gpt-6-astra>",
   "title": "one line",
   "description": "two sentences: what changes and why it should help expert iteration",
   "tags": ["architecture"],

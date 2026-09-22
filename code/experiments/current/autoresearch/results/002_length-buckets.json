@@ -2,6 +2,8 @@
   "id": "002",
   "slug": "length-buckets",
   "commit": "943bd65",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Length-bucketed batches (sort by length, shuffle batch order)",
   "description": "Profiling on the pod: fwd+bwd is 92 ms at bs 256 because each batch pads to its longest record (278 tokens) while the mean record is 109 tokens. Sort records by length once, cut the sorted order into batches of 256, shuffle the order of batches each epoch (fresh random tie-breaking inside equal lengths).",
   "tags": [

@@ -2,6 +2,8 @@
   "id": "010",
   "slug": "replicate-seed1",
   "commit": "0fac5d4",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Exact replicate of 001 with harness --seed 1 (noise measurement, not an idea)",
   "description": "No change to pretrain.py. The harness seed changes init, data order, the 1500-target subsample and the sampling RNG. Kept/discarded runs with near-identical pretrain stats have scored 7, 30, 56, 67, so the keep rule needs a same-config replicate to calibrate against.",
   "tags": [

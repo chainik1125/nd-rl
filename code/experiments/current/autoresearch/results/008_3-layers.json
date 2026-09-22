@@ -2,6 +2,8 @@
   "id": "008",
   "slug": "3-layers",
   "commit": "da20e5f",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Depth 4 -> 3 layers (2.4M params)",
   "description": "Same width and heads, one fewer block. About 1.3x more steps in 240 s and faster sampling in RL and eval.",
   "tags": [

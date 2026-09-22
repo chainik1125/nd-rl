@@ -2,6 +2,8 @@
   "id": "001",
   "slug": "gpu-batching",
   "commit": "ed3cdfc",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "GPU-resident pre-tokenized data with on-GPU shift augmentation",
   "description": "Baseline does 10 steps/s for a 3.2M model at bs 256, i.e. ~100 ms/step where the GPU needs ~5 ms: the Python per-batch tokenizing/padding/shift in the fork's batch() is the bottleneck. Pre-pad everything into one LongTensor on the GPU once and do the abs-shift augmentation as a vectorised op, so a step is an index + a few tensor ops.",
   "tags": [

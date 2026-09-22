@@ -2,6 +2,8 @@
   "id": "006",
   "slug": "8-layers",
   "commit": "9704e70",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Depth 4 -> 8 layers (6.4M params, under the 10M cap)",
   "description": "Same width 256, 8 heads, double the depth. Each step costs ~2x, so about 1000 steps (2 epochs) in 240 s instead of 2000.",
   "tags": [

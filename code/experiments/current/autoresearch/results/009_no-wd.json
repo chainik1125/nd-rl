@@ -2,6 +2,8 @@
   "id": "009",
   "slug": "no-wd",
   "commit": "149e62c",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "Weight decay 0.1 -> 0",
   "description": "AdamW weight decay off. Everything else as 001.",
   "tags": [

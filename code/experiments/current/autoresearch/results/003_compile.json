@@ -2,6 +2,8 @@
   "id": "003",
   "slug": "compile",
   "commit": "67566a1",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
   "title": "torch.compile the model with a fixed padded length per bucket",
   "description": "Profiling: compiled step 53 ms vs 92 ms eager at bs 256 x 278, compile ~17 s. Compile the model once; to avoid recompiles per distinct batch length, round each batch's T up to a multiple of 32 (dynamic=False, few shapes).",
   "tags": [
