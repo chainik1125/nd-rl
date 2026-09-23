@@ -1,0 +1,28 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index cdd8d02..286b4f5 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -71,7 +71,10 @@ def muon_step(params, buffers, lr):
+             continue
+         momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+         update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
+-        transpose = update.size(0) > update.size(1)
++        # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
++        if update.size(0) == 3 * update.size(1):
++            update = update.reshape(3, update.size(1), update.size(1))
++        transpose = update.size(-2) > update.size(-1)
+         if transpose:
+             update = update.mT
+         update = update / (update.norm(dim=(-2, -1), keepdim=True) + 1e-7)
+@@ -81,9 +84,9 @@ def muon_step(params, buffers, lr):
+             update = 3.4445 * update + polynomial @ update
+         if transpose:
+             update = update.mT
+-        update *= max(1, update.size(0) / update.size(1)) ** 0.5
++        update *= max(1, update.size(-2) / update.size(-1)) ** 0.5
+         p.mul_(1 - lr * MUON_WD)
+-        p.add_(update, alpha=-lr)
++        p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
