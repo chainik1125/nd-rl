@@ -313,6 +313,21 @@ def test_outcome_push_failure_can_retry_without_rewriting_result(
     assert_published_with_drafts_intact(params)
 
 
+@pytest.mark.parametrize("status", ["keep", "discard"])
+def test_record_accepts_candidate_committed_after_registration(
+    publication: Any, monkeypatch: pytest.MonkeyPatch, status: str
+):
+    params = publication["params"]
+    baseline = params.git("show", "HEAD:pretrain.py")
+    candidate = (params.HERE / "pretrain.py").read_text()
+    params.git("commit", "--only", "-qm", "commit candidate", "--", "pretrain.py")
+    monkeypatch.setattr(sys, "argv", ["record.py", "999_test", status, "test observation"])
+    publication["record"].main()
+    expected = candidate if status == "keep" else baseline
+    assert params.git("show", "HEAD:pretrain.py") == expected
+    assert (params.HERE / "pretrain.py").read_text() == expected
+
+
 def test_record_refuses_to_overwrite_new_pretrain_edits(
     publication: Any, monkeypatch: pytest.MonkeyPatch
 ):

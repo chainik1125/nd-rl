@@ -95,7 +95,10 @@ def main() -> None:
             "pretrain.py changed since registration; refusing to commit or overwrite it"
         )
     committed_pretrain = git("show", "HEAD:./pretrain.py")
-    if committed_pretrain != baseline and not (status == "keep" and committed_pretrain == current):
+    # The registered candidate itself may have been committed after registration (e.g. a manual
+    # commit before a resume); keep/discard then safely applies to it.
+    committed_candidate = sha(pretrain) == p.pretrain_sha and committed_pretrain == current
+    if committed_pretrain != baseline and not committed_candidate:
         raise SystemExit(
             "committed pretrain.py changed since registration; refusing to overwrite it"
         )
