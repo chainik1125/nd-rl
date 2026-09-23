@@ -56,8 +56,8 @@ def create(key, name, pubkey, cloud):
     try:
         return gql(q, key)["podFindAndDeployOnDemand"]
     except SystemExit as e:
-        if "SUPPLY_CONSTRAINT" in str(e):
-            return None
+        if "SUPPLY_CONSTRAINT" in str(e) or "does not have the resources" in str(e):
+            return None  # both are "no capacity right now": retry in `up`
         raise
 
 
