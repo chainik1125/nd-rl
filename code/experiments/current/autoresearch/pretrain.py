@@ -99,7 +99,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
     )
-    opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+    opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD, betas=(0.9, 0.99))
     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
     model.train()
     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
