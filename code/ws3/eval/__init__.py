@@ -15,6 +15,8 @@ from eval.evaluator import (  # noqa: F401
     generate,
     judge,
     next_token_accuracy,
+    textbook_table,
+    utc_now,
     wilson,
 )
 from eval.reward import ProofReward, is_unparseable, reward, verify_body  # noqa: F401
