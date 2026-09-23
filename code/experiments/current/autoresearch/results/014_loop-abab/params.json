@@ -1,0 +1,171 @@
+{
+  "id": "014",
+  "slug": "loop-abab",
+  "written_at": "2026-09-22T20:58:57-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "d9257de",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "7fe4f7af843c",
+  "patch_lines": 3,
+  "title": "P01: two shared blocks over four logical layers (A-B-A-B)",
+  "description": "P01: replace the four independently parameterized blocks with A-B-A-B by reusing the initialized first two blocks at depths three and four, including their LayerNorms, during pretraining and downstream RL/evaluation. This tests whether reusable proof-state transformations improve fixed-pipeline RL transfer; four logical applications remain, while unique parameters fall from 3210240 to 1630720.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Sharing attention and MLP transformations across two passes may favor reusable proof operations over depth-specific short-proof features, improving the starting point for expert iteration. Prior 006 and 008 changed logical depth and failed; neither tested sharing at fixed depth. This experiment jointly changes sharing and unique parameter count, not compute depth. Lower capacity may instead underfit or constrain RL adaptation. Keep only by downstream dev-transfer >=7 score across seeds 0,1,2, regardless of pretraining loss.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +5 to +15 dev-transfer theorems at true length >=7 versus 012 (exact mean 147.67, stored rounded mean 148); plausible downside -40 from reduced capacity. Four block applications keep forward/backward and sampling compute approximately unchanged; optimizer state is smaller, with no large speedup expected. Poorly learned termination could increase sampling latency and cause timeout under the unchanged total cap.",
+  "baseline_id": "012",
+  "baseline_metric": 148,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py), shared blocks A-B-A-B",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 1630720,
+      "unique_blocks": 2,
+      "block_order": [0, 1, 0, 1],
+      "shared_norms": true,
+      "kv_caches": "four independent dictionaries indexed by logical application"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [0.9, 0.95],
+      "grad_clip": 1.0,
+      "parameter_deduplication": "nn.Module.parameters() deduplicates shared objects in pretraining and frozen RL"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02); construct original four-block GPT, then alias blocks 2/3 to blocks 0/1, preserving initialization RNG consumption and embedding/readout values",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
