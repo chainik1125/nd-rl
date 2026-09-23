@@ -522,8 +522,8 @@ def plot_pass_by_length(comp, part, path, title):
         for L in Ls:
             v = rows[L][who] or {"rate": 0, "ci": [0, 0]}
             ys.append(v["rate"])
-            lo.append(v["rate"] - v["ci"][0])
-            hi.append(v["ci"][1] - v["rate"])
+            lo.append(max(0.0, v["rate"] - v["ci"][0]))  # clamp float rounding, errorbar rejects < 0
+            hi.append(max(0.0, v["ci"][1] - v["rate"]))
         ax.bar([xi + off for xi in x], ys, width=w - 0.04, color=color,
                label="frozen checkpoint" if who == "control" else "after RL")
         ax.errorbar([xi + off for xi in x], ys, yerr=[lo, hi], fmt="none", ecolor="#444",
