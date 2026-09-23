@@ -1,0 +1,27 @@
+# exp-00 local check (docs/ws3/startup.md, section 2, row exp-00). Laptop CPU only.
+run:
+  out_dir: run            # -> experiments/ws3/exp-00-local-check/run/
+  seed: 0
+  device: cpu
+  algo: grpo
+eval:                     # parts (a) to (d) on the frozen checkpoint; (b) to (d) again on the RL model
+  nta:      {n_heldout: 5000, batch_size: 250, gate: 0.95}          # (a) T1 gate, all 5,000 heldout records
+  greedy:   {n_heldout: 1000, max_new: 400, batch_size: 100}        # (b) 1,000-record stride of heldout, greedy
+  textbook: {k: 64, temperature: 1.0, max_new: 400, batch_size: 256} # (c) the 72 problems at 64 samples
+  long:     {n_prompts: 200, k: 32, temperature: 1.0, max_new: 400, batch_size: 256}  # (d) 200 rl_targets, pass@32
+train:                    # part (e): reduced GRPO
+  prompt:
+    length_weights: {3: 1, 4: 1, 5: 1}   # in distribution, from train.jsonl only
+    n_prompts: 1600                      # 50 steps x 32 prompts, each drawn once
+  periodic_eval: {every: 10, n_heldout: 50, n_long: 20, max_new: 400, batch_size: 128}
+  trainer:
+    num_generations: 8                   # group 8
+    per_device_train_batch_size: 32
+    gradient_accumulation_steps: 8       # 32 x 8 = 256 completions = 32 prompts x group 8 per optimizer step
+    learning_rate: 1.0e-5
+    beta: 0.01                           # KL to the frozen start model
+    epsilon: 0.2
+    temperature: 1.0
+    max_completion_length: 400           # well above the longest expected proof at lengths 3-5 (~80 tokens)
+    max_steps: 50
+    logging_steps: 1
