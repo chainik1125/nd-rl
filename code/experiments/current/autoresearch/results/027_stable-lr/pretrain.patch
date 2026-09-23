@@ -1,0 +1,23 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index fce40df..e5a5383 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -112,11 +112,13 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if frac >= 1.0:
+             break
+         step += 1
+-        lr = (
+-            LR * step / WARMUP
+-            if step < WARMUP
+-            else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+-        )
++        if step < WARMUP:
++            lr = LR * step / WARMUP
++        else:
++            decay_frac = max(0.0, (frac - 0.8) / 0.2)
++            lr = LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (
++                1 + math.cos(math.pi * decay_frac)
++            )
+         for g in opt.param_groups:
+             g["lr"] = lr
+         if len(perm) < BS:
