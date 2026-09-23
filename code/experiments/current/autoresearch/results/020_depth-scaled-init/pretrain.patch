@@ -1,0 +1,16 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index fce40df..a0b102e 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -95,6 +95,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    # P43: scale initialization by the eight residual branches without drawing new weights.
++    with torch.no_grad():
++        for block in model.blocks:
++            block.proj.weight.div_(math.sqrt(2 * N_LAYER))
++            block.fc2.weight.div_(math.sqrt(2 * N_LAYER))
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
