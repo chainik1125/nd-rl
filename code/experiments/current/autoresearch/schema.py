@@ -158,7 +158,7 @@ Status = Literal["keep", "discard", "crash", "timeout"]
 class CurvePoint(Loose):
     secs: int
     step: int
-    train_loss: float
+    train_loss: float | None  # NaN (dumped as null) if no loss was logged before this point
     val_loss: float
 
 

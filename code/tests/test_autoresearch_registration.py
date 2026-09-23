@@ -182,6 +182,14 @@ def test_seed_results_are_typed_and_roundtrip(research: Any):
         schema.Results.model_validate(invalid)
 
 
+def test_curve_point_before_first_loss_roundtrips(research: Any):
+    schema = research["schema"]
+    point = {"secs": 15, "step": 16, "train_loss": float("nan"), "val_loss": 3.14}
+    stats = schema.PretrainStats(curve=[schema.CurvePoint(**point)])  # NaN is dumped as null
+    restored = schema.PretrainStats.model_validate_json(stats.model_dump_json())
+    assert restored.curve is not None and restored.curve[0].train_loss is None
+
+
 def test_historical_single_seed_records_still_validate(research: Any):
     schema = research["schema"]
     for path in (SOURCE / "results").glob("*/params.json"):
