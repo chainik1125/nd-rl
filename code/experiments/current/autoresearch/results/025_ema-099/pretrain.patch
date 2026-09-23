@@ -1,0 +1,41 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index fce40df..5b29356 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,6 +37,7 @@ from train import loss_on  # fork
+ N_LAYER, D, N_HEAD = 4, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ TOK_MODE = "abs"
++EMA_DECAY = 0.99
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
+@@ -100,6 +101,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    params = list(model.parameters())
++    ema = [p.detach().clone() for p in params]
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
+@@ -129,6 +132,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
++        with torch.no_grad():
++            torch._foreach_lerp_(ema, params, 1 - EMA_DECAY)
+         if step % 20 == 0:
+             last_loss = loss.item()
+             recent.append(last_loss)
+@@ -148,6 +153,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, next_point = [], next_point + CURVE_EVERY
++    # Only the averaged weights cross the handoff; RL uses its unchanged optimizer.
++    with torch.no_grad():
++        for p, averaged in zip(params, ema, strict=True):
++            p.copy_(averaged)
+     model.eval()
+     return (
+         model,
