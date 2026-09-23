@@ -74,7 +74,7 @@ class Config(Loose):
     precision: str
     compile: bool | str
     init: str
-    seed: int
+    seed: int | list[int]  # scalar for historical runs; explicit list for multi-seed runs
 
 
 class Pool(Loose):
@@ -103,7 +103,7 @@ class RlProtocol(Loose):
     max_proofs_per_thm: int
     rl_weight: int
     target_pool: Pool
-    targets_sampled: Pool
+    targets_sampled: Pool | None  # cached histogram is only available for seed 0
 
 
 class EvalProtocol(Loose):
@@ -123,7 +123,7 @@ class Protocol(Loose):
     rl: RlProtocol
     eval: EvalProtocol
     holdout: Pool
-    seed: int
+    seed: int | list[int]
 
 
 class Params(Loose):
@@ -218,4 +218,7 @@ class Results(Loose):
     eval: EvalStats
     holdout_metric: int | None
     surprise: str | None
+    seed_metrics: dict[str, int | None] | None = None
+    seed_metric_rl: dict[str, int | None] | None = None
+    seed_status: dict[str, Literal["ok", "crash", "timeout", "missing"]] | None = None
     migrated: bool = False

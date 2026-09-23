@@ -67,3 +67,20 @@ hf upload robbiethompson2018/nd-rl-checkpoints artifacts/autoresearch/RUN_ID run
 
 The destination must be created with the intended visibility before uploading. Preserve
 the checkpoint's stage in any sharing message: `final.pt` includes RL; `pretrain.pt` does not.
+
+## Keep rule: what was considered and not adopted (2026-09-22)
+
+Seed noise at the 20-minute budget is sd ~44 on a mean of ~110 (`SWEEP_s20.md`), so a plain
+ratchet will sometimes keep a lucky draw. Two fixes were designed and rejected as too
+complicated for the value; Robbie chose "3 seeds per idea, keep if the mean is higher, accept
+the noise". Written down in case the loop visibly stalls on a lucky bar:
+
+- **Running-mean bar.** The bar is the mean over every seed ever run on the current
+  `pretrain.py`, fed by control replicates (every 4th experiment and after every keep). Costs
+  ~20% of GPU time, converges to the true mean of the kept config.
+- **Two-stage 6 vs 6.** An idea runs 3 seeds; if its mean beats the bar, run 3 more and keep
+  only if the 6-seed mean still beats the 6-seed bar. No controls needed, promoted ideas carry
+  their own 6 seeds. With sd 44, ~1 in 5 null ideas still gets kept at a +3 threshold.
+
+`run_idea.py` already merges any seed list, so either can be added later without touching the
+harness.

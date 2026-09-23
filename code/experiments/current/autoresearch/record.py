@@ -54,6 +54,9 @@ def results_from_summary(s: dict[str, Any], status: Status, surprise: str | None
         ),
         holdout_metric=None,
         surprise=surprise,
+        seed_metrics=s.get("seed_metrics"),  # present when run_idea.py merged several seeds
+        seed_metric_rl=s.get("seed_metric_rl"),
+        seed_status=s.get("seed_status"),
     )
     if status in ("keep", "discard") and r.pretrain.curve is None:
         print(

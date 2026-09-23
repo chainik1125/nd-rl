@@ -31,35 +31,50 @@ runs the same).
 1. Read `results/*/params.json` + `results.json` (all previous experiments, kept and discarded),
    `RESULTS.md`, and `git log`.
 2. Pick one idea. Edit `pretrain.py`.
-3. Pre-register: `$PY params.py new <NNN> <slug>` writes `results/<NNN>_<slug>/params.json`
+3. Pre-register: `$PY params.py new <NNN> <slug> --seeds 0,1,2` writes `results/<NNN>_<slug>/params.json`
    (mechanical fields, `protocol`, and `pretrain.patch` filled in) and leaves `TODO`s. Fill every
    TODO: `provider`/`model` (the agent that is you), title, description, hypothesis, prediction,
-   and `config` (what your pretrain.py actually builds; read the file, do not guess). Then
+   and `config` (what your pretrain.py actually builds; read the file, do not guess).
+   Use the intended seeds here and at launch (e.g. `--seeds 3,4,5` for a control).
+   Both `config.seed` and `protocol.seed` store that list; historical runs use a scalar.
+   The cached target histogram is seed-0-only, so `targets_sampled` is null for other seeds.
+   Then
    `git add results/<NNN>_<slug> && git commit -m "autoresearch <NNN> <slug>: pre-registered" && git push`.
    Committing the prediction BEFORE the run is the rule, not a suggestion; params.json is never
    edited after this commit.
-4. Run: `source ~/repos/nd-takehome/.envrc.local && python3 pod.py run <NNN>_<slug>`.
-   Read `artifacts/autoresearch/<NNN>_<slug>/summary.json` (repo `artifacts/` is gitignored).
+4. Run on three seeds at once, one pod each:
+   `source ~/repos/nd-takehome/.envrc.local && python3 run_idea.py <NNN>_<slug> --seeds 0,1,2`.
+   It validates the schema, requires params.json and pretrain.patch to match committed HEAD,
+   checks source hashes, fork and seeds, and rejects dirty frozen files before renting pods.
+   It writes the
+   merged `artifacts/autoresearch/<NNN>_<slug>/summary.json` (`metric` = mean over seeds,
+   `seed_metrics` per seed; status ok only if every seed is ok) plus one dir per seed.
 5. Record: `$PY record.py <NNN>_<slug> keep|discard|crash|timeout "surprise"` writes
-   `results.json` (loss curve, per-round RL numbers, eval histograms) and refuses if the run does
-   not match what was pre-registered. Then `$PY table.py` to refresh `RESULTS.md`.
-6. Keep if `metric` > current baseline's metric: `git add pretrain.py results RESULTS.md`. Otherwise
-   `git checkout pretrain.py` and add only `results RESULTS.md`. Ties: keep only if simpler.
+   `results.json` (loss curve, per-round RL numbers, eval histograms, seed metrics) and refuses
+   if the run does not match what was pre-registered. Then `$PY table.py` to refresh `RESULTS.md`.
+6. Keep if the idea's mean `metric` is above the current baseline's mean `metric` (both are
+   3-seed means): `git add pretrain.py results RESULTS.md`. Otherwise `git checkout pretrain.py`
+   and add only `results RESULTS.md`. Ties: keep only if simpler.
    `git commit -m "autoresearch <NNN> <slug>: keep|discard, <metric>" && git push`.
 7. Go to 1.
 
 ## Rules
 
-- **Keep rule.** Strictly greater than the baseline metric. No noise threshold (the metric is
-  noisy at roughly +-10%; a keep on noise raises the bar for the next idea, that is accepted).
+- **Keep rule.** 3-seed mean strictly above the baseline's 3-seed mean. No noise threshold.
+  One seed has sd ~44 at this budget (`SWEEP_s20.md`), so some keeps will be luck; that is
+  accepted (Robbie, 2026-09-22). Always use seeds 0,1,2 so runs are comparable.
 - **Simplicity.** All else equal, simpler is better. An improvement of ~0 with less code: keep.
   A small improvement with 20 lines of hacks: discard.
-- **Crash / timeout counts as a failed experiment.** If the cause is dumb (typo, import), fix
+- **Crash / timeout counts as a failed experiment**, on any seed. If the cause is dumb (typo, import), fix
   and re-run under the same NNN. If the idea is what crashed (OOM, overran the budget), log it
   as `crash` or `timeout` and move on. Never edit the harness to make something fit.
 - **No cheating.** No eval or RL code in pretrain.py. No touching the pools. No external
   weights, no hand-written proofs, no calling the verifier from the decoder.
-- **Serial.** One pod, one experiment at a time.
+- **Three pods per experiment, one experiment at a time.** Never more than 3 A40s at once. A
+  pod named `autoresearch-klaus` may belong to another agent: leave it alone.
+- **Hard stop.** At 07:00 America/Los_Angeles finish the running experiment, record it, then
+  `python3 pod.py list` and `python3 pod.py down --pod <name>` for every pod you own. Pods cost
+  money while you think.
 - **Tags** (multi-select): systems, optimizer, schedule, architecture, tokenizer, data-order,
   augmentation, loss, init, regularization, batch, simplification.
 - **NEVER STOP** to ask whether to continue. If out of ideas, re-read the fork's code, combine
