@@ -1,11 +1,21 @@
-# Quiet Codex loop
+# Quiet Codex / Claude loop
 
-From the repository root, source the RunPod credentials and run the launcher:
+Two loops run in parallel, one per agent, each from its own full checkout (see the
+[checkouts note](../../../../.claude/notes/autoresearch-checkouts.md)), both pushing to
+`autoresearch-pretrain`. From each checkout's root, source the RunPod credentials and run:
 
 ```bash
 source .envrc.local
-code/.venv/bin/python code/experiments/current/autoresearch/loop.py -- --sandbox danger-full-access
+# nd-rl: Codex, gpt-6-astra at reasoning effort max
+code/.venv/bin/python code/experiments/current/autoresearch/loop.py --agent codex -- --sandbox danger-full-access
+# nd-rl-3: Claude, claude-opus-5-5 at effort max, --dangerously-skip-permissions
+code/.venv/bin/python code/experiments/current/autoresearch/loop.py --agent claude
 ```
+
+Claude runs as `claude --print` on the logged-in claude.ai subscription: the launcher strips
+`ANTHROPIC_API_KEY` and a parent Claude Code session's `CLAUDE*` variables from its environment.
+Models and effort live in `MODELS` and `agent_argv` in `loop.py`. Each loop refuses to start
+an iteration when the RunPod balance is below `MIN_BALANCE`.
 
 The explicit full-access option allows unattended Git commits/pushes and SSH/RunPod calls.
 Use it only in a trusted, dedicated research checkout/environment: Codex can execute commands
@@ -15,13 +25,13 @@ forwarded unchanged. Ordinary workspace-write protects `.git` and cannot perform
 commit-based workflow unattended. See [Codex permissions](https://learn.chatgpt.com/docs/agent-approvals-security).
 
 Codex must already be installed and logged in; Git push authentication and the SSH key expected
-by `pod.py` must work. The launcher uses your configured Codex model; optionally pass
-`--model <model>` or `--profile <profile>` after `--`.
+by `pod.py` must work.
 
 Each fresh `codex exec` receives [iteration.md](iteration.md), completes one experiment using
 [program.md](program.md), and exits. A committed and pushed keep/discard/crash/timeout allows the next
 iteration. A CLI error or missing new result stops the loop; there is no automatic retry,
-lock, experiment cap, or deadline. Do not run competing agents in the same checkout.
+lock, experiment cap, or deadline. Do not run two agents in the same checkout. A loop resumes
+only its own unfinished experiment (by the id's agent suffix; unsuffixed ids are Codex's).
 
 For simultaneous tooling work, use the [separate development checkout](../../../../.claude/notes/autoresearch-checkouts.md).
 
@@ -83,8 +93,8 @@ the loop prints `BLOCKED` plus its last public message (collapsed to one line an
 360 characters). CLI failures remain `ERROR`; they also include that message when available.
 Neither case automatically retries or changes the experiment's validation requirements.
 
-Diagnostic logs live in ignored `artifacts/autoresearch/loop/session-*/`: `codex.jsonl`,
-`codex.stderr`, launch manifests, publication receipt, per-attempt seed driver logs, and
+Diagnostic logs live in ignored `artifacts/autoresearch/loop/session-*/`: `<agent>.jsonl`,
+`<agent>.stderr`, launch manifests, publication receipt, per-attempt seed driver logs, and
 (when needed) `cleanup.log`.
 The session directory is private to your OS account. Ordinary training artifacts still go to
 `artifacts/autoresearch/<experiment>_s<seed>/`.

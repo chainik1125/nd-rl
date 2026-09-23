@@ -8,12 +8,16 @@ Validates the pre-registered params.json first, then checks that the harness sha
 and budget that actually ran equal what was registered (otherwise the run is not the experiment
 that was pre-registered). Copies the loss curve, per-round RL numbers and the eval histograms
 into git. Applies keep/discard, refreshes RESULTS.md, and commits/pushes only this outcome.
+Judged on top of the latest shared branch: if the other agent kept a file scoring at least as
+high during this run, a keep becomes a discard. A keep replaces pretrain.py whole.
 """
 
 import json
 import os
+import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -69,6 +73,27 @@ def results_from_summary(s: dict[str, Any], status: Status, surprise: str | None
     return r
 
 
+def in_commit(commit: str, relative: str) -> bool:
+    try:
+        git("cat-file", "-e", f"{commit}:./{relative}")
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def incumbent(exclude: str) -> tuple[str, int] | None:
+    """(name, metric) of the most recently recorded keep: pretrain.py at HEAD is its file."""
+    keeps = []
+    for path in (HERE / "results").glob("*/results.json"):
+        if path.parent.name == exclude:
+            continue
+        r = Results.model_validate_json(path.read_text())
+        if r.status == "keep" and r.recorded_at and r.metric is not None:
+            when = datetime.strptime(r.recorded_at, "%Y-%m-%dT%H:%M:%S%z")
+            keeps.append((when, path.parent.name, r.metric))
+    return max(keeps)[1:] if keeps else None
+
+
 def main() -> None:
     name, status_arg = sys.argv[1], sys.argv[2]
     surprise = sys.argv[3] if len(sys.argv) > 3 else None
@@ -88,40 +113,56 @@ def main() -> None:
         b.param_cap,
     ), f"budget ran {ran} but registered {b}"
     pretrain = HERE / "pretrain.py"
-    baseline = git("show", f"{p.base_commit}:./pretrain.py")
     current = pretrain.read_text()
-    if sha(pretrain) != p.pretrain_sha and not (status != "keep" and current == baseline):
+    # A non-keep retry may find pretrain.py already restored to the incumbent.
+    restored = current in (git("show", f"{rev}:./pretrain.py") for rev in (p.base_commit, "HEAD"))
+    is_candidate = sha(pretrain) == p.pretrain_sha
+    if not is_candidate and not (status != "keep" and restored):
         raise SystemExit(
             "pretrain.py changed since registration; refusing to commit or overwrite it"
         )
-    committed_pretrain = git("show", "HEAD:./pretrain.py")
-    # The registered candidate itself may have been committed after registration (e.g. a manual
-    # commit before a resume); keep/discard then safely applies to it.
-    committed_candidate = sha(pretrain) == p.pretrain_sha and committed_pretrain == current
-    if committed_pretrain != baseline and not committed_candidate:
-        raise SystemExit(
-            "committed pretrain.py changed since registration; refusing to overwrite it"
-        )
-    r = results_from_summary(s, status, surprise)
     result_path = HERE / "results" / name / "results.json"
-    if result_path.exists():
-        recorded = Results.model_validate_json(result_path.read_text())
-        fields = {"commit", "recorded_at"}
-        if recorded.model_dump(exclude=fields) != r.model_dump(exclude=fields):
-            raise SystemExit(
-                "results.json already records a different outcome; refusing to overwrite"
-            )
-        r = recorded  # Retrying a failed commit/push must not rewrite the evidence/timestamp.
-    else:
-        if git("status", "--porcelain", "--", "RESULTS.md").strip():
-            raise SystemExit("RESULTS.md has pending changes; refusing to overwrite them")
-        result_path.write_text(r.model_dump_json(indent=2) + "\n")
-    table.main()
-    if status != "keep":
-        git("restore", f"--source={p.base_commit}", "--staged", "--worktree", "--", "pretrain.py")
+    if not result_path.exists() and git("status", "--porcelain", "--", "RESULTS.md").strip():
+        raise SystemExit("RESULTS.md has pending changes; refusing to overwrite them")
+    r = results_from_summary(s, status, surprise)
+
+    def prepare() -> str:
+        """Runs on top of the latest shared branch, so the other agent's keeps are visible."""
+        nonlocal r
+        decided = results_from_summary(s, status, surprise)
+        rival = incumbent(exclude=name)
+        if (
+            status == "keep"
+            and rival
+            and not in_commit(p.base_commit, f"results/{rival[0]}/results.json")
+            and (decided.metric or 0) <= rival[1]
+        ):
+            decided.status = "discard"
+            decided.surprise = (
+                f"{surprise or ''} [auto-discard: {rival[0]} was kept at {rival[1]} during this "
+                "run, so this candidate no longer beats the incumbent]"
+            ).strip()
+        if in_commit("HEAD", f"results/{name}/results.json"):
+            recorded = Results.model_validate_json(result_path.read_text())
+            fields = {"commit", "recorded_at"}
+            if recorded.model_dump(exclude=fields) != decided.model_dump(exclude=fields):
+                raise SystemExit(
+                    "results.json already records a different outcome; refusing to overwrite"
+                )
+            decided = recorded  # Retrying a failed commit/push must not rewrite the evidence.
+        else:
+            result_path.write_text(decided.model_dump_json(indent=2) + "\n")
+        r = decided
+        table.main()
+        if r.status != "keep":  # Winner-take-all: a keep replaces the whole file, else HEAD's.
+            # HEAD holds the incumbent, unless the candidate itself was committed (manual resume).
+            committed = is_candidate and git("show", "HEAD:./pretrain.py") == current
+            source = p.base_commit if committed else "HEAD"
+            git("restore", f"--source={source}", "--staged", "--worktree", "--", "pretrain.py")
+        return f"autoresearch {name.replace('_', ' ', 1)}: {r.status}, {r.metric}"
+
     commit = commit_and_push(
-        [f"results/{name}/results.json", "RESULTS.md", "pretrain.py"],
-        f"autoresearch {name.replace('_', ' ', 1)}: {status}, {r.metric}",
+        [f"results/{name}/results.json", "RESULTS.md", "pretrain.py"], "", prepare
     )
     if session := os.environ.get("ND_AUTORESEARCH_SESSION"):
         receipt = Path(session) / "completed.json"

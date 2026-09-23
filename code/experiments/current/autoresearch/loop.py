@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fresh Codex sessions, one experiment each, with a quiet terminal. See LOOP.md."""
+"""Fresh Codex or Claude sessions, one experiment each, with a quiet terminal. See LOOP.md."""
 
 import argparse
 import json
@@ -19,6 +19,10 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 ART = ROOT / "artifacts/autoresearch"
 POLL_SECS = 0.5
+# Both agents share one branch, each from its own checkout. Highest effort for both (Robbie).
+MODELS = {"codex": "gpt-6-astra", "claude": "claude-opus-5-5"}
+agent = "codex"  # set once by main(); tests monkeypatch it
+MIN_BALANCE = 3.0  # USD: one experiment rents 3 A40s at ~$0.49/h for ~25 min
 
 
 def emit(message: str) -> None:
@@ -47,7 +51,7 @@ def iteration_prompt(prompt: str) -> str:
     pending = sorted(
         path
         for path in (HERE / "results").glob("*/params.json")
-        if not path.with_name("results.json").exists()
+        if not path.with_name("results.json").exists() and owner(path.parent.name) == agent
     )
     if not pending:
         return prompt
@@ -89,17 +93,27 @@ def iteration_prompt(prompt: str) -> str:
     )
 
 
+def owner(name: str) -> str:
+    """The agent suffix of the id (041-claude_slug); unsuffixed ids predate Claude, so Codex."""
+    return name.split("_", 1)[0].partition("-")[2] or "codex"
+
+
 def agent_explanation(session: Path) -> str:
     """Show only the last public agent message, never reasoning or tool output."""
     message = ""
     try:
-        with (session / "codex.jsonl").open() as log:
+        with (session / f"{agent}.jsonl").open() as log:
             for line in log:
                 try:
                     event = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                if not isinstance(event, dict) or event.get("type") != "item.completed":
+                if not isinstance(event, dict):
+                    continue
+                if event.get("type") == "result" and isinstance(event.get("result"), str):
+                    message = event["result"] or message  # Claude stream-json final answer
+                    continue
+                if event.get("type") != "item.completed":
                     continue
                 item = event.get("item", {})
                 if (
@@ -199,7 +213,7 @@ class Monitor:
 
 
 def stop_processes(process: subprocess.Popen[bytes] | None, session: Path) -> None:
-    # Codex tools may have their own process groups. The runner explicitly registers its group.
+    # Agent tools may have their own process groups. The runner explicitly registers its group.
     groups = {entry["pid"] for _, entry in launches(session) if entry.get("pid")}
     if process is not None:
         groups.add(process.pid)
@@ -218,7 +232,8 @@ def stop_processes(process: subprocess.Popen[bytes] | None, session: Path) -> No
             except subprocess.TimeoutExpired:
                 if sig == signal.SIGKILL:
                     emit(
-                        f"ERROR | Codex process {process.pid} did not exit; continuing pod cleanup"
+                        f"ERROR | {agent.title()} process {process.pid} did not exit; "
+                        "continuing pod cleanup"
                     )
 
 
@@ -261,6 +276,69 @@ def cleanup_pods(session: Path) -> bool:
         return False
 
 
+def check_balance() -> None:
+    """Stop before renting pods the account cannot pay for; unknown balance is not a blocker."""
+    try:
+        listed = subprocess.run(
+            [sys.executable, str(HERE / "pod.py"), "list"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        balance = float(json.loads(listed.stdout)["clientBalance"])
+    except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired):
+        return
+    if balance < MIN_BALANCE:
+        raise ExperimentBlocked(f"RunPod balance ${balance:.2f} < ${MIN_BALANCE:.2f}; top up")
+
+
+def agent_vars(session: Path) -> dict[str, str]:
+    return {
+        "ND_AUTORESEARCH_SESSION": str(session),
+        "ND_AGENT": agent,
+        "ND_AGENT_MODEL": MODELS[agent],
+    }
+
+
+def agent_argv(command: list[str], session: Path, prompt: str) -> list[str]:
+    if agent == "claude":
+        return [
+            *command,
+            "--print",
+            "--output-format",
+            "stream-json",
+            "--verbose",
+            "--dangerously-skip-permissions",
+            "--model",
+            MODELS["claude"],
+            "--effort",
+            "max",
+            prompt,
+        ]
+    return [
+        *command,
+        "exec",
+        "--json",
+        "-C",
+        str(ROOT),
+        "-c",
+        'approval_policy="never"',
+        *(
+            arg
+            for k, v in agent_vars(session).items()
+            for arg in ("-c", f"shell_environment_policy.set.{k}={json.dumps(v)}")
+        ),
+        prompt,
+    ]
+
+
+def agent_env(session: Path) -> dict[str, str]:
+    # Drop a parent Claude Code session's variables and any API key: Claude must run as a fresh
+    # top-level session billed to the logged-in claude.ai subscription, not API credits.
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("CLAUDE", "ANTHROPIC_API_KEY"))}
+    return {**env, **agent_vars(session)}
+
+
 def run_loop(command: list[str], prompt: str) -> int:
     directory = ART / "loop"
     directory.mkdir(parents=True, exist_ok=True)
@@ -269,27 +347,17 @@ def run_loop(command: list[str], prompt: str) -> int:
         monitor = Monitor(session)
         process = None
         try:
-            emit(f"Starting Codex | checking experiment state | diagnostics: {session}")
+            emit(f"Starting {agent.title()} | checking experiment state | diagnostics: {session}")
             current_prompt = iteration_prompt(prompt)
+            check_balance()
             with (
-                (session / "codex.jsonl").open("w") as output,
-                (session / "codex.stderr").open("w") as errors,
+                (session / f"{agent}.jsonl").open("w") as output,
+                (session / f"{agent}.stderr").open("w") as errors,
             ):
                 process = subprocess.Popen(
-                    [
-                        *command,
-                        "exec",
-                        "--json",
-                        "-C",
-                        str(ROOT),
-                        "-c",
-                        'approval_policy="never"',
-                        "-c",
-                        f"shell_environment_policy.set.ND_AUTORESEARCH_SESSION={json.dumps(str(session))}",
-                        current_prompt,
-                    ],
+                    agent_argv(command, session, current_prompt),
                     cwd=ROOT,
-                    env={**os.environ, "ND_AUTORESEARCH_SESSION": str(session)},
+                    env=agent_env(session),
                     stdin=subprocess.DEVNULL,
                     stdout=output,
                     stderr=errors,
@@ -300,11 +368,12 @@ def run_loop(command: list[str], prompt: str) -> int:
                     time.sleep(POLL_SECS)
                 if process.returncode:
                     raise RuntimeError(
-                        f"Codex exited with code {process.returncode}. {agent_explanation(session)}"
+                        f"{agent.title()} exited with code {process.returncode}. "
+                        + agent_explanation(session)
                     )
                 monitor.finish()
         except KeyboardInterrupt:
-            emit("Cancelled | stopping Codex and cleaning up owned pods")
+            emit(f"Cancelled | stopping {agent.title()} and cleaning up owned pods")
             stop_processes(process, session)
             cleanup_pods(session)
             return 130
@@ -317,14 +386,17 @@ def run_loop(command: list[str], prompt: str) -> int:
 
 
 def main() -> int:
+    global agent
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--agent", choices=sorted(MODELS), default="codex")
     parser.add_argument(
-        "codex_args",
+        "agent_args",
         nargs=argparse.REMAINDER,
-        help="Codex options after -- (model, profile, permissions)",
+        help="Extra CLI options after -- (Codex: permissions; Claude needs none)",
     )
     args = parser.parse_args()
-    options = args.codex_args
+    agent = args.agent
+    options = args.agent_args
     if options[:1] == ["--"]:
         options = options[1:]
     if not os.environ.get("RUNPOD_API_KEY"):
@@ -336,7 +408,9 @@ def main() -> int:
 
     signal.signal(signal.SIGTERM, cancel)
     prompt = (HERE / "iteration.md").read_text()
-    return run_loop(["codex", *options], prompt)
+    if agent == "codex":
+        options = ["-m", MODELS["codex"], "-c", 'model_reasoning_effort="max"', *options]
+    return run_loop([agent, *options], prompt)
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ def loop(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     monkeypatch.setattr(module, "HERE", tmp_path / "research")
     monkeypatch.setattr(module, "ART", tmp_path / "artifacts")
     monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "check_balance", lambda: None)  # never query RunPod
     module.HERE.mkdir()
     module.ART.mkdir()
     return module
@@ -435,6 +436,7 @@ import run_idea as r
 r.register = lambda *args: None
 r.ensure_idle = lambda *args: None
 r.ART = {str(tmp_path / "artifacts")!r}
+r.pod_prefix = lambda name: "ndrl-pretrain-codex-013"
 r.time.sleep = lambda _: None
 session = pathlib.Path({str(session)!r})
 def seed(name, s, logs, pod):
@@ -459,7 +461,7 @@ r.main()
     assert completed.returncode == 0, completed.stderr
     entry = json.loads(next(session.glob("launch-*.json")).read_text())
     assert entry["pid"] is None
-    assert entry["pods"] == [f"013_test_s{s}-session-test" for s in range(3)]
+    assert entry["pods"] == [f"ndrl-pretrain-codex-013-s{s}-session-test" for s in range(3)]
     assert len(list(Path(entry["logs"]).glob("seed-*"))) == 3
 
 
@@ -543,3 +545,54 @@ name = "015_beta2-099"
     assert len(calls) == 2 and calls[0]["session"] != calls[1]["session"]
     assert "RESUME 015_beta2-099" in calls[0]["prompt"]
     assert calls[1]["prompt"] == "base instructions"
+
+
+def test_each_agent_resumes_only_its_own_experiment(loop: Any, monkeypatch: pytest.MonkeyPatch):
+    pending_fixture(loop, "041-claude_other-agent")
+    monkeypatch.setattr(loop, "agent", "codex")
+    assert loop.iteration_prompt("instructions") == "instructions"
+    pending_fixture(loop)  # legacy unsuffixed ids belong to Codex
+    monkeypatch.setattr(
+        loop.subprocess, "run", lambda argv, **kw: subprocess.CompletedProcess(argv, 0, "ok", "")
+    )
+    assert "RESUME 015_beta2-099" in loop.iteration_prompt("instructions")
+    monkeypatch.setattr(loop, "agent", "claude")
+    assert "RESUME 041-claude_other-agent" in loop.iteration_prompt("instructions")
+
+
+def test_claude_runs_on_subscription_at_max_effort(
+    loop: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(loop, "agent", "claude")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "must-not-leak")
+    monkeypatch.setenv("CLAUDECODE", "1")
+    argv = loop.agent_argv(["claude"], tmp_path, "one experiment")
+    assert argv[-1] == "one experiment"
+    assert argv[argv.index("--model") + 1] == "claude-opus-5-5"
+    assert argv[argv.index("--effort") + 1] == "max"
+    env = loop.agent_env(tmp_path)
+    assert "ANTHROPIC_API_KEY" not in env and "CLAUDECODE" not in env
+    assert env["ND_AGENT"] == "claude" and env["ND_AUTORESEARCH_SESSION"] == str(tmp_path)
+
+
+def test_claude_final_answer_is_the_explanation(
+    loop: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(loop, "agent", "claude")
+    events = [
+        {"type": "assistant", "message": {"content": [{"type": "text", "text": "PRIVATE"}]}},
+        {"type": "result", "subtype": "success", "result": "Blocked: pods unavailable."},
+    ]
+    (tmp_path / "claude.jsonl").write_text("\n".join(json.dumps(e) for e in events))
+    assert loop.agent_explanation(tmp_path) == "Agent: Blocked: pods unavailable."
+
+
+def test_low_balance_blocks_before_renting(loop: Any, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.undo()  # restore the real check_balance, then fake only the RunPod listing
+    monkeypatch.setattr(
+        loop.subprocess,
+        "run",
+        lambda argv, **kw: subprocess.CompletedProcess(argv, 0, '{"clientBalance": 1.5}', ""),
+    )
+    with pytest.raises(loop.ExperimentBlocked, match="balance"):
+        loop.check_balance()

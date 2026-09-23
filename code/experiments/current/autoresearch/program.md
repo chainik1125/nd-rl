@@ -1,8 +1,14 @@
 # Autoresearch: pretrain workstream
 
 You are an autonomous researcher improving the pretraining stage of a small proof model. Complete
-one experiment per session; `loop.py` starts fresh Codex sessions until cancelled. Adapted from
+one experiment per session; `loop.py` starts fresh sessions until cancelled. Adapted from
 Karpathy's autoresearch (2026) `program.md`; the differences are the metric and the harness split.
+
+**Two agents run this loop in parallel**: Codex (`gpt-6-astra`) and Claude (`claude-opus-5-5`),
+each in its own checkout, both pushing to the same branch. Robbie counts who gets more keeps.
+`$ND_AGENT` says which one you are. The incumbent is whatever `pretrain.py` is at the branch
+HEAD, and either agent can replace it. The scripts pull before every publish; you just
+`git pull --ff-only` at the start of your session so you work from the latest incumbent.
 
 ## Setup
 
@@ -38,9 +44,12 @@ stop on commit/push failure. Do not stage, commit, push, or restore files manual
    excited about P01 (looped architectures) and P02 (Muon); these are not mandatory
    priorities. Include the chosen idea ID in the registration description.
 2. Pick one idea. Edit `pretrain.py`.
-3. Pre-register: `$PY params.py new <NNN> <slug> --seeds 0,1,2` writes `results/<NNN>_<slug>/params.json`
-   (mechanical fields, `protocol`, and `pretrain.patch` filled in) and leaves `TODO`s. Fill every
-   TODO: `provider`/`model` (the agent that is you), title, description, hypothesis, prediction,
+3. Pre-register: `$PY params.py new <NNN> <slug> --seeds 0,1,2` writes
+   `results/<NNN>-<agent>_<slug>/params.json` (it appends your `$ND_AGENT` to the id; use the
+   next number after the highest existing one) with mechanical fields, `provider`/`model`,
+   `protocol`, and `pretrain.patch` filled in, and leaves `TODO`s. If the other agent kept a new
+   `pretrain.py` while you were editing, it refuses: re-apply only your idea on top of the new
+   HEAD file and rerun it. Fill every TODO: title, description, hypothesis, prediction,
    and `config` (what your pretrain.py actually builds; read the file, do not guess).
    Use the intended seeds here and at launch (e.g. `--seeds 3,4,5` for a control).
    Both `config.seed` and `protocol.seed` store that list; historical runs use a scalar.
@@ -48,19 +57,22 @@ stop on commit/push failure. Do not stage, commit, push, or restore files manual
    The runner commits and pushes these two registration files before launching. Committing
    the prediction BEFORE the run is enforced; params.json is never edited after this commit.
 4. Run on three seeds at once, one pod each:
-   `source "$(git rev-parse --show-toplevel)/.envrc.local" && $PY run_idea.py <NNN>_<slug> --seeds 0,1,2`.
+   `source "$(git rev-parse --show-toplevel)/.envrc.local" && $PY run_idea.py <NNN>-<agent>_<slug> --seeds 0,1,2`.
    It validates the schema, source hashes, fork and seeds, rejects dirty frozen files, then
    commits/pushes only this experiment's params.json and pretrain.patch. Existing committed
    registrations must match HEAD exactly. It rechecks validation after hooks and before pods.
    It writes the
-   merged `artifacts/autoresearch/<NNN>_<slug>/summary.json` (`metric` = mean over seeds,
+   merged `artifacts/autoresearch/<name>/summary.json` (`metric` = mean over seeds,
    `seed_metrics` per seed; status ok only if every seed is ok) plus one dir per seed.
-5. Record: `$PY record.py <NNN>_<slug> keep|discard|crash|timeout "surprise"` writes
+5. Record: `$PY record.py <NNN>-<agent>_<slug> keep|discard|crash|timeout "surprise"` writes
    `results.json` (loss curve, per-round RL numbers, eval histograms, seed metrics) and refuses
    if the run does not match what was pre-registered. It also refreshes `RESULTS.md`, applies
    the supplied decision, and commits/pushes only results.json, RESULTS.md, and pretrain.py.
-   On discard/crash/timeout it restores pretrain.py from the registered base commit, after
-   checking that no new edits would be overwritten. No manual table refresh or Git step.
+   It first pulls the other agent's results. If they kept a file scoring at least as high as
+   yours during your run, your `keep` becomes a `discard` automatically. A keep replaces
+   pretrain.py whole (winner-take-all; never merged with their file). On
+   discard/crash/timeout, pretrain.py becomes the incumbent at HEAD. No manual table refresh
+   or Git step.
 6. Choose `keep` only if the idea's mean `metric` is above the current baseline's mean
    `metric` (both are 3-seed means). Ties: keep only if simpler. Otherwise choose `discard`.
    Unrelated staged/unstaged work is left alone. If a commit/push fails, stop and report it;
@@ -80,8 +92,9 @@ stop on commit/push failure. Do not stage, commit, push, or restore files manual
   as `crash` or `timeout` and move on. Never edit the harness to make something fit.
 - **No cheating.** No eval or RL code in pretrain.py. No touching the pools. No external
   weights, no hand-written proofs, no calling the verifier from the decoder.
-- **Three pods per experiment, one experiment at a time.** Never more than 3 A40s at once. A
-  pod named `autoresearch-klaus` may belong to another agent: leave it alone.
+- **Three pods per experiment, one experiment at a time per agent**, so never more than 6 A40s
+  across both agents. Pods are named `autoresearch-ndrl-pretrain-<agent>-<NNN>-s<seed>-...`;
+  never touch the other agent's pods.
 - **Cleanup.** `run_idea.py` terminates its pods after running. On cancellation, `loop.py`
   stops the local processes and terminates only the pods registered to that session.
   There is no overnight cutoff or experiment-count limit.
@@ -90,7 +103,7 @@ stop on commit/push failure. Do not stage, commit, push, or restore files manual
 - Do not ask whether to continue within your assigned experiment. If out of ideas, re-read
   the fork's code or combine near-misses. Exit after recording one experiment, or report a blocker.
 
-## Files per experiment: `results/<NNN>_<slug>/`
+## Files per experiment: `results/<NNN>-<agent>_<slug>/` (ids before 041 have no agent)
 
 - `params.json`: frozen before the run. `params.py new` fills the mechanical part; you fill the rest.
 - `pretrain.patch`: `git diff HEAD -- pretrain.py` at pre-registration. The code IS the config;
@@ -101,8 +114,8 @@ stop on commit/push failure. Do not stage, commit, push, or restore files manual
 
 ```json
 {
-  "id": "003", "slug": "wider-ffn", "written_at": "...", "base_commit": "<HEAD when written>",
-  "provider": "<anthropic|openai>", "model": "<exact model id you run as, e.g. claude-fable-5-1, gpt-6-astra>",
+  "id": "041-claude", "slug": "wider-ffn", "written_at": "...", "base_commit": "<HEAD when written>",
+  "provider": "anthropic", "model": "claude-opus-5-5",
   "harness_sha": "...", "pretrain_sha": "...", "patch_lines": 12,
   "title": "<one line>",
   "description": "<two sentences: what changes and why it should help expert iteration>",

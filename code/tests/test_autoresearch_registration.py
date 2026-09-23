@@ -277,7 +277,7 @@ def test_publication_failure_never_starts_pods(
         params.git("config", "core.hooksPath", str(hooks))
     monkeypatch.setattr(sys, "argv", ["run_idea.py", "999_test", "--seeds", "3,4,5"])
     monkeypatch.setattr(runner.threading, "Thread", lambda **kw: pytest.fail("pod work started"))
-    with pytest.raises(SystemExit, match=f"Git {failure} failed"):
+    with pytest.raises(SystemExit, match="Git pull failed" if failure == "push" else "Git commit"):
         runner.main()
 
 
@@ -305,15 +305,18 @@ def test_outcome_push_failure_can_retry_without_rewriting_result(
     publication: Any, monkeypatch: pytest.MonkeyPatch, status: str
 ):
     params, recorder = publication["params"], publication["record"]
-    remote = params.git("remote", "get-url", "origin").strip()
-    params.git("remote", "set-url", "origin", str(params.HERE / "missing.git"))
+    hooks = params.HERE / "hooks"
+    hooks.mkdir()
+    (hooks / "pre-push").write_text("#!/bin/sh\necho 'test hook rejected push' >&2\nexit 1\n")
+    (hooks / "pre-push").chmod(0o700)
+    params.git("config", "core.hooksPath", str(hooks))
     monkeypatch.setattr(sys, "argv", ["record.py", "999_test", status, "test observation"])
     with pytest.raises(SystemExit, match="Git push failed"):
         recorder.main()
     assert not (params.HERE / "session/completed.json").exists()
     recorded = (params.HERE / "results/999_test/results.json").read_bytes()
     committed = params.git("rev-parse", "HEAD")
-    params.git("remote", "set-url", "origin", remote)
+    params.git("config", "core.hooksPath", "/dev/null")
     recorder.main()
     assert (params.HERE / "results/999_test/results.json").read_bytes() == recorded
     assert params.git("rev-parse", "HEAD") == committed
@@ -382,6 +385,7 @@ def test_resume_rejects_active_attempt_but_ignores_stale_pid(
     session.mkdir(parents=True)
     (session / "launch-1.json").write_text(json.dumps({"name": "999_test", "pid": 12345678}))
     monkeypatch.setattr(runner, "ART", str(artifacts))
+    monkeypatch.delenv("ND_AGENT", raising=False)
 
     def fake_run(argv: list[str], **kwargs: Any):
         if argv[0] == "ps":
@@ -390,7 +394,7 @@ def test_resume_rejects_active_attempt_but_ignores_stale_pid(
         assert argv[-1] == "list"  # No up/down/kill commands in a preflight.
         pods = [{"name": "autoresearch-unrelated_s0"}]
         if active == "pod":
-            pods.append({"name": "autoresearch-999_test_s3-session-old"})
+            pods.append({"name": "autoresearch-ndrl-pretrain-manual-999-s3-session-old"})
         return subprocess.CompletedProcess(argv, 0, json.dumps({"pods": pods}), "")
 
     monkeypatch.setattr(runner.subprocess, "run", fake_run)
@@ -415,3 +419,115 @@ def test_previous_summaries_are_archived_not_reused(
     assert len(list(artifacts.glob("previous_attempts/*/*/summary.json"))) == 3
     with pytest.raises(SystemExit, match="no seed produced"):
         runner.merge("999_test", [3, 4, 5])
+
+
+def rival_pushes(params: Any, tmp_path: Path, *, metric: int | None, pretrain: str | None) -> None:
+    """The other agent's checkout pushes to the shared branch (optionally a recorded keep)."""
+    other = tmp_path / "other-agent"
+    remote = params.git("remote", "get-url", "origin").strip()
+    subprocess.run(["git", "clone", "-q", remote, str(other)], check=True)
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", "-C", str(other), *args], check=True, capture_output=True)
+
+    git("config", "user.name", "Other agent")
+    git("config", "user.email", "other@example.invalid")
+    git("config", "core.hooksPath", "/dev/null")
+    if pretrain is not None:
+        (other / "pretrain.py").write_text(pretrain)
+    if metric is not None:
+        directory = other / "results/100-claude_rival"
+        directory.mkdir(parents=True)
+        registration = json.loads((params.HERE / "results/999_test/params.json").read_text())
+        registration.update(id="100-claude", slug="rival")
+        (directory / "params.json").write_text(json.dumps(registration))
+        recorded = json.loads(next((SOURCE / "results").glob("0[3-9]*/results.json")).read_text())
+        recorded.update(status="keep", metric=metric, recorded_at="2099-01-01T00:00:00-0700")
+        (directory / "results.json").write_text(json.dumps(recorded))
+    else:
+        (other / "rival-note.txt").write_text("unrelated\n")
+    git("add", "-A")
+    git("commit", "-qm", "rival")
+    git("push", "-q")
+
+
+def test_registration_catches_up_with_rival_push(publication: Any, tmp_path: Path):
+    params, runner = publication["params"], publication["run_idea"]
+    candidate = (params.HERE / "pretrain.py").read_text()
+    params.new("998", "next", [3, 4, 5])
+    template = json.loads((params.HERE / "results/999_test/params.json").read_text())
+    template.update(id="998", slug="next")
+    (params.HERE / "results/998_next/params.json").write_text(json.dumps(template))
+    rival_pushes(params, tmp_path, metric=None, pretrain=None)
+    runner.register("998_next", [3, 4, 5])
+    assert (params.HERE / "rival-note.txt").exists()
+    assert (params.HERE / "pretrain.py").read_text() == candidate
+    assert_published_with_drafts_intact(params)
+
+
+def test_new_refuses_candidate_written_against_old_incumbent(publication: Any, tmp_path: Path):
+    params = publication["params"]
+    candidate = (params.HERE / "pretrain.py").read_text()
+    rival_pushes(params, tmp_path, metric=None, pretrain="# rival incumbent\n")
+    params.git("fetch", "-q")
+    with pytest.raises(SystemExit, match="other agent kept"):
+        params.new("998", "next", [3, 4, 5])
+    assert (params.HERE / "pretrain.py").read_text() == candidate
+    assert params.git("show", "HEAD:pretrain.py") == "# rival incumbent\n"
+    assert not (params.HERE / "results/998_next").exists()
+
+
+def test_new_suffixes_id_and_fills_agent(publication: Any, monkeypatch: pytest.MonkeyPatch):
+    params = publication["params"]
+    monkeypatch.setenv("ND_AGENT", "claude")
+    monkeypatch.setenv("ND_AGENT_MODEL", "claude-opus-5-5")
+    params.new("998", "next", [0, 1, 2])
+    registration = json.loads((params.HERE / "results/998-claude_next/params.json").read_text())
+    assert registration["id"] == "998-claude"
+    assert (registration["provider"], registration["model"]) == ("anthropic", "claude-opus-5-5")
+
+
+@pytest.mark.parametrize("rival_metric,expected", [(200, "discard"), (100, "keep")])
+def test_keep_is_judged_against_rival_keep_during_run(
+    publication: Any,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    rival_metric: int,
+    expected: str,
+):
+    params, recorder = publication["params"], publication["record"]
+    candidate = (params.HERE / "pretrain.py").read_text()
+    rival = "# rival incumbent\n"
+    rival_pushes(params, tmp_path, metric=rival_metric, pretrain=rival)
+    monkeypatch.setattr(sys, "argv", ["record.py", "999_test", "keep", "test observation"])
+    recorder.main()  # our metric is 150
+    recorded = json.loads((params.HERE / "results/999_test/results.json").read_text())
+    assert recorded["status"] == expected
+    winner = candidate if expected == "keep" else rival  # whole file, never a line merge
+    assert (params.HERE / "pretrain.py").read_text() == winner
+    assert params.git("show", "HEAD:pretrain.py") == winner
+    assert "100-claude" in params.git("show", "HEAD:RESULTS.md")
+    assert_published_with_drafts_intact(params)
+
+
+def test_record_redoes_commit_after_losing_push_race(
+    publication: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    params, recorder = publication["params"], publication["record"]
+    candidate = (params.HERE / "pretrain.py").read_text()
+    refresh = recorder.table.main
+    raced = []
+
+    def table_then_rival_pushes() -> None:
+        refresh()
+        if not raced:  # after our catch-up, before our push
+            raced.append(True)
+            rival_pushes(params, tmp_path, metric=100, pretrain="# rival incumbent\n")
+
+    monkeypatch.setattr(recorder.table, "main", table_then_rival_pushes)
+    monkeypatch.setattr(sys, "argv", ["record.py", "999_test", "keep", "test observation"])
+    recorder.main()
+    assert params.git("show", "HEAD:pretrain.py") == candidate  # 150 beats the rival's 100
+    assert "100-claude" in params.git("show", "HEAD:RESULTS.md")
+    assert params.git("log", "-1", "--format=%s").startswith("autoresearch 999 test: keep")
+    assert_published_with_drafts_intact(params)

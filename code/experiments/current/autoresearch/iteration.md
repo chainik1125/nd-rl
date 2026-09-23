@@ -1,3 +1,5 @@
+You run unattended: nobody will answer questions, so decide and proceed. Another agent runs
+the same loop in parallel on the same branch (see program.md); start with `git pull --ff-only`.
 Read AGENTS.md, .claude/notes/robbie-pretrain-workstream.md, .claude/notes/ideas.md, and
 code/experiments/current/autoresearch/program.md. Complete exactly ONE pretraining
 experiment under that protocol, then exit. The Python launcher starts the next session.

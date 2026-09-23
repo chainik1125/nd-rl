@@ -127,7 +127,7 @@ class Protocol(Loose):
 
 
 class Params(Loose):
-    id: str = Field(pattern=r"^\d{3}$")
+    id: str = Field(pattern=r"^\d{3}(-[a-z]+)?$")  # e.g. 041-claude; no suffix before 041
     slug: str
     written_at: str | None
     provider: Literal["anthropic", "openai"]

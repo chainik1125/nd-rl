@@ -10,8 +10,13 @@ research agent. These are not Git worktrees.
 
 | Checkout | Branch | Role |
 | --- | --- | --- |
-| `/Users/robbie/repos/nd-rl` | `autoresearch-pretrain` | Researcher: run the Codex loop here. |
+| `/Users/robbie/repos/nd-rl` | `autoresearch-pretrain` | Researcher: run the Codex loop here (`--agent codex`). |
+| `/Users/robbie/repos/nd-rl-3` | `autoresearch-pretrain` | Researcher: run the Claude loop here (`--agent claude`). |
 | `/Users/robbie/repos/nd-rl-2` | `autoresearch-dev` | Development: edit/test orchestration and dashboard here. |
+
+Since 2026-09-23 the two researcher checkouts share one branch and push to it concurrently;
+`params.py`/`record.py` catch up before each publish (see [LOOP.md](../../code/experiments/current/autoresearch/LOOP.md)).
+Stopping "the loop" to integrate tooling now means stopping both.
 
 Each checkout owns its `.git`, `code/.venv`, tracked code/results, and ignored `artifacts/`.
 Do not share artifacts: they contain pod ownership, active session manifests, and per-attempt

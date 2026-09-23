@@ -61,18 +61,58 @@ def registration_files(name: str, *, allow_new: bool = False) -> list[str]:
     return paths
 
 
-def commit_and_push(paths: list[str], message: str) -> str:
-    """Commit only these working-tree files; preserve unrelated staged work and run hooks."""
-    action = "add"
+def sync(candidate: str) -> None:
+    """Catch up with the shared branch: the other agent's loop pushes to it too, sometimes with a
+    new incumbent pretrain.py. The uncommitted candidate is set aside while catching up, so it is
+    never line-merged with theirs, then written back whole. RESULTS.md is regenerated, never merged.
+    """
     try:
-        git("add", "--", *paths)
-        action = "diff"
-        if git("diff", "--cached", "--name-only", "--", *paths).strip():
-            action = "commit"
-            git("commit", "--only", "-m", message, "--", *paths)
-        action = "push"
-        git("push")  # Also retries a previously successful commit whose push failed.
-        return git("rev-parse", "HEAD").strip()
+        try:
+            git("rev-parse", "--verify", "--quiet", "@{upstream}")
+        except subprocess.CalledProcessError:
+            return  # No upstream (tests, local-only branch): nothing to catch up with.
+        git("fetch", "--quiet")
+        if not git("rev-list", "HEAD..@{upstream}").strip():
+            return
+        aside = git("ls-files", "--", "pretrain.py", "RESULTS.md").split()
+        git("restore", "--source=HEAD", "--staged", "--worktree", "--", *aside)
+        if git("rev-list", "@{upstream}..HEAD").strip():
+            git("rebase", "--autostash", "--quiet", "@{upstream}")  # an earlier push failed
+        else:
+            git("merge", "--ff-only", "--quiet", "@{upstream}")  # keeps staged drafts staged
+    finally:
+        (HERE / "pretrain.py").write_text(candidate)
+
+
+def commit_and_push(paths: list[str], message: str, prepare=None) -> str:
+    """Commit only these working-tree files on top of the shared branch; preserve unrelated staged
+    work and run hooks. If the other agent pushes first, undo and redo on top of theirs.
+    prepare() runs after every catch-up to (re)write the files and may return a new message."""
+    candidate = (HERE / "pretrain.py").read_text()
+    action = "pull"
+    try:
+        for _ in range(5):
+            action = "pull"
+            sync(candidate)
+            message = (prepare and prepare()) or message
+            action = "add"
+            git("add", "--", *paths)
+            action = "diff"
+            committed = bool(git("diff", "--cached", "--name-only", "--", *paths).strip())
+            if committed:
+                action = "commit"
+                git("commit", "--only", "-m", message, "--", *paths)
+            action = "push"
+            try:
+                git("push")  # Also retries a previously successful commit whose push failed.
+                return git("rev-parse", "HEAD").strip()
+            except subprocess.CalledProcessError as exc:
+                if "[rejected]" not in (exc.stderr or ""):  # non-fast-forward, not a hook
+                    raise
+                if committed:  # Lost the race: redo this commit on top of the other agent's.
+                    git("reset", "--soft", "HEAD~1")
+                git("restore", "--staged", "--", *paths)
+        raise SystemExit("Git push lost the race to the other agent 5 times; not published")
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or exc.stdout or str(exc)).strip()
         raise SystemExit(f"Git {action} failed; experiment not published:\n{detail}") from None
@@ -188,6 +228,22 @@ def new(nnn: str, slug: str, seeds: list[int] | None = None) -> None:
     if seeds is not None and (not seeds or len(set(seeds)) != len(seeds)):
         raise SystemExit("seeds must be nonempty and unique")
     seed = seeds if seeds is not None else 0
+    # Two agents share one branch; the suffix keeps their ids (and pod names) from colliding.
+    agent = os.environ.get("ND_AGENT")
+    if agent and not nnn.endswith(f"-{agent}"):
+        nnn = f"{nnn}-{agent}"
+    pretrain = HERE / "pretrain.py"
+    incumbent = git("show", "HEAD:./pretrain.py")
+    try:
+        sync(pretrain.read_text())
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit(f"Git pull failed: {(exc.stderr or exc.stdout).strip()}") from None
+    if git("show", "HEAD:./pretrain.py") != incumbent:
+        raise SystemExit(
+            "The other agent kept a new pretrain.py while you worked (see `git log -3`). Your "
+            "candidate is untouched, but its diff against HEAD now also reverts their win. "
+            "Re-apply only your idea on top of `git show HEAD:./pretrain.py`, then rerun this."
+        )
     name = f"{nnn}_{slug}"
     d = HERE / "results" / name
     if d.exists():
@@ -199,8 +255,8 @@ def new(nnn: str, slug: str, seeds: list[int] | None = None) -> None:
         "id": nnn,
         "slug": slug,
         "written_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "provider": TODO,
-        "model": TODO,
+        "provider": {"claude": "anthropic", "codex": "openai"}.get(agent or "", TODO),
+        "model": os.environ.get("ND_AGENT_MODEL", TODO),
         "base_commit": git("rev-parse", "--short", "HEAD").strip(),
         "harness_sha": sha(HERE / "harness.py"),
         "pretrain_sha": sha(HERE / "pretrain.py"),

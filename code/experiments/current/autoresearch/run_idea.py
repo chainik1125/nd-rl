@@ -65,6 +65,12 @@ def register(name: str, seeds: list[int]) -> None:
     preflight(name, seeds)  # Recheck committed bytes and candidate after hooks, before paid work.
 
 
+def pod_prefix(name: str) -> str:
+    """ndrl-pretrain-<agent>-<NNN>; pod.py adds `autoresearch-` and run_idea adds `-s<seed>`."""
+    number, _, agent = check(name).id.partition("-")
+    return f"ndrl-pretrain-{agent or os.environ.get('ND_AGENT', 'manual')}-{number}"
+
+
 def ensure_idle(name: str) -> None:
     """Read-only guard against relaunching an interrupted attempt that is still alive."""
     for manifest in Path(ART).glob("loop/*/launch-*.json"):
@@ -89,8 +95,9 @@ def ensure_idle(name: str) -> None:
     )
     if listed.returncode:
         raise SystemExit("Cannot verify previous pods are gone: RunPod list failed")
+    prefix = re.escape(f"autoresearch-{pod_prefix(name)}")
     for pod in json.loads(listed.stdout)["pods"]:
-        if re.fullmatch(rf"autoresearch-{re.escape(name)}_s\d+(?:-.*)?", pod["name"]):
+        if re.fullmatch(rf"{prefix}-s\d+(?:-.*)?", pod["name"]):
             raise SystemExit(
                 f"{name}: previous pod {pod['name']} is still active; clean it up first"
             )
@@ -186,7 +193,7 @@ def main():
     session = os.environ.get("ND_AUTORESEARCH_SESSION")
     log_dir, manifest = ART, None
     entry: dict[str, Any] = {}
-    pods = [f"{name}_s{s}" for s in seeds]
+    pods = [f"{pod_prefix(name)}-s{s}" for s in seeds]
     if session:
         # A separate group lets loop.py cancel this runner even if Codex detached its shell.
         if os.getpgrp() != os.getpid():
