@@ -28,19 +28,21 @@ credentials through direnv. Do not commit secrets or local paths into experiment
 
 ## Watch live results
 
-`nd-rl-2/live-results` is an ignored symlink to
-`../nd-rl/code/experiments/current/autoresearch/results`. It is a read-only *usage convention*,
-not filesystem-enforced protection: writes through it would change the researcher checkout.
-Never modify results through that alias. Tracked `results/` directories remain independent.
-
-From the development checkout:
+From any checkout:
 
 ```bash
-python3 code/experiments/current/autoresearch/dashboard/serve.py --results-dir live-results
+python3 code/experiments/current/autoresearch/dashboard/serve.py
 ```
 
-The dashboard reads those files on each request; refresh to see newly recorded results.
-Only run one dashboard server at a time: both checkouts use the same existing port, 7102.
+By default the dashboard reads `results/` from `origin/autoresearch-pretrain`, fetching at most
+every 20 s. It therefore shows both agents' pushed registrations and results, whichever
+checkout serves it. Refresh to see new runs. The header counts keeps per agent since 041.
+Only run one dashboard server at a time, because every checkout uses port 7102.
+
+`nd-rl-2/live-results` is an ignored symlink to
+`../nd-rl/code/experiments/current/autoresearch/results`, for `--results-dir live-results`. It
+only sees the Codex checkout, and only what that checkout has pulled. It is a read-only *usage
+convention*: writes through it would change the researcher checkout.
 
 ## Move tooling changes into the researcher
 

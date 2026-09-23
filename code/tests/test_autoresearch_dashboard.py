@@ -47,3 +47,18 @@ def test_results_directory_can_be_a_live_symlink(tmp_path: Path, monkeypatch: py
     assert served[0]["status"] == "pending"
     (run / "results.json").write_text('{"metric": 149, "status": "keep"}')
     assert dashboard.load_runs()[0]["metric"] == 149
+
+
+def test_reads_both_agents_from_a_git_ref(monkeypatch: pytest.MonkeyPatch):
+    """Default mode: results come from the shared branch, not whichever checkout serves them."""
+    source = Path(__file__).parents[1] / "experiments/current/autoresearch/dashboard/serve.py"
+    spec = importlib.util.spec_from_file_location("research_dashboard", source)
+    assert spec is not None and spec.loader is not None
+    dashboard = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(dashboard)
+    monkeypatch.setattr(dashboard, "ref", "HEAD")
+    monkeypatch.setattr(dashboard.time, "monotonic", lambda: 0.0)  # skip the network fetch
+    runs = dashboard.load_runs()
+    committed = sorted(p.parent.name for p in source.parents[1].glob("results/*/params.json"))
+    assert [f"{r['id']}_{r['slug']}" for r in runs][:3] == committed[:3]
+    assert runs[0]["agent"] is None  # 000 predates the parallel loops
