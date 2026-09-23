@@ -1,0 +1,61 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d42f395..9149fbc 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -31,6 +31,7 @@ import time
+ import torch
+ from model import GPT  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
++from torch.optim.swa_utils import AveragedModel
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+@@ -41,6 +42,7 @@ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ MUON_WD = WD * LR / MUON_LR
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++AVERAGE_FRACTIONS = (0.80, 0.85, 0.90, 0.95)
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -157,6 +159,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    averaged = AveragedModel(model)
++    averaging_steps = []
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
+@@ -168,6 +172,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         ) / budget_secs  # cosine over wall-clock, so the cap is the schedule
+         if frac >= 1.0:
+             break
++        if (
++            len(averaging_steps) < len(AVERAGE_FRACTIONS)
++            and frac >= AVERAGE_FRACTIONS[len(averaging_steps)]
++        ):
++            averaged.update_parameters(model)
++            averaging_steps.append(step)
+         step += 1
+         lr = (
+             LR * step / WARMUP
+@@ -206,6 +216,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, next_point = [], next_point + CURVE_EVERY
++    # The endpoint is the fifth, equally weighted snapshot; RL gets a plain GPT.
++    averaged.update_parameters(model)
++    averaging_steps.append(step)
++    model.load_state_dict(averaged.module.state_dict())
+     model.eval()
+     return (
+         model,
+@@ -215,6 +229,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "records_seen": step * BS,
+             "epochs": step * BS / n_train,
+             "last_loss": last_loss,
++            "averaging_steps": averaging_steps,
+             "curve": curve,
+         },
+     )
