@@ -1,0 +1,13 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 647d708..060625c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -39,7 +39,7 @@ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+ MUON_WD = WD * LR / MUON_LR
+-ADAMW_FINISH_FRAC = 0.8
++ADAMW_FINISH_FRAC = 0.9
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
