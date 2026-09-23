@@ -1,0 +1,40 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 30bb01a..2ab791a 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,6 +29,7 @@ import math
+ import time
+ 
+ import torch
++import torch.nn.functional as F
+ from model import GPT  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+@@ -41,6 +42,18 @@ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ MUON_WD = WD * LR / MUON_LR
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++Z_LOSS = 1e-4
++
++
++def pretrain_loss(model, x, mask):
++    """P49: penalize log-partition only during pretraining, on the same proof tokens."""
++    logits = model(x[:, :-1]).float()
++    supervised = mask[:, 1:].reshape(-1)
++    token_loss = F.cross_entropy(
++        logits.reshape(-1, logits.size(-1)), x[:, 1:].reshape(-1), reduction="none"
++    )
++    log_partition = logits.logsumexp(dim=-1).reshape(-1)
++    return ((token_loss + Z_LOSS * log_partition.square()) * supervised).sum() / supervised.sum()
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -177,7 +190,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         idxs, perm = perm[:BS], perm[BS:]
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+-            loss = loss_on(model, x, m)
++            loss = pretrain_loss(model, x, m)
+         model.zero_grad(set_to_none=True)
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
