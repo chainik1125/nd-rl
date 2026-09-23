@@ -1,0 +1,206 @@
+{
+  "id": "054-claude",
+  "slug": "top-mlp",
+  "written_at": "2026-09-23T13:01:27-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "6c9295c",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "bfdbfd14c2d8",
+  "patch_lines": 19,
+  "title": "One attention-free MLP sublayer after the five blocks (4.53M parameters)",
+  "description": "New idea outside the P01-P50 backlog (no backlog ID; nearest are P24 more MLP capacity and the depth result of 051-claude): on top of incumbent 051-claude, append one pre-norm GELU MLP sublayer (LayerNorm, 256->1024->256, residual) after the fifth block and before ln_f, with no attention and so no KV cache, trained by Muon like the other hidden matrices, raising parameters from 4,000,000 to 4,526,080 with everything else unchanged. Depth helped in 051, but a sixth full block would add about 20% to RL and evaluation time when 051's slowest seed already took 1053 of 1200 s, whereas a top MLP adds serial nonlinear depth where next-token readout happens (sandwich ordering) for about 11% more pretraining compute and about 2% more decode time, so it should raise expert-iteration sample accuracy on 7+-line targets without the timeout risk.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Evidence: (1) Depth. 051 (five untied blocks instead of four) scored 288/260/311 versus 043's 282/275/269 (exact means 286.333333 versus 275.333333) despite about 20% fewer pretraining updates (2320/2370/2341 versus 2870-2902), and removing unique block capacity cost every matched seed before Muon (014 P01 mean 75.33 and 028 P03 mean 130.33, versus 147.67). (2) Budget. Wall-clock, not parameters, binds: 051's per-seed totals were 1053/957/941 s of 1200, and the slow seed-0 pod sampled at 540-593 samples/s versus 665-757 on the others. A decode step at SAMPLE_BATCH 1024 is dominated by each attention block reading its KV cache (about 1024 x 8 heads x 300 cached tokens x 32 dims x 2 tensors x 2 bytes = 315 MB per block per generated token), which an attention-free sublayer does not have; the 4 -> 5 block change moved per-seed totals from 832-922 s (043) to 941-1053 s, so a sixth full block would put a slow pod near the cap. (3) Updates. 051's validation loss reaches 0.090-0.098 by 105-135 s (about 750-1000 updates) and then only fluctuates while train loss falls to 0.059, so about 10% fewer updates should cost little token-level quality. By FLOP count the added MLP is 524,288 of about 860,000-930,000 multiply-accumulates per token of one block (about 0.6 of a block, +11-12% of the five blocks); 051's MPS benchmark measured +22-25% step time for a whole block. The data order and the five blocks' initial weights are unchanged (see init). (4) Failure modes. 043 seed 0's 7-line failures are dominated by invalid rule applications (IMPI 18%, bad box cite 12%, IMPE 10%, ANDI 9%; 047-claude registration), i.e. emitting a formula the cited lines and rule do not license. In a pre-norm GPT the only nonlinear computation between the last attention and the readout is the last block's MLP; a second MLP there doubles the depth available to combine the retrieved cited-line formulas with rule knowledge before choosing each token. (5) Literature. Press, Smith and Levy 2020 ('Improving Transformer Models by Reordering their Sublayers', ACL 2020, arXiv 1911.03864) found language models improve with more self-attention sublayers at the bottom and more feedforward sublayers at the top (sandwich transformers), though the pattern did not help every task (not machine translation). Geva et al. 2021 ('Transformer Feed-Forward Layers Are Key-Value Memories', EMNLP 2021) found upper-layer feedforward values concentrate probability on the next token, i.e. upper MLPs do readout. Mechanism: a deeper nonlinear readout raises the pretrained policy's rate of valid rule applications on longer proofs, so round-1 RL sample accuracy and targets solved rise and each expert-iteration round extends the ladder further, adding 9-10-line dev solves. This is also a mechanism check on 051: a gain says attention-free depth carries part of the depth benefit; a null says 051 needed the extra attention hop (multi-hop retrieval of box structure). Alternative outcomes: (a) 051's gain came from its fifth attention layer, which this does not add; (b) the extra 526,080 parameters mostly memorize (about 3.5 epochs) without transferring; (c) about 10% fewer updates cost precision; (d) during RL the frozen AdamW adapts the top MLP, closest to the loss, fastest, and it could overfit found proofs and hurt transfer; (e) 051's +11 (paired +6/-15/+42) was partly seed luck, so the incumbent bar is inflated. The top MLP persists into RL and evaluation (the frozen RL AdamW trains all 4,526,080 parameters; sampling allocates an unused cache dict for it); RL, evaluation, data, tokenizer, seeds and budgets are unchanged. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +8 dev-transfer solves at true length >=7 versus incumbent 051-claude exact mean 286.333333 (288/260/311), plausible range -20 to +25; a null or negative result would say 051's gain needed its fifth attention layer. Parameters rise 13.2% to 4,526,080. Expect about 2050-2200 pretraining updates in 300 s (051: 2320/2370/2341), final validation loss within +-0.005 of 051 (0.0923/0.0951/0.0932), held-out greedy 0.980-0.992, and mean round-1 RL sample accuracy at or above 051's 0.062 (0.063/0.049/0.075). RL fine-tuning should take about 8-12% longer and sampling about 1-3% longer, putting per-seed totals at about 960-1100 s (051: 1053/957/941) under the 1200 s cap; a seed over the cap would count as a failed experiment.",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) + one attention-free top MLP sublayer",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4526080,
+      "change": "one change: append TopMLP(256) to model.blocks of the 5-block fork GPT (incumbent 051-claude); d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout and every other setting unchanged",
+      "n_params_detail": "per block 789,760; 5 blocks 3,948,800 + top MLP 526,080 (LayerNorm 512, fc1 263,168, fc2 262,400) + emb 25,344 + head 25,344 + ln_f 512 = 4,526,080 (051: 4,000,000)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork, then model.blocks.append(TopMLP(256)) from this pretrain.py; state dict keys blocks.0-blocks.4 plus blocks.5.{ln,fc1,fc2}.*; a harness --smoke final.pt was checked locally to reload with strict=True",
+      "kv_cache": "one fork KV-cache dict per model.blocks entry: 5 filled by attention blocks; the top MLP leaves its dict unused (checked locally: greedy KV-cached decoding matches full-forward argmax on 16 prompts)",
+      "top_mlp": {
+        "position": "after blocks.4 and before ln_f, appended as model.blocks[5]",
+        "form": "x + fc2(gelu(fc1(LayerNorm(x))))",
+        "d_ff": 1024,
+        "attention": "none: ignores rope, mask and cache",
+        "n_params": 526080
+      }
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1 (top MLP fc1 2, fc2 1)",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 22 hidden projection matrices are in Muon: qkv, proj, fc1 and fc2 in each of five blocks plus the top MLP fc1 (1024,256) and fc2 (256,1024). Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; the others are unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters (including the top MLP LayerNorm and biases) throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction with 5 blocks; TopMLP is constructed on CPU after the GPT and passed through the fork's _init (normal 0.02 weights, zero biases; LayerNorm weight 1 and bias 0), appended, and the model moved to device. Then orthogonal_ on every 2D parameter in model.blocks in order (20 block matrices, then top fc1 (1024,256) and fc2 (256,1024)), gain 0.02 * sqrt(max(rows, columns)), exact element second moment 0.0004. On CUDA the orthogonal draws use the device generator, which the new module's CPU draws do not touch, so the five blocks, embedding and readout start bitwise identical to 051's for each seed (on CPU, where one generator serves both, only the 20 orthogonal block matrices differ; checked locally). Embedding and readout keep the fork's normal(0.02) draws. No reinitialization during RL.",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "timing": "No usable local benchmark: this Mac's MPS backend hung inside the batched Newton-Schulz matmuls (bf16 and fp32) and gave inconsistent step times (11,062 ms versus 751 ms for the two models in one pass). Estimates come from FLOP counts and 051's measured +22-25% step time per full block (MPS)."
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 405a860..7a0094c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,6 +29,7 @@ import math
+ import time
+ 
+ import torch
++import torch.nn.functional as F
+ from model import GPT  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+@@ -89,6 +90,20 @@ def muon_step(params, buffers, lr):
+         p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
++class TopMLP(torch.nn.Module):
++    """A pre-norm MLP sublayer with no attention, run after the last Block. It lives in
++    model.blocks so the fork's GPT.forward calls it; it ignores rope, mask and its KV cache."""
++
++    def __init__(self, d):
++        super().__init__()
++        self.ln = torch.nn.LayerNorm(d)
++        self.fc1 = torch.nn.Linear(d, 4 * d)
++        self.fc2 = torch.nn.Linear(4 * d, d)
++
++    def forward(self, x, cos, sin, mask=None, cache=None):
++        return x + self.fc2(F.gelu(self.fc1(self.ln(x))))
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -143,7 +158,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model.blocks.append(TopMLP(D).apply(model._init))  # fork init: normal 0.02, zero biases
++    model = model.to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
