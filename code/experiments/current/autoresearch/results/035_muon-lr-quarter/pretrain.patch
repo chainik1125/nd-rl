@@ -1,0 +1,13 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 647d708..03e7d5c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -36,7 +36,7 @@ from train import loss_on  # fork
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 4, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+-MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
++MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.005, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+ MUON_WD = WD * LR / MUON_LR
+ ADAMW_FINISH_FRAC = 0.8

@@ -1,0 +1,208 @@
+{
+  "id": "035",
+  "slug": "muon-lr-quarter",
+  "written_at": "2026-09-23T06:46:25-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "e3a3063",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "e6f791e7c3bc",
+  "patch_lines": 2,
+  "title": "P02: quarter-original-rate Muon before the AdamW finish",
+  "description": "P02 follow-up: halve peak split-QKV Muon LR again, from incumbent 0.01 to 0.005 (one quarter of the original 0.02), during the first 80% of pretraining. Smaller hidden-matrix updates may preserve reusable proof features and improve transfer through fixed downstream expert iteration, with the final 20% AdamW finish unchanged.",
+  "tags": [
+    "optimizer"
+  ],
+  "hypothesis": "Muon (030) and a final 20% AdamW phase (032) improved all paired downstream seeds. Halving Muon LR to 0.01 in incumbent 034 improved the exact mean by 4 solves, but paired changes were -32/-20/+64, so evidence for a monotonic LR benefit is weak. Extending the AdamW finish in 033 did not improve the mean despite lower validation losses. No prior registration tests Muon LR 0.005. A further LR reduction may avoid disruption of learned proof features while retaining orthogonalized update geometry; alternatively it may undertrain the hidden matrices in the fixed 300-second budget. The derived Muon decay coefficient rises from 0.01 to 0.02 solely to preserve identical multiplicative shrinkage per update. Only downstream three-seed dev-transfer performance determines keep/discard.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +2 to +12 dev-transfer solves at true length >=7 versus incumbent 034 exact mean 236.666667 (stored rounded 237); plausible downside -80 from undertraining. Auxiliary and final AdamW peak LR remains 0.001; switch stays at 240 seconds of 300. Operation counts, architecture and inference cost are identical, so no systematic per-step latency difference is expected and roughly 2900 updates should fit; learned generation lengths can alter total runtime under the fixed 1200-second cap.",
+  "baseline_id": "034",
+  "baseline_metric": 237,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices then AdamW finish; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.005,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.02,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.005 * adam_lr / 0.001",
+        "parameters": "All 16 hidden projection parameters remain in Muon. Four qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "elapsed pretraining wall-clock fraction <0.8"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; all hidden matrices additionally from elapsed fraction >=0.8",
+      "decay_convention": "Before switch, Muon lr*0.02 equals auxiliary AdamW lr*0.1, preserving incumbent shrinkage at each schedule fraction. After switch, all parameters use AdamW wd=0.1 at the existing auxiliary LR; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "adamw_finish": {
+        "start_fraction": 0.8,
+        "start_seconds_at_registered_budget": 240,
+        "parameters": "all 16 hidden projection matrices added once to existing auxiliary AdamW optimizer",
+        "lr": "same scheduled auxiliary LR, nominal peak 0.001; no restart or additional warmup",
+        "betas": [
+          0.9,
+          0.95
+        ],
+        "wd": 0.1,
+        "eps": 1e-08,
+        "state": "hidden matrices start fresh first/second moments; auxiliary state is retained",
+        "muon_state": "no Muon updates after switch; buffers local to pretrain only"
+      }
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
