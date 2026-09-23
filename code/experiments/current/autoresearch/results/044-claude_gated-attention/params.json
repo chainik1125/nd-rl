@@ -1,0 +1,205 @@
+{
+  "id": "044-claude",
+  "slug": "gated-attention",
+  "written_at": "2026-09-23T10:20:48-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "3d54a06",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "e468d53965f7",
+  "patch_lines": 43,
+  "title": "P30: elementwise sigmoid gate on attention-head outputs (gated attention)",
+  "description": "P30: on top of incumbent 040, multiply every attention-head output channel by sigmoid(W_g x + b_g), computed from the same LayerNorm output that feeds q/k/v and applied before the output projection (Qiu et al. 2025, 'Gated Attention for Large Language Models', gate position G1, elementwise and head-specific), adding 263,168 parameters and changing nothing else. A query-dependent gate lets each head switch off retrieval the current token does not need instead of always writing a softmax average into the residual stream, which should reduce the step-skipping and wrong-citation errors that keep the pretrained model from completing 7+-line proofs in expert-iteration round 1.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Evidence from existing runs: across 88 completed seed runs (012-042), round-1 RL sample accuracy (the pretrained model's pass rate on RL targets at T=0.8, before any RL update) correlates with the final metric at r=0.79, versus r=-0.19 for final validation loss, which is dominated by the unpredictable first line label under the shift augmentation. Muon lifted it from 0.024 (012 mean) to 0.044 (030-040 mean over 33 seed runs, range 0.023-0.067). A local analysis of 040 seed 0 pretrain.pt (32 samples at T=0.8 on 100 RL targets per length) solved 36/100 7-line targets and 0/100 at 8 and 9 lines. On 7-line targets 58% of samples wrote exactly 6 lines and 36% wrote 7; on 8-line targets 55% wrote 6, 38% wrote 7 and 0.2% wrote 8. Failures are mostly rule-check failures (at 7 lines: IMPI 26%, IMPE 11%, ANDI 9%) and bad box cites (7%): the model writes the goal with an unjustified step such as 'IMPI N28 N28', skipping a needed intermediate line or citing the wrong line. Attention in 040 is diffuse: on 7-9-line reference proofs, mean attention entropy at positions >=50 is 3.0-3.4 nats in layers 1-3 (mean max probability 0.23-0.30 over seeds 0-1, W_Q spectral norm ~2.6), versus 1.3-1.7 nats in 030 (Muon LR 0.02, unsplit QKV). A softmax head must always write a convex combination of values, so a head with nothing relevant to retrieve still injects an average (or an attention-sink value) at every token. Mechanism: the elementwise, query-dependent sigmoid gate adds a nonlinearity between W_V and W_O and learns sparse, input-dependent gating (Qiu et al. 2025 report lower perplexity, better stability, no attention sink and better long-context extrapolation in 1.7B dense and 15B MoE models). Here it should let citation/premise-retrieval heads contribute only where the current token needs them and give a sharper effective retrieval signal without larger Q/K norms, which Muon's LR/decay dynamics keep small. Predicted signature: higher round-1 RL sample accuracy and targets solved, then faster frontier growth. Alternative outcome: attention sinks, massive activations and long contexts are large-model phenomena that may not limit a 4-layer 3.2M model on <=516-token pretraining sequences; gates start near 0.5 (halving the attention branch at init) and the 8.2% extra parameters/compute cost ~3-8% of pretraining updates, so the change could be neutral or harmful. Every pre-Muon architecture change (P01, P03, P21, P26, P27, P28, P31) lost to its incumbent, some within noise, and P32 partial RoPE (041) lost under Muon. The gate persists into RL and evaluation as part of the architecture (the frozen RL AdamW trains it like any other weight); RL and evaluation code are unchanged. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +5 to +25 dev-transfer solves at true length >=7 versus incumbent 040 exact mean 269.666667 (294/265/250), with higher round-1 RL sample accuracy than 040's 0.065/0.042/0.041; plausible downside -40. Parameters rise 8.2% to 3,473,408. MPS microbenchmarks against the incumbent GPT show +2-8% train-step time and +7-11% decode-step time, so expect ~3-8% fewer pretraining updates (~2700-2850 in 300 s) and roughly +30-50 s total run time, well inside the 1200 s cap (040 took 924/897/821 s). Final pretraining validation loss should stay within +-0.004 of the incumbent; generated proof lengths can still change sampling time.",
+  "baseline_id": "040",
+  "baseline_metric": 270,
+  "config": {
+    "arch": {
+      "type": "GatedGPT (fork GPT subclass in pretrain.py; GatedBlock = fork Block plus attention output gate)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3473408,
+      "attn_gate": {
+        "position": "G1: on the scaled_dot_product_attention output (heads concatenated to 256 channels), before proj",
+        "granularity": "elementwise and head-specific: one gate per head channel, 256 per token per layer",
+        "activation": "sigmoid, multiplicative",
+        "input": "ln1 output, the same normalized block input that feeds qkv",
+        "module": "nn.Linear(256, 256) with bias, one per block (65,792 parameters per layer, 263,168 total)",
+        "init": "fork _init: weight normal 0.02, bias 0; gates 0.50 +- 0.13 at init",
+        "kv_cache": "unchanged; the gate depends only on the current token's input, so cached decoding needs no extra state",
+        "source": "Qiu et al. 2025, 'Gated Attention for Large Language Models: Non-linearity, Sparsity, and Attention-Sink-Free', arXiv 2505.06708"
+      },
+      "checkpoint_reconstruction": "Construct GatedGPT from the registered pretrain.py source, then load state (adds keys blocks.{i}.gate.weight and blocks.{i}.gate.bias); the fork GPT cannot load it. The live harness keeps GatedGPT through RL and evaluation."
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices (including attention gates) throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, attention gate 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden 2D block parameters: per block qkv.weight (768,256) with independent Q/K/V updates as a batch of three (256,256) matrices, proj.weight, fc1.weight, fc2.weight, and the new gate.weight (256,256), which is square and therefore not split.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection and gate biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "GatedGPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW over all parameters, gates included"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02, zero biases), also applied to the new gate layers",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

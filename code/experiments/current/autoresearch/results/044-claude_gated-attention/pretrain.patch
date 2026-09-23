@@ -1,0 +1,69 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 30bb01a..85d9925 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,8 +29,10 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++import torch.nn.functional as F
++from model import GPT, Block, apply_rope  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
++from torch import nn
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+@@ -43,6 +45,43 @@ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
++class GatedBlock(Block):
++    """P30: the fork's Block with an elementwise sigmoid gate on the attention heads' output,
++    computed from the same normalized input as q/k/v (Qiu et al. 2025, gate position G1)."""
++
++    def __init__(self, d, h):
++        super().__init__(d, h)
++        self.gate = nn.Linear(d, d)
++
++    def attn(self, x, cos, sin, mask, cache):  # the fork's Block.attn, gated before proj
++        B, T, D = x.shape
++        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        q, k = apply_rope(q, cos, sin), apply_rope(k, cos, sin)
++        if cache is not None:
++            if "k" not in cache:
++                cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["n"] = 0
++            n0, n1 = cache["n"], cache["n"] + T
++            cache["k"][:, :, n0:n1] = k
++            cache["v"][:, :, n0:n1] = v
++            cache["n"] = n1
++            k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
++        else:
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, is_causal=mask is None)
++        return self.proj(y.transpose(1, 2).reshape(B, T, D) * torch.sigmoid(self.gate(x)))
++
++
++class GatedGPT(GPT):
++    """The fork's GPT with GatedBlocks, initialized by the fork's rule (normal 0.02, zero bias)."""
++
++    def __init__(self, vocab, n_layer, d, n_head):
++        super().__init__(vocab, n_layer, d, n_head)
++        self.blocks = nn.ModuleList([GatedBlock(d, n_head) for _ in range(n_layer)])
++        self.blocks.apply(self._init)
++
++
+ # Muon update adapted from KellerJordan/Muon, commit
+ # f98f1cacc0263b04290753e32be8d498c1efc806 (muon.py).
+ # MIT License
+@@ -143,7 +182,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = GatedGPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
