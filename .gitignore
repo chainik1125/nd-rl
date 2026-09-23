@@ -186,3 +186,7 @@ code/.zotero.local.json
 .obsidian/plugins/*/main.js
 .obsidian/plugins/*/styles.css
 .obsidian/plugins/*/manifest.json
+
+# ws3 fork_pin: fetched data and checkpoint (see code/ws3/fork_pin/fetch.sh)
+code/ws3/fork_pin/data/
+code/ws3/fork_pin/ckpt/

@@ -1,0 +1,16 @@
+{
+ "source_branch": "origin/dmitry/cap-comparison-textbook-eval-data",
+ "source_dir": "code/experiments/archived/cap_comparison_20260910/evaluation",
+ "copied_on": "2026-09-22",
+ "rule": "Never train or tune on these or on a renaming of them. Report dev58 and train14 separately and combined.",
+ "files": {
+  "textbook_dev.jsonl": {
+   "sha256": "1b04192d8a2d91b488a0884ccb096004003dbfcf40bb7aea55caa81c3f3cf53c",
+   "records": 58
+  },
+  "textbook_train.jsonl": {
+   "sha256": "e6a219e076184cc14d7c29eae1c9a6fd42d0552d6faca2d50d64da819b60a538",
+   "records": 14
+  }
+ }
+}

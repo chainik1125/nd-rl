@@ -1,0 +1,28 @@
+{
+ "status": "ok",
+ "metric": null,
+ "metric_rl": null,
+ "harness_sha": "5453482f1d43",
+ "pretrain_sha": "c8f8e6ab8ec9",
+ "device": "cuda",
+ "gpu": "NVIDIA A40",
+ "total_secs": 301.8225600719452,
+ "rules": {
+  "TOTAL_SECS": 1200,
+  "PRETRAIN_SECS": 300,
+  "PARAM_CAP": 10000000,
+  "RL_ROUNDS": 4,
+  "N_TARGETS": 1500,
+  "K": 32,
+  "EVAL_K": 64
+ },
+ "stage": "pretrain_only",
+ "pretrain": {
+  "steps": 2999,
+  "records_seen": 767744,
+  "epochs": 4.953506677850184,
+  "last_loss": 0.07009327411651611,
+  "secs": 300.116436958313,
+  "n_params": 3210240
+ }
+}

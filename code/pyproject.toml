@@ -14,6 +14,12 @@ dependencies = [
     "tqdm",
     "pyyaml",
     "ipykernel",
+    "torch<2.12 ; sys_platform == 'darwin'",
+    "trl>=1.13.0",
+    "transformers>=5.17.0",
+    "accelerate>=1.15.0",
+    "datasets>=5.0.1",
+    "huggingface-hub>=1.32.0",
 ]
 
 [project.optional-dependencies]
@@ -53,6 +59,10 @@ extend-exclude = [
     "**/archived/proof_fragments_20260910/**",
     "**/archived/flop_nd_20260910/**",
     "**/archived/nd_sprints_20260609_11/**",
+    "**/ws3/fork_pin/model.py",
+    "**/ws3/fork_pin/tokenizer.py",
+    "**/ws3/fork_pin/nd_verify/**",
+    "**/ws3/fork_pin/checkpoint_source/**",
 ]
 force-exclude = true
 line-length = 100

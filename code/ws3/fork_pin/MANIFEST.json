@@ -1,0 +1,36 @@
+{
+  "purpose": "Pinned lineage of the ws3 fixed pre-trained checkpoint. Code files are committed here; data and the checkpoint are fetched by fetch.sh and verified against these hashes.",
+  "pinned_on": "2026-09-22",
+  "fork": {
+    "repo": "https://github.com/dan-pandori/nd-takehome",
+    "commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "branch_at_pin": "dan_ladder_a"
+  },
+  "checkpoint": {
+    "hf_repo": "robbiethompson2018/nd-rl-checkpoints",
+    "path": "runs/share_pretrain_4l_seed0/pretrain.pt",
+    "url": "https://huggingface.co/robbiethompson2018/nd-rl-checkpoints/resolve/main/runs/share_pretrain_4l_seed0/pretrain.pt",
+    "sha256": "f4409e4f82d8922f853a5c53eeb2820d05acea17bbd5cf92d24c073d97709e18",
+    "bytes": 12858650,
+    "load": "GPT(vocab=99, n_layer=4, d=256, n_head=8) with Tokenizer('abs'); see load_pretrain.py",
+    "summary_json_sha256": "76f9b8b2c2a7c9b276c296694f8c0b17eaa261a5062dae4d0eac6b5457290834",
+    "pretrain_py_sha256": "c8f8e6ab8ec980fafa16619b48ddcfc5f8dc43a320541eeca54c9b2afc0a872b"
+  },
+  "code_committed_here": {
+    "model.py": "aa3516fc8d01d5ed36321278ec59245f0f945c553137d83097b75f3eee13f4f9",
+    "tokenizer.py": "bc5d19d68bdaa909f5baf2fe1de977b800363feedf1a5cb2712da01a9d039d5b",
+    "nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+    "nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614"
+  },
+  "data_fetched_to_data_dir": {
+    "train.jsonl.gz": {"fork_path": "data/train.jsonl.gz", "sha256": "af474e7b9f9f85d4d4503068add880f07db36ba97d6f9aa2bf807c02c05cd84d", "records": 154990, "note": "cap-6 pre-training set the checkpoint saw; lengths 2-6"},
+    "heldout.jsonl": {"fork_path": "data/heldout.jsonl", "sha256": "46a49f4421c5225b1746e9b61533dee26d951636b707ef34493b69fbb8bfcc62", "records": 5000, "note": "1000 per length 2-6; disjoint from train by renaming class"},
+    "rl_targets.jsonl": {"fork_path": "data/ladder/rl_targets.jsonl", "sha256": "a5c4c2774f87ee1719423cc5d4bfa57f6f47394e488133da1de72341b3a2c96f", "records": 4495, "note": "RL prompt pool, L_true 7-14; the only long pool RL may sample"},
+    "transfer.jsonl": {"fork_path": "data/ladder/transfer.jsonl", "sha256": "47dd1886f0fcac32a371a7aa965f9dbaa572dce49b5dfb0155b809b28831d29c", "records": 2285, "note": "never sampled by RL"},
+    "validation_36.jsonl": {"fork_path": "targets/validation_36.jsonl", "sha256": "96714ee12672436ee1f5e2396f4928161082f3e030e797543a7dd4804a02e0ea", "records": 36, "note": "upstream assignment validation set; supporting textbook set"},
+    "validation_36_reference_proofs.jsonl": {"fork_path": "targets/validation_36_reference_proofs.jsonl", "sha256": "b8586ba468c9c3cc720f1f8ee2c1d3bb3915944d46318ff329d04e40539eab9b", "records": 36, "note": "never train on these"},
+    "test_short_prompts.jsonl": {"fork_path": "targets/test_short_prompts.jsonl", "sha256": "b39b7fef30c64c208f58f8679f5155b9285924a445b8d2dc135491053cbe2dd4", "records": 267, "note": "score once at the end, aggregate only, never inspect"},
+    "test_long_prompts.jsonl": {"fork_path": "targets/test_long_prompts.jsonl", "sha256": "5887d139aa816c03dcd054eb0637f0eeab21c788bb16b704ce8f6fa2e0536c3e", "records": 532, "note": "score once at the end, aggregate only, never inspect"}
+  },
+  "not_taken_from_fork": "expert-iteration harness, ladder scripts, grpo.py, Lean tooling, AGENT_POLICY.md, briefs. ws3 RL code is TRL on top of an HF wrapper around model.py."
+}
