@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Every 15 min: if this host has registered pods but no live agent session (runrole/claude or tmux ex-/rev-/lib-/pr-) for two consecutive ticks, pull results, delete the host's pods, notify.
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env
+podreconcile >/dev/null 2>&1 || true
 n=$(ls ~/.config/nd-rl/pods 2>/dev/null | wc -l); [ "$n" -gt 0 ] || { rm -f ~/watchdog.strike; exit 0; }
 # Liveness = an actual Claude process. A queued wrapper whose command line merely mentions
 # runrole is NOT alive: that masked this check on 2026-09-22 and cost ~$75 of idle pods.

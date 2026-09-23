@@ -20,6 +20,7 @@ on the agent host with `bash install.sh` (adds them to `~/bin`, a `~/pods.log` l
 
 The driver stops (and notifies) on an authentication failure or three consecutive failed invocations instead of spinning.
 
+| `podreconcile` | drops registry entries for pods that no longer exist on the account; called first by `pod_watchdog` and `killswitch` so a pod deleted elsewhere cannot look like an orphan for ever |
 | `podbudget [<run>] [--set H USD | --extend H "reason"]` | per-run pod-hour ledger and ceiling; extensions are logged, notified, and refused when the projected spend exceeds the run's declared dollar budget |
 | `pod_budget_watch` | cron: warns a run at 80 % of its ceiling (`~/runs/<run>/BUDGET_WARNING`), pulls and deletes that run's pods at 100 % |
 

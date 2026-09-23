@@ -8,4 +8,9 @@ if [ -n "${CREATED:-}" ]; then
   D=$(awk -v h="$H" -v r="$(rate "${GPU:-}")" 'BEGIN{printf "%.2f",h*r}')
   echo "$(date -u +%FT%TZ) ${RUN:-unknown} $N $H $D ${GPU:-}" >> ~/podhours.log
 fi
-runpodctl pod remove "$POD_ID" && rm -f "$F" && echo "removed $N ($POD_ID)${H:+ (${H}h, \$$D)}"
+OUT=$(runpodctl pod remove "$POD_ID" 2>&1); RC=$?
+if [ $RC -ne 0 ] && ! printf "%s" "$OUT" | grep -qiE "not found|404"; then
+  echo "podrm $N: delete failed, registry kept: $OUT"; exit 1
+fi
+rm -f "$F"
+printf "%s" "$OUT" | grep -qiE "not found|404" && echo "removed $N ($POD_ID) [was already gone; registry cleaned]" || echo "removed $N ($POD_ID)${H:+ (${H}h, \$$D)}"

@@ -2,6 +2,7 @@
 # Hard stop for THIS host's registered pods: salvage small results, delete them, stop this host's agent sessions.
 # killswitch --all additionally deletes every pod on the account (used only by balance_floor).
 . ~/.config/nd-rl/env; export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; ALL=0; [ "${1:-}" = "--all" ] && ALL=1
+podreconcile >> ~/killswitch.log 2>&1 || true
 echo "[killswitch] $(date -u +%FT%TZ) start (all=$ALL) on $(hostname)" >> ~/killswitch.log
 for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] || continue; N=$(basename "$f")
   for p in artifacts numbers.md log.md STATUS.md; do timeout 900 podpull "$N" "$p" >> ~/killswitch.log 2>&1 || true; done

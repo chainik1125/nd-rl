@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Drop registry entries for pods that no longer exist on the account. Prints what it pruned.
+# Every tool that acts on "registered pods" calls this first, so a pod deleted elsewhere
+# (balance floor, console, another host) cannot look like an orphan for ever.
+. ~/.config/nd-rl/env 2>/dev/null; export PATH="$HOME/.local/bin:$PATH"
+D=~/.config/nd-rl/pods; [ -d "$D" ] || exit 0
+LIVE=$(runpodctl pod list 2>/dev/null | jq -r '.[].id' 2>/dev/null)
+[ -n "$LIVE" ] || LIVE=$(runpodctl pod list 2>/dev/null | grep -oE '\b[a-z0-9]{14}\b')
+if ! runpodctl pod list >/dev/null 2>&1; then echo "podreconcile: cannot reach RunPod, leaving registry alone"; exit 0; fi
+n=0
+for f in "$D"/*; do
+  [ -f "$f" ] || continue; POD_ID=""; . "$f"
+  if ! printf "%s\n" $LIVE | grep -qx "$POD_ID"; then rm -f "$f"; echo "pruned $(basename "$f") ($POD_ID): no longer on the account"; n=$((n+1)); fi
+done
+[ "$n" = 0 ] && echo "podreconcile: registry matches the account"
+exit 0
