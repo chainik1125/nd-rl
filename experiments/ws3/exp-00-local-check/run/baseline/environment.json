@@ -1,0 +1,82 @@
+{
+ "utc": "2026-09-23T14:59:37+00:00",
+ "config": {
+  "run": {
+   "out_dir": "/Users/cyu/Desktop/github/nd-rl/experiments/ws3/exp-00-local-check/run",
+   "seed": 0,
+   "device": "cpu",
+   "algo": "grpo",
+   "config_path": "/Users/cyu/Desktop/github/nd-rl/experiments/ws3/exp-00-local-check/config.yaml"
+  },
+  "eval": {
+   "nta": {
+    "n_heldout": 5000,
+    "batch_size": 250,
+    "gate": 0.95
+   },
+   "greedy": {
+    "n_heldout": 1000,
+    "max_new": 400,
+    "batch_size": 100
+   },
+   "textbook": {
+    "k": 64,
+    "temperature": 1.0,
+    "max_new": 400,
+    "batch_size": 256
+   },
+   "long": {
+    "n_prompts": 200,
+    "k": 32,
+    "temperature": 1.0,
+    "max_new": 400,
+    "batch_size": 256
+   }
+  },
+  "train": {
+   "prompt": {
+    "length_weights": {
+     "3": 1,
+     "4": 1,
+     "5": 1
+    },
+    "n_prompts": 1600
+   },
+   "periodic_eval": {
+    "every": 10,
+    "n_heldout": 50,
+    "n_long": 20,
+    "max_new": 400,
+    "batch_size": 128
+   },
+   "trainer": {
+    "num_generations": 8,
+    "per_device_train_batch_size": 32,
+    "gradient_accumulation_steps": 8,
+    "learning_rate": 1e-05,
+    "beta": 0.01,
+    "epsilon": 0.2,
+    "temperature": 1.0,
+    "max_completion_length": 400,
+    "max_steps": 50,
+    "logging_steps": 1
+   }
+  }
+ },
+ "git_commit": "a0b2ec600277fa722c769c51eb1961d68a7680cc",
+ "checkpoint": "/Users/cyu/Desktop/github/nd-rl/code/ws3/fork_pin/ckpt/pretrain.pt",
+ "checkpoint_sha256": "f4409e4f82d8922f853a5c53eeb2820d05acea17bbd5cf92d24c073d97709e18",
+ "versions": {
+  "python": "3.11.16",
+  "torch": "2.11.0",
+  "transformers": "5.17.0",
+  "trl": "1.13.0"
+ },
+ "platform": "macOS-13.6.2-arm64-arm-64bit",
+ "cpu_threads": 6,
+ "argv": [
+  "ws3/run.py",
+  "--config",
+  "../experiments/ws3/exp-00-local-check/config.yaml"
+ ]
+}
