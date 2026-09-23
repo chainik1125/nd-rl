@@ -1,0 +1,52 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ff9c739..75c3bc3 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,7 +29,7 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++from model import GPT, rope_cache  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+@@ -40,10 +40,29 @@ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+ MUON_WD = WD * LR / MUON_LR
+ ADAMW_FINISH_FRAC = 0.95
++# Rotate only the 8 highest-frequency of each head's 16 RoPE pairs (wavelengths <= 353 tokens).
++# The other 8 (wavelengths >= 628) never complete a turn within the longest pretraining record
++# (516 tokens), so they are left unrotated: content-only channels at any distance.
++ROPE_PAIRS = 8
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
++class PartialRopeGPT(GPT):
++    """Fork GPT forward with cos=1, sin=0 on rotary pairs >= ROPE_PAIRS; kept through RL."""
++
++    def forward(self, idx, pos=None, mask=None, caches=None):
++        T = idx.shape[1] if pos is None else int(pos.max().item()) + 1
++        cos, sin = rope_cache(T, self.hd, idx.device)
++        cos[:, ROPE_PAIRS:], sin[:, ROPE_PAIRS:] = 1.0, 0.0
++        if pos is not None:
++            cos, sin = cos[pos], sin[pos]
++        x = self.emb(idx)
++        for i, block in enumerate(self.blocks):
++            x = block(x, cos, sin, mask, None if caches is None else caches[i])
++        return self.head(self.ln_f(x))
++
++
+ # Muon update adapted from KellerJordan/Muon, commit
+ # f98f1cacc0263b04290753e32be8d498c1efc806 (muon.py).
+ # MIT License
+@@ -144,7 +163,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = PartialRopeGPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"

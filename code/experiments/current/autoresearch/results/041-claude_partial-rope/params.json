@@ -1,0 +1,213 @@
+{
+  "id": "041-claude",
+  "slug": "partial-rope",
+  "written_at": "2026-09-23T09:36:06-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "b6f0bb4",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "c9124407acf0",
+  "patch_lines": 23,
+  "title": "P32: leave the low-frequency half of each head's RoPE pairs unrotated",
+  "description": "P32: on top of incumbent 039, rotate only the 8 highest-frequency of each attention head's 16 RoPE pairs (wavelengths 6-353 tokens) and leave the other 8 (wavelengths 628-35333 tokens, longer than the 516-token longest pretraining record) unrotated, changing nothing else. Expert iteration has to extend proofs beyond the cap-6 pretraining lengths, and content-only channels cannot emit the unseen rotation angles that low-frequency pairs produce at the longer distances RL targets need, so the pretrained model should transfer to 8-10-line proofs sooner.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Seed-0 records show the bottleneck is length extension: every pretrained model solves only 7-line targets in RL round 1 (039: round-1 ge8 = 0; 012: 0; 030: 4), each expert-iteration round then extends the solved frontier by about one line (039 ge8/ge9/ge10 reach 27/16/2 by rounds 2/3/4), and the dev metric comes only from lengths 7-10 (039 seed 0: 69/68/117/10 solved at 7/8/9/10, none at 11+ although the dev pool has 219 ten-line theorems). Pretraining sequences (prompt+proof, abs tokens) have median 101, p90 163, p99 234 and max 516 tokens, while generator reference proofs for gen-sourced 7/8/9/10-line RL targets average 219/230/253/277 tokens (max 684). With head dim 32 and base 10000, pairs 8-15 have wavelengths 628-35333 tokens, so in pretraining they only sweep a small arc and at the distances RL needs they produce query-key angles never trained; zeroing their frequency makes them exact position-invariant content channels (N<k> labels, formulas, prompt premises and goal), while pairs 0-7 keep the local order needed for formula syntax and line structure. Precedents are indirect: the modded-nanogpt Muon speedrun uses half-truncated RoPE (with retuned frequencies), and Barbero et al. (2024, 'Round and Round We Go! What makes Rotary Positional Encodings useful?') report low RoPE frequencies acting as semantic channels and propose truncating them. The 50% cut is not tuned: it is exactly the set of pairs whose wavelength exceeds the longest pretraining record. Alternative outcome: coarse distance cues in the low-frequency pairs help pick recent lines or track proof progress, and removing them hurts citation choice or syntax. Run 029 (RoPE base 100k, pre-Muon, -18.67 vs its incumbent) moved the other way, slowing every rotation, and is not a direct test. The change persists into RL and evaluation as architecture (no parameters, optimizer or data change; RL/eval code untouched). Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +5 to +25 dev-transfer solves at true length >=7 versus incumbent 039 exact mean 269.666667 (264/291/254), coming mostly from more 9- and 10-line dev solves and earlier 8-line RL solves (round-1 ge8 above 0); plausible downside -40 if low-frequency distance cues matter. Pretraining loss should be roughly unchanged (within +-0.003 val). Tensor shapes and FLOPs are unchanged apart from two small slice fills of the rotary table per forward, so expect <1% change in pretraining updates (~2900 in 300 s) and sampling throughput; learned generation lengths can still change runtime.",
+  "baseline_id": "039",
+  "baseline_metric": 270,
+  "config": {
+    "arch": {
+      "type": "PartialRopeGPT (fork GPT subclass in pretrain.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "partial rope: fork rope_cache (base 10000) on rotary pairs 0-7 of 16 per head (head dims 0-15, wavelengths 6.3-353 tokens); pairs 8-15 (head dims 16-31, wavelengths 628-35333 tokens) unrotated (cos 1, sin 0) in pretraining, RL, cached sampling and eval",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240,
+      "head_dim": 32,
+      "rope_base": 10000.0,
+      "rope_pairs_rotated": 8,
+      "rope_pairs_total": 16,
+      "checkpoint_reconstruction": "Construct PartialRopeGPT from the registered pretrain.py source (ROPE_PAIRS=8), then load state; the inherited cfg and state dict do not encode the change. The live harness keeps the subclass through RL and evaluation."
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices then AdamW finish; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 16 hidden projection parameters remain in Muon. Four qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "elapsed pretraining wall-clock fraction <0.95"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; all hidden matrices additionally from elapsed fraction >=0.95",
+      "decay_convention": "Before switch, Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent shrinkage at each schedule fraction. After switch, all parameters use AdamW wd=0.1 at the existing auxiliary LR; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "adamw_finish": {
+        "start_fraction": 0.95,
+        "start_seconds_at_registered_budget": 285,
+        "parameters": "all 16 hidden projection matrices added once to existing auxiliary AdamW optimizer",
+        "lr": "same scheduled auxiliary LR, nominal peak 0.001; no restart or additional warmup",
+        "betas": [
+          0.9,
+          0.95
+        ],
+        "wd": 0.1,
+        "eps": 1e-08,
+        "state": "hidden matrices start fresh first/second moments; auxiliary state is retained",
+        "muon_state": "no Muon updates after switch; buffers local to pretrain only"
+      }
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
