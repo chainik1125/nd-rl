@@ -14,6 +14,7 @@ D=~/runs/$RUN; mkdir -p "$D"; LOG=$D/$ROLE.driver.log
 [ -n "$DONE" ] || DONE=$D/$ROLE.done
 date -u +%FT%TZ > "$D/$ROLE.started"
 STOPTS=$(date -u -d "${STOP:-+30 hours}" +%s)
+export ND_RUN_ID="$RUN"
 export GIT_AUTHOR_NAME="agent:claude ($ROLE)" GIT_AUTHOR_EMAIL="dantweinand@gmail.com" GIT_COMMITTER_NAME="Dan Pandori" GIT_COMMITTER_EMAIL="dantweinand@gmail.com"
 
 # True only for a real usage/rate limit: an error result with a 429 or limit message, or rate_limit_info.status != allowed.

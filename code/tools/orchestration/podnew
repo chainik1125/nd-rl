@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Create an A40 pod (CUDA 13 host) from the nd-rl template, wait for SSH, register it. Usage: podnew <name>
+set -e; . ~/.config/nd-rl/env; export PATH="$HOME/.local/bin:$PATH"
+N=$1; [ -n "$N" ] || { echo "usage: podnew <name>"; exit 1; }
+[ -f ~/.config/nd-rl/pods/$N ] && { echo "pod $N already registered"; exit 1; }
+OUT=$(runpodctl pod create --name "$N" --template-id uhf9wr47j6 --gpu-id "${POD_GPU:-NVIDIA A40}" --cloud-type SECURE --min-cuda-version "${POD_MINCUDA:-13.0}" ${POD_EXTRA} --wait --wait-timeout 12m 2>&1)
+ID=$(printf "%s" "$OUT" | grep -oE "pod [a-z0-9]{14}" | head -1 | cut -d" " -f2); [ -n "$ID" ] || ID=$(printf "%s" "$OUT" | jq -r ".id // empty" 2>/dev/null)
+[ -n "$ID" ] || { echo "create failed: $OUT"; exit 1; }
+INFO=$(runpodctl ssh info "$ID"); IP=$(printf "%s" "$INFO" | jq -r .ip); PORT=$(printf "%s" "$INFO" | jq -r .port)
+printf "POD_ID=%s\nPOD_IP=%s\nPOD_PORT=%s\nRUN=%s\nCREATED=%s\nGPU=%s\n" "$ID" "$IP" "$PORT" "${ND_RUN_ID:-unknown}" "$(date -u +%FT%TZ)" "${POD_GPU:-NVIDIA A40}" > ~/.config/nd-rl/pods/$N; echo "$(date -u +%FT%TZ) $N $ID ${ND_RUN_ID:-unknown}" >> ~/pods.log
+S="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ConnectTimeout=10 -p $PORT root@$IP"
+end=$((SECONDS+600)); until $S true 2>/dev/null; do [ $SECONDS -ge $end ] && { echo "ssh never accepted key for $N ($ID)"; exit 1; }; sleep 10; done
+podtoken "$N" >/dev/null 2>&1 || true; $S "mkdir -p /workspace/nd-takehome"; echo "pod $N ready: $ID $IP:$PORT (gpu ${POD_GPU:-NVIDIA A40})"

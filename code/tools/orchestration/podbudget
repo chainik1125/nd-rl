@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Per-run pod-hour ledger and ceiling.
+#   podbudget                      show every run's used / ceiling hours and estimated dollars
+#   podbudget <run>                show one run
+#   podbudget <run> --set H [USD]  set the ceiling (at run start, from the brief)
+#   podbudget <run> --extend H "reason"   raise the ceiling by H hours (logged; refused if the
+#                                 projected spend would exceed the run's declared USD budget)
+# Ceilings live in ~/.config/nd-rl/limits/<run> as HOURS=… USD=…; every change is appended to
+# ~/podbudget.log. Used hours = live pods' age + ~/podhours.log for deleted pods.
+. ~/.config/nd-rl/env 2>/dev/null; export PATH="$HOME/.local/bin:$PATH"
+L=~/.config/nd-rl/limits; mkdir -p "$L"
+rate() { case "$1" in *A100*) echo 1.59;; *H100*) echo 3.49;; *A40*) echo 0.49;; *3090*) echo 0.50;; *4090*) echo 0.74;; *) echo 0.50;; esac; }
+used_hours() { # <run> -> hours, dollars
+  local run=$1 h=0 d=0 now; now=$(date -u +%s)
+  for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] || continue
+    local RUN="" CREATED="" GPU=""; . "$f"
+    [ "${RUN:-}" = "$run" ] || continue
+    local t0; t0=$(date -u -d "${CREATED:-$(date -u +%FT%TZ)}" +%s 2>/dev/null || echo "$now")
+    local dh; dh=$(awk -v a="$now" -v b="$t0" 'BEGIN{printf "%.4f",(a-b)/3600}')
+    h=$(awk -v x="$h" -v y="$dh" 'BEGIN{printf "%.4f",x+y}')
+    d=$(awk -v x="$d" -v y="$dh" -v r="$(rate "${GPU:-}")" 'BEGIN{printf "%.2f",x+y*r}')
+  done
+  if [ -f ~/podhours.log ]; then
+    local ph pd; ph=$(awk -v r="$run" '$2==r {s+=$4} END{printf "%.4f",s+0}' ~/podhours.log)
+    pd=$(awk -v r="$run" '$2==r {s+=$5} END{printf "%.2f",s+0}' ~/podhours.log)
+    h=$(awk -v x="$h" -v y="$ph" 'BEGIN{printf "%.4f",x+y}'); d=$(awk -v x="$d" -v y="$pd" 'BEGIN{printf "%.2f",x+y}')
+  fi
+  echo "$h $d"
+}
+show() { local run=$1 HOURS="" USD=""; [ -f "$L/$run" ] && . "$L/$run"
+  set -- $(used_hours "$run"); printf "%-18s used %6.2f h  \$%-7s ceiling %s h  budget \$%s\n" "$run" "$1" "$2" "${HOURS:-–}" "${USD:-–}"; }
+RUN=$1; shift 2>/dev/null
+if [ -z "${RUN:-}" ]; then
+  for f in "$L"/*; do [ -f "$f" ] && show "$(basename "$f")"; done
+  for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] && { RUNX=""; . "$f"; [ -n "${RUNX:-}" ] && :; }; done; exit 0
+fi
+case "${1:-}" in
+  --set) H=$2; U=${3:-}; printf "HOURS=%s\nUSD=%s\n" "$H" "$U" > "$L/$RUN"; echo "$(date -u +%FT%TZ) $RUN set HOURS=$H USD=$U" >> ~/podbudget.log; show "$RUN";;
+  --extend) H=$2; REASON=${3:-"no reason given"}; HOURS=0; USD=""; [ -f "$L/$RUN" ] && . "$L/$RUN"
+    set -- $(used_hours "$RUN"); usedh=$1; usedd=$2
+    NEW=$(awk -v a="${HOURS:-0}" -v b="$H" 'BEGIN{printf "%.2f",a+b}')
+    if [ -n "${USD:-}" ]; then
+      proj=$(awk -v d="$usedd" -v uh="$usedh" -v nh="$NEW" 'BEGIN{r=(uh>0.01?d/uh:0.5); printf "%.2f", r*nh}')
+      if awk -v p="$proj" -v u="$USD" 'BEGIN{exit !(p>u)}'; then
+        echo "REFUSED: extending to $NEW h projects \$$proj, above the run's declared \$$USD budget. Ask Dan in QUESTIONS.md."; exit 1; fi
+    fi
+    printf "HOURS=%s\nUSD=%s\n" "$NEW" "${USD:-}" > "$L/$RUN"
+    echo "$(date -u +%FT%TZ) $RUN extend +$H -> $NEW h (used $usedh h, \$$usedd) reason: $REASON" >> ~/podbudget.log
+    notify "$RUN: pod-hour ceiling extended to $NEW h" "Used $usedh h (\$$usedd). Reason: $REASON" low 2>/dev/null || true
+    rm -f ~/runs/$RUN/BUDGET_WARNING; show "$RUN";;
+  *) show "$RUN";;
+esac

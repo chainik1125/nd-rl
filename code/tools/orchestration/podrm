@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Delete a registered pod. Usage: podrm <name>
+. ~/.config/nd-rl/env; export PATH="$HOME/.local/bin:$PATH"
+N=$1; F=~/.config/nd-rl/pods/$N; [ -f "$F" ] || { echo "no pod $N"; exit 1; }; . "$F"
+rate() { case "$1" in *A100*) echo 1.59;; *H100*) echo 3.49;; *A40*) echo 0.49;; *3090*) echo 0.50;; *4090*) echo 0.74;; *) echo 0.50;; esac; }
+if [ -n "${CREATED:-}" ]; then
+  H=$(awk -v a="$(date -u +%s)" -v b="$(date -u -d "$CREATED" +%s 2>/dev/null || date -u +%s)" 'BEGIN{printf "%.4f",(a-b)/3600}')
+  D=$(awk -v h="$H" -v r="$(rate "${GPU:-}")" 'BEGIN{printf "%.2f",h*r}')
+  echo "$(date -u +%FT%TZ) ${RUN:-unknown} $N $H $D ${GPU:-}" >> ~/podhours.log
+fi
+runpodctl pod remove "$POD_ID" && rm -f "$F" && echo "removed $N ($POD_ID)${H:+ (${H}h, \$$D)}"
