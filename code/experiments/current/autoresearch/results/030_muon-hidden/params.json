@@ -1,0 +1,192 @@
+{
+  "id": "030",
+  "slug": "muon-hidden",
+  "written_at": "2026-09-23T04:17:06-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "8c31ffc",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "7ed34c3a3d8a",
+  "patch_lines": 55,
+  "title": "P02: Muon for hidden matrices during pretraining",
+  "description": "P02: replace pretraining AdamW updates on the 16 hidden projection matrices with Nesterov Muon, retaining AdamW for embeddings, readout, biases and LayerNorm parameters. Orthogonalized matrix updates may learn proof features that enable more successful exploration and adaptation under the fixed downstream expert-iteration procedure.",
+  "tags": [
+    "TODO"
+  ],
+  "hypothesis": "No previous registration tests Muon. P01 block sharing and P03 middle sharing both reduced downstream transfer; smoother AdamW moments (015) and EMA handoff (025) also failed to beat incumbent 012. Muon changes hidden-matrix update geometry without reducing capacity or altering the downstream model and may preserve useful update directions for transferable proof operations. This is an unverified mechanism; optimization mismatch at the AdamW handoff or reduced pretraining throughput may instead hurt. The fixed three-seed downstream metric alone decides keep/discard.",
+  "p_keep": 0.35,
+  "expected_delta": "Central prediction +5 to +25 dev-transfer theorems at true length >=7 versus incumbent exact mean 147.67 (stored rounded 148), with plausible downside -80. Five Newton-Schulz iterations per hidden matrix add pretraining work: expect roughly 5-25% fewer updates under the unchanged 300-second budget. Per-token inference computation is identical, though learned generation lengths may affect total runtime within 1200 seconds.",
+  "baseline_id": "012",
+  "baseline_metric": 148,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon hidden matrices + adamw auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.02,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) after orthogonalization",
+        "wd": 0.005,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.02 * adam_lr / 0.001",
+        "parameters": "all 16 two-dimensional model.blocks parameters: each block qkv.weight, proj.weight, fc1.weight, fc2.weight; QKV remains concatenated",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases, all LayerNorm scales and offsets",
+      "decay_convention": "Muon wd=0.005 makes muon_lr*muon_wd equal incumbent adam_lr*0.1 at each schedule fraction; auxiliary wd=0.1 unchanged. Integrated decay can differ because throughput changes.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT and weights only; Muon buffers and optimizers are local to pretrain and are not handed to frozen RL"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
