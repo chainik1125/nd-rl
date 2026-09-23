@@ -1,0 +1,173 @@
+{
+  "id": "024",
+  "slug": "projection-no-bias",
+  "written_at": "2026-09-23T01:57:00-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "3ca449e",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "9434a3eda69b",
+  "patch_lines": 3,
+  "title": "P28: remove attention and MLP projection biases",
+  "description": "P28: remove the bias parameters from qkv, attention output, MLP input and MLP output projections in all four blocks, retaining LayerNorm scales and offsets. Reducing input-independent offsets may favor compositional proof features that adapt better under the fixed downstream expert-iteration procedure.",
+  "tags": [
+    "architecture",
+    "simplification"
+  ],
+  "hypothesis": "No prior registration tests projection bias removal. Unlike block sharing (014) and token-interface tying (023), this retains independent matrix weights and removes only 9216 parameters (0.287%). Requiring branch transformations to depend on their inputs may reduce short-proof shortcuts and improve longer-proof transfer. This is an unverified mechanism; offsets may instead be useful for GELU activation thresholds or proof syntax. Initial logits are unchanged because the removed biases start at zero, and remaining initial weights and RNG state are preserved. Only downstream three-seed dev-transfer performance decides keep/discard.",
+  "p_keep": 0.25,
+  "expected_delta": "Central prediction +3 to +12 dev-transfer theorems at true length >=7 versus incumbent 012 (exact mean 147.67; stored rounded mean 148), with plausible downside -40. Seeds remain 0,1,2. Removing 16 bias additions should have negligible direct latency impact with approximately 3000 steps in the unchanged 300-second pretraining budget; per-token matrix shapes remain fixed. Learned generation lengths may still alter runtime under the unchanged 1200-second total cap.",
+  "baseline_id": "012",
+  "baseline_metric": 148,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3201024,
+      "projection_bias": false,
+      "normalization_bias": true,
+      "checkpoint_reconstruction": "Construct fork GPT and remove qkv/proj/fc1/fc2 biases in each block before loading state; live harness retains this architecture throughout RL."
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
