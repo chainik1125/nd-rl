@@ -1,0 +1,343 @@
+{
+  "commit": "2da1c73",
+  "recorded_at": "2026-09-23T10:29:45-0700",
+  "status": "keep",
+  "metric": 275,
+  "metric_rl": 689,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "7edaf5970985",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 922,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 3210240,
+    "steps": 2899,
+    "epochs": 4.820181078939506,
+    "last_loss": 0.06168191134929657,
+    "heldout_greedy": 0.987,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 23,
+        "train_loss": 3.686591386795044,
+        "val_loss": 3.368869423866272
+      },
+      {
+        "secs": 30,
+        "step": 176,
+        "train_loss": 1.3224209547042847,
+        "val_loss": 0.4301975667476654
+      },
+      {
+        "secs": 45,
+        "step": 325,
+        "train_loss": 0.19844157993793488,
+        "val_loss": 0.1031998973339796
+      },
+      {
+        "secs": 60,
+        "step": 476,
+        "train_loss": 0.08946032396384648,
+        "val_loss": 0.10399900004267693
+      },
+      {
+        "secs": 75,
+        "step": 629,
+        "train_loss": 0.07906134705990553,
+        "val_loss": 0.09159895032644272
+      },
+      {
+        "secs": 90,
+        "step": 779,
+        "train_loss": 0.07188344108206886,
+        "val_loss": 0.10670382715761662
+      },
+      {
+        "secs": 105,
+        "step": 931,
+        "train_loss": 0.07108253333717585,
+        "val_loss": 0.08934602327644825
+      },
+      {
+        "secs": 120,
+        "step": 1084,
+        "train_loss": 0.06733258441090584,
+        "val_loss": 0.09377376176416874
+      },
+      {
+        "secs": 135,
+        "step": 1236,
+        "train_loss": 0.06737463708434786,
+        "val_loss": 0.09371335990726948
+      },
+      {
+        "secs": 150,
+        "step": 1385,
+        "train_loss": 0.06409409828484058,
+        "val_loss": 0.09992244839668274
+      },
+      {
+        "secs": 165,
+        "step": 1539,
+        "train_loss": 0.06415108697754997,
+        "val_loss": 0.0947948545217514
+      },
+      {
+        "secs": 180,
+        "step": 1689,
+        "train_loss": 0.06232719216495752,
+        "val_loss": 0.09314431995153427
+      },
+      {
+        "secs": 195,
+        "step": 1837,
+        "train_loss": 0.06297738584024566,
+        "val_loss": 0.09821880050003529
+      },
+      {
+        "secs": 210,
+        "step": 1990,
+        "train_loss": 0.06101524643599987,
+        "val_loss": 0.09585988335311413
+      },
+      {
+        "secs": 225,
+        "step": 2139,
+        "train_loss": 0.060442939932857244,
+        "val_loss": 0.09305496513843536
+      },
+      {
+        "secs": 240,
+        "step": 2289,
+        "train_loss": 0.061329507268965244,
+        "val_loss": 0.09060993418097496
+      },
+      {
+        "secs": 255,
+        "step": 2443,
+        "train_loss": 0.06111308140680194,
+        "val_loss": 0.09528286196291447
+      },
+      {
+        "secs": 270,
+        "step": 2593,
+        "train_loss": 0.0597924425133637,
+        "val_loss": 0.09539000131189823
+      },
+      {
+        "secs": 285,
+        "step": 2745,
+        "train_loss": 0.06014654319733381,
+        "val_loss": 0.09333804622292519
+      },
+      {
+        "secs": 300,
+        "step": 2899,
+        "train_loss": 0.05965779349207878,
+        "val_loss": 0.09240988083183765
+      }
+    ],
+    "records_seen": 742144
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.07916666666666666,
+      "new_proofs": 274,
+      "targets_solved": 233,
+      "lstar": 7,
+      "ge": {
+        "7": 233,
+        "8": 2,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1096,
+      "samples_per_sec": 772,
+      "secs": 109
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.2776666666666667,
+      "new_proofs": 330,
+      "targets_solved": 507,
+      "lstar": 8,
+      "ge": {
+        "7": 507,
+        "8": 117,
+        "9": 1,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2408,
+      "samples_per_sec": 728,
+      "secs": 121
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.361375,
+      "new_proofs": 135,
+      "targets_solved": 617,
+      "lstar": 9,
+      "ge": {
+        "7": 617,
+        "8": 197,
+        "9": 24,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2944,
+      "samples_per_sec": 831,
+      "secs": 116
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.415375,
+      "new_proofs": 141,
+      "targets_solved": 709,
+      "lstar": 9,
+      "ge": {
+        "7": 709,
+        "8": 266,
+        "9": 63,
+        "10": 4,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3504,
+      "samples_per_sec": 884,
+      "secs": 112
+    }
+  ],
+  "eval": {
+    "solved": 282,
+    "n": 1108,
+    "ge": {
+      "7": 282,
+      "8": 215,
+      "9": 143,
+      "10": 12,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 10,
+    "heldout_greedy": 0.9895,
+    "max_pruned": 10,
+    "by_bin": {
+      "7": {
+        "solved": 67,
+        "n": 150,
+        "rate": 0.44666666666666666,
+        "ci": [
+          0.3694266500084245,
+          0.5265702715004521
+        ]
+      },
+      "8": {
+        "solved": 72,
+        "n": 152,
+        "rate": 0.47368421052631576,
+        "ci": [
+          0.3959363726303488,
+          0.5527294521558442
+        ]
+      },
+      "9": {
+        "solved": 131,
+        "n": 477,
+        "rate": 0.2746331236897275,
+        "ci": [
+          0.23649878619633347,
+          0.3163685197938305
+        ]
+      },
+      "10": {
+        "solved": 12,
+        "n": 219,
+        "rate": 0.0547945205479452,
+        "ci": [
+          0.0316189325731369,
+          0.09332003752939333
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P42 variance-matched orthogonal initialization of all 16 hidden matrices scored 282/275/269 on seeds 0/1/2 versus incumbent 040 scores 294/265/250: exact means 275.333333 versus 269.666667, a gain of 5.666667 solves (+2.10%); stored rounded means 275 versus 270. Keep under the fixed strictly-higher downstream three-seed mean rule. Paired changes are -12/+10/+19, so the modest mixed-seed gain does not establish reliable superiority on fresh seeds or validate conditioning as its mechanism. QKV was initialized jointly as a 768-by-256 orthogonal matrix, while the unchanged Muon optimizer splits Q/K/V updates. Embeddings, readout, biases and normalization retained their initial values; the extra initialization draws change the global RNG trajectory without changing the seed policy or separately seeded data generator. Pretraining completed 2899/2902/2870 updates versus incumbent 2928/2902/2875, in 300.27/300.29/300.43 seconds with unchanged 3210240 parameters. Final validation losses were 0.092410/0.095220/0.094168 versus 0.094142/0.095098/0.093406, and held-out greedy accuracies were 0.9870/0.9910/0.9900 versus 0.9900/0.9885/0.9895. Token loss did not uniformly improve. RL cumulative target trajectories were 233/507/617/709, 151/365/616/688, and 107/317/549/670 versus incumbent final totals 712/679/657. All seeds finished successfully in 889/922/832 seconds under the unchanged 1200-second cap. All three experiment pods are confirmed terminated via RunPod list; the other agent's pods were left alone. Registration was committed and pushed before provisioning, and run_idea.py remained foreground with ND_AUTORESEARCH_SESSION preserved. Ruff/format/Pyright passed. Registration/checkpoint tests initially had 47 passes and three failures because the inherited ND_AGENT added a suffix while those tests expected unsuffixed fixture paths; all three failed cases passed when rerun with ND_AGENT unset only for that test subprocess. Frozen tooling was not edited. Local all-seed checks verified actual construction, exact orthogonal Gram matrices and matched element second moments, unchanged non-hidden initial weights, parameter count, left-padded cached/full decoding, checkpoint reload, finite bf16 Muon/auxiliary AdamW updates and ordinary AdamW handoff. Candidate added 4 lines and deleted 0. Dataset, tokenizer, RL procedure, evaluation, budgets, seed policy and frozen files were unchanged.",
+  "seed_metrics": {
+    "0": 282,
+    "1": 275,
+    "2": 269
+  },
+  "seed_metric_rl": {
+    "0": 709,
+    "1": 688,
+    "2": 670
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}
