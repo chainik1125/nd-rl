@@ -28,7 +28,10 @@ Never claim success if registration, launch, recording, or Git operations are bl
 Unrelated dirty files are not an unfinished experiment: leave them alone. If the launcher
 appends a validated RESUME instruction, finish that existing experiment unchanged rather than
 proposing a new one; its matching pretrain.py edits are expected. Otherwise, if pretrain.py
-already has pending edits or a preregistered experiment is unfinished, do not overwrite it
-or launch duplicates: report the blocker and exit.
+already has pending edits or one of YOUR preregistered experiments is unfinished, do not
+overwrite it or launch duplicates: report the blocker and exit. Yours are the ids ending in
+`-$ND_AGENT`, plus unsuffixed ids if you are codex. An unfinished preregistration with the
+other agent's suffix is their experiment running right now: not a blocker, not yours to
+touch, and not an idea to repeat. Pick your own experiment number above every existing one.
 For any blocker, make your final response one concise sentence identifying the cause;
 the launcher shows it to the operator. Do not start a second idea in this session.

@@ -348,7 +348,9 @@ def run_loop(command: list[str], prompt: str) -> int:
         process = None
         try:
             emit(f"Starting {agent.title()} | checking experiment state | diagnostics: {session}")
-            current_prompt = iteration_prompt(prompt)
+            # Re-read per session so prompt fixes reach a running loop (the tests pass a string).
+            path = HERE / "iteration.md"
+            current_prompt = iteration_prompt(path.read_text() if path.exists() else prompt)
             check_balance()
             with (
                 (session / f"{agent}.jsonl").open("w") as output,
