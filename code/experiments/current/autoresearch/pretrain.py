@@ -29,32 +29,18 @@ import math
 import time
 
 import torch
-import torch.nn.functional as F
 from model import GPT  # fork
 from tokenizer import MAXN, Tokenizer  # fork
 from train import loss_on  # fork
 
 # ---- knobs
-N_LAYER, D, N_HEAD = 4, 256, 8
+N_LAYER, D, N_HEAD = 5, 256, 8
 BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
 MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
 # Match the incumbent's multiplicative decay at every schedule fraction.
 MUON_WD = WD * LR / MUON_LR
 TOK_MODE = "abs"
 VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
-ENTROPY_BONUS = 0.01
-
-
-def pretrain_loss(model, x, mask):
-    """P48: encourage predictive entropy on the existing supervised proof tokens only."""
-    logits = model(x[:, :-1]).float()
-    supervised = mask[:, 1:].reshape(-1)
-    token_loss = F.cross_entropy(
-        logits.reshape(-1, logits.size(-1)), x[:, 1:].reshape(-1), reduction="none"
-    )
-    log_probs = logits.log_softmax(dim=-1)
-    entropy = -(log_probs.exp() * log_probs).sum(dim=-1).reshape(-1)
-    return ((token_loss - ENTROPY_BONUS * entropy) * supervised).sum() / supervised.sum()
 
 
 # Muon update adapted from KellerJordan/Muon, commit
@@ -195,7 +181,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         idxs, perm = perm[:BS], perm[BS:]
         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
         with autocast:
-            loss = pretrain_loss(model, x, m)
+            loss = loss_on(model, x, m)
         model.zero_grad(set_to_none=True)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
