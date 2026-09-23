@@ -1,0 +1,186 @@
+{
+  "id": "021",
+  "slug": "token-lr-half",
+  "written_at": "2026-09-23T00:47:06-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "be32ab9",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "b8d6545a3c1b",
+  "patch_lines": 19,
+  "title": "P16: half-rate token embeddings and output readout during pretraining",
+  "description": "P16: multiply the pretraining learning rate of emb.weight and head.weight by 0.5 throughout warmup and cosine decay, keeping every other parameter at the incumbent schedule. Slower adaptation of the token interface may encourage hidden proof features that transfer better to the fixed downstream expert-iteration procedure.",
+  "tags": [
+    "optimizer"
+  ],
+  "hypothesis": "Prior optimizer probes changed all coordinates (015 beta2, 016 cosine floor) or decay membership (018); none tested a separate token-interface learning rate. Reducing embedding/readout updates may prevent fast short-proof specialization at the symbol interface while hidden blocks learn reusable transformations. This may instead delay vocabulary learning and hurt proof validity within the short budget. Weight-decay coefficient remains 0.1 for every parameter, so LR-scaled AdamW shrinkage is also halved for embeddings/readout; this is not an isolation of gradient update size from effective decay. Downstream three-seed dev-transfer >=7 performance alone determines keep/discard.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +3 to +15 dev-transfer theorems at true length >=7 versus incumbent 012 (exact mean 147.67; stored rounded mean 148), with plausible downside -35. Seeds remain 0,1,2. Two AdamW groups should have negligible direct latency cost (unmeasured), with approximately 3000 steps in the unchanged 300-second pretraining budget. Architecture and per-token inference cost are unchanged; learned generation lengths can still change runtime under the fixed 1200-second total cap.",
+  "baseline_id": "012",
+  "baseline_metric": 148,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "lr_groups": [
+        {
+          "parameters": "emb.weight and head.weight",
+          "lr_scale": 0.5,
+          "peak_lr": 0.0005,
+          "final_lr": 5e-05,
+          "n_params": 50688
+        },
+        {
+          "parameters": "all other model parameters",
+          "lr_scale": 1.0,
+          "peak_lr": 0.001,
+          "final_lr": 0.0001,
+          "n_params": 3159552
+        }
+      ],
+      "handoff": "Pretraining optimizer discarded; frozen RL uses its unchanged AdamW on all model parameters."
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
