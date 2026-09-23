@@ -1,0 +1,50 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index fce40df..4079ecd 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,7 +29,7 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++from model import GPT, rope_cache  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+@@ -37,9 +37,27 @@ from train import loss_on  # fork
+ N_LAYER, D, N_HEAD = 4, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ TOK_MODE = "abs"
++ROPE_BASE = 100000.0
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
++class LongWavelengthGPT(GPT):
++    """Fork forward with a longer RoPE base, retained during RL and cached decoding."""
++
++    def forward(self, idx, pos=None, mask=None, caches=None):
++        if pos is None:
++            cos, sin = rope_cache(idx.shape[1], self.hd, idx.device, base=ROPE_BASE)
++        else:
++            cos_all, sin_all = rope_cache(
++                int(pos.max().item()) + 1, self.hd, idx.device, base=ROPE_BASE
++            )
++            cos, sin = cos_all[pos], sin_all[pos]
++        x = self.emb(idx)
++        for i, block in enumerate(self.blocks):
++            x = block(x, cos, sin, mask, None if caches is None else caches[i])
++        return self.head(self.ln_f(x))
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -94,7 +112,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = LongWavelengthGPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
