@@ -1,0 +1,343 @@
+{
+  "commit": "6bca1e4",
+  "recorded_at": "2026-09-23T10:43:29-0700",
+  "status": "discard",
+  "metric": 162,
+  "metric_rl": 455,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "e468d53965f7",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 869,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.2,
+    "n_params": 3473408,
+    "steps": 2625,
+    "epochs": 4.364599976618214,
+    "last_loss": 0.05922499671578407,
+    "heldout_greedy": 0.988,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 18,
+        "train_loss": null,
+        "val_loss": 3.848150610923767
+      },
+      {
+        "secs": 30,
+        "step": 157,
+        "train_loss": 1.8175916075706482,
+        "val_loss": 0.7048398405313492
+      },
+      {
+        "secs": 45,
+        "step": 293,
+        "train_loss": 0.32490547001361847,
+        "val_loss": 0.12455647438764572
+      },
+      {
+        "secs": 60,
+        "step": 430,
+        "train_loss": 0.10091363425765719,
+        "val_loss": 0.09895829111337662
+      },
+      {
+        "secs": 75,
+        "step": 569,
+        "train_loss": 0.08615490794181824,
+        "val_loss": 0.09865183755755424
+      },
+      {
+        "secs": 90,
+        "step": 706,
+        "train_loss": 0.07859747963292259,
+        "val_loss": 0.09910231828689575
+      },
+      {
+        "secs": 105,
+        "step": 842,
+        "train_loss": 0.07375871602978025,
+        "val_loss": 0.09852387569844723
+      },
+      {
+        "secs": 120,
+        "step": 981,
+        "train_loss": 0.07098049351147243,
+        "val_loss": 0.09252279810607433
+      },
+      {
+        "secs": 135,
+        "step": 1119,
+        "train_loss": 0.06835337355732918,
+        "val_loss": 0.10242678597569466
+      },
+      {
+        "secs": 150,
+        "step": 1258,
+        "train_loss": 0.06721095155392375,
+        "val_loss": 0.09717457555234432
+      },
+      {
+        "secs": 165,
+        "step": 1393,
+        "train_loss": 0.06505362902368818,
+        "val_loss": 0.09982217103242874
+      },
+      {
+        "secs": 180,
+        "step": 1532,
+        "train_loss": 0.06385755751814161,
+        "val_loss": 0.09279587306082249
+      },
+      {
+        "secs": 195,
+        "step": 1670,
+        "train_loss": 0.0619124849992139,
+        "val_loss": 0.08638937771320343
+      },
+      {
+        "secs": 210,
+        "step": 1806,
+        "train_loss": 0.06277518134031977,
+        "val_loss": 0.09297177754342556
+      },
+      {
+        "secs": 225,
+        "step": 1941,
+        "train_loss": 0.06095972071800913,
+        "val_loss": 0.0890441071242094
+      },
+      {
+        "secs": 240,
+        "step": 2077,
+        "train_loss": 0.060682948057850204,
+        "val_loss": 0.08999676629900932
+      },
+      {
+        "secs": 255,
+        "step": 2215,
+        "train_loss": 0.061197767300265174,
+        "val_loss": 0.09114528633654118
+      },
+      {
+        "secs": 270,
+        "step": 2350,
+        "train_loss": 0.060126003410135,
+        "val_loss": 0.08936970122158527
+      },
+      {
+        "secs": 285,
+        "step": 2488,
+        "train_loss": 0.06051329682980265,
+        "val_loss": 0.09301388822495937
+      },
+      {
+        "secs": 300,
+        "step": 2625,
+        "train_loss": 0.06003109897886004,
+        "val_loss": 0.09470048174262047
+      }
+    ],
+    "records_seen": 672000
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.0413125,
+      "new_proofs": 131,
+      "targets_solved": 111,
+      "lstar": 7,
+      "ge": {
+        "7": 111,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 524,
+      "samples_per_sec": 604,
+      "secs": 121
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.088625,
+      "new_proofs": 86,
+      "targets_solved": 177,
+      "lstar": 8,
+      "ge": {
+        "7": 177,
+        "8": 10,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 868,
+      "samples_per_sec": 695,
+      "secs": 111
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.15275,
+      "new_proofs": 149,
+      "targets_solved": 303,
+      "lstar": 8,
+      "ge": {
+        "7": 303,
+        "8": 25,
+        "9": 2,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1464,
+      "samples_per_sec": 700,
+      "secs": 114
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.309,
+      "new_proofs": 307,
+      "targets_solved": 562,
+      "lstar": 9,
+      "ge": {
+        "7": 562,
+        "8": 171,
+        "9": 20,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2688,
+      "samples_per_sec": 759,
+      "secs": 115
+    }
+  ],
+  "eval": {
+    "solved": 202,
+    "n": 1108,
+    "ge": {
+      "7": 202,
+      "8": 143,
+      "9": 82,
+      "10": 1,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 9,
+    "heldout_greedy": 0.9885,
+    "max_pruned": 10,
+    "by_bin": {
+      "7": {
+        "solved": 59,
+        "n": 150,
+        "rate": 0.3933333333333333,
+        "ci": [
+          0.3187585669410804,
+          0.47323527607667293
+        ]
+      },
+      "8": {
+        "solved": 61,
+        "n": 152,
+        "rate": 0.40131578947368424,
+        "ci": [
+          0.3267515185207873,
+          0.4807453244274371
+        ]
+      },
+      "9": {
+        "solved": 81,
+        "n": 477,
+        "rate": 0.16981132075471697,
+        "ci": [
+          0.13878541400880504,
+          0.20611319709306294
+        ]
+      },
+      "10": {
+        "solved": 1,
+        "n": 219,
+        "rate": 0.0045662100456621,
+        "ci": [
+          0.0008064827143618135,
+          0.02540765324588977
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P30 gated attention (elementwise sigmoid gate on each head's SDPA output, computed from the ln1 input, before proj; +263,168 parameters to 3,473,408) on top of registered baseline 040, with no other change. Dev-transfer scores were 202/58/226 on seeds 0/1/2 versus 040 scores 294/265/250: exact means 162.000000 versus 269.666667, a decrease of 107.666667 solves (-39.9%); paired changes -92/-207/-24. Discard under the fixed three-seed downstream rule. During this run the other agent kept 043 (P42 orthogonal init, 282/275/269, exact mean 275.333333), so discard restores that HEAD incumbent. The registered mechanism is contradicted at its first predicted step: round-1 RL sample accuracy fell on every seed to 0.0413/0.0375/0.0204 versus 040's 0.0650/0.0420/0.0410, and round-1 targets solved to 111/88/69 versus 185/117/132. RL cumulative targets were 111/177/303/562, 88/152/194/226 and 69/161/346/576 versus 040 finals 712/679/657; seed 1's discovery stalled after round 1 (+64, +42, +32), the first sub-400 RL total since Muon (030). Dev solves at lengths 7/8/9/10 were 59/61/81/1, 41/8/9/0 and 57/71/90/7 versus 65/70/140/17, 61/70/123/11 and 63/70/108/8, so the loss concentrates at 9-10 lines (8-10 on seed 1). Pretraining token metrics stayed near baseline and again did not predict transfer: final validation loss 0.0947/0.0923/0.0929 versus 0.0941/0.0951/0.0934, held-out greedy 0.9880/0.9885/0.9845 versus 0.9900/0.9885/0.9895, with 2625/2669/2648 updates versus 2928/2902/2875 (-10.3/-8.0/-7.9%, at or slightly above the registered 3-8% cost). A post-hoc local analysis of each pretrain.pt (the same 100 RL targets per length, 32 samples at T=0.8, sampler seed 1, on MPS) found 7-line targets solved 21/18/12 versus 040's 36/26/23; 6-line attempts on 7-line targets 65/67/77% versus 58/68/69% (the length prior did not weaken); and bad box cites 9.8/16.9/14.5% of 7-line samples versus 7.3/8.7/<=8.9% (citation errors rose rather than fell). The gates did not become sparse: on 7-9-line reference proofs, per-layer mean gate values were 0.52-0.62, with only 1-5% below 0.1 and 2-10% above 0.9. Under Muon at LR 0.01 the gate therefore acted mostly as a ~0.55x scale on the attention branch, not the sparse query-dependent gating Qiu et al. (2025) report in large LMs. The gate itself, the halved initial attention scale, 8.2% more parameters and ~9% fewer pretraining updates are confounded. This rejects this configuration, not attention gating in general; headwise gates, a gate bias initialized near 1 and a separate gate LR are untested. All seeds finished ok under the 1200 s cap in 869/822/866 s. Registration 2da1c73 was committed and pushed before provisioning. run_idea.py ran as a harness-tracked task of this Claude session because Claude's shell caps foreground calls at 10 minutes; it kept ND_AUTORESEARCH_SESSION and its launch manifest, and the session waited until it exited with code 0. Capacity retries delayed seeds 0/1. All three pods were terminated by the runner and are absent from the RunPod list; other agents' pods were left alone. make -C code check (Ruff, format, Pyright) passed, as did 81 autoresearch tests with ND_AGENT unset. Local CPU checks against the pinned fork passed: parameter count 3,473,408 on seeds 0/1/2; 20 Muon matrices including the four gates, with gate biases in AdamW; a saturated gate reproduced the fork Block exactly (max diff 0.0, full and cached); left-padded cached prefill/decode matched the full forward (max logit diff 1.2e-6); checkpoint round trip; finite bf16 backward; a real pretrain() call; and harness --smoke with status ok. Candidate added 41 lines and deleted 2. Data, tokenizer, RL procedure, evaluation, budgets, seed policy and frozen tooling were unchanged.",
+  "seed_metrics": {
+    "0": 202,
+    "1": 58,
+    "2": 226
+  },
+  "seed_metric_rl": {
+    "0": 562,
+    "1": 226,
+    "2": 576
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}
