@@ -4,7 +4,7 @@
 # role ∈ executor|reviewer|librarian|proposer. Role briefs live in $ORCH_BRIEFS (default ~/nd-rl/docs/proposals/orchestration).
 set -u
 ROLE=$1; RUN=$2; shift 2
-REPO=~/nd-takehome; BRIEF=""; STOP=""; MODEL=fable; DONE=""; DONEGREP=""
+REPO=~/nd-takehome; BRIEF=""; STOP=""; MODEL=""; DONE=""; DONEGREP=""
 while [ $# -gt 0 ]; do case $1 in
   --repo) REPO=$2; shift 2;; --brief) BRIEF=$2; shift 2;; --stop) STOP=$2; shift 2;; --model) MODEL=$2; shift 2;;
   --done) DONE=$2; shift 2;; --done-grep) DONEGREP=$2; shift 2;; *) echo "unknown arg $1"; exit 1;; esac; done
@@ -34,7 +34,10 @@ PY
 
 # True when the result is an authentication failure (expired OAuth, invalid key): stop, do not spin.
 auth_failed() { grep -qiE "Failed to authenticate|OAuth session expired|authentication_error|invalid x-api-key|Not logged in" "$1" 2>/dev/null; }
+# True when the account is out of credits for this model: stop and name the model.
+out_of_credits() { grep -qiE "out of usage credits|insufficient credit|Switch to another model" "$1" 2>/dev/null; }
 fails=0; authfails=0
+DEFAULT_MODEL_FILE=~/.config/nd-rl/model
 COMMON=(--model "$MODEL" --dangerously-skip-permissions --verbose --output-format stream-json)
 CTX="Run id: $RUN. Role: $ROLE. Repository: $REPO. Runs directory: $D. Current UTC time: $(date -u).
 Commit trailers to use: 'Edited-by: agent:claude', 'Agent-role: $ROLE', 'Run-id: $RUN'.
@@ -46,7 +49,8 @@ for i in $(seq 1 200); do
   [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; notify "$RUN: $ROLE hit its hard stop" "Session ended by time limit; check STATUS.md." high; break; }
   [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E 'DONE|QUARANTINE' "$REPO/STATUS.md" 2>/dev/null | tail -2)"; break; }
   [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E "$DONEGREP" "$REPO/STATUS.md" | tail -1)"; break; }
-  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i" >> "$LOG"
+  M=${MODEL:-$(cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo opus)}; COMMON[1]="$M"
+  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M)" >> "$LOG"
   if [ "$i" = 1 ]; then
     claude -p "$(cat "$REPO/AGENT_POLICY.md")
 
@@ -60,6 +64,7 @@ Begin." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
     claude -p --continue "Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
   fi
   rc=$?; echo "[driver] $(date -u +%FT%TZ) invocation $i exited rc=$rc" >> "$LOG"
+  if out_of_credits "$OUT"; then echo "[driver] OUT OF CREDITS (model $M) — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped — out of usage credits for model $M" "Set a different model (echo <model> > ~/.config/nd-rl/model) or top up, then relaunch. Check podls for pods this run created." high; break; fi
   if auth_failed "$OUT"; then authfails=$((${authfails:-0}+1)); echo "[driver] auth failure $authfails" >> "$LOG"; if [ "$authfails" -lt 3 ]; then sleep 120; continue; fi; echo "[driver] AUTH FAILURE — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped — Claude authentication failed" "OAuth/API auth failed on $(hostname); the session cannot continue. Pods it created are still running: check podls. Log in again on this host (claude) or provide an API key, then relaunch." high; break; fi
   if [ "$rc" != 0 ] || grep -q '"is_error":true' "$OUT" 2>/dev/null; then fails=$((fails+1)); else fails=0; authfails=0; fi
   if [ "$fails" -ge 3 ]; then echo "[driver] three consecutive failed invocations — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped after 3 consecutive failures" "Last result: $(tail -c 300 "$OUT" | tr -d '\n' | cut -c1-280)" high; break; fi
