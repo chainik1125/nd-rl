@@ -1,0 +1,200 @@
+{
+  "id": "057-claude",
+  "slug": "depth6-width224",
+  "written_at": "2026-09-23T14:32:09-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "3547a33",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "ddfa176a08d3",
+  "patch_lines": 2,
+  "title": "Six narrower blocks (d_model 224, 7 heads of 32) instead of five 256-wide blocks at matched compute",
+  "description": "New idea outside the P01-P50 backlog (no backlog ID; it reallocates width into depth, the reverse direction of P25, and follows 051-claude's depth result): on top of incumbent 051-claude, build the fork GPT with 6 blocks at d_model 224 (7 heads of dimension 32, d_ff 896) instead of 5 blocks at d_model 256 (8 heads of 32, d_ff 1024), changing nothing else (Muon, orthogonal init, schedule and data unchanged), which keeps per-token compute (-8% matmul, +5% KV cache), total heads (42 vs 40), MLP units (5376 vs 5120) and parameters (3,674,944 vs 4,000,000) roughly matched while a sixth 256-wide block would add about 20% to RL and evaluation time. One more serial attention+MLP round per token should let the pretrained policy check rule validity on longer proofs, so fixed expert iteration finds more 7-line proofs in round 1 and climbs to 9-10-line dev theorems faster.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Evidence: (1) Depth. 051-claude (4 -> 5 blocks at d_model 256) scored 288/260/311 versus 043's 282/275/269 (exact mean 286.333333 versus 275.333333, paired +6/-15/+42) despite about 19% fewer pretraining updates, and its post-hoc diagnostic (8 samples at T=0.8 on seeded 120/60/60 7/8/9-line RL targets) showed fewer rule-check failures on average and a slightly weaker cap-6 length prior (exactly-6-line samples 59.2% versus 61.2%). That run confounded depth with +24.6% parameters and width-per-layer compute. (2) Budget. A sixth 256-wide block is not affordable: on MPS it costs +20% per training step (997-1014 versus 831-850 ms for a 256-record batch including the Muon step) and +18% per decode (2.20 versus 1.86 s for 512 RL prompts x 160 sampled tokens), and 051's slowest seed already took 1053 of 1200 s. At d_model 224 the sixth block is nearly free: per-token matmul MACs fall 8.1% (3.61M versus 3.93M), attention/KV width per token rises 5% (6x224 = 1344 versus 5x256 = 1280), and MPS costs are +2.5% per training step (858-863 ms) and +4-5% per decode (1.93-1.96 s). (3) Capacity. Head dimension stays 32 (same 16 RoPE frequency pairs per head); total heads 42 versus 40; MLP hidden units 5376 versus 5120 (d_ff = 4 d as in the fork); parameters 3,674,944 versus 4,000,000 (-8.1%); residual width -12.5%. (4) Failure modes. 051 s0's 7-line samples fail mostly by invalid rule applications (IMPI 15.9%, bad box cite 15.2%, NEGE 11.6%, ANDI 7.6%), and its samples essentially never write 8+ lines (1 of 960 on 7-line targets, 0 of 480 on 8-line targets), so round 1 solves only 7-line targets and each round extends the frontier by about one line. Checking IMPI/IMPE/ANDI and box scopes means retrieving cited lines and comparing their formulas with the new line, which composes serially across layers. (5) Literature. Ye et al. 2024 ('Physics of Language Models: Part 2.1', arXiv 2407.20311) found depth, more than width, governs how many reasoning steps small transformers carry out; Petty et al. 2024 ('The Impact of Depth on Compositional Generalization in Transformer Language Models', NAACL 2024) found deeper models generalize compositionally better at matched parameters, with diminishing returns; Liu et al. 2024 ('MobileLLM', ICML 2024) found deep-and-thin beats wide-and-shallow at sub-billion scale. Mechanism: at unchanged compute, one more attention+MLP round per token lets the pretrained policy verify rule applications and box structure more reliably when a proof must run past six lines, raising round-1 RL sample accuracy and targets solved; because the frontier advances about one line per round, better round-1 discovery should compound into more 9-10-line dev solves. Alternative outcomes: (a) 051's gain came from its extra parameters or width-per-layer compute rather than depth, so narrowing costs more than the sixth block returns; (b) the cap-6 length prior is a property of the fixed data that depth need not weaken; (c) 7 heads and a 224-wide residual stream change per-layer retrieval capacity (049's head-geometry change cost -56, although head dimension is unchanged here); (d) 051's +11 was within seed noise, so depth may not help at all; (e) RL and evaluation run about 5% slower, and a seed over 1200 s would make this a timeout. The six-block 224-wide GPT persists into RL and evaluation (frozen RL AdamW trains all 3,674,944 parameters); RL, evaluation, data, tokenizer, seeds and budgets are unchanged. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +5 to +20 dev-transfer solves at true length >=7 versus incumbent 051-claude exact mean 286.333333 (288/260/311), with round-1 RL sample accuracy above 051's mean 0.0624 (0.0630/0.0494/0.0749) and more 9-10-line dev solves than 051 (136+15, 114+12, 145+21); plausible downside -30 if residual width or parameters mattered more than depth. Parameters fall 8.1% to 3,674,944. Expect about 2150-2400 pretraining updates in 300 s (051: 2320/2370/2341), final validation loss within +-0.005 of 051 (0.0924/0.0951/0.0932), held-out greedy 0.980-0.992, and per-seed totals of about 960-1100 s (051: 1053/957/941 s) under the 1200 s cap; a seed over the cap would count as a failed experiment.",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 6,
+      "d_model": 224,
+      "n_heads": 7,
+      "d_ff": 896,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3674944,
+      "change": "one line: N_LAYER, D, N_HEAD 5, 256, 8 -> 6, 224, 7 in pretrain.py; head dim stays 32 (RoPE base 10000, same 16 frequency pairs per head), d_ff = 4 d = 896 (fork Block), LayerNorm, GELU, untied embedding/readout and every other setting unchanged",
+      "n_params_detail": "per block 605,024 (ln1/ln2 448 each, qkv 151,200, proj 50,400, fc1 201,600, fc2 200,928); 6 blocks 3,630,144 + emb 22,176 + head 22,176 + ln_f 448 = 3,674,944 (051: 4,000,000)",
+      "checkpoint_reconstruction": "GPT(vocab, 6, 224, 7) from the fork; model.cfg records n_layer=6, d=224, n_head=7 and the state dict has blocks.0-blocks.5",
+      "kv_cache": "one fork KV-cache dict per logical block (6 per sample), unchanged fork code; cache tensors (B, 7, max, 32)",
+      "compute": "per-token forward matmul MACs 3,612,672 versus 3,932,160 (-8.1%); attention score/value width 6 x 224 = 1344 versus 1280 (+5%); KV cache entries per token 2688 versus 2560 (+5%); total heads 42 versus 40; MLP hidden units 5376 versus 5120"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1 (unchanged)",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 24 hidden projection parameters (4 per block x 6 blocks) are in Muon. Six qkv.weight matrices of shape (672,224) use independent Q/K/V updates, represented as a batch of three (224,224) matrices; proj (224,224), fc1 (896,224) and fc2 (224,896) are orthogonalized whole.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,224,224); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. The unchanged detection rule rows == 3 * columns matches only qkv (672 == 3 x 224). No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction with 6 blocks at d_model 224, then orthogonal_ on every 2D block parameter after moving to device. Gain = 0.02 * sqrt(max(rows, columns)); exact element second moment 0.0004 (checked). All 24 hidden matrices: qkv (672,224), proj (224,224), fc1 (896,224), fc2 (224,896) in each of six blocks. QKV initialized jointly. Embedding and readout keep the fork's normal(0.02) draws; biases zero; LayerNorm weight 1 and bias 0. No reinitialization during RL. Different shapes and a sixth block change the global-RNG draws, so initial weights are not comparable elementwise with 051's; the init rule is identical.",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "timing": "MPS microbenchmarks (not A40), interleaved repeats: train step incl. Muon at batch 256: 5x256 831-850 ms, 6x224 858-863 ms, 6x256 997-1014 ms; fork generate_ids on 512 RL prompts x 160 sampled tokens at T=0.8 after warm-up: 5x256 1.86 s, 6x224 1.93-1.96 s, 6x256 2.19-2.20 s"
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
