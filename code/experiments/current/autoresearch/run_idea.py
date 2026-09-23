@@ -3,7 +3,7 @@
 
   python3 run_idea.py <NNN>_<slug> --seeds 3,4,5
 
-Before renting pods, validates committed params.json + patch, source hashes, fork and seeds,
+Before renting pods, validates source hashes, fork and seeds, commits/pushes params.json + patch,
 and refuses dirty harness.py / remote.sh / pod.py. Each seed runs as
 artifacts/autoresearch/<name>_s<seed>/; the merged artifacts/autoresearch/<name>/summary.json
 (what record.py reads) carries the mean over seeds as `metric` and `metric_rl`, plus
@@ -11,37 +11,33 @@ artifacts/autoresearch/<name>_s<seed>/; the merged artifacts/autoresearch/<name>
 that times out is the model's fault (slow sampling), not bad luck.
 """
 
+import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from pathlib import Path
+from typing import Any
 
-from params import check, fork_commit, git, sha
+from params import check, commit_and_push, fork_commit, git, registration_files, sha
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ART = os.path.join(HERE, "..", "..", "..", "..", "artifacts", "autoresearch")
 FROZEN = ("harness.py", "remote.sh", "pod.py")
 
 
-def preflight(name: str, seeds: list[int]) -> None:
+def preflight(name: str, seeds: list[int], *, allow_new: bool = False) -> None:
     """Reject an unregistered launch before threads, API calls or pod creation."""
     if not seeds or len(set(seeds)) != len(seeds):
         raise SystemExit("seeds must be nonempty and unique")
-    for filename in ("params.json", "pretrain.patch"):
-        relative = f"results/{name}/{filename}"
-        path = Path(HERE) / relative
-        if not path.is_file():
-            raise SystemExit(f"{relative} missing: pre-register and commit first")
-        try:
-            committed = git("show", f"HEAD:./{relative}")
-        except subprocess.CalledProcessError:
-            raise SystemExit(f"{relative} is not committed at HEAD") from None
-        if path.read_text() != committed:
-            raise SystemExit(f"{relative} differs from committed preregistration")
+    if (Path(HERE) / "results" / name / "results.json").exists():
+        raise SystemExit(f"{name} already has a recorded result; do not rerun it")
+    registration_files(name, allow_new=allow_new)
     p = check(name)
     if name != f"{p.id}_{p.slug}":
         raise SystemExit("experiment name does not match registered id/slug")
@@ -60,13 +56,66 @@ def preflight(name: str, seeds: list[int]) -> None:
             raise SystemExit(f"requested seeds {seeds} differ from {label}.seed {expected_seeds}")
 
 
-def one(name, seed, log_dir):
+def register(name: str, seeds: list[int]) -> None:
+    preflight(name, seeds, allow_new=True)
+    commit_and_push(
+        registration_files(name, allow_new=True),
+        f"autoresearch {name.replace('_', ' ', 1)}: pre-registered",
+    )
+    preflight(name, seeds)  # Recheck committed bytes and candidate after hooks, before paid work.
+
+
+def ensure_idle(name: str) -> None:
+    """Read-only guard against relaunching an interrupted attempt that is still alive."""
+    for manifest in Path(ART).glob("loop/*/launch-*.json"):
+        entry = json.loads(manifest.read_text())
+        pid = entry.get("pid")
+        if entry["name"] != name or not pid or pid == os.getpid():
+            continue
+        process = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "command="],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        # An old manifest alone is not evidence of a live process; PIDs can be reused.
+        if "run_idea.py" in process.stdout and name in process.stdout.split():
+            raise SystemExit(f"{name}: previous runner {pid} is still active")
+    listed = subprocess.run(
+        [sys.executable, str(Path(HERE) / "pod.py"), "list"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if listed.returncode:
+        raise SystemExit("Cannot verify previous pods are gone: RunPod list failed")
+    for pod in json.loads(listed.stdout)["pods"]:
+        if re.fullmatch(rf"autoresearch-{re.escape(name)}_s\d+(?:-.*)?", pod["name"]):
+            raise SystemExit(
+                f"{name}: previous pod {pod['name']} is still active; clean it up first"
+            )
+
+
+def archive_previous_attempt(name: str, seeds: list[int]) -> None:
+    """Preserve cancelled-attempt evidence without mixing its scores into the next merge."""
+    paths = [Path(ART) / suffix for suffix in [name, *(f"{name}_s{s}" for s in seeds)]]
+    existing = [path for path in paths if path.exists()]
+    if not existing:
+        return
+    archive = Path(ART) / "previous_attempts"
+    archive.mkdir(exist_ok=True)
+    directory = Path(tempfile.mkdtemp(prefix=f"{name}-", dir=archive))
+    for path in existing:
+        path.rename(directory / path.name)
+
+
+def one(name, seed, log_dir, pod_name=None):
     run_name = f"{name}_s{seed}"
     with open(os.path.join(log_dir, f"{run_name}.driver.log"), "w") as log:
 
         def run(*a):
             return subprocess.run(
-                [sys.executable, os.path.join(HERE, "pod.py"), *a, "--pod", run_name],
+                [sys.executable, os.path.join(HERE, "pod.py"), *a, "--pod", pod_name or run_name],
                 stdout=log,
                 stderr=subprocess.STDOUT,
             )
@@ -119,19 +168,57 @@ def merge(name, seeds):
 
 
 def main():
-    name = sys.argv[1]
-    seeds = [int(x) for x in sys.argv[sys.argv.index("--seeds") + 1].split(",")]
-    preflight(name, seeds)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("name")
+    parser.add_argument("--seeds", required=True)
+    parser.add_argument("--check-only", action="store_true", help="Read-only restart validation")
+    args = parser.parse_args()
+    name, seeds = args.name, [int(x) for x in args.seeds.split(",")]
+    if args.check_only:
+        preflight(name, seeds)
+        ensure_idle(name)
+        print(f"Ready to restart {name}; no work launched")
+        return
+    register(name, seeds)
+    ensure_idle(name)
     os.makedirs(ART, exist_ok=True)
-    threads = [threading.Thread(target=one, args=(name, s, ART)) for s in seeds]
-    for t in threads:
-        t.start()
-        time.sleep(3)
-    for t in threads:
-        t.join()
-    m = merge(name, seeds)
-    keys = ("status", "metric", "metric_rl", "seed_metrics", "seed_status")
-    print(json.dumps({k: m[k] for k in keys}))
+    archive_previous_attempt(name, seeds)
+    session = os.environ.get("ND_AUTORESEARCH_SESSION")
+    log_dir, manifest = ART, None
+    entry: dict[str, Any] = {}
+    pods = [f"{name}_s{s}" for s in seeds]
+    if session:
+        # A separate group lets loop.py cancel this runner even if Codex detached its shell.
+        if os.getpgrp() != os.getpid():
+            os.setpgid(0, 0)
+        directory = Path(session)
+        log_dir = str(directory / f"run-{os.getpid()}")
+        Path(log_dir).mkdir()
+        pods = [f"{pod}-{directory.name}" for pod in pods]
+        manifest = directory / f"launch-{os.getpid()}.json"
+        entry = {"name": name, "seeds": seeds, "pid": os.getpid(), "pods": pods, "logs": log_dir}
+        pending = manifest.with_suffix(".tmp")
+        pending.write_text(json.dumps(entry))
+        pending.replace(manifest)  # Publish ownership before any paid API calls.
+    threads = [
+        threading.Thread(target=one, args=(name, s, log_dir, pod))
+        for s, pod in zip(seeds, pods, strict=True)
+    ]
+    try:
+        for t in threads:
+            t.start()
+            time.sleep(3)
+        for t in threads:
+            t.join()
+        m = merge(name, seeds)
+        keys = ("status", "metric", "metric_rl", "seed_metrics", "seed_status")
+        print(json.dumps({k: m[k] for k in keys}))
+    finally:
+        if manifest and not any(t.is_alive() for t in threads):
+            entry["pid"] = None
+            pending = manifest.with_suffix(".tmp")
+            pending.write_text(json.dumps(entry))
+            pending.replace(manifest)
 
 
 if __name__ == "__main__":

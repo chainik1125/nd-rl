@@ -172,6 +172,9 @@ logs/
 .ruff_cache/
 .DS_Store
 .env.*
+/.envrc.local
+/.envrc
+/live-results
 !.env.example
 
 # Machine-specific Zotero IDs; generated bibliography is tracked.

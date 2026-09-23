@@ -1,7 +1,7 @@
 # Autoresearch: pretrain workstream
 
-You are an autonomous researcher improving the pretraining stage of a small proof model. One
-long session, one experiment at a time, forever, until a human stops you. Adapted from
+You are an autonomous researcher improving the pretraining stage of a small proof model. Complete
+one experiment per session; `loop.py` starts fresh Codex sessions until cancelled. Adapted from
 Karpathy's autoresearch (2026) `program.md`; the differences are the metric and the harness split.
 
 ## Setup
@@ -23,13 +23,20 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 
 ## Loop
 
+For the terminal launcher, setup and logging, see [LOOP.md](LOOP.md). Its task prompt is
+[iteration.md](iteration.md). The research scope is pretraining only: keep data and RL fixed.
+
 All commands run from this directory. The scripts need the repo venv (pydantic), so
 `PY=$(git rev-parse --show-toplevel)/code/.venv/bin/python` and use `$PY` where `python3` is written.
-Run `make -C code check` from the repo root before each commit (Ruff + Pyright; the pre-commit hook
-runs the same).
+Run `make -C code check` from the repo root before launching (Ruff + Pyright). Report failures;
+do not fix unrelated files. The scripts perform Git operations with normal hooks enabled and
+stop on commit/push failure. Do not stage, commit, push, or restore files manually in the loop.
 
 1. Read `results/*/params.json` + `results.json` (all previous experiments, kept and discarded),
-   `RESULTS.md`, and `git log`.
+   `RESULTS.md`, and `git log`. Also read the
+   [pretraining idea backlog](../../../../.claude/notes/ideas.md) at startup. Robbie is
+   excited about P01 (looped architectures) and P02 (Muon); these are not mandatory
+   priorities. Include the chosen idea ID in the registration description.
 2. Pick one idea. Edit `pretrain.py`.
 3. Pre-register: `$PY params.py new <NNN> <slug> --seeds 0,1,2` writes `results/<NNN>_<slug>/params.json`
    (mechanical fields, `protocol`, and `pretrain.patch` filled in) and leaves `TODO`s. Fill every
@@ -38,25 +45,28 @@ runs the same).
    Use the intended seeds here and at launch (e.g. `--seeds 3,4,5` for a control).
    Both `config.seed` and `protocol.seed` store that list; historical runs use a scalar.
    The cached target histogram is seed-0-only, so `targets_sampled` is null for other seeds.
-   Then
-   `git add results/<NNN>_<slug> && git commit -m "autoresearch <NNN> <slug>: pre-registered" && git push`.
-   Committing the prediction BEFORE the run is the rule, not a suggestion; params.json is never
-   edited after this commit.
+   The runner commits and pushes these two registration files before launching. Committing
+   the prediction BEFORE the run is enforced; params.json is never edited after this commit.
 4. Run on three seeds at once, one pod each:
-   `source ~/repos/nd-takehome/.envrc.local && $PY run_idea.py <NNN>_<slug> --seeds 0,1,2`.
-   It validates the schema, requires params.json and pretrain.patch to match committed HEAD,
-   checks source hashes, fork and seeds, and rejects dirty frozen files before renting pods.
+   `source "$(git rev-parse --show-toplevel)/.envrc.local" && $PY run_idea.py <NNN>_<slug> --seeds 0,1,2`.
+   It validates the schema, source hashes, fork and seeds, rejects dirty frozen files, then
+   commits/pushes only this experiment's params.json and pretrain.patch. Existing committed
+   registrations must match HEAD exactly. It rechecks validation after hooks and before pods.
    It writes the
    merged `artifacts/autoresearch/<NNN>_<slug>/summary.json` (`metric` = mean over seeds,
    `seed_metrics` per seed; status ok only if every seed is ok) plus one dir per seed.
 5. Record: `$PY record.py <NNN>_<slug> keep|discard|crash|timeout "surprise"` writes
    `results.json` (loss curve, per-round RL numbers, eval histograms, seed metrics) and refuses
-   if the run does not match what was pre-registered. Then `$PY table.py` to refresh `RESULTS.md`.
-6. Keep if the idea's mean `metric` is above the current baseline's mean `metric` (both are
-   3-seed means): `git add pretrain.py results RESULTS.md`. Otherwise `git checkout pretrain.py`
-   and add only `results RESULTS.md`. Ties: keep only if simpler.
-   `git commit -m "autoresearch <NNN> <slug>: keep|discard, <metric>" && git push`.
-7. Go to 1.
+   if the run does not match what was pre-registered. It also refreshes `RESULTS.md`, applies
+   the supplied decision, and commits/pushes only results.json, RESULTS.md, and pretrain.py.
+   On discard/crash/timeout it restores pretrain.py from the registered base commit, after
+   checking that no new edits would be overwritten. No manual table refresh or Git step.
+6. Choose `keep` only if the idea's mean `metric` is above the current baseline's mean
+   `metric` (both are 3-seed means). Ties: keep only if simpler. Otherwise choose `discard`.
+   Unrelated staged/unstaged work is left alone. If a commit/push fails, stop and report it;
+   rerunning the same command can finish publishing without an extra empty commit. A completed
+   record's status/observation cannot be rewritten on retry.
+7. Verify your pods are terminated, then exit. The launcher starts the next experiment.
 
 ## Rules
 
@@ -72,13 +82,13 @@ runs the same).
   weights, no hand-written proofs, no calling the verifier from the decoder.
 - **Three pods per experiment, one experiment at a time.** Never more than 3 A40s at once. A
   pod named `autoresearch-klaus` may belong to another agent: leave it alone.
-- **Hard stop.** At 07:00 America/Los_Angeles finish the running experiment, record it, then
-  `python3 pod.py list` and `python3 pod.py down --pod <name>` for every pod you own. Pods cost
-  money while you think.
+- **Cleanup.** `run_idea.py` terminates its pods after running. On cancellation, `loop.py`
+  stops the local processes and terminates only the pods registered to that session.
+  There is no overnight cutoff or experiment-count limit.
 - **Tags** (multi-select): systems, optimizer, schedule, architecture, tokenizer, data-order,
   augmentation, loss, init, regularization, batch, simplification.
-- **NEVER STOP** to ask whether to continue. If out of ideas, re-read the fork's code, combine
-  near-misses, try something radical.
+- Do not ask whether to continue within your assigned experiment. If out of ideas, re-read
+  the fork's code or combine near-misses. Exit after recording one experiment, or report a blocker.
 
 ## Files per experiment: `results/<NNN>_<slug>/`
 

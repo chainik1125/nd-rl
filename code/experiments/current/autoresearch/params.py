@@ -43,6 +43,41 @@ def git(*args: str) -> str:
     ).stdout
 
 
+def registration_files(name: str, *, allow_new: bool = False) -> list[str]:
+    """An existing preregistration is immutable, even when publishing a new one."""
+    paths = [f"results/{name}/{filename}" for filename in ("params.json", "pretrain.patch")]
+    for relative in paths:
+        path = HERE / relative
+        if not path.is_file():
+            raise SystemExit(f"{relative} missing: pre-register first")
+        try:
+            committed = git("show", f"HEAD:./{relative}")
+        except subprocess.CalledProcessError:
+            if allow_new:
+                continue
+            raise SystemExit(f"{relative} is not committed at HEAD") from None
+        if path.read_text() != committed:
+            raise SystemExit(f"{relative} differs from committed preregistration")
+    return paths
+
+
+def commit_and_push(paths: list[str], message: str) -> str:
+    """Commit only these working-tree files; preserve unrelated staged work and run hooks."""
+    action = "add"
+    try:
+        git("add", "--", *paths)
+        action = "diff"
+        if git("diff", "--cached", "--name-only", "--", *paths).strip():
+            action = "commit"
+            git("commit", "--only", "-m", message, "--", *paths)
+        action = "push"
+        git("push")  # Also retries a previously successful commit whose push failed.
+        return git("rev-parse", "HEAD").strip()
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or str(exc)).strip()
+        raise SystemExit(f"Git {action} failed; experiment not published:\n{detail}") from None
+
+
 def fork_commit() -> str:
     m = re.search(r"^FORK_COMMIT=([0-9a-f]+)", (HERE / "remote.sh").read_text(), re.M)
     assert m, "remote.sh has no FORK_COMMIT line"
@@ -184,7 +219,7 @@ def new(nnn: str, slug: str, seeds: list[int] | None = None) -> None:
     (d / "params.json").write_text(json.dumps(p, indent=2) + "\n")
     print(
         f"{d}/params.json  (patch {p['patch_lines']} lines; "
-        "fill every TODO, then commit before running)"
+        "fill every TODO; run_idea.py commits/pushes before running)"
     )
 
 

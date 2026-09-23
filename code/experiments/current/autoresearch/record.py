@@ -7,15 +7,18 @@ artifacts/autoresearch/<NNN>_<slug>/summary.json.
 Validates the pre-registered params.json first, then checks that the harness sha, pretrain sha
 and budget that actually ran equal what was registered (otherwise the run is not the experiment
 that was pre-registered). Copies the loss curve, per-round RL numbers and the eval histograms
-into git.
+into git. Applies keep/discard, refreshes RESULTS.md, and commits/pushes only this outcome.
 """
 
 import json
+import os
 import sys
 import time
+from pathlib import Path
 from typing import Any
 
-from params import HERE, check, git
+import table
+from params import HERE, check, commit_and_push, git, registration_files, sha
 from schema import EvalStats, PretrainStats, Results, RlRound, Status
 
 ART = HERE.parents[3] / "artifacts" / "autoresearch"
@@ -72,6 +75,7 @@ def main() -> None:
     assert status_arg in ("keep", "discard", "crash", "timeout"), status_arg
     status: Status = status_arg
     p = check(name)
+    registration_files(name)
     s: dict[str, Any] = json.loads((ART / name / "summary.json").read_text())
     if s["status"] != "ok":
         assert status in ("crash", "timeout"), f"harness status {s['status']}"
@@ -83,8 +87,44 @@ def main() -> None:
         b.pretrain_secs,
         b.param_cap,
     ), f"budget ran {ran} but registered {b}"
+    pretrain = HERE / "pretrain.py"
+    baseline = git("show", f"{p.base_commit}:./pretrain.py")
+    current = pretrain.read_text()
+    if sha(pretrain) != p.pretrain_sha and not (status != "keep" and current == baseline):
+        raise SystemExit(
+            "pretrain.py changed since registration; refusing to commit or overwrite it"
+        )
+    committed_pretrain = git("show", "HEAD:./pretrain.py")
+    if committed_pretrain != baseline and not (status == "keep" and committed_pretrain == current):
+        raise SystemExit(
+            "committed pretrain.py changed since registration; refusing to overwrite it"
+        )
     r = results_from_summary(s, status, surprise)
-    (HERE / "results" / name / "results.json").write_text(r.model_dump_json(indent=2) + "\n")
+    result_path = HERE / "results" / name / "results.json"
+    if result_path.exists():
+        recorded = Results.model_validate_json(result_path.read_text())
+        fields = {"commit", "recorded_at"}
+        if recorded.model_dump(exclude=fields) != r.model_dump(exclude=fields):
+            raise SystemExit(
+                "results.json already records a different outcome; refusing to overwrite"
+            )
+        r = recorded  # Retrying a failed commit/push must not rewrite the evidence/timestamp.
+    else:
+        if git("status", "--porcelain", "--", "RESULTS.md").strip():
+            raise SystemExit("RESULTS.md has pending changes; refusing to overwrite them")
+        result_path.write_text(r.model_dump_json(indent=2) + "\n")
+    table.main()
+    if status != "keep":
+        git("restore", f"--source={p.base_commit}", "--staged", "--worktree", "--", "pretrain.py")
+    commit = commit_and_push(
+        [f"results/{name}/results.json", "RESULTS.md", "pretrain.py"],
+        f"autoresearch {name.replace('_', ' ', 1)}: {status}, {r.metric}",
+    )
+    if session := os.environ.get("ND_AUTORESEARCH_SESSION"):
+        receipt = Path(session) / "completed.json"
+        pending = receipt.with_suffix(".tmp")
+        pending.write_text(json.dumps({"name": name, "commit": commit}))
+        pending.replace(receipt)  # The loop advances only after both Git operations succeed.
     print(
         json.dumps(
             {

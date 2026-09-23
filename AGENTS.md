@@ -14,6 +14,10 @@
 2. Use `docs/README.md` and `experiment-summaries/README.md` to locate task-relevant context.
 3. Read the relevant plans, evidence, and code before editing. Follow links selectively instead
    of loading the whole repository. Group guidance lives in `group_docs/`.
+4. For Robbie's pretraining workstream, read his
+   [weekly scope note](.claude/notes/robbie-pretrain-workstream.md) before proposing experiments.
+5. Before working on autoresearch tooling alongside a running experiment, read the
+   [two-checkout workflow](.claude/notes/autoresearch-checkouts.md).
 
 ## Store context
 
