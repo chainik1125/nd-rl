@@ -39,6 +39,7 @@ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
 MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.02, 0.95, 5
 # Match the incumbent's multiplicative decay at every schedule fraction.
 MUON_WD = WD * LR / MUON_LR
+ADAMW_FINISH_FRAC = 0.8
 TOK_MODE = "abs"
 VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
 
@@ -153,6 +154,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
     momentum_buffers = [torch.zeros_like(p) for p in matrices]
     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+    adamw_finish = False
     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
     model.train()
     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
@@ -164,6 +166,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         ) / budget_secs  # cosine over wall-clock, so the cap is the schedule
         if frac >= 1.0:
             break
+        if not adamw_finish and frac >= ADAMW_FINISH_FRAC:
+            # Preserve auxiliary moments; hidden matrices start fresh AdamW moments.
+            opt.add_param_group({"params": matrices})
+            adamw_finish = True
         step += 1
         lr = (
             LR * step / WARMUP
@@ -182,7 +188,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
+        if not adamw_finish:
+            muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
         if step % 20 == 0:
             last_loss = loss.item()
             recent.append(last_loss)
