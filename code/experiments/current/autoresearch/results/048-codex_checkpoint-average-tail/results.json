@@ -1,0 +1,350 @@
+{
+  "commit": "abe80fc",
+  "recorded_at": "2026-09-23T11:50:33-0700",
+  "status": "discard",
+  "metric": 263,
+  "metric_rl": 690,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "9ea7ca2a759a",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 922,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 3210240,
+    "steps": 2919,
+    "epochs": 4.853435173999454,
+    "last_loss": 0.06017130985856056,
+    "heldout_greedy": 0.992,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 39,
+        "train_loss": 3.6867079734802246,
+        "val_loss": 2.4671549797058105
+      },
+      {
+        "secs": 30,
+        "step": 191,
+        "train_loss": 1.2070283778011799,
+        "val_loss": 0.30258990079164505
+      },
+      {
+        "secs": 45,
+        "step": 340,
+        "train_loss": 0.1574245560914278,
+        "val_loss": 0.09826351888477802
+      },
+      {
+        "secs": 60,
+        "step": 493,
+        "train_loss": 0.08692948200872966,
+        "val_loss": 0.10140690766274929
+      },
+      {
+        "secs": 75,
+        "step": 646,
+        "train_loss": 0.07693481538444757,
+        "val_loss": 0.09356849454343319
+      },
+      {
+        "secs": 90,
+        "step": 796,
+        "train_loss": 0.07134798382009779,
+        "val_loss": 0.08710790984332561
+      },
+      {
+        "secs": 105,
+        "step": 949,
+        "train_loss": 0.06989012844860554,
+        "val_loss": 0.10236436314880848
+      },
+      {
+        "secs": 120,
+        "step": 1102,
+        "train_loss": 0.06760775577276945,
+        "val_loss": 0.08412834629416466
+      },
+      {
+        "secs": 135,
+        "step": 1254,
+        "train_loss": 0.06621005120021957,
+        "val_loss": 0.0987036544829607
+      },
+      {
+        "secs": 150,
+        "step": 1404,
+        "train_loss": 0.06443690555170178,
+        "val_loss": 0.09503856860101223
+      },
+      {
+        "secs": 165,
+        "step": 1557,
+        "train_loss": 0.06396054636154856,
+        "val_loss": 0.08858004957437515
+      },
+      {
+        "secs": 180,
+        "step": 1707,
+        "train_loss": 0.06132549839094281,
+        "val_loss": 0.09282373823225498
+      },
+      {
+        "secs": 195,
+        "step": 1856,
+        "train_loss": 0.06368830746838025,
+        "val_loss": 0.09613353200256824
+      },
+      {
+        "secs": 210,
+        "step": 2008,
+        "train_loss": 0.060685222037136555,
+        "val_loss": 0.09178425557911396
+      },
+      {
+        "secs": 225,
+        "step": 2158,
+        "train_loss": 0.06122044899633953,
+        "val_loss": 0.09195995889604092
+      },
+      {
+        "secs": 240,
+        "step": 2308,
+        "train_loss": 0.061070915311574936,
+        "val_loss": 0.09223787300288677
+      },
+      {
+        "secs": 255,
+        "step": 2462,
+        "train_loss": 0.06126627931371331,
+        "val_loss": 0.09454897791147232
+      },
+      {
+        "secs": 270,
+        "step": 2612,
+        "train_loss": 0.059932979089873176,
+        "val_loss": 0.09395299106836319
+      },
+      {
+        "secs": 285,
+        "step": 2763,
+        "train_loss": 0.05998610844835639,
+        "val_loss": 0.09360124170780182
+      },
+      {
+        "secs": 300,
+        "step": 2919,
+        "train_loss": 0.05969316033380372,
+        "val_loss": 0.09316232800483704
+      }
+    ],
+    "records_seen": 747264,
+    "averaging_steps": [
+      2308,
+      2462,
+      2612,
+      2763,
+      2919
+    ]
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.062625,
+      "new_proofs": 198,
+      "targets_solved": 159,
+      "lstar": 7,
+      "ge": {
+        "7": 159,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 792,
+      "samples_per_sec": 867,
+      "secs": 104
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.19247916666666667,
+      "new_proofs": 273,
+      "targets_solved": 388,
+      "lstar": 8,
+      "ge": {
+        "7": 388,
+        "8": 57,
+        "9": 1,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1864,
+      "samples_per_sec": 789,
+      "secs": 118
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.3398333333333333,
+      "new_proofs": 253,
+      "targets_solved": 594,
+      "lstar": 9,
+      "ge": {
+        "7": 594,
+        "8": 195,
+        "9": 27,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2864,
+      "samples_per_sec": 777,
+      "secs": 124
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.4015625,
+      "new_proofs": 151,
+      "targets_solved": 692,
+      "lstar": 9,
+      "ge": {
+        "7": 692,
+        "8": 265,
+        "9": 68,
+        "10": 1,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3404,
+      "samples_per_sec": 720,
+      "secs": 128
+    }
+  ],
+  "eval": {
+    "solved": 274,
+    "n": 1108,
+    "ge": {
+      "7": 274,
+      "8": 217,
+      "9": 139,
+      "10": 11,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 10,
+    "heldout_greedy": 0.9885,
+    "max_pruned": 10,
+    "by_bin": {
+      "7": {
+        "solved": 57,
+        "n": 150,
+        "rate": 0.38,
+        "ci": [
+          0.30623600246985916,
+          0.4597570709251133
+        ]
+      },
+      "8": {
+        "solved": 78,
+        "n": 152,
+        "rate": 0.5131578947368421,
+        "ci": [
+          0.43435739989649,
+          0.5913096877104134
+        ]
+      },
+      "9": {
+        "solved": 128,
+        "n": 477,
+        "rate": 0.26834381551362685,
+        "ci": [
+          0.23054597469077903,
+          0.3098432096060872
+        ]
+      },
+      "10": {
+        "solved": 11,
+        "n": 219,
+        "rate": 0.0502283105022831,
+        "ci": [
+          0.028274743425381867,
+          0.08768924175512302
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P46 uniform five-checkpoint parameter averaging at 80/85/90/95/100% of the fixed pretraining budget scored 274/248/268 on seeds 0/1/2 versus registered incumbent 043 scores 282/275/269: exact means 263.333333 versus 275.333333, a decrease of 12 solves (-4.36%); rounded means 263 versus 275. Every paired seed declined (-8/-27/-1), so discard under the fixed downstream three-seed rule. This configuration does not support the proposed transfer benefit of smoothing late Muon weights; it does not establish whether lag or averaging itself caused the decrease. P45 previously failed with a different EMA rule on the old AdamW baseline. RL cumulative trajectories were 159/388/594/692, 157/479/616/672 and 140/368/578/707 versus incumbent 233/507/617/709, 151/365/616/688 and 107/317/549/670. Seed 2 solved more RL targets but still transferred slightly worse. Final raw-weight validation losses were 0.093162/0.094686/0.093557 versus baseline 0.092410/0.095220/0.094168; these loss curves describe raw training weights, not the averaged handoff. Averaged held-out greedy was 0.9920/0.9900/0.9915 versus baseline 0.9870/0.9910/0.9900. Pretraining completed 2919/2912/2916 updates in 300.306/300.280/300.241 seconds versus incumbent 2899/2902/2870 updates. Actual five-snapshot step indices were [2308,2462,2612,2763,2919], [2304,2456,2607,2762,2912], and [2311,2464,2613,2768,2916]. Returned models retain 3210240 parameters; the temporary averaging copy adds the same number during pretraining, within the 10000000 cap. All seeds completed successfully in 896.32/921.80/888.49 seconds under the unchanged 1200-second cap. All three experiment pods are confirmed absent from RunPod list; the other agent's pods were left alone. Registration was committed and pushed before provisioning, run_idea.py ran in the foreground, and the inherited session environment was preserved. Repository Ruff, formatting and Pyright passed. Registration/checkpoint tests: 47 passed initially and 3 failed because inherited ND_AGENT added suffixes absent from fixture expectations; those 3 passed with ND_AGENT unset only in their test subprocess. Local checks passed for independent averaging arithmetic, actual pretraining-loop snapshot times and weights, plain-GPT handoff, cached/full equivalence, checkpoint reload, and finite downstream backward. Candidate added 15 lines and deleted 0; discard restores the incumbent. Data, tokenizer, RL, evaluation, budgets, seeds and frozen tooling were unchanged.",
+  "seed_metrics": {
+    "0": 274,
+    "1": 248,
+    "2": 268
+  },
+  "seed_metric_rl": {
+    "0": 692,
+    "1": 672,
+    "2": 707
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}
