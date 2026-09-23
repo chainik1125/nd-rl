@@ -1,0 +1,343 @@
+{
+  "commit": "7a1661d",
+  "recorded_at": "2026-09-23T13:23:29-0700",
+  "status": "discard",
+  "metric": 239,
+  "metric_rl": 631,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "bfdbfd14c2d8",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1009,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 4526080,
+    "steps": 2222,
+    "epochs": 3.694529961160256,
+    "last_loss": 0.060288820415735245,
+    "heldout_greedy": 0.9855,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 31,
+        "train_loss": 3.737751007080078,
+        "val_loss": 2.9165562987327576
+      },
+      {
+        "secs": 30,
+        "step": 146,
+        "train_loss": 1.447958340247472,
+        "val_loss": 0.6397101134061813
+      },
+      {
+        "secs": 45,
+        "step": 262,
+        "train_loss": 0.2821223773062229,
+        "val_loss": 0.11489883065223694
+      },
+      {
+        "secs": 60,
+        "step": 376,
+        "train_loss": 0.1021000623703003,
+        "val_loss": 0.10114361345767975
+      },
+      {
+        "secs": 75,
+        "step": 492,
+        "train_loss": 0.08641295631726582,
+        "val_loss": 0.09849254973232746
+      },
+      {
+        "secs": 90,
+        "step": 609,
+        "train_loss": 0.0784396914144357,
+        "val_loss": 0.09778725542128086
+      },
+      {
+        "secs": 105,
+        "step": 723,
+        "train_loss": 0.07318989684184392,
+        "val_loss": 0.09899954684078693
+      },
+      {
+        "secs": 120,
+        "step": 837,
+        "train_loss": 0.07066064327955246,
+        "val_loss": 0.09678875654935837
+      },
+      {
+        "secs": 135,
+        "step": 955,
+        "train_loss": 0.0689342978099982,
+        "val_loss": 0.09914059564471245
+      },
+      {
+        "secs": 150,
+        "step": 1071,
+        "train_loss": 0.06702905893325806,
+        "val_loss": 0.10011386126279831
+      },
+      {
+        "secs": 165,
+        "step": 1187,
+        "train_loss": 0.06529863675435384,
+        "val_loss": 0.09796067886054516
+      },
+      {
+        "secs": 180,
+        "step": 1302,
+        "train_loss": 0.06409650047620137,
+        "val_loss": 0.09048213064670563
+      },
+      {
+        "secs": 195,
+        "step": 1417,
+        "train_loss": 0.061242036521434784,
+        "val_loss": 0.09101562574505806
+      },
+      {
+        "secs": 210,
+        "step": 1534,
+        "train_loss": 0.0626624704649051,
+        "val_loss": 0.09187712706625462
+      },
+      {
+        "secs": 225,
+        "step": 1649,
+        "train_loss": 0.060796212404966354,
+        "val_loss": 0.09238029271364212
+      },
+      {
+        "secs": 240,
+        "step": 1763,
+        "train_loss": 0.060577468325694404,
+        "val_loss": 0.09410298429429531
+      },
+      {
+        "secs": 255,
+        "step": 1877,
+        "train_loss": 0.061758332699537274,
+        "val_loss": 0.0959241259843111
+      },
+      {
+        "secs": 270,
+        "step": 1992,
+        "train_loss": 0.059711325292785965,
+        "val_loss": 0.09679760038852692
+      },
+      {
+        "secs": 285,
+        "step": 2105,
+        "train_loss": 0.05935016026099523,
+        "val_loss": 0.09355214610695839
+      },
+      {
+        "secs": 300,
+        "step": 2222,
+        "train_loss": 0.06069372780621052,
+        "val_loss": 0.09025499224662781
+      }
+    ],
+    "records_seen": 568832
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.08839583333333334,
+      "new_proofs": 316,
+      "targets_solved": 264,
+      "lstar": 7,
+      "ge": {
+        "7": 264,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1256,
+      "samples_per_sec": 659,
+      "secs": 134
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.27495833333333336,
+      "new_proofs": 310,
+      "targets_solved": 514,
+      "lstar": 8,
+      "ge": {
+        "7": 514,
+        "8": 119,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2472,
+      "samples_per_sec": 683,
+      "secs": 142
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.39008333333333334,
+      "new_proofs": 193,
+      "targets_solved": 676,
+      "lstar": 9,
+      "ge": {
+        "7": 676,
+        "8": 242,
+        "9": 40,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3244,
+      "samples_per_sec": 624,
+      "secs": 150
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.4616875,
+      "new_proofs": 135,
+      "targets_solved": 763,
+      "lstar": 9,
+      "ge": {
+        "7": 763,
+        "8": 314,
+        "9": 96,
+        "10": 3,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3776,
+      "samples_per_sec": 642,
+      "secs": 151
+    }
+  ],
+  "eval": {
+    "solved": 325,
+    "n": 1108,
+    "ge": {
+      "7": 325,
+      "8": 262,
+      "9": 188,
+      "10": 22,
+      "11": 1,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 10,
+    "heldout_greedy": 0.985,
+    "max_pruned": 11,
+    "by_bin": {
+      "7": {
+        "solved": 63,
+        "n": 150,
+        "rate": 0.42,
+        "ci": [
+          0.34397871737684205,
+          0.5000166648864729
+        ]
+      },
+      "8": {
+        "solved": 74,
+        "n": 152,
+        "rate": 0.4868421052631579,
+        "ci": [
+          0.40869031228958663,
+          0.56564260010351
+        ]
+      },
+      "9": {
+        "solved": 166,
+        "n": 477,
+        "rate": 0.3480083857442348,
+        "ci": [
+          0.3066287895019092,
+          0.3918166029100618
+        ]
+      },
+      "10": {
+        "solved": 21,
+        "n": 219,
+        "rate": 0.0958904109589041,
+        "ci": [
+          0.06357475847056406,
+          0.14213907593019415
+        ]
+      },
+      "11": {
+        "solved": 1,
+        "n": 49,
+        "rate": 0.02040816326530612,
+        "ci": [
+          0.003611579538530696,
+          0.10693768467754147
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "One attention-free pre-norm GELU MLP after the fifth block (4,526,080 params) on incumbent 051-claude scored 325/177/216 on seeds 0/1/2 versus 288/260/311: exact means 239.333333 versus 286.333333, -47.0 (-16.4%); paired +37/-83/-95. Seed 0's 325 is the highest single-seed score recorded so far, but seeds 1-2 stalled early: round-1 RL sample accuracy 0.088/0.027/0.041 (051: 0.063/0.049/0.075) and targets solved per round 72-140-321-535 (s1) and 107-190-369-595 (s2) versus 051's 141-386-572-670 and 222-443-610-718, so the gap opened in expert-iteration rounds 1-2. Pretraining looked unchanged: 2216-2222 updates (051: 2320-2370, -5%, half the predicted ~10% loss), final val loss 0.0903/0.0951/0.0948 (051: 0.0923/0.0951/0.0932), held-out greedy 0.984-0.986 (051: 0.987-0.990); totals 1009/926/976 s, under the cap. The prediction (+8, round-1 accuracy at or above 051) failed: attention-free top depth did not carry 051's depth gain and widened the seed spread of round-1 discovery, which token-level loss again did not predict. Unverified guess: a second readout MLP makes the T=0.8 policy more peaked on 7+-line targets for some seeds. Codex's 054-codex (depth-5 plus entropy 0.01) was discarded at 258 during this run; 051 remains the incumbent.",
+  "seed_metrics": {
+    "0": 325,
+    "1": 177,
+    "2": 216
+  },
+  "seed_metric_rl": {
+    "0": 763,
+    "1": 535,
+    "2": 595
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}
