@@ -1,0 +1,195 @@
+{
+  "id": "046-codex",
+  "slug": "muon-no-nesterov",
+  "written_at": "2026-09-23T10:58:19-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "2689695",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "9d7cf11f4035",
+  "patch_lines": 4,
+  "title": "P02: momentum-only Muon without Nesterov lookahead",
+  "description": "P02 follow-up: use the EMA momentum buffer directly as the input to Muon orthogonalization instead of mixing it with the instantaneous gradient via Nesterov lookahead. Smoother matrix-update directions may preserve reusable proof features and improve the policy handed to fixed downstream expert iteration.",
+  "tags": [
+    "optimizer"
+  ],
+  "hypothesis": "Incumbent 043 scores 282/275/269 (exact mean 275.333333). Earlier P02 momentum-coefficient changes to 0.90 and 0.98 failed on the older 034 baseline, but both retained Nesterov lookahead; no existing experiment removes lookahead. With momentum fixed at 0.95, the incumbent direction before orthogonalization is 0.05*g + 0.95*m_new, where m_new=0.95*m_old+0.05*g. This experiment uses m_new alone, reducing the instantaneous-gradient contribution from 0.0975 to 0.05 without changing the EMA recurrence. Less reactive hidden-matrix directions may give fixed RL more transferable features; alternatively, removing lookahead may slow useful adaptation. Orthogonalization makes the direction change nonlinear, so this is not an LR-equivalent control. Only the downstream three-seed mean decides keep/discard; validation loss is diagnostic.",
+  "p_keep": 0.25,
+  "expected_delta": "Conditional on improvement, +3 to +15 dev-transfer solves at length >=7 versus exact baseline mean 275.333333; plausible downside -10 to -40. Expect negligible throughput change (one elementwise blend removed), no model-size or inference-latency change, and unchanged fixed 300-second pretraining/1200-second total budgets.",
+  "baseline_id": "043-codex",
+  "baseline_metric": 275,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": false,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 16 hidden projection parameters remain in Muon. Four qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After updating EMA momentum, reshape each QKV momentum direction to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No instantaneous-gradient/Nesterov blend and no extra learning-rate multiplier. Momentum coefficient and weight decay stay unchanged.",
+        "active_window": "entire pretraining budget",
+        "direction": "m_new = 0.95*m_old + 0.05*gradient; orthogonalize m_new directly rather than 0.05*gradient + 0.95*m_new"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction, then orthogonal_ on every 2D block parameter after moving to device. Gain = 0.02 * sqrt(max(rows, columns)); exact element second moment 0.0004. All 16 hidden matrices: qkv (768,256), proj (256,256), fc1 (1024,256), fc2 (256,1024) in each of four blocks. QKV initialized jointly. Embedding, readout, biases and LayerNorm retain their original draws/values. No reinitialization during RL.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

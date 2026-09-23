@@ -1,0 +1,19 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d42f395..a80bd30 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -65,12 +65,12 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # SOFTWARE.
+ @torch.no_grad()
+ def muon_step(params, buffers, lr):
+-    """Nesterov momentum plus five bf16 Newton-Schulz steps, on hidden matrices only."""
++    """EMA momentum plus five bf16 Newton-Schulz steps, on hidden matrices only."""
+     for p, momentum in zip(params, buffers, strict=True):
+         if p.grad is None:
+             continue
+         momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+-        update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
++        update = momentum.bfloat16()
+         # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
+         if update.size(0) == 3 * update.size(1):
+             update = update.reshape(3, update.size(1), update.size(1))
