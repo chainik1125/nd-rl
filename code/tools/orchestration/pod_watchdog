@@ -2,8 +2,10 @@
 # Every 15 min: if this host has registered pods but no live agent session (runrole/claude or tmux ex-/rev-/lib-/pr-) for two consecutive ticks, pull results, delete the host's pods, notify.
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env
 n=$(ls ~/.config/nd-rl/pods 2>/dev/null | wc -l); [ "$n" -gt 0 ] || { rm -f ~/watchdog.strike; exit 0; }
-live=$(pgrep -fc "[r]unrole|claude -p|run_[a-z0-9]*\.sh"); sess=$(tmux ls 2>/dev/null | grep -cE "^(ex|rev|lib|pr)-|^(campaign|followup|handoff|round2)")
-if [ "$live" = 0 ] && [ "$sess" = 0 ]; then
-  if [ -f ~/watchdog.strike ]; then notify "pod watchdog: $n orphaned pod(s) on $(hostname)" "No agent session for 30 min; pulling results and deleting this host's pods." high; killswitch; rm -f ~/watchdog.strike
+# Liveness = an actual Claude process. A queued wrapper whose command line merely mentions
+# runrole is NOT alive: that masked this check on 2026-09-22 and cost ~$75 of idle pods.
+live=$(pgrep -fc "[c]laude -p|[c]laude --print")
+if [ "$live" = 0 ]; then
+  if [ -f ~/watchdog.strike ]; then notify "pod watchdog: $n orphaned pod(s) on $(hostname)" "No Claude process for 30 min; pulling results and deleting this host's pods." high; killswitch; rm -f ~/watchdog.strike
   else date -u +%FT%TZ > ~/watchdog.strike; fi
 else rm -f ~/watchdog.strike; fi
