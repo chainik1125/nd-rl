@@ -1,0 +1,202 @@
+{
+  "id": "049-claude",
+  "slug": "heads-4",
+  "written_at": "2026-09-23T11:36:31-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "59e0b90",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "d9535651c372",
+  "patch_lines": 2,
+  "title": "P26 reversed: four 64-dim attention heads instead of eight 32-dim heads",
+  "description": "P26 in the opposite direction to 019: on top of incumbent 043-codex, group the unchanged 256-channel Q/K/V projections into 4 attention heads of dimension 64 instead of 8 heads of dimension 32, changing nothing else (same 3,210,240 parameters, bitwise-identical initial weights per seed, same FLOPs, optimizer, schedule and data). Larger heads give each attention pattern a 64-dimensional query-key match and 32 RoPE frequency pairs instead of 32 and 16, which should make premise-line and subformula matching more precise in the longer 7-10-line proofs that fixed expert iteration must discover, raising round-1 RL sample accuracy and the dev-transfer metric.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Evidence: (1) 019 (P26 with 16 heads of dimension 16, on AdamW incumbent 012) lost 77 solves with every seed worse (12/80/119 versus 139/141/163) at near-baseline token loss (final val 0.0953/0.0939/0.0930 versus 0.0942/0.0960/0.0914). Its round-1 RL sample accuracy roughly halved (0.0125/0.0199/0.0128 versus 0.0240/0.0259/0.0222) and final RL totals fell (150/379/434 versus 518/528/534), so proof-level transfer is sensitive to head dimension even when token loss is not. No run has tried fewer, larger heads. (2) A local read-only analysis of 012 s0 and 019 s0/s1 pretrain.pt on 64 reference proofs of 7-9-line RL targets found similar attention entropy in layers 1-3 (012 s0: 3.18/3.65/4.18 nats; 019 s0: 3.20/3.63/3.79; 019 s1: 3.14/3.66/4.26), so 019's loss was not a change in attention sharpness. The remaining difference is per-head capacity: with head size h, each head's attention-logit matrix has rank at most h and its value path carries h channels. Bhojanapalli et al. 2020 ('Low-Rank Bottleneck in Multi-head Attention Models', ICML 2020, arXiv 2002.07028) show that shrinking heads as their number grows at fixed width creates a low-rank bottleneck that limits the attention patterns each head can express. (3) Target proofs are longer than anything common in the cap-6 data: reference proofs for 7/8/9-line RL targets average 176/184/205 proof tokens versus 103 for 6-line training proofs (training total length p50 101, p99 234 tokens). Each new line must cite the right premises among more candidate lines and copy longer subformulas. Round-1 failures of 043 s0 at 7 lines are dominated by invalid steps (IMPI 18%, bad box cite 12%, IMPE 10%, ANDI 9%; 047-claude registration analysis). In 043 and 040 round 1, 7-line targets with longer prompts were solved more often, not less (043 s0 by prompt-length tercile 0.32/0.44/0.40), so absolute sequence length is not the bottleneck; matching and copying precision is a candidate. Mechanism: a 64-dim head matches a candidate premise line or subformula on 64 query-key coordinates and 32 rotary frequency pairs (finer relative-position selectivity for token-by-token copying) instead of 32 and 16. The pretrained policy should then write fewer wrong-citation and invalid-step lines on 7+-line targets, raising round-1 RL sample accuracy and targets solved, so the frontier reaches 9-10-line dev theorems more often. Alternative outcomes: 4 independent attention patterns per layer (16 in total, versus 32) may be too few for retrieving several premises, box boundaries and the goal in parallel. The dominant 7-line failure (writing 6 lines and closing with an unjustified IMPI/IMPE step) is a cap-6 length prior that head size need not touch. Every architecture change registered since 012 (014, 019, 023, 024, 026, 028, 029, 041, 044, 047) lost to its incumbent. So the change could be neutral or harmful. The head grouping persists into RL and evaluation as part of the architecture (the frozen RL AdamW trains the same parameters); RL, evaluation, data, seeds and budgets are unchanged. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +5 to +20 dev-transfer solves at true length >=7 versus incumbent 043-codex exact mean 275.333333 (282/275/269), with round-1 RL sample accuracy above 043's 0.079/0.052/0.040 (mean 0.057); plausible downside -30. Parameters (3,210,240), FLOPs and KV-cache size are unchanged, and initial weights are bitwise identical per seed. MPS microbenchmarks show a ~17% faster training step and ~20% faster decode step with 64-dim heads. On A40 flash attention, expect 0-8% more pretraining updates (~2900-3100 versus 2870-2902) and similar or slightly faster sampling, with total run time within +-30 s of 043's 832-922 s. Final validation loss should be within +-0.004 of the incumbent.",
+  "baseline_id": "043-codex",
+  "baseline_metric": 275,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 4,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240,
+      "head_dim": 64,
+      "attention": {
+        "projections": "unchanged fork Block: one qkv Linear(256, 768) with bias and proj Linear(256, 256); the 256 q/k/v channels are grouped into 4 heads of 64 instead of 8 of 32",
+        "rope": "fork apply_rope per head, base 10000, 32 frequency pairs per head (was 16); positions and KV cache handling unchanged (cache tensors (B, 4, max, 64))",
+        "scale": "SDPA default 1/sqrt(64)",
+        "change": "one knob: N_HEAD 8 -> 4 in pretrain.py; D, N_LAYER, d_ff and every other setting unchanged"
+      },
+      "checkpoint_reconstruction": "State-dict keys and shapes are identical to the 8-head model: reconstruct with GPT(vocab, 4, 256, 4) from the registered pretrain.py (model.cfg has n_head=4) before loading state. Loading into an 8-head GPT succeeds silently but computes a different function."
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 16 hidden projection parameters remain in Muon. Four qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged. The Q/K/V split is per projection (three 256x256 matrices), independent of the head count, so Muon updates are unchanged in form.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction, then orthogonal_ on every 2D block parameter after moving to device. Gain = 0.02 * sqrt(max(rows, columns)); exact element second moment 0.0004. All 16 hidden matrices: qkv (768,256), proj (256,256), fc1 (1024,256), fc2 (256,1024) in each of four blocks. QKV initialized jointly. Embedding, readout, biases and LayerNorm retain their original draws/values. No reinitialization during RL. Head count changes no parameter shape or RNG draw, so initial weights are bitwise identical to 043 for each seed (verified locally for seeds 0/1/2); only the grouping of channels into heads differs.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
