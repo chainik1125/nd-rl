@@ -1,0 +1,199 @@
+{
+  "id": "051-claude",
+  "slug": "depth-5",
+  "written_at": "2026-09-23T12:13:04-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "20f6c42",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "c1aaac39fcf3",
+  "patch_lines": 2,
+  "title": "Five untied transformer blocks instead of four (4.0M parameters)",
+  "description": "New idea outside the P01-P50 backlog (no backlog ID; nearest entries are P24 more capacity and P01 logical depth): on top of incumbent 043-codex, build the fork GPT with 5 untied blocks instead of 4 (d_model 256, 8 heads, d_ff 1024, Muon, orthogonal init, schedule and data unchanged), raising parameters from 3,210,240 to 4,000,000 under the 10M cap and spending wall-clock the harness currently leaves idle (recent runs finish in at most ~926 of 1200 s). Removing unique block capacity is the costliest architecture change measured so far (P01 run 014 -49%, P03 run 028 -12%) and depth is the capacity axis most tied to multi-step reasoning, so a fifth layer should raise the pretrained model's pass rate on 7+-line RL targets and speed the fixed expert-iteration ladder.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Evidence: (1) Capacity. At fixed depth and compute, cutting unique block parameters cost every matched seed: 014 (P01 A-B-A-B, 1.63M unique parameters) scored 79/36/111 versus 139/141/163 (mean 75.33 versus 147.67) and 028 (P03 A-B-B-D, 2.42M) scored 117/140/134 (mean 130.33). No run has tested more capacity. (2) Budget. Parameters are not the binding constraint (3.2M of 10M); wall-clock is. Pretraining is fixed at 300 s and RL plus evaluation take about 480-600 s, so recent runs end at 801-926 s of the 1200 s cap. On MPS, a fifth block costs 23% per training step (664-678 to 824-827 ms for a 256-record batch including the Muon step) and 18% per decode step (14.3 to 16.7-17.1 ms at batch 512 with a 300-token KV cache). (3) Updates. 043's validation loss reaches its ~0.09 plateau by 75-105 s (about 600-900 updates) and then only fluctuates while train loss keeps falling to 0.060, so about 20% fewer updates (roughly 2350 instead of 2900, 3.9 instead of 4.8 epochs) should cost little token-level quality. The dedicated batch generator gives the same data order and shift augmentation as 043 step for step until this run stops. (4) Failure modes. Round-1 RL sample accuracy tracks the final metric (r=0.79 over 88 seed runs, 044-claude registration). 043 s0's 7-line failures are dominated by invalid rule applications (IMPI 18%, bad box cite 12%, IMPE 10%, ANDI 9%; 047-claude registration). Checking these requires tracking nested assumption boxes and matching cited lines' formulas against the new line, which is serial composition across layers. (5) Literature. Ye et al. 2024 ('Physics of Language Models: Part 2.1, Grade-School Math and the Hidden Reasoning Process', arXiv 2407.20311) found depth, more than width, governs how many reasoning steps small transformers carry out. Petty et al. 2024 ('The Impact of Depth on Compositional Generalization in Transformer Language Models', NAACL 2024) found deeper models generalize compositionally better at matched parameters, with diminishing returns. Mechanism: one more attention+MLP round per token lets the pretrained policy check rule validity and box structure more reliably on longer proofs than the 4-layer model, raising round-1 RL sample accuracy and targets solved. Since each expert-iteration round extends the solved frontier by about one line, better round-1 discovery should compound into more 9-10-line dev solves. Alternative outcomes: (a) the dominant 7-line failure is a cap-6 length prior (54% of 043 s0 samples on 7-line targets write exactly 6 lines), a property of the fixed data that depth need not weaken; (b) about 20% fewer Muon updates could leave the model less precise; (c) the capacity evidence is pre-Muon and from removing capacity, and returns may saturate at 4 layers; (d) old depth runs (006 eight layers timed out under the 600 s harness; 008 three layers scored 6 versus 67 on one seed when noise spanned 7-67) are not comparable; (e) RL and evaluation run about 20% slower, and a seed over 1200 s would make this a timeout. The fifth block persists into RL and evaluation (the frozen RL AdamW trains all 4.0M parameters and sampling pays for the extra layer); RL, evaluation, data, tokenizer, seeds and budgets are unchanged. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.35,
+  "expected_delta": "Central prediction +5 to +25 dev-transfer solves at true length >=7 versus incumbent 043-codex exact mean 275.333333 (282/275/269), with round-1 RL sample accuracy above 043's 0.079/0.052/0.040 (mean 0.057) and more 9-10-line dev solves; plausible downside -30 if the lost pretraining updates matter more than depth. Parameters rise 24.6% to 4,000,000. Expect about 2250-2500 pretraining updates in 300 s (043: 2870-2902; up to ~2850 on the faster A40 pods that gave earlier runs 3400-3500), final validation loss within +-0.005 of 043 (0.0924/0.0952/0.0942), and held-out greedy 0.980-0.992. RL plus evaluation should take 15-25% longer, putting per-seed totals at about 930-1080 s (043: 832-922 s) under the 1200 s cap; a seed over the cap would count as a failed experiment.",
+  "baseline_id": "043-codex",
+  "baseline_metric": 275,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "one knob: N_LAYER 4 -> 5 in pretrain.py; d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout and every other setting unchanged",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) are in Muon. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter after moving to device. Gain = 0.02 * sqrt(max(rows, columns)); exact element second moment 0.0004. All 20 hidden matrices: qkv (768,256), proj (256,256), fc1 (1024,256), fc2 (256,1024) in each of five blocks. QKV initialized jointly. Embedding and readout keep the fork's normal(0.02) draws; biases zero; LayerNorm weight 1 and bias 0. No reinitialization during RL. The fifth block consumes extra global-RNG draws during construction, so random initial weights are not bitwise identical to 043's for a given seed; the init rule is identical.",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "timing": "MPS microbenchmark (not A40): train step 664-678 ms (4 layers) versus 824-827 ms (5 layers); decode step 14.3 ms versus 16.7-17.1 ms"
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
