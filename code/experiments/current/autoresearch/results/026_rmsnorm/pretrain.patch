@@ -1,0 +1,15 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index fce40df..98114bf 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -95,6 +95,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    for block in model.blocks:
++        block.ln1 = torch.nn.RMSNorm(D, eps=1e-5, device=device)
++        block.ln2 = torch.nn.RMSNorm(D, eps=1e-5, device=device)
++    model.ln_f = torch.nn.RMSNorm(D, eps=1e-5, device=device)
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
