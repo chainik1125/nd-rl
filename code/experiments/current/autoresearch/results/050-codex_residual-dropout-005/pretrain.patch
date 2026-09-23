@@ -1,0 +1,46 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d42f395..0cc46ba 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -39,6 +39,7 @@ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+ MUON_WD = WD * LR / MUON_LR
++RESIDUAL_DROPOUT = 0.05
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+@@ -89,6 +90,11 @@ def muon_step(params, buffers, lr):
+         p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
++def residual_dropout(module, inputs, output):
++    """Pretraining-only dropout after each residual branch's output projection."""
++    return torch.nn.functional.dropout(output, p=RESIDUAL_DROPOUT, training=module.training)
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -148,6 +154,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++    dropout_hooks = [
++        projection.register_forward_hook(residual_dropout)
++        for block in model.blocks
++        for projection in (block.proj, block.fc2)
++    ]
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+@@ -206,6 +217,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, next_point = [], next_point + CURVE_EVERY
++    # RL calls train(), so remove the pretraining regularizer rather than merely disabling it.
++    for hook in dropout_hooks:
++        hook.remove()
+     model.eval()
+     return (
+         model,
