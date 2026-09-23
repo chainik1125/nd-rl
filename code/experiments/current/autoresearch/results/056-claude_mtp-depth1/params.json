@@ -1,0 +1,214 @@
+{
+  "id": "056-claude",
+  "slug": "mtp-depth1",
+  "written_at": "2026-09-23T13:49:47-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "c2d4add",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "b65f243b0fe9",
+  "patch_lines": 60,
+  "title": "DeepSeek-V3-style depth-1 multi-token prediction during pretraining (weight 0.3), dropped at handoff",
+  "description": "New idea outside the P01-P50 backlog (no backlog ID; nearest is P50, another pretraining-only auxiliary next-token objective removed at handoff): on top of incumbent 051-claude, add a DeepSeek-V3-style depth-1 multi-token-prediction (MTP) module (LayerNorm on the fifth block's output h_t and on Emb(x[t+1]), a bias-free 512->256 projection, one fork transformer block, its own final LayerNorm, and the shared readout) whose cross-entropy on x[t+2] at proof-token targets is added with weight 0.3 to the unchanged next-token loss; the module (922,368 parameters, its five matrices in Muon) exists only during pretraining, so RL and evaluation receive the unchanged 4,000,000-parameter five-block GPT, bitwise identical at initialization to 051's per seed. Expert iteration must extend proofs beyond the cap-6 pretraining length, and Gloeckle et al. (2024) found multi-token prediction raised out-of-domain accuracy on more operations than seen in training (polynomial arithmetic, 30M/100M models) more than tripling model size did, so making each position's representation anticipate the token after next should raise the rate of valid 7+-line samples that round-1 expert iteration learns from.",
+  "tags": [
+    "loss"
+  ],
+  "hypothesis": "Evidence. (1) What limits the metric: round-1 expert-iteration success sets the whole RL trajectory, and across the nine diagnosed checkpoints (043, 049, 051) valid 7-line samples track the fraction of exactly-6-line attempts on 7-line targets (r = -0.90; r = -0.98 over the first six), while the failures that remain are invalid rule applications (051 on 7-line targets: IMPI 15.9/22.9/18.0%, IMPE 6.7/8.4/10.2%, ANDI 7.6/7.4/8.3%, bad box cites 15.2/6.0/3.4% of samples). Token-level metrics (validation loss, held-out greedy) have not predicted the downstream metric in 40+ runs. (2) Earlier auxiliary objectives all pushed predictions toward uniformity and failed or were mixed: label smoothing 0.02 (017, -27 on the AdamW baseline), z-loss 1e-4 (042, -27), entropy bonus 0.01 (052, +5 on four layers; 054-codex, -28 on the five-layer incumbent) and 0.02 (053, -56). MTP is different in kind: it adds a real prediction target (the token after next, taken from the same records) and leaves the next-token objective exactly the fork's loss_on (checked bitwise locally). (3) Literature. Gloeckle et al. 2024 ('Better & Faster Large Language Models via Multi-token Prediction', ICML 2024, arXiv 2404.19737), section 4.2: trained on polynomial arithmetic in F7[X]/(X^5) with 1-5 operations and evaluated on up to 10, 2- and 4-token prediction improved in-domain and out-of-domain accuracy at 30M and 100M non-embedding parameters, more than tripling model size did; section 4.1: 2-token prediction vastly improved induction formation at <=30M; their explanation is that lookahead losses upweight choice points (tokens that decide what follows) and reduce the teacher-forcing/free-generation mismatch. The same paper found MTP worse than next-token prediction on MBPP/HumanEval for small models (it only paid off from roughly the billion-parameter range on code). DeepSeek-V3 (DeepSeek-AI 2024, arXiv 2412.19437), section 2.2, keeps the causal chain with sequential modules h'_t = M[RMSNorm(h_t); RMSNorm(Emb(t_{t+1}))] -> Transformer block -> shared output head, weight 0.3 for the first 10T tokens then 0.1, and its Table 4 ablations (15.7B and 228.7B MoE) improved most benchmarks with the module discarded at inference. This run is D=1 with a constant weight 0.3, using LayerNorm to match the fork. Mechanism in this task: a proof line is 'N<k> [| ...] formula : RULE cites ;'. Most tokens are forced by bracket structure or copied from earlier lines; the choice points are the next derived formula, the rule and the cited lines. The MTP target at ';' is the first token after the next line number, and at the last formula token it is the rule's first citation, so h_t must carry the plan for the next step one token earlier than next-token prediction requires, adding gradient precisely at the decisions that make a longer proof valid or invalid. Predicted chain: (a) mean round-1 RL sample accuracy and targets solved rise versus 051 on at least 2 of 3 seeds; (b) the solved frontier advances at least as fast (L* and >=8-line RL solves by round 2); (c) dev gains concentrate at 8-10 lines. Cost: the MTP forward/backward adds one block plus the 512->256 projection per step, about +20-25% step time (051's extra block cost +23% on A40), so about 1800-2000 updates versus 2320-2370; 051's validation loss stops improving after about 1000 updates, so this should cost little token-level quality. RL and evaluation are unchanged in cost and code: the returned model is a plain fork GPT. Data order and shift draws are an exact prefix of 051's per seed. Alternative outcomes: (a) at 4M parameters the t+2 objective competes with next-token capacity in the shared trunk, as MTP did for small code models; (b) better lookahead strengthens planning toward the <=6-line structure (a stronger cap-6 length prior) instead of weakening it; (c) about 20% fewer updates; (d) seed noise (per-seed sd about 40) and a bar raised by 051's partly lucky +11. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +8 dev-transfer solves at true length >=7 versus incumbent 051-claude exact mean 286.333333 (288/260/311), plausible range -35 to +30. Mechanism predictions: mean round-1 RL sample accuracy at or above 051's 0.0624 (0.0630/0.0494/0.0749), improving on at least 2 of 3 seeds. Pretraining about 1800-2000 updates in 300 s (051: 2320/2370/2341); final next-token validation loss within +-0.006 of 051 (0.0923/0.0951/0.0932); held-out greedy 0.980-0.992 (051: 0.988/0.9865/0.990); logged MTP training cross-entropy above the next-token one throughout. Per-seed totals about 930-1060 s, as RL and evaluation are unchanged (051: 1053/957/941), under the 1200 s cap.",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py); pretraining-only DeepSeek-V3-style depth-1 MTP module, dropped at handoff",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "one change: add a pretraining-only depth-1 multi-token-prediction objective (weight 0.3) to incumbent 051-claude; the handed-off model is the unchanged five-block fork GPT (d_model 256, 8 heads of 32, d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout)",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork, unchanged from 051; state-dict reload checked locally (max diff 0.0)",
+      "kv_cache": "unchanged fork code, 5 KV-cache dicts; the MTP module never takes part in sampling",
+      "mtp": {
+        "depth": 1,
+        "weight": 0.3,
+        "weight_schedule": "constant over the whole pretraining budget",
+        "form": "for t in 0..T-3: z_t = W [LN_h(h_t); LN_e(Emb(x[t+1]))] with W (256,512) and no bias; z = Block(z), the fork Block (pre-LN causal RoPE attention, 8 heads, GELU MLP 1024) over positions 0..T-3; logits_t = head(LN_out(z_t)) predict x[t+2]",
+        "h_t": "output of the fifth block before ln_f, from the same forward as the fork GPT on x[:, :-1] (training path: pos=None, no mask or cache)",
+        "shared_with_main_model": "token embedding emb.weight and readout head.weight; ln_f is not used by the MTP stream, which has its own final LayerNorm",
+        "loss": "the fork's loss_on reduction (mean cross-entropy over positions whose target is a proof token) on targets x[:, 2:] with mask m[:, 2:]; total = loss_on + 0.3 * mtp",
+        "n_params": 922368,
+        "n_params_detail": "block 789,760 (incl. ln1/ln2) + projection 131,072 + LN_h/LN_e/LN_out 1,536 = 922,368; 4,922,368 trainable during pretraining, under the 10,000,000 cap",
+        "handoff": "a separate nn.ModuleDict never attached to the returned model; the returned model is a plain fork GPT with 4,000,000 parameters",
+        "logging": "curve points add mtp_loss (mean of the MTP cross-entropy sampled every 20 steps); train_loss and val_loss stay next-token only, comparable to 051",
+        "sources": "DeepSeek-AI 2024, DeepSeek-V3 Technical Report (arXiv 2412.19437), section 2.2; Gloeckle et al. 2024, Better & Faster Large Language Models via Multi-token Prediction (ICML 2024, arXiv 2404.19737)"
+      }
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices (main and MTP) throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1, MTP projection (256,512) 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 25 hidden matrices are in Muon: qkv, proj, fc1 and fc2 in each of five blocks (20) plus the MTP projection (256,512) and the MTP block's qkv (768,256), proj (256,256), fc1 (1024,256), fc2 (256,1024). Six qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout, including the MTP block's biases and the MTP module's five LayerNorms; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 over model and MTP parameters, before both optimizers",
+      "handoff": "standard GPT weights only; the MTP module, pretraining optimizer states and momentum buffers are discarded, and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle (same generator calls per step as 051, so each seed's batches and shifts are an exact prefix of 051's)",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Main model exactly as 051: fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter after moving to device (gain 0.02 * sqrt(max(rows, columns)), element second moment 0.0004); embedding and readout normal(0.02), biases zero, LayerNorm weight 1 and bias 0. The MTP module is constructed on CPU afterwards, passed through the fork's _init (normal 0.02, zero biases; LayerNorm 1/0), moved to device, and its five matrices are orthogonalized with the same gain rule. All MTP draws come after the main model's, so the handed-off model's initial weights are bitwise identical to 051's for each seed (checked on CPU for seeds 0/1/2; on CUDA the main blocks' orthogonal draws also come first). No reinitialization during RL.",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "timing": "No usable A40-like local benchmark: MPS hung again (as in 054). CPU fwd+bwd at batch 128: MTP/incumbent 1.16 and 1.36 in two passes (noisy). Expected +20-25% step time on A40 from one extra block plus the 512->256 projection (051's added block measured +23%), i.e. about 1800-2000 updates in 300 s.",
+    "local_checks": "Against the pinned fork on CPU: next-token term bitwise equal to the fork's loss_on; MTP term equal to an independent per-position reference (hooked last-block output, explicit concatenation, fresh rope_cache(T-2), explicit log-softmax; |diff| 4.5e-8 over 661 targets); MTP loss alone gives nonzero gradients to every main parameter except ln_f, and the next-token loss leaves MTP gradients None; 25 Muon matrices with every parameter in exactly one optimizer; real pretrain() calls on seeds 0/1/2 return a plain GPT with 4,000,000 parameters and finite falling next-token and MTP losses; left-padded cached prefill/decode matches the full forward (max logit diff 1.3e-6); checkpoint reload into GPT(vocab, 5, 256, 8) exact; harness --smoke on CPU finished with status ok; make -C code check (Ruff, format, Pyright) passed."
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
