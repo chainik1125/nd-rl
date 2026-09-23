@@ -9,11 +9,13 @@
   :root {
     --bg: #fafaf9; --fg: #1c1917; --muted: #78716c; --grid: #e7e5e4;
     --keep: #16a34a; --discard: #a8a29e; --fail: #dc2626; --base: #2563eb; --rl: #d97706;
+    --anthropic: #c2613f; --openai: #475569;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #1c1917; --fg: #f5f5f4; --muted: #a8a29e; --grid: #3a3532;
       --keep: #4ade80; --discard: #78716c; --fail: #f87171; --base: #60a5fa; --rl: #fbbf24;
+      --anthropic: #e8875f; --openai: #94a3b8;
     }
   }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
@@ -28,6 +30,9 @@
 <main>
   <h1>Autoresearch: theorems solved</h1>
   <p>Dev-transfer theorems solved at length ≥ 7. Hover a point for the idea. Refresh after a run.</p>
+  <p>Colour = the company whose agent ran it, on the x-axis labels and the dev markers' outline:
+     <b style="color: var(--anthropic)">Anthropic (Claude)</b> ·
+     <b style="color: var(--openai)">OpenAI (Codex)</b>.</p>
   <p id="tally"></p>
   <h2>Metric per experiment</h2>
   <p>Percent of each pool solved. Dev (the keep metric): circles = Codex, squares = Claude
@@ -84,6 +89,13 @@ fetch("data.json").then(r => r.json()).then(runs => {
   const statusColor = { keep: css("--keep"), discard: css("--discard"), crash: css("--fail"), timeout: css("--fail") };
   const color = run => statusColor[run.status] ?? css("--muted");
   const failed = run => run.metric == null && run.status !== "pending";
+  // Company from the registered model id (earlier runs too: several were claude-fable-5-1).
+  const company = run => /^claude/.test(run.model ?? "") ? css("--anthropic")
+    : /^(gpt|o\d)/.test(run.model ?? "") ? css("--openai") : css("--muted");
+  const ticks = rs => ({
+    tickvals: rs.map(r => r.label),
+    ticktext: rs.map(r => `<span style="color:${company(r)}">${r.label}</span>`),
+  });
   const shape = run => run.agent === "claude" ? "square" : "circle";
 
   // Who merges more: keeps, finished runs, and runs in flight per agent since the parallel loops.
@@ -100,8 +112,8 @@ fetch("data.json").then(r => r.json()).then(runs => {
   const layout = {
     paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
     font: { color: css("--fg"), family: "system-ui, sans-serif" },
-    margin: { l: 50, r: 20, t: 20, b: 120 },
-    xaxis: { type: "category", tickangle: -40, gridcolor: css("--grid"), categoryarray: labels },
+    margin: { l: 50, r: 20, t: 20, b: 190 },
+    xaxis: { type: "category", tickangle: -40, gridcolor: css("--grid"), categoryarray: labels, ...ticks(runs) },
     yaxis: { gridcolor: css("--grid"), zerolinecolor: css("--grid"), rangemode: "tozero" },
     hovermode: "closest", showlegend: false,
     hoverlabel: { align: "left", bgcolor: css("--bg"), bordercolor: css("--muted"), font: { color: css("--fg") } },
@@ -158,7 +170,7 @@ fetch("data.json").then(r => r.json()).then(runs => {
       marker: {
         size: runs.map(r => failed(r) ? 11 : 13),
         symbol: runs.map(r => failed(r) ? "x" : shape(r) + (r.status === "pending" ? "-open" : "")),
-        color: runs.map(color), line: { width: 0 },
+        color: runs.map(color), line: { width: 2.5, color: runs.map(company) },
       },
     },
   ], metricLayout, config);
@@ -168,7 +180,7 @@ fetch("data.json").then(r => r.json()).then(runs => {
     type: "bar", x: withDelta.map(r => r.label), y: withDelta.map(r => r.delta),
     hovertext: withDelta.map(hover), hoverinfo: "text",
     marker: { color: withDelta.map(r => r.delta > 0 ? css("--keep") : css("--fail")) },
-  }], layout, config);
+  }], { ...layout, xaxis: { ...layout.xaxis, ...ticks(withDelta) } }, config);
 });
 </script>
 </body>
