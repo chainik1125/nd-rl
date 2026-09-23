@@ -1,0 +1,17 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d42f395..c8c0147 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -146,8 +146,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+-            # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+-            torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++            # Initialize Q/K/V independently, matching their separate Muon updates.
++            parts = p.chunk(3) if p.size(0) == 3 * p.size(1) else (p,)
++            for part in parts:
++                torch.nn.init.orthogonal_(part, gain=0.02 * math.sqrt(max(part.shape)))
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
