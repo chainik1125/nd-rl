@@ -2,7 +2,7 @@
 """Pre-registration for one experiment, written BEFORE the run:
 results/<NNN>_<slug>/params.json + pretrain.patch.
 
-  python3 params.py new <NNN> <slug>      # after editing pretrain.py; mechanical fields filled
+  python3 params.py new <NNN> <slug> [--seeds 0,1,2]  # after editing pretrain.py
   python3 params.py check <NNN>_<slug>    # validates against schema.Params; record.py runs it too
 
 Mechanical (never hand-typed): base_commit, harness/pretrain sha, the patch, and `protocol` = the
@@ -13,6 +13,7 @@ Hand-filled by the agent: provider/model, title/description/hypothesis/predictio
 Shared helpers (harness_rules, fork_commit, sha, git) are imported by record.py and pools.py.
 """
 
+import argparse
 import ast
 import contextlib
 import hashlib
@@ -62,7 +63,7 @@ def harness_rules() -> dict[str, int | float]:
     return {k: v for k, v in ns.items() if k.isupper() and isinstance(v, int | float)}
 
 
-def protocol() -> dict[str, Any]:
+def protocol(seed: int | list[int] = 0) -> dict[str, Any]:
     H, fc = harness_rules(), fork_commit()
     pools_fn = HERE / "pools" / f"{fc[:7]}.json"
     if not pools_fn.exists():
@@ -94,7 +95,7 @@ def protocol() -> dict[str, Any]:
             "max_proofs_per_thm": H["MAX_PER_THM"],
             "rl_weight": H["RL_WEIGHT"],
             "target_pool": P["rl_targets"]["pool"],
-            "targets_sampled": P["rl_targets"]["sampled"],
+            "targets_sampled": P["rl_targets"]["sampled"] if seed == 0 else None,
         },
         "eval": {
             "metric": "dev-transfer theorems solved at L_true >= 7",
@@ -103,7 +104,7 @@ def protocol() -> dict[str, Any]:
             "pool": P["transfer_dev"],
         },
         "holdout": P["transfer_holdout"],
-        "seed": 0,
+        "seed": seed,
     }
 
 
@@ -148,7 +149,10 @@ def patch_lines(patch: str) -> int:
     )
 
 
-def new(nnn: str, slug: str) -> None:
+def new(nnn: str, slug: str, seeds: list[int] | None = None) -> None:
+    if seeds is not None and (not seeds or len(set(seeds)) != len(seeds)):
+        raise SystemExit("seeds must be nonempty and unique")
+    seed = seeds if seeds is not None else 0
     name = f"{nnn}_{slug}"
     d = HERE / "results" / name
     if d.exists():
@@ -174,8 +178,8 @@ def new(nnn: str, slug: str) -> None:
         "expected_delta": TODO,
         "baseline_id": TODO,
         "baseline_metric": TODO,
-        "config": CONFIG_TEMPLATE,
-        "protocol": protocol(),
+        "config": {**CONFIG_TEMPLATE, "seed": seed},
+        "protocol": protocol(seed),
     }
     (d / "params.json").write_text(json.dumps(p, indent=2) + "\n")
     print(
@@ -196,7 +200,12 @@ def check(name: str) -> Params:
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "new":
-        new(sys.argv[2], sys.argv[3])
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("nnn")
+        parser.add_argument("slug")
+        parser.add_argument("--seeds", type=lambda value: [int(s) for s in value.split(",")])
+        args = parser.parse_args(sys.argv[2:])
+        new(args.nnn, args.slug, args.seeds)
     elif cmd == "check":
         check(sys.argv[2])
         print("ok")

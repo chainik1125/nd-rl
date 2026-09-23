@@ -43,7 +43,7 @@ runs the same).
    Committing the prediction BEFORE the run is the rule, not a suggestion; params.json is never
    edited after this commit.
 4. Run on three seeds at once, one pod each:
-   `source ~/repos/nd-takehome/.envrc.local && python3 run_idea.py <NNN>_<slug> --seeds 0,1,2`.
+   `source ~/repos/nd-takehome/.envrc.local && $PY run_idea.py <NNN>_<slug> --seeds 0,1,2`.
    It validates the schema, requires params.json and pretrain.patch to match committed HEAD,
    checks source hashes, fork and seeds, and rejects dirty frozen files before renting pods.
    It writes the

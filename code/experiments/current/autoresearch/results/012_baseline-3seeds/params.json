@@ -65,9 +65,9 @@
     "compile": false,
     "init": "fork default (normal 0.02)",
     "seed": [
-      3,
-      4,
-      5
+      0,
+      1,
+      2
     ]
   },
   "protocol": {
@@ -161,9 +161,10 @@
       }
     },
     "seed": [
-      3,
-      4,
-      5
-    ]
+      0,
+      1,
+      2
+    ],
+    "targets_sampled": null
   }
 }
