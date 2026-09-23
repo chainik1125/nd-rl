@@ -1,0 +1,13 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 347db61..926a260 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -42,7 +42,7 @@ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ MUON_WD = WD * LR / MUON_LR
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+-ENTROPY_BONUS = 0.01
++ENTROPY_BONUS = 0.02
+ 
+ 
+ def pretrain_loss(model, x, mask):
