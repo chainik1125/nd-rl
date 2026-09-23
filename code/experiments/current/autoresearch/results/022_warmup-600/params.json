@@ -1,0 +1,169 @@
+{
+  "id": "022",
+  "slug": "warmup-600",
+  "written_at": "2026-09-23T01:09:21-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "bd78edb",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "ae76aa5382c3",
+  "patch_lines": 2,
+  "title": "P20: extend pretraining warmup to 600 steps",
+  "description": "P20: increase only the pretraining linear warmup from 200 to 600 steps at the same nominal peak LR 1e-3, retaining the existing absolute-wall-clock cosine schedule afterward. Gentler early updates may produce proof features that transfer better through the fixed downstream expert-iteration procedure.",
+  "tags": [
+    "schedule"
+  ],
+  "hypothesis": "Earlier probes changed peak LR (004), second-moment averaging (015), cosine floor (016), and token-interface LR (021); none changed warmup duration. Smaller early updates may reduce premature specialization or disruption of emerging proof features, improving downstream exploration and adaptation. This has not been diagnosed as an existing instability. Longer warmup can instead waste scarce learning time; it also reduces integrated LR-scaled AdamW decay. The cosine clock is not reset at the warmup boundary, so at roughly 10 steps/s the switch near 60 seconds drops LR from about 0.000998 to about 0.000914. Downstream three-seed dev-transfer performance alone decides keep/discard.",
+  "p_keep": 0.25,
+  "expected_delta": "Central prediction +3 to +12 dev-transfer theorems at true length >=7 versus incumbent 012 (exact mean 147.67; stored rounded mean 148), with plausible downside -40. Seeds 0,1,2 and all budgets stay fixed. No added per-step or inference computation, so roughly 3000 steps in 300 seconds remain expected; 600 warmup steps consume roughly 60 seconds at historical throughput. Learned generation lengths may still change total runtime under the 1200-second cap.",
+  "baseline_id": "012",
+  "baseline_metric": 148,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3210240
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 600,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
