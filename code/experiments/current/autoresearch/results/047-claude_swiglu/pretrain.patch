@@ -1,0 +1,56 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d42f395..3e2bc6a 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,12 +29,14 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++import torch.nn.functional as F
++from model import GPT, Block  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 4, 256, 8
++FF = 680  # SwiGLU hidden width: 3*D*FF ~ the fork's 2*D*4D MLP params, rounded to a multiple of 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+@@ -89,6 +91,23 @@ def muon_step(params, buffers, lr):
+         p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
++class SwiGLUBlock(Block):
++    """The fork's Block with a SwiGLU MLP (Shazeer 2020): fc2(silu(gate(h)) * fc1(h))."""
++
++    def __init__(self, d, h):
++        super().__init__(d, h)
++        self.gate, self.fc1, self.fc2 = (
++            torch.nn.Linear(d, FF),
++            torch.nn.Linear(d, FF),
++            torch.nn.Linear(FF, d),
++        )
++
++    def forward(self, x, cos, sin, mask=None, cache=None):
++        x = x + self.attn(self.ln1(x), cos, sin, mask, cache)
++        h = self.ln2(x)
++        return x + self.fc2(F.silu(self.gate(h)) * self.fc1(h))
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -143,7 +162,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model.blocks = torch.nn.ModuleList(SwiGLUBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model.blocks.apply(model._init)  # fork init: normal 0.02 weights, zero biases
++    model = model.to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).

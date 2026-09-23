@@ -1,0 +1,201 @@
+{
+  "id": "047-claude",
+  "slug": "swiglu",
+  "written_at": "2026-09-23T10:59:29-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "a11558d",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "17b5345def96",
+  "patch_lines": 26,
+  "title": "P23: parameter-matched SwiGLU feed-forward blocks",
+  "description": "P23: on top of incumbent 043-codex, replace each block's GELU MLP (256->1024->256) with a SwiGLU MLP fc2(silu(gate(h)) * fc1(h)) of hidden width 680, keeping 3,203,392 parameters (-0.21%) and the unchanged Muon optimizer, orthogonal init, schedule and data, with gate, up and down as three separate Muon matrices. A multiplicative gate lets one feature switch another on, which should better represent when a proof rule is valid (an implication line AND its antecedent line, a box assumption AND its last line), so the policy handed to fixed expert iteration writes fewer invalid steps on 7+-line targets.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Evidence: round-1 RL sample accuracy (the pretrained model's pass rate on RL targets at T=0.8, before any RL update) tracks the final metric (r=0.79 over 88 seed runs, 044-claude registration). A local analysis of 043-codex seed 0 pretrain.pt (8 samples at T=0.8 on 120/60/60 random RL targets of 7/8/9 lines) found 212/960 valid samples (42/120 targets) at 7 lines, 1/480 at 8 and 0/480 at 9. Almost all failures are invalid steps, not syntax: at 7 lines IMPI rule-check 18%, bad box cite 12%, IMPE 10%, ANDI 9%; at 8 lines IMPI 33%, ANDI 18%, IMPE 9%. The model also keeps to the cap-6 length: 54%/56% of samples for 7/8-line targets write 6 lines and 0.4% of 8-line samples write 8, e.g. assuming the innermost consequent and closing with 'IMPI Nk Nk'. Mechanism: whether a natural-deduction step is valid is a conjunction over the current line and the cited lines (IMPE needs a line (A > B) and a line A; IMPI needs a box opened with A whose last line is B). A GLU unit multiplies two linear features, so it represents such AND conditions directly, while a GELU unit has to build them from thresholded sums (Shazeer 2020, 'GLU Variants Improve Transformer', arXiv 2002.05202: SwiGLU/GEGLU lowered perplexity versus ReLU/GELU FFNs at matched parameters and compute; adopted by PaLM and LLaMA). At matched parameters and step cost, the pretrained model should give invalid steps lower probability, raising round-1 sample accuracy and targets solved, so the length frontier advances faster over the four rounds. Alternative outcome: the 8+-line failures are mainly an out-of-distribution structural shortcut (in cap-6 data a depth-3 box can only contain its assumption, so 'IMPI Nk Nk' is always valid there), a property of the fixed data that a better MLP need not fix. SwiGLU's MLP output starts about 4x smaller than GELU's under the same 0.02-scale init, MPS benchmarks show +4-5% train-step time, GLU gains measured on web text at T5 scale may not carry to a 3.2M model on a narrow formal language, and every pre-Muon architecture change and both Claude architecture changes under Muon (041 partial RoPE, 044 gated attention) lost. So the change could be neutral or harmful. The SwiGLU MLP persists into RL and evaluation as part of the architecture (the frozen RL AdamW trains it like any other weight); RL, evaluation, data and budgets are unchanged. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +5 to +20 dev-transfer solves at true length >=7 versus incumbent 043-codex exact mean 275.333333 (282/275/269), with higher round-1 RL sample accuracy than 043's 0.079/0.052/0.040; plausible downside -30. Parameters fall 6,848 (-0.21%) to 3,203,392. MPS microbenchmarks against the incumbent show +4-5% train-step time and unchanged decode-step time, so expect ~2-5% fewer pretraining updates (~2750-2850 versus 2870-2902) and under +15 s total run time (043 took 889/922/832 s of the 1200 s cap). Final validation loss should be within +-0.004 of the incumbent.",
+  "baseline_id": "043-codex",
+  "baseline_metric": 275,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) with blocks replaced by SwiGLUBlock (fork Block subclass in pretrain.py)",
+      "n_layers": 4,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 680,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "swiglu (silu gate)",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3203392,
+      "mlp": {
+        "form": "fc2(silu(gate(h)) * fc1(h)), h = ln2(x); attention path, LayerNorms and residual layout unchanged",
+        "modules": "gate = Linear(256, 680), fc1 (up) = Linear(256, 680), fc2 (down) = Linear(680, 256), all with bias",
+        "param_match": "770*680 + 256 = 523,856 MLP params per block versus the fork's 525,568 (-1,712 per block, -6,848 total, -0.213%); 680 is the multiple of 8 nearest the exact match 682.2",
+        "source": "Shazeer 2020, 'GLU Variants Improve Transformer', arXiv 2002.05202"
+      },
+      "checkpoint_reconstruction": "Construct the fork GPT, replace model.blocks with SwiGLUBlock(256, 8) x4 from the registered pretrain.py, then load state (blocks.{i}.gate.*, fc1 (680,256), fc2 (256,680)); the fork GPT cannot load it. The live harness keeps this model through RL and evaluation."
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, gate and fc1 (680,256) sqrt(680/256)=1.63, fc2 (256,680) 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection matrices are in Muon: per block qkv (768,256) as three independent (256,256) updates, proj (256,256), gate (680,256), fc1 (680,256) and fc2 (256,680), each orthogonalized separately. Unchanged code path; the QKV split test (rows == 3*columns) does not match any MLP matrix.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases (including the new gate bias) and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "model weights only (fork GPT with SwiGLU blocks); pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork GPT construction (normal 0.02 weights, zero biases), then model.blocks is replaced by four SwiGLUBlocks that receive the same fork init, then orthogonal_ on every 2D block parameter with gain 0.02*sqrt(max(rows, columns)) (element second moment 0.0004): qkv (768,256) jointly, proj (256,256), gate (680,256), fc1 (680,256), fc2 (256,680). Embedding, readout, biases and LayerNorm keep fork defaults. The discarded fork blocks' draws advance the global RNG before the new blocks' draws; the seed policy and separately seeded data generator are unchanged. No reinitialization during RL.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
