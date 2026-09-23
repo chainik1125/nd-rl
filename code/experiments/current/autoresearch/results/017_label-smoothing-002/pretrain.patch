@@ -1,0 +1,42 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index fce40df..8d32dba 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,6 +29,7 @@ import math
+ import time
+ 
+ import torch
++import torch.nn.functional as F
+ from model import GPT  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+@@ -38,6 +39,20 @@ N_LAYER, D, N_HEAD = 4, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++LABEL_SMOOTHING = 0.02
++
++
++def pretrain_loss(model, x, mask):
++    """P47: smooth only pretraining targets; validation and RL keep the fork's loss."""
++    logits = model(x[:, :-1])
++    supervised = mask[:, 1:].reshape(-1)
++    token_loss = F.cross_entropy(
++        logits.reshape(-1, logits.size(-1)).float(),
++        x[:, 1:].reshape(-1),
++        reduction="none",
++        label_smoothing=LABEL_SMOOTHING,
++    )
++    return (token_loss * supervised).sum() / supervised.sum()
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -124,7 +139,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         idxs, perm = perm[:BS], perm[BS:]
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+-            loss = loss_on(model, x, m)
++            loss = pretrain_loss(model, x, m)
+         opt.zero_grad(set_to_none=True)
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
