@@ -14,6 +14,7 @@ Adapted from pretrain_poc/pod.py, which rented one pod per run. Needs RUNPOD_API
 
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -97,6 +98,49 @@ def ssh_run(st, cmd, check=True):
     return subprocess.run(
         ["ssh", *ssh_args(st), "bash", "-lc", shlex.quote(cmd)], check=check
     ).returncode
+
+
+def run_detached(st, cmd, out, retry_secs=10, give_up_secs=1800):
+    """Run `cmd` on the pod so an ssh drop cannot kill it, and stream its output to stdout.
+
+    The job runs under setsid/nohup, writing `out`.stream and then its exit code to `out`.rc.
+    We `tail` the stream over ssh, counting bytes received; after a drop we reconnect and resume
+    at that byte offset, so the local log stays identical. Returns the job's exit code, or 255
+    after `give_up_secs` without a working connection.
+    """
+    stream, rc_file = f"{out}.stream", f"{out}.rc"
+    job = f"({cmd}) > {stream} 2>&1; echo $? > {rc_file}"
+    ssh_run(
+        st,
+        f"mkdir -p {os.path.dirname(out)}; rm -f {rc_file} {stream}; "
+        f"nohup setsid bash -c {shlex.quote(job)} >/dev/null 2>&1 </dev/null &",
+    )
+    offset, last_ok = 0, time.time()
+    while True:
+        follow = (
+            f"tail -c +{offset + 1} -F {stream} 2>/dev/null & t=$!; "
+            f"while [ ! -f {rc_file} ]; do sleep 2; done; sleep 2; kill $t; wait $t 2>/dev/null; "
+            f'echo "exit-code $(cat {rc_file})" >&2'
+        )
+        proc = subprocess.Popen(
+            ["ssh", *ssh_args(st), "bash", "-lc", shlex.quote(follow)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        assert proc.stdout is not None and proc.stderr is not None
+        while chunk := os.read(proc.stdout.fileno(), 65536):
+            sys.stdout.buffer.write(chunk)
+            sys.stdout.buffer.flush()
+            offset += len(chunk)
+            last_ok = time.time()
+        codes = re.findall(r"^exit-code (\d+)$", proc.stderr.read().decode(), re.M)
+        if proc.wait() == 0 and codes:
+            return int(codes[-1])
+        if time.time() - last_ok > give_up_secs:
+            print(f"lost the pod for {give_up_secs} s; giving up", flush=True)
+            return 255
+        print(f"ssh dropped at byte {offset}; reconnecting in {retry_secs} s", flush=True)
+        time.sleep(retry_secs)
 
 
 def upload(st, pretrain_file):
@@ -214,19 +258,20 @@ def main():
         name, args = rest[0], rest[1:]
         upload(st, pretrain_file)
         out = f"{REMOTE}/artifacts/{name}"
-        rc = ssh_run(
-            st,
-            f"mkdir -p {REMOTE}/artifacts && bash {REMOTE}/remote.sh {out} "
-            + " ".join(map(shlex.quote, args)),
-            check=False,
+        rc = run_detached(
+            st, f"bash {REMOTE}/remote.sh {out} " + " ".join(map(shlex.quote, args)), out
         )
         ssh = "ssh " + " ".join(ssh_args(st))
-        subprocess.run(
-            f'{ssh} "cd {REMOTE}/artifacts && tar czf - {name} {name}.log" '
-            f"| tar xzf - -C {shlex.quote(LOCAL_ART)}",
-            shell=True,
-            check=False,
-        )
+        for _ in range(10):  # the pull can hit the same network drops as the stream
+            pulled = subprocess.run(
+                f'{ssh} "cd {REMOTE}/artifacts && tar czf - {name} {name}.log" '
+                f"| tar xzf - -C {shlex.quote(LOCAL_ART)}",
+                shell=True,
+                check=False,
+            )
+            if pulled.returncode == 0:
+                break
+            time.sleep(30)
         print(
             f"artifacts in {os.path.abspath(os.path.join(LOCAL_ART, name))}; remote rc {rc}",
             flush=True,
