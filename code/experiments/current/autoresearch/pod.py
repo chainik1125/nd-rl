@@ -74,7 +74,7 @@ def wait_ssh(key, pod_id, timeout=600):
             if p["privatePort"] == 22 and p["isIpPublic"]:
                 return p["ip"], p["publicPort"]
         time.sleep(5)
-    raise SystemExit("pod never exposed ssh")
+    return None
 
 
 def ssh_args(st):
@@ -172,22 +172,28 @@ def main():
             raise SystemExit(f"{STATE} exists; `pod.py down` first")
         with open(os.path.expanduser("~/.ssh/id_ed25519.pub")) as f:
             pubkey = f.read().strip()
-        pod = None
-        for attempt in range(60):  # up to ~30 min of waiting for capacity
+        # Up to ~30 min of waiting for capacity; a pod that never exposes ssh is replaced.
+        deadline, attempt, addr, st = time.time() + 1800, 0, None, {}
+        while addr is None:
+            if time.time() > deadline:
+                raise SystemExit(f"no usable {GPU} pod after 30 min")
+            attempt += 1
             pod = create(key, f"autoresearch-{pod_name}", pubkey, "SECURE") or create(
                 key, f"autoresearch-{pod_name}", pubkey, "COMMUNITY"
             )
-            if pod:
-                break
-            print(f"no {GPU} capacity (attempt {attempt + 1}), retrying in 30 s", flush=True)
-            time.sleep(30)
-        if pod is None:
-            raise SystemExit(f"no {GPU} capacity after 30 min")
-        st = {"id": pod["id"], "cost": pod["costPerHr"], "t0": time.time()}
-        with open(STATE, "w") as f:
-            json.dump(st, f)  # saved before waiting, so `down` works if the wait is interrupted
-        print(f"pod {pod['id']} at ${pod['costPerHr']}/hr", flush=True)
-        st["ip"], st["port"] = wait_ssh(key, pod["id"])
+            if pod is None:
+                print(f"no {GPU} capacity (attempt {attempt}), retrying in 30 s", flush=True)
+                time.sleep(30)
+                continue
+            st = {"id": pod["id"], "cost": pod["costPerHr"], "t0": time.time()}
+            with open(STATE, "w") as f:
+                json.dump(st, f)  # saved before waiting, so `down` works if the wait is interrupted
+            print(f"pod {pod['id']} at ${pod['costPerHr']}/hr", flush=True)
+            if (addr := wait_ssh(key, pod["id"])) is None:
+                terminate(key, pod["id"])
+                os.remove(STATE)
+                print(f"pod {pod['id']} never exposed ssh; terminated, retrying", flush=True)
+        st["ip"], st["port"] = addr
         with open(STATE, "w") as f:
             json.dump(st, f)
         for _ in range(60):
