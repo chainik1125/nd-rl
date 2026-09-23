@@ -1,0 +1,207 @@
+{
+  "id": "054-codex",
+  "slug": "depth5-entropy-001",
+  "written_at": "2026-09-23T13:01:32-0700",
+  "provider": "openai",
+  "model": "gpt-6-astra",
+  "base_commit": "6c9295c",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "ec419709ebeb",
+  "patch_lines": 16,
+  "title": "P48: 0.01 pretraining entropy bonus on the five-layer incumbent",
+  "description": "P48 follow-up: add a predictive-entropy reward of 0.01 to the unchanged supervised-token pretraining loss of incumbent 051-claude, retaining its five-layer architecture. This tests whether the modest four-layer entropy benefit composes with increased depth to improve fixed downstream expert iteration.",
+  "tags": [
+    "loss",
+    "regularization"
+  ],
+  "hypothesis": "The five-layer incumbent 051-claude scores 288/260/311 (exact mean 286.333333). On the earlier four-layer 043-codex baseline, P48 coefficient 0.01 in 052-codex raised the mean by 5 solves (292/300/249 versus 282/275/269), while 0.02 in 053-codex hurt all three seeds (202/262/210). This is weak, mixed-seed evidence for the smaller coefficient, not evidence of a monotonic benefit. No prior registration tests 0.01 with five layers. Adding only this smaller distribution-dependent entropy reward may preserve plausible alternative continuations while the extra layer supplies the rule-checking capacity, improving first-round discovery and the final fixed-RL dev-transfer mean. The interaction could instead be adverse: a deeper model has fewer pretraining updates at fixed wall-clock and may lose syntax precision. Every existing supervised token is treated uniformly; data, token selection, sampling temperature, and downstream RL loss remain unchanged. Only the frozen three-seed downstream mean decides keep/discard.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +3 to +15 dev-transfer solves at true length >=7 relative to 051-claude exact mean 286.333333, with round-1 RL sample accuracy improving on at least two seeds from 0.0630/0.0494/0.0749; plausible downside -40. Expect 0-3% fewer pretraining updates than 2320/2370/2341 because of the entropy calculation, unchanged 4,000,000 parameters and identical inference operations. Total duration should remain approximately 940-1080 seconds per seed under the 1200-second cap; changed sampled lengths can affect runtime. Ordinary CE validation is diagnostic, while training loss includes the entropy reward.",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) are in Muon. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter after moving to device. Gain = 0.02 * sqrt(max(rows, columns)); exact element second moment 0.0004. All 20 hidden matrices: qkv (768,256), proj (256,256), fc1 (1024,256), fc2 (256,1024) in each of five blocks. QKV initialized jointly. Embedding and readout keep the fork's normal(0.02) draws; biases zero; LayerNorm weight 1 and bias 0. No reinitialization during RL. The fifth block consumes extra global-RNG draws during construction, so random initial weights are not bitwise identical to 043's for a given seed; the init rule is identical.",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": {
+      "name": "supervised next-token cross-entropy minus predictive entropy",
+      "entropy_bonus": 0.01,
+      "mask": "unchanged shifted proof mask, including every supervised termination token",
+      "reduction": "sum of masked per-token CE minus 0.01 times categorical entropy, divided by supervised token count",
+      "precision": "logits converted to float32 before cross-entropy and log_softmax",
+      "validation": "unchanged hard-target cross-entropy",
+      "handoff": "loss function used only by pretrain(); fork GPT forward and frozen RL loss unchanged"
+    }
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
