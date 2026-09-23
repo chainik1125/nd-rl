@@ -36,8 +36,54 @@ from train import loss_on  # fork
 # ---- knobs
 N_LAYER, D, N_HEAD = 4, 256, 8
 BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.02, 0.95, 5
+# Match the incumbent's multiplicative decay at every schedule fraction.
+MUON_WD = WD * LR / MUON_LR
 TOK_MODE = "abs"
 VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+
+
+# Muon update adapted from KellerJordan/Muon, commit
+# f98f1cacc0263b04290753e32be8d498c1efc806 (muon.py).
+# MIT License
+# Copyright (c) 2024 Keller Jordan
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+@torch.no_grad()
+def muon_step(params, buffers, lr):
+    """Nesterov momentum plus five bf16 Newton-Schulz steps, on hidden matrices only."""
+    for p, momentum in zip(params, buffers, strict=True):
+        if p.grad is None:
+            continue
+        momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+        update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
+        transpose = update.size(0) > update.size(1)
+        if transpose:
+            update = update.mT
+        update = update / (update.norm(dim=(-2, -1), keepdim=True) + 1e-7)
+        for _ in range(MUON_STEPS):
+            gram = update @ update.mT
+            polynomial = -4.7750 * gram + 2.0315 * gram @ gram
+            update = 3.4445 * update + polynomial @ update
+        if transpose:
+            update = update.mT
+        update *= max(1, update.size(0) / update.size(1)) ** 0.5
+        p.mul_(1 - lr * MUON_WD)
+        p.add_(update, alpha=-lr)
 
 
 def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
@@ -99,7 +145,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
     )
-    opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+    matrices = [p for p in model.blocks.parameters() if p.ndim == 2]
+    matrix_ids = {id(p) for p in matrices}
+    auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+    momentum_buffers = [torch.zeros_like(p) for p in matrices]
+    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
     model.train()
     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
@@ -125,10 +175,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
         with autocast:
             loss = loss_on(model, x, m)
-        opt.zero_grad(set_to_none=True)
+        model.zero_grad(set_to_none=True)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
+        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
         if step % 20 == 0:
             last_loss = loss.item()
             recent.append(last_loss)
