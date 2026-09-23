@@ -16,6 +16,13 @@ During the run: one job per `podrun` call under `nohup`; pull raw files back oft
 brief are written down with the reason; delete pods whose work is pulled; upload `ckpts/`,
 `artifacts/`, `data/` for this run to `hf://buckets/dan-pandori/nd-rl/<run-id>/` at the end.
 
+**Say which model every number applies to.** Each result table and each `numbers.md` section
+names the checkpoint(s) behind it: model id/path, parameter count, format (`lean_seq` / token),
+from-scratch or pretrained, and the data it was trained on. A number measured on one model is
+never stated as a property of "the model" or of the setting. If you inherit a number from
+another run, carry its model label with it. (Dan, 2026-09-23, after an efficiency run's premise
+turned out to have been measured on a different model than the one it was applied to.)
+
 **Lean is the checker of record** (decision 2026-09-20): every proof you count must translate with `nd2lean.py` and be accepted by Lean; report the agreement count with `nd_verify` and treat any disagreement as a bug. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form. From-scratch training and RL use the Lean `lean_seq` format (decision 2026-09-22); reward is `lean_check` once proposal 9's phase 1 validates it (until then Lean ∧ `nd_verify`); report proof length in lines **and** term size; label any token-format arm as such.
 
 At the end: `run<id>.md` (≤ 400 words + figures, expectations vs outcomes stated plainly);

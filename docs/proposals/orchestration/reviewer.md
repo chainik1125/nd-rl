@@ -24,6 +24,11 @@ expectations were written before the run (gate 0 record) and that misses are rep
 misses. Then write §Verdict: what stands, what must be reworded, what is not supported, and
 the next measurement that would settle anything left open.
 
+Check that every claim names the model it was measured on (checkpoint, size, format,
+from-scratch or pretrained). An unlabelled number, or one inherited from another run without its
+model label, is a finding: say which model it actually applies to, or that it cannot be
+determined.
+
 **On a hard-constraint violation** write `QUARANTINE <UTC> <reason>` into the run's
 `STATUS.md` and stop; nothing from the run goes further.
 
