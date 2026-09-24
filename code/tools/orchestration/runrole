@@ -50,7 +50,7 @@ for i in $(seq 1 200); do
   [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; notify "$RUN: $ROLE hit its hard stop" "Session ended by time limit; check STATUS.md." high; break; }
   [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E 'DONE|QUARANTINE' "$REPO/STATUS.md" 2>/dev/null | tail -2)"; break; }
   [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E "$DONEGREP" "$REPO/STATUS.md" | tail -1)"; break; }
-  M=${MODEL:-$(cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo opus)}; COMMON[1]="$M"
+  M=${MODEL:-$(cat "${DEFAULT_MODEL_FILE}.$ROLE" 2>/dev/null || cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo opus)}; COMMON[1]="$M"
   OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M)" >> "$LOG"
   if [ "$i" = 1 ]; then
     claude -p "$(cat "$REPO/AGENT_POLICY.md")
