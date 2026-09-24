@@ -1,0 +1,31 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 405a860..49133ad 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -39,10 +39,17 @@ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+ MUON_WD = WD * LR / MUON_LR
++NOPE_LAYER = 3  # this block's attention gets no rotary position (NoPE); the others keep RoPE
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
++def position_free(block, args):
++    """Forward pre-hook: identity rotation (cos 1, sin 0), so q.k ignores position in this block."""
++    x, cos, sin, *rest = args
++    return (x, torch.ones_like(cos), torch.zeros_like(sin), *rest)
++
++
+ # Muon update adapted from KellerJordan/Muon, commit
+ # f98f1cacc0263b04290753e32be8d498c1efc806 (muon.py).
+ # MIT License
+@@ -148,6 +155,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++    # Registered on the returned model, so it stays active through the harness's RL and eval.
++    model.blocks[NOPE_LAYER].register_forward_pre_hook(position_free)
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"

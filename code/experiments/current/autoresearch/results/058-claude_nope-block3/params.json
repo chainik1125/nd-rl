@@ -1,0 +1,200 @@
+{
+  "id": "058-claude",
+  "slug": "nope-block3",
+  "written_at": "2026-09-23T21:11:00-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "b9ac5b4",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "efc7b03c8896",
+  "patch_lines": 9,
+  "title": "P37 limiting case: no rotary position in block 3 of 5 (one NoPE layer, as in Llama 4 and SmolLM3)",
+  "description": "P37 limiting case (a per-depth positional scale of zero in one layer; Robbie's positional-encoding lead): on top of incumbent 051-claude, a forward pre-hook gives block 3 of the five blocks an identity rotation (cos 1, sin 0), so that block's attention scores depend on content only in pretraining, RL and evaluation alike, with parameters (4,000,000), compute and per-seed initial weights unchanged. An inference-time probe of 051's three pretrain checkpoints found that removing block 3's rotation alone cut <=6-line attempts on 7-line RL targets from 68.1% to 56.0% while valid 7-line samples held (499 versus 486 of 2880), so a model trained without distance-scored attention in that block should start expert iteration with a weaker cap-6 length prior and climb the fixed RL length ladder faster.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Evidence: (1) Bottleneck. Round-1 expert-iteration success is limited by a cap-6 length prior: across 12 diagnosed checkpoints (043, 049, 051, 056) valid 7-line samples track the fraction of exactly-6-line attempts on 7-line targets (r = -0.88, 056-claude), and 051's pretrain checkpoints almost never write 8+ lines (6 of 2880 samples on 8-9-line targets), so round 1 solves almost only 7-line targets (051 round-1 8-line solves 1/1/1 of 189/141/222) and each round extends the solved frontier by about one line. (2) Probe of 051 s0/s1/s2 pretrain.pt (8 samples at T=0.8 on the seeded 120/60/60 7/8/9-line RL targets used by the 047-057 diagnostics, sampler seed 1, MPS, max_new 400), feeding one block an identity rotation at inference. Block 3: <=6-line attempts on 7-line targets 572/554/487 versus 619/694/647 of 960; exactly-7-line attempts 370/370/460 versus 340/264/311; valid 7-line samples 132/103/264 versus 155/115/216; 8+-line attempts on 8-9-line targets 53/57/10 versus 2/1/3. On s0, the other blocks do not give this: block 0 or 1 breaks parsing (0 valid), block 2 keeps the prior (<=6-line 661) with valid 87, block 4 keeps it (632) with valid 102, and blocks 3+4 together shift length further (475) but cost validity (82). So in the trained incumbent block 3's distance-scored attention carries much of the stop-at-six signal, and it is the only block whose rotation can be removed without losing validity. These numbers reproduce an unregistered probe from an earlier session that ended before registering. (3) Adaptation check (s0 only): 25 continued-training steps at 0.25x peak LR with fresh optimizer states strengthened the prior in both arms relative to the untouched checkpoint (619 of 960 <=6-line, 155 valid), so it is not a faithful proxy for from-scratch training; under matched steps the NoPE-3 arm kept the weaker prior and higher validity (<=6-line 731 versus 863, valid 77 versus 22 for the RoPE control), with train loss 0.0600 versus 0.0596 (051's final level is about 0.059-0.061), so block 3 does not need rotary position to fit <=6-line data. (4) Earlier positional runs changed every layer's frequencies rather than which layers are positional: 029 (RoPE base 100k) -18.67 and 041-claude (low-frequency half of each head unrotated) -16.67 on their incumbents. (5) Literature. Kazemnejad et al. (2023, NeurIPS, 'The Impact of Positional Encoding on Length Generalization in Transformers') found decoder-only models without positional encoding length-generalized better than RoPE or ALiBi on their reasoning tasks; Yang et al. (2025, arXiv 2501.18795, 'Rope to Nope and Back Again: A New Hybrid Attention Strategy') interleave NoPE and RoPE layers; Llama 4 (Meta 2025, iRoPE) and SmolLM3 (Hugging Face 2025) drop RoPE from every fourth layer, which for five blocks is exactly block 3. Mechanism: block 3's heads can no longer score keys by relative distance, so a count-based stop signal has to be rebuilt from positional features that blocks 0-2 write into the residual stream, or in block 4, and should be less precise. More samples on 7+-line targets then write 7-9 lines, raising round-1 RL sample accuracy and targets solved, and because the frontier advances about one line per round, the gain should compound into more 9-10-line dev solves. Alternative outcomes: (a) training rebuilds distance-based termination in blocks 2 or 4 or from line-index content, leaving the prior unchanged (about 0); (b) block 3's positional attention also supports rule and box checks, so validity falls (negative); (c) timeout: the untrained ablation left 11/7/2 of 2048 RL-mix samples (s0/s1/s2, max_new 512) without QED versus 0 for 051, with p99 proof length 303/282/261 versus 233/226/242 tokens, and the fork sampler decodes each 1024-sample batch until its longest sample ends, so rare non-terminating samples, or legitimately longer proofs, lengthen sampling and could push a seed past the 1200 s cap (051's slowest seed took 1053 s), a failed experiment; (d) 051's 286.33 may be a lucky draw, so the bar is high; (e) seed noise. The NoPE block persists into RL and evaluation (the frozen RL AdamW trains all 4,000,000 parameters); data, tokenizer, RL, evaluation, seeds and budgets are unchanged. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.3,
+  "expected_delta": "Central prediction +5 to +25 dev-transfer solves at true length >=7 versus incumbent 051-claude exact mean 286.333333 (288/260/311), with round-1 RL sample accuracy above 051's mean 0.0624 (0.0630/0.0494/0.0749), round-1 targets solved above 051's mean 184 (189/141/222) and more 9-10-line dev solves than 051 (151/126/166); plausible downside -40 if block 3's positional attention also carried rule checks, or a timeout if the trained model writes non-terminating samples. Parameters, per-step compute and initial weights (bitwise equal to 051's per seed) are unchanged, so expect 051's pretraining updates (2320-2370 on typical A40 pods), final validation loss within +-0.005 of 051 (0.0924/0.0951/0.0932) and held-out greedy 0.980-0.992. Post-hoc diagnostic with the probe above: <=6-line attempts on 7-line targets below 051's 64.5/72.3/67.4% and 8+-line attempts on 8-9-line targets above 051's 6 of 2880. Per-seed totals about 940-1120 s (051: 1053/957/941 s) if samples terminate as 051's do.",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope (base 10000) in blocks 0, 1, 2 and 4; none in block 3 (NoPE)",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "one knob: NOPE_LAYER = 3 in pretrain.py. A forward pre-hook (position_free) registered on model.blocks[3] replaces the cos/sin arguments with ones/zeros, so the fork Block's apply_rope is the identity for that block's q and k in full, prefill and cached-decode forwards alike. 5 blocks, d_model 256, 8 heads (head dim 32), d_ff 1024, LayerNorm, GELU, untied embedding/readout and every other setting identical to 051-claude.",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork, load the state dict, then model.blocks[3].register_forward_pre_hook(pretrain.position_free); the state dict alone does not encode the NoPE block (reload plus hook reproduced logits exactly in local checks)",
+      "kv_cache": "one fork KV-cache dict per block (5 per sample), unchanged fork code; block 3 caches unrotated keys",
+      "nope_layer": 3,
+      "compute": "identical ops to 051 (apply_rope still runs, with angle 0); no throughput change expected"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) are in Muon. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Identical rule and bitwise-identical initial weights to 051-claude per seed (the hook consumes no RNG; checked on seeds 0/1/2 against HEAD pretrain.py): fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter with gain 0.02 * sqrt(max(rows, columns)) (element second moment 0.0004); embedding and readout keep the fork's normal(0.02) draws; biases zero; LayerNorm weight 1 and bias 0. No reinitialization during RL.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
