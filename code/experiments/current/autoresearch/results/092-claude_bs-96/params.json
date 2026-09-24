@@ -1,0 +1,225 @@
+{
+  "id": "092-claude",
+  "slug": "bs-96",
+  "written_at": "2026-09-24T13:16:32-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "680a8cb",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "465156719447",
+  "patch_lines": 2,
+  "title": "Pretraining batch 128 -> 96 records on the 081 Polar Express Muon incumbent (more optimizer steps, same wall-clock)",
+  "description": "P02-context batch follow-up (no backlog P-idea; nearest P02 Muon): change only BS 128 -> 96 in 081-claude's pretrain.py, keeping every per-step hyperparameter, so the fixed 300 s buys more Muon updates (~5,300-5,700 vs 4,682-4,769) on fewer records (~3.2-3.5 vs 3.9 epochs). bs 256 -> 128 was a keep (+23, every seed) and bs 64 at the older WD-1x incumbent lost mainly through one collapsed seed (334/179/308 vs 319/293/335), so under today's 10x Muon weight decay and Polar Express updates the step-count optimum for handing expert iteration an adaptable model may lie between 64 and 128.",
+  "tags": [
+    "batch",
+    "optimizer"
+  ],
+  "hypothesis": "066's bs-128 gain did not come from lower val loss and appeared in later EI rounds, pointing at the optimization path (more fixed-spectral-size Muon updates, more gradient noise, more cumulative decoupled decay) making a more RL-adaptable model. Val loss plateaus by ~75 s (step ~1000, <1 epoch) in 081, so records beyond ~1 epoch mainly feed memorization (train 0.06 vs val 0.095); trading ~13-18% of records for ~12-20% more updates should cost no fit. Timing model from 051/066/067: step time is GPU-bound at 128 (64 ms) but floors near ~50 ms at 64, so bs 96 should take ~53-57 ms/step. Cumulative Muon decay rises only ~15% (like MUON_WD ~11.5x, far from the 15x that lost), momentum 0.95 still averages ~20 steps (~1,900 records). Counter-risks: extra gradient noise at the 0.1 LR floor makes the handoff checkpoint noisier, the 067-style seed collapse recurs, and the gain from 066 was already at its optimum. RL, eval, and sampling speed are untouched (same architecture), so no timeout risk beyond the incumbent's.",
+  "p_keep": 0.12,
+  "expected_delta": "-30 to +20 theorems at >=7 vs 081's 403.67 (central -5, since 081's 3-seed mean likely includes luck: nine follow-ups since scored 324-371); pretrain steps ~5,300-5,700 (081: 4,682/4,732/4,769); epochs ~3.2-3.5 (081: 3.89); final val loss 0.090-0.100 (081: 0.0950/0.0912/0.0964); held-out greedy 0.983-0.992; totals within ~+-60 s of 081",
+  "baseline_id": "081-claude",
+  "baseline_metric": 404,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "none versus 081-claude: 5 untied fork GPT blocks, d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 081-claude; only the batch size changes)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) plus head.weight (99,256; vocab 99, no bias) are in Muon: 21 matrices. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 and head are orthogonalized whole. head is wide (99<256) so it is not transposed and its update has 99 singular values near 1.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (incl. ln_f) throughout; head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 21 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 96,
+      "padding": "to max len in batch",
+      "buckets": false,
+      "note": "CHANGED: 128 -> 96 records per optimizer step (only edit: the BS knob). val_loss chunks the 1024 val records in 96s, same value. records_seen = steps * 96."
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Same as 081-claude: fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); embedding and readout keep the fork normal(0.02); biases zero. Initial weights per seed identical to 081-claude; the data-order permutation and shift-augmentation generator is the same seeded stream but consumed in 96-record batches, so batch composition and shift draws differ from 081.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
