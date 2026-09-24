@@ -1,0 +1,18 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..5e968d5 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -97,8 +97,11 @@ def muon_step(params, buffers, lr):
+         # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+         # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+         update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
+-        p.mul_(1 - lr * MUON_WD)
+-        p.add_(update.reshape_as(p), alpha=-lr)
++        update = update.reshape_as(p)
++        # Cautious weight decay (Chen et al. 2025): decay only the coordinates whose update
++        # also shrinks them, so the decay never pushes against the gradient step.
++        p.sub_(p * (update * p >= 0), alpha=lr * MUON_WD)
++        p.add_(update, alpha=-lr)
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
