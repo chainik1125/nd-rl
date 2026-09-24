@@ -23,6 +23,16 @@ never stated as a property of "the model" or of the setting. If you inherit a nu
 another run, carry its model label with it. (Dan, 2026-09-23, after an efficiency run's premise
 turned out to have been measured on a different model than the one it was applied to.)
 
+**Keep the working context small.** Claude usage is billed each turn against the whole
+conversation so far, so a session costs roughly turns × context size. Measured over
+2026-09-15..23: executor sessions ran 100–290 turns carrying 120–310k tokens per turn, and the
+fifteen largest sessions accounted for ~$400 of the ~$650 total — context size is the lever, not
+session count. In practice: read the part of a file you need (a `grep`, a line range) rather than
+the whole file; send long output to a file and read back a summary, not the dump; count in a
+script whose stdout is a table rather than reading raw `.jsonl` into the conversation; don't
+re-read a file you already read this session. A standard with a reason, not a rule: a genuinely
+necessary full read is fine — say so when you do it.
+
 **Lean is the checker of record** (decision 2026-09-20): every proof you count must translate with `nd2lean.py` and be accepted by Lean; report the agreement count with `nd_verify` and treat any disagreement as a bug. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form. From-scratch training and RL use the Lean `lean_seq` format (decision 2026-09-22); reward is `lean_check` once proposal 9's phase 1 validates it (until then Lean ∧ `nd_verify`); report proof length in lines **and** term size; label any token-format arm as such.
 
 At the end: `run<id>.md` (≤ 400 words + figures, expectations vs outcomes stated plainly);
