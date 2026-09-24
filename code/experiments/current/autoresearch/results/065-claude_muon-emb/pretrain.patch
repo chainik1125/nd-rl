@@ -1,0 +1,15 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index bca9ff6..21d6739 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -152,8 +152,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+-    # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+-    matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
++    # Every matrix (hidden, token embedding, output readout) is on Muon; AdamW keeps the vectors.
++    matrices = [p for p in model.parameters() if p.ndim == 2]
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]

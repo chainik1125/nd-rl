@@ -1,0 +1,198 @@
+{
+  "id": "065-claude",
+  "slug": "muon-emb",
+  "written_at": "2026-09-24T00:25:57-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "9ce6516",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "72d40ae95a9a",
+  "patch_lines": 4,
+  "title": "P02 extension: optimize the token embedding (emb.weight) with Muon too, so every matrix is on Muon",
+  "description": "P02 (Muon): move the untied 99x256 token embedding emb.weight from pretraining AdamW into the existing split-QKV Muon group (same LR 0.01 schedule, momentum, decay), so every 2D parameter is on Muon and AdamW keeps only biases and LayerNorm vectors; everything else is exactly 064-claude. Muon on hidden matrices was this loop's largest downstream gain and moving the readout into it did no harm (064, +6), and an orthogonalized embedding update moves all 99 input-token directions at equal spectral magnitude, so rarely seen tokens (high line-index citations reached mainly through the ref-shift augmentation, rarer rule names) get input codes as well formed as frequent ones, which should help expert iteration compose citations in >=7-line proofs.",
+  "tags": [
+    "optimizer"
+  ],
+  "hypothesis": "Under AdamW the embedding's updates are dominated by frequent tokens (common rules, low line indices), so its singular spectrum is peaky and rare-token input codes stay close to their random init; Muon equalizes the update across singular directions, giving more separated input codes for rare tokens and one shared update geometry for the input and output token interfaces. If rare-token input codes limit how the model handles citations and longer proof states, round-1 RL sample accuracy on >=7-line targets should rise and compound through the four EI rounds. Counter-risks: an embedding is a lookup table whose natural geometry is per-row, not spectral (the Muon authors keep embeddings on AdamW); the peak per-element update RMS falls from ~1e-3 (AdamW) to ~6.25e-4 (0.01 * 1/sqrt(256) for a full-rank 99x256 orthogonal update), which may under-train frequent rows; and the frozen RL AdamW then fine-tunes an embedding with different geometry. The downstream metric decides.",
+  "p_keep": 0.25,
+  "expected_delta": "-30 to +20 theorems at >=7 (central ~-3); final val loss within +-0.004 of 064 (0.091-0.095); steps within 3% of 064's 2339-2354 (one extra 99x256 Newton-Schulz per step); totals 900-1000 s",
+  "baseline_id": "064-claude",
+  "baseline_metric": 293,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "none versus 064-claude: 5 untied fork GPT blocks, d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon on every 2D parameter (hidden matrices, token embedding emb.weight, output readout head.weight) throughout; continuous AdamW auxiliary on biases and LayerNorm parameters",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1, emb (99,256) 1, head (99,256) 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "Every parameter with ndim == 2: all 20 hidden projection matrices (4 per block x 5 blocks), emb.weight (99,256; vocab 99) and head.weight (99,256; no bias): 22 matrices. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2, emb and head are orthogonalized whole. emb and head are wide (99<256) so they are not transposed and each update has up to 99 singular values near 1; rows of emb.weight whose token is absent from a batch get no fresh-gradient update (zero rows stay zero under Newton-Schulz) but keep momentum and decay.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "all projection biases and LayerNorm parameters (incl. ln_f) throughout; no 2D parameter enters pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction; emb.weight and head.weight therefore keep the same per-step multiplicative decay they had under AdamW.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Exactly 064: fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); embedding and readout keep the fork normal(0.02); biases zero. No init change in this experiment; per-seed initial weights and data order bitwise identical to 064.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
