@@ -1,0 +1,198 @@
+{
+  "id": "063-claude",
+  "slug": "zero-init-proj",
+  "written_at": "2026-09-23T23:27:56-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "4fc6153",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "09e0f95dd576",
+  "patch_lines": 4,
+  "title": "P44 limiting case: zero-initialized attention and MLP output projections under Muon",
+  "description": "P44 (near-identity blocks at initialization), limiting case: on incumbent 051-claude, zero the attention output projection (proj.weight) and MLP output projection (fc2.weight) of all five blocks after the kept orthogonal init, so every block starts as the identity map, the modded-nanogpt convention paired with Muon. A cleaner early optimization path should make the 300 s of pretraining fit the proof rules more precisely, raising the per-step validity that the fixed expert-iteration RL compounds on 7+-line targets.",
+  "tags": [
+    "init"
+  ],
+  "hypothesis": "Evidence so far points to precision, not regularization, as what transfers: Muon (+65), lower Muon LR (034), orthogonal init (043) and a fifth block (051) were keeps, while pretraining-only dropout (050: 108), stronger entropy bonus (053), label smoothing (017), QK-norm (059) and gated attention (044) cost heavily. 051 failures on 7-line targets are dominated by invalid rule applications (IMPI/IMPE/ANDI, bad box cites), and every step of a 7+-line proof must be valid. Mechanism: with proj and fc2 at zero, each block initially contributes nothing, so the first updates build the embedding->readout path, then Muon grows each residual branch from zero with orthogonalized updates of fixed spectral size (Muon is scale-invariant, so zero-init does not stall it; qkv/fc1 get zero gradient only on step 1). Random output projections at element RMS 0.02 instead add five layers of random residual perturbations that early training must first undo. Modded-nanogpt zero-inits both output projections together with Muon and found faster convergence. Expected downstream path: slightly lower early/min val loss, similar final fit, and a handoff whose residual branches contain only learned (not random) directions, which should raise round-1 RL sample accuracy on 7-line targets. Alternatives: (a) at ~2300 updates the init is forgotten long before handoff and the effect is pure seed noise (sd ~44 per seed); (b) the orthogonal random branches of 043 may have helped as symmetry breaking or implicit regularization and zeroing them could hurt; (c) P43 depth-scaled init (pre-Muon, 020: 71) was a large loss, though under AdamW and with nonzero shrink. Data, tokenizer, RL, eval, budgets, seeds and every other pretraining setting are unchanged; the architecture and parameter count (4,000,000) are identical to 051, so checkpoints reload into the fork GPT(vocab, 5, 256, 8).",
+  "p_keep": 0.3,
+  "expected_delta": "Central -10 to +20 dev-transfer solves at true length >=7 versus incumbent 051-claude exact mean 286.333333 (288/260/311); plausible downside -30 if the random orthogonal branches were doing useful work. Expect the same step count as 051 (about 2300-2400 updates in 300 s; zero-init adds no per-step cost), val loss at 75 s at or below 051 (0.1085 s0) and final val loss within +-0.005 of 051 (0.0924/0.0951/0.0932), held-out greedy 0.985-0.992, and per-seed totals about 940-1100 s under the 1200 s cap.",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "none versus 051-claude: 5 untied fork GPT blocks, d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) are in Muon. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases and LayerNorm parameters throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols)), element second moment 0.0004), exactly as 051; THEN proj.weight (256,256) and fc2.weight (256,1024) of every block are set to zero with torch.nn.init.zeros_ (10 of 20 hidden matrices). qkv (768,256) and fc1 (1024,256) keep their orthogonal init; biases stay zero, so every block is exactly the identity at step 0. Embedding and readout keep the fork normal(0.02). The zeroing consumes no RNG, so all other initial weights and the data order are bitwise identical to 051 for a given seed. No reinitialization during RL.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

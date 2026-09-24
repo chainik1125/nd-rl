@@ -1,0 +1,15 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 405a860..5050675 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -148,6 +148,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++    for block in model.blocks:
++        # Zero residual output projections: every block starts as the identity map.
++        torch.nn.init.zeros_(block.proj.weight)
++        torch.nn.init.zeros_(block.fc2.weight)
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
