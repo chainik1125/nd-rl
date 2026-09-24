@@ -1,0 +1,28 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 624a63b..4f42f51 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -39,6 +39,8 @@ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
++# The token embedding (AdamW) gets the same tenfold decay, matching the Muon matrices' lr * wd.
++EMB_WD = 10 * WD
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+@@ -157,7 +159,13 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    rest = [p for p in auxiliary if p is not model.emb.weight]
++    opt = torch.optim.AdamW(
++        [{"params": [model.emb.weight], "weight_decay": EMB_WD}, {"params": rest}],
++        lr=LR,
++        weight_decay=WD,
++        betas=(0.9, 0.95),
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
