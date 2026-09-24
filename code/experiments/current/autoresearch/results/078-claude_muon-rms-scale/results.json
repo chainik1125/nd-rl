@@ -1,0 +1,343 @@
+{
+  "commit": "6f1b416",
+  "recorded_at": "2026-09-24T06:51:31-0700",
+  "status": "keep",
+  "metric": 356,
+  "metric_rl": 783,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "524dee25fad0",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1074,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.2,
+    "n_params": 4000000,
+    "steps": 4782,
+    "epochs": 3.9755270644168195,
+    "last_loss": 0.06265590339899063,
+    "heldout_greedy": 0.9865,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 61,
+        "train_loss": 2.882930596669515,
+        "val_loss": 1.9917641580104828
+      },
+      {
+        "secs": 30,
+        "step": 310,
+        "train_loss": 0.5927287191152573,
+        "val_loss": 0.12863367423415184
+      },
+      {
+        "secs": 45,
+        "step": 555,
+        "train_loss": 0.10701465668777625,
+        "val_loss": 0.10230321250855923
+      },
+      {
+        "secs": 60,
+        "step": 802,
+        "train_loss": 0.08829017613942806,
+        "val_loss": 0.08901352621614933
+      },
+      {
+        "secs": 75,
+        "step": 1052,
+        "train_loss": 0.07925252492229144,
+        "val_loss": 0.10589428432285786
+      },
+      {
+        "secs": 90,
+        "step": 1299,
+        "train_loss": 0.0726933175077041,
+        "val_loss": 0.09499782975763083
+      },
+      {
+        "secs": 105,
+        "step": 1550,
+        "train_loss": 0.07291951947487317,
+        "val_loss": 0.10072444193065166
+      },
+      {
+        "secs": 120,
+        "step": 1802,
+        "train_loss": 0.0715597913815425,
+        "val_loss": 0.09087404049932957
+      },
+      {
+        "secs": 135,
+        "step": 2048,
+        "train_loss": 0.06911888532340527,
+        "val_loss": 0.09265170525759459
+      },
+      {
+        "secs": 150,
+        "step": 2295,
+        "train_loss": 0.06930600696553786,
+        "val_loss": 0.08950899634510279
+      },
+      {
+        "secs": 165,
+        "step": 2544,
+        "train_loss": 0.06560074280087765,
+        "val_loss": 0.10499335918575525
+      },
+      {
+        "secs": 180,
+        "step": 2790,
+        "train_loss": 0.06374635888884465,
+        "val_loss": 0.08999727666378021
+      },
+      {
+        "secs": 195,
+        "step": 3040,
+        "train_loss": 0.06350423452945855,
+        "val_loss": 0.09603732917457819
+      },
+      {
+        "secs": 210,
+        "step": 3285,
+        "train_loss": 0.06348298614223798,
+        "val_loss": 0.09697255305945873
+      },
+      {
+        "secs": 225,
+        "step": 3535,
+        "train_loss": 0.06417661625891924,
+        "val_loss": 0.09523558802902699
+      },
+      {
+        "secs": 240,
+        "step": 3785,
+        "train_loss": 0.06176845843975361,
+        "val_loss": 0.09562671929597855
+      },
+      {
+        "secs": 255,
+        "step": 4038,
+        "train_loss": 0.06112993384401003,
+        "val_loss": 0.09599501919001341
+      },
+      {
+        "secs": 270,
+        "step": 4287,
+        "train_loss": 0.06067844107747078,
+        "val_loss": 0.09279664419591427
+      },
+      {
+        "secs": 285,
+        "step": 4536,
+        "train_loss": 0.060008261973659195,
+        "val_loss": 0.09214542247354984
+      },
+      {
+        "secs": 300,
+        "step": 4782,
+        "train_loss": 0.06091362381210694,
+        "val_loss": 0.09094323869794607
+      }
+    ],
+    "records_seen": 612096
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.06633333333333333,
+      "new_proofs": 235,
+      "targets_solved": 183,
+      "lstar": 7,
+      "ge": {
+        "7": 183,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 940,
+      "samples_per_sec": 608,
+      "secs": 120
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.2756458333333333,
+      "new_proofs": 452,
+      "targets_solved": 550,
+      "lstar": 9,
+      "ge": {
+        "7": 550,
+        "8": 134,
+        "9": 6,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2736,
+      "samples_per_sec": 528,
+      "secs": 143
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.43304166666666666,
+      "new_proofs": 276,
+      "targets_solved": 754,
+      "lstar": 9,
+      "ge": {
+        "7": 754,
+        "8": 276,
+        "9": 74,
+        "10": 3,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3840,
+      "samples_per_sec": 567,
+      "secs": 138
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.5099375,
+      "new_proofs": 178,
+      "targets_solved": 852,
+      "lstar": 10,
+      "ge": {
+        "7": 852,
+        "8": 358,
+        "9": 131,
+        "10": 9,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 4496,
+      "samples_per_sec": 545,
+      "secs": 141
+    }
+  ],
+  "eval": {
+    "solved": 402,
+    "n": 1108,
+    "ge": {
+      "7": 402,
+      "8": 321,
+      "9": 236,
+      "10": 29,
+      "11": 2,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 10,
+    "heldout_greedy": 0.992,
+    "max_pruned": 11,
+    "by_bin": {
+      "7": {
+        "solved": 81,
+        "n": 150,
+        "rate": 0.54,
+        "ci": [
+          0.46023676745464287,
+          0.6177655414136997
+        ]
+      },
+      "8": {
+        "solved": 85,
+        "n": 152,
+        "rate": 0.5592105263157895,
+        "ci": [
+          0.47978700895683946,
+          0.635714885274226
+        ]
+      },
+      "9": {
+        "solved": 207,
+        "n": 477,
+        "rate": 0.4339622641509434,
+        "ci": [
+          0.39018671905875535,
+          0.4787930031616183
+        ]
+      },
+      "10": {
+        "solved": 27,
+        "n": 219,
+        "rate": 0.1232876712328767,
+        "ci": [
+          0.08612964497976976,
+          0.17343409895314044
+        ]
+      },
+      "11": {
+        "solved": 2,
+        "n": 49,
+        "rate": 0.04081632653061224,
+        "ci": [
+          0.011265396927928273,
+          0.13713283476831106
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P02 follow-up: RMS-matched Muon update scaling (shape factor sqrt(max(rows,cols)/256) instead of sqrt(max(1,rows/cols)); only the (256,1024) fc2 step doubles) on incumbent 070-claude scored 402/340/325 on seeds 0/1/2 versus 359/335/364: exact means 355.67 versus 352.67, +3.0 (+0.9%); paired +43/+5/-39. Keep under the strictly-higher three-seed rule (rounded 356 vs 353); no other-agent result was published during the run, so 070-claude was the bar. Read it as a tie inside seed noise, not an established effect: the seed spread widened (325-402 vs 335-364) and the keep rests on seed 0, whose 402 is the highest single-seed score so far. Pretraining matched the prediction: 4782/4706/4711 steps (070: 4784/4750/4776), final val loss 0.0909/0.0918/0.0961 versus 0.0911/0.0913/0.0961, held-out greedy 0.987/0.990/0.988. The registered mechanism signature failed on every seed: round-1 targets solved 183/145/141 versus 070's 200/324/206, so stronger MLP writes did not give a better starting policy. Where a gain appeared it came late: RL-solved after round 4 was 852/769/728 versus 788/783/838, and seed 2 started slowly (round-2 accuracy 0.123 vs 0.269, 259 vs 534 solved) before adding 469 proofs in round 4. fc2 weight norms were not logged, so whether its scale actually rose 1.4-2x is unmeasured. Net: fc2's Muon step size is flat for Stage-1 fit and roughly neutral downstream.",
+  "seed_metrics": {
+    "0": 402,
+    "1": 340,
+    "2": 325
+  },
+  "seed_metric_rl": {
+    "0": 852,
+    "1": 769,
+    "2": 728
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}

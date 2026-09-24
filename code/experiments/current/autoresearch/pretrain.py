@@ -84,7 +84,9 @@ def muon_step(params, buffers, lr):
             update = 3.4445 * update + polynomial @ update
         if transpose:
             update = update.mT
-        update *= max(1, update.size(-2) / update.size(-1)) ** 0.5
+        # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+        # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+        update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
         p.mul_(1 - lr * MUON_WD)
         p.add_(update.reshape_as(p), alpha=-lr)
 
