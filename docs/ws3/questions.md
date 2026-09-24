@@ -25,3 +25,11 @@ once `charles/main` is pushed, if you prefer.
   error-bar rounding check; the clamp fix was committed after the run and the report stage
   rerun on the untouched outputs. **Default:** treat exp-00 as clean (no training or evaluation
   code changed), and say so in `review.md`.
+## 2026-09-23 test-file renaming classes inside the fixed pre-training set (from review.md)
+
+`train.jsonl.gz` (fixed) contains 110 of the 256 `test_short` and 6 of the 531 `test_long`
+renaming classes, so the checkpoint was pre-trained on them and 2 of exp-00's 1,600 RL prompts
+fell in such a class. Quarantine exp-00, or accept as inherited? **Default:** accept exp-00 as
+clean (no number touches the test files); before exp-01 add the test-file classes to
+`data.banned_keys()` (prompt files only, no verdicts inspected) so RL never samples them, and
+state in the Saturday write-up that `test_short` is not a clean held-out set for this lineage.
