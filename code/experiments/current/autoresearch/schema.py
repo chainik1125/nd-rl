@@ -35,7 +35,7 @@ class Arch(Loose):
 
 
 class TokenizerCfg(Loose):
-    codec: Literal["abs", "rel"]
+    codec: Literal["abs", "rel", "lean_seq"]
     maxn: int
 
 
