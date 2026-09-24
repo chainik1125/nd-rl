@@ -1,0 +1,343 @@
+{
+  "commit": "34f5304",
+  "recorded_at": "2026-09-24T05:57:51-0700",
+  "status": "discard",
+  "metric": 320,
+  "metric_rl": 769,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "dbc8e6e2b094",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1079,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.2,
+    "n_params": 4000000,
+    "steps": 3620,
+    "epochs": 3.009495602925321,
+    "last_loss": 0.06001948192715645,
+    "heldout_greedy": 0.9825,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 33,
+        "train_loss": 3.866698980331421,
+        "val_loss": 3.1440275609493256
+      },
+      {
+        "secs": 30,
+        "step": 223,
+        "train_loss": 1.2436604052782059,
+        "val_loss": 0.278496827930212
+      },
+      {
+        "secs": 45,
+        "step": 410,
+        "train_loss": 0.15284763442145455,
+        "val_loss": 0.11208033096045256
+      },
+      {
+        "secs": 60,
+        "step": 596,
+        "train_loss": 0.10000138978163402,
+        "val_loss": 0.10338498558849096
+      },
+      {
+        "secs": 75,
+        "step": 781,
+        "train_loss": 0.0903542883694172,
+        "val_loss": 0.0952390069141984
+      },
+      {
+        "secs": 90,
+        "step": 970,
+        "train_loss": 0.08086415628592174,
+        "val_loss": 0.10131413582712412
+      },
+      {
+        "secs": 105,
+        "step": 1162,
+        "train_loss": 0.07848000228404999,
+        "val_loss": 0.09633497800678015
+      },
+      {
+        "secs": 120,
+        "step": 1351,
+        "train_loss": 0.07242600950929853,
+        "val_loss": 0.10553161799907684
+      },
+      {
+        "secs": 135,
+        "step": 1540,
+        "train_loss": 0.0712877482175827,
+        "val_loss": 0.09499142784625292
+      },
+      {
+        "secs": 150,
+        "step": 1733,
+        "train_loss": 0.07099468509356181,
+        "val_loss": 0.09265191201120615
+      },
+      {
+        "secs": 165,
+        "step": 1921,
+        "train_loss": 0.06864496171474457,
+        "val_loss": 0.09855555649846792
+      },
+      {
+        "secs": 180,
+        "step": 2110,
+        "train_loss": 0.06764757840169801,
+        "val_loss": 0.09265073109418154
+      },
+      {
+        "secs": 195,
+        "step": 2296,
+        "train_loss": 0.0661305147740576,
+        "val_loss": 0.08927782904356718
+      },
+      {
+        "secs": 210,
+        "step": 2485,
+        "train_loss": 0.06320625767111779,
+        "val_loss": 0.09392957016825676
+      },
+      {
+        "secs": 225,
+        "step": 2674,
+        "train_loss": 0.06281685125496653,
+        "val_loss": 0.09485313482582569
+      },
+      {
+        "secs": 240,
+        "step": 2863,
+        "train_loss": 0.061761679127812386,
+        "val_loss": 0.08996152132749557
+      },
+      {
+        "secs": 255,
+        "step": 3053,
+        "train_loss": 0.06142647109097905,
+        "val_loss": 0.09487135522067547
+      },
+      {
+        "secs": 270,
+        "step": 3239,
+        "train_loss": 0.061882020284732185,
+        "val_loss": 0.09335872903466225
+      },
+      {
+        "secs": 285,
+        "step": 3429,
+        "train_loss": 0.062068110704421996,
+        "val_loss": 0.095200982876122
+      },
+      {
+        "secs": 300,
+        "step": 3620,
+        "train_loss": 0.0612740732729435,
+        "val_loss": 0.09447167906910181
+      }
+    ],
+    "records_seen": 463360
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.05414583333333333,
+      "new_proofs": 222,
+      "targets_solved": 172,
+      "lstar": 7,
+      "ge": {
+        "7": 172,
+        "8": 1,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 884,
+      "samples_per_sec": 477,
+      "secs": 164
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.16229166666666667,
+      "new_proofs": 210,
+      "targets_solved": 339,
+      "lstar": 8,
+      "ge": {
+        "7": 339,
+        "8": 25,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1712,
+      "samples_per_sec": 529,
+      "secs": 161
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.3401458333333333,
+      "new_proofs": 375,
+      "targets_solved": 631,
+      "lstar": 9,
+      "ge": {
+        "7": 631,
+        "8": 197,
+        "9": 17,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3192,
+      "samples_per_sec": 552,
+      "secs": 164
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.4339791666666667,
+      "new_proofs": 221,
+      "targets_solved": 763,
+      "lstar": 9,
+      "ge": {
+        "7": 763,
+        "8": 309,
+        "9": 95,
+        "10": 4,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 4056,
+      "samples_per_sec": 653,
+      "secs": 152
+    }
+  ],
+  "eval": {
+    "solved": 297,
+    "n": 1108,
+    "ge": {
+      "7": 297,
+      "8": 230,
+      "9": 157,
+      "10": 12,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 10,
+    "heldout_greedy": 0.991,
+    "max_pruned": 10,
+    "by_bin": {
+      "7": {
+        "solved": 67,
+        "n": 150,
+        "rate": 0.44666666666666666,
+        "ci": [
+          0.3694266500084245,
+          0.5265702715004521
+        ]
+      },
+      "8": {
+        "solved": 73,
+        "n": 152,
+        "rate": 0.48026315789473684,
+        "ci": [
+          0.402306698963966,
+          0.5591926696256789
+        ]
+      },
+      "9": {
+        "solved": 145,
+        "n": 477,
+        "rate": 0.3039832285115304,
+        "ci": [
+          0.2644054568785973,
+          0.3466930836802895
+        ]
+      },
+      "10": {
+        "solved": 12,
+        "n": 219,
+        "rate": 0.0547945205479452,
+        "ci": [
+          0.0316189325731369,
+          0.09332003752939333
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P23-family: squared-ReLU MLP, fc2(relu(fc1(h))^2), on the 070-claude incumbent scored 297/323/339 on seeds 0/1/2 versus 359/335/364: exact means 319.67 versus 352.67, -33.0 (-9.4%); paired -62/-12/-25. Discard; inside the registered -40 to +30 range but far below the central +3. The registered step prediction failed: pretraining ran only 3620/3657/3647 steps versus 070's 4784/4750/4776 (-24%, ~1.31x step time). Most likely cause (not profiled): relu and square are two unfused elementwise passes, with an extra saved intermediate, over the 128 x T x 1024 MLP hidden tensor where GELU is one fused kernel, and at d_model 256 these memory-bound ops are a large share of each step. Despite 24% fewer steps, final val loss matched 070 (0.0945/0.0908/0.0933 vs 0.0911/0.0913/0.0961; means 0.0929 vs 0.0928), so per step relu^2 learned faster, as in Primer, but per wall-clock second it bought nothing, and downstream RL was worse at matched val loss: RL-solved 763/762/781 vs 788/783/838, round-4 sample acc 0.434/0.435/0.463 vs 0.464/0.460/0.485. Sampling speed was not the problem: total seconds 1065/971/1079 vs 1048/971/1079, no timeout risk realized. The result confounds the activation with 24% fewer optimizer steps; separating them needs a fused relu^2 (e.g. a compiled MLP), and the matched-val-loss/worse-RL pattern means that is worth doing only if the step-time cost can be removed.",
+  "seed_metrics": {
+    "0": 297,
+    "1": 323,
+    "2": 339
+  },
+  "seed_metric_rl": {
+    "0": 763,
+    "1": 762,
+    "2": 781
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}
