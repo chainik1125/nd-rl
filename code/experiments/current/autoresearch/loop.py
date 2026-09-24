@@ -2,6 +2,7 @@
 """Fresh Codex or Claude sessions, one experiment each, with a quiet terminal. See LOOP.md."""
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -23,6 +24,10 @@ POLL_SECS = 0.5
 MODELS = {"codex": "gpt-6-astra", "claude": "claude-opus-5-5"}
 agent = "codex"  # set once by main(); tests monkeypatch it
 MIN_BALANCE = 3.0  # USD: one experiment rents 3 A40s at ~$0.49/h for ~25 min
+# A session must launch run_idea.py this soon (Robbie, 2026-09-23: Claude at max effort took
+# 20-150 min to propose, Codex ~3). Runs themselves are bounded by the harness, not this.
+PROPOSE_SECS = 20 * 60
+MAX_TIMEOUTS = 3  # consecutive proposal timeouts before the loop stops
 
 
 def emit(message: str) -> None:
@@ -44,6 +49,28 @@ def launches(session: Path):
 
 class ExperimentBlocked(RuntimeError):
     """The agent exited without completing an experiment."""
+
+
+class ProposalTimeout(RuntimeError):
+    """The agent did not launch an experiment within PROPOSE_SECS."""
+
+
+def discard_unlaunched_candidate(session: Path) -> None:
+    """Undo a timed-out proposal (pretrain.py edit, untracked registration) so the next fresh
+    session does not block on it. The diff is kept in the session directory."""
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", *args], cwd=HERE, capture_output=True, text=True, check=True
+        ).stdout
+
+    (session / "discarded.patch").write_text(git("diff", "HEAD", "--", "pretrain.py"))
+    git("restore", "--source=HEAD", "--staged", "--worktree", "--", "pretrain.py")
+    untracked = git("ls-files", "--others", "--exclude-standard", "-z", "--", "results")
+    for relative in filter(None, untracked.split("\0")):
+        (HERE / relative).unlink()
+        with contextlib.suppress(OSError):
+            (HERE / relative).parent.rmdir()
 
 
 def iteration_prompt(prompt: str) -> str:
@@ -342,15 +369,19 @@ def agent_env(session: Path) -> dict[str, str]:
 def run_loop(command: list[str], prompt: str) -> int:
     directory = ART / "loop"
     directory.mkdir(parents=True, exist_ok=True)
+    timeouts = 0
     while True:
         session = Path(tempfile.mkdtemp(prefix="session-", dir=directory))
         monitor = Monitor(session)
         process = None
+        resuming = False
         try:
             emit(f"Starting {agent.title()} | checking experiment state | diagnostics: {session}")
             # Re-read per session so prompt fixes reach a running loop (the tests pass a string).
             path = HERE / "iteration.md"
-            current_prompt = iteration_prompt(path.read_text() if path.exists() else prompt)
+            base_prompt = path.read_text() if path.exists() else prompt
+            current_prompt = iteration_prompt(base_prompt)
+            resuming = current_prompt != base_prompt
             check_balance()
             with (
                 (session / f"{agent}.jsonl").open("w") as output,
@@ -365,8 +396,11 @@ def run_loop(command: list[str], prompt: str) -> int:
                     stderr=errors,
                     start_new_session=True,
                 )
+                started = time.monotonic()
                 while process.poll() is None:
                     monitor.poll()
+                    if not launches(session) and time.monotonic() - started > PROPOSE_SECS:
+                        raise ProposalTimeout(f"no launch within {PROPOSE_SECS // 60} min")
                     time.sleep(POLL_SECS)
                 if process.returncode:
                     raise RuntimeError(
@@ -374,6 +408,17 @@ def run_loop(command: list[str], prompt: str) -> int:
                         + agent_explanation(session)
                     )
                 monitor.finish()
+                timeouts = 0
+        except ProposalTimeout as exc:
+            stop_processes(process, session)
+            cleanup_pods(session)
+            timeouts += 1
+            if not resuming:  # A resumed candidate is committed work: keep it.
+                discard_unlaunched_candidate(session)
+            if timeouts >= MAX_TIMEOUTS:
+                emit(f"BLOCKED | {timeouts} proposal timeouts in a row; see {session}")
+                return 1
+            emit(f"TIMEOUT | {exc}; candidate discarded, fresh session next; see {session}")
         except KeyboardInterrupt:
             emit(f"Cancelled | stopping {agent.title()} and cleaning up owned pods")
             stop_processes(process, session)

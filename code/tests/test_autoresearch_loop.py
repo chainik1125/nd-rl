@@ -596,3 +596,37 @@ def test_low_balance_blocks_before_renting(loop: Any, monkeypatch: pytest.Monkey
     )
     with pytest.raises(loop.ExperimentBlocked, match="balance"):
         loop.check_balance()
+
+
+def test_slow_proposals_are_discarded_then_block(
+    loop: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", *args], cwd=loop.HERE, capture_output=True, text=True, check=True
+        ).stdout
+
+    git("init", "-q")
+    git("config", "user.email", "t@example.invalid")
+    git("config", "user.name", "t")
+    (loop.HERE / "pretrain.py").write_text("incumbent\n")
+    git("add", "pretrain.py")
+    git("-c", "commit.gpgsign=false", "commit", "-qm", "incumbent")
+    fake = tmp_path / "slow_agent.py"
+    fake.write_text(f"""import pathlib, time
+here = pathlib.Path({str(loop.HERE)!r})
+(here / "pretrain.py").write_text("half-finished idea\\n")
+(here / "results/060-codex_idea").mkdir(parents=True, exist_ok=True)
+(here / "results/060-codex_idea/params.json").write_text("{{}}")
+time.sleep(60)
+""")
+    monkeypatch.setattr(loop, "PROPOSE_SECS", 0.5)
+    monkeypatch.setattr(loop, "POLL_SECS", 0.05)
+    assert loop.run_loop([sys.executable, str(fake)], "one experiment") == 1
+    output = capsys.readouterr().out
+    assert output.count("TIMEOUT | no launch within") == 2
+    assert "BLOCKED | 3 proposal timeouts in a row" in output
+    assert (loop.HERE / "pretrain.py").read_text() == "incumbent\n"
+    assert not (loop.HERE / "results/060-codex_idea").exists()
+    patches = list(loop.ART.glob("loop/*/discarded.patch"))
+    assert len(patches) == 3 and "half-finished idea" in patches[0].read_text()
