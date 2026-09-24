@@ -197,18 +197,24 @@ Two things about this row that are not about ds-composition alone:
    plausibly already closed for runs that register a ceiling; what is *not* covered is a pod whose
    run never registered one, and the watchdog path that failed in both incidents. See the week-39
    digest for what this needs from Dan.
-Update 2026-09-24 04:52 UTC (ds-rendering processed): **$181.42 (`rpbalance`)**, down from $220.36
-at 2026-09-23 17:45. `podls` shows two pods still RUNNING on the account — `dsg-1` and `dsg-2`
-(`ds-generator`, proposal 10, another host) — and **every `dsr-*` pod is gone**. The $38.94 since
-Wednesday evening therefore covers ds-rendering's $16.01 **and** the two sibling proposal-10 runs
-`ds-composition` and `ds-generator`, which are not in any row (not yet through review); the two are
-not separable in the readings, so ds-rendering's row rests on `podbudget ds-rendering` and A40 list
-price, which agree at $16.01 / 32.69 h. Week 39 (2026-09-21 → 09-27) to date by these rows:
-**≈ $25.3** (lean-format ≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77, **ds-rendering $16.01**).
-Cumulative by rows since 2026-09-15: **≈ $188**. Still not in any row: the take-home baseline,
-run4-grpo's and run1-lean's pods (not reviewed), the `lean-only` run (proposal 9, in review) and
-the two remaining dataset-styles runs (`ds-composition`, `ds-generator`, proposal 10) — the last
-of which is still burning. The balance is ≈ $131 above the $50 alert line with two pods running
-(≈ $1/h if both are 3090-class). `~/balance.log` and `~/ALERTS.md` still do not exist on this host;
-`~/podhours.log` now records per-pod hours and dollars at deletion, which is where this row's
-per-pod figures come from.
+
+Update 2026-09-24 04:55 UTC (ds-rendering processed; second host, `nd-rl-agent2`): **$181.32
+(`rpbalance`)**, against $181.53 read nine minutes earlier by the ds-composition librarian on the
+other host. `podls` shows two pods still RUNNING — `dsg-1` and `dsg-2` (`ds-generator`, proposal
+10) — and **every `dsr-*` pod is gone**. ds-rendering's dollars are not separable from a balance
+delta (its window overlaps both sibling dataset-styles runs), so its row rests on `podbudget
+ds-rendering` and A40 list price, which agree at **$16.01 / 32.6926 h**, with per-pod hours from
+`~/podhours.log`. This row and the ds-composition row above were written by two librarians in the
+same hour; taken together, week 39 (2026-09-21 → 09-27) by these rows is **≈ $95** — lean-format
+≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77, **ds-composition ≈ $70**, **ds-rendering $16.01** —
+and cumulative by rows since 2026-09-15 is **≈ $258**. **Proposal 10 authorised $60 for three
+dataset-styles runs; two of the three have now cost ≈ $86**, ≈ $47 of it ds-composition's idle
+session-1 pods, and the third (`ds-generator`, $14 budget) is still burning. ds-rendering itself
+was disciplined — $16.01 of $18, 32.69 of 36 pod-hours, all pods deleted, `BUDGET_WARNING`
+observed — but it was over its own pre-registered ≈ $12.50 projection by ≈ $3.50 for the same
+reason ladder runs usually are: the ladder round time was estimated rather than measured before
+the plan was written. Still not in any row: the take-home baseline, run4-grpo's and run1-lean's
+pods, `lean-only` (proposal 9, in review) and `ds-generator` (running). **`~/balance.log` and
+`~/ALERTS.md` exist on the first host but not on this one**, which is why the readings in this
+update are live `rpbalance` calls; `~/podhours.log` does exist here and now records per-pod hours
+and dollars at deletion.
