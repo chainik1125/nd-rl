@@ -1,0 +1,57 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..fff44d7 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,6 +37,7 @@ from train import loss_on  # fork
+ N_LAYER, D, N_HEAD = 5, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
++MUON_BETA2 = 0.95  # NorMuon's per-neuron second-moment EMA
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+ # (num_iters=5, safety factor 2e-2): singular values land in ~[0.86, 1.14] instead of the
+ # fixed quintic's ~[0.68, 1.13], at the same five iterations.
+@@ -74,9 +75,9 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ # SOFTWARE.
+ @torch.no_grad()
+-def muon_step(params, buffers, lr):
++def muon_step(params, buffers, second_moments, lr):
+     """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only."""
+-    for p, momentum in zip(params, buffers, strict=True):
++    for p, momentum, second in zip(params, buffers, second_moments, strict=True):
+         if p.grad is None:
+             continue
+         momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+@@ -94,6 +95,15 @@ def muon_step(params, buffers, lr):
+             update = a * update + polynomial @ update
+         if transpose:
+             update = update.mT
++        # NorMuon (Li et al. 2025): divide each output neuron's row by the running RMS of its
++        # orthogonalized updates, then restore the Frobenius norm, so only the split across
++        # neurons changes. Tall matrices (fc1) are where orthogonalized row norms vary most.
++        update = update.float()
++        norm = update.norm(dim=(-2, -1), keepdim=True)
++        v = second.view(*update.shape[:-1], 1)
++        v.lerp_(update.square().mean(dim=-1, keepdim=True), 1 - MUON_BETA2)
++        update = update / (v.sqrt() + 1e-10)
++        update *= norm / (update.norm(dim=(-2, -1), keepdim=True) + 1e-10)
+         # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+         # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+         update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
+@@ -169,6 +179,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
++    second_moments = [torch.zeros(p.size(0), 1, device=device) for p in matrices]
+     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+@@ -199,7 +210,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
+-        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++        muon_step(matrices, momentum_buffers, second_moments, MUON_LR * lr / LR)
+         if step % 20 == 0:
+             last_loss = loss.item()
+             recent.append(last_loss)
