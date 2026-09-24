@@ -1,0 +1,207 @@
+{
+  "id": "059-claude",
+  "slug": "qk-norm",
+  "written_at": "2026-09-23T21:41:19-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "16b8dc2",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "0f6cc7c1650a",
+  "patch_lines": 41,
+  "title": "P35: RMS-normalized queries and keys with a learned per-head gain (QK-norm) in all five blocks",
+  "description": "P35 on top of incumbent 051-claude: every block RMS-normalizes q and k over each 32-dim head and multiplies q by a learned per-head gain initialized to 2.0 (initial max |logit| 11.3), in pretraining, RL and evaluation alike, adding 40 parameters and leaving all other initial weights bitwise equal per seed. Decoupling attention sharpness from the growing norms of W_q and W_k (as in OLMo 2, Gemma 3 and the Muon-trained modded-nanogpt speedruns) should give a better-conditioned pretrained model per step and keep the frozen AdamW expert-iteration fine-tuning from sharpening attention onto the cap-6 patterns, so RL starts from and keeps a more adaptable model.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Mechanism: without QK-norm, attention logits scale with |W_q||W_k|, so every Muon update to the q/k projections (fixed spectral-norm steps) also changes attention temperature; logits can grow quadratically in weight scale and heads saturate early (attention entropy collapse, Zhai et al. 2023, ICML, 'Stabilizing Transformer Training by Preventing Attention Entropy Collapse'). With q and k normalized, only the direction of q and k sets which key wins and one learned scalar per head sets how sharply, which OLMo 2 (2024/2025, arXiv 2501.00656), Gemma 3 (2025) and modded-nanogpt (2024-2025, Muon plus QK-norm) use for more stable, faster optimization at equal steps. Expected effects here: (1) in a 300 s, ~2300-step pretraining run, lower or equal validation loss at matched steps despite slightly fewer steps; (2) during the fixed RL stage (AdamW on all parameters, 4 expert-iteration rounds on the model's own proofs), attention cannot sharpen through weight-norm growth, which should reduce overfitting of attention patterns to the round's accepted (mostly 7-line) proofs and keep the model able to extend the length frontier each round, so round-2..4 targets solved and the 9-10-line dev solves improve relative to 051 (151/126/166 at 9-10 lines per seed). Alternative outcomes: (a) the bounded initial sharpness (max logit 11.3 unless q_gain grows; AdamW moves it about 1e-3 per step) blurs exact line-citation lookup in long prompts, raising invalid samples and lowering the metric (negative); (b) the model is too small and short-trained for logit growth to matter, so the effect is ~0; (c) fp32 normalization cost lowers throughput enough to cost pretraining quality; (d) 051's 286.33 (288/260/311) may be a lucky draw: every one of the six later attempts on the five-layer incumbent scored 239-277, so the bar is high; (e) single-seed sd ~44. Data, tokenizer, RL, evaluation, seeds and budgets are unchanged; the QK-norm architecture persists into RL and evaluation because it is part of the model. Only the fixed three-seed downstream mean decides.",
+  "p_keep": 0.25,
+  "expected_delta": "Central prediction -10 to +20 dev-transfer solves at true length >=7 versus incumbent 051-claude exact mean 286.333333 (288/260/311); plausible downside -40 if bounded logits blur citation lookup. Expect pretraining steps a few percent below 051's 2320-2370, final val loss within +-0.006 of 051 (0.0924/0.0951/0.0932), held-out greedy 0.975-0.992, learned q_gain mostly above its 2.0 init by the end of pretraining, and per-seed totals about 950-1150 s (051: 1053/957/941 s).",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope (base 10000), applied to the normalized q and k",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000040,
+      "change": "P35 QK-norm, one mechanism: every block's class is swapped in place to QKNormBlock, whose attn is the fork's Block.attn except that q and k are RMS-normalized over each 32-dim head (fp32, eps 1e-6, no learned weight) and q is then multiplied by a learned per-head gain q_gain of shape (8,1,1) initialized to QK_GAIN = 2.0, before RoPE and before the KV cache write; both are cast back to v's dtype. SDPA keeps its default 1/sqrt(32) scale, so the initial max |logit| is 2.0*sqrt(32) = 11.3 (standard-scale QK-norm at head dim 128) and random-init logit std is 2.0. 5 blocks, d_model 256, 8 heads, d_ff 1024, LayerNorm, GELU, untied embedding/readout and every other setting identical to 051-claude.",
+      "n_params_detail": "051's 4,000,000 (per block 789,760; 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512) + 5 blocks x 8 q_gain = 4,000,040 (counted locally with the fork's GPT)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork, swap each block's __class__ to pretrain.QKNormBlock and add q_gain = nn.Parameter(torch.empty(8,1,1)), then load the state dict (it has blocks.i.q_gain keys, so the plain fork GPT will not load it strictly)",
+      "kv_cache": "one fork-format KV-cache dict per block (5 per sample); caches hold normalized, gained, rotated keys; cached prefill+decode matched the full forward to 1.4e-6 locally (fork block: 1.1e-6)",
+      "qk_norm": {
+        "where": "per head, over head_dim 32, before RoPE, all 5 blocks, in pretraining, RL and eval",
+        "weight": "none on the norm itself",
+        "q_gain": "learned scalar per head per block (40 params), init 2.0",
+        "k_gain": "none",
+        "attention_scale": "SDPA default 1/sqrt(32)",
+        "precision": "normalization in fp32, result cast to v's dtype (bf16 under autocast)"
+      }
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) are in Muon. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases, LayerNorm parameters and the 5 new q_gain tensors (8,1,1) throughout, at the auxiliary AdamW lr/wd 0.1; hidden matrices never enter pretraining AdamW (q_gain is 3-D, so the ndim==2 Muon selection excludes it). The frozen RL AdamW trains all 4,000,040 parameters including q_gain.",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "051-claude's rule with bitwise-identical initial weights per seed by construction (the class swap and torch.full draw no RNG; they run after the orthogonal init): fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter with gain 0.02 * sqrt(max(rows, columns)); embedding and readout keep the fork's normal(0.02) draws; biases zero; LayerNorm weight 1 and bias 0; new q_gain = 2.0 everywhere. No reinitialization during RL.",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "timing": "not benchmarked on A40; the fp32 normalization of q and k adds elementwise work on (B,8,T,32) tensors per block, so expect a few percent fewer pretraining steps than 051's 2320-2370 and slightly slower decode"
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

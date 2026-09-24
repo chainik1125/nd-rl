@@ -1,0 +1,70 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 405a860..87af53c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,7 +29,8 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++import torch.nn.functional as F
++from model import GPT, Block, apply_rope  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+@@ -39,10 +40,43 @@ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+ MUON_WD = WD * LR / MUON_LR
++# Initial learned per-head gain on RMS-normalized queries: max |logit| = QK_GAIN * sqrt(head_dim).
++QK_GAIN = 2.0
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
++def rms(x):
++    """RMS-normalize over the head dimension in fp32, without a learned weight."""
++    x = x.float()
++    return x * torch.rsqrt(x.square().mean(-1, keepdim=True) + 1e-6)
++
++
++class QKNormBlock(Block):
++    """P35: the fork's Block with q and k RMS-normalized per head and a learned gain per head."""
++
++    def attn(self, x, cos, sin, mask, cache):
++        B, T, D = x.shape
++        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        q, k = (rms(q) * self.q_gain).type_as(v), rms(k).type_as(v)
++        q, k = apply_rope(q, cos, sin), apply_rope(k, cos, sin)
++        if cache is not None:
++            # preallocated KV cache (avoids per-step torch.cat growth / allocator fragmentation)
++            if "k" not in cache:
++                cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["n"] = 0
++            n0, n1 = cache["n"], cache["n"] + T
++            cache["k"][:, :, n0:n1] = k
++            cache["v"][:, :, n0:n1] = v
++            cache["n"] = n1
++            k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
++        else:
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, is_causal=mask is None)
++        return self.proj(y.transpose(1, 2).reshape(B, T, D))
++
++
+ # Muon update adapted from KellerJordan/Muon, commit
+ # f98f1cacc0263b04290753e32be8d498c1efc806 (muon.py).
+ # MIT License
+@@ -148,6 +182,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++    # In place, so the other initial weights stay bitwise equal to the incumbent's. The class and
++    # the (N_HEAD, 1, 1) gains stay on the returned model through the harness's RL and eval.
++    for block in model.blocks:
++        block.__class__ = QKNormBlock
++        block.q_gain = torch.nn.Parameter(torch.full((N_HEAD, 1, 1), QK_GAIN, device=device))
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
