@@ -37,8 +37,8 @@ from train import loss_on  # fork
 N_LAYER, D, N_HEAD = 5, 256, 8
 BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
 MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
-# Three times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
-MUON_WD = 3 * WD * LR / MUON_LR
+# Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+MUON_WD = 10 * WD * LR / MUON_LR
 TOK_MODE = "abs"
 VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
 
