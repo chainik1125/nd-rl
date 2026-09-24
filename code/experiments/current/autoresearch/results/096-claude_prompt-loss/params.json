@@ -1,0 +1,231 @@
+{
+  "id": "096-claude",
+  "slug": "prompt-loss",
+  "written_at": "2026-09-24T15:59:01-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "ce4bde8",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "c0c50a7301ad",
+  "patch_lines": 20,
+  "title": "Pretraining-only next-token loss on prompt tokens at weight 0.1, on the 081 Polar Express Muon incumbent",
+  "description": "New pretraining-objective idea (same family as P47-P50: a different objective on the same examples; no backlog ID matches exactly): add a 0.1-weighted next-token loss on each record's prompt (the theorem's premises and goal) to the unchanged proof-token loss, with no other change to the 081-claude incumbent. Modelling the statements should give the model better representations of formulas and premise structure, especially the larger statements of 7+-line targets, so the fixed expert-iteration RL starts from a policy that copies and cites subformulas more reliably.",
+  "tags": [
+    "loss"
+  ],
+  "hypothesis": "Mechanism: the fork's loss masks prompt tokens, so the model gets gradient only from proof tokens and learns the statement's formula grammar only indirectly, through what the proof has to copy. Round-1 failures on 7-line targets are mostly invalid steps and bad citations (047/049 registration analyses), i.e. matching and copying subformulas from a longer statement. A small prompt loss is dense self-supervision on the same records: it has to parse and predict nested formula structure token by token, which should give the embedding and early layers more robust formula representations that transfer to the larger, out-of-distribution statements of 7+-line RL targets. Evidence for small prompt-loss weights: Huerta-Enochian & Ko 2024 ('Instruction Fine-Tuning: Does Prompt Loss Matter?', arXiv 2401.13586) report that a small nonzero prompt-loss weight (~0.01-0.5) beats zero for short-completion SFT data. At 0.1 the prompt term is ~7% of the per-token weight here, so the proof objective still dominates. Alternative outcomes: (a) prompts are random theorems with irreducible entropy, and once the grammar is learned their gradient is mostly noise that costs proof fitting in a ~4700-step, ~4-epoch run (negative); (b) the model already represents statements well enough, so the effect is ~0; (c) 081's 404 (433/356/422) is likely a favourable draw: all 14 later attempts scored 320-390, so a neutral change probably discards. Throughput is unchanged (cross-entropy is already computed at every position). Data, tokenizer, RL, evaluation, seeds and budgets are unchanged; the architecture and handoff are identical to 081. Only the three-seed downstream mean decides.",
+  "p_keep": 0.2,
+  "expected_delta": "-40 to +30 theorems at >=7 (centered near 0; a keep needs a mean above 404)",
+  "baseline_id": "081-claude",
+  "baseline_metric": 404,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "none versus 081-claude (the incumbent): 5 untied fork GPT blocks, d_model 256, 8 heads, d_ff 1024, RoPE, LayerNorm, GELU, untied embedding/readout",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "unchanged from 081-claude: sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched)",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) plus head.weight (99,256; vocab 99, no bias) are in Muon: 21 matrices. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 and head are orthogonalized whole. head is wide (99<256) so it is not transposed and its update has 99 singular values near 1.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "unchanged from 081-claude: Polar Express per-iteration quintic coefficients",
+        "normalization": "unchanged from 081-claude: update / (Frobenius norm * 1.02 + 1e-6)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (incl. ln_f) throughout; head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 21 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "unchanged from 081-claude: fork default construction, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); embedding and readout normal(0.02); biases zero",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": {
+      "objective": "CHANGED: proof-token next-token cross-entropy (identical to the fork's loss_on) + PROMPT_LOSS_W * next-token cross-entropy on prompt tokens of the same records, both sums divided by the number of proof-token targets",
+      "prompt_loss_weight": 0.1,
+      "prompt_positions": "targets x[:, 1:] that are not padding and not in the proof mask (every prompt token except the first, which is never a target); ref-shift augmentation still touches proof tokens only",
+      "pretraining_only": "the extra term exists only inside pretrain.py's training loop; the model, forward pass and checkpoint are unchanged, and the frozen RL fine-tune keeps the fork's proof-only loss_on",
+      "logging": "curve train_loss and last_loss log the proof-only term, so they stay comparable to earlier runs; val_loss is the unchanged proof-only loss_on",
+      "local_check": "CPU probe on 32 real train records: proof-only term equals loss_on exactly (4.6102); prompts average ~0.6-0.7x as many target tokens as proofs, so at weight 0.1 the prompt term carries ~7% of the per-token weight"
+    }
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

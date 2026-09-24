@@ -1,0 +1,58 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..f18bab0 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,6 +29,7 @@ import math
+ import time
+ 
+ import torch
++import torch.nn.functional as F
+ from model import GPT  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+@@ -50,6 +51,7 @@ NS_COEFFS = (
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
+ TOK_MODE = "abs"
++PROMPT_LOSS_W = 0.1  # pretraining-only weight on next-token loss over prompt tokens
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
+@@ -101,6 +103,20 @@ def muon_step(params, buffers, lr):
+         p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
++def train_loss(model, x, m, tok):
++    """loss_on's proof-token loss plus PROMPT_LOSS_W times the loss on prompt tokens of the same
++    records, normalized by proof tokens. Returns (objective, proof-only loss for logging)."""
++    logits = model(x[:, :-1])
++    tgt = x[:, 1:]
++    ce = F.cross_entropy(
++        logits.reshape(-1, logits.size(-1)).float(), tgt.reshape(-1), reduction="none"
++    )
++    proof = m[:, 1:].reshape(-1).float()
++    prompt = ((tgt != tok.pad) & ~m[:, 1:]).reshape(-1).float()
++    proof_loss = (ce * proof).sum() / proof.sum()
++    return proof_loss + PROMPT_LOSS_W * (ce * prompt).sum() / proof.sum(), proof_loss.detach()
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -194,14 +210,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         idxs, perm = perm[:BS], perm[BS:]
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+-            loss = loss_on(model, x, m)
++            loss, proof_loss = train_loss(model, x, m, tok)
+         model.zero_grad(set_to_none=True)
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
+         muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
+         if step % 20 == 0:
+-            last_loss = loss.item()
++            last_loss = proof_loss.item()
+             recent.append(last_loss)
+         if (
+             time.time() - t0 >= next_point
