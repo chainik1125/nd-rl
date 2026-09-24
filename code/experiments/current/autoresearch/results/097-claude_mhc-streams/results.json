@@ -1,0 +1,50 @@
+{
+  "commit": "c0fd0be",
+  "recorded_at": "2026-09-24T16:50:34-0700",
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "51bb81c785f8",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1200,
+  "reason": "seeds [0, 1, 2] not ok: ['timeout', 'timeout', 'timeout']",
+  "pretrain": {
+    "secs": null,
+    "n_params": null,
+    "steps": null,
+    "epochs": null,
+    "last_loss": null,
+    "heldout_greedy": null,
+    "curve": null
+  },
+  "rl_rounds": [],
+  "eval": {
+    "solved": null,
+    "n": null,
+    "ge": null,
+    "lstar": null,
+    "heldout_greedy": null,
+    "max_pruned": null,
+    "by_bin": null
+  },
+  "holdout_metric": null,
+  "surprise": "Timeout on all 3 seeds: SIGALRM at 1200 s (seed 2 finished RL round 4, no seed reached eval). The registered implementation's throughput cost is what overran: 10 static hyper-connections (fp32 2-stream residual, tiny 2x2 batched matmuls, a 20-iteration Sinkhorn recomputed on every forward including every decode step) cut pretraining to 2099-2321 steps (081: 4682) and RL sampling to 258-375 samples/s (081 seed 0: 523-644). Per step it learned fast: final val loss 0.087-0.095 at under half the steps (081: 0.095), held-out greedy 0.975-0.984. RL solved fewer targets each round (seed 0 r1-r3 185/448/627 vs 081 seed 0 187/559/757), confounded with the halved pretraining. Judging mHC needs a cheaper implementation (Sinkhorn once per step, fused stream ops) under a new registration.",
+  "seed_metrics": {},
+  "seed_metric_rl": {},
+  "seed_status": {
+    "0": "timeout",
+    "1": "timeout",
+    "2": "timeout"
+  },
+  "migrated": false
+}
