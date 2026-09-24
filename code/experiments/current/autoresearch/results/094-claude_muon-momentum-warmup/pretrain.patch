@@ -1,0 +1,43 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..801dd96 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,6 +37,9 @@ from train import loss_on  # fork
+ N_LAYER, D, N_HEAD = 5, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
++# Muon momentum warmup (modded-nanogpt): ramp linearly from 0.85 to MUON_MOMENTUM over the
++# first 300 steps, so early updates are not averaged over ~20 steps of stale gradients.
++MUON_MOMENTUM_START, MUON_MOMENTUM_WARMUP = 0.85, 300
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+ # (num_iters=5, safety factor 2e-2): singular values land in ~[0.86, 1.14] instead of the
+ # fixed quintic's ~[0.68, 1.13], at the same five iterations.
+@@ -74,13 +77,13 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ # SOFTWARE.
+ @torch.no_grad()
+-def muon_step(params, buffers, lr):
++def muon_step(params, buffers, lr, beta):
+     """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only."""
+     for p, momentum in zip(params, buffers, strict=True):
+         if p.grad is None:
+             continue
+-        momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+-        update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
++        momentum.lerp_(p.grad, 1 - beta)
++        update = p.grad.lerp(momentum, beta).bfloat16()
+         # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
+         if update.size(0) == 3 * update.size(1):
+             update = update.reshape(3, update.size(1), update.size(1))
+@@ -199,7 +202,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
+-        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++        beta = MUON_MOMENTUM_START + (MUON_MOMENTUM - MUON_MOMENTUM_START) * min(
++            step / MUON_MOMENTUM_WARMUP, 1.0
++        )
++        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR, beta)
+         if step % 20 == 0:
+             last_loss = loss.item()
+             recent.append(last_loss)
