@@ -1,0 +1,914 @@
+=== 20 random rows of completions.jsonl.gz, seed 20260923, indices [446, 537, 923, 1367, 3337, 3432, 4027, 4040, 4799, 5659, 6065, 6903, 7947, 8087, 8450, 8499, 9528, 10539, 10779, 11228]
+--- row 446 step 1 reward(theirs)=0.0 mine=False reason(mine)='rule check failed: ORI1 (line 7)' n_lines(mine)=2 n_tokens=36 trivial=False
+PROMPT: THM ( P & R ) SEQ ( ( Q & F ) v ( ( P & R ) v ( Q v S ) ) ) PRF
+COMPLETION: N6 ( P & R ) : PR ; N7 ( ( Q & F ) v ( ( P & R ) v ( Q v S ) ) ) : ORI1 N6 ; QED
+--- row 537 step 2 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=3 n_tokens=50 trivial=False
+PROMPT: THM ( ~ Q ) , ( ( ~ Q ) > ( ( P & R ) & ( ~ S ) ) ) SEQ ( ( P & R ) & ( ~ S ) ) PRF
+COMPLETION: N57 ( ~ Q ) : PR ; N58 ( ( ~ Q ) > ( ( P & R ) & ( ~ S ) ) ) : PR ; N59 ( ( P & R ) & ( ~ S ) ) : IMPE N58 N57 ; QED
+--- row 923 step 3 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=85 trivial=False
+PROMPT: THM ( ( R v S ) & ( ~ S ) ) SEQ ( R > ( ( R & ( ~ S ) ) v ( ( R v S ) & ( ~ S ) ) ) ) PRF
+COMPLETION: N35 ( ( R v S ) & ( ~ S ) ) : PR ; N36 | R : AS ; N37 | ( ( R & ( ~ S ) ) v ( ( R v S ) & ( ~ S ) ) ) : ORI2 N35 ; N38 ( R > ( ( R & ( ~ S ) ) v ( ( R v S ) & ( ~ S ) ) ) ) : IMPI N36 N37 ; QED
+--- row 1367 step 5 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=5 n_tokens=68 trivial=False
+PROMPT: THM ( Q & ( Q > R ) ) , ( ( Q & ( Q > R ) ) > ( S v R ) ) SEQ ( S > ( S v R ) ) PRF
+COMPLETION: N9 ( Q & ( Q > R ) ) : PR ; N10 ( ( Q & ( Q > R ) ) > ( S v R ) ) : PR ; N11 | S : AS ; N12 | ( S v R ) : IMPE N10 N9 ; N13 ( S > ( S v R ) ) : IMPI N11 N12 ; QED
+--- row 3337 step 13 reward(theirs)=0.0 mine=False reason(mine)='rule check failed: IMPE (line 57)' n_lines(mine)=3 n_tokens=48 trivial=False
+PROMPT: THM ( ( ~ Q ) & R ) , ( ( ~ Q ) > ( R & ( P > S ) ) ) SEQ ( R & ( P > S ) ) PRF
+COMPLETION: N55 ( ( ~ Q ) & R ) : PR ; N56 ( ( ~ Q ) > ( R & ( P > S ) ) ) : PR ; N57 ( R & ( P > S ) ) : IMPE N56 N55 ; QED
+--- row 3432 step 13 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=83 trivial=False
+PROMPT: THM ( ~ ( S > ( S v P ) ) ) SEQ ( ( ~ ( ~ R ) ) > ( R v ( ~ ( S > ( S v P ) ) ) ) ) PRF
+COMPLETION: N26 ( ~ ( S > ( S v P ) ) ) : PR ; N27 | ( ~ ( ~ R ) ) : AS ; N28 | ( R v ( ~ ( S > ( S v P ) ) ) ) : ORI2 N26 ; N29 ( ( ~ ( ~ R ) ) > ( R v ( ~ ( S > ( S v P ) ) ) ) ) : IMPI N27 N28 ; QED
+--- row 4027 step 15 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=97 trivial=False
+PROMPT: THM SEQ ( ( Q > ( P & S ) ) > ( ( R > ( S & Q ) ) > ( R > ( S & Q ) ) ) ) PRF
+COMPLETION: N36 | ( Q > ( P & S ) ) : AS ; N37 | | ( R > ( S & Q ) ) : AS ; N38 | ( ( R > ( S & Q ) ) > ( R > ( S & Q ) ) ) : IMPI N37 N37 ; N39 ( ( Q > ( P & S ) ) > ( ( R > ( S & Q ) ) > ( R > ( S & Q ) ) ) ) : IMPI N36 N38 ; QED
+--- row 4040 step 15 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=3 n_tokens=46 trivial=False
+PROMPT: THM ( Q v ( R v S ) ) , ( ( Q v ( R v S ) ) > ( S v Q ) ) SEQ ( S v Q ) PRF
+COMPLETION: N6 ( Q v ( R v S ) ) : PR ; N7 ( ( Q v ( R v S ) ) > ( S v Q ) ) : PR ; N8 ( S v Q ) : IMPE N7 N6 ; QED
+--- row 4799 step 18 reward(theirs)=0.0 mine=False reason(mine)='rule check failed: ORI1 (line 54)' n_lines(mine)=4 n_tokens=75 trivial=False
+PROMPT: THM ( S > ( S & Q ) ) , ( ~ ( ( P > P ) v ( ( S > ( S & Q ) ) v R ) ) ) SEQ F PRF
+COMPLETION: N52 ( S > ( S & Q ) ) : PR ; N53 ( ~ ( ( P > P ) v ( ( S > ( S & Q ) ) v R ) ) ) : PR ; N54 ( ( S > P ) v ( ( S > ( S & Q ) ) v R ) ) : ORI1 N52 ; N55 F : NEGE N54 N53 ; QED
+--- row 5659 step 22 reward(theirs)=0.0 mine=False reason(mine)='rule check failed: NEGE (line 41)' n_lines(mine)=5 n_tokens=43 trivial=False
+PROMPT: THM Q , ( ~ R ) , ( ~ ( ~ R ) ) SEQ ( Q & F ) PRF
+COMPLETION: N38 Q : PR ; N39 ( ~ R ) : PR ; N40 ( ~ ( ~ R ) ) : PR ; N41 F : NEGE N38 N39 ; N42 ( Q & F ) : ANDI N38 N41 ; QED
+--- row 6065 step 23 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=56 trivial=False
+PROMPT: THM ( ~ ( R > Q ) ) , ( ~ ( ( ~ ( R > Q ) ) v P ) ) SEQ F PRF
+COMPLETION: N47 ( ~ ( R > Q ) ) : PR ; N48 ( ~ ( ( ~ ( R > Q ) ) v P ) ) : PR ; N49 ( ( ~ ( R > Q ) ) v P ) : ORI1 N47 ; N50 F : NEGE N49 N48 ; QED
+--- row 6903 step 26 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=64 trivial=False
+PROMPT: THM SEQ ( ( S v R ) > ( ( ~ F ) > ( ~ F ) ) ) PRF
+COMPLETION: N5 | ( S v R ) : AS ; N6 | | ( ~ F ) : AS ; N7 | ( ( ~ F ) > ( ~ F ) ) : IMPI N6 N6 ; N8 ( ( S v R ) > ( ( ~ F ) > ( ~ F ) ) ) : IMPI N5 N7 ; QED
+--- row 7947 step 31 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=3 n_tokens=59 trivial=False
+PROMPT: THM S SEQ ( ( ~ ( S > S ) ) v ( S v ( ( S & R ) v ( ~ P ) ) ) ) PRF
+COMPLETION: N32 S : PR ; N33 ( S v ( ( S & R ) v ( ~ P ) ) ) : ORI1 N32 ; N34 ( ( ~ ( S > S ) ) v ( S v ( ( S & R ) v ( ~ P ) ) ) ) : ORI2 N33 ; QED
+--- row 8087 step 31 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=5 n_tokens=92 trivial=False
+PROMPT: THM ( ~ ( ~ ( ~ ( S > ( Q v Q ) ) ) ) ) SEQ ( ~ ( S > ( Q v Q ) ) ) PRF
+COMPLETION: N1 ( ~ ( ~ ( ~ ( S > ( Q v Q ) ) ) ) ) : PR ; N2 | ( ~ ( ~ ( S > ( Q v Q ) ) ) ) : AS ; N3 | F : NEGE N2 N1 ; N4 ( ~ ( ~ ( ~ ( S > ( Q v Q ) ) ) ) ) : NEGI N2 N3 ; N5 ( ~ ( S > ( Q v Q ) ) ) : DN N4 ; QED
+--- row 8450 step 33 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=56 trivial=False
+PROMPT: THM R , ( R > ( ~ ( R > S ) ) ) SEQ ( ( ~ ( R > S ) ) v ( ~ S ) ) PRF
+COMPLETION: N11 R : PR ; N12 ( R > ( ~ ( R > S ) ) ) : PR ; N13 ( ~ ( R > S ) ) : IMPE N12 N11 ; N14 ( ( ~ ( R > S ) ) v ( ~ S ) ) : ORI1 N13 ; QED
+--- row 8499 step 33 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=44 trivial=False
+PROMPT: THM ( R v R ) , ( ( R v R ) > S ) SEQ ( ( R > R ) v S ) PRF
+COMPLETION: N20 ( R v R ) : PR ; N21 ( ( R v R ) > S ) : PR ; N22 S : IMPE N21 N20 ; N23 ( ( R > R ) v S ) : ORI2 N22 ; QED
+--- row 9528 step 37 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=5 n_tokens=59 trivial=False
+PROMPT: THM ( ( ~ Q ) v ( ~ S ) ) , ( ( ( ~ Q ) v ( ~ S ) ) > F ) SEQ ( ~ R ) PRF
+COMPLETION: N44 ( ( ~ Q ) v ( ~ S ) ) : PR ; N45 ( ( ( ~ Q ) v ( ~ S ) ) > F ) : PR ; N46 | R : AS ; N47 | F : IMPE N45 N44 ; N48 ( ~ R ) : NEGI N46 N47 ; QED
+--- row 10539 step 41 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=4 n_tokens=75 trivial=False
+PROMPT: THM ( ~ R ) , ( ( ( ( Q & S ) v ( ~ Q ) ) v ( ~ R ) ) > ( P & R ) ) SEQ ( P & R ) PRF
+COMPLETION: N52 ( ~ R ) : PR ; N53 ( ( ( ( Q & S ) v ( ~ Q ) ) v ( ~ R ) ) > ( P & R ) ) : PR ; N54 ( ( ( Q & S ) v ( ~ Q ) ) v ( ~ R ) ) : ORI2 N52 ; N55 ( P & R ) : IMPE N53 N54 ; QED
+--- row 10779 step 42 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=5 n_tokens=66 trivial=False
+PROMPT: THM P , ( ( R & S ) > P ) , ( ( ( ( R & S ) > P ) & P ) > S ) SEQ S PRF
+COMPLETION: N20 P : PR ; N21 ( ( R & S ) > P ) : PR ; N22 ( ( ( ( R & S ) > P ) & P ) > S ) : PR ; N23 ( ( ( R & S ) > P ) & P ) : ANDI N21 N20 ; N24 S : IMPE N22 N23 ; QED
+--- row 11228 step 43 reward(theirs)=1.0 mine=True reason(mine)='ok' n_lines(mine)=3 n_tokens=60 trivial=False
+PROMPT: THM SEQ ( ( ( Q & Q ) > ( Q & Q ) ) v ( ( P v R ) & S ) ) PRF
+COMPLETION: N38 | ( Q & Q ) : AS ; N39 ( ( Q & Q ) > ( Q & Q ) ) : IMPI N38 N38 ; N40 ( ( ( Q & Q ) > ( Q & Q ) ) v ( ( P v R ) & S ) ) : ORI1 N39 ; QED
+
+=== [baseline/long_pool] ALL accepted proofs at prompt length >= 7 (149 rows, 14 distinct records); n_lines distribution {7: 149}
+--- la_rl_targets_990 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM SEQ ( ( ~ ( ~ P ) ) > ( ( Q & ( ~ P ) ) > ( ( ( ~ ( ~ P ) ) > ( ~ ( ~ P ) ) ) & ( ~ ( ~ P ) ) ) ) ) PRF
+COMPLETION: N12 | ( ~ ( ~ P ) ) : AS ; N13 ( ( ~ ( ~ P ) ) > ( ~ ( ~ P ) ) ) : IMPI N12 N12 ; N14 | ( ~ ( ~ P ) ) : AS ; N15 | | ( Q & ( ~ P ) ) : AS ; N16 | | ( ( ( ~ ( ~ P ) ) > ( ~ ( ~ P ) ) ) & ( ~ ( ~ P ) ) ) : ANDI N13 N14 ; N17 | ( ( Q & ( ~ P ) ) > ( ( ( ~ ( ~ P ) ) > ( ~ ( ~ P ) ) ) & ( ~ ( ~ P ) ) ) ) : IMPI N15 N16 ; N18 ( ( ~ ( ~ P ) ) > ( ( Q & ( ~ P ) ) > ( ( ( ~ ( ~ P ) ) > ( ~ ( ~ P ) ) ) & ( ~ ( ~ P ) ) ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_2310 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( P > ( P v Q ) ) SEQ ( P > ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) ) PRF
+COMPLETION: N36 ( P > ( P v Q ) ) : PR ; N37 | P : AS ; N38 | | ( ~ P ) : AS ; N39 | | ( ( ~ P ) & ( P > ( P v Q ) ) ) : ANDI N38 N36 ; N40 | | ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) : ORI2 N39 ; N41 | ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) : IMPI N38 N40 ; N42 ( P > ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) ) : IMPI N37 N41 ; QED
+--- la_rl_targets_2310 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( P > ( P v Q ) ) SEQ ( P > ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) ) PRF
+COMPLETION: N31 ( P > ( P v Q ) ) : PR ; N32 | P : AS ; N33 | | ( ~ P ) : AS ; N34 | | ( ( ~ P ) & ( P > ( P v Q ) ) ) : ANDI N33 N31 ; N35 | | ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) : ORI2 N34 ; N36 | ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) : IMPI N33 N35 ; N37 ( P > ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) ) : IMPI N32 N36 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N12 ( S & ( P v S ) ) : PR ; N13 ( P & P ) : PR ; N14 | Q : AS ; N15 | | P : AS ; N16 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N13 ; N17 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N15 N16 ; N18 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N12 ( S & ( P v S ) ) : PR ; N13 ( P & P ) : PR ; N14 | Q : AS ; N15 | | P : AS ; N16 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N13 ; N17 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N15 N16 ; N18 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N37 ( S & ( P v S ) ) : PR ; N38 ( P & P ) : PR ; N39 | Q : AS ; N40 | | P : AS ; N41 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N38 ; N42 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N40 N41 ; N43 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N39 N42 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N53 ( S & ( P v S ) ) : PR ; N54 ( P & P ) : PR ; N55 | Q : AS ; N56 | | P : AS ; N57 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N54 ; N58 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N56 N57 ; N59 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N55 N58 ; QED
+--- la_rl_targets_2464 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM R , ( ( R & R ) v ( P v P ) ) SEQ ( ( R & R ) > ( P > ( R & R ) ) ) PRF
+COMPLETION: N4 R : PR ; N5 ( ( R & R ) v ( P v P ) ) : PR ; N6 | ( R & R ) : AS ; N7 | | P : AS ; N8 | | ( R & R ) : ANDI N4 N4 ; N9 | ( P > ( R & R ) ) : IMPI N7 N8 ; N10 ( ( R & R ) > ( P > ( R & R ) ) ) : IMPI N6 N9 ; QED
+--- la_rl_targets_2464 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM R , ( ( R & R ) v ( P v P ) ) SEQ ( ( R & R ) > ( P > ( R & R ) ) ) PRF
+COMPLETION: N35 R : PR ; N36 ( ( R & R ) v ( P v P ) ) : PR ; N37 | ( R & R ) : AS ; N38 | | P : AS ; N39 | | ( R & R ) : ANDI N35 N35 ; N40 | ( P > ( R & R ) ) : IMPI N38 N39 ; N41 ( ( R & R ) > ( P > ( R & R ) ) ) : IMPI N37 N40 ; QED
+--- la_rl_targets_2464 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM R , ( ( R & R ) v ( P v P ) ) SEQ ( ( R & R ) > ( P > ( R & R ) ) ) PRF
+COMPLETION: N34 R : PR ; N35 ( ( R & R ) v ( P v P ) ) : PR ; N36 | ( R & R ) : AS ; N37 | | P : AS ; N38 | | ( R & R ) : ANDI N34 N34 ; N39 | ( P > ( R & R ) ) : IMPI N37 N38 ; N40 ( ( R & R ) > ( P > ( R & R ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N15 ( ( S > R ) > ( Q & Q ) ) : PR ; N16 ( S > R ) : PR ; N17 | ( ~ ( S > S ) ) : AS ; N18 | | ( ( ~ Q ) & Q ) : AS ; N19 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N16 N15 ; N20 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N18 N19 ; N21 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N17 N20 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N11 ( ( S > R ) > ( Q & Q ) ) : PR ; N12 ( S > R ) : PR ; N13 | ( ~ ( S > S ) ) : AS ; N14 | | ( ( ~ Q ) & Q ) : AS ; N15 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N12 N11 ; N16 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N14 N15 ; N17 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N15 ( ( S > R ) > ( Q & Q ) ) : PR ; N16 ( S > R ) : PR ; N17 | ( ~ ( S > S ) ) : AS ; N18 | | ( ( ~ Q ) & Q ) : AS ; N19 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N16 N15 ; N20 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N18 N19 ; N21 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N17 N20 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N56 ( ( S > R ) > ( Q & Q ) ) : PR ; N57 ( S > R ) : PR ; N58 | ( ~ ( S > S ) ) : AS ; N59 | | ( ( ~ Q ) & Q ) : AS ; N60 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N57 N56 ; N61 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N59 N60 ; N62 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N58 N61 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N41 ( ( S > R ) > ( Q & Q ) ) : PR ; N42 ( S > R ) : PR ; N43 | ( ~ ( S > S ) ) : AS ; N44 | | ( ( ~ Q ) & Q ) : AS ; N45 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N42 N41 ; N46 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N44 N45 ; N47 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N43 ( ( S > R ) > ( Q & Q ) ) : PR ; N44 ( S > R ) : PR ; N45 | ( ~ ( S > S ) ) : AS ; N46 | | ( ( ~ Q ) & Q ) : AS ; N47 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N44 N43 ; N48 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N46 N47 ; N49 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N20 ( ( S > R ) > ( Q & Q ) ) : PR ; N21 ( S > R ) : PR ; N22 | ( ~ ( S > S ) ) : AS ; N23 | | ( ( ~ Q ) & Q ) : AS ; N24 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N21 N20 ; N25 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N22 N25 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N58 ( ( S > R ) > ( Q & Q ) ) : PR ; N59 ( S > R ) : PR ; N60 | ( ~ ( S > S ) ) : AS ; N61 | | ( ( ~ Q ) & Q ) : AS ; N62 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N59 N58 ; N63 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N61 N62 ; N64 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N60 N63 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N39 ( ( S > R ) > ( Q & Q ) ) : PR ; N40 ( S > R ) : PR ; N41 | ( ~ ( S > S ) ) : AS ; N42 | | ( ( ~ Q ) & Q ) : AS ; N43 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N40 N39 ; N44 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N36 ( ( S > R ) > ( Q & Q ) ) : PR ; N37 ( S > R ) : PR ; N38 | ( ~ ( S > S ) ) : AS ; N39 | | ( ( ~ Q ) & Q ) : AS ; N40 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N37 N36 ; N41 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N39 N40 ; N42 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N34 ( ( S > R ) > ( Q & Q ) ) : PR ; N35 ( S > R ) : PR ; N36 | ( ~ ( S > S ) ) : AS ; N37 | | ( ( ~ Q ) & Q ) : AS ; N38 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N35 N34 ; N39 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N37 N38 ; N40 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N57 ( ( S > R ) > ( Q & Q ) ) : PR ; N58 ( S > R ) : PR ; N59 | ( ~ ( S > S ) ) : AS ; N60 | | ( ( ~ Q ) & Q ) : AS ; N61 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N58 N57 ; N62 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N60 N61 ; N63 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N59 N62 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N11 ( ( S > R ) > ( Q & Q ) ) : PR ; N12 ( S > R ) : PR ; N13 | ( ~ ( S > S ) ) : AS ; N14 | | ( ( ~ Q ) & Q ) : AS ; N15 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N12 N11 ; N16 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N14 N15 ; N17 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N20 ( ( S > R ) > ( Q & Q ) ) : PR ; N21 ( S > R ) : PR ; N22 | ( ~ ( S > S ) ) : AS ; N23 | | ( ( ~ Q ) & Q ) : AS ; N24 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N21 N20 ; N25 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N22 N25 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N39 ( ( S > R ) > ( Q & Q ) ) : PR ; N40 ( S > R ) : PR ; N41 | ( ~ ( S > S ) ) : AS ; N42 | | ( ( ~ Q ) & Q ) : AS ; N43 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N40 N39 ; N44 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N57 ( ( S > R ) > ( Q & Q ) ) : PR ; N58 ( S > R ) : PR ; N59 | ( ~ ( S > S ) ) : AS ; N60 | | ( ( ~ Q ) & Q ) : AS ; N61 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N58 N57 ; N62 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N60 N61 ; N63 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N59 N62 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N12 ( ( S > R ) > ( Q & Q ) ) : PR ; N13 ( S > R ) : PR ; N14 | ( ~ ( S > S ) ) : AS ; N15 | | ( ( ~ Q ) & Q ) : AS ; N16 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N13 N12 ; N17 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N15 N16 ; N18 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N36 ( ( S > R ) & R ) : PR ; N37 ( ( ~ ( ~ Q ) ) v R ) : PR ; N38 | ( ~ ( ~ R ) ) : AS ; N39 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N40 | | ( S > R ) : ANDE1 N36 ; N41 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N51 ( ( S > R ) & R ) : PR ; N52 ( ( ~ ( ~ Q ) ) v R ) : PR ; N53 | ( ~ ( ~ R ) ) : AS ; N54 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N55 | | ( S > R ) : ANDE1 N51 ; N56 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N54 N55 ; N57 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N53 N56 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N9 ( ( S > R ) & R ) : PR ; N10 ( ( ~ ( ~ Q ) ) v R ) : PR ; N11 | ( ~ ( ~ R ) ) : AS ; N12 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N13 | | ( S > R ) : ANDE1 N9 ; N14 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N12 N13 ; N15 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N11 N14 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N15 ( ( S > R ) & R ) : PR ; N16 ( ( ~ ( ~ Q ) ) v R ) : PR ; N17 | ( ~ ( ~ R ) ) : AS ; N18 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N19 | | ( S > R ) : ANDE1 N15 ; N20 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N18 N19 ; N21 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N17 N20 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N36 ( ( S > R ) & R ) : PR ; N37 ( ( ~ ( ~ Q ) ) v R ) : PR ; N38 | ( ~ ( ~ R ) ) : AS ; N39 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N40 | | ( S > R ) : ANDE1 N36 ; N41 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N7 ( ( S > R ) & R ) : PR ; N8 ( ( ~ ( ~ Q ) ) v R ) : PR ; N9 | ( ~ ( ~ R ) ) : AS ; N10 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N11 | | ( S > R ) : ANDE1 N7 ; N12 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N10 N11 ; N13 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N9 N12 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N17 ( ( S > R ) & R ) : PR ; N18 ( ( ~ ( ~ Q ) ) v R ) : PR ; N19 | ( ~ ( ~ R ) ) : AS ; N20 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N21 | | ( S > R ) : ANDE1 N17 ; N22 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N20 N21 ; N23 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N19 N22 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N41 ( ( S > R ) & R ) : PR ; N42 ( ( ~ ( ~ Q ) ) v R ) : PR ; N43 | ( ~ ( ~ R ) ) : AS ; N44 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N45 | | ( S > R ) : ANDE1 N41 ; N46 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N44 N45 ; N47 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N56 ( ( S > R ) & R ) : PR ; N57 ( ( ~ ( ~ Q ) ) v R ) : PR ; N58 | ( ~ ( ~ R ) ) : AS ; N59 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N60 | | ( S > R ) : ANDE1 N56 ; N61 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N59 N60 ; N62 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N58 N61 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N2 ( ( S > R ) & R ) : PR ; N3 ( ( ~ ( ~ Q ) ) v R ) : PR ; N4 | ( ~ ( ~ R ) ) : AS ; N5 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N6 | | ( S > R ) : ANDE1 N2 ; N7 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N11 ( ( S > R ) & R ) : PR ; N12 ( ( ~ ( ~ Q ) ) v R ) : PR ; N13 | ( ~ ( ~ R ) ) : AS ; N14 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N15 | | ( S > R ) : ANDE1 N11 ; N16 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N14 N15 ; N17 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N55 ( ( S > R ) & R ) : PR ; N56 ( ( ~ ( ~ Q ) ) v R ) : PR ; N57 | ( ~ ( ~ R ) ) : AS ; N58 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N59 | | ( S > R ) : ANDE1 N55 ; N60 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N58 N59 ; N61 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N57 N60 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N10 ( ( S > R ) & R ) : PR ; N11 ( ( ~ ( ~ Q ) ) v R ) : PR ; N12 | ( ~ ( ~ R ) ) : AS ; N13 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N14 | | ( S > R ) : ANDE1 N10 ; N15 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N13 N14 ; N16 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N27 ( ( S > R ) & R ) : PR ; N28 ( ( ~ ( ~ Q ) ) v R ) : PR ; N29 | ( ~ ( ~ R ) ) : AS ; N30 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N31 | | ( S > R ) : ANDE1 N27 ; N32 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N30 N31 ; N33 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N29 N32 ; QED
+--- la_rl_targets_2882 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM SEQ ( ( ~ ( ~ ( R & Q ) ) ) > ( ( R & ( ~ Q ) ) > ( ( R & ( ~ Q ) ) > ( ( ~ ( ~ ( R & Q ) ) ) v ( ( P & Q ) & ( S > P ) ) ) ) ) ) PRF
+COMPLETION: N17 | ( ~ ( ~ ( R & Q ) ) ) : AS ; N18 | | ( R & ( ~ Q ) ) : AS ; N19 | | | ( R & ( ~ Q ) ) : AS ; N20 | | | ( ( ~ ( ~ ( R & Q ) ) ) v ( ( P & Q ) & ( S > P ) ) ) : ORI1 N17 ; N21 | | ( ( R & ( ~ Q ) ) > ( ( ~ ( ~ ( R & Q ) ) ) v ( ( P & Q ) & ( S > P ) ) ) ) : IMPI N19 N20 ; N22 | ( ( R & ( ~ Q ) ) > ( ( R & ( ~ Q ) ) > ( ( ~ ( ~ ( R & Q ) ) ) v ( ( P & Q ) & ( S > P ) ) ) ) ) : IMPI N18 N21 ; N23 ( ( ~ ( ~ ( R & Q ) ) ) > ( ( R & ( ~ Q ) ) > ( ( R & ( ~ Q ) ) > ( ( ~ ( ~ ( R & Q ) ) ) v ( ( P & Q ) & ( S > P ) ) ) ) ) ) : IMPI N17 N22 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N11 S : PR ; N12 ( P > ( Q > S ) ) : PR ; N13 | ( ~ ( ~ ( R v P ) ) ) : AS ; N14 | | ( ( ~ P ) v R ) : AS ; N15 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N12 ; N16 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N14 N15 ; N17 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N29 S : PR ; N30 ( P > ( Q > S ) ) : PR ; N31 | ( ~ ( ~ ( R v P ) ) ) : AS ; N32 | | ( ( ~ P ) v R ) : AS ; N33 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N30 ; N34 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N32 N33 ; N35 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N31 N34 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N30 S : PR ; N31 ( P > ( Q > S ) ) : PR ; N32 | ( ~ ( ~ ( R v P ) ) ) : AS ; N33 | | ( ( ~ P ) v R ) : AS ; N34 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N31 ; N35 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N33 N34 ; N36 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N32 N35 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N21 S : PR ; N22 ( P > ( Q > S ) ) : PR ; N23 | ( ~ ( ~ ( R v P ) ) ) : AS ; N24 | | ( ( ~ P ) v R ) : AS ; N25 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N22 ; N26 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N24 N25 ; N27 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N23 N26 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N54 S : PR ; N55 ( P > ( Q > S ) ) : PR ; N56 | ( ~ ( ~ ( R v P ) ) ) : AS ; N57 | | ( ( ~ P ) v R ) : AS ; N58 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N55 ; N59 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N57 N58 ; N60 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N56 N59 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N19 S : PR ; N20 ( P > ( Q > S ) ) : PR ; N21 | ( ~ ( ~ ( R v P ) ) ) : AS ; N22 | | ( ( ~ P ) v R ) : AS ; N23 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N20 ; N24 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N22 N23 ; N25 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N21 N24 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N45 S : PR ; N46 ( P > ( Q > S ) ) : PR ; N47 | ( ~ ( ~ ( R v P ) ) ) : AS ; N48 | | ( ( ~ P ) v R ) : AS ; N49 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N46 ; N50 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N48 N49 ; N51 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N47 N50 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N36 S : PR ; N37 ( P > ( Q > S ) ) : PR ; N38 | ( ~ ( ~ ( R v P ) ) ) : AS ; N39 | | ( ( ~ P ) v R ) : AS ; N40 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N37 ; N41 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N28 S : PR ; N29 ( P > ( Q > S ) ) : PR ; N30 | ( ~ ( ~ ( R v P ) ) ) : AS ; N31 | | ( ( ~ P ) v R ) : AS ; N32 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N29 ; N33 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N31 N32 ; N34 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N30 N33 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N20 S : PR ; N21 ( P > ( Q > S ) ) : PR ; N22 | ( ~ ( ~ ( R v P ) ) ) : AS ; N23 | | ( ( ~ P ) v R ) : AS ; N24 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N21 ; N25 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N22 N25 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N53 S : PR ; N54 ( P > ( Q > S ) ) : PR ; N55 | ( ~ ( ~ ( R v P ) ) ) : AS ; N56 | | ( ( ~ P ) v R ) : AS ; N57 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N54 ; N58 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N56 N57 ; N59 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N55 N58 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N36 S : PR ; N37 ( P > ( Q > S ) ) : PR ; N38 | ( ~ ( ~ ( R v P ) ) ) : AS ; N39 | | ( ( ~ P ) v R ) : AS ; N40 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N37 ; N41 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N37 S : PR ; N38 ( P > ( Q > S ) ) : PR ; N39 | ( ~ ( ~ ( R v P ) ) ) : AS ; N40 | | ( ( ~ P ) v R ) : AS ; N41 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N38 ; N42 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N40 N41 ; N43 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N39 N42 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N29 S : PR ; N30 ( P > ( Q > S ) ) : PR ; N31 | ( ~ ( ~ ( R v P ) ) ) : AS ; N32 | | ( ( ~ P ) v R ) : AS ; N33 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N30 ; N34 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N32 N33 ; N35 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N31 N34 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N39 S : PR ; N40 ( P > ( Q > S ) ) : PR ; N41 | ( ~ ( ~ ( R v P ) ) ) : AS ; N42 | | ( ( ~ P ) v R ) : AS ; N43 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N40 ; N44 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N25 S : PR ; N26 ( P > ( Q > S ) ) : PR ; N27 | ( ~ ( ~ ( R v P ) ) ) : AS ; N28 | | ( ( ~ P ) v R ) : AS ; N29 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N26 ; N30 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N28 N29 ; N31 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N27 N30 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N47 S : PR ; N48 ( P > ( Q > S ) ) : PR ; N49 | ( ~ ( ~ ( R v P ) ) ) : AS ; N50 | | ( ( ~ P ) v R ) : AS ; N51 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N48 ; N52 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N50 N51 ; N53 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N49 N52 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N16 S : PR ; N17 ( P > ( Q > S ) ) : PR ; N18 | ( ~ ( ~ ( R v P ) ) ) : AS ; N19 | | ( ( ~ P ) v R ) : AS ; N20 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N17 ; N21 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N19 N20 ; N22 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N18 N21 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N14 S : PR ; N15 ( P > ( Q > S ) ) : PR ; N16 | ( ~ ( ~ ( R v P ) ) ) : AS ; N17 | | ( ( ~ P ) v R ) : AS ; N18 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N15 ; N19 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N17 N18 ; N20 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N16 N19 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N57 S : PR ; N58 ( P > ( Q > S ) ) : PR ; N59 | ( ~ ( ~ ( R v P ) ) ) : AS ; N60 | | ( ( ~ P ) v R ) : AS ; N61 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N58 ; N62 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N60 N61 ; N63 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N59 N62 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N41 S : PR ; N42 ( P > ( Q > S ) ) : PR ; N43 | ( ~ ( ~ ( R v P ) ) ) : AS ; N44 | | ( ( ~ P ) v R ) : AS ; N45 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N42 ; N46 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N44 N45 ; N47 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N43 S : PR ; N44 ( P > ( Q > S ) ) : PR ; N45 | ( ~ ( ~ ( R v P ) ) ) : AS ; N46 | | ( ( ~ P ) v R ) : AS ; N47 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N44 ; N48 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N46 N47 ; N49 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N43 S : PR ; N44 ( P > ( Q > S ) ) : PR ; N45 | ( ~ ( ~ ( R v P ) ) ) : AS ; N46 | | ( ( ~ P ) v R ) : AS ; N47 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N44 ; N48 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N46 N47 ; N49 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N27 S : PR ; N28 ( P > ( Q > S ) ) : PR ; N29 | ( ~ ( ~ ( R v P ) ) ) : AS ; N30 | | ( ( ~ P ) v R ) : AS ; N31 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N28 ; N32 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N30 N31 ; N33 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N29 N32 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N41 S : PR ; N42 ( P > ( Q > S ) ) : PR ; N43 | ( ~ ( ~ ( R v P ) ) ) : AS ; N44 | | ( ( ~ P ) v R ) : AS ; N45 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N42 ; N46 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N44 N45 ; N47 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N40 S : PR ; N41 ( P > ( Q > S ) ) : PR ; N42 | ( ~ ( ~ ( R v P ) ) ) : AS ; N43 | | ( ( ~ P ) v R ) : AS ; N44 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N41 ; N45 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N43 N44 ; N46 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N42 N45 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N41 S : PR ; N42 ( P > ( Q > S ) ) : PR ; N43 | ( ~ ( ~ ( R v P ) ) ) : AS ; N44 | | ( ( ~ P ) v R ) : AS ; N45 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N42 ; N46 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N44 N45 ; N47 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N55 S : PR ; N56 ( P > ( Q > S ) ) : PR ; N57 | ( ~ ( ~ ( R v P ) ) ) : AS ; N58 | | ( ( ~ P ) v R ) : AS ; N59 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N56 ; N60 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N58 N59 ; N61 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N57 N60 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N39 S : PR ; N40 ( P > ( Q > S ) ) : PR ; N41 | ( ~ ( ~ ( R v P ) ) ) : AS ; N42 | | ( ( ~ P ) v R ) : AS ; N43 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N40 ; N44 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N53 ( S > P ) : PR ; N54 ( ( ~ S ) v ( ~ Q ) ) : PR ; N55 | ( ~ ( ~ P ) ) : AS ; N56 | | S : AS ; N57 | | ( ( S > P ) v Q ) : ORI1 N53 ; N58 | ( S > ( ( S > P ) v Q ) ) : IMPI N56 N57 ; N59 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N55 N58 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N10 ( S > P ) : PR ; N11 ( ( ~ S ) v ( ~ Q ) ) : PR ; N12 | ( ~ ( ~ P ) ) : AS ; N13 | | S : AS ; N14 | | ( ( S > P ) v Q ) : ORI1 N10 ; N15 | ( S > ( ( S > P ) v Q ) ) : IMPI N13 N14 ; N16 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N19 ( S > P ) : PR ; N20 ( ( ~ S ) v ( ~ Q ) ) : PR ; N21 | ( ~ ( ~ P ) ) : AS ; N22 | | S : AS ; N23 | | ( ( S > P ) v Q ) : ORI1 N19 ; N24 | ( S > ( ( S > P ) v Q ) ) : IMPI N22 N23 ; N25 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N21 N24 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N43 ( S > P ) : PR ; N44 ( ( ~ S ) v ( ~ Q ) ) : PR ; N45 | ( ~ ( ~ P ) ) : AS ; N46 | | S : AS ; N47 | | ( ( S > P ) v Q ) : ORI1 N43 ; N48 | ( S > ( ( S > P ) v Q ) ) : IMPI N46 N47 ; N49 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N3 ( S > P ) : PR ; N4 ( ( ~ S ) v ( ~ Q ) ) : PR ; N5 | ( ~ ( ~ P ) ) : AS ; N6 | | S : AS ; N7 | | ( ( S > P ) v Q ) : ORI1 N3 ; N8 | ( S > ( ( S > P ) v Q ) ) : IMPI N6 N7 ; N9 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N5 N8 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N36 ( S > P ) : PR ; N37 ( ( ~ S ) v ( ~ Q ) ) : PR ; N38 | ( ~ ( ~ P ) ) : AS ; N39 | | S : AS ; N40 | | ( ( S > P ) v Q ) : ORI1 N36 ; N41 | ( S > ( ( S > P ) v Q ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N50 ( S > P ) : PR ; N51 ( ( ~ S ) v ( ~ Q ) ) : PR ; N52 | ( ~ ( ~ P ) ) : AS ; N53 | | S : AS ; N54 | | ( ( S > P ) v Q ) : ORI1 N50 ; N55 | ( S > ( ( S > P ) v Q ) ) : IMPI N53 N54 ; N56 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N52 N55 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N17 ( S > P ) : PR ; N18 ( ( ~ S ) v ( ~ Q ) ) : PR ; N19 | ( ~ ( ~ P ) ) : AS ; N20 | | S : AS ; N21 | | ( ( S > P ) v Q ) : ORI1 N17 ; N22 | ( S > ( ( S > P ) v Q ) ) : IMPI N20 N21 ; N23 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N19 N22 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N25 ( S > P ) : PR ; N26 ( ( ~ S ) v ( ~ Q ) ) : PR ; N27 | ( ~ ( ~ P ) ) : AS ; N28 | | S : AS ; N29 | | ( ( S > P ) v Q ) : ORI1 N25 ; N30 | ( S > ( ( S > P ) v Q ) ) : IMPI N28 N29 ; N31 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N27 N30 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N34 ( S > P ) : PR ; N35 ( ( ~ S ) v ( ~ Q ) ) : PR ; N36 | ( ~ ( ~ P ) ) : AS ; N37 | | S : AS ; N38 | | ( ( S > P ) v Q ) : ORI1 N34 ; N39 | ( S > ( ( S > P ) v Q ) ) : IMPI N37 N38 ; N40 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N40 ( S > P ) : PR ; N41 ( ( ~ S ) v ( ~ Q ) ) : PR ; N42 | ( ~ ( ~ P ) ) : AS ; N43 | | S : AS ; N44 | | ( ( S > P ) v Q ) : ORI1 N40 ; N45 | ( S > ( ( S > P ) v Q ) ) : IMPI N43 N44 ; N46 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N42 N45 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N30 ( S > P ) : PR ; N31 ( ( ~ S ) v ( ~ Q ) ) : PR ; N32 | ( ~ ( ~ P ) ) : AS ; N33 | | S : AS ; N34 | | ( ( S > P ) v Q ) : ORI1 N30 ; N35 | ( S > ( ( S > P ) v Q ) ) : IMPI N33 N34 ; N36 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N32 N35 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N10 ( S > P ) : PR ; N11 ( ( ~ S ) v ( ~ Q ) ) : PR ; N12 | ( ~ ( ~ P ) ) : AS ; N13 | | S : AS ; N14 | | ( ( S > P ) v Q ) : ORI1 N10 ; N15 | ( S > ( ( S > P ) v Q ) ) : IMPI N13 N14 ; N16 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N25 ( S > P ) : PR ; N26 ( ( ~ S ) v ( ~ Q ) ) : PR ; N27 | ( ~ ( ~ P ) ) : AS ; N28 | | S : AS ; N29 | | ( ( S > P ) v Q ) : ORI1 N25 ; N30 | ( S > ( ( S > P ) v Q ) ) : IMPI N28 N29 ; N31 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N27 N30 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N32 ( S > P ) : PR ; N33 ( ( ~ S ) v ( ~ Q ) ) : PR ; N34 | ( ~ ( ~ P ) ) : AS ; N35 | | S : AS ; N36 | | ( ( S > P ) v Q ) : ORI1 N32 ; N37 | ( S > ( ( S > P ) v Q ) ) : IMPI N35 N36 ; N38 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N34 N37 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N56 ( S > P ) : PR ; N57 ( ( ~ S ) v ( ~ Q ) ) : PR ; N58 | ( ~ ( ~ P ) ) : AS ; N59 | | S : AS ; N60 | | ( ( S > P ) v Q ) : ORI1 N56 ; N61 | ( S > ( ( S > P ) v Q ) ) : IMPI N59 N60 ; N62 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N58 N61 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N46 ( S > P ) : PR ; N47 ( ( ~ S ) v ( ~ Q ) ) : PR ; N48 | ( ~ ( ~ P ) ) : AS ; N49 | | S : AS ; N50 | | ( ( S > P ) v Q ) : ORI1 N46 ; N51 | ( S > ( ( S > P ) v Q ) ) : IMPI N49 N50 ; N52 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N48 N51 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N24 ( S > P ) : PR ; N25 ( ( ~ S ) v ( ~ Q ) ) : PR ; N26 | ( ~ ( ~ P ) ) : AS ; N27 | | S : AS ; N28 | | ( ( S > P ) v Q ) : ORI1 N24 ; N29 | ( S > ( ( S > P ) v Q ) ) : IMPI N27 N28 ; N30 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N26 N29 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N9 ( S > P ) : PR ; N10 ( ( ~ S ) v ( ~ Q ) ) : PR ; N11 | ( ~ ( ~ P ) ) : AS ; N12 | | S : AS ; N13 | | ( ( S > P ) v Q ) : ORI1 N9 ; N14 | ( S > ( ( S > P ) v Q ) ) : IMPI N12 N13 ; N15 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N11 N14 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N46 ( S > P ) : PR ; N47 ( ( ~ S ) v ( ~ Q ) ) : PR ; N48 | ( ~ ( ~ P ) ) : AS ; N49 | | S : AS ; N50 | | ( ( S > P ) v Q ) : ORI1 N46 ; N51 | ( S > ( ( S > P ) v Q ) ) : IMPI N49 N50 ; N52 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N48 N51 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N7 ( S > P ) : PR ; N8 ( ( ~ S ) v ( ~ Q ) ) : PR ; N9 | ( ~ ( ~ P ) ) : AS ; N10 | | S : AS ; N11 | | ( ( S > P ) v Q ) : ORI1 N7 ; N12 | ( S > ( ( S > P ) v Q ) ) : IMPI N10 N11 ; N13 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N9 N12 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N20 ( S > P ) : PR ; N21 ( ( ~ S ) v ( ~ Q ) ) : PR ; N22 | ( ~ ( ~ P ) ) : AS ; N23 | | S : AS ; N24 | | ( ( S > P ) v Q ) : ORI1 N20 ; N25 | ( S > ( ( S > P ) v Q ) ) : IMPI N23 N24 ; N26 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N22 N25 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N28 ( S > P ) : PR ; N29 ( ( ~ S ) v ( ~ Q ) ) : PR ; N30 | ( ~ ( ~ P ) ) : AS ; N31 | | S : AS ; N32 | | ( ( S > P ) v Q ) : ORI1 N28 ; N33 | ( S > ( ( S > P ) v Q ) ) : IMPI N31 N32 ; N34 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N30 N33 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N4 ( S > P ) : PR ; N5 ( ( ~ S ) v ( ~ Q ) ) : PR ; N6 | ( ~ ( ~ P ) ) : AS ; N7 | | S : AS ; N8 | | ( ( S > P ) v Q ) : ORI1 N4 ; N9 | ( S > ( ( S > P ) v Q ) ) : IMPI N7 N8 ; N10 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N6 N9 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N18 ( S > P ) : PR ; N19 ( ( ~ S ) v ( ~ Q ) ) : PR ; N20 | ( ~ ( ~ P ) ) : AS ; N21 | | S : AS ; N22 | | ( ( S > P ) v Q ) : ORI1 N18 ; N23 | ( S > ( ( S > P ) v Q ) ) : IMPI N21 N22 ; N24 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N20 N23 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N16 ( S > P ) : PR ; N17 ( ( ~ S ) v ( ~ Q ) ) : PR ; N18 | ( ~ ( ~ P ) ) : AS ; N19 | | S : AS ; N20 | | ( ( S > P ) v Q ) : ORI1 N16 ; N21 | ( S > ( ( S > P ) v Q ) ) : IMPI N19 N20 ; N22 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N18 N21 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N34 ( S > P ) : PR ; N35 ( ( ~ S ) v ( ~ Q ) ) : PR ; N36 | ( ~ ( ~ P ) ) : AS ; N37 | | S : AS ; N38 | | ( ( S > P ) v Q ) : ORI1 N34 ; N39 | ( S > ( ( S > P ) v Q ) ) : IMPI N37 N38 ; N40 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N17 ( S & R ) : PR ; N18 ( R v Q ) : PR ; N19 | ( ~ ( ~ P ) ) : AS ; N20 | | ( ~ P ) : AS ; N21 | | R : ANDE2 N17 ; N22 | ( ( ~ P ) > R ) : IMPI N20 N21 ; N23 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N19 N22 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N55 ( S & R ) : PR ; N56 ( R v Q ) : PR ; N57 | ( ~ ( ~ P ) ) : AS ; N58 | | ( ~ P ) : AS ; N59 | | R : ANDE2 N55 ; N60 | ( ( ~ P ) > R ) : IMPI N58 N59 ; N61 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N57 N60 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N12 ( S & R ) : PR ; N13 ( R v Q ) : PR ; N14 | ( ~ ( ~ P ) ) : AS ; N15 | | ( ~ P ) : AS ; N16 | | R : ANDE2 N12 ; N17 | ( ( ~ P ) > R ) : IMPI N15 N16 ; N18 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N39 ( S & R ) : PR ; N40 ( R v Q ) : PR ; N41 | ( ~ ( ~ P ) ) : AS ; N42 | | ( ~ P ) : AS ; N43 | | R : ANDE2 N39 ; N44 | ( ( ~ P ) > R ) : IMPI N42 N43 ; N45 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N53 ( S & R ) : PR ; N54 ( R v Q ) : PR ; N55 | ( ~ ( ~ P ) ) : AS ; N56 | | ( ~ P ) : AS ; N57 | | R : ANDE2 N53 ; N58 | ( ( ~ P ) > R ) : IMPI N56 N57 ; N59 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N55 N58 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N34 ( S & R ) : PR ; N35 ( R v Q ) : PR ; N36 | ( ~ ( ~ P ) ) : AS ; N37 | | ( ~ P ) : AS ; N38 | | R : ANDE2 N34 ; N39 | ( ( ~ P ) > R ) : IMPI N37 N38 ; N40 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N58 ( S & R ) : PR ; N59 ( R v Q ) : PR ; N60 | ( ~ ( ~ P ) ) : AS ; N61 | | ( ~ P ) : AS ; N62 | | R : ANDE2 N58 ; N63 | ( ( ~ P ) > R ) : IMPI N61 N62 ; N64 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N60 N63 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N8 ( S & R ) : PR ; N9 ( R v Q ) : PR ; N10 | ( ~ ( ~ P ) ) : AS ; N11 | | ( ~ P ) : AS ; N12 | | R : ANDE2 N8 ; N13 | ( ( ~ P ) > R ) : IMPI N11 N12 ; N14 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N10 N13 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N31 ( S & R ) : PR ; N32 ( R v Q ) : PR ; N33 | ( ~ ( ~ P ) ) : AS ; N34 | | ( ~ P ) : AS ; N35 | | R : ANDE2 N31 ; N36 | ( ( ~ P ) > R ) : IMPI N34 N35 ; N37 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N33 N36 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N11 ( S & R ) : PR ; N12 ( R v Q ) : PR ; N13 | ( ~ ( ~ P ) ) : AS ; N14 | | ( ~ P ) : AS ; N15 | | R : ANDE2 N11 ; N16 | ( ( ~ P ) > R ) : IMPI N14 N15 ; N17 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N36 ( S & R ) : PR ; N37 ( R v Q ) : PR ; N38 | ( ~ ( ~ P ) ) : AS ; N39 | | ( ~ P ) : AS ; N40 | | R : ANDE2 N36 ; N41 | ( ( ~ P ) > R ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N29 ( S & R ) : PR ; N30 ( R v Q ) : PR ; N31 | ( ~ ( ~ P ) ) : AS ; N32 | | ( ~ P ) : AS ; N33 | | R : ANDE2 N29 ; N34 | ( ( ~ P ) > R ) : IMPI N32 N33 ; N35 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N31 N34 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N7 ( S & R ) : PR ; N8 ( R v Q ) : PR ; N9 | ( ~ ( ~ P ) ) : AS ; N10 | | ( ~ P ) : AS ; N11 | | R : ANDE2 N7 ; N12 | ( ( ~ P ) > R ) : IMPI N10 N11 ; N13 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N9 N12 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N23 ( S & R ) : PR ; N24 ( R v Q ) : PR ; N25 | ( ~ ( ~ P ) ) : AS ; N26 | | ( ~ P ) : AS ; N27 | | R : ANDE2 N23 ; N28 | ( ( ~ P ) > R ) : IMPI N26 N27 ; N29 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N25 N28 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N10 ( S & R ) : PR ; N11 ( R v Q ) : PR ; N12 | ( ~ ( ~ P ) ) : AS ; N13 | | ( ~ P ) : AS ; N14 | | R : ANDE2 N10 ; N15 | ( ( ~ P ) > R ) : IMPI N13 N14 ; N16 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3322 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM R , ( Q v P ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) PRF
+COMPLETION: N34 R : PR ; N35 ( Q v P ) : PR ; N36 | ( ~ ( ~ Q ) ) : AS ; N37 | | ( ~ ( ~ ( P > R ) ) ) : AS ; N38 | | ( ( Q v P ) & ( Q v P ) ) : ANDI N35 N35 ; N39 | ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) : IMPI N37 N38 ; N40 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_3322 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM R , ( Q v P ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) PRF
+COMPLETION: N23 R : PR ; N24 ( Q v P ) : PR ; N25 | ( ~ ( ~ Q ) ) : AS ; N26 | | ( ~ ( ~ ( P > R ) ) ) : AS ; N27 | | ( ( Q v P ) & ( Q v P ) ) : ANDI N24 N24 ; N28 | ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) : IMPI N26 N27 ; N29 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) : IMPI N25 N28 ; QED
+--- la_rl_targets_3322 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM R , ( Q v P ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) PRF
+COMPLETION: N40 R : PR ; N41 ( Q v P ) : PR ; N42 | ( ~ ( ~ Q ) ) : AS ; N43 | | ( ~ ( ~ ( P > R ) ) ) : AS ; N44 | | ( ( Q v P ) & ( Q v P ) ) : ANDI N41 N41 ; N45 | ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) : IMPI N43 N44 ; N46 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) : IMPI N42 N45 ; QED
+--- la_rl_targets_3322 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM R , ( Q v P ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) PRF
+COMPLETION: N9 R : PR ; N10 ( Q v P ) : PR ; N11 | ( ~ ( ~ Q ) ) : AS ; N12 | | ( ~ ( ~ ( P > R ) ) ) : AS ; N13 | | ( ( Q v P ) & ( Q v P ) ) : ANDI N10 N10 ; N14 | ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) : IMPI N12 N13 ; N15 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) : IMPI N11 N14 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N19 ( R v ( Q v P ) ) : PR ; N20 ( ~ ( ~ S ) ) : PR ; N21 | ( ~ P ) : AS ; N22 | | ( ~ ( ~ S ) ) : AS ; N23 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N20 ; N24 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N22 N23 ; N25 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N21 N24 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N37 ( R v ( Q v P ) ) : PR ; N38 ( ~ ( ~ S ) ) : PR ; N39 | ( ~ P ) : AS ; N40 | | ( ~ ( ~ S ) ) : AS ; N41 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N38 ; N42 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N40 N41 ; N43 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N39 N42 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N8 ( R v ( Q v P ) ) : PR ; N9 ( ~ ( ~ S ) ) : PR ; N10 | ( ~ P ) : AS ; N11 | | ( ~ ( ~ S ) ) : AS ; N12 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N9 ; N13 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N11 N12 ; N14 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N10 N13 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N10 ( R v ( Q v P ) ) : PR ; N11 ( ~ ( ~ S ) ) : PR ; N12 | ( ~ P ) : AS ; N13 | | ( ~ ( ~ S ) ) : AS ; N14 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N11 ; N15 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N13 N14 ; N16 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N10 ( R v ( Q v P ) ) : PR ; N11 ( ~ ( ~ S ) ) : PR ; N12 | ( ~ P ) : AS ; N13 | | ( ~ ( ~ S ) ) : AS ; N14 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N11 ; N15 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N13 N14 ; N16 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N19 ( R v ( Q v P ) ) : PR ; N20 ( ~ ( ~ S ) ) : PR ; N21 | ( ~ P ) : AS ; N22 | | ( ~ ( ~ S ) ) : AS ; N23 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N20 ; N24 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N22 N23 ; N25 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N21 N24 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N51 ( R v ( Q v P ) ) : PR ; N52 ( ~ ( ~ S ) ) : PR ; N53 | ( ~ P ) : AS ; N54 | | ( ~ ( ~ S ) ) : AS ; N55 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N52 ; N56 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N54 N55 ; N57 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N53 N56 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N33 ( R v ( Q v P ) ) : PR ; N34 ( ~ ( ~ S ) ) : PR ; N35 | ( ~ P ) : AS ; N36 | | ( ~ ( ~ S ) ) : AS ; N37 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N34 ; N38 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N36 N37 ; N39 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N35 N38 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N23 ( R v ( Q v P ) ) : PR ; N24 ( ~ ( ~ S ) ) : PR ; N25 | ( ~ P ) : AS ; N26 | | ( ~ ( ~ S ) ) : AS ; N27 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N24 ; N28 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N26 N27 ; N29 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N25 N28 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N9 ( R v ( Q v P ) ) : PR ; N10 ( ~ ( ~ S ) ) : PR ; N11 | ( ~ P ) : AS ; N12 | | ( ~ ( ~ S ) ) : AS ; N13 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N10 ; N14 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N12 N13 ; N15 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N11 N14 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N47 ( R v ( Q v P ) ) : PR ; N48 ( ~ ( ~ S ) ) : PR ; N49 | ( ~ P ) : AS ; N50 | | ( ~ ( ~ S ) ) : AS ; N51 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N48 ; N52 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N50 N51 ; N53 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N49 N52 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N14 ( R v ( Q v P ) ) : PR ; N15 ( ~ ( ~ S ) ) : PR ; N16 | ( ~ P ) : AS ; N17 | | ( ~ ( ~ S ) ) : AS ; N18 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N15 ; N19 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N17 N18 ; N20 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N16 N19 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N33 ( R v ( Q v P ) ) : PR ; N34 ( ~ ( ~ S ) ) : PR ; N35 | ( ~ P ) : AS ; N36 | | ( ~ ( ~ S ) ) : AS ; N37 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N34 ; N38 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N36 N37 ; N39 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N35 N38 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N2 ( R v ( Q v P ) ) : PR ; N3 ( ~ ( ~ S ) ) : PR ; N4 | ( ~ P ) : AS ; N5 | | ( ~ ( ~ S ) ) : AS ; N6 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N3 ; N7 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N39 ( R v ( Q v P ) ) : PR ; N40 ( ~ ( ~ S ) ) : PR ; N41 | ( ~ P ) : AS ; N42 | | ( ~ ( ~ S ) ) : AS ; N43 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N40 ; N44 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N4 ( R v ( Q v P ) ) : PR ; N5 ( ~ ( ~ S ) ) : PR ; N6 | ( ~ P ) : AS ; N7 | | ( ~ ( ~ S ) ) : AS ; N8 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N7 ; N9 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N7 N8 ; N10 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N6 N9 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N18 ( R v ( Q v P ) ) : PR ; N19 ( ~ ( ~ S ) ) : PR ; N20 | ( ~ P ) : AS ; N21 | | ( ~ ( ~ S ) ) : AS ; N22 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N19 ; N23 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N21 N22 ; N24 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N20 N23 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N48 ( R v ( Q v P ) ) : PR ; N49 ( ~ ( ~ S ) ) : PR ; N50 | ( ~ P ) : AS ; N51 | | ( ~ ( ~ S ) ) : AS ; N52 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N49 ; N53 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N51 N52 ; N54 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N50 N53 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N24 ( R v ( Q v P ) ) : PR ; N25 ( ~ ( ~ S ) ) : PR ; N26 | ( ~ P ) : AS ; N27 | | ( ~ ( ~ S ) ) : AS ; N28 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N25 ; N29 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N27 N28 ; N30 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N26 N29 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N16 ( R v ( Q v P ) ) : PR ; N17 ( ~ ( ~ S ) ) : PR ; N18 | ( ~ P ) : AS ; N19 | | ( ~ ( ~ S ) ) : AS ; N20 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N17 ; N21 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N19 N20 ; N22 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N18 N21 ; QED
+--- la_rl_targets_3542 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( ~ ( S > Q ) ) SEQ ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) PRF
+COMPLETION: N55 ( ~ ( S > Q ) ) : PR ; N56 | R : AS ; N57 | | ( S > P ) : AS ; N58 | | ( ( ~ P ) v ( ~ ( S > Q ) ) ) : ORI2 N55 ; N59 | | ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) : ORI1 N58 ; N60 | ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) : IMPI N57 N59 ; N61 ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) : IMPI N56 N60 ; QED
+--- la_rl_targets_3542 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ~ ( S > Q ) ) SEQ ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) PRF
+COMPLETION: N12 ( ~ ( S > Q ) ) : PR ; N13 ( ( ~ P ) v ( ~ ( S > Q ) ) ) : ORI2 N12 ; N14 | R : AS ; N15 | | ( S > P ) : AS ; N16 | | ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) : ORI1 N13 ; N17 | ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) : IMPI N15 N16 ; N18 ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_3542 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ~ ( S > Q ) ) SEQ ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) PRF
+COMPLETION: N10 ( ~ ( S > Q ) ) : PR ; N11 ( ( ~ P ) v ( ~ ( S > Q ) ) ) : ORI2 N10 ; N12 | R : AS ; N13 | | ( S > P ) : AS ; N14 | | ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) : ORI1 N11 ; N15 | ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) : IMPI N13 N14 ; N16 ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3542 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ~ ( S > Q ) ) SEQ ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) PRF
+COMPLETION: N53 ( ~ ( S > Q ) ) : PR ; N54 | R : AS ; N55 | | ( S > P ) : AS ; N56 | | ( ( ~ P ) v ( ~ ( S > Q ) ) ) : ORI2 N53 ; N57 | | ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) : ORI1 N56 ; N58 | ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) : IMPI N55 N57 ; N59 ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) : IMPI N54 N58 ; QED
+--- la_rl_targets_3542 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ~ ( S > Q ) ) SEQ ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) PRF
+COMPLETION: N34 ( ~ ( S > Q ) ) : PR ; N35 | R : AS ; N36 | | ( S > P ) : AS ; N37 | | ( ( ~ P ) v ( ~ ( S > Q ) ) ) : ORI2 N34 ; N38 | | ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) : ORI1 N37 ; N39 | ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) : IMPI N36 N38 ; N40 ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) : IMPI N35 N39 ; QED
+--- la_rl_targets_3542 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ~ ( S > Q ) ) SEQ ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) PRF
+COMPLETION: N9 ( ~ ( S > Q ) ) : PR ; N10 | R : AS ; N11 | | ( S > P ) : AS ; N12 | | ( ( ~ P ) v ( ~ ( S > Q ) ) ) : ORI2 N9 ; N13 | | ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) : ORI1 N12 ; N14 | ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) : IMPI N11 N13 ; N15 ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) : IMPI N10 N14 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N14 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N15 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N16 | | | ( R > R ) : AS ; N17 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N15 N14 ; N18 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N16 N17 ; N19 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N15 N18 ; N20 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N14 N19 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N56 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N57 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N58 | | | ( R > R ) : AS ; N59 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N57 N56 ; N60 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N58 N59 ; N61 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N57 N60 ; N62 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N56 N61 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N18 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N19 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N20 | | | ( R > R ) : AS ; N21 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N19 N18 ; N22 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N20 N21 ; N23 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N19 N22 ; N24 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N18 N23 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N54 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N55 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N56 | | | ( R > R ) : AS ; N57 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N55 N54 ; N58 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N56 N57 ; N59 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N55 N58 ; N60 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N54 N59 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N17 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N18 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N19 | | | ( R > R ) : AS ; N20 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N18 N17 ; N21 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N19 N20 ; N22 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N18 N21 ; N23 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N17 N22 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N53 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N54 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N55 | | | ( R > R ) : AS ; N56 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N54 N53 ; N57 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N55 N56 ; N58 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N54 N57 ; N59 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N53 N58 ; QED
+
+=== [evaluate/long_pool] ALL accepted proofs at prompt length >= 7 (112 rows, 11 distinct records); n_lines distribution {7: 112}
+--- la_rl_targets_2310 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( P > ( P v Q ) ) SEQ ( P > ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) ) PRF
+COMPLETION: N31 ( P > ( P v Q ) ) : PR ; N32 | P : AS ; N33 | | ( ~ P ) : AS ; N34 | | ( ( ~ P ) & ( P > ( P v Q ) ) ) : ANDI N33 N31 ; N35 | | ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) : ORI2 N34 ; N36 | ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) : IMPI N33 N35 ; N37 ( P > ( ( ~ P ) > ( ( ( ~ P ) & P ) v ( ( ~ P ) & ( P > ( P v Q ) ) ) ) ) ) : IMPI N32 N36 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N12 ( S & ( P v S ) ) : PR ; N13 ( P & P ) : PR ; N14 | Q : AS ; N15 | | P : AS ; N16 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N13 ; N17 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N15 N16 ; N18 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N12 ( S & ( P v S ) ) : PR ; N13 ( P & P ) : PR ; N14 | Q : AS ; N15 | | P : AS ; N16 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N13 ; N17 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N15 N16 ; N18 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N58 ( S & ( P v S ) ) : PR ; N59 ( P & P ) : PR ; N60 | Q : AS ; N61 | | P : AS ; N62 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N59 ; N63 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N61 N62 ; N64 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N60 N63 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N37 ( S & ( P v S ) ) : PR ; N38 ( P & P ) : PR ; N39 | Q : AS ; N40 | | P : AS ; N41 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N38 ; N42 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N40 N41 ; N43 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N39 N42 ; QED
+--- la_rl_targets_2376 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & ( P v S ) ) , ( P & P ) SEQ ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) PRF
+COMPLETION: N53 ( S & ( P v S ) ) : PR ; N54 ( P & P ) : PR ; N55 | Q : AS ; N56 | | P : AS ; N57 | | ( ( P & P ) v ( ( Q & R ) > P ) ) : ORI1 N54 ; N58 | ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) : IMPI N56 N57 ; N59 ( Q > ( P > ( ( P & P ) v ( ( Q & R ) > P ) ) ) ) : IMPI N55 N58 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N15 ( ( S > R ) > ( Q & Q ) ) : PR ; N16 ( S > R ) : PR ; N17 | ( ~ ( S > S ) ) : AS ; N18 | | ( ( ~ Q ) & Q ) : AS ; N19 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N16 N15 ; N20 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N18 N19 ; N21 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N17 N20 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N11 ( ( S > R ) > ( Q & Q ) ) : PR ; N12 ( S > R ) : PR ; N13 | ( ~ ( S > S ) ) : AS ; N14 | | ( ( ~ Q ) & Q ) : AS ; N15 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N12 N11 ; N16 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N14 N15 ; N17 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N15 ( ( S > R ) > ( Q & Q ) ) : PR ; N16 ( S > R ) : PR ; N17 | ( ~ ( S > S ) ) : AS ; N18 | | ( ( ~ Q ) & Q ) : AS ; N19 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N16 N15 ; N20 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N18 N19 ; N21 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N17 N20 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N56 ( ( S > R ) > ( Q & Q ) ) : PR ; N57 ( S > R ) : PR ; N58 | ( ~ ( S > S ) ) : AS ; N59 | | ( ( ~ Q ) & Q ) : AS ; N60 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N57 N56 ; N61 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N59 N60 ; N62 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N58 N61 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N41 ( ( S > R ) > ( Q & Q ) ) : PR ; N42 ( S > R ) : PR ; N43 | ( ~ ( S > S ) ) : AS ; N44 | | ( ( ~ Q ) & Q ) : AS ; N45 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N42 N41 ; N46 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N44 N45 ; N47 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N43 ( ( S > R ) > ( Q & Q ) ) : PR ; N44 ( S > R ) : PR ; N45 | ( ~ ( S > S ) ) : AS ; N46 | | ( ( ~ Q ) & Q ) : AS ; N47 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N44 N43 ; N48 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N46 N47 ; N49 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N20 ( ( S > R ) > ( Q & Q ) ) : PR ; N21 ( S > R ) : PR ; N22 | ( ~ ( S > S ) ) : AS ; N23 | | ( ( ~ Q ) & Q ) : AS ; N24 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N21 N20 ; N25 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N22 N25 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N58 ( ( S > R ) > ( Q & Q ) ) : PR ; N59 ( S > R ) : PR ; N60 | ( ~ ( S > S ) ) : AS ; N61 | | ( ( ~ Q ) & Q ) : AS ; N62 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N59 N58 ; N63 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N61 N62 ; N64 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N60 N63 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N39 ( ( S > R ) > ( Q & Q ) ) : PR ; N40 ( S > R ) : PR ; N41 | ( ~ ( S > S ) ) : AS ; N42 | | ( ( ~ Q ) & Q ) : AS ; N43 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N40 N39 ; N44 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N36 ( ( S > R ) > ( Q & Q ) ) : PR ; N37 ( S > R ) : PR ; N38 | ( ~ ( S > S ) ) : AS ; N39 | | ( ( ~ Q ) & Q ) : AS ; N40 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N37 N36 ; N41 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N39 N40 ; N42 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N34 ( ( S > R ) > ( Q & Q ) ) : PR ; N35 ( S > R ) : PR ; N36 | ( ~ ( S > S ) ) : AS ; N37 | | ( ( ~ Q ) & Q ) : AS ; N38 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N35 N34 ; N39 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N37 N38 ; N40 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N57 ( ( S > R ) > ( Q & Q ) ) : PR ; N58 ( S > R ) : PR ; N59 | ( ~ ( S > S ) ) : AS ; N60 | | ( ( ~ Q ) & Q ) : AS ; N61 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N58 N57 ; N62 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N60 N61 ; N63 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N59 N62 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N11 ( ( S > R ) > ( Q & Q ) ) : PR ; N12 ( S > R ) : PR ; N13 | ( ~ ( S > S ) ) : AS ; N14 | | ( ( ~ Q ) & Q ) : AS ; N15 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N12 N11 ; N16 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N14 N15 ; N17 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N20 ( ( S > R ) > ( Q & Q ) ) : PR ; N21 ( S > R ) : PR ; N22 | ( ~ ( S > S ) ) : AS ; N23 | | ( ( ~ Q ) & Q ) : AS ; N24 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N21 N20 ; N25 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N22 N25 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N39 ( ( S > R ) > ( Q & Q ) ) : PR ; N40 ( S > R ) : PR ; N41 | ( ~ ( S > S ) ) : AS ; N42 | | ( ( ~ Q ) & Q ) : AS ; N43 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N40 N39 ; N44 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N57 ( ( S > R ) > ( Q & Q ) ) : PR ; N58 ( S > R ) : PR ; N59 | ( ~ ( S > S ) ) : AS ; N60 | | ( ( ~ Q ) & Q ) : AS ; N61 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N58 N57 ; N62 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N60 N61 ; N63 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N59 N62 ; QED
+--- la_rl_targets_2574 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) > ( Q & Q ) ) , ( S > R ) SEQ ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) PRF
+COMPLETION: N12 ( ( S > R ) > ( Q & Q ) ) : PR ; N13 ( S > R ) : PR ; N14 | ( ~ ( S > S ) ) : AS ; N15 | | ( ( ~ Q ) & Q ) : AS ; N16 | | ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) : ANDI N13 N12 ; N17 | ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) : IMPI N15 N16 ; N18 ( ( ~ ( S > S ) ) > ( ( ( ~ Q ) & Q ) > ( ( S > R ) & ( ( S > R ) > ( Q & Q ) ) ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N36 ( ( S > R ) & R ) : PR ; N37 ( ( ~ ( ~ Q ) ) v R ) : PR ; N38 | ( ~ ( ~ R ) ) : AS ; N39 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N40 | | ( S > R ) : ANDE1 N36 ; N41 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N51 ( ( S > R ) & R ) : PR ; N52 ( ( ~ ( ~ Q ) ) v R ) : PR ; N53 | ( ~ ( ~ R ) ) : AS ; N54 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N55 | | ( S > R ) : ANDE1 N51 ; N56 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N54 N55 ; N57 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N53 N56 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N9 ( ( S > R ) & R ) : PR ; N10 ( ( ~ ( ~ Q ) ) v R ) : PR ; N11 | ( ~ ( ~ R ) ) : AS ; N12 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N13 | | ( S > R ) : ANDE1 N9 ; N14 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N12 N13 ; N15 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N11 N14 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N15 ( ( S > R ) & R ) : PR ; N16 ( ( ~ ( ~ Q ) ) v R ) : PR ; N17 | ( ~ ( ~ R ) ) : AS ; N18 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N19 | | ( S > R ) : ANDE1 N15 ; N20 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N18 N19 ; N21 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N17 N20 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N36 ( ( S > R ) & R ) : PR ; N37 ( ( ~ ( ~ Q ) ) v R ) : PR ; N38 | ( ~ ( ~ R ) ) : AS ; N39 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N40 | | ( S > R ) : ANDE1 N36 ; N41 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N7 ( ( S > R ) & R ) : PR ; N8 ( ( ~ ( ~ Q ) ) v R ) : PR ; N9 | ( ~ ( ~ R ) ) : AS ; N10 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N11 | | ( S > R ) : ANDE1 N7 ; N12 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N10 N11 ; N13 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N9 N12 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N17 ( ( S > R ) & R ) : PR ; N18 ( ( ~ ( ~ Q ) ) v R ) : PR ; N19 | ( ~ ( ~ R ) ) : AS ; N20 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N21 | | ( S > R ) : ANDE1 N17 ; N22 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N20 N21 ; N23 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N19 N22 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N32 ( ( S > R ) & R ) : PR ; N33 ( ( ~ ( ~ Q ) ) v R ) : PR ; N34 | ( ~ ( ~ R ) ) : AS ; N35 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N36 | | ( S > R ) : ANDE1 N32 ; N37 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N35 N36 ; N38 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N34 N37 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N41 ( ( S > R ) & R ) : PR ; N42 ( ( ~ ( ~ Q ) ) v R ) : PR ; N43 | ( ~ ( ~ R ) ) : AS ; N44 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N45 | | ( S > R ) : ANDE1 N41 ; N46 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N44 N45 ; N47 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N56 ( ( S > R ) & R ) : PR ; N57 ( ( ~ ( ~ Q ) ) v R ) : PR ; N58 | ( ~ ( ~ R ) ) : AS ; N59 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N60 | | ( S > R ) : ANDE1 N56 ; N61 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N59 N60 ; N62 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N58 N61 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N2 ( ( S > R ) & R ) : PR ; N3 ( ( ~ ( ~ Q ) ) v R ) : PR ; N4 | ( ~ ( ~ R ) ) : AS ; N5 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N6 | | ( S > R ) : ANDE1 N2 ; N7 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N11 ( ( S > R ) & R ) : PR ; N12 ( ( ~ ( ~ Q ) ) v R ) : PR ; N13 | ( ~ ( ~ R ) ) : AS ; N14 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N15 | | ( S > R ) : ANDE1 N11 ; N16 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N14 N15 ; N17 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N10 ( ( S > R ) & R ) : PR ; N11 ( ( ~ ( ~ Q ) ) v R ) : PR ; N12 | ( ~ ( ~ R ) ) : AS ; N13 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N14 | | ( S > R ) : ANDE1 N10 ; N15 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N13 N14 ; N16 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_2750 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+COMPLETION: N27 ( ( S > R ) & R ) : PR ; N28 ( ( ~ ( ~ Q ) ) v R ) : PR ; N29 | ( ~ ( ~ R ) ) : AS ; N30 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N31 | | ( S > R ) : ANDE1 N27 ; N32 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N30 N31 ; N33 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N29 N32 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N29 S : PR ; N30 ( P > ( Q > S ) ) : PR ; N31 | ( ~ ( ~ ( R v P ) ) ) : AS ; N32 | | ( ( ~ P ) v R ) : AS ; N33 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N30 ; N34 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N32 N33 ; N35 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N31 N34 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N19 S : PR ; N20 ( P > ( Q > S ) ) : PR ; N21 | ( ~ ( ~ ( R v P ) ) ) : AS ; N22 | | ( ( ~ P ) v R ) : AS ; N23 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N20 ; N24 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N22 N23 ; N25 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N21 N24 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N36 S : PR ; N37 ( P > ( Q > S ) ) : PR ; N38 | ( ~ ( ~ ( R v P ) ) ) : AS ; N39 | | ( ( ~ P ) v R ) : AS ; N40 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N37 ; N41 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N28 S : PR ; N29 ( P > ( Q > S ) ) : PR ; N30 | ( ~ ( ~ ( R v P ) ) ) : AS ; N31 | | ( ( ~ P ) v R ) : AS ; N32 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N29 ; N33 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N31 N32 ; N34 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N30 N33 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N20 S : PR ; N21 ( P > ( Q > S ) ) : PR ; N22 | ( ~ ( ~ ( R v P ) ) ) : AS ; N23 | | ( ( ~ P ) v R ) : AS ; N24 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N21 ; N25 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N22 N25 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N53 S : PR ; N54 ( P > ( Q > S ) ) : PR ; N55 | ( ~ ( ~ ( R v P ) ) ) : AS ; N56 | | ( ( ~ P ) v R ) : AS ; N57 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N54 ; N58 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N56 N57 ; N59 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N55 N58 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N37 S : PR ; N38 ( P > ( Q > S ) ) : PR ; N39 | ( ~ ( ~ ( R v P ) ) ) : AS ; N40 | | ( ( ~ P ) v R ) : AS ; N41 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N38 ; N42 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N40 N41 ; N43 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N39 N42 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N39 S : PR ; N40 ( P > ( Q > S ) ) : PR ; N41 | ( ~ ( ~ ( R v P ) ) ) : AS ; N42 | | ( ( ~ P ) v R ) : AS ; N43 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N40 ; N44 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N25 S : PR ; N26 ( P > ( Q > S ) ) : PR ; N27 | ( ~ ( ~ ( R v P ) ) ) : AS ; N28 | | ( ( ~ P ) v R ) : AS ; N29 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N26 ; N30 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N28 N29 ; N31 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N27 N30 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N14 S : PR ; N15 ( P > ( Q > S ) ) : PR ; N16 | ( ~ ( ~ ( R v P ) ) ) : AS ; N17 | | ( ( ~ P ) v R ) : AS ; N18 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N15 ; N19 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N17 N18 ; N20 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N16 N19 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N43 S : PR ; N44 ( P > ( Q > S ) ) : PR ; N45 | ( ~ ( ~ ( R v P ) ) ) : AS ; N46 | | ( ( ~ P ) v R ) : AS ; N47 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N44 ; N48 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N46 N47 ; N49 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N43 S : PR ; N44 ( P > ( Q > S ) ) : PR ; N45 | ( ~ ( ~ ( R v P ) ) ) : AS ; N46 | | ( ( ~ P ) v R ) : AS ; N47 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N44 ; N48 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N46 N47 ; N49 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N41 S : PR ; N42 ( P > ( Q > S ) ) : PR ; N43 | ( ~ ( ~ ( R v P ) ) ) : AS ; N44 | | ( ( ~ P ) v R ) : AS ; N45 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N42 ; N46 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N44 N45 ; N47 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N40 S : PR ; N41 ( P > ( Q > S ) ) : PR ; N42 | ( ~ ( ~ ( R v P ) ) ) : AS ; N43 | | ( ( ~ P ) v R ) : AS ; N44 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N41 ; N45 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N43 N44 ; N46 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N42 N45 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N41 S : PR ; N42 ( P > ( Q > S ) ) : PR ; N43 | ( ~ ( ~ ( R v P ) ) ) : AS ; N44 | | ( ( ~ P ) v R ) : AS ; N45 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N42 ; N46 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N44 N45 ; N47 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N43 N46 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N55 S : PR ; N56 ( P > ( Q > S ) ) : PR ; N57 | ( ~ ( ~ ( R v P ) ) ) : AS ; N58 | | ( ( ~ P ) v R ) : AS ; N59 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N56 ; N60 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N58 N59 ; N61 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N57 N60 ; QED
+--- la_rl_targets_2926 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM S , ( P > ( Q > S ) ) SEQ ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) PRF
+COMPLETION: N39 S : PR ; N40 ( P > ( Q > S ) ) : PR ; N41 | ( ~ ( ~ ( R v P ) ) ) : AS ; N42 | | ( ( ~ P ) v R ) : AS ; N43 | | ( R v ( P > ( Q > S ) ) ) : ORI2 N40 ; N44 | ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ ( ~ ( R v P ) ) ) > ( ( ( ~ P ) v R ) > ( R v ( P > ( Q > S ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N15 ( S > P ) : PR ; N16 ( ( ~ S ) v ( ~ Q ) ) : PR ; N17 | ( ~ ( ~ P ) ) : AS ; N18 | | S : AS ; N19 | | ( ( S > P ) v Q ) : ORI1 N15 ; N20 | ( S > ( ( S > P ) v Q ) ) : IMPI N18 N19 ; N21 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N17 N20 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N53 ( S > P ) : PR ; N54 ( ( ~ S ) v ( ~ Q ) ) : PR ; N55 | ( ~ ( ~ P ) ) : AS ; N56 | | S : AS ; N57 | | ( ( S > P ) v Q ) : ORI1 N53 ; N58 | ( S > ( ( S > P ) v Q ) ) : IMPI N56 N57 ; N59 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N55 N58 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N43 ( S > P ) : PR ; N44 ( ( ~ S ) v ( ~ Q ) ) : PR ; N45 | ( ~ ( ~ P ) ) : AS ; N46 | | S : AS ; N47 | | ( ( S > P ) v Q ) : ORI1 N43 ; N48 | ( S > ( ( S > P ) v Q ) ) : IMPI N46 N47 ; N49 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N45 N48 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N3 ( S > P ) : PR ; N4 ( ( ~ S ) v ( ~ Q ) ) : PR ; N5 | ( ~ ( ~ P ) ) : AS ; N6 | | S : AS ; N7 | | ( ( S > P ) v Q ) : ORI1 N3 ; N8 | ( S > ( ( S > P ) v Q ) ) : IMPI N6 N7 ; N9 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N5 N8 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N36 ( S > P ) : PR ; N37 ( ( ~ S ) v ( ~ Q ) ) : PR ; N38 | ( ~ ( ~ P ) ) : AS ; N39 | | S : AS ; N40 | | ( ( S > P ) v Q ) : ORI1 N36 ; N41 | ( S > ( ( S > P ) v Q ) ) : IMPI N39 N40 ; N42 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N38 N41 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N50 ( S > P ) : PR ; N51 ( ( ~ S ) v ( ~ Q ) ) : PR ; N52 | ( ~ ( ~ P ) ) : AS ; N53 | | S : AS ; N54 | | ( ( S > P ) v Q ) : ORI1 N50 ; N55 | ( S > ( ( S > P ) v Q ) ) : IMPI N53 N54 ; N56 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N52 N55 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N17 ( S > P ) : PR ; N18 ( ( ~ S ) v ( ~ Q ) ) : PR ; N19 | ( ~ ( ~ P ) ) : AS ; N20 | | S : AS ; N21 | | ( ( S > P ) v Q ) : ORI1 N17 ; N22 | ( S > ( ( S > P ) v Q ) ) : IMPI N20 N21 ; N23 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N19 N22 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N25 ( S > P ) : PR ; N26 ( ( ~ S ) v ( ~ Q ) ) : PR ; N27 | ( ~ ( ~ P ) ) : AS ; N28 | | S : AS ; N29 | | ( ( S > P ) v Q ) : ORI1 N25 ; N30 | ( S > ( ( S > P ) v Q ) ) : IMPI N28 N29 ; N31 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N27 N30 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N34 ( S > P ) : PR ; N35 ( ( ~ S ) v ( ~ Q ) ) : PR ; N36 | ( ~ ( ~ P ) ) : AS ; N37 | | S : AS ; N38 | | ( ( S > P ) v Q ) : ORI1 N34 ; N39 | ( S > ( ( S > P ) v Q ) ) : IMPI N37 N38 ; N40 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N40 ( S > P ) : PR ; N41 ( ( ~ S ) v ( ~ Q ) ) : PR ; N42 | ( ~ ( ~ P ) ) : AS ; N43 | | S : AS ; N44 | | ( ( S > P ) v Q ) : ORI1 N40 ; N45 | ( S > ( ( S > P ) v Q ) ) : IMPI N43 N44 ; N46 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N42 N45 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N30 ( S > P ) : PR ; N31 ( ( ~ S ) v ( ~ Q ) ) : PR ; N32 | ( ~ ( ~ P ) ) : AS ; N33 | | S : AS ; N34 | | ( ( S > P ) v Q ) : ORI1 N30 ; N35 | ( S > ( ( S > P ) v Q ) ) : IMPI N33 N34 ; N36 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N32 N35 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N25 ( S > P ) : PR ; N26 ( ( ~ S ) v ( ~ Q ) ) : PR ; N27 | ( ~ ( ~ P ) ) : AS ; N28 | | S : AS ; N29 | | ( ( S > P ) v Q ) : ORI1 N25 ; N30 | ( S > ( ( S > P ) v Q ) ) : IMPI N28 N29 ; N31 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N27 N30 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N56 ( S > P ) : PR ; N57 ( ( ~ S ) v ( ~ Q ) ) : PR ; N58 | ( ~ ( ~ P ) ) : AS ; N59 | | S : AS ; N60 | | ( ( S > P ) v Q ) : ORI1 N56 ; N61 | ( S > ( ( S > P ) v Q ) ) : IMPI N59 N60 ; N62 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N58 N61 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N46 ( S > P ) : PR ; N47 ( ( ~ S ) v ( ~ Q ) ) : PR ; N48 | ( ~ ( ~ P ) ) : AS ; N49 | | S : AS ; N50 | | ( ( S > P ) v Q ) : ORI1 N46 ; N51 | ( S > ( ( S > P ) v Q ) ) : IMPI N49 N50 ; N52 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N48 N51 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N24 ( S > P ) : PR ; N25 ( ( ~ S ) v ( ~ Q ) ) : PR ; N26 | ( ~ ( ~ P ) ) : AS ; N27 | | S : AS ; N28 | | ( ( S > P ) v Q ) : ORI1 N24 ; N29 | ( S > ( ( S > P ) v Q ) ) : IMPI N27 N28 ; N30 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N26 N29 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N9 ( S > P ) : PR ; N10 ( ( ~ S ) v ( ~ Q ) ) : PR ; N11 | ( ~ ( ~ P ) ) : AS ; N12 | | S : AS ; N13 | | ( ( S > P ) v Q ) : ORI1 N9 ; N14 | ( S > ( ( S > P ) v Q ) ) : IMPI N12 N13 ; N15 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N11 N14 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N46 ( S > P ) : PR ; N47 ( ( ~ S ) v ( ~ Q ) ) : PR ; N48 | ( ~ ( ~ P ) ) : AS ; N49 | | S : AS ; N50 | | ( ( S > P ) v Q ) : ORI1 N46 ; N51 | ( S > ( ( S > P ) v Q ) ) : IMPI N49 N50 ; N52 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N48 N51 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N3 ( S > P ) : PR ; N4 ( ( ~ S ) v ( ~ Q ) ) : PR ; N5 | ( ~ ( ~ P ) ) : AS ; N6 | | S : AS ; N7 | | ( ( S > P ) v Q ) : ORI1 N3 ; N8 | ( S > ( ( S > P ) v Q ) ) : IMPI N6 N7 ; N9 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N5 N8 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N28 ( S > P ) : PR ; N29 ( ( ~ S ) v ( ~ Q ) ) : PR ; N30 | ( ~ ( ~ P ) ) : AS ; N31 | | S : AS ; N32 | | ( ( S > P ) v Q ) : ORI1 N28 ; N33 | ( S > ( ( S > P ) v Q ) ) : IMPI N31 N32 ; N34 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N30 N33 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N4 ( S > P ) : PR ; N5 ( ( ~ S ) v ( ~ Q ) ) : PR ; N6 | ( ~ ( ~ P ) ) : AS ; N7 | | S : AS ; N8 | | ( ( S > P ) v Q ) : ORI1 N4 ; N9 | ( S > ( ( S > P ) v Q ) ) : IMPI N7 N8 ; N10 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N6 N9 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N18 ( S > P ) : PR ; N19 ( ( ~ S ) v ( ~ Q ) ) : PR ; N20 | ( ~ ( ~ P ) ) : AS ; N21 | | S : AS ; N22 | | ( ( S > P ) v Q ) : ORI1 N18 ; N23 | ( S > ( ( S > P ) v Q ) ) : IMPI N21 N22 ; N24 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N20 N23 ; QED
+--- la_rl_targets_3124 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+COMPLETION: N16 ( S > P ) : PR ; N17 ( ( ~ S ) v ( ~ Q ) ) : PR ; N18 | ( ~ ( ~ P ) ) : AS ; N19 | | S : AS ; N20 | | ( ( S > P ) v Q ) : ORI1 N16 ; N21 | ( S > ( ( S > P ) v Q ) ) : IMPI N19 N20 ; N22 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N18 N21 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N55 ( S & R ) : PR ; N56 ( R v Q ) : PR ; N57 | ( ~ ( ~ P ) ) : AS ; N58 | | ( ~ P ) : AS ; N59 | | R : ANDE2 N55 ; N60 | ( ( ~ P ) > R ) : IMPI N58 N59 ; N61 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N57 N60 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N12 ( S & R ) : PR ; N13 ( R v Q ) : PR ; N14 | ( ~ ( ~ P ) ) : AS ; N15 | | ( ~ P ) : AS ; N16 | | R : ANDE2 N12 ; N17 | ( ( ~ P ) > R ) : IMPI N15 N16 ; N18 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N39 ( S & R ) : PR ; N40 ( R v Q ) : PR ; N41 | ( ~ ( ~ P ) ) : AS ; N42 | | ( ~ P ) : AS ; N43 | | R : ANDE2 N39 ; N44 | ( ( ~ P ) > R ) : IMPI N42 N43 ; N45 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_3300 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( S & R ) , ( R v Q ) SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) PRF
+COMPLETION: N11 ( S & R ) : PR ; N12 ( R v Q ) : PR ; N13 | ( ~ ( ~ P ) ) : AS ; N14 | | ( ~ P ) : AS ; N15 | | R : ANDE2 N11 ; N16 | ( ( ~ P ) > R ) : IMPI N14 N15 ; N17 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > R ) ) : IMPI N13 N16 ; QED
+--- la_rl_targets_3322 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM R , ( Q v P ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) PRF
+COMPLETION: N34 R : PR ; N35 ( Q v P ) : PR ; N36 | ( ~ ( ~ Q ) ) : AS ; N37 | | ( ~ ( ~ ( P > R ) ) ) : AS ; N38 | | ( ( Q v P ) & ( Q v P ) ) : ANDI N35 N35 ; N39 | ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) : IMPI N37 N38 ; N40 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) : IMPI N36 N39 ; QED
+--- la_rl_targets_3322 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM R , ( Q v P ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) PRF
+COMPLETION: N14 R : PR ; N15 ( Q v P ) : PR ; N16 | ( ~ ( ~ Q ) ) : AS ; N17 | | ( ~ ( ~ ( P > R ) ) ) : AS ; N18 | | ( ( Q v P ) & ( Q v P ) ) : ANDI N15 N15 ; N19 | ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) : IMPI N17 N18 ; N20 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) : IMPI N16 N19 ; QED
+--- la_rl_targets_3322 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM R , ( Q v P ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) PRF
+COMPLETION: N40 R : PR ; N41 ( Q v P ) : PR ; N42 | ( ~ ( ~ Q ) ) : AS ; N43 | | ( ~ ( ~ ( P > R ) ) ) : AS ; N44 | | ( ( Q v P ) & ( Q v P ) ) : ANDI N41 N41 ; N45 | ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) : IMPI N43 N44 ; N46 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( P > R ) ) ) > ( ( Q v P ) & ( Q v P ) ) ) ) : IMPI N42 N45 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N19 ( R v ( Q v P ) ) : PR ; N20 ( ~ ( ~ S ) ) : PR ; N21 | ( ~ P ) : AS ; N22 | | ( ~ ( ~ S ) ) : AS ; N23 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N20 ; N24 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N22 N23 ; N25 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N21 N24 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N37 ( R v ( Q v P ) ) : PR ; N38 ( ~ ( ~ S ) ) : PR ; N39 | ( ~ P ) : AS ; N40 | | ( ~ ( ~ S ) ) : AS ; N41 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N38 ; N42 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N40 N41 ; N43 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N39 N42 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N8 ( R v ( Q v P ) ) : PR ; N9 ( ~ ( ~ S ) ) : PR ; N10 | ( ~ P ) : AS ; N11 | | ( ~ ( ~ S ) ) : AS ; N12 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N9 ; N13 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N11 N12 ; N14 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N10 N13 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N10 ( R v ( Q v P ) ) : PR ; N11 ( ~ ( ~ S ) ) : PR ; N12 | ( ~ P ) : AS ; N13 | | ( ~ ( ~ S ) ) : AS ; N14 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N11 ; N15 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N13 N14 ; N16 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N10 ( R v ( Q v P ) ) : PR ; N11 ( ~ ( ~ S ) ) : PR ; N12 | ( ~ P ) : AS ; N13 | | ( ~ ( ~ S ) ) : AS ; N14 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N11 ; N15 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N13 N14 ; N16 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N12 N15 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N19 ( R v ( Q v P ) ) : PR ; N20 ( ~ ( ~ S ) ) : PR ; N21 | ( ~ P ) : AS ; N22 | | ( ~ ( ~ S ) ) : AS ; N23 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N20 ; N24 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N22 N23 ; N25 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N21 N24 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N51 ( R v ( Q v P ) ) : PR ; N52 ( ~ ( ~ S ) ) : PR ; N53 | ( ~ P ) : AS ; N54 | | ( ~ ( ~ S ) ) : AS ; N55 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N52 ; N56 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N54 N55 ; N57 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N53 N56 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N33 ( R v ( Q v P ) ) : PR ; N34 ( ~ ( ~ S ) ) : PR ; N35 | ( ~ P ) : AS ; N36 | | ( ~ ( ~ S ) ) : AS ; N37 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N34 ; N38 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N36 N37 ; N39 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N35 N38 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N23 ( R v ( Q v P ) ) : PR ; N24 ( ~ ( ~ S ) ) : PR ; N25 | ( ~ P ) : AS ; N26 | | ( ~ ( ~ S ) ) : AS ; N27 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N24 ; N28 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N26 N27 ; N29 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N25 N28 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N9 ( R v ( Q v P ) ) : PR ; N10 ( ~ ( ~ S ) ) : PR ; N11 | ( ~ P ) : AS ; N12 | | ( ~ ( ~ S ) ) : AS ; N13 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N10 ; N14 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N12 N13 ; N15 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N11 N14 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N47 ( R v ( Q v P ) ) : PR ; N48 ( ~ ( ~ S ) ) : PR ; N49 | ( ~ P ) : AS ; N50 | | ( ~ ( ~ S ) ) : AS ; N51 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N48 ; N52 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N50 N51 ; N53 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N49 N52 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N14 ( R v ( Q v P ) ) : PR ; N15 ( ~ ( ~ S ) ) : PR ; N16 | ( ~ P ) : AS ; N17 | | ( ~ ( ~ S ) ) : AS ; N18 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N15 ; N19 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N17 N18 ; N20 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N16 N19 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N33 ( R v ( Q v P ) ) : PR ; N34 ( ~ ( ~ S ) ) : PR ; N35 | ( ~ P ) : AS ; N36 | | ( ~ ( ~ S ) ) : AS ; N37 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N34 ; N38 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N36 N37 ; N39 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N35 N38 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N2 ( R v ( Q v P ) ) : PR ; N3 ( ~ ( ~ S ) ) : PR ; N4 | ( ~ P ) : AS ; N5 | | ( ~ ( ~ S ) ) : AS ; N6 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N3 ; N7 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N39 ( R v ( Q v P ) ) : PR ; N40 ( ~ ( ~ S ) ) : PR ; N41 | ( ~ P ) : AS ; N42 | | ( ~ ( ~ S ) ) : AS ; N43 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N40 ; N44 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N42 N43 ; N45 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N41 N44 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N2 ( R v ( Q v P ) ) : PR ; N3 ( ~ ( ~ S ) ) : PR ; N4 | ( ~ P ) : AS ; N5 | | ( ~ ( ~ S ) ) : AS ; N6 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N3 ; N7 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N18 ( R v ( Q v P ) ) : PR ; N19 ( ~ ( ~ S ) ) : PR ; N20 | ( ~ P ) : AS ; N21 | | ( ~ ( ~ S ) ) : AS ; N22 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N19 ; N23 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N21 N22 ; N24 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N20 N23 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N48 ( R v ( Q v P ) ) : PR ; N49 ( ~ ( ~ S ) ) : PR ; N50 | ( ~ P ) : AS ; N51 | | ( ~ ( ~ S ) ) : AS ; N52 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N49 ; N53 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N51 N52 ; N54 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N50 N53 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N24 ( R v ( Q v P ) ) : PR ; N25 ( ~ ( ~ S ) ) : PR ; N26 | ( ~ P ) : AS ; N27 | | ( ~ ( ~ S ) ) : AS ; N28 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N25 ; N29 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N27 N28 ; N30 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N26 N29 ; QED
+--- la_rl_targets_3410 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM ( R v ( Q v P ) ) , ( ~ ( ~ S ) ) SEQ ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) PRF
+COMPLETION: N16 ( R v ( Q v P ) ) : PR ; N17 ( ~ ( ~ S ) ) : PR ; N18 | ( ~ P ) : AS ; N19 | | ( ~ ( ~ S ) ) : AS ; N20 | | ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) : ORI1 N17 ; N21 | ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) : IMPI N19 N20 ; N22 ( ( ~ P ) > ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ S ) ) v ( ~ ( Q & P ) ) ) ) ) : IMPI N18 N21 ; QED
+--- la_rl_targets_3542 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM ( ~ ( S > Q ) ) SEQ ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) PRF
+COMPLETION: N12 ( ~ ( S > Q ) ) : PR ; N13 ( ( ~ P ) v ( ~ ( S > Q ) ) ) : ORI2 N12 ; N14 | R : AS ; N15 | | ( S > P ) : AS ; N16 | | ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) : ORI1 N13 ; N17 | ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) : IMPI N15 N16 ; N18 ( R > ( ( S > P ) > ( ( ( ~ P ) v ( ~ ( S > Q ) ) ) v P ) ) ) : IMPI N14 N17 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N48 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N49 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N50 | | | ( R > R ) : AS ; N51 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N49 N48 ; N52 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N50 N51 ; N53 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N49 N52 ; N54 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N48 N53 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N36 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N37 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N38 | | | ( R > R ) : AS ; N39 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N37 N36 ; N40 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N38 N39 ; N41 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N37 N40 ; N42 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N36 N41 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N3 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N4 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N5 | | | ( R > R ) : AS ; N6 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N4 N3 ; N7 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N5 N6 ; N8 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N4 N7 ; N9 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N3 N8 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N18 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N19 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N20 | | | ( R > R ) : AS ; N21 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N19 N18 ; N22 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N20 N21 ; N23 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N19 N22 ; N24 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N18 N23 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N43 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N44 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N45 | | | ( R > R ) : AS ; N46 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N44 N43 ; N47 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N45 N46 ; N48 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N44 N47 ; N49 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N43 N48 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N19 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N20 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N21 | | | ( R > R ) : AS ; N22 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N20 N19 ; N23 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N21 N22 ; N24 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N20 N23 ; N25 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N19 N24 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N54 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N55 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N56 | | | ( R > R ) : AS ; N57 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N55 N54 ; N58 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N56 N57 ; N59 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N55 N58 ; N60 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N54 N59 ; QED
+--- la_rl_targets_3608 length=7 n_lines(mine)=7 trivial=False (another sample of the same record)
+PROMPT: THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) PRF
+COMPLETION: N53 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N54 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N55 | | | ( R > R ) : AS ; N56 | | | ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) : ANDI N54 N53 ; N57 | | ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) : IMPI N55 N56 ; N58 | ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) : IMPI N54 N57 ; N59 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( ( R > R ) > ( ( ~ ( ~ ( ~ R ) ) ) & ( ~ ( ~ ( ~ S ) ) ) ) ) ) ) : IMPI N53 N58 ; QED
+
+=== [baseline/textbook72] ALL accepted proofs at prompt length >= 7 (0 rows, 0 distinct records); n_lines distribution {}
+
+=== [evaluate/textbook72] ALL accepted proofs at prompt length >= 7 (0 rows, 0 distinct records); n_lines distribution {}
+
+=== textbook72 solved records (one accepted sample each)
+--- [baseline/textbook72] textbook_287ceb6c7a54a42f3829 slice=dev58 reference_lines=5 n_lines(mine)=5 trivial=False
+PROMPT: THM SEQ ( P > ( ( ( Q & R ) v S ) > P ) ) PRF
+COMPLETION: N40 | P : AS ; N41 | | ( ( Q & R ) v S ) : AS ; N42 | | P : R N40 ; N43 | ( ( ( Q & R ) v S ) > P ) : IMPI N41 N42 ; N44 ( P > ( ( ( Q & R ) v S ) > P ) ) : IMPI N40 N43 ; QED
+--- [baseline/textbook72] textbook_dd80d9db9d060cdb3f53 slice=dev58 reference_lines=2 n_lines(mine)=5 trivial=False
+PROMPT: THM ( ~ ( ~ P ) ) SEQ P PRF
+COMPLETION: N15 ( ~ ( ~ P ) ) : PR ; N16 | ( ~ P ) : AS ; N17 | F : NEGE N16 N15 ; N18 ( ~ ( ~ P ) ) : NEGI N16 N17 ; N19 P : DN N18 ; QED
+--- [baseline/textbook72] textbook_34f93da8bd82c5f421bc slice=dev58 reference_lines=1 n_lines(mine)=4 trivial=True
+PROMPT: THM ( ( P > Q ) & ( Q > P ) ) SEQ ( ( P > Q ) & ( Q > P ) ) PRF
+COMPLETION: N20 ( ( P > Q ) & ( Q > P ) ) : PR ; N21 ( P > Q ) : ANDE1 N20 ; N22 ( Q > P ) : ANDE2 N20 ; N23 ( ( P > Q ) & ( Q > P ) ) : ANDI N21 N22 ; QED
+--- [baseline/textbook72] textbook_eec1f557a49c79cc7081 slice=dev58 reference_lines=6 n_lines(mine)=6 trivial=False
+PROMPT: THM ( ( ( P & Q ) > P ) & ( P > ( P & Q ) ) ) SEQ ( P > Q ) PRF
+COMPLETION: N20 ( ( ( P & Q ) > P ) & ( P > ( P & Q ) ) ) : PR ; N21 ( P > ( P & Q ) ) : ANDE2 N20 ; N22 | P : AS ; N23 | ( P & Q ) : IMPE N21 N22 ; N24 | Q : ANDE2 N23 ; N25 ( P > Q ) : IMPI N22 N24 ; QED
+--- [baseline/textbook72] textbook_4f666c992cac7dcfd117 slice=dev58 reference_lines=2 n_lines(mine)=2 trivial=False
+PROMPT: THM ( ~ ( ~ ( ~ P ) ) ) SEQ ( ~ P ) PRF
+COMPLETION: N53 ( ~ ( ~ ( ~ P ) ) ) : PR ; N54 ( ~ P ) : DN N53 ; QED
+--- [baseline/textbook72] textbook_b5920d6d8c128e48b958 slice=dev58 reference_lines=6 n_lines(mine)=6 trivial=False
+PROMPT: THM ( P > Q ) , ( Q > R ) SEQ ( P > R ) PRF
+COMPLETION: N20 ( P > Q ) : PR ; N21 ( Q > R ) : PR ; N22 | P : AS ; N23 | Q : IMPE N20 N22 ; N24 | R : IMPE N21 N23 ; N25 ( P > R ) : IMPI N22 N24 ; QED
+--- [baseline/textbook72] textbook_ab0622acfa2bdb298f46 slice=dev58 reference_lines=6 n_lines(mine)=6 trivial=False
+PROMPT: THM ( ~ ( P v ( Q v R ) ) ) SEQ ( ~ R ) PRF
+COMPLETION: N14 ( ~ ( P v ( Q v R ) ) ) : PR ; N15 | R : AS ; N16 | ( Q v R ) : ORI2 N15 ; N17 | ( P v ( Q v R ) ) : ORI2 N16 ; N18 | F : NEGE N17 N14 ; N19 ( ~ R ) : NEGI N15 N18 ; QED
+--- [baseline/textbook72] textbook_44157a16ce8876875ce1 slice=dev58 reference_lines=3 n_lines(mine)=3 trivial=False
+PROMPT: THM ( P > Q ) , P SEQ Q PRF
+COMPLETION: N61 ( P > Q ) : PR ; N62 P : PR ; N63 Q : IMPE N61 N62 ; QED
+--- [baseline/textbook72] textbook_0ed8057166e48df4ff93 slice=train14 reference_lines=None n_lines(mine)=4 trivial=False
+PROMPT: THM P SEQ ( ~ ( ~ P ) ) PRF
+COMPLETION: N40 P : PR ; N41 | ( ~ P ) : AS ; N42 | F : NEGE N40 N41 ; N43 ( ~ ( ~ P ) ) : NEGI N41 N42 ; QED
+--- [baseline/textbook72] textbook_da42d4814cf3a388b9fc slice=train14 reference_lines=None n_lines(mine)=4 trivial=False
+PROMPT: THM Q SEQ ( P > Q ) PRF
+COMPLETION: N7 Q : PR ; N8 | P : AS ; N9 | Q : R N7 ; N10 ( P > Q ) : IMPI N8 N9 ; QED
+--- [evaluate/textbook72] textbook_287ceb6c7a54a42f3829 slice=dev58 reference_lines=5 n_lines(mine)=5 trivial=False
+PROMPT: THM SEQ ( P > ( ( ( Q & R ) v S ) > P ) ) PRF
+COMPLETION: N40 | P : AS ; N41 | | ( ( Q & R ) v S ) : AS ; N42 | | P : R N40 ; N43 | ( ( ( Q & R ) v S ) > P ) : IMPI N41 N42 ; N44 ( P > ( ( ( Q & R ) v S ) > P ) ) : IMPI N40 N43 ; QED
+--- [evaluate/textbook72] textbook_b3af45532093373816b1 slice=dev58 reference_lines=6 n_lines(mine)=6 trivial=False
+PROMPT: THM ( ~ ( ( P v R ) & ( ~ ( ~ ( ( ~ S ) & Q ) ) ) ) ) , ( ~ ( ~ ( ( ~ S ) & Q ) ) ) SEQ ( ~ ( P v R ) ) PRF
+COMPLETION: N21 ( ~ ( ( P v R ) & ( ~ ( ~ ( ( ~ S ) & Q ) ) ) ) ) : PR ; N22 ( ~ ( ~ ( ( ~ S ) & Q ) ) ) : PR ; N23 | ( P v R ) : AS ; N24 | ( ( P v R ) & ( ~ ( ~ ( ( ~ S ) & Q ) ) ) ) : ANDI N23 N22 ; N25 | F : NEGE N24 N21 ; N26 ( ~ ( P v R ) ) : NEGI N23 N25 ; QED
+--- [evaluate/textbook72] textbook_dd80d9db9d060cdb3f53 slice=dev58 reference_lines=2 n_lines(mine)=5 trivial=False
+PROMPT: THM ( ~ ( ~ P ) ) SEQ P PRF
+COMPLETION: N15 ( ~ ( ~ P ) ) : PR ; N16 | ( ~ P ) : AS ; N17 | F : NEGE N16 N15 ; N18 ( ~ ( ~ P ) ) : NEGI N16 N17 ; N19 P : DN N18 ; QED
+--- [evaluate/textbook72] textbook_34f93da8bd82c5f421bc slice=dev58 reference_lines=1 n_lines(mine)=2 trivial=True
+PROMPT: THM ( ( P > Q ) & ( Q > P ) ) SEQ ( ( P > Q ) & ( Q > P ) ) PRF
+COMPLETION: N47 ( ( P > Q ) & ( Q > P ) ) : PR ; N48 ( ( P > Q ) & ( Q > P ) ) : R N47 ; QED
+--- [evaluate/textbook72] textbook_4f666c992cac7dcfd117 slice=dev58 reference_lines=2 n_lines(mine)=2 trivial=False
+PROMPT: THM ( ~ ( ~ ( ~ P ) ) ) SEQ ( ~ P ) PRF
+COMPLETION: N63 ( ~ ( ~ ( ~ P ) ) ) : PR ; N64 ( ~ P ) : DN N63 ; QED
+--- [evaluate/textbook72] textbook_b5920d6d8c128e48b958 slice=dev58 reference_lines=6 n_lines(mine)=6 trivial=False
+PROMPT: THM ( P > Q ) , ( Q > R ) SEQ ( P > R ) PRF
+COMPLETION: N47 ( P > Q ) : PR ; N48 ( Q > R ) : PR ; N49 | P : AS ; N50 | Q : IMPE N47 N49 ; N51 | R : IMPE N48 N50 ; N52 ( P > R ) : IMPI N49 N51 ; QED
+--- [evaluate/textbook72] textbook_ab0622acfa2bdb298f46 slice=dev58 reference_lines=6 n_lines(mine)=6 trivial=False
+PROMPT: THM ( ~ ( P v ( Q v R ) ) ) SEQ ( ~ R ) PRF
+COMPLETION: N14 ( ~ ( P v ( Q v R ) ) ) : PR ; N15 | R : AS ; N16 | ( Q v R ) : ORI2 N15 ; N17 | ( P v ( Q v R ) ) : ORI2 N16 ; N18 | F : NEGE N17 N14 ; N19 ( ~ R ) : NEGI N15 N18 ; QED
+--- [evaluate/textbook72] textbook_44157a16ce8876875ce1 slice=dev58 reference_lines=3 n_lines(mine)=3 trivial=False
+PROMPT: THM ( P > Q ) , P SEQ Q PRF
+COMPLETION: N61 ( P > Q ) : PR ; N62 P : PR ; N63 Q : IMPE N61 N62 ; QED
+--- [evaluate/textbook72] textbook_0ed8057166e48df4ff93 slice=train14 reference_lines=None n_lines(mine)=4 trivial=False
+PROMPT: THM P SEQ ( ~ ( ~ P ) ) PRF
+COMPLETION: N40 P : PR ; N41 | ( ~ P ) : AS ; N42 | F : NEGE N40 N41 ; N43 ( ~ ( ~ P ) ) : NEGI N41 N42 ; QED
+--- [evaluate/textbook72] textbook_da42d4814cf3a388b9fc slice=train14 reference_lines=None n_lines(mine)=4 trivial=False
+PROMPT: THM Q SEQ ( P > Q ) PRF
+COMPLETION: N7 Q : PR ; N8 | P : AS ; N9 | Q : R N7 ; N10 ( P > Q ) : IMPI N8 N9 ; QED

@@ -1,0 +1,126 @@
+{
+ "fixed_train_jsonl_vs": {
+  "heldout": {
+   "canon_key": 0,
+   "canonical_theorem": 95,
+   "n_classes": 5000
+  },
+  "test_short": {
+   "canon_key": 110,
+   "canonical_theorem": 117,
+   "n_classes": 256
+  },
+  "test_long": {
+   "canon_key": 6,
+   "canonical_theorem": 9,
+   "n_classes": 531
+  },
+  "validation_36": {
+   "canon_key": 0,
+   "canonical_theorem": 1,
+   "n_classes": 36
+  },
+  "textbook72": {
+   "canon_key": 0,
+   "canonical_theorem": 1,
+   "n_classes": 72
+  },
+  "rl_targets": {
+   "canon_key": 0,
+   "canonical_theorem": 0,
+   "n_classes": 4495
+  },
+  "transfer": {
+   "canon_key": 0,
+   "canonical_theorem": 0,
+   "n_classes": 2285
+  }
+ },
+ "rl_prompts_1600_vs": {
+  "heldout": {
+   "canon_key": 0,
+   "canonical_theorem": 2
+  },
+  "test_short": {
+   "canon_key": 2,
+   "canonical_theorem": 2
+  },
+  "test_long": {
+   "canon_key": 0,
+   "canonical_theorem": 0
+  },
+  "validation_36": {
+   "canon_key": 0,
+   "canonical_theorem": 0
+  },
+  "textbook72": {
+   "canon_key": 0,
+   "canonical_theorem": 0
+  },
+  "rl_targets": {
+   "canon_key": 0,
+   "canonical_theorem": 0
+  },
+  "transfer": {
+   "canon_key": 0,
+   "canonical_theorem": 0
+  }
+ },
+ "heldout_vs_test": {
+  "test_short": {
+   "canon_key": 6
+  },
+  "test_long": {
+   "canon_key": 0
+  }
+ },
+ "rl_targets_vs_test": {
+  "test_short": {
+   "canon_key": 0
+  },
+  "test_long": {
+   "canon_key": 0
+  }
+ },
+ "rl_prompt_rows_in_test_short_class": [
+  [
+   119,
+   4
+  ],
+  [
+   575,
+   3
+  ]
+ ],
+ "rl_prompt_rows_in_heldout_canonical_theorem_class": [
+  [
+   575,
+   3
+  ],
+  [
+   881,
+   3
+  ]
+ ],
+ "completions_on_test_short_class_prompts": 16,
+ "steps_touching_them": [
+  9,
+  45
+ ],
+ "heldout_pairs": [
+  {
+   "rl_prompt": "THM ( ( P & Q ) > P ) , ( P & Q ) SEQ P PRF",
+   "heldout_prompts": [
+    "THM ( P & Q ) , ( ( P & Q ) > P ) SEQ P PRF"
+   ],
+   "same_canon_key": false
+  },
+  {
+   "rl_prompt": "THM ( ( R > Q ) v P ) , ( ~ P ) SEQ ( ( ( R > Q ) v P ) & ( ~ P ) ) PRF",
+   "heldout_prompts": [
+    "THM ( ~ R ) , ( ( Q > S ) v R ) SEQ ( ( ( Q > S ) v R ) & ( ~ R ) ) PRF"
+   ],
+   "same_canon_key": false
+  }
+ ]
+}
