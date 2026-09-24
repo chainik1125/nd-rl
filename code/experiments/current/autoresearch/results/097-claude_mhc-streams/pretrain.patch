@@ -1,0 +1,119 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..aa7d184 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -27,14 +27,17 @@ Anything imported from the fork (ND_FORK) is fair game to copy in here and modif
+ 
+ import math
+ import time
++from typing import cast
+ 
+ import torch
+-from model import GPT  # fork
++import torch.nn.functional as F
++from model import GPT, rope_cache  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 5, 256, 8
++N_STREAMS, SINKHORN_ITERS = 2, 20  # hyper-connection expansion rate; mHC's projection steps
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -101,6 +104,65 @@ def muon_step(params, buffers, lr):
+         p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
++def sinkhorn(logits):
++    """Sinkhorn-Knopp projection of exp(logits) onto the doubly stochastic matrices."""
++    mix = logits.exp()
++    for _ in range(SINKHORN_ITERS):
++        mix = mix / mix.sum(1, keepdim=True)
++        mix = mix / mix.sum(0, keepdim=True)
++    return mix
++
++
++class HyperConnection(torch.nn.Module):
++    """Static manifold-constrained hyper-connection (mHC, DeepSeek-AI 2025) around one sublayer:
++    read a sigmoid-weighted mix of the residual streams, write the output back to every stream
++    with 2*sigmoid weights, and mix the streams through a doubly stochastic matrix. Starts
++    reading stream `index % N_STREAMS`, writing 1 to all, mixing ~identity, which on identical
++    streams is exactly the fork's residual block. Residual-stream arithmetic stays fp32."""
++
++    def __init__(self, index):
++        super().__init__()
++        self.read_logits = torch.nn.Parameter(torch.full((N_STREAMS,), -4.0))
++        self.read_logits.data[index % N_STREAMS] = 4.0
++        self.write_logits = torch.nn.Parameter(torch.zeros(N_STREAMS))
++        self.mix_logits = torch.nn.Parameter(4.0 * torch.eye(N_STREAMS))
++
++    def read(self, streams):  # (B, T, n, D) -> (B, T, D)
++        with torch.autocast(streams.device.type, enabled=False):
++            return torch.sigmoid(self.read_logits) @ streams
++
++    def write(self, streams, out):
++        with torch.autocast(streams.device.type, enabled=False):
++            written = 2 * torch.sigmoid(self.write_logits)[:, None] * out.float().unsqueeze(2)
++            return sinkhorn(self.mix_logits) @ streams + written
++
++
++class HyperGPT(GPT):
++    """The fork's GPT (same blocks, KV caches and signature) on N_STREAMS residual streams."""
++
++    def __init__(self, *args, **kwargs):
++        super().__init__(*args, **kwargs)
++        self.hc = torch.nn.ModuleList(HyperConnection(i) for i in range(2 * len(self.blocks)))
++
++    def forward(self, idx, pos=None, mask=None, caches=None):
++        B, T = idx.shape
++        if pos is None:
++            cos, sin = rope_cache(T, self.hd, idx.device)
++        else:
++            cos_all, sin_all = rope_cache(int(pos.max().item()) + 1, self.hd, idx.device)
++            cos, sin = cos_all[pos], sin_all[pos]
++        streams = self.emb(idx).unsqueeze(2).expand(B, T, N_STREAMS, -1)
++        for i, b in enumerate(self.blocks):
++            attn_hc = cast(HyperConnection, self.hc[2 * i])
++            mlp_hc = cast(HyperConnection, self.hc[2 * i + 1])
++            cache = None if caches is None else caches[i]
++            y = b.attn(b.ln1(attn_hc.read(streams)), cos, sin, mask, cache)
++            streams = attn_hc.write(streams, y)
++            y = b.fc2(F.gelu(b.fc1(b.ln2(mlp_hc.read(streams)))))
++            streams = mlp_hc.write(streams, y)
++        return self.head(self.ln_f(streams.mean(2)))
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -155,7 +217,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = HyperGPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+@@ -166,10 +228,17 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     )
+     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+     matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+-    matrix_ids = {id(p) for p in matrices}
+-    auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
++    # Hyper-connection logits get no decay: it would drag every read/mix toward uniform.
++    hyper = list(model.hc.parameters())
++    skip_ids = {id(p) for p in matrices + hyper}
++    auxiliary = [p for p in model.parameters() if id(p) not in skip_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    opt = torch.optim.AdamW(
++        [{"params": auxiliary}, {"params": hyper, "weight_decay": 0.0}],
++        lr=LR,
++        weight_decay=WD,
++        betas=(0.9, 0.95),
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")

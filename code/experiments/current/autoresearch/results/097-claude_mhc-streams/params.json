@@ -1,0 +1,235 @@
+{
+  "id": "097-claude",
+  "slug": "mhc-streams",
+  "written_at": "2026-09-24T16:26:29-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "d9d1716",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "51bb81c785f8",
+  "patch_lines": 79,
+  "title": "Static manifold-constrained hyper-connections (mHC): two residual streams with Sinkhorn doubly-stochastic mixing, on the 081 incumbent",
+  "description": "Robbie's 'deepseek hypermanifolds' architecture lead (no backlog P-ID; closest are P09/P10 learned residual gates/reinjection): replace the single residual stream with 2 streams joined around every attention and MLP sublayer by static DeepSeek mHC hyper-connections (learned sigmoid read/write weights, Sinkhorn-projected doubly stochastic stream mixing), initialized to be exactly the 081 network. Separate streams give the 5-layer model a learned alternative to one shared residual, e.g. keeping earlier proof-state features in one stream while later sublayers write to another, which should give expert iteration a more compositional starting point.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "With one residual stream every sublayer reads the sum of all earlier writes; hyper-connections let the network learn per-sublayer read and write weights over separate streams and how much the streams exchange, a learned depth-connectivity that HC/mHC report improves pretraining at larger scale. The doubly stochastic mix keeps the stream mean a convex combination, so signal scale stays controlled (mHC's stability argument) through pretraining and the AdamW RL stage. If short-horizon training here is limited by interference between features in the shared residual, the model should solve more long (>=7) proofs after RL. Costs: ~10-15% fewer pretraining steps from the extra fp32 residual traffic (2x residual tensor), and the 80 logits start at the identity-equivalent point and move at AdamW lr 1e-3, so the learned connectivity may stay close to the baseline (a null result).",
+  "p_keep": 0.12,
+  "expected_delta": "-40 to +20 theorems at >=7 (3-seed mean vs 404; most likely a small loss from fewer steps)",
+  "baseline_id": "081-claude",
+  "baseline_metric": 404,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) subclassed as HyperGPT: same blocks/weights, forward rewritten for 2 residual streams joined by static mHC hyper-connections",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000080,
+      "change": "CHANGED versus 081-claude: static manifold-constrained hyper-connections (mHC, DeepSeek-AI 2025, arXiv 2512.24880; Hyper-Connections, Zhu et al. 2024) with expansion rate n=2. The embedding is copied into 2 residual streams (B,T,2,256). Around each of the 10 sublayers (attention, MLP of 5 blocks) a HyperConnection reads h = sigmoid(read_logits) @ streams, applies the unchanged fork sublayer (ln1+attn or ln2+fc1/gelu/fc2) to h, and updates streams <- Sinkhorn(exp(mix_logits)) @ streams + 2*sigmoid(write_logits) (x) out. Sinkhorn-Knopp: 20 row/column normalization iterations (doubly stochastic, mHC's manifold). Readout: head(ln_f(mean over streams)). Static only: no input-dependent (dynamic) mappings. Init: read_logits +4 on stream (sublayer index mod 2), -4 on the other (weights 0.982/0.018, sum exactly 1); write_logits 0 (weight 1); mix_logits 4*I (mix ~[[0.982,0.018],[0.018,0.982]]). With identical streams at init this is exactly the fork residual block (CPU check: logits differ from the base GPT with the same weights by 2.4e-7). All residual-stream arithmetic (read, mix, write) runs in fp32 with autocast disabled; sublayers still run in bf16 autocast.",
+      "n_params_detail": "081's 4,000,000 plus 10 HyperConnections x (2 read + 2 write + 4 mix logits) = 80 -> 4,000,080. Hyper-connection params live in model.hc (not model.blocks) and persist into RL, where the harness AdamW trains them with everything else.",
+      "checkpoint_reconstruction": "HyperGPT(vocab, 5, 256, 8) in pretrain.py (GPT subclass); state dict = fork GPT keys plus hc.0-hc.9.{read,write,mix}_logits. The fork's GPT(**cfg) alone cannot rebuild it.",
+      "kv_cache": "one fork KV-cache dict per block (5 per sample), used by the unchanged fork attention; hyper-connections are per-token and need no cache. CPU check: incremental cached decode matches full forward to 3e-7 with perturbed hyper-connection params; fork sample.generate_ids runs.",
+      "hyper_connections": {
+        "n_streams": 2,
+        "per_sublayer": true,
+        "n_connections": 10,
+        "dynamic": false,
+        "read": "sigmoid(logits), init +4/-4 one-hot-like",
+        "write": "2*sigmoid(logits), init 0 -> 1",
+        "mix": "Sinkhorn-Knopp(exp(logits)), 20 iterations, init 4*I",
+        "readout": "mean over streams, then ln_f",
+        "precision": "fp32, autocast disabled"
+      }
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial); hyper-connection logits in a second AdamW group (same lr/betas/schedule, weight decay 0)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "unchanged from 081-claude: sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) plus head.weight (99,256; vocab 99, no bias) are in Muon: 21 matrices. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 and head are orthogonalized whole. head is wide (99<256) so it is not transposed and its update has 99 singular values near 1.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "unchanged from 081-claude: per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "unchanged from 081-claude: update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (incl. ln_f) throughout; head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 21 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "HyperGPT weights (fork GPT weights plus the 80 hyper-connection logits); pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW over all parameters",
+      "hyper_connection_group": "AdamW lr 1e-3 (same warmup/cosine as the auxiliary group), betas (0.9, 0.95), weight_decay 0.0 so decay does not drag reads/mixes toward uniform; included in the global grad-norm clip 1.0"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Exactly 070-claude (same as 069-claude): fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); embedding and readout keep the fork normal(0.02); biases zero. Initial weights and data order/shift RNG streams per seed identical to 070-claude. Hyper-connections (new): read_logits +4/-4, write_logits 0, mix_logits 4*I (identity-equivalent network at init).",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
