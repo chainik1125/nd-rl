@@ -1,0 +1,199 @@
+{
+  "id": "077-claude",
+  "slug": "lr-floor-03",
+  "written_at": "2026-09-24T06:00:43-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "018d0e6",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "2cd77e39b64c",
+  "patch_lines": 2,
+  "title": "P19 reversed: raise the wall-clock cosine learning-rate floor from 0.1 to 0.3 of peak (AdamW and Muon)",
+  "description": "P19 (reversed direction). Changes only MIN_LR_FRAC 0.1 -> 0.3 on the 070-claude incumbent, so pretraining ends at 0.3x peak for both Muon (0.003, with its lr-coupled decay) and the AdamW auxiliary group (3e-4) instead of annealing to 0.1x. 016's floor-to-zero run lost 20/35 theorems on its two completed seeds at near-identical token loss, so a less-annealed, more plastic endpoint should hand expert iteration a better starting point.",
+  "tags": [
+    "schedule",
+    "optimizer"
+  ],
+  "hypothesis": "The last ~20% of the cosine spends its steps sharpening an already low token loss (val ~0.091) into a narrow, confident endpoint; 016 (floor 0 vs 0.1, AdamW era) and 000 ('less-converged Stage-1 model transferred better') both suggest the annealed endpoint transfers worse to expert iteration. Keeping the final LR 3x higher leaves the handoff less converged (slightly more diverse T=0.8 samples, more room for the frozen RL AdamW at 3e-4 to move it) while the Muon decay stays active to the end. If the metric falls instead, annealing is useful here and the 0.1 floor (or lower) is closer to right under Muon than the AdamW-era 016 evidence suggested.",
+  "p_keep": 0.3,
+  "expected_delta": "-35 to +30 theorems at >=7 (central +3 versus 352.67); pretraining 4700-4800 steps (throughput unchanged); final val loss 1-6% above 070's 0.0911/0.0913/0.0961 because the endpoint is less annealed; total seconds within +60 s of 070's 1048/971/1079",
+  "baseline_id": "070-claude",
+  "baseline_metric": 353,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "none versus 070-claude: 5 untied fork GPT blocks, d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 070-claude except the schedule floor)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock, CHANGED floor: lr = LR*(0.3 + 0.35*(1+cos(pi*frac))) after a 200-step linear warmup, so it ends at 0.3x peak instead of 0.1x",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1, head (99,256) 1",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW (now floored at 0.3); muon_lr = 0.01 * adam_lr / 0.001, so Muon ends at 0.003 instead of 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) plus head.weight (99,256; vocab 99, no bias) are in Muon: 21 matrices. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 and head are orthogonalized whole. head is wide (99<256) so it is not transposed and its update has 99 singular values near 1.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (incl. ln_f) throughout; head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Unchanged constant: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so per-step Muon shrinkage is muon_lr*0.1 and AdamW auxiliary shrinkage is adam_lr*0.1. Because both decays are lr-coupled, the higher floor also raises end-of-training shrinkage 3x (Muon 3e-4 per step instead of 1e-4). Mean schedule factor rises from ~0.55 to ~0.65, so cumulative Muon decay over ~4780 steps is ~exp(-3.1)=0.045 instead of ~exp(-2.6)=0.07.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Exactly 070-claude: fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); embedding and readout keep the fork normal(0.02); biases zero. Initial weights and data order/shift RNG streams per seed identical to 070-claude (the schedule does not consume RNG).",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
