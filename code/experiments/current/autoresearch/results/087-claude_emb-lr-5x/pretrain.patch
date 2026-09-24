@@ -1,0 +1,44 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..bf38bcf 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -49,6 +49,8 @@ NS_COEFFS = (
+ )
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
++# The token embedding (AdamW) takes 5x larger steps; its wd is divided by 5 so lr * wd is unchanged.
++EMB_LR_MULT = 5
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+@@ -169,7 +171,20 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    rest = [p for p in auxiliary if p is not model.emb.weight]
++    opt = torch.optim.AdamW(
++        [
++            {
++                "params": [model.emb.weight],
++                "lr_mult": EMB_LR_MULT,
++                "weight_decay": WD / EMB_LR_MULT,
++            },
++            {"params": rest, "lr_mult": 1},
++        ],
++        lr=LR,
++        weight_decay=WD,
++        betas=(0.9, 0.95),
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
+@@ -188,7 +203,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+         )
+         for g in opt.param_groups:
+-            g["lr"] = lr
++            g["lr"] = lr * g["lr_mult"]
+         if len(perm) < BS:
+             perm = torch.randperm(n_train, device=device, generator=gen) + VAL_N
+         idxs, perm = perm[:BS], perm[BS:]
