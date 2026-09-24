@@ -1,0 +1,17 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..c90de5c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -81,9 +81,10 @@ def muon_step(params, buffers, lr):
+             continue
+         momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+         update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
+-        # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
++        # Only QKV has shape (3D, D) in this GPT. Its rows are (role, head, head_dim), as in the
++        # fork's view(B, T, 3, h, hd), so orthogonalize each head's Q, K and V separately.
+         if update.size(0) == 3 * update.size(1):
+-            update = update.reshape(3, update.size(1), update.size(1))
++            update = update.reshape(3 * N_HEAD, update.size(1) // N_HEAD, update.size(1))
+         transpose = update.size(-2) > update.size(-1)
+         if transpose:
+             update = update.mT

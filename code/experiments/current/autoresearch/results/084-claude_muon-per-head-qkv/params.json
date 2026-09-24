@@ -1,0 +1,223 @@
+{
+  "id": "084-claude",
+  "slug": "muon-per-head-qkv",
+  "written_at": "2026-09-24T09:16:16-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "b282a44",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "c4ec0bdc63f7",
+  "patch_lines": 5,
+  "title": "P11 follow-up: orthogonalize each attention head's Q, K and V Muon update separately (24 blocks of 32x256 instead of 3 of 256x256)",
+  "description": "P11 follow-up (P02 family): split-QKV Muon now orthogonalizes each (role, head) 32x256 block of the QKV update separately instead of the whole 256x256 Q, K and V, with element RMS and total update norm unchanged. Every head then gets an equal-magnitude, full-rank-32 update each step, so no head's retrieval pattern is starved by the others' gradient directions, which should give the frozen RL stage more diverse, usable citation-lookup heads to build longer proofs from.",
+  "tags": [
+    "optimizer"
+  ],
+  "hypothesis": "In whole-matrix orthogonalization, heads whose gradients share row-space directions with louder heads get a small share of the fixed unit-spectrum update, so some heads learn slowly or redundantly in the 4.7k-step budget. Per-head orthogonalization equalizes the update per head (each head's 32 singular values ~1), which should use all 40 heads' capacity and give a policy whose attention (premise/citation retrieval) extrapolates better to 7+ line proofs during expert iteration. Expected signature: pretraining steps and val loss within noise of 081 (the Gram matrices shrink to 32x32, so no step-time cost), and the gain, if any, in RL-solved and 7-10 line eval solves.",
+  "p_keep": 0.25,
+  "expected_delta": "-35 to +30 theorems at >=7 (central -5: 081's 404 is probably seed-lucky, so even a real small gain may not clear it)",
+  "baseline_id": "081-claude",
+  "baseline_metric": 404,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "none versus 081-claude: 5 untied fork GPT blocks, d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "per-head-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 081-claude except how QKV updates are split)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "unchanged from 081-claude: sqrt(max(rows, columns) / 256) per orthogonalized block: per-head Q/K/V blocks 1, attention output 1, fc1 2, fc2 2, head (99,256) 1; every Muon update has element RMS ~1/16 times lr",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) plus head.weight (99,256) are in Muon: 21 matrices. Five qkv.weight matrices of shape (768,256) are orthogonalized as 24 independent (32,256) per-head blocks; proj/fc1/fc2 and head whole.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "CHANGED: after elementwise Nesterov momentum, reshape each (768,256) QKV update to (24,32,256): one (32,256) block per (role, head), matching the fork's qkv(x).view(B,T,3,h,hd) row layout (row = role*256 + head*32 + j). Each block is independently Frobenius-normalized (x1.02) and gets five batched Polar Express steps (32x32 Gram, not transposed), then reshaped back. 081-claude used three (256,256) blocks (Q, K, V). Shape scale sqrt(max(32,256)/256) = 1, so element RMS stays ~1/16 and the total Frobenius norm of each Q/K/V update is unchanged (8 x sqrt(32) = 16 in quadrature); only its split across heads changes. proj/fc1/fc2/head unchanged (orthogonalized whole). No extra learning-rate multiplier; momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "unchanged from 081-claude: per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2)",
+        "normalization": "unchanged from 081-claude: update / (Frobenius norm * 1.02 + 1e-6), now per (role, head) block for QKV",
+        "local_check": "CPU check against the pinned fork (ab629c7): reshape(24,32,256) block [role*8+head, j] equals weight row role*256+head*32+j; one muon_step on a random (768,256) gradient gives per-block singular values in [0.854,1.144] and element RMS 0.0632 (1/16 = 0.0625)."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (incl. ln_f) throughout; head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 21 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Exactly 081-claude: fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); embedding and readout keep the fork normal(0.02); biases zero. Initial weights and data order/shift RNG streams per seed identical to 081-claude.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
