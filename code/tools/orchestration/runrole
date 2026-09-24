@@ -38,6 +38,10 @@ auth_failed() { grep -qiE "Failed to authenticate|OAuth session expired|authenti
 # True when the account is out of credits for this model: stop and name the model.
 out_of_credits() { grep -qiE "out of usage credits|insufficient credit|Switch to another model" "$1" 2>/dev/null; }
 fails=0; authfails=0
+# Adaptive re-invoke delay. Every resume re-reads the whole conversation from cache, so an
+# invocation that did nothing costs about as much as one that did the work. When the agent is
+# waiting on a pod job there is nothing to re-enter for, and the driver should wait longer.
+BASE_SLEEP=${BASE_SLEEP:-90}; MAX_SLEEP=${MAX_SLEEP:-1800}; SLEEP=$BASE_SLEEP; quiet=0
 DEFAULT_MODEL_FILE=~/.config/nd-rl/model
 COMMON=(--model "$MODEL" --dangerously-skip-permissions --verbose --output-format stream-json)
 CTX="Run id: $RUN. Role: $ROLE. Repository: $REPO. Runs directory: $D. Current UTC time: $(date -u).
@@ -46,12 +50,13 @@ When finished, create the file $DONE."
 [ "$ROLE" = reviewer ] && CTX="$CTX
 Phase-1 workspace (executor write-ups removed): ~/review/$RUN"
 cd "$REPO" || exit 1
-for i in $(seq 1 200); do
+for i in $(seq 1 ${MAX_INVOCATIONS:-120}); do
   [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; notify "$RUN: $ROLE hit its hard stop" "Session ended by time limit; check STATUS.md." high; break; }
   [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E 'DONE|QUARANTINE' "$REPO/STATUS.md" 2>/dev/null | tail -2)"; break; }
   [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E "$DONEGREP" "$REPO/STATUS.md" | tail -1)"; break; }
   M=${MODEL:-$(cat "${DEFAULT_MODEL_FILE}.$ROLE" 2>/dev/null || cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo opus)}; COMMON[1]="$M"
-  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M)" >> "$LOG"
+  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M, last gap ${SLEEP}s)" >> "$LOG"
+  HEAD0=$(git -C "$REPO" rev-parse HEAD 2>/dev/null); ST0=$(stat -c %Y "$REPO/STATUS.md" 2>/dev/null); T0=$(date -u +%s)
   if [ "$i" = 1 ]; then
     claude -p "$(cat "$REPO/AGENT_POLICY.md")
 
@@ -62,15 +67,31 @@ $( [ -n "$BRIEF" ] && cat "$BRIEF" )
 $CTX
 Begin." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
   else
-    claude -p --continue "Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md." "${COMMON[@]}" > "$OUT" 2>> "$LOG"
+    if [ "$fails" = 0 ] && [ "$quiet" -lt 2 ]; then
+      RESUME="Continuing. $CTX Check what is running and carry on. If there is nothing to do until a job finishes, say so in one line and stop — the driver will wait longer before waking you again."
+    else
+      RESUME="Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md."
+    fi
+    claude -p --continue "$RESUME" "${COMMON[@]}" > "$OUT" 2>> "$LOG"
   fi
   rc=$?; echo "[driver] $(date -u +%FT%TZ) invocation $i exited rc=$rc" >> "$LOG"
   if out_of_credits "$OUT"; then echo "[driver] OUT OF CREDITS (model $M) — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped — out of usage credits for model $M" "Set a different model (echo <model> > ~/.config/nd-rl/model) or top up, then relaunch. Check podls for pods this run created." high; break; fi
   if auth_failed "$OUT"; then authfails=$((${authfails:-0}+1)); echo "[driver] auth failure $authfails" >> "$LOG"; if [ "$authfails" -lt 3 ]; then sleep 120; continue; fi; echo "[driver] AUTH FAILURE — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped — Claude authentication failed" "OAuth/API auth failed on $(hostname); the session cannot continue. Pods it created are still running: check podls. Log in again on this host (claude) or provide an API key, then relaunch." high; break; fi
   if [ "$rc" != 0 ] || grep -q '"is_error":true' "$OUT" 2>/dev/null; then fails=$((fails+1)); else fails=0; authfails=0; fi
   if [ "$fails" -ge 3 ]; then echo "[driver] three consecutive failed invocations — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped after 3 consecutive failures" "Last result: $(tail -c 300 "$OUT" | tr -d '\n' | cut -c1-280)" high; break; fi
+  # Did that invocation do anything? Turns taken, a commit, a STATUS.md write, or simply a long
+  # run all count. If none of them, the agent is idle-waiting and the gap doubles (capped).
+  TURNS=$(grep -o '"num_turns":[0-9]*' "$OUT" 2>/dev/null | tail -1 | cut -d: -f2); TURNS=${TURNS:-0}
+  HEAD1=$(git -C "$REPO" rev-parse HEAD 2>/dev/null); ST1=$(stat -c %Y "$REPO/STATUS.md" 2>/dev/null)
+  DUR=$(( $(date -u +%s) - T0 ))
+  if [ "$TURNS" -ge 4 ] || [ "$HEAD0" != "$HEAD1" ] || [ "$ST0" != "$ST1" ] || [ "$DUR" -ge 300 ]; then
+    quiet=0; SLEEP=$BASE_SLEEP
+  else
+    quiet=$((quiet+1)); SLEEP=$(( SLEEP * 2 )); [ "$SLEEP" -gt "$MAX_SLEEP" ] && SLEEP=$MAX_SLEEP
+    echo "[driver] quiet invocation ($TURNS turns, ${DUR}s, no commit, no STATUS write) — next gap ${SLEEP}s" >> "$LOG"
+  fi
   if limit_hit "$OUT"; then
-    echo "[driver] LIMIT_HIT $(date -u +%FT%TZ)" >> "$LOG"; echo "LIMIT_HIT $(date -u +%FT%TZ) $RUN/$ROLE" >> ~/LIMIT_HITS; notify "$RUN: usage limit hit ($ROLE)" "Sleeping 30 min, then resuming." low; sleep 1800
-  else sleep 90; fi
+    echo "[driver] LIMIT_HIT $(date -u +%FT%TZ)" >> "$LOG"; echo "LIMIT_HIT $(date -u +%FT%TZ) $RUN/$ROLE" >> ~/LIMIT_HITS; notify "$RUN: usage limit hit ($ROLE)" "Sleeping 30 min, then resuming." low; sleep 1800; SLEEP=$BASE_SLEEP; quiet=0
+  else sleep "$SLEEP"; fi
 done
 echo "[driver] $(date -u +%FT%TZ) loop finished" >> "$LOG"
