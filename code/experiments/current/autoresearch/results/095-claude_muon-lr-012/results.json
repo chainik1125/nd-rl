@@ -1,0 +1,343 @@
+{
+  "commit": "f1b7218",
+  "recorded_at": "2026-09-24T15:55:02-0700",
+  "status": "discard",
+  "metric": 346,
+  "metric_rl": 793,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "0bc4df740d67",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1074,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.2,
+    "n_params": 4000000,
+    "steps": 4724,
+    "epochs": 3.927308626579894,
+    "last_loss": 0.05888500437140465,
+    "heldout_greedy": 0.986,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 32,
+        "train_loss": 3.64599871635437,
+        "val_loss": 2.8024292290210724
+      },
+      {
+        "secs": 30,
+        "step": 278,
+        "train_loss": 0.8513022052745024,
+        "val_loss": 0.1315245209261775
+      },
+      {
+        "secs": 45,
+        "step": 523,
+        "train_loss": 0.1112251768891628,
+        "val_loss": 0.09009166900068521
+      },
+      {
+        "secs": 60,
+        "step": 768,
+        "train_loss": 0.09039206430315971,
+        "val_loss": 0.09438573196530342
+      },
+      {
+        "secs": 75,
+        "step": 1017,
+        "train_loss": 0.08338382902244727,
+        "val_loss": 0.10012072511017323
+      },
+      {
+        "secs": 90,
+        "step": 1263,
+        "train_loss": 0.07557254169995968,
+        "val_loss": 0.09053988195955753
+      },
+      {
+        "secs": 105,
+        "step": 1514,
+        "train_loss": 0.07424267070988814,
+        "val_loss": 0.10905858688056469
+      },
+      {
+        "secs": 120,
+        "step": 1763,
+        "train_loss": 0.07285486734830417,
+        "val_loss": 0.09361640084534883
+      },
+      {
+        "secs": 135,
+        "step": 2008,
+        "train_loss": 0.06971403708060582,
+        "val_loss": 0.09635401889681816
+      },
+      {
+        "secs": 150,
+        "step": 2253,
+        "train_loss": 0.06957953174908955,
+        "val_loss": 0.09575677197426558
+      },
+      {
+        "secs": 165,
+        "step": 2499,
+        "train_loss": 0.06559835902104776,
+        "val_loss": 0.09912834502756596
+      },
+      {
+        "secs": 180,
+        "step": 2744,
+        "train_loss": 0.06540291756391525,
+        "val_loss": 0.0980391064658761
+      },
+      {
+        "secs": 195,
+        "step": 2992,
+        "train_loss": 0.06438512324045102,
+        "val_loss": 0.09366905689239502
+      },
+      {
+        "secs": 210,
+        "step": 3236,
+        "train_loss": 0.0634610578417778,
+        "val_loss": 0.09376048855483532
+      },
+      {
+        "secs": 225,
+        "step": 3483,
+        "train_loss": 0.064243434713437,
+        "val_loss": 0.09815696626901627
+      },
+      {
+        "secs": 240,
+        "step": 3732,
+        "train_loss": 0.06215243165691694,
+        "val_loss": 0.10010054800659418
+      },
+      {
+        "secs": 255,
+        "step": 3983,
+        "train_loss": 0.06106187775731087,
+        "val_loss": 0.0969072226434946
+      },
+      {
+        "secs": 270,
+        "step": 4231,
+        "train_loss": 0.06037848722189665,
+        "val_loss": 0.0924282455816865
+      },
+      {
+        "secs": 285,
+        "step": 4476,
+        "train_loss": 0.06043148289124171,
+        "val_loss": 0.0969187505543232
+      },
+      {
+        "secs": 300,
+        "step": 4724,
+        "train_loss": 0.06033407209011225,
+        "val_loss": 0.09061102662235498
+      }
+    ],
+    "records_seen": 604672
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.03672916666666667,
+      "new_proofs": 164,
+      "targets_solved": 128,
+      "lstar": 7,
+      "ge": {
+        "7": 128,
+        "8": 1,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 656,
+      "samples_per_sec": 695,
+      "secs": 120
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.1484375,
+      "new_proofs": 236,
+      "targets_solved": 318,
+      "lstar": 8,
+      "ge": {
+        "7": 318,
+        "8": 27,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1600,
+      "samples_per_sec": 568,
+      "secs": 137
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.3174166666666667,
+      "new_proofs": 351,
+      "targets_solved": 594,
+      "lstar": 9,
+      "ge": {
+        "7": 594,
+        "8": 170,
+        "9": 15,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2996,
+      "samples_per_sec": 620,
+      "secs": 138
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.42920833333333336,
+      "new_proofs": 252,
+      "targets_solved": 759,
+      "lstar": 9,
+      "ge": {
+        "7": 759,
+        "8": 299,
+        "9": 81,
+        "10": 3,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3984,
+      "samples_per_sec": 570,
+      "secs": 151
+    }
+  ],
+  "eval": {
+    "solved": 332,
+    "n": 1108,
+    "ge": {
+      "7": 332,
+      "8": 261,
+      "9": 180,
+      "10": 16,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 10,
+    "heldout_greedy": 0.992,
+    "max_pruned": 10,
+    "by_bin": {
+      "7": {
+        "solved": 71,
+        "n": 150,
+        "rate": 0.47333333333333333,
+        "ci": [
+          0.39509757671394596,
+          0.5529008840404923
+        ]
+      },
+      "8": {
+        "solved": 81,
+        "n": 152,
+        "rate": 0.5328947368421053,
+        "ci": [
+          0.4537470759394048,
+          0.6104206430778539
+        ]
+      },
+      "9": {
+        "solved": 164,
+        "n": 477,
+        "rate": 0.3438155136268344,
+        "ci": [
+          0.3025898009776493,
+          0.3875368436387898
+        ]
+      },
+      "10": {
+        "solved": 16,
+        "n": 219,
+        "rate": 0.0730593607305936,
+        "ci": [
+          0.04546755311729188,
+          0.11537135667333968
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P02 follow-up: Muon peak LR 0.01 -> 0.012 at fixed per-step decoupled decay (MUON_WD 0.1 -> 0.0833, peak lr*wd 1e-3), all else as 081-claude, scored 332/329/378 on seeds 0/1/2 versus 433/356/422: exact means 346.33 versus 403.67, -57.3, worse on every seed (paired -101/-27/-44). Discard; below the registered -40..+40 range (central +5). Pretraining matched or beat 081: steps 4724/4770/4782 vs 4682/4732/4769, final val loss 0.0906/0.0910/0.0963 vs 0.0950/0.0912/0.0964 (mean 0.0926 vs 0.0942), held-out greedy 0.992/0.988/0.995 vs 0.988/0.984/0.990. The loss appeared at the start of RL: round-1 targets solved 128/135/261 vs 187/235/306 (round-1 sample acc 0.037/0.023/0.080; 081 seed 0: 0.066), final RL-solved 759/771/848 vs 864/799/898; total wall-clock 999/1007/1074 s vs 1011/1095/933. So a ~20% larger steady-state Muon weight scale gave a slightly better greedy predictor but a worse T=0.8 explorer. That argues against weight scale being the source of 081's Polar Express gain (if anything the sign runs the other way), leaving the flatter spectrum or an upward draw, and it is another case where lower pretraining val loss did not predict downstream RL. The informative next step is the other side: Polar Express at MUON_LR ~0.0087 with the same per-step decay (the RMS-matched control 081 proposed).",
+  "seed_metrics": {
+    "0": 332,
+    "1": 329,
+    "2": 378
+  },
+  "seed_metric_rl": {
+    "0": 759,
+    "1": 771,
+    "2": 848
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}
