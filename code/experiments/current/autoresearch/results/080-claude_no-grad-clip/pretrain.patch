@@ -1,0 +1,12 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ef1ad43..81ebb10 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -187,7 +187,6 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             loss = loss_on(model, x, m)
+         model.zero_grad(set_to_none=True)
+         loss.backward()
+-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
+         muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
+         if step % 20 == 0:

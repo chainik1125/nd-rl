@@ -1,0 +1,199 @@
+{
+  "id": "080-claude",
+  "slug": "no-grad-clip",
+  "written_at": "2026-09-24T07:25:11-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "9837798",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "85384f95c965",
+  "patch_lines": 1,
+  "title": "P14 precondition / simplification: delete the global gradient-norm clip (1.0) from pretraining on the 078 Muon incumbent",
+  "description": "P14-family ablation and simplification (P14 says first verify whether the incumbent's clipping does anything): delete the single joint clip_grad_norm_(model.parameters(), 1.0) line in pretrain.py, leaving Muon, AdamW, LRs, 10x Muon decay, batch 128, schedule, init, data and the frozen RL stage (which keeps its own clip) identical to incumbent 078-claude. Both pretraining optimizers are scale-invariant (Muon orthogonalizes, Adam normalizes), so the clip can only reweight steps inside the momentum/moment EMAs; removing it lets large-gradient batches (hard or long records) count fully in Muon's momentum instead of being flattened, and if expert iteration is indifferent the file gets one line simpler.",
+  "tags": [
+    "optimizer",
+    "simplification"
+  ],
+  "hypothesis": "With Muon on every hidden matrix and head, and AdamW only on embedding/bias/LayerNorm vectors, the global clip at 1.0 cannot change any update's size: Muon's Newton-Schulz output has fixed spectral scale regardless of gradient magnitude, and Adam divides by the RMS of its own gradient history. What it can change is relative weighting across steps: when ||g||>1 the step's gradient is shrunk before lerping into the 0.95 Nesterov momentum (and Adam's first/second moments), so high-gradient batches are down-weighted relative to the running average. Early in training (warmup, loss >0.5) the norm is likely above 1 on most steps, making the clip act like per-step gradient normalization; late (loss ~0.06-0.09) it is probably inactive. Prediction logic: if the clip is mostly inactive after warmup, removal is a near no-op and the metric is a draw from seed noise (3-seed-mean sd ~20), which the simplicity rule accepts as a keep on a tie or better. If it is active in the middle phase, removal lets the momentum emphasize batches with larger error (plausibly those with longer or rarer proofs), which could marginally help the >=7-line transfer that expert iteration builds on. Opposing risk: unclipped early spikes inflate Adam's second moment for the embedding and slow its early learning, or let a single outlier batch steer Muon's momentum direction for ~20 steps.",
+  "p_keep": 0.4,
+  "expected_delta": "-30 to +30 theorems at >=7 (central guess 0); pretraining steps within +-2% of 078's 4782/4706/4711 (removes one foreach norm+scale per step, so possibly +0-2%); final val loss within +-0.003 of 078's 0.0909/0.0918/0.0961 and held-out greedy within +-0.005 of 0.987/0.990/0.988; the first curve points (15-30 s) may differ more than later ones if the clip was active only early",
+  "baseline_id": "078-claude",
+  "baseline_metric": 356,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000000,
+      "change": "none versus 078-claude: 5 untied fork GPT blocks, d_model 256, 8 heads (head dim 32), d_ff 1024, RoPE base 10000, LayerNorm, GELU, untied embedding/readout",
+      "n_params_detail": "per block 789,760 (ln1/ln2 512 each, qkv 197,376, proj 65,792, fc1 263,168, fc2 262,400); 5 blocks 3,948,800 + emb 25,344 + head 25,344 + ln_f 512 = 4,000,000 (043: 3,210,240)",
+      "checkpoint_reconstruction": "GPT(vocab, 5, 256, 8) from the fork; model.cfg records n_layer=5 and the state dict has blocks.0-blocks.4",
+      "kv_cache": "one fork KV-cache dict per logical block (5 per sample), unchanged fork code"
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary; NO gradient clipping (unchanged from 078-claude otherwise)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 0.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "unchanged from 078-claude: sqrt(max(rows, columns) / 256) per orthogonalized matrix (Q/K/V each 1, attention output 1, fc1 2, fc2 2, head 1)",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) plus head.weight (99,256; vocab 99, no bias) are in Muon: 21 matrices. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 and head are orthogonalized whole. head is wide (99<256) so it is not transposed and its update has 99 singular values near 1.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (incl. ln_f) throughout; head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 21 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3.",
+      "clipping": "CHANGED: none (grad_clip 0.0 here means no clipping; the schema requires a float). The joint global gradient-norm clip at 1.0 (torch.nn.utils.clip_grad_norm_ over model.parameters(), applied before both optimizers in 078-claude) is deleted; raw bf16-autocast gradients feed AdamW moments and the Muon Nesterov momentum buffer directly. The frozen RL stage's own clip (harness) is untouched.",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Exactly 078-claude: fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); embedding and readout keep the fork normal(0.02); biases zero. Initial weights and data order/shift RNG streams per seed identical to 078-claude.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
