@@ -1,6 +1,6 @@
 {
   "purpose": "Pinned lineage of the ws3 fixed pre-trained checkpoint. Code files are committed here; data and the checkpoint are fetched by fetch.sh and verified against these hashes.",
-  "pinned_on": "2026-09-22",
+  "pinned_on": "2026-09-24",
   "fork": {
     "repo": "https://github.com/dan-pandori/nd-takehome",
     "commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
@@ -8,13 +8,13 @@
   },
   "checkpoint": {
     "hf_repo": "robbiethompson2018/nd-rl-checkpoints",
-    "path": "runs/share_pretrain_4l_seed0/pretrain.pt",
-    "url": "https://huggingface.co/robbiethompson2018/nd-rl-checkpoints/resolve/main/runs/share_pretrain_4l_seed0/pretrain.pt",
-    "sha256": "f4409e4f82d8922f853a5c53eeb2820d05acea17bbd5cf92d24c073d97709e18",
+    "path": "runs/039_muon-adamw-finish-5pct_s1/pretrain.pt",
+    "url": "https://huggingface.co/robbiethompson2018/nd-rl-checkpoints/resolve/main/runs/039_muon-adamw-finish-5pct_s1/pretrain.pt",
+    "sha256": "418af3f9df382cd12c75b9399eaeddd4dbf70978156bc0799231d0e8c4e81cf2",
     "bytes": 12858650,
     "load": "GPT(vocab=99, n_layer=4, d=256, n_head=8) with Tokenizer('abs'); see load_pretrain.py",
-    "summary_json_sha256": "76f9b8b2c2a7c9b276c296694f8c0b17eaa261a5062dae4d0eac6b5457290834",
-    "pretrain_py_sha256": "c8f8e6ab8ec980fafa16619b48ddcfc5f8dc43a320541eeca54c9b2afc0a872b"
+    "summary_json_sha256": "209d540a7792d4f422a072836dded8b0f4b67a6370f168bb42c724145ab7d523",
+    "pretrain_py_sha256": "b9800e68f453659f527489de27b34019b1c947a4e0133c19637111adafe996de"
   },
   "code_committed_here": {
     "model.py": "aa3516fc8d01d5ed36321278ec59245f0f945c553137d83097b75f3eee13f4f9",

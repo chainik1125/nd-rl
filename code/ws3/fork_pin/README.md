@@ -1,7 +1,7 @@
 # fork_pin: the fixed pre-trained checkpoint and the code that opens it
 
 Workstream 3 holds pre-training fixed. The fixed model is Robbie's pre-training-only export
-`runs/share_pretrain_4l_seed0/pretrain.pt` from `hf://robbiethompson2018/nd-rl-checkpoints`.
+`runs/039_muon-adamw-finish-5pct_s1/pretrain.pt` from `hf://robbiethompson2018/nd-rl-checkpoints`.
 It is a raw state dict, so it needs the model class and tokenizer it was trained with. Those come
 from Dan's fork `dan-pandori/nd-takehome` at commit `ab629c7d2cdf3dc50d471e302d14643ba0782749`,
 which is also where its training data lives. This directory pins exactly that and nothing more.
@@ -32,6 +32,9 @@ Rules:
 - The expert-iteration harness, ladder scripts, `grpo.py`, and Lean tooling in the fork are not
   used. ws3 RL is TRL on top of an HF wrapper around `model.py`.
 
-Checkpoint facts from `checkpoint_source/summary.json`: 3,210,240 params, 2999 steps at batch 256,
-lr 1e-3, weight decay 0.1, 300 s on an A40, last training loss 0.070. No held-out evaluation was
-shipped with the export; T1 in `docs/ws3/plan.md` computes it.
+Checkpoint facts from `checkpoint_source/summary.json`: 3,210,240 params, seed 1, 2931 steps at
+batch 256, 300 s on an A40, last training loss 0.059, held-out greedy 0.9885. Recipe
+(`checkpoint_source/pretrain.py`): Muon (lr 0.01) on the block matrices and AdamW (lr 1e-3, wd 0.1)
+on the rest, with AdamW on everything for the last 5% of the wall clock. The summary's `rl` and
+`eval` sections describe Robbie's RL on top of this checkpoint, not the checkpoint itself; no
+textbook or pass@k numbers were shipped, and T1 in `docs/ws3/plan.md` computes them.
