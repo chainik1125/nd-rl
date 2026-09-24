@@ -1,0 +1,39 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 624a63b..74366cc 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -40,6 +40,7 @@ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
+ TOK_MODE = "abs"
++RESID_SCALE = 0.5  # handoff multiplier on every residual-stream write (function-preserving)
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
+@@ -208,6 +209,18 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             )
+             recent, next_point = [], next_point + CURVE_EVERY
+     model.eval()
++    # Every residual write (emb, proj, fc2) is read back only through a LayerNorm, so scaling
++    # them all leaves the function unchanged up to LayerNorm eps, while the frozen RL AdamW's
++    # roughly fixed-size steps move these weights 1/RESID_SCALE times further relative to size.
++    with torch.no_grad():
++        probe = ids[:BS, : int(lens[:BS].max())]
++        before = model(probe).float()
++        for p in [model.emb.weight] + [
++            p for b in model.blocks for p in (*b.proj.parameters(), *b.fc2.parameters())
++        ]:
++            p.mul_(RESID_SCALE)
++        drift = (model(probe).float() - before).abs().max().item()
++    log(f"handoff: residual writes x{RESID_SCALE}, max |logit drift| {drift:.2e}")
+     return (
+         model,
+         tok,
+@@ -216,6 +229,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "records_seen": step * BS,
+             "epochs": step * BS / n_train,
+             "last_loss": last_loss,
++            "handoff_logit_drift": drift,
+             "curve": curve,
+         },
+     )
