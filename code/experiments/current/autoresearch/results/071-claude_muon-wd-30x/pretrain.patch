@@ -1,0 +1,35 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 624a63b..8a5f6bb 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,8 +37,8 @@ from train import loss_on  # fork
+ N_LAYER, D, N_HEAD = 5, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+-# Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+-MUON_WD = 10 * WD * LR / MUON_LR
++# Thirty times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
++MUON_WD = 30 * WD * LR / MUON_LR
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+@@ -208,6 +208,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             )
+             recent, next_point = [], next_point + CURVE_EVERY
+     model.eval()
++    # Diagnostic only: spectral norm of every 2-D weight handed to RL (weight-decay mechanism).
++    spectral_norms = {
++        name: round(torch.linalg.matrix_norm(p.detach().float().cpu(), ord=2).item(), 4)
++        for name, p in model.named_parameters()
++        if p.ndim == 2
++    }
+     return (
+         model,
+         tok,
+@@ -217,5 +223,6 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": step * BS / n_train,
+             "last_loss": last_loss,
+             "curve": curve,
++            "spectral_norms": spectral_norms,
+         },
+     )
