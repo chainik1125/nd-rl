@@ -1,0 +1,12 @@
+{
+ "n_records": 5000,
+ "n_target_tokens": 363090,
+ "next_token_accuracy": 0.9834558924784489,
+ "loss": 0.06686065975828932,
+ "ckpt_meta": {
+  "tok_mode": "abs",
+  "stage": "pretrain",
+  "seed": 0,
+  "n_params": 3210240
+ }
+}

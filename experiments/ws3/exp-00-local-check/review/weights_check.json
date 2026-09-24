@@ -1,0 +1,12 @@
+{
+ "pt_tensors": 52,
+ "hf_base_tensors": 52,
+ "final_tensors": 52,
+ "hf_base_vs_pretrain_pt_max_abs_diff": 0.0,
+ "pt_keys_missing_in_hf_base": [],
+ "hf_base_extra_keys": [],
+ "final_vs_hf_base_max_abs_diff": 0.00038307905197143555,
+ "final_tensors_changed": 52,
+ "final_vs_hf_base_rel_fro": 0.002215075094781474,
+ "n_params": 3210240
+}

@@ -37,3 +37,67 @@ orchestration, CPU smoke test) need no GPU and can proceed meanwhile.
 **Open questions.** Whether to also store a `RUNPOD_API_KEY` in `.env` so `runpodctl` and the
 orchestration scripts (`pod_watchdog`, `killswitch`, `rpbalance`) can authenticate; Dan's setup
 uses a key, not OAuth, for that reason.
+
+## 2026-09-23 exp-00 local check (executor session)
+
+**What ran.** Branches: `charles` renamed to `charles-pre-ws3` (git cannot hold `charles` and
+`charles/main` at once; noted in `questions.md`), `charles/main` created with the setup commit
+(CLAUDE.md, plan, startup, fork_pin, textbook72, uv env), then `charles/exp-00-local-check` with
+one commit per build step: `code/ws3/eval/` (binary reward through `strict_verify`, evaluator
+with Wilson CIs, textbook slices, T1 next-token accuracy; 13 tests), `code/ws3/hf_wrapper.py`
+(the fork's KV cache wired into HF `generate` via a model-managed cache; logits within 1e-4 of
+the fork model; TRL `GRPOTrainer` takes it as policy and reference; 10 tests), and
+`code/ws3/run.py` with stages `baseline`, `train`, `evaluate`, `report` (smoke pipeline test,
+24 ws3 tests in all). Then exp-00 itself in `experiments/ws3/exp-00-local-check/`, all on the
+laptop CPU in 14 minutes: proposal committed first (gate A), `numbers.md`, `status.md` ending
+`DONE`, `results.md` with 20 raw samples. No pod, no GPU, no spend.
+
+**What was learned.**
+- Without a KV cache the wrapper generated 2 completions/s on CPU; with the fork's cache inside
+  HF `generate` it is 50 to 108/s for evaluation and 32/s for GRPO including the optimizer step.
+  That single change is what made exp-00 fit the hour. transformers 5 lets a model manage its
+  own cache when `_supports_default_dynamic_cache()` is False; no `Cache` subclass was needed.
+- T1 gate passes: next-token accuracy 98.35%, loss 0.067 on all 5,000 heldout records. Greedy
+  by length 100 / 99 / 95 / 87 / 72.5% for lengths 2 to 6. Textbook 10 of 72 at k=64 and 0 of
+  43 at reference length 7 or more (the project's previous best). Long pool 14 of 82 at true
+  length 7, none above.
+- 50 GRPO steps (32 prompts x group 8, lengths 3 to 5, lr 1e-5, KL 0.01) moved mean reward from
+  0.876 to 0.923 with max KL 0.0017: the chain works, but the policy barely moved and no
+  evaluation changed beyond noise. Two thirds of the groups had zero reward variance, so
+  lengths 3 to 5 are too easy to carry signal; exp-01/02 should weight lengths 5 to 7 and
+  expect to need a larger learning rate than 1e-5.
+- TRL 1.13 defaults `gradient_checkpointing=True`; the wrapper declines it, so every config sets
+  it False (done in `run.py` defaults). TRL's reward `log_metric` hook works for the
+  unparseable/invalid fractions.
+- The Claude Code background runner kills commands at 10 minutes; long runs are launched with
+  `nohup ... & disown` (macOS has no `setsid`) and watched through `stdout.log`.
+
+**What is next.** A separate reviewer session writes `review.md` (recount from the gzipped dumps,
+leak check, reward sanity) before anything merges into `charles/main`. Then startup.md step 12:
+fund RunPod, launch the pod, rerun the smoke test and exp-00's config on CUDA, and write exp-01's
+proposal with a harder prompt mix.
+
+**Open questions.** In `docs/ws3/questions.md`: keep or delete `charles-pre-ws3`; whether
+committing gzipped proof dumps (about 1.1 MB per experiment) is acceptable or they should go to
+the HF bucket; whether exp-01 may deviate from the startup.md row's lr 1e-5 and lengths 3 to 5
+given the zero-variance fraction seen here.
+
+## 2026-09-23 exp-00 review (reviewer session)
+
+**What ran.** A fresh agent session recounted exp-00 from the gzipped dumps with its own code
+(`experiments/ws3/exp-00-local-check/review/`), then read `numbers.md` and `results.md` and
+checked all 43 claims. Commits `58ae5fb` (Recount) and `fd897c4` (Claims, Verdict), author
+"ws3 reviewer".
+
+**What was learned.** Verdict: PASS, not quarantined. 36,836 proofs re-verified with zero
+disagreements; every reported number reproduces; gates A and B pass; the control model is
+bit-identical to the pinned checkpoint. Two wording errors in `results.md` must not be copied:
+the textbook problem "lost" after RL is `textbook_eec1f557…` (not `b5920d…`, which both models
+solve), and evaluation sampling ran at 45.6 to 103.4 samples/s (not "50 to 108"). Flag: the
+fixed `train.jsonl.gz` shares 110 of 256 `test_short` renaming classes and 6 of 531 `test_long`
+classes, so 2 of exp-00's 1,600 RL prompts were in a test-file class. Inherited from the fixed
+pre-training data, the test files were never scored, and no number depends on it, but the
+quarantine rule's literal wording is met and the decision is Charles's.
+
+**What is next.** Charles reads `review.md`, decides on the test-file overlap (see
+`questions.md`), then merges `charles/exp-00-local-check` into `charles/main`. Then the pod.

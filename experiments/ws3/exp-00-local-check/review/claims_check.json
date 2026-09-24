@@ -1,0 +1,238 @@
+{
+ "differing_completions_greedy_heldout": 287,
+ "differing_completions_textbook72": 2197,
+ "differing_completions_long_pool": 2470,
+ "textbook_hits_per_solved_problem": {
+  "baseline/textbook72": {
+   "textbook_287ceb6c7a54a42f3829": 60,
+   "textbook_dd80d9db9d060cdb3f53": 12,
+   "textbook_34f93da8bd82c5f421bc": 1,
+   "textbook_eec1f557a49c79cc7081": 1,
+   "textbook_4f666c992cac7dcfd117": 15,
+   "textbook_b5920d6d8c128e48b958": 12,
+   "textbook_ab0622acfa2bdb298f46": 3,
+   "textbook_44157a16ce8876875ce1": 36,
+   "textbook_0ed8057166e48df4ff93": 53,
+   "textbook_da42d4814cf3a388b9fc": 47
+  },
+  "evaluate/textbook72": {
+   "textbook_287ceb6c7a54a42f3829": 59,
+   "textbook_b3af45532093373816b1": 2,
+   "textbook_dd80d9db9d060cdb3f53": 14,
+   "textbook_34f93da8bd82c5f421bc": 2,
+   "textbook_4f666c992cac7dcfd117": 21,
+   "textbook_b5920d6d8c128e48b958": 5,
+   "textbook_ab0622acfa2bdb298f46": 3,
+   "textbook_44157a16ce8876875ce1": 50,
+   "textbook_0ed8057166e48df4ff93": 54,
+   "textbook_da42d4814cf3a388b9fc": 54
+  }
+ },
+ "executor_20_rows": {
+  "accepted_mine": 18,
+  "rejected_mine": 2,
+  "mismatch_vs_reward": [],
+  "rejected_rows": [
+   [
+    4242,
+    "rule check failed: ANDE1 (line 62)"
+   ],
+   [
+    4969,
+    "rule check failed: NEGE (line 37)"
+   ]
+  ]
+ },
+ "dump_stats": {
+  "baseline/greedy_heldout": {
+   "reasons_top": {
+    "ok": 907,
+    "rule check failed": 92,
+    "bad line cite": 1
+   },
+   "unparseable_frac_mine": 0.0,
+   "n_tokens_field_mean": 72.891,
+   "n_tokens_field_max": 247,
+   "whitespace_tokens_mean": 72.891,
+   "whitespace_tokens_max": 247,
+   "n_tokens_field_eq_whitespace": 1000,
+   "capped_frac_mine(n_tokens>=400)": 0.0
+  },
+  "baseline/textbook72": {
+   "reasons_top": {
+    "rule check failed": 3574,
+    "parse": 266,
+    "ok": 240,
+    "bad line cite": 140,
+    "final formula is not the conclusion": 111,
+    "bad box cite": 85,
+    "ref out of range": 30,
+    "line index mismatch at position 5": 23
+   },
+   "unparseable_frac_mine": 0.05772569444444445,
+   "n_tokens_field_mean": 68.79600694444444,
+   "n_tokens_field_max": 198,
+   "whitespace_tokens_mean": 68.79600694444444,
+   "whitespace_tokens_max": 198,
+   "n_tokens_field_eq_whitespace": 4608,
+   "capped_frac_mine(n_tokens>=400)": 0.0
+  },
+  "baseline/long_pool": {
+   "reasons_top": {
+    "rule check failed": 4696,
+    "parse": 459,
+    "bad box cite": 446,
+    "ok": 149,
+    "line index mismatch at position 7": 147,
+    "final formula is not the conclusion": 110,
+    "bad line cite": 101,
+    "ref out of range": 52
+   },
+   "unparseable_frac_mine": 0.07171875,
+   "n_tokens_field_mean": 129.04671875,
+   "n_tokens_field_max": 392,
+   "whitespace_tokens_mean": 129.04671875,
+   "whitespace_tokens_max": 392,
+   "n_tokens_field_eq_whitespace": 6400,
+   "capped_frac_mine(n_tokens>=400)": 0.0
+  },
+  "evaluate/greedy_heldout": {
+   "reasons_top": {
+    "ok": 911,
+    "rule check failed": 84,
+    "bad box cite": 2,
+    "parse": 1,
+    "bad line cite": 1,
+    "final formula is not the conclusion": 1
+   },
+   "unparseable_frac_mine": 0.001,
+   "n_tokens_field_mean": 72.425,
+   "n_tokens_field_max": 247,
+   "whitespace_tokens_mean": 72.425,
+   "whitespace_tokens_max": 247,
+   "n_tokens_field_eq_whitespace": 1000,
+   "capped_frac_mine(n_tokens>=400)": 0.0
+  },
+  "evaluate/textbook72": {
+   "reasons_top": {
+    "rule check failed": 3658,
+    "ok": 264,
+    "parse": 212,
+    "bad line cite": 141,
+    "final formula is not the conclusion": 95,
+    "bad box cite": 80,
+    "ref out of range": 32,
+    "line index mismatch at position 5": 19
+   },
+   "unparseable_frac_mine": 0.04600694444444445,
+   "n_tokens_field_mean": 65.78667534722223,
+   "n_tokens_field_max": 191,
+   "whitespace_tokens_mean": 65.78667534722223,
+   "whitespace_tokens_max": 191,
+   "n_tokens_field_eq_whitespace": 4608,
+   "capped_frac_mine(n_tokens>=400)": 0.0
+  },
+  "evaluate/long_pool": {
+   "reasons_top": {
+    "rule check failed": 4691,
+    "bad box cite": 505,
+    "parse": 498,
+    "line index mismatch at position 7": 118,
+    "ok": 112,
+    "final formula is not the conclusion": 97,
+    "bad line cite": 95,
+    "ref out of range": 56
+   },
+   "unparseable_frac_mine": 0.0778125,
+   "n_tokens_field_mean": 127.35890625,
+   "n_tokens_field_max": 302,
+   "whitespace_tokens_mean": 127.35890625,
+   "whitespace_tokens_max": 302,
+   "n_tokens_field_eq_whitespace": 6400,
+   "capped_frac_mine(n_tokens>=400)": 0.0
+  },
+  "eval_periodic": {
+   "reasons_top": {
+    "ok": 268,
+    "rule check failed": 121,
+    "parse": 18,
+    "bad box cite": 7,
+    "depth jump at line 37": 4,
+    "depth jump at line 39": 1,
+    "depth jump at line 42": 1
+   },
+   "unparseable_frac_mine": 0.04285714285714286,
+   "n_tokens_field_mean": 81.47380952380952,
+   "n_tokens_field_max": 235,
+   "whitespace_tokens_mean": 81.47380952380952,
+   "whitespace_tokens_max": 235,
+   "n_tokens_field_eq_whitespace": 420,
+   "capped_frac_mine(n_tokens>=400)": 0.0
+  }
+ },
+ "train": {
+  "entropy_first": 0.06178978364914656,
+  "entropy_last": 0.06155195785686374,
+  "mean_len_first": 77.6328125,
+  "mean_len_last": 73.8359375,
+  "grad_norm_mean": 0.16213319145143032,
+  "grad_norm_min": 0.05750338360667229,
+  "grad_norm_max": 0.2930887043476105,
+  "secs_per_step_mean": 8.45883544445038,
+  "kl_first": 0.0,
+  "kl_last": 0.0005001593463020981
+ },
+ "train_summary_json": {
+  "secs": 424.2773759365082,
+  "steps": 50,
+  "completions_per_step": 256,
+  "mean_reward_first5": 0.87578125,
+  "mean_reward_last5": 0.92265625,
+  "max_kl": 0.001716182192467386
+ },
+ "stages": {
+  "baseline": 213,
+  "train": 426,
+  "evaluate": 189,
+  "report": 1
+ },
+ "stages_total": 829,
+ "summary_samples_per_sec": {
+  "baseline/greedy_heldout": 58.0,
+  "baseline/textbook": 103.4,
+  "baseline/long_pool": 50.8,
+  "evaluate/greedy_heldout": 45.6,
+  "evaluate/textbook": 101.6,
+  "evaluate/long_pool": 52.9
+ },
+ "cited_files": {
+  "stages.jsonl": true,
+  "baseline/environment.json": true,
+  "baseline/nta.json": true,
+  "baseline/greedy_heldout.json": true,
+  "baseline/dumps/greedy_heldout.jsonl": true,
+  "evaluate/greedy_heldout.json": true,
+  "evaluate/dumps/greedy_heldout.jsonl": true,
+  "baseline/textbook.json": true,
+  "baseline/dumps/textbook72.jsonl": true,
+  "evaluate/textbook.json": true,
+  "evaluate/dumps/textbook72.jsonl": true,
+  "baseline/long_pool.json": true,
+  "baseline/dumps/long_pool.jsonl": true,
+  "evaluate/long_pool.json": true,
+  "evaluate/dumps/long_pool.jsonl": true,
+  "train_summary.json": true,
+  "run_manifest.json": true,
+  "metrics.jsonl": true,
+  "completions.jsonl.gz": true,
+  "prompts.jsonl": true,
+  "eval_periodic.jsonl": true,
+  "report/metric_coverage.json": true,
+  "report/curves.png": true,
+  "report/periodic_eval.png": true,
+  "report/greedy_heldout.png": true,
+  "report/long_pool.png": true,
+  "evaluate/comparison.json": true
+ },
+ "cited_files_missing": []
+}
