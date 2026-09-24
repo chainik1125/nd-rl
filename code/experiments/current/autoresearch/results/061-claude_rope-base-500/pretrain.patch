@@ -1,0 +1,50 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 405a860..31f5e8d 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,7 +29,7 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++from model import GPT, rope_cache  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+@@ -39,10 +39,27 @@ BS, LR, MIN_LR_FRAC, WARMUP, WD = 256, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ # Match the incumbent's multiplicative decay at every schedule fraction.
+ MUON_WD = WD * LR / MUON_LR
++# RoPE base 10000 -> 500: 12 of each head's 16 rotary pairs (wavelengths <= 451 tokens) complete
++# a full turn within the longest pretraining record (516 tokens), versus 8 at base 10000.
++ROPE_BASE = 500.0
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
++class LowBaseRopeGPT(GPT):
++    """Fork GPT forward with rope_cache(base=ROPE_BASE); kept through RL and eval."""
++
++    def forward(self, idx, pos=None, mask=None, caches=None):
++        T = idx.shape[1] if pos is None else int(pos.max().item()) + 1
++        cos, sin = rope_cache(T, self.hd, idx.device, base=ROPE_BASE)
++        if pos is not None:
++            cos, sin = cos[pos], sin[pos]
++        x = self.emb(idx)
++        for i, block in enumerate(self.blocks):
++            x = block(x, cos, sin, mask, None if caches is None else caches[i])
++        return self.head(self.ln_f(x))
++
++
+ # Muon update adapted from KellerJordan/Muon, commit
+ # f98f1cacc0263b04290753e32be8d498c1efc806 (muon.py).
+ # MIT License
+@@ -143,7 +160,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = LowBaseRopeGPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
