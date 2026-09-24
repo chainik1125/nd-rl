@@ -1,0 +1,83 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..faca780 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,7 +29,8 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++import torch.nn.functional as F
++from model import GPT, Block, apply_rope  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+@@ -51,6 +52,47 @@ NS_COEFFS = (
+ MUON_WD = 10 * WD * LR / MUON_LR
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++SSMAX_NREF = 64  # key count at which the Scalable-Softmax query multiplier starts at exactly 1
++
++
++class SSMaxGPT(GPT):
++    """The fork's GPT with Scalable-Softmax (Nakanishi 2025): each query is scaled by
++    s_h * log(n), n = the number of real keys it can see (position + 1), so attention does not
++    flatten as proofs grow past the <=6-line pretraining lengths. Stashes log(n) on the blocks."""
++
++    def forward(self, idx, pos=None, mask=None, caches=None):
++        T = idx.size(1)
++        n = torch.arange(1, T + 1, device=idx.device) if pos is None else pos + 1
++        logn = (n.float().log() / math.log(SSMAX_NREF)).view(-1, 1, T, 1)  # (1 or B, 1, T, 1)
++        for b in self.blocks:
++            b.logn = logn
++        return super().forward(idx, pos=pos, mask=mask, caches=caches)
++
++
++class SSMaxBlock(Block):
++    """The fork's Block, with q multiplied by exp(log_s) * log(n) / log(SSMAX_NREF) per head.
++    log_s starts at 0 and sits in AdamW, whose decay pulls it back toward that start."""
++
++    def attn(self, x, cos, sin, mask, cache):
++        B, T, D = x.shape
++        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        q = q * (self.log_s.exp() * self.logn).type_as(q)
++        q, k = apply_rope(q, cos, sin), apply_rope(k, cos, sin)
++        if cache is not None:
++            # preallocated KV cache (avoids per-step torch.cat growth / allocator fragmentation)
++            if "k" not in cache:
++                cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["n"] = 0
++            n0, n1 = cache["n"], cache["n"] + T
++            cache["k"][:, :, n0:n1] = k
++            cache["v"][:, :, n0:n1] = v
++            cache["n"] = n1
++            k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
++        else:
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, is_causal=mask is None)
++        return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -160,6 +202,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++    # After init, so every other initial weight matches the incumbent. The classes and the
++    # (N_HEAD, 1, 1) log-gains stay on the returned model through the harness's RL and eval.
++    model.__class__ = SSMaxGPT
++    for block in model.blocks:
++        block.__class__ = SSMaxBlock
++        block.log_s = torch.nn.Parameter(torch.zeros(N_HEAD, 1, 1, device=device))
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+@@ -228,6 +276,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "records_seen": step * BS,
+             "epochs": step * BS / n_train,
+             "last_loss": last_loss,
++            "ssmax_gain": [b.log_s.exp().flatten().tolist() for b in model.blocks],
+             "curve": curve,
+         },
+     )
