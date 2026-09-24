@@ -1,0 +1,343 @@
+{
+  "commit": "c78f097",
+  "recorded_at": "2026-09-24T00:18:14-0700",
+  "status": "keep",
+  "metric": 293,
+  "metric_rl": 719,
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "17b4511be3c2",
+  "rules": {
+    "TOTAL_SECS": 1200,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 953,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 4000000,
+    "steps": 2339,
+    "epochs": 3.889066417260954,
+    "last_loss": 0.05973104014992714,
+    "heldout_greedy": 0.985,
+    "curve": [
+      {
+        "secs": 15,
+        "step": 27,
+        "train_loss": 3.890742063522339,
+        "val_loss": 3.440096139907837
+      },
+      {
+        "secs": 30,
+        "step": 150,
+        "train_loss": 1.629890610774358,
+        "val_loss": 0.6391298919916153
+      },
+      {
+        "secs": 45,
+        "step": 270,
+        "train_loss": 0.3005908851822217,
+        "val_loss": 0.11609869822859764
+      },
+      {
+        "secs": 60,
+        "step": 391,
+        "train_loss": 0.09873157491286595,
+        "val_loss": 0.10115768760442734
+      },
+      {
+        "secs": 75,
+        "step": 515,
+        "train_loss": 0.08704083164532979,
+        "val_loss": 0.09663517028093338
+      },
+      {
+        "secs": 90,
+        "step": 636,
+        "train_loss": 0.0777272420624892,
+        "val_loss": 0.09611416421830654
+      },
+      {
+        "secs": 105,
+        "step": 757,
+        "train_loss": 0.07146583994229634,
+        "val_loss": 0.10946327820420265
+      },
+      {
+        "secs": 120,
+        "step": 879,
+        "train_loss": 0.07087100793917973,
+        "val_loss": 0.09804162569344044
+      },
+      {
+        "secs": 135,
+        "step": 1003,
+        "train_loss": 0.06893767203603472,
+        "val_loss": 0.08793823421001434
+      },
+      {
+        "secs": 150,
+        "step": 1125,
+        "train_loss": 0.06599773839116096,
+        "val_loss": 0.0952488612383604
+      },
+      {
+        "secs": 165,
+        "step": 1248,
+        "train_loss": 0.0649856235831976,
+        "val_loss": 0.09314696118235588
+      },
+      {
+        "secs": 180,
+        "step": 1368,
+        "train_loss": 0.06382616112629573,
+        "val_loss": 0.09603813290596008
+      },
+      {
+        "secs": 195,
+        "step": 1490,
+        "train_loss": 0.06227317390342554,
+        "val_loss": 0.09864991717040539
+      },
+      {
+        "secs": 210,
+        "step": 1613,
+        "train_loss": 0.06139857197801272,
+        "val_loss": 0.09547770954668522
+      },
+      {
+        "secs": 225,
+        "step": 1733,
+        "train_loss": 0.06021662180622419,
+        "val_loss": 0.08978939242660999
+      },
+      {
+        "secs": 240,
+        "step": 1852,
+        "train_loss": 0.06296863903601964,
+        "val_loss": 0.09577685408294201
+      },
+      {
+        "secs": 255,
+        "step": 1975,
+        "train_loss": 0.0592123419046402,
+        "val_loss": 0.0948841255158186
+      },
+      {
+        "secs": 270,
+        "step": 2095,
+        "train_loss": 0.05946675005058447,
+        "val_loss": 0.09300833567976952
+      },
+      {
+        "secs": 285,
+        "step": 2217,
+        "train_loss": 0.06135826247433821,
+        "val_loss": 0.0908331498503685
+      },
+      {
+        "secs": 300,
+        "step": 2339,
+        "train_loss": 0.05954657060404619,
+        "val_loss": 0.09122890420258045
+      }
+    ],
+    "records_seen": 598784
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.0575625,
+      "new_proofs": 214,
+      "targets_solved": 182,
+      "lstar": 7,
+      "ge": {
+        "7": 182,
+        "8": 1,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 856,
+      "samples_per_sec": 716,
+      "secs": 107
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.209875,
+      "new_proofs": 257,
+      "targets_solved": 405,
+      "lstar": 8,
+      "ge": {
+        "7": 405,
+        "8": 44,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1880,
+      "samples_per_sec": 780,
+      "secs": 106
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.3521666666666667,
+      "new_proofs": 266,
+      "targets_solved": 619,
+      "lstar": 9,
+      "ge": {
+        "7": 619,
+        "8": 199,
+        "9": 35,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2940,
+      "samples_per_sec": 596,
+      "secs": 130
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.429,
+      "new_proofs": 148,
+      "targets_solved": 725,
+      "lstar": 10,
+      "ge": {
+        "7": 725,
+        "8": 283,
+        "9": 81,
+        "10": 8,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3528,
+      "samples_per_sec": 597,
+      "secs": 128
+    }
+  ],
+  "eval": {
+    "solved": 306,
+    "n": 1108,
+    "ge": {
+      "7": 306,
+      "8": 240,
+      "9": 167,
+      "10": 15,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 10,
+    "heldout_greedy": 0.984,
+    "max_pruned": 10,
+    "by_bin": {
+      "7": {
+        "solved": 66,
+        "n": 150,
+        "rate": 0.44,
+        "ci": [
+          0.3630436095097045,
+          0.5199529271877817
+        ]
+      },
+      "8": {
+        "solved": 73,
+        "n": 152,
+        "rate": 0.48026315789473684,
+        "ci": [
+          0.402306698963966,
+          0.5591926696256789
+        ]
+      },
+      "9": {
+        "solved": 152,
+        "n": 477,
+        "rate": 0.31865828092243187,
+        "ci": [
+          0.2784333120942782,
+          0.36178084574897
+        ]
+      },
+      "10": {
+        "solved": 15,
+        "n": 219,
+        "rate": 0.0684931506849315,
+        "ci": [
+          0.04194335464904808,
+          0.10992057021955814
+        ]
+      },
+      "11": {
+        "solved": 0,
+        "n": 49,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.07270029673590504
+        ]
+      },
+      "12": {
+        "solved": 0,
+        "n": 54,
+        "rate": 0.0,
+        "ci": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P02 extension: moving the 99x256 output readout head.weight from pretraining AdamW into the split-QKV Muon group (one-line change) on incumbent 051-claude scored 306/270/302 on seeds 0/1/2 versus 288/260/311: exact means 292.666667 versus 286.333333, +6.333333 (+2.2%); paired +18/+10/-9. Keep under the strictly-higher three-seed rule; no other agent result was published during the run, so 051-claude was the bar. The gain is well inside seed noise (sd ~44 per seed), so treat it as 'no harm, maybe small help', not an established effect. The preregistered mechanism did not hold: round-1 RL sample accuracy was 0.058/0.051/0.042 versus 051's 0.063/0.049/0.075, and targets solved after rounds 1 and 2 were 182/158/137 and 405/358/381 versus 189/141/222 and 496/386/443. So 064 trailed early on seeds 0 and 2 and caught up in rounds 3-4 (RL solved 725/689/742 versus 717/670/718). Eval gains are at 9 lines (152/118/142 versus 136/114/145); 10-line solves are 15/5/17 versus 15/12/21, plus one 11-line solve on seed 2. Pretraining cost nothing, as predicted: 2339/2345/2354 steps (051: 2320-2370), final val loss 0.0912/0.0950/0.0928 and held-out greedy 0.985/0.990/0.991, the same as 051. Totals 910-953 s. Keller Jordan's warning that a Muon readout hurts LM loss did not show up at this scale.",
+  "seed_metrics": {
+    "0": 306,
+    "1": 270,
+    "2": 302
+  },
+  "seed_metric_rl": {
+    "0": 725,
+    "1": 689,
+    "2": 742
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "migrated": false
+}
