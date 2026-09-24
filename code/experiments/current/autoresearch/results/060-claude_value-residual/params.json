@@ -1,0 +1,212 @@
+{
+  "id": "060-claude",
+  "slug": "value-residual",
+  "written_at": "2026-09-23T22:10:53-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "874a6fe",
+  "harness_sha": "5f0740b15fdb",
+  "pretrain_sha": "25944f32f3db",
+  "patch_lines": 69,
+  "title": "Value residual: blocks 1-4 mix block 0's attention values in with a learned scalar (P38)",
+  "description": "P38: blocks 1-4 of the 051-claude incumbent replace their attention values with a learned lerp toward block 0's values at the same token (value residual, init 0.5), kept through RL and eval. Later layers can then retrieve the raw token/reference identity that block 0 encodes, which should help the model copy citations and formulas correctly in longer proofs, giving expert iteration more correct long samples.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "In deeper layers the residual stream at a cited line has been transformed away from the literal symbols, so attention reads mostly processed features; value residual gives every later attention layer direct access to block 0's per-token values (Zhou et al. 2024 report ~10-16% parameter/data efficiency on LMs, and it was a speedrun gain in modded-nanogpt). For proof continuation, retrieving exact earlier formulas and line references is the core operation, so easier retrieval should raise per-sample validity on long proofs, which compounds through the 4 expert-iteration rounds.",
+  "p_keep": 0.3,
+  "expected_delta": "Central +0 to +20 dev-transfer solves at true length >=7 versus incumbent 051-claude mean 286.33 (288/260/311); plausible downside -30 if the mixing disrupts attention the way qk-norm did (059: 75). Val loss within +-0.004 of 051 (0.0923 on seed 0) or slightly lower; pretraining updates within 5% of 051; per-seed total secs within +5% of 051 (1053 on seed 0), well under the 1200 s cap. Learned v_mix expected to stay in 0.3-0.8.",
+  "baseline_id": "051-claude",
+  "baseline_metric": 286,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) with value residual (ValueResidualGPT/ValueResidualBlock subclasses in pretrain.py)",
+      "n_layers": 5,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4000004,
+      "change": "one mechanism: in blocks 1-4, attention values become v = v1 + v_mix * (v - v1), where v1 is block 0's value projection at the same token (per head, pre-attention) and v_mix is one learned scalar per block, init 0.5. Block 0 unchanged. Queries, keys, RoPE, depth 5, width 256, 8 heads, d_ff 1024 and all optimizer/schedule/data settings unchanged from 051-claude.",
+      "n_params_detail": "051's 4,000,000 plus four scalar v_mix parameters (blocks 1-4) = 4,000,004",
+      "checkpoint_reconstruction": "ValueResidualGPT(vocab, 5, 256, 8) from pretrain.py; the state dict is the fork GPT's plus blocks.1-4.v_mix, so a plain fork GPT cannot load it strictly. The harness keeps the returned module object through RL and eval.",
+      "kv_cache": "one fork-format KV-cache dict per block (5 per sample); each block caches its mixed values, and v1 for new tokens is recomputed by block 0 in the same forward, so no cached value is reused for the wrong token. CPU check: full vs prefill+incremental decode max |logit diff| 1.1e-6 with v_mix set to 0.3.",
+      "value_residual": {
+        "source": "Zhou et al. 2024, Value Residual Learning For Alleviating Attention Concentration In Transformers (arXiv 2410.17897); learnable-lambda form as used in modded-nanogpt",
+        "mixed_blocks": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "v_mix_init": 0.5,
+        "v_mix_optimizer": "auxiliary AdamW group (lr 1e-3 schedule, wd 0.1, like LayerNorm params)",
+        "persists_into_rl": true,
+        "extra_ops": "3 elementwise ops per mixed block per forward; no extra matmuls"
+      }
+    },
+    "tokenizer": {
+      "codec": "abs",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "split-QKV Muon hidden matrices throughout; continuous AdamW auxiliary",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          3.4445,
+          -4.775,
+          2.0315
+        ],
+        "normalization_epsilon": 1e-07,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(1, rows/columns)) per orthogonalized matrix: Q/K/V each 1, attention output 1, fc1 2, fc2 1",
+        "wd": 0.01,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "All 20 hidden projection parameters (4 per block x 5 blocks) are in Muon. Five qkv.weight matrices of shape (768,256) use independent Q/K/V updates, represented as a batch of three (256,256) matrices; proj/fc1/fc2 remain unchanged.",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget"
+      },
+      "adamw_parameters": "emb.weight, head.weight, all projection biases, LayerNorm parameters and the four v_mix scalars throughout; hidden matrices never enter pretraining AdamW",
+      "decay_convention": "Muon lr*0.01 equals auxiliary AdamW lr*0.1, preserving incumbent per-update shrinkage at every schedule fraction, including the former finish window; integrated decay can differ with throughput.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW"
+    },
+    "batch": {
+      "size": 256,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (abs)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction with 5 blocks, then orthogonal_ on every 2D block parameter after moving to device. Gain = 0.02 * sqrt(max(rows, columns)); exact element second moment 0.0004. All 20 hidden matrices: qkv (768,256), proj (256,256), fc1 (1024,256), fc2 (256,1024) in each of five blocks. QKV initialized jointly. Embedding and readout keep the fork's normal(0.02) draws; biases zero; LayerNorm weight 1 and bias 0. No reinitialization during RL. ValueResidualGPT constructs the fork's 5 blocks and then replaces them with ValueResidualBlocks (fork _init applied to the new blocks), so construction consumes extra global-RNG draws and initial weights are not bitwise identical to 051's for a given seed; the init rule is identical. v_mix = 0.5 in blocks 1-4.",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "timing": "not benchmarked on GPU; expected pretraining step and decode-step overhead a few percent (4 x 3 elementwise kernels per forward), so ~2200-2320 updates in 300 s (051: 2320 on seed 0)"
+  },
+  "protocol": {
+    "fork_commit": "ab629c7d2cdf3dc50d471e302d14643ba0782749",
+    "budget": {
+      "total_secs": 1200,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (strided to 2000)",
+      "n": 2000,
+      "by_lines": {
+        "2": 500,
+        "3": 500,
+        "4": 500,
+        "5": 500
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

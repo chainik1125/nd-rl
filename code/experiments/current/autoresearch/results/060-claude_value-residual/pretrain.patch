@@ -1,0 +1,95 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 405a860..cef442e 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,8 +29,10 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++import torch.nn.functional as F
++from model import GPT, Block, apply_rope, rope_cache  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
++from torch import nn
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+@@ -41,6 +43,69 @@ MUON_LR, MUON_MOMENTUM, MUON_STEPS = 0.01, 0.95, 5
+ MUON_WD = WD * LR / MUON_LR
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++V_MIX_INIT = 0.5  # value residual: weight on a block's own values, the rest on block 0's
++
++
++class ValueResidualBlock(Block):
++    """The fork's Block, except blocks after the first lerp their attention values toward
++    block 0's values at the same token (value residual, Zhou et al. 2024). The KV cache holds
++    the mixed values, so cached decoding matches the full forward."""
++
++    def __init__(self, d, h, first):
++        super().__init__(d, h)
++        self.v_mix = None if first else nn.Parameter(torch.tensor(V_MIX_INIT))
++
++    def attn(self, x, cos, sin, mask, cache, v1):
++        B, T, D = x.shape
++        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        if self.v_mix is None:
++            v1 = v
++        else:
++            v = v1 + self.v_mix * (v - v1)
++        q, k = apply_rope(q, cos, sin), apply_rope(k, cos, sin)
++        if cache is not None:
++            if "k" not in cache:
++                cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["n"] = 0
++            n0, n1 = cache["n"], cache["n"] + T
++            cache["k"][:, :, n0:n1] = k
++            cache["v"][:, :, n0:n1] = v
++            cache["n"] = n1
++            k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
++        else:
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, is_causal=mask is None)
++        return self.proj(y.transpose(1, 2).reshape(B, T, D)), v1
++
++    def forward(self, x, cos, sin, mask=None, cache=None, v1=None):
++        y, v1 = self.attn(self.ln1(x), cos, sin, mask, cache, v1)
++        x = x + y
++        x = x + self.fc2(F.gelu(self.fc1(self.ln2(x))))
++        return x, v1
++
++
++class ValueResidualGPT(GPT):
++    """The fork's GPT with ValueResidualBlocks; forward threads block 0's values through."""
++
++    def __init__(self, vocab, n_layer, d, n_head):
++        super().__init__(vocab, n_layer, d, n_head)
++        self.blocks = nn.ModuleList(
++            [ValueResidualBlock(d, n_head, first=i == 0) for i in range(n_layer)]
++        )
++        self.blocks.apply(self._init)
++
++    def forward(self, idx, pos=None, mask=None, caches=None):
++        B, T = idx.shape
++        if pos is None:
++            cos, sin = rope_cache(T, self.hd, idx.device)
++        else:
++            cos_all, sin_all = rope_cache(int(pos.max().item()) + 1, self.hd, idx.device)
++            cos, sin = cos_all[pos], sin_all[pos]
++        x, v1 = self.emb(idx), None
++        for i, b in enumerate(self.blocks):
++            x, v1 = b(x, cos, sin, mask, None if caches is None else caches[i], v1)
++        return self.head(self.ln_f(x))
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -143,7 +208,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = ValueResidualGPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
