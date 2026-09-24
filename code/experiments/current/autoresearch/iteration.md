@@ -1,4 +1,7 @@
-You run unattended: nobody will answer questions, so decide and proceed. Another agent runs
+You run unattended: nobody will answer questions, so decide and proceed. This is a
+non-interactive session: ending your turn ends the session, and nothing wakes you up later.
+Run every command in the foreground and never end your turn to wait for something. Pods are
+the compute for experiments; keep local probes to a few minutes of CPU. Another agent runs
 the same loop in parallel on the same branch (see program.md); start with `git pull --ff-only`.
 Read AGENTS.md, .claude/notes/robbie-pretrain-workstream.md, .claude/notes/ideas.md, and
 code/experiments/current/autoresearch/program.md. Complete exactly ONE pretraining
