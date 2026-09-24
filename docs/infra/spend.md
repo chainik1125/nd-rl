@@ -219,3 +219,20 @@ pods, `lean-only` (proposal 9, in review) and `ds-generator` (running). **`~/bal
 `~/ALERTS.md` exist on the first host but not on this one**, which is why the readings in this
 update are live `rpbalance` calls; `~/podhours.log` does exist here and now records per-pod hours
 and dollars at deletion.
+
+| **cap-horizon** (proposal 11, run 1: is the proof-length horizon a property of the training cap? four new arms K8add/K10/K12/K14 plus two inherited from `ds-composition`, two Stage-1 seeds each) | 2026-09-24 16:07–22:50 | `kh-k8add`, `kh-k10`, `kh-k12`, `kh-k14`, four **NVIDIA A40 SECURE $0.49/h** (created 16:25:57 / 16:25:57 / 16:26:31 / 16:27:07 per `~/pods.log`, one `kh-k10` recreated 16:28:27 on a stock replacement; all four deleted 22:50 per `log.md` and `~/podhours.log`). A pod-stock-probing script bug also created and deleted three extra pods (two L40S, one community RTX 4090) within ≈ 2 minutes, never registered to the run — **≈ $0.08**, not in `podbudget`'s total | **25.55** (6.4044 + 6.3631 + 6.3953 + 6.3856, `~/podhours.log`) | **$12.52** (`podbudget cap-horizon`: $3.14 + $3.12 + $3.13 + $3.13, at the corrected $0.49/h rate — `podnew`'s unquoted `GPU=` line was fixed per pod for this run) **+ ≈ $0.08 unregistered ≈ $12.60 honest total** | ≈ 34 pod-hours ≈ $17 against 44 h / $22 ceiling (`preregistration/cap-horizon.md`, `2091f78`, committed 16:07:35Z, ≈ 19 min before the first pod) | reviewed (`review_cap-horizon.md`, phase 1 `64faf97` / phase 2 `2e8b191`; §0: "`podbudget cap-horizon`: 4 pods × A40, 25.55 h, $12.52 of $22 / 44 h; the GPU class and the real billed rate are recorded... the correction the pre-registration promised was applied"; `podls` shows only the sibling `noise-floor`'s `nf-*` pods alive). No hard-constraint violation, nothing quarantined; every number reproduces except seven wordings and one undisclosed confound (K8add's 3.54 vs 4.95 training epochs at the fixed 6,000-step schedule), none changing a conclusion |
+
+Update 2026-09-24 23:30 UTC (cap-horizon processed): **$157.8791 (`rpbalance`)**, two pods running,
+both the sibling `noise-floor`'s (`nf-1`, `nf-2`; `podls` shows no `kh-*` pod). No `~/balance.log`
+or `~/ALERTS.md` on this host, so the row above rests on `podbudget cap-horizon` and
+`~/podhours.log` rather than a balance delta (the window overlaps the sibling `noise-floor` run,
+still executing). Week 39 (2026-09-21 → 09-27) to date by these rows: **≈ $155.8** (lean-format
+≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77, ds-composition ≈ $70, ds-rendering $16.01,
+ds-generator ≈ $48.0, **cap-horizon $12.52**). Cumulative by rows since 2026-09-15: **≈ $318.5**
+(the prior ≈ $306 total, which already includes ds-generator, plus cap-horizon's $12.52).
+Proposal 11 authorised up to $60 for `cap-horizon` + `noise-floor` together, with a hard RunPod
+balance floor of $130 (binding at ≈ $48 given the $177.80 balance at authorisation);
+`cap-horizon`'s $12.52 leaves ≈ $35–48 of headroom depending on how the floor is read, and
+`noise-floor` (budget $18 of the pair, raised to $21 mid-run per its own `QUESTIONS.md` entry) is
+still running. Not in any row: the take-home baseline, run4-grpo's and run1-lean's pods, and
+`lean-only` (proposal 9, in review).
