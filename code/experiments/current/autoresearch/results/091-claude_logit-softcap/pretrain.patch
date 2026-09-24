@@ -1,0 +1,21 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index a489748..c991d70 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -49,6 +49,8 @@ NS_COEFFS = (
+ )
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
++# Gemma 2 / modded-nanogpt tanh logit softcap; a hook on head, so it persists into RL and eval.
++SOFTCAP = 15.0
+ TOK_MODE = "abs"
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+@@ -160,6 +162,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++    model.head.register_forward_hook(lambda _m, _x, out: SOFTCAP * torch.tanh(out / SOFTCAP))
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
