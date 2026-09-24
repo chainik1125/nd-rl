@@ -54,8 +54,11 @@ def research(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
         slug="test",
         pretrain_sha=params.sha(tmp_path / "pretrain.py"),
         base_commit=params.git("rev-parse", "HEAD").strip(),
+        # 011 ran under an older harness/fork; the test registers against the current ones.
+        harness_sha=params.sha(tmp_path / "harness.py"),
+        protocol=params.protocol([3, 4, 5]),
     )
-    registration["config"]["seed"] = registration["protocol"]["seed"] = [3, 4, 5]
+    registration["config"]["seed"] = [3, 4, 5]
     directory = tmp_path / "results/999_test"
     directory.mkdir(parents=True)
     (directory / "params.json").write_text(json.dumps(registration))

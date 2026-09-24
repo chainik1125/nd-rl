@@ -9,13 +9,17 @@ pretraining:
   1. load frozen data (Dan's cap-6 Stage-1 file, ladder RL-target pool, ladder transfer pool)
   2. call pretrain.pretrain(train_recs, PRETRAIN_SECS, ...) -> (model, tok); charged for everything
      including model construction and torch.compile. Overrun past the grace -> status "timeout".
-  3. check n_params <= PARAM_CAP
+  3. check n_params <= PARAM_CAP and tok.mode == TOK_MODE (Dan's Lean surface form; the fork's
+     sample.generate then gates every sample through Lean, so the RL reward and the eval are
+     Lean AND nd_verify)
   4. plain expert iteration (ladder rung T1): RL_ROUNDS rounds, fixed in samples, harness optimizer
   5. eval on the dev half of the transfer pool; METRIC = dev theorems solved at L_true >= 7
   6. SIGALRM at TOTAL_SECS from process start kills everything -> status "timeout"
 
 Budget history: 600 s / 240 s pretrain / 2 rounds / k=32 for runs 000-010 (2026-09-22);
-then 1200 / 300 / 4 / 64.
+then 1200 / 300 / 4 / 64; from 098 (2026-09-24) the Lean protocol: fork 51604b3, tok lean_seq,
+1800 / 300 / 4 / 64 (estimate: Lean checking and ~1.2x longer sequences put a 1000 s run at
+~1400 s).
 
 The holdout half of the transfer pool is never scored here (see holdout_split); score it offline
 from final.pt when checking in on the loop. Everything is written to --out.
@@ -55,7 +59,7 @@ from train import loss_on  # noqa: E402
 # ---------------------------------------------------------------- the rules
 # (hash-checked into every result)
 TOTAL_SECS = int(
-    os.environ.get("ND_TOTAL_SECS", 1200)
+    os.environ.get("ND_TOTAL_SECS", 1800)
 )  # process start -> summary written; SIGALRM past this. env: benchmarks only
 PRETRAIN_SECS = 300  # agent's budget, compile included
 PRETRAIN_GRACE = 15  # seconds the agent may overrun before the run is a "timeout"
@@ -64,6 +68,7 @@ RL_ROUNDS = 4  # expert-iteration rounds, fixed in samples
 N_TARGETS, K, TEMP, MAX_NEW, SAMPLE_BATCH = 1500, 32, 0.8, 512, 1024
 FT_STEPS, FT_BS, FT_LR, RETAIN, MAX_PER_THM, RL_WEIGHT = 600, 128, 3e-4, 20000, 4, 4
 EVAL_K = 64
+TOK_MODE = "lean_seq"  # required tokenizer mode (fork lean_tok.py)
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 
 
@@ -311,6 +316,19 @@ def stage_eval(a, tok, model, dev_pool, heldout_recs):
     return out
 
 
+def lean_gate_totals():
+    """Sum the fork lean_gate's per-generate() log lines (remote.sh sets LEAN_GATE_LOG)."""
+    fn = os.environ.get("LEAN_GATE_LOG")
+    if not fn or not os.path.exists(fn):
+        return None
+    keys = ("samples", "parse_fail", "distinct_checked", "both_ok", "nd_ok_lean_rej")
+    tot = dict.fromkeys(keys + ("nd_rej_lean_ok", "lean_wall_s"), 0)
+    for rec in read(fn):
+        for k in tot:
+            tot[k] += rec[k]
+    return tot
+
+
 def write_summary(a, status, **kw):
     s = {
         "status": status,
@@ -322,6 +340,7 @@ def write_summary(a, status, **kw):
         "pretrain_sha": sha(f"{HERE}/pretrain.py"),
         "device": DEV,
         "gpu": torch.cuda.get_device_name(0) if DEV == "cuda" else "cpu",
+        "lean_gate": lean_gate_totals(),
         "total_secs": time.time() - a.T0,
         "rules": {
             k: globals()[k]
@@ -333,6 +352,7 @@ def write_summary(a, status, **kw):
                 "N_TARGETS",
                 "K",
                 "EVAL_K",
+                "TOK_MODE",
             )
         },
         **kw,
@@ -436,6 +456,9 @@ def main():
                 pretrain=pre,
                 reason=f"pretrain overran budget by {pre['secs'] - a.pretrain_secs:.0f}s",
             )
+            return
+        if getattr(tok, "mode", None) != TOK_MODE:
+            write_summary(a, "crash", pretrain=pre, reason=f"tok.mode {tok.mode!r} != {TOK_MODE!r}")
             return
         if n_params > PARAM_CAP:
             write_summary(a, "crash", pretrain=pre, reason=f"{n_params} params > cap {PARAM_CAP}")
