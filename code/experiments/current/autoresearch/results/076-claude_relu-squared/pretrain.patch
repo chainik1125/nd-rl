@@ -1,0 +1,39 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 624a63b..14141ea 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -29,7 +29,8 @@ import math
+ import time
+ 
+ import torch
+-from model import GPT  # fork
++import torch.nn.functional as F
++from model import GPT, Block  # fork
+ from tokenizer import MAXN, Tokenizer  # fork
+ from train import loss_on  # fork
+ 
+@@ -89,6 +90,14 @@ def muon_step(params, buffers, lr):
+         p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
++class ReluSquaredBlock(Block):
++    """The fork's Block with a squared-ReLU MLP (So et al. 2021, Primer) in place of GELU."""
++
++    def forward(self, x, cos, sin, mask=None, cache=None):
++        x = x + self.attn(self.ln1(x), cos, sin, mask, cache)
++        return x + self.fc2(F.relu(self.fc1(self.ln2(x))).square())
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -144,6 +153,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    for block in model.blocks:
++        # Same parameters and init RNG stream as the incumbent; only the MLP activation changes.
++        block.__class__ = ReluSquaredBlock
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
