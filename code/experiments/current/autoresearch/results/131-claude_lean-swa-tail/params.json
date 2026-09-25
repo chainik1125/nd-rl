@@ -1,0 +1,236 @@
+{
+  "id": "131-claude",
+  "slug": "lean-swa-tail",
+  "written_at": "2026-09-25T10:13:38-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "83f6072",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "ec2b93df0653",
+  "patch_lines": 15,
+  "title": "P46 SWA tail average: hand RL the uniform mean of every iterate from the last 25% of pretraining (LR 0.40 -> 0.30 of peak) on the 129-claude floor-0.3 Lean incumbent",
+  "description": "P46 follow-up: RL receives the equal-weight running mean of all ~1,050 post-step iterates from the final quarter of the wall-clock budget instead of the last raw weights, on the 129-claude hybrid ALiBi/NoPE Peri-LN incumbent with its 0.3 learning-rate floor (architecture, optimizer and schedule unchanged). Since 129 kept the tail at 30-40% of peak LR, the late iterates bounce around a wide basin, so their average should combine the flat, plastic region that the high floor reached with the lower-noise, more accurate endpoint that annealing gives, a better starting point for expert iteration than either alone.",
+  "tags": [
+    "regularization",
+    "schedule"
+  ],
+  "hypothesis": "Stochastic weight averaging finds a point near the centre of the flat region the high-LR iterates explore (Izmailov et al. 2018). The floor-0.3 keep (129: 646 vs 631) and the constant-LR failure (130: 583, pretrain held-out greedy 0.907 vs 0.963, round-1 sample_acc 0.155 vs 0.207) suggest RL wants a model that is plastic (not sunk into a sharp, low-LR minimum) but still accurate on short proofs. The tail average keeps the plasticity of the floor-0.3 basin while removing iterate noise, so held-out greedy and round-1 solves should rise toward 115's (0.98, 718 on seed 0) without losing 129's later RL gains. This differs from 048-codex (-12 on the 4-layer RoPE incumbent), which averaged five snapshots of a tail at 0.1-0.15 of peak, where iterates had little noise to average. The risk is that the average behaves like an annealed endpoint (the 115 regime) and gives back 129's gain, or that Muon's large late steps leave the iterates outside one linear basin, so their mean is worse than any of them.",
+  "p_keep": 0.3,
+  "expected_delta": "-30 to +30 theorems at >=7 vs 646 (central guess +5); val_loss_avg below the raw endpoint's final val loss; pretrain held-out greedy >= 0.963",
+  "baseline_id": "129-claude",
+  "baseline_metric": 646,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py)",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4800000,
+      "change": "none vs 129-claude; the only edit is the handoff: RL receives the uniform average of the tail iterates (config.tail_average) instead of the final raw weights",
+      "n_params_detail": "identical to 113-fable and 107-claude: 4,800,000 (vocab 107); slopes buffer is not a parameter",
+      "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 256, 8) from this pretrain.py (its ALIBI_SLOPES = (1/4, 1/16, 1/64, 1/256, 0, 0, 0, 0)), replace blocks with PeriLNBlock as in pretrain.py, then load state (same keys as 107/113). Loading these weights into 113's model (slopes 1/2..1/256) or a plain fork GPT (RoPE) gives a different function. The live harness uses the returned model object through RL and eval",
+      "kv_cache": "unchanged from 115-fable (caches[0] holds key positions; slope-0 heads get a zero bias plus the -inf mask); this patch does not touch model code"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock with floor (unchanged from 129-claude): after the 200-step linear warmup, lr = 1e-3 * (0.3 + 0.35 * (1 + cos(pi * frac))), frac = elapsed / budget, ending at 0.3 x peak. Muon lr = 0.01 * lr / 1e-3 follows the same factor, and so does its per-step decoupled decay lr * MUON_WD",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW (floor CHANGED 0.1 -> 0.3); muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (ln1, ln2, + ln_attn_out, ln_mlp_out per block, and ln_f); head.weight and hidden matrices never enter pretraining AdamW. The new output-LayerNorm gains and biases get the same AdamW lr 1e-3 and wd 0.1 as every other LayerNorm",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale. Because decay is lr-scaled, the higher floor raises late-training per-step decay (endpoint 3x 115's); MUON_WD itself is unchanged at 0.1",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "tail_average": {
+      "idea": "P46 (uniform finite-window checkpoint average), SWA-style (Izmailov et al. 2018): every post-step iterate, not 048-codex's five snapshots",
+      "window": "every optimizer step whose loop-start wall-clock fraction frac = elapsed / budget is >= AVG_FROM = 0.75, i.e. the last ~75 s of the 300 s budget, about 1,050 of ~4,200 steps, at lr 0.40 -> 0.30 of peak",
+      "method": "equal-weight running mean over all model.parameters() (fp32), updated after opt.step() and muon_step() with torch._foreach_lerp_(avg, params, 1/(n+1)); first tail step clones the weights; no buffers to average (ALiBi slopes are a constant non-persistent buffer)",
+      "handoff": "after the loop, torch._foreach_copy_ the average into the same ALiBiGPT object, compute val_loss_avg on the 1024-record val slice, then model.eval(); optimizer states, momentum buffers and the average copy are discarded; RL trains ordinary parameters with its frozen procedure",
+      "diagnostics": "curve and last_loss describe the raw iterates; stats add avg_iterates (number of averaged steps) and val_loss_avg (val loss of the handed-off average). Harness held-out greedy, RL and eval use the averaged weights",
+      "cost": "one extra fp32 copy of 4.8M parameters during pretraining (not a model parameter; returned model has 4,800,000) and one foreach lerp per tail step (<1 ms); one extra val pass (<1 s) after the budget, within the 15 s grace",
+      "selection": "fixed window chosen before the run; no metric-based snapshot selection"
+    }
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

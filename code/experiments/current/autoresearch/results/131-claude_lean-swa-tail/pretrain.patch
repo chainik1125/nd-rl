@@ -1,0 +1,54 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 0ede111..49b82bb 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -60,6 +60,9 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+     N_HEAD - N_ALIBI
+ )
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++# P46 tail average (SWA, Izmailov et al. 2018): RL gets the equal-weight mean of every
++# post-step iterate from this fraction of the wall-clock budget on (LR 0.40 -> 0.30 of peak).
++AVG_FROM = 0.75
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -251,6 +254,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
+     curve, recent, next_point = [], [], CURVE_EVERY
++    params, avg, n_avg = list(model.parameters()), [], 0
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     while True:
+         frac = (
+@@ -277,6 +281,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
+         muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++        if frac >= AVG_FROM:
++            if n_avg == 0:
++                avg = [p.detach().clone() for p in params]
++            else:
++                torch._foreach_lerp_(avg, [p.detach() for p in params], 1.0 / (n_avg + 1))
++            n_avg += 1
+         if step % 20 == 0:
+             last_loss = loss.item()
+             recent.append(last_loss)
+@@ -296,6 +306,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, next_point = [], next_point + CURVE_EVERY
++    with torch.no_grad():  # curve and last_loss describe the raw iterates; RL gets the average
++        torch._foreach_copy_(params, avg)
++    val_avg = val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast)
+     model.eval()
+     return (
+         model,
+@@ -305,6 +318,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "records_seen": step * BS,
+             "epochs": step * BS / n_train,
+             "last_loss": last_loss,
++            "avg_iterates": n_avg,
++            "val_loss_avg": val_avg,
+             "curve": curve,
+         },
+     )
