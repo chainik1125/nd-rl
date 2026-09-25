@@ -16,7 +16,7 @@ git -C "$ND_FORK" checkout -q "$FORK_COMMIT"
 # Lean 4 core checks every sampled proof (fork lean_gate.py, called from sample.generate): the
 # reward is Lean AND nd_verify. Installed before harness.py starts, so it is not charged to TOTAL_SECS.
 [ -x ~/.elan/bin/lean ] || curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
-  | sh -s -- -y -q --default-toolchain leanprover/lean4:v4.34.0 > /dev/null
+  | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0 > /dev/null
 export LEAN_GATE_WORKERS=$(nproc) LEAN_GATE_LOG="$OUT/lean_gate.jsonl"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 echo "cpus $(nproc), $(~/.elan/bin/lean --version)"
