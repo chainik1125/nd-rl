@@ -1,0 +1,85 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..733c40c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -113,12 +113,17 @@ def muon_step(params, buffers, lr):
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+-    `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+-    and cos/sin are unused."""
++    `mask` is (bias, keep): the finite additive ALiBi bias (B or 1, H, T, S) and the boolean
++    causal/padding keep-mask that ALiBiGPT builds once per forward; cos/sin are unused.
++    Talking heads (Shazeer et al. 2020), pre-softmax only: the H per-head logit maps (content
++    score plus that head's ALiBi recency bias) are mixed by a learned (H, H) matrix before the
++    softmax, so a head can attend by 'content AND recency' (a NoPE head's name match combined
++    with an ALiBi head's distance term). Identity init, so the run starts as exactly 115."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
++        self.mix = torch.nn.Parameter(torch.eye(h))
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+@@ -133,8 +138,11 @@ class PeriLNBlock(Block):
+             cache["v"][:, :, n0:n1] = v
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
+-        y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+-        return self.proj(y.transpose(1, 2).reshape(B, T, D))
++        bias, keep = mask
++        logits = (q @ k.mT) * (D // self.h) ** -0.5 + bias.to(q.dtype)  # (B, H, T, S)
++        logits = torch.einsum("bhts,hg->bgts", logits, self.mix.to(logits.dtype))
++        att = logits.float().masked_fill(~keep, float("-inf")).softmax(-1).to(v.dtype)
++        return self.proj((att @ v).transpose(1, 2).reshape(B, T, D))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+         x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+@@ -168,10 +176,10 @@ class ALiBiGPT(GPT):
+             key_pos = c["pos"][:, :n1]
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+-        bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        keep = (rel >= 0) if mask is None else mask  # blocks mask after the head mixing
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++            x = b(x, None, None, (bias, keep), None if caches is None else caches[i])
+         return self.head(self.ln_f(x))
+ 
+ 
+@@ -233,8 +241,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+-    for p in model.blocks.parameters():
+-        if p.ndim == 2:
++    for name, p in model.blocks.named_parameters():
++        if p.ndim == 2 and not name.endswith("mix"):
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
+     log(
+@@ -242,11 +250,19 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+-    matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+-    matrix_ids = {id(p) for p in matrices}
++    mixes = [b.mix for b in model.blocks]  # (H, H) head-mixing maps: AdamW, no decay
++    mix_ids = {id(p) for p in mixes}
++    matrices = [p for p in model.blocks.parameters() if p.ndim == 2 and id(p) not in mix_ids]
++    matrices.append(model.head.weight)
++    matrix_ids = {id(p) for p in matrices} | mix_ids
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    opt = torch.optim.AdamW(
++        [{"params": auxiliary}, {"params": mixes, "weight_decay": 0.0}],
++        lr=LR,
++        weight_decay=WD,
++        betas=(0.9, 0.95),
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
