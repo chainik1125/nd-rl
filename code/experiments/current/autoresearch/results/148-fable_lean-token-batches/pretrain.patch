@@ -1,0 +1,92 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..cd5e08c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -27,6 +27,7 @@ Anything imported from the fork (ND_FORK) is fair game to copy in here and modif
+ """
+ 
+ import math
++import random
+ import time
+ 
+ import torch
+@@ -60,6 +61,12 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+     N_HEAD - N_ALIBI
+ )
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++# Token-budget batches (fairseq max-tokens): each step takes a run of length-sorted records with
++# count * padded_length <= TOK_BUDGET, so a batch of short proofs has many records and a batch of
++# long ones few, and the padded token count per step is ~constant. 128 x 144 matches the real
++# (unpadded) tokens of the incumbent's 128-record batches (mean record ~135 tokens), whose
++# padding to the batch max (~400) made every step ~3x larger than its content.
++TOK_BUDGET = 128 * 144
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+@@ -244,6 +251,24 @@ def to_gpu(data, tok, device):
+     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
+ 
+ 
++def token_batches(lens, n_train, gen, rng):
++    """One epoch of token-budget batches: a random permutation of the training records, stably
++    sorted by length (equal lengths stay shuffled), cut greedily into runs of consecutive records
++    with count * max_len <= TOK_BUDGET, and the runs' order shuffled. Returns (order, cuts)."""
++    perm = torch.randperm(n_train, device=lens.device, generator=gen) + VAL_N
++    order = perm[torch.argsort(lens[perm], stable=True)]
++    sorted_lens = lens[order].cpu()
++    cuts, s = [], 0
++    while s < len(sorted_lens):
++        window = sorted_lens[s : s + TOK_BUDGET // int(sorted_lens[s])]
++        # count * max_len is non-decreasing along the window, so the fits form a prefix.
++        e = s + int((torch.arange(1, len(window) + 1) * window <= TOK_BUDGET).sum())
++        cuts.append((s, e))
++        s = e
++    rng.shuffle(cuts)
++    return order, cuts
++
++
+ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
+     """The fork's batch() + tok.shift_abs, vectorised: a random per-row offset is added to
+     every ref token."""
+@@ -294,9 +319,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+-    perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
++    step, last_loss, records_seen = 0, float("nan"), 0
+     curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
++    rng, cuts, batches_per_epoch = random.Random(seed), [], None
++    order = torch.empty(0, dtype=torch.long, device=device)
+     while True:
+         frac = (
+             time.time() - t0
+@@ -311,9 +338,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         )
+         for g in opt.param_groups:
+             g["lr"] = lr
+-        if len(perm) < BS:
+-            perm = torch.randperm(n_train, device=device, generator=gen) + VAL_N
+-        idxs, perm = perm[:BS], perm[BS:]
++        if not cuts:  # new epoch
++            order, cuts = token_batches(lens, n_train, gen, rng)
++            batches_per_epoch = len(cuts)
++        s, e = cuts.pop()
++        idxs = order[s:e]
++        records_seen += e - s
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+             loss, main, aux = mtp_loss(model, mtp, x, m)
+@@ -350,8 +380,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         tok,
+         {
+             "steps": step,
+-            "records_seen": step * BS,
+-            "epochs": step * BS / n_train,
++            "records_seen": records_seen,
++            "epochs": records_seen / n_train,
++            "batches_per_epoch": batches_per_epoch,
++            "tok_budget": TOK_BUDGET,
+             "last_loss": last_loss,
+             "curve": curve,
+         },
