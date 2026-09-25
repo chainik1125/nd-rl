@@ -18,8 +18,8 @@ pretraining:
 
 Budget history: 600 s / 240 s pretrain / 2 rounds / k=32 for runs 000-010 (2026-09-22);
 then 1200 / 300 / 4 / 64; from 098 (2026-09-24) the Lean protocol: fork 51604b3, tok lean_seq,
-1800 / 300 / 4 / 64 (estimate: Lean checking and ~1.2x longer sequences put a 1000 s run at
-~1400 s).
+1800 / 300 / 4 / 64; from 100: 2400 s total, because 098 took 1620 / 1684 / 1811 s (one
+timeout on a slow pod) with Lean checking and ~1.2x longer sequences.
 
 The holdout half of the transfer pool is never scored here (see holdout_split); score it offline
 from final.pt when checking in on the loop. Everything is written to --out.
@@ -59,7 +59,7 @@ from train import loss_on  # noqa: E402
 # ---------------------------------------------------------------- the rules
 # (hash-checked into every result)
 TOTAL_SECS = int(
-    os.environ.get("ND_TOTAL_SECS", 1800)
+    os.environ.get("ND_TOTAL_SECS", 2400)
 )  # process start -> summary written; SIGALRM past this. env: benchmarks only
 PRETRAIN_SECS = 300  # agent's budget, compile included
 PRETRAIN_GRACE = 15  # seconds the agent may overrun before the run is a "timeout"

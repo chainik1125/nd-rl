@@ -6,7 +6,7 @@ Karpathy's autoresearch (2026) `program.md`; the differences are the metric and 
 
 **Lean protocol since 098 (2026-09-24).** The model now reads and writes Dan's `lean_seq` Lean
 surface form (fork commit `51604b3`, `lean_tok.py`), every sampled proof must pass Lean 4 AND
-nd_verify, and TOTAL_SECS is 1800. Data, pools, RL recipe and metric definition are unchanged.
+nd_verify, and TOTAL_SECS is 2400 (1800 for 098-099). Data, pools, RL recipe and metric definition are unchanged.
 Scores from runs 000-097 (token format, `abs`) are NOT comparable: they are history and a
 source of ideas, not the bar. The bar is the 3-seed mean of the incumbent under the Lean
 protocol, starting with the 098 re-baseline of the 081-line recipe. Keep `TOK_MODE = "lean_seq"`;
@@ -24,7 +24,7 @@ HEAD, and either agent can replace it. The scripts pull before every publish; yo
   cap (PARAM_CAP), the RL stage (RL_ROUNDS rounds of expert iteration, fixed in samples) and the
   eval. The numbers are the constants at the top of the file and are copied into every
   params.json as `protocol` (runs 000-010: 600 s / 240 s / 2 rounds / 32 attempts; since 011:
-  1200 / 300 / 4 / 64; since 098: 1800 / 300 / 4 / 64 under the Lean protocol). You never edit it. Its sha256 is written into every result; a changed
+  1200 / 300 / 4 / 64; since 098: 1800 / 300 / 4 / 64, since 100: 2400 / 300 / 4 / 64 under the Lean protocol). You never edit it. Its sha256 is written into every result; a changed
   harness invalidates the run.
 - `pretrain.py` is the ONLY file you edit. Contract in its docstring. Your budget is
   PRETRAIN_SECS of wall-clock, compile and model construction included, then the harness takes
