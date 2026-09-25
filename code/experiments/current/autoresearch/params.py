@@ -255,7 +255,9 @@ def new(nnn: str, slug: str, seeds: list[int] | None = None) -> None:
         "id": nnn,
         "slug": slug,
         "written_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "provider": {"claude": "anthropic", "codex": "openai"}.get(agent or "", TODO),
+        "provider": {"claude": "anthropic", "fable": "anthropic", "codex": "openai"}.get(
+            agent or "", TODO
+        ),
         "model": os.environ.get("ND_AGENT_MODEL", TODO),
         "base_commit": git("rev-parse", "--short", "HEAD").strip(),
         "harness_sha": sha(HERE / "harness.py"),

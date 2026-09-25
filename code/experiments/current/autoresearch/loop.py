@@ -21,8 +21,9 @@ ROOT = HERE.parents[3]
 ART = ROOT / "artifacts/autoresearch"
 POLL_SECS = 0.5
 # Both agents share one branch, each from its own checkout. Highest effort for both (Robbie).
-MODELS = {"codex": "gpt-6-astra", "claude": "claude-opus-5-5"}
+MODELS = {"codex": "gpt-6-astra", "claude": "claude-opus-5-5", "fable": "claude-fable-5-1"}
 agent = "codex"  # set once by main(); tests monkeypatch it
+stop_at: float | None = None  # epoch seconds; no new session starts after it (--stop-at)
 MIN_BALANCE = 3.0  # USD: one experiment rents 3 A40s at ~$0.49/h for ~25 min
 # A session must launch run_idea.py this soon (Robbie, 2026-09-23: Claude at max effort took
 # 20-150 min to propose, Codex ~3). Runs themselves are bounded by the harness, not this.
@@ -328,7 +329,7 @@ def agent_vars(session: Path) -> dict[str, str]:
 
 
 def agent_argv(command: list[str], session: Path, prompt: str) -> list[str]:
-    if agent == "claude":
+    if agent != "codex":  # claude and fable both run the claude CLI
         return [
             *command,
             "--print",
@@ -337,7 +338,7 @@ def agent_argv(command: list[str], session: Path, prompt: str) -> list[str]:
             "--verbose",
             "--dangerously-skip-permissions",
             "--model",
-            MODELS["claude"],
+            MODELS[agent],
             "--effort",
             "max",
             prompt,
@@ -371,6 +372,9 @@ def run_loop(command: list[str], prompt: str) -> int:
     directory.mkdir(parents=True, exist_ok=True)
     timeouts = 0
     while True:
+        if stop_at is not None and time.time() >= stop_at:
+            emit(f"STOPPED | --stop-at {time.strftime('%H:%M', time.localtime(stop_at))} reached")
+            return 0
         session = Path(tempfile.mkdtemp(prefix="session-", dir=directory))
         monitor = Monitor(session)
         process = None
@@ -433,9 +437,14 @@ def run_loop(command: list[str], prompt: str) -> int:
 
 
 def main() -> int:
-    global agent
+    global agent, stop_at
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--agent", choices=sorted(MODELS), default="codex")
+    parser.add_argument(
+        "--stop-at",
+        metavar="HH:MM",
+        help="local time after which no new experiment starts; the running one finishes",
+    )
     parser.add_argument(
         "agent_args",
         nargs=argparse.REMAINDER,
@@ -443,6 +452,11 @@ def main() -> int:
     )
     args = parser.parse_args()
     agent = args.agent
+    if args.stop_at:
+        hour, minute = map(int, args.stop_at.split(":"))
+        now = datetime.now()
+        target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        stop_at = target.timestamp() + (86400 if target <= now else 0)  # next occurrence
     options = args.agent_args
     if options[:1] == ["--"]:
         options = options[1:]
@@ -457,7 +471,7 @@ def main() -> int:
     prompt = (HERE / "iteration.md").read_text()
     if agent == "codex":
         options = ["-m", MODELS["codex"], "-c", 'model_reasoning_effort="max"', *options]
-    return run_loop([agent, *options], prompt)
+    return run_loop(["codex" if agent == "codex" else "claude", *options], prompt)
 
 
 if __name__ == "__main__":

@@ -14,8 +14,12 @@ the harness crashes any other tokenizer. Ideas that won under the token format m
 proof lengths 2-6 (400 each); before it covered 2-5 only, so `heldout_greedy` values are not
 comparable across that boundary. The metric is unaffected.
 
-**Two agents run this loop in parallel**: Codex (`gpt-6-astra`) and Claude (`claude-opus-5-5`),
-each in its own checkout, both pushing to the same branch. Robbie counts who gets more keeps.
+**Two agents run this loop in parallel**: Claude (`claude-opus-5-5`, `$ND_AGENT=claude`) and
+Fable (`claude-fable-5-1`, `$ND_AGENT=fable`) since 2026-09-25; Codex (`gpt-6-astra`) ran
+041-097. Each works in its own checkout, both pushing to the same branch.
+Robbie counts who gets more keeps. If you are `fable`: be creative. Prefer bold ideas the table
+has not tried (new mechanisms, not another nudge to a tuned number), and check the other
+agent's running registration so you do not duplicate it.
 `$ND_AGENT` says which one you are. The incumbent is whatever `pretrain.py` is at the branch
 HEAD, and either agent can replace it. The scripts pull before every publish; you just
 `git pull --ff-only` at the start of your session so you work from the latest incumbent.
