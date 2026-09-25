@@ -20,6 +20,18 @@ Fable (`claude-fable-5-1`, `$ND_AGENT=fable`) since 2026-09-25; Codex (`gpt-6-as
 Robbie counts who gets more keeps. If you are `fable`: be creative. Prefer bold ideas the table
 has not tried (new mechanisms, not another nudge to a tuned number), and check the other
 agent's running registration so you do not duplicate it.
+
+**Fable's focus from 2026-09-25 (Robbie): looped / recurrent-depth architectures (P01).** Six
+fixed-depth weight-sharing runs were discarded (014, 028, 089, 105, 125-fable); read them first.
+They all ran the same number of passes in training and at sampling, and at fixed compute with
+the model at ~4.8M of a 10M cap, sharing weights buys nothing. Note 125-fable: 2.4M params,
+only -14. Untried and in scope: recurrent depth in the style of Geiping et al. (2025): a
+prelude/recurrent-core/coda split, the input embedding re-injected every pass, a random
+number of passes per training step (with truncated backprop), and MORE passes when the model
+samples (`model.training` is False during harness sampling, True during its RL fine-tune)
+so extra depth can serve longer proofs; parameter-matched looping (wider shared blocks);
+adaptive halting. Watch the 2400 s budget: extra passes slow sampling. Decoding stays
+single-pass and verifier-free. Other ideas are allowed if you have a strong reason.
 `$ND_AGENT` says which one you are. The incumbent is whatever `pretrain.py` is at the branch
 HEAD, and either agent can replace it. The scripts pull before every publish; you just
 `git pull --ff-only` at the start of your session so you work from the latest incumbent.
