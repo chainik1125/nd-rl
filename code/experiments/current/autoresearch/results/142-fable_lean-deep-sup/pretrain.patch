@@ -1,0 +1,113 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..c95215c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -64,6 +64,10 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# P50 deep supervision (Lee et al. 2015; LayerSkip, Elhoushi et al. 2024), pretraining only: the
++# model's own ln_f/head also reads the residual stream after DEEP_SUP_BLOCK blocks and its
++# next-token CE (same targets and positions as the main loss) is added at this weight.
++DEEP_SUP_BLOCK, DEEP_SUP_WEIGHT = 3, 0.3
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -161,7 +165,8 @@ class ALiBiGPT(GPT):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+ 
+     def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
++        """The trunk: (final hidden state before ln_f, the ALiBi bias used, the residual stream
++        after DEEP_SUP_BLOCK blocks)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -178,9 +183,12 @@ class ALiBiGPT(GPT):
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
++        mid = None
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
++            if i + 1 == DEEP_SUP_BLOCK:
++                mid = x
++        return x, bias, mid
+ 
+ 
+ class MTPHead(torch.nn.Module):
+@@ -196,14 +204,20 @@ class MTPHead(torch.nn.Module):
+ 
+ def mtp_loss(model, mtp, x, m):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+-    h, bias = model.features(x[:, :-1])
++    MTP module's token-(t+2) prediction at the same proof positions, plus DEEP_SUP_WEIGHT times
++    the next-token CE of the shared head read at block DEEP_SUP_BLOCK.
++    Returns (total, main, mtp, mid)."""
++    h, bias, mid = model.features(x[:, :-1])
+     logits = model.head(model.ln_f(h))
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+     )
+     main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
++    ce_mid = torch.nn.functional.cross_entropy(
++        model.head(model.ln_f(mid)).reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
++    )
++    mid_loss = (ce_mid * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+@@ -212,7 +226,7 @@ def mtp_loss(model, mtp, x, m):
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++    return main + MTP_WEIGHT * aux + DEEP_SUP_WEIGHT * mid_loss, main, aux, mid_loss
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -295,7 +309,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
++    curve, recent, recent_aux, recent_mid, next_point = [], [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     while True:
+         frac = (
+@@ -316,7 +330,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         idxs, perm = perm[:BS], perm[BS:]
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
++            loss, main, aux, mid = mtp_loss(model, mtp, x, m)
+         model.zero_grad(set_to_none=True)
+         mtp.zero_grad(set_to_none=True)
+         loss.backward()
+@@ -327,6 +341,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+             recent_aux.append(aux.item())
++            recent_mid.append(mid.item())
+         if (
+             time.time() - t0 >= next_point
+         ):  # curve point: mean recent train loss + val loss on the held-out slice
+@@ -337,13 +352,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+                     "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                    "mid_loss": sum(recent_mid) / len(recent_mid) if recent_mid else None,
+                 }
+             )
+             log(
+                 f"pretrain step {step} train {curve[-1]['train_loss']:.4f} "
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+-            recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++            recent, recent_aux, recent_mid, next_point = [], [], [], next_point + CURVE_EVERY
+     model.eval()
+     return (
+         model,
