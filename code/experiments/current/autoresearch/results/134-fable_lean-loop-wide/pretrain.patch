@@ -1,0 +1,31 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 0ede111..24a6897 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -36,7 +36,12 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 256, 8
++# P01 parameter-matched looped transformer: N_UNIQUE distinct blocks applied in a cycle,
++# A-B-C-A-B-C, for the same N_LAYER logical applications, with the width raised 256 -> 384
++# (8 heads of 48) so the three shared blocks hold about the untied incumbent's parameter count
++# (5.41M vs 4.80M) instead of half of it as in 125-fable. Per-application FLOPs are 2.25x.
++N_LAYER, D, N_HEAD = 6, 384, 8
++N_UNIQUE = 3
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -230,7 +235,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    # model.blocks lists the six logical applications, each unique block object twice, so
++    # sample.generate's one-cache-per-entry KV caches stay distinct per application while
++    # parameters(), n_params() and both optimizers deduplicate the shared weights by identity.
++    unique = [PeriLNBlock(D, N_HEAD) for _ in range(N_UNIQUE)]
++    model.blocks = torch.nn.ModuleList(unique * (N_LAYER // N_UNIQUE))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     for p in model.blocks.parameters():

@@ -1,0 +1,189 @@
+{
+  "id": "134-fable",
+  "slug": "lean-loop-wide",
+  "written_at": "2026-09-25T11:01:42-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "543f728",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "8dcca9e06098",
+  "patch_lines": 13,
+  "title": "P01 parameter-matched looped transformer: three unique Peri-LN blocks of width 384 (8 heads of 48) cycled A-B-C-A-B-C, six logical applications, 5,410,944 params vs 129-claude's six untied 256-wide blocks (4,800,000)",
+  "description": "P01 (idea ID P01, the untried 'parameter-matched looping, wider shared blocks' piece): 125-fable showed full weight sharing at fixed depth (A-B-C-A-B-C at width 256, 2.43M params) reproduced the incumbent's pretraining and RL start with half the parameters (-14, noise-level), so this spends the freed budget on width: the same three-block cycle at d_model 384 (d_ff 1536, 8 heads of 48, same 4 ALiBi + 4 NoPE split, Muon/AdamW, LR floor 0.3 unchanged). Each of the six logical applications now has 2.25x the weights and FLOPs of an incumbent block at about the incumbent's unique parameter count (+13%), testing whether per-block capacity applied repeatedly beats per-depth specialization as the starting point for expert iteration on >=7-line proofs.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "125-fable established that sharing three blocks across six depths costs ~nothing on this task: the six depths do not need six different operators, so the per-depth parameters of the untied incumbent are partly redundant. If what limits transfer to >=7-line proofs is the capacity of the operator applied at each depth (wider residual stream carrying more simultaneous proof-state features, wider heads, wider MLP) rather than depth-specific specialization, then re-spending the halved budget on a 1.5x wider shared block should give a better fit per unique parameter and a stronger repeated refinement step, and the RL fine-tune should keep climbing on the harvested long proofs because the same block improves at every depth at once (a gradient from six applications per shared matrix). Failure modes: (a) wall-clock: 2.25x per-application FLOPs at a latency-bound size cut steps (110-claude at width 320 lost 16% of steps; expect 25-35% here), leaving an under-trained handoff with a weak round-1 harvest (parse failures >35%), the 110/127 pathology; (b) sharing is neutral and width alone is not the lever (103/124: MLP width moved the metric <=30), so this lands at 125's -14 plus noise; (c) slower sampling with 384-wide KV caches pushes a slow pod past the 2400 s cap (110 seed 1 timed out at 2495 s).",
+  "p_keep": 0.3,
+  "expected_delta": "-45 to +40 theorems at >=7 vs 646 (central guess 0); pretrain steps ~2,800-3,300 (vs 129's 4,137-4,238), final val loss 0.078-0.092, held-out greedy 0.95-0.975, round-1 targets 520-700; total secs 1,750-2,200 (2.25x per-token FLOPs at decode, latency-bound), timeout risk on a slow pod",
+  "baseline_id": "129-claude",
+  "baseline_metric": 646,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with looped Peri-LN blocks",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1536,
+      "pos": "hybrid: ALiBi slopes 1/4..1/256 on 4 heads, NoPE (slope 0) on 4 heads, no RoPE (unchanged from 115-fable)",
+      "ctx": 1024,
+      "norm": "Peri-LN layernorm (pre-LN plus LayerNorm on both branch outputs), unchanged",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 5410944,
+      "change": "vs 129-claude: D 256 -> 384 (head dim 32 -> 48, d_ff 1024 -> 1536) and 6 untied blocks -> 3 unique blocks cycled A-B-C-A-B-C (N_UNIQUE = 3); everything else identical",
+      "n_params_detail": "3 PeriLN blocks x 1,776,000 (12*384^2 + 17*384) = 5,328,000 + emb 41,088 + head 41,088 + ln_f 768 = 5,410,944 (vocab 107); slopes buffer is not a parameter; CPU check of sum(p.numel() for p in model.parameters()) = 5,410,944",
+      "n_layers_detail": "6 logical applications, 3 unique PeriLN blocks (A-B-C-A-B-C), same as 125-fable at width 384",
+      "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 384, 8) from this pretrain.py, then blocks = ModuleList(unique * 2) of 3 PeriLNBlock(384, 8) with the same object aliases before load_state_dict (state_dict repeats the shared blocks under blocks.0/3, 1/4, 2/5 keys)",
+      "kv_cache": "6 caches, one per logical application (sample.generate builds one per model.blocks entry), each (B, 8, max, 48); caches[0] also holds key positions for the ALiBi bias as in 115-fable; CPU check: cached vs full forward max abs diff ~1e-6"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer (unchanged)"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale, relative to D=384) with Polar Express orthogonalization on the 3 unique blocks' 12 matrices and head.weight; AdamW on embeddings, biases and LayerNorm params (unchanged from 129-claude)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock with floor 0.3 (unchanged from 129-claude): after 200 warmup steps lr = 1e-3*(0.3 + 0.35*(1+cos(pi*frac)))",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "wd": "MUON_WD = 10*WD*LR/MUON_LR = 0.1 per-step decoupled (times lr)",
+        "orthogonalization": "5 Polar Express bf16 iterations"
+      }
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq names n1.. share one start offset per row)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02, zero biases) then orthogonal_(gain=0.02*sqrt(max(shape))) on the 3 unique blocks' matrices; emb/head normal 0.02",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loop": {
+      "n_unique": 3,
+      "cycle": "A-B-C-A-B-C",
+      "logical_applications": 6,
+      "train_r": "fixed (no random depth)",
+      "eval_r": "fixed, same as training"
+    }
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
