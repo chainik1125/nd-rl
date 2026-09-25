@@ -1,0 +1,71 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..7eb3cfb 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -120,7 +120,7 @@ class PeriLNBlock(Block):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+-    def attn(self, x, cos, sin, mask, cache):
++    def _qkv(self, x, cache):
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+@@ -133,6 +133,11 @@ class PeriLNBlock(Block):
+             cache["v"][:, :, n0:n1] = v
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
++        return q, k, v
++
++    def attn(self, x, cos, sin, mask, cache):
++        B, T, D = x.shape
++        q, k, v = self._qkv(x, cache)
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+@@ -141,6 +146,36 @@ class PeriLNBlock(Block):
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
++class DiffAttnBlock(PeriLNBlock):
++    """Differential attention (Ye et al. 2024, DIFF Transformer) in the Peri-LN block: each head's
++    32-dim q and k are split into two 16-dim halves and the head's attention map becomes
++    softmax(q1 k1^T) - lambda * softmax(q2 k2^T) over the same 32-dim values, so common-mode
++    mass on distractor keys cancels. lambda = exp(lq1 . lk1) - exp(lq2 . lk2) + lambda_init per
++    block (lambda_init = 0.8 - 0.6 exp(-0.3 l), l the 0-indexed block), the head output gets a
++    headwise RMSNorm scaled by (1 - lambda_init), as in the paper. Same qkv/proj layers, head
++    count, KV cache and ALiBi/NoPE slope table as 115 (both halves of a head see its slope);
++    64 extra parameters per block."""
++
++    def __init__(self, d, h, layer):
++        super().__init__(d, h)
++        self.lam_init = 0.8 - 0.6 * math.exp(-0.3 * layer)
++        self.lam = torch.nn.Parameter(torch.randn(4 * (d // h // 2)) * 0.1)  # lq1, lk1, lq2, lk2
++
++    def attn(self, x, cos, sin, mask, cache):
++        B, T, D = x.shape
++        hd = D // self.h
++        q, k, v = self._qkv(x, cache)
++        q, k = q.view(B, self.h, T, 2, hd // 2), k.view(B, self.h, -1, 2, hd // 2)
++        bias = mask.to(q.dtype)
++        sdpa = torch.nn.functional.scaled_dot_product_attention  # default scale 1/sqrt(16)
++        lq1, lk1, lq2, lk2 = self.lam.view(4, -1)
++        lam = torch.exp(lq1 @ lk1) - torch.exp(lq2 @ lk2) + self.lam_init
++        y = sdpa(q[..., 0, :], k[..., 0, :], v, attn_mask=bias)
++        y = y - lam * sdpa(q[..., 1, :], k[..., 1, :], v, attn_mask=bias)
++        y = y * torch.rsqrt(y.float().square().mean(-1, keepdim=True) + 1e-6).to(y.dtype)
++        return self.proj((y * (1 - self.lam_init)).transpose(1, 2).reshape(B, T, D))
++
++
+ class ALiBiGPT(GPT):
+     """P34: the fork's GPT with ALiBi (Press et al. 2021) instead of RoPE. Head h's attention
+     logits get -slope_h * (query position - key position), slopes 2^-1 .. 2^-8 for 8 heads, so
+@@ -230,7 +265,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model.blocks = torch.nn.ModuleList(DiffAttnBlock(D, N_HEAD, i) for i in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     for p in model.blocks.parameters():
