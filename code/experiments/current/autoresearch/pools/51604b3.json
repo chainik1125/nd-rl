@@ -13,13 +13,14 @@
   }
  },
  "pretrain_heldout": {
-  "file": "data/heldout.jsonl (strided to 2000)",
+  "file": "data/heldout.jsonl (2000 evenly spaced)",
   "n": 2000,
   "by_lines": {
-   "2": 500,
-   "3": 500,
-   "4": 500,
-   "5": 500
+   "2": 400,
+   "3": 400,
+   "4": 400,
+   "5": 400,
+   "6": 400
   }
  },
  "rl_targets": {

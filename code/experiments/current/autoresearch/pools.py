@@ -4,7 +4,7 @@
   python3 pools.py <fork-checkout>      # writes pools/<fork-commit>.json (commit from remote.sh)
 
 Run once per fork commit; params.py refuses to write params.json without the matching file. The
-split logic (dev = sha1 parity of key, heldout = strided 2000, targets = seeded sample of
+split logic (dev = sha1 parity of key, heldout = 2000 evenly spaced, targets = seeded sample of
 N_TARGETS) copies harness.py so the numbers describe exactly what the harness will see.
 """
 
@@ -38,7 +38,7 @@ def main() -> None:
     fork, commit, H = Path(sys.argv[1]), fork_commit(), harness_rules()
     train = read(fork / "data/train.jsonl")
     heldout = read(fork / "data/heldout.jsonl")
-    heldout = heldout[:: len(heldout) // 2000][:2000]
+    heldout = [heldout[i * len(heldout) // 2000] for i in range(2000)]
     targets_all = read(fork / "data/ladder/rl_targets.jsonl")
     transfer = read(fork / "data/ladder/transfer.jsonl")
     n_targets = min(int(H["N_TARGETS"]), len(targets_all))
@@ -46,7 +46,7 @@ def main() -> None:
         "fork_commit": commit,
         "seed": 0,
         "pretrain": {"file": "data/train.jsonl", **hist(train)},
-        "pretrain_heldout": {"file": "data/heldout.jsonl (strided to 2000)", **hist(heldout)},
+        "pretrain_heldout": {"file": "data/heldout.jsonl (2000 evenly spaced)", **hist(heldout)},
         "rl_targets": {
             "file": "data/ladder/rl_targets.jsonl",
             "pool": hist(targets_all),

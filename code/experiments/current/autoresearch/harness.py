@@ -416,7 +416,9 @@ def main():
     train_recs = read(f"{FORK}/data/train.jsonl")
     assert all(r["n_lines"] <= 6 for r in train_recs), "pretrain file violates cap 6"
     heldout_all = read(f"{FORK}/data/heldout.jsonl")
-    heldout_all = heldout_all[:: len(heldout_all) // 2000][:2000]  # length-ordered file: stride it
+    # Length-ordered file: take 2000 evenly spaced records, so every length 2-6 is covered
+    # (before 105, stride 2 + [:2000] took lengths 2-5 only).
+    heldout_all = [heldout_all[i * len(heldout_all) // 2000] for i in range(2000)]
     heldout_recs = heldout_all if not a.smoke else heldout_all[:16]
     targets_all = read(f"{FORK}/data/ladder/rl_targets.jsonl")
     transfer = read(f"{FORK}/data/ladder/transfer.jsonl")

@@ -10,7 +10,9 @@ nd_verify, and TOTAL_SECS is 2400 (1800 for 098-099). Data, pools, RL recipe and
 Scores from runs 000-097 (token format, `abs`) are NOT comparable: they are history and a
 source of ideas, not the bar. The bar is the 3-seed mean of the incumbent under the Lean
 protocol, starting with the 098 re-baseline of the 081-line recipe. Keep `TOK_MODE = "lean_seq"`;
-the harness crashes any other tokenizer. Ideas that won under the token format may not transfer.
+the harness crashes any other tokenizer. Ideas that won under the token format may not transfer. From 105 the held-out greedy check covers
+proof lengths 2-6 (400 each); before it covered 2-5 only, so `heldout_greedy` values are not
+comparable across that boundary. The metric is unaffected.
 
 **Two agents run this loop in parallel**: Codex (`gpt-6-astra`) and Claude (`claude-opus-5-5`),
 each in its own checkout, both pushing to the same branch. Robbie counts who gets more keeps.
