@@ -1,0 +1,130 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..50cdcbe 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -88,30 +88,39 @@ MTP_WEIGHT = 0.3
+ # SOFTWARE.
+ @torch.no_grad()
+ def muon_step(params, buffers, lr):
+-    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only."""
+-    for p, momentum in zip(params, buffers, strict=True):
+-        if p.grad is None:
+-            continue
+-        momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+-        update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
++    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only. The same
++    math as the per-matrix loop it replaces, but the matrices are stacked by shape, so the
++    optimizer is four batched Newton-Schulz runs (about 60 kernel launches) instead of one run
++    per matrix (about 1,300 launches for 30 matrices): the step was CPU-launch-bound."""
++    grads = [p.grad for p in params]
++    torch._foreach_lerp_(buffers, grads, 1 - MUON_MOMENTUM)
++    groups = {}  # (rows, cols) with rows <= cols -> [(param, update view, transposed?)]
++    for p, update in zip(params, torch._foreach_lerp(grads, buffers, MUON_MOMENTUM), strict=True):
+         # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
+         if update.size(0) == 3 * update.size(1):
+-            update = update.reshape(3, update.size(1), update.size(1))
++            update = update.view(3, update.size(1), update.size(1))
++        else:
++            update = update[None]
+         transpose = update.size(-2) > update.size(-1)
+         if transpose:
+             update = update.mT
++        groups.setdefault(update.shape[-2:], []).append((p, update, transpose))
++    torch._foreach_mul_(params, 1 - lr * MUON_WD)
++    for (rows, cols), members in groups.items():
++        update = torch.cat([u for _, u, _ in members]).bfloat16()  # (n, rows, cols)
+         update = update / (update.norm(dim=(-2, -1), keepdim=True) * (1 + 2e-2) + 1e-6)
+         for a, b, c in NS_COEFFS:
+             gram = update @ update.mT
+             polynomial = b * gram + c * gram @ gram
+             update = a * update + polynomial @ update
+-        if transpose:
+-            update = update.mT
+         # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+         # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+-        update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
+-        p.mul_(1 - lr * MUON_WD)
+-        p.add_(update.reshape_as(p), alpha=-lr)
++        update *= (max(rows, cols) / D) ** 0.5
++        i = 0
++        for p, u, transpose in members:
++            piece = update[i : i + u.size(0)]
++            i += u.size(0)
++            p.add_((piece.mT if transpose else piece).reshape_as(p), alpha=-lr)
+ 
+ 
+ class PeriLNBlock(Block):
+@@ -244,11 +253,10 @@ def to_gpu(data, tok, device):
+     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
+ 
+ 
+-def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
++def gpu_batch(ids, mask, ref_max, idxs, T, tok, gen):
+     """The fork's batch() + tok.shift_abs, vectorised: a random per-row offset is added to
+-    every ref token."""
++    every ref token. T (the batch's longest record) is computed by the caller on the host."""
+     x, m = ids[idxs], mask[idxs]
+-    T = int(lens[idxs].max())
+     x, m = x[:, :T].clone(), m[:, :T]
+     if tok.mode in ("abs", "lean_seq"):  # lean_seq: names n1.. get the same start offset
+         room = MAXN - ref_max[idxs]
+@@ -291,10 +299,16 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    opt = torch.optim.AdamW(
++        auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=(device == "cuda")
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+-    perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
++    # The batch order and its longest length are computed on the host, so no step waits for
++    # the GPU: the CPU queues the next step's kernels while the current one still runs.
++    lens_cpu, cpu_gen = lens.cpu(), torch.Generator()
++    cpu_gen.manual_seed(seed)
++    perm, step, last_loss = torch.empty(0, dtype=torch.long), 0, float("nan")
+     curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     while True:
+@@ -312,9 +326,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         for g in opt.param_groups:
+             g["lr"] = lr
+         if len(perm) < BS:
+-            perm = torch.randperm(n_train, device=device, generator=gen) + VAL_N
++            perm = torch.randperm(n_train, generator=cpu_gen) + VAL_N
+         idxs, perm = perm[:BS], perm[BS:]
+-        x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
++        T = int(lens_cpu[idxs].max())
++        x, m = gpu_batch(ids, mask, ref_max, idxs.to(device, non_blocking=True), T, tok, gen)
+         with autocast:
+             loss, main, aux = mtp_loss(model, mtp, x, m)
+         model.zero_grad(set_to_none=True)
+@@ -323,20 +338,21 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+         muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
+-        if step % 20 == 0:
+-            last_loss = main.item()  # the next-token CE, comparable with earlier runs
+-            recent.append(last_loss)
+-            recent_aux.append(aux.item())
++        if step % 20 == 0:  # kept on the GPU; the curve point below is the only sync
++            recent.append(main.detach())  # the next-token CE, comparable with earlier runs
++            recent_aux.append(aux.detach())
+         if (
+             time.time() - t0 >= next_point
+         ):  # curve point: mean recent train loss + val loss on the held-out slice
++            if recent:
++                last_loss = recent[-1].item()
+             curve.append(
+                 {
+                     "secs": round(time.time() - t0),
+                     "step": step,
+-                    "train_loss": sum(recent) / len(recent) if recent else last_loss,
++                    "train_loss": torch.stack(recent).mean().item() if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+-                    "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                    "mtp_loss": torch.stack(recent_aux).mean().item() if recent_aux else None,
+                 }
+             )
+             log(
