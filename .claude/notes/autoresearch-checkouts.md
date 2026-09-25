@@ -10,7 +10,7 @@ research agent. These are not Git worktrees.
 
 | Checkout | Branch | Role |
 | --- | --- | --- |
-| `/Users/robbie/repos/nd-rl` | `autoresearch-pretrain` | Researcher: run the Codex loop here (`--agent codex`). |
+| `/Users/robbie/repos/nd-rl` | `autoresearch-pretrain` | Researcher: the Fable loop since 2026-09-25 (`--agent fable`); Codex (retired) ran here before. |
 | `/Users/robbie/repos/nd-rl-3` | `autoresearch-pretrain` | Researcher: run the Claude loop here (`--agent claude`). |
 | `/Users/robbie/repos/nd-rl-2` | `autoresearch-dev` | Development: edit/test orchestration and dashboard here. |
 
