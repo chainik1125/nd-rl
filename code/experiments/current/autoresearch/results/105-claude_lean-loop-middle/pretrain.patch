@@ -1,0 +1,24 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 31e1aae..011cb17 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -36,7 +36,8 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 256, 8
++N_LAYER, D, N_HEAD = 7, 256, 8  # 7 logical block applications over 6 unique blocks (see LOOPED)
++LOOPED = (4, 3)  # P01: logical block 4 reuses block 3, so the order is A-B-C-D-D-E-F
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -158,6 +159,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    # Aliasing a ModuleList entry dedupes parameters (and the Muon/AdamW groups built from
++    # .parameters()), while the fork's per-index KV caches stay separate per logical application.
++    model.blocks[LOOPED[0]] = model.blocks[LOOPED[1]]
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
