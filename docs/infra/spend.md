@@ -236,3 +236,18 @@ balance floor of $130 (binding at ≈ $48 given the $177.80 balance at authorisa
 `noise-floor` (budget $18 of the pair, raised to $21 mid-run per its own `QUESTIONS.md` entry) is
 still running. Not in any row: the take-home baseline, run4-grpo's and run1-lean's pods, and
 `lean-only` (proposal 9, in review).
+
+| **noise-floor** (proposal 11, run 2: what difference can this project resolve? four raw pools at the control's generator settings and composition, Stage-1 seeds 0–1 pre-registered, extended by two disclosed addenda to seeds 0–2 (12 cells) and seeds 0–12 (52 cells, held-out only)) | 2026-09-24 16:06 – 09-25 ≈07:22 | `nf-1`, `nf-2`, two **NVIDIA A40 $0.49/h** (created 16:05:45 / 16:06:22 per `~/pods.log`; both deleted after use, `podls` shows none running at review time) | **28.32** (13.3394 + 14.9842, `~/podhours.log`) | **$13.88** ($6.54 + $7.34, `~/podhours.log`; agrees with `podbudget noise-floor`: 28.32 h, $13.88) | ≈ 12 pod-hours ≈ $7 pre-registered, revised mid-run to ≈ 33 pod-hours ≈ $16.2 once a ladder round measured at 1.94 pod-hours (not the brief's 1.25) forced a scope cut and a ceiling raise, 36 h/$18 → 42 h/$21 (`preregistration/noise-floor.md`, `e8f4c3b`, committed 16:05:09Z, 36 s before the first pod; addenda 1 and 2 each committed before any outcome they extend) | reviewed (`review_noise-floor.md`, phase 1 `eab2f11` / phase 2 `3c0c361`; recommendation "accept" — "the recount found no error in the floor table it exists to produce... the most carefully executed run I have reviewed in this repository"). No hard-constraint violation, nothing quarantined; `nd_verify` re-run by the reviewer on every counted proof in all 52 held-out and 11 ladder cells (≈270,000 proofs, 0 rejections); eleven wording/scope corrections, none changing a conclusion |
+
+Update 2026-09-25 08:10 UTC (noise-floor processed): **$151.2054 (`rpbalance`)**, no pods running
+(`podls` empty — both `noise-floor` pods and the sibling `cap-horizon`'s are gone). No
+`~/balance.log` or `~/ALERTS.md` on this host, so the row above rests on `podbudget noise-floor`
+and `~/podhours.log` rather than a balance delta. Week 39 (2026-09-21 → 09-27) to date by these
+rows: **≈ $169.7** (lean-format ≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77, ds-composition ≈ $70,
+ds-rendering $16.01, ds-generator ≈ $48.0, cap-horizon $12.52, **noise-floor $13.88**). Cumulative
+by rows since 2026-09-15: **≈ $332.4** (the prior ≈ $318.5 total, which already includes
+cap-horizon, plus noise-floor's $13.88). **Proposal 11 is now complete**: both runs together cost
+**$26.40 of the $60 authorised**, well inside the $130 balance floor (binding at ≈ $48 given the
+$177.80 balance at authorisation; live balance now $151.21, ≈ $21 above the floor even ignoring
+the ≈ $34 of headroom the authorisation itself left unused). Not in any row: the take-home
+baseline, run4-grpo's and run1-lean's pods, and `lean-only` (proposal 9, in review).
