@@ -1,0 +1,189 @@
+{
+  "id": "132-fable",
+  "slug": "lean-recurrent-depth",
+  "written_at": "2026-09-25T10:23:23-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "0778c01",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "6b2a331e5875",
+  "patch_lines": 37,
+  "title": "P01 recurrent depth (Geiping et al. 2025): prelude + two shared core blocks applied r~U{1,2,3} times in training with prelude re-injection, r=3 (8 logical blocks) at sampling, on the 129-claude Lean incumbent (3,349,504 params)",
+  "description": "P01 (idea ID P01, Geiping et al. 2025 recurrent depth): the six untied Peri-LN blocks become one prelude block, a two-block shared core applied r times with a Linear(2D,D) adapter on [state; prelude output] before each pass (init: their average), and one coda block; in training and RL fine-tune r is drawn uniformly from {1,2,3} per step (mean logical depth 6, same average FLOPs/step rate as the incumbent), while sampling and val (model.training False) always run r=3, i.e. 8 logical blocks. Unlike the six discarded fixed-depth loops (014, 028, 089, 105, 106, 125-fable), the model is trained to be a depth-robust refinement operator and gets two extra logical blocks of depth at sampling for free in pretraining wall-clock, which should help the >=7-line dev-transfer proofs that pretraining never saw.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Randomised recurrence trains the shared core as an iterative refinement of the proof state conditioned on the re-injected prelude output (Geiping et al. 2025 show loss keeps improving with more recurrences up to and slightly past the training mean). Expert iteration then samples with 8 logical blocks instead of 6 while pretraining paid for 6 on average, so longer proofs (>=7 lines, ~2x the pretraining chain length) get more sequential computation per token exactly where the metric is measured. Half the unique parameters (3.35M vs 4.8M) was nearly free in 125-fable (-14, noise-level), so capacity loss should be small. Failure modes: (a) depth-4 steps (r=1, a third of training) waste pretraining and the val loss at r=3 ends above the incumbent's ~0.080, giving a weaker RL start; (b) the core does not extrapolate/benefit from r=3 because it was only seen in a third of steps, so sampling at 8 blocks equals sampling at 6 while costing ~33% more sampling time; (c) the round-1 Lean parse-failure rate rises as in 125-fable (15% vs 13%) from the shared block.",
+  "p_keep": 0.3,
+  "expected_delta": "-60 to +40 theorems at >=7 vs 646 (central guess -5); pretrain steps ~4100-4400 (same mean depth), final val loss at r=3 0.080-0.092; total secs 1800-2200 (sampling with 8 blocks ~33% slower per token)",
+  "baseline_id": "129-claude",
+  "baseline_metric": 646,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with recurrent-depth forward",
+      "n_layers": 8,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "hybrid: ALiBi slopes 1/4..1/256 on 4 heads, NoPE (slope 0) on 4 heads, no RoPE (unchanged from 115-fable)",
+      "ctx": 1024,
+      "norm": "Peri-LN layernorm (pre-LN plus LayerNorm on both branch outputs), unchanged",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3349504,
+      "change": "vs 129-claude: 6 untied blocks -> [prelude, core_a, core_b, core_a, core_b, core_a, core_b, coda] with 4 unique blocks; adapter Linear(512,256,bias=False) init 0.5*[I I] applied to cat(state, prelude_out) before every core pass; r random in training (torch.randint on the global CPU RNG), R_MAX=3 at sampling/val",
+      "n_params_detail": "4 PeriLN blocks x 790,784 = 3,163,136 + emb 27,392 + head 27,392 + ln_f 512 + adapter 131,072 = 3,349,504 (vocab 107); slopes buffer is not a parameter",
+      "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 256, 8) from this pretrain.py, then blocks = ModuleList([prelude] + [core_a, core_b]*3 + [coda]) of PeriLNBlock with the same object aliases before load_state_dict (state_dict repeats the shared blocks under blocks.1/3/5 and blocks.2/4/6 keys)",
+      "kv_cache": "8 caches, one per logical application (sample.generate builds one per model.blocks entry); caches[0] also holds key positions for the ALiBi bias as in 115-fable; CPU check: cached vs full forward max abs diff 8e-7",
+      "n_layers_detail": "8 logical applications at sampling/val (1 prelude + 2x3 core + 1 coda); 4/6/8 logical in training (r~U{1,2,3}); 4 unique PeriLN blocks"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer (unchanged)"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on the 4 unique blocks' matrices, head.weight and the new adapter.weight; AdamW on embeddings, biases and LayerNorm params (unchanged from 129-claude except the adapter joins Muon)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock with floor 0.3 (unchanged from 129-claude): after 200 warmup steps lr = 1e-3*(0.3 + 0.35*(1+cos(pi*frac)))",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "wd": "MUON_WD = 10*WD*LR/MUON_LR = 0.1 per-step decoupled (times lr)",
+        "orthogonalization": "5 Polar Express bf16 iterations"
+      }
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq names n1.. share one start offset per row)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "fork default (normal 0.02, zero biases) then orthogonal_(gain=0.02*sqrt(max(shape))) on the 4 unique blocks' matrices; adapter 0.5*[I I]; emb/head normal 0.02",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "recurrence": {
+      "R_MAX": 3,
+      "train_r": "uniform {1,2,3} per forward in training mode (pretrain and RL fine-tune)",
+      "eval_r": 3,
+      "reinjection": "adapter(cat(state, prelude_out)), state_0 = prelude_out",
+      "truncated_backprop": false
+    }
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

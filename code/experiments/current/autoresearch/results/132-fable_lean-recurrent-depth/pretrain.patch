@@ -1,0 +1,76 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 0ede111..e195ae5 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,6 +37,13 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 256, 8
++# P01 recurrent depth (Geiping et al. 2025): one prelude block, a two-block core applied r times
++# with the prelude output re-injected before every pass, one coda block. In training r is drawn
++# uniformly from 1..R_MAX per step (mean logical depth 1 + 2 * 2 + 1 = N_LAYER, so the same
++# average FLOPs and step rate as six untied blocks); at sampling and val (model.training False)
++# r = R_MAX, i.e. 1 + 2 * R_MAX + 1 = 8 logical blocks, extra depth the model never had to pay
++# for in pretraining wall-clock but was trained to use.
++R_MAX = 3
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -152,6 +159,12 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        # Re-injection adapter (Geiping et al. 2025): each core pass starts from a linear map of
++        # [state; prelude output], initialised to their average so pass 1 starts at the prelude
++        # output and the loop is the identity on it at init.
++        self.adapter = torch.nn.Linear(2 * d, d, bias=False)
++        with torch.no_grad():
++            self.adapter.weight.copy_(0.5 * torch.eye(d).repeat(1, 2))
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         B, T = idx.shape
+@@ -169,9 +182,21 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        x = self.emb(idx)
+-        for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++        # blocks = [prelude, core_a, core_b, core_a, core_b, ..., coda]: one entry per logical
++        # application at r = R_MAX so sample.generate's one-cache-per-entry KV caches stay distinct
++        # per application, while parameters() deduplicates the shared core by identity.
++        sampling = caches is not None or not self.training
++        r = R_MAX if sampling else int(torch.randint(1, R_MAX + 1, ()))
++        if caches is None:
++            caches = [None] * len(self.blocks)
++        e = self.blocks[0](self.emb(idx), None, None, bias, caches[0])
++        s, i = e, 1
++        for _ in range(r):
++            s = self.adapter(torch.cat((s, e), -1))
++            for b in (self.blocks[1], self.blocks[2]):
++                s = b(s, None, None, bias, caches[i])
++                i += 1
++        x = self.blocks[-1](s, None, None, bias, caches[-1])
+         return self.head(self.ln_f(x))
+ 
+ 
+@@ -230,7 +255,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    prelude, core_a, core_b, coda = (PeriLNBlock(D, N_HEAD) for _ in range(4))
++    model.blocks = torch.nn.ModuleList([prelude] + [core_a, core_b] * R_MAX + [coda])
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     for p in model.blocks.parameters():
+@@ -242,7 +268,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+-    matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
++    matrices = [p for p in model.blocks.parameters() if p.ndim == 2]
++    matrices += [model.head.weight, model.adapter.weight]
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
