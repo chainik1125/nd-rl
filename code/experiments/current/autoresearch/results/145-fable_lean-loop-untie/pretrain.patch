@@ -1,0 +1,51 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..02ac0f7 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -26,6 +26,7 @@ Contract with harness.py (frozen):
+ Anything imported from the fork (ND_FORK) is fair game to copy in here and modify.
+ """
+ 
++import copy
+ import math
+ import time
+ 
+@@ -36,7 +37,12 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 256, 8
++# P01 loop-then-untie: pretraining cycles N_UNIQUE distinct blocks A-B-C-A-B-C for N_LAYER logical
++# applications at width 320 (10 heads of 32, 5 ALiBi + 5 NoPE), as 134-fable did at 384; at
++# handoff the second pass is deep-copied into its own blocks, so RL fine-tunes N_LAYER untied
++# blocks (7.46M params) initialised from the looped solution instead of sharing their gradients.
++N_LAYER, D, N_HEAD = 6, 320, 10
++N_UNIQUE = 3
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -270,7 +276,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    # Six logical applications of three unique block objects (each listed twice): parameters(),
++    # n_params() and both optimizers deduplicate the shared weights by identity.
++    unique = [PeriLNBlock(D, N_HEAD) for _ in range(N_UNIQUE)]
++    model.blocks = torch.nn.ModuleList(unique * (N_LAYER // N_UNIQUE))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
+@@ -344,6 +353,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++    # Untie at handoff: entries beyond the first cycle become independent copies, so the harness
++    # sees N_LAYER distinct blocks (one KV cache each) with the looped forward function unchanged.
++    model.blocks = torch.nn.ModuleList(
++        b if i < N_UNIQUE else copy.deepcopy(b) for i, b in enumerate(model.blocks)
++    )
++    log(f"pretrain: untied to {len(model.blocks)} blocks, {model.n_params():,} params at handoff")
+     model.eval()
+     return (
+         model,
