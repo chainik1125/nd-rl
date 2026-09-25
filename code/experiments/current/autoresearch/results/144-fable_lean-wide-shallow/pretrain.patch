@@ -1,0 +1,17 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..0f29ddc 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -36,7 +36,11 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 256, 8
++# P01 control for 134-fable: its three unique 384-wide Peri-LN blocks (8 heads of 48, d_ff 1536,
++# 5.41M params) applied ONCE each, untied, instead of cycled A-B-C-A-B-C. Same unique
++# parameters as 134, half its depth: does its better round-1 harvest come from the per-block
++# width (kept here) or from the second pass (dropped here)?
++N_LAYER, D, N_HEAD = 3, 384, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
