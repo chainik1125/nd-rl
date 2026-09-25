@@ -1,0 +1,53 @@
+{
+  "commit": "d05dde6",
+  "recorded_at": "2026-09-24T18:11:05-0700",
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "78cba72836b2",
+  "pretrain_sha": "22cbff96e435",
+  "rules": {
+    "TOTAL_SECS": 1800,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1813,
+  "reason": "seeds [0, 1, 2] not ok: ['timeout', 'timeout', 'timeout']",
+  "pretrain": {
+    "secs": null,
+    "n_params": null,
+    "steps": null,
+    "epochs": null,
+    "last_loss": null,
+    "heldout_greedy": null,
+    "curve": null
+  },
+  "rl_rounds": [],
+  "eval": {
+    "solved": null,
+    "n": null,
+    "ge": null,
+    "lstar": null,
+    "heldout_greedy": null,
+    "max_pruned": null,
+    "by_bin": null
+  },
+  "holdout_metric": null,
+  "surprise": "All three seeds timed out at 1800-1813 s. The 12-worker Lean gate cap (7d26f5e, copied from Dan's runs) made it worse, not better: on these 96-CPU pods a 48,000-sample gate pass took ~146 s wall vs 67-84 s with 96 workers in 098, and RL rounds grew from ~250 s to 304-316 s. Harness overhead, not the recipe. d05dde6 restores one worker per CPU and raises TOTAL_SECS to 2400; the identical baseline re-runs as 100.",
+  "seed_metrics": {},
+  "seed_metric_rl": {},
+  "seed_status": {
+    "0": "timeout",
+    "1": "timeout",
+    "2": "timeout"
+  },
+  "seed_pretrain": {},
+  "lean_gate": null,
+  "migrated": false
+}
