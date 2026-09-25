@@ -1,0 +1,35 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 0ede111..c75ecd6 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,7 +37,7 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 256, 8
+-BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
++BS, LR, WARMUP, WD = 128, 1e-3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+ # (num_iters=5, safety factor 2e-2): singular values land in ~[0.86, 1.14] instead of the
+@@ -253,17 +253,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     curve, recent, next_point = [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     while True:
+-        frac = (
+-            time.time() - t0
+-        ) / budget_secs  # cosine over wall-clock, so the cap is the schedule
+-        if frac >= 1.0:
++        if time.time() - t0 >= budget_secs:
+             break
+         step += 1
+-        lr = (
+-            LR * step / WARMUP
+-            if step < WARMUP
+-            else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+-        )
++        # Linear warmup, then constant: no pretraining decay; the harness's RL fine-tune
++        # (AdamW 3e-4 cosine to 3e-5 each round) is the only cooldown.
++        lr = LR * min(step / WARMUP, 1.0)
+         for g in opt.param_groups:
+             g["lr"] = lr
+         if len(perm) < BS:
