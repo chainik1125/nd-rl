@@ -1,0 +1,96 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..f0a8ad5 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -59,6 +59,11 @@ N_ALIBI = N_HEAD // 2
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+     N_HEAD - N_ALIBI
+ )
++# Log-n attention on the NoPE heads (Qwen's logn attention; Wang et al. 2024 on NoPE length
++# generalization): a query that sees n > L keys, L = the longest pretraining sequence, has its
++# NoPE-head logits multiplied by log(n) / log(L), so content lookups do not blur on proofs longer
++# than any pretraining record. For n <= L the factor is exactly 1: pretraining is unchanged.
++NOPE_HEADS = tuple(s == 0.0 for s in ALIBI_SLOPES)
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
+@@ -113,16 +118,17 @@ def muon_step(params, buffers, lr):
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+-    `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+-    and cos/sin are unused."""
++    `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward,
++    the `cos` slot carries its per-head log-n query scale (B or 1, H, T, 1) and sin is unused."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+-    def attn(self, x, cos, sin, mask, cache):
++    def attn(self, x, q_scale, sin, mask, cache):
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        q = q * q_scale.to(q.dtype)
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+                 cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+@@ -136,8 +142,8 @@ class PeriLNBlock(Block):
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+-    def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
++    def forward(self, x, q_scale, sin, mask=None, cache=None):
++        x = x + self.ln_attn_out(self.attn(self.ln1(x), q_scale, sin, mask, cache))
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
+@@ -148,10 +154,13 @@ class ALiBiGPT(GPT):
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+     bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
+ 
+-    def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
++    def __init__(self, vocab, n_layer, d, n_head, train_len, max_len=1024):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        nope = torch.tensor(NOPE_HEADS).view(1, n_head, 1, 1)
++        self.register_buffer("nope", nope, persistent=False)
++        self.log_train_len = math.log(train_len)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         B, T = idx.shape
+@@ -169,9 +178,12 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        n_keys = (pos.clamp(min=0) + 1).to(self.slopes.dtype)  # keys visible to each query
++        log_n = (n_keys.log() / self.log_train_len).clamp(min=1.0)[:, None, :, None]
++        q_scale = torch.where(self.nope, log_n, 1.0)  # (B or 1, H, T, 1)
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++            x = b(x, q_scale, None, bias, None if caches is None else caches[i])
+         return self.head(self.ln_f(x))
+ 
+ 
+@@ -229,7 +241,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD, train_len=ids.size(1))
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+@@ -238,7 +250,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
+     log(
+-        f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
++        f"pretrain: {model.n_params():,} params, {len(data):,} records "
++        f"(max {ids.size(1)} tokens) on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
