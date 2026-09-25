@@ -1,0 +1,94 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..1d43289 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -194,10 +194,11 @@ class MTPHead(torch.nn.Module):
+         self.block = PeriLNBlock(d, h)
+ 
+ 
+-def mtp_loss(model, mtp, x, m):
++def mtp_loss(model, mtp, x, m, allowed=None):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+-    h, bias = model.features(x[:, :-1])
++    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main).
++    `allowed` is pack_batch's attention mask for packed rows (None: plain causal)."""
++    h, bias = model.features(x[:, :-1], mask=None if allowed is None else allowed[..., :-1, :-1])
+     logits = model.head(model.ln_f(h))
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+@@ -262,6 +263,45 @@ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
+     return x, m
+ 
+ 
++def first_fit(lengths, cap):
++    """First-fit decreasing: a (row, offset) slot per record so rows of `cap` tokens hold whole
++    records, plus the number of rows."""
++    rows, offsets, free = [0] * len(lengths), [0] * len(lengths), []
++    for j in sorted(range(len(lengths)), key=lengths.__getitem__, reverse=True):
++        r = next((r for r, f in enumerate(free) if f >= lengths[j]), len(free))
++        if r == len(free):
++            free.append(cap)
++        rows[j], offsets[j] = r, cap - free[r]
++        free[r] -= lengths[j]
++    return rows, offsets, len(free)
++
++
++def pack_batch(x, m, n, pad):
++    """Layout only: move gpu_batch's B right-padded records (lengths n) into R ~ B/2 rows and
++    return the packed ids, proof mask and an (R, 1, C, C) mask letting each token see only
++    earlier tokens of its own record. ALiBi depends on i - j only and the NoPE heads on nothing,
++    so every record gets the logits and loss terms it gets alone in a padded row. C - 1, the
++    attention length, is a multiple of 16 so SDPA's memory-efficient kernel takes the bias
++    without its pad-and-copy."""
++    B, T = x.shape
++    C = 16 * math.ceil((T - 1) / 16) + 1
++    rows, offsets, R = first_fit(n, C)
++    n_t = torch.tensor(n)
++    rec = torch.repeat_interleave(torch.arange(B), n_t)
++    t = torch.arange(len(rec)) - torch.repeat_interleave(n_t.cumsum(0) - n_t, n_t)
++    dst = torch.tensor(rows)[rec] * C + torch.tensor(offsets)[rec] + t
++    src, dst, rec = torch.stack((rec * T + t, dst, rec)).to(x.device)
++    xp = x.new_full((R * C,), pad)
++    xp[dst] = x.reshape(-1)[src]
++    mp = m.new_zeros(R * C)
++    mp[dst] = m.reshape(-1)[src]
++    seg = rec.new_full((R * C,), -1)  # record index per slot; padding slots see only padding
++    seg[dst] = rec
++    seg = seg.view(R, C)
++    causal = torch.ones(C, C, dtype=torch.bool, device=x.device).tril()
++    return xp.view(R, C), mp.view(R, C), ((seg[:, :, None] == seg[:, None, :]) & causal)[:, None]
++
++
+ def pretrain(train_recs, budget_secs, device, seed, log):
+     t0 = time.time()
+     tok = make_tokenizer(TOK_MODE)
+@@ -295,7 +335,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
++    curve, recent, recent_aux, next_point, packed_rows = [], [], [], CURVE_EVERY, 0
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     while True:
+         frac = (
+@@ -315,8 +355,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             perm = torch.randperm(n_train, device=device, generator=gen) + VAL_N
+         idxs, perm = perm[:BS], perm[BS:]
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
++        x, m, allowed = pack_batch(x, m, lens[idxs].tolist(), tok.pad)
++        packed_rows += x.size(0)
+         with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
++            loss, main, aux = mtp_loss(model, mtp, x, m, allowed)
+         model.zero_grad(set_to_none=True)
+         mtp.zero_grad(set_to_none=True)
+         loss.backward()
+@@ -353,6 +395,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "records_seen": step * BS,
+             "epochs": step * BS / n_train,
+             "last_loss": last_loss,
++            "packed_rows_mean": packed_rows / max(step, 1),
+             "curve": curve,
+         },
+     )
