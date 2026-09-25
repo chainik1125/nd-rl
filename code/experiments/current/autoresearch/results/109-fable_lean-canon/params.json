@@ -1,0 +1,234 @@
+{
+  "id": "109-fable",
+  "slug": "lean-canon",
+  "written_at": "2026-09-25T00:04:44-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "bdf7ab0",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "1916d47300ea",
+  "patch_lines": 34,
+  "title": "Canon layers (Allen-Zhu 2025): a causal depthwise 4-tap convolution on the residual stream before the attention and MLP of every Peri-LN block, on the 107-claude Lean incumbent (4.81M params)",
+  "description": "New mechanism, no idea ID in the backlog (closest: P29/P38 family). Each of the 6 blocks gets two Canon layers, x_t <- x_t + sum_{i<4} w_i * x_{t-i} (per-channel weights, random init, 12,288 extra params, no extra matmul), before its attention and before its MLP, persisting into RL. Cheap local token mixing gives every position a summary of its 3 predecessors, so attention heads can spend their capacity on long-range citation lookup instead of reconstructing local Lean syntax, which is what Allen-Zhu (2025) reports as raised reasoning depth for small models on synthetic tasks; a deeper effective reasoning depth should give expert iteration more length-7+ proofs to bootstrap from.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "In Lean have-chains every line is a short fixed template (have nK : P := rule nI nJ), so much of what each block's attention does is local (what name was just declared, which connective this token sits in, which argument slot is being filled). A 4-tap causal conv on the residual stream does that for free in every block, twice, and the paper's mechanism is that this raises the model's effective reasoning depth (multi-hop composition) at fixed layer count, the axis that helped here (5 -> 6 blocks kept, +16) but costs steps when bought with layers (7 blocks lost 14% of steps). Canon costs almost no steps. Expected signature if right: fewer round-1 parse failures / unbound names than 107 and a higher round-1 targets-solved, carried through the four rounds. If wrong: the random-init conv perturbs the residual stream at the start of a 3,200-step run and the fit is no better, giving a noise-level or negative delta.",
+  "p_keep": 0.35,
+  "expected_delta": "+10 mean dev>=7 solves vs 107-claude's 587.00 (range -40 to +45); pretraining steps 3,050-3,250 (107: 3264/3208/3277; 24 extra depthwise convs fwd+bwd per step), final val loss 0.076-0.084 (107: 0.0822/0.0827/0.0836); RL sampling a few percent slower per token (12 small ops per cached step), totals 1,950-2,200 s under the 2,400 s cap",
+  "baseline_id": "107-claude",
+  "baseline_metric": 587,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) with Peri-LN blocks and CHANGED: Canon layers (causal depthwise conv over the last 4 residual states) before the attention and the MLP of every block",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm (Peri-LN blocks as in 107-claude: pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs); unchanged",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4812288,
+      "change": "CHANGED vs 107-claude: model.blocks is six CanonBlock(256, 8) (subclass of 107's PeriLNBlock adding canon_a and canon_c depthwise Conv1d(256, 256, 4, groups=256, bias=False)). Block forward: x = canon_a(x); x = x + ln_attn_out(attn(ln1(x))); x = canon_c(x); x = x + ln_mlp_out(fc2(gelu(fc1(ln2(x))))), where canon(x)_t = x_t + conv over x_{t-3..t} with zero history at the sequence start. Width, heads, depth, RoPE, GELU, Peri-LN, untied embedding/readout, ln_f, optimizer and schedule unchanged. The canon layers persist into RL and eval",
+      "n_params_detail": "107-claude's 4,800,000 + 12,288 canon taps = 4,812,288 (vocab 107). Checked on CPU with the pinned fork 51604b3 model.py",
+      "checkpoint_reconstruction": "GPT(vocab, 6, 256, 8) from the fork, replace blocks with CanonBlock as in pretrain.py, then load state (keys blocks.i.canon_a.weight / canon_c.weight of shape (256, 1, 4) plus 107's ln_attn_out/ln_mlp_out). The live harness uses the returned model object through RL and eval",
+      "kv_cache": "fork attn/cache code unchanged; each canon layer keeps its previous 3 input rows in the block's cache dict under 'canon_a'/'canon_c' (B, 3, 256). Left pads in sample.generate_ids's prefill are zeroed (keep taken from the mask's last query row) so the first real token sees zero history exactly as in right-padded training. CPU check with the pinned fork: two left-padded prompts (8 and 17 tokens), cached prefill + 5 one-token steps vs full uncached forward per row, max abs logit diff 4.8e-7; prefill last-token logits vs unpadded forward 2.7e-7",
+      "canon": {
+        "kernel": 4,
+        "positions": "Canon-A (residual stream before ln1/attention) and Canon-C (residual stream before ln2/MLP), one each per block, untied across blocks",
+        "form": "x_t <- x_t + sum_{i=0..3} w_i * x_{t-i} per channel (torch.nn.Conv1d(256, 256, 4, groups=256, bias=False) on a left-zero-padded sequence); no nonlinearity, no normalization",
+        "init": "PyTorch Conv1d default (kaiming uniform, fan_in 4): every weight ~ U(-0.5, 0.5), i.e. random, as in Allen-Zhu (2025)",
+        "n_params": "6 blocks x 2 canon layers x 256 channels x 4 taps = 12,288",
+        "optimizer": "3-D weights, so they fall into the AdamW auxiliary group (lr 1e-3, wd 0.1, betas 0.9/0.95) like the LayerNorms; Muon still sees exactly the same 25 matrices"
+      }
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "CHANGED: sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "CHANGED: per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "CHANGED: update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (ln1, ln2, ln_attn_out, ln_mlp_out per block, ln_f) and CHANGED: + the 12 canon conv weights (256,1,4); head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "As 107-claude (fork construction, blocks replaced and re-initialized with the fork _init, orthogonal_ on every 2D block parameter, output LayerNorms gain 1 bias 0) plus CHANGED: canon conv weights at PyTorch's default U(-0.5, 0.5); nothing is zero-initialized, so at init each residual state is already a random 4-token causal mixture. RNG draws shift vs 107 because the convs consume generator state",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

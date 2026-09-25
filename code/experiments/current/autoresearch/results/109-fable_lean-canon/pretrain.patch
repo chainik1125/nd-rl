@@ -1,0 +1,59 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ff48e8f..be2d6ad 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -39,6 +39,7 @@ from train import loss_on  # fork
+ N_LAYER, D, N_HEAD = 6, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
++CANON_K = 4  # canon kernel: the current residual state and the three before it
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+ # (num_iters=5, safety factor 2e-2): singular values land in ~[0.86, 1.14] instead of the
+ # fixed quintic's ~[0.68, 1.13], at the same five iterations.
+@@ -116,6 +117,37 @@ class PeriLNBlock(Block):
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
++class CanonBlock(PeriLNBlock):
++    """Canon layers (Allen-Zhu 2025, Physics of LM 4.1): a causal depthwise convolution over
++    the last CANON_K residual states, x_t + sum_i w_i * x_{t-i}, before the attention (Canon-A)
++    and the MLP (Canon-C) of the Peri-LN block. PyTorch's default conv init, so it is random."""
++
++    def __init__(self, d, h):
++        super().__init__(d, h)
++        self.canon_a = torch.nn.Conv1d(d, d, CANON_K, groups=d, bias=False)
++        self.canon_c = torch.nn.Conv1d(d, d, CANON_K, groups=d, bias=False)
++
++    @staticmethod
++    def canon(conv, x, keep, cache, key):
++        """Left pads (keep False) read as zeros, like the start of a right-padded training row;
++        with a cache the previous CANON_K - 1 inputs of this canon layer come from it."""
++        B, T, D = x.shape
++        if keep is not None:
++            x = x * keep[:, :, None]
++        hist = cache[key] if cache is not None and key in cache else x.new_zeros(B, CANON_K - 1, D)
++        xs = torch.cat([hist, x], 1)
++        if cache is not None:
++            cache[key] = xs[:, -(CANON_K - 1) :]
++        return x + conv(xs.transpose(1, 2)).transpose(1, 2)
++
++    def forward(self, x, cos, sin, mask=None, cache=None):
++        keep = None if mask is None else mask[:, 0, -1, -x.size(1) :].to(x.dtype)
++        x = self.canon(self.canon_a, x, keep, cache, "canon_a")
++        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
++        x = self.canon(self.canon_c, x, keep, cache, "canon_c")
++        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -171,7 +203,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model.blocks = torch.nn.ModuleList(CanonBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     for p in model.blocks.parameters():
