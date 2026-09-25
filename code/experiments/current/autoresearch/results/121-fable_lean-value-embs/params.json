@@ -1,0 +1,188 @@
+{
+  "id": "121-fable",
+  "slug": "lean-value-embs",
+  "written_at": "2026-09-25T05:26:46-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "dc0a023",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "c49468d7eae1",
+  "patch_lines": 22,
+  "title": "Value embeddings (modded-nanogpt): a per-block (vocab x 256) token-identity table added to the attention values in all six Peri-LN blocks, on the 115-fable hybrid ALiBi/NoPE Lean incumbent (4,964,352 params)",
+  "description": "P38-family / modded-nanogpt value embeddings (Jordan et al. 2024): each of the six blocks gets its own nn.Embedding(107, 256) whose row for the token at every position is added to that position's value vectors before the KV cache write, so a head that attends to a token reads that token's raw identity as well as what the residual stream has made of it. Expert iteration should benefit because the 4 NoPE heads look citations (n<k> names, have/exact/apply keywords) up by content at any distance, and on the 7-14 line dev/RL theorems the retrieved line's identity must survive 5 more blocks of mixing than on the cap-6 pretraining data; a clean lexical value channel per block makes retrieval less depth-dependent.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Mechanism: in a 6-block model the value vector at depth i is a function of the residual stream, which by block 3+ is dominated by the position's context, not its token. Copy/retrieval heads (the NoPE heads especially) want the retrieved token's identity (which name, which connective) with as little context mixing as possible; a per-block lexical table added to V gives every block a direct token->value path, like the speedrun's value embeddings, which the speedrun found worth ~10% of training at 124M. Prediction if right: better round-1 RL start (more targets solved before any fine-tuning, fewer parse failures) that carries through; if wrong the extra 164k AdamW parameters change nothing (the tables shrink under wd) and the run lands on 115 +- noise. Cost: six (B,T) lookups plus adds per step, negligible next to the matmuls, so steps and sampling speed match 115.",
+  "p_keep": 0.35,
+  "expected_delta": "-35 to +55 dev solves >= 7 vs 115-fable's 631.33 (central +15); round-1 targets solved 680-800 (115: 718/756/691), round-1 parse failures 15-35% (115: 22-30%); pretraining steps 4,050-4,300 (115: 4204/4143/4190, at most -3% from the lookups), final val loss 0.079-0.085 (115: 0.0826 mean); held-out greedy 0.975-0.99; totals 1,400-1,800 s under the 2,400 s cap; n_params 4,964,352",
+  "baseline_id": "115-fable",
+  "baseline_metric": 631,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) with Peri-LN blocks and hybrid ALiBi/NoPE heads (unchanged from 115), CHANGED: plus per-block value embeddings added to V",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "hybrid alibi/nope, unchanged from 115-fable: no q/k rotation; additive per-head bias -slope_h * (query pos - key pos) via SDPA attn_mask, slopes 1/4, 1/16, 1/64, 1/256 on heads 1-4 and 0 (NoPE) on heads 5-8, same table in every block; -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm (Peri-LN: pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4964352,
+      "value_embeddings": "CHANGED: ALiBiGPT.value_embs = ModuleList of 6 nn.Embedding(107, 256), one per block, init normal(0, 0.02) like the token embedding; in block i, ve = value_embs[i](idx) is viewed as (B, 8 heads, T, 32) and added to v right after the qkv projection and BEFORE the KV-cache write, so cached decoding and the full forward agree. q, k, the ALiBi bias, MLPs and everything else are byte-identical to 115. 6 x 107 x 256 = 164,352 extra params (4,800,000 + 164,352 = 4,964,352 under the 10M cap)",
+      "change": "CHANGED vs 115-fable: only the value-embedding tables and the ve plumbing (PeriLNBlock.attn/forward take ve=None; ALiBiGPT.forward computes ve per block). ALIBI_SLOPES, PeriLNBlock math, width, heads, depth, GELU, untied embedding/readout, ln_f, block init, optimizer and schedule unchanged",
+      "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 256, 8) from this pretrain.py (adds value_embs.{0..5}.weight to the state), replace blocks with PeriLNBlock as in pretrain.py, then load state. Loading into 115's model drops the tables and gives a different function. The live harness uses the returned model object through RL and eval",
+      "kv_cache": "ve is folded into v before the cache write (caches[i]['v']); key positions in caches[0] unchanged. CPU check with the pinned fork 51604b3: 2-sequence prefill of 8 tokens plus 4 cached one-token steps vs the full forward, max abs logit diff 7.7e-7; training loss/backward run; value_embs[0] grad norm 0.25 at init; n_params 4,964,352"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "unchanged from 115-fable: split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on the 24 hidden block matrices and head.weight; AdamW on the auxiliary group",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": "Polar Express per-iteration quintics as in 115 (NS_COEFFS unchanged)",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "unchanged: 24 hidden matrices (6 x qkv split into Q/K/V, proj, fc1, fc2) plus head.weight; the value-embedding tables live outside model.blocks so they are NOT Muon-updated and NOT orthogonally initialised"
+      },
+      "adamw_parameters": "emb.weight, CHANGED: + value_embs.{0..5}.weight (164,352 params, lr 1e-3, wd 0.1 like emb.weight), all projection biases and LayerNorm parameters (ln1, ln2, ln_attn_out, ln_mlp_out per block, ln_f)",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard weights incl. value_embs; pretraining optimizer states discarded; frozen RL creates its own unchanged AdamW over model.parameters() (value tables keep training under RL like every other weight)"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "unchanged from 115 for everything existing (fork construction, blocks re-initialised with _init then orthogonal_ on every 2D block parameter, gain 0.02*sqrt(max(rows, cols)); output LayerNorms gain 1 bias 0). CHANGED: value_embs tables normal(0, 0.02), i.e. ~1/16 of the initial value RMS (~0.32), so the run starts close to 115 and AdamW grows the tables if they help",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

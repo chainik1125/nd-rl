@@ -1,0 +1,60 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..fca0057 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -120,9 +120,11 @@ class PeriLNBlock(Block):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+-    def attn(self, x, cos, sin, mask, cache):
++    def attn(self, x, cos, sin, mask, cache, ve=None):
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        if ve is not None:  # value embedding: the key token's identity, added before caching
++            v = v + ve.view(B, T, self.h, D // self.h).transpose(1, 2)
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+                 cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+@@ -136,13 +138,14 @@ class PeriLNBlock(Block):
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+-    def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
++    def forward(self, x, cos, sin, mask=None, cache=None, ve=None):
++        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache, ve))
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
+ class ALiBiGPT(GPT):
+-    """P34: the fork's GPT with ALiBi (Press et al. 2021) instead of RoPE. Head h's attention
++    """P34: the fork's GPT with ALiBi (Press et al. 2021) instead of RoPE, plus value embeddings
++    (see __init__). Head h's attention
+     logits get -slope_h * (query position - key position), slopes 2^-1 .. 2^-8 for 8 heads, so
+     no rotation of q/k anywhere. Positions come from `pos` (sample.generate's left-padded
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+@@ -152,6 +155,14 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        # Value embeddings (modded-nanogpt, Jordan et al. 2024): per-block (vocab, d) tables
++        # whose row for the token at each position is added to that position's values, so a
++        # head that attends to a token reads its identity directly, not only what the residual
++        # stream has made of it by this depth. Same init as the token embedding; trained by
++        # the AdamW group (they live outside `blocks`, so Muon and the orthogonal init skip them).
++        self.value_embs = torch.nn.ModuleList(torch.nn.Embedding(vocab, d) for _ in range(n_layer))
++        for table in self.value_embs.parameters():
++            torch.nn.init.normal_(table, std=0.02)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         B, T = idx.shape
+@@ -171,7 +182,8 @@ class ALiBiGPT(GPT):
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++            ve = self.value_embs[i](idx)
++            x = b(x, None, None, bias, None if caches is None else caches[i], ve)
+         return self.head(self.ln_f(x))
+ 
+ 
