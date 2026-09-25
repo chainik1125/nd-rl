@@ -1,0 +1,16 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..22ee6d3 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -62,8 +62,9 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+-# the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+-MTP_WEIGHT = 0.3
++# the model's own ln_f/head. Its loss is added at this weight: twice DeepSeek-V3's early-training
++# 0.3, since the t+2 loss here is as low as the next-token loss and late MTP helped transfer.
++MTP_WEIGHT = 0.6
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
