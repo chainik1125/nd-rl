@@ -80,3 +80,12 @@ reported context, not independently checked infrastructure or a requirement to c
 - Next: develop a pretraining-only idea backlog, labeling hypotheses, expected RL effects,
   implementation cost, and any unresolved scope boundary. No new experiment is launched by
   writing this note.
+
+## 2026-09-24: the fixed baseline moved to Dan's Lean format
+
+On Robbie's instruction ("get Dan's best tokenizer and dataset, and Leon's best RL, plug them
+in"), the frozen harness moved to fork `51604b3` with Dan's `lean_seq` tokenizer and a Lean 4 ∧
+nd_verify reward, from autoresearch run 098. Dan's best cap-6 dataset is the `train.jsonl` the
+loop already used, so data is unchanged. Leon had no RL work to adopt yet, so expert iteration
+is unchanged. Data and RL stay fixed *within* the new protocol; scores from 000–097 are not
+comparable. Details: `code/experiments/current/autoresearch/program.md`.
