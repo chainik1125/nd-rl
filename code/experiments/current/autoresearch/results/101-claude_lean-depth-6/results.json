@@ -1,0 +1,370 @@
+{
+  "commit": "3c919fd",
+  "recorded_at": "2026-09-24T19:24:06-0700",
+  "status": "keep",
+  "metric": 580,
+  "metric_rl": 1060,
+  "harness_sha": "5f51421c974b",
+  "pretrain_sha": "c4e32910bf2c",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1926,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 4793856,
+    "steps": 3607,
+    "epochs": 2.998688022030838,
+    "last_loss": 0.05212736502289772,
+    "heldout_greedy": 0.987,
+    "curve": [
+      {
+        "secs": 17,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.674957633018494
+      },
+      {
+        "secs": 30,
+        "step": 162,
+        "train_loss": 1.6385953724384308,
+        "val_loss": 0.5455086827278137
+      },
+      {
+        "secs": 45,
+        "step": 355,
+        "train_loss": 0.1989972632792261,
+        "val_loss": 0.1141451420262456
+      },
+      {
+        "secs": 60,
+        "step": 543,
+        "train_loss": 0.0910810612142086,
+        "val_loss": 0.08511979319155216
+      },
+      {
+        "secs": 75,
+        "step": 732,
+        "train_loss": 0.07826628701554404,
+        "val_loss": 0.08836493734270334
+      },
+      {
+        "secs": 90,
+        "step": 925,
+        "train_loss": 0.07143503800034523,
+        "val_loss": 0.09241400193423033
+      },
+      {
+        "secs": 105,
+        "step": 1119,
+        "train_loss": 0.06773744854662153,
+        "val_loss": 0.0898711197078228
+      },
+      {
+        "secs": 120,
+        "step": 1309,
+        "train_loss": 0.06194918937981129,
+        "val_loss": 0.09063065331429243
+      },
+      {
+        "secs": 135,
+        "step": 1505,
+        "train_loss": 0.06161347702145577,
+        "val_loss": 0.09495282359421253
+      },
+      {
+        "secs": 150,
+        "step": 1695,
+        "train_loss": 0.06037054914567205,
+        "val_loss": 0.08802344743162394
+      },
+      {
+        "secs": 165,
+        "step": 1888,
+        "train_loss": 0.06029767170548439,
+        "val_loss": 0.08110903948545456
+      },
+      {
+        "secs": 180,
+        "step": 2079,
+        "train_loss": 0.05836325966649585,
+        "val_loss": 0.08822598680853844
+      },
+      {
+        "secs": 195,
+        "step": 2268,
+        "train_loss": 0.05837468430399895,
+        "val_loss": 0.08434793632477522
+      },
+      {
+        "secs": 210,
+        "step": 2459,
+        "train_loss": 0.054517934719721474,
+        "val_loss": 0.08433768153190613
+      },
+      {
+        "secs": 225,
+        "step": 2650,
+        "train_loss": 0.0554773323237896,
+        "val_loss": 0.0814347192645073
+      },
+      {
+        "secs": 240,
+        "step": 2841,
+        "train_loss": 0.05355555452406406,
+        "val_loss": 0.07926046196371317
+      },
+      {
+        "secs": 255,
+        "step": 3033,
+        "train_loss": 0.05354824165503184,
+        "val_loss": 0.08141910471022129
+      },
+      {
+        "secs": 270,
+        "step": 3222,
+        "train_loss": 0.053184591233730316,
+        "val_loss": 0.08229782711714506
+      },
+      {
+        "secs": 285,
+        "step": 3413,
+        "train_loss": 0.05406475274099244,
+        "val_loss": 0.08507000282406807
+      },
+      {
+        "secs": 300,
+        "step": 3607,
+        "train_loss": 0.05341399647295475,
+        "val_loss": 0.08133176993578672
+      }
+    ],
+    "records_seen": 461696
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.24497916666666666,
+      "new_proofs": 854,
+      "targets_solved": 647,
+      "lstar": 9,
+      "ge": {
+        "7": 647,
+        "8": 244,
+        "9": 55,
+        "10": 1,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3388,
+      "samples_per_sec": 187,
+      "secs": 330
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.4875,
+      "new_proofs": 335,
+      "targets_solved": 853,
+      "lstar": 10,
+      "ge": {
+        "7": 853,
+        "8": 400,
+        "9": 157,
+        "10": 13,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 4676,
+      "samples_per_sec": 215,
+      "secs": 301
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.5813958333333333,
+      "new_proofs": 239,
+      "targets_solved": 956,
+      "lstar": 10,
+      "ge": {
+        "7": 956,
+        "8": 477,
+        "9": 220,
+        "10": 30,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5520,
+      "samples_per_sec": 210,
+      "secs": 304
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.6346458333333334,
+      "new_proofs": 176,
+      "targets_solved": 1025,
+      "lstar": 10,
+      "ge": {
+        "7": 1025,
+        "8": 525,
+        "9": 260,
+        "10": 45,
+        "11": 3,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6108,
+      "samples_per_sec": 196,
+      "secs": 314
+    }
+  ],
+  "eval": {
+    "solved": 537,
+    "n": 1108,
+    "ge": {
+      "7": 537,
+      "8": 464,
+      "9": 370,
+      "10": 69,
+      "11": 13,
+      "12": 3,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.9905,
+    "max_pruned": 12,
+    "by_bin": {
+      "7": {
+        "solved": 73,
+        "n": 150,
+        "rate": 0.4866666666666667,
+        "ci": [
+          0.4080157160222476,
+          0.5659835143549716
+        ]
+      },
+      "8": {
+        "solved": 94,
+        "n": 152,
+        "rate": 0.618421052631579,
+        "ci": [
+          0.5391769349477636,
+          0.6918268535143671
+        ]
+      },
+      "9": {
+        "solved": 301,
+        "n": 477,
+        "rate": 0.6310272536687631,
+        "ci": [
+          0.5868380501546744,
+          0.6731228184556954
+        ]
+      },
+      "10": {
+        "solved": 56,
+        "n": 219,
+        "rate": 0.2557077625570776,
+        "ci": [
+          0.20248472554410663,
+          0.31735358112753814
+        ]
+      },
+      "11": {
+        "solved": 10,
+        "n": 49,
+        "rate": 0.20408163265306123,
+        "ci": [
+          0.11481727042813811,
+          0.33637270110943834
+        ]
+      },
+      "12": {
+        "solved": 3,
+        "n": 54,
+        "rate": 0.05555555555555555,
+        "ci": [
+          0.019072922503838907,
+          0.15107451463482943
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "N_LAYER 5 -> 6 (only edit, 4,793,856 params) on 100-claude scored 537/594/608 on seeds 0/1/2 vs 527/559/604: exact means 579.67 vs 563.33, +16.33 (+2.9%), paired +10/+35/+4, every seed up. Keep under the strict three-seed rule; inside the registered -30..+45 range (central +8). With one-seed sd ~44 this is not established on fresh seeds. Pretraining ran 3607/3573/3624 steps vs 4327-4332 (-17%; seed 1 just under the predicted 3,600-3,750), final val loss 0.0813/0.0820/0.0806 vs 0.0843/0.0840/0.0804. RL targets solved r1 647/727/679 vs 670/678/686, r4 1025/1066/1088 vs 1019/1024/1093. Final held-out greedy 0.991/0.990/0.991. Totals 1926/1905/1848 s (predicted 1,850-2,100; 100: 1815/1698/1726), RL sampling 184-220 samples/s vs 213-269; the 2400 s cap absorbed it. The registered mechanism is NOT supported. Round-1 parse failures were 14358/6887/10544 of 48,000 vs 7429/11799/11736 (unbound names 8742/5284/9391 vs 5846/9595/8881). The registered ~15% baseline rate was seed 0 only; 100's three-seed mean is 21.5%, 101's is 22.0%. Eval parse failures fell 7% on average (mean 11490 vs 12395, unbound 8785 vs 9917), but seed 0 rose. So the gain came from more correct long proofs, not from fewer unbound citations. The same edit lost -12 under the token format (062-claude, 65 s from its cap).",
+  "seed_metrics": {
+    "0": 537,
+    "1": 594,
+    "2": 608
+  },
+  "seed_metric_rl": {
+    "0": 1025,
+    "1": 1066,
+    "2": 1088
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08133176993578672,
+      "heldout_greedy": 0.987,
+      "steps": 3607
+    },
+    "1": {
+      "val_loss": 0.08199144806712866,
+      "heldout_greedy": 0.989,
+      "steps": 3573
+    },
+    "2": {
+      "val_loss": 0.08058453630656004,
+      "heldout_greedy": 0.9865,
+      "steps": 3624
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 103969,
+    "distinct_checked": 570051,
+    "both_ok": 310042,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 49,
+    "lean_wall_s": 1367.3138732910156
+  },
+  "migrated": false
+}

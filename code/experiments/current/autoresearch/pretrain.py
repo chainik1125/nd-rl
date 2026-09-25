@@ -36,7 +36,7 @@ from tokenizer import make_tokenizer  # fork
 from train import loss_on  # fork
 
 # ---- knobs
-N_LAYER, D, N_HEAD = 5, 256, 8
+N_LAYER, D, N_HEAD = 6, 256, 8
 BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
 MUON_LR, MUON_MOMENTUM = 0.01, 0.95
 # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
