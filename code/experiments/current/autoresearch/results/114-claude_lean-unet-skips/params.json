@@ -1,0 +1,227 @@
+{
+  "id": "114-claude",
+  "slug": "lean-unet-skips",
+  "written_at": "2026-09-25T01:59:41-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "9dd45f0",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "4f3c10d8c0d0",
+  "patch_lines": 30,
+  "title": "U-net skip connections (modded-nanogpt): learned-scalar skips from blocks 0-2 outputs into blocks 5-3 inputs, on the 107-claude Peri-LN Lean incumbent (4,800,003 params)",
+  "description": "New mechanism, not from the P-list (closest: P10 reinjection and P38 early-value residual, applied to a non-looped model): the fork GPT forward gains modded-nanogpt's U-net skips, adding the output of block i (i<3) scaled by a learned scalar (init 1) to the input of block 5-i. In a Peri-LN stream every block writes a unit-RMS vector, so early token-level features (exact symbols and names needed to copy cited formulas) are diluted by later writes; the skips let the last blocks re-read them, which should help the RL policy stay precise on longer (>=7-line) proofs than pretraining shows.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Val loss saturates at ~0.082 by ~200 s on every Lean run (100-112 curves flat from 225 s), so pretraining fit is not what separates runs; the RL outcome depends on how the solution generalizes to longer proofs. Late layers that can directly read early, token-identity-rich activations (instead of a stream where they are ~1/10 of the variance after 10 unit Peri-LN writes) should copy premises and names more exactly as sequences grow past pretraining lengths, raising round-1 targets solved and cutting Lean parse failures; the skip scalars cost no measurable step time.",
+  "p_keep": 0.25,
+  "expected_delta": "-40 to +40 dev solves >= 7 vs 107-claude's 587.00 (central 0); pretraining steps within 2% of 107's 3,208-3,277, final val loss 0.079-0.086; totals 1,850-2,150 s, under the 2,400 s cap",
+  "baseline_id": "107-claude",
+  "baseline_metric": 587,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) with Peri-LN blocks (107-claude) and U-net skip connections between the first and last three blocks (UNetGPT subclass)",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN; unchanged from 107-claude)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4800003,
+      "change": "CHANGED vs 107-claude: only the GPT forward. UNetGPT(GPT) adds skip_weights = nn.Parameter(ones(3)); forward is the fork's GPT.forward (same rope_cache/pos/mask/caches handling) except that the outputs of blocks 0,1,2 are pushed on a stack and, before blocks 3,4,5, x = x + skip_weights[i-3] * stack.pop(), i.e. block 3 input += w0*out2 (a pure rescale of the stream, as in modded-nanogpt), block 4 input += w1*out1, block 5 input += w2*out0. Blocks, widths, init and RNG draws are identical to 107 (skip weights init 1 without RNG)",
+      "n_params_detail": "107-claude's 4,800,000 plus 3 skip scalars = 4,800,003",
+      "skip_weights": "3 scalars, init 1.0, in the AdamW auxiliary group (lr 1e-3, wd 0.1, same schedule); persist into RL (frozen RL AdamW trains them like every other parameter)",
+      "checkpoint_reconstruction": "UNetGPT(vocab, 6, 256, 8) from pretrain.py, replace blocks with PeriLNBlock, load state (state dict = 107's plus skip_weights)",
+      "kv_cache": "fork attention/cache code unchanged; skips add same-call, same-position activations, so cached decoding equals the full forward (CPU check: prefill 5 tokens with causal mask then 7 single-token cached steps vs one full forward, skip weights set to (0.7,1.3,-0.4): max |logit diff| 9.5e-7)"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (ln1, ln2, ln_attn_out, ln_mlp_out per block, and ln_f) as in 107-claude, CHANGED: + UNetGPT.skip_weights (3 scalars, same lr 1e-3 / wd 0.1); head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction (normal 0.02 embedding/readout), blocks replaced by PeriLNBlocks and re-initialized with the fork _init (zero biases), then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); output LayerNorms gain 1, bias 0 (standard Peri-LN / OLMo 2 / Gemma 2 init). RNG draws shift vs 101-claude because the blocks are built twice. At init each branch write has RMS ~1 instead of ~0.1. 114: identical to 107 (same RNG draws); skip_weights init 1.0 without RNG",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

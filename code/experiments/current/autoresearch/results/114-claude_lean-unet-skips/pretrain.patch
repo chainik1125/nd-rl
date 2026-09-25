@@ -1,0 +1,55 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ff48e8f..cc414da 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -31,7 +31,7 @@ import time
+ 
+ import torch
+ from lean_tok import MAXN  # fork
+-from model import GPT, Block  # fork
++from model import GPT, Block, rope_cache  # fork
+ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+@@ -116,6 +116,32 @@ class PeriLNBlock(Block):
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
++class UNetGPT(GPT):
++    """U-net skips as in modded-nanogpt: the outputs of the first N_LAYER // 2 blocks are added,
++    in reverse order and scaled by learned scalars (init 1), to the inputs of the last ones.
++    forward is the fork's GPT.forward plus the skips; same pos/mask/caches handling."""
++
++    def __init__(self, vocab, n_layer, d, n_head):
++        super().__init__(vocab, n_layer, d, n_head)
++        self.skip_weights = torch.nn.Parameter(torch.ones(n_layer // 2))
++
++    def forward(self, idx, pos=None, mask=None, caches=None):
++        T = idx.shape[1]
++        if pos is None:
++            cos, sin = rope_cache(T, self.hd, idx.device)
++        else:
++            cos_all, sin_all = rope_cache(int(pos.max().item()) + 1, self.hd, idx.device)
++            cos, sin = cos_all[pos], sin_all[pos]
++        x, skips, n = self.emb(idx), [], len(self.skip_weights)
++        for i, b in enumerate(self.blocks):
++            if i >= n:
++                x = x + self.skip_weights[i - n] * skips.pop()
++            x = b(x, cos, sin, mask, None if caches is None else caches[i])
++            if i < n:
++                skips.append(x)
++        return self.head(self.ln_f(x))
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -170,7 +196,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model = UNetGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
