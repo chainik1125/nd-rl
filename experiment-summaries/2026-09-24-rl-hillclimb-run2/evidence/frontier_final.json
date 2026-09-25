@@ -1,0 +1,312 @@
+{
+ "frontier": [
+  {
+   "id": "n078",
+   "role": "BEST",
+   "metric": 1175.0,
+   "dev": 383.0,
+   "by_len": {
+    "10": 77.5,
+    "11": 83.0,
+    "8": 113.5,
+    "9": 109.0
+   },
+   "metric_seeds": [
+    1198,
+    1152
+   ],
+   "frontier": 198.0,
+   "frontier_by_len": {
+    "12": 156.0,
+    "13": 41.5,
+    "14": 0.5
+   },
+   "source": "own idea",
+   "heldout_greedy": 0.9225000000000001,
+   "n_children": 1,
+   "n_uses": 1,
+   "mean_child_improvement": -433.0,
+   "last_used_step": 97,
+   "category": "data",
+   "description": "abs line index shift capped in fine-tuning batches (index_room 24, starts at most N41) on the polaris temperature ramp cuda graph line verified node n071"
+  },
+  {
+   "id": "n092",
+   "role": "LEAN",
+   "metric": 1212.5,
+   "dev": 372.5,
+   "by_len": {
+    "10": 81.5,
+    "11": 78.5,
+    "8": 111.0,
+    "9": 101.5
+   },
+   "metric_seeds": [
+    1286,
+    1139
+   ],
+   "frontier": 210.0,
+   "frontier_by_len": {
+    "12": 164.0,
+    "13": 46.0,
+    "14": 0.0
+   },
+   "source": "https://arxiv.org/abs/2504.10478",
+   "heldout_greedy": 0.936,
+   "n_children": 0,
+   "n_uses": 0,
+   "mean_child_improvement": null,
+   "last_used_step": null,
+   "category": "schedule",
+   "description": "crossover: uniform weight average of the last 3 round endpoints transplanted from n076 via n084 onto the index capped cuda graph line verified length weighted node n065"
+  },
+  {
+   "id": "n090",
+   "role": "DIVERSE",
+   "metric": 1179,
+   "dev": 359,
+   "by_len": {
+    "10": 79,
+    "11": 78,
+    "8": 101,
+    "9": 101
+   },
+   "metric_seeds": [
+    1179
+   ],
+   "frontier": 205,
+   "frontier_by_len": {
+    "12": 159,
+    "13": 46,
+    "14": 0
+   },
+   "source": "https://arxiv.org/abs/2504.10478",
+   "heldout_greedy": 0.917,
+   "n_children": 2,
+   "n_uses": 2,
+   "mean_child_improvement": -55.25,
+   "last_used_step": 102,
+   "category": "schedule",
+   "description": "wider weight ensemble: uniform average of the last 5 round end weights instead of 3 on index capped weight averaged node n084"
+  },
+  {
+   "id": "n096",
+   "role": "DIVERSE",
+   "metric": 1170.5,
+   "dev": 360.5,
+   "by_len": {
+    "10": 79.0,
+    "11": 80.5,
+    "8": 100.5,
+    "9": 100.5
+   },
+   "metric_seeds": [
+    1311,
+    1030
+   ],
+   "frontier": 202.5,
+   "frontier_by_len": {
+    "12": 161.0,
+    "13": 41.0,
+    "14": 0.5
+   },
+   "source": "own idea (w4 n082)",
+   "heldout_greedy": 0.927,
+   "n_children": 0,
+   "n_uses": 0,
+   "mean_child_improvement": null,
+   "last_used_step": null,
+   "category": "curriculum",
+   "description": "larger per run target subset max_targets 9000 instead of 6000 with length weighted quotas on the 5 round weight averaged node n090"
+  }
+ ],
+ "table": [
+  "id    role      score    dev seeds by_len               front front_by_len heldout kids uses meanimp last category   description [source]",
+  "n078  BEST       1175    383     2 113.5/109/77.5/83      198 156/41.5/0.5   0.923    1    1  -433.0   97 data       abs line index shift capped in fine-tuning batches (index_room 24, starts at most N41) on the polaris temperature ramp cuda graph line verified node n071 [own idea]",
+  "n092  LEAN     1212.5  372.5     2 111/101.5/81.5/78.5    210 164/46/0       0.936    0    0       -    - schedule   crossover: uniform weight average of the last 3 round endpoints transplanted from n076 via n084 onto the index capped cuda graph line verified length weighted node n065 [https://arxiv.org/abs/2504.10478]",
+  "n090  DIVERSE    1179    359     1 101/101/79/78          205 159/46/0       0.917    2    2   -55.2  102 schedule   wider weight ensemble: uniform average of the last 5 round end weights instead of 3 on index capped weight averaged node n084 [https://arxiv.org/abs/2504.10478]",
+  "n096  DIVERSE  1170.5  360.5     2 100.5/100.5/79/80.5  202.5 161/41/0.5     0.927    0    0       -    - curriculum larger per run target subset max_targets 9000 instead of 6000 with length weighted quotas on the 5 round weight averaged node n090 [own idea (w4 n082)]"
+ ],
+ "completed_experiments": 99,
+ "step": 102,
+ "inflight": {},
+ "fresh_elites": [
+  "n096"
+ ],
+ "lambda": 0.15,
+ "gamma": 0.15,
+ "margins": {
+  "best": 1175.0,
+  "improve": 40,
+  "tie": 80,
+  "diverse_slack": 80,
+  "loss_band": 42,
+  "share": 84,
+  "floor_gap": 147,
+  "heldout_floor": 0.85
+ },
+ "pending_best": [],
+ "auditor": null,
+ "replicates": [
+  {
+   "decision": "BEST",
+   "dev": 325,
+   "evicted": "n037",
+   "first_metric": 648,
+   "first_seed": 0,
+   "frontier": 115,
+   "heldout_greedy": 0.935,
+   "mean_metric": 716.5,
+   "metric": 785,
+   "node": "n036",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n036_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T07:41:11Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 273,
+   "evicted": "n044",
+   "first_metric": 897,
+   "first_seed": 0,
+   "frontier": 92,
+   "heldout_greedy": 0.922,
+   "mean_metric": 769.0,
+   "metric": 641,
+   "node": "n038",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n038_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T08:14:06Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 322,
+   "evicted": "n036",
+   "first_metric": 1083,
+   "first_seed": 0,
+   "frontier": 124,
+   "heldout_greedy": 0.934,
+   "mean_metric": 950.5,
+   "metric": 818,
+   "node": "n046",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n046_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T09:12:02Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 384,
+   "evicted": "n066",
+   "first_metric": 1064,
+   "first_seed": 0,
+   "frontier": 187,
+   "heldout_greedy": 0.911,
+   "mean_metric": 1098.0,
+   "metric": 1132,
+   "node": "n060",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n060_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T10:38:16Z"
+  },
+  {
+   "decision": "DIVERSE",
+   "dev": 324,
+   "evicted": "n071",
+   "first_metric": 1183,
+   "first_seed": 0,
+   "frontier": 129,
+   "heldout_greedy": 0.919,
+   "mean_metric": 1011.5,
+   "metric": 840,
+   "node": "n075",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n075_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T12:21:06Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 388,
+   "evicted": "n065",
+   "first_metric": 1198,
+   "first_seed": 0,
+   "frontier": 191,
+   "heldout_greedy": 0.921,
+   "mean_metric": 1175.0,
+   "metric": 1152,
+   "node": "n078",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n078_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T12:51:48Z"
+  },
+  {
+   "decision": "DISCARD",
+   "dev": 311,
+   "evicted": null,
+   "first_metric": 1218,
+   "first_seed": 0,
+   "frontier": 131,
+   "heldout_greedy": 0.907,
+   "mean_metric": 1026.5,
+   "metric": 835,
+   "node": "n082",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n082_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T13:20:13Z"
+  },
+  {
+   "decision": "DISCARD",
+   "dev": 287,
+   "evicted": null,
+   "first_metric": 1235,
+   "first_seed": 0,
+   "frontier": 86,
+   "heldout_greedy": 0.92,
+   "mean_metric": 933.0,
+   "metric": 631,
+   "node": "n088",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n088_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T14:00:14Z"
+  },
+  {
+   "decision": "REPLACE_WEAKEST",
+   "dev": 367,
+   "evicted": "n098",
+   "first_metric": 1286,
+   "first_seed": 0,
+   "frontier": 193,
+   "heldout_greedy": 0.935,
+   "mean_metric": 1212.5,
+   "metric": 1139,
+   "node": "n092",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n092_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T14:22:14Z"
+  },
+  {
+   "decision": "DIVERSE",
+   "dev": 326,
+   "evicted": "n086",
+   "first_metric": 1311,
+   "first_seed": 0,
+   "frontier": 176,
+   "heldout_greedy": 0.925,
+   "mean_metric": 1170.5,
+   "metric": 1030,
+   "node": "n096",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n096_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T14:39:54Z"
+  }
+ ]
+}

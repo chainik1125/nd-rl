@@ -1,0 +1,4989 @@
+{
+ "history": [
+  {
+   "id": "n000",
+   "parents": [],
+   "operator": "seed",
+   "worker": "w7",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 272.36,
+   "dev": 185.0,
+   "metric_seeds": [
+    272.36
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 21.84,
+   "heldout_greedy": 0.946,
+   "delta": null,
+   "decision": "FILL",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n017",
+   "in_frontier": false,
+   "description": "seed baseline rl.py unmodified",
+   "source": "seed (run 1 best, n025)"
+  },
+  {
+   "id": "n001",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 214.36,
+   "dev": 179.0,
+   "metric_seeds": [
+    214.36
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 8.84,
+   "heldout_greedy": 0.923,
+   "delta": -58.0,
+   "decision": "FILL",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n013",
+   "in_frontier": false,
+   "description": "knapsack per-target k allocation: round budget window x 32 split by difficulty weight, length prior L6 1 to L11 8 for unseen targets, solve rate weights 1/4/8 for seen, k clipped 4-128",
+   "source": "https://arxiv.org/abs/2509.25849"
+  },
+  {
+   "id": "n002",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 222.76,
+   "dev": 177.0,
+   "metric_seeds": [
+    222.76
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 11.44,
+   "heldout_greedy": 0.923,
+   "delta": -49.60000000000002,
+   "decision": "FILL",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n005",
+   "in_frontier": false,
+   "description": "length-weighted stratified target subset: quota weights L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 of 6000 targets (300/600/900/1200/1200/1800)",
+   "source": "own idea"
+  },
+  {
+   "id": "n003",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 229.76,
+   "dev": 184.0,
+   "metric_seeds": [
+    229.76
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 11.44,
+   "heldout_greedy": 0.949,
+   "delta": -42.60000000000002,
+   "decision": "FILL",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n010",
+   "in_frontier": false,
+   "description": "best-of-n by length: max_per_thm 4 proofs per solved target selected shortest-first by pruned then written length instead of random shuffle",
+   "source": "https://arxiv.org/abs/2502.20122"
+  },
+  {
+   "id": "n004",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 148.0,
+   "dev": 136.0,
+   "metric_seeds": [
+    148
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 3.0,
+   "heldout_greedy": 0.933,
+   "delta": -124.36000000000001,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "schema sibling spreading: first solve of a textbook schema instance pulls up to 32 unsolved same-schema siblings from the whole 15.7k pool to the queue front, nearest length first, at most 160 per round",
+   "source": "own idea (run-1 finding on schema ignition)"
+  },
+  {
+   "id": "n005",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 219.5,
+   "dev": 187.5,
+   "metric_seeds": [
+    233,
+    206
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 8.0,
+   "heldout_greedy": 0.9315,
+   "delta": -52.860000000000014,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n018",
+   "in_frontier": false,
+   "description": "prefix branching restarts: unsolved window targets resample 8 continuations from each of up to 4 longest verifier-valid line prefixes of failed samples, cap 0.4 x window x k per round",
+   "source": "https://arxiv.org/abs/2506.11902"
+  },
+  {
+   "id": "n006",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 238.5,
+   "dev": 202.5,
+   "metric_seeds": [
+    249,
+    228
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 9.0,
+   "heldout_greedy": 0.9390000000000001,
+   "delta": -33.860000000000014,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n022",
+   "in_frontier": false,
+   "description": "token-level multi-temperature sampling: line-head tokens (box-depth bars plus first 2 formula tokens of each proof line) at decision_temp 1.4, other tokens at 1.0, training samples only",
+   "source": "https://arxiv.org/abs/2510.08892"
+  },
+  {
+   "id": "n007",
+   "parents": [
+    "n001"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 107.0,
+   "dev": 107.0,
+   "metric_seeds": [
+    107
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 0.0,
+   "heldout_greedy": 0.932,
+   "delta": -107.36000000000001,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "exploratory annealed decoding for training samples: per-token temperature max(2.2 - exp(t/600), 0.7), 1.2 at token 0 cooling to 0.7 by token 245",
+   "source": "https://arxiv.org/abs/2510.05251"
+  },
+  {
+   "id": "n008",
+   "parents": [
+    "n003",
+    "n002"
+   ],
+   "operator": "crossover",
+   "worker": "w3",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 263.0,
+   "dev": 175.0,
+   "metric_seeds": [
+    263
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 22.0,
+   "heldout_greedy": 0.923,
+   "delta": 33.24000000000001,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: length-weighted stratified target subset quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 transplanted from n002 onto shortest-first proof selection n003",
+   "source": "own idea (n002)"
+  },
+  {
+   "id": "n009",
+   "parents": [
+    "n003"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 178.0,
+   "dev": 158.0,
+   "metric_seeds": [
+    178
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 5.0,
+   "heldout_greedy": 0.907,
+   "delta": -51.75999999999999,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "shape-weighted cap6 retention: half of the 20000 retained cap6 records drawn from proofs using NEGI ORE BOTE DN reductio case-split rules",
+   "source": "own idea"
+  },
+  {
+   "id": "n010",
+   "parents": [
+    "n002"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 300.5,
+   "dev": 206.5,
+   "metric_seeds": [
+    303,
+    298
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 23.5,
+   "heldout_greedy": 0.902,
+   "delta": 77.74000000000001,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n021",
+   "in_frontier": false,
+   "description": "line-verified sampling: incremental fitch line checker on each generated proof line, rejected lines masked from kv cache and resampled from stored line-start logits, 4 retries per line, 16 per proof, then row killed",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n011",
+   "parents": [
+    "n002"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 172.0,
+   "dev": 148.0,
+   "metric_seeds": [
+    172
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 6.0,
+   "heldout_greedy": 0.92,
+   "delta": -50.75999999999999,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "near-miss refill: unsolved targets in hardest-first refills ordered by best verifier-valid prefix fraction of failed samples (learnability proxy) instead of random",
+   "source": "https://arxiv.org/abs/2502.12272"
+  },
+  {
+   "id": "n012",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w7",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 1.0,
+   "dev": 1.0,
+   "metric_seeds": [
+    1
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 0.0,
+   "heldout_greedy": 0.683,
+   "delta": -271.36,
+   "decision": "FLOOR",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "negative sample reinforcement nsr: minimise 0.25 x log-prob of the first verifier-invalid line (whole line incl. index and depth tokens) of failed samples, 32 negatives per sft step",
+   "source": "https://arxiv.org/abs/2506.01347"
+  },
+  {
+   "id": "n013",
+   "parents": [
+    "n002"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 246.0,
+   "dev": 182.0,
+   "metric_seeds": [
+    246
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 16.0,
+   "heldout_greedy": 0.93,
+   "delta": 23.24000000000001,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n006",
+   "in_frontier": false,
+   "description": "wise-ft weight ensembling at end of run: early snapshot at 40 percent budget, alpha 1.0 0.7 0.5 chosen by pass@16 on 300 unused L9-11 pool targets, 45 s reserved; alpha 1.0 was chosen",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n014",
+   "parents": [
+    "n005",
+    "n003"
+   ],
+   "operator": "crossover",
+   "worker": "w6",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 191.0,
+   "dev": 155.0,
+   "metric_seeds": [
+    191
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 9.0,
+   "heldout_greedy": 0.915,
+   "delta": -28.5,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: shortest-first pruned-length proof selection transplanted from n003 onto prefix branching n005",
+   "source": "https://arxiv.org/abs/2502.20122"
+  },
+  {
+   "id": "n015",
+   "parents": [
+    "n003",
+    "n001"
+   ],
+   "operator": "crossover",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 122.0,
+   "dev": 114.0,
+   "metric_seeds": [
+    122
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 2.0,
+   "heldout_greedy": 0.928,
+   "delta": -107.75999999999999,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: knapsack per-target k allocation from n001 (length prior L6 1 to L11 8, solve rate weights 1/4/8) transplanted onto shortest-first proof selection n003",
+   "source": "https://arxiv.org/abs/2509.25849"
+  },
+  {
+   "id": "n016",
+   "parents": [
+    "n005"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 373.0,
+   "dev": 243.0,
+   "metric_seeds": [
+    459,
+    287
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 32.5,
+   "heldout_greedy": 0.917,
+   "delta": 153.5,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n031",
+   "in_frontier": false,
+   "description": "line-verified main-pass sampling (incremental fitch line checker, bad lines masked from kv cache and resampled, 4 retries per line, 16 per proof) added to prefix branching restarts",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n017",
+   "parents": [
+    "n001"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 240.0,
+   "dev": 188.0,
+   "metric_seeds": [
+    240
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 13.0,
+   "heldout_greedy": 0.938,
+   "delta": 25.639999999999986,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n020",
+   "in_frontier": false,
+   "description": "gem loss replaces token cross entropy in every fine-tune step, beta 0.7, logsigmoid weights, q softmax(z/beta) detached, rl and cap6 records alike",
+   "source": "https://arxiv.org/abs/2408.16673"
+  },
+  {
+   "id": "n018",
+   "parents": [
+    "n006",
+    "n003"
+   ],
+   "operator": "crossover",
+   "worker": "w2",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 251.0,
+   "dev": 191.0,
+   "metric_seeds": [
+    251
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 15.0,
+   "heldout_greedy": 0.928,
+   "delta": 12.5,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n023",
+   "in_frontier": false,
+   "description": "crossover: shortest-first max_per_thm proof selection by pruned then written length transplanted from n003 onto line-head decision temperature n006",
+   "source": "https://arxiv.org/abs/2502.20122"
+  },
+  {
+   "id": "n019",
+   "parents": [
+    "n006"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 184.0,
+   "dev": 160.0,
+   "metric_seeds": [
+    184
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 6.0,
+   "heldout_greedy": 0.915,
+   "delta": -54.5,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "difficulty-balanced refill: half of each 1200-target hardest-first refill replaced by fresh never-sampled pool targets outside the 6000 subset, equal quota per true length",
+   "source": "https://arxiv.org/abs/2504.03380"
+  },
+  {
+   "id": "n020",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 232.0,
+   "dev": 192.0,
+   "metric_seeds": [
+    232
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 10.0,
+   "heldout_greedy": 0.923,
+   "delta": -40.360000000000014,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n016",
+   "in_frontier": false,
+   "description": "cuda graph sampler: static kv buffers, batch buckets 768 to 8, 64-token key spans, gumbel-max sampling replaces the compacting sampler for training samples, 1.7x sampling throughput",
+   "source": "own idea"
+  },
+  {
+   "id": "n021",
+   "parents": [
+    "n010"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 414.0,
+   "dev": 230.0,
+   "metric_seeds": [
+    513,
+    315
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 46.0,
+   "heldout_greedy": 0.91,
+   "delta": 113.5,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n032",
+   "in_frontier": false,
+   "description": "lower overhead line-verified sampler: single host sync per decode step, packed 96-token window gather, vectorised kv mask; sample stream identical to n010 for a seed (round 1 matched), sampling 42-45 s vs 46-48 s",
+   "source": "own idea"
+  },
+  {
+   "id": "n022",
+   "parents": [
+    "n005",
+    "n010"
+   ],
+   "operator": "crossover",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 299.0,
+   "dev": 227.0,
+   "metric_seeds": [
+    299
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 18.0,
+   "heldout_greedy": 0.939,
+   "delta": 79.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n026",
+   "in_frontier": false,
+   "description": "crossover: line-verified sampling from n010 (incremental fitch line checker, rejected lines resampled from line-start logits, 4 retries per line, 16 per proof) transplanted onto prefix branching n005 for the main k 32 pass",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n023",
+   "parents": [
+    "n018"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 314.0,
+   "dev": 222.0,
+   "metric_seeds": [
+    314
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 23.0,
+   "heldout_greedy": 0.936,
+   "delta": 63.0,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n024",
+   "in_frontier": false,
+   "description": "abs line index shift capped in fine-tuning batches: proofs renumbered to start at N1 plus s, s uniform 0 to 64 minus max(lines, index_room 24), start index at most N41 so long proofs never overflow N64",
+   "source": "own idea"
+  },
+  {
+   "id": "n024",
+   "parents": [
+    "n017"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 591.0,
+   "dev": 313.0,
+   "metric_seeds": [
+    550,
+    632
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 69.5,
+   "heldout_greedy": 0.9225000000000001,
+   "delta": 351.0,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n044",
+   "in_frontier": false,
+   "description": "line-verified guided sampling on gem loss knapsack node: incremental fitch checker per generated line, rejected line or premature qed masked from kv cache and resampled from saved line-start logits, 4 retries per line, 24 rollbacks per proof, then row killed",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n025",
+   "parents": [
+    "n005",
+    "n017"
+   ],
+   "operator": "crossover",
+   "worker": "w5",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 160.0,
+   "dev": 160.0,
+   "metric_seeds": [
+    160
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 0.0,
+   "heldout_greedy": 0.948,
+   "delta": -59.5,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: gem loss beta 0.7 logsigmoid transplanted from n017 onto prefix branching restarts n005",
+   "source": "https://arxiv.org/abs/2408.16673"
+  },
+  {
+   "id": "n026",
+   "parents": [
+    "n020"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 299,
+   "dev": 247,
+   "metric_seeds": [
+    299
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 13,
+   "heldout_greedy": 0.92,
+   "delta": 67.0,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n027",
+   "in_frontier": false,
+   "description": "length-grouped fine-tune batches: mega-batch 8 x 128 records sorted by token length, fixed token-sum normaliser, fused adamw; fine-tune 8 s instead of 20 s per 135 steps, 43 rounds",
+   "source": "own idea"
+  },
+  {
+   "id": "n027",
+   "parents": [
+    "n010"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 342,
+   "dev": 238,
+   "metric_seeds": [
+    342
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 26,
+   "heldout_greedy": 0.931,
+   "delta": 41.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n029",
+   "in_frontier": false,
+   "description": "one-line backtracking in line-verified sampling: after 4 failed retries the previous non-premise line is popped from kv cache and checker and resampled from its stored line-start logits, once per proof (code base n021 sampler, output-identical to n010)",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n028",
+   "parents": [
+    "n005"
+   ],
+   "operator": "mutate",
+   "worker": "w7",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 127,
+   "dev": 119,
+   "metric_seeds": [
+    127
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 2,
+   "heldout_greedy": 0.917,
+   "delta": -92.5,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "pass@k decoding temperature calibration: 60 s reserved at the end, pass@32 on 256 unused pool L9-11 prompts at T 0.8/1.0/1.2, output head scaled by 0.8/T*; only T 0.8 fit in time so head unscaled",
+   "source": "https://arxiv.org/abs/2502.05234"
+  },
+  {
+   "id": "n029",
+   "parents": [
+    "n006",
+    "n010"
+   ],
+   "operator": "crossover",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 541,
+   "dev": 285,
+   "metric_seeds": [
+    541
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 64,
+   "heldout_greedy": 0.93,
+   "delta": 302.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n042",
+   "in_frontier": false,
+   "description": "crossover: line-verified sampling from n010 (incremental fitch line checker, bad lines resampled from line-start logits, 4 retries per line, 16 per proof) transplanted onto line-head decision temperature 1.4 n006, heated heads kept inside the lv decode loop",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n030",
+   "parents": [
+    "n018"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 151,
+   "dev": 151,
+   "metric_seeds": [
+    151
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 0,
+   "heldout_greedy": 0.943,
+   "delta": -100.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "canonical line numbering: fine-tuning proofs renumbered to start at N1 with no abs index shift augmentation (index_room 64)",
+   "source": "own idea"
+  },
+  {
+   "id": "n031",
+   "parents": [
+    "n010"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 460,
+   "dev": 252,
+   "metric_seeds": [
+    460
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 52,
+   "heldout_greedy": 0.922,
+   "delta": 159.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n037",
+   "in_frontier": false,
+   "description": "gem loss beta 0.7 logsigmoid weights replaces token cross entropy on line-verified sampling node n010, transplanted from n017",
+   "source": "https://arxiv.org/abs/2408.16673"
+  },
+  {
+   "id": "n032",
+   "parents": [
+    "n018"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 487,
+   "dev": 271,
+   "metric_seeds": [
+    487
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 54,
+   "heldout_greedy": 0.929,
+   "delta": 236.0,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n039",
+   "in_frontier": false,
+   "description": "line verified sampling from n021 low overhead lv sampler added to decision temperature line n018, line head temperature 1.4 kept on every line resample inside the lv loop, 4 retries per line 16 per proof",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n033",
+   "parents": [
+    "n016",
+    "n026"
+   ],
+   "operator": "crossover",
+   "worker": "w3",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 332,
+   "dev": 252,
+   "metric_seeds": [
+    332
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 20,
+   "heldout_greedy": 0.911,
+   "delta": -41.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: length-grouped fine-tune batches, fixed token normaliser, fused adamw transplanted from n026 onto line-verified sampling n016",
+   "source": "own idea (n026)"
+  },
+  {
+   "id": "n034",
+   "parents": [
+    "n027",
+    "n023"
+   ],
+   "operator": "crossover",
+   "worker": "w1",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 358,
+   "dev": 230,
+   "metric_seeds": [
+    358
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 32,
+   "heldout_greedy": 0.921,
+   "delta": 16,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: abs line index shift cap index_room 24 in fine-tuning batches (renumber proofs to start at N1 plus s, start at most N41) transplanted from n023 onto one-line backtracking lv node n027",
+   "source": "own idea (w2 n023)"
+  },
+  {
+   "id": "n035",
+   "parents": [
+    "n016",
+    "n027"
+   ],
+   "operator": "crossover",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 154,
+   "dev": 146,
+   "metric_seeds": [
+    154
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 2,
+   "heldout_greedy": 0.886,
+   "delta": -219.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: one-line backtracking lv sampler from n027 (after 4 failed retries pop the previous non-premise line and resample it, once per proof) replaces n016's lv block on the prefix branching base",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n036",
+   "parents": [
+    "n024"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 716.5,
+   "dev": 316.5,
+   "metric_seeds": [
+    648,
+    785
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 100.0,
+   "heldout_greedy": 0.9275,
+   "delta": 125.5,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n046",
+   "in_frontier": false,
+   "description": "abs line index shift capped in fine-tuning batches on the line-verified gem knapsack node: proofs renumbered to start at N1 plus s, s uniform 0 to 64 minus max(lines, index_room 24)",
+   "source": "own idea"
+  },
+  {
+   "id": "n037",
+   "parents": [
+    "n029",
+    "n024"
+   ],
+   "operator": "crossover",
+   "worker": "w7",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 512,
+   "dev": 292,
+   "metric_seeds": [
+    512
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 55,
+   "heldout_greedy": 0.915,
+   "delta": -29,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n036",
+   "in_frontier": false,
+   "description": "crossover: gem loss beta 0.7 logsigmoid replaces token cross entropy in every fine-tune step, transplanted from n024 onto line-verified sampling with heated line heads n029",
+   "source": "https://arxiv.org/abs/2408.16673"
+  },
+  {
+   "id": "n038",
+   "parents": [
+    "n024",
+    "n031"
+   ],
+   "operator": "crossover",
+   "worker": "w6",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 769.0,
+   "dev": 285.0,
+   "metric_seeds": [
+    897,
+    641
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 121.0,
+   "heldout_greedy": 0.9205000000000001,
+   "delta": 178.0,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n054",
+   "in_frontier": false,
+   "description": "crossover: length-weighted stratified target subset quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 (n002 via n031) transplanted onto gem line-verified knapsack BEST n024",
+   "source": "own idea (n002)"
+  },
+  {
+   "id": "n039",
+   "parents": [
+    "n029",
+    "n032"
+   ],
+   "operator": "crossover",
+   "worker": "w5",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 532,
+   "dev": 296,
+   "metric_seeds": [
+    532
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 59,
+   "heldout_greedy": 0.916,
+   "delta": -9,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n041",
+   "in_frontier": false,
+   "description": "crossover: lower overhead lv sampler with one host sync per decode step and packed 96 token window gather, heated line heads kept, transplanted from n032 onto n029",
+   "source": "own idea (w1 n021 sampler)"
+  },
+  {
+   "id": "n040",
+   "parents": [
+    "n032"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 544,
+   "dev": 292,
+   "metric_seeds": [
+    544
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 63,
+   "heldout_greedy": 0.907,
+   "delta": 57,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "gem loss beta 0.7 logsigmoid weights replaces token cross entropy on the line-verified decision temperature node n032",
+   "source": "https://arxiv.org/abs/2408.16673"
+  },
+  {
+   "id": "n041",
+   "parents": [
+    "n024"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 727,
+   "dev": 307,
+   "metric_seeds": [
+    727
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 105,
+   "heldout_greedy": 0.924,
+   "delta": 136.0,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n050",
+   "in_frontier": false,
+   "description": "schema coverage target subset: per length quota and textbook share unchanged, textbook schemas water-filled inside the share so rare schemas enter whole (demorgan_nand_to_or 78 vs 27, dist_or_over_and_conv 73 vs 38)",
+   "source": "own idea"
+  },
+  {
+   "id": "n042",
+   "parents": [
+    "n029"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 597,
+   "dev": 313,
+   "metric_seeds": [
+    597
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 71,
+   "heldout_greedy": 0.933,
+   "delta": 56,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n048",
+   "in_frontier": false,
+   "description": "easy to hard e2h first pass: 6000 target subset visited in order of L_true plus uniform 0 to 2 jitter, L6 first and L11 last, hardest-first refills unchanged",
+   "source": "https://arxiv.org/abs/2506.06632"
+  },
+  {
+   "id": "n043",
+   "parents": [
+    "n037",
+    "n032"
+   ],
+   "operator": "crossover",
+   "worker": "w7",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 467,
+   "dev": 295,
+   "metric_seeds": [
+    467
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 43,
+   "heldout_greedy": 0.924,
+   "delta": -45,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: low overhead lv sampler from n032 (single host sync per decode step, packed 96-token window gather, vectorised kv mask) transplanted onto gem lv heated heads n037",
+   "source": "own idea (n021)"
+  },
+  {
+   "id": "n044",
+   "parents": [
+    "n024"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 522,
+   "dev": 278,
+   "metric_seeds": [
+    522
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 61,
+   "heldout_greedy": 0.896,
+   "delta": -69.0,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n038",
+   "in_frontier": false,
+   "description": "entropy minimisation weight 0.3 on predicted rule and citation tokens after the colon of each proof line, added to gem loss on the line-verified node",
+   "source": "https://arxiv.org/abs/2505.15134"
+  },
+  {
+   "id": "n045",
+   "parents": [
+    "n024"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 364,
+   "dev": 244,
+   "metric_seeds": [
+    364
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 30,
+   "heldout_greedy": 0.941,
+   "delta": -227.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "fine-tune batch 256 instead of 128, same 135 steps and lr, on gem line-verified knapsack n024",
+   "source": "own idea"
+  },
+  {
+   "id": "n046",
+   "parents": [
+    "n024"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 950.5,
+   "dev": 352.5,
+   "metric_seeds": [
+    1083,
+    818
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 149.5,
+   "heldout_greedy": 0.932,
+   "delta": 359.5,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n065",
+   "in_frontier": false,
+   "description": "cuda graph line verified sampler: guided line rejection sampling on a cuda graph decode step, static kv buffers, batch bucket views, 64 slot key spans, gumbel max, host line checks only, self check fallback; sampling 21 s vs 38 s per round, 30 rounds",
+   "source": "own idea"
+  },
+  {
+   "id": "n047",
+   "parents": [
+    "n039"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 446,
+   "dev": 258,
+   "metric_seeds": [
+    446
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 47,
+   "heldout_greedy": 0.918,
+   "delta": -86,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "length weighted stratified target subset quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 of 6000 on the lv heated line head node n039",
+   "source": "own idea (w1 n002, n038)"
+  },
+  {
+   "id": "n048",
+   "parents": [
+    "n024"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 653,
+   "dev": 313,
+   "metric_seeds": [
+    653
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 85,
+   "heldout_greedy": 0.932,
+   "delta": 62.0,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n049",
+   "in_frontier": false,
+   "description": "retry heating in guided line-verified sampling: the r-th resample of a rejected line drawn at temperature times 1 plus 0.2 r (up to 1.8), reset on acceptance",
+   "source": "https://arxiv.org/abs/2510.08892"
+  },
+  {
+   "id": "n049",
+   "parents": [
+    "n036",
+    "n041"
+   ],
+   "operator": "crossover",
+   "worker": "w4",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 754,
+   "dev": 318,
+   "metric_seeds": [
+    754
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 109,
+   "heldout_greedy": 0.928,
+   "delta": 37.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n053",
+   "in_frontier": false,
+   "description": "crossover: schema coverage target subset from n041 (textbook schemas water-filled inside each length's textbook share, rare schemas whole) transplanted onto capped abs index shift node n036",
+   "source": "own idea"
+  },
+  {
+   "id": "n050",
+   "parents": [
+    "n036",
+    "n041"
+   ],
+   "operator": "crossover",
+   "worker": "w2",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 968,
+   "dev": 352,
+   "metric_seeds": [
+    968
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 154,
+   "heldout_greedy": 0.929,
+   "delta": 251.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n067",
+   "in_frontier": false,
+   "description": "crossover: schema coverage target subset (textbook schemas water-filled inside each length quota) transplanted from n041 onto index-capped line-verified n036",
+   "source": "own idea (w1, n041)"
+  },
+  {
+   "id": "n051",
+   "parents": [
+    "n041",
+    "n042"
+   ],
+   "operator": "crossover",
+   "worker": "w7",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 540,
+   "dev": 300,
+   "metric_seeds": [
+    540
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 60,
+   "heldout_greedy": 0.896,
+   "delta": -187,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: e2h easy to hard first pass order, targets sorted by L_true plus uniform 0 to 2 jitter, transplanted from n042 onto schema coverage subset n041",
+   "source": "https://arxiv.org/abs/2506.06632"
+  },
+  {
+   "id": "n052",
+   "parents": [
+    "n036"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 724,
+   "dev": 292,
+   "metric_seeds": [
+    724
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 108,
+   "heldout_greedy": 0.901,
+   "delta": 7.5,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "long-heavy stratified target subset weights L6 0.5 L7 0.75 L8 1.25 L9 2 L10 2.5 L11 4 (L11 2182 of 6000) on index-shift line-verified gem node n036",
+   "source": "https://arxiv.org/abs/2508.14094"
+  },
+  {
+   "id": "n053",
+   "parents": [
+    "n038"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 859,
+   "dev": 323,
+   "metric_seeds": [
+    859
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 134,
+   "heldout_greedy": 0.909,
+   "delta": 90.0,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n066",
+   "in_frontier": false,
+   "description": "cuda graph line verified sampler from n046 on length weighted subset node n038: guided rejection sampling on graph decode step with self check fallback",
+   "source": "own idea (n046)"
+  },
+  {
+   "id": "n054",
+   "parents": [
+    "n041"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 779,
+   "dev": 319,
+   "metric_seeds": [
+    779
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 115,
+   "heldout_greedy": 0.925,
+   "delta": 52,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n058",
+   "in_frontier": false,
+   "description": "staged training sample temperature 1.0 then 1.1 after 35 percent then 1.2 after 70 percent of the budget, polaris style, on schema coverage gem knapsack guided lv node n041",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris"
+  },
+  {
+   "id": "n055",
+   "parents": [
+    "n038",
+    "n048"
+   ],
+   "operator": "crossover",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 446,
+   "dev": 266,
+   "metric_seeds": [
+    446
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 45,
+   "heldout_greedy": 0.906,
+   "delta": -323.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: retry heating (resampled rejected lines at temperature times 1 plus 0.2 r) transplanted from n048 onto length-weighted gem lv knapsack BEST n038",
+   "source": "https://arxiv.org/abs/2510.08892"
+  },
+  {
+   "id": "n056",
+   "parents": [
+    "n049"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 628,
+   "dev": 340,
+   "metric_seeds": [
+    628
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 72,
+   "heldout_greedy": 0.917,
+   "delta": -126,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "easy to hard e2h first pass on the schema coverage index cap gem knapsack lv node: subset visited by L_true plus uniform 0 to 2 jitter, refills hardest-first",
+   "source": "https://arxiv.org/abs/2506.06632"
+  },
+  {
+   "id": "n057",
+   "parents": [
+    "n036"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 685,
+   "dev": 301,
+   "metric_seeds": [
+    685
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 96,
+   "heldout_greedy": 0.914,
+   "delta": -31.5,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "tail only retries in line verified sampler: rejected line resampled from its colon keeping the formula, rule and citation tokens only, 2 tail retries on own budget before whole line resample",
+   "source": "own idea"
+  },
+  {
+   "id": "n058",
+   "parents": [
+    "n036"
+   ],
+   "operator": "mutate",
+   "worker": "w7",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 757,
+   "dev": 313,
+   "metric_seeds": [
+    757
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 111,
+   "heldout_greedy": 0.917,
+   "delta": 40.5,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n062",
+   "in_frontier": false,
+   "description": "polaris rising training sample temperature: base temperature ramps linearly 1.0 to 1.3 over the run wall clock inside the line verified guided sampler",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris/"
+  },
+  {
+   "id": "n059",
+   "parents": [
+    "n041"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 424,
+   "dev": 256,
+   "metric_seeds": [
+    424
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 42,
+   "heldout_greedy": 0.912,
+   "delta": -303,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "longest-first proof selection: max_per_thm 4 proofs per solved target chosen by most written lines on schema coverage node n041",
+   "source": "own idea (inverse of https://arxiv.org/abs/2502.20122)"
+  },
+  {
+   "id": "n060",
+   "parents": [
+    "n050",
+    "n053"
+   ],
+   "operator": "crossover",
+   "worker": "w5",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 1098.0,
+   "dev": 372.0,
+   "metric_seeds": [
+    1064,
+    1132
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 181.5,
+   "heldout_greedy": 0.9225000000000001,
+   "delta": 130.0,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n086",
+   "in_frontier": false,
+   "description": "crossover: cuda graph line verified sampler with static kv buffers, batch buckets and self check fallback transplanted from n053 onto index capped schema coverage gem knapsack node n050",
+   "source": "own idea (w3 n046)"
+  },
+  {
+   "id": "n061",
+   "parents": [
+    "n046"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 460,
+   "dev": 260,
+   "metric_seeds": [
+    460
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 50,
+   "heldout_greedy": 0.925,
+   "delta": -490.5,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "deeper guided line search: line retries 8 instead of 4, rollbacks per proof 40 instead of 24, decode slack 384 instead of 256, on the cuda graph lv sampler node n046",
+   "source": "https://arxiv.org/abs/2502.03438"
+  },
+  {
+   "id": "n062",
+   "parents": [
+    "n046"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 970,
+   "dev": 338,
+   "metric_seeds": [
+    970
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 158,
+   "heldout_greedy": 0.934,
+   "delta": 19.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n073",
+   "in_frontier": false,
+   "description": "two stage adaptive rollout ar3po: stage 1 k 8 per target, targets verified in stage 1 stop, remaining window x 32 budget spread over still unsolved targets up to 96 each, on the cuda graph guided sampler",
+   "source": "https://arxiv.org/abs/2509.25808"
+  },
+  {
+   "id": "n063",
+   "parents": [
+    "n053",
+    "n054"
+   ],
+   "operator": "crossover",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 778,
+   "dev": 314,
+   "metric_seeds": [
+    778
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 116,
+   "heldout_greedy": 0.92,
+   "delta": -81,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: polaris staged training sample temperature 1.0 then 1.1 after 35 percent then 1.2 after 70 percent of the budget transplanted from n054 onto cuda graph lv length weighted node n053",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris"
+  },
+  {
+   "id": "n064",
+   "parents": [
+    "n050",
+    "n058"
+   ],
+   "operator": "crossover",
+   "worker": "w7",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 727,
+   "dev": 319,
+   "metric_seeds": [
+    727
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 102,
+   "heldout_greedy": 0.931,
+   "delta": -241,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: polaris training sample temperature ramp 1.0 to 1.3 over the run wall clock transplanted from n058 onto schema coverage index capped n050",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris/"
+  },
+  {
+   "id": "n065",
+   "parents": [
+    "n053"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 1103,
+   "dev": 359,
+   "metric_seeds": [
+    1103
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 186,
+   "heldout_greedy": 0.93,
+   "delta": 244,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n078",
+   "in_frontier": false,
+   "description": "abs line index shift capped in fine-tuning batches (index_room 24, starts at most N41) on the cuda graph line verified length weighted node n053",
+   "source": "own idea"
+  },
+  {
+   "id": "n066",
+   "parents": [
+    "n046"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 797,
+   "dev": 325,
+   "metric_seeds": [
+    797
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 118,
+   "heldout_greedy": 0.913,
+   "delta": -153.5,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n060",
+   "in_frontier": false,
+   "description": "budget-aware subset top-up: once 50 percent of run targets are solved, each refill is 1200 fresh pool targets with the same length stratification instead of hardest-first retries, on cuda graph lv node n046",
+   "source": "https://arxiv.org/abs/2504.03380"
+  },
+  {
+   "id": "n067",
+   "parents": [
+    "n053"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 968,
+   "dev": 324,
+   "metric_seeds": [
+    968
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 161,
+   "heldout_greedy": 0.913,
+   "delta": 109,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n071",
+   "in_frontier": false,
+   "description": "staged training sample temperature 1.0 then 1.1 after 35 percent then 1.2 after 70 percent of the budget, polaris style, on cuda graph lv length weighted node n053",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris"
+  },
+  {
+   "id": "n068",
+   "parents": [
+    "n062",
+    "n050"
+   ],
+   "operator": "crossover",
+   "worker": "w4",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 755,
+   "dev": 327,
+   "metric_seeds": [
+    755
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 107,
+   "heldout_greedy": 0.932,
+   "delta": -215,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: schema coverage target subset from n050 (textbook schemas water-filled inside each length quota) transplanted onto ar3po two stage rollout node n062",
+   "source": "own idea"
+  },
+  {
+   "id": "n069",
+   "parents": [
+    "n053"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 865,
+   "dev": 341,
+   "metric_seeds": [
+    865
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 131,
+   "heldout_greedy": 0.906,
+   "delta": 6,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "length grouped fine-tune batches, mega batch 8 x 128 sorted by token length, gem loss as token sum over fixed normaliser, fused adamw, on cuda graph lv length weighted node n053",
+   "source": "own idea (n026)"
+  },
+  {
+   "id": "n070",
+   "parents": [
+    "n050"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 507,
+   "dev": 287,
+   "metric_seeds": [
+    507
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 55,
+   "heldout_greedy": 0.924,
+   "delta": -461,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "reductio first seeding: 25 percent of line verified samples of unsolved disjunction or atom goal targets must open with assumption of the negated goal at depth 1, checker rejects other first lines, 16 retries",
+   "source": "https://arxiv.org/abs/2507.13266"
+  },
+  {
+   "id": "n071",
+   "parents": [
+    "n053"
+   ],
+   "operator": "mutate",
+   "worker": "w7",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 1026,
+   "dev": 370,
+   "metric_seeds": [
+    1026
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 164,
+   "heldout_greedy": 0.901,
+   "delta": 167,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n075",
+   "in_frontier": false,
+   "description": "polaris rising training sample temperature ramp 1.0 to 1.3 in 0.1 steps over the run wall clock on the cuda graph line verified sampler, graph state rebuilt per temperature step",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris/"
+  },
+  {
+   "id": "n072",
+   "parents": [
+    "n053"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 322,
+   "dev": 226,
+   "metric_seeds": [
+    322
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 24,
+   "heldout_greedy": 0.884,
+   "delta": -537,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "step level dpo: verifier rejected model line vs verified line at the same proof prefix, weight 0.2 beta 0.1, 32 pairs per fine tune step, round start reference",
+   "source": "https://arxiv.org/abs/2502.14356"
+  },
+  {
+   "id": "n073",
+   "parents": [
+    "n046"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 897,
+   "dev": 317,
+   "metric_seeds": [
+    897
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 145,
+   "heldout_greedy": 0.924,
+   "delta": -53.5,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n074",
+   "in_frontier": false,
+   "description": "lighter cap6 retention retain 12000 instead of 20000 records per round mix on cuda graph lv node n046",
+   "source": "own idea"
+  },
+  {
+   "id": "n074",
+   "parents": [
+    "n060",
+    "n065"
+   ],
+   "operator": "crossover",
+   "worker": "w5",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 881,
+   "dev": 289,
+   "metric_seeds": [
+    881
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 148,
+   "heldout_greedy": 0.906,
+   "delta": -217.0,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n076",
+   "in_frontier": false,
+   "description": "crossover: length weighted stratified quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 transplanted from n065 onto n060, schema coverage kept inside each quota",
+   "source": "own idea (w1 n002, n038)"
+  },
+  {
+   "id": "n075",
+   "parents": [
+    "n065",
+    "n067"
+   ],
+   "operator": "crossover",
+   "worker": "w4",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 1011.5,
+   "dev": 341.5,
+   "metric_seeds": [
+    1183,
+    840
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 167.5,
+   "heldout_greedy": 0.9185000000000001,
+   "delta": -91.5,
+   "decision": "DIVERSE",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": "n084",
+   "in_frontier": false,
+   "description": "crossover: polaris staged training sample temperature from n067 (1.0, then 1.1 after 35 percent, 1.2 after 70 percent of the budget) transplanted onto capped abs index shift node n065",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris"
+  },
+  {
+   "id": "n076",
+   "parents": [
+    "n067"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 1120,
+   "dev": 368,
+   "metric_seeds": [
+    1120
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 188,
+   "heldout_greedy": 0.926,
+   "delta": 152,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n089",
+   "in_frontier": false,
+   "description": "weight ensembling: returned model is the uniform average of the last 3 round end weights, no eval and no reserved time, on staged temperature cuda graph lv node n067",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n077",
+   "parents": [
+    "n060"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 818,
+   "dev": 322,
+   "metric_seeds": [
+    818
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 124,
+   "heldout_greedy": 0.911,
+   "delta": -280.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "larger per run target subset: max_targets 9000 instead of 6000 (L6 1000, L7 to L11 1600 each) so windows stay on fresh targets instead of hardest first refills",
+   "source": "own idea"
+  },
+  {
+   "id": "n078",
+   "parents": [
+    "n071"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 1175.0,
+   "dev": 383.0,
+   "metric_seeds": [
+    1198,
+    1152
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 198.0,
+   "heldout_greedy": 0.9225000000000001,
+   "delta": 149.0,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "role": "BEST",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "abs line index shift capped in fine-tuning batches (index_room 24, starts at most N41) on the polaris temperature ramp cuda graph line verified node n071",
+   "source": "own idea"
+  },
+  {
+   "id": "n079",
+   "parents": [
+    "n065",
+    "n071"
+   ],
+   "operator": "crossover",
+   "worker": "w7",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 1031,
+   "dev": 323,
+   "metric_seeds": [
+    1031
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 177,
+   "heldout_greedy": 0.915,
+   "delta": -72,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: polaris training sample temperature ramp 1.0 to 1.3 in 0.1 steps transplanted from n071 onto index capped cuda graph length weighted n065",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris/"
+  },
+  {
+   "id": "n080",
+   "parents": [
+    "n060"
+   ],
+   "operator": "mutate",
+   "worker": "w6",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 915,
+   "dev": 339,
+   "metric_seeds": [
+    915
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 144,
+   "heldout_greedy": 0.918,
+   "delta": -183.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "length-weighted stratified subset weights L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 on schema coverage index capped cuda graph lv BEST n060",
+   "source": "https://arxiv.org/abs/2508.14094"
+  },
+  {
+   "id": "n081",
+   "parents": [
+    "n071"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "data",
+   "status": "crash",
+   "metric": null,
+   "dev": null,
+   "metric_seeds": [],
+   "seeds": [
+    0
+   ],
+   "frontier": null,
+   "heldout_greedy": null,
+   "delta": null,
+   "decision": "CRASH",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "abs index shift cap index_room 24 added to polaris ramp cuda graph lv node n071 (crashed: patch hunk landed inside build_mix)",
+   "source": "own idea (w2 n023)"
+  },
+  {
+   "id": "n082",
+   "parents": [
+    "n071"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 1026.5,
+   "dev": 348.5,
+   "metric_seeds": [
+    1218,
+    835
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 169.5,
+   "heldout_greedy": 0.914,
+   "delta": 0.5,
+   "decision": "DISCARD",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "larger per run target subset max_targets 9000 instead of 6000 with length weighted quotas 450 900 1350 1800 1800 2700, fresh targets fill about 22 of 30 rounds before hardest-first refills",
+   "source": "own idea"
+  },
+  {
+   "id": "n083",
+   "parents": [
+    "n071",
+    "n076"
+   ],
+   "operator": "crossover",
+   "worker": "w3",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 782,
+   "dev": 310,
+   "metric_seeds": [
+    782
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 118,
+   "heldout_greedy": 0.925,
+   "delta": -244,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: uniform weight average of the last 3 round end weights transplanted from n076 onto temperature ramp cuda graph lv node n071",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n084",
+   "parents": [
+    "n076"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 1132,
+   "dev": 364,
+   "metric_seeds": [
+    1132
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 192,
+   "heldout_greedy": 0.931,
+   "delta": 12,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n094",
+   "in_frontier": false,
+   "description": "abs line index shift capped in fine-tuning batches, index_room 24, proofs renumbered to start at N1 plus s, on staged temperature weight averaged cuda graph lv node n076",
+   "source": "own idea (w2 n023, n065)"
+  },
+  {
+   "id": "n085",
+   "parents": [
+    "n071"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 922,
+   "dev": 310,
+   "metric_seeds": [
+    922
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 153,
+   "heldout_greedy": 0.916,
+   "delta": -104,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "schema coverage target subset (textbook schemas water-filled inside each length quota, length weights kept) transplanted from n041 onto polaris temperature cuda graph node n071",
+   "source": "own idea (w1, n041)"
+  },
+  {
+   "id": "n086",
+   "parents": [
+    "n060",
+    "n076"
+   ],
+   "operator": "crossover",
+   "worker": "w6",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 1173,
+   "dev": 381,
+   "metric_seeds": [
+    1173
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 198,
+   "heldout_greedy": 0.934,
+   "delta": 75.0,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n096",
+   "in_frontier": false,
+   "description": "crossover: weight ensembling, uniform average of the last 3 round end weights returned, transplanted from n076 onto schema coverage index capped cuda graph lv BEST n060",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n087",
+   "parents": [
+    "n065"
+   ],
+   "operator": "mutate",
+   "worker": "w7",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 957,
+   "dev": 341,
+   "metric_seeds": [
+    957
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 154,
+   "heldout_greedy": 0.906,
+   "delta": -146,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "token level line head decision temperature 1.4 (box depth bars and first 2 formula tokens of each line) switched on in the cuda graph line verified sampler, graph path only",
+   "source": "https://arxiv.org/abs/2510.08892"
+  },
+  {
+   "id": "n088",
+   "parents": [
+    "n076"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 933.0,
+   "dev": 331.0,
+   "metric_seeds": [
+    1235,
+    631
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 150.5,
+   "heldout_greedy": 0.925,
+   "delta": -187.0,
+   "decision": "DISCARD",
+   "decision_first": "PENDING_BEST",
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "max_targets 9000 per run target subset with length weighted quotas on the last 3 weight averaging staged temperature node, fresh targets for about 22 of 30 rounds",
+   "source": "own idea"
+  },
+  {
+   "id": "n089",
+   "parents": [
+    "n075"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 1047,
+   "dev": 347,
+   "metric_seeds": [
+    1047
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 175,
+   "heldout_greedy": 0.916,
+   "delta": 35.5,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n090",
+   "in_frontier": false,
+   "description": "strategy diverse proof selection: verified proofs of a target grouped by skeleton (box depth and rule sequence of non premise lines), every distinct skeleton trained up to 8, at least 4 proofs, instead of 4 random",
+   "source": "https://arxiv.org/abs/2509.02534"
+  },
+  {
+   "id": "n090",
+   "parents": [
+    "n084"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 1179,
+   "dev": 359,
+   "metric_seeds": [
+    1179
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 205,
+   "heldout_greedy": 0.917,
+   "delta": 47,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": null,
+   "role": "DIVERSE",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "wider weight ensemble: uniform average of the last 5 round end weights instead of 3 on index capped weight averaged node n084",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n091",
+   "parents": [
+    "n084"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 812,
+   "dev": 336,
+   "metric_seeds": [
+    812
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 119,
+   "heldout_greedy": 0.925,
+   "delta": -320,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "line head decision temperature 1.4 for box bars and first 2 formula tokens switched on inside the cuda graph lv sampler of n084",
+   "source": "https://arxiv.org/abs/2510.08892"
+  },
+  {
+   "id": "n092",
+   "parents": [
+    "n065",
+    "n084"
+   ],
+   "operator": "crossover",
+   "worker": "w2",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 1212.5,
+   "dev": 372.5,
+   "metric_seeds": [
+    1286,
+    1139
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 210.0,
+   "heldout_greedy": 0.936,
+   "delta": 109.5,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "role": "LEAN",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "crossover: uniform weight average of the last 3 round endpoints transplanted from n076 via n084 onto the index capped cuda graph line verified length weighted node n065",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n093",
+   "parents": [
+    "n078",
+    "n086"
+   ],
+   "operator": "crossover",
+   "worker": "w6",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 742,
+   "dev": 322,
+   "metric_seeds": [
+    742
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 105,
+   "heldout_greedy": 0.928,
+   "delta": -433.0,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "crossover: weight ensembling, uniform average of the last 3 round end weights, transplanted from n086 (n076) onto index capped polaris ramp cuda graph lv BEST n078",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n094",
+   "parents": [
+    "n086"
+   ],
+   "operator": "mutate",
+   "worker": "w7",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 1074,
+   "dev": 374,
+   "metric_seeds": [
+    1074
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 175,
+   "heldout_greedy": 0.929,
+   "delta": -99,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n095",
+   "in_frontier": false,
+   "description": "polaris training sample temperature ramp 1.0 to 1.3 in 0.1 steps over the run wall clock, cuda graph sampler rebuilt per step, on weight averaged schema coverage node n086",
+   "source": "https://hkunlp.github.io/blog/2025/Polaris/"
+  },
+  {
+   "id": "n095",
+   "parents": [
+    "n076"
+   ],
+   "operator": "mutate",
+   "worker": "w4",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 1104,
+   "dev": 356,
+   "metric_seeds": [
+    1104
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 187,
+   "heldout_greedy": 0.931,
+   "delta": -16,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n098",
+   "in_frontier": false,
+   "description": "max_targets 12000 per run target subset with length weighted quotas 600 1200 1800 2400 2400 3600 on the weight averaging staged temperature node, fresh targets fill every round and no hardest-first refill",
+   "source": "own idea"
+  },
+  {
+   "id": "n096",
+   "parents": [
+    "n090"
+   ],
+   "operator": "mutate",
+   "worker": "w3",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 1170.5,
+   "dev": 360.5,
+   "metric_seeds": [
+    1311,
+    1030
+   ],
+   "seeds": [
+    0,
+    1
+   ],
+   "frontier": 202.5,
+   "heldout_greedy": 0.927,
+   "delta": -8.5,
+   "decision": "DIVERSE",
+   "decision_first": "PENDING_BEST",
+   "role": "DIVERSE",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "larger per run target subset max_targets 9000 instead of 6000 with length weighted quotas on the 5 round weight averaged node n090",
+   "source": "own idea (w4 n082)"
+  },
+  {
+   "id": "n097",
+   "parents": [
+    "n089"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 1058,
+   "dev": 338,
+   "metric_seeds": [
+    1058
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 180,
+   "heldout_greedy": 0.921,
+   "delta": 11,
+   "decision": "DISCARD",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "weight ensembling: returned model is the uniform average of the last 3 round end weights, added to strategy diverse proof selection node n089",
+   "source": "https://arxiv.org/abs/2504.10478"
+  },
+  {
+   "id": "n098",
+   "parents": [
+    "n090"
+   ],
+   "operator": "mutate",
+   "worker": "w5",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 1077,
+   "dev": 373,
+   "metric_seeds": [
+    1077
+   ],
+   "seeds": [
+    0
+   ],
+   "frontier": 176,
+   "heldout_greedy": 0.94,
+   "delta": -102,
+   "decision": "DIVERSE",
+   "decision_first": null,
+   "role": null,
+   "evicted_by": "n092",
+   "in_frontier": false,
+   "description": "max_targets 9000 instead of 6000 per run target subset, length weighted quotas 450 900 1350 1800 1800 2700, on last 5 weight averaged index capped node n090",
+   "source": "own idea (w4 n082, n088)"
+  }
+ ],
+ "table": [
+  "id    parents     operator   score    dev seeds front heldout decision         description [source]",
+  "n000  -           seed       272.4    185     1  21.8   0.946 FILL             seed baseline rl.py unmodified [seed (run 1 best, n025)]",
+  "n001  n000        mutate     214.4    179     1   8.8   0.923 FILL             knapsack per-target k allocation: round budget window x 32 split by difficulty weight, length prior L6 1 to L11 8 for unseen targets, solve rate weights 1/4/8 for seen, k clipped 4-128 [https://arxiv.org/abs/2509.25849]",
+  "n002  n000        mutate     222.8    177     1  11.4   0.923 FILL             length-weighted stratified target subset: quota weights L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 of 6000 targets (300/600/900/1200/1200/1800) [own idea]",
+  "n003  n000        mutate     229.8    184     1  11.4   0.949 FILL             best-of-n by length: max_per_thm 4 proofs per solved target selected shortest-first by pruned then written length instead of random shuffle [https://arxiv.org/abs/2502.20122]",
+  "n004  n000        mutate       148    136     1     3   0.933 DISCARD          schema sibling spreading: first solve of a textbook schema instance pulls up to 32 unsolved same-schema siblings from the whole 15.7k pool to the queue front, nearest length first, at most 160 per round [own idea (run-1 finding on schema ignition)]",
+  "n005  n000        mutate     219.5  187.5     2     8   0.931 BEST*            prefix branching restarts: unsolved window targets resample 8 continuations from each of up to 4 longest verifier-valid line prefixes of failed samples, cap 0.4 x window x k per round [https://arxiv.org/abs/2506.11902]",
+  "n006  n000        mutate     238.5  202.5     2     9   0.939 BEST*            token-level multi-temperature sampling: line-head tokens (box-depth bars plus first 2 formula tokens of each proof line) at decision_temp 1.4, other tokens at 1.0, training samples only [https://arxiv.org/abs/2510.08892]",
+  "n007  n001        mutate       107    107     1     0   0.932 DISCARD          exploratory annealed decoding for training samples: per-token temperature max(2.2 - exp(t/600), 0.7), 1.2 at token 0 cooling to 0.7 by token 245 [https://arxiv.org/abs/2510.05251]",
+  "n008  n003+n002   crossover    263    175     1    22   0.923 DISCARD          crossover: length-weighted stratified target subset quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 transplanted from n002 onto shortest-first proof selection n003 [own idea (n002)]",
+  "n009  n003        mutate       178    158     1     5   0.907 DISCARD          shape-weighted cap6 retention: half of the 20000 retained cap6 records drawn from proofs using NEGI ORE BOTE DN reductio case-split rules [own idea]",
+  "n010  n002        mutate     300.5  206.5     2  23.5   0.902 REPLACE_WEAKEST* line-verified sampling: incremental fitch line checker on each generated proof line, rejected lines masked from kv cache and resampled from stored line-start logits, 4 retries per line, 16 per proof, then row killed [https://arxiv.org/abs/2502.03438]",
+  "n011  n002        mutate       172    148     1     6   0.920 DISCARD          near-miss refill: unsolved targets in hardest-first refills ordered by best verifier-valid prefix fraction of failed samples (learnability proxy) instead of random [https://arxiv.org/abs/2502.12272]",
+  "n012  n000        mutate         1      1     1     0   0.683 FLOOR            negative sample reinforcement nsr: minimise 0.25 x log-prob of the first verifier-invalid line (whole line incl. index and depth tokens) of failed samples, 32 negatives per sft step [https://arxiv.org/abs/2506.01347]",
+  "n013  n002        mutate       246    182     1    16   0.930 DIVERSE          wise-ft weight ensembling at end of run: early snapshot at 40 percent budget, alpha 1.0 0.7 0.5 chosen by pass@16 on 300 unused L9-11 pool targets, 45 s reserved; alpha 1.0 was chosen [https://arxiv.org/abs/2504.10478]",
+  "n014  n005+n003   crossover    191    155     1     9   0.915 DISCARD          crossover: shortest-first pruned-length proof selection transplanted from n003 onto prefix branching n005 [https://arxiv.org/abs/2502.20122]",
+  "n015  n003+n001   crossover    122    114     1     2   0.928 DISCARD          crossover: knapsack per-target k allocation from n001 (length prior L6 1 to L11 8, solve rate weights 1/4/8) transplanted onto shortest-first proof selection n003 [https://arxiv.org/abs/2509.25849]",
+  "n016  n005        mutate       373    243     2  32.5   0.917 BEST*            line-verified main-pass sampling (incremental fitch line checker, bad lines masked from kv cache and resampled, 4 retries per line, 16 per proof) added to prefix branching restarts [https://arxiv.org/abs/2502.03438]",
+  "n017  n001        mutate       240    188     1    13   0.938 DIVERSE          gem loss replaces token cross entropy in every fine-tune step, beta 0.7, logsigmoid weights, q softmax(z/beta) detached, rl and cap6 records alike [https://arxiv.org/abs/2408.16673]",
+  "n018  n006+n003   crossover    251    191     1    15   0.928 DIVERSE          crossover: shortest-first max_per_thm proof selection by pruned then written length transplanted from n003 onto line-head decision temperature n006 [https://arxiv.org/abs/2502.20122]",
+  "n019  n006        mutate       184    160     1     6   0.915 DISCARD          difficulty-balanced refill: half of each 1200-target hardest-first refill replaced by fresh never-sampled pool targets outside the 6000 subset, equal quota per true length [https://arxiv.org/abs/2504.03380]",
+  "n020  n000        mutate       232    192     1    10   0.923 DIVERSE          cuda graph sampler: static kv buffers, batch buckets 768 to 8, 64-token key spans, gumbel-max sampling replaces the compacting sampler for training samples, 1.7x sampling throughput [own idea]",
+  "n021  n010        mutate       414    230     2    46   0.910 BEST*            lower overhead line-verified sampler: single host sync per decode step, packed 96-token window gather, vectorised kv mask; sample stream identical to n010 for a seed (round 1 matched), sampling 42-45 s vs 46-48 s [own idea]",
+  "n022  n005+n010   crossover    299    227     1    18   0.939 REPLACE_WEAKEST* crossover: line-verified sampling from n010 (incremental fitch line checker, rejected lines resampled from line-start logits, 4 retries per line, 16 per proof) transplanted onto prefix branching n005 for the main k 32 pass [https://arxiv.org/abs/2502.03438]",
+  "n023  n018        mutate       314    222     1    23   0.936 REPLACE_WEAKEST* abs line index shift capped in fine-tuning batches: proofs renumbered to start at N1 plus s, s uniform 0 to 64 minus max(lines, index_room 24), start index at most N41 so long proofs never overflow N64 [own idea]",
+  "n024  n017        mutate       591    313     2  69.5   0.923 BEST*            line-verified guided sampling on gem loss knapsack node: incremental fitch checker per generated line, rejected line or premature qed masked from kv cache and resampled from saved line-start logits, 4 retries per line, 24 rollbacks per proof, then row killed [https://arxiv.org/abs/2502.03438]",
+  "n025  n005+n017   crossover    160    160     1     0   0.948 DISCARD          crossover: gem loss beta 0.7 logsigmoid transplanted from n017 onto prefix branching restarts n005 [https://arxiv.org/abs/2408.16673]",
+  "n026  n020        mutate       299    247     1    13   0.920 DIVERSE          length-grouped fine-tune batches: mega-batch 8 x 128 records sorted by token length, fixed token-sum normaliser, fused adamw; fine-tune 8 s instead of 20 s per 135 steps, 43 rounds [own idea]",
+  "n027  n010        mutate       342    238     1    26   0.931 REPLACE_WEAKEST  one-line backtracking in line-verified sampling: after 4 failed retries the previous non-premise line is popped from kv cache and checker and resampled from its stored line-start logits, once per proof (code base n021 sampler, output-identical to n010) [https://arxiv.org/abs/2502.03438]",
+  "n028  n005        mutate       127    119     1     2   0.917 DISCARD          pass@k decoding temperature calibration: 60 s reserved at the end, pass@32 on 256 unused pool L9-11 prompts at T 0.8/1.0/1.2, output head scaled by 0.8/T*; only T 0.8 fit in time so head unscaled [https://arxiv.org/abs/2502.05234]",
+  "n029  n006+n010   crossover    541    285     1    64   0.930 REPLACE_WEAKEST* crossover: line-verified sampling from n010 (incremental fitch line checker, bad lines resampled from line-start logits, 4 retries per line, 16 per proof) transplanted onto line-head decision temperature 1.4 n006, heated heads kept inside the lv decode loop [https://arxiv.org/abs/2502.03438]",
+  "n030  n018        mutate       151    151     1     0   0.943 DISCARD          canonical line numbering: fine-tuning proofs renumbered to start at N1 with no abs index shift augmentation (index_room 64) [own idea]",
+  "n031  n010        mutate       460    252     1    52   0.922 REPLACE_WEAKEST  gem loss beta 0.7 logsigmoid weights replaces token cross entropy on line-verified sampling node n010, transplanted from n017 [https://arxiv.org/abs/2408.16673]",
+  "n032  n018        mutate       487    271     1    54   0.929 REPLACE_WEAKEST  line verified sampling from n021 low overhead lv sampler added to decision temperature line n018, line head temperature 1.4 kept on every line resample inside the lv loop, 4 retries per line 16 per proof [https://arxiv.org/abs/2502.03438]",
+  "n033  n016+n026   crossover    332    252     1    20   0.911 DISCARD          crossover: length-grouped fine-tune batches, fixed token normaliser, fused adamw transplanted from n026 onto line-verified sampling n016 [own idea (n026)]",
+  "n034  n027+n023   crossover    358    230     1    32   0.921 DISCARD          crossover: abs line index shift cap index_room 24 in fine-tuning batches (renumber proofs to start at N1 plus s, start at most N41) transplanted from n023 onto one-line backtracking lv node n027 [own idea (w2 n023)]",
+  "n035  n016+n027   crossover    154    146     1     2   0.886 DISCARD          crossover: one-line backtracking lv sampler from n027 (after 4 failed retries pop the previous non-premise line and resample it, once per proof) replaces n016's lv block on the prefix branching base [https://arxiv.org/abs/2502.03438]",
+  "n036  n024        mutate     716.5  316.5     2   100   0.927 BEST*            abs line index shift capped in fine-tuning batches on the line-verified gem knapsack node: proofs renumbered to start at N1 plus s, s uniform 0 to 64 minus max(lines, index_room 24) [own idea]",
+  "n037  n029+n024   crossover    512    292     1    55   0.915 REPLACE_WEAKEST  crossover: gem loss beta 0.7 logsigmoid replaces token cross entropy in every fine-tune step, transplanted from n024 onto line-verified sampling with heated line heads n029 [https://arxiv.org/abs/2408.16673]",
+  "n038  n024+n031   crossover    769    285     2   121   0.921 BEST*            crossover: length-weighted stratified target subset quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 (n002 via n031) transplanted onto gem line-verified knapsack BEST n024 [own idea (n002)]",
+  "n039  n029+n032   crossover    532    296     1    59   0.916 REPLACE_WEAKEST  crossover: lower overhead lv sampler with one host sync per decode step and packed 96 token window gather, heated line heads kept, transplanted from n032 onto n029 [own idea (w1 n021 sampler)]",
+  "n040  n032        mutate       544    292     1    63   0.907 DISCARD          gem loss beta 0.7 logsigmoid weights replaces token cross entropy on the line-verified decision temperature node n032 [https://arxiv.org/abs/2408.16673]",
+  "n041  n024        mutate       727    307     1   105   0.924 REPLACE_WEAKEST* schema coverage target subset: per length quota and textbook share unchanged, textbook schemas water-filled inside the share so rare schemas enter whole (demorgan_nand_to_or 78 vs 27, dist_or_over_and_conv 73 vs 38) [own idea]",
+  "n042  n029        mutate       597    313     1    71   0.933 REPLACE_WEAKEST  easy to hard e2h first pass: 6000 target subset visited in order of L_true plus uniform 0 to 2 jitter, L6 first and L11 last, hardest-first refills unchanged [https://arxiv.org/abs/2506.06632]",
+  "n043  n037+n032   crossover    467    295     1    43   0.924 DISCARD          crossover: low overhead lv sampler from n032 (single host sync per decode step, packed 96-token window gather, vectorised kv mask) transplanted onto gem lv heated heads n037 [own idea (n021)]",
+  "n044  n024        mutate       522    278     1    61   0.896 DIVERSE          entropy minimisation weight 0.3 on predicted rule and citation tokens after the colon of each proof line, added to gem loss on the line-verified node [https://arxiv.org/abs/2505.15134]",
+  "n045  n024        mutate       364    244     1    30   0.941 DISCARD          fine-tune batch 256 instead of 128, same 135 steps and lr, on gem line-verified knapsack n024 [own idea]",
+  "n046  n024        mutate     950.5  352.5     2 149.5   0.932 BEST*            cuda graph line verified sampler: guided line rejection sampling on a cuda graph decode step, static kv buffers, batch bucket views, 64 slot key spans, gumbel max, host line checks only, self check fallback; sampling 21 s vs 38 s per round, 30 rounds [own idea]",
+  "n047  n039        mutate       446    258     1    47   0.918 DISCARD          length weighted stratified target subset quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 of 6000 on the lv heated line head node n039 [own idea (w1 n002, n038)]",
+  "n048  n024        mutate       653    313     1    85   0.932 REPLACE_WEAKEST  retry heating in guided line-verified sampling: the r-th resample of a rejected line drawn at temperature times 1 plus 0.2 r (up to 1.8), reset on acceptance [https://arxiv.org/abs/2510.08892]",
+  "n049  n036+n041   crossover    754    318     1   109   0.928 REPLACE_WEAKEST  crossover: schema coverage target subset from n041 (textbook schemas water-filled inside each length's textbook share, rare schemas whole) transplanted onto capped abs index shift node n036 [own idea]",
+  "n050  n036+n041   crossover    968    352     1   154   0.929 REPLACE_WEAKEST* crossover: schema coverage target subset (textbook schemas water-filled inside each length quota) transplanted from n041 onto index-capped line-verified n036 [own idea (w1, n041)]",
+  "n051  n041+n042   crossover    540    300     1    60   0.896 DISCARD          crossover: e2h easy to hard first pass order, targets sorted by L_true plus uniform 0 to 2 jitter, transplanted from n042 onto schema coverage subset n041 [https://arxiv.org/abs/2506.06632]",
+  "n052  n036        mutate       724    292     1   108   0.901 DISCARD          long-heavy stratified target subset weights L6 0.5 L7 0.75 L8 1.25 L9 2 L10 2.5 L11 4 (L11 2182 of 6000) on index-shift line-verified gem node n036 [https://arxiv.org/abs/2508.14094]",
+  "n053  n038        mutate       859    323     1   134   0.909 REPLACE_WEAKEST  cuda graph line verified sampler from n046 on length weighted subset node n038: guided rejection sampling on graph decode step with self check fallback [own idea (n046)]",
+  "n054  n041        mutate       779    319     1   115   0.925 DIVERSE          staged training sample temperature 1.0 then 1.1 after 35 percent then 1.2 after 70 percent of the budget, polaris style, on schema coverage gem knapsack guided lv node n041 [https://hkunlp.github.io/blog/2025/Polaris]",
+  "n055  n038+n048   crossover    446    266     1    45   0.906 DISCARD          crossover: retry heating (resampled rejected lines at temperature times 1 plus 0.2 r) transplanted from n048 onto length-weighted gem lv knapsack BEST n038 [https://arxiv.org/abs/2510.08892]",
+  "n056  n049        mutate       628    340     1    72   0.917 DISCARD          easy to hard e2h first pass on the schema coverage index cap gem knapsack lv node: subset visited by L_true plus uniform 0 to 2 jitter, refills hardest-first [https://arxiv.org/abs/2506.06632]",
+  "n057  n036        mutate       685    301     1    96   0.914 DISCARD          tail only retries in line verified sampler: rejected line resampled from its colon keeping the formula, rule and citation tokens only, 2 tail retries on own budget before whole line resample [own idea]",
+  "n058  n036        mutate       757    313     1   111   0.917 DIVERSE          polaris rising training sample temperature: base temperature ramps linearly 1.0 to 1.3 over the run wall clock inside the line verified guided sampler [https://hkunlp.github.io/blog/2025/Polaris/]",
+  "n059  n041        mutate       424    256     1    42   0.912 DISCARD          longest-first proof selection: max_per_thm 4 proofs per solved target chosen by most written lines on schema coverage node n041 [own idea (inverse of https://arxiv.org/abs/2502.20122)]",
+  "n060  n050+n053   crossover   1098    372     2 181.5   0.923 BEST*            crossover: cuda graph line verified sampler with static kv buffers, batch buckets and self check fallback transplanted from n053 onto index capped schema coverage gem knapsack node n050 [own idea (w3 n046)]",
+  "n061  n046        mutate       460    260     1    50   0.925 DISCARD          deeper guided line search: line retries 8 instead of 4, rollbacks per proof 40 instead of 24, decode slack 384 instead of 256, on the cuda graph lv sampler node n046 [https://arxiv.org/abs/2502.03438]",
+  "n062  n046        mutate       970    338     1   158   0.934 REPLACE_WEAKEST  two stage adaptive rollout ar3po: stage 1 k 8 per target, targets verified in stage 1 stop, remaining window x 32 budget spread over still unsolved targets up to 96 each, on the cuda graph guided sampler [https://arxiv.org/abs/2509.25808]",
+  "n063  n053+n054   crossover    778    314     1   116   0.920 DISCARD          crossover: polaris staged training sample temperature 1.0 then 1.1 after 35 percent then 1.2 after 70 percent of the budget transplanted from n054 onto cuda graph lv length weighted node n053 [https://hkunlp.github.io/blog/2025/Polaris]",
+  "n064  n050+n058   crossover    727    319     1   102   0.931 DISCARD          crossover: polaris training sample temperature ramp 1.0 to 1.3 over the run wall clock transplanted from n058 onto schema coverage index capped n050 [https://hkunlp.github.io/blog/2025/Polaris/]",
+  "n065  n053        mutate      1103    359     1   186   0.930 REPLACE_WEAKEST* abs line index shift capped in fine-tuning batches (index_room 24, starts at most N41) on the cuda graph line verified length weighted node n053 [own idea]",
+  "n066  n046        mutate       797    325     1   118   0.913 DIVERSE          budget-aware subset top-up: once 50 percent of run targets are solved, each refill is 1200 fresh pool targets with the same length stratification instead of hardest-first retries, on cuda graph lv node n046 [https://arxiv.org/abs/2504.03380]",
+  "n067  n053        mutate       968    324     1   161   0.913 DIVERSE          staged training sample temperature 1.0 then 1.1 after 35 percent then 1.2 after 70 percent of the budget, polaris style, on cuda graph lv length weighted node n053 [https://hkunlp.github.io/blog/2025/Polaris]",
+  "n068  n062+n050   crossover    755    327     1   107   0.932 DISCARD          crossover: schema coverage target subset from n050 (textbook schemas water-filled inside each length quota) transplanted onto ar3po two stage rollout node n062 [own idea]",
+  "n069  n053        mutate       865    341     1   131   0.906 DISCARD          length grouped fine-tune batches, mega batch 8 x 128 sorted by token length, gem loss as token sum over fixed normaliser, fused adamw, on cuda graph lv length weighted node n053 [own idea (n026)]",
+  "n070  n050        mutate       507    287     1    55   0.924 DISCARD          reductio first seeding: 25 percent of line verified samples of unsolved disjunction or atom goal targets must open with assumption of the negated goal at depth 1, checker rejects other first lines, 16 retries [https://arxiv.org/abs/2507.13266]",
+  "n071  n053        mutate      1026    370     1   164   0.901 REPLACE_WEAKEST  polaris rising training sample temperature ramp 1.0 to 1.3 in 0.1 steps over the run wall clock on the cuda graph line verified sampler, graph state rebuilt per temperature step [https://hkunlp.github.io/blog/2025/Polaris/]",
+  "n072  n053        mutate       322    226     1    24   0.884 DISCARD          step level dpo: verifier rejected model line vs verified line at the same proof prefix, weight 0.2 beta 0.1, 32 pairs per fine tune step, round start reference [https://arxiv.org/abs/2502.14356]",
+  "n073  n046        mutate       897    317     1   145   0.924 DIVERSE          lighter cap6 retention retain 12000 instead of 20000 records per round mix on cuda graph lv node n046 [own idea]",
+  "n074  n060+n065   crossover    881    289     1   148   0.906 DIVERSE          crossover: length weighted stratified quotas L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 transplanted from n065 onto n060, schema coverage kept inside each quota [own idea (w1 n002, n038)]",
+  "n075  n065+n067   crossover 1011.5  341.5     2 167.5   0.919 DIVERSE*         crossover: polaris staged training sample temperature from n067 (1.0, then 1.1 after 35 percent, 1.2 after 70 percent of the budget) transplanted onto capped abs index shift node n065 [https://hkunlp.github.io/blog/2025/Polaris]",
+  "n076  n067        mutate      1120    368     1   188   0.926 REPLACE_WEAKEST  weight ensembling: returned model is the uniform average of the last 3 round end weights, no eval and no reserved time, on staged temperature cuda graph lv node n067 [https://arxiv.org/abs/2504.10478]",
+  "n077  n060        mutate       818    322     1   124   0.911 DISCARD          larger per run target subset: max_targets 9000 instead of 6000 (L6 1000, L7 to L11 1600 each) so windows stay on fresh targets instead of hardest first refills [own idea]",
+  "n078  n071        mutate      1175    383     2   198   0.923 BEST*            abs line index shift capped in fine-tuning batches (index_room 24, starts at most N41) on the polaris temperature ramp cuda graph line verified node n071 [own idea]",
+  "n079  n065+n071   crossover   1031    323     1   177   0.915 DISCARD          crossover: polaris training sample temperature ramp 1.0 to 1.3 in 0.1 steps transplanted from n071 onto index capped cuda graph length weighted n065 [https://hkunlp.github.io/blog/2025/Polaris/]",
+  "n080  n060        mutate       915    339     1   144   0.918 DISCARD          length-weighted stratified subset weights L6 0.5 L7 1 L8 1.5 L9 2 L10 2 L11 3 on schema coverage index capped cuda graph lv BEST n060 [https://arxiv.org/abs/2508.14094]",
+  "n081  n071        mutate         -      -     0     -       - CRASH            abs index shift cap index_room 24 added to polaris ramp cuda graph lv node n071 (crashed: patch hunk landed inside build_mix) [own idea (w2 n023)]",
+  "n082  n071        mutate    1026.5  348.5     2 169.5   0.914 DISCARD*         larger per run target subset max_targets 9000 instead of 6000 with length weighted quotas 450 900 1350 1800 1800 2700, fresh targets fill about 22 of 30 rounds before hardest-first refills [own idea]",
+  "n083  n071+n076   crossover    782    310     1   118   0.925 DISCARD          crossover: uniform weight average of the last 3 round end weights transplanted from n076 onto temperature ramp cuda graph lv node n071 [https://arxiv.org/abs/2504.10478]",
+  "n084  n076        mutate      1132    364     1   192   0.931 REPLACE_WEAKEST  abs line index shift capped in fine-tuning batches, index_room 24, proofs renumbered to start at N1 plus s, on staged temperature weight averaged cuda graph lv node n076 [own idea (w2 n023, n065)]",
+  "n085  n071        mutate       922    310     1   153   0.916 DISCARD          schema coverage target subset (textbook schemas water-filled inside each length quota, length weights kept) transplanted from n041 onto polaris temperature cuda graph node n071 [own idea (w1, n041)]",
+  "n086  n060+n076   crossover   1173    381     1   198   0.934 REPLACE_WEAKEST  crossover: weight ensembling, uniform average of the last 3 round end weights returned, transplanted from n076 onto schema coverage index capped cuda graph lv BEST n060 [https://arxiv.org/abs/2504.10478]",
+  "n087  n065        mutate       957    341     1   154   0.906 DISCARD          token level line head decision temperature 1.4 (box depth bars and first 2 formula tokens of each line) switched on in the cuda graph line verified sampler, graph path only [https://arxiv.org/abs/2510.08892]",
+  "n088  n076        mutate       933    331     2 150.5   0.925 DISCARD*         max_targets 9000 per run target subset with length weighted quotas on the last 3 weight averaging staged temperature node, fresh targets for about 22 of 30 rounds [own idea]",
+  "n089  n075        mutate      1047    347     1   175   0.916 DIVERSE          strategy diverse proof selection: verified proofs of a target grouped by skeleton (box depth and rule sequence of non premise lines), every distinct skeleton trained up to 8, at least 4 proofs, instead of 4 random [https://arxiv.org/abs/2509.02534]",
+  "n090  n084        mutate      1179    359     1   205   0.917 REPLACE_WEAKEST  wider weight ensemble: uniform average of the last 5 round end weights instead of 3 on index capped weight averaged node n084 [https://arxiv.org/abs/2504.10478]",
+  "n091  n084        mutate       812    336     1   119   0.925 DISCARD          line head decision temperature 1.4 for box bars and first 2 formula tokens switched on inside the cuda graph lv sampler of n084 [https://arxiv.org/abs/2510.08892]",
+  "n092  n065+n084   crossover 1212.5  372.5     2   210   0.936 REPLACE_WEAKEST* crossover: uniform weight average of the last 3 round endpoints transplanted from n076 via n084 onto the index capped cuda graph line verified length weighted node n065 [https://arxiv.org/abs/2504.10478]",
+  "n093  n078+n086   crossover    742    322     1   105   0.928 DISCARD          crossover: weight ensembling, uniform average of the last 3 round end weights, transplanted from n086 (n076) onto index capped polaris ramp cuda graph lv BEST n078 [https://arxiv.org/abs/2504.10478]",
+  "n094  n086        mutate      1074    374     1   175   0.929 DIVERSE          polaris training sample temperature ramp 1.0 to 1.3 in 0.1 steps over the run wall clock, cuda graph sampler rebuilt per step, on weight averaged schema coverage node n086 [https://hkunlp.github.io/blog/2025/Polaris/]",
+  "n095  n076        mutate      1104    356     1   187   0.931 DIVERSE          max_targets 12000 per run target subset with length weighted quotas 600 1200 1800 2400 2400 3600 on the weight averaging staged temperature node, fresh targets fill every round and no hardest-first refill [own idea]",
+  "n096  n090        mutate    1170.5  360.5     2 202.5   0.927 DIVERSE*         larger per run target subset max_targets 9000 instead of 6000 with length weighted quotas on the 5 round weight averaged node n090 [own idea (w4 n082)]",
+  "n097  n089        mutate      1058    338     1   180   0.921 DISCARD          weight ensembling: returned model is the uniform average of the last 3 round end weights, added to strategy diverse proof selection node n089 [https://arxiv.org/abs/2504.10478]",
+  "n098  n090        mutate      1077    373     1   176   0.940 DIVERSE          max_targets 9000 instead of 6000 per run target subset, length weighted quotas 450 900 1350 1800 1800 2700, on last 5 weight averaged index capped node n090 [own idea (w4 n082, n088)]"
+ ],
+ "completed": [
+  {
+   "assignment_step": 7,
+   "decision": "FILL",
+   "delta": -58.0,
+   "dev": 179.0,
+   "evicted": null,
+   "metric": 214.36,
+   "n": 1,
+   "node": "n001",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "role": "BEST",
+   "time": "2026-09-24T02:57:44Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 1,
+   "decision": "FILL",
+   "delta": null,
+   "dev": 185.0,
+   "evicted": null,
+   "metric": 272.36,
+   "n": 2,
+   "node": "n000",
+   "operator": "baseline",
+   "parent1_metric": null,
+   "parents": [],
+   "role": "LEAN",
+   "time": "2026-09-24T02:59:16Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 2,
+   "decision": "FILL",
+   "delta": -49.60000000000002,
+   "dev": 177.0,
+   "evicted": null,
+   "metric": 222.76,
+   "n": 3,
+   "node": "n002",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T03:00:13Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 6,
+   "decision": "FILL",
+   "delta": -42.60000000000002,
+   "dev": 184.0,
+   "evicted": null,
+   "metric": 229.76,
+   "n": 4,
+   "node": "n003",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "role": "LEAN",
+   "time": "2026-09-24T03:00:20Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 4,
+   "decision": "DISCARD",
+   "delta": -124.36000000000001,
+   "dev": 136.0,
+   "evicted": null,
+   "metric": 148.0,
+   "n": 5,
+   "node": "n004",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "role": null,
+   "time": "2026-09-24T03:20:21Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 3,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": -52.860000000000014,
+   "dev": 187.5,
+   "evicted": "n002",
+   "metric": 219.5,
+   "metric_first": 233,
+   "n": 6,
+   "node": "n005",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "resolved": "2026-09-24T03:52:05Z",
+   "role": "BEST",
+   "time": "2026-09-24T03:23:35Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 5,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": -33.860000000000014,
+   "dev": 202.5,
+   "evicted": "n013",
+   "metric": 238.5,
+   "metric_first": 249,
+   "n": 7,
+   "node": "n006",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "resolved": "2026-09-24T04:18:04Z",
+   "role": "BEST",
+   "time": "2026-09-24T03:25:56Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 8,
+   "decision": "DISCARD",
+   "delta": -107.36000000000001,
+   "dev": 107.0,
+   "evicted": null,
+   "metric": 107.0,
+   "n": 8,
+   "node": "n007",
+   "operator": "mutate",
+   "parent1_metric": 214.36,
+   "parents": [
+    "n001"
+   ],
+   "role": null,
+   "time": "2026-09-24T03:27:38Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 10,
+   "decision": "DISCARD",
+   "delta": 33.24000000000001,
+   "dev": 175.0,
+   "evicted": null,
+   "metric": 263.0,
+   "n": 9,
+   "node": "n008",
+   "operator": "crossover",
+   "parent1_metric": 229.76,
+   "parents": [
+    "n003",
+    "n002"
+   ],
+   "role": null,
+   "time": "2026-09-24T03:28:04Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 13,
+   "decision": "DISCARD",
+   "delta": -51.75999999999999,
+   "dev": 158.0,
+   "evicted": null,
+   "metric": 178.0,
+   "n": 10,
+   "node": "n009",
+   "operator": "mutate",
+   "parent1_metric": 229.76,
+   "parents": [
+    "n003"
+   ],
+   "role": null,
+   "time": "2026-09-24T03:52:37Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 11,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 77.74000000000001,
+   "dev": 206.5,
+   "evicted": "n003",
+   "metric": 300.5,
+   "metric_first": 303,
+   "n": 11,
+   "node": "n010",
+   "operator": "mutate",
+   "parent1_metric": 222.76,
+   "parents": [
+    "n002"
+   ],
+   "resolved": "2026-09-24T04:27:58Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T03:56:39Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 16,
+   "decision": "DISCARD",
+   "delta": -50.75999999999999,
+   "dev": 148.0,
+   "evicted": null,
+   "metric": 172.0,
+   "n": 12,
+   "node": "n011",
+   "operator": "mutate",
+   "parent1_metric": 222.76,
+   "parents": [
+    "n002"
+   ],
+   "role": null,
+   "time": "2026-09-24T03:59:17Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 9,
+   "decision": "FLOOR",
+   "delta": -271.36,
+   "dev": 1.0,
+   "evicted": null,
+   "metric": 1.0,
+   "n": 13,
+   "node": "n012",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "role": null,
+   "time": "2026-09-24T04:03:02Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 14,
+   "decision": "DIVERSE",
+   "delta": 23.24000000000001,
+   "dev": 182.0,
+   "evicted": "n001",
+   "metric": 246.0,
+   "n": 14,
+   "node": "n013",
+   "operator": "mutate",
+   "parent1_metric": 222.76,
+   "parents": [
+    "n002"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T04:16:42Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 17,
+   "decision": "DISCARD",
+   "delta": -28.5,
+   "dev": 155.0,
+   "evicted": null,
+   "metric": 191.0,
+   "n": 15,
+   "node": "n014",
+   "operator": "crossover",
+   "parent1_metric": 219.5,
+   "parents": [
+    "n005",
+    "n003"
+   ],
+   "role": null,
+   "time": "2026-09-24T04:24:56Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 15,
+   "decision": "DISCARD",
+   "delta": -107.75999999999999,
+   "dev": 114.0,
+   "evicted": null,
+   "metric": 122.0,
+   "n": 16,
+   "node": "n015",
+   "operator": "crossover",
+   "parent1_metric": 229.76,
+   "parents": [
+    "n003",
+    "n001"
+   ],
+   "role": null,
+   "time": "2026-09-24T04:31:20Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 18,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 153.5,
+   "dev": 259.0,
+   "evicted": "n020",
+   "metric": 373.0,
+   "metric_first": 459.0,
+   "n": 17,
+   "node": "n016",
+   "operator": "mutate",
+   "parent1_metric": 219.5,
+   "parents": [
+    "n005"
+   ],
+   "resolved": "2026-09-24T05:37:13Z",
+   "role": "BEST",
+   "time": "2026-09-24T04:42:40Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 12,
+   "decision": "DIVERSE",
+   "delta": 25.639999999999986,
+   "dev": 188.0,
+   "evicted": "n000",
+   "metric": 240.0,
+   "n": 18,
+   "node": "n017",
+   "operator": "mutate",
+   "parent1_metric": 214.36,
+   "parents": [
+    "n001"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T04:44:43Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 22,
+   "decision": "DIVERSE",
+   "delta": 12.5,
+   "dev": 191.0,
+   "evicted": "n005",
+   "metric": 251.0,
+   "n": 19,
+   "node": "n018",
+   "operator": "crossover",
+   "parent1_metric": 238.5,
+   "parents": [
+    "n006",
+    "n003"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T04:51:15Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 23,
+   "decision": "DISCARD",
+   "delta": -54.5,
+   "dev": 160.0,
+   "evicted": null,
+   "metric": 184.0,
+   "n": 20,
+   "node": "n019",
+   "operator": "mutate",
+   "parent1_metric": 238.5,
+   "parents": [
+    "n006"
+   ],
+   "role": null,
+   "time": "2026-09-24T04:55:55Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 19,
+   "decision": "DIVERSE",
+   "delta": -40.360000000000014,
+   "dev": 192.0,
+   "evicted": "n017",
+   "metric": 232.0,
+   "n": 21,
+   "node": "n020",
+   "operator": "mutate",
+   "parent1_metric": 272.36,
+   "parents": [
+    "n000"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T04:59:47Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 25,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 113.5,
+   "dev": 249.0,
+   "evicted": "n010",
+   "metric": 414.0,
+   "metric_first": 513.0,
+   "n": 22,
+   "node": "n021",
+   "operator": "mutate",
+   "parent1_metric": 300.5,
+   "parents": [
+    "n010"
+   ],
+   "resolved": "2026-09-24T05:51:52Z",
+   "role": "BEST",
+   "time": "2026-09-24T05:10:59Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 24,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 79.5,
+   "dev": 227.0,
+   "evicted": "n006",
+   "metric": 299.0,
+   "n": 23,
+   "node": "n022",
+   "operator": "crossover",
+   "parent1_metric": 219.5,
+   "parents": [
+    "n005",
+    "n010"
+   ],
+   "resolved": "2026-09-24T05:37:13Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T05:17:50Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 27,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 63.0,
+   "dev": 222.0,
+   "evicted": "n018",
+   "metric": 314.0,
+   "n": 24,
+   "node": "n023",
+   "operator": "mutate",
+   "parent1_metric": 251.0,
+   "parents": [
+    "n018"
+   ],
+   "resolved": "2026-09-24T05:37:13Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T05:23:30Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 28,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 351.0,
+   "dev": 314.0,
+   "evicted": "n023",
+   "metric": 591.0,
+   "metric_first": 550.0,
+   "n": 25,
+   "node": "n024",
+   "operator": "mutate",
+   "parent1_metric": 240.0,
+   "parents": [
+    "n017"
+   ],
+   "resolved": "2026-09-24T06:12:03Z",
+   "role": "BEST",
+   "time": "2026-09-24T05:23:32Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 26,
+   "decision": "DISCARD",
+   "delta": -59.5,
+   "dev": 160.0,
+   "evicted": null,
+   "metric": 160.0,
+   "n": 26,
+   "node": "n025",
+   "operator": "crossover",
+   "parent1_metric": 219.5,
+   "parents": [
+    "n005",
+    "n017"
+   ],
+   "role": null,
+   "time": "2026-09-24T05:28:04Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 29,
+   "decision": "DIVERSE",
+   "delta": 67.0,
+   "evicted": "n022",
+   "metric": 299,
+   "n": 27,
+   "node": "n026",
+   "operator": "mutate",
+   "parent1_metric": 232.0,
+   "parents": [
+    "n020"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T05:44:41Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 30,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 41.5,
+   "evicted": "n026",
+   "metric": 342,
+   "n": 28,
+   "node": "n027",
+   "operator": "mutate",
+   "parent1_metric": 300.5,
+   "parents": [
+    "n010"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T05:49:23Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 20,
+   "decision": "DISCARD",
+   "delta": -92.5,
+   "evicted": null,
+   "metric": 127,
+   "n": 29,
+   "node": "n028",
+   "operator": "mutate",
+   "parent1_metric": 219.5,
+   "parents": [
+    "n005"
+   ],
+   "role": null,
+   "time": "2026-09-24T05:57:02Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 31,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 302.5,
+   "evicted": "n027",
+   "metric": 541,
+   "n": 30,
+   "node": "n029",
+   "operator": "crossover",
+   "parent1_metric": 238.5,
+   "parents": [
+    "n006",
+    "n010"
+   ],
+   "resolved": "2026-09-24T06:12:03Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T06:05:37Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 32,
+   "decision": "DISCARD",
+   "delta": -100.0,
+   "evicted": null,
+   "metric": 151,
+   "n": 31,
+   "node": "n030",
+   "operator": "mutate",
+   "parent1_metric": 251.0,
+   "parents": [
+    "n018"
+   ],
+   "role": null,
+   "time": "2026-09-24T06:16:24Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 33,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 159.5,
+   "evicted": "n016",
+   "metric": 460,
+   "n": 32,
+   "node": "n031",
+   "operator": "mutate",
+   "parent1_metric": 300.5,
+   "parents": [
+    "n010"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T06:20:15Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 34,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 236.0,
+   "evicted": "n021",
+   "metric": 487,
+   "n": 33,
+   "node": "n032",
+   "operator": "mutate",
+   "parent1_metric": 251.0,
+   "parents": [
+    "n018"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T06:26:32Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 35,
+   "decision": "DISCARD",
+   "delta": -41.0,
+   "evicted": null,
+   "metric": 332,
+   "n": 34,
+   "node": "n033",
+   "operator": "crossover",
+   "parent1_metric": 373.0,
+   "parents": [
+    "n016",
+    "n026"
+   ],
+   "role": null,
+   "time": "2026-09-24T06:40:04Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 36,
+   "decision": "DISCARD",
+   "delta": 16,
+   "evicted": null,
+   "metric": 358,
+   "n": 35,
+   "node": "n034",
+   "operator": "crossover",
+   "parent1_metric": 342,
+   "parents": [
+    "n027",
+    "n023"
+   ],
+   "role": null,
+   "time": "2026-09-24T06:41:28Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 38,
+   "decision": "DISCARD",
+   "delta": -219.0,
+   "evicted": null,
+   "metric": 154,
+   "n": 36,
+   "node": "n035",
+   "operator": "crossover",
+   "parent1_metric": 373.0,
+   "parents": [
+    "n016",
+    "n027"
+   ],
+   "role": null,
+   "time": "2026-09-24T06:46:47Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 39,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 125.5,
+   "evicted": "n037",
+   "metric": 716.5,
+   "metric_first": 648,
+   "n": 37,
+   "node": "n036",
+   "operator": "mutate",
+   "parent1_metric": 591.0,
+   "parents": [
+    "n024"
+   ],
+   "resolved": "2026-09-24T07:41:11Z",
+   "role": "BEST",
+   "time": "2026-09-24T06:48:37Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 40,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -29,
+   "evicted": "n031",
+   "metric": 512,
+   "n": 38,
+   "node": "n037",
+   "operator": "crossover",
+   "parent1_metric": 541,
+   "parents": [
+    "n029",
+    "n024"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T06:57:04Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 41,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 178.0,
+   "evicted": "n044",
+   "metric": 769.0,
+   "metric_first": 897,
+   "n": 39,
+   "node": "n038",
+   "operator": "crossover",
+   "parent1_metric": 591.0,
+   "parents": [
+    "n024",
+    "n031"
+   ],
+   "resolved": "2026-09-24T08:14:06Z",
+   "role": "BEST",
+   "time": "2026-09-24T07:07:41Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 42,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -9,
+   "evicted": "n032",
+   "metric": 532,
+   "n": 40,
+   "node": "n039",
+   "operator": "crossover",
+   "parent1_metric": 541,
+   "parents": [
+    "n029",
+    "n032"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T07:13:23Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 43,
+   "decision": "DISCARD",
+   "delta": 57,
+   "evicted": null,
+   "metric": 544,
+   "n": 41,
+   "node": "n040",
+   "operator": "mutate",
+   "parent1_metric": 487,
+   "parents": [
+    "n032"
+   ],
+   "role": null,
+   "time": "2026-09-24T07:27:21Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 44,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 136.0,
+   "evicted": "n039",
+   "metric": 727,
+   "n": 42,
+   "node": "n041",
+   "operator": "mutate",
+   "parent1_metric": 591.0,
+   "parents": [
+    "n024"
+   ],
+   "resolved": "2026-09-24T07:41:11Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T07:33:24Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 46,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 56,
+   "evicted": "n029",
+   "metric": 597,
+   "n": 43,
+   "node": "n042",
+   "operator": "mutate",
+   "parent1_metric": 541,
+   "parents": [
+    "n029"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T07:45:20Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 47,
+   "decision": "DISCARD",
+   "delta": -45,
+   "evicted": null,
+   "metric": 467,
+   "n": 44,
+   "node": "n043",
+   "operator": "crossover",
+   "parent1_metric": 512,
+   "parents": [
+    "n037",
+    "n032"
+   ],
+   "role": null,
+   "time": "2026-09-24T07:57:37Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 45,
+   "decision": "DIVERSE",
+   "delta": -69.0,
+   "evicted": "n024",
+   "metric": 522,
+   "n": 45,
+   "node": "n044",
+   "operator": "mutate",
+   "parent1_metric": 591.0,
+   "parents": [
+    "n024"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T07:59:31Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 48,
+   "decision": "DISCARD",
+   "delta": -227.0,
+   "evicted": null,
+   "metric": 364,
+   "n": 46,
+   "node": "n045",
+   "operator": "mutate",
+   "parent1_metric": 591.0,
+   "parents": [
+    "n024"
+   ],
+   "role": null,
+   "time": "2026-09-24T08:07:32Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 50,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 359.5,
+   "evicted": "n036",
+   "metric": 950.5,
+   "metric_first": 1083,
+   "n": 47,
+   "node": "n046",
+   "operator": "mutate",
+   "parent1_metric": 591.0,
+   "parents": [
+    "n024"
+   ],
+   "resolved": "2026-09-24T09:12:02Z",
+   "role": "BEST",
+   "time": "2026-09-24T08:25:15Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 49,
+   "decision": "DISCARD",
+   "delta": -86,
+   "evicted": null,
+   "metric": 446,
+   "n": 48,
+   "node": "n047",
+   "operator": "mutate",
+   "parent1_metric": 532,
+   "parents": [
+    "n039"
+   ],
+   "role": null,
+   "time": "2026-09-24T08:26:57Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 51,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 62.0,
+   "evicted": "n042",
+   "metric": 653,
+   "n": 49,
+   "node": "n048",
+   "operator": "mutate",
+   "parent1_metric": 591.0,
+   "parents": [
+    "n024"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T08:33:56Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 52,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 37.5,
+   "evicted": "n048",
+   "metric": 754,
+   "n": 50,
+   "node": "n049",
+   "operator": "crossover",
+   "parent1_metric": 716.5,
+   "parents": [
+    "n036",
+    "n041"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T08:43:06Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 54,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 251.5,
+   "evicted": "n041",
+   "metric": 968,
+   "n": 51,
+   "node": "n050",
+   "operator": "crossover",
+   "parent1_metric": 716.5,
+   "parents": [
+    "n036",
+    "n041"
+   ],
+   "resolved": "2026-09-24T09:12:02Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T08:52:13Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 55,
+   "decision": "DISCARD",
+   "delta": -187,
+   "evicted": null,
+   "metric": 540,
+   "n": 52,
+   "node": "n051",
+   "operator": "crossover",
+   "parent1_metric": 727,
+   "parents": [
+    "n041",
+    "n042"
+   ],
+   "role": null,
+   "time": "2026-09-24T08:55:46Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 56,
+   "decision": "DISCARD",
+   "delta": 7.5,
+   "evicted": null,
+   "metric": 724,
+   "n": 53,
+   "node": "n052",
+   "operator": "mutate",
+   "parent1_metric": 716.5,
+   "parents": [
+    "n036"
+   ],
+   "role": null,
+   "time": "2026-09-24T09:01:43Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 57,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 90.0,
+   "evicted": "n049",
+   "metric": 859,
+   "n": 54,
+   "node": "n053",
+   "operator": "mutate",
+   "parent1_metric": 769.0,
+   "parents": [
+    "n038"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T09:16:02Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 58,
+   "decision": "DIVERSE",
+   "delta": 52,
+   "evicted": "n038",
+   "metric": 779,
+   "n": 55,
+   "node": "n054",
+   "operator": "mutate",
+   "parent1_metric": 727,
+   "parents": [
+    "n041"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T09:18:13Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 59,
+   "decision": "DISCARD",
+   "delta": -323.0,
+   "evicted": null,
+   "metric": 446,
+   "n": 56,
+   "node": "n055",
+   "operator": "crossover",
+   "parent1_metric": 769.0,
+   "parents": [
+    "n038",
+    "n048"
+   ],
+   "role": null,
+   "time": "2026-09-24T09:24:33Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 60,
+   "decision": "DISCARD",
+   "delta": -126,
+   "evicted": null,
+   "metric": 628,
+   "n": 57,
+   "node": "n056",
+   "operator": "mutate",
+   "parent1_metric": 754,
+   "parents": [
+    "n049"
+   ],
+   "role": null,
+   "time": "2026-09-24T09:28:39Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 61,
+   "decision": "DISCARD",
+   "delta": -31.5,
+   "evicted": null,
+   "metric": 685,
+   "n": 58,
+   "node": "n057",
+   "operator": "mutate",
+   "parent1_metric": 716.5,
+   "parents": [
+    "n036"
+   ],
+   "role": null,
+   "time": "2026-09-24T09:44:12Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 62,
+   "decision": "DIVERSE",
+   "delta": 40.5,
+   "evicted": "n054",
+   "metric": 757,
+   "n": 59,
+   "node": "n058",
+   "operator": "mutate",
+   "parent1_metric": 716.5,
+   "parents": [
+    "n036"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T09:44:15Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 63,
+   "decision": "DISCARD",
+   "delta": -303,
+   "evicted": null,
+   "metric": 424,
+   "n": 60,
+   "node": "n059",
+   "operator": "mutate",
+   "parent1_metric": 727,
+   "parents": [
+    "n041"
+   ],
+   "role": null,
+   "time": "2026-09-24T09:51:56Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 65,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 130.0,
+   "evicted": "n066",
+   "metric": 1098.0,
+   "metric_first": 1064,
+   "n": 61,
+   "node": "n060",
+   "operator": "crossover",
+   "parent1_metric": 968,
+   "parents": [
+    "n050",
+    "n053"
+   ],
+   "resolved": "2026-09-24T10:38:16Z",
+   "role": "BEST",
+   "time": "2026-09-24T09:55:37Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 64,
+   "decision": "DISCARD",
+   "delta": -490.5,
+   "evicted": null,
+   "metric": 460,
+   "n": 62,
+   "node": "n061",
+   "operator": "mutate",
+   "parent1_metric": 950.5,
+   "parents": [
+    "n046"
+   ],
+   "role": null,
+   "time": "2026-09-24T09:58:55Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 67,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 19.5,
+   "evicted": "n058",
+   "metric": 970,
+   "n": 63,
+   "node": "n062",
+   "operator": "mutate",
+   "parent1_metric": 950.5,
+   "parents": [
+    "n046"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T10:11:28Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 66,
+   "decision": "DISCARD",
+   "delta": -81,
+   "evicted": null,
+   "metric": 778,
+   "n": 64,
+   "node": "n063",
+   "operator": "crossover",
+   "parent1_metric": 859,
+   "parents": [
+    "n053",
+    "n054"
+   ],
+   "role": null,
+   "time": "2026-09-24T10:11:39Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 68,
+   "decision": "DISCARD",
+   "delta": -241,
+   "evicted": null,
+   "metric": 727,
+   "n": 65,
+   "node": "n064",
+   "operator": "crossover",
+   "parent1_metric": 968,
+   "parents": [
+    "n050",
+    "n058"
+   ],
+   "role": null,
+   "time": "2026-09-24T10:21:21Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 69,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 244,
+   "evicted": "n046",
+   "metric": 1103,
+   "n": 66,
+   "node": "n065",
+   "operator": "mutate",
+   "parent1_metric": 859,
+   "parents": [
+    "n053"
+   ],
+   "resolved": "2026-09-24T10:38:16Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T10:23:22Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 70,
+   "decision": "DIVERSE",
+   "delta": -153.5,
+   "evicted": "n053",
+   "metric": 797,
+   "n": 67,
+   "node": "n066",
+   "operator": "mutate",
+   "parent1_metric": 950.5,
+   "parents": [
+    "n046"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T10:29:46Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 71,
+   "decision": "DIVERSE",
+   "delta": 109,
+   "evicted": "n050",
+   "metric": 968,
+   "n": 68,
+   "node": "n067",
+   "operator": "mutate",
+   "parent1_metric": 859,
+   "parents": [
+    "n053"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T10:39:33Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 73,
+   "decision": "DISCARD",
+   "delta": -215,
+   "evicted": null,
+   "metric": 755,
+   "n": 69,
+   "node": "n068",
+   "operator": "crossover",
+   "parent1_metric": 970,
+   "parents": [
+    "n062",
+    "n050"
+   ],
+   "role": null,
+   "time": "2026-09-24T10:50:18Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 72,
+   "decision": "DISCARD",
+   "delta": 6,
+   "evicted": null,
+   "metric": 865,
+   "n": 70,
+   "node": "n069",
+   "operator": "mutate",
+   "parent1_metric": 859,
+   "parents": [
+    "n053"
+   ],
+   "role": null,
+   "time": "2026-09-24T10:51:24Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 74,
+   "decision": "DISCARD",
+   "delta": -461,
+   "evicted": null,
+   "metric": 507,
+   "n": 71,
+   "node": "n070",
+   "operator": "mutate",
+   "parent1_metric": 968,
+   "parents": [
+    "n050"
+   ],
+   "role": null,
+   "time": "2026-09-24T10:59:30Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 75,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 167,
+   "evicted": "n067",
+   "metric": 1026,
+   "n": 72,
+   "node": "n071",
+   "operator": "mutate",
+   "parent1_metric": 859,
+   "parents": [
+    "n053"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T11:04:45Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 76,
+   "decision": "DISCARD",
+   "delta": -537,
+   "evicted": null,
+   "metric": 322,
+   "n": 73,
+   "node": "n072",
+   "operator": "mutate",
+   "parent1_metric": 859,
+   "parents": [
+    "n053"
+   ],
+   "role": null,
+   "time": "2026-09-24T11:07:01Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 77,
+   "decision": "DIVERSE",
+   "delta": -53.5,
+   "evicted": "n062",
+   "metric": 897,
+   "n": 74,
+   "node": "n073",
+   "operator": "mutate",
+   "parent1_metric": 950.5,
+   "parents": [
+    "n046"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T11:22:45Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 78,
+   "decision": "DIVERSE",
+   "delta": -217.0,
+   "evicted": "n073",
+   "metric": 881,
+   "n": 75,
+   "node": "n074",
+   "operator": "crossover",
+   "parent1_metric": 1098.0,
+   "parents": [
+    "n060",
+    "n065"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T11:30:14Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 79,
+   "decision": "DIVERSE",
+   "decision_first": "PENDING_BEST",
+   "delta": -91.5,
+   "evicted": "n071",
+   "metric": 1011.5,
+   "metric_first": 1183,
+   "n": 76,
+   "node": "n075",
+   "operator": "crossover",
+   "parent1_metric": 1103,
+   "parents": [
+    "n065",
+    "n067"
+   ],
+   "resolved": "2026-09-24T12:21:06Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T11:31:42Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 80,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 152,
+   "evicted": "n074",
+   "metric": 1120,
+   "n": 77,
+   "node": "n076",
+   "operator": "mutate",
+   "parent1_metric": 968,
+   "parents": [
+    "n067"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T11:34:00Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 81,
+   "decision": "DISCARD",
+   "delta": -280.0,
+   "evicted": null,
+   "metric": 818,
+   "n": 78,
+   "node": "n077",
+   "operator": "mutate",
+   "parent1_metric": 1098.0,
+   "parents": [
+    "n060"
+   ],
+   "role": null,
+   "time": "2026-09-24T11:51:28Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 83,
+   "decision": "BEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 149.0,
+   "evicted": "n065",
+   "metric": 1175.0,
+   "metric_first": 1198,
+   "n": 79,
+   "node": "n078",
+   "operator": "mutate",
+   "parent1_metric": 1026,
+   "parents": [
+    "n071"
+   ],
+   "resolved": "2026-09-24T12:51:48Z",
+   "role": "BEST",
+   "time": "2026-09-24T11:58:12Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 82,
+   "decision": "DISCARD",
+   "delta": -72,
+   "evicted": null,
+   "metric": 1031,
+   "n": 80,
+   "node": "n079",
+   "operator": "crossover",
+   "parent1_metric": 1103,
+   "parents": [
+    "n065",
+    "n071"
+   ],
+   "role": null,
+   "time": "2026-09-24T11:59:18Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 84,
+   "decision": "DISCARD",
+   "delta": -183.0,
+   "evicted": null,
+   "metric": 915,
+   "n": 81,
+   "node": "n080",
+   "operator": "mutate",
+   "parent1_metric": 1098.0,
+   "parents": [
+    "n060"
+   ],
+   "role": null,
+   "time": "2026-09-24T12:01:36Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 88,
+   "decision": "CRASH",
+   "delta": null,
+   "evicted": null,
+   "metric": null,
+   "n": 82,
+   "node": "n081",
+   "operator": "mutate",
+   "parent1_metric": 1026,
+   "parents": [
+    "n071"
+   ],
+   "role": null,
+   "time": "2026-09-24T12:23:06Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 85,
+   "decision": "DISCARD",
+   "decision_first": "PENDING_BEST",
+   "delta": 0.5,
+   "evicted": null,
+   "metric": 1026.5,
+   "metric_first": 1218,
+   "n": 83,
+   "node": "n082",
+   "operator": "mutate",
+   "parent1_metric": 1026,
+   "parents": [
+    "n071"
+   ],
+   "resolved": "2026-09-24T13:20:13Z",
+   "role": null,
+   "time": "2026-09-24T12:23:59Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 86,
+   "decision": "DISCARD",
+   "delta": -244,
+   "evicted": null,
+   "metric": 782,
+   "n": 84,
+   "node": "n083",
+   "operator": "crossover",
+   "parent1_metric": 1026,
+   "parents": [
+    "n071",
+    "n076"
+   ],
+   "role": null,
+   "time": "2026-09-24T12:28:55Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 87,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 12,
+   "evicted": "n075",
+   "metric": 1132,
+   "n": 85,
+   "node": "n084",
+   "operator": "mutate",
+   "parent1_metric": 1120,
+   "parents": [
+    "n076"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T12:29:09Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 89,
+   "decision": "DISCARD",
+   "delta": -104,
+   "evicted": null,
+   "metric": 922,
+   "n": 86,
+   "node": "n085",
+   "operator": "mutate",
+   "parent1_metric": 1026,
+   "parents": [
+    "n071"
+   ],
+   "role": null,
+   "time": "2026-09-24T12:51:12Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 91,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 75.0,
+   "evicted": "n060",
+   "metric": 1173,
+   "n": 87,
+   "node": "n086",
+   "operator": "crossover",
+   "parent1_metric": 1098.0,
+   "parents": [
+    "n060",
+    "n076"
+   ],
+   "role": "LEAN",
+   "time": "2026-09-24T12:57:34Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 90,
+   "decision": "DISCARD",
+   "delta": -146,
+   "evicted": null,
+   "metric": 957,
+   "n": 88,
+   "node": "n087",
+   "operator": "mutate",
+   "parent1_metric": 1103,
+   "parents": [
+    "n065"
+   ],
+   "role": null,
+   "time": "2026-09-24T13:00:35Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 93,
+   "decision": "DISCARD",
+   "decision_first": "PENDING_BEST",
+   "delta": -187.0,
+   "evicted": null,
+   "metric": 933.0,
+   "metric_first": 1235,
+   "n": 89,
+   "node": "n088",
+   "operator": "mutate",
+   "parent1_metric": 1120,
+   "parents": [
+    "n076"
+   ],
+   "resolved": "2026-09-24T14:00:14Z",
+   "role": null,
+   "time": "2026-09-24T13:18:16Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 92,
+   "decision": "DIVERSE",
+   "delta": 35.5,
+   "evicted": "n076",
+   "metric": 1047,
+   "n": 90,
+   "node": "n089",
+   "operator": "mutate",
+   "parent1_metric": 1011.5,
+   "parents": [
+    "n075"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T13:25:42Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 94,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 47,
+   "evicted": "n089",
+   "metric": 1179,
+   "n": 91,
+   "node": "n090",
+   "operator": "mutate",
+   "parent1_metric": 1132,
+   "parents": [
+    "n084"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T13:26:02Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 95,
+   "decision": "DISCARD",
+   "delta": -320,
+   "evicted": null,
+   "metric": 812,
+   "n": 92,
+   "node": "n091",
+   "operator": "mutate",
+   "parent1_metric": 1132,
+   "parents": [
+    "n084"
+   ],
+   "role": null,
+   "time": "2026-09-24T13:31:12Z",
+   "worker": "w5"
+  },
+  {
+   "assignment_step": 96,
+   "decision": "REPLACE_WEAKEST",
+   "decision_first": "PENDING_BEST",
+   "delta": 109.5,
+   "evicted": "n098",
+   "metric": 1212.5,
+   "metric_first": 1286,
+   "n": 93,
+   "node": "n092",
+   "operator": "crossover",
+   "parent1_metric": 1103,
+   "parents": [
+    "n065",
+    "n084"
+   ],
+   "resolved": "2026-09-24T14:22:14Z",
+   "role": "LEAN",
+   "time": "2026-09-24T13:44:48Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 97,
+   "decision": "DISCARD",
+   "delta": -433.0,
+   "evicted": null,
+   "metric": 742,
+   "n": 94,
+   "node": "n093",
+   "operator": "crossover",
+   "parent1_metric": 1175.0,
+   "parents": [
+    "n078",
+    "n086"
+   ],
+   "role": null,
+   "time": "2026-09-24T13:49:00Z",
+   "worker": "w6"
+  },
+  {
+   "assignment_step": 98,
+   "decision": "DIVERSE",
+   "delta": -99,
+   "evicted": "n084",
+   "metric": 1074,
+   "n": 95,
+   "node": "n094",
+   "operator": "mutate",
+   "parent1_metric": 1173,
+   "parents": [
+    "n086"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T13:53:06Z",
+   "worker": "w7"
+  },
+  {
+   "assignment_step": 99,
+   "decision": "DIVERSE",
+   "delta": -16,
+   "evicted": "n094",
+   "metric": 1104,
+   "n": 96,
+   "node": "n095",
+   "operator": "mutate",
+   "parent1_metric": 1120,
+   "parents": [
+    "n076"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T13:55:26Z",
+   "worker": "w4"
+  },
+  {
+   "assignment_step": 101,
+   "decision": "DIVERSE",
+   "decision_first": "PENDING_BEST",
+   "delta": -8.5,
+   "evicted": "n086",
+   "metric": 1170.5,
+   "metric_first": 1311,
+   "n": 97,
+   "node": "n096",
+   "operator": "mutate",
+   "parent1_metric": 1179,
+   "parents": [
+    "n090"
+   ],
+   "resolved": "2026-09-24T14:39:54Z",
+   "role": "DIVERSE",
+   "time": "2026-09-24T14:10:35Z",
+   "worker": "w3"
+  },
+  {
+   "assignment_step": 100,
+   "decision": "DISCARD",
+   "delta": 11,
+   "evicted": null,
+   "metric": 1058,
+   "n": 98,
+   "node": "n097",
+   "operator": "mutate",
+   "parent1_metric": 1047,
+   "parents": [
+    "n089"
+   ],
+   "role": null,
+   "time": "2026-09-24T14:17:44Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 102,
+   "decision": "DIVERSE",
+   "delta": -102,
+   "evicted": "n095",
+   "metric": 1077,
+   "n": 99,
+   "node": "n098",
+   "operator": "mutate",
+   "parent1_metric": 1179,
+   "parents": [
+    "n090"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-24T14:20:35Z",
+   "worker": "w5"
+  }
+ ],
+ "replicates": [
+  {
+   "decision": "BEST",
+   "evicted": "n002",
+   "first_metric": 201,
+   "first_seed": 0,
+   "frontier": 8,
+   "heldout_greedy": 0.937,
+   "mean_metric": 187.5,
+   "metric": 174,
+   "node": "n005",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n005_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T03:52:05Z"
+  },
+  {
+   "decision": "BEST",
+   "evicted": "n013",
+   "first_metric": 201,
+   "first_seed": 0,
+   "frontier": 6,
+   "heldout_greedy": 0.937,
+   "mean_metric": 202.5,
+   "metric": 204,
+   "node": "n006",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n006_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T04:18:04Z"
+  },
+  {
+   "decision": "REPLACE_WEAKEST",
+   "evicted": "n003",
+   "first_metric": 211,
+   "first_seed": 0,
+   "frontier": 24,
+   "heldout_greedy": 0.896,
+   "mean_metric": 206.5,
+   "metric": 202,
+   "node": "n010",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n010_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T04:27:58Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 227,
+   "evicted": "n020",
+   "first_metric": 459.0,
+   "first_seed": 0,
+   "frontier": 15,
+   "heldout_greedy": 0.912,
+   "mean_metric": 373.0,
+   "metric": 287,
+   "node": "n016",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n016_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T05:37:13Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 211,
+   "evicted": "n010",
+   "first_metric": 513.0,
+   "first_seed": 0,
+   "frontier": 26,
+   "heldout_greedy": 0.902,
+   "mean_metric": 414.0,
+   "metric": 315,
+   "node": "n021",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n021_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T05:51:52Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 312,
+   "evicted": "n023",
+   "first_metric": 550.0,
+   "first_seed": 0,
+   "frontier": 80,
+   "heldout_greedy": 0.932,
+   "mean_metric": 591.0,
+   "metric": 632,
+   "node": "n024",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n024_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T06:12:03Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 325,
+   "evicted": "n037",
+   "first_metric": 648,
+   "first_seed": 0,
+   "frontier": 115,
+   "heldout_greedy": 0.935,
+   "mean_metric": 716.5,
+   "metric": 785,
+   "node": "n036",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n036_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T07:41:11Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 273,
+   "evicted": "n044",
+   "first_metric": 897,
+   "first_seed": 0,
+   "frontier": 92,
+   "heldout_greedy": 0.922,
+   "mean_metric": 769.0,
+   "metric": 641,
+   "node": "n038",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n038_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T08:14:06Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 322,
+   "evicted": "n036",
+   "first_metric": 1083,
+   "first_seed": 0,
+   "frontier": 124,
+   "heldout_greedy": 0.934,
+   "mean_metric": 950.5,
+   "metric": 818,
+   "node": "n046",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n046_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T09:12:02Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 384,
+   "evicted": "n066",
+   "first_metric": 1064,
+   "first_seed": 0,
+   "frontier": 187,
+   "heldout_greedy": 0.911,
+   "mean_metric": 1098.0,
+   "metric": 1132,
+   "node": "n060",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n060_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T10:38:16Z"
+  },
+  {
+   "decision": "DIVERSE",
+   "dev": 324,
+   "evicted": "n071",
+   "first_metric": 1183,
+   "first_seed": 0,
+   "frontier": 129,
+   "heldout_greedy": 0.919,
+   "mean_metric": 1011.5,
+   "metric": 840,
+   "node": "n075",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n075_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T12:21:06Z"
+  },
+  {
+   "decision": "BEST",
+   "dev": 388,
+   "evicted": "n065",
+   "first_metric": 1198,
+   "first_seed": 0,
+   "frontier": 191,
+   "heldout_greedy": 0.921,
+   "mean_metric": 1175.0,
+   "metric": 1152,
+   "node": "n078",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n078_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T12:51:48Z"
+  },
+  {
+   "decision": "DISCARD",
+   "dev": 311,
+   "evicted": null,
+   "first_metric": 1218,
+   "first_seed": 0,
+   "frontier": 131,
+   "heldout_greedy": 0.907,
+   "mean_metric": 1026.5,
+   "metric": 835,
+   "node": "n082",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n082_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T13:20:13Z"
+  },
+  {
+   "decision": "DISCARD",
+   "dev": 287,
+   "evicted": null,
+   "first_metric": 1235,
+   "first_seed": 0,
+   "frontier": 86,
+   "heldout_greedy": 0.92,
+   "mean_metric": 933.0,
+   "metric": 631,
+   "node": "n088",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n088_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T14:00:14Z"
+  },
+  {
+   "decision": "REPLACE_WEAKEST",
+   "dev": 367,
+   "evicted": "n098",
+   "first_metric": 1286,
+   "first_seed": 0,
+   "frontier": 193,
+   "heldout_greedy": 0.935,
+   "mean_metric": 1212.5,
+   "metric": 1139,
+   "node": "n092",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n092_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T14:22:14Z"
+  },
+  {
+   "decision": "DIVERSE",
+   "dev": 326,
+   "evicted": "n086",
+   "first_metric": 1311,
+   "first_seed": 0,
+   "frontier": 176,
+   "heldout_greedy": 0.925,
+   "mean_metric": 1170.5,
+   "metric": 1030,
+   "node": "n096",
+   "run_dir": "/scratch/cowifornia/nd-rl/ab2/audit/runs/rep_n096_s1",
+   "seed": 1,
+   "status": "ok",
+   "time": "2026-09-24T14:39:54Z"
+  }
+ ],
+ "pending_best": []
+}

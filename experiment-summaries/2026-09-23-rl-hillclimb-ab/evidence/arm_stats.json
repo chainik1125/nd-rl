@@ -1,0 +1,37 @@
+{
+ "gear": {
+  "runs_total": 29,
+  "runs_ok": 29,
+  "status_counts": {
+   "ok": 29
+  },
+  "best": 401,
+  "median": 294,
+  "top5": [
+   401,
+   393,
+   385,
+   377,
+   375
+  ],
+  "controller_steps": 15
+ },
+ "orch": {
+  "runs_total": 29,
+  "runs_ok": 29,
+  "status_counts": {
+   "ok": 29
+  },
+  "best": 339,
+  "median": 269,
+  "top5": [
+   339,
+   331,
+   328,
+   324,
+   324
+  ],
+  "reviews": 29,
+  "prereg": 29
+ }
+}

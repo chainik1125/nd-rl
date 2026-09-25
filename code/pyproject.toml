@@ -53,6 +53,8 @@ extend-exclude = [
     "**/archived/proof_fragments_20260910/**",
     "**/archived/flop_nd_20260910/**",
     "**/archived/nd_sprints_20260609_11/**",
+    "**/current/rl_hillclimb_ab_20260923/**",
+    "**/current/rl_hillclimb_run2_20260924/**",
 ]
 force-exclude = true
 line-length = 100

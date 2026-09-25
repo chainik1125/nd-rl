@@ -16,3 +16,5 @@ written_by: agent:codex
 - [Proof-fragment selection](2026-09-10-proof-fragment-selection/README.md): supervised transfer scores reproduced, but the tested RL curricula reduced complete-proof coverage.
 - [FLoP adaptation](2026-09-10-flop-adaptation/README.md): narrow symbolic depth extrapolation without a held-out coverage gain for the token LM.
 - [Literature for learning beyond initial training data](../docs/literature/astra_suggestions/learning-beyond-training-data.md): completed reading recommendations and experimental-design critique; no new experiment results.
+- [GEAR versus review-gated orchestration A/B](2026-09-23-rl-hillclimb-ab/README.md): two agent frameworks hill-climbed the RL stage for three hours; GEAR reached dev 401 versus 339/324, length-10 extrapolation about two percent, nothing at length 11 or on textbook problems.
+- [Run 2: seven GEAR workers and an auditor, lengths 12-14](2026-09-24-rl-hillclimb-run2/README.md): twelve hours of hill-climbing on a length-6-11 pool; the two-hour champion proves 707 of 1,931 sealed length-12-14 theorems at pass@256 (pretrained model 0), first length-14 and first textbook solves above six lines.

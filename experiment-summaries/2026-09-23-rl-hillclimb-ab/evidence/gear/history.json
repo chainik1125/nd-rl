@@ -1,0 +1,1000 @@
+{
+ "history": [
+  {
+   "id": "n000",
+   "parents": [],
+   "operator": "seed",
+   "worker": "w1",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 174,
+   "delta": null,
+   "decision": "FILL",
+   "role": null,
+   "evicted_by": "n005",
+   "in_frontier": false,
+   "description": "seed baseline rl.py unmodified"
+  },
+  {
+   "id": "n001",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 289,
+   "delta": 115,
+   "decision": "FILL",
+   "role": null,
+   "evicted_by": "n015",
+   "in_frontier": false,
+   "description": "rotating window of 600 targets per round over all 3804 targets, 200 ft steps per round, up to 12 short rounds (7 fit)"
+  },
+  {
+   "id": "n002",
+   "parents": [
+    "n000"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 154,
+   "delta": -20,
+   "decision": "FILL",
+   "role": null,
+   "evicted_by": "n004",
+   "in_frontier": false,
+   "description": "mix reweighting: retain 5000 cap6 records instead of 20000 and rl_weight 8 instead of 4"
+  },
+  {
+   "id": "n003",
+   "parents": [
+    "n001"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 276,
+   "delta": -13,
+   "decision": "FILL",
+   "role": null,
+   "evicted_by": "n009",
+   "in_frontier": false,
+   "description": "length curriculum windows: round mix L7 only, then 70/30 L7/L8, then 30/50/20, then 15/35/50 L7/L8/L9 from per-length queues refilled with unsolved targets"
+  },
+  {
+   "id": "n004",
+   "parents": [
+    "n001"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 275,
+   "delta": -14,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n007",
+   "in_frontier": false,
+   "description": "hindsight relabelling of verified by-products with other conclusion same premises, at least 7 lines, weight 2"
+  },
+  {
+   "id": "n005",
+   "parents": [
+    "n002",
+    "n001"
+   ],
+   "operator": "crossover",
+   "worker": "w2",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 225,
+   "delta": 71,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n006",
+   "in_frontier": false,
+   "description": "rotating 600 target window schedule with 200 ft steps per round transplanted from n001 onto n002 retain 5000 rl_weight 8 mix"
+  },
+  {
+   "id": "n006",
+   "parents": [
+    "n003",
+    "n004"
+   ],
+   "operator": "crossover",
+   "worker": "w1",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 281,
+   "delta": 5,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n010",
+   "in_frontier": false,
+   "description": "hindsight relabelling of verified by-products transplanted from n004 onto n003 length curriculum windows"
+  },
+  {
+   "id": "n007",
+   "parents": [
+    "n004"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 294,
+   "delta": 19,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n017",
+   "in_frontier": false,
+   "description": "final round shrink: when time left is below one round cost, scale window and ft_steps by the fraction that fits (min 0.3) instead of stopping, 8 rounds"
+  },
+  {
+   "id": "n008",
+   "parents": [
+    "n003"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 259,
+   "delta": -17,
+   "decision": "DISCARD",
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "budget fit on length curriculum: final round window and ft_steps scaled by 0.9 times time left over round cost instead of stopping"
+  },
+  {
+   "id": "n009",
+   "parents": [
+    "n007",
+    "n003"
+   ],
+   "operator": "crossover",
+   "worker": "w2",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 287,
+   "delta": -7,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n014",
+   "in_frontier": false,
+   "description": "length curriculum windows transplanted from n003 onto n007, gentler late mix 40/30/30 L7/L8/L9 after 100 then 70/30"
+  },
+  {
+   "id": "n010",
+   "parents": [
+    "n006"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 272,
+   "delta": -9,
+   "decision": "DIVERSE",
+   "role": null,
+   "evicted_by": "n011",
+   "in_frontier": false,
+   "description": "sample_batch 1024 instead of 384 for generate with oom halving fallback"
+  },
+  {
+   "id": "n011",
+   "parents": [
+    "n009"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 278,
+   "delta": -9,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n012",
+   "in_frontier": false,
+   "description": "pass@k rarity weighting: each target's proofs repeat max(1, round(8 * (1 - latest solve rate))) times instead of fixed rl_weight 4"
+  },
+  {
+   "id": "n012",
+   "parents": [
+    "n007"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 274,
+   "delta": -20,
+   "decision": "DIVERSE",
+   "role": null,
+   "evicted_by": "n013",
+   "in_frontier": false,
+   "description": "k 16 samples per target over window 1200 targets per round instead of k 32 over 600"
+  },
+  {
+   "id": "n013",
+   "parents": [
+    "n011"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "other",
+   "status": "evaluated",
+   "metric": 358,
+   "delta": 80,
+   "decision": "BEST",
+   "role": null,
+   "evicted_by": "n025",
+   "in_frontier": false,
+   "description": "compacting sampler in rl.py drops finished rows from batch and kv cache every 16 steps, sample_batch 768, sampling 50s to 30s per round so 10 rounds fit"
+  },
+  {
+   "id": "n014",
+   "parents": [
+    "n012",
+    "n009"
+   ],
+   "operator": "crossover",
+   "worker": "w1",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 293,
+   "delta": 19,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n016",
+   "in_frontier": false,
+   "description": "length curriculum queues 100 then 70/30 then 40/30/30 L7/L8/L9 transplanted from n009 onto n012 k16 window 1200"
+  },
+  {
+   "id": "n015",
+   "parents": [
+    "n013",
+    "n001"
+   ],
+   "operator": "crossover",
+   "worker": "w2",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 343,
+   "delta": -15,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n019",
+   "in_frontier": false,
+   "description": "plain rotating 600 target window from n001 replaces the length curriculum windows on n013 compacting sampler"
+  },
+  {
+   "id": "n016",
+   "parents": [
+    "n013"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "objective",
+   "status": "evaluated",
+   "metric": 302,
+   "delta": -56,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n018",
+   "in_frontier": false,
+   "description": "grpo pass per round on sampled groups with variance, group mean advantage, fixed max_new divisor, adamw lr 5e-5, 256 seqs per step, max 30 steps, before the sft step"
+  },
+  {
+   "id": "n017",
+   "parents": [
+    "n015"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 393,
+   "delta": 50,
+   "decision": "BEST",
+   "role": "LEAN",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "smaller rounds: window 400 targets, 135 ft steps, warmup 35, round cap 20, so 15 rounds fit instead of 10"
+  },
+  {
+   "id": "n018",
+   "parents": [
+    "n013"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 351,
+   "delta": -7,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n023",
+   "in_frontier": false,
+   "description": "ft_steps 130 instead of 200 per round on the compacting sampler line"
+  },
+  {
+   "id": "n019",
+   "parents": [
+    "n017"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "schedule",
+   "status": "evaluated",
+   "metric": 349,
+   "delta": -44,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n021",
+   "in_frontier": false,
+   "description": "even smaller rounds: window 300 targets, 100 ft steps, warmup 25, round cap 30, 20 rounds fit"
+  },
+  {
+   "id": "n020",
+   "parents": [
+    "n017"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "optimizer",
+   "status": "evaluated",
+   "metric": 288,
+   "delta": -105,
+   "decision": "DISCARD",
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "persistent adamw optimizer across rounds, linear warmup only in the first fine-tune, per-round cosine kept"
+  },
+  {
+   "id": "n021",
+   "parents": [
+    "n017"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "curriculum",
+   "status": "evaluated",
+   "metric": 361,
+   "delta": -32,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n026",
+   "in_frontier": false,
+   "description": "hardest first refill: after the first pass over the pool, window queue refilled with 1200 unsolved targets then lowest solve rate ones"
+  },
+  {
+   "id": "n022",
+   "parents": [
+    "n017"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 313,
+   "delta": -80,
+   "decision": "DISCARD",
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "targets_extra 15410 extra targets appended to the shuffled pool so the rotating window continues into fresh L7 L8 targets instead of wrapping"
+  },
+  {
+   "id": "n023",
+   "parents": [
+    "n017"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 385,
+   "delta": -8,
+   "decision": "REPLACE_WEAKEST",
+   "role": "DIVERSE",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "training sampling temperature 1.0 instead of 0.8 (dev scoring stays 0.8)"
+  },
+  {
+   "id": "n024",
+   "parents": [
+    "n017"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "optimizer",
+   "status": "evaluated",
+   "metric": 333,
+   "delta": -60,
+   "decision": "DISCARD",
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "fine-tune peak lr 4.5e-4 instead of 3e-4 on the 400 window 15 round schedule"
+  },
+  {
+   "id": "n025",
+   "parents": [
+    "n021",
+    "n023"
+   ],
+   "operator": "crossover",
+   "worker": "w2",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 401,
+   "delta": 40,
+   "decision": "BEST",
+   "role": "BEST",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "training sampling temperature 1.0 transplanted from n023 onto n021 hardest first refill windows"
+  },
+  {
+   "id": "n026",
+   "parents": [
+    "n023"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 375,
+   "delta": -10,
+   "decision": "REPLACE_WEAKEST",
+   "role": null,
+   "evicted_by": "n027",
+   "in_frontier": false,
+   "description": "k 24 samples per target instead of 32 on the temperature 1.0 400 window schedule, frees sampling time for 14 rounds on the slower gpu"
+  },
+  {
+   "id": "n027",
+   "parents": [
+    "n021"
+   ],
+   "operator": "mutate",
+   "worker": "w2",
+   "category": "data",
+   "status": "evaluated",
+   "metric": 377,
+   "delta": 16,
+   "decision": "DIVERSE",
+   "role": "DIVERSE",
+   "evicted_by": null,
+   "in_frontier": true,
+   "description": "max_per_thm 8 distinct proofs per target in the mix instead of 4 on hardest first refill line"
+  },
+  {
+   "id": "n028",
+   "parents": [
+    "n025"
+   ],
+   "operator": "mutate",
+   "worker": "w1",
+   "category": "sampling",
+   "status": "evaluated",
+   "metric": 329,
+   "delta": -72,
+   "decision": "DISCARD",
+   "role": null,
+   "evicted_by": null,
+   "in_frontier": false,
+   "description": "k 24 samples per target instead of 32 on the hardest first refill temperature 1.0 line"
+  }
+ ],
+ "completed": [
+  {
+   "assignment_step": 1,
+   "decision": "FILL",
+   "delta": null,
+   "evicted": null,
+   "metric": 174,
+   "n": 1,
+   "node": "n000",
+   "operator": "baseline",
+   "parent1_metric": null,
+   "parents": [],
+   "role": "BEST",
+   "time": "2026-09-23T01:26:30Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 2,
+   "decision": "FILL",
+   "delta": 115,
+   "evicted": null,
+   "metric": 289,
+   "n": 2,
+   "node": "n001",
+   "operator": "mutate",
+   "parent1_metric": 174,
+   "parents": [
+    "n000"
+   ],
+   "role": "BEST",
+   "time": "2026-09-23T01:28:53Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 3,
+   "decision": "FILL",
+   "delta": -20,
+   "evicted": null,
+   "metric": 154,
+   "n": 3,
+   "node": "n002",
+   "operator": "mutate",
+   "parent1_metric": 174,
+   "parents": [
+    "n000"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T01:36:56Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 4,
+   "decision": "FILL",
+   "delta": -13,
+   "evicted": null,
+   "metric": 276,
+   "n": 4,
+   "node": "n003",
+   "operator": "mutate",
+   "parent1_metric": 289,
+   "parents": [
+    "n001"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T01:40:42Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 5,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -14,
+   "evicted": "n002",
+   "metric": 275,
+   "n": 5,
+   "node": "n004",
+   "operator": "mutate",
+   "parent1_metric": 289,
+   "parents": [
+    "n001"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T01:48:57Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 6,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 71,
+   "evicted": "n000",
+   "metric": 225,
+   "n": 6,
+   "node": "n005",
+   "operator": "crossover",
+   "parent1_metric": 154,
+   "parents": [
+    "n002",
+    "n001"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T01:52:12Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 8,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 5,
+   "evicted": "n005",
+   "metric": 281,
+   "n": 7,
+   "node": "n006",
+   "operator": "crossover",
+   "parent1_metric": 276,
+   "parents": [
+    "n003",
+    "n004"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T02:01:37Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 9,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 19,
+   "evicted": "n004",
+   "metric": 294,
+   "n": 8,
+   "node": "n007",
+   "operator": "mutate",
+   "parent1_metric": 275,
+   "parents": [
+    "n004"
+   ],
+   "role": "BEST",
+   "time": "2026-09-23T02:04:56Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 10,
+   "decision": "DISCARD",
+   "delta": -17,
+   "evicted": null,
+   "metric": 259,
+   "n": 9,
+   "node": "n008",
+   "operator": "mutate",
+   "parent1_metric": 276,
+   "parents": [
+    "n003"
+   ],
+   "role": null,
+   "time": "2026-09-23T02:14:33Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 11,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -7,
+   "evicted": "n003",
+   "metric": 287,
+   "n": 10,
+   "node": "n009",
+   "operator": "crossover",
+   "parent1_metric": 294,
+   "parents": [
+    "n007",
+    "n003"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T02:17:41Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 12,
+   "decision": "DIVERSE",
+   "delta": -9,
+   "evicted": "n006",
+   "metric": 272,
+   "n": 11,
+   "node": "n010",
+   "operator": "mutate",
+   "parent1_metric": 281,
+   "parents": [
+    "n006"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T02:25:56Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 13,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -9,
+   "evicted": "n010",
+   "metric": 278,
+   "n": 12,
+   "node": "n011",
+   "operator": "mutate",
+   "parent1_metric": 287,
+   "parents": [
+    "n009"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T02:33:11Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 15,
+   "decision": "DIVERSE",
+   "delta": -20,
+   "evicted": "n011",
+   "metric": 274,
+   "n": 13,
+   "node": "n012",
+   "operator": "mutate",
+   "parent1_metric": 294,
+   "parents": [
+    "n007"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T02:39:33Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 16,
+   "decision": "BEST",
+   "delta": 80,
+   "evicted": "n012",
+   "metric": 358,
+   "n": 14,
+   "node": "n013",
+   "operator": "mutate",
+   "parent1_metric": 278,
+   "parents": [
+    "n011"
+   ],
+   "role": "BEST",
+   "time": "2026-09-23T02:47:33Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 18,
+   "decision": "REPLACE_WEAKEST",
+   "delta": 19,
+   "evicted": "n009",
+   "metric": 293,
+   "n": 15,
+   "node": "n014",
+   "operator": "crossover",
+   "parent1_metric": 274,
+   "parents": [
+    "n012",
+    "n009"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T02:53:24Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 19,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -15,
+   "evicted": "n001",
+   "metric": 343,
+   "n": 16,
+   "node": "n015",
+   "operator": "crossover",
+   "parent1_metric": 358,
+   "parents": [
+    "n013",
+    "n001"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T03:01:18Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 20,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -56,
+   "evicted": "n014",
+   "metric": 302,
+   "n": 17,
+   "node": "n016",
+   "operator": "mutate",
+   "parent1_metric": 358,
+   "parents": [
+    "n013"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T03:06:27Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 21,
+   "decision": "BEST",
+   "delta": 50,
+   "evicted": "n007",
+   "metric": 393,
+   "n": 18,
+   "node": "n017",
+   "operator": "mutate",
+   "parent1_metric": 343,
+   "parents": [
+    "n015"
+   ],
+   "role": "BEST",
+   "time": "2026-09-23T03:14:07Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 22,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -7,
+   "evicted": "n016",
+   "metric": 351,
+   "n": 19,
+   "node": "n018",
+   "operator": "mutate",
+   "parent1_metric": 358,
+   "parents": [
+    "n013"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T03:20:45Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 25,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -44,
+   "evicted": "n015",
+   "metric": 349,
+   "n": 20,
+   "node": "n019",
+   "operator": "mutate",
+   "parent1_metric": 393,
+   "parents": [
+    "n017"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T03:29:21Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 27,
+   "decision": "DISCARD",
+   "delta": -105,
+   "evicted": null,
+   "metric": 288,
+   "n": 21,
+   "node": "n020",
+   "operator": "mutate",
+   "parent1_metric": 393,
+   "parents": [
+    "n017"
+   ],
+   "role": null,
+   "time": "2026-09-23T03:34:49Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 28,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -32,
+   "evicted": "n019",
+   "metric": 361,
+   "n": 22,
+   "node": "n021",
+   "operator": "mutate",
+   "parent1_metric": 393,
+   "parents": [
+    "n017"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T03:42:09Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 29,
+   "decision": "DISCARD",
+   "delta": -80,
+   "evicted": null,
+   "metric": 313,
+   "n": 23,
+   "node": "n022",
+   "operator": "mutate",
+   "parent1_metric": 393,
+   "parents": [
+    "n017"
+   ],
+   "role": null,
+   "time": "2026-09-23T03:47:55Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 30,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -8,
+   "evicted": "n018",
+   "metric": 385,
+   "n": 24,
+   "node": "n023",
+   "operator": "mutate",
+   "parent1_metric": 393,
+   "parents": [
+    "n017"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T03:55:03Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 31,
+   "decision": "DISCARD",
+   "delta": -60,
+   "evicted": null,
+   "metric": 333,
+   "n": 25,
+   "node": "n024",
+   "operator": "mutate",
+   "parent1_metric": 393,
+   "parents": [
+    "n017"
+   ],
+   "role": null,
+   "time": "2026-09-23T04:00:43Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 32,
+   "decision": "BEST",
+   "delta": 40,
+   "evicted": "n013",
+   "metric": 401,
+   "n": 26,
+   "node": "n025",
+   "operator": "crossover",
+   "parent1_metric": 361,
+   "parents": [
+    "n021",
+    "n023"
+   ],
+   "role": "BEST",
+   "time": "2026-09-23T04:07:44Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 33,
+   "decision": "REPLACE_WEAKEST",
+   "delta": -10,
+   "evicted": "n021",
+   "metric": 375,
+   "n": 27,
+   "node": "n026",
+   "operator": "mutate",
+   "parent1_metric": 385,
+   "parents": [
+    "n023"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T04:13:34Z",
+   "worker": "w1"
+  },
+  {
+   "assignment_step": 34,
+   "decision": "DIVERSE",
+   "delta": 16,
+   "evicted": "n026",
+   "metric": 377,
+   "n": 28,
+   "node": "n027",
+   "operator": "mutate",
+   "parent1_metric": 361,
+   "parents": [
+    "n021"
+   ],
+   "role": "DIVERSE",
+   "time": "2026-09-23T04:20:26Z",
+   "worker": "w2"
+  },
+  {
+   "assignment_step": 35,
+   "decision": "DISCARD",
+   "delta": -72,
+   "evicted": null,
+   "metric": 329,
+   "n": 29,
+   "node": "n028",
+   "operator": "mutate",
+   "parent1_metric": 401,
+   "parents": [
+    "n025"
+   ],
+   "role": null,
+   "time": "2026-09-23T04:26:17Z",
+   "worker": "w1"
+  }
+ ]
+}
