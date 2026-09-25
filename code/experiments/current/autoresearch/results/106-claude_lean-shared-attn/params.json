@@ -1,0 +1,227 @@
+{
+  "id": "106-claude",
+  "slug": "lean-shared-attn",
+  "written_at": "2026-09-24T22:11:18-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "97c562d",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "f0aaadfb8277",
+  "patch_lines": 4,
+  "title": "P05: share the attention projections (qkv, proj) across all six blocks, per-depth MLPs kept, on the 101-claude Lean incumbent (3.48M params)",
+  "description": "P05: all six blocks of the 101-claude incumbent reuse block 0's attention projections (Q/K/V and output, weights and biases) while each depth keeps its own LayerNorms and MLP, removing 1.32M of 4.79M parameters at identical FLOPs and logical depth; the sharing persists into RL and eval. If retrieving cited hypotheses and names is the same operation at every depth, one attention trained on six times the gradient signal should copy names more reliably and give RL a better-bound, more correct long-proof starting point.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Proof steps need the same retrieval at every depth (find the cited hypothesis or name nK and copy it), so one shared attention gets gradient from all six depths and learns that lookup more robustly than six separately trained copies, while per-depth MLPs keep the depth-specific transformations. Evidence against: every earlier sharing run lost (014 A-B-A-B, 028 P03, 089 A-B-B-B-C, 105 looped middle), and 102/103 suggest the 6-block model is not parameter-starved, which cuts both ways. Mechanism checks: (1) round-1 RL targets solved and round-1 parse failures (unbound names) vs 101-claude's 647/727/679 targets and ~22% parse failures; the hypothesis predicts fewer unbound-name failures on at least 2 of 3 seeds. (2) Pretraining steps 3,650-3,850 (fewer Muon matrices; 101: ~3,600) and final val loss 0.081-0.092 (101: 0.0813/0.0820/0.0806), i.e. slightly worse fit.",
+  "p_keep": 0.15,
+  "expected_delta": "-70 to +25 dev solves >= 7 vs 101-claude's 579.67 (central -25); totals 1,750-2,050 s, well under the 2,400 s cap",
+  "baseline_id": "101-claude",
+  "baseline_metric": 580,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py), attention projections shared across all 6 blocks",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 3478016,
+      "change": "CHANGED vs 101-claude: GPT(vocab, 6, 256, 8) is built, then blocks[1..5].qkv and .proj are aliased to blocks[0].qkv and .proj (weights and biases) right after construction, so all six blocks run the same attention projections (Q/K/V and output) on their own inputs; each block keeps its own ln1, ln2, fc1, fc2. Width, heads, RoPE, LayerNorm, GELU, untied embedding/readout and logical depth unchanged",
+      "n_params_detail": "shared attention 263,168 (qkv 197,376 + proj 65,792) + 6 x per-depth 526,592 (fc1 263,168 + fc2 262,400 + ln1/ln2 1,024) = 3,422,720, + emb 27,392 + head 27,392 + ln_f 512 = 3,478,016 (vocab 107); 101-claude's 4,793,856 minus 5 x 263,168. Checked on CPU with the pinned fork model.py; the fork's n_params() sums self.parameters(), which dedupes the aliases",
+      "checkpoint_reconstruction": "GPT(vocab, 6, 256, 8) from the fork, alias blocks[i].qkv/proj = blocks[0].qkv/proj for i >= 1, then load state (the state dict repeats the shared tensors under every block index; loading into an unaliased GPT gives an identical function). The live harness keeps the aliasing through RL and eval, so RL's AdamW updates the shared attention once per step with the gradient summed over 6 depths",
+      "kv_cache": "unchanged fork code: one cache dict per model.blocks index, so 6 distinct caches. CPU check: cached prefill (causal mask) + 8 one-token steps vs full forward, max abs logit diff 1.1e-6 shared vs 1.0e-6 unshared",
+      "unique_blocks": "6 per-depth MLP/LayerNorm sets, 1 attention (qkv+proj)"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "CHANGED: sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "CHANGED: 14 unique hidden matrices (1 shared qkv.weight (768,256) split into Q/K/V, 1 shared proj.weight, 6 fc1.weight, 6 fc2.weight) plus head.weight: 15 Muon matrices vs 25 in 101-claude. The shared matrices' gradient is the sum over the six depths; Muon normalizes its scale, so their per-step update RMS equals every other matrix's",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "CHANGED: per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "CHANGED: update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all unique projection biases (shared qkv/proj biases once) and LayerNorm parameters (incl. ln_f); head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 21 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3.",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "parameters": "CHANGED: 14 unique hidden matrices (1 shared qkv.weight (768,256) split into Q/K/V, 1 shared proj.weight, 6 fc1.weight, 6 fc2.weight) plus head.weight: 15 Muon matrices vs 25 in 101-claude. The shared matrices' gradient is the sum over the six depths; Muon normalizes its scale, so their per-step update RMS equals every other matrix's"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction of 6 blocks (identical RNG draws to 101-claude), alias, then orthogonal_ on every unique 2D block parameter (gain 0.02*sqrt(max(rows, cols))), so blocks 1-5's original attention draws are discarded and later orthogonal draws shift vs 101-claude; embedding and readout keep the fork normal(0.02); biases zero.",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

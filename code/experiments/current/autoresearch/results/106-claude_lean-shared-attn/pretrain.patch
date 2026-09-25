@@ -1,0 +1,15 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 31e1aae..8a6c2e7 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -158,6 +158,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    # P05: every block reuses block 0's attention projections (qkv, proj); MLPs and LayerNorms
++    # stay per-depth. Aliased submodules dedupe in .parameters(); KV caches stay per block index.
++    for block in model.blocks[1:]:
++        block.qkv, block.proj = model.blocks[0].qkv, model.blocks[0].proj
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
