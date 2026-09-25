@@ -1,0 +1,78 @@
+{
+  "commit": "7d26f5e",
+  "recorded_at": "2026-09-24T17:37:31-0700",
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "78cba72836b2",
+  "pretrain_sha": "22cbff96e435",
+  "rules": {
+    "TOTAL_SECS": 1800,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1811,
+  "reason": "seeds [0] not ok: ['timeout']",
+  "pretrain": {
+    "secs": null,
+    "n_params": null,
+    "steps": null,
+    "epochs": null,
+    "last_loss": null,
+    "heldout_greedy": null,
+    "curve": null
+  },
+  "rl_rounds": [],
+  "eval": {
+    "solved": null,
+    "n": null,
+    "ge": null,
+    "lstar": null,
+    "heldout_greedy": null,
+    "max_pruned": null,
+    "by_bin": null
+  },
+  "holdout_metric": null,
+  "surprise": "Seed 0 timed out at 1811 s (> TOTAL_SECS 1800) during eval after four RL rounds on a slow pod (207-241 samples/s vs 250-265 on seeds 1-2); seeds 1/2 finished ok at 1620/1684 s with 580/573 dev solves >= 7 (token-format 081 seeds: 433/356/422). Cause is harness overhead, not the recipe: remote.sh ran the fork's Lean gate with LEAN_GATE_WORKERS=nproc=96 (host CPUs), 67-110 s wall per gate pass, ~2.7x slower per check than Dan's 12-worker runs. 7d26f5e caps workers at 12; the identical baseline re-runs as 099. Lean vetoed 0 nd_verify-accepted samples on seeds 1-2 (lean-only accepts 0-19 per pass). Pretrain held-out greedy 0.988/0.990/0.993.",
+  "seed_metrics": {
+    "1": 580,
+    "2": 573
+  },
+  "seed_metric_rl": {
+    "1": 1052,
+    "2": 1071
+  },
+  "seed_status": {
+    "0": "timeout",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "1": {
+      "val_loss": 0.08263712283223867,
+      "heldout_greedy": 0.9875,
+      "steps": 4316
+    },
+    "2": {
+      "val_loss": 0.07861443795263767,
+      "heldout_greedy": 0.99,
+      "steps": 4304
+    }
+  },
+  "lean_gate": {
+    "samples": 533824,
+    "parse_fail": 79153,
+    "distinct_checked": 372583,
+    "both_ok": 211620,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 23,
+    "lean_wall_s": 845.0668823719025
+  },
+  "migrated": false
+}
