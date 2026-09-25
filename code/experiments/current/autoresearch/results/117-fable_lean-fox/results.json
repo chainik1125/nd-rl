@@ -1,0 +1,370 @@
+{
+  "commit": "aaa97d1",
+  "recorded_at": "2026-09-25T03:55:49-0700",
+  "status": "discard",
+  "metric": 541,
+  "metric_rl": 1002,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "eae3d03cad5c",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1832,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.4,
+    "n_params": 4806168,
+    "steps": 2078,
+    "epochs": 1.7275502383643142,
+    "last_loss": 0.05726047605276108,
+    "heldout_greedy": 0.972,
+    "curve": [
+      {
+        "secs": 16,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.580272376537323
+      },
+      {
+        "secs": 30,
+        "step": 104,
+        "train_loss": 2.0588757276535032,
+        "val_loss": 0.9339210242033005
+      },
+      {
+        "secs": 45,
+        "step": 214,
+        "train_loss": 0.4357499539852142,
+        "val_loss": 0.13306404650211334
+      },
+      {
+        "secs": 60,
+        "step": 325,
+        "train_loss": 0.11020384232203166,
+        "val_loss": 0.10478489194065332
+      },
+      {
+        "secs": 75,
+        "step": 431,
+        "train_loss": 0.08519282937049866,
+        "val_loss": 0.09060037508606911
+      },
+      {
+        "secs": 90,
+        "step": 538,
+        "train_loss": 0.07676778882741928,
+        "val_loss": 0.09102380275726318
+      },
+      {
+        "secs": 105,
+        "step": 648,
+        "train_loss": 0.07053125525514285,
+        "val_loss": 0.08372258860617876
+      },
+      {
+        "secs": 120,
+        "step": 756,
+        "train_loss": 0.06757912933826446,
+        "val_loss": 0.0889198500663042
+      },
+      {
+        "secs": 135,
+        "step": 866,
+        "train_loss": 0.06362765406568845,
+        "val_loss": 0.08935950882732868
+      },
+      {
+        "secs": 150,
+        "step": 974,
+        "train_loss": 0.06152808517217636,
+        "val_loss": 0.08446042239665985
+      },
+      {
+        "secs": 165,
+        "step": 1088,
+        "train_loss": 0.062286759416262306,
+        "val_loss": 0.08483390789479017
+      },
+      {
+        "secs": 180,
+        "step": 1197,
+        "train_loss": 0.058511263132095336,
+        "val_loss": 0.07993339188396931
+      },
+      {
+        "secs": 195,
+        "step": 1303,
+        "train_loss": 0.05768310154477755,
+        "val_loss": 0.08383552357554436
+      },
+      {
+        "secs": 210,
+        "step": 1419,
+        "train_loss": 0.05794521048665047,
+        "val_loss": 0.08527729753404856
+      },
+      {
+        "secs": 225,
+        "step": 1527,
+        "train_loss": 0.05598331615328789,
+        "val_loss": 0.0883451821282506
+      },
+      {
+        "secs": 240,
+        "step": 1637,
+        "train_loss": 0.05720263570547104,
+        "val_loss": 0.09115729480981827
+      },
+      {
+        "secs": 255,
+        "step": 1750,
+        "train_loss": 0.05680084228515625,
+        "val_loss": 0.08328112959861755
+      },
+      {
+        "secs": 270,
+        "step": 1858,
+        "train_loss": 0.054286782443523404,
+        "val_loss": 0.08237431850284338
+      },
+      {
+        "secs": 285,
+        "step": 1967,
+        "train_loss": 0.05522209778428078,
+        "val_loss": 0.08118051663041115
+      },
+      {
+        "secs": 300,
+        "step": 2078,
+        "train_loss": 0.05439166724681854,
+        "val_loss": 0.08632225822657347
+      }
+    ],
+    "records_seen": 265984
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.0870625,
+      "new_proofs": 365,
+      "targets_solved": 252,
+      "lstar": 9,
+      "ge": {
+        "7": 252,
+        "8": 64,
+        "9": 17,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1452,
+      "samples_per_sec": 303,
+      "secs": 248
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.1819375,
+      "new_proofs": 155,
+      "targets_solved": 340,
+      "lstar": 9,
+      "ge": {
+        "7": 340,
+        "8": 97,
+        "9": 34,
+        "10": 1,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2052,
+      "samples_per_sec": 283,
+      "secs": 264
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.27325,
+      "new_proofs": 390,
+      "targets_solved": 639,
+      "lstar": 9,
+      "ge": {
+        "7": 639,
+        "8": 245,
+        "9": 73,
+        "10": 4,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3604,
+      "samples_per_sec": 316,
+      "secs": 247
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.5469791666666667,
+      "new_proofs": 466,
+      "targets_solved": 923,
+      "lstar": 10,
+      "ge": {
+        "7": 923,
+        "8": 452,
+        "9": 201,
+        "10": 21,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5400,
+      "samples_per_sec": 279,
+      "secs": 291
+    }
+  ],
+  "eval": {
+    "solved": 474,
+    "n": 1108,
+    "ge": {
+      "7": 474,
+      "8": 406,
+      "9": 321,
+      "10": 55,
+      "11": 5,
+      "12": 1,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.9845,
+    "max_pruned": 12,
+    "by_bin": {
+      "7": {
+        "solved": 68,
+        "n": 150,
+        "rate": 0.4533333333333333,
+        "ci": [
+          0.37582361795320735,
+          0.5331736883670597
+        ]
+      },
+      "8": {
+        "solved": 85,
+        "n": 152,
+        "rate": 0.5592105263157895,
+        "ci": [
+          0.47978700895683946,
+          0.635714885274226
+        ]
+      },
+      "9": {
+        "solved": 266,
+        "n": 477,
+        "rate": 0.5576519916142557,
+        "ci": [
+          0.5127955696554216,
+          0.601587212533141
+        ]
+      },
+      "10": {
+        "solved": 50,
+        "n": 219,
+        "rate": 0.228310502283105,
+        "ci": [
+          0.1776840396576082,
+          0.2883043574818846
+        ]
+      },
+      "11": {
+        "solved": 4,
+        "n": 49,
+        "rate": 0.08163265306122448,
+        "ci": [
+          0.032202296241712225,
+          0.19189387041486136
+        ]
+      },
+      "12": {
+        "solved": 1,
+        "n": 54,
+        "rate": 0.018518518518518517,
+        "ci": [
+          0.0032764033153519848,
+          0.09771665358487208
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "FoX forget gates (Lin et al. 2025) on the 4 positional heads of the 115-fable hybrid (per-block Linear(256,4) gates, zero-init weights and bias logit(exp(-slope)) so the run starts as exactly 115's ALiBi; 4 NoPE heads untouched; 4,806,168 params, i.e. 115's 4,800,000 + 6,168, not the 4,802,584 mis-added in params.json) scored 474/579/571 on seeds 0/1/2 vs 115's 639/646/609: exact means 541.00 vs 631.33, -90.3, paired -165/-67/-38, every seed down and outside the registered -45..+45 range. Discard. The registered mechanism is REFUTED in direction, and it failed the same way 113's steep slopes did: the data-dependent decay learned on cap-6 chains over-localises at unseen lengths. Round-1 targets solved 252/548/329 vs 115's 718/756/691, round-1 sample acc 0.087/0.182/0.092 vs 0.318/0.301/0.315, round-1 parse failures 24655/19392/25053 of 48,000 = 51/40/52% vs 25/22/18% (113: 50/30/64%), so at T=0.8 the gated model emits malformed 7+-line chains twice as often as the fixed-slope incumbent, while cap-6 held-out greedy is only ~1 point lower (0.972/0.969/0.969 vs 0.9815/0.983/0.9845): a length-extrapolation failure, not underfitting. Expert iteration then repairs it from the verifier signal, as in 113: seeds 1/2 cleared the parse failures by round 2 (5785/5677 = 12%) and reached r4 1030/1052 (115: 1122/1065), but seed 0 stayed collapsed for three rounds (parse failures 50/45% at r2/r3, targets 340/639) and only cleared at r4 (11%, 923), which is where its -165 comes from; r1->r4 gains +671/+482/+723 are catch-up, not a property of the gates. The eval frontier moved down on every seed: ge10 55/81/69 vs 103/97/89, ge11 5/16/14 vs 25/23/19, ge12 1/4/2 vs 5/4/4, L* 11 (115: 12/11/11); per-bin 7: 0.45/0.49/0.57 vs 0.62/0.63/0.58, 10: 0.23/0.30/0.25 vs 0.36/0.34/0.32, 11: 0.08/0.25/0.25 vs 0.41/0.39/0.31; whole-run Lean-gate parse failures 88214/45892/50441 of 266,912 (33/17/19%). Second surprise, a systems one: pretraining ran at exactly HALF of 115's throughput, 2078/2070/2079 steps vs 4204/4218/4263 (-51%; the registration predicted -5% to -25%; 116-fable's grad-carrying shared table cost 18%). Each block now builds a (B, 8, T, S) bias that requires grad, so SDPA cannot use the fused kernel and the bias build, cast and backward run six times per step; RL decoding was unaffected (238-316 samples/s vs 256-313; rounds 247-330 s; totals 1639/1832/1769 s). The halved step count cost no fit: final val loss 0.0863/0.0801/0.0809 vs 0.0826/0.0806/0.0792, minima 0.0799/0.0777/0.0775 vs 0.0778/0.0793/0.0777 (115 at step 2201 already had 0.0843; the wall-clock cosine, not the step count, sets the endpoint), so the fewer steps are a confound for the round-1 collapse only through less schedule time at high LR, which 111/113 (4,700/4,200 steps, similar val) argue is not what drives the 7+-line start. Omission: the registration promised a final-gate diagnostic (mean log f per head) that the code never logged, so the direction the gates moved (presumably steeper than the init slopes) is inferred from the collapse, not measured. Lessons: across 116-fable (T5-bucketed table, +3), 116-claude (learned per-block slopes, +3) and this run (-90), the positional heads' distance prior is at a local optimum under 115's fixed table: static reshaping buys nothing and content-dependence learned from cap-6 statistics hurts, so the next ideas should leave the positional mechanism alone. If content-dependent decay is ever retried it needs (a) a fused kernel (FlexAttention score_mod with a cumsum bias) and (b) a length-safe parametrisation, e.g. gates that can only OPEN relative to the ALiBi slope (log f >= -slope) so the decay can never exceed the fixed prior that 115 showed extrapolates.",
+  "seed_metrics": {
+    "0": 474,
+    "1": 579,
+    "2": 571
+  },
+  "seed_metric_rl": {
+    "0": 923,
+    "1": 1030,
+    "2": 1052
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08632225822657347,
+      "heldout_greedy": 0.972,
+      "steps": 2078
+    },
+    "1": {
+      "val_loss": 0.08005887735635042,
+      "heldout_greedy": 0.969,
+      "steps": 2070
+    },
+    "2": {
+      "val_loss": 0.08085468970239162,
+      "heldout_greedy": 0.969,
+      "steps": 2079
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 184547,
+    "distinct_checked": 507892,
+    "both_ok": 245211,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 44,
+    "lean_wall_s": 1177.9243168830872
+  },
+  "migrated": false
+}
