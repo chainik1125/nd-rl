@@ -1,0 +1,47 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..28057ce 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -52,13 +52,12 @@ NS_COEFFS = (
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
+ TOK_MODE = "lean_seq"  # required by the harness (Lean protocol)
+-# Hybrid heads: half the heads get ALiBi (Press et al. 2021) with the standard slope set for
+-# H/2 heads, 2^(-8 i / (H/2)) = 1/4 .. 1/256 with 8 heads; the other half get slope 0, i.e. no
+-# positional signal at all (NoPE), so they can look citations up by content at any distance.
+-N_ALIBI = N_HEAD // 2
+-ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+-    N_HEAD - N_ALIBI
+-)
++# Hybrid layers: even blocks put ALiBi (Press et al. 2021) on all heads, with the 4-head standard
++# slopes 1/4 .. 1/256 each on two heads; odd blocks get slope 0 on every head, i.e. no positional
++# signal at all (NoPE), so they can look citations up by content at any distance. Same multiset
++# of (head, slope) slots as 115's per-block 4+4 split, arranged by layer instead of by head.
++ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i // 2 + 1) / 4) for i in range(N_HEAD))
++BLOCK_SLOPES = (ALIBI_SLOPES, (0.0,) * N_HEAD)  # block i uses BLOCK_SLOPES[i % 2]
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
+@@ -150,7 +149,7 @@ class ALiBiGPT(GPT):
+ 
+     def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+-        slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
++        slopes = torch.tensor(BLOCK_SLOPES).view(len(BLOCK_SLOPES), 1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+@@ -167,11 +166,11 @@ class ALiBiGPT(GPT):
+             c["n_pos"] = n1
+             key_pos = c["pos"][:, :n1]
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+-        bias = -self.slopes * rel.to(self.slopes.dtype)
++        bias = -self.slopes * rel.to(self.slopes.dtype)  # (2, B or 1, H, T, S): ALiBi, NoPE
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++            x = b(x, None, None, bias[i % len(bias)], None if caches is None else caches[i])
+         return self.head(self.ln_f(x))
+ 
+ 
