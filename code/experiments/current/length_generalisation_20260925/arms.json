@@ -1,0 +1,56 @@
+{
+ "seed_rl": "/scratch/cowifornia/nd-rl/ab3/seed/rl.py",
+ "seed_sha256": "be380193a3fc98cdb7bbf1a5b1ae020abb79cce413210b050ce5f0e49fb1eeb4",
+ "knobs": [
+  "max_len_train",
+  "max_proof_lines_train"
+ ],
+ "seed_value": "None",
+ "knob_line": 174,
+ "seed_values": {
+  "max_len_train": "None",
+  "max_proof_lines_train": "None"
+ },
+ "knob_lines": {
+  "max_len_train": 174,
+  "max_proof_lines_train": 175
+ },
+ "arms": {
+  "A": {
+   "file": "/scratch/cowifornia/nd-rl/ab3/lengthexp/rl_A.py",
+   "max_len_train": 7,
+   "max_proof_lines_train": 7,
+   "sha256": "815d9639811613702a7e92a9d7b9b56abaae1047011abc654a8ae3811bed32eb",
+   "diff": [
+    "-    max_len_train=None,    # drop targets with L_true above this before subsetting (None = all lengths in the pool)",
+    "-    max_proof_lines_train=None,  # found / relabelled proofs with more written lines than this are left out of the",
+    "+    max_len_train=7,    # drop targets with L_true above this before subsetting (None = all lengths in the pool)",
+    "+    max_proof_lines_train=7,  # found / relabelled proofs with more written lines than this are left out of the"
+   ]
+  },
+  "B": {
+   "file": "/scratch/cowifornia/nd-rl/ab3/lengthexp/rl_B.py",
+   "max_len_train": 9,
+   "max_proof_lines_train": 9,
+   "sha256": "96ff504fb3c71af5e5c3e96577aba7e7df76eec0999328b69e5ec515635295f0",
+   "diff": [
+    "-    max_len_train=None,    # drop targets with L_true above this before subsetting (None = all lengths in the pool)",
+    "-    max_proof_lines_train=None,  # found / relabelled proofs with more written lines than this are left out of the",
+    "+    max_len_train=9,    # drop targets with L_true above this before subsetting (None = all lengths in the pool)",
+    "+    max_proof_lines_train=9,  # found / relabelled proofs with more written lines than this are left out of the"
+   ]
+  },
+  "C": {
+   "file": "/scratch/cowifornia/nd-rl/ab3/lengthexp/rl_C.py",
+   "max_len_train": 11,
+   "max_proof_lines_train": 11,
+   "sha256": "96eb9f162f3ff0e395878b16f2a2b02da61ccda0848310aae4c15d096be7f275",
+   "diff": [
+    "-    max_len_train=None,    # drop targets with L_true above this before subsetting (None = all lengths in the pool)",
+    "-    max_proof_lines_train=None,  # found / relabelled proofs with more written lines than this are left out of the",
+    "+    max_len_train=11,    # drop targets with L_true above this before subsetting (None = all lengths in the pool)",
+    "+    max_proof_lines_train=11,  # found / relabelled proofs with more written lines than this are left out of the"
+   ]
+  }
+ }
+}

@@ -1,0 +1,367 @@
+{
+ "built_utc": "2026-09-25T00:19:16Z",
+ "draw_seed": 20260925,
+ "per_len": 300,
+ "textbook_share": 0.4,
+ "train_files": {
+  "targets_ab2": {
+   "file": "/scratch/cowifornia/nd-rl/ab2/data/targets_L6-11.jsonl",
+   "sha256": "9cba7173cc0836dc80da2a275f3e6f5d2a73809b00c8e02c69f92a4ff21dc299",
+   "n_classes": 15738
+  },
+  "targets_ab3_frozen": {
+   "file": "/scratch/cowifornia/nd-rl/ab3/frozen/data/targets_L6-11.jsonl",
+   "sha256": "9cba7173cc0836dc80da2a275f3e6f5d2a73809b00c8e02c69f92a4ff21dc299",
+   "n_classes": 15738
+  },
+  "train_cap6": {
+   "file": "/scratch/cowifornia/nd-rl/ab3/frozen/data/train_cap6.jsonl",
+   "sha256": "9c024cd9c6225efdb3df93da983a34efeb77e237abb8952b9341d49824719e04",
+   "n_classes": 153475
+  },
+  "heldout_cap6": {
+   "file": "/scratch/cowifornia/nd-rl/ab3/frozen/data/heldout_cap6.jsonl",
+   "sha256": "46a49f4421c5225b1746e9b61533dee26d951636b707ef34493b69fbb8bfcc62",
+   "n_classes": 4996
+  }
+ },
+ "sources": [
+  {
+   "set": "std",
+   "file": "/scratch/cowifornia/nd-rl/ab2/data/reserve.jsonl",
+   "sha256": "4ad7c4782716c340e4c42395182501da82870387ef897175ce7b28d6146fb7c6",
+   "lengths": [
+    6,
+    7
+   ],
+   "n_read": 213989,
+   "stored_pkey_mismatch": 0,
+   "dropped_overlap_training": {},
+   "available_by_len": {
+    "6": 129112,
+    "7": 84877
+   }
+  },
+  {
+   "set": "std",
+   "file": "/scratch/cowifornia/nd-rl/ab2/data/dev_L8-11.jsonl",
+   "sha256": "978318abe6ca010787ab672ad5881f921500a039fd71da8df4d3d8597a9bd34d",
+   "lengths": [
+    8,
+    9,
+    10,
+    11
+   ],
+   "n_read": 1200,
+   "stored_pkey_mismatch": 0,
+   "dropped_overlap_training": {},
+   "available_by_len": {
+    "8": 300,
+    "9": 300,
+    "10": 300,
+    "11": 300
+   }
+  },
+  {
+   "set": "std",
+   "file": "/scratch/cowifornia/nd-rl/ab2/sealed/sealed_L12-14.jsonl",
+   "sha256": "e7e637b8a83f864b3337cf0856107473e80aac6bd8a850c384c3ebe728761e98",
+   "lengths": [
+    12,
+    13,
+    14
+   ],
+   "n_read": 1931,
+   "stored_pkey_mismatch": 0,
+   "dropped_overlap_training": {},
+   "available_by_len": {
+    "12": 1414,
+    "13": 359,
+    "14": 158
+   }
+  },
+  {
+   "set": "std",
+   "file": "/scratch/cowifornia/nd-rl/ab3/sealed/sealed_L15-16.jsonl",
+   "sha256": "d6ac988aa2e25643ef25ede7409d6d99bea0df21193ddb0a00274f727fa9be0d",
+   "lengths": [
+    15,
+    16
+   ],
+   "n_read": 978,
+   "stored_pkey_mismatch": 0,
+   "dropped_overlap_training": {},
+   "available_by_len": {
+    "15": 545,
+    "16": 433
+   }
+  },
+  {
+   "set": "std",
+   "file": "/scratch/cowifornia/nd-rl/ab3/sealed/sealed_L17-18.jsonl",
+   "sha256": "c06bea5d07b307567ab178e2e5a2c6ac522b5a91ec87b49b079c9e3b50fa5d2c",
+   "lengths": [
+    17,
+    18
+   ],
+   "n_read": 657,
+   "stored_pkey_mismatch": 0,
+   "dropped_overlap_training": {},
+   "available_by_len": {
+    "17": 349,
+    "18": 308
+   }
+  },
+  {
+   "set": "matched",
+   "file": "/scratch/cowifornia/nd-rl/ab3/sealed/matched_L6-14.jsonl",
+   "sha256": "c848b455a40cd03af71ad85fbdaa5aebe360df017bd5158219b9e26826b7af80",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "n_read": 3599,
+   "stored_pkey_mismatch": 0,
+   "dropped_overlap_training": {},
+   "available_by_len": {
+    "6": 399,
+    "7": 400,
+    "8": 400,
+    "9": 400,
+    "10": 400,
+    "11": 400,
+    "12": 400,
+    "13": 400,
+    "14": 400
+   }
+  }
+ ],
+ "units": {
+  "matched_L6": {
+   "n": 300,
+   "by_source": {
+    "ab3_andi": 147,
+    "ab3_chain": 153
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L7": {
+   "n": 300,
+   "by_source": {
+    "ab3_andi": 151,
+    "ab3_chain": 149
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L8": {
+   "n": 300,
+   "by_source": {
+    "ab3_chain": 147,
+    "ab3_andi": 153
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L9": {
+   "n": 300,
+   "by_source": {
+    "ab3_andi": 152,
+    "ab3_chain": 148
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L10": {
+   "n": 300,
+   "by_source": {
+    "ab3_chain": 149,
+    "ab3_andi": 151
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L11": {
+   "n": 300,
+   "by_source": {
+    "ab3_chain": 158,
+    "ab3_andi": 142
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L12": {
+   "n": 300,
+   "by_source": {
+    "ab3_chain": 144,
+    "ab3_andi": 156
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L13": {
+   "n": 300,
+   "by_source": {
+    "ab3_chain": 150,
+    "ab3_andi": 150
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "matched_L14": {
+   "n": 300,
+   "by_source": {
+    "ab3_chain": 146,
+    "ab3_andi": 154
+   },
+   "n_schemata": 0,
+   "src_file": "matched_L6-14.jsonl"
+  },
+  "std_L6": {
+   "n": 300,
+   "by_source": {
+    "textbook": 120,
+    "gen": 180
+   },
+   "n_schemata": 7,
+   "src_file": "reserve.jsonl"
+  },
+  "std_L7": {
+   "n": 300,
+   "by_source": {
+    "textbook": 120,
+    "gen": 180
+   },
+   "n_schemata": 5,
+   "src_file": "reserve.jsonl"
+  },
+  "std_L8": {
+   "n": 300,
+   "by_source": {
+    "textbook": 120,
+    "gen": 180
+   },
+   "n_schemata": 14,
+   "src_file": "dev_L8-11.jsonl"
+  },
+  "std_L9": {
+   "n": 300,
+   "by_source": {
+    "textbook": 120,
+    "gen": 180
+   },
+   "n_schemata": 13,
+   "src_file": "dev_L8-11.jsonl"
+  },
+  "std_L10": {
+   "n": 300,
+   "by_source": {
+    "gen": 180,
+    "textbook": 120
+   },
+   "n_schemata": 12,
+   "src_file": "dev_L8-11.jsonl"
+  },
+  "std_L11": {
+   "n": 300,
+   "by_source": {
+    "textbook": 120,
+    "gen": 180
+   },
+   "n_schemata": 6,
+   "src_file": "dev_L8-11.jsonl"
+  },
+  "std_L12": {
+   "n": 300,
+   "by_source": {
+    "textbook": 120,
+    "gen": 180
+   },
+   "n_schemata": 5,
+   "src_file": "sealed_L12-14.jsonl"
+  },
+  "std_L13": {
+   "n": 300,
+   "by_source": {
+    "textbook": 102,
+    "gen": 198
+   },
+   "n_schemata": 2,
+   "src_file": "sealed_L12-14.jsonl"
+  },
+  "std_L14": {
+   "n": 158,
+   "by_source": {
+    "textbook": 114,
+    "gen": 44
+   },
+   "n_schemata": 1,
+   "src_file": "sealed_L12-14.jsonl"
+  },
+  "std_L15": {
+   "n": 300,
+   "by_source": {
+    "ab3_andi": 146,
+    "ab3_chain": 154
+   },
+   "n_schemata": 0,
+   "src_file": "sealed_L15-16.jsonl"
+  },
+  "std_L16": {
+   "n": 300,
+   "by_source": {
+    "ab3_chain": 135,
+    "ab3_andi": 165
+   },
+   "n_schemata": 0,
+   "src_file": "sealed_L15-16.jsonl"
+  },
+  "std_L17": {
+   "n": 300,
+   "by_source": {
+    "ab3_andi": 262,
+    "ab3_chain": 38
+   },
+   "n_schemata": 0,
+   "src_file": "sealed_L17-18.jsonl"
+  },
+  "std_L18": {
+   "n": 300,
+   "by_source": {
+    "ab3_andi": 292,
+    "ab3_chain": 8
+   },
+   "n_schemata": 0,
+   "src_file": "sealed_L17-18.jsonl"
+  }
+ },
+ "missing": [],
+ "std_internal_duplicates": 0,
+ "matched_dropped_overlap_std": 0,
+ "matched_internal_duplicates": 0,
+ "disjointness": {
+  "std": {
+   "targets_ab2": 0,
+   "targets_ab3_frozen": 0,
+   "train_cap6": 0,
+   "heldout_cap6": 0,
+   "internal_duplicates": 0
+  },
+  "matched": {
+   "targets_ab2": 0,
+   "targets_ab3_frozen": 0,
+   "train_cap6": 0,
+   "heldout_cap6": 0,
+   "internal_duplicates": 0,
+   "overlap_std": 0
+  }
+ }
+}
