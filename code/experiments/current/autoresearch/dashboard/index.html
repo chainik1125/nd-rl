@@ -3,69 +3,68 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Autoresearch · Lean</title>
+<title>Autoresearch</title>
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
 <style>
   :root {
-    --bg: #fafaf9; --panel: #ffffff; --fg: #1c1917; --muted: #78716c; --grid: #e7e5e4;
+    --bg: #fafaf9; --fg: #1c1917; --muted: #78716c; --grid: #e7e5e4;
     --keep: #16a34a; --discard: #a8a29e; --fail: #dc2626; --base: #2563eb; --rl: #d97706;
+    --anthropic: #c2613f; --openai: #475569;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1c1917; --panel: #292524; --fg: #f5f5f4; --muted: #a8a29e; --grid: #3a3532;
+      --bg: #1c1917; --fg: #f5f5f4; --muted: #a8a29e; --grid: #3a3532;
       --keep: #4ade80; --discard: #78716c; --fail: #f87171; --base: #60a5fa; --rl: #fbbf24;
+      --anthropic: #e8875f; --openai: #94a3b8;
     }
   }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
   main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
   h1 { font-size: 20px; margin: 0 0 4px; }
-  h2 { font-size: 15px; margin: 28px 0 2px; }
+  h2 { font-size: 15px; margin: 28px 0 0; }
   p { color: var(--muted); margin: 0; }
-  a { color: var(--base); }
   code { font-size: 12px; }
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 16px 0 4px; }
-  .tile { background: var(--panel); border: 1px solid var(--grid); border-radius: 8px; padding: 10px 12px; }
-  .tile .k { color: var(--muted); font-size: 12px; }
-  .tile .v { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .tile .s { color: var(--muted); font-size: 12px; }
-  .chart { height: 400px; }
-  .scroll { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin-top: 8px; }
-  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
-  td.t { white-space: normal; min-width: 260px; }
-  th { color: var(--muted); font-weight: 500; font-size: 12px; }
-  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-  .empty { padding: 24px; border: 1px dashed var(--grid); border-radius: 8px; margin-top: 8px; }
+  .chart { height: 420px; }
+  .warn { color: var(--fail); }
 </style>
 </head>
 <body>
 <main>
-  <h1>Autoresearch · Lean protocol</h1>
-  <p>Since 098: Dan's <code>lean_seq</code> tokenizer (fork <code>51604b3</code>), reward = Lean 4 ∧ nd_verify,
-     1800 s total / 300 s pretrain, expert iteration 4 rounds unchanged. Metric = dev-transfer theorems
-     solved at length ≥ 7 (1,108 dev theorems, 64 attempts), 3-seed mean.
-     Token-format runs are not comparable: <a href="/history">history (000–097)</a>.</p>
-  <div class="tiles" id="tiles"></div>
+  <h1>Autoresearch: theorems solved</h1>
+  <p>Dev-transfer theorems solved at length ≥ 7. Hover a point for the idea. Refresh after a run.</p>
+  <p>Colour = the company whose agent ran it, on the x-axis labels and the dev markers' outline:
+     <b style="color: var(--anthropic)">Anthropic (Claude)</b> ·
+     <b style="color: var(--openai)">OpenAI (Codex)</b>.
+     Circles = Codex, squares = Claude (041 on; earlier runs are circles), blue line = the bar to beat,
+     amber diamonds = RL targets solved by the last round, faint marks = individual seeds.</p>
+  <p id="asof"></p>
+  <p id="tally"></p>
 
-  <h2>Metric per experiment</h2>
-  <p>Dev solves ≥ 7. Big marks = 3-seed mean (green keep, grey discard, red × crash/timeout, open = running);
-     faint = seeds; blue step = the bar to beat.</p>
-  <div id="metric" class="chart"></div>
+  <h2>Lean protocol (098 on)</h2>
+  <p>Dan's <code>lean_seq</code> tokenizer (fork <code>51604b3</code>), reward = Lean 4 ∧ nd_verify,
+     2400 s total / 300 s pretrain (1800 s for 098–099). Not comparable with the token-format runs below.
+     <span id="lean-gate"></span></p>
+  <div id="lean" class="chart"></div>
 
-  <h2>Does pretraining loss predict the RL outcome?</h2>
-  <p>One point per seed: final pretrain val loss (held-out 1,024 records, Lean tokens) against dev solves ≥ 7 after RL.
-     Only runs since 098; losses under different tokenizers are not comparable.</p>
+  <h2>Lean protocol: does pretraining loss predict the RL outcome?</h2>
+  <p>One point per seed: final pretrain val loss (1,024 held-out training records) against dev solves ≥ 7
+     after RL. <span id="rho"></span></p>
   <div id="loss" class="chart"></div>
 
-  <h2>Runs</h2>
-  <div class="scroll"><table id="runs"></table></div>
+  <h2>Token format, 049–097</h2>
+  <div id="token2" class="chart"></div>
+
+  <h2>Token format, 000–048</h2>
+  <p>Dotted lines mark budget changes; metrics jump across them.</p>
+  <div id="token1" class="chart"></div>
 </main>
 <script>
 const LEAN_FORK = "51604b3";
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-const mean = xs => xs.reduce((a, b) => a + b, 0) / xs.length;
-const fmt = (x, d = 0) => x == null || Number.isNaN(x) ? "—" : x.toFixed(d);
+const pct = (k, n) => k == null ? null : 100 * k / n;
+const num = run => parseInt(run.id, 10);
 
+// Break long strings onto multiple hover lines; Plotly hover labels do not wrap on their own.
 function wrap(text, width = 80) {
   if (!text) return "";
   const lines = [];
@@ -77,115 +76,159 @@ function wrap(text, width = 80) {
   return [...lines, line].join("<br>");
 }
 
-function pearson(xs, ys) {
-  if (xs.length < 3) return null;
-  const mx = mean(xs), my = mean(ys);
-  let sxy = 0, sxx = 0, syy = 0;
-  xs.forEach((x, i) => { sxy += (x - mx) * (ys[i] - my); sxx += (x - mx) ** 2; syy += (ys[i] - my) ** 2; });
-  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
+function hover(run) {
+  const seeds = m => m ? ` (seeds: ${Object.values(m).join(", ")})` : "";
+  const delta = run.delta == null ? "" : ` · Δ ${run.delta >= 0 ? "+" : ""}${run.delta}`;
+  const count = (k, n) => k == null ? "—" : `${k} / ${n} (${pct(k, n).toFixed(1)}%)`;
+  return [
+    `<b>${run.id} ${run.slug}</b> · ${run.status}${run.model ? ` · ${run.model}` : ""}`,
+    `dev ${count(run.metric, run.n_dev)}${seeds(run.seed_metrics)}${delta}`,
+    `RL targets ${count(run.metric_rl, run.n_targets)}${seeds(run.seed_metric_rl)}`,
+    wrap(run.title),
+    `<i>${run.tags.join(", ")} · ${run.budget}</i>`,
+    run.hypothesis ? "<br><b>Hypothesis</b><br>" + wrap(run.hypothesis) : "",
+    run.surprise ? "<br><b>Surprise</b><br>" + wrap(run.surprise.slice(0, 1200)) : "",
+  ].filter(Boolean).join("<br>");
 }
 
-function tile(k, v, s) {
-  return `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s ?? ""}</div></div>`;
-}
+fetch("data.json").then(r => r.json()).then(({ runs, as_of, fetch_error }) => {
+  document.getElementById("asof").innerHTML = `Data as of ${as_of}.` +
+    (fetch_error ? ` <span class="warn">git fetch is failing, so this may be stale: ${fetch_error}</span>` : "");
 
-fetch("data.json").then(r => r.json()).then(all => {
-  const runs = all.filter(r => r.fork === LEAN_FORK);
-  const tokenBest = all.filter(r => r.fork !== LEAN_FORK && r.status === "keep" && r.metric != null)
-    .reduce((b, r) => (b && b.metric >= r.metric ? b : r), null);
-
-  let bar = null;
+  // Baseline = metric of the last kept run under the same protocol (budget + fork). Metrics
+  // under different protocols are not comparable, so the bar resets when either changes.
+  // The Lean protocol's budget moved 1800 -> 2400 s without changing the metric: one era.
+  const era = run => run.fork === LEAN_FORK ? "lean" : run.budget;
+  const baselineByEra = {};
   for (const run of runs) {
     run.label = `${run.id} ${run.slug}`;
-    run.bar = bar;
-    run.delta = run.metric != null && bar != null ? run.metric - bar.metric : null;
-    if (run.status === "keep" && run.metric != null) bar = run;
-    run.after = bar ? bar.metric : null;
+    run.baseline = baselineByEra[era(run)] ?? null;
+    run.delta = run.metric != null && run.baseline != null ? run.metric - run.baseline : null;
+    if (run.status === "keep" && run.metric != null) baselineByEra[era(run)] = run.metric;
+    run.after = baselineByEra[era(run)] ?? null;
   }
-  const failed = r => r.status === "crash" || r.status === "timeout";
-  const done = runs.filter(r => r.status !== "pending");
-  const seedValues = runs.flatMap(r => Object.values(r.seed_metrics ?? {}));
-  const gate = runs.map(r => r.lean_gate).filter(Boolean)
+
+  const statusColor = { keep: css("--keep"), discard: css("--discard"), crash: css("--fail"), timeout: css("--fail") };
+  const color = run => statusColor[run.status] ?? css("--muted");
+  const failed = run => run.metric == null && run.status !== "pending";
+  // Company from the registered model id (earlier runs too: several were claude-fable-5-1).
+  const company = run => /^claude/.test(run.model ?? "") ? css("--anthropic")
+    : /^(gpt|o\d)/.test(run.model ?? "") ? css("--openai") : css("--muted");
+  const shape = run => run.agent === "claude" ? "square" : "circle";
+
+  // Who merges more: keeps, finished runs, and runs in flight per agent, per era.
+  const tally = (rs, since) => ["claude", "codex"].map(agent => {
+    const mine = rs.filter(r => r.agent === agent);
+    const count = status => mine.filter(r => r.status === status).length;
+    return mine.length ? `${agent[0].toUpperCase() + agent.slice(1)} ${count("keep")} keeps / ` +
+      `${mine.length - count("pending")} runs${count("pending") ? `, ${count("pending")} running` : ""}` : null;
+  }).filter(Boolean).join(" · ") + ` (${since})`;
+  const lean = runs.filter(r => r.fork === LEAN_FORK);
+  const token = runs.filter(r => r.fork !== LEAN_FORK);
+  document.getElementById("tally").textContent =
+    `Lean: ${tally(lean, "since 098")}. Token format: ${tally(token.filter(r => num(r) >= 41), "041–097")}.`;
+
+  const gate = lean.map(r => r.lean_gate).filter(Boolean)
     .reduce((t, g) => { for (const k in g) t[k] = (t[k] ?? 0) + g[k]; return t; }, {});
+  if (gate.samples) document.getElementById("lean-gate").textContent =
+    `Lean gate so far: ${(100 * gate.parse_fail / gate.samples).toFixed(1)}% of ${gate.samples.toLocaleString()} ` +
+    `samples did not parse; Lean vetoed ${gate.nd_ok_lean_rej} proofs nd_verify accepted.`;
 
-  document.getElementById("tiles").innerHTML = [
-    tile("Bar (incumbent 3-seed mean)", bar ? bar.metric : "—", bar ? bar.label : "no keep yet"),
-    tile("Best single seed", seedValues.length ? Math.max(...seedValues) : "—", "dev solves ≥ 7"),
-    tile("Runs", `${done.length}`, `${runs.filter(r => r.status === "keep").length} keeps` +
-      `${runs.length - done.length ? ` · ${runs.length - done.length} running` : ""}`),
-    tile("Lean parse failures", gate.samples ? `${fmt(100 * gate.parse_fail / gate.samples, 1)}%` : "—",
-      gate.samples ? `of ${gate.samples.toLocaleString()} sampled proofs` : "no gate stats yet"),
-    tile("Lean vetoes", gate.samples ? gate.nd_ok_lean_rej.toLocaleString() : "—",
-      "nd_verify accepted, Lean rejected (not counted)"),
-    tile("Token-format best (not comparable)", tokenBest ? tokenBest.metric : "—", tokenBest ? tokenBest.label : ""),
-  ].join("");
-
-  const layout = {
+  const baseLayout = {
     paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
     font: { color: css("--fg"), family: "system-ui, sans-serif" },
-    margin: { l: 55, r: 20, t: 10, b: 150 }, showlegend: false, hovermode: "closest",
+    margin: { l: 55, r: 20, t: 20, b: 190 },
+    hovermode: "closest", showlegend: false,
     hoverlabel: { align: "left", bgcolor: css("--bg"), bordercolor: css("--muted"), font: { color: css("--fg") } },
-    xaxis: { type: "category", tickangle: -40, gridcolor: css("--grid") },
-    yaxis: { gridcolor: css("--grid"), zerolinecolor: css("--grid"), rangemode: "tozero",
-             title: { text: "dev solves ≥ 7", font: { size: 12 } } },
   };
   const config = { displayModeBar: false, responsive: true };
-  const statusColor = { keep: css("--keep"), discard: css("--discard"), crash: css("--fail"), timeout: css("--fail") };
-  const hover = r => [
-    `<b>${r.label}</b> · ${r.status}${r.model ? ` · ${r.model}` : ""}`,
-    `mean ${fmt(r.metric)}${r.seed_metrics ? ` (seeds ${Object.values(r.seed_metrics).join(", ")})` : ""}` +
-      `${r.delta != null ? ` · Δ vs bar ${r.delta >= 0 ? "+" : ""}${r.delta}` : ""}`,
-    wrap(r.title),
-    r.expected_delta ? `<i>predicted ${wrap(r.expected_delta)} · p_keep ${r.p_keep}</i>` : "",
-    r.surprise ? "<br><b>Surprise</b><br>" + wrap(r.surprise.slice(0, 900)) : "",
-  ].filter(Boolean).join("<br>");
 
-  if (!runs.length) {
-    for (const id of ["metric", "loss"])
-      document.getElementById(id).outerHTML = `<div class="empty">No Lean-protocol runs pushed yet.</div>`;
-  } else {
-    const labels = runs.map(r => r.label);
-    const sx = [], sy = [], st = [];
-    runs.forEach(r => Object.values(r.seed_metrics ?? {}).forEach(v => { sx.push(r.label); sy.push(v); st.push(hover(r)); }));
-    Plotly.newPlot("metric", [
-      { x: labels, y: runs.map(r => r.after), mode: "lines", hoverinfo: "skip",
-        line: { shape: "hv", color: css("--base"), width: 2 } },
-      { x: sx, y: sy, hovertext: st, hoverinfo: "text", mode: "markers",
-        marker: { size: 8, color: css("--muted"), opacity: 0.45 } },
-      { x: labels, y: runs.map(r => failed(r) ? 0 : r.metric), hovertext: runs.map(hover), hoverinfo: "text",
-        mode: "markers", cliponaxis: false,
-        marker: { size: 14, symbol: runs.map(r => failed(r) ? "x" : r.status === "pending" ? "circle-open" : "circle"),
-                  color: runs.map(r => statusColor[r.status] ?? css("--muted")),
-                  line: { width: 2, color: css("--bg") } } },
-    ], { ...layout, xaxis: { ...layout.xaxis, categoryarray: labels } }, config);
-
-    const pts = runs.flatMap(r => Object.entries(r.seed_metrics ?? {})
-      .map(([s, m]) => ({ r, s, m, loss: r.seed_pretrain?.[s]?.val_loss }))
-      .filter(p => p.loss != null && p.m != null));
-    const rho = pearson(pts.map(p => p.loss), pts.map(p => p.m));
-    Plotly.newPlot("loss", [{
-      x: pts.map(p => p.loss), y: pts.map(p => p.m), mode: "markers", hoverinfo: "text",
-      hovertext: pts.map(p => `<b>${p.r.label}</b> seed ${p.s}<br>val loss ${p.loss.toFixed(4)} · dev ${p.m}`),
-      marker: { size: 10, color: pts.map(p => statusColor[p.r.status] ?? css("--muted")), line: { width: 2, color: css("--bg") } },
-    }], {
-      ...layout, margin: { l: 55, r: 20, t: 30, b: 50 },
-      xaxis: { gridcolor: css("--grid"), title: { text: "final pretrain val loss (lower = better fit)", font: { size: 12 } } },
-      annotations: [{ xref: "paper", yref: "paper", x: 0, y: 1.08, showarrow: false, xanchor: "left",
-        text: pts.length ? `Pearson r = ${fmt(rho, 2)} over ${pts.length} seeds` : "no per-seed losses yet",
-        font: { size: 12, color: css("--muted") } }],
-    }, config);
+  function metricChart(div, rs) {
+    if (!rs.length) {
+      document.getElementById(div).outerHTML = "<p>No runs yet.</p>";
+      return;
+    }
+    const labels = rs.map(r => r.label);
+    const hovers = rs.map(hover);
+    // One point per seed, for the faint per-seed markers, as percent of the pool.
+    function seedPoints(key, denominatorKey) {
+      const x = [], y = [], text = [];
+      rs.forEach((run, i) => {
+        for (const value of Object.values(run[key] ?? {})) {
+          x.push(run.label); y.push(pct(value, run[denominatorKey])); text.push(hovers[i]);
+        }
+      });
+      return { x, y, hovertext: text };
+    }
+    const layout = {
+      ...baseLayout,
+      margin: { ...baseLayout.margin, l: 110 },  // room for the first rotated tick label
+      xaxis: { type: "category", tickangle: -40, gridcolor: css("--grid"), categoryarray: labels,
+               tickvals: labels, ticktext: rs.map(r => `<span style="color:${company(r)}">${r.label}</span>`) },
+      yaxis: { gridcolor: css("--grid"), zerolinecolor: css("--grid"), rangemode: "tozero",
+               ticksuffix: "%", title: { text: "% of pool solved", font: { size: 12 } } },
+      // Mark each budget change with a vertical line, since metrics jump across it.
+      shapes: rs.slice(1).flatMap((run, i) => run.budget === rs[i].budget ? [] : [{
+        type: "line", xref: "x", yref: "paper", x0: i + 0.5, x1: i + 0.5, y0: 0, y1: 1,
+        line: { color: css("--muted"), dash: "dot", width: 1 },
+      }]),
+      annotations: rs.flatMap((run, i) => i > 0 && run.budget === rs[i - 1].budget ? [] : [{
+        xref: "x", yref: "paper", x: i - 0.4, y: 1, xanchor: "left", yanchor: "bottom",
+        text: run.budget, showarrow: false, font: { size: 11, color: css("--muted") },
+      }]),
+    };
+    Plotly.newPlot(div, [
+      { ...seedPoints("seed_metric_rl", "n_targets"), mode: "markers", hoverinfo: "text",
+        marker: { size: 7, symbol: "diamond", color: css("--rl"), opacity: 0.35 } },
+      { x: labels, y: rs.map(r => pct(r.metric_rl, r.n_targets)), mode: "markers",
+        hovertext: hovers, hoverinfo: "text", marker: { size: 11, symbol: "diamond", color: css("--rl") } },
+      { x: labels, y: rs.map(r => pct(r.after, r.n_dev)), mode: "lines",
+        line: { shape: "hv", color: css("--base"), width: 2 }, hoverinfo: "skip", connectgaps: false },
+      { ...seedPoints("seed_metrics", "n_dev"), mode: "markers", hoverinfo: "text",
+        marker: { size: 7, color: css("--muted"), opacity: 0.45 } },
+      {
+        // Crashes and timeouts have no metric; draw them as an x on the axis so they stay visible.
+        x: labels, y: rs.map(r => failed(r) ? 0 : pct(r.metric, r.n_dev)), mode: "markers",
+        hovertext: hovers, hoverinfo: "text", cliponaxis: false,
+        marker: {
+          size: rs.map(r => failed(r) ? 11 : 13),
+          symbol: rs.map(r => failed(r) ? "x" : shape(r) + (r.status === "pending" ? "-open" : "")),
+          color: rs.map(color), line: { width: 2.5, color: rs.map(company) },
+        },
+      },
+    ], layout, config);
   }
 
-  const head = "<tr><th>run</th><th>status</th><th>mean</th><th>seeds</th><th>Δ vs bar</th><th>val loss</th><th>total s</th><th>title</th></tr>";
-  document.getElementById("runs").innerHTML = head + [...runs].reverse().map(r => {
-    const losses = Object.values(r.seed_pretrain ?? {}).map(x => x.val_loss).filter(x => x != null);
-    return `<tr><td>${r.id} ${r.slug}</td>` +
-      `<td><span class="dot" style="background:${statusColor[r.status] ?? css("--muted")}"></span>${r.status}</td>` +
-      `<td>${fmt(r.metric)}</td><td>${Object.values(r.seed_metrics ?? {}).join(" / ") || "—"}</td>` +
-      `<td>${r.delta == null ? "—" : (r.delta >= 0 ? "+" : "") + r.delta}</td>` +
-      `<td>${losses.length ? fmt(mean(losses), 4) : "—"}</td><td>${fmt(r.total_secs)}</td>` +
-      `<td class="t">${r.title}</td></tr>`;
-  }).join("");
+  metricChart("lean", lean);
+  metricChart("token2", token.filter(r => num(r) >= 49));
+  metricChart("token1", token.filter(r => num(r) < 49));
+
+  // Per-seed final pretrain val loss vs dev solves, Lean runs only (loss is tokenizer-specific).
+  const pts = lean.flatMap(r => Object.entries(r.seed_metrics ?? {})
+    .map(([seed, m]) => ({ r, seed, m, loss: r.seed_pretrain?.[seed]?.val_loss }))
+    .filter(p => p.loss != null && p.m != null));
+  if (pts.length >= 3) {
+    const xs = pts.map(p => p.loss), ys = pts.map(p => p.m);
+    const mean = v => v.reduce((a, b) => a + b, 0) / v.length;
+    const mx = mean(xs), my = mean(ys);
+    const cov = xs.reduce((s, x, i) => s + (x - mx) * (ys[i] - my), 0);
+    const r = cov / Math.sqrt(xs.reduce((s, x) => s + (x - mx) ** 2, 0) * ys.reduce((s, y) => s + (y - my) ** 2, 0));
+    document.getElementById("rho").textContent = `Pearson r = ${r.toFixed(2)} over ${pts.length} seeds.`;
+  }
+  if (!pts.length) {
+    document.getElementById("loss").outerHTML = "<p>No per-seed losses yet.</p>";
+  } else {
+    Plotly.newPlot("loss", [{
+      x: pts.map(p => p.loss), y: pts.map(p => p.m), mode: "markers", hoverinfo: "text",
+      hovertext: pts.map(p => `<b>${p.r.label}</b> seed ${p.seed}<br>val loss ${p.loss.toFixed(4)} · dev ${p.m}`),
+      marker: { size: 11, symbol: pts.map(p => shape(p.r)), color: pts.map(p => color(p.r)),
+                line: { width: 2.5, color: pts.map(p => company(p.r)) } },
+    }], {
+      ...baseLayout, margin: { l: 55, r: 20, t: 20, b: 50 },
+      xaxis: { gridcolor: css("--grid"), title: { text: "final pretrain val loss", font: { size: 12 } } },
+      yaxis: { gridcolor: css("--grid"), title: { text: "dev solves ≥ 7", font: { size: 12 } } },
+    }, config);
+  }
 });
 </script>
 </body>

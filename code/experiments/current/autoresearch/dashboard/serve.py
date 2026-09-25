@@ -1,6 +1,6 @@
 """Localhost dashboard for the autoresearch loop: theorems solved per experiment.
 
-`/` is the Lean-protocol page (runs since 098, fork 51604b3); `/history` is every run.
+One page: Lean-protocol runs (since 098, fork 51604b3) on top, token-format runs 000-097 below.
 
 Run from anywhere: `python3 code/experiments/current/autoresearch/dashboard/serve.py`,
 then open http://autoresearch.localhost/ (Caddy) or http://127.0.0.1:7102/.
@@ -13,10 +13,10 @@ it. `--results-dir` reads a local directory instead (unpushed work, tests).
 """
 
 import argparse
-import contextlib
 import io
 import json
 import subprocess
+import sys
 import tarfile
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -28,6 +28,7 @@ HERE = Path(__file__).parent
 results_dir: Path | None = None
 ref = "origin/autoresearch-pretrain"
 last_fetch = 0.0
+fetch_error: str | None = None  # shown on the page: a failing fetch once froze it at run 057
 
 
 def git(*args: str) -> bytes:
@@ -38,12 +39,19 @@ def git(*args: str) -> bytes:
 
 def files_from_ref() -> dict[str, dict[str, str]]:
     """{run: {filename: text}} for results/*/ at `ref`, after a throttled fetch."""
-    global last_fetch
+    global last_fetch, fetch_error
     if time.monotonic() - last_fetch > FETCH_SECS:
         remote, _, branch = ref.partition("/")
-        # Offline: serve the last fetched state rather than an error page.
-        with contextlib.suppress(subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        # Offline: serve the last fetched state rather than an error page, but say so.
+        try:
             git("fetch", "--quiet", remote, branch)
+            fetch_error = None
+        except subprocess.CalledProcessError as e:
+            fetch_error = e.stderr.decode(errors="replace").strip()[-300:] or f"exit {e.returncode}"
+        except subprocess.TimeoutExpired:
+            fetch_error = "git fetch timed out"
+        if fetch_error:
+            print(f"fetch failed: {fetch_error}", file=sys.stderr, flush=True)
         last_fetch = time.monotonic()
     results = git("-C", str(HERE.parent), "rev-parse", "--show-prefix").decode().strip() + "results"
     root = git("rev-parse", "--show-toplevel").decode().strip()  # archive refuses subdirectories
@@ -64,6 +72,13 @@ def files_from_dir(directory: Path) -> dict[str, dict[str, str]]:
         for run in directory.iterdir()
         if run.is_dir()
     }
+
+
+def as_of() -> str:
+    if results_dir:
+        return f"local directory {results_dir}"
+    fmt = ("--format=%h, committed %cd", "--date=format-local:%b %d %H:%M")
+    return git("log", "-1", *fmt, ref).decode().strip()
 
 
 def load_runs() -> list[dict[str, object]]:
@@ -116,10 +131,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/", "/index.html"):
             body, ctype = (HERE / "index.html").read_bytes(), "text/html"
-        elif self.path in ("/history", "/history.html"):
-            body, ctype = (HERE / "history.html").read_bytes(), "text/html"
         elif self.path == "/data.json":
-            body, ctype = json.dumps(load_runs()).encode(), "application/json"
+            runs = load_runs()
+            payload = {"runs": runs, "as_of": as_of(), "fetch_error": fetch_error}
+            body, ctype = json.dumps(payload).encode(), "application/json"
         else:
             self.send_error(404)
             return
