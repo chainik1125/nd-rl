@@ -1,0 +1,26 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 31e1aae..a010136 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,6 +37,7 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 256, 8
++D_FF = 5 * D  # MLP width; the fork's Block hardcodes 4 * D, so pretrain() swaps fc1/fc2
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -157,7 +158,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
++    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    for b in model.blocks:
++        b.fc1, b.fc2 = torch.nn.Linear(D, D_FF), torch.nn.Linear(D_FF, D)
++        torch.nn.init.zeros_(b.fc1.bias)
++        torch.nn.init.zeros_(b.fc2.bias)
++    model = model.to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
