@@ -1,0 +1,24 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ff48e8f..3361c37 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -105,15 +105,16 @@ def muon_step(params, buffers, lr):
+ 
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+-    output, so every residual write has unit scale times a learned gain."""
++    output, so every residual write has unit scale times a learned gain. P29 parallel branches
++    (GPT-J/PaLM): attention and MLP both read the block input x and their outputs are summed."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+-        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
++        a = self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
++        return x + a + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
