@@ -1,0 +1,72 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..3edf18f 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -51,6 +51,9 @@ NS_COEFFS = (
+ )
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
++# NorMuon (Li et al. 2025): EMA rate of the per-output-neuron second moment of the
++# orthogonalized update, used to give every neuron of a hidden matrix the same update RMS.
++NORMUON_BETA2 = 0.95
+ TOK_MODE = "lean_seq"  # required by the harness (Lean protocol)
+ # Hybrid heads: half the heads get ALiBi (Press et al. 2021) with the standard slope set for
+ # H/2 heads, 2^(-8 i / (H/2)) = 1/4 .. 1/256 with 8 heads; the other half get slope 0, i.e. no
+@@ -87,9 +90,10 @@ MTP_WEIGHT = 0.3
+ # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ # SOFTWARE.
+ @torch.no_grad()
+-def muon_step(params, buffers, lr):
+-    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only."""
+-    for p, momentum in zip(params, buffers, strict=True):
++def muon_step(params, buffers, second_moments, lr):
++    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only. A matrix
++    with a second-moment buffer (not None) also gets NorMuon's per-neuron normalization."""
++    for p, momentum, v in zip(params, buffers, second_moments, strict=True):
+         if p.grad is None:
+             continue
+         momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+@@ -107,6 +111,17 @@ def muon_step(params, buffers, lr):
+             update = a * update + polynomial @ update
+         if transpose:
+             update = update.mT
++        if v is not None:
++            # P02 NorMuon: divide each output row by the EMA of its mean squared update, then
++            # restore the orthogonalized update's Frobenius norm, so the step size is unchanged
++            # and only its split across neurons moves (equal per-neuron RMS in steady state).
++            update = update.float()
++            v.lerp_(update.square().mean(dim=-1, keepdim=True), 1 - NORMUON_BETA2)
++            scaled = update / (v.sqrt() + 1e-10)
++            norm_ratio = update.norm(dim=(-2, -1), keepdim=True) / scaled.norm(
++                dim=(-2, -1), keepdim=True
++            ).clamp(min=1e-10)
++            update = scaled * norm_ratio
+         # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+         # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+         update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
+@@ -291,6 +306,16 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
++    # NorMuon on every hidden matrix (blocks and MTP; QKV per role); the vocab readout keeps
++    # plain Muon, as the paper leaves the output layer out of the normalized group.
++    second_moments = [
++        None
++        if p is model.head.weight
++        else torch.zeros(3, p.size(1), 1, device=device)
++        if p.size(0) == 3 * p.size(1)
++        else torch.zeros(p.size(0), 1, device=device)
++        for p in matrices
++    ]
+     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+@@ -322,7 +347,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+-        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++        muon_step(matrices, momentum_buffers, second_moments, MUON_LR * lr / LR)
+         if step % 20 == 0:
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
