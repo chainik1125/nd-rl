@@ -1,0 +1,66 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..55db448 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -26,6 +26,7 @@ Contract with harness.py (frozen):
+ Anything imported from the fork (ND_FORK) is fair game to copy in here and modify.
+ """
+ 
++import copy
+ import math
+ import time
+ 
+@@ -37,6 +38,11 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 256, 8
++# Depth growth by stacking (Gong et al. 2019 progressive stacking; Du et al. 2024 G_stack):
++# pretraining starts with N_LAYER_START untied blocks and at GROW_AT of the wall-clock budget
++# stacks a copy of them on top (A-B-C -> A-B-C-A-B-C), then trains all N_LAYER blocks untied.
++# The shallow phase runs ~1.7x more steps per second; the handoff model is the usual 6 blocks.
++N_LAYER_START, GROW_AT = 3, 1 / 3
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -215,6 +221,19 @@ def mtp_loss(model, mtp, x, m):
+     return main + MTP_WEIGHT * aux, main, aux
+ 
+ 
++def grow(model, opt, matrices, momentum_buffers):
++    """G_stack: append a trained copy of every block (A-B-C -> A-B-C-A-B-C). The copies' matrices
++    join Muon with fresh momentum; their LayerNorm gains and biases join AdamW as a new group."""
++    new_blocks = [copy.deepcopy(b) for b in model.blocks]
++    model.blocks.extend(new_blocks)
++    model.cfg["n_layer"] = len(model.blocks)
++    new_params = [p for b in new_blocks for p in b.parameters()]
++    new_matrices = [p for p in new_params if p.ndim == 2]
++    matrices += new_matrices
++    momentum_buffers += [torch.zeros_like(p) for p in new_matrices]
++    opt.add_param_group({"params": [p for p in new_params if p.ndim != 2]})
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -269,8 +288,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model = ALiBiGPT(tok.vocab_size, N_LAYER_START, D, N_HEAD)
++    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER_START))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
+@@ -303,6 +322,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         ) / budget_secs  # cosine over wall-clock, so the cap is the schedule
+         if frac >= 1.0:
+             break
++        if len(model.blocks) < N_LAYER and frac >= GROW_AT:
++            grow(model, opt, matrices, momentum_buffers)
++            trainable = list(model.parameters()) + list(mtp.parameters())
++            log(f"pretrain step {step}: stacked to {len(model.blocks)} blocks at {frac:.2f}")
+         step += 1
+         lr = (
+             LR * step / WARMUP
