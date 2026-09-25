@@ -31,7 +31,7 @@ import time
 
 import torch
 from lean_tok import MAXN  # fork
-from model import GPT  # fork
+from model import GPT, Block  # fork
 from tokenizer import make_tokenizer  # fork
 from train import loss_on  # fork
 
@@ -103,6 +103,19 @@ def muon_step(params, buffers, lr):
         p.add_(update.reshape_as(p), alpha=-lr)
 
 
+class PeriLNBlock(Block):
+    """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+    output, so every residual write has unit scale times a learned gain."""
+
+    def __init__(self, d, h):
+        super().__init__(d, h)
+        self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+
+    def forward(self, x, cos, sin, mask=None, cache=None):
+        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+
+
 def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
     model.eval()
@@ -157,7 +170,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
     ids, mask, ref_max, lens = to_gpu(data, tok, device)
     gen = torch.Generator(device=device)
     gen.manual_seed(seed)
-    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD).to(device)
+    model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+    model.blocks.apply(model._init)  # fork init: zero biases
+    model = model.to(device)
     for p in model.blocks.parameters():
         if p.ndim == 2:
             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
