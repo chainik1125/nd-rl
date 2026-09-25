@@ -1,0 +1,34 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ff48e8f..06734f1 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -36,7 +36,8 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 256, 8
++# P25: residual width 256 -> 320 (10 heads of 32), MLP 1024 -> 576, ~same params and matmul FLOPs
++N_LAYER, D, N_HEAD, D_FF = 6, 320, 10, 576
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.1, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -107,8 +108,9 @@ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain."""
+ 
+-    def __init__(self, d, h):
++    def __init__(self, d, h, d_ff):
+         super().__init__(d, h)
++        self.fc1, self.fc2 = torch.nn.Linear(d, d_ff), torch.nn.Linear(d_ff, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+@@ -171,7 +173,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD, D_FF) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     for p in model.blocks.parameters():
