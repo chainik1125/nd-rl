@@ -17,7 +17,9 @@ git -C "$ND_FORK" checkout -q "$FORK_COMMIT"
 # reward is Lean AND nd_verify. Installed before harness.py starts, so it is not charged to TOTAL_SECS.
 [ -x ~/.elan/bin/lean ] || curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
   | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0 > /dev/null
-export LEAN_GATE_WORKERS=$(nproc) LEAN_GATE_LOG="$OUT/lean_gate.jsonl"
+# 12 workers is Dan's measured setting; nproc reports the host's 96 CPUs and 96 workers ran
+# ~2.7x slower per check in 098 s0 (73 s vs ~28 s expected per RL round).
+export LEAN_GATE_WORKERS=12 LEAN_GATE_LOG="$OUT/lean_gate.jsonl"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 echo "cpus $(nproc), $(~/.elan/bin/lean --version)"
 cd /workspace/autoresearch
