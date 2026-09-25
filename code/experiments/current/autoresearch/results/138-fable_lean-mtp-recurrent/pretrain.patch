@@ -1,0 +1,79 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..e16d4cc 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -63,7 +63,9 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+-MTP_WEIGHT = 0.3
++# The same module is then re-applied to its own output plus the embedding of token t+2 to
++# predict t+3 (MTP_DEPTH stages, each at MTP_WEIGHT, as Gloeckle et al. weight their horizons).
++MTP_WEIGHT, MTP_DEPTH = 0.3, 2
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -195,8 +197,9 @@ class MTPHead(torch.nn.Module):
+ 
+ 
+ def mtp_loss(model, mtp, x, m):
+-    """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
++    """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of each
++    of the MTP module's MTP_DEPTH recurrent predictions (tokens t+2, t+3, ...) at the same proof
++    positions. Returns (total, main, [aux per horizon])."""
+     h, bias = model.features(x[:, :-1])
+     logits = model.head(model.ln_f(h))
+     V = logits.size(-1)
+@@ -204,15 +207,21 @@ def mtp_loss(model, mtp, x, m):
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+     )
+     main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
+-    # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+-    # prediction of x_{t+2} a function of x_{<=t+1}.
+-    z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+-    z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
+-    ce2 = torch.nn.functional.cross_entropy(
+-        model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+-    )
+-    aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++    # Recurrent MTP: the ONE module is the step operator, applied MTP_DEPTH times in sequence
++    # (DeepSeek-V3 chains separate modules; here the weights are shared). Stage k at position t
++    # (0..T-2-k) reads the previous stage's state (stage 0: the trunk's h_t) and emb(x_{t+k}),
++    # and predicts x_{t+k+1}; causal attention keeps it a function of x_{<=t+k}.
++    z, aux = h, []
++    for k in range(1, MTP_DEPTH + 1):
++        z = mtp.proj(torch.cat((mtp.ln_h(z[:, :-1]), mtp.ln_e(model.emb(x[:, k:-1]))), -1))
++        z = mtp.block(z, None, None, bias[..., :-k, :-k], None)
++        ce_k = torch.nn.functional.cross_entropy(
++            model.head(model.ln_f(z)).reshape(-1, V).float(),
++            x[:, k + 1 :].reshape(-1),
++            reduction="none",
++        )
++        aux.append((ce_k * m[:, k + 1 :].reshape(-1)).sum() / m[:, k + 1 :].sum().clamp(min=1))
++    return main + MTP_WEIGHT * sum(aux), main, aux
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -326,7 +335,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if step % 20 == 0:
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+-            recent_aux.append(aux.item())
++            recent_aux.append([a.item() for a in aux])
+         if (
+             time.time() - t0 >= next_point
+         ):  # curve point: mean recent train loss + val loss on the held-out slice
+@@ -336,7 +345,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                     "step": step,
+                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+-                    "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                    # per horizon: [t+2 (comparable with 136), t+3]
++                    "mtp_loss": [sum(c) / len(c) for c in zip(*recent_aux, strict=True)]
++                    if recent_aux
++                    else None,
+                 }
+             )
+             log(
