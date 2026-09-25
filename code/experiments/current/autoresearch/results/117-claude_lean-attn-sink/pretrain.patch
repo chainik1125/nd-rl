@@ -1,0 +1,25 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..ea2141d 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -119,6 +119,10 @@ class PeriLNBlock(Block):
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
++        # Attention sink: one learned key per head with a zero value, prepended to every
++        # forward's keys (never cached), so a head can put its mass on "nothing". 4-D, so it
++        # stays on AdamW, not Muon; zero init = logit 0 (softmax off by one).
++        self.sink_k = torch.nn.Parameter(torch.zeros(1, h, 1, d // h))
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+@@ -133,6 +137,9 @@ class PeriLNBlock(Block):
+             cache["v"][:, :, n0:n1] = v
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
++        k = torch.cat([self.sink_k.to(k.dtype).expand(B, -1, -1, -1), k], 2)
++        v = torch.cat([v.new_zeros(B, self.h, 1, D // self.h), v], 2)
++        mask = torch.cat([mask.new_zeros(*mask.shape[:-1], 1), mask], -1)
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
