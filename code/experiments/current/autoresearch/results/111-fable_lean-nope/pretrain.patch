@@ -1,0 +1,52 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ff48e8f..6f51c89 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -30,6 +30,7 @@ import math
+ import time
+ 
+ import torch
++import torch.nn.functional as F
+ from lean_tok import MAXN  # fork
+ from model import GPT, Block  # fork
+ from tokenizer import make_tokenizer  # fork
+@@ -116,6 +117,30 @@ class PeriLNBlock(Block):
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
++class NoPEBlock(PeriLNBlock):
++    """NoPE (Kazemnejad et al. 2023): the fork's attention with the rotary rotation of q and k
++    removed, so position is only what the causal mask lets the model infer. Cache code copied
++    from the fork's Block.attn unchanged."""
++
++    def attn(self, x, cos, sin, mask, cache):
++        B, T, D = x.shape
++        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        if cache is not None:
++            if "k" not in cache:
++                cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["n"] = 0
++            n0, n1 = cache["n"], cache["n"] + T
++            cache["k"][:, :, n0:n1] = k
++            cache["v"][:, :, n0:n1] = v
++            cache["n"] = n1
++            k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
++        else:
++            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, is_causal=mask is None)
++        return self.proj(y.transpose(1, 2).reshape(B, T, D))
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -171,7 +196,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model.blocks = torch.nn.ModuleList(NoPEBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     for p in model.blocks.parameters():
