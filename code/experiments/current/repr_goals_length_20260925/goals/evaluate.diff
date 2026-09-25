@@ -1,0 +1,105 @@
+# lengthexp/evaluate.py sha256 d446c40e877cac931d1890b8b3774ad158f319c22d48d13a20a2d27c655c9035
+--- lengthexp/evaluate.py
++++ evaluate.py
+@@ -1,3 +1,5 @@
+ #!/usr/bin/env python3
+-"""Evaluate one checkpoint at every test length: k samples per theorem, verified, with first-error lines.
++"""GOALS COPY (ab3/goals/make_eval.py) of lengthexp/evaluate.py: samples are stripped of goal annotations before
++verification; see make_eval.py for the edits. Evaluate one checkpoint at every test length: k samples per theorem,
++verified, with first-error lines.
+ 
+@@ -24,5 +26,10 @@
+ HERE = os.path.dirname(os.path.abspath(__file__))
+-sys.path.insert(0, HERE)
+-from common import (EVAL, FROZEN, K, LE, LENGTHS, MAX_NEW, SAMPLE_SEED, TEMPERATURE, TESTSETS, pass_at_k,
++LE_DIR = '/scratch/cowifornia/nd-rl/ab3/lengthexp'
++sys.path.insert(0, LE_DIR)          # lengthexp: common.py, sampler.py, ndcheck.py
++from common import (FROZEN, K, LENGTHS, MAX_NEW, SAMPLE_SEED, TEMPERATURE, TESTSETS, pass_at_k,  # lengthexp/common.py
+                     read_jsonl, sha256_file, sha256_str, unit_name, write_json, write_jsonl)
++sys.path.insert(0, HERE)            # goals: common_goals.py
++LE = HERE
++EVAL = os.path.join(HERE, 'eval')
++TESTSETS = os.path.join(HERE, 'testsets')   # goals: frozen copy of lengthexp's final draw (02:27 UTC; = repr/testsets)
+ sys.path.insert(0, FROZEN)
+@@ -55,3 +62,3 @@
+         t0 = time.time()
+-        gpu, holder = gpulock.acquire(gpus, wait=a.gpu_wait, run=f'lengthexp_eval_{a.label}', owner=os.getpid(), log=log)
++        gpu, holder = gpulock.acquire(gpus, wait=a.gpu_wait, run=f'goals_eval_{a.label}', owner=os.getpid(), log=log)
+         if gpu is None:
+@@ -98,14 +105,5 @@
+ def load_model(path, device):
+-    import torch
+-    from model import GPT
+-    from tokenizer import Tokenizer
+-    ck = torch.load(path, map_location='cpu', weights_only=True)
+-    tok = Tokenizer(ck.get('tok_mode', 'abs'))
+-    cfg = dict(ck.get('cfg') or dict(vocab=tok.vocab_size, n_layer=4, d=256, n_head=8))
+-    cfg.setdefault('vocab', tok.vocab_size)
+-    model = GPT(**cfg)
+-    state = {k.removeprefix('_orig_mod.').removeprefix('module.'): v for k, v in ck['state'].items()}
+-    model.load_state_dict(state, strict=True)
+-    model.to(device).eval()
+-    return model, tok, cfg
++    from common_goals import load_model as lm          # goals: tokenizer from tok_mode (abs_goals or abs)
++    model, tok, ck = lm(path, device)
++    return model, tok, dict(model.cfg)
+ 
+@@ -119,2 +117,4 @@
+     from sampler import sample_ids
++    import goals as GL                                  # goals: annotation strip / consistency
++    acnt = collections.Counter()
+     prompts = [r['prompt'] for r in rs for _ in range(a.k)]
+@@ -132,5 +132,9 @@
+         ok_lines, ok_starts, fails, ntok = [], [], [], []
++        n_lines, ann = [], []
+         for i in range(a.k):
+             o = ids[j * a.k + i]
+-            body = tok.decode(o)
++            raw = tok.decode(o)
++            body, groups, n_bad = GL.read_annotations(raw)     # goals: verify the stripped proof
++            n_groups = sum(len(v) for v in groups.values())
++            n_lines.append(body.split().count(';'))
+             ntok.append(len(o))
+@@ -143,2 +147,8 @@
+                     examples.append({'name': r['name'], 'body': body, 'checker': c})
++            cs = GL.consistency(r['prompt'], raw) if c['ok'] else None
++            ann.append([n_groups, n_bad] + ([int(cs['exact']), cs['matched'], cs['n_canon'], cs['extra'], cs['valid_goal']] if cs else []))
++            acnt.update(samples=1, groups=n_groups, malformed=n_bad, with_malformed=int(n_bad > 0))
++            if cs:
++                acnt.update(ok=1, exact=int(cs['exact']), matched=cs['matched'], n_canon=cs['n_canon'], extra=cs['extra'],
++                            valid_goal=cs['valid_goal'], n_written=cs['n_written'])
+             if c['ok']:
+@@ -153,6 +163,7 @@
+             if not a.no_samples:
+-                samples.append({'name': r['name'], 'i': i, 'body': body})
++                samples.append({'name': r['name'], 'i': i, 'body': body, 'raw': raw})
+         rows.append({'name': r['name'], 'L_true': r['L_true'], 'source': r.get('source'), 'schema': r.get('schema'),
+                      'n_prem': r.get('n_prem'), 'k': a.k, 'n_ok': len(ok_lines), 'ok_lines': ok_lines,
+-                     'ok_starts': ok_starts, 'fails': fails, 'n_tok_mean': sum(ntok) / len(ntok)})
++                     'ok_starts': ok_starts, 'fails': fails, 'n_tok_mean': sum(ntok) / len(ntok),
++                     'n_lines': n_lines, 'ann': ann})
+     t_check = time.time() - t1
+@@ -166,3 +177,10 @@
+             'checker_disagreements': dict(disagree), 'disagreement_examples': examples,
+-            'sample_secs': t_sample, 'check_secs': t_check, 'samples_per_sec': len(prompts) / max(t_sample, 1e-9)}
++            'sample_secs': t_sample, 'check_secs': t_check, 'samples_per_sec': len(prompts) / max(t_sample, 1e-9),
++            'annotation': {'groups_per_sample': acnt['groups'] / max(1, acnt['samples']),
++                           'samples_with_malformed': acnt['with_malformed'] / max(1, acnt['samples']),
++                           'correct_exact_canonical': acnt['exact'] / max(1, acnt['ok']),
++                           'correct_canon_groups_matched': acnt['matched'] / max(1, acnt['n_canon']),
++                           'correct_extra_groups_per_proof': acnt['extra'] / max(1, acnt['ok']),
++                           'correct_written_groups_pending_goal': acnt['valid_goal'] / max(1, acnt['n_written']),
++                           'counts': dict(acnt)}}
+     return rows, samples, summ
+@@ -188,3 +206,3 @@
+     a = ap.parse_args()
+-    os.environ.setdefault('AB_WORKER', 'lengthexp')
++    os.environ.setdefault('AB_WORKER', 'goals')
+     os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF', 'expandable_segments:True')   # before CUDA initialises
+@@ -218,5 +236,4 @@
+         import torch
+-        sys.path.insert(0, os.path.join(FROZEN, 'lib'))
+         model, tok, mcfg = load_model(ckpt, 'cuda')
+-        meta = {'label': a.label, 'ckpt': ckpt, 'ckpt_sha256': ck_sha, 'model_cfg': mcfg, 'config': cfg_key,
++        meta = {'label': a.label, 'ckpt': ckpt, 'ckpt_sha256': ck_sha, 'model_cfg': mcfg, 'tok_mode': tok.mode, 'config': cfg_key,
+                 'batch': a.batch, 'limit': a.limit, 'host': socket.gethostname(),
