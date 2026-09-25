@@ -1,0 +1,42 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..b50a5a0 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -60,9 +60,10 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+     N_HEAD - N_ALIBI
+ )
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+-# Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+-# Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+-# the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
++# Multi-token prediction (Gloeckle et al. 2024 parallel heads), pretraining only: one extra
++# Peri-LN block reads only the trunk state at t (NOT the embedding of token t+1, unlike
++# DeepSeek-V3's sequential module) and predicts token t+2 through the model's own ln_f/head, so
++# the trunk itself must carry the lookahead. Its loss is added at this weight (DeepSeek-V3's value).
+ MTP_WEIGHT = 0.3
+ 
+ 
+@@ -189,8 +190,8 @@ class MTPHead(torch.nn.Module):
+ 
+     def __init__(self, d, h):
+         super().__init__()
+-        self.ln_h, self.ln_e = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+-        self.proj = torch.nn.Linear(2 * d, d, bias=False)
++        self.ln_h = torch.nn.LayerNorm(d)
++        self.proj = torch.nn.Linear(d, d, bias=False)
+         self.block = PeriLNBlock(d, h)
+ 
+ 
+@@ -204,9 +205,9 @@ def mtp_loss(model, mtp, x, m):
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+     )
+     main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
+-    # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+-    # prediction of x_{t+2} a function of x_{<=t+1}.
+-    z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
++    # Position t (0..T-3) gets h_t only; causal attention over these keeps every prediction of
++    # x_{t+2} a function of x_{<=t}, so the true x_{t+1} is never shown to the MTP block.
++    z = mtp.proj(mtp.ln_h(h[:, :-1]))
+     z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
+     ce2 = torch.nn.functional.cross_entropy(
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
