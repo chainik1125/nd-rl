@@ -14,7 +14,8 @@ Contract with harness.py (frozen):
                  - forward(idx) -> logits (B,T,V)  and  forward(idx, pos=, mask=, caches=) with a
                    per-block KV cache dict, exactly like the fork's GPT (model.blocks must exist)
                  - be trainable in bf16 autocast on cuda
-  tok          must provide encode_prompt, encode_proof, decode, shift_abs, pad, eos, mode.
+  tok          must provide encode_prompt, encode_proof, decode, shift_abs, pad, eos, mode, and
+               mode must be "lean_seq" (harness TOK_MODE): Lean text in and out, Lean-gated samples.
                Decoder rule: decode() is deterministic and single-pass; it may not call the
                verifier or try alternatives.
   stats        dict recorded in summary.json and copied into results.json. MUST contain `curve`:
@@ -29,8 +30,9 @@ import math
 import time
 
 import torch
+from lean_tok import MAXN  # fork
 from model import GPT  # fork
-from tokenizer import MAXN, Tokenizer  # fork
+from tokenizer import make_tokenizer  # fork
 from train import loss_on  # fork
 
 # ---- knobs
@@ -49,7 +51,7 @@ NS_COEFFS = (
 )
 # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
 MUON_WD = 10 * WD * LR / MUON_LR
-TOK_MODE = "abs"
+TOK_MODE = "lean_seq"  # required by the harness (Lean protocol)
 VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
 
 
@@ -136,7 +138,7 @@ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
     x, m = ids[idxs], mask[idxs]
     T = int(lens[idxs].max())
     x, m = x[:, :T].clone(), m[:, :T]
-    if tok.mode == "abs":
+    if tok.mode in ("abs", "lean_seq"):  # lean_seq: names n1.. get the same start offset
         room = MAXN - ref_max[idxs]
         shift = (
             (torch.rand(len(idxs), device=x.device, generator=gen) * (room + 1))
@@ -150,7 +152,7 @@ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
 
 def pretrain(train_recs, budget_secs, device, seed, log):
     t0 = time.time()
-    tok = Tokenizer(TOK_MODE)
+    tok = make_tokenizer(TOK_MODE)
     data = [(tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])) for r in train_recs]
     ids, mask, ref_max, lens = to_gpu(data, tok, device)
     gen = torch.Generator(device=device)
