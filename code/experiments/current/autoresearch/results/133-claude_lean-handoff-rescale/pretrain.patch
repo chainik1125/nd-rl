@@ -1,0 +1,38 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 0ede111..7c209b5 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -60,6 +60,10 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+     N_HEAD - N_ALIBI
+ )
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++# Handoff rescale: every proj/fc2 (weight and bias) is multiplied by this and its Peri-LN output
++# norm's eps by its square, which leaves the model's function exactly unchanged (LN is scale-
++# invariant) but multiplies the RL AdamW's relative step on those matrices by 1 / HANDOFF_SCALE.
++HANDOFF_SCALE = 0.5
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -296,6 +300,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, next_point = [], next_point + CURVE_EVERY
++    branch_out = [(b.proj, b.ln_attn_out) for b in model.blocks]
++    branch_out += [(b.fc2, b.ln_mlp_out) for b in model.blocks]
++    branch_out_rms = [lin.weight.pow(2).mean().sqrt().item() for lin, _ in branch_out]
++    with torch.no_grad():
++        for lin, ln in branch_out:
++            for p in lin.parameters():
++                p.mul_(HANDOFF_SCALE)
++            ln.eps *= HANDOFF_SCALE**2
+     model.eval()
+     return (
+         model,
+@@ -305,6 +317,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "records_seen": step * BS,
+             "epochs": step * BS / n_train,
+             "last_loss": last_loss,
++            "branch_out_rms": branch_out_rms,  # proj x6 then fc2 x6, before the rescale
+             "curve": curve,
+         },
+     )
