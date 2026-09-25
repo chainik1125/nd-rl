@@ -1,0 +1,47 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..87d0a3a 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -62,8 +62,9 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+-# the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+-MTP_WEIGHT = 0.3
++# the model's own ln_f/head. Its loss is added at MTP_WEIGHT, dropped to MTP_WEIGHT_LATE for the
++# last third of the wall-clock: DeepSeek-V3's schedule (0.3 for 10T tokens, 0.1 for the last 4.8T).
++MTP_WEIGHT, MTP_WEIGHT_LATE, MTP_SWITCH = 0.3, 0.1, 10 / 14.8
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -194,8 +195,8 @@ class MTPHead(torch.nn.Module):
+         self.block = PeriLNBlock(d, h)
+ 
+ 
+-def mtp_loss(model, mtp, x, m):
+-    """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
++def mtp_loss(model, mtp, x, m, weight):
++    """The fork's loss_on (next-token CE on proof tokens) plus `weight` times the CE of the
+     MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+     h, bias = model.features(x[:, :-1])
+     logits = model.head(model.ln_f(h))
+@@ -212,7 +213,7 @@ def mtp_loss(model, mtp, x, m):
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++    return main + weight * aux, main, aux
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -316,7 +317,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         idxs, perm = perm[:BS], perm[BS:]
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
++            loss, main, aux = mtp_loss(
++                model, mtp, x, m, MTP_WEIGHT if frac < MTP_SWITCH else MTP_WEIGHT_LATE
++            )
+         model.zero_grad(set_to_none=True)
+         mtp.zero_grad(set_to_none=True)
+         loss.backward()
