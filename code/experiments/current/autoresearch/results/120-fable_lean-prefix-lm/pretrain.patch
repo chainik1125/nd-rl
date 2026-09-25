@@ -1,0 +1,65 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..b5400ac 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -146,29 +146,45 @@ class ALiBiGPT(GPT):
+     logits get -slope_h * (query position - key position), slopes 2^-1 .. 2^-8 for 8 heads, so
+     no rotation of q/k anywhere. Positions come from `pos` (sample.generate's left-padded
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+-    bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
++    bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0.
+ 
+-    def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
++    Prefix-LM (Raffel et al. 2020 T5; Wang et al. 2022): the theorem statement, every token up
++    to and including the prompt's first `by`, attends bidirectionally to itself, so premise
++    representations can condition on the goal before the proof starts; proof tokens stay
++    causal. The prefix flag is derived from idx alone (the harness's loss_on and generate never
++    pass it) and cached per key like the positions. Within the prefix, keys to the right get the
++    encoder-ALiBi treatment (Press): twice the slope, so distance stays local and direction
++    is preserved. The loss is only on proof tokens, so the prefix never sees its own targets."""
++
++    def __init__(self, vocab, n_layer, d, n_head, by_id, pad_id, max_len=1024):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.by_id, self.pad_id = by_id, pad_id
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+-        key_pos = pos
++        is_by = idx == self.by_id
++        prefix = (is_by.cumsum(1) == is_by.long()) & (idx != self.pad_id)  # (B, T)
++        key_pos, key_prefix = pos, prefix
+         if caches is not None:  # incremental decoding: keys are every cached token
+             c = caches[0]
+             if "pos" not in c:
+                 c["pos"], c["n_pos"] = pos.new_empty(pos.size(0), c["max"]), 0
++                c["prefix"] = prefix.new_zeros(B, c["max"])
+             n0, n1 = c["n_pos"], c["n_pos"] + T
+             c["pos"][:, n0:n1] = pos
++            c["prefix"][:, n0:n1] = prefix
+             c["n_pos"] = n1
+-            key_pos = c["pos"][:, :n1]
++            key_pos, key_prefix = c["pos"][:, :n1], c["prefix"][:, :n1]
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+-        bias = -self.slopes * rel.to(self.slopes.dtype)
+-        bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        dist = torch.where(rel >= 0, rel, -2 * rel)
++        bias = -self.slopes * dist.to(self.slopes.dtype)
++        allowed = (rel >= 0) if mask is None else mask
++        allowed = allowed | (prefix[:, None, :, None] & key_prefix[:, None, None, :])
++        bias = torch.where(allowed, bias, float("-inf"))
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+@@ -229,7 +245,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD, tok.stoi["by"], tok.pad)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
