@@ -1,0 +1,25 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 0ede111..40f940d 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -38,6 +38,7 @@ from train import loss_on  # fork
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 256, 8
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
++DECAY_START = 0.8  # P18 WSD: peak LR until this fraction of the wall-clock, then cosine to floor
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+ # (num_iters=5, safety factor 2e-2): singular values land in ~[0.86, 1.14] instead of the
+@@ -259,10 +260,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if frac >= 1.0:
+             break
+         step += 1
++        decay = max(0.0, frac - DECAY_START) / (1 - DECAY_START)
+         lr = (
+             LR * step / WARMUP
+             if step < WARMUP
+-            else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
++            else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * decay))
+         )
+         for g in opt.param_groups:
+             g["lr"] = lr
