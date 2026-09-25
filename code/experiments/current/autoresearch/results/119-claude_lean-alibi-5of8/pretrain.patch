@@ -1,0 +1,18 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..34b0fe1 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -52,10 +52,10 @@ NS_COEFFS = (
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
+ TOK_MODE = "lean_seq"  # required by the harness (Lean protocol)
+-# Hybrid heads: half the heads get ALiBi (Press et al. 2021) with the standard slope set for
+-# H/2 heads, 2^(-8 i / (H/2)) = 1/4 .. 1/256 with 8 heads; the other half get slope 0, i.e. no
++# Hybrid heads: 5 of the 8 heads get ALiBi (Press et al. 2021) with the standard slope set for
++# 5 heads, 2^(-8 i / 5) = 1/3.03, 1/9.19, 1/27.9, 1/84.4, 1/256; the other 3 get slope 0, i.e. no
+ # positional signal at all (NoPE), so they can look citations up by content at any distance.
+-N_ALIBI = N_HEAD // 2
++N_ALIBI = 5
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+     N_HEAD - N_ALIBI
+ )
