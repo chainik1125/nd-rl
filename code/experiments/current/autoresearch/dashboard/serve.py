@@ -1,5 +1,7 @@
 """Localhost dashboard for the autoresearch loop: theorems solved per experiment.
 
+`/` is the Lean-protocol page (runs since 098, fork 51604b3); `/history` is every run.
+
 Run from anywhere: `python3 code/experiments/current/autoresearch/dashboard/serve.py`,
 then open http://autoresearch.localhost/ (Caddy) or http://127.0.0.1:7102/.
 Stdlib only. data.json is rebuilt on every request, so refreshing the page picks up new runs;
@@ -95,6 +97,16 @@ def load_runs() -> list[dict[str, object]]:
                 "n_targets": params["protocol"]["rl"]["n_targets"],
                 "n_dev": params["protocol"]["eval"]["pool"]["n"],
                 "surprise": results.get("surprise"),
+                "fork": params["protocol"]["fork_commit"][:7],
+                "base_commit": params.get("base_commit"),
+                "baseline_id": params.get("baseline_id"),
+                "p_keep": params.get("p_keep"),
+                "expected_delta": params.get("expected_delta"),
+                # Per-seed final pretrain val loss etc. (since 098), and summed Lean-gate counts.
+                "seed_pretrain": results.get("seed_pretrain"),
+                "lean_gate": results.get("lean_gate"),
+                "total_secs": results.get("total_secs"),
+                "recorded_at": results.get("recorded_at"),
             }
         )
     return runs
@@ -104,6 +116,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/", "/index.html"):
             body, ctype = (HERE / "index.html").read_bytes(), "text/html"
+        elif self.path in ("/history", "/history.html"):
+            body, ctype = (HERE / "history.html").read_bytes(), "text/html"
         elif self.path == "/data.json":
             body, ctype = json.dumps(load_runs()).encode(), "application/json"
         else:

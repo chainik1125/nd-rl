@@ -138,6 +138,16 @@ def one(name, seed, log_dir, pod_name=None):
             run("down")
 
 
+def seed_pretrain(summary):
+    pre = summary.get("pretrain", {})
+    curve = pre.get("curve") or [{}]
+    return {
+        "val_loss": curve[-1].get("val_loss"),
+        "heldout_greedy": pre.get("heldout_greedy"),
+        "steps": pre.get("steps"),
+    }
+
+
 def merge(name, seeds):
     summaries = {}
     for s in seeds:
@@ -153,6 +163,9 @@ def merge(name, seeds):
     base["seed_metrics"] = {str(s): summaries[s]["metric"] for s in ok}
     base["seed_metric_rl"] = {str(s): summaries[s]["metric_rl"] for s in ok}
     base["seeds"] = seeds
+    base["seed_pretrain"] = {str(s): seed_pretrain(summaries[s]) for s in ok}
+    gates = [summaries[s]["lean_gate"] for s in ok if summaries[s].get("lean_gate")]
+    base["lean_gate"] = {k: sum(g[k] for g in gates) for k in gates[0]} if gates else None
     if len(ok) == len(seeds):
         base["status"] = "ok"
         base["metric"] = round(sum(base["seed_metrics"].values()) / len(ok))

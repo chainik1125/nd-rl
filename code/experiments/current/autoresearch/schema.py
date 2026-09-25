@@ -209,7 +209,7 @@ class Results(Loose):
     metric_rl: int | None
     harness_sha: str
     pretrain_sha: str
-    rules: dict[str, int]
+    rules: dict[str, int | str]
     gpu: str | None
     total_secs: int
     reason: str | None
@@ -221,4 +221,7 @@ class Results(Loose):
     seed_metrics: dict[str, int | None] | None = None
     seed_metric_rl: dict[str, int | None] | None = None
     seed_status: dict[str, Literal["ok", "crash", "timeout", "missing"]] | None = None
+    # Since 098: per-seed end-of-pretrain stats, for pretrain-loss vs RL-outcome plots
+    seed_pretrain: dict[str, dict[str, float | int | None]] | None = None
+    lean_gate: dict[str, float | int] | None = None  # summed over seeds
     migrated: bool = False
