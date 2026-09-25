@@ -1,0 +1,113 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index e5430ff..83b2b04 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -59,6 +59,10 @@ N_ALIBI = N_HEAD // 2
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+     N_HEAD - N_ALIBI
+ )
++# Forgetting Transformer (Lin et al. 2025): the positional heads' decay is a per-token forget
++# gate f_t = sigmoid(W_f x_t + b_f) instead of a fixed slope; the bias on (query j, key i) is
++# sum_{t=i+1..j} log f_t. W_f = 0 and b_f = logit(exp(-slope)) reproduce ALiBi exactly at init.
++FORGET_BIAS = tuple(math.log(math.exp(-s) / (1 - math.exp(-s))) for s in ALIBI_SLOPES[:N_ALIBI])
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ 
+ 
+@@ -119,21 +123,33 @@ class PeriLNBlock(Block):
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
++        self.forget = torch.nn.Linear(d, N_ALIBI)  # per-token log forget gate, positional heads
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
+-        if cache is not None:  # the fork's preallocated KV cache, unchanged
++        # Cumulative log forget gate per positional head, (B, T, N_ALIBI) in fp32; the key side
++        # of cached decoding continues from the last cached value.
++        c = torch.nn.functional.logsigmoid(self.forget(x).float()).cumsum(1)
++        if cache is not None:  # the fork's preallocated KV cache, plus the running log-forget sum
+             if "k" not in cache:
+                 cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+                 cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["c"] = c.new_zeros(B, cache["max"], N_ALIBI)
+                 cache["n"] = 0
+             n0, n1 = cache["n"], cache["n"] + T
++            if n0 > 0:
++                c = c + cache["c"][:, n0 - 1, None]
+             cache["k"][:, :, n0:n1] = k
+             cache["v"][:, :, n0:n1] = v
++            cache["c"][:, n0:n1] = c
+             cache["n"] = n1
+-            k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
+-        y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
++            k, v, c_key = cache["k"][:, :, :n1], cache["v"][:, :, :n1], cache["c"][:, :n1]
++        else:
++            c_key = c
++        decay = (c[:, :, None] - c_key[:, None]).permute(0, 3, 1, 2)  # (B, N_ALIBI, T, S)
++        bias = mask + torch.cat([decay, decay.new_zeros(B, self.h - N_ALIBI, T, k.size(2))], 1)
++        y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=bias.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+@@ -148,11 +164,6 @@ class ALiBiGPT(GPT):
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+     bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
+ 
+-    def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
+-        super().__init__(vocab, n_layer, d, n_head, max_len)
+-        slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+-        self.register_buffer("slopes", slopes, persistent=False)
+-
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+@@ -167,7 +178,8 @@ class ALiBiGPT(GPT):
+             c["n_pos"] = n1
+             key_pos = c["pos"][:, :n1]
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+-        bias = -self.slopes * rel.to(self.slopes.dtype)
++        # Causal/padding mask only; each block adds its own forget-gate decay (FoX).
++        bias = torch.zeros_like(rel, dtype=torch.float)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+@@ -233,20 +245,34 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
++    forget_ids = {id(p) for b in model.blocks for p in b.forget.parameters()}
+     for p in model.blocks.parameters():
+-        if p.ndim == 2:
++        if p.ndim == 2 and id(p) not in forget_ids:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++    with torch.no_grad():  # start as exactly the incumbent's ALiBi: constant gates
++        for b in model.blocks:
++            b.forget.weight.zero_()
++            b.forget.bias.copy_(torch.tensor(FORGET_BIAS))
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+-    matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+-    matrix_ids = {id(p) for p in matrices}
++    matrices = [p for p in model.blocks.parameters() if p.ndim == 2 and id(p) not in forget_ids] + [
++        model.head.weight
++    ]
++    matrix_ids = {id(p) for p in matrices} | forget_ids
+     auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
++    forget_params = [p for p in model.parameters() if id(p) in forget_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    # The forget gates get AdamW without decay: decay would pull every gate towards 1/2.
++    opt = torch.optim.AdamW(
++        [{"params": auxiliary}, {"params": forget_params, "weight_decay": 0.0}],
++        lr=LR,
++        weight_decay=WD,
++        betas=(0.9, 0.95),
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
