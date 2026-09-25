@@ -60,6 +60,10 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) 
     N_HEAD - N_ALIBI
 )
 VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+# Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+# Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+# the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+MTP_WEIGHT = 0.3
 
 
 # Muon update adapted from KellerJordan/Muon, commit
@@ -154,6 +158,10 @@ class ALiBiGPT(GPT):
         self.register_buffer("slopes", slopes, persistent=False)
 
     def forward(self, idx, pos=None, mask=None, caches=None):
+        return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+
+    def features(self, idx, pos=None, mask=None, caches=None):
+        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
         B, T = idx.shape
         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
             pos = torch.arange(T, device=idx.device)[None]
@@ -172,7 +180,39 @@ class ALiBiGPT(GPT):
         x = self.emb(idx)
         for i, b in enumerate(self.blocks):
             x = b(x, None, None, bias, None if caches is None else caches[i])
-        return self.head(self.ln_f(x))
+        return x, bias
+
+
+class MTPHead(torch.nn.Module):
+    """The MTP module. A separate nn.Module, never registered on the model, so the harness's
+    parameter count, RL AdamW and sampler never see it; it is dropped when pretrain() returns."""
+
+    def __init__(self, d, h):
+        super().__init__()
+        self.ln_h, self.ln_e = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+        self.proj = torch.nn.Linear(2 * d, d, bias=False)
+        self.block = PeriLNBlock(d, h)
+
+
+def mtp_loss(model, mtp, x, m):
+    """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+    h, bias = model.features(x[:, :-1])
+    logits = model.head(model.ln_f(h))
+    V = logits.size(-1)
+    ce = torch.nn.functional.cross_entropy(
+        logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+    )
+    main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
+    # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+    # prediction of x_{t+2} a function of x_{<=t+1}.
+    z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+    z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
+    ce2 = torch.nn.functional.cross_entropy(
+        model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+    )
+    aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+    return main + MTP_WEIGHT * aux, main, aux
 
 
 def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
@@ -233,7 +273,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
     model.blocks.apply(model._init)  # fork init: zero biases
     model = model.to(device)
-    for p in model.blocks.parameters():
+    mtp = MTPHead(D, N_HEAD)
+    mtp.apply(model._init)
+    mtp = mtp.to(device)
+    for p in list(model.blocks.parameters()) + list(mtp.parameters()):
         if p.ndim == 2:
             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
@@ -242,15 +285,17 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
     )
     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+    trainable = list(model.parameters()) + list(mtp.parameters())
     matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+    matrices += [p for p in mtp.parameters() if p.ndim == 2]
     matrix_ids = {id(p) for p in matrices}
-    auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
+    auxiliary = [p for p in trainable if id(p) not in matrix_ids]
     momentum_buffers = [torch.zeros_like(p) for p in matrices]
     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
     model.train()
     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
-    curve, recent, next_point = [], [], CURVE_EVERY
+    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
     while True:
         frac = (
@@ -271,15 +316,17 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         idxs, perm = perm[:BS], perm[BS:]
         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
         with autocast:
-            loss = loss_on(model, x, m)
+            loss, main, aux = mtp_loss(model, mtp, x, m)
         model.zero_grad(set_to_none=True)
+        mtp.zero_grad(set_to_none=True)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        torch.nn.utils.clip_grad_norm_(trainable, 1.0)
         opt.step()
         muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
         if step % 20 == 0:
-            last_loss = loss.item()
+            last_loss = main.item()  # the next-token CE, comparable with earlier runs
             recent.append(last_loss)
+            recent_aux.append(aux.item())
         if (
             time.time() - t0 >= next_point
         ):  # curve point: mean recent train loss + val loss on the held-out slice
@@ -289,13 +336,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
                     "step": step,
                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+                    "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
                 }
             )
             log(
                 f"pretrain step {step} train {curve[-1]['train_loss']:.4f} "
                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
             )
-            recent, next_point = [], next_point + CURVE_EVERY
+            recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
     model.eval()
     return (
         model,
