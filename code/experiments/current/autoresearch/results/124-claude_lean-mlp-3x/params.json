@@ -1,0 +1,226 @@
+{
+  "id": "124-claude",
+  "slug": "lean-mlp-3x",
+  "written_at": "2026-09-25T06:24:34-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "a7742e1",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "9610073d156f",
+  "patch_lines": 11,
+  "title": "P24 reversed: MLP expansion 4x -> 3x (d_ff 1024 -> 768) in all six Peri-LN blocks, on the 115-fable hybrid ALiBi/NoPE Lean incumbent (4,012,032 params)",
+  "description": "Idea ID: P24 (reversed direction; 103-claude tested 4x -> 5x on the 101 incumbent and lost 31). The only architectural edit is the MLP width, d_ff 1024 -> 768 in every block (fc1 (768,256), fc2 (256,768)), which removes 787,968 parameters (4,800,000 -> 4,012,032) and ~17% of block matmul FLOPs; because fc1 now has the same (3D, D) shape as QKV, the Muon QKV role split is keyed on the qkv parameters' identity instead of shape, so fc1 is still orthogonalized as one (768,256) matrix and every Muon update keeps the same RMS-matched scale. Pretraining is data-limited (115: 3.5 epochs, val loss 0.0843 at 165 s and 0.0826 at 300 s while train loss falls 0.059 -> 0.052), so less MLP (lookup-table) capacity should mean less memorization of cap-6 proofs and a starting point whose attention-side rules carry more of the fit, which is what expert iteration needs to extend to 7+ lines.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "In the Lean protocol the pretraining set is seen ~3.5 times in 300 s and held-out loss stops improving by mid-run (115: val 0.0843 at 165 s, 0.0826 at 300 s; train 0.059 -> 0.052), so the incumbent spends its second half memorizing. MLP width is the model's main memorization capacity; 103 (5x MLP, +0.79M params) scored -31 vs its baseline and 102 (a seventh block) -37, both consistent with extra capacity hurting downstream expert iteration in this regime. Removing a quarter of the MLP width (d_ff 768, still 3x) should cut memorization while leaving attention (the premise-citation and syntax machinery that the ALiBi/NoPE gains came from) untouched, and gives ~8-12% more optimizer steps in the same wall-clock. Prediction if right: final val loss within 0.003 of 115 (0.0826-0.084) with a smaller train/val gap (train loss >= 0.054), 4,500-4,800 steps (115: 4204), round-1 targets solved >= 700 (115: 718/756/691), and a 3-seed mean above 631.33. Evidence against: 110 (d_model 320 with d_ff 576) timed out with a weak round 1; pre-Lean depth/width cuts (008: 3 layers) lost; if MLP capacity is not the memorization bottleneck, this just removes useful capacity and loses 10-30. Mechanism checks: steps and epochs vs 115; final train and val loss vs 115; round-1 targets solved and sample acc vs 115; eval L* and >= 10 histogram vs 115.",
+  "p_keep": 0.3,
+  "expected_delta": "-35 to +30 dev solves >= 7 vs 115-fable's 631.33 (central -3); pretraining steps 4,500-4,800 (115: 4204 on seed 0), final val loss 0.080-0.087, final train loss 0.052-0.058; totals within 1,450-2,100 s under the 2,400 s cap",
+  "baseline_id": "115-fable",
+  "baseline_metric": 631,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) with Peri-LN blocks (LayerNorm on each branch output as well as its input) and hybrid attention heads, ALiBi on 4 heads and no positional signal on the other 4 (unchanged from 115-fable); CHANGED MLP width 3x",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 768,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) via SDPA attn_mask, slopes 1/4, 1/16, 1/64, 1/256 for heads 1..4 and 0 for heads 5..8 (NoPE); same table in every block; -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4012032,
+      "change": "CHANGED vs 115-fable: D_FF = 3 * D = 768; PeriLNBlock.__init__ replaces the fork Block's fc1 Linear(256,1024) / fc2 Linear(1024,256) with Linear(256,768) / Linear(768,256) (biases kept, zeroed by the fork _init, weights re-initialized orthogonally like every block matrix). muon_step's QKV role split is now selected by parameter identity (qkv_ids = the six qkv.weight tensors) instead of the shape test size(0) == 3 * size(1), which fc1 (768,256) would now also pass; behaviour for QKV and every other matrix is unchanged. Attention, ALiBi/NoPE slopes, Peri-LN, depth, width, embedding/readout, optimizer and schedule are identical to 115",
+      "n_params_detail": "4,800,000 (115-fable) - 6 x [fc1 weight 256x256 + fc1 bias 256 + fc2 weight 256x256] = 4,800,000 - 6 x 131,328 = 4,012,032 (vocab 107); slopes buffer is not a parameter",
+      "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 256, 8) from this pretrain.py, replace blocks with this pretrain.py's PeriLNBlock (d_ff 768), then load state. The live harness uses the returned model object through RL and eval",
+      "kv_cache": "unchanged from 115-fable (MLP width does not touch attention or caches)"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, unchanged convention): Q/K/V each 1, attention output 1, fc1 (768,256) sqrt(3), fc2 (256,768) sqrt(3), head (107,256) 1; every Muon update has element RMS ~1/16 times lr",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj (256,256), fc1 (768,256), fc2 (256,768)) plus head.weight",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each qkv.weight update to (3,256,256) and orthogonalize the three roles separately. CHANGED selection only: by identity (id(p) in qkv_ids) instead of shape, because fc1 (768,256) now has QKV's shape; fc1 is orthogonalized as one matrix",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "CHANGED: per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "CHANGED: update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (ln1, ln2, ln_attn_out, ln_mlp_out per block, and ln_f); head.weight and hidden matrices never enter pretraining AdamW",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "parameters": "24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj (256,256), fc1 (768,256), fc2 (256,768)) plus head.weight"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction (normal 0.02 embedding/readout), blocks replaced by PeriLNBlocks and re-initialized with the fork _init (zero biases), then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); output LayerNorms gain 1, bias 0 (standard Peri-LN / OLMo 2 / Gemma 2 init). RNG draws shift vs 101-claude because the blocks are built twice. At init each branch write has RMS ~1 instead of ~0.1",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
