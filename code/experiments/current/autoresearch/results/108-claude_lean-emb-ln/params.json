@@ -1,0 +1,226 @@
+{
+  "id": "108-claude",
+  "slug": "lean-emb-ln",
+  "written_at": "2026-09-24T23:36:34-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "e8ba606",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "fd5d1495f57a",
+  "patch_lines": 3,
+  "title": "P22 follow-up: LayerNorm on the token-embedding output (Peri-LN on the residual-stream input) on the 107-claude Peri-LN Lean incumbent (4.80M params)",
+  "description": "P22 follow-up (Peri-LN): wrap the fork embedding as Sequential(emb, LayerNorm(256)) so the token embedding enters the residual stream at unit scale, like every Peri-LN branch write, instead of at the 0.02 init std; nothing else changes and the LayerNorm persists into RL. Under 107's Peri-LN each of the 12 branch writes has RMS ~1 at init, so the current token's own identity is ~2% of block 0's MLP input and must first be grown by AdamW; a unit-scale embedding should give earlier and better token-identity features, i.e. a sharper proof-name binding the fixed expert iteration can build on.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "With Peri-LN output norms, branch writes are unit-RMS while the embedding stays at std 0.02 (AdamW moves it at most ~1e-3 per coordinate per step), so the residual stream underweights the current token for the early part of a ~3,200-step run. Normalizing the embedding output restores the token-identity path from step 0 (scale-invariant, so AdamW sets only its direction and the LN gain sets its scale). Expect slightly lower val loss early, equal or fewer round-1 parse failures / unbound names, and a better RL start that carries through the four rounds.",
+  "p_keep": 0.3,
+  "expected_delta": "+5 mean dev>=7 solves (range -35 to +40); pretraining steps within ~1% of 107 (3,210-3,300; one extra LayerNorm vs twelve costing ~10%), final val loss 0.078-0.084",
+  "baseline_id": "107-claude",
+  "baseline_metric": 587,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) with Peri-LN blocks and CHANGED: LayerNorm on the token-embedding output",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "rope",
+      "ctx": 1024,
+      "norm": "layernorm (Peri-LN blocks as in 107-claude: pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs; CHANGED: + LayerNorm(256) on the embedding output before block 0)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4800512,
+      "change": "CHANGED vs 107-claude: after building GPT(vocab, 6, 256, 8) and swapping in six PeriLNBlocks exactly as in 107, model.emb is replaced by torch.nn.Sequential(model.emb, torch.nn.LayerNorm(256)) (original fork nn.Embedding with its normal(0.02) init kept as emb.0; LayerNorm gain 1 bias 0). Forward: x = LayerNorm(emb(idx)), then the unchanged blocks, ln_f and head. The LayerNorm persists into RL and eval; state_dict keys become emb.0.weight, emb.1.weight, emb.1.bias",
+      "n_params_detail": "107-claude's 4,800,000 + one LayerNorm(256) weight+bias 512 = 4,800,512 (vocab 107)",
+      "checkpoint_reconstruction": "GPT(vocab, 6, 256, 8) from the fork, replace blocks with PeriLNBlock and emb with Sequential(emb, LayerNorm(256)) as in pretrain.py, then load state. The live harness uses the returned model object through RL and eval",
+      "kv_cache": "unchanged: the embedding LayerNorm is per-token, so cached and full forwards see identical block inputs; fork attn/cache code and one cache dict per model.blocks index as in 107"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.1,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "CHANGED: sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW; muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "CHANGED: per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "CHANGED: update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.0.weight (the embedding matrix), CHANGED: + emb.1 LayerNorm gain and bias, all projection biases and LayerNorm parameters (ln1, ln2, ln_attn_out, ln_mlp_out per block, ln_f); head.weight and hidden matrices on Muon as in 107. The embedding matrix is now scale-invariant in the forward (followed by LayerNorm), so AdamW only rotates its rows; lr 1e-3, wd 0.1 unchanged",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale",
+      "clipping": "joint global gradient norm 1.0 before both optimizers",
+      "handoff": "standard GPT weights only; pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW",
+      "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction (normal 0.02 embedding/readout), blocks replaced by PeriLNBlocks and re-initialized with the fork _init (zero biases), then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); output LayerNorms gain 1, bias 0 (standard Peri-LN / OLMo 2 / Gemma 2 init). RNG draws shift vs 101-claude because the blocks are built twice. At init each branch write has RMS ~1 instead of ~0.1. CHANGED: embedding LayerNorm gain 1, bias 0 (deterministic, no RNG draws, so all random draws match 107); at init the embedding write has RMS ~1 instead of 0.02",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

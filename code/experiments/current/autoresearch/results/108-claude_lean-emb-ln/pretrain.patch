@@ -1,0 +1,14 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ff48e8f..6c84195 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -173,6 +173,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model = GPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
++    # Peri-LN on the input too: the 0.02-std embedding would enter the residual stream ~50x
++    # below the unit-scale branch writes, so normalize it to the same scale.
++    model.emb = torch.nn.Sequential(model.emb, torch.nn.LayerNorm(D))
+     model = model.to(device)
+     for p in model.blocks.parameters():
+         if p.ndim == 2:
