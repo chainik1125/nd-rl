@@ -2,7 +2,9 @@
 
 Two loops run in parallel, one per agent, each from its own full checkout (see the
 [checkouts note](../../../../.claude/notes/autoresearch-checkouts.md)), both pushing to
-`autoresearch-pretrain`. From each checkout's root, source the RunPod credentials and run:
+`autoresearch-pretrain`. Since 2026-09-24 (Lean protocol, from 098) only the Claude loop runs;
+Robbie paused Codex. The `nd-rl` checkout is still at 056 and must `git pull` before Codex restarts.
+From each checkout's root, source the RunPod credentials and run:
 
 ```bash
 source .envrc.local
