@@ -1,0 +1,390 @@
+{
+  "commit": "c2c4499",
+  "recorded_at": "2026-09-25T15:49:54-0700",
+  "status": "discard",
+  "metric": 635,
+  "metric_rl": 1101,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "f337435fdff6",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1796,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 7474560,
+    "steps": 2683,
+    "epochs": 2.2305184261460322,
+    "last_loss": 0.054711420089006424,
+    "heldout_greedy": 0.969,
+    "curve": [
+      {
+        "secs": 16,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.70782607793808,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 138,
+        "train_loss": 1.785775472720464,
+        "val_loss": 0.6491086483001709,
+        "mtp_loss": 2.0021592875321708
+      },
+      {
+        "secs": 45,
+        "step": 279,
+        "train_loss": 0.27045726243938717,
+        "val_loss": 0.10545680485665798,
+        "mtp_loss": 0.24842325385127748
+      },
+      {
+        "secs": 60,
+        "step": 422,
+        "train_loss": 0.08714686147868633,
+        "val_loss": 0.0823191236704588,
+        "mtp_loss": 0.08694862108677626
+      },
+      {
+        "secs": 75,
+        "step": 562,
+        "train_loss": 0.07323928815977913,
+        "val_loss": 0.09291805513203144,
+        "mtp_loss": 0.07497832817690712
+      },
+      {
+        "secs": 90,
+        "step": 702,
+        "train_loss": 0.0685540075813021,
+        "val_loss": 0.08704583439975977,
+        "mtp_loss": 0.07032572052308492
+      },
+      {
+        "secs": 105,
+        "step": 844,
+        "train_loss": 0.06461160097803388,
+        "val_loss": 0.08602401334792376,
+        "mtp_loss": 0.06496761260288102
+      },
+      {
+        "secs": 120,
+        "step": 986,
+        "train_loss": 0.06313324187483106,
+        "val_loss": 0.08049313817173243,
+        "mtp_loss": 0.06281675079039165
+      },
+      {
+        "secs": 135,
+        "step": 1130,
+        "train_loss": 0.06213428612266268,
+        "val_loss": 0.09188321884721518,
+        "mtp_loss": 0.06346971009458814
+      },
+      {
+        "secs": 150,
+        "step": 1270,
+        "train_loss": 0.06077957046883447,
+        "val_loss": 0.08669347781687975,
+        "mtp_loss": 0.061056705990007946
+      },
+      {
+        "secs": 165,
+        "step": 1415,
+        "train_loss": 0.05855652051312583,
+        "val_loss": 0.08332289755344391,
+        "mtp_loss": 0.06023813198719706
+      },
+      {
+        "secs": 180,
+        "step": 1554,
+        "train_loss": 0.05907836024250303,
+        "val_loss": 0.08706807252019644,
+        "mtp_loss": 0.059196810105017254
+      },
+      {
+        "secs": 195,
+        "step": 1697,
+        "train_loss": 0.05837774542825563,
+        "val_loss": 0.08869731798768044,
+        "mtp_loss": 0.05852490982839039
+      },
+      {
+        "secs": 210,
+        "step": 1840,
+        "train_loss": 0.0582023155875504,
+        "val_loss": 0.08804464060813189,
+        "mtp_loss": 0.05851753102615476
+      },
+      {
+        "secs": 225,
+        "step": 1980,
+        "train_loss": 0.05644774596605982,
+        "val_loss": 0.076730627566576,
+        "mtp_loss": 0.05730215619717326
+      },
+      {
+        "secs": 240,
+        "step": 2121,
+        "train_loss": 0.05689468713743346,
+        "val_loss": 0.07719122618436813,
+        "mtp_loss": 0.05743104379091944
+      },
+      {
+        "secs": 255,
+        "step": 2261,
+        "train_loss": 0.05672893619963101,
+        "val_loss": 0.0888713151216507,
+        "mtp_loss": 0.05703038349747658
+      },
+      {
+        "secs": 270,
+        "step": 2400,
+        "train_loss": 0.05497824986066137,
+        "val_loss": 0.08050009608268738,
+        "mtp_loss": 0.05493726155587605
+      },
+      {
+        "secs": 285,
+        "step": 2543,
+        "train_loss": 0.0545300729572773,
+        "val_loss": 0.08893534727394581,
+        "mtp_loss": 0.05453797536236899
+      },
+      {
+        "secs": 300,
+        "step": 2683,
+        "train_loss": 0.05486421872462545,
+        "val_loss": 0.0815676636993885,
+        "mtp_loss": 0.05478182168943541
+      }
+    ],
+    "records_seen": 343424
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.12970833333333334,
+      "new_proofs": 582,
+      "targets_solved": 420,
+      "lstar": 9,
+      "ge": {
+        "7": 420,
+        "8": 117,
+        "9": 23,
+        "10": 1,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2308,
+      "samples_per_sec": 223,
+      "secs": 287
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.487,
+      "new_proofs": 747,
+      "targets_solved": 895,
+      "lstar": 10,
+      "ge": {
+        "7": 895,
+        "8": 423,
+        "9": 175,
+        "10": 23,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5172,
+      "samples_per_sec": 257,
+      "secs": 263
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6236041666666666,
+      "new_proofs": 380,
+      "targets_solved": 1022,
+      "lstar": 10,
+      "ge": {
+        "7": 1022,
+        "8": 521,
+        "9": 250,
+        "10": 42,
+        "11": 2,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6484,
+      "samples_per_sec": 248,
+      "secs": 272
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.6878958333333334,
+      "new_proofs": 262,
+      "targets_solved": 1093,
+      "lstar": 11,
+      "ge": {
+        "7": 1093,
+        "8": 574,
+        "9": 290,
+        "10": 55,
+        "11": 6,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7324,
+      "samples_per_sec": 239,
+      "secs": 280
+    }
+  ],
+  "eval": {
+    "solved": 628,
+    "n": 1108,
+    "ge": {
+      "7": 628,
+      "8": 536,
+      "9": 421,
+      "10": 90,
+      "11": 22,
+      "12": 4,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.9905,
+    "max_pruned": 13,
+    "by_bin": {
+      "7": {
+        "solved": 92,
+        "n": 150,
+        "rate": 0.6133333333333333,
+        "ci": [
+          0.5334964294452139,
+          0.6875101123484232
+        ]
+      },
+      "8": {
+        "solved": 115,
+        "n": 152,
+        "rate": 0.756578947368421,
+        "ci": [
+          0.6825795168754425,
+          0.8179286914591741
+        ]
+      },
+      "9": {
+        "solved": 331,
+        "n": 477,
+        "rate": 0.6939203354297694,
+        "ci": [
+          0.6511485695136215,
+          0.7335935160297257
+        ]
+      },
+      "10": {
+        "solved": 68,
+        "n": 219,
+        "rate": 0.3105022831050228,
+        "ci": [
+          0.25292982961427396,
+          0.37460829612167473
+        ]
+      },
+      "11": {
+        "solved": 18,
+        "n": 49,
+        "rate": 0.3673469387755102,
+        "ci": [
+          0.24664982524781226,
+          0.5073318861311014
+        ]
+      },
+      "12": {
+        "solved": 4,
+        "n": 54,
+        "rate": 0.07407407407407407,
+        "ci": [
+          0.029181055323684174,
+          0.17554357193420633
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P01 loop-then-untie (three 320-wide Peri-LN blocks cycled A-B-C-A-B-C during the 300 s pretraining, 3,771,840 unique params, deep-copied into six untied blocks at handoff, 7,474,560 params as registered, the log line 'untied to 6 blocks, 7,474,560 params at handoff' present on every seed) on 136-fable scored 628/645/631 on seeds 0/1/2 vs 136's 655/673/646: exact means 634.67 vs 658.00, -23.33, paired -27/-28/-15, every seed below its counterpart, inside the registered -45..+40 range and below its central +5. Discard. Pretraining ran as predicted: 2683/2675/2711 steps (136: 3370/3351/3367, -20%; predicted 2,600-3,100; 2.2 epochs), final main val loss 0.0816/0.0858/0.0868 (minima 0.0767/0.0746/0.0782, last-five-point means 0.083/0.084/0.085; 136: 0.086/0.083/0.079; predicted 0.076-0.092), train loss 0.0556/0.0558/0.0557 (136 ~0.055), mtp_loss 0.055/0.055/0.056 tracking the main loss as in 136, held-out greedy 0.969/0.964/0.961 (136: 0.965/0.9705/0.968; predicted 0.95-0.975). Surprise 1: the mechanism check split down the middle. The decisive prediction, an untied climb, HELD: r1->r4 +673/+388/+579 (mean +547 vs 136's +525/+585/+462 = +524 and 134's +453; predicted >= +480), round-4 sample acc 0.688/0.704/0.679 (136: 0.688/0.693/0.695), whole-run both-ok samples 101,016/112,671/101,301 (136: 100,498/105,474/108,386; sums 314,988 vs 314,358, +0.2%), whole-run parse failures 17.0/14.9/17.8% (136: 17.9/18.4/14.7%), and eval-time greedy 0.9905/0.989/0.987 (136: 0.9905/0.9885/0.987), i.e. failure mode (b), copies that never separate under 600 AdamW steps per round, did not happen. But the round-1 start that 134's harvest story promised did NOT reproduce: round-1 targets 420/721/522 (136: 577/529/662; means 554 vs 589; seed 0 below the predicted 520-760), round-1 sample acc 0.130/0.264/0.157 (136: 0.137/0.135/0.210), round-1 Lean parse failures 21,096/12,670/21,650 of 48,000 = 44/26/45% (134: 25/30/40%; 129: 36/40/26%), so two of three seeds handed RL a sampler that failed to parse almost half its round-1 output, the pattern of 132's recurrent-depth loss rather than 134's harvest gain. The good climb only closed the gap to round-4 1093/1109/1101 (136: 1102/1114/1124; predicted >= 1,110 missed on every seed by 5-23) and the eval deficit sits at L=8-10 (L=8 115/106/101 vs 119/115/108; L=9 331/348/333 vs 347/355/342; L=10 68/79/76 vs 75/86/80) with L=7 (92/91/101 vs 95/93/92) and L>=11 (22/21/20 vs 19/24/24) matched, the same middle-of-the-distribution loss 134 showed. Surprise 2: with the RL data volume equal (+0.2% both-ok samples) and the eval greedy identical, the 7.47M untied model still solved 23 fewer dev theorems, so the deficit is in what the fixed RL recipe extracts per accepted proof, not in how many it collects; either the 1.56x-wider blocks learn the 8-10-line dev structure less per fine-tune step at FT_LR 3e-4 (failure mode (a), the 102/103 size pattern; 134 at 5.4M lost 13, this at 7.5M lost 23) or the looped 2.2-epoch pretraining trajectory itself is the shared handicap. Reading for P01: the fixed-depth loop family now lands 13-23 below the untied incumbent whether the handoff is narrow-shared (125: -14), wide-shared (134: -13) or wide-untied (this, -23), and 134's better round 1 did not repeat under the MTP incumbent, so it was plausibly noise (136's own round-1 targets range 529-662); a shared pretraining trajectory is the common factor across all three, and releasing the tie at handoff does not recover it. Together with 140 (stack at 1/3: -37) and 144-fable (untied wide-shallow: -181), the six blocks need most of the 300 s trained untied. Do not run another fixed-depth loop variant; what is left in P01 is extra sampling-time depth (132: -22) or truncated-backprop recurrence, and per Robbie's 2026-09-25 program.md note the better next lever is speed (flash-path attention, packing), which would let a 320-wide untied six-block model get the incumbent's step count instead of -20%. Timing: totals 1741/1796/1685 s (136: 1517/1549/1616; +180 s mean, RL rounds 249-298 s vs 136's 223-282 s, eval 224-281 samples/s; predicted 1,550-1,950), no timeout. CPU checks before launch: untie preserves logits exactly (max abs diff 0.0), cached vs full forward 1.1e-6, 13 unique trunk Muon matrices, every parameter with a gradient after the untie. Registration 6d8ff73 committed before pods; all three pods finished ok and run_idea.py exited 0 after 33 min. Candidate added 17 lines and deleted 2; discard restores the incumbent.",
+  "seed_metrics": {
+    "0": 628,
+    "1": 645,
+    "2": 631
+  },
+  "seed_metric_rl": {
+    "0": 1093,
+    "1": 1109,
+    "2": 1101
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.0815676636993885,
+      "heldout_greedy": 0.969,
+      "steps": 2683
+    },
+    "1": {
+      "val_loss": 0.08578884601593018,
+      "heldout_greedy": 0.964,
+      "steps": 2675
+    },
+    "2": {
+      "val_loss": 0.0867728441953659,
+      "heldout_greedy": 0.961,
+      "steps": 2711
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 132655,
+    "distinct_checked": 549556,
+    "both_ok": 314988,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 11,
+    "lean_wall_s": 1342.264463186264
+  },
+  "migrated": false
+}
