@@ -28,8 +28,10 @@ workstreams or authorize changing the frozen experiment harness.
 - Keep dataset generation, dataset selection/composition and the RL algorithm out of the
   ablation loop. Do not silently classify data augmentation, resampling or curricula as in scope
   just because they could be implemented in pretrain.py; settle that boundary with Robbie first.
-- Resist spending the workstream on GPU speed optimization. Systems changes may support a
-  pretraining experiment, but throughput is not the research objective.
+- GPU speed work in `pretrain.py` is **encouraged** (Robbie, 2026-09-25, reversing the earlier
+  "resist speed optimization" line): pretraining is wall-clock bound (300 s), so more steps per
+  second is free compute, and faster models also sample faster in RL. Score, not throughput,
+  still decides keeps.
 - Build an idea backlog around pretraining mechanisms and predicted downstream RL effects.
   Data-generator projects, RL-recipe comparisons and new evaluation benchmarks are separate work.
 

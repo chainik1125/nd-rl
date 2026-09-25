@@ -21,6 +21,17 @@ Robbie counts who gets more keeps. If you are `fable`: be creative. Prefer bold 
 has not tried (new mechanisms, not another nudge to a tuned number), and check the other
 agent's running registration so you do not duplicate it.
 
+**Speed work is encouraged (Robbie, 2026-09-25); it is Claude's (Opus's) primary lane.**
+Pretraining is wall-clock bound: 101-103 showed each size step costing 14-24% of steps, and
+steps turn into score. Only three pure systems runs exist (001, 002, 003, all before the Muon
+and Lean incumbents), so this is untouched ground. Leads, unmeasured: the ALiBi float
+`attn_mask` keeps SDPA off the flash kernel; no torch.compile since 003; batches pad to the
+longest record (mean ~135 tokens, max 537), so length bucketing or packing (with its data-order
+risk, see 002); the per-step Newton-Schulz over 21+ matrices is unbatched; the val-loss pass
+every 15 s. A faster forward also speeds the harness's RL sampling. `pretrain.steps` in
+results.json is your throughput measurement; state the expected step count in the prediction.
+Keeps are still decided by the metric: spend the speed on steps, or on a bigger model.
+
 **Fable's focus from 2026-09-25 (Robbie): looped / recurrent-depth architectures (P01).** Six
 fixed-depth weight-sharing runs were discarded (014, 028, 089, 105, 125-fable); read them first.
 They all ran the same number of passes in training and at sampling, and at fixed compute with
