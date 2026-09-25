@@ -1,0 +1,247 @@
+{
+  "id": "139-claude",
+  "slug": "lean-mhc",
+  "written_at": "2026-09-25T12:49:14-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "16472c2",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "e4be8e3646f5",
+  "patch_lines": 48,
+  "title": "Robbie's 'deepseek hypermanifolds' lead, cheaper: static mHC with two residual streams and one hyper-connection per Peri-LN block (no Sinkhorn: 2x2 doubly stochastic = [[p,1-p],[1-p,p]]), on the 136-fable MTP Lean incumbent (4,800,030 params)",
+  "description": "Robbie's architecture lead 'deepseek hypermanifolds' (DeepSeek mHC; no backlog P-ID, closest P09/P10): replace the single residual stream with two fp32 streams joined around each of the six Peri-LN blocks by a static manifold-constrained hyper-connection (sigmoid read/write weights, doubly stochastic 2x2 stream mixing), initialized to be exactly 136-fable's network, the implementation 097-claude's throughput timeout called for (6 per-block connections instead of 10 per-sublayer, closed-form 2x2 manifold instead of 20 Sinkhorn iterations every forward, elementwise fp32 ops). The second stream is a scratch channel the readout never sees, so earlier blocks can pass proof-state features (e.g. which hypotheses are still open) to later blocks without committing them to the next-token readout, which should give expert iteration a more compositional starting point for proofs longer than the cap-6 pretraining data.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "097-claude's mHC learned faster per pretraining step (val loss 0.087-0.095 at under half 081's steps) but lost on throughput. Separate streams let the network learn its own layer arrangement (Zhu et al. 2024): with doubly stochastic mixing the readout is still a plain residual sum, while the difference stream carries features between blocks that are useful to later computation but not to the immediate next token, the kind of multi-step proof-state bookkeeping longer (>=7 line) proofs need. With per-block closed-form connections the cost should be ~10-15% fewer pretraining steps and a few percent slower sampling, not 097's halving, so the per-step gain can show up in RL.",
+  "p_keep": 0.25,
+  "expected_delta": "-25 to +25 theorems at >=7 vs 136-fable's 658 (central +5). Mechanistic predictions: pretraining steps ~2900-3200 (136: 3370); final val_loss within +-0.003 of 136's; total_secs < 2100 on every seed; learned read weights move away from 0.881/0.119 and mix p away from 0.881 (if they stay put, the streams stayed nearly identical and the model is 136 with extra cost).",
+  "baseline_id": "136-fable",
+  "baseline_metric": 658,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads as in 136-fable, subclass CHANGED: features() replaces the single residual stream with two fp32 residual streams joined around each of the six blocks by a static mHC hyper-connection",
+      "n_layers": 6,
+      "d_model": 256,
+      "n_heads": 8,
+      "d_ff": 1024,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 (Press et al. 2021 standard set for 4 heads) and 0 for heads 5..8 (bias identically 0 except -inf for masked/future keys, i.e. NoPE heads); same slope table in every block; -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 4800030,
+      "change": "CHANGED versus 136-fable: static manifold-constrained hyper-connections (mHC, DeepSeek-AI 2025, arXiv 2512.24880; Hyper-Connections, Zhu et al. 2024) with expansion rate n=2 and one connection per block (6), not per sublayer (097-claude used 10 per-sublayer connections and timed out on throughput). The embedding is copied into streams s0, s1. Block i reads h = r_i0 s0 + r_i1 s1 with r = sigmoid(read logits), computes the unchanged Peri-LN block's residual write y = delta(h) = LN(attn(ln1 h)) + LN(mlp(ln2(h + LN(attn)))) (PeriLNBlock.forward is now x + delta(x), same function), then updates s0 <- p_i s0 + (1-p_i) s1 + w_i0 y, s1 <- (1-p_i) s0 + p_i s1 + w_i1 y with p = sigmoid(mix logit) and w = 2 sigmoid(write logits). [[p,1-p],[1-p,p]] is every 2x2 doubly stochastic matrix (the mHC Birkhoff manifold), so no Sinkhorn iterations. Readout: ln_f/head on (s0 + s1)/2. Static only (no input-dependent mappings). Stream arithmetic is elementwise (addcmul/lerp) on fp32 tensors, so autocast leaves it fp32; blocks still run in bf16 autocast. The MTP module reads the same (s0+s1)/2 trunk state.",
+      "n_params_detail": "136-fable's 4,800,000 plus hc_read (6,2) 12 + hc_write (6,2) 12 + hc_mix (6,) 6 = 4,800,030 (CPU check: sum(p.numel()) and model.n_params() both 4,800,030). The hyper-connection logits persist into RL, where the harness AdamW trains them with everything else. MTP module unchanged (922,880, pretraining only, dropped at handoff).",
+      "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 256, 8) from this pretrain.py with PeriLNBlock blocks, then load state: 136's keys plus hc_read, hc_write, hc_mix. The fork's GPT(**cfg) alone cannot rebuild it.",
+      "kv_cache": "unchanged (one fork KV-cache dict per block, caches[0] holds key positions); hyper-connections are per-token and need no cache. CPU check with perturbed hyper-connection logits: incremental cached decode (10-token prefix then 30 single tokens) vs full forward max abs logit diff 1.3e-6",
+      "hyper_connections": {
+        "n_streams": 2,
+        "per": "block",
+        "n_connections": 6,
+        "dynamic": false,
+        "read": "sigmoid(logits) (6,2), init +2 on stream (i mod 2) and -2 on the other: 0.881/0.119, sum exactly 1",
+        "write": "2*sigmoid(logits) (6,2), init 0 -> weight 1 on both streams",
+        "mix": "[[p,1-p],[1-p,p]], p = sigmoid(logit) (6,), init logit 2 -> p 0.881",
+        "readout": "mean of the two streams, then ln_f",
+        "init_equivalence": "streams are identical at init, so the network is exactly 136's function at init (CPU check vs single-stream forward with the same weights: max abs logit diff 1.3e-6)",
+        "interpretation": "doubly stochastic mixing preserves s0+s1, so the readout is a standard residual sum with learned per-block write scales (w0+w1)/2; the difference stream s0-s1 decays by (2p-1) per block, never reaches the readout directly, and is visible to later blocks only through their read weights (r0-r1)/2: a private scratch channel between blocks",
+        "optimizer": "the 30 logits are in a separate AdamW group (lr 1e-3 with the same warmup/cosine factor, betas 0.9/0.95, weight_decay 0: decay would pull the streams together); never Muon, no orthogonal init (they live on the model, not in model.blocks)",
+        "precision": "fp32 streams (elementwise ops), bf16 autocast inside blocks"
+      }
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight throughout; continuous AdamW auxiliary (unchanged from 078-claude except the orthogonalization polynomial); the MTP module's five 2D matrices (block qkv split into Q/K/V, block proj, fc1, fc2, and the (256,512) input proj) join the Muon group and its LayerNorm gains/biases and projection biases join AdamW, same lr, schedule and decay as the trunk",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock with CHANGED floor: after the 200-step linear warmup, lr = 1e-3 * (0.3 + 0.35 * (1 + cos(pi * frac))), frac = elapsed / budget, ending at 0.3 x peak (115-fable: 0.1 x peak). Muon lr = 0.01 * lr / 1e-3 follows the same factor, and so does its per-step decoupled decay lr * MUON_WD",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(rows, columns) / 256) per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 2, fc2 2 (070-claude: 1), head (99,256) 1. Every Muon update now has element RMS ~1/16 times lr; only fc2's step doubles.",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW (floor CHANGED 0.1 -> 0.3); muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "unchanged from 101-claude: 24 hidden matrices (6 x qkv.weight (768,256) split into Q/K/V, proj, fc1, fc2) plus head.weight",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "After elementwise Nesterov momentum, reshape each QKV update to (3,256,256); independently Frobenius-normalize and run five batched Newton-Schulz steps; reshape back before applying. No extra learning-rate multiplier. Momentum and weight decay stay elementwise and unchanged.",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "unchanged from 136-fable (emb.weight, projection biases, LayerNorm parameters, MTP LayerNorms/biases; lr 1e-3, wd 0.1) plus a second AdamW param group with the 30 hyper-connection logits at weight_decay 0",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale. Because decay is lr-scaled, the higher floor raises late-training per-step decay (endpoint 3x 115's); MUON_WD itself is unchanged at 0.1",
+      "clipping": "joint global gradient norm 1.0 over model.parameters() (now including the hyper-connection logits) + the MTP module's parameters, before both optimizers",
+      "handoff": "standard GPT weights only; the MTP module and both pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW on model.parameters()",
+      "parameters": "129's 24 hidden matrices + head.weight, plus the MTP module's qkv (split), proj, fc1, fc2 and input proj (256,512; RMS shape scale sqrt(2)): 30 Muon matrices during pretraining; the handoff model's parameters are unchanged",
+      "hyper_connection_group": "the 30 logits are in a separate AdamW group (lr 1e-3 with the same warmup/cosine factor, betas 0.9/0.95, weight_decay 0: decay would pull the streams together); never Muon, no orthogonal init (they live on the model, not in model.blocks)"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to max len in batch",
+      "buckets": false
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "Fork default construction (normal 0.02 embedding/readout), blocks replaced by PeriLNBlocks and re-initialized with the fork _init (zero biases), then orthogonal_ on every 2D block parameter (gain 0.02*sqrt(max(rows, cols))); output LayerNorms gain 1, bias 0 (standard Peri-LN / OLMo 2 / Gemma 2 init). RNG draws shift vs 101-claude because the blocks are built twice. At init each branch write has RMS ~1 instead of ~0.1. The MTP module gets the same fork _init (normal 0.02, zero biases) followed by orthogonal_ on its 2D parameters (gain 0.02*sqrt(max(rows, cols)), so the (256,512) proj has element std 0.02); its LayerNorms gain 1, bias 0. Trunk RNG draws are identical to 129 up to the MTP module's construction, which happens after the trunk is built",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": {
+      "main": "the fork's loss_on: next-token cross-entropy on proof-token positions (unchanged; val_loss and the recorded train_loss/last_loss use this term only, so they stay comparable with 129)",
+      "mtp": "DeepSeek-V3 (2024) sequential multi-token prediction, depth 1 (Gloeckle et al. 2024 style shared head): z_t = proj(cat(LN(h_t), LN(emb(x_{t+1})))) for t in 0..T-3, one Peri-LN causal block over z with the same ALiBi/NoPE bias sliced to T-2 positions, then the model's ln_f and head predict x_{t+2}; cross-entropy masked to proof-token targets (m[:, 2:]), mean over those positions",
+      "total": "main + MTP_WEIGHT * mtp with MTP_WEIGHT = 0.3 constant over the whole budget (DeepSeek-V3's early-training value); curve points also record the mean recent mtp loss as mtp_loss",
+      "leakage_check": "CPU check: perturbing token x[7] changes the MTP block's outputs only at positions 6..9 (which read emb(x[7]) or later), never at position 5 whose target is x[7]"
+    }
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

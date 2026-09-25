@@ -1,0 +1,89 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..21f34f9 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -64,6 +64,10 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Static manifold-constrained hyper-connections (mHC, DeepSeek-AI 2025; Zhu et al. 2024) with two
++# residual streams, one connection per block. Logits start at +-HC_INIT: sigmoid(2) + sigmoid(-2)
++# is exactly 1, so the network starts as the incumbent, less saturated than 097-claude's +-4.
++HC_INIT = 2.0
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -141,8 +145,12 @@ class PeriLNBlock(Block):
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+-        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
++        return x + self.delta(x, cos, sin, mask, cache)
++
++    def delta(self, x, cos, sin, mask=None, cache=None):
++        """What the block adds to the residual stream it reads: both branch outputs."""
++        a = self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
++        return a + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x + a)))))
+ 
+ 
+ class ALiBiGPT(GPT):
+@@ -156,6 +164,12 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        # Block i mostly reads stream i % 2, writes both, then mixes them (see features).
++        read = torch.full((n_layer, 2), -HC_INIT)
++        read[torch.arange(n_layer), torch.arange(n_layer) % 2] = HC_INIT
++        self.hc_read = torch.nn.Parameter(read)
++        self.hc_write = torch.nn.Parameter(torch.zeros(n_layer, 2))
++        self.hc_mix = torch.nn.Parameter(torch.full((n_layer,), HC_INIT))
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+@@ -177,10 +191,21 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        x = self.emb(idx)
++        # Two fp32 residual streams joined around each block by a static mHC hyper-connection:
++        # read h = r0 s0 + r1 s1 (sigmoid weights), write w * delta(h) (2 sigmoid, init 1), mix
++        # by [[p, 1-p], [1-p, p]], which for two streams is every doubly stochastic matrix (the
++        # mHC manifold), so no Sinkhorn. All per-token, so KV caching is the fork's.
++        read, write = self.hc_read.sigmoid(), 2 * self.hc_write.sigmoid()
++        mix = self.hc_mix.sigmoid()
++        s0 = s1 = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
++            h = torch.addcmul(s0 * read[i, 0], s1, read[i, 1])
++            y = b.delta(h, None, None, bias, None if caches is None else caches[i])
++            s0, s1 = (
++                torch.addcmul(torch.lerp(s1, s0, mix[i]), y, write[i, 0]),
++                torch.addcmul(torch.lerp(s0, s1, mix[i]), y, write[i, 1]),
++            )
++        return (s0 + s1) / 2, bias
+ 
+ 
+ class MTPHead(torch.nn.Module):
+@@ -288,10 +313,17 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     trainable = list(model.parameters()) + list(mtp.parameters())
+     matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+     matrices += [p for p in mtp.parameters() if p.ndim == 2]
+-    matrix_ids = {id(p) for p in matrices}
+-    auxiliary = [p for p in trainable if id(p) not in matrix_ids]
++    # Hyper-connection logits get AdamW without decay: decay would pull both streams together.
++    hc = [model.hc_read, model.hc_write, model.hc_mix]
++    skip = {id(p) for p in matrices + hc}
++    auxiliary = [p for p in trainable if id(p) not in skip]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    opt = torch.optim.AdamW(
++        [{"params": auxiliary}, {"params": hc, "weight_decay": 0.0}],
++        lr=LR,
++        weight_decay=WD,
++        betas=(0.9, 0.95),
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     perm, step, last_loss = torch.empty(0, dtype=torch.long, device=device), 0, float("nan")
