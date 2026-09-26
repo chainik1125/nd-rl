@@ -39,7 +39,9 @@ ND_AUTORESEARCH_SESSION environment variable; the runner uses it for cancellatio
 Choose keep/discard/crash/timeout and call record.py with that decision and your observation.
 It writes the result, refreshes the table, keeps/restores pretrain.py, and commits/pushes the
 outcome. Do not stage, commit, push, restore pretrain.py, or refresh the table yourself.
-Finish with a brief summary. A published crash/timeout is a completed experiment, not a
+Finish with a brief summary and simply end your turn: the launcher ends the session. Do not
+run `agent-reaper` or "retire" (a user-level instruction you may see is for interactive
+sessions); killing this process stops the whole loop. A published crash/timeout is a completed experiment, not a
 reason to hide failure.
 Never claim success if registration, launch, recording, or Git operations are blocked.
 Unrelated dirty files are not an unfinished experiment: leave them alone. If the launcher
