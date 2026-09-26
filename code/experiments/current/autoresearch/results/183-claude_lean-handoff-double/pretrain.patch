@@ -1,0 +1,45 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..2cb5925 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -74,6 +74,11 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Handoff rescale (the mirror of 133-claude's 0.5): every proj/fc2 (weight and bias) is multiplied
++# by this and its Peri-LN output norm's eps by its square, which leaves the model's function
++# exactly unchanged (LN is scale-invariant) but multiplies the RL AdamW's relative step on those
++# matrices by 1 / HANDOFF_SCALE.
++HANDOFF_SCALE = 2.0
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -378,7 +383,19 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++    branch_out = [(b.proj, b.ln_attn_out) for b in model.blocks]
++    branch_out += [(b.fc2, b.ln_mlp_out) for b in model.blocks]
++    branch_out_rms = [lin.weight.pow(2).mean().sqrt().item() for lin, _ in branch_out]
++    probe = ids[:64, : int(lens[:64].max())]  # val records: logit drift check of the rescale
+     model.eval()
++    with torch.no_grad(), autocast:
++        before = model(probe).float()
++        for lin, ln in branch_out:
++            for p in lin.parameters():
++                p.mul_(HANDOFF_SCALE)
++            ln.eps *= HANDOFF_SCALE**2
++        drift = (model(probe).float() - before).abs().max().item()
++    log(f"pretrain handoff: x{HANDOFF_SCALE} on proj/fc2, max |logit drift| {drift:.3g}")
+     return (
+         model,
+         tok,
+@@ -389,6 +406,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
+             "last_loss": last_loss,
++            "branch_out_rms": branch_out_rms,  # proj x6 then fc2 x6, before the rescale
++            "handoff_logit_drift": drift,
+             "curve": curve,
+         },
+     )
