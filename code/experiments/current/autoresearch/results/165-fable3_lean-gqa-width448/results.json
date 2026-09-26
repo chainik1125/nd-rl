@@ -1,0 +1,392 @@
+{
+  "commit": "130d383",
+  "recorded_at": "2026-09-25T23:34:29-0700",
+  "status": "discard",
+  "metric": 666,
+  "metric_rl": 1137,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "c753c1c70505",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 2062,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9854976,
+    "steps": 3612,
+    "epochs": 3.1965174129353233,
+    "last_loss": 0.03713887184858322,
+    "heldout_greedy": 0.944,
+    "curve": [
+      {
+        "secs": 16,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.757665157318115,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 182,
+        "train_loss": 1.202525556087494,
+        "val_loss": 0.16126405633985996,
+        "mtp_loss": 1.3541256272130542
+      },
+      {
+        "secs": 45,
+        "step": 373,
+        "train_loss": 0.1409844151801533,
+        "val_loss": 0.09962127264589071,
+        "mtp_loss": 0.13739418652322558
+      },
+      {
+        "secs": 60,
+        "step": 565,
+        "train_loss": 0.08618147931993007,
+        "val_loss": 0.09844340477138758,
+        "mtp_loss": 0.08789583295583725
+      },
+      {
+        "secs": 75,
+        "step": 757,
+        "train_loss": 0.07541547011997965,
+        "val_loss": 0.08850665669888258,
+        "mtp_loss": 0.07674017631345326
+      },
+      {
+        "secs": 90,
+        "step": 949,
+        "train_loss": 0.06396516487002372,
+        "val_loss": 0.08788732346147299,
+        "mtp_loss": 0.06571828313171864
+      },
+      {
+        "secs": 105,
+        "step": 1140,
+        "train_loss": 0.05871729366481304,
+        "val_loss": 0.09115244168788195,
+        "mtp_loss": 0.060476911067962644
+      },
+      {
+        "secs": 120,
+        "step": 1332,
+        "train_loss": 0.06805246488915549,
+        "val_loss": 0.09407924767583609,
+        "mtp_loss": 0.06726033985614777
+      },
+      {
+        "secs": 135,
+        "step": 1523,
+        "train_loss": 0.05483238026499748,
+        "val_loss": 0.08250990137457848,
+        "mtp_loss": 0.05470854751765728
+      },
+      {
+        "secs": 150,
+        "step": 1713,
+        "train_loss": 0.05941462475392553,
+        "val_loss": 0.08662892039865255,
+        "mtp_loss": 0.06216546644767126
+      },
+      {
+        "secs": 165,
+        "step": 1905,
+        "train_loss": 0.08041089810431004,
+        "val_loss": 0.08912331704050303,
+        "mtp_loss": 0.08034198619425297
+      },
+      {
+        "secs": 180,
+        "step": 2096,
+        "train_loss": 0.05484676236907641,
+        "val_loss": 0.08542976342141628,
+        "mtp_loss": 0.055428922176361084
+      },
+      {
+        "secs": 195,
+        "step": 2286,
+        "train_loss": 0.06417081728577614,
+        "val_loss": 0.0809028372168541,
+        "mtp_loss": 0.06429886817932129
+      },
+      {
+        "secs": 210,
+        "step": 2472,
+        "train_loss": 0.0633835577302509,
+        "val_loss": 0.08073979616165161,
+        "mtp_loss": 0.06370212054914898
+      },
+      {
+        "secs": 225,
+        "step": 2659,
+        "train_loss": 0.05082514675127135,
+        "val_loss": 0.08851728402078152,
+        "mtp_loss": 0.050512553917037115
+      },
+      {
+        "secs": 240,
+        "step": 2849,
+        "train_loss": 0.05673388615250587,
+        "val_loss": 0.09148682374507189,
+        "mtp_loss": 0.057295001670718194
+      },
+      {
+        "secs": 255,
+        "step": 3040,
+        "train_loss": 0.07592579796910286,
+        "val_loss": 0.08463623467832804,
+        "mtp_loss": 0.07914631962776184
+      },
+      {
+        "secs": 270,
+        "step": 3231,
+        "train_loss": 0.052057146198219724,
+        "val_loss": 0.08182338997721672,
+        "mtp_loss": 0.05229717824194166
+      },
+      {
+        "secs": 285,
+        "step": 3421,
+        "train_loss": 0.0543690524995327,
+        "val_loss": 0.08904598094522953,
+        "mtp_loss": 0.055098678544163705
+      },
+      {
+        "secs": 300,
+        "step": 3612,
+        "train_loss": 0.05971762827701039,
+        "val_loss": 0.08682813588529825,
+        "mtp_loss": 0.060457186566458807
+      }
+    ],
+    "records_seen": 492155,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.23795833333333333,
+      "new_proofs": 860,
+      "targets_solved": 678,
+      "lstar": 9,
+      "ge": {
+        "7": 678,
+        "8": 296,
+        "9": 91,
+        "10": 4,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3412,
+      "samples_per_sec": 192,
+      "secs": 338
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5512291666666667,
+      "new_proofs": 554,
+      "targets_solved": 970,
+      "lstar": 10,
+      "ge": {
+        "7": 970,
+        "8": 482,
+        "9": 222,
+        "10": 33,
+        "11": 3,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5460,
+      "samples_per_sec": 230,
+      "secs": 305
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6565208333333333,
+      "new_proofs": 294,
+      "targets_solved": 1077,
+      "lstar": 11,
+      "ge": {
+        "7": 1077,
+        "8": 560,
+        "9": 281,
+        "10": 55,
+        "11": 5,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6464,
+      "samples_per_sec": 233,
+      "secs": 303
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7143125,
+      "new_proofs": 238,
+      "targets_solved": 1136,
+      "lstar": 11,
+      "ge": {
+        "7": 1136,
+        "8": 608,
+        "9": 318,
+        "10": 66,
+        "11": 8,
+        "12": 2,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 7196,
+      "samples_per_sec": 253,
+      "secs": 288
+    }
+  ],
+  "eval": {
+    "solved": 671,
+    "n": 1108,
+    "ge": {
+      "7": 671,
+      "8": 579,
+      "9": 457,
+      "10": 105,
+      "11": 24,
+      "12": 5,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.9915,
+    "max_pruned": 14,
+    "by_bin": {
+      "7": {
+        "solved": 92,
+        "n": 150,
+        "rate": 0.6133333333333333,
+        "ci": [
+          0.5334964294452139,
+          0.6875101123484232
+        ]
+      },
+      "8": {
+        "solved": 122,
+        "n": 152,
+        "rate": 0.8026315789473685,
+        "ci": [
+          0.7322376756136104,
+          0.8581053393451683
+        ]
+      },
+      "9": {
+        "solved": 352,
+        "n": 477,
+        "rate": 0.7379454926624738,
+        "ci": [
+          0.6966921478761685,
+          0.7753967895202631
+        ]
+      },
+      "10": {
+        "solved": 81,
+        "n": 219,
+        "rate": 0.3698630136986301,
+        "ci": [
+          0.3086804066557617,
+          0.43553252306651635
+        ]
+      },
+      "11": {
+        "solved": 19,
+        "n": 49,
+        "rate": 0.3877551020408163,
+        "ci": [
+          0.26428814373960496,
+          0.5275425351194757
+        ]
+      },
+      "12": {
+        "solved": 5,
+        "n": 54,
+        "rate": 0.09259259259259259,
+        "ci": [
+          0.040200542070567336,
+          0.1991012753065453
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "GQA (2 KV heads, one per ALiBi/NoPE family) paying for d_model 384 -> 448 at d_ff 1248 (9,854,976 params as registered) on 153-claude scored 671/650/676 on seeds 0/1/2 vs 676/700/685: exact means 665.67 vs 687.00, -21.33, paired -5/-50/-9, inside the registered -45..+40 but well below its central +6. Discard. Mechanical predictions held: steps 3612/3544/3637 (mean 3598 vs 4503, -20.1%, inside the registered 3,400-3,900; the 0.81 bench ratio predicted 0.80), epochs 3.20/3.13/3.21, n_params exact, totals 1899/2062/1805 s (seed 1 above the registered 1,950 because its Lean gate took 729 s wall vs 447/465; RL rounds were 288-338 s each, so the expand-at-write KV cache did keep sampling at the incumbent's pace after the first bench probe's 111 samples/s). The width-448 pattern of 158 repeated with the MLP nearly intact: final val loss LOWER than 153 (0.0868/0.0834/0.0818 vs 0.088/0.087/0.089; minima 0.0807/0.0783/0.0775 at 210/270/165 s) while the pretrained model was a worse sampler: held-out greedy after pretraining 0.944/0.960/0.962 vs 0.9675/0.967/0.968 (seed 0 below the registered 0.955), round-1 targets solved 678/630/794 (mean 700.7 vs 736, below 153 on two seeds; registered 700-850, no seed under 550 so the collapse falsifier did not fire), round-1 sample acc 0.238/0.211/0.269, round-4 RL-solved 1136/1112/1162 (mean 1137 vs 1172, below the registered 1,150 on two seeds). The eval/round-4 transfer ratio was unchanged, 0.591/0.585/0.582 vs 0.584/0.599/0.575, so the whole deficit is in the RL trajectory, i.e. the starting sampler. Lean parse failures 15.8/15.1/14.6% of 266,912 (153: 15.8/15.5/14.9%), both-ok samples 332,006 vs 353,098 (-6.0%). Claim (3), that 158 failed because of its halved MLP, is not supported: with d_ff at 1248 and K/V cut instead, round-1 and RL-solved fell the same way (158: round-1 mean 585, RL-solved 1148). Two 448-wide models (56-dim heads) have now fit val loss better and sampled worse than 384/48; whether it is head_dim 56 plus the 20% step loss, or GQA's 4:1 sharing on the NoPE lookups, this run cannot separate (the metric 666 stayed above the 660 falsifier, so the registered rejection of claim (3) did not formally fire). Surprise: the deep bins did not suffer: >=10 105/97/112 (104.7 vs 107.7), >=11 24/24/30 (26.0 vs 23.7), >=12 5/6/8 (6.3 vs 4.3), >=13 0/1/2 vs none, L* 12/12/12 vs 11/12/11; the loss is all in the 7-9 bins. Final held-out greedy 0.9915/0.989/0.9885. Leads: a GQA-only control at width 384 (2 KV heads, d_ff 1280, ~8.4M params) would separate the sharing cost from width 448; and any further width step needs a cheaper route than 56-dim heads (e.g. 7 heads of 64 at D 448).",
+  "seed_metrics": {
+    "0": 671,
+    "1": 650,
+    "2": 676
+  },
+  "seed_metric_rl": {
+    "0": 1136,
+    "1": 1112,
+    "2": 1162
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08682813588529825,
+      "heldout_greedy": 0.944,
+      "steps": 3612
+    },
+    "1": {
+      "val_loss": 0.08344518393278122,
+      "heldout_greedy": 0.96,
+      "steps": 3544
+    },
+    "2": {
+      "val_loss": 0.08180755469948053,
+      "heldout_greedy": 0.962,
+      "steps": 3637
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 121648,
+    "distinct_checked": 556491,
+    "both_ok": 332006,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 24,
+    "lean_wall_s": 1640.7282378673553
+  },
+  "migrated": false
+}
