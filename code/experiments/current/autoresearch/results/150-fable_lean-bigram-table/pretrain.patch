@@ -1,0 +1,49 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index cd5e08c..9417978 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -159,10 +159,17 @@ class ALiBiGPT(GPT):
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+     bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
+ 
+-    def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
++    def __init__(self, vocab, n_layer, d, n_head, max_len=1024, pad=0):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        # Bigram table (Engram, DeepSeek 2026, reduced to exact order-2 n-grams: the vocabulary is
++        # 107 tokens, so every (previous, current) pair gets its own row and nothing is hashed).
++        # Added to the token embedding, zero-initialized so the model starts as the incumbent.
++        # The previous token of position 0 is `pad`, which is also what left padding provides.
++        self.vocab, self.pad = vocab, pad
++        self.bigram = torch.nn.Embedding(vocab * vocab, d)
++        torch.nn.init.zeros_(self.bigram.weight)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+@@ -184,7 +191,15 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        x = self.emb(idx)
++        if caches is None:
++            prev = torch.nn.functional.pad(idx[:, :-1], (1, 0), value=self.pad)
++        else:  # incremental decoding: the last token of the previous call, kept in caches[0]
++            c = caches[0]
++            if "last" not in c:
++                c["last"] = idx.new_full((B, 1), self.pad)
++            prev = torch.cat((c["last"], idx[:, :-1]), 1)
++            c["last"] = idx[:, -1:]
++        x = self.emb(idx) + self.bigram(prev * self.vocab + idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+         return x, bias
+@@ -294,7 +309,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD, pad=tok.pad)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
