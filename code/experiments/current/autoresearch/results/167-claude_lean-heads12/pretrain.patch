@@ -1,0 +1,24 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..2098bf1 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,7 +37,9 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 384, 8
++# P26: 12 heads of 32 instead of 8 of 48 (same projections and params): 159-fable's 4 heads of
++# 96 cost -74, so try the other direction at the head dim the hybrid was tuned at (D 256).
++N_LAYER, D, N_HEAD = 6, 384, 12
+ # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+ # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+ D_FF = 1280
+@@ -57,7 +59,7 @@ NS_COEFFS = (
+ MUON_WD = 10 * WD * LR / MUON_LR
+ TOK_MODE = "lean_seq"  # required by the harness (Lean protocol)
+ # Hybrid heads: half the heads get ALiBi (Press et al. 2021) with the standard slope set for
+-# H/2 heads, 2^(-8 i / (H/2)) = 1/4 .. 1/256 with 8 heads; the other half get slope 0, i.e. no
++# H/2 heads, 2^(-8 i / (H/2)) = 1/2.52 .. 1/256 with 12 heads; the other half get slope 0, i.e. no
+ # positional signal at all (NoPE), so they can look citations up by content at any distance.
+ N_ALIBI = N_HEAD // 2
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
