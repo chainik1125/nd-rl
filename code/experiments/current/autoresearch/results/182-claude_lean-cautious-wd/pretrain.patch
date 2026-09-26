@@ -1,0 +1,32 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..3a00f02 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -53,8 +53,10 @@ NS_COEFFS = (
+     (3.285753657755655, -2.3681294933425376, 0.46449024233003106),
+     (2.3465413258596377, -1.7097828382687081, 0.42323551169305323),
+ )
+-# Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+-MUON_WD = 10 * WD * LR / MUON_LR
++# Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices,
++# doubled because cautious decay (muon_step) touches only the ~half of coordinates whose Muon
++# step already shrinks them, so the expected decay per step stays at ten times.
++MUON_WD = 2 * 10 * WD * LR / MUON_LR
+ TOK_MODE = "lean_seq"  # required by the harness (Lean protocol)
+ # Hybrid heads: half the heads get ALiBi (Press et al. 2021) with the standard slope set for
+ # H/2 heads, 2^(-8 i / (H/2)) = 1/4 .. 1/256 with 8 heads; the other half get slope 0, i.e. no
+@@ -120,8 +122,12 @@ def muon_step(params, buffers, lr):
+         # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+         # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+         update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
+-        p.mul_(1 - lr * MUON_WD)
+-        p.add_(update.reshape_as(p), alpha=-lr)
++        update = update.reshape_as(p)
++        # Cautious weight decay (Chen et al. 2025): decay only where the update and the weight
++        # agree in sign, i.e. where the step already moves the weight toward zero, so the decay
++        # never opposes the Muon update.
++        p.sub_(p * (update * p >= 0), alpha=lr * MUON_WD)
++        p.add_(update, alpha=-lr)
+ 
+ 
+ class PeriLNBlock(Block):
