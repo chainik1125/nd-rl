@@ -1,0 +1,164 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..8e58502 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -70,6 +70,13 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # (unpadded) tokens of the incumbent's 128-record batches (mean record ~135 tokens), whose
+ # padding to the batch max (~400) made every step ~3x larger than its content.
+ TOK_BUDGET = 128 * 144
++# Sequence packing without document masks (GPT-2/3 style): each epoch's shuffled records are
++# concatenated, in order, into rows of at most ROW_TOKENS tokens (a record is never split; one
++# longer than ROW_TOKENS gets a row of its own), so a training row holds ~3-4 unrelated
++# theorem/proof pairs and a later pair's attention sees the earlier ones as context. The loss is
++# unchanged (next-token CE on proof tokens; a pair's prompt tokens are never targets). Rows are
++# batched by the same token budget, so padded tokens per step stay ~constant.
++ROW_TOKENS = 512
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+@@ -255,13 +262,34 @@ def to_gpu(data, tok, device):
+     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
+ 
+ 
+-def token_batches(lens, n_train, gen, rng):
+-    """One epoch of token-budget batches: a random permutation of the training records, stably
+-    sorted by length (equal lengths stay shuffled), cut greedily into runs of consecutive records
+-    with count * max_len <= TOK_BUDGET, and the runs' order shuffled. Returns (order, cuts)."""
+-    perm = torch.randperm(n_train, device=lens.device, generator=gen) + VAL_N
+-    order = perm[torch.argsort(lens[perm], stable=True)]
+-    sorted_lens = lens[order].cpu()
++def pack_rows(lens_list, perm):
++    """Greedy in-order packing of the permuted records into rows of <= ROW_TOKENS tokens.
++    Returns (rows: list of record-index lists, row_lens)."""
++    rows, row_lens, row, row_len = [], [], [], 0
++    for r in perm:
++        n = lens_list[r]
++        if row and row_len + n > ROW_TOKENS:
++            rows.append(row)
++            row_lens.append(row_len)
++            row, row_len = [], 0
++        row.append(r)
++        row_len += n
++    if row:
++        rows.append(row)
++        row_lens.append(row_len)
++    return rows, row_lens
++
++
++def row_batches(lens_list, n_train, gen, rng):
++    """One epoch of token-budget batches over packed rows: a random permutation of the training
++    records is packed into rows, the rows stably sorted by length (equal lengths stay shuffled),
++    cut greedily into runs of consecutive rows with count * max_len <= TOK_BUDGET, and the runs'
++    order shuffled. Returns (rows in sorted order, cuts)."""
++    perm = (torch.randperm(n_train, device=gen.device, generator=gen) + VAL_N).tolist()
++    rows, row_lens = pack_rows(lens_list, perm)
++    row_lens = torch.tensor(row_lens)
++    order = torch.argsort(row_lens, stable=True)
++    sorted_lens = row_lens[order]
+     cuts, s = [], 0
+     while s < len(sorted_lens):
+         window = sorted_lens[s : s + TOK_BUDGET // int(sorted_lens[s])]
+@@ -270,24 +298,40 @@ def token_batches(lens, n_train, gen, rng):
+         cuts.append((s, e))
+         s = e
+     rng.shuffle(cuts)
+-    return order, cuts
+-
+-
+-def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
+-    """The fork's batch() + tok.shift_abs, vectorised: a random per-row offset is added to
+-    every ref token."""
+-    x, m = ids[idxs], mask[idxs]
+-    T = int(lens[idxs].max())
+-    x, m = x[:, :T].clone(), m[:, :T]
+-    if tok.mode in ("abs", "lean_seq"):  # lean_seq: names n1.. get the same start offset
+-        room = MAXN - ref_max[idxs]
++    return [rows[i] for i in order.tolist()], cuts
++
++
++def packed_batch(ids, mask, ref_max, lens_list, rows, tok, gen):
++    """Gather a batch of packed rows from the padded per-record tensors: row b holds its records'
++    tokens back to back, padded (with ids' last row, the all-pad dummy) to the longest row. The
++    fork's shift augmentation (tok.shift_abs, vectorised) is applied per record: every record in
++    the batch draws its own random offset for its ref/name tokens."""
++    B, T = len(rows), max(sum(lens_list[r] for r in row) for row in rows)
++    n_recs = sum(len(row) for row in rows)
++    rec = torch.full((B, T), ids.size(0) - 1, dtype=torch.long)
++    pos = torch.zeros((B, T), dtype=torch.long)
++    slot = torch.full((B, T), n_recs, dtype=torch.long)  # the dummy slot's shift is 0
++    recs, k = [], 0
++    for b, row in enumerate(rows):
++        off = 0
++        for r in row:
++            n = lens_list[r]
++            rec[b, off : off + n] = r
++            pos[b, off : off + n] = torch.arange(n)
++            slot[b, off : off + n] = k
++            recs.append(r)
++            off, k = off + n, k + 1
++    device = ids.device
++    rec, pos, slot = rec.to(device), pos.to(device), slot.to(device)
++    x, m = ids[rec, pos], mask[rec, pos]
++    if tok.mode in ("abs", "lean_seq"):  # lean_seq: a record's names n1.. get the same start offset
++        room = MAXN - ref_max[torch.tensor(recs, device=device)]
+         shift = (
+-            (torch.rand(len(idxs), device=x.device, generator=gen) * (room + 1))
+-            .long()
+-            .clamp(max=room)
++            (torch.rand(n_recs, device=device, generator=gen) * (room + 1)).long().clamp(max=room)
+         )
++        shift = torch.cat((shift, shift.new_zeros(1)))
+         is_ref = (x >= tok.ref0) & m
+-        x = torch.where(is_ref, x + shift[:, None], x)
++        x = torch.where(is_ref, x + shift[slot], x)
+     return x, m
+ 
+ 
+@@ -296,6 +340,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     tok = make_tokenizer(TOK_MODE)
+     data = [(tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])) for r in train_recs]
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
++    lens_list = lens.tolist()
++    # Row N is an all-pad dummy record that packed_batch gathers for row padding.
++    ids = torch.cat((ids, ids.new_full((1, ids.size(1)), tok.pad)))
++    mask = torch.cat((mask, mask.new_zeros((1, mask.size(1)))))
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+@@ -326,8 +374,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     step, last_loss, records_seen = 0, float("nan"), 0
+     curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+-    rng, cuts, batches_per_epoch = random.Random(seed), [], None
+-    order = torch.empty(0, dtype=torch.long, device=device)
++    rng, rows, cuts, batches_per_epoch, rows_per_epoch = random.Random(seed), [], [], None, None
+     while True:
+         frac = (
+             time.time() - t0
+@@ -343,12 +390,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         for g in opt.param_groups:
+             g["lr"] = lr
+         if not cuts:  # new epoch
+-            order, cuts = token_batches(lens, n_train, gen, rng)
+-            batches_per_epoch = len(cuts)
++            rows, cuts = row_batches(lens_list, n_train, gen, rng)
++            batches_per_epoch, rows_per_epoch = len(cuts), len(rows)
+         s, e = cuts.pop()
+-        idxs = order[s:e]
+-        records_seen += e - s
+-        x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
++        batch_rows = rows[s:e]
++        records_seen += sum(len(row) for row in batch_rows)
++        x, m = packed_batch(ids, mask, ref_max, lens_list, batch_rows, tok, gen)
+         with autocast:
+             loss, main, aux = mtp_loss(model, mtp, x, m)
+         model.zero_grad(set_to_none=True)
+@@ -387,6 +434,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "records_seen": records_seen,
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
++            "rows_per_epoch": rows_per_epoch,
++            "row_tokens": ROW_TOKENS,
+             "tok_budget": TOK_BUDGET,
+             "last_loss": last_loss,
+             "curve": curve,
