@@ -1,0 +1,392 @@
+{
+  "commit": "5a52509",
+  "recorded_at": "2026-09-25T19:00:46-0700",
+  "status": "discard",
+  "metric": 671,
+  "metric_rl": 1156,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "4c01c86fb8ea",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1823,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.4,
+    "n_params": 8459904,
+    "steps": 4678,
+    "epochs": 4.132685138277282,
+    "last_loss": 0.06801469624042511,
+    "heldout_greedy": 0.9425,
+    "curve": [
+      {
+        "secs": 20,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.681554079055786,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 174,
+        "train_loss": 1.42112398147583,
+        "val_loss": 0.2444375418126583,
+        "mtp_loss": 1.6422192864120007
+      },
+      {
+        "secs": 45,
+        "step": 419,
+        "train_loss": 0.15565498483677706,
+        "val_loss": 0.08800236601382494,
+        "mtp_loss": 0.1596598227818807
+      },
+      {
+        "secs": 60,
+        "step": 664,
+        "train_loss": 0.0813113717505565,
+        "val_loss": 0.08372807037085295,
+        "mtp_loss": 0.08649680133049305
+      },
+      {
+        "secs": 75,
+        "step": 914,
+        "train_loss": 0.07020047679543495,
+        "val_loss": 0.08328823372721672,
+        "mtp_loss": 0.0698256694401304
+      },
+      {
+        "secs": 90,
+        "step": 1163,
+        "train_loss": 0.06220003532675596,
+        "val_loss": 0.09049830306321383,
+        "mtp_loss": 0.06142673440850698
+      },
+      {
+        "secs": 105,
+        "step": 1416,
+        "train_loss": 0.06751383872081836,
+        "val_loss": 0.08617401774972677,
+        "mtp_loss": 0.06767916586250067
+      },
+      {
+        "secs": 120,
+        "step": 1667,
+        "train_loss": 0.06006077791635807,
+        "val_loss": 0.0826823515817523,
+        "mtp_loss": 0.061939253543431945
+      },
+      {
+        "secs": 135,
+        "step": 1919,
+        "train_loss": 0.07831541852404673,
+        "val_loss": 0.0946063557639718,
+        "mtp_loss": 0.07838246847192447
+      },
+      {
+        "secs": 150,
+        "step": 2172,
+        "train_loss": 0.06326614893399753,
+        "val_loss": 0.08732596505433321,
+        "mtp_loss": 0.06388747376891282
+      },
+      {
+        "secs": 165,
+        "step": 2424,
+        "train_loss": 0.061842418633974515,
+        "val_loss": 0.08412958681583405,
+        "mtp_loss": 0.06229815345544081
+      },
+      {
+        "secs": 180,
+        "step": 2677,
+        "train_loss": 0.05942422399918238,
+        "val_loss": 0.0788496071472764,
+        "mtp_loss": 0.059384903870522976
+      },
+      {
+        "secs": 195,
+        "step": 2929,
+        "train_loss": 0.06777306732076865,
+        "val_loss": 0.08799794409424067,
+        "mtp_loss": 0.06921988568053795
+      },
+      {
+        "secs": 210,
+        "step": 3181,
+        "train_loss": 0.058142817221008815,
+        "val_loss": 0.084114002995193,
+        "mtp_loss": 0.058676788583397865
+      },
+      {
+        "secs": 225,
+        "step": 3431,
+        "train_loss": 0.05538146011531353,
+        "val_loss": 0.08645624574273825,
+        "mtp_loss": 0.055692425929009914
+      },
+      {
+        "secs": 240,
+        "step": 3684,
+        "train_loss": 0.06140631781174587,
+        "val_loss": 0.08549434877932072,
+        "mtp_loss": 0.061453951379427545
+      },
+      {
+        "secs": 255,
+        "step": 3935,
+        "train_loss": 0.06382681305209796,
+        "val_loss": 0.08504901267588139,
+        "mtp_loss": 0.06415676604956388
+      },
+      {
+        "secs": 270,
+        "step": 4186,
+        "train_loss": 0.05008486887583366,
+        "val_loss": 0.08271424192935228,
+        "mtp_loss": 0.05051528261258052
+      },
+      {
+        "secs": 285,
+        "step": 4434,
+        "train_loss": 0.05390191078186035,
+        "val_loss": 0.08467130083590746,
+        "mtp_loss": 0.05358492427815994
+      },
+      {
+        "secs": 300,
+        "step": 4678,
+        "train_loss": 0.05118801956996322,
+        "val_loss": 0.08321520872414112,
+        "mtp_loss": 0.05153106665238738
+      }
+    ],
+    "records_seen": 636293,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.222625,
+      "new_proofs": 831,
+      "targets_solved": 629,
+      "lstar": 9,
+      "ge": {
+        "7": 629,
+        "8": 254,
+        "9": 62,
+        "10": 3,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3288,
+      "samples_per_sec": 176,
+      "secs": 341
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.544,
+      "new_proofs": 672,
+      "targets_solved": 979,
+      "lstar": 10,
+      "ge": {
+        "7": 979,
+        "8": 483,
+        "9": 214,
+        "10": 27,
+        "11": 2,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5752,
+      "samples_per_sec": 246,
+      "secs": 274
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6764583333333334,
+      "new_proofs": 367,
+      "targets_solved": 1107,
+      "lstar": 11,
+      "ge": {
+        "7": 1107,
+        "8": 582,
+        "9": 298,
+        "10": 54,
+        "11": 5,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7052,
+      "samples_per_sec": 233,
+      "secs": 288
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7420208333333334,
+      "new_proofs": 270,
+      "targets_solved": 1176,
+      "lstar": 11,
+      "ge": {
+        "7": 1176,
+        "8": 633,
+        "9": 332,
+        "10": 71,
+        "11": 8,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7852,
+      "samples_per_sec": 232,
+      "secs": 291
+    }
+  ],
+  "eval": {
+    "solved": 701,
+    "n": 1108,
+    "ge": {
+      "7": 701,
+      "8": 602,
+      "9": 476,
+      "10": 108,
+      "11": 24,
+      "12": 6,
+      "13": 1,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.9905,
+    "max_pruned": 13,
+    "by_bin": {
+      "7": {
+        "solved": 99,
+        "n": 150,
+        "rate": 0.66,
+        "ci": [
+          0.5810413820559243,
+          0.7309678534174459
+        ]
+      },
+      "8": {
+        "solved": 126,
+        "n": 152,
+        "rate": 0.8289473684210527,
+        "ci": [
+          0.7611639749381933,
+          0.8805132152343922
+        ]
+      },
+      "9": {
+        "solved": 368,
+        "n": 477,
+        "rate": 0.7714884696016772,
+        "ci": [
+          0.7317272423468921,
+          0.8069116774137941
+        ]
+      },
+      "10": {
+        "solved": 84,
+        "n": 219,
+        "rate": 0.3835616438356164,
+        "ci": [
+          0.32169335630218043,
+          0.44944452818617364
+        ]
+      },
+      "11": {
+        "solved": 18,
+        "n": 49,
+        "rate": 0.3673469387755102,
+        "ci": [
+          0.24664982524781226,
+          0.5073318861311014
+        ]
+      },
+      "12": {
+        "solved": 5,
+        "n": 54,
+        "rate": 0.09259259259259259,
+        "ci": [
+          0.040200542070567336,
+          0.1991012753065453
+        ]
+      },
+      "13": {
+        "solved": 1,
+        "n": 5,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P26-family attention width (8 heads of 56, q/k/v 448 wide, at unchanged residual width 320 and d_ff 1280; 8,459,904 params as registered) on 151-claude scored 701/664/648 on seeds 0/1/2 vs 151's 677/701/639: exact means 671.00 vs 672.33, -1.33, paired +24/-37/+9, inside the registered 640..720 range but below its central +8. Discard; 150-fable (bigram table, 673) was also kept during this run, so a keep would have become a discard anyway. Speed prediction beaten: 4678/4826/4772 steps (mean 4759, registered 4,400-4,700) vs 151's 5003/4900/4375 (mean 4759 exactly), i.e. 1.4x attention FLOPs cost zero steps; epochs 4.13/4.26/4.22; eval sampling 230/237/244 samples/s (151's RL rounds 254-285), totals 1823/1598/1659 s (151: 1580/1576/1649), seed 0's round 1 took 341 s. Pretraining matched 151 as predicted: final val loss 0.0832/0.0802/0.0818 (minima 0.0788/0.0785/0.0784 at 180/240/240 s; 151 final 0.085/0.083/0.088), held-out greedy 0.9425/0.9635/0.962 (151: 0.956/0.9325/0.9625). The registered mechanism check FAILED and the falsifier fired: round-1 targets solved 629/305/270 (mean 401) vs 151's 680/237/378 (432), round-1 sample_acc 0.223/0.092/0.079, Lean-gate parse failures 16/31/21% of 266,912 samples; round-4 solved 1176/1127/1164 (mean 1156) vs 1156/1170/1131 (1152); eval >=10 108/101/99 (102.7 vs 104.3), >=11 24/20/21 (21.7 vs 22.3), L* 12/11/11, final greedy 0.9905/0.993/0.994. So with steps held constant, 1.4x more key/query/value dimensions per head changed nothing at the RL start, during expert iteration or at the eval frontier: 40-dim heads are not what limits citation lookup on this 107-token vocabulary, and the 127-fable loss with 16-dim heads was a floor effect, not a slope to climb. Reading: the capacity that pays is in the residual stream and the embedding path (151 width +13.7, 150 bigram table +14 over 148), not inside attention. Clean run: all seeds ok, no pods left (pod list shows no fable3 pods), run_idea.py exit 0, registration f82530c before pods. Candidate: +20/-9 lines, all reverted.",
+  "seed_metrics": {
+    "0": 701,
+    "1": 664,
+    "2": 648
+  },
+  "seed_metric_rl": {
+    "0": 1176,
+    "1": 1127,
+    "2": 1164
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08321520872414112,
+      "heldout_greedy": 0.9425,
+      "steps": 4678
+    },
+    "1": {
+      "val_loss": 0.08024639170616865,
+      "heldout_greedy": 0.9635,
+      "steps": 4826
+    },
+    "2": {
+      "val_loss": 0.0817748038098216,
+      "heldout_greedy": 0.962,
+      "steps": 4772
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 180138,
+    "distinct_checked": 508649,
+    "both_ok": 298764,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 14,
+    "lean_wall_s": 1124.75288438797
+  },
+  "migrated": false
+}
