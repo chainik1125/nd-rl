@@ -1,0 +1,50 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..8bf21be 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -98,15 +98,26 @@ MTP_WEIGHT = 0.3
+ # SOFTWARE.
+ @torch.no_grad()
+ def muon_step(params, buffers, lr):
+-    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only."""
++    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only, one
++    orthogonalization per attention head for qkv and proj."""
+     for p, momentum in zip(params, buffers, strict=True):
+         if p.grad is None:
+             continue
+         momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+         update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
+-        # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
+-        if update.size(0) == 3 * update.size(1):
+-            update = update.reshape(3, update.size(1), update.size(1))
++        # Head-wise orthogonalization (modular duality: parallel heads are parallel linear maps,
++        # so each is dualized on its own). QKV (3D, D), the only such shape in this GPT, becomes
++        # 3H maps (dh, D), one per role and head; the (D, D) output projection, whose columns are
++        # the concatenated head outputs, becomes H maps (D, dh). fc1/fc2/head are one map each.
++        n, m = update.shape
++        if n == 3 * m:
++            update = update.reshape(3 * N_HEAD, m // N_HEAD, m)
++        elif n == m:
++            update = update.reshape(n, N_HEAD, m // N_HEAD).transpose(0, 1)
++        # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
++        # map's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
++        # Per-head maps are (dh, D) or (D, dh), so they scale exactly like the whole matrix did.
++        scale = (max(update.size(-2), update.size(-1)) / D) ** 0.5
+         transpose = update.size(-2) > update.size(-1)
+         if transpose:
+             update = update.mT
+@@ -117,11 +128,10 @@ def muon_step(params, buffers, lr):
+             update = a * update + polynomial @ update
+         if transpose:
+             update = update.mT
+-        # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+-        # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+-        update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
++        if n == m:
++            update = update.transpose(0, 1)  # back to (D, H, dh), the proj layout
+         p.mul_(1 - lr * MUON_WD)
+-        p.add_(update.reshape_as(p), alpha=-lr)
++        p.add_(update.reshape_as(p), alpha=-lr * scale)
+ 
+ 
+ class PeriLNBlock(Block):

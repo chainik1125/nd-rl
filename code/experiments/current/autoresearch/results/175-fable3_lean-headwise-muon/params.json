@@ -1,0 +1,181 @@
+{
+  "id": "175-fable3",
+  "slug": "lean-headwise-muon",
+  "written_at": "2026-09-26T01:45:57-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "0a9acc5",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "5f495d73eac8",
+  "patch_lines": 26,
+  "title": "P02/P11 head-wise Muon: every attention head's Q, K and V maps (48 x 384) and its slice of the output projection (384 x 48) are orthogonalized separately (the modular-duality granularity) instead of per role (3 x 384 x 384) and whole proj, in all six Peri-LN blocks and the MTP block, on the 153-claude width-384 Lean incumbent (9,557,760 params, unchanged)",
+  "description": "Idea ID: P11 (P02 Muon family: separate Q/K/V updates under Muon), taken one level finer than the incumbent, which already splits QKV into three (D, D) roles. In muon_step the (1152, 384) qkv momentum update is reshaped to 24 maps of (48, 384), one per (role, head), and the (384, 384) proj update to 8 maps of (384, 48), one per head's slice of its input; each map gets its own Frobenius normalization and five Polar Express iterations (batched, so 24 grams of 48 x 48 instead of 3 of 384 x 384), then the same RMS-matched scale (max(rows, cols) / D = 1 for every per-head map, exactly as for the (D, D) roles before), the same decoupled decay and the same MUON_LR. fc1, fc2, the head and the MTP proj are unchanged. Every head therefore receives a full-rank, equal-magnitude semi-orthogonal update each step, so heads with small or degenerate gradients (the NoPE heads early on, heads already fitted) keep moving at the same rate as the dominant heads, which should spread the attention capacity over all 8 heads rather than letting a few heads absorb the update and, with more distinct retrieval circuits, give the RL sampler at T 0.8 more coherent alternatives to the greedy proof. Forward, parameters, data, batches, MTP and schedule are byte-identical to 153.",
+  "tags": [
+    "optimizer"
+  ],
+  "hypothesis": "(1) Muon is steepest descent under a spectral norm, and modular duality says the norm should be taken per linear map; the 8 heads' Q_h: R^384 -> R^48 are parallel maps (the concatenated Q is not one map, and proj = sum_h W_h y_h is a sum of 8 parallel maps), so the modular dual of the attention gradient is the orthogonalization of each head's map, not of the stacked 384 x 384 matrix. (2) Orthogonalizing the stacked Q equalizes its 384 singular directions, which are not head-aligned: a head whose momentum is 10x smaller than another's receives whatever projection of the shared singular vectors falls in its rows, i.e. a low-rank, smaller update, while the dominant head's directions are amplified; per-head orthogonalization gives every head a rank-48 update of the same Frobenius norm sqrt(48) every step (CPU check: per-head singular values 0.86-1.14 vs the incumbent's whole-proj update spanning 0.0002-1.9 when viewed head-wise; element RMS unchanged at 1/sqrt(384), so MUON_LR needs no retuning). (3) In this task the heads are functionally distinct by design (4 ALiBi at slopes 1/4..1/256, 4 NoPE), and the keeps that moved the metric most were attention-structure changes (ALiBi +19, hybrid heads +25, width +14/+15) while head-count changes hurt through sampling (159-fable 4 heads -74, 167-claude 12 heads -13 with parse failures), so how evenly the update is spread over heads is a live variable; the prediction is that evenly trained heads yield more distinct retrieval circuits and a better T 0.8 sampler, visible as round-1 RL targets solved at or above 153's (766/747/694) at equal or slightly higher final val loss. Risks: per-head orthogonalization discards the cross-head coupling of the gradient (which head should grow) and raises the effective step on weak heads, i.e. more update noise, which under a 4-epoch overfit regime could lower the T 0.8 sample accuracy the way sharper or flatter attention did in 159/168/169; the 5-iteration Polar Express on a 48 x 48 gram converges the same way, so no numerical risk. Falsifiers: metric < 660 with round-1 sample acc below 0.24 on every seed (the per-head update geometry damages the sampler: claim (3) wrong); metric within +-10 of 687 with steps and losses matching 153 (granularity is irrelevant at this scale: claims (1)-(2) true but immaterial).",
+  "p_keep": 0.3,
+  "expected_delta": "-35 to +35 theorems at >= 7 (3-seed mean), central +4; keep needs > 687.00 (153-claude: 676/700/685). Mechanical predictions: n_params 9,557,760 exactly (no parameter change); pretraining steps 4,400-4,750 per seed (153: 4540/4479/4489; the NS chains get cheaper, 24 grams of 48 x 48 replace 3 of 384 x 384 for qkv and 8 of 48 x 48 replace 1 of 384 x 384 for proj, and 160-claude showed the whole Muon loop is only ~3% of the step, so no bench was run: a change in steps beyond +-5% would mean the reshapes are not free, falsified below 4,250); epochs 3.9-4.2; batches per epoch 1,132. Curve: train loss within 0.01 of 153's at every point; final main val loss 0.080-0.098 (153: 0.088/0.087/0.089); held-out greedy after pretraining 0.955-0.975 (153: 0.9675/0.967/0.968). Under claims (1)-(3): round-1 RL targets solved 700-830 (153: 766/747/694), round-1 sample acc 0.24-0.31 (153 seed 0: 0.271), round-4 RL-solved 1,140-1,215 (153: 1157/1168/1191). RL sampling 200-280 samples/s (identical architecture), totals 1,600-1,900 s (153: 1725/1741/1664).",
+  "baseline_id": "153-claude",
+  "baseline_metric": 687,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, unchanged from 153-claude: PeriLNBlock (pre-LN + LayerNorm on each branch output, fc1/fc2 at d_ff 1280), SDPA with the additive ALiBi bias, fork KV cache",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 and 0 for heads 5..8 (NoPE); -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm: pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs (Peri-LN, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9557760,
+      "head_dim": 48,
+      "n_params_detail": "identical to 153-claude: 9,557,760. The pretraining-only MTP module (one PeriLNBlock, two LayerNorms, a (384, 768) proj) is not registered on the model and is dropped at handoff.",
+      "change": "vs 153-claude: none in the model; only the Muon orthogonalization unit for qkv and proj (see optimizer)"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (Nesterov momentum 0.95 + 5 bf16 Polar Express steps, RMS-matched scaling sqrt(max(rows, cols)/D), decoupled decay) on the 31 hidden matrices (six blocks' qkv/proj/fc1/fc2, the head, the MTP module's 2-D weights); NEW: the qkv update is orthogonalized as 24 maps of (48, 384) = (role, head) and the proj update as 8 maps of (384, 48) = one per head's input slice, instead of 3 (384, 384) roles and one (384, 384) proj; fc1/fc2/head/MTP proj one map each as before; adamw (lr 1e-3, wd 0.1) on embeddings, LayerNorm gains/biases and Linear biases, unchanged",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock (frac of the 300 s budget) from peak to the 0.3 floor, after 200-step linear warmup; Muon lr = 0.01 * lr / 1e-3 (unchanged)",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95,
+      "muon_wd_per_step": "10 * WD * LR / MUON_LR = 0.1 times the current Muon lr (decoupled)",
+      "muon_unit": "per head: qkv -> (3 * n_heads, head_dim, d_model), proj -> (n_heads, d_model, head_dim); Frobenius normalization, NS and the RMS scale are per map (scale = sqrt(max(head_dim, d_model)/D) = 1, as for the old (D, D) roles)",
+      "change": "vs 153-claude: the per-head reshape of qkv and proj in muon_step (n == 3m and n == m shape tests); everything else identical"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to the max length within each length-sorted run",
+      "buckets": true,
+      "size_note": "token-budget batches (fairseq max-tokens): runs of length-sorted records with count * padded_len <= 18,432; ~128 records per step on average (unchanged from 148-fable)",
+      "tok_budget": 18432
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random per-record ref-name shift (lean_seq names n1.. get a common random start offset within MAXN 64), on GPU",
+      "order": "per epoch: random permutation, stable sort by length, greedy cut into token-budget runs, runs shuffled (unchanged from 148-fable)",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "orthogonal on every 2-D block and MTP matrix with gain 0.02 * sqrt(max(rows, cols)); fork normal(0.02) on embeddings and head; zero biases; LN gains 1 (unchanged from 153)",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": "next-token CE on proof tokens + 0.3 x MTP (t+2) CE from the pretraining-only DeepSeek-style module (unchanged from 136-fable)"
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
