@@ -23,9 +23,12 @@ check prior records to avoid accidental repeats.
 Read previous successes and failures, choose one hypothesis, implement it, and fill the
 preregistration. Use run_idea.py: it validates and commits/pushes the registration before
 renting any pods. A run takes ~35 min, longer than one shell call may last, so you may start
-it as a background task, but then you MUST keep blocking on it yourself: call a foreground
-wait such as `until ! pgrep -f "run_idea.py <name>" >/dev/null; do sleep 30; done` (repeat it
-while it hits the per-call time limit) until the runner exits, then record. Never end your turn
+it as a background task, but then you MUST keep blocking on it yourself: note the runner's PID
+when you start it, then repeat a foreground wait on that PID (a shell loop that sleeps 30 s while
+`kill -0 PID` succeeds, kept under the per-call time limit) until it exits, then record. Four agents share this machine: never kill by pattern (pkill,
+killall, `pgrep ... | xargs kill`); a pattern can match other agents' sessions, whose command
+lines contain this prompt (one did at 21:19 on 2026-09-25 and killed three sessions). Kill only
+PIDs you started. Never end your turn
 to await a completion notification: in this headless session that ends the session and kills
 the runner before it merges and records (156-fable2 was lost this way). Otherwise it must run in
 the foreground:
