@@ -1,0 +1,181 @@
+{
+  "id": "157-fable",
+  "slug": "lean-trigram-rank36",
+  "written_at": "2026-09-25T19:13:57-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "936b4ea",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "a28b9aa53fd2",
+  "patch_lines": 48,
+  "title": "154-fable follow-up at width 384: a factored exact trigram logit table, 107^2 = 11,449 zero-init 36-dim rows for every (previous, current) token pair mapped to the 107 logits by one Linear(36, 107), added to the readout of the 153-claude width-384 Lean incumbent (9,973,776 params)",
+  "description": "154-fable follow-up (output-side Engram-lite / count-style trigram LM mixed into the logits; no backlog ID, nearest P27/P38 token-interface family). 154 scored 680 (668/684/687) over the 150-fable bigram-input incumbent's 673 with a full 11,449 x 107 table, but was auto-discarded when 153-claude's width-384 file won at 687, and the full table (1.2M) no longer fits the 10M cap beside the 9,557,760-param trunk. Here each (prev, cur) pair owns a TRIGRAM_R = 36 row and a shared bias-free Linear(36, 107) maps rows to logits (416,016 params, total 9,973,776); rows start at zero and the projection at normal(0.02), so the model starts as the exact 153 function and every used row learns from step 1. The table is on the model (RL AdamW and sampling see it; cached decoding keeps the previous token in caches[0]['last'] exactly as 150/154 did) and the pretraining-only MTP t+2 logits get the row of their own pair (x_t, x_{t+1}). Blocks, heads, MTP module, Muon, token-budget batches and schedule are unchanged; it is NOT 155-claude's input-side bigram embedding, which is running in parallel. Bench (one A40, 60 s): 11.62 steps/s vs 153's 11.53 at this shape, n_params 9,973,776, peak 7.4 GB, val loss 0.0864 at 60 s, sampling 182 samples/s (153's bench: 179), sample_acc 0.057 on 4,096 samples (a probe, not evidence).",
+  "tags": [
+    "architecture",
+    "loss"
+  ],
+  "hypothesis": "A large share of the next-token CE on Lean surface form is spent on near-deterministic local transitions (`⟨ h1` -> `,`, `exact` -> a name, `⟩` -> newline) that the six blocks re-derive through attention and the 384 -> 107 readout every forward. A per-pair logit row learns each such transition in a few hundred AdamW steps (each row is touched only by its own pair) and then supplies those logits directly, so the trunk's readout and residual capacity specialise on what the last two tokens leave open: which premise or name to cite and which proof step to take, the part that must extrapolate to length >= 7 for expert iteration. The rank-36 code cannot represent every pair's full 107-logit row, but a spike on the right continuation needs only a well-separated 36-dim direction per next token, so the deterministic transitions (the bulk of the benefit) still fit. Risks: the 384-wide trunk already has the capacity that the 256-wide 150/154 models lacked, so the marginal gain may be ~0; RL's AdamW also updates the table and could overfit sampled proofs' surface trigrams; a shortcut on the logits may sharpen the T=0.8 sampling distribution and cut exploration diversity in round 1.",
+  "p_keep": 0.4,
+  "expected_delta": "-30 to +30 theorems at >= 7 (3-seed mean) on 153-claude's 687 (676/700/685), central +6; keep needs > 687 (and > 155-claude's or 156-fable2's mean if either keeps first). Mechanism predictions: pretraining steps 4,300-4,700 per seed (153: 4,540 mean; the gather and the 36x107 matmul are ~free), falsified if the mean is < 4,000; epochs 3.8-4.2; early val loss (first 60 s) below 153's at the same wall-clock because the table fits local syntax faster than the trunk; final main val loss 0.075-0.092 (153: 0.0883, min 0.0687); n_params exactly 9,973,776; round-1 RL sample_acc 0.22-0.32 (153: 0.271); round-4 RL-solved 1,130-1,200 (153: 1,157); RL sampling >= 170 samples/s (bench 182; 153: 225-256); totals 1,650-2,000 s.",
+  "baseline_id": "153-claude",
+  "baseline_metric": 687,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, identical to 153-claude, plus a factored exact trigram logit table added to the readout (new ALiBiGPT.readout(x, prev, cur))",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 and 0 for heads 5..8 (NoPE heads); same slope table in every block; -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9973776,
+      "n_params_detail": "153-claude's 9,557,760 + trigram rows 11,449 x 36 = 412,164 + Linear(36, 107) 3,852 -> 9,973,776 (computed from the incumbent's recorded count; bench of the same-size bigram-input variant confirmed the 9,557,760 base), under the 10M cap. MTP module (pretraining only, not on the model): one PeriLNBlock(384, 8) + LayerNorms + Linear(768, 384) as in 153",
+      "change": "Output-side n-gram memory, factored: nn.Embedding `trigram` (11,449 x 36, zero-init) indexed by previous_token * 107 + current_token at every position, then bias-free Linear `trigram_proj` (36 -> 107, normal std 0.02), ADDED TO THE LOGITS: model(idx) = head(ln_f(h)) + trigram_proj(trigram[prev*107 + cur]) in every forward (pretraining, val_loss via the fork's loss_on, RL fine-tune, sampling). `prev` is built in features(): pad id before position 0 in the full forward; caches[0]['last'] (B, 1) holds the previous call's final token in incremental decoding (150/154's proven bookkeeping), so cached and full forwards see the same pair. Both new tensors are trained by the AdamW auxiliary group (lr 1e-3, wd 0.1, same schedule) like the token embedding, not by Muon (they are outside model.blocks). The MTP t+2 logits use readout(z, x_t, x_{t+1}). Everything else unchanged from 153-claude.",
+      "checkpoint_reconstruction": "153-claude's module tree plus state_dict keys `trigram.weight` (11449, 36) and `trigram_proj.weight` (107, 36); slopes buffer non-persistent as before",
+      "kv_cache": "unchanged per-block k/v and caches[0]['pos']; new caches[0]['last'] (B, 1) for the trigram index"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "note": "fork lean_tok.py, Dan's Lean surface form; vocab 107 (pad id 0)"
+    },
+    "optimizer": {
+      "name": "muon (Nesterov momentum 0.95 + 5 bf16 Polar Express steps, RMS-matched scaling, decoupled decay 10x AdamW's per-step lr*wd) on all 2-D block matrices, the readout head.weight and the MTP module's matrices; AdamW on everything else (token embedding, trigram rows, trigram_proj, LayerNorm gains/biases, linear biases)",
+      "lr": 0.001,
+      "schedule": "linear warmup 200 steps then cosine over wall-clock (frac = elapsed / 300 s) to MIN_LR_FRAC 0.3 of peak",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "mtp": "DeepSeek-V3-style t+2 head (one extra PeriLNBlock on [ln(h_t); ln(emb(x_{t+1}))]), loss weight 0.3, pretraining only, dropped at handoff (unchanged from 136-fable)",
+      "lr_note": "AdamW peak 1e-3; Muon peak 0.01 (MUON_LR), both follow the same warmup/cosine multiplier",
+      "wd_note": "AdamW decoupled 0.1 on all AdamW params (embeddings, norms, biases, trigram rows and projection); Muon matrices p *= 1 - lr_muon * MUON_WD, MUON_WD = 10 * 0.1 * 1e-3 / 0.01 = 0.1"
+    },
+    "batch": {
+      "size": 136,
+      "padding": "to the max length within each token-budget run (records are length-sorted, so little padding)",
+      "buckets": "length-sorted runs cut greedily per epoch, run order shuffled; val loss every 15 s on the first 1,024 records",
+      "size_note": "mean records per step (153: records_seen / steps = 136.0); token-budget batches vary from ~40 records (longest proofs) to ~300 (shortest), TOK_BUDGET = 128 x 144 = 18,432 padded tokens per step",
+      "tok_budget": 18432
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random per-record shift of hypothesis-name indices (tok.shift_abs semantics, vectorised on GPU), unchanged",
+      "order": "per epoch: random permutation, stable-sorted by length, cut into token-budget runs, runs shuffled (148-fable)",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast; Polar Express iterations in bf16; CE in fp32",
+    "compile": false,
+    "init": "fork default normal(0.02) for embedding/head, zero biases; orthogonal_(gain 0.02*sqrt(max(shape))) on every 2-D block and MTP matrix (unchanged from 153); trigram rows zeros, trigram_proj normal(0.02)",
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

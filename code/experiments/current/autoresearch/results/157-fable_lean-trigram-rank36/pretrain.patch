@@ -1,0 +1,105 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..a88ccb8 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -64,6 +64,11 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+     N_HEAD - N_ALIBI
+ )
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++# Output trigram logits (154-fable's exact (previous, current) -> next-token logit table, 680 on
++# the 673 bigram incumbent, auto-discarded when 153's width won), factored so it fits the 10M cap
++# next to the 384-wide trunk: each of the 107^2 = 11,449 pairs gets a TRIGRAM_R-dim row, mapped
++# to the 107 logits by one shared (36 -> 107) projection: 416,016 params instead of 1.2M.
++TRIGRAM_R = 36
+ # Token-budget batches (fairseq max-tokens): each step takes a run of length-sorted records with
+ # count * padded_length <= TOK_BUDGET, so a batch of short proofs has many records and a batch of
+ # long ones few, and the padded token count per step is ~constant. 128 x 144 matches the real
+@@ -163,16 +168,32 @@ class ALiBiGPT(GPT):
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+     bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
+ 
+-    def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
++    def __init__(self, vocab, n_layer, d, n_head, max_len=1024, pad=0):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        # A count-style trigram LM mixed into the logits: the trunk need not spend its readout on
++        # the near-deterministic local transitions of the Lean surface form. Rows zero, projection
++        # normal(0.02) like the fork's Linear init, so the model starts as the incumbent and every
++        # used row learns from its first step. The previous token of position 0 is `pad`, which is
++        # also what sample.generate's left padding provides.
++        self.vocab, self.pad = vocab, pad
++        self.trigram = torch.nn.Embedding(vocab * vocab, TRIGRAM_R)
++        self.trigram_proj = torch.nn.Linear(TRIGRAM_R, vocab, bias=False)
++        torch.nn.init.zeros_(self.trigram.weight)
++        torch.nn.init.normal_(self.trigram_proj.weight, std=0.02)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+-        return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
++        x, _, prev = self.features(idx, pos, mask, caches)
++        return self.readout(x, prev, idx)
++
++    def readout(self, x, prev, cur):
++        """Logits for the token after `cur` from hidden state x, plus the factored trigram row
++        for the (prev, cur) pair at the same position."""
++        return self.head(self.ln_f(x)) + self.trigram_proj(self.trigram(prev * self.vocab + cur))
+ 
+     def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
++        """The trunk: (final hidden state before ln_f, the ALiBi bias used, previous tokens)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -188,10 +209,18 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        if caches is None:
++            prev = torch.nn.functional.pad(idx[:, :-1], (1, 0), value=self.pad)
++        else:  # incremental decoding: the last token of the previous call, kept in caches[0]
++            c = caches[0]
++            if "last" not in c:
++                c["last"] = idx.new_full((B, 1), self.pad)
++            prev = torch.cat((c["last"], idx[:, :-1]), 1)
++            c["last"] = idx[:, -1:]
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
++        return x, bias, prev
+ 
+ 
+ class MTPHead(torch.nn.Module):
+@@ -208,8 +237,8 @@ class MTPHead(torch.nn.Module):
+ def mtp_loss(model, mtp, x, m):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+     MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+-    h, bias = model.features(x[:, :-1])
+-    logits = model.head(model.ln_f(h))
++    h, bias, prev = model.features(x[:, :-1])
++    logits = model.readout(h, prev, x[:, :-1])
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+@@ -219,8 +248,11 @@ def mtp_loss(model, mtp, x, m):
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+     z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
++    # The t+2 logits get the trigram row of their own pair (x_t, x_{t+1}).
+     ce2 = torch.nn.functional.cross_entropy(
+-        model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
++        model.readout(z, x[:, :-2], x[:, 1:-1]).reshape(-1, V).float(),
++        x[:, 2:].reshape(-1),
++        reduction="none",
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+     return main + MTP_WEIGHT * aux, main, aux
+@@ -298,7 +330,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD, pad=tok.pad)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
