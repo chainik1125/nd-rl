@@ -1,0 +1,83 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..f6aaefa 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -70,6 +70,10 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # (unpadded) tokens of the incumbent's 128-record batches (mean record ~135 tokens), whose
+ # padding to the batch max (~400) made every step ~3x larger than its content.
+ TOK_BUDGET = 128 * 144
++# P38 value residual (Zhou et al. 2024, ResFormer; modded-nanogpt's learned-lambda form): every
++# block's attention values are (1 - lambda) * own values + lambda * block 0's values, one learned
++# scalar per block, initialised at this value (block 0 is the source and mixes nothing).
++V_RESID_INIT = 0.5
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+@@ -134,10 +138,18 @@ class PeriLNBlock(Block):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
++        self.v_lambda = torch.nn.Parameter(torch.tensor(V_RESID_INIT))
+ 
+-    def attn(self, x, cos, sin, mask, cache):
++    def attn(self, x, cos, sin, mask, cache, v1=None):
++        """`v1`: block 0's values for these T tokens (None in block 0, which returns its own).
++        The mix happens before the cache write, so cached decoding stores mixed values and
++        matches the full forward exactly. Returns (branch output, v1)."""
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        if v1 is None:
++            v1 = v
++        else:
++            v = (1 - self.v_lambda) * v + self.v_lambda * v1
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+                 cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+@@ -149,11 +161,13 @@ class PeriLNBlock(Block):
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+-        return self.proj(y.transpose(1, 2).reshape(B, T, D))
++        return self.proj(y.transpose(1, 2).reshape(B, T, D)), v1
+ 
+-    def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+-        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
++    def forward(self, x, cos, sin, mask=None, cache=None, v1=None):
++        """Returns (block output, v1) so ALiBiGPT.features can thread block 0's values."""
++        a, v1 = self.attn(self.ln1(x), cos, sin, mask, cache, v1)
++        x = x + self.ln_attn_out(a)
++        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x))))), v1
+ 
+ 
+ class ALiBiGPT(GPT):
+@@ -188,9 +202,9 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        x = self.emb(idx)
++        x, v1 = self.emb(idx), None
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++            x, v1 = b(x, None, None, bias, None if caches is None else caches[i], v1)
+         return x, bias
+ 
+ 
+@@ -218,7 +232,8 @@ def mtp_loss(model, mtp, x, m):
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+-    z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
++    # The MTP block mixes nothing (v1 None: its own values are its source); its v_lambda is idle.
++    z = mtp.block(z, None, None, bias[..., :-1, :-1], None)[0]
+     ce2 = torch.nn.functional.cross_entropy(
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+@@ -388,6 +403,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "v_lambda": [round(b.v_lambda.item(), 4) for b in model.blocks],  # [0] is idle
+             "last_loss": last_loss,
+             "curve": curve,
+         },
