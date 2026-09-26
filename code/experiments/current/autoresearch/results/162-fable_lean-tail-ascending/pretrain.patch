@@ -1,0 +1,82 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..4281596 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -70,6 +70,14 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # (unpadded) tokens of the incumbent's 128-record batches (mean record ~135 tokens), whose
+ # padding to the batch max (~400) made every step ~3x larger than its content.
+ TOK_BUDGET = 128 * 144
++# Tail curriculum, the mirror of 157-fable3's short-first FIRST epoch (which was actively
++# harmful: an epoch of short proofs made the model wrong on long ones, val 0.27 -> 0.55, and
++# the damage was undone by the mixed epochs that followed). Here the last (1 - TAIL_FRAC) of
++# the wall-clock presents one epoch in ascending length order, paced by time rather than by
++# step so the run ends on the longest runs whatever the step rate: the handed-off model's
++# freshest updates are on the 6-line proofs, the training regime nearest the >= 7-line RL
++# targets and eval. Every record stays in play; the tail is one more epoch, not a subset.
++TAIL_FRAC = 0.75
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+@@ -255,10 +263,11 @@ def to_gpu(data, tok, device):
+     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
+ 
+ 
+-def token_batches(lens, n_train, gen, rng):
++def token_batches(lens, n_train, gen, rng, shuffle=True):
+     """One epoch of token-budget batches: a random permutation of the training records, stably
+     sorted by length (equal lengths stay shuffled), cut greedily into runs of consecutive records
+-    with count * max_len <= TOK_BUDGET, and the runs' order shuffled. Returns (order, cuts)."""
++    with count * max_len <= TOK_BUDGET, and the runs' order shuffled (or left ascending in
++    length for the tail epoch). Returns (order, cuts)."""
+     perm = torch.randperm(n_train, device=lens.device, generator=gen) + VAL_N
+     order = perm[torch.argsort(lens[perm], stable=True)]
+     sorted_lens = lens[order].cpu()
+@@ -269,7 +278,8 @@ def token_batches(lens, n_train, gen, rng):
+         e = s + int((torch.arange(1, len(window) + 1) * window <= TOK_BUDGET).sum())
+         cuts.append((s, e))
+         s = e
+-    rng.shuffle(cuts)
++    if shuffle:
++        rng.shuffle(cuts)
+     return order, cuts
+ 
+ 
+@@ -326,7 +336,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     step, last_loss, records_seen = 0, float("nan"), 0
+     curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+-    rng, cuts, batches_per_epoch = random.Random(seed), [], None
++    rng, cuts, batches_per_epoch, tail_cuts, tail_steps = random.Random(seed), [], None, None, 0
+     order = torch.empty(0, dtype=torch.long, device=device)
+     while True:
+         frac = (
+@@ -342,10 +352,16 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         )
+         for g in opt.param_groups:
+             g["lr"] = lr
+-        if not cuts:  # new epoch
+-            order, cuts = token_batches(lens, n_train, gen, rng)
+-            batches_per_epoch = len(cuts)
+-        s, e = cuts.pop()
++        if frac >= TAIL_FRAC:  # tail epoch: ascending runs, the one at this fraction of the tail
++            if tail_cuts is None:
++                order, tail_cuts = token_batches(lens, n_train, gen, rng, shuffle=False)
++            s, e = tail_cuts[int((frac - TAIL_FRAC) / (1 - TAIL_FRAC) * len(tail_cuts))]
++            tail_steps += 1
++        else:
++            if not cuts:  # new epoch
++                order, cuts = token_batches(lens, n_train, gen, rng)
++                batches_per_epoch = len(cuts)
++            s, e = cuts.pop()
+         idxs = order[s:e]
+         records_seen += e - s
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+@@ -388,6 +404,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "tail_frac": TAIL_FRAC,
++            "tail_steps": tail_steps,
+             "last_loss": last_loss,
+             "curve": curve,
+         },
