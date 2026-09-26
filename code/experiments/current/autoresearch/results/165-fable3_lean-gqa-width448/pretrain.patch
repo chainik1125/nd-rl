@@ -1,0 +1,57 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..1476b96 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,10 +37,16 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 384, 8
+-# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+-# 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+-D_FF = 1280
++N_LAYER, D, N_HEAD = 6, 448, 8
++# Grouped-query attention (Ainslie et al. 2023): N_KV key/value heads, each shared by
++# N_HEAD // N_KV query heads. With 2 KV heads and the hybrid head table below, the 4 ALiBi heads
++# share one K/V pair and the 4 NoPE heads the other. The ~2.1M params this frees at D 448 pay for
++# the residual width 384 -> 448 under the 10M cap at unchanged D_FF.
++N_KV = 2
++# MLP width trimmed 2.5% from 151's 1280 so the width-448 GQA model fits the 10M cap (9,854,976);
++# the fork's Block hardcodes 4 * D, so PeriLNBlock swaps fc1/fc2. No matrix is (3 * D, D) now,
++# so muon_step's QKV-by-shape test is vacuous.
++D_FF = 1248
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -132,16 +138,28 @@ class PeriLNBlock(Block):
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
++        # GQA: the fork's (3d, d) qkv becomes q (d, d) plus k and v of N_KV heads each; separate
++        # matrices so muon_step orthogonalizes the three roles separately, as before.
++        del self.qkv
++        self.q = torch.nn.Linear(d, d)
++        self.k = torch.nn.Linear(d, N_KV * (d // h))
++        self.v = torch.nn.Linear(d, N_KV * (d // h))
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+-        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        hd = D // self.h
++        q = self.q(x).view(B, T, self.h, hd).transpose(1, 2)
++        # Query heads [i * N_HEAD // N_KV, (i + 1) * N_HEAD // N_KV) read KV head i; the KV
++        # heads are expanded to N_HEAD here, on the T new tokens only, so the cache below stays
++        # the fork's (B, H, max, hd) layout and every cached read is a view (no per-token copy).
++        k = self.k(x).view(B, T, N_KV, hd).transpose(1, 2).repeat_interleave(self.h // N_KV, 1)
++        v = self.v(x).view(B, T, N_KV, hd).transpose(1, 2).repeat_interleave(self.h // N_KV, 1)
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+-                cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+-                cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["k"] = k.new_empty(B, self.h, cache["max"], hd)
++                cache["v"] = v.new_empty(B, self.h, cache["max"], hd)
+                 cache["n"] = 0
+             n0, n1 = cache["n"], cache["n"] + T
+             cache["k"][:, :, n0:n1] = k

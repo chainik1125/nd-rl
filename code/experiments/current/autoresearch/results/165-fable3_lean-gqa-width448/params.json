@@ -1,0 +1,190 @@
+{
+  "id": "165-fable3",
+  "slug": "lean-gqa-width448",
+  "written_at": "2026-09-25T22:50:21-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "8e33d21",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "c753c1c70505",
+  "patch_lines": 32,
+  "title": "Grouped-query attention (Ainslie et al. 2023) paying for residual width: 2 KV heads (one shared by the 4 ALiBi heads, one by the 4 NoPE heads) under 8 query heads of 56, with the freed parameters spent on d_model 384 -> 448 at d_ff 1248 in all six Peri-LN blocks, filling the 10M cap (9,854,976 params) on the 153-claude width-384 Lean incumbent",
+  "description": "P25/P26-family reallocation, GQA untried here: every block's (3D, D) qkv becomes q (D, D) plus k and v of 2 heads each, K/V expanded to 8 heads at write time so the fork's (B, H, max, hd) KV cache and cached reads are unchanged; the ~2.1M parameters this saves at D 448 buy the residual width 384 -> 448 (8 heads of 56) with the MLP nearly intact (1248 vs 1280, -2.5%, the cap trim). Residual width is the only capacity lever with positive signal under the Lean protocol (151 -> 153 +15) and 158 showed width 448 with the MLP halved (d_ff 896) is not it, so this tests width at a full MLP by taking the parameters from attention K/V instead, where 154-fable3 found no gain from more attention width and where 4 query heads per KV head keeps every head's own query and the positional/content split of the hybrid table.",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "Three claims. (1) The expert-iteration starting sampler is limited by residual-stream capacity (features carried between proof steps), which 320 -> 384 improved (+70% round-1 targets solved) and which the 10M cap now blocks; d_model 448 at a full-width MLP continues that trend. (2) K/V projections are the cheapest parameters to give up: the 4 ALiBi heads read local syntax at four distance scales and the 4 NoPE heads look citations up by content, so within each family the heads can share one K/V pair and differ in their queries (GQA at 4:1 loses little in Ainslie et al. 2023; 154-fable3 found no gain from 40% more attention width, so attention capacity is not the bottleneck). (3) 158's failure came from halving the MLP (d_ff 1280 -> 896, -31% of every block's transformation capacity), not from width 448 itself: 158's val loss was lower than 153's while its round-1 sampler was worse, so the loss it saved was memorisation, not transferable transformation. If (1)-(3) hold, round-1 targets solved and round-4 RL-solved rise as in 151 -> 153 despite ~19% fewer steps (the bench cost of 56-dim heads, the 448-wide Newton-Schulz and three q/k/v matmuls), because width has been nearly free in steps-to-score so far (153: -5% steps, +15).",
+  "p_keep": 0.3,
+  "expected_delta": "-45 to +40 theorems at >= 7 (3-seed mean), central +6; keep needs > 687.00 (153-claude: 676/700/685). Mechanism predictions: pretraining steps 3,400-3,900 per seed (central ~3,700; 153: 4540/4479/4489; bench 9.30 vs 153's 11.53 steps/s probe, ratio 0.81; 158's probe ratio 0.90 gave 0.914 in the run), falsified below 3,100; epochs 3.0-3.5; handoff n_params 9,854,976 exactly; peak memory ~8.3 GB (bench 8.26; 158: 8.47). Final main val loss 0.078-0.092 (158's width-448 model was lower than 153: 0.084/0.081/0.080 vs 0.088/0.087/0.089; the full MLP here should memorise at least as much, so at or below 153), held-out greedy after pretraining 0.955-0.975. Under claims (1)-(3): round-1 RL targets solved 700-850 with no seed below 550 (153: 766/747/694; 158: 679/784/293), round-1 sample acc 0.22-0.30, round-4 RL-solved 1,150-1,210 (153: 1157/1168/1191), eval/round-4 transfer ratio 0.57-0.61. RL sampling 200-290 samples/s (bench 174 vs 153's 179 probe: the expanded-at-write cache keeps the per-token path the fork's; the first probe without it gave 111/s), totals 1,650-1,950 s (158: 1836). Falsifiers: any seed's round-1 targets solved < 450 (GQA or width made a worse sampler, 158's failure mode), mean steps < 3,100 (the step cost is larger than the probe), or a metric below 660 with round-1 targets solved below 153's on two seeds (claim (3) rejected: width 448 itself is the problem, not the MLP cut).",
+  "baseline_id": "153-claude",
+  "baseline_metric": 687,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, unchanged from 153-claude except width and grouped-query attention: PeriLNBlock deletes the fork Block's (3D, D) qkv and owns q Linear(D, D), k Linear(D, N_KV * hd), v Linear(D, N_KV * hd) with biases; attn() expands k/v from N_KV = 2 to 8 heads by repeat_interleave on the new tokens before the cache write, so the KV cache keeps the fork's (B, H, max, hd) layout; SDPA, proj, Peri-LN and MLP as before",
+      "n_layers": 6,
+      "d_model": 448,
+      "n_heads": 8,
+      "n_kv_heads": 2,
+      "head_dim": 56,
+      "d_ff": 1248,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 (Press et al. 2021 standard set for 4 heads) and 0 for heads 5..8 (NoPE); with GQA heads 1..4 read KV head 0 and heads 5..8 KV head 1; same slope table in every block; -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9854976,
+      "n_params_detail": "per block: q 448x448+448 = 201,152; k and v 448x112+112 = 50,288 each; proj 201,152; fc1 448x1248+1248 = 560,400; fc2 1248x448+448 = 559,552; four LayerNorms 3,584 -> 1,626,416; x6 = 9,758,496; emb 107x448 = 47,936; head (no bias) 47,936; ln_f 896; total 9,854,976 (local count and bench agree). The pretraining-only MTP module (its own PeriLNBlock, two LayerNorms and a (448, 896) proj) is not registered on the model and is dropped at handoff.",
+      "change": "vs 153-claude: D 384 -> 448 (hd 48 -> 56), D_FF 1280 -> 1248, new knob N_KV = 2, PeriLNBlock.__init__ replaces qkv with q/k/v, attn() builds q from self.q and k/v from self.k/self.v expanded to 8 heads before the (unchanged) cache logic. Heads, ALiBi table, loss, MTP weight, optimizers, schedule, init rule, token batches and handoff unchanged. muon_step's (3D, D) split never fires now (no such matrix); q, k, v are separate matrices so each role is orthogonalized on its own, as the split did."
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer (harness TOK_MODE), unchanged"
+    },
+    "optimizer": {
+      "name": "muon (Nesterov momentum 0.95 + five bf16 Polar Express Newton-Schulz steps, RMS-matched scaling, decoupled decay MUON_WD = 10 * WD * LR / MUON_LR = 0.1 per unit lr) on every 2-D block matrix (q, k, v, proj, fc1, fc2), the output head and the MTP module's matrices; AdamW on embeddings, biases and LayerNorm gains; unchanged from 153",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock after linear warmup, floor 0.3 of peak (AdamW and Muon), unchanged",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_momentum": 0.95,
+      "muon_ns_iters": 5,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "wd_per_lr": 0.1,
+        "shape_scale": "sqrt(max(rows, cols) / D) with D = 448: q/k/v/proj 1 (k, v are (112,448): max is 448), fc1 (1248,448)/fc2 sqrt(1248/448) = 1.67, head (107,448) 1, MTP proj (448,896) sqrt(2)",
+        "parameters": "6 x (q, k, v, proj, fc1, fc2) = 36 trunk matrices + head.weight + the MTP module's 7 matrices (its block's q, k, v, proj, fc1, fc2 and the (448,896) proj) = 44 Muon matrices (CPU check); 153 had 30 with fused qkv split per role"
+      }
+    },
+    "batch": {
+      "size": 136,
+      "padding": "to max len in batch (length-sorted token-budget runs, >99% fill)",
+      "buckets": true,
+      "tok_budget": 18432,
+      "size_note": "variable: a run of length-sorted records with count * padded_length <= TOK_BUDGET = 18,432 (128 x 144), mean ~136 records per batch, ~1,130 batches per epoch; unchanged from 148"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq: names n1.. get the same start offset), unchanged",
+      "order": "per-epoch random permutation, stable-sorted by length, cut into token-budget runs, runs shuffled (unchanged)",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast (Newton-Schulz in bf16)",
+    "compile": false,
+    "init": "fork _init (normal 0.02, zero biases) then orthogonal_ with gain 0.02 * sqrt(max(rows, cols)) on every 2-D block and MTP matrix; unchanged",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": "next-token CE on proof tokens + 0.3 * MTP (t+2 through the shared head via one pretraining-only Peri-LN block), unchanged from 136",
+    "bench": "bench_pretrain.py --secs 60 on one A40 (probe, not evidence): 561 steps in 60.3 s = 9.30 steps/s (153-claude's shape: 11.53; 158's width-448/d_ff-896 shape: 10.35), peak 8.26 GB (153: 7.42), n_params 9,854,976, sampling 174 samples/s (153's bench: 179), sample_acc 0.0845. A first probe with the KV cache kept at 2 heads and repeat_interleave on every cached read gave 8.62 steps/s and 111 samples/s (peak 3.6 GB); the expand-at-write cache fixed the sampling path."
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
