@@ -1,0 +1,70 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..58bf013 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -161,32 +161,51 @@ class ALiBiGPT(GPT):
+     logits get -slope_h * (query position - key position), slopes 2^-1 .. 2^-8 for 8 heads, so
+     no rotation of q/k anywhere. Positions come from `pos` (sample.generate's left-padded
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+-    bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
++    bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0.
+ 
+-    def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
++    Prompt-anchored distances: a proof query measures its ALiBi distance to a statement key
++    from the prompt's end, (proof start - key position), as if it sat right after `by`, so the
++    ALiBi heads' view of the theorem (the goal just before `:= by`, the hypotheses) does not
++    fade as the proof grows past the training lengths. Proof keys and prompt queries keep the
++    true distance. The proof starts one past the first `by`, the prompt's last token (a proof's
++    own `by`s come later); decoding reads it from the prefill and keeps it in caches[0]."""
++
++    def __init__(self, vocab, n_layer, d, n_head, by_id, max_len=1024):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.by_id = by_id
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+ 
++    def proof_start(self, idx, pos):
++        """(B, 1) position of each row's first proof token: one past its first `by`."""
++        first_by = (idx == self.by_id).int().argmax(1, keepdim=True)
++        return pos.expand(idx.size(0), -1).gather(1, first_by) + 1
++
+     def features(self, idx, pos=None, mask=None, caches=None):
+         """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
+         B, T = idx.shape
+-        if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
++        if pos is None:  # training/val: arange positions broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+         key_pos = pos
+         if caches is not None:  # incremental decoding: keys are every cached token
+             c = caches[0]
+-            if "pos" not in c:
++            if "pos" not in c:  # the prefill holds the whole prompt
+                 c["pos"], c["n_pos"] = pos.new_empty(pos.size(0), c["max"]), 0
++                c["start"] = self.proof_start(idx, pos)
++            start = c["start"]
+             n0, n1 = c["n_pos"], c["n_pos"] + T
+             c["pos"][:, n0:n1] = pos
+             c["n_pos"] = n1
+             key_pos = c["pos"][:, :n1]
++        else:
++            start = self.proof_start(idx, pos)
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+-        bias = -self.slopes * rel.to(self.slopes.dtype)
++        anchored = torch.minimum(pos, start)[:, None, :, None] - key_pos[:, None, None, :]
++        dist = torch.where(key_pos[:, None, None, :] < start[:, :, None, None], anchored, rel)
++        bias = -self.slopes * dist.to(self.slopes.dtype)  # (B, H, T, S)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+@@ -298,7 +317,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD, tok.itos.index("by"))
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
