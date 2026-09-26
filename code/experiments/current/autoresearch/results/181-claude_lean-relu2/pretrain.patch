@@ -1,0 +1,45 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..ad7dff2 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -124,6 +124,31 @@ def muon_step(params, buffers, lr):
+         p.add_(update.reshape_as(p), alpha=-lr)
+ 
+ 
++class ReLUSquared(torch.autograd.Function):
++    """Primer's squared ReLU (So et al. 2021), relu(x)^2, kept in the input dtype. `x ** 2` and
++    square() dispatch to pow, which autocast runs in fp32 (the likely cause of 076-claude's 24%
++    step-time loss); this saves only relu(x) and computes d/dx = 2 relu(x) directly."""
++
++    @staticmethod
++    def forward(ctx, x):
++        r = torch.relu(x)
++        ctx.save_for_backward(r)
++        return r * r
++
++    @staticmethod
++    def backward(ctx, *grad_outputs):
++        (r,) = ctx.saved_tensors
++        return (grad_outputs[0] * r).mul_(2)
++
++
++def relu_squared(x):
++    """ReLUSquared when training; in the sampler (no grad) two plain kernels, no Function call."""
++    if torch.is_grad_enabled():
++        return ReLUSquared.apply(x)
++    r = torch.relu(x)
++    return r.mul_(r)
++
++
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+@@ -153,7 +178,7 @@ class PeriLNBlock(Block):
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+         x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+-        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
++        return x + self.ln_mlp_out(self.fc2(relu_squared(self.fc1(self.ln2(x)))))
+ 
+ 
+ class ALiBiGPT(GPT):
