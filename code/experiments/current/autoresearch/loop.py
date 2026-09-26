@@ -21,7 +21,14 @@ ROOT = HERE.parents[3]
 ART = ROOT / "artifacts/autoresearch"
 POLL_SECS = 0.5
 # Both agents share one branch, each from its own checkout. Highest effort for both (Robbie).
-MODELS = {"codex": "gpt-6-astra", "claude": "claude-opus-5-5", "fable": "claude-fable-5-1"}
+FABLE = "claude-fable-5-1"
+MODELS = {
+    "codex": "gpt-6-astra",
+    "claude": "claude-opus-5-5",
+    "fable": FABLE,
+    "fable2": FABLE,
+    "fable3": FABLE,
+}
 agent = "codex"  # set once by main(); tests monkeypatch it
 stop_at: float | None = None  # epoch seconds; no new session starts after it (--stop-at)
 MIN_BALANCE = 3.0  # USD: one experiment rents 3 A40s at ~$0.49/h for ~25 min

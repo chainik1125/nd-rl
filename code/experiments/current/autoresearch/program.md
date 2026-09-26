@@ -14,10 +14,11 @@ the harness crashes any other tokenizer. Ideas that won under the token format m
 From 105 the held-out greedy check covers proof lengths 2-6 (400 each); before it covered 2-5 only,
 so `heldout_greedy` values are not comparable across that boundary. The metric is unaffected.
 
-**Two agents run this loop in parallel**: Claude (`claude-opus-5-5`, `$ND_AGENT=claude`) and Fable
-(`claude-fable-5-1`, `$ND_AGENT=fable`) since 2026-09-25; Codex (`gpt-6-astra`) ran 041-097. Each
-works in its own checkout, both pushing to the same branch. Robbie counts who gets more keeps. If
-you are `fable`: be creative. Prefer bold ideas the table has not tried (new mechanisms, not another
+**Up to four agents run this loop in parallel**: Claude (`claude-opus-5-5`, `$ND_AGENT=claude`) and
+Fable (`claude-fable-5-1`) as `$ND_AGENT` = `fable`, `fable2` and `fable3` (the latter two from
+2026-09-25 evening); Codex (`gpt-6-astra`) ran 041-097. Each works in its own checkout, all
+pushing to the same branch. Robbie counts who gets more keeps. If you are a `fable*` agent: be
+creative. Prefer bold ideas the table has not tried (new mechanisms, not another
 nudge to a tuned number), and check the other agent's running registration so you do not duplicate
 it.
 
@@ -117,8 +118,8 @@ and stop on commit/push failure. Do not stage, commit, push, or restore files ma
   log it as `crash` or `timeout` and move on. Never edit the harness to make something fit.
 - **No cheating.** No eval or RL code in pretrain.py. No touching the pools. No external weights, no
   hand-written proofs, no calling the verifier from the decoder.
-- **Three pods per experiment, one experiment at a time per agent**, so never more than 6 A40s
-  across both agents. Pods are named `autoresearch-ndrl-pretrain-<agent>-<NNN>-s<seed>-...`; never
+- **Three pods per experiment, one experiment at a time per agent**, so never more than 3 A40s
+  per agent. Pods are named `autoresearch-ndrl-pretrain-<agent>-<NNN>-s<seed>-...`; never
   touch the other agent's pods.
 - **Cleanup.** `run_idea.py` terminates its pods after running. On cancellation, `loop.py` stops the
   local processes and terminates only the pods registered to that session. There is no overnight
