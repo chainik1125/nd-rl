@@ -1,0 +1,56 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..db38d34 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -74,6 +74,11 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Plasticity injection (Nikishin et al. 2023) at handoff: every trunk MLP gets this many fresh
++# units for RL to train, fc1 rows random at the trained fc1's element scale and fc2 columns zero,
++# so the handed-off function is unchanged. 6 x 88 x (384 + 1 + 384) = 406,032 params fill the cap
++# (9,963,792 of 10M); pretraining is untouched.
++D_FF_FRESH = 88
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -226,6 +231,21 @@ def mtp_loss(model, mtp, x, m):
+     return main + MTP_WEIGHT * aux, main, aux
+ 
+ 
++@torch.no_grad()
++def inject_fresh_units(block, n_new, gen):
++    """Widen block's MLP by n_new units that write nothing yet (zero fc2 columns)."""
++    fc1, fc2 = block.fc1, block.fc2
++    h, device = fc1.out_features, fc1.weight.device
++    new1 = torch.nn.Linear(fc1.in_features, h + n_new).to(device)
++    new2 = torch.nn.Linear(h + n_new, fc2.out_features).to(device)
++    new1.weight[:h], new1.bias[:h], new1.bias[h:] = fc1.weight, fc1.bias, 0.0
++    new1.weight[h:] = fc1.weight.std() * torch.randn(
++        n_new, fc1.in_features, device=device, generator=gen
++    )
++    new2.weight[:, :h], new2.weight[:, h:], new2.bias[:] = fc2.weight, 0.0, fc2.bias
++    block.fc1, block.fc2 = new1, new2
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -378,6 +398,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++    for b in model.blocks:
++        inject_fresh_units(b, D_FF_FRESH, gen)
++    log(f"pretrain: handoff with {D_FF_FRESH} fresh MLP units/block, {model.n_params():,} params")
+     model.eval()
+     return (
+         model,
+@@ -388,6 +411,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "d_ff_fresh": D_FF_FRESH,
+             "last_loss": last_loss,
+             "curve": curve,
+         },
