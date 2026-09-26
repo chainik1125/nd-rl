@@ -1,0 +1,392 @@
+{
+  "commit": "b7723ca",
+  "recorded_at": "2026-09-25T20:02:11-0700",
+  "status": "discard",
+  "metric": 657,
+  "metric_rl": 1142,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "17a750eaf0a7",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1705,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9557760,
+    "steps": 4403,
+    "epochs": 3.894840419313355,
+    "last_loss": 0.06987986713647842,
+    "heldout_greedy": 0.9655,
+    "curve": [
+      {
+        "secs": 20,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.682249128818512,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 164,
+        "train_loss": 1.3385330848395824,
+        "val_loss": 0.24198339320719242,
+        "mtp_loss": 1.5393799170851707
+      },
+      {
+        "secs": 45,
+        "step": 398,
+        "train_loss": 0.14031450856815686,
+        "val_loss": 0.0912501635029912,
+        "mtp_loss": 0.15408513627269052
+      },
+      {
+        "secs": 60,
+        "step": 633,
+        "train_loss": 0.07978523739924033,
+        "val_loss": 0.0954185426235199,
+        "mtp_loss": 0.08281555399298668
+      },
+      {
+        "secs": 75,
+        "step": 870,
+        "train_loss": 0.0729334040855368,
+        "val_loss": 0.09291169978678226,
+        "mtp_loss": 0.07552347021798293
+      },
+      {
+        "secs": 90,
+        "step": 1107,
+        "train_loss": 0.06234690981606642,
+        "val_loss": 0.08143896237015724,
+        "mtp_loss": 0.06532862844566505
+      },
+      {
+        "secs": 105,
+        "step": 1343,
+        "train_loss": 0.07119966888179381,
+        "val_loss": 0.09607263375073671,
+        "mtp_loss": 0.07092579919844866
+      },
+      {
+        "secs": 120,
+        "step": 1580,
+        "train_loss": 0.05680329476793607,
+        "val_loss": 0.08265513740479946,
+        "mtp_loss": 0.05831324898948272
+      },
+      {
+        "secs": 135,
+        "step": 1815,
+        "train_loss": 0.07867430421439084,
+        "val_loss": 0.09308631252497435,
+        "mtp_loss": 0.07959084314378825
+      },
+      {
+        "secs": 150,
+        "step": 2050,
+        "train_loss": 0.0621730787679553,
+        "val_loss": 0.08875815756618977,
+        "mtp_loss": 0.06432425727446874
+      },
+      {
+        "secs": 165,
+        "step": 2286,
+        "train_loss": 0.06409671809524298,
+        "val_loss": 0.0776759097352624,
+        "mtp_loss": 0.06485807802528143
+      },
+      {
+        "secs": 180,
+        "step": 2521,
+        "train_loss": 0.06343664353092511,
+        "val_loss": 0.08757791668176651,
+        "mtp_loss": 0.06376178935170174
+      },
+      {
+        "secs": 195,
+        "step": 2757,
+        "train_loss": 0.052929965779185295,
+        "val_loss": 0.07879504561424255,
+        "mtp_loss": 0.053322734141891655
+      },
+      {
+        "secs": 210,
+        "step": 2992,
+        "train_loss": 0.07931548698494832,
+        "val_loss": 0.0777621241286397,
+        "mtp_loss": 0.07840279350057244
+      },
+      {
+        "secs": 225,
+        "step": 3228,
+        "train_loss": 0.05178628023713827,
+        "val_loss": 0.085392483510077,
+        "mtp_loss": 0.050948960396150746
+      },
+      {
+        "secs": 240,
+        "step": 3462,
+        "train_loss": 0.05428624525666237,
+        "val_loss": 0.0761273792013526,
+        "mtp_loss": 0.055439787761618696
+      },
+      {
+        "secs": 255,
+        "step": 3698,
+        "train_loss": 0.06319625811143355,
+        "val_loss": 0.08290200214833021,
+        "mtp_loss": 0.06369135325605219
+      },
+      {
+        "secs": 270,
+        "step": 3934,
+        "train_loss": 0.0633199109385411,
+        "val_loss": 0.08353126421570778,
+        "mtp_loss": 0.06382957535485427
+      },
+      {
+        "secs": 285,
+        "step": 4167,
+        "train_loss": 0.04757192792991797,
+        "val_loss": 0.08764094673097134,
+        "mtp_loss": 0.048078468069434166
+      },
+      {
+        "secs": 300,
+        "step": 4403,
+        "train_loss": 0.05484415559719006,
+        "val_loss": 0.08695738948881626,
+        "mtp_loss": 0.05489890991399685
+      }
+    ],
+    "records_seen": 599673,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.2632291666666667,
+      "new_proofs": 974,
+      "targets_solved": 696,
+      "lstar": 10,
+      "ge": {
+        "7": 696,
+        "8": 319,
+        "9": 112,
+        "10": 14,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3860,
+      "samples_per_sec": 250,
+      "secs": 267
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5577291666666667,
+      "new_proofs": 622,
+      "targets_solved": 988,
+      "lstar": 10,
+      "ge": {
+        "7": 988,
+        "8": 496,
+        "9": 236,
+        "10": 44,
+        "11": 4,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6056,
+      "samples_per_sec": 284,
+      "secs": 250
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6622083333333333,
+      "new_proofs": 313,
+      "targets_solved": 1070,
+      "lstar": 11,
+      "ge": {
+        "7": 1070,
+        "8": 556,
+        "9": 286,
+        "10": 60,
+        "11": 8,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7104,
+      "samples_per_sec": 292,
+      "secs": 247
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.699,
+      "new_proofs": 241,
+      "targets_solved": 1112,
+      "lstar": 11,
+      "ge": {
+        "7": 1112,
+        "8": 589,
+        "9": 309,
+        "10": 67,
+        "11": 11,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7804,
+      "samples_per_sec": 293,
+      "secs": 246
+    }
+  ],
+  "eval": {
+    "solved": 623,
+    "n": 1108,
+    "ge": {
+      "7": 623,
+      "8": 533,
+      "9": 430,
+      "10": 99,
+      "11": 21,
+      "12": 4,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.992,
+    "max_pruned": 13,
+    "by_bin": {
+      "7": {
+        "solved": 90,
+        "n": 150,
+        "rate": 0.6,
+        "ci": [
+          0.5200476798506317,
+          0.6749580923202245
+        ]
+      },
+      "8": {
+        "solved": 103,
+        "n": 152,
+        "rate": 0.6776315789473685,
+        "ci": [
+          0.5997406722616577,
+          0.7467650104315385
+        ]
+      },
+      "9": {
+        "solved": 331,
+        "n": 477,
+        "rate": 0.6939203354297694,
+        "ci": [
+          0.6511485695136215,
+          0.7335935160297257
+        ]
+      },
+      "10": {
+        "solved": 78,
+        "n": 219,
+        "rate": 0.3561643835616438,
+        "ci": [
+          0.2957211709701562,
+          0.4215668039860458
+        ]
+      },
+      "11": {
+        "solved": 17,
+        "n": 49,
+        "rate": 0.3469387755102041,
+        "ci": [
+          0.2292420960931444,
+          0.4868906478056021
+        ]
+      },
+      "12": {
+        "solved": 4,
+        "n": 54,
+        "rate": 0.07407407407407407,
+        "ci": [
+          0.029181055323684174,
+          0.17554357193420633
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Unit-variance token embedding init (std 1.0 instead of 0.02) on the 153-claude width-384 incumbent scored 623/689/658 on seeds 0/1/2 vs 153's 676/700/685: mean 656.7 vs 687.0, -30.3, every seed lower, so discard (the agent's own decision). Recorded by the operator session (agent:claude) from the three completed seed summaries: the fable2 session ran run_idea.py as a background task and ended its turn to wait for it, which ends a headless session and killed the runner after the seeds finished but before the merge and record. No pods were left running.",
+  "seed_metrics": {
+    "0": 623,
+    "1": 689,
+    "2": 658
+  },
+  "seed_metric_rl": {
+    "0": 1112,
+    "1": 1141,
+    "2": 1172
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08695738948881626,
+      "heldout_greedy": 0.9655,
+      "steps": 4403
+    },
+    "1": {
+      "val_loss": 0.08699253760278225,
+      "heldout_greedy": 0.9635,
+      "steps": 4496
+    },
+    "2": {
+      "val_loss": 0.08448262326419353,
+      "heldout_greedy": 0.965,
+      "steps": 4814
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 107409,
+    "distinct_checked": 571432,
+    "both_ok": 338591,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 33,
+    "lean_wall_s": 1197.7249209880829
+  },
+  "migrated": false
+}
