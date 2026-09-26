@@ -22,7 +22,13 @@ check prior records to avoid accidental repeats.
 
 Read previous successes and failures, choose one hypothesis, implement it, and fill the
 preregistration. Use run_idea.py: it validates and commits/pushes the registration before
-renting any pods. It must run in the foreground:
+renting any pods. A run takes ~35 min, longer than one shell call may last, so you may start
+it as a background task, but then you MUST keep blocking on it yourself: call a foreground
+wait such as `until ! pgrep -f "run_idea.py <name>" >/dev/null; do sleep 30; done` (repeat it
+while it hits the per-call time limit) until the runner exits, then record. Never end your turn
+to await a completion notification: in this headless session that ends the session and kills
+the runner before it merges and records (156-fable2 was lost this way). Otherwise it must run in
+the foreground:
 no nohup, tmux, background jobs, or direct pod provisioning (bench_pretrain.py is the one
 allowed exception, also in the foreground). Preserve the
 ND_AUTORESEARCH_SESSION environment variable; the runner uses it for cancellation ownership.
