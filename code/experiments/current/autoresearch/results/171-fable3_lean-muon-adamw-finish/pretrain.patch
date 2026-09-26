@@ -1,0 +1,52 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..bd68d13 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -55,6 +55,12 @@ NS_COEFFS = (
+ )
+ # Ten times the AdamW group's per-step multiplicative decay (lr * wd) on the Muon matrices.
+ MUON_WD = 10 * WD * LR / MUON_LR
++# P17: the hidden matrices leave Muon for a fresh AdamW (the fork's LR, the same per-step decay
++# lr * wd as under Muon, a FINISH_WARMUP-step LR ramp against the fresh-state Adam restart) for
++# the last (1 - MUON_FRAC) of the wall-clock, so the handed-off weights already sit where the
++# harness's AdamW would put them.
++MUON_FRAC, FINISH_WARMUP = 0.8, 100
++FINISH_WD = MUON_WD * MUON_LR / LR
+ TOK_MODE = "lean_seq"  # required by the harness (Lean protocol)
+ # Hybrid heads: half the heads get ALiBi (Press et al. 2021) with the standard slope set for
+ # H/2 heads, 2^(-8 i / (H/2)) = 1/4 .. 1/256 with 8 heads; the other half get slope 0, i.e. no
+@@ -328,6 +334,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+     order = torch.empty(0, dtype=torch.long, device=device)
++    finish, muon_steps = None, 0  # the P17 AdamW finish optimizer and the step it started at
+     while True:
+         frac = (
+             time.time() - t0
+@@ -356,7 +363,17 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+-        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++        if frac < MUON_FRAC:
++            muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++        else:
++            if finish is None:
++                finish = torch.optim.AdamW(
++                    matrices, lr=lr, weight_decay=FINISH_WD, betas=(0.9, 0.95)
++                )
++                muon_steps = step
++            for g in finish.param_groups:
++                g["lr"] = lr * min(1.0, (step - muon_steps + 1) / FINISH_WARMUP)
++            finish.step()
+         if step % 20 == 0:
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+@@ -388,6 +405,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "muon_steps": muon_steps,
+             "last_loss": last_loss,
+             "curve": curve,
+         },

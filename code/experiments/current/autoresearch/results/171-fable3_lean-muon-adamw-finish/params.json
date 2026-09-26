@@ -1,0 +1,184 @@
+{
+  "id": "171-fable3",
+  "slug": "lean-muon-adamw-finish",
+  "written_at": "2026-09-26T00:58:21-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "372c523",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "68c6fdb2635d",
+  "patch_lines": 20,
+  "title": "P17 Muon-then-AdamW finish: the hidden matrices leave Muon for a fresh AdamW (fork LR 1e-3 schedule, same per-step decay, 100-step ramp) for the last 20% of the pretraining wall-clock, on the 153-claude width-384 Lean incumbent (9,557,760 params)",
+  "description": "Idea ID: P17 (Muon followed by a brief AdamW finish), untried under any protocol. For the first 80% of the 300 s budget the 31 hidden matrices (six blocks' qkv/proj/fc1/fc2, the head, the MTP module's matrices) are updated by Muon exactly as in 153; at wall-clock fraction 0.8 (~step 3,650) a fresh torch AdamW(betas 0.9/0.95) takes them over at the AdamW group's scheduled lr (1e-3 cosine, floor 0.3, i.e. ~3.7e-4 falling to 3.0e-4) with weight_decay 1.0 so lr * wd equals the Muon phase's per-step decoupled shrink (0.1 x Muon lr), ramped linearly over 100 steps against the fresh-state Adam restart; embeddings/LN/biases stay on the original AdamW throughout and the model, data, MTP, token-budget batches and schedule are unchanged. The handed-off weights then already sit where the harness's own AdamW (ft_lr 3e-4, 600 steps per round, fresh state) would move them, so the first RL fine-tune steps of every round spend their budget on the newly found 7-14-line proofs instead of on re-equilibrating a Muon-shaped weight matrix under per-coordinate Adam steps.",
+  "tags": [
+    "optimizer",
+    "schedule"
+  ],
+  "hypothesis": "(1) Muon's update is orthogonalised and RMS-matched: every singular direction of the momentum moves the same amount and coordinates with small noisy gradients get as large a step as strong ones only through the matrix structure, while AdamW moves every coordinate by ~lr x sign at fresh state and by g/sqrt(v) thereafter. A weight matrix that is stationary under Muon plus decay is not stationary under Adam: at handoff the harness's AdamW (ft_lr 3e-4, close to the pretraining peak 1e-3 x 0.3 floor, fresh moments) first drives a burst of geometry-driven motion in the hidden matrices that has nothing to do with the RL records. (2) Finishing pretraining under AdamW at a decaying lr (3.7e-4 -> 3.0e-4 over ~900 steps) absorbs that motion inside the pretraining budget, where it is supervised by 155k training proofs rather than ~4.5k RL records, so the handed-off point is a fixed point of the optimizer RL uses; the 600-step rounds then convert more of their updates into new proofs, which compounds over four rounds (round-4 RL-solved and the eval rise together, as the eval/round-4 ratio ~0.58 has been stable across 148-167). (3) The schedule family (129: floor 0.1 -> 0.3 = +15; 130 constant lr = -63; 137 floor 0.5 = -14) shows the handoff state's plasticity moves the metric by tens of theorems, so an optimizer-geometry change of the handoff is a plausible lever of the same size; 133-claude's -8 (branch outputs projected for plasticity) shows not every handoff manipulation works. (4) Cost: none in the forward; Adam's foreach step is cheaper than 31 Newton-Schulz chains (160-claude: the Muon loop is ~3% of the step), so steps rise slightly or stay flat. Risks: the fresh Adam restart at ~3.7e-4 may kick the loss up (visible as a train/val bump in the curve at ~240 s) and not recover within 60 s, or Adam's last 900 steps may overfit the four-epoch training set harder than Muon (final val loss up), in which case the muon phase's geometry was the better regulariser and the run discards. Falsifiers: a val-loss spike > 0.02 above the pre-switch value that persists to 300 s (restart instability, not the handoff mechanism); or metric < 660 with round-1 targets solved below 153's on every seed while steps >= 4,300 (Adam-shaped final weights are a worse RL start, implying Muon geometry is what RL should keep).",
+  "p_keep": 0.3,
+  "expected_delta": "-30 to +30 theorems at >= 7 (3-seed mean), central +4; keep needs > 687.00 (153-claude: 676/700/685). Mechanical predictions: handoff n_params 9,557,760 exactly (bench agrees); pretraining steps 4,400-4,800 per seed (central 4,560; 153: 4540/4479/4489; probe 12.26 steps/s vs 153's 11.53 and 160's 13.3 probe spread), falsified below 4,200; muon_steps (the switch step, recorded in stats) 3,500-3,900 (0.8 of the wall-clock, ~0.79-0.81 of steps); epochs 3.9-4.2; peak memory 7.3-7.8 GB (bench 7.42). Curve: train loss within 0.01 of 153's at 240 s, then a possible bump of <= 0.02 in the 255 s point that recovers by 285 s; final main val loss 0.080-0.100 (153: 0.088/0.087/0.089), held-out greedy after pretraining 0.955-0.975 (153: 0.9675/0.967/0.968). Under claims (1)-(2): round-1 RL targets solved 690-830 (153: 766/747/694), round-1 sample acc 0.22-0.30, round-4 RL-solved 1,150-1,215 (153: 1157/1168/1191), eval/round-4 ratio 0.57-0.61. RL sampling 200-270 samples/s (the handed-off model is architecturally identical), totals 1,600-1,900 s (153: 1725/1741/1664).",
+  "baseline_id": "153-claude",
+  "baseline_metric": 687,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, unchanged from 153-claude: PeriLNBlock (pre-LN + LayerNorm on each branch output, fc1/fc2 at d_ff 1280), SDPA with the additive ALiBi bias, fork KV cache",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 and 0 for heads 5..8 (NoPE); -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm: pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs (Peri-LN, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9557760,
+      "head_dim": 48,
+      "n_params_detail": "identical to 153-claude: 9,557,760 (bench count agrees). The pretraining-only MTP module (one PeriLNBlock, two LayerNorms, a (384, 768) proj) is not registered on the model and is dropped at handoff.",
+      "change": "vs 153-claude: no architecture change; only the optimizer of the hidden matrices in the last 20% of the wall-clock (see optimizer)"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "two-phase on the 31 hidden matrices (six blocks' qkv/proj/fc1/fc2, the head, the MTP module's 2-D weights): wall-clock frac < 0.8 -> muon (Nesterov momentum 0.95 + 5 bf16 Polar Express steps, QKV orthogonalised as 3 (D, D) roles, RMS-matched scaling sqrt(max(rows, cols)/D), decoupled decay), unchanged from 153; frac >= 0.8 -> a fresh torch.optim.AdamW (betas 0.9/0.95, weight_decay 1.0 = MUON_WD * MUON_LR / LR so lr * wd matches the Muon phase's 0.1 x Muon-lr per-step shrink) at the scheduled lr, ramped linearly over its first 100 steps; adamw (lr 1e-3, wd 0.1) on embeddings, LayerNorm gains/biases and Linear biases throughout, unchanged",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock (frac of the 300 s budget) from peak to the 0.3 floor, after 200-step linear warmup; Muon lr = 0.01 * lr / 1e-3 while frac < 0.8; the AdamW finish uses lr itself (~3.7e-4 at the switch, 3.0e-4 at the end) times min(1, (step - muon_steps + 1) / 100)",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_wd_per_step": "10 * WD * LR / MUON_LR = 0.1 times the current Muon lr (decoupled), frac < 0.8 only",
+      "muon_frac": 0.8,
+      "finish_warmup_steps": 100,
+      "finish_wd": 1.0,
+      "muon_momentum_buffers": "left untouched after the switch (no longer read)",
+      "change": "vs 153-claude: the Muon -> AdamW switch at frac 0.8 (MUON_FRAC, FINISH_WARMUP, FINISH_WD knobs); everything else identical"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to the max length within each length-sorted run",
+      "buckets": true,
+      "size_note": "token-budget batches (fairseq max-tokens): runs of length-sorted records with count * padded_len <= 18,432; ~128 records per step on average (unchanged from 148-fable)",
+      "tok_budget": 18432
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random per-record ref-name shift (lean_seq names n1.. get a common random start offset within MAXN 64), on GPU",
+      "order": "per epoch: random permutation, stable sort by length, greedy cut into token-budget runs, runs shuffled (unchanged from 148-fable)",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "orthogonal on every 2-D block and MTP matrix with gain 0.02 * sqrt(max(rows, cols)); fork normal(0.02) on embeddings and head; zero biases; LN gains 1 (unchanged from 153)",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": "next-token CE on proof tokens + 0.3 x MTP (t+2) CE from the pretraining-only DeepSeek-style module (unchanged from 136-fable)"
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
