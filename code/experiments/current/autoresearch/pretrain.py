@@ -37,7 +37,10 @@ from tokenizer import make_tokenizer  # fork
 from train import loss_on  # fork
 
 # ---- knobs
-N_LAYER, D, N_HEAD = 6, 256, 8
+N_LAYER, D, N_HEAD = 6, 384, 8
+# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+# 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+D_FF = 1280
 BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
 MUON_LR, MUON_MOMENTUM = 0.01, 0.95
 # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
@@ -129,6 +132,7 @@ class PeriLNBlock(Block):
 
     def __init__(self, d, h):
         super().__init__(d, h)
+        self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
 
     def attn(self, x, cos, sin, mask, cache):
@@ -159,17 +163,10 @@ class ALiBiGPT(GPT):
     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
     bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
 
-    def __init__(self, vocab, n_layer, d, n_head, max_len=1024, pad=0):
+    def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
         super().__init__(vocab, n_layer, d, n_head, max_len)
         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
         self.register_buffer("slopes", slopes, persistent=False)
-        # Bigram table (Engram, DeepSeek 2026, reduced to exact order-2 n-grams: the vocabulary is
-        # 107 tokens, so every (previous, current) pair gets its own row and nothing is hashed).
-        # Added to the token embedding, zero-initialized so the model starts as the incumbent.
-        # The previous token of position 0 is `pad`, which is also what left padding provides.
-        self.vocab, self.pad = vocab, pad
-        self.bigram = torch.nn.Embedding(vocab * vocab, d)
-        torch.nn.init.zeros_(self.bigram.weight)
 
     def forward(self, idx, pos=None, mask=None, caches=None):
         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
@@ -191,15 +188,7 @@ class ALiBiGPT(GPT):
         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
         bias = -self.slopes * rel.to(self.slopes.dtype)
         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
-        if caches is None:
-            prev = torch.nn.functional.pad(idx[:, :-1], (1, 0), value=self.pad)
-        else:  # incremental decoding: the last token of the previous call, kept in caches[0]
-            c = caches[0]
-            if "last" not in c:
-                c["last"] = idx.new_full((B, 1), self.pad)
-            prev = torch.cat((c["last"], idx[:, :-1]), 1)
-            c["last"] = idx[:, -1:]
-        x = self.emb(idx) + self.bigram(prev * self.vocab + idx)
+        x = self.emb(idx)
         for i, b in enumerate(self.blocks):
             x = b(x, None, None, bias, None if caches is None else caches[i])
         return x, bias
@@ -309,7 +298,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
     ids, mask, ref_max, lens = to_gpu(data, tok, device)
     gen = torch.Generator(device=device)
     gen.manual_seed(seed)
-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD, pad=tok.pad)
+    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
     model.blocks.apply(model._init)  # fork init: zero biases
     model = model.to(device)
