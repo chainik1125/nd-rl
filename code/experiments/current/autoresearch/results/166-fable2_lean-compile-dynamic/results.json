@@ -1,0 +1,395 @@
+{
+  "commit": "58ec1dd",
+  "recorded_at": "2026-09-26T00:10:08-0700",
+  "status": "discard",
+  "metric": 162,
+  "metric_rl": 319,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "5ef0d9f05d43",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1706,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9557760,
+    "steps": 1292,
+    "epochs": 1.1454866658872738,
+    "last_loss": 0.07674888521432877,
+    "heldout_greedy": 0.889,
+    "curve": [
+      {
+        "secs": 81,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.804150640964508,
+        "mtp_loss": null
+      },
+      {
+        "secs": 137,
+        "step": 2,
+        "train_loss": null,
+        "val_loss": 4.787000060081482,
+        "mtp_loss": null
+      },
+      {
+        "secs": 179,
+        "step": 3,
+        "train_loss": null,
+        "val_loss": 4.762303411960602,
+        "mtp_loss": null
+      },
+      {
+        "secs": 205,
+        "step": 4,
+        "train_loss": null,
+        "val_loss": 4.727795779705048,
+        "mtp_loss": null
+      },
+      {
+        "secs": 214,
+        "step": 5,
+        "train_loss": null,
+        "val_loss": 4.685630142688751,
+        "mtp_loss": null
+      },
+      {
+        "secs": 214,
+        "step": 6,
+        "train_loss": null,
+        "val_loss": 4.636205434799194,
+        "mtp_loss": null
+      },
+      {
+        "secs": 219,
+        "step": 7,
+        "train_loss": null,
+        "val_loss": 4.580062925815582,
+        "mtp_loss": null
+      },
+      {
+        "secs": 219,
+        "step": 8,
+        "train_loss": null,
+        "val_loss": 4.516269207000732,
+        "mtp_loss": null
+      },
+      {
+        "secs": 224,
+        "step": 9,
+        "train_loss": null,
+        "val_loss": 4.4450324177742,
+        "mtp_loss": null
+      },
+      {
+        "secs": 224,
+        "step": 10,
+        "train_loss": null,
+        "val_loss": 4.369065523147583,
+        "mtp_loss": null
+      },
+      {
+        "secs": 224,
+        "step": 11,
+        "train_loss": null,
+        "val_loss": 4.2906360030174255,
+        "mtp_loss": null
+      },
+      {
+        "secs": 225,
+        "step": 12,
+        "train_loss": null,
+        "val_loss": 4.209635674953461,
+        "mtp_loss": null
+      },
+      {
+        "secs": 225,
+        "step": 13,
+        "train_loss": null,
+        "val_loss": 4.126249730587006,
+        "mtp_loss": null
+      },
+      {
+        "secs": 225,
+        "step": 14,
+        "train_loss": null,
+        "val_loss": 4.042648375034332,
+        "mtp_loss": null
+      },
+      {
+        "secs": 225,
+        "step": 15,
+        "train_loss": null,
+        "val_loss": 3.9592034816741943,
+        "mtp_loss": null
+      },
+      {
+        "secs": 240,
+        "step": 267,
+        "train_loss": 0.9219365211633536,
+        "val_loss": 0.10471251141279936,
+        "mtp_loss": 1.0485064948980625
+      },
+      {
+        "secs": 255,
+        "step": 524,
+        "train_loss": 0.09094474435998844,
+        "val_loss": 0.08194036595523357,
+        "mtp_loss": 0.09152013206711182
+      },
+      {
+        "secs": 270,
+        "step": 781,
+        "train_loss": 0.06924266052933839,
+        "val_loss": 0.08975039329379797,
+        "mtp_loss": 0.07133791796289958
+      },
+      {
+        "secs": 285,
+        "step": 1038,
+        "train_loss": 0.05551076463113228,
+        "val_loss": 0.08710270188748837,
+        "mtp_loss": 0.05657122967143854
+      },
+      {
+        "secs": 300,
+        "step": 1292,
+        "train_loss": 0.060431625407475695,
+        "val_loss": 0.08514004200696945,
+        "mtp_loss": 0.059740259956855044
+      }
+    ],
+    "records_seen": 176366,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "compile": true,
+    "first_step_secs": 81.0,
+    "unique_graphs": 8
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.05470833333333333,
+      "new_proofs": 439,
+      "targets_solved": 365,
+      "lstar": 9,
+      "ge": {
+        "7": 365,
+        "8": 108,
+        "9": 18,
+        "10": 1,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1748,
+      "samples_per_sec": 232,
+      "secs": 272
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.3845208333333333,
+      "new_proofs": 586,
+      "targets_solved": 745,
+      "lstar": 10,
+      "ge": {
+        "7": 745,
+        "8": 339,
+        "9": 121,
+        "10": 14,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 4044,
+      "samples_per_sec": 250,
+      "secs": 264
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.5045,
+      "new_proofs": 387,
+      "targets_solved": 874,
+      "lstar": 10,
+      "ge": {
+        "7": 874,
+        "8": 428,
+        "9": 190,
+        "10": 25,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5380,
+      "samples_per_sec": 243,
+      "secs": 272
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.5737708333333333,
+      "new_proofs": 302,
+      "targets_solved": 956,
+      "lstar": 10,
+      "ge": {
+        "7": 956,
+        "8": 496,
+        "9": 240,
+        "10": 40,
+        "11": 3,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6396,
+      "samples_per_sec": 251,
+      "secs": 268
+    }
+  ],
+  "eval": {
+    "solved": 485,
+    "n": 1108,
+    "ge": {
+      "7": 485,
+      "8": 420,
+      "9": 336,
+      "10": 65,
+      "11": 15,
+      "12": 3,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.9705,
+    "max_pruned": 12,
+    "by_bin": {
+      "7": {
+        "solved": 65,
+        "n": 150,
+        "rate": 0.43333333333333335,
+        "ci": [
+          0.35667455895269157,
+          0.5133215929334043
+        ]
+      },
+      "8": {
+        "solved": 84,
+        "n": 152,
+        "rate": 0.5526315789473685,
+        "ci": [
+          0.4732568636320432,
+          0.6294114867955706
+        ]
+      },
+      "9": {
+        "solved": 271,
+        "n": 477,
+        "rate": 0.5681341719077568,
+        "ci": [
+          0.5233118506173359,
+          0.6118678010600566
+        ]
+      },
+      "10": {
+        "solved": 50,
+        "n": 219,
+        "rate": 0.228310502283105,
+        "ci": [
+          0.1776840396576082,
+          0.2883043574818846
+        ]
+      },
+      "11": {
+        "solved": 12,
+        "n": 49,
+        "rate": 0.24489795918367346,
+        "ci": [
+          0.14602203389475285,
+          0.38086587260315785
+        ]
+      },
+      "12": {
+        "solved": 3,
+        "n": 54,
+        "rate": 0.05555555555555555,
+        "ci": [
+          0.019072922503838907,
+          0.15107451463482943
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Recompile storm despite dynamic=True: 003's failure again, now at 40-55 s per compile because the graph holds forward+backward of seven 384-wide blocks. Metric 162 (485/0/0) vs 153's 687 (676/700/685), -525; seeds 1 and 2 handed off an untrained model. Every mechanism prediction failed: unique_graphs 8/26/25 (registered 1; the >=3 falsifier fired on all seeds), steps 1292/7/15 (registered 4,600-5,600; falsifier <4,400), first step at 81/75/81 s (setup 15 s + ~65 s first compile). Cause, from the pod logs (torch 2.4.0): the compiled mtp_loss frame was specialized on the batch's padded length despite dynamic=True ('L[m] size mismatch at index 1, expected 166, actual 92'), and after the cache_size_limit=2 fuse dropped that frame to eager, Dynamo kept intercepting the NESTED frames (ALiBiGPT.features, PeriLNBlock.forward, PeriLNBlock.attn) as separate compile units, each with Inductor's ambient alignment guards (Mod(T,8)==0, Mod(T^2,8)==0, T==B, mask.stride()[2]==B), so a new (B,T) still meant a new 40-55 s compile ('[2/14]' = the 14th compile of PeriLNBlock.forward); the per-frame limit did not stop it. Seed 0 happened to exhaust its variants by ~205 s and then ran ~1,290 eager steps in the last ~95 s (13.6 steps/s, the incumbent's eager rate; val loss 0.085 at 300 s, greedy 0.889 after 1.15 epochs, RL r1 365/1500 at acc 0.055, r4 956, eval 485); seeds 1 and 2 compiled on every step (7 and 15 steps, val loss 4.45/3.93, greedy 0.0, 0 solved, totals 1382/1463 s). The local CPU check (torch 2.14) that served seven shapes with one graph did not transfer: the guards are torch-2.4 and CUDA/SDPA specific. Lesson for the speed lane: on this pod image, compile only with a FIXED padded shape (pad every batch to constant T and constant record count, i.e. give up token-budget batching or pad to a small set of shapes and compile each once, ~50 s each), or upgrade the pod's torch before trying dynamic shapes; the throughput of a compiled step was never observed, so the lead is still unmeasured. The 90 s bench never returned a result line (its pod took >14 min to provision and the captured output was empty), so this registration went out without a probe; the fuse design was the error, not the missing probe.",
+  "seed_metrics": {
+    "0": 485,
+    "1": 0,
+    "2": 0
+  },
+  "seed_metric_rl": {
+    "0": 956,
+    "1": 0,
+    "2": 0
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08514004200696945,
+      "heldout_greedy": 0.889,
+      "steps": 1292
+    },
+    "1": {
+      "val_loss": 4.446463227272034,
+      "heldout_greedy": 0.0,
+      "steps": 7
+    },
+    "2": {
+      "val_loss": 3.9267812967300415,
+      "heldout_greedy": 0.0,
+      "steps": 15
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 588551,
+    "distinct_checked": 176521,
+    "both_ok": 76805,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 0,
+    "lean_wall_s": 401.0792875289917
+  },
+  "migrated": false
+}
