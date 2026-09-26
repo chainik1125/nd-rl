@@ -1,0 +1,393 @@
+{
+  "commit": "f7f9cd1",
+  "recorded_at": "2026-09-26T05:29:06-0700",
+  "status": "discard",
+  "metric": 677,
+  "metric_rl": 1146,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "fb4e5ea711dd",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1783,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9963792,
+    "steps": 4472,
+    "epochs": 3.953288388345479,
+    "last_loss": 0.04464183375239372,
+    "heldout_greedy": 0.9465,
+    "curve": [
+      {
+        "secs": 17,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.804174780845642,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 206,
+        "train_loss": 1.162514054775238,
+        "val_loss": 0.18524412997066975,
+        "mtp_loss": 1.3282190218567849
+      },
+      {
+        "secs": 45,
+        "step": 445,
+        "train_loss": 0.12703818703691164,
+        "val_loss": 0.10071865376085043,
+        "mtp_loss": 0.1274375133216381
+      },
+      {
+        "secs": 60,
+        "step": 683,
+        "train_loss": 0.07640330027788877,
+        "val_loss": 0.09211510885506868,
+        "mtp_loss": 0.08084670640528202
+      },
+      {
+        "secs": 75,
+        "step": 921,
+        "train_loss": 0.06934247445315123,
+        "val_loss": 0.08341155294328928,
+        "mtp_loss": 0.07132562529295683
+      },
+      {
+        "secs": 90,
+        "step": 1158,
+        "train_loss": 0.06135131452571262,
+        "val_loss": 0.08127539977431297,
+        "mtp_loss": 0.06340400332754309
+      },
+      {
+        "secs": 105,
+        "step": 1395,
+        "train_loss": 0.06866038652757804,
+        "val_loss": 0.08079714979976416,
+        "mtp_loss": 0.06671532553931077
+      },
+      {
+        "secs": 120,
+        "step": 1632,
+        "train_loss": 0.05191803630441427,
+        "val_loss": 0.09006013628095388,
+        "mtp_loss": 0.05352683179080486
+      },
+      {
+        "secs": 135,
+        "step": 1869,
+        "train_loss": 0.08026723253230254,
+        "val_loss": 0.08210639469325542,
+        "mtp_loss": 0.07967655236522357
+      },
+      {
+        "secs": 150,
+        "step": 2105,
+        "train_loss": 0.06281171925365925,
+        "val_loss": 0.08328425046056509,
+        "mtp_loss": 0.06486510920027892
+      },
+      {
+        "secs": 165,
+        "step": 2342,
+        "train_loss": 0.06499058163414399,
+        "val_loss": 0.09349616896361113,
+        "mtp_loss": 0.06605676809946696
+      },
+      {
+        "secs": 180,
+        "step": 2579,
+        "train_loss": 0.059208096767013725,
+        "val_loss": 0.08222637698054314,
+        "mtp_loss": 0.0598993030461398
+      },
+      {
+        "secs": 195,
+        "step": 2815,
+        "train_loss": 0.06010097125545144,
+        "val_loss": 0.08885212894529104,
+        "mtp_loss": 0.05984756878266732
+      },
+      {
+        "secs": 210,
+        "step": 3051,
+        "train_loss": 0.06991118813554446,
+        "val_loss": 0.0853071827441454,
+        "mtp_loss": 0.07037632772698998
+      },
+      {
+        "secs": 225,
+        "step": 3288,
+        "train_loss": 0.05005409677202503,
+        "val_loss": 0.08624820411205292,
+        "mtp_loss": 0.05056971590965986
+      },
+      {
+        "secs": 240,
+        "step": 3524,
+        "train_loss": 0.0646053518479069,
+        "val_loss": 0.0785024119541049,
+        "mtp_loss": 0.06544525579859813
+      },
+      {
+        "secs": 255,
+        "step": 3761,
+        "train_loss": 0.058723368061085544,
+        "val_loss": 0.08779655862599611,
+        "mtp_loss": 0.058522109407931566
+      },
+      {
+        "secs": 270,
+        "step": 3999,
+        "train_loss": 0.05953195487911051,
+        "val_loss": 0.08551945351064205,
+        "mtp_loss": 0.059742222116752106
+      },
+      {
+        "secs": 285,
+        "step": 4235,
+        "train_loss": 0.04949579915652672,
+        "val_loss": 0.08357130084186792,
+        "mtp_loss": 0.04956300308307012
+      },
+      {
+        "secs": 300,
+        "step": 4472,
+        "train_loss": 0.05898331478238106,
+        "val_loss": 0.08454255852848291,
+        "mtp_loss": 0.05919796756158272
+      }
+    ],
+    "records_seen": 608672,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "d_ff_fresh": 88
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.206875,
+      "new_proofs": 833,
+      "targets_solved": 628,
+      "lstar": 9,
+      "ge": {
+        "7": 628,
+        "8": 263,
+        "9": 75,
+        "10": 4,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3288,
+      "samples_per_sec": 219,
+      "secs": 298
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5145,
+      "new_proofs": 611,
+      "targets_solved": 934,
+      "lstar": 10,
+      "ge": {
+        "7": 934,
+        "8": 461,
+        "9": 204,
+        "10": 34,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5564,
+      "samples_per_sec": 262,
+      "secs": 265
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6480625,
+      "new_proofs": 373,
+      "targets_solved": 1063,
+      "lstar": 11,
+      "ge": {
+        "7": 1063,
+        "8": 548,
+        "9": 273,
+        "10": 57,
+        "11": 6,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6808,
+      "samples_per_sec": 261,
+      "secs": 267
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7068125,
+      "new_proofs": 271,
+      "targets_solved": 1128,
+      "lstar": 11,
+      "ge": {
+        "7": 1128,
+        "8": 598,
+        "9": 309,
+        "10": 66,
+        "11": 10,
+        "12": 3,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 7632,
+      "samples_per_sec": 251,
+      "secs": 275
+    }
+  ],
+  "eval": {
+    "solved": 668,
+    "n": 1108,
+    "ge": {
+      "7": 668,
+      "8": 575,
+      "9": 453,
+      "10": 106,
+      "11": 22,
+      "12": 5,
+      "13": 1,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.9905,
+    "max_pruned": 14,
+    "by_bin": {
+      "7": {
+        "solved": 93,
+        "n": 150,
+        "rate": 0.62,
+        "ci": [
+          0.5402429290748867,
+          0.6937639975301408
+        ]
+      },
+      "8": {
+        "solved": 122,
+        "n": 152,
+        "rate": 0.8026315789473685,
+        "ci": [
+          0.7322376756136104,
+          0.8581053393451683
+        ]
+      },
+      "9": {
+        "solved": 347,
+        "n": 477,
+        "rate": 0.7274633123689728,
+        "ci": [
+          0.6858054807606808,
+          0.7654865871469212
+        ]
+      },
+      "10": {
+        "solved": 84,
+        "n": 219,
+        "rate": 0.3835616438356164,
+        "ci": [
+          0.32169335630218043,
+          0.44944452818617364
+        ]
+      },
+      "11": {
+        "solved": 17,
+        "n": 49,
+        "rate": 0.3469387755102041,
+        "ci": [
+          0.2292420960931444,
+          0.4868906478056021
+        ]
+      },
+      "12": {
+        "solved": 4,
+        "n": 54,
+        "rate": 0.07407407407407407,
+        "ci": [
+          0.029181055323684174,
+          0.17554357193420633
+        ]
+      },
+      "13": {
+        "solved": 1,
+        "n": 5,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Plasticity injection at handoff (88 zero-fc2 GELU units per trunk MLP, d_ff 1280 -> 1368 for RL only; 9,963,792 params as registered) on 153-claude scored 668/683/680 on seeds 0/1/2 vs 676/700/685: exact means 677.00 vs 687.00, -10.0, paired -8/-17/-5, inside the registered -40..+40 but below its central +6. Discard. Mechanical predictions held: pretraining 4472/4464/4548 steps (153: 4540/4479/4489; loop unchanged), n_params exact, final val 0.0845/0.0847/0.0837, held-out greedy 0.9465/0.974/0.968 (seed 0 just under the registered 0.95), RL sampling 218-268 samples/s. The registered falsifier fired, narrowly: r4 RL-solved 1128/1151/1160 (mean 1146, below the 1150 line) vs 153's 1157/1168/1191 (1172). Round 1 is the function-identical 1280-unit model, so its 628/770/589 targets (153: 766/747/694) are the floor-0.3 endpoint lottery, not the injection. The climb r1->r4 was +500/+381/+571 (mean +484 vs 153's +436), steeper but from a lower start, so as with 133 this catch-up cannot be credited to plasticity. Eval shape is unchanged: ge10 106/112/111, ge11 22/27/29, L* 12 on every seed (153 s0: 109, 26, L* 11). Reading: 406k fresh parameters that only RL trains (4% of the model) neither helped nor hurt measurably. The width gains of 151/153 came from pretrained capacity, consistent with 155/157's RL-trained n-gram tables losing ~20 at width 384. Handoff-plasticity edits now read 133 (x0.5 rescale) -8 and 180 (fresh units) -10: both are null-to-slightly-negative.",
+  "seed_metrics": {
+    "0": 668,
+    "1": 683,
+    "2": 680
+  },
+  "seed_metric_rl": {
+    "0": 1128,
+    "1": 1151,
+    "2": 1160
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08454255852848291,
+      "heldout_greedy": 0.9465,
+      "steps": 4472
+    },
+    "1": {
+      "val_loss": 0.08468969352543354,
+      "heldout_greedy": 0.974,
+      "steps": 4464
+    },
+    "2": {
+      "val_loss": 0.08366030547767878,
+      "heldout_greedy": 0.968,
+      "steps": 4548
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 126181,
+    "distinct_checked": 557426,
+    "both_ok": 336603,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 4,
+    "lean_wall_s": 1288.9140439033508
+  },
+  "migrated": false
+}
