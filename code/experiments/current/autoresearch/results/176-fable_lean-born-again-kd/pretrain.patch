@@ -1,0 +1,273 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..5aca89f 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -74,6 +74,13 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Born-again self-distillation (Furlanello et al. 2018), pretraining only: the first KD_SPLIT of
++# the wall-clock trains a teacher with the incumbent recipe, then a fresh model of the same
++# architecture trains on the same batches with KD_WEIGHT * KL(teacher || student) over the
++# teacher's next-token distribution (temperature 1) added at the proof positions. Only the
++# student is handed to RL: same parameters, but the one-hot targets no longer memorize each
++# record's pick at positions where several next lines are valid.
++KD_SPLIT, KD_WEIGHT = 0.4, 1.0
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -205,16 +212,23 @@ class MTPHead(torch.nn.Module):
+         self.block = PeriLNBlock(d, h)
+ 
+ 
+-def mtp_loss(model, mtp, x, m):
++def mtp_loss(model, mtp, x, m, teacher=None):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
++    MTP module's token-(t+2) prediction at the same proof positions, plus, given a teacher,
++    KD_WEIGHT times KL(teacher || model) of the next-token distributions at the proof positions.
++    Returns (total, main, aux, kd)."""
+     h, bias = model.features(x[:, :-1])
+     logits = model.head(model.ln_f(h))
+     V = logits.size(-1)
+-    ce = torch.nn.functional.cross_entropy(
+-        logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+-    )
+-    main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
++    flat, weights = logits.reshape(-1, V).float(), m[:, 1:].reshape(-1)
++    ce = torch.nn.functional.cross_entropy(flat, x[:, 1:].reshape(-1), reduction="none")
++    main = (ce * weights).sum() / weights.sum()
++    kd = None
++    if teacher is not None:
++        with torch.no_grad():
++            t_logp = torch.log_softmax(teacher(x[:, :-1]).reshape(-1, V).float(), -1)
++        kl = (t_logp.exp() * (t_logp - torch.log_softmax(flat, -1))).sum(-1)
++        kd = (kl * weights).sum() / weights.sum()
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+@@ -223,7 +237,8 @@ def mtp_loss(model, mtp, x, m):
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++    total = main + MTP_WEIGHT * aux
++    return (total if kd is None else total + KD_WEIGHT * kd), main, aux, kd
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -298,97 +313,131 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+-    model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+-    model.blocks.apply(model._init)  # fork init: zero biases
+-    model = model.to(device)
+-    mtp = MTPHead(D, N_HEAD)
+-    mtp.apply(model._init)
+-    mtp = mtp.to(device)
+-    for p in list(model.blocks.parameters()) + list(mtp.parameters()):
+-        if p.ndim == 2:
+-            # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+-            torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
+-    log(
+-        f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+-        f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+-    )
+-    # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+-    trainable = list(model.parameters()) + list(mtp.parameters())
+-    matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+-    matrices += [p for p in mtp.parameters() if p.ndim == 2]
+-    matrix_ids = {id(p) for p in matrices}
+-    auxiliary = [p for p in trainable if id(p) not in matrix_ids]
+-    momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+-    model.train()
+-    step, last_loss, records_seen = 0, float("nan"), 0
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+-    rng, cuts, batches_per_epoch = random.Random(seed), [], None
+-    order = torch.empty(0, dtype=torch.long, device=device)
+-    while True:
+-        frac = (
+-            time.time() - t0
+-        ) / budget_secs  # cosine over wall-clock, so the cap is the schedule
+-        if frac >= 1.0:
+-            break
+-        step += 1
+-        lr = (
+-            LR * step / WARMUP
+-            if step < WARMUP
+-            else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+-        )
+-        for g in opt.param_groups:
+-            g["lr"] = lr
+-        if not cuts:  # new epoch
+-            order, cuts = token_batches(lens, n_train, gen, rng)
+-            batches_per_epoch = len(cuts)
+-        s, e = cuts.pop()
+-        idxs = order[s:e]
+-        records_seen += e - s
+-        x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+-        with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
+-        model.zero_grad(set_to_none=True)
+-        mtp.zero_grad(set_to_none=True)
+-        loss.backward()
+-        torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+-        opt.step()
+-        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
+-        if step % 20 == 0:
+-            last_loss = main.item()  # the next-token CE, comparable with earlier runs
+-            recent.append(last_loss)
+-            recent_aux.append(aux.item())
+-        if (
+-            time.time() - t0 >= next_point
+-        ):  # curve point: mean recent train loss + val loss on the held-out slice
+-            curve.append(
+-                {
+-                    "secs": round(time.time() - t0),
+-                    "step": step,
+-                    "train_loss": sum(recent) / len(recent) if recent else last_loss,
+-                    "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+-                    "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
+-                }
+-            )
+-            log(
+-                f"pretrain step {step} train {curve[-1]['train_loss']:.4f} "
+-                f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
++    rng, curve, next_point = random.Random(seed), [], CURVE_EVERY
++    log(
++        f"pretrain: {len(data):,} records on {device} after {time.time() - t0:.0f}s, "
++        f"budget {budget_secs}s"
++    )
++
++    def build():
++        model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
++        model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++        model.blocks.apply(model._init)  # fork init: zero biases
++        model = model.to(device)
++        mtp = MTPHead(D, N_HEAD)
++        mtp.apply(model._init)
++        mtp = mtp.to(device)
++        for p in list(model.blocks.parameters()) + list(mtp.parameters()):
++            if p.ndim == 2:
++                # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
++                torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
++        return model, mtp
++
++    def train_phase(model, mtp, teacher, t_start, t_end, phase):
++        """The incumbent's training loop over the wall-clock window [t_start, t_end) of the
++        budget: fresh Muon + AdamW, warmup then cosine over the window (floor MIN_LR_FRAC),
++        token-budget batches, curve points every CURVE_EVERY seconds. Returns phase stats."""
++        nonlocal next_point
++        # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
++        trainable = list(model.parameters()) + list(mtp.parameters())
++        matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
++        matrices += [p for p in mtp.parameters() if p.ndim == 2]
++        matrix_ids = {id(p) for p in matrices}
++        auxiliary = [p for p in trainable if id(p) not in matrix_ids]
++        momentum_buffers = [torch.zeros_like(p) for p in matrices]
++        opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++        model.train()
++        step, last_loss, records_seen = 0, float("nan"), 0
++        recent, recent_aux, recent_kd = [], [], []
++        cuts, batches_per_epoch = [], None
++        order = torch.empty(0, dtype=torch.long, device=device)
++        while True:
++            # cosine over the window's wall-clock, so the window's end is the schedule
++            frac = (time.time() - t0 - t_start) / (t_end - t_start)
++            if frac >= 1.0:
++                break
++            step += 1
++            lr = (
++                LR * step / WARMUP
++                if step < WARMUP
++                else LR * MIN_LR_FRAC
++                + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+             )
+-            recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
+-    model.eval()
+-    return (
+-        model,
+-        tok,
+-        {
++            for g in opt.param_groups:
++                g["lr"] = lr
++            if not cuts:  # new epoch
++                order, cuts = token_batches(lens, n_train, gen, rng)
++                batches_per_epoch = len(cuts)
++            s, e = cuts.pop()
++            idxs = order[s:e]
++            records_seen += e - s
++            x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
++            with autocast:
++                loss, main, aux, kd = mtp_loss(model, mtp, x, m, teacher)
++            model.zero_grad(set_to_none=True)
++            mtp.zero_grad(set_to_none=True)
++            loss.backward()
++            torch.nn.utils.clip_grad_norm_(trainable, 1.0)
++            opt.step()
++            muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++            if step % 20 == 0:
++                last_loss = main.item()  # the next-token CE, comparable with earlier runs
++                recent.append(last_loss)
++                recent_aux.append(aux.item())
++                if kd is not None:
++                    recent_kd.append(kd.item())
++            if (
++                time.time() - t0 >= next_point
++            ):  # curve point: mean recent train loss + val loss on the held-out slice
++                curve.append(
++                    {
++                        "secs": round(time.time() - t0),
++                        "step": step,
++                        "train_loss": sum(recent) / len(recent) if recent else last_loss,
++                        "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
++                        "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                        "kd_loss": sum(recent_kd) / len(recent_kd) if recent_kd else None,
++                        "phase": phase,
++                    }
++                )
++                log(
++                    f"pretrain {phase} step {step} train {curve[-1]['train_loss']:.4f} "
++                    f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
++                )
++                recent, recent_aux, recent_kd = [], [], []
++                next_point += CURVE_EVERY
++        model.eval()
++        return step, {
+             "steps": step,
+             "records_seen": records_seen,
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+-            "tok_budget": TOK_BUDGET,
+             "last_loss": last_loss,
++        }
++
++    split = KD_SPLIT * budget_secs
++    teacher, mtp = build()
++    log(f"pretrain: {teacher.n_params():,} params; teacher until {split:.0f}s, then the student")
++    teacher_steps, teacher_stats = train_phase(teacher, mtp, None, 0.0, split, "teacher")
++    teacher.requires_grad_(False)
++    model, mtp = build()  # the fresh student, the same architecture and init rule
++    student_steps, student_stats = train_phase(model, mtp, teacher, split, budget_secs, "student")
++    return (
++        model,
++        tok,
++        {
++            "steps": teacher_steps + student_steps,
++            "teacher": teacher_stats,
++            "student": student_stats,
++            "records_seen": student_stats["records_seen"],
++            "epochs": student_stats["epochs"],
++            "batches_per_epoch": student_stats["batches_per_epoch"],
++            "tok_budget": TOK_BUDGET,
++            "kd_split": KD_SPLIT,
++            "kd_weight": KD_WEIGHT,
++            "last_loss": student_stats["last_loss"],
+             "curve": curve,
+         },
+     )
