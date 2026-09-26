@@ -1,0 +1,75 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ed10381..0eeba12 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -38,6 +38,10 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 320, 8
++# Attention inner width: 8 heads of 56 (q/k/v each 448 wide) instead of the fork's D / N_HEAD
++# = 40, so the trunk's qkv is (3 * ATTN_D, D) and proj (D, ATTN_D); MLP and residual unchanged.
++HEAD_D = 56
++ATTN_D = N_HEAD * HEAD_D
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -101,9 +105,10 @@ def muon_step(params, buffers, lr):
+             continue
+         momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+         update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
+-        # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
+-        if update.size(0) == 3 * update.size(1):
+-            update = update.reshape(3, update.size(1), update.size(1))
++        # Only QKV has shape (3 * ATTN_D, D) (trunk) or (3D, D) (MTP block) in this GPT;
++        # orthogonalize its roles separately.
++        if update.size(1) == D and update.size(0) in (3 * D, 3 * ATTN_D):
++            update = update.reshape(3, update.size(0) // 3, D)
+         transpose = update.size(-2) > update.size(-1)
+         if transpose:
+             update = update.mT
+@@ -127,17 +132,23 @@ class PeriLNBlock(Block):
+     `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+     and cos/sin are unused."""
+ 
+-    def __init__(self, d, h):
++    def __init__(self, d, h, attn_d=None):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
++        # Attention inner width attn_d (default: the fork's d): h heads of attn_d // h.
++        self.attn_d = d if attn_d is None else attn_d
++        if self.attn_d != d:
++            self.qkv = torch.nn.Linear(d, 3 * self.attn_d)
++            self.proj = torch.nn.Linear(self.attn_d, d)
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+-        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        hd = self.attn_d // self.h
++        q, k, v = self.qkv(x).view(B, T, 3, self.h, hd).permute(2, 0, 3, 1, 4)
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+-                cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+-                cache["v"] = v.new_empty(B, self.h, cache["max"], D // self.h)
++                cache["k"] = k.new_empty(B, self.h, cache["max"], hd)
++                cache["v"] = v.new_empty(B, self.h, cache["max"], hd)
+                 cache["n"] = 0
+             n0, n1 = cache["n"], cache["n"] + T
+             cache["k"][:, :, n0:n1] = k
+@@ -145,7 +156,7 @@ class PeriLNBlock(Block):
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+-        return self.proj(y.transpose(1, 2).reshape(B, T, D))
++        return self.proj(y.transpose(1, 2).reshape(B, T, self.attn_d))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+         x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+@@ -295,7 +306,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD, ATTN_D) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
