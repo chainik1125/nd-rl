@@ -1,0 +1,69 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..44f86ed 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -74,6 +74,15 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Systems: torch.compile (Inductor) of the training loss, forward and backward, as ONE graph over
++# symbolic shapes. Token-budget batches give every step a different (records, padded length), and
++# 003's per-shape compilation recompiled (~12 s each) for every new shape; dynamic=True traces
++# symbolic B and T once. The model stays an eager nn.Module: the harness's sampler and RL AdamW
++# never see the compiled wrapper, only mtp_loss is compiled. Compile time is charged to the budget.
++COMPILE = True
++# Fuse against a recompile storm: after this many recompiles of the loss frame, Dynamo runs it
++# eagerly instead of compiling again, so a specialization surprise costs a few compiles, not 003.
++RECOMPILE_LIMIT = 2
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -322,8 +331,13 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
++    if COMPILE and device == "cuda":
++        torch._dynamo.config.cache_size_limit = RECOMPILE_LIMIT
++        step_loss = torch.compile(mtp_loss, dynamic=True)
++    else:
++        step_loss = mtp_loss
+     model.train()
+-    step, last_loss, records_seen = 0, float("nan"), 0
++    step, last_loss, records_seen, first_step_secs = 0, float("nan"), 0, None
+     curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+@@ -350,10 +364,13 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         records_seen += e - s
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
++            loss, main, aux = step_loss(model, mtp, x, m)
+         model.zero_grad(set_to_none=True)
+         mtp.zero_grad(set_to_none=True)
+         loss.backward()
++        if first_step_secs is None:  # step 1 includes the compile
++            first_step_secs = round(time.time() - t0, 1)
++            log(f"pretrain: first step at {first_step_secs}s, compile {step_loss is not mtp_loss}")
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+         muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
+@@ -379,6 +396,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
+     model.eval()
++    # Dynamo's count of distinct compiled graphs: 1 means the symbolic graph served every shape.
++    unique_graphs = torch._dynamo.utils.counters["stats"].get("unique_graphs", 0)
++    log(f"pretrain: {step} steps, first step at {first_step_secs}s, unique_graphs {unique_graphs}")
+     return (
+         model,
+         tok,
+@@ -390,5 +410,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "tok_budget": TOK_BUDGET,
+             "last_loss": last_loss,
+             "curve": curve,
++            "compile": step_loss is not mtp_loss,
++            "first_step_secs": first_step_secs,
++            "unique_graphs": unique_graphs,
+         },
+     )
