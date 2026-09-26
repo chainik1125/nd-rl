@@ -1,0 +1,48 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..95aeef9 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -70,10 +70,12 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # (unpadded) tokens of the incumbent's 128-record batches (mean record ~135 tokens), whose
+ # padding to the batch max (~400) made every step ~3x larger than its content.
+ TOK_BUDGET = 128 * 144
+-# Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+-# Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+-# the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+-MTP_WEIGHT = 0.3
++# Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: MTP_DEPTH
++# extra Peri-LN blocks read [trunk state at t; embedding of token t+1] and predict token t+2
++# through the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's
++# early-training value). Depth 2 (136-fable used 1) tests whether the trunk gains from being the
++# lower part of a deeper network during pretraining, not from the t+2 target itself.
++MTP_WEIGHT, MTP_DEPTH = 0.3, 2
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -202,7 +204,7 @@ class MTPHead(torch.nn.Module):
+         super().__init__()
+         self.ln_h, self.ln_e = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+         self.proj = torch.nn.Linear(2 * d, d, bias=False)
+-        self.block = PeriLNBlock(d, h)
++        self.blocks = torch.nn.ModuleList(PeriLNBlock(d, h) for _ in range(MTP_DEPTH))
+ 
+ 
+ def mtp_loss(model, mtp, x, m):
+@@ -218,7 +220,8 @@ def mtp_loss(model, mtp, x, m):
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+-    z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
++    for block in mtp.blocks:
++        z = block(z, None, None, bias[..., :-1, :-1], None)
+     ce2 = torch.nn.functional.cross_entropy(
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+@@ -388,6 +391,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "mtp_depth": MTP_DEPTH,
+             "last_loss": last_loss,
+             "curve": curve,
+         },
