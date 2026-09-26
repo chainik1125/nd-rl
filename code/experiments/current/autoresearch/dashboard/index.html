@@ -115,10 +115,11 @@ fetch("data.json").then(r => r.json()).then(({ runs, as_of, fetch_error }) => {
   // Company from the registered model id (earlier runs too: several were claude-fable-5-1).
   const company = run => /^claude/.test(run.model ?? "") ? css("--anthropic")
     : /^(gpt|o\d)/.test(run.model ?? "") ? css("--openai") : css("--muted");
-  const shape = run => ({ claude: "square", fable: "triangle-up", fable2: "triangle-down", fable3: "diamond-wide" })[run.agent] ?? "circle";
+  const shape = run => ({ claude: "square", fable: "triangle-up", fable2: "triangle-down", fable3: "diamond-wide",
+    claude2: "pentagon", claude3: "hexagon" })[run.agent] ?? "circle";
 
   // Who merges more: keeps, finished runs, and runs in flight per agent, per era.
-  const tally = (rs, since) => ["claude", "fable", "fable2", "fable3", "codex"].map(agent => {
+  const tally = (rs, since) => ["claude", "claude2", "claude3", "fable", "fable2", "fable3", "codex"].map(agent => {
     const mine = rs.filter(r => r.agent === agent);
     const count = status => mine.filter(r => r.status === status).length;
     return mine.length ? `${agent[0].toUpperCase() + agent.slice(1)} ${count("keep")} keeps / ` +

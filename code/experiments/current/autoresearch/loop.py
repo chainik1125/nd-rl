@@ -21,10 +21,12 @@ ROOT = HERE.parents[3]
 ART = ROOT / "artifacts/autoresearch"
 POLL_SECS = 0.5
 # Both agents share one branch, each from its own checkout. Highest effort for both (Robbie).
-FABLE = "claude-fable-5-1"
+FABLE, OPUS = "claude-fable-5-1", "claude-opus-5-5"
 MODELS = {
     "codex": "gpt-6-astra",
-    "claude": "claude-opus-5-5",
+    "claude": OPUS,
+    "claude2": OPUS,  # Opus stand-ins for fable2/fable3 checkouts if Fable usage runs out
+    "claude3": OPUS,
     "fable": FABLE,
     "fable2": FABLE,
     "fable3": FABLE,
