@@ -1,0 +1,48 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..aaae074 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -38,9 +38,12 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 384, 8
+-# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+-# 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+-D_FF = 1280
++# Gated attention (Qiu et al. 2025): each block's SDPA output is multiplied elementwise by
++# sigmoid(gate(ln1(x))), a query-dependent gate that lets a head switch off without an attention
++# sink. Its (D, D) matrix is paid for by 192 MLP units per block (1280 -> 1088), so the model
++# stays at 153's parameter count (9,556,608 vs 9,557,760). The fork's Block hardcodes 4 * D, so
++# PeriLNBlock swaps fc1/fc2. 1088 != 3 * D keeps muon_step's QKV-by-shape test valid.
++D_FF = 1088
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -126,13 +129,15 @@ def muon_step(params, buffers, lr):
+ 
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+-    output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
++    output, so every residual write has unit scale times a learned gain, with a sigmoid output
++    gate on the attention (Qiu et al. 2025). Attention has no RoPE:
+     `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+     and cos/sin are unused."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
++        self.gate = torch.nn.Linear(d, d, bias=False)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+     def attn(self, x, cos, sin, mask, cache):
+@@ -149,7 +154,9 @@ class PeriLNBlock(Block):
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+-        return self.proj(y.transpose(1, 2).reshape(B, T, D))
++        # Elementwise gate from the same normalized input x the QKV projection reads, so it only
++        # depends on the query token and is identical under cached decoding.
++        return self.proj(y.transpose(1, 2).reshape(B, T, D) * torch.sigmoid(self.gate(x)))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+         x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
