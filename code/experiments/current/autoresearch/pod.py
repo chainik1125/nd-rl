@@ -3,15 +3,19 @@
 
   python pod.py up [--pod P]          # rent an A40, wait for ssh, clone the fork; saves pod_P.json
   python pod.py run <name> [--pod P] [--pretrain F] [args...]
-                                      # upload harness + pretrain (F as pretrain.py), run, pull
+                                      # upload harness + pretrain (F as pretrain.py), run, pull,
+                                      # then move the checkpoints to Hugging Face (push below)
   python pod.py down [--pod P]        # terminate the pod in pod_P.json
   python pod.py list | kill <id|all>
+  python pod.py push [name...]        # retry: move checkpoints still on this disk to HF
 --pod names a pod for parallel use (default "main"); sweep.py drives many at once.
 
 Adapted from pretrain_poc/pod.py, which rented one pod per run. Needs RUNPOD_API_KEY
-(~/repos/nd-takehome/.envrc.local has it) and ~/.ssh/id_ed25519.
+(~/repos/nd-takehome/.envrc.local has it) and ~/.ssh/id_ed25519. Pushing needs the `hf` CLI,
+logged in with write access to HF_REPO.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -19,6 +23,7 @@ import shlex
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 
 API = "https://api.runpod.io/graphql"
@@ -29,6 +34,7 @@ LOCAL_ART = os.path.join(
     HERE, "..", "..", "..", "..", "artifacts", "autoresearch"
 )  # repo artifacts/ is gitignored
 REMOTE = "/workspace/autoresearch"
+HF_REPO = "robbiethompson2018/nd-rl-checkpoints"  # the one HF repo for nd-rl; runs/<name>/
 
 
 def gql(query, key):
@@ -162,6 +168,60 @@ def upload(st, pretrain_file):
     )
 
 
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(1 << 24):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def hf_sha256(paths):
+    """{repo path: sha256} of these files on the public HF repo (an unauthenticated read)."""
+    req = urllib.request.Request(
+        f"https://huggingface.co/api/models/{HF_REPO}/paths-info/main",
+        data=urllib.parse.urlencode({"paths": paths, "expand": "true"}, doseq=True).encode(),
+    )
+    return {
+        f["path"]: (f.get("lfs") or {}).get("oid") for f in json.load(urllib.request.urlopen(req))
+    }
+
+
+def push_checkpoints(name, attempts=3, retry_secs=30):
+    """Upload LOCAL_ART/<name>/ to HF runs/<name>, then delete each local .pt whose sha256 matches
+    HF's copy: checkpoints live on HF, not on this disk. Any failure keeps the files for a later
+    `pod.py push`, so no checkpoint is deleted before HF has it."""
+    local = os.path.join(LOCAL_ART, name)
+    pts = sorted(f for f in os.listdir(local) if f.endswith(".pt")) if os.path.isdir(local) else []
+    if not pts:
+        return
+    remote = {}
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(retry_secs)
+        try:
+            up = subprocess.run(
+                ["hf", "upload", HF_REPO, local, f"runs/{name}", "--commit-message", f"Add {name}"],
+                env={**os.environ, "HF_HUB_DISABLE_PROGRESS_BARS": "1"},  # keep driver logs short
+            )
+            if up.returncode == 0:
+                remote = hf_sha256([f"runs/{name}/{f}" for f in pts])
+                break
+        except (OSError, ValueError) as e:  # no `hf` binary, network error, bad JSON
+            print(f"HF push of {name}: {e}", flush=True)
+    kept = [f for f in pts if remote.get(f"runs/{name}/{f}") != sha256(os.path.join(local, f))]
+    for f in pts:
+        if f not in kept:
+            os.remove(os.path.join(local, f))
+    if kept:
+        print(f"HF push of {name}: {kept} not on HF, kept locally; retry: pod.py push", flush=True)
+    else:
+        print(
+            f"checkpoints moved to https://huggingface.co/{HF_REPO}/tree/main/runs/{name}",
+            flush=True,
+        )
+
+
 def terminate(key, pod_id):
     gql(f'mutation {{ podTerminate(input: {{podId: "{pod_id}"}}) }}', key)
 
@@ -188,6 +248,11 @@ def main():
     pod_name = pop_opt(rest, "--pod", "main")
     pretrain_file = pop_opt(rest, "--pretrain", "pretrain.py")
     STATE = os.path.join(LOCAL_ART, f"pod_{pod_name}.json")
+    if cmd == "push":  # without names: every run dir, except ones a `run` may still be pulling
+        for name in rest or sorted(os.listdir(LOCAL_ART)):
+            if rest or time.time() - os.path.getmtime(os.path.join(LOCAL_ART, name)) > 600:
+                push_checkpoints(name)
+        return
     key = os.environ.get("RUNPOD_API_KEY") or sys.exit("RUNPOD_API_KEY unset")
     pods = gql("query { myself { clientBalance pods { id name desiredStatus costPerHr } } }", key)[
         "myself"
@@ -262,20 +327,26 @@ def main():
             st, f"bash {REMOTE}/remote.sh {out} " + " ".join(map(shlex.quote, args)), out
         )
         ssh = "ssh " + " ".join(ssh_args(st))
+        pulled = False
         for _ in range(10):  # the pull can hit the same network drops as the stream
-            pulled = subprocess.run(
-                f'{ssh} "cd {REMOTE}/artifacts && tar czf - {name} {name}.log" '
-                f"| tar xzf - -C {shlex.quote(LOCAL_ART)}",
-                shell=True,
-                check=False,
+            pulled = (
+                subprocess.run(
+                    f'{ssh} "cd {REMOTE}/artifacts && tar czf - {name} {name}.log" '
+                    f"| tar xzf - -C {shlex.quote(LOCAL_ART)}",
+                    shell=True,
+                    check=False,
+                ).returncode
+                == 0
             )
-            if pulled.returncode == 0:
+            if pulled:
                 break
             time.sleep(30)
         print(
             f"artifacts in {os.path.abspath(os.path.join(LOCAL_ART, name))}; remote rc {rc}",
             flush=True,
         )
+        if pulled:  # a failed pull may have left truncated checkpoints
+            push_checkpoints(name)
     else:
         raise SystemExit(__doc__)
 

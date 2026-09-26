@@ -57,16 +57,20 @@ The summary records `stage: pretrain_only`, `status: ok`, and a null evaluation 
 
 The public checkpoint repository is
 [robbiethompson2018/nd-rl-checkpoints](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints).
-Automatic upload is not configured yet.
-Install the client with `uv tool install huggingface_hub`, then run `hf auth login`.
-Upload only the chosen run directory, not the artifact root (which also contains pod state):
+Checkpoints live there, not on this disk. After pulling a run, `pod.py run` uploads
+`artifacts/autoresearch/RUN_ID/` to `runs/RUN_ID` and deletes each local `.pt` whose sha256
+matches HF's copy; summaries, jsonl files, and `source/` stay local. A failed upload keeps the
+checkpoints and says so in the driver log. `pod.py push [RUN_ID...]` retries (without names:
+every run directory untouched for 10 minutes). Pushing needs the `hf` CLI:
+`uv tool install huggingface_hub`, then `hf auth login` with a write token.
+To score or inspect a checkpoint, download it:
 
 ```bash
-hf upload robbiethompson2018/nd-rl-checkpoints artifacts/autoresearch/RUN_ID runs/RUN_ID
+hf download robbiethompson2018/nd-rl-checkpoints --include 'runs/RUN_ID/*' --local-dir checkpoints
 ```
 
-The destination must be created with the intended visibility before uploading. Preserve
-the checkpoint's stage in any sharing message: `final.pt` includes RL; `pretrain.pt` does not.
+Preserve the checkpoint's stage in any sharing message: `final.pt` includes RL; `pretrain.pt`
+does not.
 
 ## Keep rule: what was considered and not adopted (2026-09-22)
 
