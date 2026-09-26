@@ -1,0 +1,180 @@
+{
+  "id": "168-fable3",
+  "slug": "lean-qk-norm",
+  "written_at": "2026-09-25T23:50:46-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "f107419",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "c6bde3fee0d4",
+  "patch_lines": 15,
+  "title": "P35 QK-norm: LayerNorm over every head's query and key (fused, learned per-head per-dim gains, init 1) before SDPA in all six Peri-LN blocks, on the 153-claude width-384 Lean incumbent (9,562,368 params)",
+  "description": "P35. Each attention head's 48-dim query and key are LayerNorm-ed over the head dimension and scaled by a learned per-head, per-dim gain (init 1) before the scaled dot product, in all six trunk blocks and the pretraining-only MTP block, so an attention logit is a bounded, gain-scaled cosine (|logit| <= sqrt(48) g_q g_k) instead of growing with the qkv weight norms; the hybrid ALiBi/NoPE bias, Peri-LN, Muon, MTP and token-budget batches are unchanged. Hypothesis for expert iteration: four epochs of memorisation currently sharpen attention by growing q/k norms into brittle, training-length-specific lookups; bounding the logits keeps the NoPE content heads' retrieval smoother and better conditioned, so the AdamW RL fine-tune starts from attention that generalises to 7+-line proofs (more distinct targets solved in round 1, and the eval), at the price of ~25% fewer pretraining steps in eager mode (bench 514 vs 153's 695 steps in the first 60 s).",
+  "tags": [
+    "architecture"
+  ],
+  "hypothesis": "(1) Without QK-norm the incumbent's attention logits scale with ||W_q x|| ||W_k x||, which Muon and four epochs of memorisation keep growing, so by handoff many heads are near-hard lookups tuned to training-length (<= 6-line) proofs; RL sampling at T 0.8 on 7-14-line targets then meets attention patterns that collapse or misfire once more premises are in context. (2) QK-LayerNorm makes the logit a cosine times a learned gain (Dehghani et al. 2023 ViT-22B; OLMo 2 use it for stability at scale): sharpness is a slow-moving explicit parameter under AdamW (lr 1e-3, wd 0.1) rather than an emergent weight norm, so heads stay softer and the learned gains carry a well-conditioned temperature into the RL fine-tune, where AdamW updates on the gains are small and stable. (3) The NoPE half of the heads (content lookup at any distance) gains most, because bounded logits cannot single out a key by magnitude, only by direction, which is the transferable signal. (4) Cost: a fused LayerNorm plus a gain multiply on the (B, T, 2, H, 48) q/k activations per block, forward and backward, on a step that is memory- and launch-bound at this size: the probe measured 8.51 steps/s vs 153's 11.53 probe (the first eager RMSNorm version was 7.42), so ~25% fewer steps; 146 (-29% steps) cost -79 and 147 (-32%) -31, so the mechanism must be worth more than that or the run discards on throughput alone. Falsifiers: the gains stay near 1 and val loss matches 153 while the metric drops (pure throughput loss, no mechanism); or held-out greedy and round-1 targets solved are both below 153's on every seed (bounded logits hurt exact citation lookup rather than helping it).",
+  "p_keep": 0.2,
+  "expected_delta": "-45 to +30 theorems at >= 7 (3-seed mean), central -10; keep needs > 687.00 (153-claude: 676/700/685). Mechanism predictions: pretraining steps 3,200-3,600 per seed (central ~3,400; 153: 4540/4479/4489; probe 8.51 vs 11.53 steps/s, ratio 0.74; 165-fable3's probe ratio 0.81 gave 0.80 in the run), falsified below 2,900 (cost larger than the probe) or above 4,300 (the probe pod was slow and there is no cost); epochs 2.8-3.2; handoff n_params 9,562,368 exactly (153's 9,557,760 + 6 x 768 gains); peak memory ~7.8 GB (bench 7.77; 153 ~6.9). Final main val loss 0.080-0.095 (153: 0.088/0.087/0.089; fewer steps push it up, bounded logits may regularise slightly), held-out greedy after pretraining 0.955-0.975 (153: 0.9675). Under claims (1)-(3): round-1 RL targets solved 720-850 with no seed below 600 (153: 766/747/694), round-1 sample acc within 0.03 of 153's, round-4 RL-solved 1,140-1,200 (153: 1157/1168/1191), eval/round-4 ratio at or above 153's ~0.59; learned q/k gains drift from 1 (mean |g - 1| > 0.1 on most heads, checked from the checkpoint if it survives, otherwise unverified). RL sampling 190-260 samples/s (bench 216 vs 153's ~180 probe: the normalised keys are cached, so the per-token path adds one small LayerNorm), totals 1,650-1,900 s (153: 1741). Falsifiers: mean steps < 2,900; any seed's round-1 targets solved < 550; or a metric below 650 with round-1 targets solved below 153's on all three seeds while steps are >= 3,200 (claims (1)-(3) rejected: bounded logits hurt lookup).",
+  "baseline_id": "153-claude",
+  "baseline_metric": 687,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, unchanged from 153-claude except QK-norm: PeriLNBlock.attn views the fork's (3D, D) qkv output as (B, T, 3, H, 48), applies F.layer_norm over the last dim to the q and k slices in one call (eps 1e-6, no affine, autocast disabled so it runs in the bf16 activation dtype with fp32 statistics), multiplies by qk_gain (1, 1, 2, H, 48) and permutes to (B, H, T, 48); v is the third slice; the KV cache stores the normalised, gained keys so cached decoding equals the full forward (checked on CPU: max abs diff 1.7e-6); SDPA with the ALiBi bias, proj, Peri-LN and MLP as before",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 and 0 for heads 5..8 (NoPE); -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm: pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs (Peri-LN, unchanged from 107) + NEW QK-LayerNorm per head over the 48-dim head dimension of q and k (eps 1e-6) with learned per-head per-dim gains for q and k (init 1, AdamW group with wd 0.1 like the other LN gains)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9562368,
+      "head_dim": 48,
+      "n_params_detail": "153-claude's 9,557,760 + qk_gain 2 x 8 x 48 = 768 per block x 6 = 4,608 -> 9,562,368 (local count and bench agree). The pretraining-only MTP module (its own PeriLNBlock with its own qk_gain, two LayerNorms and a (384, 768) proj) is not registered on the model and is dropped at handoff.",
+      "qk_norm": "layernorm over head dim (48), eps 1e-6, learned gains (1,1,2,H,48) init 1, applied before the KV cache write",
+      "change": "vs 153-claude: QK-LayerNorm with learned gains in every block's attention; everything else identical"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (Nesterov momentum 0.95 + 5 bf16 Polar Express steps, QKV orthogonalised as 3 (D, D) roles, RMS-matched scaling sqrt(max(rows, cols)/D), decoupled decay) on every 2-D block matrix, the head and the MTP module's matrices; adamw on embeddings, LayerNorm gains/biases, Linear biases and the new qk_gain",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock (frac of the 300 s budget) from peak to the 0.3 floor, after linear warmup; Muon lr = 0.01 * lr / 1e-3",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "unchanged_from": "153-claude",
+      "muon_lr": 0.01,
+      "muon_wd_per_step": "10 * WD * LR / MUON_LR = 0.1 times the current Muon lr (decoupled)"
+    },
+    "batch": {
+      "size": 128,
+      "padding": "to the max length within each length-sorted run",
+      "buckets": true,
+      "size_note": "token-budget batches (fairseq max-tokens): runs of length-sorted records with count * padded_len <= 18,432; ~128 records per step on average, many for short proofs and few for long ones",
+      "tok_budget": 18432
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random per-record ref-name shift (lean_seq names n1.. get a common random start offset within MAXN 64), on GPU",
+      "order": "per epoch: random permutation, stable sort by length, greedy cut into token-budget runs, runs shuffled (unchanged from 148-fable)",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast (QK-LayerNorm runs outside autocast on the bf16 q/k with fp32 statistics)",
+    "compile": false,
+    "init": "orthogonal on every 2-D block and MTP matrix with gain 0.02 * sqrt(max(rows, cols)); fork normal(0.02) on embeddings and head; zero biases; LN gains 1; qk_gain 1 (unchanged from 153 except the new gains)",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": "next-token CE on proof tokens + 0.3 x MTP (t+2) CE from the pretraining-only DeepSeek-style module (unchanged from 136-fable)"
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

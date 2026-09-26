@@ -1,0 +1,29 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..4e3e37d 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -134,10 +134,23 @@ class PeriLNBlock(Block):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
++        # P35 QK-norm gains: one learned scale per head and head dimension for q and for k
++        # (init 1, so every head starts at the plain normalized dot product).
++        self.qk_gain = torch.nn.Parameter(torch.ones(1, 1, 2, h, d // h))
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+-        q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        dh = D // self.h
++        qkv = self.qkv(x).view(B, T, 3, self.h, dh)
++        # P35 QK-norm (Dehghani et al. 2023 ViT-22B; OLMo 2): every head's query and key are
++        # LayerNorm-ed over the head dim (one fused kernel for both, kept in the activation dtype)
++        # and scaled by a learned per-head, per-dim gain, so a logit is a bounded, gain-scaled
++        # cosine, |logit| <= sqrt(dh) * g_q * g_k under SDPA's 1/sqrt(dh), instead of growing with
++        # the weight norms. Keys are normalized before caching, so decoding matches the full forward.
++        with torch.autocast("cuda", enabled=False):
++            qk = torch.nn.functional.layer_norm(qkv[:, :, :2], (dh,), eps=1e-6)
++        q, k = (qk * self.qk_gain.to(qk.dtype)).permute(2, 0, 3, 1, 4)
++        v = qkv[:, :, 2].permute(0, 2, 1, 3)
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+                 cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
