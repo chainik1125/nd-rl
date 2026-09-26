@@ -1,0 +1,38 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..02f8829 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -38,9 +38,12 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 384, 8
+-# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+-# 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+-D_FF = 1280
++# P23 SwiGLU MLP (Shazeer 2020), parameter-matched to 153's GELU MLP: three (856 x 384) matrices
++# (fc1, gate, fc2) = 986,112 weights vs two (1280 x 384) = 983,040; 856 rather than the exact 853
++# because bf16 tensor-core GEMMs need multiples of 8 (853 benched 23% slower). The fork's Block
++# hardcodes a 4 * D GELU MLP, so PeriLNBlock swaps fc1/fc2 and adds gate. 856 != 3 * D keeps
++# muon_step's QKV-by-shape test valid.
++D_FF = 856
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -133,6 +136,7 @@ class PeriLNBlock(Block):
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
++        self.gate = torch.nn.Linear(d, D_FF)  # SwiGLU: fc2(silu(gate(h)) * fc1(h))
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+     def attn(self, x, cos, sin, mask, cache):
+@@ -153,7 +157,8 @@ class PeriLNBlock(Block):
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+         x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+-        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
++        h = self.ln2(x)
++        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.silu(self.gate(h)) * self.fc1(h)))
+ 
+ 
+ class ALiBiGPT(GPT):
