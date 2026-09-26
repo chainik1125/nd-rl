@@ -1,0 +1,448 @@
+{
+  "commit": "73af710",
+  "recorded_at": "2026-09-26T02:37:41-0700",
+  "status": "discard",
+  "metric": 596,
+  "metric_rl": 1070,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "0760bb600455",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1776,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9557760,
+    "steps": 3985,
+    "epochs": 2.0736915942480807,
+    "last_loss": 0.048945195972919464,
+    "heldout_greedy": 0.953,
+    "curve": [
+      {
+        "secs": 17,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.804174780845642,
+        "mtp_loss": null,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 30,
+        "step": 206,
+        "train_loss": 1.1669610008597373,
+        "val_loss": 0.19575703144073486,
+        "mtp_loss": 1.332061158120632,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 45,
+        "step": 445,
+        "train_loss": 0.11668812048931916,
+        "val_loss": 0.09544409345835447,
+        "mtp_loss": 0.12156420138974984,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 60,
+        "step": 683,
+        "train_loss": 0.0748890396207571,
+        "val_loss": 0.09242377895861864,
+        "mtp_loss": 0.07676709877947967,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 75,
+        "step": 922,
+        "train_loss": 0.06243091821670532,
+        "val_loss": 0.08543491084128618,
+        "mtp_loss": 0.0636774751668175,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 90,
+        "step": 1160,
+        "train_loss": 0.05573525745421648,
+        "val_loss": 0.08580221980810165,
+        "mtp_loss": 0.057413277216255665,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 105,
+        "step": 1400,
+        "train_loss": 0.05994725693017244,
+        "val_loss": 0.07708378229290247,
+        "mtp_loss": 0.06097702526797851,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 120,
+        "step": 1639,
+        "train_loss": 0.047041048211130226,
+        "val_loss": 0.08509093895554543,
+        "mtp_loss": 0.04785190793600949,
+        "kd_loss": null,
+        "phase": "teacher"
+      },
+      {
+        "secs": 135,
+        "step": 190,
+        "train_loss": 1.1914856334527333,
+        "val_loss": 0.15796542540192604,
+        "mtp_loss": 1.4643011076582804,
+        "kd_loss": 1.120465389556355,
+        "phase": "student"
+      },
+      {
+        "secs": 150,
+        "step": 387,
+        "train_loss": 0.13380328342318534,
+        "val_loss": 0.0810312693938613,
+        "mtp_loss": 0.1387919843196869,
+        "kd_loss": 0.07886621318757533,
+        "phase": "student"
+      },
+      {
+        "secs": 165,
+        "step": 583,
+        "train_loss": 0.08130443133413792,
+        "val_loss": 0.08774872869253159,
+        "mtp_loss": 0.08777156993746757,
+        "kd_loss": 0.028067512158304452,
+        "phase": "student"
+      },
+      {
+        "secs": 180,
+        "step": 779,
+        "train_loss": 0.07634071509043376,
+        "val_loss": 0.09348452463746071,
+        "mtp_loss": 0.08083749728070365,
+        "kd_loss": 0.019609852073093254,
+        "phase": "student"
+      },
+      {
+        "secs": 195,
+        "step": 975,
+        "train_loss": 0.06927728280425072,
+        "val_loss": 0.0880279615521431,
+        "mtp_loss": 0.07108794189989567,
+        "kd_loss": 0.019265182456001638,
+        "phase": "student"
+      },
+      {
+        "secs": 210,
+        "step": 1171,
+        "train_loss": 0.06622405685484409,
+        "val_loss": 0.08662678208202124,
+        "mtp_loss": 0.06925350800156593,
+        "kd_loss": 0.014127896493300795,
+        "phase": "student"
+      },
+      {
+        "secs": 225,
+        "step": 1367,
+        "train_loss": 0.05776817016303539,
+        "val_loss": 0.08348592463880777,
+        "mtp_loss": 0.05827058032155037,
+        "kd_loss": 0.009386056615039707,
+        "phase": "student"
+      },
+      {
+        "secs": 240,
+        "step": 1563,
+        "train_loss": 0.052743155509233475,
+        "val_loss": 0.09552755765616894,
+        "mtp_loss": 0.05293360371142626,
+        "kd_loss": 0.0074127305066213015,
+        "phase": "student"
+      },
+      {
+        "secs": 255,
+        "step": 1759,
+        "train_loss": 0.05888790740735001,
+        "val_loss": 0.08398180734366179,
+        "mtp_loss": 0.059596572485235005,
+        "kd_loss": 0.008180838078260422,
+        "phase": "student"
+      },
+      {
+        "secs": 270,
+        "step": 1955,
+        "train_loss": 0.05621561128646135,
+        "val_loss": 0.08156062662601471,
+        "mtp_loss": 0.05635655764490366,
+        "kd_loss": 0.005814880761317909,
+        "phase": "student"
+      },
+      {
+        "secs": 285,
+        "step": 2151,
+        "train_loss": 0.06138371266424656,
+        "val_loss": 0.0857793940231204,
+        "mtp_loss": 0.06034052483737469,
+        "kd_loss": 0.005686568049713969,
+        "phase": "student"
+      },
+      {
+        "secs": 300,
+        "step": 2346,
+        "train_loss": 0.05493016317486763,
+        "val_loss": 0.08171050995588303,
+        "mtp_loss": 0.054786694794893266,
+        "kd_loss": 0.004790287849027663,
+        "phase": "student"
+      }
+    ],
+    "teacher": {
+      "steps": 1639,
+      "records_seen": 222655,
+      "epochs": 1.4461309639790603,
+      "batches_per_epoch": 1132,
+      "last_loss": 0.030191289260983467
+    },
+    "student": {
+      "steps": 2346,
+      "records_seen": 319278,
+      "epochs": 2.0736915942480807,
+      "batches_per_epoch": 1132,
+      "last_loss": 0.048945195972919464
+    },
+    "records_seen": 319278,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "kd_split": 0.4,
+    "kd_weight": 1.0
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.09352083333333333,
+      "new_proofs": 634,
+      "targets_solved": 443,
+      "lstar": 9,
+      "ge": {
+        "7": 443,
+        "8": 110,
+        "9": 25,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2516,
+      "samples_per_sec": 234,
+      "secs": 270
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.4843125,
+      "new_proofs": 765,
+      "targets_solved": 899,
+      "lstar": 10,
+      "ge": {
+        "7": 899,
+        "8": 421,
+        "9": 173,
+        "10": 22,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5400,
+      "samples_per_sec": 251,
+      "secs": 268
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6139375,
+      "new_proofs": 398,
+      "targets_solved": 1029,
+      "lstar": 10,
+      "ge": {
+        "7": 1029,
+        "8": 522,
+        "9": 249,
+        "10": 44,
+        "11": 4,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6700,
+      "samples_per_sec": 242,
+      "secs": 279
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.6741041666666666,
+      "new_proofs": 310,
+      "targets_solved": 1089,
+      "lstar": 11,
+      "ge": {
+        "7": 1089,
+        "8": 570,
+        "9": 290,
+        "10": 63,
+        "11": 8,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7648,
+      "samples_per_sec": 259,
+      "secs": 267
+    }
+  ],
+  "eval": {
+    "solved": 593,
+    "n": 1108,
+    "ge": {
+      "7": 593,
+      "8": 502,
+      "9": 393,
+      "10": 79,
+      "11": 15,
+      "12": 5,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.984,
+    "max_pruned": 13,
+    "by_bin": {
+      "7": {
+        "solved": 91,
+        "n": 150,
+        "rate": 0.6066666666666667,
+        "ci": [
+          0.5267647239233271,
+          0.6812414330589196
+        ]
+      },
+      "8": {
+        "solved": 109,
+        "n": 152,
+        "rate": 0.7171052631578947,
+        "ci": [
+          0.6408351568466693,
+          0.782671788667237
+        ]
+      },
+      "9": {
+        "solved": 314,
+        "n": 477,
+        "rate": 0.6582809224318659,
+        "ci": [
+          0.6146043960651002,
+          0.6994283332162265
+        ]
+      },
+      "10": {
+        "solved": 64,
+        "n": 219,
+        "rate": 0.2922374429223744,
+        "ci": [
+          0.23599866847384823,
+          0.3556395175739992
+        ]
+      },
+      "11": {
+        "solved": 10,
+        "n": 49,
+        "rate": 0.20408163265306123,
+        "ci": [
+          0.11481727042813811,
+          0.33637270110943834
+        ]
+      },
+      "12": {
+        "solved": 5,
+        "n": 54,
+        "rate": 0.09259259259259259,
+        "ci": [
+          0.040200542070567336,
+          0.1991012753065453
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Born-again KD (teacher 0-120 s, student 120-300 s with KL to the teacher) scored 593/606/590 vs 153-claude's 676/700/685: mean 596.33 vs 687.00, -90.67, every seed 70-107 below, far outside the registered -40..+40. Discard, and a strong negative: the student matched the teacher closely (final kd 0.004-0.007 nats, val 0.0817/0.0829/0.0891 vs 153's 0.0883, greedy 0.953/0.954/0.920 vs 0.9675) yet its T=0.8 samples collapsed in RL round 1: sample_acc 0.094/0.084/0.183 vs 0.271 and targets solved 443/325/640 vs 766 (predicted 730-820), recovering only to 1089/1063/1058 by round 4 (153: 1157). Greedy quality survived while sampled validity did not, so the teacher's soft tail, learned at temperature 1, put mass exactly where the 0.8 sampler draws; this is the focal-loss direction (173: 655) amplified: any objective that spreads next-token mass beyond the record's pick costs sampled proofs. The anti-memorization signature only half appeared (student train CE 0.055/0.065/0.054 vs 153's 0.055, predicted 0.060-0.075) with 2.07 student epochs instead of 4.0, a registered confound that cannot explain a -90 by itself (147's fewer updates cost -31). Mechanics as predicted: 3985/3990/3973 total steps (teacher 1639-1650, student 2331-2346), totals 1677-1776 s, 9,557,760 params.",
+  "seed_metrics": {
+    "0": 593,
+    "1": 606,
+    "2": 590
+  },
+  "seed_metric_rl": {
+    "0": 1089,
+    "1": 1063,
+    "2": 1058
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08171050995588303,
+      "heldout_greedy": 0.953,
+      "steps": 3985
+    },
+    "1": {
+      "val_loss": 0.08286051638424397,
+      "heldout_greedy": 0.954,
+      "steps": 3990
+    },
+    "2": {
+      "val_loss": 0.08907379023730755,
+      "heldout_greedy": 0.92,
+      "steps": 3973
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 158261,
+    "distinct_checked": 531400,
+    "both_ok": 286094,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 6,
+    "lean_wall_s": 1281.9666864871979
+  },
+  "migrated": false
+}
