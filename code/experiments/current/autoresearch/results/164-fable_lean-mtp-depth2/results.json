@@ -1,0 +1,393 @@
+{
+  "commit": "31dbfac",
+  "recorded_at": "2026-09-25T23:07:59-0700",
+  "status": "discard",
+  "metric": 650,
+  "metric_rl": 1134,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "6019e48499d6",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1994,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9557760,
+    "steps": 3969,
+    "epochs": 3.5098138550069495,
+    "last_loss": 0.039803601801395416,
+    "heldout_greedy": 0.965,
+    "curve": [
+      {
+        "secs": 17,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.804163753986359,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 192,
+        "train_loss": 1.2668331563472748,
+        "val_loss": 0.2220430113375187,
+        "mtp_loss": 1.3542479011747572
+      },
+      {
+        "secs": 45,
+        "step": 404,
+        "train_loss": 0.13256316699764945,
+        "val_loss": 0.09492949862033129,
+        "mtp_loss": 0.12959267063574356
+      },
+      {
+        "secs": 60,
+        "step": 614,
+        "train_loss": 0.08358657732605934,
+        "val_loss": 0.09190392307937145,
+        "mtp_loss": 0.08107949383556842
+      },
+      {
+        "secs": 75,
+        "step": 825,
+        "train_loss": 0.07376225732944229,
+        "val_loss": 0.08775967452675104,
+        "mtp_loss": 0.07463053207505833
+      },
+      {
+        "secs": 90,
+        "step": 1036,
+        "train_loss": 0.059632033854722974,
+        "val_loss": 0.08715595956891775,
+        "mtp_loss": 0.06035871244966984
+      },
+      {
+        "secs": 105,
+        "step": 1246,
+        "train_loss": 0.06141469221223484,
+        "val_loss": 0.09108749590814114,
+        "mtp_loss": 0.05805633047764951
+      },
+      {
+        "secs": 120,
+        "step": 1456,
+        "train_loss": 0.06698381789028644,
+        "val_loss": 0.08877522684633732,
+        "mtp_loss": 0.06908225789666175
+      },
+      {
+        "secs": 135,
+        "step": 1665,
+        "train_loss": 0.06051239913160151,
+        "val_loss": 0.08906118851155043,
+        "mtp_loss": 0.060763370245695114
+      },
+      {
+        "secs": 150,
+        "step": 1874,
+        "train_loss": 0.07463373355567456,
+        "val_loss": 0.07733944710344076,
+        "mtp_loss": 0.07443441078066826
+      },
+      {
+        "secs": 165,
+        "step": 2083,
+        "train_loss": 0.05967801131985404,
+        "val_loss": 0.08369908761233091,
+        "mtp_loss": 0.06034093011509289
+      },
+      {
+        "secs": 180,
+        "step": 2294,
+        "train_loss": 0.06510108485817909,
+        "val_loss": 0.07478037104010582,
+        "mtp_loss": 0.06403233669698238
+      },
+      {
+        "secs": 195,
+        "step": 2503,
+        "train_loss": 0.06381088495254517,
+        "val_loss": 0.08827714715152979,
+        "mtp_loss": 0.06347557157278061
+      },
+      {
+        "secs": 210,
+        "step": 2713,
+        "train_loss": 0.053839702345430854,
+        "val_loss": 0.08556502312421799,
+        "mtp_loss": 0.054094501212239264
+      },
+      {
+        "secs": 225,
+        "step": 2922,
+        "train_loss": 0.07041666250337254,
+        "val_loss": 0.08974757883697748,
+        "mtp_loss": 0.07029039751399647
+      },
+      {
+        "secs": 240,
+        "step": 3132,
+        "train_loss": 0.06030064541846514,
+        "val_loss": 0.09106092806905508,
+        "mtp_loss": 0.060473637841641906
+      },
+      {
+        "secs": 255,
+        "step": 3341,
+        "train_loss": 0.05220222388478843,
+        "val_loss": 0.07867648359388113,
+        "mtp_loss": 0.05199657820842483
+      },
+      {
+        "secs": 270,
+        "step": 3549,
+        "train_loss": 0.062270631454885005,
+        "val_loss": 0.08347298298031092,
+        "mtp_loss": 0.06248951498419046
+      },
+      {
+        "secs": 285,
+        "step": 3759,
+        "train_loss": 0.06108546629548073,
+        "val_loss": 0.08385109063237906,
+        "mtp_loss": 0.06069412492215633
+      },
+      {
+        "secs": 300,
+        "step": 3969,
+        "train_loss": 0.057256497612053696,
+        "val_loss": 0.08385024592280388,
+        "mtp_loss": 0.057178736071694984
+      }
+    ],
+    "records_seen": 540392,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "mtp_depth": 2
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.17654166666666668,
+      "new_proofs": 818,
+      "targets_solved": 629,
+      "lstar": 9,
+      "ge": {
+        "7": 629,
+        "8": 238,
+        "9": 59,
+        "10": 3,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3260,
+      "samples_per_sec": 240,
+      "secs": 278
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5409166666666667,
+      "new_proofs": 687,
+      "targets_solved": 974,
+      "lstar": 10,
+      "ge": {
+        "7": 974,
+        "8": 478,
+        "9": 225,
+        "10": 39,
+        "11": 2,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5780,
+      "samples_per_sec": 210,
+      "secs": 309
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6641666666666667,
+      "new_proofs": 394,
+      "targets_solved": 1086,
+      "lstar": 11,
+      "ge": {
+        "7": 1086,
+        "8": 567,
+        "9": 293,
+        "10": 61,
+        "11": 9,
+        "12": 3,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 7040,
+      "samples_per_sec": 216,
+      "secs": 305
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7246666666666667,
+      "new_proofs": 294,
+      "targets_solved": 1151,
+      "lstar": 11,
+      "ge": {
+        "7": 1151,
+        "8": 615,
+        "9": 325,
+        "10": 69,
+        "11": 10,
+        "12": 3,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 7924,
+      "samples_per_sec": 245,
+      "secs": 279
+    }
+  ],
+  "eval": {
+    "solved": 666,
+    "n": 1108,
+    "ge": {
+      "7": 666,
+      "8": 574,
+      "9": 453,
+      "10": 104,
+      "11": 22,
+      "12": 4,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.9905,
+    "max_pruned": 16,
+    "by_bin": {
+      "7": {
+        "solved": 92,
+        "n": 150,
+        "rate": 0.6133333333333333,
+        "ci": [
+          0.5334964294452139,
+          0.6875101123484232
+        ]
+      },
+      "8": {
+        "solved": 121,
+        "n": 152,
+        "rate": 0.7960526315789473,
+        "ci": [
+          0.7250729822703502,
+          0.8524364888849766
+        ]
+      },
+      "9": {
+        "solved": 349,
+        "n": 477,
+        "rate": 0.7316561844863732,
+        "ci": [
+          0.6901567903939128,
+          0.769454025309221
+        ]
+      },
+      "10": {
+        "solved": 82,
+        "n": 219,
+        "rate": 0.3744292237442922,
+        "ci": [
+          0.3130121473820354,
+          0.4401757672622679
+        ]
+      },
+      "11": {
+        "solved": 18,
+        "n": 49,
+        "rate": 0.3673469387755102,
+        "ci": [
+          0.24664982524781226,
+          0.5073318861311014
+        ]
+      },
+      "12": {
+        "solved": 4,
+        "n": 54,
+        "rate": 0.07407407407407407,
+        "ci": [
+          0.029181055323684174,
+          0.17554357193420633
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Discard: 666/644/639 (exact mean 649.67) vs 153-claude's 676/700/685 (687.00): -37.33, paired -10/-56/-46, every seed down and below the registered -35..+35 range; the registered 'metric below 660 rejects mechanism (b)' falsifier fired. No keep landed during the run (163-claude discarded at 665), so the incumbent stays 153. Mechanical predictions held: handoff n_params 9,557,760; steps 3969/3917/3907 (predicted 3,800-4,300; 153: 4540/4479/4489, -12.6%, the bench ratio 10.24/11.53 = -11%), 3.51/3.46/3.46 epochs; final main val 0.0839/0.0848/0.0919 (153: 0.088/0.087/0.089; minima 0.0748/0.0805/0.0758 at 180/165/285 s), held-out greedy after pretraining 0.965/0.9675/0.9645 (153: 0.9675/0.967/0.968), totals 1797/1675/1994 s (seed 2 on a slow host: 170-185 samples/s, Lean wall 794 s vs 396-456). Surprise 1: the deeper module did NOT lower the auxiliary loss: mtp_loss ended at 0.0572/0.0477/0.0733, again equal to the main train loss (0.0573/0.0476/0.0732) as in 136, and 0.075-0.080 at 60 s, so a second block adds nothing to the t+2 fit; the target is saturated by one block and the trunk. Surprise 2: the RL start was worse on every seed, the opposite of mechanism (b): round-1 targets solved 629/740/602 (153: 766/747/694, mean 657 vs 736, -11%; the '< 600 on two seeds' falsifier just missed), round-1 sample acc 0.177/0.231/0.190 (153 s0: 0.271), whole-run Lean parse failures 16.0/16.4/16.9% (153: 15.8/15.5/14.9%), both-ok samples 328k vs 353k (-7%). Expert iteration closed most of the gap (round-4 RL-solved 1151/1135/1117, mean 1134 vs 153's 1172, -38; predicted 1,150-1,210, missed on two seeds) but the eval/round-4 transfer ratio also fell, 0.579/0.567/0.572 vs 153's 0.584/0.599/0.575, and the deep bins tie or trail: >=10 104/100/93 (99.0 vs 107.7), >=11 22/26/21 (23.0 vs 23.7), >=12 4/6/5, L* 11/12/12. Reading: with the t+2 target as easy as t+1 in this surface form, extra pretraining-only depth behind the MTP readout does not make h_t a better RL starting point; it costs 12.6% of steps and the deeper module can absorb the lookahead itself, which is the registered 'small loss under (a)' outcome, so the 136 keep looks target-and-gradient driven (a second full-strength supervision signal on the trunk), not depth driven. The MTP lane's remaining untested knob is the module's WIDTH/cost downward (a cheaper t+2 head to buy steps back), not upward. Registration 218080f was committed before pods; all three pods finished ok (33/31/36 min) and were terminated by run_idea.py (driver logs: terminated after 32.6/30.7/36.0 min). Candidate: 10 lines added, 6 deleted.",
+  "seed_metrics": {
+    "0": 666,
+    "1": 644,
+    "2": 639
+  },
+  "seed_metric_rl": {
+    "0": 1151,
+    "1": 1135,
+    "2": 1117
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08385024592280388,
+      "heldout_greedy": 0.965,
+      "steps": 3969
+    },
+    "1": {
+      "val_loss": 0.08481559343636036,
+      "heldout_greedy": 0.9675,
+      "steps": 3917
+    },
+    "2": {
+      "val_loss": 0.09188015107065439,
+      "heldout_greedy": 0.9645,
+      "steps": 3907
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 131575,
+    "distinct_checked": 549923,
+    "both_ok": 328279,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 3,
+    "lean_wall_s": 1645.4535157680511
+  },
+  "migrated": false
+}
