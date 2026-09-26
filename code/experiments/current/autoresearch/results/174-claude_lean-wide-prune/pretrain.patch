@@ -1,0 +1,102 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..b1d53e9 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -41,6 +41,12 @@ N_LAYER, D, N_HEAD = 6, 384, 8
+ # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+ # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+ D_FF = 1280
++# Train wide, prune to the cap (Zhu & Gupta 2017; Minitron, Muralidharan et al. 2024): the six
++# trunk MLPs start D_FF_WIDE wide (13.1M params, pretraining only) and at each PRUNE_AT fraction
++# of the budget keep their PRUNE_WIDTHS most important hidden units, ending at D_FF, so the
++# handed-off model has the incumbent's exact shapes. 2048 != 3 * D keeps the QKV test valid.
++D_FF_WIDE = 2048
++PRUNE_AT, PRUNE_WIDTHS = (0.2, 0.3, 0.4, 0.5), (1856, 1664, 1472, D_FF)
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
+@@ -130,9 +136,9 @@ class PeriLNBlock(Block):
+     `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+     and cos/sin are unused."""
+ 
+-    def __init__(self, d, h):
++    def __init__(self, d, h, d_ff=D_FF):
+         super().__init__(d, h)
+-        self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
++        self.fc1, self.fc2 = torch.nn.Linear(d, d_ff), torch.nn.Linear(d_ff, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+     def attn(self, x, cos, sin, mask, cache):
+@@ -226,6 +232,31 @@ def mtp_loss(model, mtp, x, m):
+     return main + MTP_WEIGHT * aux, main, aux
+ 
+ 
++@torch.no_grad()
++def prune_mlps(model, x, width, matrices, buffers, opt):
++    """Keep each trunk MLP's `width` most important hidden units: RMS GELU activation on the
++    training batch x times the unit's fc2 column norm, i.e. the size of what removing it would
++    subtract from the branch output. Muon momentum and the fc1 bias's AdamW moments are sliced
++    to match, so the optimizer carries on as if the removed units had never existed."""
++    acts = []
++    hooks = [b.fc1.register_forward_hook(lambda _m, _i, a: acts.append(a)) for b in model.blocks]
++    model.features(x)
++    for hook in hooks:
++        hook.remove()
++    slot = {id(p): i for i, p in enumerate(matrices)}
++    for b, a in zip(model.blocks, acts, strict=True):
++        act_rms = torch.nn.functional.gelu(a.float()).square().mean((0, 1)).sqrt()
++        keep = (act_rms * b.fc2.weight.float().norm(dim=0)).topk(width).indices.sort().values
++        for p, dim in ((b.fc1.weight, 0), (b.fc2.weight, 1)):
++            p.data = p.data.index_select(dim, keep)
++            buffers[slot[id(p)]] = buffers[slot[id(p)]].index_select(dim, keep)
++        b.fc1.bias.data = b.fc1.bias.data[keep]
++        state = opt.state[b.fc1.bias]
++        for k in ("exp_avg", "exp_avg_sq"):
++            state[k] = state[k][keep]
++        b.fc1.out_features = b.fc2.in_features = width
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -299,7 +330,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD, D_FF_WIDE) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
+@@ -324,7 +355,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     step, last_loss, records_seen = 0, float("nan"), 0
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
++    curve, recent, recent_aux, next_point, prune_steps = [], [], [], CURVE_EVERY, []
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+     order = torch.empty(0, dtype=torch.long, device=device)
+@@ -378,6 +409,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++        if len(prune_steps) < len(PRUNE_AT) and frac >= PRUNE_AT[len(prune_steps)]:
++            # Free this step's graph first: while it lives, the next forward reuses its
++            # AccumulateGrad nodes, which still expect the pre-pruning weight shapes.
++            del loss, main, aux
++            width = PRUNE_WIDTHS[len(prune_steps)]
++            with autocast:
++                prune_mlps(model, x, width, matrices, momentum_buffers, opt)
++            prune_steps.append(step)
+     model.eval()
+     return (
+         model,
+@@ -388,6 +427,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "prune_steps": prune_steps,
+             "last_loss": last_loss,
+             "curve": curve,
+         },
