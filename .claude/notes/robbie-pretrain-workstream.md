@@ -26,8 +26,10 @@ workstreams or authorize changing the frozen experiment harness.
 - Measure whether pretraining loss correlates with downstream RL success. Loss is a diagnostic;
   a lower loss alone is not the success criterion.
 - Keep dataset generation, dataset selection/composition and the RL algorithm out of the
-  ablation loop. Do not silently classify data augmentation, resampling or curricula as in scope
-  just because they could be implemented in pretrain.py; settle that boundary with Robbie first.
+  ablation loop. Within `pretrain.py`, the order in which the fixed `train.jsonl` is presented
+  is in scope (Robbie, 2026-09-25): shuffling, length bucketing, sequence packing and curricula
+  such as short proofs first, as long as every record stays in play. Dropping or filtering
+  records, generating new data, and new augmentations still need Robbie first.
 - GPU speed work in `pretrain.py` is **encouraged** (Robbie, 2026-09-25, reversing the earlier
   "resist speed optimization" line): pretraining is wall-clock bound (300 s), so more steps per
   second is free compute, and faster models also sample faster in RL. Score, not throughput,

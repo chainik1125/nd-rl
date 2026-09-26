@@ -33,8 +33,9 @@ agent = "codex"  # set once by main(); tests monkeypatch it
 stop_at: float | None = None  # epoch seconds; no new session starts after it (--stop-at)
 MIN_BALANCE = 3.0  # USD: one experiment rents 3 A40s at ~$0.49/h for ~25 min
 # A session must launch run_idea.py this soon (Robbie, 2026-09-23: Claude at max effort took
-# 20-150 min to propose, Codex ~3). Runs themselves are bounded by the harness, not this.
-PROPOSE_SECS = 20 * 60
+# 20-150 min to propose, Codex ~3; raised 20 -> 40 min on 2026-09-25 so bench_pretrain.py
+# probes and bigger implementations fit). Runs themselves are bounded by the harness, not this.
+PROPOSE_SECS = 40 * 60
 MAX_TIMEOUTS = 3  # consecutive proposal timeouts before the loop stops
 
 
@@ -273,8 +274,12 @@ def stop_processes(process: subprocess.Popen[bytes] | None, session: Path) -> No
 
 
 def cleanup_pods(session: Path) -> bool:
+    # bench-*.json: pods rented by bench_pretrain.py during the proposal phase.
+    benches = [read_json(p) or {} for p in session.glob("bench-*.json")]
     owned = {
-        f"autoresearch-{name}": name for _, entry in launches(session) for name in entry["pods"]
+        f"autoresearch-{name}": name
+        for entry in [*(entry for _, entry in launches(session)), *benches]
+        for name in entry.get("pods", [])
     }
     if not owned:
         return True

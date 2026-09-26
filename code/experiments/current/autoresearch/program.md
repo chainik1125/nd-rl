@@ -31,6 +31,13 @@ its data-order risk, see 002); the per-step Newton-Schulz over 21+ matrices is u
 val-loss pass every 15 s. A faster forward also speeds the harness's RL sampling. `pretrain.steps`
 in results.json is your throughput measurement; state the expected step count in the prediction.
 Keeps are still decided by the metric: spend the speed on steps, or on a bigger model.
+Measure before registering (the 148-fable incumbent measured 13.2 steps/s over its first 60 s,
+186 samples/s, 5.3 GB peak): `$PY bench_pretrain.py --secs 60` rents one A40 for ~4 min (~$0.03),
+runs your working-tree pretrain.py for 60 s on the real data, and prints steps/s, peak memory,
+params, losses and sampling samples/s as JSON. It registers nothing; its numbers are probes, not
+evidence for a keep. Run it in the foreground; use it for any change that may alter speed.
+Presentation order of the fixed train.jsonl (shuffling, length bucketing, packing, curricula) is
+in scope; dropping or filtering records and new data are not.
 
 This doesn't need to be 100% of your focus. Do some speed work, and hopefully this allows you to
 train bigger or looped architectures on the next round.
@@ -112,7 +119,9 @@ and stop on commit/push failure. Do not stage, commit, push, or restore files ma
   has sd ~44 at this budget (`SWEEP_s20.md`), so some keeps will be luck; that is accepted (Robbie,
   2026-09-22). Always use seeds 0,1,2 so runs are comparable.
 - **Simplicity.** All else equal, simpler is better. An improvement of ~0 with less code: keep. A
-  small improvement with 20 lines of hacks: discard.
+  small improvement with 20 lines of hacks: discard. Exception: code whose purpose is speed
+  (more steps or faster sampling at the same model) does not count against a change; judge it
+  on the metric alone.
 - **Crash / timeout counts as a failed experiment**, on any seed. If the cause is dumb (typo,
   import), fix and re-run under the same NNN. If the idea is what crashed (OOM, overran the budget),
   log it as `crash` or `timeout` and move on. Never edit the harness to make something fit.
