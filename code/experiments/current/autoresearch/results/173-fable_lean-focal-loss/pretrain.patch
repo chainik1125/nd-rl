@@ -1,0 +1,56 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..a16f46e 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -74,6 +74,11 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Focal loss (Lin et al. 2017), pretraining only: every per-token cross-entropy term (main and
++# MTP) is scaled by (1 - p_target)^FOCAL_GAMMA, so tokens the model already predicts with p ~ 1
++# stop driving the update and the hard ones (rule choice, citations) dominate the gradient
++# direction. Mukhoti et al. (2020): this trains calibrated (less overconfident) networks.
++FOCAL_GAMMA = 1.0
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -205,16 +210,23 @@ class MTPHead(torch.nn.Module):
+         self.block = PeriLNBlock(d, h)
+ 
+ 
++def focal(ce):
++    """Per-token focal loss from per-token CE: (1 - p_target)^gamma * CE, p_target = exp(-CE)."""
++    return ce * (1 - torch.exp(-ce)).pow(FOCAL_GAMMA)
++
++
+ def mtp_loss(model, mtp, x, m):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
++    MTP module's token-(t+2) prediction at the same proof positions, both focal-weighted for the
++    gradient. Returns (total, main, aux) with main/aux the plain CE means for logging."""
+     h, bias = model.features(x[:, :-1])
+     logits = model.head(model.ln_f(h))
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+     )
+-    main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
++    w1 = m[:, 1:].reshape(-1)
++    main = (ce * w1).sum() / w1.sum()
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+@@ -222,8 +234,11 @@ def mtp_loss(model, mtp, x, m):
+     ce2 = torch.nn.functional.cross_entropy(
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+-    aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++    w2 = m[:, 2:].reshape(-1)
++    aux = (ce2 * w2).sum() / w2.sum().clamp(min=1)
++    total = (focal(ce) * w1).sum() / w1.sum()
++    total = total + MTP_WEIGHT * (focal(ce2) * w2).sum() / w2.sum().clamp(min=1)
++    return total, main, aux
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
