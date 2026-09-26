@@ -60,8 +60,9 @@ The public checkpoint repository is
 Checkpoints live there, not on this disk. After pulling a run, `pod.py run` uploads
 `artifacts/autoresearch/RUN_ID/` to `runs/RUN_ID` and deletes each local `.pt` whose sha256
 matches HF's copy; summaries, jsonl files, and `source/` stay local. A failed upload keeps the
-checkpoints and says so in the driver log. `pod.py push [RUN_ID...]` retries (without names:
-every run directory untouched for 10 minutes). Pushing needs the `hf` CLI:
+checkpoints and says so in the driver log; so does a push cut off by a killed session.
+`pod.py push [RUN_ID...]` retries (without names: every run directory untouched for 10
+minutes), and `run_idea.py` runs it before each experiment. Pushing needs the `hf` CLI:
 `uv tool install huggingface_hub`, then `hf auth login` with a write token.
 To score or inspect a checkpoint, download it:
 

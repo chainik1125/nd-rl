@@ -187,6 +187,12 @@ def merge(name, seeds):
     return base
 
 
+def push_leftover_checkpoints():
+    """Checkpoints whose HF push was interrupted (e.g. the session was killed mid-push) leave this
+    disk now, before archive_previous_attempt can bury them in previous_attempts/."""
+    subprocess.run([sys.executable, os.path.join(HERE, "pod.py"), "push"], check=False)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("name")
@@ -202,6 +208,7 @@ def main():
     register(name, seeds)
     ensure_idle(name)
     os.makedirs(ART, exist_ok=True)
+    push_leftover_checkpoints()
     archive_previous_attempt(name, seeds)
     session = os.environ.get("ND_AUTORESEARCH_SESSION")
     log_dir, manifest = ART, None

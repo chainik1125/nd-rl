@@ -435,6 +435,7 @@ sys.path.insert(0, {str(SOURCE)!r})
 import run_idea as r
 r.register = lambda *args: None
 r.ensure_idle = lambda *args: None
+r.push_leftover_checkpoints = lambda: None  # would sweep the real checkout's artifacts to HF
 r.ART = {str(tmp_path / "artifacts")!r}
 r.pod_prefix = lambda name: "ndrl-pretrain-codex-013"
 r.time.sleep = lambda _: None
