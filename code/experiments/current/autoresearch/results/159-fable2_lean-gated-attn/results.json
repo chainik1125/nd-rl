@@ -1,0 +1,392 @@
+{
+  "commit": "1300c39",
+  "recorded_at": "2026-09-25T20:51:37-0700",
+  "status": "discard",
+  "metric": 636,
+  "metric_rl": 1125,
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "da655c4ace3d",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1792,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.4,
+    "n_params": 9576240,
+    "steps": 4162,
+    "epochs": 3.679000558564878,
+    "last_loss": 0.04328766465187073,
+    "heldout_greedy": 0.957,
+    "curve": [
+      {
+        "secs": 16,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.761679828166962,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 204,
+        "train_loss": 1.1324997797608376,
+        "val_loss": 0.15262260846793652,
+        "mtp_loss": 1.288034801185131
+      },
+      {
+        "secs": 45,
+        "step": 427,
+        "train_loss": 0.12439259412613782,
+        "val_loss": 0.0842287689447403,
+        "mtp_loss": 0.12411555444652383
+      },
+      {
+        "secs": 60,
+        "step": 648,
+        "train_loss": 0.08468342369252985,
+        "val_loss": 0.09359169844537973,
+        "mtp_loss": 0.08328034288503906
+      },
+      {
+        "secs": 75,
+        "step": 869,
+        "train_loss": 0.07499244165691463,
+        "val_loss": 0.09297678433358669,
+        "mtp_loss": 0.07683296433903954
+      },
+      {
+        "secs": 90,
+        "step": 1089,
+        "train_loss": 0.05931843309239908,
+        "val_loss": 0.0845072353258729,
+        "mtp_loss": 0.06138582358306104
+      },
+      {
+        "secs": 105,
+        "step": 1310,
+        "train_loss": 0.07021625712513924,
+        "val_loss": 0.09219532087445259,
+        "mtp_loss": 0.06956526637077332
+      },
+      {
+        "secs": 120,
+        "step": 1531,
+        "train_loss": 0.05689248882911422,
+        "val_loss": 0.085435944609344,
+        "mtp_loss": 0.05848520723256198
+      },
+      {
+        "secs": 135,
+        "step": 1748,
+        "train_loss": 0.06969186731360176,
+        "val_loss": 0.08480256516486406,
+        "mtp_loss": 0.07228832556442781
+      },
+      {
+        "secs": 150,
+        "step": 1965,
+        "train_loss": 0.07488484240391037,
+        "val_loss": 0.08318864367902279,
+        "mtp_loss": 0.0746710632335056
+      },
+      {
+        "secs": 165,
+        "step": 2183,
+        "train_loss": 0.061872354623946274,
+        "val_loss": 0.07839354779571295,
+        "mtp_loss": 0.0615443116561933
+      },
+      {
+        "secs": 180,
+        "step": 2402,
+        "train_loss": 0.06173874945803122,
+        "val_loss": 0.07567261345684528,
+        "mtp_loss": 0.06189656460827047
+      },
+      {
+        "secs": 195,
+        "step": 2622,
+        "train_loss": 0.055339712988246574,
+        "val_loss": 0.08043508138507605,
+        "mtp_loss": 0.05573982745409012
+      },
+      {
+        "secs": 210,
+        "step": 2842,
+        "train_loss": 0.0563751719892025,
+        "val_loss": 0.0834776358678937,
+        "mtp_loss": 0.05793890983543613
+      },
+      {
+        "secs": 225,
+        "step": 3062,
+        "train_loss": 0.07972429421815005,
+        "val_loss": 0.07822626084089279,
+        "mtp_loss": 0.08009995096786456
+      },
+      {
+        "secs": 240,
+        "step": 3282,
+        "train_loss": 0.04578648913990368,
+        "val_loss": 0.08292442187666893,
+        "mtp_loss": 0.04584845968268134
+      },
+      {
+        "secs": 255,
+        "step": 3501,
+        "train_loss": 0.0632171282036738,
+        "val_loss": 0.08187317103147507,
+        "mtp_loss": 0.0633519481528889
+      },
+      {
+        "secs": 270,
+        "step": 3722,
+        "train_loss": 0.06285520135001703,
+        "val_loss": 0.09094196185469627,
+        "mtp_loss": 0.06320076164874164
+      },
+      {
+        "secs": 285,
+        "step": 3942,
+        "train_loss": 0.05914470011537725,
+        "val_loss": 0.08711438998579979,
+        "mtp_loss": 0.05947298268702897
+      },
+      {
+        "secs": 300,
+        "step": 4162,
+        "train_loss": 0.0475381694056771,
+        "val_loss": 0.08539386373013258,
+        "mtp_loss": 0.04783455654978752
+      }
+    ],
+    "records_seen": 566441,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.18210416666666668,
+      "new_proofs": 765,
+      "targets_solved": 591,
+      "lstar": 9,
+      "ge": {
+        "7": 591,
+        "8": 225,
+        "9": 56,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3048,
+      "samples_per_sec": 240,
+      "secs": 277
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5463958333333333,
+      "new_proofs": 666,
+      "targets_solved": 973,
+      "lstar": 10,
+      "ge": {
+        "7": 973,
+        "8": 473,
+        "9": 211,
+        "10": 31,
+        "11": 2,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5616,
+      "samples_per_sec": 266,
+      "secs": 266
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6613958333333333,
+      "new_proofs": 283,
+      "targets_solved": 1072,
+      "lstar": 10,
+      "ge": {
+        "7": 1072,
+        "8": 549,
+        "9": 278,
+        "10": 51,
+        "11": 3,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6588,
+      "samples_per_sec": 274,
+      "secs": 262
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7098125,
+      "new_proofs": 214,
+      "targets_solved": 1112,
+      "lstar": 11,
+      "ge": {
+        "7": 1112,
+        "8": 584,
+        "9": 303,
+        "10": 58,
+        "11": 6,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7260,
+      "samples_per_sec": 291,
+      "secs": 252
+    }
+  ],
+  "eval": {
+    "solved": 634,
+    "n": 1108,
+    "ge": {
+      "7": 634,
+      "8": 541,
+      "9": 439,
+      "10": 90,
+      "11": 15,
+      "12": 4,
+      "13": 1,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.9885,
+    "max_pruned": 13,
+    "by_bin": {
+      "7": {
+        "solved": 93,
+        "n": 150,
+        "rate": 0.62,
+        "ci": [
+          0.5402429290748867,
+          0.6937639975301408
+        ]
+      },
+      "8": {
+        "solved": 102,
+        "n": 152,
+        "rate": 0.6710526315789473,
+        "ci": [
+          0.5929497169743494,
+          0.740722421915395
+        ]
+      },
+      "9": {
+        "solved": 349,
+        "n": 477,
+        "rate": 0.7316561844863732,
+        "ci": [
+          0.6901567903939128,
+          0.769454025309221
+        ]
+      },
+      "10": {
+        "solved": 75,
+        "n": 219,
+        "rate": 0.3424657534246575,
+        "ci": [
+          0.2828169495426538,
+          0.4075460706474723
+        ]
+      },
+      "11": {
+        "solved": 11,
+        "n": 49,
+        "rate": 0.22448979591836735,
+        "ci": [
+          0.1302483771472861,
+          0.35879056187045744
+        ]
+      },
+      "12": {
+        "solved": 3,
+        "n": 54,
+        "rate": 0.05555555555555555,
+        "ci": [
+          0.019072922503838907,
+          0.15107451463482943
+        ]
+      },
+      "13": {
+        "solved": 1,
+        "n": 5,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "P30 head-wise gated attention (Qiu et al. 2025; sigmoid(Linear(384, 8)(ln1(x))) on the SDPA output before proj in all six Peri-LN blocks, zero-init, AdamW; 9,576,240 params as registered) on 153-claude scored 634/635/639 on seeds 0/1/2 vs 676/700/685: exact means 636.00 vs 687.00, -51.00, paired -42/-65/-46, every seed down and below the registered -30..+35 range. Discard. The mechanism was ACTIVE, so this is a real negative, not a null: on 400 held-out records the seed-0 pretrain.pt gates are far from uniform (block 0's four NoPE heads have per-token gate std 0.30-0.38 with 11% of values < 0.1 and 14% > 0.9, i.e. they learned a per-token off switch as hypothesized; block 2 head 2 (ALiBi slope 1/64) sits at mean 0.21; head means range 0.19-0.86), and RL left them almost unchanged (final.pt gate weight RMS 0.027-0.033 vs 0.026-0.033, head means shift <= 0.15). Pretraining loss went the right way and RL did not: final main val 0.0854/0.0781/0.0760 (153: 0.0883/0.0869/0.0888), minima 0.0757/0.0772/0.0755 at 180/225/105 s, but held-out greedy fell slightly (0.957/0.9655/0.9605 vs 0.9675/0.967/0.968) and the T=0.8 sampler was clearly worse at the start of expert iteration: round-1 targets solved 591/764/602 (mean 652 vs 153's 766/747/694 = 736, sample acc 0.182/0.280/0.182 vs ~0.27), the registered 650-820 range missed on two seeds; round-4 RL-solved 1112/1129/1134 (153: 1157) recovered most of the gap but the transfer eval did not (by-bin: length 7 at 0.58-0.62, 10 at 0.34-0.35). Speed sub-prediction missed low: 4162/4168/4139 steps (mean 4156 vs 4503, -7.7%, below the registered 4,200-4,650 on every seed; the < 4,000 falsifier did not fire), 3.68 epochs, so the sigmoid/transpose/multiply and their backward over 7 blocks cost more launches than the ~1% estimated; RL sampling 205-293 samples/s, totals 1647/1792/1633 s. Pattern: like 152 (drop-path), 155 (low-rank bigram) and 157 (curriculum, trigram) a change that matches or improves the pretraining loss made a worse T=0.8 sampler for round 1, and the metric follows round 1. 159-fable3 registered the elementwise variant of the same P30 idea (Linear(384,384) gate paid by d_ff 1280 -> 1088) two seconds before this run; the pair separates head-wise from element-wise gating on the same incumbent.",
+  "seed_metrics": {
+    "0": 634,
+    "1": 635,
+    "2": 639
+  },
+  "seed_metric_rl": {
+    "0": 1112,
+    "1": 1129,
+    "2": 1134
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08539386373013258,
+      "heldout_greedy": 0.957,
+      "steps": 4162
+    },
+    "1": {
+      "val_loss": 0.0780907217413187,
+      "heldout_greedy": 0.9655,
+      "steps": 4168
+    },
+    "2": {
+      "val_loss": 0.07602368202060461,
+      "heldout_greedy": 0.9605,
+      "steps": 4139
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 124472,
+    "distinct_checked": 557362,
+    "both_ok": 325906,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 17,
+    "lean_wall_s": 1319.2008318901062
+  },
+  "migrated": false
+}
