@@ -1,0 +1,98 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..04047c1 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -63,6 +63,11 @@ N_ALIBI = N_HEAD // 2
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+     N_HEAD - N_ALIBI
+ )
++# SSMax (Nakanishi 2025), fixed-scale: a NoPE head's query at position p (it sees p + 1 keys) is
++# multiplied by log(p + 1) / log(SSMAX_L0), so its content logits sharpen with the number of keys
++# instead of diluting as proofs grow: factor 1 at the ~136-token mean record, 1.28 at 537 (the
++# longest pretraining record), 1.41 at the 1024 context. The ALiBi heads are unchanged.
++SSMAX_L0 = 136
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ # Token-budget batches (fairseq max-tokens): each step takes a run of length-sorted records with
+ # count * padded_length <= TOK_BUDGET, so a batch of short proofs has many records and a batch of
+@@ -127,17 +132,18 @@ def muon_step(params, buffers, lr):
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+-    `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+-    and cos/sin are unused."""
++    `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward,
++    the `cos` slot carries its SSMax query scale (B or 1, H, T, 1), and sin is unused."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+-    def attn(self, x, cos, sin, mask, cache):
++    def attn(self, x, qscale, sin, mask, cache):
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        q = q * qscale.to(q.dtype)
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+                 cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+@@ -151,8 +157,8 @@ class PeriLNBlock(Block):
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+-    def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
++    def forward(self, x, qscale, sin, mask=None, cache=None):
++        x = x + self.ln_attn_out(self.attn(self.ln1(x), qscale, sin, mask, cache))
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
+@@ -167,12 +173,13 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.register_buffer("nope", slopes == 0, persistent=False)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+ 
+     def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
++        """The trunk: (final hidden state before ln_f, the ALiBi bias, the SSMax query scale)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -188,10 +195,13 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        # sample.generate clamps left-pad positions to 0: scale 0, and pads attend only to self.
++        logn = torch.log1p(pos.to(self.slopes.dtype))[:, None, :, None] / math.log(SSMAX_L0)
++        qscale = torch.where(self.nope, logn, 1.0)  # (B or 1, H, T, 1)
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
++            x = b(x, qscale, None, bias, None if caches is None else caches[i])
++        return x, bias, qscale
+ 
+ 
+ class MTPHead(torch.nn.Module):
+@@ -208,7 +218,7 @@ class MTPHead(torch.nn.Module):
+ def mtp_loss(model, mtp, x, m):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+     MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+-    h, bias = model.features(x[:, :-1])
++    h, bias, qscale = model.features(x[:, :-1])
+     logits = model.head(model.ln_f(h))
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+@@ -218,7 +228,7 @@ def mtp_loss(model, mtp, x, m):
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+-    z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
++    z = mtp.block(z, qscale[..., :-1, :], None, bias[..., :-1, :-1], None)
+     ce2 = torch.nn.functional.cross_entropy(
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
