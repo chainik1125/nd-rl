@@ -1,0 +1,17 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..97c6ec5 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -301,6 +301,12 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
++    # Token identity at the residual stream's scale (Gemma-style sqrt(d) embedding scaling, folded
++    # into the init): the fork's normal(0, 0.02) rows have RMS 0.02 while every Peri-LN branch
++    # write has RMS 1 (LayerNorm output x unit gain), so at init the stream after block 0 is 12
++    # random unit writes plus a 0.02 token vector. Unit-variance rows start the stream at the
++    # writes' scale; shape, parameter count, optimizer groups and handoff are unchanged.
++    torch.nn.init.normal_(model.emb.weight, std=1.0)
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
+     mtp.apply(model._init)
