@@ -1,0 +1,65 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 9417978..f456804 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -170,12 +170,25 @@ class ALiBiGPT(GPT):
+         self.vocab, self.pad = vocab, pad
+         self.bigram = torch.nn.Embedding(vocab * vocab, d)
+         torch.nn.init.zeros_(self.bigram.weight)
++        # Output trigram table: an exact (previous token, current token) -> next-token logit row
++        # added to the readout, zero-initialized. A count-style trigram LM mixed into the logits,
++        # so the trunk need not spend residual capacity on the near-deterministic local syntax
++        # transitions of the Lean surface form; the head only models what the last two tokens
++        # leave open. 107 x 107 rows of 107 logits: 1.2M parameters, one gather per token.
++        self.trigram = torch.nn.Embedding(vocab * vocab, vocab)
++        torch.nn.init.zeros_(self.trigram.weight)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+-        return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
++        x, _, prev = self.features(idx, pos, mask, caches)
++        return self.readout(x, prev, idx)
++
++    def readout(self, x, prev, cur):
++        """Logits for the token after `cur` from hidden state x, plus the trigram row for the
++        (prev, cur) pair at the same position."""
++        return self.head(self.ln_f(x)) + self.trigram(prev * self.vocab + cur)
+ 
+     def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
++        """The trunk: (final hidden state before ln_f, the ALiBi bias used, previous tokens)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -202,7 +215,7 @@ class ALiBiGPT(GPT):
+         x = self.emb(idx) + self.bigram(prev * self.vocab + idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
++        return x, bias, prev
+ 
+ 
+ class MTPHead(torch.nn.Module):
+@@ -219,8 +232,8 @@ class MTPHead(torch.nn.Module):
+ def mtp_loss(model, mtp, x, m):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+     MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+-    h, bias = model.features(x[:, :-1])
+-    logits = model.head(model.ln_f(h))
++    h, bias, prev = model.features(x[:, :-1])
++    logits = model.readout(h, prev, x[:, :-1])
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+@@ -230,8 +243,11 @@ def mtp_loss(model, mtp, x, m):
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+     z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
++    # The t+2 logits get the same trigram row, for their pair (x_t, x_{t+1}).
+     ce2 = torch.nn.functional.cross_entropy(
+-        model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
++        model.readout(z, x[:, :-2], x[:, 1:-1]).reshape(-1, V).float(),
++        x[:, 2:].reshape(-1),
++        reduction="none",
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+     return main + MTP_WEIGHT * aux, main, aux
