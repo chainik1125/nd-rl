@@ -1,0 +1,104 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..ccab9be 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -74,6 +74,12 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Statement modelling, pretraining only: the theorem statement (prompt) is ~2/3 of every record's
++# tokens and the fork's loss_on never supervises it. Its tokens get the same next-token CE at this
++# weight (Huerta-Enochian & Ko 2024 found small prompt-loss weights help when prompts dominate).
++# The last part of a statement is the goal, so predicting it from the hypotheses is forward
++# inference on the same examples; the RL fine-tune (fork loss_on) stays proof-only.
++PROMPT_WEIGHT = 0.1
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -205,9 +211,11 @@ class MTPHead(torch.nn.Module):
+         self.block = PeriLNBlock(d, h)
+ 
+ 
+-def mtp_loss(model, mtp, x, m):
++def mtp_loss(model, mtp, x, m, pad):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
++    MTP module's token-(t+2) prediction at the same proof positions, plus PROMPT_WEIGHT times
++    the next-token CE on the statement tokens (non-pad targets outside the proof mask).
++    Returns (total, main, mtp, prompt)."""
+     h, bias = model.features(x[:, :-1])
+     logits = model.head(model.ln_f(h))
+     V = logits.size(-1)
+@@ -215,6 +223,8 @@ def mtp_loss(model, mtp, x, m):
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+     )
+     main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
++    pm = ((x[:, 1:] != pad) & ~m[:, 1:]).reshape(-1)
++    prompt = (ce * pm).sum() / pm.sum().clamp(min=1)
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+     z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+@@ -223,7 +233,7 @@ def mtp_loss(model, mtp, x, m):
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++    return main + MTP_WEIGHT * aux + PROMPT_WEIGHT * prompt, main, aux, prompt
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -324,7 +334,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     step, last_loss, records_seen = 0, float("nan"), 0
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
++    curve, recent, recent_aux, recent_prompt, next_point = [], [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+     order = torch.empty(0, dtype=torch.long, device=device)
+@@ -350,7 +360,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         records_seen += e - s
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
+         with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
++            loss, main, aux, prompt = mtp_loss(model, mtp, x, m, tok.pad)
+         model.zero_grad(set_to_none=True)
+         mtp.zero_grad(set_to_none=True)
+         loss.backward()
+@@ -361,6 +371,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+             recent_aux.append(aux.item())
++            recent_prompt.append(prompt.item())
+         if (
+             time.time() - t0 >= next_point
+         ):  # curve point: mean recent train loss + val loss on the held-out slice
+@@ -371,13 +382,18 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+                     "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                    "prompt_loss": (
++                        sum(recent_prompt) / len(recent_prompt) if recent_prompt else None
++                    ),
+                 }
+             )
+             log(
+                 f"pretrain step {step} train {curve[-1]['train_loss']:.4f} "
+-                f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
++                f"val {curve[-1]['val_loss']:.4f} prompt {curve[-1]['prompt_loss']} "
++                f"lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+-            recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++            recent, recent_aux, recent_prompt = [], [], []
++            next_point += CURVE_EVERY
+     model.eval()
+     return (
+         model,
+@@ -388,6 +404,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "prompt_weight": PROMPT_WEIGHT,
+             "last_loss": last_loss,
+             "curve": curve,
+         },
