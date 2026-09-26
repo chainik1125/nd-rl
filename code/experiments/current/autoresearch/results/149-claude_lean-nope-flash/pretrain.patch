@@ -1,0 +1,44 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index d0a1f84..d7662eb 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -137,7 +137,18 @@ class PeriLNBlock(Block):
+             cache["v"][:, :, n0:n1] = v
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
+-        y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
++        sdpa = torch.nn.functional.scaled_dot_product_attention
++        if mask.size(1) == N_ALIBI:  # causal training forward: bias covers the ALiBi heads only
++            a = N_ALIBI  # NoPE heads' bias is exactly causal, so they take the flash kernel
++            y = torch.cat(
++                (
++                    sdpa(q[:, :a], k[:, :a], v[:, :a], attn_mask=mask.to(q.dtype)),
++                    sdpa(q[:, a:], k[:, a:], v[:, a:], is_causal=True),
++                ),
++                1,
++            )
++        else:
++            y = sdpa(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+@@ -163,6 +174,9 @@ class ALiBiGPT(GPT):
+     def features(self, idx, pos=None, mask=None, caches=None):
+         """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
+         B, T = idx.shape
++        # Plain causal forward (pretraining, val, RL fine-tune): the bias covers only the ALiBi
++        # heads; the blocks run the slope-0 heads with is_causal and no mask (flash kernel).
++        causal = pos is None and mask is None and caches is None
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+         key_pos = pos
+@@ -175,7 +189,8 @@ class ALiBiGPT(GPT):
+             c["n_pos"] = n1
+             key_pos = c["pos"][:, :n1]
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+-        bias = -self.slopes * rel.to(self.slopes.dtype)
++        slopes = self.slopes[:, :N_ALIBI] if causal else self.slopes
++        bias = -slopes * rel.to(slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
