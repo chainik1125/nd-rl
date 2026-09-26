@@ -1,0 +1,17 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..163fbaa 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,8 +37,10 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 384, 8
+-# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
++# P25-family depth-for-width at the cap: five blocks of width 448 (8 heads of 56) instead of six
++# of 384, 9,880,768 params. Width paid twice (151, 153); every extra block or loop lost.
++N_LAYER, D, N_HEAD = 5, 448, 8
++# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1792 at D 448 would pass the
+ # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+ D_FF = 1280
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
