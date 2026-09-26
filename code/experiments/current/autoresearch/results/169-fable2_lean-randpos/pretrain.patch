@@ -1,0 +1,57 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..5dde13a 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -64,6 +64,12 @@ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI))
+     N_HEAD - N_ALIBI
+ )
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
++# Randomized positions (Ruoss et al. 2023), pretraining only: each training batch's token positions
++# are a sorted random subset of [0, POS_STRETCH * T) instead of arange(T), so the ALiBi heads train
++# on query-key distances up to POS_STRETCH times the record length, the range they meet on the
++# 7-14-line RL targets and dev theorems. NoPE heads (slope 0) are unaffected. Val, RL and sampling
++# use arange positions: the model's pos_gen is set to None before handoff.
++POS_STRETCH = 2
+ # Token-budget batches (fairseq max-tokens): each step takes a run of length-sorted records with
+ # count * padded_length <= TOK_BUDGET, so a batch of short proofs has many records and a batch of
+ # long ones few, and the padded token count per step is ~constant. 128 x 144 matches the real
+@@ -167,6 +173,7 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.pos_gen = None  # set by pretrain() for randomized training positions, None at handoff
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+@@ -176,6 +183,9 @@ class ALiBiGPT(GPT):
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
++            if self.training and self.pos_gen is not None:  # pretraining only, see POS_STRETCH
++                perm = torch.randperm(POS_STRETCH * T, device=idx.device, generator=self.pos_gen)
++                pos = perm[:T].sort().values[None]
+         key_pos = pos
+         if caches is not None:  # incremental decoding: keys are every cached token
+             c = caches[0]
+@@ -302,6 +312,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
++    model.pos_gen = gen  # randomized training positions from the seeded generator
+     mtp = MTPHead(D, N_HEAD)
+     mtp.apply(model._init)
+     mtp = mtp.to(device)
+@@ -379,11 +390,13 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
+     model.eval()
++    model.pos_gen = None  # handoff: RL's train() and every sampler see arange positions
+     return (
+         model,
+         tok,
+         {
+             "steps": step,
++            "pos_stretch": POS_STRETCH,
+             "records_seen": records_seen,
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
