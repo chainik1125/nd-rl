@@ -1,0 +1,73 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index ed10381..64a0054 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -71,6 +71,12 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Stochastic depth (Huang et al. 2016; LayerDrop, Fan et al. 2020), pretraining only: each of the
++# 12 residual branches of the six trunk blocks is dropped for a sample with this probability
++# (kept branches are scaled by 1/(1-p), so the expected residual write is unchanged and nothing
++# is rescaled at handoff). 148-fable's extra epochs memorized the cap-6 set (train 0.03 vs val
++# 0.088, val rising after ~2.5 epochs) and handed RL a worse round-1 sampler; this regularizes.
++DROP_PATH = 0.1
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -125,12 +131,24 @@ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+     `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+-    and cos/sin are unused."""
++    and cos/sin are unused. `drop_path` (instance attribute, set by pretrain() on the trunk blocks
++    and reset to 0 before handoff) is the per-sample probability of skipping a residual branch."""
++
++    drop_path = 0.0
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
++    def residual(self, y):
++        """Stochastic depth: zero the branch output y (B, T, D) for a random p fraction of the
++        samples and scale the rest by 1/(1-p); identity when p is 0 or the block is in eval."""
++        p = self.drop_path
++        if p == 0.0 or not self.training:
++            return y
++        keep = torch.rand(y.size(0), 1, 1, device=y.device) >= p
++        return y * (keep.to(y.dtype) / (1 - p))
++
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
+@@ -148,8 +166,9 @@ class PeriLNBlock(Block):
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+-        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
++        x = x + self.residual(self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache)))
++        mlp = self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x))))
++        return x + self.residual(self.ln_mlp_out(mlp))
+ 
+ 
+ class ALiBiGPT(GPT):
+@@ -297,6 +316,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
++    for b in model.blocks:  # trunk only; the MTP block keeps the class default 0
++        b.drop_path = DROP_PATH
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
+     mtp.apply(model._init)
+@@ -374,6 +395,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++    for b in model.blocks:  # handoff: RL calls train(), so the drop must be off, not just eval()
++        b.drop_path = 0.0
+     model.eval()
+     return (
+         model,
