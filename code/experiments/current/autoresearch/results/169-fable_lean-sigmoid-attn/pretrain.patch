@@ -1,0 +1,51 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..fe72674 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -126,14 +126,15 @@ def muon_step(params, buffers, lr):
+ 
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+-    output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+-    `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+-    and cos/sin are unused."""
++    output, so every residual write has unit scale times a learned gain. Attention has no RoPE
++    and no softmax: `mask` is the additive ALiBi-minus-log(n) bias (B or 1, H, T, S) that
++    ALiBiGPT builds once per forward and cos/sin are unused."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
++        self.hd_scale = (d // h) ** -0.5
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+@@ -148,7 +149,11 @@ class PeriLNBlock(Block):
+             cache["v"][:, :, n0:n1] = v
+             cache["n"] = n1
+             k, v = cache["k"][:, :, :n1], cache["v"][:, :, :n1]
+-        y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
++        # Sigmoid attention (Ramapuram et al. 2024): every key is gated on its own, so a query can
++        # take several cited facts at full weight instead of splitting softmax mass. `mask` is the
++        # ALiBi bias minus log(number of valid keys) with -inf on masked keys (sigmoid -> 0).
++        att = torch.sigmoid((q * self.hd_scale) @ k.mT + mask.to(q.dtype))
++        y = att @ v
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+     def forward(self, x, cos, sin, mask=None, cache=None):
+@@ -186,8 +191,12 @@ class ALiBiGPT(GPT):
+             c["n_pos"] = n1
+             key_pos = c["pos"][:, :n1]
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+-        bias = -self.slopes * rel.to(self.slopes.dtype)
+-        bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        valid = rel >= 0 if mask is None else mask
++        # Sigmoid attention's b = -log(n) (Ramapuram et al. 2024), n = valid keys of each query, so
++        # at init every key gets ~1/n like softmax; folded into the bias once per forward.
++        n_keys = valid.sum(-1, keepdim=True).to(self.slopes.dtype)
++        bias = -self.slopes * rel.to(self.slopes.dtype) - n_keys.log()
++        bias = bias.masked_fill(~valid, float("-inf"))
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
