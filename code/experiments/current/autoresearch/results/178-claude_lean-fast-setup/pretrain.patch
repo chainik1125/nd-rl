@@ -1,0 +1,211 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..5017b2c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -27,8 +27,11 @@ Anything imported from the fork (ND_FORK) is fair game to copy in here and modif
+ """
+ 
+ import math
++import multiprocessing
++import os
+ import random
+ import time
++from array import array
+ 
+ import torch
+ from lean_tok import MAXN  # fork
+@@ -98,30 +101,39 @@ MTP_WEIGHT = 0.3
+ # SOFTWARE.
+ @torch.no_grad()
+ def muon_step(params, buffers, lr):
+-    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only."""
+-    for p, momentum in zip(params, buffers, strict=True):
+-        if p.grad is None:
+-            continue
+-        momentum.lerp_(p.grad, 1 - MUON_MOMENTUM)
+-        update = p.grad.lerp(momentum, MUON_MOMENTUM).bfloat16()
++    """Nesterov momentum plus five bf16 Polar Express steps, on hidden matrices only. Same math
++    as a per-matrix loop, but the matrices are stacked by (transposed) shape, so the 30 matrices
++    run as 4 batched Newton-Schulz chains (28 of 384x384, 14 of 384x1280, head, MTP proj):
++    Newton-Schulz grows as D^3, and at D 384 one small matmul per matrix underfills the GPU."""
++    grads = [p.grad for p in params]
++    torch._foreach_lerp_(buffers, grads, 1 - MUON_MOMENTUM)
++    groups = {}  # (rows, cols) with rows <= cols -> [(param, update view, transposed?)]
++    for p, update in zip(params, torch._foreach_lerp(grads, buffers, MUON_MOMENTUM), strict=True):
+         # Only QKV has shape (3D, D) in this GPT; orthogonalize its roles separately.
+         if update.size(0) == 3 * update.size(1):
+-            update = update.reshape(3, update.size(1), update.size(1))
++            update = update.view(3, update.size(1), update.size(1))
++        else:
++            update = update[None]
+         transpose = update.size(-2) > update.size(-1)
+         if transpose:
+             update = update.mT
++        groups.setdefault(tuple(update.shape[-2:]), []).append((p, update, transpose))
++    torch._foreach_mul_(params, 1 - lr * MUON_WD)
++    for (rows, cols), members in groups.items():
++        update = torch.cat([u for _, u, _ in members]).bfloat16()  # (n, rows, cols)
+         update = update / (update.norm(dim=(-2, -1), keepdim=True) * (1 + 2e-2) + 1e-6)
+         for a, b, c in NS_COEFFS:
+             gram = update @ update.mT
+             polynomial = b * gram + c * gram @ gram
+             update = a * update + polynomial @ update
+-        if transpose:
+-            update = update.mT
+         # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
+         # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+-        update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
+-        p.mul_(1 - lr * MUON_WD)
+-        p.add_(update.reshape_as(p), alpha=-lr)
++        update *= (max(rows, cols) / D) ** 0.5
++        i = 0
++        for p, u, transpose in members:
++            piece = update[i : i + u.size(0)]
++            i += u.size(0)
++            p.add_((piece.mT if transpose else piece).reshape_as(p), alpha=-lr)
+ 
+ 
+ class PeriLNBlock(Block):
+@@ -240,25 +252,58 @@ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     return tot / VAL_N
+ 
+ 
+-def to_gpu(data, tok, device):
+-    """Pad all (prompt, proof) records once into (N, T) ids + proof mask on the device."""
+-    N, T = len(data), max(len(p) + len(q) for p, q in data)
+-    ids = torch.full((N, T), tok.pad, dtype=torch.long)
+-    mask = torch.zeros((N, T), dtype=torch.bool)
+-    ref_max = torch.zeros(
+-        N, dtype=torch.long
+-    )  # largest N<k> index used in the proof, for the shift augmentation
+-    for i, (p, q) in enumerate(data):
+-        ids[i, : len(p) + len(q)] = torch.tensor(p + q)
+-        mask[i, len(p) : len(p) + len(q)] = True
+-        ref_max[i] = max((x - tok.ref0 + 1 for x in q if x >= tok.ref0), default=0)
+-    return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
++_RECS = []  # train_recs, inherited by the forked tokenizer workers instead of pickled to them
++
++
++def encode_range(bounds):
++    """Tokenizer worker: records [lo, hi) of _RECS -> (all prompt+proof ids back to back, prompt
++    lengths, proof lengths) as raw bytes, which pickle far faster than lists of Python ints."""
++    lo, hi = bounds
++    tok = make_tokenizer(TOK_MODE)
++    flat, prompt_lens, proof_lens = array("h"), array("i"), array("i")
++    for r in _RECS[lo:hi]:
++        p, q = tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])
++        flat.extend(p)
++        flat.extend(q)
++        prompt_lens.append(len(p))
++        proof_lens.append(len(q))
++    return flat.tobytes(), prompt_lens.tobytes(), proof_lens.tobytes()
++
++
++def to_gpu(train_recs, tok, device):
++    """Tokenize all records and pad them once into (N, T) ids + proof mask on the device, plus
++    each record's largest N<k> index (for the shift augmentation) and length. The fork's
++    tokenizer is pure Python, ~15 s of the 300 s budget serially on the pod, so chunks of records
++    are encoded in forked worker processes and padded by one boolean scatter on the device."""
++    _RECS[:] = train_recs
++    bounds = [(lo, min(lo + 4096, len(train_recs))) for lo in range(0, len(train_recs), 4096)]
++    try:
++        with multiprocessing.get_context("fork").Pool(min(8, os.cpu_count() or 1)) as pool:
++            parts = pool.map_async(encode_range, bounds).get(timeout=60)
++    except Exception:  # no fork or a stuck worker: the same encoding, serially
++        parts = [encode_range(b) for b in bounds]
++    _RECS.clear()
++    flat, prompt_lens, proof_lens = (
++        torch.cat([torch.frombuffer(bytearray(part[k]), dtype=dtype) for part in parts])
++        .to(device)
++        .long()
++        for k, dtype in enumerate((torch.int16, torch.int32, torch.int32))
++    )
++    record_lens = prompt_lens + proof_lens
++    col = torch.arange(int(record_lens.max()), device=device)[None]
++    in_record = col < record_lens[:, None]
++    ids = torch.full(in_record.shape, tok.pad, dtype=torch.long, device=device)
++    ids[in_record] = flat  # row-major order: record by record, prompt then proof
++    mask = in_record & (col >= prompt_lens[:, None])
++    ref_max = torch.where(mask & (ids >= tok.ref0), ids - tok.ref0 + 1, 0).amax(1)
++    return ids, mask, ref_max, (ids != tok.pad).sum(1)
+ 
+ 
+ def token_batches(lens, n_train, gen, rng):
+     """One epoch of token-budget batches: a random permutation of the training records, stably
+     sorted by length (equal lengths stay shuffled), cut greedily into runs of consecutive records
+-    with count * max_len <= TOK_BUDGET, and the runs' order shuffled. Returns (order, cuts)."""
++    with count * max_len <= TOK_BUDGET, and the runs' order shuffled. Returns (order, cuts), each
++    cut (start, end, longest length) so the step loop never reads a length back from the GPU."""
+     perm = torch.randperm(n_train, device=lens.device, generator=gen) + VAL_N
+     order = perm[torch.argsort(lens[perm], stable=True)]
+     sorted_lens = lens[order].cpu()
+@@ -267,17 +312,16 @@ def token_batches(lens, n_train, gen, rng):
+         window = sorted_lens[s : s + TOK_BUDGET // int(sorted_lens[s])]
+         # count * max_len is non-decreasing along the window, so the fits form a prefix.
+         e = s + int((torch.arange(1, len(window) + 1) * window <= TOK_BUDGET).sum())
+-        cuts.append((s, e))
++        cuts.append((s, e, int(sorted_lens[e - 1])))
+         s = e
+     rng.shuffle(cuts)
+     return order, cuts
+ 
+ 
+-def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
++def gpu_batch(ids, mask, ref_max, idxs, T, tok, gen):
+     """The fork's batch() + tok.shift_abs, vectorised: a random per-row offset is added to
+-    every ref token."""
++    every ref token. T is the batch's longest record, known on the host."""
+     x, m = ids[idxs], mask[idxs]
+-    T = int(lens[idxs].max())
+     x, m = x[:, :T].clone(), m[:, :T]
+     if tok.mode in ("abs", "lean_seq"):  # lean_seq: names n1.. get the same start offset
+         room = MAXN - ref_max[idxs]
+@@ -294,8 +338,7 @@ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
+ def pretrain(train_recs, budget_secs, device, seed, log):
+     t0 = time.time()
+     tok = make_tokenizer(TOK_MODE)
+-    data = [(tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])) for r in train_recs]
+-    ids, mask, ref_max, lens = to_gpu(data, tok, device)
++    ids, mask, ref_max, lens = to_gpu(train_recs, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+@@ -310,7 +353,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
+     log(
+-        f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
++        f"pretrain: {model.n_params():,} params, {len(train_recs):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+@@ -320,12 +363,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    opt = torch.optim.AdamW(
++        auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=(device == "cuda")
++    )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     step, last_loss, records_seen = 0, float("nan"), 0
+     curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
+-    n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
++    n_train = len(train_recs) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+     order = torch.empty(0, dtype=torch.long, device=device)
+     while True:
+@@ -345,10 +390,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if not cuts:  # new epoch
+             order, cuts = token_batches(lens, n_train, gen, rng)
+             batches_per_epoch = len(cuts)
+-        s, e = cuts.pop()
++        s, e, T = cuts.pop()
+         idxs = order[s:e]
+         records_seen += e - s
+-        x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
++        x, m = gpu_batch(ids, mask, ref_max, idxs, T, tok, gen)
+         with autocast:
+             loss, main, aux = mtp_loss(model, mtp, x, m)
+         model.zero_grad(set_to_none=True)
