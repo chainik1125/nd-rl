@@ -1,0 +1,248 @@
+{
+  "id": "177-claude",
+  "slug": "lean-late-sam",
+  "written_at": "2026-09-26T02:12:12-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "c76ca4b",
+  "harness_sha": "3946cf746c20",
+  "pretrain_sha": "f4d1abdfa62f",
+  "patch_lines": 40,
+  "title": "Late-phase SAM (Foret et al. 2021; Zhou et al. 2025): sharpness-aware gradients at rho 0.05 over the last 25% of the pretraining wall-clock on 153-claude",
+  "description": "Idea ID: new, no backlog ID (nearest: the P45/P46 checkpoint-choice family and P41 noise; SAM is untried in the table). For the last 25% of the 300 s budget every step takes its gradient at w + 0.05 * g/||g|| (global L2 over model + MTP params, same batch, weights restored exactly before clip/AdamW/Muon), everything else and the handed-off 9,557,760-parameter model shape identical to 153-claude, so RL starts from a flatter minimum that should keep more of its proof skill under the harness's 4 x 600 AdamW fine-tuning steps and transfer better to the >=7-line proofs expert iteration has to reach.",
+  "tags": [
+    "optimizer",
+    "schedule",
+    "regularization"
+  ],
+  "hypothesis": "In-distribution fit has decoupled from the metric: 158 (width 448), 167 (12 heads) and 170 (statement ALiBi) all lowered val loss below 153's yet scored 11-13 lower, and 167 lost round-1 RL to 34-50% unparsable samples, so the binding property is how well the handoff model's skills survive the shift to longer proofs and RL's own AdamW updates, not how low pretraining loss gets. Flatness is the standard handle on both robustness to weight perturbation and generalization (Foret et al. 2021), and Zhou et al. (2025) show SAM switched on only late in training reaches nearly the flat minima of full SAM. The late window leaves the first 75% identical to 153 (its val loss plateaus by ~75 s, and 148's +56% steps bought only +1) and pays ~12% of steps for a flatter handoff. Whether flatness is what limits RL here is exactly what this tests. Risks: fewer steps; rho 0.05 may be too weak or too strong for Muon's orthogonalized updates at this weight scale; flatness may not be what limits RL.",
+  "p_keep": 0.15,
+  "expected_delta": "-35 to +30 theorems at >=7 (3-seed mean), central -2; keep needs > 687.00 (153's mean is likely lucky high; 160-claude's same-model systems run scored 673). Mechanism predictions: pretraining steps 3,700-4,250 per seed (central ~4,000; 153: 4,540/4,479/4,489), sam_steps 550-800 per seed (central ~680); sam_loss above train_loss at every SAM curve point, and the gap (sam_loss - train_loss) at the last curve point is no larger than at the first SAM point on >= 2 of 3 seeds (flatness rising), falsified as a mechanism if it grows on all three; final main val loss 0.078-0.095 (153: 0.088/0.087/0.089); held-out greedy 0.955-0.99 (153 s0: 0.9675); round-1 RL targets solved >= 153's 766/747/694 on >= 2 of 3 seeds if flatness helps shift, round-4 RL-solved 1,110-1,220 (153 s0: 1,157); totals 1,600-2,000 s; RL sampling unchanged at >= 220 samples/s (same shapes).",
+  "baseline_id": "153-claude",
+  "baseline_metric": 687,
+  "config": {
+    "arch": {
+      "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, unchanged from 151-claude except width; PeriLNBlock now replaces the fork Block's 4*D fc1/fc2 with Linear(D, D_FF)/Linear(D_FF, D), D_FF = 1280 (same as 151's 4*320)",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 (Press et al. 2021 standard set for 4 heads) and 0 for heads 5..8 (bias identically 0 except -inf for masked/future keys, i.e. NoPE heads); same slope table in every block; -inf for masked/future keys",
+      "ctx": 1024,
+      "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9557760,
+      "change": "vs 153-claude: none. Same ALiBiGPT/Peri-LN/hybrid-head model, same 9,557,760 parameters and handoff shapes; the only change is how the last 25% of pretraining computes its gradients (see sam).",
+      "n_params_detail": "model: 9,557,760 (CPU check with fork 51604b3, vocab 107; bench_pretrain on an A40 reported the same; per Peri-LN block 1,579,136 = qkv 443,520 + proj 147,840 + fc1 492,800 + fc2 491,904 + 4 LayerNorms 3,072; emb + head 82,176; ln_f 768). MTP module (pretraining only, never registered on the model, dropped at handoff as since 136-fable): 1,875,584; pretraining trains 11,433,344 in total, so unlike 151 the total is over 10M if the discarded MTP module were counted; the harness caps the handed-off model's parameters (9.56M), which is what RL and eval use",
+      "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 384, 8) from this pretrain.py with PeriLNBlock blocks (d_ff 1280), then load state; the MTP module is not saved and not needed for inference",
+      "kv_cache": "unchanged (caches[0] holds key positions); CPU check cached vs full forward max abs logit diff 1.4e-6 at width 384"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64,
+      "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+    },
+    "optimizer": {
+      "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight; AdamW on embeddings, biases and LayerNorms; the MTP module's five 2D matrices (block qkv split into Q/K/V, block proj, fc1, fc2, and the (384,768) input proj) join Muon and its LayerNorms/biases join AdamW (unchanged from 151); plus late-phase SAM gradients over the last 25% of the wall-clock (see sam)",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock, unchanged from 129/151: after the 200-step linear warmup, lr = 1e-3 * (0.3 + 0.35 * (1 + cos(pi * frac))), frac = elapsed / budget, ending at 0.3 x peak; Muon lr = 0.01 * lr / 1e-3 and its decoupled decay follow the same factor",
+      "warmup_steps": 200,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon": {
+        "lr": 0.01,
+        "momentum": 0.95,
+        "nesterov": true,
+        "newton_schulz_steps": 5,
+        "coefficients": [
+          [
+            8.156554524902461,
+            -22.48329292557795,
+            15.878769915207462
+          ],
+          [
+            4.042929935166739,
+            -2.808917465908714,
+            0.5000178451051316
+          ],
+          [
+            3.8916678022926607,
+            -2.772484153217685,
+            0.5060648178503393
+          ],
+          [
+            3.285753657755655,
+            -2.3681294933425376,
+            0.46449024233003106
+          ],
+          [
+            2.3465413258596377,
+            -1.7097828382687081,
+            0.42323551169305323
+          ]
+        ],
+        "normalization_epsilon": 1e-06,
+        "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+        "shape_scale": "sqrt(max(rows, columns) / D) with D = 384 per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 (1280,384) and fc2 (384,1280) sqrt(1280/384) = 1.83, head (107,384) 1, MTP proj (384,768) sqrt(2); MUON_LR 0.01 unchanged",
+        "wd": 0.1,
+        "schedule": "same warmup/cosine fraction as AdamW (floor 0.3, unchanged); muon_lr = 0.01 * adam_lr / 0.001",
+        "parameters": "6 x (qkv.weight (1152,384) split into Q/K/V, proj, fc1, fc2) plus head.weight, plus the MTP module's 5 matrices: 30 Muon matrices as in 148/151 (CPU check: muon_step runs over all 30)",
+        "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+        "license": "MIT; full copyright and permission notice retained in pretrain.py",
+        "qkv_split": "unchanged: each QKV update reshaped to (3,384,384), orthogonalized per role; fc1 (1280,384) is not (3D, D) so it is orthogonalized whole",
+        "active_window": "entire pretraining budget",
+        "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+        "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+        "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+      },
+      "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (ln1, ln2, + ln_attn_out, ln_mlp_out per block, and ln_f); head.weight and hidden matrices never enter pretraining AdamW. The new output-LayerNorm gains and biases get the same AdamW lr 1e-3 and wd 0.1 as every other LayerNorm",
+      "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale. Because decay is lr-scaled, the higher floor raises late-training per-step decay (endpoint 3x 115's); MUON_WD itself is unchanged at 0.1",
+      "clipping": "joint global gradient norm 1.0 over model.parameters() + the MTP module's parameters, before both optimizers (unchanged); during the SAM phase it clips the SAM gradient (the one taken at the perturbed point)",
+      "handoff": "standard GPT weights only; the MTP module and both pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW on model.parameters()",
+      "parameters": "24 trunk hidden matrices + head.weight, plus the MTP module's qkv (split), proj, fc1, fc2 and input proj (384,768): 30 Muon matrices during pretraining; the handoff model's parameters are 9,557,760"
+    },
+    "batch": {
+      "size": 136,
+      "padding": "to max len in batch (the batch's last, longest record); mean padded tokens per step ~18.3k of which ~18.3k real (>99% fill), vs the incumbent's ~51-54k padded slots for ~17.3k real tokens",
+      "buckets": true,
+      "tok_budget": 18432,
+      "change": "fairseq-style max-tokens batching replaces fixed 128 random records per step: per epoch, randperm the training records (GPU generator, seed), stable-argsort by total length so equal lengths stay shuffled, cut greedily into consecutive runs with count * max_len <= 18,432, then shuffle the run order with random.Random(seed). Loss is the same per-token mean over the batch's proof tokens; the shift augmentation, Muon/AdamW updates, warmup, clip and wall-clock cosine are unchanged. The val slice still uses fixed chunks of 128.",
+      "size_note": "variable: a run of length-sorted records with count * padded_length <= TOK_BUDGET = 18,432 tokens (128 x 144); on a synthetic length distribution matching mean ~135 / max 537 that is 33..921 records per batch, mean ~136, so ~1,130 batches per epoch (incumbent: 128 fixed, ~1,204 per epoch)"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+      "order": "shuffle at the record level each epoch, then length-homogeneous batches in shuffled order (data-order change: within a step all records have similar total length; across steps lengths are interleaved at random)",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": false,
+    "init": "unchanged rule from 148/151: fork _init (normal 0.02 embedding/readout, zero biases), orthogonal_ on every 2D block and MTP parameter with gain 0.02*sqrt(max(rows, cols)), so element std stays 0.02 at width 384; LayerNorm gain 1, bias 0",
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "loss": {
+      "main": "the fork's loss_on: next-token cross-entropy on proof-token positions (unchanged; val_loss and the recorded train_loss/last_loss use this term only, so they stay comparable with 129)",
+      "mtp": "DeepSeek-V3 (2024) sequential multi-token prediction, depth 1 (Gloeckle et al. 2024 style shared head): z_t = proj(cat(LN(h_t), LN(emb(x_{t+1})))) for t in 0..T-3, one Peri-LN causal block over z with the same ALiBi/NoPE bias sliced to T-2 positions, then the model's ln_f and head predict x_{t+2}; cross-entropy masked to proof-token targets (m[:, 2:]), mean over those positions",
+      "total": "main + MTP_WEIGHT * mtp with MTP_WEIGHT = 0.3 constant over the whole budget (DeepSeek-V3's early-training value); curve points also record the mean recent mtp loss as mtp_loss",
+      "leakage_check": "CPU check: perturbing token x[7] changes the MTP block's outputs only at positions 6..9 (which read emb(x[7]) or later), never at position 5 whose target is x[7]"
+    },
+    "bench": "bench_pretrain.py --secs 60 on one A40 (probe, not evidence; with the fractional window the 60 s bench runs SAM from 45 s): 596 steps in 60.3 s = 9.88 steps/s (153-claude's bench: 695 = 11.53 on a different pod), peak 7.42 GB (153: 7.42), n_params 9,557,760, train 0.0708 / val 0.0859 at 60 s, sampling 182 samples/s (153 bench: 179), sample_acc 0.028 (60 s model). If the pods matched, the 15 s SAM window ran ~133 steps vs ~232 for 153, a ~0.57x step rate.",
+    "sam": {
+      "method": "SAM (Foret et al. 2021), late phase only (Zhou et al. 2025, 'Sharpness-Aware Minimization Efficiently Selects Flatter Minima Late in Training')",
+      "window": "every step with wall-clock frac = elapsed / 300 s >= 1 - SAM_FRAC = 0.75, i.e. the last ~75 s, to the end of pretraining; steps before that are exactly 153-claude's",
+      "rho": 0.05,
+      "perturbation": "after the normal backward at w: eps = SAM_RHO * g / (||g||_2 + 1e-12), g and the global L2 norm over every trained parameter with a grad (model + MTP module, embeddings/LayerNorms/biases included); w += eps under no_grad, zero grads, second forward/backward of the SAME batch (same shift augmentation, same main + 0.3 * MTP loss, bf16 autocast) at w + eps, then every parameter is restored exactly from a clone (copy_, not subtraction). The .grad left for clip/AdamW/Muon is the gradient at w + eps",
+      "optimizers": "unchanged: the SAM gradient feeds the same clip 1.0, AdamW step and Muon momentum/Polar Express update; schedule, lr floor 0.3 and decays unchanged",
+      "cost": "two forward/backward passes per SAM step (~0.55x the step rate in the bench); nothing SAM-related persists into the handoff model, RL or eval",
+      "diagnostics": "stats.sam_steps counts SAM steps; each curve point records sam_loss = mean next-token CE at the perturbed point over the SAM steps sampled every 20 steps since the last point (null before the window); sam_loss - train_loss is a first-order sharpness proxy",
+      "code": "knobs SAM_FRAC, SAM_RHO = 0.25, 0.05; function sam_grads(); a 4-line hook between loss.backward() and the clip; curve/stats fields"
+    }
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 2400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rounds": 4,
+      "n_targets": 1500,
+      "rollouts_per_target": 32,
+      "temp": 0.8,
+      "max_new_tokens": 512,
+      "ft_steps": 600,
+      "ft_bs": 128,
+      "ft_lr": 0.0003,
+      "retain_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7",
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

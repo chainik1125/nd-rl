@@ -1,0 +1,99 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..0771772 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -74,6 +74,11 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Late-phase SAM (Foret et al. 2021; Zhou et al. 2025 find SAM selects flatter minima efficiently
++# when switched on only late in training): over the last SAM_FRAC of the wall-clock every step
++# uses the gradient at w + SAM_RHO * g / ||g|| (global L2 over all trained params), so the
++# handoff sits in a flatter region for the harness's RL fine-tuning. Two passes per such step.
++SAM_FRAC, SAM_RHO = 0.25, 0.05
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -226,6 +231,26 @@ def mtp_loss(model, mtp, x, m):
+     return main + MTP_WEIGHT * aux, main, aux
+ 
+ 
++def sam_grads(model, mtp, x, m, params, autocast):
++    """SAM ascent: given .grad from the pass at w, overwrite it with the gradient of the same
++    batch at w + SAM_RHO * g / ||g||, then restore w exactly. Returns the perturbed main loss."""
++    live = [p for p in params if p.grad is not None]
++    with torch.no_grad():
++        norm = torch.stack([p.grad.norm() for p in live]).norm()
++        backup = [p.detach().clone() for p in live]
++        for p in live:
++            p.add_(p.grad * (SAM_RHO / (norm + 1e-12)))
++    model.zero_grad(set_to_none=True)
++    mtp.zero_grad(set_to_none=True)
++    with autocast:
++        loss, main, _ = mtp_loss(model, mtp, x, m)
++    loss.backward()
++    with torch.no_grad():
++        for p, b in zip(live, backup, strict=True):
++            p.copy_(b)
++    return main
++
++
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     """Mean loss over the first VAL_N records (never trained on), no shift augmentation."""
+     model.eval()
+@@ -323,8 +348,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+-    step, last_loss, records_seen = 0, float("nan"), 0
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
++    step, last_loss, records_seen, sam_steps = 0, float("nan"), 0, 0
++    curve, recent, recent_aux, recent_sam, next_point = [], [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+     order = torch.empty(0, dtype=torch.long, device=device)
+@@ -354,6 +379,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         model.zero_grad(set_to_none=True)
+         mtp.zero_grad(set_to_none=True)
+         loss.backward()
++        sam_main = None
++        if frac >= 1 - SAM_FRAC:
++            sam_main = sam_grads(model, mtp, x, m, trainable, autocast)
++            sam_steps += 1
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+         muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
+@@ -361,6 +390,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+             recent_aux.append(aux.item())
++            if sam_main is not None:  # CE at the perturbed point; minus train_loss = sharpness
++                recent_sam.append(sam_main.item())
+         if (
+             time.time() - t0 >= next_point
+         ):  # curve point: mean recent train loss + val loss on the held-out slice
+@@ -371,13 +402,15 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+                     "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                    "sam_loss": sum(recent_sam) / len(recent_sam) if recent_sam else None,
+                 }
+             )
+             log(
+                 f"pretrain step {step} train {curve[-1]['train_loss']:.4f} "
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+-            recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++            recent, recent_aux, recent_sam = [], [], []
++            next_point += CURVE_EVERY
+     model.eval()
+     return (
+         model,
+@@ -388,6 +421,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "sam_steps": sam_steps,
+             "last_loss": last_loss,
+             "curve": curve,
+         },
