@@ -202,7 +202,13 @@ def push_checkpoints(name, attempts=3, retry_secs=30):
         try:
             up = subprocess.run(
                 ["hf", "upload", HF_REPO, local, f"runs/{name}", "--commit-message", f"Add {name}"],
-                env={**os.environ, "HF_HUB_DISABLE_PROGRESS_BARS": "1"},  # keep driver logs short
+                # From this Mac each Xet connection moves ~0.5 MB/s and adaptive concurrency
+                # settles near 1, so a seed's ~200 MB took ~3 min while its pod idled.
+                env={
+                    **os.environ,
+                    "HF_XET_FIXED_UPLOAD_CONCURRENCY": "8",
+                    "HF_HUB_DISABLE_PROGRESS_BARS": "1",  # keep driver logs short
+                },
             )
             if up.returncode == 0:
                 remote = hf_sha256([f"runs/{name}/{f}" for f in pts])
