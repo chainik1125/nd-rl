@@ -1,0 +1,19 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..ab7a037 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -37,10 +37,10 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-N_LAYER, D, N_HEAD = 6, 384, 8
+-# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+-# 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+-D_FF = 1280
++N_LAYER, D, N_HEAD = 6, 448, 8
++# MLP 2x (P25: residual width over MLP width at the 10M cap): the fork's Block hardcodes 4 * D,
++# so PeriLNBlock swaps fc1/fc2. 896 != 3 * D keeps muon_step's QKV-by-shape test valid.
++D_FF = 896
+ BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+ MUON_LR, MUON_MOMENTUM = 0.01, 0.95
+ # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
