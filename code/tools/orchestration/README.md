@@ -27,3 +27,21 @@ The driver stops (and notifies) on an authentication failure or three consecutiv
 Pods are attributed to runs by `ND_RUN_ID` (exported by `runrole`, recorded by `podnew`); `podrm` writes hours and dollars to `~/podhours.log`.
 
 Gate 3 (summary only from reviewed numbers) is the librarian's brief, not a script yet.
+
+## Starting a run, and keeping the disks from filling (2026-09-27)
+
+- `newrun <run-id> --brief FILE [--base dan] [--hours H --usd D] [--stop "…"]` — one step instead of
+  six: refuses if the host has < 10 GB free (and shows what `worktree_gc` could reclaim), creates the
+  worktree as a **sparse checkout** without earlier runs' `artifacts/<dir>/` trees (253 MB instead of
+  4.1 GB on `dan`), registers the pod budget, adds the orchestrator entry (reviewer and librarian
+  follow automatically), and launches the executor in tmux `ex-<run-id>`.
+- `worktree_gc` — reports each `~/work/<run>` as SAFE or KEEP with reasons. SAFE needs: nothing
+  running, librarian done, no modified tracked file, nothing unpushed, and every untracked file either
+  in the HF bucket (same path and size) or byte-identical in `~/nd-takehome`. `worktree_gc --delete`
+  removes only SAFE worktrees and is never run by cron: deleting is a person's decision.
+- `disk_watch` (cron, hourly) — notifies at 85 % (low) and 92 % (high) disk use, once per crossing,
+  with the SAFE list, and writes a line to `~/ALERTS.md` for agents.
+- `install.sh` installs every tool in this directory and rewrites the managed cron lines
+  (orchestrator, pod_watchdog, pod_budget_watch, balance_floor, disk_watch); it drops one-off dated
+  lines such as a leftover `killswitch`.
+

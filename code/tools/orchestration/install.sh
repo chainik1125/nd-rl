@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
-# Install the orchestration tools into ~/bin on the agent host and add the podnew log + cron tick.
+# Install (or update) every orchestration tool in this directory into ~/bin, and set the host's cron
+# guards. Safe to re-run at any time:
+#   - `install` writes each tool as a new file, so loops already running keep the copy they started with;
+#   - the managed cron lines below are rewritten, other lines are kept (balance_alert stays only where
+#     it already runs, so there is one daily balance message, not one per host), and one-off dated lines
+#     are dropped — e.g. the take-home night's `0 12 25 9 * killswitch`, which would re-fire every year.
 set -e; H=$(cd "$(dirname "$0")" && pwd); mkdir -p ~/bin ~/runs
-for t in runrole gate0 gate1 gate2 review_workspace orchestrator notify pod_watchdog podtoken killswitch; do install -m755 "$H/$t" ~/bin/$t; done
-grep -q "pods.log" ~/bin/podnew 2>/dev/null || sed -i 's|^printf "POD_ID=%s\\nPOD_IP=%s\\nPOD_PORT=%s\\n" "$ID" "$IP" "$PORT" > ~/.config/nd-rl/pods/$N|&; echo "$(date -u +%FT%TZ) $N $ID" >> ~/pods.log|' ~/bin/podnew
-( crontab -l 2>/dev/null | grep -v -e orchestrator -e pod_watchdog; echo "*/10 * * * * /home/dan/bin/orchestrator"; echo "*/15 * * * * /home/dan/bin/pod_watchdog" ) | crontab -
-echo "installed: $(ls ~/bin | tr '\n' ' ')"; crontab -l
+for f in "$H"/*; do t=$(basename "$f"); case "$t" in install.sh|README.md) continue;; esac; install -m755 "$f" ~/bin/"$t"; done
+CRON="*/10 * * * * $HOME/bin/orchestrator
+*/15 * * * * $HOME/bin/pod_watchdog
+*/10 * * * * $HOME/bin/pod_budget_watch
+17 * * * * $HOME/bin/balance_floor
+37 * * * * $HOME/bin/disk_watch"
+( crontab -l 2>/dev/null | grep -v -E "bin/(orchestrator|pod_watchdog|pod_budget_watch|balance_floor|disk_watch)$" \
+    | grep -v -E '^[0-9]+ [0-9]+ [0-9]+ [0-9]+ \* .*killswitch' || true; echo "$CRON" ) | crontab -
+echo "installed into ~/bin: $(ls "$H" | grep -v -x -e install.sh -e README.md | tr '\n' ' ')"; echo "crontab:"; crontab -l

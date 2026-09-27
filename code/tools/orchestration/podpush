@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Push one path from ~/nd-takehome to a pod (data/ckpts/artifacts). Usage: podpush <pod> <relpath>
+. ~/.config/nd-rl/env; N=$1; shift; F=~/.config/nd-rl/pods/$N; [ -f "$F" ] || { echo "no pod $N (podls to list, podnew to create)"; exit 1; }; . "$F"; SSHO="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ServerAliveInterval=30"
+[ -n "$1" ] || { echo "usage: podpush <pod> <relpath>"; exit 1; }
+ssh $SSHO -p "$POD_PORT" "root@$POD_IP" "mkdir -p /workspace/nd-takehome/$(dirname "$1")"
+exec rsync -rlptz --no-o --no-g -e "ssh $SSHO -p $POD_PORT" "$HOME/nd-takehome/$1" "root@$POD_IP:/workspace/nd-takehome/$1"

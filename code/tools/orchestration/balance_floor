@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Hourly: if the RunPod balance is below the floor, pull results, delete every pod, and notify. Prevents a stuck 402 state.
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; FLOOR=${FLOOR:-25}
+B=$(rpbalance 2>/dev/null); [ -n "$B" ] || exit 0
+if awk -v b="$B" -v f="$FLOOR" 'BEGIN{exit !(b<f)}'; then
+  [ -f ~/floor.fired ] && exit 0
+  notify "RunPod balance floor hit (\$$B < \$$FLOOR)" "Pulling results and deleting all pods on $(hostname). Runs will fail to create pods until the balance is topped up." high
+  killswitch --all; date -u +%FT%TZ > ~/floor.fired
+else rm -f ~/floor.fired; fi

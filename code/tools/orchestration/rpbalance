@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Print the RunPod account balance in USD (GraphQL myself.clientBalance).
+. ~/.config/nd-rl/env
+curl -s -X POST "https://api.runpod.io/graphql?api_key=$RUNPOD_API_KEY" -H "Content-Type: application/json" -d "{\"query\":\"{ myself { clientBalance spendLimit } }\"}" | jq -r ".data.myself.clientBalance"

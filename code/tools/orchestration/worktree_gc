@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Which finished run worktrees can go, and why the others must stay.
+#   worktree_gc            report every ~/work/<run>: size, SAFE or KEEP with the reasons
+#   worktree_gc --brief    SAFE worktrees only, one line each (used by disk_watch alerts)
+#   worktree_gc --delete   remove the worktrees reported SAFE (never anything else); run it deliberately
+# SAFE requires all of:
+#   - no tmux session and no live Claude process for the run;
+#   - its librarian finished (~/runs/<run>/librarian.done), i.e. executor, review and write-up are done;
+#   - no modified or added tracked file (deleted tracked files are fine: their content is in git) and
+#     no commit missing from origin;
+#   - every untracked file (checkpoints, pulled artifacts, data — git ls-files --others, ignored files
+#     included; __pycache__/*.pyc excepted) exists in the HF bucket with the same relative path and size,
+#     or byte-identical at the same path in the main checkout ~/nd-takehome, which removal never touches.
+# The branch itself is kept: removing a worktree deletes the checkout, not the history.
+# (2026-09-22: a manual cleanup deleted a run's checkpoints that had never been uploaded. This check
+# is the fix for that.)
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
+MODE=${1:-report}; M=~/nd-takehome; BUCKET=hf://buckets/dan-pandori/nd-rl
+IDX=$(mktemp); trap 'rm -f "$IDX"' EXIT
+# bucket index: "<size> <path under the run dir>" — any run dir counts, since worktrees hold checkpoints
+# pulled from other runs' directories.
+hf buckets ls -R "$BUCKET/" 2>/dev/null | awk '$1 ~ /^[0-9]+$/ {p=$NF; sub(/^[^\/]*\//,"",p); print $1, p}' | sort -u > "$IDX"
+[ -s "$IDX" ] || { echo "could not list $BUCKET (hf CLI logged in?) — refusing to judge anything SAFE"; exit 1; }
+for W in ~/work/*/; do
+  W=${W%/}; RUN=$(basename "$W"); why=()
+  tmux has-session -t "ex-$RUN" 2>/dev/null && why+=("executor session running")
+  tmux ls 2>/dev/null | grep -qE "^(rev|lib)-$RUN:" && why+=("reviewer/librarian session running")
+  pgrep -f "[c]laude -p.*Run id: $RUN\." >/dev/null && why+=("live Claude process")
+  [ -f ~/runs/"$RUN"/librarian.done ] || why+=("librarian not done")
+  mod=$(git -C "$W" status --porcelain --untracked-files=no 2>/dev/null | grep -cvE '^( D|D ) ')
+  [ "$mod" = 0 ] || why+=("$mod modified/added tracked file(s)")
+  up=$(git -C "$W" rev-parse --abbrev-ref '@{u}' 2>/dev/null) || up=""
+  if [ -z "$up" ]; then why+=("branch has no upstream"); else
+    n=$(git -C "$W" rev-list --count "$up..HEAD" 2>/dev/null || echo 1); [ "$n" = 0 ] || why+=("$n commit(s) not pushed"); fi
+  miss=0; ex=""
+  while IFS= read -r f; do
+    case "$f" in *__pycache__/*|*.pyc) continue;; esac
+    sz=$(stat -c %s "$W/$f" 2>/dev/null) || continue
+    grep -qxF "$sz $f" "$IDX" && continue
+    [ -f "$M/$f" ] && { [ "$W/$f" -ef "$M/$f" ] || cmp -s "$W/$f" "$M/$f"; } && continue
+    miss=$((miss+1)); [ ${#ex} -lt 160 ] && ex="$ex $f"
+  done < <(git -C "$W" ls-files --others 2>/dev/null)
+  [ "$miss" = 0 ] || why+=("$miss untracked file(s) not in the bucket, e.g.$ex")
+  size=$(du -sh "$W" 2>/dev/null | cut -f1)
+  if [ ${#why[@]} = 0 ]; then
+    [ "$MODE" = --brief ] && echo "$RUN $size" || echo "SAFE  $RUN ($size)"
+    if [ "$MODE" = --delete ]; then
+      git -C "$M" worktree remove --force "$W" && echo "      removed $W (branch $(git -C "$M" rev-parse --abbrev-ref "dan_$RUN" 2>/dev/null || echo kept) kept)"
+    fi
+  elif [ "$MODE" != --brief ]; then
+    echo "KEEP  $RUN ($size): $(IFS=';'; echo "${why[*]}")"
+  fi
+done
+[ "$MODE" = --delete ] && git -C "$M" worktree prune
+[ "$MODE" = --brief ] || echo "disk: $(df -h --output=avail "$HOME" | tail -1 | tr -d ' ') free on $(hostname)"

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Create and harden a new agent VPS on DigitalOcean. Usage: newvps <name> [size] [region]
+# Needs DIGITALOCEAN_ACCESS_TOKEN in ~/.config/nd-rl/env and the laptop/VPS public key registered in DO.
+set -e; . ~/.config/nd-rl/env; export PATH="$HOME/.local/bin:$PATH"
+N=$1; SIZE=${2:-s-2vcpu-4gb}; REGION=${3:-sfo2}; [ -n "$N" ] || { echo "usage: newvps <name> [size] [region]"; exit 1; }
+KEYS=$(doctl compute ssh-key list --format ID --no-header | paste -sd, -)
+doctl compute droplet create "$N" --size "$SIZE" --region "$REGION" --image ubuntu-24-04-x64 --ssh-keys "$KEYS" --wait --format ID,PublicIPv4 --no-header
+IP=$(doctl compute droplet get "$N" --format PublicIPv4 --no-header)
+end=$((SECONDS+180)); until ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=8 root@$IP true 2>/dev/null; do [ $SECONDS -ge $end ] && { echo "ssh timeout $IP"; exit 1; }; sleep 10; done
+ssh -o BatchMode=yes root@$IP 'set -e; adduser --disabled-password --gecos "" dan; usermod -aG sudo dan; install -d -m700 -o dan -g dan /home/dan/.ssh; install -m600 -o dan -g dan /root/.ssh/authorized_keys /home/dan/.ssh/authorized_keys; echo "dan ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-dan; chmod 440 /etc/sudoers.d/90-dan
+fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile >/dev/null && swapon /swapfile && echo "/swapfile none swap sw 0 0" >> /etc/fstab
+printf "PermitRootLogin no\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n" > /etc/ssh/sshd_config.d/99-hardening.conf; sshd -t && systemctl reload ssh
+ufw allow OpenSSH >/dev/null && ufw --force enable >/dev/null
+export DEBIAN_FRONTEND=noninteractive; apt-get update -qq; apt-get install -y -qq git tmux curl wget make jq rsync >/dev/null
+mkdir -p -m755 /etc/apt/keyrings; wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg > /etc/apt/keyrings/githubcli-archive-keyring.gpg; chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list; apt-get update -qq; apt-get install -y -qq gh >/dev/null
+curl -sSL https://cli.runpod.net | bash >/dev/null 2>&1'
+ssh -o BatchMode=yes dan@$IP 'curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1; curl -fsSL https://claude.ai/install.sh | bash >/dev/null 2>&1; export PATH=$HOME/.local/bin:$PATH; uv tool install -q "huggingface_hub[cli]"; mkdir -p ~/bin ~/.config/nd-rl/pods; chmod 700 ~/.config/nd-rl; grep -q "local/bin" ~/.bashrc || echo "export PATH=\"\$HOME/.local/bin:\$HOME/bin:\$PATH\"" >> ~/.bashrc; grep -q "nd-rl/env" ~/.bashrc || echo "[ -f ~/.config/nd-rl/env ] && . ~/.config/nd-rl/env" >> ~/.bashrc; claude --version'
+scp -q ~/bin/pod* ~/bin/killswitch ~/bin/rpbalance ~/bin/balance_alert ~/.config/nd-rl/env dan@$IP:~/bin/ 2>/dev/null || true
+ssh -o BatchMode=yes dan@$IP 'mv ~/bin/env ~/.config/nd-rl/env 2>/dev/null; chmod 600 ~/.config/nd-rl/env; chmod +x ~/bin/*'
+echo "VPS $N ready at $IP as dan. Still needed by hand: claude login (run claude), gh auth login --with-token, claude plugin install runpod@runpod, clone repos."

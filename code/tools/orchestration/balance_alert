@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Daily: record balance; write an ALERT line to ~/ALERTS.md when below $50.
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+B=$(rpbalance 2>/dev/null); [ -n "$B" ] || exit 0
+echo "$(date -u +%FT%TZ) balance=$B" >> ~/balance.log
+awk -v b="$B" "BEGIN{exit !(b<50)}" && { echo "- $(date -u +%F) ALERT: RunPod balance \$$B is below \$50 — Dan should top up" >> ~/ALERTS.md; notify "RunPod balance low" "Balance \$$B is below \$50 — please top up" high; }

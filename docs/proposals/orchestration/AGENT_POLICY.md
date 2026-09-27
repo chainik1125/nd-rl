@@ -70,6 +70,14 @@ useful" are all fair questions.
 - **Claude usage:** roles share Dan's Max 20x subscription; there will be no API keys (Dan,
   2026-09-23, cost). Keep the working context small (see the executor brief). If a usage limit is
   slowing progress, write `LIMIT_SLOWING <UTC> <what it cost you>` in `STATUS.md`.
+- **Disk.** Run worktrees are made by `newrun` as sparse checkouts: earlier runs' `artifacts/<dir>/`
+  trees are not checked out (≈ 4 GB saved per run). Read an old artifact with
+  `git show HEAD:artifacts/<dir>/<file>`, or check a directory out with
+  `git sparse-checkout add /artifacts/<dir>/`. Write only under your run's own `artifacts/<dir>/`.
+  Never edit another run's files or shared `data/` in place — some are hard links shared across
+  worktrees and read-only; write a new file instead, and never `chmod` them writable. Local disk is
+  scratch: upload as you go, and check `df -h` and `~/ALERTS.md` between stages (`disk_watch` writes
+  there at 85 % and 92 %).
 - VPS: 4 GB / 2 vCPU. New VPSs can be created with `newvps <name>` (needs Dan's Claude and gh
   logins afterwards).
 

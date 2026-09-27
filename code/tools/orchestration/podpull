@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Pull one path from a pod back to ~/nd-takehome. Usage: podpull <pod> <relpath>
+. ~/.config/nd-rl/env; N=$1; shift; F=~/.config/nd-rl/pods/$N; [ -f "$F" ] || { echo "no pod $N (podls to list, podnew to create)"; exit 1; }; . "$F"; SSHO="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ServerAliveInterval=30"
+[ -n "$1" ] || { echo "usage: podpull <pod> <relpath>"; exit 1; }
+mkdir -p "$HOME/nd-takehome/$(dirname "$1")"
+exec rsync -rlptz --no-o --no-g -e "ssh $SSHO -p $POD_PORT" "root@$POD_IP:/workspace/nd-takehome/$1" "$HOME/nd-takehome/$1"

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Start a detached background job on a pod. Usage: podbg <pod> <logname> "<command>"   (log -> artifacts/<logname>.log)
+N=$1; L=$2; shift 2
+timeout 60 podrun "$N" "mkdir -p artifacts && setsid nohup bash -c '$*' > artifacts/$L.log 2>&1 < /dev/null & disown; sleep 1; echo started $L"
