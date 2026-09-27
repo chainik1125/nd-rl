@@ -264,3 +264,15 @@ branch), not on a `dan_<slug>` branch merged afterward, and was pod-cheap by des
 budget, most of the work CPU-only on the VPS) — it does not change the balance-floor picture DS11
 described. Not in any row: the take-home baseline, run4-grpo's and run1-lean's pods, and
 `lean-only` (proposal 9, in review).
+
+| **stage1-dynamics** (follow-up to Dan's reading of the noise-floor training curves: does Stage 1 saturate at 6,000 steps, when is a depth-3 run's mode decided, does WSD differ from cosine at equal steps, is a training gain from steps or repetition, is per-length validation loss a usable proxy — arms C/W/W-6k/W-12k/W-24k/F plus addendum 1's ten same-command replicates (arm R) and addendum 2's pass@8 probe) | 2026-09-27 18:05–21:13 UTC | four **NVIDIA A40, real billed $0.49/h** (`sd-4` billed $0.93 for 1.8964 h; all deleted after use, per `log.md`) | **8.74** (`podbudget stage1-dynamics`; `~/podhours.log`) | **$4.29** (`podbudget stage1-dynamics`: 8.74 h × $0.49/h) | 30 h / $15 registered before the first pod (briefly raised to 60 h / $30 mid-run at 17:54Z, reset to 30 h / $15 at 18:32Z; `~/podbudget.log`); pre-registration `preregistration/stage1-dynamics.md` (`5fddcc7`, committed 18:05:40Z, 10 min before the first pod), addendum 1 (`2ea21a8`, 18:30:46Z) and addendum 2 (`680dca3`/`05c6dd0`, 20:17:39Z) both committed before the outcomes they cover | reviewed (`review_stage1-dynamics.md`, §Recount `8f47cb9`, §Compare/§Verdict `48170ed`; recommendation "accept, with twelve rewordings and one gap to close"). No hard-constraint violation, nothing quarantined; 733 counted proofs (the five arms that store literal text) independently re-verified in Lean, 0 rejections, after 197 negative controls; **one open gap** — arm R, which every cross-run claim in the run rests on, was evaluated without `--texts` and so is not independently re-checkable from stored literal text (remedy: a $0.10, no-training re-run of ten checkpoints) |
+
+Update 2026-09-27 21:20 UTC (stage1-dynamics processed): **$144.04** (`log.md`, post-pod-deletion
+reading; no live `rpbalance` call by this librarian), no pods running. Week 39 (2026-09-21 → 09-27)
+to date by these rows: **≈ $174.3** (lean-format ≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77,
+ds-composition ≈ $70, ds-rendering $16.01, ds-generator ≈ $48.0, cap-horizon $12.52,
+noise-floor $13.88, lean-judge $0.32, **stage1-dynamics $4.29**). Cumulative by rows since
+2026-09-15: **≈ $337.0**. This run happened on the fork's `dan_stage1-dynamics` branch (a worktree
+from the fork's own `dan`, per the brief), which has not been fast-forwarded into the fork's `dan` —
+same pattern as `cap-horizon`. Not in any row: the take-home baseline, run4-grpo's and run1-lean's
+pods, and `lean-only` (proposal 9, in review).
