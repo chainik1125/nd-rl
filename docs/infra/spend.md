@@ -251,3 +251,16 @@ cap-horizon, plus noise-floor's $13.88). **Proposal 11 is now complete**: both r
 $177.80 balance at authorisation; live balance now $151.21, ≈ $21 above the floor even ignoring
 the ≈ $34 of headroom the authorisation itself left unused). Not in any row: the take-home
 baseline, run4-grpo's and run1-lean's pods, and `lean-only` (proposal 9, in review).
+
+| **lean-judge** (implements the 2026-09-27 update of the Lean-default decision note, proposal 9's follow-on: Lean alone judges every new run's in-loop gate, expert-iteration relabelling, coverage, GRPO and evaluation, `nd_verify` retired to a reproduce-old-numbers-only role) | 2026-09-27 17:15–18:35 | `lj1`, one **NVIDIA A40 $0.49/h** (created ≈17:33Z, deleted 18:35Z) — most of the run was CPU-only, on the VPS | **0.6631** (`~/podhours.log`) | **$0.32** (`podbudget lean-judge`: 0.6631 h × $0.49/h) | ≤ 8 pod-hours / $4 (`preregistration/lean-judge.md`, `579ee16`, committed 17:20:43Z, 18 min before the first pod) | reviewed (`review_lean-judge.md`, phase 1 `0b14a38` / phase 2 `be03514`; recommendation "accept, with six rewordings and one regression to fix"). No hard-constraint violation, nothing quarantined; every acceptance-test number reproduces under a strictly stronger checker (positive per-theorem verdict, not absence-of-error) run over whole populations — 281,817/281,817 zero regressions, 1,195/1,195 of the "excluded" records also accepted, 0 disagreements on 11,946 literal-text re-checks — but the reviewer finds pitfall 2 (hindsight relabelling) is a **regression this run introduces**, not a closed pitfall: the new gate's `LEANREJ ` marker now blocks the loop's own relabelling before it looks at the rewritten theorem, so it rescues 0 of 187 round candidates instead of the reported 166 |
+
+Update 2026-09-27 20:37 UTC (lean-judge processed): **$150.91 (`log.md`, post-pod-deletion reading;
+no live `rpbalance` call by this librarian)**, no pods running. Week 39 (2026-09-21 → 09-27) to date
+by these rows: **≈ $170.0** (lean-format ≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77,
+ds-composition ≈ $70, ds-rendering $16.01, ds-generator ≈ $48.0, cap-horizon $12.52,
+noise-floor $13.88, **lean-judge $0.32**). Cumulative by rows since 2026-09-15: **≈ $332.7**. This
+run happened on the fork `dan-pandori/nd-takehome`'s own `dan` branch (its current integration
+branch), not on a `dan_<slug>` branch merged afterward, and was pod-cheap by design (a $4 / 8 h
+budget, most of the work CPU-only on the VPS) — it does not change the balance-floor picture DS11
+described. Not in any row: the take-home baseline, run4-grpo's and run1-lean's pods, and
+`lean-only` (proposal 9, in review).
