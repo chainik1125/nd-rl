@@ -35,7 +35,9 @@ Gate 3 (summary only from reviewed numbers) is the librarian's brief, not a scri
   worktree as a **sparse checkout** without earlier runs' `artifacts/<dir>/` trees (253 MB instead of
   4.1 GB on `dan`), registers the pod budget, adds the orchestrator entry (reviewer and librarian
   follow automatically), and launches the executor in tmux `ex-<run-id>`.
-- `worktree_gc` — reports each `~/work/<run>` as SAFE or KEEP with reasons. SAFE needs: nothing
+- `worktree_gc` — reports each `~/work/<run>` worktree and each `~/review/<run>` reviewer copy as SAFE
+  or KEEP with reasons, and how much removing it actually frees (files with no other hard link;
+  `du` on one directory overstates it). Reviewer copies were the largest consumer on VPS1: 16.5 GB. SAFE needs: nothing
   running, librarian done, no modified tracked file, nothing unpushed, and every untracked file either
   in the HF bucket (same path and size) or byte-identical in `~/nd-takehome`. `worktree_gc --delete`
   removes only SAFE worktrees; `--min-age-hours N` also requires the run to have finished ≥ N hours
