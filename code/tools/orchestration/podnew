@@ -7,7 +7,7 @@ OUT=$(runpodctl pod create --name "$N" --template-id uhf9wr47j6 --gpu-id "${POD_
 ID=$(printf "%s" "$OUT" | grep -oE "pod [a-z0-9]{14}" | head -1 | cut -d" " -f2); [ -n "$ID" ] || ID=$(printf "%s" "$OUT" | jq -r ".id // empty" 2>/dev/null)
 [ -n "$ID" ] || { echo "create failed: $OUT"; exit 1; }
 INFO=$(runpodctl ssh info "$ID"); IP=$(printf "%s" "$INFO" | jq -r .ip); PORT=$(printf "%s" "$INFO" | jq -r .port)
-printf "POD_ID=%s\nPOD_IP=%s\nPOD_PORT=%s\nRUN=%s\nCREATED=%s\nGPU=%s\n" "$ID" "$IP" "$PORT" "${ND_RUN_ID:-unknown}" "$(date -u +%FT%TZ)" "${POD_GPU:-NVIDIA A40}" > ~/.config/nd-rl/pods/$N; echo "$(date -u +%FT%TZ) $N $ID ${ND_RUN_ID:-unknown}" >> ~/pods.log
+printf "POD_ID=%q\nPOD_IP=%q\nPOD_PORT=%q\nRUN=%q\nCREATED=%q\nGPU=%q\n" "$ID" "$IP" "$PORT" "${ND_RUN_ID:-unknown}" "$(date -u +%FT%TZ)" "${POD_GPU:-NVIDIA A40}" > ~/.config/nd-rl/pods/$N; echo "$(date -u +%FT%TZ) $N $ID ${ND_RUN_ID:-unknown}" >> ~/pods.log
 S="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ConnectTimeout=10 -p $PORT root@$IP"
 end=$((SECONDS+600)); until $S true 2>/dev/null; do [ $SECONDS -ge $end ] && { echo "ssh never accepted key for $N ($ID)"; exit 1; }; sleep 10; done
 podtoken "$N" >/dev/null 2>&1 || true; $S "mkdir -p /workspace/nd-takehome"; echo "pod $N ready: $ID $IP:$PORT (gpu ${POD_GPU:-NVIDIA A40})"

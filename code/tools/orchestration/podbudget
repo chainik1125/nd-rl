@@ -9,11 +9,12 @@
 # ~/podbudget.log. Used hours = live pods' age + ~/podhours.log for deleted pods.
 . ~/.config/nd-rl/env 2>/dev/null; export PATH="$HOME/.local/bin:$PATH"
 L=~/.config/nd-rl/limits; mkdir -p "$L"
-rate() { case "$1" in *A100*) echo 1.59;; *H100*) echo 3.49;; *A40*) echo 0.49;; *3090*) echo 0.50;; *4090*) echo 0.74;; *) echo 0.50;; esac; }
+rate() { case "$1" in *A100*) echo 1.59;; *H100*) echo 3.49;; *A40*) echo 0.49;; *3090*) echo 0.50;; *4090*) echo 0.74;; *A6000*) echo 0.53;; *) echo 0.50;; esac; }
 used_hours() { # <run> -> hours, dollars
   local run=$1 h=0 d=0 now; now=$(date -u +%s)
   for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] || continue
-    local RUN="" CREATED="" GPU=""; . "$f"
+    # Read, never source: a pod file is data, and an unquoted value (GPU=NVIDIA A40) executes.
+    local RUN CREATED GPU; RUN=$(sed -n 's/^RUN=//p' "$f"); CREATED=$(sed -n 's/^CREATED=//p' "$f"); GPU=$(sed -n 's/^GPU=//p' "$f" | tr -d "\\'\"")
     [ "${RUN:-}" = "$run" ] || continue
     local t0; t0=$(date -u -d "${CREATED:-$(date -u +%FT%TZ)}" +%s 2>/dev/null || echo "$now")
     local dh; dh=$(awk -v a="$now" -v b="$t0" 'BEGIN{printf "%.4f",(a-b)/3600}')
@@ -32,7 +33,7 @@ show() { local run=$1 HOURS="" USD=""; [ -f "$L/$run" ] && . "$L/$run"
 RUN=$1; shift 2>/dev/null
 if [ -z "${RUN:-}" ]; then
   for f in "$L"/*; do [ -f "$f" ] && show "$(basename "$f")"; done
-  for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] && { RUNX=""; . "$f"; [ -n "${RUNX:-}" ] && :; }; done; exit 0
+  exit 0
 fi
 case "${1:-}" in
   --set) H=$2; U=${3:-}; printf "HOURS=%s\nUSD=%s\n" "$H" "$U" > "$L/$RUN"; echo "$(date -u +%FT%TZ) $RUN set HOURS=$H USD=$U" >> ~/podbudget.log; show "$RUN";;

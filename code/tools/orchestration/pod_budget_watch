@@ -5,11 +5,10 @@ L=~/.config/nd-rl/limits; [ -d "$L" ] || exit 0
 for f in "$L"/*; do
   [ -f "$f" ] || continue; RUN=$(basename "$f"); HOURS=""; USD=""; . "$f"; [ -n "${HOURS:-}" ] || continue
   set -- $(podbudget "$RUN" | awk '{print $3, $5}' | tr -d '$'); used=${1:-0}; dollars=${2:-0}
-  npods=0; for p in ~/.config/nd-rl/pods/*; do [ -f "$p" ] || continue; RUN2=""; . "$p"; [ "${RUN2:-$RUN}" = "$RUN" ] 2>/dev/null; done
-  live=$(grep -l "RUN=$RUN" ~/.config/nd-rl/pods/* 2>/dev/null | wc -l); [ "$live" -gt 0 ] || continue
+  live=$(grep -lx "RUN=$RUN" ~/.config/nd-rl/pods/* 2>/dev/null | wc -l); [ "$live" -gt 0 ] || continue
   if awk -v u="$used" -v h="$HOURS" 'BEGIN{exit !(u>=h)}'; then
     notify "$RUN: pod-hour ceiling reached ($used / $HOURS h, \$$dollars)" "Deleting this run's $live pod(s). The run may extend with: podbudget $RUN --extend <h> \"reason\"" high
-    for p in $(grep -l "RUN=$RUN" ~/.config/nd-rl/pods/* 2>/dev/null); do n=$(basename "$p")
+    for p in $(grep -lx "RUN=$RUN" ~/.config/nd-rl/pods/* 2>/dev/null); do n=$(basename "$p")
       for path in artifacts numbers.md log.md STATUS.md; do timeout 600 podpull "$n" "$path" >/dev/null 2>&1 || true; done
       podrm "$n" >/dev/null 2>&1 || true; done
     echo "$(date -u +%FT%TZ) $RUN ENFORCED at $used/$HOURS h" >> ~/podbudget.log
