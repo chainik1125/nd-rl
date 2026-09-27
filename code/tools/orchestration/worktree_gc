@@ -2,7 +2,8 @@
 # Which finished run worktrees can go, and why the others must stay.
 #   worktree_gc            report every ~/work/<run>: size, SAFE or KEEP with the reasons
 #   worktree_gc --brief    SAFE worktrees only, one line each (used by disk_watch alerts)
-#   worktree_gc --delete   remove the worktrees reported SAFE (never anything else); run it deliberately
+#   worktree_gc --delete   remove the worktrees reported SAFE (never anything else)
+#   --min-age-hours N      also require the librarian to have finished ≥ N hours ago (disk_watch uses 24)
 # SAFE requires all of:
 #   - no tmux session and no live Claude process for the run;
 #   - its librarian finished (~/runs/<run>/librarian.done), i.e. executor, review and write-up are done;
@@ -15,7 +16,9 @@
 # (2026-09-22: a manual cleanup deleted a run's checkpoints that had never been uploaded. This check
 # is the fix for that.)
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
-MODE=${1:-report}; M=~/nd-takehome; BUCKET=hf://buckets/dan-pandori/nd-rl
+MODE=report; MINAGE=0
+while [ $# -gt 0 ]; do case $1 in --brief|--delete) MODE=$1; shift;; --min-age-hours) MINAGE=$2; shift 2;; *) echo "unknown arg $1"; exit 1;; esac; done
+M=~/nd-takehome; BUCKET=hf://buckets/dan-pandori/nd-rl
 IDX=$(mktemp); trap 'rm -f "$IDX"' EXIT
 # bucket index: "<size> <path under the run dir>" — any run dir counts, since worktrees hold checkpoints
 # pulled from other runs' directories.
@@ -26,7 +29,9 @@ for W in ~/work/*/; do
   tmux has-session -t "ex-$RUN" 2>/dev/null && why+=("executor session running")
   tmux ls 2>/dev/null | grep -qE "^(rev|lib)-$RUN:" && why+=("reviewer/librarian session running")
   pgrep -f "[c]laude -p.*Run id: $RUN\." >/dev/null && why+=("live Claude process")
-  [ -f ~/runs/"$RUN"/librarian.done ] || why+=("librarian not done")
+  LD=~/runs/"$RUN"/librarian.done
+  if [ ! -f "$LD" ]; then why+=("librarian not done")
+  elif [ "$MINAGE" != 0 ] && [ $(( ($(date +%s) - $(stat -c %Y "$LD")) / 3600 )) -lt "$MINAGE" ]; then why+=("finished < ${MINAGE} h ago"); fi
   mod=$(git -C "$W" status --porcelain --untracked-files=no 2>/dev/null | grep -cvE '^( D|D ) ')
   [ "$mod" = 0 ] || why+=("$mod modified/added tracked file(s)")
   up=$(git -C "$W" rev-parse --abbrev-ref '@{u}' 2>/dev/null) || up=""

@@ -38,9 +38,12 @@ Gate 3 (summary only from reviewed numbers) is the librarian's brief, not a scri
 - `worktree_gc` — reports each `~/work/<run>` as SAFE or KEEP with reasons. SAFE needs: nothing
   running, librarian done, no modified tracked file, nothing unpushed, and every untracked file either
   in the HF bucket (same path and size) or byte-identical in `~/nd-takehome`. `worktree_gc --delete`
-  removes only SAFE worktrees and is never run by cron: deleting is a person's decision.
-- `disk_watch` (cron, hourly) — notifies at 85 % (low) and 92 % (high) disk use, once per crossing,
-  with the SAFE list, and writes a line to `~/ALERTS.md` for agents.
+  removes only SAFE worktrees; `--min-age-hours N` also requires the run to have finished ≥ N hours
+  ago.
+- `disk_watch` (cron, hourly) — at ≥ 85 % disk use, runs `worktree_gc --delete --min-age-hours 24`
+  and logs to `~/disk_watch.log`; if usage is still ≥ 85 %, writes one line a day to `~/ALERTS.md` for
+  agents. It does not notify Dan (his choice, 2026-09-27, when he also authorised the automatic
+  deletion of SAFE worktrees).
 - `install.sh` installs every tool in this directory and rewrites the managed cron lines
   (orchestrator, pod_watchdog, pod_budget_watch, balance_floor, disk_watch); it drops one-off dated
   lines such as a leftover `killswitch`.

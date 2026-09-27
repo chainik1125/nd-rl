@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# Cron (hourly): warn before this host's disk fills. Twice a full disk has broken a run here (a
-# worktree checkout on agent2, 2026-09-22; VPS1 at 96 % the same week). Notifies once per level
-# crossed — 85 % (low priority) and 92 % (high) — with what worktree_gc says could be reclaimed, and
-# adds a line to ~/ALERTS.md, which agents are told to read. Resets when usage falls back.
+# Cron (hourly): keep this host's disk from filling without needing a person. A full disk has broken
+# runs here twice (a worktree checkout on agent2, 2026-09-22; VPS1 at 96 % the same week). At ≥ 85 %
+# use it removes the worktrees `worktree_gc` judges SAFE and whose run finished ≥ 24 h ago (work
+# pushed, every untracked file in the bucket or identical in ~/nd-takehome). If usage is still ≥ 85 %
+# afterwards it writes one line a day to ~/ALERTS.md, which agents read, so they send large outputs
+# to the bucket. It does not notify Dan (his choice, 2026-09-27). Log: ~/disk_watch.log.
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
-pct=$(df --output=pcent "$HOME" | tail -1 | tr -dc 0-9); avail=$(df -h --output=avail "$HOME" | tail -1 | tr -d ' ')
-S=~/.disk_watch.level; last=$(cat "$S" 2>/dev/null || echo 0)
-lvl=0; [ "$pct" -ge "${DISK_WARN_PCT:-85}" ] && lvl=1; [ "$pct" -ge "${DISK_HIGH_PCT:-92}" ] && lvl=2
-if [ "$lvl" -gt "$last" ]; then
-  safe=$(worktree_gc --brief 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-  msg="$avail free. Safe to remove (worktree_gc --delete): ${safe:-none}. Largest in ~/work: $(du -sh ~/work/*/ 2>/dev/null | sort -rh | head -3 | awk '{sub(/.*\/work\//,"",$2); printf "%s %s ", $2, $1}')"
-  notify "$(hostname): disk ${pct}% used" "$msg" "$([ "$lvl" = 2 ] && echo high || echo low)"
-  echo "$(date -u +%FT%TZ) DISK $(hostname) ${pct}% used, $avail free — write large outputs to the bucket, not local disk" >> ~/ALERTS.md
+T=${DISK_RECLAIM_PCT:-85}; pct() { df --output=pcent "$HOME" | tail -1 | tr -dc 0-9; }
+p=$(pct); [ "$p" -ge "$T" ] || exit 0
+{ echo "$(date -u +%FT%TZ) ${p}% used (threshold ${T}%): reclaiming"; worktree_gc --delete --min-age-hours 24; } >> ~/disk_watch.log 2>&1
+p=$(pct); echo "$(date -u +%FT%TZ) now ${p}% used" >> ~/disk_watch.log
+if [ "$p" -ge "$T" ] && ! grep -q "^$(date -u +%F).*DISK $(hostname)" ~/ALERTS.md 2>/dev/null; then
+  echo "$(date -u +%FT%TZ) DISK $(hostname) ${p}% used after reclaiming finished worktrees — write large outputs to the bucket, not local disk" >> ~/ALERTS.md
 fi
-echo "$lvl" > "$S"

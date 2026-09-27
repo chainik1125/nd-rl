@@ -76,8 +76,8 @@ useful" are all fair questions.
   `git sparse-checkout add /artifacts/<dir>/`. Write only under your run's own `artifacts/<dir>/`.
   Never edit another run's files or shared `data/` in place — some are hard links shared across
   worktrees and read-only; write a new file instead, and never `chmod` them writable. Local disk is
-  scratch: upload as you go, and check `df -h` and `~/ALERTS.md` between stages (`disk_watch` writes
-  there at 85 % and 92 %).
+  scratch: upload as you go, and check `df -h` and `~/ALERTS.md` between stages (at 85 % use, `disk_watch`
+  removes finished, fully uploaded worktrees and writes there if that is not enough).
 - VPS: 4 GB / 2 vCPU. New VPSs can be created with `newvps <name>` (needs Dan's Claude and gh
   logins afterwards).
 
