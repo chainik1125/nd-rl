@@ -112,9 +112,17 @@ def ssh_args(st):
 
 
 def ssh_run(st, cmd, check=True):
-    return subprocess.run(
-        ["ssh", *ssh_args(st), "bash", "-lc", shlex.quote(cmd)], check=check
-    ).returncode
+    """Exit 255 is ssh itself failing (this Mac's network drops); retry, callers' commands are
+    idempotent."""
+    rc = 255
+    for _ in range(5):
+        rc = subprocess.run(["ssh", *ssh_args(st), "bash", "-lc", shlex.quote(cmd)]).returncode
+        if rc != 255:
+            break
+        time.sleep(15)
+    if check and rc:
+        raise subprocess.CalledProcessError(rc, cmd)
+    return rc
 
 
 def run_detached(st, cmd, out, retry_secs=10, give_up_secs=1800):
