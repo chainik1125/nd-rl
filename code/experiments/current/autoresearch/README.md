@@ -35,6 +35,7 @@ So:
 | `params.py`, `record.py`, `table.py` | no | pre-register (params.json + patch), record results.json, regenerate RESULTS.md |
 | `pools.py`, `pools/<fork>.json` | no | pool sizes and proof-length histograms per fork commit, copied into every params.json |
 | `results/<NNN>_<slug>/` | written by the agent via the scripts | `params.json` + `pretrain.patch` before the run, `results.json` after |
+| `holdout.py`, `score_holdout.py`, `score_holdout.sh` | no | offline: score HF `final.pt` checkpoints on the transfer holdout across many pods, write `results/<run>/holdout.json` (the dashboard's pink dots; the loop never reads it) |
 
 Artifacts land in `artifacts/autoresearch/<id>/` (gitignored):
 

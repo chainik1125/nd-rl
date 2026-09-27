@@ -8,13 +8,13 @@
 <style>
   :root {
     --bg: #fafaf9; --fg: #1c1917; --muted: #78716c; --grid: #e7e5e4;
-    --keep: #16a34a; --discard: #a8a29e; --fail: #dc2626; --base: #2563eb; --rl: #d97706;
+    --keep: #16a34a; --discard: #a8a29e; --fail: #dc2626; --base: #2563eb; --rl: #d97706; --holdout: #db2777;
     --anthropic: #c2613f; --openai: #475569;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #1c1917; --fg: #f5f5f4; --muted: #a8a29e; --grid: #3a3532;
-      --keep: #4ade80; --discard: #78716c; --fail: #f87171; --base: #60a5fa; --rl: #fbbf24;
+      --keep: #4ade80; --discard: #78716c; --fail: #f87171; --base: #60a5fa; --rl: #fbbf24; --holdout: #f472b6;
       --anthropic: #e8875f; --openai: #94a3b8;
     }
   }
@@ -37,7 +37,9 @@
      <b style="color: var(--openai)">OpenAI (Codex)</b>.
      Circles = Codex, squares = Claude Opus (041 on; earlier runs are circles), Claude Fable: triangles up = fable,
      down = fable2, wide diamonds = fable3 (from 2026-09-25), blue line = the bar to beat,
-     amber diamonds = RL targets solved by the last round, faint marks = individual seeds.</p>
+     amber diamonds = RL targets solved by the last round,
+     <b style="color: var(--holdout)">pink dots</b> = transfer-holdout theorems solved ≥ 7 by final.pt
+     (the other half of the dev pool; the loop never sees it, scored offline), faint marks = individual seeds.</p>
   <p id="asof"></p>
   <p id="tally"></p>
 
@@ -85,6 +87,7 @@ function hover(run) {
     `<b>${run.id} ${run.slug}</b> · ${run.status}${run.model ? ` · ${run.model}` : ""}`,
     `dev ${count(run.metric, run.n_dev)}${seeds(run.seed_metrics)}${delta}`,
     `RL targets ${count(run.metric_rl, run.n_targets)}${seeds(run.seed_metric_rl)}`,
+    run.holdout_metric == null ? "" : `holdout ${count(run.holdout_metric, run.n_holdout)}${seeds(run.seed_holdout)}`,
     wrap(run.title),
     `<i>${run.tags.join(", ")} · ${run.budget}</i>`,
     run.hypothesis ? "<br><b>Hypothesis</b><br>" + wrap(run.hypothesis) : "",
@@ -198,6 +201,12 @@ fetch("data.json").then(r => r.json()).then(({ runs, as_of, fetch_error }) => {
           color: rs.map(color), line: { width: 2.5, color: rs.map(company) },
         },
       },
+      // Holdout last, so it sits on top of the dev marker it usually overlaps (similar %).
+      { ...seedPoints("seed_holdout", "n_holdout"), mode: "markers", hoverinfo: "text",
+        marker: { size: 6, color: css("--holdout"), opacity: 0.4 } },
+      { x: labels, y: rs.map(r => pct(r.holdout_metric, r.n_holdout)), mode: "markers",
+        hovertext: hovers, hoverinfo: "text",
+        marker: { size: 9, color: css("--holdout"), line: { width: 1.5, color: css("--bg") } } },
     ], layout, config);
   }
 

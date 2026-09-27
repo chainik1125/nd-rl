@@ -90,6 +90,8 @@ def load_runs() -> list[dict[str, object]]:
         params = json.loads(files[run]["params.json"])
         # A pre-registered run has params.json but no results.json until record.py runs.
         results = json.loads(files[run].get("results.json", "{}"))
+        # Transfer-holdout score of final.pt, scored offline by holdout.py; absent for most runs.
+        holdout = json.loads(files[run].get("holdout.json", "{}"))
         budget = params["protocol"]["budget"]
         runs.append(
             {
@@ -122,6 +124,9 @@ def load_runs() -> list[dict[str, object]]:
                 "lean_gate": results.get("lean_gate"),
                 "total_secs": results.get("total_secs"),
                 "recorded_at": results.get("recorded_at"),
+                "holdout_metric": holdout.get("holdout_metric"),
+                "seed_holdout": holdout.get("seed_holdout"),
+                "n_holdout": holdout.get("n"),
             }
         )
     return runs

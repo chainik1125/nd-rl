@@ -29,7 +29,9 @@ import urllib.request
 
 API = "https://api.runpod.io/graphql"
 IMAGE = os.environ.get("ND_POD_IMAGE", "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04")
-GPU = "NVIDIA A40"
+# ND_POD_GPU: comma-separated GPU types, tried in order (offline eval fans out past A40 stock).
+GPUS = os.environ.get("ND_POD_GPU", "NVIDIA A40").split(",")
+GPU = GPUS[0]
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCAL_ART = os.path.join(
     HERE, "..", "..", "..", "..", "artifacts", "autoresearch"
@@ -62,11 +64,18 @@ def gql(query, key):
 
 
 def create(key, name, pubkey, cloud):
+    for gpu in GPUS:
+        if pod := create_one(key, name, pubkey, cloud, gpu):
+            return pod
+    return None
+
+
+def create_one(key, name, pubkey, cloud, gpu):
     q = (
         "mutation { podFindAndDeployOnDemand(input: {"
         f"cloudType: {cloud}, gpuCount: 1, volumeInGb: 0, containerDiskInGb: 40, "
         "minVcpuCount: 4, minMemoryInGb: 16, "
-        f'gpuTypeId: "{GPU}", name: "{name}", imageName: "{IMAGE}", ports: "22/tcp", '
+        f'gpuTypeId: "{gpu}", name: "{name}", imageName: "{IMAGE}", ports: "22/tcp", '
         'volumeMountPath: "/workspace", '
         f'supportPublicIp: true, env: [{{key: "PUBLIC_KEY", value: "{pubkey}"}}]'
         "}) { id costPerHr } }"
@@ -352,8 +361,10 @@ def main():
             ).decode()  # ssh stdin gets eaten by the login shell
         ssh_run(
             st,
+            # Only the watchdog goes to the background: `a && b &` backgrounds the whole list, whose
+            # subshell holds the ssh channel open until the watchdog fires (`up` hung 90 min).
             f"echo {b64} | base64 -d > /tmp/watchdog.sh && "
-            f"nohup setsid bash /tmp/watchdog.sh {max_secs} > /tmp/wd.log 2>&1 < /dev/null &",
+            f"{{ nohup setsid bash /tmp/watchdog.sh {max_secs} > /tmp/wd.log 2>&1 < /dev/null & }}",
         )
         upload(st, pretrain_file)
         ssh_run(
