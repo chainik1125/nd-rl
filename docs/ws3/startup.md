@@ -67,7 +67,9 @@ GPU or checkpoint exists. Steps 12 onward need the pod.
     reloads from `hf_base/`, and the first evaluator numbers on the real checkpoint are in:
     next-token accuracy 97.8 percent on 1,000 heldout records (T1 gate passes), textbook 5 of 72
     at k=2 with 0 of 43 at reference length 7 or more. Exp-00 proper (the full five parts and a
-    reviewer session) is the next thing to run.
+    reviewer session) is the next thing to run. These numbers, and exp-00's, are for the old
+    `share_pretrain_4l_seed0` checkpoint; the fixed checkpoint changed on 2026-09-23 (plan
+    section 1a) and they must be recomputed on the new one.
 
 ### GPU
 
@@ -76,7 +78,7 @@ GPU or checkpoint exists. Steps 12 onward need the pod.
 13. **T1 checkpoint.** Load `pretrain.pt` with the pinned fork and compute the numbers the
     export did not ship: next-token accuracy and loss on the fork's `heldout.jsonl`, greedy solve
     rate by length. Gate: about 95 percent next-token accuracy. The export trained for only
-    300 seconds (last loss 0.070), so treat a failure as a real stop-and-ask, not a bug.
+    300 seconds (last loss 0.059), so treat a failure as a real stop-and-ask, not a bug.
 14. **Baseline** (`baseline.json`): greedy pass rate by length 2 to 10, pass at 32 by length at
     temperature 1.0, `validation_36` solves. This is the frozen control for every later claim and
     already gives graph 1 with no RL.
@@ -116,6 +118,9 @@ Also to be mirrored in `docs/ws3/questions.md` once it exists.
   with Dan's fork at the pinned commit as its code (plan section 1a). `CLAUDE.md` still says
   "take-home defaults" for the fixed components; that wording should be updated to name this
   lineage so agents do not reach for the vendored Dmitry code.
+  **Superseded 2026-09-23:** the fixed checkpoint is now
+  `runs/039_muon-adamw-finish-5pct_s1/pretrain.pt` (same lineage and architecture, Muon
+  optimizer; evidence in plan section 1a).
 - Decided 2026-09-22: the textbook test set is the 72 problems on
   `origin/dmitry/cap-comparison-textbook-eval-data` (plan section 1a). Merge that branch into
   `charles/main` in step 5. `validation_36` is reported alongside, with the overlap stated.

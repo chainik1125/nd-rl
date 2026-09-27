@@ -101,3 +101,88 @@ quarantine rule's literal wording is met and the decision is Charles's.
 
 **What is next.** Charles reads `review.md`, decides on the test-file overlap (see
 `questions.md`), then merges `charles/exp-00-local-check` into `charles/main`. Then the pod.
+
+## 2026-09-23 fixed checkpoint switched to Robbie's Muon export
+
+**What changed.** Charles decided to replace `share_pretrain_4l_seed0/pretrain.pt` with
+`runs/039_muon-adamw-finish-5pct_s1/pretrain.pt` from `robbiethompson2018/nd-rl-checkpoints`
+(sha256 `418af3f9…`, seed 1). `CLAUDE.md`, `plan.md` section 1a, and `startup.md` updated. The
+separate repo `robbiethompson2018/nd-rl-autoresearch-034-muon` returned 401 with our token; the
+same runs are mirrored in `nd-rl-checkpoints`.
+
+**Why.** Same architecture (3,210,240 params), tokenizer, data, fork pin, and 300 s budget; only
+the optimizer differs (Muon on block matrices, AdamW finish for the last 5%). On Robbie's harness
+(functionally identical across the s20 and Muon runs), dev solved after his 4-round EI is
+264 / 291 / 254 for 039 vs 122 / 133 / 76 for the old recipe, and the untouched pretrain's
+round-1 sample accuracy is 0.034 to 0.048 vs 0.009 to 0.027. Seed 1 is the best 039 seed on that
+metric. Not yet evaluated on the 72 textbook problems.
+
+**What is next.** Not done yet, needs a code change: `code/ws3/fork_pin/MANIFEST.json` (checkpoint
+path, URL, sha256), `fork_pin/checkpoint_source/` (summary, `pretrain.py`, run README), and
+`fork_pin/README.md` still pin the old checkpoint, so `fetch.sh --verify` and gate B will fail
+once `ckpt/pretrain.pt` is replaced. Then rerun exp-00's baseline parts (T1 gate, heldout greedy,
+textbook 72, `rl_targets` pass@32) on the new checkpoint; exp-00's numbers are for the old one.
+
+**Open questions.** Is the dev-metric seed pick acceptable, or should the textbook baseline be run
+on all three 039 seeds first?
+
+## 2026-09-24 fork_pin repinned to the Muon checkpoint
+
+**What ran.** Commit `71b4879`: `fork_pin/MANIFEST.json`, `checkpoint_source/`, and
+`fork_pin/README.md` now pin `runs/039_muon-adamw-finish-5pct_s1/pretrain.pt`. The old
+`ckpt/pretrain.pt` was replaced through `fetch.sh`; `fetch.sh --verify` passes (13/13) and all 24
+ws3 tests pass on the new weights. Also: `plan.md` rewritten shorter, `rl_methods_brainstorm.md`
+added, empty `notes.md` and `spend.md` created.
+
+**What is next.** Rerun the baseline parts of exp-00 (T1 gate, heldout greedy, textbook 72,
+`rl_targets` pass@32) on the new checkpoint as a new experiment; exp-00's numbers are for the old one.
+
+## 2026-09-25 RL methods coded, not run
+
+**What ran.** No experiments. Code only, on `charles/main`'s working tree (not committed):
+`code/ws3/rl/` (advantage transforms, adaptive prompt sampler, `WS3GRPOTrainer`, expert
+iteration driver), `code/ws3/configs/presets/` (one YAML per method, combined with the new
+`include:` key in `run.py`), a pass@k curve and distinct-proof count in the evaluator, and an
+`unparseable_reward` option in `ProofReward`. `tests/test_ws3_rl.py` checks the transforms
+against brute-force enumeration and runs CPU plumbing smokes of GRPO (virtual_positive, unlikely,
+curriculum) and a 2-round EI; all 44 ws3 tests pass. Also: `rl_methods_brainstorm.md` got a
+"why not PPO" section and a literature and Tinker scan (sections K, L).
+
+**What was learned.** TRL 1.13 computes GRPO advantages inline with no hook, so the transforms
+replace `advantages` after `_generate_and_score_completions`. TRL 1.13's SFT default
+`loss_type="chunked_nll"` needs an HF backbone our wrapper lacks; EI uses `loss_type="nll"`.
+MaxRL and W-REINFORCE formulas were checked against the papers.
+
+**What is next.** Rerun the exp-00 baseline on the new checkpoint, now with `pass_at_k` (set
+textbook and long-pool k to 256 if the budget allows). Then each method needs a proposal.md
+before it runs.
+
+**Open questions.** Commit this to `charles/main` or an `exp-` branch? Hint/prefix methods and
+the Tinker spend (see brainstorm, end of section K/L) still need Charles.
+
+## 2026-09-27 headline metric switched to avg solve rate (pass@1)
+
+**What changed.** Charles decided pass@k at large k cannot carry a capability claim. The headline is
+now the avg solve rate: each problem's fraction of verified samples, averaged over problems.
+Added to `code/ws3/eval/`: `metrics.py` (avg CI, reliable fraction, frontier, k50, AUROC,
+per-problem base vs RL with new-capability / sharpened / lost counts), `progress.py`
+(`valid_prefix`), `variants.py` (renamings and premise orders, consistency). `evaluator.py`
+reports all of these; `run.py` evaluates textbook variants (`eval.variants`), scores known proofs
+under both models, and its report leads with the avg. Plan section 5 rewritten around these.
+
+**Checks.** `valid_prefix` agrees with the verifier on every one of the 36,816 exp-00 attempts:
+all 13,891 accepted proofs fully valid, all 19,870 rule-stage rejections on the same line, all
+187 structural rejections on the same or an earlier line. 59 ws3 tests pass, including the smoke
+run through all four stages.
+
+**Open questions.** Variants default to m=4 renamings/premise orders at k=16; revisit the cost once
+pod throughput is known. Uncommitted work from 2026-09-25 (`ws3/rl/`, presets, reward and run.py
+changes) sits in the same working tree and was built on, not reviewed.
+
+**Later the same day: review of the 2026-09-25 RL code.** `rl/`, presets, EI, and
+`unparseable_reward` reviewed; solid, smoke-tested only. Fixed: expert iteration now has its own
+plan section 4 metric set (it had failed gate B on 8 GRPO-only metrics), and the report checks the
+set matching `run.algo`; the curriculum's fallback no longer samples lengths the ladder has not
+unlocked; EI refuses `unparseable_reward` instead of ignoring it. Still open: banning the test-file
+renaming classes before exp-01, and whether exp-01 keeps `loss_type: grpo` or moves to `dapo`.
+60 ws3 tests pass.

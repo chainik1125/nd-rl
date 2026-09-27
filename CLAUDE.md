@@ -3,8 +3,10 @@ You are working for Charles in the NDRL repo. The project studies capability eme
 **Before starting any task, read `docs/ws3/plan.md`.** It has the task sequence, gates, required metrics, and deliverables. Then read the latest entries in `docs/ws3/log.md` to see where the last session stopped. This is a scrappy signs-of-life phase. Prefer the quickest path to a trustworthy graph over clean infrastructure.
 
 ## Fixed, do not change
-- Pre-trained model: Robbie's pre-training-only checkpoint
-  `hf://robbiethompson2018/nd-rl-checkpoints/runs/share_pretrain_4l_seed0/pretrain.pt`. Its
+- Pre-trained model: Robbie's pre-training-only Muon checkpoint
+  `hf://robbiethompson2018/nd-rl-checkpoints/runs/039_muon-adamw-finish-5pct_s1/pretrain.pt`
+  (sha256 `418af3f9…`, see
+  `docs/ws3/plan.md` section 1a). Its
   tokenizer (`abs` mode), model (`GPT`, 4 layers, d 256, 8 heads), splits, and RL prompt pools
   come from Dan's fork `dan-pandori/nd-takehome` at commit `ab629c7d`, vendored and hash-pinned
   in `code/ws3/fork_pin/` (run its `fetch.sh` once). Nothing else from that fork is used. Do not
