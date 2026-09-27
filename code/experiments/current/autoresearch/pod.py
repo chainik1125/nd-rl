@@ -15,6 +15,7 @@ Adapted from pretrain_poc/pod.py, which rented one pod per run. Needs RUNPOD_API
 logged in with write access to HF_REPO.
 """
 
+import base64
 import hashlib
 import json
 import os
@@ -37,6 +38,16 @@ REMOTE = "/workspace/autoresearch"
 HF_REPO = "robbiethompson2018/nd-rl-checkpoints"  # the one HF repo for nd-rl; runs/<name>/
 
 
+def post_json(req):
+    """This Mac's network resets connections now and then: retry with backoff, last try raises."""
+    for attempt in range(4):
+        try:
+            return json.load(urllib.request.urlopen(req, timeout=60))
+        except (OSError, json.JSONDecodeError):
+            time.sleep(10 * (attempt + 1))
+    return json.load(urllib.request.urlopen(req, timeout=60))
+
+
 def gql(query, key):
     req = urllib.request.Request(
         f"{API}?api_key={key}",
@@ -44,7 +55,7 @@ def gql(query, key):
         data=json.dumps({"query": query}).encode(),
         headers={"Content-Type": "application/json", "User-Agent": "curl/8.7.1"},
     )
-    out = json.load(urllib.request.urlopen(req))
+    out = post_json(req)
     if "errors" in out:
         raise SystemExit(json.dumps(out["errors"], indent=2))
     return out["data"]
@@ -154,7 +165,7 @@ def upload(st, pretrain_file):
     (sweep variants)."""
     ssh = "ssh " + " ".join(ssh_args(st))
     subprocess.run(
-        f"tar czf - -C {shlex.quote(HERE)} remote.sh harness.py watchdog.sh "
+        f"tar czf - -C {shlex.quote(HERE)} remote.sh harness.py "
         f'| {ssh} "mkdir -p {REMOTE} && tar xzf - -C {REMOTE}"',
         shell=True,
         check=True,
@@ -317,11 +328,20 @@ def main():
             time.sleep(5)
         else:
             raise SystemExit("ssh never accepted the key")
-        upload(st, pretrain_file)
-        # Self-destruct: pods are torn down only by this machine, so if it sleeps or loses the
-        # network (2026-09-26: a bench pod idled ~8.5 h) the pod deletes itself after this long.
+        # Self-destruct, started before anything else can fail: pods are torn down only by this
+        # machine, so if it sleeps or loses the network (2026-09-26: a bench pod idled ~8.5 h)
+        # the pod deletes itself after this long.
         max_secs = int(os.environ.get("ND_POD_MAX_SECS", 5400))
-        ssh_run(st, f"nohup setsid bash {REMOTE}/watchdog.sh {max_secs} > /tmp/wd.log 2>&1 &")
+        with open(os.path.join(HERE, "watchdog.sh"), "rb") as script:
+            b64 = base64.b64encode(
+                script.read()
+            ).decode()  # ssh stdin gets eaten by the login shell
+        ssh_run(
+            st,
+            f"echo {b64} | base64 -d > /tmp/watchdog.sh && "
+            f"nohup setsid bash /tmp/watchdog.sh {max_secs} > /tmp/wd.log 2>&1 < /dev/null &",
+        )
+        upload(st, pretrain_file)
         ssh_run(
             st,
             f"cd {REMOTE} && bash remote.sh /tmp/warm --help > /dev/null 2>&1; "

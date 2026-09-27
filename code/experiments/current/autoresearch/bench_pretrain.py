@@ -50,6 +50,10 @@ print("BENCH " + json.dumps({
     "train_loss": curve[-1].get("train_loss"), "val_loss": curve[-1].get("val_loss"),
     "samples": samp["samples"], "samples_per_sec": round(samp["samples_per_sec"]),
     "sample_acc": round(sum(r["n_ok"] for r in rows) / samp["samples"], 4),
+    "torch": torch.__version__,
+    "curve_steps": [[c.get("secs"), c.get("step")] for c in (stats or {}).get("curve") or []],
+    "dynamo": {k: dict(v) for k, v in torch._dynamo.utils.counters.items()
+               if k in ("stats", "recompiles")},
 }))
 """
 
