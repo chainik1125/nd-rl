@@ -107,6 +107,8 @@ def ssh_args(st):
         "LogLevel=ERROR",
         "-o",
         "ServerAliveInterval=30",
+        "-o",
+        "ConnectTimeout=20",
         f"root@{st['ip']}",
     ]
 
@@ -116,7 +118,9 @@ def ssh_run(st, cmd, check=True):
     idempotent."""
     rc = 255
     for _ in range(5):
-        rc = subprocess.run(["ssh", *ssh_args(st), "bash", "-lc", shlex.quote(cmd)]).returncode
+        # stdin from /dev/null: newer images' login profile reads stdin and would block forever
+        argv = ["ssh", *ssh_args(st), "bash", "-lc", shlex.quote(cmd)]
+        rc = subprocess.run(argv, stdin=subprocess.DEVNULL).returncode
         if rc != 255:
             break
         time.sleep(15)
@@ -149,6 +153,7 @@ def run_detached(st, cmd, out, retry_secs=10, give_up_secs=1800):
         )
         proc = subprocess.Popen(
             ["ssh", *ssh_args(st), "bash", "-lc", shlex.quote(follow)],
+            stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -331,7 +336,8 @@ def main():
         with open(STATE, "w") as f:
             json.dump(st, f)
         for _ in range(60):
-            if subprocess.run(["ssh", *ssh_args(st), "true"], capture_output=True).returncode == 0:
+            probe = ["ssh", *ssh_args(st), "true"]
+            if subprocess.run(probe, capture_output=True, stdin=subprocess.DEVNULL).returncode == 0:
                 break
             time.sleep(5)
         else:
@@ -364,7 +370,7 @@ def main():
         rc = run_detached(
             st, f"bash {REMOTE}/remote.sh {out} " + " ".join(map(shlex.quote, args)), out
         )
-        ssh = "ssh " + " ".join(ssh_args(st))
+        ssh = "ssh -n " + " ".join(ssh_args(st))  # -n: stdin from /dev/null
         pulled = False
         for _ in range(10):  # the pull can hit the same network drops as the stream
             pulled = (

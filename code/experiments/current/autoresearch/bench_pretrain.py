@@ -96,6 +96,7 @@ def main() -> None:
             ],
             capture_output=True,
             text=True,
+            stdin=subprocess.DEVNULL,  # newer images' login profile would block reading stdin
         )
         lines = [line for line in out.stdout.splitlines() if line.startswith("BENCH ")]
         if not lines:
