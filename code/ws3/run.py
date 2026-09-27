@@ -38,7 +38,7 @@ import torch
 import yaml
 
 # isort: split
-from data import build_prompt_set, load_pool, load_textbook72, stride
+from data import eval_records, load_pool, load_textbook72, periodic_long, stride, train_prompts
 from eval import (
     compare_problems,
     evaluate_pool,
@@ -151,6 +151,11 @@ def git_commit():
         return None
 
 
+def cfg_dir(cfg):
+    """Directory of the experiment's config; prompt and eval files are relative to it."""
+    return os.path.dirname(cfg["run"]["config_path"])
+
+
 def write_json(path, obj):
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with open(path, "w") as f:
@@ -245,7 +250,7 @@ def common_evals(model, tok, cfg, d, seed):
         print("textbook by slice:", out["textbook"]["by_slice"], flush=True)
     lp = e.get("long", {})
     if lp:
-        recs = stride(load_pool("rl_targets"), int(lp.get("n_prompts", 200)))
+        recs = eval_records(lp, "rl_targets", cfg_dir(cfg))
         out["long_pool"] = evaluate_pool(
             model,
             tok,
@@ -371,7 +376,7 @@ def stage_train(cfg):
     base_dir = save_base(model, tok, os.path.join(out_dir, "hf_base"))
 
     p = tr["prompt"]
-    prompts = build_prompt_set(p["length_weights"], int(p["n_prompts"]), seed=run["seed"])
+    prompts = train_prompts(p, run["seed"], cfg_dir(cfg))
     with open(os.path.join(out_dir, "prompts.jsonl"), "w") as f:
         for r in prompts:
             f.write(json.dumps(r) + "\n")
@@ -394,7 +399,7 @@ def stage_train(cfg):
     ev = tr.get("periodic_eval", {})
     if ev.get("every"):
         held = stride(load_pool("heldout"), int(ev.get("n_heldout", 100)))
-        longp = stride(load_pool("rl_targets"), int(ev.get("n_long", 50)))
+        longp = periodic_long(ev, cfg_dir(cfg))
         callbacks.append(
             PeriodicEvalCallback(
                 metrics_path,

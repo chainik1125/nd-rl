@@ -1,0 +1,5 @@
+# exp-00c GRPO arm, lr 1e-4
+include: [base.yaml]
+run: {out_dir: ../run_lr1e-4}
+train:
+  trainer: {learning_rate: 1.0e-4}

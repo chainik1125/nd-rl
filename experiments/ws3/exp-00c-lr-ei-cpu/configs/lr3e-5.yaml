@@ -1,0 +1,5 @@
+# exp-00c GRPO arm, lr 3e-5 (replaces the 1e-3 arm; see proposal.md)
+include: [base.yaml]
+run: {out_dir: ../run_lr3e-5}
+train:
+  trainer: {learning_rate: 3.0e-5}

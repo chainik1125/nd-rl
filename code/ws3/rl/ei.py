@@ -11,6 +11,8 @@ are the same as for GRPO, and `final/` holds the last round's model.
       ei:
         rounds: 3
         k: 32                        samples per prompt per round
+        samples_total: null          if set, k = round(samples_total / (rounds x prompts)), to
+                                     match another run's number of samples
         temperature: 1.0
         max_new: 400
         batch_size: 256              generation batch
@@ -40,7 +42,7 @@ import time
 import torch
 
 # isort: split
-from data import banned_keys, build_prompt_set, key_of, load_pool, stride
+from data import banned_keys, key_of, load_pool, periodic_long, stride, train_prompts
 from eval.evaluator import generate, judge, utc_now
 from eval.reward import is_unparseable
 from hf_wrapper import load_pretrained_wrapper, save_base
@@ -168,11 +170,14 @@ def train_ei(cfg, environment_record, write_json):
     base_dir = save_base(model, tok, os.path.join(out_dir, "hf_base"))
     ft = Tokenizer(tok.tok_mode)
     p = tr["prompt"]
-    prompt_recs = build_prompt_set(p["length_weights"], int(p["n_prompts"]), seed=run["seed"])
+    prompt_recs = train_prompts(p, run["seed"], os.path.dirname(run["config_path"]))
     with open(os.path.join(out_dir, "prompts.jsonl"), "w") as f:
         for r in prompt_recs:
             f.write(json.dumps(r) + "\n")
     prompts = [r["prompt"] for r in prompt_recs]
+    if ei.get("samples_total"):
+        # Match another run's sample budget: k per prompt per round from the total.
+        ei["k"] = max(1, round(int(ei["samples_total"]) / (int(ei["rounds"]) * len(prompts))))
     banned = banned_keys() if ei["replay_frac"] > 0 else set()
 
     metrics_path = os.path.join(out_dir, "metrics.jsonl")
@@ -187,7 +192,7 @@ def train_ei(cfg, environment_record, write_json):
     ev = tr.get("periodic_eval", {})
     if ev.get("every"):
         held = stride(load_pool("heldout"), int(ev.get("n_heldout", 100)))
-        longp = stride(load_pool("rl_targets"), int(ev.get("n_long", 50)))
+        longp = periodic_long(ev, os.path.dirname(run["config_path"]))
         periodic = PeriodicEvalCallback(
             metrics_path,
             tok,
