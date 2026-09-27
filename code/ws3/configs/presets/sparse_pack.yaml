@@ -1,0 +1,2 @@
+# Shortlist item 3: the sparse-reward pack in one run; drop one include at a time to ablate.
+include: [g64.yaml, dr_grpo.yaml, clip_higher.yaml, overlong_mask.yaml]

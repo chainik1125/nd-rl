@@ -1,0 +1,3 @@
+# Dr. GRPO (COLM 2025): no length normalisation, no std division. Brainstorm A, K6.
+train:
+  trainer: {loss_type: dr_grpo, scale_rewards: none}

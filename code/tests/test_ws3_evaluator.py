@@ -70,9 +70,11 @@ def test_aggregate_textbook_slices_and_unknown_length():
     ]
     judged = [[_j(True)], [_j(False)], [_j(True)]]
     res = aggregate(records, judged, k=1)
-    assert res["by_slice"]["dev58"] == {"solved": 1, "n": 2, "rate": 0.5, "ci": list(wilson(1, 2))}
+    assert {k: res["by_slice"]["dev58"][k] for k in ("solved", "n", "rate", "ci")} == {
+        "solved": 1, "n": 2, "rate": 0.5, "ci": list(wilson(1, 2))}
     assert res["by_slice"]["train14"]["solved"] == 1
-    assert res["by_slice"]["all"] == {"solved": 2, "n": 3, "rate": 2 / 3, "ci": list(wilson(2, 3))}
+    assert {k: res["by_slice"]["all"][k] for k in ("solved", "n", "rate", "ci")} == {
+        "solved": 2, "n": 3, "rate": 2 / 3, "ci": list(wilson(2, 3))}
     assert res["ref_len_ge7"]["solved"] == 1 and res["ref_len_ge7"]["n"] == 1
     assert res["by_length"][-1]["n"] == 1  # unknown length bucket
     assert res["max_length_solved"] == 7  # unknown-length solves do not count

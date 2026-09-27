@@ -1,0 +1,3 @@
+# W-REINFORCE (NeurIPS 2025): +lam for a success, -1 for a failure, no baseline. lam 0 = pure NSR.
+train:
+  advantage: {name: w_reinforce, lam: 0.1}

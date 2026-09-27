@@ -1,0 +1,4 @@
+# Shaped reward (brainstorm F, a labelled experiment): unparseable output scores -0.1.
+# Only valid with advantage name trl (run.py refuses the binary-only transforms).
+train:
+  reward: {unparseable_reward: -0.1}

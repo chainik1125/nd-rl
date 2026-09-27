@@ -1,0 +1,3 @@
+# DAPO clip-higher: asymmetric clip so rare positive tokens can move further. Brainstorm A.
+train:
+  trainer: {epsilon: 0.2, epsilon_high: 0.28}

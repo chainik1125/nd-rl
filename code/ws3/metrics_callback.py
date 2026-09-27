@@ -40,6 +40,27 @@ REQUIRED_METRICS = {
     "step": "step",
 }
 
+# Expert iteration (run.algo: ei) logs one line per round and has no reference model, policy-gradient
+# step or KL term, so plan section 4 gives it its own set.
+REQUIRED_METRICS_EI = {
+    "mean reward (verified fraction of samples)": "reward",
+    "pass rate by proof length (periodic eval)": "eval/pass_rate_len*",
+    "unparseable fraction": "reward/unparseable_frac",
+    "invalid fraction": "reward/invalid_frac",
+    "prompts with a verified proof": "ei/prompts_solved_frac",
+    "verified proofs kept": "ei/kept_this_round",
+    "SFT training records": "ei/train_records",
+    "SFT loss": "sft/loss_last",
+    "cumulative completions (matched budget)": "rollout/total_completions",
+    "rollout throughput": "rollout/completions_per_sec",
+    "utc timestamp": "utc",
+    "step": "step",
+}
+
+
+def required_metrics(algo: str = "grpo") -> dict:
+    return REQUIRED_METRICS_EI if algo == "ei" else REQUIRED_METRICS
+
 
 class MetricsJsonlCallback(TrainerCallback):
     def __init__(self, path: str, completions_per_step: int, reward_fn=None):

@@ -1,0 +1,5 @@
+# Rewarding the Unlikely (EMNLP 2025, formal proofs): less likely correct proofs get more reward.
+# The paper pairs it with fewer updates per batch.
+train:
+  trainer: {num_iterations: 1}
+  advantage: {name: unlikely, beta: 0.25}

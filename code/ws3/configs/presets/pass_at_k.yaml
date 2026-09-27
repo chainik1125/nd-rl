@@ -1,0 +1,3 @@
+# Pass@k advantage (Pass@k Training, PKPO). k must be <= num_generations.
+train:
+  advantage: {name: pass_at_k, k: 8, std_scale: true}

@@ -62,12 +62,19 @@ class ProofReward:
     Appends every judged completion to a JSONL dump (for the reviewer's recount), keeps the last
     batch's unparseable / invalid fractions in `last_stats`, and reports them through TRL's
     `log_metric` hook when it is offered.
+
+    `unparseable_reward` (default 0.0) is the "invalid vs wrong" variant (brainstorm F): output
+    the parser rejects scores this instead of 0, below a well-formed proof of the wrong goal.
+    Any non-zero value makes the reward non-binary; label such a run as shaped.
     """
 
     __name__ = "proof_reward"
 
-    def __init__(self, tok_mode: str = "abs", dump_path: str | None = None):
+    def __init__(
+        self, tok_mode: str = "abs", dump_path: str | None = None, unparseable_reward: float = 0.0
+    ):
         self.tok_mode = tok_mode
+        self.unparseable_reward = float(unparseable_reward)
         self.dump_path = dump_path
         self.last_stats: dict[str, float] = {}
         self._lock = threading.Lock()
@@ -80,7 +87,7 @@ class ProofReward:
     def __call__(self, prompts, completions, completion_ids=None, **kwargs):
         step = getattr(kwargs.get("trainer_state"), "global_step", None)
         log_metric = kwargs.get("log_metric")
-        out, n_unparseable, rows = [], 0, []
+        out, n_unparseable, n_ok, rows = [], 0, 0, []
         for i, prompt in enumerate(prompts):
             if completion_ids is not None:
                 body = self.body_from_ids(completion_ids[i])
@@ -88,8 +95,10 @@ class ProofReward:
                 c = completions[i]
                 body = c if isinstance(c, str) else c[-1]["content"]
             ok, reason, n_lines = verify_body(prompt, body)
-            out.append(1.0 if ok else 0.0)
-            n_unparseable += is_unparseable(reason)
+            unparseable = is_unparseable(reason)
+            out.append(1.0 if ok else (self.unparseable_reward if unparseable else 0.0))
+            n_unparseable += unparseable
+            n_ok += bool(ok)
             if self.dump_path:
                 rows.append(
                     {
@@ -109,7 +118,7 @@ class ProofReward:
         n = max(len(prompts), 1)
         self.last_stats = {
             "reward/unparseable_frac": n_unparseable / n,
-            "reward/invalid_frac": 1.0 - sum(out) / n,
+            "reward/invalid_frac": 1.0 - n_ok / n,
         }
         if callable(log_metric) and prompts:
             with contextlib.suppress(Exception):

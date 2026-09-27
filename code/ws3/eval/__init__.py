@@ -12,11 +12,19 @@ from eval.evaluator import (  # noqa: F401
     aggregate,
     evaluate_pool,
     evaluate_textbook,
+    evaluate_variants,
     generate,
     judge,
+    known_proof_logprob,
     next_token_accuracy,
+    pass_at_k,
+    pass_at_k_curve,
+    sequence_logprobs,
+    textbook_avg_table,
     textbook_table,
     utc_now,
     wilson,
 )
+from eval.metrics import compare_problems, frontier, mean_ci, per_problem, read_dump  # noqa: F401
+from eval.progress import valid_prefix  # noqa: F401
 from eval.reward import ProofReward, is_unparseable, reward, verify_body  # noqa: F401

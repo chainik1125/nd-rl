@@ -1,0 +1,13 @@
+# Expert iteration (startup.md exp-05): 3 rounds of pass@32 sampling + SFT on verified proofs.
+run: {algo: ei}
+train:
+  ei:
+    rounds: 3
+    k: 32
+    temperature: 1.0
+    keep: all
+    max_per_prompt: 4
+    accumulate: false
+    restart_from_base: false
+    replay_frac: 0.0
+    sft: {learning_rate: 1.0e-4, num_train_epochs: 1, per_device_train_batch_size: 64}

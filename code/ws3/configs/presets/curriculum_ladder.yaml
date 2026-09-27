@@ -1,0 +1,5 @@
+# Length ladder on top of p1mp: start at length 7, unlock the next length at 20% recent pass rate.
+include: [curriculum_p1mp.yaml]
+train:
+  curriculum:
+    ladder: {start: 7, threshold: 0.2, min_groups: 32}

@@ -1,0 +1,3 @@
+# No KL penalty and no reference model (Tinker cookbook default). Brainstorm G.
+train:
+  trainer: {beta: 0.0}

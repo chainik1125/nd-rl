@@ -1,0 +1,4 @@
+# MaxRL (ICML 2026): advantage (r - mean) / mean per group, 0 for all-fail groups. Brainstorm K2.
+# The transform replaces TRL's advantage, so scale_rewards has no effect on the loss here.
+train:
+  advantage: {name: maxrl}

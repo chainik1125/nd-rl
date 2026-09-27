@@ -3,14 +3,18 @@
 Stages, in order (plan sections 3, 4 and 6):
 
     baseline   the frozen checkpoint: T1 gate (next-token accuracy and loss on heldout), greedy
-               pass rate by length on a heldout stride, textbook 72 at k samples, long-pool
-               (rl_targets) pass@k. This is the frozen-checkpoint control for every later claim.
-    train      TRL GRPOTrainer (or RLOOTrainer) with the binary reward; metrics.jsonl carries the
-               plan section 4 set, one JSON line per step; completions.jsonl every judged rollout.
+               solve rate by length on a heldout stride, textbook 72 at k samples, long-pool
+               (rl_targets) at k samples, optionally textbook variants. Headline number: the avg
+               solve rate (pass@1, `eval.metrics`). This is the control for every later claim.
+    train      TRL GRPOTrainer (as `rl.trainer.WS3GRPOTrainer`), RLOOTrainer, or expert iteration
+               (`rl.ei`), chosen by `run.algo`; metrics.jsonl carries the plan section 4 set, one
+               JSON line per step (per round for EI); completions.jsonl every judged rollout.
     evaluate   the trained model through the same evaluations as `baseline` (same k, temperature,
-               seeds), plus a control-vs-RL comparison.
-    report     graphs (pass rate by length before/after; reward, KL, entropy curves), Markdown
-               tables, and a check that metrics.jsonl carries every required metric.
+               seeds), plus a control-vs-RL comparison: per-length avg solve rate, per-problem
+               base-vs-RL (new capability vs sharpening), and log-probability of known proofs.
+    report     graphs (avg solve rate by length before/after, per-problem scatter; reward, KL,
+               entropy curves), Markdown tables, and a check that metrics.jsonl carries every
+               required metric.
 
 Paths in the YAML are relative to the YAML's own directory, so an experiment folder
 `experiments/ws3/<name>/config.yaml` with `run.out_dir: run` writes to `experiments/ws3/<name>/run/`.
@@ -35,11 +39,22 @@ import yaml
 
 # isort: split
 from data import build_prompt_set, load_pool, load_textbook72, stride
-from eval import evaluate_pool, evaluate_textbook, next_token_accuracy, textbook_table
+from eval import (
+    compare_problems,
+    evaluate_pool,
+    evaluate_textbook,
+    evaluate_variants,
+    known_proof_logprob,
+    next_token_accuracy,
+    per_problem,
+    read_dump,
+    textbook_avg_table,
+    textbook_table,
+)
 from eval.evaluator import utc_now
 from eval.reward import ProofReward
 from hf_wrapper import build_tokenizer, load_pretrained_wrapper, save_base
-from metrics_callback import REQUIRED_METRICS, MetricsJsonlCallback, PeriodicEvalCallback
+from metrics_callback import MetricsJsonlCallback, PeriodicEvalCallback, required_metrics
 
 STAGES = ("baseline", "train", "evaluate", "report")
 
@@ -68,6 +83,7 @@ TRAINER_DEFAULTS = dict(
     log_completions=False,
 )
 GRPO_ONLY = dict(loss_type="grpo", scale_rewards="group", mask_truncated_completions=False)
+ALGOS = ("grpo", "rloo", "ei")
 RLOO_ONLY = dict(normalize_advantages=False)
 
 
@@ -82,9 +98,28 @@ def parse_args(argv=None):
     return ap.parse_args(argv)
 
 
-def load_config(path: str, max_steps=None) -> dict:
+def deep_merge(a: dict, b: dict) -> dict:
+    """a updated by b, recursively for nested dicts; b wins."""
+    out = dict(a)
+    for k, v in b.items():
+        out[k] = deep_merge(out[k], v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
+    return out
+
+
+def read_config(path: str) -> dict:
+    """A YAML config with optional `include: [paths]` (relative to the file), merged in order,
+    then the file's own keys on top. Presets in ws3/configs/presets/ are meant for this."""
     with open(path) as f:
-        cfg = yaml.safe_load(f)
+        cfg = yaml.safe_load(f) or {}
+    base = os.path.dirname(os.path.abspath(path))
+    merged = {}
+    for inc in cfg.pop("include", None) or []:
+        merged = deep_merge(merged, read_config(os.path.join(base, inc)))
+    return deep_merge(merged, cfg)
+
+
+def load_config(path: str, max_steps=None) -> dict:
+    cfg = read_config(path)
     base = os.path.dirname(os.path.abspath(path))
     run = cfg.setdefault("run", {})
     run["config_path"] = os.path.abspath(path)
@@ -92,6 +127,8 @@ def load_config(path: str, max_steps=None) -> dict:
     run.setdefault("seed", 0)
     run.setdefault("device", "cuda" if torch.cuda.is_available() else "cpu")
     run.setdefault("algo", "grpo")
+    if run["algo"] not in ALGOS:
+        raise SystemExit(f"run.algo must be one of {ALGOS}, got {run['algo']!r}")
     cfg.setdefault("eval", {})
     tr = cfg.setdefault("train", {})
     tr.setdefault("trainer", {})
@@ -202,6 +239,7 @@ def common_evals(model, tok, cfg, d, seed):
             batch_size=int(t.get("batch_size", 256)),
             seed=seed,
             dump=os.path.join(dumps, "textbook72.jsonl"),
+            score=bool(t.get("score", True)),
         )
         write_json(os.path.join(d, "textbook.json"), out["textbook"])
         print("textbook by slice:", out["textbook"]["by_slice"], flush=True)
@@ -219,14 +257,36 @@ def common_evals(model, tok, cfg, d, seed):
             seed=seed,
             dump=os.path.join(dumps, "long_pool.jsonl"),
             label="long_pool_rl_targets",
+            score=bool(lp.get("score", True)),
         )
         write_json(os.path.join(d, "long_pool.json"), out["long_pool"])
-        print("long pool pass@k by length:", _rates(out["long_pool"]), flush=True)
+        print("long pool avg solve rate by length:", _rates(out["long_pool"]), flush=True)
+    v = e.get("variants", {})
+    if v:
+        from eval.variants import training_keys
+
+        out["variants"] = evaluate_variants(
+            model,
+            tok,
+            load_textbook72(),
+            m=int(v.get("m", 4)),
+            k=int(v.get("k", 16)),
+            temperature=float(v.get("temperature", 1.0)),
+            seed=seed,
+            exclude_keys=training_keys(),
+            max_new=int(v.get("max_new", 400)),
+            batch_size=int(v.get("batch_size", 256)),
+            dump=os.path.join(dumps, "variants.jsonl"),
+            label="textbook72_variants",
+        )
+        write_json(os.path.join(d, "variants.json"), out["variants"])
+        print("textbook variants, consistent and reliable:",
+              out["variants"]["overall"].get("consistent_reliable"), flush=True)
     return out
 
 
 def _rates(res):
-    return {L: f"{v['solved']}/{v['n']}" for L, v in res["by_length"].items()}
+    return {L: f"avg {v['avg']:.3f} (any {v['solved']}/{v['n']})" for L, v in res["by_length"].items()}
 
 
 def stage_baseline(cfg):
@@ -273,10 +333,34 @@ def build_trainer_config(cfg, out_dir):
     return cls(**kw)
 
 
+def check_train_options(cfg):
+    """Refuse combinations that would silently do something other than the config says."""
+    run, tr = cfg["run"], cfg["train"]
+    adv = (tr.get("advantage") or {}).get("name", "trl")
+    if run["algo"] != "grpo" and (adv != "trl" or tr.get("curriculum")):
+        raise SystemExit("train.advantage and train.curriculum need run.algo: grpo")
+    shaped = float((tr.get("reward") or {}).get("unparseable_reward", 0.0)) != 0.0
+    if shaped and run["algo"] == "ei":
+        raise SystemExit("expert iteration keeps verified proofs only; train.reward.unparseable_reward "
+                         "has no effect there")
+    if shaped and adv != "trl":
+        raise SystemExit(
+            f"advantage {adv!r} reads success as reward > 0.5 and would ignore the shaped reward; "
+            "use advantage name trl with train.reward.unparseable_reward"
+        )
+
+
 def stage_train(cfg):
     from datasets import Dataset
-    from trl import GRPOTrainer, RLOOTrainer
+    from trl import RLOOTrainer
 
+    from rl.trainer import WS3GRPOTrainer
+
+    check_train_options(cfg)
+    if cfg["run"]["algo"] == "ei":
+        from rl.ei import train_ei
+
+        return train_ei(cfg, environment_record, write_json)
     run, tr = cfg["run"], cfg["train"]
     out_dir = run["out_dir"]
     os.makedirs(out_dir, exist_ok=True)
@@ -295,7 +379,9 @@ def stage_train(cfg):
         [{"prompt": r["prompt"], "length": r["length"], "source": r["source"]} for r in prompts]
     )
     reward_fn = ProofReward(
-        tok_mode=tok.tok_mode, dump_path=os.path.join(out_dir, "completions.jsonl")
+        tok_mode=tok.tok_mode,
+        dump_path=os.path.join(out_dir, "completions.jsonl"),
+        unparseable_reward=float((tr.get("reward") or {}).get("unparseable_reward", 0.0)),
     )
     tcfg = build_trainer_config(cfg, out_dir)
     completions_per_step = int(tcfg.per_device_train_batch_size) * int(
@@ -332,8 +418,7 @@ def stage_train(cfg):
         },
     )
     write_json(os.path.join(out_dir, "run_manifest.json"), manifest)
-    cls = GRPOTrainer if run["algo"] == "grpo" else RLOOTrainer
-    trainer = cls(
+    kw = dict(
         model=model,
         reward_funcs=reward_fn,
         args=tcfg,
@@ -341,6 +426,12 @@ def stage_train(cfg):
         processing_class=tok,
         callbacks=callbacks,
     )
+    if run["algo"] == "grpo":
+        trainer = WS3GRPOTrainer(
+            advantage=tr.get("advantage"), curriculum=tr.get("curriculum"), **kw
+        )
+    else:
+        trainer = RLOOTrainer(**kw)
     trainer.train()
     final_dir = os.path.join(out_dir, "final")
     trainer.save_model(final_dir)
@@ -383,8 +474,47 @@ def stage_evaluate(cfg):
     write_json(os.path.join(d, "summary.json"), summary)
     bdir = os.path.join(out_dir, "baseline")
     if os.path.exists(os.path.join(bdir, "summary.json")):
-        write_json(os.path.join(d, "comparison.json"), comparison(bdir, d))
+        comp = comparison(bdir, d)
+        if cfg["eval"].get("known_proofs", True):
+            base_model, _ = load_pretrained_wrapper(device=run["device"])
+            comp["known_proof_logprob"] = known_proofs(bdir, d, base_model, model, tok)
+        write_json(os.path.join(d, "comparison.json"), comp)
     return summary
+
+
+DUMP_OF = {"greedy_heldout": "greedy_heldout.jsonl", "textbook": "textbook72.jsonl",
+           "long_pool": "long_pool.jsonl", "variants": "variants.jsonl"}
+
+
+def _dump_path(run_dir, part):
+    p = os.path.join(run_dir, "dumps", DUMP_OF[part])
+    return p if os.path.exists(p) else (p + ".gz" if os.path.exists(p + ".gz") else None)
+
+
+def known_proofs(bdir, edir, base_model, rl_model, tok):
+    """Best log-probability of any verified proof either model found, per prompt, under each model.
+
+    The proof set is the union of both models' verified proofs, so neither model is scored only
+    on its own finds; proofs one model found are still likelier under it, so read differences as
+    a companion to the solve rates, not on their own."""
+    out = {}
+    for part in ("long_pool", "textbook"):
+        paths = [_dump_path(bdir, part), _dump_path(edir, part)]
+        if not all(paths):
+            continue
+        proofs, lengths = {}, {}
+        for path in paths:
+            for r in read_dump(path):
+                if r["ok"]:
+                    proofs.setdefault(r["prompt"], set()).add(r["completion"])
+                    lengths[r["prompt"]] = r.get("length", -1)
+        if not proofs:
+            continue
+        out[part] = {
+            "control": known_proof_logprob(base_model, tok, proofs, lengths),
+            "rl": known_proof_logprob(rl_model, tok, proofs, lengths),
+        }
+    return out
 
 
 def comparison(bdir, edir):
@@ -405,10 +535,21 @@ def comparison(bdir, edir):
             "overall": {"control": b["overall"], "rl": e["overall"]},
             "max_length_solved": {"control": b["max_length_solved"], "rl": e["max_length_solved"]},
         }
+        entry["frontier_avg50"] = {"control": b.get("frontier_avg50"), "rl": e.get("frontier_avg50")}
+        if "self_knowledge" in b or "self_knowledge" in e:
+            entry["self_knowledge"] = {"control": b.get("self_knowledge"), "rl": e.get("self_knowledge")}
         if "by_slice" in b:
             entry["by_slice"] = {"control": b["by_slice"], "rl": e["by_slice"]}
             entry["ref_len_ge7"] = {"control": b["ref_len_ge7"], "rl": e["ref_len_ge7"]}
+        bd, ed = _dump_path(bdir, part), _dump_path(edir, part)
+        if bd and ed:  # per problem, from the dumps: new capability vs sharpening
+            entry["problems"] = compare_problems(per_problem(read_dump(bd)), per_problem(read_dump(ed)))
         out[part] = entry
+    bv, ev = os.path.join(bdir, "variants.json"), os.path.join(edir, "variants.json")
+    if os.path.exists(bv) and os.path.exists(ev):
+        b, e = read_json(bv), read_json(ev)
+        out["variants"] = {"m": b["m"], "k": b["k"], "control": b["overall"], "rl": e["overall"],
+                           "by_length": {"control": b["by_length"], "rl": e["by_length"]}}
     return out
 
 
@@ -435,12 +576,12 @@ def read_metrics(path):
     return rows
 
 
-def metric_coverage(rows):
+def metric_coverage(rows, algo="grpo"):
     keys = set()
     for r in rows:
         keys |= set(r)
     cov = {}
-    for name, key in REQUIRED_METRICS.items():
+    for name, key in required_metrics(algo).items():
         if key.endswith("*"):
             cov[name] = any(k.startswith(key[:-1]) for k in keys)
         else:
@@ -520,17 +661,17 @@ def plot_pass_by_length(comp, part, path, title):
     for off, who, color in ((-w / 2, "control", BLUE), (w / 2, "rl", ORANGE)):
         ys, lo, hi = [], [], []
         for L in Ls:
-            v = rows[L][who] or {"rate": 0, "ci": [0, 0]}
-            ys.append(v["rate"])
-            lo.append(max(0.0, v["rate"] - v["ci"][0]))  # clamp float rounding, errorbar rejects < 0
-            hi.append(max(0.0, v["ci"][1] - v["rate"]))
+            v = rows[L][who] or {"avg": 0, "avg_ci": [0, 0]}
+            ys.append(v["avg"])
+            lo.append(max(0.0, v["avg"] - v["avg_ci"][0]))  # clamp float rounding, errorbar rejects < 0
+            hi.append(max(0.0, v["avg_ci"][1] - v["avg"]))
         ax.bar([xi + off for xi in x], ys, width=w - 0.04, color=color,
                label="frozen checkpoint" if who == "control" else "after RL")
         ax.errorbar([xi + off for xi in x], ys, yerr=[lo, hi], fmt="none", ecolor="#444",
                     elinewidth=1, capsize=2)
     ax.set_xticks(x, [str(L) for L in Ls])
     ax.set_xlabel("reference proof length")
-    ax.set_ylabel(f"pass@{comp[part]['k']} (Wilson 95%)")
+    ax.set_ylabel(f"avg solve rate (pass@1; {comp[part]['k']} samples/problem, 95% CI)")
     ax.set_ylim(0, 1.05)
     if "6" in Ls and int(Ls[-1]) > 6:  # the pre-training length cutoff (train.jsonl is lengths 2-6)
         ax.axvline(x=Ls.index("6") + 0.5, color="#888", linestyle="--", linewidth=1)
@@ -541,27 +682,112 @@ def plot_pass_by_length(comp, part, path, title):
     plt.close(fig)
 
 
+def _fmt(x, nd=3):
+    if x is None:
+        return "-"
+    return str(x) if isinstance(x, int) else f"{x:.{nd}f}"
+
+
 def length_table(comp, part):
+    """Avg solve rate (headline), reliable fraction, failed-attempt progress, any-of-k (secondary)."""
     rows = comp[part]["by_length"]
+    k = comp[part]["k"]
     lines = [
-        f"| length | control solved/n | control rate [95% CI] | RL solved/n | RL rate [95% CI] |",
-        "| --- | --- | --- | --- | --- |",
+        f"| length | control avg [95% CI] | RL avg [95% CI] | control / RL reliable (p>=0.5) | "
+        f"control / RL valid prefix of failures | control / RL any of {k} |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
+
+    def cells(rs):
+        out = ["-" if v is None else f"{v['avg']:.3f} [{v['avg_ci'][0]:.3f}, {v['avg_ci'][1]:.3f}]"
+               for v in rs]
+        out.append(" / ".join("-" if v is None else f"{v['reliable50']:.3f}" for v in rs))
+        out.append(" / ".join("-" if v is None else _fmt(v.get("valid_prefix_failed"), 2) for v in rs))
+        out.append(" / ".join("-" if v is None else f"{v['solved']}/{v['n']}" for v in rs))
+        return out
+
     for L, r in rows.items():
-        cells = [str(L)]
-        for who in ("control", "rl"):
-            v = r[who]
-            if v is None:
-                cells += ["-", "-"]
-            else:
-                cells += [f"{v['solved']}/{v['n']}", f"{v['rate']:.3f} [{v['ci'][0]:.3f}, {v['ci'][1]:.3f}]"]
-        lines.append("| " + " | ".join(cells) + " |")
+        lines.append("| " + " | ".join([str(L)] + cells([r["control"], r["rl"]])) + " |")
     o = comp[part]["overall"]
-    lines.append(
-        f"| all | {o['control']['solved']}/{o['control']['n']} | {o['control']['rate']:.3f} | "
-        f"{o['rl']['solved']}/{o['rl']['n']} | {o['rl']['rate']:.3f} |"
-    )
+    lines.append("| all | " + " | ".join(cells([o["control"], o["rl"]])) + " |")
+    f = comp[part].get("frontier_avg50")
+    if f:
+        lines += ["", f"Frontier (longest length with avg >= 0.5 at it and every shorter length): "
+                      f"control {f['control']}, RL {f['rl']}."]
     return "\n".join(lines)
+
+
+def problems_table(comp, part):
+    pr = comp[part].get("problems")
+    if not pr:
+        return ""
+    o = pr["overall"]
+    lines = [
+        f"Per problem, base vs RL ({o.get('n', 0)} problems, reliable = p >= {pr['reliable_threshold']}):",
+        "",
+        "| length | problems | new capability (base 0, RL reliable) | new, any (base 0, RL > 0) | "
+        "sharpened (both > 0, RL higher) | lost (base reliable, RL 0) |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for L, v in list(pr["by_length"].items()) + [("all", o)]:
+        L = "unknown" if L in (-1, "-1", None) else L
+        lines.append(f"| {L} | {v.get('n', 0)} | {v.get('new_capability', 0)} | {v.get('new_any', 0)} | "
+                     f"{v.get('sharpened', 0)} | {v.get('lost', 0)} |")
+    lines += ["", f"Mean change in per-problem solve rate: {pr['mean_delta_p']:+.3f}."]
+    return "\n".join(lines)
+
+
+def plot_problem_scatter(comp, part, path, title):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    sc = (comp[part].get("problems") or {}).get("scatter")
+    if not sc:
+        return False
+    lengths = sorted({s["length"] for s in sc if s["length"] is not None})
+    cmap = plt.get_cmap("Blues")
+    fig, ax = plt.subplots(figsize=(5, 5), constrained_layout=True)
+    for i, L in enumerate(lengths):
+        pts = [s for s in sc if s["length"] == L]
+        ax.scatter([s["base_p"] for s in pts], [s["rl_p"] for s in pts], s=16, alpha=0.7,
+                   color=cmap(0.35 + 0.6 * i / max(len(lengths) - 1, 1)), label=f"length {L}")
+    ax.plot([0, 1], [0, 1], color="#888", linewidth=1, linestyle="--")
+    ax.axhline(0.5, color="#bbb", linewidth=0.8)
+    ax.set_xlim(-0.02, 1.02)
+    ax.set_ylim(-0.02, 1.02)
+    ax.set_xlabel("frozen checkpoint: per-problem solve rate")
+    ax.set_ylabel("after RL: per-problem solve rate")
+    ax.set_title(title + "\n(upper-left corner = new capability)", fontsize=10)
+    ax.legend(frameon=False, fontsize=8)
+    _style(ax)
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return True
+
+
+def extras_md(comp, part):
+    """Self-knowledge and known-proof log-probability lines for one evaluation part."""
+    md = []
+    sk = comp[part].get("self_knowledge")
+    if sk and sk.get("control") and sk.get("rl"):
+        c, r = sk["control"], sk["rl"]
+        md += ["Self-knowledge (does the model's own sequence log-probability pick out verified "
+               "attempts): AUROC control " + _fmt(c["auroc_logprob"]) + ", RL " + _fmt(r["auroc_logprob"])
+               + "; likelihood top-1 control " + _fmt(c["likelihood_top1"]) + ", RL "
+               + _fmt(r["likelihood_top1"]) + ".", ""]
+    kp = (comp.get("known_proof_logprob") or {}).get(part)
+    if kp:
+        md += ["Log-probability of the best known verified proof (union of both models' finds):", "",
+               "| length | problems | control best log p | RL best log p | control / RL per token |",
+               "| --- | --- | --- | --- | --- |"]
+        for L, c in kp["control"]["by_length"].items():
+            r = kp["rl"]["by_length"].get(L, {})
+            md.append(f"| {L} | {c['n']} | {c['best_logprob']:.2f} | {_fmt(r.get('best_logprob'), 2)} | "
+                      f"{c['best_logprob_per_token']:.3f} / {_fmt(r.get('best_logprob_per_token'))} |")
+        md.append("")
+    return md
 
 
 def stage_report(cfg):
@@ -572,9 +798,10 @@ def stage_report(cfg):
     metrics_path = os.path.join(out_dir, "metrics.jsonl")
     if os.path.exists(metrics_path):
         rows = read_metrics(metrics_path)
-        cov = metric_coverage(rows)
+        algo = cfg["run"].get("algo", "grpo")
+        cov = metric_coverage(rows, algo)
         md += ["## Gate B: metrics.jsonl coverage (plan section 4)", ""]
-        md += [f"- {'ok' if v else 'MISSING'}: {k} (`{REQUIRED_METRICS[k]}`)" for k, v in cov.items()]
+        md += [f"- {'ok' if v else 'MISSING'}: {k} (`{required_metrics(algo)[k]}`)" for k, v in cov.items()]
         md += ["", f"{len([r for r in rows if 'reward' in r])} rollout log lines, "
                f"{len([r for r in rows if 'eval/pass_rate' in r])} periodic eval lines.", ""]
         plot_curves(rows, os.path.join(d, "curves.png"))
@@ -587,23 +814,46 @@ def stage_report(cfg):
     if os.path.exists(comp_path):
         comp = read_json(comp_path)
         for part, title in (
-            ("greedy_heldout", "greedy pass rate by length, heldout stride"),
-            ("long_pool", "pass@k by true length, rl_targets stride"),
+            ("greedy_heldout", "greedy solve rate by length, heldout stride"),
+            ("long_pool", "avg solve rate by true length, rl_targets stride"),
         ):
             if part in comp:
                 plot_pass_by_length(comp, part, os.path.join(d, f"{part}.png"), title)
                 md += [f"## {title}", "", f"![{part}]({part}.png)", "", length_table(comp, part), ""]
+                if plot_problem_scatter(comp, part, os.path.join(d, f"{part}_problems.png"), title):
+                    md += [f"![{part} per problem]({part}_problems.png)", ""]
+                md += [problems_table(comp, part), ""] + extras_md(comp, part)
         if "textbook" in comp:
             b, e = read_json(os.path.join(bdir, "textbook.json")), read_json(
                 os.path.join(out_dir, "evaluate", "textbook.json")
             )
+            named = {"frozen checkpoint": b, "after RL": e}
             md += [f"## textbook 72 at k={b['k']}, temperature {b['temperature']} (control vs RL)", "",
-                   textbook_table({"frozen checkpoint": b, "after RL": e}), ""]
+                   "Avg solve rate (headline). Expected = sum of per-problem solve rates; reliable = "
+                   "problems solved in at least half the samples.", "",
+                   textbook_avg_table(named), "",
+                   f"Secondary: problems solved at least once in {b['k']} samples.", "",
+                   textbook_table(named), ""]
+            if plot_problem_scatter(comp, "textbook", os.path.join(d, "textbook_problems.png"), "textbook 72"):
+                md += ["![textbook per problem](textbook_problems.png)", ""]
+            md += [problems_table(comp, "textbook"), ""] + extras_md(comp, "textbook")
+        if "variants" in comp:
+            v = comp["variants"]
+            md += [f"## textbook variants: consistency (up to {v['m']} renamings / premise orders per "
+                   f"problem, {v['k']} samples each)", "",
+                   "| | control | RL |", "| --- | --- | --- |"]
+            for key, label in (("mean_p", "mean solve rate over variants"),
+                               ("min_p_mean", "mean of worst-variant solve rate"),
+                               ("consistent_reliable", "problems reliable on every variant"),
+                               ("original_gap_mean", "original minus other variants")):
+                md.append(f"| {label} | {_fmt(v['control'].get(key))} | {_fmt(v['rl'].get(key))} |")
+            md.append("")
     elif os.path.exists(os.path.join(bdir, "summary.json")):
         b = read_json(os.path.join(bdir, "textbook.json")) if os.path.exists(
             os.path.join(bdir, "textbook.json")) else None
         if b:
-            md += ["## textbook 72 (frozen checkpoint only)", "", textbook_table({"frozen checkpoint": b}), ""]
+            md += ["## textbook 72 (frozen checkpoint only)", "", textbook_avg_table({"frozen checkpoint": b}),
+                   "", textbook_table({"frozen checkpoint": b}), ""]
     with open(os.path.join(d, "report.md"), "w") as f:
         f.write("\n".join(md))
     print("\n".join(md))

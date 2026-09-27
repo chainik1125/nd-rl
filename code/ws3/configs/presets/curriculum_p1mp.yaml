@@ -1,0 +1,11 @@
+# Adaptive prompt sampling: weight p(1-p) + floor, GRESO-style down-weighting after 3 same-outcome
+# groups, 10% easy replay. Needs a prompt pool larger than one batch (train.prompt.n_prompts).
+train:
+  curriculum:
+    weighting: p1mp
+    floor: 0.01
+    window: 4
+    skip_after: 3
+    skip_keep: 0.1
+    easy_frac: 0.1
+    easy_max: 6

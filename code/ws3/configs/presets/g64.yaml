@@ -1,0 +1,4 @@
+# 64 samples per prompt: at p = 0.04 the all-fail group fraction drops from 0.52 (G=16) to 0.07.
+# 512 completions per step = 8 prompts; per_device_train_batch_size must be a multiple of G.
+train:
+  trainer: {num_generations: 64, per_device_train_batch_size: 512}

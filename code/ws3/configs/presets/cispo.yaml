@@ -1,0 +1,4 @@
+# CISPO (ScaleRL): clip the importance weight, not the update. TRL recommends epsilon_high 5.0;
+# Tinker's docs report 4, 5 and 8 perform the same. Matters with num_iterations > 1.
+train:
+  trainer: {loss_type: cispo, epsilon_high: 5.0}

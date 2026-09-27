@@ -10,11 +10,21 @@ ws3/
                        HF generate) + the abs tokenizer as a fast HF tokenizer
   eval/                plan T3, importable by any track
     reward.py          reward(prompt, completion) -> 0.0/1.0 through strict_verify; TRL-callable ProofReward
-    evaluator.py       pass rate by length (Wilson CIs), max length solved, textbook slices, T1 next-token accuracy
+    evaluator.py       avg solve rate (pass@1) by length, textbook slices, T1 next-token accuracy, sequence
+                       log-probs, known-proof log-prob, variants eval (plan section 5)
+    metrics.py         avg CI, reliable fraction, frontier, k50, AUROC, per-problem base vs RL from dumps
+    progress.py        valid_prefix: leading lines that pass the verifier's per-line checks
+    variants.py        atom renamings and premise orders of evaluation problems, consistency
   data.py              prompt pools from fork_pin/data, renaming-class leak check, the 72 textbook problems
   metrics_callback.py  metrics.jsonl (plan section 4 set) + periodic pass-rate-by-length eval
   run.py               the driver: stages baseline, train, evaluate, report
+  rl/                  RL methods from docs/ws3/rl_methods_brainstorm.md, on top of TRL
+    advantages.py      advantage transforms: maxrl, w_reinforce, virtual_positive, pass_at_k, unlikely
+    curriculum.py      per-prompt success stats + adaptive sampler (p(1-p), GRESO skip, ladder, easy replay)
+    trainer.py         WS3GRPOTrainer: GRPOTrainer + the two hooks above + group-outcome metrics
+    ei.py              expert iteration (sample, verify, SFTTrainer, repeat) for run.algo: ei
   configs/smoke_cpu.yaml  plumbing check, ~1 minute on a laptop
+  configs/presets/     one YAML fragment per method, combined with `include:`
   textbook72/          Dmitry's 58 + 14 textbook problems with a hash MANIFEST (evaluation only)
   fork_pin/            the pinned checkpoint lineage (see its README)
 ```
@@ -65,6 +75,32 @@ train:
     max_completion_length: 400
     max_steps: 50
 ```
+
+### Methods (`rl/`, `configs/presets/`)
+
+A config may start with `include: [paths]`; the files are deep-merged in order, then the
+config's own keys on top. Each preset is one method, so an experiment is a list of includes:
+
+```yaml
+include: [../../../code/ws3/configs/presets/sparse_pack.yaml,
+          ../../../code/ws3/configs/presets/maxrl.yaml]
+run: {out_dir: run, seed: 0, algo: grpo}
+train:
+  prompt: {length_weights: {7: 1, 8: 1, 9: 1}, n_prompts: 1024}
+  advantage: {name: maxrl}          # trl (default) | maxrl | w_reinforce | virtual_positive | pass_at_k | unlikely
+  curriculum: {weighting: p1mp}     # unset = TRL's RepeatSampler; see rl/curriculum.py for all keys
+  reward: {unparseable_reward: 0.0} # -0.1 = the "invalid vs wrong" shaped variant (advantage trl only)
+```
+
+`run.algo: ei` runs expert iteration instead (keys in `rl/ei.py` and `presets/ei.yaml`); the
+baseline, evaluate and report stages are unchanged, and `final/` is the last round's model.
+
+Extra metrics in metrics.jsonl for GRPO: `groups/frac_all_fail`, `groups/frac_all_success`,
+`groups/frac_mixed`, `rollout/total_completions` (for matched-budget comparison with EI, which
+logs the same key per round), `adv/*` when a transform is on, `prompts/*` and `curriculum/*`.
+With k > 1 the evaluator also reports `pass_at_k` (unbiased, k = 1, 2, 4, ... up to the samples
+drawn) overall and per length, and `distinct_verified_mean`. Set `eval.textbook.k` and
+`eval.long.k` to 256 to get the full curve.
 
 ## Design notes
 

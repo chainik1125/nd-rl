@@ -1,0 +1,3 @@
+# Mask completions that hit max_completion_length instead of scoring them as failures.
+train:
+  trainer: {mask_truncated_completions: true}

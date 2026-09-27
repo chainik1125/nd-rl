@@ -1,0 +1,3 @@
+# NGRPO / AVSPO style: baseline counts one imagined success, so all-fail groups get gradient.
+train:
+  advantage: {name: virtual_positive, std_scale: false}
