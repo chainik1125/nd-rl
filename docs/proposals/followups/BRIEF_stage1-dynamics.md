@@ -2,8 +2,8 @@
 
 Run id `stage1-dynamics`. Repository `~/work/stage1-dynamics` (branch `dan_stage1-dynamics`, a
 worktree from the fork's `origin/dan`). Role: executor. `AGENT_POLICY.md` (nd-rl canonical copy)
-governs; designs are suggestions, the questions are what matter. Pod budget **$15**, ceiling **30
-pod-hours**, hard stop 30 h. Balance floor $130 — check `rpbalance` before extending.
+governs; designs are suggestions, the questions are what matter. Pod budget **$30**, ceiling **60
+pod-hours** (raised from $15 / 30 h on 2026-09-27 when Dan moved the balance floor to $100), hard stop 30 h. Check `rpbalance` before extending.
 
 Sibling run `lean-judge` is working on the fork's `dan` branch at the same time (the Lean-only
 judge: `lean_gate.py`, `lean_judge.py`, and the `nd_verify` imports in `eval_set.py`,
