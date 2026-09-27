@@ -51,6 +51,56 @@ does — holds in both formats.
 
 Dan decided to retire `nd_verify` as reward and checker. Proposal 9 builds `lean_check` (elaborated-term allowlist: `And`/`Or`/`Not`/`False`/`Iff` constructors and eliminators plus `Classical.byContradiction`; no `sorryAx`; no automation) and `term_size`, relabels the pools in both units, and tests free-form un-automated Lean against the fragment. Until `lean_check` is validated, the reward stays Lean ∧ `nd_verify`. Lines stay the reported unit for now; term size is reported beside them.
 
+## Update 2026-09-27: Lean alone decides, now; `Not.elim` is allowed
+
+**Dan, 2026-09-27: "I think Lean is correct here, and `nd_verify` rejecting this is an artifact. …
+We should not use `nd_verify` anymore."** Two conditions from the updates above are lifted:
+
+1. **The `BOTE` "fix" is withdrawn.** The cases it was meant to exclude — `n.elim` on `n : ¬A`,
+   which Lean resolves to `Not.elim : ¬a → a → b` — are *valid proofs*, not "non-proofs". Lean is
+   sound; `nd_verify` rejects them only because ND's `BOTE` rule must cite a line that is literally
+   `F`, so the same inference takes an extra box, `NEGE` and `BOTE`. The canonical example
+   (checked 2026-09-27 on the unmodified tools): `~P ⊢ P > Q` as `N1 (~P) : PR ; N2 (P > Q) : BOTE N1`
+   — `nd_verify` rejects (`rule check failed: BOTE (line 2)`), Lean accepts
+   (`have n2 : (P → Q) := n1.elim`); the ND-legal proof is 5 lines. `lean_check`'s allowlist already
+   admitted `absurd : a → ¬a → b`, which is `Not.elim` with its arguments swapped, and its own
+   docstring promised "the constructors and eliminators of … `Not`" without listing them;
+   `Not.elim` and `Not.intro` are added. `nd2lean.py` keeps rendering `BOTE` as `.elim`.
+2. **Lean alone is the reward and the checker for every new run**, without waiting for further
+   `lean_check` validation. `nd_verify` is not called to judge anything in new runs — not the
+   in-loop reward, not evaluation, not the checker of record. It stays in the repository, unmodified,
+   only so that old numbers can be reproduced.
+
+**What the judge is.** For `lean_seq` models the literal sampled text must parse in the strict
+`lean_seq` grammar and be accepted by Lean 4 core. The grammar is the allowlist: its 107-token
+vocabulary contains no `sorry`, no tactic automation and no library lemma, so the only inferences
+reachable beyond the ND rules are the eliminators `.elim` resolves to (`Not.elim`, `And.elim`, …),
+which are sound. For free-form Lean (pretrained models) the judge is `lean_check` (elaborated-term
+allowlist, axioms ⊆ {`propext`, `Classical.choice`, `Quot.sound`}), with `Not.elim` / `Not.intro`
+admitted.
+
+**Consequences to carry in every write-up.**
+
+- **Numbers before 2026-09-27 were measured under Lean ∧ `nd_verify`.** They stay on file with
+  that label. The difference is small and one-directional — Lean alone accepts a superset: 2,208 of
+  16.3 M gated pairs in `ds-rendering`, 9,249 of 19.8 M in `ds-generator` — so a Lean-only rerun
+  can only raise acceptance counts, by roughly 0.01–0.07 % at the gate. It is not zero; say which
+  checker a number is under when comparing across the boundary.
+- **Line counts shift meaning slightly.** A Lean proof may take fewer steps than the shortest ND
+  proof (the example above: 2 vs 5), and the model may omit premise re-statement lines, which Lean
+  does not require (92.9 % of `ds-generator`'s disagreements). The ladder's `L_true` labels come from
+  `minlen.py`, an ND prover, so under Lean they are **upper bounds** on the true minimal length.
+  **Report term size beside lines everywhere**; term size does not count premise re-statement
+  (`R`/`PR` = 0) and is the unit that is invariant to both effects.
+- The `lean-only` run (proposal 9, 2026-09-22) built and tested `lean_check` (33/33 self-tests,
+  253,397 / 253,397 pool proofs agreeing with `nd_verify`) but **its review never completed** — the
+  reviewer was stopped by the 2026-09-22 usage-credit exhaustion. Its numbers are unreviewed.
+
+**Where this is enforced.** The canonical `AGENT_POLICY.md` now lives in `nd-rl`
+(`docs/proposals/orchestration/AGENT_POLICY.md`) and `runrole` reads it from there, so one copy
+governs every run instead of one stale copy per fork branch. The fork's integration branch `dan`
+carries the Lean-only judge.
+
 ## What did not change before proposal 8
 
 The from-scratch model (Stage-1 pretraining and expert iteration) kept the token format

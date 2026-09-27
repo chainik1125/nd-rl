@@ -33,7 +33,7 @@ script whose stdout is a table rather than reading raw `.jsonl` into the convers
 re-read a file you already read this session. A standard with a reason, not a rule: a genuinely
 necessary full read is fine — say so when you do it.
 
-**Lean is the checker of record** (decision 2026-09-20): every proof you count must translate with `nd2lean.py` and be accepted by Lean; report the agreement count with `nd_verify` and treat any disagreement as a bug. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form. From-scratch training and RL use the Lean `lean_seq` format (decision 2026-09-22); reward is `lean_check` once proposal 9's phase 1 validates it (until then Lean ∧ `nd_verify`); report proof length in lines **and** term size; label any token-format arm as such.
+**Lean alone decides** (Dan, 2026-09-27; `AGENT_POLICY.md`): reward, evaluation and counting all use Lean — the fork's `dan` branch judge (`lean_judge.py`: strict `lean_seq` grammar + Lean for model text, `lean_check` for free-form Lean). Do not call `nd_verify` to judge anything. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form; from-scratch training and RL use `lean_seq`. Report proof length in lines **and** term size; say that the ladder's `L_true` labels are ND-derived upper bounds; label every number that is compared with pre-2026-09-27 results (measured under Lean ∧ `nd_verify`) with the checker it was measured under.
 
 At the end: `run<id>.md` (≤ 400 words + figures, expectations vs outcomes stated plainly);
 `STATUS.md` line `RUN<id> DONE <UTC>` (or `DONE <UTC>` for a single-run session); push; then

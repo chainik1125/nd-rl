@@ -10,9 +10,9 @@ have the run brief, `preregistration/<run-id>.md`, the code, the data and the ra
 (`found_*.jsonl`, `round_*.json`, coverage files, checkpoints). Using **code you write
 yourself** — your own start-index normaliser, your own pattern predicates, your own depth
 counter — re-derive every quantity the pre-registration promised: per-arm counts, rates,
-frontiers, acquisition, base reachability. Re-run `nd_verify` on ≥ 100 counted proofs per arm, and **re-check the same proofs in Lean** through `nd2lean.py` (Lean is the checker of record; once proposal 9's `lean_check` exists, run it too and confirm the allowlist and axiom checks on counted proofs); any disagreement is a finding. Re-derive term sizes as well as line counts.
+frontiers, acquisition, base reachability. **Re-check ≥ 100 counted proofs per arm in Lean**, from their stored literal text (Lean alone decides, Dan 2026-09-27; for free-form Lean also run `lean_check` and confirm its allowlist and axiom checks); any counted proof Lean rejects is a finding. Do not use `nd_verify` as a judge. Check that the run did not either, and that every comparison with a pre-2026-09-27 number names the checker each side was measured under. Re-derive term sizes as well as line counts.
 Recompute split disjointness by renaming class between every training file and every
-evaluation pool. Check the hard constraints: `nd_verify` hash equals `origin/main`'s;
+evaluation pool. Check the hard constraints: `nd_verify` unmodified (hash equals `origin/main`'s) and unused as a judge;
 `artifacts/TEST_RUN_DONE` unchanged; no evaluation file read in training code (grep). Commit
 your recount as `review_<run-id>.md` §Recount **before** phase 2.
 

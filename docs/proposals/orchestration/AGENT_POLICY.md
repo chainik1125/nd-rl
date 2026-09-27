@@ -1,0 +1,90 @@
+# Standing policy for agent runs (from Dan; canonical copy, updated 2026-09-27)
+
+This file lives in `nd-rl` at `docs/proposals/orchestration/AGENT_POLICY.md` and `runrole` reads it
+from there for every role, so there is one copy. Copies of `AGENT_POLICY.md` inside fork branches
+are historical; where they disagree with this one, this one wins. Every brief is read together with
+this file, and where a brief and this file disagree, this file wins.
+
+## The one hard rule
+
+**Do not contact or involve other humans.** No PR reviewers, no messages, nothing sent to
+Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and shares things himself.
+
+## Standards with reasons (keep them; say when and why you deviate)
+
+- **Lean alone decides (Dan, 2026-09-27).** A proof counts iff Lean 4 core accepts it: for
+  `lean_seq` models, the literal sampled text parses in the strict grammar and Lean accepts it;
+  for free-form Lean, `lean_check` accepts it (elaborated-term allowlist, including `Not.elim`).
+  **Do not use `nd_verify` to judge anything** — not reward, not evaluation, not counting. It stays
+  in the repository unmodified only so old numbers can be reproduced. Proofs in write-ups are shown
+  in Lean. *Why:* Lean is sound, readable, and what a pretrained model already knows; the proofs
+  `nd_verify` rejects and Lean accepts are valid proofs that skip a step ND's rule format demands
+  (e.g. `n.elim` on `n : ¬A`). Numbers from before 2026-09-27 were measured under Lean ∧ `nd_verify`
+  — label which checker a number is under whenever you compare across that date. Decision note:
+  `docs/project_strategy/2026-09-20-lean-default.md`.
+- **Report proof length in term size as well as lines.** Under Lean a proof may be shorter than the
+  shortest ND proof and may omit premise re-statements, so line counts and the ladder's ND-derived
+  `L_true` labels (upper bounds under Lean) are no longer the whole story. Term size is invariant
+  to both.
+- **Training format: Lean `lean_seq`** (Dan, 2026-09-22). Token-format arms are labelled as such.
+- **Every number names the model it was measured on** (Dan, 2026-09-23): checkpoint, parameter
+  count, format, from-scratch or pretrained, training set. An inherited number carries its label;
+  a reviewer treats an unlabelled number as a finding. *Why:* an efficiency run applied a premise
+  measured on a different model than the one it was about.
+- **Read claims against the measured noise floor** (`NOISE_FLOOR.md` on the fork's `dan` branch,
+  from run `noise-floor`, 2026-09-25). A difference inside it is not a finding at n = 2.
+- Learned from real bugs, each of which produced a wrong number once: start-index-normalised
+  distinct-proof counts; a frozen control at equal attempts; a base-model reachability number
+  with every "RL solved X"; two seeds before calling a difference; expected results written
+  down (and committed) before a run; splits disjoint by renaming class; every count
+  reproducible from files that are pulled back.
+- The take-home's cap 6 is the take-home's rule, not the SPAR project's: arms above it are allowed
+  and are labelled "cap N" in every row. No hand-written or LLM-written training proofs. At most
+  one test-file run per take-home submission.
+
+## Everything else is a suggestion
+
+Experiment designs, pod counts, GPU classes, deadlines, deliverable formats. Use judgment. If
+a different or bigger experiment answers the project's question better, propose it or do it.
+The question is the SPAR project's: to what extent does RL against a verifier produce
+genuinely new capability rather than eliciting rare-but-known behaviour, and what limits it.
+
+## Dan is reachable
+
+He is not watching live but reads `STATUS.md` and answers questions. Put questions in
+`QUESTIONS.md` at the repo root — dated, with the default you will follow if unanswered —
+commit, and proceed on the default. Direction, scope, spend, and "what would you find most
+useful" are all fair questions.
+
+## Spend and compute
+
+- **Pod budget:** the brief's declared budget, registered with `podbudget <run> --set <hours> <usd>`
+  **before the first pod** (`pod_budget_watch` warns at 80 % and deletes the run's pods at 100 %).
+  $50 if a brief declares none. Extend within the declared budget with
+  `podbudget <run> --extend <hours> "reason"`; beyond it, ask in `QUESTIONS.md`.
+- **Balance floor: do not take the RunPod balance below $130** (Dan, 2026-09-24). Check it with
+  `rpbalance`.
+- No limit on concurrent pods; no fixed GPU class. Record the GPU class **and** its real billed
+  rate — `podbudget`'s dollar column falls back to $0.50/h for classes it does not know. Delete
+  pods when their work is pulled. Upload to the bucket as you go, not only at the end.
+- **Claude usage:** roles share Dan's Max 20x subscription; there will be no API keys (Dan,
+  2026-09-23, cost). Keep the working context small (see the executor brief). If a usage limit is
+  slowing progress, write `LIMIT_SLOWING <UTC> <what it cost you>` in `STATUS.md`.
+- VPS: 4 GB / 2 vCPU. New VPSs can be created with `newvps <name>` (needs Dan's Claude and gh
+  logins afterwards).
+
+## Target branches
+
+- `nd-rl`: Dan's integration branch is **`dan`**. Librarians branch from `origin/dan` and merge back
+  into `dan` after review; one standing draft PR `dan` → `main` exists. Never merge into `main`.
+- Fork (`dan-pandori/nd-takehome`): the integration branch is **`dan`** (from 2026-09-27; it carries
+  the Lean-only judge). New run worktrees branch from `origin/dan` unless the brief names another
+  base.
+
+## Artifacts
+
+At `DONE`, upload the run's `ckpts/`, `artifacts/` and `data/` to the public HF bucket:
+`hf buckets sync <dir> hf://buckets/dan-pandori/nd-rl/<run-name>/<dir>` (the `hf` CLI is
+logged in on the VPS; `podrun` passes `HF_TOKEN` to pods). Record the bucket paths in
+`numbers.md`. The bucket is **public**: never upload `~/.config`, shell logs, or anything that
+could contain a token, and never print tokens.
