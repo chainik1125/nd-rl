@@ -63,8 +63,11 @@ for W in ~/work/*/; do
   common_checks "$RUN"
   mod=$(git -C "$W" status --porcelain --untracked-files=no 2>/dev/null | grep -cvE '^( D|D ) ')
   [ "$mod" = 0 ] || why+=("$mod modified/added tracked file(s)")
-  up=$(git -C "$W" rev-parse --abbrev-ref '@{u}' 2>/dev/null) || up=""
-  if [ -z "$up" ]; then why+=("branch has no upstream"); else
+  # compare with the run's own branch on origin: a worktree made from origin/<base> tracks <base>, so
+  # @{u} would count every commit of the run as "unpushed"
+  br=$(git -C "$W" rev-parse --abbrev-ref HEAD 2>/dev/null); up=""
+  git -C "$W" rev-parse -q --verify "refs/remotes/origin/$br" >/dev/null && up="origin/$br"
+  if [ -z "$up" ]; then why+=("branch $br not on origin"); else
     n=$(git -C "$W" rev-list --count "$up..HEAD" 2>/dev/null || echo 1); [ "$n" = 0 ] || why+=("$n commit(s) not pushed"); fi
   miss=0; ex=""
   while IFS= read -r f; do

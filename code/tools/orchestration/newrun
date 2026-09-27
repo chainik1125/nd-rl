@@ -27,7 +27,7 @@ if [ "$free" -lt "$MIN" ]; then
   echo "refusing: ${free} GB free on $(hostname), need ${MIN} GB (NEWRUN_MIN_FREE_GB). Reclaimable:"; worktree_gc || true; exit 1; fi
 
 git -C "$M" fetch -q origin
-git -C "$M" worktree add -q --no-checkout -b "dan_$RUN" "$W" "origin/$BASE"
+git -C "$M" worktree add -q --no-checkout --no-track -b "dan_$RUN" "$W" "origin/$BASE"
 pats=("/*"); while IFS= read -r d; do pats+=("!/$d/"); done < <(git -C "$W" ls-tree -d --name-only HEAD artifacts/)
 git -C "$W" sparse-checkout set --no-cone "${pats[@]}"
 git -C "$W" checkout -q "dan_$RUN"
