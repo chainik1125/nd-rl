@@ -58,6 +58,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--secs", type=int, default=60)
     parser.add_argument("--samples", type=int, default=4096)
+    parser.add_argument("--pretrain", default="pretrain.py", help="file to run as pretrain.py")
     args = parser.parse_args()
     agent = os.environ.get("ND_AGENT", "manual")
     session = os.environ.get("ND_AUTORESEARCH_SESSION")
@@ -68,7 +69,8 @@ def main() -> None:
         manifest.write_text(json.dumps({"pods": [name]}))  # before any paid API call
     run = [sys.executable, str(HERE / "pod.py")]
     try:
-        if subprocess.run([*run, "up", "--pod", name], stdout=sys.stderr).returncode:
+        up = [*run, "up", "--pod", name, "--pretrain", args.pretrain]
+        if subprocess.run(up, stdout=sys.stderr).returncode:
             raise SystemExit("pod up failed")
         pod.STATE = os.path.join(pod.LOCAL_ART, f"pod_{name}.json")
         st = pod.load_state()
@@ -83,7 +85,10 @@ def main() -> None:
                 *pod.ssh_args(st),
                 "bash",
                 "-lc",
-                shlex.quote(f"cd {pod.REMOTE} && {env} python3 -c {shlex.quote(code)}"),
+                shlex.quote(
+                    f"cd {pod.REMOTE} && PY=$(for p in python python3; do $p -c 'import torch' "
+                    f"2>/dev/null && echo $p && break; done) && {env} $PY -c {shlex.quote(code)}"
+                ),
             ],
             capture_output=True,
             text=True,

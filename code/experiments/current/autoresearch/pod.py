@@ -27,7 +27,7 @@ import urllib.parse
 import urllib.request
 
 API = "https://api.runpod.io/graphql"
-IMAGE = "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04"
+IMAGE = os.environ.get("ND_POD_IMAGE", "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04")
 GPU = "NVIDIA A40"
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCAL_ART = os.path.join(
@@ -154,7 +154,7 @@ def upload(st, pretrain_file):
     (sweep variants)."""
     ssh = "ssh " + " ".join(ssh_args(st))
     subprocess.run(
-        f"tar czf - -C {shlex.quote(HERE)} remote.sh harness.py "
+        f"tar czf - -C {shlex.quote(HERE)} remote.sh harness.py watchdog.sh "
         f'| {ssh} "mkdir -p {REMOTE} && tar xzf - -C {REMOTE}"',
         shell=True,
         check=True,
@@ -318,6 +318,10 @@ def main():
         else:
             raise SystemExit("ssh never accepted the key")
         upload(st, pretrain_file)
+        # Self-destruct: pods are torn down only by this machine, so if it sleeps or loses the
+        # network (2026-09-26: a bench pod idled ~8.5 h) the pod deletes itself after this long.
+        max_secs = int(os.environ.get("ND_POD_MAX_SECS", 5400))
+        ssh_run(st, f"nohup setsid bash {REMOTE}/watchdog.sh {max_secs} > /tmp/wd.log 2>&1 &")
         ssh_run(
             st,
             f"cd {REMOTE} && bash remote.sh /tmp/warm --help > /dev/null 2>&1; "

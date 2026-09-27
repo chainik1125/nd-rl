@@ -22,5 +22,8 @@ git -C "$ND_FORK" checkout -q "$FORK_COMMIT"
 export LEAN_GATE_WORKERS=$(nproc) LEAN_GATE_LOG="$OUT/lean_gate.jsonl"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 echo "cpus $(nproc), $(~/.elan/bin/lean --version)"
+# Newer RunPod images put torch under `python` and leave `python3` as bare system Python.
+PY=$(for p in python python3; do "$p" -c "import torch" 2>/dev/null && echo "$p" && break; done)
+echo "python $($PY --version 2>&1), torch $($PY -c 'import torch; print(torch.__version__)')"
 cd /workspace/autoresearch
-python3 harness.py --out "$OUT" "$@" 2>&1 | tee "$OUT.log"
+$PY harness.py --out "$OUT" "$@" 2>&1 | tee "$OUT.log"
