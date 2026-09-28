@@ -1,0 +1,61 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..4db9bcd 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -75,6 +75,10 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Backout (modded-nanogpt speedrun): the readout sees the final residual stream minus a learned
++# fraction of the stream after this block (index 3 = 2/3 depth, as there), so the first four
++# blocks can write context-building features for later attention that the head need not read.
++BACKOUT_BLOCK, BACKOUT_INIT = 3, 0.5
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -169,12 +173,13 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.backout = torch.nn.Parameter(torch.tensor(BACKOUT_INIT))
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+ 
+     def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
++        """The trunk: (backed-out final hidden state before ln_f, the ALiBi bias used)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -190,10 +195,12 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        x = self.emb(idx)
++        x = mid = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
++            if i == BACKOUT_BLOCK:
++                mid = x
++        return x - self.backout * mid, bias
+ 
+ 
+ class MTPHead(torch.nn.Module):
+@@ -403,6 +410,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+                     "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                    "backout": model.backout.item(),
+                 }
+             )
+             log(
+@@ -423,6 +431,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
+             "last_loss": last_loss,
++            "backout": model.backout.item(),
+             "curve": curve,
+         },
+     )
