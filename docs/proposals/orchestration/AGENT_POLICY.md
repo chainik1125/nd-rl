@@ -27,6 +27,25 @@ Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and share
   `L_true` labels (upper bounds under Lean) are no longer the whole story. Term size is invariant
   to both.
 - **Training format: Lean `lean_seq`** (Dan, 2026-09-22). Token-format arms are labelled as such.
+- **Sampling settings (Dan, 2026-09-28): use the fast settings by default.** The fast decode path is
+  already `sample.py`'s default (`ND_SAMPLE_PATH=fast`, finished rows dropped, per-row seeding) — keep
+  it. Then:
+  - **Batch:** the largest that fits. On the 3.2 M `lean_seq` model, batch 4,096 at `max_new` 288
+    peaks at ≈ 11 GB (run `efficiency`), so at most two such jobs per 24 GB card. Record peak memory
+    (`torch.cuda.max_memory_allocated`) in your first job and report it with the batch.
+  - **`max_new`:** set it from the pool — the longest proof you intend to count, in tokens, with a
+    margin — and report the fraction of samples that hit it. If more than ≈ 0.1 % of any stratum you
+    report are cut off, raise it: a length cap that truncates silently biases exactly the length
+    results this project is about.
+  - **Comparisons:** hold batch, `max_new` and decode flags fixed across every arm of one experiment.
+    Comparing with an on-file number measured at other settings is fine: a settings change is a
+    sampling re-draw (bf16 reduction order changes; ≈ 1 row in 128 decodes differently), never a
+    correctness change — Lean still checks every sample. Say so, and quote `NOISE_FLOOR.md`. The one
+    exception is a test that needs a byte-identical sample stream against an old one: then run
+    `ND_SAMPLE_COMPACT=0` at the old batch, as `ds-generator` did.
+  - *Why:* ≈ 2× on RL sampling (2.16× end to end, 2.35× on the sampler, measured on one RTX 3090),
+    nearly all of it from the batch. Until 2026-09-28 runs held batch 512 to match earlier results
+    and got only ≈ 1.1×. Budget estimates made before then assume the old throughput; re-measure.
 - **Every number names the model it was measured on** (Dan, 2026-09-23): checkpoint, parameter
   count, format, from-scratch or pretrained, training set. An inherited number carries its label;
   a reviewer treats an unlabelled number as a finding. *Why:* an efficiency run applied a premise
