@@ -1,0 +1,91 @@
+{
+ "id": "c005-claude-manual",
+ "slug": "guided-in-budget",
+ "arm": "leon",
+ "run_prefix": "combo-c005",
+ "written_at": "2026-09-28T07:36:16+0100",
+ "base_commit": "2cf253d",
+ "provider": "anthropic",
+ "model": "claude-opus-5-5",
+ "files": {
+  "ckpt_shim.py": "91c4328d025b",
+  "launch.py": "db2f8f8359ab",
+  "leon_rl.py": "a6a66e30bd74",
+  "harness_leon.py": "08bcbbd7733d",
+  "fast_sample.py": "72816d7e0bb1",
+  "guided.py": "6cc641bec4e8",
+  "line_checker.py": "6fd951d747f6"
+ },
+ "harness_sha": "2aa52f23e7ec",
+ "pretrain": "186-claude pretrain.pt per seed (pretrain_sha fc09860cd285)",
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "title": "Combined v4: c004 (guided RL) inside the real 2,400 s budget: exact-output guided sampler speedups + a 1,800 s RL deadline",
+ "description": "c004 ran 2,657-2,728 s end to end, over the harness's 2,400 s. c005 keeps its recipe and sampling distribution but removes per-row Python and host syncs from the guided decode loop and overlaps the GPU forward with the line checks; an RL deadline at 1,800 s after harness start guarantees the pipeline (300 s pretraining + RL + ~450-560 s eval) fits. Samples stay capped at 192k: if the speedups suffice the deadline never binds.",
+ "tags": [
+  "rl",
+  "systems",
+  "combined"
+ ],
+ "hypothesis": "c004's sampling took 1,519 s against ~1,050 s implied by its token volume; the gap is per-step CPU work serialized with the GPU. Removing it lets most or all of the 192k guided samples fit, keeping most of c004's gain over c002 within the budget.",
+ "p_keep": 0.35,
+ "expected_delta": "-40 to +10 vs c004 (a budget-fair version, not an improvement); 170k-192k RL samples; total <= 2,400 s",
+ "baseline_id": "c004-claude-manual",
+ "baseline_metric": "c004 3-seed mean (seeds 0,1: 925, 894; seed 2 pending)",
+ "config": {
+  "pretrain": {
+   "source": "186-claude pretrain.py run on the pod (300 s), seeds 0/1/2; not the saved weights (see c003 relaunch.md)",
+   "arch": "ALiBiGPT 6x384 Peri-LN, 8 heads (4 ALiBi + 4 NoPE), d_ff 1280",
+   "n_params": 9557760,
+   "tok": "lean_seq"
+  },
+  "data": "fork 51604b3: train.jsonl cap-6 (retention), 1,500 rl_targets sampled with the harness seed, dev half of transfer (1,108) for eval",
+  "reward": "Lean 4 AND nd_verify (fork lean_gate)",
+  "eval": "frozen harness stage_eval: EVAL_K 64, T 0.8, max_new 512; metric = dev solved at L_true >= 7",
+  "total_secs": "3600 cap; target <= 2,400 s end to end (the harness budget)",
+  "rl": {
+   "recipe": "leon_rl.stage_rl (leon/home-rolled-rl @ 0f749e2, rl_champion2_n060_fullpool.py)",
+   "window": 400,
+   "k_mean": 32,
+   "k_min": 4,
+   "k_max": 128,
+   "k_len_prior": {
+    "7": 2,
+    "8": 3,
+    "9": 4,
+    "10": 6,
+    "11+": 8
+   },
+   "hard_refill": 1200,
+   "temperature": 1.0,
+   "ft_steps": 135,
+   "ft_batch": 128,
+   "lr": 0.0003,
+   "min_lr": 3e-05,
+   "warmup": 35,
+   "loss": "gem beta 0.7",
+   "retain": 20000,
+   "max_per_thm": 4,
+   "rare_weight_max": 8,
+   "targets": 1500,
+   "samples": 192000,
+   "rounds": 15,
+   "not_ported": [
+    "guided line-level sampler",
+    "CUDA-graph sampler",
+    "abs index cap",
+    "hindsight relabelling",
+    "schema cover"
+   ],
+   "sampler": "guided.generate: line-level verifier-guided RL sampling (Leon's run-2 guided sampler ported to lean_seq: fork inverse() on the prefix + Leon's LineChecker; rejected segments masked out of the KV cache and resampled; 4 retries per segment, 24 per row, segment cap 400) + compaction + Lean overlap; eval = frozen harness sampler, unguided; c005: same algorithm with the per-step loop vectorized and the forward overlapped with the line checks (outputs identical to c004's sampler on CPU tests)",
+   "leon_cfg": {
+    "guided": true,
+    "deadline": 1800
+   },
+   "deadline": "no new RL round once it would end past 1,800 s from harness start (eval takes 413-556 s, so the whole pipeline incl. 300 s pretraining fits 2,400 s)"
+  }
+ }
+}
