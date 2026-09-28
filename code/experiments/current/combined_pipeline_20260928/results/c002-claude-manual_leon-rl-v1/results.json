@@ -1,0 +1,468 @@
+{
+ "recorded_at": "2026-09-28T05:37:19+0100",
+ "status": "keep",
+ "metric": 804.3333333333334,
+ "seed_metrics": {
+  "0": 776,
+  "1": 831,
+  "2": 806
+ },
+ "metric_rl": 1292.6666666666667,
+ "seed_status": {
+  "0": "ok",
+  "1": "ok",
+  "2": "ok"
+ },
+ "total_secs": {
+  "0": 1764,
+  "1": 2132,
+  "2": 1751
+ },
+ "rl_secs": {
+  "0": 1381,
+  "1": 1547,
+  "2": 1364
+ },
+ "gpu": {
+  "0": "NVIDIA A40",
+  "1": "NVIDIA A40",
+  "2": "NVIDIA A40"
+ },
+ "eval": {
+  "0": {
+   "solved": 776,
+   "ge": {
+    "7": 776,
+    "8": 673,
+    "9": 542,
+    "10": 141,
+    "11": 32,
+    "12": 7,
+    "13": 2,
+    "14": 1
+   },
+   "lstar": 12
+  },
+  "1": {
+   "solved": 831,
+   "ge": {
+    "7": 831,
+    "8": 704,
+    "9": 569,
+    "10": 166,
+    "11": 36,
+    "12": 8,
+    "13": 3,
+    "14": 1
+   },
+   "lstar": 12
+  },
+  "2": {
+   "solved": 806,
+   "ge": {
+    "7": 806,
+    "8": 695,
+    "9": 559,
+    "10": 156,
+    "11": 36,
+    "12": 8,
+    "13": 3,
+    "14": 1
+   },
+   "lstar": 12
+  }
+ },
+ "rl_rounds": {
+  "0": [
+   {
+    "round": 1,
+    "sample_acc": 0.15197827773467804,
+    "new_proofs": 262,
+    "targets_solved": 185,
+    "lstar": 9,
+    "secs": 86.7169132232666
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.2591468161295345,
+    "new_proofs": 533,
+    "targets_solved": 455,
+    "lstar": 10,
+    "secs": 85.02280163764954
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.2727485380116959,
+    "new_proofs": 654,
+    "targets_solved": 737,
+    "lstar": 10,
+    "secs": 86.9057970046997
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.20749528598365807,
+    "new_proofs": 774,
+    "targets_solved": 1010,
+    "lstar": 11,
+    "secs": 86.83257746696472
+   },
+   {
+    "round": 5,
+    "sample_acc": 0.126127515226274,
+    "new_proofs": 545,
+    "targets_solved": 1159,
+    "lstar": 11,
+    "secs": 81.46198773384094
+   },
+   {
+    "round": 6,
+    "sample_acc": 0.5963722397476341,
+    "new_proofs": 1357,
+    "targets_solved": 1159,
+    "lstar": 11,
+    "secs": 84.75518560409546
+   },
+   {
+    "round": 7,
+    "sample_acc": 0.21093023255813953,
+    "new_proofs": 639,
+    "targets_solved": 1187,
+    "lstar": 11,
+    "secs": 87.07274866104126
+   },
+   {
+    "round": 8,
+    "sample_acc": 0.13042121684867394,
+    "new_proofs": 534,
+    "targets_solved": 1238,
+    "lstar": 11,
+    "secs": 91.78069615364075
+   },
+   {
+    "round": 9,
+    "sample_acc": 0.5088757396449705,
+    "new_proofs": 2159,
+    "targets_solved": 1238,
+    "lstar": 11,
+    "secs": 97.26075625419617
+   },
+   {
+    "round": 10,
+    "sample_acc": 0.1762015503875969,
+    "new_proofs": 785,
+    "targets_solved": 1247,
+    "lstar": 11,
+    "secs": 87.31059241294861
+   },
+   {
+    "round": 11,
+    "sample_acc": 0.18497601732941357,
+    "new_proofs": 889,
+    "targets_solved": 1263,
+    "lstar": 11,
+    "secs": 95.67438507080078
+   },
+   {
+    "round": 12,
+    "sample_acc": 0.46678238914312764,
+    "new_proofs": 2564,
+    "targets_solved": 1263,
+    "lstar": 11,
+    "secs": 101.11496996879578
+   },
+   {
+    "round": 13,
+    "sample_acc": 0.17131782945736435,
+    "new_proofs": 966,
+    "targets_solved": 1269,
+    "lstar": 11,
+    "secs": 86.60272932052612
+   },
+   {
+    "round": 14,
+    "sample_acc": 0.20598577791669923,
+    "new_proofs": 1298,
+    "targets_solved": 1273,
+    "lstar": 11,
+    "secs": 96.12589001655579
+   },
+   {
+    "round": 15,
+    "sample_acc": 0.5026056745801969,
+    "new_proofs": 2737,
+    "targets_solved": 1273,
+    "lstar": 11,
+    "secs": 98.2205719947815
+   },
+   {
+    "round": 16,
+    "sample_acc": 0.3975,
+    "new_proofs": 84,
+    "targets_solved": 1273,
+    "lstar": 11,
+    "secs": 27.826656818389893
+   }
+  ],
+  "1": [
+   {
+    "round": 1,
+    "sample_acc": 0.19418459619582165,
+    "new_proofs": 344,
+    "targets_solved": 218,
+    "lstar": 10,
+    "secs": 132.4776430130005
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.25048893061096766,
+    "new_proofs": 597,
+    "targets_solved": 497,
+    "lstar": 10,
+    "secs": 135.6304337978363
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.31145251396648044,
+    "new_proofs": 767,
+    "targets_solved": 792,
+    "lstar": 11,
+    "secs": 116.66702103614807
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.23234946871310508,
+    "new_proofs": 810,
+    "targets_solved": 1063,
+    "lstar": 11,
+    "secs": 94.47603487968445
+   },
+   {
+    "round": 5,
+    "sample_acc": 0.17011927181418707,
+    "new_proofs": 586,
+    "targets_solved": 1191,
+    "lstar": 11,
+    "secs": 92.05477714538574
+   },
+   {
+    "round": 6,
+    "sample_acc": 0.6705726115147254,
+    "new_proofs": 1278,
+    "targets_solved": 1191,
+    "lstar": 11,
+    "secs": 106.87529182434082
+   },
+   {
+    "round": 7,
+    "sample_acc": 0.2221705426356589,
+    "new_proofs": 562,
+    "targets_solved": 1211,
+    "lstar": 11,
+    "secs": 82.77594017982483
+   },
+   {
+    "round": 8,
+    "sample_acc": 0.1539604347486121,
+    "new_proofs": 604,
+    "targets_solved": 1248,
+    "lstar": 11,
+    "secs": 86.59916830062866
+   },
+   {
+    "round": 9,
+    "sample_acc": 0.5059166929630798,
+    "new_proofs": 1750,
+    "targets_solved": 1248,
+    "lstar": 11,
+    "secs": 94.70331358909607
+   },
+   {
+    "round": 10,
+    "sample_acc": 0.1675968992248062,
+    "new_proofs": 789,
+    "targets_solved": 1258,
+    "lstar": 11,
+    "secs": 93.05130863189697
+   },
+   {
+    "round": 11,
+    "sample_acc": 0.19218651543793322,
+    "new_proofs": 923,
+    "targets_solved": 1277,
+    "lstar": 11,
+    "secs": 90.94244718551636
+   },
+   {
+    "round": 12,
+    "sample_acc": 0.4812680115273775,
+    "new_proofs": 2455,
+    "targets_solved": 1277,
+    "lstar": 11,
+    "secs": 102.01180744171143
+   },
+   {
+    "round": 13,
+    "sample_acc": 0.18248062015503877,
+    "new_proofs": 901,
+    "targets_solved": 1290,
+    "lstar": 11,
+    "secs": 92.74864959716797
+   },
+   {
+    "round": 14,
+    "sample_acc": 0.21110236220472442,
+    "new_proofs": 1313,
+    "targets_solved": 1308,
+    "lstar": 11,
+    "secs": 97.22195148468018
+   },
+   {
+    "round": 15,
+    "sample_acc": 0.42821316614420063,
+    "new_proofs": 2736,
+    "targets_solved": 1308,
+    "lstar": 11,
+    "secs": 100.26382994651794
+   },
+   {
+    "round": 16,
+    "sample_acc": 0.3825,
+    "new_proofs": 73,
+    "targets_solved": 1308,
+    "lstar": 11,
+    "secs": 28.827519416809082
+   }
+  ],
+  "2": [
+   {
+    "round": 1,
+    "sample_acc": 0.1486834908977264,
+    "new_proofs": 263,
+    "targets_solved": 200,
+    "lstar": 9,
+    "secs": 74.55822920799255
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.2672642244738893,
+    "new_proofs": 504,
+    "targets_solved": 463,
+    "lstar": 10,
+    "secs": 85.7042887210846
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.2898153942428035,
+    "new_proofs": 716,
+    "targets_solved": 755,
+    "lstar": 10,
+    "secs": 82.78204703330994
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.229515864972324,
+    "new_proofs": 793,
+    "targets_solved": 1030,
+    "lstar": 11,
+    "secs": 93.38558578491211
+   },
+   {
+    "round": 5,
+    "sample_acc": 0.16470588235294117,
+    "new_proofs": 596,
+    "targets_solved": 1185,
+    "lstar": 11,
+    "secs": 88.69300246238708
+   },
+   {
+    "round": 6,
+    "sample_acc": 0.6071653543307086,
+    "new_proofs": 1140,
+    "targets_solved": 1185,
+    "lstar": 11,
+    "secs": 87.38841772079468
+   },
+   {
+    "round": 7,
+    "sample_acc": 0.19666666666666666,
+    "new_proofs": 677,
+    "targets_solved": 1207,
+    "lstar": 11,
+    "secs": 89.65826344490051
+   },
+   {
+    "round": 8,
+    "sample_acc": 0.14727061556329848,
+    "new_proofs": 458,
+    "targets_solved": 1242,
+    "lstar": 11,
+    "secs": 85.98868751525879
+   },
+   {
+    "round": 9,
+    "sample_acc": 0.4912772585669782,
+    "new_proofs": 1822,
+    "targets_solved": 1242,
+    "lstar": 11,
+    "secs": 86.8655993938446
+   },
+   {
+    "round": 10,
+    "sample_acc": 0.16023255813953488,
+    "new_proofs": 797,
+    "targets_solved": 1249,
+    "lstar": 11,
+    "secs": 82.9185791015625
+   },
+   {
+    "round": 11,
+    "sample_acc": 0.17367970755230613,
+    "new_proofs": 919,
+    "targets_solved": 1273,
+    "lstar": 12,
+    "secs": 87.34515190124512
+   },
+   {
+    "round": 12,
+    "sample_acc": 0.469472204871955,
+    "new_proofs": 2558,
+    "targets_solved": 1273,
+    "lstar": 12,
+    "secs": 101.34360361099243
+   },
+   {
+    "round": 13,
+    "sample_acc": 0.16790697674418606,
+    "new_proofs": 1002,
+    "targets_solved": 1285,
+    "lstar": 12,
+    "secs": 91.17164373397827
+   },
+   {
+    "round": 14,
+    "sample_acc": 0.19483365949119374,
+    "new_proofs": 1165,
+    "targets_solved": 1297,
+    "lstar": 12,
+    "secs": 96.58484721183777
+   },
+   {
+    "round": 15,
+    "sample_acc": 0.4648014440433213,
+    "new_proofs": 2726,
+    "targets_solved": 1297,
+    "lstar": 12,
+    "secs": 97.69278740882874
+   },
+   {
+    "round": 16,
+    "sample_acc": 0.3,
+    "new_proofs": 82,
+    "targets_solved": 1297,
+    "lstar": 12,
+    "secs": 31.667598962783813
+   }
+  ]
+ },
+ "surprise": "Leon's recipe on the Lean incumbent: 776/831/806 (mean 804.3) vs c001's paired 676/703/683 (687.3), +117; every seed up by 100-128 from identical pretrained weights and the same 192k RL samples (+0.1% last-round rounding). RL solved 1273/1308/1297 of 1,500 vs 1138-1181, L* 12 on dev. At T 1.0 ~40% of early samples fail to parse, so sampling ran at 110-217/s and RL took ~1,500 s; totals 1764/2132/1751 s without pretraining, i.e. ~2,050-2,430 s with 186's 300 s, at the 2,400 s harness limit. Lean checking is ~22 of each ~95 s round."
+}
