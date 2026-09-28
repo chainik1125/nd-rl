@@ -1,0 +1,27 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 363055e..b4a0d9c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -39,6 +39,9 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ N_LAYER, D, N_HEAD = 6, 384, 8
++# P01 looped middle: the N_LAYER unique blocks are applied in this order, so the middle pair runs
++# twice (A-B-C-D-C-D-E-F, 8 logical applications) at the same parameter count.
++LOOP_ORDER = (0, 1, 2, 3, 2, 3, 4, 5)
+ # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+ # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+ D_FF = 1280
+@@ -302,7 +305,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+-    model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
++    # model.blocks lists the logical applications (shared blocks appear twice), so
++    # sample.generate's one KV cache per entry stays distinct per application while
++    # parameters(), n_params() and both optimizers deduplicate the shared weights by identity.
++    unique = [PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER)]
++    model.blocks = torch.nn.ModuleList(unique[i] for i in LOOP_ORDER)
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
