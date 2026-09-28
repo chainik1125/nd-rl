@@ -1,0 +1,69 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 363055e..119a510 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -64,6 +64,11 @@ N_ALIBI = N_HEAD // 2
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+     N_HEAD - N_ALIBI
+ )
++# Partial key offset (modded-nanogpt): in the NoPE heads, the last KEY_OFFSET dims of the key at
++# position j are computed from position j - 1 (zeros at the first token), so a query that
++# matches content X lands on the token AFTER X: induction/copying in one layer instead of two.
++# The ALiBi heads and the other half of each NoPE key are unchanged.
++KEY_OFFSET = D // N_HEAD // 2
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ # Token-budget batches (fairseq max-tokens): each step takes a run of length-sorted records with
+ # count * padded_length <= TOK_BUDGET, so a batch of short proofs has many records and a batch of
+@@ -130,16 +135,28 @@ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+     `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+-    and cos/sin are unused."""
++    and sin is unused. `first` (B or 1, T) marks positions with no previous token (position 0
++    and left pads), whose offset key dims are zero; None means only the first column is."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
+         self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+-    def attn(self, x, cos, sin, mask, cache):
++    def attn(self, x, first, sin, mask, cache):
+         B, T, D = x.shape
+         q, k, v = self.qkv(x).view(B, T, 3, self.h, D // self.h).permute(2, 0, 3, 1, 4)
++        raw = k[:, N_ALIBI:, :, -KEY_OFFSET:]  # the NoPE heads' offset dims, before the shift
++        prev = None if cache is None else cache.get("k_last")
++        if cache is not None:  # incremental decoding: the next token needs this one's raw key
++            cache["k_last"] = raw[:, :, -1:].clone()
++        if prev is None:
++            prev = raw.new_zeros(B, self.h - N_ALIBI, 1, KEY_OFFSET)
++        shifted = torch.cat((prev, raw[:, :, :-1]), 2)
++        if first is not None:
++            shifted = shifted.masked_fill(first[:, None, :, None], 0.0)
++        k = k.clone()
++        k[:, N_ALIBI:, :, -KEY_OFFSET:] = shifted
+         if cache is not None:  # the fork's preallocated KV cache, unchanged
+             if "k" not in cache:
+                 cache["k"] = k.new_empty(B, self.h, cache["max"], D // self.h)
+@@ -153,8 +170,8 @@ class PeriLNBlock(Block):
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+-    def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
++    def forward(self, x, first, sin, mask=None, cache=None):
++        x = x + self.ln_attn_out(self.attn(self.ln1(x), first, sin, mask, cache))
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+ 
+@@ -191,8 +208,9 @@ class ALiBiGPT(GPT):
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
++        first = pos == 0  # sample.generate gives left pads and the first real token position 0
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++            x = b(x, first, None, bias, None if caches is None else caches[i])
+         return x, bias
+ 
+ 
