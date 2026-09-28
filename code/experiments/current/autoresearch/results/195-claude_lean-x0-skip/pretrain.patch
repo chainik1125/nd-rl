@@ -1,0 +1,72 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..9f94ddf 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -153,7 +153,9 @@ class PeriLNBlock(Block):
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+-    def forward(self, x, cos, sin, mask=None, cache=None):
++    def forward(self, x, cos, sin, mask=None, cache=None, x0=None, mix=None):
++        if mix is not None:  # ALiBiGPT's x0 skip, inside the block so compile fuses it
++            x = mix[0] * x + mix[1] * x0
+         x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+         return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+ 
+@@ -163,12 +165,17 @@ class ALiBiGPT(GPT):
+     logits get -slope_h * (query position - key position), slopes 2^-1 .. 2^-8 for 8 heads, so
+     no rotation of q/k anywhere. Positions come from `pos` (sample.generate's left-padded
+     batches) or arange; key positions are kept in caches[0] so cached decoding sees the same
+-    bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0."""
++    bias as the full forward. Causality/padding come from `mask` when given, else from rel < 0.
++
++    x0 skip (modded-nanogpt): before block i the residual becomes
++    x0_mix[i, 0] * x + x0_mix[i, 1] * rms_norm(token embedding), init (1, 0) = no change, so
++    every block can re-read token identity and rescale what earlier blocks wrote."""
+ 
+     def __init__(self, vocab, n_layer, d, n_head, max_len=1024):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.x0_mix = torch.nn.Parameter(torch.tensor([[1.0, 0.0]] * n_layer))
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+@@ -191,8 +198,9 @@ class ALiBiGPT(GPT):
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         x = self.emb(idx)
++        x0 = torch.nn.functional.rms_norm(x, (x.size(-1),))
+         for i, b in enumerate(self.blocks):
+-            x = b(x, None, None, bias, None if caches is None else caches[i])
++            x = b(x, None, None, bias, None if caches is None else caches[i], x0, self.x0_mix[i])
+         return x, bias
+ 
+ 
+@@ -329,10 +337,16 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+     matrices += [p for p in mtp.parameters() if p.ndim == 2]
+     matrix_ids = {id(p) for p in matrices}
+-    auxiliary = [p for p in trainable if id(p) not in matrix_ids]
++    auxiliary = [p for p in trainable if id(p) not in matrix_ids and p is not model.x0_mix]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+     opt = torch.optim.AdamW(
+-        auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=device == "cuda"
++        # As in modded-nanogpt, the skip scalars get no weight decay, which would pull every
++        # block's residual scale toward 0.
++        [{"params": auxiliary}, {"params": [model.x0_mix], "weight_decay": 0.0}],
++        lr=LR,
++        weight_decay=WD,
++        betas=(0.9, 0.95),
++        fused=device == "cuda",
+     )
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+@@ -422,6 +436,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "epochs": records_seen / n_train,
+             "batches_per_epoch": batches_per_epoch,
+             "tok_budget": TOK_BUDGET,
++            "x0_mix": model.x0_mix.tolist(),  # learned (residual, x0) weights per block
+             "last_loss": last_loss,
+             "curve": curve,
+         },
