@@ -1,0 +1,14 @@
+{
+ "mean reward (verified fraction of samples)": true,
+ "pass rate by proof length (periodic eval)": true,
+ "unparseable fraction": true,
+ "invalid fraction": true,
+ "prompts with a verified proof": true,
+ "verified proofs kept": true,
+ "SFT training records": true,
+ "SFT loss": true,
+ "cumulative completions (matched budget)": true,
+ "rollout throughput": true,
+ "utc timestamp": true,
+ "step": true
+}

@@ -186,3 +186,34 @@ set matching `run.algo`; the curriculum's fallback no longer samples lengths the
 unlocked; EI refuses `unparseable_reward` instead of ignoring it. Still open: banning the test-file
 renaming classes before exp-01, and whether exp-01 keeps `loss_type: grpo` or moves to `dapo`.
 60 ws3 tests pass.
+
+## 2026-09-27 exp-00c: lr sweep and expert iteration on CPU
+
+**What ran.** `experiments/ws3/exp-00c-lr-ei-cpu/`, branch `charles/exp-00c-lr-ei-cpu` (worktree
+`../nd-rl-exp-00c`), 56 minutes of laptop CPU. The design:
+- `rl_targets` split by renaming class into train and eval halves;
+- a training pool of 198 prompts the frozen model solves 1 to 7 of 8 times;
+- 3 GRPO arms (lr 3e-5, 1e-4, 3e-4; the planned 1e-3 was replaced after a smoke showed one step
+  breaks the model) and expert iteration, each at about 12,300 samples;
+- evaluation on 200 eval-half prompts (L7 and L8) at 32 samples.
+
+New code: prompt and eval files with leak checks (`data.py`), EI `samples_total`, and
+`analyze.py`. The test-file renaming classes are now banned from file-based RL prompts.
+
+**What was learned (executor numbers, independently re-verified, reviewer recount pending).**
+- **Large in-distribution lift.** Held-out L7 avg solve rate went from 0.122 (frozen) to 0.430
+  (GRPO 3e-5), 0.391 (1e-4), 0.333 (3e-4) and **0.545 (EI)**. L8 went from 0 to 0.266 for EI
+  and at most 0.013 for GRPO.
+- **Selection rule: lr 1e-4.** 3e-4 is excluded for forgetting (greedy 2 to 6 dropped 0.097).
+- **Textbook flat.** 0.101 to 0.084–0.119 across arms.
+- **The verifier session found no bug, loophole or leak.** The gains come from fixing one step
+  the frozen model almost had. Diversity collapses to about one proof per problem.
+
+**What is next.** Reviewer recount; 3 seeds of EI and GRPO at 1e-4 and 3e-5; whether any of
+this reaches the textbook set; whether the pool filter or the algorithm drives EI's lead.
+
+**Open questions.**
+- Report "new capability" as defined (frozen 0/32), given that it is mostly one-step fixes of
+  near misses?
+- Is the pool filter acceptable as standard practice (it selects on frozen-model success in the
+  training half only)?

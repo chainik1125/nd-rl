@@ -1,0 +1,126 @@
+{
+ "label": "greedy_heldout",
+ "utc": "2026-09-27T23:41:04+00:00",
+ "k": 1,
+ "temperature": 0.0,
+ "n_records": 1000,
+ "overall": {
+  "solved": 978,
+  "n": 1000,
+  "rate": 0.978,
+  "ci": [
+   0.9669140836251823,
+   0.9854274013262284
+  ],
+  "avg": 0.978,
+  "avg_ci": [
+   0.9669140836251823,
+   0.9870960763081784
+  ],
+  "reliable50": 0.978,
+  "reliable90": 0.978
+ },
+ "by_length": {
+  "2": {
+   "solved": 200,
+   "n": 200,
+   "rate": 1.0,
+   "ci": [
+    0.9811539940816791,
+    1.0
+   ],
+   "avg": 1.0,
+   "avg_ci": [
+    0.9811539940816791,
+    1.0
+   ],
+   "reliable50": 1.0,
+   "reliable90": 1.0,
+   "valid_prefix_failed": null,
+   "proof_len_ratio": 1.0025
+  },
+  "3": {
+   "solved": 200,
+   "n": 200,
+   "rate": 1.0,
+   "ci": [
+    0.9811539940816791,
+    1.0
+   ],
+   "avg": 1.0,
+   "avg_ci": [
+    0.9811539940816791,
+    1.0
+   ],
+   "reliable50": 1.0,
+   "reliable90": 1.0,
+   "valid_prefix_failed": null,
+   "proof_len_ratio": 0.9933333333333333
+  },
+  "4": {
+   "solved": 196,
+   "n": 200,
+   "rate": 0.98,
+   "ci": [
+    0.9497121344948062,
+    0.9921956998236058
+   ],
+   "avg": 0.98,
+   "avg_ci": [
+    0.9497121344948062,
+    0.9994517002654287
+   ],
+   "reliable50": 0.98,
+   "reliable90": 0.98,
+   "valid_prefix_failed": 0.75,
+   "proof_len_ratio": 1.0204081632653061
+  },
+  "5": {
+   "solved": 197,
+   "n": 200,
+   "rate": 0.985,
+   "ci": [
+    0.9568335194437211,
+    0.9948858548155076
+   ],
+   "avg": 0.985,
+   "avg_ci": [
+    0.9568335194437211,
+    1.0
+   ],
+   "reliable50": 0.985,
+   "reliable90": 0.985,
+   "valid_prefix_failed": 0.4666666666666666,
+   "proof_len_ratio": 0.9898477157360406
+  },
+  "6": {
+   "solved": 185,
+   "n": 200,
+   "rate": 0.925,
+   "ci": [
+    0.8799554020266798,
+    0.9540254929427476
+   ],
+   "avg": 0.925,
+   "avg_ci": [
+    0.8799554020266798,
+    0.961595781946577
+   ],
+   "reliable50": 0.925,
+   "reliable90": 0.925,
+   "valid_prefix_failed": 0.5555555555555555,
+   "proof_len_ratio": 0.9855855855855855
+  }
+ },
+ "frontier_avg50": 6,
+ "valid_prefix_failed": 0.5787878787878787,
+ "max_length_solved": 6,
+ "samples": 1000,
+ "unparseable_frac": 0.001,
+ "invalid_frac": 0.022,
+ "completion_tokens_mean": 73.271,
+ "completion_tokens_max": 247,
+ "capped_frac": 0.0,
+ "secs": 18.645310878753662,
+ "samples_per_sec": 53.632787702108004
+}
