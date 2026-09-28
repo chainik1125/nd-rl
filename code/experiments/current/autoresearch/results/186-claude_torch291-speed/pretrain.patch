@@ -1,0 +1,108 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 861e495..6e7a19d 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -121,7 +121,8 @@ def muon_step(params, buffers, lr):
+         # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
+         update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
+         p.mul_(1 - lr * MUON_WD)
+-        p.add_(update.reshape_as(p), alpha=-lr)
++        # lr may be a 0-d tensor (CUDA-graphed step); scale in p's dtype like add_(alpha=-lr)
++        p.sub_(lr * update.reshape_as(p).to(p.dtype))
+ 
+ 
+ class PeriLNBlock(Block):
+@@ -267,17 +268,18 @@ def token_batches(lens, n_train, gen, rng):
+         window = sorted_lens[s : s + TOK_BUDGET // int(sorted_lens[s])]
+         # count * max_len is non-decreasing along the window, so the fits form a prefix.
+         e = s + int((torch.arange(1, len(window) + 1) * window <= TOK_BUDGET).sum())
+-        cuts.append((s, e))
++        cuts.append((s, e, int(sorted_lens[e - 1])))  # sorted: last is the batch's max length
+         s = e
+     rng.shuffle(cuts)
+     return order, cuts
+ 
+ 
+-def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen):
++def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, T=None):
+     """The fork's batch() + tok.shift_abs, vectorised: a random per-row offset is added to
+     every ref token."""
+     x, m = ids[idxs], mask[idxs]
+-    T = int(lens[idxs].max())
++    if T is None:  # known on the host for training batches: avoids a GPU sync every step
++        T = int(lens[idxs].max())
+     x, m = x[:, :T].clone(), m[:, :T]
+     if tok.mode in ("abs", "lean_seq"):  # lean_seq: names n1.. get the same start offset
+         room = MAXN - ref_max[idxs]
+@@ -305,6 +307,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     mtp = MTPHead(D, N_HEAD)
+     mtp.apply(model._init)
+     mtp = mtp.to(device)
++    # Compile the repeated blocks once each (torch >= 2.9; dynamic shapes, ~14 s): ~14% faster
++    # steps. The coalescing tiling analysis crashes on dynamic shapes, so it is off. Undone at
++    # handoff so the harness's RL fine-tune and KV-cache sampling run eager.
++    torch._inductor.config.triton.coalesce_tiling_analysis = False
++    muon_lr, muon_graph = torch.zeros((), device=device), None
++    compiled = list(model.blocks) + [mtp.block]
++    for b in compiled:
++        b.compile(dynamic=True)
+     for p in list(model.blocks.parameters()) + list(mtp.parameters()):
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+@@ -320,7 +330,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95))
++    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=True)
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     step, last_loss, records_seen = 0, float("nan"), 0
+@@ -345,18 +355,33 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         if not cuts:  # new epoch
+             order, cuts = token_batches(lens, n_train, gen, rng)
+             batches_per_epoch = len(cuts)
+-        s, e = cuts.pop()
++        s, e, T = cuts.pop()
+         idxs = order[s:e]
+         records_seen += e - s
+-        x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen)
++        x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, T)
+         with autocast:
+             loss, main, aux = mtp_loss(model, mtp, x, m)
+-        model.zero_grad(set_to_none=True)
+-        mtp.zero_grad(set_to_none=True)
++        model.zero_grad(set_to_none=False)  # grads keep fixed addresses for the Muon CUDA graph
++        mtp.zero_grad(set_to_none=False)
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+-        muon_step(matrices, momentum_buffers, MUON_LR * lr / LR)
++        muon_lr.fill_(MUON_LR * lr / LR)
++        if muon_graph is None:  # capture once; later steps replay one graph instead of ~400 launches
++            state = matrices + momentum_buffers
++            saved = [t.clone() for t in state]
++            side = torch.cuda.Stream()
++            side.wait_stream(torch.cuda.current_stream())
++            with torch.cuda.stream(side):
++                muon_step(matrices, momentum_buffers, muon_lr)  # warm-up (lazy cuBLAS init)
++            torch.cuda.current_stream().wait_stream(side)
++            muon_graph = torch.cuda.CUDAGraph()
++            with torch.cuda.graph(muon_graph):
++                muon_step(matrices, momentum_buffers, muon_lr)
++            with torch.no_grad():
++                for t, v in zip(state, saved, strict=True):
++                    t.copy_(v)  # undo the warm-up and capture updates
++        muon_graph.replay()
+         if step % 20 == 0:
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+@@ -378,6 +403,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+             recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++    for b in compiled:
++        b._compiled_call_impl = None
+     model.eval()
+     return (
+         model,
