@@ -105,72 +105,100 @@ def _guided_ids(model, tok, prompt_ids, prompts, temperature, max_new, gen, cfg)
     logits = model(idx, pos=pos, mask=mask, caches=caches)[:, -1].float()
     saved = logits.clone()  # distribution at the start of each row's current segment
     rows = list(range(B))  # original row of each live slot
-    buf = [[] for _ in range(B)]  # accepted token ids per original row
-    seg = [[] for _ in range(B)]  # token ids of the segment being written
+    rows_t = torch.arange(B, device=dev)
+    # Per original row, on the device: written tokens (accepted lines, then the open segment),
+    # how many are written (ptr), and where the open segment starts (sst). Only rows that just
+    # wrote `;` or <eos> (or hit a length cap) need Python in a step.
+    out = torch.full((B, T + 1), tok.pad, dtype=torch.long, device=dev)
+    ptr = torch.zeros(B, dtype=torch.long, device=dev)
+    sst = torch.zeros(B, dtype=torch.long, device=dev)
+    fin_o = torch.zeros(B, dtype=torch.bool, device=dev)
     chk = [RowCheck(p) for p in prompts]
     lstart_c = [L] * B  # cache index where the current segment starts
     lstart_p = pos[:, -1].tolist()  # position of the last accepted token
-    retries, rollbacks, finished = [0] * B, [0] * B, [False] * B
+    retries, rollbacks = [0] * B, [0] * B
     cur_pos = pos[:, -1].clone()
     use_saved = torch.zeros(B, dtype=torch.bool, device=dev)
+    sst_py, fin_py = [0] * B, [False] * B  # host mirrors, so the checks below never sync
     for t in range(T):
         lg = torch.where(use_saved[:, None], saved, logits)
         nxt = torch.multinomial(F.softmax(lg / temperature, -1), 1, generator=gen).squeeze(1)
-        nl = nxt.tolist()
-        acc, rb, kill = [], [], []
-        for j, r in enumerate(rows):
-            if finished[r]:
-                continue
-            x = nl[j]
-            if x == eos:
-                if chk[r].eos_ok([itos[y] for y in buf[r] + seg[r]]):
-                    buf[r] += seg[r] + [eos]
-                    finished[r] = True
+        fin = fin_o[rows_t]
+        live = ~fin
+        r_live, x_live = rows_t[live], nxt[live]
+        out[r_live, ptr[r_live]] = x_live
+        ptr[r_live] += 1
+        is_semi, is_eos = x_live == semi, x_live == eos
+        n_seg = ptr[r_live] - sst[r_live]
+        too_long = ~is_semi & ~is_eos & ((ptr[r_live] >= max_new) | (n_seg > cfg["guide_seg_max"]))
+        slot = live.nonzero().squeeze(1)
+        sel = is_semi | is_eos
+        sel_j, sel_eos = slot[sel].tolist(), is_eos[sel].tolist()
+        long_j = slot[too_long].tolist()
+        toks = out[rows_t[slot[sel]]].tolist() if sel_j else []
+        ptrs = ptr[rows_t[slot[sel]]].tolist() if sel_j else []
+        # Launch this step's forward before the checks, so the GPU runs while the CPU checks.
+        # Every slot feeds its sampled token (finished slots pad). A slot rolled back below gets
+        # its segment masked out of the cache before the next forward, and its logits from this
+        # forward are never used (it samples from `saved`), so outputs match checking first.
+        n_c = caches[0]["n"]  # the cache index this step's token lands in
+        cur_pos = cur_pos + 1
+        keep = torch.cat([keep, torch.ones(keep.size(0), 1, dtype=torch.bool, device=dev)], 1)
+        logits = model(
+            torch.where(fin, torch.full_like(nxt, tok.pad), nxt)[:, None],
+            pos=cur_pos[:, None],
+            mask=keep[:, None, None, :],
+            caches=caches,
+        )[:, -1].float()
+        acc, rb, kill = [], [], list(long_j)
+        STATS["kill_len"] += len(long_j)
+        for j, e, row, n in zip(sel_j, sel_eos, toks, ptrs, strict=True):
+            r = rows[j]
+            if e:
+                if chk[r].eos_ok([itos[y] for y in row[: n - 1]]):
+                    fin_py[r] = True
                     STATS["eos_ok"] += 1
                 else:
                     rb.append(j)
                     STATS["rb_eos"] += 1
-                continue
-            seg[r].append(x)
-            if x == semi:
-                if chk[r].line_ok([itos[y] for y in buf[r] + seg[r]]):
-                    buf[r] += seg[r]
-                    seg[r], retries[r] = [], 0
-                    acc.append(j)
-                    STATS["lines_ok"] += 1
-                else:
-                    rb.append(j)
-                    STATS["rb_line"] += 1
-            elif len(buf[r]) + len(seg[r]) >= max_new or len(seg[r]) > cfg["guide_seg_max"]:
-                kill.append(j)
-                STATS["kill_len"] += 1
+            elif chk[r].line_ok([itos[y] for y in row[:n]]):
+                sst_py[r] = n
+                retries[r] = 0
+                acc.append(j)
+                STATS["lines_ok"] += 1
+            else:
+                rb.append(j)
+                STATS["rb_line"] += 1
         for j in rb:
             r = rows[j]
-            seg[r] = []
             retries[r] += 1
             rollbacks[r] += 1
             STATS["rollbacks"] += 1
             if retries[r] > cfg["guide_retries"] or rollbacks[r] > cfg["guide_rollbacks"]:
                 kill.append(j)
                 STATS["kill_retries"] += 1
-        for j in kill:
-            if not finished[rows[j]]:
-                finished[rows[j]] = True
-                STATS["killed"] += 1
-        fin = torch.tensor([finished[r] for r in rows], device=dev)
-        if bool(fin.all()):
+        killed = [rows[j] for j in dict.fromkeys(kill) if not fin_py[rows[j]]]
+        for r in killed:
+            fin_py[r] = True
+        STATS["killed"] += len(killed)
+        # batched device updates: accepted segments move sst; rollbacks and kills rewind ptr
+        # to sst (a killed row keeps only its accepted lines); eos-accepts and kills finish
+        touched = [rows[j] for j in acc + rb] + killed
+        if touched:
+            ti = torch.tensor(touched, device=dev)
+            sst[ti] = torch.tensor([sst_py[r] for r in touched], device=dev)
+        rewind = [rows[j] for j in rb] + killed
+        if rewind:
+            ri = torch.tensor(rewind, device=dev)
+            ptr[ri] = sst[ri]
+        done_now = [rows[j] for j, e in zip(sel_j, sel_eos, strict=True) if e and fin_py[rows[j]]]
+        if done_now or killed:
+            fin_o[torch.tensor(done_now + killed, device=dev)] = True
+        if all(fin_py[r] for r in rows):
             break
-        # every live slot feeds its token; rolled-back slots are masked out right after
-        n_c = caches[0]["n"]  # the cache index this step's token lands in
-        cur_pos = cur_pos + 1
-        keep = torch.cat([keep, torch.ones(keep.size(0), 1, dtype=torch.bool, device=dev)], 1)
-        rb_live = [j for j in rb if not finished[rows[j]]]
+        rb_live = [j for j in rb if not fin_py[rows[j]]]
         for j in rb_live:
             keep[j, lstart_c[rows[j]] : n_c + 1] = False
-        nxt = torch.where(fin, torch.full_like(nxt, tok.pad), nxt)
-        logits = model(
-            nxt[:, None], pos=cur_pos[:, None], mask=keep[:, None, None, :], caches=caches
-        )[:, -1].float()
         use_saved = torch.zeros_like(use_saved)
         if rb_live:
             jj = torch.tensor(rb_live, device=dev)
@@ -183,11 +211,12 @@ def _guided_ids(model, tok, prompt_ids, prompts, temperature, max_new, gen, cfg)
                 lstart_c[rows[j]] = n_c + 1
                 lstart_p[rows[j]] = p
         if t % 16 == 15:
-            live = [j for j, r in enumerate(rows) if not finished[r]]
-            if len(live) < 0.75 * len(rows):
-                lv = torch.tensor(live, device=dev)
+            live_j = [j for j, r in enumerate(rows) if not fin_py[r]]
+            if len(live_j) < 0.75 * len(rows):
+                lv = torch.tensor(live_j, device=dev)
                 _index_caches(caches, lv, len(rows))
-                rows = [rows[j] for j in live]
+                rows = [rows[j] for j in live_j]
+                rows_t = rows_t[lv]
                 keep, cur_pos, logits, saved, use_saved = (
                     keep[lv],
                     cur_pos[lv],
@@ -196,7 +225,9 @@ def _guided_ids(model, tok, prompt_ids, prompts, temperature, max_new, gen, cfg)
                     use_saved[lv],
                 )
     STATS["rows"] += B
-    return buf
+    # rows still open at the step limit keep their accepted lines only
+    n_keep = torch.where(fin_o, ptr, sst).tolist()
+    return [row[:n] for row, n in zip(out.tolist(), n_keep, strict=True)]
 
 
 def generate(model, tok, prompts, temperature, max_new, batch, seed, cfg):
