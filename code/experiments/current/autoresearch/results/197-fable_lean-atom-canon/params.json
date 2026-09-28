@@ -1,0 +1,247 @@
+{
+ "id": "197-fable",
+ "slug": "lean-atom-canon",
+ "written_at": "2026-09-28T15:07:19+0100",
+ "provider": "anthropic",
+ "model": "claude-fable-5-1",
+ "base_commit": "7b2f220",
+ "harness_sha": "2aa52f23e7ec",
+ "pretrain_sha": "1e76b24e7502",
+ "patch_lines": 60,
+ "title": "Atom-renaming invariance: the model reads and writes the atoms P Q R S as their order of first appearance in the row, so all 24 renamings of a theorem are one input (parameter-free, exact), on the 191-claude incumbent (9,557,760 params, +0)",
+ "description": "Idea ID: none of P01-P50 (a new mechanism for the table: a symmetry built into the embedding and the readout; architecture). Provability and proofs are unchanged by permuting the atoms P, Q, R, S, and the fixed data names every theorem's atoms at random (its `key` field is the renamed-apart form), so the incumbent must learn from single examples that the 24 namings of a theorem are the same problem; here the model embeds each atom as its order of first appearance in the row and maps its atom logits back through the same map (atoms not used yet share the logit of the next unused number), which makes the network exactly equivariant at zero parameters and ~0 step cost. For expert iteration the bet is sample efficiency where data is thinnest: the ~8,000 RL proofs of 7+ lines that each round fine-tunes on now teach every renaming of their theorems at once, and a learned, approximate invariance no longer has to extrapolate to longer proofs. Tokenizer, data, shift augmentation, RL and harness are untouched. The only open registration, 196-claude (lean-muon-no-rms-scale), is an optimizer simplification and does not overlap.",
+ "tags": [
+  "architecture"
+ ],
+ "hypothesis": "A transformer has no built-in reason to treat `( S > Q )` and `( P > R )` as the same pattern: with four separate atom embeddings, every feature that matches sub-formulas, finds the antecedent of an implication or copies a formula has to be learned for each naming, and what the network learns about one naming transfers to another only as far as training made it. The data does randomize names (first-appearance orders are uniform over the 24 permutations), so the incumbent is probably close to invariant on <= 6-line proofs; the open question is how much capacity and data that costs and how well the learned invariance holds on the longer proofs RL has to reach. With in-model renaming the first atom of every theorem is always A0, the second A1, and so on: the input distribution has up to 24x fewer distinct theorems, atom frequencies become skewed and informative (A0 is in every theorem, A3 in few), and each RL proof found for one naming is training signal for all of them. Invariance by construction is the standard fix when a known symmetry is only sampled by the data (as the name-offset augmentation does for line names, but exact and free). Reasons it may do nothing or hurt: (1) the 60 s probe shows the same early val loss as the incumbent line (0.0823 vs 0.082-0.083), so the symmetry may already be cheap to learn; attention-based matching of token sequences is naming-agnostic by nature; (2) the renamed inputs are a different function class at handoff: atoms not yet used share one output logit, so when a proof introduces a new atom the sampler picks among the unused ones uniformly, which costs nothing by symmetry but adds log(unused) nats to the loss at those rare positions (under 1% of records have a proof atom absent from the prompt); (3) the constant header `P Q R S` shares embeddings with the renamed atoms A0..A3, a harmless but untested overlap; (4) 12 seed-runs of the incumbent line all scored 663-700, so a real gain under ~7 is invisible to three seeds. Decision rule fixed now: this adds code (52 insertions), so no simplicity tolerance applies: keep only if the 3-seed mean is strictly above 191's 683.67, otherwise discard. If another agent keeps a file first, record.py's rule applies.",
+ "p_keep": 0.3,
+ "expected_delta": "-20 to +30 vs 191's 683.7 (central +4); keep needs a 3-seed mean > 683.67. Pretraining 5,100-5,500 steps in 300 s per seed (central 5,300; per-step cost unchanged: bench 20.3 steps/s from 45 to 60 s; 191: 5,362/5,298/5,220), ~4.4-4.8 epochs; final val loss 0.072-0.090 with a 3-seed mean below 191's 0.0867 (0.092/0.082/0.086); last curve-point train loss 0.04-0.065; held-out greedy after pretraining 0.96-0.985 (191: 0.9705/0.972/0.9585); round-1 RL targets solved 300-900 (191: 682/454/225, a noisy start that 190/191 showed is recoverable); round-4 RL-solved 1,140-1,230 (191: 1,189/1,160/1,142); eval bins >= 10 solved 105-135 (191 seed 0: 111); handoff n_params 9,557,760 exactly; RL sampling 150-300 samples/s on a healthy pod (a few integer operations per decoded token; bench 184 vs 191's 194), totals 1,700-2,100 s of 2,400. Falsifiers: a 3-seed mean final val loss at or above 0.0867 says exact invariance does not improve the fit (the incumbent had learned the symmetry) and any score difference is then noise; a 3-seed mean below 660 or a collapsed seed (below 600) says the renamed model is a worse start for expert iteration; round-4 RL-solved below 1,140 on 2+ seeds says RL does not gain from the shared namings; RL round-1 sampling below ~100 samples/s on all three seeds says the renaming slows cached decoding.",
+ "baseline_id": "191-claude",
+ "baseline_metric": 684,
+ "config": {
+  "arch": {
+   "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, the 191-claude model plus in-model atom renaming: atoms enter the embedding and leave the readout as their order of first appearance in the row",
+   "n_layers": 6,
+   "d_model": 384,
+   "n_heads": 8,
+   "d_ff": 1280,
+   "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 (Press et al. 2021 standard set for 4 heads) and 0 for heads 5..8 (bias identically 0 except -inf for masked/future keys, i.e. NoPE heads); same slope table in every block; -inf for masked/future keys",
+   "ctx": 1024,
+   "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+   "act": "gelu",
+   "dropout": 0.0,
+   "tied_emb": false,
+   "n_params": 9557760,
+   "change": "vs 191-claude: ALiBiGPT gains rename_in(idx, state) and rename_out(logits, index); features() embeds the renamed ids and returns (x, bias, ids, index); forward() returns rename_out(head(ln_f(x)), index); mtp_loss embeds the renamed next token and maps both the main and the MTP logits through rename_out (the MTP module with the index of position t+1, the token it has read). No new parameters, no new random numbers. Blocks, widths, heads, ALiBi slopes, MTP module and weight, Muon/AdamW, no-warmup wall-clock cosine, init rule, token batches (TOK_BUDGET 18,432), per-block compile, CUDA-graphed Muon step and handoff unchanged. 52 insertions, 8 deletions.",
+   "n_params_detail": "model: 9,557,760, identical to 191 (bench_pretrain on an A40 reported 9,557,760; per Peri-LN block 1,579,136; emb + head 82,176; ln_f 768). MTP module (pretraining only, dropped at handoff as since 136-fable): 1,875,584, unchanged",
+   "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 384, 8) from this pretrain.py with PeriLNBlock blocks (d_ff 1280), then load state; the state_dict keys and shapes equal 191's (the renaming has no parameters or buffers), but the weights only make sense with this file's forward",
+   "kv_cache": "caches[0] additionally holds the per-row renaming state: n_atoms (atom tokens read so far, for the header rule), seen (B, 4) and rank (B, 4); created with the key positions on the first cached call and updated by every call. sample.generate never drops rows from the batch, so the state stays aligned. CPU check on this file with the fork at 51604b3 (random init, 16 left-padded prompts prefilled with pos/mask/caches, then 30 tokens one at a time): cached logits equal the full uncached forward at every step (max abs diff < 1e-3, float32); the fork's generate_ids runs end to end",
+   "atom_renaming": {
+    "rule": "per row, the body atoms (every P/Q/R/S token after the row's first four atom tokens, which are the constant header `( P Q R S : Prop )`) are numbered 0..3 in order of first appearance; a body atom token is embedded as token id 8 + its number (ids 8..11 are P Q R S in lean_tok, asserted at start-up)",
+    "output": "the 107 logits are computed in the renamed space; the logit of real atom a at position t is the renamed-space logit of a's number if a has appeared at or before t, else of the next unused number k(t) = atoms seen so far, so all atoms not yet used share one logit (they are interchangeable); the other 103 logits are untouched",
+    "causality": "position t's map uses tokens <= t only (cumulative sums along the row); an atom's number never changes once assigned",
+    "loss": "unchanged: cross-entropy against the data's real tokens on the real-space logits, the same forward the harness's loss_on and sampler call, so pretraining, RL fine-tuning and sampling see one function",
+    "header": "header atoms are embedded as themselves; prompt positions carry no loss",
+    "data_facts": "fork 51604b3 train.jsonl (154,990 records): the prompt's atoms appear in all orders about equally (most common first-appearance orders SQ 4,007, QR 3,990, RS 3,920, RP 3,900 ...), while each record's `key` is the same theorem with atoms renamed by first appearance; rl_targets and transfer pools likewise (PSQ 106, RQS 103, ... of 4,495). So the data already treats renamings as one theorem and shows each under one random naming",
+    "local_checks": "CPU, fork 51604b3, real records: (a) rename_in equals a plain-Python reference on 64 right-padded rows (59 of them change); (b) renaming the body atoms of the input by 5 random permutations permutes the 4 atom logits the same way and leaves the other logits unchanged (max abs diff < 1e-4); (c) cached = uncached, see kv_cache; (d) pretrain() smoke run on 4,000 records trains (val 1.54 -> 0.23 in 25 s at a toy size)",
+    "scope": "architecture only: tokenizer object, data records, shift augmentation, RL and harness untouched; the renaming is a deterministic parameter-free function inside the model's forward, not a data augmentation (nothing is randomized or resampled)"
+   }
+  },
+  "tokenizer": {
+   "codec": "lean_seq",
+   "maxn": 64,
+   "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+  },
+  "optimizer": {
+   "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight; AdamW on embeddings, biases and LayerNorms; the MTP module's five 2D matrices (block qkv split into Q/K/V, block proj, fc1, fc2, and the (384,768) input proj) join Muon and its LayerNorms/biases join AdamW (unchanged from 151)",
+   "lr": 0.001,
+   "schedule": "cosine over wall-clock from step 1, no warmup: lr = 1e-3 * (0.3 + 0.35 * (1 + cos(pi * frac))), frac = elapsed / budget (setup and per-block compile included, so the first step runs at ~0.99 x peak after ~30-35 s), ending at 0.3 x peak; Muon lr = 0.01 * lr / 1e-3 and its decoupled decay follow the same factor. Removed: 186's 200-step linear warmup (lr = 1e-3 * step / 200 for step < 200)",
+   "warmup_steps": 0,
+   "min_lr_frac": 0.3,
+   "wd": 0.1,
+   "betas": [
+    0.9,
+    0.95
+   ],
+   "grad_clip": 1.0,
+   "muon": {
+    "lr": 0.01,
+    "momentum": 0.95,
+    "nesterov": true,
+    "newton_schulz_steps": 5,
+    "coefficients": [
+     [
+      8.156554524902461,
+      -22.48329292557795,
+      15.878769915207462
+     ],
+     [
+      4.042929935166739,
+      -2.808917465908714,
+      0.5000178451051316
+     ],
+     [
+      3.8916678022926607,
+      -2.772484153217685,
+      0.5060648178503393
+     ],
+     [
+      3.285753657755655,
+      -2.3681294933425376,
+      0.46449024233003106
+     ],
+     [
+      2.3465413258596377,
+      -1.7097828382687081,
+      0.42323551169305323
+     ]
+    ],
+    "normalization_epsilon": 1e-06,
+    "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+    "shape_scale": "sqrt(max(rows, columns) / D) with D = 384 per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 (1280,384) and fc2 (384,1280) sqrt(1280/384) = 1.83, head (107,384) 1, MTP proj (384,768) sqrt(2); MUON_LR 0.01 unchanged",
+    "wd": 0.1,
+    "schedule": "same cosine fraction as AdamW from step 1, no warmup (floor 0.3, unchanged); muon_lr = 0.01 * adam_lr / 0.001",
+    "parameters": "6 x (qkv.weight (1152,384) split into Q/K/V, proj, fc1, fc2) plus head.weight, plus the MTP module's 5 matrices: 30 Muon matrices as in 148/151 (CPU check: muon_step runs over all 30)",
+    "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+    "license": "MIT; full copyright and permission notice retained in pretrain.py",
+    "qkv_split": "unchanged: each QKV update reshaped to (3,384,384), orthogonalized per role; fc1 (1280,384) is not (3D, D) so it is orthogonalized whole",
+    "active_window": "entire pretraining budget",
+    "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+    "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+    "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+   },
+   "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (ln1, ln2, ln_attn_out, ln_mlp_out per block, and ln_f); head.weight and hidden matrices never enter pretraining AdamW (unchanged from 191)",
+   "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale. Because decay is lr-scaled, the higher floor raises late-training per-step decay (endpoint 3x 115's); MUON_WD itself is unchanged at 0.1",
+   "clipping": "joint global gradient norm 1.0 over model.parameters() + the MTP module's parameters, before both optimizers (unchanged)",
+   "handoff": "standard GPT weights only; the MTP module and both pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW on model.parameters()",
+   "parameters": "24 trunk hidden matrices + head.weight, plus the MTP module's qkv (split), proj, fc1, fc2 and input proj (384,768): 30 Muon matrices during pretraining; the handoff model's parameters are 9,557,760 (unchanged from 191)"
+  },
+  "batch": {
+   "size": 136,
+   "padding": "to max len in batch (the batch's last, longest record); mean padded tokens per step ~18.3k of which ~18.3k real (>99% fill), vs the incumbent's ~51-54k padded slots for ~17.3k real tokens",
+   "buckets": true,
+   "tok_budget": 18432,
+   "change": "fairseq-style max-tokens batching replaces fixed 128 random records per step: per epoch, randperm the training records (GPU generator, seed), stable-argsort by total length so equal lengths stay shuffled, cut greedily into consecutive runs with count * max_len <= 18,432, then shuffle the run order with random.Random(seed). Loss is the same per-token mean over the batch's proof tokens; the shift augmentation, Muon/AdamW updates, clip and wall-clock cosine are unchanged (the 200-step warmup those runs had is removed in 191, see optimizer.schedule). The val slice still uses fixed chunks of 128.",
+   "size_note": "variable: a run of length-sorted records with count * padded_length <= TOK_BUDGET = 18,432 tokens (128 x 144); on a synthetic length distribution matching mean ~135 / max 537 that is 33..921 records per batch, mean ~136, so ~1,130 batches per epoch (incumbent: 128 fixed, ~1,204 per epoch)"
+  },
+  "data": {
+   "filter": null,
+   "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+   "order": "shuffle at the record level each epoch, then length-homogeneous batches in shuffled order (data-order change: within a step all records have similar total length; across steps lengths are interleaved at random)",
+   "val_slice": 1024
+  },
+  "precision": "bf16 autocast",
+  "compile": "per-block torch.compile(dynamic=True), coalesce_tiling_analysis off, undone at handoff; Muon step as one CUDA graph; fused AdamW; batch max length from host",
+  "init": "unchanged rule from 148/151: fork _init (normal 0.02 embedding/readout, zero biases), orthogonal_ on every 2D block and MTP parameter with gain 0.02*sqrt(max(rows, cols)), so element std stays 0.02 at width 384; LayerNorm gain 1, bias 0",
+  "seed": [
+   0,
+   1,
+   2
+  ],
+  "loss": {
+   "main": "next-token cross-entropy on proof-token positions over the real-space logits (rename_out applied), equal to the fork's loss_on on this model's forward; val_loss calls loss_on itself, so it stays comparable with earlier runs",
+   "mtp": "DeepSeek-V3 (2024) sequential multi-token prediction, depth 1 (Gloeckle et al. 2024 style shared head): z_t = proj(cat(LN(h_t), LN(emb(x_{t+1})))) for t in 0..T-3, one Peri-LN causal block over z with the same ALiBi/NoPE bias sliced to T-2 positions, then the model's ln_f and head predict x_{t+2}; cross-entropy masked to proof-token targets (m[:, 2:]), mean over those positions; emb(x_{t+1}) is the embedding of the renamed token and the MTP logits pass through rename_out with the atom map of position t+1",
+   "total": "main + MTP_WEIGHT * mtp with MTP_WEIGHT = 0.3 constant over the whole budget (DeepSeek-V3's early-training value); curve points also record the mean recent mtp loss as mtp_loss",
+   "leakage_check": "CPU check: perturbing token x[7] changes the MTP block's outputs only at positions 6..9 (which read emb(x[7]) or later), never at position 5 whose target is x[7]"
+  },
+  "bench": "bench_pretrain.py --secs 60 on one A40 (probe, not evidence), 2026-09-28 15:02-15:07 BST (three capacity retries, pod up after 108 s), on the registered computation (afterwards only the token id of P moved from a constructor argument to the module constant ATOM0 = 8): 397 steps in 60.3 s, first step at 38 s, step 92 at 45 s, 397 at 60 s, i.e. 20.3 steps/s from 45 to 60 s (191's bench ~20.8, 195-fable's 20.2), peak 7.44 GB (191: 7.43), n_params 9,557,760, val loss 0.0823 at 60 s (195-fable's probe 0.0831 after 420 steps, 195-claude's 0.082, 188's probe of the incumbent architecture 0.109 after 290 steps), sample_acc 0.0044 on 4,096 samples, 184 samples/s (191's bench 194), dynamo 3 unique graphs, torch 2.9.1+cu129. So the probe shows no speed cost and no visible change in early fit. make -C code check clean on the final file",
+  "init_rng": "identical to 191's per seed: no parameter is added and no random number consumed, so initial weights and both data-order generators match 191 seed for seed; the trajectories differ from step 1 because the inputs are renamed"
+ },
+ "protocol": {
+  "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+  "budget": {
+   "total_secs": 2400,
+   "pretrain_secs": 300,
+   "grace_secs": 15,
+   "param_cap": 10000000
+  },
+  "pretrain_data": {
+   "max_lines": 6,
+   "file": "data/train.jsonl",
+   "n": 154990,
+   "by_lines": {
+    "2": 30999,
+    "3": 30999,
+    "4": 30998,
+    "5": 30996,
+    "6": 30998
+   }
+  },
+  "pretrain_heldout": {
+   "file": "data/heldout.jsonl (2000 evenly spaced)",
+   "n": 2000,
+   "by_lines": {
+    "2": 400,
+    "3": 400,
+    "4": 400,
+    "5": 400,
+    "6": 400
+   }
+  },
+  "rl": {
+   "rounds": 4,
+   "n_targets": 1500,
+   "rollouts_per_target": 32,
+   "temp": 0.8,
+   "max_new_tokens": 512,
+   "ft_steps": 600,
+   "ft_bs": 128,
+   "ft_lr": 0.0003,
+   "retain_pretrain_records": 20000,
+   "max_proofs_per_thm": 4,
+   "rl_weight": 4,
+   "target_pool": {
+    "n": 4495,
+    "by_lines": {
+     "7": 1800,
+     "8": 1000,
+     "9": 1004,
+     "10": 456,
+     "11": 99,
+     "12": 106,
+     "13": 16,
+     "14": 14
+    }
+   },
+   "targets_sampled": null
+  },
+  "eval": {
+   "metric": "dev-transfer theorems solved at L_true >= 7",
+   "attempts_per_theorem": 64,
+   "temp": 0.8,
+   "pool": {
+    "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+    "n": 1108,
+    "by_lines": {
+     "7": 150,
+     "8": 152,
+     "9": 477,
+     "10": 219,
+     "11": 49,
+     "12": 54,
+     "13": 5,
+     "14": 2
+    }
+   }
+  },
+  "holdout": {
+   "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+   "n": 1177,
+   "by_lines": {
+    "7": 150,
+    "8": 148,
+    "9": 533,
+    "10": 232,
+    "11": 50,
+    "12": 48,
+    "13": 8,
+    "14": 8
+   }
+  },
+  "seed": [
+   0,
+   1,
+   2
+  ]
+ }
+}

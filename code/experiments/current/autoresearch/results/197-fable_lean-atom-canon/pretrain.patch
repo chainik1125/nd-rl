@@ -1,0 +1,119 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..2c49118 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -64,6 +64,12 @@ N_ALIBI = N_HEAD // 2
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+     N_HEAD - N_ALIBI
+ )
++# Atom-renaming invariance: provability is unchanged by permuting the atoms P Q R S, and the data
++# names every theorem's atoms at random (its `key` is the renamed-apart form). The model reads
++# each atom as its order of first appearance in the row and writes through the same map, so
++# all 24 renamings of a theorem are one input. The first N_ATOM atom tokens of a row are the
++# constant header `( P Q R S : Prop )` and stay as they are.
++N_ATOM, ATOM0 = 4, 8  # lean_tok ids of P Q R S: ATOM0 .. ATOM0 + 3 (asserted in pretrain)
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ # Token-budget batches (fairseq max-tokens): each step takes a run of length-sorted records with
+ # count * padded_length <= TOK_BUDGET, so a batch of short proofs has many records and a batch of
+@@ -171,10 +177,41 @@ class ALiBiGPT(GPT):
+         self.register_buffer("slopes", slopes, persistent=False)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+-        return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
++        x, _, _, index = self.features(idx, pos, mask, caches)
++        return self.rename_out(self.head(self.ln_f(x)), index)
++
++    def rename_in(self, idx, state=None):
++        """(ids with every atom replaced by its order of first appearance, (B, T, N_ATOM) index
++        of each atom's logit at each position). Causal: position t uses tokens <= t only.
++        `state` (caches[0]) carries the map across the calls of incremental decoding."""
++        a = idx - ATOM0
++        is_atom = (a >= 0) & (a < N_ATOM)
++        a = a.clamp(0, N_ATOM - 1)
++        n_before = 0 if state is None else state["n_atoms"][:, None]
++        body = is_atom & (is_atom.cumsum(1) + n_before > N_ATOM)  # not the header
++        hit = torch.nn.functional.one_hot(a, N_ATOM).bool() & body[..., None]
++        old = hit.new_zeros(idx.size(0), N_ATOM) if state is None else state["seen"]
++        seen = (hit.cumsum(1) > 0) | old[:, None]  # (B, T, N_ATOM): appeared at or before t
++        first = (~seen).sum(1)  # position of each atom's first appearance in this chunk
++        earlier = (first[:, :, None] > first[:, None, :]) & ~old[:, None, :]
++        rank = old.sum(1, keepdim=True) + earlier.sum(-1)
++        if state is not None:
++            rank = torch.where(old, state["rank"], rank)
++            state["n_atoms"] = state["n_atoms"] + is_atom.sum(1)
++            state["seen"], state["rank"] = seen[:, -1], rank
++        # An atom that has not appeared yet would be the next new one: all such atoms share
++        # the logit of index (number seen so far).
++        index = torch.where(seen, rank[:, None].expand_as(seen), seen.sum(-1, keepdim=True))
++        return torch.where(body, ATOM0 + rank.gather(1, a), idx), index
++
++    def rename_out(self, logits, index):
++        """Logits over first-appearance atoms -> logits over the row's real atoms."""
++        atoms = logits[..., ATOM0 : ATOM0 + N_ATOM].gather(-1, index)
++        return torch.cat((logits[..., :ATOM0], atoms, logits[..., ATOM0 + N_ATOM :]), -1)
+ 
+     def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
++        """The trunk: (final hidden state before ln_f, the ALiBi bias used, the renamed input
++        ids, the atom index for rename_out)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -183,6 +220,9 @@ class ALiBiGPT(GPT):
+             c = caches[0]
+             if "pos" not in c:
+                 c["pos"], c["n_pos"] = pos.new_empty(pos.size(0), c["max"]), 0
++                c["n_atoms"] = idx.new_zeros(B)
++                c["seen"] = idx.new_zeros(B, N_ATOM, dtype=torch.bool)
++                c["rank"] = idx.new_zeros(B, N_ATOM)
+             n0, n1 = c["n_pos"], c["n_pos"] + T
+             c["pos"][:, n0:n1] = pos
+             c["n_pos"] = n1
+@@ -190,10 +230,11 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        x = self.emb(idx)
++        ids, index = self.rename_in(idx, None if caches is None else caches[0])
++        x = self.emb(ids)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
++        return x, bias, ids, index
+ 
+ 
+ class MTPHead(torch.nn.Module):
+@@ -210,8 +251,8 @@ class MTPHead(torch.nn.Module):
+ def mtp_loss(model, mtp, x, m):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+     MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+-    h, bias = model.features(x[:, :-1])
+-    logits = model.head(model.ln_f(h))
++    h, bias, ids, index = model.features(x[:, :-1])
++    logits = model.rename_out(model.head(model.ln_f(h)), index)
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+@@ -219,10 +260,12 @@ def mtp_loss(model, mtp, x, m):
+     main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
+     # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+     # prediction of x_{t+2} a function of x_{<=t+1}.
+-    z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
++    z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(ids[:, 1:]))), -1))
+     z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
++    # The module has read token t+1, so it writes through the atom map of position t+1.
++    logits2 = model.rename_out(model.head(model.ln_f(z)), index[:, 1:])
+     ce2 = torch.nn.functional.cross_entropy(
+-        model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
++        logits2.reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+     return main + MTP_WEIGHT * aux, main, aux
+@@ -301,6 +344,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
++    assert [tok.stoi[s] for s in "PQRS"] == list(range(ATOM0, ATOM0 + N_ATOM))
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
