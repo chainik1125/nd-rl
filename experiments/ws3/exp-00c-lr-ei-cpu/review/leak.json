@@ -1,0 +1,669 @@
+{
+ "train_set_sizes": {
+  "pool.jsonl": 198,
+  "candidates (frozen filter only)": 1662,
+  "lr3e-5/prompts.jsonl": 198,
+  "lr3e-5/completions prompts": 198,
+  "lr1e-4/prompts.jsonl": 198,
+  "lr1e-4/completions prompts": 198,
+  "lr3e-4/prompts.jsonl": 198,
+  "lr3e-4/completions prompts": 198,
+  "ei/prompts.jsonl": 198,
+  "ei/completions prompts": 198,
+  "ei/sft_data round1": 187,
+  "ei/sft_data round2": 197,
+  "ei/sft_data round3": 197
+ },
+ "eval_set_sizes": {
+  "eval_set.jsonl (200)": 200,
+  "eval half (2272)": 2272,
+  "heldout": 5000,
+  "transfer": 2285,
+  "validation_36": 36,
+  "validation_36_reference_proofs": 36,
+  "textbook72": 72,
+  "test_short_prompts": 267,
+  "test_long_prompts": 532
+ },
+ "overlap": {
+  "pool.jsonl": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "candidates (frozen filter only)": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "lr3e-5/prompts.jsonl": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "lr3e-5/completions prompts": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "lr1e-4/prompts.jsonl": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "lr1e-4/completions prompts": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "lr3e-4/prompts.jsonl": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "lr3e-4/completions prompts": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "ei/prompts.jsonl": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "ei/completions prompts": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "ei/sft_data round1": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "ei/sft_data round2": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  },
+  "ei/sft_data round3": {
+   "eval_set.jsonl (200)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "eval half (2272)": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "heldout": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "transfer": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "validation_36_reference_proofs": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "textbook72": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_short_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   },
+   "test_long_prompts": {
+    "canon_key": 0,
+    "canonical_theorem": 0,
+    "exact_prompt": 0
+   }
+  }
+ },
+ "pretrain_train_vs_eval_set": {
+  "canon_key": 0,
+  "canonical_theorem": 0
+ },
+ "skeleton_overlap_pool_vs_eval_set": {
+  "7": "0/160",
+  "8": "0/40"
+ },
+ "pool_schema_counts": {
+  "None": 134,
+  "L6:train": 63,
+  "import": 1
+ },
+ "eval_set_schema_counts": {
+  "L7:None": 136,
+  "L7:contraposition": 3,
+  "L7:disjunctive_syllogism": 5,
+  "L7:export": 5,
+  "L7:import": 8,
+  "L7:negated_conditional_conv": 2,
+  "L7:peirce_sequent": 1,
+  "L8:None": 35,
+  "L8:contraposition_conv": 1,
+  "L8:dist_or_over_and_conv": 1,
+  "L8:negated_conditional": 1,
+  "L8:peirce": 1,
+  "L8:peirce_sequent": 1
+ }
+}

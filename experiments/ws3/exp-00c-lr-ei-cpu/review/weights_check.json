@@ -1,0 +1,34 @@
+{
+ "lr3e-5": {
+  "hf_base_vs_pretrain_max_abs": 0.0,
+  "hf_base_tensors": 52,
+  "pt_tensors": 52,
+  "final_tensors_changed": 52,
+  "final_vs_base_max_abs": 0.0012394962832331657,
+  "final_vs_base_rel_fro": 0.0034387963166856647
+ },
+ "lr1e-4": {
+  "hf_base_vs_pretrain_max_abs": 0.0,
+  "hf_base_tensors": 52,
+  "pt_tensors": 52,
+  "final_tensors_changed": 52,
+  "final_vs_base_max_abs": 0.00393584743142128,
+  "final_vs_base_rel_fro": 0.009578903541882391
+ },
+ "lr3e-4": {
+  "hf_base_vs_pretrain_max_abs": 0.0,
+  "hf_base_tensors": 52,
+  "pt_tensors": 52,
+  "final_tensors_changed": 52,
+  "final_vs_base_max_abs": 0.010046660900115967,
+  "final_vs_base_rel_fro": 0.02486249460588715
+ },
+ "ei": {
+  "hf_base_vs_pretrain_max_abs": 0.0,
+  "hf_base_tensors": 52,
+  "pt_tensors": 52,
+  "final_tensors_changed": 52,
+  "final_vs_base_max_abs": 0.0036617517471313477,
+  "final_vs_base_rel_fro": 0.00893923320440121
+ }
+}

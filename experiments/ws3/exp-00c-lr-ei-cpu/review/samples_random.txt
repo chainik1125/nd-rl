@@ -1,0 +1,305 @@
+==================== base: rows [115, 1159, 1168, 1270, 1750, 1973, 2184, 3031, 3913, 4162, 4792, 5095, 5131, 5754, 5920, 6626, 7628, 7971, 8111, 8821] of 9704 (long_pool, greedy, textbook concatenated)
+--- [115] long_pool_rl_targets la_rl_targets_243 len=7 mine=True (ok) stored=True
+THM P , ( P v Q ) SEQ ( R > ( ( ~ ( ~ P ) ) > P ) ) PRF
+N37 P : PR ; N38 ( P v Q ) : PR ; N39 | R : AS ; N40 | | ( ~ ( ~ P ) ) : AS ; N41 | | P : R N37 ; N42 | ( ( ~ ( ~ P ) ) > P ) : IMPI N40 N41 ; N43 ( R > ( ( ~ ( ~ P ) ) > P ) ) : IMPI N39 N42 ; QED
+--- [1159] long_pool_rl_targets la_rl_targets_2377 len=7 mine=False (rule check failed: IMPI (line 35)) stored=False
+THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) ) PRF
+N32 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N33 | | P : AS ; N34 | | | ( ~ ( ~ ( ~ ( ~ S ) ) ) ) : AS ; N35 | | ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) : IMPI N34 N34 ; N36 | ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) : IMPI N33 N35 ; N37 ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) ) : IMPI N32 N36 ; QED
+--- [1168] long_pool_rl_targets la_rl_targets_2377 len=7 mine=False (rule check failed: IMPI (line 8)) stored=False
+THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) ) PRF
+N5 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N6 | | P : AS ; N7 | | | ( ~ ( ~ ( ~ ( ~ S ) ) ) ) : AS ; N8 | | ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) : IMPI N7 N7 ; N9 | ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) : IMPI N6 N8 ; N10 ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) ) : IMPI N5 N9 ; QED
+--- [1270] long_pool_rl_targets la_rl_targets_2402 len=7 mine=False (parse: bad rule name) stored=False
+THM ( ( S & Q ) v P ) SEQ ( ( ~ ( ~ R ) ) > ( ( ~ R ) > ( S & Q ) ) ) PRF
+N20 ( ( S & Q ) v P ) : PR ; N21 | ( ~ ( ~ R ) ) : AS ; N22 | | ( ~ R ) : AS ; N23 | | ( S & Q ) : N64 N22 N22 ; N24 | ( ( ~ R ) > ( S & Q ) ) : IMPI N22 N23 ; N25 ( ( ~ ( ~ R ) ) > ( ( ~ R ) > ( S & Q ) ) ) : IMPI N21 N24 ; QED
+--- [1750] long_pool_rl_targets la_rl_targets_2553 len=7 mine=True (ok) stored=True
+THM ( P & ( S & S ) ) , ( ( P & ( S & S ) ) > S ) SEQ ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) PRF
+N20 ( P & ( S & S ) ) : PR ; N21 ( ( P & ( S & S ) ) > S ) : PR ; N22 | ( ~ ( ~ R ) ) : AS ; N23 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N24 | | S : IMPE N21 N20 ; N25 | ( ( ~ ( ~ ( ~ R ) ) ) > S ) : IMPI N23 N24 ; N26 ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) : IMPI N22 N25 ; QED
+--- [1973] long_pool_rl_targets la_rl_targets_2616 len=7 mine=False (rule check failed: ORI1 (line 23)) stored=False
+THM ( R v ( R > Q ) ) , ( ( R v ( R > Q ) ) > Q ) SEQ ( ( R v ( R > Q ) ) > ( ( Q v Q ) v ( P > ( S & Q ) ) ) ) PRF
+N19 ( R v ( R > Q ) ) : PR ; N20 ( ( R v ( R > Q ) ) > Q ) : PR ; N21 Q : IMPE N20 N19 ; N22 | ( R v ( R > Q ) ) : AS ; N23 | ( ( Q v Q ) v ( P > ( S & Q ) ) ) : ORI1 N21 ; N24 ( ( R v ( R > Q ) ) > ( ( Q v Q ) v ( P > ( S & Q ) ) ) ) : IMPI N22 N23 ; QED
+--- [2184] long_pool_rl_targets la_rl_targets_2683 len=7 mine=False (rule check failed: IMPI (line 48)) stored=False
+THM SEQ ( ( P v Q ) > ( ( ~ R ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( ~ P ) ) ) ) PRF
+N45 | ( P v Q ) : AS ; N46 | | ( ~ R ) : AS ; N47 | | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N48 | | ( ( ~ ( ~ ( ~ P ) ) ) > ( ~ P ) ) : IMPI N47 N47 ; N49 | ( ( ~ R ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( ~ P ) ) ) : IMPI N46 N48 ; N50 ( ( P v Q ) > ( ( ~ R ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( ~ P ) ) ) ) : IMPI N45 N49 ; QED
+--- [3031] long_pool_rl_targets la_rl_targets_2909 len=7 mine=False (rule check failed: IMPI (line 34)) stored=False
+THM SEQ ( ( Q & Q ) > ( ( ~ ( Q v ( ~ P ) ) ) > ( S > Q ) ) ) PRF
+N31 | ( Q & Q ) : AS ; N32 | | ( ~ ( Q v ( ~ P ) ) ) : AS ; N33 | | | S : AS ; N34 | | ( S > Q ) : IMPI N33 N33 ; N35 | ( ( ~ ( Q v ( ~ P ) ) ) > ( S > Q ) ) : IMPI N32 N34 ; N36 ( ( Q & Q ) > ( ( ~ ( Q v ( ~ P ) ) ) > ( S > Q ) ) ) : IMPI N31 N35 ; QED
+--- [3913] long_pool_rl_targets la_rl_targets_3186 len=7 mine=False (rule check failed: ANDE1 (line 4)) stored=False
+THM ( ( R v R ) v R ) SEQ ( ( ( S v Q ) & ( R v P ) ) > ( R v R ) ) PRF
+N2 ( ( R v R ) v R ) : PR ; N3 | ( ( S v Q ) & ( R v P ) ) : AS ; N4 | ( R v R ) : ANDE1 N3 ; N5 ( ( ( S v Q ) & ( R v P ) ) > ( R v R ) ) : IMPI N3 N4 ; QED
+--- [4162] long_pool_rl_targets la_rl_targets_3264 len=7 mine=False (rule check failed: DN (line 25)) stored=False
+THM SEQ ( ( ~ ( ~ ( P & Q ) ) ) > ( Q > ( Q & ( Q > Q ) ) ) ) PRF
+N24 | ( ~ ( ~ ( P & Q ) ) ) : AS ; N25 | ( Q > Q ) : DN N24 ; N26 | | Q : AS ; N27 | | ( Q & ( Q > Q ) ) : ANDI N26 N25 ; N28 | ( Q > ( Q & ( Q > Q ) ) ) : IMPI N26 N27 ; N29 ( ( ~ ( ~ ( P & Q ) ) ) > ( Q > ( Q & ( Q > Q ) ) ) ) : IMPI N24 N28 ; QED
+--- [4792] long_pool_rl_targets la_rl_targets_3442 len=7 mine=True (ok) stored=True
+THM ( Q > ( S v P ) ) , ( ~ ( ( ~ ( ~ Q ) ) & ( Q > ( S v P ) ) ) ) SEQ ( ( ~ ( ~ Q ) ) > ( ~ Q ) ) PRF
+N34 ( Q > ( S v P ) ) : PR ; N35 ( ~ ( ( ~ ( ~ Q ) ) & ( Q > ( S v P ) ) ) ) : PR ; N36 | ( ~ ( ~ Q ) ) : AS ; N37 | ( ( ~ ( ~ Q ) ) & ( Q > ( S v P ) ) ) : ANDI N36 N34 ; N38 | F : NEGE N37 N35 ; N39 | ( ~ Q ) : BOTE N38 ; N40 ( ( ~ ( ~ Q ) ) > ( ~ Q ) ) : IMPI N36 N39 ; QED
+--- [5095] long_pool_rl_targets la_rl_targets_3523 len=7 mine=False (parse: bad rule name) stored=False
+THM ( ( R > R ) & ( ~ R ) ) , ( Q v S ) SEQ ( ( ~ ( R > R ) ) > ( ( ~ S ) > S ) ) PRF
+N42 ( ( R > R ) & ( ~ R ) ) : PR ; N43 ( Q v S ) : PR ; N44 | ( ~ ( R > R ) ) : AS ; N45 | ( ~ S ) : N58 N44 ; N46 | ( ( ~ S ) > S ) : IMPE N42 N44 ; N47 ( ( ~ ( R > R ) ) > ( ( ~ S ) > S ) ) : IMPI N44 N46 ; QED
+--- [5131] long_pool_rl_targets la_rl_targets_20 len=8 mine=False (rule check failed: ORI1 (line 34)) stored=False
+THM ( R & ( ~ P ) ) , ( ( R > ( S & P ) ) v P ) SEQ ( ( ~ ( ~ ( P v Q ) ) ) > ( ( ~ ( P v Q ) ) > ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) ) ) PRF
+N30 ( R & ( ~ P ) ) : PR ; N31 ( ( R > ( S & P ) ) v P ) : PR ; N32 | ( ~ ( ~ ( P v Q ) ) ) : AS ; N33 | | ( ~ ( P v Q ) ) : AS ; N34 | | ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) : ORI1 N31 ; N35 | ( ( ~ ( P v Q ) ) > ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) ) : IMPI N33 N34 ; N36 ( ( ~ ( ~ ( P v Q ) ) ) > ( ( ~ ( P v Q ) ) > ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) ) ) : IMPI N32 N35 ; QED
+--- [5754] long_pool_rl_targets la_rl_targets_3928 len=8 mine=False (line index mismatch at position 6) stored=False
+THM R , ( Q v ( P & Q ) ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) ) PRF
+N6 R : PR ; N7 ( Q v ( P & Q ) ) : PR ; N8 | ( ~ ( ~ Q ) ) : AS ; N9 | | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N10 | | ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) : ANDI N7 N6 ; N64 | ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) : IMPI N9 N10 ; N12 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) ) : IMPI N8 N11 ; QED
+--- [5920] long_pool_rl_targets la_rl_targets_4080 len=8 mine=False (rule check failed: ORI2 (line 24)) stored=False
+THM ( ( P & P ) & ( P > S ) ) SEQ ( ( ~ ( ~ ( ~ Q ) ) ) > ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) ) PRF
+N21 ( ( P & P ) & ( P > S ) ) : PR ; N22 | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N23 | | Q : AS ; N24 | | ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) : ORI2 N21 ; N25 | ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( ~ ( ~ Q ) ) ) > ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) ) : IMPI N22 N25 ; QED
+--- [6626] greedy_heldout heldout_1130 len=3 mine=True (ok) stored=True
+THM ( P v ( Q & Q ) ) , ( ( P v ( Q & Q ) ) > ( ( Q > P ) v R ) ) SEQ ( ( Q > P ) v R ) PRF
+N15 ( P v ( Q & Q ) ) : PR ; N16 ( ( P v ( Q & Q ) ) > ( ( Q > P ) v R ) ) : PR ; N17 ( ( Q > P ) v R ) : IMPE N16 N15 ; QED
+--- [7628] textbook72 textbook_dd80d9db9d060cdb3f53 len=2 mine=True (ok) stored=True
+THM ( ~ ( ~ P ) ) SEQ P PRF
+N35 ( ~ ( ~ P ) ) : PR ; N36 | ( ~ P ) : AS ; N37 | F : NEGE N36 N35 ; N38 ( ~ ( ~ P ) ) : NEGI N36 N37 ; N39 P : DN N38 ; QED
+--- [7971] textbook72 textbook_8244c4b1090af406e68f len=12 mine=False (rule check failed: IMPE (line 56)) stored=False
+THM ( ( ~ P ) > ( Q v R ) ) , ( ~ Q ) , ( ~ R ) SEQ P PRF
+N53 ( ( ~ P ) > ( Q v R ) ) : PR ; N54 ( ~ Q ) : PR ; N55 ( ~ R ) : PR ; N56 ( Q v R ) : IMPE N53 N54 ; N57 F : NEGE N56 N55 ; N58 P : BOTE N57 ; QED
+--- [8111] textbook72 textbook_eec1f557a49c79cc7081 len=6 mine=False (rule check failed: ANDE2 (line 20)) stored=False
+THM ( ( ( P & Q ) > P ) & ( P > ( P & Q ) ) ) SEQ ( P > Q ) PRF
+N17 ( ( ( P & Q ) > P ) & ( P > ( P & Q ) ) ) : PR ; N18 ( P > ( P & Q ) ) : ANDE2 N17 ; N19 | P : AS ; N20 | Q : ANDE2 N18 ; N21 ( P > Q ) : IMPI N19 N20 ; QED
+--- [8821] textbook72 textbook_1e1d3b9a628f0b73c258 len=18 mine=False (rule check failed: IMPE (line 22)) stored=False
+THM ( ( ~ S ) > ( ~ R ) ) , ( ( P & Q ) v R ) , ( ( ~ S ) > ( ~ Q ) ) SEQ ( ( ~ P ) v S ) PRF
+N19 ( ( ~ S ) > ( ~ R ) ) : PR ; N20 ( ( P & Q ) v R ) : PR ; N21 ( ( ~ S ) > ( ~ Q ) ) : PR ; N22 ( ~ R ) : IMPE N19 N20 ; N23 ( ~ Q ) : IMPE N21 N22 ; N24 ( ( ~ P ) v S ) : ORI1 N23 ; QED
+==================== lr3e-5: rows [200, 468, 582, 609, 898, 1147, 1843, 1931, 2092, 2334, 3215, 3351, 4243, 4626, 5185, 6631, 6945, 7007, 8265, 8531] of 9704 (long_pool, greedy, textbook concatenated)
+--- [200] long_pool_rl_targets la_rl_targets_472 len=7 mine=False (rule check failed: IMPE (line 50)) stored=False
+THM ( ( ~ ( ~ P ) ) > ( ( ( S > R ) v Q ) > ( ~ ( P & Q ) ) ) ) SEQ ( ( ( ~ ( ~ P ) ) & ( ( S > R ) v Q ) ) > ( ~ ( P & Q ) ) ) PRF
+N48 ( ( ~ ( ~ P ) ) > ( ( ( S > R ) v Q ) > ( ~ ( P & Q ) ) ) ) : PR ; N49 | ( ( ~ ( ~ P ) ) & ( ( S > R ) v Q ) ) : AS ; N50 | ( ~ ( P & Q ) ) : IMPE N48 N49 ; N51 ( ( ( ~ ( ~ P ) ) & ( ( S > R ) v Q ) ) > ( ~ ( P & Q ) ) ) : IMPI N49 N50 ; QED
+--- [468] long_pool_rl_targets la_rl_targets_1147 len=7 mine=False (rule check failed: NEGE (line 45)) stored=False
+THM ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) SEQ ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) PRF
+N42 ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) : PR ; N43 | ( ~ ( Q & ( P v Q ) ) ) : AS ; N44 | | ( ( ~ P ) > ( R & P ) ) : AS ; N45 | | F : NEGE N44 N43 ; N46 | ( ~ ( ( ~ P ) > ( R & P ) ) ) : NEGI N44 N45 ; N47 ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) : IMPI N43 N46 ; QED
+--- [582] long_pool_rl_targets la_rl_targets_1457 len=7 mine=False (rule check failed: IMPI (line 56)) stored=False
+THM ( ( R > ( P > R ) ) > R ) SEQ R PRF
+N52 ( ( R > ( P > R ) ) > R ) : PR ; N53 | R : AS ; N54 | | R : AS ; N55 | ( R > R ) : IMPI N54 N54 ; N56 ( R > ( P > R ) ) : IMPI N53 N55 ; N57 R : IMPE N52 N56 ; QED
+--- [609] long_pool_rl_targets la_rl_targets_1593 len=7 mine=False (rule check failed: ORE (line 32)) stored=False
+THM ( ( ~ R ) v ( Q v P ) ) , ( ~ ( ~ R ) ) SEQ ( Q v P ) PRF
+N28 ( ( ~ R ) v ( Q v P ) ) : PR ; N29 ( ~ ( ~ R ) ) : PR ; N30 | ( ~ R ) : AS ; N31 | ( Q v P ) : AS ; N32 ( Q v P ) : ORE N28 N30 N30 N31 N31 ; QED
+--- [898] long_pool_rl_targets la_rl_targets_2257 len=7 mine=False (rule check failed: IMPE (line 42)) stored=False
+THM ( ( ~ Q ) > ( ( Q > S ) > ( P > R ) ) ) SEQ ( ( ( ~ Q ) & ( Q > S ) ) > ( P > R ) ) PRF
+N39 ( ( ~ Q ) > ( ( Q > S ) > ( P > R ) ) ) : PR ; N40 | ( ( ~ Q ) & ( Q > S ) ) : AS ; N41 | ( Q > S ) : ANDE2 N40 ; N42 | ( ( Q > S ) > ( P > R ) ) : IMPE N39 N41 ; N43 | ( P > R ) : ANDE2 N42 ; N44 ( ( ( ~ Q ) & ( Q > S ) ) > ( P > R ) ) : IMPI N40 N43 ; QED
+--- [1147] long_pool_rl_targets la_rl_targets_2360 len=7 mine=True (ok) stored=True
+THM SEQ ( ( R & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) ) ) PRF
+N27 | ( R & S ) : AS ; N28 | | ( ~ ( ~ Q ) ) : AS ; N29 | | | ( ~ Q ) : AS ; N30 | | | ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) : ANDI N29 N28 ; N31 | | ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) : IMPI N29 N30 ; N32 | ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) ) : IMPI N28 N31 ; N33 ( ( R & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) ) ) : IMPI N27 N32 ; QED
+--- [1843] long_pool_rl_targets la_rl_targets_2576 len=7 mine=True (ok) stored=True
+THM SEQ ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ R ) ) > ( ( ~ R ) > ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) ) ) ) PRF
+N47 | ( ~ ( ~ S ) ) : AS ; N48 | | ( ~ ( ~ R ) ) : AS ; N49 | | | ( ~ R ) : AS ; N50 | | | ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) : ORI2 N49 ; N51 | | ( ( ~ R ) > ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) ) : IMPI N49 N50 ; N52 | ( ( ~ ( ~ R ) ) > ( ( ~ R ) > ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) ) ) : IMPI N48 N51 ; N53 ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ R ) ) > ( ( ~ R ) > ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) ) ) ) : IMPI N47 N52 ; QED
+--- [1931] long_pool_rl_targets la_rl_targets_2605 len=7 mine=False (bad box cite (line 43)) stored=False
+THM P , ( ( ~ ( ~ P ) ) v ( ( R > S ) > ( S & Q ) ) ) , ( ~ ( ~ P ) ) SEQ ( ( ~ P ) > ( ( ( ~ ( ~ P ) ) & P ) & ( ~ ( ~ P ) ) ) ) PRF
+N37 P : PR ; N38 ( ( ~ ( ~ P ) ) v ( ( R > S ) > ( S & Q ) ) ) : PR ; N39 ( ~ ( ~ P ) ) : PR ; N40 | ( ~ P ) : AS ; N41 | ( ( R > S ) > ( S & Q ) ) : AS ; N42 | ( ( ~ ( ~ P ) ) & P ) : ANDI N39 N37 ; N43 ( ( ~ P ) > ( ( ( ~ ( ~ P ) ) & P ) & ( ~ ( ~ P ) ) ) ) : IMPI N40 N42 ; QED
+--- [2092] long_pool_rl_targets la_rl_targets_2652 len=7 mine=True (ok) stored=True
+THM ( R v Q ) , ( ( ~ Q ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ R ) ) > ( R > ( ( ~ Q ) v ( ~ Q ) ) ) ) PRF
+N16 ( R v Q ) : PR ; N17 ( ( ~ Q ) v ( ~ Q ) ) : PR ; N18 | ( ~ ( ~ R ) ) : AS ; N19 | | R : AS ; N20 | | ( ( ~ Q ) v ( ~ Q ) ) : R N17 ; N21 | ( R > ( ( ~ Q ) v ( ~ Q ) ) ) : IMPI N19 N20 ; N22 ( ( ~ ( ~ R ) ) > ( R > ( ( ~ Q ) v ( ~ Q ) ) ) ) : IMPI N18 N21 ; QED
+--- [2334] long_pool_rl_targets la_rl_targets_2721 len=7 mine=False (rule check failed: DN (line 56)) stored=False
+THM ( P v ( P > ( ~ P ) ) ) SEQ ( ( ~ ( P & S ) ) > ( ( Q > ( Q & S ) ) v ( ( P & S ) > S ) ) ) PRF
+N53 ( P v ( P > ( ~ P ) ) ) : PR ; N54 | ( ~ ( P & S ) ) : AS ; N55 | | Q : AS ; N56 | | ( Q & S ) : DN N54 ; N57 | | ( ( Q > ( Q & S ) ) v ( ( P & S ) > S ) ) : ORI1 N56 ; N58 | ( Q > ( ( Q > ( Q & S ) ) v ( ( P & S ) > S ) ) ) : IMPI N55 N57 ; N59 ( ( ~ ( P & S ) ) > ( ( Q > ( Q & S ) ) v ( ( P & S ) > S ) ) ) : IMPI N54 N58 ; QED
+--- [3215] long_pool_rl_targets la_rl_targets_2968 len=7 mine=True (ok) stored=True
+THM SEQ ( Q > ( ( ( P v S ) v ( ~ P ) ) > ( ( ~ ( ~ P ) ) > P ) ) ) PRF
+N50 | Q : AS ; N51 | | ( ( P v S ) v ( ~ P ) ) : AS ; N52 | | | ( ~ ( ~ P ) ) : AS ; N53 | | | P : DN N52 ; N54 | | ( ( ~ ( ~ P ) ) > P ) : IMPI N52 N53 ; N55 | ( ( ( P v S ) v ( ~ P ) ) > ( ( ~ ( ~ P ) ) > P ) ) : IMPI N51 N54 ; N56 ( Q > ( ( ( P v S ) v ( ~ P ) ) > ( ( ~ ( ~ P ) ) > P ) ) ) : IMPI N50 N55 ; QED
+--- [3351] long_pool_rl_targets la_rl_targets_3016 len=7 mine=True (ok) stored=True
+THM ( ( ~ R ) > S ) , ( ~ R ) SEQ ( ( P v R ) > ( ( ( P v R ) v ( P v P ) ) & S ) ) PRF
+N26 ( ( ~ R ) > S ) : PR ; N27 ( ~ R ) : PR ; N28 S : IMPE N26 N27 ; N29 | ( P v R ) : AS ; N30 | ( ( P v R ) v ( P v P ) ) : ORI1 N29 ; N31 | ( ( ( P v R ) v ( P v P ) ) & S ) : ANDI N30 N28 ; N32 ( ( P v R ) > ( ( ( P v R ) v ( P v P ) ) & S ) ) : IMPI N29 N31 ; QED
+--- [4243] long_pool_rl_targets la_rl_targets_3285 len=7 mine=False (final formula is not the conclusion) stored=False
+THM SEQ ( R > ( S > ( S > ( ( ~ ( ~ Q ) ) v S ) ) ) ) PRF
+N51 | R : AS ; N52 | | S : AS ; N53 | | | ( ~ ( ~ Q ) ) : AS ; N54 | | ( ( ~ ( ~ Q ) ) v S ) : ORI1 N53 ; N55 | | ( ( ~ ( ~ Q ) ) v S ) : ORI1 N53 ; N56 | ( S > ( ( ~ ( ~ Q ) ) v S ) ) : IMPI N52 N55 ; N57 ( R > ( S > ( ( ~ ( ~ Q ) ) v S ) ) ) : IMPI N51 N56 ; QED
+--- [4626] long_pool_rl_targets la_rl_targets_3392 len=7 mine=False (rule check failed: NEGE (line 6)) stored=False
+THM ( ~ ( P > R ) ) , ( R v R ) SEQ ( P > ( ( ~ ( R v R ) ) > ( ~ ( P > R ) ) ) ) PRF
+N4 ( ~ ( P > R ) ) : PR ; N5 ( R v R ) : PR ; N6 F : NEGE N5 N4 ; N7 | P : AS ; N8 | | ( ~ ( R v R ) ) : AS ; N9 | | ( ~ ( P > R ) ) : BOTE N6 ; N10 | ( ( ~ ( R v R ) ) > ( ~ ( P > R ) ) ) : IMPI N8 N9 ; N11 ( P > ( ( ~ ( R v R ) ) > ( ~ ( P > R ) ) ) ) : IMPI N7 N10 ; QED
+--- [5185] long_pool_rl_targets la_rl_targets_313 len=8 mine=False (rule check failed: DN (line 5)) stored=False
+THM SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( R v S ) ) ) > ( ( ~ Q ) > P ) ) ) PRF
+N2 | ( ~ ( ~ Q ) ) : AS ; N3 | | ( ~ ( ~ ( R v S ) ) ) : AS ; N4 | | | ( ~ Q ) : AS ; N5 | | | P : DN N4 ; N6 | | ( ( ~ Q ) > P ) : IMPI N4 N5 ; N7 | ( ( ~ ( ~ ( R v S ) ) ) > ( ( ~ Q ) > P ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( R v S ) ) ) > ( ( ~ Q ) > P ) ) ) : IMPI N2 N7 ; QED
+--- [6631] greedy_heldout heldout_1155 len=3 mine=True (ok) stored=True
+THM ( ( S > S ) & ( ~ R ) ) , ( ( ( S > S ) & ( ~ R ) ) > ( ( ~ Q ) & P ) ) SEQ ( ( ~ Q ) & P ) PRF
+N20 ( ( S > S ) & ( ~ R ) ) : PR ; N21 ( ( ( S > S ) & ( ~ R ) ) > ( ( ~ Q ) & P ) ) : PR ; N22 ( ( ~ Q ) & P ) : IMPE N21 N20 ; QED
+--- [6945] greedy_heldout heldout_2725 len=4 mine=True (ok) stored=True
+THM ( ( S & Q ) > Q ) , ( ~ ( ( S & Q ) > Q ) ) SEQ ( ( ( S & Q ) > Q ) & F ) PRF
+N5 ( ( S & Q ) > Q ) : PR ; N6 ( ~ ( ( S & Q ) > Q ) ) : PR ; N7 F : NEGE N5 N6 ; N8 ( ( ( S & Q ) > Q ) & F ) : ANDI N5 N7 ; QED
+--- [7007] greedy_heldout heldout_3035 len=5 mine=True (ok) stored=True
+THM R , ( R > S ) SEQ ( ( S v P ) v ( P > F ) ) PRF
+N20 R : PR ; N21 ( R > S ) : PR ; N22 S : IMPE N21 N20 ; N23 ( S v P ) : ORI1 N22 ; N24 ( ( S v P ) v ( P > F ) ) : ORI1 N23 ; QED
+--- [8265] textbook72 textbook_8270cf21f3f79e6a1281 len=7 mine=False (rule check failed: NEGE (line 15)) stored=False
+THM ( P > ( ~ Q ) ) , ( P > Q ) SEQ ( ~ P ) PRF
+N11 ( P > ( ~ Q ) ) : PR ; N12 ( P > Q ) : PR ; N13 | P : AS ; N14 | ( ~ Q ) : IMPE N11 N13 ; N15 | F : NEGE N12 N14 ; N16 ( ~ P ) : NEGI N13 N15 ; QED
+--- [8531] textbook72 textbook_970fbf60225a4d6e78b3 len=20 mine=False (parse: bad formula token 'N18') stored=False
+THM ( P > ( ( Q > R ) & ( R > Q ) ) ) SEQ ( ( ( P & Q ) > ( P & R ) ) & ( ( P & R ) > ( P & Q ) ) ) PRF
+N12 ( P > ( ( Q > R ) & ( R > Q ) ) ) : PR ; N13 | ( P & R ) : AS ; N14 ( ( P & R ) > ( P & R ) ) : IMPI N13 N13 ; N15 | ( P & R ) : AS ; N16 | ( ( Q > R ) & ( R > Q ) ) : IMPE N12 N15 ; N17 N18 | ( P & Q ) : ANDE2 N16 ; N18 ( ( P & R ) > ( P & Q ) ) : IMPI N15 N17 ; N19 ( ( ( P & Q ) > ( P & R ) ) & ( ( P & R ) > ( P & Q ) ) ) : ANDI N14 N18 ; QED
+==================== lr1e-4: rows [537, 548, 733, 768, 1147, 1173, 1394, 1729, 2129, 2153, 2260, 2614, 3007, 3526, 5041, 7306, 7421, 8081, 8639, 9609] of 9704 (long_pool, greedy, textbook concatenated)
+--- [537] long_pool_rl_targets la_rl_targets_1338 len=7 mine=False (rule check failed: IMPE (line 36)) stored=False
+THM ( P > ( ( R > Q ) > Q ) ) SEQ ( ( P & ( R > Q ) ) > Q ) PRF
+N33 ( P > ( ( R > Q ) > Q ) ) : PR ; N34 | P : AS ; N35 | | P : AS ; N36 | | ( R > Q ) : IMPE N33 N35 ; N37 | ( P > ( R > Q ) ) : IMPI N35 N36 ; N38 | Q : IMPE N33 N34 ; N39 ( ( P & ( R > Q ) ) > Q ) : IMPI N34 N38 ; QED
+--- [548] long_pool_rl_targets la_rl_targets_1364 len=7 mine=False (final formula is not the conclusion) stored=False
+THM ( ( ( S v Q ) v ( ~ P ) ) > ( ( ( Q v R ) v ( S > R ) ) > ( S & P ) ) ) SEQ ( ( ( ( S v Q ) v ( ~ P ) ) & ( ( Q v R ) v ( S > R ) ) ) > ( S & P ) ) PRF
+N38 ( ( ( S v Q ) v ( ~ P ) ) > ( ( ( Q v R ) v ( S > R ) ) > ( S & P ) ) ) : PR ; N39 | ( ( S v Q ) v ( ~ P ) ) : AS ; N40 | ( ( S v Q ) v ( S > R ) ) : ORI1 N39 ; N41 | ( ( ( Q v R ) v ( S > R ) ) > ( S & P ) ) : IMPE N38 N40 ; N42 ( ( ( S v Q ) v ( ~ P ) ) & ( ( Q v R ) v ( S > R ) ) ) : IMPI N39 N41 ; QED
+--- [733] long_pool_rl_targets la_rl_targets_1813 len=7 mine=False (rule check failed: IMPE (line 5)) stored=False
+THM ( ( ~ ( P & Q ) ) > ( Q > ( ( Q & P ) > R ) ) ) SEQ ( ( ( ~ ( P & Q ) ) & Q ) > ( ( Q & P ) > R ) ) PRF
+N3 ( ( ~ ( P & Q ) ) > ( Q > ( ( Q & P ) > R ) ) ) : PR ; N4 | ( ( ~ ( P & Q ) ) & Q ) : AS ; N5 | ( Q > ( ( Q & P ) > R ) ) : IMPE N3 N4 ; N6 | ( Q & P ) : ANDI N4 N3 ; N7 | ( Q & P ) : ANDI N6 N6 ; N8 | ( ( Q & P ) > R ) : IMPE N5 N7 ; N9 ( ( ( ~ ( P & Q ) ) & Q ) > ( ( Q & P ) > R ) ) : IMPI N4 N8 ; QED
+--- [768] long_pool_rl_targets la_rl_targets_1949 len=7 mine=False (rule check failed: ORE (line 52)) stored=False
+THM ( ( S & Q ) v ( P v S ) ) , ( ~ ( S & Q ) ) SEQ ( P v S ) PRF
+N48 ( ( S & Q ) v ( P v S ) ) : PR ; N49 ( ~ ( S & Q ) ) : PR ; N50 | ( ~ ( P v S ) ) : AS ; N51 | ( P v S ) : AS ; N52 ( P v S ) : ORE N48 N50 N50 N51 N51 ; QED
+--- [1147] long_pool_rl_targets la_rl_targets_2360 len=7 mine=True (ok) stored=True
+THM SEQ ( ( R & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) ) ) PRF
+N27 | ( R & S ) : AS ; N28 | | ( ~ ( ~ Q ) ) : AS ; N29 | | | ( ~ Q ) : AS ; N30 | | | ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) : ANDI N29 N28 ; N31 | | ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) : IMPI N29 N30 ; N32 | ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) ) : IMPI N28 N31 ; N33 ( ( R & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( ( ~ Q ) & ( ~ ( ~ Q ) ) ) ) ) ) : IMPI N27 N32 ; QED
+--- [1173] long_pool_rl_targets la_rl_targets_2377 len=7 mine=True (ok) stored=True
+THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) ) PRF
+N27 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N28 | | P : AS ; N29 | | | ( ~ ( ~ ( ~ ( ~ S ) ) ) ) : AS ; N30 | | | ( ~ S ) : DN N27 ; N31 | | ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) : IMPI N29 N30 ; N32 | ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) : IMPI N28 N31 ; N33 ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ~ S ) ) ) ) : IMPI N27 N32 ; QED
+--- [1394] long_pool_rl_targets la_rl_targets_2439 len=7 mine=False (rule check failed: IMPI (line 9)) stored=False
+THM SEQ ( ( ~ ( ~ R ) ) > ( P > ( R > ( P v ( P v ( R v Q ) ) ) ) ) ) PRF
+N6 | ( ~ ( ~ R ) ) : AS ; N7 | | P : AS ; N8 | | | R : AS ; N9 | | ( R > ( P v ( P v ( R v Q ) ) ) ) : IMPI N8 N8 ; N10 | ( P > ( R > ( P v ( P v ( R v Q ) ) ) ) ) : IMPI N7 N9 ; N11 ( ( ~ ( ~ R ) ) > ( P > ( R > ( P v ( P v ( R v Q ) ) ) ) ) ) : IMPI N6 N10 ; QED
+--- [1729] long_pool_rl_targets la_rl_targets_2553 len=7 mine=True (ok) stored=True
+THM ( P & ( S & S ) ) , ( ( P & ( S & S ) ) > S ) SEQ ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) PRF
+N10 ( P & ( S & S ) ) : PR ; N11 ( ( P & ( S & S ) ) > S ) : PR ; N12 | ( ~ ( ~ R ) ) : AS ; N13 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N14 | | S : IMPE N11 N10 ; N15 | ( ( ~ ( ~ ( ~ R ) ) ) > S ) : IMPI N13 N14 ; N16 ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) : IMPI N12 N15 ; QED
+--- [2129] long_pool_rl_targets la_rl_targets_2661 len=7 mine=True (ok) stored=True
+THM ( ( S & ( ~ S ) ) v S ) , R SEQ ( P > ( ( R > ( R > R ) ) > ( R > R ) ) ) PRF
+N31 ( ( S & ( ~ S ) ) v S ) : PR ; N32 R : PR ; N33 | P : AS ; N34 | | ( R > ( R > R ) ) : AS ; N35 | | ( R > R ) : IMPE N34 N32 ; N36 | ( ( R > ( R > R ) ) > ( R > R ) ) : IMPI N34 N35 ; N37 ( P > ( ( R > ( R > R ) ) > ( R > R ) ) ) : IMPI N33 N36 ; QED
+--- [2153] long_pool_rl_targets la_rl_targets_2673 len=7 mine=False (rule check failed: IMPE (line 29)) stored=False
+THM Q , ( P v S ) SEQ ( P > ( ( Q > S ) > S ) ) PRF
+N25 Q : PR ; N26 ( P v S ) : PR ; N27 | P : AS ; N28 | | ( Q > S ) : AS ; N29 | | S : IMPE N28 N27 ; N30 | ( ( Q > S ) > S ) : IMPI N28 N29 ; N31 ( P > ( ( Q > S ) > S ) ) : IMPI N27 N30 ; QED
+--- [2260] long_pool_rl_targets la_rl_targets_2706 len=7 mine=False (bad box cite (line 15)) stored=False
+THM SEQ ( ( S v S ) > ( ( ~ ( ~ ( Q v Q ) ) ) > ( S > ( ( ~ ( ~ ( Q v Q ) ) ) v ( S v S ) ) ) ) ) PRF
+N11 | ( S v S ) : AS ; N12 | | ( ~ ( ~ ( Q v Q ) ) ) : AS ; N13 | | | S : AS ; N14 | | ( ( ~ ( ~ ( Q v Q ) ) ) v ( S v S ) ) : ORI1 N12 ; N15 | | ( S > ( ( ~ ( ~ ( Q v Q ) ) ) v ( S v S ) ) ) : IMPI N13 N14 ; N16 | ( ( ~ ( ~ ( Q v Q ) ) ) > ( S > ( ( ~ ( ~ ( Q v Q ) ) ) v ( S v S ) ) ) ) : IMPI N12 N15 ; N17 ( ( S v S ) > ( ( ~ ( ~ ( Q v Q ) ) ) > ( S > ( ( ~ ( ~ ( Q v Q ) ) ) v ( S v S ) ) ) ) ) : IMPI N11 N16 ; QED
+--- [2614] long_pool_rl_targets la_rl_targets_2795 len=7 mine=True (ok) stored=True
+THM ( ~ S ) SEQ ( ( ( R & S ) & ( P & Q ) ) > ( ( ~ ( ~ S ) ) > ( ~ ( ( ~ R ) v ( ~ Q ) ) ) ) ) PRF
+N28 ( ~ S ) : PR ; N29 | ( ( R & S ) & ( P & Q ) ) : AS ; N30 | | ( ~ ( ~ S ) ) : AS ; N31 | | F : NEGE N28 N30 ; N32 | | ( ~ ( ( ~ R ) v ( ~ Q ) ) ) : BOTE N31 ; N33 | ( ( ~ ( ~ S ) ) > ( ~ ( ( ~ R ) v ( ~ Q ) ) ) ) : IMPI N30 N32 ; N34 ( ( ( R & S ) & ( P & Q ) ) > ( ( ~ ( ~ S ) ) > ( ~ ( ( ~ R ) v ( ~ Q ) ) ) ) ) : IMPI N29 N33 ; QED
+--- [3007] long_pool_rl_targets la_rl_targets_2900 len=7 mine=False (bad line cite (line 42)) stored=False
+THM SEQ ( ( ~ ( ~ R ) ) > ( ( P > S ) > ( ( ~ ( ~ S ) ) > S ) ) ) PRF
+N39 | ( ~ ( ~ R ) ) : AS ; N40 | | ( P > S ) : AS ; N41 | | | ( ~ ( ~ S ) ) : AS ; N42 | | S : DN N41 ; N43 | | ( ( ~ ( ~ S ) ) > S ) : IMPI N41 N42 ; N44 | ( ( P > S ) > ( ( ~ ( ~ S ) ) > S ) ) : IMPI N40 N43 ; N45 ( ( ~ ( ~ R ) ) > ( ( P > S ) > ( ( ~ ( ~ S ) ) > S ) ) ) : IMPI N39 N44 ; QED
+--- [3526] long_pool_rl_targets la_rl_targets_3076 len=7 mine=True (ok) stored=True
+THM P SEQ ( ( S & ( ~ Q ) ) > ( ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) & P ) ) PRF
+N30 P : PR ; N31 | ( ~ ( ~ ( Q > P ) ) ) : AS ; N32 | ( Q > P ) : DN N31 ; N33 ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) : IMPI N31 N32 ; N34 | ( S & ( ~ Q ) ) : AS ; N35 | ( ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) & P ) : ANDI N33 N30 ; N36 ( ( S & ( ~ Q ) ) > ( ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) & P ) ) : IMPI N34 N35 ; QED
+--- [5041] long_pool_rl_targets la_rl_targets_3509 len=7 mine=False (bad line cite (line 36)) stored=False
+THM SEQ ( ( ~ ( ~ ( R & Q ) ) ) > ( P > ( ( ( ~ R ) > Q ) > ( ( ( ~ R ) > Q ) & ( ~ ( ~ ( R & Q ) ) ) ) ) ) ) PRF
+N33 | ( ~ ( ~ ( R & Q ) ) ) : AS ; N34 | | P : AS ; N35 | | | ( ( ~ R ) > Q ) : AS ; N36 | | ( ( ( ~ R ) > Q ) & ( ~ ( ~ ( R & Q ) ) ) ) : ANDI N35 N33 ; N37 | | ( ( ( ~ R ) > Q ) > ( ( ( ~ R ) > Q ) & ( ~ ( ~ ( R & Q ) ) ) ) ) : IMPI N35 N36 ; N38 | ( P > ( ( ( ~ R ) > Q ) > ( ( ( ~ R ) > Q ) & ( ~ ( ~ ( R & Q ) ) ) ) ) ) : IMPI N34 N37 ; N39 ( ( ~ ( ~ ( R & Q ) ) ) > ( P > ( ( ( ~ R ) > Q ) > ( ( ( ~ R ) > Q ) & ( ~ ( ~ ( R & Q ) ) ) ) ) ) ) : IMPI N33 N38 ; QED
+--- [7306] greedy_heldout heldout_4530 len=6 mine=True (ok) stored=True
+THM ( ~ ( ( P & P ) & P ) ) SEQ ( P > F ) PRF
+N19 ( ~ ( ( P & P ) & P ) ) : PR ; N20 | P : AS ; N21 | ( P & P ) : ANDI N20 N20 ; N22 | ( ( P & P ) & P ) : ANDI N21 N20 ; N23 | F : NEGE N22 N19 ; N24 ( P > F ) : IMPI N20 N23 ; QED
+--- [7421] textbook72 textbook_c18068b3bc4dc6b6894a len=7 mine=False (parse: bad rule name) stored=False
+THM SEQ ( ( P v Q ) > ( Q v P ) ) PRF
+N30 | ( P v Q ) : AS ; N31 | | P : AS ; N32 | | Q : AS ; N33 | | P : N30 | Q : ORI2 N32 ; N34 | Q : ORE N30 N31 N31 N32 N33 ; N35 | ( Q v P ) : ORI1 N34 ; N36 ( ( P v Q ) > ( Q v P ) ) : IMPI N30 N35 ; QED
+--- [8081] textbook72 textbook_3d573ac42c0db3988c20 len=11 mine=False (rule check failed: ANDI (line 4)) stored=False
+THM ( ( P & Q ) > ( Q & R ) ) , ( R > ( ~ P ) ) SEQ ( P > ( ~ Q ) ) PRF
+N1 ( ( P & Q ) > ( Q & R ) ) : PR ; N2 ( R > ( ~ P ) ) : PR ; N3 | P : AS ; N4 | ( P & Q ) : ANDI N3 N3 ; N5 | ( Q & R ) : IMPE N1 N4 ; N6 | ( ~ Q ) : ANDE1 N5 ; N7 ( P > ( ~ Q ) ) : IMPI N3 N6 ; QED
+--- [8639] textbook72 textbook_f15b4e7e289f788cc70d len=10 mine=False (rule check failed: NEGE (line 49)) stored=False
+THM ( ( ~ P ) & ( ~ Q ) ) SEQ ( ~ ( P v Q ) ) PRF
+N46 ( ( ~ P ) & ( ~ Q ) ) : PR ; N47 ( ~ Q ) : ANDE2 N46 ; N48 | ( P v Q ) : AS ; N49 | F : NEGE N47 N48 ; N50 ( ~ ( P v Q ) ) : NEGI N48 N49 ; QED
+--- [9609] textbook72 textbook_da42d4814cf3a388b9fc len=-1 mine=True (ok) stored=True
+THM Q SEQ ( P > Q ) PRF
+N31 Q : PR ; N32 | P : AS ; N33 | Q : R N31 ; N34 ( P > Q ) : IMPI N32 N33 ; QED
+==================== lr3e-4: rows [380, 1292, 1799, 1825, 2474, 2973, 3191, 3292, 3526, 3872, 4448, 5468, 5729, 7581, 7864, 7875, 8415, 8704, 9326, 9535] of 9704 (long_pool, greedy, textbook concatenated)
+--- [380] long_pool_rl_targets la_rl_targets_881 len=7 mine=False (final formula is not the conclusion) stored=False
+THM ( ( ~ S ) & ( ~ ( Q v R ) ) ) SEQ ( ~ ( ( ~ S ) > ( Q v R ) ) ) PRF
+N51 ( ( ~ S ) & ( ~ ( Q v R ) ) ) : PR ; N52 | ( ( ~ S ) > ( Q v R ) ) : AS ; N53 | ( ~ S ) : ANDE1 N51 ; N54 | ( Q v R ) : IMPE N52 N53 ; N55 ( ( ( ~ S ) > ( Q v R ) ) > ( Q v R ) ) : IMPI N52 N54 ; QED
+--- [1292] long_pool_rl_targets la_rl_targets_2415 len=7 mine=False (premise block does not match declared premises) stored=False
+THM Q , P , ( P v S ) SEQ ( ( P v S ) & ( ( P & P ) & ( ( P & P ) & Q ) ) ) PRF
+N13 Q : PR ; N14 P : PR ; N15 ( P & P ) : PR ; N16 ( P & P ) : ANDI N14 N14 ; N17 ( ( P & P ) & Q ) : ANDI N16 N13 ; N18 ( ( P & P ) & ( ( P & P ) & Q ) ) : ANDI N16 N17 ; N19 ( ( P v S ) & ( ( P & P ) & Q ) ) : ANDI N16 N19 ; QED
+--- [1799] long_pool_rl_targets la_rl_targets_2567 len=7 mine=False (bad box cite (line 7)) stored=False
+THM R SEQ ( ( R > ( R & S ) ) > ( ( ~ ( R > ( R & S ) ) ) > ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) ) ) PRF
+N3 R : PR ; N4 | ( R > ( R & S ) ) : AS ; N5 | | ( ~ ( R > ( R & S ) ) ) : AS ; N6 | | | ( ~ ( ~ ( P v P ) ) ) : AS ; N7 | | | ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) : IMPI N6 N6 ; N8 | ( ( ~ ( R > ( R & S ) ) ) > ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) ) : IMPI N5 N7 ; N9 ( ( R > ( R & S ) ) > ( ( ~ ( R > ( R & S ) ) ) > ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) ) ) : IMPI N4 N8 ; QED
+--- [1825] long_pool_rl_targets la_rl_targets_2576 len=7 mine=False (final formula is not the conclusion) stored=False
+THM SEQ ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ R ) ) > ( ( ~ R ) > ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) ) ) ) PRF
+N39 | ( ~ ( ~ S ) ) : AS ; N40 | | ( ~ ( ~ R ) ) : AS ; N41 | | | ( ( R & Q ) v ( Q > P ) ) : AS ; N42 | | | ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) : ORI1 N41 ; N43 | | ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) : ORI1 N42 ; N44 | ( ( ~ ( ~ R ) ) > ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) ) : IMPI N40 N43 ; N45 ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ R ) ) > ( ( ( R & Q ) v ( Q > P ) ) v ( ~ R ) ) ) ) : IMPI N39 N44 ; QED
+--- [2474] long_pool_rl_targets la_rl_targets_2758 len=7 mine=False (parse: bad formula token '|') stored=False
+THM ( ( S v R ) & ( ~ Q ) ) SEQ ( ( ~ ( ~ ( P > R ) ) ) > ( ( ~ ( P > R ) ) > ( ( ~ ( ~ ( ~ ( P > R ) ) ) ) > ( S v R ) ) ) ) PRF
+N53 ( ( S v R ) & ( ~ Q ) ) : PR ; N54 | ( ~ ( ~ ( P > R ) ) ) : AS ; N55 | | ( ~ ( P > R ) ) : AS ; N56 | | | ( ~ ( ~ ( ~ ( P > R ) ) ) ) : AS ; N57 | | ( | ( ~ ( ~ ( ~ ( ~ ( P > R ) ) ) ) > ( S v R ) ) ) : IMPI N56 N56 ; N58 | ( ( ~ ( P > R ) ) > ( ( ~ ( ~ ( ~ ( P > R ) ) ) > ( S v R ) ) ) ) : IMPI N55 N57 ; N59 ( ( ~ ( ~ ( P > R ) ) ) > ( ( ~ ( P > R ) ) > ( ( ~ ( ~ ( ~ ( P > R ) ) ) > ( S v R ) ) ) ) ) : IMPI N54 N58 ; QED
+--- [2973] long_pool_rl_targets la_rl_targets_2891 len=7 mine=False (rule check failed: DN (line 52)) stored=False
+THM ( ( P v ( P > P ) ) v Q ) SEQ ( ( ~ ( ~ R ) ) > ( ( P > P ) & R ) ) PRF
+N49 ( ( P v ( P > P ) ) v Q ) : PR ; N50 | ( ~ ( ~ R ) ) : AS ; N51 | | P : AS ; N52 | | ( P > P ) : DN N51 ; N53 | | ( ( P > P ) & R ) : ORI1 N52 ; N54 | ( ( P > P ) & R ) : ORE N49 N51 N52 N52 N53 ; N55 ( ( ~ ( ~ R ) ) > ( ( P > P ) & R ) ) : IMPI N50 N54 ; QED
+--- [3191] long_pool_rl_targets la_rl_targets_2956 len=7 mine=False (rule check failed: NEGE (line 34)) stored=False
+THM ( ~ ( ( Q v ( S > P ) ) > ( ( Q > ( Q > R ) ) > ( Q > ( Q > R ) ) ) ) ) SEQ ( P > R ) PRF
+N30 ( ~ ( ( Q v ( S > P ) ) > ( ( Q > ( Q > R ) ) > ( Q > ( Q > R ) ) ) ) ) : PR ; N31 | ( Q v ( S > P ) ) : AS ; N32 | | ( Q > ( Q > R ) ) : AS ; N33 | ( ( Q > ( Q > R ) ) > ( Q > ( Q > R ) ) ) : IMPI N32 N32 ; N34 | F : NEGE N33 N30 ; N35 ( P > R ) : NEGI N31 N34 ; QED
+--- [3292] long_pool_rl_targets la_rl_targets_2990 len=7 mine=False (rule check failed: ANDE2 (line 13)) stored=False
+THM ( ( R & S ) & P ) SEQ ( ( ~ S ) > ( ( ~ ( R & S ) ) > S ) ) PRF
+N10 ( ( R & S ) & P ) : PR ; N11 | ( ~ S ) : AS ; N12 | | ( ~ ( R & S ) ) : AS ; N13 | | S : ANDE2 N10 ; N14 | ( ( ~ ( R & S ) ) > S ) : IMPI N12 N13 ; N15 ( ( ~ S ) > ( ( ~ ( R & S ) ) > S ) ) : IMPI N11 N14 ; QED
+--- [3526] long_pool_rl_targets la_rl_targets_3076 len=7 mine=False (rule check failed: IMPI (line 36)) stored=False
+THM P SEQ ( ( S & ( ~ Q ) ) > ( ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) & P ) ) PRF
+N30 P : PR ; N31 | ( ~ ( ~ ( Q > P ) ) ) : AS ; N32 | | ( ~ ( ~ ( Q > P ) ) ) : AS ; N33 | | ( Q > P ) : DN N31 ; N34 | ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) : IMPI N32 N33 ; N35 | ( ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) & P ) : ANDI N34 N30 ; N36 ( ( S & ( ~ Q ) ) > ( ( ( ~ ( ~ ( Q > P ) ) ) > ( Q > P ) ) & P ) ) : IMPI N31 N35 ; QED
+--- [3872] long_pool_rl_targets la_rl_targets_3177 len=7 mine=False (final formula is not the conclusion) stored=False
+THM SEQ ( ( ~ ( ~ ( S & R ) ) ) > ( P > ( ( ~ ( S & R ) ) > ( ( ~ ( S & R ) ) v S ) ) ) ) PRF
+N10 | ( ~ ( ~ ( S & R ) ) ) : AS ; N11 | | P : AS ; N12 | | | ( ~ ( S & R ) ) : AS ; N13 | | | ( ( ~ ( S & R ) ) v S ) : ORI1 N12 ; N14 | | ( ( ~ ( S & R ) ) > ( ( ~ ( S & R ) ) v S ) ) : IMPI N12 N13 ; N15 | ( P > ( ( ~ ( S & R ) ) > ( ( ~ ( S & R ) ) > ( ~ ( S & R ) ) ) ) ) : IMPI N11 N14 ; N16 ( ( ~ ( ~ ( S & R ) ) ) > ( P > ( ( ~ ( S & R ) ) > ( ( ~ ( S & R ) ) > ( ~ ( S & R ) ) ) ) ) ) : IMPI N10 N15 ; QED
+--- [4448] long_pool_rl_targets la_rl_targets_3347 len=7 mine=True (ok) stored=True
+THM ( ( P & R ) v Q ) , ( ( ( P & R ) v Q ) > ( ( R & P ) & ( ~ S ) ) ) SEQ ( ( P & Q ) > ( S > ( ( R & P ) & ( ~ S ) ) ) ) PRF
+N11 ( ( P & R ) v Q ) : PR ; N12 ( ( ( P & R ) v Q ) > ( ( R & P ) & ( ~ S ) ) ) : PR ; N13 | ( P & Q ) : AS ; N14 | | S : AS ; N15 | | ( ( R & P ) & ( ~ S ) ) : IMPE N12 N11 ; N16 | ( S > ( ( R & P ) & ( ~ S ) ) ) : IMPI N14 N15 ; N17 ( ( P & Q ) > ( S > ( ( R & P ) & ( ~ S ) ) ) ) : IMPI N13 N16 ; QED
+--- [5468] long_pool_rl_targets la_rl_targets_1664 len=8 mine=False (rule check failed: IMPI (line 25)) stored=False
+THM ( ( Q > Q ) & Q ) SEQ ( ( ( P > R ) v ( P & S ) ) > ( P > ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) ) ) PRF
+N21 ( ( Q > Q ) & Q ) : PR ; N22 | ( ( P > R ) v ( P & S ) ) : AS ; N23 | | P : AS ; N24 | | | ( ( P > R ) v ( P & S ) ) : AS ; N25 | | ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) : IMPI N24 N24 ; N26 | ( P > ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) ) : IMPI N23 N25 ; N27 ( ( ( P > R ) v ( P & S ) ) > ( P > ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) ) ) : IMPI N22 N26 ; QED
+--- [5729] long_pool_rl_targets la_rl_targets_3928 len=8 mine=False (final formula is not the conclusion) stored=False
+THM R , ( Q v ( P & Q ) ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) ) PRF
+N20 R : PR ; N21 ( Q v ( P & Q ) ) : PR ; N22 | ( ~ ( ~ Q ) ) : AS ; N23 | | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N24 | | ( ( Q v ( P & Q ) ) & R ) : ANDI N21 N20 ; N25 | ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( Q v ( P & Q ) ) & R ) ) : IMPI N23 N24 ; N26 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) : IMPI N22 N25 ; QED
+--- [7581] textbook72 textbook_0b9b989cc2f245db9021 len=10 mine=False (rule check failed: NEGE (line 22)) stored=False
+THM ( ~ ( P v Q ) ) SEQ ( ( ~ P ) & ( ~ Q ) ) PRF
+N18 ( ~ ( P v Q ) ) : PR ; N19 | P : AS ; N20 ( P > P ) : IMPI N19 N19 ; N21 | ( ~ P ) : AS ; N22 | F : NEGE N20 N21 ; N23 ( ~ ( ~ P ) ) : NEGI N21 N22 ; N24 ( ( ~ P ) & ( ~ Q ) ) : ORI1 N23 ; QED
+--- [7864] textbook72 textbook_9f83d4425b7684ef58e7 len=18 mine=False (rule check failed: NEGE (line 50)) stored=False
+THM ( ~ ( P & ( ~ ( S & Q ) ) ) ) , ( ( ~ R ) & ( ~ ( ~ P ) ) ) SEQ ( Q & ( ~ ( ~ ( ~ R ) ) ) ) PRF
+N47 ( ~ ( P & ( ~ ( S & Q ) ) ) ) : PR ; N48 ( ( ~ R ) & ( ~ ( ~ P ) ) ) : PR ; N49 | ( ~ ( ~ R ) ) : AS ; N50 | F : NEGE N48 N47 ; N51 ( ~ ( ~ ( ~ R ) ) ) : NEGI N49 N50 ; N52 ( Q & ( ~ ( ~ ( ~ R ) ) ) ) : ANDI N50 N51 ; QED
+--- [7875] textbook72 textbook_9f83d4425b7684ef58e7 len=18 mine=False (rule check failed: NEGE (line 24)) stored=False
+THM ( ~ ( P & ( ~ ( S & Q ) ) ) ) , ( ( ~ R ) & ( ~ ( ~ P ) ) ) SEQ ( Q & ( ~ ( ~ ( ~ R ) ) ) ) PRF
+N21 ( ~ ( P & ( ~ ( S & Q ) ) ) ) : PR ; N22 ( ( ~ R ) & ( ~ ( ~ P ) ) ) : PR ; N23 | ( ~ ( ~ R ) ) : AS ; N24 | F : NEGE N22 N21 ; N25 ( ~ ( ~ ( ~ R ) ) ) : NEGI N23 N24 ; N26 ( Q & ( ~ ( ~ ( ~ R ) ) ) ) : ANDI N24 N25 ; QED
+--- [8415] textbook72 textbook_ea2a86a786bde0e260cc len=10 mine=False (rule check failed: ANDE2 (line 16)) stored=False
+THM ( ( ~ P ) v ( ~ Q ) ) SEQ ( ~ ( P & Q ) ) PRF
+N14 ( ( ~ P ) v ( ~ Q ) ) : PR ; N15 | ( ~ P ) : AS ; N16 | ( ~ Q ) : ANDE2 N14 ; N17 | ( ~ Q ) : AS ; N18 | ( ~ P ) : DN N59 ; N19 ( ~ ( P & Q ) ) : ORE N14 N15 N15 N17 N18 ; QED
+--- [8704] textbook72 textbook_3d2b05bca4cbb83ed73b len=29 mine=False (final formula is not the conclusion) stored=False
+THM SEQ ( ( ( ~ ( P & Q ) ) > ( ( ~ P ) v ( ~ Q ) ) ) & ( ( ( ~ P ) v ( ~ Q ) ) > ( ~ ( P & Q ) ) ) ) PRF
+N40 | ( ~ ( P & Q ) ) : AS ; N41 ( ( ~ ( P & Q ) ) > ( ~ ( P & Q ) ) ) : IMPI N40 N40 ; N42 | ( ~ ( P & Q ) ) : AS ; N43 | ( ~ Q ) : ANDE2 N42 ; N44 | ( ( ~ P ) v ( ~ Q ) ) : ORI2 N43 ; N45 ( ( ~ ( P & Q ) ) > ( ( ~ P ) v ( ~ Q ) ) ) : IMPI N42 N44 ; N46 ( ( ( ~ P ) v ( ~ Q ) ) > ( ( ~ P ) v ( ~ Q ) ) ) : IMPI N42 N45 ; N47 ( ( ( ~ P ) v ( ~ Q ) ) & ( ( ( ~ P ) v ( ~ Q ) ) > ( ~ ( P & Q ) ) ) ) : ANDI N46 N46 ; QED
+--- [9326] textbook72 textbook_0ed8057166e48df4ff93 len=-1 mine=False (depth jump at line 14) stored=False
+THM P SEQ ( ~ ( ~ P ) ) PRF
+N12 P : PR ; N13 | ( ~ P ) : AS ; N14 | | F : NEGE N12 N13 ; N15 | ( ~ ( ~ P ) ) : NEGI N13 N14 ; N16 | ( ~ P ) : DN N15 ; N17 | F : NEGE N12 N15 ; N18 ( ~ ( ~ P ) ) : NEGI N12 N17 ; QED
+--- [9535] textbook72 textbook_9fa52f90369a7b6286f7 len=-1 mine=False (rule check failed: DN (line 60)) stored=False
+THM ( ( P > ( ~ ( ~ Q ) ) ) & ( ( ~ ( ~ Q ) ) > P ) ) SEQ ( ( P > Q ) & ( Q > P ) ) PRF
+N57 ( ( P > ( ~ ( ~ Q ) ) ) & ( ( ~ ( ~ Q ) ) > P ) ) : PR ; N58 | P : AS ; N59 | | ( ~ ( ~ Q ) ) : AS ; N60 | | P : DN N59 ; N61 | ( ( ~ ( ~ Q ) ) > P ) : IMPI N59 N60 ; N62 ( ( P > Q ) & ( Q > P ) ) : IMPI N58 N61 ; QED
+==================== ei: rows [207, 1192, 1881, 3060, 3821, 5213, 5290, 6258, 6374, 6381, 6659, 6925, 6989, 7387, 7453, 8068, 8188, 8769, 8976, 9577] of 9704 (long_pool, greedy, textbook concatenated)
+--- [207] long_pool_rl_targets la_rl_targets_472 len=7 mine=False (rule check failed: IMPE (line 40)) stored=False
+THM ( ( ~ ( ~ P ) ) > ( ( ( S > R ) v Q ) > ( ~ ( P & Q ) ) ) ) SEQ ( ( ( ~ ( ~ P ) ) & ( ( S > R ) v Q ) ) > ( ~ ( P & Q ) ) ) PRF
+N38 ( ( ~ ( ~ P ) ) > ( ( ( S > R ) v Q ) > ( ~ ( P & Q ) ) ) ) : PR ; N39 | ( ( ~ ( ~ P ) ) & ( ( S > R ) v Q ) ) : AS ; N40 | ( ( ( S > R ) v Q ) > ( ~ ( P & Q ) ) ) : IMPE N38 N39 ; N41 | ( ~ ( P & Q ) ) : AS ; N42 ( ( ( ~ ( ~ P ) ) & ( ( S > R ) v Q ) ) > ( ~ ( P & Q ) ) ) : IMPI N39 N41 ; QED
+--- [1192] long_pool_rl_targets la_rl_targets_2386 len=7 mine=True (ok) stored=True
+THM SEQ ( ( ~ ( ~ Q ) ) > ( P > ( ( ~ Q ) > ( ( ~ Q ) & P ) ) ) ) PRF
+N9 | ( ~ ( ~ Q ) ) : AS ; N10 | | P : AS ; N11 | | | ( ~ Q ) : AS ; N12 | | | ( ( ~ Q ) & P ) : ANDI N11 N10 ; N13 | | ( ( ~ Q ) > ( ( ~ Q ) & P ) ) : IMPI N11 N12 ; N14 | ( P > ( ( ~ Q ) > ( ( ~ Q ) & P ) ) ) : IMPI N10 N13 ; N15 ( ( ~ ( ~ Q ) ) > ( P > ( ( ~ Q ) > ( ( ~ Q ) & P ) ) ) ) : IMPI N9 N14 ; QED
+--- [1881] long_pool_rl_targets la_rl_targets_2585 len=7 mine=False (rule check failed: ORI2 (line 23)) stored=False
+THM R , ( ( P v P ) & ( R v R ) ) SEQ ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) PRF
+N19 R : PR ; N20 ( ( P v P ) & ( R v R ) ) : PR ; N21 | ( ~ ( ~ ( Q v Q ) ) ) : AS ; N22 | ( P v P ) : ANDE1 N20 ; N23 | ( Q v Q ) : ORI2 N19 ; N24 | ( ( R v R ) & ( Q v Q ) ) : ANDI N22 N23 ; N25 ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) : IMPI N21 N24 ; QED
+--- [3060] long_pool_rl_targets la_rl_targets_2922 len=7 mine=True (ok) stored=True
+THM SEQ ( ( ~ R ) > ( P > ( ( ~ ( ~ ( P v S ) ) ) > ( P v S ) ) ) ) PRF
+N53 | ( ~ R ) : AS ; N54 | | P : AS ; N55 | | | ( ~ ( ~ ( P v S ) ) ) : AS ; N56 | | | ( P v S ) : ORI1 N54 ; N57 | | ( ( ~ ( ~ ( P v S ) ) ) > ( P v S ) ) : IMPI N55 N56 ; N58 | ( P > ( ( ~ ( ~ ( P v S ) ) ) > ( P v S ) ) ) : IMPI N54 N57 ; N59 ( ( ~ R ) > ( P > ( ( ~ ( ~ ( P v S ) ) ) > ( P v S ) ) ) ) : IMPI N53 N58 ; QED
+--- [3821] long_pool_rl_targets la_rl_targets_3160 len=7 mine=False (rule check failed: IMPI (line 9)) stored=False
+THM ( ~ ( Q & S ) ) SEQ ( ( ( R & Q ) > ( P v S ) ) > ( ( Q & S ) > ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) ) ) PRF
+N5 ( ~ ( Q & S ) ) : PR ; N6 | ( ( R & Q ) > ( P v S ) ) : AS ; N7 | | ( Q & S ) : AS ; N8 | | | ( ~ ( ( R & Q ) > ( P v S ) ) ) : AS ; N9 | | ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) : IMPI N8 N8 ; N10 | ( ( Q & S ) > ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) ) : IMPI N7 N9 ; N11 ( ( ( R & Q ) > ( P v S ) ) > ( ( Q & S ) > ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) ) ) : IMPI N6 N10 ; QED
+--- [5213] long_pool_rl_targets la_rl_targets_313 len=8 mine=False (rule check failed: DN (line 14)) stored=False
+THM SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( R v S ) ) ) > ( ( ~ Q ) > P ) ) ) PRF
+N11 | ( ~ ( ~ Q ) ) : AS ; N12 | | ( ~ ( ~ ( R v S ) ) ) : AS ; N13 | | | ( ~ Q ) : AS ; N14 | | | P : DN N13 ; N15 | | ( ( ~ Q ) > P ) : IMPI N13 N14 ; N16 | ( ( ~ ( ~ ( R v S ) ) ) > ( ( ~ Q ) > P ) ) : IMPI N12 N15 ; N17 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( R v S ) ) ) > ( ( ~ Q ) > P ) ) ) : IMPI N11 N16 ; QED
+--- [5290] long_pool_rl_targets la_rl_targets_797 len=8 mine=False (rule check failed: ORI2 (line 17)) stored=False
+THM ( ( ( P v S ) v ( P v Q ) ) & ( ( P v S ) v ( S & Q ) ) ) SEQ ( ( P v S ) v ( ( P v Q ) & ( S & Q ) ) ) PRF
+N16 ( ( ( P v S ) v ( P v Q ) ) & ( ( P v S ) v ( S & Q ) ) ) : PR ; N17 ( ( P v S ) v ( ( P v Q ) & ( S & Q ) ) ) : ORI2 N16 ; QED
+--- [6258] long_pool_rl_targets la_rl_targets_4345 len=8 mine=False (rule check failed: IMPI (line 34)) stored=False
+THM ( P > R ) , P SEQ ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > R ) ) ) PRF
+N29 ( P > R ) : PR ; N30 P : PR ; N31 | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N32 | | ( ~ ( ~ Q ) ) : AS ; N33 | | | ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) : AS ; N34 | | ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > R ) : IMPI N33 N33 ; N35 | ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > R ) ) : IMPI N32 N34 ; N36 ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > R ) ) ) : IMPI N31 N35 ; QED
+--- [6374] long_pool_rl_targets la_rl_targets_4433 len=8 mine=True (ok) stored=True
+THM Q SEQ ( ( ( S & Q ) & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) ) PRF
+N38 Q : PR ; N39 | ( ( S & Q ) & S ) : AS ; N40 | | ( ~ ( ~ Q ) ) : AS ; N41 | | | ( ~ Q ) : AS ; N42 | | | ( Q & ( ~ ( ~ Q ) ) ) : ANDI N38 N40 ; N43 | | ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) : IMPI N41 N42 ; N44 | ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) : IMPI N40 N43 ; N45 ( ( ( S & Q ) & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) ) : IMPI N39 N44 ; QED
+--- [6381] long_pool_rl_targets la_rl_targets_4433 len=8 mine=True (ok) stored=True
+THM Q SEQ ( ( ( S & Q ) & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) ) PRF
+N18 Q : PR ; N19 | ( ( S & Q ) & S ) : AS ; N20 | | ( ~ ( ~ Q ) ) : AS ; N21 | | | ( ~ Q ) : AS ; N22 | | | ( Q & ( ~ ( ~ Q ) ) ) : ANDI N18 N20 ; N23 | | ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) : IMPI N21 N22 ; N24 | ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) : IMPI N20 N23 ; N25 ( ( ( S & Q ) & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) ) : IMPI N19 N24 ; QED
+--- [6659] greedy_heldout heldout_1295 len=3 mine=True (ok) stored=True
+THM S , ( S > ( ( P v P ) v ( Q v S ) ) ) SEQ ( ( P v P ) v ( Q v S ) ) PRF
+N20 S : PR ; N21 ( S > ( ( P v P ) v ( Q v S ) ) ) : PR ; N22 ( ( P v P ) v ( Q v S ) ) : IMPE N21 N20 ; QED
+--- [6925] greedy_heldout heldout_2625 len=4 mine=True (ok) stored=True
+THM ( ( F & P ) > ( Q > P ) ) SEQ ( P > ( S v ( ( F & P ) > ( Q > P ) ) ) ) PRF
+N20 ( ( F & P ) > ( Q > P ) ) : PR ; N21 | P : AS ; N22 | ( S v ( ( F & P ) > ( Q > P ) ) ) : ORI2 N20 ; N23 ( P > ( S v ( ( F & P ) > ( Q > P ) ) ) ) : IMPI N21 N22 ; QED
+--- [6989] greedy_heldout heldout_2945 len=4 mine=True (ok) stored=True
+THM ( ~ Q ) , S SEQ ( S & ( ( ~ Q ) & S ) ) PRF
+N45 ( ~ Q ) : PR ; N46 S : PR ; N47 ( ( ~ Q ) & S ) : ANDI N45 N46 ; N48 ( S & ( ( ~ Q ) & S ) ) : ANDI N46 N47 ; QED
+--- [7387] greedy_heldout heldout_4935 len=6 mine=True (ok) stored=True
+THM ( S v ( ( P v Q ) > Q ) ) , ( ( ( P v Q ) > Q ) > S ) SEQ S PRF
+N6 ( S v ( ( P v Q ) > Q ) ) : PR ; N7 ( ( ( P v Q ) > Q ) > S ) : PR ; N8 | S : AS ; N9 | ( ( P v Q ) > Q ) : AS ; N10 | S : IMPE N7 N9 ; N11 S : ORE N6 N8 N8 N9 N10 ; QED
+--- [7453] textbook72 textbook_0713eb0885a366161011 len=11 mine=False (rule check failed: ANDE2 (line 52)) stored=False
+THM ( P & ( Q v R ) ) SEQ ( ( P & Q ) v ( P & R ) ) PRF
+N51 ( P & ( Q v R ) ) : PR ; N52 ( P & Q ) : ANDE2 N51 ; N53 ( ( P & Q ) v ( P & R ) ) : ORI1 N52 ; QED
+--- [8068] textbook72 textbook_dd8d30b16bfb0b99a5d7 len=6 mine=False (rule check failed: IMPE (line 59)) stored=False
+THM ( ( ~ P ) > P ) SEQ P PRF
+N56 ( ( ~ P ) > P ) : PR ; N57 | P : AS ; N58 ( P > P ) : IMPI N57 N57 ; N59 P : IMPE N58 N58 ; QED
+--- [8188] textbook72 textbook_b6439372a23eedd8d70e len=6 mine=False (rule check failed: ANDE1 (line 9)) stored=False
+THM ( ~ ( Q > Q ) ) , ( ( ( Q > Q ) & ( Q > Q ) ) & Q ) , ( P v ( Q > ( ~ ( P & Q ) ) ) ) SEQ F PRF
+N5 ( ~ ( Q > Q ) ) : PR ; N6 ( ( ( Q > Q ) & ( Q > Q ) ) & Q ) : PR ; N7 ( P v ( Q > ( ~ ( P & Q ) ) ) ) : PR ; N8 Q : ANDE2 N6 ; N9 ( Q > Q ) : ANDE1 N6 ; N10 ( P v ( Q > ( ~ ( P & Q ) ) ) ) : ORI2 N7 ; N11 F : NEGE N10 N5 ; QED
+--- [8769] textbook72 textbook_3ed45280e6c686e76ac6 len=7 mine=False (bad box cite (line 6)) stored=False
+THM ( P v Q ) , ( ~ P ) SEQ Q PRF
+N2 ( P v Q ) : PR ; N3 ( ~ P ) : PR ; N4 | P : AS ; N5 | Q : AS ; N6 | Q : ORE N2 N4 N4 N5 N5 ; N7 Q : ORE N2 N5 N4 N5 N5 N5 ; QED
+--- [8976] textbook72 textbook_49c48adca28f05789420 len=13 mine=False (rule check failed: IMPE (line 9)) stored=False
+THM ( ( ~ P ) > ( Q & R ) ) , ( ~ ( R v P ) ) SEQ ( ~ Q ) PRF
+N6 ( ( ~ P ) > ( Q & R ) ) : PR ; N7 ( ~ ( R v P ) ) : PR ; N8 | ( ~ ( ~ Q ) ) : AS ; N9 | ( Q & R ) : IMPE N6 N7 ; N10 | F : NEGE N9 N7 ; N11 ( ~ ( ~ ( ~ Q ) ) ) : NEGI N8 N10 ; N12 ( ~ Q ) : DN N11 ; QED
+--- [9577] textbook72 textbook_cea8801c51d3f9d213d6 len=-1 mine=False (rule check failed: ANDE2 (line 53)) stored=False
+THM SEQ ( ( ( ~ P ) v Q ) > ( P > Q ) ) PRF
+N51 | ( ( ~ P ) v Q ) : AS ; N52 | | P : AS ; N53 | | Q : ANDE2 N51 ; N54 | ( P > Q ) : IMPI N52 N53 ; N55 ( ( ( ~ P ) v Q ) > ( P > Q ) ) : IMPI N51 N54 ; QED
