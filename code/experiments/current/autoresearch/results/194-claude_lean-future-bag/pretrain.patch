@@ -1,0 +1,115 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..5f9e22c 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -75,6 +75,11 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Future-token-set auxiliary (the bag-of-words form of future-summary prediction, Mahajan et al.
++# 2025), pretraining only: a linear head on ln_f(trunk state at t) predicts, as independent
++# sigmoids, which token types occur in the rest of the proof (positions t+1 .. EOS), a long-horizon
++# target that t+2 MTP does not give. Its BCE, summed over the vocabulary, is added at this weight.
++BAG_WEIGHT = 0.1
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -197,21 +202,25 @@ class ALiBiGPT(GPT):
+ 
+ 
+ class MTPHead(torch.nn.Module):
+-    """The MTP module. A separate nn.Module, never registered on the model, so the harness's
+-    parameter count, RL AdamW and sampler never see it; it is dropped when pretrain() returns."""
++    """The MTP module and the future-bag head. A separate nn.Module, never registered on the
++    model, so the harness's parameter count, RL AdamW and sampler never see it; it is dropped
++    when pretrain() returns."""
+ 
+     def __init__(self, d, h):
+         super().__init__()
+         self.ln_h, self.ln_e = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+         self.proj = torch.nn.Linear(2 * d, d, bias=False)
+         self.block = PeriLNBlock(d, h)
++        self.bag = torch.nn.Linear(d, make_tokenizer(TOK_MODE).vocab_size)
+ 
+ 
+ def mtp_loss(model, mtp, x, m):
+     """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
++    MTP module's token-(t+2) prediction and BAG_WEIGHT times the future-bag BCE, at the same
++    proof positions. Returns (total, main, aux, bag)."""
+     h, bias = model.features(x[:, :-1])
+-    logits = model.head(model.ln_f(h))
++    hn = model.ln_f(h)
++    logits = model.head(hn)
+     V = logits.size(-1)
+     ce = torch.nn.functional.cross_entropy(
+         logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+@@ -225,7 +234,14 @@ def mtp_loss(model, mtp, x, m):
+         model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+     )
+     aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++    # Position t's bag target: every token type among the proof tokens x_{t+1} .. x_end.
++    future = torch.nn.functional.one_hot(x[:, 1:], V) * m[:, 1:, None]
++    future = (future.flip(1).cumsum(1).flip(1) > 0).float()
++    bce = torch.nn.functional.binary_cross_entropy_with_logits(
++        mtp.bag(hn).float(), future, reduction="none"
++    ).sum(-1)
++    bag = (bce * m[:, 1:]).sum() / m[:, 1:].sum()
++    return main + MTP_WEIGHT * aux + BAG_WEIGHT * bag, main, aux, bag
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -307,6 +323,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
+     mtp.apply(model._init)
++    # Start every bag sigmoid at ~12% so step 1 does not spend itself on base rates (AdamW moves
++    # a bias ~1e-3 per step).
++    torch.nn.init.constant_(mtp.bag.bias, -2.0)
+     mtp = mtp.to(device)
+     # Compile the repeated blocks once each (torch >= 2.9; dynamic shapes, ~14 s): ~14% faster
+     # steps. The coalescing tiling analysis crashes on dynamic shapes, so it is off. Undone at
+@@ -337,7 +356,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     step, last_loss, records_seen = 0, float("nan"), 0
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
++    curve, recent, recent_aux, recent_bag, next_point = [], [], [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+     order = torch.empty(0, dtype=torch.long, device=device)
+@@ -361,7 +380,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         records_seen += e - s
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, T)
+         with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
++            loss, main, aux, bag = mtp_loss(model, mtp, x, m)
+         model.zero_grad(set_to_none=False)  # grads keep fixed addresses for the Muon CUDA graph
+         mtp.zero_grad(set_to_none=False)
+         loss.backward()
+@@ -393,6 +412,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+             recent_aux.append(aux.item())
++            recent_bag.append(bag.item())
+         if (
+             time.time() - t0 >= next_point
+         ):  # curve point: mean recent train loss + val loss on the held-out slice
+@@ -403,13 +423,15 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+                     "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
++                    "bag_loss": sum(recent_bag) / len(recent_bag) if recent_bag else None,
+                 }
+             )
+             log(
+                 f"pretrain step {step} train {curve[-1]['train_loss']:.4f} "
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+-            recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
++            recent, recent_aux, recent_bag = [], [], []
++            next_point += CURVE_EVERY
+     for b in compiled:
+         b._compiled_call_impl = None
+     model.eval()
