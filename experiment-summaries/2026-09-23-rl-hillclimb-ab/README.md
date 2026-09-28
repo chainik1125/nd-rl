@@ -117,7 +117,7 @@ Counts are theorems solved at pass@32; two sampling seeds are shown as a/b.
 | orchestration exp23 (best) | 339 / 338 | 5 / 7 | 2 / 5 | 1 / 0 | 7 / 7 | 0.901 |
 
 The textbook solves are the same seven-to-nine problems with reference proofs of one to six lines that
-the pretrained model already solves. No checkpoint solved any of the 44 textbook problems with a
+the pretrained model already solves. No checkpoint solved any of the 43 textbook problems with a
 reference proof of seven or more lines. The orchestration arm's "textbook" gains were on the ladder
 pools' schema-instantiated targets (contraposition, export and the like with random sub-formulas), and
 they did not transfer to these problems.

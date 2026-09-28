@@ -27,7 +27,7 @@ research push a 3.2M-parameter prover on theorems of true length 12-14 that it n
   that a single seed would have crowned were stopped.
 - **On the sealed half of the length-12-14 set the two-hour champion proves 707 of 1,931 theorems at pass@256**
   (570 / 127 / 10 at lengths 12 / 13 / 14), where the pretrained model and run 1's best prove none, and it is the
-  first checkpoint to solve any textbook problem above six lines (3 of 44).
+  first checkpoint to solve any textbook problem above six lines (3 of 43).
 - **Nothing was quarantined in 99 nodes**; two rulings were needed (penalties on the model's own rejected samples:
   allowed; logit or head scaling inside the checkpoint: not promotable).
 
@@ -169,7 +169,7 @@ visible at the same k), so the search did not overfit the frontier set it could 
 champion proves 37 percent of the sealed length-12-14 theorems (40 percent at length 12, 35 percent at 13, 6
 percent at 14), two of the nine length-15 theorems, and 10 of the 58 textbook problems: the nine short ones the
 pretrained model already solves plus, for the first time in either run, one seven-line and two eight-line textbook
-problems (3 of 44 with reference length seven or more).
+problems (3 of 43 with reference length seven or more).
 
 ### Process
 
