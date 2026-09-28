@@ -9,4 +9,5 @@
 - independent verifier (separate session, own code): no reward bug, loophole or leak for lr3e-5 and EI (verify_lr3e-5/, verify_ei/)
 - gate B: fetch.sh --verify all hashes match; vendor dir unchanged vs charles-pre-ws3; no code change since gate A commit 487f43d (only .gitignore); metric coverage complete for all 4 arms; training prompts = pool.jsonl (train half), leak-checked at load and by the verifier
 - dumps > 200 KB gzipped in place; 20 raw eval samples per arm read by the executor
+- 2026-09-28 review PASS WITH CORRECTIONS (review.md, 0ca481e); results.md rewritten from the Recount with the 7 corrections; merged into charles/main
 DONE 2026-09-28T00:36:16Z

@@ -217,3 +217,34 @@ this reaches the textbook set; whether the pool filter or the algorithm drives E
   near misses?
 - Is the pool filter acceptable as standard practice (it selects on frozen-model success in the
   training half only)?
+
+## 2026-09-28 exp-00c closed: review PASS WITH CORRECTIONS
+
+**What ran.** A separate reviewer session recounted exp-00c from the raw files with its own code
+and committed each phase: Recount `54d2790`, Claims `61887dc`, Verdict `0ca481e`. It
+re-verified 115,127 rows with 0 disagreements. Gates A and B pass, no quarantine. `results.md`
+was rewritten from the Recount with all seven corrections applied, and the branch was merged
+into `charles/main`.
+
+**What was learned.**
+- **The numbers reproduce exactly.** Held-out L7 avg went from 0.122 to 0.430, 0.391, 0.333 and
+  0.545 (lr3e-5, lr1e-4, lr3e-4, EI); EI L8 went from 0 to 0.266. There is no leak under four
+  keys, no reward bug, and no loophole: the one lr1e-4 proof shorter than `L_true` is sound.
+- **The main correction.** On the pre-registered metric (paired diff on the 39 frozen-solved L7
+  problems), EI (+0.245) is below GRPO lr1e-4 (+0.325) and lr3e-5 (+0.273). EI leads only on
+  metrics that were not pre-registered. EI vs GRPO is unresolved on one seed.
+- **What the lift is.** One repaired step (derive the innermost consequent instead of a vacuous
+  `IMPI`) across the generator's nested-implication templates. Case-split and contradiction
+  templates stay at 0; the textbook set is flat (0 to 1 of 43, one problem).
+- **CIs.** The eval package's `mean_ci` is Wilson-type with n = problems, not the plan's CI over
+  problems. `results.md` now uses the over-problems intervals. The evaluator/report should switch
+  or label them before the Saturday graphs.
+
+**What is next.** Seeds (EI, GRPO 1e-4 and 3e-5); an unfiltered-pool comparison; a probe of the
+case-split and contradiction templates and the textbook set.
+
+**Open questions.**
+- "New capability" wording for one-step fixes.
+- The pool filter as standard practice.
+- The `mean_ci` method in the evaluator.
+- The reviewer's process flag: the queued arms ran during a stop-and-check.
