@@ -62,3 +62,33 @@ Gate 3 (summary only from reviewed numbers) is the librarian's brief, not a scri
   `~/nd-takehome`), so a run can push from and pull into its own worktree.
 - `podbg` shell-quotes the command (`printf %q`), so commands containing quotes work.
 
+
+## `podjob`: compute that releases itself (2026-09-28, proposal 15 item 7)
+
+`podjob <run-id> [--gpu CLASS[,CLASS…]] [--cloud SECURE|COMMUNITY] [--pack N] [--sync] [--push PATH]… [--out PATH]…
+[--no-bucket] [--no-pull] [--name NAME] -- <cmd> [';' <cmd> …]` ties a pod's lifetime to its jobs. It:
+
+1. creates a pod named `pj-<run>-<random>`, registered to the run (`ND_RUN_ID`), trying the `--gpu` classes in order;
+2. optionally runs `podsync` / `podpush`, then starts each command detached on the pod (`setsid nohup`, in
+   `/workspace/nd-takehome`), at most `--pack N` at once, logging to `artifacts/podjob/<name>/job<i>.log`;
+3. polls every 15 s; when all jobs have ended (or failed) it syncs the log directory and every `--out` path
+   to `hf://buckets/dan-pandori/nd-rl/<run-id>/<path>` from the pod (from the host if that fails), pulls
+   them into `POD_LOCAL_ROOT` (default `~/nd-takehome`), and deletes the pod with `podrm` (hours →
+   `~/podhours.log`); events go to `~/podjob.log`.
+
+The same salvage-and-delete runs from a host-side `trap` on EXIT / INT / TERM / HUP; a second signal
+during cleanup is ignored, and after `podrm` any pod still carrying the job's unique name is removed
+(a signal during creation). The RunPod key never goes to the pod, so a `kill -9` of `podjob` is left to
+`pod_watchdog` and `pod_budget_watch`, which see the registered pod as before. Exit code: the first non-zero
+job exit code, else 0; 128 + signal when interrupted. Stop a backgrounded `podjob` with SIGTERM: bash ignores
+SIGINT in commands that a non-interactive script starts with `&`, and cannot trap it there.
+
+Example — three sampling jobs packed on one pod, outputs to the bucket, pod gone when the last one ends:
+
+    nohup podjob myrun --gpu "NVIDIA A40,NVIDIA RTX A6000" --sync --pack 3 --out artifacts/myrun -- \
+      python sample.py --seed 0 ';' python sample.py --seed 1 ';' python sample.py --seed 2 > podjob.out 2>&1 &
+
+Use `podnew` / `podrun` / `podrm` for interactive or multi-stage work that needs a pod to persist between steps.
+
+`podbg` fix (same day): `a && setsid … & disown` backgrounded the whole `&&` list, and that subshell held the
+ssh channel open until the job ended or `timeout 60` fired (rc 124). Only the job is backgrounded now.

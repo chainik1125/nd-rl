@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Run one-shot job(s) on a pod whose lifetime is tied to them: create → run → upload → delete.
+#   podjob <run-id> [--gpu CLASS[,CLASS…]] [--cloud SECURE|COMMUNITY] [--pack N] [--sync] [--push PATH]… [--out PATH]…
+#          [--no-bucket] [--no-pull] [--name NAME] -- <cmd> [';' <cmd> …]
+# Commands are separated by a lone ';' argument (quote it). Each runs in /workspace/nd-takehome on the pod,
+# detached (setsid nohup), at most N at once (--pack, default 1); logs go to artifacts/podjob/<name>/job<i>.log.
+# --sync runs podsync, --push PATH runs podpush (both before the jobs). When the jobs end, fail, or podjob is
+# interrupted (EXIT/INT/TERM/HUP trap on the host): every --out path and the log directory are synced from the
+# pod to hf://buckets/dan-pandori/nd-rl/<run-id>/<path> (--no-bucket skips), pulled into POD_LOCAL_ROOT
+# (--no-pull skips), and the pod is deleted with podrm (hours → ~/podhours.log). The RunPod key never goes
+# to the pod: a SIGKILLed podjob is left to pod_watchdog / pod_budget_watch, which see the registered pod.
+# --gpu takes a comma-separated fallback list, tried in order. SIGINT from a terminal is trapped, but bash
+# ignores SIGINT in commands a non-interactive script starts with `&` (and cannot trap it there): stop those with
+# SIGTERM. Exit code: the first non-zero job exit code, else 0; 128+signal when interrupted. Events → ~/podjob.log.
+. ~/.config/nd-rl/env; export PATH="$(cd "$(dirname "$0")" && pwd):$HOME/.local/bin:$HOME/bin:$PATH"   # its own pod* tools first
+usage() { sed -n 2,4p "$0" | sed 's/^# //'; exit 2; }
+RUN=$1; shift 2>/dev/null; [ -n "$RUN" ] && [ "${RUN#-}" = "$RUN" ] || usage
+PACK=1; SYNC=0; BUCKET=1; PULL=1; PUSH=(); OUTS=(); NAME=""
+while [ $# -gt 0 ]; do case "$1" in
+  --gpu) export POD_GPU=$2; shift 2;; --cloud) export POD_CLOUD=$2; shift 2;;
+  --pack) PACK=$2; shift 2;; --sync) SYNC=1; shift;; --push) PUSH+=("$2"); shift 2;; --out) OUTS+=("${2%/}"); shift 2;;
+  --no-bucket) BUCKET=0; shift;; --no-pull) PULL=0; shift;; --name) NAME=$2; shift 2;;
+  --) shift; break;; *) usage;; esac; done
+CMDS=(); cur=""
+for a in "$@"; do if [ "$a" = ";" ]; then [ -n "$cur" ] && CMDS+=("$cur"); cur=""; else cur="${cur:+$cur }$a"; fi; done
+[ -n "$cur" ] && CMDS+=("$cur"); [ ${#CMDS[@]} -gt 0 ] || usage
+[[ "$PACK" =~ ^[1-9][0-9]*$ ]] || usage
+N=${NAME:-pj-$RUN-$(head -c4 /dev/urandom | od -An -tx1 | tr -d ' \n')}; export ND_RUN_ID=$RUN
+REG=~/.config/nd-rl/pods/$N; J=artifacts/podjob/$N; B=hf://buckets/dan-pandori/nd-rl/$RUN
+log() { echo "$(date -u +%FT%TZ) $N $RUN $*" | tee -a ~/podjob.log; }
+nap() { sleep "$1" & wait $!; }   # interruptible: a trapped signal is handled at once, not after sleep ends
+STATUS=0; PN=""; CLEANED=0; STARTED=0; L=${POD_LOCAL_ROOT:-$HOME/nd-takehome}
+
+cleanup() {  # salvage, delete, then make sure nothing with this job's unique name is left on the account
+  local sig=$1 p ids; [ $CLEANED = 1 ] && return; CLEANED=1; trap '' INT TERM HUP
+  [ "$sig" != EXIT ] && { STATUS=$((128 + $(kill -l "$sig"))); log "caught SIG$sig"; }
+  local creating=0; [ -n "$PN" ] && { creating=1; kill -TERM -- -"$PN" 2>/dev/null; wait "$PN" 2>/dev/null; }
+  if [ -f "$REG" ] && [ $STARTED = 1 ]; then
+    for p in "$J" "${OUTS[@]}"; do
+      timeout 60 podrun "$N" "[ -e $p ]" 2>/dev/null || { log "no $p on the pod"; continue; }
+      [ $PULL = 1 ] && { timeout 900 podpull "$N" "$p" >/dev/null 2>&1 || log "pull of $p failed"; }
+      [ $BUCKET = 1 ] || continue
+      if e=$(timeout 900 podrun "$N" "PATH=\$HOME/.local/bin:\$PATH hf buckets sync $p $B/$p 2>&1 >/dev/null" 2>&1); then log "bucket $B/$p (from pod)"
+      elif log "pod-side sync of $p failed: $(printf '%s' "$e" | tail -c 200 | tr '\n' ' ')"; [ $PULL = 1 ] && [ -e "$L/$p" ] \
+          && hf buckets sync "$L/$p" "$B/$p" >/dev/null 2>&1; then log "bucket $B/$p (from host)"
+      else log "bucket sync of $p failed"; fi
+    done
+  fi
+  [ -f "$REG" ] && podrm "$N" 2>&1 | tee -a ~/podjob.log
+  local end=$((SECONDS + 60))   # podnew killed mid-create: its create request may land after the kill
+  while :; do
+    ids=$(runpodctl pod list 2>/dev/null | jq -r --arg n "$N" '.[] | select(.name == $n) | .id' 2>/dev/null)
+    for id in $ids; do runpodctl pod remove "$id" >/dev/null 2>&1; log "removed unregistered pod $id"
+      echo "$(date -u +%FT%TZ) $N $id $RUN UNDONE" >> ~/pods.log; done
+    [ $creating = 1 ] && [ $SECONDS -lt $end ] || [ -n "$ids" ] || break; sleep 10
+  done
+  rm -f "$REG"; log "DELETED exit=$STATUS"
+}
+for s in INT TERM HUP; do trap "cleanup $s; exit \$STATUS" $s; done
+trap 'cleanup EXIT; exit $STATUS' EXIT
+
+log "START gpu=${POD_GPU:-NVIDIA A40} pack=$PACK jobs=${#CMDS[@]}"
+IFS=, read -ra GPUS <<< "${POD_GPU:-NVIDIA A40}"; RC=1   # --gpu "A,B,C": try each class in turn
+for g in "${GPUS[@]}"; do export POD_GPU=$g
+  setsid podnew "$N" & PN=$!; wait $PN; RC=$?; PN=""; [ $RC = 0 ] && [ -f "$REG" ] && break; log "podnew on $g failed ($RC)"; done
+[ $RC = 0 ] && [ -f "$REG" ] || { STATUS=1; exit 1; }
+log "READY $(sed -n 's/^POD_ID=//p' "$REG")"
+# hf for the pod-side bucket sync (the template has none); installed in the background, host sync is the fallback
+timeout 60 podrun "$N" "command -v hf >/dev/null || { setsid nohup pip install -q --break-system-packages -U huggingface_hub > /tmp/hf_install.log 2>&1 < /dev/null & }" >/dev/null 2>&1
+[ $SYNC = 1 ] && { podsync "$N" >/dev/null || { log "podsync failed"; STATUS=1; exit 1; }; }
+for p in "${PUSH[@]}"; do podpush "$N" "$p" >/dev/null || { log "podpush $p failed"; STATUS=1; exit 1; }; done
+
+start() {  # job i on the pod, detached; writes "<exit code> <end epoch>" to job<i>.rc when it ends
+  local inner="bash -c $(printf '%q' "${CMDS[$1]}") > $J/job$1.log 2>&1; echo \$? \$(date +%s) > $J/job$1.rc"
+  STARTED=1
+  timeout 60 podrun "$N" "mkdir -p $J && date +%s > $J/job$1.start && { setsid nohup bash -c $(printf '%q' "$inner") > /dev/null 2>&1 < /dev/null & }" \
+    || { log "could not start job $1"; return 1; }
+  log "job $1 started: ${CMDS[$1]}"
+}
+declare -A SEEN; next=0; running=0; done_n=0; fails=0
+while [ $done_n -lt ${#CMDS[@]} ]; do
+  while [ $running -lt "$PACK" ] && [ $next -lt ${#CMDS[@]} ]; do
+    start $next || { STATUS=1; exit 1; }; next=$((next+1)); running=$((running+1)); done
+  nap 15
+  R=$(timeout 60 podrun "$N" "cd $J && for f in job*.rc; do [ -f \$f ] && echo \${f%.rc} \$(cat \$f); done; true" 2>/dev/null) \
+    || { fails=$((fails+1)); [ $fails -ge 20 ] && { log "pod unreachable for 20 polls"; STATUS=1; exit 1; }; continue; }
+  fails=0
+  while read -r j rc t; do [ -n "$j" ] && [ -z "${SEEN[$j]:-}" ] || continue; SEEN[$j]=1; done_n=$((done_n+1))
+    log "$j ended rc=$rc at $(date -u -d @"$t" +%FT%TZ)"; [ "$rc" != 0 ] && [ $STATUS = 0 ] && STATUS=$rc; done < <(printf '%s\n' "$R")
+  running=$((next - done_n))
+done
+log "all ${#CMDS[@]} job(s) ended, status $STATUS"
+exit $STATUS

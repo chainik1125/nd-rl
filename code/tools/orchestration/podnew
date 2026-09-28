@@ -23,6 +23,7 @@ undo() {   # remove pods named $N that this call created; never one that existed
     echo "$(date -u +%FT%TZ) $N $id ${ND_RUN_ID:-unknown} UNDONE" >> ~/pods.log
   done
 }
+T0=$(date -u +%FT%TZ)   # billing starts at the create call, not when --wait returns (up to 12 min later)
 OUT=$(runpodctl pod create --name "$N" --template-id uhf9wr47j6 --gpu-id "$GPU" --cloud-type "${POD_CLOUD:-SECURE}" \
       --min-cuda-version "${POD_MINCUDA:-13.0}" ${POD_EXTRA} --wait --wait-timeout 12m 2>&1); RC=$?
 ID=$(printf '%s' "$OUT" | grep -oE "pod [a-z0-9]{14}" | head -1 | cut -d" " -f2)
@@ -34,7 +35,7 @@ IP=$(printf '%s' "$INFO" | jq -r '.ip // empty' 2>/dev/null); PORT=$(printf '%s'
 [ -n "$IP" ] && [ -n "$PORT" ] || { echo "podnew $N: no ssh address for $ID: $INFO"; undo; exit 1; }
 RATE=$(list | jq -r --arg id "$ID" '.[] | select(.id == $id) | .costPerHr // empty' 2>/dev/null)
 printf "POD_ID=%q\nPOD_IP=%q\nPOD_PORT=%q\nRUN=%q\nCREATED=%q\nGPU=%q\nRATE=%q\n" \
-  "$ID" "$IP" "$PORT" "${ND_RUN_ID:-unknown}" "$(date -u +%FT%TZ)" "$GPU" "$RATE" > "$REG"
+  "$ID" "$IP" "$PORT" "${ND_RUN_ID:-unknown}" "$T0" "$GPU" "$RATE" > "$REG"
 echo "$(date -u +%FT%TZ) $N $ID ${ND_RUN_ID:-unknown}" >> ~/pods.log
 S="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ConnectTimeout=10 -p $PORT root@$IP"
 end=$((SECONDS+600))
