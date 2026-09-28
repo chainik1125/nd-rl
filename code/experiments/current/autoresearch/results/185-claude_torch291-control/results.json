@@ -1,0 +1,392 @@
+{
+  "commit": "5bd8a7d",
+  "recorded_at": "2026-09-28T03:45:18+0100",
+  "status": "discard",
+  "metric": 684,
+  "metric_rl": 1170,
+  "harness_sha": "2aa52f23e7ec",
+  "pretrain_sha": "b2520af124d6",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1823,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9557760,
+    "steps": 4369,
+    "epochs": 3.86346336204097,
+    "last_loss": 0.051318202167749405,
+    "heldout_greedy": 0.9675,
+    "curve": [
+      {
+        "secs": 18,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.804174780845642,
+        "mtp_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 185,
+        "train_loss": 1.2667033937242296,
+        "val_loss": 0.18834196589887142,
+        "mtp_loss": 1.4488312900066376
+      },
+      {
+        "secs": 45,
+        "step": 420,
+        "train_loss": 0.13077008786300817,
+        "val_loss": 0.08493350818753242,
+        "mtp_loss": 0.12725448918839297
+      },
+      {
+        "secs": 60,
+        "step": 652,
+        "train_loss": 0.07942247153683142,
+        "val_loss": 0.09505329933017492,
+        "mtp_loss": 0.08205676214261488
+      },
+      {
+        "secs": 75,
+        "step": 886,
+        "train_loss": 0.07226350779334705,
+        "val_loss": 0.08010957203805447,
+        "mtp_loss": 0.07365045230835676
+      },
+      {
+        "secs": 90,
+        "step": 1120,
+        "train_loss": 0.0615469046557943,
+        "val_loss": 0.09502697549760342,
+        "mtp_loss": 0.06278854515403509
+      },
+      {
+        "secs": 105,
+        "step": 1353,
+        "train_loss": 0.06421770358627493,
+        "val_loss": 0.08873491920530796,
+        "mtp_loss": 0.0669505623253909
+      },
+      {
+        "secs": 120,
+        "step": 1585,
+        "train_loss": 0.057107637325922646,
+        "val_loss": 0.08460825309157372,
+        "mtp_loss": 0.05710122858484586
+      },
+      {
+        "secs": 135,
+        "step": 1818,
+        "train_loss": 0.07795375483957204,
+        "val_loss": 0.0873725637793541,
+        "mtp_loss": 0.07788330248811028
+      },
+      {
+        "secs": 150,
+        "step": 2049,
+        "train_loss": 0.06314653841157754,
+        "val_loss": 0.08083612564951181,
+        "mtp_loss": 0.06405283541729052
+      },
+      {
+        "secs": 165,
+        "step": 2280,
+        "train_loss": 0.06364983196059863,
+        "val_loss": 0.08865519799292088,
+        "mtp_loss": 0.06403610482811928
+      },
+      {
+        "secs": 180,
+        "step": 2513,
+        "train_loss": 0.06447876515713605,
+        "val_loss": 0.09413432143628597,
+        "mtp_loss": 0.0644305490634658
+      },
+      {
+        "secs": 195,
+        "step": 2744,
+        "train_loss": 0.053944570322831474,
+        "val_loss": 0.0839704005047679,
+        "mtp_loss": 0.05322523151213924
+      },
+      {
+        "secs": 210,
+        "step": 2976,
+        "train_loss": 0.08241335979916832,
+        "val_loss": 0.08011464215815067,
+        "mtp_loss": 0.08267143267122182
+      },
+      {
+        "secs": 225,
+        "step": 3207,
+        "train_loss": 0.049754632326463856,
+        "val_loss": 0.08274763729423285,
+        "mtp_loss": 0.048832697638620935
+      },
+      {
+        "secs": 240,
+        "step": 3437,
+        "train_loss": 0.05500330284915187,
+        "val_loss": 0.08335441071540117,
+        "mtp_loss": 0.05535290271721103
+      },
+      {
+        "secs": 255,
+        "step": 3669,
+        "train_loss": 0.0633454155176878,
+        "val_loss": 0.0895488653331995,
+        "mtp_loss": 0.0633804105843107
+      },
+      {
+        "secs": 270,
+        "step": 3903,
+        "train_loss": 0.06391140508155028,
+        "val_loss": 0.07922888360917568,
+        "mtp_loss": 0.06357616807023685
+      },
+      {
+        "secs": 285,
+        "step": 4137,
+        "train_loss": 0.04538744315505028,
+        "val_loss": 0.08235359191894531,
+        "mtp_loss": 0.046149741519581185
+      },
+      {
+        "secs": 300,
+        "step": 4369,
+        "train_loss": 0.05425318175305923,
+        "val_loss": 0.08266991097480059,
+        "mtp_loss": 0.05508162950476011
+      }
+    ],
+    "records_seen": 594842,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.2089375,
+      "new_proofs": 928,
+      "targets_solved": 682,
+      "lstar": 10,
+      "ge": {
+        "7": 682,
+        "8": 281,
+        "9": 80,
+        "10": 11,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3684,
+      "samples_per_sec": 235,
+      "secs": 282
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5397291666666667,
+      "new_proofs": 622,
+      "targets_solved": 968,
+      "lstar": 10,
+      "ge": {
+        "7": 968,
+        "8": 479,
+        "9": 219,
+        "10": 34,
+        "11": 2,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 5980,
+      "samples_per_sec": 238,
+      "secs": 284
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6618541666666666,
+      "new_proofs": 460,
+      "targets_solved": 1090,
+      "lstar": 11,
+      "ge": {
+        "7": 1090,
+        "8": 573,
+        "9": 290,
+        "10": 54,
+        "11": 6,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7484,
+      "samples_per_sec": 200,
+      "secs": 325
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7225,
+      "new_proofs": 327,
+      "targets_solved": 1151,
+      "lstar": 11,
+      "ge": {
+        "7": 1151,
+        "8": 619,
+        "9": 324,
+        "10": 65,
+        "11": 7,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 8440,
+      "samples_per_sec": 217,
+      "secs": 307
+    }
+  ],
+  "eval": {
+    "solved": 697,
+    "n": 1108,
+    "ge": {
+      "7": 697,
+      "8": 602,
+      "9": 478,
+      "10": 113,
+      "11": 24,
+      "12": 6,
+      "13": 1,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.9935,
+    "max_pruned": 14,
+    "by_bin": {
+      "7": {
+        "solved": 95,
+        "n": 150,
+        "rate": 0.6333333333333333,
+        "ci": [
+          0.5537808929385404,
+          0.706226803289268
+        ]
+      },
+      "8": {
+        "solved": 124,
+        "n": 152,
+        "rate": 0.8157894736842105,
+        "ci": [
+          0.7466452410364233,
+          0.8693648615292588
+        ]
+      },
+      "9": {
+        "solved": 365,
+        "n": 477,
+        "rate": 0.7651991614255765,
+        "ci": [
+          0.7251340357007842,
+          0.8010267623666044
+        ]
+      },
+      "10": {
+        "solved": 89,
+        "n": 219,
+        "rate": 0.4063926940639269,
+        "ci": [
+          0.3434979808357749,
+          0.47251482826270574
+        ]
+      },
+      "11": {
+        "solved": 18,
+        "n": 49,
+        "rate": 0.3673469387755102,
+        "ci": [
+          0.24664982524781226,
+          0.5073318861311014
+        ]
+      },
+      "12": {
+        "solved": 5,
+        "n": 54,
+        "rate": 0.09259259259259259,
+        "ci": [
+          0.040200542070567336,
+          0.1991012753065453
+        ]
+      },
+      "13": {
+        "solved": 1,
+        "n": 5,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Environment control (operator run): the 153-claude incumbent byte-identical on the torch 2.9.1 pod image. Seeds 697/678/677, mean 684.0 vs 153's 687.0 on torch 2.4 (676/700/685): paired +21/-22/-8, so the torch upgrade is neutral and 687 was not a lucky draw. Eager pretraining 4,369/4,337/4,445 steps in 300 s. Recorded as discard only because 186-claude (same maths, +23% steps, mean 680.3) was kept as the faster incumbent; this run is the like-for-like reference for 186. Totals 1715-1823 s of 2400.",
+  "seed_metrics": {
+    "0": 697,
+    "1": 678,
+    "2": 677
+  },
+  "seed_metric_rl": {
+    "0": 1151,
+    "1": 1163,
+    "2": 1195
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08266991097480059,
+      "heldout_greedy": 0.9675,
+      "steps": 4369
+    },
+    "1": {
+      "val_loss": 0.08566040173172951,
+      "heldout_greedy": 0.9505,
+      "steps": 4337
+    },
+    "2": {
+      "val_loss": 0.08131079841405153,
+      "heldout_greedy": 0.974,
+      "steps": 4445
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 107896,
+    "distinct_checked": 572792,
+    "both_ok": 343049,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 3,
+    "lean_wall_s": 1438.3358345031738
+  },
+  "migrated": false
+}
