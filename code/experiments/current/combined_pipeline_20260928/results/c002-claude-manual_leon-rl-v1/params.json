@@ -1,0 +1,82 @@
+{
+ "id": "c002-claude-manual",
+ "slug": "leon-rl-v1",
+ "arm": "leon",
+ "run_prefix": "combo-leon",
+ "written_at": "2026-09-28T04:59:00+0100",
+ "base_commit": "3849dcf",
+ "provider": "anthropic",
+ "model": "claude-opus-5-5",
+ "files": {
+  "ckpt_shim.py": "91c4328d025b",
+  "launch.py": "2878b08f30a0",
+  "leon_rl.py": "e397d4a9bb06",
+  "harness_leon.py": "08bcbbd7733d"
+ },
+ "harness_sha": "2aa52f23e7ec",
+ "pretrain": "186-claude pretrain.pt per seed (pretrain_sha fc09860cd285)",
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "title": "Combined v1: 186 pretraining + Leon's GEAR expert iteration (tokenizer-independent parts), sample-matched",
+ "description": "Same weights, targets and eval as c001; stage_rl replaced by leon_rl.stage_rl: 15 rounds of a 400-target window with knapsack k (mean 32), hardest-first refill, T 1.0, fresh AdamW 135 steps/round lr 3e-4->3e-5, GEM loss beta 0.7, rarity-weighted mix. Tests whether Leon's RL, evolved on abs 3.2M models, transfers to the Lean incumbent at the harness's 192k samples.",
+ "tags": [
+  "rl",
+  "combined"
+ ],
+ "hypothesis": "Many small rounds with fresh optimizers and hardest-first targeting turn the same sample budget into more distinct solved targets; GEM keeps diversity so later rounds keep finding new proofs.",
+ "p_keep": 0.6,
+ "expected_delta": "+10 to +120 over c001 (3-seed mean 690-800)",
+ "baseline_id": "c001-claude-manual",
+ "baseline_metric": "c001 3-seed mean (pending)",
+ "config": {
+  "pretrain": {
+   "source": "186-claude pretrain.pt, seeds 0/1/2 (loaded, not retrained)",
+   "arch": "ALiBiGPT 6x384 Peri-LN, 8 heads (4 ALiBi + 4 NoPE), d_ff 1280",
+   "n_params": 9557760,
+   "tok": "lean_seq"
+  },
+  "data": "fork 51604b3: train.jsonl cap-6 (retention), 1,500 rl_targets sampled with the harness seed, dev half of transfer (1,108) for eval",
+  "reward": "Lean 4 AND nd_verify (fork lean_gate)",
+  "eval": "frozen harness stage_eval: EVAL_K 64, T 0.8, max_new 512; metric = dev solved at L_true >= 7",
+  "total_secs": 3600,
+  "rl": {
+   "recipe": "leon_rl.stage_rl (leon/home-rolled-rl @ 0f749e2, rl_champion2_n060_fullpool.py)",
+   "window": 400,
+   "k_mean": 32,
+   "k_min": 4,
+   "k_max": 128,
+   "k_len_prior": {
+    "7": 2,
+    "8": 3,
+    "9": 4,
+    "10": 6,
+    "11+": 8
+   },
+   "hard_refill": 1200,
+   "temperature": 1.0,
+   "ft_steps": 135,
+   "ft_batch": 128,
+   "lr": 0.0003,
+   "min_lr": 3e-05,
+   "warmup": 35,
+   "loss": "gem beta 0.7",
+   "retain": 20000,
+   "max_per_thm": 4,
+   "rare_weight_max": 8,
+   "targets": 1500,
+   "samples": 192000,
+   "rounds": 15,
+   "not_ported": [
+    "guided line-level sampler",
+    "CUDA-graph sampler",
+    "abs index cap",
+    "hindsight relabelling",
+    "schema cover"
+   ]
+  }
+ },
+ "note": "Registered after launch: pods launched 20:43 PDT 2026-09-27, this file written 20:59 PDT. The prediction is the README's, committed pre-launch in 3849dcf (20:40 PDT)."
+}

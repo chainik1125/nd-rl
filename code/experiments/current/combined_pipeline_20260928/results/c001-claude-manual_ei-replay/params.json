@@ -1,0 +1,59 @@
+{
+ "id": "c001-claude-manual",
+ "slug": "ei-replay",
+ "arm": "ei",
+ "run_prefix": "combo-ei",
+ "written_at": "2026-09-28T04:59:00+0100",
+ "base_commit": "3849dcf",
+ "provider": "anthropic",
+ "model": "claude-opus-5-5",
+ "files": {
+  "ckpt_shim.py": "91c4328d025b",
+  "launch.py": "2878b08f30a0"
+ },
+ "harness_sha": "2aa52f23e7ec",
+ "pretrain": "186-claude pretrain.pt per seed (pretrain_sha fc09860cd285)",
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "title": "Baseline: 186-claude pretrained weights + frozen harness expert iteration, replayed",
+ "description": "Loads 186-claude's pretrain.pt per seed through a shim pretrain.py and runs the frozen harness unchanged (4 rounds x 1,500 targets x 32 samples, 600 FT steps/round, eval k=64). Sets the combined-pipeline bar on the same day and checks the checkpoint handoff; only RL/eval sampling noise differs from 186.",
+ "tags": [
+  "baseline",
+  "replicate"
+ ],
+ "hypothesis": "A replay of 186's RL stage from its own pretrained weights reproduces 186 up to RL sampling noise.",
+ "p_keep": 1.0,
+ "expected_delta": "3-seed mean within +-40 of 680 (186: 668/699/674)",
+ "baseline_id": "186-claude",
+ "baseline_metric": 680,
+ "config": {
+  "pretrain": {
+   "source": "186-claude pretrain.pt, seeds 0/1/2 (loaded, not retrained)",
+   "arch": "ALiBiGPT 6x384 Peri-LN, 8 heads (4 ALiBi + 4 NoPE), d_ff 1280",
+   "n_params": 9557760,
+   "tok": "lean_seq"
+  },
+  "data": "fork 51604b3: train.jsonl cap-6 (retention), 1,500 rl_targets sampled with the harness seed, dev half of transfer (1,108) for eval",
+  "reward": "Lean 4 AND nd_verify (fork lean_gate)",
+  "eval": "frozen harness stage_eval: EVAL_K 64, T 0.8, max_new 512; metric = dev solved at L_true >= 7",
+  "total_secs": 3600,
+  "rl": {
+   "recipe": "frozen harness stage_rl (ladder T1 expert iteration)",
+   "rounds": 4,
+   "targets": 1500,
+   "k": 32,
+   "temperature": 0.8,
+   "ft_steps": 600,
+   "ft_lr": 0.0003,
+   "loss": "ce",
+   "retain": 20000,
+   "max_per_thm": 4,
+   "rl_weight": 4,
+   "samples": 192000
+  }
+ },
+ "note": "Registered after launch: pods launched 20:43 PDT 2026-09-27, this file written 20:59 PDT. The prediction is the README's, committed pre-launch in 3849dcf (20:40 PDT)."
+}
