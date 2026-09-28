@@ -1,0 +1,89 @@
+{
+ "id": "c004-claude-manual",
+ "slug": "guided",
+ "arm": "leon",
+ "run_prefix": "combo-c004",
+ "written_at": "2026-09-28T06:28:22+0100",
+ "base_commit": "ea3eeb0",
+ "provider": "anthropic",
+ "model": "claude-opus-5-5",
+ "files": {
+  "ckpt_shim.py": "91c4328d025b",
+  "launch.py": "db2f8f8359ab",
+  "leon_rl.py": "a6a66e30bd74",
+  "harness_leon.py": "08bcbbd7733d",
+  "fast_sample.py": "72816d7e0bb1",
+  "guided.py": "4e4799830c44",
+  "line_checker.py": "6fd951d747f6"
+ },
+ "harness_sha": "2aa52f23e7ec",
+ "pretrain": "186-claude pretrain.pt per seed (pretrain_sha fc09860cd285)",
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "title": "Combined v3: c002 + verifier-guided RL sampling (Leon's line-level rejection sampler, ported to lean_seq)",
+ "description": "c002's recipe with RL rollouts sampled under line-level guidance: each `have` the model finishes is checked against nd_verify's rules given the lines before it, and a bad segment is rolled back and resampled (4 retries). Runs in parallel with c003, both single deltas on c002; pretraining runs on the pod.",
+ "tags": [
+  "rl",
+  "combined",
+  "systems"
+ ],
+ "hypothesis": "Most failed RL samples die at one invalid line (rule-check or unbound-name errors dominate the 186 model's failures); resampling that line instead of the whole proof turns them into verified proofs for hard targets, so each round's training mix covers more long targets. CPU check: 66/64 vs 42/41 accepted of 192 at k=8.",
+ "p_keep": 0.55,
+ "expected_delta": "+20 to +80 over c002 (804); RL sampling slower per sample (Python checks per step), total maybe ~2,600-3,000 s",
+ "baseline_id": "c002-claude-manual",
+ "baseline_metric": 804.3,
+ "config": {
+  "pretrain": {
+   "source": "186-claude pretrain.py run on the pod (300 s), seeds 0/1/2; not the saved weights (see c003 relaunch.md)",
+   "arch": "ALiBiGPT 6x384 Peri-LN, 8 heads (4 ALiBi + 4 NoPE), d_ff 1280",
+   "n_params": 9557760,
+   "tok": "lean_seq"
+  },
+  "data": "fork 51604b3: train.jsonl cap-6 (retention), 1,500 rl_targets sampled with the harness seed, dev half of transfer (1,108) for eval",
+  "reward": "Lean 4 AND nd_verify (fork lean_gate)",
+  "eval": "frozen harness stage_eval: EVAL_K 64, T 0.8, max_new 512; metric = dev solved at L_true >= 7",
+  "total_secs": "3600 cap; the harness total includes the 300 s pretraining",
+  "rl": {
+   "recipe": "leon_rl.stage_rl (leon/home-rolled-rl @ 0f749e2, rl_champion2_n060_fullpool.py)",
+   "window": 400,
+   "k_mean": 32,
+   "k_min": 4,
+   "k_max": 128,
+   "k_len_prior": {
+    "7": 2,
+    "8": 3,
+    "9": 4,
+    "10": 6,
+    "11+": 8
+   },
+   "hard_refill": 1200,
+   "temperature": 1.0,
+   "ft_steps": 135,
+   "ft_batch": 128,
+   "lr": 0.0003,
+   "min_lr": 3e-05,
+   "warmup": 35,
+   "loss": "gem beta 0.7",
+   "retain": 20000,
+   "max_per_thm": 4,
+   "rare_weight_max": 8,
+   "targets": 1500,
+   "samples": 192000,
+   "rounds": 15,
+   "not_ported": [
+    "guided line-level sampler",
+    "CUDA-graph sampler",
+    "abs index cap",
+    "hindsight relabelling",
+    "schema cover"
+   ],
+   "sampler": "guided.generate: line-level verifier-guided RL sampling (Leon's run-2 guided sampler ported to lean_seq: fork inverse() on the prefix + Leon's LineChecker; rejected segments masked out of the KV cache and resampled; 4 retries per segment, 24 per row, segment cap 400) + compaction + Lean overlap; eval = frozen harness sampler, unguided",
+   "leon_cfg": {
+    "guided": true
+   }
+  }
+ }
+}
