@@ -33,10 +33,25 @@ sys.exit(0 if hit else 1)
 PY
 }
 
-# True when the result is an authentication failure (expired OAuth, invalid key): stop, do not spin.
-auth_failed() { grep -qiE "Failed to authenticate|OAuth session expired|authentication_error|invalid x-api-key|Not logged in" "$1" 2>/dev/null; }
+# The CLI's own error output for one invocation: result events it marked is_error, plus any non-JSON
+# line it printed. Never the transcript body — that holds file contents the agent read, and this
+# project's docs quote these very error messages: on 2026-09-24 and 2026-09-28 two librarians were
+# stopped as "out of credits" after finishing successfully, because they had read the spend ledger.
+cli_errors() { python3 - "$1" <<'PY'
+import json, sys
+for l in open(sys.argv[1], errors="ignore"):
+    l = l.strip()
+    if not l: continue
+    try: d = json.loads(l)
+    except Exception: print(l); continue
+    if d.get("type") == "result" and d.get("is_error"):
+        print(d.get("result") or "", d.get("terminal_reason") or "", d.get("api_error_status") or "")
+PY
+}
+# True when the invocation failed on authentication (expired OAuth, invalid key): stop, do not spin.
+auth_failed() { cli_errors "$1" 2>/dev/null | grep -qiE "Failed to authenticate|OAuth session expired|authentication_error|invalid x-api-key|Not logged in"; }
 # True when the account is out of credits for this model: stop and name the model.
-out_of_credits() { grep -qiE "out of usage credits|insufficient credit|Switch to another model" "$1" 2>/dev/null; }
+out_of_credits() { cli_errors "$1" 2>/dev/null | grep -qiE "out of usage credits|insufficient credit|Switch to another model"; }
 fails=0; authfails=0
 # Adaptive re-invoke delay. Every resume re-reads the whole conversation from cache, so an
 # invocation that did nothing costs about as much as one that did the work. When the agent is
@@ -56,7 +71,7 @@ for i in $(seq 1 ${MAX_INVOCATIONS:-120}); do
   [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; notify "$RUN: $ROLE hit its hard stop" "Session ended by time limit; check STATUS.md." high; break; }
   [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E 'DONE|QUARANTINE' "$REPO/STATUS.md" 2>/dev/null | tail -2)"; break; }
   [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify "$RUN: $ROLE done" "$(grep -E "$DONEGREP" "$REPO/STATUS.md" | tail -1)"; break; }
-  M=${MODEL:-$(cat "${DEFAULT_MODEL_FILE}.$ROLE" 2>/dev/null || cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo opus)}; COMMON[1]="$M"
+  M=${MODEL:-$(cat "${DEFAULT_MODEL_FILE}.$ROLE" 2>/dev/null || cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo claude-opus-5-5)}; COMMON[1]="$M"
   OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M, last gap ${SLEEP}s)" >> "$LOG"
   HEAD0=$(git -C "$REPO" rev-parse HEAD 2>/dev/null); ST0=$(stat -c %Y "$REPO/STATUS.md" 2>/dev/null); T0=$(date -u +%s)
   if [ "$i" = 1 ]; then
