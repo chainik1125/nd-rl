@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # Run a command on a pod inside /workspace/nd-takehome. Usage: podrun <pod> "<command>"
-# HF_TOKEN is passed through so pods can upload to the bucket; never echo it.
+# The HF token is installed on the pod once by `podtoken` (over stdin); it is never on a command line.
 . ~/.config/nd-rl/env; N=$1; shift; F=~/.config/nd-rl/pods/$N; [ -f "$F" ] || { echo "no pod $N (podls to list, podnew to create)"; exit 1; }; . "$F"; SSHO="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ServerAliveInterval=30"
 exec ssh $SSHO -p "$POD_PORT" "root@$POD_IP" "mkdir -p /workspace/nd-takehome && cd /workspace/nd-takehome && $*"

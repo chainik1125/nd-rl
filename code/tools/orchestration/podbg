@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 # Start a detached background job on a pod. Usage: podbg <pod> <logname> "<command>"   (log -> artifacts/<logname>.log)
+# The command is shell-quoted with printf %q, so commands containing quotes work (they used to break the
+# single-quoted `bash -c '…'`).
 N=$1; L=$2; shift 2
-timeout 60 podrun "$N" "mkdir -p artifacts && setsid nohup bash -c '$*' > artifacts/$L.log 2>&1 < /dev/null & disown; sleep 1; echo started $L"
+timeout 60 podrun "$N" "mkdir -p artifacts && setsid nohup bash -c $(printf '%q' "$*") > artifacts/$L.log 2>&1 < /dev/null & disown; sleep 1; echo started $L"

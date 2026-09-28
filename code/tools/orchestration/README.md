@@ -50,3 +50,15 @@ Gate 3 (summary only from reviewed numbers) is the librarian's brief, not a scri
   (orchestrator, pod_watchdog, pod_budget_watch, balance_floor, disk_watch); it drops one-off dated
   lines such as a leftover `killswitch`.
 
+## Pod tools: fixes of 2026-09-28
+
+- `podnew` never exits silently and never leaves an unregistered pod: a failed create prints RunPod's error
+  and removes any pod the call half-created (only pods that did not exist before it); a failed SSH wait
+  removes the pod it registered. `POD_CLOUD` (SECURE | COMMUNITY) selects the cloud. The billed rate RunPod
+  reports is recorded as `RATE` in the registry and used by `podrm` and `podbudget` (the class table is only
+  a fallback — community 3090s bill $0.22/h, not the table's $0.50).
+- `podpush` / `podpull` copy into the parent directory, so an existing directory is updated rather than
+  nested (`data/r3` no longer becomes `data/r3/r3`). `POD_LOCAL_ROOT` sets the local side (default
+  `~/nd-takehome`), so a run can push from and pull into its own worktree.
+- `podbg` shell-quotes the command (`printf %q`), so commands containing quotes work.
+

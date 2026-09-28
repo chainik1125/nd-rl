@@ -14,12 +14,12 @@ used_hours() { # <run> -> hours, dollars
   local run=$1 h=0 d=0 now; now=$(date -u +%s)
   for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] || continue
     # Read, never source: a pod file is data, and an unquoted value (GPU=NVIDIA A40) executes.
-    local RUN CREATED GPU; RUN=$(sed -n 's/^RUN=//p' "$f"); CREATED=$(sed -n 's/^CREATED=//p' "$f"); GPU=$(sed -n 's/^GPU=//p' "$f" | tr -d "\\'\"")
+    local RUN CREATED GPU; RUN=$(sed -n 's/^RUN=//p' "$f"); CREATED=$(sed -n 's/^CREATED=//p' "$f"); GPU=$(sed -n 's/^GPU=//p' "$f" | tr -d "\\'\""); local RATE; RATE=$(sed -n 's/^RATE=//p' "$f" | tr -d "\\'\"")
     [ "${RUN:-}" = "$run" ] || continue
     local t0; t0=$(date -u -d "${CREATED:-$(date -u +%FT%TZ)}" +%s 2>/dev/null || echo "$now")
     local dh; dh=$(awk -v a="$now" -v b="$t0" 'BEGIN{printf "%.4f",(a-b)/3600}')
     h=$(awk -v x="$h" -v y="$dh" 'BEGIN{printf "%.4f",x+y}')
-    d=$(awk -v x="$d" -v y="$dh" -v r="$(rate "${GPU:-}")" 'BEGIN{printf "%.2f",x+y*r}')
+    d=$(awk -v x="$d" -v y="$dh" -v r="${RATE:-$(rate "${GPU:-}")}" 'BEGIN{printf "%.2f",x+y*r}')
   done
   if [ -f ~/podhours.log ]; then
     local ph pd; ph=$(awk -v r="$run" '$2==r {s+=$4} END{printf "%.4f",s+0}' ~/podhours.log)
