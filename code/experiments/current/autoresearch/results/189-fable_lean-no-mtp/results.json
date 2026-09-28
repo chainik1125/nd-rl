@@ -1,0 +1,365 @@
+{
+  "commit": "4b7a8c8",
+  "recorded_at": "2026-09-28T09:37:24+0100",
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": 1155,
+  "harness_sha": "2aa52f23e7ec",
+  "pretrain_sha": "f6ccad6d9cfa",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 2754,
+  "reason": "seeds [2] not ok: ['timeout']",
+  "pretrain": {
+    "secs": 300.2,
+    "n_params": 9557760,
+    "steps": 6550,
+    "epochs": 5.789330111842874,
+    "last_loss": 0.07804620265960693,
+    "heldout_greedy": 0.948,
+    "curve": [
+      {
+        "secs": 33,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.804234683513641
+      },
+      {
+        "secs": 36,
+        "step": 2,
+        "train_loss": null,
+        "val_loss": 4.786234140396118
+      },
+      {
+        "secs": 45,
+        "step": 224,
+        "train_loss": 1.0527835325761274,
+        "val_loss": 0.14165091328322887
+      },
+      {
+        "secs": 60,
+        "step": 604,
+        "train_loss": 0.10147099589046679,
+        "val_loss": 0.08752789348363876
+      },
+      {
+        "secs": 75,
+        "step": 977,
+        "train_loss": 0.07278830682237943,
+        "val_loss": 0.08540158439427614
+      },
+      {
+        "secs": 90,
+        "step": 1355,
+        "train_loss": 0.06595463305711746,
+        "val_loss": 0.09588845074176788
+      },
+      {
+        "secs": 105,
+        "step": 1728,
+        "train_loss": 0.06623161152789467,
+        "val_loss": 0.08897994365543127
+      },
+      {
+        "secs": 120,
+        "step": 2107,
+        "train_loss": 0.07076295641692061,
+        "val_loss": 0.08649980928748846
+      },
+      {
+        "secs": 135,
+        "step": 2487,
+        "train_loss": 0.06719481043125454,
+        "val_loss": 0.07923860941082239
+      },
+      {
+        "secs": 150,
+        "step": 2856,
+        "train_loss": 0.06027119068635835,
+        "val_loss": 0.09071045089513063
+      },
+      {
+        "secs": 165,
+        "step": 3232,
+        "train_loss": 0.07121244543477108,
+        "val_loss": 0.0864686518907547
+      },
+      {
+        "secs": 180,
+        "step": 3596,
+        "train_loss": 0.061440889827079244,
+        "val_loss": 0.08174521662294865
+      },
+      {
+        "secs": 195,
+        "step": 3964,
+        "train_loss": 0.06368202088694823,
+        "val_loss": 0.08867566101253033
+      },
+      {
+        "secs": 210,
+        "step": 4344,
+        "train_loss": 0.05356525884647118,
+        "val_loss": 0.08616294618695974
+      },
+      {
+        "secs": 225,
+        "step": 4722,
+        "train_loss": 0.052209122694636644,
+        "val_loss": 0.0804786803200841
+      },
+      {
+        "secs": 240,
+        "step": 5095,
+        "train_loss": 0.06161716911527845,
+        "val_loss": 0.081831319257617
+      },
+      {
+        "secs": 255,
+        "step": 5462,
+        "train_loss": 0.053608320751472524,
+        "val_loss": 0.08360313065350056
+      },
+      {
+        "secs": 270,
+        "step": 5817,
+        "train_loss": 0.06470223362831508,
+        "val_loss": 0.08702909760177135
+      },
+      {
+        "secs": 285,
+        "step": 6189,
+        "train_loss": 0.05588490506143946,
+        "val_loss": 0.08845816925168037
+      },
+      {
+        "secs": 300,
+        "step": 6550,
+        "train_loss": 0.061876955752571426,
+        "val_loss": 0.07858237344771624
+      }
+    ],
+    "records_seen": 891360,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.20108333333333334,
+      "new_proofs": 819,
+      "targets_solved": 596,
+      "lstar": 9,
+      "ge": {
+        "7": 596,
+        "8": 235,
+        "9": 63,
+        "10": 4,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 3240,
+      "samples_per_sec": 195,
+      "secs": 323
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5284583333333334,
+      "new_proofs": 756,
+      "targets_solved": 974,
+      "lstar": 10,
+      "ge": {
+        "7": 974,
+        "8": 479,
+        "9": 220,
+        "10": 35,
+        "11": 2,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6016,
+      "samples_per_sec": 216,
+      "secs": 306
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.6678333333333333,
+      "new_proofs": 411,
+      "targets_solved": 1106,
+      "lstar": 11,
+      "ge": {
+        "7": 1106,
+        "8": 577,
+        "9": 298,
+        "10": 57,
+        "11": 9,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7448,
+      "samples_per_sec": 247,
+      "secs": 281
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7309375,
+      "new_proofs": 305,
+      "targets_solved": 1155,
+      "lstar": 11,
+      "ge": {
+        "7": 1155,
+        "8": 619,
+        "9": 331,
+        "10": 71,
+        "11": 9,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 8360,
+      "samples_per_sec": 249,
+      "secs": 281
+    }
+  ],
+  "eval": {
+    "solved": 678,
+    "n": 1108,
+    "ge": {
+      "7": 678,
+      "8": 582,
+      "9": 471,
+      "10": 107,
+      "11": 26,
+      "12": 8,
+      "13": 2,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.9895,
+    "max_pruned": 14,
+    "by_bin": {
+      "7": {
+        "solved": 96,
+        "n": 150,
+        "rate": 0.64,
+        "ci": [
+          0.5605726755123628,
+          0.712435405526836
+        ]
+      },
+      "8": {
+        "solved": 111,
+        "n": 152,
+        "rate": 0.7302631578947368,
+        "ci": [
+          0.654673640969144,
+          0.7945003921516658
+        ]
+      },
+      "9": {
+        "solved": 364,
+        "n": 477,
+        "rate": 0.7631027253668763,
+        "ci": [
+          0.7229388626515993,
+          0.7990625615180231
+        ]
+      },
+      "10": {
+        "solved": 81,
+        "n": 219,
+        "rate": 0.3698630136986301,
+        "ci": [
+          0.3086804066557617,
+          0.43553252306651635
+        ]
+      },
+      "11": {
+        "solved": 18,
+        "n": 49,
+        "rate": 0.3673469387755102,
+        "ci": [
+          0.24664982524781226,
+          0.5073318861311014
+        ]
+      },
+      "12": {
+        "solved": 6,
+        "n": 54,
+        "rate": 0.1111111111111111,
+        "ci": [
+          0.05192951817556753,
+          0.2219494893207673
+        ]
+      },
+      "13": {
+        "solved": 2,
+        "n": 5,
+        "rate": 0.4,
+        "ci": [
+          0.1176182311592533,
+          0.769280067791163
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Timeout, and no valid 3-seed mean: MTP removal (P50-family ablation; handoff model identical to 186, 9,557,760 params) was run twice and each attempt lost one seed to infrastructure, so the candidate is not kept. This run's baseline is 186-claude; the incumbent is now 191-claude (186 without LR warmup, kept at 684 while attempt 2 ran). Attempt 1: seed 0 never trained (`pod.py up` found no A40 capacity in 48 tries over 30 min; merged status crash); seeds 1/2 scored 695/700 (totals 1834/1920 s). Because a seed that never trained is not the idea's failure and seed 0 would have decided the outcome (keep needed >= 636), I re-ran under the same id. Attempt 2 (the recorded one): seeds 0/1 scored 678/680 (totals 1843/1731 s; seed 1's first two pods never exposed ssh), and seed 2 exceeded TOTAL_SECS=2400 at 2754 s in the eval pass, after RL round 4 had solved 1168/1500. That pod was slow, not the model: its Lean gate took 212-295 s wall and 14.7-26.7k CPU-s per 48,000-sample pass vs 33-126 s and 1.0-10.5k CPU-s on the other four pods, and it sampled 116-142 samples/s vs 163-263. The protocol counts a seed timeout as a failed experiment, so I did not re-run again. Valid seed-runs of the candidate across both attempts: seed 0 678; seed 1 695 and 680; seed 2 700 (mean of the four 688.3) vs 186's 668/699/674 (680.3), 185's 697/678/677 and 153's 676/700/685. Every valid run is at or above the registered 677.0 line, but they come from two attempts, so this is evidence for a re-test, not a result. Mechanical predictions: pretraining ran 6512/6491 (attempt 1, seeds 1/2) and 6550/6710/6316 (attempt 2) steps, mean 6,516 vs 186's 5,382 (+21%; registered 5,900-6,700, central 6,300, estimated because the bench pod never got capacity), 5.6-5.9 epochs. Final val loss 0.0824/0.0861 and 0.0786/0.0751/0.0818 (mean 0.081 vs 186's 0.0893/0.0856/0.0765; two of five below the registered 0.080-0.097); the val minimum fell at 90/240 s in attempt 1 and at 300 s on both finished attempt-2 seeds, so the registered 'minimum before 200 s' failed on 3 of 4 and the late overfitting rise is weaker than 148 reported. Surprise 1: the handed-off model is a worse greedy prover and a worse round-1 sampler, the opposite of reading (a) and of the 129-vs-136 pattern. Held-out greedy after pretraining 0.915/0.969 and 0.948/0.962/0.964 (mean 0.952 vs 186's 0.9715/0.9775/0.974); round-1 targets solved 178/716 and 596/282/636 (mean 482 vs 186's 739/779/711), round-1 sample acc 0.029/0.269 and 0.201/0.070/0.196 (186: 0.272/0.290/0.231). Seed 1 started very weak in both attempts (178 and 282 targets; 27,917 of 48,000 round-1 samples failed to parse in attempt 2) and still finished at 695 and 680. Surprise 2: expert iteration closed the gap completely and transfer was slightly better, also against reading (a): round-4 RL-solved 1160/1194 and 1155/1160/1168 (mean 1167 vs 186's 1159/1193/1165 = 1172), eval/round-4 ratio 0.599/0.586 and 0.587/0.586 (186: 0.576/0.586/0.579), bins >=10 110/113 and 107/102 (186: 108/104/108), >=11 23/28 and 26/22 (29/23/24), >=12 4/5 and 8/5 (7/4/6), L* 11/12 and 12/12, post-RL held-out greedy 0.989-0.9925. Reading, not established: at width 384 and ~6.5k steps the MTP module buys a better zero-shot start that RL does not need, at the price of 17% fewer steps and 48 lines; the metric looks flat to slightly up without it (reading (b)). Next step: a clean 3-seed run as a fresh registration on the current incumbent; this directory's pretrain.patch applies cleanly to 191-claude's pretrain.py (patch --dry-run, not run). Infrastructure notes: A40 stock was short all session (bench: 37 capacity retries in 24 min, no pod; seeds waited 3-48 retries). All pods of both attempts were terminated by the runner and none of mine remain in `pod.py list`. Attempt 1's seed artifacts are kept locally under artifacts/autoresearch/previous_attempts/189-fable_lean-no-mtp-qp05l_4r.",
+  "seed_metrics": {
+    "0": 678,
+    "1": 680
+  },
+  "seed_metric_rl": {
+    "0": 1155,
+    "1": 1160
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "timeout"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.07858237344771624,
+      "heldout_greedy": 0.948,
+      "steps": 6550
+    },
+    "1": {
+      "val_loss": 0.07508637942373753,
+      "heldout_greedy": 0.962,
+      "steps": 6710
+    }
+  },
+  "lean_gate": {
+    "samples": 533824,
+    "parse_fail": 98672,
+    "distinct_checked": 359303,
+    "both_ok": 217271,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 1,
+    "lean_wall_s": 922.9704444408417
+  },
+  "migrated": false
+}
