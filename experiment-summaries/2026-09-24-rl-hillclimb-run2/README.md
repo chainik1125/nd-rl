@@ -28,6 +28,10 @@ research push a 3.2M-parameter prover on theorems of true length 12-14 that it n
 - **On the sealed half of the length-12-14 set the two-hour champion proves 707 of 1,931 theorems at pass@256**
   (570 / 127 / 10 at lengths 12 / 13 / 14), where the pretrained model and run 1's best prove none, and it is the
   first checkpoint to solve any textbook problem above six lines (3 of 43).
+- **At pass@1 the sealed numbers are much lower than at pass@256** (recomputed on 2026-09-28 from the final
+  evaluation's per-theorem counts; no new sampling). The two-hour champion's pass@1 is 12.4% on sealed 12-14 (13.9% /
+  11.1% / 1.5% at lengths 12 / 13 / 14; pass@4 24.4%) and 20.5% on dev. The 20-minute BEST n078 and LEAN n092 reach
+  4.2% and 5.8% on sealed 12-14.
 - **Nothing was quarantined in 99 nodes**; two rulings were needed (penalties on the model's own rejected samples:
   allowed; logit or head scaling inside the checkpoint: not promotable).
 
@@ -170,6 +174,27 @@ champion proves 37 percent of the sealed length-12-14 theorems (40 percent at le
 percent at 14), two of the nine length-15 theorems, and 10 of the 58 textbook problems: the nine short ones the
 pretrained model already solves plus, for the first time in either run, one seven-line and two eight-line textbook
 problems (3 of 43 with reference length seven or more).
+
+**pass@1 and pass@4** (recomputed on 2026-09-28 from the same evaluations' per-theorem success counts,
+`evidence/pass_at_1_final.json`; plain sampling at temperature 0.8; pass@1 is the mean over theorems of correct
+samples / k):
+
+| checkpoint | dev pass@1 | dev pass@4 | sealed 12-14 pass@1 | sealed 12-14 pass@4 | sealed L12 / L13 / L14 pass@1 | textbook pass@1 |
+|---|---:|---:|---:|---:|---|---:|
+| pretrained model | 0.01% | 0.03% | 0% | 0% | 0% / 0% / 0% | 4.1% |
+| run 1 best (n025) | 2.9% | 5.3% | 0% | 0% | 0% / 0% / 0% | 3.6% |
+| n078 BEST, seed 0 | 11.4% | 21.6% | 4.2% | 10.4% | 4.6% / 4.2% / 0.16% | 4.8% |
+| n092 LEAN, seed 0 | 13.0% | 22.5% | 5.8% | 13.0% | 6.5% / 5.3% / 0.09% | 4.9% |
+| champion 2 (n060, full pool, 2 h) | 20.5% | 33.7% | 12.4% | 24.4% | 13.9% / 11.1% / 1.5% | 5.2% |
+
+The longest textbook problem any checkpoint solves has 8 lines; the longest reference proof in the set has 33.
+
+**The champion's training proofs are often longer than 11 lines** (added 2026-09-28). Targets stop at true length
+11, but a found proof is kept however many lines it is written in, and up to four random found proofs per target
+enter each round's mix. In champion 2's run, 86% of the found proofs of length-11 targets (23,353 of 27,092) had
+12-21 written lines, and 52% of all found proofs were longer than 11. The run-3 length experiments cap training
+proofs at 11 written lines; the comparison is in the
+[length-generalisation record](../2026-09-25-length-generalisation/README.md#next-steps).
 
 ### Process
 

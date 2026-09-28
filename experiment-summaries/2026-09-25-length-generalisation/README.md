@@ -257,13 +257,34 @@ pass@32 reaches at most 13.3% one line past an arm's training maximum and at mos
 
 ## Next steps
 
-Two approved experiments are running (not reported here). Both train with arm C's recipe.
+Two approved experiments were running when this was written; both train with arm C's recipe. They have since been
+reported in [representation and goal notes](../2026-09-25-representation-and-goals-length/README.md), followed by a
+[mid-training test](../2026-09-26-midtraining-long-glued/README.md).
 - **Representation** (`/scratch/cowifornia/nd-rl/ab3/repr`): five tokenizer and position-encoding variants, three
   seeds each.
 - **Goals** (`/scratch/cowifornia/nd-rl/ab3/goals`): the prover writes its own `GOAL` notes between proof lines.
 
 Context only: the same seed recipe and budget on the new "039" pretrained checkpoint reached dev pass@32 of
 43-49%, against 24-25% on this base (`evidence/base039_context.json`).
+
+**Observation added 2026-09-28 (existing outputs, no new runs): recipes without the written-line cap train on long
+proofs and get further** (`evidence/uncapped_written_length.json`).
+- **The difference.** Every arm here drops found proofs longer than its cap in written lines. The run-3 seed recipe
+  and run 2's recipes keep a found proof of a length-6-11 target however long it is written.
+- **Run 2's two-hour champion** (old base, [run-2 record](../2026-09-24-rl-hillclimb-run2/README.md#sealed-evaluation)).
+  - 86% of the found proofs of its length-11 targets had 12-21 written lines.
+  - On the sealed length-12-14 set, the source of this experiment's 12-14 tests, its pass@1 is 13.9% / 11.1% / 1.5%
+    at L12 / 13 / 14, against 3.4% / 0.2% / 0% for arm C here.
+- **The run-3 seed recipe on the 039 base.**
+  - It keeps 5.8-9.7% of its found proofs at 12-15 written lines.
+  - It scores 10.3-15.6% pass@1 at L13 on the harness frontier set (four runs). The capped arm-C recipe on the same
+    base scores 1.2% at L13 on this record's test set (the mid-training record's base arm).
+- **Reading.** This fits the main finding if "trained length" means the written length of the training proofs, not
+  the targets' true length.
+- **Not a controlled comparison.** The champion also ran about three to four times the wall time and trained with
+  line-verified sampling, and the frontier set is not the sealed set. The controlled test is arm C with and without
+  the written-line cap at equal compute, or scoring the existing seed-recipe checkpoints on this record's test sets.
+  Neither has been run.
 
 ## Records
 

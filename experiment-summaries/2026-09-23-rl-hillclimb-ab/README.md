@@ -33,6 +33,10 @@ length-10, length-11-14 and textbook sets that no agent ever saw.
   rejected seven single-seed claims, found a logging bug and a confounded run, and refused to adopt the
   339 checkpoint because its two-seed mean beat the incumbent by 12.5, under the +15 bar it had committed
   to in advance. The executor spent seven of its 29 runs on replicates.
+- **At pass@1 the ranking reverses** (recomputed on 2026-09-28 from the final evaluation's per-theorem counts; no new
+  sampling). Dev pass@1 is 14.5% for the orchestration incumbent exp13, 14.0% for GEAR's LEAN n017, 13.6% for exp23
+  and 12.5% for GEAR's BEST n025. GEAR still leads at pass@4 (19.0-19.5% against 17.7-17.9%). Selecting on pass@32
+  favoured recipes that spread probability over many samples ("pass@1 and pass@4 of the chosen checkpoints" below).
 
 ![Dev score of every experiment against wall-clock, with the running best per arm](figures/fig_dev_vs_time.png)
 
@@ -121,6 +125,29 @@ the pretrained model already solves. No checkpoint solved any of the 43 textbook
 reference proof of seven or more lines. The orchestration arm's "textbook" gains were on the ladder
 pools' schema-instantiated targets (contraposition, export and the like with random sub-formulas), and
 they did not transfer to these problems.
+
+### pass@1 and pass@4 of the chosen checkpoints
+
+Recomputed on 2026-09-28 from the per-theorem success counts the final evaluation kept
+(`evidence/pass_at_1_final.json`, which lists each source file and its hash). Each theorem has 32 samples at
+temperature 0.8. pass@1 is the mean over theorems of (correct samples / 32); pass@4 is the unbiased estimate from the
+same counts. Dev uses sampling seed 1 for the chosen checkpoints (seed 0 was the search-time score). Length 10 is
+shown for seeds 0 / 1.
+
+| checkpoint | dev pass@1 | dev pass@4 | dev pass@32 | length 10 pass@1 | length 10 pass@4 |
+|---|---:|---:|---:|---|---|
+| pretrained model | 0.07% | 0.13-0.15% | 0.3-0.4% | 0% / 0% | 0% / 0% |
+| GEAR n025 (BEST) | 12.5% | 19.0% | 25.2% | 0.17% / 0.19% | 0.50% / 0.63% |
+| GEAR n017 (LEAN) | 14.0% | 19.5% | 23.5% | 0.21% / 0.20% | 0.61% / 0.53% |
+| orchestration exp13 (incumbent) | 14.5% | 17.7% | 20.4% | 0.16% / 0.18% | 0.44% / 0.51% |
+| orchestration exp23 (best) | 13.6% | 17.9% | 21.0% | 0.07% / 0.04% | 0.21% / 0.16% |
+
+- **GEAR's lead is a pass@k lead.** Its last step, n017 to n025 (hardest-first refill plus temperature-1.0 training
+  samples), raised dev pass@32 by 1.7 points and lowered pass@1 by 1.5.
+- **At pass@1 the four checkpoints are within 2 points,** with the orchestration incumbent highest. There is one
+  checkpoint per arm and one sampling seed on dev, so differences of about a point are within noise.
+- **Textbook pass@1** is 2.6-5.5% for every checkpoint, against 4.0-4.8% for the pretrained model.
+- Per-step pass@1 for the search nodes is not available: during the search the scorer kept only counts.
 
 ### Add-on: train with length 10 in the pool, test at 11 and above
 
