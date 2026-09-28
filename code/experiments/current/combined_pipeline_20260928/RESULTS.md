@@ -2,5 +2,5 @@
 
 | id | title | baseline | p_keep | metric | seeds | RL solved | total s | status | surprise |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| c001-claude-manual | Baseline: 186-claude pretrained weights + frozen harness expert iteration, replayed | 186-claude | 1.0 |  |  |  |  | running |  |
+| c001-claude-manual | Baseline: 186-claude pretrained weights + frozen harness expert iteration, replayed | 186-claude | 1.0 | 687.3 | 676/703/683 | 1159 | 1255/1855/1399 | keep | Replay reproduces 186 within noise: 676/703/683 (mean 687.3) vs 186's 668/699/674 (680) from the same pretrain.pt; RL solved 1138/1181/1159 vs 186's ~1159. The checkpoint handoff is exact (pretrain held-out greedy 0.972/0.978/0.974 = 186's). Wall 1255/1855/1399 s without pretraining; seed 1's pod sampled at 162 vs 326 samples/s, so pod speed varies ~2x. |
 | c002-claude-manual | Combined v1: 186 pretraining + Leon's GEAR expert iteration (tokenizer-independent parts), sample-matched | c001-claude-manual | 0.6 |  |  |  |  | running |  |

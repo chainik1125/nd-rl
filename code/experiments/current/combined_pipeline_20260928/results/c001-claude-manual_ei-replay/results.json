@@ -1,0 +1,180 @@
+{
+ "recorded_at": "2026-09-28T05:35:27+0100",
+ "status": "keep",
+ "metric": 687.3333333333334,
+ "seed_metrics": {
+  "0": 676,
+  "1": 703,
+  "2": 683
+ },
+ "metric_rl": 1159.3333333333333,
+ "seed_status": {
+  "0": "ok",
+  "1": "ok",
+  "2": "ok"
+ },
+ "total_secs": {
+  "0": 1255,
+  "1": 1855,
+  "2": 1399
+ },
+ "rl_secs": {
+  "0": 985,
+  "1": 1479,
+  "2": 1116
+ },
+ "gpu": {
+  "0": "NVIDIA A40",
+  "1": "NVIDIA A40",
+  "2": "NVIDIA A40"
+ },
+ "eval": {
+  "0": {
+   "solved": 676,
+   "ge": {
+    "7": 676,
+    "8": 581,
+    "9": 455,
+    "10": 107,
+    "11": 25,
+    "12": 6,
+    "13": 1,
+    "14": 0
+   },
+   "lstar": 12
+  },
+  "1": {
+   "solved": 703,
+   "ge": {
+    "7": 703,
+    "8": 594,
+    "9": 472,
+    "10": 110,
+    "11": 26,
+    "12": 6,
+    "13": 1,
+    "14": 0
+   },
+   "lstar": 12
+  },
+  "2": {
+   "solved": 683,
+   "ge": {
+    "7": 683,
+    "8": 588,
+    "9": 472,
+    "10": 111,
+    "11": 28,
+    "12": 5,
+    "13": 0,
+    "14": 0
+   },
+   "lstar": 12
+  }
+ },
+ "rl_rounds": {
+  "0": [
+   {
+    "round": 1,
+    "sample_acc": 0.27245833333333336,
+    "new_proofs": 1048,
+    "targets_solved": 739,
+    "lstar": 10,
+    "secs": 274.13063859939575
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.5728958333333334,
+    "new_proofs": 695,
+    "targets_solved": 1018,
+    "lstar": 10,
+    "secs": 231.06329369544983
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.6799166666666666,
+    "new_proofs": 386,
+    "targets_solved": 1093,
+    "lstar": 11,
+    "secs": 234.48542976379395
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.7230833333333333,
+    "new_proofs": 273,
+    "targets_solved": 1138,
+    "lstar": 11,
+    "secs": 245.44387125968933
+   }
+  ],
+  "1": [
+   {
+    "round": 1,
+    "sample_acc": 0.28991666666666666,
+    "new_proofs": 1241,
+    "targets_solved": 779,
+    "lstar": 10,
+    "secs": 398.4695129394531
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.5886041666666667,
+    "new_proofs": 720,
+    "targets_solved": 1034,
+    "lstar": 11,
+    "secs": 383.73615527153015
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.70325,
+    "new_proofs": 509,
+    "targets_solved": 1150,
+    "lstar": 11,
+    "secs": 345.39019870758057
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.7569583333333333,
+    "new_proofs": 322,
+    "targets_solved": 1181,
+    "lstar": 11,
+    "secs": 351.6206855773926
+   }
+  ],
+  "2": [
+   {
+    "round": 1,
+    "sample_acc": 0.2311875,
+    "new_proofs": 1008,
+    "targets_solved": 711,
+    "lstar": 10,
+    "secs": 268.5902268886566
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.5584791666666666,
+    "new_proofs": 660,
+    "targets_solved": 999,
+    "lstar": 10,
+    "secs": 277.66996026039124
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.6805208333333334,
+    "new_proofs": 382,
+    "targets_solved": 1107,
+    "lstar": 11,
+    "secs": 287.1521599292755
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.7341875,
+    "new_proofs": 335,
+    "targets_solved": 1159,
+    "lstar": 11,
+    "secs": 282.16326093673706
+   }
+  ]
+ },
+ "surprise": "Replay reproduces 186 within noise: 676/703/683 (mean 687.3) vs 186's 668/699/674 (680) from the same pretrain.pt; RL solved 1138/1181/1159 vs 186's ~1159. The checkpoint handoff is exact (pretrain held-out greedy 0.972/0.978/0.974 = 186's). Wall 1255/1855/1399 s without pretraining; seed 1's pod sampled at 162 vs 326 samples/s, so pod speed varies ~2x."
+}

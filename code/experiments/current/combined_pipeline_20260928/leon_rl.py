@@ -29,6 +29,7 @@ import math
 import os
 import time
 
+import fast_sample
 import harness_frozen as H
 import torch
 import torch.nn.functional as F
@@ -57,6 +58,7 @@ CFG = dict(
     full_pool=False,  # True: every rl_targets record (4,495), not the harness's seeded 1,500
     samples=None,  # RL sample budget; None = the harness's RL_ROUNDS * N_TARGETS * K
     deadline=None,  # secs from harness start: no new round once the last round's time won't fit
+    fast_sampler=False,  # fast_sample.generate (compaction + Lean overlap) for RL sampling
 )
 # leon_cfg.json next to this file (written by launch.py --cfg) overrides CFG for one variant
 _cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "leon_cfg.json")
@@ -162,16 +164,22 @@ def stage_rl(a, tok, model, targets, train_recs, rng):
             ks = [max(1, int(k * f)) for k in ks]
         prompts = [t["prompt"] for t, k in zip(win, ks, strict=True) for _ in range(k)]
         ts = time.time()
-        flat = H.generate(
-            model,
-            tok,
-            prompts,
-            greedy=False,
-            temperature=CFG["temperature"],
-            batch=CFG.get("sample_batch", H.SAMPLE_BATCH),
-            seed=a.seed * 1000 + r,
-            max_new=a.max_new,
-        )
+        batch = CFG.get("sample_batch", H.SAMPLE_BATCH)
+        if CFG["fast_sampler"]:
+            flat = fast_sample.generate(
+                model, tok, prompts, CFG["temperature"], a.max_new, batch, a.seed * 1000 + r
+            )
+        else:
+            flat = H.generate(
+                model,
+                tok,
+                prompts,
+                greedy=False,
+                temperature=CFG["temperature"],
+                batch=batch,
+                seed=a.seed * 1000 + r,
+                max_new=a.max_new,
+            )
         s_secs = time.time() - ts
         per, i = [], 0
         for k in ks:

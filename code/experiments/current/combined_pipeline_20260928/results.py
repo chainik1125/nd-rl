@@ -26,7 +26,7 @@ ART = os.path.join(HERE, "..", "..", "..", "..", "artifacts", "autoresearch")
 AGENT, MODEL, SEEDS = "claude-manual", "claude-opus-5-5", [0, 1, 2]
 ARM_FILES = {  # the files that define each arm, hashed into params.json
     "ei": ["ckpt_shim.py", "launch.py"],
-    "leon": ["ckpt_shim.py", "launch.py", "leon_rl.py", "harness_leon.py"],
+    "leon": ["ckpt_shim.py", "launch.py", "leon_rl.py", "harness_leon.py", "fast_sample.py"],
 }
 TODO = "TODO"
 
