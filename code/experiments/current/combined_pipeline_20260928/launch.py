@@ -35,7 +35,7 @@ import pod  # noqa: E402
 TOTAL_SECS = 3600
 
 
-def stage(arm, seed, ckpt_dir, name, cfg=None):
+def stage(arm, seed, ckpt_dir, name, cfg=None, pretrain_on_pod=False):
     d = os.path.join(pod.LOCAL_ART, "combined_stage", f"{name}_s{seed}")
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
@@ -54,8 +54,11 @@ def stage(arm, seed, ckpt_dir, name, cfg=None):
         if cfg:
             with open(os.path.join(d, "leon_cfg.json"), "w") as f:
                 json.dump(json.loads(cfg), f)
-    shutil.copy2(os.path.join(HERE, "ckpt_shim.py"), os.path.join(d, "pretrain.py"))
     src = os.path.join(ckpt_dir, f"s{seed}")
+    if pretrain_on_pod:  # 186's pretrain.py itself: the pod pretrains 300 s; nothing big to send
+        shutil.copy2(os.path.join(src, "source", "pretrain.py"), os.path.join(d, "pretrain.py"))
+        return d
+    shutil.copy2(os.path.join(HERE, "ckpt_shim.py"), os.path.join(d, "pretrain.py"))
     shutil.copy2(os.path.join(src, "source", "pretrain.py"), os.path.join(d, "pretrain186.py"))
     shutil.copy2(os.path.join(src, "pretrain.pt"), os.path.join(d, "pretrain_ckpt.pt"))
     return d
@@ -68,10 +71,14 @@ def main():
     ap.add_argument("ckpt_dir")
     ap.add_argument("--name")
     ap.add_argument("--cfg")
+    ap.add_argument("--pretrain-on-pod", action="store_true")
     a = ap.parse_args()
     arm, seed, name = a.arm, a.seed, a.name or f"combo-{a.arm}"
     assert not (a.cfg and arm == "ei"), "--cfg configures leon_rl only"
-    d = stage(arm, seed, a.ckpt_dir, name, a.cfg)
+    d = stage(arm, seed, a.ckpt_dir, name, a.cfg, a.pretrain_on_pod)
+    # pod.py pushes checkpoints to HF before terminating the pod, so a slow uplink leaves the pod
+    # idling; push later from this disk instead (`pod.py push <run>`).
+    pod.push_checkpoints = lambda _name: None
 
     def upload(st, _pretrain_file):
         ssh = "ssh " + " ".join(pod.ssh_args(st))
