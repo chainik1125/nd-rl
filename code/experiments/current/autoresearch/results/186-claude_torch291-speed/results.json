@@ -1,0 +1,392 @@
+{
+  "commit": "e9c52f0",
+  "recorded_at": "2026-09-28T03:34:38+0100",
+  "status": "keep",
+  "metric": 680,
+  "metric_rl": 1172,
+  "harness_sha": "2aa52f23e7ec",
+  "pretrain_sha": "fc09860cd285",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 1839,
+  "reason": null,
+  "pretrain": {
+    "secs": 300.3,
+    "n_params": 9557760,
+    "steps": 5357,
+    "epochs": 4.732869594585818,
+    "last_loss": 0.04624628275632858,
+    "heldout_greedy": 0.9715,
+    "curve": [
+      {
+        "secs": 33,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.8041709661483765,
+        "mtp_loss": null
+      },
+      {
+        "secs": 36,
+        "step": 2,
+        "train_loss": null,
+        "val_loss": 4.786955833435059,
+        "mtp_loss": null
+      },
+      {
+        "secs": 45,
+        "step": 197,
+        "train_loss": 1.265089558230506,
+        "val_loss": 0.2081727683544159,
+        "mtp_loss": 1.454392545753055
+      },
+      {
+        "secs": 60,
+        "step": 503,
+        "train_loss": 0.11858019605278969,
+        "val_loss": 0.09028694499284029,
+        "mtp_loss": 0.12081978190690279
+      },
+      {
+        "secs": 75,
+        "step": 809,
+        "train_loss": 0.0769342931608359,
+        "val_loss": 0.08697009552270174,
+        "mtp_loss": 0.07743419781327247
+      },
+      {
+        "secs": 90,
+        "step": 1115,
+        "train_loss": 0.06070999378959338,
+        "val_loss": 0.08647419884800911,
+        "mtp_loss": 0.06159861112634341
+      },
+      {
+        "secs": 105,
+        "step": 1419,
+        "train_loss": 0.06558972075581551,
+        "val_loss": 0.09185816068202257,
+        "mtp_loss": 0.0650683785478274
+      },
+      {
+        "secs": 120,
+        "step": 1720,
+        "train_loss": 0.06603853194974363,
+        "val_loss": 0.07553033996373415,
+        "mtp_loss": 0.06618464272469282
+      },
+      {
+        "secs": 135,
+        "step": 2025,
+        "train_loss": 0.06952064335346222,
+        "val_loss": 0.08241401333361864,
+        "mtp_loss": 0.07091700732707977
+      },
+      {
+        "secs": 150,
+        "step": 2328,
+        "train_loss": 0.0633987990518411,
+        "val_loss": 0.08698656130582094,
+        "mtp_loss": 0.06439346348245939
+      },
+      {
+        "secs": 165,
+        "step": 2632,
+        "train_loss": 0.0587600698073705,
+        "val_loss": 0.08380621299147606,
+        "mtp_loss": 0.05944208751122157
+      },
+      {
+        "secs": 180,
+        "step": 2935,
+        "train_loss": 0.06894208466013273,
+        "val_loss": 0.0854627164080739,
+        "mtp_loss": 0.06921954080462456
+      },
+      {
+        "secs": 195,
+        "step": 3239,
+        "train_loss": 0.05912904602785905,
+        "val_loss": 0.08031414449214935,
+        "mtp_loss": 0.060686478515466054
+      },
+      {
+        "secs": 210,
+        "step": 3540,
+        "train_loss": 0.06051368056796491,
+        "val_loss": 0.08083563204854727,
+        "mtp_loss": 0.06074914406053722
+      },
+      {
+        "secs": 225,
+        "step": 3844,
+        "train_loss": 0.058173369119564694,
+        "val_loss": 0.08023260906338692,
+        "mtp_loss": 0.05855216383934021
+      },
+      {
+        "secs": 240,
+        "step": 4147,
+        "train_loss": 0.05612292140722275,
+        "val_loss": 0.08060777094215155,
+        "mtp_loss": 0.056382756928602853
+      },
+      {
+        "secs": 255,
+        "step": 4449,
+        "train_loss": 0.05826769173145294,
+        "val_loss": 0.09110382478684187,
+        "mtp_loss": 0.058500809719165166
+      },
+      {
+        "secs": 270,
+        "step": 4751,
+        "train_loss": 0.04873262184361617,
+        "val_loss": 0.08140252996236086,
+        "mtp_loss": 0.04903831072151661
+      },
+      {
+        "secs": 285,
+        "step": 5055,
+        "train_loss": 0.057121017823616664,
+        "val_loss": 0.09007406886667013,
+        "mtp_loss": 0.057378033300240834
+      },
+      {
+        "secs": 300,
+        "step": 5357,
+        "train_loss": 0.053368868430455525,
+        "val_loss": 0.08927212562412024,
+        "mtp_loss": 0.05467896151045958
+      }
+    ],
+    "records_seen": 728701,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.27245833333333336,
+      "new_proofs": 1048,
+      "targets_solved": 739,
+      "lstar": 10,
+      "ge": {
+        "7": 739,
+        "8": 329,
+        "9": 111,
+        "10": 8,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 4112,
+      "samples_per_sec": 218,
+      "secs": 300
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.5703541666666667,
+      "new_proofs": 672,
+      "targets_solved": 1003,
+      "lstar": 10,
+      "ge": {
+        "7": 1003,
+        "8": 499,
+        "9": 235,
+        "10": 42,
+        "11": 3,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 6452,
+      "samples_per_sec": 267,
+      "secs": 264
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.674375,
+      "new_proofs": 425,
+      "targets_solved": 1102,
+      "lstar": 11,
+      "ge": {
+        "7": 1102,
+        "8": 575,
+        "9": 293,
+        "10": 64,
+        "11": 8,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 7824,
+      "samples_per_sec": 265,
+      "secs": 266
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.7290625,
+      "new_proofs": 362,
+      "targets_solved": 1159,
+      "lstar": 11,
+      "ge": {
+        "7": 1159,
+        "8": 622,
+        "9": 324,
+        "10": 74,
+        "11": 8,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 8864,
+      "samples_per_sec": 262,
+      "secs": 269
+    }
+  ],
+  "eval": {
+    "solved": 668,
+    "n": 1108,
+    "ge": {
+      "7": 668,
+      "8": 575,
+      "9": 457,
+      "10": 108,
+      "11": 29,
+      "12": 7,
+      "13": 1,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.9905,
+    "max_pruned": 15,
+    "by_bin": {
+      "7": {
+        "solved": 93,
+        "n": 150,
+        "rate": 0.62,
+        "ci": [
+          0.5402429290748867,
+          0.6937639975301408
+        ]
+      },
+      "8": {
+        "solved": 118,
+        "n": 152,
+        "rate": 0.7763157894736842,
+        "ci": [
+          0.7037246849877246,
+          0.8352841547572472
+        ]
+      },
+      "9": {
+        "solved": 349,
+        "n": 477,
+        "rate": 0.7316561844863732,
+        "ci": [
+          0.6901567903939128,
+          0.769454025309221
+        ]
+      },
+      "10": {
+        "solved": 79,
+        "n": 219,
+        "rate": 0.3607305936073059,
+        "ci": [
+          0.3000348714685499,
+          0.4262280884096775
+        ]
+      },
+      "11": {
+        "solved": 22,
+        "n": 49,
+        "rate": 0.4489795918367347,
+        "ci": [
+          0.3185262492963633,
+          0.5868513320032188
+        ]
+      },
+      "12": {
+        "solved": 6,
+        "n": 54,
+        "rate": 0.1111111111111111,
+        "ci": [
+          0.05192951817556753,
+          0.2219494893207673
+        ]
+      },
+      "13": {
+        "solved": 1,
+        "n": 5,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Operator keep (agent:claude, speedup session). Seeds 668/699/674, mean 680.3, vs the same-environment control 185-claude (unchanged incumbent, torch 2.9.1) 697/678/677, mean 684.0: -3.7, paired -29/+21/-3, a tie within seed noise (sd of a 3-seed mean ~25). Kept despite not being strictly above because the maths is unchanged (graphed Muon equals eager to 7e-9; per-block compile is undone at handoff) while pretraining gets 5,357/5,435/5,355 steps in 300 s vs 4,369/4,337/4,445 (+23%), headroom later experiments can spend on capacity. Like 148 (+56% steps, +1), more steps alone do not raise the score at 9.56M params. First runs on torch 2.9.1: 185 at 684 vs 153's 687 on torch 2.4 says the environment change is neutral and 687 was not a lucky draw. Totals 1706-1839 s of 2400.",
+  "seed_metrics": {
+    "0": 668,
+    "1": 699,
+    "2": 674
+  },
+  "seed_metric_rl": {
+    "0": 1159,
+    "1": 1193,
+    "2": 1165
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08927212562412024,
+      "heldout_greedy": 0.9715,
+      "steps": 5357
+    },
+    "1": {
+      "val_loss": 0.08556695841252804,
+      "heldout_greedy": 0.9775,
+      "steps": 5435
+    },
+    "2": {
+      "val_loss": 0.07648724410682917,
+      "heldout_greedy": 0.974,
+      "steps": 5355
+    }
+  },
+  "lean_gate": {
+    "samples": 800736,
+    "parse_fail": 114814,
+    "distinct_checked": 568740,
+    "both_ok": 353622,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 6,
+    "lean_wall_s": 1573.647391319275
+  },
+  "migrated": false
+}
