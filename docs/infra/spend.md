@@ -269,10 +269,21 @@ described. Not in any row: the take-home baseline, run4-grpo's and run1-lean's p
 
 Update 2026-09-27 21:20 UTC (stage1-dynamics processed): **$144.04** (`log.md`, post-pod-deletion
 reading; no live `rpbalance` call by this librarian), no pods running. Week 39 (2026-09-21 → 09-27)
-to date by these rows: **≈ $174.3** (lean-format ≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77,
+final total by these rows: **≈ $174.3** (lean-format ≈ $6.2, lean-seed2 ≈ $2.3, efficiency $0.77,
 ds-composition ≈ $70, ds-rendering $16.01, ds-generator ≈ $48.0, cap-horizon $12.52,
 noise-floor $13.88, lean-judge $0.32, **stage1-dynamics $4.29**). Cumulative by rows since
 2026-09-15: **≈ $337.0**. This run happened on the fork's `dan_stage1-dynamics` branch (a worktree
 from the fork's own `dan`, per the brief), which has not been fast-forwarded into the fork's `dan` —
 same pattern as `cap-horizon`. Not in any row: the take-home baseline, run4-grpo's and run1-lean's
 pods, and `lean-only` (proposal 9, in review).
+
+| **support-curves** (proposal 12, experiment 1: does expert iteration expand the base model's support on 383 never-trained-on transfer theorems, or is it a sampling amplifier that base pass@k eventually catches up to — the pre-registered falsifier is ≥ 20 forward-crux theorems with 0 base successes at ≥ 40,000 attempts/temperature while EI's p̂ ≥ 0.01) | 2026-09-27 18:07 UTC – 2026-09-28 03:06 UTC | `sc1`–`sc5`, five **NVIDIA A40 46 GB, $0.49/h billed**, secure cloud, all deleted after their files were pulled and diffed | **20.37** (`podbudget support-curves`) | **$9.99** (`podbudget support-curves`: 20.37 h × $0.49/h) | 30 pod-hours / $15 registered before the first pod (`preregistration/support-curves.md`, `2e87c2f`, committed 18:16:17Z, 53 s before the first pod; addendum 1 `b3fa417` 18:33:20Z re-sized the run up on a measured throughput 7× the budgeted rate, 14 s before the first stage-1 sample) | reviewed (`review_support-curves.md`, §Recount `557dfbd` / §Compare+§Verdict `44c4872`; recommendation "accept — the central result stands", nine rewordings). No hard-constraint violation, nothing quarantined; the reviewer's own independent Lean re-check (literal sampled text, own statement builder, Lean 4.34.1 against the run's 4.34.0) accepted **1,196 / 1,196** distinct counted proofs, and its own pass@k estimator, leakage audit (0 of 542,824 training records from either evaluation pool) and falsifier recount reproduce the executor's exactly (29 survivors at 200,000 attempts/temperature, 37 at the pre-registered depth) — the falsifier fires against a threshold of 20 and the executor's own prediction of 8. One pre-registered miss (E11, 33 survivors at 100,000 attempts/temperature against a predicted 0–12) was measured but not reported in the write-up and is added in the summary; the seed-1 EI checkpoint the stage-3 numbers were measured on was lost to a pod deletion (`sc2`) and its retrained replacement is a different model (disclosed by the executor, confirmed by the reviewer) |
+
+Update 2026-09-28 03:50 UTC (support-curves processed): **$136.49** (`review_support-curves.md`
+§Recount, gate 0/budget row — the reviewer's own reading; no live `rpbalance` call by this
+librarian), no pods running. Week 40 (2026-09-28 → 10-04) to date by these rows: **$9.99**
+(**support-curves $9.99**). Cumulative by rows since 2026-09-15: **≈ $347.0**. This run happened on
+the fork's `dan_support-curves` branch (a worktree from the fork's own `origin/dan`, per the brief),
+which has not been fast-forwarded into the fork's `dan` — same pattern as `cap-horizon` and
+`stage1-dynamics`. Not in any row: the take-home baseline, run4-grpo's and run1-lean's pods, and
+`lean-only` (proposal 9, in review).
