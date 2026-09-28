@@ -1,0 +1,148 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..38393ec 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -71,10 +71,6 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # (unpadded) tokens of the incumbent's 128-record batches (mean record ~135 tokens), whose
+ # padding to the batch max (~400) made every step ~3x larger than its content.
+ TOK_BUDGET = 128 * 144
+-# Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+-# Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+-# the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+-MTP_WEIGHT = 0.3
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -171,10 +167,6 @@ class ALiBiGPT(GPT):
+         self.register_buffer("slopes", slopes, persistent=False)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+-        return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+-
+-    def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -193,39 +185,7 @@ class ALiBiGPT(GPT):
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+-        return x, bias
+-
+-
+-class MTPHead(torch.nn.Module):
+-    """The MTP module. A separate nn.Module, never registered on the model, so the harness's
+-    parameter count, RL AdamW and sampler never see it; it is dropped when pretrain() returns."""
+-
+-    def __init__(self, d, h):
+-        super().__init__()
+-        self.ln_h, self.ln_e = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+-        self.proj = torch.nn.Linear(2 * d, d, bias=False)
+-        self.block = PeriLNBlock(d, h)
+-
+-
+-def mtp_loss(model, mtp, x, m):
+-    """The fork's loss_on (next-token CE on proof tokens) plus MTP_WEIGHT times the CE of the
+-    MTP module's token-(t+2) prediction at the same proof positions. Returns (total, main)."""
+-    h, bias = model.features(x[:, :-1])
+-    logits = model.head(model.ln_f(h))
+-    V = logits.size(-1)
+-    ce = torch.nn.functional.cross_entropy(
+-        logits.reshape(-1, V).float(), x[:, 1:].reshape(-1), reduction="none"
+-    )
+-    main = (ce * m[:, 1:].reshape(-1)).sum() / m[:, 1:].sum()
+-    # Position t (0..T-3) gets h_t and emb(x_{t+1}); causal attention over these keeps every
+-    # prediction of x_{t+2} a function of x_{<=t+1}.
+-    z = mtp.proj(torch.cat((mtp.ln_h(h[:, :-1]), mtp.ln_e(model.emb(x[:, 1:-1]))), -1))
+-    z = mtp.block(z, None, None, bias[..., :-1, :-1], None)
+-    ce2 = torch.nn.functional.cross_entropy(
+-        model.head(model.ln_f(z)).reshape(-1, V).float(), x[:, 2:].reshape(-1), reduction="none"
+-    )
+-    aux = (ce2 * m[:, 2:].reshape(-1)).sum() / m[:, 2:].sum().clamp(min=1)
+-    return main + MTP_WEIGHT * aux, main, aux
++        return self.head(self.ln_f(x))
+ 
+ 
+ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+@@ -305,18 +265,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
+     model = model.to(device)
+-    mtp = MTPHead(D, N_HEAD)
+-    mtp.apply(model._init)
+-    mtp = mtp.to(device)
+     # Compile the repeated blocks once each (torch >= 2.9; dynamic shapes, ~14 s): ~14% faster
+     # steps. The coalescing tiling analysis crashes on dynamic shapes, so it is off. Undone at
+     # handoff so the harness's RL fine-tune and KV-cache sampling run eager.
+     torch._inductor.config.triton.coalesce_tiling_analysis = False
+     muon_lr, muon_graph = torch.zeros((), device=device), None
+-    compiled = list(model.blocks) + [mtp.block]
+-    for b in compiled if device == "cuda" else []:  # CPU smoke runs stay eager
++    for b in model.blocks if device == "cuda" else []:  # CPU smoke runs stay eager
+         b.compile(dynamic=True)
+-    for p in list(model.blocks.parameters()) + list(mtp.parameters()):
++    for p in model.blocks.parameters():
+         if p.ndim == 2:
+             # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+             torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
+@@ -325,9 +281,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
+     )
+     # The output readout joins the hidden matrices under Muon; embeddings stay on AdamW.
+-    trainable = list(model.parameters()) + list(mtp.parameters())
++    trainable = list(model.parameters())
+     matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
+-    matrices += [p for p in mtp.parameters() if p.ndim == 2]
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+@@ -337,7 +292,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     step, last_loss, records_seen = 0, float("nan"), 0
+-    curve, recent, recent_aux, next_point = [], [], [], CURVE_EVERY
++    curve, recent, next_point = [], [], CURVE_EVERY
+     n_train = len(data) - VAL_N  # records [0, VAL_N) are the val slice
+     rng, cuts, batches_per_epoch = random.Random(seed), [], None
+     order = torch.empty(0, dtype=torch.long, device=device)
+@@ -361,9 +316,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         records_seen += e - s
+         x, m = gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, T)
+         with autocast:
+-            loss, main, aux = mtp_loss(model, mtp, x, m)
++            loss = loss_on(model, x, m)
+         model.zero_grad(set_to_none=False)  # grads keep fixed addresses for the Muon CUDA graph
+-        mtp.zero_grad(set_to_none=False)
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+@@ -390,9 +344,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         else:
+             muon_graph.replay()
+         if step % 20 == 0:
+-            last_loss = main.item()  # the next-token CE, comparable with earlier runs
++            last_loss = loss.item()
+             recent.append(last_loss)
+-            recent_aux.append(aux.item())
+         if (
+             time.time() - t0 >= next_point
+         ):  # curve point: mean recent train loss + val loss on the held-out slice
+@@ -402,15 +355,14 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+                     "step": step,
+                     "train_loss": sum(recent) / len(recent) if recent else last_loss,
+                     "val_loss": val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast),
+-                    "mtp_loss": sum(recent_aux) / len(recent_aux) if recent_aux else None,
+                 }
+             )
+             log(
+                 f"pretrain step {step} train {curve[-1]['train_loss']:.4f} "
+                 f"val {curve[-1]['val_loss']:.4f} lr {lr:.2e} {curve[-1]['secs']}s"
+             )
+-            recent, recent_aux, next_point = [], [], next_point + CURVE_EVERY
+-    for b in compiled:
++            recent, next_point = [], next_point + CURVE_EVERY
++    for b in model.blocks:
+         b._compiled_call_impl = None
+     model.eval()
+     return (
