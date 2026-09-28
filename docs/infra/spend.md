@@ -287,3 +287,10 @@ the fork's `dan_support-curves` branch (a worktree from the fork's own `origin/d
 which has not been fast-forwarded into the fork's `dan` — same pattern as `cap-horizon` and
 `stage1-dynamics`. Not in any row: the take-home baseline, run4-grpo's and run1-lean's pods, and
 `lean-only` (proposal 9, in review).
+
+| **run4-grpo-review** (proposal 14 item 7: no-GPU review of the salvaged, never-reviewed `run4-grpo` GRPO replication of 2026-09-17/18) | 2026-09-28 04:16–04:42 UTC (reviewer); librarian 04:50 | none (no pod started) | **0.00** (`podbudget run4-grpo-review`) | **$0** | 1 h / $0.50 registered only as a guard (brief: "nearly free, no GPU") | reviewed (`review_run4-grpo-review.md`, §Recount `ad5c10e` / §Compare+§Verdict `f4b2188` on fork branch `dan_run4-grpo-review`). The **original** run's pods remain outside the ledger: six RTX 3090 pods `r4-1`…`r4-6` at $0.50/h on the second host, created 23:00–23:2x on 09-17 (pre-registration estimated 3–4 pods); `r4-1`, `r4-2`, `r4-6` were deleted 02:46 on 09-18, and the deletion times of `r4-3`…`r4-5` are unrecorded. At ≈ 3.5–4 h each that is roughly **≥ $10–12**, an estimate and not a billed figure |
+
+Update 2026-09-28 04:55 UTC (run4-grpo-review processed): live `rpbalance` **$285.43**, which is higher
+than the $136.49 recorded at 03:50, so a top-up evidently happened in between. No pods were started by
+this run. Week 40 to date by these rows: **$9.99** (support-curves $9.99, run4-grpo-review $0).
+Cumulative by rows since 2026-09-15: **≈ $347.0**, unchanged.
