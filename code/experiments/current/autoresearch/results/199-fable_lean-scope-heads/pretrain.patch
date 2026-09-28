@@ -1,0 +1,103 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..3cb6437 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -64,6 +64,12 @@ N_ALIBI = N_HEAD // 2
+ ALIBI_SLOPES = tuple(2.0 ** (-8.0 * (i + 1) / N_ALIBI) for i in range(N_ALIBI)) + (0.0,) * (
+     N_HEAD - N_ALIBI
+ )
++# Scope-masked heads: the NoPE (content lookup) heads cannot attend into a `( fun ... )` box
++# once its `)` has been written, so they see what Lean's local context sees: the names bound
++# inside a closed box are out of scope and their statements are hidden. The ALiBi heads still
++# read the whole text.
++SCOPED = (False,) * N_ALIBI + (True,) * (N_HEAD - N_ALIBI)
++LP, RP, FUN = 2, 3, 22  # lean_tok ids of ( ) fun (asserted in pretrain)
+ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between curve points
+ # Token-budget batches (fairseq max-tokens): each step takes a run of length-sorted records with
+ # count * padded_length <= TOK_BUDGET, so a batch of short proofs has many records and a batch of
+@@ -169,17 +175,62 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.register_buffer("scoped", torch.tensor(SCOPED).view(1, n_head, 1, 1), persistent=False)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+ 
++    def out_of_scope(self, idx):
++        """(B, T, T) bool: key s is inside a `( fun ... )` box that closed at or before query t.
++        Causal: row t depends on tokens <= t only. A query always sees itself."""
++        T = idx.size(1)
++        is_open = idx == LP
++        depth = (is_open.int() - (idx == RP).int()).cumsum(1)  # after each token
++        box = is_open & torch.nn.functional.pad(idx[:, 1:] == FUN, (0, 1))
++        ar = torch.arange(T, device=idx.device)
++        after = ar[None, :] > ar[:, None]  # (p, q): q is after p
++        # close[p]: the first q > p whose depth is below depth[p], i.e. the matching `)`
++        lower = (depth[:, None, :] < depth[:, :, None]) & after
++        close = torch.where(lower.any(-1), lower.int().argmax(-1), T)
++        inside = box[:, :, None] & after & (ar < close[:, :, None])  # (B, p, s)
++        hide_at = torch.where(inside, close[:, :, None], T).amin(1)  # innermost box closes first
++        return ar[None, :, None] >= hide_at[:, None, :]
++
++    def out_of_scope_step(self, idx, c, n0):
++        """out_of_scope for incremental decoding: (B, T, n0 + T) for the T new tokens at cache
++        positions n0.., with the bracket state of every row kept in `c` (caches[0])."""
++        B, T = idx.shape
++        if "hidden" not in c:
++            c["depth"] = idx.new_zeros(B)
++            c["open"] = idx.new_full((B, c["max"]), -(10**6))  # depth after each `(`
++            c["box"] = torch.zeros(B, c["max"], dtype=torch.bool, device=idx.device)
++            c["hidden"], c["prev_open"] = torch.zeros_like(c["box"]), c["box"][:, 0].clone()
++        ar = torch.arange(c["max"], device=idx.device)
++        rows = []
++        for j in range(T):
++            x, n = idx[:, j], n0 + j
++            if n > 0:
++                c["box"][:, n - 1] = c["prev_open"] & (x == FUN)
++            # `)` matches the last `(` opened at the current depth; a box's inside gets hidden
++            opened = c["open"] == c["depth"][:, None]
++            match = (opened * ar).amax(1, keepdim=True)
++            closes = (x == RP) & opened.any(1) & c["box"].gather(1, match).squeeze(1)
++            c["hidden"] |= closes[:, None] & (ar > match) & (ar < n)
++            c["prev_open"] = x == LP
++            c["depth"] = c["depth"] + c["prev_open"].long() - (x == RP).long()
++            c["open"][:, n] = torch.where(c["prev_open"], c["depth"], -(10**6))
++            rows.append(c["hidden"][:, : n0 + T].clone())
++        return torch.stack(rows, 1)
++
+     def features(self, idx, pos=None, mask=None, caches=None):
+         """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+         key_pos = pos
+-        if caches is not None:  # incremental decoding: keys are every cached token
++        if caches is None:
++            hidden = self.out_of_scope(idx)
++        else:  # incremental decoding: keys are every cached token
+             c = caches[0]
+             if "pos" not in c:
+                 c["pos"], c["n_pos"] = pos.new_empty(pos.size(0), c["max"]), 0
+@@ -187,9 +238,13 @@ class ALiBiGPT(GPT):
+             c["pos"][:, n0:n1] = pos
+             c["n_pos"] = n1
+             key_pos = c["pos"][:, :n1]
++            hidden = self.out_of_scope_step(idx, c, n0)
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        bias = bias.masked_fill(hidden[:, None] & self.scoped, float("-inf"))  # (B, H, T, S)
++        if torch.is_autocast_enabled():  # once here, not a (B, H, T, S) cast in every block
++            bias = bias.bfloat16()
+         x = self.emb(idx)
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+@@ -301,6 +356,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(seed)
++    assert [tok.stoi[s] for s in ("(", ")", "fun")] == [LP, RP, FUN]
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+     model.blocks.apply(model._init)  # fork init: zero biases
