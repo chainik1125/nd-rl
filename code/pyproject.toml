@@ -45,7 +45,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 # Frozen historical sources must retain their recorded bytes, including in hooks.
-extend-exclude = ["**/r1_cot/vendor/**"]
+extend-exclude = ["**/r1_cot/vendor/**", "**/autoresearch/prelean/src/**"]
 force-exclude = true
 line-length = 100
 fix = false
@@ -91,7 +91,11 @@ include = [
     "conftest.py",
     "experiments/current/autoresearch",
 ]
-ignore = ["tests/test_literature.py", "tests/test_r1_*.py"]
+ignore = [
+    "tests/test_literature.py",
+    "tests/test_r1_*.py",
+    "experiments/current/autoresearch/prelean/src",
+]
 extraPaths = ["..", "experiments/current", "experiments/current/r1_cot/vendor"]
 venvPath = "."
 venv = ".venv"
