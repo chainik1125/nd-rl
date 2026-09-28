@@ -253,3 +253,100 @@ good" row (new capability >= 3 or L8 avg > 0.05), which requires a reward-bug an
 Both checks came back clean here: 0 verdict disagreements in 115,127 re-verified rows, 0
 overlap under every key including the atom-erased skeleton, and the long proofs are genuine.
 The surprise is explained by the template concentration in section 5, not by a bug or a leak.
+
+## Claims
+
+Phase 2, written after the Recount commit (`54d2790`). Sources read now: `results.md`,
+`analysis.md`, `verify_lr3e-5/verify_report.md`, `verify_ei/verify_report.md`, `status.md`, and
+the 2026-09-27 exp-00c entry in `docs/ws3/log.md` (there is no `numbers.md`; `results.md` cites
+`analysis.md` / `analysis.json` and the per-arm reports). Independent values are the Recount
+above plus `review/claims_check.py` (output `claims_check.json`). "confirmed" = my value equals
+the executor's; "wrong" = the correct value is given; "unverifiable" = wall-clock, a session
+log, or a pre-run smoke that the artefacts cannot reproduce.
+
+### results.md
+
+| # | line | claim | reviewer value | verdict |
+| --- | --- | --- | --- | --- |
+| 1 | 3-5 | pre-registration `487f43d` at 23:36:25Z, before the filter sampled and before the first `metrics.jsonl` line | Recount section 0 | confirmed |
+| 2 | 17 | "Nothing here trained on any of them" (the 72) | 0 overlap under `canon_key`, `canonical_theorem`, exact text, skeleton | confirmed |
+| 3 | 21-26 | 198-prompt pool from the train half (131 L7, 4 L8) + 63 L6 from `train.jsonl`; only prompts solved 1-7 of 8; eval 200 (160 L7, 40 L8) at 32 samples, T 1.0; halves share no renaming class | identical (section 1b) | confirmed |
+| 4 | 28-33 | 48 steps x 16 prompts x group 16, KL 0.01, 12,288 samples; EI 3 x 21 per prompt, 12,474 (+1.5%); train + eval wall-clock 531+255, 488+250, 576+260, 238+269 s | counts identical; seconds equal `stages.jsonl` | confirmed (seconds as transcription) |
+| 5 | 35-36 | filter 13,296 samples, 242 s; baseline 202 s; total 56 min, 23:36 to 00:32 | 13,296; 242 s; 202 s; 23:36:36 to 00:32:08 | confirmed |
+| 6 | 43 | L7 avg 0.122 / 0.430 / 0.391 / 0.333 / 0.545 | 0.1225 / 0.4299 / 0.3908 / 0.3332 / 0.5449 | confirmed |
+| 7 | 43, 48 | CIs, e.g. frozen L7 [0.079, 0.185], EI L7 [0.466, 0.619], EI L8 [0.150, 0.428] | point estimates match. The CIs come from the eval package's `mean_ci` (a Wilson-type interval on the mean with n = problems, e.g. [0, 0.088] for 0/40), not a CI over problems of the per-problem rates. Over problems (normal and bootstrap agree): frozen L7 [0.079, 0.166], lr3e-5 [0.365, 0.495], lr1e-4 [0.327, 0.455], lr3e-4 [0.270, 0.397], EI L7 [0.479, 0.611], EI L8 [0.151, 0.381]. | method differs from plan section 5 ("95% CI over problems"); no conclusion changes. State the method, or use the over-problems intervals. |
+| 8 | 44-45 | solved once 39 / 97 / 97 / 85 / 118; new capability 42 / 30 / 26 / 62 | identical | confirmed |
+| 9 | 46-47 | up/down/same 31/4/4 (p 3e-6), 30/3/6 (1e-6), 22/17/0 (0.52), 29/8/2 (8e-4); mean paired diff +0.273 [0.18, 0.37], +0.325 [0.23, 0.43], +0.163 [0.02, 0.31], +0.245 [0.14, 0.36] | identical (p 3.5e-6, 1.4e-6, 0.52, 7.5e-4; my bootstrap CIs equal to 2 decimals) | confirmed |
+| 10 | 48-49 | L8 avg 0.000 / 0.005 / 0.013 / 0.011 / 0.266; solved 0 / 3 / 5 / 2 / 19 | 0 / 0.0047 / 0.0125 / 0.0109 / 0.2656; 0 / 3 / 5 / 2 / 19 | confirmed |
+| 11 | 50 | greedy heldout 0.978 frozen; 0.982 / 0.978 / 0.881 / 0.978 | identical | confirmed |
+| 12 | 51 | textbook 72 avg 0.101 frozen; 0.113 / 0.119 / 0.084 / 0.108 | 0.1011; 0.1128 / 0.1194 / 0.0842 / 0.1076 | confirmed |
+| 13 | 52 | textbook ref >= 7 solved at least once: frozen 0/43, lr3e-5 1/43, other arms "-" | frozen 0, lr3e-5 **1**, lr1e-4 **1**, lr3e-4 **0**, EI **1** of 43; the same problem each time (`textbook_c18068…`, `\|- (P v Q) > (Q v P)`, reference 7) at 2/32, 4/32, 3/32 samples, one identical 7-line proof | **wrong (incomplete)**: fill the row as 0 / 1 / 1 / 0 / 1 and name the problem |
+| 14 | 53 | final / max KL 0.010/0.268, 0.028/0.045, 0.019/0.164 | 0.0096/0.268, 0.0277/0.0446, 0.0193/0.1638 | confirmed |
+| 15 | 57-62 | selection rule: lr 1e-4; lr3e-4 excluded (greedy drop 0.097); +0.325 vs +0.273; 3e-5 higher on overall L7 avg (0.430 vs 0.391) and new capability (42 vs 30); "effectively tied on one seed" | identical (section 6) | confirmed; add that the rule selects on the evaluation set itself (allowed by plan T5), so the selected arm's eval numbers carry a small winner's-curse bias |
+| 16 | 68-70 | pool 198 / 131 / 4 vs expected; frozen 0.122, 39; L8 0 | identical | confirmed |
+| 17 | 71 | lr3e-5 max KL 0.268 "one spike; typical 0.01"; "L7 +0.31 avg" | one step (step 10) at 0.268, all other steps <= 0.018; all-160 mean diff +0.307 | confirmed |
+| 18 | 72 | lr1e-4 +0.325, p = 1e-6, "about 4x" the expected upper end | +0.325, p 1.4e-6; 0.325 / 0.08 = 4.1 | confirmed |
+| 19 | 73 | lr3e-4 degraded, "still +0.21 at L7" | greedy drop 0.097; all-160 mean diff +0.211 | confirmed |
+| 20 | 74 | EI vs "within about 0.03 of the best GRPO arm": "EI ahead by 0.115 L7 avg and 0.25 L8 avg"; verdict "missed: EI clearly better" | The pre-registered expectation is about **the mean paired difference on the 39 frozen-solved L7 problems** (proposal: "within about 0.03 of the best GRPO arm's mean paired difference"). On that metric EI is **+0.245 vs +0.325 (lr1e-4): 0.080 below** the best GRPO arm, and below lr3e-5 (+0.273) too. EI is ahead on other metrics: L7 avg 0.545 vs 0.430 (+0.115), all-160 paired diff +0.423 vs +0.307, L7 new capability 62 vs 42, L8 avg 0.266 vs 0.013 (+0.253). | **wrong as a verdict against the pre-registration**: the pre-registered metric says EI missed by being *lower*; "EI clearly better" holds only on the non-registered metrics, on one seed |
+| 21 | 75 | new capability 26 to 62 at L7; EI 12 new-capability and 19 solved at L8 | identical | confirmed |
+| 22 | 76 | wall-clock 56 min vs 60 to 75 expected, "as expected" | 56 min | confirmed (faster than the range, not inside it; trivial) |
+| 23 | 83-85 | "Every sample in the frozen, lr3e-5 and EI eval dumps (19,200)" re-checked, 0 disagreements; training rewards 12,288 and 12,474, 0 disagreements | the verifier's 19,200 are the three long-pool dumps only (greedy and textbook dumps not included). The Recount re-verified every dump of every arm, 115,127 rows, 0 disagreements | confirmed in substance; "every sample in the eval dumps" overstates what the verifier did (the Recount now covers it) |
+| 24 | 87 | "0 accepted proofs are shorter than the problem's minimal length" | true for lr3e-5 and EI (the verified arms). lr1e-4 has 1 (`la_rl_targets_3983`, 7 lines vs `L_true` 8, sound ORE shortcut on `Q v Q`) | confirmed for the two arms; add the lr1e-4 case if the claim is generalised |
+| 25 | 88-89 | none has the conclusion or `F` among the premises | 0 in every long-pool dump; textbook accepts do include trivial identity problems (4/233 frozen, 3/260 lr3e-5, 1/275 lr1e-4, 6/194 lr3e-4, 2/248 EI rows) | confirmed for the eval set |
+| 26 | 91-92 | 34 and 68 proofs cite no premise, all valid | 34 (2 prompts) and 68 (6 prompts) among accepted long-pool proofs of prompts that have premises | confirmed |
+| 27 | 93 | renumbering every proof to start at N1 changes 0 verdicts | renumbering all 6,400 rows changes 1 (lr3e-5) and 9 (EI) verdicts, every one from rejected ("line index mismatch", the model wrote a wrong label) to accepted. No accepted proof depends on its start index. The verifier's 0 is over "parseable" rows, which excludes these | confirmed in substance (the direction shows the checker is strict on labels, not lenient) |
+| 28 | 95-99 | 0 exact and 0 `canonical_theorem` overlap between eval and anything trained on; 0 between the whole halves | 0 under every key (section 3) | confirmed |
+| 29 | 100-101 | 0 of 3,130 accepted EI eval proofs appear in the SFT data after renaming and renumbering | 0 exact, 0 renumbered (also 0 as a renumbered proof body under any prompt) | confirmed |
+| 30 | 102-103 | 6 eval prompts share a renamed conclusion with a pool prompt; "EI 0.05 to 0.21, against 0.13 to 0.56 for the other 194" | 6 prompts, all L7: frozen 0.052 to EI 0.214. The comparison group 0.125 to 0.558 is the **other 154 L7 problems**; over the other 194 (L7 + L8) it is 0.099 to 0.498 | **wrong count** ("194" should be "154 length-7"); the conclusion (they do not drive the gain) stands |
+| 31 | 104-109 | frozen near misses skip one step; EI L8 solves 90% one shape; frozen tried 1,642 proofs >= 3 boxes deep, 0 accepted; EI 1,753 accepted | one-step repair confirmed by my reads (section 5); 305/340 accepted EI L8 proofs are `PR AS AS AS X IMPI IMPI IMPI` with X in ORI2/ANDI/ANDE1/ANDE2/ORI1 (90%); depth >= 3: frozen 0 accepted of 1,659 rows (1,642 parseable per verifier), EI 1,753 accepted | confirmed |
+| 32 | 111-113 | line-index start matters by about 0.01 at most | not recomputed | unverifiable here |
+| 33 | 117-121 | gain is in-distribution; textbook 0.101 to 0.108 to 0.119, inside CIs, at most 1 of 43 | textbook confirmed (also 0.084 for lr3e-4); the Recount adds that the L7 gain is concentrated in the nested-IMPI templates (section 5) | confirmed; good wording |
+| 34 | 122-125 | "new capability" is by the plan's definition; frozen 0/32 is not probability 0 | agreed | confirmed (wording appropriate) |
+| 35 | 126-128 | "EI beat GRPO at matched samples, in half the training time"; 0.545 vs 0.430 at L7, 0.266 vs 0.013 at L8; "one seed, but the length-8 gap is well outside the CIs" | numbers confirmed; train 238 s vs 488-576 s; L8 intervals do not overlap ([0.151, 0.381] vs <= 0.031) | numbers confirmed. **Wording overstates relative to n**: one seed; plan section 6 item 6 needs 3 seeds for a difference; on the pre-registered metric EI is lower (#20); "matched" is +1.5% samples |
+| 36 | 129-131 | lr 3e-5 to 1e-4 is the working range; 1e-3 breaks the model in one step (smoke) | 3e-4 drops greedy 0.097 (confirmed); the 1e-3 smoke is pre-run and not in the artefacts | partly unverifiable; one seed, so "working range" is a first read, not a finding |
+| 37 | 132-133 | one distinct accepted proof for 54 of 61 newly solved (GRPO) and 79 of 98 (EI) | lr3e-5 54/61, EI 79/98 after renumbering (also lr1e-4 56/63, lr3e-4 44/51) | confirmed ("GRPO" means the lr3e-5 arm) |
+| 38 | 137-139 | 20 random samples per arm, accepted 8, 8, 7, 12 | the selection command is in the executor's session log, not committed; my own 20 per model (seed 20260927) show the same failure types | unverifiable (counts); qualitatively consistent |
+| 39 | 146-148 | GRPO vacuous `IMPI N23 N23` on problems 3445 and 2484 where EI derives from a premise | not rechecked row by row; the failure mode is confirmed (section 5) | unverifiable (specific rows) |
+| 40 | 156-157 | only 297 of about 2,260 SFT records are truly distinct | 297 distinct after renumbering of 2,263; per round 459/696, 520/781, 528/786 duplicates | confirmed |
+| 41 | 158-159 | periodic eval L7 5/32 to 17/32 at step 12 for lr3e-5 | identical | confirmed |
+| 42 | 160-161 | lr1e-4 and lr3e-4 not independently re-verified | superseded: the Recount re-verified both (0 disagreements, every dump and every training reward) | now resolved |
+| 43 | 165-167 | "both RL and EI give a large, verified lift on held-out generator problems at length 7. EI also gives one at length 8, and it beats GRPO at matched samples. Neither moves the textbook set" | lift, L8, textbook confirmed on one seed | numbers confirmed; add "one seed" to the sentence, drop or qualify "beats GRPO" (#20, #35), and add the template-concentration caveat (Recount section 5) |
+
+Missing from the caveats (for the librarian to add): (a) the lr selection uses the eval set
+(allowed by T5, small winner's-curse bias); (b) the L7/L8 lift is concentrated in the
+nested-implication templates of the `rl_targets` generator where the frozen model had one
+systematic error, while case-split and contradiction families stay at 0; (c) the CI method
+(#7).
+
+### analysis.md, verifier reports, status.md, log.md
+
+- `analysis.md`: every number I checked matches the Recount (headline table, new-capability
+  table, greedy lost/gained 2/6, 9/9, 106/9, 10/10, training dynamics KL/reward/frac_mixed, EI
+  rounds 0.603/0.845/0.913, selection). Its "entropy first5/last5" (0.044/0.040 etc.) are 5-step
+  means, not the first/last values I list; both are fine. The EI row "reward first5 0.787 / last5
+  0.787" is the mean of all three rounds (EI has only 3 lines), not a trend; ignore it.
+- `verify_lr3e-5/verify_report.md` and `verify_ei/verify_report.md`: all numeric claims I could
+  recompute are confirmed (rows #23 to #31, #37, #40 above, plus: lr3e-5 accepted line counts by
+  `L_true` 7->7 2,187, 7->8 14, 8->8 6; EI 2,520 / 269 / 1 and 332 / 8; EI vs lr3e-5 solved sets
+  L7 96 both / 22 EI-only / 1 GRPO-only, L8 2 / 17 / 1; EI solves every frozen-solved problem).
+  The one qualification is the renumbering check (#27).
+- `status.md`: every factual line checks out (timestamps, pool 198 = 63/131/4, k 21, frozen L7
+  0.122 and 39/160, L8 0/40, lr3e-5 L7 0.430, lr3e-4 greedy drop 0.097, selection lr 1e-4, gate
+  B items, DONE). Note for Charles: `CLAUDE.md` says to **stop and ask** when a result looks
+  surprisingly good; the executor started the bug/leak check after lr3e-5 but the remaining arms
+  were already queued in `launch.sh` and ran on (laptop CPU, no spend). The checks it ran are
+  the right ones and came back clean.
+- `docs/ws3/log.md` (2026-09-27 exp-00c): numbers match (0.122 -> 0.430 / 0.391 / 0.333 /
+  0.545; L8 0.266 vs <= 0.013; selection lr 1e-4; greedy drop 0.097; textbook 0.101 -> 0.084 to
+  0.119). It correctly says the recount was pending. Its wording is appropriately hedged; if
+  updated, add "one seed" next to the EI vs GRPO comparison.
+
+### Selection on the evaluation set, and wording against n
+
+- The only selection is the pre-registered lr rule, computed on `eval_set` (held-out half
+  stride). The plan allows it (T5); textbook numbers were never used. No checkpoint was chosen by
+  periodic eval (last step is `final/`). No tuning on the textbook set.
+- No sentence claims "emergence". "New capability" is used as the plan defines it and is backed
+  by nonzero counts, but on one seed, and the plan's emergence bar needs 3 seeds.
+- Every GRPO-vs-EI and lr-vs-lr difference is one seed. The lr3e-5 vs lr1e-4 ranking even flips
+  between metrics (section 6).

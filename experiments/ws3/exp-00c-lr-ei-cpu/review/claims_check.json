@@ -1,0 +1,349 @@
+{
+ "diversity_newly_solved": {
+  "lr3e-5": {
+   "newly_solved": 61,
+   "distinct_after_renumber": {
+    "1": 54,
+    "2": 6,
+    "3": 1
+   },
+   "distinct_raw_text": {
+    "1": 4,
+    "2": 3,
+    "3": 3,
+    "4": 2,
+    "6": 1,
+    "7": 2,
+    "8": 1,
+    "10": 1,
+    "11": 1,
+    "13": 1,
+    "15": 2,
+    "17": 6,
+    "18": 2,
+    "19": 2,
+    "20": 3,
+    "21": 3,
+    "22": 1,
+    "23": 3,
+    "24": 6,
+    "25": 6,
+    "26": 5,
+    "27": 1,
+    "28": 2
+   }
+  },
+  "lr1e-4": {
+   "newly_solved": 63,
+   "distinct_after_renumber": {
+    "1": 56,
+    "2": 4,
+    "3": 2,
+    "4": 1
+   },
+   "distinct_raw_text": {
+    "1": 10,
+    "2": 4,
+    "3": 1,
+    "4": 3,
+    "5": 3,
+    "6": 1,
+    "7": 1,
+    "8": 2,
+    "9": 4,
+    "11": 1,
+    "12": 1,
+    "13": 1,
+    "14": 2,
+    "15": 1,
+    "16": 3,
+    "18": 1,
+    "19": 2,
+    "20": 1,
+    "21": 4,
+    "22": 5,
+    "23": 3,
+    "24": 3,
+    "25": 2,
+    "26": 1,
+    "27": 3
+   }
+  },
+  "lr3e-4": {
+   "newly_solved": 51,
+   "distinct_after_renumber": {
+    "1": 44,
+    "2": 6,
+    "3": 1
+   },
+   "distinct_raw_text": {
+    "1": 4,
+    "2": 3,
+    "3": 3,
+    "4": 5,
+    "6": 2,
+    "7": 2,
+    "8": 1,
+    "10": 1,
+    "12": 2,
+    "13": 1,
+    "15": 2,
+    "17": 1,
+    "18": 3,
+    "19": 2,
+    "20": 4,
+    "21": 2,
+    "22": 3,
+    "23": 2,
+    "24": 4,
+    "25": 3,
+    "27": 1
+   }
+  },
+  "ei": {
+   "newly_solved": 98,
+   "distinct_after_renumber": {
+    "1": 79,
+    "2": 15,
+    "3": 3,
+    "4": 1
+   },
+   "distinct_raw_text": {
+    "1": 6,
+    "2": 2,
+    "3": 1,
+    "4": 3,
+    "5": 2,
+    "6": 2,
+    "7": 3,
+    "9": 2,
+    "10": 1,
+    "12": 2,
+    "14": 4,
+    "16": 1,
+    "17": 3,
+    "18": 2,
+    "19": 3,
+    "20": 8,
+    "21": 5,
+    "22": 6,
+    "23": 7,
+    "24": 15,
+    "25": 8,
+    "26": 9,
+    "27": 1,
+    "28": 2
+   }
+  }
+ },
+ "sft": {
+  "per_round": [
+   {
+    "records": 696,
+    "distinct_after_renumber": 237,
+    "duplicates": 459,
+    "distinct_raw": 696
+   },
+   {
+    "records": 781,
+    "distinct_after_renumber": 261,
+    "duplicates": 520,
+    "distinct_raw": 781
+   },
+   {
+    "records": 786,
+    "distinct_after_renumber": 258,
+    "duplicates": 528,
+    "distinct_raw": 786
+   }
+  ],
+  "distinct_all_rounds_after_renumber": 297,
+  "total_records": 2263
+ },
+ "ei_eval_accepted_in_sft": {
+  "accepted": 3130,
+  "exact": 0,
+  "renumbered": 0,
+  "proof_body_renumbered_any_prompt": 0
+ },
+ "renumber_from_N1_verdict_changes": {
+  "lr3e-5": {
+   "rows": 6400,
+   "verdict_changes": 1
+  },
+  "ei": {
+   "rows": 6400,
+   "verdict_changes": 9
+  },
+  "lr1e-4": {
+   "rows": 6400,
+   "verdict_changes": 4
+  },
+  "lr3e-4": {
+   "rows": 6400,
+   "verdict_changes": 3
+  },
+  "base": {
+   "rows": 6400,
+   "verdict_changes": 1
+  }
+ },
+ "conclusion_overlap_with_pool": {
+  "n": 6,
+  "base": {
+   "hit_avg": 0.052,
+   "rest_avg": 0.099
+  },
+  "lr3e-5": {
+   "hit_avg": 0.167,
+   "rest_avg": 0.35
+  },
+  "ei": {
+   "hit_avg": 0.214,
+   "rest_avg": 0.498
+  }
+ },
+ "depth3": {
+  "base": {
+   "accepted_depth>=3": 0,
+   "all_rows_depth>=3": 1659
+  },
+  "ei": {
+   "accepted_depth>=3": 1753,
+   "all_rows_depth>=3": 2602
+  }
+ },
+ "accepted_no_premise_cited": {
+  "lr3e-5": 998,
+  "ei": 1284,
+  "base": 3
+ },
+ "accepted_lines_by_L_true": {
+  "lr3e-5": {
+   "7->7": 2187,
+   "7->8": 14,
+   "8->8": 6
+  },
+  "ei": {
+   "7->7": 2520,
+   "7->8": 269,
+   "7->9": 1,
+   "8->8": 332,
+   "8->9": 8
+  },
+  "base": {
+   "7->7": 625,
+   "7->8": 2
+  },
+  "lr1e-4": {
+   "7->7": 1975,
+   "7->8": 24,
+   "7->9": 2,
+   "8->7": 1,
+   "8->8": 15
+  },
+  "lr3e-4": {
+   "7->7": 1701,
+   "7->8": 5,
+   "8->8": 14
+  }
+ },
+ "ei_L8_accepted": 340,
+ "ei_L8_top_skeletons": [
+  [
+   "PR AS| AS|| AS||| ORI2||| IMPI|| IMPI| IMPI",
+   108
+  ],
+  [
+   "PR AS| AS|| AS||| ANDI||| IMPI|| IMPI| IMPI",
+   96
+  ],
+  [
+   "PR AS| AS|| AS||| ANDE1||| IMPI|| IMPI| IMPI",
+   57
+  ],
+  [
+   "PR AS| AS|| AS||| ANDE2||| IMPI|| IMPI| IMPI",
+   31
+  ],
+  [
+   "PR PR PR AS| AS|| ANDI|| IMPI| IMPI",
+   17
+  ],
+  [
+   "PR AS| AS|| AS||| ORI1||| IMPI|| IMPI| IMPI",
+   13
+  ],
+  [
+   "PR PR AS| AS|| AS||| ANDI||| IMPI|| IMPI| IMPI",
+   8
+  ],
+  [
+   "PR PR AS| AS|| ANDI|| ANDI|| IMPI| IMPI",
+   5
+  ],
+  [
+   "PR PR ANDE2 AS| AS|| ANDI|| IMPI| IMPI",
+   3
+  ],
+  [
+   "PR PR IMPE AS| AS|| ORI2|| IMPI| IMPI",
+   2
+  ]
+ ],
+ "ei_L8_three_nested_one_step_share": "313/340",
+ "ei_vs_lr3e-5_solved": {
+  "7": {
+   "ei": 118,
+   "lr3e-5": 97,
+   "both": 96,
+   "ei_only": 22,
+   "grpo_only": 1
+  },
+  "8": {
+   "ei": 19,
+   "lr3e-5": 3,
+   "both": 2,
+   "ei_only": 17,
+   "grpo_only": 1
+  }
+ },
+ "ei_solves_every_frozen_solved": true,
+ "textbook_ref7_solved": {
+  "base": [],
+  "lr3e-5": [
+   "textbook_c18068b3bc4dc6b6894a"
+  ],
+  "lr1e-4": [
+   "textbook_c18068b3bc4dc6b6894a"
+  ],
+  "lr3e-4": [],
+  "ei": [
+   "textbook_c18068b3bc4dc6b6894a"
+  ]
+ },
+ "stage_secs": {
+  "lr3e-5": {
+   "baseline": 202,
+   "train": 531,
+   "evaluate": 255,
+   "report": 1
+  },
+  "lr1e-4": {
+   "train": 488,
+   "evaluate": 250,
+   "report": 1
+  },
+  "lr3e-4": {
+   "train": 576,
+   "evaluate": 260,
+   "report": 1
+  },
+  "ei": {
+   "train": 238,
+   "evaluate": 269,
+   "report": 1
+  }
+ },
+ "filter_secs": 242
+}
