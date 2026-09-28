@@ -1,0 +1,17 @@
+{
+ "mean reward": true,
+ "reward std within groups": true,
+ "pass rate by proof length (periodic eval)": true,
+ "KL to reference": true,
+ "policy entropy": true,
+ "unparseable fraction": true,
+ "invalid fraction": true,
+ "completion length mean": true,
+ "completion length max": true,
+ "fraction at length cap": true,
+ "gradient norm": true,
+ "learning rate": true,
+ "rollout throughput": true,
+ "utc timestamp": true,
+ "step": true
+}

@@ -1,0 +1,19 @@
+# exp-00c shared settings (proposal.md). Paths are relative to this configs/ folder.
+run: {seed: 0, device: cpu, algo: grpo}
+eval:                                   # frozen and every trained model, same k, temperature, seed
+  greedy:   {n_heldout: 1000, max_new: 400, batch_size: 100}            # lengths 2-6, forgetting check
+  long:     {file: ../eval_set.jsonl, k: 32, temperature: 1.0, max_new: 400, batch_size: 256}  # held-out half, 160 x L7 + 40 x L8
+  textbook: {k: 32, temperature: 1.0, max_new: 400, batch_size: 256}    # reported, never used for selection
+train:
+  prompt: {file: ../pool.jsonl, disjoint_from: [../split/rl_targets_eval.jsonl.gz]}
+  periodic_eval: {every: 12, n_heldout: 50, n_long: 40, long_file: ../eval_set.jsonl, max_new: 400, batch_size: 128}
+  trainer:
+    num_generations: 16                 # group 16
+    per_device_train_batch_size: 32
+    gradient_accumulation_steps: 8      # 256 completions = 16 prompts x 16 per optimizer step
+    beta: 0.01
+    epsilon: 0.2
+    temperature: 1.0
+    max_completion_length: 400
+    max_steps: 48                       # 48 x 256 = 12,288 completions
+    logging_steps: 1

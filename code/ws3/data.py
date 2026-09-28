@@ -19,6 +19,7 @@ import ndpath
 # isort: split
 
 EVAL_ONLY = ("heldout.jsonl", "transfer.jsonl", "validation_36.jsonl")
+TEST_FILES = ("test_short_prompts.jsonl", "test_long_prompts.jsonl")
 ATOMS = ["P", "Q", "R", "S"]
 
 
@@ -142,6 +143,56 @@ def build_prompt_set(length_weights: dict, n: int, seed: int = 0, check_leak: bo
     if check_leak:
         assert_no_leak(out)
     return out
+
+
+def test_file_keys() -> set:
+    """Renaming classes of the fork's test prompt files (prompts only; verdicts are never read).
+    The fixed pre-training set already contains some of them, so they are banned from RL prompts
+    separately (questions.md, 2026-09-23 default)."""
+    return {key_of(r) for name in TEST_FILES for r in load_pool(name)}
+
+
+def read_prompt_file(path):
+    """Prompt records from a JSONL file with at least `prompt` and `length`; fills `key`."""
+    out = []
+    for r in read_jsonl(path):
+        r = dict(r)
+        if "prompt" not in r or "length" not in r:
+            raise ValueError(f"{path}: every record needs prompt and length")
+        r.setdefault("key", key_of(r))
+        r.setdefault("source", "file")
+        out.append(r)
+    return out
+
+
+def train_prompts(p: dict, seed: int, base_dir: str):
+    """The RL prompt set for `train.prompt`: `file` (relative to the config) or sampled by
+    `length_weights` / `n_prompts`. A file is leak-checked against every evaluation set, the test
+    prompt files, and each file in `disjoint_from` (for example the held-out half of a split)."""
+    if not p.get("file"):
+        return build_prompt_set(p["length_weights"], int(p["n_prompts"]), seed=seed)
+    recs = read_prompt_file(os.path.join(base_dir, p["file"]))
+    banned = banned_keys() | test_file_keys()
+    for f in p.get("disjoint_from", []):
+        banned |= {key_of(r) for r in read_jsonl(os.path.join(base_dir, f))}
+    assert_no_leak(recs, banned)
+    return recs
+
+
+def eval_records(part: dict, pool: str, base_dir: str, n_key="n_prompts", default_n=200):
+    """Evaluation records: `file` (relative to the config) if given, else a stride of `pool`."""
+    if part.get("file"):
+        return read_prompt_file(os.path.join(base_dir, part["file"]))
+    return stride(load_pool(pool), int(part.get(n_key, default_n)))
+
+
+def periodic_long(ev: dict, base_dir: str):
+    """Long-prompt records for the periodic eval: a stride of `long_file` (relative to the
+    config, e.g. the held-out half of a split) if given, else of rl_targets."""
+    n = int(ev.get("n_long", 50))
+    if ev.get("long_file"):
+        return stride(read_prompt_file(os.path.join(base_dir, ev["long_file"])), n)
+    return stride(load_pool("rl_targets"), n)
 
 
 def stride(records, n: int):

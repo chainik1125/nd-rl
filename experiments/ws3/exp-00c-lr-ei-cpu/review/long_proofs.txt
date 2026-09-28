@@ -1,0 +1,506 @@
+167 distinct accepted proofs with problem length >= 8 or >= 8 proof lines
+by problem length: {7: 122, 8: 35, 4: 1, 6: 9}
+by proof lines: {8: 155, 9: 10, 7: 1, 10: 1}
+distinct problems: 105
+
+--- heldout_2505 L=4 lines=8 seen in {'ei/greedy_heldout': 1}
+THM ( R v R ) , ( ( ~ ( Q & Q ) ) > F ) SEQ ( ( ( R v R ) & ( ( ~ ( Q & Q ) ) > F ) ) & ( R v R ) ) PRF
+N1 ( R v R ) : PR ; N2 ( ( ~ ( Q & Q ) ) > F ) : PR ; N3 ( R v R ) : R N1 ; N4 ( ( ~ ( Q & Q ) ) > F ) : R N2 ; N5 ( R v R ) : R N3 ; N6 ( ( R v R ) & ( ( ~ ( Q & Q ) ) > F ) ) : ANDI N3 N4 ; N7 ( R v R ) : R N3 ; N8 ( ( ( R v R ) & ( ( ~ ( Q & Q ) ) > F ) ) & ( R v R ) ) : ANDI N6 N7 ; QED
+--- heldout_4140 L=6 lines=8 seen in {'ei/greedy_heldout': 1}
+THM SEQ ( ( ~ ( ~ ( ~ F ) ) ) > ( ( ~ ( ~ F ) ) > ( P > ( P > P ) ) ) ) PRF
+N1 | ( ~ ( ~ ( ~ F ) ) ) : AS ; N2 | | ( ~ ( ~ F ) ) : AS ; N3 | | | P : AS ; N4 | | | | P : AS ; N5 | | | ( P > P ) : IMPI N4 N4 ; N6 | | ( P > ( P > P ) ) : IMPI N3 N5 ; N7 | ( ( ~ ( ~ F ) ) > ( P > ( P > P ) ) ) : IMPI N2 N6 ; N8 ( ( ~ ( ~ ( ~ F ) ) ) > ( ( ~ ( ~ F ) ) > ( P > ( P > P ) ) ) ) : IMPI N1 N7 ; QED
+--- heldout_4285 L=6 lines=8 seen in {'ei/greedy_heldout': 1}
+THM ( ~ ( R > R ) ) SEQ ( Q > ( ( R > R ) > F ) ) PRF
+N1 ( ~ ( R > R ) ) : PR ; N2 | R : AS ; N3 ( R > R ) : IMPI N2 N2 ; N4 | Q : AS ; N5 | | ( R > R ) : AS ; N6 | | F : NEGE N3 N1 ; N7 | ( ( R > R ) > F ) : IMPI N5 N6 ; N8 ( Q > ( ( R > R ) > F ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_1664 L=8 lines=8 seen in {'ei/long_pool': 31}
+THM ( ( Q > Q ) & Q ) SEQ ( ( ( P > R ) v ( P & S ) ) > ( P > ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) ) ) PRF
+N1 ( ( Q > Q ) & Q ) : PR ; N2 | ( ( P > R ) v ( P & S ) ) : AS ; N3 | | P : AS ; N4 | | | ( ( P > R ) v ( P & S ) ) : AS ; N5 | | | ( Q > Q ) : ANDE1 N1 ; N6 | | ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) : IMPI N4 N5 ; N7 | ( P > ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) ) : IMPI N3 N6 ; N8 ( ( ( P > R ) v ( P & S ) ) > ( P > ( ( ( P > R ) v ( P & S ) ) > ( Q > Q ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_20 L=8 lines=8 seen in {'lr3e-5/long_pool': 2}
+THM ( R & ( ~ P ) ) , ( ( R > ( S & P ) ) v P ) SEQ ( ( ~ ( ~ ( P v Q ) ) ) > ( ( ~ ( P v Q ) ) > ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) ) ) PRF
+N1 ( R & ( ~ P ) ) : PR ; N2 ( ( R > ( S & P ) ) v P ) : PR ; N3 ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) : ORI1 N1 ; N4 | ( ~ ( ~ ( P v Q ) ) ) : AS ; N5 | | ( ~ ( P v Q ) ) : AS ; N6 | | ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) : ORI1 N3 ; N7 | ( ( ~ ( P v Q ) ) > ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( P v Q ) ) ) > ( ( ~ ( P v Q ) ) > ( ( ( R & ( ~ P ) ) v ( Q & ( ~ R ) ) ) v P ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2074 L=7 lines=8 seen in {'ei/long_pool': 12}
+THM ( ( R v P ) & P ) , ( ( ( R > P ) v ( ~ R ) ) v S ) , ( P > ( ( ~ S ) v ( R > S ) ) ) SEQ ( ( ~ ( ( ( R > P ) v ( ~ R ) ) v S ) ) > ( P > ( ( ( R v P ) & P ) & ( P > ( ( ~ S ) v ( R > S ) ) ) ) ) ) PRF
+N1 ( ( R v P ) & P ) : PR ; N2 ( ( ( R > P ) v ( ~ R ) ) v S ) : PR ; N3 ( P > ( ( ~ S ) v ( R > S ) ) ) : PR ; N4 | ( ~ ( ( ( R > P ) v ( ~ R ) ) v S ) ) : AS ; N5 | | P : AS ; N6 | | ( ( ( R v P ) & P ) & ( P > ( ( ~ S ) v ( R > S ) ) ) ) : ANDI N1 N3 ; N7 | ( P > ( ( ( R v P ) & P ) & ( P > ( ( ~ S ) v ( R > S ) ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ( ( R > P ) v ( ~ R ) ) v S ) ) > ( P > ( ( ( R v P ) & P ) & ( P > ( ( ~ S ) v ( R > S ) ) ) ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2183 L=7 lines=9 seen in {'lr1e-4/long_pool': 1}
+THM Q SEQ ( Q > ( ( ( Q > Q ) & Q ) & ( Q > Q ) ) ) PRF
+N1 Q : PR ; N2 | Q : AS ; N3 ( Q > Q ) : IMPI N2 N2 ; N4 | Q : AS ; N5 ( Q > Q ) : IMPI N4 N4 ; N6 | Q : AS ; N7 | ( ( Q > Q ) & Q ) : ANDI N5 N6 ; N8 | ( ( ( Q > Q ) & Q ) & ( Q > Q ) ) : ANDI N7 N3 ; N9 ( Q > ( ( ( Q > Q ) & Q ) & ( Q > Q ) ) ) : IMPI N6 N8 ; QED
+--- la_rl_targets_2183 L=7 lines=9 seen in {'lr1e-4/long_pool': 1, 'ei/long_pool': 1}
+THM Q SEQ ( Q > ( ( ( Q > Q ) & Q ) & ( Q > Q ) ) ) PRF
+N1 Q : PR ; N2 | Q : AS ; N3 ( Q > Q ) : IMPI N2 N2 ; N4 | Q : AS ; N5 ( Q > Q ) : IMPI N4 N4 ; N6 | Q : AS ; N7 | ( ( Q > Q ) & Q ) : ANDI N5 N6 ; N8 | ( ( ( Q > Q ) & Q ) & ( Q > Q ) ) : ANDI N7 N5 ; N9 ( Q > ( ( ( Q > Q ) & Q ) & ( Q > Q ) ) ) : IMPI N6 N8 ; QED
+--- la_rl_targets_2340 L=7 lines=8 seen in {'ei/long_pool': 6}
+THM ( ~ ( ~ R ) ) SEQ ( S > ( ( ~ ( ~ ( ~ R ) ) ) > ( S > R ) ) ) PRF
+N1 ( ~ ( ~ R ) ) : PR ; N2 | S : AS ; N3 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N4 | | | S : AS ; N5 | | | R : DN N1 ; N6 | | ( S > R ) : IMPI N4 N5 ; N7 | ( ( ~ ( ~ ( ~ R ) ) ) > ( S > R ) ) : IMPI N3 N6 ; N8 ( S > ( ( ~ ( ~ ( ~ R ) ) ) > ( S > R ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_2349 L=7 lines=8 seen in {'ei/long_pool': 3}
+THM Q , ( ( ~ R ) v ( Q v Q ) ) SEQ ( ( Q & ( ( ~ R ) v ( Q v Q ) ) ) > ( ( ~ ( Q & ( ( ~ R ) v ( Q v Q ) ) ) ) > ( ( ( ~ R ) v ( Q v Q ) ) v P ) ) ) PRF
+N1 Q : PR ; N2 ( ( ~ R ) v ( Q v Q ) ) : PR ; N3 ( Q & ( ( ~ R ) v ( Q v Q ) ) ) : ANDI N1 N2 ; N4 | ( Q & ( ( ~ R ) v ( Q v Q ) ) ) : AS ; N5 | | ( ~ ( Q & ( ( ~ R ) v ( Q v Q ) ) ) ) : AS ; N6 | | ( ( ( ~ R ) v ( Q v Q ) ) v P ) : ORI1 N2 ; N7 | ( ( ~ ( Q & ( ( ~ R ) v ( Q v Q ) ) ) ) > ( ( ( ~ R ) v ( Q v Q ) ) v P ) ) : IMPI N5 N6 ; N8 ( ( Q & ( ( ~ R ) v ( Q v Q ) ) ) > ( ( ~ ( Q & ( ( ~ R ) v ( Q v Q ) ) ) ) > ( ( ( ~ R ) v ( Q v Q ) ) v P ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2415 L=7 lines=8 seen in {'base/long_pool': 1, 'lr3e-5/long_pool': 8, 'lr1e-4/long_pool': 5, 'ei/long_pool': 5}
+THM Q , P , ( P v S ) SEQ ( ( P v S ) & ( ( P & P ) & ( ( P & P ) & Q ) ) ) PRF
+N1 Q : PR ; N2 P : PR ; N3 ( P v S ) : PR ; N4 ( P & P ) : ANDI N2 N2 ; N5 ( ( P & P ) & Q ) : ANDI N4 N1 ; N6 ( P v S ) : ORI1 N2 ; N7 ( ( P & P ) & ( ( P & P ) & Q ) ) : ANDI N4 N5 ; N8 ( ( P v S ) & ( ( P & P ) & ( ( P & P ) & Q ) ) ) : ANDI N3 N7 ; QED
+--- la_rl_targets_2415 L=7 lines=8 seen in {'base/long_pool': 1, 'lr3e-5/long_pool': 2, 'lr1e-4/long_pool': 4}
+THM Q , P , ( P v S ) SEQ ( ( P v S ) & ( ( P & P ) & ( ( P & P ) & Q ) ) ) PRF
+N1 Q : PR ; N2 P : PR ; N3 ( P v S ) : PR ; N4 ( P & P ) : ANDI N2 N2 ; N5 ( ( P & P ) & Q ) : ANDI N4 N1 ; N6 ( P v S ) : ORI1 N2 ; N7 ( ( P & P ) & ( ( P & P ) & Q ) ) : ANDI N4 N5 ; N8 ( ( P v S ) & ( ( P & P ) & ( ( P & P ) & Q ) ) ) : ANDI N6 N7 ; QED
+--- la_rl_targets_2431 L=7 lines=8 seen in {'ei/long_pool': 16}
+THM ( ~ ( S & ( S v Q ) ) ) SEQ ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( S & ( S v Q ) ) > ( P > S ) ) ) PRF
+N1 ( ~ ( S & ( S v Q ) ) ) : PR ; N2 | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N3 | | ( S & ( S v Q ) ) : AS ; N4 | | | P : AS ; N5 | | | S : ANDE1 N3 ; N6 | | ( P > S ) : IMPI N4 N5 ; N7 | ( ( S & ( S v Q ) ) > ( P > S ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( S & ( S v Q ) ) > ( P > S ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_2511 L=7 lines=8 seen in {'lr3e-5/long_pool': 1}
+THM R , P , ( ( ~ Q ) v R ) SEQ ( Q > ( P & ( R & P ) ) ) PRF
+N1 R : PR ; N2 P : PR ; N3 ( ( ~ Q ) v R ) : PR ; N4 P : R N2 ; N5 ( R & P ) : ANDI N1 N4 ; N6 | Q : AS ; N7 | ( P & ( R & P ) ) : ANDI N4 N5 ; N8 ( Q > ( P & ( R & P ) ) ) : IMPI N6 N7 ; QED
+--- la_rl_targets_2511 L=7 lines=8 seen in {'ei/long_pool': 1}
+THM R , P , ( ( ~ Q ) v R ) SEQ ( Q > ( P & ( R & P ) ) ) PRF
+N1 R : PR ; N2 P : PR ; N3 ( ( ~ Q ) v R ) : PR ; N4 P : R N2 ; N5 | Q : AS ; N6 | ( R & P ) : ANDI N1 N4 ; N7 | ( P & ( R & P ) ) : ANDI N4 N6 ; N8 ( Q > ( P & ( R & P ) ) ) : IMPI N5 N7 ; QED
+--- la_rl_targets_2553 L=7 lines=8 seen in {'lr1e-4/long_pool': 1}
+THM ( P & ( S & S ) ) , ( ( P & ( S & S ) ) > S ) SEQ ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) PRF
+N1 ( P & ( S & S ) ) : PR ; N2 ( ( P & ( S & S ) ) > S ) : PR ; N3 S : IMPE N2 N1 ; N4 | ( ~ ( ~ R ) ) : AS ; N5 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N6 | | S : IMPE N2 N1 ; N7 | ( ( ~ ( ~ ( ~ R ) ) ) > S ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2553 L=7 lines=8 seen in {'lr3e-5/long_pool': 1, 'lr1e-4/long_pool': 2}
+THM ( P & ( S & S ) ) , ( ( P & ( S & S ) ) > S ) SEQ ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) PRF
+N1 ( P & ( S & S ) ) : PR ; N2 ( ( P & ( S & S ) ) > S ) : PR ; N3 S : IMPE N2 N1 ; N4 | ( ~ ( ~ R ) ) : AS ; N5 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N6 | | S : R N3 ; N7 | ( ( ~ ( ~ ( ~ R ) ) ) > S ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > S ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2567 L=7 lines=8 seen in {'lr3e-4/long_pool': 4, 'ei/long_pool': 31}
+THM R SEQ ( ( R > ( R & S ) ) > ( ( ~ ( R > ( R & S ) ) ) > ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) ) ) PRF
+N1 R : PR ; N2 | ( R > ( R & S ) ) : AS ; N3 | | ( ~ ( R > ( R & S ) ) ) : AS ; N4 | | | ( ~ ( ~ ( P v P ) ) ) : AS ; N5 | | | ( R & S ) : IMPE N2 N1 ; N6 | | ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) : IMPI N4 N5 ; N7 | ( ( ~ ( R > ( R & S ) ) ) > ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) ) : IMPI N3 N6 ; N8 ( ( R > ( R & S ) ) > ( ( ~ ( R > ( R & S ) ) ) > ( ( ~ ( ~ ( P v P ) ) ) > ( R & S ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_2585 L=7 lines=8 seen in {'lr1e-4/long_pool': 1}
+THM R , ( ( P v P ) & ( R v R ) ) SEQ ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) PRF
+N1 R : PR ; N2 ( ( P v P ) & ( R v R ) ) : PR ; N3 ( R v R ) : ANDE2 N2 ; N4 | ( ~ ( ~ ( Q v Q ) ) ) : AS ; N5 | ( R v R ) : ORI1 N1 ; N6 | ( Q v Q ) : DN N4 ; N7 | ( ( R v R ) & ( Q v Q ) ) : ANDI N5 N6 ; N8 ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2585 L=7 lines=8 seen in {'lr1e-4/long_pool': 1}
+THM R , ( ( P v P ) & ( R v R ) ) SEQ ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) PRF
+N1 R : PR ; N2 ( ( P v P ) & ( R v R ) ) : PR ; N3 ( R v R ) : ORI1 N1 ; N4 | ( ~ ( ~ ( Q v Q ) ) ) : AS ; N5 | ( R v R ) : ORI1 N1 ; N6 | ( Q v Q ) : DN N4 ; N7 | ( ( R v R ) & ( Q v Q ) ) : ANDI N3 N6 ; N8 ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2585 L=7 lines=8 seen in {'lr1e-4/long_pool': 4}
+THM R , ( ( P v P ) & ( R v R ) ) SEQ ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) PRF
+N1 R : PR ; N2 ( ( P v P ) & ( R v R ) ) : PR ; N3 ( R v R ) : ORI1 N1 ; N4 | ( ~ ( ~ ( Q v Q ) ) ) : AS ; N5 | ( R v R ) : R N3 ; N6 | ( Q v Q ) : DN N4 ; N7 | ( ( R v R ) & ( Q v Q ) ) : ANDI N5 N6 ; N8 ( ( ~ ( ~ ( Q v Q ) ) ) > ( ( R v R ) & ( Q v Q ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2758 L=7 lines=8 seen in {'ei/long_pool': 27}
+THM ( ( S v R ) & ( ~ Q ) ) SEQ ( ( ~ ( ~ ( P > R ) ) ) > ( ( ~ ( P > R ) ) > ( ( ~ ( ~ ( ~ ( P > R ) ) ) ) > ( S v R ) ) ) ) PRF
+N1 ( ( S v R ) & ( ~ Q ) ) : PR ; N2 | ( ~ ( ~ ( P > R ) ) ) : AS ; N3 | | ( ~ ( P > R ) ) : AS ; N4 | | | ( ~ ( ~ ( ~ ( P > R ) ) ) ) : AS ; N5 | | | ( S v R ) : ANDE1 N1 ; N6 | | ( ( ~ ( ~ ( ~ ( P > R ) ) ) ) > ( S v R ) ) : IMPI N4 N5 ; N7 | ( ( ~ ( P > R ) ) > ( ( ~ ( ~ ( ~ ( P > R ) ) ) ) > ( S v R ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( P > R ) ) ) > ( ( ~ ( P > R ) ) > ( ( ~ ( ~ ( ~ ( P > R ) ) ) ) > ( S v R ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_2795 L=7 lines=8 seen in {'ei/long_pool': 6}
+THM ( ~ S ) SEQ ( ( ( R & S ) & ( P & Q ) ) > ( ( ~ ( ~ S ) ) > ( ~ ( ( ~ R ) v ( ~ Q ) ) ) ) ) PRF
+N1 ( ~ S ) : PR ; N2 | ( ( R & S ) & ( P & Q ) ) : AS ; N3 | | ( ~ ( ~ S ) ) : AS ; N4 | | | ( ( ~ R ) v ( ~ Q ) ) : AS ; N5 | | | F : NEGE N1 N3 ; N6 | | ( ~ ( ( ~ R ) v ( ~ Q ) ) ) : NEGI N4 N5 ; N7 | ( ( ~ ( ~ S ) ) > ( ~ ( ( ~ R ) v ( ~ Q ) ) ) ) : IMPI N3 N6 ; N8 ( ( ( R & S ) & ( P & Q ) ) > ( ( ~ ( ~ S ) ) > ( ~ ( ( ~ R ) v ( ~ Q ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_2857 L=7 lines=8 seen in {'ei/long_pool': 2}
+THM ( ~ ( P & P ) ) SEQ ( ( R > Q ) > ( ( ~ ( R > Q ) ) > ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) ) ) PRF
+N1 ( ~ ( P & P ) ) : PR ; N2 | ( R > Q ) : AS ; N3 | | ( ~ ( R > Q ) ) : AS ; N4 | ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) : IMPI N3 N3 ; N5 | | ( ~ ( R > Q ) ) : AS ; N6 | | ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) : ANDI N1 N4 ; N7 | ( ( ~ ( R > Q ) ) > ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) ) : IMPI N5 N6 ; N8 ( ( R > Q ) > ( ( ~ ( R > Q ) ) > ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_2857 L=7 lines=8 seen in {'lr1e-4/long_pool': 2}
+THM ( ~ ( P & P ) ) SEQ ( ( R > Q ) > ( ( ~ ( R > Q ) ) > ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) ) ) PRF
+N1 ( ~ ( P & P ) ) : PR ; N2 | ( R > Q ) : AS ; N3 | | ( ~ ( R > Q ) ) : AS ; N4 | | | ( ~ ( R > Q ) ) : AS ; N5 | | ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) : IMPI N4 N4 ; N6 | | ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) : ANDI N1 N5 ; N7 | ( ( ~ ( R > Q ) ) > ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( R > Q ) > ( ( ~ ( R > Q ) ) > ( ( ~ ( P & P ) ) & ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_2928 L=7 lines=8 seen in {'lr1e-4/long_pool': 1, 'ei/long_pool': 4}
+THM ( ( Q v P ) & ( Q & S ) ) , Q SEQ ( ( ( S v S ) > P ) > ( S > Q ) ) PRF
+N1 ( ( Q v P ) & ( Q & S ) ) : PR ; N2 Q : PR ; N3 ( Q & S ) : ANDE2 N1 ; N4 | ( ( S v S ) > P ) : AS ; N5 | | S : AS ; N6 | | Q : R N2 ; N7 | ( S > Q ) : IMPI N5 N6 ; N8 ( ( ( S v S ) > P ) > ( S > Q ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_2928 L=7 lines=8 seen in {'lr3e-5/long_pool': 2, 'lr1e-4/long_pool': 2, 'ei/long_pool': 2}
+THM ( ( Q v P ) & ( Q & S ) ) , Q SEQ ( ( ( S v S ) > P ) > ( S > Q ) ) PRF
+N1 ( ( Q v P ) & ( Q & S ) ) : PR ; N2 Q : PR ; N3 | ( ( S v S ) > P ) : AS ; N4 | ( Q & S ) : ANDE2 N1 ; N5 | | S : AS ; N6 | | Q : R N2 ; N7 | ( S > Q ) : IMPI N5 N6 ; N8 ( ( ( S v S ) > P ) > ( S > Q ) ) : IMPI N3 N7 ; QED
+--- la_rl_targets_2934 L=7 lines=8 seen in {'ei/long_pool': 10}
+THM ( S v P ) SEQ ( ( ~ ( ~ ( S v R ) ) ) > ( ( ~ ( S v R ) ) > ( P > ( ( Q v ( ~ Q ) ) v ( S v P ) ) ) ) ) PRF
+N1 ( S v P ) : PR ; N2 | ( ~ ( ~ ( S v R ) ) ) : AS ; N3 | | ( ~ ( S v R ) ) : AS ; N4 | | | P : AS ; N5 | | | ( ( Q v ( ~ Q ) ) v ( S v P ) ) : ORI2 N1 ; N6 | | ( P > ( ( Q v ( ~ Q ) ) v ( S v P ) ) ) : IMPI N4 N5 ; N7 | ( ( ~ ( S v R ) ) > ( P > ( ( Q v ( ~ Q ) ) v ( S v P ) ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( S v R ) ) ) > ( ( ~ ( S v R ) ) > ( P > ( ( Q v ( ~ Q ) ) v ( S v P ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3016 L=7 lines=8 seen in {'ei/long_pool': 1}
+THM ( ( ~ R ) > S ) , ( ~ R ) SEQ ( ( P v R ) > ( ( ( P v R ) v ( P v P ) ) & S ) ) PRF
+N1 ( ( ~ R ) > S ) : PR ; N2 ( ~ R ) : PR ; N3 S : IMPE N1 N2 ; N4 | ( P v R ) : AS ; N5 | ( ( P v R ) v ( P v P ) ) : ORI1 N4 ; N6 | S : R N3 ; N7 | ( ( ( P v R ) v ( P v P ) ) & S ) : ANDI N5 N6 ; N8 ( ( P v R ) > ( ( ( P v R ) v ( P v P ) ) & S ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_3025 L=7 lines=8 seen in {'ei/long_pool': 29}
+THM ( ~ Q ) SEQ ( ( ~ ( ~ P ) ) > ( Q > ( ( ~ S ) > ( ( ~ Q ) & Q ) ) ) ) PRF
+N1 ( ~ Q ) : PR ; N2 | ( ~ ( ~ P ) ) : AS ; N3 | | Q : AS ; N4 | | | ( ~ S ) : AS ; N5 | | | ( ( ~ Q ) & Q ) : ANDI N1 N3 ; N6 | | ( ( ~ S ) > ( ( ~ Q ) & Q ) ) : IMPI N4 N5 ; N7 | ( Q > ( ( ~ S ) > ( ( ~ Q ) & Q ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ P ) ) > ( Q > ( ( ~ S ) > ( ( ~ Q ) & Q ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3042 L=7 lines=8 seen in {'ei/long_pool': 27}
+THM ( ( S v P ) & ( S v P ) ) SEQ ( ( ~ S ) > ( S > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) ) ) PRF
+N1 ( ( S v P ) & ( S v P ) ) : PR ; N2 | ( ~ S ) : AS ; N3 | | S : AS ; N4 | | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N5 | | | ( S v P ) : ANDE1 N1 ; N6 | | ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) : IMPI N4 N5 ; N7 | ( S > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) ) : IMPI N3 N6 ; N8 ( ( ~ S ) > ( S > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3042 L=7 lines=8 seen in {'ei/long_pool': 1}
+THM ( ( S v P ) & ( S v P ) ) SEQ ( ( ~ S ) > ( S > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) ) ) PRF
+N1 ( ( S v P ) & ( S v P ) ) : PR ; N2 | ( ~ S ) : AS ; N3 | | S : AS ; N4 | | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N5 | | | ( S v P ) : ANDE2 N1 ; N6 | | ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) : IMPI N4 N5 ; N7 | ( S > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) ) : IMPI N3 N6 ; N8 ( ( ~ S ) > ( S > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v P ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3093 L=7 lines=8 seen in {'ei/long_pool': 29}
+THM ( P v ( ( ~ S ) > ( Q & Q ) ) ) SEQ ( ( ~ ( ~ ( R > R ) ) ) > ( ( ~ ( R > R ) ) > ( ( ~ ( R > R ) ) > ( ( P v ( ( ~ S ) > ( Q & Q ) ) ) & ( ~ ( R > R ) ) ) ) ) ) PRF
+N1 ( P v ( ( ~ S ) > ( Q & Q ) ) ) : PR ; N2 | ( ~ ( ~ ( R > R ) ) ) : AS ; N3 | | ( ~ ( R > R ) ) : AS ; N4 | | | ( ~ ( R > R ) ) : AS ; N5 | | | ( ( P v ( ( ~ S ) > ( Q & Q ) ) ) & ( ~ ( R > R ) ) ) : ANDI N1 N3 ; N6 | | ( ( ~ ( R > R ) ) > ( ( P v ( ( ~ S ) > ( Q & Q ) ) ) & ( ~ ( R > R ) ) ) ) : IMPI N4 N5 ; N7 | ( ( ~ ( R > R ) ) > ( ( ~ ( R > R ) ) > ( ( P v ( ( ~ S ) > ( Q & Q ) ) ) & ( ~ ( R > R ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( R > R ) ) ) > ( ( ~ ( R > R ) ) > ( ( ~ ( R > R ) ) > ( ( P v ( ( ~ S ) > ( Q & Q ) ) ) & ( ~ ( R > R ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3160 L=7 lines=8 seen in {'ei/long_pool': 19}
+THM ( ~ ( Q & S ) ) SEQ ( ( ( R & Q ) > ( P v S ) ) > ( ( Q & S ) > ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) ) ) PRF
+N1 ( ~ ( Q & S ) ) : PR ; N2 | ( ( R & Q ) > ( P v S ) ) : AS ; N3 | | ( Q & S ) : AS ; N4 | | | ( ~ ( ( R & Q ) > ( P v S ) ) ) : AS ; N5 | | | ( ( ~ ( Q & S ) ) v R ) : ORI1 N1 ; N6 | | ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) : IMPI N4 N5 ; N7 | ( ( Q & S ) > ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) ) : IMPI N3 N6 ; N8 ( ( ( R & Q ) > ( P v S ) ) > ( ( Q & S ) > ( ( ~ ( ( R & Q ) > ( P v S ) ) ) > ( ( ~ ( Q & S ) ) v R ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3433 L=7 lines=8 seen in {'ei/long_pool': 1}
+THM SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( R > ( ( ~ ( ~ ( P & P ) ) ) > ( ( P & S ) v ( ~ ( ~ ( P & P ) ) ) ) ) ) ) PRF
+N1 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N2 | ( ~ S ) : DN N1 ; N3 | | R : AS ; N4 | | | ( ~ ( ~ ( P & P ) ) ) : AS ; N5 | | | ( ( P & S ) v ( ~ ( ~ ( P & P ) ) ) ) : ORI2 N4 ; N6 | | ( ( ~ ( ~ ( P & P ) ) ) > ( ( P & S ) v ( ~ ( ~ ( P & P ) ) ) ) ) : IMPI N4 N5 ; N7 | ( R > ( ( ~ ( ~ ( P & P ) ) ) > ( ( P & S ) v ( ~ ( ~ ( P & P ) ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( ~ S ) ) ) > ( R > ( ( ~ ( ~ ( P & P ) ) ) > ( ( P & S ) v ( ~ ( ~ ( P & P ) ) ) ) ) ) ) : IMPI N1 N7 ; QED
+--- la_rl_targets_3455 L=7 lines=8 seen in {'lr3e-4/long_pool': 1, 'ei/long_pool': 4}
+THM ( Q v S ) SEQ ( P > ( ( ~ P ) > ( P > ( P & ( Q v S ) ) ) ) ) PRF
+N1 ( Q v S ) : PR ; N2 | P : AS ; N3 | | ( ~ P ) : AS ; N4 | | | P : AS ; N5 | | | ( P & ( Q v S ) ) : ANDI N2 N1 ; N6 | | ( P > ( P & ( Q v S ) ) ) : IMPI N4 N5 ; N7 | ( ( ~ P ) > ( P > ( P & ( Q v S ) ) ) ) : IMPI N3 N6 ; N8 ( P > ( ( ~ P ) > ( P > ( P & ( Q v S ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3455 L=7 lines=8 seen in {'ei/long_pool': 26}
+THM ( Q v S ) SEQ ( P > ( ( ~ P ) > ( P > ( P & ( Q v S ) ) ) ) ) PRF
+N1 ( Q v S ) : PR ; N2 | P : AS ; N3 | | ( ~ P ) : AS ; N4 | | | P : AS ; N5 | | | ( P & ( Q v S ) ) : ANDI N4 N1 ; N6 | | ( P > ( P & ( Q v S ) ) ) : IMPI N4 N5 ; N7 | ( ( ~ P ) > ( P > ( P & ( Q v S ) ) ) ) : IMPI N3 N6 ; N8 ( P > ( ( ~ P ) > ( P > ( P & ( Q v S ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3468 L=7 lines=8 seen in {'lr1e-4/long_pool': 1, 'ei/long_pool': 6}
+THM ( ( ~ S ) > P ) SEQ ( ( ~ ( ~ S ) ) > ( ( ~ S ) > ( P & ( ( ~ ( ~ S ) ) v Q ) ) ) ) PRF
+N1 ( ( ~ S ) > P ) : PR ; N2 | ( ~ ( ~ S ) ) : AS ; N3 | ( ( ~ ( ~ S ) ) v Q ) : ORI1 N2 ; N4 | | ( ~ S ) : AS ; N5 | | P : IMPE N1 N4 ; N6 | | ( P & ( ( ~ ( ~ S ) ) v Q ) ) : ANDI N5 N3 ; N7 | ( ( ~ S ) > ( P & ( ( ~ ( ~ S ) ) v Q ) ) ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ~ S ) > ( P & ( ( ~ ( ~ S ) ) v Q ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3468 L=7 lines=8 seen in {'ei/long_pool': 1}
+THM ( ( ~ S ) > P ) SEQ ( ( ~ ( ~ S ) ) > ( ( ~ S ) > ( P & ( ( ~ ( ~ S ) ) v Q ) ) ) ) PRF
+N1 ( ( ~ S ) > P ) : PR ; N2 | ( ~ ( ~ S ) ) : AS ; N3 | | ( ~ S ) : AS ; N4 | | P : IMPE N1 N3 ; N5 | | ( ( ~ ( ~ S ) ) v Q ) : ORI1 N2 ; N6 | | ( P & ( ( ~ ( ~ S ) ) v Q ) ) : ANDI N4 N5 ; N7 | ( ( ~ S ) > ( P & ( ( ~ ( ~ S ) ) v Q ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ~ S ) > ( P & ( ( ~ ( ~ S ) ) v Q ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3808 L=8 lines=8 seen in {'ei/long_pool': 17}
+THM ( ~ P ) SEQ ( ( ~ ( ~ ( S > P ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( S > ( ( ~ P ) & ( ~ ( ~ ( ~ R ) ) ) ) ) ) ) PRF
+N1 ( ~ P ) : PR ; N2 | ( ~ ( ~ ( S > P ) ) ) : AS ; N3 | | ( ~ ( ~ ( ~ R ) ) ) : AS ; N4 | | | S : AS ; N5 | | | ( ( ~ P ) & ( ~ ( ~ ( ~ R ) ) ) ) : ANDI N1 N3 ; N6 | | ( S > ( ( ~ P ) & ( ~ ( ~ ( ~ R ) ) ) ) ) : IMPI N4 N5 ; N7 | ( ( ~ ( ~ ( ~ R ) ) ) > ( S > ( ( ~ P ) & ( ~ ( ~ ( ~ R ) ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( S > P ) ) ) > ( ( ~ ( ~ ( ~ R ) ) ) > ( S > ( ( ~ P ) & ( ~ ( ~ ( ~ R ) ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3856 L=8 lines=8 seen in {'ei/long_pool': 25}
+THM ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) ) PRF
+N1 ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) : PR ; N2 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N3 | | P : AS ; N4 | | | ( ( S & ( Q v S ) ) & Q ) : AS ; N5 | | | ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) : ANDI N3 N1 ; N6 | | ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) : IMPI N4 N5 ; N7 | ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3872 L=8 lines=8 seen in {'ei/long_pool': 6}
+THM Q SEQ ( ( ~ ( ~ ( R v Q ) ) ) > ( R > ( R > ( R & Q ) ) ) ) PRF
+N1 Q : PR ; N2 | ( ~ ( ~ ( R v Q ) ) ) : AS ; N3 | | R : AS ; N4 | | | R : AS ; N5 | | | ( R & Q ) : ANDI N3 N1 ; N6 | | ( R > ( R & Q ) ) : IMPI N4 N5 ; N7 | ( R > ( R > ( R & Q ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( R v Q ) ) ) > ( R > ( R > ( R & Q ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3872 L=8 lines=8 seen in {'ei/long_pool': 18}
+THM Q SEQ ( ( ~ ( ~ ( R v Q ) ) ) > ( R > ( R > ( R & Q ) ) ) ) PRF
+N1 Q : PR ; N2 | ( ~ ( ~ ( R v Q ) ) ) : AS ; N3 | | R : AS ; N4 | | | R : AS ; N5 | | | ( R & Q ) : ANDI N4 N1 ; N6 | | ( R > ( R & Q ) ) : IMPI N4 N5 ; N7 | ( R > ( R > ( R & Q ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( R v Q ) ) ) > ( R > ( R > ( R & Q ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3889 L=8 lines=8 seen in {'ei/long_pool': 26}
+THM ( ( Q > P ) & ( S v R ) ) SEQ ( ( ~ S ) > ( R > ( ( ~ ( ~ ( S v Q ) ) ) > ( Q > P ) ) ) ) PRF
+N1 ( ( Q > P ) & ( S v R ) ) : PR ; N2 | ( ~ S ) : AS ; N3 | | R : AS ; N4 | | | ( ~ ( ~ ( S v Q ) ) ) : AS ; N5 | | | ( Q > P ) : ANDE1 N1 ; N6 | | ( ( ~ ( ~ ( S v Q ) ) ) > ( Q > P ) ) : IMPI N4 N5 ; N7 | ( R > ( ( ~ ( ~ ( S v Q ) ) ) > ( Q > P ) ) ) : IMPI N3 N6 ; N8 ( ( ~ S ) > ( R > ( ( ~ ( ~ ( S v Q ) ) ) > ( Q > P ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3906 L=8 lines=8 seen in {'ei/long_pool': 30}
+THM ( ( R > S ) & R ) SEQ ( ( ( R > S ) & R ) > ( R > ( ( R v Q ) > ( R v ( ( R > S ) & R ) ) ) ) ) PRF
+N1 ( ( R > S ) & R ) : PR ; N2 | ( ( R > S ) & R ) : AS ; N3 | | R : AS ; N4 | | | ( R v Q ) : AS ; N5 | | | ( R v ( ( R > S ) & R ) ) : ORI2 N1 ; N6 | | ( ( R v Q ) > ( R v ( ( R > S ) & R ) ) ) : IMPI N4 N5 ; N7 | ( R > ( ( R v Q ) > ( R v ( ( R > S ) & R ) ) ) ) : IMPI N3 N6 ; N8 ( ( ( R > S ) & R ) > ( R > ( ( R v Q ) > ( R v ( ( R > S ) & R ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_3928 L=8 lines=9 seen in {'ei/long_pool': 8}
+THM R , ( Q v ( P & Q ) ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) ) PRF
+N1 R : PR ; N2 ( Q v ( P & Q ) ) : PR ; N3 | ( ~ ( ~ Q ) ) : AS ; N4 | | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N5 | | | ( ~ ( ~ R ) ) : AS ; N6 | | | ( ( Q v ( P & Q ) ) & R ) : ANDI N2 N1 ; N7 | | ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) : IMPI N5 N6 ; N8 | ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) : IMPI N4 N7 ; N9 ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ R ) ) > ( ( Q v ( P & Q ) ) & R ) ) ) ) : IMPI N3 N8 ; QED
+--- la_rl_targets_3983 L=8 lines=7 seen in {'lr1e-4/long_pool': 1}
+THM ( Q v Q ) SEQ ( P > ( S > Q ) ) PRF
+N1 ( Q v Q ) : PR ; N2 | P : AS ; N3 | | S : AS ; N4 | | | Q : AS ; N5 | | Q : ORE N1 N4 N4 N4 N4 ; N6 | ( S > Q ) : IMPI N3 N5 ; N7 ( P > ( S > Q ) ) : IMPI N2 N6 ; QED
+--- la_rl_targets_4056 L=8 lines=8 seen in {'ei/long_pool': 31}
+THM ( ( R > S ) & ( Q & R ) ) SEQ ( ( ~ ( ~ S ) ) > ( ( ( S & R ) v P ) > ( ( ( R > S ) & ( Q & R ) ) > ( Q & R ) ) ) ) PRF
+N1 ( ( R > S ) & ( Q & R ) ) : PR ; N2 | ( ~ ( ~ S ) ) : AS ; N3 | | ( ( S & R ) v P ) : AS ; N4 | | | ( ( R > S ) & ( Q & R ) ) : AS ; N5 | | | ( Q & R ) : ANDE2 N1 ; N6 | | ( ( ( R > S ) & ( Q & R ) ) > ( Q & R ) ) : IMPI N4 N5 ; N7 | ( ( ( S & R ) v P ) > ( ( ( R > S ) & ( Q & R ) ) > ( Q & R ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ( S & R ) v P ) > ( ( ( R > S ) & ( Q & R ) ) > ( Q & R ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4080 L=8 lines=8 seen in {'ei/long_pool': 9}
+THM ( ( P & P ) & ( P > S ) ) SEQ ( ( ~ ( ~ ( ~ Q ) ) ) > ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) ) PRF
+N1 ( ( P & P ) & ( P > S ) ) : PR ; N2 | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N3 | | Q : AS ; N4 | | | ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) : AS ; N5 | | | ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) : ORI2 N1 ; N6 | | ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) : IMPI N4 N5 ; N7 | ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ ( ~ Q ) ) ) > ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4132 L=8 lines=8 seen in {'lr1e-4/long_pool': 8, 'lr3e-4/long_pool': 1, 'ei/long_pool': 2}
+THM ( Q > ( Q v P ) ) , Q SEQ ( ( ~ ( ~ Q ) ) > ( Q > ( P v ( Q v P ) ) ) ) PRF
+N1 ( Q > ( Q v P ) ) : PR ; N2 Q : PR ; N3 ( Q v P ) : IMPE N1 N2 ; N4 | ( ~ ( ~ Q ) ) : AS ; N5 | | Q : AS ; N6 | | ( P v ( Q v P ) ) : ORI2 N3 ; N7 | ( Q > ( P v ( Q v P ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ Q ) ) > ( Q > ( P v ( Q v P ) ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_4154 L=8 lines=8 seen in {'ei/long_pool': 1}
+THM ( Q v ( ( ~ P ) v ( ~ S ) ) ) SEQ ( ( ~ ( ~ S ) ) > ( ( ~ Q ) > ( Q > ( ( Q v ( ( ~ P ) v ( ~ S ) ) ) v S ) ) ) ) PRF
+N1 ( Q v ( ( ~ P ) v ( ~ S ) ) ) : PR ; N2 | ( ~ ( ~ S ) ) : AS ; N3 | | ( ~ Q ) : AS ; N4 | | | Q : AS ; N5 | | | ( ( Q v ( ( ~ P ) v ( ~ S ) ) ) v S ) : ORI1 N1 ; N6 | | ( Q > ( ( Q v ( ( ~ P ) v ( ~ S ) ) ) v S ) ) : IMPI N4 N5 ; N7 | ( ( ~ Q ) > ( Q > ( ( Q v ( ( ~ P ) v ( ~ S ) ) ) v S ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ~ Q ) > ( Q > ( ( Q v ( ( ~ P ) v ( ~ S ) ) ) v S ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4180 L=8 lines=8 seen in {'lr3e-5/long_pool': 3, 'lr1e-4/long_pool': 5, 'ei/long_pool': 3}
+THM ( ( ~ P ) & ( ~ R ) ) , ( ( ( S & R ) v Q ) v Q ) SEQ ( ( ~ ( ~ ( P > R ) ) ) > ( ( ( ~ Q ) > ( P > Q ) ) > ( ( ~ R ) & ( ( ~ Q ) > ( P > Q ) ) ) ) ) PRF
+N1 ( ( ~ P ) & ( ~ R ) ) : PR ; N2 ( ( ( S & R ) v Q ) v Q ) : PR ; N3 ( ~ R ) : ANDE2 N1 ; N4 | ( ~ ( ~ ( P > R ) ) ) : AS ; N5 | | ( ( ~ Q ) > ( P > Q ) ) : AS ; N6 | | ( ( ~ R ) & ( ( ~ Q ) > ( P > Q ) ) ) : ANDI N3 N5 ; N7 | ( ( ( ~ Q ) > ( P > Q ) ) > ( ( ~ R ) & ( ( ~ Q ) > ( P > Q ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( P > R ) ) ) > ( ( ( ~ Q ) > ( P > Q ) ) > ( ( ~ R ) & ( ( ~ Q ) > ( P > Q ) ) ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_4235 L=8 lines=8 seen in {'ei/long_pool': 4}
+THM ( ( ~ ( S v S ) ) v ( ( P v R ) > S ) ) SEQ ( R > ( R > ( ( S > ( ~ P ) ) > ( R v ( ( ~ ( S v S ) ) v ( ( P v R ) > S ) ) ) ) ) ) PRF
+N1 ( ( ~ ( S v S ) ) v ( ( P v R ) > S ) ) : PR ; N2 | R : AS ; N3 | | R : AS ; N4 | | | ( S > ( ~ P ) ) : AS ; N5 | | | ( R v ( ( ~ ( S v S ) ) v ( ( P v R ) > S ) ) ) : ORI2 N1 ; N6 | | ( ( S > ( ~ P ) ) > ( R v ( ( ~ ( S v S ) ) v ( ( P v R ) > S ) ) ) ) : IMPI N4 N5 ; N7 | ( R > ( ( S > ( ~ P ) ) > ( R v ( ( ~ ( S v S ) ) v ( ( P v R ) > S ) ) ) ) ) : IMPI N3 N6 ; N8 ( R > ( R > ( ( S > ( ~ P ) ) > ( R v ( ( ~ ( S v S ) ) v ( ( P v R ) > S ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4259 L=8 lines=8 seen in {'ei/long_pool': 22}
+THM ( ( Q v S ) > ( P & Q ) ) SEQ ( ( ( Q v S ) > ( P & Q ) ) > ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) ) PRF
+N1 ( ( Q v S ) > ( P & Q ) ) : PR ; N2 | ( ( Q v S ) > ( P & Q ) ) : AS ; N3 | | ( Q v R ) : AS ; N4 | | | ( ( Q v S ) > ( P & Q ) ) : AS ; N5 | | | ( R v ( ( Q v S ) > ( P & Q ) ) ) : ORI2 N1 ; N6 | | ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) : IMPI N4 N5 ; N7 | ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ( Q v S ) > ( P & Q ) ) > ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4259 L=8 lines=8 seen in {'ei/long_pool': 1}
+THM ( ( Q v S ) > ( P & Q ) ) SEQ ( ( ( Q v S ) > ( P & Q ) ) > ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) ) PRF
+N1 ( ( Q v S ) > ( P & Q ) ) : PR ; N2 | ( ( Q v S ) > ( P & Q ) ) : AS ; N3 | | ( Q v R ) : AS ; N4 | | | ( ( Q v S ) > ( P & Q ) ) : AS ; N5 | | | ( R v ( ( Q v S ) > ( P & Q ) ) ) : ORI2 N2 ; N6 | | ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) : IMPI N4 N5 ; N7 | ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ( Q v S ) > ( P & Q ) ) > ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4259 L=8 lines=8 seen in {'ei/long_pool': 7}
+THM ( ( Q v S ) > ( P & Q ) ) SEQ ( ( ( Q v S ) > ( P & Q ) ) > ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) ) PRF
+N1 ( ( Q v S ) > ( P & Q ) ) : PR ; N2 | ( ( Q v S ) > ( P & Q ) ) : AS ; N3 | | ( Q v R ) : AS ; N4 | | | ( ( Q v S ) > ( P & Q ) ) : AS ; N5 | | | ( R v ( ( Q v S ) > ( P & Q ) ) ) : ORI2 N4 ; N6 | | ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) : IMPI N4 N5 ; N7 | ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ( Q v S ) > ( P & Q ) ) > ( ( Q v R ) > ( ( ( Q v S ) > ( P & Q ) ) > ( R v ( ( Q v S ) > ( P & Q ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4313 L=8 lines=8 seen in {'ei/long_pool': 12}
+THM S SEQ ( ( S > Q ) > ( ( S > Q ) > ( ( S > Q ) > ( S v S ) ) ) ) PRF
+N1 S : PR ; N2 | ( S > Q ) : AS ; N3 | | ( S > Q ) : AS ; N4 | | | ( S > Q ) : AS ; N5 | | | ( S v S ) : ORI1 N1 ; N6 | | ( ( S > Q ) > ( S v S ) ) : IMPI N4 N5 ; N7 | ( ( S > Q ) > ( ( S > Q ) > ( S v S ) ) ) : IMPI N3 N6 ; N8 ( ( S > Q ) > ( ( S > Q ) > ( ( S > Q ) > ( S v S ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4313 L=8 lines=8 seen in {'ei/long_pool': 15}
+THM S SEQ ( ( S > Q ) > ( ( S > Q ) > ( ( S > Q ) > ( S v S ) ) ) ) PRF
+N1 S : PR ; N2 | ( S > Q ) : AS ; N3 | | ( S > Q ) : AS ; N4 | | | ( S > Q ) : AS ; N5 | | | ( S v S ) : ORI2 N1 ; N6 | | ( ( S > Q ) > ( S v S ) ) : IMPI N4 N5 ; N7 | ( ( S > Q ) > ( ( S > Q ) > ( S v S ) ) ) : IMPI N3 N6 ; N8 ( ( S > Q ) > ( ( S > Q ) > ( ( S > Q ) > ( S v S ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4393 L=8 lines=8 seen in {'ei/long_pool': 20}
+THM R SEQ ( ( ~ ( ~ S ) ) > ( R > ( R > ( ( ~ ( P > Q ) ) v R ) ) ) ) PRF
+N1 R : PR ; N2 | ( ~ ( ~ S ) ) : AS ; N3 | | R : AS ; N4 | | | R : AS ; N5 | | | ( ( ~ ( P > Q ) ) v R ) : ORI2 N1 ; N6 | | ( R > ( ( ~ ( P > Q ) ) v R ) ) : IMPI N4 N5 ; N7 | ( R > ( R > ( ( ~ ( P > Q ) ) v R ) ) ) : IMPI N3 N6 ; N8 ( ( ~ ( ~ S ) ) > ( R > ( R > ( ( ~ ( P > Q ) ) v R ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_4415 L=8 lines=8 seen in {'lr1e-4/long_pool': 1}
+THM ( ( Q > S ) & ( S > P ) ) , ( P v Q ) SEQ ( S > ( ( ~ ( ~ ( ~ P ) ) ) > P ) ) PRF
+N1 ( ( Q > S ) & ( S > P ) ) : PR ; N2 ( P v Q ) : PR ; N3 ( S > P ) : ANDE2 N1 ; N4 | S : AS ; N5 | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N6 | | P : IMPE N3 N4 ; N7 | ( ( ~ ( ~ ( ~ P ) ) ) > P ) : IMPI N5 N6 ; N8 ( S > ( ( ~ ( ~ ( ~ P ) ) ) > P ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_442 L=8 lines=8 seen in {'ei/long_pool': 17}
+THM R , ( ( ( R v R ) > S ) v ( ( P & S ) > Q ) ) , ( R v R ) SEQ ( ( ~ ( ~ Q ) ) > ( R > ( R & ( R v R ) ) ) ) PRF
+N1 R : PR ; N2 ( ( ( R v R ) > S ) v ( ( P & S ) > Q ) ) : PR ; N3 ( R v R ) : PR ; N4 | ( ~ ( ~ Q ) ) : AS ; N5 | | R : AS ; N6 | | ( R & ( R v R ) ) : ANDI N1 N3 ; N7 | ( R > ( R & ( R v R ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ Q ) ) > ( R > ( R & ( R v R ) ) ) ) : IMPI N4 N7 ; QED
+--- la_rl_targets_4433 L=8 lines=8 seen in {'lr3e-4/long_pool': 13, 'ei/long_pool': 30}
+THM Q SEQ ( ( ( S & Q ) & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) ) PRF
+N1 Q : PR ; N2 | ( ( S & Q ) & S ) : AS ; N3 | | ( ~ ( ~ Q ) ) : AS ; N4 | | | ( ~ Q ) : AS ; N5 | | | ( Q & ( ~ ( ~ Q ) ) ) : ANDI N1 N3 ; N6 | | ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) : IMPI N4 N5 ; N7 | ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) : IMPI N3 N6 ; N8 ( ( ( S & Q ) & S ) > ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > ( Q & ( ~ ( ~ Q ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- la_rl_targets_641 L=8 lines=8 seen in {'lr3e-5/long_pool': 1, 'lr1e-4/long_pool': 1, 'ei/long_pool': 5}
+THM ( ( R v Q ) v Q ) , ( Q > ( Q & Q ) ) SEQ ( ( Q > S ) > ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) ) PRF
+N1 ( ( R v Q ) v Q ) : PR ; N2 ( Q > ( Q & Q ) ) : PR ; N3 | ( Q > S ) : AS ; N4 | | Q : AS ; N5 | | ( ( Q > S ) & ( ( R v Q ) v Q ) ) : ANDI N3 N1 ; N6 | | ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) : ANDI N5 N2 ; N7 | ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) : IMPI N4 N6 ; N8 ( ( Q > S ) > ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'lr3e-4/train': 2}
+THM ( ( P & P ) > ( Q > Q ) ) , ( P & P ) SEQ ( ~ ( ~ ( ( P & P ) & ( Q > Q ) ) ) ) PRF
+N1 ( ( P & P ) > ( Q > Q ) ) : PR ; N2 ( P & P ) : PR ; N3 ( P & P ) : R N2 ; N4 ( Q > Q ) : IMPE N1 N3 ; N5 ( ( P & P ) & ( Q > Q ) ) : ANDI N3 N4 ; N6 | ( ~ ( ( P & P ) & ( Q > Q ) ) ) : AS ; N7 | F : NEGE N5 N6 ; N8 ( ~ ( ~ ( ( P & P ) & ( Q > Q ) ) ) ) : NEGI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'ei/train': 1}
+THM ( ( P & S ) > P ) , ( P & S ) SEQ ( ( ~ ( ~ S ) ) > ( ( P & S ) > ( P v ( ~ ( ~ S ) ) ) ) ) PRF
+N1 ( ( P & S ) > P ) : PR ; N2 ( P & S ) : PR ; N3 P : IMPE N1 N2 ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | | ( P & S ) : AS ; N6 | | ( P v ( ~ ( ~ S ) ) ) : ORI1 N3 ; N7 | ( ( P & S ) > ( P v ( ~ ( ~ S ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( P & S ) > ( P v ( ~ ( ~ S ) ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 2}
+THM ( ( P & S ) > P ) , ( P & S ) SEQ ( ( ~ ( ~ S ) ) > ( ( P & S ) > ( P v ( ~ ( ~ S ) ) ) ) ) PRF
+N1 ( ( P & S ) > P ) : PR ; N2 ( P & S ) : PR ; N3 P : IMPE N1 N2 ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | | ( P & S ) : AS ; N6 | | ( P v ( ~ ( ~ S ) ) ) : ORI2 N4 ; N7 | ( ( P & S ) > ( P v ( ~ ( ~ S ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( P & S ) > ( P v ( ~ ( ~ S ) ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1}
+THM ( ( Q & Q ) > Q ) , ( Q & Q ) SEQ ( ( ~ S ) > ( ( ( S v P ) > R ) > Q ) ) PRF
+N1 ( ( Q & Q ) > Q ) : PR ; N2 ( Q & Q ) : PR ; N3 Q : IMPE N1 N2 ; N4 | ( ~ S ) : AS ; N5 | | ( ( S v P ) > R ) : AS ; N6 | | Q : ANDE1 N2 ; N7 | ( ( ( S v P ) > R ) > Q ) : IMPI N5 N6 ; N8 ( ( ~ S ) > ( ( ( S v P ) > R ) > Q ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 3}
+THM ( ( Q & Q ) > Q ) , ( Q & Q ) SEQ ( ( ~ S ) > ( ( ( S v P ) > R ) > Q ) ) PRF
+N1 ( ( Q & Q ) > Q ) : PR ; N2 ( Q & Q ) : PR ; N3 Q : IMPE N1 N2 ; N4 | ( ~ S ) : AS ; N5 | | ( ( S v P ) > R ) : AS ; N6 | | Q : R N3 ; N7 | ( ( ( S v P ) > R ) > Q ) : IMPI N5 N6 ; N8 ( ( ~ S ) > ( ( ( S v P ) > R ) > Q ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 2}
+THM ( ( Q > R ) v ( ~ R ) ) , ( S & R ) SEQ ( S > ( R > ( R & ( ( Q > R ) v ( ~ R ) ) ) ) ) PRF
+N1 ( ( Q > R ) v ( ~ R ) ) : PR ; N2 ( S & R ) : PR ; N3 R : ANDE2 N2 ; N4 | S : AS ; N5 | | R : AS ; N6 | | ( R & ( ( Q > R ) v ( ~ R ) ) ) : ANDI N3 N1 ; N7 | ( R > ( R & ( ( Q > R ) v ( ~ R ) ) ) ) : IMPI N5 N6 ; N8 ( S > ( R > ( R & ( ( Q > R ) v ( ~ R ) ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM ( ( R & Q ) & ( ~ Q ) ) , ( P v ( ~ ( P v Q ) ) ) SEQ ( ( ~ ( ~ S ) ) > ( ( R v R ) > ( ( P v ( ~ ( P v Q ) ) ) & ( ( R & Q ) & ( ~ Q ) ) ) ) ) PRF
+N1 ( ( R & Q ) & ( ~ Q ) ) : PR ; N2 ( P v ( ~ ( P v Q ) ) ) : PR ; N3 ( ( R & Q ) & ( ~ Q ) ) : R N1 ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | | ( R v R ) : AS ; N6 | | ( ( P v ( ~ ( P v Q ) ) ) & ( ( R & Q ) & ( ~ Q ) ) ) : ANDI N2 N3 ; N7 | ( ( R v R ) > ( ( P v ( ~ ( P v Q ) ) ) & ( ( R & Q ) & ( ~ Q ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( R v R ) > ( ( P v ( ~ ( P v Q ) ) ) & ( ( R & Q ) & ( ~ Q ) ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 5, 'ei/train': 1}
+THM ( ( R v S ) & ( ~ P ) ) , ( ~ ( ( ~ ( ~ ( P v S ) ) ) > ( ~ P ) ) ) SEQ ( ~ Q ) PRF
+N1 ( ( R v S ) & ( ~ P ) ) : PR ; N2 ( ~ ( ( ~ ( ~ ( P v S ) ) ) > ( ~ P ) ) ) : PR ; N3 | ( ~ ( ~ ( P v S ) ) ) : AS ; N4 | ( ~ P ) : ANDE2 N1 ; N5 ( ( ~ ( ~ ( P v S ) ) ) > ( ~ P ) ) : IMPI N3 N4 ; N6 | Q : AS ; N7 | F : NEGE N5 N2 ; N8 ( ~ Q ) : NEGI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'lr1e-4/train': 1, 'lr3e-4/train': 5}
+THM ( ( R v S ) & ( ~ P ) ) , ( ~ ( ( ~ ( ~ ( P v S ) ) ) > ( ~ P ) ) ) SEQ ( ~ Q ) PRF
+N1 ( ( R v S ) & ( ~ P ) ) : PR ; N2 ( ~ ( ( ~ ( ~ ( P v S ) ) ) > ( ~ P ) ) ) : PR ; N3 | Q : AS ; N4 | | ( ~ ( ~ ( P v S ) ) ) : AS ; N5 | | ( ~ P ) : ANDE2 N1 ; N6 | ( ( ~ ( ~ ( P v S ) ) ) > ( ~ P ) ) : IMPI N4 N5 ; N7 | F : NEGE N6 N2 ; N8 ( ~ Q ) : NEGI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'ei/train': 1}
+THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+N1 ( ( S > R ) & R ) : PR ; N2 ( ( ~ ( ~ Q ) ) v R ) : PR ; N3 ( S > R ) : ANDE1 N1 ; N4 | ( ~ ( ~ R ) ) : AS ; N5 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N6 | | ( S > R ) : ANDE1 N1 ; N7 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 17, 'lr1e-4/train': 5, 'lr3e-4/train': 3, 'ei/train': 3}
+THM ( ( S > R ) & R ) , ( ( ~ ( ~ Q ) ) v R ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) PRF
+N1 ( ( S > R ) & R ) : PR ; N2 ( ( ~ ( ~ Q ) ) v R ) : PR ; N3 R : ANDE2 N1 ; N4 | ( ~ ( ~ R ) ) : AS ; N5 | | ( ( S & Q ) v ( Q & S ) ) : AS ; N6 | | ( S > R ) : ANDE1 N1 ; N7 | ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ R ) ) > ( ( ( S & Q ) v ( Q & S ) ) > ( S > R ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( ( ~ P ) v P ) , ( ~ P ) , ( ( ( ~ P ) & ( ( ~ P ) v P ) ) > ( ~ S ) ) SEQ ( Q > ( ~ S ) ) PRF
+N1 ( ( ~ P ) v P ) : PR ; N2 ( ~ P ) : PR ; N3 ( ( ( ~ P ) & ( ( ~ P ) v P ) ) > ( ~ S ) ) : PR ; N4 ( ( ~ P ) v P ) : ORI1 N2 ; N5 | Q : AS ; N6 | ( ( ~ P ) & ( ( ~ P ) v P ) ) : ANDI N2 N1 ; N7 | ( ~ S ) : IMPE N3 N6 ; N8 ( Q > ( ~ S ) ) : IMPI N5 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 2}
+THM ( ( ~ P ) v Q ) , ( ( ( ~ P ) v Q ) > R ) , ( ~ P ) SEQ ( ( Q v ( Q v R ) ) > ( ( Q v ( Q v R ) ) & ( ( ~ P ) & ( ( ( ~ P ) v Q ) > R ) ) ) ) PRF
+N1 ( ( ~ P ) v Q ) : PR ; N2 ( ( ( ~ P ) v Q ) > R ) : PR ; N3 ( ~ P ) : PR ; N4 | ( Q v ( Q v R ) ) : AS ; N5 | ( ( ~ P ) & ( ( ( ~ P ) v Q ) > R ) ) : ANDI N3 N2 ; N6 | R : IMPE N2 N1 ; N7 | ( ( Q v ( Q v R ) ) & ( ( ~ P ) & ( ( ( ~ P ) v Q ) > R ) ) ) : ANDI N4 N5 ; N8 ( ( Q v ( Q v R ) ) > ( ( Q v ( Q v R ) ) & ( ( ~ P ) & ( ( ( ~ P ) v Q ) > R ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 3}
+THM ( ( ~ Q ) > ( S v S ) ) , ( ~ Q ) , ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) SEQ ( Q > ( ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) & ( S v S ) ) ) PRF
+N1 ( ( ~ Q ) > ( S v S ) ) : PR ; N2 ( ~ Q ) : PR ; N3 ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) : PR ; N4 ( ( ~ ( S v S ) ) v ( ~ Q ) ) : ORI2 N2 ; N5 ( S v S ) : IMPE N1 N2 ; N6 | Q : AS ; N7 | ( ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) & ( S v S ) ) : ANDI N3 N5 ; N8 ( Q > ( ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) & ( S v S ) ) ) : IMPI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM ( ( ~ Q ) > ( S v S ) ) , ( ~ Q ) , ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) SEQ ( Q > ( ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) & ( S v S ) ) ) PRF
+N1 ( ( ~ Q ) > ( S v S ) ) : PR ; N2 ( ~ Q ) : PR ; N3 ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) : PR ; N4 ( ( ~ ( S v S ) ) v ( ~ Q ) ) : ORI2 N2 ; N5 | Q : AS ; N6 | ( S v S ) : IMPE N1 N2 ; N7 | ( ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) & ( S v S ) ) : ANDI N3 N6 ; N8 ( Q > ( ( ~ ( ~ ( ( ~ ( S v S ) ) v ( ~ Q ) ) ) ) & ( S v S ) ) ) : IMPI N5 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 11, 'lr1e-4/train': 2, 'lr3e-4/train': 1, 'ei/train': 5}
+THM ( ( ~ Q ) v Q ) , ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) , ( ~ Q ) SEQ Q PRF
+N1 ( ( ~ Q ) v Q ) : PR ; N2 ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) : PR ; N3 ( ~ Q ) : PR ; N4 ( ( ~ Q ) v Q ) : ORI1 N3 ; N5 ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) : ANDI N3 N1 ; N6 ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) : ORI1 N5 ; N7 F : NEGE N6 N2 ; N8 Q : BOTE N7 ; QED
+--- train-pool L=7 lines=9 seen in {'ei/train': 1}
+THM ( ( ~ Q ) v Q ) , ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) , ( ~ Q ) SEQ Q PRF
+N1 ( ( ~ Q ) v Q ) : PR ; N2 ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) : PR ; N3 ( ~ Q ) : PR ; N4 ( ( ~ Q ) v Q ) : ORI1 N3 ; N5 ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) : ANDI N3 N4 ; N6 ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) : ORI1 N5 ; N7 F : NEGE N6 N2 ; N8 ( ~ Q ) : BOTE N7 ; N9 Q : BOTE N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 22, 'lr1e-4/train': 5, 'lr3e-4/train': 1, 'ei/train': 32}
+THM ( ( ~ Q ) v Q ) , ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) , ( ~ Q ) SEQ Q PRF
+N1 ( ( ~ Q ) v Q ) : PR ; N2 ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) : PR ; N3 ( ~ Q ) : PR ; N4 ( ( ~ Q ) v Q ) : ORI1 N3 ; N5 ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) : ANDI N3 N4 ; N6 ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) : ORI1 N5 ; N7 F : NEGE N6 N2 ; N8 Q : BOTE N7 ; QED
+--- train-pool L=7 lines=9 seen in {'lr3e-4/train': 1}
+THM ( ( ~ Q ) v Q ) , ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) , ( ~ Q ) SEQ Q PRF
+N1 ( ( ~ Q ) v Q ) : PR ; N2 ( ~ ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) ) : PR ; N3 ( ~ Q ) : PR ; N4 ( ( ~ Q ) v Q ) : ORI1 N3 ; N5 ( ( ~ Q ) v Q ) : ORI1 N3 ; N6 ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) : ANDI N3 N4 ; N7 ( ( ( ~ Q ) & ( ( ~ Q ) v Q ) ) v ( ~ R ) ) : ORI1 N6 ; N8 F : NEGE N7 N2 ; N9 Q : BOTE N8 ; QED
+--- train-pool L=7 lines=8 seen in {'ei/train': 6}
+THM ( ( ~ S ) v S ) , ( ~ ( ~ ( P v Q ) ) ) SEQ ( P > ( S > ( ( ( P v P ) & Q ) v ( ( ~ S ) v S ) ) ) ) PRF
+N1 ( ( ~ S ) v S ) : PR ; N2 ( ~ ( ~ ( P v Q ) ) ) : PR ; N3 ( ( ~ S ) v S ) : R N1 ; N4 | P : AS ; N5 | | S : AS ; N6 | | ( ( ( P v P ) & Q ) v ( ( ~ S ) v S ) ) : ORI2 N3 ; N7 | ( S > ( ( ( P v P ) & Q ) v ( ( ~ S ) v S ) ) ) : IMPI N5 N6 ; N8 ( P > ( S > ( ( ( P v P ) & Q ) v ( ( ~ S ) v S ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 3}
+THM ( P & ( Q v Q ) ) , ( P > Q ) , ( P v ( ( P > R ) v ( S v S ) ) ) SEQ ( ( ~ ( ~ ( R & P ) ) ) > Q ) PRF
+N1 ( P & ( Q v Q ) ) : PR ; N2 ( P > Q ) : PR ; N3 ( P v ( ( P > R ) v ( S v S ) ) ) : PR ; N4 | ( ~ ( ~ ( R & P ) ) ) : AS ; N5 | P : ANDE1 N1 ; N6 | ( P v ( ( P > R ) v ( S v S ) ) ) : ORI1 N5 ; N7 | Q : IMPE N2 N5 ; N8 ( ( ~ ( ~ ( R & P ) ) ) > Q ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 6}
+THM ( Q & ( R v P ) ) , ( P v ( ~ S ) ) SEQ ( R > ( R > ( R v P ) ) ) PRF
+N1 ( Q & ( R v P ) ) : PR ; N2 ( P v ( ~ S ) ) : PR ; N3 | R : AS ; N4 | | R : AS ; N5 | | ( R v P ) : ANDE2 N1 ; N6 | | ( R v P ) : ANDE2 N1 ; N7 | ( R > ( R v P ) ) : IMPI N4 N6 ; N8 ( R > ( R > ( R v P ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( Q & ( R v P ) ) , ( P v ( ~ S ) ) SEQ ( R > ( R > ( R v P ) ) ) PRF
+N1 ( Q & ( R v P ) ) : PR ; N2 ( P v ( ~ S ) ) : PR ; N3 | R : AS ; N4 | | R : AS ; N5 | | ( R v P ) : ANDE2 N1 ; N6 | | ( R v P ) : R N5 ; N7 | ( R > ( R v P ) ) : IMPI N4 N6 ; N8 ( R > ( R > ( R v P ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=6 lines=8 seen in {'lr3e-4/train': 1}
+THM ( Q & P ) , ( ~ ( ~ ( Q & Q ) ) ) SEQ P PRF
+N1 ( Q & P ) : PR ; N2 ( ~ ( ~ ( Q & Q ) ) ) : PR ; N3 | ( ~ ( ~ ( Q & Q ) ) ) : AS ; N4 | P : ANDE2 N1 ; N5 ( ( ~ ( ~ ( Q & Q ) ) ) > P ) : IMPI N3 N4 ; N6 P : IMPE N5 N2 ; N7 ( P & P ) : ANDI N6 N6 ; N8 P : ANDE1 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'ei/train': 1}
+THM ( Q & S ) , ( ( ( ~ Q ) v R ) v ( ( Q v S ) & P ) ) SEQ ( S > ( P > ( ( Q & S ) & ( ( ( ~ Q ) v R ) v ( ( Q v S ) & P ) ) ) ) ) PRF
+N1 ( Q & S ) : PR ; N2 ( ( ( ~ Q ) v R ) v ( ( Q v S ) & P ) ) : PR ; N3 ( ( ( ~ Q ) v R ) v ( ( Q v S ) & P ) ) : R N2 ; N4 | S : AS ; N5 | | P : AS ; N6 | | ( ( Q & S ) & ( ( ( ~ Q ) v R ) v ( ( Q v S ) & P ) ) ) : ANDI N1 N3 ; N7 | ( P > ( ( Q & S ) & ( ( ( ~ Q ) v R ) v ( ( Q v S ) & P ) ) ) ) : IMPI N5 N6 ; N8 ( S > ( P > ( ( Q & S ) & ( ( ( ~ Q ) v R ) v ( ( Q v S ) & P ) ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( Q v P ) , Q SEQ ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) PRF
+N1 ( Q v P ) : PR ; N2 Q : PR ; N3 ( Q & ( Q v P ) ) : ANDI N2 N1 ; N4 ( Q & ( Q v P ) ) : ANDI N2 N1 ; N5 | Q : AS ; N6 | ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) : ORI2 N4 ; N7 | ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) : ANDI N6 N2 ; N8 ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) : IMPI N5 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( Q v P ) , Q SEQ ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) PRF
+N1 ( Q v P ) : PR ; N2 Q : PR ; N3 ( Q & ( Q v P ) ) : ANDI N2 N1 ; N4 | Q : AS ; N5 | ( Q & ( Q v P ) ) : ANDI N2 N1 ; N6 | ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) : ORI2 N5 ; N7 | ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) : ANDI N6 N2 ; N8 ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( Q v P ) , Q SEQ ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) PRF
+N1 ( Q v P ) : PR ; N2 Q : PR ; N3 | Q : AS ; N4 | ( Q & ( Q v P ) ) : ANDI N2 N1 ; N5 | ( Q & ( Q v P ) ) : ANDI N2 N1 ; N6 | ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) : ORI2 N5 ; N7 | ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) : ANDI N6 N2 ; N8 ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( Q v P ) , Q SEQ ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) PRF
+N1 ( Q v P ) : PR ; N2 Q : PR ; N3 | Q : AS ; N4 | Q : R N2 ; N5 | ( Q & ( Q v P ) ) : ANDI N4 N1 ; N6 | ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) : ORI2 N5 ; N7 | ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) : ANDI N6 N2 ; N8 ( Q > ( ( ( Q > ( R > S ) ) v ( Q & ( Q v P ) ) ) & Q ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( R > ( R & Q ) ) , R SEQ ( ~ ( ~ ( R & ( R & Q ) ) ) ) PRF
+N1 ( R > ( R & Q ) ) : PR ; N2 R : PR ; N3 ( R & Q ) : IMPE N1 N2 ; N4 ( R & Q ) : IMPE N1 N2 ; N5 ( R & ( R & Q ) ) : ANDI N2 N4 ; N6 | ( ~ ( R & ( R & Q ) ) ) : AS ; N7 | F : NEGE N5 N6 ; N8 ( ~ ( ~ ( R & ( R & Q ) ) ) ) : NEGI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 2}
+THM ( R > ( R & Q ) ) , R SEQ ( ~ ( ~ ( R & ( R & Q ) ) ) ) PRF
+N1 ( R > ( R & Q ) ) : PR ; N2 R : PR ; N3 ( R & Q ) : IMPE N1 N2 ; N4 ( R & Q ) : R N3 ; N5 ( R & ( R & Q ) ) : ANDI N2 N4 ; N6 | ( ~ ( R & ( R & Q ) ) ) : AS ; N7 | F : NEGE N5 N6 ; N8 ( ~ ( ~ ( R & ( R & Q ) ) ) ) : NEGI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( R > ( S > R ) ) SEQ ( ( ~ ( ~ ( S > P ) ) ) > ( ~ ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) ) ) PRF
+N1 ( R > ( S > R ) ) : PR ; N2 ( R > ( S > R ) ) : R N1 ; N3 ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) : ANDI N2 N2 ; N4 | ( ~ ( ~ ( S > P ) ) ) : AS ; N5 | | ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) : AS ; N6 | | F : NEGE N3 N5 ; N7 | ( ~ ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) ) : NEGI N5 N6 ; N8 ( ( ~ ( ~ ( S > P ) ) ) > ( ~ ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( R > ( S > R ) ) SEQ ( ( ~ ( ~ ( S > P ) ) ) > ( ~ ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) ) ) PRF
+N1 ( R > ( S > R ) ) : PR ; N2 | ( ~ ( ~ ( S > P ) ) ) : AS ; N3 | ( R > ( S > R ) ) : R N1 ; N4 | ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) : ANDI N3 N3 ; N5 | | ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) : AS ; N6 | | F : NEGE N4 N5 ; N7 | ( ~ ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) ) : NEGI N5 N6 ; N8 ( ( ~ ( ~ ( S > P ) ) ) > ( ~ ( ~ ( ( R > ( S > R ) ) & ( R > ( S > R ) ) ) ) ) ) : IMPI N2 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM ( R v R ) SEQ ( ( ~ ( ~ ( R v S ) ) ) > ( R & R ) ) PRF
+N1 ( R v R ) : PR ; N2 | ( ~ ( ~ ( R v S ) ) ) : AS ; N3 | | R : AS ; N4 | | R : AS ; N5 | | R : AS ; N6 | R : ORE N1 N3 N3 N5 N5 ; N7 | ( R & R ) : ANDI N6 N6 ; N8 ( ( ~ ( ~ ( R v S ) ) ) > ( R & R ) ) : IMPI N2 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 13}
+THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+N1 ( S > P ) : PR ; N2 ( ( ~ S ) v ( ~ Q ) ) : PR ; N3 | ( ~ ( ~ P ) ) : AS ; N4 | | S : AS ; N5 | | ( ( S > P ) v Q ) : ORI1 N1 ; N6 | | ( ( S > P ) v Q ) : ORI1 N1 ; N7 | ( S > ( ( S > P ) v Q ) ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 9}
+THM ( S > P ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) PRF
+N1 ( S > P ) : PR ; N2 ( ( ~ S ) v ( ~ Q ) ) : PR ; N3 | ( ~ ( ~ P ) ) : AS ; N4 | | S : AS ; N5 | | ( S > P ) : R N1 ; N6 | | ( ( S > P ) v Q ) : ORI1 N5 ; N7 | ( S > ( ( S > P ) v Q ) ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ P ) ) > ( S > ( ( S > P ) v Q ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 11, 'lr1e-4/train': 2}
+THM ( ~ ( ( ( S > P ) > ( R v Q ) ) > ( ( S > R ) > ( S > R ) ) ) ) SEQ ( ~ P ) PRF
+N1 ( ~ ( ( ( S > P ) > ( R v Q ) ) > ( ( S > R ) > ( S > R ) ) ) ) : PR ; N2 | ( ( S > P ) > ( R v Q ) ) : AS ; N3 | | ( S > R ) : AS ; N4 | ( ( S > R ) > ( S > R ) ) : IMPI N3 N3 ; N5 ( ( ( S > P ) > ( R v Q ) ) > ( ( S > R ) > ( S > R ) ) ) : IMPI N2 N4 ; N6 | P : AS ; N7 | F : NEGE N5 N1 ; N8 ( ~ P ) : NEGI N6 N7 ; QED
+--- train-pool L=8 lines=8 seen in {'lr3e-5/train': 38, 'lr1e-4/train': 29, 'lr3e-4/train': 1, 'ei/train': 40}
+THM ( ~ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( R v Q ) ) ) > ( ~ ( ~ ( R v Q ) ) ) ) ) ) , ( Q v R ) SEQ ( ( ~ ( S v P ) ) > S ) PRF
+N1 ( ~ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( R v Q ) ) ) > ( ~ ( ~ ( R v Q ) ) ) ) ) ) : PR ; N2 ( Q v R ) : PR ; N3 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N4 | | ( ~ ( ~ ( R v Q ) ) ) : AS ; N5 | ( ( ~ ( ~ ( R v Q ) ) ) > ( ~ ( ~ ( R v Q ) ) ) ) : IMPI N4 N4 ; N6 ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ ( ~ ( R v Q ) ) ) > ( ~ ( ~ ( R v Q ) ) ) ) ) : IMPI N3 N5 ; N7 F : NEGE N6 N1 ; N8 ( ( ~ ( S v P ) ) > S ) : BOTE N7 ; QED
+--- train-pool L=7 lines=8 seen in {'ei/train': 1}
+THM ( ~ ( R > P ) ) , ( P & Q ) SEQ ( ~ ( ~ ( ( P & Q ) & ( ( ~ ( R > P ) ) & ( ~ ( R > P ) ) ) ) ) ) PRF
+N1 ( ~ ( R > P ) ) : PR ; N2 ( P & Q ) : PR ; N3 ( ( ~ ( R > P ) ) & ( ~ ( R > P ) ) ) : ANDI N1 N1 ; N4 ( ( ~ ( R > P ) ) & ( ~ ( R > P ) ) ) : ANDI N1 N1 ; N5 ( ( P & Q ) & ( ( ~ ( R > P ) ) & ( ~ ( R > P ) ) ) ) : ANDI N2 N4 ; N6 | ( ~ ( ( P & Q ) & ( ( ~ ( R > P ) ) & ( ~ ( R > P ) ) ) ) ) : AS ; N7 | F : NEGE N5 N6 ; N8 ( ~ ( ~ ( ( P & Q ) & ( ( ~ ( R > P ) ) & ( ~ ( R > P ) ) ) ) ) ) : NEGI N6 N7 ; QED
+--- train-pool L=6 lines=8 seen in {'lr3e-4/train': 1}
+THM ( ~ ( ~ ( P & P ) ) ) SEQ P PRF
+N1 ( ~ ( ~ ( P & P ) ) ) : PR ; N2 ( P & P ) : DN N1 ; N3 P : ANDE2 N2 ; N4 ( P & P ) : ANDI N3 N3 ; N5 P : ANDE1 N4 ; N6 ( P & P ) : ANDI N3 N5 ; N7 P : ANDE1 N6 ; N8 P : ANDE1 N4 ; QED
+--- train-pool L=6 lines=8 seen in {'lr3e-4/train': 1}
+THM ( ~ ( ~ ( P & P ) ) ) SEQ P PRF
+N1 ( ~ ( ~ ( P & P ) ) ) : PR ; N2 ( P & P ) : DN N1 ; N3 P : ANDE2 N2 ; N4 ( P & P ) : ANDI N3 N3 ; N5 P : ANDE2 N4 ; N6 ( P & P ) : ANDI N3 N5 ; N7 P : ANDE1 N4 ; N8 P : ANDE2 N4 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( ~ ( ~ ( ~ Q ) ) ) , ( ~ ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) v R ) ) ) SEQ P PRF
+N1 ( ~ ( ~ ( ~ Q ) ) ) : PR ; N2 ( ~ ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) v R ) ) ) : PR ; N3 | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N4 | ( ( ~ ( ~ ( ~ Q ) ) ) v R ) : ORI1 N1 ; N5 ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ~ ( ~ ( ~ Q ) ) ) v R ) ) : IMPI N3 N4 ; N6 F : NEGE N5 N2 ; N7 P : BOTE N6 ; N8 P : BOTE N6 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 3, 'lr1e-4/train': 1}
+THM ( ~ ( ~ R ) ) , ( P & P ) SEQ ( ( ~ ( ( ( ~ R ) > ( ~ R ) ) & ( ~ ( ~ R ) ) ) ) > ( ( ( P v S ) v R ) > P ) ) PRF
+N1 ( ~ ( ~ R ) ) : PR ; N2 ( P & P ) : PR ; N3 P : ANDE2 N2 ; N4 | ( ~ ( ( ( ~ R ) > ( ~ R ) ) & ( ~ ( ~ R ) ) ) ) : AS ; N5 | | ( ( P v S ) v R ) : AS ; N6 | | P : ANDE1 N2 ; N7 | ( ( ( P v S ) v R ) > P ) : IMPI N5 N6 ; N8 ( ( ~ ( ( ( ~ R ) > ( ~ R ) ) & ( ~ ( ~ R ) ) ) ) > ( ( ( P v S ) v R ) > P ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 3, 'ei/train': 3}
+THM ( ~ ( ~ R ) ) , ( P & P ) SEQ ( ( ~ ( ( ( ~ R ) > ( ~ R ) ) & ( ~ ( ~ R ) ) ) ) > ( ( ( P v S ) v R ) > P ) ) PRF
+N1 ( ~ ( ~ R ) ) : PR ; N2 ( P & P ) : PR ; N3 P : ANDE2 N2 ; N4 | ( ~ ( ( ( ~ R ) > ( ~ R ) ) & ( ~ ( ~ R ) ) ) ) : AS ; N5 | | ( ( P v S ) v R ) : AS ; N6 | | P : ANDE2 N2 ; N7 | ( ( ( P v S ) v R ) > P ) : IMPI N5 N6 ; N8 ( ( ~ ( ( ( ~ R ) > ( ~ R ) ) & ( ~ ( ~ R ) ) ) ) > ( ( ( P v S ) v R ) > P ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 6, 'lr1e-4/train': 1, 'lr3e-4/train': 2, 'ei/train': 2}
+THM ( ~ ( ~ S ) ) SEQ ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) PRF
+N1 ( ~ ( ~ S ) ) : PR ; N2 ( ( ~ ( ~ S ) ) v R ) : ORI1 N1 ; N3 | ( ~ ( P v S ) ) : AS ; N4 | | P : AS ; N5 | | ( ( ~ ( ~ S ) ) v R ) : ORI1 N1 ; N6 | ( P > ( ( ~ ( ~ S ) ) v R ) ) : IMPI N4 N5 ; N7 | ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) : ANDI N6 N3 ; N8 ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1}
+THM ( ~ ( ~ S ) ) SEQ ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) PRF
+N1 ( ~ ( ~ S ) ) : PR ; N2 | ( ~ ( P v S ) ) : AS ; N3 | ( ( ~ ( ~ S ) ) v R ) : ORI1 N1 ; N4 | | P : AS ; N5 | | ( ( ~ ( ~ S ) ) v R ) : ORI1 N1 ; N6 | ( P > ( ( ~ ( ~ S ) ) v R ) ) : IMPI N4 N5 ; N7 | ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) : ANDI N6 N2 ; N8 ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) : IMPI N2 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM ( ~ ( ~ S ) ) SEQ ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) PRF
+N1 ( ~ ( ~ S ) ) : PR ; N2 | ( ~ ( P v S ) ) : AS ; N3 | | P : AS ; N4 | | ( ( ~ ( ~ S ) ) v R ) : ORI1 N1 ; N5 | | ( ( ~ ( ~ S ) ) v R ) : ORI1 N1 ; N6 | ( P > ( ( ~ ( ~ S ) ) v R ) ) : IMPI N3 N5 ; N7 | ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) : ANDI N6 N2 ; N8 ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) : IMPI N2 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 3}
+THM ( ~ ( ~ S ) ) SEQ ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) PRF
+N1 ( ~ ( ~ S ) ) : PR ; N2 | ( ~ ( P v S ) ) : AS ; N3 | | P : AS ; N4 | | ( ~ ( ~ S ) ) : R N1 ; N5 | | ( ( ~ ( ~ S ) ) v R ) : ORI1 N4 ; N6 | ( P > ( ( ~ ( ~ S ) ) v R ) ) : IMPI N3 N5 ; N7 | ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) : ANDI N6 N2 ; N8 ( ( ~ ( P v S ) ) > ( ( P > ( ( ~ ( ~ S ) ) v R ) ) & ( ~ ( P v S ) ) ) ) : IMPI N2 N7 ; QED
+--- train-pool L=6 lines=8 seen in {'lr1e-4/train': 1}
+THM ( ~ ( ~ S ) ) SEQ ( ( ~ S ) > ( F & ( ( ~ ( ~ S ) ) v S ) ) ) PRF
+N1 ( ~ ( ~ S ) ) : PR ; N2 | ( ~ S ) : AS ; N3 | ( ( ~ ( ~ S ) ) v S ) : ORI1 N1 ; N4 | S : DN N1 ; N5 | F : NEGE N4 N2 ; N6 | ( ( ~ ( ~ S ) ) v S ) : ORI2 N4 ; N7 | ( F & ( ( ~ ( ~ S ) ) v S ) ) : ANDI N5 N6 ; N8 ( ( ~ S ) > ( F & ( ( ~ ( ~ S ) ) v S ) ) ) : IMPI N2 N7 ; QED
+--- train-pool L=7 lines=9 seen in {'lr3e-5/train': 1, 'lr1e-4/train': 4}
+THM ( ~ Q ) , S , ( ~ ( ( ( ~ P ) v ( Q > P ) ) v ( S & ( ~ Q ) ) ) ) SEQ ( ( ~ ( ~ ( R > P ) ) ) > ( Q > ( R > P ) ) ) PRF
+N1 ( ~ Q ) : PR ; N2 S : PR ; N3 ( ~ ( ( ( ~ P ) v ( Q > P ) ) v ( S & ( ~ Q ) ) ) ) : PR ; N4 ( S & ( ~ Q ) ) : ANDI N2 N1 ; N5 ( ( ( ~ P ) v ( Q > P ) ) v ( S & ( ~ Q ) ) ) : ORI2 N4 ; N6 F : NEGE N5 N3 ; N7 | ( ~ ( ~ ( R > P ) ) ) : AS ; N8 | ( Q > ( R > P ) ) : BOTE N6 ; N9 ( ( ~ ( ~ ( R > P ) ) ) > ( Q > ( R > P ) ) ) : IMPI N7 N8 ; QED
+--- train-pool L=7 lines=9 seen in {'lr3e-4/train': 1}
+THM ( ~ Q ) , S , ( ~ ( ( ( ~ P ) v ( Q > P ) ) v ( S & ( ~ Q ) ) ) ) SEQ ( ( ~ ( ~ ( R > P ) ) ) > ( Q > ( R > P ) ) ) PRF
+N1 ( ~ Q ) : PR ; N2 S : PR ; N3 ( ~ ( ( ( ~ P ) v ( Q > P ) ) v ( S & ( ~ Q ) ) ) ) : PR ; N4 ( S & ( ~ Q ) ) : ANDI N2 N1 ; N5 | ( ~ ( ~ ( R > P ) ) ) : AS ; N6 | | Q : AS ; N7 | | ( R > P ) : DN N5 ; N8 | ( Q > ( R > P ) ) : IMPI N6 N7 ; N9 ( ( ~ ( ~ ( R > P ) ) ) > ( Q > ( R > P ) ) ) : IMPI N5 N8 ; QED
+--- train-pool L=8 lines=8 seen in {'lr3e-5/train': 21, 'lr1e-4/train': 42, 'lr3e-4/train': 29, 'ei/train': 24}
+THM ( ~ R ) , ( ( ~ R ) > S ) SEQ ( ( P & S ) > ( ( ( R & S ) & Q ) > ( S & S ) ) ) PRF
+N1 ( ~ R ) : PR ; N2 ( ( ~ R ) > S ) : PR ; N3 S : IMPE N2 N1 ; N4 | ( P & S ) : AS ; N5 | | ( ( R & S ) & Q ) : AS ; N6 | | ( S & S ) : ANDI N3 N3 ; N7 | ( ( ( R & S ) & Q ) > ( S & S ) ) : IMPI N5 N6 ; N8 ( ( P & S ) > ( ( ( R & S ) & Q ) > ( S & S ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=8 lines=8 seen in {'ei/train': 2}
+THM ( ~ R ) , ( ( ~ R ) > S ) SEQ ( ( P & S ) > ( ( ( R & S ) & Q ) > ( S & S ) ) ) PRF
+N1 ( ~ R ) : PR ; N2 ( ( ~ R ) > S ) : PR ; N3 | ( P & S ) : AS ; N4 | S : IMPE N2 N1 ; N5 | | ( ( R & S ) & Q ) : AS ; N6 | | ( S & S ) : ANDI N4 N4 ; N7 | ( ( ( R & S ) & Q ) > ( S & S ) ) : IMPI N5 N6 ; N8 ( ( P & S ) > ( ( ( R & S ) & Q ) > ( S & S ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=8 lines=8 seen in {'ei/train': 1}
+THM ( ~ R ) , ( ( ~ R ) > S ) SEQ ( ( P & S ) > ( ( ( R & S ) & Q ) > ( S & S ) ) ) PRF
+N1 ( ~ R ) : PR ; N2 ( ( ~ R ) > S ) : PR ; N3 | ( P & S ) : AS ; N4 | | ( ( R & S ) & Q ) : AS ; N5 | | S : IMPE N2 N1 ; N6 | | ( S & S ) : ANDI N5 N5 ; N7 | ( ( ( R & S ) & Q ) > ( S & S ) ) : IMPI N4 N6 ; N8 ( ( P & S ) > ( ( ( R & S ) & Q ) > ( S & S ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'lr1e-4/train': 2, 'ei/train': 1}
+THM ( ~ R ) , ( R v S ) SEQ ( ( ~ ( ~ S ) ) > ( ( ~ ( R & S ) ) > ( ( ~ ( ~ S ) ) & ( ~ R ) ) ) ) PRF
+N1 ( ~ R ) : PR ; N2 ( R v S ) : PR ; N3 ( ~ R ) : R N1 ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | | ( ~ ( R & S ) ) : AS ; N6 | | ( ( ~ ( ~ S ) ) & ( ~ R ) ) : ANDI N4 N3 ; N7 | ( ( ~ ( R & S ) ) > ( ( ~ ( ~ S ) ) & ( ~ R ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ~ ( R & S ) ) > ( ( ~ ( ~ S ) ) & ( ~ R ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 6}
+THM P , ( ( ( S v P ) v P ) v S ) SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( S v P ) v P ) ) ) PRF
+N1 P : PR ; N2 ( ( ( S v P ) v P ) v S ) : PR ; N3 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N4 | | P : AS ; N5 | | ( S v P ) : ORI2 N1 ; N6 | | ( ( S v P ) v P ) : ORI1 N5 ; N7 | ( P > ( ( S v P ) v P ) ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( S v P ) v P ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'ei/train': 1}
+THM P , ( ( R & P ) > Q ) , R SEQ ( ( ~ ( ~ ( S v S ) ) ) > Q ) PRF
+N1 P : PR ; N2 ( ( R & P ) > Q ) : PR ; N3 R : PR ; N4 ( R & P ) : ANDI N3 N1 ; N5 Q : IMPE N2 N4 ; N6 | ( ~ ( ~ ( S v S ) ) ) : AS ; N7 | Q : R N5 ; N8 ( ( ~ ( ~ ( S v S ) ) ) > Q ) : IMPI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 14}
+THM P , Q SEQ ( ( ~ ( ( S > ( ~ R ) ) v ( P & P ) ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( ( P v ( S & Q ) ) v Q ) ) ) PRF
+N1 P : PR ; N2 Q : PR ; N3 ( P v ( S & Q ) ) : ORI1 N1 ; N4 | ( ~ ( ( S > ( ~ R ) ) v ( P & P ) ) ) : AS ; N5 | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N6 | | ( ( P v ( S & Q ) ) v Q ) : ORI1 N3 ; N7 | ( ( ~ ( ~ ( ~ P ) ) ) > ( ( P v ( S & Q ) ) v Q ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ( S > ( ~ R ) ) v ( P & P ) ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( ( P v ( S & Q ) ) v Q ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 3, 'lr3e-4/train': 3}
+THM P , Q SEQ ( ( ~ ( ( S > ( ~ R ) ) v ( P & P ) ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( ( P v ( S & Q ) ) v Q ) ) ) PRF
+N1 P : PR ; N2 Q : PR ; N3 | ( ~ ( ( S > ( ~ R ) ) v ( P & P ) ) ) : AS ; N4 | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N5 | | ( P v ( S & Q ) ) : ORI1 N1 ; N6 | | ( ( P v ( S & Q ) ) v Q ) : ORI1 N5 ; N7 | ( ( ~ ( ~ ( ~ P ) ) ) > ( ( P v ( S & Q ) ) v Q ) ) : IMPI N4 N6 ; N8 ( ( ~ ( ( S > ( ~ R ) ) v ( P & P ) ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( ( P v ( S & Q ) ) v Q ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'lr1e-4/train': 2}
+THM P , R , ( ( ( R > R ) v S ) v R ) SEQ ( ( ~ ( ~ ( R v S ) ) ) > ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) ) PRF
+N1 P : PR ; N2 R : PR ; N3 ( ( ( R > R ) v S ) v R ) : PR ; N4 ( ( ( ( R > R ) v S ) v R ) & R ) : ANDI N3 N2 ; N5 | ( ~ ( ~ ( R v S ) ) ) : AS ; N6 | ( ( ( ( R > R ) v S ) v R ) & R ) : ANDI N3 N2 ; N7 | ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) : ANDI N6 N1 ; N8 ( ( ~ ( ~ ( R v S ) ) ) > ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) ) : IMPI N5 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM P , R , ( ( ( R > R ) v S ) v R ) SEQ ( ( ~ ( ~ ( R v S ) ) ) > ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) ) PRF
+N1 P : PR ; N2 R : PR ; N3 ( ( ( R > R ) v S ) v R ) : PR ; N4 | ( ~ ( ~ ( R v S ) ) ) : AS ; N5 | ( ( ( R > R ) v S ) v R ) : ORI2 N2 ; N6 | ( ( ( ( R > R ) v S ) v R ) & R ) : ANDI N5 N2 ; N7 | ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) : ANDI N6 N1 ; N8 ( ( ~ ( ~ ( R v S ) ) ) > ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM P , R , ( ( ( R > R ) v S ) v R ) SEQ ( ( ~ ( ~ ( R v S ) ) ) > ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) ) PRF
+N1 P : PR ; N2 R : PR ; N3 ( ( ( R > R ) v S ) v R ) : PR ; N4 | ( ~ ( ~ ( R v S ) ) ) : AS ; N5 | ( R & R ) : ANDI N2 N2 ; N6 | ( ( ( ( R > R ) v S ) v R ) & R ) : ANDI N3 N2 ; N7 | ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) : ANDI N6 N1 ; N8 ( ( ~ ( ~ ( R v S ) ) ) > ( ( ( ( ( R > R ) v S ) v R ) & R ) & P ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 5, 'lr1e-4/train': 9, 'lr3e-4/train': 2, 'ei/train': 1}
+THM Q , ( ( S & R ) & Q ) SEQ ( ( P > ( ~ R ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v Q ) ) ) PRF
+N1 Q : PR ; N2 ( ( S & R ) & Q ) : PR ; N3 Q : ANDE2 N2 ; N4 | ( P > ( ~ R ) ) : AS ; N5 | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N6 | | ( S v Q ) : ORI2 N3 ; N7 | ( ( ~ ( ~ ( ~ P ) ) ) > ( S v Q ) ) : IMPI N5 N6 ; N8 ( ( P > ( ~ R ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v Q ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'ei/train': 1}
+THM Q , ( ( S & R ) & Q ) SEQ ( ( P > ( ~ R ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v Q ) ) ) PRF
+N1 Q : PR ; N2 ( ( S & R ) & Q ) : PR ; N3 Q : R N1 ; N4 | ( P > ( ~ R ) ) : AS ; N5 | | ( ~ ( ~ ( ~ P ) ) ) : AS ; N6 | | ( S v Q ) : ORI2 N3 ; N7 | ( ( ~ ( ~ ( ~ P ) ) ) > ( S v Q ) ) : IMPI N5 N6 ; N8 ( ( P > ( ~ R ) ) > ( ( ~ ( ~ ( ~ P ) ) ) > ( S v Q ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 36, 'lr1e-4/train': 43, 'lr3e-4/train': 1, 'ei/train': 29}
+THM Q , ( ( S > ( S & Q ) ) v R ) , S SEQ ( ( ~ S ) > ( Q & ( ( Q & Q ) & S ) ) ) PRF
+N1 Q : PR ; N2 ( ( S > ( S & Q ) ) v R ) : PR ; N3 S : PR ; N4 ( Q & Q ) : ANDI N1 N1 ; N5 ( ( Q & Q ) & S ) : ANDI N4 N3 ; N6 | ( ~ S ) : AS ; N7 | ( Q & ( ( Q & Q ) & S ) ) : ANDI N1 N5 ; N8 ( ( ~ S ) > ( Q & ( ( Q & Q ) & S ) ) ) : IMPI N6 N7 ; QED
+--- train-pool L=7 lines=9 seen in {'lr3e-4/train': 1}
+THM Q , ( ( S > ( S & Q ) ) v R ) , S SEQ ( ( ~ S ) > ( Q & ( ( Q & Q ) & S ) ) ) PRF
+N1 Q : PR ; N2 ( ( S > ( S & Q ) ) v R ) : PR ; N3 S : PR ; N4 ( S & Q ) : ANDI N3 N1 ; N5 ( Q & ( S & Q ) ) : ANDI N1 N4 ; N6 | ( ~ S ) : AS ; N7 | F : NEGE N3 N6 ; N8 | ( Q & ( ( Q & Q ) & S ) ) : BOTE N7 ; N9 ( ( ~ S ) > ( Q & ( ( Q & Q ) & S ) ) ) : IMPI N6 N8 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM Q , ( ( S > ( S & Q ) ) v R ) , S SEQ ( ( ~ S ) > ( Q & ( ( Q & Q ) & S ) ) ) PRF
+N1 Q : PR ; N2 ( ( S > ( S & Q ) ) v R ) : PR ; N3 S : PR ; N4 ( S & Q ) : ANDI N3 N1 ; N5 | ( ~ S ) : AS ; N6 | F : NEGE N3 N5 ; N7 | ( Q & ( ( Q & Q ) & S ) ) : BOTE N6 ; N8 ( ( ~ S ) > ( Q & ( ( Q & Q ) & S ) ) ) : IMPI N5 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM Q , ( Q v ( ( ~ Q ) & ( Q v R ) ) ) SEQ ( Q > ( P > ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) ) ) PRF
+N1 Q : PR ; N2 ( Q v ( ( ~ Q ) & ( Q v R ) ) ) : PR ; N3 | Q : AS ; N4 | | P : AS ; N5 | | ( Q v ( ( ~ Q ) & ( Q v R ) ) ) : ORI1 N1 ; N6 | | ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) : ANDI N1 N2 ; N7 | ( P > ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) ) : IMPI N4 N6 ; N8 ( Q > ( P > ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM Q , ( Q v ( ( ~ Q ) & ( Q v R ) ) ) SEQ ( Q > ( P > ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) ) ) PRF
+N1 Q : PR ; N2 ( Q v ( ( ~ Q ) & ( Q v R ) ) ) : PR ; N3 | Q : AS ; N4 | | P : AS ; N5 | | ( Q v ( ( ~ Q ) & ( Q v R ) ) ) : ORI1 N1 ; N6 | | ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) : ANDI N1 N5 ; N7 | ( P > ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) ) : IMPI N4 N6 ; N8 ( Q > ( P > ( Q & ( Q v ( ( ~ Q ) & ( Q v R ) ) ) ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'lr1e-4/train': 1, 'ei/train': 1}
+THM Q , R , ( ( R & ( S v Q ) ) v Q ) SEQ ( ( ~ ( R v ( ( R & R ) > ( S v P ) ) ) ) > ( R & ( S v Q ) ) ) PRF
+N1 Q : PR ; N2 R : PR ; N3 ( ( R & ( S v Q ) ) v Q ) : PR ; N4 ( S v Q ) : ORI2 N1 ; N5 ( R & ( S v Q ) ) : ANDI N2 N4 ; N6 | ( ~ ( R v ( ( R & R ) > ( S v P ) ) ) ) : AS ; N7 | ( R & ( S v Q ) ) : ANDI N2 N4 ; N8 ( ( ~ ( R v ( ( R & R ) > ( S v P ) ) ) ) > ( R & ( S v Q ) ) ) : IMPI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 8}
+THM Q SEQ ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ Q ) ) & ( Q v Q ) ) ) ) PRF
+N1 Q : PR ; N2 ( Q v Q ) : ORI1 N1 ; N3 | ( ~ ( ~ S ) ) : AS ; N4 | | ( ~ ( ~ Q ) ) : AS ; N5 | | ( ( ~ ( ~ Q ) ) & ( Q v Q ) ) : ANDI N4 N2 ; N6 | | ( ( ~ ( ~ Q ) ) & ( Q v Q ) ) : ANDI N4 N2 ; N7 | ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ Q ) ) & ( Q v Q ) ) ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ~ ( ~ Q ) ) > ( ( ~ ( ~ Q ) ) & ( Q v Q ) ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM Q SEQ ( Q > ( Q > ( Q & ( Q & Q ) ) ) ) PRF
+N1 Q : PR ; N2 ( Q & Q ) : ANDI N1 N1 ; N3 ( Q & ( Q & Q ) ) : ANDI N1 N2 ; N4 | Q : AS ; N5 | | Q : AS ; N6 | | ( Q & ( Q & Q ) ) : ANDI N4 N2 ; N7 | ( Q > ( Q & ( Q & Q ) ) ) : IMPI N5 N6 ; N8 ( Q > ( Q > ( Q & ( Q & Q ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'ei/train': 1}
+THM Q SEQ ( Q > ( Q > ( Q & ( Q & Q ) ) ) ) PRF
+N1 Q : PR ; N2 ( Q & Q ) : ANDI N1 N1 ; N3 ( Q & Q ) : ANDI N1 N1 ; N4 | Q : AS ; N5 | | Q : AS ; N6 | | ( Q & ( Q & Q ) ) : ANDI N5 N3 ; N7 | ( Q > ( Q & ( Q & Q ) ) ) : IMPI N5 N6 ; N8 ( Q > ( Q > ( Q & ( Q & Q ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=6 lines=8 seen in {'lr3e-5/train': 1}
+THM R , ( ( R & R ) > Q ) , ( ~ ( R & R ) ) SEQ ( Q & ( ~ ( R & R ) ) ) PRF
+N1 R : PR ; N2 ( ( R & R ) > Q ) : PR ; N3 ( ~ ( R & R ) ) : PR ; N4 R : R N1 ; N5 ( ~ ( R & R ) ) : R N3 ; N6 ( R & R ) : ANDI N4 N4 ; N7 F : NEGE N6 N3 ; N8 ( Q & ( ~ ( R & R ) ) ) : BOTE N7 ; QED
+--- train-pool L=6 lines=8 seen in {'lr1e-4/train': 1}
+THM R , ( ( R & R ) > Q ) , ( ~ ( R & R ) ) SEQ ( Q & ( ~ ( R & R ) ) ) PRF
+N1 R : PR ; N2 ( ( R & R ) > Q ) : PR ; N3 ( ~ ( R & R ) ) : PR ; N4 R : R N1 ; N5 ( ~ ( R & R ) ) : R N3 ; N6 ( R & R ) : ANDI N4 N4 ; N7 Q : IMPE N2 N6 ; N8 ( Q & ( ~ ( R & R ) ) ) : ANDI N7 N5 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 3, 'ei/train': 1}
+THM R , ( P v ( ~ S ) ) SEQ ( ( ~ ( ~ ( P > Q ) ) ) > ( P > ( R & ( P v ( ~ S ) ) ) ) ) PRF
+N1 R : PR ; N2 ( P v ( ~ S ) ) : PR ; N3 ( P v ( ~ S ) ) : R N2 ; N4 | ( ~ ( ~ ( P > Q ) ) ) : AS ; N5 | | P : AS ; N6 | | ( R & ( P v ( ~ S ) ) ) : ANDI N1 N3 ; N7 | ( P > ( R & ( P v ( ~ S ) ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( P > Q ) ) ) > ( P > ( R & ( P v ( ~ S ) ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=9 seen in {'lr3e-4/train': 5}
+THM R , ( R v Q ) , ( ( R v Q ) > Q ) SEQ ( ( ~ ( ~ S ) ) > ( ( ( R v Q ) > Q ) & ( S v R ) ) ) PRF
+N1 R : PR ; N2 ( R v Q ) : PR ; N3 ( ( R v Q ) > Q ) : PR ; N4 ( S v R ) : ORI2 N1 ; N5 | ( ~ ( ~ S ) ) : AS ; N6 | | ( ( R v Q ) > Q ) : AS ; N7 | | ( ( ( R v Q ) > Q ) & ( S v R ) ) : ANDI N3 N4 ; N8 | ( ( ( R v Q ) > Q ) & ( S v R ) ) : ANDI N3 N4 ; N9 ( ( ~ ( ~ S ) ) > ( ( ( R v Q ) > Q ) & ( S v R ) ) ) : IMPI N5 N8 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 4}
+THM R , ( R v Q ) , ( ( R v Q ) > Q ) SEQ ( ( ~ ( ~ S ) ) > ( ( ( R v Q ) > Q ) & ( S v R ) ) ) PRF
+N1 R : PR ; N2 ( R v Q ) : PR ; N3 ( ( R v Q ) > Q ) : PR ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | ( ( R v Q ) > Q ) : R N3 ; N6 | ( S v R ) : ORI2 N1 ; N7 | ( ( ( R v Q ) > Q ) & ( S v R ) ) : ANDI N5 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ( R v Q ) > Q ) & ( S v R ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'ei/train': 2}
+THM R , ( R v Q ) , ( ( R v Q ) > Q ) SEQ ( ( ~ ( ~ S ) ) > ( ( ( R v Q ) > Q ) & ( S v R ) ) ) PRF
+N1 R : PR ; N2 ( R v Q ) : PR ; N3 ( ( R v Q ) > Q ) : PR ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | Q : IMPE N3 N2 ; N6 | ( S v R ) : ORI2 N1 ; N7 | ( ( ( R v Q ) > Q ) & ( S v R ) ) : ANDI N3 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( ( R v Q ) > Q ) & ( S v R ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=8 lines=8 seen in {'lr1e-4/train': 3, 'ei/train': 3}
+THM R , ( S & P ) SEQ ( R > ( ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) & R ) ) PRF
+N1 R : PR ; N2 ( S & P ) : PR ; N3 | ( ~ ( ~ ( P > P ) ) ) : AS ; N4 | ( P > P ) : DN N3 ; N5 ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) : IMPI N3 N4 ; N6 | R : AS ; N7 | ( ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) & R ) : ANDI N5 N1 ; N8 ( R > ( ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) & R ) ) : IMPI N6 N7 ; QED
+--- train-pool L=8 lines=8 seen in {'lr3e-5/train': 36, 'lr1e-4/train': 40, 'lr3e-4/train': 15, 'ei/train': 15}
+THM R , ( S & P ) SEQ ( R > ( ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) & R ) ) PRF
+N1 R : PR ; N2 ( S & P ) : PR ; N3 | R : AS ; N4 | | ( ~ ( ~ ( P > P ) ) ) : AS ; N5 | | ( P > P ) : DN N4 ; N6 | ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) : IMPI N4 N5 ; N7 | ( ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) & R ) : ANDI N6 N1 ; N8 ( R > ( ( ( ~ ( ~ ( P > P ) ) ) > ( P > P ) ) & R ) ) : IMPI N3 N7 ; QED
+--- train-pool L=8 lines=10 seen in {'lr3e-4/train': 1}
+THM R , ( ~ ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) ) , ( P v R ) SEQ P PRF
+N1 R : PR ; N2 ( ~ ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) ) : PR ; N3 ( P v R ) : PR ; N4 | ( ~ ( ~ ( R & S ) ) ) : AS ; N5 | ( R v ( ~ ( S > Q ) ) ) : ORI1 N1 ; N6 ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) : IMPI N4 N5 ; N7 F : NEGE N6 N2 ; N8 P : BOTE N7 ; N9 P : BOTE N7 ; N10 P : BOTE N7 ; QED
+--- train-pool L=8 lines=9 seen in {'lr3e-4/train': 13}
+THM R , ( ~ ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) ) , ( P v R ) SEQ P PRF
+N1 R : PR ; N2 ( ~ ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) ) : PR ; N3 ( P v R ) : PR ; N4 | ( ~ ( ~ ( R & S ) ) ) : AS ; N5 | ( R v ( ~ ( S > Q ) ) ) : ORI1 N1 ; N6 ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) : IMPI N4 N5 ; N7 F : NEGE N6 N2 ; N8 P : BOTE N7 ; N9 P : BOTE N7 ; QED
+--- train-pool L=8 lines=8 seen in {'lr3e-5/train': 41, 'lr1e-4/train': 45, 'lr3e-4/train': 19, 'ei/train': 34}
+THM R , ( ~ ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) ) , ( P v R ) SEQ P PRF
+N1 R : PR ; N2 ( ~ ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) ) : PR ; N3 ( P v R ) : PR ; N4 | ( ~ ( ~ ( R & S ) ) ) : AS ; N5 | ( R v ( ~ ( S > Q ) ) ) : ORI1 N1 ; N6 ( ( ~ ( ~ ( R & S ) ) ) > ( R v ( ~ ( S > Q ) ) ) ) : IMPI N4 N5 ; N7 F : NEGE N6 N2 ; N8 P : BOTE N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1, 'ei/train': 1}
+THM R , ( ~ ( ~ R ) ) , ( P v ( S v ( P v P ) ) ) SEQ ( ( ~ R ) > ( ( R v S ) v ( S & R ) ) ) PRF
+N1 R : PR ; N2 ( ~ ( ~ R ) ) : PR ; N3 ( P v ( S v ( P v P ) ) ) : PR ; N4 R : DN N2 ; N5 ( R v S ) : ORI1 N4 ; N6 | ( ~ R ) : AS ; N7 | ( ( R v S ) v ( S & R ) ) : ORI1 N5 ; N8 ( ( ~ R ) > ( ( R v S ) v ( S & R ) ) ) : IMPI N6 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM R , ( ~ ( ~ R ) ) , ( P v ( S v ( P v P ) ) ) SEQ ( ( ~ R ) > ( ( R v S ) v ( S & R ) ) ) PRF
+N1 R : PR ; N2 ( ~ ( ~ R ) ) : PR ; N3 ( P v ( S v ( P v P ) ) ) : PR ; N4 R : DN N2 ; N5 | ( ~ R ) : AS ; N6 | ( R v S ) : ORI1 N4 ; N7 | ( ( R v S ) v ( S & R ) ) : ORI1 N6 ; N8 ( ( ~ R ) > ( ( R v S ) v ( S & R ) ) ) : IMPI N5 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'ei/train': 1}
+THM R SEQ ( S > ( ( ~ ( ~ Q ) ) > ( S & ( R & R ) ) ) ) PRF
+N1 R : PR ; N2 ( R & R ) : ANDI N1 N1 ; N3 ( R & R ) : ANDI N1 N1 ; N4 | S : AS ; N5 | | ( ~ ( ~ Q ) ) : AS ; N6 | | ( S & ( R & R ) ) : ANDI N4 N3 ; N7 | ( ( ~ ( ~ Q ) ) > ( S & ( R & R ) ) ) : IMPI N5 N6 ; N8 ( S > ( ( ~ ( ~ Q ) ) > ( S & ( R & R ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 2}
+THM S , ( P v ( Q & S ) ) SEQ ( ( ~ ( ~ ( P & R ) ) ) > ( ( ~ ( ~ ( Q > R ) ) ) > ( S v ( Q > R ) ) ) ) PRF
+N1 S : PR ; N2 ( P v ( Q & S ) ) : PR ; N3 ( S v ( Q & S ) ) : ORI1 N1 ; N4 | ( ~ ( ~ ( P & R ) ) ) : AS ; N5 | | ( ~ ( ~ ( Q > R ) ) ) : AS ; N6 | | ( S v ( Q > R ) ) : ORI1 N1 ; N7 | ( ( ~ ( ~ ( Q > R ) ) ) > ( S v ( Q > R ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( P & R ) ) ) > ( ( ~ ( ~ ( Q > R ) ) ) > ( S v ( Q > R ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1}
+THM S , ( P v ( Q & S ) ) SEQ ( ( ~ ( ~ ( P & R ) ) ) > ( ( ~ ( ~ ( Q > R ) ) ) > ( S v ( Q > R ) ) ) ) PRF
+N1 S : PR ; N2 ( P v ( Q & S ) ) : PR ; N3 S : R N1 ; N4 | ( ~ ( ~ ( P & R ) ) ) : AS ; N5 | | ( ~ ( ~ ( Q > R ) ) ) : AS ; N6 | | ( S v ( Q > R ) ) : ORI1 N3 ; N7 | ( ( ~ ( ~ ( Q > R ) ) ) > ( S v ( Q > R ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( P & R ) ) ) > ( ( ~ ( ~ ( Q > R ) ) ) > ( S v ( Q > R ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1}
+THM S , ( Q v Q ) SEQ ( ( ( Q v Q ) > ( ~ R ) ) > ( S > ( ( ~ ( P & P ) ) v S ) ) ) PRF
+N1 S : PR ; N2 ( Q v Q ) : PR ; N3 S : R N1 ; N4 | ( ( Q v Q ) > ( ~ R ) ) : AS ; N5 | | S : AS ; N6 | | ( ( ~ ( P & P ) ) v S ) : ORI2 N3 ; N7 | ( S > ( ( ~ ( P & P ) ) v S ) ) : IMPI N5 N6 ; N8 ( ( ( Q v Q ) > ( ~ R ) ) > ( S > ( ( ~ ( P & P ) ) v S ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM S , ( S > ( S v P ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) PRF
+N1 S : PR ; N2 ( S > ( S v P ) ) : PR ; N3 ( S > ( S v P ) ) : R N2 ; N4 | ( ~ ( ~ ( R & S ) ) ) : AS ; N5 | | ( ~ ( S > ( S v P ) ) ) : AS ; N6 | | S : R N1 ; N7 | ( ( ~ ( S > ( S v P ) ) ) > S ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'lr1e-4/train': 3}
+THM S , ( S > ( S v P ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) PRF
+N1 S : PR ; N2 ( S > ( S v P ) ) : PR ; N3 ( S v P ) : IMPE N2 N1 ; N4 | ( ~ ( ~ ( R & S ) ) ) : AS ; N5 | | ( ~ ( S > ( S v P ) ) ) : AS ; N6 | | S : R N1 ; N7 | ( ( ~ ( S > ( S v P ) ) ) > S ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM S , ( S > ( S v P ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) PRF
+N1 S : PR ; N2 ( S > ( S v P ) ) : PR ; N3 ( S v P ) : ORI1 N1 ; N4 | ( ~ ( ~ ( R & S ) ) ) : AS ; N5 | | ( ~ ( S > ( S v P ) ) ) : AS ; N6 | | S : R N1 ; N7 | ( ( ~ ( S > ( S v P ) ) ) > S ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 1}
+THM S , ( S > ( S v P ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) PRF
+N1 S : PR ; N2 ( S > ( S v P ) ) : PR ; N3 | ( ~ ( ~ ( R & S ) ) ) : AS ; N4 | ( S v P ) : IMPE N2 N1 ; N5 | | ( ~ ( S > ( S v P ) ) ) : AS ; N6 | | S : R N1 ; N7 | ( ( ~ ( S > ( S v P ) ) ) > S ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 4}
+THM S , ( S > ( S v P ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) PRF
+N1 S : PR ; N2 ( S > ( S v P ) ) : PR ; N3 | ( ~ ( ~ ( R & S ) ) ) : AS ; N4 | | ( ~ ( S > ( S v P ) ) ) : AS ; N5 | | ( S v P ) : IMPE N2 N1 ; N6 | | S : R N1 ; N7 | ( ( ~ ( S > ( S v P ) ) ) > S ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 1}
+THM S , ( S > ( S v P ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) PRF
+N1 S : PR ; N2 ( S > ( S v P ) ) : PR ; N3 | ( ~ ( ~ ( R & S ) ) ) : AS ; N4 | | ( ~ ( S > ( S v P ) ) ) : AS ; N5 | | ( S v P ) : ORI1 N1 ; N6 | | S : R N1 ; N7 | ( ( ~ ( S > ( S v P ) ) ) > S ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ ( R & S ) ) ) > ( ( ~ ( S > ( S v P ) ) ) > S ) ) : IMPI N3 N7 ; QED
+--- train-pool L=6 lines=8 seen in {'lr3e-4/train': 4, 'ei/train': 1}
+THM S , ( ~ S ) SEQ ( ( ~ ( ~ S ) ) > ( R > S ) ) PRF
+N1 S : PR ; N2 ( ~ S ) : PR ; N3 F : NEGE N1 N2 ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | | R : AS ; N6 | | S : R N1 ; N7 | ( R > S ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ S ) ) > ( R > S ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 11, 'lr1e-4/train': 16, 'lr3e-4/train': 39, 'ei/train': 8}
+THM S , Q SEQ ( ( ~ ( ~ S ) ) > ( ( S & Q ) > ( P v ( S & Q ) ) ) ) PRF
+N1 S : PR ; N2 Q : PR ; N3 ( S & Q ) : ANDI N1 N2 ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | | ( S & Q ) : AS ; N6 | | ( P v ( S & Q ) ) : ORI2 N3 ; N7 | ( ( S & Q ) > ( P v ( S & Q ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( S & Q ) > ( P v ( S & Q ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-4/train': 2}
+THM S , Q SEQ ( ( ~ ( ~ S ) ) > ( ( S & Q ) > ( P v ( S & Q ) ) ) ) PRF
+N1 S : PR ; N2 Q : PR ; N3 | ( ~ ( ~ S ) ) : AS ; N4 | | ( S & Q ) : AS ; N5 | | ( S & Q ) : ANDI N1 N2 ; N6 | | ( P v ( S & Q ) ) : ORI2 N5 ; N7 | ( ( S & Q ) > ( P v ( S & Q ) ) ) : IMPI N4 N6 ; N8 ( ( ~ ( ~ S ) ) > ( ( S & Q ) > ( P v ( S & Q ) ) ) ) : IMPI N3 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'ei/train': 1}
+THM S SEQ ( ( ~ ( ~ P ) ) > ( ( ~ P ) > ( ( ~ ( ~ P ) ) & ( S & S ) ) ) ) PRF
+N1 S : PR ; N2 ( S & S ) : ANDI N1 N1 ; N3 ( S & S ) : ANDI N1 N1 ; N4 | ( ~ ( ~ P ) ) : AS ; N5 | | ( ~ P ) : AS ; N6 | | ( ( ~ ( ~ P ) ) & ( S & S ) ) : ANDI N4 N3 ; N7 | ( ( ~ P ) > ( ( ~ ( ~ P ) ) & ( S & S ) ) ) : IMPI N5 N6 ; N8 ( ( ~ ( ~ P ) ) > ( ( ~ P ) > ( ( ~ ( ~ P ) ) & ( S & S ) ) ) ) : IMPI N4 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1}
+THM S SEQ ( R > ( ( ~ ( ~ Q ) ) > ( ( S v S ) & ( ~ ( ~ Q ) ) ) ) ) PRF
+N1 S : PR ; N2 | R : AS ; N3 | | ( ~ ( ~ Q ) ) : AS ; N4 | | S : R N1 ; N5 | | ( S v S ) : ORI1 N4 ; N6 | | ( ( S v S ) & ( ~ ( ~ Q ) ) ) : ANDI N5 N3 ; N7 | ( ( ~ ( ~ Q ) ) > ( ( S v S ) & ( ~ ( ~ Q ) ) ) ) : IMPI N3 N6 ; N8 ( R > ( ( ~ ( ~ Q ) ) > ( ( S v S ) & ( ~ ( ~ Q ) ) ) ) ) : IMPI N2 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1, 'lr1e-4/train': 2}
+THM SEQ ( P > ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) ) PRF
+N1 | P : AS ; N2 | ( P v ( ~ ( S > S ) ) ) : ORI1 N1 ; N3 | ( P v ( ~ ( S > S ) ) ) : ORI1 N1 ; N4 | | ( ( ~ Q ) & R ) : AS ; N5 | | ( P & ( P v ( ~ ( S > S ) ) ) ) : ANDI N1 N2 ; N6 | | ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) : ANDI N5 N4 ; N7 | ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) : IMPI N4 N6 ; N8 ( P > ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) ) : IMPI N1 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr1e-4/train': 2}
+THM SEQ ( P > ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) ) PRF
+N1 | P : AS ; N2 | ( P v ( ~ ( S > S ) ) ) : ORI1 N1 ; N3 | ( P v ( ~ ( S > S ) ) ) : ORI1 N1 ; N4 | | ( ( ~ Q ) & R ) : AS ; N5 | | ( P & ( P v ( ~ ( S > S ) ) ) ) : ANDI N1 N3 ; N6 | | ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) : ANDI N5 N4 ; N7 | ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) : IMPI N4 N6 ; N8 ( P > ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) ) : IMPI N1 N7 ; QED
+--- train-pool L=7 lines=8 seen in {'lr3e-5/train': 1}
+THM SEQ ( P > ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) ) PRF
+N1 | P : AS ; N2 | ( P v ( ~ ( S > S ) ) ) : ORI1 N1 ; N3 | | ( ( ~ Q ) & R ) : AS ; N4 | | ( P v ( ~ ( S > S ) ) ) : ORI1 N1 ; N5 | | ( P & ( P v ( ~ ( S > S ) ) ) ) : ANDI N1 N2 ; N6 | | ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) : ANDI N5 N3 ; N7 | ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) : IMPI N3 N6 ; N8 ( P > ( ( ( ~ Q ) & R ) > ( ( P & ( P v ( ~ ( S > S ) ) ) ) & ( ( ~ Q ) & R ) ) ) ) : IMPI N1 N7 ; QED

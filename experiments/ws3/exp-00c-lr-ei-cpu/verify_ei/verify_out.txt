@@ -1,0 +1,109 @@
+sizes: eval_set 200 pool 198 prompts_used 198 comps 12474 split_tr 2223 split_ev 2272 raw_rl 4495 tb72 72 frozen rows 6400 trained rows 6400
+
+== 1. re-verify every dump sample with strict_verify.safe_verify ==
+frozen: rows 6400 disagreements 0 prompts 200 samples/prompt {32: 200} prompts not in eval_set 0 missing eval prompts 0
+  recomputed: L7 avg 0.1225 solved 39/160; L8 avg 0.0000 solved 0/40
+  accepted rows 627; temps Counter({1.0: 6400})
+trained: rows 6400 disagreements 0 prompts 200 samples/prompt {32: 200} prompts not in eval_set 0 missing eval prompts 0
+  recomputed: L7 avg 0.5449 solved 118/160; L8 avg 0.2656 solved 19/40
+  accepted rows 3130; temps Counter({1.0: 6400})
+training completions: 12474 rows; reward vs re-verify disagreements 0; reward values Counter({1.0: 9819, 0.0: 2655})
+
+== 2. triviality / loophole scan of accepted proofs ==
+frozen: accepted 627; flags {'leaves_some_premise_unused': 185, 'has_dead_lines': 189, 'repeated_identical_line': 27, 'repeated_formula_same_depth': 40, 'uses_no_premise': 3}; text after QED 0
+  start-index distribution (top) [(2, 19), (21, 19), (19, 17), (8, 16), (40, 16), (3, 15), (24, 15), (43, 14)]
+  rule histogram (count, frac): {'ANDE1': (1, 0.0002), 'ANDE2': (5, 0.0011), 'ANDI': (474, 0.1079), 'AS': (1117, 0.2544), 'BOTE': (60, 0.0137), 'DN': (27, 0.0061), 'IMPE': (118, 0.0269), 'IMPI': (1095, 0.2494), 'NEGE': (60, 0.0137), 'ORE': (11, 0.0025), 'ORI1': (219, 0.0499), 'ORI2': (37, 0.0084), 'PR': (1128, 0.2569), 'R': (39, 0.0089)}
+  proofs shorter than L_true: 0
+trained: accepted 3130; flags {'leaves_some_premise_unused': 388, 'has_dead_lines': 461, 'repeated_identical_line': 25, 'repeated_formula_same_depth': 77, 'uses_no_premise': 68}; text after QED 0
+  start-index distribution (top) [(20, 93), (3, 83), (44, 76), (6, 74), (19, 73), (9, 72), (47, 72), (16, 69)]
+  rule histogram (count, frac): {'ANDE1': (211, 0.0094), 'ANDE2': (250, 0.0111), 'ANDI': (1275, 0.0566), 'AS': (7742, 0.3436), 'BOTE': (234, 0.0104), 'DN': (388, 0.0172), 'IMPE': (512, 0.0227), 'IMPI': (7579, 0.3364), 'NEGE': (305, 0.0135), 'NEGI': (71, 0.0032), 'ORE': (46, 0.002), 'ORI1': (585, 0.026), 'ORI2': (372, 0.0165), 'PR': (2869, 0.1273), 'R': (90, 0.004)}
+  proofs shorter than L_true: 0
+frozen: (L_true, accepted n_lines) counts [((7, 7), 625), ((7, 8), 2)]
+trained: (L_true, accepted n_lines) counts [((7, 7), 2520), ((7, 8), 269), ((7, 9), 1), ((8, 8), 332), ((8, 9), 8)]
+
+== 3. leak checks ==
+(a) exact prompt overlap eval_set ∩ prompts.jsonl: 0 (|prompts.jsonl|=198)
+(a) exact prompt overlap eval_set ∩ pool.jsonl: 0 (|pool.jsonl|=198)
+(a) exact prompt overlap eval_set ∩ split_train: 0 (|split_train|=2223)
+(a) exact prompt overlap eval_set ∩ completions prompts: 0 (|completions prompts|=198)
+    prompts.jsonl == pool.jsonl prompts: True; completions prompts ⊆ prompts.jsonl: True
+(b) canonical overlap eval_set∩split_train 0, eval_set∩pool 0, eval_set∩completion prompts 0; split_eval∩split_train (whole halves) 0
+    textbook72 ∩ pool 0, ∩ completions prompts 0, ∩ split_train 0, ∩ eval_set 0
+    pool length-6 (train.jsonl) prompts 63: canonical ∩ whole eval split 0
+(c) eval_set prompts whose renamed conclusion equals a train-split conclusion: 18/200; equals a pool (trained-on) conclusion: 6/200
+    for scale: distinct renamed conclusions in eval split 2140 over 2272 records
+    EVAL THM R , ( ~ ( ~ ( ~ S ) ) ) , ( ( R > ( S > Q ) ) v R ) SEQ ( ( ~ ( ~ S ) ) > ( ( ~ S ) > Q ) ) PRF
+      POOL THM P , ( P v ( ~ R ) ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > P ) ) PRF
+    EVAL THM ( ( ~ S ) v ( Q & R ) ) , ( ~ ( ~ S ) ) SEQ ( Q & R ) PRF
+      POOL THM ( ~ ( R v P ) ) , ( ( ~ ( R v P ) ) > R ) , P SEQ ( R & P ) PRF
+    EVAL THM ( ( R > ( P > R ) ) > R ) SEQ R PRF
+      POOL THM ( Q & P ) , ( ~ ( ~ ( Q & Q ) ) ) SEQ P PRF
+    EVAL THM Q , ( ( Q & S ) v ( S & R ) ) SEQ ( Q & S ) PRF
+      POOL THM ( ~ ( R v P ) ) , ( ( ~ ( R v P ) ) > R ) , P SEQ ( R & P ) PRF
+    EVAL THM ( R v R ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > P ) ) PRF
+      POOL THM P , ( P v ( ~ R ) ) SEQ ( ( ~ ( ~ Q ) ) > ( ( ~ Q ) > P ) ) PRF
+    EVAL THM ( ( P & ( ~ R ) ) v ( ~ ( R & S ) ) ) , ( ~ ( P & ( ~ R ) ) ) SEQ ( ~ ( R & S ) ) PRF
+      TRAIN-SPLIT THM ( ( ~ Q ) v ( ~ ( R & Q ) ) ) , ( ~ ( ~ Q ) ) SEQ ( ~ ( R & Q ) ) PRF
+    EVAL THM R , ( ~ ( ~ ( ~ S ) ) ) , ( ( R > ( S > Q ) ) v R ) SEQ ( ( ~ ( ~ S ) ) > ( ( ~ S ) > Q ) ) PRF
+      TRAIN-SPLIT THM ( Q v ( ~ ( R > R ) ) ) SEQ ( ( ~ ( ~ R ) ) > ( ( ~ R ) > Q ) ) PRF
+    EVAL THM ( ( ~ S ) v ( Q & R ) ) , ( ~ ( ~ S ) ) SEQ ( Q & R ) PRF
+      TRAIN-SPLIT THM ( ( S v Q ) v ( S & Q ) ) , ( ~ ( S v Q ) ) SEQ ( S & Q ) PRF
+    EVAL THM ( ( S > Q ) v ( P > Q ) ) , ( ~ ( S > Q ) ) SEQ ( P > Q ) PRF
+      TRAIN-SPLIT THM S , ( R v ( ~ S ) ) SEQ ( S > R ) PRF
+    EVAL THM ( ( R > ( P > R ) ) > R ) SEQ R PRF
+      TRAIN-SPLIT THM ( ( R > ( ( R & S ) & ( ~ S ) ) ) > R ) SEQ R PRF
+    L7 conclusion-in-pool: n 6 frozen avg 0.052 trained avg 0.214
+    L7 not: n 154 frozen avg 0.125 trained avg 0.558
+(d) eval_set prompts in split_eval file: 200/200; eval_set prompts in raw rl_targets: 200; split_tr+split_ev == raw rl_targets count: True
+
+== 4. newly solved (frozen 0/32, trained >=1/32) ==
+newly solved 98 (L7 79, L8 19); lost 0
+
+PROMPT (L_true 7, trained 10/32): THM ( ( ( ( ~ Q ) & S ) & S ) > ( P > ( P > Q ) ) ) SEQ ( ( ( ~ Q ) & S ) > ( S > ( P > ( P > Q ) ) ) ) PRF
+  TRAINED: N14 ( ( ( ( ~ Q ) & S ) & S ) > ( P > ( P > Q ) ) ) : PR ; N15 | ( ( ~ Q ) & S ) : AS ; N16 | | S : AS ; N17 | | ( ( ( ~ Q ) & S ) & S ) : ANDI N15 N16 ; N18 | | ( P > ( P > Q ) ) : IMPE N14 N17 ; N19 | ( S > ( P > ( P > Q ) ) ) : IMPI N16 N18 ; N20 ( ( ( ~ Q ) & S ) > ( S > ( P > ( P > Q ) ) ) ) : IMPI N15 N19 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: ANDI (line 19)): N16 ( ( ( ( ~ Q ) & S ) & S ) > ( P > ( P > Q ) ) ) : PR ; N17 | ( ( ~ Q ) & S ) : AS ; N18 | | S : AS ; N19 | | ( ( ~ Q ) & S ) : ANDI N17 N18 ; N20 | ( S > ( P > ( P > Q ) ) ) : IMPI N18 N19 ; N21 ( ( ( ~ Q ) & S ) > ( S > ( P > ( P > Q ) ) ) ) : IMPI N17 N20 ; QED
+
+PROMPT (L_true 7, trained 31/32): THM ( ( ( Q > R ) v ( S & Q ) ) > ( ~ P ) ) SEQ ( ( ~ ( ~ P ) ) > ( ~ ( ( Q > R ) v ( S & Q ) ) ) ) PRF
+  TRAINED: N22 ( ( ( Q > R ) v ( S & Q ) ) > ( ~ P ) ) : PR ; N23 | ( ~ ( ~ P ) ) : AS ; N24 | | ( ( Q > R ) v ( S & Q ) ) : AS ; N25 | | ( ~ P ) : IMPE N22 N24 ; N26 | | F : NEGE N25 N23 ; N27 | ( ~ ( ( Q > R ) v ( S & Q ) ) ) : NEGI N24 N26 ; N28 ( ( ~ ( ~ P ) ) > ( ~ ( ( Q > R ) v ( S & Q ) ) ) ) : IMPI N23 N27 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: NEGE (line 39)): N36 ( ( ( Q > R ) v ( S & Q ) ) > ( ~ P ) ) : PR ; N37 | ( ~ ( ~ P ) ) : AS ; N38 | | ( ( Q > R ) v ( S & Q ) ) : AS ; N39 | | F : NEGE N36 N37 ; N40 | ( ~ ( ( Q > R ) v ( S & Q ) ) ) : NEGI N38 N39 ; N41 ( ( ~ ( ~ P ) ) > ( ~ ( ( Q > R ) v ( S & Q ) ) ) ) : IMPI N37 N40 ; QED
+
+PROMPT (L_true 8, trained 25/32): THM ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) ) PRF
+  TRAINED: N21 ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) : PR ; N22 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N23 | | P : AS ; N24 | | | ( ( S & ( Q v S ) ) & Q ) : AS ; N25 | | | ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) : ANDI N23 N21 ; N26 | | ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) : IMPI N24 N25 ; N27 | ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) : IMPI N23 N26 ; N28 ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) ) : IMPI N22 N27 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: ANDI (line 37)): N34 ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) : PR ; N35 | ( ~ ( ~ ( ~ S ) ) ) : AS ; N36 | | P : AS ; N37 | | ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) : ANDI N36 N34 ; N38 | ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) : IMPI N36 N37 ; N39 ( ( ~ ( ~ ( ~ S ) ) ) > ( P > ( ( ( S & ( Q v S ) ) & Q ) > ( P & ( ( ( S & ( Q v S ) ) & Q ) > ( ~ R ) ) ) ) ) ) : IMPI N35 N38 ; QED
+
+PROMPT (L_true 7, trained 29/32): THM ( ( ( S & R ) & ( ~ P ) ) > Q ) SEQ ( ( S & R ) > ( ( ~ P ) > Q ) ) PRF
+  TRAINED: N26 ( ( ( S & R ) & ( ~ P ) ) > Q ) : PR ; N27 | ( S & R ) : AS ; N28 | | ( ~ P ) : AS ; N29 | | ( ( S & R ) & ( ~ P ) ) : ANDI N27 N28 ; N30 | | Q : IMPE N26 N29 ; N31 | ( ( ~ P ) > Q ) : IMPI N28 N30 ; N32 ( ( S & R ) > ( ( ~ P ) > Q ) ) : IMPI N27 N31 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: IMPE (line 29)): N26 ( ( ( S & R ) & ( ~ P ) ) > Q ) : PR ; N27 | ( S & R ) : AS ; N28 | | ( ~ P ) : AS ; N29 | | Q : IMPE N26 N27 ; N30 | ( ( ~ P ) > Q ) : IMPI N28 N29 ; N31 ( ( S & R ) > ( ( ~ P ) > Q ) ) : IMPI N27 N30 ; QED
+
+PROMPT (L_true 7, trained 1/32): THM ( ( ( S v P ) & Q ) > ( R > P ) ) SEQ ( ( S v P ) > ( Q > ( R > P ) ) ) PRF
+  TRAINED: N10 ( ( ( S v P ) & Q ) > ( R > P ) ) : PR ; N11 | ( S v P ) : AS ; N12 | | Q : AS ; N13 | | ( ( S v P ) & Q ) : ANDI N11 N12 ; N14 | | ( R > P ) : IMPE N10 N13 ; N15 | ( Q > ( R > P ) ) : IMPI N12 N14 ; N16 ( ( S v P ) > ( Q > ( R > P ) ) ) : IMPI N11 N15 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: IMPE (line 49)): N46 ( ( ( S v P ) & Q ) > ( R > P ) ) : PR ; N47 | ( S v P ) : AS ; N48 | | Q : AS ; N49 | | ( R > P ) : IMPE N46 N47 ; N50 | ( Q > ( R > P ) ) : IMPI N48 N49 ; N51 ( ( S v P ) > ( Q > ( R > P ) ) ) : IMPI N47 N50 ; QED
+
+PROMPT (L_true 7, trained 30/32): THM ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) SEQ ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) PRF
+  TRAINED: N27 ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) : PR ; N28 | ( ~ ( Q & ( P v Q ) ) ) : AS ; N29 | | ( ( ~ P ) > ( R & P ) ) : AS ; N30 | | ( Q & ( P v Q ) ) : IMPE N27 N29 ; N31 | | F : NEGE N30 N28 ; N32 | ( ~ ( ( ~ P ) > ( R & P ) ) ) : NEGI N29 N31 ; N33 ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) : IMPI N28 N32 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: NEGE (line 30)): N27 ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) : PR ; N28 | ( ~ ( Q & ( P v Q ) ) ) : AS ; N29 | | ( ( ~ P ) > ( R & P ) ) : AS ; N30 | | F : NEGE N29 N28 ; N31 | ( ~ ( ( ~ P ) > ( R & P ) ) ) : NEGI N29 N30 ; N32 ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) : IMPI N28 N31 ; QED
+
+PROMPT (L_true 8, trained 9/32): THM ( ( P & P ) & ( P > S ) ) SEQ ( ( ~ ( ~ ( ~ Q ) ) ) > ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) ) PRF
+  TRAINED: N29 ( ( P & P ) & ( P > S ) ) : PR ; N30 | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N31 | | Q : AS ; N32 | | | ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) : AS ; N33 | | | ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) : ORI2 N29 ; N34 | | ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) : IMPI N32 N33 ; N35 | ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) : IMPI N31 N34 ; N36 ( ( ~ ( ~ ( ~ Q ) ) ) > ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) ) : IMPI N30 N35 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: ORI2 (line 24)): N21 ( ( P & P ) & ( P > S ) ) : PR ; N22 | ( ~ ( ~ ( ~ Q ) ) ) : AS ; N23 | | Q : AS ; N24 | | ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) : ORI2 N21 ; N25 | ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) : IMPI N23 N24 ; N26 ( ( ~ ( ~ ( ~ Q ) ) ) > ( Q > ( ( ~ ( ~ ( ~ ( ~ Q ) ) ) ) > ( ( P > ( R v S ) ) v ( ( P & P ) & ( P > S ) ) ) ) ) ) : IMPI N22 N25 ; QED
+
+PROMPT (L_true 7, trained 4/32): THM ( ( P v ( P > S ) ) > ( ( Q & P ) & ( P & Q ) ) ) SEQ ( ( ~ ( ( Q & P ) & ( P & Q ) ) ) > ( ~ ( P v ( P > S ) ) ) ) PRF
+  TRAINED: N19 ( ( P v ( P > S ) ) > ( ( Q & P ) & ( P & Q ) ) ) : PR ; N20 | ( ~ ( ( Q & P ) & ( P & Q ) ) ) : AS ; N21 | | ( P v ( P > S ) ) : AS ; N22 | | ( ( Q & P ) & ( P & Q ) ) : IMPE N19 N21 ; N23 | | F : NEGE N22 N20 ; N24 | ( ~ ( P v ( P > S ) ) ) : NEGI N21 N23 ; N25 ( ( ~ ( ( Q & P ) & ( P & Q ) ) ) > ( ~ ( P v ( P > S ) ) ) ) : IMPI N20 N24 ; QED
+  FROZEN closest (my valid prefix 1, dump n_valid_prefix 3, reason rule check failed: NEGE (line 43)): N40 ( ( P v ( P > S ) ) > ( ( Q & P ) & ( P & Q ) ) ) : PR ; N41 | ( ~ ( ( Q & P ) & ( P & Q ) ) ) : AS ; N42 | | ( P v ( P > S ) ) : AS ; N43 | | F : NEGE N42 N41 ; N44 | ( ~ ( P v ( P > S ) ) ) : NEGI N42 N43 ; N45 ( ( ~ ( ( Q & P ) & ( P & Q ) ) ) > ( ~ ( P v ( P > S ) ) ) ) : IMPI N41 N44 ; QED
+
+== 5. diversity on newly solved ==
+distinct accepted proofs per newly-solved problem: [(1, 79), (2, 15), (3, 3), (4, 1)]; mean 1.24
+distinct (rule,depth) skeletons across all newly-solved accepted proofs: 45 over 2197 proofs; top 5:
+   353  AS| AS|| AS||| DN||| IMPI|| IMPI| IMPI
+   246  AS| AS|| AS||| ORI1||| IMPI|| IMPI| IMPI
+   214  AS| AS|| AS||| ANDI||| IMPI|| IMPI| IMPI
+   184  PR AS| AS|| AS||| ANDI||| IMPI|| IMPI| IMPI
+   145  AS| AS|| AS||| ANDE2||| IMPI|| IMPI| IMPI
+schemas of newly solved: [(None, 89), ('export', 4), ('contraposition', 3), ('import', 2)]
+schemas of eval_set: [(None, 171), ('import', 8), ('export', 5), ('disjunctive_syllogism', 5), ('contraposition', 3), ('peirce_sequent', 2), ('negated_conditional_conv', 2), ('dist_or_over_and_conv', 1), ('negated_conditional', 1), ('peirce', 1), ('contraposition_conv', 1)]
+
+== 6. misc ==
+renumber-to-N1 verdict flips (trained dump): 0/6207
+dump rows whose length field != eval_set L_true: 0
+eval_set prompts with conclusion among premises: 0; with F premise 0
+accepted training rollouts: 9819 over 197 distinct prompts

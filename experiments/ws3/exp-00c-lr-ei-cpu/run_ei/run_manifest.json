@@ -1,0 +1,120 @@
+{
+ "utc": "2026-09-28T00:23:44+00:00",
+ "config": {
+  "run": {
+   "seed": 0,
+   "device": "cpu",
+   "algo": "ei",
+   "out_dir": "/Users/cyu/Desktop/github/nd-rl-exp-00c/experiments/ws3/exp-00c-lr-ei-cpu/run_ei",
+   "config_path": "/Users/cyu/Desktop/github/nd-rl-exp-00c/experiments/ws3/exp-00c-lr-ei-cpu/configs/ei.yaml"
+  },
+  "eval": {
+   "greedy": {
+    "n_heldout": 1000,
+    "max_new": 400,
+    "batch_size": 100
+   },
+   "long": {
+    "file": "../eval_set.jsonl",
+    "k": 32,
+    "temperature": 1.0,
+    "max_new": 400,
+    "batch_size": 256
+   },
+   "textbook": {
+    "k": 32,
+    "temperature": 1.0,
+    "max_new": 400,
+    "batch_size": 256
+   }
+  },
+  "train": {
+   "prompt": {
+    "file": "../pool.jsonl",
+    "disjoint_from": [
+     "../split/rl_targets_eval.jsonl.gz"
+    ]
+   },
+   "periodic_eval": {
+    "every": 12,
+    "n_heldout": 50,
+    "n_long": 40,
+    "long_file": "../eval_set.jsonl",
+    "max_new": 400,
+    "batch_size": 128
+   },
+   "trainer": {
+    "num_generations": 16,
+    "per_device_train_batch_size": 32,
+    "gradient_accumulation_steps": 8,
+    "beta": 0.01,
+    "epsilon": 0.2,
+    "temperature": 1.0,
+    "max_completion_length": 400,
+    "max_steps": 48,
+    "logging_steps": 1
+   },
+   "ei": {
+    "rounds": 3,
+    "samples_total": 12288,
+    "temperature": 1.0,
+    "max_new": 400,
+    "batch_size": 256,
+    "keep": "all",
+    "max_per_prompt": 4,
+    "accumulate": false,
+    "restart_from_base": false,
+    "replay_frac": 0.0,
+    "sft": {
+     "learning_rate": 0.0001,
+     "num_train_epochs": 1,
+     "per_device_train_batch_size": 64
+    }
+   }
+  }
+ },
+ "git_commit": "b01be6f62d0a343322ae5a4d81c96f91f377fa43",
+ "checkpoint": "/Users/cyu/Desktop/github/nd-rl-exp-00c/code/ws3/fork_pin/ckpt/pretrain.pt",
+ "checkpoint_sha256": "418af3f9df382cd12c75b9399eaeddd4dbf70978156bc0799231d0e8c4e81cf2",
+ "versions": {
+  "python": "3.11.16",
+  "torch": "2.11.0",
+  "transformers": "5.17.0",
+  "trl": "1.13.0"
+ },
+ "platform": "macOS-13.6.2-arm64-arm-64bit",
+ "cpu_threads": 6,
+ "argv": [
+  "ws3/run.py",
+  "--config",
+  "../experiments/ws3/exp-00c-lr-ei-cpu/configs/ei.yaml",
+  "--stages",
+  "train,evaluate,report"
+ ],
+ "algo": "ei",
+ "hf_base": "/Users/cyu/Desktop/github/nd-rl-exp-00c/experiments/ws3/exp-00c-lr-ei-cpu/run_ei/hf_base",
+ "n_prompts": 198,
+ "ei": {
+  "rounds": 3,
+  "k": 21,
+  "temperature": 1.0,
+  "max_new": 400,
+  "batch_size": 256,
+  "keep": "all",
+  "max_per_prompt": 4,
+  "accumulate": false,
+  "restart_from_base": false,
+  "replay_frac": 0.0,
+  "samples_total": 12288,
+  "sft": {
+   "learning_rate": 0.0001,
+   "num_train_epochs": 1,
+   "per_device_train_batch_size": 64
+  }
+ },
+ "prompt_lengths": [
+  6,
+  7,
+  8
+ ]
+}

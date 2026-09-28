@@ -1,0 +1,16 @@
+# exp-00c expert-iteration arm: same pool, same total samples as one GRPO arm (12,288).
+include: [base.yaml]
+run: {out_dir: ../run_ei, algo: ei}
+train:
+  ei:
+    rounds: 3
+    samples_total: 12288                # k = round(12288 / (3 x pool size)), logged in run_manifest.json
+    temperature: 1.0
+    max_new: 400
+    batch_size: 256
+    keep: all
+    max_per_prompt: 4
+    accumulate: false
+    restart_from_base: false
+    replay_frac: 0.0
+    sft: {learning_rate: 1.0e-4, num_train_epochs: 1, per_device_train_batch_size: 64}

@@ -1,0 +1,367 @@
+{
+ "check1_frozen": {
+  "disagreements": 0,
+  "stats": {
+   "7": {
+    "n": 160,
+    "avg": 0.1224609375,
+    "solved": 39
+   },
+   "8": {
+    "n": 40,
+    "avg": 0.0,
+    "solved": 0
+   }
+  }
+ },
+ "check1_trained": {
+  "disagreements": 0,
+  "stats": {
+   "7": {
+    "n": 160,
+    "avg": 0.4298828125,
+    "solved": 97
+   },
+   "8": {
+    "n": 40,
+    "avg": 0.0046875,
+    "solved": 3
+   }
+  }
+ },
+ "check1_train_rewards_disagree": 0,
+ "check2_frozen": {
+  "flags": {
+   "leaves_some_premise_unused": 185,
+   "has_dead_lines": 189,
+   "repeated_identical_line": 27,
+   "repeated_formula_same_depth": 40,
+   "uses_no_premise": 3
+  },
+  "short": 0,
+  "rulehist": {
+   "ANDE1": [
+    1,
+    0.0002
+   ],
+   "ANDE2": [
+    5,
+    0.0011
+   ],
+   "ANDI": [
+    474,
+    0.1079
+   ],
+   "AS": [
+    1117,
+    0.2544
+   ],
+   "BOTE": [
+    60,
+    0.0137
+   ],
+   "DN": [
+    27,
+    0.0061
+   ],
+   "IMPE": [
+    118,
+    0.0269
+   ],
+   "IMPI": [
+    1095,
+    0.2494
+   ],
+   "NEGE": [
+    60,
+    0.0137
+   ],
+   "ORE": [
+    11,
+    0.0025
+   ],
+   "ORI1": [
+    219,
+    0.0499
+   ],
+   "ORI2": [
+    37,
+    0.0084
+   ],
+   "PR": [
+    1128,
+    0.2569
+   ],
+   "R": [
+    39,
+    0.0089
+   ]
+  },
+  "starts": [
+   [
+    2,
+    19
+   ],
+   [
+    21,
+    19
+   ],
+   [
+    19,
+    17
+   ],
+   [
+    8,
+    16
+   ],
+   [
+    40,
+    16
+   ],
+   [
+    3,
+    15
+   ],
+   [
+    24,
+    15
+   ],
+   [
+    43,
+    14
+   ],
+   [
+    32,
+    14
+   ],
+   [
+    30,
+    14
+   ]
+  ],
+  "tails": 0
+ },
+ "check2_trained": {
+  "flags": {
+   "leaves_some_premise_unused": 366,
+   "has_dead_lines": 408,
+   "repeated_identical_line": 25,
+   "repeated_formula_same_depth": 81,
+   "uses_no_premise": 34
+  },
+  "short": 0,
+  "rulehist": {
+   "ANDE1": [
+    94,
+    0.0061
+   ],
+   "ANDE2": [
+    164,
+    0.0106
+   ],
+   "ANDI": [
+    896,
+    0.0579
+   ],
+   "AS": [
+    5108,
+    0.3302
+   ],
+   "BOTE": [
+    240,
+    0.0155
+   ],
+   "DN": [
+    329,
+    0.0213
+   ],
+   "IMPE": [
+    369,
+    0.0239
+   ],
+   "IMPI": [
+    4975,
+    0.3216
+   ],
+   "NEGE": [
+    277,
+    0.0179
+   ],
+   "NEGI": [
+    37,
+    0.0024
+   ],
+   "ORE": [
+    48,
+    0.0031
+   ],
+   "ORI1": [
+    514,
+    0.0332
+   ],
+   "ORI2": [
+    212,
+    0.0137
+   ],
+   "PR": [
+    2120,
+    0.137
+   ],
+   "R": [
+    86,
+    0.0056
+   ]
+  },
+  "starts": [
+   [
+    2,
+    59
+   ],
+   [
+    19,
+    57
+   ],
+   [
+    40,
+    53
+   ],
+   [
+    27,
+    52
+   ],
+   [
+    3,
+    50
+   ],
+   [
+    15,
+    49
+   ],
+   [
+    20,
+    49
+   ],
+   [
+    43,
+    49
+   ],
+   [
+    33,
+    48
+   ],
+   [
+    26,
+    47
+   ]
+  ],
+  "tails": 0
+ },
+ "check3": {
+  "exact": {
+   "prompts.jsonl": 0,
+   "pool.jsonl": 0,
+   "split_train": 0,
+   "completions prompts": 0
+  },
+  "canon_eval_train": 0,
+  "canon_eval_pool": 0,
+  "canon_halves": 0,
+  "tb72_pool": 0,
+  "concl_hits_train": 18,
+  "concl_hits_pool": 6
+ },
+ "check4": {
+  "newly_solved": 61,
+  "lost": 0,
+  "examples": [
+   {
+    "prompt": "THM ( ( ( ( ~ Q ) & S ) & S ) > ( P > ( P > Q ) ) ) SEQ ( ( ( ~ Q ) & S ) > ( S > ( P > ( P > Q ) ) ) ) PRF",
+    "L_true": 7,
+    "trained_proof": "N30 ( ( ( ( ~ Q ) & S ) & S ) > ( P > ( P > Q ) ) ) : PR ; N31 | ( ( ~ Q ) & S ) : AS ; N32 | | S : AS ; N33 | | ( ( ( ~ Q ) & S ) & S ) : ANDI N31 N32 ; N34 | | ( P > ( P > Q ) ) : IMPE N30 N33 ; N35 | ( S > ( P > ( P > Q ) ) ) : IMPI N32 N34 ; N36 ( ( ( ~ Q ) & S ) > ( S > ( P > ( P > Q ) ) ) ) : IMPI N31 N35 ; QED",
+    "n_trained_ok": 3,
+    "frozen_best": "N16 ( ( ( ( ~ Q ) & S ) & S ) > ( P > ( P > Q ) ) ) : PR ; N17 | ( ( ~ Q ) & S ) : AS ; N18 | | S : AS ; N19 | | ( ( ~ Q ) & S ) : ANDI N17 N18 ; N20 | ( S > ( P > ( P > Q ) ) ) : IMPI N18 N19 ; N21 ( ( ( ~ Q ) & S ) > ( S > ( P > ( P > Q ) ) ) ) : IMPI N17 N20 ; QED",
+    "frozen_best_valid_prefix": 1,
+    "frozen_best_reason": "rule check failed: ANDI (line 19)",
+    "frozen_dump_n_valid_prefix": 3
+   },
+   {
+    "prompt": "THM ( ( ( Q > R ) v ( S & Q ) ) > ( ~ P ) ) SEQ ( ( ~ ( ~ P ) ) > ( ~ ( ( Q > R ) v ( S & Q ) ) ) ) PRF",
+    "L_true": 7,
+    "trained_proof": "N33 ( ( ( Q > R ) v ( S & Q ) ) > ( ~ P ) ) : PR ; N34 | ( ~ ( ~ P ) ) : AS ; N35 | | ( ( Q > R ) v ( S & Q ) ) : AS ; N36 | | ( ~ P ) : IMPE N33 N35 ; N37 | | F : NEGE N36 N34 ; N38 | ( ~ ( ( Q > R ) v ( S & Q ) ) ) : NEGI N35 N37 ; N39 ( ( ~ ( ~ P ) ) > ( ~ ( ( Q > R ) v ( S & Q ) ) ) ) : IMPI N34 N38 ; QED",
+    "n_trained_ok": 31,
+    "frozen_best": "N36 ( ( ( Q > R ) v ( S & Q ) ) > ( ~ P ) ) : PR ; N37 | ( ~ ( ~ P ) ) : AS ; N38 | | ( ( Q > R ) v ( S & Q ) ) : AS ; N39 | | F : NEGE N36 N37 ; N40 | ( ~ ( ( Q > R ) v ( S & Q ) ) ) : NEGI N38 N39 ; N41 ( ( ~ ( ~ P ) ) > ( ~ ( ( Q > R ) v ( S & Q ) ) ) ) : IMPI N37 N40 ; QED",
+    "frozen_best_valid_prefix": 1,
+    "frozen_best_reason": "rule check failed: NEGE (line 39)",
+    "frozen_dump_n_valid_prefix": 3
+   },
+   {
+    "prompt": "THM ( ( ( S & R ) & ( ~ P ) ) > Q ) SEQ ( ( S & R ) > ( ( ~ P ) > Q ) ) PRF",
+    "L_true": 7,
+    "trained_proof": "N26 ( ( ( S & R ) & ( ~ P ) ) > Q ) : PR ; N27 | ( S & R ) : AS ; N28 | | ( ~ P ) : AS ; N29 | | ( ( S & R ) & ( ~ P ) ) : ANDI N27 N28 ; N30 | | Q : IMPE N26 N29 ; N31 | ( ( ~ P ) > Q ) : IMPI N28 N30 ; N32 ( ( S & R ) > ( ( ~ P ) > Q ) ) : IMPI N27 N31 ; QED",
+    "n_trained_ok": 21,
+    "frozen_best": "N26 ( ( ( S & R ) & ( ~ P ) ) > Q ) : PR ; N27 | ( S & R ) : AS ; N28 | | ( ~ P ) : AS ; N29 | | Q : IMPE N26 N27 ; N30 | ( ( ~ P ) > Q ) : IMPI N28 N29 ; N31 ( ( S & R ) > ( ( ~ P ) > Q ) ) : IMPI N27 N30 ; QED",
+    "frozen_best_valid_prefix": 1,
+    "frozen_best_reason": "rule check failed: IMPE (line 29)",
+    "frozen_dump_n_valid_prefix": 3
+   },
+   {
+    "prompt": "THM ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) SEQ ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) PRF",
+    "L_true": 7,
+    "trained_proof": "N28 ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) : PR ; N29 | ( ~ ( Q & ( P v Q ) ) ) : AS ; N30 | | ( ( ~ P ) > ( R & P ) ) : AS ; N31 | | ( Q & ( P v Q ) ) : IMPE N28 N30 ; N32 | | F : NEGE N31 N29 ; N33 | ( ~ ( ( ~ P ) > ( R & P ) ) ) : NEGI N30 N32 ; N34 ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) : IMPI N29 N33 ; QED",
+    "n_trained_ok": 6,
+    "frozen_best": "N27 ( ( ( ~ P ) > ( R & P ) ) > ( Q & ( P v Q ) ) ) : PR ; N28 | ( ~ ( Q & ( P v Q ) ) ) : AS ; N29 | | ( ( ~ P ) > ( R & P ) ) : AS ; N30 | | F : NEGE N29 N28 ; N31 | ( ~ ( ( ~ P ) > ( R & P ) ) ) : NEGI N29 N30 ; N32 ( ( ~ ( Q & ( P v Q ) ) ) > ( ~ ( ( ~ P ) > ( R & P ) ) ) ) : IMPI N28 N31 ; QED",
+    "frozen_best_valid_prefix": 1,
+    "frozen_best_reason": "rule check failed: NEGE (line 30)",
+    "frozen_dump_n_valid_prefix": 3
+   },
+   {
+    "prompt": "THM ( ( Q v P ) & ( Q & S ) ) , Q SEQ ( ( ( S v S ) > P ) > ( S > Q ) ) PRF",
+    "L_true": 7,
+    "trained_proof": "N14 ( ( Q v P ) & ( Q & S ) ) : PR ; N15 Q : PR ; N16 | ( ( S v S ) > P ) : AS ; N17 | | S : AS ; N18 | | Q : R N15 ; N19 | ( S > Q ) : IMPI N17 N18 ; N20 ( ( ( S v S ) > P ) > ( S > Q ) ) : IMPI N16 N19 ; QED",
+    "n_trained_ok": 12,
+    "frozen_best": "N14 ( ( Q v P ) & ( Q & S ) ) : PR ; N15 Q : PR ; N16 ( Q & S ) : ANDE2 N14 ; N17 F : NEGE N16 N14 ; N18 ( ( S v S ) > P ) : BOTE N17 ; N19 ( ( ( S v S ) > P ) > ( S > Q ) ) : BOTE N17 ; QED",
+    "frozen_best_valid_prefix": 3,
+    "frozen_best_reason": "rule check failed: NEGE (line 17)",
+    "frozen_dump_n_valid_prefix": 3
+   },
+   {
+    "prompt": "THM ( ( R v Q ) v Q ) , ( Q > ( Q & Q ) ) SEQ ( ( Q > S ) > ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) ) PRF",
+    "L_true": 8,
+    "trained_proof": "N13 ( ( R v Q ) v Q ) : PR ; N14 ( Q > ( Q & Q ) ) : PR ; N15 | ( Q > S ) : AS ; N16 | | Q : AS ; N17 | | ( ( Q > S ) & ( ( R v Q ) v Q ) ) : ANDI N15 N13 ; N18 | | ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) : ANDI N17 N14 ; N19 | ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) : IMPI N16 N18 ; N20 ( ( Q > S ) > ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) ) : IMPI N15 N19 ; QED",
+    "n_trained_ok": 1,
+    "frozen_best": "N38 ( ( R v Q ) v Q ) : PR ; N39 ( Q > ( Q & Q ) ) : PR ; N40 | ( Q > S ) : AS ; N41 | | Q : AS ; N42 | | ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) : ANDI N38 N39 ; N43 | ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) : IMPI N41 N42 ; N44 ( ( Q > S ) > ( Q > ( ( ( Q > S ) & ( ( R v Q ) v Q ) ) & ( Q > ( Q & Q ) ) ) ) ) : IMPI N40 N43 ; QED",
+    "frozen_best_valid_prefix": 2,
+    "frozen_best_reason": "rule check failed: ANDI (line 42)",
+    "frozen_dump_n_valid_prefix": 4
+   },
+   {
+    "prompt": "THM ( ( S & ( ~ S ) ) v S ) , R SEQ ( P > ( ( R > ( R > R ) ) > ( R > R ) ) ) PRF",
+    "L_true": 7,
+    "trained_proof": "N34 ( ( S & ( ~ S ) ) v S ) : PR ; N35 R : PR ; N36 | P : AS ; N37 | | ( R > ( R > R ) ) : AS ; N38 | | ( R > R ) : IMPE N37 N35 ; N39 | ( ( R > ( R > R ) ) > ( R > R ) ) : IMPI N37 N38 ; N40 ( P > ( ( R > ( R > R ) ) > ( R > R ) ) ) : IMPI N36 N39 ; QED",
+    "n_trained_ok": 32,
+    "frozen_best": "N34 ( ( S & ( ~ S ) ) v S ) : PR ; N35 R : PR ; N36 | P : AS ; N37 | | ( R > ( R > R ) ) : AS ; N38 | ( R > ( R > R ) ) : IMPI N37 N37 ; N39 ( P > ( ( R > ( R > R ) ) > ( R > R ) ) ) : IMPI N36 N38 ; QED",
+    "frozen_best_valid_prefix": 2,
+    "frozen_best_reason": "rule check failed: IMPI (line 38)",
+    "frozen_dump_n_valid_prefix": 4
+   },
+   {
+    "prompt": "THM ( ( ~ P ) & ( Q & P ) ) , Q SEQ ( ( ~ ( ~ ( Q > S ) ) ) > ( ( Q & ( ( ~ P ) & ( Q & P ) ) ) & ( Q & P ) ) ) PRF",
+    "L_true": 7,
+    "trained_proof": "N16 ( ( ~ P ) & ( Q & P ) ) : PR ; N17 Q : PR ; N18 ( Q & P ) : ANDE2 N16 ; N19 ( Q & ( ( ~ P ) & ( Q & P ) ) ) : ANDI N17 N16 ; N20 | ( ~ ( ~ ( Q > S ) ) ) : AS ; N21 | ( ( Q & ( ( ~ P ) & ( Q & P ) ) ) & ( Q & P ) ) : ANDI N19 N18 ; N22 ( ( ~ ( ~ ( Q > S ) ) ) > ( ( Q & ( ( ~ P ) & ( Q & P ) ) ) & ( Q & P ) ) ) : IMPI N20 N21 ; QED",
+    "n_trained_ok": 1,
+    "frozen_best": "N14 ( ( ~ P ) & ( Q & P ) ) : PR ; N15 Q : PR ; N16 ( Q & ( ( ~ P ) & ( Q & P ) ) ) : ANDI N15 N14 ; N17 | ( ~ ( ~ ( Q > S ) ) ) : AS ; N18 | ( ( Q & ( ( ~ P ) & ( Q & P ) ) ) & ( Q & P ) ) : ANDI N16 N14 ; N19 ( ( ~ ( ~ ( Q > S ) ) ) > ( ( Q & ( ( ~ P ) & ( Q & P ) ) ) & ( Q & P ) ) ) : IMPI N17 N18 ; QED",
+    "frozen_best_valid_prefix": 3,
+    "frozen_best_reason": "rule check failed: ANDI (line 18)",
+    "frozen_dump_n_valid_prefix": 4
+   }
+  ]
+ },
+ "check5": {
+  "distinct": {
+   "1": 54,
+   "2": 6,
+   "3": 1
+  },
+  "n_skeletons": 22
+ }
+}
