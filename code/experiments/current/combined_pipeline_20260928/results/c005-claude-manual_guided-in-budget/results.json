@@ -1,0 +1,380 @@
+{
+ "recorded_at": "2026-09-28T08:27:50+0100",
+ "status": "keep",
+ "metric": 904.3333333333334,
+ "seed_metrics": {
+  "0": 915,
+  "1": 893,
+  "2": 905
+ },
+ "metric_rl": 1381.3333333333333,
+ "seed_status": {
+  "0": "ok",
+  "1": "ok",
+  "2": "ok"
+ },
+ "total_secs": {
+  "0": 2298,
+  "1": 2199,
+  "2": 2192
+ },
+ "rl_secs": {
+  "0": 1452,
+  "1": 1341,
+  "2": 1474
+ },
+ "gpu": {
+  "0": "NVIDIA A40",
+  "1": "NVIDIA A40",
+  "2": "NVIDIA A40"
+ },
+ "eval": {
+  "0": {
+   "solved": 915,
+   "ge": {
+    "7": 915,
+    "8": 772,
+    "9": 632,
+    "10": 204,
+    "11": 60,
+    "12": 27,
+    "13": 2,
+    "14": 0
+   },
+   "lstar": 12
+  },
+  "1": {
+   "solved": 893,
+   "ge": {
+    "7": 893,
+    "8": 750,
+    "9": 605,
+    "10": 182,
+    "11": 41,
+    "12": 13,
+    "13": 2,
+    "14": 1
+   },
+   "lstar": 12
+  },
+  "2": {
+   "solved": 905,
+   "ge": {
+    "7": 905,
+    "8": 766,
+    "9": 627,
+    "10": 196,
+    "11": 45,
+    "12": 14,
+    "13": 2,
+    "14": 1
+   },
+   "lstar": 12
+  }
+ },
+ "rl_rounds": {
+  "0": [
+   {
+    "round": 1,
+    "sample_acc": 0.2207913110938712,
+    "new_proofs": 356,
+    "targets_solved": 217,
+    "lstar": 10,
+    "secs": 88.91125106811523
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.436089054958742,
+    "new_proofs": 927,
+    "targets_solved": 526,
+    "lstar": 10,
+    "secs": 93.77624225616455
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.48319688109161796,
+    "new_proofs": 1594,
+    "targets_solved": 853,
+    "lstar": 11,
+    "secs": 95.82539772987366
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.3628221244500314,
+    "new_proofs": 1686,
+    "targets_solved": 1150,
+    "lstar": 11,
+    "secs": 94.40439629554749
+   },
+   {
+    "round": 5,
+    "sample_acc": 0.3476816074188563,
+    "new_proofs": 1729,
+    "targets_solved": 1279,
+    "lstar": 12,
+    "secs": 98.29247641563416
+   },
+   {
+    "round": 6,
+    "sample_acc": 0.7978243978243978,
+    "new_proofs": 3853,
+    "targets_solved": 1279,
+    "lstar": 12,
+    "secs": 131.8776535987854
+   },
+   {
+    "round": 7,
+    "sample_acc": 0.2544186046511628,
+    "new_proofs": 1565,
+    "targets_solved": 1303,
+    "lstar": 12,
+    "secs": 99.63583326339722
+   },
+   {
+    "round": 8,
+    "sample_acc": 0.33463827121829,
+    "new_proofs": 2120,
+    "targets_solved": 1342,
+    "lstar": 12,
+    "secs": 106.84103107452393
+   },
+   {
+    "round": 9,
+    "sample_acc": 0.73171875,
+    "new_proofs": 6102,
+    "targets_solved": 1342,
+    "lstar": 12,
+    "secs": 140.19743156433105
+   },
+   {
+    "round": 10,
+    "sample_acc": 0.23713178294573645,
+    "new_proofs": 1858,
+    "targets_solved": 1362,
+    "lstar": 12,
+    "secs": 109.04364681243896
+   },
+   {
+    "round": 11,
+    "sample_acc": 0.3809038928487507,
+    "new_proofs": 3194,
+    "targets_solved": 1376,
+    "lstar": 12,
+    "secs": 125.15247058868408
+   },
+   {
+    "round": 12,
+    "sample_acc": 0.672890625,
+    "new_proofs": 6519,
+    "targets_solved": 1376,
+    "lstar": 12,
+    "secs": 143.57639265060425
+   },
+   {
+    "round": 13,
+    "sample_acc": 0.2111627906976744,
+    "new_proofs": 2007,
+    "targets_solved": 1390,
+    "lstar": 12,
+    "secs": 124.50414800643921
+   }
+  ],
+  "1": [
+   {
+    "round": 1,
+    "sample_acc": 0.28203928905519177,
+    "new_proofs": 390,
+    "targets_solved": 240,
+    "lstar": 10,
+    "secs": 93.96791982650757
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.4405851521552061,
+    "new_proofs": 927,
+    "targets_solved": 551,
+    "lstar": 11,
+    "secs": 99.89838552474976
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.4383147113594041,
+    "new_proofs": 1476,
+    "targets_solved": 871,
+    "lstar": 11,
+    "secs": 103.260897397995
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.36418732782369145,
+    "new_proofs": 1865,
+    "targets_solved": 1164,
+    "lstar": 11,
+    "secs": 105.44494128227234
+   },
+   {
+    "round": 5,
+    "sample_acc": 0.3572488094308689,
+    "new_proofs": 1757,
+    "targets_solved": 1285,
+    "lstar": 11,
+    "secs": 110.41403245925903
+   },
+   {
+    "round": 6,
+    "sample_acc": 0.805083424294402,
+    "new_proofs": 4077,
+    "targets_solved": 1285,
+    "lstar": 11,
+    "secs": 129.87189412117004
+   },
+   {
+    "round": 7,
+    "sample_acc": 0.27232558139534885,
+    "new_proofs": 1670,
+    "targets_solved": 1318,
+    "lstar": 11,
+    "secs": 112.2189040184021
+   },
+   {
+    "round": 8,
+    "sample_acc": 0.3487388375372082,
+    "new_proofs": 2470,
+    "targets_solved": 1350,
+    "lstar": 12,
+    "secs": 141.75643038749695
+   },
+   {
+    "round": 9,
+    "sample_acc": 0.716328125,
+    "new_proofs": 6182,
+    "targets_solved": 1350,
+    "lstar": 12,
+    "secs": 156.57206082344055
+   },
+   {
+    "round": 10,
+    "sample_acc": 0.2310077519379845,
+    "new_proofs": 1836,
+    "targets_solved": 1363,
+    "lstar": 12,
+    "secs": 136.6025037765503
+   },
+   {
+    "round": 11,
+    "sample_acc": 0.3901051811453058,
+    "new_proofs": 3372,
+    "targets_solved": 1376,
+    "lstar": 12,
+    "secs": 150.57498979568481
+   }
+  ],
+  "2": [
+   {
+    "round": 1,
+    "sample_acc": 0.17712321275099618,
+    "new_proofs": 336,
+    "targets_solved": 217,
+    "lstar": 10,
+    "secs": 93.63427925109863
+   },
+   {
+    "round": 2,
+    "sample_acc": 0.4114575214341387,
+    "new_proofs": 765,
+    "targets_solved": 532,
+    "lstar": 10,
+    "secs": 96.22872257232666
+   },
+   {
+    "round": 3,
+    "sample_acc": 0.4551783479349186,
+    "new_proofs": 1161,
+    "targets_solved": 857,
+    "lstar": 11,
+    "secs": 98.31241488456726
+   },
+   {
+    "round": 4,
+    "sample_acc": 0.4053169096437203,
+    "new_proofs": 1480,
+    "targets_solved": 1162,
+    "lstar": 11,
+    "secs": 112.89968633651733
+   },
+   {
+    "round": 5,
+    "sample_acc": 0.35800933125972006,
+    "new_proofs": 1427,
+    "targets_solved": 1289,
+    "lstar": 12,
+    "secs": 106.00961756706238
+   },
+   {
+    "round": 6,
+    "sample_acc": 0.850234375,
+    "new_proofs": 2561,
+    "targets_solved": 1289,
+    "lstar": 12,
+    "secs": 132.94582986831665
+   },
+   {
+    "round": 7,
+    "sample_acc": 0.25465116279069766,
+    "new_proofs": 1178,
+    "targets_solved": 1310,
+    "lstar": 12,
+    "secs": 106.58249926567078
+   },
+   {
+    "round": 8,
+    "sample_acc": 0.34610552763819097,
+    "new_proofs": 1809,
+    "targets_solved": 1337,
+    "lstar": 12,
+    "secs": 107.4037413597107
+   },
+   {
+    "round": 9,
+    "sample_acc": 0.7546875,
+    "new_proofs": 4934,
+    "targets_solved": 1337,
+    "lstar": 12,
+    "secs": 133.01255059242249
+   },
+   {
+    "round": 10,
+    "sample_acc": 0.23263565891472868,
+    "new_proofs": 1678,
+    "targets_solved": 1351,
+    "lstar": 12,
+    "secs": 110.04931449890137
+   },
+   {
+    "round": 11,
+    "sample_acc": 0.35940525052272904,
+    "new_proofs": 2703,
+    "targets_solved": 1364,
+    "lstar": 12,
+    "secs": 119.1177270412445
+   },
+   {
+    "round": 12,
+    "sample_acc": 0.7465625,
+    "new_proofs": 6005,
+    "targets_solved": 1364,
+    "lstar": 12,
+    "secs": 135.3619270324707
+   },
+   {
+    "round": 13,
+    "sample_acc": 0.21984496124031008,
+    "new_proofs": 1945,
+    "targets_solved": 1378,
+    "lstar": 12,
+    "secs": 121.80166172981262
+   }
+  ]
+ },
+ "surprise": "Ties c004 inside the real budget: 915/893/905 (mean 904.3) vs c004 905.0 (-0.7), with 2,192-2,298 s end to end vs c004's 2,583-2,728 s. The 1,800 s RL deadline stopped after 13/11/13 rounds (167k/141k/167k of 192k samples), so ~13-27% fewer RL samples cost nothing measurable. Guided sampling ran ~1,140 s for 167k samples, ~20% faster per sample than c004's (the exact-output speedups). Kept despite not being strictly above c004: under the frozen harness's 2,400 s TOTAL_SECS c004 would be a timeout, so c005 is the best guided pipeline that is actually legal. The deadline was ~100-200 s conservative (eval took 397-537 s)."
+}

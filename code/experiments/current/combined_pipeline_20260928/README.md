@@ -65,4 +65,13 @@ done; done
 ```
 
 Local CPU smoke (`harness.py --smoke`, both arms) passed; a direct check ran GEM fine-tuning and
-k allocation on the loaded 186 model. Results and write-up: TODO after the runs.
+k allocation on the loaded 186 model.
+
+## Results
+
+Five runs (agent `claude-manual`, autoresearch-style registrations in `results/`, table in
+[RESULTS.md](RESULTS.md)): c001 687.3 → c002 804.3 (Leon's RL) → c003 808.0 (full pool, neutral)
+→ c004 905.0 (guided sampling, over budget) → c005 904.3 (guided, inside 2,400 s). Write-up:
+[experiment summary](../../../../experiment-summaries/2026-09-28-combined-pipeline/README.md).
+The Design section above describes c001/c002; later iterations added `fast_sample.py`,
+`guided.py`, `line_checker.py`, and `launch.py --pretrain-on-pod`.
