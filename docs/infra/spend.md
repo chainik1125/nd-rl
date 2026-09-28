@@ -294,3 +294,7 @@ Update 2026-09-28 04:55 UTC (run4-grpo-review processed): live `rpbalance` **$28
 than the $136.49 recorded at 03:50, so a top-up evidently happened in between. No pods were started by
 this run. Week 40 to date by these rows: **$9.99** (support-curves $9.99, run4-grpo-review $0).
 Cumulative by rows since 2026-09-15: **≈ $347.0**, unchanged.
+
+| **ckpt-avg** (proposal 14 item 8: checkpoint averaging / loss selection on stage1-dynamics' checkpoints; no training) | 2026-09-28 04:22–05:13 UTC (pod); reviewer 05:20–05:57; librarian 06:00 | 1 pod `ca1`, NVIDIA A40 at $0.49/h | **0.86** (`podhours.log`: 0.8614) | **$0.42** | ≈ 1–1.5 h / ≈ $0.75 (pre-registration); budget 4 h / $2 | reviewed (`review_ckpt-avg.md`, §Recount `6af9e00` / §Compare+§Verdict `fd59710` on fork branch `dan_ckpt-avg`). Came in under the estimate. The dollar figure is pod-hours × the real A40 rate; the balance delta is not usable because other runs had pods up at the same time |
+
+Update 2026-09-28 06:05 UTC (ckpt-avg processed): live `rpbalance` **$281.55** (executor recorded $284.47 after its pod; floor $100). Week 40 to date by these rows: **$10.41** (support-curves $9.99, run4-grpo-review $0, ckpt-avg $0.42). Cumulative by rows since 2026-09-15: **≈ $347.4**.
