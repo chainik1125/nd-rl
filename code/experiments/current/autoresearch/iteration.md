@@ -3,7 +3,7 @@ non-interactive session: ending your turn ends the session, and nothing wakes yo
 Run every command in the foreground and never end your turn to wait for something. Pods are
 the compute for experiments; keep local probes to a few minutes of CPU, and use
 code/experiments/current/autoresearch/bench_pretrain.py (one A40, ~4 min, no registration) to
-measure pretraining steps/s and sampling speed before registering. You have 40 minutes
+measure pretraining steps/s and sampling speed before registering. You have 60 minutes
 from session start to launch run_idea.py; after that the launcher kills the session and
 discards your unregistered candidate. Budget your reading accordingly. Another agent runs
 the same loop in parallel on the same branch (see program.md); start with `git pull --ff-only`.

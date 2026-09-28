@@ -36,8 +36,10 @@ stop_at: float | None = None  # epoch seconds; no new session starts after it (-
 MIN_BALANCE = 3.0  # USD: one experiment rents 3 A40s at ~$0.49/h for ~25 min
 # A session must launch run_idea.py this soon (Robbie, 2026-09-23: Claude at max effort took
 # 20-150 min to propose, Codex ~3; raised 20 -> 40 min on 2026-09-25 so bench_pretrain.py
-# probes and bigger implementations fit). Runs themselves are bounded by the harness, not this.
-PROPOSE_SECS = 40 * 60
+# probes and bigger implementations fit; 40 -> 60 min on 2026-09-27: the torch 2.9.1 image
+# boots in ~9 min, so one bench costs ~12, and 187 registered seconds after a 40-min timeout).
+# Runs themselves are bounded by the harness, not this.
+PROPOSE_SECS = 60 * 60
 MAX_TIMEOUTS = 3  # consecutive proposal timeouts before the loop stops
 
 
