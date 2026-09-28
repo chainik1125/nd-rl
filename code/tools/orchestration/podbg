@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Start a detached background job on a pod. Usage: podbg <pod> <logname> "<command>"   (log -> artifacts/<logname>.log)
 # The command is shell-quoted with printf %q, so commands containing quotes work (they used to break the
-# single-quoted `bash -c '…'`).
+# single-quoted `bash -c '…'`). The braces background only the job (2026-09-28): `a && setsid … & disown`
+# backgrounded the whole list, whose subshell held the ssh channel open until the job ended or `timeout 60` hit.
 N=$1; L=$2; shift 2
-timeout 60 podrun "$N" "mkdir -p artifacts && setsid nohup bash -c $(printf '%q' "$*") > artifacts/$L.log 2>&1 < /dev/null & disown; sleep 1; echo started $L"
+timeout 60 podrun "$N" "mkdir -p artifacts && { setsid nohup bash -c $(printf '%q' "$*") > artifacts/$L.log 2>&1 < /dev/null & } ; sleep 1; echo started $L"
