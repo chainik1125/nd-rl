@@ -28,7 +28,9 @@ import urllib.parse
 import urllib.request
 
 API = "https://api.runpod.io/graphql"
-IMAGE = os.environ.get("ND_POD_IMAGE", "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04")
+# torch 2.9.1 since 2026-09-27: 2.4's Inductor recompiled per batch shape (166-fable2). Boots ~9 min
+# on a host without the image cached (2.4: ~2 min); torch lives under `python`, not `python3`.
+IMAGE = os.environ.get("ND_POD_IMAGE", "runpod/pytorch:1.3.3-cu1290-torch291-ubuntu2204")
 # ND_POD_GPU: comma-separated GPU types, tried in order (offline eval fans out past A40 stock).
 GPUS = os.environ.get("ND_POD_GPU", "NVIDIA A40").split(",")
 GPU = GPUS[0]

@@ -22,6 +22,20 @@ creative. Prefer bold ideas the table has not tried (new mechanisms, not another
 nudge to a tuned number), and check the other agent's running registration so you do not duplicate
 it.
 
+**torch 2.9.1 since 186 (2026-09-27).** Pods run `runpod/pytorch:1.3.3-cu1290-torch291-ubuntu2204`;
+summaries record `torch`. Measured on the 153 incumbent (one A40, 300 s, `bench_pretrain.py`):
+eager 4,471 steps; per-block `block.compile(dynamic=True)` 4,565; plus the Muon step captured as
+one CUDA graph (`torch.cuda.graph`; grads at fixed addresses via `zero_grad(set_to_none=False)`,
+lr as a 0-d tensor) and fused AdamW 5,353; plus no per-step GPU sync (batch max length taken
+from the host-side sort) 5,512 (+23%). Gotchas: set
+`torch._inductor.config.triton.coalesce_tiling_analysis = False` (it crashes on dynamic shapes);
+whole-step compile costs ~64 s of the budget for ~11% and loses; `mode="reduce-overhead"` is
+skipped for in-place optimizers; undo `block.compile` before returning the model
+(`b._compiled_call_impl = None`) so RL sampling runs eager. What remains is GPU-bound (~49 ms
+per step: LayerNorm backward, bf16 casts, non-flash ALiBi attention, matmuls): the next gains
+change what the GPU computes (bf16 parameters, FlexAttention for ALiBi, fewer norms), or spend
+the steps on a bigger model. `compile_dev.py` times variants and logs recompiles on a GPU pod.
+
 **Speed work is encouraged (Robbie, 2026-09-25)** Pretraining is wall-clock bound: 101-103 showed
 each size step costing 14-24% of steps, and steps turn into score. Only three pure systems runs
 exist (001, 002, 003, all before the Muon and Lean incumbents), so this is untouched ground. Leads,

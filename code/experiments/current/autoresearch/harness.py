@@ -340,6 +340,7 @@ def write_summary(a, status, **kw):
         "pretrain_sha": sha(f"{HERE}/pretrain.py"),
         "device": DEV,
         "gpu": torch.cuda.get_device_name(0) if DEV == "cuda" else "cpu",
+        "torch": torch.__version__,
         "lean_gate": lean_gate_totals(),
         "total_secs": time.time() - a.T0,
         "rules": {
