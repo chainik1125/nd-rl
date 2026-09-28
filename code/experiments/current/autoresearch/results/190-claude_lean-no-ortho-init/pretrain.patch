@@ -1,0 +1,24 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 363055e..03d0ea0 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -303,7 +303,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     gen.manual_seed(seed)
+     model = ALiBiGPT(tok.vocab_size, N_LAYER, D, N_HEAD)
+     model.blocks = torch.nn.ModuleList(PeriLNBlock(D, N_HEAD) for _ in range(N_LAYER))
+-    model.blocks.apply(model._init)  # fork init: zero biases
++    model.blocks.apply(model._init)  # fork init: normal(0.02) weights, zero biases
+     model = model.to(device)
+     mtp = MTPHead(D, N_HEAD)
+     mtp.apply(model._init)
+@@ -316,10 +316,6 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     compiled = list(model.blocks) + [mtp.block]
+     for b in compiled if device == "cuda" else []:  # CPU smoke runs stay eager
+         b.compile(dynamic=True)
+-    for p in list(model.blocks.parameters()) + list(mtp.parameters()):
+-        if p.ndim == 2:
+-            # Orthogonal matrices have element second moment gain^2 / max(rows, cols).
+-            torch.nn.init.orthogonal_(p, gain=0.02 * math.sqrt(max(p.shape)))
+     log(
+         f"pretrain: {model.n_params():,} params, {len(data):,} records on {device} "
+         f"after {time.time() - t0:.0f}s, budget {budget_secs}s"
