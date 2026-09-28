@@ -2,7 +2,11 @@
 """One arm x seed on its own A40: rent, upload, run, pull (+ HF push), terminate.
 
   source .envrc.local && code/.venv/bin/python \
-      code/experiments/current/combined_pipeline_20260928/launch.py ei|leon <seed> <ckpt-dir>
+      code/experiments/current/combined_pipeline_20260928/launch.py ei|leon <seed> <ckpt-dir> \
+      [--name combo-<variant>] [--cfg '{"full_pool": true}']
+
+--name sets the run (default combo-<arm>, so runs are <name>_s<seed>); --cfg (leon only) is
+written to the pod as leon_cfg.json, overriding leon_rl.CFG.
 
 <ckpt-dir>/s<seed>/pretrain.pt is 186-claude's pretrained checkpoint for that seed. Reuses the
 autoresearch pod.py (rental, watchdog, detached run, pull, HF push) and replaces only its upload:
@@ -15,6 +19,8 @@ Both arms get pretrain.py = ckpt_shim.py and run with ND_TOTAL_SECS=3600 (the ha
 benchmark override) instead of 2400, so a slower recipe is measured rather than killed.
 """
 
+import argparse
+import json
 import os
 import shlex
 import shutil
@@ -29,8 +35,8 @@ import pod  # noqa: E402
 TOTAL_SECS = 3600
 
 
-def stage(arm, seed, ckpt_dir):
-    d = os.path.join(pod.LOCAL_ART, "combined_stage", f"{arm}_s{seed}")
+def stage(arm, seed, ckpt_dir, name, cfg=None):
+    d = os.path.join(pod.LOCAL_ART, "combined_stage", f"{name}_s{seed}")
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
     with open(os.path.join(AR, "remote.sh")) as f:
@@ -43,6 +49,9 @@ def stage(arm, seed, ckpt_dir):
         shutil.copy2(os.path.join(AR, "harness.py"), os.path.join(d, "harness_frozen.py"))
         shutil.copy2(os.path.join(HERE, "harness_leon.py"), os.path.join(d, "harness.py"))
         shutil.copy2(os.path.join(HERE, "leon_rl.py"), d)
+        if cfg:
+            with open(os.path.join(d, "leon_cfg.json"), "w") as f:
+                json.dump(json.loads(cfg), f)
     shutil.copy2(os.path.join(HERE, "ckpt_shim.py"), os.path.join(d, "pretrain.py"))
     src = os.path.join(ckpt_dir, f"s{seed}")
     shutil.copy2(os.path.join(src, "source", "pretrain.py"), os.path.join(d, "pretrain186.py"))
@@ -51,9 +60,16 @@ def stage(arm, seed, ckpt_dir):
 
 
 def main():
-    arm, seed, ckpt_dir = sys.argv[1], int(sys.argv[2]), sys.argv[3]
-    assert arm in ("ei", "leon")
-    d = stage(arm, seed, ckpt_dir)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("arm", choices=("ei", "leon"))
+    ap.add_argument("seed", type=int)
+    ap.add_argument("ckpt_dir")
+    ap.add_argument("--name")
+    ap.add_argument("--cfg")
+    a = ap.parse_args()
+    arm, seed, name = a.arm, a.seed, a.name or f"combo-{a.arm}"
+    assert not (a.cfg and arm == "ei"), "--cfg configures leon_rl only"
+    d = stage(arm, seed, a.ckpt_dir, name, a.cfg)
 
     def upload(st, _pretrain_file):
         ssh = "ssh " + " ".join(pod.ssh_args(st))
@@ -65,9 +81,9 @@ def main():
         )
 
     pod.upload = upload
-    name, pod_name = f"combo-{arm}_s{seed}", f"combo-{arm}-s{seed}"
+    run, pod_name = f"{name}_s{seed}", f"{name}-s{seed}"
     try:
-        for cmd in (["up"], ["run", name, "--seed", str(seed)]):
+        for cmd in (["up"], ["run", run, "--seed", str(seed)]):
             sys.argv = ["pod.py", cmd[0], "--pod", pod_name, *cmd[1:]]
             pod.main()
     finally:

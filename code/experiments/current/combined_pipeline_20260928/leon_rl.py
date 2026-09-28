@@ -26,6 +26,7 @@ comparison is the recipe, not more compute. That is 15 rounds of 400 x 32.
 import collections
 import json
 import math
+import os
 import time
 
 import harness_frozen as H
@@ -51,7 +52,17 @@ CFG = dict(
     betas=(0.9, 0.95),
     grad_clip=1.0,
     gem_beta=0.7,
+    # variant knobs (c003+); the defaults are c002
+    loss="gem",  # or "ce" (the fork's loss_on)
+    full_pool=False,  # True: every rl_targets record (4,495), not the harness's seeded 1,500
+    samples=None,  # RL sample budget; None = the harness's RL_ROUNDS * N_TARGETS * K
+    deadline=None,  # secs from harness start: no new round once the last round's time won't fit
 )
+# leon_cfg.json next to this file (written by launch.py --cfg) overrides CFG for one variant
+_cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "leon_cfg.json")
+if os.path.exists(_cfg):
+    with open(_cfg) as f:
+        CFG.update(json.load(f))
 
 
 def gem_loss_on(model, x, m, beta):
@@ -101,7 +112,10 @@ def finetune_gem(model, tok, data, steps, rng):
             rng.shuffle(perm)
         x, m = H.mk_batch(data, [perm.pop() for _ in range(bs)], tok, rng, H.DEV)
         with H.autocast():
-            loss = gem_loss_on(model, x, m, CFG["gem_beta"])
+            if CFG["loss"] == "gem":
+                loss = gem_loss_on(model, x, m, CFG["gem_beta"])
+            else:
+                loss = H.loss_on(model, x, m)
         opt.zero_grad(set_to_none=True)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), CFG["grad_clip"])
@@ -112,13 +126,25 @@ def finetune_gem(model, tok, data, steps, rng):
 
 def stage_rl(a, tok, model, targets, train_recs, rng):
     t0 = time.time()
-    budget = a.rl_rounds * len(targets) * a.k  # the harness stage's sample count
+    budget = CFG["samples"] or a.rl_rounds * len(targets) * a.k  # harness: 192,000
+    if CFG["full_pool"] and not a.smoke:
+        dev = {r["key"] for r in H.dev_split(H.read(f"{H.FORK}/data/ladder/transfer.jsonl"))}
+        targets = H.read(f"{H.FORK}/data/ladder/rl_targets.jsonl")
+        assert not dev & {t["key"] for t in targets}, "rl_targets pool leaks into dev"
+        rng.shuffle(targets)
     ft_steps = CFG["ft_steps"] if not a.smoke else a.ft_steps
     found = collections.defaultdict(dict)
     rate = {}
-    queue = list(targets)  # already a seeded random sample
+    queue = list(targets)  # a seeded random order
     rounds, total, refills, r = [], 0, 0, 0
     while total < budget:
+        if (
+            CFG["deadline"]
+            and rounds
+            and (time.time() + rounds[-1]["secs"] > a.T0 + CFG["deadline"])
+        ):
+            H.log(f"leon: deadline {CFG['deadline']}s: stopping after {r} rounds")
+            break
         r += 1
         rt = time.time()
         n_win = min(CFG["window"], len(targets))
@@ -142,7 +168,7 @@ def stage_rl(a, tok, model, targets, train_recs, rng):
             prompts,
             greedy=False,
             temperature=CFG["temperature"],
-            batch=H.SAMPLE_BATCH,
+            batch=CFG.get("sample_batch", H.SAMPLE_BATCH),
             seed=a.seed * 1000 + r,
             max_new=a.max_new,
         )
@@ -214,4 +240,11 @@ def stage_rl(a, tok, model, targets, train_recs, rng):
                     json.dumps({"name": t["name"], "thm": t["thm"], "L_true": t["n_lines"], **x})
                     + "\n"
                 )
-    return {"rounds": rounds, "secs": time.time() - t0, "targets": len(targets), "recipe": "leon"}
+    return {
+        "rounds": rounds,
+        "secs": time.time() - t0,
+        "targets": len(targets),
+        "samples": total,
+        "recipe": "leon",
+        "cfg": {k: v for k, v in CFG.items() if k != "k_len_prior"},
+    }
