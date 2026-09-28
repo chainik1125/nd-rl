@@ -1,0 +1,53 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..56c1b0d 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -72,7 +72,7 @@ VAL_N, CURVE_EVERY = 1024, 15  # records held out for val_loss; seconds between
+ # padding to the batch max (~400) made every step ~3x larger than its content.
+ TOK_BUDGET = 128 * 144
+ # Multi-token prediction (DeepSeek-V3 2024, Gloeckle et al. 2024), pretraining only: one extra
+-# Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
++# pre-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
+ 
+@@ -127,15 +127,14 @@ def muon_step(params, buffers, lr):
+ 
+ 
+ class PeriLNBlock(Block):
+-    """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+-    output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+-    `mask` is the additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward
+-    and cos/sin are unused."""
++    """The fork's pre-LN block (its forward) with a D_FF-wide MLP. The name is historical: the
++    Peri-LN branch-output LayerNorms (P22, 107) are gone. Attention has no RoPE: `mask` is the
++    additive ALiBi bias (B or 1, H, T, S) that ALiBiGPT builds once per forward and cos/sin are
++    unused."""
+ 
+     def __init__(self, d, h):
+         super().__init__(d, h)
+         self.fc1, self.fc2 = torch.nn.Linear(d, D_FF), torch.nn.Linear(D_FF, d)
+-        self.ln_attn_out, self.ln_mlp_out = torch.nn.LayerNorm(d), torch.nn.LayerNorm(d)
+ 
+     def attn(self, x, cos, sin, mask, cache):
+         B, T, D = x.shape
+@@ -153,10 +152,6 @@ class PeriLNBlock(Block):
+         y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask.to(q.dtype))
+         return self.proj(y.transpose(1, 2).reshape(B, T, D))
+ 
+-    def forward(self, x, cos, sin, mask=None, cache=None):
+-        x = x + self.ln_attn_out(self.attn(self.ln1(x), cos, sin, mask, cache))
+-        return x + self.ln_mlp_out(self.fc2(torch.nn.functional.gelu(self.fc1(self.ln2(x)))))
+-
+ 
+ class ALiBiGPT(GPT):
+     """P34: the fork's GPT with ALiBi (Press et al. 2021) instead of RoPE. Head h's attention
+@@ -349,7 +344,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             break
+         step += 1
+         # No warmup (as in modded-nanogpt): Muon's step is normalized and Adam's is ~lr per
+-        # element from step 1, and Peri-LN normalizes every branch write.
++        # element from step 1.
+         lr = LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
+         for g in opt.param_groups:
+             g["lr"] = lr
