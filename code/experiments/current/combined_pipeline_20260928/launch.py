@@ -49,7 +49,8 @@ def stage(arm, seed, ckpt_dir, name, cfg=None):
         shutil.copy2(os.path.join(AR, "harness.py"), os.path.join(d, "harness_frozen.py"))
         shutil.copy2(os.path.join(HERE, "harness_leon.py"), os.path.join(d, "harness.py"))
         shutil.copy2(os.path.join(HERE, "leon_rl.py"), d)
-        shutil.copy2(os.path.join(HERE, "fast_sample.py"), d)
+        for f in ("fast_sample.py", "guided.py", "line_checker.py"):
+            shutil.copy2(os.path.join(HERE, f), d)
         if cfg:
             with open(os.path.join(d, "leon_cfg.json"), "w") as f:
                 json.dump(json.loads(cfg), f)

@@ -30,6 +30,7 @@ import os
 import time
 
 import fast_sample
+import guided
 import harness_frozen as H
 import torch
 import torch.nn.functional as F
@@ -59,6 +60,11 @@ CFG = dict(
     samples=None,  # RL sample budget; None = the harness's RL_ROUNDS * N_TARGETS * K
     deadline=None,  # secs from harness start: no new round once the last round's time won't fit
     fast_sampler=False,  # fast_sample.generate (compaction + Lean overlap) for RL sampling
+    guided=False,  # guided.generate: line-level verifier-guided RL sampling (implies compaction)
+    guide_retries=4,  # Leon's values; a segment rejected this many times ends the row
+    guide_rollbacks=24,
+    guide_slack=256,  # extra decode steps for resampled segments
+    guide_seg_max=400,  # lean_seq segments span nested box headers, so not Leon's abs 160
 )
 # leon_cfg.json next to this file (written by launch.py --cfg) overrides CFG for one variant
 _cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "leon_cfg.json")
@@ -165,7 +171,11 @@ def stage_rl(a, tok, model, targets, train_recs, rng):
         prompts = [t["prompt"] for t, k in zip(win, ks, strict=True) for _ in range(k)]
         ts = time.time()
         batch = CFG.get("sample_batch", H.SAMPLE_BATCH)
-        if CFG["fast_sampler"]:
+        if CFG["guided"]:
+            flat = guided.generate(
+                model, tok, prompts, CFG["temperature"], a.max_new, batch, a.seed * 1000 + r, CFG
+            )
+        elif CFG["fast_sampler"]:
             flat = fast_sample.generate(
                 model, tok, prompts, CFG["temperature"], a.max_new, batch, a.seed * 1000 + r
             )
@@ -232,6 +242,7 @@ def stage_rl(a, tok, model, targets, train_recs, rng):
                     "samples_per_sec": len(prompts) / s_secs,
                 },
                 "finetune": ft,
+                "guide": dict(guided.STATS),
                 "secs": time.time() - rt,
             }
         )
