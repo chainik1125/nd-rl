@@ -31,6 +31,7 @@ import random
 import time
 
 import torch
+import torch._inductor.config  # noqa: F401  (explicit, so the attribute resolves for pyright)
 from lean_tok import MAXN  # fork
 from model import GPT, Block  # fork
 from tokenizer import make_tokenizer  # fork
@@ -274,12 +275,12 @@ def token_batches(lens, n_train, gen, rng):
     return order, cuts
 
 
-def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, T=None):
+def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, max_len=None):
     """The fork's batch() + tok.shift_abs, vectorised: a random per-row offset is added to
     every ref token."""
     x, m = ids[idxs], mask[idxs]
-    if T is None:  # known on the host for training batches: avoids a GPU sync every step
-        T = int(lens[idxs].max())
+    # Known on the host for training batches: passing it avoids a GPU sync every step.
+    T = int(lens[idxs].max()) if max_len is None else max_len
     x, m = x[:, :T].clone(), m[:, :T]
     if tok.mode in ("abs", "lean_seq"):  # lean_seq: names n1.. get the same start offset
         room = MAXN - ref_max[idxs]
@@ -313,7 +314,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
     torch._inductor.config.triton.coalesce_tiling_analysis = False
     muon_lr, muon_graph = torch.zeros((), device=device), None
     compiled = list(model.blocks) + [mtp.block]
-    for b in compiled:
+    for b in compiled if device == "cuda" else []:  # CPU smoke runs stay eager
         b.compile(dynamic=True)
     for p in list(model.blocks.parameters()) + list(mtp.parameters()):
         if p.ndim == 2:
@@ -330,7 +331,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
     matrix_ids = {id(p) for p in matrices}
     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
     momentum_buffers = [torch.zeros_like(p) for p in matrices]
-    opt = torch.optim.AdamW(auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=True)
+    opt = torch.optim.AdamW(
+        auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=device == "cuda"
+    )
     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
     model.train()
     step, last_loss, records_seen = 0, float("nan"), 0
@@ -367,7 +370,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
         opt.step()
         muon_lr.fill_(MUON_LR * lr / LR)
-        if muon_graph is None:  # capture once; later steps replay one graph instead of ~400 launches
+        # Capture once; later steps replay one graph instead of ~400 kernel launches. CPU smoke
+        # runs call the step directly.
+        if device != "cuda":
+            muon_step(matrices, momentum_buffers, muon_lr)
+        elif muon_graph is None:
             state = matrices + momentum_buffers
             saved = [t.clone() for t in state]
             side = torch.cuda.Stream()
@@ -381,7 +388,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
             with torch.no_grad():
                 for t, v in zip(state, saved, strict=True):
                     t.copy_(v)  # undo the warm-up and capture updates
-        muon_graph.replay()
+            muon_graph.replay()
+        else:
+            muon_graph.replay()
         if step % 20 == 0:
             last_loss = main.item()  # the next-token CE, comparable with earlier runs
             recent.append(last_loss)
