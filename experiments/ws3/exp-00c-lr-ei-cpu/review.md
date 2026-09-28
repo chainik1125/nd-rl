@@ -350,3 +350,75 @@ systematic error, while case-split and contradiction families stay at 0; (c) the
   by nonzero counts, but on one seed, and the plan's emergence bar needs 3 seeds.
 - Every GRPO-vs-EI and lr-vs-lr difference is one seed. The lr3e-5 vs lr1e-4 ranking even flips
   between metrics (section 6).
+
+## Verdict
+
+**PASS WITH CORRECTIONS. Not quarantined.**
+
+Quarantine rules (plan section 6) checked: no training or tuning on any evaluation set or a
+renaming of one (0 overlap under `canon_key`, `canonical_theorem`, exact text and atom-erased
+skeleton between every trained-on set and every evaluation set, including the eval half, the 72
+and the test prompt files); the test files were not scored and no verdict on them was read; no
+fixed component changed (`fetch.sh --verify` passes, vendor dir unchanged, control model
+bit-identical to `pretrain.pt`, no code change since the proposal commit); no checkpoint, model
+folder or key is committed (largest committed file is `filter_dump.jsonl.gz`, 593 KB). Gates A
+and B pass.
+
+The result is real at the level the data can support. The frozen-to-trained lift on held-out
+length 7 (0.12 to 0.33-0.55 avg solve rate) and EI's length 8 (0 to 0.27) reproduce exactly from
+115,127 re-verified rows with zero verdict disagreements. There is no reward bug, no verifier
+loophole (one sound 7-line ORE shortcut in lr1e-4), and no leak. The proofs are genuine. What the
+gain *is*: one repaired failure mode (derive the innermost consequent before the IMPI chain)
+across the nested-implication templates of the `rl_targets` generator. It transfers across
+renaming classes and skeletons within that generator. It does not transfer to case-split or
+contradiction templates, or to the textbook set (0 to 1 of 43, one problem).
+
+Corrections the librarian must make before any number goes into `summary.md` or the Saturday
+graphs:
+
+1. **EI vs the pre-registration (results.md line 74, and 126-128, 165-167).** The proposal
+   pre-registered EI against the best GRPO arm on the *mean paired difference on the 39
+   frozen-solved L7 problems*. On that metric EI is +0.245, **0.080 below** lr1e-4 (+0.325) and
+   below lr3e-5 (+0.273). "Missed: EI clearly better" must become: "missed: on the pre-registered
+   metric EI is 0.08 lower; on L7 avg (+0.115), all-problem paired difference (+0.423 vs
+   +0.307), new capability (62 vs 42) and L8 (0.266 vs 0.013) EI is ahead; one seed." "EI beats
+   GRPO at matched samples" needs "on one seed, on these metrics" and the +1.5% sample note. The
+   L8 gap is the only EI-vs-GRPO difference whose intervals do not overlap, and it is still one
+   seed.
+2. **Textbook ref >= 7 row (results.md line 52).** It should read frozen 0, lr3e-5 1, lr1e-4 1,
+   lr3e-4 0, EI 1 of 43, all the same problem `textbook_c18068…` (`|- (P v Q) > (Q v P)`) at 2 to
+   4 of 32 samples. At the plan's bar this is noise (previous best 0 to 1 of 43).
+3. **Renamed-conclusion comparison (results.md line 103).** It is "the other 154 length-7
+   problems", not "the other 194". Over all 194 the numbers are 0.099 to 0.498.
+4. **CI method (results.md lines 43, 48).** The tabled intervals are the eval package's
+   `mean_ci` (Wilson-type, n = problems), not the plan's CI over problems. Either say so, or use
+   the over-problems intervals from the Recount (e.g. frozen L7 [0.079, 0.166], EI L8
+   [0.151, 0.381]).
+5. **Verifier scope (results.md 83-93).** The verifier re-checked the three long-pool dumps, not
+   "every sample in the eval dumps". The renumbering "0 verdicts" holds for parseable rows;
+   renumbering all rows turns 1 (lr3e-5) and 9 (EI) mislabelled rejections into accepts, which is
+   the checker being strict, not lenient. The "0 shorter than L_true" claim is for lr3e-5 and EI;
+   lr1e-4 has one sound 7-line proof of an `L_true` 8 problem. Line 160's "lr1e-4 and lr3e-4 not
+   re-verified" is now resolved by this review.
+6. **Caveats to add.** (a) The lr rule selects on the evaluation set (T5 allows it; small
+   winner's-curse bias). (b) The lift is concentrated in nested-implication templates; case-split
+   and contradiction families stay at 0 in every arm (Recount section 5, `structure.json`). (c)
+   One seed everywhere: the lr3e-5 vs lr1e-4 ranking flips between metrics (lr1e-4 wins the rule,
+   lr3e-5 wins L7 avg, reliable count, new capability and the all-problem difference), so "select
+   1e-4" is the rule's output, not evidence that 1e-4 beats 3e-5.
+7. **Wording against n.** Keep the executor's hedges ("provisional", "in-distribution", "not yet
+   general proving ability"). Do not write "emergence": new-capability counts are nonzero (42 /
+   30 / 26 / 62 at L7, 12 at L8 for EI), but they are one seed, and they are one repaired step in
+   one template family. The plan's emergence bar is 3 seeds.
+
+Flag for Charles (not a correction to the executor's numbers): `CLAUDE.md` asks for a stop and
+ask on a surprisingly good result. The executor ran the bug and leak checks, but the queued arms
+ran on. This cost nothing (laptop CPU), and the checks were the right ones and came back clean.
+The two open questions in the log entry are sensible and remain open: report "new capability"
+as defined, given it is mostly one-step fixes; and whether the pool filter (selection on
+frozen-model success in the train half) is acceptable as standard practice. The filter is not a
+leak, but it means no arm here can show solves from nothing on training prompts, only on
+held-out ones.
+
+Everything else in `results.md`, `analysis.md`, the two verifier reports, `status.md` and the log
+entry can be copied as is, with the Recount as the source of record.
