@@ -136,6 +136,7 @@ def one(name, seed, log_dir, pod_name=None):
             print(f"{run_name}: done after {(time.time() - t0) / 60:.0f} min", flush=True)
         finally:
             run("down")
+            push_in_background(run_name)
 
 
 def seed_pretrain(summary):
@@ -187,10 +188,22 @@ def merge(name, seeds):
     return base
 
 
+def push_in_background(*names):
+    """Upload checkpoints to HF in a detached process: the upload from this Mac is slow and must
+    not keep pods billing or the experiment waiting. push_checkpoints deletes a local .pt only
+    after HF holds an identical copy, so overlapping pushes cannot lose one."""
+    subprocess.Popen(
+        [sys.executable, os.path.join(HERE, "pod.py"), "push", *names],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+
 def push_leftover_checkpoints():
-    """Checkpoints whose HF push was interrupted (e.g. the session was killed mid-push) leave this
-    disk now, before archive_previous_attempt can bury them in previous_attempts/."""
-    subprocess.run([sys.executable, os.path.join(HERE, "pod.py"), "push"], check=False)
+    """Checkpoints whose HF push was interrupted (e.g. the session was killed mid-push)."""
+    push_in_background()
 
 
 def main():

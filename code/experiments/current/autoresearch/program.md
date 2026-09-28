@@ -22,6 +22,20 @@ creative. Prefer bold ideas the table has not tried (new mechanisms, not another
 nudge to a tuned number), and check the other agent's running registration so you do not duplicate
 it.
 
+**Focus until ~01:50 on 2026-09-28, both agents (Robbie).** Each experiment should be one of:
+1. **Port an optimization from the modded-nanogpt speedrun** (KellerJordan/modded-nanogpt and its
+   record history) that has not been tried here. Already tried: Muon with Polar Express, batched
+   Newton-Schulz and torch.compile (in the incumbent since 186), U-net skips (114), value
+   embeddings (121), ReLU^2 (181), QK-norm (168), token-budget batches (148, incumbent), packing
+   (146, 161), Muon momentum warmup (094), warmup-stable-decay (135). Untried examples: zero-init
+   of the attention/MLP output projections, logit soft-capping, bf16 parameters, separate learning
+   rates for embedding and head, FlexAttention (ALiBi as a score_mod), sequence-length or batch
+   warmup, input-embedding skips into every block. The A40 has no FP8.
+2. **Simplify the incumbent**: remove or merge a component and show it is not needed (read
+   pretrain.py; candidates include the MTP module, Peri-LN's extra branch-output norms, the
+   ALiBi/NoPE head split, the Muon RMS scaling, the orthogonal init). Per the simplicity rule a
+   result of ~0 with less code is a keep.
+
 **torch 2.9.1 since 186 (2026-09-27).** Pods run `runpod/pytorch:1.3.3-cu1290-torch291-ubuntu2204`;
 summaries record `torch`. Measured on the 153 incumbent (one A40, 300 s, `bench_pretrain.py`):
 eager 4,471 steps; per-block `block.compile(dynamic=True)` 4,565; plus the Muon step captured as
