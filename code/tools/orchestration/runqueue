@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Cron (every 10 min): start queued runs once their dependencies are recorded and the host has room.
+#   runqueue            launch at most one ready run this tick
+#   runqueue --status   print what each queued run is waiting for (launches nothing)
+# ~/queue.conf, one run per line (blank lines and #-lines ignored):
+#   <run-id>|<fork base branch>|<brief path>|<pod hours>|<usd>|<after: run ids, comma-separated, or ->
+# A dependency counts as done when its librarian has recorded it: an nd-rl origin/dan experiment summary
+# named <date>-<run-id>-…, or ~/runs/<run-id>/librarian.done on this host (so dependencies may live on the
+# other host). A run starts only if this host has fewer than QUEUE_MAX (default 1) executor sessions
+# (tmux ex-*, queued or not) and the RunPod balance is at least the policy floor (QUEUE_FLOOR, $100)
+# plus the run's budget. Launching goes through `newrun`. Started runs are skipped (their
+# ~/runs/<id>/executor.started exists). Log: ~/queue.log.
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
+Q=~/queue.conf; [ -f "$Q" ] || exit 0
+MODE=${1:-run}; MAX=${QUEUE_MAX:-1}; FLOOR=${QUEUE_FLOOR:-100}
+git -C ~/nd-rl fetch -q origin 2>/dev/null
+SUMS=$(git -C ~/nd-rl ls-tree -d --name-only origin/dan experiment-summaries/ 2>/dev/null | sed 's|^experiment-summaries/||')
+done_run() { echo "$SUMS" | grep -qE "^[0-9]{4}-[0-9]{2}-[0-9]{2}-$1(-|$)" || [ -f ~/runs/"$1"/librarian.done ]; }
+live=$(tmux ls 2>/dev/null | grep -c '^ex-'); bal=$(rpbalance 2>/dev/null); launched=0
+while IFS='|' read -r RUN BASE BRIEF HOURS USD AFTER; do
+  RUN=$(echo $RUN); [ -z "$RUN" ] || [ "${RUN:0:1}" = "#" ] && continue
+  if [ -f ~/runs/"$RUN"/executor.started ]; then
+    [ "$MODE" = --status ] && echo "$RUN: started $(cat ~/runs/"$RUN"/executor.started)"; continue; fi
+  wait=()
+  for d in ${AFTER//,/ }; do [ "$d" = - ] || done_run "$d" || wait+=("waiting for $d"); done
+  [ "$live" -lt "$MAX" ] || wait+=("$live executor(s) on this host, max $MAX")
+  awk -v b="${bal:-0}" -v f="$FLOOR" -v u="$USD" 'BEGIN{exit !(b>=f+u)}' || wait+=("balance \$${bal:-?} < \$$FLOOR floor + \$$USD")
+  [ ! -f "$BRIEF" ] && wait+=("brief $BRIEF missing")
+  if [ "$MODE" = --status ]; then echo "$RUN: ${wait[*]:-ready}"; continue; fi
+  [ ${#wait[@]} = 0 ] && [ "$launched" = 0 ] || continue
+  if newrun "$RUN" --base "$BASE" --brief "$BRIEF" --hours "$HOURS" --usd "$USD" >> ~/queue.log 2>&1; then
+    echo "$(date -u +%FT%TZ) started $RUN" >> ~/queue.log; launched=1; live=$((live+1))
+  else
+    echo "$(date -u +%FT%TZ) newrun failed for $RUN — see above; left queued" >> ~/queue.log
+  fi
+done < "$Q"

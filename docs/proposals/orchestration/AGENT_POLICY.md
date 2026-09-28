@@ -50,8 +50,13 @@ Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and share
   count, format, from-scratch or pretrained, training set. An inherited number carries its label;
   a reviewer treats an unlabelled number as a finding. *Why:* an efficiency run applied a premise
   measured on a different model than the one it was about.
-- **Read claims against the measured noise floor** (`NOISE_FLOOR.md` on the fork's `dan` branch,
-  from run `noise-floor`, 2026-09-25). A difference inside it is not a finding at n = 2.
+- **Plan seeds against the measured noise floor** (Dan, 2026-09-28; `NOISE_FLOOR.md` on the fork's `dan`
+  branch). Every pre-registration states the minimum detectable difference for its headline quantity at
+  its seed count, and a comparison whose predicted effect is inside it is redesigned (more seeds, a
+  within-run or paired design) before it is launched. Use the same seeds in every arm. Report per-seed
+  values plus the interquartile mean with a stratified-bootstrap 95 % interval (Agarwal et al., NeurIPS
+  2021). Once fast Stage-1 training is merged (`FAST_STAGE1.md`), default to 5–10 Stage-1 seeds. *Why:*
+  at n = 2, 18 of 20 standing findings sat inside the floor. A difference inside it is not a finding.
 - Learned from real bugs, each of which produced a wrong number once: start-index-normalised
   distinct-proof counts; a frozen control at equal attempts; a base-model reachability number
   with every "RL solved X"; two seeds before calling a difference; expected results written

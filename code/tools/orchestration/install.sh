@@ -11,7 +11,8 @@ CRON="*/10 * * * * $HOME/bin/orchestrator
 */15 * * * * $HOME/bin/pod_watchdog
 */10 * * * * $HOME/bin/pod_budget_watch
 17 * * * * $HOME/bin/balance_floor
-37 * * * * $HOME/bin/disk_watch"
-( crontab -l 2>/dev/null | grep -v -E "bin/(orchestrator|pod_watchdog|pod_budget_watch|balance_floor|disk_watch)$" \
+37 * * * * $HOME/bin/disk_watch
+*/10 * * * * $HOME/bin/runqueue"
+( crontab -l 2>/dev/null | grep -v -E "bin/(orchestrator|pod_watchdog|pod_budget_watch|balance_floor|disk_watch|runqueue)$" \
     | grep -v -E '^[0-9]+ [0-9]+ [0-9]+ [0-9]+ \* .*killswitch' || true; echo "$CRON" ) | crontab -
 echo "installed into ~/bin: $(ls "$H" | grep -v -x -e install.sh -e README.md | tr '\n' ' ')"; echo "crontab:"; crontab -l
