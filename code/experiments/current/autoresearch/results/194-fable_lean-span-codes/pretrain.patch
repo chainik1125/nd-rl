@@ -1,0 +1,100 @@
+diff --git a/code/experiments/current/autoresearch/pretrain.py b/code/experiments/current/autoresearch/pretrain.py
+index 25aa3b9..32ea728 100644
+--- a/code/experiments/current/autoresearch/pretrain.py
++++ b/code/experiments/current/autoresearch/pretrain.py
+@@ -75,6 +75,13 @@ TOK_BUDGET = 128 * 144
+ # Peri-LN block reads [trunk state at t; embedding of token t+1] and predicts token t+2 through
+ # the model's own ln_f/head. Its loss is added at this weight (DeepSeek-V3's early-training value).
+ MTP_WEIGHT = 0.3
++# Sub-formula identity codes: every ')' carries a +-1 code of the bracket span it closes (the
++# bits of a polynomial rolling hash of the span's tokens, mod the Mersenne prime 2^31 - 1), so
++# two occurrences of the same sub-formula anywhere in the context get the same input feature
++# and a content head can match them in one hop, however long the formula is.
++OPEN, CLOSE = 2, 3  # lean_seq ids of '(' and ')' (checked in pretrain())
++SPAN_BITS, SPAN_DEPTH = 31, 32  # code width; nesting levels tracked (deeper ones share the last)
++HASH_P, HASH_R, HASH_LEN = 2**31 - 1, 1_000_003, 4096  # modulus, base, positions with a power
+ 
+ 
+ # Muon update adapted from KellerJordan/Muon, commit
+@@ -169,10 +176,60 @@ class ALiBiGPT(GPT):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
++        self.code_proj = torch.nn.Linear(SPAN_BITS, d, bias=False)
++        torch.nn.init.normal_(self.code_proj.weight, std=0.02)
++        # Powers of R and of its inverse mod P: a CPU pair for cached decoding, buffers otherwise.
++        self.hash_cpu = tuple(
++            torch.tensor([pow(base, k, HASH_P) for k in range(HASH_LEN)])
++            for base in (HASH_R, pow(HASH_R, HASH_P - 2, HASH_P))
++        )
++        self.register_buffer("hash_pow", self.hash_cpu[0].clone(), persistent=False)
++        self.register_buffer("hash_inv", self.hash_cpu[1].clone(), persistent=False)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+ 
++    def span_codes(self, idx, cache):
++        """(B, T, SPAN_BITS): at every ')' the +-1 bits (scaled to unit norm) of the hash of the
++        tokens from its matching '(' to itself, zeros elsewhere. The hash of span [i, j] is
++        sum_k (token_k + 1) R^(k - i) mod P, taken from prefix sums, so it depends on the span's
++        content only. `cache` (caches[0]) carries the prefix hash, the depth and the open
++        bracket of every level across calls, so cached decoding sees the full forward's codes."""
++        B, T = idx.shape
++        hash_pow, hash_inv = (self.hash_pow, self.hash_inv) if idx.is_cuda else self.hash_cpu
++        opens, closes = idx == OPEN, idx == CLOSE
++        if cache is not None and "span_n" in cache:
++            n0, depth0, hash0 = cache["span_n"], cache["span_depth"], cache["span_hash"]
++            open_i0, open_h0 = cache["span_open_i"], cache["span_open_h"]
++        else:
++            n0, depth0, hash0 = 0, idx.new_zeros(B), idx.new_zeros(B)
++            open_i0 = idx.new_full((B, SPAN_DEPTH), -1)
++            open_h0 = idx.new_zeros(B, SPAN_DEPTH)
++        k = n0 + torch.arange(T, device=idx.device)
++        term = (idx + 1) * hash_pow[k] % HASH_P
++        prefix = (hash0[:, None] + term.cumsum(1)) % HASH_P  # hash of tokens [0, k]
++        before = (prefix - term) % HASH_P  # hash of tokens [0, k)
++        depth = depth0[:, None] + (opens.long() - closes.long()).cumsum(1)
++        level = (depth + closes.long()).clamp(0, SPAN_DEPTH - 1)  # of the bracket at k
++        at_level = level[..., None] == torch.arange(SPAN_DEPTH, device=idx.device)
++        # Index of the latest '(' of every level up to k (-1: none); earlier calls via the cache.
++        open_i = torch.where(opens[..., None] & at_level, k[None, :, None], -1).cummax(1).values
++        open_i = torch.maximum(open_i, open_i0[:, None])
++        start_i = open_i.gather(2, level[..., None]).squeeze(-1)  # (B, T): the matching '('
++        start_h = torch.where(
++            start_i >= n0, before.gather(1, (start_i - n0).clamp(min=0)), open_h0.gather(1, level)
++        )
++        code = (prefix - start_h) % HASH_P * hash_inv[start_i.clamp(min=0)] % HASH_P
++        if cache is not None:
++            last = open_i[:, -1]
++            cache["span_open_h"] = torch.where(
++                last >= n0, before.gather(1, (last - n0).clamp(min=0)), open_h0
++            )
++            cache["span_open_i"], cache["span_n"] = last, n0 + T
++            cache["span_depth"], cache["span_hash"] = depth[:, -1], prefix[:, -1]
++        bits = (code[..., None] >> torch.arange(SPAN_BITS, device=idx.device)) & 1
++        return (2.0 * bits - 1) * (closes & (start_i >= 0))[..., None] / SPAN_BITS**0.5
++
+     def features(self, idx, pos=None, mask=None, caches=None):
+         """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
+         B, T = idx.shape
+@@ -190,7 +247,11 @@ class ALiBiGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        x = self.emb(idx)
++        # Cached decoding tracks the brackets on the CPU: its ~60 tiny ops per token cost ~6 ms
++        # as CUDA launches (bench: 120 samples/s against the incumbent's ~195), far less there.
++        cached = caches is not None
++        codes = self.span_codes(idx.cpu() if cached else idx, caches[0] if cached else None)
++        x = self.emb(idx) + self.code_proj(codes.to(idx.device))
+         for i, b in enumerate(self.blocks):
+             x = b(x, None, None, bias, None if caches is None else caches[i])
+         return x, bias
+@@ -297,6 +358,7 @@ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, max_len=None):
+ def pretrain(train_recs, budget_secs, device, seed, log):
+     t0 = time.time()
+     tok = make_tokenizer(TOK_MODE)
++    assert (tok.stoi["("], tok.stoi[")"]) == (OPEN, CLOSE), "span codes need the bracket ids"
+     data = [(tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])) for r in train_recs]
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
