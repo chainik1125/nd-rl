@@ -1,8 +1,9 @@
-"""Pretrain loss, dev score and holdout score against run number.
+"""Pretrain loss, dev score, holdout score and textbook score against run number.
 
-Top: final pretrain val loss. Bottom: % of theorems >= 7 lines solved after RL, on dev (the pool
+Top: final pretrain val loss. Middle: % of theorems >= 7 lines solved after RL, on dev (the pool
 the loop kept runs by, 1,108) and on the transfer holdout (never looked at during the loop, 1,177).
-Percentages because the two pools differ in size. Kept runs are bold and joined by a line (the
+Percentages because the two pools differ in size. Bottom: % of the 72 textbook72 problems solved
+at pass@256, all lengths (scored offline like the holdout; never trained or selected on). Kept runs are bold and joined by a line (the
 incumbent's path); discards are faint. The rule at 098 is the protocol switch to the Lean tokenizer
 and reward: loss changes units there and scores are not comparable across it. Holdout only exists
 for the Lean era. Same two off-scale Lean runs dropped as in loss_vs_score.py.
@@ -16,7 +17,7 @@ import altair as alt
 from theme import HUE, MUTED, fonts, save
 
 WIDTH, HEIGHT = 560, 190
-DEV_N, HOLDOUT_N = 1108, 1177
+DEV_N, HOLDOUT_N, TEXTBOOK_N = 1108, 1177, 72
 OFF_SCALE = {"166-fable2_lean-compile-dynamic", "162-fable_lean-tail-ascending"}
 SERIES = {"Dev": HUE["carbon"], "Holdout": HUE["water"]}
 X_SCALE, X_AXIS = alt.Scale(domain=[10, 186], nice=False), alt.Axis(tickCount=9, format="03d")
@@ -30,6 +31,8 @@ score = [{"num": int(r["num"]), "series": "Dev", "pct": 100 * float(r["dev"]) / 
           "status": r["status"], "run": r["run"]} for r in runs]
 score += [{"num": int(r["num"]), "series": "Holdout", "pct": 100 * float(r["holdout"]) / HOLDOUT_N,
            "status": r["status"], "run": r["run"]} for r in runs if r["holdout"]]
+book = [{"num": int(r["num"]), "pct": 100 * float(r["textbook"]) / TEXTBOOK_N,
+         "status": r["status"], "run": r["run"]} for r in runs if r["textbook"]]
 
 f = fonts(WIDTH)
 KEEP = "datum.status == 'keep'"
@@ -65,11 +68,15 @@ key = key.mark_circle(size=46, opacity=1).encode(x=X, y="pct:Q", color=alt.Color
     "series:N", scale=alt.Scale(domain=list(SERIES), range=list(SERIES.values())), legend=None)) + \
     key.mark_text(align="left", dx=8, fontSize=f["legend"]).encode(
         x=X, y="pct:Q", text="series:N", color=alt.value(MUTED))
-bottom = (layer(score, X, alt.Y("pct:Q", title="Theorems ≥ 7 Lines Solved (%)",
+middle = (layer(score, X_TOP, alt.Y("pct:Q", title="Theorems ≥ 7 Lines Solved (%)",
                              scale=alt.Scale(zero=False), axis=alt.Axis(tickCount=5)),
                 alt.Color("series:N", title=None,
                           scale=alt.Scale(domain=list(SERIES), range=list(SERIES.values())),
                           legend=None))
           + era + key).properties(width=WIDTH, height=HEIGHT + 40)
+bottom = (layer(book, X, alt.Y("pct:Q", title="Textbook Problems Solved (%)",
+                               scale=alt.Scale(zero=False), axis=alt.Axis(tickCount=5)),
+                alt.value(HUE["recycle"]))
+          + era).properties(width=WIDTH, height=HEIGHT + 40)
 
-save(alt.vconcat(top, bottom, spacing=14), "by-run", WIDTH)
+save(alt.vconcat(top, middle, bottom, spacing=14), "by-run", WIDTH)
