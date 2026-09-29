@@ -60,3 +60,41 @@ tests that need Lean run under `--runslow` and skip when it is not installed.
 The vocabulary and its order are identical to the take-home fork's `lean_tok.py` (mode `lean_seq`), so
 token ids from a model trained there mean the same here (`tests/fixtures/lean_seq_golden.jsonl`). The
 fork's models used a different network class, so its weights do not load into `ProofModel`.
+
+## `pretrain_recipe`: autoresearch run 198's pretraining stage
+
+`pretrain_recipe.py` is the best pretraining stage from Robbie's autoresearch loop (branch
+`autoresearch-pretrain`, run `198-claude_lean-muon-no-rms-retest`): 681 of 1,108 dev theorems of true
+length ≥ 7 solved after a fixed expert-iteration stage (3-seed mean), at ≤ 10M parameters and 300 s
+of pretraining on one A40. It is a network, `RecipeModel`, and a training function, `pretrain`:
+
+- **Network:** 6 layers × 384, 8 heads, MLP 1280. Four heads get an ALiBi distance penalty, four get
+  no positional signal. Peri-LN blocks (a LayerNorm on each branch output as well as its input).
+- **Training:** Muon with Polar Express coefficients on the hidden matrices and the readout, AdamW
+  on the rest. A multi-token-prediction head used only while pretraining. Orthogonal init.
+  Token-budget batches (length-sorted runs of ≤ 128 × 144 padded tokens). A random name shift per
+  proof. Cosine learning rate over wall-clock, no warmup.
+
+```python
+from nd_model import generate_bodies, save_checkpoint
+
+from code.shared_code.lean_seq import LeanSeqTokenizer
+from code.shared_code.pretrain_recipe import load_checkpoint, pretrain
+
+tok = LeanSeqTokenizer()
+model, stats = pretrain(tok, records, budget_secs=300, val_records=val)  # records as above
+bodies = generate_bodies(model, tok, prompts)  # same call signature as ProofModel
+save_checkpoint("ckpt.pt", model, tok)
+model, tok, meta = load_checkpoint("ckpt.pt")  # nd_model.load_checkpoint only builds ProofModel
+```
+
+- **The loop's own checkpoints load:** `load_autoresearch_checkpoint(path)` reads a loop `final.pt`
+  (e.g. `runs/198-claude_lean-muon-no-rms-retest_s0/final.pt` on
+  [Hugging Face](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints)). On 198 seed 0, its
+  logits are bit-identical to the loop's own model code, and `generate_bodies`' cached, left-padded
+  decoding matches uncached greedy decoding.
+- **Budget is wall-clock:** the cosine schedule runs over `budget_secs`, as in the loop.
+- **Not ported:** the loop's per-block `torch.compile` and CUDA-graphed Muon step (+23 % steps on torch
+  2.9.1, no measured score change).
+- **Tuned for one regime:** the constants were hill-climbed at 10M parameters, 300 s and cap-6 data on
+  one dev metric. They are untested at other sizes and data.
