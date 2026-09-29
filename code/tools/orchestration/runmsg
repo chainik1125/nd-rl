@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Send a message to one role session of a run; `runrole` puts it at the top of that session's next prompt.
+#   runmsg <run-id> <role> [--now] [message ...]      (no message words: read the message from stdin)
+# Without --now the message waits for the agent's next invocation; a driver sleeping between
+# invocations wakes within 10 s. With --now the invocation in progress is stopped (the conversation
+# is kept) and the driver resumes it at once with the message: use it when the agent must not finish
+# what it is doing first. A stop by --now is not counted as a failed invocation.
+set -u
+[ $# -ge 2 ] || { sed -n '2,7p' "$0"; exit 2; }
+RUN=$1; ROLE=$2; shift 2; NOW=0
+[ "${1:-}" = --now ] && { NOW=1; shift; }
+D=~/runs/$RUN
+[ -d "$D" ] || { echo "no run directory $D" >&2; exit 1; }
+if [ $# -gt 0 ]; then BODY="$*"; else BODY=$(cat); fi
+[ -n "$BODY" ] || { echo "empty message" >&2; exit 1; }
+printf -- '--- message %s\n%s\n' "$(date -u +%FT%TZ)" "$BODY" >> "$D/$ROLE.inbox"
+echo "queued for $RUN/$ROLE ($D/$ROLE.inbox)"
+if [ -f "$D/$ROLE.done" ]; then echo "warning: $ROLE.done exists — the session has finished and will not read this" >&2; fi
+PID=$(cat "$D/$ROLE.claude.pid" 2>/dev/null || true)
+if [ -z "$PID" ] || ! kill -0 "$PID" 2>/dev/null; then
+  if pgrep -f "runrole $ROLE $RUN( |\$)" >/dev/null; then echo "driver is between invocations: delivered within ~10 s"
+  else echo "warning: no driver running for $RUN/$ROLE — delivered when it is next started" >&2; fi
+  exit 0
+fi
+if [ "$NOW" = 1 ]; then
+  grep -qa claude "/proc/$PID/cmdline" 2>/dev/null || { echo "pid $PID is not a claude process; not stopping it" >&2; exit 1; }
+  touch "$D/$ROLE.interrupt"; kill -TERM "$PID"
+  echo "stopped the running invocation (pid $PID); the driver resumes it with the message"
+else
+  echo "an invocation is running: delivered when it ends (use --now to stop it and deliver at once)"
+fi
