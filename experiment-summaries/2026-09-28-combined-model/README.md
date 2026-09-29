@@ -150,8 +150,7 @@ Setup:
 - compute measured as tokens sampled from the model per theorem, rejected attempts included.
 
 Details are in the
-[test-time scaling experiment](../2026-09-29-test-time-scaling/README.md) (branch
-`test-time-scaling`).
+[test-time scaling experiment](../2026-09-29-test-time-scaling/README.md).
 
 ![Solve rate vs sampled tokens per theorem, by inference method](charts/test-time-scaling.png)
 
@@ -180,7 +179,7 @@ What this says about the model:
     lines outside the Lean grammar.
 - **It is confidently wrong.** Half of all redraws reproduce the exact line that was just
   rejected.
-- **The curves still flatten.** About 168 theorems (14%) are solved by no method at any budget
+- **The curves still flatten.** About 142 theorems (12%) are solved by no method at any budget
   tried. These look like missing plans rather than slips, which is where a learned value function
   or training on the failures would come in.
 - **The metric scores without this sampler, although the RL trained with it.** Scoring the
