@@ -34,6 +34,7 @@ import guided
 import harness_frozen as H
 import torch
 import torch.nn.functional as F
+from tokenizer import MAXN  # fork (abs index count; lean_seq names share it)
 
 CFG = dict(
     window=400,
@@ -65,6 +66,7 @@ CFG = dict(
     guide_rollbacks=24,
     guide_slack=256,  # extra decode steps for resampled segments
     guide_seg_max=400,  # lean_seq segments span nested box headers, so not Leon's abs 160
+    index_room=24,  # abs only: Leon's start-index cap (make_batch_capped below)
 )
 # leon_cfg.json next to this file (written by launch.py --cfg) overrides CFG for one variant
 _cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "leon_cfg.json")
@@ -99,6 +101,30 @@ def alloc_k(targets, k, rate):
     return [max(CFG["k_min"], min(CFG["k_max"], round(tot * x / sw))) for x in w]
 
 
+def make_batch_capped(data, idxs, tok, rng, dev, room):
+    """Leon's make_batch_capped, unchanged in effect (abs only): renumber each proof to start at
+    N1, then add a random offset that leaves room for `room` lines below N64. The fork's
+    shift_abs spreads starts over N1..N59, so long proofs sampled from late starts run past N64."""
+    r0 = tok.ref0
+    seqs, masks = [], []
+    for i in idxs:
+        p, q = data[i]
+        refs = [x - r0 + 1 for x in q if x >= r0]
+        if refs:
+            lo, hi = min(refs), max(refs)
+            s = rng.randint(0, max(0, MAXN - max(hi - lo + 1, room)))
+            q = [x - (lo - 1) + s if x >= r0 else x for x in q]
+        seqs.append(p + q)
+        masks.append([0] * len(p) + [1] * len(q))
+    T = max(len(x) for x in seqs)
+    x = torch.full((len(seqs), T), tok.pad, dtype=torch.long)
+    m = torch.zeros((len(seqs), T), dtype=torch.bool)
+    for i, (sq, mk) in enumerate(zip(seqs, masks, strict=True)):
+        x[i, : len(sq)] = torch.tensor(sq)
+        m[i, : len(sq)] = torch.tensor(mk, dtype=torch.bool)
+    return x.to(dev), m.to(dev)
+
+
 def finetune_gem(model, tok, data, steps, rng):
     opt = torch.optim.AdamW(
         model.parameters(), lr=CFG["lr"], weight_decay=CFG["weight_decay"], betas=CFG["betas"]
@@ -118,7 +144,11 @@ def finetune_gem(model, tok, data, steps, rng):
         if len(perm) < bs:
             perm = list(range(len(data)))
             rng.shuffle(perm)
-        x, m = H.mk_batch(data, [perm.pop() for _ in range(bs)], tok, rng, H.DEV)
+        idxs = [perm.pop() for _ in range(bs)]
+        if tok.mode == "abs":
+            x, m = make_batch_capped(data, idxs, tok, rng, H.DEV, CFG["index_room"])
+        else:
+            x, m = H.mk_batch(data, idxs, tok, rng, H.DEV)
         with H.autocast():
             if CFG["loss"] == "gem":
                 loss = gem_loss_on(model, x, m, CFG["gem_beta"])

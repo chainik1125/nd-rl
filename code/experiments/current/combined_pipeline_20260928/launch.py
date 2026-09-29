@@ -75,7 +75,12 @@ def main():
     a = ap.parse_args()
     arm, seed, name = a.arm, a.seed, a.name or f"combo-{a.arm}"
     assert not (a.cfg and arm == "ei"), "--cfg configures leon_rl only"
-    d = stage(arm, seed, a.ckpt_dir, name, a.cfg, a.pretrain_on_pod)
+    run_staged(stage(arm, seed, a.ckpt_dir, name, a.cfg, a.pretrain_on_pod), name, seed)
+
+
+def run_staged(d, name, seed):
+    """Rent a pod, upload staged dir `d` as /workspace/autoresearch, run remote.sh as
+    <name>_s<seed>, pull the artifacts, terminate. Used by factorial_20260929/launch.py too."""
     # pod.py pushes checkpoints to HF before terminating the pod, so a slow uplink leaves the pod
     # idling; push later from this disk instead (`pod.py push <run>`).
     pod.push_checkpoints = lambda _name: None

@@ -21,6 +21,12 @@ COMPACT_BELOW = 0.75  # compact once fewer than this fraction of the batch is st
 COMPACT_EVERY = 8
 
 
+def gate_if_lean(tok, prompts, nd, texts):
+    """The fork's generate gates only a LeanTokenizer (it has `statement`); abs samples are judged
+    by nd_verify alone, as in the token-era harness."""
+    return gate(tok, prompts, nd, texts) if hasattr(tok, "statement") else nd
+
+
 def _index_caches(caches, rows, B):
     for c in caches:
         for k, v in c.items():
@@ -95,8 +101,10 @@ def generate(model, tok, prompts, temperature, max_new, batch, seed):
             nd, texts = [], []
             for o in outs:
                 nd.append(tok.decode(o))
-                texts.append(tok.last_text)
-            futs.append((chunk, pool.submit(gate, tok, [prompts[i] for i in chunk], nd, texts)))
+                texts.append(getattr(tok, "last_text", None))
+            futs.append(
+                (chunk, pool.submit(gate_if_lean, tok, [prompts[i] for i in chunk], nd, texts))
+            )
         for chunk, fut in futs:
             for i, r in zip(chunk, fut.result(), strict=True):
                 res[i] = r

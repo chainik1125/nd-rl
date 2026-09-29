@@ -18,8 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import torch
 import torch.nn.functional as F
-from fast_sample import _index_caches
-from lean_gate import gate  # fork
+from fast_sample import _index_caches, gate_if_lean
 from lean_tok import ParseFail, inverse  # fork
 from line_checker import LineChecker, _prompt_sequent
 
@@ -60,15 +59,29 @@ def prefix_lines(toks):
     return None  # a complete proof before <eos> is not a prefix
 
 
-class RowCheck:
-    """One row's accepted state: ND lines checked so far and the LineChecker behind them."""
+def abs_lines(toks):
+    """abs proof tokens are already ND lines: split after every `;` (a trailing partial line is
+    dropped)."""
+    lines, cur = [], []
+    for t in toks:
+        cur.append(t)
+        if t == ";":
+            lines.append(" ".join(cur))
+            cur = []
+    return lines
 
-    def __init__(self, prompt):
+
+class RowCheck:
+    """One row's accepted state: ND lines checked so far and the LineChecker behind them.
+    lean_seq rows get their ND lines from the fork's parser; abs rows (Leon's original setting,
+    <eos> = QED) are ND lines already."""
+
+    def __init__(self, prompt, lean=True):
         prem, concl = _prompt_sequent(prompt)
-        self.chk, self.n = LineChecker(prem, concl), 0
+        self.chk, self.n, self.lean = LineChecker(prem, concl), 0, lean
 
     def line_ok(self, toks):
-        lines = prefix_lines(toks)
+        lines = prefix_lines(toks) if self.lean else abs_lines(toks)
         if lines is None or len(lines) <= self.n:
             return False
         trial = copy.deepcopy(self.chk)
@@ -78,6 +91,13 @@ class RowCheck:
         return True
 
     def eos_ok(self, toks):
+        if not self.lean:
+            return (
+                bool(toks)
+                and toks[-1] == ";"
+                and len(abs_lines(toks)) == self.n
+                and (self.chk.done_ok())
+            )
         try:
             nd = inverse(toks)
         except (ParseFail, KeyError, IndexError):
@@ -113,7 +133,7 @@ def _guided_ids(model, tok, prompt_ids, prompts, temperature, max_new, gen, cfg)
     ptr = torch.zeros(B, dtype=torch.long, device=dev)
     sst = torch.zeros(B, dtype=torch.long, device=dev)
     fin_o = torch.zeros(B, dtype=torch.bool, device=dev)
-    chk = [RowCheck(p) for p in prompts]
+    chk = [RowCheck(p, lean=hasattr(tok, "statement")) for p in prompts]
     lstart_c = [L] * B  # cache index where the current segment starts
     lstart_p = pos[:, -1].tolist()  # position of the last accepted token
     retries, rollbacks = [0] * B, [0] * B
@@ -257,8 +277,10 @@ def generate(model, tok, prompts, temperature, max_new, batch, seed, cfg):
             nd, texts = [], []
             for o in outs:
                 nd.append(tok.decode(o))
-                texts.append(tok.last_text)
-            futs.append((chunk, pool.submit(gate, tok, [prompts[i] for i in chunk], nd, texts)))
+                texts.append(getattr(tok, "last_text", None))
+            futs.append(
+                (chunk, pool.submit(gate_if_lean, tok, [prompts[i] for i in chunk], nd, texts))
+            )
         for chunk, fut in futs:
             for i, r in zip(chunk, fut.result(), strict=True):
                 res[i] = r
