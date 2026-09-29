@@ -1,0 +1,53 @@
+{
+  "commit": "5cf7d37",
+  "recorded_at": "2026-09-29T03:19:25+0100",
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "2aa52f23e7ec",
+  "pretrain_sha": "0adbeed59a8a",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 2474,
+  "reason": "seeds [0, 1, 2] not ok: ['timeout', 'timeout', 'timeout']",
+  "pretrain": {
+    "secs": null,
+    "n_params": null,
+    "steps": null,
+    "epochs": null,
+    "last_loss": null,
+    "heldout_greedy": null,
+    "curve": null
+  },
+  "rl_rounds": [],
+  "eval": {
+    "solved": null,
+    "n": null,
+    "ge": null,
+    "lstar": null,
+    "heldout_greedy": null,
+    "max_pruned": null,
+    "by_bin": null
+  },
+  "holdout_metric": null,
+  "surprise": "All 3 seeds timed out: same head-dim-46 SDPA math-kernel fallback as 202 (sampling ~58-94 samples/s vs ~270; benchmarked 2.7x slower than hd48). Keller Muon vs Polar Express not measured.",
+  "seed_metrics": {},
+  "seed_metric_rl": {},
+  "seed_status": {
+    "0": "timeout",
+    "1": "timeout",
+    "2": "timeout"
+  },
+  "seed_pretrain": {},
+  "lean_gate": null,
+  "migrated": false
+}
