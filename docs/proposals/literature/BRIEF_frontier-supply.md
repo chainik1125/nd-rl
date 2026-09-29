@@ -38,6 +38,14 @@ solves rarely (STP 2502.00212v4 §3.2 keeps p̂ ∈ (0, 1/4]; Lee et al. 2502.01
     hypotheses.
 - **Filter:** 32 attempts per candidate; keep p̂ ∈ (0, 1/4]. Report candidates made, passed, and passed
   per source (a) / (b).
+- **Compute is matched, filter included** (Dan, 2026-09-29: "a more sophisticated proposal … might not be
+  a 'fair' comparison"). The filter's attempts count against the supply arm's per-round attempt budget.
+  - Per round: supply arm (target attempts + filter attempts) = control arm (target attempts).
+  - Also keep fine-tune steps per round equal across arms.
+  - Report per arm: generated tokens, fine-tune tokens, Lean / environment checks, and GPU-seconds
+    (per job).
+  - If the supply arm's GPU-seconds exceed the control's by more than 25 %, add a control arm given the
+    extra attempts, on 2 seeds.
 - **No evaluation leakage:** candidates come only from `rl_targets` attempts and their own descendants.
   Check each against `transfer_long`, `transfer_long2` and every held-out pool by renaming class, and drop
   matches. Report the count.
