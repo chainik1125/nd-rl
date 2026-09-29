@@ -1,0 +1,48 @@
+{
+  "deadline_utc": "2026-09-10T23:00:00Z",
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/classical_development_v1",
+  "stages": [
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_run.py",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--protocol",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/classical_primary_development_v1.json",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/classical_primary_development_v1",
+        "--workers",
+        "4"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/classical_primary_development_v1.json": "83a3f1cde5643953a710e80175758938085047455f233f871d0eead6b12b6532",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_run.py": "5369e00649fca27f81de36ee6a32c08dadf59f360fb78a682a5e40759d19d05a"
+      },
+      "name": "classical_primary_development_v1",
+      "timeout_seconds": 7200
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_run.py",
+        "--data",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--protocol",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/classical_structured_development_v1.json",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/classical_structured_development_v1",
+        "--workers",
+        "4"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/classical_structured_development_v1.json": "2c213ece57cad8269980c773d603dc991fa94c042d4d77ced4fddc3eb17ca6b1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/classical_v1/classical_run.py": "5369e00649fca27f81de36ee6a32c08dadf59f360fb78a682a5e40759d19d05a"
+      },
+      "name": "classical_structured_development_v1",
+      "timeout_seconds": 7200
+    }
+  ]
+}

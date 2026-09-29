@@ -1,0 +1,7 @@
+{
+  "utc": "2026-09-11T02:42:00+00:00",
+  "command": ["nvidia-smi", "--query-gpu=index,memory.used,utilization.gpu", "--format=csv,noheader,nounits"],
+  "exit_code": 0,
+  "stdout": "0, 1, 0\n1, 76840, 0\n2, 1, 0\n3, 2346, 74\n4, 1, 0\n5, 726, 0\n6, 726, 0\n7, 76914, 0\n",
+  "scope": "Direct, previously approved read-only nvidia-smi tool invocation. Only GPU4 belongs to this sprint. The sandboxed CPU audit subprocess could not initialize NVML; this separate observation is bound explicitly."
+}

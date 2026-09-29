@@ -1,0 +1,23 @@
+{
+  "actual_flop_proxy": 4000052734894080,
+  "exposure_endpoints": {
+    "300": {
+      "actual_flop_proxy": 37552902635520,
+      "compute_matched_to_main": false,
+      "endpoint_kind": "retention_exposure_matched_only",
+      "retention_examples": 4800,
+      "retention_response_tokens": 350614,
+      "retention_schedule_sha256": "57da837520066af827fa80d861b6bafcb069d83113aabf2377bf3d6ac08c8594",
+      "step": 300
+    }
+  },
+  "final_endpoint_kind": "declared_total_compute_budget_endpoint",
+  "flop_proxy_overshoot": 52734894080,
+  "max_flop_proxy": 4000000000000000,
+  "retention_examples": 512544,
+  "retention_response_tokens": 37456511,
+  "retention_schedule_sha256": "0225071e3e53a27807169065cdef80787e079c0229437b4bab48bfc7af5e2f6f",
+  "steps": 32034,
+  "stop_reason": "flop_proxy_ceiling",
+  "worst_case_one_step_flop_proxy": 159364177920
+}

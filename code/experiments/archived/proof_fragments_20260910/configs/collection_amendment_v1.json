@@ -1,0 +1,14 @@
+{
+  "recorded_utc": "2026-09-10T18:34:00Z",
+  "status": "prospective_before_any_fragment_model_outcomes",
+  "reason": "ORE has only 10 distinct accepted candidate sources after 1.05 million forward proposals while most other families have 64. Independent sampling confirms low cap6 collection probability and narrow support, without proving impossibility.",
+  "primary_candidate_families": ["ANDI", "ANDE1", "ANDE2", "IMPE", "IMPI_flat", "IMPI_nested", "ORI1", "ORI2", "NEGE", "NEGI", "BOTE", "DN"],
+  "primary_sources_per_family": 64,
+  "ore_disposition": "Preserve every available ORE source as a separately labeled small-support diagnostic; do not duplicate sources to fill a primary quota.",
+  "generation_disposition": "Let the immutable original generator finish or reach its declared attempt cap; preserve its original completion/incompletion status. Derive a new released primary population only if all twelve primary family quotas and all other role quotas pass audit.",
+  "final_confirmation_per_length_bin": 256,
+  "no_model_confirmation_outcomes_opened": true,
+  "main_bank_size_per_condition": 192,
+  "main_uniform_bank_rule": "Draw distinct sources from the balanced primary candidate pool, matching the top-three selected bank's full-source-length histogram; use a prospectively fixed RNG. Report scope, token length and context multiplicity rather than hard matching these potential mechanisms.",
+  "main_reset_curriculum_rule": "Both selection conditions use identical per-source rollout thresholds and equal bank sizes. Ensure enough visits for actual backward movement before claiming a curriculum effect."
+}

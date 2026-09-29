@@ -1,0 +1,9 @@
+{
+  "closure_checkpoints": 56,
+  "closure_sha256": "230ef365be05c04c833453192137d8497bdd96b59ca1964ba45b6172766fa14c",
+  "evaluation_models": 32,
+  "final_payload_read": false,
+  "next": "Wait for all 32 completed evaluation receipts, then run the declared raw-action audit.",
+  "release_sha256": "9151f7e54c7e6d26ba4b94ebd0be41bd9eff8d43ea77e2136aa6dcb45ee6b3d0",
+  "status": "passed_metadata_gate_after_root_notification"
+}

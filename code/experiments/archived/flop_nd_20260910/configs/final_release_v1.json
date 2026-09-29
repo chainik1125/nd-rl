@@ -1,0 +1,71 @@
+{
+  "audit_sha256": "d2238acdd898b2be5106eb21e75b48eb984700f64a769cf010c9204b3c8e9360",
+  "checkpoint_paths": {
+    "baseline": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt",
+    "main_ppo_full_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1/final.pt",
+    "main_ppo_full_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1/final.pt",
+    "main_ppo_reset_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1/final.pt",
+    "main_ppo_reset_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1/final.pt",
+    "main_relative_full_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1/final.pt",
+    "main_relative_full_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1/final.pt",
+    "main_relative_reset_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1/final.pt",
+    "main_relative_reset_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1/final.pt",
+    "online_off_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_off_seed1_v1/final.pt",
+    "online_off_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_off_seed2_v1/final.pt",
+    "online_on_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_on_seed1_v1/final.pt",
+    "online_on_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_on_seed2_v1/final.pt",
+    "retention_seed1_step004405": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_v1/step_004405.pt",
+    "retention_seed1_step004793": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_v1/step_004793.pt",
+    "retention_seed1_step005860": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_v1/step_005860.pt",
+    "retention_seed1_step005934": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_v1/step_005934.pt",
+    "retention_seed2_step005147": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_v1/step_005147.pt",
+    "retention_seed2_step005361": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_v1/step_005361.pt",
+    "retention_seed2_step005857": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_v1/step_005857.pt",
+    "retention_seed2_step005932": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_v1/step_005932.pt"
+  },
+  "checkpoint_sha256": {
+    "baseline": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "main_ppo_full_seed1_v1": "f9fae7e2a71cc63d4044c7e17e88b23f1dc073d407585b39301a3d5457d523e8",
+    "main_ppo_full_seed2_v1": "a46ec1b2ecdcde659a070698145fd6ec61210a379159d1e91efabf3cccf87f6a",
+    "main_ppo_reset_seed1_v1": "2279da6ae3af1a2367734eeb75a56e91977e16b6ea64e8ce332bbbcc3af410b3",
+    "main_ppo_reset_seed2_v1": "0236b80bfe5cea79a2be3a5a181e4482c9c5cae18d206dcc84929945113c42bd",
+    "main_relative_full_seed1_v1": "2f6d6f0ce689f16babd3771f31ea7f2a17f920f5a0dd1d10e04c08ad2985cbdc",
+    "main_relative_full_seed2_v1": "2592fde11b756293e7c1ba53fa834e034b1f298ff739a6868db22f7e2a7395c4",
+    "main_relative_reset_seed1_v1": "6a0ac171dbc6efbac8aac8ccc7add97fcd892c1f8067a5968caadfd58219a80b",
+    "main_relative_reset_seed2_v1": "5a82d90ee20076f8168df8a5aa3aad04c7eb796fd16a83ed3e031d7406a38d47",
+    "online_off_seed1_v1": "c9447d5cf5940ecb19ef648ab216c12171c426291d04ed29c89d3efdbd6da596",
+    "online_off_seed2_v1": "8b4b34b727253c48d992fa3275c6e54d94e0ff1ea230a14d87356631c9035d58",
+    "online_on_seed1_v1": "00992e87a93f0953f738d9bc042ad3e30400f676c813b81c79a1249f0f690f9c",
+    "online_on_seed2_v1": "4fb5cafe473b62c93919022dbaf7a69b369fdd12a390999439d0b85cbeba2de1",
+    "retention_seed1_step004405": "9c5c0926146c99d021f28e2d574e3df25debdfa5c0bc54065b09cec9a43968c2",
+    "retention_seed1_step004793": "1dd677002e275494cc97cd34ad457ae45a2473ff41616305ece724dacda6b125",
+    "retention_seed1_step005860": "d66b9da653904427b451a6832319a6ae5489725e203b8d834f561403a7fb1e84",
+    "retention_seed1_step005934": "ef1aec2088a132552a3038bf5291e3140e144cb78f7aa09bda70aa1fb5891041",
+    "retention_seed2_step005147": "4fe2531e674fe7da5890f011e0995070ce3777c10f0b36b9809af82e01d6c81f",
+    "retention_seed2_step005361": "4db46cd4036b0ebd04ac0da24fea663d0d6a0474cd0a2e195d31d7c5240f30b2",
+    "retention_seed2_step005857": "de08f37f2b4ea0904256394b1cb3b8e03482609f609802a20e2bf973699240a9",
+    "retention_seed2_step005932": "656e91dffe35cd12ea4c74ceb3f96238a69c295cc389985142f9608e7ac7545c"
+  },
+  "data_sha256": "554564b9c70bf88f400a8bcb36ff6e7beed83b0fad61eac868e4158b482e7cc4",
+  "frozen_utc": "2026-09-11T02:11:47.471683+00:00",
+  "inference_profiles": [
+    {
+      "attempts": 1,
+      "batch_size": 32,
+      "max_new_tokens": 512,
+      "precision": "fp32",
+      "seed": 202609101935,
+      "temperature": 0
+    },
+    {
+      "attempts": 4,
+      "batch_size": 32,
+      "max_new_tokens": 512,
+      "precision": "fp32",
+      "seed": 202609101935,
+      "temperature": 0.8
+    }
+  ],
+  "selection": "All predeclared primary, exact retention-exposure, and online continuation endpoints; no performance selection.",
+  "status": "released"
+}

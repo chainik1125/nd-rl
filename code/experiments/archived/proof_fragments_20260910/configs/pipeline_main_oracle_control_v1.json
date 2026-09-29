@@ -1,0 +1,83 @@
+{
+  "name": "main_oracle_control_v1",
+  "question": "What does direct full-proof SFT on the acquired candidate-plus-selection certificates achieve at the same main training proxy and at the main-plus-SFT-selection proxy?",
+  "expected_seconds": 300,
+  "timeout_seconds": 1200,
+  "deadline_utc": "2026-09-11T02:15:00+00:00",
+  "source_snapshots": [
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/snapshots/oracle_v1"
+  ],
+  "inputs": [
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/frozen_selectors_v1.json",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/calibration_v1/manifest.json",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/calibration_v1/ranking.json",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/calibration_v1/result.json",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/adapt_v1/final.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/manifest.json",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/candidate.jsonl",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/selection.jsonl",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/retention.jsonl",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/calibration_v1/result.json",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_factorial_seed1_v1.json"
+  ],
+  "commands": [
+    [
+      "/data/users/dmitry/simplex-research/.venv/bin/python",
+      "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/snapshots/oracle_v1/oracle_sft.py",
+      "--checkpoint",
+      "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/adapt_v1/final.pt",
+      "--retention",
+      "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/retention.jsonl",
+      "--batch-size",
+      "32",
+      "--fixed-pad",
+      "512",
+      "--lr",
+      "0.00005",
+      "--retention-fraction",
+      "0.5",
+      "--seed",
+      "20260910",
+      "--device",
+      "cuda",
+      "--precision",
+      "fp32",
+      "--cpu-threads",
+      "4",
+      "--candidates",
+      "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/candidate.jsonl",
+      "--selection",
+      "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/selection.jsonl",
+      "--selector-manifest",
+      "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/calibration_v1/manifest.json",
+      "--flop-budget",
+      "6648772856197120",
+      "--budget-rounding",
+      "floor",
+      "--output",
+      "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/main_oracle_control_v1",
+      "--save-every",
+      "3762"
+    ]
+  ],
+  "status": "frozen_ready",
+  "utc": "2026-09-10T20:12:35.422410+00:00",
+  "training_seed": 20260910,
+  "full_source_supervision_cap": 12,
+  "oracle_information": "All acquired 768 candidate and 384 selection full certificates, plus the same separate retention pool. Selection loss is in sample and cannot be heldout evidence.",
+  "budgets": {
+    "downstream_main_proxy": 4000000000000000,
+    "selection_calibration_proxy": 2648772856197120,
+    "end_to_end_proxy_ceiling": 6648772856197120,
+    "one_sft_update_proxy": 1063000350720,
+    "downstream_control_steps": 3762,
+    "downstream_control_actual_proxy": 3999007319408640,
+    "end_to_end_control_steps": 6254,
+    "end_to_end_control_actual_proxy": 6648004193402880
+  },
+  "checkpoint_paths": [
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/main_oracle_control_v1/step_003762.pt",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/main_oracle_control_v1/final.pt"
+  ],
+  "note": "One uninterrupted trajectory gives both endpoints; budgets floor to whole fixed-padding updates and unused proxy is reported. This is an acquired-information control, not cap6-only training. New RL selector costs are separately reported; this comparator is bound to the original SFT selection procedure."
+}

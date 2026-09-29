@@ -1,0 +1,46 @@
+{
+  "frozen": true,
+  "no_further_selector_changes": true,
+  "no_further_training": false,
+  "role": "confirmation",
+  "data_sha256": [
+    "40a1d4c8ea1ebbdc0d959e7a44d2c8d83888983e6fa9a8a5c351519021aa4eac"
+  ],
+  "checkpoints": [
+    "27a7b90c93cfedfc3a3e971da55e2255051842ff448247e958aea3c603deecc0",
+    "ccb8729942cde41bd66bbf489dad303748373152489b3c2b531728dda5a47686"
+  ],
+  "checkpoint_paths": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/prefix_reference_sft_v1/final.pt": "27a7b90c93cfedfc3a3e971da55e2255051842ff448247e958aea3c603deecc0",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/prefix_mined_sft_v1/final.pt": "ccb8729942cde41bd66bbf489dad303748373152489b3c2b531728dda5a47686"
+  },
+  "recipe_sha256": "348ae68ed21b83c2f42521bc87f817e8003ef242acf5a7d28eb567d82cacfda2",
+  "recipe": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/recipe_prefix_comparison_confirmation_v1.json",
+  "prospective_input_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/excluded_mined.jsonl": "1429a715d4d9cff0d45f2177d72564c08a9f70758c4338c6e479faa68c56ba55",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/manifest.json": "07b6eeddfe495bcc57f8b5b5d7c108382a0cfbf631c5b665d689df12fc71640e",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/matching.jsonl": "b96daff1d1d9bf45c393d2285f3a443d286faaf20462a391d179959776dd1012",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/mined.jsonl": "b77cb195ad72eb8cfa5731e0d0717ac5fb711ff10ab5598c2e879fef612ef168",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/proposal_result.json": "32e91330d7a72976de684f5855e2e4d2ab9e5e1fc82a0a1df3035e558d48d7e0",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/reference.jsonl": "ff2dc9918d3d9491fbff7d9c1ebce1da33d4b1700d62ed2a94225f3d3cd8b3a2",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/release_template.json": "5cb53b22694c7d1f52d9186c3610c2c2eb0975211f894c5619fa9f1b2206290d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/diagnostics/mined_reference_comparison_proposal_v1/verification_receipt.json": "53a53b479fbc59bf4e884c00b5771aab9f138939d642cfd689fa41fb62ea1a2e",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/release_prefix_comparison_training_v1.json": "711e7a8ad29f1d74b7e0346c0dbf9f65c1ea548cd43dd5e438beea56bb7e8ea1",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/confirmation.jsonl": "40a1d4c8ea1ebbdc0d959e7a44d2c8d83888983e6fa9a8a5c351519021aa4eac",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/manifest.json": "74801e0a1e58001e3e858cf1502b79e95f9b1c1309ea3b5dbad0b9daae47e30d",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/adapt_v1/final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/theory/failed_rollout_mining_review.md": "069faffa6bd5d1bf4b2b2a748ed928377ce92107e0a6f3f11f3ee302ca153b89",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/theory/prefix_cohort_ancestry.json": "d86d748c5d43a06a034f82b735f8b8e1524e0a9721c3d588b3eb2d247f9b045a",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/theory/prefix_cohort_ancestry_review.md": "4782146d5233d5a64c0edd2e9c28abfe93a079ea6a2d77814e151ba4b4c110e1"
+  },
+  "utc": "2026-09-11T02:06:20.642480+00:00",
+  "decoding": {
+    "start": "full",
+    "samples": 8,
+    "temperature": 0.8,
+    "max_new_tokens": 512,
+    "seed": 20260910
+  },
+  "payload_parsed_by_release": false
+}

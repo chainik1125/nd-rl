@@ -1,0 +1,175 @@
+{
+  "audit": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/final.jsonl",
+  "bootstrap_replicates": 4000,
+  "bootstrap_seed": 202609101936,
+  "contrasts": {
+    "interaction": {
+      "seed1": {
+        "main_ppo_full_seed1_v1": -1,
+        "main_ppo_reset_seed1_v1": 1,
+        "main_relative_full_seed1_v1": 1,
+        "main_relative_reset_seed1_v1": -1
+      },
+      "seed2": {
+        "main_ppo_full_seed2_v1": -1,
+        "main_ppo_reset_seed2_v1": 1,
+        "main_relative_full_seed2_v1": 1,
+        "main_relative_reset_seed2_v1": -1
+      }
+    },
+    "online_admission_effect": {
+      "seed1": {
+        "online_off_seed1_v1": -1,
+        "online_on_seed1_v1": 1
+      },
+      "seed2": {
+        "online_off_seed2_v1": -1,
+        "online_on_seed2_v1": 1
+      }
+    },
+    "ppo_full_vs_initialization": {
+      "seed1": {
+        "baseline": -1,
+        "main_ppo_full_seed1_v1": 1
+      },
+      "seed2": {
+        "baseline": -1,
+        "main_ppo_full_seed2_v1": 1
+      }
+    },
+    "ppo_full_vs_retention": {
+      "seed1": {
+        "main_ppo_full_seed1_v1": 1,
+        "retention_seed1_step004793": -1
+      },
+      "seed2": {
+        "main_ppo_full_seed2_v1": 1,
+        "retention_seed2_step005147": -1
+      }
+    },
+    "ppo_reset_vs_initialization": {
+      "seed1": {
+        "baseline": -1,
+        "main_ppo_reset_seed1_v1": 1
+      },
+      "seed2": {
+        "baseline": -1,
+        "main_ppo_reset_seed2_v1": 1
+      }
+    },
+    "ppo_reset_vs_retention": {
+      "seed1": {
+        "main_ppo_reset_seed1_v1": 1,
+        "retention_seed1_step004405": -1
+      },
+      "seed2": {
+        "main_ppo_reset_seed2_v1": 1,
+        "retention_seed2_step005361": -1
+      }
+    },
+    "ppo_with_full": {
+      "seed1": {
+        "main_ppo_full_seed1_v1": 1,
+        "main_relative_full_seed1_v1": -1
+      },
+      "seed2": {
+        "main_ppo_full_seed2_v1": 1,
+        "main_relative_full_seed2_v1": -1
+      }
+    },
+    "ppo_with_reset": {
+      "seed1": {
+        "main_ppo_reset_seed1_v1": 1,
+        "main_relative_reset_seed1_v1": -1
+      },
+      "seed2": {
+        "main_ppo_reset_seed2_v1": 1,
+        "main_relative_reset_seed2_v1": -1
+      }
+    },
+    "relative_full_vs_initialization": {
+      "seed1": {
+        "baseline": -1,
+        "main_relative_full_seed1_v1": 1
+      },
+      "seed2": {
+        "baseline": -1,
+        "main_relative_full_seed2_v1": 1
+      }
+    },
+    "relative_full_vs_retention": {
+      "seed1": {
+        "main_relative_full_seed1_v1": 1,
+        "retention_seed1_step005934": -1
+      },
+      "seed2": {
+        "main_relative_full_seed2_v1": 1,
+        "retention_seed2_step005932": -1
+      }
+    },
+    "relative_reset_vs_initialization": {
+      "seed1": {
+        "baseline": -1,
+        "main_relative_reset_seed1_v1": 1
+      },
+      "seed2": {
+        "baseline": -1,
+        "main_relative_reset_seed2_v1": 1
+      }
+    },
+    "relative_reset_vs_retention": {
+      "seed1": {
+        "main_relative_reset_seed1_v1": 1,
+        "retention_seed1_step005860": -1
+      },
+      "seed2": {
+        "main_relative_reset_seed2_v1": 1,
+        "retention_seed2_step005857": -1
+      }
+    },
+    "reset_with_ppo": {
+      "seed1": {
+        "main_ppo_full_seed1_v1": -1,
+        "main_ppo_reset_seed1_v1": 1
+      },
+      "seed2": {
+        "main_ppo_full_seed2_v1": -1,
+        "main_ppo_reset_seed2_v1": 1
+      }
+    },
+    "reset_with_relative": {
+      "seed1": {
+        "main_relative_full_seed1_v1": -1,
+        "main_relative_reset_seed1_v1": 1
+      },
+      "seed2": {
+        "main_relative_full_seed2_v1": -1,
+        "main_relative_reset_seed2_v1": 1
+      }
+    }
+  },
+  "endpoint_release_sha256": "cc4bf866a7045f1b884917e7e5da12701d27621aa7d0c42f59bd2dccd93854f1",
+  "evaluations": {
+    "baseline": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/baseline_final_sample4",
+    "main_ppo_full_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed1_v1_final_sample4",
+    "main_ppo_full_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_full_seed2_v1_final_sample4",
+    "main_ppo_reset_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed1_v1_final_sample4",
+    "main_ppo_reset_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_ppo_reset_seed2_v1_final_sample4",
+    "main_relative_full_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed1_v1_final_sample4",
+    "main_relative_full_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_full_seed2_v1_final_sample4",
+    "main_relative_reset_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed1_v1_final_sample4",
+    "main_relative_reset_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/main_relative_reset_seed2_v1_final_sample4",
+    "online_off_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_off_seed1_v1_final_sample4",
+    "online_off_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_off_seed2_v1_final_sample4",
+    "online_on_seed1_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_on_seed1_v1_final_sample4",
+    "online_on_seed2_v1": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/online_on_seed2_v1_final_sample4",
+    "retention_seed1_step004405": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_step004405_final_sample4",
+    "retention_seed1_step004793": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_step004793_final_sample4",
+    "retention_seed1_step005860": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_step005860_final_sample4",
+    "retention_seed1_step005934": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed1_step005934_final_sample4",
+    "retention_seed2_step005147": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_step005147_final_sample4",
+    "retention_seed2_step005361": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_step005361_final_sample4",
+    "retention_seed2_step005857": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_step005857_final_sample4",
+    "retention_seed2_step005932": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/retention_seed2_step005932_final_sample4"
+  }
+}

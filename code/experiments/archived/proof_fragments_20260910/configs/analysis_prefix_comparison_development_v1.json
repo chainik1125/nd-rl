@@ -1,0 +1,36 @@
+{
+  "data": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/confirmation.jsonl",
+  "samples": 8,
+  "bootstrap_draws": 5000,
+  "bootstrap_seed": 20260911,
+  "models": {
+    "reference": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_prefix_reference_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_prefix_reference_v1/attempts.jsonl"
+    },
+    "mined": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_prefix_mined_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_prefix_mined_v1/attempts.jsonl"
+    },
+    "adapt": {
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/whole_proof_nll.jsonl",
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/attempts.jsonl"
+    }
+  },
+  "comparisons": [
+    [
+      "mined",
+      "reference"
+    ],
+    [
+      "mined",
+      "adapt"
+    ],
+    [
+      "reference",
+      "adapt"
+    ]
+  ],
+  "output": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/reports/prefix_comparison_development_v1.json",
+  "note": "Exploratory matched downstream-SFT budget; residual family/context/ancestry differences and selected-parent acquisition cost preclude isolated novelty or end-to-end efficiency claims."
+}

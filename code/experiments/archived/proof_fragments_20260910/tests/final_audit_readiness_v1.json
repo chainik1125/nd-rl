@@ -1,0 +1,21 @@
+{
+  "final_payload_read_during_preparation": false,
+  "gates": [
+    "Explicit root-notification flag checked before closure/release paths are opened",
+    "Training closure and final release flags/timestamps",
+    "Analysis and closure plan bound by recipe hashes",
+    "All checkpoint hashes unchanged since closure and included in release",
+    "All32declared final models; predictions start after release",
+    "Exact final role/data hash, eight attempts, T=.8, full starts, budget512",
+    "Completed producer/code/result identities before proof parsing"
+  ],
+  "gpu_jobs_launched": 0,
+  "invocation": "python -B code/audit_final_evaluations.py --plan configs/analysis_final_seed1_v1.json --closure reports/training_closed_v1.json --release configs/release_final_seed1_v1.json --output code/tests/final_seed1_independent_v1 --authorized-by-root-notification --root-analysis reports/final_seed1_v1.json",
+  "planned_attempts": 196608,
+  "program_sha256": "f674c89fe2ba813a990b1ef4aea0c98e3ad4338209121121ffb7ac80ec19a75b",
+  "root_aggregate_comparison": "Exact equality on models, receipts, comparisons, contrasts, population identities and bootstrap settings",
+  "status": "prepared_waiting_for_root_notification_and_completed_final_predictions",
+  "tests_passed": 3,
+  "tests_sha256": "bc6a2c35f4e79ad57dccc5f4d0381877ddf8af8cb7462d0bad35f4fb5d9e93ed",
+  "utc": "2026-09-11T02:05:33.589507+00:00"
+}

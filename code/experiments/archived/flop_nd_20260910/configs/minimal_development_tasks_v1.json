@@ -1,0 +1,1693 @@
+{
+  "deadline_utc": "2026-09-11T03:00:00Z",
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/minimal_development_v1",
+  "selection": "Everydeclaredinitial/PPO/BC/uniformpolicy. Same32linecap; no performance-basedselection. Uniformgreedyfilename meansoneuniformsample.",
+  "tasks": [
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4401_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4401_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4401_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4401_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4401_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4401_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4401_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4401_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4402_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4402_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4402_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4402_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4402_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4402_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_primary_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4402_primary_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_primary_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4402_primary_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_primary_development_greedy_v1",
+        "--policy",
+        "random",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900"
+      ],
+      "endpoint_paths": [],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_uniform_primary_development_greedy_v1",
+      "ready_paths": [],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_primary_development_sample4_v1",
+        "--policy",
+        "random",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--sample"
+      ],
+      "endpoint_paths": [],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_uniform_primary_development_sample4_v1",
+      "ready_paths": [],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4401_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4401_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4401_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4401_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4401_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4401_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4401_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4401_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4401_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4402_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_initial_s4402_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_initial.pt"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4402_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_full_s4402_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_full_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4402_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_reset_s4402_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_reset_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_structured_development_greedy_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4402_structured_development_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_structured_development_sample4_v1",
+        "--policy",
+        "model",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--checkpoint",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt",
+        "--sample"
+      ],
+      "endpoint_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_checkpoint.pt"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_bc_s4402_structured_development_sample4_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_general_bc_s4402_v1/symbolic_general_train_summary.json"
+      ],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_structured_development_greedy_v1",
+        "--policy",
+        "random",
+        "--attempts",
+        "1",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900"
+      ],
+      "endpoint_paths": [],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_uniform_structured_development_greedy_v1",
+      "ready_paths": [],
+      "timeout_seconds": 930
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py",
+        "--population",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+        "--out",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_structured_development_sample4_v1",
+        "--policy",
+        "random",
+        "--attempts",
+        "4",
+        "--seed",
+        "202609101935",
+        "--max-lines",
+        "32",
+        "--max-scope",
+        "4",
+        "--threads",
+        "4",
+        "--max-seconds",
+        "900",
+        "--sample"
+      ],
+      "endpoint_paths": [],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/minimal_curriculum.py": "2c05c0638a03933d46afa2a95391ace5fb4c82df5de51d8bb039682b7ddcb4ee",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_bc.py": "fec1a20402206ed473ac22719529a1cbedf99ccfc507b933dd3d148c39a354c3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_eval.py": "bde32cfb4e487ede937534b8b8df819254146f5b3635bdfe1f499f71e9ef372b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_model.py": "c1572f0404fb1518640336c509fc77f5dcc7037c0c66d9c090ee1adc8ece153c",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/symbolic_general_train.py": "4a592ca5618e52e437fd92f4c72373844aa84004cfc585e003d3e9fa73f99b70",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1/watch_tasks.py": "d8471b1678bb0a7954feb1b8f1abce71b0efd6f0a5bf35222a9faa861340753e"
+      },
+      "name": "minimal_uniform_structured_development_sample4_v1",
+      "ready_paths": [],
+      "timeout_seconds": 930
+    }
+  ]
+}

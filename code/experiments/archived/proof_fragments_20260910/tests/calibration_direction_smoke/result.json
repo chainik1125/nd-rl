@@ -1,0 +1,220 @@
+{
+  "baseline_by_length_bits": {
+    "10-12": 998.7197265625,
+    "2-6": 204.58669662475586,
+    "7-9": 669.6511535644531
+  },
+  "baseline_selection_mean_bits": 624.3191922505697,
+  "elapsed_seconds": 0.9445493221282959,
+  "ledger": {
+    "calibration_arms": {
+      "ANDI_control": {
+        "sft_training": {
+          "action_tokens": 447,
+          "actual_input_tokens": 624,
+          "calls": 2,
+          "flop_proxy": 743492736,
+          "padded_token_slots": 4088,
+          "supplied_tokens": 185
+        },
+        "teacher_scoring": {
+          "action_tokens": 1390,
+          "actual_input_tokens": 1650,
+          "calls": 4,
+          "flop_proxy": 63593472,
+          "padded_token_slots": 2176,
+          "supplied_tokens": 272
+        }
+      },
+      "ANDI_family": {
+        "sft_training": {
+          "action_tokens": 480,
+          "actual_input_tokens": 690,
+          "calls": 2,
+          "flop_proxy": 743492736,
+          "padded_token_slots": 4088,
+          "supplied_tokens": 218
+        },
+        "teacher_scoring": {
+          "action_tokens": 1390,
+          "actual_input_tokens": 1650,
+          "calls": 4,
+          "flop_proxy": 63593472,
+          "padded_token_slots": 2176,
+          "supplied_tokens": 272
+        }
+      },
+      "IMPI_nested_control": {
+        "sft_training": {
+          "action_tokens": 477,
+          "actual_input_tokens": 671,
+          "calls": 2,
+          "flop_proxy": 743492736,
+          "padded_token_slots": 4088,
+          "supplied_tokens": 202
+        },
+        "teacher_scoring": {
+          "action_tokens": 1390,
+          "actual_input_tokens": 1650,
+          "calls": 4,
+          "flop_proxy": 63593472,
+          "padded_token_slots": 2176,
+          "supplied_tokens": 272
+        }
+      },
+      "IMPI_nested_family": {
+        "sft_training": {
+          "action_tokens": 516,
+          "actual_input_tokens": 706,
+          "calls": 2,
+          "flop_proxy": 743492736,
+          "padded_token_slots": 4088,
+          "supplied_tokens": 198
+        },
+        "teacher_scoring": {
+          "action_tokens": 1390,
+          "actual_input_tokens": 1650,
+          "calls": 4,
+          "flop_proxy": 63593472,
+          "padded_token_slots": 2176,
+          "supplied_tokens": 272
+        }
+      }
+    },
+    "query_gradient": {
+      "action_tokens": 695,
+      "actual_input_tokens": 825,
+      "calls": 1,
+      "flop_proxy": 121806720,
+      "padded_token_slots": 1272,
+      "supplied_tokens": 136
+    },
+    "teacher_scoring": {
+      "action_tokens": 1769,
+      "actual_input_tokens": 2571,
+      "calls": 8,
+      "flop_proxy": 81945984,
+      "padded_token_slots": 3448,
+      "supplied_tokens": 832
+    }
+  },
+  "ranking": {
+    "confirmation_opened": false,
+    "frozen": true,
+    "selection_sha256": "54a9fc511befce55eee05d37868aec2bc15f53c2f840351063176ae4888f49f9",
+    "surprise": [
+      {
+        "absolute_gain_bits": 0.3814201354980469,
+        "conditional_bits_per_token": 5.421534946986607,
+        "conditional_mean_bits": 303.60595703125,
+        "control_displacement_l2": 0.006832962426583455,
+        "control_max_source_multiplicity": 1,
+        "control_unique_contexts": 2,
+        "control_unique_sources": 2,
+        "family": "ANDI",
+        "family_displacement_l2": 0.00680623291478928,
+        "family_unique_contexts": 2,
+        "first_order_actual_displacement_prediction_bits": -0.02385699275691877,
+        "matching_mean_distance": 10.65,
+        "step1_first_order_actual_displacement_prediction_bits": -0.007597511539643165,
+        "training_flop_proxy": 743492736,
+        "unmatched_depth": 0,
+        "unmatched_source_length": 0,
+        "unmatched_suffix_length": 2,
+        "utility_bits": -0.023929595947265625,
+        "utility_bits_per_flop_proxy": -3.2185379612458816e-11,
+        "utility_by_length": {
+          "10-12": -0.02301025390625,
+          "2-6": -0.029979705810546875,
+          "7-9": -0.018798828125
+        }
+      },
+      {
+        "absolute_gain_bits": 0.3890520731608831,
+        "conditional_bits_per_token": 5.406534830729167,
+        "conditional_mean_bits": 356.831298828125,
+        "control_displacement_l2": 0.0068642900078500005,
+        "control_max_source_multiplicity": 1,
+        "control_unique_contexts": 2,
+        "control_unique_sources": 2,
+        "family": "IMPI_nested",
+        "family_displacement_l2": 0.006995182696149533,
+        "family_unique_contexts": 1,
+        "first_order_actual_displacement_prediction_bits": -0.017871272211777978,
+        "matching_mean_distance": 32.5,
+        "step1_first_order_actual_displacement_prediction_bits": -0.005836267228005454,
+        "training_flop_proxy": 743492736,
+        "unmatched_depth": 0,
+        "unmatched_source_length": 1,
+        "unmatched_suffix_length": 1,
+        "utility_bits": -0.018147786458257542,
+        "utility_bits_per_flop_proxy": -2.4408828196349108e-11,
+        "utility_by_length": {
+          "10-12": -0.066375732421875,
+          "2-6": 0.0145263671875,
+          "7-9": -0.002593994140625
+        }
+      }
+    ],
+    "top_k": 3,
+    "transfer": [
+      {
+        "absolute_gain_bits": 0.3890520731608831,
+        "conditional_bits_per_token": 5.406534830729167,
+        "conditional_mean_bits": 356.831298828125,
+        "control_displacement_l2": 0.0068642900078500005,
+        "control_max_source_multiplicity": 1,
+        "control_unique_contexts": 2,
+        "control_unique_sources": 2,
+        "family": "IMPI_nested",
+        "family_displacement_l2": 0.006995182696149533,
+        "family_unique_contexts": 1,
+        "first_order_actual_displacement_prediction_bits": -0.017871272211777978,
+        "matching_mean_distance": 32.5,
+        "step1_first_order_actual_displacement_prediction_bits": -0.005836267228005454,
+        "training_flop_proxy": 743492736,
+        "unmatched_depth": 0,
+        "unmatched_source_length": 1,
+        "unmatched_suffix_length": 1,
+        "utility_bits": -0.018147786458257542,
+        "utility_bits_per_flop_proxy": -2.4408828196349108e-11,
+        "utility_by_length": {
+          "10-12": -0.066375732421875,
+          "2-6": 0.0145263671875,
+          "7-9": -0.002593994140625
+        }
+      },
+      {
+        "absolute_gain_bits": 0.3814201354980469,
+        "conditional_bits_per_token": 5.421534946986607,
+        "conditional_mean_bits": 303.60595703125,
+        "control_displacement_l2": 0.006832962426583455,
+        "control_max_source_multiplicity": 1,
+        "control_unique_contexts": 2,
+        "control_unique_sources": 2,
+        "family": "ANDI",
+        "family_displacement_l2": 0.00680623291478928,
+        "family_unique_contexts": 2,
+        "first_order_actual_displacement_prediction_bits": -0.02385699275691877,
+        "matching_mean_distance": 10.65,
+        "step1_first_order_actual_displacement_prediction_bits": -0.007597511539643165,
+        "training_flop_proxy": 743492736,
+        "unmatched_depth": 0,
+        "unmatched_source_length": 0,
+        "unmatched_suffix_length": 2,
+        "utility_bits": -0.023929595947265625,
+        "utility_bits_per_flop_proxy": -3.2185379612458816e-11,
+        "utility_by_length": {
+          "10-12": -0.02301025390625,
+          "2-6": -0.029979705810546875,
+          "7-9": -0.018798828125
+        }
+      }
+    ],
+    "uniform": [
+      "IMPI_nested",
+      "ANDI"
+    ]
+  },
+  "total_flop_proxy": 3432097536
+}

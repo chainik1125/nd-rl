@@ -1,0 +1,19 @@
+{
+  "active_advantage_tokens": 0,
+  "cumulative_flop_proxy": 72831648,
+  "generated_tokens_total": 192,
+  "grad_norm": 0.10554610192775726,
+  "likelihood": {
+    "max_abs_error": 2.384185791015625e-07,
+    "mean_abs_error": 1.7384688059488933e-08,
+    "n_action_tokens": 96,
+    "tolerance": 0.001
+  },
+  "mixed_groups": 0,
+  "policy_loss": 0.0,
+  "retention_examples": 2,
+  "retention_loss": 3.7349300384521484,
+  "retention_response_tokens": 166,
+  "step": 2,
+  "step_flop_proxy": 38339520
+}

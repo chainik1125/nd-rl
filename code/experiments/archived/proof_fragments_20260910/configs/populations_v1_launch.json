@@ -1,0 +1,20 @@
+{
+  "name": "populations_v1",
+  "kind": "cpu_generation",
+  "status": "running",
+  "session_id": 61843,
+  "seed": 20260910,
+  "snapshot": "snapshots/populations_v1/source_manifest.json",
+  "output": "data/populations_v1",
+  "log": "reports/populations_v1_generation.log",
+  "quotas": {
+    "candidate_per_family": 64,
+    "families": 13,
+    "adaptation": 2048,
+    "retention": 512,
+    "selection_per_bin": 128,
+    "confirmation_per_bin": 128,
+    "final_confirmation_per_bin": 256
+  },
+  "cloud_spend_usd": 0
+}

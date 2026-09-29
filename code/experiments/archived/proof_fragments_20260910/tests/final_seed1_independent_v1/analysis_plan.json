@@ -1,0 +1,463 @@
+{
+  "bootstrap_draws": 5000,
+  "bootstrap_seed": 20260911,
+  "comparisons": [
+    [
+      "selected_reset_s1_f05",
+      "selected_full_s1_f05"
+    ],
+    [
+      "uniform_reset_s1_f05",
+      "uniform_full_s1_f05"
+    ],
+    [
+      "selected_reset_s1_f05",
+      "uniform_reset_s1_f05"
+    ],
+    [
+      "selected_full_s1_f05",
+      "uniform_full_s1_f05"
+    ],
+    [
+      "selected_reset_s1_f10",
+      "selected_full_s1_f10"
+    ],
+    [
+      "uniform_reset_s1_f10",
+      "uniform_full_s1_f10"
+    ],
+    [
+      "selected_reset_s1_f10",
+      "uniform_reset_s1_f10"
+    ],
+    [
+      "selected_full_s1_f10",
+      "uniform_full_s1_f10"
+    ],
+    [
+      "selected_reset_s1_f20",
+      "selected_full_s1_f20"
+    ],
+    [
+      "uniform_reset_s1_f20",
+      "uniform_full_s1_f20"
+    ],
+    [
+      "selected_reset_s1_f20",
+      "uniform_reset_s1_f20"
+    ],
+    [
+      "selected_full_s1_f20",
+      "uniform_full_s1_f20"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "selected_full_s1_f40"
+    ],
+    [
+      "uniform_reset_s1_f40",
+      "uniform_full_s1_f40"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "uniform_reset_s1_f40"
+    ],
+    [
+      "selected_full_s1_f40",
+      "uniform_full_s1_f40"
+    ],
+    [
+      "selected_full_s1_f05",
+      "adapt"
+    ],
+    [
+      "selected_full_s1_f10",
+      "adapt"
+    ],
+    [
+      "selected_full_s1_f20",
+      "adapt"
+    ],
+    [
+      "selected_full_s1_f40",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f05",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f10",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f20",
+      "adapt"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f05",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f10",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f20",
+      "adapt"
+    ],
+    [
+      "uniform_reset_s1_f40",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f05",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f10",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f20",
+      "adapt"
+    ],
+    [
+      "uniform_full_s1_f40",
+      "adapt"
+    ],
+    [
+      "transfer",
+      "adapt"
+    ],
+    [
+      "surprise",
+      "adapt"
+    ],
+    [
+      "uniform",
+      "adapt"
+    ],
+    [
+      "uniform_matched",
+      "adapt"
+    ],
+    [
+      "oracle_matched",
+      "adapt"
+    ],
+    [
+      "oracle_total",
+      "adapt"
+    ],
+    [
+      "retention_step8827",
+      "adapt"
+    ],
+    [
+      "retention_step9054",
+      "adapt"
+    ],
+    [
+      "retention_step9056",
+      "adapt"
+    ],
+    [
+      "retention_step9096",
+      "adapt"
+    ],
+    [
+      "retention_compute",
+      "adapt"
+    ],
+    [
+      "main_oracle_matched",
+      "adapt"
+    ],
+    [
+      "main_oracle_total",
+      "adapt"
+    ],
+    [
+      "prefix_reference",
+      "adapt"
+    ],
+    [
+      "prefix_mined",
+      "adapt"
+    ],
+    [
+      "transfer",
+      "uniform_matched"
+    ],
+    [
+      "transfer",
+      "surprise"
+    ],
+    [
+      "prefix_mined",
+      "prefix_reference"
+    ],
+    [
+      "selected_full_s1_f40",
+      "retention_step9056"
+    ],
+    [
+      "selected_full_s1_f40",
+      "retention_compute"
+    ],
+    [
+      "selected_full_s1_f40",
+      "main_oracle_matched"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "retention_step9054"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "retention_compute"
+    ],
+    [
+      "selected_reset_s1_f40",
+      "main_oracle_matched"
+    ],
+    [
+      "uniform_full_s1_f40",
+      "retention_step9096"
+    ],
+    [
+      "uniform_full_s1_f40",
+      "retention_compute"
+    ],
+    [
+      "uniform_full_s1_f40",
+      "main_oracle_matched"
+    ],
+    [
+      "uniform_reset_s1_f40",
+      "retention_step8827"
+    ],
+    [
+      "uniform_reset_s1_f40",
+      "retention_compute"
+    ],
+    [
+      "uniform_reset_s1_f40",
+      "main_oracle_matched"
+    ]
+  ],
+  "contrasts": {
+    "interaction_f05": {
+      "selected_full_s1_f05": -1,
+      "selected_reset_s1_f05": 1,
+      "uniform_full_s1_f05": 1,
+      "uniform_reset_s1_f05": -1
+    },
+    "interaction_f10": {
+      "selected_full_s1_f10": -1,
+      "selected_reset_s1_f10": 1,
+      "uniform_full_s1_f10": 1,
+      "uniform_reset_s1_f10": -1
+    },
+    "interaction_f20": {
+      "selected_full_s1_f20": -1,
+      "selected_reset_s1_f20": 1,
+      "uniform_full_s1_f20": 1,
+      "uniform_reset_s1_f20": -1
+    },
+    "interaction_f40": {
+      "selected_full_s1_f40": -1,
+      "selected_reset_s1_f40": 1,
+      "uniform_full_s1_f40": 1,
+      "uniform_reset_s1_f40": -1
+    },
+    "reset_main_effect_f05": {
+      "selected_full_s1_f05": -0.5,
+      "selected_reset_s1_f05": 0.5,
+      "uniform_full_s1_f05": -0.5,
+      "uniform_reset_s1_f05": 0.5
+    },
+    "reset_main_effect_f10": {
+      "selected_full_s1_f10": -0.5,
+      "selected_reset_s1_f10": 0.5,
+      "uniform_full_s1_f10": -0.5,
+      "uniform_reset_s1_f10": 0.5
+    },
+    "reset_main_effect_f20": {
+      "selected_full_s1_f20": -0.5,
+      "selected_reset_s1_f20": 0.5,
+      "uniform_full_s1_f20": -0.5,
+      "uniform_reset_s1_f20": 0.5
+    },
+    "reset_main_effect_f40": {
+      "selected_full_s1_f40": -0.5,
+      "selected_reset_s1_f40": 0.5,
+      "uniform_full_s1_f40": -0.5,
+      "uniform_reset_s1_f40": 0.5
+    },
+    "selection_main_effect_f05": {
+      "selected_full_s1_f05": 0.5,
+      "selected_reset_s1_f05": 0.5,
+      "uniform_full_s1_f05": -0.5,
+      "uniform_reset_s1_f05": -0.5
+    },
+    "selection_main_effect_f10": {
+      "selected_full_s1_f10": 0.5,
+      "selected_reset_s1_f10": 0.5,
+      "uniform_full_s1_f10": -0.5,
+      "uniform_reset_s1_f10": -0.5
+    },
+    "selection_main_effect_f20": {
+      "selected_full_s1_f20": 0.5,
+      "selected_reset_s1_f20": 0.5,
+      "uniform_full_s1_f20": -0.5,
+      "uniform_reset_s1_f20": -0.5
+    },
+    "selection_main_effect_f40": {
+      "selected_full_s1_f40": 0.5,
+      "selected_reset_s1_f40": 0.5,
+      "uniform_full_s1_f40": -0.5,
+      "uniform_reset_s1_f40": -0.5
+    }
+  },
+  "data": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/final_confirmation.jsonl",
+  "models": {
+    "adapt": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_adapt_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_adapt_v1/whole_proof_nll.jsonl"
+    },
+    "main_oracle_matched": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_main_oracle_matched_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_main_oracle_matched_v1/whole_proof_nll.jsonl"
+    },
+    "main_oracle_total": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_main_oracle_total_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_main_oracle_total_v1/whole_proof_nll.jsonl"
+    },
+    "oracle_matched": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_oracle_matched_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_oracle_matched_v1/whole_proof_nll.jsonl"
+    },
+    "oracle_total": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_oracle_total_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_oracle_total_v1/whole_proof_nll.jsonl"
+    },
+    "prefix_mined": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_prefix_mined_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_prefix_mined_v1/whole_proof_nll.jsonl"
+    },
+    "prefix_reference": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_prefix_reference_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_prefix_reference_v1/whole_proof_nll.jsonl"
+    },
+    "retention_compute": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_compute_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_compute_v1/whole_proof_nll.jsonl"
+    },
+    "retention_step8827": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step8827_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step8827_v1/whole_proof_nll.jsonl"
+    },
+    "retention_step9054": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step9054_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step9054_v1/whole_proof_nll.jsonl"
+    },
+    "retention_step9056": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step9056_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step9056_v1/whole_proof_nll.jsonl"
+    },
+    "retention_step9096": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step9096_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_retention_step9096_v1/whole_proof_nll.jsonl"
+    },
+    "selected_full_s1_f05": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f05_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f05_v1/whole_proof_nll.jsonl"
+    },
+    "selected_full_s1_f10": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f10_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f10_v1/whole_proof_nll.jsonl"
+    },
+    "selected_full_s1_f20": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f20_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f20_v1/whole_proof_nll.jsonl"
+    },
+    "selected_full_s1_f40": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f40_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_full_s1_f40_v1/whole_proof_nll.jsonl"
+    },
+    "selected_reset_s1_f05": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f05_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f05_v1/whole_proof_nll.jsonl"
+    },
+    "selected_reset_s1_f10": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f10_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f10_v1/whole_proof_nll.jsonl"
+    },
+    "selected_reset_s1_f20": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f20_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f20_v1/whole_proof_nll.jsonl"
+    },
+    "selected_reset_s1_f40": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f40_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_selected_reset_s1_f40_v1/whole_proof_nll.jsonl"
+    },
+    "surprise": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_surprise_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_surprise_v1/whole_proof_nll.jsonl"
+    },
+    "transfer": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_transfer_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_transfer_v1/whole_proof_nll.jsonl"
+    },
+    "uniform": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_full_s1_f05": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f05_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f05_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_full_s1_f10": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f10_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f10_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_full_s1_f20": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f20_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f20_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_full_s1_f40": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f40_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_full_s1_f40_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_matched": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_matched_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_matched_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_reset_s1_f05": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f05_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f05_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_reset_s1_f10": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f10_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f10_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_reset_s1_f20": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f20_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f20_v1/whole_proof_nll.jsonl"
+    },
+    "uniform_reset_s1_f40": {
+      "attempts": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f40_v1/attempts.jsonl",
+      "nll": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/final_uniform_reset_s1_f40_v1/whole_proof_nll.jsonl"
+    }
+  },
+  "note": "One online training seed; context uncertainty does not estimate training-seed variability. All four main milestones retained. Final 4e15 endpoint is the primary comparison; earlier checkpoints are learning-curve diagnostics.",
+  "output": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/tests/final_seed1_independent_v1/paired_analysis.json",
+  "samples": 8,
+  "status": "frozen_before_final_access"
+}

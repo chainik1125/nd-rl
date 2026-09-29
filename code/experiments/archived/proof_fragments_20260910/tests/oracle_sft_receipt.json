@@ -1,0 +1,11 @@
+{
+  "cpu_only": true,
+  "tiny_policy_only": true,
+  "production_oracle_sft_launched": false,
+  "tests_passed": 5,
+  "elapsed_seconds": 0.928,
+  "source_sha256": {
+    "oracle_sft.py": "74d0db76a1548efee0282a493d5e912afb1fc29ac87d4f5871c43f8e85a513a8",
+    "test_oracle_sft.py": "46a5fb34fe47d34f9cdd8d6eee9ee445f716cd822279b7186cb226626d18c797"
+  }
+}

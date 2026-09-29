@@ -1,0 +1,19 @@
+{
+  "all_prefix_occurrences_reverified": 332,
+  "candidate_partition_and_blind_guards_checked": true,
+  "candidate_sources": 768,
+  "canonical_endpoints": 306,
+  "certificates_sha256": "e747895417849e004799190accd14e558b08310daf79ab4825c0fa28d3b3af56",
+  "diagnostic_role_rejected_by_training_loader": true,
+  "matches_independent_theory_candidate_only_review": true,
+  "mined_endpoint_overlap": 47,
+  "mined_exact_canonical_prefix_overlap": 33,
+  "new_rollouts": 0,
+  "occurrences_sha256": "1fb06b37457cd2db4defb6810136743d2ca8da74cf3e9fb7fef9923d5e5d2764",
+  "optimizer_updates": 0,
+  "original_premises_and_closed_scopes_checked": true,
+  "overlap_sha256": "f5d7bae4d596c319b6ad2cea362d931098f6cf02d86b4fc0ac4ad44afe21548b",
+  "semantic_tests_passed": 3,
+  "status": "verified_diagnostic_only",
+  "strict_parent_prefix_equality_checked": true
+}

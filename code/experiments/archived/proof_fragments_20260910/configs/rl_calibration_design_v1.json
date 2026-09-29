@@ -1,0 +1,55 @@
+{
+  "status": "frozen_before_main_heldout_predictions",
+  "utc": "2026-09-10T20:07:49.007252+00:00",
+  "purpose": "Test utility transport from supervised suffix interventions to full-start verifier-reward RL, and short-to-long RL utility prediction.",
+  "families": "All 12 primary families, exact ordered 64/64 family/control source IDs in original SFT matching receipts.",
+  "source_cap": 6,
+  "selection_oracle_cap": 12,
+  "checkpoint": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/adapt_v1/final.pt",
+  "training_snapshot": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/snapshots/training_v1",
+  "optimizer": "Fresh empty AdamW for each independent pair arm; uninterrupted state across its two milestones.",
+  "training_seed": 20260910,
+  "job_order_seed": 20260914,
+  "short_proxy_ceiling": 106300035072000,
+  "long_proxy_ceiling": 425200140288000,
+  "total_training_proxy_ceiling": 10204803366912000,
+  "stopping": "First completed update crossing each proxy threshold, bound and report overshoot; short milestone continues directly to long without reload.",
+  "main_rl_settings": "Same full-start source sampling, four prompts per update, eight responses each, T=0.8, fixed 512 response denominator, learning rate 5e-5, retained batch 16 at weight 0.1 and separate retention RNG as main seed one.",
+  "ranking": {
+    "target": "released_v1 selection",
+    "metric": "matched control whole-reference bits minus family whole-reference bits at T=1, equal weights on 2-6/7-9/10-12 bins",
+    "horizon": "short only",
+    "top_k": 3,
+    "tie_break": "ascending family name",
+    "long_ranking_use": "diagnostic only; never choose the better-looking horizon"
+  },
+  "predictions": [
+    "SFT 100-update selection utility predicts long-RL utility",
+    "Short-RL selection utility predicts long-RL utility",
+    "Difference between their Spearman correlations, sign agreement, and mean later utility of each frozen top-three set",
+    "Short utility predicts the long-minus-short increment; report alongside total later utility"
+  ],
+  "confirmation_use": "Existing confirmation is reused development, with no second independent-confirmation claim.",
+  "final_scoring": "After global training closure, score every one of 48 family/control short/long checkpoints on final confirmation. Report frozen selection-predictor associations and increments; never rerank or train from final metrics.",
+  "mixture_followup": {
+    "selected": "All 64 sources from each short-RL top-three family, one full-start run from common adapted checkpoint, online seed 20260910 and 4e15 proxy ceiling.",
+    "control": "New 192-source uniform bank matched to new selected full-source length histogram, same one-seed full-start run/settings. Reuse existing arm only if exact bank order and all trajectory settings coincide.",
+    "existing_primary": "All original SFT-selected factorial arms remain unchanged.",
+    "admission": "Launch only if all required endpoints and final evaluation can finish before 03:00 UTC; otherwise report unlaunched. No outcome-based early stopping or family omissions."
+  },
+  "optional_covariance": {
+    "decision": "Prepared as a secondary fixed-checkpoint diagnostic only if it fits; cannot change mixture ranking.",
+    "projection": "Fixed selection-loss gradient at adapted policy, identity preconditioner; sourcewise raw LOO gradient at sampler T=0.8.",
+    "draws": "Reuse original adapted full-start candidate groups and independent full-start groups from difficulty_audit_v1; preserve shared source covariance and charge derivatives.",
+    "interpretation": "Immediate raw-gradient mechanism, not exact Adam or long-horizon predictor."
+  },
+  "scope_limits": [
+    "Full-start RL versus suffix SFT changes conditioning as well as objective.",
+    "Fixed compute does not match update counts or retention exposures.",
+    "64-source intervention banks differ from 192-source deployment mixtures.",
+    "All acquisition, scoring and validation costs will be reported separately.",
+    "Final likelihood ranking does not establish family-level verifier-success ranking."
+  ],
+  "theory_design": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/theory/rl_specific_calibration_design.md",
+  "no_final_data_opened": true
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "title": "FLoP token-LM experiment: greedy held-out success by reference length",
+  "subtitle": "Primary evaluation has 576 long-reference theorems (192 per bin); the separate structured evaluation has 384 statements.",
+  "note": "No textbook benchmark was evaluated. Primary columns use supplied witness lengths. The structured set is reported only as an overall rate because every token-LM endpoint solved 0/384 greedily.",
+  "columns": [
+    {"key": "7-9", "label": "7–9", "total": 192},
+    {"key": "10-12", "label": "10–12", "total": 192},
+    {"key": "13-20", "label": "13–20", "total": 192},
+    {"key": "primary", "label": "Primary", "total": 576, "emphasis": true},
+    {"key": "structured", "label": "Structured", "total": 384, "emphasis": true}
+  ],
+  "rows": [
+    {"label": "Initialization", "emphasis": true, "values": {"7-9": 19, "10-12": 18, "13-20": 11, "primary": 48, "structured": 0}},
+    {"label": "Relative reward · full · seed 1", "separator_before": true, "values": {"7-9": 11, "10-12": 21, "13-20": 5, "primary": 37, "structured": 0}},
+    {"label": "Relative reward · full · seed 2", "values": {"7-9": 15, "10-12": 20, "13-20": 12, "primary": 47, "structured": 0}},
+    {"label": "Relative reward · reset · seed 1", "values": {"7-9": 10, "10-12": 17, "13-20": 9, "primary": 36, "structured": 0}},
+    {"label": "Relative reward · reset · seed 2", "values": {"7-9": 13, "10-12": 18, "13-20": 11, "primary": 42, "structured": 0}},
+    {"label": "PPO · full · seed 1", "separator_before": true, "values": {"7-9": 5, "10-12": 8, "13-20": 2, "primary": 15, "structured": 0}},
+    {"label": "PPO · full · seed 2", "values": {"7-9": 5, "10-12": 10, "13-20": 7, "primary": 22, "structured": 0}},
+    {"label": "PPO · reset · seed 1", "values": {"7-9": 9, "10-12": 5, "13-20": 1, "primary": 15, "structured": 0}},
+    {"label": "PPO · reset · seed 2", "values": {"7-9": 5, "10-12": 12, "13-20": 6, "primary": 23, "structured": 0}}
+  ],
+  "source": {
+    "primary_remote_path": "simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/analysis_primary_final_greedy_v1.json",
+    "primary_sha256": "d2163ba6304718a61eeba299bca1430f156ae42156a0f9c4df44bfc94cae50c3",
+    "structured_remote_path": "simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/analysis_structured_final_greedy_v1.json",
+    "structured_sha256": "25b94f7b6223514aee12179288fa76ab1438f40e288ce2e3004e44bb054bc7fd",
+    "derived_on": "2026-09-20"
+  }
+}

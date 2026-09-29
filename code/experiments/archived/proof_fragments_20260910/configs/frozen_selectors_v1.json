@@ -1,0 +1,50 @@
+{
+  "frozen": true,
+  "utc": "2026-09-10T18:57:00.116213+00:00",
+  "ranking_sha256": "98b58dfb0150679f649c2ae4a165df39c991bb07f6ed094d3914d6dd307234b0",
+  "transfer_families": [
+    "NEGI",
+    "IMPI_flat",
+    "NEGE"
+  ],
+  "surprise_families": [
+    "ANDI",
+    "IMPE",
+    "NEGI"
+  ],
+  "surprise_definition": "Aggregate conditional fragment bits divided by total scored action tokens in each family",
+  "uniform_families": [
+    "ANDE1",
+    "ANDE2",
+    "ANDI",
+    "BOTE",
+    "DN",
+    "IMPE",
+    "IMPI_flat",
+    "IMPI_nested",
+    "NEGE",
+    "NEGI",
+    "ORI1",
+    "ORI2"
+  ],
+  "selected_sources": 192,
+  "uniform_rl_sources": 192,
+  "uniform_rl_match": "exact histogram of selected full source inference lines; no repeated sources",
+  "common_checkpoint_sha256": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+  "calibration_confirmation_opened": false,
+  "final_confirmation_opened": false,
+  "mixture_training": {
+    "steps": 100,
+    "fixed_pad": 512,
+    "batch_size": 32,
+    "lr": 5e-05,
+    "retention_fraction": 0.5,
+    "seed": 20260910
+  },
+  "oracle_controls": {
+    "regime": "cap12 direct full-proof SFT; acquired candidate+selection union; original roles preserved",
+    "same_training_budget": 106300035072000,
+    "total_selector_plus_mixture_budget": 2755072891269120,
+    "total_budget_rounding": "floor to completed fixed padded updates"
+  }
+}

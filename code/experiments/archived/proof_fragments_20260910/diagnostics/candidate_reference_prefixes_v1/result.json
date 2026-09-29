@@ -1,0 +1,160 @@
+{
+  "all_admissible_occurrences": {
+    "canonical_endpoints": 306,
+    "canonical_prefixes": 311,
+    "certificate_length_histogram": {
+      "2": 60,
+      "3": 147,
+      "4": 80,
+      "5": 45
+    },
+    "local_family_histogram": {
+      "ANDE1": 48,
+      "ANDE2": 69,
+      "ANDI": 24,
+      "BOTE": 3,
+      "DN": 8,
+      "IMPE": 50,
+      "IMPI_flat": 40,
+      "IMPI_nested": 2,
+      "NEGE": 31,
+      "NEGI": 1,
+      "ORE": 3,
+      "ORI1": 19,
+      "ORI2": 34
+    },
+    "n": 332,
+    "parent_family_histogram": {
+      "ANDE1": 33,
+      "ANDE2": 17,
+      "ANDI": 54,
+      "BOTE": 33,
+      "DN": 17,
+      "IMPE": 46,
+      "IMPI_flat": 5,
+      "NEGE": 55,
+      "NEGI": 7,
+      "ORI1": 43,
+      "ORI2": 22
+    },
+    "parent_source_length_histogram": {
+      "3": 41,
+      "4": 97,
+      "5": 114,
+      "6": 80
+    },
+    "unique_contexts": 201,
+    "unique_parent_sources": 258
+  },
+  "candidate_sources_enumerated": 768,
+  "canonical_endpoint_representatives": {
+    "canonical_endpoints": 306,
+    "canonical_prefixes": 306,
+    "certificate_length_histogram": {
+      "2": 55,
+      "3": 130,
+      "4": 76,
+      "5": 45
+    },
+    "local_family_histogram": {
+      "ANDE1": 47,
+      "ANDE2": 61,
+      "ANDI": 21,
+      "BOTE": 3,
+      "DN": 8,
+      "IMPE": 48,
+      "IMPI_flat": 37,
+      "IMPI_nested": 2,
+      "NEGE": 30,
+      "NEGI": 1,
+      "ORE": 3,
+      "ORI1": 18,
+      "ORI2": 27
+    },
+    "n": 306,
+    "parent_family_histogram": {
+      "ANDE1": 33,
+      "ANDE2": 16,
+      "ANDI": 47,
+      "BOTE": 27,
+      "DN": 17,
+      "IMPE": 45,
+      "IMPI_flat": 4,
+      "NEGE": 53,
+      "NEGI": 5,
+      "ORI1": 38,
+      "ORI2": 21
+    },
+    "parent_source_length_histogram": {
+      "3": 39,
+      "4": 90,
+      "5": 100,
+      "6": 77
+    },
+    "unique_contexts": 201,
+    "unique_parent_sources": 240
+  },
+  "comparison_scope": "Exact-prefix overlap uses every admissible pre-dedup reference prefix, so representative choice cannot hide alternative known proofs.",
+  "counts": {
+    "merely_premise_conclusion": 971,
+    "open_scope_prefix": 713,
+    "original_target_conclusion": 768,
+    "strictly_verified_local_prefix_occurrences": 544
+  },
+  "elapsed_seconds": 11.822162389755249,
+  "known_complete_endpoints": 63293,
+  "mined_certificates_compared": 85,
+  "mined_endpoint_overlap": 47,
+  "mined_exact_canonical_prefix_overlap": 33,
+  "mined_exact_overlap_with_only_retained_representatives": 32,
+  "model_flop_proxy": 0,
+  "new_model_rollouts": 0,
+  "optimizer_updates": 0,
+  "overlap_certificate_length_histograms": {
+    "endpoint": {
+      "2": 7,
+      "3": 17,
+      "4": 19,
+      "5": 4
+    },
+    "exact_prefix": {
+      "2": 4,
+      "3": 14,
+      "4": 13,
+      "5": 2
+    }
+  },
+  "overlap_family_histograms": {
+    "endpoint": {
+      "ANDE1": 14,
+      "ANDE2": 15,
+      "DN": 2,
+      "IMPE": 12,
+      "NEGE": 1,
+      "ORE": 1,
+      "ORI2": 2
+    },
+    "exact_prefix": {
+      "ANDE1": 7,
+      "ANDE2": 9,
+      "DN": 2,
+      "IMPE": 11,
+      "NEGE": 1,
+      "ORE": 1,
+      "ORI2": 2
+    }
+  },
+  "overlap_unique_contexts": {
+    "endpoint": 33,
+    "exact_prefix": 26
+  },
+  "rejection_counts": {
+    "blind_textbook_guard_collision": 1,
+    "canonical_complete_endpoint_already_known": 127,
+    "canonical_duplicate_within_reference_enumeration": 26,
+    "context_outside_candidate_partition": 84
+  },
+  "selection_or_confirmation_sources_enumerated": false,
+  "status": "diagnostic_only_not_training_ready",
+  "textbook_payloads_opened": false
+}

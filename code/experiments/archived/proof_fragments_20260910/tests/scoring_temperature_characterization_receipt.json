@@ -1,0 +1,23 @@
+{
+  "candidate_characterization_checkpoints": 2,
+  "candidate_characterization_modes": [
+    "full_start",
+    "fragment"
+  ],
+  "candidate_characterization_sources": 4,
+  "code_sha256": {
+    "characterize_candidates.py": "3f571ebf5f47a4075033223c8bf0899f676ec36c38fc9692e1070d7f6524ddc3",
+    "reference_scoring.py": "5f9181cdaa1af9638ad7bdbfdb4dbbd2fc71ef5c681f7f23468846a8be384783",
+    "score_only.py": "89c4aa6bac07a1292667fc2a656708a0ca87d6500142cef9e7b411fcdc388076",
+    "test_score_only.py": "b633cbf67ebafa8d04c416b70897e9805d8ded75e4b619288dbf3144e943435d"
+  },
+  "default_temperature_matches_prior_exactly": true,
+  "generation_executed": false,
+  "optimizer_updates": 0,
+  "sampler_hash_unchanged": true,
+  "scientific_performance_evidence": false,
+  "score_gate_and_temperature_tests_passed": 6,
+  "score_only_cli_checkpoints": 2,
+  "status": "cpu_smoke_passed",
+  "temperature_point_eight_manual_action_logsoftmax_test": true
+}

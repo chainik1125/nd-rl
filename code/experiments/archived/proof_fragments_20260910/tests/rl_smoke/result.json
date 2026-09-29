@@ -1,0 +1,189 @@
+{
+  "active_advantage_tokens": 0,
+  "curriculum": {
+    "1241c1fd03bbe36cb5d13eab8e3b175077415d707bf0f1755a2550d313c1c95a": {
+      "cut": 1,
+      "n": 4,
+      "success": 0
+    },
+    "1745b76a77501a2528e9a1dd40d2b0c5dc5151b64b6062bedd030461e2f4b7e7": {
+      "cut": 2,
+      "n": 0,
+      "success": 0
+    },
+    "21901b14d35c6c34abfde7cd93fba6c9b7dd86a7dfc779a815ed2b3ad664a595": {
+      "cut": 2,
+      "n": 0,
+      "success": 0
+    },
+    "2531d40155a1cc46925466be8382d5c1f01947205676f55e93c9edb2c38b946e": {
+      "cut": 5,
+      "n": 0,
+      "success": 0
+    },
+    "33b3430d4845dde7a03b24dd34e1c248855749b3ea267bcfadc4f114f0188e25": {
+      "cut": 3,
+      "n": 0,
+      "success": 0
+    },
+    "3e8763f23adf282fbb8c3122181eb12ed1294ae93763cf87667119e90f5e87f5": {
+      "cut": 3,
+      "n": 0,
+      "success": 0
+    },
+    "41321d58e04bb701a7b1cd05b9000ac5655d6fb17bf552d8e4f511a28da46907": {
+      "cut": 3,
+      "n": 0,
+      "success": 0
+    },
+    "47ef777d96515ad072cc1ddfb475c0ed19f2d16055ea9fb6e83931304faec398": {
+      "cut": 4,
+      "n": 0,
+      "success": 0
+    },
+    "4ce70c7c0e0c00201853f5007a24bb70b3884887849454da1a88a5b7ee55c9cd": {
+      "cut": 1,
+      "n": 0,
+      "success": 0
+    },
+    "534224945f1bb5da0340f70bbcef4e4b97c716a54add83a3b27961c503d6af76": {
+      "cut": 3,
+      "n": 0,
+      "success": 0
+    },
+    "5bf2acb9a53a22447c83ed3217edce52c2f990a7ee031cba4f16de73f3eff2c0": {
+      "cut": 1,
+      "n": 0,
+      "success": 0
+    },
+    "5ee06bbb8de5439d1c11ce9e673a7674e50d0162905a432f21335a52aeef26ce": {
+      "cut": 5,
+      "n": 0,
+      "success": 0
+    },
+    "652c55c5f9f5055565a89b2fa568150d270e1e0d66f8bd347d70c68c009aea73": {
+      "cut": 5,
+      "n": 0,
+      "success": 0
+    },
+    "69ea13a33f2eaeba6f256aa184f83e626914089843bd2434270da0148759bf34": {
+      "cut": 3,
+      "n": 0,
+      "success": 0
+    },
+    "6f82d0bb00339e6dc049151dfdbadfb56d8294017bf46e293f83072a1589c2fc": {
+      "cut": 1,
+      "n": 0,
+      "success": 0
+    },
+    "845b695f4e2720ea18ef9c1b5396d51ead3ed36423fe4bea3ff7617a037f97d2": {
+      "cut": 4,
+      "n": 0,
+      "success": 0
+    },
+    "a03986a9d6b1239d40d310f995d7bcab68c3c7145947494c644e4c24b05c4c23": {
+      "cut": 1,
+      "n": 0,
+      "success": 0
+    },
+    "ab5e056d347b97e2477648b01a7fe983d0516786c23250c4874dafacafc8703a": {
+      "cut": 1,
+      "n": 0,
+      "success": 0
+    },
+    "abb0894cde997d6ef2ecb0859f1fbeba270ce5441bfd41bd73fd3832bc7cb98f": {
+      "cut": 5,
+      "n": 0,
+      "success": 0
+    },
+    "b1e7f2b78a7046afbd5cceffc52ea669e2d4740c36a64817f09cb4774ced989a": {
+      "cut": 2,
+      "n": 0,
+      "success": 0
+    },
+    "b58c13e11ccf254d1d784ea952b0ff73278d01bb332d37a18c3a6f95830aad0b": {
+      "cut": 5,
+      "n": 0,
+      "success": 0
+    },
+    "c0021221714e1732497e3c5c8acc53dd1688593565d5a8ae2e23a38e13b936e3": {
+      "cut": 1,
+      "n": 0,
+      "success": 0
+    },
+    "cf09d82b08de0319493abdfaee2d45d68129838408ce8f095cd8c0ae9ed89509": {
+      "cut": 3,
+      "n": 0,
+      "success": 0
+    },
+    "fbee8c984331b71e4264bcf685c382bc1faf1c16d0530a39296bdc43b9566541": {
+      "cut": 2,
+      "n": 4,
+      "success": 0
+    }
+  },
+  "elapsed_seconds": 0.7655832767486572,
+  "families": [
+    "ANDE1",
+    "ANDE2",
+    "ANDI",
+    "BOTE",
+    "DN",
+    "IMPE",
+    "IMPI_flat",
+    "IMPI_nested",
+    "NEGE",
+    "NEGI",
+    "ORI1",
+    "ORI2"
+  ],
+  "final_sha256": "bc0fc7c91d317a3d40d6c34031a46b4ad183ecbf69f3404af2f1f5290dece858",
+  "flop_proxy_overshoot": 0,
+  "generated_tokens": 192,
+  "ledger": {
+    "behavior_audit": {
+      "action_tokens": 192,
+      "actual_input_tokens": 488,
+      "calls": 2,
+      "flop_proxy": 8565120,
+      "padded_token_slots": 488,
+      "supplied_tokens": 304
+    },
+    "generation": {
+      "cache_token_pair_slots": 21400,
+      "executed_decode_slots": 192,
+      "flop_proxy": 7699584,
+      "prefill_actual_tokens": 304,
+      "prefill_padded_tokens": 304,
+      "sampled_tokens": 192
+    },
+    "rl_retention": {
+      "action_tokens": 252,
+      "actual_input_tokens": 334,
+      "calls": 2,
+      "flop_proxy": 30871584,
+      "padded_token_slots": 446,
+      "supplied_tokens": 86
+    },
+    "rl_training": {
+      "action_tokens": 192,
+      "actual_input_tokens": 488,
+      "calls": 2,
+      "flop_proxy": 25695360,
+      "padded_token_slots": 488,
+      "supplied_tokens": 304
+    }
+  },
+  "max_flop_proxy": 100000000.0,
+  "mixed_groups": 0,
+  "n_groups": 2,
+  "n_training_sources": 24,
+  "normalization": "fixed max_new_tokens shared by full and reset arms",
+  "overshoot_policy": "Complete the current on-policy update; stop before the next update after crossing the ceiling.",
+  "retention_total_examples": 4,
+  "start": "reset",
+  "steps": 2,
+  "stop_reason": "step_ceiling",
+  "total_flop_proxy": 72831648,
+  "worst_case_one_step_flop_proxy": 75927744
+}

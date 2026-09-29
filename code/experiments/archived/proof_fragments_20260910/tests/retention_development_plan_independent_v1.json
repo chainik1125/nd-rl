@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Exact main = retention reference + residual coefficient identity holds at all four milestones",
+    "Duplicate step1107 controls correctly share one model and cancel where appropriate",
+    "Every exposure step matches main cumulative proxy and 16 retained examples per update",
+    "Checkpoint receipts and prospective input hashes verified",
+    "Only 18 full-start evaluations on reused confirmation; no optimization commands"
+  ],
+  "coefficient_identities_checked": 12,
+  "contrast_count": 36,
+  "hashes": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/analysis_retention_development_v1.json": "b56e8514cf86b62832f410e8b35c5acde56450eefc6e7d6332d31b46d7d258d2",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/comparisons_retention_control_seed1_v1.json": "1268cfe3e0d47a0be218d7076fc7daaf72d3adf4aa5efc8f8dd9af7fec61d2dc",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/configs/pipeline_retention_development_v1.json": "2c740fee5d79201bfa92a6d55a9b05b4dd5a4c0cf9086619d00853a24b738d1b",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/prepare_retention_development.py": "caa80b8c5c3786177e531e59f2cb7c1aab79609d40a12fa6ac38bddec0507d43"
+  },
+  "interpretation": "Residual is an arithmetic comparison to the retention-only procedure at equal ordered retention exposure. It is neither equal-compute nor an additive causal decomposition of policy and retention gradients. Equal-total-compute endpoint is separate.",
+  "main_exposure_comparisons": 16,
+  "new_evaluation_models": 18,
+  "release_note": "Local confirmation recipe no_further_training=false does not enforce global closure itself; completed global closure remains binding and pipeline contains no training.",
+  "reused_models": 17,
+  "status": "passed",
+  "unique_retention_exposure_checkpoints": 15
+}

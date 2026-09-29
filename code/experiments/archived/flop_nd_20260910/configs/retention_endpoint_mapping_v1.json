@@ -1,0 +1,14 @@
+{
+  "mapping": {
+    "main_ppo_full_seed1_v1": "retention_seed1_step004793",
+    "main_ppo_full_seed2_v1": "retention_seed2_step005147",
+    "main_ppo_reset_seed1_v1": "retention_seed1_step004405",
+    "main_ppo_reset_seed2_v1": "retention_seed2_step005361",
+    "main_relative_full_seed1_v1": "retention_seed1_step005934",
+    "main_relative_full_seed2_v1": "retention_seed2_step005932",
+    "main_relative_reset_seed1_v1": "retention_seed1_step005860",
+    "main_relative_reset_seed2_v1": "retention_seed2_step005857"
+  },
+  "note": "Exact main retention exposure schedules; controls are not compute matched.",
+  "status": "frozen_from_main_update_counts"
+}

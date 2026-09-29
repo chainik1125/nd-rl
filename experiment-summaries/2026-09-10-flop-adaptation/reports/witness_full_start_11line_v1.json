@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "written_on": "2026-09-20",
+  "claim": "The cap-six minimal full-start PPO seed-4401 policy produced one strictly verified eleven-line dependency-pruned proof on the sampled primary final evaluation.",
+  "source": {
+    "remote_path": "simplex3:/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4401_primary_final_sample4_v1.json",
+    "sha256": "9100fd67e3431a1fcec7c9083c61f0d87b3e815589cb6b9019c78fd0c7ebc2b4",
+    "selection": "witnesses where pruned_lines == 11"
+  },
+  "summary": {
+    "actions": 91135,
+    "any": 130,
+    "any_pruned_at_least13": 0,
+    "any_pruned_at_least25": 0,
+    "any_pruned_over6": 31,
+    "any_pruned_using_BOTE": 16,
+    "any_pruned_using_DN": 4,
+    "any_pruned_using_IMPI": 41,
+    "any_pruned_using_NEGI": 1,
+    "any_pruned_using_ORE": 0,
+    "any_rate": 0.16927083333333334,
+    "attempts": 3072,
+    "candidates_scored": 3903980,
+    "first": 72,
+    "first_rate": 0.09375,
+    "maximum_pruned": 11,
+    "pruned_eligible_1024_any": 130,
+    "pruned_eligible_1024_first": 72,
+    "pruned_eligible_2048_any": 130,
+    "pruned_eligible_2048_first": 72,
+    "pruned_eligible_512_any": 130,
+    "pruned_eligible_512_first": 72,
+    "raw_eligible_1024_any": 130,
+    "raw_eligible_1024_first": 72,
+    "raw_eligible_2048_any": 130,
+    "raw_eligible_2048_first": 72,
+    "raw_eligible_512_any": 112,
+    "raw_eligible_512_first": 55,
+    "shortest_found_pruned_over6": 13,
+    "shortest_pruned_histogram": {
+      "2": 18,
+      "3": 24,
+      "4": 28,
+      "5": 32,
+      "6": 15,
+      "7": 6,
+      "8": 3,
+      "9": 3,
+      "11": 1
+    },
+    "successful_attempts": 282,
+    "theorems": 768
+  },
+  "witnesses": [
+    {
+      "actions": 20,
+      "attempt": 0,
+      "body": "N1 P : PR ; N2 ( P & ( R & ( Q & Q ) ) ) : PR ; N3 S : PR ; N4 ( P & ( R & ( Q & Q ) ) ) : R N2 ; N5 ( R & ( Q & Q ) ) : ANDE2 N2 ; N6 R : ANDE1 N5 ; N7 R : R N6 ; N8 ( R & S ) : ANDI N7 N3 ; N9 | ( ( R & S ) & P ) : AS ; N10 R : ANDE1 N8 ; N11 R : R N10 ; N12 R : R N10 ; N13 ( R & S ) : ANDI N12 N3 ; N14 R : R N10 ; N15 | R : AS ; N16 S : ANDE2 N13 ; N17 ( R & S ) : ANDI N10 N3 ; N18 ( R & S ) : ANDI N14 N3 ; N19 R : R N10 ; N20 ( R & S ) : R N8 ; N21 ( R & S ) : ANDI N12 N16 ; N22 R : R N11 ; N23 ( ( R & S ) & P ) : ANDI N18 N1 ; QED",
+      "candidates_scored": 913,
+      "compressed_lines": 9,
+      "family": "ANDI",
+      "prompt": "THM P , ( P & ( R & ( Q & Q ) ) ) , S SEQ ( ( R & S ) & P ) PRF",
+      "pruned_body": "N1 P : PR ; N2 ( P & ( R & ( Q & Q ) ) ) : PR ; N3 S : PR ; N4 ( R & ( Q & Q ) ) : ANDE2 N2 ; N5 R : ANDE1 N4 ; N6 R : R N5 ; N7 ( R & S ) : ANDI N6 N3 ; N8 R : ANDE1 N7 ; N9 R : R N8 ; N10 ( R & S ) : ANDI N9 N3 ; N11 ( ( R & S ) & P ) : ANDI N10 N1 ; QED",
+      "pruned_lines": 11,
+      "pruned_rules": {
+        "ANDE1": 2,
+        "ANDE2": 1,
+        "ANDI": 3,
+        "PR": 3,
+        "R": 2
+      },
+      "pruned_tokens": 145,
+      "raw_lines": 23,
+      "raw_tokens": 388,
+      "reference_lines": 10,
+      "source_id": "a27ab5a57cab223bf8f282ca6726be1464a7c038ce9efff47e9ec09072bf8d2d",
+      "success": 1,
+      "target_atom": null
+    }
+  ]
+}

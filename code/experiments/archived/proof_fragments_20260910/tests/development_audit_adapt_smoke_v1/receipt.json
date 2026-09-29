@@ -1,0 +1,33 @@
+{
+  "attempts_replayed": 3072,
+  "data_role": "confirmation",
+  "data_sha256": "40a1d4c8ea1ebbdc0d959e7a44d2c8d83888983e6fa9a8a5c351519021aa4eac",
+  "elapsed_seconds": 2.5434699058532715,
+  "evaluation_bindings": {
+    "adapt": {
+      "attempts_sha256": "747a12cff6361217b4f871e07a6a751820a4bc83e3bee7956e81513b5cf62dc8",
+      "checkpoint_sha256": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+      "directory": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1",
+      "manifest_sha256": "0362c553a562a5d657ab6a9e2f151f4eb8883dc6f72235e1eaafbf506d4be555",
+      "nll_sha256": "487c6ff01185a9e56531a5a1671608095f433ae8f3b235a501ec422905961786",
+      "release_sha256": "0da0f6d8be78d095bb1ef1c916b8a7918261a2ddda2eff64d74449182fc252f0",
+      "reported_covered_sources": 157,
+      "reported_mean_whole_proof_bits": 100.05226898776345,
+      "result_sha256": "05dc3394cdeada4413e9d7d0c669622e38438b6bfd5bb4f1c3117686f5826890",
+      "total_flop_proxy": 18772555776000
+    }
+  },
+  "final_data_accessed": false,
+  "gpu_jobs_launched": 0,
+  "limitations": [
+    "NLL values and saved behavior audits are bound and aggregated, not recomputed without model forwards",
+    "Paired context bootstrap is descriptive at fixed training and decoding seeds; no seed-level inference",
+    "Confirmation was used in calibration and is development data, not a new untouched final estimate"
+  ],
+  "model_weights_loaded": false,
+  "models": 1,
+  "original_plan_sha256": "e45c5a0fbedfd9522dc15cfa973cc7c1295bc92a9df0abdd7ef47f84d48f7e6b",
+  "paired_analysis_sha256": "6786d8c7554db0fb9b0219eeb5e4a85f1b4973416d75bea01f96ca244a6e4394",
+  "status": "passed",
+  "strict_replay_sha256": "c31a1eef6ce15143ff1715c998f8064eb087332cfb7b76a57626f3fda07ee943"
+}

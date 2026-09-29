@@ -5,9 +5,20 @@ written_by: agent:codex
 
 # Project state
 
-The latest experiment code and artifacts are on simplex1 in `/data/users/dmitry/nd-rl/take-home/`, especially `window_sprint_20260906`, `transfer_sprint_20260907`, and `current_state_20260909`. The local earlier-iterations directory predates these experiments.
+The three completed June natural-deduction sprints have been recovered from the earlier local
+repository, with their code, summaries, ledgers, and sub-1MB figures now indexed here. The
+[bootstrapping study](../experiment-summaries/2026-06-09-nd-bootstrapping-sprint/README.md)
+contains the strongest verified written-length result: cap-6 training produced seven distinct
+dependency-pruned eight-line certificates, while deeper cap-8 models reached 13 lines. The
+[cross-experiment cap-six ledger](../experiment-summaries/synthetic-cap6-proof-lengths.md) links
+the exact eight-line records and the specialized FLoP eleven- and 129-line witnesses. The
+[proof-novelty study](../experiment-summaries/2026-06-10-proof-novelty-sprint/README.md) found a
+modest two-seed benefit from high-lemma-value target selection, and the
+[first-order study](../experiment-summaries/2026-06-11-fol-sprint/README.md) reproduced a token
+inventory wall while localizing eigenvariable failures to freshness bookkeeping.
 
-The [R1-style reasoning sprint](../experiment-summaries/2026-09-08-r1-cot/README.md) completed its first independent pair audit. No endpoint expanded the observed proof-length window beyond six reference lines; the 73 final-only problems remained unopened in the local record. Next step: reconcile the remaining remote run state on simplex1 and decide whether to audit another frozen pair or close the sprint without opening the final-only split.
+Four completed September 10 experiment records have now been imported from `simplex3` alongside
+archived code snapshots. Large raw runs and checkpoints remain remote.
 
 A [literature review for learning beyond initial training data](../astra_suggestions/learning-beyond-training-data.md) now recommends five core readings and five additional readings, with experiments and a critique of natural deduction as the setting. Its proposed next step is to specify a fresh structural-transfer benchmark and information/compute accounting before choosing the next RL recipe; this does not alter the current sprint's evaluation restrictions.
 
@@ -83,3 +94,19 @@ Proposal 6 ([RL technique ladder](proposals/2026-09-17-rl-technique-ladder.md)) 
 
 [podjob](../experiment-summaries/2026-09-28-podjob-pods-release-themselves/README.md) (2026-09-28, reviewed, review linked in the summary; proposal 15 item 7, infrastructure): can a pod's lifetime be tied to its job from the host alone? **Yes, for normal exit, job failure and SIGTERM.** T1–T4 pass. T5 as registered (SIGINT during creation) failed, because bash ignores SIGINT in backgrounded script children, and it passed with SIGTERM. Pods were gone within 15–74 s (≤ 120 s limit) and no `pj-` pod was left. `podjob` and the `podbg`/`podnew` fixes are merged into nd-rl `dan` but **not installed** on the VPS: other pods were live. Next: run `install.sh` on a pod-free host, run a foreground Ctrl-C test, and decide on the "prefer `podjob` for one-shot jobs" policy text. $0.04 of $1.
 [fast-stage1](../experiment-summaries/2026-09-28-fast-stage1-equivalent-2x6-faster/README.md) (2026-09-28, reviewed, review linked in the summary; proposal 15 item 1, infrastructure): can Stage-1 training use the GPU without changing the model? **Yes for `lean_seq` / bs 128 / cosine: 14 / 14 pre-registered comparisons within the n = 8 MDD, 2.6× per model and ≈ 2.9× per GPU on an A40 (not the ≥ 5× goal).** The brief's 215 ms/step baseline was a contended GPU. Seed concurrency adds nothing in steady state. `--impl auto` is now the fork's default for every from-scratch GPU run; other formats, batch sizes and schedules are not equivalence-tested. Next: `sd_eval --texts` on the 8 fast checkpoints, an all-lengths augmentation self-test. 1.49 pod-hours, **$1.47** of $5.
+- The [OLMo-32B pilot](../experiment-summaries/2026-09-10-olmo-32b-pilot/README.md) found no
+  longer-proof gain beyond ICL on its fixed 24-target panel.
+- The [proof-cap comparison](../experiment-summaries/2026-09-10-proof-cap-comparison/README.md)
+  completed all six configurations but did not extend verified textbook reach beyond the supplied
+  supervision cap.
+- The [proof-fragment experiment](../experiment-summaries/2026-09-10-proof-fragment-selection/README.md)
+  reproduced its supervised transfer ranking, while all four tested long-RL procedures reduced
+  complete-proof coverage from the adapted start.
+- The [FLoP adaptation](../experiment-summaries/2026-09-10-flop-adaptation/README.md) showed narrow
+  symbolic depth extrapolation without a held-out coverage gain for the token LM.
+
+The earlier [R1-style reasoning sprint](../experiment-summaries/2026-09-08-r1-cot/README.md)
+completed its first independent pair audit. No endpoint expanded the observed proof-length window
+beyond six reference lines; the 73 final-only problems remained unopened in the local record.
+
+A [literature review for learning beyond initial training data](literature/astra_suggestions/learning-beyond-training-data.md) now recommends five core readings and five additional readings, with experiments and a critique of natural deduction as the setting. Its proposed next step is to specify a fresh structural-transfer benchmark and information/compute accounting before choosing the next RL recipe; this does not alter the current sprint's evaluation restrictions.

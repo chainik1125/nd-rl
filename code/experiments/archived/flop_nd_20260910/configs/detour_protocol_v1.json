@@ -1,0 +1,77 @@
+{
+  "algorithm": "Frozen minimal-general legal ND policy, separate critic, 500x2 tanh, gamma=lambda=.95 per inference, centered advantage scaling, entropy .01, PPO clip .2, Adam 1e-4, EMA .6 old + .4 reward, threshold >.9, episode fallback >20000; no online admission.",
+  "evaluation": {
+    "all_endpoints": true,
+    "max_scope": 4,
+    "max_total_lines": 32,
+    "population": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl",
+    "prefix_assistance": false,
+    "primary_metric": "Greedy theorem success across all 320 statements; report family and reference-length strata and four-sample any success secondarily.",
+    "profiles": {
+      "greedy": {
+        "attempts": 1,
+        "temperature": 0
+      },
+      "sample4": {
+        "attempts": 4,
+        "temperature": 1
+      }
+    },
+    "seed": 202609101935,
+    "statistics": "Paired context bootstrap of noise effect within each method and difference of noise effects, conditional on two trained seeds.",
+    "theorems": 320
+  },
+  "exclusion_sha256": {
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/development.jsonl": "59188784bb1cdfd2723f17fa02692d1e2d870f1186b9d59ca1a3c9ec72d2bd89",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/final.jsonl": "a4bdf15ae7cc35ef1674d209a93650d31ac73f9f475dd7dbf51e503c89b79c9a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/structured_v1/targets.jsonl": "7f0c658096d25fa31952b37f94b777713539b89e4a8c7d64f18a6f781e60c311",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/final.jsonl": "554564b9c70bf88f400a8bcb36ff6e7beed83b0fad61eac868e4158b482e7cc4",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0"
+  },
+  "falsifier": "Cloning is equally robust, or curriculum loses as much or more coverage; report all conditions regardless of outcome.",
+  "frozen_utc": "2026-09-10T22:25:43.300775+00:00",
+  "generator_sha256": "4ea03cacccdfd722877e6c0ead9aa24dcd644f5d93dd5257210e1c09f833d75a",
+  "hypothesis": "The decrease in long-proof coverage caused by harmless seed detours is smaller for backward-curriculum PPO than for behavioral cloning.",
+  "limits": [
+    "Development population was already inspected in other experiments",
+    "Two seeds and two seed theorems",
+    "Cloning and PPO budgets are not matched",
+    "Clean and noisy cloning have different numbers of labeled action states",
+    "Proof compression is known; the test measures learned robustness, not a new mathematical strategy"
+  ],
+  "scope": "Secondary development-only diagnostic; added after observing the existing clean-seed development results and rereading paper Experiment 6. No final outcomes or model selection.",
+  "source_sha256": {
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/detour_v1/clean.jsonl": "8c492077dbc5904b140e7761074b308b94d0e0c4c37359ed8ad7fc7a138ecda9",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/detour_v1/no_targets.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/detour_v1/noisy.jsonl": "68f8650123363cff49303928158e848e0da4e5fee4044f142e919d3a62e52094"
+  },
+  "status": "frozen_before_training",
+  "training": {
+    "bc_compute_matched_to_ppo": false,
+    "bc_full_batch_updates": 1000,
+    "bc_presentations": {
+      "clean": 6000,
+      "noisy": 10000
+    },
+    "external_certificates_max_lines": 6,
+    "initialization": "random, matched within seed",
+    "max_scope": 4,
+    "max_total_lines_all_conditions": 6,
+    "no_long_training_theorems": true,
+    "ppo_actions_per_arm": 131072,
+    "ppo_batch": 512,
+    "ppo_conditions": [
+      "clean_reset",
+      "noisy_reset"
+    ],
+    "ppo_epochs": 4,
+    "ppo_minibatch": 64,
+    "seeds": [
+      4501,
+      4502
+    ],
+    "source_fraction": 1
+  },
+  "treatment": "Identical two theorem prompts; clean references have four lines, noisy references add two uncited reiterations and have six. Noisy dependency-pruned certificate exactly equals clean."
+}

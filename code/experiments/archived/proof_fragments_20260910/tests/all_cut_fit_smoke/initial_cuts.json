@@ -1,0 +1,135 @@
+{
+  "candidate_data_sha256": "c256999e5fbc041a7ed07b3a16c192da09a2ec2aeaae4b83a3ad1edd3b2d8ae6",
+  "checkpoint_sha256": "0706787a06111db42e38a9b0c8e481ff098bc686e02a0577efc860f2dbab40b4",
+  "confirmation_data_used": false,
+  "counters_initialized_to_zero": true,
+  "environment_sha256": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+  "fit_compute_ledger": {
+    "behavior_audit": {
+      "action_tokens": 1908,
+      "actual_input_tokens": 5548,
+      "calls": 7,
+      "flop_proxy": 129436032,
+      "padded_token_slots": 7032,
+      "supplied_tokens": 3744
+    },
+    "generation": {
+      "cache_token_pair_slots": 274480,
+      "executed_decode_slots": 2496,
+      "flop_proxy": 97331328,
+      "prefill_actual_tokens": 3744,
+      "prefill_padded_tokens": 3744,
+      "sampled_tokens": 1908
+    },
+    "runtime_measurement": {
+      "fit_sampling_and_checks_seconds": 0.12616040837019682
+    },
+    "verification": {
+      "admissible_states_reconstructed": 13,
+      "attempt_reward_checks": 104
+    }
+  },
+  "fit_seed": 87,
+  "format": "nd-prefix-double-prf-final-v1",
+  "frozen_before_fresh_audit": true,
+  "group_size": 8,
+  "max_new_tokens": 24,
+  "new_pilot_flop_proxy": 226767360,
+  "precision": "fp32",
+  "reuse_receipts": [],
+  "reused_original_full_run_flop_proxy": 0,
+  "reused_producer_seeds": [],
+  "rule": "max_k8_minus_k_earliest_tie_v1",
+  "sampler_sha256": "5c1fcc7cd85fe2de25ec76f520e2d5519eb3c2b504dd78f20dec44570ba0b550",
+  "sources": {
+    "1745b76a77501a2528e9a1dd40d2b0c5dc5151b64b6062bedd030461e2f4b7e7": {
+      "admissible_cuts": [
+        0,
+        1,
+        2
+      ],
+      "chosen_state_sha256": "b61a528d9180d327572586d1e08f15cf73cd1affc2e804bf55b2f7bd9dfd0c2e",
+      "context_id": "534e5d17387188e7412f31fcc53821f9efa5e11aa9f5652a5bf3e89fba0c2753",
+      "cut": 2,
+      "family": "ANDI",
+      "observed_mixed_frontier": false,
+      "reason": "fallback_latest_all_failed",
+      "score": 0,
+      "source_lines": 3,
+      "successes": {
+        "0": 0,
+        "1": 0,
+        "2": 0
+      },
+      "variance_estimate": 0.0
+    },
+    "3e8763f23adf282fbb8c3122181eb12ed1294ae93763cf87667119e90f5e87f5": {
+      "admissible_cuts": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "chosen_state_sha256": "5f0cd48d2696e106d5f029ffe16aadb591f931824e9b5c149fa18ddb4656d745",
+      "context_id": "f32614b46eb82d4c049466062b380b782639e6c9282114c96b008c6c8cf491c7",
+      "cut": 3,
+      "family": "IMPI_nested",
+      "observed_mixed_frontier": false,
+      "reason": "fallback_latest_all_failed",
+      "score": 0,
+      "source_lines": 4,
+      "successes": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "variance_estimate": 0.0
+    },
+    "69ea13a33f2eaeba6f256aa184f83e626914089843bd2434270da0148759bf34": {
+      "admissible_cuts": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "chosen_state_sha256": "6b287d4313a23022d70243625db163a0ee29508413a0fd0d27e4cbb07d8af766",
+      "context_id": "f32614b46eb82d4c049466062b380b782639e6c9282114c96b008c6c8cf491c7",
+      "cut": 3,
+      "family": "IMPI_nested",
+      "observed_mixed_frontier": false,
+      "reason": "fallback_latest_all_failed",
+      "score": 0,
+      "source_lines": 4,
+      "successes": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "variance_estimate": 0.0
+    },
+    "a03986a9d6b1239d40d310f995d7bcab68c3c7145947494c644e4c24b05c4c23": {
+      "admissible_cuts": [
+        0,
+        1
+      ],
+      "chosen_state_sha256": "d70d15837c76d340dee4add970a56b1f42480d1fb26c3c78221b58dd660ee0e3",
+      "context_id": "e41efc3ef9e2be374c0e0909d9ec27a81d1d4184d124d38ab17b06c54e23c0aa",
+      "cut": 1,
+      "family": "DN",
+      "observed_mixed_frontier": false,
+      "reason": "fallback_latest_all_failed",
+      "score": 0,
+      "source_lines": 2,
+      "successes": {
+        "0": 0,
+        "1": 0
+      },
+      "variance_estimate": 0.0
+    }
+  },
+  "status": "frozen_initial_cuts",
+  "temperature": 0.8,
+  "total_pilot_flop_proxy": 226767360
+}

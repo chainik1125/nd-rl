@@ -1,0 +1,218 @@
+{
+  "data_sha256": "40a1d4c8ea1ebbdc0d959e7a44d2c8d83888983e6fa9a8a5c351519021aa4eac",
+  "population_sources": 384,
+  "population_contexts": 212,
+  "method": "Paired canonical-context cluster percentile bootstrap; sample contexts with replacement; recompute within-length means and equally average populated length strata.",
+  "uncertainty_scope": "Measured task/context population at fixed training and decoding seeds; does not estimate training-seed uncertainty. Multiple comparisons are descriptive, without multiplicity correction.",
+  "bootstrap_draws": 5000,
+  "bootstrap_seed": 20260911,
+  "models": {
+    "adapt": {
+      "whole_proof_bits": {
+        "10-12": {
+          "mean": 238.22151213884354,
+          "context_bootstrap95": [
+            224.36889192192726,
+            252.2732768182703
+          ],
+          "n_sources": 128
+        },
+        "2-6": {
+          "mean": 3.3428863461867877,
+          "context_bootstrap95": [
+            2.3953196657891542,
+            4.411324324911476
+          ],
+          "n_sources": 128
+        },
+        "7-9": {
+          "mean": 58.59240847826004,
+          "context_bootstrap95": [
+            51.3045044201439,
+            65.64451579876047
+          ],
+          "n_sources": 128
+        },
+        "balanced": {
+          "mean": 100.05226898776345,
+          "context_bootstrap95": [
+            94.8461695274089,
+            105.12799974627013
+          ],
+          "n_sources": 384
+        }
+      },
+      "per_proof_bits_per_token": {
+        "10-12": {
+          "mean": 1.3490644352082573,
+          "context_bootstrap95": [
+            1.274866335285354,
+            1.4256484157675537
+          ],
+          "n_sources": 128
+        },
+        "2-6": {
+          "mean": 0.039952067617490664,
+          "context_bootstrap95": [
+            0.028722285944948113,
+            0.05265581111148929
+          ],
+          "n_sources": 128
+        },
+        "7-9": {
+          "mean": 0.445921115170552,
+          "context_bootstrap95": [
+            0.3958052848315383,
+            0.49012635996702486
+          ],
+          "n_sources": 128
+        },
+        "balanced": {
+          "mean": 0.6116458726654334,
+          "context_bootstrap95": [
+            0.5812276416614248,
+            0.6406008997632652
+          ],
+          "n_sources": 384
+        }
+      },
+      "attempt_success": {
+        "10-12": {
+          "mean": 0.1494140625,
+          "context_bootstrap95": [
+            0.10303952702702703,
+            0.21394374999999996
+          ],
+          "n_sources": 128
+        },
+        "2-6": {
+          "mean": 0.623046875,
+          "context_bootstrap95": [
+            0.5384572072072071,
+            0.7043282390510949
+          ],
+          "n_sources": 128
+        },
+        "7-9": {
+          "mean": 0.1689453125,
+          "context_bootstrap95": [
+            0.10844279288519018,
+            0.23306451612903226
+          ],
+          "n_sources": 128
+        },
+        "balanced": {
+          "mean": 0.3138020833333333,
+          "context_bootstrap95": [
+            0.2733228777316411,
+            0.3593093924245371
+          ],
+          "n_sources": 384
+        }
+      },
+      "coverage_at_k": {
+        "10-12": {
+          "mean": 0.2109375,
+          "context_bootstrap95": [
+            0.14654290179471666,
+            0.30097348366217763
+          ],
+          "n_sources": 128
+        },
+        "2-6": {
+          "mean": 0.765625,
+          "context_bootstrap95": [
+            0.6869543258673694,
+            0.8389830508474576
+          ],
+          "n_sources": 128
+        },
+        "7-9": {
+          "mean": 0.25,
+          "context_bootstrap95": [
+            0.17197203423566879,
+            0.33338709677419276
+          ],
+          "n_sources": 128
+        },
+        "balanced": {
+          "mean": 0.4088541666666667,
+          "context_bootstrap95": [
+            0.36573681173942196,
+            0.45995439498113294
+          ],
+          "n_sources": 384
+        }
+      },
+      "mixed_group_fraction": {
+        "10-12": {
+          "mean": 0.1484375,
+          "context_bootstrap95": [
+            0.08695023875345564,
+            0.23469387755102042
+          ],
+          "n_sources": 128
+        },
+        "2-6": {
+          "mean": 0.3203125,
+          "context_bootstrap95": [
+            0.22950819672131148,
+            0.4112903225806452
+          ],
+          "n_sources": 128
+        },
+        "7-9": {
+          "mean": 0.1640625,
+          "context_bootstrap95": [
+            0.1056338028169014,
+            0.232
+          ],
+          "n_sources": 128
+        },
+        "balanced": {
+          "mean": 0.2109375,
+          "context_bootstrap95": [
+            0.17141914270856484,
+            0.2574347798889262
+          ],
+          "n_sources": 384
+        }
+      }
+    }
+  },
+  "receipts": {
+    "adapt": {
+      "aggregate_bits_per_token": 0.7876677797179238,
+      "samples_per_source": 8,
+      "successful_attempts": 964,
+      "all_attempts": 3072,
+      "covered_sources": 157,
+      "mixed_groups": 81,
+      "valid_written_length_histogram": {
+        "4": 359,
+        "3": 180,
+        "5": 246,
+        "2": 34,
+        "6": 118,
+        "7": 27
+      },
+      "valid_compressed_length_histogram": {
+        "4": 359,
+        "3": 189,
+        "5": 237,
+        "2": 34,
+        "6": 118,
+        "7": 27
+      }
+    }
+  },
+  "comparisons": {},
+  "contrasts": {},
+  "input_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/tests/development_audit_adapt_smoke_v1/analysis_plan.json": "1b115bcc2dd0fd9d0d864eb8dfc95d0acb3608155f7372a41595d3062ac8ca30",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/tools/analyze_evaluations.py": "a84ba6665dd8fa7e223471180278b69026445b2de5710c8825a4587f81af5637",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/data/released_v1/confirmation.jsonl": "40a1d4c8ea1ebbdc0d959e7a44d2c8d83888983e6fa9a8a5c351519021aa4eac",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/whole_proof_nll.jsonl": "487c6ff01185a9e56531a5a1671608095f433ae8f3b235a501ec422905961786",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/confirmation_adapt_v1/attempts.jsonl": "747a12cff6361217b4f871e07a6a751820a4bc83e3bee7956e81513b5cf62dc8"
+  }
+}

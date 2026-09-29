@@ -1,0 +1,44 @@
+{
+  "cpu_tests": {
+    "command": "python -m unittest test_projected_loo test_score_rl_selection -v",
+    "coverage": [
+      "finite Bernoulli group distribution and unbiased projected covariance",
+      "sign and explicit 1/G and fixed 512 scaling",
+      "whole-response length and sampled PAD action masks",
+      "all-equal groups and unchanged policy parameters",
+      "exact full-start state, seed, budget, termination and reward replay gates",
+      "original and fresh-audit producer hashes and component identities",
+      "shared source resampling cancellation",
+      "frozen selection gradient analytic weighting and role/hash gates"
+    ],
+    "passed": 11,
+    "projected_loo_tests": 6
+  },
+  "final_data_accessed": false,
+  "fresh_audit_requirement": "Completed compatible results/difficulty_audit_v1 full-start component; no substituted or selected-cut groups",
+  "frozen_snapshots_changed": false,
+  "gpu_jobs_launched": 0,
+  "new_rollouts": 0,
+  "optimizer_updates": 0,
+  "production_gradient_computed": false,
+  "real_original_validation": {
+    "attempts": 6144,
+    "mixed_groups": 215,
+    "original_ordered_banks": 24,
+    "receipt_sha256": "e8f8307b95f8ad547e5fde06ea700a4a54ba53b7aa587619a55d80cebfbd3c2c",
+    "sources": 768,
+    "strict_rewards_replayed": true
+  },
+  "source_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/all_cut_pilot.py": "e35e66e01bff3639bc222654f96b58616f6419f85c3f287a6334254b2ad8f05b",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/learning.py": "5c1fcc7cd85fe2de25ec76f520e2d5519eb3c2b504dd78f20dec44570ba0b550",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/projected_loo.py": "f86c2f5b087cb61c1b61834fbf3392a3bf607747b03f9c1bbdd926a8c07d4ad5",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/score_rl_selection.py": "229dab9af7dd96a77f9ce1d593d20f4969ec4f39aadfe2eeae568cf53f7940a9",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/test_projected_loo.py": "6215dca206a940cb3eae740203c05a7f545aad20b0b322e41d94c294a0c1ff55",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/code/tests/projected_loo_original_reuse_receipt.json": "e8f8307b95f8ad547e5fde06ea700a4a54ba53b7aa587619a55d80cebfbd3c2c"
+  },
+  "status": "ready_for_root_freeze_and_launch_after_fresh_audit_completion",
+  "uncertainty": "Descriptive conditional resampling sensitivity, not calibrated Monte Carlo confidence intervals; two-replicate limitations explicit",
+  "utc": "2026-09-10T20:43:41.015634+00:00"
+}

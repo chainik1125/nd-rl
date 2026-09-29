@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "claim": "A model given direct proof supervision only through six lines emitted seven distinct accepted eight-line synthetic certificates after three expert-iteration rounds.",
+  "line_definition": "Total natural-deduction proof-body lines, including prompted premises and assumptions; QED does not count.",
+  "derivation": {
+    "source_repository": "../earlier-iterations/Natural Deduction LLM/nd_sprint",
+    "source_commit": "e8766d2",
+    "source_path": "results/pods/cap6/runs/ei_cap6/round3/discoveries.jsonl",
+    "source_sha256": "9a2f6d7b60c478b4eab5ab323fbd717aabb8ddec654643939585a2373749d164",
+    "selection": "n_lines == 8",
+    "selected_records": 7,
+    "posthoc_dependency_audit": "All seven records remain eight lines after dependency/reiteration pruning and re-verification; see ../proof-length-audit.md."
+  },
+  "records": [
+    {
+      "thm": "( ~ ( ( ~ ( ~ ( S & P ) ) ) > ( ( Q > R ) > ( S & P ) ) ) ) |- ( ~ ( P v R ) )",
+      "text": "THM ( ~ ( ( ~ ( ~ ( S & P ) ) ) > ( ( Q > R ) > ( S & P ) ) ) ) SEQ ( ~ ( P v R ) ) PRF N31 ( ~ ( ( ~ ( ~ ( S & P ) ) ) > ( ( Q > R ) > ( S & P ) ) ) ) : PR ; N32 | ( ~ ( ~ ( S & P ) ) ) : AS ; N33 | | ( Q > R ) : AS ; N34 | | ( S & P ) : DN N32 ; N35 | ( ( Q > R ) > ( S & P ) ) : IMPI N33 N34 ; N36 ( ( ~ ( ~ ( S & P ) ) ) > ( ( Q > R ) > ( S & P ) ) ) : IMPI N32 N35 ; N37 F : NEGE N36 N31 ; N38 ( ~ ( P v R ) ) : BOTE N37 ; QED",
+      "n_lines": 8,
+      "discharge": true,
+      "rules": [
+        "DN",
+        "IMPE",
+        "IMPI",
+        "NEGE",
+        "NEGI"
+      ]
+    },
+    {
+      "thm": "( ~ ( ( ~ ( ( R > P ) > S ) ) > ( ( ( R > P ) > S ) > F ) ) ) |- ( Q v F )",
+      "text": "THM ( ~ ( ( ~ ( ( R > P ) > S ) ) > ( ( ( R > P ) > S ) > F ) ) ) SEQ ( Q v F ) PRF N45 ( ~ ( ( ~ ( ( R > P ) > S ) ) > ( ( ( R > P ) > S ) > F ) ) ) : PR ; N46 | ( ~ ( ( R > P ) > S ) ) : AS ; N47 | | ( ( R > P ) > S ) : AS ; N48 | | F : NEGE N47 N46 ; N49 | ( ( ( R > P ) > S ) > F ) : IMPI N47 N48 ; N50 ( ( ~ ( ( R > P ) > S ) ) > ( ( ( R > P ) > S ) > F ) ) : IMPI N46 N49 ; N51 F : NEGE N50 N45 ; N52 ( Q v F ) : ORI2 N51 ; QED",
+      "n_lines": 8,
+      "discharge": true,
+      "rules": [
+        "IMPI",
+        "NEGE",
+        "ORI2"
+      ]
+    },
+    {
+      "thm": "( ( ( ~ Q ) & ( ~ Q ) ) v ( ( ~ S ) v ( ~ Q ) ) ) , ( ~ ( ( ~ S ) v ( ~ Q ) ) ) |- F",
+      "text": "THM ( ( ( ~ Q ) & ( ~ Q ) ) v ( ( ~ S ) v ( ~ Q ) ) ) , ( ~ ( ( ~ S ) v ( ~ Q ) ) ) SEQ F PRF N37 ( ( ( ~ Q ) & ( ~ Q ) ) v ( ( ~ S ) v ( ~ Q ) ) ) : PR ; N38 ( ~ ( ( ~ S ) v ( ~ Q ) ) ) : PR ; N39 | ( ( ~ Q ) & ( ~ Q ) ) : AS ; N40 | ( ~ Q ) : ANDE1 N39 ; N41 | ( ( ~ S ) v ( ~ Q ) ) : ORI2 N40 ; N42 | ( ( ~ S ) v ( ~ Q ) ) : AS ; N43 ( ( ~ S ) v ( ~ Q ) ) : ORE N37 N39 N41 N42 N42 ; N44 F : NEGE N43 N38 ; QED",
+      "n_lines": 8,
+      "discharge": true,
+      "rules": [
+        "ANDE2",
+        "IMPE",
+        "IMPI",
+        "NEGE",
+        "ORE",
+        "ORI2"
+      ]
+    },
+    {
+      "thm": "( Q & F ) , ( ~ ( ( R > Q ) > ( ( ~ F ) > ( ~ F ) ) ) ) |- Q",
+      "text": "THM ( Q & F ) , ( ~ ( ( R > Q ) > ( ( ~ F ) > ( ~ F ) ) ) ) SEQ Q PRF N12 ( Q & F ) : PR ; N13 ( ~ ( ( R > Q ) > ( ( ~ F ) > ( ~ F ) ) ) ) : PR ; N14 | ( R > Q ) : AS ; N15 | | ( ~ F ) : AS ; N16 | ( ( ~ F ) > ( ~ F ) ) : IMPI N15 N15 ; N17 ( ( R > Q ) > ( ( ~ F ) > ( ~ F ) ) ) : IMPI N14 N16 ; N18 F : NEGE N17 N13 ; N19 Q : BOTE N18 ; QED",
+      "n_lines": 8,
+      "discharge": true,
+      "rules": [
+        "BOTE",
+        "IMPE",
+        "IMPI",
+        "NEGE"
+      ]
+    },
+    {
+      "thm": "( ( S > ( F & Q ) ) v ( F & Q ) ) , ( S & R ) , S |- ( ( F & Q ) & ( S & R ) )",
+      "text": "THM ( ( S > ( F & Q ) ) v ( F & Q ) ) , ( S & R ) , S SEQ ( ( F & Q ) & ( S & R ) ) PRF N19 ( ( S > ( F & Q ) ) v ( F & Q ) ) : PR ; N20 ( S & R ) : PR ; N21 S : PR ; N22 | ( S > ( F & Q ) ) : AS ; N23 | ( F & Q ) : IMPE N22 N21 ; N24 | ( F & Q ) : AS ; N25 ( F & Q ) : ORE N19 N22 N23 N24 N24 ; N26 ( ( F & Q ) & ( S & R ) ) : ANDI N25 N20 ; QED",
+      "n_lines": 8,
+      "discharge": true,
+      "rules": [
+        "ANDI",
+        "IMPE",
+        "ORE"
+      ]
+    },
+    {
+      "thm": "( ( ( R > S ) > ( Q v Q ) ) v ( Q v Q ) ) , ( R > S ) , ( ~ ( Q v Q ) ) |- F",
+      "text": "THM ( ( ( R > S ) > ( Q v Q ) ) v ( Q v Q ) ) , ( R > S ) , ( ~ ( Q v Q ) ) SEQ F PRF N52 ( ( ( R > S ) > ( Q v Q ) ) v ( Q v Q ) ) : PR ; N53 ( R > S ) : PR ; N54 ( ~ ( Q v Q ) ) : PR ; N55 | ( ( R > S ) > ( Q v Q ) ) : AS ; N56 | ( Q v Q ) : IMPE N55 N53 ; N57 | ( Q v Q ) : AS ; N58 ( Q v Q ) : ORE N52 N55 N56 N57 N57 ; N59 F : NEGE N58 N54 ; QED",
+      "n_lines": 8,
+      "discharge": true,
+      "rules": [
+        "IMPE",
+        "NEGE",
+        "ORE"
+      ]
+    },
+    {
+      "thm": "( ( R & S ) > ( ~ R ) ) , ( R & S ) , ( S & S ) |- ( ( R v P ) v ( ( ( P v Q ) v ( ~ R ) ) & S ) )",
+      "text": "THM ( ( R & S ) > ( ~ R ) ) , ( R & S ) , ( S & S ) SEQ ( ( R v P ) v ( ( ( P v Q ) v ( ~ R ) ) & S ) ) PRF N5 ( ( R & S ) > ( ~ R ) ) : PR ; N6 ( R & S ) : PR ; N7 ( S & S ) : PR ; N8 ( ~ R ) : IMPE N5 N6 ; N9 ( ( P v Q ) v ( ~ R ) ) : ORI2 N8 ; N10 S : ANDE2 N7 ; N11 ( ( ( P v Q ) v ( ~ R ) ) & S ) : ANDI N9 N10 ; N12 ( ( R v P ) v ( ( ( P v Q ) v ( ~ R ) ) & S ) ) : ORI2 N11 ; QED",
+      "n_lines": 8,
+      "discharge": false,
+      "rules": [
+        "ANDE1",
+        "ANDI",
+        "IMPE",
+        "ORI2"
+      ]
+    }
+  ]
+}

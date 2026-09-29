@@ -1,0 +1,52 @@
+{
+  "name": "main_v1",
+  "candidate_gpus": [
+    3
+  ],
+  "command": [
+    "/data/users/dmitry/simplex-research/.venv/bin/python",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/run_pipeline.py",
+    "--config",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_pipeline_v1.json"
+  ],
+  "deadline_utc": "2026-09-11T04:34:00Z",
+  "timeout_seconds": 31000,
+  "queue_timeout_seconds": 180,
+  "input_sha256": {
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/evaluate_lm.py": "855b81a8dd1e8139b55dc6cb1ece49e34f44201ae5eb76613a6a8eca5393ebfb",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/learning.py": "5c1fcc7cd85fe2de25ec76f520e2d5519eb3c2b504dd78f20dec44570ba0b550",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/ppo_core.py": "83e0fed80eb0c04e97c95f5ee29615267c33abd120b82007bd37cd9ec5c4392f",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/main_v1/train_lm.py": "092ac4b749a64d13018ec650ce8c4cf5688bb2772f0a37419ae38ecf97f63733",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_data.py": "0b59406358e690970e373a73e151f10956ad6aeed8cbff7c020e3025ca3ace46",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_grpo.py": "c230d1e901e2902e0fabb72bcb81fde18cce97cf705110128d81fd7e9038eea4",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_metrics.py": "8a02b4aa560a18d1fda7d45071d24cac13f9eb7e85bd1bf42e5d41fcbfeb468d",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_model.py": "35d012802c87b8b9b71904f28e5ce9f3581a22418e6a2fe87e48cd6785769602",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/proof_diagnostics.py": "872579988d74449061997da62a894fe1cb450e1d9dd04eaa745080de062315d0",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/strict_verify.py": "73362291ec996114f609cd8650bd5fc664d1ceb88e6166d966ad334ae743a1c7",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_pipeline_v1.json": "249145a530bf9ffdb69edfa9f8fe30610acff90c3638b9d613672b67f9e8acfd",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_protocol_v1.json": "1a26bb215f0f1f4b48c0c7817f30534c14af7a579895c720c41cecd91cd08c7f",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_full_seed1_v1.json": "54dca8d67546febfecbf8930f3326969087054f4f19dfc3c589642a316ef77d1",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_reset_seed1_v1.json": "b7dd4b726eb2f852c8084c979a1bec5b4f2ae6b6d14b2a48fc2ea51bd6196dab",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_reset_seed1_v1.json": "cbe83a3b2edef61fc2b93db90a7ded281bbdee6fc3856187daa17c9e660c3e62",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_full_seed1_v1.json": "b6cfd6b0154fbf50e68c151a0dbd97684082b453c63cb3a583b68e6af8d2dc08",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_full_seed2_v1.json": "284ba810e42440c89995117c17cb85ab4f325cbbab2aad88df87c7f0d039b37a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_reset_seed2_v1.json": "e1b2d31c555cea325bf953527ef47455fffd95ccd540349dd7edf672df709224",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_ppo_reset_seed2_v1.json": "f0a86efb84cb441ffb79e53bb06aece41e7014dbe4e8b3c7b3d01b8241fc4550",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/main_relative_full_seed2_v1.json": "d7e1ff31975eb110229e40f3dc006beff039bd0e8ea97cdbf64c5168ad3416d6"
+  },
+  "expected_duration_seconds": 19500,
+  "expected_cloud_cost_usd": 0,
+  "success": "Eight fixed-compute training endpoints and sixteen development evaluations completed",
+  "recovery": "Resume unfinished run from laststepcheckpoint withidenticalprotocol; keep completedstageoutputs; newimmutablepipeline for remainingstages."
+}

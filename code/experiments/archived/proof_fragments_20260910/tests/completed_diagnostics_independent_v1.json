@@ -1,0 +1,58 @@
+{
+  "additional_fit_audit_projection_proxy": 201132229620480,
+  "audit_conditions": {
+    "chosen": {
+      "attempts": 6144,
+      "mixed_groups": 290,
+      "seed": 20260913,
+      "sources": 768,
+      "successes": 4951
+    },
+    "full": {
+      "attempts": 6144,
+      "mixed_groups": 210,
+      "seed": 21260916,
+      "sources": 768,
+      "successes": 4516
+    },
+    "latest": {
+      "attempts": 6144,
+      "mixed_groups": 111,
+      "seed": 22260919,
+      "sources": 768,
+      "successes": 5632
+    }
+  },
+  "avoid_double_counting": "Add only new_fit_proxy + new_audit_proxy + new_projected_proxy to already charged candidate diagnostics; reused subtotals are provenance receipts.",
+  "checkpoint_sha256": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+  "final_data_accessed": false,
+  "gpu_work": false,
+  "gradient_numeric_recomputed": false,
+  "new_audit_attempts": 18432,
+  "new_audit_proxy": 75548797624320,
+  "new_fit_attempts": 11680,
+  "new_fit_proxy": 74839690813440,
+  "new_projected_attempts": 0,
+  "new_projected_proxy": 50743741182720,
+  "no_policy_updates": true,
+  "producer_result_sha256": {
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/difficulty_audit_v1": "e0823f70b540e50203bfd2377d4307537cd0e5560fc4aa410bb1f61ac846cff7",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/difficulty_fit_v1": "343ac0fd7e09f18b7f61e53e4451caf4b3abc54eee0c8b8fa15831f45568bae3",
+    "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/projected_loo_v1": "c02bec62669ab2817bc1aae0e615de3fdc0810eb8ce8c4f40f5e33f3ea9c7b65"
+  },
+  "projected_draw_sets": {
+    "fresh_audit": {
+      "algebraic_zero_groups": 558,
+      "mixed_groups": 210,
+      "sources": 768
+    },
+    "original": {
+      "algebraic_zero_groups": 553,
+      "mixed_groups": 215,
+      "sources": 768
+    }
+  },
+  "source_sha256": "5c0cc6f9bdd5e2d468d8d2f93dd2cf71ff333bab0d3693b520fde09a35b4437f",
+  "status": "passed",
+  "weight_check_scope": "Completed projected executable asserts torch.equal against every initial parameter and clears gradients; this CPU audit checks immutable checkpoint/source/result hashes. Audit sampler has no optimizer or weight-mutating operation."
+}

@@ -1,0 +1,979 @@
+{
+  "deadline_utc": "2026-09-11T01:35:00Z",
+  "output": "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/jobs/length_challenge_audits_v2",
+  "preflight_correction": "Version 1 used an incompatible wait_for key and omitted watcher input hashes. It was never launched. Version 2 fixes orchestration only before any challenge outcomes.",
+  "tasks": [
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_initial_s4401_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_full_s4401_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_reset_s4401_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4401_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_bc_s4401_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_initial_s4402_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_full_s4402_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_reset_s4402_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4402_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_bc_s4402_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length33_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_uniform_length33_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_uniform_length33_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length33_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_initial_s4401_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_full_s4401_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_reset_s4401_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4401_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_bc_s4401_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_initial_s4402_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_full_s4402_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_reset_s4402_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4402_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_bc_s4402_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length65_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_uniform_length65_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_uniform_length65_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length65_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_initial_s4401_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_full_s4401_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_reset_s4401_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4401_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_bc_s4401_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4401_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_initial_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_initial_s4402_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_initial_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_full_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_full_s4402_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_full_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_reset_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_reset_s4402_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_reset_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_bc_s4402_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_bc_s4402_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_bc_s4402_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    },
+    {
+      "command": [
+        "/data/users/dmitry/simplex-research/.venv/bin/python",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py",
+        "--run",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length129_challenge_greedy_v1",
+        "--audit",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl",
+        "--evaluator-directory",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/minimal_general_v1",
+        "--output",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/reports/audit_minimal_uniform_length129_challenge_greedy_v1.json"
+      ],
+      "input_sha256": {
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/length_challenge_audits_v1.json": "62de633f6124195547a5414cfe21002cad026da77eaac63023170b311ace901e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_129.jsonl": "235264374b9bb0e2e95abe66c7e0bfc065a1e31b674509dd688f19719a0f1104",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_33.jsonl": "be5abe180f1d22f982b9b04d2440f8045e363ecb45ad886ae36fc3095fb60c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/audit/lines_65.jsonl": "2e272f624c5e3148a1518d68103e9619f6d483e8d6f27f81c022f5bf2ceb9f84",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_129.jsonl": "99ff3c4a20aee0f69384dd3196b8937ca095bc2d5d83f411e97dc80c8b362eae",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_33.jsonl": "2739424b72377db49582876c288e09838c07012747d2f6c15adc3b90ca7cf7be",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/length_challenge_v1/lines_65.jsonl": "468a84f8e1be14064f671c4e7a9529b8e4e18834605bb17c000e7b16d6a35f8b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/analyze_symbolic.py": "7dec8f310246a76e905c3dafe0e6c65e0b6737d3553638bec88fa9df95271b7e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_data.py": "30b74f9bfbe57540b00f231d40e331592029c21549b9e33fec1b0f81b9622eaf",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/prepare_length_challenge.py": "9397a58bc4d5550691b7951fd9c8202d3375153f63bf40449ba3196eb7b72c9b",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/run_bounded_cpu.py": "e09b99689b37a6438159bb87ecdc1379a3c6654b191ceead0189ecc0a6ec406e",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/structured_generate.py": "6d9b156146cc9f0f344fb659ca0fef1b4ea7d82ee96c675b4f93896dcb0dc072",
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/length_challenge_v1/symbolic_general_env.py": "44a23e0d57d9dcbdb558c270600c5fd8c3222af7ee286180d571bf551baef8a1"
+      },
+      "name": "audit_minimal_uniform_length129_challenge_greedy_v1",
+      "ready_paths": [
+        "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/results/minimal_uniform_length129_challenge_greedy_v1/symbolic_general_eval_summary.json"
+      ],
+      "timeout_seconds": 600
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "cpu_only": true,
+  "production_release_executed": false,
+  "tests_passed": 8,
+  "elapsed_seconds": 0.095,
+  "source_sha256": {
+    "release_populations.py": "e5181b7162109baadd59ca77221a8e02e57af1ca8c9e3cc195cbee6c1d801803",
+    "make_bank.py": "bd73b768b7c4748e26f97c1faab22dcc96e4cb385fdb59527479ad9cc4f9f588",
+    "test_population_release_and_banks.py": "e47edfcb2e7f9f2387a896f7341d57b8657e9415ac57d4c6782657d4126740da"
+  }
+}

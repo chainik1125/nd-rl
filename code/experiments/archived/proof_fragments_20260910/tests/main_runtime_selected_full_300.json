@@ -1,0 +1,67 @@
+{
+  "active_advantage_tokens": 108561,
+  "checks": [
+    "frozen code/dependency/input hashes",
+    "actual cap6 certificates and source provenance",
+    "exact seeded source/reset/retention schedule",
+    "every saved state and strict reward",
+    "sourcewise LOO advantages and mixed groups",
+    "all action/context/padding masks",
+    "curriculum counters and threshold moves",
+    "unclipped fixed response budget",
+    "dense generation/audit/backward/retention proxy per update"
+  ],
+  "curriculum_moves": 0,
+  "cut_histogram": {
+    "0": 1200
+  },
+  "directory": "/data/users/dmitry/nd-rl/proof-fragments-20260910-1800/results/rl_selected_full_seed1_v1",
+  "distinct_sampled_sources": 192,
+  "elapsed_seconds": 2.586333567276597,
+  "families": {
+    "IMPI_flat": 64,
+    "NEGE": 64,
+    "NEGI": 64
+  },
+  "generated_tokens": 628164,
+  "input_sha256": {
+    "checkpoint": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "data": "2d7bcc9fbb3208d2a5bc65d390d74193dfd5b1e82e9efe10de42d3fbddbe4b29",
+    "retention": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e"
+  },
+  "limitation": "Per-update policies were not saved, so teacher probabilities are bounded by the saved runtime audits; this read-only audit does not recompute changing-policy logits.",
+  "log_prefix_sha256": {
+    "groups": "88a3049bc2ed8e2a6d23724821d5e6b884030b19b58990e618a15e4691a5bd5a",
+    "rollouts": "8ce42ab4e9dfc815fa0377d86ecfb3c672da9398d0a186838bd5f0011d0719d1",
+    "updates": "92481f2afaf5990c78496b18c989ccf7165336dfc4be7caf4d63fa2f77dedc9f"
+  },
+  "manifest_sha256": "22ad16999dc83f8c1fb55a5c1cf1ceba5c94f40988b68254e1d9421e7be1ae12",
+  "max_logged_behavior_teacher_error": 4.7206878662109375e-05,
+  "mixed_groups": 191,
+  "n_groups": 1200,
+  "n_rollouts": 9600,
+  "n_sources": 192,
+  "outcome_success_count_histogram": {
+    "0": 115,
+    "1": 20,
+    "2": 16,
+    "3": 9,
+    "4": 9,
+    "5": 19,
+    "6": 30,
+    "7": 88,
+    "8": 894
+  },
+  "phase_flop_proxy": {
+    "behavior_audit": 19281659289600,
+    "generation": 21694629765120,
+    "rl_retention": 37552902635520,
+    "rl_training": 57844977868800
+  },
+  "retention_examples": 4800,
+  "retention_schedule_sha256": "57da837520066af827fa80d861b6bafcb069d83113aabf2377bf3d6ac08c8594",
+  "source_selection_schedule_sha256": "af904048210bed0db10b0128848c0a843b8885a3c71ca08eb42a71a67f2763d0",
+  "status": "passed",
+  "steps_audited": 300,
+  "total_flop_proxy": 136374169559040
+}

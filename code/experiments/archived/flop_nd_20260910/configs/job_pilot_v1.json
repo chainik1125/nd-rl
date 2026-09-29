@@ -1,0 +1,47 @@
+{
+  "name": "pilot_v1",
+  "candidate_gpus": [
+    3
+  ],
+  "command": [
+    "/data/users/dmitry/simplex-research/.venv/bin/python",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/run_pipeline.py",
+    "--config",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_pipeline_v1.json"
+  ],
+  "deadline_utc": "2026-09-10T21:00:00Z",
+  "timeout_seconds": 4200,
+  "queue_timeout_seconds": 180,
+  "input_sha256": {
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/common.py": "0f57f8386426db609c4bfa0ef78f9ea82496e0e2b8170ba3b2b13505b528f95a",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/evaluate_lm.py": "855b81a8dd1e8139b55dc6cb1ece49e34f44201ae5eb76613a6a8eca5393ebfb",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/learning.py": "5c1fcc7cd85fe2de25ec76f520e2d5519eb3c2b504dd78f20dec44570ba0b550",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/nd_environment.py": "5034269b5163f27253e738979273221ded50b794d57bdea37d384f99640d3ac3",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/ppo_core.py": "83e0fed80eb0c04e97c95f5ee29615267c33abd120b82007bd37cd9ec5c4392f",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/run_pipeline.py": "d2b6ba8c13be8a4f28535c3503a3ca32233196dcf8482e4b9ab739591613dd3d",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/snapshots/pilot_v1/train_lm.py": "092ac4b749a64d13018ec650ce8c4cf5688bb2772f0a37419ae38ecf97f63733",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_data.py": "0b59406358e690970e373a73e151f10956ad6aeed8cbff7c020e3025ca3ace46",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_grpo.py": "c230d1e901e2902e0fabb72bcb81fde18cce97cf705110128d81fd7e9038eea4",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_metrics.py": "8a02b4aa560a18d1fda7d45071d24cac13f9eb7e85bd1bf42e5d41fcbfeb468d",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_model.py": "35d012802c87b8b9b71904f28e5ce9f3581a22418e6a2fe87e48cd6785769602",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/proof_diagnostics.py": "872579988d74449061997da62a894fe1cb450e1d9dd04eaa745080de062315d0",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/vendor/strict_verify.py": "73362291ec996114f609cd8650bd5fc664d1ceb88e6166d966ad334ae743a1c7",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/models/adapt_final.pt": "e6a96582c63fbe0a3e914429a168cdbd0a7fb1b9833ed236980f53e316cf91c9",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/sources.jsonl": "7f40dea5a63228885ae31e08b7fa496cf4ee6fb21e1847836bbee286d24a1e3c",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/retention.jsonl": "17003fd546dc6b6699910ec55199cf70a4133d5fdaad868d70f9745b39a5742e",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/targets.jsonl": "617bcea618f39f0dd15b13bc8914cf26a4ab761e8bba798336d8cb9b0fa787c0",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/development.jsonl": "38272e32855c04d3d8f2ee2c6ff7f65908e020c062581c8d56350c85f9eb82d4",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/data/v1/audit/development.jsonl": "e84e60c63e7e279942b1b451fe534c58c9727045423057b513a2f2c22485f5ff",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_pipeline_v1.json": "9e05397458b866fd000de1fe0cb8ac754a50cf09c61f078dda01e90a7833a4b1",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_relative_full_v1.json": "7f853d3bee12092079d2a02bc5308d8ca0a08715bfebd585350610586096df56",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_ppo_reset_v1.json": "02a1e5941d06d0190072f43892e0f390138abb416a13f2e98503a06c8356e76f",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_relative_reset_v1.json": "c107fb60601b860f6c5061026de71ee3b09e6149488b149819a811723fc6b397",
+    "/data/users/dmitry/nd-rl/flop-nd-20260910-1934/configs/pilot_ppo_full_v1.json": "d0052adc6872cccc5cfbaa68da564dd9423cdeeca60fe3067b9c774b12ae1324"
+  },
+  "expected_duration_seconds": 1800,
+  "expected_cloud_cost_usd": 0,
+  "success": "All pipeline stages completed and result files saved",
+  "recovery": "Retain stage results; resume only an incomplete stage under a new frozen job config."
+}
