@@ -1,0 +1,4 @@
+plain --run combo-c005_s2 --pool holdout --method plain --k 64
+guided --run combo-c005_s2 --pool holdout --method guided --k 64 --cap 32
+guided_kv --run combo-c005_s2 --pool holdout --method guided_kv --k 64 --cap 10
+bfs_a05 --run combo-c005_s2 --pool holdout --method bfs --E 8 --alpha 0.5 --budget 16000

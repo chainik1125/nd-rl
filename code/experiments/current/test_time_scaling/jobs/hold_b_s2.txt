@@ -1,0 +1,11 @@
+beam1x4 --run combo-c005_s2 --pool holdout --method beam --B 1 --E 4
+beam2x4 --run combo-c005_s2 --pool holdout --method beam --B 2 --E 4
+beam4x4 --run combo-c005_s2 --pool holdout --method beam --B 4 --E 4
+beam8x4 --run combo-c005_s2 --pool holdout --method beam --B 8 --E 4
+beam16x4 --run combo-c005_s2 --pool holdout --method beam --B 16 --E 4
+smc2 --run combo-c005_s2 --pool holdout --method smc --N 2
+smc4 --run combo-c005_s2 --pool holdout --method smc --N 4
+smc8 --run combo-c005_s2 --pool holdout --method smc --N 8
+smc16 --run combo-c005_s2 --pool holdout --method smc --N 16
+smc32 --run combo-c005_s2 --pool holdout --method smc --N 32
+smc64 --run combo-c005_s2 --pool holdout --method smc --N 64

@@ -1,0 +1,7 @@
+plain_dev --run combo-c005_s0 --pool dev --method plain --k 64
+guided_dev300 --run combo-c005_s0 --pool dev --limit 300 --method guided --k 64 --cap 32
+beam4x4_dev300 --run combo-c005_s0 --pool dev --limit 300 --method beam --B 4 --E 4
+smc16_dev300 --run combo-c005_s0 --pool dev --limit 300 --method smc --N 16
+bfs_a0_dev300 --run combo-c005_s0 --pool dev --limit 300 --method bfs --E 8 --alpha 0 --budget 16000
+bfs_a05_dev300 --run combo-c005_s0 --pool dev --limit 300 --method bfs --E 8 --alpha 0.5 --budget 16000
+bfs_a1_dev300 --run combo-c005_s0 --pool dev --limit 300 --method bfs --E 8 --alpha 1 --budget 16000
