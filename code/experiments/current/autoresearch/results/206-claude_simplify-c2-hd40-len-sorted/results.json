@@ -1,0 +1,71 @@
+{
+  "commit": "8d2a3ea",
+  "recorded_at": "2026-09-29T04:03:44+0100",
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "2aa52f23e7ec",
+  "pretrain_sha": "6970072755fc",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 2425,
+  "reason": "seeds [0, 1] not ok: ['timeout', 'timeout']",
+  "pretrain": {
+    "secs": null,
+    "n_params": null,
+    "steps": null,
+    "epochs": null,
+    "last_loss": null,
+    "heldout_greedy": null,
+    "curve": null
+  },
+  "rl_rounds": [],
+  "eval": {
+    "solved": null,
+    "n": null,
+    "ge": null,
+    "lstar": null,
+    "heldout_greedy": null,
+    "max_pruned": null,
+    "by_bin": null
+  },
+  "holdout_metric": null,
+  "surprise": "Throughput fixed (4.3k pretrain steps, 134-218 samples/s vs 202's 55-94) but s0/s1 still timed out by 5-25 s in eval; s2 scored 445 (-35% vs 681). Length-sorted batches weakened pretraining (held-out greedy 0.88-0.94 vs C 0.95; RL r1 187-205 solved vs A 326). Fork-GPT sampling remains ~1.5-2x slower than ALiBi models.",
+  "seed_metrics": {
+    "2": 445
+  },
+  "seed_metric_rl": {
+    "2": 814
+  },
+  "seed_status": {
+    "0": "timeout",
+    "1": "timeout",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "2": {
+      "val_loss": 0.08382809069007635,
+      "heldout_greedy": 0.9385,
+      "steps": 4380
+    }
+  },
+  "lean_gate": {
+    "samples": 266912,
+    "parse_fail": 84497,
+    "distinct_checked": 148782,
+    "both_ok": 51069,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 12,
+    "lean_wall_s": 338.73467540740967
+  },
+  "migrated": false
+}
