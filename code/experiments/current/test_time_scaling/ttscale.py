@@ -64,9 +64,13 @@ def load(run, ckpt_dir):
     return model.to(harness.DEV).eval(), tok, ckpt["seed"]
 
 
-def pool(name, limit):
+def pool(name, limit, names):
     transfer = harness.read(f"{harness.FORK}/data/ladder/transfer.jsonl")
     recs = (harness.holdout_split if name == "holdout" else harness.dev_split)(transfer)
+    if names:  # a comma-separated list of theorem names, e.g. the ones every method missed
+        keep = set(names.split(","))
+        recs = [r for r in recs if r["name"] in keep]
+        assert len(recs) == len(keep), "a name is not in this pool"
     if limit:  # a fixed subset, by a hash independent of the split's
         recs = sorted(recs, key=lambda r: hashlib.sha1(f"tts:{r['key']}".encode()).hexdigest())
         recs = recs[:limit]
@@ -109,22 +113,31 @@ def run_guided(model, tok, recs, a, gen, stats, gate):
     [cause, sampled tokens so far, repeat of an earlier rejected segment at this prefix],
     accepted segments, end ("done", "cap" or "max_new")].
     Outcomes under any smaller cap c follow (in distribution): a sample with more than c
-    rejections would have been abandoned at its (c+1)-th, after that rejection's tokens."""
+    rejections would have been abandoned at its (c+1)-th, after that rejection's tokens.
+    With --swor a redraw never repeats a segment already rejected at the same prefix: it samples
+    the model's distribution with those segments removed (engine._swor_shift). Segments that hit
+    the length cap without ending are not forbidden (they never ended, so there is no segment)."""
     rows = [
         {"t": i, "node": Node.root(r["prompt"]), "tok": 0, "rej": [], "bad": set(), "end": None}
         for i, r in enumerate(recs)
         for _ in range(a.k)
     ]
+    for w in rows:
+        w["forbid"] = collections.defaultdict(list)  # prefix length -> [(ids, tempered logprobs)]
     pids = [tok.encode_prompt(r["prompt"]) for r in recs]
     live = rows
     while live:
         items = [
-            (pids[w["t"]] + w["node"].gen, min(SEG_MAX, harness.MAX_NEW - len(w["node"].gen)))
+            (
+                pids[w["t"]] + w["node"].gen,
+                min(SEG_MAX, harness.MAX_NEW - len(w["node"].gen)),
+                w["forbid"][len(w["node"].gen)] if a.swor else (),
+            )
             for w in live
         ]
         segs = sample_segments(model, tok, items, harness.TEMP, gen, a.batch, stats)
         t0 = time.time()
-        for w, (seg, end, lp) in zip(live, segs, strict=True):
+        for w, (seg, end, lp, lq) in zip(live, segs, strict=True):
             w["tok"] += len(seg)
             verdict, child = check(w["node"], seg, end, lp, tok.itos)
             if verdict == "ok":
@@ -135,6 +148,8 @@ def run_guided(model, tok, recs, a, gen, stats, gate):
                 bad = (len(w["node"].gen), tuple(seg))
                 w["rej"].append([verdict, w["tok"], int(bad in w["bad"])])
                 w["bad"].add(bad)
+                if end != "len":
+                    w["forbid"][len(w["node"].gen)].append((seg, lq))
                 if len(w["rej"]) > a.cap:
                     w["end"] = "cap"
             if w["end"] is None and len(w["node"].gen) >= harness.MAX_NEW:
@@ -182,7 +197,7 @@ def _expand(model, tok, recs, pids, jobs, gen, a, stats):
     t0 = time.time()
     res = [
         (*check(n, seg, end, lp, tok.itos), len(seg))
-        for (_, n), (seg, end, lp) in zip(jobs, segs, strict=True)
+        for (_, n), (seg, end, lp, _) in zip(jobs, segs, strict=True)
     ]
     stats["check_secs"] += time.time() - t0
     return res
@@ -318,9 +333,11 @@ def main():
     ap.add_argument("--ckpt-dir")
     ap.add_argument("--pool", choices=["holdout", "dev"], default="holdout")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--names", help="comma-separated theorem names: score only these")
     ap.add_argument("--method", choices=list(METHODS), required=True)
     ap.add_argument("--k", type=int, default=64)
     ap.add_argument("--cap", type=int, default=32)
+    ap.add_argument("--swor", action="store_true", help="guided: never redraw a rejected segment")
     ap.add_argument("--B", type=int, default=4)
     ap.add_argument("--E", type=int, default=4)
     ap.add_argument("--N", type=int, default=16)
@@ -333,7 +350,7 @@ def main():
     t0 = time.time()
     model, tok, seed = load(a.run, a.ckpt_dir)
     a.sample_seed = seed * 1000 + 777 if a.sample_seed is None else a.sample_seed
-    recs = pool(a.pool, a.limit)
+    recs = pool(a.pool, a.limit, a.names)
     gen = torch.Generator(device=harness.DEV)
     gen.manual_seed(a.sample_seed)
     stats = collections.Counter()

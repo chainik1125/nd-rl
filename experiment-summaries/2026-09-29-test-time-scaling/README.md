@@ -9,7 +9,7 @@ Status: done. The holdout was scored once per configuration, on 3 seeds.
 
 - **Working folder:** code, plan and job lists are in
   [test_time_scaling](../../code/experiments/current/test_time_scaling/test_time_scaling_initial_plan.md),
-  branch `test-time-scaling` in checkout `nd-rl-8`.
+  branch `robbie-experiments` (developed in checkout `nd-rl-8`).
 - **Raw results:** `artifacts/test_time_scaling/hold_{a,b}_s{0,1,2}/`, which are not committed.
 - **Chart data:** [charts/scaling.csv](charts/scaling.csv).
 
@@ -147,14 +147,71 @@ same run.
      its 16k budget.
    - Log-prob is a bad ranking signal for this policy, consistent with the literature on
      log-prob-guided search without a value function.
-4. **All curves flatten.** Plain gains 2.3 points from k = 32 to 64, resample 1.3. About 168
-   theorems per seed stay unsolved by every method. These curves are not steep enough to predict
+4. **All curves flatten.** Plain gains 2.3 points from k = 32 to 64, resample 1.3. 137-147
+   theorems per seed (about 12%) stay unsolved by every method. These curves are not steep enough to predict
    the unsolved set will fall to more compute.
 
 Interpretation, not tested: most plain-sampling failures are *local* errors, a wrong citation or
 rule on one line, not dead-end proof plans. A cheap line check fixes those. What remains looks like
 theorems where the policy has no working plan, which is where a value function or training (expert
 iteration on the failures) would be needed.
+
+## Follow-up A: resample without repeats
+
+Robbie (2026-09-29) asked whether the model could be stopped from redrawing a line it was just
+rejected for. This is sampling without replacement over segments (UniqueRandomizer, Shi et al.
+2020), in `engine._swor_shift`:
+
+- Every rejected segment is stored with its per-token probabilities.
+- On a redraw at the same prefix, each next token's probability is multiplied by the share of its
+  mass not already spent on rejected segments.
+- A token that would complete a rejected segment gets probability 0.
+- Each redraw is therefore an exact sample from the model with the rejected lines removed.
+
+It runs as `ttscale.py --method guided --swor`, on the same holdout and seeds, at cap 32 (read at
+every smaller cap).
+
+| cap | resample pass@1 / @64 | SWOR pass@1 / @64 | long @64 (resample → SWOR) | tokens / theorem @64 |
+| --- | --- | --- | --- | --- |
+| 2 | 49.5 / 83.6 | 51.0 / 84.3 | 48.3 → 48.7 | 15.2k → 15.5k |
+| 4 | 54.0 / 84.5 | 56.1 / 85.6 | 51.0 → 53.3 | 17.4k → 17.9k |
+| 10 | 57.4 / 85.6 | 59.7 / 86.5 | 54.3 → 56.7 | 21.5k → 22.6k |
+| 32 | 59.6 / 86.5 | 61.5 / 87.3 | 56.7 → 57.3 | 31.1k → 34.1k |
+
+- **The gain is about +2 points at pass@1 and +1 at pass@64, for about 5% more tokens.**
+  - It holds on every seed at cap 10: pass@64 +1.5, +0.3, +1.0.
+  - SWOR at cap 10 matches plain resampling at cap 32 while using 73% of the tokens.
+- **Repeats fall from 52% of rejections to 2.5%.** All the remaining repeats are segments that hit
+  the 400-token cap without ending, which are not forbidden by design.
+- **The rejection mix shifts.** Once the confident wrong line is banned, the next draw is more
+  often ungrammatical: grammar failures go from 31% to 48% of rejections (seed 2). Length-capped
+  runaways rise from about 1% to 2.3%. Those come from samples that have exhausted their plausible
+  lines, and they carry most of the extra token cost.
+
+## Follow-up B: k = 1,024 on the theorems nothing solved
+
+The theorems no method solved at k = 64 (any cap, any N or B, best-first) were rerun at 16× the
+samples. Both runs use `--names`, on each seed's own set.
+
+| seed | stubborn theorems (> 10 lines) | plain k = 1,024 | resample (cap 10, `guided_kv`) k = 1,024 |
+| --- | --- | --- | --- |
+| 0 | 137 (47) | 1 | 12 |
+| 1 | 143 (57) | 3 | 17 |
+| 2 | 147 (60) | 3 | 11 |
+
+- About 90% stay unsolved at 1,024 resampled attempts, so their success probability is below
+  roughly 0.3% (the 95% upper bound for 0 of 1,024).
+- The ones that fall are rare hits: 1-8 successes of 1,024 (one theorem had 15). Most are 9-10
+  lines, not the longest.
+- Plain sampling barely touches the set (7 theorems across the three seeds).
+- **Interpretation, not tested:** for these ~140 theorems per seed, this policy puts almost no
+  probability on any proof. More samples or a better search over the same policy will move them
+  slowly at best. This favours changing the weights (test-time expert iteration) over a learned
+  value function as the next step for the stubborn set. A value function could still make the
+  solvable part cheaper.
+
+Cost of both follow-ups: about $2.20 (six pods, 33-58 min each). Total for the experiment: about
+$7.90.
 
 ## Limitations and next step
 
@@ -167,10 +224,10 @@ iteration on the failures) would be needed.
 - **Engine wall-clock overstates search cost.** No KV cache is kept across tree nodes. Sampled
   tokens is the fair axis there.
 - **Next, cheapest first:**
-  1. Resample *without replacement*: forbid a segment already rejected at the same prefix. Half of
-     all rejections are repeats.
+  1. ~~Resample without replacement~~: done (follow-up A), +1 point at pass@64.
   2. Temperature sweep for resample. The RL sampler used T 1.0; the eval uses 0.8.
   3. Use `guided_kv` as the harness eval sampler, a protocol decision for Robbie. It would change
      how every pretraining ablation scores.
-  4. The fancier options from the lit review: a learned value for SMC/MCTS, and test-time expert
-     iteration on the unsolved ~168.
+  4. Test-time expert iteration on the ~142 unsolved theorems. Follow-up B says more sampling will
+     not reach them.
+  5. A learned value for SMC or MCTS, which would make the solvable part cheaper.
