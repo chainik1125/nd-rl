@@ -44,8 +44,9 @@ def run_batch(st, name, batch, procs, log, t0):
     """Score `batch` on the pod, pull the JSON; returns the jobs that produced no result."""
     tag = f"{name}.{int(time.time())}"
     (OUT / f"{tag}.jobs").write_text("".join(f"{run} {pool}\n" for run, pool in batch))
-    scp = ["scp", "-q", "-P", str(st["port"]), *pod.ssh_args(st)[2:-1]]
-    files = [HERE / "score_holdout.py", HERE / "score_holdout.sh", OUT / f"{tag}.jobs"]
+    scp = ["scp", "-qr", "-P", str(st["port"]), *pod.ssh_args(st)[2:-1]]
+    files = [HERE / f for f in ("score_holdout.py", "score_holdout.sh", "textbook72")]
+    files.append(OUT / f"{tag}.jobs")
     subprocess.run([*scp, *map(str, files), f"root@{st['ip']}:{pod.REMOTE}/"], check=True)
     remote_out = f"{pod.REMOTE}/holdout"
     # Detached so an ssh drop cannot kill it; poll for the exit-code file.

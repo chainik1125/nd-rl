@@ -18,4 +18,4 @@ while read -r run pool; do
   [ -f "$OUT/$run.$pool.json" ] || $PY score_holdout.py "$run" --pool "$pool" \
     --out "$OUT/$run.$pool.json" > "$OUT/$run.$pool.log" 2>&1 < /dev/null || echo "FAILED $run $pool"
 done < "$JOBS"
-grep -h "ge7" "$OUT"/*.log
+grep -h " solved " "$OUT"/*.log
