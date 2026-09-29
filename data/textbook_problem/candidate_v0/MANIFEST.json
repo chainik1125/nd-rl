@@ -1,0 +1,29 @@
+{
+ "version": "candidate_v0",
+ "date": "2026-09-28",
+ "files": {
+  "problems.jsonl": {
+   "sha256": "a6cc70ad51d670170fecfc1aa3d901e2edc69066cd0492c42aef2451a02f0997",
+   "lines": 105
+  },
+  "exclusions.jsonl": {
+   "sha256": "efb0c543754a238cf2da52be19b9510298b23fa4d659702c3f81e423886eb157",
+   "lines": 58
+  },
+  "transcribe_summary.json": {
+   "sha256": "e8fa65be0ddbfbcb29bceadd00949447b434007232086349d8e4f0157c2be43c",
+   "lines": 157
+  },
+  "proof_summary.json": {
+   "sha256": "fce0669d1ea829b5e8d768ba974622700804b5dab4a54b1fae2cf0149277182e",
+   "lines": 52
+  }
+ },
+ "code": {
+  "code/textbook_problem/transcribe.py": "12607311bbef324e60e9780106573b11fdcb3a8994a7db0efd4711ae4490329e",
+  "code/textbook_problem/prove.py": "f8e9805bb209d2053e9a6586816b9ed547409cddc7900adf18999ef65bccf3e9",
+  "code/textbook_problem/logic.py": "ea9741f673dbd57374ceb82bc9c9ae84286cd67d35d9345cfad0b9268ce6239c"
+ },
+ "code_state": "uncommitted on charles/main at the time of freezing",
+ "amended": "2026-09-28: one hand-written proof added (see README)"
+}

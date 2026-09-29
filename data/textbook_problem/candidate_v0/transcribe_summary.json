@@ -1,0 +1,157 @@
+{
+ "date": "2026-09-28",
+ "n_candidates_written": 105,
+ "n_transcribed_before_audit": 251,
+ "candidates_by_source": {
+  "forallx-calgary": 26,
+  "forallx-syracuse": 40,
+  "forallx-msu": 16,
+  "carnap-book": 23
+ },
+ "candidates_by_form": {
+  "sequent": 92,
+  "theorem": 13
+ },
+ "candidates_by_atoms": {
+  "1": 6,
+  "2": 35,
+  "3": 43,
+  "4": 21
+ },
+ "classical_only": 18,
+ "over_prompt_token_cap": 0,
+ "transcribed_by_source": {
+  "forallx-calgary": 66,
+  "forallx-syracuse": 109,
+  "forallx-msu": 31,
+  "carnap-book": 45
+ },
+ "audit": {
+  "duplicate within the set (kept the first by source priority)": 77,
+  "sealed: test_files (dropped, not recorded)": 12,
+  "sealed: textbook72 (dropped, not recorded)": 28,
+  "overlap with validation_36": 10,
+  "overlap with train": 17,
+  "overlap with heldout": 2,
+  "overlap with rl_targets": 1
+ },
+ "audit_by_source": {
+  "forallx-calgary": {
+   "sealed": 24,
+   "kept": 26,
+   "pool overlap": 12
+  },
+  "forallx-syracuse": {
+   "kept": 40,
+   "sealed": 13,
+   "pool overlap": 7
+  },
+  "forallx-msu": {
+   "kept": 16,
+   "pool overlap": 1
+  },
+  "carnap-book": {
+   "kept": 23,
+   "pool overlap": 9,
+   "sealed": 3
+  }
+ },
+ "audit_sets": {
+  "sealed": {
+   "textbook72": 72,
+   "test_files": 799
+  },
+  "validation_36": 36,
+  "heldout": 5000,
+  "transfer": 2285,
+  "rl_targets": 4495,
+  "train": 154990
+ },
+ "audit_method": "renaming class by canonical_theorem (renaming + premise order) or canon_key (renaming by first appearance); either match counts",
+ "exclusions_by_reason": {
+  "5 atoms (the tokenizer has 4)": 10,
+  "not transcribed": 14,
+  "invalid (the exercise asks to prove only the valid ones)": 3,
+  "6 atoms (the tokenizer has 4)": 1,
+  "7 atoms (the tokenizer has 4)": 1,
+  "renaming of an item in validation_36": 10,
+  "renaming of an item in train": 16,
+  "renaming of an item in heldout, train": 1,
+  "renaming of an item in heldout": 1,
+  "renaming of an item in rl_targets": 1
+ },
+ "skipped_parts": [
+  {
+   "source": "forallx-calgary",
+   "lines": "718-742",
+   "reason": "explain the mistakes in two incorrect proofs"
+  },
+  {
+   "source": "forallx-calgary",
+   "lines": "743-783",
+   "reason": "add citations to given proofs"
+  },
+  {
+   "source": "forallx-calgary",
+   "lines": "1232-1234",
+   "reason": "formulate strategies (no formula)"
+  },
+  {
+   "source": "forallx-calgary",
+   "lines": "1414-1462",
+   "reason": "add citations to given proofs"
+  },
+  {
+   "source": "forallx-calgary",
+   "lines": "1599-1606",
+   "reason": "conceptual questions"
+  },
+  {
+   "source": "forallx-calgary",
+   "lines": "1782-1813",
+   "reason": "proof schemes with metavariables, or conceptual"
+  },
+  {
+   "source": "forallx-syracuse",
+   "lines": "672-708",
+   "reason": "proofs in a modified rule system (DNE, or EX+LEM)"
+  },
+  {
+   "source": "forallx-syracuse",
+   "lines": "869-908",
+   "reason": "add citations to given proofs"
+  },
+  {
+   "source": "forallx-syracuse",
+   "lines": "1082-1128",
+   "reason": "add citations to given proofs"
+  },
+  {
+   "source": "forallx-syracuse",
+   "lines": "1147-1148",
+   "reason": "proof templates with metavariables"
+  },
+  {
+   "source": "forallx-msu",
+   "lines": "part4a 1288-1799, 1823-1972, 1993-",
+   "reason": "answer sections"
+  },
+  {
+   "source": "carnap-book",
+   "lines": "ch. 9-12",
+   "reason": "symbolization, truth tables, first-order logic"
+  }
+ ],
+ "raw_sha256": {
+  "forallx-msu/forallx-msu-part4a--proof_tfl.tex": "7b5d48e878805e072e67b9ba359c77dac927e155fa7e2264c9c6e82d37ab92db",
+  "forallx-msu/forallx-msu-part4b-sound_complete.tex": "b7356ff3e6a53ea0bb96045105134897af30c9d6c06abe1d395ebe6b405f2635",
+  "forallx-syracuse/forallx-04-tfl-prf.tex": "099f2b5ee2f7db3e1624bfc83bd87da12ceb933887dcc8431a7257bec1275679",
+  "forallx-calgary/forallx-yyc-prooftfl.tex": "6b2d805ff3e5d126ad97e3df717cb0ad061e003d0509915149a6bd19f6f20730",
+  "carnap-book/book-3.html": "05f5615126cf5dc50e2e6627d48be056fa085fb245f0a470e3610f58d6b80714",
+  "carnap-book/book-4.html": "d975dd34d371025e4d05b63bf3ef760a6923ff0827bea4ef12a0ed3b831b891a",
+  "carnap-book/book-5.html": "139f5546755b9e1a8c1278f9082fc87ca8e9933a4bfe93866fd2778824d949f9",
+  "carnap-book/book-6.html": "e699dd488199941da27f78e329bea3f40ca9d0187dfaf5c6df99df38f4d7ee58",
+  "carnap-book/book-7.html": "a67f0337f6132debdf364b979d3934845bc48dd95cf4de3d6db1c583b8e7dc4e",
+  "carnap-book/book-8.html": "55a64e56ce1c89fcefc783fc5487a7aec24e205a1edabc57527ad917c771715d"
+ }
+}

@@ -1,0 +1,52 @@
+{
+ "n": 105,
+ "with_proof": 105,
+ "no_proof": [],
+ "methods": {
+  "whole search": 100,
+  "conjunct split": 2,
+  "whole search, 1800 s": 1,
+  "hand-written by Claude": 1,
+  "identity": 1
+ },
+ "length_bin": {
+  "5-6": 15,
+  "7-8": 34,
+  "13-15": 14,
+  "11-12": 21,
+  "9-10": 10,
+  "16+": 7,
+  "3-4": 3,
+  "1-2": 1
+ },
+ "family": {
+  "negation": 24,
+  "conditional": 22,
+  "case-split": 17,
+  "classical": 15,
+  "case-split-derived": 12,
+  "direct": 15
+ },
+ "tags": {
+  "negation": 24,
+  "conditional": 22,
+  "biconditional": 11,
+  "case-split": 17,
+  "classical": 18,
+  "case-split-derived": 12,
+  "refutation": 22,
+  "nested": 12,
+  "direct": 15
+ },
+ "ref_lines_ge7": 86,
+ "requires_derived_ore": 12,
+ "schema_in_rl_pool": 4,
+ "wall_secs": 2720.3,
+ "settings": {
+  "bound": 40,
+  "secs": 300,
+  "long_secs": 1800,
+  "procs": 8
+ },
+ "amended": "2026-09-28: hand-written proof for textbook_e95c1b499aa32da3b5d3, shortened to 20 lines (minimum in minlen's space)"
+}

@@ -1,0 +1,39 @@
+{
+ "items_parsed": 17148,
+ "counts": {
+  "hits (occurrences)": 142,
+  "distinct classes": 17,
+  "overlap: validation_36": 9,
+  "usable (no overlap)": 3,
+  "overlap: transfer": 1,
+  "overlap: train": 4
+ },
+ "usable_by_law": {
+  "constructive_dilemma": 0,
+  "contraposition": 1,
+  "contraposition_conv": 0,
+  "dist_and_over_or_conv": 0,
+  "excluded_middle": 0,
+  "explosion": 2,
+  "export": 0,
+  "modus_tollens": 1,
+  "negated_conditional_conv": 0
+ },
+ "sources": [
+  "calgary",
+  "magnus",
+  "ubc",
+  "cambridge",
+  "adelaide",
+  "syracuse",
+  "bristol",
+  "msu",
+  "r3",
+  "pecs",
+  "dortmund",
+  "auckland",
+  "natal",
+  "lorain",
+  "carnapbook"
+ ]
+}
