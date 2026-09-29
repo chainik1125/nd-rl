@@ -135,6 +135,59 @@ naive.
 | − best RL | 682 | **44%** | 59% | 62% | 28% |
 ```
 
+## Test-time scaling
+
+```claude
+Everything above spends a fixed budget of 64 independent samples per theorem. Here the
+combined model's weights are frozen, and the question is what smarter inference buys: no value
+function, no extra training.
+
+Setup:
+
+- five inference methods;
+- all 1,177 held-out theorems, of which 114 are longer than 10 lines;
+- three seeds;
+- compute measured as tokens sampled from the model per theorem, rejected attempts included.
+
+Details are in the
+[test-time scaling experiment](../2026-09-29-test-time-scaling/README.md) (branch
+`test-time-scaling`).
+
+![Solve rate vs sampled tokens per theorem, by inference method](charts/test-time-scaling.png)
+
+- **Plain sampling** (what the metric uses): 31% at 1 sample, 81% at 64.
+- **Resample bad lines.** The model writes a proof one Lean tactic (`have ... ;`) at a time, and
+  the checker from Leon's RL sampler can judge each tactic the moment it is written. When one
+  fails, throw it away and redraw it, up to 10 times per proof.
+  - 57% at 1 sample and 86% at 64.
+  - On the 114 long theorems: 54 solved vs plain's 41.
+  - It needs fewer tokens than plain for the same result: 84.3% at 11k tokens per theorem, vs
+    plain's 80.8% at 14k.
+  - With the KV-cache implementation from RL it takes 1.5× plain's wall-clock.
+- **Sequential Monte Carlo** is almost as good: 84.4% at 16k tokens, a little worse on long
+  proofs. It keeps N partial proofs, drops those that write a bad line, and clones the survivors.
+- **Beam search and best-first search** are no better than plain sampling at the same compute.
+  Both rank partial proofs by the model's own probability. The model's confidence is a poor guide
+  to which half-written proof will finish.
+
+What this says about the model:
+
+- **Most failures are local slips, not bad plans.**
+  - 69% of samples write at least one invalid line.
+  - 58% of all lines checked are invalid.
+  - Nearly half of all successful proofs needed at least one redraw.
+  - The usual error is a wrong citation or rule on one line (65% of rejections); another 31% are
+    lines outside the Lean grammar.
+- **It is confidently wrong.** Half of all redraws reproduce the exact line that was just
+  rejected.
+- **The curves still flatten.** About 168 theorems (14%) are solved by no method at any budget
+  tried. These look like missing plans rather than slips, which is where a learned value function
+  or training on the failures would come in.
+- **The metric scores without this sampler, although the RL trained with it.** Scoring the
+  combined model with resampling would add about 26 points at 1 sample and 5 at 64. That was not
+  measured for the other seven cells, so it could reorder them.
+```
+
 ## Methodology
 
 ```claude
