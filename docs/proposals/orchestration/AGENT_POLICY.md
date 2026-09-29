@@ -50,6 +50,20 @@ Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and share
   count, format, from-scratch or pretrained, training set. An inherited number carries its label;
   a reviewer treats an unlabelled number as a finding. *Why:* an efficiency run applied a premise
   measured on a different model than the one it was about.
+- **Record the compute behind every arm** (Dan, 2026-09-29). Per arm, and per round for RL, record:
+  - GPU-seconds and the GPU type;
+  - generated tokens (and attempts or actions);
+  - training steps and training tokens;
+  - Lean / environment checks.
+
+  Write them as results-registry rows (`record.py`; metric names `gpu_seconds`, `gen_tokens`,
+  `train_steps`, `train_tokens`, `lean_checks`, with `arm`, `seed` and `labels.round`), and put a
+  per-arm table in the write-up. Until the scripts record these themselves, derive them from job logs
+  and say how. The pre-registration states what the compared arms are matched on (attempts, actions,
+  tokens, steps). The write-up flags any arm that used more than 1.25× its comparator's compute on any
+  of these. Matching is a design choice for each experiment, not a rule. *Why:* a more elaborate method
+  can win by spending more (Dan's question about search as the EI expert). Recorded compute lets
+  anyone check that afterwards, or rerun at matched compute, instead of guessing.
 - **Plan seeds against the measured noise floor** (Dan, 2026-09-28; `NOISE_FLOOR.md` on the fork's `dan`
   branch). Every pre-registration states the minimum detectable difference for its headline quantity at
   its seed count, and a comparison whose predicted effect is inside it is redesigned (more seeds, a
