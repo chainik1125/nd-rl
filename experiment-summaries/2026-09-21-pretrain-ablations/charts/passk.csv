@@ -1,0 +1,109 @@
+run,model,pool,k,seeds,pass,seed_min,seed_max,prelean
+030_muon-hidden,030 Muon (pre-Lean),holdout250,1,3,11.27,7.65,14.28,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,2,3,13.34,9.09,16.61,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,4,3,14.9,10.18,18.38,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,8,3,16.24,11.12,19.92,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,16,3,17.49,12.04,21.4,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,32,3,18.73,12.88,23.05,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,64,3,19.99,13.48,25.0,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,128,3,21.27,13.78,27.12,True
+030_muon-hidden,030 Muon (pre-Lean),holdout250,256,3,22.4,14.0,28.8,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,1,3,9.87,9.65,10.05,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,2,3,10.86,10.71,10.95,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,4,3,11.55,11.47,11.72,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,8,3,12.2,11.88,12.56,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,16,3,12.88,12.4,13.62,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,32,3,13.59,12.85,14.88,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,64,3,14.34,13.19,16.04,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,128,3,15.28,13.89,17.01,True
+030_muon-hidden,030 Muon (pre-Lean),textbook,256,3,16.67,15.28,18.06,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,1,3,24.23,21.33,26.12,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,2,3,28.3,24.84,30.53,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,4,3,31.09,27.12,33.59,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,8,3,33.08,28.49,35.87,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,16,3,34.67,29.58,37.74,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,32,3,36.2,30.93,39.45,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,64,3,37.86,32.72,41.04,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,128,3,39.58,34.76,42.58,True
+081-claude_polar-express,081 Polar Express (pre-Lean),holdout250,256,3,41.07,36.4,44.0,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,1,3,13.08,11.82,14.12,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,2,3,14.02,12.97,15.05,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,4,3,14.74,14.0,15.63,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,8,3,15.45,14.99,16.09,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,16,3,16.22,15.85,16.45,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,32,3,16.98,16.47,17.83,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,64,3,17.67,16.67,19.4,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,128,3,18.25,16.67,20.74,True
+081-claude_polar-express,081 Polar Express (pre-Lean),textbook,256,3,18.98,16.67,22.22,True
+101-claude_lean-depth-6,101 depth 6,holdout250,1,3,36.65,34.97,39.5,False
+101-claude_lean-depth-6,101 depth 6,holdout250,2,3,40.74,38.98,43.71,False
+101-claude_lean-depth-6,101 depth 6,holdout250,4,3,43.53,41.82,46.59,False
+101-claude_lean-depth-6,101 depth 6,holdout250,8,3,45.65,43.26,48.91,False
+101-claude_lean-depth-6,101 depth 6,holdout250,16,3,47.44,44.49,51.01,False
+101-claude_lean-depth-6,101 depth 6,holdout250,32,3,49.12,45.8,53.01,False
+101-claude_lean-depth-6,101 depth 6,holdout250,64,3,50.76,47.21,54.91,False
+101-claude_lean-depth-6,101 depth 6,holdout250,128,3,52.13,48.43,56.7,False
+101-claude_lean-depth-6,101 depth 6,holdout250,256,3,53.2,49.2,58.4,False
+101-claude_lean-depth-6,101 depth 6,textbook,1,3,13.38,12.71,13.86,False
+101-claude_lean-depth-6,101 depth 6,textbook,2,3,14.84,14.21,15.65,False
+101-claude_lean-depth-6,101 depth 6,textbook,4,3,16.2,15.33,17.46,False
+101-claude_lean-depth-6,101 depth 6,textbook,8,3,17.52,15.72,19.18,False
+101-claude_lean-depth-6,101 depth 6,textbook,16,3,18.76,16.16,20.72,False
+101-claude_lean-depth-6,101 depth 6,textbook,32,3,19.82,16.92,22.05,False
+101-claude_lean-depth-6,101 depth 6,textbook,64,3,20.87,18.1,23.23,False
+101-claude_lean-depth-6,101 depth 6,textbook,128,3,22.03,19.58,24.3,False
+101-claude_lean-depth-6,101 depth 6,textbook,256,3,23.15,20.83,25.0,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,1,3,37.89,34.41,41.67,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,2,3,42.45,39.02,46.14,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,4,3,45.73,42.29,49.35,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,8,3,48.36,44.66,52.0,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,16,3,50.47,46.43,54.14,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,32,3,52.28,48.01,55.78,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,64,3,53.98,49.65,57.06,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,128,3,55.68,51.36,58.23,False
+115-fable_lean-alibi-half,115 ALiBi half,holdout250,256,3,57.47,53.2,59.6,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,1,3,15.66,14.88,16.57,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,2,3,17.27,16.22,18.51,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,4,3,18.53,17.16,20.01,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,8,3,19.67,17.89,21.31,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,16,3,20.69,18.76,22.1,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,32,3,21.64,19.91,22.61,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,64,3,22.6,21.37,23.86,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,128,3,23.6,22.92,24.74,False
+115-fable_lean-alibi-half,115 ALiBi half,textbook,256,3,24.54,23.61,25.0,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,1,3,42.34,41.68,42.82,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,2,3,46.84,45.75,47.57,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,4,3,49.69,48.48,50.54,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,8,3,51.84,50.77,52.43,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,16,3,53.71,52.81,54.55,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,32,3,55.44,54.72,56.24,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,64,3,57.04,56.53,57.48,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,128,3,58.37,58.01,58.58,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,holdout250,256,3,59.47,59.2,59.6,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,1,3,16.0,14.37,16.99,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,2,3,17.72,16.25,18.51,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,4,3,19.01,17.74,19.76,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,8,3,20.15,19.05,21.06,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,16,3,21.22,20.38,22.2,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,32,3,22.24,21.63,23.26,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,64,3,23.2,22.43,24.4,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,128,3,24.12,22.91,25.48,False
+129-claude_lean-lr-floor-03,129 LR floor 0.3,textbook,256,3,25.0,23.61,26.39,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,1,3,44.84,43.41,47.48,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,2,3,49.65,48.23,52.12,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,4,3,52.9,51.72,55.1,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,8,3,55.53,54.49,57.5,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,16,3,57.82,56.91,59.48,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,32,3,59.88,58.68,61.17,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,64,3,61.66,60.15,62.56,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,128,3,63.14,61.55,64.33,False
+153-claude_lean-width384,153 width 384 (post's last keep),holdout250,256,3,64.27,62.8,66.0,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,1,3,17.06,15.14,18.9,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,2,3,18.37,15.93,20.5,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,4,3,19.54,16.62,21.96,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,8,3,20.8,17.65,23.42,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,16,3,22.06,19.09,24.66,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,32,3,23.24,20.78,25.62,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,64,3,24.29,22.39,26.39,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,128,3,25.2,23.78,27.04,False
+153-claude_lean-width384,153 width 384 (post's last keep),textbook,256,3,25.93,25.0,27.78,False

@@ -68,7 +68,7 @@ Run `153-claude` [^mi]
 | heads        | 8 heads x 48 dims                                                                                                                                                                                                                                                                                                                |
 | q, k, v      | one fused Linear(384 -> 1152) with bias, split into Q/K/V; plain multi-head attention (k and v have 8 heads too, no GQA/MQA)                                                                                                                                                                                                     |
 | attn out     | Linear(384 -> 384) with bias                                                                                                                                                                                                                                                                                                     |
-| MLP          | Linear(384 -> 1280) -> GELU -> Linear(1280 -> 384), with biases (3.33x, not the usual 4x: 4x = 1536 would push the model to 10.6M, over the cap)                                                                                                                                                                                 |
+| MLP          | Linear(384 -> 1280) -> GELU -> Linear(1280 -> 384), with biases (3.33x, not the usual 4x: 4x = 1536 would push the model to 10.7M, over the cap)                                                                                                                                                                                 |
 | norm         | Peri-LN: LayerNorm on each branch input (pre-LN) AND on each branch output,<br>x = x + LN(attn(LN(x))); x = x + LN(mlp(LN(x))); final LayerNorm before the head                                                                                                                                                                  |
 | attention    | 4 ALiBi + 4 NoPE heads in every block. No RoPE, no learned position embedding.<br>Logit bias -slope_h \* (query_pos - key_pos): heads 1-4 slopes 1/4, 1/16, 1/64, 1/256; heads 5-8 slope 0 (causal mask only)                                                                                                                    |
 | max context  | 1024                                                                                                                                                                                                                                                                                                                             |
@@ -199,7 +199,7 @@ It was kept, but it ties for tenth on dev. The incumbent (153) solves 18.7.
     solved by any run. One (modus ponens) is a renaming of a pretraining theorem. The longest proof
     any run found is 12 lines, for a problem whose reference proof is 14 lines, in 3 of 256 samples.
 
-Progress on longer theorems:
+### Progress on longer theorems:
 
 ![Dev theorems proved, by the length of the model's shortest proof, by run](charts/by-length.png)
 
@@ -219,6 +219,12 @@ uncited lines pruned) and the deterministically-generated reference proof.[^bank
     lines, +18% at 8, −17% at 9, −14% at 10, −18% at 11 and 0% at 12. Earlier runs move further down
     at the long end (Polar Express, 081: −55% at 10 lines), so the chart slightly understates the
     progress on long proofs.
+
+### Pass@k Curves
+
+![pass@k on 250 transfer-holdout theorems, k = 1 to 256, six kept runs](charts/passk-holdout250.png)
+
+![pass@k on the 72 textbook problems, k = 1 to 256, six kept runs](charts/passk-textbook.png)
 
 ## Potpourri
 
