@@ -52,6 +52,7 @@ def stage(name, jobs):
         shutil.copy2(os.path.join(COMBINED, f), d)
     for f in ("engine.py", "ttscale.py", "value.py"):
         shutil.copy2(os.path.join(HERE, f), d)
+    shutil.copytree(os.path.join(AR, "textbook72"), os.path.join(d, "textbook72"))
     shutil.copy2(jobs, os.path.join(d, "jobs.txt"))
     with open(os.path.join(d, "run_jobs.sh"), "w") as f:
         f.write(RUN_JOBS)

@@ -272,6 +272,23 @@ forward passes, counted separately from sampled tokens.
 
 Cost: one pod, 40 min, about $0.33.
 
+## Final scoring: Dmitry's 72 textbook problems
+
+The round-1 winner (resample, cap 10) and follow-up A (no repeats) were scored once on
+`textbook72`, next to plain sampling. c005, 3 seeds, k = 256. Jobs: `jobs/tb_s*.txt`. Chart and
+per-split CSV: [combined-model charts](../2026-09-28-combined-model/charts/textbook_tts.py).
+
+| k | plain | resample | no repeats |
+| --- | --- | --- | --- |
+| 1 | 17.6% | 26.0% | 27.4% |
+| 8 | 29.8% | 38.6% | 41.1% |
+| 256 | 41.7% | 50.5% | 51.9% |
+
+- Dmitry's ~30% goal is reached at k = 8 with plain sampling and at k = 2 with resampling, not at
+  k = 1.
+- Resampling adds 8-9 points at every k, against +26 at k = 1 on holdout.
+- Cost: 3 pods, 26-31 min each, about $0.70.
+
 ## Limitations and next step
 
 - **Seeds are 3 checkpoints of one recipe.** The seed-to-seed spread is small (pass@64 plain

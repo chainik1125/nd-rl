@@ -1,0 +1,82 @@
+method,split,k,pass,seed_min,seed_max
+plain,all 72,1,17.65,17.34,18.0
+plain,all 72,2,22.13,21.9,22.44
+plain,all 72,4,26.2,26.04,26.42
+plain,all 72,8,29.8,29.19,30.43
+plain,all 72,16,33.01,32.01,33.83
+plain,all 72,32,35.88,34.61,36.56
+plain,all 72,64,38.25,36.72,39.58
+plain,all 72,128,40.19,38.16,42.36
+plain,all 72,256,41.67,38.89,44.44
+plain,dev58,1,16.81,16.28,17.29
+plain,dev58,2,21.57,21.14,21.81
+plain,dev58,4,26.08,25.73,26.58
+plain,dev58,8,30.2,29.26,30.78
+plain,dev58,16,33.82,32.63,34.47
+plain,dev58,32,36.93,35.66,37.82
+plain,dev58,64,39.36,37.93,40.82
+plain,dev58,128,41.2,39.18,43.31
+plain,dev58,256,42.53,39.66,44.83
+plain,train14,1,21.12,20.65,21.76
+plain,train14,2,24.43,22.53,25.71
+plain,train14,4,26.66,23.77,28.43
+plain,train14,8,28.15,25.63,29.92
+plain,train14,16,29.64,28.28,31.19
+plain,train14,32,31.5,30.25,32.94
+plain,train14,64,33.65,31.7,34.79
+plain,train14,128,36.0,33.94,38.4
+plain,train14,256,38.1,35.71,42.86
+resample,all 72,1,25.96,25.49,26.51
+resample,all 72,2,31.06,30.61,31.54
+resample,all 72,4,35.27,35.01,35.42
+resample,all 72,8,38.62,38.01,39.55
+resample,all 72,16,41.23,40.5,42.56
+resample,all 72,32,43.58,42.2,44.97
+resample,all 72,64,46.05,43.84,47.26
+resample,all 72,128,48.41,45.65,49.97
+resample,all 72,256,50.46,47.22,52.78
+resample,dev58,1,26.21,25.79,26.79
+resample,dev58,2,31.9,31.58,32.36
+resample,dev58,4,36.65,36.34,36.8
+resample,dev58,8,40.37,39.78,41.15
+resample,dev58,16,43.13,42.54,44.26
+resample,dev58,32,45.43,44.03,46.83
+resample,dev58,64,47.73,45.27,49.29
+resample,dev58,128,49.84,46.77,51.68
+resample,dev58,256,51.72,48.28,55.17
+resample,train14,1,24.91,24.27,25.33
+resample,train14,2,27.56,26.6,28.16
+resample,train14,4,29.55,29.47,29.69
+resample,train14,8,31.36,30.45,32.94
+resample,train14,16,33.39,32.06,35.5
+resample,train14,32,35.89,34.62,37.26
+resample,train14,64,39.05,37.92,40.4
+resample,train14,128,42.52,41.03,45.44
+resample,train14,256,45.24,42.86,50.0
+"resample, no repeats",all 72,1,27.36,26.7,28.12
+"resample, no repeats",all 72,2,32.88,32.16,33.51
+"resample, no repeats",all 72,4,37.5,37.24,37.73
+"resample, no repeats",all 72,8,41.09,40.81,41.59
+"resample, no repeats",all 72,16,43.89,43.18,44.77
+"resample, no repeats",all 72,32,46.39,45.34,46.97
+"resample, no repeats",all 72,64,48.74,47.62,49.91
+"resample, no repeats",all 72,128,50.64,49.83,51.82
+"resample, no repeats",all 72,256,51.85,51.39,52.78
+"resample, no repeats",dev58,1,27.84,27.07,28.64
+"resample, no repeats",dev58,2,34.0,33.16,34.7
+"resample, no repeats",dev58,4,39.18,38.62,39.61
+"resample, no repeats",dev58,8,43.12,43.07,43.21
+"resample, no repeats",dev58,16,46.03,45.43,46.62
+"resample, no repeats",dev58,32,48.38,47.08,49.16
+"resample, no repeats",dev58,64,50.33,48.39,52.2
+"resample, no repeats",dev58,128,51.65,49.46,54.09
+"resample, no repeats",dev58,256,52.3,50.0,55.17
+"resample, no repeats",train14,1,25.4,25.06,25.98
+"resample, no repeats",train14,2,28.27,27.98,28.57
+"resample, no repeats",train14,4,30.53,29.94,31.54
+"resample, no repeats",train14,8,32.65,31.35,34.86
+"resample, no repeats",train14,16,35.03,33.85,37.12
+"resample, no repeats",train14,32,38.13,37.3,38.96
+"resample, no repeats",train14,64,42.16,40.41,44.43
+"resample, no repeats",train14,128,46.44,42.42,51.36
+"resample, no repeats",train14,256,50.0,42.86,57.14

@@ -186,10 +186,41 @@ What this says about the model:
   142 theorems (12%) are solved by no method at 64 samples. At 1,024 resampled attempts only
   about 1 in 10 of them falls, and those that do are hit 1-8 times in 1,024. For the rest, the
   model puts almost no probability on any proof. Search over the same model will not reach them;
-  changing the weights (training on the failures) is the next thing to try.
+  that takes a better model (pretraining, RL or data). Training on these evaluation theorems
+  themselves is off the table: they are only ever scored.
+- **A learned value does not help either.** I trained a small head on the frozen model to predict,
+  from a half-written proof, whether it will finish. It was trained on other theorems and tested
+  on validation theorems only. It ranks two partial proofs of the same theorem correctly 69% of
+  the time. Steering SMC, beam or best-first search with it changed nothing.
 - **The metric scores without this sampler, although the RL trained with it.** Scoring the
   combined model with resampling would add about 26 points at 1 sample and 5 at 64. That was not
   measured for the other seven cells, so it could reorder them.
+```
+
+![pass@k on the 72 textbook problems by inference method, with a 30% reference line](charts/textbook-test-time.png)
+
+```claude
+**The textbook set.** Dmitry wanted to get to about 30% on his 72 textbook problems. The combined
+model gets there, at 8 samples with plain sampling and at 2 with resampling. It does not get there
+at 1 sample either way.
+
+| k | plain | resample | resample, no repeats |
+| --- | --- | --- | --- |
+| 1 | 17.6% | 26.0% | 27.4% |
+| 2 | 22.1% | 31.1% | 32.9% |
+| 8 | 29.8% | 38.6% | 41.1% |
+| 64 | 38.3% | 46.1% | 48.7% |
+| 256 | 41.7% (30 of 72) | 50.5% (36) | 51.9% (37) |
+
+- These are 3-seed means for c005. c005 is a separate training run of the same recipe as the
+  table's "best" cell, which gets 44% at 256 samples.
+- Resampling is worth about 8-9 points at every k here, much less than on the held-out theorems at
+  k = 1 (+26). The textbook proofs are longer (reference proofs of up to 33 lines), and more of the
+  misses are missing plans rather than slips.
+- By split, at 256 samples: the 58 with reference proofs go 42.5% → 51.7% → 52.3%; the 14
+  without go 38.1% → 45.2% → 50.0%. At 1 sample: 16.8% → 26.2% → 27.8%, and 21.1% → 24.9% →
+  25.4%.
+- The textbook problems are only ever scored. Nothing trains or tunes on them.
 ```
 
 ## Methodology

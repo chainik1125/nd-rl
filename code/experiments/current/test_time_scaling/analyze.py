@@ -47,7 +47,7 @@ def iid_rows(d, label, cap=None):
         pk = [pass_at_k(n, sum(x[0] for x in p), k) for p in per]
         row[k] = {
             "all": 100 * sum(pk) / len(pk),
-            "long": sum(q for q, t in zip(pk, ths, strict=True) if t["L"] > LONG),
+            "long": sum(q for q, t in zip(pk, ths, strict=True) if (t["L"] or 0) > LONG),
             "tok": k * tok,
             "secs": secs * k / n,
         }
@@ -90,7 +90,7 @@ def search_row(d, label):
     return {
         "label": label,
         "all": 100 * sum(t["solved"] for t in ths) / len(ths),
-        "long": sum(t["solved"] for t in ths if t["L"] > LONG),
+        "long": sum(t["solved"] for t in ths if (t["L"] or 0) > LONG),
         "tok": sum(t["tok"] for t in ths) / len(ths),
         "secs": d["stats"]["method_secs"],
     }
@@ -111,7 +111,7 @@ def main():
             d["stats"]["method_secs"] *= len(d["theorems"]) / d["n"]  # pro rata
             d["n"] = len(d["theorems"])
         a, name = d["args"], fn.rsplit("/", 1)[-1].removesuffix(".json")
-        n_long = sum(t["L"] > LONG for t in d["theorems"])
+        n_long = sum((t["L"] or 0) > LONG for t in d["theorems"])  # textbook train14: L None
         head = f"{name} ({a['pool']}, n {d['n']}, {n_long} with L > {LONG})"
         if a["method"] in ("plain", "guided_kv"):
             iid.append(iid_rows(d, f"{head}: {a['method']}"))

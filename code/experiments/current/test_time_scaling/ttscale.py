@@ -66,6 +66,13 @@ def load(run, ckpt_dir):
 
 
 def pool(name, limit, names):
+    if name == "textbook":  # Dmitry's 72 (dev58 + train14): score only, never tune on them
+        book = os.path.join(os.path.dirname(harness.__file__), "textbook72")
+        return [
+            {**r, "n_lines": r.get("reference_lines")}  # train14 has no reference proof
+            for split in ("dev", "train")
+            for r in harness.read(f"{book}/textbook_{split}.jsonl")
+        ]
     transfer = harness.read(f"{harness.FORK}/data/ladder/transfer.jsonl")
     recs = (harness.holdout_split if name == "holdout" else harness.dev_split)(transfer)
     if names:  # a comma-separated list of theorem names, e.g. the ones every method missed
@@ -355,7 +362,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True)
     ap.add_argument("--ckpt-dir")
-    ap.add_argument("--pool", choices=["holdout", "dev"], default="holdout")
+    ap.add_argument("--pool", choices=["holdout", "dev", "textbook"], default="holdout")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--names", help="comma-separated theorem names: score only these")
     ap.add_argument("--method", choices=list(METHODS), required=True)
@@ -390,6 +397,8 @@ def main():
     stats["method_secs"] = time.time() - t1
     for r, p in zip(recs, per, strict=True):
         p |= {"name": r["name"], "L": r["n_lines"]}
+        if "role" in r:  # textbook: textbook_dev (dev58) or rl_train (train14)
+            p["role"] = r["role"]
     out = {
         "args": {k: v for k, v in vars(a).items() if k != "V"},
         "n": len(recs),

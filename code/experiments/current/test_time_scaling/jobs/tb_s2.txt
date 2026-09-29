@@ -1,0 +1,3 @@
+plain --run combo-c005_s2 --pool textbook --k 256 --method plain
+guided --run combo-c005_s2 --pool textbook --k 256 --method guided --cap 32
+swor --run combo-c005_s2 --pool textbook --k 256 --method guided --cap 32 --swor
