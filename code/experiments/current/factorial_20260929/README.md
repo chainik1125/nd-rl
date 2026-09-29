@@ -49,3 +49,23 @@ lean-best-ei 650-720 (c001 687, 186 680); lean-best-leon 870-940 (c005 904); the
 the most in every row, the Lean format second, the pretraining swap least; the RL gain is larger
 on better starting models (a positive pre × rl interaction). Textbook72 pass@256 moves far less
 than the transfer metric in every cell (the 184 pretraining runs barely moved it).
+
+## Results (2026-09-29 01:00–01:58 UTC; all 24 runs ok)
+
+Dev metric, 3-seed means (seeds): abs-naive-ei 142.3 (131/162/134); lean-naive-ei 192.7
+(209/195/174); abs-best-ei 456.7 (493/436/441); abs-naive-leon 443.7 (409/465/457);
+lean-best-leon **904.0** (916/895/901, reproducing c005's 904.3); abs-best-leon 782.3
+(815/777/755); lean-naive-leon 413.7 (434/420/387); lean-best-ei 681.7 (694/677/674; c001 687.3).
+Pipeline seconds ≤ 2,374 in every run. Main effects: pre +408, rl +268, tok +92; interactions
+tok×pre +82, tok×rl −46, pre×rl +6, three-way −6.
+
+Against the prediction: 3 of the 5 cells given ranges landed in them (abs-naive-ei,
+lean-best-ei, lean-best-leon); abs-best-ei (457) was above its 200-400 and lean-naive-ei (193)
+below its 350-550. The ordering was wrong: pretraining, not RL, has the largest effect, and the Lean format the smallest;
+pre × rl is ~0, not positive. Textbook72 did move: 12.5% → 43.5% pass@256, mostly from RL on top
+of the best pretraining (27.8% → 43.5%). Leon's RL lowers held-out pass@1 (43.8% → 30.1% on the
+best pretraining) while raising pass@64 (58.9% → 79.1%).
+
+The Mac crashed at 01:55 UTC with 6 runs finished on their pods but not pulled; their artifacts
+were pulled by hand at 02:12-02:14 UTC and the pods terminated (all 24 summaries are complete).
+Post: [experiment summary / blog draft](../../../../experiment-summaries/2026-09-28-combined-model/README.md).

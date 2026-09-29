@@ -1,0 +1,25 @@
+run,tok,pre,rl,seed,metric,pipeline_secs,rl_samples,rl_solved,gpu
+fact-abs-best-ei_s0,abs,best,ei,0,493,1031,192000,902,NVIDIA A40
+fact-abs-best-ei_s1,abs,best,ei,1,436,1018,192000,774,NVIDIA A40
+fact-abs-best-ei_s2,abs,best,ei,2,441,1120,192000,761,NVIDIA RTX A6000
+fact-abs-best-leon_s0,abs,best,leon,0,815,1755,192165,1335,NVIDIA RTX A6000
+fact-abs-best-leon_s1,abs,best,leon,1,777,1830,192146,1313,NVIDIA A40
+fact-abs-best-leon_s2,abs,best,leon,2,755,1888,192229,1298,NVIDIA A40
+fact-abs-naive-ei_s0,abs,naive,ei,0,131,829,192000,495,NVIDIA A40
+fact-abs-naive-ei_s1,abs,naive,ei,1,162,728,192000,470,NVIDIA RTX A6000
+fact-abs-naive-ei_s2,abs,naive,ei,2,134,850,192000,504,NVIDIA A40
+fact-abs-naive-leon_s0,abs,naive,leon,0,409,1269,192350,1000,NVIDIA A40
+fact-abs-naive-leon_s1,abs,naive,leon,1,465,1299,192166,1024,NVIDIA A40
+fact-abs-naive-leon_s2,abs,naive,leon,2,457,1270,192155,1038,NVIDIA A40
+fact-lean-best-ei_s0,lean,best,ei,0,694,2374,192000,1157,NVIDIA A40
+fact-lean-best-ei_s1,lean,best,ei,1,677,1675,192000,1144,NVIDIA A40
+fact-lean-best-ei_s2,lean,best,ei,2,674,1905,192000,1161,NVIDIA A40
+fact-lean-best-leon_s0,lean,best,leon,0,916,2101,166848,1381,NVIDIA A40
+fact-lean-best-leon_s1,lean,best,leon,1,895,2267,166736,1373,NVIDIA A40
+fact-lean-best-leon_s2,lean,best,leon,2,901,2204,166566,1375,NVIDIA A40
+fact-lean-naive-ei_s0,lean,naive,ei,0,209,1528,192000,641,NVIDIA A40
+fact-lean-naive-ei_s1,lean,naive,ei,1,195,1440,192000,631,NVIDIA A40
+fact-lean-naive-ei_s2,lean,naive,ei,2,174,1639,192000,588,NVIDIA A40
+fact-lean-naive-leon_s0,lean,naive,leon,0,434,2118,191613,1052,NVIDIA A40
+fact-lean-naive-leon_s1,lean,naive,leon,1,420,2065,192210,1065,NVIDIA A40
+fact-lean-naive-leon_s2,lean,naive,leon,2,387,1981,192254,1005,NVIDIA A40
