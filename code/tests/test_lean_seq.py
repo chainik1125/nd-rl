@@ -42,7 +42,7 @@ TOK = LeanSeqTokenizer()
 
 
 def ids_of(tokens: str) -> list[int]:
-    return [TOK.stoi[t] for t in tokens.split()] + [TOK.eos]
+    return [TOK.stoi[t] for t in tokens.split()] + [TOK.eos_id]
 
 
 def test_vocabulary_matches_the_original() -> None:
@@ -129,6 +129,43 @@ def test_bad_nd_proofs_raise(proof: str) -> None:
 def test_bad_prompt_raises() -> None:
     with pytest.raises(NDParseError):
         parse_prompt("THM P Q")
+
+
+# The experiment pipeline's tokenizer interface (``nd_model.ProofTokenizer``).
+
+
+def test_pipeline_ids() -> None:
+    assert len(TOK) == TOK.vocab_size == 107
+    assert TOK.itos[TOK.prf_id] == "by"
+    assert TOK.itos[TOK.pad_id] == "<pad>"
+    assert TOK.itos[TOK.eos_id] == "<eos>"
+
+
+@pytest.mark.parametrize("rec", GOLDEN, ids=[f"golden{i}" for i in range(len(GOLDEN))])
+def test_encode_record_is_prompt_then_proof(rec: Golden) -> None:
+    ids = rec["prompt_ids"] + rec["proof_ids"]
+    text = rec["prompt"] + " " + rec["proof"]
+    assert TOK.encode_record(text) == ids
+    assert TOK.encode_record({"text": text}) == ids
+    assert TOK.encode_record({"prompt": rec["prompt"], "proof": rec["proof"]}) == ids
+    # The pipeline takes the prompt length as ids.index(prf_id) + 1.
+    assert ids.index(TOK.prf_id) + 1 == len(rec["prompt_ids"])
+    assert TOK.decode_body(rec["proof_ids"]) == rec["proof"]
+
+
+def test_encode_record_needs_prf() -> None:
+    with pytest.raises(NDParseError):
+        TOK.encode_record("THM P SEQ P N1 P : PR ; QED")
+
+
+def test_state_dict_round_trip() -> None:
+    state = TOK.state_dict()
+    assert state["version"] == "lean-seq-v1"
+    assert LeanSeqTokenizer.from_state_dict(state).itos == TOK.itos
+    with pytest.raises(ValueError):
+        LeanSeqTokenizer.from_state_dict({**state, "version": "relative-unary-v1"})
+    with pytest.raises(ValueError):
+        LeanSeqTokenizer.from_state_dict({**state, "tokens": list(reversed(TOK.itos))})
 
 
 def _lean() -> str | None:

@@ -362,7 +362,18 @@ def proof_tokens(body: str) -> list[Token]:
 
 
 class LeanSeqTokenizer:
-    """Token ids for the ``lean_seq`` rendering. Vocabulary: 107 symbols, the fork's order."""
+    """Token ids for the ``lean_seq`` rendering. Vocabulary: 107 symbols, the fork's order.
+
+    Besides its own methods it implements the tokenizer interface of the ND experiment pipeline
+    (``ProofTokenizer`` in ``experiments/current/r1_cot/vendor/nd_model.py``): ``pad_id``,
+    ``eos_id``, ``prf_id``, ``len()``, ``encode_prompt``, ``encode_record``, ``decode_body`` and
+    ``state_dict`` / ``from_state_dict``, so ``encode_records``, ``train_steps``,
+    ``generate_bodies`` and ``save_checkpoint`` work with it unchanged. A training sequence is the
+    prompt ids followed by the proof ids (ending in ``<eos>``), the fork's layout; there is no
+    ``<BOS>``.
+    """
+
+    VERSION = "lean-seq-v1"
 
     def __init__(self) -> None:
         self.itos: list[str] = [
@@ -375,13 +386,31 @@ class LeanSeqTokenizer:
             *(f"n{k}" for k in range(1, MAX_NAMES + 1)),
         ]
         self.stoi: dict[str, int] = {s: i for i, s in enumerate(self.itos)}
-        self.pad = self.stoi["<pad>"]
-        self.eos = self.stoi["<eos>"]
+        self.pad_id = self.stoi["<pad>"]
+        self.eos_id = self.stoi["<eos>"]
+        # A prompt ends with its first ``by`` (``... : C := by``), so the pipeline finds the prompt
+        # length as ``ids.index(prf_id) + 1``, as it does with ``PRF`` in the ND token format.
+        self.prf_id = self.stoi["by"]
         self.first_name = self.stoi["n1"]
 
     @property
     def vocab_size(self) -> int:
         return len(self.itos)
+
+    def __len__(self) -> int:
+        return len(self.itos)
+
+    def state_dict(self) -> dict[str, object]:
+        """What a checkpoint stores to identify the tokenizer (the pipeline's convention)."""
+        return {"version": self.VERSION, "tokens": list(self.itos)}
+
+    @classmethod
+    def from_state_dict(cls, state: dict[str, object]) -> LeanSeqTokenizer:
+        """The tokenizer a checkpoint was trained with; raises ``ValueError`` for any other."""
+        tok = cls()
+        if state != tok.state_dict():
+            raise ValueError("not a lean_seq tokenizer state (version or vocabulary differs)")
+        return tok
 
     def encode_prompt(self, prompt: str) -> list[int]:
         """The theorem statement as ids."""
@@ -399,7 +428,23 @@ class LeanSeqTokenizer:
                 out.append(self.first_name + k - 1)
             else:
                 out.append(self.stoi[t])
-        return [*out, self.eos]
+        return [*out, self.eos_id]
+
+    def encode_record(self, record: str | dict[str, str]) -> list[int]:
+        """One training sequence: prompt ids, then proof ids ending in ``<eos>``.
+
+        ``record`` is the ND text ``"THM ... PRF <proof>"``, a dict with that text under ``"text"``
+        (the pipeline's record format), or a dict with ``"prompt"`` and ``"proof"``.
+        """
+        if isinstance(record, dict) and "prompt" in record:
+            prompt, proof = record["prompt"], record["proof"]
+        else:
+            words = (record if isinstance(record, str) else record["text"]).split()
+            if "PRF" not in words:
+                raise NDParseError("record has no PRF")
+            k = words.index("PRF") + 1
+            prompt, proof = " ".join(words[:k]), " ".join(words[k:])
+        return self.encode_prompt(prompt) + self.encode_proof(proof)
 
     def shift_names(self, ids: Sequence[int], rng: random.Random) -> list[int]:
         """Add one random offset to every name id (training augmentation); names stay in n1..n64."""
@@ -413,9 +458,9 @@ class LeanSeqTokenizer:
         """Ids up to ``<eos>`` as symbols, and whether ``<eos>`` was reached (skips padding)."""
         toks: list[str] = []
         for x in ids:
-            if x == self.pad:
+            if x == self.pad_id:
                 continue
-            if x == self.eos:
+            if x == self.eos_id:
                 return toks, True
             toks.append(self.itos[x])
         return toks, False
@@ -442,6 +487,12 @@ class LeanSeqTokenizer:
             return inverse(toks)
         except LeanParseError as e:
             return f"LEANPARSE {e}"
+
+    def decode_body(self, ids: Sequence[int]) -> str:
+        """``decode`` under the pipeline's name: the ND body a sample denotes, or a ``LEANPARSE``
+        marker. The body is only what the sample means; whether it counts is Lean's call
+        (``code.shared_code.lean_check.judge``)."""
+        return self.decode(ids)
 
 
 def text(toks: Sequence[str]) -> str:
