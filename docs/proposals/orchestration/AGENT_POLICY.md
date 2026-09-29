@@ -116,7 +116,10 @@ useful" are all fair questions.
   worktrees and read-only; write a new file instead, and never `chmod` them writable. Local disk is
   scratch: upload as you go, and check `df -h` and `~/ALERTS.md` between stages (at 85 % use, `disk_watch`
   removes finished, fully uploaded worktrees and writes there if that is not enough).
-- VPS: 4 GB / 2 vCPU. New VPSs can be created with `newvps <name>` (needs Dan's Claude and gh
+- VPS: 4 GB / 2 vCPU, shared by up to two runs. **Never run more than 4 processes at once on the VPS**
+  (use `xargs -P 4`, not one `&` per file). On 2026-09-29 one run started 160 parallel `hf` downloads,
+  exhausted memory, and killed both runs' sessions on the host for 8 hours. Heavy or parallel work
+  belongs on a pod. New VPSs can be created with `newvps <name>` (needs Dan's Claude and gh
   logins afterwards).
 
 ## Target branches
