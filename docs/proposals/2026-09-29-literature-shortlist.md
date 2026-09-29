@@ -154,3 +154,55 @@ if its code session is affordable in Claude quota. The two can share long-pool-2
 in parallel. Hold 3–5 until 1 and 2 report. The rejected techniques and the reasons are in
 [`REVIEW.md` §(b)](../literature/2026-09-29-lit-review/REVIEW.md); none of them is worth reopening on
 current evidence.
+
+## Appendix: item 2 in plain terms (for Dan, 2026-09-29)
+
+**What we do now.** Expert iteration (EI) has two parts: an *expert* that finds proofs, and an
+*apprentice* (the network) that is trained on what the expert finds. In our loop the expert is the
+apprentice itself: for each target theorem the network makes 32 independent attempts, from the first step
+to the last. Lean keeps the successes and the network is fine-tuned on them. The expert is therefore no
+stronger than the apprentice. EI can only reinforce proofs the network already finds by chance.
+
+**Why that stalls on long proofs.** Independent attempts compound errors. If each step of a 20-step proof
+is right 80 % of the time, a whole attempt succeeds 0.8²⁰ ≈ 1 % of the time. A mistake at step 15 throws
+away the 14 good steps before it, and the next attempt starts from scratch.
+
+**What search changes.** Best-first search keeps a list of *partial* proofs, ranked by how likely the
+network thinks each one is (log-probability, adjusted for length). It repeatedly takes the most promising
+one and tries a few possible next steps from it (width 4). The state environment rejects an invalid step
+at once, so dead ends are dropped early and the search moves to the next-best partial proof. Good
+prefixes are reused instead of re-sampled. This is what makes AlphaZero's and AlphaProof's expert
+stronger than their network: in AlphaZero it is tree search (MCTS). Search also finds several proofs of
+the same theorem. HTPS found that training only on the *shortest* one mattered a lot (78.1 % vs 40.6 %
+in its Table 4).
+
+**The experiment.**
+- Take 6 seeds of the state model. From each seed's checkpoint, run two EI ladders with the same compute
+  (the same number of generated steps):
+  - (A) the current sampling expert;
+  - (B) the search expert.
+- On 2 seeds, run a cheap in-between arm (C): when an attempt fails, restart from just before the failing
+  step instead of from scratch.
+- Then **test the trained networks without search**: plain sampling, 256 attempts per theorem, on the long
+  pool. This matters. The question is not whether search finds more proofs (it will). It is whether a
+  network trained on search's proofs has itself become able to prove more.
+
+**What results would look like.**
+- **The core result:** per seed, the frontier `L*` and the number solved in each length bin, for B and A
+  on the same starting checkpoint (paired).
+- **Also:** proofs found per round by each expert, and how long they are.
+- **If B beats A beyond the noise floor:** a stronger expert teaches the network things it would not reach
+  by filtering its own samples. That is the AlphaZero mechanism, it bears directly on create vs elicit,
+  and it would make search a standard part of our RL loop.
+- **If B ≈ A:** search finds more during training, but the network does not absorb it. The benefit would be
+  test-time only, or search's proofs are "more of the same".
+- **If B < A:** search's proofs (for example, the shortest found) are off-distribution enough to hurt.
+- **If C ≈ B:** the cheap restart trick gets most of the benefit, with no search machinery.
+
+**Why it is not first.**
+- It needs real code: copying environment states, per-step probabilities from the sampler, and the search
+  loop. That is roughly one executor session of Claude quota, then ≈ $15–25 of pods.
+- Item 1 attacks the same stall (no learning signal past the frontier) more cheaply. It supplies easier
+  new targets instead of a stronger expert.
+- A learned "steps to go" value to guide the search (AlphaProof's) comes only if B beats A. In HTPS a poor
+  value did worse than none.
