@@ -32,6 +32,7 @@ build-backend = "setuptools.build_meta"
 packages = [
     "code",
     "code.models",
+    "code.shared_code",
     "code.experiments",
     "code.experiments.archived",
     "code.experiments.archived.mnist",
@@ -90,7 +91,7 @@ known-third-party = ["wandb"]
 known-first-party = ["code"]
 
 [tool.pyright]
-include = ["__init__.py", "log.py", "utils.py", "models", "tests", "conftest.py"]
+include = ["__init__.py", "log.py", "utils.py", "models", "shared_code", "tests", "conftest.py"]
 ignore = ["tests/test_literature.py", "tests/test_r1_*.py"]
 extraPaths = ["..", "experiments/current", "experiments/current/r1_cot/vendor"]
 venvPath = "."
