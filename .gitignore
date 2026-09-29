@@ -190,3 +190,17 @@ code/.zotero.local.json
 # ws3 fork_pin: fetched data and checkpoint (see code/ws3/fork_pin/fetch.sh)
 code/ws3/fork_pin/data/
 code/ws3/fork_pin/ckpt/
+
+# Sealed textbook test set (Dmitry's 72) and any reference proofs of it: kept local, never
+# committed. Restore with code/ws3/textbook72/fetch.sh; MANIFEST.json holds the hashes.
+code/ws3/textbook72/*.jsonl
+# The whole textbook-72 categorization (outputs and the scripts that are specific to it) stays
+# local. Regenerate: code/textbook_problem/overview.py then tables.py.
+docs/textbook-problem/textbook72/
+code/textbook_problem/overview.py
+code/textbook_problem/tables.py
+
+# Raw downloads of textbook sources (licences vary; sha256 in candidate_v0/transcribe_summary.json).
+data/textbook_problem/raw/
+# Working outputs of transcribe.py/prove.py (regenerable; the frozen set is candidate_v0/).
+data/textbook_problem/candidates/
