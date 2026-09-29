@@ -206,12 +206,71 @@ samples. Both runs use `--names`, on each seed's own set.
 - Plain sampling barely touches the set (7 theorems across the three seeds).
 - **Interpretation, not tested:** for these ~140 theorems per seed, this policy puts almost no
   probability on any proof. More samples or a better search over the same policy will move them
-  slowly at best. This favours changing the weights (test-time expert iteration) over a learned
-  value function as the next step for the stubborn set. A value function could still make the
-  solvable part cheaper.
+  slowly at best. Changing the weights would be the lever, but test-time training on evaluation
+  theorems is ruled out (Robbie, 2026-09-29), so that belongs in the training pipeline. A value
+  function could still make the solvable part cheaper (round 2 below: it did not).
 
 Cost of both follow-ups: about $2.20 (six pods, 33-58 min each). Total for the experiment: about
 $7.90.
+
+## Round 2: a learned value head (dev only, seed 0)
+
+Plan: [value_head_plan.md](../../code/experiments/current/test_time_scaling/value_head_plan.md).
+**Holdout rule (Robbie, 2026-09-29):** holdout is only scored for final configurations. Nothing
+here touched it, and since no configuration beat round 1 on dev, none was scored.
+
+### The head
+
+- **Data:** c005 seed 0 resample rollouts (cap 10, T 0.8), 8 per theorem, on the 2,995
+  `rl_targets` theorems c005's RL did not train on (0 overlap with dev or holdout).
+  - 23,960 rollouts, 71% successful; 210k labelled prefixes.
+- **Model:** an MLP (384 → 256 → 1) on the frozen trunk's final hidden state at the prefix's last
+  token; BCE loss; 3,000 steps.
+- **Validation** (332 held-out `rl_targets` theorems):
+  - AUC 0.857 overall.
+  - BCE 0.41 vs 0.58 for a constant prediction.
+  - **Only 0.689 within theorem and depth**, i.e. among prefixes of the same theorem at the same
+    depth, which is what search uses to choose between them. Most of the overall AUC is telling
+    easy theorems from hard ones.
+  - Roughly monotone calibration, under-confident at the low end (predicted 0.1-0.2, observed
+    0.37).
+
+### Search with it
+
+Solves out of the 300-theorem dev subset, with sampled tokens per theorem. The value adds
+forward passes, counted separately from sampled tokens.
+
+| method | round 1 (log-prob / 0-1 weights) | with V |
+| --- | --- | --- |
+| SMC, N = 4 | 206 @ 897 | 202 @ 881 |
+| SMC, N = 16 | 237 @ 4,243 | 234 @ 4,070 |
+| SMC, N = 64 | 251 @ 17,646 | 251 @ 16,202 |
+| beam, B = 4, E = 4 | 213 @ 3,481 | 221 @ 2,556 |
+| beam, B = 16, E = 4 | 226 @ 8,540 | 223 @ 8,259 |
+| best-first, E = 8, 16k budget | 217 @ 7,320 (α 0.5) | 220 @ 6,396 |
+| *resample, cap 10 (reference)* | *237 @ 2,815 (k 8); 244 @ 5,630 (k 16); 255 @ 22,520 (k 64)* | |
+
+- **No gain from V.**
+  - Every with-V row is within ±8 theorems of its round-1 counterpart, the same spread as
+    seed-to-seed noise on 300 theorems. Beam B = 4 is the only positive and B = 16 goes the other
+    way.
+  - V saves 13-27% of sampled tokens in beam and best-first, where log-prob ranking was
+    especially poor, but neither catches resampling.
+  - V is not free. Scoring every child re-encodes its prefix, which adds 5-6× the sampled tokens
+    in prefill: 4-6× the sampled tokens, e.g. 99.6k per theorem for SMC N = 64 against 16.2k
+    sampled.
+- **Interpretation, not tested.** A within-theorem ranking of 0.69 is too weak to beat simply
+  sampling more. The rollouts suggest outcomes depend mostly on the theorem, not on which valid
+  prefix the model is in. That matches follow-up B: the stubborn theorems fail at every prefix,
+  not at a fork a value could steer around.
+- **Not tried:**
+  - several rollouts per prefix to cut label noise;
+  - fine-tuning the trunk instead of a frozen-feature head;
+  - rollouts on dev-difficulty theorems (`rl_targets` succeed at 71% per rollout vs about 57%
+    pass@1 on dev);
+  - MCTS with the value as a leaf estimate.
+
+Cost: one pod, 40 min, about $0.33.
 
 ## Limitations and next step
 
@@ -228,6 +287,6 @@ $7.90.
   2. Temperature sweep for resample. The RL sampler used T 1.0; the eval uses 0.8.
   3. Use `guided_kv` as the harness eval sampler, a protocol decision for Robbie. It would change
      how every pretraining ablation scores.
-  4. Test-time expert iteration on the ~142 unsolved theorems. Follow-up B says more sampling will
-     not reach them.
-  5. A learned value for SMC or MCTS, which would make the solvable part cheaper.
+  4. ~~Test-time expert iteration on the ~142 unsolved theorems~~: ruled out; no training on
+     evaluation theorems.
+  5. ~~A learned value for SMC, beam and best-first~~: done (round 2), no gain on dev.

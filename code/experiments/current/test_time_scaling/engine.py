@@ -170,12 +170,14 @@ def sample_segments(model, tok, items, temperature, gen, batch, stats):
 
 class Node:
     """A valid proof prefix: generated ids, the LineChecker after its ND lines, how many ND lines
-    and segments it has, its logprob at T = 1, and its ND lines as a dedup key."""
+    and segments it has, its logprob at T = 1, its ND lines as a dedup key, and its learned value
+    (value.py) once a search computes it."""
 
-    __slots__ = ("gen", "chk", "n", "depth", "logp", "key")
+    __slots__ = ("gen", "chk", "n", "depth", "logp", "key", "v")
 
     def __init__(self, gen, chk, n, depth, logp, key):
         self.gen, self.chk, self.n, self.depth, self.logp, self.key = gen, chk, n, depth, logp, key
+        self.v = None
 
     @classmethod
     def root(cls, prompt):

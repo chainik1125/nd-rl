@@ -1,0 +1,10 @@
+value_s0 value.py --run combo-c005_s0 --k 8 --cap 10
+smcv4_dev300 --run combo-c005_s0 --pool dev --limit 300 --method smc --N 4 --value /workspace/autoresearch/artifacts/val_s0/value_s0.pt
+smcv16_dev300 --run combo-c005_s0 --pool dev --limit 300 --method smc --N 16 --value /workspace/autoresearch/artifacts/val_s0/value_s0.pt
+smcv64_dev300 --run combo-c005_s0 --pool dev --limit 300 --method smc --N 64 --value /workspace/autoresearch/artifacts/val_s0/value_s0.pt
+beamv4x4_dev300 --run combo-c005_s0 --pool dev --limit 300 --method beam --B 4 --E 4 --value /workspace/autoresearch/artifacts/val_s0/value_s0.pt
+beamv16x4_dev300 --run combo-c005_s0 --pool dev --limit 300 --method beam --B 16 --E 4 --value /workspace/autoresearch/artifacts/val_s0/value_s0.pt
+bfsv_dev300 --run combo-c005_s0 --pool dev --limit 300 --method bfs --E 8 --budget 16000 --value /workspace/autoresearch/artifacts/val_s0/value_s0.pt
+smc4_dev300 --run combo-c005_s0 --pool dev --limit 300 --method smc --N 4
+smc64_dev300 --run combo-c005_s0 --pool dev --limit 300 --method smc --N 64
+beam16x4_dev300 --run combo-c005_s0 --pool dev --limit 300 --method beam --B 16 --E 4

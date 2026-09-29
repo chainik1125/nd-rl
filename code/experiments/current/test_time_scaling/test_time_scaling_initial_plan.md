@@ -242,7 +242,8 @@ unknown until `extend` exists. Everything together should be a few pod-hours, a 
 ## Out of scope for this plan
 
 - Expert iteration and learned value heads (Robbie).
-- Temperature sweeps, sampling without replacement, and test-time training are candidates for the
-  next round.
+- Temperature sweeps and sampling without replacement are candidates for the next round.
+- Test-time training on the evaluation theorems is ruled out (Robbie, 2026-09-29). Holdout is only
+  ever scored at the end; see [value_head_plan.md](value_head_plan.md).
 - The pretraining loop, its frozen harness, and its data are untouched. Everything here only reads
   c005's checkpoints.

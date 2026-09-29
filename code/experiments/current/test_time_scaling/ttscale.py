@@ -17,6 +17,7 @@ same two files from disk instead. Needs remote.sh's environment (ND_FORK, Lean).
 """
 
 import argparse
+import bisect
 import collections
 import hashlib
 import heapq
@@ -211,6 +212,14 @@ def _finish(res, jobs, recs, gate):
         res[i] = ("solved" if o else "leanrej", res[i][1], res[i][2])
 
 
+def _set_values(a, pids, pairs, stats):
+    """With --value, compute V for every (theorem, node) in one batch (node.v)."""
+    if a.V and pairs:
+        vs = a.V([pids[t] for t, _ in pairs], [n.gen for _, n in pairs], stats)
+        for (_, n), v in zip(pairs, vs, strict=True):
+            n.v = v
+
+
 def _theorem_state():
     """A theorem stops at the end of the round that solves it, so `tok` at the end is the cost of
     the solve, counting the round's parallel samples that did not solve it."""
@@ -219,7 +228,8 @@ def _theorem_state():
 
 def run_beam(model, tok, recs, a, gen, stats, gate):
     """Line-level beam search: every beam node gets E sampled segments; the valid, unseen
-    children are ranked by the logprob of the whole prefix and the top B form the next beam."""
+    children are ranked by the logprob of the whole prefix (with --value: by V) and the top B
+    form the next beam."""
     pids = [tok.encode_prompt(r["prompt"]) for r in recs]
     st = [_theorem_state() for _ in recs]
     beams = [[Node.root(r["prompt"])] for r in recs]
@@ -239,9 +249,10 @@ def run_beam(model, tok, recs, a, gen, stats, gate):
             elif v == "ok" and child.key not in seen[t] and len(child.gen) < harness.MAX_NEW:
                 seen[t].add(child.key)
                 kids[t].append(child)
+        _set_values(a, pids, [(t, n) for t in active for n in kids[t]], stats)
         for t in active:
             st[t]["rounds"] += 1
-            beams[t] = sorted(kids[t], key=lambda n: -n.logp)[: a.B]
+            beams[t] = sorted(kids[t], key=lambda n: -(n.v if a.V else n.logp))[: a.B]
         active = [t for t in active if not st[t]["solved"] and beams[t]]
     return st
 
@@ -249,12 +260,14 @@ def run_beam(model, tok, recs, a, gen, stats, gate):
 def run_smc(model, tok, recs, a, gen, stats, gate):
     """Bootstrap particle filter with a validity likelihood: each of N particles proposes one
     segment from the policy; invalid ones get weight 0; the survivors are resampled back to N
-    (systematic resampling; all weights are 1). Tracks how many distinct first segments (by ND
-    lines) the particles descend from."""
+    (systematic resampling; all weights are 1). With --value it is a twisted SMC: a valid child's
+    weight is V(child) / V(parent) and resampling is proportional to weight. Tracks how many
+    distinct first segments (by ND lines) the particles descend from."""
     rng = random.Random(a.sample_seed)
     pids = [tok.encode_prompt(r["prompt"]) for r in recs]
     st = [_theorem_state() for _ in recs]
     parts = [[(Node.root(r["prompt"]), None)] * a.N for r in recs]  # (node, ancestor id)
+    _set_values(a, pids, [(t, p[0][0]) for t, p in enumerate(parts)], stats)
     active = list(range(len(recs)))
     while active:
         jobs = [(t, n) for t in active for n, _ in parts[t]]
@@ -269,13 +282,20 @@ def run_smc(model, tok, recs, a, gen, stats, gate):
             if v == "solved":
                 s["solved"] = True
             elif v == "ok" and len(child.gen) < harness.MAX_NEW:
-                surv[t].append((child, child.key if anc[j] is None else anc[j]))
+                surv[t].append((child, child.key if anc[j] is None else anc[j], jobs[j][1]))
+        _set_values(a, pids, [(t, c) for t in active for c, _, _ in surv[t]], stats)
         for t in active:
             s = st[t]
             s["rounds"] += 1
             if surv[t]:
-                u, m = rng.random(), len(surv[t])
-                parts[t] = [surv[t][int((u + i) / a.N * m)] for i in range(a.N)]
+                w = [c.v / max(p.v, 1e-6) if a.V else 1.0 for c, _, p in surv[t]]
+                cum, acc = [], 0.0
+                for x in w:
+                    acc += x
+                    cum.append(acc)
+                u = rng.random()  # systematic resampling: N evenly spaced points on the CDF
+                picks = [bisect.bisect_right(cum, (u + i) / a.N * acc) for i in range(a.N)]
+                parts[t] = [surv[t][min(p, len(w) - 1)][:2] for p in picks]
                 s["ancestors"] = len({x for _, x in parts[t]})
         active = [t for t in active if not st[t]["solved"] and surv[t]]
     return st
@@ -283,10 +303,10 @@ def run_smc(model, tok, recs, a, gen, stats, gate):
 
 def run_bfs(model, tok, recs, a, gen, stats, gate):
     """Line-level best-first search: a frontier of every valid unexpanded prefix, keyed by
-    logprob / segments^alpha. Each round pops each theorem's best node and samples E segments
-    from it; valid unseen children join the frontier. An empty frontier restarts from the root.
-    Stops at a proof or at `budget` sampled tokens; the solve-rate-vs-budget curve for any smaller
-    budget follows from each theorem's `tok` (anytime)."""
+    logprob / segments^alpha (with --value: by V). Each round pops each theorem's best node and
+    samples E segments from it; valid unseen children join the frontier. An empty frontier
+    restarts from the root. Stops at a proof or at `budget` sampled tokens; the solve-rate-vs-
+    budget curve for any smaller budget follows from each theorem's `tok` (anytime)."""
     pids = [tok.encode_prompt(r["prompt"]) for r in recs]
     st = [_theorem_state() for _ in recs]
     roots = [Node.root(r["prompt"]) for r in recs]
@@ -301,6 +321,7 @@ def run_bfs(model, tok, recs, a, gen, stats, gate):
             jobs += [(t, node)] * a.E
         res = _expand(model, tok, recs, pids, jobs, gen, a, stats)
         _finish(res, jobs, recs, gate)
+        new = []
         for (t, _), (v, child, ntok) in zip(jobs, res, strict=True):
             s = st[t]
             s["tok"] += ntok
@@ -309,8 +330,11 @@ def run_bfs(model, tok, recs, a, gen, stats, gate):
                 s["solved"] = True
             elif v == "ok" and child.key not in seen[t] and len(child.gen) < harness.MAX_NEW:
                 seen[t].add(child.key)
-                score = child.logp / child.depth**a.alpha
-                heapq.heappush(front[t], (-score, next(tie), child))
+                new.append((t, child))
+        _set_values(a, pids, new, stats)
+        for t, child in new:
+            score = child.v if a.V else child.logp / child.depth**a.alpha
+            heapq.heappush(front[t], (-score, next(tie), child))
         for t in active:
             st[t]["rounds"] += 1
         active = [t for t in active if not st[t]["solved"] and st[t]["tok"] < a.budget]
@@ -343,6 +367,7 @@ def main():
     ap.add_argument("--N", type=int, default=16)
     ap.add_argument("--alpha", type=float, default=0.5)
     ap.add_argument("--budget", type=int, default=16000)
+    ap.add_argument("--value", help="beam/smc/bfs: a value head from value.py (.pt)")
     ap.add_argument("--batch", type=int, default=1024)
     ap.add_argument("--sample-seed", type=int)
     ap.add_argument("--out", required=True)
@@ -351,6 +376,11 @@ def main():
     model, tok, seed = load(a.run, a.ckpt_dir)
     a.sample_seed = seed * 1000 + 777 if a.sample_seed is None else a.sample_seed
     recs = pool(a.pool, a.limit, a.names)
+    a.V = None
+    if a.value:
+        from value import Value  # value.py imports this module, so not at the top
+
+        a.V = Value(model, a.value)
     gen = torch.Generator(device=harness.DEV)
     gen.manual_seed(a.sample_seed)
     stats = collections.Counter()
@@ -361,7 +391,7 @@ def main():
     for r, p in zip(recs, per, strict=True):
         p |= {"name": r["name"], "L": r["n_lines"]}
     out = {
-        "args": vars(a),
+        "args": {k: v for k, v in vars(a).items() if k != "V"},
         "n": len(recs),
         "stats": dict(stats),
         "gpu": torch.cuda.get_device_name(0) if harness.DEV == "cuda" else "cpu",

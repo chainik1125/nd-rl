@@ -4,7 +4,8 @@
   source .envrc.local && code/.venv/bin/python \
       code/experiments/current/test_time_scaling/launch.py <name> <jobs.txt>
 
-Each line of jobs.txt is `<out-name> <ttscale.py args...>`; the jobs run one after another and
+Each line of jobs.txt is `<out-name> <ttscale.py args...>` or `<out-name> <script.py> <args...>`
+(e.g. value.py); the jobs run one after another and
 write artifacts/test_time_scaling/<name>/<out-name>.json (+ .log). Reuses the autoresearch pod.py
 (rental, watchdog, detached run) with its upload replaced, as the combined pipeline's launch.py
 does. ND_POD_MAX_SECS (pod.py's self-destruct) defaults to 4 h here. If the pod's state file
@@ -33,7 +34,8 @@ mkdir -p "$2"
 while read -r name args; do
   [ -z "$name" ] && continue
   echo "== $name $args"
-  LEAN_GATE_LOG="$2/$name.lean_gate.jsonl" $PY ttscale.py $args --out "$2/$name.json" \\
+  case "$args" in *.py\\ *) ;; *) args="ttscale.py $args" ;; esac  # a job may name its script
+  LEAN_GATE_LOG="$2/$name.lean_gate.jsonl" $PY $args --out "$2/$name.json" \\
     > "$2/$name.log" 2>&1 < /dev/null || echo "FAILED $name"
   grep -v '^\\[lean_gate\\]' "$2/$name.log" | tail -2
 done < "$1"
@@ -48,7 +50,7 @@ def stage(name, jobs):
         shutil.copy2(os.path.join(AR, f), d)
     for f in ("fast_sample.py", "guided.py", "line_checker.py"):
         shutil.copy2(os.path.join(COMBINED, f), d)
-    for f in ("engine.py", "ttscale.py"):
+    for f in ("engine.py", "ttscale.py", "value.py"):
         shutil.copy2(os.path.join(HERE, f), d)
     shutil.copy2(jobs, os.path.join(d, "jobs.txt"))
     with open(os.path.join(d, "run_jobs.sh"), "w") as f:
