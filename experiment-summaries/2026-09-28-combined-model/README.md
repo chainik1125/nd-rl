@@ -179,9 +179,14 @@ What this says about the model:
     lines outside the Lean grammar.
 - **It is confidently wrong.** Half of all redraws reproduce the exact line that was just
   rejected.
-- **The curves still flatten.** About 142 theorems (12%) are solved by no method at any budget
-  tried. These look like missing plans rather than slips, which is where a learned value function
-  or training on the failures would come in.
+- **Banning the repeats helps a little.** A redraw can be made to exclude the lines already
+  rejected at that point, which is sampling without replacement. That lifts pass@1 by 2 points
+  and pass@64 by 1.
+- **The curves still flatten, and the rest looks like missing plans rather than slips.** About
+  142 theorems (12%) are solved by no method at 64 samples. At 1,024 resampled attempts only
+  about 1 in 10 of them falls, and those that do are hit 1-8 times in 1,024. For the rest, the
+  model puts almost no probability on any proof. Search over the same model will not reach them;
+  changing the weights (training on the failures) is the next thing to try.
 - **The metric scores without this sampler, although the RL trained with it.** Scoring the
   combined model with resampling would add about 26 points at 1 sample and 5 at 64. That was not
   measured for the other seven cells, so it could reorder them.
