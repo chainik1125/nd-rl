@@ -1,8 +1,7 @@
 # Run brief: repo-hygiene-2 — small files back, manifest and fetch helper, size guard
 
 Run id `repo-hygiene-2`. Repository `~/work/repo-hygiene-2` (branch `dan_repo-hygiene-2` from the fork's
-`origin/dan`, made by `newrun`; starts after `repo-hygiene` is recorded by its librarian). Role:
-executor. `AGENT_POLICY.md` governs. Budget **$2**, ceiling **4 pod-hours** (no pods are expected).
+`origin/dan`, made by `newrun`). Role: executor. `AGENT_POLICY.md` governs. Budget **$2**, ceiling **4 pod-hours** (no pods are expected).
 Authorised by Dan 2026-09-29.
 
 ## Why
@@ -15,10 +14,22 @@ the small summaries. It has no manifest and no way to fetch a moved file other t
 `git show <old sha>:…` or a manual bucket lookup. `repo-hygiene`'s inventories are in
 `~/runs/repo-hygiene/` (`inv_*.tsv`, `index_*.tsv`, `hash_*.log`). Reuse them; don't redo the work.
 
+**Update, 2026-09-29 15:30 UTC.**
+- `repo-hygiene`'s reviewer **quarantined** it. Its review is `review_repo-hygiene.md` on
+  `origin/dan_repo-hygiene`; read it first. The hard-constraint violation: untracking
+  `artifacts/TEST_RUN_DONE` switched off `test_run_once.sh`'s refuse-to-run-twice guard in every fresh
+  checkout.
+- The orchestrator has restored `artifacts/TEST_RUN_DONE` and `artifacts/test_scores.txt` on `dan`
+  (cf5924e2; the marker's sha256 is unchanged at `aa1745827596a2cc`). It also narrowed CI's
+  `no_tracked_artifacts` step to bulk kinds or files over 5 MB.
+- **Never run `test_run_once.sh`**, not even to test the guard. `repo-hygiene` will not be recorded on
+  its own; this run clears its quarantine (see Deliverables).
+
 ## What to do
 
-1. **Restore the small files to tracking.** Under `artifacts/`, bring back `.json` summaries, `.md`,
-   `.png`, `.log` and `.done` from the last pre-hygiene commit, and track them again. Only `.jsonl`,
+1. **Restore the small files to tracking.** Under `artifacts/`, bring back from the last pre-hygiene
+   commit **every file that is not a bulk kind and is ≤ 5 MB, whatever its extension**: `.json`, `.md`,
+   `.png`, `.log`, `.txt`, `.done`, and markers with no extension. Track them again. Only `.jsonl`,
    `.jsonl.gz`, `.pt`, and any file over 5 MB stay out. Apply the same rule to `ckpts/*.pt` and to
    files over 5 MB in `data/`, unless a test or CI needs them (then say which, and why they stay).
 2. **`artifacts/MANIFEST.jsonl`**: one row per untracked file, with repo path, bucket URI (under
@@ -41,9 +52,9 @@ the small summaries. It has no manifest and no way to fetch a moved file other t
 7. **Links**: re-point relative links in the fork's `.md` files to moved files at the last
    pre-hygiene commit (`blob/<sha>/…`).
 8. **Housekeeping**: remove the orchestrator's `**AMENDMENT …**` line from the top of `STATUS.md`.
-   Update `CONTRIBUTING.md` (fetch, publish, the sparse-checkout alternative). If `gh auth status`
-   now shows the `workflow` scope, run `ci/install_workflow.sh` and show one green GitHub Actions run
-   on `dan`.
+   Update `CONTRIBUTING.md` (fetch, publish, the sparse-checkout alternative). The token now has the
+   `workflow` scope (Dan, 2026-09-29): run `ci/install_workflow.sh` and show one green GitHub Actions
+   run on `dan`, plus a red one on a scratch branch.
 9. **Do not rewrite history.** Before merging into `dan`, check that no running run reads tracked
    artefacts from `dan` mid-run (`runqueue`, `STATUS.md`).
 
@@ -61,3 +72,7 @@ the small summaries. It has no manifest and no way to fetch a moved file other t
 Merged into the fork's `dan` after acceptance (the reviewer follows); `preregistration/repo-hygiene-2.md`;
 `run_repo_hygiene_2.md` (≤ 250 words); `log.md`; `STATUS.md` line `REPO-HYGIENE-2 DONE <UTC>`;
 `touch ~/runs/repo-hygiene-2/executor.done`.
+
+**Clearing `repo-hygiene`'s quarantine.** In `run_repo_hygiene_2.md`, answer each item under "What would
+clear the quarantine" in `review_repo-hygiene.md`. This run's reviewer checks them as well. This run's
+librarian records both runs: `repo-hygiene` as quarantined, then cleared here.

@@ -11,16 +11,12 @@ if [ "$NP" != "0" ]; then if [ $STRICT = 1 ]; then echo "GATE1 FAIL: $NP pods st
 git fetch -q upstream 2>/dev/null || git fetch -q origin 2>/dev/null
 REF=$(git rev-parse -q --verify upstream/main 2>/dev/null || git rev-parse -q --verify origin/main)
 [ "$(git show $REF:nd_verify/verify.py | sha256sum | cut -c1-16)" = "$(sha256sum nd_verify/verify.py | cut -c1-16)" ] || { echo "GATE1 FAIL: nd_verify/verify.py differs from $REF"; fail=1; }
-# The take-home's one test-file run left artifacts/TEST_RUN_DONE; a run must not touch it. Since
-# repo-hygiene (2026-09-29) untracked artifacts/, new worktrees may lack it, and any fresh checkout
-# gives it a new mtime, so fail only if it was modified after this run started.
-B=~/runs/baseline.test_marker; M=$(stat -c %Y artifacts/TEST_RUN_DONE 2>/dev/null)
-S=$(date -u -d "$(cat ~/runs/"$RUN"/executor.started 2>/dev/null)" +%s 2>/dev/null)
-if [ -z "$M" ]; then echo "GATE1 note: no artifacts/TEST_RUN_DONE in this worktree (untracked since repo-hygiene)"
-elif [ -f "$B" ] && [ "$(cat "$B")" = "$M" ]; then :
-elif [ -n "$S" ] && [ "$M" -le "$S" ]; then :
-elif [ ! -f "$B" ] && [ -z "$S" ]; then echo "$M" > "$B"
-else echo "GATE1 FAIL: artifacts/TEST_RUN_DONE modified during the run"; fail=1; fi
+# The take-home's single test-set run: test_run_once.sh writes the date and checkpoints into
+# artifacts/TEST_RUN_DONE and refuses to run while it exists, so a second run changes its content.
+# Compare content, not mtime (a fresh checkout gives it a new mtime).
+TM=artifacts/TEST_RUN_DONE; TM_SHA=aa1745827596a2cc
+if [ ! -f "$TM" ]; then echo "GATE1 WARN: no $TM in this worktree, so test_run_once.sh's guard is off here"; warn=1
+elif [ "$(sha256sum < "$TM" | cut -c1-16)" != "$TM_SHA" ]; then echo "GATE1 FAIL: $TM differs from the take-home's single test run"; fail=1; fi
 missing=0; for f in $(grep -oE '`(artifacts|data|ckpts|figures)/[^`]+`' numbers.md | tr -d '`' | sort -u); do g=${f%%/\{*}; [ -e "$g" ] || [ -n "$(ls -d $g* 2>/dev/null)" ] || missing=$((missing+1)); done
 [ $missing -gt 0 ] && { echo "GATE1 WARN: $missing source paths cited in numbers.md not found locally"; warn=1; }
 [ $fail = 0 ] && echo "GATE1 PASS (warnings: $warn)" || echo "GATE1 FAILED"; exit $fail
