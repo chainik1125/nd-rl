@@ -15,6 +15,8 @@ One model is adapted on all targets at once, as AlphaProof does for several targ
 
 --control: the same sampler on the targets alone, no variants, no training, k per round. With
 the same total samples it is the compute-matched "just sample more" baseline.
+--variants-of: the same loop, but the variants come from other theorems, so any gain is generic
+RL rather than learning about the targets.
 
   python3 ttrl.py --run combo-c005_s0 --pool dev --names-file targets_dev64.txt --out x.json
 """
@@ -39,20 +41,23 @@ GUIDE = {k: leon_rl.CFG[k] for k in ("guide_retries", "guide_rollbacks", "guide_
 GUIDE["guide_seg_max"] = leon_rl.CFG["guide_seg_max"]
 
 
-def build_items(recs, depth, control):
-    items = []
-    for r in recs:
-        items.append(
-            {"name": r["name"], "group": r["name"], "kind": "target", "prompt": r["prompt"]}
-        )
-        if control:
-            continue
+def build_items(recs, depth, control, var_recs=None):
+    """Targets plus variants of `var_recs` (default: the targets themselves). Variants of other
+    theorems get their own groups, so solving a target never retires them."""
+    items = [
+        {"name": r["name"], "group": r["name"], "kind": "target", "prompt": r["prompt"]}
+        for r in recs
+    ]
+    if control:
+        var_recs = []
+    for r in recs if var_recs is None else var_recs:
+        group = r["name"] if var_recs is None else f"other:{r['name']}"
         prems, goal = parse_thm(r["thm"])
         for i, v in enumerate(variants(prems, goal, depth)):
             items.append(
                 {
                     "name": f"{r['name']}~{i}",
-                    "group": r["name"],
+                    "group": group,
                     "kind": v["kind"],
                     "prompt": prompt(v["prems"], v["goal"]),
                 }
@@ -138,15 +143,20 @@ def main():
     ap.add_argument("--master", type=float, default=0.75)
     ap.add_argument("--temp", type=float, default=leon_rl.CFG["temperature"])
     ap.add_argument("--control", action="store_true")
+    ap.add_argument("--variants-of", help="names file: train on variants of these, not the targets")
     ap.add_argument("--batch", type=int, default=1024)
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     t0 = time.time()
     model, tok, seed = load(a.run, a.ckpt_dir)
-    with open(a.names_file) as f:
-        names = ",".join(x.strip() for x in f if x.strip())
-    recs = pool(a.pool, 0, names)
-    items = build_items(recs, a.depth, a.control)
+
+    def names(path):
+        with open(path) as f:
+            return ",".join(x.strip() for x in f if x.strip())
+
+    recs = pool(a.pool, 0, names(a.names_file))
+    var_recs = pool(a.pool, 0, names(a.variants_of)) if a.variants_of else None
+    items = build_items(recs, a.depth, a.control, var_recs)
     train_recs = H.read(f"{H.FORK}/data/train.jsonl")
     rng = random.Random(seed)
     torch.manual_seed(seed)
