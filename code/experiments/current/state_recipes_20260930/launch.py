@@ -33,7 +33,8 @@ def stage(recipe, arm, d):
     with open(os.path.join(HERE, "remote.sh")) as f:
         remote = f.read()
     with open(os.path.join(d, "remote.sh"), "w") as f:
-        f.write(f"export ND_TOTAL_SECS={TOTAL_SECS} STATE_ARM={arm}\n" + remote)
+        k = 192 if arm == "C0k192" else 32  # C0k192: C0 with SN's RL wall-clock spent on samples
+        f.write(f"export ND_TOTAL_SECS={TOTAL_SECS} STATE_ARM={arm[:2]} ST_K={k}\n" + remote)
     shutil.copy2(os.path.join(HERE, "harness_state.py"), os.path.join(d, "harness.py"))
     shutil.copy2(os.path.join(HERE, f"pretrain_{recipe}.py"), os.path.join(d, "pretrain.py"))
     for f in ("harness_frozen.py", "state_pairs.py"):
@@ -44,7 +45,7 @@ def stage(recipe, arm, d):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("recipe", choices=("198", "201", "204", "207"))
-    ap.add_argument("arm", choices=("C0", "SN", "SH"))
+    ap.add_argument("arm", choices=("C0", "C0k192", "SN", "SH"))
     ap.add_argument("seed", type=int)
     ap.add_argument("--smoke-dir")
     a = ap.parse_args()

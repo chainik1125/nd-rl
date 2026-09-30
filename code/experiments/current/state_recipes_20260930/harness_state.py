@@ -137,6 +137,9 @@ PRETRAIN_GRACE = 15  # seconds the agent may overrun before the run is a "timeou
 PARAM_CAP = 10_000_000  # unique trainable params, embeddings included
 RL_ROUNDS = 4  # expert-iteration rounds, fixed in samples
 N_TARGETS, K, TEMP, MAX_NEW, SAMPLE_BATCH = 1500, 32, 0.8, 512, 1024
+# compute-matched C0 (arm C0k192): RL samples per target per round, so C0's RL stage takes about
+# SN's wall-clock (1,974 s vs ~570 s on 204, 2026-09-30); eval stays at EVAL_K
+K = int(os.environ.get("ST_K", K))
 FT_STEPS, FT_BS, FT_LR, RETAIN, MAX_PER_THM, RL_WEIGHT = 600, 128, 3e-4, 20000, 4, 4
 EVAL_K = 64
 TOK_MODE = {"C0": "lean_seq", "SN": "lean_staten", "SH": "lean_stateh"}[ARM]
