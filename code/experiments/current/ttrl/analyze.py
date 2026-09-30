@@ -81,7 +81,10 @@ def main():
             ax.plot([x / n_t for x in xs], ys, marker="o", color=c, label=name)
         ax.set_xlabel("samples per target (TTRL: target + its variants)")
         ax.set_ylabel(f"targets solved (of {n_t})")
-        ax.set_xscale("symlog", linthresh=16)
+        for xs, ys in curves.values():
+            end = (xs[-1] / n_t, ys[-1])
+            ax.annotate(f"{ys[-1]}", end, xytext=(6, -3), textcoords="offset points")
+        ax.set_ylim(0, n_t)
         ax.grid(alpha=0.3)
         ax.legend(frameon=False)
         fig.tight_layout()

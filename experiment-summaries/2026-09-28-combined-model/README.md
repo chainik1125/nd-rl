@@ -325,8 +325,64 @@ directly: does the model solve variants of targets it can't solve?
 - Specializations (stronger premises) are the easiest, as they should be: they remove a case
   split or an implication. Many are mastered at once and leave the pool.
 
-Running: rounds 2-8 and the control. Code: `code/experiments/current/ttrl/` on branch
-`robbie-experiments`.
+**TTRL solves 48 of 64. Sampling more solves 31.**
+```
+
+![Targets solved vs samples per target: TTRL vs sampling more](charts/ttrl-dev64.png)
+
+```claude
+- **The budgets are matched.**
+  - TTRL used 2,623 samples per target (target plus its variants) and 29 minutes on one A40,
+    of which 3 minutes were fine-tuning.
+  - The control used 2,412 samples per target and 25 minutes.
+  - At 2,443 samples per target, just past the control's full budget, TTRL stood at 40.
+- **TTRL solves everything the control does, plus 17 more.** The control solves nothing TTRL
+  misses.
+- **TTRL barely samples the targets themselves.** Of its 167,872 samples, only 4,832 were on
+  targets: 75 per target, against the control's 2,412. The rest went to variants, and training
+  on those made the targets solvable.
+- **The gain is on the long theorems.** At 10 lines TTRL solves all 25 targets; the control
+  solves 10. At 11 or more lines TTRL gets 8 of 16, the control 6.
+- **It starts slower and doesn't flatten.** For the first ~2,000 samples per target TTRL is
+  behind, because it spreads its samples over variants. Then rounds 5-8 add 7, 4, 6 and 2
+  targets, while the control adds 2 over its last 1,100 samples per target. TTRL was still
+  climbing at round 8, when it stopped.
+```
+
+### What's left
+
+```claude
+16 targets are still unsolved. For 9 of them every variant has been solved at least once, and
+most are mastered. la_transfer_1167, for one, has all 19 variants mastered, and the target is
+still unsolved. The model can prove
+every piece but doesn't write the whole proof in one pass. That's the composition gap: AlphaProof
+closes it with tree search, which assembles solved subgoals automatically. Our model writes
+proofs left to right without search.
+
+The cheap fix is mechanical. A cut gives proofs of `Γ ⊢ ψ` and `Γ, ψ ⊢ G`. Paste the first
+into the second where ψ is cited as a premise, renumber, and verify: that's a proof of the
+target, built from the model's own pieces. Training on it teaches the long proof. This wasn't
+in this run.
+```
+
+### Caveats
+
+```claude
+- **One seed, one model, 64 dev targets.** The 17-target gap is large next to anything
+  seed-level we've seen, but it is one run.
+- **It could be generic RL rather than target-specific learning.** TTRL spends 8 rounds of
+  RL on theorems like these; the control spends none. If variants of *unrelated* theorems help
+  as much, the variants aren't what matters. That control is next.
+- **Dev theorems.** The 64 were picked by failing c005 at 64 plain samples on this dev split.
+  Every knob was set before the run and none was tuned, but the real test is the held-out
+  theorems every inference method missed. At 1,024 attempts about 90% of those stay unsolved.
+- **Easy targets included.** 23 of the 64 fall to 256 guided samples, so "unsolved at 64 plain
+  samples" was a weak filter for hard. The comparison is still like for like.
+- **Temperature.** Both arms sample at T 1.0, the RL temperature. The frozen eval and the
+  test-time section above use T 0.8.
+
+Code: `code/experiments/current/ttrl/` on branch `robbie-experiments`. Per-item results:
+`artifacts/ttrl/dev64_ttrl/`, `artifacts/ttrl/dev64_control/` (in the checkout).
 ```
 
 ## Methodology
