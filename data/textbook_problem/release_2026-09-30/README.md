@@ -51,16 +51,41 @@ the Roy rows are non-commercial; a derived release must carry a compatible licen
 attributions. The four Carr rows carry no licence from the author; Charles chose to include them
 (2026-09-30). Each is identifiable by `source.id == "carr"`.
 
-## What the sets look like
+## Compared with the textbook 72
 
-| | candidate_v0 (104) | candidate_v1 (80) | unsolved (10) |
-| --- | --- | --- | --- |
-| Shortest proof, median / mean / max lines | 8 / 9.6 / 29 | 9.5 / 11.4 / 28 | – |
-| 7+ lines | 85 | 69 | – |
-| Families: direct / conditional / case split / derived case split / negation / classical | 15 / 22 / 16 / 12 / 24 / 15 | 7 / 27 / 19 / 4 / 13 / 10 | – |
-| Theorems (no premises) | 13 | 30 | 6 |
-| Classical-only | 18 | 16 | – |
-| Named-law matches; of the 9 laws missing from the 72 | 9; 0 | 15; 6 | – |
+The textbook 72 (58 `textbook_dev` + 14 `textbook_train`) are the project's sealed test set, not
+included here. These sets were built to sit beside them: same format, same encoding, audited to
+share no problem with them by renaming class. Aggregate figures for the 72 come from the local
+analysis; 71 of the 72 have a reference proof.
+
+| | textbook 72 | candidate_v0 (104) | candidate_v1 (80) | unsolved (10) |
+| --- | --- | --- | --- | --- |
+| Shortest proof, median lines | 10 | 8 | 9.5 | – |
+| Shortest proof, mean / max lines | – | 9.6 / 29 | 11.4 / 28 | – |
+| 5–10 lines (the plan's target band) | 30 | 59 | 45 | – |
+| 7+ lines | 53 | 85 | 69 | – |
+| Families: direct / conditional / case split / derived case split / negation / classical | 7 / 17 / 15 / 6 / 13 / 13 | 15 / 22 / 16 / 12 / 24 / 15 | 7 / 27 / 19 / 4 / 13 / 10 | – |
+| Theorems (no premises) | 16 | 13 | 30 | 5 |
+| 3 or more premises | 4 | 17 | 9 | 1 |
+| 3–4 letters | 33 | 63 | 42 | 8 |
+| Goal: → / atom / ∨ / ¬ / ↔ / ∧ / ⊥ | 21 / 9 / 14 / 10 / 10 / 4 / 4 | 35 / 20 / 13 / 14 / 11 / 8 / 3 | 24 / 7 / 7 / 10 / 26 / 6 / 0 | – |
+| Proofs with 2 or more subproofs | 72% | 62% | 70% | – |
+| Classical-only | – | 18 | 16 | – |
+| Named-law matches (of which in an RL pool) | 26 | 9 (4) | 15 (9) | – |
+| Of the 9 standard laws absent from the 72 | 0 | 0 | 6 | – |
+
+Length by bin (lines 1–2 / 3–4 / 5–6 / 7–8 / 9–10 / 11–12 / 13–15 / 16+): the 72: 4 / 3 / 11 / 8 / 11 /
+17 / 8 / 9; candidate_v0: 1 / 3 / 15 / 34 / 10 / 21 / 14 / 6; candidate_v1: 0 / 3 / 8 / 19 / 18 / 6 / 9 / 17.
+
+Read across: the 72 are heaviest at 11–12 lines, on disjunction goals and on named laws (26 of 72
+match a standard schema). candidate_v0 is shorter (peak at 7–8 lines), heavier on atomic goals and
+on problems with 3 or more premises, and adds the negation and direct families the 72 lack.
+candidate_v1 is longer (17 problems at 16+ lines), mostly theorems, and heavy on biconditionals;
+it is the only set that instantiates six of the nine standard laws absent from the 72
+(contraposition and its converse, export, explosion, modus tollens, the converse of ∧-over-∨
+distribution), in the theorem forms that survive the validation_36 audit. Combined, v0 and v1 put
+five of the six families past the plan's target of 20 problems each (conditional 49, negation 37,
+case split 35, classical 25, direct 22; derived case split 16); the 72 alone reach none.
 
 The 10 unsolved are nine nested biconditionals and one conditional theorem (Roy T6.29, T6.30,
 E6.18i, E6.18o, E6.20c, E6.20d, E6.20e, E6.21j, E6.21l, E6.21m).
