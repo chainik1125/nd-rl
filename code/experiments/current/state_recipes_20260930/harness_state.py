@@ -80,9 +80,11 @@ STATE = ARM != "C0"
 MAX_ACTION, MAX_STEPS = 256, 48  # Dan's state-env settings
 # live attempts per wave (Dan used 2048). Every step re-encodes the state (SH: history + state),
 # and the ALiBi recipes' prefill builds a (batch, heads, L, L) fp32 bias: 2048 OOMed an A40 at
-# L ~ 300 on SH and SN (2026-09-30). 512 / 256 keep it ~6-8 GB at L 600 / 1000. A batch change is
-# a sampling re-draw only.
+# L ~ 300 on SH and SN (2026-09-30). Weak SH models still reach L > 1000 at 256, so on an OOM the
+# batch halves for the rest of the run and the call is redone (generate). A batch change is a
+# sampling re-draw only.
 ENV_BATCH = {"SN": 512, "SH": 256}.get(ARM, 2048)
+ENV_OOMS = []  # (batch before, batch after) per OOM, recorded in the summary
 FT_MAX_TOKENS = 200_000  # padded tokens per fine-tune micro-batch (SH's histories are long)
 
 
@@ -98,17 +100,27 @@ def generate(model, tok, prompts, greedy, temperature, batch, seed, max_new):
             seed=seed,
             max_new=max_new,
         )
-    return env_generate(
-        model,
-        tok,
-        prompts,
-        greedy=greedy,
-        temperature=temperature,
-        max_action=MAX_ACTION,
-        max_steps=MAX_STEPS,
-        batch=ENV_BATCH,
-        seed=seed,
-    )
+    global ENV_BATCH
+    while True:
+        try:
+            return env_generate(
+                model,
+                tok,
+                prompts,
+                greedy=greedy,
+                temperature=temperature,
+                max_action=MAX_ACTION,
+                max_steps=MAX_STEPS,
+                batch=ENV_BATCH,
+                seed=seed,
+            )
+        except torch.OutOfMemoryError:
+            if ENV_BATCH <= 16:
+                raise
+        torch.cuda.empty_cache()  # outside the except: the traceback's tensors are freed
+        ENV_OOMS.append((ENV_BATCH, ENV_BATCH // 2))
+        ENV_BATCH //= 2
+        log(f"env sampling OOM: batch {ENV_OOMS[-1][0]} -> {ENV_BATCH}, redoing the call")
 
 
 def mk_batch(data, idxs, tok, rng, dev):
@@ -413,6 +425,9 @@ def write_summary(a, status, **kw):
         "gpu": torch.cuda.get_device_name(0) if DEV == "cuda" else "cpu",
         "torch": torch.__version__,
         "lean_gate": lean_gate_totals(),
+        "arm": ARM,
+        "env_batch": ENV_BATCH,
+        "env_ooms": ENV_OOMS,
         "total_secs": time.time() - a.T0,
         "rules": {
             k: globals()[k]
