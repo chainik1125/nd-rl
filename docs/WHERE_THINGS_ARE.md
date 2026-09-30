@@ -66,18 +66,18 @@ List current branches with `git fetch --prune && git branch -r --sort=-committer
 ## 4. Curated write-ups
 
 `main`'s [experiment-summaries index](../experiment-summaries/README.md) stops at the
-2026-09-10 imports. Later write-ups live on their owners' branches, each with its own
-`experiment-summaries/README.md` index:
+2026-09-10 imports. Later write-ups live on blogs or on their owners' branches. Branch-based
+write-ups each have their own `experiment-summaries/README.md` index.
 
-| Owner | Where | Covers |
-| --- | --- | --- |
-| Dan | `origin/dan`: `experiment-summaries/`, `docs/STATE.md`, weekly digests in `docs/digests/` | His agent campaign: dataset composition, cap horizon, state environment, GRPO, support curves, search expert, ... |
-| Robbie | Blog posts: [Pretraining ablations, week of September 21, 2026](https://robbiewmthompson.com/blog/pretraining-ablations/); [The combined model, and where its gains come from](https://robbiewmthompson.com/blog/combined-model/) (draft, unlisted) | Most readable versions of the two experiment summaries below. |
-| Robbie | `origin/robbie-experiments`: `experiment-summaries/2026-09-2*`, `2026-09-30-*` | Pretraining ablations, combined pipeline, test-time scaling, bigger model/longer pretraining. Autoresearch results: `code/experiments/current/autoresearch/RESULTS.md` on `autoresearch-pretrain`. |
-| Leon | `origin/leon/home-rolled-rl`: `experiment-summaries/2026-09-2*` | RL hill-climbing A/B and run 2, length generalisation, representation for length, mid-training on glued proofs. |
-| Leon | `origin/leon/benchmarking`: `code/experiments/current/benchmarking_20260930/` | Benchmark plan and runbook. |
-| Charles | `origin/charles/main`: `experiments/ws3/<exp>/status.md` and `<exp>/<run>/report/report.md` | Per-experiment status and per-run reports. |
-| Dmitry | TODO | |
+| Owner | Link | Branch | Covers |
+| --- | --- | --- | --- |
+| Dan | [experiment-summaries](https://github.com/chainik1125/nd-rl/tree/dan/experiment-summaries), [STATE.md](https://github.com/chainik1125/nd-rl/blob/dan/docs/STATE.md), [weekly digests](https://github.com/chainik1125/nd-rl/tree/dan/docs/digests) | `dan` | His agent campaign: dataset composition, cap horizon, state environment, GRPO, support curves, search expert, ... |
+| Robbie | [Pretraining ablations, week of September 21, 2026](https://robbiewmthompson.com/blog/pretraining-ablations/) | | Curated explanation of the week's work. |
+| Robbie | [The combined model, and where its gains come from](https://robbiewmthompson.com/blog/combined-model/) (draft, unlisted) | | Curated explanation of the week's work. |
+| Leon | [experiment-summaries](https://github.com/chainik1125/nd-rl/tree/leon/home-rolled-rl/experiment-summaries) | `leon/home-rolled-rl` | RL hill-climbing A/B and run 2, length generalisation, representation for length, mid-training on glued proofs. |
+| Leon | [benchmarking_20260930](https://github.com/chainik1125/nd-rl/tree/leon/benchmarking/code/experiments/current/benchmarking_20260930) | `leon/benchmarking` | Benchmark plan and runbook. |
+| Charles | [experiments/ws3](https://github.com/chainik1125/nd-rl/tree/charles/main/experiments/ws3) | `charles/main` | Per-experiment `status.md` and per-run `report/report.md`. |
+| Dmitry | TODO | | |
 
 Read a file off a branch without checking it out:
 `git show origin/<branch>:<path>`.
