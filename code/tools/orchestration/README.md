@@ -93,3 +93,9 @@ Use `podnew` / `podrun` / `podrm` for interactive or multi-stage work that needs
 
 `podbg` fix (same day): `a && setsid … & disown` backgrounded the whole `&&` list, and that subshell held the
 ssh channel open until the job ended or `timeout 60` fired (rc 124). Only the job is backgrounded now.
+
+**Notifications (2026-09-30).** Dan gets one `<run>: recorded` message per run when its librarian finishes, naming the
+summary; a run's own new questions (lines merged in from `dan` are ignored); and every problem: gate-2 failure or
+quarantine, hard stop, out of credits, auth failure, three failed invocations, usage limit, pod watchdog, kill switch,
+budget enforcement, balance floor. Session starts, executor and reviewer completions, and the 80 % budget warning are
+logged, not sent.

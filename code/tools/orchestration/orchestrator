@@ -7,11 +7,14 @@ while IFS='|' read -r RUN REPO DG BRIEF; do
   RUN=$(echo $RUN); REPO=$(echo $REPO); DG=$(echo $DG); BRIEF=$(echo $BRIEF)
   [ -z "$RUN" ] || [ "${RUN:0:1}" = "#" ] && continue
   D=~/runs/$RUN; mkdir -p "$D"
-  # Notify Dan when an agent adds to QUESTIONS.md (new lines since the last tick).
+  # Notify Dan when this run's agent adds a question to QUESTIONS.md. Lines that are already on origin/dan came in
+  # through a merge (other runs' questions, Dan's answers) and are not news: on 2026-09-30 such merges sent Dan
+  # "new question" alerts that quoted his own answer.
   Q="$REPO/QUESTIONS.md"; H=$D/questions.sha
   if [ -f "$Q" ]; then NEW=$(sha256sum "$Q" | cut -c1-16); OLD=$(cat "$H" 2>/dev/null)
     if [ "$NEW" != "$OLD" ]; then
-      if [ -n "$OLD" ]; then LINES=$(diff <(cat "$D/questions.prev" 2>/dev/null) "$Q" | grep '^>' | sed 's/^> //' | head -c 1500)
+      if [ -n "$OLD" ]; then LINES=$(diff <(cat "$D/questions.prev" 2>/dev/null) "$Q" | grep '^>' | sed 's/^> //' \
+          | grep -vxF -f <(git -C "$REPO" show origin/dan:QUESTIONS.md 2>/dev/null | grep -v '^[[:space:]]*$') | grep -v '^[[:space:]]*$' | head -c 1500)
         [ -n "$LINES" ] && notify "$RUN: new question(s) for you in QUESTIONS.md" "$LINES ($(cd "$REPO" && git remote get-url origin 2>/dev/null | sed 's|\.git$||')/blob/$(cd "$REPO" && git branch --show-current)/QUESTIONS.md)"; fi
       echo "$NEW" > "$H"; cp "$Q" "$D/questions.prev"; fi; fi
   if [ ! -f "$D/reviewer.started" ] && grep -qE "$DG" "$REPO/STATUS.md" 2>/dev/null; then
@@ -20,13 +23,11 @@ while IFS='|' read -r RUN REPO DG BRIEF; do
     review_workspace "$RUN" "$REPO" >> $L 2>&1
     tmux new-session -d -s "rev-$RUN" "bash -lc 'runrole reviewer $RUN --repo $REPO ${BRIEF:+--brief $BRIEF} --stop \"+12 hours\"'"
     echo "$(date -u +%FT%TZ) $RUN: reviewer session started (tmux rev-$RUN)" >> $L
-    notify "$RUN: executor finished, reviewer started" "$(grep -E "$DG" "$REPO/STATUS.md" | tail -1)"
   fi
   if [ -f "$D/reviewer.done" ] && [ ! -f "$D/librarian.started" ]; then
     if gate2 "$REPO" "$RUN" >> $L 2>&1; then
       tmux new-session -d -s "lib-$RUN" "bash -lc 'runrole librarian $RUN --repo $HOME/nd-rl --stop \"+6 hours\"'"
       echo "$(date -u +%FT%TZ) $RUN: librarian session started" >> $L
-      notify "$RUN: review passed gate 2, librarian started" "$(grep -iA3 '^## .*verdict' "$REPO/review_$RUN.md" | tail -3 | tr '\n' ' ')"
     else echo "$(date -u +%FT%TZ) $RUN: gate2 failed; librarian not started" >> $L; touch "$D/librarian.started"; notify "$RUN: review failed gate 2" "Librarian not started; see ~/orchestrator.log" high; fi
   fi
 done < ~/orchestrator.conf

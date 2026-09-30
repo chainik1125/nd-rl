@@ -15,7 +15,7 @@ for f in "$L"/*; do
   elif awk -v u="$used" -v h="$HOURS" 'BEGIN{exit !(u>=0.8*h)}'; then
     W=~/runs/$RUN/BUDGET_WARNING; [ -f "$W" ] && continue
     mkdir -p ~/runs/$RUN; printf "%s used %s of %s pod-hours (\$%s). Wrap up, or extend with: podbudget %s --extend <hours> \"reason\"\n" "$RUN" "$used" "$HOURS" "$dollars" "$RUN" > "$W"
-    notify "$RUN: 80 % of its pod-hour ceiling ($used / $HOURS h, \$$dollars)" "The run has been warned in ~/runs/$RUN/BUDGET_WARNING and may extend itself within its declared budget." low
+    # The warning is for the run (BUDGET_WARNING), not for Dan: he gets the 100 % enforcement message only (2026-09-30).
     echo "$(date -u +%FT%TZ) $RUN warned at $used/$HOURS h" >> ~/podbudget.log
   fi
 done
