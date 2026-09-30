@@ -13,7 +13,7 @@ their own rows current. Everything below was checked on 2026-09-30 unless marked
 
 | Owner | Location | Layout | What's there |
 | --- | --- | --- | --- |
-| Dan | bucket `hf://buckets/dan-pandori/nd-rl/` | `<run-id>/{ckpts,artifacts,data}/`, plus `registry/<run-id>/` | About 40 runs from Dan's agent campaign (`cap-horizon`, `state-env`, `support-curves`, ...). Datasets live under each run's `data/`, e.g. `cap-horizon/data/kh/train_k12.jsonl.gz`. `registry/` holds the per-run results rows (see §2). |
+| Dan | bucket [`hf://buckets/dan-pandori/nd-rl/`](https://huggingface.co/buckets/dan-pandori/nd-rl) | `<run-id>/{ckpts,artifacts,data}/`, plus `registry/<run-id>/` | About 40 runs from Dan's agent campaign (`cap-horizon`, `state-env`, `support-curves`, ...). Datasets live under each run's `data/`, e.g. `cap-horizon/data/kh/train_k12.jsonl.gz`. `registry/` holds the per-run results rows (see §2). |
 | Robbie | model repo [`robbiethompson2018/nd-rl-checkpoints`](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints) | `runs/<RUN_ID>_s<seed>/`, `sources/`, `pretrain_poc/`, `previous_attempts/` | Every autoresearch run, one directory per seed: `pretrain.pt`, `rl_round_0N.pt`, `final.pt` (includes RL), `summary.json`, `source/pretrain.py`. |
 | Leon | TODO | | |
 | Charles | TODO | | Charles's branch loads Robbie's run 039 checkpoint from Robbie's repo. |
@@ -37,7 +37,7 @@ of this table aren't comparable unless their protocols match.
 
 | Owner | Model | Where | Metric and protocol |
 | --- | --- | --- | --- |
-| Robbie | Autoresearch run 198 (`198-claude_lean-muon-no-rms-retest`): ALiBi/NoPE heads, Peri-LN, MTP head, Polar Express Muon | `runs/198-claude_lean-muon-no-rms-retest_s{0,1,2}/` in Robbie's HF repo; source `pretrain.py` at `c891da8` on `autoresearch-pretrain` | Score 681 on the autoresearch harness: 300 s pretraining, then fixed expert-iteration RL, Lean-format fork `51604b3`. `pretrain.pt` is pretraining only; `final.pt` includes RL. |
+| Robbie | Autoresearch run 198 (`198-claude_lean-muon-no-rms-retest`): ALiBi/NoPE heads, Peri-LN, MTP head, Polar Express Muon | HF: [`runs/198-claude_lean-muon-no-rms-retest_s0/`](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints/tree/main/runs/198-claude_lean-muon-no-rms-retest_s0) (also `_s1`, `_s2`); source `pretrain.py` at `c891da8` on `autoresearch-pretrain` | Score 681 on the autoresearch harness: 300 s pretraining, then fixed expert-iteration RL, Lean-format fork `51604b3`. `pretrain.pt` is pretraining only; `final.pt` includes RL. |
 | Dan | TODO | | Dan's results registry lists checkpoint URIs and headline metrics for his runs: rows in the bucket's `registry/`, described in `experiment-summaries/2026-09-29-results-registry-ckpt-upload-and-results-table/README.md` on `origin/dan`. |
 | Leon | TODO | | |
 | Charles | TODO | | |
@@ -72,6 +72,7 @@ List current branches with `git fetch --prune && git branch -r --sort=-committer
 | Owner | Where | Covers |
 | --- | --- | --- |
 | Dan | `origin/dan`: `experiment-summaries/`, `docs/STATE.md`, weekly digests in `docs/digests/` | His agent campaign: dataset composition, cap horizon, state environment, GRPO, support curves, search expert, ... |
+| Robbie | Blog posts: [Pretraining ablations, week of September 21, 2026](https://robbiewmthompson.com/blog/pretraining-ablations/); [The combined model, and where its gains come from](https://robbiewmthompson.com/blog/combined-model/) (draft, unlisted) | Most readable versions of the two experiment summaries below. |
 | Robbie | `origin/robbie-experiments`: `experiment-summaries/2026-09-2*`, `2026-09-30-*` | Pretraining ablations, combined pipeline, test-time scaling, bigger model/longer pretraining. Autoresearch results: `code/experiments/current/autoresearch/RESULTS.md` on `autoresearch-pretrain`. |
 | Leon | `origin/leon/home-rolled-rl`: `experiment-summaries/2026-09-2*` | RL hill-climbing A/B and run 2, length generalisation, representation for length, mid-training on glued proofs. |
 | Leon | `origin/leon/benchmarking`: `code/experiments/current/benchmarking_20260930/` | Benchmark plan and runbook. |
