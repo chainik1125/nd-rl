@@ -129,6 +129,123 @@ def test_token_count_matches_encoder(tiny_ckpt: Path) -> None:
         adapter.close()
 
 
+# --------------------------------------------------------------------- cross-request batching
+
+
+def test_sample_batches_across_requests_right_count_and_order(tiny_ckpt: Path) -> None:
+    """Fix for the ~10x throughput regression (`sample()` used to call `_gen` once per request,
+    `n` copies of one prompt at a time): with `batch` large enough for both requests' rows to land
+    in a single `_gen` call, `sample()` must still return exactly `req.n` attempts per request, in
+    request order, with `Attempt.i` numbered `0..req.n-1` in draw order."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", batch=64)
+    try:
+        proofs = load_valid_proofs()
+        seq_a = Sequent.from_prompt(proofs[0]["prompt"])
+        seq_b = Sequent.from_prompt(proofs[1]["prompt"])
+        req_a = SampleRequest(
+            pid="a", sequent=seq_a, n=5, temperature=1.0, max_new_tokens=8, seed=0
+        )
+        req_b = SampleRequest(
+            pid="b", sequent=seq_b, n=3, temperature=1.0, max_new_tokens=8, seed=1
+        )
+        attempts_a, attempts_b = adapter.sample([req_a, req_b])
+        assert len(attempts_a) == 5
+        assert len(attempts_b) == 3
+        assert [a.pid for a in attempts_a] == ["a"] * 5
+        assert [a.pid for a in attempts_b] == ["b"] * 3
+        assert [a.i for a in attempts_a] == list(range(5))
+        assert [a.i for a in attempts_b] == list(range(3))
+    finally:
+        adapter.close()
+
+
+def test_sample_cross_request_batch_preserves_per_request_prefixes(tiny_ckpt: Path) -> None:
+    """Two requests with *different* forced prefixes, batched into one `_gen` call, must each keep
+    their own prefix -- the flattened-rows/grouping refactor must not mix them up."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", batch=64)
+    try:
+        proofs = load_valid_proofs()
+        seq_a = Sequent.from_prompt(proofs[0]["prompt"])
+        seq_b = Sequent.from_prompt(proofs[1]["prompt"])
+        prefix_a = PrefixSpec(j=1, body=take_prefix(proofs[0]["proof"], 1))
+        prefix_b = PrefixSpec(j=2, body=take_prefix(proofs[1]["proof"], 2))
+        req_a = SampleRequest(
+            pid="a", sequent=seq_a, n=2, temperature=1.0, max_new_tokens=10, seed=0, prefix=prefix_a
+        )
+        req_b = SampleRequest(
+            pid="b", sequent=seq_b, n=2, temperature=1.0, max_new_tokens=10, seed=1, prefix=prefix_b
+        )
+        attempts_a, attempts_b = adapter.sample([req_a, req_b])
+        for a in attempts_a:
+            assert a.body.startswith(prefix_a.body)
+            assert first_index(a.body) == 1
+        for b in attempts_b:
+            assert b.body.startswith(prefix_b.body)
+            assert first_index(b.body) == 1
+    finally:
+        adapter.close()
+
+
+def test_sample_cross_request_batch_with_mixed_max_new_tokens(tiny_ckpt: Path) -> None:
+    """Requests with different `max_new_tokens` cannot share one `_gen` call (it applies one
+    `max_new` to its whole batch): `sample()` must group by `(max_new_tokens, temperature)` first,
+    and each group must respect its own request's `max_new_tokens` cap."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", batch=64)
+    try:
+        proofs = load_valid_proofs()
+        seq_a = Sequent.from_prompt(proofs[0]["prompt"])
+        seq_b = Sequent.from_prompt(proofs[1]["prompt"])
+        req_a = SampleRequest(
+            pid="a", sequent=seq_a, n=4, temperature=1.0, max_new_tokens=3, seed=0
+        )
+        req_b = SampleRequest(
+            pid="b", sequent=seq_b, n=4, temperature=1.0, max_new_tokens=9, seed=1
+        )
+        attempts_a, attempts_b = adapter.sample([req_a, req_b])
+        assert len(attempts_a) == 4
+        assert len(attempts_b) == 4
+        assert all(a.n_tokens <= 3 for a in attempts_a)
+        assert all(b.n_tokens <= 9 for b in attempts_b)
+    finally:
+        adapter.close()
+
+
+def test_sample_is_deterministic_for_the_same_request_list(tiny_ckpt: Path) -> None:
+    """Same `reqs` list in, same attempts out (module docstring's determinism contract): the
+    generator is seeded from a hash of every request's own `seed`, in order."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", batch=64)
+    try:
+        proofs = load_valid_proofs()
+        reqs = [
+            SampleRequest(
+                pid="a",
+                sequent=Sequent.from_prompt(proofs[0]["prompt"]),
+                n=4,
+                temperature=1.0,
+                max_new_tokens=8,
+                seed=0,
+            ),
+            SampleRequest(
+                pid="b",
+                sequent=Sequent.from_prompt(proofs[1]["prompt"]),
+                n=6,
+                temperature=1.0,
+                max_new_tokens=8,
+                seed=1,
+            ),
+        ]
+        out1 = adapter.sample(reqs)
+        out2 = adapter.sample(reqs)
+        natives1 = [[a.native for a in attempts] for attempts in out1]
+        natives2 = [[a.native for a in attempts] for attempts in out2]
+        assert natives1 == natives2
+        bodies1 = [[a.body for a in attempts] for attempts in out1]
+        bodies2 = [[a.body for a in attempts] for attempts in out2]
+        assert bodies1 == bodies2
+    finally:
+        adapter.close()
+
+
 # -------------------------------------------------------------------------------------- logprob
 
 
@@ -342,6 +459,72 @@ def test_steering_prompt_vs_proof_where_only_affects_selected_positions(tiny_ckp
             steered_all.close()
         if steered_proof is not None:
             steered_proof.close()
+
+
+def test_steering_position_recovery_with_mixed_length_prompts_in_one_batch(tiny_ckpt: Path) -> None:
+    """Cross-request batching (`sample()`'s throughput fix) means one `_gen` call can now mix rows
+    of different real prompt lengths, something that never happened when `_gen` was only ever
+    called with `n` copies of a single request (uniform length, zero left padding). The steering
+    hook must recover each row's own real (left-padding-adjusted) position from the shared,
+    left-padded KV-cache batch rather than one position range shared by the whole batch.
+
+    This replicates `_gen`'s own left-padded/cached prefill call shape directly against `model` +
+    hooks (independent of `sample()`'s own grouping) for two rows of different real lengths (3 and
+    5 tokens, padded to `L=5`), and checks that a `where="prompt"` steering term changes exactly
+    the columns that are really `< prompt_len` *for that row* -- including row 0's last two
+    (padded) columns, which a shared, batch-wide column count would misclassify as absolute
+    positions 3 and 4 (`>= prompt_len`) purely because of their later column index.
+    """
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", batch=8)
+    try:
+        d = adapter._cfg["d"]
+        # A varying vector: LayerNorm's mean-subtraction would exactly cancel a constant shift (see
+        # the note in `test_steering_zero_vector_noop_nonzero_changes_and_identity_differs`).
+        vec = tuple(float(i) - d / 2 for i in range(d))
+        term = SteeringTerm(layer=0, vector=vec, alpha=5.0, where="prompt")
+        steered = adapter.with_steering((term,))
+        try:
+            model = steered._model
+            tok = steered._tok
+            L, max_new = 5, 1
+            lens = [3, 5]  # row 0: 3 real tokens (2 left-pad columns); row 1: 5 (no padding)
+            tok_id = tok._ref(1)
+            idx = torch.full((2, L), tok.pad, dtype=torch.long)
+            keep = torch.zeros((2, L), dtype=torch.bool)
+            for i, n in enumerate(lens):
+                idx[i, L - n :] = tok_id
+                keep[i, L - n :] = True
+            pos = (keep.cumsum(1) - 1).clamp(min=0)
+            causal = torch.tril(torch.ones(L, L, dtype=torch.bool))
+            mask = causal[None, None] & keep[:, None, None, :]
+            mask = mask | torch.eye(L, dtype=torch.bool)[None, None]
+
+            steered._steer_prompt_len = 3
+            steered_caches = [{"max": L + max_new} for _ in model.blocks]
+            with torch.no_grad():
+                steered_logits = model(idx, pos=pos, mask=mask, caches=steered_caches)
+            steered._steer_prompt_len = 0
+
+            base_caches = [{"max": L + max_new} for _ in adapter._model.blocks]
+            with torch.no_grad():
+                base_logits = adapter._model(idx, pos=pos, mask=mask, caches=base_caches)
+
+            # Row 0's 3 real tokens live at columns 2,3,4 with real positions 0,1,2 -- all < 3, so
+            # *every* real column must be steered, including the last two.
+            assert not torch.allclose(steered_logits[0, 2], base_logits[0, 2])
+            assert not torch.allclose(steered_logits[0, 3], base_logits[0, 3])
+            assert not torch.allclose(steered_logits[0, 4], base_logits[0, 4])
+
+            # Row 1 has no padding (real positions 0..4 at columns 0..4): columns 0,1,2 (< 3) are
+            # steered, columns 3,4 (>= 3) are not.
+            assert not torch.allclose(steered_logits[1, 0], base_logits[1, 0])
+            assert not torch.allclose(steered_logits[1, 2], base_logits[1, 2])
+            assert torch.allclose(steered_logits[1, 3], base_logits[1, 3])
+            assert torch.allclose(steered_logits[1, 4], base_logits[1, 4])
+        finally:
+            steered.close()
+    finally:
+        adapter.close()
 
 
 # ----------------------------------------------------------------------------------- activations
