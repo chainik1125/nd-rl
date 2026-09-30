@@ -201,6 +201,19 @@ class Store:
     def append_items(self, run_id: str, rows: Sequence[ItemResult]) -> None:
         append_jsonl(self.items_dir / f"{run_id}.jsonl", (asdict(r) for r in rows))
 
+    def item_chunks(self, run_id: str) -> list[dict[str, JSON]]:
+        """Raw, unmerged per-(item, chunk) rows for `run_id`, in file (append) order -- the exact
+        rows `append_items` wrote, before `items()` merges them into one `ItemResult` per pid
+        (whose `chunk` field becomes the `-1` "merged" sentinel and so can no longer answer "what
+        is this pid's own highest recorded chunk number"). Used by `runner.run`'s resume support
+        (fix list item 2) to pick up each item's next unused chunk number after a killed run;
+        returns `[]` if `run_id` has no recorded items at all.
+        """
+        path = self.items_dir / f"{run_id}.jsonl"
+        if not path.exists():
+            return []
+        return list(read_jsonl(path))
+
     def items(self, run_id: str) -> list[ItemResult]:
         path = self.items_dir / f"{run_id}.jsonl"
         if not path.exists():

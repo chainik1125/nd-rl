@@ -10,10 +10,24 @@ own bare `from tokenizer import Tokenizer` import, which is exactly what `vendor
 Sampling uses the vendored *compacting* sampler's `_gen` (`vendor/sampler.py`, ~1.35x faster than
 `vendor/absgpt/sample.py:generate`) directly on explicit token-id lists, not `sampler.sample_ids`
 (which only accepts prompt strings and cannot express a forced prefix or a forced start index).
-One call to `_gen` always samples `n` copies of *one* `SampleRequest`'s exact input ids (prompt,
-plus any forced prefix), chunked to `batch` rows per `_gen` call and sharing one seeded
-`torch.Generator` across chunks -- the same chunking/seeding discipline `sampler.sample_ids` uses
-for its (differently-shaped) multi-prompt batches.
+
+**Cross-request batching (throughput fix).** `sample()` used to call `_gen` once per
+`SampleRequest` (`n` copies of that one request's input ids per call), which meant a `k=32` run
+made one 32-row GPU call per problem -- far below the 512-1024-row batches `_gen` can actually
+take (`self._batch`, default 1024; `vendor/sampler.py:sample_ids` uses 768) -- and the dominant
+cause of a ~10x throughput regression versus the old lengthexp
+evaluator's compacting-sampler runs. `sample()` now flattens *every* request's rows (request `r`
+contributes `r.n` rows of its own prompt-plus-forced-prefix ids) into one pool across the whole
+`reqs` list, groups them by `(max_new_tokens, temperature)` (the two settings one `_gen` call must
+share across its entire batch), sorts each group's rows by input length (matching
+`sampler.sample_ids`'s own discipline, so a chunk pads to a similar length rather than the longest
+and shortest row in the whole call together), and chunks to `self._batch` rows per `_gen` call --
+the same chunking discipline `sampler.sample_ids` uses for its (differently-shaped) multi-prompt
+batches, just spanning every request in the call rather than one. Continuations are mapped back to
+their originating `(request, draw index)` afterwards; every existing per-request semantic (forced
+prefixes, `options.start_index`, per-request `max_new_tokens`/temperature, `Attempt` fields, N1
+renumbering) is unchanged. See `sample()`'s own docstring for the exact grouping/seeding order and
+its determinism contract.
 
 Start-index handling (plan §3 WP1, and see `ab3/lengthexp/evaluate.py`/`vendor/ndcheck.py`'s
 `start`/`index_overflow` handling, which is what a caller needs `Verdict.start` for downstream):
@@ -37,13 +51,24 @@ a `register_forward_hook`; `with_steering` returns a new adapter (over a deep-co
 original adapter's forward passes are never affected) whose blocks carry additional hooks that add
 `alpha * vector` to the residual stream at the token positions `where` selects. Since a `_gen`
 generation step only ever sees the newly produced tokens (the rest lives in the KV cache), the
-hook recovers each call's absolute token positions from that block's own cache dict (`cache['n']`
-is the running length *after* this call's tokens were appended, updated identically by every
-block, so `cache['n'] - T .. cache['n']` is exactly this call's token range) rather than needing
-`_gen`'s otherwise-private `pos` tensor; the non-cached forward passes used by `logprob`/`nll`/
-`activations`/`Learner.update` instead use plain `arange(T)` positions. Either way, "prompt" vs.
-"proof" is decided against `self._steer_prompt_len`, an attribute the calling method sets just
-before invoking the model and clears just after.
+hook recovers each call's absolute token positions from that block's own forward arguments rather
+than needing `_gen`'s otherwise-private `pos` tensor directly: `_gen` always left-pads its batch
+(`vendor/sampler.py`'s `idx`/`keep`), and cross-request batching (see above) means two rows in the
+*same* `_gen` call can now legitimately have different real prompt lengths and therefore different
+amounts of left padding, so one shared, batch-wide position count is no longer correct -- the hook
+instead reads each row's own `keep` vector back out of the block's `mask` argument (`mask[:, 0, -1,
+:]` is exactly `keep` at every step: at prefill this is `causal`'s all-True last row AND `keep`, and
+`torch.eye`'s OR only ever touches that row's own diagonal entry, which is always already kept; at
+each incremental decode step `mask` *is* `keep`, with no causal component at all), takes its
+cumulative count as each row's real position, and keeps only the last `T` entries (this call's own
+newly-appended columns) -- see `_make_steering_hook`. The non-cached forward passes used by
+`logprob`/`nll`/`activations`/`Learner.update` have no such per-row padding offset (no cache, no
+mask) and fall back to one `arange(T)` position range shared by every row, exactly as before.
+Either way, "prompt" vs. "proof" is decided against `self._steer_prompt_len`, an attribute the
+calling method sets just before invoking the model and clears just after; `sample()` does not set
+it (steering during generation is not yet wired to a per-request prompt boundary), so a steering
+term only has an observable effect during `sample()` for `where="all"`/`where="proof"`, matching
+its behaviour before this fix.
 """
 
 from __future__ import annotations
@@ -82,6 +107,15 @@ MAXN: int = _TOK_MOD.MAXN
 ensure_takehome_on_path()
 _SAMPLER_MOD = importlib.import_module("sampler")
 _GEN = _SAMPLER_MOD._gen
+
+
+def _cross_request_seed(reqs: Sequence[SampleRequest]) -> int:
+    """One `sample()` call's `torch.Generator` seed: a hash of every request's own `seed` field,
+    taken in the exact order `reqs` is given (see `AbsGptAdapter.sample`'s docstring). Uses the
+    first 8 bytes of a sha256 digest of the colon-joined seeds, the same width/derivation
+    `runner.runner._item_seed` uses for its own per-(item, chunk) seeds."""
+    payload = ":".join(str(req.seed) for req in reqs)
+    return int(sha256_str(payload)[:16], 16)
 
 
 def _build_model_and_tokenizer(
@@ -363,7 +397,39 @@ class AbsGptAdapter(ModelAdapter):
         return n
 
     def sample(self, reqs: Sequence[SampleRequest]) -> list[list[Attempt]]:
-        out: list[list[Attempt]] = []
+        """Draw every request's `n` attempts in one batched pass over the GPU, batching *across*
+        requests rather than looping `_gen` once per request (see the module docstring's "Cross-
+        request batching" section for why: one call per request left the GPU far under-batched).
+
+        Every row this call needs (`sum(req.n for req in reqs)` of them) is flattened into one
+        pool -- request `r`'s rows all start from `r`'s own prompt ids plus any forced prefix ids
+        (`r.prefix`, or the single synthetic N1 token `options={"start_index": 1}` asks for) --
+        then grouped by `(max_new_tokens, temperature)` (the two settings one `_gen` call applies
+        uniformly to its whole batch, so requests differing in either cannot share a call), sorted
+        by input length within each group (`vendor/sampler.py:sample_ids`'s own discipline, so a
+        chunk pads to a similar length rather than the longest and shortest row in the whole call),
+        and chunked to `self._batch` rows per `_gen` call. Continuations are then mapped back to
+        their originating `(request index, draw index)` and decoded exactly as a single-request
+        call would: the forced prefix is prepended, `Attempt.native` preserves the raw decoded
+        start index verbatim, and `Attempt.body` is `core.proof.renumber`'d to start at N1.
+
+        **Determinism.** One `torch.Generator` is created for this call, seeded from a hash of
+        every request's own `seed` field taken *in the order `reqs` is given*
+        (`_cross_request_seed`), and reused sequentially across every group and chunk this call
+        makes, always in the same fixed (group insertion order, then ascending chunk) order. Two
+        calls with an identical `reqs` list therefore reproduce byte-identical attempts. This does
+        **not** mean a given request's attempts are independent of who else is in the call: the
+        same request batched alongside different other requests, or with a different `self._batch`,
+        generally draws different samples, since `torch.multinomial`'s output depends on the
+        generator's state at the time of each draw (itself a function of the batch's shape and
+        every earlier group/chunk this same call already consumed the generator for) and not only
+        on the nominal per-request `seed`.
+        """
+        if not reqs:
+            return []
+
+        input_ids_by_req: list[list[int]] = []
+        forced_ids_by_req: list[list[int]] = []
         for req in reqs:
             prompt_ids = self._tok.encode_prompt(req.sequent.prompt())
             forced_ids: list[int] = []
@@ -371,13 +437,60 @@ class AbsGptAdapter(ModelAdapter):
                 forced_ids = self._tok.encode_proof(req.prefix.body)
             elif req.options.get("start_index") == 1:
                 forced_ids = [self._tok._ref(1)]
-            input_ids = prompt_ids + forced_ids
+            input_ids_by_req.append(prompt_ids + forced_ids)
+            forced_ids_by_req.append(forced_ids)
 
-            continuations = self._gen_many(
-                input_ids, req.n, req.temperature, req.max_new_tokens, req.seed
+        # Group every (request, draw) row by the settings one `_gen` call must share across its
+        # whole batch; insertion order follows `reqs` itself, so the group-processing order below
+        # is a deterministic function of `reqs` alone.
+        groups: dict[tuple[int, float], list[tuple[int, int]]] = {}
+        for r_idx, req in enumerate(reqs):
+            key = (req.max_new_tokens, req.temperature)
+            groups.setdefault(key, []).extend((r_idx, i) for i in range(req.n))
+
+        gen = torch.Generator(device=self._device)
+        gen.manual_seed(_cross_request_seed(reqs))
+        cuda_enabled = self._device.type == "cuda"
+
+        continuations: dict[tuple[int, int], list[int]] = {}
+        for (max_new, temperature), row_keys in groups.items():
+            order = sorted(
+                range(len(row_keys)), key=lambda k: len(input_ids_by_req[row_keys[k][0]])
             )
+            for s in range(0, len(order), self._batch):
+                chunk_keys = [row_keys[p] for p in order[s : s + self._batch]]
+                batch_ids = [input_ids_by_req[r_idx] for r_idx, _ in chunk_keys]
+                # `_GEN` (`vendor/sampler.py:_gen`) is plain inference with no `torch.no_grad()`
+                # of its own (unlike `sample_ids`, which wraps its own call to it) -- without this,
+                # every one of up to `max_new` decode steps extends a live autograd graph over the
+                # whole growing KV cache, which is pure waste for sampling and, at a large enough
+                # batch x sequence length, can by itself exhaust GPU memory (observed: a 256-item,
+                # batch=1024 call OOM'd on a 24 GB RTX 3090 for this small model before this fix).
+                with (
+                    torch.no_grad(),
+                    torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda_enabled),
+                ):
+                    outs = _GEN(
+                        self._model,
+                        self._tok,
+                        batch_ids,
+                        temperature,
+                        max_new,
+                        gen,
+                        self._compact_every,
+                        self._compact_below,
+                    )
+                for key, cont in zip(chunk_keys, outs, strict=True):
+                    continuations[key] = cont
+                if cuda_enabled:
+                    torch.cuda.empty_cache()
+
+        out: list[list[Attempt]] = []
+        for r_idx, req in enumerate(reqs):
+            forced_ids = forced_ids_by_req[r_idx]
             attempts: list[Attempt] = []
-            for i, cont in enumerate(continuations):
+            for i in range(req.n):
+                cont = continuations[(r_idx, i)]
                 finished = bool(cont) and cont[-1] == self._tok.eos
                 full_ids = forced_ids + cont
                 native = self._tok.decode(full_ids)
@@ -394,36 +507,6 @@ class AbsGptAdapter(ModelAdapter):
                 )
             out.append(attempts)
         return out
-
-    def _gen_many(
-        self, input_ids: list[int], n: int, temperature: float, max_new: int, seed: int
-    ) -> list[list[int]]:
-        """`n` continuations of `input_ids`, chunked to `self._batch` rows per `_gen` call and
-        sharing one seeded generator across chunks (matches `sampler.sample_ids`'s discipline)."""
-        gen = torch.Generator(device=self._device)
-        gen.manual_seed(seed)
-        results: list[list[int]] = []
-        remaining = n
-        while remaining > 0:
-            this_n = min(self._batch, remaining)
-            batch_ids = [input_ids] * this_n
-            cuda_enabled = self._device.type == "cuda"
-            with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda_enabled):
-                outs = _GEN(
-                    self._model,
-                    self._tok,
-                    batch_ids,
-                    temperature,
-                    max_new,
-                    gen,
-                    self._compact_every,
-                    self._compact_below,
-                )
-            results.extend(outs)
-            remaining -= this_n
-            if self._device.type == "cuda":
-                torch.cuda.empty_cache()
-        return results
 
     def logprob(self, pairs: Sequence[tuple[Sequent, str]]) -> list[LogProb]:
         return [
@@ -473,7 +556,14 @@ class AbsGptAdapter(ModelAdapter):
             out.append(arr)
         return out
 
-    def with_steering(self, spec: SteeringSpec) -> ModelAdapter:
+    def with_steering(self, spec: SteeringSpec) -> AbsGptAdapter:
+        """Narrower than `ModelAdapter.with_steering`'s declared `-> ModelAdapter` (a legal
+        covariant override, the same rationale as `learner`'s own narrowing above): the returned
+        adapter is always in fact another `AbsGptAdapter` (over a deep-copied, hook-carrying
+        model), so a caller holding an `AbsGptAdapter` can reach its private, steering-relevant
+        attributes (`_model`, `_tok`, `_steer_prompt_len`) directly and type-checked -- used by
+        `test_wp1_absgpt.py`'s position-recovery test, which drives the steered model directly
+        rather than through `sample()`/`logprob()`."""
         model_copy = copy.deepcopy(self._model)
         return AbsGptAdapter._from_model(
             model=model_copy,
@@ -516,21 +606,33 @@ def _make_steering_hook(owner: AbsGptAdapter, term: Any, delta: torch.Tensor) ->
 
     Reads `owner._steer_prompt_len` (set/cleared by whichever adapter method is currently driving
     the model) to split "prompt" from "proof" positions; see the module docstring for how the
-    absolute token positions of one call are recovered from the block's own KV-cache dict during
-    `_gen`-driven sampling, versus a plain `arange(T)` for a non-cached forward pass.
+    absolute token positions of one call are recovered *per row* from the block's own `mask`
+    forward argument during `_gen`-driven sampling (needed since cross-request batching can now
+    put rows with different amounts of left padding in the same call), versus a plain, batch-wide
+    `arange(T)` for a non-cached forward pass (`logprob`/`nll`/`activations`/`Learner.update`,
+    none of which pad different rows by different amounts within one call).
     """
 
     def _hook(module: Any, inputs: Any, output: torch.Tensor) -> torch.Tensor:
+        mask = inputs[3] if len(inputs) > 3 else None
         cache = inputs[4] if len(inputs) > 4 else None
-        _b, t, _d = output.shape
-        if isinstance(cache, dict) and "n" in cache:
-            end = int(cache["n"])
-            abs_pos = torch.arange(end - t, end, device=output.device)
+        b, t, _d = output.shape
+        if isinstance(cache, dict) and "n" in cache and mask is not None:
+            # `_gen`'s left-padded, KV-cached layout (module docstring): `mask`'s own last query
+            # row is exactly this call's `keep` vector, spanning every cached key column so far --
+            # at prefill it is `causal`'s all-True last row ANDed with `keep` (the `torch.eye` OR
+            # only ever touches that row's own diagonal entry, already kept), and at each
+            # incremental decode step `mask` *is* `keep`, with no causal component at all. Its
+            # per-row cumulative count minus one is each row's real (unpadded) position; the last
+            # `t` columns are this call's own newly appended tokens.
+            keep_full = mask[:, 0, -1, :].to(torch.bool)
+            pos_full = (keep_full.cumsum(dim=1) - 1).clamp(min=0)
+            abs_pos = pos_full[:, -t:]  # (B, t), one row per batch element
         else:
-            abs_pos = torch.arange(t, device=output.device)
+            abs_pos = torch.arange(t, device=output.device).unsqueeze(0).expand(b, t)
         prompt_len = owner._steer_prompt_len
         if term.where == "all":
-            pos_mask = torch.ones(t, dtype=torch.bool, device=output.device)
+            pos_mask = torch.ones_like(abs_pos, dtype=torch.bool)
         elif term.where == "prompt":
             pos_mask = abs_pos < prompt_len
         else:  # "proof"
@@ -539,7 +641,7 @@ def _make_steering_hook(owner: AbsGptAdapter, term: Any, delta: torch.Tensor) ->
             return output
         updated = output.clone()
         addition = term.alpha * delta.to(output.dtype)
-        updated[:, pos_mask, :] = updated[:, pos_mask, :] + addition
+        updated[pos_mask] = updated[pos_mask] + addition
         return updated
 
     return _hook
