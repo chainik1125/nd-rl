@@ -1,0 +1,32 @@
+# python -m code.ndbench.interp fit-vectors \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_vectors.yaml
+#
+# INTERP_SPEC.md §2's `fit_diff_vectors`: RL-minus-base mean activation difference, at the
+# embedding output... no -- at each of `layers` (post-block residuals; `fit_diff_vectors` itself
+# only covers `adapters.absgpt`'s post-block `activations`, not the embedding output `probes.py`
+# additionally needs), over `n_pairs` teacher-forced reserve minimal proofs (L6-10, `seen_train`
+# excluded). Writes `out/interp/vectors/diff_l<layer>_<position_type>.npy` + `.json` sidecars,
+# which `steer-sweep` (`interp_steer_sweep.yaml`) then reads.
+#
+# GPU cost estimate: `activations` is one (un-looped, unlike `logprob`) forward pass per item per
+# model, batch-of-1 (the current `AbsGptAdapter.activations` implementation loops one pair per
+# call, no internal batching) -- at ~2,000-2,500 forward passes total (n_pairs x 2 models) on
+# L6-10 sequences (~40-90 tokens), **rough estimate 8-12 GPU-min** for `n_pairs=3000` and 3
+# position_types (the position selection itself is free -- same activations, just different index
+# slices -- so this cost does not scale with the number of position_types or layers requested).
+# CAUTION: a live GPU-4 smoke test of `likelihood` (`interp_likelihood.yaml`) found its per-item
+# cost far above the original estimate, because `AbsGptAdapter.logprob` is batch-1 *and* looped
+# over shifts/orderings; `activations` here is only batch-1 (no shift/ordering multiplier), so it
+# should not suffer the same multiplicative blowup, but the batch-1 Python/CUDA-launch overhead
+# alone was not independently confirmed on GPU within this coder's budget -- time a small pilot
+# (~50-100 pairs) before committing to `n_pairs=3000`.
+seed: 0
+n_pairs: 300 # start smaller than the spec's 2-5k range pending a timed pilot; see the caution above
+layers: [0, 1, 2, 3]
+position_types: [proof, prompt, line_start]
+out_dir: /scratch/cowifornia/nd-rl/bench/out/interp/vectors
+device: cuda
+exclude_train: true
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# scan_limit: null   # cap how many reserve.jsonl rows are scanned (leave unset for a real run)

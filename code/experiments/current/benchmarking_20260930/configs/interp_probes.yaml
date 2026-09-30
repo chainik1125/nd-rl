@@ -1,0 +1,30 @@
+# python -m code.ndbench.interp probes \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_probes.yaml
+#
+# INTERP_SPEC.md §4: next_rule / lines_to_go / cited_back linear probes (+ MDL online-code) at the
+# embedding output and after each block, base vs RL, trained on neutral reserve proofs (`n_train`,
+# L6-10) and length-generalisation-tested on sealed L12-14 + family witnesses (`n_ood`, capped;
+# family witnesses only used if the `families` suite has been built into this Store -- otherwise
+# skipped with a note, and length-generalisation uses sealed alone).
+#
+# GPU cost estimate: dataset building is two forward passes per item per model (one via
+# `ModelAdapter.activations` for the post-block residuals, one via a pre-hook on block 0 for the
+# embedding output -- `interp/probes.py`'s `full_layer_stack`; see that module's docstring for why
+# there is no public capability for the embedding residual alone). At `n_train=2000` + `n_ood=300`
+# (150 sealed + up to 150 family witnesses), ~2,300 items x 2 models x 2 forward passes = 9,200
+# passes on short (L6-14) sequences -- proportionally similar per-pass cost to `fit-vectors`'
+# 3,000 x 2 = 6,000 passes (8-12 GPU-min there): **rough estimate 12-16 GPU-min**. The ridge/
+# multinomial-logistic/MDL fitting itself is cheap linear-model training (closed-form ridge; small
+# torch linear layers for the rest) and negligible next to the activation extraction above,
+# whether run on GPU or CPU.
+# CAUTION: see `interp_vectors.yaml`'s caution note -- a live GPU-4 smoke test found `likelihood`
+# far slower per item than originally estimated (batch-1, shift/ordering-looped `logprob`); this
+# config's forward passes are batch-1 but not shift/ordering-looped, so should scale better, but
+# was not independently timed on GPU. Time a small pilot before scaling `n_train` up.
+seed: 0
+n_train: 200 # run_probes' own default is 300 (the spec gives no fixed count); start smaller, see above
+n_ood: 150 # spec: sealed L12-14 (+ family witnesses if present), for length generalisation
+device: cuda
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# scan_limit: null   # cap how many reserve.jsonl rows are scanned (leave unset for a real run)

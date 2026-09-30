@@ -284,8 +284,20 @@ class ItemResult:
 
 @dataclass(frozen=True)
 class LogProb:
-    """A sequence log-probability, marginalised over start-index shift encodings (see
-    `ModelAdapter.logprob`)."""
+    """A sequence log-probability, marginalised over start-index shift encodings: `nats = log
+    sum_s p_theta(shift_s(y) | x)` (a log-probability, so `nats <= 0`; `per_encoding[s]` is the
+    unmarginalised per-shift log-probability, i.e. `per_encoding[s] = log p_theta(shift_s(y) | x)`,
+    and `nats == logsumexp(per_encoding)`).
+
+    **Sign convention.** `ModelAdapter.logprob` returns log-probability as defined above (`nats <=
+    0`). `Learner.nll` returns the *negative* of that same quantity -- a positive excess
+    description length nats, `nats = -log sum_s p_theta(shift_s(y) | x) >= 0`, consistent with
+    `Learner.nll`'s docstring ("negative log-likelihood") and with `metrics.edl`/`edl.run_edl`,
+    which sum `Learner.nll` outputs directly as per-example losses without negating them again.
+    `per_encoding` is *not* re-signed for `Learner.nll`: it stays the per-shift log-probabilities
+    (so `nats == -logsumexp(per_encoding)` for a `Learner.nll` result), matching
+    `adapters.absgpt._AbsGptLearner.nll`/`test_wp5_fixtures.TinyGptLearner.nll`. Always check which
+    of the two methods produced a given `LogProb` before combining values from both."""
 
     nats: float
     n_tokens: int

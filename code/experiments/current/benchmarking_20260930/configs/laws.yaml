@@ -1,0 +1,9 @@
+# `python -m code.ndbench build --suite laws --version v1 --config configs/laws.yaml`
+# Plan §2 B4: 8 schemas x s in {0,1,2,3,4,6,8,10,12}, 30 instances each = 2,160 items. `certifier`
+# omitted -- `laws.build` falls back to its own `default_certifier()` (matches plan §A2's worker
+# cap by default).
+target_per_s: 30
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

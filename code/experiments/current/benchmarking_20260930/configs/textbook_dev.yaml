@@ -1,0 +1,20 @@
+# `python -m code.ndbench build --suite textbook_dev --version v1 --config configs/textbook_dev.yaml`
+# Plan §2 B8: relabel the 58 `ab2/sealed/textbook_dev.jsonl` items by minlen (bound 16, 120 s),
+# keeping the legacy reference length as a second label (`tags["reference_L"]`). CPU-only; per
+# plan §A2, keep this under 8 minlen workers and this single job well under ~15 minutes (58 items
+# at bound 16 is fast in practice -- most resolve in well under a second; 120 s is a per-item cap,
+# not an expected typical cost).
+#
+# `certifier` names a class, not an instance: `cli.cmd_build`'s `_resolve_instance` (WP8 fix list
+# item 10) instantiates a bare class with no arguments, so this uses `MinlenCertifier`'s defaults
+# (`procs=8` -- already capped at plan §A2's worker limit -- `mem_gb=2.0`, `cache_dir=None`). There
+# is currently no way to pass constructor kwargs (e.g. a `cache_dir` under `out/cache/`) through
+# this "module:attr" mechanism; if per-label caching across repeated builds is wanted, build this
+# suite from a short Python driver instead (`MinlenCertifier(cache_dir=".../out/cache")`, then call
+# `textbook_dev(cfg, certifier=that_instance, ...)` directly) rather than through this CLI config.
+bound: 16
+time_s: 120.0
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

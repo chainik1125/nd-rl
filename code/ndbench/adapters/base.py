@@ -130,11 +130,24 @@ class Learner(Protocol):
     """An online learner over a `ModelAdapter`'s weights (used by `edl.py`, plan §B7)."""
 
     def nll(self, pairs: Sequence[tuple[Sequent, str]]) -> list[LogProb]:
-        """Per-example negative log-likelihood at the learner's current weights."""
+        """Per-example negative log-likelihood at the learner's current weights: `LogProb.nats >=
+        0` (the opposite sign from `ModelAdapter.logprob`'s log-*probability*; see
+        `core.types.LogProb`'s docstring for the full convention). A `Learner` may additionally
+        offer a duck-typed `nll_start_excluded(pairs) -> list[LogProb]` (same shape and sign,
+        proof's start-index token excluded) for plan §B7's sensitivity check; `edl.run_edl` probes
+        for it with `getattr` rather than this Protocol requiring it."""
         ...
 
     def update(self, pairs: Sequence[tuple[Sequent, str]], lr: float) -> float:
-        """One optimiser step on `pairs` at learning rate `lr`; returns the pre-update loss."""
+        """One optimiser step on `pairs` at learning rate `lr`; returns the pre-update loss.
+
+        A `Learner` that trains on multiple random-shift copies per example (plan §B7's "8
+        random-shift copies of the example") should generate them *internally*, once per element
+        of `pairs`, not expect a caller to pass the same pair repeated `shifts_per_update` times --
+        `edl.run_edl` passes each training example exactly once per `update()` call. A `Learner`
+        that does this should expose the shift count as a plain, settable `update_shifts`
+        attribute (duck-typed, not part of this Protocol); `run_edl` sets it via `setattr` when
+        present so its own `shifts_per_update` parameter is authoritative."""
         ...
 
     def adapter(self) -> ModelAdapter:

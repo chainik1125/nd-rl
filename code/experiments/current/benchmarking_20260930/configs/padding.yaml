@@ -1,0 +1,17 @@
+# `python -m code.ndbench build --suite padding --version v1 --config configs/padding.yaml`
+# Plan §2 B5: pad mastered parts (p_hat >= 0.7 in G1) with P1-shared / P1-disjoint / P2 extra lines,
+# m in {0..5}, ~1,080 items. `certifier` omitted -- `padding.build` falls back to its own
+# `default_certifier()`.
+#
+# `base_pids` is a placeholder: fill in with the parts_pool pids the chosen model (base or RL;
+# plan says "per model group", so this may need one config per model, or two builds into two
+# suite versions) mastered at p_hat >= 0.7 in G1 (`out/store/items/<G1_run_id>.jsonl`), else
+# `padding.build`'s own `demo_bases()` fallback is used, which is NOT the real plan §2 B5 base set.
+# base_pids: []
+# base_store_root: /scratch/cowifornia/nd-rl/bench/out
+# base_suite: parts_pool
+# base_suite_version: v1
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

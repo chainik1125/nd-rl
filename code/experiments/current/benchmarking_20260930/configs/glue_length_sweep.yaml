@@ -1,0 +1,9 @@
+# `python -m code.ndbench build --suite glue_length_sweep --version v1 --config configs/glue_length_sweep.yaml`
+# Plan §2 B1: re-wrap the existing matched AND/CHAIN items (`ab3/sealed/matched_L6-14.jsonl`, a
+# read-only file) as an extra length sweep. `certifier` is accepted for signature uniformity but
+# unused (that data is already certified upstream). Registered under `glue_length_sweep` in
+# `suites.BUILDERS` as part of WP8 integration fix list item 7 (WP4 had left it unregistered).
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder
