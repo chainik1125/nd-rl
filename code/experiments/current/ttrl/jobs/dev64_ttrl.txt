@@ -1,0 +1,1 @@
+ttrl_d2k16 ttrl.py --run combo-c005_s0 --pool dev --names-file targets_dev64.txt --depth 2 --k 16 --rounds 8 --master 0.75
