@@ -70,7 +70,7 @@ harness_frozen.py harness_state.py` is the whole change.
   instead of 32, so its RL stage takes roughly SN's wall-clock. Fine-tune steps and the eval (k 64) are unchanged. It
   is under-matched: median RL stage 28–31 min, against SN's 33–41 min at batch 512.
 
-## Results (C0, C0k192 and SN complete; SH still running)
+## Results
 
 Dev metric (dev-half transfer theorems solved at L_true ≥ 7, 64 samples), seeds 0 / 1 / 2. Medians, because
 whole-proof EI sometimes fails to take off (\*). RL = RL targets solved of 1,500, median. Time = median wall-clock
@@ -81,15 +81,22 @@ of the whole run and of its RL stage, on A40s.
 | 198 | C0 | 669 / 692 / 216\* | 669 | 1,169 | 17 / 10 min |
 | 198 | C0k192 | 743 / 345\* / 682 | 682 | 1,206 | 37 / 30 min |
 | 198 | **SN** | 852 / 824 / 798 | **824** | 1,274 | 58 / 41 min |
+| 198 | SH | 708 / 744 / lost† | 726 | 1,183 | 161 min |
 | 207 | C0 | 612 / 304\* / 616 | 612 | 924 | 17 / 10 min |
 | 207 | C0k192 | 713 / 625 / 396\* | 625 | 747 | 37 / 30 min |
 | 207 | **SN** | 781 / 777 / 814 | **781** | 1,225 | 57 / 40 min |
+| 207 | SH | 665 / 676 / 687 | 676 | 1,138 | 120 min |
 | 201 | C0 | 609 / 638 / 579 | 609 | 1,090 | 18 / 10 min |
 | 201 | C0k192 | 674 / 678 / 626 | 674 | 1,183 | 38 / 31 min |
 | 201 | **SN** | 723 / 720 / 720 | **720** | 1,181 | 55 / 40 min |
+| 201 | SH | 594 / 672 / 602 | 602 | 1,046 | 155 min |
 | 204 | C0 | 566 / 552 / 571 | 566 | 1,052 | 16 / 9 min |
 | 204 | C0k192 | 610 / 642 / 629 | 629 | 1,131 | 35 / 28 min |
 | 204 | **SN** | 705 / 744 / 790 | **744** | 1,205 | 46 / 33 min |
+| 204 | SH | 660 / 702 / 658 | 660 | 1,136 | 146 min |
+
+† 198 SH seed 2 OOMed on the first harness. Its relaunch was lost after 197 min when this Mac's network dropped and
+the launcher tore the pod down. It was not re-run.
 
 Observations:
 
@@ -108,5 +115,8 @@ Observations:
    about 5 pairs). The slowdown is mostly the step loop, and it is engineering, not intrinsic: Rounds at Dan's 2,048 batch
    took 429–492 s, against 587–649 s at 512 (198 benchmark), before it OOMed.
 
-SH: 207 seed 0 = 665 in 98 min. The rest are pending or slow. SH re-encodes the whole history every step, and the
-weak recipes' SH attempts reach L of about 4,000, which forced their env batch down to 32.
+7. **SH is dominated by SN:** below SN on every recipe (−98 / −105 / −118 / −84 medians) at 2.5–3× SN's wall-clock
+   (98–249 min per run). On 201 it is no better than whole-proof C0. SH re-encodes the whole proof so far every step,
+   so its context grows with the attempt: the weak recipes' failing attempts reached L of about 4,000 and forced the
+   env batch down to 32. This matches Dan's state-env result, where SH was no better than S. Giving the model the
+   history on top of the state hurts, or at best costs time for nothing.
