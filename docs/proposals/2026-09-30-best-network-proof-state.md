@@ -48,8 +48,9 @@ With the proof-state interface and our state RL held fixed, does Robbie's networ
   whether the state format needs longer); frozen read-outs. That answers the pretrained half today.
 - **Probably tomorrow:** 6 T1 ladders on parallel pods. Our 3.2M state ladders took about 7 h each, and the 3×
   larger network samples more slowly. The RL half lands roughly 12–20 h after the Stage-1 models.
-- **Cost:** ≈ $45–55 of pods (budget $55, set by the balance: $159 against the $100 floor), and the balance stays well above the $100 floor. Claude time is one
-  executor session plus review.
+- **Cost:** ≈ $45–55 of pods (budget $55, set by the balance: $159 against the $100 floor, so the full
+  budget would leave about $104). A top-up would leave room to extend. Claude time is one executor session plus
+  review.
 
 ## What would change our plans
 
