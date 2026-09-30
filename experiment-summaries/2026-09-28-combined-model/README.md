@@ -222,6 +222,95 @@ at 1 sample either way.
 - The textbook problems are only ever scored. Nothing trains or tunes on them.
 ```
 
+## Test-time RL: making up easier problems
+
+```claude
+Search over a frozen model tops out: at 1,024 attempts the model puts almost no probability on
+any proof of about 90% of the theorems it misses. Search can't fix that, so the weights have to
+change. AlphaProof (Hubert et al., 2025) does exactly this for its hardest problems, with what
+it calls test-time RL. For each target it generates hundreds of thousands of related problems
+("variants": simplifications, generalizations, lemmas, sub-steps) and runs its normal RL loop on
+the target plus variants until the target falls. The logic: RL learns only from successes, so a
+target the model never solves gives no gradient. A variant the model solves *sometimes* does,
+and it sits right next to the target. On IMO and Putnam problems this added 15 percentage points
+beyond a 12-TPU-hour search, at a cost of 50 to several hundred TPU-days per problem.
+
+This is the simple version of that, on our model.
+```
+
+### Where the variants come from
+
+```claude
+AlphaProof uses Gemini, prompted with 791 hand-made (problem, variant) pairs, plus code that
+perturbs hypotheses and goals. We don't need a language model. A theorem here is a sequent
+`Γ ⊢ G` over four atoms, and every variant below is built from the statement alone: no
+reference proof, no model. Each is kept only if it is valid. Validity is a 16-row truth table,
+because the logic is classical and has four atoms, so valid means provable. AlphaProof has no
+such check (Lean mathematics is undecidable) and instead lets its prover try to *disprove*
+each variant.
+
+| kind | move | example: `P>Q, Q>R, R>S ⊢ P>S` |
+| --- | --- | --- |
+| goal `A > B` | assume A: `Γ, A ⊢ B` | `P>Q, Q>R, R>S, P ⊢ S` |
+| goal `~A` | assume A: `Γ, A ⊢ F` | |
+| any goal G | reductio: `Γ, ~G ⊢ F` | `…, ~(P>S) ⊢ F` |
+| goal `A & B` | each half: `Γ ⊢ A`, `Γ ⊢ B` | |
+| goal `A v B` | one side, if still valid: `Γ ⊢ A` or `Γ ⊢ B` | |
+| premise `A & B` | split it into A, B | |
+| premise `A v B` | the two cases: replace it by A; by B | |
+| premise `A > B` | strengthen it to B, or to `~A` | `Q, Q>R, R>S ⊢ P>S` |
+| premise `~(A & B)` | strengthen it to `~A`, or to `~B` | |
+| lemma (cut) | any subformula ψ of Γ or G with Γ ⊨ ψ gives two variants: `Γ ⊢ ψ` and `Γ, ψ ⊢ G` | none: every subformula that follows from Γ is a premise or the goal |
+
+Every move is applied to the target, then once more to each result (depth 2). Duplicates are
+dropped: same premises as a set, same goal. So is any variant whose goal is already a premise.
+On the 64 targets below this gives **3,397 variants** (median 42 per target, 12 to 263). 78%
+are lemma cuts.
+
+A true lemma need not be a *useful* one. The reference proof would say which lemmas lie on the
+path to the target, but it is off limits, so the solve rates have to sort useful from useless.
+```
+
+### The loop
+
+```claude
+Model: c005 seed 0, the combined model above. One copy is adapted on all 64 targets at once,
+as AlphaProof does for several targets. Each round:
+
+1. **Sample** 16 proofs of every active target and variant. The sampler is the one Leon's RL
+   uses: guided resampling of bad lines (4 redraws per line, 24 per proof), T 1.0.
+2. **A target with any verified proof is solved.** It leaves the pool with all its variants.
+3. **Mastered variants leave.** A variant solved in more than 75% of its 16 samples (13+) goes
+   out: the model already has it, and its proofs would only reinforce what it does anyway.
+4. **Train on the frontier.** Variants solved in 1-12 of 16 samples contribute up to 4 distinct
+   proofs each, repeated max(1, round(8 × (1 − rate))) times, so rarely solved variants count
+   up to 8×. That is Leon's weighting. Also in the mix: 20,000 random cap-6 training proofs,
+   against forgetting. Variants at 0 of 16 stay in the pool untrained. Learning on their
+   neighbours may make them solvable next round, which is how a curriculum is meant to work.
+5. **Update** with one round of Leon's RL step: GEM loss, fresh AdamW, 135 steps of 128.
+
+8 rounds. The band (0, 0.75] is my call. It follows AlphaProof's matchmaker, which prioritises
+problems with mixed recent results and lowers the priority of those that always or never
+succeed. A variant at 0 gives no data. One at 16 of 16 gives data the model doesn't need.
+
+**Targets.** 64 dev theorems that c005 seed 0 fails at 64 plain samples, chosen by hash:
+lengths 7-14, mostly 9-10. These are dev theorems, not held-out ones: this is the development
+run. If TTRL works here, the held-out theorems that every inference method misses are the real
+test. That would reverse "training on these evaluation theorems is off the table" above:
+TTRL trains on the *statement*, never on a proof of it.
+
+**Control.** The same sampler on the 64 targets alone: no variants, no training, 256 samples per
+target per round for 16 rounds (4,096 per target). TTRL counts as a win only if it solves more
+targets than the control at the same number of samples. The control is plain sampling at
+matched compute. TTRL also pays for fine-tuning, which is reported separately.
+```
+
+### Results
+
+```claude
+Running. Code: `code/experiments/current/ttrl/` on branch `robbie-experiments`.
+```
+
 ## Methodology
 
 ```claude
