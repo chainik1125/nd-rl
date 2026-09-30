@@ -203,3 +203,94 @@ def test_ledger(tmp_path: Path) -> None:
     store.ledger_append({"job": "G1", "gpu_s": 480.0})
     store.ledger_append({"job": "note-only"})  # no gpu_s: should count as 0, not error
     assert store.ledger_total_s() == 600.0
+
+
+# ------------------------------------------------------ effective config_key / invalid runs (fix)
+
+
+def test_config_key_fills_in_the_max_new_policy_default(tmp_path: Path) -> None:
+    """Fix: rerunning a completed config silently merged into the old run because `config_key`
+    hashed only explicit `spec.options`, so an implicit runner default (e.g. `max_new_policy`)
+    never showed up in the key. An implicit default must hash the same as the same value set
+    explicitly, and a genuinely different value must hash differently."""
+    from code.ndbench.runner.runner import RunSpec
+
+    store = Store(tmp_path)
+    identity = {"label": "fake"}
+    spec_implicit = RunSpec(suite="demo", version="v1", model="fake", k=10, seed=0)
+    spec_explicit_ref3x = RunSpec(
+        suite="demo", version="v1", model="fake", k=10, seed=0, options={"max_new_policy": "ref3x"}
+    )
+    spec_explicit_full = RunSpec(
+        suite="demo", version="v1", model="fake", k=10, seed=0, options={"max_new_policy": "full"}
+    )
+    key_implicit = store.config_key(spec_implicit, identity, "nd_v1")
+    key_ref3x = store.config_key(spec_explicit_ref3x, identity, "nd_v1")
+    key_full = store.config_key(spec_explicit_full, identity, "nd_v1")
+    assert key_implicit == key_ref3x
+    assert key_implicit != key_full
+
+
+def test_config_key_ignores_items_per_call(tmp_path: Path) -> None:
+    """`items_per_call` only affects scheduling (how items are grouped into `adapter.sample`
+    calls), never what gets sampled, so it must not fork the config key -- resume/skip-if-complete
+    must still match across two runs that only differ in this option."""
+    from code.ndbench.runner.runner import RunSpec
+
+    store = Store(tmp_path)
+    identity = {"label": "fake"}
+    spec_a = RunSpec(
+        suite="demo", version="v1", model="fake", k=10, seed=0, options={"items_per_call": 64}
+    )
+    spec_b = RunSpec(
+        suite="demo", version="v1", model="fake", k=10, seed=0, options={"items_per_call": 512}
+    )
+    spec_default = RunSpec(suite="demo", version="v1", model="fake", k=10, seed=0)
+    key_a = store.config_key(spec_a, identity, "nd_v1")
+    key_b = store.config_key(spec_b, identity, "nd_v1")
+    key_default = store.config_key(spec_default, identity, "nd_v1")
+    assert key_a == key_b == key_default
+
+
+def test_new_run_accepts_an_explicit_run_id_override(tmp_path: Path) -> None:
+    from code.ndbench.runner.runner import RunSpec
+
+    store = Store(tmp_path)
+    spec = RunSpec(suite="demo", version="v1", model="fake", k=10, seed=0)
+    identity = {"label": "fake"}
+    base_run_id = store.new_run(spec, identity, "nd_v1")
+    rerun_id = store.new_run(spec, identity, "nd_v1", run_id=f"{base_run_id}-r2")
+    assert rerun_id == f"{base_run_id}-r2"
+    (base_record,) = store.runs(run_id=base_run_id)
+    (rerun_record,) = store.runs(run_id=rerun_id)
+    # both events carry the same config_key (they're the same logical config), just different ids.
+    assert base_record["config_key"] == rerun_record["config_key"]
+
+
+def test_latest_excludes_an_invalid_run(tmp_path: Path) -> None:
+    from code.ndbench.runner.runner import RunSpec
+
+    store = Store(tmp_path)
+    spec = RunSpec(suite="demo", version="v1", model="fake", k=10, seed=0)
+    identity = {"label": "fake"}
+    key = store.config_key(spec, identity, "nd_v1")
+    run_id = store.new_run(spec, identity, "nd_v1")
+    store.finish_run(run_id, "invalid", 1.0)
+    assert store.latest("demo", "fake", key) is None
+
+
+def test_latest_falls_back_to_an_older_valid_run_when_the_newest_is_invalid(
+    tmp_path: Path,
+) -> None:
+    from code.ndbench.runner.runner import RunSpec
+
+    store = Store(tmp_path)
+    spec = RunSpec(suite="demo", version="v1", model="fake", k=10, seed=0)
+    identity = {"label": "fake"}
+    key = store.config_key(spec, identity, "nd_v1")
+    base_run_id = store.new_run(spec, identity, "nd_v1")
+    store.finish_run(base_run_id, "complete", 1.0)
+    rerun_id = store.new_run(spec, identity, "nd_v1", run_id=f"{base_run_id}-r2")
+    store.finish_run(rerun_id, "invalid", 1.0)
+    # `rerun_id` is chronologically newer but invalid, so `latest` falls back to `base_run_id`.
+    assert store.latest("demo", "fake", key) == base_run_id

@@ -21,6 +21,32 @@ appended per chunk as the run progresses; `items()` merges chunks for the same `
 
 `ledger.jsonl` rows are free-form JSON entries; `ledger_total_s` sums each entry's `"gpu_s"` field
 (`0` if absent), matching plan §4's "the ledger counts lock-held wall time only" stop rule.
+
+**Effective `config_key` (rerun-merging fix).** `config_key` used to hash `spec.options` verbatim,
+so two `RunSpec`s that differ only in a runner-level *default* (e.g. `runner.runner`'s
+`max_new_policy` default changing between two code versions, with neither caller ever passing
+`options={"max_new_policy": ...}` explicitly) hashed identically and collided on the same
+`run_id`, silently merging two different configs' results into one run (`append_items` just keeps
+appending chunks for whatever `run_id` it is given). `config_key` now hashes
+`_effective_options_for_key(spec.options)` instead: any key in `_SCHEDULING_ONLY_OPTIONS` (options
+that change only how a run is executed, never what gets sampled -- currently just
+`"items_per_call"`) is dropped, and any key in `_DEFAULT_OPTIONS_FOR_KEY` (options `runner.runner`
+gives a default when absent, whose *value* does change what gets sampled -- currently just
+`"max_new_policy"`) is filled in with that default when `spec.options` doesn't set it explicitly.
+Both constants are duplicated here rather than imported from `runner.runner` (which does import
+`Store`) to keep this module's dependency one-directional, per `_RunSpecLike`'s own docstring; keep
+them in sync with `runner.runner.DEFAULT_MAX_NEW_POLICY`/`DEFAULT_ITEMS_PER_CALL` by hand.
+
+**`"invalid"` runs.** `finish_run`'s `status` is a free-form string; `"invalid"` is not a status
+`run()` itself ever writes, but a caller (or a human, after the fact) can mark a run's results as
+not to be trusted (e.g. exactly a run corrupted by the merging bug above, before this fix existed)
+by calling `finish_run(run_id, "invalid", ...)`. `latest` treats an `"invalid"` run as if it were
+never recorded at all (excluded from its candidates entirely, not merely deprioritised), so both
+`runner.run`'s resume/skip-if-complete logic and any caller that goes through `latest` fall back to
+the next most recent non-invalid match, or `None`. Analysis views never see it either: they go
+through `analysis._common.run_records`/`latest_run_id`/`all_run_ids`, whose default `statuses`
+filter (`LIVE_STATUSES = ("complete", "partial")`) already excludes any status other than those
+two, `"invalid"` included, with no change needed there.
 """
 
 from __future__ import annotations
@@ -34,6 +60,28 @@ from typing import Protocol, cast
 
 from .core.io import append_jsonl, read_jsonl, sha256_str, utc_now_iso, write_jsonl
 from .core.types import JSON, ItemResult, Problem, SuiteManifest
+
+#: `RunSpec.options` keys `runner.runner` gives a default for when absent, whose value changes what
+#: gets sampled -- `config_key` fills these in explicitly (module docstring's "Effective
+#: config_key"). Keep in sync with `runner.runner.DEFAULT_MAX_NEW_POLICY`.
+_DEFAULT_OPTIONS_FOR_KEY: dict[str, JSON] = {"max_new_policy": "ref3x"}
+
+#: `RunSpec.options` keys that only change *how* a run is executed (batching/writing), never what
+#: gets sampled -- excluded from `config_key` entirely so changing one doesn't fork the run/resume
+#: lineage for an otherwise-identical config. Keep in sync with `runner.runner.
+#: DEFAULT_ITEMS_PER_CALL`'s option name.
+_SCHEDULING_ONLY_OPTIONS: frozenset[str] = frozenset({"items_per_call"})
+
+
+def _effective_options_for_key(options: Mapping[str, JSON]) -> dict[str, JSON]:
+    """`options` normalised for `config_key` hashing: drop every `_SCHEDULING_ONLY_OPTIONS` key
+    (doesn't affect results, must not fork the key) and fill in every `_DEFAULT_OPTIONS_FOR_KEY`
+    key `options` leaves unset (so an implicit default and an explicit same-value setting hash
+    identically, and -- the actual bug this fixes -- so a *changed* default hashes differently)."""
+    effective = {k: v for k, v in options.items() if k not in _SCHEDULING_ONLY_OPTIONS}
+    for key, default in _DEFAULT_OPTIONS_FOR_KEY.items():
+        effective.setdefault(key, default)
+    return effective
 
 
 class _AdaptiveRuleLike(Protocol):
@@ -110,7 +158,10 @@ class Store:
     def config_key(spec: _RunSpecLike, identity: Mapping[str, JSON], judge_id: str) -> str:
         """A hash of everything that makes a run resamplable-identical: used as part of the
         `run_id` (so re-running the same `RunSpec` against the same model/judge is idempotent and
-        visible as such) and as the lookup key for `latest`."""
+        visible as such) and as the lookup key for `latest`. Hashes `spec.options`' *effective*
+        form (`_effective_options_for_key`, module docstring's "Effective config_key"), not the raw
+        dict, so a changed runner-level default (not merely an explicit `options` difference) still
+        changes the key."""
         payload = {
             "suite": spec.suite,
             "version": spec.version,
@@ -127,15 +178,30 @@ class Store:
                 "stop_c": spec.adaptive.stop_c,
             },
             "pids": None if spec.pids is None else list(spec.pids),
-            "options": dict(spec.options),
+            "options": _effective_options_for_key(spec.options),
             "identity": dict(identity),
             "judge_id": judge_id,
         }
         return sha256_str(json.dumps(payload, sort_keys=True, default=str))[:16]
 
-    def new_run(self, spec: _RunSpecLike, identity: Mapping[str, JSON], judge_id: str) -> str:
+    def new_run(
+        self,
+        spec: _RunSpecLike,
+        identity: Mapping[str, JSON],
+        judge_id: str,
+        *,
+        run_id: str | None = None,
+    ) -> str:
+        """Append a `"start"` event and return its `run_id`: the deterministic
+        `f"{suite}-{version}-{model}-{config_key}"` id, unless `run_id` is given explicitly (e.g. a
+        `-r2`/`-r3`/... rerun suffix -- `runner.run`'s `rerun=True` path, which deliberately wants
+        a *different* id for the same config rather than colliding with an existing run). Either
+        way the appended event's own `"config_key"` field is the real config key, so `latest`/
+        `runs(config_key=...)` lookups still find this run under its config regardless of which
+        `run_id` it was given."""
         key = self.config_key(spec, identity, judge_id)
-        run_id = f"{spec.suite}-{spec.version}-{spec.model}-{key}"
+        if run_id is None:
+            run_id = f"{spec.suite}-{spec.version}-{spec.model}-{key}"
         append_jsonl(
             self.runs_path,
             [
@@ -188,7 +254,16 @@ class Store:
         ]
 
     def latest(self, suite: str, model: str, config_key: str) -> str | None:
-        candidates = self.runs(suite=suite, model=model, config_key=config_key)
+        """The most recently finished (or, failing that, started) run matching `config_key`, or
+        `None`. A run whose folded `status` is `"invalid"` is excluded from consideration entirely
+        -- as if it were never recorded at all (module docstring's `"invalid"` runs) -- so this
+        falls back to the next most recent non-invalid match, or `None` if every match is invalid.
+        """
+        candidates = [
+            r
+            for r in self.runs(suite=suite, model=model, config_key=config_key)
+            if r.get("status") != "invalid"
+        ]
         if not candidates:
             return None
         candidates.sort(

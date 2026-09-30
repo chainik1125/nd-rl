@@ -476,9 +476,11 @@ def test_run_uses_the_ref3x_default_and_an_explicit_override_still_wins(tmp_path
 
 
 def test_max_new_policy_is_part_of_the_config_key(tmp_path: Path) -> None:
-    """Fix list: `"include the policy in the config key"` -- satisfied because `RunSpec.options`
-    (which `max_new_policy` lives in) is hashed verbatim into `config_key`; this pins that an
-    explicit `"full"` really does produce a different key from the (default, implicit) `"ref3x"`."""
+    """Fix list: `"include the policy in the config key"` -- satisfied because `Store.config_key`
+    folds `max_new_policy` (with its default filled in when absent) into what it hashes; this pins
+    that an explicit `"full"` really does produce a different key from the (default, implicit)
+    `"ref3x"`. See `test_wp0_store.py`'s own `config_key` tests for the implicit-vs-explicit-default
+    and `items_per_call`-is-excluded cases in more detail."""
     problems = _problems(2)
     store = Store(tmp_path)
     _write_suite(store, problems)
@@ -491,3 +493,84 @@ def test_max_new_policy_is_part_of_the_config_key(tmp_path: Path) -> None:
     key_ref3x = store.config_key(spec_ref3x, adapter.identity(), judge.judge_id)
     key_full = store.config_key(spec_full, adapter.identity(), judge.judge_id)
     assert key_ref3x != key_full
+
+
+# --------------------------------------------------------- skip-if-complete and --rerun (fix)
+
+
+def test_rerunning_a_complete_config_is_skipped_by_default(tmp_path: Path) -> None:
+    """Fix: this used to silently append a second, incompatible batch of chunk-0 rows into the
+    same run_id (`Store.items` then merges both configs' results together). Now a second `run()`
+    call for an already-`"complete"` config does no sampling at all and reports the *existing*
+    run's own data back, marked `skipped=True`."""
+    problems = _problems(2)
+    store = Store(tmp_path)
+    _write_suite(store, problems)
+    judge = NDJudge()
+    spec = RunSpec(suite="demo", version="v1", model="fake", k=2, seed=0)
+    first = run(spec, FakeAdapter(refs=_refs(problems), p=1.0), judge, store)
+    assert first["status"] == "complete"
+    assert first["skipped"] is False
+
+    recording = _RecordingAdapter(FakeAdapter(refs=_refs(problems), p=1.0))
+    second = run(spec, recording, judge, store)
+    assert second["skipped"] is True
+    assert second["run_id"] == first["run_id"]
+    assert second["n"] == first["n"] == 2 * len(problems)
+    assert second["c"] == first["c"]
+    assert recording.seen_reqs == []  # no sampling call happened at all
+
+    # the store's own recorded items are unaffected: still exactly k=2 per item, not doubled.
+    for item in store.items(first["run_id"]):
+        assert item.n == 2
+
+
+def test_rerun_flag_gives_a_new_run_id_with_no_merging(tmp_path: Path) -> None:
+    problems = _problems(2)
+    store = Store(tmp_path)
+    _write_suite(store, problems)
+    judge = NDJudge()
+    spec = RunSpec(suite="demo", version="v1", model="fake", k=2, seed=0)
+
+    first = run(spec, FakeAdapter(refs=_refs(problems), p=1.0), judge, store)
+    second = run(spec, FakeAdapter(refs=_refs(problems), p=1.0), judge, store, rerun=True)
+    assert second["skipped"] is False
+    assert second["run_id"] == f"{first['run_id']}-r2"
+    assert second["run_id"] != first["run_id"]
+
+    # each run's own items are separate -- no merging: both still show exactly k=2, not 4.
+    first_items = {it.pid: it for it in store.items(first["run_id"])}
+    second_items = {it.pid: it for it in store.items(second["run_id"])}
+    assert set(first_items) == set(second_items) == {p.pid for p in problems}
+    for pid in first_items:
+        assert first_items[pid].n == 2
+        assert second_items[pid].n == 2
+
+    # a further --rerun keeps incrementing the suffix.
+    third = run(spec, FakeAdapter(refs=_refs(problems), p=1.0), judge, store, rerun=True)
+    assert third["run_id"] == f"{first['run_id']}-r3"
+
+
+def test_rerun_bypasses_resume_and_always_starts_fully_fresh(tmp_path: Path) -> None:
+    """`--rerun` must not resume from a killed prior attempt at the same config either -- it
+    always draws every item from scratch under a brand new run_id, regardless of the latest run's
+    status."""
+    problems = _problems(2)
+    store = Store(tmp_path)
+    _write_suite(store, problems)
+    judge = NDJudge()
+    spec = RunSpec(suite="demo", version="v1", model="fake", k=2, seed=0)
+
+    crashing = _CrashingAdapter(refs=_refs(problems), p=1.0, crash_on_call=1)
+    with pytest.raises(RuntimeError, match="simulated crash"):
+        run(spec, crashing, judge, store)
+    killed_config_key = store.config_key(spec, crashing.identity(), judge.judge_id)
+    killed_run_id = store.latest("demo", "fake", killed_config_key)
+    assert killed_run_id is not None
+    assert store.items(killed_run_id) == []  # nothing got through before the crash
+
+    fresh = FakeAdapter(refs=_refs(problems), p=1.0)
+    result = run(spec, fresh, judge, store, rerun=True)
+    assert result["run_id"] == f"{killed_run_id}-r2"
+    assert result["status"] == "complete"
+    assert result["n"] == 2 * len(problems)
