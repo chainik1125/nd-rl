@@ -5,7 +5,7 @@ draft: true
 ---
 
 ```claude
-For context, see [last week's post](../2026-09-21-pretrain-ablations/README.md).
+For context, see [last week's post](https://robbiewmthompson.com/blog/pretraining-ablations/).
 ```
 
 # The combined model, and where its gains come from
@@ -69,7 +69,7 @@ format × pretraining +82, format × RL −46, pretraining × RL +6, all three �
 | RL | expert iteration in 15 small rounds (400 targets, ~32 samples each), hardest-first queue, training samples at T 1.0, fresh AdamW per round, GEM loss | Leon (evolved by his GEAR agents) |
 | RL sampling | verifier-guided: every `have` the model writes is checked against the rules given the lines before it; a bad line is rolled back in the KV cache and resampled (up to 4 times) | Leon's run-2 sampler, ported to the Lean format this week |
 
-It got there in four steps on the same pretrained weights ([details](../2026-09-28-combined-pipeline/README.md)):
+It got there in four steps on the same pretrained weights (details in our private group repo):
 Leon's RL recipe +117 (687 → 804), the full RL target pool +4 (noise), guided sampling +101 (905,
 but over the time budget), then the same guided run sped up and cut off at 1,800 s so the whole
 pipeline fits in 2,400 s (904). Charles's result that plain expert iteration matches GRPO agreed
@@ -149,8 +149,7 @@ Setup:
 - three seeds;
 - compute measured as tokens sampled from the model per theorem, rejected attempts included.
 
-Details are in the
-[test-time scaling experiment](../2026-09-29-test-time-scaling/README.md).
+Details are in the test-time scaling write-up in our private group repo.
 
 ![Solve rate vs sampled tokens per theorem, by inference method](charts/test-time-scaling.png)
 
