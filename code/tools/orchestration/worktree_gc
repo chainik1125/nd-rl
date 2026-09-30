@@ -58,7 +58,7 @@ kept_elsewhere() { # $1 dir, $2 relative path, $3 size -> 0 if a copy survives r
 publish() { # $1 kind, $2 dir, $3 run -> 0 if uploaded and listed
   local k=$1 D=$2 RUN=$3 T f hit
   hit=$(cd "$D" && printf '%s\0' "${MISS[@]}" | xargs -0 -r grep -l -I -E \
-    'hf_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|rpa_[A-Za-z0-9]{20,}|BEGIN [A-Z ]*PRIVATE KEY|(HF_TOKEN|RUNPOD_API_KEY|ANTHROPIC_API_KEY|RESEND_API_KEY)=[^ ]' \
+    'hf_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|rpa_[A-Za-z0-9]{20,}|BEGIN [A-Z ]*PRIVATE KEY|(HF_TOKEN|RUNPOD_API_KEY|ANTHROPIC_API_KEY|RESEND_API_KEY)=["'"'"']?[A-Za-z0-9_-]{16,}' \
     2>/dev/null | head -3 | tr '\n' ' ')
   [ -z "$hit" ] || { PUBWHY="not published: credential-like string in $hit"; return 1; }
   T=$(mktemp -d "$HOME/.ws_publish.XXXX")   # same filesystem as the directory, so hard links cost no space
