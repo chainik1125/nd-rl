@@ -325,10 +325,10 @@ directly: does the model solve variants of targets it can't solve?
 - Specializations (stronger premises) are the easiest, as they should be: they remove a case
   split or an implication. Many are mastered at once and leave the pool.
 
-**TTRL solves 48 of 64. Sampling more solves 31.**
+**TTRL solves 48 of 64. Sampling more solves 31.** Numbers below are seed 0 unless marked.
 ```
 
-![Targets solved vs samples per target: TTRL vs sampling more](charts/ttrl-dev64.png)
+![Targets solved vs samples per target: TTRL, unrelated-variant TTRL and sampling more, two seeds](charts/ttrl-dev64.png)
 
 ```claude
 - **The budgets are matched.**
@@ -347,6 +347,37 @@ directly: does the model solve variants of targets it can't solve?
   behind, because it spreads its samples over variants. Then rounds 5-8 add 7, 4, 6 and 2
   targets, while the control adds 2 over its last 1,100 samples per target. TTRL was still
   climbing at round 8, when it stopped.
+- **Seed 1 replicates it, less cleanly.** On c005 seed 1 and its own 64 failures (48 shared
+  with seed 0), TTRL solves 41 and sampling more solves 31. TTRL again solves everything the
+  control does but one, plus 11 more.
+  - Its variant pool is bigger (4,468), so TTRL spent 3,088 samples per target, 28% more than
+    the control's 2,412.
+  - At matched samples TTRL is between 29 and 36; the extra 10 came mostly after the control's
+    budget.
+  - The control is flat by then: 29 → 31 over its last 1,200 samples per target.
+```
+
+### Is it the variants, or just more RL?
+
+```claude
+**It's the variants.** The same loop on seed 0, with the variants swapped for those of 64 *other*
+unsolved dev theorems: 4,499 variants from similar lengths, the same band and the same updates.
+The 64 targets are sampled exactly as in TTRL, 16 per round.
+
+| round | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| own variants (TTRL) | 8 | 23 | 28 | 29 | 36 | 40 | 46 | 48 |
+| unrelated variants | 7 | 11 | 20 | 23 | 25 | 25 | 26 | 28 |
+
+- Generic RL does help: 7 → 28 on targets it never trained on.
+- It ends below plain sampling (31). Against TTRL it used 2.7× the samples, 5× the training
+  records (232k vs 44k) and 79 minutes of A40 time (TTRL: 29).
+- It solves nothing that TTRL misses.
+- Its pool never shrinks, because solving a target retires no unrelated variant. That is why it
+  costs so much more.
+
+Generic RL on similar theorems doesn't beat sampling more. So TTRL's whole lead over sampling
+more comes from practising on problems built from the target.
 ```
 
 ### What's left
@@ -368,11 +399,9 @@ in this run.
 ### Caveats
 
 ```claude
-- **One seed, one model, 64 dev targets.** The 17-target gap is large next to anything
-  seed-level we've seen, but it is one run.
-- **It could be generic RL rather than target-specific learning.** TTRL spends 8 rounds of
-  RL on theorems like these; the control spends none. If variants of *unrelated* theorems help
-  as much, the variants aren't what matters. That control is next.
+- **Two seeds, one run each, mostly the same 64 dev targets.** +17 and +10 over sampling more;
+  seed 1's lead at exactly matched samples is smaller. The unrelated-variants arm ran on seed 0
+  only.
 - **Dev theorems.** The 64 were picked by failing c005 at 64 plain samples on this dev split.
   Every knob was set before the run and none was tuned, but the real test is the held-out
   theorems every inference method missed. At 1,024 attempts about 90% of those stay unsolved.
@@ -381,8 +410,9 @@ in this run.
 - **Temperature.** Both arms sample at T 1.0, the RL temperature. The frozen eval and the
   test-time section above use T 0.8.
 
-Code: `code/experiments/current/ttrl/` on branch `robbie-experiments`. Per-item results:
-`artifacts/ttrl/dev64_ttrl/`, `artifacts/ttrl/dev64_control/` (in the checkout).
+Code: `code/experiments/current/ttrl/` on branch `robbie-experiments`. Per-item results live
+in the checkout's `artifacts/ttrl/`: `dev64_ttrl`, `dev64_control`, `dev64_unrelated`,
+`s1_ttrl`, `s1_control`.
 ```
 
 ## Methodology
