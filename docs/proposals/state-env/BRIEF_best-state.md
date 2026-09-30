@@ -1,8 +1,9 @@
 # Run brief: best-state — Robbie's network and pretraining recipe in the proof-state format, cap 6 and cap 12
 
 Run id `best-state`. Repository `~/work/best-state` (branch `dan_best-state` from the fork's `origin/dan`, made by
-`newrun`). Role: executor. `AGENT_POLICY.md` governs, including per-arm compute rows. Budget **$60**, ceiling
-**120 pod-hours**. Authorised by Dan 2026-09-30: "I'd like to run this experiment today". Proposal:
+`newrun`). Role: executor. `AGENT_POLICY.md` governs, including per-arm compute rows. Budget **$55**, ceiling
+**110 pod-hours**: the RunPod balance was $159 and the floor is $100. If the ladders need more, say so in
+`QUESTIONS.md` early; Dan may top up. Authorised by Dan 2026-09-30: "I'd like to run this experiment today". Proposal:
 nd-rl `docs/proposals/2026-09-30-best-network-proof-state.md`, which is the question.
 
 Read first:
