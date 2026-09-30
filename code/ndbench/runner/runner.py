@@ -43,19 +43,33 @@ many near-singleton groups, largely defeating that batching. See `_resolve_max_n
 without reaching `QED`) is what makes a run's truncation rate visible; it is unaffected by which
 policy set the cap.
 
-**Resume.** Before starting, `run` checks `store.latest(spec.suite, spec.model, config_key)` (the
-exact `run_id` a fresh `store.new_run(spec, identity, judge_id)` call for this same config would
-either create or re-append a start event to, since `run_id` is a deterministic function of that
-same `config_key`). If a run with that `run_id` already exists and its last known status is
-`"partial"` or `"running"` (started but never reached `finish_run` -- i.e. a prior attempt was
-killed), every item's already-recorded `(n, c)` (`store.items(run_id)`) seeds this run's starting
-`ItemProgress` instead of `0, 0`, and each item's own next chunk number picks up one past the
-highest chunk number it already has recorded (`store.item_chunks`), so a resumed run draws no
-duplicate `(pid, chunk)` seed and skips any item whose recorded progress already satisfies
-`spec.k`/`spec.adaptive`. A run whose latest matching record is already `"complete"` is *not*
-resumed (re-running it draws a fresh full set of samples under the same `run_id`, the pre-existing
-behaviour); this only ever matters if a caller deliberately re-runs an already-complete config
-against the same `Store`; the config-key logic is otherwise unaffected.
+**Resume, skip, and `rerun` (rerun-merging fix).** Before starting, `run` looks up
+`store.latest(spec.suite, spec.model, config_key)` (the exact `run_id` a fresh
+`store.new_run(spec, identity, judge_id)` call for this config would create or re-append a start
+event to, `run_id` being a deterministic function of `config_key`; `store.latest` already excludes
+any `"invalid"`-status run -- see `store.py`'s own docstring -- so an invalid run is treated as not
+present here too) and its last known status, with three outcomes:
+
+- **`"partial"`/`"running"`** (started but never reached `finish_run` -- i.e. a prior attempt was
+  killed): *resumed*. Every item's already-recorded `(n, c)` (`store.items(run_id)`) seeds this
+  run's starting `ItemProgress` instead of `0, 0`, and each item's own next chunk number picks up
+  one past the highest chunk number it already has recorded (`store.item_chunks`), so a resumed run
+  draws no duplicate `(pid, chunk)` seed and skips any item whose recorded progress already
+  satisfies `spec.k`/`spec.adaptive`.
+- **`"complete"`**, `rerun=False` (the default): *skipped* entirely -- no suite is even re-sampled,
+  no new `Store` writes happen at all -- and `run` returns that existing run's own summary (its
+  `n`/`c` read back from `store.items`) with `"skipped": True`. This is the fix for the bug this
+  section used to describe: re-running an unchanged `RunSpec` against an already-complete config
+  no longer draws a second, silently-merged batch of samples into the same `run_id`.
+- **`rerun=True`** (the CLI's `--rerun`): resume/skip are both bypassed regardless of the latest
+  run's status, and every item starts fully fresh (`progress`/`next_chunk` empty) under a brand
+  new, non-colliding `run_id`: the deterministic base id plus the lowest free `-r2`, `-r3`, ...
+  suffix (`_next_rerun_run_id`). The prior run's own rows are never touched or resumed from.
+
+Two different effective configs can therefore never again land on the same `run_id`
+(`Store.config_key`'s "Effective config_key" fix handles the *cause*; this section's skip/rerun
+handling is what makes re-running a *genuinely* unchanged, already-complete config a safe no-op
+instead of undefined behaviour).
 """
 
 from __future__ import annotations
@@ -154,7 +168,10 @@ def _resolve_max_new_tokens(
 
 
 class RunSummary(TypedDict):
-    """`run()`'s return shape."""
+    """`run()`'s return shape. `skipped` is `True` only when an already-`"complete"` run for this
+    exact config was found and `rerun=False`, in which case no new sampling happened at all and
+    every other field reflects that *existing* run's own recorded data (module docstring's
+    "Resume, skip, and rerun")."""
 
     run_id: str
     status: str
@@ -162,6 +179,7 @@ class RunSummary(TypedDict):
     n_chunks: int
     n: int
     c: int
+    skipped: bool
 
 
 @dataclass(frozen=True)
@@ -274,27 +292,69 @@ class _ChunkAccum:
         )
 
 
+def _latest_status(
+    store: Store, suite: str, model: str, config_key: str
+) -> tuple[str | None, str | None]:
+    """`(run_id, status)` of the latest run matching `config_key`, or `(None, None)` if there is
+    none. Goes through `store.latest`, which already excludes any `"invalid"`-status run (`store.
+    py`'s own docstring), so an invalid run is treated as not present by every caller of this
+    helper too (module docstring's "Resume, skip, and rerun")."""
+    run_id = store.latest(suite, model, config_key)
+    if run_id is None:
+        return None, None
+    records = store.runs(run_id=run_id)
+    status = cast("str | None", records[0]["status"]) if records else None
+    return run_id, status
+
+
+def _next_rerun_run_id(store: Store, base_run_id: str) -> str:
+    """The lowest free `-r<N>` suffix (`N` starting at 2) for `base_run_id` (module docstring's
+    `rerun=True`): the plain `base_run_id` itself is implicitly "attempt 1", so the first rerun is
+    `-r2`, the next `-r3`, and so on -- the smallest `N` such that `f"{base_run_id}-r{N}"` is not
+    already a recorded `run_id`."""
+    existing = {cast(str, r["run_id"]) for r in store.runs()}
+    n = 2
+    while f"{base_run_id}-r{n}" in existing:
+        n += 1
+    return f"{base_run_id}-r{n}"
+
+
+def _skipped_summary(store: Store, run_id: str, n_items: int) -> RunSummary:
+    """A `RunSummary` for the "already complete, `rerun=False`" case (module docstring's "Resume,
+    skip, and rerun"): no new sampling happens, and `n`/`c` are `run_id`'s own already-recorded
+    totals (`store.items`). `n_chunks` is recovered best-effort from `run_id`'s raw `item_chunks`
+    (the highest chunk number any item reached, plus one) rather than tracked live, since no round
+    actually executes in this path."""
+    items = store.items(run_id)
+    chunks = store.item_chunks(run_id)
+    n_chunks = (max(cast(int, row["chunk"]) for row in chunks) + 1) if chunks else 0
+    return {
+        "run_id": run_id,
+        "status": "complete",
+        "n_items": n_items,
+        "n_chunks": n_chunks,
+        "n": sum(it.n for it in items),
+        "c": sum(it.c for it in items),
+        "skipped": True,
+    }
+
+
 def _resume_state(
     store: Store, spec: RunSpec, identity: Mapping[str, JSON], judge_id: str, pids: set[str]
 ) -> tuple[dict[str, ItemProgress], dict[str, int], str | None]:
-    """Resume support (module docstring's "Resume" section): if `store.latest(...)` finds a run
-    for this exact `(spec, identity, judge_id)` config key whose last known status is `"partial"`
-    or `"running"`, return `(progress, next_chunk, resumed_run_id)` seeded from that run's
-    already-recorded items (restricted to `pids`, in case `spec.pids` narrowed the suite since the
-    prior attempt); otherwise `({}, {}, None)`, meaning every item starts fresh at `(n=0, c=0)`,
-    `chunk=0`, exactly as before this fix.
+    """Resume support (module docstring's "Resume, skip, and rerun"): if the latest run for this
+    exact `(spec, identity, judge_id)` config key has status `"partial"` or `"running"`, return
+    `(progress, next_chunk, resumed_run_id)` seeded from that run's already-recorded items
+    (restricted to `pids`, in case `spec.pids` narrowed the suite since the prior attempt);
+    otherwise `({}, {}, None)`, meaning every item starts fresh at `(n=0, c=0)`, `chunk=0`.
 
     `resumed_run_id`, when not `None`, is guaranteed to equal the `run_id` a fresh `store.new_run`
     call for this same config produces (both are the same deterministic function of the config
     key) -- `run` asserts this rather than silently trusting it.
     """
     config_key = store.config_key(spec, identity, judge_id)
-    prior_run_id = store.latest(spec.suite, spec.model, config_key)
-    if prior_run_id is None:
-        return {}, {}, None
-    prior_records = store.runs(run_id=prior_run_id)
-    prior_status = prior_records[0]["status"] if prior_records else None
-    if prior_status not in ("partial", "running"):
+    prior_run_id, prior_status = _latest_status(store, spec.suite, spec.model, config_key)
+    if prior_run_id is None or prior_status not in ("partial", "running"):
         return {}, {}, None
 
     progress = {
@@ -311,16 +371,25 @@ def _resume_state(
     return progress, next_chunk, prior_run_id
 
 
-def run(spec: RunSpec, adapter: ModelAdapter, judge: Judge, store: Store) -> RunSummary:
+def run(
+    spec: RunSpec, adapter: ModelAdapter, judge: Judge, store: Store, *, rerun: bool = False
+) -> RunSummary:
     """Sample `spec.suite`/`spec.version` against `adapter`, judge with `judge`, and record every
     chunk's `ItemResult` (and, if `spec.keep_samples`, every raw sample) to `store`, writing after
     every `spec.options["items_per_call"]`-sized group within a round rather than once per round
-    (module docstring's "Incremental writing"), and resuming a killed prior attempt at the same
-    config instead of resampling everything (module docstring's "Resume").
+    (module docstring's "Incremental writing").
+
+    Resume/skip/rerun (module docstring's "Resume, skip, and rerun"): with `rerun=False` (the
+    default), a killed prior attempt at the same config (status `"partial"`/`"running"`) is resumed
+    rather than resampled from scratch, and an already-`"complete"` prior attempt is *skipped*
+    entirely -- this call does no sampling and no `Store` writes, and returns that existing run's
+    own summary with `"skipped": True`. With `rerun=True` (the CLI's `--rerun`), resume/skip are
+    both bypassed and every item is drawn fresh under a brand new `-r2`/`-r3`/... `run_id`,
+    regardless of the latest run's status.
 
     Returns a small JSON-able summary (`RunSummary`, a `dict[str, JSON]`-compatible `TypedDict`):
     `run_id`, final `status` (`"complete"` if every item finished within `spec.budget_s`, else
-    `"partial"`), item/chunk/sample counts.
+    `"partial"`), item/chunk/sample counts, and `skipped`.
     """
     problems: list[Problem] = store.load_suite(spec.suite, spec.version)
     if spec.pids is not None:
@@ -329,15 +398,30 @@ def run(spec: RunSpec, adapter: ModelAdapter, judge: Judge, store: Store) -> Run
     by_pid = {p.pid: p for p in problems}
 
     identity = adapter.identity()
-    resumed_progress, next_chunk, resumed_run_id = _resume_state(
-        store, spec, identity, judge.judge_id, set(by_pid)
-    )
-    run_id = store.new_run(spec, identity, judge.judge_id)
-    if resumed_run_id is not None:
-        assert run_id == resumed_run_id, (
-            f"runner.run: resumed run_id {resumed_run_id!r} must equal the freshly computed "
-            f"run_id {run_id!r} (both are the same deterministic function of the config key)"
+    config_key = store.config_key(spec, identity, judge.judge_id)
+    base_run_id = f"{spec.suite}-{spec.version}-{spec.model}-{config_key}"
+
+    if not rerun:
+        prior_run_id, prior_status = _latest_status(store, spec.suite, spec.model, config_key)
+        if prior_status == "complete":
+            assert prior_run_id is not None
+            return _skipped_summary(store, prior_run_id, len(problems))
+
+    if rerun:
+        resumed_progress: dict[str, ItemProgress] = {}
+        next_chunk: dict[str, int] = {}
+        run_id = _next_rerun_run_id(store, base_run_id)
+        store.new_run(spec, identity, judge.judge_id, run_id=run_id)
+    else:
+        resumed_progress, next_chunk, resumed_run_id = _resume_state(
+            store, spec, identity, judge.judge_id, set(by_pid)
         )
+        run_id = store.new_run(spec, identity, judge.judge_id)
+        if resumed_run_id is not None:
+            assert run_id == resumed_run_id, (
+                f"runner.run: resumed run_id {resumed_run_id!r} must equal the freshly computed "
+                f"run_id {run_id!r} (both are the same deterministic function of the config key)"
+            )
 
     progress: dict[str, ItemProgress] = {
         pid: resumed_progress.get(pid, ItemProgress()) for pid in by_pid
@@ -435,4 +519,5 @@ def run(spec: RunSpec, adapter: ModelAdapter, judge: Judge, store: Store) -> Run
         "n_chunks": n_chunks_written,
         "n": total_n,
         "c": total_c,
+        "skipped": False,
     }

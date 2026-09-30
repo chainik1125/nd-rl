@@ -268,7 +268,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         budget_s=args.budget_s,
     )
     store = Store(Path(args.out))
-    summary = run(spec, adapter, judge, store)
+    summary = run(spec, adapter, judge, store, rerun=args.rerun)
     adapter.close()
     print(json.dumps(summary, indent=2))
 
@@ -506,6 +506,16 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--pids", default=None, help="comma-separated pid subset")
     r.add_argument("--budget-s", type=float, default=None, dest="budget_s")
     r.add_argument("--no-keep-samples", action="store_true")
+    r.add_argument(
+        "--rerun",
+        action="store_true",
+        help=(
+            "force a fresh run even if this exact config already has a complete run: instead of "
+            "the default skip-if-complete, start a new run_id (base id plus the lowest free "
+            "-r2/-r3/... suffix) and draw every item from scratch, never resuming or merging into "
+            "an existing run"
+        ),
+    )
     r.add_argument("--out", default=DEFAULT_OUT)
     r.set_defaults(func=cmd_run)
 
