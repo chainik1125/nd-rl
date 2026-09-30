@@ -61,6 +61,52 @@ harness_frozen.py harness_state.py` is the whole change.
   what the recipe chain bought (ALiBi/NoPE, length handling) is long-context behaviour that the Markov state removes.
 - **201/204 under SN** lose more than 198/207 relative to C0, because of the 128-pair batches (caveat 1).
 
-## Results
+## What changed during the run (2026-09-30)
 
-Pending.
+- **Env batch.** At Dan's 2,048 live attempts every state arm OOMed an A40: the ALiBi recipes' prefill builds a
+  (batch, heads, L, L) fp32 bias, and every step re-encodes the state. Relaunched at 512 (SN) / 256 (SH), then with a
+  sticky halve-and-redo on any OOM (`env_ooms` in `summary.json`). This is a sampling re-draw, not a protocol change.
+- **Compute-matched control, added after the first SN result: C0k192.** C0 with k 192 RL samples per target per round
+  instead of 32, so its RL stage takes roughly SN's wall-clock. Fine-tune steps and the eval (k 64) are unchanged. It
+  is under-matched: median RL stage 28–31 min, against SN's 33–41 min at batch 512.
+
+## Results (C0, C0k192 and SN complete; SH still running)
+
+Dev metric (dev-half transfer theorems solved at L_true ≥ 7, 64 samples), seeds 0 / 1 / 2. Medians, because
+whole-proof EI sometimes fails to take off (\*). RL = RL targets solved of 1,500, median. Time = median wall-clock
+of the whole run and of its RL stage, on A40s.
+
+| recipe | arm | seeds | median | RL | run / RL stage |
+| --- | --- | --- | --- | --- | --- |
+| 198 | C0 | 669 / 692 / 216\* | 669 | 1,169 | 17 / 10 min |
+| 198 | C0k192 | 743 / 345\* / 682 | 682 | 1,206 | 37 / 30 min |
+| 198 | **SN** | 852 / 824 / 798 | **824** | 1,274 | 58 / 41 min |
+| 207 | C0 | 612 / 304\* / 616 | 612 | 924 | 17 / 10 min |
+| 207 | C0k192 | 713 / 625 / 396\* | 625 | 747 | 37 / 30 min |
+| 207 | **SN** | 781 / 777 / 814 | **781** | 1,225 | 57 / 40 min |
+| 201 | C0 | 609 / 638 / 579 | 609 | 1,090 | 18 / 10 min |
+| 201 | C0k192 | 674 / 678 / 626 | 674 | 1,183 | 38 / 31 min |
+| 201 | **SN** | 723 / 720 / 720 | **720** | 1,181 | 55 / 40 min |
+| 204 | C0 | 566 / 552 / 571 | 566 | 1,052 | 16 / 9 min |
+| 204 | C0k192 | 610 / 642 / 629 | 629 | 1,131 | 35 / 28 min |
+| 204 | **SN** | 705 / 744 / 790 | **744** | 1,205 | 46 / 33 min |
+
+Observations:
+
+1. **SN beats C0 on every recipe:** medians +155 (198), +169 (207), +111 (201), +178 (204). The pre-registered
+   +150 to +300 on 198 holds at the low end.
+2. **Most of it survives compute matching:** SN − C0k192 is +142 / +156 / +46 / +115. Six times the RL samples buys
+   whole-proof EI only +13 to +65. The control is under-matched by about a quarter of SN's RL time (above), so these
+   gaps are upper bounds on the state's advantage at equal compute. Given C0's slow gain from 6× samples, the
+   remaining 25 % is unlikely to close them.
+3. **Reliability:** whole-proof EI failed to take off in 4 of 24 runs (216, 304, 345, 396). SN took off in 12 of 12.
+4. **The recipe spread did not shrink** (prediction not supported): SN 824 → 720 (104), C0 669 → 566 (103). The
+   ordering changed only among the simplifications. 198 is best in both formats.
+5. **201 gains least** (+46 over C0k192). It is one of the two recipes with 128-example batches (pre-registered
+   caveat 1). The other, 204, gains +115, so the caveat does not explain it alone.
+6. **Cost:** SN runs take 2.7–3.4× C0's wall-clock (sampling about 4×, fine-tune about 2.6×, because a proof is
+   about 5 pairs). The slowdown is mostly the step loop, and it is engineering, not intrinsic: Rounds at Dan's 2,048 batch
+   took 429–492 s, against 587–649 s at 512 (198 benchmark), before it OOMed.
+
+SH: 207 seed 0 = 665 in 98 min. The rest are pending or slow. SH re-encodes the whole history every step, and the
+weak recipes' SH attempts reach L of about 4,000, which forced their env batch down to 32.
