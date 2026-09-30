@@ -308,7 +308,25 @@ matched compute. TTRL also pays for fine-tuning, which is reported separately.
 ### Results
 
 ```claude
-Running. Code: `code/experiments/current/ttrl/` on branch `robbie-experiments`.
+**The stepping stones exist.** Round 1 samples the unadapted model, so it tests the premise
+directly: does the model solve variants of targets it can't solve?
+
+| round 1, 16 samples each | items | any proof | in the band (1-12 of 16) | mean solve rate |
+| --- | --- | --- | --- | --- |
+| targets | 64 | 12% | 12% | 0.01 |
+| all variants | 3,397 | 43% | 27% | 0.24 |
+| cuts, depth 1 / 2 | 243 / 2,391 | 44% / 39% | 24% / 26% | 0.26 / 0.21 |
+| decompositions, depth 1 / 2 | 166 / 425 | 40% / 61% | 33% / 35% | 0.17 / 0.35 |
+| specializations, depth 1 / 2 | 26 / 146 | 73% / 58% | 19% / 29% | 0.60 / 0.36 |
+
+- The model solves variants 24× more often than their targets (0.24 vs 0.01).
+- 63 of the 64 targets have at least one variant in the training band, and every target has
+  at least one variant with a proof.
+- Specializations (stronger premises) are the easiest, as they should be: they remove a case
+  split or an implication. Many are mastered at once and leave the pool.
+
+Running: rounds 2-8 and the control. Code: `code/experiments/current/ttrl/` on branch
+`robbie-experiments`.
 ```
 
 ## Methodology
