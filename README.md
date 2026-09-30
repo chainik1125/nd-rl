@@ -9,6 +9,8 @@ knowledge base for people. It is initialized from the
 - **People:** read the [project state](docs/STATE.md), then the [knowledge index](docs/README.md).
 - **Agents:** read [AGENTS.md](AGENTS.md), then [docs/STATE.md](docs/STATE.md), and follow links
   relevant to the task. Save useful context back into the repository.
+- **Finding people's work:** [where things are](docs/WHERE_THINGS_ARE.md) lists each person's
+  weights and datasets on Hugging Face, best models, branches, and write-ups.
 - **Papers:** use the [literature workflow](docs/literature/README.md) and the generated
   [project bibliography](references.bib). Open this folder as an Obsidian vault to browse notes
   and insert citations.
