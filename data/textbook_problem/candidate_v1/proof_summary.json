@@ -1,0 +1,62 @@
+{
+ "n": 90,
+ "with_proof": 80,
+ "no_proof": [
+  "textbook_7a4714d44497ce53e5f5",
+  "textbook_a38c8d47241d7ffa502f",
+  "textbook_9111869d16ada6fce314",
+  "textbook_76f8dfbeb57747b32fae",
+  "textbook_c9433284b21bf158bf1d",
+  "textbook_6dd339f1fd99d36082f5",
+  "textbook_4344185c4f3bde6f4a37",
+  "textbook_931616bf029c05b823e1",
+  "textbook_575abd80085c0295919c",
+  "textbook_95a721ce5c3b9b58ab99"
+ ],
+ "methods": {
+  "whole search": 65,
+  "conjunct split": 14,
+  "conjunct split: no proof": 6,
+  "whole search, 1800 s: no proof": 4,
+  "whole search, 1800 s": 1
+ },
+ "length_bin": {
+  "5-6": 8,
+  "7-8": 19,
+  "9-10": 18,
+  "3-4": 3,
+  "13-15": 9,
+  "16+": 17,
+  "11-12": 6
+ },
+ "family": {
+  "direct": 7,
+  "conditional": 27,
+  "classical": 10,
+  "negation": 13,
+  "case-split": 19,
+  "case-split-derived": 4
+ },
+ "tags": {
+  "direct": 7,
+  "conditional": 27,
+  "classical": 16,
+  "negation": 13,
+  "case-split": 19,
+  "refutation": 14,
+  "biconditional": 26,
+  "nested": 16,
+  "case-split-derived": 4
+ },
+ "ref_lines_ge7": 69,
+ "requires_derived_ore": 4,
+ "schema_in_rl_pool": 9,
+ "wall_secs": "36051 (main run, incl. a 9 h SIGSTOP pause) + 2310 (rerun of 5)",
+ "settings": {
+  "bound": 40,
+  "secs": 300,
+  "long_secs": 1800,
+  "procs": 8
+ },
+ "note": "5 problems whose 1,800 s timer expired during the pause were rerun alone; results merged"
+}

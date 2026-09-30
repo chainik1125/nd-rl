@@ -184,3 +184,85 @@ metric, and a `completion` slice (decide). Not yet folded into `plan.md`.
     sections; 16 in five or more versions). The other 43 weren't found in any open source.
   - **Git:** `data/textbook_problem/candidates/` (working outputs) is now gitignored, and the
     frozen `candidate_v0/` is committed.
+
+## 2026-09-29: S1 pass 3, academics and their problem sets
+
+- **Ran:** about 40 web searches and 30 page fetches, person by person (logicians who publish
+  exercise sets, course problem sets, proof-checker task banks). Written up in
+  `diversification/people_scan.md`. No data or code changed; no carnap.io `/shared/` page
+  requested.
+- **Learned:** one new tier-A book with its own exercises, Tony Roy's *Symbolic Logic* (CC
+  BY-NC-SA 4.0, verified on the author's site). The other distinct sets are unlicensed and held
+  by individuals: Oxford (Carr's ND Pack, Halbach's booklet, Fritz), Peter Smith (IFL2 answers),
+  Slaney (ANU Logic Notes), Klement (Logic Penguin), Zach (Carnap). Tool task banks (Incredible
+  Proof Machine, NaDeA, Jape) are open-licensed but of unstated origin. Course problem sets
+  (CMU 15-317, MIT OCW 24.241, Edinburgh Inf1, Chalmers) are small or point at copyrighted
+  books. Six PDFs are saved in the scratchpad but unread: no PDF text tool in the venv.
+- **Next:** Charles decides on NC-SA licences, on emailing authors, and on adding `pypdf`. Then
+  read Roy's PDF and the Oxford packs, and count sequents.
+- **Open:** does NC count as "open" for tier A? Do tool task banks count as textbook problems?
+
+## 2026-09-29, later: scraped Roy's Symbolic Logic and Carr's Natural Deduction Pack
+
+- **Ran:** downloaded Roy's PDF (author's site, robots allows) and answers; copied Carr's pack.
+  Wrote `code/textbook_problem/pdf_sources.py` (pdfminer for Roy, since pypdf drops ∼ and `]`;
+  pypdf for Carr) and added the two sources to `transcribe.py`. `uv add pypdf pdfminer.six`.
+  Ran the full transcribe + audit into `data/textbook_problem/candidates_v1/` (gitignored).
+  Proof search on the 90 new candidates started detached at 15:20 UTC (PID in `prove.pid`,
+  log `prove.log`).
+- **Learned:** Roy 140 items → 86 new candidates; Carr 104 → 4 (40 sealed overlaps, 43
+  duplicates of forall x). The 105 of candidate_v0 are reproduced unchanged. Details in
+  `diversification/people_scan.md`, "Scrape" section.
+- **Next:** when the search finishes, compare the 90 with the plan's metrics, then decide with
+  Charles on the NC-SA licence and whether to fold them into a candidate_v1 release.
+- **Open:** `code/pyproject.toml` also carries another session's uncommitted `lean_tools` line;
+  stage only the pypdf/pdfminer lines when committing.
+- **2026-09-29 ~16:10 UTC: proof search paused** on Charles's request, with 70/90 done.
+  `prove.py` writes its output only at the end, so the process group was suspended, not killed:
+  `kill -STOP -- -62765` (uv wrapper, python, 8 workers). Resume with `kill -CONT -- -62765`;
+  the log is `data/textbook_problem/candidates_v1/prove.log`. If the machine reboots or the
+  processes are gone, rerun the command in the log entry above; nothing is lost but time.
+- **2026-09-30 01:18 UTC: resumed** (`kill -CONT`); the 20 remaining finished in 3 min because
+  the 1,800 s wall-clock timers of 5 in-flight searches had expired during the pause (log shows
+  ~35,000 s). Those 5 were rerun alone (01:22–02:00 UTC, `rerun5*`): 1 proved (E6.21f, 19
+  lines), 4 no proof within limits. Merged file: `candidates_v1/new_only_proved_merged.jsonl`.
+- **Result for the 90 new:** 80 proved (all pass strict_verify), 10 without a proof within the
+  search limits (9 are biconditional-of-biconditional theorems: T6.29, T6.30, E6.18i, E6.18o,
+  E6.20c, E6.20d, E6.20e, E6.21j, E6.21m; plus E6.21l). Lengths (79 before the rerun): median
+  9, mean 11.3, 16+ lines: 16. Families: conditional 27, case-split 18, negation 13, classical
+  10, direct 7, derived 4 (+1 case-split from the rerun). **Six of the nine missing laws appear**
+  (contraposition, its converse, export, explosion, modus tollens, dist_and_over_or_conv), as
+  Roy's theorem/biconditional forms, none overlapping validation_36.
+- **Lesson:** never pause `prove.py` with SIGSTOP; its timeouts are wall-clock. Kill and rerun.
+
+## 2026-09-30: candidate_v0 amended to 104; candidate_v1 frozen (80)
+
+- **On Charles's decision:** v0 keeps only search-proved problems. `textbook_e95c1b499aa32da3b5d3`
+  and its hand proof moved to `candidate_v0/removed.jsonl`; README tables and MANIFEST updated
+  (16+ 7→6, 7+ 86→85, case-split 17→16, Syracuse 40→39). The report and the Claude Doc still
+  describe the 105 version; noted in the README.
+- **candidate_v1** = the 80 proved of the 90 new (Roy 76, Carr 4), in
+  `data/textbook_problem/candidate_v1/` with README, MANIFEST, exclusions and summaries. The 10
+  unproved are in `deferred_no_proof.jsonl` there, outside the set. Working outputs remain in
+  the gitignored `candidates_v1/`.
+- **Next:** commit (staging only my pyproject lines), then Charles's licence decision, T4, T5.
+
+## 2026-09-30, later: second-reader sheets, release folder
+
+- **T4 second-reader check:** sheets of 20 random rows per set written to
+  `docs/textbook-problem/second_reader/` (seed 20260930, links to the exact source lines / PDF
+  pages). Charles reviewed them and said they look good; recorded as accepted.
+- **Release folder** `data/textbook_problem/release_2026-09-30/`: copies of candidate_v0 (104),
+  candidate_v1 (76 Roy; the 4 Carr rows in a separate file, held pending his permission) and the
+  10 unsolved, each row with `lean_statement` / `lean_proof` / `lean_theorem` from the pinned
+  `lean_seq` tokenizer (`lean.py`; manifest verified, self-test passes; **not checked by Lean**,
+  none installed). `lean/*.lean` hold one theorem per problem. README with licences and
+  attribution, MANIFEST with hashes.
+- **Next:** Charles names the public destination; commit first (my pyproject lines only).
+- **Lean installed** (elan, Lean 4.34.1, `~/.elan`) on Charles's request. `lean.py --selftest` now
+  runs the Lean check. All 184 release theorems with proofs are accepted by `lean_check` and by
+  `lean` directly; the 10 unsolved statements elaborate with `sorry`. Release README, `.lean`
+  headers and MANIFEST updated to say so.
+- **Carr's 4 rows merged into the release's `candidate_v1.jsonl` (80)** on Charles's decision; the
+  pending-permission file removed. README says the 4 carry no author licence and are marked by
+  `source.id == "carr"`. Merged `.lean` file re-checked: 80 theorems, no errors.

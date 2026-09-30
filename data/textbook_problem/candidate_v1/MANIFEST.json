@@ -1,0 +1,50 @@
+{
+ "version": "candidate_v1",
+ "date": "2026-09-30",
+ "files": {
+  "problems.jsonl": {
+   "sha256": "5dfddce93eca8e910f37c9893a06f15159cfc246b0c2e7a874c7b760bcc753be",
+   "lines": 80
+  },
+  "deferred_no_proof.jsonl": {
+   "sha256": "1581433c7d6351324c9c08eba1038fa2a6d093406e379d1a876f567d16131559",
+   "lines": 10
+  },
+  "exclusions.jsonl": {
+   "sha256": "9f3dc85af51aa13b004b37ac35583079ad60e468e14bf93220be25ba26988172",
+   "lines": 33
+  },
+  "transcribe_summary.json": {
+   "sha256": "3f6a979ff3f8ae798ff9d6a175e52f92669c7da03cff387aef67fdb998540f68",
+   "lines": 232
+  },
+  "proof_summary.json": {
+   "sha256": "2151594bed1f39e27d0288b4cf27deb5309860a16dc9c2e2891dc7ff8048b6f6",
+   "lines": 62
+  }
+ },
+ "raw_sources_sha256": {
+  "forallx-msu/forallx-msu-part4a--proof_tfl.tex": "7b5d48e878805e072e67b9ba359c77dac927e155fa7e2264c9c6e82d37ab92db",
+  "forallx-msu/forallx-msu-part4b-sound_complete.tex": "b7356ff3e6a53ea0bb96045105134897af30c9d6c06abe1d395ebe6b405f2635",
+  "forallx-syracuse/forallx-04-tfl-prf.tex": "099f2b5ee2f7db3e1624bfc83bd87da12ceb933887dcc8431a7257bec1275679",
+  "forallx-calgary/forallx-yyc-prooftfl.tex": "6b2d805ff3e5d126ad97e3df717cb0ad061e003d0509915149a6bd19f6f20730",
+  "roy/SymLogFullTxt.pdf": "fa4adaae13bdc9578fc6a3fc21f41a721243c9a0ff4501d57fecfc303cb3296c",
+  "roy/SymLogFullTxt.pdf.pm.txt": "7bf22bbd61dcc2efd5750ce60ea4efce6a54245897770a48c7423570a1f7669a",
+  "roy/SymLogSelAns.pdf": "8a92c29a87d63e3497beec0e52d9d5d9b5209372245eda17b68f8c8c211968f4",
+  "carr/NDpack.pdf": "20036188e7beca7c560e4525cf3469a55308cc59a687ec5f0ece7155da367373",
+  "carnap-book/book-3.html": "05f5615126cf5dc50e2e6627d48be056fa085fb245f0a470e3610f58d6b80714",
+  "carnap-book/book-4.html": "d975dd34d371025e4d05b63bf3ef760a6923ff0827bea4ef12a0ed3b831b891a",
+  "carnap-book/book-5.html": "139f5546755b9e1a8c1278f9082fc87ca8e9933a4bfe93866fd2778824d949f9",
+  "carnap-book/book-6.html": "e699dd488199941da27f78e329bea3f40ca9d0187dfaf5c6df99df38f4d7ee58",
+  "carnap-book/book-7.html": "a67f0337f6132debdf364b979d3934845bc48dd95cf4de3d6db1c583b8e7dc4e",
+  "carnap-book/book-8.html": "55a64e56ce1c89fcefc783fc5487a7aec24e205a1edabc57527ad917c771715d"
+ },
+ "code": {
+  "code/textbook_problem/transcribe.py": "eebb84284454d780d2f458fe5c35b9b18ba30530fa8dd6f2bdb419f4f18fc907",
+  "code/textbook_problem/pdf_sources.py": "b417c75d3f8cf560bf67a73eddfe419db620acb424365e43c3675958879fdb37",
+  "code/textbook_problem/prove.py": "f8e9805bb209d2053e9a6586816b9ed547409cddc7900adf18999ef65bccf3e9",
+  "code/textbook_problem/logic.py": "ea9741f673dbd57374ceb82bc9c9ae84286cd67d35d9345cfad0b9268ce6239c"
+ },
+ "code_state": "uncommitted on charles/main at the time of freezing",
+ "relation_to_v0": "disjoint; candidate_v0 was amended the same day to 104 problems"
+}

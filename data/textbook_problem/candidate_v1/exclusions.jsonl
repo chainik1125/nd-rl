@@ -1,0 +1,33 @@
+{"source": "roy", "where": "PDF p. 251, theorems T6.1–T6.20 (E6.16), NDs", "number": "T6.4", "original": "A → (B → C ), D → (C → E), D → B ⊢ A → (D → E)", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 251, sec. 6.2.4 Strategy, NDs", "number": "E6.15d", "original": "A ∧ (C ∧ ¬B), (A ∨ D) → ¬E ⊢ ¬E", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 251, sec. 6.2.4 Strategy, NDs", "number": "E6.15g", "original": "A → (B → C ), (A ∧ D) → E, C → D ⊢ (A ∧ B) → E", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 251, sec. 6.2.4 Strategy, NDs", "number": "E6.15h", "original": "(A → B) ∧ (B → C ), [(D ∨ E) ∨ H ] → A, ¬(D ∨ E) ∧ H ⊢ C", "reason": "6 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 264, sec. 6.2.4 Strategy (contradiction), NDs", "number": "E6.18k", "original": "[C ∨ (A ∨ B)] ∧ (C → E), A → D, D → ¬A ⊢ C ∨ B", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 264, sec. 6.2.4 Strategy (contradiction), NDs", "number": "E6.18r", "original": "A ∨ D, ¬D ↔ (E ∨ C ), (C ∧ B) ∨ [C ∧ (F → C )] ⊢ A", "reason": "6 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 264, sec. 6.2.4 Strategy (contradiction), NDs", "number": "E6.18s", "original": "(A ∨ B) ∨ (C ∧ D), (A ↔ E) ∧ (B → F ), G ↔ ¬(E ∨ F ), C → B ⊢ ¬G", "reason": "7 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 264, sec. 6.2.4 Strategy (contradiction), NDs", "number": "E6.18t", "original": "(A ∨ B) ∧ ¬C , ¬C → (D ∧ ¬A), B → (A ∨ E) ⊢ E ∨ F", "reason": "6 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 273, sec. 6.2.5 The system NDs+ (derived rules)", "number": "E6.21c", "original": "[(K ∧ J ) ∨ I ] ∨ ¬Y , Y ∧ [(I ∨ K) → F ] ⊢ F ∨ N", "reason": "6 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 273, sec. 6.2.5 The system NDs+ (derived rules)", "number": "E6.21d", "original": "¬L ∨ (¬Z ∨ ¬U ), (U ∧ G) ∨ H , Z ⊢ L → H", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 273, sec. 6.2.5 The system NDs+ (derived rules)", "number": "E6.21e", "original": "F → (¬G ∨ H ), F → G, ¬(H ∨ I ) ⊢ F → J", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "roy", "where": "PDF p. 273, sec. 6.2.5 The system NDs+ (derived rules)", "number": "E6.21g", "original": "G → (H ∧ ¬K), H ↔ (L ∧ I ), ¬I ∨ K ⊢ ¬G", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "carr", "where": "PDF p. 11, 4.1 Core", "number": "2", "original": "∀x(Px∨Px )⊣∀xPx", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 11, 4.1 Core", "number": "3", "original": "∃xPx⊣∃x(Px∨Qx)", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 11, 4.1 Core", "number": "6", "original": "Qa,¬Qb⊣a =a∧¬a =b", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 11, 4.1 Core", "number": "8", "original": "∀x∀y(Rxy→Ryx)⊣∀x∀y(Rxy↔Ryx)", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 11, 4.1 Core", "number": "9", "original": "∀x∃yRxy⊣∀x∃y∃z(Rxy∧Ryz)", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 11, 4.1 Core", "number": "10", "original": "∀x∀y∀z((Rxy∧Rxz)→Ryz),∀xRxx⊣∀x∀y(Rxy→Ryx)", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 12, 4.1 Core", "number": "13", "original": "¬∀x∀yRxy⊣∃x¬∀yRxy", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 12, 4.1 Core", "number": "14", "original": "Pa,Qb ⊣∃x(Px∧Qx)∨∃x∃y¬x =y", "reason": "first-order or identity"}
+{"source": "carr", "where": "PDF p. 13, 4.2 Conjunction", "number": "5", "original": "P1∧P2, (Q1∧Q2)∧R⊣ (P1∧Q2)∧R", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "carr", "where": "PDF p. 14, 4.3 Implication", "number": "bonus", "original": "(((P1∧P2)∧P3)∧P4)∧P5⊣P1∧P1", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "carr", "where": "PDF p. 18, 4.6 Negation", "number": "26", "original": "¬P→Q,R∨¬Q,P → (Q1∨Q2),¬R∧¬Q2⊣Q1", "reason": "5 atoms (the tokenizer has 4)"}
+{"source": "carr", "where": "PDF p. 25, 4.10 Additional challenges, Contraposition", "number": "5", "original": "¬¬P⊣C¬P→¬ (Q→Q)", "reason": "proof in the alternate system ⊢C"}
+{"source": "carr", "where": "PDF p. 25, 4.10 Additional challenges, Contraposition", "number": "6", "original": "¬P→¬ (Q→Q)⊣C (Q→Q)→P", "reason": "proof in the alternate system ⊢C"}
+{"source": "carr", "where": "PDF p. 25, 4.10 Additional challenges, Contraposition", "number": "7", "original": "(Q→Q)→P⊣C P", "reason": "proof in the alternate system ⊢C"}
+{"source": "carr", "where": "PDF p. 25, 4.10 Additional challenges, Contraposition", "number": "8", "original": "¬¬P⊣C P", "reason": "proof in the alternate system ⊢C"}
+{"source": "roy", "where": "PDF p. 227, sec. 6.2.1 (→ and ∧), NDs", "number": "E6.7b", "original": "A ∧ B, B → C ⊢ C", "reason": "renaming of an item in train"}
+{"source": "roy", "where": "PDF p. 227, sec. 6.2.1 (→ and ∧), NDs", "number": "E6.7o", "original": "A → B ⊢ A → (C → B)", "reason": "renaming of an item in train"}
+{"source": "roy", "where": "PDF p. 235, sec. 6.2.2 (∼ and ∨), NDs", "number": "E6.10g", "original": "A ∨ (A ∧ B) ⊢ A", "reason": "renaming of an item in train"}
+{"source": "roy", "where": "PDF p. 251, theorems T6.1–T6.20 (E6.16), NDs", "number": "T6.5", "original": "A → B, ¬B ⊢ ¬A", "reason": "renaming of an item in validation_36"}
+{"source": "carr", "where": "PDF p. 17, 4.6 Negation", "number": "11", "original": "P∧¬P⊣Q", "reason": "renaming of an item in validation_36"}
+{"source": "carr", "where": "PDF p. 17, 4.6 Negation", "number": "20", "original": "(P→Q)→P⊣P", "reason": "renaming of an item in validation_36"}

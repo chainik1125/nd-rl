@@ -1,0 +1,77 @@
+{
+ "release": "release_2026-09-30",
+ "date": "2026-09-30",
+ "files": {
+  "candidate_v0.jsonl": {
+   "sha256": "fe4416f7596b56eacbf1cc7cfd322792f1d6ea7e3c16bd606204285a5e56e658",
+   "lines": 104
+  },
+  "candidate_v1.jsonl": {
+   "sha256": "0338643d3785eba555761e698715c4b296cf175c84663b602b602aac312258b5",
+   "lines": 80
+  },
+  "unsolved.jsonl": {
+   "sha256": "583d02ff8753886eb9292c90f2fe36aa58693f7ddbb2423661b7528cca6250c2",
+   "lines": 10
+  },
+  "README.md": {
+   "sha256": "1b38022e1e7e8f4171aec1408a02f1bb78519dc0c1b35f71054f926184a3202c",
+   "lines": 69
+  },
+  "lean/candidate_v0.lean": {
+   "sha256": "89615b5bfc374f7a23f62f18ad8cd40399660bef822d1983eb52d556f2923052",
+   "lines": 211
+  },
+  "lean/candidate_v1.lean": {
+   "sha256": "631f65b4ce6dd576e7b649d4da4a8cad783adbe4e066fb404567de16224a47ae",
+   "lines": 163
+  },
+  "lean/unsolved.lean": {
+   "sha256": "bd5ab148851caeb06c68352d1214c0bf2f8bbe038e623142ae09f8b20bb2a84c",
+   "lines": 23
+  }
+ },
+ "built_from": {
+  "candidate_v0": {
+   "sha256": "291f7af5fbad83392ea307acbb5d85f8676305aaacef81731b03372a0ae762be",
+   "lines": 104
+  },
+  "candidate_v1": {
+   "problems.jsonl": {
+    "sha256": "5dfddce93eca8e910f37c9893a06f15159cfc246b0c2e7a874c7b760bcc753be",
+    "lines": 80
+   },
+   "deferred_no_proof.jsonl": {
+    "sha256": "1581433c7d6351324c9c08eba1038fa2a6d093406e379d1a876f567d16131559",
+    "lines": 10
+   },
+   "exclusions.jsonl": {
+    "sha256": "9f3dc85af51aa13b004b37ac35583079ad60e468e14bf93220be25ba26988172",
+    "lines": 33
+   },
+   "transcribe_summary.json": {
+    "sha256": "3f6a979ff3f8ae798ff9d6a175e52f92669c7da03cff387aef67fdb998540f68",
+    "lines": 232
+   },
+   "proof_summary.json": {
+    "sha256": "2151594bed1f39e27d0288b4cf27deb5309860a16dc9c2e2891dc7ff8048b6f6",
+    "lines": 62
+   }
+  }
+ },
+ "code": {
+  "code/textbook_problem/transcribe.py": "eebb84284454d780d2f458fe5c35b9b18ba30530fa8dd6f2bdb419f4f18fc907",
+  "code/textbook_problem/pdf_sources.py": "b417c75d3f8cf560bf67a73eddfe419db620acb424365e43c3675958879fdb37",
+  "code/textbook_problem/prove.py": "f8e9805bb209d2053e9a6586816b9ed547409cddc7900adf18999ef65bccf3e9",
+  "code/textbook_problem/logic.py": "ea9741f673dbd57374ceb82bc9c9ae84286cd67d35d9345cfad0b9268ce6239c",
+  "code/textbook_problem/lean.py": "701a5a645e20d91c859e0c26b472b6d1d4fd693ac2a3a578f7ff194e0f5b666b",
+  "code/textbook_problem/lean_tools/lean_seq.py": "78550f01929f2fb7a2fb6b65bbe7665547eb6e11b62fa2be1c304832085ecf33",
+  "code/textbook_problem/lean_tools/lean_check.py": "edfcba313640500a89880a73beee5b1b2824c30b8568d67f416dd3db866f0744"
+ },
+ "lean_checked": {
+  "lean": "4.34.1 (elan stable, arm64-apple-darwin)",
+  "date": "2026-09-30",
+  "accepted": "184/184 theorems with proofs (checked before the Carr rows were merged into candidate_v1; content unchanged); 10 unsolved statements elaborate with sorry"
+ },
+ "code_state": "uncommitted on charles/main"
+}

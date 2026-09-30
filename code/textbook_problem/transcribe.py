@@ -36,6 +36,7 @@ import ndpath  # noqa: E402,F401
 from data import canon_key, load_pool, load_textbook72, thm_of_prompt  # noqa: E402
 from logic import atoms, classically_valid, intuitionistically_valid, to_tokens  # noqa: E402
 from nd_data import canonical_theorem, theorem_hash  # noqa: E402
+from pdf_sources import CARR_SKIPPED, ROY_SKIPPED, carr_items, roy_items  # noqa: E402
 from tokenizer import SYMS  # noqa: E402
 
 BOT = ("bot",)
@@ -71,6 +72,24 @@ SOURCES = {
         "commit": None,
         "licence": "CC BY 4.0",
         "priority": 3,
+    },
+    # PDF sources (S1 pass 3). 'commit' is None; the PDF's sha256 is in the summary's raw_sha256.
+    "roy": {
+        "book": "Symbolic Logic: An Accessible Introduction to Serious Mathematical Logic (Roy), "
+        "2023 print edition, third revision July 2025",
+        "repo": "https://tonyroyphilosophy.net/wp-content/uploads/2023/06/SymLogFullTxt.pdf",
+        "commit": None,
+        "licence": "CC BY-NC-SA 4.0",
+        "priority": 4,
+        "accessed": "2026-09-29",
+    },
+    "carr": {
+        "book": "The Natural Deduction Pack (Carr), March 2018, for Halbach's The Logic Manual",
+        "repo": "https://logicmanual.philosophy.ox.ac.uk/carr/NDpack.pdf",
+        "commit": None,
+        "licence": "none stated (author to be asked)",
+        "priority": 5,
+        "accessed": "2026-09-29",
     },
 }
 
@@ -122,6 +141,8 @@ SKIPPED_PARTS = [
     ("forallx-syracuse", "1147-1148", "proof templates with metavariables"),
     ("forallx-msu", "part4a 1288-1799, 1823-1972, 1993-", "answer sections"),
     ("carnap-book", "ch. 9-12", "symbolization, truth tables, first-order logic"),
+    *[("roy", a, b) for a, b in ROY_SKIPPED],
+    *[("carr", a, b) for a, b in CARR_SKIPPED],
 ]
 
 # ---------------------------------------------------------------- formula parsing
@@ -367,7 +388,7 @@ def _atoms_in_order(f):
 
 
 def has_iff_source(text):
-    return bool(re.search(r"\\eiff|\\leftrightarrow|<->|\\liff", text))
+    return bool(re.search(r"\\eiff|\\leftrightarrow|<->|\\liff|↔", text))
 
 
 def make_prompt(prem, goal):
@@ -431,7 +452,7 @@ def main():
                         "where": where,
                         "number": number,
                         "direction": part,
-                        "accessed": TODAY,
+                        "accessed": SOURCES[src].get("accessed", TODAY),
                     },
                     "original": original,
                     "encoding_notes": rec_notes,
@@ -524,6 +545,42 @@ def main():
                 k,
                 seqs,
                 notes,
+                "invalid: check the transcription",
+            )
+
+    for src, fn, reader in (
+        ("roy", "roy/SymLogFullTxt.pdf", roy_items),
+        ("carr", "carr/NDpack.pdf", carr_items),
+    ):
+        for where, number, original, text, notes0 in reader(os.path.join(args.raw, fn)):
+            if text is None:  # the reader marks items outside scope with a reason
+                exclusions.append(
+                    dict(
+                        source=src, where=where, number=number, original=original, reason=notes0[0]
+                    )
+                )
+                continue
+            try:
+                k, seqs, notes = parse_item(text, latex=False)
+            except ParseError as e:
+                exclusions.append(
+                    dict(
+                        source=src,
+                        where=where,
+                        number=number,
+                        original=original,
+                        reason=f"not transcribed: {e}",
+                    )
+                )
+                continue
+            add(
+                src,
+                where,
+                number,
+                original,
+                k,
+                seqs,
+                notes0 + notes,
                 "invalid: check the transcription",
             )
 

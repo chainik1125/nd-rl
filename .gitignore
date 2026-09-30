@@ -203,4 +203,4 @@ code/textbook_problem/tables.py
 # Raw downloads of textbook sources (licences vary; sha256 in candidate_v0/transcribe_summary.json).
 data/textbook_problem/raw/
 # Working outputs of transcribe.py/prove.py (regenerable; the frozen set is candidate_v0/).
-data/textbook_problem/candidates/
+data/textbook_problem/candidates*/
