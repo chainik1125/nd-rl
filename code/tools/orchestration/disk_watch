@@ -2,13 +2,15 @@
 # Cron (hourly): keep this host's disk from filling without needing a person. A full disk has broken
 # runs here twice (a worktree checkout on agent2, 2026-09-22; VPS1 at 96 % the same week). At ≥ 85 %
 # use it removes the worktrees `worktree_gc` judges SAFE and whose run finished ≥ 24 h ago (work
-# pushed, every untracked file in the bucket or identical in ~/nd-takehome). If usage is still ≥ 85 %
+# pushed, every untracked file in the bucket or identical in ~/nd-takehome). Since 2026-09-30 it first
+# publishes a finished run's files that are kept nowhere else to the bucket (`worktree_gc --publish`, after a
+# credential scan), so finished reviewers' scratch no longer pins the disk. If usage is still ≥ 85 %
 # afterwards it writes one line a day to ~/ALERTS.md, which agents read, so they send large outputs
 # to the bucket. It does not notify Dan (his choice, 2026-09-27). Log: ~/disk_watch.log.
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
 T=${DISK_RECLAIM_PCT:-85}; pct() { df --output=pcent "$HOME" | tail -1 | tr -dc 0-9; }
 p=$(pct); [ "$p" -ge "$T" ] || exit 0
-{ echo "$(date -u +%FT%TZ) ${p}% used (threshold ${T}%): reclaiming"; worktree_gc --delete --min-age-hours 24; } >> ~/disk_watch.log 2>&1
+{ echo "$(date -u +%FT%TZ) ${p}% used (threshold ${T}%): reclaiming"; worktree_gc --publish --delete --min-age-hours 24; } >> ~/disk_watch.log 2>&1
 p=$(pct); echo "$(date -u +%FT%TZ) now ${p}% used" >> ~/disk_watch.log
 if [ "$p" -ge "$T" ] && ! grep -q "^$(date -u +%F).*DISK $(hostname)" ~/ALERTS.md 2>/dev/null; then
   echo "$(date -u +%FT%TZ) DISK $(hostname) ${p}% used after reclaiming finished worktrees — write large outputs to the bucket, not local disk" >> ~/ALERTS.md
