@@ -35,6 +35,24 @@ packages = [
     "code.experiments",
     "code.experiments.archived",
     "code.experiments.archived.mnist",
+    # ndbench (code/experiments/current/benchmarking_20260930/PLAN.md). Only WP0 edits this file
+    # (plan §3); work packages landing later (logic/, dash/, tools/, ...) need their own package
+    # added here by whoever integrates them.
+    "code.ndbench",
+    "code.ndbench.core",
+    "code.ndbench.judge",
+    "code.ndbench.adapters",
+    "code.ndbench.runner",
+    "code.ndbench.suites",
+    "code.ndbench.analysis",
+    "code.ndbench.logic",
+    "code.ndbench.tools",
+    "code.ndbench.dash",
+    "code.ndbench.vendor",
+    "code.ndbench.vendor.nd_verify",
+    "code.ndbench.vendor.takehome",
+    "code.ndbench.vendor.absgpt",
+    "code.ndbench.vendor.lean_seq",
 ]
 package-dir = {code = "."}
 
@@ -48,6 +66,7 @@ testpaths = ["tests"]
 # Frozen historical sources must retain their recorded bytes, including in hooks.
 extend-exclude = [
     "**/r1_cot/vendor/**",
+    "**/ndbench/vendor/**",
     "**/archived/olmo_single_gpu_20260909/**",
     "**/archived/cap_comparison_20260910/**",
     "**/archived/proof_fragments_20260910/**",
@@ -90,9 +109,20 @@ known-third-party = ["wandb"]
 known-first-party = ["code"]
 
 [tool.pyright]
-include = ["__init__.py", "log.py", "utils.py", "models", "tests", "conftest.py"]
+include = ["__init__.py", "log.py", "utils.py", "models", "tests", "conftest.py", "ndbench"]
 ignore = ["tests/test_literature.py", "tests/test_r1_*.py"]
-extraPaths = ["..", "experiments/current", "experiments/current/r1_cot/vendor"]
+exclude = ["**/ndbench/vendor/**"]
+extraPaths = [
+    "..",
+    "experiments/current",
+    "experiments/current/r1_cot/vendor",
+    # ndbench's take-home/lengthexp vendor scripts keep their own bare imports (`import gen`,
+    # `import common`, ...), resolved at runtime by ndbench/vendor's sys.path shim
+    # (`ensure_takehome_on_path`); these mirror that for static analysis of code/tests/ndbench,
+    # the same way experiments/current/r1_cot/vendor is added above.
+    "ndbench/vendor",
+    "ndbench/vendor/takehome",
+]
 venvPath = "."
 venv = ".venv"
 
