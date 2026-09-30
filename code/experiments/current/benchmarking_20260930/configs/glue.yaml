@@ -1,0 +1,23 @@
+# `python -m code.ndbench build --suite glue --version v1 --config configs/glue.yaml`
+# Plan §2 B1: AND/CHAIN/CASE-dilemma/CASE-same/BOX joins over parts_pool, ~23 cells, 100 items/cell
+# after G1 (built from parts the RL model mastered). Must be built *after* G1 (needs a real
+# `mastery_run_ids` entry below) -- run before that, every part in parts_pool is "eligible" (the
+# builder's documented demo fallback), not the real plan §2 B1 gate.
+#
+# `needs_ore`: WP8 integration fix list item 7 wires the real `logic.skills.needs_ore` in via
+# `suites.glue.needs_ore_from_skills` (a thin `(Sequent, str) -> bool` adapter -- `needs_ore`
+# itself only takes the `Sequent`, since it's a property of the theorem, not of a particular
+# proof); without this, `build_joined` drops every CASE item (`needs_ore_fn is None` is treated as
+# "gate fails", never "assume it passes").
+needs_ore: code.ndbench.suites.glue:needs_ore_from_skills
+
+# Placeholder: fill in with the real G1 run id(s) once G1 has run, e.g.
+# mastery_run_ids: {base: "<G1 base run_id>", rl: "<G1 rl run_id>"}
+# gate_model: rl
+mastery_threshold: 0.5
+target_per_cell: 100
+min_per_cell: 80
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

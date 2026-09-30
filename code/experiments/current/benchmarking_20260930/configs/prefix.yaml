@@ -1,0 +1,20 @@
+# `python -m code.ndbench build --suite prefix --version v1 --config configs/prefix.yaml`
+# Plan §2 B6: 50 proofs per L bucket (10,14,18,24,30,40) from family/glue witnesses and
+# `ab3/sealed` minlen/constructed proofs (L12-18), prefix j at 8 positions. `certifier` accepted
+# for signature uniformity but unused (every source proof is already certified upstream).
+#
+# `sources` (this package's own suites, once built) and `raw_sources` (the read-only `ab3/sealed`
+# files) are placeholders below -- fill in once `families`/`glue` have been built, and with the
+# real sealed L12-14/L15-18 paths named explicitly (this module deliberately does not hardcode
+# them; see `suites/prefix.py`'s own docstring).
+# sources:
+#   - {suite: families, version: v1}
+#   - {suite: glue, version: v1}
+# raw_sources:
+#   - {path: /scratch/cowifornia/nd-rl/ab3/sealed/sealed_L12-14.jsonl}
+#   - {path: /scratch/cowifornia/nd-rl/ab3/sealed/sealed_L15-18.jsonl}
+per_bucket: 50
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

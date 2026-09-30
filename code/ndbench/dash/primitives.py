@@ -1,0 +1,691 @@
+"""Static-HTML chart/page primitives for the ndbench dashboard (plan §3 WP6 row: "CSS tokens +
+primitives ported from `rl_dash.py`").
+
+Ported from `/scratch/cowifornia/nd-rl/ab/dash/nd-rl/code/tools/rl_dash.py` (commit `cf26d14`,
+branch `leon/rl-dashboards`; not on this branch, plan §0), which is not itself part of ndbench
+(there is nothing to vendor byte-identically -- the plan asks WP6 to *port the look and
+primitives*, not reuse the module). `esc`/`fmt`/`tick_fmt`/`nice_ticks`/`Series`/`_legend`/
+`_table`/`figure`/`missing_fig`/`line_chart`/`heatmap`/`columns`/`table_fig`/`page`/`CSS`/`JS` are
+carried over near-verbatim (renamed/trimmed where `rl_dash.py`'s version was specific to RL-run
+metrics.jsonl records, which ndbench has no equivalent of). Added for this WP: `Series.band` (a
+shaded confidence band under a line, for pass@k bootstrap CIs), `Bar`/`bar_chart` (categorical
+values with optional CI whiskers, for ratios/coefficients/slopes), and `venn2` (a two-set solved-set
+Venn, plan §2 B8).
+
+Every chart is inline SVG with the data embedded as a `<script type="application/json">` blob (no
+network requests, no external URLs); `JS` wires up a shared hover tooltip and crosshair. Colours are
+CSS custom properties on `:root`, redefined for dark mode; `body` sets an explicit background.
+"""
+
+from __future__ import annotations
+
+import html
+import json
+import math
+from collections import Counter
+from dataclasses import dataclass
+from typing import Any
+
+Rec = dict[str, Any]
+
+# ---------------------------------------------------------------- formatting
+
+
+def _num(x: Any) -> float | None:
+    return float(x) if isinstance(x, int | float) and not isinstance(x, bool) else None
+
+
+def fmt(v: Any, kind: str = "g") -> str:
+    x = _num(v)
+    if x is None or math.isnan(x):
+        return "missing"
+    if kind == "pct":
+        return f"{100 * x:.1f}%"
+    if kind == "int":
+        return f"{x:,.0f}"
+    if kind == "sci":
+        return f"{x:.3g}"
+    if kind == "secs":
+        return f"{x:.1f} s"
+    if kind == "f3":
+        return f"{x:.3f}"
+    return f"{x:.4g}"
+
+
+def tick_fmt(t: float, step: float, kind: str) -> str:
+    """Tick label with as many decimals as the tick step needs."""
+    if kind == "pct":
+        d = max(0, -math.floor(math.log10(step * 100) + 1e-9)) if step > 0 else 0
+        return f"{100 * t:.{d}f}%"
+    if kind == "sci" and (abs(t) >= 1e5 or 0 < abs(t) < 1e-3):
+        return f"{t:.2g}"
+    d = max(0, -math.floor(math.log10(step) + 1e-9)) if step > 0 else 0
+    return f"{t:,.{d}f}"
+
+
+def nice_ticks(lo: float, hi: float, n: int = 5, integer: bool = False) -> list[float]:
+    if not math.isfinite(lo) or not math.isfinite(hi):
+        return [0.0, 1.0]
+    if hi <= lo:
+        hi = lo + (abs(lo) or 1.0)
+    raw = (hi - lo) / max(n - 1, 1)
+    mag = 10 ** math.floor(math.log10(raw))
+    step = next(m * mag for m in (1, 2, 2.5, 5, 10) if m * mag >= raw)
+    if integer:
+        step = max(1.0, round(step))
+    t0 = math.floor(lo / step) * step
+    ticks = []
+    t = t0
+    while t <= hi + step * 0.5:
+        ticks.append(round(t, 12))
+        t += step
+    return ticks
+
+
+def esc(s: Any) -> str:
+    return html.escape(str(s), quote=True)
+
+
+# ---------------------------------------------------------------- charts (inline SVG)
+
+W, H = 640, 250
+WW = 1280  # viewBox width of a full-row chart (text keeps its size)
+ML, MR, MT, MB = 58, 14, 10, 38
+_ids: Counter[str] = Counter()
+
+
+def _cid(prefix: str) -> str:
+    _ids[prefix] += 1
+    return f"{prefix}{_ids[prefix]}"
+
+
+@dataclass
+class Series:
+    name: str
+    pts: list[tuple[float, float]]
+    color: str  # a CSS value, e.g. var(--s1)
+    muted: bool = False
+    #: an optional shaded confidence band, `(x, lo, hi)` per point (same `x`s as `pts` ideally).
+    band: list[tuple[float, float, float]] | None = None
+
+
+@dataclass
+class Bar:
+    name: str
+    value: float
+    lo: float | None = None
+    hi: float | None = None
+    color: str = "var(--s1)"
+
+
+def _legend(series: list[Series], kind: str = "line") -> str:
+    if len(series) < 2:
+        return ""
+    items = []
+    for s in series:
+        key = "lkey" if kind == "line" else "bkey"
+        items.append(
+            f'<span class="li"><span class="{key}" style="background:{s.color}"></span>'
+            f"{esc(s.name)}</span>"
+        )
+    return f'<div class="legend">{"".join(items)}</div>'
+
+
+def _table(headers: list[str], rows: list[list[str]]) -> str:
+    th = "".join(f"<th>{esc(h)}</th>" for h in headers)
+    body = "".join("<tr>" + "".join(f"<td>{esc(c)}</td>" for c in r) + "</tr>" for r in rows)
+    return (
+        '<details><summary>Table</summary><div class="tw">'
+        f"<table><tr>{th}</tr>{body}</table></div></details>"
+    )
+
+
+def figure(title: str, sub: str, body: str, note: str = "", wide: bool = False) -> str:
+    n = f'<p class="note">{note}</p>' if note else ""
+    cls = "card wide" if wide else "card"
+    cap = f'<figcaption><h3>{esc(title)}</h3><p class="sub">{esc(sub)}</p></figcaption>'
+    return f'<figure class="{cls}">{cap}{body}{n}</figure>'
+
+
+def missing_fig(title: str, what: str) -> str:
+    return figure(
+        title,
+        what,
+        '<div class="missing">no data yet</div>',
+    )
+
+
+def line_chart(
+    title: str,
+    sub: str,
+    series: list[Series],
+    *,
+    x_label: str = "x",
+    y_fmt: str = "g",
+    y_min: float | None = None,
+    y_max: float | None = None,
+    note: str = "",
+    wide: bool = False,
+    x_fmt: str = "g",
+    log_x: bool = False,
+) -> str:
+    empty = [s for s in series if not s.pts]
+    series = [s for s in series if s.pts]
+    if not series:
+        return missing_fig(title, sub)
+    if empty:
+        miss = ", ".join(s.name for s in empty)
+        note = f"Missing (not logged): {esc(miss)}." + (f" {note}" if note else "")
+    fig_w = WW if wide else W
+    xs = sorted({x for s in series for x, _ in s.pts})
+
+    def xform(x: float) -> float:
+        return math.log2(max(x, 1e-9)) if log_x else x
+
+    ys = [y for s in series for _, y in s.pts]
+    for s in series:
+        if s.band:
+            ys.extend(b[1] for b in s.band)
+            ys.extend(b[2] for b in s.band)
+    lo = min(ys) if y_min is None else y_min
+    hi = max(ys) if y_max is None else y_max
+    if y_min is None and lo > 0 and lo < 0.35 * hi:
+        lo = 0.0
+    yt = nice_ticks(lo, hi)
+    lo, hi = min(yt[0], lo), max(yt[-1], hi)
+    xs_t = [xform(x) for x in xs]
+    x0, x1 = xs_t[0], (xs_t[-1] if xs_t[-1] > xs_t[0] else xs_t[0] + 1)
+    pw, ph = fig_w - ML - MR, H - MT - MB
+
+    def px(x: float) -> float:
+        return ML + (xform(x) - x0) / (x1 - x0) * pw
+
+    def py(y: float) -> float:
+        return MT + ph - (y - lo) / ((hi - lo) or 1) * ph
+
+    g = []
+    ystep = yt[1] - yt[0] if len(yt) > 1 else 1.0
+    for t in yt:
+        g.append(
+            f'<line class="grid" x1="{ML}" x2="{fig_w - MR}" y1="{py(t):.1f}" y2="{py(t):.1f}"/>'
+        )
+        g.append(
+            f'<text class="tick" x="{ML - 6}" y="{py(t) + 4:.1f}" text-anchor="end">'
+            f"{esc(tick_fmt(t, ystep, y_fmt))}</text>"
+        )
+    for t in nice_ticks(x0, x1, 12 if wide else 7, integer=(x_fmt == "int" and not log_x)):
+        if x0 <= t <= x1:
+            label = fmt(2**t, x_fmt) if log_x else fmt(t, x_fmt)
+            g.append(
+                f'<text class="tick" x="{ML + (t - x0) / (x1 - x0) * pw:.1f}" y="{H - MB + 16}" '
+                f'text-anchor="middle">{esc(label)}</text>'
+            )
+    g.append(f'<line class="axis" x1="{ML}" x2="{fig_w - MR}" y1="{MT + ph}" y2="{MT + ph}"/>')
+    g.append(
+        f'<text class="alabel" x="{ML + pw / 2}" y="{H - 4}" text-anchor="middle">'
+        f"{esc(x_label)}</text>"
+    )
+    marks = []
+    for s in series:
+        if s.band:
+            band_sorted = sorted(s.band, key=lambda b: b[0])
+            top = " ".join(f"{px(x):.1f},{py(hi_):.1f}" for x, _lo, hi_ in band_sorted)
+            bot = " ".join(f"{px(x):.1f},{py(lo_):.1f}" for x, lo_, _hi in reversed(band_sorted))
+            marks.append(f'<polygon class="band" points="{top} {bot}" style="fill:{s.color}"/>')
+    for s in series:
+        segs: list[list[tuple[float, float]]] = [[]]
+        for x, y in s.pts:
+            segs[-1].append((x, y))
+        cls = "ln muted" if s.muted else "ln"
+        for seg in segs:
+            if not seg:
+                continue
+            if len(seg) == 1:
+                marks.append(
+                    f'<circle class="dot" cx="{px(seg[0][0]):.1f}" cy="{py(seg[0][1]):.1f}" r="4" '
+                    f'style="fill:{s.color}"/>'
+                )
+            else:
+                d = " ".join(
+                    f"{'M' if i == 0 else 'L'}{px(x):.1f},{py(y):.1f}"
+                    for i, (x, y) in enumerate(seg)
+                )
+                marks.append(f'<path class="{cls}" d="{d}" style="stroke:{s.color}"/>')
+    data = {
+        "xl": x_label,
+        "xs": [fmt(x, x_fmt) for x in xs],
+        "px": [round(px(x), 1) for x in xs],
+        "s": [
+            {"n": s.name, "c": s.color, "v": [fmt(dict(s.pts).get(x), y_fmt) for x in xs]}
+            for s in series
+        ],
+    }
+    svg = (
+        f'<svg viewBox="0 0 {fig_w} {H}" role="img" aria-label="{esc(title)}">'
+        f"{''.join(g)}{''.join(marks)}"
+        f'<line class="cross" x1="0" x2="0" y1="{MT}" y2="{MT + ph}" visibility="hidden"/>'
+        f'<rect class="hit" x="{ML}" y="{MT}" width="{pw}" height="{ph}"/></svg>'
+    )
+    blob = json.dumps(data).replace("</", "<\\/")
+    js = f'<script type="application/json">{blob}</script>'
+    table = _table(
+        [x_label, *[s.name for s in series]],
+        [[fmt(x, x_fmt), *[fmt(dict(s.pts).get(x), y_fmt) for s in series]] for x in xs],
+    )
+    leg = _legend(series + [Series(f"{s.name} (missing)", [], "transparent") for s in empty])
+    body = f'{leg}<div class="plot" data-chart="line">{svg}{js}</div>{table}'
+    return figure(title, sub, body, note, wide)
+
+
+def heatmap(
+    title: str,
+    sub: str,
+    grid: dict[Any, dict[str, float]],
+    *,
+    y_label: str = "L",
+    x_label: str = "x",
+    v_fmt: str = "pct",
+    v_max: float | None = None,
+    note: str = "",
+    wide: bool = False,
+) -> str:
+    """`grid[col][row_label] = value`. Columns sort by their own value (numeric if possible); rows
+    sort by float(row_label) (short at the bottom)."""
+    grid = {c: v for c, v in grid.items() if v}
+    if not grid:
+        return missing_fig(title, sub)
+    fig_w = WW if wide else W
+    cols = sorted(grid, key=lambda c: (isinstance(c, str), c))
+    rows = sorted({r for v in grid.values() for r in v}, key=lambda s: float(s))
+    vals = [v for g in grid.values() for v in g.values()]
+    vmax = v_max if v_max is not None else (max(vals) if vals else 1.0) or 1.0
+    pw, ph = fig_w - ML - MR, H - MT - MB
+    cw, chh = pw / len(cols), ph / len(rows)
+    cells = []
+    for i, col in enumerate(cols):
+        for j, row in enumerate(rows):
+            v = grid[col].get(row)
+            x, y = ML + i * cw, MT + ph - (j + 1) * chh
+            cls = (
+                "na" if v is None else f"q{min(8, max(0, int((v / vmax if vmax else 0) * 8.999)))}"
+            )
+            tip = json.dumps([[f"{col}, {y_label} {row}", "", None], ["", fmt(v, v_fmt), None]])
+            cells.append(
+                f'<rect class="{cls}" x="{x:.2f}" y="{y:.2f}" width="{max(cw - 1, 0.6):.2f}" '
+                f'height="{chh - 2:.2f}" data-tip="{esc(tip)}"/>'
+            )
+    g = [
+        f'<text class="tick" x="{ML - 6}" y="{MT + ph - (j + 0.5) * chh + 4:.1f}" '
+        f'text-anchor="end">{esc(row)}</text>'
+        for j, row in enumerate(rows)
+    ]
+    step = max(1, len(cols) // (12 if wide else 7))
+    for i in range(0, len(cols), step):
+        g.append(
+            f'<text class="tick" x="{ML + (i + 0.5) * cw:.1f}" y="{H - MB + 16}" '
+            f'text-anchor="middle">{esc(cols[i])}</text>'
+        )
+    g.append(
+        f'<text class="alabel" x="{ML + pw / 2}" y="{H - 4}" text-anchor="middle">'
+        f"{esc(x_label)}</text>"
+    )
+    g.append(
+        f'<text class="alabel" x="12" y="{MT + ph / 2}" transform="rotate(-90 12 {MT + ph / 2})" '
+        f'text-anchor="middle">{esc(y_label)}</text>'
+    )
+    scale = (
+        '<div class="scale"><span>0</span>'
+        + "".join(f'<i class="q{k}"></i>' for k in range(9))
+        + f"<span>{esc(fmt(vmax, v_fmt))}</span>"
+        + '<span class="na-key"><i class="na"></i> no data</span></div>'
+    )
+    svg = (
+        f'<svg viewBox="0 0 {fig_w} {H}" role="img" aria-label="{esc(title)}">'
+        f"{''.join(g)}{''.join(cells)}</svg>"
+    )
+    table = _table(
+        [x_label, *[f"{y_label} {r}" for r in rows]],
+        [[str(c), *[fmt(grid[c].get(r), v_fmt) for r in rows]] for c in cols],
+    )
+    return figure(title, sub, f'{scale}<div class="plot">{svg}</div>{table}', note, wide)
+
+
+def columns(
+    title: str,
+    sub: str,
+    xs: list[str],
+    stacks: list[Series],
+    *,
+    y_fmt: str = "g",
+    x_label: str = "x",
+    note: str = "",
+    wide: bool = False,
+) -> str:
+    """Stacked columns: each `Series.pts[i] = (i, value)`."""
+    stacks = [s for s in stacks if any(v for _, v in s.pts)]
+    if not stacks or not xs:
+        return missing_fig(title, sub)
+    fig_w = WW if wide else W
+    vals = [{int(i): v for i, v in s.pts} for s in stacks]
+    tot = [sum(v.get(i, 0.0) for v in vals) for i in range(len(xs))]
+    hi = max(tot) or 1.0
+    yt = nice_ticks(0, hi)
+    hi = max(yt[-1], hi)
+    pw, ph = fig_w - ML - MR, H - MT - MB
+    slot = pw / len(xs)
+    bw = min(24.0, max(slot - 2, 1.0))
+
+    def py(y: float) -> float:
+        return MT + ph - y / hi * ph
+
+    g = []
+    ystep = yt[1] - yt[0] if len(yt) > 1 else 1.0
+    for t in yt:
+        g.append(
+            f'<line class="grid" x1="{ML}" x2="{fig_w - MR}" y1="{py(t):.1f}" y2="{py(t):.1f}"/>'
+        )
+        g.append(
+            f'<text class="tick" x="{ML - 6}" y="{py(t) + 4:.1f}" text-anchor="end">'
+            f"{esc(tick_fmt(t, ystep, y_fmt))}</text>"
+        )
+    step = max(1, len(xs) // 8)
+    for i in range(0, len(xs), step):
+        g.append(
+            f'<text class="tick" x="{ML + (i + 0.5) * slot:.1f}" y="{H - MB + 16}" '
+            f'text-anchor="middle">{esc(xs[i])}</text>'
+        )
+    g.append(
+        f'<text class="alabel" x="{ML + pw / 2}" y="{H - 4}" text-anchor="middle">'
+        f"{esc(x_label)}</text>"
+    )
+    marks = []
+    for i in range(len(xs)):
+        base = 0.0
+        x = ML + (i + 0.5) * slot - bw / 2
+        tip = [[f"{x_label} {xs[i]}", "", None]] + [
+            [s.name, fmt(v.get(i), y_fmt), s.color] for s, v in zip(stacks, vals, strict=True)
+        ]
+        for s, v in zip(stacks, vals, strict=True):
+            hgt = v.get(i, 0.0)
+            if not hgt:
+                continue
+            y0, y1 = py(base), py(base + hgt)
+            base += hgt
+            marks.append(
+                f'<rect class="seg" x="{x:.1f}" y="{y1:.1f}" width="{bw:.1f}" '
+                f'height="{max(y0 - y1, 0.5):.1f}" style="fill:{s.color}" '
+                f'data-tip="{esc(json.dumps(tip))}"/>'
+            )
+    g.append(f'<line class="axis" x1="{ML}" x2="{fig_w - MR}" y1="{MT + ph}" y2="{MT + ph}"/>')
+    svg = (
+        f'<svg viewBox="0 0 {fig_w} {H}" role="img" aria-label="{esc(title)}">'
+        f"{''.join(g)}{''.join(marks)}</svg>"
+    )
+    table = _table(
+        [x_label, *[s.name for s in stacks]],
+        [[xs[i], *[fmt(v.get(i), y_fmt) for v in vals]] for i in range(len(xs))],
+    )
+    return figure(
+        title, sub, f'{_legend(stacks, "bar")}<div class="plot">{svg}</div>{table}', note, wide
+    )
+
+
+def bar_chart(
+    title: str,
+    sub: str,
+    bars: list[Bar],
+    *,
+    y_fmt: str = "g",
+    y_min: float | None = None,
+    y_max: float | None = None,
+    note: str = "",
+    wide: bool = False,
+) -> str:
+    """One bar per `Bar`, with an optional `(lo, hi)` whisker; a category axis of bar names."""
+    bars = [b for b in bars if not (isinstance(b.value, float) and math.isnan(b.value))]
+    if not bars:
+        return missing_fig(title, sub)
+    fig_w = WW if wide else W
+    vals = [b.value for b in bars]
+    for b in bars:
+        if b.lo is not None:
+            vals.append(b.lo)
+        if b.hi is not None:
+            vals.append(b.hi)
+    lo_v = min(vals) if y_min is None else y_min
+    hi_v = max(vals) if y_max is None else y_max
+    if y_min is None and lo_v > 0:
+        lo_v = 0.0
+    if y_max is None and hi_v < 0:
+        hi_v = 0.0
+    yt = nice_ticks(lo_v, hi_v)
+    lo_v, hi_v = min(yt[0], lo_v), max(yt[-1], hi_v)
+    pw, ph = fig_w - ML - MR, H - MT - MB
+    slot = pw / len(bars)
+    bw = min(48.0, max(slot - 10, 6.0))
+
+    def py(y: float) -> float:
+        return MT + ph - (y - lo_v) / ((hi_v - lo_v) or 1) * ph
+
+    g = []
+    ystep = yt[1] - yt[0] if len(yt) > 1 else 1.0
+    for t in yt:
+        g.append(
+            f'<line class="grid" x1="{ML}" x2="{fig_w - MR}" y1="{py(t):.1f}" y2="{py(t):.1f}"/>'
+        )
+        g.append(
+            f'<text class="tick" x="{ML - 6}" y="{py(t) + 4:.1f}" text-anchor="end">'
+            f"{esc(tick_fmt(t, ystep, y_fmt))}</text>"
+        )
+    base_y = py(0.0) if lo_v <= 0 <= hi_v else py(lo_v)
+    marks = []
+    for i, b in enumerate(bars):
+        x = ML + (i + 0.5) * slot - bw / 2
+        y1 = py(b.value)
+        top, bottom = (y1, base_y) if y1 < base_y else (base_y, y1)
+        tip = [[b.name, "", None], ["value", fmt(b.value, y_fmt), b.color]]
+        if b.lo is not None and b.hi is not None:
+            tip.append(["95% CI", f"{fmt(b.lo, y_fmt)} .. {fmt(b.hi, y_fmt)}", None])
+        marks.append(
+            f'<rect class="seg" x="{x:.1f}" y="{top:.1f}" width="{bw:.1f}" '
+            f'height="{max(bottom - top, 0.5):.1f}" style="fill:{b.color}" '
+            f'data-tip="{esc(json.dumps(tip))}"/>'
+        )
+        if b.lo is not None and b.hi is not None:
+            cx = x + bw / 2
+            y_lo, y_hi = py(b.lo), py(b.hi)
+            marks.append(
+                f'<line class="whisker" x1="{cx:.1f}" x2="{cx:.1f}" '
+                f'y1="{y_hi:.1f}" y2="{y_lo:.1f}"/>'
+            )
+            for y_w in (y_lo, y_hi):
+                marks.append(
+                    f'<line class="whisker" x1="{cx - 5:.1f}" x2="{cx + 5:.1f}" '
+                    f'y1="{y_w:.1f}" y2="{y_w:.1f}"/>'
+                )
+        g.append(
+            f'<text class="tick" x="{ML + (i + 0.5) * slot:.1f}" y="{H - MB + 16}" '
+            f'text-anchor="middle">{esc(b.name)}</text>'
+        )
+    g.append(
+        f'<line class="axis" x1="{ML}" x2="{fig_w - MR}" y1="{base_y:.1f}" y2="{base_y:.1f}"/>'
+    )
+    svg = (
+        f'<svg viewBox="0 0 {fig_w} {H}" role="img" aria-label="{esc(title)}">'
+        f"{''.join(g)}{''.join(marks)}</svg>"
+    )
+    table = _table(
+        ["name", "value", "ci lo", "ci hi"],
+        [[b.name, fmt(b.value, y_fmt), fmt(b.lo, y_fmt), fmt(b.hi, y_fmt)] for b in bars],
+    )
+    return figure(title, sub, f'<div class="plot">{svg}</div>{table}', note, wide)
+
+
+def venn2(
+    title: str,
+    sub: str,
+    label_a: str,
+    label_b: str,
+    only_a: int,
+    only_b: int,
+    both: int,
+    *,
+    note: str = "",
+) -> str:
+    if only_a + only_b + both == 0:
+        return missing_fig(title, sub)
+    cx_a, cx_b, cy, r = W * 0.36, W * 0.60, H * 0.48, 72.0
+    svg = (
+        f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="{esc(title)}">'
+        f'<circle cx="{cx_a}" cy="{cy}" r="{r}" class="venn-a"/>'
+        f'<circle cx="{cx_b}" cy="{cy}" r="{r}" class="venn-b"/>'
+        f'<text x="{cx_a - r * 0.55:.1f}" y="{cy:.1f}" text-anchor="middle" '
+        f'class="vlabel">{only_a}</text>'
+        f'<text x="{(cx_a + cx_b) / 2:.1f}" y="{cy:.1f}" text-anchor="middle" '
+        f'class="vlabel">{both}</text>'
+        f'<text x="{cx_b + r * 0.55:.1f}" y="{cy:.1f}" text-anchor="middle" '
+        f'class="vlabel">{only_b}</text>'
+        f'<text x="{cx_a:.1f}" y="{cy - r - 14:.1f}" text-anchor="middle" '
+        f'class="tick">{esc(label_a)}</text>'
+        f'<text x="{cx_b:.1f}" y="{cy - r - 14:.1f}" text-anchor="middle" '
+        f'class="tick">{esc(label_b)}</text>'
+        "</svg>"
+    )
+    table = _table(
+        ["group", "n"],
+        [[f"{label_a} only", str(only_a)], [f"{label_b} only", str(only_b)], ["both", str(both)]],
+    )
+    return figure(title, sub, f'<div class="plot">{svg}</div>{table}', note)
+
+
+def table_fig(
+    title: str,
+    sub: str,
+    headers: list[str],
+    rows: list[list[str]],
+    note: str = "",
+    wide: bool = True,
+) -> str:
+    th = "".join(f"<th>{esc(h)}</th>" for h in headers)
+    body = "".join("<tr>" + "".join(f"<td>{esc(c)}</td>" for c in r) + "</tr>" for r in rows)
+    return figure(
+        title,
+        sub,
+        f'<div class="tw"><table class="txt"><tr>{th}</tr>{body}</table></div>',
+        note,
+        wide,
+    )
+
+
+# ---------------------------------------------------------------- page
+
+CSS = """
+:root{color-scheme:light;--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;
+--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);--s1:#2a78d6;
+--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--ctl:#898781;--q0:#cde2fb;
+--q1:#b7d3f6;--q2:#9ec5f4;--q3:#86b6ef;--q4:#5598e7;--q5:#2a78d6;--q6:#1c5cab;--q7:#104281;
+--q8:#0d366b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;
+--axis:#383835;--ring:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+--s5:#d55181;--s6:#008300;--ctl:#898781;--q0:#0d366b;--q1:#104281;--q2:#184f95;--q3:#1c5cab;
+--q4:#256abf;--q5:#3987e5;--q6:#6da7ec;--q7:#9ec5f4;--q8:#cde2fb}}:root[data-theme="dark"]{
+color-scheme:dark;--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;
+--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--ctl:#898781;--q0:#0d366b;--q1:#104281;
+--q2:#184f95;--q3:#1c5cab;--q4:#256abf;--q5:#3987e5;--q6:#6da7ec;--q7:#9ec5f4;
+--q8:#cde2fb}*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);
+font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}header{padding:20px 16px 8px;
+max-width:1360px;margin:0 auto}h1{font-size:20px;margin:0 0 4px}header .sub{color:var(--ink2);
+margin:0 0 10px;word-break:break-all}nav{display:flex;flex-wrap:wrap;gap:6px}
+nav a{color:var(--ink2);text-decoration:none;padding:4px 10px;border-radius:6px;
+border:1px solid var(--ring)}nav a.on{color:var(--ink);font-weight:600;
+background:var(--surface)}main{max-width:1360px;margin:0 auto;padding:8px 16px 40px;
+display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr));gap:14px}
+.card{margin:0;background:var(--surface);border:1px solid var(--ring);border-radius:10px;
+padding:12px 14px;min-width:0}.card.wide{grid-column:1/-1}figcaption h3{font-size:15px;margin:0}
+figcaption .sub,.note{color:var(--ink2);margin:2px 0 6px;font-size:12.5px}.note{margin-top:8px}
+svg{width:100%;height:auto;display:block}.grid{stroke:var(--grid);stroke-width:1}
+.axis{stroke:var(--axis);stroke-width:1}.tick{fill:var(--muted);font-size:11px;
+font-variant-numeric:tabular-nums}.alabel{fill:var(--ink2);font-size:11.5px}.ln{fill:none;
+stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.dot{stroke:var(--surface);
+stroke-width:2}.cross{stroke:var(--axis);stroke-width:1}.hit{fill:transparent;cursor:crosshair}
+.band{opacity:.16;stroke:none}.whisker{stroke:var(--ink2);stroke-width:1.3}
+.seg{stroke:var(--surface);stroke-width:1}.seg:hover,rect[data-tip]:hover{opacity:.8}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin:2px 0 4px;color:var(--ink2);
+font-size:12.5px}.li{display:inline-flex;align-items:center;gap:6px}.lkey{width:14px;height:3px;
+border-radius:2px;display:inline-block}.bkey{width:10px;height:10px;border-radius:2px;
+display:inline-block}.q0{fill:var(--q0);background:var(--q0)}.q1{fill:var(--q1);
+background:var(--q1)}.q2{fill:var(--q2);background:var(--q2)}.q3{fill:var(--q3);
+background:var(--q3)}.q4{fill:var(--q4);background:var(--q4)}.q5{fill:var(--q5);
+background:var(--q5)}.q6{fill:var(--q6);background:var(--q6)}.q7{fill:var(--q7);
+background:var(--q7)}.q8{fill:var(--q8);background:var(--q8)}.na{fill:transparent;
+stroke:var(--grid);stroke-width:1}i.na{border:1px solid var(--grid)}.scale{display:flex;
+align-items:center;gap:2px;font-size:11.5px;color:var(--ink2);margin:0 0 4px}
+.scale i{display:inline-block;width:16px;height:10px}.scale span{margin:0 6px}
+.na-key{display:inline-flex;gap:4px;align-items:center}.missing{color:var(--muted);
+border:1px dashed var(--grid);border-radius:8px;padding:28px;text-align:center}
+.venn-a{fill:var(--s1);fill-opacity:.35;stroke:var(--s1);stroke-width:1.5}
+.venn-b{fill:var(--s2);fill-opacity:.35;stroke:var(--s2);stroke-width:1.5;
+mix-blend-mode:multiply}.vlabel{fill:var(--ink);font-size:15px;font-weight:600;
+font-variant-numeric:tabular-nums}
+details{margin-top:6px;font-size:12.5px}summary{cursor:pointer;color:var(--ink2)}
+.tw{overflow-x:auto;max-height:420px}table{border-collapse:collapse;
+font-variant-numeric:tabular-nums;font-size:12.5px}td,th{border-bottom:1px solid var(--grid);
+padding:3px 8px;text-align:right;white-space:nowrap}th{position:sticky;top:0;
+background:var(--surface);color:var(--ink2);font-weight:600}
+td:first-child,th:first-child{text-align:left}table.txt td,table.txt th{text-align:left;
+white-space:normal}.tip{position:fixed;display:none;pointer-events:none;
+background:var(--surface);color:var(--ink);border:1px solid var(--ring);border-radius:8px;
+padding:6px 9px;font-size:12px;box-shadow:0 2px 10px rgba(0,0,0,.15);z-index:9}.tr{display:flex;
+align-items:center;gap:6px;white-space:nowrap}.tr b{font-variant-numeric:tabular-nums}
+.tr .k{width:12px;height:3px;border-radius:2px;display:inline-block}
+"""
+
+#: Charts re-render on resize (plan §3's WP6 constraint): rebuilding every SVG from its embedded
+#: JSON blob is simplest here since the primitives above already compute pixel positions in
+#: Python; the JS side only needs the hover/tooltip wiring, which is resize-safe as-is (it reads
+#: current DOM/CTM state on each pointer event, not cached pixel coordinates), so no JS-side
+#: relayout is needed for the crosshair/tooltip to keep working after a resize.
+JS = """
+(function(){const tip=document.createElement('div');tip.className='tip';
+document.body.appendChild(tip);function show(e,rows){tip.replaceChildren();
+for(const [n,v,c] of rows){const r=document.createElement('div');r.className='tr';if(c){
+const k=document.createElement('span');k.className='k';k.style.background=c;r.appendChild(k);}
+if(v){const b=document.createElement('b');b.textContent=v;r.appendChild(b);}
+const t=document.createElement('span');t.textContent=n;r.appendChild(t);tip.appendChild(r);}
+tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;
+let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth-8)x=e.clientX-w-14;
+if(y+h>innerHeight-8)y=e.clientY-h-14;tip.style.left=x+'px';tip.style.top=y+'px';}
+function hide(){tip.style.display='none';}
+document.querySelectorAll('.plot[data-chart="line"]').forEach(p=>{
+const d=JSON.parse(p.querySelector('script').textContent);
+const svg=p.querySelector('svg'),hit=svg.querySelector('.hit'),cr=svg.querySelector('.cross');
+if(!hit||!cr)return;
+hit.addEventListener('pointermove',e=>{const pt=svg.createSVGPoint();pt.x=e.clientX;
+pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());let b=0,bd=1e9;
+d.px.forEach((x,i)=>{const dd=Math.abs(x-q.x);if(dd<bd){bd=dd;b=i;}});
+cr.setAttribute('x1',d.px[b]);cr.setAttribute('x2',d.px[b]);
+cr.setAttribute('visibility','visible');
+show(e,[[d.xl+' '+d.xs[b],'',null]].concat(d.s.map(s=>[s.n,s.v[b],s.c])));});
+hit.addEventListener('pointerleave',()=>{hide();cr.setAttribute('visibility','hidden');});});
+document.querySelectorAll('[data-tip]').forEach(el=>{
+el.addEventListener('pointermove',e=>show(e,JSON.parse(el.dataset.tip)));
+el.addEventListener('pointerleave',hide);});})();
+"""
+
+
+def page(title: str, sub: str, active: str, figs: list[str], nav: list[tuple[str, str]]) -> str:
+    """`nav`: `[(href, name), ...]`; the entry whose `href` matches `active` gets the "on" class."""
+    links = []
+    for href, name in nav:
+        cls = ' class="on"' if href == active else ""
+        links.append(f'<a{cls} href="{esc(href)}">{esc(name)}</a>')
+    return (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f"<title>{esc(title)}</title><style>{CSS}</style></head><body>"
+        f'<header><h1>{esc(title)}</h1><p class="sub">{esc(sub)}</p>'
+        f"<nav>{''.join(links)}</nav></header><main>{''.join(figs)}</main>"
+        f"<script>{JS}</script></body></html>"
+    )

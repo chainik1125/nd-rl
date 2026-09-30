@@ -48,6 +48,7 @@ packages = [
     "code.ndbench.logic",
     "code.ndbench.tools",
     "code.ndbench.dash",
+    "code.ndbench.interp",
     "code.ndbench.vendor",
     "code.ndbench.vendor.nd_verify",
     "code.ndbench.vendor.takehome",

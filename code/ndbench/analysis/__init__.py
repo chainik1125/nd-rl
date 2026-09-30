@@ -10,6 +10,12 @@ implemented by `analysis/horizon.py` (named for its `metrics.horizon` statistic,
 it analyses), hence the key/module mismatch below.
 
 View contract (plan §3): `view_<bench>(store, cfg) -> dict` (JSON-able).
+
+`interp_likelihood`/`interp_steering`/`interp_weights`/`interp_probes` are the interp coder's four
+measures (`code/experiments/current/benchmarking_20260930/INTERP_SPEC.md`); `analysis/interp.py`
+names its functions `view_likelihood`/`view_steering`/`view_interpolation`/`view_probes` (matching
+the spec's own names for the four measures), hence the `interp_weights`/`view_interpolation`
+key/attribute mismatch, the same pattern as `families`/`horizon.py` above.
 """
 
 VIEWS: dict[str, str] = {
@@ -21,4 +27,8 @@ VIEWS: dict[str, str] = {
     "padding": "code.ndbench.analysis.padding:view",
     "prefix": "code.ndbench.analysis.prefix:view",
     "edl": "code.ndbench.analysis.edl:view",
+    "interp_likelihood": "code.ndbench.analysis.interp:view_likelihood",
+    "interp_steering": "code.ndbench.analysis.interp:view_steering",
+    "interp_weights": "code.ndbench.analysis.interp:view_interpolation",
+    "interp_probes": "code.ndbench.analysis.interp:view_probes",
 }

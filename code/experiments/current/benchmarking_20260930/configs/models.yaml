@@ -1,0 +1,33 @@
+# Model registry for `ndbench` (plan §3 WP8, fix list item 6).
+#
+# `python -m code.ndbench {run,edl,throughput} --model <label>` resolves `<label>` through this
+# file (see `cli.py`'s `_load_models_registry`/`_resolve_model`): `adapter` names an entry in
+# `adapters.base.ADAPTERS`, `ckpt` is the checkpoint path, and `sha256_prefix` is checked against
+# `sha256(ckpt)` before the checkpoint is loaded (a friendly `SystemExit` on mismatch, never a
+# silent load of the wrong weights). When a label is used, the `Store` run's `model` field is set
+# to exactly that label (not `"absgpt:<path>"`), which is what `analysis/yue.py`'s `_pick_pair`
+# needs to find "base" vs "rl" runs by name without extra `cfg` overrides.
+#
+# Verified 2026-09-30 (WP8 integration): `sha256sum` on each checkpoint file matched the prefix
+# below in full (`f4409e4f82d8922f853a5c53eeb2820d05acea17bbd5cf92d24c073d97709e18` /
+# `548a9e343c71675f917a19b5fd5511a8a9adea4688e63d7544e7f3a3e73aa383` /
+# `9ec083a966662fdc388ca2ec48be5e6af1b91fdbf794e8a81a9e527e1d1e1133`); armC's path and sha256 were
+# not given by the plan and were confirmed/computed as part of this fix.
+
+base:
+  adapter: absgpt
+  ckpt: /scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt
+  sha256_prefix: f4409e4f82d8922f
+  description: frozen pretrain checkpoint (plan §0's base model)
+
+rl:
+  adapter: absgpt
+  ckpt: /scratch/cowifornia/nd-rl/ab2/monitor/final/champion2_n060_fullpool/final.pt
+  sha256_prefix: 548a9e343c71675f
+  description: RL champion (champion2_n060_fullpool), trained on the full ab2 pool + cap-6 retention
+
+armC:
+  adapter: absgpt
+  ckpt: /scratch/cowifornia/nd-rl/ab3/lengthexp/runs/C_s101/final.pt
+  sha256_prefix: 9ec083a966662fdc
+  description: lengthexp arm C (C_s101), optional middle model for G10

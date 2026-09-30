@@ -1,0 +1,318 @@
+# ndbench GPU schedule (plan §4; WP8 integration fix list item 10).
+#
+# GPU 4 only, one job at a time, every job launched with `CUDA_VISIBLE_DEVICES=4` already set for
+# the whole process (fix list item 8 -- see `runbook.md`). Estimates below are plan §4's
+# ~300-samples/s planning figures; G0 (run first) measures the real throughput and should be used
+# to rescale every later `est_min` before committing to the rest of the schedule.
+#
+# `python -m code.ndbench budget --schedule schedule.yaml --out /scratch/cowifornia/nd-rl/bench/out`
+# prints this table's stop-rule projection (CPU-only, never touches the GPU): walks `jobs` in
+# order, accepting a job only while `cumulative_spent_h + 1.5 * est_h <= cap_h`, else marking it
+# "skipped" and moving to the next job in the list (plan §4's stop rule) -- matching how the real
+# run should be paced, checked with the same command before every job using its real ledgered
+# `spent_h` in place of the projection.
+#
+# Every `run`/`edl`/`throughput` command below also needs `--out /scratch/cowifornia/nd-rl/bench/out`
+# (omitted from each line for brevity) and assumes the suite it names has already been built with
+# `python -m code.ndbench build --suite <name> --version v1 --config configs/<name>.yaml` (see
+# `configs/`); `--model base`/`--model rl`/`--model armC` resolve through `configs/models.yaml`
+# (fix list item 6).
+
+cap_h: 9.5
+
+jobs:
+  - id: G0
+    job: throughput_smoke
+    est_min: 8
+    command: >-
+      python -m code.ndbench throughput --models base,rl --sets 6,14,25
+      --batches 512,1024,2048 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+    notes: >-
+      Plan §4: "G0 replaces with measurements." Also exercises gpu.lease and Learner.update step
+      timing (WP1's acceptance test: <=1,000 samples logged in the ledger). Rescale every later
+      est_min below by (300 / measured samples_per_s) once this has run.
+
+  - id: G1
+    job: parts_v1_base
+    suite: parts_pool
+    version: v1
+    model: base
+    k: 32
+    est_min: 4
+    command: >-
+      python -m code.ndbench run --suite parts_pool --version v1 --model base --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G1
+    job: parts_v1_rl
+    suite: parts_pool
+    version: v1
+    model: rl
+    k: 32
+    est_min: 3
+    command: >-
+      python -m code.ndbench run --suite parts_pool --version v1 --model rl --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G1
+    job: skills_rl_std_L6_7
+    suite: skill_pool
+    version: v1
+    model: rl
+    k: 32
+    est_min: 1
+    command: >-
+      python -m code.ndbench run --suite skill_pool --version v1 --model rl --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+    notes: >-
+      Plan §2 B3: "no new samples except RL on std L6-7 (600x32)" -- base+RL on dev/sealed/frontier
+      and pretrain+C on lengthexp come from `import-legacy`, not a new run. Restrict to the std L6-7
+      items with --pids (fill in once skill_pool's pids for that subset are known) rather than
+      resampling the whole skill_pool suite.
+
+  - id: G2
+    job: yue_textbook_dev_base
+    suite: textbook_dev
+    version: v1
+    model: base
+    k: 4096
+    adaptive: "256,4096,32"
+    est_min: 12
+    command: >-
+      python -m code.ndbench run --suite textbook_dev --version v1 --model base --k 4096
+      --adaptive 256,4096,32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G2
+    job: yue_textbook_dev_rl
+    suite: textbook_dev
+    version: v1
+    model: rl
+    k: 4096
+    adaptive: "256,4096,32"
+    est_min: 12
+    command: >-
+      python -m code.ndbench run --suite textbook_dev --version v1 --model rl --k 4096
+      --adaptive 256,4096,32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G2
+    job: gen_ctrl_base
+    suite: gen_ctrl
+    version: v1
+    model: base
+    k: 512
+    est_min: 3
+    command: >-
+      python -m code.ndbench run --suite gen_ctrl --version v1 --model base --k 512
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G2
+    job: gen_ctrl_rl
+    suite: gen_ctrl
+    version: v1
+    model: rl
+    k: 512
+    est_min: 3
+    command: >-
+      python -m code.ndbench run --suite gen_ctrl --version v1 --model rl --k 512
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: G3
+    job: families_base
+    suite: families
+    version: v1
+    model: base
+    k: 32
+    est_min: 12
+    command: >-
+      python -m code.ndbench run --suite families --version v1 --model base --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G3
+    job: families_rl
+    suite: families
+    version: v1
+    model: rl
+    k: 32
+    est_min: 13
+    command: >-
+      python -m code.ndbench run --suite families --version v1 --model rl --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+    notes: >-
+      Plan §2 B2's early-stop rule (skip n once pass@32=0 for two consecutive n, plus one check at
+      the largest n) is a suite-build-time decision (which (family, n) cells exist at all), not a
+      `run` flag; it must be applied when `families` is built, not here.
+
+  - id: G4
+    job: glue_build_and_run_base
+    suite: glue
+    version: v1
+    model: base
+    k: 32
+    est_min: 6
+    command: >-
+      python -m code.ndbench run --suite glue --version v1 --model base --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+    notes: "Requires `python -m code.ndbench build --suite glue ...` (configs/glue.yaml) after G1."
+  - id: G4
+    job: glue_run_rl
+    suite: glue
+    version: v1
+    model: rl
+    k: 32
+    est_min: 6
+    command: >-
+      python -m code.ndbench run --suite glue --version v1 --model rl --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: G5
+    job: laws_base
+    suite: laws
+    version: v1
+    model: base
+    k: 32
+    est_min: 5
+    command: >-
+      python -m code.ndbench run --suite laws --version v1 --model base --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G5
+    job: laws_rl
+    suite: laws
+    version: v1
+    model: rl
+    k: 32
+    est_min: 5
+    command: >-
+      python -m code.ndbench run --suite laws --version v1 --model rl --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: G6
+    job: padding_base
+    suite: padding
+    version: v1
+    model: base
+    k: 32
+    est_min: 3
+    command: >-
+      python -m code.ndbench run --suite padding --version v1 --model base --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G6
+    job: padding_rl
+    suite: padding
+    version: v1
+    model: rl
+    k: 32
+    est_min: 3
+    command: >-
+      python -m code.ndbench run --suite padding --version v1 --model rl --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: G7
+    job: prefix_base
+    suite: prefix
+    version: v1
+    model: base
+    k: 16
+    est_min: 4
+    command: >-
+      python -m code.ndbench run --suite prefix --version v1 --model base --k 16
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G7
+    job: prefix_rl
+    suite: prefix
+    version: v1
+    model: rl
+    k: 16
+    est_min: 4
+    command: >-
+      python -m code.ndbench run --suite prefix --version v1 --model rl --k 16
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: G8
+    job: edl_base
+    model: base
+    est_min: 23
+    command: >-
+      python -m code.ndbench edl --model base --config configs/edl.yaml --lrs 1e-4,3e-4,1e-3
+      --orders 2 --n 64 --m 64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+    notes: "12 classes x 3 lrs x 2 orders = 72 runs per model (144 total across base+rl)."
+  - id: G8
+    job: edl_rl
+    model: rl
+    est_min: 22
+    command: >-
+      python -m code.ndbench edl --model rl --config configs/edl.yaml --lrs 1e-4,3e-4,1e-3
+      --orders 2 --n 64 --m 64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: G9
+    job: yue_textbook_law_base
+    suite: textbook_law
+    version: v1
+    model: base
+    k: 1024
+    adaptive: "256,1024,32"
+    est_min: 17
+    command: >-
+      python -m code.ndbench run --suite textbook_law --version v1 --model base --k 1024
+      --adaptive 256,1024,32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+  - id: G9
+    job: yue_textbook_law_rl
+    suite: textbook_law
+    version: v1
+    model: rl
+    k: 1024
+    adaptive: "256,1024,32"
+    est_min: 18
+    command: >-
+      python -m code.ndbench run --suite textbook_law --version v1 --model rl --k 1024
+      --adaptive 256,1024,32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: G10
+    job: armC_families
+    suite: families
+    version: v1
+    model: armC
+    k: 32
+    est_min: 10
+    command: >-
+      python -m code.ndbench run --suite families --version v1 --model armC --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+    notes: "Optional (plan §4): a middle model between base and rl. Drop first if G0 measures <200 samples/s."
+  - id: G10
+    job: armC_textbook_dev
+    suite: textbook_dev
+    version: v1
+    model: armC
+    k: 1024
+    adaptive: "256,1024,32"
+    est_min: 8
+    command: >-
+      python -m code.ndbench run --suite textbook_dev --version v1 --model armC --k 1024
+      --adaptive 256,1024,32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+    notes: "k_max capped at 1024 for arm C per plan §4's G10 row (not the base/rl 4096)."
+  - id: G10
+    job: armC_glue
+    suite: glue
+    version: v1
+    model: armC
+    k: 32
+    est_min: 7
+    command: >-
+      python -m code.ndbench run --suite glue --version v1 --model armC --k 32
+      --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+
+  - id: R
+    job: reserve
+    est_min: null
+    command: null
+    notes: >-
+      Plan §4 reserve budget: ~120 min planned, but the actual work (reruns, extra k near a Yue
+      crossover, <=16k samples on <=10 items) is decided after seeing G0-G10's results, so it has
+      no fixed command or estimate here -- left "unestimated" (see runbook.md's stop rule section)
+      rather than auto-scheduled. Always re-run `budget --schedule` with the real ledgered spend
+      before spending any of it.
+
+# Placeholder for interp jobs (G11+): the interp coder's own `configs/interp_*.yaml` (likelihood,
+# fit-vectors, steer-sweep, interpolate, probes -- see INTERP_SPEC.md) are scheduled here, after
+# G10 and before R. As of this fix (2026-09-30), `configs/interp_likelihood.yaml`,
+# `interp_vectors.yaml`, `interp_steer_sweep.yaml`, `interp_interpolate.yaml` and
+# `interp_probes.yaml` already exist (the interp coder is still actively working in parallel), but
+# none carry a per-run GPU-hour estimate yet, and INTERP_SPEC.md states plainly "GPU runs are
+# scheduled by the main agent later" -- so this file still does not fabricate G11+ job entries for
+# them (not this WP's call to make). INTERP_SPEC.md's closing line puts their combined budget at
+# ~1-1.5 GPU-h; a driver reading this schedule should `glob("configs/interp_*.yaml")` and insert
+# one job per file it finds, in that position, once the main agent adds real estimates/commands.
+interp_jobs_placeholder: []

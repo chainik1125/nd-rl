@@ -1,0 +1,44 @@
+# python -m code.ndbench.interp likelihood \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood.yaml
+#
+# INTERP_SPEC.md §1's "Run": ordering-marginalised likelihood under base and RL, on neutral
+# minimal proofs (`interp.data.load_neutral_proofs`: reserve L6-10, `seen_train`-excluded, topped
+# up from sealed L12-14, plus family witnesses if the `families` suite has been built into this
+# Store) capped at `n_neutral`, plus RL/base verified `Store` samples named by `model_samples`
+# (needs a prior benchmark run with `keep_samples=True` on that suite/version/model -- fill these
+# in once such a run exists, e.g. `dev_L8-11`/`textbook_dev` from another work package, or this
+# work package's own `interp_eval_dev`/`interp_eval_sealed` suites once `steer-sweep`/`interpolate`
+# have sampled them).
+#
+# GPU cost estimate -- REVISED after an actual (partial) GPU-4 smoke test, more pessimistic than
+# the original back-of-envelope figure: `AbsGptAdapter.logprob` is not batched across start-index
+# shifts *or* across the pairs list (one forward pass per shift, per ordering, per pair -- always
+# batch size 1), and `marginal_logprob` calls it once per ordering (<= `cap` exact enumeration,
+# else `m` importance samples). A live run of `n_neutral=20` (no `model_samples`) on GPU 4 did not
+# finish within ~5 minutes wall clock (killed; see this coder's final report) -- i.e. **>15
+# GPU-s/item** in practice, an order of magnitude past the original ~1 GPU-s/item assumption. At
+# that observed rate, `n_neutral=500` alone could take 2+ GPU-hours, not 25-35 minutes. Options
+# before scheduling a real run: (a) time a small pilot (10-20 items) first and extrapolate
+# linearly; (b) batch `AbsGptAdapter.logprob`'s pairs/shifts (a WP1/`adapters/absgpt.py` change,
+# outside this work package); (c) cap `n_neutral` much lower than the spec's 2000 ceiling and/or
+# lower `cap`/`m` so more items fall back to a cheaper single-order score. `n_neutral` below is set
+# very small pending that measurement -- do not scale it up without re-timing first.
+seed: 0
+n_neutral: 20 # keep tiny until a real per-item GPU-s rate is measured -- see the cost note above
+cap: 10000 # INTERP_SPEC.md §1's exact-enumeration cutoff
+m: 512 # importance-sampling draws when count_orderings exceeds cap
+device: cuda
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache   # ExclusionIndex cache (plan §A2)
+# family_version: v1   # only used if a `families` suite has been built into this Store
+
+# Fill in once a benchmark run with keep_samples=True exists for the chosen suite/version:
+# model_samples:
+#   base: {suite: dev_L8-11, version: v1, model: base, limit: 500}
+#   rl: {suite: dev_L8-11, version: v1, model: rl, limit: 500}
+
+# Fill in once a base benchmark run exists, to mark the "crux set" (RL solves, base almost never):
+# base_success:
+#   suite: dev_L8-11
+#   version: v1
+#   model: base

@@ -1,0 +1,11 @@
+# `python -m code.ndbench edl --model <base|rl> --config configs/edl.yaml --out <out> \
+#     --lrs 1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64`
+# Plan §B7 / G8: 12 EDL classes (and_tower n=8/16, imp_nest n=4/8, reorder_and n=5, reorder_or n=3,
+# contraposition s=3, dist_and_over_or s=1, demorgan_nand_to_or s=1, and_glue L=12, dev_gen L10,
+# heldout_cap6), each split 64/64 (or 32/32 below 128 distinct items). `build_classes` reads the
+# suite-backed classes (families/laws/glue) from the Store at the versions below -- these must
+# already be built -- and falls back to the real, read-only `ab2`/`ab3` files for `dev_gen_L10`/
+# `heldout_cap6` (no override needed for a real run; only tests point these at nonexistent paths).
+families_version: v1
+laws_version: v1
+glue_version: v1
