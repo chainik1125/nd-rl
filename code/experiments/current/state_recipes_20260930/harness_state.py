@@ -77,7 +77,12 @@ from train import loss_on  # noqa: E402
 
 ARM = os.environ.get("STATE_ARM", "C0")
 STATE = ARM != "C0"
-MAX_ACTION, MAX_STEPS, ENV_BATCH = 256, 48, 2048  # Dan's state-env settings
+MAX_ACTION, MAX_STEPS = 256, 48  # Dan's state-env settings
+# live attempts per wave (Dan used 2048). Every step re-encodes the state (SH: history + state),
+# and the ALiBi recipes' prefill builds a (batch, heads, L, L) fp32 bias: 2048 OOMed an A40 at
+# L ~ 300 on SH and SN (2026-09-30). 512 / 256 keep it ~6-8 GB at L 600 / 1000. A batch change is
+# a sampling re-draw only.
+ENV_BATCH = {"SN": 512, "SH": 256}.get(ARM, 2048)
 FT_MAX_TOKENS = 200_000  # padded tokens per fine-tune micro-batch (SH's histories are long)
 
 

@@ -8,6 +8,7 @@ set -euo pipefail
 FORK_COMMIT=a005ad61ea952e474c0c32caf9d62297d42474ee
 DATA_COMMIT=51604b3feaa5e66821d1faba22238fe6d96d46d0   # the frozen harness's fork: train.jsonl.gz
 export ND_OFFLINE=1   # dan_best-state's results registry: no uploads from these runs
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True   # SH's variable-length prefills fragment
 export ND_FORK=/workspace/nd-takehome
 OUT=$1; shift
 
