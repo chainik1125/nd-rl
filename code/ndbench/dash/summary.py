@@ -254,7 +254,7 @@ def _family_written_lines(
 
 
 def _chart_2_families(store: Store) -> str:
-    title = "Restricted families: horizon in written lines"
+    title = "Restricted families: horizon in written lines (theorems unseen in training)"
     data = horizon_view.view(store, {})
     if data.get("empty"):
         return P.missing_fig(title, str(data.get("reason", "no data")))
@@ -270,9 +270,17 @@ def _chart_2_families(store: Store) -> str:
     # strictly less horizon than any family that clears at least its own smallest tested size).
     compare: dict[str, dict[str, float]] = {}
     longest: tuple[float, str, str] | None = None  # (lines, model, family label)
+    # Audit 2026-10-01: the smallest sizes are mostly training theorems (`seen_train`: base's
+    # cap-6 pretraining set or the RL pool), so the horizon is computed on unseen theorems only;
+    # the all-items horizon is kept for the caption.
+    with_seen: dict[str, list[str]] = {}
     for family in sorted(families):
-        pids = pids_by_group.get(family, [])
+        all_pids = pids_by_group.get(family, [])
+        pids = [p for p in all_pids if not problems[p].seen_train]
         label = "ILTP-style" if family.startswith("ILTP-style") else family
+        res_all = _family_horizon(store, suite, version, "base", all_pids, problems)
+        if res_all is not None and res_all[0] is not None:
+            with_seen.setdefault(label, []).append(f"n*={res_all[0]}")
         pts: list[tuple[str, float | None, str, bool]] = []
         for model in ("base", "rl", "armC"):
             res = _family_horizon(store, suite, version, model, pids, problems)
@@ -299,42 +307,47 @@ def _chart_2_families(store: Store) -> str:
     if not rows:
         return P.missing_fig(title, "no family had a qualifying (>=5-item) size cell")
 
-    exceeds: list[str] = []
-    ties: list[str] = []
-    trails: list[str] = []
-    for fam, by_model in compare.items():
-        b, r = by_model.get("base"), by_model.get("rl")
-        if b is None or r is None:
-            continue
-        if abs(r - b) < 0.5:
-            ties.append(fam)
-        elif r > b:
-            exceeds.append(fam)
-        else:
-            trails.append(fam)
+    trails = [
+        fam
+        for fam, by_model in compare.items()
+        if (b := by_model.get("base")) is not None
+        and (r := by_model.get("rl")) is not None
+        and r < b - 0.5
+    ]
 
-    if longest is not None:
-        lines, model, fam = longest
-        takeaway = (
-            f"every family collapses within a few sizes: the longest horizon is {model} on "
-            f"{fam} (about {P.fmt(lines, 'g')} written lines)"
+    holders = [
+        (model, row.label, v) for row in rows for model, v, _c, _cens in row.points if v is not None
+    ]
+    base_none = all(
+        v is None for row in rows for model, v, _c, _cens in row.points if model == "base"
+    )
+    if holders:
+        holders.sort(key=lambda t: -t[2])
+        takeaway = "on theorems absent from training no family holds up for long: " + ", ".join(
+            f"{model} on {fam} reaches about {P.fmt(lines, 'g')} written lines"
+            for model, fam, lines in holders
         )
+        if base_none:
+            takeaway += "; base fails at the smallest unseen size in every family"
+        takeaway += "."
     else:
-        takeaway = "every family collapses at or before the smallest size tested"
-    bits = []
-    if exceeds:
-        bits.append(f"rl's horizon exceeds base's on {', '.join(exceeds)}")
-    if ties:
-        bits.append(f"ties on {', '.join(ties)}")
+        takeaway = "every model fails at the smallest unseen size in every family."
     if trails:
-        bits.append(f"trails on {', '.join(trails)}")
-    takeaway = takeaway + ("; " + "; ".join(bits) + "." if bits else ".")
+        takeaway = takeaway[:-1] + f"; rl trails base on {', '.join(trails)}."
 
     drop_note = f" Too few items per size (dropped): {', '.join(dropped)}." if dropped else ""
+    seen_note = (
+        " Including training theorems, base reaches "
+        + ", ".join(f"{v[0]} on {fam}" for fam, v in with_seen.items())
+        + "."
+        if with_seen
+        else ""
+    )
     caption = (
         f"{len(rows)} families; n* at pass@8>=50% over size cells with >={_MIN_ITEMS_PER_N} "
-        "items only; >= marks a censored (never dropped below 50% in the tested range) horizon; "
-        f"base, rl, armC.{drop_note}"
+        "unseen items only (theorems in base's pretraining set or the RL pool are excluded; "
+        "they make up most of the smallest sizes); >= marks a censored horizon (never dropped "
+        f"below 50% in the tested range); base, rl, armC.{seen_note}{drop_note}"
     )
     return P.dot_plot(
         title,

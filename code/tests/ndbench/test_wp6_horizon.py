@@ -105,3 +105,28 @@ def test_horizon_splits_iltp_style_by_kind(tmp_path: Path) -> None:
     # each sub-schema's own n=1 item result is not pooled with the other sub-schema's.
     syj204 = data["families"]["ILTP-style (syj204_style)"]["base"]
     assert syj204["curves_by_k"]["1"] == [(1, 1.0)]
+
+
+def test_horizon_reports_unseen_only_n_star(tmp_path: Path) -> None:
+    # Audit 2026-10-01: when the solved small sizes are all training theorems, the unseen-only
+    # horizon must not inherit them.
+    from dataclasses import replace
+
+    store = Store(tmp_path)
+    problems = []
+    for n in (1, 2):
+        for i in range(3):
+            p = make_problem(f"seen_n{n}_{i}", "families", "v1", length=n + 2)
+            problems.append(replace(p, tags={"family": "f", "n": n}, seen_train=True))
+            q = make_problem(f"new_n{n}_{i}", "families", "v1", length=n + 2)
+            problems.append(replace(q, tags={"family": "f", "n": n}))
+    store.write_suite(problems, manifest("families", "v1", len(problems)))
+    run_id = start_run(store, suite="families", version="v1", model="base", k=32)
+    store.append_items(
+        run_id,
+        [make_item(run_id, p.pid, 32, 32 if p.seen_train else 0) for p in problems],
+    )
+    fam = horizon.view(store, {"B": 50, "seed": 0})["families"]["f"]["base"]
+    assert fam["n_seen_train"] == 6
+    assert fam["n_star"]["k8_tau0.5"]["n_star"] == 2  # mean pass@8 = 0.5 at each n, all items
+    assert fam["n_star_unseen"]["n_star"] is None

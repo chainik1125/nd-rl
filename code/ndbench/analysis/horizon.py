@@ -127,6 +127,13 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 by_n.setdefault(int(cast(int, n_val)), []).append(item)
             if not by_n:
                 continue
+            # Audit 2026-10-01: the smallest sizes are mostly training theorems (`seen_train`),
+            # so also report the horizon over unseen items only.
+            by_n_unseen: dict[int, list[ItemResult]] = {}
+            for pid, item in fam_items.items():
+                n_val = problems[pid].tags.get(N_TAG)
+                if n_val is not None and not problems[pid].seen_train:
+                    by_n_unseen.setdefault(int(cast(int, n_val)), []).append(item)
             n_star = {
                 "k8_tau0.5": horizon(by_n, k=8, tau=0.5, B=B, seed=seed),
                 "k1_tau0.5": horizon(by_n, k=1, tau=0.5, B=B, seed=seed),
@@ -146,7 +153,11 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 cs_arr.append(item.c)
             per_model[model] = {
                 "n_items": len(fam_items),
+                "n_seen_train": sum(1 for pid in fam_items if problems[pid].seen_train),
                 "n_star": n_star,
+                "n_star_unseen": (
+                    horizon(by_n_unseen, k=8, tau=0.5, B=B, seed=seed) if by_n_unseen else None
+                ),
                 "curves_by_k": curves_by_k,
                 "logit_slope_per_line": logit_slope_safe(xs_l, ns_arr, cs_arr),
                 "logit_slope_per_100_tokens": logit_slope_safe(xs_tok, ns_arr, cs_arr),
