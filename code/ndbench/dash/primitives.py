@@ -181,6 +181,27 @@ def missing_fig(title: str, what: str) -> str:
     )
 
 
+def line_table_rows(
+    series: list[Series], *, x_label: str = "x", x_fmt: str = "g", y_fmt: str = "g"
+) -> tuple[list[str], list[list[str]]]:
+    """`(headers, rows)` of `line_chart`'s data table: one row per distinct x over every
+    non-empty series, one column per series (a series with no point at that x shows "missing").
+    Shared with the summary page (`dash/summary.py`), which draws the chart as a paper figure but
+    keeps this exact table."""
+    series = [s for s in series if s.pts]
+    xs = sorted({x for s in series for x, _ in s.pts})
+    return (
+        [x_label, *[s.name for s in series]],
+        [[fmt(x, x_fmt), *[fmt(dict(s.pts).get(x), y_fmt) for s in series]] for x in xs],
+    )
+
+
+def line_table(
+    series: list[Series], *, x_label: str = "x", x_fmt: str = "g", y_fmt: str = "g"
+) -> str:
+    return _table(*line_table_rows(series, x_label=x_label, x_fmt=x_fmt, y_fmt=y_fmt))
+
+
 def line_chart(
     title: str,
     sub: str,
@@ -309,10 +330,7 @@ def line_chart(
     )
     blob = json.dumps(data).replace("</", "<\\/")
     js = f'<script type="application/json">{blob}</script>'
-    table = _table(
-        [x_label, *[s.name for s in series]],
-        [[fmt(x, x_fmt), *[fmt(dict(s.pts).get(x), y_fmt) for s in series]] for x in xs],
-    )
+    table = line_table(series, x_label=x_label, x_fmt=x_fmt, y_fmt=y_fmt)
     leg = _legend(series + [Series(f"{s.name} (missing)", [], "transparent") for s in empty])
     body = f'{leg}<div class="plot" data-chart="line">{svg}{js}</div>{table}'
     return figure(title, sub, body, note, wide)
@@ -572,11 +590,21 @@ def bar_chart(
         f'<svg viewBox="0 0 {fig_w} {H}" role="img" aria-label="{esc(title)}">'
         f"{''.join(g)}{''.join(marks)}</svg>"
     )
-    table = _table(
+    table = bar_table(bars, y_fmt=y_fmt)
+    return figure(title, sub, f'<div class="plot">{svg}</div>{table}', note, wide)
+
+
+def bar_table_rows(bars: list[Bar], *, y_fmt: str = "g") -> tuple[list[str], list[list[str]]]:
+    """`(headers, rows)` of `bar_chart`'s data table (NaN-valued bars dropped, as in the chart)."""
+    bars = [b for b in bars if not (isinstance(b.value, float) and math.isnan(b.value))]
+    return (
         ["name", "value", "ci lo", "ci hi"],
         [[b.name, fmt(b.value, y_fmt), fmt(b.lo, y_fmt), fmt(b.hi, y_fmt)] for b in bars],
     )
-    return figure(title, sub, f'<div class="plot">{svg}</div>{table}', note, wide)
+
+
+def bar_table(bars: list[Bar], *, y_fmt: str = "g") -> str:
+    return _table(*bar_table_rows(bars, y_fmt=y_fmt))
 
 
 def hbar_chart(
@@ -700,6 +728,45 @@ def _row_offsets(n: int) -> list[float]:
     return [-_DOT_ROW_SPREAD + i * step for i in range(n)]
 
 
+def _dot_legend_items(rows: list[DotRow]) -> list[tuple[str, str]]:
+    legend_items: list[tuple[str, str]] = []
+    for row in rows:
+        for n, v, c, _z in row.points:
+            if v is not None and (n, c) not in legend_items:
+                legend_items.append((n, c))
+    return legend_items
+
+
+def dot_table_rows(
+    rows: list[DotRow], *, x_fmt: str = "g", log_x: bool = False, none_label: str = "none"
+) -> tuple[list[str], list[list[str]]]:
+    """`(headers, rows)` of `dot_plot`'s data table: one row per `DotRow`, one column per series
+    that has at least one real value; `none_label` / `<= 0` (under `log_x`) / `>= v` (censored)
+    exactly as the chart's tooltips show them."""
+    rows = [r for r in rows if r.points]
+    model_names = [n for n, _c in _dot_legend_items(rows)]
+    table_rows = []
+    for row in rows:
+        by_name = {n: (v, z) for n, v, _c, z in row.points}
+        cells = []
+        for n in model_names:
+            v, z = by_name.get(n, (None, False))
+            if v is None:
+                cells.append(none_label if n in by_name else "")
+            elif log_x and v <= 0:
+                cells.append("<= 0")
+            else:
+                cells.append((">= " if z else "") + fmt(v, x_fmt))
+        table_rows.append([row.label, *cells])
+    return ["row", *model_names], table_rows
+
+
+def dot_table(
+    rows: list[DotRow], *, x_fmt: str = "g", log_x: bool = False, none_label: str = "none"
+) -> str:
+    return _table(*dot_table_rows(rows, x_fmt=x_fmt, log_x=log_x, none_label=none_label))
+
+
 def dot_plot(
     title: str,
     sub: str,
@@ -812,30 +879,12 @@ def dot_plot(
         f'<svg viewBox="0 0 {fig_w} {h}" role="img" aria-label="{esc(title)}">'
         f"{''.join(g)}{''.join(marks)}</svg>"
     )
-    legend_items: list[tuple[str, str]] = []
-    for row in rows:
-        for n, v, c, _z in row.points:
-            if v is not None and (n, c) not in legend_items:
-                legend_items.append((n, c))
+    legend_items = _dot_legend_items(rows)
     leg = "".join(
         f'<span class="li"><span class="lkey" style="background:{c}"></span>{esc(n)}</span>'
         for n, c in legend_items
     )
-    model_names = [n for n, _c in legend_items]
-    table_rows = []
-    for row in rows:
-        by_name = {n: (v, z) for n, v, _c, z in row.points}
-        cells = []
-        for n in model_names:
-            v, z = by_name.get(n, (None, False))
-            if v is None:
-                cells.append(none_label if n in by_name else "")
-            elif log_x and v <= 0:
-                cells.append("<= 0")
-            else:
-                cells.append((">= " if z else "") + fmt(v, x_fmt))
-        table_rows.append([row.label, *cells])
-    table = _table(["row", *model_names], table_rows)
+    table = dot_table(rows, x_fmt=x_fmt, log_x=log_x, none_label=none_label)
     body = f'<div class="legend">{leg}</div><div class="plot">{svg}</div>{table}'
     return figure(title, sub, body, note, wide)
 

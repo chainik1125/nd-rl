@@ -24,6 +24,7 @@ the base / rl / armC models (small absgpt transformers). Other models can be muc
 | Tier | Job | GPU-min per model | Benchmark it feeds |
 | --- | --- | --- | --- |
 | cpu | `summary_page`, `detail_pages` (`ndbench dash`) | 0 | every chart, from stored results |
+| cpu | `paper_figures` (`ndbench figures`) | 0 | the summary's figures as PDF/SVG/PNG for a paper |
 | cpu | `probe_position_baselines` | 0 | probes (position-only baselines) |
 | cpu | suite builds (`ndbench build`), analysis views in Python | 0 | all |
 | cheap | `prefix_<m>` | 0.9 | prefix completion |
@@ -82,6 +83,8 @@ GPUs 0-3 are sometimes held by another user (`runbook.md`).
 - EDL run ids carry a generation (`edl`, `edl2`, `edl3`, ...), and the view keeps the newest per
   (model, n, m). Re-running a model that already has EDL rows needs a new `--run-id`.
 - `dash --summary` currently draws only base, rl and armC. A new model's results land in the store
-  and in the analysis views, but its charts need a summary-page change.
+  and in the analysis views, but its charts need a summary-page change. Figure styling (fonts,
+  sizes, the fixed per-model colours and how new model families get theirs) is in
+  [`figures/STYLE.md`](figures/STYLE.md).
 - A new adapter (a model that is not an absgpt whole-proof model) has its own throughput. Time one
   cheap job before trusting any estimate above.

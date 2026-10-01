@@ -179,6 +179,7 @@ def test_build_parser_has_every_subcommand() -> None:
         "import-legacy",
         "budget",
         "dash",
+        "figures",
     }
 
 

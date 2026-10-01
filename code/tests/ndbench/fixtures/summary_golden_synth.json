@@ -1,0 +1,397 @@
+[
+ {
+  "title": "Real textbook problems: pass@k",
+  "takeaway": "rl is ahead of base at every k in the point estimate (pass@1 62.5% vs 50.0%; pass@32 100.0% vs 100.0%).",
+  "note": "n=4 textbook theorems; k=1..4096; base and rl. textbook_law: base 62.5%/pass@32 100.0%, rl 12.5%/pass@32 100.0%; control: base 35.9%/pass@32 100.0%, rl 51.6%/pass@32 100.0%.",
+  "tables": [
+   [
+    [
+     "k",
+     "base",
+     "rl"
+    ],
+    [
+     "1",
+     "50.0%",
+     "62.5%"
+    ],
+    [
+     "2",
+     "75.8%",
+     "86.7%"
+    ],
+    [
+     "4",
+     "94.9%",
+     "98.6%"
+    ],
+    [
+     "8",
+     "99.9%",
+     "100.0%"
+    ],
+    [
+     "16",
+     "100.0%",
+     "100.0%"
+    ],
+    [
+     "32",
+     "100.0%",
+     "100.0%"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Restricted families: horizon in written lines (theorems unseen in training)",
+  "takeaway": "on theorems absent from training no family holds up for long: armC on and_tower reaches about 5 written lines, base on and_tower reaches about 4 written lines; rl trails base on and_tower.",
+  "note": "1 families; n* at pass@8>=50% over size cells with >=5 unseen items only (theorems in base's pretraining set or the RL pool are excluded; they make up most of the smallest sizes); a short tick at the left edge marks a model that fails at the smallest unseen size; >= marks a censored horizon (never dropped below 50% in the tested range); base, rl, armC. Including training theorems, base reaches n*=2 on and_tower.",
+  "tables": [
+   [
+    [
+     "row",
+     "base",
+     "armC"
+    ],
+    [
+     "and_tower",
+     "4",
+     ">= 5"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Glue: does capability compose?",
+  "takeaway": "compositionality varies by operator: BOX: rl is highest (R=1.455); CHAIN: base is lowest (R=0.427); CASE: R=0 for both models.",
+  "note": "R = joined pass@1 / product of mastered parts' pass@1, pooled per operator; AND n=1; CHAIN n=1; CASE n=1; BOX n=1; parts' pass@1 from the renamed parts for 0 and the original pool items for 8 (item, model) pairs.",
+  "tables": [
+   [
+    [
+     "name",
+     "value",
+     "ci lo",
+     "ci hi"
+    ],
+    [
+     "AND: base",
+     "0.683",
+     "0.683",
+     "0.683"
+    ],
+    [
+     "AND: rl",
+     "1.247",
+     "1.247",
+     "1.247"
+    ],
+    [
+     "CHAIN: base",
+     "0.427",
+     "0.427",
+     "0.427"
+    ],
+    [
+     "CHAIN: rl",
+     "0.935",
+     "0.935",
+     "0.935"
+    ],
+    [
+     "CASE: base",
+     "0.000",
+     "0.000",
+     "0.000"
+    ],
+    [
+     "CASE: rl",
+     "0.000",
+     "0.000",
+     "0.000"
+    ],
+    [
+     "BOX: base",
+     "0.853",
+     "0.853",
+     "0.853"
+    ],
+    [
+     "BOX: rl",
+     "1.455",
+     "1.455",
+     "1.455"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Skills: RL pass@1 by length and special skill",
+  "takeaway": "RL's pass@1 is 50.0% with no special skill needed, 0.0% when a case split is required and 3.1% when the proof is classical.",
+  "note": "n=60 skill_pool items (direct + legacy-imported runs), rl only; shaded band: 95% item-level bootstrap CI. Same items, pass@1: base vs rl on their 60 common items (no special skill: 31.2% vs 50.0%, case_split: 3.1% vs 0.0%, classical: 6.2% vs 3.1%).",
+  "tables": [
+   [
+    [
+     "L (written lines)",
+     "no special skill",
+     "needs case split",
+     "needs classical"
+    ],
+    [
+     "8",
+     "50.0%",
+     "missing",
+     "missing"
+    ],
+    [
+     "9",
+     "missing",
+     "0.0%",
+     "missing"
+    ],
+    [
+     "10",
+     "missing",
+     "missing",
+     "3.1%"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Law x substitution size",
+  "takeaway": "base peaks at s=0 (62.5%), rl peaks at s=0 (87.5%).",
+  "note": "n=120 instances over 1 schemas (mt), pooled per item at each s; 1 instances seen in training excluded.",
+  "tables": [
+   [
+    [
+     "s (connectives per metavariable)",
+     "base",
+     "rl"
+    ],
+    [
+     "0",
+     "62.5%",
+     "87.5%"
+    ],
+    [
+     "2",
+     "31.2%",
+     "43.8%"
+    ],
+    [
+     "4",
+     "3.1%",
+     "6.2%"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Free lines: the cost of padding",
+  "takeaway": "at W=5 written lines, rl solves 75.0% of natural theorems but only 93.8% once those lines are padding.",
+  "note": "3 distinct padded items pooled across pad types P1-shared (each unpadded theorem counted once); natural = gen_ctrl at the same W (1 items at W=5), drawn from the dev set the RL hill-climb selected on, so rl's natural curve is optimistic.",
+  "tables": [
+   [
+    [
+     "W (written lines)",
+     "rl padded",
+     "rl natural",
+     "base padded"
+    ],
+    [
+     "5",
+     "93.8%",
+     "75.0%",
+     "100.0%"
+    ],
+    [
+     "6",
+     "62.5%",
+     "56.2%",
+     "75.0%"
+    ],
+    [
+     "7",
+     "25.0%",
+     "31.2%",
+     "50.0%"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Prefix completion: finishing someone else's proof",
+  "takeaway": "with 1 line left rl finishes 100.0% vs base 20.0%; with 3 lines left rl finishes 30.0% vs base 0.0%.",
+  "note": "items: base=40, rl=40; pooled success rate by lines left (L-j), bins with <20 items omitted; base vs rl.",
+  "tables": [
+   [
+    [
+     "lines left (L-j)",
+     "base",
+     "rl"
+    ],
+    [
+     "1",
+     "20.0%",
+     "100.0%"
+    ],
+    [
+     "3",
+     "0.0%",
+     "30.0%"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "EDL: nats per example to pick up a new pattern",
+  "takeaway": "rl's EDL is lower on 0/1 classes (0 with no overlap between the two data orders), but rl also starts with lower test loss on 1/1 and EDL tracks the starting loss (Spearman nan); per nat of test loss that training removes, rl costs as much as or more than base on 1/1 classes.",
+  "note": "1 classes, base vs rl; EDL* per example at the learning rate with the smallest online code length, including the ln(1) cost of choosing among the learning rates (lr 0 = no update is one of them); 2 data orders. Null control (heldout_cap6, data the models already know): n/a. Runs: edl2-base-8-4, edl2-rl-8-4.",
+  "tables": [
+   [
+    [
+     "row",
+     "base",
+     "rl"
+    ],
+    [
+     "toy",
+     "<= 0",
+     "<= 0"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Likelihood: how surprised is base by RL's proofs?",
+  "takeaway": "on rl's crux proofs base assigns about 3.5 nats/line less than rl.",
+  "note": "median log p per written line of the scored proof, base vs rl, by proof set; runs likelihood-a037da66f05b0016. The last two rows (neutral minimal proofs, rl's own proofs) are the same 0 gen_ctrl theorems rl solves and base never does (p_hat_base=0); the minimal proofs come from the minlen labeller.",
+  "tables": [
+   [
+    [
+     "row",
+     "base",
+     "rl"
+    ],
+    [
+     "base's own verified proofs (n=2)",
+     "-0.3125",
+     "-0.2188"
+    ],
+    [
+     "rl's own proofs (n=2)",
+     "-4.375",
+     "-0.875"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Steering: base pushed toward rl",
+  "takeaway": "adding the RL-base direction to base does not move it: the best of 2 (layer, alpha) settings scores 18.8% vs 27.5% unsteered (inside base's 95% CI), but subtracting it from rl costs -8.8 points (47.5% -> 56.2%).",
+  "note": "pooled pass@1 over interp_eval_dev, interp_eval_sealed, textbook_dev; delta (RL - base mean activation difference at proof positions) is added at proof positions only. interp_eval_dev/sealed dominate the pooled item count (base alone on textbook_dev is 50.0%).",
+  "tables": [
+   [
+    [
+     "name",
+     "value",
+     "ci lo",
+     "ci hi"
+    ],
+    [
+     "base (unsteered)",
+     "27.5%",
+     "16.2%",
+     "38.8%"
+    ],
+    [
+     "base + delta (layer 0, a=1)",
+     "18.8%",
+     "18.8%",
+     "18.8%"
+    ],
+    [
+     "rl - delta (layer 0)",
+     "56.2%",
+     "56.2%",
+     "56.2%"
+    ],
+    [
+     "rl",
+     "47.5%",
+     "40.0%",
+     "55.0%"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Weight interpolation: base -> rl",
+  "takeaway": "pass@1 rises from 31.2% (alpha=0) to 70.3% (alpha=1) with most of the gain between alpha=0.5 and 1.",
+  "note": "fixed 150-theorem subset (dev L8-11 + sealed L12-14 gen items), pass@1 and pass@128 on the same items; base=alpha 0, rl=alpha 1. dev L8-11 was the RL hill-climb's selection metric; pass@1 on the sealed set alone: alpha 0 12.5%, alpha 0.5 25.0%, alpha 1 37.5%.",
+  "tables": [
+   [
+    [
+     "alpha (0=base, 1=rl)",
+     "pass@1",
+     "pass@128"
+    ],
+    [
+     "0",
+     "31.2%",
+     "100.0%"
+    ],
+    [
+     "0.5",
+     "46.9%",
+     "100.0%"
+    ],
+    [
+     "1",
+     "70.3%",
+     "100.0%"
+    ]
+   ]
+  ]
+ },
+ {
+  "title": "Probes: what do the activations add beyond position?",
+  "takeaway": "next_rule probe accuracy by layer, base vs rl.",
+  "note": "layers emb, 0, 1, 2, 3; next_rule = the rule of the line about to be written. lines_to_go R2 at the deepest layer: base 0.500, rl 0.500 vs missing from the line index alone; on longer (OOD) proofs it is negative for both (base 0.300, rl 0.300). Majority-class next_rule accuracy: missing.",
+  "tables": [
+   [
+    [
+     "layer",
+     "next_rule probe: base",
+     "next_rule probe: rl"
+    ],
+    [
+     "0",
+     "40.0%",
+     "80.0%"
+    ],
+    [
+     "1",
+     "42.0%",
+     "82.0%"
+    ],
+    [
+     "2",
+     "44.0%",
+     "84.0%"
+    ],
+    [
+     "3",
+     "46.0%",
+     "86.0%"
+    ],
+    [
+     "4",
+     "48.0%",
+     "88.0%"
+    ]
+   ]
+  ]
+ }
+]

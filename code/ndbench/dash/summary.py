@@ -1,13 +1,22 @@
-"""`dash.summary`: a single-page, minimal-sift-through dashboard -- one chart per benchmark.
+"""`dash.summary`: a single-page, minimal-sift-through dashboard -- one figure per benchmark.
 
 Leon (2026-09-30, after seeing the full dashboard): "this is way way too many graphs you should be
 trying to minimize the amount of data a human needs to sift through ideally one graph per
 benchmark." `dash/build.py` renders 13 full pages (overview, nine benchmarks, four interp
-measures) with several charts and tables each; this module instead writes one `summary.html` with
-exactly 12 cards -- one per benchmark/measure named in the plan -- each a short title, a
-*computed* one-sentence takeaway, one chart, and a one-line caption. No run tables, no per-cell
-tables, no failure-location tables: a chart is used wherever one is possible, and the acceptance
-tests check that no bare table-only card sneaks in.
+measures) with several charts and tables each; this module instead writes one `summary.html` laid
+out like a paper's results section: a short top line, a Figure 1 overview grid, exactly 12
+numbered cards (one per benchmark/measure named in the plan, in two sections) and a Limitations
+note. Each card is a NeurIPS-style figure (`code/ndbench/figures/plots.py`; steering is a
+booktabs table instead, `figures/tables.py`) with a self-contained caption below it (what is
+plotted, n, the CI method, then the *computed* one-sentence takeaway) and the exact values in a
+collapsible data table.
+
+Each benchmark's numbers are computed once, by its `_data_*` function, into a `ChartData`
+(`dash/chart_data.py`); the page's tables (`data_tables`), its captions and the figures
+(`figures.plots`, also written as PDF/SVG/PNG by `python -m code.ndbench figures`) all read that
+object, so they cannot drift apart. The data tables are the same rows the earlier inline-SVG
+charts carried (`P.line_table_rows`/`P.bar_table_rows`/`P.dot_table_rows`), plus one per extra
+figure panel.
 
 Every number on this page comes from the same `analysis/*` views and `Store` the full dashboard
 uses (`view_<bench>(store, cfg)`, `code.ndbench.metrics`) -- this module adds no new statistics,
@@ -38,7 +47,7 @@ from __future__ import annotations
 
 import math
 import statistics
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -66,6 +75,8 @@ from ..metrics import compositionality_ratio, pass_at_k
 from ..metrics import horizon as horizon_stat
 from ..store import Store
 from . import primitives as P
+from .chart_data import ChartData
+from .chart_data import missing_chart as _missing
 
 #: Fixed per-model colours (plan: "consistent colours: base, rl and armC each always the same
 #: colour") -- independent of iteration order, unlike `dash/pages.py`'s `_color(i)` (which cycles
@@ -79,12 +90,6 @@ def _mcolor(model: str) -> str:
     return MODEL_COLOR.get(model, _EXTRA_COLORS[hash(model) % len(_EXTRA_COLORS)])
 
 
-def _mark(fig_html: str) -> str:
-    """Tag one of this page's 12 benchmark charts so the page itself (the models note, the
-    footer) is never mistaken for one when counting cards."""
-    return fig_html.replace('<figure class="card', '<figure class="card chart-card', 1)
-
-
 def _models_label(models: Sequence[str]) -> str:
     order = {"base": 0, "rl": 1, "armC": 2}
     ms = sorted(models, key=lambda m: order.get(m, 99))
@@ -96,15 +101,15 @@ def _models_label(models: Sequence[str]) -> str:
 # ============================================================================= 1. Yue (textbook)
 
 
-def _chart_1_yue(store: Store) -> str:
-    title = "Real textbook problems: pass@k"
+def _data_1_yue(store: Store) -> ChartData:
+    key, title = "yue", "Pass@k on real textbook problems"
     data = yue_view.view(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     sets = cast("dict[str, Any]", data["sets"])
     tdev = cast("dict[str, Any] | None", sets.get("textbook_dev"))
     if not tdev:
-        return P.missing_fig(title, "no textbook_dev results in the store")
+        return _missing(key, title, "no textbook_dev results in the store")
     models = cast("list[str]", tdev["models"])
     curves = cast("dict[str, list[tuple[int, float, float, float]]]", tdev["curves"])
     n_items = cast("dict[str, int]", tdev["n_items"])
@@ -183,20 +188,58 @@ def _chart_1_yue(store: Store) -> str:
         return f"{label}: " + ", ".join(bits) if bits else ""
 
     extra = "; ".join(x for x in (_caption_pair("textbook_law"), _caption_pair("control")) if x)
+    # Panel (b): the textbook_law curves the caption already summarises, drawn from the same view.
+    law = cast("dict[str, Any] | None", sets.get("textbook_law"))
+    law_series: list[P.Series] = []
+    law_n: object = "?"
+    if law:
+        law_curves = cast("dict[str, list[tuple[int, float, float, float]]]", law["curves"])
+        law_models = cast("list[str]", law["models"])
+        law_n = (
+            cast("dict[str, int]", law["n_items"]).get(law_models[0], "?") if law_models else "?"
+        )
+        law_series = [
+            P.Series(
+                m,
+                [(float(k), mean) for k, mean, _lo, _hi in law_curves.get(m, [])],
+                _mcolor(m),
+                band=[(float(k), lo, hi) for k, _mean, lo, hi in law_curves.get(m, [])],
+            )
+            for m in law_models
+            if law_curves.get(m)
+        ]
+    panel_b = (
+        f"; (b) textbook_law (n={law_n} theorems, k=1..{law.get('k_max')})"
+        if law_series and law
+        else ""
+    )
     caption = (
-        f"n={n_items.get(models[0], '?')} textbook theorems; k=1..{tdev.get('k_max')}; "
-        f"{_models_label(models)}." + (f" {extra}." if extra else "")
+        f"Pass@k against the number of samples k (log scale) for {_models_label(models)}: "
+        f"(a) textbook_dev (n={n_items.get(models[0], '?')} textbook theorems, "
+        f"k=1..{tdev.get('k_max')}){panel_b}. Unbiased pass@k; past an item's own sample count the "
+        "curve uses the 1-(1-c/n)^k extrapolation. Shaded bands: 95% item-level bootstrap CIs."
+        + (f" {extra}." if extra else "")
     )
-    return P.line_chart(
+    cd = ChartData(
+        key,
         title,
+        "line",
         takeaway,
-        series,
-        x_label="k",
-        y_fmt="pct",
-        log_x=True,
-        wide=True,
-        note=caption,
+        caption,
+        series=series,
+        opts={"x_label": "k", "y_fmt": "pct", "log_x": True},
+        extra={"n": n_items.get(models[0], "?"), "k_max": tdev.get("k_max")},
     )
+    if law_series:
+        cd.extra["law"] = {
+            "series": law_series,
+            "n": law_n,
+            "k_max": law.get("k_max") if law else None,
+        }
+        cd.extra_tables.append(
+            ("textbook_law (panel b)", *P.line_table_rows(law_series, x_label="k", y_fmt="pct"))
+        )
+    return cd
 
 
 # ======================================================================== 2. Restricted families
@@ -275,11 +318,11 @@ def _family_written_lines(
     return statistics.mean(lens) if lens else None
 
 
-def _chart_2_families(store: Store) -> str:
-    title = "Restricted families: horizon in written lines (theorems unseen in training)"
+def _data_2_families(store: Store) -> ChartData:
+    key, title = "families", "Length horizon on restricted families (theorems unseen in training)"
     data = horizon_view.view(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     meta = cast("dict[str, JSON]", data["meta"])
     families = cast("dict[str, dict[str, dict[str, Any]]]", data["families"])
     suite, version = cast(str, meta["suite"]), cast(str, meta["version"])
@@ -327,7 +370,7 @@ def _chart_2_families(store: Store) -> str:
         rows.append(P.DotRow(label, pts))
 
     if not rows:
-        return P.missing_fig(title, "no family had a qualifying (>=5-item) size cell")
+        return _missing(key, title, "no family had a qualifying (>=5-item) size cell")
 
     trails = [
         fam
@@ -366,21 +409,27 @@ def _chart_2_families(store: Store) -> str:
         else ""
     )
     caption = (
-        f"{len(rows)} families; n* at pass@8>=50% over size cells with >={_MIN_ITEMS_PER_N} "
+        "Horizon of each restricted family for base, rl and armC: the mean written length (lines) "
+        "of the items at n*, the largest family size n at which pass@8 is still at least 50% "
+        f"({len(rows)} families). n* at pass@8>=50% over size cells with >={_MIN_ITEMS_PER_N} "
         "unseen items only (theorems in base's pretraining set or the RL pool are excluded; "
-        "they make up most of the smallest sizes); a short tick at the left edge marks a model "
-        "that fails at the smallest unseen size; >= marks a censored horizon (never dropped "
-        f"below 50% in the tested range); base, rl, armC.{seen_note}{drop_note}"
+        "they make up most of the smallest sizes). A hollow marker at 0 means the model fails at "
+        "the smallest unseen size; an arrow marks a censored horizon (never dropped below 50% in "
+        "the tested range, so n* is a lower bound). Point estimates; no CI is drawn."
+        f"{seen_note}{drop_note}"
     )
-    return P.dot_plot(
+    return ChartData(
+        key,
         title,
+        "dot",
         takeaway,
-        rows,
-        x_label="written lines at n*",
-        x_min=0.0,
-        none_label="fails at smallest size",
-        wide=True,
-        note=caption,
+        caption,
+        rows=rows,
+        opts={
+            "x_label": "written lines at n*",
+            "x_min": 0.0,
+            "none_label": "fails at smallest size",
+        },
     )
 
 
@@ -397,18 +446,18 @@ _OP_GROUP: dict[str, str] = {
 _OP_ORDER: tuple[str, ...] = ("AND", "CHAIN", "CASE", "BOX")
 
 
-def _chart_3_glue(store: Store) -> str:
-    title = "Glue: does capability compose?"
+def _data_3_glue(store: Store) -> ChartData:
+    key, title = "glue", "Compositionality of solved parts (glue)"
     suite = glue_view.DEFAULT_SUITE
     parts_suite = glue_view.DEFAULT_PARTS_SUITE
     version = default_version(store, suite=suite) or "v1"
     parts_version = default_version(store, suite=parts_suite) or "v1"
     problems = problems_by_pid(store, suite, version)
     if not problems:
-        return P.missing_fig(title, f"suite {suite!r} not found")
+        return _missing(key, title, f"suite {suite!r} not found")
     models = models_present(store, suite=suite, version=version)
     if not models:
-        return P.missing_fig(title, "no runs found for the glue suite")
+        return _missing(key, title, "no runs found for the glue suite")
 
     pids_by_op: dict[str, list[str]] = {}
     for pid, p in problems.items():
@@ -450,7 +499,7 @@ def _chart_3_glue(store: Store) -> str:
             bars.append(P.Bar(f"{op}: {model}", comp["R"], lo, hi, _mcolor(model)))
 
     if not bars:
-        return P.missing_fig(title, "no operator had both a joined and a parts_pool run")
+        return _missing(key, title, "no operator had both a joined and a parts_pool run")
     by_op: dict[str, list[P.Bar]] = {}
     for b in bars:
         by_op.setdefault(b.name.split(": ", 1)[0], []).append(b)
@@ -473,11 +522,22 @@ def _chart_3_glue(store: Store) -> str:
         f"original pool items for {sources['pool']} (item, model) pairs"
     )
     caption = (
-        "R = joined pass@1 / product of mastered parts' pass@1, pooled per operator; "
+        "Compositionality ratio R per glue operator, base vs rl: R = joined pass@1 / product of "
+        "mastered parts' pass@1, pooled per operator (summed over items whose parts all have "
+        "pass@1 >= 0.5; R = 1 means a join is as easy as its parts together); "
         + "; ".join(f"{op} n={n}" for op, n in counts.items())
-        + f"; {src_note}."
+        + f"; {src_note}. Error bars: 95% item-level bootstrap CIs (B=1000)."
     )
-    return P.bar_chart(title, takeaway, bars, y_fmt="f3", wide=True, note=caption)
+    return ChartData(
+        key,
+        title,
+        "bar",
+        takeaway,
+        caption,
+        bars=bars,
+        opts={"y_fmt": "f3"},
+        extra={"ops": [op for op in _OP_ORDER if op in counts], "counts": counts},
+    )
 
 
 # =================================================================================== 4. Skills
@@ -518,16 +578,16 @@ _SKILL_LINE_COLORS: dict[str, str] = {
 }
 
 
-def _chart_4_skills(store: Store) -> str:
-    title = "Skills: RL pass@1 by length and special skill"
+def _data_4_skills(store: Store) -> ChartData:
+    key, title = "skills", "Pass@1 by proof length and required skill"
     suite = skills_view.DEFAULT_SUITE
     version = default_version(store, suite=suite) or "v1"
     problems = problems_by_pid(store, suite, version)
     if not problems:
-        return P.missing_fig(title, f"suite {suite!r} not found")
+        return _missing(key, title, f"suite {suite!r} not found")
     item_ncs = _rl_items_by_pid(store, problems)
     if not item_ncs:
-        return P.missing_fig(title, "no rl results (direct or legacy) for skill_pool")
+        return _missing(key, title, "no rl results (direct or legacy) for skill_pool")
 
     buckets: dict[str, dict[float, list[tuple[int, int]]]] = {
         "no special skill": {},
@@ -543,12 +603,12 @@ def _chart_4_skills(store: Store) -> str:
             continue
         is_classical = skills_view._skill_active(p, "classical")  # noqa: SLF001
         is_case = skills_view._skill_active(p, "case_split")  # noqa: SLF001
-        key = (
+        bucket = (
             "needs classical"
             if is_classical
             else ("needs case split" if is_case else "no special skill")
         )
-        buckets[key].setdefault(length, []).append((n, c))
+        buckets[bucket].setdefault(length, []).append((n, c))
 
     series = []
     dropped_cells = 0
@@ -567,7 +627,7 @@ def _chart_4_skills(store: Store) -> str:
         if pts:
             series.append(P.Series(name, pts, _SKILL_LINE_COLORS[name], band=band))
     if not series:
-        return P.missing_fig(title, "no (length, skill) cell had >=20 items")
+        return _missing(key, title, "no (length, skill) cell had >=20 items")
 
     def _overall(name: str) -> float:
         vals = [pass_at_k(n, c, 1) for ncs in buckets[name].values() for n, c in ncs]
@@ -587,6 +647,7 @@ def _chart_4_skills(store: Store) -> str:
     )
     sk = skills_view.view(store, {})
     cmp_notes: list[str] = []
+    comparisons: list[dict[str, Any]] = []
     for cmp in cast("dict[str, dict[str, Any]]", sk.get("comparisons") or {}).values():
         a, b = cast("list[str]", cmp["models"])
         groups = cast("dict[str, dict[str, Any]]", cmp["by_skill"])
@@ -594,24 +655,51 @@ def _chart_4_skills(store: Store) -> str:
             f"{g}: {P.fmt(r[a], 'pct')} vs {P.fmt(r[b], 'pct')}" for g, r in groups.items()
         )
         cmp_notes.append(f"{a} vs {b} on their {cmp['n_common']} common items ({cells})")
+        comparisons.append({"models": [a, b], "n_common": cmp["n_common"], "by_skill": groups})
     caption = (
+        f"(a) rl's pass@1 against written proof length L for each skill group; "
         f"n={n_items} skill_pool items (direct + legacy-imported runs), rl only; shaded band: "
         f"95% item-level bootstrap CI.{drop_note}"
-        + (" Same items, pass@1: " + "; ".join(cmp_notes) + "." if cmp_notes else "")
+        + (
+            " Right panels: pass@1 per skill group on the items both models of a pair were "
+            "sampled on (point estimates). Same items, pass@1: " + "; ".join(cmp_notes) + "."
+            if cmp_notes
+            else ""
+        )
     )
-    return P.line_chart(
-        title, takeaway, series, x_label="L (written lines)", y_fmt="pct", note=caption
+    cd = ChartData(
+        key,
+        title,
+        "line",
+        takeaway,
+        caption,
+        series=series,
+        opts={"x_label": "L (written lines)", "y_fmt": "pct"},
+        extra={"comparisons": comparisons},
     )
+    for c in comparisons:
+        a, b = c["models"]
+        cd.extra_tables.append(
+            (
+                f"{a} vs {b} on {c['n_common']} common items (panel b)",
+                ["skill group", "items", a, b],
+                [
+                    [g, str(r["n_items"]), P.fmt(r[a], "pct"), P.fmt(r[b], "pct")]
+                    for g, r in c["by_skill"].items()
+                ],
+            )
+        )
+    return cd
 
 
 # ============================================================================ 5. Law x substitution
 
 
-def _chart_5_subst(store: Store) -> str:
-    title = "Law x substitution size"
+def _data_5_subst(store: Store) -> ChartData:
+    key, title = "subst", "Known laws under larger substitutions"
     data = subst_view.view(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     schemas = cast("dict[str, dict[str, dict[str, Any]]]", data["schemas"])
     # Item-level pooling per s (audit 2026-10-01): a mean of per-schema means weights s=0's single
     # item per schema like s=2's ~30, and the set of schemas present changes with s.
@@ -646,7 +734,7 @@ def _chart_5_subst(store: Store) -> str:
         pts = sorted((s, statistics.mean(v)) for s, v in by_s.items())
         series.append(P.Series(model, pts, _mcolor(model)))
     if not series:
-        return P.missing_fig(title, "no base/rl results for the laws suite")
+        return _missing(key, title, "no base/rl results for the laws suite")
 
     def _at(model: str, s: float) -> float | None:
         by_s = by_model_s.get(model, {})
@@ -693,7 +781,9 @@ def _chart_5_subst(store: Store) -> str:
         else ""
     )
     caption = (
-        f"n={n_items} instances over {len(schemas)} schemas ({', '.join(sorted(schemas))}), "
+        "Pass@1 against the substitution size s (connectives per metavariable) for instances of "
+        f"known laws, base vs rl; n={n_items} instances over {len(schemas)} schemas "
+        f"({', '.join(sorted(schemas))}), "
         f"pooled per item at each s; {meta.get('n_seen_train_excluded', 0)} instances seen in "
         "training excluded"
         + (
@@ -702,15 +792,16 @@ def _chart_5_subst(store: Store) -> str:
             if dropped_s
             else ""
         )
-        + f".{zero_note}"
+        + f".{zero_note} Point estimates."
     )
-    return P.line_chart(
+    return ChartData(
+        key,
         title,
+        "line",
         takeaway,
-        series,
-        x_label="s (connectives per metavariable)",
-        y_fmt="pct",
-        note=caption,
+        caption,
+        series=series,
+        opts={"x_label": "s (connectives per metavariable)", "y_fmt": "pct"},
     )
 
 
@@ -759,11 +850,11 @@ def _padded_curve_dedup(
     ]
 
 
-def _chart_6_padding(store: Store) -> str:
-    title = "Free lines: the cost of padding"
+def _data_6_padding(store: Store) -> ChartData:
+    key, title = "padding", "Free lines: the cost of padding"
     data = padding_view.view(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     pad_types = cast("dict[str, dict[str, dict[str, Any]]]", data["pad_types"])
 
     def _curves(model: str, key: str) -> list[list[dict[str, Any]]]:
@@ -780,7 +871,7 @@ def _chart_6_padding(store: Store) -> str:
         store, cast(str, meta["suite"]), cast(str, meta["version"]), "base"
     )
     if not rl_padded and not base_padded:
-        return P.missing_fig(title, "no base/rl results for the padding suite")
+        return _missing(key, title, "no base/rl results for the padding suite")
 
     series = []
     if rl_padded:
@@ -809,7 +900,9 @@ def _chart_6_padding(store: Store) -> str:
     n_rl = sum(n for _w, _p, n in rl_padded)
     n_nat = next((n for w, _p, n in rl_natural if common_w and w == common_w[0]), None)
     caption = (
-        f"{n_rl} distinct padded items pooled across pad types {', '.join(pad_types_list)} "
+        "Pass@1 against written length W when some of the lines are padding (free lines) and on "
+        f"natural theorems of the same length; {n_rl} distinct padded items pooled across pad "
+        f"types {', '.join(pad_types_list)} "
         "(each unpadded theorem counted once); natural = gen_ctrl at the same W"
         + (f" ({n_nat} items at W={P.fmt(common_w[0], 'g')})" if n_nat else "")
         + ", drawn from the dev set the RL hill-climb selected on, so rl's natural curve is "
@@ -819,9 +912,16 @@ def _chart_6_padding(store: Store) -> str:
             if base_natural and all(p == 0 for _w, p, _n in base_natural)
             else ""
         )
+        + " Point estimates."
     )
-    return P.line_chart(
-        title, takeaway, series, x_label="W (written lines)", y_fmt="pct", note=caption
+    return ChartData(
+        key,
+        title,
+        "line",
+        takeaway,
+        caption,
+        series=series,
+        opts={"x_label": "W (written lines)", "y_fmt": "pct"},
     )
 
 
@@ -834,11 +934,11 @@ def _chart_6_padding(store: Store) -> str:
 _MIN_PREFIX_BIN_ITEMS = 20
 
 
-def _chart_7_prefix(store: Store) -> str:
-    title = "Prefix completion: finishing someone else's proof"
+def _data_7_prefix(store: Store) -> ChartData:
+    key, title = "prefix", "Finishing someone else's proof (prefix completion)"
     data = prefix_view.view(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     models = cast("dict[str, dict[str, Any]]", data["models"])
     series = []
     n_items_by_model = {}
@@ -855,7 +955,7 @@ def _chart_7_prefix(store: Store) -> str:
             series.append(P.Series(model, sorted(kept.items()), _mcolor(model)))
         n_items_by_model[model] = d.get("n_items", "?")
     if not series:
-        return P.missing_fig(title, "no model had a lines-left bin with >=20 items")
+        return _missing(key, title, "no model had a lines-left bin with >=20 items")
 
     bits = []
     base_kept, rl_kept = kept_by_model.get("base", {}), kept_by_model.get("rl", {})
@@ -873,11 +973,18 @@ def _chart_7_prefix(store: Store) -> str:
     takeaway = "; ".join(bits) + "." if bits else "success by lines left to write, base vs rl."
     n_str = ", ".join(f"{m}={n}" for m, n in n_items_by_model.items())
     caption = (
-        f"items: {n_str}; pooled success rate by lines left (L-j), bins with "
-        f"<{_MIN_PREFIX_BIN_ITEMS} items omitted; base vs rl."
+        "Success rate at completing a correct proof prefix against the number of lines left to "
+        f"write (L-j), base vs rl; items: {n_str}; pooled success rate by lines left (L-j), "
+        f"bins with <{_MIN_PREFIX_BIN_ITEMS} items omitted. Point estimates."
     )
-    return P.line_chart(
-        title, takeaway, series, x_label="lines left (L-j)", y_fmt="pct", note=caption
+    return ChartData(
+        key,
+        title,
+        "line",
+        takeaway,
+        caption,
+        series=series,
+        opts={"x_label": "lines left (L-j)", "y_fmt": "pct"},
     )
 
 
@@ -959,13 +1066,13 @@ def _spearman(xs: Sequence[float], ys: Sequence[float]) -> float:
     return num / den if den else float("nan")
 
 
-def _chart_8_edl(store: Store) -> str:
-    title = "EDL: nats per example to pick up a new pattern"
+def _data_8_edl(store: Store) -> ChartData:
+    key, title = "edl", "Cost of learning a new pattern (EDL)"
     # Default discovery: the newest generation per (model, n, m) (edl3 = edl2's three learning
     # rates plus lr 0 / 1e-5 / 3e-5, 2026-10-01).
     data = edl_view.view(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     classes = cast("dict[str, dict[str, dict[str, Any]]]", data["classes"])
     run_ids = cast("list[str]", cast("dict[str, Any]", data["meta"])["run_ids"])
 
@@ -989,7 +1096,7 @@ def _chart_8_edl(store: Store) -> str:
                 "best_lr": float(cast(str, d["best_lr"])),
             }
     if not per:
-        return P.missing_fig(title, "no usable EDL rows")
+        return _missing(key, title, "no usable EDL rows")
 
     dot_rows: list[P.DotRow] = []
     for cls in sorted(per, key=_edl_class_key):
@@ -1030,21 +1137,39 @@ def _chart_8_edl(store: Store) -> str:
         if m in null
     )
     caption = (
-        f"{n_c} classes, base vs rl; EDL* per example at the learning rate with the smallest "
+        "(a) Excess description length of learning each pattern class online, per example "
+        f"(nats, log scale); {n_c} classes, base vs rl; EDL* per example at the learning rate "
+        "with the smallest "
         f"online code length, including the ln({max(n_lrs) if n_lrs else 0}) cost of choosing "
-        "among the learning rates (lr 0 = no update is one of them); 2 data orders. Null "
+        "among the learning rates (lr 0 = no update is one of them); 2 data orders, whiskers "
+        "span the per-order values. (b) The same EDL* against each model's initial test loss on "
+        "the class (mean nats per test example before any update), null control excluded. Null "
         f"control ({_EDL_NULL_CONTROL}, data the models already know): {null_bits or 'n/a'}. "
         f"Runs: {', '.join(run_ids)}."
     )
-    return P.dot_plot(
+    cd = ChartData(
+        key,
         title,
+        "dot",
         takeaway,
-        dot_rows,
-        x_label="EDL* per example (nats)",
-        log_x=True,
-        wide=True,
-        note=caption,
+        caption,
+        rows=dot_rows,
+        opts={"x_label": "EDL* per example (nats)", "log_x": True},
+        extra={"per": per, "null_control": _EDL_NULL_CONTROL, "rho": rho},
     )
+    cd.extra_tables.append(
+        (
+            "per-order range and initial test loss (whiskers, panel b)",
+            ["class", "model", "EDL*/example", "order min", "order max", "initial test loss"],
+            [
+                [cls, m, *(P.fmt(per[cls][m][f], "f3") for f in ("edl", "lo", "hi", "l0"))]
+                for cls in sorted(per, key=_edl_class_key)
+                for m in ("base", "rl")
+                if m in per[cls]
+            ],
+        )
+    )
+    return cd
 
 
 # ================================================================================ 9. Likelihood
@@ -1152,11 +1277,11 @@ def _likelihood_per_line(
     return by_origin, meta
 
 
-def _chart_9_likelihood(store: Store) -> str:
-    title = "Likelihood: how surprised is base by RL's proofs?"
+def _data_9_likelihood(store: Store) -> ChartData:
+    key, title = "likelihood", "How likely base finds rl's proofs"
     result = _likelihood_per_line(store)
     if result is None:
-        return P.missing_fig(title, "no `interp likelihood` run with resolvable lengths")
+        return _missing(key, title, "no `interp likelihood` run with resolvable lengths")
     by_origin, meta = result
     dot_rows: list[P.DotRow] = []
     for origin in _LIKELIHOOD_ROW_ORDER:
@@ -1173,7 +1298,7 @@ def _chart_9_likelihood(store: Store) -> str:
         if pts:
             dot_rows.append(P.DotRow(label, pts))
     if not dot_rows:
-        return P.missing_fig(title, "no origin had both base and rl per-line likelihoods")
+        return _missing(key, title, "no origin had both base and rl per-line likelihoods")
     gap = cast("float | None", meta.get("crux_paired_gap_median"))
     ref_gap = cast("float | None", meta.get("reference_paired_gap_median"))
     if gap is not None and ref_gap is not None:
@@ -1204,36 +1329,39 @@ def _chart_9_likelihood(store: Store) -> str:
         else ""
     )
     caption = (
+        "Median log-likelihood per written line (nats) of each proof set under base and rl: "
         "median log p per written line of the scored proof, base vs rl, by proof set; "
         f"runs {', '.join(cast('list[str]', meta['run_ids']))}. The last two rows (neutral minimal "
         f"proofs, rl's own proofs) are the same {meta['n_paired']} gen_ctrl theorems rl solves "
         "and base never does (p_hat_base=0); the minimal proofs come from the minlen labeller."
         + ordering_note
+        + " Medians; no CI is drawn."
     )
-    return P.dot_plot(
+    return ChartData(
+        key,
         title,
+        "dot",
         takeaway,
-        dot_rows,
-        x_label="median log p per written line (nats)",
-        wide=True,
-        note=caption,
+        caption,
+        rows=dot_rows,
+        opts={"x_label": "median log p per written line (nats)"},
     )
 
 
 # =================================================================================== 10. Steering
 
 
-def _chart_10_steering(store: Store) -> str:
-    title = "Steering: base pushed toward rl"
+def _data_10_steering(store: Store) -> ChartData:
+    key, title = "steering", "Steering base along the rl - base activation difference"
     data = interp_view.view_steering(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     curves = cast("dict[str, list[tuple[float, float, float, float]]]", data["curves_by_layer"])
     meta = cast("dict[str, Any]", data["meta"])
     suites = cast("list[str]", meta["suites"])
     base_pass1 = cast("list[float] | None", data.get("base_pass1"))
     if not curves and base_pass1 is None:
-        return P.missing_fig(title, "no base/steer:* runs with any items")
+        return _missing(key, title, "no base/steer:* runs with any items")
 
     # the single best (layer, alpha) point across the whole sweep, by mean pass@1 (the plan's
     # "the layer with the highest mean" read as the layer+alpha combination that peaks highest,
@@ -1280,7 +1408,7 @@ def _chart_10_steering(store: Store) -> str:
     if rl_pass1 is not None:
         bars.append(P.Bar("rl", rl_pass1[0], rl_pass1[1], rl_pass1[2], _mcolor("rl")))
     if not bars:
-        return P.missing_fig(title, "no base/rl/steer:* pass@1 could be computed")
+        return _missing(key, title, "no base/rl/steer:* pass@1 could be computed")
 
     bits = []
     n_configs = sum(len(pts) for pts in curves.values())
@@ -1336,23 +1464,36 @@ def _chart_10_steering(store: Store) -> str:
                 + "."
             )
     caption = (
-        f"pooled pass@1 over {', '.join(suites)}; delta (RL - base mean activation difference "
-        "at proof positions) is added at proof positions only." + tdev_note + sealed_note
+        f"Pass@1 of base, base + delta at the best of its {n_configs} (layer, alpha) settings, "
+        "rl - delta and rl, with 95% item-level bootstrap CIs "
+        f"(B={meta['B']}); pooled pass@1 over {', '.join(suites)}; delta (RL - base mean "
+        "activation difference at proof positions) is added at proof positions only."
+        + tdev_note
+        + sealed_note
     )
-    return P.bar_chart(title, takeaway, bars, y_fmt="pct", wide=True, note=caption)
+    return ChartData(
+        key,
+        title,
+        "bar",
+        takeaway,
+        caption,
+        bars=bars,
+        opts={"y_fmt": "pct"},
+        as_table=True,
+    )
 
 
 # ============================================================================ 11. Weight interp.
 
 
-def _chart_11_weights(store: Store) -> str:
-    title = "Weight interpolation: base -> rl"
+def _data_11_weights(store: Store) -> ChartData:
+    key, title = "weights", "Interpolating weights from base to rl"
     data = interp_view.view_interpolation(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     pass_k = cast("dict[str, list[tuple[int, float, float, float]]]", data["pass_k_by_alpha"])
     if not pass_k:
-        return P.missing_fig(title, "no base/rl/interp:* runs on the fixed k=128 subset")
+        return _missing(key, title, "no base/rl/interp:* runs on the fixed k=128 subset")
 
     # pass@1 AND pass@128 both read from the same fixed k=128 theorem subset (review: pass@1 from
     # the full dev+sealed+textbook_dev set and pass@128 from the k=128 subset can disagree about
@@ -1369,7 +1510,7 @@ def _chart_11_weights(store: Store) -> str:
             continue
         curve_map[float(alpha_str)] = (m1, lo1, hi1, m128, lo128, hi128)
     if not curve_map:
-        return P.missing_fig(title, "no alpha had both pass@1 and pass@128 on the k=128 subset")
+        return _missing(key, title, "no alpha had both pass@1 and pass@128 on the k=128 subset")
 
     alphas = sorted(curve_map)
     series = [
@@ -1427,8 +1568,11 @@ def _chart_11_weights(store: Store) -> str:
         if sp is not None:
             sealed_bits.append(f"alpha {alpha:g} {P.fmt(sp[0], 'pct')}")
     caption = (
+        "Pass@1 and pass@128 of θ_base + α(θ_rl − θ_base) against α "
+        "(α > 1 extrapolates past rl) on a "
         "fixed 150-theorem subset (dev L8-11 + sealed L12-14 gen items), pass@1 and pass@128 on "
-        "the same items; base=alpha 0, rl=alpha 1."
+        "the same items; base=alpha 0, rl=alpha 1. Shaded bands: 95% item-level bootstrap CIs "
+        f"(B={cast('dict[str, Any]', data['meta'])['B']})."
         + (
             " dev L8-11 was the RL hill-climb's selection metric; pass@1 on the sealed set alone: "
             + ", ".join(sealed_bits)
@@ -1437,14 +1581,14 @@ def _chart_11_weights(store: Store) -> str:
             else ""
         )
     )
-    return P.line_chart(
+    return ChartData(
+        key,
         title,
+        "line",
         takeaway,
-        series,
-        x_label="alpha (0=base, 1=rl)",
-        y_fmt="pct",
-        wide=True,
-        note=caption,
+        caption,
+        series=series,
+        opts={"x_label": "alpha (0=base, 1=rl)", "y_fmt": "pct"},
     )
 
 
@@ -1457,11 +1601,11 @@ def _probe_baselines(store: Store) -> dict[str, Any] | None:
     return cast("dict[str, Any]", rows[-1]) if rows else None
 
 
-def _chart_12_probes(store: Store) -> str:
-    title = "Probes: what do the activations add beyond position?"
+def _data_12_probes(store: Store) -> ChartData:
+    key, title = "probes", "What linear probes read from the activations"
     data = interp_view.view_probes(store, {})
     if data.get("empty"):
-        return P.missing_fig(title, str(data.get("reason", "no data")))
+        return _missing(key, title, str(data.get("reason", "no data")))
     meta = cast("dict[str, Any]", data["meta"])
     layers = cast("list[str]", meta["layers"])
     acc = cast("dict[str, list[tuple[int, JSON]]]", data["next_rule_acc"])
@@ -1476,7 +1620,7 @@ def _chart_12_probes(store: Store) -> str:
         if a:
             series.append(P.Series(f"next_rule probe: {model}", a, _mcolor(model)))
     if not series:
-        return P.missing_fig(title, "probes run has rows but no usable accuracy series")
+        return _missing(key, title, "probes run has rows but no usable accuracy series")
     # Interp audit 2026-10-01: the emb-layer probe equals a line-index lookup, so accuracy needs a
     # position-only reference; line index + premise count is everything the prompt gives away.
     baselines = _probe_baselines(store)
@@ -1514,33 +1658,70 @@ def _chart_12_probes(store: Store) -> str:
     ltg_base = cast("float | None", (baselines or {}).get("lines_to_go_r2_line_index"))
     ood_b, ood_r = _last(ood, "base"), _last(ood, "rl")
     caption = (
+        "Held-out accuracy of a linear next_rule probe at each layer for base and rl, against a "
+        "position-only lookup (line index + premise count); "
         f"layers {', '.join(layers)}; next_rule = the rule of the line about to be written. "
         f"lines_to_go R2 at the deepest layer: base {P.fmt(r2_b, 'f3')}, rl {P.fmt(r2_r, 'f3')} "
         f"vs {P.fmt(ltg_base, 'f3')} from the line index alone; on longer (OOD) proofs it is "
         f"negative for both (base {P.fmt(ood_b, 'f3')}, rl {P.fmt(ood_r, 'f3')}). Majority-class "
         f"next_rule accuracy: {P.fmt((baselines or {}).get('next_rule_acc_majority'), 'pct')}."
+        " Point estimates on one held-out split."
     )
     display_labels = ["emb" if layer == "emb" else f"L{layer}" for layer in layers]
-    return P.line_chart(
+    return ChartData(
+        key,
         title,
+        "line",
         takeaway,
-        series,
-        x_label="layer",
-        y_fmt="pct",
-        wide=True,
-        note=caption,
-        x_tick_labels=display_labels,
+        caption,
+        series=series,
+        opts={"x_label": "layer", "y_fmt": "pct", "x_tick_labels": display_labels},
     )
 
 
 # ======================================================================================== page
 
+#: The 12 benchmarks in page order. Each `_data_*` is the single place its numbers are computed.
+CHARTS: tuple[Callable[[Store], ChartData], ...] = (
+    _data_1_yue,
+    _data_2_families,
+    _data_3_glue,
+    _data_4_skills,
+    _data_5_subst,
+    _data_6_padding,
+    _data_7_prefix,
+    _data_8_edl,
+    _data_9_likelihood,
+    _data_10_steering,
+    _data_11_weights,
+    _data_12_probes,
+)
 
-_EXTRA_CSS = (
-    ".card .sub{font-weight:600;color:var(--ink);font-size:13px}"
-    ".card .note{font-style:italic}"
-    ".pagefoot{max-width:1360px;margin:0 auto;padding:0 16px 28px;color:var(--ink2);"
-    "font-size:12.5px}"
+#: Results-section layout: (heading, intro, keys). Consecutive half-width figures (and a table
+#: next to a half-width figure) are set side by side, as subfigures would be in the paper.
+SECTIONS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    (
+        "Eliciting proofs",
+        "Pass rates on real and generated theorems: sampling budget, length within a family, "
+        "composing solved parts, required skills, larger substitutions, padding and finishing a "
+        "given prefix.",
+        ("yue", "families", "glue", "skills", "subst", "padding", "prefix"),
+    ),
+    (
+        "Learning cost and internals",
+        "How cheaply each model learns a new pattern, how likely it finds the other's proofs, "
+        "and whether the change is visible in activations and weights.",
+        ("edl", "likelihood", "steering", "weights", "probes"),
+    ),
+)
+
+_LEDE = (
+    "Twelve benchmarks ask what RL changed in a small natural-deduction prover beyond pass@1 on a "
+    "fixed set: whether it solves real textbook problems at any sampling budget, holds up as "
+    "proofs in a family get longer, composes parts it can solve, applies known laws to larger "
+    "instances, copes with padding and finishes partial proofs; and whether the change shows up "
+    "in the cost of learning a new pattern (EDL), in likelihoods, under steering, along a weight "
+    "interpolation and in linear probes."
 )
 
 _MODELS_NOTE = (
@@ -1550,45 +1731,370 @@ _MODELS_NOTE = (
     "single-seed."
 )
 
+#: Caveats that apply across figures (from the audited write-up,
+#: experiment-summaries/2026-09-30-benchmarking/README.md#limitations-and-next-step).
+_LIMITATIONS: tuple[str, ...] = (
+    "One checkpoint per model and one sampling seed; several item sets are small (textbook_dev, "
+    "many glue and family cells), so differences of a few points are within noise.",
+    "dev L8-11 (gen_ctrl, interp_eval_dev, part of the k=128 subset) was the RL hill-climb's "
+    "selection metric, so rl's numbers on it are optimistic; the sealed set is the clean "
+    "comparison (quoted in the captions where it exists).",
+    "skill_pool results are legacy imports judged by the legacy pipeline (re-judging all "
+    "benchmark samples with nd_v2 found no mismatch).",
+    "EDL uses two data orders, so its only uncertainty estimate is the spread between them; the "
+    "families, laws, padding, prefix, likelihood and probe figures show point estimates.",
+)
 
-def build_summary(store: Store, out_dir: Path, detail_href: str | None = None) -> Path:
-    """Render the single-page summary dashboard (one chart per benchmark) into
-    `out_dir/summary.html` and return its path. `out_dir` is created if missing."""
-    out_dir = Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+#: CSS px per figure inch on the page: every figure is shown at the same scale, so 8 pt figure
+#: text reads at about 0.8x the 16 px body text, as it does against 10 pt text in the paper.
+PX_PER_IN = 120
 
-    # `_mark` is applied here, once, to every chart's result uniformly -- including its "no data
-    # yet" panel (`P.missing_fig`'s own early-return branches never call `_mark` themselves), so
-    # the page always has exactly 12 marked chart cards regardless of which of the 12 have data.
-    figs = [
-        _mark(chart(store))
-        for chart in (
-            _chart_1_yue,
-            _chart_2_families,
-            _chart_3_glue,
-            _chart_4_skills,
-            _chart_5_subst,
-            _chart_6_padding,
-            _chart_7_prefix,
-            _chart_8_edl,
-            _chart_9_likelihood,
-            _chart_10_steering,
-            _chart_11_weights,
-            _chart_12_probes,
+
+def chart_data(store: Store) -> list[ChartData]:
+    """All 12 benchmarks' `ChartData`, in page order (shared by the page and `figures.build`)."""
+    return [chart(store) for chart in CHARTS]
+
+
+def numbering(charts: Sequence[ChartData]) -> dict[str, str]:
+    """`key -> "Figure N"/"Table N"` in page order; Figure 1 is the overview (`"overview"`)."""
+    out = {"overview": "Figure 1"}
+    n_fig, n_tab = 1, 0
+    order = [k for _h, _i, keys in SECTIONS for k in keys]
+    by = {c.key: c for c in charts}
+    for key in order + [c.key for c in charts if c.key not in order]:
+        cd = by.get(key)
+        if cd is None:
+            continue
+        if cd.as_table and cd.kind != "missing":
+            n_tab += 1
+            out[key] = f"Table {n_tab}"
+        else:
+            n_fig += 1
+            out[key] = f"Figure {n_fig}"
+    return out
+
+
+def _sentence(text: str) -> str:
+    """Sentence case for a computed takeaway, leaving a leading model name (base, rl, armC,
+    rl's) or identifier as written."""
+    text = text.strip()
+    if not text:
+        return text
+    first = text.split(" ", 1)[0].removesuffix("'s")
+    if first in {"base", "rl", "armC"} or "_" in first:
+        return text
+    return text[0].upper() + text[1:]
+
+
+def caption_text(cd: ChartData, label: str | None) -> str:
+    """The plain-text NeurIPS caption: "Figure N: Title. What is plotted, n, CIs. Takeaway."."""
+    head = f"{label}: " if label else ""
+    if cd.kind == "missing":
+        return f"{head}{cd.title}. Not available: {cd.missing}."
+    return f"{head}{cd.title}. {cd.caption} {_sentence(cd.takeaway)}".strip()
+
+
+def _caption_html(cd: ChartData, label: str | None) -> str:
+    lab = f'<span class="fignum">{P.esc(label)}:</span> ' if label else ""
+    if cd.kind == "missing":
+        return f"{lab}<b>{P.esc(cd.title)}.</b> {P.esc(cd.missing)}"
+    return (
+        f"{lab}<b>{P.esc(cd.title)}.</b> {P.esc(cd.caption)} "
+        f'<span class="takeaway">{P.esc(_sentence(cd.takeaway))}</span>'
+    )
+
+
+def _details_table(summary: str, headers: Sequence[str], rows: Sequence[Sequence[str]]) -> str:
+    th = "".join(f"<th>{P.esc(h)}</th>" for h in headers)
+    body = "".join("<tr>" + "".join(f"<td>{P.esc(c)}</td>" for c in r) + "</tr>" for r in rows)
+    return (
+        f'<details class="data"><summary>{P.esc(summary)}</summary><div class="tw">'
+        f"<table><tr>{th}</tr>{body}</table></div></details>"
+    )
+
+
+def data_tables(cd: ChartData) -> list[tuple[str, list[str], list[list[str]]]]:
+    """The exact values behind a figure: the main table (the same rows the earlier inline chart
+    carried) and one per extra panel."""
+    o = cd.opts
+    out: list[tuple[str, list[str], list[list[str]]]] = []
+    if cd.kind == "line":
+        hdr, rows = P.line_table_rows(
+            cd.series,
+            x_label=o.get("x_label", "x"),
+            x_fmt=o.get("x_fmt", "g"),
+            y_fmt=o.get("y_fmt", "g"),
         )
-    ]
+        out.append(("Data table", hdr, rows))
+    elif cd.kind == "bar":
+        hdr, rows = P.bar_table_rows(cd.bars, y_fmt=o.get("y_fmt", "g"))
+        out.append(("Data table", hdr, rows))
+    elif cd.kind == "dot":
+        hdr, rows = P.dot_table_rows(
+            cd.rows,
+            x_fmt=o.get("x_fmt", "g"),
+            log_x=bool(o.get("log_x", False)),
+            none_label=o.get("none_label", "none"),
+        )
+        out.append(("Data table", hdr, rows))
+    out += [(f"Data table: {label}", h, r) for label, h, r in cd.extra_tables]
+    return out
 
-    html = P.page("ND Capability Benchmarks", _MODELS_NOTE, "summary.html", figs, [])
-    html = html.replace("</style>", _EXTRA_CSS + "</style>")
-    gpu_h = store.ledger_total_s() / 3600.0
+
+def render_card(
+    cd: ChartData, label: str | None = None, image: tuple[str, float] | None = None
+) -> str:
+    """One numbered figure (or table) card: the figure, its caption below it (a table's caption
+    goes above, per NeurIPS), then the collapsible data tables. `image` is `(svg data URI, width
+    in inches)`; rendered here when not given."""
+    from ..figures import plots, tables
+
+    fid = f"{'tab' if cd.as_table else 'fig'}-{cd.key}"
+    if cd.kind == "missing":
+        return (
+            f'<figure class="card chart-card" id="{fid}"><div class="missing">no data yet</div>'
+            f"<figcaption>{_caption_html(cd, label)}</figcaption></figure>"
+        )
+    details = "".join(_details_table(s, h, r) for s, h, r in data_tables(cd))
+    if cd.as_table:
+        return (
+            f'<figure class="card chart-card table-card" id="{fid}">'
+            f'<figcaption class="above">{_caption_html(cd, label)}</figcaption>'
+            f'<div class="tw">{tables.to_html(cd)}</div>{details}</figure>'
+        )
+    image = image or plots.figure_uri(cd)
+    if image is None:
+        return render_card(ChartData(cd.key, cd.title, missing="no figure"), label)
+    alt = f"{label or 'Figure'}: {cd.title}"
+    pic = _picture(image, plots.figure_uri(cd, narrow=True), alt)
+    return (
+        f'<figure class="card chart-card" id="{fid}"><div class="figbox">{pic}</div>'
+        f"<figcaption>{_caption_html(cd, label)}</figcaption>{details}</figure>"
+    )
+
+
+def _picture(image: tuple[str, float], narrow: tuple[str, float] | None, alt: str) -> str:
+    """The figure as an `<img>` at the page's fixed scale; with a narrow (stacked) variant, a
+    `<picture>` that serves it below 600 px instead of shrinking the wide layout."""
+    uri, width_in = image
+    img = (
+        f'<img class="fig" src="{uri}" alt="{P.esc(alt)}" '
+        f'style="width:{width_in * PX_PER_IN:.0f}px">'
+    )
+    if narrow is None:
+        return img
+    return f'<picture><source media="(max-width: 600px)" srcset="{narrow[0]}">{img}</picture>'
+
+
+OVERVIEW_TITLE = "Overview of the twelve benchmarks"
+
+
+def overview_caption(charts: Sequence[ChartData], nums: Mapping[str, str]) -> str:
+    """Figure 1's caption: which later figure each panel summarises."""
+
+    def ref(key: str, sub: str = "") -> str:
+        return nums.get(key, "?") + sub
+
+    return (
+        "Each panel is one benchmark's headline comparison in "
+        "the fixed model colours and markers; its full figure gives n, the CI and the takeaway. "
+        f"(a) Pass@k on textbook_dev, log k ({ref('yue', 'a')}). (b) Longest horizon any family "
+        f"reaches on unseen theorems, in written lines; >= marks a censored horizon "
+        f"({ref('families')}). (c) Compositionality ratio R per glue operator; dotted line R = 1 "
+        f"({ref('glue')}). (d) Pass@1 by required skill on the items base and rl share "
+        f"({ref('skills', 'b')}). (e) Pass@1 against substitution size s ({ref('subst')}). "
+        f"(f) Pass@1 against written length with padding ({ref('padding')}). (g) Prefix "
+        f"completion against lines left ({ref('prefix')}). (h) rl's EDL* per example against "
+        "base's, one point per class, log-log; points below the diagonal are classes where rl's "
+        f"is lower ({ref('edl')}). (i) Median log p per written line of each proof set; * marks "
+        f"theorems rl solves and base never does ({ref('likelihood')}). (j) Pass@1 of base, "
+        f"base + delta, rl - delta and rl under steering ({ref('steering')}). (k) Pass@1 (solid) "
+        f"and pass@128 (dashed) along the base-to-rl weight interpolation ({ref('weights')}). "
+        f"(l) next_rule probe accuracy by layer; dashed line: position-only lookup "
+        f"({ref('probes')})."
+    )
+
+
+def _overview_card(charts: Sequence[ChartData], nums: Mapping[str, str]) -> str:
+    from ..figures import plots
+
+    image = plots.overview_uri(charts)
+    if image is None:
+        return ""
+    pic = _picture(
+        image,
+        plots.overview_uri(charts, narrow=True),
+        "Figure 1: overview of the twelve benchmarks",
+    )
+    return (
+        f'<figure class="card overview-card" id="fig-overview"><div class="figbox">{pic}</div>'
+        f'<figcaption><span class="fignum">Figure 1:</span> <b>{P.esc(OVERVIEW_TITLE)}.</b> '
+        f"{P.esc(overview_caption(charts, nums))}</figcaption></figure>"
+    )
+
+
+def _half(cd: ChartData) -> bool:
+    from ..figures import plots
+
+    if cd.kind == "missing":
+        return False
+    if cd.as_table:
+        return True
+    spec = plots.FIGURES.get(cd.key)
+    return spec is not None and spec[1] < plots.S.FULL_W - 0.5
+
+
+def _section_html(cards: Sequence[tuple[ChartData, str]]) -> str:
+    """Pairs consecutive half-width items into a two-column row; a lone half-width item is
+    centred."""
+    out: list[str] = []
+    i = 0
+    while i < len(cards):
+        cd, html_ = cards[i]
+        if _half(cd) and i + 1 < len(cards) and _half(cards[i + 1][0]):
+            out.append(f'<div class="pair">{html_}{cards[i + 1][1]}</div>')
+            i += 2
+            continue
+        out.append(f'<div class="{"single half" if _half(cd) else "single"}">{html_}</div>')
+        i += 1
+    return "".join(out)
+
+
+_CSS = """
+:root{color-scheme:light;--page:#fbfbf9;--card:#ffffff;--ink:#111;--ink2:#4a4a46;--muted:#77756f;
+--rule:#1a1a1a;--hair:#dcdbd5;--link:#1a4f8a;--paper:#ffffff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+--page:#121212;--card:#1b1b1a;--ink:#ecebe6;--ink2:#c4c2ba;--muted:#97958e;--rule:#ecebe6;
+--hair:#3a3a37;--link:#8db8ec;--paper:#ffffff}}
+:root[data-theme="dark"]{color-scheme:dark;--page:#121212;--card:#1b1b1a;--ink:#ecebe6;
+--ink2:#c4c2ba;--muted:#97958e;--rule:#ecebe6;--hair:#3a3a37;--link:#8db8ec;--paper:#ffffff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+font:16px/1.5 "Nimbus Roman","TeX Gyre Termes","Times New Roman",Times,"STIX Two Text",serif;
+-webkit-text-size-adjust:100%}
+a{color:var(--link)}
+.col{max-width:720px;margin:0 auto;padding:0 16px}
+header{padding:28px 0 6px}
+h1{font-size:1.65rem;line-height:1.2;margin:0 0 10px;font-weight:700}
+h2{font-size:1.2rem;margin:30px 0 4px;font-weight:700}
+h2 .secnum{margin-right:.5em}
+.lede{margin:0 0 8px}
+.models{color:var(--ink2);font-size:.94rem;margin:0}
+.intro{color:var(--ink2);margin:0 0 10px;font-size:.96rem}
+.card{margin:14px 0;min-width:0}
+.figbox{background:var(--paper);border-radius:4px;padding:6px 0;text-align:center;
+overflow:hidden}
+img.fig{max-width:100%;height:auto;display:block;margin:0 auto;cursor:zoom-in}
+figcaption{font-size:.92rem;line-height:1.42;margin:8px 0 0;text-align:left}
+figcaption.above{margin:0 0 8px}
+.fignum{font-weight:400}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:0 22px;align-items:start}
+.single.half{max-width:330px;margin:0 auto}
+.missing{color:var(--muted);border:1px dashed var(--hair);border-radius:6px;padding:26px;
+text-align:center;background:var(--card)}
+details.data{margin-top:6px;font-size:.84rem}
+details.data summary{cursor:pointer;color:var(--ink2)}
+.tw{overflow-x:auto;max-width:100%}
+details.data table{border-collapse:collapse;font-variant-numeric:tabular-nums;margin:4px 0;
+font-size:.82rem}
+details.data td,details.data th{border-bottom:1px solid var(--hair);padding:2px 8px;
+text-align:right;white-space:nowrap}
+details.data th{color:var(--ink2);font-weight:600}
+details.data td:first-child,details.data th:first-child{text-align:left}
+table.booktabs{border-collapse:collapse;margin:2px auto 4px;font-variant-numeric:tabular-nums;
+border-top:1.4px solid var(--rule);border-bottom:1.4px solid var(--rule);font-size:.95rem}
+table.booktabs th{border-bottom:.8px solid var(--rule);font-weight:400;padding:4px 10px;
+text-align:right}
+table.booktabs td{padding:3px 10px;text-align:right;white-space:nowrap}
+table.booktabs th:first-child,table.booktabs td:first-child{text-align:left;white-space:normal}
+table.booktabs tbody tr:first-child td{padding-top:5px}
+.pm{display:inline-flex;flex-direction:column;vertical-align:middle;font-size:.68em;
+line-height:1.05;margin-left:2px;text-align:left}
+.pm sup,.pm sub{vertical-align:baseline;position:static}
+.limits{border-top:1px solid var(--hair);margin-top:30px;padding-top:2px}
+.limits ul{margin:4px 0 0;padding-left:1.2em}
+.limits li{margin:2px 0;font-size:.94rem}
+footer{color:var(--ink2);font-size:.88rem;padding:18px 0 34px}
+@media (max-width:700px){.pair{grid-template-columns:1fr}.single.half{max-width:none}
+body{font-size:15.5px}h1{font-size:1.4rem}}
+"""
+
+#: Clicking a figure opens its SVG on its own (pinch-zoom on a phone); figures are data URIs, so
+#: the page stays a single self-contained file.
+_JS = (
+    "document.querySelectorAll('img.fig').forEach(function(i){i.addEventListener('click',"
+    "function(){fetch(i.currentSrc||i.src).then(function(r){return r.blob()}).then(function(b){"
+    "window.open(URL.createObjectURL(b),'_blank')})})});"
+)
+
+
+def render_page(
+    charts: Sequence[ChartData], *, gpu_hours: float, detail_href: str | None = None
+) -> str:
+    """The summary page's HTML from already-computed `charts` (see `build_summary`)."""
+    by = {c.key: c for c in charts}
+    nums = numbering(charts)
+    sections = []
+    for i, (heading, intro, keys) in enumerate(SECTIONS, start=1):
+        cards = [(by[k], render_card(by[k], nums.get(k))) for k in keys if k in by]
+        sections.append(
+            f'<section><h2><span class="secnum">{i}</span>{P.esc(heading)}</h2>'
+            f'<p class="intro">{P.esc(intro)}</p>{_section_html(cards)}</section>'
+        )
+    overview = _overview_card(charts, nums)
+    limits = "".join(f"<li>{P.esc(t)}</li>" for t in _LIMITATIONS)
     detail = (
         f' &middot; <a href="{P.esc(detail_href)}">detail pages (every chart)</a>'
         if detail_href
         else ""
     )
-    footer = f'<p class="pagefoot">GPU-hours used (ledger total): {gpu_h:.2f} h{detail}</p>'
-    html = html.replace("</main>", "</main>" + footer)
+    return (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f"<title>ND Capability Benchmarks</title><style>{_CSS}</style></head><body>"
+        '<div class="col"><header><h1>Capability benchmarks for the base and RL provers</h1>'
+        f'<p class="lede">{P.esc(_LEDE)}</p><p class="models">{P.esc(_MODELS_NOTE)}</p></header>'
+        f"<main>{overview}{''.join(sections)}"
+        f'<section class="limits"><h2>Limitations</h2><ul>{limits}</ul></section></main>'
+        f"<footer>GPU-hours used (ledger total): {gpu_hours:.2f} h{detail}</footer></div>"
+        f"<script>{_JS}</script></body></html>"
+    )
 
+
+def build_summary(store: Store, out_dir: Path, detail_href: str | None = None) -> Path:
+    """Render the single-page summary (a paper-style results section: Figure 1 overview, one
+    numbered figure or table per benchmark, limitations) into `out_dir/summary.html` and return
+    its path. `out_dir` is created if missing."""
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    html = render_page(
+        chart_data(store), gpu_hours=store.ledger_total_s() / 3600.0, detail_href=detail_href
+    )
     path = out_dir / "summary.html"
     path.write_text(html)
     return path
+
+
+# Card-level entry points (one per benchmark), kept for callers and tests that render a single
+# benchmark's card.
+def _card_of(fn: Callable[[Store], ChartData]) -> Callable[[Store], str]:
+    def card(store: Store) -> str:
+        return render_card(fn(store))
+
+    card.__name__ = fn.__name__.replace("_data_", "_chart_")
+    card.__doc__ = f"The summary card of `{fn.__name__}`."
+    return card
+
+
+_chart_1_yue = _card_of(_data_1_yue)
+_chart_2_families = _card_of(_data_2_families)
+_chart_3_glue = _card_of(_data_3_glue)
+_chart_4_skills = _card_of(_data_4_skills)
+_chart_5_subst = _card_of(_data_5_subst)
+_chart_6_padding = _card_of(_data_6_padding)
+_chart_7_prefix = _card_of(_data_7_prefix)
+_chart_8_edl = _card_of(_data_8_edl)
+_chart_9_likelihood = _card_of(_data_9_likelihood)
+_chart_10_steering = _card_of(_data_10_steering)
+_chart_11_weights = _card_of(_data_11_weights)
+_chart_12_probes = _card_of(_data_12_probes)

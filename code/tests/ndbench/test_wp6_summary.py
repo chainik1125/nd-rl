@@ -477,11 +477,16 @@ def test_families_chart_filters_thin_cells_and_labels_none_and_censored(tmp_path
         store.append_items(run_id, items)
 
     html = dash_summary._chart_2_families(store)  # noqa: SLF001
+    data = dash_summary._data_2_families(store)  # noqa: SLF001
     # rl fails at every *qualifying* size (n=1, the smallest with >=5 items) -> "fails at smallest
-    # size", not "infinite"/omitted.
-    assert "fails at smallest size" in html
-    # armC clears every qualifying size tested (n=1..3) -> a censored ">=" horizon, not a plain one.
-    assert "&#8805;" in html
+    # size" (value None, drawn as a hollow marker at 0 and explained in the caption), not
+    # "infinite"/omitted.
+    assert ("rl", None) in [(n, v) for r in data.rows for n, v, _c, _z in r.points]
+    assert data.opts["none_label"] == "fails at smallest size"
+    assert "fails at the smallest unseen size" in html
+    # armC clears every qualifying size tested (n=1..3) -> a censored ">=" horizon, not a plain one
+    # (the figure draws it as an arrow; the data says so directly).
+    assert [(n, z) for r in data.rows for n, _v, _c, z in r.points if z] == [("armC", True)]
     assert "&gt;= 5" in html  # armC's n*=3 -> written lines n+2=5, html-escaped in the table
     # thin_family never has a qualifying cell (1 item per n < 5) -> dropped, named in the caption.
     assert "thin_family" in html

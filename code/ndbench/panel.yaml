@@ -37,6 +37,13 @@ jobs:
     est_min: 2
     command: python -m code.ndbench dash --out {out} --dash-dir {out}/dash_v3
   - id: P0
+    job: paper_figures
+    tier: cpu
+    scope: any
+    est_min: 3
+    command: python -m code.ndbench figures --out {out} --fig-dir {out}/figures_paper
+    notes: The summary's benchmarks as NeurIPS-style PDF/SVG/PNG figures plus captions.md.
+  - id: P0
     job: probe_position_baselines
     tier: cpu
     scope: any

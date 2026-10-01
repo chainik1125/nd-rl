@@ -1,9 +1,9 @@
 """ndbench command-line interface: `python -m code.ndbench <subcommand> ...` (plan §1).
 
-Subcommands: `build | run | edl | throughput | import-legacy | budget | dash`. Everything this
-module imports at module level is cheap (argparse, `core.io`, `store.Store`, the plain-dict lazy
-registries); every work-package-specific implementation (an adapter, a judge, a suite builder, an
-analysis view, WP1's `tools/throughput`/`runner/gpu`, WP5's `edl.py`, WP6's `dash/build.py`) is
+Subcommands: `build | run | edl | throughput | import-legacy | budget | dash | figures`. Everything
+this module imports at module level is cheap (argparse, `core.io`, `store.Store`, the plain-dict
+lazy registries); every work-package-specific implementation (an adapter, a judge, a suite builder,
+an analysis view, WP1's `tools/throughput`/`runner/gpu`, WP5's `edl.py`, WP6's `dash/build.py`) is
 resolved with `_resolve` only once its subcommand actually runs, so `--help` (and importing this
 module at all) never requires torch, a GPU, or a work package that has not landed yet.
 """
@@ -383,6 +383,18 @@ def cmd_dash(args: argparse.Namespace) -> None:
     print(json.dumps({"dash_dir": args.dash_dir, "views": sorted(ANALYSIS_VIEWS)}, indent=2))
 
 
+# ------------------------------------------------------------------------------------ figures
+
+
+def cmd_figures(args: argparse.Namespace) -> None:
+    store = Store(Path(args.out))
+    build_figures = _resolve_registry(
+        {"figures": "code.ndbench.figures.build:build_figures"}, "figures", "figure builder"
+    )
+    written = build_figures(store, Path(args.fig_dir))
+    print(json.dumps({"fig_dir": args.fig_dir, "files": [Path(p).name for p in written]}, indent=2))
+
+
 # ------------------------------------------------------------------------------------- budget
 
 
@@ -625,6 +637,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="with --summary: link the page footer to the full dashboard at this URL/path",
     )
     d.set_defaults(func=cmd_dash)
+
+    f = sub.add_parser(
+        "figures",
+        help="write the summary benchmarks as NeurIPS-style figures (PDF/SVG/PNG + captions.md)",
+    )
+    f.add_argument("--out", default=DEFAULT_OUT)
+    f.add_argument("--fig-dir", required=True, dest="fig_dir")
+    f.set_defaults(func=cmd_figures)
 
     return p
 
