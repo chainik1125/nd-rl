@@ -2094,7 +2094,8 @@ def render_page(
         f'<p class="lede">{P.esc(_LEDE)}</p><p class="models">{P.esc(_MODELS_NOTE)}</p></header>'
         f"<main>{overview}{''.join(sections)}{dan_section}"
         f'<section class="limits"><h2>Limitations</h2><ul>{limits}</ul></section></main>'
-        f"<footer>GPU-hours used (ledger total): {gpu_hours:.2f} h{detail}</footer></div>"
+        f"<footer>GPU-hours on the ledger (every run, incl. Dan's models): {gpu_hours:.2f} h"
+        f"{detail}</footer></div>"
         f"<script>{_JS}</script></body></html>"
     )
 
