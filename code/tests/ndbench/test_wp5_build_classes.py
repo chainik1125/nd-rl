@@ -2,8 +2,8 @@
 dedup-before-threshold, and "missing source -> skip with a warning" (plan §B7 / §3 WP5 row).
 
 None of this needs a real WP2/WP3/WP4 suite (none is committed on this branch yet): every suite
-here is a small, synthetic `Store` this file builds itself, and the two file-backed classes (dev
-`gen` L10, heldout cap-6) read small temp JSONL fixtures rather than the real (multi-MB, external,
+here is a small, synthetic `Store` this file builds itself, and the two file-backed classes (`gen`
+L10, heldout cap-6) read small temp JSONL fixtures rather than the real (multi-MB, external,
 read-only) `ab2`/`ab3` files -- `code.ndbench.edl`'s module docstring documents the tag/suite
 assumptions this exercises.
 """
@@ -78,9 +78,7 @@ def _warnings(stats: dict[str, JSON]) -> list[str]:
 
 def test_missing_store_and_missing_files_skip_every_class_with_warnings(tmp_path: Path) -> None:
     store = Store(tmp_path / "out")
-    problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING
-    )
+    problems, stats = build_classes({}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING)
     assert problems == []
     assert stats["n_classes_built"] == 0
     assert stats["n_classes_total"] == len(EDL_CLASSES) == 12
@@ -95,9 +93,7 @@ def test_suite_class_below_128_uses_32_32_split(tmp_path: Path) -> None:
     ]
     _write_suite(store, "families", n8 + n16)
 
-    problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING
-    )
+    problems, stats = build_classes({}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING)
 
     assert _class_counts(stats)["and_tower_n8"] == {"n_train": 32, "n_test": 32}
     assert "and_tower_n16" not in _class_counts(stats)
@@ -124,9 +120,7 @@ def test_suite_class_at_or_above_128_uses_64_64_split(tmp_path: Path) -> None:
     ]
     _write_suite(store, "laws", items)
 
-    problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING
-    )
+    problems, stats = build_classes({}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING)
 
     assert _class_counts(stats)["contraposition_s3"] == {"n_train": 64, "n_test": 64}
     class_problems = [p for p in problems if p.tags.get("class") == "contraposition_s3"]
@@ -155,9 +149,7 @@ def test_dedup_happens_before_the_64_item_threshold(tmp_path: Path) -> None:
         )
     _write_suite(store, "families", distinct + dupes)
 
-    problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING
-    )
+    problems, stats = build_classes({}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING)
 
     assert "reorder_and_n5" not in _class_counts(stats)
     assert any("reorder_and_n5" in w and "only 60" in w for w in _warnings(stats))
@@ -169,9 +161,7 @@ def test_and_glue_matches_via_length_l_fallback_without_an_l_tag(tmp_path: Path)
     items = [_synthetic_problem("glue", i, {"op": "AND"}, length_l=12) for i in range(64)]
     _write_suite(store, "glue", items)
 
-    problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING
-    )
+    problems, stats = build_classes({}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING)
 
     assert _class_counts(stats)["and_glue_L12"] == {"n_train": 32, "n_test": 32}
     assert sum(1 for p in problems if p.tags.get("class") == "and_glue_L12") == 64
@@ -183,9 +173,7 @@ def test_and_glue_matches_via_explicit_l_tag(tmp_path: Path) -> None:
     items = [_synthetic_problem("glue", i, {"op": "AND", "L": 12}) for i in range(64)]
     _write_suite(store, "glue", items)
 
-    problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING
-    )
+    problems, stats = build_classes({}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING)
 
     assert _class_counts(stats)["and_glue_L12"] == {"n_train": 32, "n_test": 32}
     assert sum(1 for p in problems if p.tags.get("class") == "and_glue_L12") == 64
@@ -197,20 +185,21 @@ def _write_jsonl(path: Path, rows: list[dict[str, JSON]]) -> None:
             f.write(json.dumps(row) + "\n")
 
 
-def test_dev_gen_l10_file_loader(tmp_path: Path) -> None:
+def test_gen_l10_file_loader(tmp_path: Path) -> None:
     rows: list[dict[str, JSON]] = []
     for i in range(70):
         rows.append(
             {
-                "name": f"dev_{i}",
-                "prompt": f"THM SEQ SYN_devgen_{i} PRF",
+                "name": f"gen_{i}",
+                "prompt": f"THM SEQ SYN_gen_{i} PRF",
                 "source": "gen",
                 "L_true": 10,
                 "n_lines": 10,
-                "minlen_proof": f"N1 SYN_devgen_{i} : PR ; QED",
+                "minlen_proof": f"N1 SYN_gen_{i} : PR ; QED",
             }
         )
-    # excluded: textbook source, and the wrong length.
+    # excluded: textbook source, the wrong length, and a 'gen'/L==10 row with no minlen_proof
+    # (never falls back to a non-minimal 'gen_proof' field -- module docstring note 5).
     rows.append(
         {
             "name": "textbook_1",
@@ -229,20 +218,74 @@ def test_dev_gen_l10_file_loader(tmp_path: Path) -> None:
             "minlen_proof": "N1 SYN_wl : PR ; QED",
         }
     )
-    dev_path = tmp_path / "dev_L8-11.jsonl"
-    _write_jsonl(dev_path, rows)
+    rows.append(
+        {
+            "name": "no_minlen_proof",
+            "prompt": "THM SEQ SYN_nomp PRF",
+            "source": "gen",
+            "L_true": 10,
+            "gen_proof": "N1 SYN_nomp : PR ; QED",
+        }
+    )
+    reserve_path = tmp_path / "reserve.jsonl"
+    _write_jsonl(reserve_path, rows)
 
     store = Store(tmp_path / "out")
     problems, stats = build_classes(
-        {}, store=store, dev_gen_path=dev_path, heldout_cap6_path=_MISSING
+        {}, store=store, gen_path=reserve_path, heldout_cap6_path=_MISSING
     )
 
-    assert _class_counts(stats)["dev_gen_L10"] == {"n_train": 32, "n_test": 32}
-    class_problems = [p for p in problems if p.tags.get("class") == "dev_gen_L10"]
+    assert _class_counts(stats)["gen_L10"] == {"n_train": 32, "n_test": 32}
+    class_problems = [p for p in problems if p.tags.get("class") == "gen_L10"]
     assert len(class_problems) == 64
     assert all(p.length.method == "minlen_exact" for p in class_problems)
     assert all(p.length.L == 10 for p in class_problems)
     assert all(p.ref is not None and p.ref.body.startswith("N1 ") for p in class_problems)
+
+
+class _StubExcluder:
+    """A minimal `Excluder` (structural `Protocol`, see `core.types.Excluder`) marking exactly the
+    sequents in `in_train_keys` as `seen_train`, for `test_gen_l10_drops_seen_train_rows` -- avoids
+    pulling in the real, large `ab2`/`ab3` tier files `DefaultExcluder` would scan."""
+
+    def __init__(self, in_train_keys: set[str]) -> None:
+        self._keys = in_train_keys
+
+    def status(self, seq: Sequent) -> tuple[bool, tuple[str, ...]]:
+        return seq.key() in self._keys, ()
+
+
+def test_gen_l10_drops_seen_train_rows(tmp_path: Path) -> None:
+    rows: list[dict[str, JSON]] = []
+    for i in range(70):
+        rows.append(
+            {
+                "name": f"gen_{i}",
+                "prompt": f"THM SEQ SYN_gentrain_{i} PRF",
+                "source": "gen",
+                "L_true": 10,
+                "minlen_proof": f"N1 SYN_gentrain_{i} : PR ; QED",
+            }
+        )
+    reserve_path = tmp_path / "reserve.jsonl"
+    _write_jsonl(reserve_path, rows)
+
+    # Mark the first 10 rows' sequents as seen_train: build_classes should drop them (not merely
+    # flag them), leaving only 60 -- still >= 64? No: 60 < 64, so the class is skipped entirely,
+    # which is itself the clearest proof the drop (not a flag) actually happened.
+    in_train_keys = {Sequent.from_prompt(r["prompt"]).key() for r in rows[:10]}  # type: ignore[arg-type]
+    store = Store(tmp_path / "out")
+    problems, stats = build_classes(
+        {},
+        store=store,
+        gen_path=reserve_path,
+        heldout_cap6_path=_MISSING,
+        excluder=_StubExcluder(in_train_keys),
+    )
+
+    assert "gen_L10" not in _class_counts(stats)
+    assert any("gen_L10" in w and "only 60" in w for w in _warnings(stats))
+    assert not any(p.tags.get("class") == "gen_L10" for p in problems)
 
 
 def test_heldout_cap6_file_loader_and_insufficient_items_are_skipped(tmp_path: Path) -> None:
@@ -260,7 +303,7 @@ def test_heldout_cap6_file_loader_and_insufficient_items_are_skipped(tmp_path: P
 
     store = Store(tmp_path / "out")
     problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=heldout_path
+        {}, store=store, gen_path=_MISSING, heldout_cap6_path=heldout_path
     )
 
     assert "heldout_cap6" not in _class_counts(stats)
@@ -283,7 +326,7 @@ def test_heldout_cap6_file_loader_succeeds_with_enough_rows(tmp_path: Path) -> N
 
     store = Store(tmp_path / "out")
     problems, stats = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=heldout_path
+        {}, store=store, gen_path=_MISSING, heldout_cap6_path=heldout_path
     )
 
     assert _class_counts(stats)["heldout_cap6"] == {"n_train": 32, "n_test": 32}
@@ -298,13 +341,13 @@ def test_split_is_deterministic_given_rng_seed(tmp_path: Path) -> None:
     _write_suite(store, "families", items)
 
     p1, _ = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING, rng_seed=42
+        {}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING, rng_seed=42
     )
     p2, _ = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING, rng_seed=42
+        {}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING, rng_seed=42
     )
     p3, _ = build_classes(
-        {}, store=store, dev_gen_path=_MISSING, heldout_cap6_path=_MISSING, rng_seed=7
+        {}, store=store, gen_path=_MISSING, heldout_cap6_path=_MISSING, rng_seed=7
     )
 
     key1 = [(p.pid, p.tags["split"]) for p in p1]

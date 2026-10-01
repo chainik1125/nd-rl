@@ -26,7 +26,7 @@ This module implements the two WP5 API-contract functions (plan §3's WP5 row):
 
 * `build_classes(cfg, **sources) -> (list[Problem], dict)`: assembles the 12 EDL classes from
   suites already written to the `Store` (families/laws/glue, WP2-WP4) plus two raw legacy JSONL
-  files (dev `gen` L10, heldout cap-6), splitting each into disjoint train/test pools tagged
+  files (`gen` L10, heldout cap-6), splitting each into disjoint train/test pools tagged
   `tags["class"]`/`tags["split"]`.
 * `run_edl(adapter, problems, ...) -> list[dict]`: the online-learning protocol above, run once
   per (class, learning rate, data order), returning JSON-able rows for `Store.append_edl`.
@@ -71,6 +71,22 @@ module programs against them rather than editing them):
    argparse string, or `None`) straight through as `run_edl(..., ckpts=args.ckpts)` -- it does not
    split/int-cast it the way it does `--lrs`. `run_edl` therefore accepts `ckpts: Sequence[int] |
    str | None` and parses a comma-separated string itself (`_parse_ckpts`).
+5. **2026-10-01 EDL-pool fix: `dev_gen_L10` renamed `gen_L10`, now reads `reserve.jsonl`.** The
+   first EDL run built only 2 of 12 classes: the families/laws suites' default ~40 items/cell
+   fell short of the >=64-distinct threshold `_split_train_test` requires, and `dev_gen_L10`'s
+   source file (`ab2/data/dev_L8-11.jsonl`) has no `minlen_proof` field at all, so every row was
+   dropped. The fix has two parts. (a) `build_classes` now reads the families/laws suite-backed
+   classes at a dedicated, larger suite version (plan default `"edl_v1"`, built by
+   `code/experiments/current/benchmarking_20260930/build_edl_pools.py` with `target_per_n`/
+   `target_per_s=128`, same certifier/excluder as the main `"v1"` suites) via the same
+   `families_version`/`laws_version` config keys as before -- no new per-class config key was
+   needed since every family/law EDL class moves to the same new version together. (b) the
+   `dev_gen_L10` class is replaced by `gen_L10`, reading `source=='gen'`, `L_true==10` rows (with
+   a `minlen_proof`, never falling back to the non-minimal `gen_proof` field) directly from
+   `ab2/data/reserve.jsonl` (`DEFAULT_GEN_L10_PATH`) instead of `dev_L8-11.jsonl`; any row whose
+   sequent the default `Excluder` marks `seen_train` is dropped (not merely flagged, unlike the
+   families/laws builders' own flag-only policy) before the generic dedup/split logic runs, per
+   the main agent's 2026-10-01 instruction. `and_glue_L12` and `heldout_cap6` are unchanged.
 """
 
 from __future__ import annotations
@@ -91,6 +107,7 @@ from .core.io import read_jsonl
 from .core.proof import make_reference, renumber
 from .core.types import (
     JSON,
+    Excluder,
     LengthLabel,
     LogProb,
     Problem,
@@ -128,7 +145,7 @@ EDL_CLASSES: tuple[str, ...] = (
     "dist_and_over_or_s1",
     "demorgan_nand_to_or_s1",
     "and_glue_L12",
-    "dev_gen_L10",
+    "gen_L10",
     "heldout_cap6",
 )
 
@@ -140,7 +157,10 @@ DEFAULT_CKPTS: tuple[int, ...] = (8, 16, 32, 64)
 DEFAULT_SHIFTS_PER_UPDATE = 8
 
 #: Plan §0/§B7's raw legacy sources for the two file-backed classes (read-only; never written to).
-DEFAULT_DEV_GEN_PATH = "/scratch/cowifornia/nd-rl/ab2/data/dev_L8-11.jsonl"
+#: `gen_L10` reads `reserve.jsonl` rather than `dev_L8-11.jsonl` (2026-10-01 fix, module docstring
+#: note 5): `dev_L8-11.jsonl` has no `minlen_proof` field at all, so `gen_L10` could never find a
+#: proof body there; `reserve.jsonl` has one for the great majority of its `source=='gen'` rows.
+DEFAULT_GEN_L10_PATH = "/scratch/cowifornia/nd-rl/ab2/data/reserve.jsonl"
 DEFAULT_HELDOUT_CAP6_PATH = "/scratch/cowifornia/nd-rl/ab3/frozen/data/heldout_cap6.jsonl"
 
 
@@ -226,27 +246,47 @@ def _and_glue_match(target_l: int) -> Callable[[Problem], bool]:
     return match
 
 
-def _load_dev_gen_l10(path: Path) -> list[Problem]:
+def _default_excluder() -> Excluder:
+    """Lazily imports `logic.exclusion.DefaultExcluder` (module docstring note 5): avoids paying
+    the cost of scanning the real train/eval tier files -- or even importing this module -- for
+    every `build_classes` call that never reaches `_load_gen_l10` with a real path (e.g. every
+    test that points `gen_path` at a nonexistent file)."""
+    from .logic.exclusion import DefaultExcluder
+
+    return DefaultExcluder()
+
+
+def _load_gen_l10(path: Path, excluder: Excluder | None) -> list[Problem]:
+    """`gen_L10` (module docstring note 5): `source=='gen'`, `L_true==10` rows from `reserve.jsonl`
+    that have a `minlen_proof` (never falling back to the non-minimal `gen_proof` field -- a row
+    without `minlen_proof` is simply dropped, since `reserve.jsonl` has thousands of qualifying
+    rows that do have one) and whose sequent the (default, unless `excluder` overrides it for a
+    test) `Excluder` does *not* mark `seen_train` (main agent instruction, 2026-10-01: dropped
+    here, not merely flagged the way the families/laws suite builders flag-only their own
+    `seen_train` items)."""
     if not path.is_file():
         raise _ClassUnavailable(f"{path} not found")
+    exc = excluder if excluder is not None else _default_excluder()
     out: list[Problem] = []
     for row in read_jsonl(path):
-        if row.get("source") == "textbook":
+        if row.get("source") != "gen":
             continue
         raw_l = row.get("L_true", row.get("n_lines"))
         if not (isinstance(raw_l, int | float) and int(raw_l) == 10):
             continue
         minlen_proof = row.get("minlen_proof")
-        proof_body = minlen_proof if isinstance(minlen_proof, str) else row.get("proof")
-        if not isinstance(proof_body, str) or not proof_body.strip():
+        if not isinstance(minlen_proof, str) or not minlen_proof.strip():
             continue
-        method = "minlen_exact" if isinstance(minlen_proof, str) else "reference"
-        p = _problem_from_raw_row(row, proof_body, suite="edl_dev_gen_l10", method=method)
-        if p is not None:
-            out.append(p)
+        p = _problem_from_raw_row(row, minlen_proof, suite="edl_gen_l10", method="minlen_exact")
+        if p is None:
+            continue
+        in_train, eval_sets = exc.status(p.sequent)
+        if in_train:
+            continue
+        out.append(replace(p, seen_eval=tuple(eval_sets)))
     if not out:
         raise _ClassUnavailable(
-            f"no source!='textbook' rows with L_true==10 and a proof body in {path}"
+            f"no source=='gen' rows with L_true==10, a minlen_proof, and not seen_train in {path}"
         )
     return out
 
@@ -309,8 +349,9 @@ def _class_specs(
     families_version: str,
     laws_version: str,
     glue_version: str,
-    dev_gen_path: Path,
+    gen_path: Path,
     heldout_cap6_path: Path,
+    excluder: Excluder | None,
 ) -> list[tuple[str, Callable[[Store], list[Problem]]]]:
     def suite_loader(
         suite: str, version: str, match: Callable[[Problem], bool], label: str
@@ -379,7 +420,7 @@ def _class_specs(
             ),
         ),
         ("and_glue_L12", suite_loader("glue", glue_version, _and_glue_match(12), "AND glue L=12")),
-        ("dev_gen_L10", lambda _store: _load_dev_gen_l10(dev_gen_path)),
+        ("gen_L10", lambda _store: _load_gen_l10(gen_path, excluder)),
         ("heldout_cap6", lambda _store: _load_heldout_cap6(heldout_cap6_path)),
     ]
 
@@ -388,18 +429,21 @@ def build_classes(
     cfg: Mapping[str, JSON],
     *,
     store: Store | None = None,
-    dev_gen_path: str | Path | None = None,
+    gen_path: str | Path | None = None,
     heldout_cap6_path: str | Path | None = None,
+    excluder: Excluder | None = None,
     rng_seed: int = 0,
 ) -> tuple[list[Problem], dict[str, JSON]]:
     """Assemble the 12 EDL classes of plan §B7 (see the module docstring's note 3 for the tag/suite
-    assumptions), split each into train/test, and return the combined `Problem` list plus build
-    stats. Callable as `build_classes(cfg)` alone (as `cli.cmd_edl` does); `store`/`dev_gen_path`/
-    `heldout_cap6_path` are test/override hooks, falling back to `cfg` keys and then plan defaults.
+    assumptions, and note 5 for the 2026-10-01 `gen_L10` fix), split each into train/test, and
+    return the combined `Problem` list plus build stats. Callable as `build_classes(cfg)` alone (as
+    `cli.cmd_edl` does); `store`/`gen_path`/`heldout_cap6_path`/`excluder` are test/override hooks,
+    falling back to `cfg` keys and then plan defaults (`excluder` falls back to `_default_excluder`
+    lazily, only if `gen_L10`'s loader actually runs against a real file -- see that function).
     """
     if store is None:
         store = Store(Path(str(cfg.get("out", "out"))))
-    dev_path = Path(dev_gen_path or cast(str, cfg.get("dev_gen_path", DEFAULT_DEV_GEN_PATH)))
+    gen_path_resolved = Path(gen_path or cast(str, cfg.get("gen_path", DEFAULT_GEN_L10_PATH)))
     heldout_path = Path(
         heldout_cap6_path or cast(str, cfg.get("heldout_cap6_path", DEFAULT_HELDOUT_CAP6_PATH))
     )
@@ -411,7 +455,9 @@ def build_classes(
     problems: list[Problem] = []
     class_counts: dict[str, JSON] = {}
 
-    specs = _class_specs(families_version, laws_version, glue_version, dev_path, heldout_path)
+    specs = _class_specs(
+        families_version, laws_version, glue_version, gen_path_resolved, heldout_path, excluder
+    )
     for name, loader in specs:
         try:
             pool = loader(store)
