@@ -377,7 +377,8 @@ The 64 targets are sampled exactly as in TTRL, 16 per round.
   costs so much more.
 
 Generic RL on similar theorems doesn't beat sampling more. So TTRL's whole lead over sampling
-more comes from practising on problems built from the target.
+more comes from practising on problems built from the target. That includes the targets
+themselves, and that turns out to be most of it: see "At scale" below.
 ```
 
 ### What's left
@@ -450,8 +451,66 @@ mix, so TTRL is exactly targets-only EI plus variants.
 of one A40 per seed. Each arm runs until it has used 5x (2.3-2.5 h), and every round records its
 cumulative time. The result is a curve of dev solved = baseline + newly solved, read off at 1x,
 2x, 3x, 4x and 5x. Evaluation costs are left out: every arm pays the same 64-sample eval first.
+```
 
-Running.
+**Plain expert iteration on the eval statements wins. Variants add little.**
+
+![Dev solved vs test-time compute, three arms, three seeds](charts/ttrl-scale.png)
+
+```claude
+Dev theorems solved (of 1,108; baseline 904), mean of three seeds, at each multiple of the
+pipeline's own pretrain + RL compute:
+
+| arm | 1x | 2x | 3x | 4x | 5x |
+| --- | --- | --- | --- | --- | --- |
+| sample more | 1,002 | 1,014 | 1,017 | 1,019 | 1,020 |
+| **targets-only EI** | **1,069** | **1,082** | **1,085** | **1,086** | **1,088** |
+| TTRL | 929 | 986 | 1,034 | 1,067 | 1,079 |
+
+- **Test-time training is worth a lot, and it doesn't need variants.** Targets-only EI just
+  samples the failed theorems and trains on the proofs it finds.
+  - At 1x, i.e. doubling the pipeline's compute, it takes dev from 904 to 1,069. That's 81% of
+    the failures solved, against 48% for sampling more.
+  - By 5x it reaches 1,088 (98.2%), and 1,103 of 1,108 on seed 1.
+- **TTRL is slower, and only about catches up by 5x.**
+  - On average it trails EI at every budget, and trails even sampling more until about 2.5x.
+  - At 5x it is 9 behind on average. Seed 2's TTRL passes EI at about 3.5x and ends ahead
+    (1,085 vs 1,078); seeds 0 and 1 stay behind.
+  - Its first round spends 0.7-0.9x sampling ~13k variants before it trains at all. EI's first
+    round takes 0.2x.
+- **EI plateaus; TTRL doesn't.** EI is within 6 of its final score by 2x. TTRL was still
+  adding theorems when the budget ran out.
+- **The two solve partly different theorems.** TTRL solves 12, 4 and 11 theorems that EI never
+  does; EI solves 21, 29 and 2 that TTRL doesn't. Together they leave 12, 1 and 19 unsolved.
+- **Why EI is so strong here: with ~200 targets, the targets are each other's variants.** They
+  come from the same generator and share schemas, so a proof of one teaches the next. The
+  64-target run had too few targets to show this, and it never ran the EI arm.
+- Sampling more flattens early, as before: +116 at 5x, nearly all of it by 2x.
+
+What this means for the earlier sections: the 64-target result ("TTRL 48, sampling more 31")
+stands, but its explanation doesn't. The unrelated-variants arm showed that variants of *other*
+theorems don't help. It never asked whether the targets alone would do. They do, at least when
+there are ~200 of them.
+```
+
+```claude
+**Caveats for this run.**
+- **One run per seed per arm.** EI beats TTRL on all three seeds up to 3x. After that, seed 2
+  swaps.
+- **The last round of each arm can finish just past its 5x budget.** The table reads only rounds
+  that finished within each multiple; the chart's end labels include that last round.
+- **Two of nine pods were RTX A6000s** (seed 1 sample more, seed 2 EI), the same chip as the
+  A40 and slightly faster. Both are baseline arms, so if anything it favours them.
+- **This is dev-transfer, the set the pretraining loop selected on.** No proof labels were used,
+  and no knob was tuned on these runs. Held-out is still untouched.
+- **EI's budget goes mostly into training.** It ran 110-166 short rounds, spending 2,500-4,300 s
+  on fine-tuning, against 500-1,100 s for TTRL. Compute here is wall-clock on one GPU, so both
+  sides are counted.
+
+**Next.** Start with EI on the targets, then add variants only for the theorems EI leaves. The
+two arms' solved sets overlap only partly, so the combination should beat either: their union
+leaves 12, 1 and 19 per seed. Per-theorem results: `artifacts/ttrl/devall_s{0,1,2}_{ttrl,
+selftrain,control}/` in the checkout.
 ```
 
 ## Showing the model the proof state
