@@ -40,7 +40,8 @@ def fmt(v: Any, kind: str = "g") -> str:
     if x is None or math.isnan(x):
         return "missing"
     if kind == "pct":
-        return f"{100 * x:.1f}%"
+        # two decimals below 1% so e.g. 0.14% vs 0.15% doesn't print as "0.1% -> 0.2%"
+        return f"{100 * x:.2f}%" if 0 < abs(100 * x) < 1 else f"{100 * x:.1f}%"
     if kind == "int":
         return f"{x:,.0f}"
     if kind == "sci":
@@ -932,7 +933,9 @@ stroke-width:2}.cross{stroke:var(--axis);stroke-width:1}.hit{fill:transparent;cu
 .band{opacity:.16;stroke:none}.whisker{stroke:var(--ink2);stroke-width:1.3}
 .seg{stroke:var(--surface);stroke-width:1}.seg:hover,rect[data-tip]:hover{opacity:.8}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin:2px 0 4px;color:var(--ink2);
-font-size:12.5px}.li{display:inline-flex;align-items:center;gap:6px}.lkey{width:14px;height:3px;
+font-size:12.5px}.li{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend svg.lkeyline{flex:none;width:16px;height:10px;display:inline-block}
+.lkey{width:14px;height:3px;
 border-radius:2px;display:inline-block}.bkey{width:10px;height:10px;border-radius:2px;
 display:inline-block}.q0{fill:var(--q0);background:var(--q0)}.q1{fill:var(--q1);
 background:var(--q1)}.q2{fill:var(--q2);background:var(--q2)}.q3{fill:var(--q3);

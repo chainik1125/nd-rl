@@ -1027,16 +1027,14 @@ def _chart_9_likelihood(store: Store) -> str:
 
     gap = cast("float | None", meta.get("crux_paired_gap_median"))
     if gap is not None:
-        takeaway = (
-            f"on rl's crux proofs base assigns about {P.fmt(gap, 'f3')} nats/line less than rl"
-        )
+        takeaway = f"on rl's crux proofs base assigns about {gap:.1f} nats/line less than rl"
     else:
         takeaway = "median base/rl log-likelihood per written line, by proof origin"
     extra_bits = []
     fam = by_origin.get("family", {})
     if fam.get("base") and fam.get("rl"):
         fam_gap = abs(statistics.median(fam["base"]) - statistics.median(fam["rl"]))
-        extra_bits.append(f"about {P.fmt(fam_gap, 'f3')} on family witnesses")
+        extra_bits.append(f"about {fam_gap:.1f} on family witnesses")
     bv = by_origin.get("base_verified", {})
     if (
         bv.get("base")
