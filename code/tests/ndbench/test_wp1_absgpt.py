@@ -10,7 +10,17 @@ import numpy as np
 import pytest
 import torch
 
-from code.ndbench.adapters.absgpt import GPT, MAXN, AbsGptAdapter, Tokenizer
+from code.ndbench.adapters.absgpt import (
+    GPT,
+    MAXN,
+    AbsGptAdapter,
+    Tokenizer,
+    _batched_shift_marginal_logprobs,
+    _batched_shift_marginal_nlls,
+    _length_bucketed_chunks,
+    _shift_marginal_logprob_reference,
+    _shift_marginal_nll_reference,
+)
 from code.ndbench.adapters.base import SteeringTerm
 from code.ndbench.core.proof import first_index, take_prefix
 from code.ndbench.core.types import PrefixSpec, SampleRequest, Sequent
@@ -286,6 +296,181 @@ def test_logprob_matches_manual_logsumexp_over_shifts(tiny_ckpt: Path) -> None:
         adapter.close()
 
 
+def test_length_bucketed_chunks_respects_both_row_and_cell_caps() -> None:
+    """A row-count cap alone degenerates to one chunk, padded to the single longest row, whenever
+    everything fits under it -- this is exactly the bug that made the batched `logprob` path
+    slower than the reference on a small, length-varied CPU workload before the cell cap was
+    added. Lengths here (mostly short, one long outlier) must split into more than one chunk under
+    a cell cap even though every row fits under a generous row-count cap alone."""
+    lengths = [10, 10, 10, 10, 10, 10, 10, 10, 500]
+    order = sorted(range(len(lengths)), key=lambda i: lengths[i])
+
+    # row cap alone (huge cell budget): everything in one chunk.
+    chunks_row_only = _length_bucketed_chunks(order, lengths, max_rows=100, max_cells=10**9)
+    assert len(chunks_row_only) == 1
+    assert sorted(chunks_row_only[0]) == list(range(len(lengths)))
+
+    # a cell cap that the one-chunk padding would blow (9 rows * 500 = 4500) forces a split; the
+    # 500-length outlier must end up isolated from the short rows (bucketing by length).
+    chunks_bucketed = _length_bucketed_chunks(order, lengths, max_rows=100, max_cells=600)
+    assert len(chunks_bucketed) > 1
+    for chunk in chunks_bucketed:
+        chunk_max_len = max(lengths[i] for i in chunk)
+        assert len(chunk) * chunk_max_len <= 600
+        assert len(chunk) <= 100
+    all_indices = sorted(i for chunk in chunks_bucketed for i in chunk)
+    assert all_indices == list(range(len(lengths)))
+    outlier_chunk = next(chunk for chunk in chunks_bucketed if 8 in chunk)
+    assert outlier_chunk == [8]  # the length-500 row gets its own chunk, not padded alongside 10s
+
+
+def test_logprob_batched_matches_reference_on_all_fixture_proofs(tiny_ckpt: Path) -> None:
+    """Throughput fix: `logprob` now batches every shift of every pair into a handful of forward
+    calls instead of one per (pair, shift). Must agree with the original one-row-per-call
+    `_shift_marginal_logprob_reference` to within 1e-4 nats, on every one of the 60 fixture
+    proofs in a single batched call (not just pairwise)."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        proofs = load_valid_proofs()
+        pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+        batched = adapter.logprob(pairs)
+        assert len(batched) == len(pairs)
+        for (seq, body), lp in zip(pairs, batched, strict=True):
+            ref = _shift_marginal_logprob_reference(
+                adapter._model, adapter._tok, adapter._device, seq, body, adapter, MAXN
+            )
+            assert lp.n_tokens == ref.n_tokens
+            assert len(lp.per_encoding) == len(ref.per_encoding)
+            assert lp.nats == pytest.approx(ref.nats, abs=1e-4)
+            # Per-shift sums are large-magnitude (hundreds of nats, for a ten-ish-line proof): a
+            # relative tolerance is appropriate here, since float32 accumulation over many summed
+            # log-probs naturally differs slightly between a batched and an unbatched computation
+            # order at that magnitude's own precision floor -- `nats` (the logsumexp of these,
+            # checked above) is the value every caller actually consumes, and is dominated by
+            # whichever shift(s) have the least negative value, so it is far less sensitive to this
+            # per-shift noise than a raw per-element comparison would be.
+            for a, b in zip(lp.per_encoding, ref.per_encoding, strict=True):
+                assert a == pytest.approx(b, rel=1e-5, abs=1e-4)
+    finally:
+        adapter.close()
+
+
+def test_logprob_batched_with_small_chunk_size_still_matches_reference(tiny_ckpt: Path) -> None:
+    """`max_batch_rows` small enough that a single pair's own shifts, and different pairs, are
+    split across several forward calls -- the regrouping/log-sum-exp must still match the
+    reference exactly (within tolerance)."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        proofs = load_valid_proofs()[:8]
+        pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+        batched = _batched_shift_marginal_logprobs(
+            adapter._model, adapter._tok, adapter._device, adapter, MAXN, pairs, max_batch_rows=3
+        )
+        for (seq, body), lp in zip(pairs, batched, strict=True):
+            ref = _shift_marginal_logprob_reference(
+                adapter._model, adapter._tok, adapter._device, seq, body, adapter, MAXN
+            )
+            assert lp.nats == pytest.approx(ref.nats, abs=1e-4)
+    finally:
+        adapter.close()
+
+
+def test_nll_batched_matches_reference_on_all_fixture_proofs(tiny_ckpt: Path) -> None:
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        learner = adapter.learner(seed=0)
+        proofs = load_valid_proofs()
+        pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+        batched = learner.nll(pairs)
+        for (seq, body), lp in zip(pairs, batched, strict=True):
+            ref = _shift_marginal_nll_reference(
+                learner._model, learner._tok, learner._device, seq, body, learner, MAXN
+            )
+            assert lp.nats == pytest.approx(ref.nats, abs=1e-4)
+    finally:
+        adapter.close()
+
+
+def test_nll_start_excluded_batched_matches_reference(tiny_ckpt: Path) -> None:
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        learner = adapter.learner(seed=0)
+        proofs = load_valid_proofs()[:10]
+        pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+        batched = learner.nll_start_excluded(pairs)
+        for (seq, body), lp in zip(pairs, batched, strict=True):
+            ref = _shift_marginal_nll_reference(
+                learner._model,
+                learner._tok,
+                learner._device,
+                seq,
+                body,
+                learner,
+                MAXN,
+                start_excluded=True,
+            )
+            assert lp.n_tokens == ref.n_tokens
+            assert lp.nats == pytest.approx(ref.nats, abs=1e-4)
+    finally:
+        adapter.close()
+
+
+def test_logprob_batched_nlls_helper_matches_reference(tiny_ckpt: Path) -> None:
+    """`_batched_shift_marginal_nlls` (used by `Learner.nll`/`nll_start_excluded`) directly."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        proofs = load_valid_proofs()[:6]
+        pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+        batched = _batched_shift_marginal_nlls(
+            adapter._model, adapter._tok, adapter._device, adapter, MAXN, pairs
+        )
+        for (seq, body), lp in zip(pairs, batched, strict=True):
+            ref = _shift_marginal_nll_reference(
+                adapter._model, adapter._tok, adapter._device, seq, body, adapter, MAXN
+            )
+            assert lp.nats == pytest.approx(ref.nats, abs=1e-4)
+    finally:
+        adapter.close()
+
+
+def test_logprob_steering_is_correct_per_pair_when_batched_with_different_prompt_lengths(
+    tiny_ckpt: Path,
+) -> None:
+    """Fix: a batched `logprob` call can mix pairs with different prompt lengths in the same
+    forward call; the per-row `_steer_prompt_len` tensor must still give each pair exactly the
+    same prompt/proof split a lone `logprob([(seq, body)])` call on that pair would -- a bug that
+    used a single shared threshold for the whole batch would misclassify at least one of the two
+    pairs' positions whenever their prompt lengths differ."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        d = adapter._cfg["d"]
+        # A varying vector: LayerNorm's mean-subtraction would exactly cancel a constant shift.
+        vec = tuple(float(i) - d / 2 for i in range(d))
+        term = SteeringTerm(layer=0, vector=vec, alpha=5.0, where="prompt")
+        steered = adapter.with_steering((term,))
+        try:
+            proofs = load_valid_proofs()
+            seq_a, body_a = Sequent.from_prompt(proofs[0]["prompt"]), proofs[0]["proof"]
+            seq_b, body_b = Sequent.from_prompt(proofs[3]["prompt"]), proofs[3]["proof"]
+            len_a = len(steered._tok.encode_prompt(seq_a.prompt()))
+            len_b = len(steered._tok.encode_prompt(seq_b.prompt()))
+            assert len_a != len_b, "fixture choice needs two different prompt lengths"
+
+            batched = steered.logprob([(seq_a, body_a), (seq_b, body_b)])
+            (alone_a,) = steered.logprob([(seq_a, body_a)])
+            (alone_b,) = steered.logprob([(seq_b, body_b)])
+
+            assert batched[0].nats == pytest.approx(alone_a.nats, abs=1e-4)
+            assert batched[1].nats == pytest.approx(alone_b.nats, abs=1e-4)
+            # sanity: the steering term actually does something, so this isn't a vacuous pass.
+            (unsteered_a,) = adapter.logprob([(seq_a, body_a)])
+            assert batched[0].nats != pytest.approx(unsteered_a.nats, abs=1e-4)
+        finally:
+            steered.close()
+    finally:
+        adapter.close()
+
+
 # --------------------------------------------------------------------------------------- learner
 
 
@@ -383,6 +568,43 @@ def test_learner_adapter_samples_with_updated_weights(tiny_ckpt: Path) -> None:
         assert len(attempts) == 2
     finally:
         adapter.close()
+
+
+def test_update_gradient_is_the_mean_over_shift_copies_not_the_sum(
+    tiny_ckpt: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`Learner.update` already batches all `update_shifts` copies of every example into one
+    forward+backward (no per-copy loop); this pins the *averaging* semantics that batching must
+    preserve. Monkeypatching `_rng.randint` to always return `0` makes every one of a pair's
+    `update_shifts` copies an identical row (shift 0 leaves `ids` unchanged), which makes the
+    *correctly averaged* loss -- and so the gradient -- independent of `update_shifts`: `n_tok`
+    and the summed log-prob both scale by the same factor `update_shifts`, which cancels in the
+    ratio. An accidental sum instead of a mean would instead scale the gradient with
+    `update_shifts`, which this test would catch."""
+    proofs = load_valid_proofs()[:3]
+    pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+
+    adapter1 = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", update_shifts=1)
+    adapter5 = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", update_shifts=5)
+    try:
+        learner1 = adapter1.learner(seed=0)
+        learner5 = adapter5.learner(seed=0)
+        monkeypatch.setattr(learner1._rng, "randint", lambda a, b: 0)
+        monkeypatch.setattr(learner5._rng, "randint", lambda a, b: 0)
+
+        loss1 = learner1.update(pairs, lr=1e-2)
+        grads1 = [p.grad.clone() for p in learner1._model.parameters() if p.grad is not None]
+
+        loss5 = learner5.update(pairs, lr=1e-2)
+        grads5 = [p.grad.clone() for p in learner5._model.parameters() if p.grad is not None]
+
+        assert loss1 == pytest.approx(loss5, abs=1e-5)
+        assert len(grads1) == len(grads5) > 0
+        for g1, g5 in zip(grads1, grads5, strict=True):
+            assert torch.allclose(g1, g5, atol=1e-5)
+    finally:
+        adapter1.close()
+        adapter5.close()
 
 
 # -------------------------------------------------------------------------------------- steering
@@ -540,6 +762,41 @@ def test_activations_shape(tiny_ckpt: Path) -> None:
         (arr,) = adapter.activations([(seq, body)], layers=[0])
         assert isinstance(arr, np.ndarray)
         assert arr.shape == (1, total_len, adapter._cfg["d"])
+    finally:
+        adapter.close()
+
+
+def test_activations_batched_matches_per_pair_unbatched(tiny_ckpt: Path) -> None:
+    """Throughput fix: `activations` batches every pair into one (padded) forward call; each
+    pair's own sliced-out array must be identical to calling `activations` on that pair alone
+    (different proof lengths -- and so different amounts of padding -- across the fixtures, and
+    more than one requested layer, so both the padding-strip and the per-layer stacking are
+    exercised)."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        proofs = load_valid_proofs()[:8]
+        assert len({p["n_lines"] for p in proofs}) > 1, "fixture choice needs varying proof lengths"
+        pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+        layers = [0] if adapter._cfg["n_layer"] == 1 else [0, adapter._cfg["n_layer"] - 1]
+        batched = adapter.activations(pairs, layers=layers)
+        assert len(batched) == len(pairs)
+        for (seq, body), arr_batched in zip(pairs, batched, strict=True):
+            (arr_alone,) = adapter.activations([(seq, body)], layers=layers)
+            assert arr_batched.shape == arr_alone.shape
+            np.testing.assert_allclose(arr_batched, arr_alone, atol=1e-4)
+    finally:
+        adapter.close()
+
+
+def test_activations_batched_with_small_chunk_size_still_matches_unbatched(tiny_ckpt: Path) -> None:
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu")
+    try:
+        proofs = load_valid_proofs()[:6]
+        pairs = [(Sequent.from_prompt(p["prompt"]), p["proof"]) for p in proofs]
+        batched = adapter.activations(pairs, layers=[0], max_batch_rows=2)
+        for (seq, body), arr_batched in zip(pairs, batched, strict=True):
+            (arr_alone,) = adapter.activations([(seq, body)], layers=[0])
+            np.testing.assert_allclose(arr_batched, arr_alone, atol=1e-4)
     finally:
         adapter.close()
 

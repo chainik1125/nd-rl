@@ -62,13 +62,30 @@ instead reads each row's own `keep` vector back out of the block's `mask` argume
 each incremental decode step `mask` *is* `keep`, with no causal component at all), takes its
 cumulative count as each row's real position, and keeps only the last `T` entries (this call's own
 newly-appended columns) -- see `_make_steering_hook`. The non-cached forward passes used by
-`logprob`/`nll`/`activations`/`Learner.update` have no such per-row padding offset (no cache, no
-mask) and fall back to one `arange(T)` position range shared by every row, exactly as before.
-Either way, "prompt" vs. "proof" is decided against `self._steer_prompt_len`, an attribute the
-calling method sets just before invoking the model and clears just after; `sample()` does not set
-it (steering during generation is not yet wired to a per-request prompt boundary), so a steering
-term only has an observable effect during `sample()` for `where="all"`/`where="proof"`, matching
-its behaviour before this fix.
+`logprob`/`nll`/`activations`/`Learner.update` have no such per-row padding *offset* (no cache, no
+mask; every row's real content starts at column 0, right-padded) and so always use one `arange(T)`
+column-index-as-position range shared by every row -- but the *threshold* that position range is
+compared against (`self._steer_prompt_len`) can itself be per-row (a `torch.Tensor`, not a plain
+Python `int`) when a batch mixes rows from pairs of different prompt lengths, which is exactly what
+`_batched_shift_marginal_logprobs` below does; see `_make_steering_hook`'s own docstring. Either
+way, "prompt" vs. "proof" is decided against `self._steer_prompt_len`, an attribute the calling
+method sets just before invoking the model and clears just after; `sample()` does not set it
+(steering during generation is not yet wired to a per-request prompt boundary), so a steering term
+only has an observable effect during `sample()` for `where="all"`/`where="proof"`, matching its
+behaviour before this fix.
+
+**Batched log-probability (throughput fix).** `logprob`/`Learner.nll`/`nll_start_excluded` used to
+call `_shift_marginal_logprob_reference` once per `(sequent, body)` pair, itself a loop making one
+batch-size-1 forward call per start shift (~55 for a 10-line proof) -- EDL alone made roughly 3.7M
+such forwards across its 144 runs, and the interp likelihood makes one `logprob` call per ordering.
+`_batched_shift_marginal_logprobs`/`_batched_shift_marginal_nlls` instead flatten every shift of
+every pair in one call into a single pool of rows, right-pad and chunk them (sorted by length
+first) to a few thousand rows per forward call, and log-sum-exp each pair's own rows back together
+-- the same flatten/sort/chunk discipline `sample`'s cross-request batching and `AbsGptAdapter.
+activations` (also now batched the same way) use, just for a plain forward pass instead of `_gen`.
+`_shift_marginal_logprob_reference`/`_shift_marginal_nll_reference` (the original one-row-per-call
+implementations) are kept, byte-for-byte, purely as the correctness oracle `test_wp1_absgpt.py`
+checks the batched versions against.
 """
 
 from __future__ import annotations
@@ -137,7 +154,58 @@ def _build_model_and_tokenizer(
     return model, tok, cfg
 
 
-def _shift_marginal_logprob(
+#: `_batched_shift_marginal_logprobs`/`activations` chunk size (throughput fix: EDL's ~3.7M
+#: batch-size-1 forward calls, and the interp likelihood's one `logprob` call per ordering, both
+#: used to run one row at a time). ~4096 rows keeps a chunk's activation memory reasonable even for
+#: the RL checkpoint's longer prompts/proofs while still turning many small forwards into a few
+#: large ones. Paired with `_LOGPROB_MAX_BATCH_CELLS` (see `_length_bucketed_chunks`): a row-count
+#: cap *alone* degenerates to a single chunk, padded to the single longest row in the whole call,
+#: whenever the total row count already fits under it -- for a small, length-varied `pairs` list
+#: (observed: 50 real proofs, lengths 63-396 tokens) that padded a typical row by >2x on average
+#: and made the "batched" call slower, wall-clock, than the one-row-at-a-time reference on CPU.
+_LOGPROB_MAX_BATCH_ROWS = 4096
+
+#: Second cap on a `_length_bucketed_chunks` chunk: `rows * that chunk's own max length` (its total
+#: padded cell count), independent of how many total rows there are. `4096 * 64`: a chunk still
+#: gets the full `_LOGPROB_MAX_BATCH_ROWS` rows at a "typical" short proof's length (a few dozen to
+#: a couple hundred tokens, per `runner.runner.MEAN_TOKENS_PER_REF_LINE`'s own measurement), and
+#: shrinks automatically for longer rows -- bounding padding waste regardless of dataset size.
+_LOGPROB_MAX_BATCH_CELLS = 4096 * 64
+
+
+def _length_bucketed_chunks(
+    order: Sequence[int], lengths: Sequence[int], max_rows: int, max_cells: int
+) -> list[list[int]]:
+    """Group `order` (a permutation of `range(len(lengths))`, expected sorted ascending by
+    `lengths`) into chunks for batched, right-padded forward calls: a chunk never exceeds
+    `max_rows` rows, nor `max_cells` = its row count times its own rows' max length (its total
+    padded cell count once right-padded to one shared width). Both caps matter independently: the
+    first bounds dispatch/call overhead (too many tiny chunks), the second bounds padding waste
+    (too few huge chunks spanning a wide length range) -- a row-count cap *alone* degenerates to a
+    single, maximally-padded chunk whenever the whole `order` already fits under it, regardless of
+    how widely `lengths` varies (`_LOGPROB_MAX_BATCH_ROWS`'s own docstring). Sorting `order` by
+    length first (as every caller does) means each chunk's own rows are already close in length to
+    each other, so the `max_cells` cut naturally falls near where lengths start spreading apart
+    rather than at an arbitrary row-count boundary.
+    """
+    chunks: list[list[int]] = []
+    cur: list[int] = []
+    cur_max_len = 0
+    for idx in order:
+        length = lengths[idx]
+        candidate_max = max(cur_max_len, length)
+        if cur and (len(cur) + 1 > max_rows or (len(cur) + 1) * candidate_max > max_cells):
+            chunks.append(cur)
+            cur = []
+            candidate_max = length
+        cur.append(idx)
+        cur_max_len = candidate_max
+    if cur:
+        chunks.append(cur)
+    return chunks
+
+
+def _shift_marginal_logprob_reference(
     model: Any,
     tok: Any,
     device: torch.device,
@@ -149,13 +217,17 @@ def _shift_marginal_logprob(
     start_excluded: bool = False,
 ) -> LogProb:
     """`log sum_s p(shift_s(body) | prompt)` at temperature 1, over every shift `s` the `abs`
-    tokenizer's `MAXN` allows (matches `external/nd-takehome/novelty.py`'s `score()`); shared by
-    `AbsGptAdapter.logprob` and `_AbsGptLearner.nll`/`nll_start_excluded` (plan §3 WP1: "nll uses
-    the shift-marginal loss ..."). Returns a log-*probability* (`LogProb.nats` <= 0, typically);
-    `_AbsGptLearner.nll` negates it to get a positive NLL (see `core.types.LogProb`'s docstring for
-    the sign convention every caller relies on). `owner._steer_prompt_len` is set/cleared around
-    each forward call so a steered adapter's hooks (if any) see the right prompt/proof split;
-    unused (and harmless) otherwise.
+    tokenizer's `MAXN` allows (matches `external/nd-takehome/novelty.py`'s `score()`) -- one
+    forward call per shift, at batch size 1. Superseded by `_batched_shift_marginal_logprobs`
+    (throughput fix: this one-row-per-call loop is what made EDL/the interp likelihood so slow);
+    kept byte-for-byte as it was, unused by any adapter method, purely as the correctness oracle
+    `test_wp1_absgpt.py` checks the batched path against (to within 1e-4 nats).
+
+    Returns a log-*probability* (`LogProb.nats` <= 0, typically); `_shift_marginal_nll_reference`
+    negates it to get a positive NLL (see `core.types.LogProb`'s docstring for the sign convention
+    every caller relies on). `owner._steer_prompt_len` is set/cleared around each forward call so a
+    steered adapter's hooks (if any) see the right prompt/proof split; unused (and harmless)
+    otherwise.
 
     `start_excluded`: drop the very first proof token's log-probability from every shift's summed
     total before marginalising (plan §B7's start-token-excluded sensitivity variant; matches
@@ -193,7 +265,7 @@ def _shift_marginal_logprob(
     return LogProb(nats=nats, n_tokens=n_tokens, per_encoding=tuple(per_shift))
 
 
-def _shift_marginal_nll(
+def _shift_marginal_nll_reference(
     model: Any,
     tok: Any,
     device: torch.device,
@@ -205,15 +277,170 @@ def _shift_marginal_nll(
     start_excluded: bool = False,
 ) -> LogProb:
     """`-log sum_s p(shift_s(body) | prompt)`: the positive-NLL counterpart of
-    `_shift_marginal_logprob`, for `_AbsGptLearner.nll`/`nll_start_excluded` (`Learner.nll`'s
-    contract is a negative log-likelihood, the opposite sign from `ModelAdapter.logprob`; see
-    `core.types.LogProb`). Only `.nats` is negated -- `.per_encoding` stays the per-shift
-    log-*probabilities* `_shift_marginal_logprob` computed, matching
+    `_shift_marginal_logprob_reference`, kept for the same reason (correctness oracle, unused by
+    any adapter method). Only `.nats` is negated -- `.per_encoding` stays the per-shift
+    log-*probabilities* `_shift_marginal_logprob_reference` computed, matching
     `test_wp5_fixtures.TinyGptLearner.nll`'s convention."""
-    lp = _shift_marginal_logprob(
+    lp = _shift_marginal_logprob_reference(
         model, tok, device, seq, body, owner, maxn, start_excluded=start_excluded
     )
     return LogProb(nats=-lp.nats, n_tokens=lp.n_tokens, per_encoding=lp.per_encoding)
+
+
+def _batched_shift_marginal_logprobs(
+    model: Any,
+    tok: Any,
+    device: torch.device,
+    owner: Any,
+    maxn: int,
+    pairs: Sequence[tuple[Sequent, str]],
+    *,
+    start_excluded: bool = False,
+    max_batch_rows: int = _LOGPROB_MAX_BATCH_ROWS,
+    max_batch_cells: int = _LOGPROB_MAX_BATCH_CELLS,
+) -> list[LogProb]:
+    """Batched replacement for calling `_shift_marginal_logprob_reference` once per pair
+    (throughput fix: EDL made ~3.7M such batch-size-1 forwards across its 144 runs, and the interp
+    likelihood makes one `logprob` call per ordering). Every `(pair, shift)` row across *every*
+    pair in `pairs` is flattened into one pool, sorted by length, and grouped into chunks via
+    `_length_bucketed_chunks` (bucketed both by row count, `max_batch_rows`, and by total padded
+    cell count, `max_batch_cells` -- see that function's docstring for why the row-count cap alone
+    is not enough) -- the same sort-then-chunk discipline `AbsGptAdapter.sample` uses for
+    cross-request batching, extended with the cell cap this workload's much wider pair-to-pair
+    length variation needs.
+
+    Each row's summed log-probability over its own real (non-padding) proof-token range is
+    computed with a vectorised, per-row-length-aware mask: rows are right-padded with `tok.pad`,
+    and since this is a plain (non-cached) forward pass, causal attention alone means a row's real
+    positions are never affected by its own trailing padding or by any other row sharing its
+    batch -- so the padded tail's otherwise-unused values are simply excluded by the mask, safe to
+    ignore even though never computed to mean anything (no NaN risk: `tok.pad` is an ordinary,
+    embeddable token id, not uninitialised memory). Rows are then grouped back by their originating
+    pair and log-sum-exp'd over that pair's own shifts, in ascending-shift order (matching
+    `LogProb.per_encoding`'s pre-existing order) -- `row_ids` (and therefore `per_row_logp`, indexed
+    by the same *original*, pre-sort position) is built pair-major/shift-ascending in the first
+    place, so iterating it in that original order to regroup by pair recovers shift order directly,
+    independent of whatever order chunking processed rows in.
+
+    Numerically identical to `_shift_marginal_logprob_reference` (the same per-row operations,
+    just batched, modulo ordinary floating-point batching noise); `test_wp1_absgpt.py` checks
+    agreement to within 1e-4 nats on the fixture proofs.
+
+    **Steering (plan §A3).** `owner._steer_prompt_len` is set to a *per-row* `torch.Tensor` of each
+    row's own `len(pid)` for the duration of each chunk's forward call, rather than a single shared
+    scalar: rows belonging to the same pair always share one prompt length (a shift only moves
+    proof-token line/citation indices, never the prompt), but one chunk can hold rows from several
+    different pairs, which generally do *not* share a prompt length. See `_make_steering_hook`'s
+    handling of a tensor-valued `_steer_prompt_len` (it broadcasts per row instead of over the
+    whole batch).
+    """
+    if not pairs:
+        return []
+
+    row_ids: list[list[int]] = []
+    row_pair_idx: list[int] = []
+    row_prompt_len: list[int] = []
+    row_mask_start: list[int] = []
+    pair_qid_len: list[int] = [0] * len(pairs)
+
+    for pair_idx, (seq, body) in enumerate(pairs):
+        pid = tok.encode_prompt(seq.prompt())
+        qid = tok.encode_proof(body)
+        pair_qid_len[pair_idx] = len(qid)
+        ref0 = tok.ref0
+        mx = max((x - ref0 + 1 for x in qid if x >= ref0), default=0)
+        max_shift = max(maxn - mx, 0)
+        mask_start = len(pid) if start_excluded else len(pid) - 1
+        for s in range(0, max_shift + 1):
+            ids = pid + [x + s if x >= ref0 else x for x in qid]
+            row_ids.append(ids)
+            row_pair_idx.append(pair_idx)
+            row_prompt_len.append(len(pid))
+            row_mask_start.append(mask_start)
+
+    n_rows = len(row_ids)
+    per_row_logp: list[float] = [0.0] * n_rows
+    row_lens = [len(r) for r in row_ids]
+    order = sorted(range(n_rows), key=lambda i: row_lens[i])
+    chunks = _length_bucketed_chunks(order, row_lens, max_batch_rows, max_batch_cells)
+
+    model.eval()
+    with torch.no_grad():
+        for chunk in chunks:
+            chunk_ids = [row_ids[i] for i in chunk]
+            b = len(chunk_ids)
+            length = max(len(r) for r in chunk_ids)
+            x = torch.full((b, length), tok.pad, dtype=torch.long, device=device)
+            for bi, r in enumerate(chunk_ids):
+                x[bi, : len(r)] = torch.tensor(r, device=device)
+
+            lengths = torch.tensor([len(row_ids[i]) for i in chunk], device=device)
+            mask_starts = torch.tensor([row_mask_start[i] for i in chunk], device=device)
+            prompt_lens = torch.tensor(
+                [row_prompt_len[i] for i in chunk], dtype=torch.long, device=device
+            )
+
+            owner._steer_prompt_len = prompt_lens
+            try:
+                logits = model(x[:, :-1]).float()
+            finally:
+                owner._steer_prompt_len = 0
+
+            tgt = x[:, 1:]
+            logp = F.log_softmax(logits, dim=-1).gather(-1, tgt[..., None]).squeeze(-1)
+            col = torch.arange(logp.shape[1], device=device).unsqueeze(0)
+            valid_end = (lengths - 1).unsqueeze(1)
+            row_mask = (col >= mask_starts.unsqueeze(1)) & (col < valid_end)
+            row_sums = (logp * row_mask).sum(dim=1)
+            for local_i, global_i in enumerate(chunk):
+                per_row_logp[global_i] = float(row_sums[local_i].item())
+
+    per_pair_shifts: list[list[float]] = [[] for _ in pairs]
+    for global_i in range(n_rows):
+        per_pair_shifts[row_pair_idx[global_i]].append(per_row_logp[global_i])
+
+    results: list[LogProb] = []
+    for pair_idx, per_shift in enumerate(per_pair_shifts):
+        nats = (
+            float(torch.logsumexp(torch.tensor(per_shift), dim=0).item())
+            if per_shift
+            else float("-inf")
+        )
+        n_tokens = pair_qid_len[pair_idx] - 1 if start_excluded else pair_qid_len[pair_idx]
+        results.append(LogProb(nats=nats, n_tokens=n_tokens, per_encoding=tuple(per_shift)))
+    return results
+
+
+def _batched_shift_marginal_nlls(
+    model: Any,
+    tok: Any,
+    device: torch.device,
+    owner: Any,
+    maxn: int,
+    pairs: Sequence[tuple[Sequent, str]],
+    *,
+    start_excluded: bool = False,
+    max_batch_rows: int = _LOGPROB_MAX_BATCH_ROWS,
+    max_batch_cells: int = _LOGPROB_MAX_BATCH_CELLS,
+) -> list[LogProb]:
+    """Batched positive-NLL counterpart of `_batched_shift_marginal_logprobs`, for
+    `_AbsGptLearner.nll`/`nll_start_excluded` (`Learner.nll`'s contract is a negative
+    log-likelihood, the opposite sign from `ModelAdapter.logprob`; see `core.types.LogProb`). Only
+    `.nats` is negated -- `.per_encoding` stays the per-shift log-*probabilities*."""
+    lps = _batched_shift_marginal_logprobs(
+        model,
+        tok,
+        device,
+        owner,
+        maxn,
+        pairs,
+        start_excluded=start_excluded,
+        max_batch_rows=max_batch_rows,
+        max_batch_cells=max_batch_cells,
+    )
+    return [
+        LogProb(nats=-lp.nats, n_tokens=lp.n_tokens, per_encoding=lp.per_encoding) for lp in lps
+    ]
 
 
 def _make_capture_hook(captured: dict[int, torch.Tensor], layer: int) -> Any:
@@ -509,10 +736,9 @@ class AbsGptAdapter(ModelAdapter):
         return out
 
     def logprob(self, pairs: Sequence[tuple[Sequent, str]]) -> list[LogProb]:
-        return [
-            _shift_marginal_logprob(self._model, self._tok, self._device, seq, body, self, MAXN)
-            for seq, body in pairs
-        ]
+        return _batched_shift_marginal_logprobs(
+            self._model, self._tok, self._device, self, MAXN, pairs
+        )
 
     def learner(self, *, seed: int) -> _AbsGptLearner:
         """Narrower than `ModelAdapter.learner`'s declared `-> Learner` (a legal covariant
@@ -535,12 +761,43 @@ class AbsGptAdapter(ModelAdapter):
         )
 
     def activations(
-        self, pairs: Sequence[tuple[Sequent, str]], layers: Sequence[int]
+        self,
+        pairs: Sequence[tuple[Sequent, str]],
+        layers: Sequence[int],
+        *,
+        max_batch_rows: int = _LOGPROB_MAX_BATCH_ROWS,
+        max_batch_cells: int = _LOGPROB_MAX_BATCH_CELLS,
     ) -> list[np.ndarray]:
-        out: list[np.ndarray] = []
-        for seq, body in pairs:
-            ids = self._tok.encode_prompt(seq.prompt()) + self._tok.encode_proof(body)
-            x = torch.tensor([ids], dtype=torch.long, device=self._device)
+        """Batched residual-stream extraction (throughput fix, matching `logprob`'s own batching):
+        every pair's ids are right-padded into one batch, sorted by length first and grouped into
+        chunks via `_length_bucketed_chunks` (bucketed by both row count, `max_batch_rows`, and
+        total padded cell count, `max_batch_cells` -- the keywords are mainly for tests that want to
+        force multiple chunks on a small `pairs` list; ordinary callers can leave them at their
+        defaults), each requested block's output is captured for the *whole* chunk in one forward
+        call, and each pair's own array is sliced back out of that batched capture with its padding
+        stripped. Identical per-pair values to a one-forward-per-pair loop: causal attention (this
+        is a plain, non-cached forward pass) means a row's real positions never see its own
+        trailing padding or any other row sharing its batch.
+        """
+        if not pairs:
+            return []
+        ids_by_pair: list[list[int]] = [
+            self._tok.encode_prompt(seq.prompt()) + self._tok.encode_proof(body)
+            for seq, body in pairs
+        ]
+        id_lens = [len(r) for r in ids_by_pair]
+        order = sorted(range(len(pairs)), key=lambda i: id_lens[i])
+        chunks = _length_bucketed_chunks(order, id_lens, max_batch_rows, max_batch_cells)
+        result_by_idx: dict[int, np.ndarray] = {}
+
+        for chunk in chunks:
+            chunk_ids = [ids_by_pair[i] for i in chunk]
+            b = len(chunk_ids)
+            length = max(len(r) for r in chunk_ids)
+            x = torch.full((b, length), self._tok.pad, dtype=torch.long, device=self._device)
+            for bi, r in enumerate(chunk_ids):
+                x[bi, : len(r)] = torch.tensor(r, device=self._device)
+
             captured: dict[int, torch.Tensor] = {}
             handles = []
             for layer in layers:
@@ -552,9 +809,14 @@ class AbsGptAdapter(ModelAdapter):
             finally:
                 for h in handles:
                     h.remove()
-            arr = np.stack([captured[layer][0].cpu().numpy() for layer in layers], axis=0)
-            out.append(arr)
-        return out
+
+            for local_i, pair_idx in enumerate(chunk):
+                real_len = len(chunk_ids[local_i])
+                result_by_idx[pair_idx] = np.stack(
+                    [captured[layer][local_i, :real_len].cpu().numpy() for layer in layers], axis=0
+                )
+
+        return [result_by_idx[i] for i in range(len(pairs))]
 
     def with_steering(self, spec: SteeringSpec) -> AbsGptAdapter:
         """Narrower than `ModelAdapter.with_steering`'s declared `-> ModelAdapter` (a legal
@@ -607,10 +869,18 @@ def _make_steering_hook(owner: AbsGptAdapter, term: Any, delta: torch.Tensor) ->
     Reads `owner._steer_prompt_len` (set/cleared by whichever adapter method is currently driving
     the model) to split "prompt" from "proof" positions; see the module docstring for how the
     absolute token positions of one call are recovered *per row* from the block's own `mask`
-    forward argument during `_gen`-driven sampling (needed since cross-request batching can now
-    put rows with different amounts of left padding in the same call), versus a plain, batch-wide
-    `arange(T)` for a non-cached forward pass (`logprob`/`nll`/`activations`/`Learner.update`,
-    none of which pad different rows by different amounts within one call).
+    forward argument during `_gen`-driven sampling (needed since cross-request batching can now put
+    rows with different amounts of left padding in the same call), versus a plain, batch-wide
+    `arange(T)` for a non-cached forward pass (`logprob`/`nll`/`activations`/`Learner.update`).
+    `owner._steer_prompt_len` can be either a plain Python `int` (one prompt length shared by the
+    whole batch -- `activations`/`Learner.update` never set it, so it stays the module default `0`;
+    a single-pair call effectively has just one prompt length too) or a `torch.Tensor` of shape
+    `(B,)` (one prompt length *per row* -- `_batched_shift_marginal_logprobs` sets this, since a
+    right-padded chunk can hold rows from several different pairs with different prompt lengths,
+    even though every row belonging to the *same* pair always shares one: a shift only moves
+    proof-token indices, never the prompt). Either way it is compared against `abs_pos` (shape
+    `(B, T)`): a plain int broadcasts as one threshold for the whole batch; a `(B,)` tensor is
+    reshaped to `(B, 1)` first so each row is compared against its own threshold.
     """
 
     def _hook(module: Any, inputs: Any, output: torch.Tensor) -> torch.Tensor:
@@ -631,6 +901,8 @@ def _make_steering_hook(owner: AbsGptAdapter, term: Any, delta: torch.Tensor) ->
         else:
             abs_pos = torch.arange(t, device=output.device).unsqueeze(0).expand(b, t)
         prompt_len = owner._steer_prompt_len
+        if isinstance(prompt_len, torch.Tensor):
+            prompt_len = prompt_len.to(device=abs_pos.device).view(-1, 1)
         if term.where == "all":
             pos_mask = torch.ones_like(abs_pos, dtype=torch.bool)
         elif term.where == "prompt":
@@ -683,22 +955,16 @@ class _AbsGptLearner:
         "nll uses the shift-marginal loss over proof tokens including QED, conditioned on the
         prompt"; `Learner.nll`'s contract per `core.types.LogProb` is positive nats, the opposite
         sign from `ModelAdapter.logprob`)."""
-        return [
-            _shift_marginal_nll(self._model, self._tok, self._device, seq, body, self, MAXN)
-            for seq, body in pairs
-        ]
+        return _batched_shift_marginal_nlls(self._model, self._tok, self._device, self, MAXN, pairs)
 
     def nll_start_excluded(self, pairs: Sequence[tuple[Sequent, str]]) -> list[LogProb]:
         """Optional sensitivity-check variant of `nll` (plan §B7; `edl.py`'s `run_edl` looks this
         up via `getattr`): the start-index token's contribution to each shift's log-probability is
         dropped before marginalising, matching `test_wp5_fixtures.TinyGptLearner.
         nll_start_excluded`."""
-        return [
-            _shift_marginal_nll(
-                self._model, self._tok, self._device, seq, body, self, MAXN, start_excluded=True
-            )
-            for seq, body in pairs
-        ]
+        return _batched_shift_marginal_nlls(
+            self._model, self._tok, self._device, self, MAXN, pairs, start_excluded=True
+        )
 
     def update(self, pairs: Sequence[tuple[Sequent, str]], lr: float) -> float:
         self._model.train()
