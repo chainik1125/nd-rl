@@ -12,6 +12,8 @@ Here is an overview of the current choices.
 
     - Afterwards, when we decide what is worth keeping, we can delete certain artifacts. 
 
+    - [Where things are](../WHERE_THINGS_ARE.md) lists the HF locations currently in use.
+
 2. Compute: Runpod
 
     - Most compute will use Runpod GPUs.
