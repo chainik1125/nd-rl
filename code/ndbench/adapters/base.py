@@ -161,6 +161,7 @@ class Learner(Protocol):
 #: `fake` is implemented in WP0.
 ADAPTERS: dict[str, str] = {
     "absgpt": "code.ndbench.adapters.absgpt:AbsGptAdapter",
+    "danstate": "code.ndbench.adapters.danstate:DanStateAdapter",
     "fake": "code.ndbench.adapters.fake:FakeAdapter",
     "lean_seq": "code.ndbench.adapters.lean_seq:LeanSeqAdapter",
     "step_env": "code.ndbench.adapters.step_env:StepEnvAdapter",

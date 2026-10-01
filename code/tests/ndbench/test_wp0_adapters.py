@@ -73,7 +73,7 @@ def test_default_methods_raise_not_supported() -> None:
 
 
 def test_adapters_registry_has_every_planned_backend() -> None:
-    assert set(ADAPTERS) == {"absgpt", "fake", "lean_seq", "step_env", "api_llm"}
+    assert set(ADAPTERS) == {"absgpt", "danstate", "fake", "lean_seq", "step_env", "api_llm"}
     module_name, _, attr = ADAPTERS["fake"].partition(":")
     assert module_name == "code.ndbench.adapters.fake"
     assert attr == "FakeAdapter"
