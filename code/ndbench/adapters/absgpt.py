@@ -69,10 +69,10 @@ compared against (`self._steer_prompt_len`) can itself be per-row (a `torch.Tens
 Python `int`) when a batch mixes rows from pairs of different prompt lengths, which is exactly what
 `_batched_shift_marginal_logprobs` below does; see `_make_steering_hook`'s own docstring. Either
 way, "prompt" vs. "proof" is decided against `self._steer_prompt_len`, an attribute the calling
-method sets just before invoking the model and clears just after; `sample()` does not set it
-(steering during generation is not yet wired to a per-request prompt boundary), so a steering term
-only has an observable effect during `sample()` for `where="all"`/`where="proof"`, matching its
-behaviour before this fix.
+method sets just before invoking the model and clears just after. `sample()` sets it to a per-row
+tensor of each row's prompt length (excluding any forced prefix, whose tokens are proof tokens) for
+every `_gen` chunk (audit 2026-10-01: it used to leave it at 0, so `where="proof"` steered the
+prompt too and `where="prompt"` did nothing during generation).
 
 **Batched log-probability (throughput fix).** `logprob`/`Learner.nll`/`nll_start_excluded` used to
 call `_shift_marginal_logprob_reference` once per `(sequent, body)` pair, itself a loop making one
@@ -657,8 +657,10 @@ class AbsGptAdapter(ModelAdapter):
 
         input_ids_by_req: list[list[int]] = []
         forced_ids_by_req: list[list[int]] = []
+        prompt_len_by_req: list[int] = []
         for req in reqs:
             prompt_ids = self._tok.encode_prompt(req.sequent.prompt())
+            prompt_len_by_req.append(len(prompt_ids))
             forced_ids: list[int] = []
             if req.prefix is not None:
                 forced_ids = self._tok.encode_proof(req.prefix.body)
@@ -693,20 +695,27 @@ class AbsGptAdapter(ModelAdapter):
                 # whole growing KV cache, which is pure waste for sampling and, at a large enough
                 # batch x sequence length, can by itself exhaust GPU memory (observed: a 256-item,
                 # batch=1024 call OOM'd on a 24 GB RTX 3090 for this small model before this fix).
-                with (
-                    torch.no_grad(),
-                    torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda_enabled),
-                ):
-                    outs = _GEN(
-                        self._model,
-                        self._tok,
-                        batch_ids,
-                        temperature,
-                        max_new,
-                        gen,
-                        self._compact_every,
-                        self._compact_below,
+                if self._steering_spec:
+                    self._steer_prompt_len = torch.tensor(
+                        [prompt_len_by_req[r_idx] for r_idx, _ in chunk_keys], device=self._device
                     )
+                try:
+                    with (
+                        torch.no_grad(),
+                        torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda_enabled),
+                    ):
+                        outs = _GEN(
+                            self._model,
+                            self._tok,
+                            batch_ids,
+                            temperature,
+                            max_new,
+                            gen,
+                            self._compact_every,
+                            self._compact_below,
+                        )
+                finally:
+                    self._steer_prompt_len = 0
                 for key, cont in zip(chunk_keys, outs, strict=True):
                     continuations[key] = cont
                 if cuda_enabled:
@@ -902,7 +911,14 @@ def _make_steering_hook(owner: AbsGptAdapter, term: Any, delta: torch.Tensor) ->
             abs_pos = torch.arange(t, device=output.device).unsqueeze(0).expand(b, t)
         prompt_len = owner._steer_prompt_len
         if isinstance(prompt_len, torch.Tensor):
-            prompt_len = prompt_len.to(device=abs_pos.device).view(-1, 1)
+            if prompt_len.numel() != b:
+                # `_gen` compacts finished rows out of the batch mid-decode, so `sample()`'s
+                # per-row prompt lengths no longer line up with the rows. Every such call is an
+                # incremental decode step whose tokens are all generated (proof) tokens, past
+                # every row's prompt, so a threshold of 0 classifies them correctly.
+                prompt_len = 0
+            else:
+                prompt_len = prompt_len.to(device=abs_pos.device).view(-1, 1)
         if term.where == "all":
             pos_mask = torch.ones_like(abs_pos, dtype=torch.bool)
         elif term.where == "prompt":
