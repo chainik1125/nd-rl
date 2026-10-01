@@ -234,7 +234,10 @@ class _VerdictCache:
 
     def __init__(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(str(path))
+        # Several runs (one per GPU) share one cache file: WAL lets readers proceed during a
+        # write, and the long timeout makes a writer wait for another's commit instead of failing.
+        self._conn = sqlite3.connect(str(path), timeout=120.0)
+        self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute(
             "CREATE TABLE IF NOT EXISTS verdicts (sha256 TEXT PRIMARY KEY, ok INTEGER NOT NULL)"
         )

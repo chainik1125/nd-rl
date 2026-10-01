@@ -273,7 +273,12 @@ def _build_judge(name: str, out: str) -> Any:
     never has to import `judge.lean` at all (`judge/__init__.py`'s own lazy-registry rationale)."""
     judge_cls = _resolve_registry(JUDGES, name, "judge")
     if name == "lean":
-        return judge_cls(cache_dir=str(Path(out) / "cache"))
+        # NDBENCH_LEAN_WORKERS lowers the per-run Lean process count when several runs share the
+        # host (the judge caps it at 8 regardless).
+        workers = os.environ.get("NDBENCH_LEAN_WORKERS")
+        return judge_cls(
+            cache_dir=str(Path(out) / "cache"), workers=int(workers) if workers else None
+        )
     return judge_cls()
 
 
