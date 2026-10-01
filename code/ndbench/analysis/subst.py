@@ -25,6 +25,7 @@ from ..metrics import pass_at_k
 from ..store import Store
 from ._common import (
     cfg_get,
+    default_version,
     empty_view,
     items_by_pid,
     latest_run_id,
@@ -46,9 +47,15 @@ def _mean_or_nan(vals: Sequence[float]) -> float:
 
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
-    version = cast(str, cfg_get(cfg, "version", "v1"))
     textbook_suite = cast(str, cfg_get(cfg, "textbook_law_suite", DEFAULT_TEXTBOOK_LAW_SUITE))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # Fix list item 1, applied uniformly: pick whichever version has runs rather than a
+    # hard-coded "v1". `textbook_suite` is a *different* suite and so is resolved independently
+    # (it need not land on the same version `suite` does).
+    version = cast(
+        str,
+        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+    )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
@@ -56,7 +63,13 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     models = override_models or models_present(store, suite=suite, version=version)
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
-    textbook_problems = problems_by_pid(store, textbook_suite, version)
+    textbook_version = cast(
+        str,
+        cfg.get("textbook_law_version")
+        or default_version(store, suite=textbook_suite, models=models)
+        or "v1",
+    )
+    textbook_problems = problems_by_pid(store, textbook_suite, textbook_version)
 
     schemas = sorted(
         {str(v) for p in problems.values() if (v := p.tags.get(SCHEMA_TAG)) is not None}
@@ -114,7 +127,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 }
                 if tb_pids:
                     tb_run = latest_run_id(
-                        store, suite=textbook_suite, model=model, version=version
+                        store, suite=textbook_suite, model=model, version=textbook_version
                     )
                     if tb_run is not None:
                         tb_items = items_by_pid(store, tb_run)
@@ -146,6 +159,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "suite": suite,
             "textbook_law_suite": textbook_suite,
             "version": version,
+            "textbook_law_version": textbook_version,
             "models": models,
         },
         "schemas": out,

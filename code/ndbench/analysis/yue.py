@@ -43,6 +43,7 @@ from ..store import Store
 from ._common import (
     all_run_ids,
     cfg_get,
+    default_version,
     empty_view,
     first_chunk_by_pid,
     is_nan,
@@ -57,8 +58,8 @@ from ._common import (
     safe_div,
 )
 
-#: k = 2^0 .. 2^12 (plan §2 B8: "k_max 4096 (textbook_dev) / 1024 (textbook-law)"; the curve is
-#: computed up to 4096 throughout and callers plotting textbook-law can slice it at 1024).
+#: k = 2^0 .. 2^12, the full grid every set's curve is *computed* on (so `_crossover`/`_venn`, which
+#: compare two sets' models at the same `k`, never need to intersect two different grids).
 KS: tuple[int, ...] = tuple(2**i for i in range(13))
 DEFAULT_B = 2000
 #: label -> suite name, matching WP2's `existing.py` builders (plan §1's suites table).
@@ -67,6 +68,45 @@ DEFAULT_SETS: dict[str, str] = {
     "textbook_law": "textbook_law",
     "control": "gen_ctrl",
 }
+#: label -> the k this set's own draw protocol actually targets (plan §2 B8: "k_max 4096
+#: (textbook_dev) / 1024 (textbook-law)"; the control set draws a fixed, non-adaptive k=512 and was
+#: never meant to be extrapolated past it). `view` plots/crosses-over/Venns each set only up to its
+#: own entry here (default `max(KS)` for an unlisted label), rather than one blanket 2^12 grid for
+#: every set regardless of its real sampling budget -- the previous behaviour both overstated how
+#: far past-sample extrapolation should be trusted (e.g. `gen_ctrl`'s 60 control items were drawn at
+#: a fixed k=512 specifically so no extrapolation is needed) and surfaced the two-estimator
+#: discontinuity at `k == n_tot` (`_pk_vals`'s module docstring) well past the point any reader
+#: should be looking at that set's curve at all.
+DEFAULT_K_MAX_BY_SET: dict[str, int] = {
+    "textbook_dev": 4096,
+    "textbook_law": 1024,
+    "control": 512,
+}
+#: This benchmark's three named models (plan §0/configs/models.yaml), the default candidate list
+#: when `cfg["models"]` doesn't override it (WP8 integration fix list item 3). Without this filter,
+#: `models_present` would also surface every `steer:<layer>:<alpha>`/`interp:<alpha>` run that
+#: happens to share a suite with the Yue sets (`textbook_dev` doubles as one of
+#: `INTERP_SPEC.md`'s steering/interpolation eval suites) -- real runs, but not what this specific
+#: base-vs-RL(-vs-armC) replication page is for; those sweeps get their own `interp_steering`/
+#: `interp_weights` pages. A set missing one of the three (e.g. `textbook_law`/`gen_ctrl` have no
+#: `armC` run) simply shows whichever of the three it does have.
+DEFAULT_MODELS: tuple[str, ...] = ("base", "rl", "armC")
+#: label -> the pre-ndbench `import_legacy` suite holding a `status="legacy"` run to sanity-check
+#: against (plan §2 B8's "consistency vs the legacy k=256 counts (max_new 512)"). Only
+#: `textbook_dev` has one on the real store: the existing 58-item k=256 textbook run
+#: (`suites/existing.py`'s `_import_monitor_run` names it `legacy_textbook`, not
+#: `legacy_textbook_dev` -- its summary json's own `"set"` field, not this suite's name, drives
+#: that). `textbook_law`/`gen_ctrl` are new constructions built for this project with no
+#: pre-existing legacy equivalent, so they simply have no entry here (`_legacy_consistency` then
+#: finds no matching run and the page shows no legacy-consistency row for them, not a crash).
+DEFAULT_LEGACY_SETS: dict[str, str] = {"textbook_dev": "legacy_textbook"}
+#: This dashboard's model label -> the legacy run's own label (`suites/existing.py`'s
+#: `_LEGACY_MONITOR_MODELS`); the reverse direction of `skills.py`'s `LEGACY_MODEL_MAP` (fix list
+#: item 2's "Legacy model labels differ"). `armC` has no legacy-textbook equivalent at all (the
+#: pre-ndbench textbook run only ever covered base/champion), so it is intentionally absent --
+#: looked up with `.get(m, m)` below, which would try a (nonexistent) literal `"armC"` legacy run
+#: and correctly find none.
+LEGACY_MODEL_LABEL: dict[str, str] = {"base": "base", "rl": "champion"}
 #: rows: (n_first, c_first, n_tot, c_tot) per pid.
 _Rows = dict[str, tuple[int, int, int, int]]
 
@@ -276,9 +316,21 @@ def _per_length(
 
 
 def _legacy_consistency(
-    store: Store, suite: str, version: str, model: str, rows: _Rows
+    store: Store, legacy_suite: str, legacy_model: str, rows: _Rows
 ) -> dict[str, Any] | None:
-    legacy_ids = all_run_ids(store, suite=suite, model=model, version=version, statuses=("legacy",))
+    """`rows` (this run's own `(n_first, c_first, n_tot, c_tot)` per pid) vs. `import_legacy`'s
+    pre-ndbench `status="legacy"` run for the same underlying items, if one exists.
+
+    `legacy_suite`/`legacy_model` are the *legacy* run's own suite/model names, not this
+    benchmark's -- `import_legacy` never writes into a suite named `"textbook_dev"` (the real
+    pre-existing k=256 textbook comparison lives under suite `"legacy_textbook"`, model labels
+    `"base"`/`"champion"`, per `suites/existing.py`'s `_import_monitor_run`), and a legacy run's
+    own `version` field is a sampling-config id (e.g. `"k256_s0"`), not this suite's `"v1"`/`"v2"`
+    -- so the lookup is unfiltered on version (`version=None`), by suite+model only.
+    """
+    legacy_ids = all_run_ids(
+        store, suite=legacy_suite, model=legacy_model, version=None, statuses=("legacy",)
+    )
     if not legacy_ids:
         return None
     legacy_items = merged_items_by_pid(store, legacy_ids)
@@ -316,17 +368,35 @@ def _pick_pair(models: list[str], cfg: Mapping[str, JSON]) -> tuple[str, str] | 
 
 
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
-    version = cast(str, cfg_get(cfg, "version", "v1"))
+    override_version = cast("str | None", cfg.get("version"))
     sets = cast("dict[str, str]", cfg_get(cfg, "sets", dict(DEFAULT_SETS)))
     ks = cast("list[int]", cfg_get(cfg, "ks", list(KS)))
+    k_max_by_set = cast("dict[str, int]", cfg_get(cfg, "k_max_by_set", dict(DEFAULT_K_MAX_BY_SET)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
     B = int(cast(int, cfg_get(cfg, "B", DEFAULT_B)))
     override_models = cast("list[str] | None", cfg.get("models"))
+    candidate_models = override_models or list(DEFAULT_MODELS)
+    legacy_sets = cast("dict[str, str]", cfg_get(cfg, "legacy_sets", dict(DEFAULT_LEGACY_SETS)))
+    legacy_model_label = cast(
+        "dict[str, str]", cfg_get(cfg, "legacy_model_label", dict(LEGACY_MODEL_LABEL))
+    )
 
     per_set: dict[str, Any] = {}
     legacy_by_set: dict[str, Any] = {}
     for label, suite in sets.items():
-        models = override_models or models_present(store, suite=suite, version=version)
+        # Each labelled set is its own suite (plan §1) and so can land on its own suite version
+        # (fix list item 1): resolved independently per set rather than from one global cfg
+        # default, since e.g. textbook_dev/textbook_law/gen_ctrl need not all share one version.
+        version = (
+            override_version or default_version(store, suite=suite, models=candidate_models) or "v1"
+        )
+        # This set's own k grid, capped at its own draw protocol's k_max (module docstring's
+        # `DEFAULT_K_MAX_BY_SET`) rather than the full 2^12 grid every set would otherwise share.
+        k_cap = int(k_max_by_set.get(label, max(ks)))
+        ks_for_set = [k for k in ks if k <= k_cap]
+        models = override_models or [
+            m for m in candidate_models if m in models_present(store, suite=suite, version=version)
+        ]
         if not models:
             continue
         problems = problems_by_pid(store, suite, version)
@@ -348,7 +418,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             if not rows:
                 continue
             rows_by_model[model] = rows
-            curve, lower = _curve_for_model(rows, ks, B, seed)
+            curve, lower = _curve_for_model(rows, ks_for_set, B, seed)
             curves[model] = curve
             lower_curves[model] = lower
             coverage[model] = _coverage(rows)
@@ -359,17 +429,21 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         venn: dict[str, Any] | None = None
         if pair is not None:
             a, b = pair
-            cross = _crossover(rows_by_model[a], rows_by_model[b], ks, B, seed)
+            cross = _crossover(rows_by_model[a], rows_by_model[b], ks_for_set, B, seed)
             venn = _venn(rows_by_model[a], rows_by_model[b], a, b)
-        per_length = {m: _per_length(rows_by_model[m], problems, ks) for m in rows_by_model}
+        per_length = {m: _per_length(rows_by_model[m], problems, ks_for_set) for m in rows_by_model}
         legacy: dict[str, Any] = {}
-        for m in rows_by_model:
-            lc = _legacy_consistency(store, suite, version, m, rows_by_model[m])
-            if lc is not None:
-                legacy[m] = lc
+        legacy_suite = legacy_sets.get(label)
+        if legacy_suite is not None:
+            for m in rows_by_model:
+                legacy_model = legacy_model_label.get(m, m)
+                lc = _legacy_consistency(store, legacy_suite, legacy_model, rows_by_model[m])
+                if lc is not None:
+                    legacy[m] = lc
         per_set[label] = {
             "suite": suite,
             "version": version,
+            "k_max": k_cap,
             "models": sorted(rows_by_model),
             "n_items": {m: len(r) for m, r in rows_by_model.items()},
             "curves": curves,
@@ -384,10 +458,15 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             legacy_by_set[label] = legacy
 
     if not per_set:
-        return empty_view(f"no yue runs found for sets {list(sets.values())} (version {version})")
+        return empty_view(
+            f"no yue runs found among models {list(candidate_models)} "
+            f"for sets {list(sets.values())}"
+        )
     return {
         "empty": False,
-        "meta": {"ks": list(ks), "B": B, "seed": seed, "version": version, "sets": sets},
+        # No single top-level "version": each set is its own suite and resolves its own version
+        # independently (see the loop above) -- read `data["sets"][label]["version"]` instead.
+        "meta": {"ks": list(ks), "B": B, "seed": seed, "models": candidate_models, "sets": sets},
         "sets": per_set,
         "legacy_consistency": legacy_by_set,
     }

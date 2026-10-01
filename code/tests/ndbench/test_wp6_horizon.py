@@ -61,3 +61,47 @@ def test_horizon_empty_store(tmp_path: Path) -> None:
     store = Store(tmp_path)
     data = horizon.view(store, {})
     assert data["empty"] is True
+
+
+def test_horizon_splits_iltp_style_by_kind(tmp_path: Path) -> None:
+    """`suites/families.py`'s "ILTP-style" family packs four structurally distinct sub-schemas
+    under one `family` tag with *overlapping* `n` ranges, distinguished only by `tags["kind"]`
+    (e.g. real `n=1` mixes syj204_style/syj203_style/de_bruijn_style items) -- grouping by `family`
+    alone would pool pass@k across unrelated schemas at the same nominal `n`."""
+    store = Store(tmp_path)
+    problems = [
+        make_problem(
+            "iltp_a",
+            "families",
+            "v1",
+            length=4,
+            tags={"family": "ILTP-style", "n": 1, "kind": "syj204_style"},
+        ),
+        make_problem(
+            "iltp_b",
+            "families",
+            "v1",
+            length=8,
+            tags={"family": "ILTP-style", "n": 1, "kind": "syj203_style"},
+        ),
+        # a plain (non-ILTP) family has no "kind" tag at all -- must be unaffected.
+        make_problem("plain_a", "families", "v1", length=3, tags={"family": "and_tower", "n": 1}),
+    ]
+    store.write_suite(problems, manifest("families", "v1", len(problems)))
+    run_id = start_run(store, suite="families", version="v1", model="base", k=8)
+    store.append_items(
+        run_id,
+        [
+            make_item(run_id, "iltp_a", 8, 8),
+            make_item(run_id, "iltp_b", 8, 0),
+            make_item(run_id, "plain_a", 8, 8),
+        ],
+    )
+    data = horizon.view(store, {"B": 20, "seed": 0})
+    assert "ILTP-style (syj204_style)" in data["families"]
+    assert "ILTP-style (syj203_style)" in data["families"]
+    assert "ILTP-style" not in data["families"]  # the unsplit, kind-blind key must not appear.
+    assert "and_tower" in data["families"]  # a plain family (no "kind" tag) is unaffected.
+    # each sub-schema's own n=1 item result is not pooled with the other sub-schema's.
+    syj204 = data["families"]["ILTP-style (syj204_style)"]["base"]
+    assert syj204["curves_by_k"]["1"] == [(1, 1.0)]

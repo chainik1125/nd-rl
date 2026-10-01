@@ -90,11 +90,29 @@ def latest_run_id(
     version: str | None = None,
     statuses: Sequence[str] | None = LIVE_STATUSES,
 ) -> str | None:
-    """The most recently finished (or, failing that, started) matching run, or `None`."""
+    """The matching run with the most total samples (`k`), ties broken by most recently finished
+    (or, failing that, started); `None` if nothing matches.
+
+    **Why `k` first, not just recency.** A suite can legitimately be sampled more than once against
+    the same model under different configs that both finish as `"complete"` -- e.g. `textbook_dev`
+    carries both the Yue benchmark's adaptive `k=4096` run for `base`/`rl` *and* a small `k=8`
+    "unsteered baseline" measurement for the interp steering/interpolation sweep (`INTERP_SPEC.md`'s
+    steering/interpolation eval suites include `textbook_dev`), and the `k=8` baseline happens to
+    finish *after* the big Yue run. Picking "most recently finished" alone would then silently hand
+    an 8-sample run to every caller expecting the real 4096-sample one. Preferring the largest `k`
+    asks for "the most complete/informative run" directly; a `--rerun` at the same `k` as an earlier
+    attempt still wins on the recency tie-break, so resume/rerun behaviour is unchanged, and a suite
+    with only one run per (suite, model, version) (the common case) is unaffected either way.
+    """
     cands = run_records(store, suite=suite, version=version, model=model, statuses=statuses)
     if not cands:
         return None
-    cands.sort(key=lambda r: cast(str, r.get("finished_utc") or r.get("started_utc") or ""))
+    cands.sort(
+        key=lambda r: (
+            int(cast("int | None", r.get("k")) or 0),
+            cast(str, r.get("finished_utc") or r.get("started_utc") or ""),
+        )
+    )
     return cast(str, cands[-1]["run_id"])
 
 
@@ -140,6 +158,44 @@ def problem_versions(store: Store, suite: str) -> list[str]:
     if not d.is_dir():
         return []
     return sorted(p.name for p in d.iterdir() if p.is_dir())
+
+
+def default_version(
+    store: Store,
+    *,
+    suite: str,
+    models: Sequence[str] | None = None,
+    statuses: Sequence[str] | None = LIVE_STATUSES,
+) -> str | None:
+    """Which `suite` version a view should read when `cfg` doesn't pin one explicitly: the
+    version with the most run coverage, rather than an arbitrary hard-coded `"v1"` (fix list item
+    1 -- a real suite can accumulate a small demo version nobody ran alongside the version the
+    real runs target, e.g. `padding`'s 132-item `v1` demo vs. the 51-base `v2` that `base`/`rl`
+    were actually run on, or `glue`'s 185-item `demo_v1` vs. the 792-item `v1` the real `base`/
+    `rl`/`armC` runs target).
+
+    Scores each `problem_versions(store, suite)` entry by `(n_models_matched, version_string)` --
+    `n_models_matched` is "how many of `models` have >= 1 matching run at this version" when
+    `models` is given, else simply "how many distinct models have any run at this version" (so a
+    caller that doesn't yet know its model list still prefers a version something was actually run
+    on) -- and returns the best-scoring version, ties broken by the lexicographically-greatest
+    version string (so "v2" beats "v1" when both have identical coverage, e.g. both zero). Falls
+    back to the only version when there's just one, and to `None` when `suite` has no version
+    directory at all (mirrors `problems_by_pid`'s own not-found handling, so callers can still
+    produce an `empty_view` either way).
+    """
+    versions = problem_versions(store, suite)
+    if not versions:
+        return None
+    if len(versions) == 1:
+        return versions[0]
+
+    def score(version: str) -> tuple[int, str]:
+        present = set(models_present(store, suite=suite, version=version, statuses=statuses))
+        n_matched = sum(1 for m in models if m in present) if models is not None else len(present)
+        return (n_matched, version)
+
+    return max(versions, key=score)
 
 
 class FirstChunk(TypedDict):
@@ -251,16 +307,26 @@ def empty_view(reason: str) -> dict[str, JSON]:
 
 
 def irls_binomial(
-    design: np.ndarray, n: np.ndarray, c: np.ndarray, max_iter: int = 100, tol: float = 1e-10
+    design: np.ndarray,
+    n: np.ndarray,
+    c: np.ndarray,
+    max_iter: int = 100,
+    tol: float = 1e-10,
+    ridge: float = 0.5,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Binomial GLM (logit link) by IRLS/Fisher scoring: `design` is `(n_obs, n_coef)` (a leading
-    all-ones column gives an intercept), `n`/`c` are per-row trials/successes. Returns
-    `(beta, se_beta)`, both length `n_coef`.
+    """Binomial GLM (logit link) by ridge-penalised IRLS/Fisher scoring: `design` is
+    `(n_obs, n_coef)` (a leading all-ones column gives an intercept), `n`/`c` are per-row
+    trials/successes. Returns `(beta, se_beta)`, both length `n_coef`.
 
-    Generalises `metrics.logit_slope`'s single-covariate IRLS loop (identical algorithm and
-    convergence criterion) to an arbitrary number of covariates, for `skills.py`'s "binomial
-    pass ~ L + skill indicators" GLM (plan §2 B3); `metrics.logit_slope` itself stays
-    single-covariate and is reused as-is wherever one covariate is all a view needs.
+    Generalises `metrics.logit_slope`'s single-covariate IRLS loop (identical algorithm,
+    convergence criterion, and `ridge` penalty -- see that function's docstring for why one is
+    needed: a near-complete-separation design, e.g. `prefix.py`'s fitted logit when a model's
+    prefix-success rate is near-0 almost everywhere, otherwise drives the unpenalised MLE and its
+    SE to a huge, numerically unstable value -- confirmed on the real store's `prefix` page, a
+    `base`-model intercept at se=1431.97) to an arbitrary number of covariates, for `skills.py`'s
+    "binomial pass ~ L + skill indicators" GLM (plan §2 B3) and `prefix.py`'s fitted logit (plan §2
+    B6); `metrics.logit_slope` itself stays single-covariate and is reused as-is wherever one
+    covariate is all a view needs.
     """
     ns = np.asarray(n, dtype=float)
     cs = np.asarray(c, dtype=float)
@@ -271,12 +337,13 @@ def irls_binomial(
     beta = np.zeros(n_coef)
     if x.shape[0] == 0:
         return beta, np.full(n_coef, float("nan"))
+    penalty = ridge * np.eye(n_coef)
     for _ in range(max_iter):
         eta = x @ beta
         p = np.clip(1.0 / (1.0 + np.exp(-eta)), 1e-10, 1 - 1e-10)
         w = ns * p * (1 - p)
         z = eta + (cs - ns * p) / (ns * p * (1 - p))
-        xtwx = x.T @ (x * w[:, None])
+        xtwx = x.T @ (x * w[:, None]) + penalty
         xtwz = x.T @ (w * z)
         try:
             new_beta = np.linalg.solve(xtwx, xtwz)
@@ -289,6 +356,6 @@ def irls_binomial(
     eta = x @ beta
     p = np.clip(1.0 / (1.0 + np.exp(-eta)), 1e-10, 1 - 1e-10)
     w = ns * p * (1 - p)
-    xtwx = x.T @ (x * w[:, None])
+    xtwx = x.T @ (x * w[:, None]) + penalty
     cov = np.linalg.pinv(xtwx)
     return beta, np.sqrt(np.clip(np.diag(cov), 0.0, None))

@@ -33,6 +33,7 @@ from ..metrics import compositionality_ratio, pass_at_k
 from ..store import Store
 from ._common import (
     cfg_get,
+    default_version,
     empty_view,
     item_length,
     items_by_pid,
@@ -106,19 +107,39 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
     parts_suite = cast(str, cfg_get(cfg, "parts_suite", DEFAULT_PARTS_SUITE))
     control_suite = cast(str, cfg_get(cfg, "control_suite", DEFAULT_CONTROL_SUITE))
-    version = cast(str, cfg_get(cfg, "version", "v1"))
     mastery = float(cast(float, cfg_get(cfg, "mastery", DEFAULT_MASTERY)))
     B = int(cast(int, cfg_get(cfg, "B", 2000)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # Fix list item 1, applied uniformly: pick whichever version has runs rather than a
+    # hard-coded "v1". `parts_suite`/`control_suite` are *different* suites (e.g. `glue` can have
+    # a demo version alongside its real one -- see `glue`'s own `demo_v1` vs. `v1` on the real
+    # store -- while `parts_pool`/`gen_ctrl` need not share that version), so each is resolved
+    # independently rather than reusing `suite`'s own chosen version.
+    version = cast(
+        str,
+        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+    )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
         return empty_view(f"suite {suite!r} version {version!r} not found in the store")
-    parts_problems = problems_by_pid(store, parts_suite, version)
     models = override_models or models_present(store, suite=suite, version=version)
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
+    parts_version = cast(
+        str,
+        cfg.get("parts_suite_version")
+        or default_version(store, suite=parts_suite, models=models)
+        or "v1",
+    )
+    control_version = cast(
+        str,
+        cfg.get("control_suite_version")
+        or default_version(store, suite=control_suite, models=models)
+        or "v1",
+    )
+    parts_problems = problems_by_pid(store, parts_suite, parts_version)
 
     cells = sorted(
         {
@@ -140,7 +161,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         per_model: dict[str, Any] = {}
         for model in models:
             run_id = latest_run_id(store, suite=suite, model=model, version=version)
-            parts_run_id = latest_run_id(store, suite=parts_suite, model=model, version=version)
+            parts_run_id = latest_run_id(
+                store, suite=parts_suite, model=model, version=parts_version
+            )
             if run_id is None:
                 continue
             joined_items = items_by_pid(store, run_id)
@@ -175,7 +198,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             ]
             modal_l = sorted(lengths)[len(lengths) // 2] if lengths else None
             control = (
-                _control_pass1(store, control_suite, version, model, modal_l)
+                _control_pass1(store, control_suite, control_version, model, modal_l)
                 if modal_l is not None
                 else None
             )
@@ -188,6 +211,12 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 "failure_location": dict(fail_loc_total),
                 "modal_L": modal_l,
                 "control_pass1": control,
+                # Surfaced explicitly (not just a silently-missing R/R_min bar) when this model has
+                # joined-item results but no mastery run on `parts_suite` to compute R/R_min from
+                # at all (e.g. the real store's `parts_pool` has no `armC` run) -- distinct from
+                # `comp is None` with a mastery run present but zero items reaching the mastery
+                # threshold, which is a real (if uninformative) finding rather than missing data.
+                "no_mastery_run": parts_run_id is None,
             }
         if per_model:
             out_cells[cell] = per_model
@@ -199,7 +228,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         "meta": {
             "suite": suite,
             "parts_suite": parts_suite,
+            "parts_suite_version": parts_version,
             "control_suite": control_suite,
+            "control_suite_version": control_version,
             "version": version,
             "mastery": mastery,
             "models": models,

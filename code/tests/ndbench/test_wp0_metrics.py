@@ -4,6 +4,8 @@ acceptance test), plus sanity/unit checks for the rest of the module."""
 from __future__ import annotations
 
 import math
+import warnings
+from types import TracebackType
 
 import pytest
 
@@ -161,6 +163,44 @@ def test_logit_slope_recovers_sign_and_is_stable() -> None:
 
 def test_edl_zero_when_online_equals_final() -> None:
     assert edl([2.0] * 10, 2.0) == pytest.approx(0.0)
+
+
+def test_logit_slope_stays_finite_under_quasi_complete_separation() -> None:
+    """WP8 integration fix: a horizon-style curve (pass rate ~1 then ~0, a near-perfect step as x
+    grows) is quasi-complete separation for logistic regression -- the unpenalised MLE runs to
+    +-infinity. Confirmed on the real store's `families` page: a `reorder_or`/armC fit landed at
+    slope=-869.9, se=3941.6 before the `ridge` penalty was added. A real step function (no overlap
+    at all between the all-pass and all-fail regimes) must still return finite, bounded values,
+    with the correct sign, rather than diverging or overflowing."""
+    xs = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
+    ns = [32] * 8
+    cs = [32, 32, 32, 32, 0, 0, 0, 0]  # a perfect step: pass@1=1 for x<4, 0 for x>=4.
+    with _no_warnings():
+        slope, se = logit_slope(xs, ns, cs)
+    assert math.isfinite(slope)
+    assert math.isfinite(se)
+    assert slope < 0
+    assert abs(slope) < 50
+    assert se < 50
+
+
+class _no_warnings:
+    """Fails the test if `numpy` raises a `RuntimeWarning` (e.g. "overflow encountered in exp")
+    inside the `with` block -- the exact symptom the pre-ridge `logit_slope` produced on a
+    perfectly-separated fit."""
+
+    def __enter__(self) -> None:
+        self._cm = warnings.catch_warnings()
+        self._cm.__enter__()
+        warnings.simplefilter("error", RuntimeWarning)
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        self._cm.__exit__(exc_type, exc_val, exc_tb)
 
 
 def test_edl_matches_formula() -> None:

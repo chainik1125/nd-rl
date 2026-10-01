@@ -90,12 +90,40 @@ def _mean(vals: Sequence[float]) -> float:
     return float(np.mean(vals)) if vals else float("nan")
 
 
-def _model_label(identity: object) -> str:
-    """A display/grouping string for a row's `model_identity` dict (see the module docstring)."""
+def _label_from_run_id(run_id: str) -> str | None:
+    """Recover `--model`'s resolved store label (e.g. `"base"`/`"rl"`/`"armC"`) from `cli.py`'s
+    `cmd_edl` run id convention `f"edl-{store_label}-{args.n}-{args.m}"`, or `None` if `run_id`
+    doesn't look like that (e.g. a hand-written test file, or `cfg["run_ids"]` naming something
+    else). Preferred over `model_identity` (WP8 integration fix list item: the EDL page showed raw
+    checkpoint paths like `/scratch/.../pretrain.pt` instead of `"base"`/`"rl"`) because it is
+    exactly the label the caller asked to run under, with no guessing from the checkpoint path --
+    which has no portable mapping back to a friendly name and would need updating by hand every
+    time a checkpoint moves."""
+    parts = run_id.split("-")
+    if len(parts) >= 4 and parts[0] == "edl" and parts[-1].isdigit() and parts[-2].isdigit():
+        label = "-".join(parts[1:-2])
+        if label:
+            return label
+    return None
+
+
+def _model_label(identity: object, run_id: str | None = None) -> str:
+    """A display/grouping string for an EDL row. Priority: (1) `identity["label"]` when the
+    identity dict sets one explicitly (test doubles like `TinyGptAdapter`/`ConstantNllAdapter` --
+    an explicit label is always the most trustworthy name available); (2) failing that, `run_id`'s
+    own embedded label (see `_label_from_run_id`) -- this is what fixes the real bug, since the
+    production `AbsGptAdapter`'s identity has no `"label"` key at all; (3) `identity["ckpt"]` as a
+    last resort (`run_id` not in the `cmd_edl` naming convention, e.g. a hand-rolled `cfg
+    ["run_ids"]`); (4) the identity dict's own JSON."""
     if isinstance(identity, Mapping):
         label = identity.get("label")
         if isinstance(label, str) and label:
             return label
+    if run_id is not None:
+        from_run_id = _label_from_run_id(run_id)
+        if from_run_id is not None:
+            return from_run_id
+    if isinstance(identity, Mapping):
         ckpt = identity.get("ckpt")
         if isinstance(ckpt, str) and ckpt:
             return ckpt
@@ -149,15 +177,15 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     if not run_ids:
         return empty_view("no EDL run files found under store/edl/")
 
-    rows: list[dict[str, Any]] = []
+    rows: list[tuple[str, dict[str, Any]]] = []
     for run_id in run_ids:
-        rows.extend(_read_edl_rows(store, run_id))
+        rows.extend((run_id, row) for row in _read_edl_rows(store, run_id))
     if not rows:
         return empty_view(f"EDL run files found ({run_ids}) but contained no rows")
 
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
-    for row in rows:
-        model = _model_label(row.get("model_identity"))
+    for run_id, row in rows:
+        model = _model_label(row.get("model_identity"), run_id)
         cls = str(row.get("class", row.get("cls", "unknown")))
         groups.setdefault((model, cls), []).append(row)
 

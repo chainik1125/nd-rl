@@ -82,8 +82,14 @@ def build(
     names = dict(NAV)
     written: list[Path] = []
 
+    # Kept alongside each page's own rendered figures (fix list item 4): the overview page's
+    # headline numbers are pulled straight from these same `view_<bench>` dicts rather than
+    # re-querying the `Store` a second time, so a headline number and its own page can never
+    # disagree about what the `Store` currently holds.
+    view_data: dict[str, JSON] = {}
     for key, (view_fn, render_fn) in _VIEWS.items():
         data = view_fn(store, cfg.get(key, {}))
+        view_data[key] = data
         figs = render_fn(data)
         html = P.page(f"ndbench: {names[f'{key}.html']}", str(store.root), f"{key}.html", figs, nav)
         path = out_dir / f"{key}.html"
@@ -107,6 +113,7 @@ def build(
         n_suites,
         statuses,
         [(href, name) for href, name in nav if href != "index.html"],
+        view_data,
     )
     overview_html = P.page("ndbench dashboard", str(store.root), "index.html", overview_figs, nav)
     index_path = out_dir / "index.html"

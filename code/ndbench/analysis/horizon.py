@@ -30,6 +30,7 @@ from ..metrics import horizon, pass_at_k
 from ..store import Store
 from ._common import (
     cfg_get,
+    default_version,
     empty_view,
     item_length,
     items_by_pid,
@@ -42,6 +43,16 @@ from ._common import (
 DEFAULT_SUITE = "families"
 FAMILY_TAG = "family"
 N_TAG = "n"
+#: `suites/families.py`'s "ILTP-style" family packs four structurally distinct sub-schemas
+#: (`syj204_style`/`syj203_style`/`iff_chain_style`/`de_bruijn_style`) under one `family` tag,
+#: distinguished only by `tags["kind"]`, with *overlapping* `n` ranges across kinds (e.g. the real
+#: `families` suite has `n=1` containing `syj204_style`+`syj203_style`+`de_bruijn_style` items, and
+#: `n=2`/`n=3` mixing `syj204_style`+`iff_chain_style`). Grouping `by_n` on `family` alone would
+#: then pool pass@k across unrelated proof schemas at the same nominal `n` -- a materially
+#: misleading curve/horizon statistic. `_group_key` folds `kind` into the grouping key whenever an
+#: item has one (every family besides `ILTP-style` has no `kind` tag at all, so this is a no-op for
+#: them), splitting "ILTP-style" into one row per actual sub-schema.
+KIND_TAG = "kind"
 #: pass@k curves plotted against `n` (plan §2 B2: "pass@1 and pass@k vs n").
 KS: tuple[int, ...] = (1, 8, 32)
 
@@ -54,13 +65,25 @@ def _mean_curve(by_n: Mapping[int, Sequence[ItemResult]], k: int) -> list[tuple[
     return out
 
 
+def _group_key(family: str, kind: JSON) -> str:
+    """The row key used for a `family`'s page entry: `family` itself, or `"family (kind)"` when
+    the item also carries a `KIND_TAG` (module docstring's "ILTP-style" fix)."""
+    return family if kind is None else f"{family} ({kind})"
+
+
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
-    version = cast(str, cfg_get(cfg, "version", "v1"))
     ks = cast("list[int]", cfg_get(cfg, "ks", list(KS)))
     B = int(cast(int, cfg_get(cfg, "B", 2000)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # Pick whichever suite version has runs, rather than a hard-coded "v1" (fix list item 1,
+    # applied uniformly across every view -- see `analysis/padding.py`'s own fix for the concrete
+    # motivating case).
+    version = cast(
+        str,
+        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+    )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
@@ -69,15 +92,22 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
 
-    families = sorted(
-        {str(v) for p in problems.values() if (v := p.tags.get(FAMILY_TAG)) is not None}
-    )
+    # Group by (family, kind) rather than family alone (module docstring's `_group_key`/`KIND_TAG`
+    # -- "ILTP-style" packs four incomparable sub-schemas with overlapping `n` ranges under one
+    # `family` tag), so the usual case (no `kind` tag at all) just gets `family` back unchanged.
+    pids_by_group: dict[str, set[str]] = {}
+    for pid, p in problems.items():
+        fam = p.tags.get(FAMILY_TAG)
+        if fam is None:
+            continue
+        pids_by_group.setdefault(_group_key(str(fam), p.tags.get(KIND_TAG)), set()).add(pid)
+    families = sorted(pids_by_group)
     if not families:
         return empty_view(f"suite {suite!r} has no {FAMILY_TAG!r} tag on any item")
 
     out_families: dict[str, Any] = {}
     for family in families:
-        fam_pids = {pid for pid, p in problems.items() if str(p.tags.get(FAMILY_TAG)) == family}
+        fam_pids = pids_by_group[family]
         per_model: dict[str, Any] = {}
         for model in models:
             run_id = latest_run_id(store, suite=suite, model=model, version=version)

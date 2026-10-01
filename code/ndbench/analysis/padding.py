@@ -24,6 +24,7 @@ from ..metrics import pass_at_k
 from ..store import Store
 from ._common import (
     cfg_get,
+    default_version,
     empty_view,
     item_length,
     items_by_pid,
@@ -57,9 +58,27 @@ def _curve_vs_w(by_w: Mapping[float, list[tuple[int, int]]]) -> list[dict[str, A
 
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
-    version = cast(str, cfg_get(cfg, "version", "v1"))
     natural_suite = cast(str, cfg_get(cfg, "natural_suite", DEFAULT_NATURAL_SUITE))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # Pick whichever suite version actually has runs for the models in question, rather than
+    # hard-coding "v1" -- a real suite can accumulate a small demo version nobody ran alongside
+    # the version the real runs target (fix list item 1: `padding`'s 132-item v1 demo vs. the
+    # 51-base v2 that base/rl were actually run on). `cfg["version"]` still overrides explicitly.
+    version = cast(
+        str,
+        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+    )
+    # The natural-items comparison suite is a *different* suite from `padding` (default
+    # `gen_ctrl`) and so can land on a different version of its own (e.g. `padding` picks "v2"
+    # while `gen_ctrl` only ever had a "v1") -- resolve it independently rather than reusing
+    # `padding`'s own chosen `version` (that reuse used to work by coincidence when both defaulted
+    # to the literal "v1").
+    natural_version = cast(
+        str,
+        cfg.get("natural_version")
+        or default_version(store, suite=natural_suite, models=override_models)
+        or "v1",
+    )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
@@ -67,7 +86,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     models = override_models or models_present(store, suite=suite, version=version)
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
-    natural_problems = problems_by_pid(store, natural_suite, version)
+    natural_problems = problems_by_pid(store, natural_suite, natural_version)
 
     pad_types = sorted(
         {str(v) for p in problems.values() if (v := p.tags.get(PAD_TYPE_TAG)) is not None}
@@ -103,7 +122,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
 
             natural_curve: list[dict[str, Any]] = []
             if natural_problems:
-                nat_run = latest_run_id(store, suite=natural_suite, model=model, version=version)
+                nat_run = latest_run_id(
+                    store, suite=natural_suite, model=model, version=natural_version
+                )
                 if nat_run is not None:
                     nat_items = items_by_pid(store, nat_run)
                     nat_by_w: dict[float, list[tuple[int, int]]] = {}
@@ -143,6 +164,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "suite": suite,
             "natural_suite": natural_suite,
             "version": version,
+            "natural_version": natural_version,
             "models": models,
         },
         "pad_types": out,
