@@ -2,7 +2,8 @@
 
 Run id `trajectory-cap6`. Repository `~/work/trajectory-cap6` (branch `dan_trajectory-cap6` from the fork's `origin/dan`,
 made by `newrun`; starts after `trajectory` is recorded). Role: executor. `AGENT_POLICY.md` governs, including per-arm
-compute rows. Budget **$25**, ceiling **50 pod-hours**. Authorised by Dan 2026-10-01: "Let's also do a cap6 version,
+compute rows. Budget **$40**, ceiling **80 pod-hours**. Raised from $25 on 2026-10-01: Dan finds this experiment very
+interesting and is happy to spend more than usual, so prefer completeness over cost and run the full scoring plan. Authorised by Dan 2026-10-01: "Let's also do a cap6 version,
 which otherwise uses the same configuration." Proposal: nd-rl `docs/proposals/2026-10-01-learning-trajectory.md`.
 
 **Read `docs/proposals/state-env/BRIEF_trajectory.md` in full.** Everything there applies unchanged except:
