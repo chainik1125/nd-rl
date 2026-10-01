@@ -615,6 +615,9 @@ class AbsGptAdapter(ModelAdapter):
         if self._steering_spec:
             d["steering_sha256"] = _steering_spec_hash(self._steering_spec)
             d["steering_terms"] = len(self._steering_spec)
+            # Steered sampling before 2026-10-01 ignored the prompt boundary (see `sample()`);
+            # a distinct identity keeps those runs from being resumed or skipped as complete.
+            d["steering_positions"] = "per_row_prompt_boundary"
         return d
 
     def token_count(self, seq: Sequent, body: str | None = None) -> int:

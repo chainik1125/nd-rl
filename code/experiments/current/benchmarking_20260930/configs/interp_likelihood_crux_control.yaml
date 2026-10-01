@@ -1,0 +1,29 @@
+# Audit 2026-10-01 (interp audit finding 4), approved by Leon: a neutral control for the
+# likelihood crux comparison. Scores rl's own verified gen_ctrl samples (as before) and, for the
+# same theorems, the minlen labeller's minimal proofs (ab2/data/labels/gen_b{10,16}.jsonl; 59/60
+# gen_ctrl theorems have one, all verify at exactly L lines) under both models. Rows now record
+# `lines` (lines in the scored proof) for a per-written-line normalisation. No neutral reserve or
+# family rows (n_neutral 0, family_limit 0): those come from the main likelihood run.
+seed: 0
+n_neutral: 0
+family_limit: 0
+cap: 32
+m: 64
+device: cuda
+model_samples:
+  rl:
+    suite: gen_ctrl
+    version: v1
+    model: rl
+    limit: 500
+reference_proofs:
+  suite: gen_ctrl
+  version: v1
+  solved_by: rl
+  proof_files:
+    - /scratch/cowifornia/nd-rl/ab2/data/labels/gen_b10.jsonl
+    - /scratch/cowifornia/nd-rl/ab2/data/labels/gen_b16.jsonl
+base_success:
+  suite: gen_ctrl
+  version: v1
+  model: base
