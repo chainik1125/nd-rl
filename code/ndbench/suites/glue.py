@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import collections
 import importlib
+import json
 import random
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -682,6 +683,8 @@ def build_joined(
     excluder: Excluder | None,
     rng_seed: int,
     needs_ore: Callable[[Sequent, str], bool] | None = None,
+    replay: Sequence[Problem] | None = None,
+    on_accept: Callable[[Problem, Sequence[_Part]], None] | None = None,
 ) -> tuple[list[Problem], dict[str, Any]]:
     """Build the glue ("joined") suite (plan §2 B1 / §3 WP4 row).
 
@@ -704,6 +707,13 @@ def build_joined(
     must also satisfy `needs_ore`"). Falls back to `cfg["needs_ore"]` (a `"module:attr"` string,
     lazily resolved) and then to `None`, in which case CASE items are dropped and counted (a safe
     default: never claim an ORE-free-orphan-free item without checking).
+
+    `replay`: an already-built glue suite (in build order). Instead of verifying and certifying
+    each candidate, accept it iff its sequent equals the next `replay` item's, reusing that item's
+    length label. With the same `cfg`/`rng_seed` this retraces the original build exactly (no
+    acceptance test consumes `rng`), so `on_accept(problem, used_parts)` sees the atom-renamed
+    `_Part`s each item was built from -- which the stored suite does not record (see
+    `build_renamed_parts`).
     """
     rng = random.Random(rng_seed)
     store = Store(Path(cast(str, cfg.get("store_root", DEFAULT_STORE_ROOT))))
@@ -759,27 +769,37 @@ def build_joined(
         used: Sequence[_Part],
         extra_tags: dict[str, JSON],
     ) -> bool:
-        ok, _reason, nl = nd_verify.verify_text(seq.prompt() + " " + body)
-        if not (ok and nl == witness_l):
-            drops["self_check_fail"] += 1
-            return False
         dedup_key = seq.pkey() if len(seq.premises) <= 5 else seq.key()
-        if dedup_key in seen_pkeys:
-            drops["duplicate"] += 1
-            return False
-        if _excluded(seq, excluder):
-            drops["excluded"] += 1
-            return False
-        if op.startswith("CASE") and (needs_ore_fn is None or not needs_ore_fn(seq, body)):
-            drops["needs_ore_fail_or_unavailable"] += 1
-            return False
-        if certifier is None:
-            drops["no_certifier"] += 1
-            return False
-        label = certifier.certify([seq], [body], bound=witness_l, time_s=time_s)[0]
-        if not _accepts(label, witness_l):
-            drops["cert_reject"] += 1
-            return False
+        if replay is not None:
+            nxt = replay[len(problems)] if len(problems) < len(replay) else None
+            if nxt is None or (tuple(nxt.sequent.premises), nxt.sequent.conclusion) != (
+                tuple(seq.premises),
+                seq.conclusion,
+            ):
+                drops["replay_skip"] += 1
+                return False
+            label = nxt.length
+        else:
+            ok, _reason, nl = nd_verify.verify_text(seq.prompt() + " " + body)
+            if not (ok and nl == witness_l):
+                drops["self_check_fail"] += 1
+                return False
+            if dedup_key in seen_pkeys:
+                drops["duplicate"] += 1
+                return False
+            if _excluded(seq, excluder):
+                drops["excluded"] += 1
+                return False
+            if op.startswith("CASE") and (needs_ore_fn is None or not needs_ore_fn(seq, body)):
+                drops["needs_ore_fail_or_unavailable"] += 1
+                return False
+            if certifier is None:
+                drops["no_certifier"] += 1
+                return False
+            label = certifier.certify([seq], [body], bound=witness_l, time_s=time_s)[0]
+            if not _accepts(label, witness_l):
+                drops["cert_reject"] += 1
+                return False
         seen_pkeys.add(dedup_key)
         tags: dict[str, JSON] = {
             "op": op,
@@ -801,6 +821,8 @@ def build_joined(
                 part_pids=part_pids,
             )
         )
+        if on_accept is not None:
+            on_accept(problems[-1], used)
         cell_counts[cell] = cell_counts.get(cell, 0) + 1
         return True
 
@@ -917,6 +939,115 @@ def build_joined(
         "n_items": len(problems),
     }
     return problems, stats
+
+
+# ----------------------------------------------------------------------------- build_renamed_parts
+
+
+def build_renamed_parts(
+    cfg: Mapping[str, Any],
+    *,
+    certifier: Certifier | None,
+    excluder: Excluder | None,
+    rng_seed: int,
+) -> tuple[list[Problem], dict[str, Any]]:
+    """Each glue item's parts as standalone theorems, with the atom names they carry inside the
+    joined theorem (audit 2026-10-01: AND/CHAIN/CASE joins rename part atoms, so a glue item's
+    compositionality ratio R needs the renamed part's pass rate in its denominator, not the
+    original pool item's).
+
+    The stored glue suite records only the original part pids, so this replays `build_joined` with
+    the glue suite's own manifest config and seed (`replay=`) and captures the renamed `_Part`s.
+    One `Problem` per (glue item, part index): pid `<glue pid>__p<i>`, length label copied from the
+    original pool part (renaming is a bijection on atoms, checked below, so minimal length is
+    unchanged), tags `glue_pid`/`part_index`/`orig_pid`/`op`/`renamed`. BOX parts are not renamed
+    and come out identical to the pool items; they are kept as a same-sequent replication check.
+
+    `cfg` keys: `store_root`, `glue_suite` (default `"glue"`), `glue_version` (default `"v1"`),
+    `version` (default `"v1"`). `certifier`/`excluder`/`rng_seed` are unused (the glue manifest's
+    seed drives the replay).
+    """
+    del certifier, excluder, rng_seed
+    store = Store(Path(cast(str, cfg.get("store_root", DEFAULT_STORE_ROOT))))
+    glue_suite = cast(str, cfg.get("glue_suite", "glue"))
+    glue_version = cast(str, cfg.get("glue_version", "v1"))
+    version = cast(str, cfg.get("version", "v1"))
+    manifest_path = store.suites_dir / glue_suite / glue_version / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    build_cfg = dict(cast("Mapping[str, Any]", manifest["config"]))
+    build_cfg["store_root"] = str(store.root)
+    target = store.load_suite(glue_suite, glue_version)
+
+    captured: list[tuple[Problem, tuple[_Part, ...]]] = []
+    replayed, _stats = build_joined(
+        build_cfg,
+        certifier=None,
+        excluder=None,
+        rng_seed=int(cast(int, manifest["seed"])),
+        replay=target,
+        on_accept=lambda prob, used: captured.append((prob, tuple(used))),
+    )
+    if [p.pid for p in replayed] != [p.pid for p in target]:
+        raise RuntimeError(
+            f"replay of {glue_suite}/{glue_version} diverged: rebuilt {len(replayed)} of "
+            f"{len(target)} items"
+        )
+
+    pool = {
+        p.pid: p
+        for p in store.load_suite(
+            cast(str, build_cfg.get("parts_suite", "parts_pool")),
+            cast(str, build_cfg.get("parts_version", "v1")),
+        )
+    }
+    nd_verify = load_nd_verify()
+    out: list[Problem] = []
+    n_renamed = 0
+    for glue_p, used in captured:
+        for i, part in enumerate(used):
+            orig = pool[part.pid]
+            orig_part = to_part(orig)
+            if len(part.atoms) != len(orig_part.atoms):
+                raise RuntimeError(f"{glue_p.pid} part {i}: renaming is not a bijection on atoms")
+            seq = Sequent(
+                premises=tuple(F.render(f) for f in part.premises),
+                conclusion=F.render(part.concl),
+            )
+            body = _render_lines(part.lines)
+            ok, reason, _nl = nd_verify.verify_text(seq.prompt() + " " + body)
+            if not ok:
+                raise RuntimeError(f"{glue_p.pid} part {i}: renamed proof fails ({reason})")
+            renamed = (seq.premises, seq.conclusion) != (
+                tuple(orig.sequent.premises),
+                orig.sequent.conclusion,
+            )
+            n_renamed += int(renamed)
+            out.append(
+                Problem(
+                    pid=f"{glue_p.pid}__p{i}",
+                    suite="glue_parts_renamed",
+                    version=version,
+                    sequent=seq,
+                    length=orig.length,
+                    ref=P.make_reference(body, source="renamed_part"),
+                    tags={
+                        "glue_pid": glue_p.pid,
+                        "part_index": i,
+                        "orig_pid": part.pid,
+                        "op": glue_p.tags.get("op"),
+                        "renamed": renamed,
+                    },
+                    parts=(part.pid,),
+                )
+            )
+    stats: dict[str, Any] = {
+        "glue_suite": glue_suite,
+        "glue_version": glue_version,
+        "n_glue_items": len(captured),
+        "n_items": len(out),
+        "n_renamed": n_renamed,
+    }
+    return out, stats
 
 
 # ------------------------------------------------------------------------------ build_length_sweep

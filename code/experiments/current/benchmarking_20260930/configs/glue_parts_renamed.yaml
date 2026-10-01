@@ -1,0 +1,7 @@
+# Audit 2026-10-01 (finding 6): each glue v1 item's parts as standalone theorems with the atom
+# names they carry inside the joined theorem, for the R denominators. Replays the glue v1 build
+# (its manifest's config and seed); no certifier needed (length labels copied from parts_pool).
+store_root: /scratch/cowifornia/nd-rl/bench/out
+glue_suite: glue
+glue_version: v1
+version: v1

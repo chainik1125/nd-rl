@@ -28,6 +28,7 @@ BUILDERS: dict[str, str] = {
     "padding": "code.ndbench.suites.padding:build",
     # WP4 (glue + prefix)
     "glue": "code.ndbench.suites.glue:build_joined",
+    "glue_parts_renamed": "code.ndbench.suites.glue:build_renamed_parts",
     # WP8 integration fix list item 7: `build_length_sweep` re-wraps the existing matched AND/CHAIN
     # items (`ab3/sealed/matched_L6-14.jsonl`) as plan §2 B1's "extra length sweep"; WP4 left it
     # unregistered ("that registry is WP0-owned") even though it already matches the builder
