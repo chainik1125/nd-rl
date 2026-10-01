@@ -4,7 +4,8 @@ Reads the `laws` suite (WP3's `suites/laws.py`; `Problem.tags` carry `schema`/`s
 row) and, per `(schema, model)`:
 
 - pass@1 against filler size `s` (mean over items at each `s`);
-- pass@1 against mean written tokens (`ItemResult.tokens_mean`), as per-item points for a scatter;
+- pass@1 against the item's own tokens (`_common.item_tokens`: prompt + reference proof; not the
+  model's outcome-dependent generated length), as per-item points for a scatter;
 - a logit slope per 100 tokens (`_common.logit_slope_safe`);
 - a comparison against the same schema's uncontrolled instances in `cfg["textbook_law_suite"]`
   (default `textbook_law`, plan §2 B8's stratified real-textbook subsample, tagged by the same
@@ -27,6 +28,7 @@ from ._common import (
     cfg_get,
     default_version,
     empty_view,
+    item_tokens,
     items_by_pid,
     latest_run_id,
     logit_slope_safe,
@@ -38,6 +40,14 @@ DEFAULT_SUITE = "laws"
 DEFAULT_TEXTBOOK_LAW_SUITE = "textbook_law"
 SCHEMA_TAG = "schema"
 S_TAG = "s"
+
+
+def _s_sort_key(kv: tuple[JSON, Any]) -> tuple[bool, float, str]:
+    """Numeric order for `s` values (was `str(s)`, which puts 10 before 2), `None` last."""
+    s_val = kv[0]
+    if isinstance(s_val, int | float) and not isinstance(s_val, bool):
+        return (False, float(s_val), "")
+    return (s_val is None, math.inf, str(s_val))
 
 
 def _mean_or_nan(vals: Sequence[float]) -> float:
@@ -86,13 +96,14 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             if run_id is None:
                 continue
             items = items_by_pid(store, run_id)
-            rows: list[tuple[JSON, float, int, int]] = []  # (s, tokens_mean, n, c)
+            rows: list[tuple[JSON, float, int, int]] = []  # (s, item tokens, n, c)
             for pid in pids:
                 item = items.get(pid)
                 if item is None:
                     continue
                 s_val = problems[pid].tags.get(S_TAG)
-                rows.append((s_val, item.tokens_mean, item.n, item.c))
+                tok = item_tokens(problems[pid])
+                rows.append((s_val, tok if tok is not None else math.nan, item.n, item.c))
             if not rows:
                 continue
 
@@ -105,11 +116,12 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                     "pass1": _mean_or_nan([pass_at_k(n, c, 1) for n, c in group]),
                     "n_items": len(group),
                 }
-                for s_val, group in sorted(by_s.items(), key=lambda kv: (kv[0] is None, str(kv[0])))
+                for s_val, group in sorted(by_s.items(), key=_s_sort_key)
             ]
             points_tokens = [
                 {"tokens": tok, "pass1": pass_at_k(n, c, 1), "s": s_val}
                 for s_val, tok, n, c in rows
+                if not math.isnan(tok)
             ]
             slope = logit_slope_safe(
                 [tok / 100.0 for _, tok, _, _ in rows],

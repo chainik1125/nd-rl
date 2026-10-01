@@ -607,17 +607,15 @@ def render_subst(data: Mapping[str, JSON]) -> list[str]:
         )
         figs.append(
             P.line_chart(
-                f"pass@1 vs written tokens -- {schema}",
-                "per-item points, sorted by mean tokens",
+                f"pass@1 vs item tokens -- {schema}",
+                "per-item points; x = the item's prompt + reference-proof tokens",
                 series_tok,
-                x_label="mean tokens",
+                x_label="item tokens",
                 y_fmt="pct",
                 wide=True,
                 note=(
-                    "Each point is one item at its own mean written-token count, which differs "
-                    "by model (the same theorem can take base and rl a different number of "
-                    "tokens to attempt) -- the table below's 'missing' cells are expected, not "
-                    "an error: most token counts only have a point for one model."
+                    "Each point is one item at its own size in tokens (prompt + reference "
+                    "proof), the same x for every model; several items can share a token count."
                 ),
             )
         )

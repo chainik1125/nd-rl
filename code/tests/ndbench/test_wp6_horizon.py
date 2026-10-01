@@ -18,7 +18,7 @@ def _build_store(tmp_path: Path) -> Store:
             "families",
             "v1",
             length=n + 2,
-            tags={"family": "and_tower", "n": n},
+            tags={"family": "and_tower", "n": n, "tokens": 40 + 10 * n},
         )
         for n in range(1, 5)
     ]
