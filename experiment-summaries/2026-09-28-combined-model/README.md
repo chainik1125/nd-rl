@@ -415,6 +415,45 @@ in the checkout's `artifacts/ttrl/`: `dev64_ttrl`, `dev64_control`, `dev64_unrel
 `s1_ttrl`, `s1_control`.
 ```
 
+### At scale: every dev failure, up to 5× the pipeline's compute
+
+```claude
+The 64-target runs leave two questions:
+
+1. **How much does TTRL add to the real metric, per unit of compute?**
+2. **Is it the variants, or just being allowed to train on the eval theorems at all?** Plain
+   expert iteration on the eval statements, with no variants, might buy most of the gain. If
+   it does, "test-time RL helps" is the headline, not "variants help". Neither run so far
+   separates the two: the control never trains, and the unrelated-variants arm never trains on
+   the targets.
+
+**Setup.**
+- **Models:** c005 seeds 0-2, the combined model exactly as trained: usual pretraining, then
+  the usual RL on the RL set.
+- **Baseline:** their recorded dev score at 64 samples: 915, 893, 905 of 1,108.
+- **Targets:** each seed's dev failures (193, 215, 203), all at once on one shared copy of the
+  model per seed, not one fork per theorem.
+
+**Three arms, same targets, same compute:**
+
+| arm | samples | trains on |
+| --- | --- | --- |
+| sample more | targets, 256 per round | nothing |
+| targets-only EI | targets, 256 per round | proofs of the targets it has solved |
+| TTRL | targets and variants, 16 each per round | solved targets plus variants in the band |
+
+Every arm uses the same sampler (guided, T 1.0), the same RL step (Leon's), and the same band
+and weights as above. One change from the 64-target runs: solved targets now stay in the training
+mix, so TTRL is exactly targets-only EI plus variants.
+
+**Compute.** x is what the pipeline spent producing the model: pretraining plus RL, 1,641-1,774 s
+of one A40 per seed. Each arm runs until it has used 5x (2.3-2.5 h), and every round records its
+cumulative time. The result is a curve of dev solved = baseline + newly solved, read off at 1x,
+2x, 3x, 4x and 5x. Evaluation costs are left out: every arm pays the same 64-sample eval first.
+
+Running.
+```
+
 ## Showing the model the proof state
 
 ```claude
