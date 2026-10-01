@@ -105,6 +105,7 @@ def agreement_for_pair(store: Store, lean_run_id: str, nd_run_id: str) -> dict[s
         "agree_rate": safe_div(float(agree), float(n)),
         "lean_only_rate": safe_div(float(lean_only), float(n)),
         "nd_only_rate": safe_div(float(nd_only), float(n)),
+        "agree_count": agree,
         "lean_only_count": lean_only,
         "nd_only_count": nd_only,
         "lean_only_breakdown": {
@@ -114,6 +115,33 @@ def agreement_for_pair(store: Store, lean_run_id: str, nd_run_id: str) -> dict[s
             }
             for name, count in bucket_counts.items()
         },
+    }
+
+
+def _pool(results: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """`agreement_for_pair` results for one model's runs, summed into one record of the same
+    shape (rates over all attempts), plus `pairs`: each run pair's own result."""
+    n = sum(int(r["n_attempts"]) for r in results)
+    lean_only = sum(int(r["lean_only_count"]) for r in results)
+    nd_only = sum(int(r["nd_only_count"]) for r in results)
+    agree = sum(int(r["agree_count"]) for r in results)
+    counts = {
+        name: sum(int(r["lean_only_breakdown"][name]["count"]) for r in results) for name in BUCKETS
+    }
+    return {
+        "n_attempts": n,
+        "n_pairs": len(results),
+        "agree_rate": safe_div(float(agree), float(n)),
+        "lean_only_rate": safe_div(float(lean_only), float(n)),
+        "nd_only_rate": safe_div(float(nd_only), float(n)),
+        "agree_count": agree,
+        "lean_only_count": lean_only,
+        "nd_only_count": nd_only,
+        "lean_only_breakdown": {
+            name: {"count": c, "frac": safe_div(float(c), float(lean_only))}
+            for name, c in counts.items()
+        },
+        "pairs": list(results),
     }
 
 
@@ -145,11 +173,14 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             f"(run `rejudge --run-id <id> --judge nd` first)"
         )
 
-    per_model: dict[str, Any] = {}
+    # Every pair of a model is pooled (audit 2026-10-01: keying `per_model[model] = result` per
+    # pair kept only the model's last run, e.g. one suite out of eleven).
+    by_model: dict[str, list[dict[str, Any]]] = {}
     for model, lean_run_id, nd_run_id in pairs:
         result = agreement_for_pair(store, lean_run_id, nd_run_id)
         if result is not None:
-            per_model[model] = result
+            by_model.setdefault(model, []).append(result)
+    per_model = {model: _pool(results) for model, results in by_model.items()}
     if not per_model:
         return empty_view(
             "matching lean_v2/nd_v2 run pairs exist but share no sampled attempts "

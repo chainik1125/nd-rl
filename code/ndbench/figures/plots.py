@@ -843,24 +843,9 @@ def _mini_lines(
     ax.set_xlabel(x_label, labelpad=1)
 
 
-def _mini_families(
-    ax: Axes,
-    cd: ChartData,
-    *,
-    styles: Callable[[str], S.ModelStyle] = S.model_style,
-    label_fmt: Callable[[str], str] = str,
-    rotate: bool = False,
-) -> None:
+def _mini_families(ax: Axes, cd: ChartData) -> None:
     """Longest horizon (written lines at n*) any family reaches, per model (0 = fails at the
-    smallest unseen size everywhere): the max over Figure 3's rows.
-
-    `label_fmt`/`rotate` (both default to the identity/`False` -- the existing "ours" overview
-    panel's three short labels "base"/"rl"/"armC" render exactly as before): a Dan panel's own
-    model labels (e.g. "dan12-fz-s0") are long enough that horizontal un-shortened ticks in a
-    ~1.5in-wide narrow panel overlapped into unreadable text (observed on the real store's Figure
-    D2); `_dan_mini_families` below passes a family-prefix-stripping `label_fmt` and `rotate=True`
-    for just that path. `styles(m)` always uses the full, un-shortened label `m` -- only the tick
-    text is shortened, never the colour/marker lookup."""
+    smallest unseen size everywhere): the max over Figure 3's rows."""
     best: dict[str, tuple[float, bool]] = {}
     for r in cd.rows:
         for n, v, _c, z in r.points:
@@ -872,7 +857,7 @@ def _mini_families(
     models = _order(list(best))
     for i, m in enumerate(models):
         v, censored = best[m]
-        ax.bar(i, v, 0.62, zorder=2, **styles(m).bar_kw())
+        ax.bar(i, v, 0.62, zorder=2, **S.model_style(m).bar_kw())
         ax.text(
             i,
             v,
@@ -881,11 +866,7 @@ def _mini_families(
             va="bottom",
             fontsize=S.FS_SMALL - 0.3,
         )
-    labels = [label_fmt(m) for m in models]
-    if rotate:
-        ax.set_xticks(range(len(models)), labels, rotation=30, ha="right", rotation_mode="anchor")
-    else:
-        ax.set_xticks(range(len(models)), labels)
+    ax.set_xticks(range(len(models)), models)
     ax.tick_params(axis="x", length=0)
     ax.set_xlim(-0.6, len(models) - 0.4)
     ax.yaxis.set_major_locator(MaxNLocator(nbins=4, integer=True))
@@ -1276,43 +1257,76 @@ def _dan_mini_lines(ax: Axes, cd: ChartData) -> None:
 
 
 def _dan_mini_grouped_bars(ax: Axes, cd: ChartData) -> None:
+    """Grouped bars; `cd.opts["y_fmt"] == "f3"` (glue's R, a ratio, not a percentage) draws a
+    plain axis with the R = 1 reference line, as Figure 4 does; anything else a percent axis."""
     lookup = _bar_lookup(cd.bars)
-    groups = list(dict.fromkeys(g for g, _m in lookup))
+    groups = list(cd.extra.get("groups") or dict.fromkeys(g for g, _m in lookup))
     models = _order(list(dict.fromkeys(m for _g, m in lookup)))
+    ratio = cd.opts.get("y_fmt") == "f3"
     tops = [b.hi if b.hi is not None and b.hi == b.hi else b.value for b in cd.bars]
-    y_top = max([0.05, *(t * 1.15 for t in tops if t == t)])
+    y_top = max([1.08 if ratio else 0.05, *(t * 1.15 for t in tops if t == t)])
     _grouped_bars(
         ax,
         groups,
         models,
         lambda g, m: lookup.get((g, m)),
         width=0.7 / max(len(models), 1),
-        label_small=_fmt_pct_small,
+        label_small=_fmt_r if ratio else _fmt_pct_small,
         small_frac=0.04,
         y_top=y_top,
         label_size=5.0,
         styles=_dan_style,
     )
     ax.set_xticklabels(groups, rotation=30, ha="right", rotation_mode="anchor")
-    S.pct_axis(ax, nbins=4)
+    if ratio:
+        ax.axhline(1.0, color=S.REF, linewidth=0.5, linestyle=(0, (1, 1.5)), zorder=1)
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=4, steps=[1, 2, 2.5, 5, 10]))
+    else:
+        S.pct_axis(ax, nbins=4)
     ax.set_ylim(0, y_top)
     S.light_grid(ax)
 
 
-def _dan_strip_family_prefix(label: str) -> str:
-    """ "dan12-fz-s0" -> "fz-s0": the x-tick text only (`_dan_style`/`styles(m)` below still get
-    the full label), so a narrow dan12/dan6 panel's ticks read as roles+seeds, not a repeat of
-    the family name every panel's title already gives (plan fix for Figure D2's tick overlap,
-    observed as e.g. "dan12-dans02-dans22-dhas02-..." once three un-shortened labels crowded a
-    ~1.5in-wide panel)."""
-    for prefix in ("dan12-", "dan6-"):
-        if label.startswith(prefix):
-            return label[len(prefix) :]
-    return label
-
-
 def _dan_mini_families(ax: Axes, cd: ChartData) -> None:
-    _mini_families(ax, cd, styles=_dan_style, label_fmt=_dan_strip_family_prefix, rotate=True)
+    """Figure 3's dot plot on one panel: a row per restricted family (in `cd.extra["row_order"]`,
+    shared by every panel so rows line up), x = written lines at n* on unseen theorems, a hollow
+    marker at 0 = fails at the smallest unseen size, an arrow = censored (a lower bound)."""
+    order = list(cd.extra.get("row_order") or [r.label for r in cd.rows])
+    by_label = {r.label: r for r in cd.rows}
+    models = _order(list({n for r in cd.rows for n, _v, _c, _z in r.points}))
+    offs = dict(zip(models, _row_offsets(len(models)), strict=True))
+    x_hi = float(cd.extra.get("x_hi") or 1.0)
+    for i, label in enumerate(order):
+        row = by_label.get(label)
+        for name, v, _c, censored in row.points if row is not None else []:
+            st = _dan_style(name)
+            y = i + offs[name]
+            if v is None:
+                hollow = S.variant(st, name, filled=False).marker_kw(3.0)
+                ax.plot([0.0], [y], linestyle="none", **hollow)
+                continue
+            ax.plot([v], [y], linestyle="none", zorder=4, **st.marker_kw(3.4))
+            if censored:
+                ax.annotate(
+                    "",
+                    xy=(v + 0.09 * x_hi, y),
+                    xytext=(v + 0.025 * x_hi, y),
+                    arrowprops={
+                        "arrowstyle": "-|>",
+                        "lw": 0.7,
+                        "color": st.color,
+                        "mutation_scale": 5,
+                    },
+                )
+    ax.set_yticks(range(len(order)), order)
+    ax.set_ylim(len(order) - 0.5, -0.5)
+    ax.set_xlim(-0.06 * x_hi - 0.3, x_hi * 1.14 + 0.3)
+    _integer_x(ax, nbins=4)
+    ax.tick_params(axis="y", length=0, pad=3)
+    ax.spines["left"].set_visible(False)
+    S.light_grid(ax, "x")
+    for i in range(len(order)):
+        ax.axhline(i, color=S.GRID, linewidth=0.4, zorder=0)
 
 
 #: One drawer per Dan benchmark whose figure is small multiples by model family (plan §6);
@@ -1331,7 +1345,7 @@ DAN_PANEL_DRAWER: dict[str, Callable[[Axes, ChartData], None]] = {
 #: narrow layout's every panel).
 DAN_PANEL_AXES: dict[str, tuple[str, str]] = {
     "dan_yue": ("k (samples per theorem)", "pass@k"),
-    "dan_families": ("model", "written lines at n*"),
+    "dan_families": ("written lines at n* (unseen theorems)", ""),
     "dan_laws": ("s (connectives per metavariable)", "pass@1"),
     "dan_padding": ("W (written lines)", "pass@1"),
     "dan_prefix_state": ("lines left to write (L - j)", "pass@1"),
@@ -1351,34 +1365,84 @@ def dan_panel_figure(cd: ChartData, *, narrow: bool = False) -> Figure:
     panels = cast("dict[str, ChartData]", cd.extra.get("panels") or {})
     families = [f for f in DAN_FAMILY_ORDER if f in panels] or list(DAN_FAMILY_ORDER)
     n = max(len(families), 1)
+    dots = cd.kind == "dot"
+    n_rows = len(cast("list[str]", cd.extra.get("row_order") or [])) if dots else 0
+    panel_h = 0.45 + 0.17 * n_rows if dots else 1.75
     if narrow:
-        fig = S.new_figure(S.NARROW_W, 0.5 + 1.75 * n)
+        fig = S.new_figure(S.NARROW_W, 0.5 + panel_h * n)
         axs = fig.subplots(n, 1, squeeze=False)[:, 0]
     else:
-        fig = S.new_figure(S.FULL_W, 2.05)
+        fig = S.new_figure(S.FULL_W, max(2.05, panel_h + 0.6))
         axs = fig.subplots(1, n, squeeze=False)[0]
     legend_names: list[str] = list(dict.fromkeys(cast("list[str]", cd.opts.get("legend", []))))
+    drawn: list[Axes] = []
     for i, (ax, fam) in enumerate(zip(axs, families, strict=True)):
         panel_cd = panels.get(fam)
         if panel_cd is None or not (panel_cd.series or panel_cd.bars or panel_cd.rows):
             _mini_missing(ax)
         else:
             drawer(ax, panel_cd)
+            drawn.append(ax)
+            if dots and i > 0 and not narrow:
+                ax.set_yticklabels([])
         if i == 0 or narrow:
             ax.set_xlabel(x_label, labelpad=1)
             ax.set_ylabel(y_label, labelpad=1)
         S.panel_title(ax, "abc"[i] if n > 1 else None, DAN_FAMILY_TITLE.get(fam, fam))
+    # One y scale across the panels (plan §6: "on a shared y-axis"), so a taller bar or curve in
+    # one family's panel is a larger value, not a different axis (audit 2026-10-01).
+    if drawn and not dots:
+        y_top = max(ax.get_ylim()[1] for ax in drawn)
+        for ax in drawn:
+            ax.set_ylim(0.0, y_top)
     if legend_names:
         kind = cast(str, cd.opts.get("legend_kind", "bar" if cd.kind == "bar" else "line"))
         handles = legend_handles_for(legend_names, kind=kind)
+        handles += _seed_handles(cd) if kind == "line" else []
+        if dots:
+            handles.append(
+                Line2D(
+                    [],
+                    [],
+                    linestyle="none",
+                    label="fails at smallest size",
+                    **S.ModelStyle("x", S.REF, "o", filled=False).marker_kw(3.0),
+                )
+            )
         # `dash/dan_pages.py:_legend_labels_compact` already cuts a 15-model legend down to one
         # entry per (family, role) -- 6-7 on the real store -- but a single unbroken row of that
         # many handles still overflowed `FULL_W`'s 5.5in past its right edge (observed on the real
         # store's dan_yue/dan_glue cards). Wrap into multiple rows once there are more than 5
         # handles, rather than assuming any particular count always fits on one line.
-        ncol = min(len(handles), 4) if len(handles) > 5 else None
+        # Two columns in the stacked phone layout: four overflowed its 2.9in width (audit).
+        ncol = 2 if narrow else (min(len(handles), 4) if len(handles) > 5 else None)
         _top_legend(fig, handles, ncol=ncol)
     return fig
+
+
+def _seed_handles(cd: ChartData) -> list[Any]:
+    """Grey line-style keys for the seeds other than 0 drawn in `cd`'s panels (the compact legend
+    names only each role's seed-0 model; seeds 1-2 are the same colour in another line style)."""
+    panels = cast("dict[str, ChartData]", cd.extra.get("panels") or {})
+    seeds = sorted(
+        {
+            seed
+            for p in panels.values()
+            for s in p.series
+            if (seed := S.parse_model_label(s.name)[2]) and not s.name.endswith(REF_SUFFIX)
+        }
+    )
+    return [
+        Line2D(
+            [],
+            [],
+            color=S.REF,
+            linewidth=0.9,
+            linestyle=S.SEED_LINESTYLES[seed % len(S.SEED_LINESTYLES)],
+            label=f"seed {seed}",
+        )
+        for seed in seeds
+    ]
 
 
 def legend_handles_for(names: Sequence[str], *, kind: str = "line") -> list[Any]:
@@ -1409,7 +1473,11 @@ def _bar_per_model(
                 zorder=3,
             )
     ax.set_xticks(
-        range(len(bars)), [b.name for b in bars], rotation=30, ha="right", rotation_mode="anchor"
+        range(len(bars)),
+        [b.name for b in bars],
+        rotation=30 if len(bars) <= 4 else 60,
+        ha="right",
+        rotation_mode="anchor",
     )
     ax.tick_params(axis="x", length=0)
     ax.set_xlim(-0.6, len(bars) - 0.4)
@@ -1430,7 +1498,7 @@ def fig_dan_judges(cd: ChartData) -> Figure:
     fig = S.new_figure(S.HALF_W, 1.95)
     ax = fig.add_subplot()
     _bar_per_model(ax, cd.bars)
-    ax.set_ylabel("nd_v2 / lean_v2 agreement rate")
+    ax.set_ylabel("lean-only accepts (% of attempts)")
     return fig
 
 

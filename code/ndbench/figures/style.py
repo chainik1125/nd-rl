@@ -184,7 +184,11 @@ FAMILY_HUES: tuple[str, ...] = (
 )
 FAMILY_MARKERS: tuple[str, ...] = ("D", "v", "P", "X", "h", "<", ">")
 #: Role -> shade of the family hue: the pretrained member darker, the RL member at full hue.
-ROLE_SHADE: dict[str, float] = {"base": -0.35, "pre": -0.35, "rl": 0.0}
+#: Dan's labels name the roles `fz` (frozen Stage-1, pretrained) and `t1` (after the T1 RL ladder);
+#: without their own entries both fell through to 0.0 and drew identically (audit 2026-10-01).
+ROLE_SHADE: dict[str, float] = {"base": -0.35, "pre": -0.35, "fz": -0.35, "rl": 0.0, "t1": 0.0}
+#: Pretrained roles draw solid bars, RL roles hatched (as base vs rl), so bars read in greyscale.
+PRETRAINED_ROLES: frozenset[str] = frozenset({"base", "pre", "fz"})
 #: Seed index -> line style (seeds of one model share colour and marker).
 SEED_LINESTYLES: tuple[Any, ...] = ("-", (0, (4, 1.6)), (0, (1, 1.3)), (0, (5, 1.5, 1, 1.5)))
 _FAMILY_HUE: dict[str, str] = {}
@@ -225,7 +229,8 @@ def model_style(label: str) -> ModelStyle:
     idx = list(_FAMILY_HUE).index(family) if family in _FAMILY_HUE else len(_FAMILY_HUE)
     marker = FAMILY_MARKERS[idx % len(FAMILY_MARKERS)]
     ls = SEED_LINESTYLES[(seed or 0) % len(SEED_LINESTYLES)]
-    return ModelStyle(label, color, marker, linestyle=ls, hatch="xxxx")
+    hatch = None if role in PRETRAINED_ROLES else "xxxx"
+    return ModelStyle(label, color, marker, linestyle=ls, hatch=hatch)
 
 
 def variant(style: ModelStyle, label: str, **changes: Any) -> ModelStyle:

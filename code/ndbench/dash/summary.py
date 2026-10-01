@@ -61,6 +61,7 @@ from ..analysis import skills as skills_view
 from ..analysis import subst as subst_view
 from ..analysis import yue as yue_view
 from ..analysis._common import (
+    DEFAULT_JUDGE_ID,
     bootstrap_ci,
     default_version,
     item_length,
@@ -275,6 +276,9 @@ def _family_horizon(
     model: str,
     pids: Sequence[str],
     problems: Mapping[str, Problem],
+    *,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
+    B: int = 2000,
 ) -> tuple[int | None, bool] | None:
     """`(n_star, censored)` for one (family, model) from `metrics.horizon` restricted to n-cells
     with `>= _MIN_ITEMS_PER_N` items; `None` if no cell qualifies at all. `n_star=None` means
@@ -283,9 +287,10 @@ def _family_horizon(
     order and stops at the first failure, so `None` is specifically "failed at the first n
     tried"). `censored=True` means `n_star` is the largest n actually tested, i.e. pass@8 never
     dropped below 50% within the tested range: a lower bound on the true horizon, not the horizon
-    itself.
+    itself. `judge_id`/`B` (defaults: this page's own) let the State-env section reuse this for
+    Dan's lean_v2 runs; `B` only sets the unused bootstrap CI, never `n_star`.
     """
-    run_id = latest_run_id(store, suite=suite, model=model, version=version)
+    run_id = latest_run_id(store, suite=suite, model=model, version=version, judge_id=judge_id)
     if run_id is None:
         return None
     items = items_by_pid(store, run_id)
@@ -301,7 +306,7 @@ def _family_horizon(
     qualifying = {n: rows for n, rows in by_n.items() if len(rows) >= _MIN_ITEMS_PER_N}
     if not qualifying:
         return None
-    result = horizon_stat(qualifying, k=8, tau=0.5, B=2000, seed=0)
+    result = horizon_stat(qualifying, k=8, tau=0.5, B=B, seed=0)
     n_star = result["n_star"]
     censored = n_star is not None and n_star == max(qualifying)
     return n_star, censored
@@ -697,7 +702,9 @@ def _data_4_skills(store: Store) -> ChartData:
 
 def _data_5_subst(store: Store) -> ChartData:
     key, title = "subst", "Known laws under larger substitutions"
-    data = subst_view.view(store, {})
+    # base/rl only: Dan's `rejudge --judge nd` runs are judged nd_v2 too, so model discovery would
+    # add them to the instance count below (audit 2026-10-01: n doubled on the real store).
+    data = subst_view.view(store, {"models": ["base", "rl"]})
     if data.get("empty"):
         return _missing(key, title, str(data.get("reason", "no data")))
     schemas = cast("dict[str, dict[str, dict[str, Any]]]", data["schemas"])
@@ -827,12 +834,12 @@ def _pool_curve(
 
 
 def _padded_curve_dedup(
-    store: Store, suite: str, version: str, model: str
+    store: Store, suite: str, version: str, model: str, *, judge_id: str | None = DEFAULT_JUDGE_ID
 ) -> list[tuple[float, float, int]]:
     """pass@1 vs W over the padding suite, pooled across pad types with each unpadded (m=0)
     theorem counted once (audit 2026-10-01: every m=0 sequent appears under all three pad types,
     which triple-counted it at W=3-6). `(W, mean pass@1, n distinct items)`."""
-    run_id = latest_run_id(store, suite=suite, model=model, version=version)
+    run_id = latest_run_id(store, suite=suite, model=model, version=version, judge_id=judge_id)
     if run_id is None:
         return []
     items = items_by_pid(store, run_id)
@@ -1608,9 +1615,20 @@ def _probe_baselines(store: Store) -> dict[str, Any] | None:
     return cast("dict[str, Any]", rows[-1]) if rows else None
 
 
+def _latest_ours_probes_run(store: Store) -> str | None:
+    """The newest `interp probes` run with base/rl rows: Dan's state-env probes runs (rows keyed
+    fz/t1) are newer on the real store and would otherwise blank this figure (audit 2026-10-01)."""
+    for rec in reversed(interp_runs(store, "probes")):
+        run_id = cast(str, rec["run_id"])
+        if any(r.get("model") in ("base", "rl") for r in load_interp_rows(store, "probes", run_id)):
+            return run_id
+    return None
+
+
 def _data_12_probes(store: Store) -> ChartData:
     key, title = "probes", "What linear probes read from the activations"
-    data = interp_view.view_probes(store, {})
+    run_id = _latest_ours_probes_run(store)
+    data = interp_view.view_probes(store, {"run_id": run_id} if run_id else {})
     if data.get("empty"):
         return _missing(key, title, str(data.get("reason", "no data")))
     meta = cast("dict[str, Any]", data["meta"])

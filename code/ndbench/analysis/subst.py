@@ -24,6 +24,7 @@ import numpy as np
 from ..core.types import JSON
 from ..metrics import pass_at_k
 from ..store import Store
+from . import models_registry
 from ._common import (
     DEFAULT_JUDGE_ID,
     cfg_get,
@@ -77,9 +78,12 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     if not problems:
         return empty_view(f"suite {suite!r} version {version!r} not found in the store")
     # Audit 2026-10-01: the plan drops law instances seen in training, but laws v1 kept 21
-    # `seen_train` items; exclude them here unless `exclude_seen_train: false`.
+    # `seen_train` items; exclude them here unless `exclude_seen_train: false`. "Seen" is each
+    # model's own training tiers (`models_registry.seen_lookup`: our `seen_train`, or Dan's
+    # per-family sidecar for his models), applied per model below.
     exclude_seen = bool(cfg_get(cfg, "exclude_seen_train", True))
     n_seen_excluded = sum(1 for p in problems.values() if p.seen_train) if exclude_seen else 0
+    all_problems = problems
     if exclude_seen:
         problems = {pid: p for pid, p in problems.items() if not p.seen_train}
     models = override_models or models_present(
@@ -100,12 +104,27 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     )
     if not schemas:
         return empty_view(f"suite {suite!r} has no {SCHEMA_TAG!r} tag on any item")
+    registry = models_registry.load_registry()
+    unseen_by_model: dict[str, Mapping[str, Any]] = {}
+    for model in models:
+        if not exclude_seen:
+            unseen_by_model[model] = all_problems
+            continue
+        seen = models_registry.seen_lookup(
+            store, suite, version, model, all_problems, registry=registry
+        )
+        unseen_by_model[model] = {
+            pid: p for pid, p in all_problems.items() if not seen.get(pid, p.seen_train)
+        }
 
     out: dict[str, Any] = {}
     for schema in schemas:
-        pids = {pid for pid, p in problems.items() if str(p.tags.get(SCHEMA_TAG)) == schema}
         per_model: dict[str, Any] = {}
         for model in models:
+            model_problems = unseen_by_model[model]
+            pids = {
+                pid for pid, p in model_problems.items() if str(p.tags.get(SCHEMA_TAG)) == schema
+            }
             run_id = latest_run_id(
                 store, suite=suite, model=model, version=version, judge_id=judge_id
             )
@@ -117,8 +136,8 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 item = items.get(pid)
                 if item is None:
                     continue
-                s_val = problems[pid].tags.get(S_TAG)
-                tok = item_tokens(problems[pid])
+                s_val = all_problems[pid].tags.get(S_TAG)
+                tok = item_tokens(all_problems[pid])
                 rows.append((s_val, tok if tok is not None else math.nan, item.n, item.c))
             if not rows:
                 continue
@@ -174,6 +193,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
 
             per_model[model] = {
                 "n_items": len(rows),
+                "n_seen_excluded": len(all_problems) - len(model_problems),
                 "curve_vs_s": curve_s,
                 "points_vs_tokens": points_tokens,
                 "logit_slope_per_100_tokens": slope,
