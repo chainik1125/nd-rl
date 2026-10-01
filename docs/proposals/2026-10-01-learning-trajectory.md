@@ -1,7 +1,7 @@
 ---
 written_on: 2026-10-01
 written_by: agent:claude
-status: proposed (Dan asked for the write-up, 2026-10-01); run `trajectory` once approved
+status: approved by Dan 2026-10-01; runs `trajectory` (cap 12), then `trajectory-cap6` (cap 6, same configuration)
 ---
 
 # Proposal 18: how the model organism learns its proofs, from initialisation through pretraining and RL
