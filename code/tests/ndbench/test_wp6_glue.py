@@ -101,3 +101,23 @@ def test_glue_flags_a_model_with_no_mastery_run_instead_of_silently_dropping_it(
     assert armc_cell["no_mastery_run"] is True
     # base still has its real parts_pool run -- must not be flagged.
     assert data["cells"]["AND_k2"]["base"]["no_mastery_run"] is False
+
+
+def test_part_results_prefers_renamed_parts() -> None:
+    # Audit 2026-10-01: R's denominator uses each part as it appears inside the join when the
+    # renamed-parts suite has results for every part; otherwise the original pool items.
+    from dataclasses import replace
+
+    from code.ndbench.analysis.glue import part_results
+
+    joined = replace(make_problem("g0", "glue", "v1", length=9), parts=("a", "b"))
+    pool = {"a": make_item("r", "a", 32, 30), "b": make_item("r", "b", 32, 20)}
+    renamed = {
+        "g0__p0": make_item("r2", "g0__p0", 32, 10),
+        "g0__p1": make_item("r2", "g0__p1", 32, 5),
+    }
+    got = part_results("g0", joined, pool, renamed)
+    assert got is not None and got[1] == "renamed" and [r.c for r in got[0]] == [10, 5]
+    got_pool = part_results("g0", joined, pool, {"g0__p0": renamed["g0__p0"]})
+    assert got_pool is not None and got_pool[1] == "pool" and [r.c for r in got_pool[0]] == [30, 20]
+    assert part_results("g0", joined, {"a": pool["a"]}, {}) is None
