@@ -146,12 +146,21 @@ def load_sealed_l12_14(
 
 
 def load_family_witnesses(
-    store: Store, *, version: str = "v1", n: int | None = None
+    store: Store, *, version: str = "v1", n: int | None = None, seed: int = 0
 ) -> list[NeutralProof]:
     """Witness proofs from the `families` suite (WP3, long proofs), when it has been built into
     this `Store` -- `INTERP_SPEC.md`: "family witnesses from the `families` suite when present".
     Returns `[]` (callers log this as a "skipped: no families suite" note, per the spec's own
-    "skip with a note otherwise") if the suite has not been built yet."""
+    "skip with a note otherwise") if the suite has not been built yet.
+
+    **Throughput fix (2026-10-01):** the real `families` suite built into this `Store` has 2,193
+    witnesses across 92 distinct shape/size combinations (`and_tower`, `and_extract`, `imp_nest`,
+    the ILTP-style cases, ...), ordered by shape then by size in the suite file -- so, unlike
+    `load_sealed_l12_14` (which already shuffles), capping at `n` here used to take a plain
+    `items[:n]` head slice, which for any `n` well under 2,193 silently captured only whichever
+    shapes happen to sort first (confirmed: the first 300 are *entirely* `and_tower`, nothing else)
+    rather than a cross-section of shapes/sizes. Shuffled first now, deterministically given
+    `seed`, matching `load_sealed_l12_14`'s own convention."""
     if not (store.suites_dir / "families" / version).is_dir():
         return []
     items = [
@@ -160,6 +169,7 @@ def load_family_witnesses(
         if p.ref is not None and p.length.L is not None
     ]
     if n is not None and len(items) > n:
+        random.Random(seed).shuffle(items)
         items = items[:n]
     return items
 

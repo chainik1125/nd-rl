@@ -260,6 +260,50 @@ def test_run_likelihood_end_to_end(tmp_path: Path) -> None:
             assert r["disagreement"] is None
 
 
+def test_run_likelihood_p_hat_base_matches_raw_theorem_pid(tmp_path: Path) -> None:
+    """Regression (throughput-fix report, 2026-10-01): `p_hat_base` used to come back `None` on
+    every `base_verified`/`rl_verified` row, because `run_likelihood` named those rows
+    `f"{origin}:{s.pid}"` (to keep a theorem's base and rl rows from colliding) but then looked
+    `base_success` up by that *same* prefixed string -- `base_success` is keyed by the Store's own
+    bare `ItemResult.pid`, which never has the prefix, so the lookup always missed. Fixed via
+    `_ItemPlan.lookup_pid`/`_plan_item`'s `lookup_pid` argument."""
+    store = Store(tmp_path / "out")
+    rows = load_valid_proofs()[:3]
+    refs = _build_tiny_suite(store, rows)
+
+    fake = FakeAdapter(refs, p=1.0)
+    for model in ("base", "rl"):
+        spec = RunSpec(suite="tinysuite", version="v1", model=model, k=1, keep_samples=True)
+        summary = run(spec, fake, NDJudge(), store)
+        assert summary["c"] == len(rows)  # p=1.0: base solves every one of these theorems
+
+    cfg: dict[str, JSON] = {
+        "seed": 0,
+        "n_neutral": 0,
+        "model_samples": {
+            "base": {"suite": "tinysuite", "version": "v1", "model": "base", "limit": 10},
+            "rl": {"suite": "tinysuite", "version": "v1", "model": "rl", "limit": 10},
+        },
+        "base_success": {"suite": "tinysuite", "version": "v1", "model": "base"},
+    }
+    summary = likelihood.run_likelihood(
+        store,
+        cfg,
+        base_adapter=TinyGptAdapter(seed=1, label="base"),
+        rl_adapter=TinyGptAdapter(seed=2, label="rl"),
+    )
+    loaded = load_interp_rows(store, "likelihood", summary["run_id"])
+    assert len(loaded) == 2 * len(rows)
+    raw_pids = {row["name"] for row in rows}
+    for r in loaded:
+        # every display `pid` is `f"{origin}:<raw theorem pid>"`; `p_hat_base` must have found
+        # that raw pid in `base_success` (p=1.0 run: every theorem's own p_hat is exactly 1.0).
+        display_pid = cast(str, r["pid"])
+        raw_pid = display_pid.split(":", 1)[1]
+        assert raw_pid in raw_pids
+        assert r["p_hat_base"] == 1.0, (display_pid, r["p_hat_base"])
+
+
 def test_run_likelihood_notes_missing_model_samples(tmp_path: Path) -> None:
     store = Store(tmp_path / "out")
     rows = load_valid_proofs()[:2]
