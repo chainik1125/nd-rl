@@ -366,10 +366,19 @@ def cmd_import_legacy(args: argparse.Namespace) -> None:
 
 
 def cmd_dash(args: argparse.Namespace) -> None:
+    store = Store(Path(args.out))
+    if args.summary:
+        build_summary = _resolve_registry(
+            {"dash-summary": "code.ndbench.dash.summary:build_summary"},
+            "dash-summary",
+            "summary dashboard builder",
+        )
+        path = build_summary(store, Path(args.dash_dir))
+        print(json.dumps({"dash_dir": args.dash_dir, "summary": str(path)}, indent=2))
+        return
     build = _resolve_registry(
         {"dash": "code.ndbench.dash.build:build"}, "dash", "dashboard builder"
     )
-    store = Store(Path(args.out))
     build(store, Path(args.dash_dir))
     print(json.dumps({"dash_dir": args.dash_dir, "views": sorted(ANALYSIS_VIEWS)}, indent=2))
 
@@ -601,6 +610,14 @@ def build_parser() -> argparse.ArgumentParser:
     d = sub.add_parser("dash", help="render the analysis dashboard (WP6)")
     d.add_argument("--out", default=DEFAULT_OUT)
     d.add_argument("--dash-dir", required=True, dest="dash_dir")
+    d.add_argument(
+        "--summary",
+        action="store_true",
+        help=(
+            "write only dash-dir/summary.html: a single page, one chart per benchmark, instead "
+            "of the full multi-page dashboard"
+        ),
+    )
     d.set_defaults(func=cmd_dash)
 
     return p
