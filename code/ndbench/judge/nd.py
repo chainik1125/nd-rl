@@ -23,6 +23,7 @@ from collections.abc import Sequence
 
 from ..core.types import Attempt, Sequent, Verdict
 from ..vendor import load_absgpt_module, load_nd_verify, load_ndcheck
+from .base import Judge
 
 _UNPARSEABLE_PREFIX = "UNPARSEABLE"
 
@@ -55,8 +56,14 @@ def first_forward_citation(body: str) -> int | None:
     return None
 
 
-class NDJudge:
-    """Judges attempts against `nd_verify` + `ndcheck`'s incremental checker."""
+class NDJudge(Judge):
+    """Judges attempts against `nd_verify` + `ndcheck`'s incremental checker.
+
+    Subclasses `Judge` (rather than only matching it structurally) purely to inherit its default
+    `judge_many` (loop over `judge`, one call per group) for free -- `nd_verify`/`ndcheck` are
+    pure-Python and per-item already, so there is nothing to gain from batching across items the
+    way `LeanJudge.judge_many` does.
+    """
 
     judge_id = "nd_v2"  # v2: forward citations rejected (see module docstring)
 

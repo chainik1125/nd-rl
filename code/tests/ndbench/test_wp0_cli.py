@@ -174,6 +174,7 @@ def test_build_parser_has_every_subcommand() -> None:
     assert set(subparsers_action.choices) == {
         "build",
         "run",
+        "rejudge",
         "edl",
         "throughput",
         "import-legacy",

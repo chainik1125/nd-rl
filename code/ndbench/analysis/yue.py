@@ -346,8 +346,15 @@ def _legacy_consistency(
     own `version` field is a sampling-config id (e.g. `"k256_s0"`), not this suite's `"v1"`/`"v2"`
     -- so the lookup is unfiltered on version (`version=None`), by suite+model only.
     """
+    # `judge_id=None`: a legacy `import_legacy` run (`judge_id="legacy_import"`), not
+    # `all_run_ids`'s new default `"nd_v2"` filter (plan §2 WP-D2 item 5).
     legacy_ids = all_run_ids(
-        store, suite=legacy_suite, model=legacy_model, version=None, statuses=("legacy",)
+        store,
+        suite=legacy_suite,
+        model=legacy_model,
+        version=None,
+        statuses=("legacy",),
+        judge_id=None,
     )
     if not legacy_ids:
         return None

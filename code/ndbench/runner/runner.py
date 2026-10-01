@@ -482,12 +482,28 @@ def run(
                 continue
 
             attempts_by_req = adapter.sample(reqs)
+            # One `judge_many` call across every item in this group (module docstring's
+            # "Incremental writing" sizes the group; `judge.judge_many`'s own docstring is why a
+            # group, not the whole round, is the batching unit) rather than `judge.judge` once per
+            # item: a judge that starts external processes (`LeanJudge`) then starts a handful of
+            # `lean` processes per group instead of per item.
+            req_problems = [by_pid[req.pid] for req in reqs]
+            ref_lines_by_req = [
+                (problem.ref.lines if problem.ref is not None else None) for problem in req_problems
+            ]
+            judge_items = [
+                (problem.sequent, attempts, ref_lines)
+                for problem, attempts, ref_lines in zip(
+                    req_problems, attempts_by_req, ref_lines_by_req, strict=True
+                )
+            ]
+            verdicts_by_req = judge.judge_many(judge_items)
+
             chunk_results: list[ItemResult] = []
             chunk_samples: list[dict[str, JSON]] = []
-            for req, attempts in zip(reqs, attempts_by_req, strict=True):
-                problem = by_pid[req.pid]
-                ref_lines = problem.ref.lines if problem.ref is not None else None
-                verdicts = judge.judge(problem.sequent, attempts, ref_lines)
+            for req, attempts, ref_lines, verdicts in zip(
+                reqs, attempts_by_req, ref_lines_by_req, verdicts_by_req, strict=True
+            ):
                 accum = _ChunkAccum(run_id=run_id, pid=req.pid, chunk=next_chunk[req.pid])
                 for a, v in zip(attempts, verdicts, strict=True):
                     chunk_samples.append(accum.record(a, v, ref_lines))

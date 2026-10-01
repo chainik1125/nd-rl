@@ -1,11 +1,13 @@
 """ndbench command-line interface: `python -m code.ndbench <subcommand> ...` (plan §1).
 
-Subcommands: `build | run | edl | throughput | import-legacy | budget | dash | figures`. Everything
-this module imports at module level is cheap (argparse, `core.io`, `store.Store`, the plain-dict
-lazy registries); every work-package-specific implementation (an adapter, a judge, a suite builder,
-an analysis view, WP1's `tools/throughput`/`runner/gpu`, WP5's `edl.py`, WP6's `dash/build.py`) is
-resolved with `_resolve` only once its subcommand actually runs, so `--help` (and importing this
-module at all) never requires torch, a GPU, or a work package that has not landed yet.
+Subcommands: `build | run | rejudge | edl | throughput | import-legacy | budget | dash | figures`.
+Everything this module imports at module level is cheap (argparse, `core.io`, `core.types`,
+`store.Store`, the plain-dict lazy registries); every work-package-specific implementation (an
+adapter, a judge, a suite builder, an analysis view, WP1's `tools/throughput`/`runner/gpu`, WP5's
+`edl.py`, WP6's `dash/build.py`) is resolved with `_resolve` only once its subcommand actually
+runs, so `--help` (and importing this module at all) never requires torch, a GPU, or a work
+package that has not landed yet. `rejudge` (plan §2 WP-D2 item 3) is CPU-only and never resolves
+an adapter at all -- it works purely from a run's already-recorded samples.
 """
 
 from __future__ import annotations
@@ -23,6 +25,8 @@ import yaml
 
 from .adapters.base import ADAPTERS
 from .analysis import VIEWS as ANALYSIS_VIEWS
+from .core.io import read_jsonl
+from .core.types import Attempt
 from .judge import JUDGES
 from .store import Store
 from .suites import BUILDERS
@@ -100,6 +104,38 @@ def _parse_kv_list(items: Sequence[str] | None) -> dict[str, str]:
         if not sep:
             raise SystemExit(f"expected key=value, got {item!r}")
         out[key] = value
+    return out
+
+
+def _coerce_option_value(raw: str) -> Any:
+    """`--option KEY=VALUE`'s raw string -> a JSON-friendly bool/int/float/str (plan §2 WP-D2 item
+    4): `'true'`/`'false'` (case-insensitive) -> `bool`; else an int-looking string -> `int`; else
+    a float-looking string -> `float`; else the raw string, unchanged. Order matters -- checked
+    before int/float so `'TRUE'`/`'0'`/`'0.0'` aren't ambiguous, and int before float so `'3'`
+    becomes `3` not `3.0`."""
+    low = raw.lower()
+    if low in ("true", "false"):
+        return low == "true"
+    try:
+        return int(raw)
+    except ValueError:
+        pass
+    try:
+        return float(raw)
+    except ValueError:
+        pass
+    return raw
+
+
+def _parse_options(items: Sequence[str] | None) -> dict[str, Any]:
+    """`--option KEY=VALUE` (repeatable) -> `RunSpec.options`, each value coerced
+    (`_coerce_option_value`); e.g. `--option items_per_call=64 --option max_new_policy=full`."""
+    out: dict[str, Any] = {}
+    for item in items or ():
+        key, sep, value = item.partition("=")
+        if not sep:
+            raise SystemExit(f"--option expected key=value, got {item!r}")
+        out[key] = _coerce_option_value(value)
     return out
 
 
@@ -229,6 +265,18 @@ def cmd_build(args: argparse.Namespace) -> None:
 # ----------------------------------------------------------------------------------------- run
 
 
+def _build_judge(name: str, out: str) -> Any:
+    """Instantiate `JUDGES[name]` (plan §2 WP-D2 item 1/3's `--judge {nd,lean}`, shared by `run`
+    and `rejudge`). `LeanJudge` additionally gets `cache_dir=<out>/cache`, so its sqlite verdict
+    cache lives under this `Store` root (`<out>/cache/lean_v2/verdicts.sqlite`) rather than
+    somewhere ad hoc; checked by name (not `isinstance`/`issubclass`) so resolving the `"nd"` judge
+    never has to import `judge.lean` at all (`judge/__init__.py`'s own lazy-registry rationale)."""
+    judge_cls = _resolve_registry(JUDGES, name, "judge")
+    if name == "lean":
+        return judge_cls(cache_dir=str(Path(out) / "cache"))
+    return judge_cls()
+
+
 def cmd_run(args: argparse.Namespace) -> None:
     from .runner.adaptive import AdaptiveRule
     from .runner.runner import RunSpec, run
@@ -243,14 +291,14 @@ def cmd_run(args: argparse.Namespace) -> None:
         model_kwargs["device"] = args.device
     adapter = adapter_cls(**model_kwargs)
 
-    judge_cls = _resolve_registry(JUDGES, args.judge, "judge")
-    judge = judge_cls()
+    judge = _build_judge(args.judge, args.out)
 
     adaptive = None
     if args.adaptive:
         chunk, n_max, stop_c = (int(x) for x in args.adaptive.split(","))
         adaptive = AdaptiveRule(chunk=chunk, n_max=n_max, stop_c=stop_c)
     pids = tuple(args.pids.split(",")) if args.pids else None
+    options = _parse_options(args.option)
 
     spec = RunSpec(
         suite=args.suite,
@@ -265,6 +313,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         seed=args.seed,
         adaptive=adaptive,
         pids=pids,
+        options=options,
         keep_samples=not args.no_keep_samples,
         budget_s=args.budget_s,
     )
@@ -272,6 +321,96 @@ def cmd_run(args: argparse.Namespace) -> None:
     summary = run(spec, adapter, judge, store, rerun=args.rerun)
     adapter.close()
     print(json.dumps(summary, indent=2))
+
+
+# ------------------------------------------------------------------------------------- rejudge
+
+
+def cmd_rejudge(args: argparse.Namespace) -> None:
+    """Recompute an existing run's verdicts under a different judge, without resampling (plan §2
+    WP-D2 item 3): reads `samples/<run_id>.jsonl.gz`, re-derives each `(pid, chunk)`'s `ItemResult`
+    with the runner's own `_ChunkAccum`, and writes the result as a new derived run
+    (`store.new_derived_run`) -- `derived_from=<run_id>`, `gpu_s=0`, no GPU lease of any kind. CPU
+    only; safe to run against the real `out/` store (it never touches `<run_id>`'s own rows)."""
+    from .runner.runner import _ChunkAccum
+
+    store = Store(Path(args.out))
+    source = store.runs(run_id=args.run_id)
+    if not source:
+        raise SystemExit(f"rejudge: no run recorded with run_id={args.run_id!r}")
+    src = source[0]
+    suite, version = str(src.get("suite")), str(src.get("version"))
+
+    samples_path = store.samples_dir / f"{args.run_id}.jsonl.gz"
+    if not samples_path.exists():
+        raise SystemExit(
+            f"rejudge: no samples recorded for run_id={args.run_id!r} at {samples_path} "
+            "(the original run must have used keep_samples=True)"
+        )
+
+    problems = {p.pid: p for p in store.load_suite(suite, version)}
+    judge = _build_judge(args.judge, args.out)
+
+    groups: dict[tuple[str, int], list[dict[str, Any]]] = {}
+    for row in read_jsonl(samples_path):
+        groups.setdefault((cast(str, row["pid"]), cast(int, row["chunk"])), []).append(row)
+
+    judge_items: list[tuple[Any, list[Attempt], int | None]] = []
+    group_keys: list[tuple[str, int]] = []
+    for (pid, chunk), rows in sorted(groups.items()):
+        problem = problems.get(pid)
+        if problem is None:
+            continue  # the suite has changed since the original run sampled this pid; skip it
+        attempts = [
+            Attempt(
+                pid=pid,
+                i=cast(int, row["i"]),
+                body=cast(str, row["body"]),
+                native=cast("str | None", row.get("native")),
+                n_tokens=cast(int, row["n_tokens"]),
+                finished=cast(bool, row["finished"]),
+            )
+            for row in rows
+        ]
+        ref_lines = problem.ref.lines if problem.ref is not None else None
+        judge_items.append((problem.sequent, attempts, ref_lines))
+        group_keys.append((pid, chunk))
+
+    # One `judge_many` call across every (pid, chunk) group in the whole run (not just one round's
+    # worth, the way `runner.run` batches): a rejudge has no adapter/GPU in the loop to pipeline
+    # against, so there is no reason to hold any Lean work back.
+    verdicts_by_group = judge.judge_many(judge_items)
+
+    derived_run_id = store.new_derived_run(derived_from=args.run_id, judge_id=judge.judge_id)
+    item_results = []
+    sample_rows: list[dict[str, Any]] = []
+    for (pid, chunk), (seq, attempts, ref_lines), verdicts in zip(
+        group_keys, judge_items, verdicts_by_group, strict=True
+    ):
+        del seq
+        accum = _ChunkAccum(run_id=derived_run_id, pid=pid, chunk=chunk)
+        for a, v in zip(attempts, verdicts, strict=True):
+            sample_rows.append(accum.record(a, v, ref_lines))
+        item_results.append(accum.finish())
+
+    store.append_items(derived_run_id, item_results)
+    store.append_samples(derived_run_id, sample_rows)
+    store.finish_run(derived_run_id, cast(str, src.get("status")) or "complete", 0.0)
+
+    print(
+        json.dumps(
+            {
+                "run_id": derived_run_id,
+                "derived_from": args.run_id,
+                "judge_id": judge.judge_id,
+                "n_items": len({pid for pid, _chunk in group_keys}),
+                "n_groups": len(group_keys),
+                "n": sum(r.n for r in item_results),
+                "c": sum(r.c for r in item_results),
+            },
+            indent=2,
+        )
+    )
 
 
 # ----------------------------------------------------------------------------------------- edl
@@ -526,6 +665,15 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--seed", type=int, default=0)
     r.add_argument("--adaptive", default=None, help="chunk,n_max,stop_c")
     r.add_argument("--pids", default=None, help="comma-separated pid subset")
+    r.add_argument(
+        "--option",
+        action="append",
+        dest="option",
+        help=(
+            "key=value (repeatable), sets RunSpec.options[key] (e.g. --option "
+            "items_per_call=64); 'true'/'false' and int/float-looking values are coerced"
+        ),
+    )
     r.add_argument("--budget-s", type=float, default=None, dest="budget_s")
     r.add_argument("--no-keep-samples", action="store_true")
     r.add_argument(
@@ -540,6 +688,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     r.add_argument("--out", default=DEFAULT_OUT)
     r.set_defaults(func=cmd_run)
+
+    rj = sub.add_parser(
+        "rejudge",
+        help=(
+            "recompute an existing run's verdicts under a different judge, without resampling "
+            "(CPU only, no GPU lease; plan §2 WP-D2 item 3)"
+        ),
+    )
+    rj.add_argument("--run-id", required=True, dest="run_id")
+    rj.add_argument("--judge", required=True, choices=sorted(JUDGES))
+    rj.add_argument("--out", default=DEFAULT_OUT)
+    rj.set_defaults(func=cmd_rejudge)
 
     e = sub.add_parser("edl", help="run the excess-description-length protocol (plan §B7)")
     e.add_argument(

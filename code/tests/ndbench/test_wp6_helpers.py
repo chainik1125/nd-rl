@@ -114,11 +114,15 @@ def start_run(
     k: int,
     seed: int = 0,
     status: str = "complete",
+    judge_id: str = "nd_v2",
 ) -> str:
     """Registers and finishes a run (plan §1's `new_run`/`finish_run`), returning its `run_id`.
     `status="legacy"` is how a legacy-imported run is represented (`Store.finish_run` takes any
-    status string; `import-legacy`, plan §3 WP2, is expected to do the same)."""
+    status string; `import-legacy`, plan §3 WP2, is expected to do the same). `judge_id` defaults
+    to `"nd_v2"` (the real `NDJudge.judge_id`, and `analysis._common`'s own default `judge_id`
+    filter as of plan §2 WP-D2 item 5) so every WP6 view test's synthetic runs are found by the
+    analysis helpers' default filter without each call site having to pass `judge_id` explicitly."""
     spec = RunSpec(suite=suite, version=version, model=model, k=k, seed=seed)
-    run_id = store.new_run(spec, identity={"label": model}, judge_id="nd_v1")
+    run_id = store.new_run(spec, identity={"label": model}, judge_id=judge_id)
     store.finish_run(run_id, status, 0.0)
     return run_id

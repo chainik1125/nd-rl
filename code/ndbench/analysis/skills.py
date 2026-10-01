@@ -167,7 +167,10 @@ def _collect_legacy_items(
         return out
     groups: dict[tuple[str, str], list[dict[str, JSON]]] = {}
     for suite in suites:
-        for rec in run_records(store, suite=suite, statuses=_LEGACY_STATUSES):
+        # `judge_id=None`: these are `import_legacy`'s pre-ndbench runs (`judge_id="legacy_import"`
+        # per `suites/existing.py`), not `run_records`'s new default `"nd_v2"` filter (plan §2
+        # WP-D2 item 5) -- an explicit override, not a relaxation of the filter for its own sake.
+        for rec in run_records(store, suite=suite, statuses=_LEGACY_STATUSES, judge_id=None):
             legacy_model = cast(str, rec.get("model"))
             if legacy_model not in LEGACY_MODEL_MAP:
                 continue

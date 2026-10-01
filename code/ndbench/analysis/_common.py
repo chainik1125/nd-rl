@@ -34,6 +34,16 @@ from ..store import Store
 #: or their own tuple).
 LIVE_STATUSES: tuple[str, ...] = ("complete", "partial")
 
+#: `judge_id` `run_records`/`latest_run_id`/`all_run_ids`/`models_present` filter to by default
+#: (plan §2 WP-D2 item 5): `judge.nd.NDJudge.judge_id`, the only judge any run in the real store
+#: predates (plan §0: "No lean* runs exist in the store yet"), so this default is exactly today's
+#: behaviour for every existing view/dashboard call site -- none of which pass `judge_id` -- both
+#: now and once `lean_v2` runs land (a bare call stays pinned to `nd_v2` rather than silently
+#: starting to mix two judges' verdicts together once both exist for the same suite/model). Pass
+#: `judge_id=None` to disable the filter entirely (every judge), or an explicit id (e.g.
+#: `"lean_v2"`) for a judge-specific view.
+DEFAULT_JUDGE_ID: str | None = "nd_v2"
+
 
 def cfg_get(cfg: Mapping[str, JSON], key: str, default: JSON) -> JSON:
     """`cfg[key]` if present and not `None`, else `default` -- the view config convention used
@@ -49,9 +59,12 @@ def run_records(
     version: str | None = None,
     model: str | None = None,
     statuses: Sequence[str] | None = LIVE_STATUSES,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
 ) -> list[dict[str, JSON]]:
     """Folded run records (`Store.runs()`) matching every non-`None` filter, restricted to
-    `statuses` (`None` disables the status filter entirely)."""
+    `statuses` (`None` disables the status filter entirely) and to `judge_id` (default
+    `DEFAULT_JUDGE_ID`, `"nd_v2"`; `None` disables this filter entirely too, matching every
+    judge)."""
     out: list[dict[str, JSON]] = []
     for rec in store.runs():
         if suite is not None and rec.get("suite") != suite:
@@ -61,6 +74,8 @@ def run_records(
         if model is not None and rec.get("model") != model:
             continue
         if statuses is not None and rec.get("status") not in statuses:
+            continue
+        if judge_id is not None and rec.get("judge_id") != judge_id:
             continue
         out.append(rec)
     return out
@@ -72,12 +87,15 @@ def models_present(
     suite: str,
     version: str | None = None,
     statuses: Sequence[str] | None = LIVE_STATUSES,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
 ) -> list[str]:
     """Every distinct `model` with at least one matching run, sorted (deterministic page order)."""
     return sorted(
         {
             cast(str, r["model"])
-            for r in run_records(store, suite=suite, version=version, statuses=statuses)
+            for r in run_records(
+                store, suite=suite, version=version, statuses=statuses, judge_id=judge_id
+            )
         }
     )
 
@@ -89,6 +107,7 @@ def latest_run_id(
     model: str,
     version: str | None = None,
     statuses: Sequence[str] | None = LIVE_STATUSES,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
 ) -> str | None:
     """The matching run with the most total samples (`k`), ties broken by most recently finished
     (or, failing that, started); `None` if nothing matches.
@@ -104,7 +123,9 @@ def latest_run_id(
     attempt still wins on the recency tie-break, so resume/rerun behaviour is unchanged, and a suite
     with only one run per (suite, model, version) (the common case) is unaffected either way.
     """
-    cands = run_records(store, suite=suite, version=version, model=model, statuses=statuses)
+    cands = run_records(
+        store, suite=suite, version=version, model=model, statuses=statuses, judge_id=judge_id
+    )
     if not cands:
         return None
     cands.sort(
@@ -123,10 +144,13 @@ def all_run_ids(
     model: str,
     version: str | None = None,
     statuses: Sequence[str] | None = LIVE_STATUSES,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
 ) -> list[str]:
     return [
         cast(str, r["run_id"])
-        for r in run_records(store, suite=suite, version=version, model=model, statuses=statuses)
+        for r in run_records(
+            store, suite=suite, version=version, model=model, statuses=statuses, judge_id=judge_id
+        )
     ]
 
 

@@ -22,6 +22,13 @@ appended per chunk as the run progresses; `items()` merges chunks for the same `
 `ledger.jsonl` rows are free-form JSON entries; `ledger_total_s` sums each entry's `"gpu_s"` field
 (`0` if absent), matching plan §4's "the ledger counts lock-held wall time only" stop rule.
 
+**Derived runs (plan §2 WP-D2).** `new_derived_run` starts a run whose `"start"` event carries a
+`derived_from` field (the source run's own `run_id`): a `rejudge` recomputes an existing run's
+already-sampled attempts under a different judge without resampling, and this is how that
+derived run's provenance is recorded. `derived_from` is otherwise an ordinary row in every sense
+`runs()`/`latest()`/the `analysis._common` helpers already handle -- nothing reads it back except
+a human or a future view that specifically wants to tell a rejudge apart from an original `run()`.
+
 **Effective `config_key` (rerun-merging fix).** `config_key` used to hash `spec.options` verbatim,
 so two `RunSpec`s that differ only in a runner-level *default* (e.g. `runner.runner`'s
 `max_new_policy` default changing between two code versions, with neither caller ever passing
@@ -217,6 +224,52 @@ class Store:
                     "k": spec.k,
                     "started_utc": utc_now_iso(),
                     "status": "running",
+                }
+            ],
+        )
+        return run_id
+
+    def new_derived_run(
+        self, *, derived_from: str, judge_id: str, run_id: str | None = None
+    ) -> str:
+        """Start a run derived from `derived_from`'s own recorded run (plan §2 WP-D2's
+        `rejudge`): recomputes `derived_from`'s already-sampled attempts under a different judge,
+        without resampling or touching the original run at all. Copies `suite`/`version`/`model`/
+        `config_key`/`identity`/`k` straight from `derived_from`'s own folded record (`runs(run_id
+        =derived_from)`) and overwrites only `judge_id`, so a rejudge run is unmistakably "the
+        same config, a different judge" rather than an unrelated fresh run; the caller still has
+        to call `finish_run(run_id, status, gpu_s=0.0)` itself once it has written every item (no
+        GPU lease is ever involved in a rejudge, hence `gpu_s=0.0`, not this method's job to pass).
+
+        `run_id` defaults to `f"{derived_from}~{judge_id}"`; rejudging the exact same
+        `(derived_from, judge_id)` pair again lands on the same `run_id` and is folded by
+        `runs()`/merged by `append_items`'s append-only semantics like any other `run_id` reused
+        on purpose, not treated specially here.
+
+        Raises `ValueError` if `derived_from` has no recorded run at all (nothing to derive from).
+        """
+        source = self.runs(run_id=derived_from)
+        if not source:
+            raise ValueError(f"new_derived_run: no run recorded with run_id={derived_from!r}")
+        src = source[0]
+        if run_id is None:
+            run_id = f"{derived_from}~{judge_id}"
+        append_jsonl(
+            self.runs_path,
+            [
+                {
+                    "event": "start",
+                    "run_id": run_id,
+                    "suite": src.get("suite"),
+                    "version": src.get("version"),
+                    "model": src.get("model"),
+                    "config_key": src.get("config_key"),
+                    "judge_id": judge_id,
+                    "identity": dict(cast("Mapping[str, JSON]", src.get("identity") or {})),
+                    "k": src.get("k"),
+                    "started_utc": utc_now_iso(),
+                    "status": "running",
+                    "derived_from": derived_from,
                 }
             ],
         )
