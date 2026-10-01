@@ -33,7 +33,11 @@ Branch `leon/benchmarking`.
   skill_pool 11,524 (legacy-joined), families 2,472, laws 1,755, padding v2 740, glue 792,
   glue_parts_renamed 1,317, prefix 1,039; interp eval suites dev 720 / sealed 1,240 / k128 150.
 - **Outputs**: `/scratch/cowifornia/nd-rl/bench/out/` (store, logs, quarantine). One-page
-  summary: `out/dash_summary/summary.html`; detail pages: `out/dash_v2/`.
+  summary: `out/dash_summary/summary.html`; detail pages: `out/dash_v2/`. Paper-style version
+  (branch `leon/paper-figures`): NeurIPS-style figures as PDF/SVG/PNG with `captions.md` in
+  `out/figures_paper/` (`python -m code.ndbench figures`), and the summary laid out as a results
+  section in `out/dash_paper/summary.html`; same numbers, see
+  [`code/ndbench/figures/STYLE.md`](../../code/ndbench/figures/STYLE.md).
 - **Compute**: about 6.9 GPU-h on the ledger in total, including the audit reruns.
 - **Audit**: two independent read-only audits on 2026-10-01 (benchmark evals; EDL and interp).
   Their confirmed fixes and five approved reruns are in the commits after `d7ed980`.
