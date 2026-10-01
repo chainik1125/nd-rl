@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -849,3 +850,40 @@ def test_simple_theorem_verifies_within_64_samples_from_rl_model() -> None:
         assert any(v.ok for v in verdicts)
     finally:
         adapter.close()
+
+
+def test_sampling_sets_per_row_prompt_boundary_for_steering(tiny_ckpt: Path) -> None:
+    """Audit 2026-10-01: `sample()` never set the prompt boundary, so during generation a
+    `where="proof"` term also steered the prompt and a `where="prompt"` term did nothing. Every
+    `_gen` prefill must now see each row's own prompt length (forced prefix excluded), and the
+    boundary must be cleared after the call. Mixed prompt lengths and early-finishing rows also
+    exercise `_gen`'s mid-decode batch compaction against the per-row tensor."""
+    adapter = AbsGptAdapter(ckpt=tiny_ckpt, device="cpu", batch=8)
+    d = adapter._cfg["d"]
+    steered = adapter.with_steering(
+        (SteeringTerm(layer=0, vector=tuple(0.01 * i for i in range(d)), alpha=1.0, where="proof"),)
+    )
+    seen: list[tuple[int, list[int]]] = []
+
+    def record(_m: Any, _i: Any, output: torch.Tensor) -> None:
+        pl = steered._steer_prompt_len
+        if output.shape[1] > 1:  # prefill
+            assert isinstance(pl, torch.Tensor)
+            seen.append((output.shape[0], [int(x) for x in pl.tolist()]))
+
+    handle = steered._model.blocks[0].register_forward_hook(record)
+    try:
+        proofs = load_valid_proofs()
+        seqs = [Sequent.from_prompt(proofs[i]["prompt"]) for i in (0, 5)]
+        reqs = [
+            SampleRequest(pid=f"p{i}", sequent=q, n=3, temperature=1.0, max_new_tokens=24, seed=i)
+            for i, q in enumerate(seqs)
+        ]
+        steered.sample(reqs)
+        want = sorted(len(steered._tok.encode_prompt(q.prompt())) for q in seqs for _ in range(3))
+        assert seen and sorted(x for _b, lens in seen for x in lens) == want
+        assert steered._steer_prompt_len == 0
+    finally:
+        handle.remove()
+        adapter.close()
+        steered.close()
