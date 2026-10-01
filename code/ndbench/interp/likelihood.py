@@ -124,11 +124,11 @@ def _teacher_forced_logits(adapter: ModelAdapter, seq: Sequent, body: str) -> np
     pid = tok.encode_prompt(seq.prompt())
     qid = tok.encode_proof(body)
     ids = pid + qid
-    x = torch.tensor([ids], dtype=torch.long)
+    x = torch.tensor([ids], dtype=torch.long, device=next(model.parameters()).device)
     model.eval()
     with torch.no_grad():
         logits = model(x[:, :-1])
-    proof_logits = logits[0, len(pid) - 1 :].float().numpy()
+    proof_logits = logits[0, len(pid) - 1 :].float().cpu().numpy()
     assert proof_logits.shape[0] == len(qid)
     return proof_logits
 
