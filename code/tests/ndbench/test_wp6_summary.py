@@ -622,3 +622,26 @@ def test_summary_footer_links_detail_pages_only_when_asked(tmp_path: Path) -> No
     linked = dash_summary.build_summary(store, tmp_path / "b", detail_href="detail/index.html")
     assert 'href="detail/index.html"' not in plain
     assert 'href="detail/index.html"' in linked.read_text()
+
+
+def test_likelihood_chart_ignores_newer_dan_runs(tmp_path: Path) -> None:
+    """A newer likelihood run for Dan's pair (rows keyed `fz`/`t1`, same origin names) must not
+    claim the base/rl chart's origins or crash it (2026-10-01: `KeyError: 'base'`)."""
+    store = Store(tmp_path)
+    _populate_likelihood(store)
+    dan_row: dict[str, JSON] = {
+        "pid": "reserve:x",
+        "origin": "base_verified",
+        "fz": {"logp_single": -1.0},
+        "t1": {"logp_single": -0.5},
+    }
+    run_id = new_interp_run(store, "likelihood", {"base_model": "dan12-fz-s0"})
+    write_interp_rows(store, "likelihood", run_id, [dan_row])
+    by_origin, run_of = dash_summary._likelihood_rows_by_origin(  # pyright: ignore[reportPrivateUsage]
+        store
+    )
+    assert run_id not in run_of.values()
+    assert {str(r["pid"]) for r in by_origin["base_verified"]} == {
+        "base_verified:part_a",
+        "base_verified:part_b",
+    }

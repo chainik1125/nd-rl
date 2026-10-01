@@ -1205,6 +1205,10 @@ def _likelihood_rows_by_origin(
             continue
         seen.add(run_id)
         rows = load_interp_rows(store, "likelihood", run_id)
+        # Only runs that score our base/rl pair: Dan's state-env runs (rows keyed fz/t1, same
+        # origin names) belong to the Dan section and must not claim these origins.
+        if not rows or not all("base" in r and "rl" in r for r in rows):
+            continue
         origins = {cast(str, r["origin"]) for r in rows}
         for origin in origins - set(by_origin):
             by_origin[origin] = [r for r in rows if r["origin"] == origin]
