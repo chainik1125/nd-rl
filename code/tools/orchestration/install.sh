@@ -7,7 +7,7 @@
 #     are dropped — e.g. the take-home night's `0 12 25 9 * killswitch`, which would re-fire every year.
 set -e; H=$(cd "$(dirname "$0")" && pwd); mkdir -p ~/bin ~/runs
 for f in "$H"/*; do t=$(basename "$f"); case "$t" in install.sh|README.md) continue;; esac; install -m755 "$f" ~/bin/"$t"; done
-CRON="*/10 * * * * $HOME/bin/orchestrator
+CRON="*/2 * * * * $HOME/bin/orchestrator
 */15 * * * * $HOME/bin/pod_watchdog
 */10 * * * * $HOME/bin/pod_budget_watch
 17 * * * * $HOME/bin/balance_floor

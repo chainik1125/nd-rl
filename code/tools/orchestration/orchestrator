@@ -3,6 +3,9 @@
 # When the executor's done line appears: gate1 → review_workspace → runrole reviewer.  When reviewer.done: gate2 → runrole librarian.
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; L=~/orchestrator.log
 [ -f ~/orchestrator.conf ] || exit 0
+# Every 2 min since 2026-09-30 (was 10; Dan). A slow tick (gate checks, copying a review workspace) can outlast
+# that, so only one tick runs at a time: a second one exits rather than starting a run's reviewer twice.
+exec 9> ~/.orchestrator.lock; flock -n 9 || exit 0
 while IFS='|' read -r RUN REPO DG BRIEF; do
   RUN=$(echo $RUN); REPO=$(echo $REPO); DG=$(echo $DG); BRIEF=$(echo $BRIEF)
   [ -z "$RUN" ] || [ "${RUN:0:1}" = "#" ] && continue

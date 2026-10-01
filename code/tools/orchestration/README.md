@@ -2,7 +2,7 @@
 
 Shell tools for the role loop described in `docs/proposals/orchestration/README.md`. Install
 on the agent host with `bash install.sh` (adds them to `~/bin`, a `~/pods.log` line to
-`podnew`, and a 10-minute `orchestrator` cron tick).
+`podnew`, and a 2-minute `orchestrator` cron tick, one at a time under a lock).
 
 | tool | does |
 |---|---|
