@@ -722,6 +722,30 @@ def _pool_curve(
     return out
 
 
+def _padded_curve_dedup(
+    store: Store, suite: str, version: str, model: str
+) -> list[tuple[float, float, int]]:
+    """pass@1 vs W over the padding suite, pooled across pad types with each unpadded (m=0)
+    theorem counted once (audit 2026-10-01: every m=0 sequent appears under all three pad types,
+    which triple-counted it at W=3-6). `(W, mean pass@1, n distinct items)`."""
+    run_id = latest_run_id(store, suite=suite, model=model, version=version)
+    if run_id is None:
+        return []
+    items = items_by_pid(store, run_id)
+    by_w: dict[float, dict[str, list[float]]] = {}
+    for pid, prob in problems_by_pid(store, suite, version).items():
+        item = items.get(pid)
+        w = item_length(prob)
+        if item is None or not item.n or w is None:
+            continue
+        key = f"base:{prob.tags.get('base_pid')}" if prob.tags.get("m") == 0 else pid
+        by_w.setdefault(w, {}).setdefault(key, []).append(item.c / item.n)
+    return [
+        (w, statistics.mean(statistics.mean(v) for v in d.values()), len(d))
+        for w, d in sorted(by_w.items())
+    ]
+
+
 def _chart_6_padding(store: Store) -> str:
     title = "Free lines: the cost of padding"
     data = padding_view.view(store, {})
@@ -732,9 +756,16 @@ def _chart_6_padding(store: Store) -> str:
     def _curves(model: str, key: str) -> list[list[dict[str, Any]]]:
         return [d[key] for per_model in pad_types.values() if (d := per_model.get(model))]
 
-    rl_padded = _pool_curve(_curves("rl", "padded_curve_vs_W"))
-    rl_natural = _pool_curve(_curves("rl", "natural_curve_vs_W"))
-    base_padded = _pool_curve(_curves("base", "padded_curve_vs_W"))
+    meta = cast("dict[str, Any]", data["meta"])
+    rl_padded = _padded_curve_dedup(
+        store, cast(str, meta["suite"]), cast(str, meta["version"]), "rl"
+    )
+    # The natural curve is the same suite under every pad type: take one copy, not the pool.
+    rl_natural = _pool_curve(_curves("rl", "natural_curve_vs_W")[:1])
+    base_natural = _pool_curve(_curves("base", "natural_curve_vs_W")[:1])
+    base_padded = _padded_curve_dedup(
+        store, cast(str, meta["suite"]), cast(str, meta["version"]), "base"
+    )
     if not rl_padded and not base_padded:
         return P.missing_fig(title, "no base/rl results for the padding suite")
 
@@ -762,10 +793,19 @@ def _chart_6_padding(store: Store) -> str:
     else:
         takeaway = "padded vs. natural pass@1 at matched written length W."
     pad_types_list = sorted(pad_types)
-    n_rl = sum(d["n_items"] for per_model in pad_types.values() if (d := per_model.get("rl")))
+    n_rl = sum(n for _w, _p, n in rl_padded)
+    n_nat = next((n for w, _p, n in rl_natural if common_w and w == common_w[0]), None)
     caption = (
-        f"n={n_rl} rl padded items pooled across pad types {', '.join(pad_types_list)}; "
-        "rl and base."
+        f"{n_rl} distinct padded items pooled across pad types {', '.join(pad_types_list)} "
+        "(each unpadded theorem counted once); natural = gen_ctrl at the same W"
+        + (f" ({n_nat} items at W={P.fmt(common_w[0], 'g')})" if n_nat else "")
+        + ", drawn from the dev set the RL hill-climb selected on, so rl's natural curve is "
+        "optimistic."
+        + (
+            " base solves no natural item at these lengths."
+            if base_natural and all(p == 0 for _w, p, _n in base_natural)
+            else ""
+        )
     )
     return P.line_chart(
         title, takeaway, series, x_label="W (written lines)", y_fmt="pct", note=caption
