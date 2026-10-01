@@ -1,0 +1,15 @@
+# Real run: 3000 reserve minimal proofs (spec 2-5k).
+seed: 0
+n_pairs: 3000
+layers:
+- 0
+- 1
+- 2
+- 3
+position_types:
+- proof
+- prompt
+- line_start
+out_dir: /scratch/cowifornia/nd-rl/bench/out/interp/vectors
+device: cuda
+exclude_train: true

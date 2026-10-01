@@ -157,3 +157,32 @@ def test_shift_marginal_loss_matches_novelty_py_math_on_five_proofs() -> None:
         assert got_logprob.nats == pytest.approx(expected, abs=1e-4, rel=1e-4)
         got_nll = adapter.learner(seed=0).nll([(seq, body)])[0]
         assert got_nll.nats == pytest.approx(-expected, abs=1e-4, rel=1e-4)
+
+
+def test_summarise_edl_picks_lr_by_online_code_length_not_min_edl() -> None:
+    """A damaging LR (higher online code length, lower final-loss-driven EDL) must not be chosen."""
+    import math
+
+    from code.ndbench.edl import summarise_edl
+
+    def row(lr: float, edl: float, online: float) -> dict[str, object]:
+        return {
+            "class": "c",
+            "model_identity": {"label": "m"},
+            "order": 0,
+            "lr": lr,
+            "n": 2,
+            "m": 2,
+            "EDL": edl,
+            "online_nats": [online / 2, online / 2],
+            "L_test_0": 1.0,
+            "L_test_n": 1.0,
+            "L_test_by_checkpoint": {},
+            "EDL_by_checkpoint": {},
+        }
+
+    rows = [row(1e-4, 0.5, 3.0), row(1e-3, -4.0, 9.0)]  # 1e-3: shorter EDL, longer code
+    out = summarise_edl(rows)  # type: ignore[arg-type]
+    (entry,) = out.values()
+    assert isinstance(entry, dict)
+    assert math.isclose(float(entry["EDL_star"]), 0.5 + math.log(2), rel_tol=1e-9)  # type: ignore[arg-type]
