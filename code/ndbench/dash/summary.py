@@ -189,6 +189,8 @@ def _chart_1_yue(store: Store) -> str:
 #: RL regression). `metrics.horizon` is called directly on the filtered `by_n` here, since
 #: `horizon.view`'s own `n_star` has no `min_items` knob.
 _MIN_ITEMS_PER_N = 5
+#: Minimum items per s cell on the laws chart (s=0 has one item per schema, 8 in all).
+_MIN_ITEMS_PER_BIN = 20
 
 
 def _family_group_pids(problems: Mapping[str, Problem]) -> dict[str, list[str]]:
@@ -579,16 +581,30 @@ def _chart_5_subst(store: Store) -> str:
     if data.get("empty"):
         return P.missing_fig(title, str(data.get("reason", "no data")))
     schemas = cast("dict[str, dict[str, dict[str, Any]]]", data["schemas"])
-    by_model_s: dict[str, dict[float, list[float]]] = {}
+    # Item-level pooling per s (audit 2026-10-01): a mean of per-schema means weights s=0's single
+    # item per schema like s=2's ~30, and the set of schemas present changes with s.
+    pooled: dict[str, dict[float, list[float]]] = {}  # model -> s -> [sum pass1*n, n]
+    zero_schemas: dict[str, int] = {}
     n_items = 0
     for per_model in schemas.values():
         for model, d in per_model.items():
             n_items += cast(int, d["n_items"])
+            if cast(float, d.get("controlled_pass1_overall", 0.0)) == 0.0:
+                zero_schemas[model] = zero_schemas.get(model, 0) + 1
             for row in cast("list[dict[str, Any]]", d["curve_vs_s"]):
-                s = row["s"]
-                if s is None:
+                s, p1, n = row["s"], row["pass1"], int(row["n_items"])
+                if s is None or p1 != p1:
                     continue
-                by_model_s.setdefault(model, {}).setdefault(float(s), []).append(row["pass1"])
+                acc = pooled.setdefault(model, {}).setdefault(float(s), [0.0, 0.0])
+                acc[0] += p1 * n
+                acc[1] += n
+    dropped_s = sorted(
+        {s for by_s in pooled.values() for s, (_t, n) in by_s.items() if n < _MIN_ITEMS_PER_BIN}
+    )
+    by_model_s: dict[str, dict[float, list[float]]] = {
+        model: {s: [t / n] for s, (t, n) in by_s.items() if n >= _MIN_ITEMS_PER_BIN}
+        for model, by_s in pooled.items()
+    }
 
     series = []
     for model in ("base", "rl"):
@@ -638,7 +654,24 @@ def _chart_5_subst(store: Store) -> str:
         if base_ge_from is not None and base_ge_from != common_s[0]:
             bits.append(f"base is at or above rl from s={P.fmt(base_ge_from, 'g')} onward")
     takeaway = "; ".join(bits) + "." if bits else "pass@1 vs filler size s, base vs rl."
-    caption = f"n={n_items} instances, averaged over 8 schemas: {', '.join(sorted(schemas))}."
+    meta = cast("dict[str, Any]", data["meta"])
+    zero_note = (
+        f" base scores 0% on {zero_schemas['base']} of {len(schemas)} schemas."
+        if zero_schemas.get("base")
+        else ""
+    )
+    caption = (
+        f"n={n_items} instances over {len(schemas)} schemas ({', '.join(sorted(schemas))}), "
+        f"pooled per item at each s; {meta.get('n_seen_train_excluded', 0)} instances seen in "
+        "training excluded"
+        + (
+            f"; s={', '.join(P.fmt(v, 'g') for v in dropped_s)} omitted "
+            f"(<{_MIN_ITEMS_PER_BIN} items)"
+            if dropped_s
+            else ""
+        )
+        + f".{zero_note}"
+    )
     return P.line_chart(
         title,
         takeaway,
