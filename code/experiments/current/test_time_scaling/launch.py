@@ -27,7 +27,7 @@ import pod  # noqa: E402
 LOCAL = os.path.join(HERE, "..", "..", "..", "..", "artifacts", "test_time_scaling")
 
 RUN_JOBS = """set -uo pipefail
-export ND_FORK=/workspace/nd-takehome LEAN_GATE_WORKERS=$(nproc)
+export ND_FORK=/workspace/nd-takehome  # gate workers: the fork's default, the cgroup CPU quota
 PY=$(for p in python python3; do "$p" -c "import torch" 2>/dev/null && echo "$p" && break; done)
 cd /workspace/autoresearch
 mkdir -p "$2"

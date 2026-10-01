@@ -5,7 +5,9 @@
 set -uo pipefail
 JOBS=$1; PROCS=$2; OUT=$3
 export ND_FORK=/workspace/nd-takehome
-export LEAN_GATE_WORKERS=$(( $(nproc) / PROCS ))  # share the CPUs between concurrent Lean gates
+# share the CPU quota (not nproc: RunPod shows 96 cores but grants ~7) between concurrent Lean gates
+QUOTA=$(cd "$ND_FORK" && python3 -c 'import lean_gate; print(lean_gate.cpu_quota())')
+export LEAN_GATE_WORKERS=$(( QUOTA / PROCS > 0 ? QUOTA / PROCS : 1 ))
 PY=$(for p in python python3; do "$p" -c "import torch" 2>/dev/null && echo "$p" && break; done)
 mkdir -p "$OUT"
 cd /workspace/autoresearch
