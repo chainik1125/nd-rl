@@ -308,7 +308,7 @@ def cmd_edl(args: argparse.Namespace) -> None:
         m=args.m,
         ckpts=args.ckpts,
     )
-    run_id = f"edl-{store_label}-{args.n}-{args.m}"
+    run_id = args.run_id or f"edl-{store_label}-{args.n}-{args.m}"
     store.append_edl(run_id, rows)
     adapter.close()
     print(json.dumps({"run_id": run_id, "n_rows": len(rows), "build_stats": stats}, indent=2))
@@ -537,6 +537,14 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--n", type=int, default=64)
     e.add_argument("--m", type=int, default=64)
     e.add_argument("--ckpts", default=None)
+    e.add_argument(
+        "--run-id",
+        default=None,
+        dest="run_id",
+        help="override the EDL run id (default: 'edl-<model>-<n>-<m>', e.g. 'edl-base-64-64'); "
+        "set this explicitly to keep a rerun from colliding with (or appending rows into) an "
+        "earlier run that used the same model/--n/--m, e.g. 'edl2-base-64-64'",
+    )
     e.add_argument("--out", default=DEFAULT_OUT)
     e.set_defaults(func=cmd_edl)
 
