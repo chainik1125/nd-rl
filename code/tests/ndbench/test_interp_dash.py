@@ -159,6 +159,33 @@ def test_view_steering_pools_every_default_eval_suite_not_just_dev(tmp_path: Pat
     assert data["base_pass1"][0] == 0.5
 
 
+def test_steering_and_interpolation_pass1_use_the_sweeps_own_k_runs(tmp_path: Path) -> None:
+    """`base`/`rl` also carry a big Yue run on `textbook_dev` (k=4096 in the real store) besides
+    the sweep's own k=8 run. `latest_run_id` prefers the largest k, which made the views compare
+    steered/interpolated models (k=8 runs only) against an unpaired baseline from a different run.
+    The views must use the sweep's k=8 runs when they exist, and fall back to any run otherwise."""
+    store = Store(tmp_path)
+    suite = "textbook_dev"
+    problems = [make_problem(f"t{i}", suite, "v1", length=8) for i in range(2)]
+    store.write_suite(problems, manifest(suite, "v1", len(problems)))
+    for model, k, c in (("base", 4096, 0), ("base", 8, 4), ("rl", 4096, 4096), ("rl", 8, 2)):
+        run_id = start_run(store, suite=suite, version="v1", model=model, k=k)
+        store.append_items(run_id, [make_item(run_id, f"t{i}", k, c) for i in range(2)])
+    run_id = start_run(store, suite=suite, version="v1", model="steer:0:1", k=8)
+    store.append_items(run_id, [make_item(run_id, f"t{i}", 8, 1) for i in range(2)])
+    run_id = start_run(store, suite=suite, version="v1", model="interp:0.5", k=32)
+    store.append_items(run_id, [make_item(run_id, f"t{i}", 32, 8) for i in range(2)])
+
+    steer = interp_view.view_steering(store, {"suites": [suite], "B": 20})
+    assert steer["base_pass1"][0] == 0.5  # the k=8 run (4/8), not the k=4096 run (0/4096)
+
+    interp = interp_view.view_interpolation(store, {"pass1_suites": [suite], "B": 20})
+    p1 = {alpha: mean for alpha, mean, _lo, _hi in interp["pass1_vs_alpha"]}
+    assert p1[0.0] == 0.5
+    assert p1[1.0] == 0.25  # rl's k=8 run (2/8), not its k=4096 run (1.0)
+    assert p1[0.5] == 0.25  # no k=8 run: falls back to the only run there is
+
+
 # ---------------------------------------------------------------------- interpolation, non-empty
 
 

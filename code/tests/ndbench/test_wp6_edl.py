@@ -153,6 +153,46 @@ def test_edl_labels_a_production_style_run_by_its_run_id_not_the_raw_ckpt_path(
     assert "/scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt" not in data["classes"]["toy"]
 
 
+def test_edl_rerun_ids_are_labelled_and_supersede_the_original_run(tmp_path: Path) -> None:
+    """A rerun written with an explicit `--run-id edl2-base-8-4` must be labelled `"base"` (not
+    the raw checkpoint path), and the default view must read it *instead of* the superseded
+    `edl-base-8-4`, not pool both. Regression: the real store's EDL page showed four models per
+    class (`base`/`rl` from the superseded 2-class run plus two raw `.../pretrain.pt`-style labels
+    from the current `edl2-*` run)."""
+    store = Store(tmp_path)
+    problems = _toy_problems(n_train=8, n_test=4)
+    adapter = ConstantNllAdapter(c=1.0, label="")
+    identity = adapter.identity()
+    identity.pop("label", None)
+    identity["ckpt"] = "/scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt"
+    old_rows = run_edl(adapter, problems, lrs=(1e-4,), orders=1, n=8, m=4)
+    new_rows = run_edl(adapter, problems, lrs=(1e-4,), orders=2, n=8, m=4)
+    for row in old_rows:
+        row["model_identity"] = identity
+        row["EDL"] = 100.0  # recognisably stale value
+    for row in new_rows:
+        row["model_identity"] = identity
+    store.append_edl("edl-base-8-4", old_rows)
+    store.append_edl("edl2-base-8-4", new_rows)
+    store.append_edl("edl-det", new_rows[:1])  # outside the naming convention: always kept
+
+    assert edl._label_from_run_id("edl2-base-64-64") == "base"
+    assert edl._label_from_run_id("edl-arm-C-64-64") == "arm-C"
+    assert edl._label_from_run_id("edl-det") is None
+
+    data = edl.view(store, {})
+    assert data["meta"]["run_ids"] == ["edl-det", "edl2-base-8-4"]
+    toy = data["classes"]["toy"]
+    assert "/scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt" in toy  # the unlabelled edl-det row
+    assert toy["base"]["n_rows"] == len(new_rows)
+    assert toy["base"]["edl_by_lr"]["0.0001"] == pytest.approx(0.0, abs=1e-9)
+    assert set(toy["base"]["edl_by_order_at_best_lr"]) == {"0", "1"}
+
+    # An explicit run_ids list is still honoured verbatim, superseded runs included.
+    pinned = edl.view(store, {"run_ids": ["edl-base-8-4"]})
+    assert pinned["classes"]["toy"]["base"]["edl_by_lr"]["0.0001"] == 100.0
+
+
 def test_edl_empty_store(tmp_path: Path) -> None:
     store = Store(tmp_path)
     data = edl.view(store, {})

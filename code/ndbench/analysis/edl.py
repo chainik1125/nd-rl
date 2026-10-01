@@ -59,6 +59,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
@@ -72,11 +73,39 @@ from ._common import cfg_get, empty_view
 
 DEFAULT_CHECKPOINTS: tuple[int, ...] = (8, 16, 32, 64)
 
+#: `cli.py`'s `cmd_edl` run-id convention `edl-<label>-<n>-<m>`, plus the generation-numbered
+#: reruns made with an explicit `--run-id` (`edl2-<label>-<n>-<m>`, `edl3-...`). Group 1 holds the
+#: generation digits (empty for the original run, i.e. generation 1).
+_EDL_RUN_ID_RE = re.compile(r"^edl(\d*)-(.+)-(\d+)-(\d+)$")
+
+
+def _parse_edl_run_id(run_id: str) -> tuple[int, str, int, int] | None:
+    """`(generation, label, n, m)` from an `edl[<gen>]-<label>-<n>-<m>` run id, else `None`."""
+    match = _EDL_RUN_ID_RE.match(run_id)
+    if match is None:
+        return None
+    gen = int(match.group(1)) if match.group(1) else 1
+    return gen, match.group(2), int(match.group(3)), int(match.group(4))
+
 
 def _discover_edl_run_ids(store: Store) -> list[str]:
+    """Every EDL run file except superseded ones. When several run ids parse to the same
+    `(label, n, m)` (e.g. `edl-base-64-64` and its rerun `edl2-base-64-64`), only the highest
+    generation is kept; before this, the default view mixed the superseded first run (2 of 12
+    classes) into the current one. Run ids outside the naming convention are always kept."""
     if not store.edl_dir.exists():
         return []
-    return sorted(p.stem for p in store.edl_dir.glob("*.jsonl"))
+    run_ids = sorted(p.stem for p in store.edl_dir.glob("*.jsonl"))
+    newest: dict[tuple[str, int, int], tuple[int, str]] = {}
+    for run_id in run_ids:
+        parsed = _parse_edl_run_id(run_id)
+        if parsed is None:
+            continue
+        gen, label, n, m = parsed
+        if (label, n, m) not in newest or gen > newest[(label, n, m)][0]:
+            newest[(label, n, m)] = (gen, run_id)
+    keep = {run_id for _gen, run_id in newest.values()}
+    return [r for r in run_ids if _parse_edl_run_id(r) is None or r in keep]
 
 
 def _read_edl_rows(store: Store, run_id: str) -> list[dict[str, Any]]:
@@ -92,19 +121,16 @@ def _mean(vals: Sequence[float]) -> float:
 
 def _label_from_run_id(run_id: str) -> str | None:
     """Recover `--model`'s resolved store label (e.g. `"base"`/`"rl"`/`"armC"`) from `cli.py`'s
-    `cmd_edl` run id convention `f"edl-{store_label}-{args.n}-{args.m}"`, or `None` if `run_id`
-    doesn't look like that (e.g. a hand-written test file, or `cfg["run_ids"]` naming something
-    else). Preferred over `model_identity` (WP8 integration fix list item: the EDL page showed raw
-    checkpoint paths like `/scratch/.../pretrain.pt` instead of `"base"`/`"rl"`) because it is
-    exactly the label the caller asked to run under, with no guessing from the checkpoint path --
-    which has no portable mapping back to a friendly name and would need updating by hand every
-    time a checkpoint moves."""
-    parts = run_id.split("-")
-    if len(parts) >= 4 and parts[0] == "edl" and parts[-1].isdigit() and parts[-2].isdigit():
-        label = "-".join(parts[1:-2])
-        if label:
-            return label
-    return None
+    `cmd_edl` run id convention `f"edl-{store_label}-{args.n}-{args.m}"`, or a generation-numbered
+    rerun of it such as `edl2-base-64-64` (which used to fall through to the raw checkpoint path),
+    or `None` if `run_id` doesn't look like that (e.g. a hand-written test file, or
+    `cfg["run_ids"]` naming something else). Preferred over `model_identity` (WP8 integration fix
+    list item: the EDL page showed raw checkpoint paths like `/scratch/.../pretrain.pt` instead of
+    `"base"`/`"rl"`) because it is exactly the label the caller asked to run under, with no
+    guessing from the checkpoint path -- which has no portable mapping back to a friendly name and
+    would need updating by hand every time a checkpoint moves."""
+    parsed = _parse_edl_run_id(run_id)
+    return parsed[1] if parsed is not None else None
 
 
 def _model_label(identity: object, run_id: str | None = None) -> str:
@@ -199,6 +225,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         edl_final_by_lr: dict[str, float] = {}
         edl_curve_by_lr: dict[str, list[tuple[int, float]]] = {}
         ci_by_lr: dict[str, tuple[float, float]] = {}
+        # Final EDL of each data order, per lr: with the default 2 orders this spread is the only
+        # uncertainty estimate available (`edl_star_ci` is nan for every real row).
+        edl_by_order_by_lr: dict[str, dict[str, float]] = {}
         # per-lr "after training" aggregates: theta_n depends on which lr trained it, so
         # l_test_thetan/pass8_thetan are reported at the *best* lr specifically (below), not
         # pooled across every lr the way theta_0 (the shared starting checkpoint) safely can be.
@@ -230,6 +259,8 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 if final_val is not None:
                     finals.append(final_val)
                     cis.append(_edl_ci(row, n_final, seed))
+                    order_key = str(row.get("order", len(finals) - 1))
+                    edl_by_order_by_lr.setdefault(str(lr), {})[order_key] = final_val
                 for cp in checkpoints:
                     v = _edl_at(row, cp)
                     if v is not None:
@@ -269,6 +300,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "best_lr": best_lr,
             "edl_star": edl_star,
             "edl_star_ci": ci_by_lr.get(best_lr, (float("nan"), float("nan"))),
+            "edl_by_order_at_best_lr": edl_by_order_by_lr.get(best_lr, {}),
             "l_test_theta0": _mean(l_test_before),
             "l_test_thetan": _mean(l_test_after_by_lr.get(best_lr, [])),
             "pass8_theta0": _mean(pass8_before),
