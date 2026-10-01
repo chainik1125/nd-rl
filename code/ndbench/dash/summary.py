@@ -1415,9 +1415,24 @@ def _chart_11_weights(store: Store) -> str:
                 f"{P.fmt(curve_map[a_end][3], 'pct')} pass@128"
             )
     takeaway = "; ".join(bits) + "."
+    sealed_bits: list[str] = []
+    for alpha in sorted(float(a) for a in pass_k):
+        model = "base" if alpha == 0.0 else "rl" if alpha == 1.0 else f"interp:{alpha:g}"
+        sp = interp_view._pooled_pass1_of(  # noqa: SLF001
+            store, suites=["interp_eval_sealed"], version="v1", model=model, B=200, seed=0
+        )
+        if sp is not None:
+            sealed_bits.append(f"alpha {alpha:g} {P.fmt(sp[0], 'pct')}")
     caption = (
-        "fixed k=128 theorem subset, pass@1 and pass@128 on the same items; "
-        "base=alpha 0, rl=alpha 1."
+        "fixed 150-theorem subset (dev L8-11 + sealed L12-14 gen items), pass@1 and pass@128 on "
+        "the same items; base=alpha 0, rl=alpha 1."
+        + (
+            " dev L8-11 was the RL hill-climb's selection metric; pass@1 on the sealed set alone: "
+            + ", ".join(sealed_bits)
+            + "."
+            if sealed_bits
+            else ""
+        )
     )
     return P.line_chart(
         title,
