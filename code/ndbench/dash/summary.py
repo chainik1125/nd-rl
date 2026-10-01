@@ -60,7 +60,7 @@ from ..analysis._common import (
     problems_by_pid,
 )
 from ..core.types import JSON, ItemResult, Problem
-from ..interp._store import interp_runs, latest_interp_run, load_interp_rows
+from ..interp._store import interp_runs, load_interp_rows
 from ..metrics import compositionality_ratio, pass_at_k
 from ..metrics import horizon as horizon_stat
 from ..store import Store
@@ -950,107 +950,102 @@ def _chart_8_edl(store: Store) -> str:
 
 #: Row order and display labels for chart 9's dot plot (review: "one row per proof set: reserve
 #: (neutral), family witnesses, base's own verified proofs, rl's crux proofs").
-_LIKELIHOOD_ROW_ORDER: tuple[str, ...] = ("reserve", "family", "base_verified", "crux")
+_LIKELIHOOD_ROW_ORDER: tuple[str, ...] = ("reserve", "family", "base_verified", "reference", "crux")
 _LIKELIHOOD_ROW_LABEL: dict[str, str] = {
     "reserve": "reserve (neutral)",
     "family": "family witnesses",
     "base_verified": "base's own verified proofs",
-    "crux": "rl's crux proofs (p_hat_base=0)",
+    "reference": "minimal proofs of rl-solved gen theorems",
+    "crux": "rl's own proofs of them",
 }
+
+
+def _likelihood_rows_by_origin(
+    store: Store,
+) -> tuple[dict[str, list[dict[str, JSON]]], dict[str, str]]:
+    """Every `interp likelihood` row, each origin taken from the newest run that has it (the
+    neutral-control run, 2026-10-01, adds `reference` rows and re-scores `rl_verified` with a
+    per-row `lines` count; the main run keeps `reserve`/`family`/`base_verified`)."""
+    by_origin: dict[str, list[dict[str, JSON]]] = {}
+    run_of: dict[str, str] = {}
+    seen: set[str] = set()
+    for rec in reversed(interp_runs(store, "likelihood")):
+        run_id = cast(str, rec["run_id"])
+        if run_id in seen:
+            continue
+        seen.add(run_id)
+        rows = load_interp_rows(store, "likelihood", run_id)
+        origins = {cast(str, r["origin"]) for r in rows}
+        for origin in origins - set(by_origin):
+            by_origin[origin] = [r for r in rows if r["origin"] == origin]
+            run_of[origin] = run_id
+    return by_origin, run_of
 
 
 def _likelihood_per_line(
     store: Store,
 ) -> tuple[dict[str, dict[str, list[float]]], dict[str, Any]] | None:
-    """Per-line (`log p / L`) likelihood under base and under rl, grouped by proof origin
-    (`reserve`, `family`, `base_verified`, and the `crux` subset of `rl_verified` rows with
-    `p_hat_base == 0`), from the latest `interp likelihood` run, plus three ordering-robustness
-    numbers: the fraction of `reserve` proofs with only one valid line order, the median
-    per-line change from marginalising over orders (`|logp_marginal - logp_single| / L`, pooled
-    over every row), and the median *paired* per-item (rl - base) gap on the crux set.
-
-    `L` is on the row itself for `reserve`/`family` rows; `base_verified`/`rl_verified` rows don't
-    carry it (`interp/likelihood.py`'s `run_likelihood` only fills `L` for its neutral/family
-    rows), so it is instead looked up via the run's own recorded `cfg["model_samples"][model]
-    ["suite"/"version"]` -- the suite that model's verified samples were actually drawn from.
-    """
-    run_id = latest_interp_run(store, "likelihood")
-    if run_id is None:
+    """Median-ready per-line likelihoods under base and rl, by proof set, plus the ordering
+    numbers. Each row is normalised by the lines of the proof actually scored (`lines`, recorded
+    since 2026-10-01) when present, else by the theorem's certified `L` (the reserve/family rows
+    are minimal proofs, where the two agree). `crux` = rl_verified rows with p_hat_base == 0;
+    `reference` = neutral minimal proofs of the same theorems (each model prefers its own samples,
+    so the crux row alone overstates the gap; interp audit finding 4)."""
+    rows_by_origin, run_of = _likelihood_rows_by_origin(store)
+    if not rows_by_origin:
         return None
-    rows = load_interp_rows(store, "likelihood", run_id)
-    if not rows:
-        return None
-    cfg: Mapping[str, JSON] = {}
-    for r in interp_runs(store, "likelihood"):
-        if r.get("run_id") == run_id:
-            cfg = cast("Mapping[str, JSON]", r.get("cfg") or {})
-            break
-    model_samples = cast("Mapping[str, JSON]", cfg.get("model_samples") or {})
-
-    def _problems(model_name: str) -> dict[str, Problem]:
-        spec = cast("Mapping[str, JSON] | None", model_samples.get(model_name))
-        if not spec or not spec.get("suite") or not spec.get("version"):
-            return {}
-        return problems_by_pid(store, str(spec["suite"]), str(spec["version"]))
-
-    base_problems = _problems("base")
-    rl_problems = _problems("rl")
-
     by_origin: dict[str, dict[str, list[float]]] = {}
-    paired_crux_gap: list[float] = []
+    paired: dict[str, dict[str, float]] = {"crux": {}, "reference": {}}
     abs_diffs_per_line: list[float] = []
     single_order_reserve = 0
     total_reserve = 0
-    for r in rows:
-        origin = cast(str, r["origin"])
-        bare_pid = cast(str, r["pid"]).split(":", 1)[-1]
-        length = cast("int | None", r.get("L"))
-        row_label = origin
-        if length is None:
-            if origin == "base_verified":
-                p = base_problems.get(bare_pid)
-            elif origin == "rl_verified":
-                p = rl_problems.get(bare_pid)
-            else:
-                p = None
-            length = item_length(p) if p is not None else None
-        if not length:
-            continue
-        if origin == "rl_verified":
-            p_hat = r.get("p_hat_base")
-            if p_hat is None or float(cast(float, p_hat)) != 0.0:
+    for origin, rows in rows_by_origin.items():
+        for r in rows:
+            norm = cast("int | None", r.get("lines")) or cast("int | None", r.get("L"))
+            if not norm:
                 continue
-            row_label = "crux"
-        base_side = cast("Mapping[str, JSON]", r["base"])
-        rl_side = cast("Mapping[str, JSON]", r["rl"])
-        base_lm, rl_lm = base_side.get("logp_marginal"), rl_side.get("logp_marginal")
-        base_pl = float(cast(float, base_lm)) / length if base_lm is not None else None
-        rl_pl = float(cast(float, rl_lm)) / length if rl_lm is not None else None
-        if base_pl is not None:
-            by_origin.setdefault(row_label, {}).setdefault("base", []).append(base_pl)
-        if rl_pl is not None:
-            by_origin.setdefault(row_label, {}).setdefault("rl", []).append(rl_pl)
-        if row_label == "crux" and base_pl is not None and rl_pl is not None:
-            paired_crux_gap.append(rl_pl - base_pl)
-        base_single = base_side.get("logp_single")
-        if base_lm is not None and base_single is not None:
-            abs_diffs_per_line.append(
-                abs(float(cast(float, base_lm)) - float(cast(float, base_single))) / length
-            )
-        if origin == "reserve":
-            total_reserve += 1
-            method, n_ord = base_side.get("method"), base_side.get("n_orderings")
-            if method == "single" or n_ord in (None, 1):
-                single_order_reserve += 1
+            label = origin
+            if origin == "rl_verified":
+                p_hat = r.get("p_hat_base")
+                if p_hat is None or float(cast(float, p_hat)) != 0.0:
+                    continue
+                label = "crux"
+            base_side = cast("Mapping[str, JSON]", r["base"])
+            rl_side = cast("Mapping[str, JSON]", r["rl"])
+            base_lm, rl_lm = base_side.get("logp_marginal"), rl_side.get("logp_marginal")
+            if base_lm is None or rl_lm is None:
+                continue
+            base_pl, rl_pl = float(cast(float, base_lm)) / norm, float(cast(float, rl_lm)) / norm
+            by_origin.setdefault(label, {}).setdefault("base", []).append(base_pl)
+            by_origin.setdefault(label, {}).setdefault("rl", []).append(rl_pl)
+            if label in paired:
+                paired[label][cast(str, r["pid"]).split(":", 1)[-1]] = rl_pl - base_pl
+            base_single = base_side.get("logp_single")
+            if base_single is not None:
+                abs_diffs_per_line.append(
+                    abs(float(cast(float, base_lm)) - float(cast(float, base_single))) / norm
+                )
+            if origin == "reserve":
+                total_reserve += 1
+                method, n_ord = base_side.get("method"), base_side.get("n_orderings")
+                if method == "single" or n_ord in (None, 1):
+                    single_order_reserve += 1
     if not by_origin:
         return None
+    common = sorted(set(paired["crux"]) & set(paired["reference"]))
     meta = {
-        "run_id": run_id,
+        "run_ids": sorted(set(run_of.values())),
         "frac_single_reserve": (single_order_reserve / total_reserve) if total_reserve else None,
         "median_abs_diff_per_line": (
             statistics.median(abs_diffs_per_line) if abs_diffs_per_line else None
         ),
-        "crux_paired_gap_median": (statistics.median(paired_crux_gap) if paired_crux_gap else None),
+        "crux_paired_gap_median": (
+            statistics.median(paired["crux"].values()) if paired["crux"] else None
+        ),
+        "reference_paired_gap_median": (
+            statistics.median(paired["reference"][p] for p in common) if common else None
+        ),
+        "n_paired": len(common),
     }
     return by_origin, meta
 
@@ -1061,7 +1056,6 @@ def _chart_9_likelihood(store: Store) -> str:
     if result is None:
         return P.missing_fig(title, "no `interp likelihood` run with resolvable lengths")
     by_origin, meta = result
-
     dot_rows: list[P.DotRow] = []
     for origin in _LIKELIHOOD_ROW_ORDER:
         d = by_origin.get(origin)
@@ -1078,27 +1072,26 @@ def _chart_9_likelihood(store: Store) -> str:
             dot_rows.append(P.DotRow(label, pts))
     if not dot_rows:
         return P.missing_fig(title, "no origin had both base and rl per-line likelihoods")
-
     gap = cast("float | None", meta.get("crux_paired_gap_median"))
-    if gap is not None:
+    ref_gap = cast("float | None", meta.get("reference_paired_gap_median"))
+    if gap is not None and ref_gap is not None:
+        takeaway = (
+            f"on theorems base never solves, base assigns about {ref_gap:.1f} nats/line less than "
+            f"rl even to neutral minimal proofs (about {gap:.1f} on rl's own proofs, which each "
+            "model favours as its own samples)"
+        )
+    elif gap is not None:
         takeaway = f"on rl's crux proofs base assigns about {gap:.1f} nats/line less than rl"
     else:
-        takeaway = "median base/rl log-likelihood per written line, by proof origin"
-    extra_bits = []
-    fam = by_origin.get("family", {})
-    if fam.get("base") and fam.get("rl"):
-        fam_gap = abs(statistics.median(fam["base"]) - statistics.median(fam["rl"]))
-        extra_bits.append(f"about {fam_gap:.1f} on family witnesses")
+        takeaway = "median base/rl log-likelihood per written line, by proof set"
     bv = by_origin.get("base_verified", {})
     if (
         bv.get("base")
         and bv.get("rl")
         and statistics.median(bv["rl"]) < statistics.median(bv["base"])
     ):
-        extra_bits.append("rl is slightly less likely than base on base's own proofs")
-    takeaway += ("; elsewhere the gap is " + " and ".join(extra_bits)) if extra_bits else ""
+        takeaway += "; on base's own proofs rl is slightly less likely than base"
     takeaway += "."
-
     frac_single = cast("float | None", meta.get("frac_single_reserve"))
     diff_pl = cast("float | None", meta.get("median_abs_diff_per_line"))
     ordering_note = (
@@ -1109,8 +1102,10 @@ def _chart_9_likelihood(store: Store) -> str:
         else ""
     )
     caption = (
-        f"median log p per written line, base vs rl, by proof origin; run {meta['run_id']}; "
-        "crux = rl_verified items with p_hat_base=0 (base never solves them)." + ordering_note
+        "median log p per written line of the scored proof, base vs rl, by proof set; "
+        f"runs {', '.join(cast('list[str]', meta['run_ids']))}. The last two rows are the same "
+        f"{meta['n_paired']} gen_ctrl theorems rl solves and base never does (p_hat_base=0); "
+        "their minimal proofs come from the minlen labeller." + ordering_note
     )
     return P.dot_plot(
         title,
