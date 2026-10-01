@@ -16,7 +16,7 @@ set an `out:` key. `cmd_edl` now calls `build_classes(cfg, store=store)`, reusin
 instance `--out` built; `test_edl_cli_forwards_out_without_an_out_key_in_the_config` below is the
 regression test (every other test here still also sets `out:` in its config, which remains
 harmless -- `store=` takes priority since `build_classes` only falls back to `cfg["out"]` when no
-`store` is passed). `dev_gen_path`/`heldout_cap6_path` are unaffected by that fix: left unset, they
+`store` is passed). `gen_path`/`heldout_cap6_path` are unaffected by that fix: left unset, they
 still default to the real (multi-MB, external, read-only) `ab2`/`ab3` files, which is almost never
 what a test (or a real run pointed at a scratch `--out`) wants, so tests here always set them
 explicitly.
@@ -88,13 +88,13 @@ def _manifest(suite: str, version: str, n: int) -> SuiteManifest:
 
 
 def _write_cfg(tmp_path: Path, out_dir: Path) -> Path:
-    """A `--config` YAML setting `out`/`dev_gen_path`/`heldout_cap6_path` explicitly, working
+    """A `--config` YAML setting `out`/`gen_path`/`heldout_cap6_path` explicitly, working
     around the `cmd_edl` gap this file's module docstring documents (and, incidentally, exercising
     `build_classes`'s `cfg`-key fallback path directly, complementing `test_wp5_build_classes.py`'s
     keyword-argument-override tests)."""
     cfg = {
         "out": str(out_dir),
-        "dev_gen_path": "/nonexistent/dev_gen.jsonl",
+        "gen_path": "/nonexistent/dev_gen.jsonl",
         "heldout_cap6_path": "/nonexistent/heldout_cap6.jsonl",
     }
     path = tmp_path / "edl_config.yaml"
@@ -150,6 +150,58 @@ def test_edl_cli_runs_end_to_end_with_a_tiny_adapter(
     assert len(cast(list[float], row["online_nats"])) == 32
 
 
+def test_edl_cli_run_id_override_avoids_colliding_with_a_prior_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`--run-id` (new option, 2026-10-01 EDL-pool fix): a rerun that passes an explicit
+    `--run-id` writes a *separate* `store/edl/<run-id>.jsonl` file rather than the default
+    `f"edl-{model}-{n}-{m}"` name -- which a same-model/--n/--m rerun would otherwise collide with,
+    silently appending its rows into the earlier run's file (`Store.append_edl` always appends,
+    never overwrites)."""
+    monkeypatch.setitem(
+        ADAPTERS, "tiny_gpt_wp5", "code.tests.ndbench.test_wp5_fixtures:TinyGptAdapter"
+    )
+
+    out_dir = tmp_path / "out"
+    store = Store(out_dir)
+    problems = _family_problems(64)
+    store.write_suite(problems, _manifest("families", "v1", len(problems)))
+    config_path = _write_cfg(tmp_path, out_dir)
+
+    def _run(run_id: str | None) -> None:
+        args = [
+            "edl",
+            "--model",
+            "tiny_gpt_wp5",
+            "--model-arg",
+            "seed=0",
+            "--config",
+            str(config_path),
+            "--lrs",
+            "1e-3",
+            "--orders",
+            "1",
+            "--out",
+            str(out_dir),
+        ]
+        if run_id is not None:
+            args += ["--run-id", run_id]
+        assert main(args) == 0
+
+    _run(None)  # writes store/edl/edl-tiny_gpt_wp5-64-64.jsonl (the default naming)
+    _run("edl2-tiny_gpt_wp5-64-64")  # must NOT touch the file the first call just wrote
+
+    edl_dir = out_dir / "store" / "edl"
+    default_path = edl_dir / "edl-tiny_gpt_wp5-64-64.jsonl"
+    override_path = edl_dir / "edl2-tiny_gpt_wp5-64-64.jsonl"
+    assert sorted(p.name for p in edl_dir.glob("*.jsonl")) == [
+        "edl-tiny_gpt_wp5-64-64.jsonl",
+        "edl2-tiny_gpt_wp5-64-64.jsonl",
+    ]
+    assert len(list(read_jsonl(default_path))) == 1  # untouched by the second (overridden) run
+    assert len(list(read_jsonl(override_path))) == 1
+
+
 def test_edl_cli_forwards_out_without_an_out_key_in_the_config(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -167,7 +219,7 @@ def test_edl_cli_forwards_out_without_an_out_key_in_the_config(
     store.write_suite(problems, _manifest("families", "v1", len(problems)))
 
     cfg = {
-        "dev_gen_path": "/nonexistent/dev_gen.jsonl",
+        "gen_path": "/nonexistent/dev_gen.jsonl",
         "heldout_cap6_path": "/nonexistent/heldout_cap6.jsonl",
     }
     config_path = tmp_path / "edl_config_no_out.yaml"

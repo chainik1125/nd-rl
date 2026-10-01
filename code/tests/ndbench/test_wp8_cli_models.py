@@ -184,13 +184,13 @@ def test_edl_resolves_model_label_via_yaml_too(tmp_path: Path) -> None:
     models_config = _write_models_yaml(tmp_path, ckpt, sha_prefix=real_sha[:16])
     out_dir = tmp_path / "out"
 
-    # No suites built, and `dev_gen_path`/`heldout_cap6_path` pointed at nonexistent files (the
+    # No suites built, and `gen_path`/`heldout_cap6_path` pointed at nonexistent files (the
     # same `test_wp5_cli.py` convention -- see its module docstring) so `build_classes` never falls
     # back to reading the real, large `ab2`/`ab3` data files: 0 buildable EDL classes, but the CLI
     # should still complete cleanly and (this test's actual point) resolve "toylabel" via the YAML
     # without raising, using it as the `edl-<label>-...` run id.
     edl_config = {
-        "dev_gen_path": "/nonexistent/dev_gen.jsonl",
+        "gen_path": "/nonexistent/gen.jsonl",
         "heldout_cap6_path": "/nonexistent/heldout_cap6.jsonl",
     }
     edl_config_path = tmp_path / "edl_config.yaml"
