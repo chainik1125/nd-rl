@@ -538,6 +538,208 @@ def bar_chart(
     return figure(title, sub, f'<div class="plot">{svg}</div>{table}', note, wide)
 
 
+def hbar_chart(
+    title: str,
+    sub: str,
+    bars: list[Bar],
+    *,
+    x_fmt: str = "g",
+    x_min: float | None = None,
+    x_max: float | None = None,
+    log_x: bool = False,
+    note: str = "",
+    wide: bool = False,
+) -> str:
+    """One horizontal bar per `Bar` (value along the x-axis, category labels down the left edge),
+    with an optional `(lo, hi)` whisker -- the summary dashboard's EDL-per-class chart (many short
+    category labels, a value that can span orders of magnitude) reads better this way than
+    `bar_chart`'s vertical categorical columns. `log_x` mirrors `line_chart`'s own log-x convention
+    (log2 internally, tick labels show the real value)."""
+    bars = [b for b in bars if not (isinstance(b.value, float) and math.isnan(b.value))]
+    if not bars:
+        return missing_fig(title, sub)
+    fig_w = WW if wide else W
+    label_w = min(220, max(90, fig_w // 4))
+    row_h = 24
+    top, bot = 10, 30
+    total_h = top + row_h * len(bars)
+    h = total_h + bot
+    pw = fig_w - label_w - MR - 8
+
+    def xform(x: float) -> float:
+        return math.log2(max(x, 1e-9)) if log_x else x
+
+    vals = [b.value for b in bars]
+    for b in bars:
+        if b.lo is not None:
+            vals.append(b.lo)
+        if b.hi is not None:
+            vals.append(b.hi)
+    lo_v = (
+        x_min
+        if x_min is not None
+        else (min((v for v in vals if v > 0), default=0.0) if log_x else 0.0)
+    )
+    hi_v = x_max if x_max is not None else max(vals)
+    lo_t, hi_t = xform(lo_v), xform(hi_v if hi_v > lo_v else lo_v + 1.0)
+
+    def px(x: float) -> float:
+        return label_w + (xform(x) - lo_t) / ((hi_t - lo_t) or 1) * pw
+
+    g = []
+    for t in nice_ticks(lo_t, hi_t, 6):
+        xpix = label_w + (t - lo_t) / ((hi_t - lo_t) or 1) * pw
+        label = fmt(2**t, x_fmt) if log_x else fmt(t, x_fmt)
+        g.append(f'<line class="grid" x1="{xpix:.1f}" x2="{xpix:.1f}" y1="{top}" y2="{total_h}"/>')
+        g.append(
+            f'<text class="tick" x="{xpix:.1f}" y="{total_h + 16}" text-anchor="middle">'
+            f"{esc(label)}</text>"
+        )
+    marks = []
+    for i, b in enumerate(bars):
+        y = top + i * row_h + row_h / 2
+        x0, x1 = px(lo_v), px(b.value)
+        left, right = (x0, x1) if x1 > x0 else (x1, x0)
+        tip = [[b.name, "", None], ["value", fmt(b.value, x_fmt), b.color]]
+        if b.lo is not None and b.hi is not None:
+            tip.append(["95% CI", f"{fmt(b.lo, x_fmt)} .. {fmt(b.hi, x_fmt)}", None])
+        w = max(right - left, 1.0)
+        marks.append(
+            f'<rect class="seg" x="{left:.1f}" y="{y - 7:.1f}" width="{w:.1f}" height="14" '
+            f'style="fill:{b.color}" data-tip="{esc(json.dumps(tip))}"/>'
+        )
+        if b.lo is not None and b.hi is not None:
+            x_lo, x_hi = px(b.lo), px(b.hi)
+            marks.append(
+                f'<line class="whisker" x1="{x_lo:.1f}" x2="{x_hi:.1f}" y1="{y:.1f}" y2="{y:.1f}"/>'
+            )
+            for xw in (x_lo, x_hi):
+                marks.append(
+                    f'<line class="whisker" x1="{xw:.1f}" x2="{xw:.1f}" '
+                    f'y1="{y - 5:.1f}" y2="{y + 5:.1f}"/>'
+                )
+        g.append(
+            f'<text class="tick" x="{label_w - 8:.1f}" y="{y + 4:.1f}" text-anchor="end">'
+            f"{esc(b.name)}</text>"
+        )
+    g.append(f'<line class="axis" x1="{label_w}" x2="{label_w}" y1="{top}" y2="{total_h}"/>')
+    svg = (
+        f'<svg viewBox="0 0 {fig_w} {h}" role="img" aria-label="{esc(title)}">'
+        f"{''.join(g)}{''.join(marks)}</svg>"
+    )
+    table = _table(
+        ["name", "value", "ci lo", "ci hi"],
+        [[b.name, fmt(b.value, x_fmt), fmt(b.lo, x_fmt), fmt(b.hi, x_fmt)] for b in bars],
+    )
+    return figure(title, sub, f'<div class="plot">{svg}</div>{table}', note, wide)
+
+
+@dataclass
+class DotRow:
+    label: str
+    #: `(series_name, value, color)`; `value=None` means "not reached" ("none"), shown as a label
+    #: instead of a dot at this row (plan: "families where nothing reaches 50% ... are marked
+    #: 'none'").
+    points: list[tuple[str, float | None, str]]
+
+
+def dot_plot(
+    title: str,
+    sub: str,
+    rows: list[DotRow],
+    *,
+    x_label: str = "x",
+    x_fmt: str = "g",
+    x_max: float | None = None,
+    note: str = "",
+    wide: bool = False,
+) -> str:
+    """A horizontal dot plot: one category row per `DotRow.label`, with one coloured dot per
+    `(series_name, value, color)` point at that row's own x position -- the summary dashboard's
+    "horizon in written lines, one row per family, one dot per model" chart. A `None` value is
+    rendered as a small "none" annotation at the row's left edge instead of a dot."""
+    rows = [r for r in rows if r.points]
+    if not rows:
+        return missing_fig(title, sub)
+    fig_w = WW if wide else W
+    label_w = min(260, max(110, fig_w // 3))
+    row_h = 26
+    top, bot = 10, 30
+    total_h = top + row_h * len(rows)
+    h = total_h + bot
+    pw = fig_w - label_w - MR - 8
+    vals = [v for r in rows for _n, v, _c in r.points if v is not None]
+    hi = x_max if x_max is not None else (max(vals) if vals else 1.0) or 1.0
+    yt = nice_ticks(0, hi, 6)
+    hi = max(yt[-1], hi)
+
+    def px(x: float) -> float:
+        return label_w + x / (hi or 1) * pw
+
+    g = []
+    for t in yt:
+        xpix = px(t)
+        g.append(f'<line class="grid" x1="{xpix:.1f}" x2="{xpix:.1f}" y1="{top}" y2="{total_h}"/>')
+        g.append(
+            f'<text class="tick" x="{xpix:.1f}" y="{total_h + 16}" text-anchor="middle">'
+            f"{esc(fmt(t, x_fmt))}</text>"
+        )
+    g.append(
+        f'<text class="alabel" x="{label_w + pw / 2:.1f}" y="{h - 4}" text-anchor="middle">'
+        f"{esc(x_label)}</text>"
+    )
+    marks = []
+    for i, row in enumerate(rows):
+        y = top + i * row_h + row_h / 2
+        g.append(f'<line class="grid" x1="{label_w}" x2="{fig_w - MR}" y1="{y:.1f}" y2="{y:.1f}"/>')
+        g.append(
+            f'<text class="tick" x="{label_w - 8:.1f}" y="{y + 4:.1f}" text-anchor="end">'
+            f"{esc(row.label)}</text>"
+        )
+        none_names = [n for n, v, _c in row.points if v is None]
+        for n, v, c in row.points:
+            if v is None:
+                continue
+            tip = json.dumps([[row.label, "", None], [n, fmt(v, x_fmt), c]])
+            marks.append(
+                f'<circle class="dot" cx="{px(v):.1f}" cy="{y:.1f}" r="5" style="fill:{c}" '
+                f'data-tip="{esc(tip)}"/>'
+            )
+        if none_names:
+            marks.append(
+                f'<text class="tick" x="{label_w + 6:.1f}" y="{y + 4:.1f}">'
+                f"none: {esc(', '.join(none_names))}</text>"
+            )
+    g.append(f'<line class="axis" x1="{label_w}" x2="{label_w}" y1="{top}" y2="{total_h}"/>')
+    svg = (
+        f'<svg viewBox="0 0 {fig_w} {h}" role="img" aria-label="{esc(title)}">'
+        f"{''.join(g)}{''.join(marks)}</svg>"
+    )
+    legend_items: list[tuple[str, str]] = []
+    for row in rows:
+        for n, v, c in row.points:
+            if v is not None and (n, c) not in legend_items:
+                legend_items.append((n, c))
+    leg = "".join(
+        f'<span class="li"><span class="lkey" style="background:{c}"></span>{esc(n)}</span>'
+        for n, c in legend_items
+    )
+    model_names = [n for n, _c in legend_items]
+    table_rows = []
+    for row in rows:
+        by_name = {n: v for n, v, _c in row.points}
+        table_rows.append(
+            [row.label]
+            + [
+                fmt(by_name[n], x_fmt) if by_name.get(n) is not None else "none"
+                for n in model_names
+            ]
+        )
+    table = _table(["row", *model_names], table_rows)
+    body = f'<div class="legend">{leg}</div><div class="plot">{svg}</div>{table}'
+    return figure(title, sub, body, note, wide)
+
+
 def venn2(
     title: str,
     sub: str,
@@ -625,7 +827,8 @@ figcaption .sub,.note{color:var(--ink2);margin:2px 0 6px;font-size:12.5px}.note{
 svg{width:100%;height:auto;display:block}.grid{stroke:var(--grid);stroke-width:1}
 .axis{stroke:var(--axis);stroke-width:1}.tick{fill:var(--muted);font-size:11px;
 font-variant-numeric:tabular-nums}.alabel{fill:var(--ink2);font-size:11.5px}.ln{fill:none;
-stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.dot{stroke:var(--surface);
+stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.ln.muted{stroke-dasharray:6 4}
+.dot{stroke:var(--surface);
 stroke-width:2}.cross{stroke:var(--axis);stroke-width:1}.hit{fill:transparent;cursor:crosshair}
 .band{opacity:.16;stroke:none}.whisker{stroke:var(--ink2);stroke-width:1.3}
 .seg{stroke:var(--surface);stroke-width:1}.seg:hover,rect[data-tip]:hover{opacity:.8}
