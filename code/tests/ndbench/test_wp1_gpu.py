@@ -125,3 +125,23 @@ def _read_ledger(store: Store) -> list[dict[str, Any]]:
     import json
 
     return [json.loads(line) for line in store.ledger_path.read_text().splitlines() if line.strip()]
+
+
+def test_allowed_gpus_widen_via_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    from code.ndbench.runner import gpu as gpu_mod
+
+    monkeypatch.delenv("NDBENCH_ALLOWED_GPUS", raising=False)
+    assert gpu_mod.allowed_gpus() == (4,)
+    monkeypatch.setenv("NDBENCH_ALLOWED_GPUS", "0,1,4")
+    assert gpu_mod.allowed_gpus() == (0, 1, 4)
+
+
+def test_lease_refuses_gpu_outside_allowed_set(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from code.ndbench.runner import gpu as gpu_mod
+    from code.ndbench.store import Store
+
+    monkeypatch.setenv("NDBENCH_ALLOWED_GPUS", "4")
+    with pytest.raises(ValueError), gpu_mod.lease("j", 1.0, Store(tmp_path), gpu=2):
+        pass

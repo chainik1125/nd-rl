@@ -46,9 +46,15 @@ from ..store import Store
 #: vendored into `code/ndbench/vendor` since WP1 calls it as an external tool, not a library.
 GPULOCK_SCRIPT = "/scratch/cowifornia/nd-rl/ab2/frozen/gpulock.py"
 
-#: The only GPU any ndbench job may lease (plan §A2: "GPUs 0-4 belong to another user: never touch
-#: them" other than this one).
+#: The default (and, unless `NDBENCH_ALLOWED_GPUS` says otherwise, the only) GPU an ndbench job may
+#: lease. GPUs 0-3 were another user's until 2026-10-01, when Leon freed them for this work.
 LEASED_GPU = 4
+
+
+def allowed_gpus() -> tuple[int, ...]:
+    """GPU indices jobs may lease: `NDBENCH_ALLOWED_GPUS` (e.g. "0,1,2,3,4"), default `(4,)`."""
+    raw = os.environ.get("NDBENCH_ALLOWED_GPUS", str(LEASED_GPU))
+    return tuple(int(x) for x in raw.split(",") if x.strip())
 
 
 class BudgetExceeded(Exception):
@@ -84,6 +90,7 @@ def lease(
     gpu: int = LEASED_GPU,
     wait_s: float = 0.0,
     gpulock_script: str = GPULOCK_SCRIPT,
+    check_env: bool = True,
 ) -> Iterator[int]:
     """Context manager: verify `CUDA_VISIBLE_DEVICES` is already `"4"` in the environment, acquire
     `gpu` (must be `LEASED_GPU`, i.e. 4) through `gpulock.py`, yield the acquired GPU index, then
@@ -110,17 +117,20 @@ def lease(
     trained something on CPU before leasing would otherwise be flagged despite never having
     touched a GPU.
     """
-    if gpu != LEASED_GPU:
+    allowed = allowed_gpus()
+    if gpu not in allowed:
         raise ValueError(
-            f"gpu.lease: only GPU {LEASED_GPU} may be leased (got gpu={gpu}); "
-            "GPUs 0-3 belong to another user and must never be touched"
+            f"gpu.lease: GPU {gpu} is not in the allowed set {allowed} "
+            "(set NDBENCH_ALLOWED_GPUS to widen it)"
         )
     current_env = os.environ.get("CUDA_VISIBLE_DEVICES")
-    if current_env != str(LEASED_GPU):
+    # check_env=False is for a parent process that never imports torch and launches the job as a
+    # subprocess with CUDA_VISIBLE_DEVICES=<gpu> (run_schedule.py's multi-GPU driver).
+    if check_env and current_env != str(gpu):
         raise RuntimeError(
-            f"gpu.lease: CUDA_VISIBLE_DEVICES must already be {str(LEASED_GPU)!r} when lease() is "
+            f"gpu.lease: CUDA_VISIBLE_DEVICES must already be {str(gpu)!r} when lease() is "
             f"entered (got {current_env!r}); set it for the whole process from the start (e.g. "
-            f"`CUDA_VISIBLE_DEVICES={LEASED_GPU} python -m code.ndbench ...`), before torch (or "
+            f"`CUDA_VISIBLE_DEVICES={gpu} python -m code.ndbench ...`), before torch (or "
             "anything that imports it) is imported -- lease() no longer sets it itself, since "
             "doing so after the lock is acquired can already be too late for it to take effect "
             "(see this module's docstring)."
@@ -167,9 +177,7 @@ def lease(
             f"{proc.stderr.strip() or proc.stdout.strip() or f'exit {proc.returncode}'}"
         )
     acquired = int(proc.stdout.strip())
-    assert acquired == LEASED_GPU, (
-        f"gpu.lease: expected GPU {LEASED_GPU}, gpulock returned {acquired}"
-    )
+    assert acquired == gpu, f"gpu.lease: expected GPU {gpu}, gpulock returned {acquired}"
 
     # Deliberately does not set `os.environ["CUDA_VISIBLE_DEVICES"]` here (fix list item 8): the
     # precondition check above already requires it to be "4" for the whole process, which is the
