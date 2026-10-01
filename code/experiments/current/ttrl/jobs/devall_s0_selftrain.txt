@@ -1,0 +1,1 @@
+selftrain ttrl.py --run combo-c005_s0 --pool dev --names-file targets_devall_s0.txt --self-train --k 256 --budget-secs 8762
