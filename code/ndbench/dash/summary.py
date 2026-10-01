@@ -1280,10 +1280,14 @@ def _chart_10_steering(store: Store) -> str:
         return P.missing_fig(title, "no base/rl/steer:* pass@1 could be computed")
 
     bits = []
+    n_configs = sum(len(pts) for pts in curves.values())
     if base_pass1 is not None and best is not None:
+        inside = best[2] <= base_pass1[2]
         bits.append(
-            "adding the RL-base direction to base does nothing "
-            f"({P.fmt(base_pass1[0], 'pct')} -> {P.fmt(best[2], 'pct')})"
+            f"adding the RL-base direction to base {'does not move it' if inside else 'helps'}: "
+            f"the best of {n_configs} (layer, alpha) settings scores "
+            f"{P.fmt(best[2], 'pct')} vs {P.fmt(base_pass1[0], 'pct')} unsteered"
+            + (" (inside base's 95% CI)" if inside else "")
         )
     if ctrl is not None and rl_pass1 is not None:
         diff_pts = (rl_pass1[0] - cast(float, ctrl["pass1"])) * 100
@@ -1308,7 +1312,30 @@ def _chart_10_steering(store: Store) -> str:
                 f" interp_eval_dev/sealed dominate the pooled item count (base alone on "
                 f"textbook_dev is {P.fmt(tdev_pass1[0], 'pct')})."
             )
-    caption = f"pooled pass@1 over {', '.join(suites)}.{tdev_note}"
+    sealed_note = ""
+    if "interp_eval_sealed" in suites and ctrl_layer is not None:
+        sealed = {
+            label: interp_view._pooled_pass1_of(  # noqa: SLF001
+                store,
+                suites=["interp_eval_sealed"],
+                version=cast(str, meta["version"]),
+                model=model,
+                B=int(cast(int, meta["B"])),
+                seed=0,
+            )
+            for label, model in (("rl", "rl"), ("rl - delta", f"steer:{ctrl_layer}:-1"))
+        }
+        if all(v is not None for v in sealed.values()):
+            sealed_note = (
+                " On the sealed set alone (dev L8-11 was the RL hill-climb's selection metric, so "
+                "rl's dev numbers are optimistic): "
+                + ", ".join(f"{k} {P.fmt(cast(Any, v)[0], 'pct')}" for k, v in sealed.items())
+                + "."
+            )
+    caption = (
+        f"pooled pass@1 over {', '.join(suites)}; delta (RL - base mean activation difference "
+        "at proof positions) is added at proof positions only." + tdev_note + sealed_note
+    )
     return P.bar_chart(title, takeaway, bars, y_fmt="pct", wide=True, note=caption)
 
 
