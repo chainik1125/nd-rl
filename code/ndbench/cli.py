@@ -181,13 +181,14 @@ def _guard_cuda_device(*devices: str | None) -> None:
     device other than 4 in this process (e.g. via `torch.cuda.is_available()` probing)."""
     if not any(d is not None and "cuda" in d for d in devices):
         return
+    allowed = os.environ.get("NDBENCH_ALLOWED_GPUS", "4").split(",")
     current = os.environ.get("CUDA_VISIBLE_DEVICES")
-    if current != "4":
+    if current is None or current not in [g.strip() for g in allowed]:
         raise SystemExit(
-            f"a 'cuda' device was requested but CUDA_VISIBLE_DEVICES={current!r} (must be '4', "
-            "already set before this process starts, e.g. "
-            "`CUDA_VISIBLE_DEVICES=4 python -m code.ndbench ...`). GPUs 0-3 belong to another user "
-            "and must never be touched (plan §A2)."
+            f"a 'cuda' device was requested but CUDA_VISIBLE_DEVICES={current!r} (must be one of "
+            f"{allowed}, set before this process starts, e.g. "
+            "`CUDA_VISIBLE_DEVICES=4 python -m code.ndbench ...`; NDBENCH_ALLOWED_GPUS widens the "
+            "set, default '4')."
         )
 
 
