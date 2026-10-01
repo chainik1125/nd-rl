@@ -59,6 +59,11 @@ exist) the summary this README points to.
 
 ## How to rerun
 
+To run only some benchmarks, or only the ones that need no GPU, use the cost tiers in
+[`code/ndbench/README.md`](../../../ndbench/README.md) (`run_schedule.py --schedule
+code/ndbench/panel.yaml --model <label> --max-tier cheap`). The steps below are the original
+full schedule.
+
 1. From the worktree root, build whichever suites the next job needs, e.g.:
    ```bash
    python -m code.ndbench build --suite parts_pool --version v1 \

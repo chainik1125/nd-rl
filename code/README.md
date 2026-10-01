@@ -10,6 +10,7 @@ is named `nd-rl`. Documentation, proposals, and research records live in the par
 | `pyproject.toml`, `uv.lock`, `.python-version` | Package configuration, locked dependencies, Python version |
 | `shared_code/` | Reusable implementation shared across experiments |
 | `experiments/current/`, `experiments/archived/` | Runnable experiment-specific code |
+| `ndbench/` | Capability benchmarks and interp measurements; [`ndbench/README.md`](ndbench/README.md) says which need a GPU |
 | `models/`, `log.py`, `utils.py` | Shared library code |
 | `tests/`, `conftest.py` | Tests and pytest configuration |
 | `Makefile`, `.pre-commit-config.yaml` | Development commands and Git hooks |

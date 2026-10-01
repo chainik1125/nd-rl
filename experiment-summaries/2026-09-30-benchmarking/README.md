@@ -107,5 +107,8 @@ re-weighted proofs base already found". Linear probes do not separate the two mo
 - skill_pool results are legacy imports judged by the legacy pipeline (the audit re-judged all
   1.47M benchmark samples with nd_v2 and found no mismatch).
 - EDL uses 2 data orders, so its uncertainty is the spread between them.
+- Rerunning: [`code/ndbench/README.md`](../../code/ndbench/README.md) lists each benchmark's GPU
+  cost. The cpu tier (redraw, re-analyse) needs no GPU, and the cheap tier costs about 14 GPU-min
+  per model.
 - Next: run Dan's models through the same adapters (`code/ndbench/adapters/`), and decide which of
   the 12 benchmarks to keep as the standing capability panel.
