@@ -569,7 +569,7 @@ def test_steering_chart_shows_four_comparison_bars(tmp_path: Path) -> None:
     assert "base (unsteered)" in html
     assert "base + delta" in html
     assert "rl - delta" in html
-    assert "does nothing" in html
+    assert "the best of 2 (layer, alpha) settings" in html  # 2 base+delta configs here
     assert "costs" in html and "points" in html
 
 
