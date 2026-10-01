@@ -218,3 +218,12 @@ def test_hazard_left_truncation_excludes_forced_lines() -> None:
     assert by_line[6] == (2, 2)
     # Two-tuples keep their old meaning (entry line 1).
     assert hazard([(2, True)]) == hazard([(2, True, 1)])
+
+
+def test_horizon_no_ci_when_point_estimate_is_none() -> None:
+    # Audit 2026-10-01: smallest n fails (pass@8 < 0.5) -> n* None and no CI, even though some
+    # bootstrap replicates of a borderline cell can clear the threshold.
+    by_n = {1: [_item(32, 1, "a"), _item(32, 0, "b"), _item(32, 6, "c")], 2: [_item(32, 0, "d")]}
+    res = horizon(by_n, k=8, tau=0.5, B=200, seed=0)
+    assert res["n_star"] is None
+    assert res["ci"] == (None, None)
