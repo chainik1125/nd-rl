@@ -368,7 +368,8 @@ def _chart_2_families(store: Store) -> str:
     caption = (
         f"{len(rows)} families; n* at pass@8>=50% over size cells with >={_MIN_ITEMS_PER_N} "
         "unseen items only (theorems in base's pretraining set or the RL pool are excluded; "
-        "they make up most of the smallest sizes); >= marks a censored horizon (never dropped "
+        "they make up most of the smallest sizes); a short tick at the left edge marks a model "
+        "that fails at the smallest unseen size; >= marks a censored horizon (never dropped "
         f"below 50% in the tested range); base, rl, armC.{seen_note}{drop_note}"
     )
     return P.dot_plot(
@@ -376,6 +377,7 @@ def _chart_2_families(store: Store) -> str:
         takeaway,
         rows,
         x_label="written lines at n*",
+        x_min=0.0,
         none_label="fails at smallest size",
         wide=True,
         note=caption,
@@ -1055,8 +1057,8 @@ _LIKELIHOOD_ROW_LABEL: dict[str, str] = {
     "reserve": "reserve (neutral)",
     "family": "family witnesses",
     "base_verified": "base's own verified proofs",
-    "reference": "minimal proofs of rl-solved gen theorems",
-    "crux": "rl's own proofs of them",
+    "reference": "neutral minimal proofs",
+    "crux": "rl's own proofs",
 }
 
 
@@ -1203,9 +1205,10 @@ def _chart_9_likelihood(store: Store) -> str:
     )
     caption = (
         "median log p per written line of the scored proof, base vs rl, by proof set; "
-        f"runs {', '.join(cast('list[str]', meta['run_ids']))}. The last two rows are the same "
-        f"{meta['n_paired']} gen_ctrl theorems rl solves and base never does (p_hat_base=0); "
-        "their minimal proofs come from the minlen labeller." + ordering_note
+        f"runs {', '.join(cast('list[str]', meta['run_ids']))}. The last two rows (neutral minimal "
+        f"proofs, rl's own proofs) are the same {meta['n_paired']} gen_ctrl theorems rl solves "
+        "and base never does (p_hat_base=0); the minimal proofs come from the minlen labeller."
+        + ordering_note
     )
     return P.dot_plot(
         title,
