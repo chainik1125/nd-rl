@@ -18,7 +18,7 @@ from ..core.io import append_jsonl, read_jsonl, sha256_str, utc_now_iso, write_j
 from ..core.types import JSON
 from ..store import Store
 
-KINDS: tuple[str, ...] = ("likelihood", "vectors", "probes", "lens")
+KINDS: tuple[str, ...] = ("likelihood", "vectors", "probes", "probe_baselines", "lens")
 
 
 def interp_dir(store: Store, kind: str) -> Path:

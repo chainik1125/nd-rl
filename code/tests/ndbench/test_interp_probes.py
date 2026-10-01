@@ -288,3 +288,20 @@ def test_probe_success_none_without_both_train_and_test() -> None:
     dataset = [("only_pid", {k: np.zeros(3) for k in probes.LAYER_KEYS}, 1)]
     splits = {"train": {"only_pid"}, "val": set(), "test": set()}
     assert probes.probe_success(dataset, splits, "0") is None
+
+
+def test_position_baselines_lookup_tables() -> None:
+    """Interp audit 2026-10-01: probes need a non-neural, position-only baseline. With every
+    proof's rule sequence fixed by line index, the line-index table is perfect while the
+    majority class is not."""
+    from code.ndbench.core.types import Sequent
+    from code.ndbench.interp.probes import position_baselines
+
+    body = "N1 P : PR ; N2 ( P v Q ) : ORI1 N1 ; QED"
+    items = [(f"p{i}", Sequent(premises=("P",), conclusion="( P v Q )"), body, 2) for i in range(6)]
+    splits = {"train": {"p0", "p1", "p2", "p3"}, "val": set(), "test": {"p4", "p5"}}
+    out = position_baselines(items, splits)
+    assert out["n_test"] == 4
+    assert out["next_rule_acc_majority"] == 0.5
+    assert out["next_rule_acc_line_index"] == 1.0
+    assert out["lines_to_go_r2_line_index"] == 1.0

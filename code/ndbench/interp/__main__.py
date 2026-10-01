@@ -142,12 +142,18 @@ def cmd_probes(args: argparse.Namespace) -> None:
     _print(probes.run_probes(store, cfg, base_adapter=base, rl_adapter=rl))
 
 
+def cmd_probe_baselines(args: argparse.Namespace) -> None:
+    cfg = _load_config(args.config)
+    _print(probes.run_position_baselines(Store(Path(args.out)), cfg))
+
+
 _COMMANDS: dict[str, Any] = {
     "likelihood": cmd_likelihood,
     "fit-vectors": cmd_fit_vectors,
     "steer-sweep": cmd_steer_sweep,
     "interpolate": cmd_interpolate,
     "probes": cmd_probes,
+    "probe-baselines": cmd_probe_baselines,
 }
 
 
