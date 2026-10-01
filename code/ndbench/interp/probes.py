@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import math
 import random
+from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
@@ -580,3 +581,79 @@ def run_probes(
     run_id = new_interp_run(store, "probes", cfg)
     write_interp_rows(store, "probes", run_id, rows)
     return {"run_id": run_id, "n_rows": len(rows), "n_train": len(train_items), "notes": notes}
+
+
+def position_baselines(
+    items: Sequence[tuple[str, Sequent, str, int | None]], splits: Mapping[str, set[str]]
+) -> dict[str, JSON]:
+    """Non-neural baselines for the probes on the same examples and split (interp audit,
+    2026-10-01): each predictor is a lookup table fit on `train` -- the most common `next_rule`,
+    or the mean `lines_to_go`, among train lines sharing the key -- scored on `test`, falling back
+    to the train-wide majority/mean for unseen keys. Keys: nothing (majority class), the line
+    index, line index + number of premises (both visible in the prompt), and that plus the proof's
+    total line count. A probe only shows information beyond position if it beats these."""
+    rows: list[tuple[str, int, int, int, str, int]] = []  # pid, k, n_prem, n_lines, rule, ltg
+    for pid, seq, body, _l in items:
+        parsed = [_parse_line(t) for t in split_lines(body)]
+        n = len(parsed)
+        for k, ln in enumerate(parsed):
+            rows.append((pid, k + 1, len(seq.premises), n, ln.rule, n - (k + 1)))
+    train = [r for r in rows if r[0] in splits["train"]]
+    test = [r for r in rows if r[0] in splits["test"]]
+    if not train or not test:
+        return {"n_train": len(train), "n_test": len(test)}
+    majority = Counter(r[4] for r in train).most_common(1)[0][0]
+    mean_ltg = float(np.mean([r[5] for r in train]))
+    keys: dict[str, Any] = {
+        "majority": lambda r: (),
+        "line_index": lambda r: (r[1],),
+        "line_index_premises": lambda r: (r[1], r[2]),
+        "line_index_premises_length": lambda r: (r[1], r[2], r[3]),
+    }
+    y_ltg = np.array([r[5] for r in test], dtype=float)
+    ss_tot = float(((y_ltg - y_ltg.mean()) ** 2).sum()) or 1.0
+    out: dict[str, JSON] = {"n_train": len(train), "n_test": len(test)}
+    for name, keyf in keys.items():
+        rule_tab: dict[Any, Counter[str]] = {}
+        ltg_tab: dict[Any, list[int]] = {}
+        for r in train:
+            rule_tab.setdefault(keyf(r), Counter())[r[4]] += 1
+            ltg_tab.setdefault(keyf(r), []).append(r[5])
+        acc = float(
+            np.mean(
+                [
+                    (rule_tab[keyf(r)].most_common(1)[0][0] if keyf(r) in rule_tab else majority)
+                    == r[4]
+                    for r in test
+                ]
+            )
+        )
+        pred = np.array(
+            [float(np.mean(ltg_tab[keyf(r)])) if keyf(r) in ltg_tab else mean_ltg for r in test]
+        )
+        out[f"next_rule_acc_{name}"] = acc
+        out[f"lines_to_go_r2_{name}"] = 1.0 - float(((y_ltg - pred) ** 2).sum()) / ss_tot
+    return out
+
+
+def run_position_baselines(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
+    """`interp probe-baselines`: `position_baselines` on exactly `run_probes`'s train examples and
+    split (same `seed`/`n_train`/`scan_limit`/`cache_dir`), CPU only; one row, kind
+    `probe_baselines`."""
+    from . import data as _data
+
+    seed = int(cast(float, cfg.get("seed") or 0))
+    n_train = int(cast(float, cfg.get("n_train") or 300))
+    excluder = _data.build_exclusion_index(cache_dir=cast("str | None", cfg.get("cache_dir")))
+    train_proofs = _data.load_neutral_proofs(
+        n=n_train,
+        excluder=excluder,
+        seed=seed,
+        scan_limit=cast("int | None", cfg.get("scan_limit")),
+    )
+    items = [(p.pid, p.sequent, p.body, p.L) for p in train_proofs]
+    splits = split_by_pid([pid for pid, *_r in items], seed=seed)
+    row = position_baselines(items, splits)
+    run_id = new_interp_run(store, "probe_baselines", cfg)
+    write_interp_rows(store, "probe_baselines", run_id, [row])
+    return {"run_id": run_id, **row}

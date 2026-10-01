@@ -60,7 +60,7 @@ from ..analysis._common import (
     problems_by_pid,
 )
 from ..core.types import JSON, ItemResult, Problem
-from ..interp._store import interp_runs, load_interp_rows
+from ..interp._store import interp_runs, latest_interp_run, load_interp_rows
 from ..metrics import compositionality_ratio, pass_at_k
 from ..metrics import horizon as horizon_stat
 from ..store import Store
@@ -1306,8 +1306,14 @@ def _chart_11_weights(store: Store) -> str:
 # =================================================================================== 12. Probes
 
 
+def _probe_baselines(store: Store) -> dict[str, Any] | None:
+    run_id = latest_interp_run(store, "probe_baselines")
+    rows = load_interp_rows(store, "probe_baselines", run_id) if run_id else []
+    return cast("dict[str, Any]", rows[-1]) if rows else None
+
+
 def _chart_12_probes(store: Store) -> str:
-    title = "Probes: is the information there, and used?"
+    title = "Probes: what do the activations add beyond position?"
     data = interp_view.view_probes(store, {})
     if data.get("empty"):
         return P.missing_fig(title, str(data.get("reason", "no data")))
@@ -1323,42 +1329,51 @@ def _chart_12_probes(store: Store) -> str:
     for model in ("base", "rl"):
         a = _clean(acc.get(model, []))
         if a:
-            series.append(P.Series(f"next_rule acc: {model}", a, _mcolor(model)))
-    for model in ("base", "rl"):
-        r = _clean(r2.get(model, []))
-        if r:
-            series.append(P.Series(f"lines_to_go R2: {model}", r, _mcolor(model), muted=True))
+            series.append(P.Series(f"next_rule probe: {model}", a, _mcolor(model)))
     if not series:
-        return P.missing_fig(title, "probes run has rows but no usable accuracy/R2 series")
-
-    ood = cast("dict[str, list[tuple[int, JSON]]]", data.get("length_generalisation_ood_r2", {}))
+        return P.missing_fig(title, "probes run has rows but no usable accuracy series")
+    # Interp audit 2026-10-01: the emb-layer probe equals a line-index lookup, so accuracy needs a
+    # position-only reference; line index + premise count is everything the prompt gives away.
+    baselines = _probe_baselines(store)
+    base_acc = cast("float | None", (baselines or {}).get("next_rule_acc_line_index_premises"))
+    xs = [x for s_ in series for x, _y in s_.pts]
+    if base_acc is not None and xs:
+        series.append(
+            P.Series(
+                "position-only lookup (line index + premises)",
+                [(min(xs), base_acc), (max(xs), base_acc)],
+                "var(--ink2)",
+                muted=True,
+            )
+        )
 
     def _last(series_dict: dict[str, list[tuple[int, JSON]]], name: str) -> float | None:
         pts = _clean(series_dict.get(name, []))
         return pts[-1][1] if pts else None
 
     b_last, r_last = _last(acc, "base"), _last(acc, "rl")
-    gap = (
-        ""
-        if b_last is None or r_last is None
-        else f" (deepest layer: {P.fmt(b_last, 'pct')} vs {P.fmt(r_last, 'pct')})"
-    )
+    pairs = list(zip(_clean(acc.get("base", [])), _clean(acc.get("rl", [])), strict=False))
+    max_gap = max((abs(b[1] - r[1]) for b, r in pairs), default=None)
+    if b_last is not None and r_last is not None and base_acc is not None and max_gap is not None:
+        takeaway = (
+            f"at the deepest layer the next_rule probe reaches {P.fmt(b_last, 'pct')} (base) and "
+            f"{P.fmt(r_last, 'pct')} (rl), {100 * (b_last - base_acc):.1f} and "
+            f"{100 * (r_last - base_acc):.1f} points above a position-only lookup "
+            f"({P.fmt(base_acc, 'pct')}); base and rl stay within {100 * max_gap:.1f} points of "
+            "each other at every layer."
+        )
+    else:
+        takeaway = "next_rule probe accuracy by layer, base vs rl."
+    ood = cast("dict[str, list[tuple[int, JSON]]]", data.get("length_generalisation_ood_r2", {}))
+    r2_b, r2_r = _last(r2, "base"), _last(r2, "rl")
+    ltg_base = cast("float | None", (baselines or {}).get("lines_to_go_r2_line_index"))
     ood_b, ood_r = _last(ood, "base"), _last(ood, "rl")
-    ood_bit = (
-        f" lines_to_go OOD R2 is negative for both (base {P.fmt(ood_b, 'f3')}, rl "
-        f"{P.fmt(ood_r, 'f3')})."
-        if ood_b is not None and ood_r is not None and ood_b < 0 and ood_r < 0
-        else ""
-    )
-    takeaway = (
-        "next_rule accuracy is close between base and rl at every layer" + gap + "." + ood_bit
-    )
-    ood_bits = [
-        f"{m} {P.fmt(v, 'f3')}" for m, v in (("base", ood_b), ("rl", ood_r)) if v is not None
-    ]
     caption = (
-        f"layers {', '.join(layers)}; solid=next_rule acc, dashed=lines_to_go R2; "
-        "OOD length-generalisation R2 (deepest layer): " + (", ".join(ood_bits) or "n/a") + "."
+        f"layers {', '.join(layers)}; next_rule = the rule of the line about to be written. "
+        f"lines_to_go R2 at the deepest layer: base {P.fmt(r2_b, 'f3')}, rl {P.fmt(r2_r, 'f3')} "
+        f"vs {P.fmt(ltg_base, 'f3')} from the line index alone; on longer (OOD) proofs it is "
+        f"negative for both (base {P.fmt(ood_b, 'f3')}, rl {P.fmt(ood_r, 'f3')}). Majority-class "
+        f"next_rule accuracy: {P.fmt((baselines or {}).get('next_rule_acc_majority'), 'pct')}."
     )
     display_labels = ["emb" if layer == "emb" else f"L{layer}" for layer in layers]
     return P.line_chart(
@@ -1366,7 +1381,7 @@ def _chart_12_probes(store: Store) -> str:
         takeaway,
         series,
         x_label="layer",
-        y_fmt="f3",
+        y_fmt="pct",
         wide=True,
         note=caption,
         x_tick_labels=display_labels,
