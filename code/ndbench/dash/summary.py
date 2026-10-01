@@ -1551,7 +1551,7 @@ _MODELS_NOTE = (
 )
 
 
-def build_summary(store: Store, out_dir: Path) -> Path:
+def build_summary(store: Store, out_dir: Path, detail_href: str | None = None) -> Path:
     """Render the single-page summary dashboard (one chart per benchmark) into
     `out_dir/summary.html` and return its path. `out_dir` is created if missing."""
     out_dir = Path(out_dir)
@@ -1581,7 +1581,12 @@ def build_summary(store: Store, out_dir: Path) -> Path:
     html = P.page("ND Capability Benchmarks", _MODELS_NOTE, "summary.html", figs, [])
     html = html.replace("</style>", _EXTRA_CSS + "</style>")
     gpu_h = store.ledger_total_s() / 3600.0
-    footer = f'<p class="pagefoot">GPU-hours used (ledger total): {gpu_h:.2f} h</p>'
+    detail = (
+        f' &middot; <a href="{P.esc(detail_href)}">detail pages (every chart)</a>'
+        if detail_href
+        else ""
+    )
+    footer = f'<p class="pagefoot">GPU-hours used (ledger total): {gpu_h:.2f} h{detail}</p>'
     html = html.replace("</main>", "</main>" + footer)
 
     path = out_dir / "summary.html"
