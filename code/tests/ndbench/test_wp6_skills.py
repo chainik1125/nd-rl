@@ -167,7 +167,8 @@ def test_skills_joins_legacy_runs_to_skill_pool_by_pid(tmp_path: Path) -> None:
     assert rl["n_items"] == 2
     armc = data["models"]["armC"]
     assert armc["n_items"] == 1
-    # Three seeds at k=32 each, c=16 each, pooled by summing n and c (not averaged/picked-one).
+    # Only seed C_s101 is kept by default (audit 2026-10-01: "armC" elsewhere is C_s101 alone);
+    # all three seeds have c=16 of 32 here, so pass@1 is 0.5 either way.
     heat1 = armc["heatmap_pass1"]["classical"]
     assert heat1["6.0"] == {"pass1": 0.5, "n_items": 1}
 
@@ -218,3 +219,22 @@ def test_render_skills_shows_the_legacy_join_note_and_cell_counts(tmp_path: Path
     assert "legacy-imported" in joined
     assert "champion" in joined and "rl" in joined  # the label mapping, spelled out
     assert "n=1" in joined or "n items" in joined  # a cell count shown somewhere (tooltip/table)
+
+
+def test_skills_keeps_only_the_configured_armc_seed_and_compares_on_common_items(
+    tmp_path: Path,
+) -> None:
+    """Audit 2026-10-01: armC is seed C_s101 unless configured otherwise, and model pairs are
+    compared only on the items both have results for (base also covers lengthexp, rl does not)."""
+    store = _build_legacy_joined_store(tmp_path)
+    data = skills.view(store, {"skills": ["classical"]})
+    assert data["meta"]["armc_legacy_versions"] == ["C_s101"]
+    assert data["meta"]["coverage_by_source"]["rl"] == {"dev_L8-11": 2}
+    cmp = data["comparisons"]["base_vs_rl"]
+    assert cmp["n_common"] == 2  # base's lengthexp item t6 is not in rl's set
+    assert cmp["sources"] == {"dev_L8-11": 2}
+    pooled = skills.view(
+        store, {"skills": ["classical"], "armc_legacy_versions": ["C_s101", "C_s102"]}
+    )
+    heat = pooled["models"]["armC"]["heatmap_pass1"]["classical"]["6.0"]
+    assert heat["n_items"] == 1

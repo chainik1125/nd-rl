@@ -582,9 +582,19 @@ def _chart_4_skills(store: Store) -> str:
         if dropped_cells
         else ""
     )
+    sk = skills_view.view(store, {})
+    cmp_notes: list[str] = []
+    for cmp in cast("dict[str, dict[str, Any]]", sk.get("comparisons") or {}).values():
+        a, b = cast("list[str]", cmp["models"])
+        groups = cast("dict[str, dict[str, Any]]", cmp["by_skill"])
+        cells = ", ".join(
+            f"{g}: {P.fmt(r[a], 'pct')} vs {P.fmt(r[b], 'pct')}" for g, r in groups.items()
+        )
+        cmp_notes.append(f"{a} vs {b} on their {cmp['n_common']} common items ({cells})")
     caption = (
         f"n={n_items} skill_pool items (direct + legacy-imported runs), rl only; shaded band: "
-        f"95% item-level bootstrap CI.{drop_note} base shown in detail on the Skills page."
+        f"95% item-level bootstrap CI.{drop_note}"
+        + (" Same items, pass@1: " + "; ".join(cmp_notes) + "." if cmp_notes else "")
     )
     return P.line_chart(
         title, takeaway, series, x_label="L (written lines)", y_fmt="pct", note=caption

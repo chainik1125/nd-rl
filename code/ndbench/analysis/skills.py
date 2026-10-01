@@ -56,6 +56,7 @@ lengthexp sets" -- i.e. `import_legacy`'s legacy runs, under their own suite nam
 from __future__ import annotations
 
 import math
+from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
@@ -114,6 +115,15 @@ LEGACY_MODEL_MAP: dict[str, str] = {
 
 _LEGACY_STATUSES: tuple[str, ...] = ("legacy",)
 
+#: Legacy armC runs kept (their run `version` is the lengthexp seed). Audit 2026-10-01: this page
+#: pooled seeds C_s101-C_s103 while "armC" everywhere else is C_s101 alone.
+DEFAULT_ARMC_LEGACY_VERSIONS: tuple[str, ...] = ("C_s101",)
+
+#: Model pairs compared on their common items only (audit 2026-10-01: base covers dev/sealed/
+#: frontier *and* lengthexp, rl only the first three, armC only lengthexp, so per-model numbers
+#: are on different item sets).
+COMPARISON_PAIRS: tuple[tuple[str, str], ...] = (("base", "rl"), ("base", "armC"))
+
 
 def _skill_active(problem: Problem, skill: str) -> bool:
     v = problem.tags.get(skill)
@@ -144,7 +154,9 @@ def _legacy_suites_for_source(store: Store, source_set: str) -> list[str]:
     )
 
 
-def _collect_legacy_items(store: Store, source_set: str) -> dict[str, dict[str, tuple[int, int]]]:
+def _collect_legacy_items(
+    store: Store, source_set: str, armc_versions: Sequence[str] = DEFAULT_ARMC_LEGACY_VERSIONS
+) -> dict[str, dict[str, tuple[int, int]]]:
     """`{dashboard_model: {bare_pid: (n, c)}}` for `source_set`, pooled per this module's docstring
     ("A (legacy suite, legacy model) pair can have more than one matching run"). `bare_pid` is the
     legacy `ItemResult.pid` as-is (the join back to `skill_pool`'s own `f"{source_set}:{pid}"` is
@@ -158,6 +170,8 @@ def _collect_legacy_items(store: Store, source_set: str) -> dict[str, dict[str, 
         for rec in run_records(store, suite=suite, statuses=_LEGACY_STATUSES):
             legacy_model = cast(str, rec.get("model"))
             if legacy_model not in LEGACY_MODEL_MAP:
+                continue
+            if legacy_model == "armC" and str(rec.get("version")) not in armc_versions:
                 continue
             groups.setdefault((suite, legacy_model), []).append(rec)
     for (_suite, legacy_model), recs in groups.items():
@@ -175,7 +189,9 @@ def _collect_legacy_items(store: Store, source_set: str) -> dict[str, dict[str, 
 
 
 def _joined_items_by_model(
-    store: Store, source_sets: Sequence[str]
+    store: Store,
+    source_sets: Sequence[str],
+    armc_versions: Sequence[str] = DEFAULT_ARMC_LEGACY_VERSIONS,
 ) -> dict[str, dict[str, tuple[int, int]]]:
     """`{dashboard_model: {skill_pool_pid: (n, c)}}`, unioned over every `source_set` (module
     docstring: `"base"` legitimately gets a union of the monitor import's `base` and the lengthexp
@@ -183,7 +199,7 @@ def _joined_items_by_model(
     `source_set`s because the `f"{source_set}:"` prefix is restored here)."""
     by_model: dict[str, dict[str, tuple[int, int]]] = {}
     for source_set in source_sets:
-        for dash_model, bucket in _collect_legacy_items(store, source_set).items():
+        for dash_model, bucket in _collect_legacy_items(store, source_set, armc_versions).items():
             dest = by_model.setdefault(dash_model, {})
             for bare_pid, nc in bucket.items():
                 dest[f"{source_set}:{bare_pid}"] = nc
@@ -221,7 +237,10 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     source_sets = sorted(
         {str(v) for p in problems.values() if (v := p.tags.get("source_set")) is not None}
     )
-    legacy_by_model = _joined_items_by_model(store, source_sets)
+    armc_versions = cast(
+        "list[str]", cfg_get(cfg, "armc_legacy_versions", list(DEFAULT_ARMC_LEGACY_VERSIONS))
+    )
+    legacy_by_model = _joined_items_by_model(store, source_sets, armc_versions)
     used_legacy = any(bucket for bucket in legacy_by_model.values())
     for model, bucket in legacy_by_model.items():
         dest = by_model.setdefault(model, {})
@@ -306,6 +325,44 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         return empty_view(
             f"suite {suite!r} has joinable legacy runs but no items had a known length"
         )
+
+    coverage = {
+        m: dict(
+            Counter(
+                str(problems[pid].tags.get("source_set")) for pid in by_model[m] if pid in problems
+            )
+        )
+        for m in by_model
+    }
+    comparisons: dict[str, Any] = {}
+    for a, b in COMPARISON_PAIRS:
+        if a not in by_model or b not in by_model:
+            continue
+        common = sorted(set(by_model[a]) & set(by_model[b]) & set(problems))
+        common = [p for p in common if by_model[a][p][0] > 0 and by_model[b][p][0] > 0]
+        if not common:
+            continue
+        groups: dict[str, list[str]] = {"no special skill": []}
+        for pid in common:
+            active = [s for s in skills if _skill_active(problems[pid], s)]
+            if not active:
+                groups["no special skill"].append(pid)
+            for sk in active:
+                groups.setdefault(sk, []).append(pid)
+        comparisons[f"{a}_vs_{b}"] = {
+            "models": [a, b],
+            "n_common": len(common),
+            "sources": dict(Counter(str(problems[p].tags.get("source_set")) for p in common)),
+            "by_skill": {
+                g: {
+                    "n_items": len(pids),
+                    a: _mean_or_nan([pass_at_k(*by_model[a][p], 1) for p in pids]),
+                    b: _mean_or_nan([pass_at_k(*by_model[b][p], 1) for p in pids]),
+                }
+                for g, pids in groups.items()
+                if pids
+            },
+        }
     return {
         "empty": False,
         "meta": {
@@ -316,6 +373,8 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "models": models,
             "model_map": LEGACY_MODEL_MAP,
             "used_legacy_join": used_legacy,
+            "armc_legacy_versions": armc_versions,
+            "coverage_by_source": coverage,
             "legacy_note": (
                 "skill_pool has no run of its own; these results are legacy-imported per-theorem "
                 "runs (status=legacy) joined back to skill_pool by theorem name. Legacy label "
@@ -326,4 +385,5 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             ),
         },
         "models": per_model,
+        "comparisons": comparisons,
     }

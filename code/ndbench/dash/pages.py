@@ -482,6 +482,45 @@ def render_skills(data: Mapping[str, JSON]) -> list[str]:
             wide=True,
         )
     ]
+    # Matched comparisons first (audit 2026-10-01): the per-model panels below are on different
+    # item sets (base covers every source set, rl dev/sealed/frontier, armC lengthexp only).
+    comparisons = cast("dict[str, dict[str, JSON]]", data.get("comparisons") or {})
+    for cmp in comparisons.values():
+        a, b = cast("list[str]", cmp["models"])
+        by_skill = cast("dict[str, dict[str, JSON]]", cmp["by_skill"])
+        sources = cast("dict[str, int]", cmp["sources"])
+        figs.append(
+            P.table_fig(
+                f"{a} vs {b} on the same {cmp['n_common']} items",
+                "pass@1 by skill group, only items both models were sampled on; source sets: "
+                + ", ".join(f"{k} ({v})" for k, v in sorted(sources.items())),
+                ["skill group", "items", a, b],
+                [
+                    [g, str(r["n_items"]), P.fmt(r[a], "pct"), P.fmt(r[b], "pct")]
+                    for g, r in by_skill.items()
+                ],
+            )
+        )
+    coverage = cast("dict[str, dict[str, int]]", meta.get("coverage_by_source") or {})
+    if coverage:
+        figs.append(
+            P.table_fig(
+                "Which items each model has results for",
+                "items per source set; the per-model panels below use all of a model's items, so "
+                "compare models with the matched tables above",
+                ["model", *sorted({k for c in coverage.values() for k in c})],
+                [
+                    [
+                        m,
+                        *(
+                            str(c.get(k, 0))
+                            for k in sorted({k for c2 in coverage.values() for k in c2})
+                        ),
+                    ]
+                    for m, c in sorted(coverage.items())
+                ],
+            )
+        )
     for model, d in models.items():
         heat1_raw = cast("dict[str, dict[str, dict[str, JSON]]]", d["heatmap_pass1"])
         heat32_raw = cast("dict[str, dict[str, dict[str, JSON]]]", d["heatmap_pass32"])
