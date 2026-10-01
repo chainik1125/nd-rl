@@ -1,0 +1,37 @@
+# python -m code.ndbench.interp probes \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_probes_dan12.yaml
+#
+# DANSTATE_PLAN.md §3 row I4 / §4 row D11 (combined with likelihood's "forward only" ~15 min
+# estimate): the action-step dataset (features = activations at each step's own `<act>` token,
+# per layer; labels = `next_rule` -- `danstate_support.RULE_CLASSES`, 15 classes: AS, PR, ANDI,
+# ANDE1, ANDE2, IMPE, NEGE, ORI1, ORI2, BOTE, DN, R, IMPI, NEGI, ORE -- and `actions_to_go`) from
+# `n_train` reserve proofs (same pool as `interp_likelihood_dan12.yaml`, via `family: dan12`'s
+# `DanExcluder`), split by theorem (`probes.split_by_pid`, reused verbatim). Position-only
+# baselines (step index + #premises + frame depth) are computed on the same split and folded
+# directly into this command's own printed summary (`"baselines"` key) rather than a separate
+# `probe-baselines` run -- `danstate_support.run_probes_dan`'s own convention (no
+# `interp_probe_baselines_dan12.yaml` is needed as a result; see this work package's final
+# report).
+#
+# Scale estimate: one `activations(..., positions="act")` call per model over `n_train` reserve
+# proofs -- same order of magnitude as `interp_vectors_dan12.yaml`'s own estimate (one forward row
+# per decompose step, ~8 steps/proof at L6-10): `n_train=300` -> ~2,400 rows/model, ~4,800 total.
+# The ridge/multinomial-logistic fitting itself (`probes.probe_classification`/`probe_regression`,
+# reused verbatim from the absgpt `probes.py` -- pure numpy/torch, no absgpt dependency) is cheap
+# CPU-side linear-model training, negligible next to the activation extraction above.
+seed: 0
+base_model: dan12-fz-s0
+rl_model: dan12-t1-s0
+judge: lean # not consumed by `probes` itself (no judging happens here)
+device: cuda
+n_train: 300
+l_min: 6
+l_max: 10
+family: dan12
+exclude_train: true
+family_limit: 0
+layers: [0, 1, 2, 3, 4, 5]
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# scan_limit: null
+# model_kwargs: {batch: 512, max_action: 512, max_steps: 96}

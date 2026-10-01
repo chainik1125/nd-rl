@@ -19,6 +19,7 @@ import numpy as np
 from ..adapters.base import ModelAdapter, SteeringTerm
 from ..core.io import sha256_str, utc_now_iso
 from ..core.types import JSON, Sequent
+from ..judge.base import Judge
 from ..metrics import pass_at_k
 from ..store import Store
 from . import data, eval_suites
@@ -142,6 +143,9 @@ def steering_sweep(
     base_adapter: ModelAdapter,
     rl_adapter: ModelAdapter,
     vectors_dir: Path = DEFAULT_VECTOR_DIR,
+    judge: Judge | None = None,
+    base_label: str = "base",
+    rl_label: str = "rl",
 ) -> dict[str, Any]:
     """`INTERP_SPEC.md` §2's sweep: for each `(layer, alpha)` in `cfg`'s (default `LAYERS`x`ALPHAS`)
     grid, `base_adapter.with_steering((SteeringTerm(layer, vector_path, alpha, "proof"),))`, run
@@ -150,7 +154,17 @@ def steering_sweep(
     `rl_adapter` with `-delta` (`alpha=-1.0` on the same vector) on whichever layer scored highest
     mean pass@1 on `dev`, as a control ("does removing delta hurt RL?"), labelled
     `steer:<layer>:-1`. Vectors missing on disk (not yet fit by `fit_diff_vectors`) are skipped
-    with a note, not an error."""
+    with a note, not an error.
+
+    **Generalisation (`DANSTATE_PLAN.md` §7 WP-D6).** `judge` (default `None`, i.e. a fresh
+    `NDJudge()` -- `run_eval_suites`' own default, unchanged) lets a caller judge Dan's state-env
+    models with `judge.lean.LeanJudge()` instead. `base_label`/`rl_label` (default `"base"`/`"rl"`,
+    exactly the old hard-coded literals) name the two input models for the `Store`/dashboard and
+    the steered-model label prefix; passing anything else only changes the *steered* labels'
+    format (`f"steer:{base_label}:{layer}:{alpha:g}"` instead of the old bare `f"steer:{layer}:
+    {alpha:g}"`) so two different base models' sweeps in one `Store` cannot collide -- the old
+    default labels (`base_label == "base"`) are therefore byte-identical to every pre-existing
+    caller/config/test, which is the whole point of keeping the two literals as the defaults."""
 
     def _int_cfg(key: str, default: int) -> int:
         v = cfg.get(key)
@@ -159,6 +173,10 @@ def steering_sweep(
     def _float_cfg(key: str, default: float) -> float:
         v = cfg.get(key)
         return default if v is None else float(cast(float, v))
+
+    def _steer_label(layer: int | str, alpha: float, label: str) -> str:
+        tag = f"{layer}:{alpha:g}"
+        return f"steer:{tag}" if label == "base" else f"steer:{label}:{tag}"
 
     position_type = str(cfg.get("position_type", "proof"))
     layers = tuple(cast("list[int]", cfg.get("layers", list(LAYERS))))
@@ -184,10 +202,11 @@ def steering_sweep(
             temperature=temperature,
             seed=seed,
             budget_s=budget_s,
+            judge=judge,
         )
 
     notes: list[str] = list(suites.notes)
-    runs: dict[str, Any] = {"base": _run(base_adapter, "base")}
+    runs: dict[str, Any] = {base_label: _run(base_adapter, base_label)}
     best_layer: int | None = None
     best_metric = float("-inf")
     for layer in layers:
@@ -196,7 +215,7 @@ def steering_sweep(
             notes.append(f"no fitted vector at layer {layer} ({vec_path}); skipping this layer")
             continue
         for alpha in alphas:
-            label = f"steer:{layer}:{alpha:g}"
+            label = _steer_label(layer, alpha, base_label)
             steered = base_adapter.with_steering(
                 (SteeringTerm(layer, str(vec_path), alpha, "proof"),)
             )
@@ -208,7 +227,7 @@ def steering_sweep(
 
     if best_layer is not None:
         vec_path = Path(vectors_dir) / f"diff_l{best_layer}_{position_type}.npy"
-        rl_control_label = f"steer:{best_layer}:-1"
+        rl_control_label = _steer_label(best_layer, -1.0, rl_label if rl_label != "rl" else "base")
         rl_steered = rl_adapter.with_steering(
             (SteeringTerm(best_layer, str(vec_path), -1.0, "proof"),)
         )

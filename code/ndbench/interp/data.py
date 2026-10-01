@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from ..core.io import read_jsonl
-from ..core.types import Sequent
+from ..core.types import Excluder, Sequent
 from ..logic.exclusion import ROOT, TRAIN_FILES, ExclusionIndex
 from ..store import Store
 
@@ -75,14 +75,18 @@ def load_neutral_proofs(
     n: int,
     l_min: int = 6,
     l_max: int = 10,
-    excluder: ExclusionIndex | None = None,
+    excluder: Excluder | None = None,
     seed: int = 0,
     reserve_path: Path = RESERVE_PATH,
     scan_limit: int | None = None,
 ) -> list[NeutralProof]:
     """Up to `n` `source == "gen"` reserve rows with a `minlen_proof` in `[l_min, l_max]`, not
     `seen_train`, reservoir-sampled (deterministic given `seed`) so this streams the 426k-row file
-    once without loading it whole. `scan_limit` caps how many rows are read (fast tests)."""
+    once without loading it whole. `scan_limit` caps how many rows are read (fast tests).
+
+    `excluder` is any `Excluder` (structural: an `ExclusionIndex` from `build_exclusion_index`,
+    or `logic.exclusion.DanExcluder` for Dan's own training tiers -- `interp/danstate_support.py`
+    WP-D6), not only the absgpt-specific `ExclusionIndex` this function originally took."""
     rng = random.Random(seed)
     reservoir: list[NeutralProof] = []
     n_seen = 0
@@ -117,7 +121,7 @@ def load_neutral_proofs(
 def load_sealed_l12_14(
     *,
     n: int | None = None,
-    excluder: ExclusionIndex | None = None,
+    excluder: Excluder | None = None,
     seed: int = 0,
     path: Path = SEALED_L12_14_PATH,
 ) -> list[NeutralProof]:

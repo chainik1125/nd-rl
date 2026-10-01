@@ -1,0 +1,40 @@
+# python -m code.ndbench.interp interpolate \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_interpolate_dan12.yaml
+#
+# DANSTATE_PLAN.md §3 row I3 / §4 row D13: theta_fz + alpha*(theta_t1 - theta_fz) for every alpha
+# below, materialised as Dan-format (`{"cfg", "state", "tok_mode", "extra"}`) checkpoints under
+# `ckpt_dir` (default, when unset: `<out>/store/cache/interp_ckpts/dan12/` -- the plan's "scratch/
+# cache dir ... default under the store's cache/"; override with `ckpt_dir:` below).
+# `interp/interpolate.py`'s `interpolate()` needed **no Dan-specific code at all** -- it already
+# preserves every non-"state" checkpoint key byte for byte, so the Dan-format sidecar keys survive
+# unchanged (`interp/danstate_support.py`'s module docstring; confirmed by
+# `test_dan_interp.py::test_interpolate_at_endpoints_reproduces_fz_and_t1_logits`). Labels follow
+# the plan's `<family>-interp:<alpha>` (`dan12-interp:<alpha>`); alpha in {0, 1} reuse the
+# `dan12-fz-s0`/`dan12-t1-s0` labels directly (no checkpoint file written for those two). Evaluated
+# like the existing `interpolate` -- dev+sealed `gen` items at `k_pass1` (pass@1) and the 150-
+# theorem `k128` subset at `k_pass_k` (pass@k curve), same shared suites as
+# `interp_steer_sweep_dan12.yaml`. Judged with Lean (plan: "judged with Lean").
+#
+# Scale estimate: 6 alphas (0, .25, .5, .75, 1, 1.25 -- the uncommented set below) x (720 dev +
+# 1240 sealed at `k_pass1=8`, + 150 k128 items at `k_pass_k=128`) = 6 x 34,880 = 209,280 attempts
+# (D13's own ~115k estimate assumes a narrower alpha set and/or k128-subset-only sampling --
+# narrow `alphas`/`k_pass1`/`k_pass_k` below to match whatever subset the main agent actually
+# schedules; add 1.5 only "if cheap", per the plan). Checkpoint interpolation itself is a CPU-only
+# tensor op on a 9,560,832-param model (~38 MB fp32 state dict x 4 materialised alphas --
+# low-single-digit seconds total, not minutes; same "CPU runs" note `interp_interpolate.yaml`'s
+# own cost estimate gives for the absgpt pair).
+seed: 0
+base_model: dan12-fz-s0
+rl_model: dan12-t1-s0
+judge: lean
+device: cuda
+alphas: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25] # +1.5 "if cheap" (plan): [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5]
+k_pass1: 8
+k_pass_k: 128
+temperature: 0.8
+exclude_train: false
+# ckpt_dir: /scratch/cowifornia/nd-rl/bench/out/store/cache/interp_ckpts/dan12   # the default
+# model_kwargs: {batch: 512, max_action: 512, max_steps: 96}
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# budget_s: null

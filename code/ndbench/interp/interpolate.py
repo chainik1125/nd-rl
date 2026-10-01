@@ -24,6 +24,7 @@ import torch
 from ..adapters.base import ModelAdapter
 from ..core.io import sha256_file
 from ..core.types import JSON
+from ..judge.base import Judge
 from ..store import Store
 from . import data, eval_suites
 from .runner_support import run_eval_suites
@@ -40,12 +41,18 @@ def alpha_tag(alpha: float) -> str:
     return f"{alpha:g}"
 
 
-def interp_model_label(alpha: float) -> str:
+def interp_model_label(
+    alpha: float, *, base_label: str = "base", rl_label: str = "rl", prefix: str = "interp"
+) -> str:
+    """`DANSTATE_PLAN.md` §7 WP-D6: `base_label`/`rl_label`/`prefix` default to the old hard-coded
+    literals (`"base"`/`"rl"`/`"interp"`), so every pre-existing call site's labels are unchanged.
+    Dan's pair passes `base_label="dan12-fz-s0"`, `rl_label="dan12-t1-s0"`,
+    `prefix="dan12-interp"` (plan §2's "labels `<family>-interp:<alpha>`")."""
     if alpha == 0.0:
-        return "base"
+        return base_label
     if alpha == 1.0:
-        return "rl"
-    return f"interp:{alpha_tag(alpha)}"
+        return rl_label
+    return f"{prefix}:{alpha_tag(alpha)}"
 
 
 def _strip_prefix(state: Mapping[str, Any]) -> dict[str, Any]:
@@ -127,12 +134,21 @@ def run_interpolation(
     adapter_for: Callable[[float, Path | None], ModelAdapter],
     base_adapter_label: str = "base",
     rl_adapter_label: str = "rl",
+    label_prefix: str = "interp",
+    judge: Judge | None = None,
 ) -> dict[str, Any]:
     """Evaluate every `alpha` in `cfg.get("alphas", ALPHAS)`: `adapter_for(alpha, ckpt_path)` builds
     the model for that alpha (`ckpt_path is None` for `alpha in {0, 1}`, since those reuse the
     base/rl checkpoints the caller already has an adapter for); `dev`/`sealed` `gen` suites at
     `k=8` (pass@1) and the fixed 150-theorem `k128` subset at `k=128` (pass@k curve), per
-    `INTERP_SPEC.md` §3. Suites are (re)built into `store` first (`eval_suites.build_all`)."""
+    `INTERP_SPEC.md` §3. Suites are (re)built into `store` first (`eval_suites.build_all`).
+
+    **Generalisation (`DANSTATE_PLAN.md` §7 WP-D6).** `base_adapter_label`/`rl_adapter_label`/
+    `label_prefix` (defaults `"base"`/`"rl"`/`"interp"`, the old hard-coded literals -- now
+    actually threaded into `interp_model_label` below, where they were previously accepted but
+    unused) and `judge` (default `None`, i.e. `run_eval_suites`' own fresh `NDJudge()`, unchanged)
+    let a caller run this on Dan's pair with family-prefixed labels and `judge.lean.LeanJudge()`.
+    """
 
     def _int_cfg(key: str, default: int) -> int:
         v = cfg.get(key)
@@ -162,7 +178,9 @@ def run_interpolation(
     budget_s = cfg.get("budget_s")
     per_alpha: dict[str, Any] = {}
     for alpha in alphas:
-        label = interp_model_label(alpha)
+        label = interp_model_label(
+            alpha, base_label=base_adapter_label, rl_label=rl_adapter_label, prefix=label_prefix
+        )
         ckpt_path = None if alpha in (0.0, 1.0) else ckpts[alpha]
         adapter = adapter_for(alpha, ckpt_path)
         per_alpha[alpha_tag(alpha)] = run_eval_suites(
@@ -175,5 +193,6 @@ def run_interpolation(
             temperature=_float_cfg("temperature", 0.8),
             seed=seed,
             budget_s=cast("float | None", budget_s),
+            judge=judge,
         )
     return {"alphas": [alpha_tag(a) for a in alphas], "runs": per_alpha, "notes": suites.notes}
