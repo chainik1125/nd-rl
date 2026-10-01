@@ -294,6 +294,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
 
         out_classes.setdefault(cls, {})[model] = {
             "n_rows": len(grp),
+            "n_examples": max((int(cast(int, r.get("n", 0))) for r in grp), default=0),
             "n_lrs": len(edl_final_by_lr),
             "edl_by_lr": edl_final_by_lr,
             "edl_curve_by_lr": edl_curve_by_lr,

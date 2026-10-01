@@ -36,6 +36,7 @@ smallest online code length" rule) -- not a reimplementation of its statistics.
 
 from __future__ import annotations
 
+import math
 import statistics
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -939,75 +940,105 @@ def _edl_class_key(cls: str) -> tuple[int, str]:
 _EDL_NULL_CONTROL = "heldout_cap6"
 
 
+def _spearman(xs: Sequence[float], ys: Sequence[float]) -> float:
+    def ranks(v: Sequence[float]) -> list[float]:
+        order = sorted(range(len(v)), key=lambda i: v[i])
+        out = [0.0] * len(v)
+        for r, i in enumerate(order):
+            out[i] = float(r)
+        return out
+
+    if len(xs) < 3:
+        return float("nan")
+    rx, ry = ranks(xs), ranks(ys)
+    mx, my = statistics.mean(rx), statistics.mean(ry)
+    num = sum((a - mx) * (b - my) for a, b in zip(rx, ry, strict=True))
+    den = math.sqrt(sum((a - mx) ** 2 for a in rx) * sum((b - my) ** 2 for b in ry))
+    return num / den if den else float("nan")
+
+
 def _chart_8_edl(store: Store) -> str:
     title = "EDL: nats per example to pick up a new pattern"
-    run_ids = (
-        sorted(p.stem for p in store.edl_dir.glob("edl2-*.jsonl")) if store.edl_dir.exists() else []
-    )
-    if not run_ids:
-        return P.missing_fig(title, "no edl2-* run files found under store/edl/")
-    data = edl_view.view(store, cast("Mapping[str, JSON]", {"run_ids": run_ids}))
+    # Default discovery: the newest generation per (model, n, m) (edl3 = edl2's three learning
+    # rates plus lr 0 / 1e-5 / 3e-5, 2026-10-01).
+    data = edl_view.view(store, {})
     if data.get("empty"):
         return P.missing_fig(title, str(data.get("reason", "no data")))
     classes = cast("dict[str, dict[str, dict[str, Any]]]", data["classes"])
+    run_ids = cast("list[str]", cast("dict[str, Any]", data["meta"])["run_ids"])
 
-    friendly_by_run: dict[str, str] = {}
-    n_by_friendly: dict[str, int] = {}
-    for run_id in run_ids:
-        rows = edl_view._read_edl_rows(store, run_id)  # noqa: SLF001
-        if not rows:
-            continue
-        identity = rows[0].get("model_identity")
-        raw = edl_view._model_label(identity, run_id)  # noqa: SLF001
-        friendly = _edl_friendly_label(identity, run_id)
-        friendly_by_run[raw] = friendly
-        n_by_friendly[friendly] = int(cast(int, rows[0].get("n", 64)))
-
-    rows_by_class: dict[str, dict[str, float]] = {}
+    per: dict[str, dict[str, dict[str, float]]] = {}
+    n_lrs: set[int] = set()
     for cls, per_model in classes.items():
-        for raw_model, d in per_model.items():
-            model = friendly_by_run.get(raw_model, raw_model)
+        for model, d in per_model.items():
             if model not in ("base", "rl"):
                 continue
-            n = n_by_friendly.get(model, 64)
-            best_lr = cast(str, d["best_lr"])
-            edl_val = cast(float, d["edl_by_lr"][best_lr])
-            rows_by_class.setdefault(cls, {})[model] = edl_val / n
-    if not rows_by_class:
+            n = int(cast(int, d.get("n_examples") or 0))
+            if n <= 0:
+                continue
+            n_lrs.add(int(cast(int, d.get("n_lrs", 0))))
+            orders = cast("dict[str, float]", d.get("edl_by_order_at_best_lr") or {})
+            per.setdefault(cls, {})[model] = {
+                "edl": cast(float, d["edl_star"]) / n,
+                "lo": min(orders.values()) / n if orders else float("nan"),
+                "hi": max(orders.values()) / n if orders else float("nan"),
+                "l0": cast(float, d.get("l_test_theta0", float("nan"))),
+                "ln": cast(float, d.get("l_test_thetan", float("nan"))),
+                "best_lr": float(cast(str, d["best_lr"])),
+            }
+    if not per:
         return P.missing_fig(title, "no usable EDL rows")
 
     dot_rows: list[P.DotRow] = []
-    for cls in sorted(rows_by_class, key=_edl_class_key):
-        vals = rows_by_class[cls]
+    for cls in sorted(per, key=_edl_class_key):
+        vals = per[cls]
         label = f"{cls} (null control)" if cls == _EDL_NULL_CONTROL else cls
         pts: list[tuple[str, float | None, str, bool]] = [
-            (m, vals[m], _mcolor(m), False) for m in ("base", "rl") if m in vals
+            (m, vals[m]["edl"], _mcolor(m), False) for m in ("base", "rl") if m in vals
         ]
         if pts:
             dot_rows.append(P.DotRow(label, pts))
 
-    common = {
-        cls: vals
-        for cls, vals in rows_by_class.items()
-        if cls != _EDL_NULL_CONTROL and "base" in vals and "rl" in vals
-    }
-    n_rl_lower = sum(1 for vals in common.values() if vals["rl"] < vals["base"])
-    takeaway = (
-        f"rl needs fewer nats/example than base on {n_rl_lower}/{len(common)} classes "
-        f"(excluding the {_EDL_NULL_CONTROL} null control)."
-        if common
-        else "EDL per example, by class and model."
+    common = {c: v for c, v in per.items() if c != _EDL_NULL_CONTROL and "base" in v and "rl" in v}
+    n_c = len(common)
+    n_lower = sum(1 for v in common.values() if v["rl"]["edl"] < v["base"]["edl"])
+    n_robust = sum(1 for v in common.values() if v["rl"]["hi"] < v["base"]["lo"])
+    n_l0_lower = sum(1 for v in common.values() if v["rl"]["l0"] < v["base"]["l0"])
+    pairs = [(v[m]["edl"], v[m]["l0"]) for v in common.values() for m in ("base", "rl")]
+    rho = _spearman([e for e, _l in pairs], [l0 for _e, l0 in pairs])
+
+    def _ratio(d: Mapping[str, float]) -> float:
+        drop = d["l0"] - d["ln"]
+        return d["edl"] / drop if drop > 1e-9 else float("inf")
+
+    n_ratio = sum(1 for v in common.values() if _ratio(v["rl"]) >= _ratio(v["base"]))
+    if n_c:
+        takeaway = (
+            f"rl's EDL is lower on {n_lower}/{n_c} classes ({n_robust} with no overlap between "
+            f"the two data orders), but rl also starts with lower test loss on {n_l0_lower}/{n_c} "
+            f"and EDL tracks the starting loss (Spearman {rho:.2f}); per nat of test loss that "
+            f"training removes, rl costs as much as or more than base on {n_ratio}/{n_c} classes."
+        )
+    else:
+        takeaway = "EDL per example, by class and model."
+    null = per.get(_EDL_NULL_CONTROL, {})
+    null_bits = ", ".join(
+        f"{m} {null[m]['edl']:.3f} (lr {P.fmt(null[m]['best_lr'], 'g')})"
+        for m in ("base", "rl")
+        if m in null
     )
     caption = (
-        f"{len(common)} classes, base vs rl, plus the null control; EDL at the learning rate "
-        "with the smallest online code length (ln(3) hyperparameter-cost term excluded here); "
-        "edl2-* runs only."
+        f"{n_c} classes, base vs rl; EDL* per example at the learning rate with the smallest "
+        f"online code length, including the ln({max(n_lrs) if n_lrs else 0}) cost of choosing "
+        "among the learning rates (lr 0 = no update is one of them); 2 data orders. Null "
+        f"control ({_EDL_NULL_CONTROL}, data the models already know): {null_bits or 'n/a'}. "
+        f"Runs: {', '.join(run_ids)}."
     )
     return P.dot_plot(
         title,
         takeaway,
         dot_rows,
-        x_label="EDL per example (nats)",
+        x_label="EDL* per example (nats)",
         log_x=True,
         wide=True,
         note=caption,
