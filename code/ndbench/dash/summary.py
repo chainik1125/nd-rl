@@ -346,7 +346,7 @@ def _chart_2_families(store: Store) -> str:
     if holders:
         holders.sort(key=lambda t: -t[2])
         takeaway = "on theorems absent from training no family holds up for long: " + ", ".join(
-            f"{model} on {fam} reaches about {P.fmt(lines, 'g')} written lines"
+            f"{model} on {fam} reaches about {lines:.0f} written lines"
             for model, fam, lines in holders
         )
         if base_none:
