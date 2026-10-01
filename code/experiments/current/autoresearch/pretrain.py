@@ -42,7 +42,7 @@ N_LAYER, D, N_HEAD = 6, 384, 8
 # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
 # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
 D_FF = 1280
-BS, LR, MIN_LR_FRAC, WARMUP, WD = 128, 1e-3, 0.3, 200, 0.1
+BS, LR, MIN_LR_FRAC, WD = 128, 1e-3, 0.3, 0.1
 MUON_LR, MUON_MOMENTUM = 0.01, 0.95
 # Polar Express (Amsel et al. 2025) per-iteration quintic coefficients, as in modded-nanogpt
 # (num_iters=5, safety factor 2e-2): singular values land in ~[0.86, 1.14] instead of the
@@ -118,9 +118,6 @@ def muon_step(params, buffers, lr):
             update = a * update + polynomial @ update
         if transpose:
             update = update.mT
-        # RMS-matched scaling (Moonshot's Muon convention, constant folded into MUON_LR): every
-        # matrix's update has the same element RMS, so the (D, 4D) fc2 no longer gets half the step.
-        update *= (max(update.size(-2), update.size(-1)) / D) ** 0.5
         p.mul_(1 - lr * MUON_WD)
         # lr may be a 0-d tensor (CUDA-graphed step); scale in p's dtype like add_(alpha=-lr)
         p.sub_(lr * update.reshape_as(p).to(p.dtype))
@@ -348,11 +345,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
         if frac >= 1.0:
             break
         step += 1
-        lr = (
-            LR * step / WARMUP
-            if step < WARMUP
-            else LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
-        )
+        # No warmup (as in modded-nanogpt): Muon's step is normalized and Adam's is ~lr per
+        # element from step 1, and Peri-LN normalizes every branch write.
+        lr = LR * MIN_LR_FRAC + 0.5 * LR * (1 - MIN_LR_FRAC) * (1 + math.cos(math.pi * frac))
         for g in opt.param_groups:
             g["lr"] = lr
         if not cuts:  # new epoch

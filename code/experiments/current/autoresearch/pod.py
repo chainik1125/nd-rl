@@ -402,8 +402,8 @@ def main():
             f"artifacts in {os.path.abspath(os.path.join(LOCAL_ART, name))}; remote rc {rc}",
             flush=True,
         )
-        if pulled:  # a failed pull may have left truncated checkpoints
-            push_checkpoints(name)
+        # The HF push runs after `down` (run_idea.py): uploading from this Mac is slow, and
+        # pushing here kept all three pods billing until it finished.
     else:
         raise SystemExit(__doc__)
 

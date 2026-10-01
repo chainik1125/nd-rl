@@ -1,0 +1,246 @@
+{
+ "id": "199-fable",
+ "slug": "lean-scope-heads",
+ "written_at": "2026-09-28T16:14:39+0100",
+ "provider": "anthropic",
+ "model": "claude-fable-5-1",
+ "base_commit": "f6d2355",
+ "harness_sha": "2aa52f23e7ec",
+ "pretrain_sha": "bc6198c4e8f9",
+ "patch_lines": 58,
+ "title": "Scope-masked content heads: the 4 NoPE heads of every block cannot attend into a `( fun ... )` box once its `)` is written, so they see what Lean's local context sees, on the 191-claude incumbent (9,557,760 params, +0)",
+ "description": "Idea ID: none of P01-P50 (a new mechanism for the table, nearest family P33/P34 attention bias; architecture). In every block the four NoPE heads (the content-lookup heads of 115-fable) get -inf attention bias on every key that lies inside a `( fun ... )` box whose closing `)` is at or before the query, computed causally from the token ids by bracket matching inside the model's forward (no parameters); the four ALiBi heads still read the whole text. It targets the one failure that 197-fable's gate logs tied to every RL collapse in this table: about half of the 7+ line samples cite a name that is not in scope ('unbound'), and names bound inside a closed box are exactly the bound-but-uncitable ones, so a lookup that cannot see them cannot return them; if RL then starts with more parseable long samples, expert iteration has more 7+ line proofs to learn from. Tokenizer, data, shift augmentation, RL and harness are untouched. The only open registration, 198-claude (lean-muon-no-rms-retest), is an optimizer simplification and does not overlap.",
+ "tags": [
+  "architecture"
+ ],
+ "hypothesis": "In lean_seq a citation is legal only if its name is in Lean's local context: bound by an earlier completed `have`, or by the `fun` of a box that is still open. Names bound inside a box die when the box closes (lean_tok.inverse copies the scope dict per box), but their statements stay in the text, so a content lookup over the whole text ('which earlier statement has the formula I need?') also matches dead statements and the model has to learn to veto them from bracket structure. On <= 6-line proofs that veto is cheap to fit: 48% of the 154,990 training records have a name-binding box, 16% have two or more, 14% nest them (37% of 6-line records), and nesting depth is at most 3; at 7+ lines there are more and deeper closed boxes between a query and the statements it may cite, which is where the pretrained model cites unbound names in roughly 25-50% of round-1 samples (197-fable's reading of the gate logs; healthy seeds fall to ~5-8% by round 4, collapsed seeds stay at ~46%). Masking closed boxes out of the NoPE heads makes 'visible to a content head' coincide with 'not inside a dead scope' at every depth and length, by construction instead of by extrapolation; the ALiBi heads keep the full text for syntax and for mirroring the first box of an Or.elim. Reasons it may do nothing or hurt: (1) I could not inspect failing samples (artifacts keep only parse-reason counts), so 'unbound' may mostly be names that were never bound or the pending `have` of the box being written (visible here too), which this mask does not touch; (2) the model may route citations through the ALiBi heads (slope 1/256 is nearly position-free), leaving the masked heads unused; (3) 188, 195 and 197, which changed the attention, readout or input path, each lost seeds to RL collapse while 12 incumbent-line seed-runs scored 663-700, so any forward change may carry that risk; (4) per-row (B, H, T, T) bias instead of one broadcast (1, H, T, T) and three (B, T, T) integer passes per step cost steps, and a per-token bracket update slows cached sampling. Decision rule fixed now: this adds code (58 patch lines), so no simplicity tolerance applies: keep only if the 3-seed mean is strictly above 191's 683.67, otherwise discard. If another agent keeps a file first, record.py's rule applies.",
+ "p_keep": 0.3,
+ "expected_delta": "-25 to +30 vs 191's 683.7 (central +3); keep needs a 3-seed mean > 683.67. Pretraining 4,700-5,250 steps in 300 s per seed (central 5,000; bench 19.0 steps/s from 45 to 60 s against 20.3-20.8 for the 191 line, so ~7% fewer than 191's 5,362/5,298/5,220), ~4.2-4.7 epochs; final val loss 0.078-0.092 (191: 0.092/0.082/0.086); held-out greedy after pretraining 0.955-0.985 (191: 0.9705/0.972/0.9585); handoff n_params 9,557,760 exactly. Mechanism check, from lean_gate.jsonl parse_reasons: round-1 'unbound' below 10,000 of the 48,000 samples on at least 2 of 3 seeds (incumbent-family round-1 values I have: 10,856-24,970, e.g. 193-fable seed 0 22,068, 195-fable seed 2 14,158); round-1 RL targets solved 450-950 (191: 682/454/225); round-4 RL-solved 1,140-1,230 (191: 1,189/1,160/1,142); eval bins >= 10 solved 100-135 (191 seed 0: 111); RL sampling 140-290 samples/s on a healthy pod, totals 1,550-2,150 s of 2,400. Falsifiers: round-1 'unbound' at or above 14,000 on 2+ seeds says closed-box citations are not the failure (or the masked heads are not where citations are looked up), and any score change is then not this mechanism; a collapsed seed (below 600) says the mask does not protect expert iteration; a 3-seed mean below 660 says it hurts; pretraining below 4,500 steps on 2+ seeds says the per-row bias costs more than predicted; RL round-1 sampling below 120 samples/s on all three seeds says the per-token bracket update slows cached decoding far more than the ~15-20% of generation time I estimate (the bench pod sampled at 98/s, see the bench field), and a seed timeout on a pod whose Lean gate is healthy would then be this file's fault.",
+ "baseline_id": "191-claude",
+ "baseline_metric": 684,
+ "config": {
+  "arch": {
+   "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, the 191-claude model plus a scope mask on the 4 NoPE heads of every block (and of the pretraining-only MTP block, which reuses the bias)",
+   "n_layers": 6,
+   "d_model": 384,
+   "n_heads": 8,
+   "d_ff": 1280,
+   "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 (Press et al. 2021 standard set for 4 heads) and 0 for heads 5..8 (bias identically 0 except -inf for masked/future keys, i.e. NoPE heads); same slope table in every block; -inf for masked/future keys; new: heads 5..8 (NoPE) additionally get -inf on keys inside a closed `( fun ... )` box (scope mask), heads 1..4 (ALiBi) do not",
+   "ctx": 1024,
+   "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+   "act": "gelu",
+   "dropout": 0.0,
+   "tied_emb": false,
+   "n_params": 9557760,
+   "change": "vs 191-claude: ALiBiGPT gains out_of_scope(idx) -> (B, T, T) bool and out_of_scope_step(idx, cache, n0) for cached decoding, a non-persistent bool buffer `scoped` (1, 8, 1, 1) = SCOPED, and features() applies bias.masked_fill(hidden[:, None] & scoped, -inf), then casts the bias to bf16 once when autocast is on (the blocks' mask.to(q.dtype) becomes a no-op; same values as the per-block cast). No new parameters, no new random numbers. Blocks, widths, heads, ALiBi slopes, MTP module and weight, Muon/AdamW, no-warmup wall-clock cosine, init rule, token batches (TOK_BUDGET 18,432), per-block compile, CUDA-graphed Muon step and handoff unchanged. 57 insertions, 1 deletion.",
+   "n_params_detail": "model: 9,557,760, identical to 191 (CPU check with fork 51604b3; per Peri-LN block 1,579,136; emb + head 82,176; ln_f 768). MTP module (pretraining only, dropped at handoff as since 136-fable): 1,875,584, unchanged",
+   "checkpoint_reconstruction": "ALiBiGPT(vocab, 6, 384, 8) from this pretrain.py with PeriLNBlock blocks (d_ff 1280), then load state; the state_dict keys and shapes equal 191's (the mask has no parameters; `scoped` is a non-persistent buffer), but the weights only make sense with this file's forward",
+   "kv_cache": "caches[0] additionally holds the per-row bracket state: depth (B,), open (B, max; the bracket depth after each `(`, a sentinel elsewhere), box (B, max; this `(` is followed by `fun`), hidden (B, max), prev_open (B,); created on the first cached call and updated token by token (the prefill loops over its columns). sample.generate never drops rows from the batch, so the state stays aligned. CPU check on this file with the fork at 51604b3 (random init, 32 left-padded prompts prefilled with pos/mask/caches, then every proof token one at a time, 24 of the rows with a box): cached logits equal the full uncached forward at every proof position, max abs diff 1.9e-6 (float32)",
+   "scope_mask": {
+    "rule": "a box is a `(` immediately followed by `fun` (the IMPI/NEGI/ORE boxes and the constant DN lambda `( fun hh => nA hh )`); its inside is every token strictly between that `(` and its matching `)`; key s is hidden from query t in the masked heads iff s is inside some box whose `)` is at position <= t; the brackets themselves and everything outside closed boxes stay visible, and a query always sees itself",
+    "heads": "SCOPED = (False,)*4 + (True,)*4: ALiBi heads 1..4 unmasked, NoPE heads 5..8 masked, same in all 6 blocks and in the MTP block",
+    "computation": "uncached: depth = cumsum(is `(` - is `)`), close[p] = first q > p with depth[q] < depth[p], hide_at[s] = min close[p] over boxes p containing s, hidden[t, s] = t >= hide_at[s]; three (B, T, T) integer/bool passes per forward, B*T <= 18,432. Cached: a `)` matches the last `(` opened at the current depth; if that `(` is a box, the positions between them are marked hidden",
+    "causality": "row t of the mask depends on tokens <= t only (a box is recognised at its `fun`, closed at its `)`)",
+    "data_facts": "fork 51604b3 train.jsonl, 154,990 records, name-binding boxes per record: 0 in 51.7%, 1 in 32.4%, 2 in 12.1%, 3 in 3.8%; nested (depth >= 2) in 14.3%; by proof length, records with a box: 17% (2 lines), 8% (3), 56% (4), 79% (5), 82% (6), nested 21% / 11% / 39% at 4 / 5 / 6 lines; the RL and eval pools carry no proofs",
+    "local_checks": "CPU, fork 51604b3, real records: (a) out_of_scope equals a plain-Python stack parser on 400 right-padded rows (60 with a closed box), diagonal never hidden; (b) cached = uncached, see kv_cache; (c) turning the mask off changes the logits of a boxed row (max abs diff 0.05 at random init), so it is live; (d) pretrain() CPU smoke run on 3,000 records trains (val 3.51 -> 3.19 in 4 steps) and the fork's generate_ids runs end to end; make -C code check clean",
+    "scope": "architecture only: tokenizer object, data records, shift augmentation, RL and harness untouched; the mask is a deterministic parameter-free function of the token ids inside the model's forward, the same kind of object as the causal mask; it constrains what four heads can read, not what the model can write (no logit is masked, no verifier or grammar check is called, every name stays sampleable)"
+   }
+  },
+  "tokenizer": {
+   "codec": "lean_seq",
+   "maxn": 64,
+   "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+  },
+  "optimizer": {
+   "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight; AdamW on embeddings, biases and LayerNorms; the MTP module's five 2D matrices (block qkv split into Q/K/V, block proj, fc1, fc2, and the (384,768) input proj) join Muon and its LayerNorms/biases join AdamW (unchanged from 151)",
+   "lr": 0.001,
+   "schedule": "cosine over wall-clock from step 1, no warmup: lr = 1e-3 * (0.3 + 0.35 * (1 + cos(pi * frac))), frac = elapsed / budget (setup and per-block compile included, so the first step runs at ~0.99 x peak after ~30-35 s), ending at 0.3 x peak; Muon lr = 0.01 * lr / 1e-3 and its decoupled decay follow the same factor. Removed: 186's 200-step linear warmup (lr = 1e-3 * step / 200 for step < 200)",
+   "warmup_steps": 0,
+   "min_lr_frac": 0.3,
+   "wd": 0.1,
+   "betas": [
+    0.9,
+    0.95
+   ],
+   "grad_clip": 1.0,
+   "muon": {
+    "lr": 0.01,
+    "momentum": 0.95,
+    "nesterov": true,
+    "newton_schulz_steps": 5,
+    "coefficients": [
+     [
+      8.156554524902461,
+      -22.48329292557795,
+      15.878769915207462
+     ],
+     [
+      4.042929935166739,
+      -2.808917465908714,
+      0.5000178451051316
+     ],
+     [
+      3.8916678022926607,
+      -2.772484153217685,
+      0.5060648178503393
+     ],
+     [
+      3.285753657755655,
+      -2.3681294933425376,
+      0.46449024233003106
+     ],
+     [
+      2.3465413258596377,
+      -1.7097828382687081,
+      0.42323551169305323
+     ]
+    ],
+    "normalization_epsilon": 1e-06,
+    "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+    "shape_scale": "sqrt(max(rows, columns) / D) with D = 384 per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 (1280,384) and fc2 (384,1280) sqrt(1280/384) = 1.83, head (107,384) 1, MTP proj (384,768) sqrt(2); MUON_LR 0.01 unchanged",
+    "wd": 0.1,
+    "schedule": "same cosine fraction as AdamW from step 1, no warmup (floor 0.3, unchanged); muon_lr = 0.01 * adam_lr / 0.001",
+    "parameters": "6 x (qkv.weight (1152,384) split into Q/K/V, proj, fc1, fc2) plus head.weight, plus the MTP module's 5 matrices: 30 Muon matrices as in 148/151 (CPU check: muon_step runs over all 30)",
+    "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+    "license": "MIT; full copyright and permission notice retained in pretrain.py",
+    "qkv_split": "unchanged: each QKV update reshaped to (3,384,384), orthogonalized per role; fc1 (1280,384) is not (3D, D) so it is orthogonalized whole",
+    "active_window": "entire pretraining budget",
+    "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+    "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+    "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+   },
+   "adamw_parameters": "emb.weight, all projection biases and LayerNorm parameters (ln1, ln2, + ln_attn_out, ln_mlp_out per block, and ln_f); head.weight and hidden matrices never enter pretraining AdamW. The new output-LayerNorm gains and biases get the same AdamW lr 1e-3 and wd 0.1 as every other LayerNorm",
+   "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale. Because decay is lr-scaled, the higher floor raises late-training per-step decay (endpoint 3x 115's); MUON_WD itself is unchanged at 0.1",
+   "clipping": "joint global gradient norm 1.0 over model.parameters() + the MTP module's parameters, before both optimizers (unchanged)",
+   "handoff": "standard GPT weights only; the MTP module and both pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW on model.parameters()",
+   "parameters": "24 trunk hidden matrices + head.weight, plus the MTP module's qkv (split), proj, fc1, fc2 and input proj (384,768): 30 Muon matrices during pretraining; the handoff model's parameters are 9,557,760"
+  },
+  "batch": {
+   "size": 136,
+   "padding": "to max len in batch (the batch's last, longest record); mean padded tokens per step ~18.3k of which ~18.3k real (>99% fill), vs the incumbent's ~51-54k padded slots for ~17.3k real tokens",
+   "buckets": true,
+   "tok_budget": 18432,
+   "change": "fairseq-style max-tokens batching replaces fixed 128 random records per step: per epoch, randperm the training records (GPU generator, seed), stable-argsort by total length so equal lengths stay shuffled, cut greedily into consecutive runs with count * max_len <= 18,432, then shuffle the run order with random.Random(seed). Loss is the same per-token mean over the batch's proof tokens; the shift augmentation, Muon/AdamW updates, clip and wall-clock cosine are unchanged (the 200-step warmup those runs had is removed in 191, see optimizer.schedule). The val slice still uses fixed chunks of 128.",
+   "size_note": "variable: a run of length-sorted records with count * padded_length <= TOK_BUDGET = 18,432 tokens (128 x 144); on a synthetic length distribution matching mean ~135 / max 537 that is 33..921 records per batch, mean ~136, so ~1,130 batches per epoch (incumbent: 128 fixed, ~1,204 per epoch)"
+  },
+  "data": {
+   "filter": null,
+   "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+   "order": "shuffle at the record level each epoch, then length-homogeneous batches in shuffled order (data-order change: within a step all records have similar total length; across steps lengths are interleaved at random)",
+   "val_slice": 1024
+  },
+  "precision": "bf16 autocast",
+  "compile": "per-block torch.compile(dynamic=True), coalesce_tiling_analysis off, undone at handoff; Muon step as one CUDA graph; fused AdamW; batch max length from host",
+  "init": "unchanged rule from 148/151: fork _init (normal 0.02 embedding/readout, zero biases), orthogonal_ on every 2D block and MTP parameter with gain 0.02*sqrt(max(rows, cols)), so element std stays 0.02 at width 384; LayerNorm gain 1, bias 0",
+  "seed": [
+   0,
+   1,
+   2
+  ],
+  "loss": {
+   "main": "the fork's loss_on: next-token cross-entropy on proof-token positions (unchanged; val_loss calls loss_on itself, so it stays comparable with earlier runs)",
+   "mtp": "DeepSeek-V3 (2024) sequential multi-token prediction, depth 1 (Gloeckle et al. 2024 style shared head): z_t = proj(cat(LN(h_t), LN(emb(x_{t+1})))) for t in 0..T-3, one Peri-LN causal block over z with the same ALiBi/NoPE bias sliced to T-2 positions, then the model's ln_f and head predict x_{t+2}; cross-entropy masked to proof-token targets (m[:, 2:]), mean over those positions; the sliced bias now carries the scope mask on the MTP block's 4 NoPE heads",
+   "total": "main + MTP_WEIGHT * mtp with MTP_WEIGHT = 0.3 constant over the whole budget (DeepSeek-V3's early-training value); curve points also record the mean recent mtp loss as mtp_loss",
+   "leakage_check": "CPU check: perturbing token x[7] changes the MTP block's outputs only at positions 6..9 (which read emb(x[7]) or later), never at position 5 whose target is x[7]"
+  },
+  "bench": "bench_pretrain.py --secs 60 on one A40 (probe, not evidence), 2026-09-28 16:04-16:18 BST (six capacity retries, pod up after 529 s), on the registered file: 361 steps in 60.3 s, first step at 38 s, step 76 at 45 s, 361 at 60 s, i.e. 19.0 steps/s from 45 to 60 s (197-fable's probe of the unchanged step 20.3, 191's ~20.8: about 7% slower per step), peak 7.01 GB (191: 7.43), n_params 9,557,760, val loss 0.0954 at 60 s after 361 steps (on the steps trend of earlier probes of this architecture: 0.109 after 290, 0.0823 after 397, 0.0831 after 420), sample_acc 0.010 on 4,096 samples (197's probe 0.0044), dynamo 3 unique graphs, torch 2.9.1+cu129. Sampling 98 samples/s against 184-194 on the 191/197 probes: the probe cannot separate a slow Lean gate on that pod (195-fable's probe read 41/s on the unchanged sampler) from the cost of the per-token bracket update, which I estimate at ~30 small kernel launches on (1024, ~600) tensors per decoded token against ~150 for the six blocks, i.e. 15-20% of generation time; registered as a falsifier. make -C code check clean",
+  "init_rng": "identical to 191's per seed: no parameter is added and no random number consumed, so initial weights and both data-order generators match 191 seed for seed; the trajectories differ from step 1 because four heads per block read less"
+ },
+ "protocol": {
+  "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+  "budget": {
+   "total_secs": 2400,
+   "pretrain_secs": 300,
+   "grace_secs": 15,
+   "param_cap": 10000000
+  },
+  "pretrain_data": {
+   "max_lines": 6,
+   "file": "data/train.jsonl",
+   "n": 154990,
+   "by_lines": {
+    "2": 30999,
+    "3": 30999,
+    "4": 30998,
+    "5": 30996,
+    "6": 30998
+   }
+  },
+  "pretrain_heldout": {
+   "file": "data/heldout.jsonl (2000 evenly spaced)",
+   "n": 2000,
+   "by_lines": {
+    "2": 400,
+    "3": 400,
+    "4": 400,
+    "5": 400,
+    "6": 400
+   }
+  },
+  "rl": {
+   "rounds": 4,
+   "n_targets": 1500,
+   "rollouts_per_target": 32,
+   "temp": 0.8,
+   "max_new_tokens": 512,
+   "ft_steps": 600,
+   "ft_bs": 128,
+   "ft_lr": 0.0003,
+   "retain_pretrain_records": 20000,
+   "max_proofs_per_thm": 4,
+   "rl_weight": 4,
+   "target_pool": {
+    "n": 4495,
+    "by_lines": {
+     "7": 1800,
+     "8": 1000,
+     "9": 1004,
+     "10": 456,
+     "11": 99,
+     "12": 106,
+     "13": 16,
+     "14": 14
+    }
+   },
+   "targets_sampled": null
+  },
+  "eval": {
+   "metric": "dev-transfer theorems solved at L_true >= 7",
+   "attempts_per_theorem": 64,
+   "temp": 0.8,
+   "pool": {
+    "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+    "n": 1108,
+    "by_lines": {
+     "7": 150,
+     "8": 152,
+     "9": 477,
+     "10": 219,
+     "11": 49,
+     "12": 54,
+     "13": 5,
+     "14": 2
+    }
+   }
+  },
+  "holdout": {
+   "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+   "n": 1177,
+   "by_lines": {
+    "7": 150,
+    "8": 148,
+    "9": 533,
+    "10": 232,
+    "11": 50,
+    "12": 48,
+    "13": 8,
+    "14": 8
+   }
+  },
+  "seed": [
+   0,
+   1,
+   2
+  ]
+ }
+}

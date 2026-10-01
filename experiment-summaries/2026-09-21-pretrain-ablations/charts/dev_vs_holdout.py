@@ -31,8 +31,8 @@ f = fonts(WIDTH)
 def panel(era, title):
     pts = [r for r in rows if r["era"] == era]
     x, y = [p["dev_pct"] for p in pts], [p["holdout_pct"] for p in pts]
-    sub = (f"R = {statistics.correlation(x, y):.2f}, "
-           f"Spearman = {statistics.correlation(x, y, method='ranked'):.2f}, n = {len(pts)}")
+    sub = (f"R = {statistics.correlation(x, y):.3f}, "
+           f"Spearman = {statistics.correlation(x, y, method='ranked'):.3f}, n = {len(pts)}")
     lo, hi = min(x + y) - 1, max(x + y) + 1
     scale = alt.Scale(domain=[lo, hi], nice=False, zero=False)
     diag = alt.Chart(alt.Data(values=[{"v": lo}, {"v": hi}])).mark_line(

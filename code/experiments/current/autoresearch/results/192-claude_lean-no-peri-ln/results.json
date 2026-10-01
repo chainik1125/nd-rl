@@ -1,0 +1,78 @@
+{
+  "commit": "7cf7fff",
+  "recorded_at": "2026-09-28T11:58:31+0100",
+  "status": "timeout",
+  "metric": null,
+  "metric_rl": null,
+  "harness_sha": "2aa52f23e7ec",
+  "pretrain_sha": "28a0392eb038",
+  "rules": {
+    "TOTAL_SECS": 2400,
+    "PRETRAIN_SECS": 300,
+    "PARAM_CAP": 10000000,
+    "RL_ROUNDS": 4,
+    "N_TARGETS": 1500,
+    "K": 32,
+    "EVAL_K": 64,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 2631,
+  "reason": "seeds [0] not ok: ['timeout']",
+  "pretrain": {
+    "secs": null,
+    "n_params": null,
+    "steps": null,
+    "epochs": null,
+    "last_loss": null,
+    "heldout_greedy": null,
+    "curve": null
+  },
+  "rl_rounds": [],
+  "eval": {
+    "solved": null,
+    "n": null,
+    "ge": null,
+    "lstar": null,
+    "heldout_greedy": null,
+    "max_pruned": null,
+    "by_bin": null
+  },
+  "holdout_metric": null,
+  "surprise": "Timeout, no valid 3-seed mean: P22 reversed (Peri-LN's branch-output LayerNorms deleted from the six trunk blocks and the MTP block, fork pre-LN forward, 9,548,544 params, -5 lines) on 191-claude. Seed 0's pod had a slow Lean gate (390-396 s wall and 28-35k CPU-s per 48,000-sample pass vs 73-79 s and 6.5-7.0k on seeds 1/2; sampling 90-100 vs 277-303 samples/s), reached RL round 3 (1062/1500) and exceeded TOTAL_SECS=2400 at 2631 s, the same pod pathology as 187 and 189. Attempt 1 (launched 10:11 BST) lost all three seeds to this Mac's network: ssh to every pod failed with 'Network is unreachable' from seed 0's first RL sampling pass, the drivers gave up after 1800 s and terminated the pods, and no summary was produced, so I re-ran the committed registration unchanged; attempt 2 is the recorded one. Valid seeds: 679/656 on seeds 1/2 vs 191's 694/663 (paired -15/-7) and 186's 699/674; their mean 667.5 is below the registered keep line 680.3 on its own and seed 0 would have needed >= 706, so a finished run would most likely have been a discard. Mechanics as predicted: pretraining 5,634/5,997/5,700 steps (mean 5,777 vs 191's 5,293, +9.1%; registered 5,350-5,950, central 5,650; seed 0 2,148 vs 191's 2,028 steps at 135 s), so the 14 compiled output LayerNorms cost ~8% of the step. Fit and RL start improved, the mirror of 107: final val 0.0840/0.0877/0.0851 (191: 0.092/0.082/0.086), held-out greedy after pretraining 0.979/0.9785/0.9735 (191: 0.9705/0.972/0.9585), round-1 targets solved 705/625/538 (191: 682/454/225; acc 0.238/0.187/0.130). But RL gained less: round-4 RL-solved 1133/1144 on seeds 1/2 (191: 1160/1142; 186: 1193/1165), eval bins >=10 106/97, >=11 26/19, L* 11/12, post-RL held-out greedy 0.9905/0.9925. My registered falsifier (round 4 below 1,140 on 2+ seeds) fired on one of the two finished seeds. Reading, not established on two seeds: without output norms the model pretrains faster, fits better and starts RL better, yet expert iteration lifts it less, the same sign as 107's +7 for adding Peri-LN; Peri-LN may earn its 14 LayerNorms in the RL stage (branch writes the frozen AdamW fine-tune cannot rescale), not in pretraining. Totals 1492/1587 s on the healthy pods (below the registered 1,650-2,100). Not re-run: the protocol counts a seed timeout as a failed experiment. All pods of both attempts were terminated by the runner; pod.py list shows none of mine.",
+  "seed_metrics": {
+    "1": 679,
+    "2": 656
+  },
+  "seed_metric_rl": {
+    "1": 1133,
+    "2": 1144
+  },
+  "seed_status": {
+    "0": "timeout",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "1": {
+      "val_loss": 0.08773898333311081,
+      "heldout_greedy": 0.9785,
+      "steps": 5997
+    },
+    "2": {
+      "val_loss": 0.08507848996669054,
+      "heldout_greedy": 0.9735,
+      "steps": 5700
+    }
+  },
+  "lean_gate": {
+    "samples": 533824,
+    "parse_fail": 87266,
+    "distinct_checked": 364612,
+    "both_ok": 215394,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 2,
+    "lean_wall_s": 789.7804427146912
+  },
+  "migrated": false
+}

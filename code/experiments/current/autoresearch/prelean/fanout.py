@@ -47,7 +47,7 @@ def setup(st):
     ssh = "ssh " + " ".join(map(shlex.quote, pod.ssh_args(st)))
     subprocess.run(
         f"tar czf - -C {P} harness.py score_holdout.py score_holdout.sh src "
-        f"| {ssh} tar xzf - -C {REM}",
+        f"-C {P.parent} textbook72 | {ssh} tar xzf - -C {REM}",
         shell=True, check=True,
     )  # fmt: skip
 

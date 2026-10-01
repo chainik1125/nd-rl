@@ -1,7 +1,8 @@
 """Pull one row per autoresearch experiment into charts/runs.csv.
 
 Reads the loop's results/*/results.json (dev score, final pretrain val loss) and the offline
-holdout scores in artifacts/autoresearch/holdout/*.holdout.json (written by holdout.py score).
+holdout and textbook scores in artifacts/autoresearch/holdout/*.{holdout,textbook}.json (written
+by holdout.py score / prelean/fanout.py).
 Re-run after more holdout checkpoints are scored; the chart scripts only read the CSV.
 
     cd experiment-summaries/2026-09-21-pretrain-ablations && python3 charts/extract.py
@@ -16,6 +17,8 @@ Columns:
   dev      dev theorems solved at length >= 7, 3-seed mean (the loop's metric), of 1,108
   holdout  same on the transfer holdout, of 1,177; blank until scored
   holdout_seeds  how many seeds the holdout mean covers
+  textbook textbook72 problems solved at pass@256 (58 dev + 14 train, never trained on; lengths up
+           to 33 lines, most solved ones <= 7), seed mean, of 72; blank until scored
   len7..len13  dev theorems the model proved, binned by min(the model's shortest proof after
            pruning uncited lines (the harness's pruned_lens), the reference proof's n_lines), mean
            over the seeds that finished. Both are proofs of the theorem, so the min is the tighter
@@ -87,13 +90,14 @@ def sloc(src):
 
 
 FIRST, LEAN = 12, 100  # 000-011 ran a 600 s, 1-seed protocol; 098-099 only timed out
+LAST = 184  # the post as shipped 2026-09-27 covers the loop through 184
 
 rows = []
 for path in sorted(glob.glob(f"{RESULTS}/*/results.json")):
     run = os.path.basename(os.path.dirname(path))
     num = int(run[:3])
     r = json.load(open(path))
-    if num < FIRST or r["status"] not in ("keep", "discard") or (98 <= num < LEAN):
+    if not FIRST <= num <= LAST or r["status"] not in ("keep", "discard") or (98 <= num < LEAN):
         continue
     if num < LEAN:
         loss = r["pretrain"]["curve"][-1]["val_loss"]
@@ -107,10 +111,12 @@ for path in sorted(glob.glob(f"{RESULTS}/*/results.json")):
     shortest = [[min(*t["pruned_lens"], t["n_lines"]) for t in e if t["solved"]] for e in seeds]
     src = pretrain_src(run)
     hold = [json.load(open(p))["solved_ge7"] for p in glob.glob(f"{HOLDOUT}/{run}_s[0-9].holdout.json")]
+    book = [json.load(open(p))["solved"] for p in glob.glob(f"{HOLDOUT}/{run}_s[0-9].textbook.json")]
     rows.append({
         "run": run, "num": num, "era": "token" if num < LEAN else "lean", "status": r["status"],
         "loss": round(loss, 5), "dev": r["metric"],
         "holdout": round(statistics.mean(hold), 1) if hold else "", "holdout_seeds": len(hold),
+        "textbook": round(statistics.mean(book), 1) if book else "",
         **{f"len{n}": round(statistics.mean(lens.count(n) for lens in shortest), 1)
            for n in LENGTHS},
         "lines": len(src.splitlines()), "sloc": sloc(src),

@@ -1,0 +1,237 @@
+{
+ "id": "194-fable",
+ "slug": "lean-span-codes",
+ "written_at": "2026-09-28T12:15:33+0100",
+ "provider": "anthropic",
+ "model": "claude-fable-5-1",
+ "base_commit": "5987c34",
+ "harness_sha": "2aa52f23e7ec",
+ "pretrain_sha": "e3930a4dd819",
+ "patch_lines": 64,
+ "title": "Sub-formula identity codes: every ')' carries a 31-bit +-1 code of the bracket span it closes (polynomial rolling hash of the span's tokens), added to the input embedding through a learned Linear(31, 384), on the 191-claude incumbent (9,569,664 params)",
+ "description": "Idea ID: none in the P01-P50 backlog; a new mechanism in the family of 150-fable's Engram-lite input table (Robbie's DeepSeek lead: hashed n-gram features) and of the structural-position runs 170/179, extended from fixed n-grams to whole bracket spans. The model computes, inside its forward and from the token ids alone (tokenizer, data, RL and eval untouched), a rolling hash of the tokens between every ')' and its matching '(' and adds a learned linear map of the hash's 31 bits (as +-1) to that ')' token's embedding, so two occurrences of the same sub-formula anywhere in the context carry the same feature. Natural-deduction steps are formula-equality tests (modus ponens needs a line equal to an implication's antecedent, and-intro writes two earlier formulas side by side), which a 6-block transformer must otherwise rebuild token by token through attention, and that gets harder as proofs grow past the pretraining cap of 6 lines (more lines, more near-identical n-grams of brackets and four atoms); with identity codes a content (NoPE) head can match equal sub-formulas in one hop at any distance, which should raise the share of valid long proofs that expert iteration samples and learns from. Open registrations checked: none besides this one (192-claude and 193-fable are recorded).",
+ "tags": [
+  "architecture"
+ ],
+ "hypothesis": "Mechanism: formula identity is the bottleneck feature for proofs longer than the pretraining cap. Every proof line restates formulas that are copies or compositions of earlier sub-formulas, and rule applicability is an equality test between spans of up to ~40 tokens drawn from an alphabet of 11 formula tokens, so local n-grams are highly ambiguous and the ambiguity grows with the number of lines in context. A per-span code that is identical for identical spans and near-orthogonal otherwise (31 random-looking bits: matching codes give a dot product of 31, different ones ~0 +- 5.6) turns the test into one attention hop. The code depends on span content only (prefix-sum hash times the inverse power of the span's start), so it is invariant to position, line number and proof length, and nothing about it is tied to proofs of <= 6 lines. It is random per distinct sub-formula, so the 31-dim projection can only support equality matching, not memorised per-formula semantics. Evidence before the run (two 60 s bench probes, not evidence for a keep): the candidate reached val loss 0.0816 after 417 steps and 0.0903 after 478 steps with sample accuracy 0.021 and 0.063, where 188-fable's bench of the incumbent architecture had val 0.109 after 290 steps with sample accuracy 0.002 and 193-fable's bench of the no-MTP model val 0.0846 after ~850 steps. So the codes appear to speed up early learning, by an amount two noisy probes do not pin down; whether that survives four rounds of expert iteration is the question, since 190/191/193 showed round-1 strength is recoverable and not a proxy for the metric. Risks: (1) spans that are not formulas (binders `( h1 : A )`, `( fun ... )` terms, whose hashes include shifted name tokens) get codes too, which are unique noise at those ')' positions; (2) sampling gets slower by the bracket tracking (done on the CPU during cached decoding: second bench 169 samples/s against 191's bench 194 and 193's 168) and a slow pod could push a seed towards the 2,400 s cap; (3) the other input-feature runs at width 384 (155 low-rank bigram 668, 157 factored trigram 667) lost ~20 to the incumbent, so table-like shortcuts may hurt what RL learns; this feature has 11,904 parameters instead of ~400k and encodes identity, not statistics. Decision rule fixed now: keep only if the 3-seed mean is strictly above 191's 683.67 (the change adds 63 lines, so a tie or ~0 is a discard under the simplicity rule); if the other agent keeps a file first, record.py's rule applies.",
+ "p_keep": 0.4,
+ "expected_delta": "-20 to +45 vs 191's 683.7 (central +10). Pretraining 5,100-5,450 steps in 300 s per seed (benches: first step at 33-37 s, then 20.1-20.3 steps/s, i.e. the incumbent's per-step cost; 191: 5,362/5,298/5,220), ~4.5-4.8 epochs; val loss at the 75 s curve point below 191 seed 0's 0.0975 on 2+ seeds and final val loss 0.065-0.088 (191: 0.082-0.092); held-out greedy after pretraining 0.965-0.995 (191: 0.959-0.972); round-1 RL targets solved 500-900 (191: 682/454/225) and round-4 RL-solved 1,150-1,260 (191 mean 1,164); handoff n_params 9,569,664 exactly; RL sampling 130-215 samples/s (191: 152-228; bench 169 vs 194) and totals 1,800-2,200 s of 2,400. Falsifiers: final val loss above 0.088 on 2+ seeds (the codes do not help even pretraining); a 3-seed mean below 665 (the feature hurts what expert iteration reaches, as the 155/157 tables did); any seed over 2,300 s (the bracket tracking costs more than measured). Where a gain should show if the mechanism is right: eval bins 10-12 (191 seed 0: 84/219, 22/49, 4/54), where proofs are longest, rather than bins 7-9.",
+ "baseline_id": "191-claude",
+ "baseline_metric": 684,
+ "config": {
+  "arch": {
+   "type": "gpt (fork model.py) ALiBiGPT with Peri-LN blocks and hybrid ALiBi/NoPE heads, the 191-claude model plus sub-formula identity codes added to the token embedding at the input",
+   "n_layers": 6,
+   "d_model": 384,
+   "n_heads": 8,
+   "d_ff": 1280,
+   "pos": "hybrid alibi/nope (unchanged from 115-fable): no rotation of q/k in any block; additive per-head bias -slope_h * (query position - key position) on the scaled attention logits via SDPA attn_mask, slopes 2^(-8h/4) = 1/4, 1/16, 1/64, 1/256 for heads 1..4 (Press et al. 2021 standard set for 4 heads) and 0 for heads 5..8 (bias identically 0 except -inf for masked/future keys, i.e. NoPE heads); same slope table in every block; -inf for masked/future keys",
+   "ctx": 1024,
+   "norm": "layernorm (pre-LN on branch inputs + LayerNorm on attention and MLP branch outputs, Peri-LN, unchanged from 107)",
+   "act": "gelu",
+   "dropout": 0.0,
+   "tied_emb": false,
+   "n_params": 9569664,
+   "change": "vs 191-claude: ALiBiGPT gains code_proj = Linear(31, 384, bias=False) (init normal std 0.02) and the method span_codes(idx, cache); features() computes x = emb(idx) + code_proj(span_codes(idx)) before block 0, in every forward (pretraining, MTP trunk pass, RL fine-tune, sampling). span_codes: opens/closes are token ids 2 '(' and 3 ')' (asserted against tok.stoi in pretrain()); depth = cumsum(opens - closes); the bracket level of a token is depth (+1 for a ')'), clamped to [0, 31]; the matching '(' of a ')' is the latest '(' of the same level (cummax of its index over a (B, T, 32) one-hot); the span hash is sum_k (token_k + 1) * R^(k - i) mod P over the span [i, j], computed as (prefix_j - prefix_{i-1}) * R^(-i) mod P from int64 prefix sums, with P = 2^31 - 1, R = 1,000,003 and 4,096 precomputed powers and inverse powers (non-persistent buffers, rebuilt deterministically at construction); the feature is the hash's 31 bits as +-1 / sqrt(31) at ')' tokens with a matching '(' and the zero vector at every other token, so at init it has the token embedding's element scale (std 0.02). The MTP module's next-token embedding input still uses model.emb alone. Blocks, heads, ALiBi slopes, MTP, optimizers, schedule, batches, compile recipe and handoff unchanged. 63 insertions, 1 deletion (pretrain.py 428 -> 490 lines)",
+   "n_params_detail": "191-claude's 9,557,760 + code_proj.weight 31 x 384 = 11,904 -> 9,569,664 (CPU check with fork 51604b3 and the A40 bench both report 9,569,664), under the 10M cap. MTP module (pretraining only, never registered on the model, dropped at handoff): 1,875,584 as in 191",
+   "checkpoint_reconstruction": "191-claude's module tree plus one state_dict key `code_proj.weight` (384, 31); the hash power tables and the slopes buffer are non-persistent and rebuilt by the constructor; score_holdout.py's zero-budget pretrain() call builds the same module tree",
+   "kv_cache": "unchanged per-block k/v and caches[0]['pos']; new CPU-side state in caches[0]: span_n (tokens seen), span_hash (B,) prefix hash, span_depth (B,), span_open_i / span_open_h (B, 32) index and prefix hash of the latest '(' of every level. With caches the ids go to the CPU, span_codes runs there with the same code as the full forward, and the (B, T, 31) codes come back to the device. CPU checks on 64 training records: vectorised hash equals a naive stack-based Python hash at every ')' (0 mismatching rows); left-padded prefill + one token at a time vs the full forward: max abs logit difference 1.5e-6 over 41 steps on 16 rows; one cached step's span_codes at 1,024 rows takes 0.30 ms on a laptop CPU, the 1,024 x 150 prefill 42 ms; on the A40 pod the CPU path sampled 169 samples/s against 120 with the bracket tracking on the GPU"
+  },
+  "tokenizer": {
+   "codec": "lean_seq",
+   "maxn": 64,
+   "source": "fork 51604b3 lean_tok.LeanTokenizer('lean_seq') via tokenizer.make_tokenizer; Lean 4 have-chain text, names n1..n64 numbered by first appearance"
+  },
+  "optimizer": {
+   "name": "split-QKV Muon (RMS-matched shape scale) with Polar Express orthogonalization on hidden matrices and the output readout head.weight; AdamW on embeddings, biases and LayerNorms; the MTP module's five 2D matrices (block qkv split into Q/K/V, block proj, fc1, fc2, and the (384,768) input proj) join Muon and its LayerNorms/biases join AdamW (unchanged from 151)",
+   "lr": 0.001,
+   "schedule": "cosine over wall-clock from step 1, no warmup (unchanged from 191): lr = 1e-3 * (0.3 + 0.35 * (1 + cos(pi * frac))), frac = elapsed / budget, ending at 0.3 x peak; Muon lr = 0.01 * lr / 1e-3 and its decoupled decay follow the same factor",
+   "warmup_steps": 0,
+   "min_lr_frac": 0.3,
+   "wd": 0.1,
+   "betas": [
+    0.9,
+    0.95
+   ],
+   "grad_clip": 1.0,
+   "muon": {
+    "lr": 0.01,
+    "momentum": 0.95,
+    "nesterov": true,
+    "newton_schulz_steps": 5,
+    "coefficients": [
+     [
+      8.156554524902461,
+      -22.48329292557795,
+      15.878769915207462
+     ],
+     [
+      4.042929935166739,
+      -2.808917465908714,
+      0.5000178451051316
+     ],
+     [
+      3.8916678022926607,
+      -2.772484153217685,
+      0.5060648178503393
+     ],
+     [
+      3.285753657755655,
+      -2.3681294933425376,
+      0.46449024233003106
+     ],
+     [
+      2.3465413258596377,
+      -1.7097828382687081,
+      0.42323551169305323
+     ]
+    ],
+    "normalization_epsilon": 1e-06,
+    "precision": "bf16 Newton-Schulz; fp32 momentum and parameters",
+    "shape_scale": "sqrt(max(rows, columns) / D) with D = 384 per orthogonalized matrix (RMS-matched, Moonshot convention with its 0.2 constant folded into MUON_LR): Q/K/V each 1, attention output 1, fc1 (1280,384) and fc2 (384,1280) sqrt(1280/384) = 1.83, head (107,384) 1, MTP proj (384,768) sqrt(2); MUON_LR 0.01 unchanged",
+    "wd": 0.1,
+    "schedule": "same cosine fraction as AdamW from step 1, no warmup (floor 0.3, unchanged); muon_lr = 0.01 * adam_lr / 0.001",
+    "parameters": "6 x (qkv.weight (1152,384) split into Q/K/V, proj, fc1, fc2) plus head.weight, plus the MTP module's 5 matrices: 30 Muon matrices as in 148/151 (CPU check: muon_step runs over all 30)",
+    "source": "https://github.com/KellerJordan/Muon/blob/f98f1cacc0263b04290753e32be8d498c1efc806/muon.py",
+    "license": "MIT; full copyright and permission notice retained in pretrain.py",
+    "qkv_split": "unchanged: each QKV update reshaped to (3,384,384), orthogonalized per role; fc1 (1280,384) is not (3D, D) so it is orthogonalized whole",
+    "active_window": "entire pretraining budget",
+    "coefficients_note": "per-iteration Polar Express quintic coefficients (Amsel, Persson, Musco, Gower 2025; values as in modded-nanogpt, num_iters=5, safety factor 2e-2, cushion 2) replace Keller Jordan's fixed (3.4445, -4.7750, 2.0315) used five times. Same five iterations (two matmuls each on the Gram side plus one), same bf16 precision, same transpose/QKV-split/shape-scale handling.",
+    "normalization": "update / (Frobenius norm * 1.02 + 1e-6) (Polar Express safety factor) instead of update / (Frobenius norm + 1e-7)",
+    "local_check": "CPU check (float64 scalar map over sigma in [1e-3,1]): output singular values in [0.847,1.141] vs fixed quintic [0.471,1.202]; for sigma>=3e-3 [0.859,1.141] vs [0.682,1.202]. bf16 torch on random (256,256)/(1024,256)/(99,256) matrices: median singular value 0.94/0.95/1.02 vs 0.75/0.77/0.77, update RMS +14%/+14%/+19%."
+   },
+   "adamw_parameters": "emb.weight, the new code_proj.weight (31 -> 384 input feature map, same AdamW lr 1e-3 and wd 0.1 as the embedding), all projection biases and LayerNorm parameters (ln1, ln2, ln_attn_out, ln_mlp_out per block, and ln_f); head.weight and hidden matrices never enter pretraining AdamW",
+   "decay_convention": "unchanged from 070-claude: MUON_WD = 10 * WD * LR / MUON_LR = 0.1, so Muon per-step shrinkage lr*0.1 is ten times the auxiliary AdamW lr*0.1 (peak 1e-3 per step), applied to all 25 Muon matrices including head.weight; AdamW group decay wd 0.1 at lr 1e-3. Note: with output LayerNorms, Muon weight decay on proj/fc2 no longer shrinks a branch's residual write (the LayerNorm re-normalizes it); only the AdamW-decayed output gains set that scale. Because decay is lr-scaled, the higher floor raises late-training per-step decay (endpoint 3x 115's); MUON_WD itself is unchanged at 0.1",
+   "clipping": "joint global gradient norm 1.0 over model.parameters() + the MTP module's parameters, before both optimizers (unchanged)",
+   "handoff": "standard GPT weights plus code_proj.weight; the MTP module and both pretraining optimizer states are discarded and frozen RL creates its own unchanged AdamW on model.parameters()",
+   "parameters": "24 trunk hidden matrices + head.weight, plus the MTP module's qkv (split), proj, fc1, fc2 and input proj (384,768): 30 Muon matrices during pretraining, unchanged; code_proj.weight is not a Muon matrix (it is not in model.blocks); the handoff model's parameters are 9,569,664"
+  },
+  "batch": {
+   "size": 136,
+   "padding": "to max len in batch (the batch's last, longest record); mean padded tokens per step ~18.3k of which ~18.3k real (>99% fill), vs the incumbent's ~51-54k padded slots for ~17.3k real tokens",
+   "buckets": true,
+   "tok_budget": 18432,
+   "change": "fairseq-style max-tokens batching replaces fixed 128 random records per step: per epoch, randperm the training records (GPU generator, seed), stable-argsort by total length so equal lengths stay shuffled, cut greedily into consecutive runs with count * max_len <= 18,432, then shuffle the run order with random.Random(seed). Loss is the same per-token mean over the batch's proof tokens; the shift augmentation, Muon/AdamW updates, clip and wall-clock cosine are unchanged (the 200-step warmup those runs had is removed in 191, see optimizer.schedule). The val slice still uses fixed chunks of 128.",
+   "size_note": "variable: a run of length-sorted records with count * padded_length <= TOK_BUDGET = 18,432 tokens (128 x 144); on a synthetic length distribution matching mean ~135 / max 537 that is 33..921 records per batch, mean ~136, so ~1,130 batches per epoch (incumbent: 128 fixed, ~1,204 per epoch)"
+  },
+  "data": {
+   "filter": null,
+   "augmentation": "random name start offset (lean_seq; same vectorised shift as abs over the n1..n64 name tokens)",
+   "order": "shuffle at the record level each epoch, then length-homogeneous batches in shuffled order (data-order change: within a step all records have similar total length; across steps lengths are interleaved at random)",
+   "val_slice": 1024
+  },
+  "precision": "bf16 autocast",
+  "compile": "per-block torch.compile(dynamic=True), coalesce_tiling_analysis off, undone at handoff; Muon step as one CUDA graph; fused AdamW; batch max length from host",
+  "init": "unchanged rule from 191: fork _init (normal 0.02 embedding/readout, zero biases), orthogonal_ on every 2D block and MTP parameter with gain 0.02*sqrt(max(rows, cols)); LayerNorm gain 1, bias 0; new code_proj.weight normal std 0.02 (its draw comes after the fork GPT's own init, so emb/head draws equal 191's per seed; the blocks' draws shift)",
+  "seed": [
+   0,
+   1,
+   2
+  ],
+  "loss": {
+   "main": "the fork's loss_on: next-token cross-entropy on proof-token positions (unchanged; val_loss and the recorded train_loss/last_loss use this term only, so they stay comparable with 129)",
+   "mtp": "DeepSeek-V3 (2024) sequential multi-token prediction, depth 1 (Gloeckle et al. 2024 style shared head): z_t = proj(cat(LN(h_t), LN(emb(x_{t+1})))) for t in 0..T-3, one Peri-LN causal block over z with the same ALiBi/NoPE bias sliced to T-2 positions, then the model's ln_f and head predict x_{t+2}; cross-entropy masked to proof-token targets (m[:, 2:]), mean over those positions",
+   "total": "main + MTP_WEIGHT * mtp with MTP_WEIGHT = 0.3 constant over the whole budget (DeepSeek-V3's early-training value); curve points also record the mean recent mtp loss as mtp_loss",
+   "leakage_check": "CPU check: perturbing token x[7] changes the MTP block's outputs only at positions 6..9 (which read emb(x[7]) or later), never at position 5 whose target is x[7]"
+  },
+  "bench": "bench_pretrain.py --secs 60 on one A40, twice (probes, not evidence). First bench, bracket tracking on the GPU in every path: 417 steps in 60.3 s, first step at 37 s, 304 steps from 45 to 60 s = 20.3 steps/s (191's bench: ~20.8), peak 7.48 GB, n_params 9,569,664, train 0.147 / val 0.0816 at 60 s, sample_acc 0.0212, dynamo 3 unique graphs, but sampling 120 samples/s against 191's bench 194: the ~60 tiny CUDA ops per decoded token cost ~3 ms per step. Second bench, this exact file (cached decoding runs span_codes on the CPU; training and RL fine-tuning keep the GPU path): 478 steps in 60.2 s, first step at 33 s, 302 steps from 45 to 60 s = 20.1 steps/s, peak 7.43 GB, n_params 9,569,664, train 0.106 / val 0.0903 at 60 s, sample_acc 0.0625, sampling 169 samples/s (191's bench 194, 193's 168, 188's 201), dynamo 3 unique graphs, no recompiles counted, torch 2.9.1+cu129. Both pods booted only after A40 capacity retries (466 s and ~8 min). make -C code check clean",
+  "init_rng": "data order and shift-augmentation draws equal 191's per seed (same generators); emb/head initial draws equal 191's; code_proj's normal draw precedes the blocks' init, so block and MTP initial matrices differ from 191's: seed pairs are ordinary pairs"
+ },
+ "protocol": {
+  "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+  "budget": {
+   "total_secs": 2400,
+   "pretrain_secs": 300,
+   "grace_secs": 15,
+   "param_cap": 10000000
+  },
+  "pretrain_data": {
+   "max_lines": 6,
+   "file": "data/train.jsonl",
+   "n": 154990,
+   "by_lines": {
+    "2": 30999,
+    "3": 30999,
+    "4": 30998,
+    "5": 30996,
+    "6": 30998
+   }
+  },
+  "pretrain_heldout": {
+   "file": "data/heldout.jsonl (2000 evenly spaced)",
+   "n": 2000,
+   "by_lines": {
+    "2": 400,
+    "3": 400,
+    "4": 400,
+    "5": 400,
+    "6": 400
+   }
+  },
+  "rl": {
+   "rounds": 4,
+   "n_targets": 1500,
+   "rollouts_per_target": 32,
+   "temp": 0.8,
+   "max_new_tokens": 512,
+   "ft_steps": 600,
+   "ft_bs": 128,
+   "ft_lr": 0.0003,
+   "retain_pretrain_records": 20000,
+   "max_proofs_per_thm": 4,
+   "rl_weight": 4,
+   "target_pool": {
+    "n": 4495,
+    "by_lines": {
+     "7": 1800,
+     "8": 1000,
+     "9": 1004,
+     "10": 456,
+     "11": 99,
+     "12": 106,
+     "13": 16,
+     "14": 14
+    }
+   },
+   "targets_sampled": null
+  },
+  "eval": {
+   "metric": "dev-transfer theorems solved at L_true >= 7",
+   "attempts_per_theorem": 64,
+   "temp": 0.8,
+   "pool": {
+    "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+    "n": 1108,
+    "by_lines": {
+     "7": 150,
+     "8": 152,
+     "9": 477,
+     "10": 219,
+     "11": 49,
+     "12": 54,
+     "13": 5,
+     "14": 2
+    }
+   }
+  },
+  "holdout": {
+   "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+   "n": 1177,
+   "by_lines": {
+    "7": 150,
+    "8": 148,
+    "9": 533,
+    "10": 232,
+    "11": 50,
+    "12": 48,
+    "13": 8,
+    "14": 8
+   }
+  },
+  "seed": [
+   0,
+   1,
+   2
+  ]
+ }
+}
