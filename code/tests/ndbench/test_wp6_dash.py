@@ -105,7 +105,13 @@ def build_full_demo_store(store: Store) -> None:
     store.append_items(sk_run, [make_item(sk_run, "i1", 32, 32), make_item(sk_run, "i2", 32, 0)])
 
     laws = [
-        make_problem(f"law_s{s}", "laws", "v1", length=7, tags={"schema": "contraposition", "s": s})
+        make_problem(
+            f"law_s{s}",
+            "laws",
+            "v1",
+            length=7,
+            tags={"schema": "contraposition", "s": s, "tokens": 50 + 25 * s},
+        )
         for s in (0, 2, 4)
     ]
     store.write_suite(laws, manifest("laws", "v1", len(laws)))
