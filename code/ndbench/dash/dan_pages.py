@@ -906,8 +906,8 @@ def dan_crossfamily_table(
         "Textbook_dev (58 theorems) pass@1 and pass@256, unbiased from each item's first 256 draws "
         "(Figure D1's estimator), judged lean_v2 with nd_v2 in parentheses; ours' lean_v2 values "
         "are the same samples rejudged with Lean. dan12/dan6 rows are means over the seeds with a "
-        "run, with the range of pass@1 across seeds. Dan's own k=256 counts on these 58 "
-        "(analysis_stdout.txt): fz best12 27/22/21, t1 best12 42/44/42, fz best6 13/13/15, "
+        "run, with the range of pass@1 across seeds. Dan's own k=256 counts on these 58 (his "
+        "best-state summary): fz best12 27/22/21, t1 best12 42/44/42, fz best6 13/13/15, "
         "t1 best6 34/33/26 of 58."
     )
     return headers, rows, caption
@@ -1022,10 +1022,10 @@ def render_dan_section(store: Store, *, registry: Mapping[str, mr.ModelEntry] | 
         "Dan Pandori's best-state checkpoints (DANSTATE_PLAN.md): a frozen Stage-1 model (fz) "
         "and the same checkpoint after an 8-round T1 RL ladder (t1), at train caps 6 and 12, "
         "three seeds each. Headline judge: lean_v2 (his own sampling protocol and RL reward, a "
-        "superset of nd_v2 on denotable proofs); nd_v2 alongside where available. A family or "
-        "benchmark with no landed runs yet at build time renders as a clean 'not available' "
-        "panel below rather than failing -- which panels that is changes run to run as more of "
-        "Dan's evaluation jobs land, so it is not called out here by name."
+        "superset of nd_v2 on denotable proofs); nd_v2 alongside where available (the two agree "
+        "on 99.9% of attempts, Figure D9). Textbook pass@k was run for all 12 models; the other "
+        "benchmarks for the cap-12 seed-0 pair only, so most dan6 panels say 'not available'. "
+        "Theorems in Dan's training data are excluded where a figure says 'unseen'."
     )
     return (
         '<section id="dan-section"><h2><span class="secnum">D</span>State-env models '
