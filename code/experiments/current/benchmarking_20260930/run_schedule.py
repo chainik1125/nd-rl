@@ -7,7 +7,7 @@
 The benchmark panel (`code/ndbench/panel.yaml`, see `code/ndbench/README.md`) adds cost tiers and a
 `{model}` placeholder, so the cheap benchmarks can run alone on any registered model:
 
-    NDBENCH_ALLOWED_GPUS=4 code/.venv/bin/python \\
+    NDBENCH_ALLOWED_GPUS=<free GPUs, check nvidia-smi> code/.venv/bin/python \\
         code/experiments/current/benchmarking_20260930/run_schedule.py \\
         --schedule code/ndbench/panel.yaml --model <label> --max-tier cheap --budget-h 0.5 --dry-run
 

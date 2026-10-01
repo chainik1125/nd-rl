@@ -49,10 +49,11 @@ the config and edit it.
 
 ## Running a tier
 
-From the worktree root, always dry-run first:
+From the worktree root, check which GPUs are free, then always dry-run first:
 
 ```bash
-NDBENCH_ALLOWED_GPUS=4 code/.venv/bin/python \
+nvidia-smi   # use only GPUs with no other process on them
+NDBENCH_ALLOWED_GPUS=<free GPUs, e.g. 4 or 0,1,2,3,4> code/.venv/bin/python \
     code/experiments/current/benchmarking_20260930/run_schedule.py \
     --schedule code/ndbench/panel.yaml --model <label> --max-tier cheap --budget-h 0.5 --dry-run
 ```
@@ -62,14 +63,14 @@ NDBENCH_ALLOWED_GPUS=4 code/.venv/bin/python \
 - `--model` fills `{model}`. `--include-pair` adds the interp pair jobs.
 - `--budget-h` caps the GPU hours this invocation may spend. Without it, the cap is `cap_h` on
   the whole ledger (6.9 of 9.5 h already spent on 2026-10-01).
-- `cpu` jobs run with no visible GPU and no GPU lease. GPU jobs run one at a time on GPU 4 under
-  `runner.gpu.lease`, which writes the ledger.
+- `cpu` jobs run with no visible GPU and no GPU lease. GPU jobs run one per allowed GPU at a
+  time, each under `runner.gpu.lease`, which writes the ledger.
 - `--scale` multiplies every estimate. Use it after timing one cheap job on a new kind of model.
   A job is stopped at 3x its estimate; a stopped sampling run resumes from its stored rows.
 
 Before any GPU tier, ask whoever owns the GPU budget; in this workspace that is Leon. The cpu tier
-needs no approval. On serrano, GPUs 0-3 belong to another user: only GPU 4 may be used
-(`runbook.md`).
+needs no approval. Check `nvidia-smi` before every launch and allow only free GPUs: on serrano,
+GPUs 0-3 are sometimes held by another user (`runbook.md`).
 
 ## Pitfalls
 

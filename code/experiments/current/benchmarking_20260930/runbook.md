@@ -37,11 +37,14 @@ Setting it any later -- after `import torch`, or inside `lease()` itself -- is u
 context, once initialised, ignores later changes to the variable) and is exactly the bug this fix
 closed. Do not work around the refusal by setting the variable after the process starts.
 
-**GPUs 0-3 belong to another user and must never be touched.** Only GPU 4 may ever be leased; every
+**Check which GPUs are free before every launch** (`nvidia-smi`: no other process, near-zero
+memory used) and allow only those in `NDBENCH_ALLOWED_GPUS`. Never touch a GPU that another user's
+process is on. GPUs 0-3 are sometimes held by another user: from 2026-09-30 to the morning of
+2026-10-01 only GPU 4 was free, and at 11:50 PT on 2026-10-01 all five were. Every
 `run`/`edl`/`throughput` invocation above must include `--device cuda` and the env var, or it will
 default to CPU (fine for a dry run, useless for the real schedule).
 
-Only one job at a time -- no concurrent GPU use, per plan §4.
+One job per GPU at a time (`run_schedule.py` runs one worker per allowed GPU).
 
 ## The stop rule (plan §4)
 
@@ -83,7 +86,7 @@ everything -- there is no "just this last job" exception.
 wall time held, `status`), regardless of how the job exits (success, error, or `partial`).
 `Store.ledger_total_s()` sums every row's `gpu_s`; `budget`'s `spent_h` is that sum in hours. This
 is wall time the lock was *held*, not GPU-busy time -- a job that idles while acquiring a busy lock
-still counts from when it actually acquired GPU 4, not from when it started waiting (`gpu.lease`'s
+still counts from when it actually acquired its GPU, not from when it started waiting (`gpu.lease`'s
 `wait_s` only affects how long it waits to acquire, not what gets ledgered once it does).
 
 ## CPU rules for build steps (plan §A2)

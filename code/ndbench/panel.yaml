@@ -2,7 +2,8 @@
 #
 # Run with `run_schedule.py` (see code/ndbench/README.md, "Cost tiers"):
 #
-#   NDBENCH_ALLOWED_GPUS=4 code/.venv/bin/python \
+#   nvidia-smi   # first: allow only free GPUs
+#   NDBENCH_ALLOWED_GPUS=<free GPUs> code/.venv/bin/python \
 #     code/experiments/current/benchmarking_20260930/run_schedule.py \
 #     --schedule code/ndbench/panel.yaml --model <label> --max-tier cheap --budget-h 0.5 --dry-run
 #
