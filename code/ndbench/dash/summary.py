@@ -381,6 +381,7 @@ def _chart_3_glue(store: Store) -> str:
 
     bars: list[P.Bar] = []
     counts: dict[str, int] = {}
+    sources: dict[str, int] = {}
     for op in _OP_ORDER:
         pids = pids_by_op.get(op, [])
         if not pids:
@@ -395,15 +396,16 @@ def _chart_3_glue(store: Store) -> str:
                 continue
             joined_items = items_by_pid(store, run_id)
             part_items = items_by_pid(store, parts_run_id)
+            renamed_items = glue_view.renamed_part_items(store, model)
             groups = []
             for pid in pids:
                 item = joined_items.get(pid)
                 if item is None:
                     continue
-                parts = problems[pid].parts
-                part_results = [part_items[p] for p in parts if p in part_items]
-                if part_results and len(part_results) == len(parts):
-                    groups.append((item, part_results))
+                found = glue_view.part_results(pid, problems[pid], part_items, renamed_items)
+                if found is not None:
+                    groups.append((item, found[0]))
+                    sources[found[1]] = sources.get(found[1], 0) + 1
             if not groups:
                 continue
             comp = compositionality_ratio(groups, mastery=0.5, B=1000, seed=0)
@@ -427,10 +429,16 @@ def _chart_3_glue(store: Store) -> str:
     for op in zero_ops:
         bits.append(f"{op}: R=0 for both models")
     takeaway = "compositionality varies by operator: " + "; ".join(bits) + "."
+    src_note = (
+        "parts' pass@1 measured on each part as it appears inside the join (atoms renamed)"
+        if not sources.get("pool")
+        else f"parts' pass@1 from the renamed parts for {sources.get('renamed', 0)} and the "
+        f"original pool items for {sources['pool']} (item, model) pairs"
+    )
     caption = (
         "R = joined pass@1 / product of mastered parts' pass@1, pooled per operator; "
         + "; ".join(f"{op} n={n}" for op, n in counts.items())
-        + "."
+        + f"; {src_note}."
     )
     return P.bar_chart(title, takeaway, bars, y_fmt="f3", wide=True, note=caption)
 

@@ -6,7 +6,11 @@ Reads the `glue` suite (WP4's `suites/glue.py`; joined items tagged `op`/`k`/`pa
 
 - `R`/`R_min` with bootstrap CIs (`metrics.compositionality_ratio`) over joined items whose every
   part the model has "mastered" (`mastery` in `cfg`, default 0.5, matching plan §2 B1's `p_hat >=
-  0.5`);
+  0.5`). Each part's pass rate comes from the part *as it appears in the join* -- the
+  `glue_parts_renamed` suite (`suites/glue.py:build_renamed_parts`; AND/CHAIN/CASE joins rename
+  part atoms) -- when that suite has a run for the model, falling back to the original
+  `parts_suite` item otherwise (`compositionality_pool_parts` keeps the pool-denominator R for
+  comparison; audit 2026-10-01);
 - the fraction of attempts at least as long as the reference (pooled `sum(long_enough) /
   sum(n)` over the cell's joined items -- `ItemResult.long_enough` is already, per its WP0
   docstring, "attempts whose written length is at least the problem's reference length", exactly
@@ -45,6 +49,7 @@ from ._common import (
 
 DEFAULT_SUITE = "glue"
 DEFAULT_PARTS_SUITE = "parts_pool"
+DEFAULT_RENAMED_PARTS_SUITE = "glue_parts_renamed"
 DEFAULT_CONTROL_SUITE = "gen_ctrl"
 CELL_TAG = "cell"
 DEFAULT_MASTERY = 0.5
@@ -103,9 +108,40 @@ def _control_pass1(
     return {"n_items": len(matched), "pass1": sum(vals) / len(vals), "L": target_l}
 
 
+def renamed_part_items(
+    store: Store, model: str, suite: str = DEFAULT_RENAMED_PARTS_SUITE
+) -> dict[str, ItemResult]:
+    """`model`'s latest results on the renamed-parts suite, keyed `<joined pid>__p<i>` (empty when
+    the suite or a run for `model` is missing)."""
+    version = default_version(store, suite=suite, models=[model]) or "v1"
+    run_id = latest_run_id(store, suite=suite, model=model, version=version)
+    return items_by_pid(store, run_id) if run_id else {}
+
+
+def part_results(
+    joined_pid: str,
+    joined: Problem,
+    pool_items: Mapping[str, ItemResult],
+    renamed_items: Mapping[str, ItemResult],
+) -> tuple[list[ItemResult], str] | None:
+    """The joined item's per-part results and their source: `"renamed"` (every part sampled as it
+    appears inside the join) when available, else `"pool"` (the original part items), else
+    `None` if some part has no result."""
+    if not joined.parts:
+        return None
+    renamed = [renamed_items.get(f"{joined_pid}__p{i}") for i in range(len(joined.parts))]
+    if all(r is not None for r in renamed):
+        return [r for r in renamed if r is not None], "renamed"
+    pool = [pool_items[p] for p in joined.parts if p in pool_items]
+    if len(pool) == len(joined.parts):
+        return pool, "pool"
+    return None
+
+
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
     parts_suite = cast(str, cfg_get(cfg, "parts_suite", DEFAULT_PARTS_SUITE))
+    renamed_suite = cast(str, cfg_get(cfg, "renamed_parts_suite", DEFAULT_RENAMED_PARTS_SUITE))
     control_suite = cast(str, cfg_get(cfg, "control_suite", DEFAULT_CONTROL_SUITE))
     mastery = float(cast(float, cfg_get(cfg, "mastery", DEFAULT_MASTERY)))
     B = int(cast(int, cfg_get(cfg, "B", 2000)))
@@ -168,7 +204,10 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 continue
             joined_items = items_by_pid(store, run_id)
             part_items = items_by_pid(store, parts_run_id) if parts_run_id else {}
+            renamed_items = renamed_part_items(store, model, renamed_suite)
             groups: list[tuple[ItemResult, list[ItemResult]]] = []
+            pool_groups: list[tuple[ItemResult, list[ItemResult]]] = []
+            sources: Counter[str] = Counter()
             long_enough_sum = 0
             n_sum = 0
             c_sum = 0
@@ -183,13 +222,22 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 joined_problem = problems[pid]
                 fail_loc = _failure_location(item, joined_problem, parts_problems)
                 fail_loc_total.update(fail_loc)
-                part_results = [part_items[p] for p in joined_problem.parts if p in part_items]
-                if part_results and len(part_results) == len(joined_problem.parts):
-                    groups.append((item, part_results))
+                found = part_results(pid, joined_problem, part_items, renamed_items)
+                if found is not None:
+                    groups.append((item, found[0]))
+                    sources[found[1]] += 1
+                pool = part_results(pid, joined_problem, part_items, {})
+                if pool is not None:
+                    pool_groups.append((item, pool[0]))
             if not groups and n_sum == 0:
                 continue
             comp = (
                 compositionality_ratio(groups, mastery=mastery, B=B, seed=seed) if groups else None
+            )
+            comp_pool = (
+                compositionality_ratio(pool_groups, mastery=mastery, B=B, seed=seed)
+                if pool_groups
+                else None
             )
             lengths = [
                 length
@@ -206,6 +254,8 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 "n_joined_items": sum(1 for pid in cell_pids if pid in joined_items),
                 "n_mastery_groups": len(groups),
                 "compositionality": comp,
+                "compositionality_pool_parts": comp_pool,
+                "parts_source": dict(sources),
                 "joined_pass1": safe_div(float(c_sum), float(n_sum)),
                 "frac_long_enough": safe_div(float(long_enough_sum), float(n_sum)),
                 "failure_location": dict(fail_loc_total),
@@ -229,6 +279,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "suite": suite,
             "parts_suite": parts_suite,
             "parts_suite_version": parts_version,
+            "renamed_parts_suite": renamed_suite,
             "control_suite": control_suite,
             "control_suite_version": control_version,
             "version": version,
