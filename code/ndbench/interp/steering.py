@@ -23,7 +23,7 @@ from ..judge.base import Judge
 from ..metrics import pass_at_k
 from ..store import Store
 from . import data, eval_suites
-from .runner_support import run_eval_suites
+from .runner_support import eval_suites_from_cfg, run_eval_suites
 
 DEFAULT_VECTOR_DIR = Path("/scratch/cowifornia/nd-rl/bench/out/interp/vectors")
 #: `INTERP_SPEC.md` §2: "layer in {0,1,2,3}", "alpha in {0.25, 0.5, 1, 1.5, 2}".
@@ -203,6 +203,7 @@ def steering_sweep(
             seed=seed,
             budget_s=budget_s,
             judge=judge,
+            only=eval_suites_from_cfg(cfg),
         )
 
     notes: list[str] = list(suites.notes)

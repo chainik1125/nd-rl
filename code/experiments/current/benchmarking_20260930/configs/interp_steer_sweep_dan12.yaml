@@ -33,6 +33,9 @@ position_type: action # matches fit_diff_vectors_dan's own file naming (diff_l<l
 layers: [0, 1]
 alphas: [0.5, 1.0, 2.0]
 k: 8
+# Dev selects the best (layer, alpha), as for ours; sealed is the clean comparison. k128 and
+# textbook_dev are skipped to fit the approved GPU budget (main agent, 2026-10-01).
+eval_suites: [interp_eval_dev, interp_eval_sealed]
 temperature: 0.8
 vectors_dir: /scratch/cowifornia/nd-rl/bench/out/interp/vectors
 exclude_train: false # eval suites are flag-only by convention; set true to also drop seen_train items

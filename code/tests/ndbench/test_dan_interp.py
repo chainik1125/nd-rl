@@ -509,3 +509,12 @@ def test_resolve_labeled_pair_builds_danstate_from_models_yaml(
             base.close()
         if rl is not None:
             rl.close()
+
+
+def test_eval_suites_from_cfg_filters_and_validates() -> None:
+    from code.ndbench.interp.runner_support import eval_suites_from_cfg
+
+    assert eval_suites_from_cfg({}) is None
+    assert eval_suites_from_cfg({"eval_suites": ["interp_eval_k128"]}) == ["interp_eval_k128"]
+    with pytest.raises(ValueError):
+        eval_suites_from_cfg({"eval_suites": "interp_eval_k128"})

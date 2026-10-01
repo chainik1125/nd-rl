@@ -27,7 +27,7 @@ from ..core.types import JSON
 from ..judge.base import Judge
 from ..store import Store
 from . import data, eval_suites
-from .runner_support import run_eval_suites
+from .runner_support import eval_suites_from_cfg, run_eval_suites
 
 #: `INTERP_SPEC.md` §3: "alpha in {0, 0.25, 0.5, 0.75, 1, 1.25, 1.5}".
 ALPHAS: tuple[float, ...] = (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5)
@@ -194,5 +194,6 @@ def run_interpolation(
             seed=seed,
             budget_s=cast("float | None", budget_s),
             judge=judge,
+            only=eval_suites_from_cfg(cfg),
         )
     return {"alphas": [alpha_tag(a) for a in alphas], "runs": per_alpha, "notes": suites.notes}

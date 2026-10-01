@@ -39,7 +39,7 @@ cap: 32
 m: 64
 family: dan12 # logic.exclusion.DanExcluder's seen_train tier (not absgpt's build_exclusion_index)
 exclude_train: true
-family_limit: 0 # no `families` suite built for Dan yet; 0 drops family witnesses entirely
+family_limit: 300 # the `families` v1 suite exists (its witnesses are reference proofs, not Dan samples); 300 as for ours
 # cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache   # DanExcluder's ExclusionIndex cache
 # scan_limit: null   # cap how many reserve.jsonl rows are scanned (leave unset for a real run)
 # model_kwargs: {batch: 512, max_action: 512, max_steps: 96}   # DanStateAdapter kwargs, as strings

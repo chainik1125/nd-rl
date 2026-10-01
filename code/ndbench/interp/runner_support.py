@@ -18,6 +18,7 @@ passes an already-built instance; `interp/__main__.py` builds it once per subcom
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from ..adapters.base import ModelAdapter
@@ -42,6 +43,7 @@ def run_eval_suites(
     budget_s: float | None = None,
     version: str = "v1",
     judge: Judge | None = None,
+    only: Sequence[str] | None = None,
 ) -> dict[str, JSON]:
     """Run `model_label` (`adapter`) on `suites.dev`/`suites.sealed` at `k_pass1` (pass@1),
     `suites.k128` at `k_pass_k` (pass@k curve), and `suites.textbook_dev` at `k_pass1` if it was
@@ -57,6 +59,13 @@ def run_eval_suites(
         plan.append((K128_SUITE, k_pass_k))
     if suites.textbook_dev:
         plan.append(("textbook_dev", k_pass1))
+    if only is not None:
+        # A config's `eval_suites` list keeps a subset (e.g. only the k128 subset for an
+        # interpolation sweep); default `None` runs every suite, as before.
+        unknown = set(only) - {name for name, _k in plan}
+        if unknown:
+            raise ValueError(f"eval_suites names unknown or unbuilt suites: {sorted(unknown)}")
+        plan = [(name, k) for name, k in plan if name in set(only)]
 
     out: dict[str, Any] = {}
     for suite_name, k in plan:
@@ -71,3 +80,13 @@ def run_eval_suites(
         )
         out[suite_name] = run(spec, adapter, judge, store)
     return out
+
+
+def eval_suites_from_cfg(cfg: Mapping[str, JSON]) -> list[str] | None:
+    """A config's optional `eval_suites` list (suite names), or `None` for every suite."""
+    raw = cfg.get("eval_suites")
+    if raw is None:
+        return None
+    if not isinstance(raw, list):
+        raise ValueError(f"eval_suites must be a list of suite names, got {raw!r}")
+    return [str(x) for x in raw]
