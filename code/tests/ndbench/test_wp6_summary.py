@@ -543,9 +543,8 @@ def test_edl_chart_excludes_null_control_from_the_lower_count(tmp_path: Path) ->
         ],
     )
     html = dash_summary._chart_8_edl(store)  # noqa: SLF001
-    assert "1/2" in html  # only pattern_a, out of the 2 non-null classes
-    assert "excluding the heldout_cap6 null control" in html
-    assert "null control" in html
+    assert "lower on 1/2 classes" in html  # only pattern_a, out of the 2 non-null classes
+    assert "heldout_cap6 (null control)" in html
     assert "&lt;= 0" in html  # base's negative value on the null control, html-escaped in the table
 
 
