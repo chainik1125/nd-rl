@@ -609,3 +609,11 @@ def test_steering_pools_textbook_dev_by_default() -> None:
     it is one of `view_steering`'s default pooled suites; pin that assumption directly so a future
     change to that default list fails here, not as a silently-empty chart 10."""
     assert "textbook_dev" in interp_view.DEFAULT_STEERING_SUITES
+
+
+def test_summary_footer_links_detail_pages_only_when_asked(tmp_path: Path) -> None:
+    store = Store(tmp_path / "store")
+    plain = dash_summary.build_summary(store, tmp_path / "a").read_text()
+    linked = dash_summary.build_summary(store, tmp_path / "b", detail_href="detail/index.html")
+    assert 'href="detail/index.html"' not in plain
+    assert 'href="detail/index.html"' in linked.read_text()

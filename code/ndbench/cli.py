@@ -373,7 +373,7 @@ def cmd_dash(args: argparse.Namespace) -> None:
             "dash-summary",
             "summary dashboard builder",
         )
-        path = build_summary(store, Path(args.dash_dir))
+        path = build_summary(store, Path(args.dash_dir), detail_href=args.detail_href)
         print(json.dumps({"dash_dir": args.dash_dir, "summary": str(path)}, indent=2))
         return
     build = _resolve_registry(
@@ -617,6 +617,12 @@ def build_parser() -> argparse.ArgumentParser:
             "write only dash-dir/summary.html: a single page, one chart per benchmark, instead "
             "of the full multi-page dashboard"
         ),
+    )
+    d.add_argument(
+        "--detail-href",
+        default=None,
+        dest="detail_href",
+        help="with --summary: link the page footer to the full dashboard at this URL/path",
     )
     d.set_defaults(func=cmd_dash)
 
