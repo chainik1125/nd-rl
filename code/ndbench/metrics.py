@@ -323,24 +323,46 @@ def hazard(rows: Sequence[tuple[int, bool]]) -> list[tuple[int, int, int, float]
 
 
 def logit_slope(
-    x: Sequence[float], n: Sequence[int], c: Sequence[int], max_iter: int = 100, tol: float = 1e-10
+    x: Sequence[float],
+    n: Sequence[int],
+    c: Sequence[int],
+    max_iter: int = 100,
+    tol: float = 1e-10,
+    ridge: float = 0.5,
 ) -> tuple[float, float]:
     """Fit `p_i = sigmoid(a + b*x_i)` to grouped binomial data (`n_i` trials, `c_i` successes) by
-    IRLS (Fisher scoring). Returns `(b, se_b)`: the slope and its standard error, for "logit slope
-    per added line"/"per 100 tokens" (plan §2 B2/B4/B5)."""
+    ridge-penalised IRLS (Fisher scoring with an `L2` penalty added to the information matrix each
+    step: `(X'WX + ridge*I)^-1 X'Wz` in place of plain `(X'WX)^-1 X'Wz`). Returns `(b, se_b)`: the
+    slope and its standard error, for "logit slope per added line"/"per 100 tokens" (plan §2
+    B2/B4/B5).
+
+    **Why ridge-penalised, not plain IRLS (WP8 integration fix).** A horizon-style curve is close
+    to a step function by construction (pass@k is near 1 then near 0 as a family's `n`/length
+    grows), which is exactly quasi-complete separation for unpenalised logistic regression: the
+    unconstrained MLE for `b` runs to +-infinity and plain IRLS instead stops only when it happens
+    to satisfy `tol`, at some enormous, numerically unstable `(b, se_b)` -- confirmed on the real
+    store's `families`/`prefix` pages (e.g. a `reorder_or`/armC fit landing at slope=-869.9,
+    se=3941.6; a `prefix` `base` intercept at se=1431.97), which then render as chart axes/CI
+    whiskers spanning thousands and swamp every well-estimated bar on the same chart. The penalty
+    is a `Normal(0, 1/sqrt(ridge))` prior on each coefficient: negligible next to a
+    well-identified fit's own (much larger) information, so a non-separated slope/SE is
+    essentially unchanged, but it pulls an otherwise-unbounded separated fit back to a finite,
+    plausible value instead of blowing up -- the standard remedy for this exact failure mode.
+    """
     xs = np.asarray(x, dtype=float)
     ns = np.asarray(n, dtype=float)
     cs = np.asarray(c, dtype=float)
     mask = ns > 0
     xs, ns, cs = xs[mask], ns[mask], cs[mask]
     design = np.column_stack([np.ones_like(xs), xs])
+    penalty = ridge * np.eye(2)
     beta = np.zeros(2)
     for _ in range(max_iter):
         eta = design @ beta
         p = np.clip(1.0 / (1.0 + np.exp(-eta)), 1e-10, 1 - 1e-10)
         w = ns * p * (1 - p)
         z = eta + (cs - ns * p) / (ns * p * (1 - p))
-        xtwx = design.T @ (design * w[:, None])
+        xtwx = design.T @ (design * w[:, None]) + penalty
         xtwz = design.T @ (w * z)
         try:
             new_beta = np.linalg.solve(xtwx, xtwz)
@@ -353,7 +375,7 @@ def logit_slope(
     eta = design @ beta
     p = np.clip(1.0 / (1.0 + np.exp(-eta)), 1e-10, 1 - 1e-10)
     w = ns * p * (1 - p)
-    xtwx = design.T @ (design * w[:, None])
+    xtwx = design.T @ (design * w[:, None]) + penalty
     cov = np.linalg.pinv(xtwx)
     return float(beta[1]), float(np.sqrt(cov[1, 1]))
 

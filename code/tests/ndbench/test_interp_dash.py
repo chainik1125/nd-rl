@@ -36,6 +36,9 @@ def test_views_are_empty_on_a_fresh_store(tmp_path: Path) -> None:
 
 
 def test_renderers_show_no_data_yet_panel_on_empty_views() -> None:
+    """Each renderer prepends a short intro card (what the benchmark measures, fix list item 3)
+    even on an empty view, so a reader lands on an explained "no data yet" panel rather than a
+    bare one; the "no data yet" panel itself is always the renderer's own last figure."""
     for render_fn in (
         interp_pages.render_interp_likelihood,
         interp_pages.render_interp_steering,
@@ -43,8 +46,8 @@ def test_renderers_show_no_data_yet_panel_on_empty_views() -> None:
         interp_pages.render_interp_probes,
     ):
         figs = render_fn({"empty": True, "reason": "no data"})
-        assert len(figs) == 1
-        assert "no data yet" in figs[0]
+        assert len(figs) == 2
+        assert "no data yet" in figs[-1]
 
 
 # ------------------------------------------------------------------------- likelihood, non-empty
@@ -129,6 +132,31 @@ def test_view_and_render_steering_with_data(tmp_path: Path) -> None:
     assert figs
     joined = "\n".join(figs)
     assert "http://" not in joined and "https://" not in joined
+
+
+def test_view_steering_pools_every_default_eval_suite_not_just_dev(tmp_path: Path) -> None:
+    """INTERP_SPEC.md's steering sweep evaluates `interp_eval_dev`, `interp_eval_sealed` AND
+    `textbook_dev` -- `view_steering` with no `cfg["suite"]`/`cfg["suites"]` override must pool
+    every one of them, not silently read only `interp_eval_dev` (the pre-fix default). `base`'s
+    pass@1 is 0 on dev, 1.0 on sealed, 0.5 on textbook_dev (2 items each): a dev-only reader gets
+    0.0, a pooled reader gets the item-weighted mean (0+0+1+1+0.5+0.5)/6 = 0.5.
+    """
+    store = Store(tmp_path)
+    suites_and_c = (
+        (eval_suites.DEV_GEN_SUITE, 0),
+        (eval_suites.SEALED_GEN_SUITE, 4),
+        ("textbook_dev", 2),
+    )
+    for suite, base_c in suites_and_c:
+        problems = [make_problem(f"{suite}_{i}", suite, "v1", length=8) for i in range(2)]
+        store.write_suite(problems, manifest(suite, "v1", len(problems)))
+        run_id = start_run(store, suite=suite, version="v1", model="base", k=4)
+        store.append_items(run_id, [make_item(run_id, f"{suite}_{i}", 4, base_c) for i in range(2)])
+
+    data = interp_view.view_steering(store, {"B": 50})
+    assert data["empty"] is False
+    assert set(data["meta"]["suites"]) == {s for s, _c in suites_and_c}
+    assert data["base_pass1"][0] == 0.5
 
 
 # ---------------------------------------------------------------------- interpolation, non-empty

@@ -20,7 +20,7 @@ throughout for the same reason.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
 import numpy as np
@@ -31,7 +31,14 @@ from ..interp._store import latest_interp_run, load_interp_rows
 from ..interp.probes import LAYER_KEYS
 from ..metrics import pass_curve
 from ..store import Store
-from ._common import cfg_get, empty_view, items_by_pid, latest_run_id, models_present
+from ._common import (
+    cfg_get,
+    default_version,
+    empty_view,
+    items_by_pid,
+    latest_run_id,
+    models_present,
+)
 
 _STEER_RE = re.compile(r"^steer:(-?\d+):(-?[0-9.]+)$")
 _INTERP_RE = re.compile(r"^interp:(-?[0-9.]+)$")
@@ -123,23 +130,72 @@ def _pass1_of(
     return mean, lo, hi
 
 
+#: Suites `interp.steering.steering_sweep` actually evaluates (INTERP_SPEC.md section 2: "run the
+#: standard `runner.run` on the eval suites" -- "the gen items of `dev_L8-11` ... and of
+#: `sealed_L12-14` ..., plus `textbook_dev`"), confirmed on the real store's steering-sweep output,
+#: which records a `"textbook_dev"` entry alongside `"interp_eval_dev"`/`"interp_eval_sealed"`.
+#: `view_steering` used to read only `cfg.get("suite")` (singular, default just
+#: `eval_suites.DEV_GEN_SUITE`), silently dropping two-thirds of the real sweep's data; pooled here
+#: across every suite the same way `view_interpolation`'s `pass1_suites` already pools dev+sealed.
+DEFAULT_STEERING_SUITES: tuple[str, ...] = (
+    eval_suites.DEV_GEN_SUITE,
+    eval_suites.SEALED_GEN_SUITE,
+    "textbook_dev",
+)
+
+
+def _pooled_pass1_of(
+    store: Store, *, suites: Sequence[str], version: str, model: str, B: int, seed: int
+) -> tuple[float, float, float] | None:
+    items: list[ItemResult] = []
+    for suite in suites:
+        run_id = latest_run_id(store, suite=suite, version=version, model=model)
+        if run_id is not None:
+            items += list(items_by_pid(store, run_id).values())
+    if not items:
+        return None
+    _k, mean, lo, hi = pass_curve(items, [1], B=B, seed=seed)[0]
+    return mean, lo, hi
+
+
 def view_steering(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
-    suite = cast(str, cfg_get(cfg, "suite", eval_suites.DEV_GEN_SUITE))
-    version = cast(str, cfg_get(cfg, "version", "v1"))
+    # `cfg["suites"]` (plural) overrides the full default list; `cfg["suite"]` (singular, the
+    # pre-fix cfg key) still works as a one-suite override for callers/tests that pin a single
+    # suite deliberately.
+    if "suites" in cfg:
+        suites = cast("list[str]", cfg["suites"])
+    elif "suite" in cfg:
+        suites = [cast(str, cfg["suite"])]
+    else:
+        suites = list(DEFAULT_STEERING_SUITES)
+    # Fix list item 1, applied uniformly: pick whichever version has runs rather than a
+    # hard-coded "v1" (the interp eval suites are all built and run together in one sweep, so one
+    # shared `version` -- resolved against the first suite -- is a reasonable proxy for all of
+    # them, unlike `yue.py`'s genuinely-independent benchmark suites).
+    version = cast(
+        str,
+        cfg.get("version") or default_version(store, suite=suites[0]) or "v1",
+    )
     B = int(cast(int, cfg_get(cfg, "B", 500)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
 
-    models = models_present(store, suite=suite, version=version)
+    models: set[str] = set()
+    for suite in suites:
+        models |= set(models_present(store, suite=suite, version=version))
     if not models:
-        return empty_view(f"no runs found for suite {suite!r}")
+        return empty_view(f"no runs found for suites {suites!r}")
 
     by_layer: dict[int, list[tuple[float, float, float, float]]] = {}
-    base_pass1 = _pass1_of(store, suite=suite, version=version, model="base", B=B, seed=seed)
+    base_pass1 = _pooled_pass1_of(
+        store, suites=suites, version=version, model="base", B=B, seed=seed
+    )
     rl_control: dict[str, JSON] = {}
-    for m in models:
+    for m in sorted(models):
         match = _STEER_RE.match(m)
-        p1 = _pass1_of(store, suite=suite, version=version, model=m, B=B, seed=seed)
-        if p1 is None or match is None:
+        if match is None:
+            continue
+        p1 = _pooled_pass1_of(store, suites=suites, version=version, model=m, B=B, seed=seed)
+        if p1 is None:
             continue
         layer, alpha = int(match.group(1)), float(match.group(2))
         if alpha < 0:  # the RL `-delta` control (steering_sweep's convention: alpha=-1 on rl)
@@ -150,10 +206,10 @@ def view_steering(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         by_layer[layer].sort()
 
     if base_pass1 is None and not by_layer:
-        return empty_view(f"no base/steer:* runs found for suite {suite!r}")
+        return empty_view(f"no base/steer:* runs found for suites {suites!r}")
     return {
         "empty": False,
-        "meta": {"suite": suite, "version": version, "B": B},
+        "meta": {"suites": suites, "version": version, "B": B},
         "base_pass1": list(base_pass1) if base_pass1 is not None else None,
         "curves_by_layer": {str(k): v for k, v in by_layer.items()},
         "rl_control": rl_control,
@@ -169,11 +225,29 @@ def _alpha_of(model: str) -> float | None:
     return float(match.group(1)) if match else None
 
 
+#: INTERP_SPEC.md's "Data" section lists this interpolation evaluation's own eval sets as "the gen
+#: items of dev_L8-11 ... and of sealed_L12-14 ..., plus textbook_dev" -- the same three suites
+#: `view_steering`'s `DEFAULT_STEERING_SUITES` pools, confirmed present on the real store (31
+#: `textbook_dev` runs carrying matching `interp:*`/`base`/`rl` rows alongside dev/sealed).
+DEFAULT_INTERPOLATION_PASS1_SUITES: tuple[str, ...] = (
+    eval_suites.DEV_GEN_SUITE,
+    eval_suites.SEALED_GEN_SUITE,
+    "textbook_dev",
+)
+
+
 def view_interpolation(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
-    version = cast(str, cfg_get(cfg, "version", "v1"))
+    pass1_suites = (
+        tuple(cast("list[str]", cfg["pass1_suites"]))
+        if "pass1_suites" in cfg
+        else DEFAULT_INTERPOLATION_PASS1_SUITES
+    )
+    # Fix list item 1, applied uniformly (see `view_steering`'s identical rationale: these eval
+    # suites are all built and run together in one sweep, so one shared `version` is a reasonable
+    # proxy for all of them).
+    version = cast(str, cfg.get("version") or default_version(store, suite=pass1_suites[0]) or "v1")
     B = int(cast(int, cfg_get(cfg, "B", 500)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
-    pass1_suites = (eval_suites.DEV_GEN_SUITE, eval_suites.SEALED_GEN_SUITE)
 
     models: set[str] = set()
     for s in (*pass1_suites, eval_suites.K128_SUITE):

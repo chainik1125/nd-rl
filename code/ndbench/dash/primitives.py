@@ -286,11 +286,14 @@ def heatmap(
     x_label: str = "x",
     v_fmt: str = "pct",
     v_max: float | None = None,
+    counts: dict[Any, dict[str, int]] | None = None,
     note: str = "",
     wide: bool = False,
 ) -> str:
     """`grid[col][row_label] = value`. Columns sort by their own value (numeric if possible); rows
-    sort by float(row_label) (short at the bottom)."""
+    sort by float(row_label) (short at the bottom). `counts[col][row_label] = n_items`, when
+    given, is shown alongside the value in both the hover tooltip and the fallback table (plan §2
+    B3's skill x L heat-map: "pass@1 and pass@32 ... with cell counts")."""
     grid = {c: v for c, v in grid.items() if v}
     if not grid:
         return missing_fig(title, sub)
@@ -301,6 +304,10 @@ def heatmap(
     vmax = v_max if v_max is not None else (max(vals) if vals else 1.0) or 1.0
     pw, ph = fig_w - ML - MR, H - MT - MB
     cw, chh = pw / len(cols), ph / len(rows)
+
+    def _n_at(col: Any, row: str) -> int | None:
+        return counts.get(col, {}).get(row) if counts is not None else None
+
     cells = []
     for i, col in enumerate(cols):
         for j, row in enumerate(rows):
@@ -309,7 +316,11 @@ def heatmap(
             cls = (
                 "na" if v is None else f"q{min(8, max(0, int((v / vmax if vmax else 0) * 8.999)))}"
             )
-            tip = json.dumps([[f"{col}, {y_label} {row}", "", None], ["", fmt(v, v_fmt), None]])
+            tip_rows = [[f"{col}, {y_label} {row}", "", None], ["", fmt(v, v_fmt), None]]
+            n = _n_at(col, row)
+            if n is not None:
+                tip_rows.append(["n items", str(n), None])
+            tip = json.dumps(tip_rows)
             cells.append(
                 f'<rect class="{cls}" x="{x:.2f}" y="{y:.2f}" width="{max(cw - 1, 0.6):.2f}" '
                 f'height="{chh - 2:.2f}" data-tip="{esc(tip)}"/>'
@@ -343,9 +354,15 @@ def heatmap(
         f'<svg viewBox="0 0 {fig_w} {H}" role="img" aria-label="{esc(title)}">'
         f"{''.join(g)}{''.join(cells)}</svg>"
     )
+
+    def _cell_text(col: Any, row: str) -> str:
+        v = fmt(grid[col].get(row), v_fmt)
+        n = _n_at(col, row)
+        return f"{v} (n={n})" if n is not None else v
+
     table = _table(
         [x_label, *[f"{y_label} {r}" for r in rows]],
-        [[str(c), *[fmt(grid[c].get(r), v_fmt) for r in rows]] for c in cols],
+        [[str(c), *[_cell_text(c, r) for r in rows]] for c in cols],
     )
     return figure(title, sub, f'{scale}<div class="plot">{svg}</div>{table}', note, wide)
 

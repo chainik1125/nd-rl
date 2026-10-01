@@ -82,3 +82,22 @@ def test_glue_empty_store(tmp_path: Path) -> None:
     store = Store(tmp_path)
     data = glue.view(store, {})
     assert data["empty"] is True
+
+
+def test_glue_flags_a_model_with_no_mastery_run_instead_of_silently_dropping_it(
+    tmp_path: Path,
+) -> None:
+    """Real store: `parts_pool` has no `armC` run (only base/rl), so `armC`'s R/R_min bars are
+    silently absent from the chart -- the view must say explicitly *why* (no mastery data), not
+    just omit `compositionality` the same way it would for "ran, but nobody mastered a part"."""
+    store = _build_store(tmp_path)
+    # armC has a joined-item run but no parts_pool (mastery) run at all.
+    armc_run = start_run(store, suite="glue", version="v1", model="armC", k=32)
+    store.append_items(armc_run, [make_item(armc_run, "joined1", 32, 16)])
+
+    data = glue.view(store, {"B": 50, "seed": 0})
+    armc_cell = data["cells"]["AND_k2"]["armC"]
+    assert armc_cell["compositionality"] is None
+    assert armc_cell["no_mastery_run"] is True
+    # base still has its real parts_pool run -- must not be flagged.
+    assert data["cells"]["AND_k2"]["base"]["no_mastery_run"] is False

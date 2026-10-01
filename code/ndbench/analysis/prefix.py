@@ -32,6 +32,7 @@ from ..metrics import hazard, pass_at_k
 from ..store import Store
 from ._common import (
     cfg_get,
+    default_version,
     empty_view,
     irls_binomial,
     items_by_pid,
@@ -64,8 +65,12 @@ def _bucket_success(rows: list[tuple[float, int, int]]) -> dict[str, Any]:
 
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
-    version = cast(str, cfg_get(cfg, "version", "v1"))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # Fix list item 1, applied uniformly: pick whichever version has runs rather than "v1".
+    version = cast(
+        str,
+        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+    )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:

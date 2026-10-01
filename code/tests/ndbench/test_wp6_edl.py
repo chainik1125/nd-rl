@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 from code.ndbench.analysis import edl
-from code.ndbench.core.types import LengthLabel, Problem, ReferenceProof, Sequent
+from code.ndbench.core.types import JSON, LengthLabel, Problem, ReferenceProof, Sequent
 from code.ndbench.edl import run_edl
 from code.ndbench.store import Store
 
@@ -127,7 +127,64 @@ def test_edl_view_deterministic_under_seed(tmp_path: Path) -> None:
     assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
 
 
+def test_edl_labels_a_production_style_run_by_its_run_id_not_the_raw_ckpt_path(
+    tmp_path: Path,
+) -> None:
+    """WP8 integration fix list item: the real `AbsGptAdapter.identity()` has no `"label"` key, only
+    `"ckpt"` (a full checkpoint path) -- before this fix, the EDL page displayed
+    `/scratch/.../pretrain.pt` instead of `"base"`/`"rl"`. `cli.py`'s `cmd_edl` always names the run
+    `f"edl-{store_label}-{n}-{m}"` (`store_label` is exactly the resolved `--model` label), so
+    `view` must recover `"base"` from the run id instead of guessing from the checkpoint path."""
+    store = Store(tmp_path)
+    problems = _toy_problems(n_train=8, n_test=4)
+    # No "label" key, mirroring the production AbsGptAdapter identity shape exactly.
+    adapter = ConstantNllAdapter(c=1.0, label="")
+    adapter_identity = adapter.identity()
+    adapter_identity.pop("label", None)
+    adapter_identity["ckpt"] = "/scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt"
+    rows = run_edl(adapter, problems, lrs=(1e-4,), orders=1, n=8, m=4)
+    for row in rows:
+        row["model_identity"] = adapter_identity
+    store.append_edl("edl-base-8-4", rows)
+
+    data = edl.view(store, {})
+    assert data["empty"] is False
+    assert "base" in data["classes"]["toy"]
+    assert "/scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt" not in data["classes"]["toy"]
+
+
 def test_edl_empty_store(tmp_path: Path) -> None:
     store = Store(tmp_path)
     data = edl.view(store, {})
     assert data["empty"] is True
+
+
+def test_render_edl_drops_nan_points_from_the_edl_curve() -> None:
+    """`edl.py`'s module docstring: `edl_curve_by_lr` emits one point per `cfg["checkpoints"]`
+    entry even when a row never reached that checkpoint (`nan` there) -- real data hits this
+    whenever a checkpoint exceeds the run's own `n` (e.g. the default grid's 64 with n=32).
+    `render_edl` must drop those points rather than hand `line_chart` a `nan` y-value, which would
+    render as a literal "nan" coordinate in the SVG path (a broken/truncated line segment)."""
+    from code.ndbench.dash import pages
+
+    data: dict[str, JSON] = {
+        "empty": False,
+        "classes": {
+            "toy": {
+                "base": {
+                    "edl_star": 1.0,
+                    "edl_star_ci": [float("nan"), float("nan")],
+                    "edl_curve_by_lr": {
+                        "0.001": [[8, 0.5], [16, 0.8], [32, 1.0], [64, float("nan")]]
+                    },
+                    "best_lr": "0.001",
+                    "l_test_theta0": 2.0,
+                    "l_test_thetan": 1.5,
+                    "pass8_theta0": 0.1,
+                    "pass8_thetan": 0.3,
+                }
+            }
+        },
+    }
+    html = "".join(pages.render_edl(data))
+    assert "nan" not in html.lower()
