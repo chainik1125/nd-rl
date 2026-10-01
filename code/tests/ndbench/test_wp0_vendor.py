@@ -37,16 +37,20 @@ def test_sha256sums_covers_every_file_on_disk() -> None:
     regenerate it)."""
     sums_path = VENDOR_DIR / "SHA256SUMS"
     listed = {line.split(None, 1)[1] for line in sums_path.read_text().splitlines() if line.strip()}
-    # Excluded: SHA256SUMS itself, README.md, and the top-level __init__.py (ndbench's own loader
-    # shim, not vendored content) -- but *not* nested __init__.py files like nd_verify/__init__.py,
-    # which are genuinely vendored and are listed.
-    top_level_exclude = {"SHA256SUMS", "README.md", "__init__.py"}
+    # Excluded: SHA256SUMS itself, README.md, the top-level __init__.py, and danstate_loader.py
+    # (ndbench's own loader shims, not vendored content) -- but *not* nested __init__.py files like
+    # nd_verify/__init__.py, which are genuinely vendored and are listed. `danstate/` is a separate,
+    # self-contained vendored subtree (plan DANSTATE_PLAN.md §1/§7 WP-D0) with its own
+    # SHA256SUMS/PROVENANCE.md and its own completeness check
+    # (test_dan_vendor.py::test_sha256sums_covers_every_py_file_on_disk), out of scope here.
+    top_level_exclude = {"SHA256SUMS", "README.md", "__init__.py", "danstate_loader.py"}
     on_disk = {
         str(p.relative_to(VENDOR_DIR))
         for p in VENDOR_DIR.rglob("*")
         if p.is_file()
         and str(p.relative_to(VENDOR_DIR)) not in top_level_exclude
         and "__pycache__" not in p.parts
+        and "danstate" not in p.relative_to(VENDOR_DIR).parts
     }
     assert on_disk == listed
 

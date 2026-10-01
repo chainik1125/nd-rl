@@ -54,6 +54,7 @@ packages = [
     "code.ndbench.vendor.takehome",
     "code.ndbench.vendor.absgpt",
     "code.ndbench.vendor.lean_seq",
+    "code.ndbench.vendor.danstate",
 ]
 package-dir = {code = "."}
 

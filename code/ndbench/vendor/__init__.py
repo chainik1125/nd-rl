@@ -20,6 +20,11 @@ or importlib unique names"):
   under a private ``sys.modules["ndbench_absgpt_<name>"]`` entry, only transiently aliasing a
   dependency's bare name while a sibling module that needs it (e.g. ``sample.py``'s
   ``from model import rope_cache``) is itself being loaded.
+* ``vendor/danstate/`` (Dan Pandori's ``nd-takehome`` state-env modules) uses the same
+  private-``sys.modules`` strategy as ``absgpt``, plus a ``sys.path`` snapshot/restore for the
+  files that insert their own directory onto ``sys.path`` at module level. See
+  :func:`load_danstate` and ``danstate_loader.py``'s own module docstring for the full loading
+  strategy and the (documented, non-vendored) functions that are forbidden to call directly.
 """
 
 from __future__ import annotations
@@ -30,19 +35,25 @@ import sys
 import types
 from pathlib import Path
 
+from .danstate_loader import DanState, load_danstate
+
 VENDOR_DIR = Path(__file__).resolve().parent
 TAKEHOME_DIR = VENDOR_DIR / "takehome"
 ABSGPT_DIR = VENDOR_DIR / "absgpt"
 LEAN_SEQ_DIR = VENDOR_DIR / "lean_seq"
+DANSTATE_DIR = VENDOR_DIR / "danstate"
 
 __all__ = [
     "VENDOR_DIR",
     "TAKEHOME_DIR",
     "ABSGPT_DIR",
     "LEAN_SEQ_DIR",
+    "DANSTATE_DIR",
     "ensure_takehome_on_path",
     "load_nd_verify",
     "load_ndcheck",
+    "DanState",
+    "load_danstate",
     "load_absgpt_module",
 ]
 
