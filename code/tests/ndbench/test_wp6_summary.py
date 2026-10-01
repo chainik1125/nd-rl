@@ -120,6 +120,35 @@ def _populate_skills(store: Store) -> None:
         )
 
 
+def _populate_laws(store: Store) -> None:
+    """Replaces `build_full_demo_store`'s 3-item `laws` suite with >=20 items per s -- chart 5's
+    `_MIN_ITEMS_PER_BIN` threshold -- at s=0/2/4 for one schema, plus one seen-in-training item
+    the view must exclude."""
+    from dataclasses import replace
+
+    probs = [
+        make_problem(f"law_s{s}_{i}", "laws", "v1", length=7, tags={"schema": "mt", "s": s})
+        for s in (0, 2, 4)
+        for i in range(20)
+    ]
+    seen = replace(
+        make_problem("law_seen", "laws", "v1", length=7, tags={"schema": "mt", "s": 0}),
+        seen_train=True,
+    )
+    store.write_suite([*probs, seen], manifest("laws", "v1", len(probs) + 1))
+    for model, cs in (("base", (20, 10, 1)), ("rl", (28, 14, 2))):
+        run_id = start_run(store, suite="laws", version="v1", model=model, k=32)
+        store.append_items(
+            run_id,
+            [
+                make_item(run_id, f"law_s{s}_{i}", 32, c)
+                for s, c in zip((0, 2, 4), cs, strict=True)
+                for i in range(20)
+            ]
+            + [make_item(run_id, "law_seen", 32, 32)],
+        )
+
+
 def _populate_prefix(store: Store) -> None:
     """Replaces `build_full_demo_store`'s 2-item `prefix` suite with >=20 items per lines-left
     bucket -- chart 7's new `_MIN_PREFIX_BIN_ITEMS` threshold -- at lines_left=1 (j=4, L=5) and
@@ -322,12 +351,7 @@ def build_fully_populated_store(store: Store) -> None:
     # Chart 4 (skills): replaces the demo store's 2-item skill_pool suite (see
     # `_populate_skills`'s own docstring).
     _populate_skills(store)
-    _add_rl_run(
-        store,
-        suite="laws",
-        version="v1",
-        pid_ns=[("law_s0", 32, 28), ("law_s2", 32, 14), ("law_s4", 32, 2)],
-    )
+    _populate_laws(store)
     _add_rl_run(store, suite="textbook_law", version="v1", pid_ns=[("tb1", 32, 4)])
     _add_rl_run(
         store,

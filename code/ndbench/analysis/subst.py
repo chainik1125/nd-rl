@@ -70,6 +70,12 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     problems = problems_by_pid(store, suite, version)
     if not problems:
         return empty_view(f"suite {suite!r} version {version!r} not found in the store")
+    # Audit 2026-10-01: the plan drops law instances seen in training, but laws v1 kept 21
+    # `seen_train` items; exclude them here unless `exclude_seen_train: false`.
+    exclude_seen = bool(cfg_get(cfg, "exclude_seen_train", True))
+    n_seen_excluded = sum(1 for p in problems.values() if p.seen_train) if exclude_seen else 0
+    if exclude_seen:
+        problems = {pid: p for pid, p in problems.items() if not p.seen_train}
     models = override_models or models_present(store, suite=suite, version=version)
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
@@ -173,6 +179,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "version": version,
             "textbook_law_version": textbook_version,
             "models": models,
+            "n_seen_train_excluded": n_seen_excluded,
         },
         "schemas": out,
     }
