@@ -51,6 +51,7 @@ from ..analysis import skills as skills_view
 from ..analysis import subst as subst_view
 from ..analysis import yue as yue_view
 from ..analysis._common import (
+    bootstrap_ci,
     default_version,
     item_length,
     items_by_pid,
@@ -58,9 +59,10 @@ from ..analysis._common import (
     models_present,
     problems_by_pid,
 )
-from ..core.types import JSON, Problem
+from ..core.types import JSON, ItemResult, Problem
 from ..interp._store import interp_runs, latest_interp_run, load_interp_rows
 from ..metrics import compositionality_ratio, pass_at_k
+from ..metrics import horizon as horizon_stat
 from ..store import Store
 from . import primitives as P
 
@@ -180,9 +182,13 @@ def _chart_1_yue(store: Store) -> str:
 # ======================================================================== 2. Restricted families
 
 
-#: `curves_by_k`'s own `n` grid is what `horizon.view` plots pass@k against; a sub-schema with too
-#: few of them (plan: "drop if they have only 1-2 n values") can't show a meaningful horizon curve.
-_MIN_N_VALUES = 3
+#: Per-(family, n) cells with fewer sampled items than this are excluded before computing the
+#: horizon (review fix: several real cells have only 1 item per n -- e.g. `dn_elim`/`dn_intro`,
+#: most ILTP sub-schemas -- nowhere near enough signal to call a 0%/100% pass rate; one real
+#: example, `reorder_or` n=2 (1 item: base solves it, rl doesn't), made a coin flip look like an
+#: RL regression). `metrics.horizon` is called directly on the filtered `by_n` here, since
+#: `horizon.view`'s own `n_star` has no `min_items` knob.
+_MIN_ITEMS_PER_N = 5
 
 
 def _family_group_pids(problems: Mapping[str, Problem]) -> dict[str, list[str]]:
@@ -195,6 +201,56 @@ def _family_group_pids(problems: Mapping[str, Problem]) -> dict[str, list[str]]:
         key = str(fam) if kind is None else f"{fam} ({kind})"
         out.setdefault(key, []).append(pid)
     return out
+
+
+def _family_horizon(
+    store: Store,
+    suite: str,
+    version: str,
+    model: str,
+    pids: Sequence[str],
+    problems: Mapping[str, Problem],
+) -> tuple[int | None, bool] | None:
+    """`(n_star, censored)` for one (family, model) from `metrics.horizon` restricted to n-cells
+    with `>= _MIN_ITEMS_PER_N` items; `None` if no cell qualifies at all. `n_star=None` means
+    pass@8 was already below 50% at the smallest *qualifying* size (review: "None means 'fails
+    even at the smallest size', not 'infinite'" -- `metrics.horizon.n_star` walks n in increasing
+    order and stops at the first failure, so `None` is specifically "failed at the first n
+    tried"). `censored=True` means `n_star` is the largest n actually tested, i.e. pass@8 never
+    dropped below 50% within the tested range: a lower bound on the true horizon, not the horizon
+    itself.
+    """
+    run_id = latest_run_id(store, suite=suite, model=model, version=version)
+    if run_id is None:
+        return None
+    items = items_by_pid(store, run_id)
+    by_n: dict[int, list[ItemResult]] = {}
+    for pid in pids:
+        item = items.get(pid)
+        if item is None:
+            continue
+        n_val = problems[pid].tags.get("n")
+        if n_val is None:
+            continue
+        by_n.setdefault(int(cast(int, n_val)), []).append(item)
+    qualifying = {n: rows for n, rows in by_n.items() if len(rows) >= _MIN_ITEMS_PER_N}
+    if not qualifying:
+        return None
+    result = horizon_stat(qualifying, k=8, tau=0.5, B=2000, seed=0)
+    n_star = result["n_star"]
+    censored = n_star is not None and n_star == max(qualifying)
+    return n_star, censored
+
+
+def _family_written_lines(
+    pids: Sequence[str], problems: Mapping[str, Problem], n_star: int
+) -> float | None:
+    lens = [
+        v
+        for p in pids
+        if problems[p].tags.get("n") == n_star and (v := item_length(problems[p])) is not None
+    ]
+    return statistics.mean(lens) if lens else None
 
 
 def _chart_2_families(store: Store) -> str:
@@ -210,45 +266,85 @@ def _chart_2_families(store: Store) -> str:
 
     dropped: list[str] = []
     rows: list[P.DotRow] = []
-    n_with_horizon = 0
-    n_total_models = 0
+    # base-vs-rl comparison, lines written at n* (a "fails at smallest size" counts as 0 lines --
+    # strictly less horizon than any family that clears at least its own smallest tested size).
+    compare: dict[str, dict[str, float]] = {}
+    longest: tuple[float, str, str] | None = None  # (lines, model, family label)
     for family in sorted(families):
-        per_model = families[family]
-        any_model = next(iter(per_model.values()))
-        n_values = {n for n, _v in cast("list[tuple[int, float]]", any_model["curves_by_k"]["8"])}
-        if family.startswith("ILTP-style") and len(n_values) < _MIN_N_VALUES:
+        pids = pids_by_group.get(family, [])
+        label = "ILTP-style" if family.startswith("ILTP-style") else family
+        pts: list[tuple[str, float | None, str, bool]] = []
+        for model in ("base", "rl", "armC"):
+            res = _family_horizon(store, suite, version, model, pids, problems)
+            if res is None:
+                continue
+            n_star, censored = res
+            if n_star is None:
+                pts.append((model, None, _mcolor(model), False))
+                if model in ("base", "rl"):
+                    compare.setdefault(label, {})[model] = 0.0
+                continue
+            lines = _family_written_lines(pids, problems, n_star)
+            pts.append((model, lines, _mcolor(model), censored))
+            if lines is not None:
+                if model in ("base", "rl"):
+                    compare.setdefault(label, {})[model] = lines
+                if longest is None or lines > longest[0]:
+                    longest = (lines, model, label)
+        if not pts:
             dropped.append(family)
             continue
-        label = "ILTP-style" if family.startswith("ILTP-style") else family
-        pts: list[tuple[str, float | None, str]] = []
-        for model in ("base", "rl", "armC"):
-            d = per_model.get(model)
-            if d is None:
-                continue
-            n_total_models += 1
-            n_star = cast("dict[str, Any]", d["n_star"]["k8_tau0.5"])["n_star"]
-            if n_star is None:
-                pts.append((model, None, _mcolor(model)))
-                continue
-            n_with_horizon += 1
-            pids = [p for p in pids_by_group.get(family, []) if problems[p].tags.get("n") == n_star]
-            lens = [v for p in pids if (v := item_length(problems[p])) is not None]
-            pts.append((model, statistics.mean(lens) if lens else None, _mcolor(model)))
-        if pts:
-            rows.append(P.DotRow(label, pts))
+        rows.append(P.DotRow(label, pts))
 
     if not rows:
-        return P.missing_fig(title, "no family had enough n-values for a horizon")
-    takeaway = (
-        f"{n_with_horizon}/{n_total_models} (family, model) horizons are finite; a dot farther "
-        "right survives more written lines before pass@8 drops below 50%."
-    )
-    drop_note = f" Dropped (<{_MIN_N_VALUES} n-values): {', '.join(dropped)}." if dropped else ""
+        return P.missing_fig(title, "no family had a qualifying (>=5-item) size cell")
+
+    exceeds: list[str] = []
+    ties: list[str] = []
+    trails: list[str] = []
+    for fam, by_model in compare.items():
+        b, r = by_model.get("base"), by_model.get("rl")
+        if b is None or r is None:
+            continue
+        if abs(r - b) < 0.5:
+            ties.append(fam)
+        elif r > b:
+            exceeds.append(fam)
+        else:
+            trails.append(fam)
+
+    if longest is not None:
+        lines, model, fam = longest
+        takeaway = (
+            f"every family collapses within a few sizes: the longest horizon is {model} on "
+            f"{fam} (about {P.fmt(lines, 'g')} written lines)"
+        )
+    else:
+        takeaway = "every family collapses at or before the smallest size tested"
+    bits = []
+    if exceeds:
+        bits.append(f"rl's horizon exceeds base's on {', '.join(exceeds)}")
+    if ties:
+        bits.append(f"ties on {', '.join(ties)}")
+    if trails:
+        bits.append(f"trails on {', '.join(trails)}")
+    takeaway = takeaway + ("; " + "; ".join(bits) + "." if bits else ".")
+
+    drop_note = f" Too few items per size (dropped): {', '.join(dropped)}." if dropped else ""
     caption = (
-        f"{len(rows)} families; n* at pass@8>=50%, converted to written lines at that n; "
+        f"{len(rows)} families; n* at pass@8>=50% over size cells with >={_MIN_ITEMS_PER_N} "
+        "items only; >= marks a censored (never dropped below 50% in the tested range) horizon; "
         f"base, rl, armC.{drop_note}"
     )
-    return P.dot_plot(title, takeaway, rows, x_label="written lines at n*", wide=True, note=caption)
+    return P.dot_plot(
+        title,
+        takeaway,
+        rows,
+        x_label="written lines at n*",
+        none_label="fails at smallest size",
+        wide=True,
+        note=caption,
+    )
 
 
 # ===================================================================================== 3. Glue
@@ -316,13 +412,21 @@ def _chart_3_glue(store: Store) -> str:
 
     if not bars:
         return P.missing_fig(title, "no operator had both a joined and a parts_pool run")
-    best = max(bars, key=lambda b: b.value)
-    worst = min(bars, key=lambda b: b.value)
-    takeaway = (
-        f"compositionality is uneven across operators: {best.name} is highest "
-        f"(R={P.fmt(best.value, 'f3')}); {worst.name} is lowest (R={P.fmt(worst.value, 'f3')}); "
-        "R well below 1 means joining, not the parts, is the hard part."
-    )
+    by_op: dict[str, list[P.Bar]] = {}
+    for b in bars:
+        by_op.setdefault(b.name.split(": ", 1)[0], []).append(b)
+    zero_ops = [op for op, bs in by_op.items() if all(abs(b.value) < 1e-9 for b in bs)]
+    nonzero = [b for b in bars if b.name.split(": ", 1)[0] not in zero_ops]
+    bits = []
+    if nonzero:
+        best = max(nonzero, key=lambda b: b.value)
+        bits.append(f"{best.name} is highest (R={P.fmt(best.value, 'f3')})")
+        worst = min(nonzero, key=lambda b: b.value)
+        if worst.name != best.name:
+            bits.append(f"{worst.name} is lowest (R={P.fmt(worst.value, 'f3')})")
+    for op in zero_ops:
+        bits.append(f"{op}: R=0 for both models")
+    takeaway = "compositionality varies by operator: " + "; ".join(bits) + "."
     caption = (
         "R = joined pass@1 / product of mastered parts' pass@1, pooled per operator; "
         + "; ".join(f"{op} n={n}" for op, n in counts.items())
@@ -352,6 +456,21 @@ def _rl_items_by_pid(store: Store, problems: Mapping[str, Problem]) -> dict[str,
     for pid, nc in legacy.get("rl", {}).items():
         out.setdefault(pid, nc)
     return out
+
+
+#: (L, bucket) cells with fewer sampled items than this are dropped before plotting (review: a
+#: 15-item "needs classical" cell at L=8 landed at 48.1% pass@1, a spike driven entirely by n=15 --
+#: no cell that thin is informative, so it is excluded rather than plotted at face value).
+_MIN_SKILL_CELL_ITEMS = 20
+
+#: Neutral, non-model colours for the three skill lines (review: "don't reuse the rl model's
+#: orange for the 'no special skill' line -- all three lines are rl", so none of these should be
+#: `MODEL_COLOR["rl"]`, which a reader would otherwise read as "this line is a different model").
+_SKILL_LINE_COLORS: dict[str, str] = {
+    "no special skill": "var(--s4)",
+    "needs case split": "var(--s5)",
+    "needs classical": "var(--s6)",
+}
 
 
 def _chart_4_skills(store: Store) -> str:
@@ -386,21 +505,24 @@ def _chart_4_skills(store: Store) -> str:
         )
         buckets[key].setdefault(length, []).append((n, c))
 
-    colors = {
-        "no special skill": _mcolor("rl"),
-        "needs case split": "var(--s4)",
-        "needs classical": "var(--s5)",
-    }
     series = []
+    dropped_cells = 0
     for name, by_l in buckets.items():
-        pts = []
+        pts: list[tuple[float, float]] = []
+        band: list[tuple[float, float, float]] = []
         for length, ncs in sorted(by_l.items()):
+            if len(ncs) < _MIN_SKILL_CELL_ITEMS:
+                dropped_cells += 1
+                continue
             vals = [pass_at_k(n, c, 1) for n, c in ncs]
-            pts.append((length, statistics.mean(vals)))
+            mean = statistics.mean(vals)
+            pts.append((length, mean))
+            lo, hi = bootstrap_ci(vals, seed=0, B=500)
+            band.append((length, lo, hi))
         if pts:
-            series.append(P.Series(name, pts, colors[name]))
+            series.append(P.Series(name, pts, _SKILL_LINE_COLORS[name], band=band))
     if not series:
-        return P.missing_fig(title, "no item had both a known length and a known skill flag")
+        return P.missing_fig(title, "no (length, skill) cell had >=20 items")
 
     def _overall(name: str) -> float:
         vals = [pass_at_k(n, c, 1) for ncs in buckets[name].values() for n, c in ncs]
@@ -413,9 +535,14 @@ def _chart_4_skills(store: Store) -> str:
         f"{P.fmt(overall['needs classical'], 'pct')} when the proof is classical."
     )
     n_items = sum(len(v) for by_l in buckets.values() for v in by_l.values())
+    drop_note = (
+        f" {dropped_cells} (length, skill) cells with <{_MIN_SKILL_CELL_ITEMS} items are omitted."
+        if dropped_cells
+        else ""
+    )
     caption = (
-        f"n={n_items} skill_pool items (direct + legacy-imported runs), rl only; "
-        "base shown in detail on the Skills page."
+        f"n={n_items} skill_pool items (direct + legacy-imported runs), rl only; shaded band: "
+        f"95% item-level bootstrap CI.{drop_note} base shown in detail on the Skills page."
     )
     return P.line_chart(
         title, takeaway, series, x_label="L (written lines)", y_fmt="pct", note=caption
@@ -457,14 +584,39 @@ def _chart_5_subst(store: Store) -> str:
         return statistics.mean(by_s[s]) if s in by_s else None
 
     s_values = sorted({s for by_s in by_model_s.values() for s in by_s})
-    s0, s_hi = s_values[0], s_values[-1]
-    b0, r0 = _at("base", s0), _at("rl", s0)
-    b_hi, r_hi = _at("base", s_hi), _at("rl", s_hi)
-    takeaway = (
-        f"pass@1 falls from base {P.fmt(b0, 'pct')}/rl {P.fmt(r0, 'pct')} at s={P.fmt(s0, 'g')} "
-        f"to base {P.fmt(b_hi, 'pct')}/rl {P.fmt(r_hi, 'pct')} at s={P.fmt(s_hi, 'g')}: filler "
-        "complexity, not law identity, drives the failure."
-    )
+    common_s = [s for s in s_values if _at("base", s) is not None and _at("rl", s) is not None]
+    bits: list[str] = []
+    if common_s:
+        peak_b_s = max(common_s, key=lambda s: cast(float, _at("base", s)))
+        peak_r_s = max(common_s, key=lambda s: cast(float, _at("rl", s)))
+        bits.append(
+            f"base peaks at s={P.fmt(peak_b_s, 'g')} ({P.fmt(_at('base', peak_b_s), 'pct')}), "
+            f"rl peaks at s={P.fmt(peak_r_s, 'g')} ({P.fmt(_at('rl', peak_r_s), 'pct')})"
+        )
+        near_zero = next(
+            (
+                s
+                for s in common_s
+                if cast(float, _at("base", s)) < 0.01 and cast(float, _at("rl", s)) < 0.01
+            ),
+            None,
+        )
+        if near_zero is not None:
+            bits.append(f"both are near 0% by s={P.fmt(near_zero, 'g')}")
+        # the smallest s after which base is at or above rl for every larger s tested.
+        base_ge_from = next(
+            (
+                common_s[i]
+                for i in range(len(common_s))
+                if all(
+                    cast(float, _at("base", s)) >= cast(float, _at("rl", s)) for s in common_s[i:]
+                )
+            ),
+            None,
+        )
+        if base_ge_from is not None and base_ge_from != common_s[0]:
+            bits.append(f"base is at or above rl from s={P.fmt(base_ge_from, 'g')} onward")
+    takeaway = "; ".join(bits) + "." if bits else "pass@1 vs filler size s, base vs rl."
     caption = f"n={n_items} instances, averaged over 8 schemas: {', '.join(sorted(schemas))}."
     return P.line_chart(
         title,
@@ -532,8 +684,7 @@ def _chart_6_padding(store: Store) -> str:
         nat_p1 = next(p for w, p, _n in rl_natural if w == w0)
         takeaway = (
             f"at W={P.fmt(w0, 'g')} written lines, rl solves {P.fmt(nat_p1, 'pct')} of natural "
-            f"theorems but only {P.fmt(pad_p1, 'pct')} once those lines are padding -- length "
-            "alone does not explain the drop."
+            f"theorems but only {P.fmt(pad_p1, 'pct')} once those lines are padding."
         )
     else:
         takeaway = "padded vs. natural pass@1 at matched written length W."
@@ -551,6 +702,12 @@ def _chart_6_padding(store: Store) -> str:
 # ============================================================================= 7. Prefix completion
 
 
+#: Lines-left bins with fewer sampled items than this are dropped before plotting (review: thin
+#: bins -- e.g. 10 or 6 items -- cause a zig-zag that has nothing to do with lines left, such as a
+#: jump from 0% at 4 lines left to 16.8% at 5).
+_MIN_PREFIX_BIN_ITEMS = 20
+
+
 def _chart_7_prefix(store: Store) -> str:
     title = "Prefix completion: finishing someone else's proof"
     data = prefix_view.view(store, {})
@@ -559,32 +716,40 @@ def _chart_7_prefix(store: Store) -> str:
     models = cast("dict[str, dict[str, Any]]", data["models"])
     series = []
     n_items_by_model = {}
-    coefs: dict[str, dict[str, Any]] = {}
+    kept_by_model: dict[str, dict[float, float]] = {}
     for model, d in models.items():
         by_ll = cast("dict[str, dict[str, Any]]", d["success_by_lines_left"])
-        pts = sorted((float(k), v["pass1"]) for k, v in by_ll.items())
-        series.append(P.Series(model, pts, _mcolor(model)))
+        kept = {
+            float(k): cast(float, v["pass1"])
+            for k, v in by_ll.items()
+            if cast(int, v["n_items"]) >= _MIN_PREFIX_BIN_ITEMS
+        }
+        kept_by_model[model] = kept
+        if kept:
+            series.append(P.Series(model, sorted(kept.items()), _mcolor(model)))
         n_items_by_model[model] = d.get("n_items", "?")
-        coefs[model] = cast("dict[str, Any]", d["fitted_logit"])
     if not series:
-        return P.missing_fig(title, "no model had usable j/L tags")
+        return P.missing_fig(title, "no model had a lines-left bin with >=20 items")
 
     bits = []
-    for model in ("base", "rl"):
-        c = coefs.get(model)
-        if not c:
-            continue
-        ll = c["lines_left"]["coef"]
-        jc = c["j"]["coef"]
-        bits.append(f"{model} lines-left {P.fmt(ll, 'f3')}, position {P.fmt(jc, 'f3')}")
-    takeaway = (
-        "more lines left to write costs more than being further into the proof (fitted logit "
-        "coefficients, " + "; ".join(bits) + ")."
-        if bits
-        else "success by lines left to write."
-    )
+    base_kept, rl_kept = kept_by_model.get("base", {}), kept_by_model.get("rl", {})
+    if 1.0 in base_kept and 1.0 in rl_kept:
+        bits.append(
+            f"with 1 line left rl finishes {P.fmt(rl_kept[1.0], 'pct')} vs base "
+            f"{P.fmt(base_kept[1.0], 'pct')}"
+        )
+    ll3 = next((ll for ll in sorted(set(base_kept) & set(rl_kept)) if ll >= 3), None)
+    if ll3 is not None:
+        bits.append(
+            f"with {P.fmt(ll3, 'g')} lines left rl finishes {P.fmt(rl_kept[ll3], 'pct')} vs base "
+            f"{P.fmt(base_kept[ll3], 'pct')}"
+        )
+    takeaway = "; ".join(bits) + "." if bits else "success by lines left to write, base vs rl."
     n_str = ", ".join(f"{m}={n}" for m, n in n_items_by_model.items())
-    caption = f"items: {n_str}; pooled success rate by lines left (L-j); base vs rl."
+    caption = (
+        f"items: {n_str}; pooled success rate by lines left (L-j), bins with "
+        f"<{_MIN_PREFIX_BIN_ITEMS} items omitted; base vs rl."
+    )
     return P.line_chart(
         title, takeaway, series, x_label="lines left (L-j)", y_fmt="pct", note=caption
     )
@@ -644,6 +809,13 @@ def _edl_class_key(cls: str) -> tuple[int, str]:
         return (len(_EDL_CLASS_ORDER), cls)
 
 
+#: The null control's EDL is expected to be ~0 (and noisy enough to land slightly negative, which
+#: is undefined on the chart's log scale -- `dot_plot`'s `log_x` clamps it to the axis floor with
+#: a "<= 0" label) -- it is reported but excluded from the "rl lower on N/M classes" count below,
+#: since "lower EDL" has no "elicited a real capability" meaning for a class with nothing to learn.
+_EDL_NULL_CONTROL = "heldout_cap6"
+
+
 def _chart_8_edl(store: Store) -> str:
     title = "EDL: nats per example to pick up a new pattern"
     run_ids = (
@@ -668,40 +840,86 @@ def _chart_8_edl(store: Store) -> str:
         friendly_by_run[raw] = friendly
         n_by_friendly[friendly] = int(cast(int, rows[0].get("n", 64)))
 
-    bars: list[P.Bar] = []
-    for cls in sorted(classes, key=_edl_class_key):
-        for raw_model, d in classes[cls].items():
+    rows_by_class: dict[str, dict[str, float]] = {}
+    for cls, per_model in classes.items():
+        for raw_model, d in per_model.items():
             model = friendly_by_run.get(raw_model, raw_model)
+            if model not in ("base", "rl"):
+                continue
             n = n_by_friendly.get(model, 64)
             best_lr = cast(str, d["best_lr"])
             edl_val = cast(float, d["edl_by_lr"][best_lr])
-            bars.append(P.Bar(f"{cls}: {model}", edl_val / n, color=_mcolor(model)))
-    if not bars:
+            rows_by_class.setdefault(cls, {})[model] = edl_val / n
+    if not rows_by_class:
         return P.missing_fig(title, "no usable EDL rows")
 
-    base_vals = {b.name.rsplit(": ", 1)[0]: b.value for b in bars if b.name.endswith(": base")}
-    rl_vals = {b.name.rsplit(": ", 1)[0]: b.value for b in bars if b.name.endswith(": rl")}
-    common = sorted(set(base_vals) & set(rl_vals), key=_edl_class_key)
-    n_rl_lower = sum(1 for c in common if rl_vals[c] < base_vals[c])
+    dot_rows: list[P.DotRow] = []
+    for cls in sorted(rows_by_class, key=_edl_class_key):
+        vals = rows_by_class[cls]
+        label = f"{cls} (null control)" if cls == _EDL_NULL_CONTROL else cls
+        pts: list[tuple[str, float | None, str, bool]] = [
+            (m, vals[m], _mcolor(m), False) for m in ("base", "rl") if m in vals
+        ]
+        if pts:
+            dot_rows.append(P.DotRow(label, pts))
+
+    common = {
+        cls: vals
+        for cls, vals in rows_by_class.items()
+        if cls != _EDL_NULL_CONTROL and "base" in vals and "rl" in vals
+    }
+    n_rl_lower = sum(1 for vals in common.values() if vals["rl"] < vals["base"])
     takeaway = (
-        f"rl needs fewer nats/example than base on {n_rl_lower}/{len(common)} classes -- an "
-        "unfamiliar pattern already close to known costs little to pick up online."
+        f"rl needs fewer nats/example than base on {n_rl_lower}/{len(common)} classes "
+        f"(excluding the {_EDL_NULL_CONTROL} null control)."
         if common
         else "EDL per example, by class and model."
     )
     caption = (
-        f"{len(common)} classes, base vs rl; EDL at the learning rate with the smallest online "
-        "code length (ln(3) hyperparameter-cost term excluded here); edl2-* runs only."
+        f"{len(common)} classes, base vs rl, plus the null control; EDL at the learning rate "
+        "with the smallest online code length (ln(3) hyperparameter-cost term excluded here); "
+        "edl2-* runs only."
     )
-    return P.hbar_chart(title, takeaway, bars, x_fmt="f3", log_x=True, wide=True, note=caption)
+    return P.dot_plot(
+        title,
+        takeaway,
+        dot_rows,
+        x_label="EDL per example (nats)",
+        log_x=True,
+        wide=True,
+        note=caption,
+    )
 
 
 # ================================================================================ 9. Likelihood
 
 
-def _likelihood_crux_data(
+#: Row order and display labels for chart 9's dot plot (review: "one row per proof set: reserve
+#: (neutral), family witnesses, base's own verified proofs, rl's crux proofs").
+_LIKELIHOOD_ROW_ORDER: tuple[str, ...] = ("reserve", "family", "base_verified", "crux")
+_LIKELIHOOD_ROW_LABEL: dict[str, str] = {
+    "reserve": "reserve (neutral)",
+    "family": "family witnesses",
+    "base_verified": "base's own verified proofs",
+    "crux": "rl's crux proofs (p_hat_base=0)",
+}
+
+
+def _likelihood_per_line(
     store: Store,
-) -> tuple[list[float], list[float], dict[str, Any]] | None:
+) -> tuple[dict[str, dict[str, list[float]]], dict[str, Any]] | None:
+    """Per-line (`log p / L`) likelihood under base and under rl, grouped by proof origin
+    (`reserve`, `family`, `base_verified`, and the `crux` subset of `rl_verified` rows with
+    `p_hat_base == 0`), from the latest `interp likelihood` run, plus three ordering-robustness
+    numbers: the fraction of `reserve` proofs with only one valid line order, the median
+    per-line change from marginalising over orders (`|logp_marginal - logp_single| / L`, pooled
+    over every row), and the median *paired* per-item (rl - base) gap on the crux set.
+
+    `L` is on the row itself for `reserve`/`family` rows; `base_verified`/`rl_verified` rows don't
+    carry it (`interp/likelihood.py`'s `run_likelihood` only fills `L` for its neutral/family
+    rows), so it is instead looked up via the run's own recorded `cfg["model_samples"][model]
+    ["suite"/"version"]` -- the suite that model's verified samples were actually drawn from.
+    """
     run_id = latest_interp_run(store, "likelihood")
     if run_id is None:
         return None
@@ -724,85 +942,129 @@ def _likelihood_crux_data(
     base_problems = _problems("base")
     rl_problems = _problems("rl")
 
-    base_vals: list[float] = []
-    base_lens: list[float] = []
-    crux_vals: list[float] = []
-    crux_lens: list[float] = []
+    by_origin: dict[str, dict[str, list[float]]] = {}
+    paired_crux_gap: list[float] = []
+    abs_diffs_per_line: list[float] = []
+    single_order_reserve = 0
+    total_reserve = 0
     for r in rows:
-        base_side = cast("Mapping[str, JSON]", r["base"])
-        lm = base_side.get("logp_marginal")
-        if lm is None:
-            continue
+        origin = cast(str, r["origin"])
         bare_pid = cast(str, r["pid"]).split(":", 1)[-1]
-        origin = r.get("origin")
-        if origin == "base_verified":
-            length = item_length(base_problems[bare_pid]) if bare_pid in base_problems else None
-            if length:
-                base_vals.append(float(cast(float, lm)) / length)
-                base_lens.append(length)
-        elif origin == "rl_verified":
+        length = cast("int | None", r.get("L"))
+        row_label = origin
+        if length is None:
+            if origin == "base_verified":
+                p = base_problems.get(bare_pid)
+            elif origin == "rl_verified":
+                p = rl_problems.get(bare_pid)
+            else:
+                p = None
+            length = item_length(p) if p is not None else None
+        if not length:
+            continue
+        if origin == "rl_verified":
             p_hat = r.get("p_hat_base")
             if p_hat is None or float(cast(float, p_hat)) != 0.0:
                 continue
-            length = item_length(rl_problems[bare_pid]) if bare_pid in rl_problems else None
-            if length:
-                crux_vals.append(float(cast(float, lm)) / length)
-                crux_lens.append(length)
-    if not base_vals or not crux_vals:
+            row_label = "crux"
+        base_side = cast("Mapping[str, JSON]", r["base"])
+        rl_side = cast("Mapping[str, JSON]", r["rl"])
+        base_lm, rl_lm = base_side.get("logp_marginal"), rl_side.get("logp_marginal")
+        base_pl = float(cast(float, base_lm)) / length if base_lm is not None else None
+        rl_pl = float(cast(float, rl_lm)) / length if rl_lm is not None else None
+        if base_pl is not None:
+            by_origin.setdefault(row_label, {}).setdefault("base", []).append(base_pl)
+        if rl_pl is not None:
+            by_origin.setdefault(row_label, {}).setdefault("rl", []).append(rl_pl)
+        if row_label == "crux" and base_pl is not None and rl_pl is not None:
+            paired_crux_gap.append(rl_pl - base_pl)
+        base_single = base_side.get("logp_single")
+        if base_lm is not None and base_single is not None:
+            abs_diffs_per_line.append(
+                abs(float(cast(float, base_lm)) - float(cast(float, base_single))) / length
+            )
+        if origin == "reserve":
+            total_reserve += 1
+            method, n_ord = base_side.get("method"), base_side.get("n_orderings")
+            if method == "single" or n_ord in (None, 1):
+                single_order_reserve += 1
+    if not by_origin:
         return None
     meta = {
         "run_id": run_id,
-        "n_base": len(base_vals),
-        "n_crux": len(crux_vals),
-        "base_mean_L": statistics.mean(base_lens),
-        "crux_mean_L": statistics.mean(crux_lens),
+        "frac_single_reserve": (single_order_reserve / total_reserve) if total_reserve else None,
+        "median_abs_diff_per_line": (
+            statistics.median(abs_diffs_per_line) if abs_diffs_per_line else None
+        ),
+        "crux_paired_gap_median": (statistics.median(paired_crux_gap) if paired_crux_gap else None),
     }
-    return base_vals, crux_vals, meta
-
-
-def _freq_series(name: str, values: Sequence[float], color: str, bins: Sequence[float]) -> P.Series:
-    counts = [0] * (len(bins) - 1)
-    for v in values:
-        idx = min(len(counts) - 1, max(0, int((v - bins[0]) / (bins[-1] - bins[0]) * len(counts))))
-        counts[idx] += 1
-    mids = [(bins[i] + bins[i + 1]) / 2.0 for i in range(len(bins) - 1)]
-    return P.Series(name, list(zip(mids, (float(c) for c in counts), strict=True)), color)
+    return by_origin, meta
 
 
 def _chart_9_likelihood(store: Store) -> str:
     title = "Likelihood: how surprised is base by RL's proofs?"
-    result = _likelihood_crux_data(store)
+    result = _likelihood_per_line(store)
     if result is None:
         return P.missing_fig(title, "no `interp likelihood` run with resolvable lengths")
-    base_vals, crux_vals, meta = result
-    lo = min(min(base_vals), min(crux_vals))
-    hi = max(max(base_vals), max(crux_vals))
-    if hi <= lo:
-        hi = lo + 1.0
-    bins = [lo + i * (hi - lo) / 24 for i in range(25)]
-    series = [
-        _freq_series("base: own verified proofs", base_vals, _mcolor("base"), bins),
-        _freq_series("rl: crux proofs (base never solves)", crux_vals, _mcolor("rl"), bins),
-    ]
-    med_base = statistics.median(base_vals)
-    med_crux = statistics.median(crux_vals)
-    frac_below = sum(1 for v in crux_vals if v < min(base_vals)) / len(crux_vals)
-    takeaway = (
-        f"median base log p/line is {P.fmt(med_base, 'f3')} nats on its own proofs vs "
-        f"{P.fmt(med_crux, 'f3')} on rl's crux proofs ({P.fmt(frac_below, 'pct')} of crux proofs "
-        "score below base's own minimum)."
+    by_origin, meta = result
+
+    dot_rows: list[P.DotRow] = []
+    for origin in _LIKELIHOOD_ROW_ORDER:
+        d = by_origin.get(origin)
+        if not d:
+            continue
+        n = max(len(v) for v in d.values())
+        label = f"{_LIKELIHOOD_ROW_LABEL[origin]} (n={n})"
+        pts: list[tuple[str, float | None, str, bool]] = [
+            (model, statistics.median(d[model]), _mcolor(model), False)
+            for model in ("base", "rl")
+            if d.get(model)
+        ]
+        if pts:
+            dot_rows.append(P.DotRow(label, pts))
+    if not dot_rows:
+        return P.missing_fig(title, "no origin had both base and rl per-line likelihoods")
+
+    gap = cast("float | None", meta.get("crux_paired_gap_median"))
+    if gap is not None:
+        takeaway = (
+            f"on rl's crux proofs base assigns about {P.fmt(gap, 'f3')} nats/line less than rl"
+        )
+    else:
+        takeaway = "median base/rl log-likelihood per written line, by proof origin"
+    extra_bits = []
+    fam = by_origin.get("family", {})
+    if fam.get("base") and fam.get("rl"):
+        fam_gap = abs(statistics.median(fam["base"]) - statistics.median(fam["rl"]))
+        extra_bits.append(f"about {P.fmt(fam_gap, 'f3')} on family witnesses")
+    bv = by_origin.get("base_verified", {})
+    if (
+        bv.get("base")
+        and bv.get("rl")
+        and statistics.median(bv["rl"]) < statistics.median(bv["base"])
+    ):
+        extra_bits.append("rl is slightly less likely than base on base's own proofs")
+    takeaway += ("; elsewhere the gap is " + " and ".join(extra_bits)) if extra_bits else ""
+    takeaway += "."
+
+    frac_single = cast("float | None", meta.get("frac_single_reserve"))
+    diff_pl = cast("float | None", meta.get("median_abs_diff_per_line"))
+    ordering_note = (
+        f" Marginalising over valid line orders changes log p by {P.fmt(diff_pl, 'f3')} "
+        f"nats/line in median; {P.fmt(frac_single, 'pct')} of reserve proofs have a single "
+        "valid order."
+        if frac_single is not None and diff_pl is not None
+        else ""
     )
     caption = (
-        f"n={meta['n_base']} base-verified, n={meta['n_crux']} crux (p_hat_base=0) proofs, run "
-        f"{meta['run_id']}; length confound: base's proofs average "
-        f"{P.fmt(meta['base_mean_L'], 'g')} lines, crux proofs {P.fmt(meta['crux_mean_L'], 'g')}."
+        f"median log p per written line, base vs rl, by proof origin; run {meta['run_id']}; "
+        "crux = rl_verified items with p_hat_base=0 (base never solves them)." + ordering_note
     )
-    return P.line_chart(
+    return P.dot_plot(
         title,
         takeaway,
-        series,
-        x_label="base log p / L (nats per line)",
-        y_fmt="int",
+        dot_rows,
+        x_label="median log p per written line (nats)",
         wide=True,
         note=caption,
     )
@@ -818,64 +1080,89 @@ def _chart_10_steering(store: Store) -> str:
         return P.missing_fig(title, str(data.get("reason", "no data")))
     curves = cast("dict[str, list[tuple[float, float, float, float]]]", data["curves_by_layer"])
     meta = cast("dict[str, Any]", data["meta"])
-    layer_mean = {
-        layer: statistics.mean(m for _a, m, _lo, _hi in pts) for layer, pts in curves.items() if pts
-    }
-    if not layer_mean:
-        return P.missing_fig(title, "no steer:* runs with any items")
-    best_layer = max(layer_mean, key=lambda layer: layer_mean[layer])
-    pts = curves[best_layer]
-    series = [
-        P.Series(
-            f"layer {best_layer}",
-            [(a, m) for a, m, _lo, _hi in pts],
-            _mcolor("rl"),
-            band=[(a, lo, hi) for a, _m, lo, hi in pts],
-        )
-    ]
-    alphas = [a for a, _m, _lo, _hi in pts]
+    suites = cast("list[str]", meta["suites"])
     base_pass1 = cast("list[float] | None", data.get("base_pass1"))
+    if not curves and base_pass1 is None:
+        return P.missing_fig(title, "no base/steer:* runs with any items")
+
+    # the single best (layer, alpha) point across the whole sweep, by mean pass@1 (the plan's
+    # "the layer with the highest mean" read as the layer+alpha combination that peaks highest,
+    # since a flat line-chart over every layer is exactly the "all flat at ~0%" presentation the
+    # review flagged as hiding the real result).
+    best: tuple[str, float, float, float, float] | None = None  # (layer, alpha, mean, lo, hi)
+    for layer, pts in curves.items():
+        for a, m, lo, hi in pts:
+            if best is None or m > best[2]:
+                best = (layer, a, m, lo, hi)
+
     rl_pass1 = interp_view._pooled_pass1_of(  # noqa: SLF001
         store,
-        suites=cast("list[str]", meta["suites"]),
+        suites=suites,
         version=cast(str, meta["version"]),
         model="rl",
         B=int(cast(int, meta["B"])),
         seed=0,
     )
-    x0, x1 = min([0.0, *alphas]), max(alphas)
+    rl_control = cast("dict[str, Any]", data.get("rl_control", {}))
+    ctrl_layer, ctrl = next(iter(rl_control.items()), (None, None))
+
+    bars: list[P.Bar] = []
     if base_pass1 is not None:
-        series.append(
-            P.Series(
-                "base (unsteered)",
-                [(x0, base_pass1[0]), (x1, base_pass1[0])],
-                _mcolor("base"),
-                muted=True,
+        bars.append(
+            P.Bar("base (unsteered)", base_pass1[0], base_pass1[1], base_pass1[2], _mcolor("base"))
+        )
+    if best is not None:
+        layer, alpha, m, lo, hi = best
+        bars.append(
+            P.Bar(f"base + delta (layer {layer}, a={P.fmt(alpha, 'g')})", m, lo, hi, "var(--s4)")
+        )
+    if ctrl is not None:
+        ci = cast("list[float]", ctrl["ci"])
+        bars.append(
+            P.Bar(
+                f"rl - delta (layer {ctrl_layer})",
+                cast(float, ctrl["pass1"]),
+                ci[0],
+                ci[1],
+                "var(--s5)",
             )
         )
     if rl_pass1 is not None:
-        series.append(
-            P.Series("rl", [(x0, rl_pass1[0]), (x1, rl_pass1[0])], "var(--s4)", muted=True)
-        )
+        bars.append(P.Bar("rl", rl_pass1[0], rl_pass1[1], rl_pass1[2], _mcolor("rl")))
+    if not bars:
+        return P.missing_fig(title, "no base/rl/steer:* pass@1 could be computed")
 
-    best_alpha, best_val = max(pts, key=lambda t: t[1])[:2]
-    takeaway = (
-        f"layer {best_layer} has the highest mean pass@1 across alpha; steering pushes base from "
-        f"{P.fmt(base_pass1[0] if base_pass1 else float('nan'), 'pct')} (unsteered) to "
-        f"{P.fmt(best_val, 'pct')} at alpha={P.fmt(best_alpha, 'g')}"
-        + (f", still below rl's {P.fmt(rl_pass1[0], 'pct')}." if rl_pass1 else ".")
-    )
-    rl_control = cast("dict[str, Any]", data.get("rl_control", {}))
-    ctrl_bits = [f"layer {layer}: {P.fmt(d['pass1'], 'pct')}" for layer, d in rl_control.items()]
-    caption = (
-        f"suites {', '.join(cast('list[str]', meta['suites']))}; layers "
-        f"{', '.join(sorted(curves, key=int))}; rl-delta control: "
-        + (", ".join(ctrl_bits) or "n/a")
-        + "."
-    )
-    return P.line_chart(
-        title, takeaway, series, x_label="alpha", y_fmt="pct", wide=True, note=caption
-    )
+    bits = []
+    if base_pass1 is not None and best is not None:
+        bits.append(
+            "adding the RL-base direction to base does nothing "
+            f"({P.fmt(base_pass1[0], 'pct')} -> {P.fmt(best[2], 'pct')})"
+        )
+    if ctrl is not None and rl_pass1 is not None:
+        diff_pts = (rl_pass1[0] - cast(float, ctrl["pass1"])) * 100
+        bits.append(
+            f"subtracting it from rl costs {diff_pts:.1f} points "
+            f"({P.fmt(rl_pass1[0], 'pct')} -> {P.fmt(cast(float, ctrl['pass1']), 'pct')})"
+        )
+    takeaway = ", but ".join(bits) + "." if bits else "pass@1 for base, base+delta, rl-delta, rl."
+
+    tdev_note = ""
+    if "textbook_dev" in suites:
+        tdev_pass1 = interp_view._pooled_pass1_of(  # noqa: SLF001
+            store,
+            suites=["textbook_dev"],
+            version=cast(str, meta["version"]),
+            model="base",
+            B=int(cast(int, meta["B"])),
+            seed=0,
+        )
+        if tdev_pass1 is not None:
+            tdev_note = (
+                f" interp_eval_dev/sealed dominate the pooled item count (base alone on "
+                f"textbook_dev is {P.fmt(tdev_pass1[0], 'pct')})."
+            )
+    caption = f"pooled pass@1 over {', '.join(suites)}.{tdev_note}"
+    return P.bar_chart(title, takeaway, bars, y_fmt="pct", wide=True, note=caption)
 
 
 # ============================================================================ 11. Weight interp.
@@ -886,51 +1173,78 @@ def _chart_11_weights(store: Store) -> str:
     data = interp_view.view_interpolation(store, {})
     if data.get("empty"):
         return P.missing_fig(title, str(data.get("reason", "no data")))
-    pass1 = cast("list[tuple[float, float, float, float]]", data["pass1_vs_alpha"])
     pass_k = cast("dict[str, list[tuple[int, float, float, float]]]", data["pass_k_by_alpha"])
-    if not pass1 and not pass_k:
-        return P.missing_fig(title, "no base/rl/interp:* runs")
+    if not pass_k:
+        return P.missing_fig(title, "no base/rl/interp:* runs on the fixed k=128 subset")
 
-    series = []
-    clean1 = [(a, m, lo, hi) for a, m, lo, hi in pass1 if m == m]
-    if clean1:
-        series.append(
-            P.Series(
-                "pass@1",
-                [(a, m) for a, m, _lo, _hi in clean1],
-                _mcolor("base"),
-                band=[(a, lo, hi) for a, _m, lo, hi in clean1],
-            )
-        )
-    pts128 = []
+    # pass@1 AND pass@128 both read from the same fixed k=128 theorem subset (review: pass@1 from
+    # the full dev+sealed+textbook_dev set and pass@128 from the k=128 subset can disagree about
+    # which is bigger at the same alpha -- impossible for the same metric on the same items, as
+    # the real store's alpha=0 point showed: pass@1 0.1% > pass@128 0.0%).
+    curve_map: dict[float, tuple[float, float, float, float, float, float]] = {}
     for alpha_str, curve in pass_k.items():
-        v128 = next((mean for k, mean, _lo, _hi in curve if k == 128), None)
-        if v128 is not None and v128 == v128:
-            pts128.append((float(alpha_str), v128))
-    if pts128:
-        series.append(P.Series("pass@128", sorted(pts128), _mcolor("rl"), muted=True))
-    if not series:
-        return P.missing_fig(title, "interpolation runs exist but have no usable points")
+        by_k = {k: (m, lo, hi) for k, m, lo, hi in curve}
+        if 1 not in by_k or 128 not in by_k:
+            continue
+        m1, lo1, hi1 = by_k[1]
+        m128, lo128, hi128 = by_k[128]
+        if m1 != m1 or m128 != m128:  # nan
+            continue
+        curve_map[float(alpha_str)] = (m1, lo1, hi1, m128, lo128, hi128)
+    if not curve_map:
+        return P.missing_fig(title, "no alpha had both pass@1 and pass@128 on the k=128 subset")
 
-    takeaway = "pass@1 and pass@128 vs alpha."
-    if clean1 and pts128:
-        p128_by_a = dict(pts128)
-        # smallest alpha with a nonzero pass@1 (alpha=0 is base itself, usually ~0 on both
-        # metrics and uninformative for "does coverage show up before pass@1 does").
-        candidates = sorted(
-            (a, m, p128_by_a[a]) for a, m, _lo, _hi in clean1 if a > 0 and m > 0 and a in p128_by_a
+    alphas = sorted(curve_map)
+    series = [
+        P.Series(
+            "pass@1",
+            [(a, curve_map[a][0]) for a in alphas],
+            _mcolor("base"),
+            band=[(a, curve_map[a][1], curve_map[a][2]) for a in alphas],
+        ),
+        P.Series(
+            "pass@128",
+            [(a, curve_map[a][3]) for a in alphas],
+            _mcolor("rl"),
+            muted=True,
+            band=[(a, curve_map[a][4], curve_map[a][5]) for a in alphas],
+        ),
+    ]
+
+    a0, a1 = alphas[0], min(alphas, key=lambda a: abs(a - 1.0))
+    p1_0, p1_1 = curve_map[a0][0], curve_map[a1][0]
+    step = max(
+        zip(alphas, alphas[1:], strict=False),
+        key=lambda ab: curve_map[ab[1]][0] - curve_map[ab[0]][0],
+        default=None,
+    )
+    bits = [
+        f"pass@1 rises from {P.fmt(p1_0, 'pct')} (alpha={P.fmt(a0, 'g')}) to "
+        f"{P.fmt(p1_1, 'pct')} (alpha={P.fmt(a1, 'g')})"
+    ]
+    if step is not None:
+        bits[0] += (
+            f" with most of the gain between alpha={P.fmt(step[0], 'g')} and {P.fmt(step[1], 'g')}"
         )
-        a_one = min(clean1, key=lambda t: abs(t[0] - 1.0))
-        if candidates:
-            a_lo, p1_lo, p128_lo = candidates[0]
-            ratio_lo = p128_lo / p1_lo if p1_lo else float("nan")
-            takeaway = (
-                f"at alpha={P.fmt(a_lo, 'g')}, pass@128 ({P.fmt(p128_lo, 'pct')}) is "
-                f"{ratio_lo:.1f}x pass@1 ({P.fmt(p1_lo, 'pct')}) -- sampling already finds it far "
-                f"more than a single draw; by alpha={P.fmt(a_one[0], 'g')} pass@1 reaches "
-                f"{P.fmt(a_one[1], 'pct')}."
+    beyond = [a for a in alphas if a > a1]
+    if beyond:
+        a_mid = beyond[0]
+        p1_mid, p128_mid = curve_map[a_mid][0], curve_map[a_mid][3]
+        bits.append(
+            f"extrapolating to alpha={P.fmt(a_mid, 'g')} drops pass@1 to {P.fmt(p1_mid, 'pct')} "
+            f"but pass@128 stays at {P.fmt(p128_mid, 'pct')}"
+        )
+        if len(beyond) > 1:
+            a_end = beyond[-1]
+            bits.append(
+                f"alpha={P.fmt(a_end, 'g')} is {P.fmt(curve_map[a_end][0], 'pct')} pass@1 / "
+                f"{P.fmt(curve_map[a_end][3], 'pct')} pass@128"
             )
-    caption = "fixed theorem subset, k up to 128; base=alpha 0, rl=alpha 1."
+    takeaway = "; ".join(bits) + "."
+    caption = (
+        "fixed k=128 theorem subset, pass@1 and pass@128 on the same items; "
+        "base=alpha 0, rl=alpha 1."
+    )
     return P.line_chart(
         title,
         takeaway,
@@ -972,39 +1286,43 @@ def _chart_12_probes(store: Store) -> str:
 
     ood = cast("dict[str, list[tuple[int, JSON]]]", data.get("length_generalisation_ood_r2", {}))
 
-    def _last(name: str) -> float | None:
-        pts = _clean(acc.get(name, []))
+    def _last(series_dict: dict[str, list[tuple[int, JSON]]], name: str) -> float | None:
+        pts = _clean(series_dict.get(name, []))
         return pts[-1][1] if pts else None
 
-    b_last, r_last = _last("base"), _last("rl")
+    b_last, r_last = _last(acc, "base"), _last(acc, "rl")
     gap = (
         ""
         if b_last is None or r_last is None
         else f" (deepest layer: {P.fmt(b_last, 'pct')} vs {P.fmt(r_last, 'pct')})"
     )
-    takeaway = (
-        "next_rule accuracy is close between base and rl at every layer"
-        + gap
-        + " -- RL mostly changes how the information already in base is used, not whether it "
-        "exists."
+    ood_b, ood_r = _last(ood, "base"), _last(ood, "rl")
+    ood_bit = (
+        f" lines_to_go OOD R2 is negative for both (base {P.fmt(ood_b, 'f3')}, rl "
+        f"{P.fmt(ood_r, 'f3')})."
+        if ood_b is not None and ood_r is not None and ood_b < 0 and ood_r < 0
+        else ""
     )
-    ood_bits = []
-    for model in ("base", "rl"):
-        pts = _clean(ood.get(model, []))
-        if pts:
-            ood_bits.append(f"{model} {P.fmt(pts[-1][1], 'f3')}")
+    takeaway = (
+        "next_rule accuracy is close between base and rl at every layer" + gap + "." + ood_bit
+    )
+    ood_bits = [
+        f"{m} {P.fmt(v, 'f3')}" for m, v in (("base", ood_b), ("rl", ood_r)) if v is not None
+    ]
     caption = (
         f"layers {', '.join(layers)}; solid=next_rule acc, dashed=lines_to_go R2; "
         "OOD length-generalisation R2 (deepest layer): " + (", ".join(ood_bits) or "n/a") + "."
     )
+    display_labels = ["emb" if layer == "emb" else f"L{layer}" for layer in layers]
     return P.line_chart(
         title,
         takeaway,
         series,
-        x_label=f"layer ({', '.join(layers)})",
+        x_label="layer",
         y_fmt="f3",
         wide=True,
         note=caption,
+        x_tick_labels=display_labels,
     )
 
 

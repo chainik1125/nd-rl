@@ -52,6 +52,22 @@ def fmt(v: Any, kind: str = "g") -> str:
     return f"{x:.4g}"
 
 
+def _decimals_needed(step: float, max_d: int = 6) -> int:
+    """The smallest number of decimal digits that represents `step` exactly (up to float noise):
+    a `log10`-floor heuristic alone picks too few for steps like `0.25` (`log10(0.25)` floors to
+    `-1`, i.e. 1 decimal place, which rounds `0.25`/`0.75` to `0.2`/`0.8` under round-half-to-even
+    -- confirmed on the real glue R-ratio chart's y-axis). `0.1`/`0.2`/`0.5`/`1`/`2`/`2.5`/`5`/`10`
+    are `nice_ticks`'s only possible step *shapes* (any power of ten times one of those), so this
+    just checks increasing decimal counts until rounding to that many places is a no-op.
+    """
+    if step <= 0:
+        return 0
+    for d in range(max_d + 1):
+        if abs(round(step, d) - step) < 1e-9 * max(1.0, abs(step)):
+            return d
+    return max_d
+
+
 def tick_fmt(t: float, step: float, kind: str) -> str:
     """Tick label with as many decimals as the tick step needs."""
     if kind == "pct":
@@ -59,7 +75,7 @@ def tick_fmt(t: float, step: float, kind: str) -> str:
         return f"{100 * t:.{d}f}%"
     if kind == "sci" and (abs(t) >= 1e5 or 0 < abs(t) < 1e-3):
         return f"{t:.2g}"
-    d = max(0, -math.floor(math.log10(step) + 1e-9)) if step > 0 else 0
+    d = _decimals_needed(step)
     return f"{t:,.{d}f}"
 
 
@@ -123,11 +139,20 @@ def _legend(series: list[Series], kind: str = "line") -> str:
         return ""
     items = []
     for s in series:
-        key = "lkey" if kind == "line" else "bkey"
-        items.append(
-            f'<span class="li"><span class="{key}" style="background:{s.color}"></span>'
-            f"{esc(s.name)}</span>"
-        )
+        if kind == "line":
+            # a literal dashed vs. solid line swatch (not just a colour block) so a legend with
+            # both solid and dashed series of the same colour palette (e.g. the probes chart's
+            # "accuracy" vs. "R^2" series, same per-model colours) is still legible without
+            # relying on the reader to guess which line is which from the chart alone.
+            dash = ' stroke-dasharray="6 4"' if s.muted else ""
+            key = (
+                '<svg width="16" height="10" class="lkeyline" aria-hidden="true">'
+                f'<line x1="1" y1="5" x2="15" y2="5" stroke="{s.color}" stroke-width="2"{dash}/>'
+                "</svg>"
+            )
+        else:
+            key = f'<span class="bkey" style="background:{s.color}"></span>'
+        items.append(f'<span class="li">{key}{esc(s.name)}</span>')
     return f'<div class="legend">{"".join(items)}</div>'
 
 
@@ -168,7 +193,13 @@ def line_chart(
     wide: bool = False,
     x_fmt: str = "g",
     log_x: bool = False,
+    x_tick_labels: list[str] | None = None,
 ) -> str:
+    """`x_tick_labels[i]` (when given) replaces the x-tick label at `x == i` (e.g. a layer index)
+    with a real category name, and ticks are placed at every integer in range instead of
+    `nice_ticks`'s own step size -- without this, a 5-point integer x-axis (plan: "layer 0..4")
+    gets fractional ticks like `0.5`/`1.5` from `nice_ticks` picking a step of `0.5`, which label
+    no real category (confirmed on the real probes chart)."""
     empty = [s for s in series if not s.pts]
     series = [s for s in series if s.pts]
     if not series:
@@ -213,13 +244,22 @@ def line_chart(
             f'<text class="tick" x="{ML - 6}" y="{py(t) + 4:.1f}" text-anchor="end">'
             f"{esc(tick_fmt(t, ystep, y_fmt))}</text>"
         )
-    for t in nice_ticks(x0, x1, 12 if wide else 7, integer=(x_fmt == "int" and not log_x)):
-        if x0 <= t <= x1:
-            label = fmt(2**t, x_fmt) if log_x else fmt(t, x_fmt)
-            g.append(
-                f'<text class="tick" x="{ML + (t - x0) / (x1 - x0) * pw:.1f}" y="{H - MB + 16}" '
-                f'text-anchor="middle">{esc(label)}</text>'
-            )
+    if x_tick_labels is not None:
+        for i, label in enumerate(x_tick_labels):
+            t = xform(float(i))
+            if x0 <= t <= x1:
+                g.append(
+                    f'<text class="tick" x="{ML + (t - x0) / (x1 - x0) * pw:.1f}" '
+                    f'y="{H - MB + 16}" text-anchor="middle">{esc(label)}</text>'
+                )
+    else:
+        for t in nice_ticks(x0, x1, 12 if wide else 7, integer=(x_fmt == "int" and not log_x)):
+            if x0 <= t <= x1:
+                label = fmt(2**t, x_fmt) if log_x else fmt(t, x_fmt)
+                g.append(
+                    f'<text class="tick" x="{ML + (t - x0) / (x1 - x0) * pw:.1f}" '
+                    f'y="{H - MB + 16}" text-anchor="middle">{esc(label)}</text>'
+                )
     g.append(f'<line class="axis" x1="{ML}" x2="{fig_w - MR}" y1="{MT + ph}" y2="{MT + ph}"/>')
     g.append(
         f'<text class="alabel" x="{ML + pw / 2}" y="{H - 4}" text-anchor="middle">'
@@ -637,10 +677,26 @@ def hbar_chart(
 @dataclass
 class DotRow:
     label: str
-    #: `(series_name, value, color)`; `value=None` means "not reached" ("none"), shown as a label
-    #: instead of a dot at this row (plan: "families where nothing reaches 50% ... are marked
-    #: 'none'").
-    points: list[tuple[str, float | None, str]]
+    #: `(series_name, value, color, censored)`. `value=None` means this series' own `none_label`
+    #: applies at this row (plan: "families where nothing reaches 50% ... are marked 'none'" --
+    #: generalised to any dot_plot caller's own "did not reach X" label, e.g. "fails at smallest
+    #: size"). `censored=True` draws a "this value or more" marker next to an otherwise-ordinary
+    #: dot (plan: a horizon that never dropped below threshold within the tested range is a lower
+    #: bound on the true horizon, not the horizon itself).
+    points: list[tuple[str, float | None, str, bool]]
+
+
+#: Vertical pixel offsets for up to this many same-row dots, evenly spread so same-coloured runs
+#: of base/rl/armC (or similar) don't render exactly on top of each other at the same x (plan:
+#: "Dots overlap: base and rl are hidden under armC. Offset each model vertically within its row").
+_DOT_ROW_SPREAD = 6.0
+
+
+def _row_offsets(n: int) -> list[float]:
+    if n <= 1:
+        return [0.0] * n
+    step = 2 * _DOT_ROW_SPREAD / (n - 1)
+    return [-_DOT_ROW_SPREAD + i * step for i in range(n)]
 
 
 def dot_plot(
@@ -651,13 +707,21 @@ def dot_plot(
     x_label: str = "x",
     x_fmt: str = "g",
     x_max: float | None = None,
+    x_min: float | None = None,
+    log_x: bool = False,
+    none_label: str = "none",
     note: str = "",
     wide: bool = False,
 ) -> str:
     """A horizontal dot plot: one category row per `DotRow.label`, with one coloured dot per
-    `(series_name, value, color)` point at that row's own x position -- the summary dashboard's
-    "horizon in written lines, one row per family, one dot per model" chart. A `None` value is
-    rendered as a small "none" annotation at the row's left edge instead of a dot."""
+    `(series_name, value, color, censored)` point at that row's own x position -- the summary
+    dashboard's "one row per family/class, one dot per model" charts. A `None` value renders as a
+    small marker (tooltip: `none_label`) at the row's left edge instead of a dot; `censored=True`
+    draws a small `>=` mark after the dot. `log_x` mirrors `line_chart`'s own convention (log2
+    internally, real-value tick labels); a value `<= 0` under `log_x` (undefined on a log scale,
+    e.g. a slightly negative null-control estimate) is clamped to the axis minimum and tagged
+    `<= 0` rather than silently misplaced or dropped.
+    """
     rows = [r for r in rows if r.points]
     if not rows:
         return missing_fig(title, sub)
@@ -668,21 +732,45 @@ def dot_plot(
     total_h = top + row_h * len(rows)
     h = total_h + bot
     pw = fig_w - label_w - MR - 8
-    vals = [v for r in rows for _n, v, _c in r.points if v is not None]
-    hi = x_max if x_max is not None else (max(vals) if vals else 1.0) or 1.0
-    yt = nice_ticks(0, hi, 6)
-    hi = max(yt[-1], hi)
+
+    def xform(x: float) -> float:
+        return math.log2(max(x, 1e-9)) if log_x else x
+
+    pos_vals = [v for r in rows for _n, v, _c, _z in r.points if v is not None and v > 0]
+    all_vals = [v for r in rows for _n, v, _c, _z in r.points if v is not None]
+    vals = pos_vals if log_x else all_vals
+    default_lo = (0.1 if log_x else 0.0) if not vals else min(vals)
+    lo_v = x_min if x_min is not None else default_lo
+    hi_v = x_max if x_max is not None else (max(vals) if vals else 1.0) or 1.0
+    if log_x:
+        lo_t, hi_t = xform(lo_v), xform(hi_v if hi_v > lo_v else lo_v + 1.0)
+        yt_t = nice_ticks(lo_t, hi_t, 6)
+    else:
+        yt = nice_ticks(lo_v, hi_v, 6)
+        lo_v, hi_v = min(yt[0], lo_v), max(yt[-1], hi_v)
+        lo_t, hi_t = lo_v, hi_v
+        yt_t = yt
 
     def px(x: float) -> float:
-        return label_w + x / (hi or 1) * pw
+        return label_w + (xform(x) - lo_t) / ((hi_t - lo_t) or 1) * pw
+
+    def clamp(v: float) -> tuple[float, bool]:
+        """`(plotted_value, was_clamped)`: under `log_x`, a non-positive value has no real log
+        position, so it is pinned to the axis floor and flagged for a "<= 0" display instead."""
+        if log_x and v <= 0:
+            return lo_v, True
+        return v, False
 
     g = []
-    for t in yt:
-        xpix = px(t)
+    for t in yt_t:
+        if t < lo_t - 1e-9 or t > hi_t + 1e-9:
+            continue
+        xpix = label_w + (t - lo_t) / ((hi_t - lo_t) or 1) * pw
+        label = fmt(2**t, x_fmt) if log_x else fmt(t, x_fmt)
         g.append(f'<line class="grid" x1="{xpix:.1f}" x2="{xpix:.1f}" y1="{top}" y2="{total_h}"/>')
         g.append(
             f'<text class="tick" x="{xpix:.1f}" y="{total_h + 16}" text-anchor="middle">'
-            f"{esc(fmt(t, x_fmt))}</text>"
+            f"{esc(label)}</text>"
         )
     g.append(
         f'<text class="alabel" x="{label_w + pw / 2:.1f}" y="{h - 4}" text-anchor="middle">'
@@ -696,20 +784,28 @@ def dot_plot(
             f'<text class="tick" x="{label_w - 8:.1f}" y="{y + 4:.1f}" text-anchor="end">'
             f"{esc(row.label)}</text>"
         )
-        none_names = [n for n, v, _c in row.points if v is None]
-        for n, v, c in row.points:
+        offsets = _row_offsets(len(row.points))
+        for (n, v, c, censored), y_off in zip(row.points, offsets, strict=True):
+            yi = y + y_off
             if v is None:
+                tip = json.dumps([[row.label, "", None], [n, none_label, c]])
+                marks.append(
+                    f'<line class="whisker" x1="{label_w + 4:.1f}" x2="{label_w + 12:.1f}" '
+                    f'y1="{yi:.1f}" y2="{yi:.1f}" style="stroke:{c}" data-tip="{esc(tip)}"/>'
+                )
                 continue
-            tip = json.dumps([[row.label, "", None], [n, fmt(v, x_fmt), c]])
+            plotted, clamped = clamp(v)
+            val_text = "<= 0" if clamped else (f">= {fmt(v, x_fmt)}" if censored else fmt(v, x_fmt))
+            tip = json.dumps([[row.label, "", None], [n, val_text, c]])
             marks.append(
-                f'<circle class="dot" cx="{px(v):.1f}" cy="{y:.1f}" r="5" style="fill:{c}" '
+                f'<circle class="dot" cx="{px(plotted):.1f}" cy="{yi:.1f}" r="5" style="fill:{c}" '
                 f'data-tip="{esc(tip)}"/>'
             )
-        if none_names:
-            marks.append(
-                f'<text class="tick" x="{label_w + 6:.1f}" y="{y + 4:.1f}">'
-                f"none: {esc(', '.join(none_names))}</text>"
-            )
+            if censored and not clamped:
+                marks.append(
+                    f'<text class="tick" x="{px(plotted) + 9:.1f}" y="{yi + 4:.1f}" '
+                    f'data-tip="{esc(tip)}">&#8805;</text>'
+                )
     g.append(f'<line class="axis" x1="{label_w}" x2="{label_w}" y1="{top}" y2="{total_h}"/>')
     svg = (
         f'<svg viewBox="0 0 {fig_w} {h}" role="img" aria-label="{esc(title)}">'
@@ -717,7 +813,7 @@ def dot_plot(
     )
     legend_items: list[tuple[str, str]] = []
     for row in rows:
-        for n, v, c in row.points:
+        for n, v, c, _z in row.points:
             if v is not None and (n, c) not in legend_items:
                 legend_items.append((n, c))
     leg = "".join(
@@ -727,14 +823,17 @@ def dot_plot(
     model_names = [n for n, _c in legend_items]
     table_rows = []
     for row in rows:
-        by_name = {n: v for n, v, _c in row.points}
-        table_rows.append(
-            [row.label]
-            + [
-                fmt(by_name[n], x_fmt) if by_name.get(n) is not None else "none"
-                for n in model_names
-            ]
-        )
+        by_name = {n: (v, z) for n, v, _c, z in row.points}
+        cells = []
+        for n in model_names:
+            v, z = by_name.get(n, (None, False))
+            if v is None:
+                cells.append(none_label if n in by_name else "")
+            elif log_x and v <= 0:
+                cells.append("<= 0")
+            else:
+                cells.append((">= " if z else "") + fmt(v, x_fmt))
+        table_rows.append([row.label, *cells])
     table = _table(["row", *model_names], table_rows)
     body = f'<div class="legend">{leg}</div><div class="plot">{svg}</div>{table}'
     return figure(title, sub, body, note, wide)

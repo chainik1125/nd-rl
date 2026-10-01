@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 from code.ndbench.analysis import interp as interp_view
 from code.ndbench.core.types import JSON
@@ -61,6 +62,79 @@ def _add_rl_run(
     content rather than a single-series/partial one."""
     run_id = start_run(store, suite=suite, version=version, model="rl", k=32)
     store.append_items(run_id, [make_item(run_id, pid, n, c) for pid, n, c in pid_ns])
+
+
+def _populate_families(store: Store) -> None:
+    """Replaces `build_full_demo_store`'s minimal (1-item-per-`n`) `families` suite with one that
+    clears chart 2's `_MIN_ITEMS_PER_N` (5) threshold, and exercises all three of its horizon
+    outcomes: base clears n=1,2 then fails at n=3 (an ordinary finite horizon), rl fails at every
+    tested n ("fails at smallest size" / `n_star=None`), armC clears every tested n (a censored,
+    ">=" horizon -- the true horizon could be larger than what was tested)."""
+    probs = [
+        make_problem(
+            f"and_tower_n{n}_{i}",
+            "families",
+            "v1",
+            length=n + 2,
+            tags={"family": "and_tower", "n": n},
+        )
+        for n in (1, 2, 3)
+        for i in range(5)
+    ]
+    store.write_suite(probs, manifest("families", "v1", len(probs)))
+    for model, cs in (("base", (30, 28, 0)), ("rl", (0, 0, 0)), ("armC", (30, 30, 30))):
+        run_id = start_run(store, suite="families", version="v1", model=model, k=32)
+        store.append_items(
+            run_id,
+            [
+                make_item(run_id, f"and_tower_n{n}_{i}", 32, c)
+                for n, c in zip((1, 2, 3), cs, strict=True)
+                for i in range(5)
+            ],
+        )
+
+
+def _populate_skills(store: Store) -> None:
+    """Replaces `build_full_demo_store`'s 2-item `skill_pool` suite with >=20 items per (length,
+    skill) bucket -- chart 4's new `_MIN_SKILL_CELL_ITEMS` threshold -- across all three of its
+    buckets: "no special skill" (L=8), "needs case split" (L=9), "needs classical" (L=10)."""
+    probs = (
+        [make_problem(f"none_{i}", "skill_pool", "v1", length=8) for i in range(20)]
+        + [
+            make_problem(f"case_{i}", "skill_pool", "v1", length=9, tags={"case_split": True})
+            for i in range(20)
+        ]
+        + [
+            make_problem(f"classical_{i}", "skill_pool", "v1", length=10, tags={"classical": True})
+            for i in range(20)
+        ]
+    )
+    store.write_suite(probs, manifest("skill_pool", "v1", len(probs)))
+    for model, c_none, c_case, c_classical in (("base", 10, 1, 2), ("rl", 16, 0, 1)):
+        run_id = start_run(store, suite="skill_pool", version="v1", model=model, k=32)
+        store.append_items(
+            run_id,
+            [make_item(run_id, f"none_{i}", 32, c_none) for i in range(20)]
+            + [make_item(run_id, f"case_{i}", 32, c_case) for i in range(20)]
+            + [make_item(run_id, f"classical_{i}", 32, c_classical) for i in range(20)],
+        )
+
+
+def _populate_prefix(store: Store) -> None:
+    """Replaces `build_full_demo_store`'s 2-item `prefix` suite with >=20 items per lines-left
+    bucket -- chart 7's new `_MIN_PREFIX_BIN_ITEMS` threshold -- at lines_left=1 (j=4, L=5) and
+    lines_left=3 (j=2, L=5)."""
+    probs = [make_problem(f"ll1_{i}", "prefix", "v1", tags={"j": 4, "L": 5}) for i in range(20)] + [
+        make_problem(f"ll3_{i}", "prefix", "v1", tags={"j": 2, "L": 5}) for i in range(20)
+    ]
+    store.write_suite(probs, manifest("prefix", "v1", len(probs)))
+    for model, c_ll1, c_ll3 in (("base", 2, 0), ("rl", 10, 3)):
+        run_id = start_run(store, suite="prefix", version="v1", model=model, k=10)
+        store.append_items(
+            run_id,
+            [make_item(run_id, f"ll1_{i}", 10, c_ll1) for i in range(20)]
+            + [make_item(run_id, f"ll3_{i}", 10, c_ll3) for i in range(20)],
+        )
 
 
 def _populate_glue_operators(store: Store) -> None:
@@ -237,19 +311,17 @@ def build_fully_populated_store(store: Store) -> None:
     render real content rather than a single-series or "no data yet" card."""
     build_full_demo_store(store)
 
+    # Chart 2 (families): replaces the demo store's 1-item-per-n families suite with one that
+    # clears the new `_MIN_ITEMS_PER_N` threshold (see `_populate_families`'s own docstring).
+    _populate_families(store)
+
     # Charts that only need a second ("rl") run alongside the demo store's existing suites/pids.
-    _add_rl_run(
-        store,
-        suite="families",
-        version="v1",
-        # all-zero rl: families' n* should come back `None` for rl (exercises chart 2's "none"
-        # dot-plot branch) while base keeps its own (non-`None`) horizon from the demo store.
-        pid_ns=[("and_tower_n1", 32, 0), ("and_tower_n2", 32, 0), ("and_tower_n3", 32, 0)],
-    )
     _add_rl_run(
         store, suite="parts_pool", version="v1", pid_ns=[("part_a", 32, 28), ("part_b", 32, 22)]
     )
-    _add_rl_run(store, suite="skill_pool", version="v1", pid_ns=[("i1", 32, 24), ("i2", 32, 2)])
+    # Chart 4 (skills): replaces the demo store's 2-item skill_pool suite (see
+    # `_populate_skills`'s own docstring).
+    _populate_skills(store)
     _add_rl_run(
         store,
         suite="laws",
@@ -269,7 +341,9 @@ def build_fully_populated_store(store: Store) -> None:
         version="v1",
         pid_ns=[("ctrl1", 32, 14), ("nat5", 32, 24), ("nat6", 32, 18), ("nat7", 32, 10)],
     )
-    _add_rl_run(store, suite="prefix", version="v1", pid_ns=[("pfx_a", 10, 8), ("pfx_b", 10, 7)])
+    # Chart 7 (prefix): replaces the demo store's 2-item prefix suite (see `_populate_prefix`'s
+    # own docstring).
+    _populate_prefix(store)
 
     # Chart 3 (glue): a joined item per operator, not just `AND`.
     _populate_glue_operators(store)
@@ -338,6 +412,142 @@ def test_build_summary_is_idempotent_and_overwrites(tmp_path: Path) -> None:
     path2 = dash_summary.build_summary(store, out_dir)
     assert path1 == path2
     assert path2.exists()
+
+
+# -------------------------------------------------------------------- chart 2: min-items filter
+
+
+def test_families_chart_filters_thin_cells_and_labels_none_and_censored(tmp_path: Path) -> None:
+    """A (family, n) cell with fewer than `_MIN_ITEMS_PER_N` (5) items must be excluded from the
+    horizon computation entirely -- not just plotted as unreliable -- and `n_star=None` vs. a
+    censored (">=", never dropped below 50% in the tested range) horizon must be labelled, not
+    conflated (the pre-fix bug the review caught: `n_star=None` was being read as "infinite")."""
+    store = Store(tmp_path / "store")
+    # and_tower: 5 items per n (qualifies). thin_family: 1 item per n (never qualifies -> dropped
+    # entirely, including from the "families" row count, and named in the caption's drop note).
+    probs = [
+        make_problem(
+            f"and_tower_n{n}_{i}",
+            "families",
+            "v1",
+            length=n + 2,
+            tags={"family": "and_tower", "n": n},
+        )
+        for n in (1, 2, 3)
+        for i in range(5)
+    ] + [
+        make_problem(
+            f"thin_n{n}", "families", "v1", length=n + 1, tags={"family": "thin_family", "n": n}
+        )
+        for n in (1, 2)
+    ]
+    store.write_suite(probs, manifest("families", "v1", len(probs)))
+    for model, cs in (("base", (30, 28, 0)), ("rl", (0, 0, 0)), ("armC", (30, 30, 30))):
+        run_id = start_run(store, suite="families", version="v1", model=model, k=32)
+        items = [
+            make_item(run_id, f"and_tower_n{n}_{i}", 32, c)
+            for n, c in zip((1, 2, 3), cs, strict=True)
+            for i in range(5)
+        ]
+        items += [make_item(run_id, f"thin_n{n}", 32, 32) for n in (1, 2)]
+        store.append_items(run_id, items)
+
+    html = dash_summary._chart_2_families(store)  # noqa: SLF001
+    # rl fails at every *qualifying* size (n=1, the smallest with >=5 items) -> "fails at smallest
+    # size", not "infinite"/omitted.
+    assert "fails at smallest size" in html
+    # armC clears every qualifying size tested (n=1..3) -> a censored ">=" horizon, not a plain one.
+    assert "&#8805;" in html
+    assert "&gt;= 5" in html  # armC's n*=3 -> written lines n+2=5, html-escaped in the table
+    # thin_family never has a qualifying cell (1 item per n < 5) -> dropped, named in the caption.
+    assert "thin_family" in html
+    assert "and_tower" in html
+
+
+# -------------------------------------------------------------------- chart 8: null control
+
+
+def _edl_row(cls: str, label: str, lr: float, edl: float, n: int = 8) -> dict[str, Any]:
+    """A hand-built row in `edl.run_edl`'s real schema (mirrors `test_interp_dash.py`'s
+    `_likelihood_row` pattern): enough fields for `analysis.edl.view` to pick a `best_lr` (by
+    smallest mean `online_nats` sum) and report a final `EDL`, without needing a real online
+    training run."""
+    online = [edl / n] * n
+    return {
+        "class": cls,
+        "model_identity": {"label": label},
+        "lr": lr,
+        "order": 0,
+        "n": n,
+        "m": n,
+        "seed": 0,
+        "online_nats": online,
+        "L_test_0": online[0],
+        "L_test_n": online[-1],
+        "L_test_by_checkpoint": {},
+        "EDL_by_checkpoint": {},
+        "EDL": edl,
+        "EDL_per_example": edl / n,
+        "start_excluded_online_nats": None,
+        "L_test_0_start_excluded": None,
+        "L_test_n_start_excluded": None,
+        "EDL_start_excluded": None,
+        "pass8_before": None,
+        "pass8_after": None,
+    }
+
+
+def test_edl_chart_excludes_null_control_from_the_lower_count(tmp_path: Path) -> None:
+    """`heldout_cap6` (the null control, EDL ~= 0) must be reported (a last row, labelled "null
+    control") but excluded from the "rl lower on N/M classes" denominator -- a negative control
+    class with nothing to learn says nothing about whether rl "elicits capability faster"."""
+    store = Store(tmp_path / "store")
+    store.append_edl(
+        "edl2-base-8-8",
+        [
+            _edl_row("pattern_a", "base", 1e-4, 10.0),
+            _edl_row("pattern_b", "base", 1e-4, 5.0),
+            _edl_row("heldout_cap6", "base", 1e-4, -0.1),  # slightly negative, as real noise does
+        ],
+    )
+    store.append_edl(
+        "edl2-rl-8-8",
+        [
+            _edl_row("pattern_a", "rl", 1e-4, 2.0),  # rl lower here
+            _edl_row("pattern_b", "rl", 1e-4, 8.0),  # rl higher here
+            _edl_row("heldout_cap6", "rl", 1e-4, 0.3),
+        ],
+    )
+    html = dash_summary._chart_8_edl(store)  # noqa: SLF001
+    assert "1/2" in html  # only pattern_a, out of the 2 non-null classes
+    assert "excluding the heldout_cap6 null control" in html
+    assert "null control" in html
+    assert "&lt;= 0" in html  # base's negative value on the null control, html-escaped in the table
+
+
+# -------------------------------------------------------------------- chart 10: steering bars
+
+
+def test_steering_chart_shows_four_comparison_bars(tmp_path: Path) -> None:
+    store = Store(tmp_path / "store")
+    probs = [make_problem(f"dev{i}", "textbook_dev", "v1", length=8) for i in range(4)]
+    store.write_suite(probs, manifest("textbook_dev", "v1", len(probs)))
+    for model, c in (
+        ("base", 1),
+        ("steer:0:0.5", 2),
+        ("steer:0:1.0", 3),
+        ("steer:0:-1", 5),
+        ("rl", 10),
+    ):
+        run_id = start_run(store, suite="textbook_dev", version="v1", model=model, k=32)
+        store.append_items(run_id, [make_item(run_id, f"dev{i}", 32, c) for i in range(4)])
+
+    html = dash_summary._chart_10_steering(store)  # noqa: SLF001
+    assert "base (unsteered)" in html
+    assert "base + delta" in html
+    assert "rl - delta" in html
+    assert "does nothing" in html
+    assert "costs" in html and "points" in html
 
 
 # --------------------------------------------------------------------------- helper unit tests
