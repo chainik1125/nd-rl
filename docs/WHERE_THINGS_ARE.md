@@ -6,29 +6,36 @@ written_by: agent:claude
 # Where things are
 
 One page for finding each person's weights, datasets, best models, branches and write-ups. Most
-work lives on personal branches and in two Hugging Face stores, not on `main`. Each owner keeps
+work lives on personal branches and in three Hugging Face stores, not on `main`. Each owner keeps
 their own rows current. Everything below was checked on 2026-09-30 unless marked TODO.
 
 ## 1. Weights and datasets on Hugging Face
 
+The group has a Hugging Face org, [`ndrl`](https://huggingface.co/ndrl).
+[Join it with this link](https://huggingface.co/organizations/ndrl/share/ZpkXbAYdVXIMlJAOcWQNzQpAJVbqVamXJq);
+members get write access to every repo in the org, including private ones.
+
 | Owner | Location | Layout | What's there |
 | --- | --- | --- | --- |
 | Dan | bucket [`hf://buckets/dan-pandori/nd-rl/`](https://huggingface.co/buckets/dan-pandori/nd-rl) | `<run-id>/{ckpts,artifacts,data}/`, plus `registry/<run-id>/` | About 40 runs from Dan's agent campaign (`cap-horizon`, `state-env`, `support-curves`, ...). Datasets live under each run's `data/`, e.g. `cap-horizon/data/kh/train_k12.jsonl.gz`. `registry/` holds the per-run results rows (see §2). |
-| Robbie | model repo [`robbiethompson2018/nd-rl-checkpoints`](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints) | `runs/<RUN_ID>_s<seed>/`, `sources/`, `pretrain_poc/`, `previous_attempts/` | Every autoresearch run, one directory per seed: `pretrain.pt`, `rl_round_0N.pt`, `final.pt` (includes RL), `summary.json`, `source/pretrain.py`. |
+| Robbie | model repo [`robbiethompson2018/nd-rl-checkpoints`](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints) | `runs/<RUN_ID>_s<seed>/`, `sources/`, `pretrain_poc/`, `previous_attempts/` | Autoresearch runs uploaded by `pod.py`, one directory per seed: `pretrain.pt`, `rl_round_0N.pt`, `final.pt` (includes RL), `summary.json`, `source/pretrain.py`. |
+| Robbie | private dataset [`ndrl/nd-rl-autoresearch`](https://huggingface.co/datasets/ndrl/nd-rl-autoresearch) (join the org to see it) | `<checkout>/<run>/`, one folder per local checkout (`nd-rl`, `nd-rl-2` … `nd-rl-9`) | Everything that was in `artifacts/autoresearch/` on Robbie's laptop on 2026-10-01, including runs that never reached `nd-rl-checkpoints` (e.g. the `st-*` runs). Same files per run; JSONL over 1 MB is gzipped. Agent session transcripts (`loop/`) are not included. |
 | Leon | TODO | | |
 | Charles | TODO | | Charles's branch loads Robbie's run 039 checkpoint from Robbie's repo. |
 | Dmitry | TODO | | |
 
 Browse the bucket with `hf buckets ls dan-pandori/nd-rl` (add `-R` to recurse). Download from
 Robbie's repo with
-`hf download robbiethompson2018/nd-rl-checkpoints --include 'runs/RUN_ID/*' --local-dir checkpoints`.
+`hf download robbiethompson2018/nd-rl-checkpoints --include 'runs/RUN_ID/*' --local-dir checkpoints`,
+and from the org dataset with
+`hf download ndrl/nd-rl-autoresearch --repo-type dataset --include 'nd-rl-8/RUN_ID/*' --local-dir autoresearch`.
 
 The autoresearch loop's frozen training data is not on HF. It is `data/train.jsonl.gz` in
 [`dan-pandori/nd-takehome`](https://github.com/dan-pandori/nd-takehome) at commit `51604b3`
 (the `remote.sh` pin on `autoresearch-pretrain`).
 
 [`infra/README.md`](infra/README.md) says all large artifacts go to "the HF bucket". In practice
-there are two stores, above; which one new work should use is still open.
+there are three stores, above; which one new work should use is still open.
 
 ## 2. Best models
 
