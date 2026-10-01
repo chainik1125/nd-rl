@@ -318,3 +318,64 @@ def test_run_likelihood_notes_missing_model_samples(tmp_path: Path) -> None:
     summary = likelihood.run_likelihood(store, cfg, base_adapter=adapter, rl_adapter=None)
     assert summary["n_items"] == 0
     assert any("does-not-exist" in n or "model_samples" in n for n in summary["notes"])
+
+
+def test_run_likelihood_scores_neutral_reference_proofs_of_solved_theorems(tmp_path: Path) -> None:
+    """Audit 2026-10-01: a neutral control for rl's own samples. `reference_proofs` scores a
+    neutral proof of each theorem rl solved (from `proof_files` when the suite row has none), and
+    every row records its own line count."""
+    from dataclasses import replace
+
+    from code.ndbench.core.io import write_jsonl
+
+    store = Store(tmp_path / "out")
+    rows = load_valid_proofs()[:3]
+    _build_tiny_suite(store, rows)
+    # Strip the stored reference proofs so the control must come from `proof_files`.
+    problems = [replace(p, ref=None) for p in store.load_suite("tinysuite", "v1")]
+    ref_suite = "tinysuite_noref"
+    store.write_suite(
+        [replace(p, suite=ref_suite) for p in problems],
+        SuiteManifest(
+            suite=ref_suite,
+            version="v1",
+            builder="test_interp_likelihood",
+            config={},
+            seed=0,
+            created_utc=utc_now_iso(),
+            git_commit="test",
+            n_items=len(problems),
+            items_sha256="",
+            excl_sources={},
+            stats={},
+        ),
+    )
+    proof_file = tmp_path / "labels.jsonl"
+    write_jsonl(proof_file, [{"prompt": r["prompt"], "proof": r["proof"]} for r in rows[:2]])
+
+    fake = FakeAdapter({r["name"]: r["proof"] for r in rows}, p=1.0)
+    spec = RunSpec(suite="tinysuite", version="v1", model="rl", k=1, keep_samples=True)
+    run(spec, fake, NDJudge(), store)
+    cfg: dict[str, JSON] = {
+        "seed": 0,
+        "n_neutral": 0,
+        "family_limit": 0,
+        "model_samples": {"rl": {"suite": "tinysuite", "version": "v1", "model": "rl"}},
+        "reference_proofs": {
+            "suite": ref_suite,
+            "version": "v1",
+            "solved_by": "rl",
+            "proof_files": [str(proof_file)],
+        },
+    }
+    summary = likelihood.run_likelihood(
+        store, cfg, base_adapter=TinyGptAdapter(seed=1, label="base"), rl_adapter=None
+    )
+    loaded = load_interp_rows(store, "likelihood", summary["run_id"])
+    refs = [r for r in loaded if r["origin"] == "reference"]
+    assert sorted(cast(str, r["pid"]) for r in refs) == sorted(
+        f"reference:{r['name']}" for r in rows[:2]
+    )
+    assert any("no neutral proof for 1" in n for n in summary["notes"])
+    for r in loaded:
+        assert isinstance(r["lines"], int) and r["lines"] > 0

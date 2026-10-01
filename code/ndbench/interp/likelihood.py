@@ -51,7 +51,8 @@ from typing import Any, cast
 import numpy as np
 
 from ..adapters.base import ModelAdapter, NotSupported
-from ..core.io import append_jsonl
+from ..core.io import append_jsonl, read_jsonl
+from ..core.proof import split_lines
 from ..core.types import JSON, Sequent
 from ..store import Store
 from . import data, orderings
@@ -521,6 +522,7 @@ def run_likelihood(
 
     model_samples_cfg = cfg.get("model_samples") or {}
     assert isinstance(model_samples_cfg, Mapping)
+    solved_by: dict[str, set[str]] = {}
     for model_name in ("base", "rl"):
         spec = model_samples_cfg.get(model_name)
         if not spec:
@@ -538,6 +540,37 @@ def run_likelihood(
             continue
         origin = f"{model_name}_verified"
         items += [(f"{origin}:{s.pid}", origin, s.sequent, s.body, None, s.pid) for s in samples]
+        solved_by[model_name] = {s.pid for s in samples}
+
+    # Neutral control for the model-sample rows (audit 2026-10-01: each model prefers its own
+    # samples, so scoring rl's own proofs favours rl): `cfg["reference_proofs"] = {"suite",
+    # "version", "solved_by"?, "proof_files"?}` scores a neutral proof of each of the suite's
+    # theorems -- its own reference proof, else the first `proof` field of a row with the same
+    # `prompt` in `proof_files` (JSONL; e.g. the minlen labeller's output for generator items,
+    # whose suite rows carry no proof) -- optionally only for theorems `solved_by` (a
+    # `model_samples` key) has a verified sample of. Origin "reference".
+    ref_cfg = cfg.get("reference_proofs")
+    if isinstance(ref_cfg, Mapping):
+        only = solved_by.get(str(ref_cfg["solved_by"])) if ref_cfg.get("solved_by") else None
+        by_prompt: dict[str, str] = {}
+        for path in cast("Sequence[str]", ref_cfg.get("proof_files") or ()):
+            for row in read_jsonl(path):
+                pr, body = row.get("prompt"), row.get("proof")
+                if isinstance(pr, str) and isinstance(body, str):
+                    by_prompt.setdefault(pr, body)
+        n_ref_missing = 0
+        for prob in store.load_suite(str(ref_cfg["suite"]), str(ref_cfg["version"])):
+            if only is not None and prob.pid not in only:
+                continue
+            body = prob.ref.body if prob.ref is not None else by_prompt.get(prob.sequent.prompt())
+            if body is None:
+                n_ref_missing += 1
+                continue
+            items.append(
+                (f"reference:{prob.pid}", "reference", prob.sequent, body, prob.length.L, prob.pid)
+            )
+        if n_ref_missing:
+            notes.append(f"reference_proofs: no neutral proof for {n_ref_missing} theorem(s)")
 
     base_success = _load_base_success(store, cfg.get("base_success"))
 
@@ -589,6 +622,9 @@ def run_likelihood(
                 "pid": p.pid,
                 "origin": p.origin,
                 "L": p.L,
+                # lines in the scored body itself (L is the theorem's certified minimum, which a
+                # model's own sample can exceed): the per-written-line normaliser.
+                "lines": len(split_lines(p.body)),
                 "base": base_rows[i],
                 "rl": rl_rows[i],
                 "p_hat_base": base_success.get(p.lookup_pid),
