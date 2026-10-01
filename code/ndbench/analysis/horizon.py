@@ -29,7 +29,9 @@ import numpy as np
 from ..core.types import JSON, ItemResult
 from ..metrics import horizon, pass_at_k
 from ..store import Store
+from . import models_registry
 from ._common import (
+    DEFAULT_JUDGE_ID,
     cfg_get,
     default_version,
     empty_view,
@@ -79,20 +81,31 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     B = int(cast(int, cfg_get(cfg, "B", 2000)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # `judge_id` (plan DANSTATE_PLAN.md §2 WP-D2 item 5 / WP-D5 item 1, default unchanged): see
+    # `analysis/yue.py:view`'s identical parameter.
+    judge_id = cast("str | None", cfg.get("judge_id", DEFAULT_JUDGE_ID))
     # Pick whichever suite version has runs, rather than a hard-coded "v1" (fix list item 1,
     # applied uniformly across every view -- see `analysis/padding.py`'s own fix for the concrete
     # motivating case).
     version = cast(
         str,
-        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+        cfg.get("version")
+        or default_version(store, suite=suite, models=override_models, judge_id=judge_id)
+        or "v1",
     )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
         return empty_view(f"suite {suite!r} version {version!r} not found in the store")
-    models = override_models or models_present(store, suite=suite, version=version)
+    models = override_models or models_present(
+        store, suite=suite, version=version, judge_id=judge_id
+    )
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
+    # Loaded once per `view()` call (not once per family/model pair) and handed to every
+    # `seen_lookup` call below -- `models_registry.load_registry()` re-parses `configs/models.yaml`
+    # from disk each time it's called with no registry given.
+    registry = models_registry.load_registry()
 
     # Group by (family, kind) rather than family alone (module docstring's `_group_key`/`KIND_TAG`
     # -- "ILTP-style" packs four incomparable sub-schemas with overlapping `n` ranges under one
@@ -112,7 +125,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         fam_pids = pids_by_group[family]
         per_model: dict[str, Any] = {}
         for model in models:
-            run_id = latest_run_id(store, suite=suite, model=model, version=version)
+            run_id = latest_run_id(
+                store, suite=suite, model=model, version=version, judge_id=judge_id
+            )
             if run_id is None:
                 continue
             items = items_by_pid(store, run_id)
@@ -128,11 +143,18 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             if not by_n:
                 continue
             # Audit 2026-10-01: the smallest sizes are mostly training theorems (`seen_train`),
-            # so also report the horizon over unseen items only.
+            # so also report the horizon over unseen items only. For a model from one of Dan's
+            # families, "seen" means his own tiers, not ours (plan §A2/§3's `dan_tiers`; WP-D5
+            # item 1): `models_registry.seen_lookup` picks the right source per model, falling
+            # back to each `Problem`'s own `seen_train` (ours, or a Dan model with no sidecar
+            # built yet for this suite/version) rather than crashing either way.
+            seen = models_registry.seen_lookup(
+                store, suite, version, model, problems, registry=registry
+            )
             by_n_unseen: dict[int, list[ItemResult]] = {}
             for pid, item in fam_items.items():
                 n_val = problems[pid].tags.get(N_TAG)
-                if n_val is not None and not problems[pid].seen_train:
+                if n_val is not None and not seen.get(pid, problems[pid].seen_train):
                     by_n_unseen.setdefault(int(cast(int, n_val)), []).append(item)
             n_star = {
                 "k8_tau0.5": horizon(by_n, k=8, tau=0.5, B=B, seed=seed),
@@ -153,7 +175,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 cs_arr.append(item.c)
             per_model[model] = {
                 "n_items": len(fam_items),
-                "n_seen_train": sum(1 for pid in fam_items if problems[pid].seen_train),
+                "n_seen_train": sum(
+                    1 for pid in fam_items if seen.get(pid, problems[pid].seen_train)
+                ),
                 "n_star": n_star,
                 "n_star_unseen": (
                     horizon(by_n_unseen, k=8, tau=0.5, B=B, seed=seed) if by_n_unseen else None
@@ -169,6 +193,13 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         return empty_view(f"suite {suite!r} has runs but no items matched any family/n")
     return {
         "empty": False,
-        "meta": {"suite": suite, "version": version, "ks": list(ks), "models": models, "B": B},
+        "meta": {
+            "suite": suite,
+            "version": version,
+            "ks": list(ks),
+            "models": models,
+            "B": B,
+            "judge_id": judge_id,
+        },
         "families": out_families,
     }

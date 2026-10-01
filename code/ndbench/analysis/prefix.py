@@ -33,6 +33,7 @@ from ..core.types import JSON
 from ..metrics import hazard, pass_at_k
 from ..store import Store
 from ._common import (
+    DEFAULT_JUDGE_ID,
     cfg_get,
     default_version,
     empty_view,
@@ -46,6 +47,12 @@ from ._common import (
 DEFAULT_SUITE = "prefix"
 J_TAG = "j"
 L_TAG = "L"
+#: `prefix_state`'s own tag (DANSTATE_PLAN.md §3's "`prefix_state` ... tags `j, L, m, A,
+#: actions_left, open_boxes`", WP-D5 item 2): the number of Dan env actions still to sample after
+#: the forced prefix, pooled alongside `j`/`L - j`/`L` whenever an item carries it (absent on the
+#: original ND-line `prefix` suite, so this adds a key to the output rather than changing any
+#: existing one).
+ACTIONS_LEFT_TAG = "actions_left"
 
 
 def _bucket_success(rows: list[tuple[float, int, int]]) -> dict[str, Any]:
@@ -89,26 +96,34 @@ def _hazard_rows_from_samples(
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # `judge_id` (plan DANSTATE_PLAN.md §2 WP-D2 item 5 / WP-D5 item 1, default unchanged): see
+    # `analysis/yue.py:view`'s identical parameter.
+    judge_id = cast("str | None", cfg.get("judge_id", DEFAULT_JUDGE_ID))
     # Fix list item 1, applied uniformly: pick whichever version has runs rather than "v1".
     version = cast(
         str,
-        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+        cfg.get("version")
+        or default_version(store, suite=suite, models=override_models, judge_id=judge_id)
+        or "v1",
     )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
         return empty_view(f"suite {suite!r} version {version!r} not found in the store")
-    models = override_models or models_present(store, suite=suite, version=version)
+    models = override_models or models_present(
+        store, suite=suite, version=version, judge_id=judge_id
+    )
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
 
     per_model: dict[str, Any] = {}
     for model in models:
-        run_id = latest_run_id(store, suite=suite, model=model, version=version)
+        run_id = latest_run_id(store, suite=suite, model=model, version=version, judge_id=judge_id)
         if run_id is None:
             continue
         items = items_by_pid(store, run_id)
         rows: list[tuple[int, int, int, int]] = []  # (j, L, n, c)
+        actions_left_rows: list[tuple[int, int, int]] = []  # (actions_left, n, c)
         item_hazard_rows: list[tuple[int, bool, int]] = []
         j_by_pid: dict[str, int] = {}
         for pid, item in items.items():
@@ -124,6 +139,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             j_int = int(cast(int, j_val))
             j_by_pid[pid] = j_int
             rows.append((j_int, int(cast(int, l_val)), item.n, item.c))
+            actions_left_val = p.tags.get(ACTIONS_LEFT_TAG)
+            if actions_left_val is not None:
+                actions_left_rows.append((int(cast(int, actions_left_val)), item.n, item.c))
             for w in item.ok_written:
                 item_hazard_rows.append((w, False, j_int + 1))
             for line in item.fail_lines:
@@ -137,6 +155,16 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         success_by_j = _bucket_success([(float(j), n, c) for j, _l, n, c in rows])
         success_by_lines_left = _bucket_success([(float(l_v - j), n, c) for j, l_v, n, c in rows])
         success_by_l = _bucket_success([(float(l_v), n, c) for _j, l_v, n, c in rows])
+        # `prefix_state` only (module-level `ACTIONS_LEFT_TAG` docstring): pools success by how
+        # many of Dan's env actions remain after the forced action prefix, the state-env analogue
+        # of `success_by_lines_left` for an ND-line prefix. `None` (not an empty dict) on the
+        # original `prefix` suite, which has no such tag at all, so a caller can tell "not
+        # applicable to this suite" apart from "no data at this bucket".
+        success_by_actions_left = (
+            _bucket_success([(float(a), n, c) for a, n, c in actions_left_rows])
+            if actions_left_rows
+            else None
+        )
         hazard_table = hazard(hazard_rows)
 
         design = np.array([[1.0, float(l_v - j), float(j)] for j, l_v, _n, _c in rows])
@@ -153,6 +181,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "success_by_j": success_by_j,
             "success_by_lines_left": success_by_lines_left,
             "success_by_L": success_by_l,
+            "success_by_actions_left": success_by_actions_left,
             "hazard": [
                 {"line": line, "at_risk": at_risk, "failed": failed, "hazard": haz}
                 for line, at_risk, failed, haz in hazard_table
@@ -167,6 +196,6 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         return empty_view(f"suite {suite!r} has runs but no items had usable j/L tags")
     return {
         "empty": False,
-        "meta": {"suite": suite, "version": version, "models": models},
+        "meta": {"suite": suite, "version": version, "models": models, "judge_id": judge_id},
         "models": per_model,
     }

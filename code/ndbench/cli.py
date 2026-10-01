@@ -512,14 +512,22 @@ def cmd_import_legacy(args: argparse.Namespace) -> None:
 def cmd_dash(args: argparse.Namespace) -> None:
     store = Store(Path(args.out))
     if args.summary:
+        # `--with-dan` (WP-D5) resolves to a different entry point (`dash.dan_pages.
+        # build_summary_with_dan`), not a flag on `dash.summary.build_summary` itself -- that
+        # module has no import-time dependency on `dash.dan_pages`, by design (its own docstring).
+        target = (
+            "code.ndbench.dash.dan_pages:build_summary_with_dan"
+            if args.with_dan
+            else "code.ndbench.dash.summary:build_summary"
+        )
         build_summary = _resolve_registry(
-            {"dash-summary": "code.ndbench.dash.summary:build_summary"},
-            "dash-summary",
-            "summary dashboard builder",
+            {"dash-summary": target}, "dash-summary", "summary dashboard builder"
         )
         path = build_summary(store, Path(args.dash_dir), detail_href=args.detail_href)
         print(json.dumps({"dash_dir": args.dash_dir, "summary": str(path)}, indent=2))
         return
+    if args.with_dan:
+        raise SystemExit("dash: --with-dan only applies together with --summary")
     build = _resolve_registry(
         {"dash": "code.ndbench.dash.build:build"}, "dash", "dashboard builder"
     )
@@ -535,7 +543,7 @@ def cmd_figures(args: argparse.Namespace) -> None:
     build_figures = _resolve_registry(
         {"figures": "code.ndbench.figures.build:build_figures"}, "figures", "figure builder"
     )
-    written = build_figures(store, Path(args.fig_dir))
+    written = build_figures(store, Path(args.fig_dir), with_dan=args.with_dan)
     print(json.dumps({"fig_dir": args.fig_dir, "files": [Path(p).name for p in written]}, indent=2))
 
 
@@ -801,6 +809,16 @@ def build_parser() -> argparse.ArgumentParser:
         dest="detail_href",
         help="with --summary: link the page footer to the full dashboard at this URL/path",
     )
+    d.add_argument(
+        "--with-dan",
+        action="store_true",
+        dest="with_dan",
+        help=(
+            "with --summary: also render WP-D5's 'State-env models' section (Dan's checkpoints) "
+            "onto summary.html and write a standalone dash-dir/dan.html detail page; default off "
+            "so the existing base/rl/armC summary page is unaffected (DANSTATE_PLAN.md §6)"
+        ),
+    )
     d.set_defaults(func=cmd_dash)
 
     f = sub.add_parser(
@@ -809,6 +827,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     f.add_argument("--out", default=DEFAULT_OUT)
     f.add_argument("--fig-dir", required=True, dest="fig_dir")
+    f.add_argument(
+        "--with-dan",
+        action="store_true",
+        dest="with_dan",
+        help=(
+            "also write WP-D5's 'State-env models' figures (figD01_*.{pdf,svg,png}, a "
+            "tabD01_dan_crossfamily.tex) into the same --fig-dir; default off"
+        ),
+    )
     f.set_defaults(func=cmd_figures)
 
     return p

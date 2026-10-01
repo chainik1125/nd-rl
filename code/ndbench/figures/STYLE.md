@@ -99,3 +99,26 @@ The page shows every figure at one scale (120 CSS px per inch, `dash.summary.PX_
 paper. Figures sit on white in both colour schemes. Full-width figures have a stacked narrow
 layout (`plots.NARROW`) that phones get through `<picture>`, and clicking a figure opens its SVG
 alone for zooming.
+
+## State-env models section (WP-D5)
+
+Dan's twelve checkpoints get their own flag-gated section (`dash --summary --with-dan`) and
+standalone `dan.html` detail page (`dash/dan_pages.py`), plus `figures --with-dan` writing
+`figD0N_dan_<key>.{pdf,svg,png}` / `tabD01_dan_crossfamily.tex` -- a separate "Dn" numbering
+sequence from the paper's own twelve, never interleaved with it. Everything here is additive:
+`dash.summary.chart_data`/the paper's own `figures.plots.FIGURES` are untouched, so the existing
+base/rl/armC page and the golden regression (`test_paper_figures.py`) render byte-identically
+with the flag off.
+
+Every multi-value Dan chart is small multiples, one panel per `plots.DAN_FAMILY_ORDER`
+(`"ours" | "dan12" | "dan6"`, left to right): `dan_panel_figure` draws each panel from
+`ChartData.extra["panels"][family]` -- a complete sub-`ChartData` for just that family, built by
+`dash/dan_pages.py` from the ordinary `view_<bench>(store, cfg={"models": ..., "judge_id": ...})`
+call most benchmarks already support. A family with no matching runs yet draws as a clean "not
+available" panel (`_mini_missing`), never a crash -- expected for every family but `dan12`/`ours`
+until more of the real Dan runs land. `_dan_style(label)` is `style.model_style(label)` except a
+`REF_SUFFIX` (`" (ref)"`)-marked label -- our rl plotted as a reference line on a Dan panel --
+which always renders grey and dashed regardless of family (STYLE.md's own rule: a non-model
+reference series is never a model's colour). `dan_heldout`/`dan_judges` (single scalar per model)
+are one grouped bar chart across every model instead of per-family panels, since a one-bar panel
+per family would not read as small multiples.

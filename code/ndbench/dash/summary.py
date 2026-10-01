@@ -1943,7 +1943,10 @@ def _half(cd: ChartData) -> bool:
         return False
     if cd.as_table:
         return True
-    spec = plots.FIGURES.get(cd.key)
+    # `DAN_FIGURES` (WP-D5's "State-env models" section, a separate registry from the paper's
+    # own `FIGURES` -- see `figures/plots.py:render`'s docstring) is checked as a fallback only:
+    # every existing (non-Dan) key keeps resolving through `FIGURES` alone, unaffected.
+    spec = plots.FIGURES.get(cd.key) or plots.DAN_FIGURES.get(cd.key)
     return spec is not None and spec[1] < plots.S.FULL_W - 0.5
 
 
@@ -2032,9 +2035,19 @@ _JS = (
 
 
 def render_page(
-    charts: Sequence[ChartData], *, gpu_hours: float, detail_href: str | None = None
+    charts: Sequence[ChartData],
+    *,
+    gpu_hours: float,
+    detail_href: str | None = None,
+    dan_section: str = "",
 ) -> str:
-    """The summary page's HTML from already-computed `charts` (see `build_summary`)."""
+    """The summary page's HTML from already-computed `charts` (see `build_summary`).
+
+    `dan_section` (default `""`, so an existing call renders byte-identically -- the golden
+    regression, `test_paper_figures.py`, pins this page) is WP-D5's "State-env models" section
+    HTML (`dash.dan_pages.render_dan_section`), inserted after the twelve numbered benchmarks and
+    before Limitations, behind `cli.py`'s `dash --summary --with-dan` flag.
+    """
     by = {c.key: c for c in charts}
     nums = numbering(charts)
     sections = []
@@ -2057,21 +2070,33 @@ def render_page(
         f"<title>ND Capability Benchmarks</title><style>{_CSS}</style></head><body>"
         '<div class="col"><header><h1>Capability benchmarks for the base and RL provers</h1>'
         f'<p class="lede">{P.esc(_LEDE)}</p><p class="models">{P.esc(_MODELS_NOTE)}</p></header>'
-        f"<main>{overview}{''.join(sections)}"
+        f"<main>{overview}{''.join(sections)}{dan_section}"
         f'<section class="limits"><h2>Limitations</h2><ul>{limits}</ul></section></main>'
         f"<footer>GPU-hours used (ledger total): {gpu_hours:.2f} h{detail}</footer></div>"
         f"<script>{_JS}</script></body></html>"
     )
 
 
-def build_summary(store: Store, out_dir: Path, detail_href: str | None = None) -> Path:
+def build_summary(
+    store: Store, out_dir: Path, detail_href: str | None = None, *, dan_section: str = ""
+) -> Path:
     """Render the single-page summary (a paper-style results section: Figure 1 overview, one
     numbered figure or table per benchmark, limitations) into `out_dir/summary.html` and return
-    its path. `out_dir` is created if missing."""
+    its path. `out_dir` is created if missing.
+
+    `dan_section` (default `""`, so an existing call's output is unaffected) is pre-rendered HTML
+    for WP-D5's "State-env models" section (`dash.dan_pages.render_dan_section`); this module has
+    no dependency on `dash.dan_pages` itself (which imports *this* module to reuse `render_card`
+    -- `dash.dan_pages.build_summary_with_dan` is the `--with-dan` entry point that computes this
+    string and also writes the standalone `out_dir/dan.html` detail page, plan §6).
+    """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     html = render_page(
-        chart_data(store), gpu_hours=store.ledger_total_s() / 3600.0, detail_href=detail_href
+        chart_data(store),
+        gpu_hours=store.ledger_total_s() / 3600.0,
+        detail_href=detail_href,
+        dan_section=dan_section,
     )
     path = out_dir / "summary.html"
     path.write_text(html)

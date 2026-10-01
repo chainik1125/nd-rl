@@ -16,6 +16,12 @@ measures (`code/experiments/current/benchmarking_20260930/INTERP_SPEC.md`); `ana
 names its functions `view_likelihood`/`view_steering`/`view_interpolation`/`view_probes` (matching
 the spec's own names for the four measures), hence the `interp_weights`/`view_interpolation`
 key/attribute mismatch, the same pattern as `families`/`horizon.py` above.
+
+`dan_heldout`/`dan_judges` are WP-D5's two Dan-only views (`DANSTATE_PLAN.md` §3/§7): held-out
+greedy accuracy and nd_v2-vs-lean_v2 judge agreement respectively. They have no page of their own
+in `dash/build.py`'s multi-page dashboard (which stays base/rl/armC only); `dash/dan_pages.py`
+calls them directly for the Dan summary section and `dan.html`. Listed here anyway so they are
+resolvable the same way every other view is (`cli.py`'s lazy `importlib` resolution, notebooks).
 """
 
 VIEWS: dict[str, str] = {
@@ -31,4 +37,6 @@ VIEWS: dict[str, str] = {
     "interp_steering": "code.ndbench.analysis.interp:view_steering",
     "interp_weights": "code.ndbench.analysis.interp:view_interpolation",
     "interp_probes": "code.ndbench.analysis.interp:view_probes",
+    "dan_heldout": "code.ndbench.analysis.dan_heldout:view",
+    "dan_judges": "code.ndbench.analysis.judges:view",
 }

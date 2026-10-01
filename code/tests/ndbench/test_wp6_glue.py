@@ -121,3 +121,50 @@ def test_part_results_prefers_renamed_parts() -> None:
     got_pool = part_results("g0", joined, pool, {"g0__p0": renamed["g0__p0"]})
     assert got_pool is not None and got_pool[1] == "pool" and [r.c for r in got_pool[0]] == [30, 20]
     assert part_results("g0", joined, {"a": pool["a"]}, {}) is None
+
+
+def test_glue_view_cell_tag_pools_by_the_coarse_op_tag_not_the_fine_cell_tag(
+    tmp_path: Path,
+) -> None:
+    """WP-D5 fix: the real `glue` suite has far more distinct `cell` values (19) than `op` values
+    (5), so a Dan small-multiples panel keyed on `cell` does not read as one bar per operator.
+    `cell_tag="op"` (default unchanged, "cell") re-keys every lookup on the coarser tag instead."""
+    store = _build_store(tmp_path)
+    # `write_suite` replaces the whole items.jsonl for (suite, version), so the suite's full item
+    # list -- joined1 (from `_build_store`) plus a second joined item, same op ("AND") but a
+    # different fine-grained cell (on the real suite, e.g. "AND_k2_L12" vs. "AND_k2_ell2", both
+    # op="AND") -- is written together in this one call.
+    joined1 = make_problem(
+        "joined1",
+        "glue",
+        "v1",
+        length=8,
+        tags={"op": "AND", "k": 2, "part_len": 3, "cell": "AND_k2"},
+        parts=("part_a", "part_b"),
+    )
+    joined2 = make_problem(
+        "joined2",
+        "glue",
+        "v1",
+        length=8,
+        tags={"op": "AND", "k": 2, "part_len": 3, "cell": "AND_k3"},
+        parts=("part_a", "part_b"),
+    )
+    store.write_suite([joined1, joined2], manifest("glue", "v1", 2))
+    joined_run = start_run(store, suite="glue", version="v1", model="base", k=32)
+    store.append_items(
+        joined_run,
+        [
+            make_item(joined_run, "joined1", 32, 16, long_enough=20, fail_lines=[2, 5, 8]),
+            make_item(joined_run, "joined2", 32, 12, long_enough=18),
+        ],
+    )
+
+    by_cell = glue.view(store, {"B": 50, "seed": 0})
+    assert set(by_cell["cells"]) == {"AND_k2", "AND_k3"}
+
+    by_op = glue.view(store, {"B": 50, "seed": 0, "cell_tag": "op"})
+    assert set(by_op["cells"]) == {"AND"}
+    pooled = by_op["cells"]["AND"]["base"]
+    assert pooled["n_joined_items"] == 2
+    assert by_op["meta"]["version"] == by_cell["meta"]["version"]

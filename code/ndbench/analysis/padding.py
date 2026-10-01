@@ -23,6 +23,7 @@ from ..core.types import JSON
 from ..metrics import pass_at_k
 from ..store import Store
 from ._common import (
+    DEFAULT_JUDGE_ID,
     cfg_get,
     default_version,
     empty_view,
@@ -60,13 +61,18 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
     natural_suite = cast(str, cfg_get(cfg, "natural_suite", DEFAULT_NATURAL_SUITE))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # `judge_id` (plan DANSTATE_PLAN.md §2 WP-D2 item 5 / WP-D5 item 1, default unchanged): see
+    # `analysis/yue.py:view`'s identical parameter.
+    judge_id = cast("str | None", cfg.get("judge_id", DEFAULT_JUDGE_ID))
     # Pick whichever suite version actually has runs for the models in question, rather than
     # hard-coding "v1" -- a real suite can accumulate a small demo version nobody ran alongside
     # the version the real runs target (fix list item 1: `padding`'s 132-item v1 demo vs. the
     # 51-base v2 that base/rl were actually run on). `cfg["version"]` still overrides explicitly.
     version = cast(
         str,
-        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+        cfg.get("version")
+        or default_version(store, suite=suite, models=override_models, judge_id=judge_id)
+        or "v1",
     )
     # The natural-items comparison suite is a *different* suite from `padding` (default
     # `gen_ctrl`) and so can land on a different version of its own (e.g. `padding` picks "v2"
@@ -76,14 +82,16 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     natural_version = cast(
         str,
         cfg.get("natural_version")
-        or default_version(store, suite=natural_suite, models=override_models)
+        or default_version(store, suite=natural_suite, models=override_models, judge_id=judge_id)
         or "v1",
     )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
         return empty_view(f"suite {suite!r} version {version!r} not found in the store")
-    models = override_models or models_present(store, suite=suite, version=version)
+    models = override_models or models_present(
+        store, suite=suite, version=version, judge_id=judge_id
+    )
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
     natural_problems = problems_by_pid(store, natural_suite, natural_version)
@@ -99,7 +107,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         pids = {pid for pid, p in problems.items() if str(p.tags.get(PAD_TYPE_TAG)) == pad_type}
         per_model: dict[str, Any] = {}
         for model in models:
-            run_id = latest_run_id(store, suite=suite, model=model, version=version)
+            run_id = latest_run_id(
+                store, suite=suite, model=model, version=version, judge_id=judge_id
+            )
             if run_id is None:
                 continue
             items = items_by_pid(store, run_id)
@@ -123,7 +133,11 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             natural_curve: list[dict[str, Any]] = []
             if natural_problems:
                 nat_run = latest_run_id(
-                    store, suite=natural_suite, model=model, version=natural_version
+                    store,
+                    suite=natural_suite,
+                    model=model,
+                    version=natural_version,
+                    judge_id=judge_id,
                 )
                 if nat_run is not None:
                     nat_items = items_by_pid(store, nat_run)
@@ -166,6 +180,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "version": version,
             "natural_version": natural_version,
             "models": models,
+            "judge_id": judge_id,
         },
         "pad_types": out,
     }

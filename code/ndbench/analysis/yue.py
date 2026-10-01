@@ -41,6 +41,7 @@ from ..core.types import JSON, Problem
 from ..metrics import clopper_pearson
 from ..store import Store
 from ._common import (
+    DEFAULT_JUDGE_ID,
     all_run_ids,
     cfg_get,
     default_version,
@@ -393,6 +394,11 @@ def _pick_pair(models: list[str], cfg: Mapping[str, JSON]) -> tuple[str, str] | 
 
 
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
+    # `judge_id` (plan DANSTATE_PLAN.md §2 WP-D2 item 5 / WP-D5 item 1, default unchanged:
+    # `DEFAULT_JUDGE_ID`, "nd_v2"): lets a caller point this benchmark at Dan's models, whose
+    # headline judge is `"lean_v2"`, without otherwise touching this view's base/rl/armC default
+    # behaviour. `None` disables the filter (every judge).
+    judge_id = cast("str | None", cfg.get("judge_id", DEFAULT_JUDGE_ID))
     override_version = cast("str | None", cfg.get("version"))
     sets = cast("dict[str, str]", cfg_get(cfg, "sets", dict(DEFAULT_SETS)))
     ks = cast("list[int]", cfg_get(cfg, "ks", list(KS)))
@@ -413,14 +419,18 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         # (fix list item 1): resolved independently per set rather than from one global cfg
         # default, since e.g. textbook_dev/textbook_law/gen_ctrl need not all share one version.
         version = (
-            override_version or default_version(store, suite=suite, models=candidate_models) or "v1"
+            override_version
+            or default_version(store, suite=suite, models=candidate_models, judge_id=judge_id)
+            or "v1"
         )
         # This set's own k grid, capped at its own draw protocol's k_max (module docstring's
         # `DEFAULT_K_MAX_BY_SET`) rather than the full 2^12 grid every set would otherwise share.
         k_cap = int(k_max_by_set.get(label, max(ks)))
         ks_for_set = [k for k in ks if k <= k_cap]
         models = override_models or [
-            m for m in candidate_models if m in models_present(store, suite=suite, version=version)
+            m
+            for m in candidate_models
+            if m in models_present(store, suite=suite, version=version, judge_id=judge_id)
         ]
         if not models:
             continue
@@ -431,7 +441,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         lower_curves: dict[str, Any] = {}
         coverage: dict[str, Any] = {}
         for model in models:
-            run_id = latest_run_id(store, suite=suite, model=model, version=version)
+            run_id = latest_run_id(
+                store, suite=suite, model=model, version=version, judge_id=judge_id
+            )
             if run_id is None:
                 continue
             fc = first_chunk_by_pid(store, run_id)
@@ -505,7 +517,14 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         "empty": False,
         # No single top-level "version": each set is its own suite and resolves its own version
         # independently (see the loop above) -- read `data["sets"][label]["version"]` instead.
-        "meta": {"ks": list(ks), "B": B, "seed": seed, "models": candidate_models, "sets": sets},
+        "meta": {
+            "ks": list(ks),
+            "B": B,
+            "seed": seed,
+            "models": candidate_models,
+            "sets": sets,
+            "judge_id": judge_id,
+        },
         "sets": per_set,
         "legacy_consistency": legacy_by_set,
     }

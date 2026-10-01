@@ -190,6 +190,7 @@ def default_version(
     suite: str,
     models: Sequence[str] | None = None,
     statuses: Sequence[str] | None = LIVE_STATUSES,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
 ) -> str | None:
     """Which `suite` version a view should read when `cfg` doesn't pin one explicitly: the
     version with the most run coverage, rather than an arbitrary hard-coded `"v1"` (fix list item
@@ -197,6 +198,11 @@ def default_version(
     real runs target, e.g. `padding`'s 132-item `v1` demo vs. the 51-base `v2` that `base`/`rl`
     were actually run on, or `glue`'s 185-item `demo_v1` vs. the 792-item `v1` the real `base`/
     `rl`/`armC` runs target).
+
+    `judge_id` (DANSTATE_PLAN.md §2 WP-D2 item 5, default `DEFAULT_JUDGE_ID`) is forwarded to the
+    internal `models_present` coverage check: a caller resolving a version for a `judge_id` other
+    than the default (e.g. Dan's models under `"lean_v2"`) must pass it here too, or the coverage
+    score would count only `nd_v2` runs and could silently pick the wrong version.
 
     Scores each `problem_versions(store, suite)` entry by `(n_models_matched, version_string)` --
     `n_models_matched` is "how many of `models` have >= 1 matching run at this version" when
@@ -215,7 +221,11 @@ def default_version(
         return versions[0]
 
     def score(version: str) -> tuple[int, str]:
-        present = set(models_present(store, suite=suite, version=version, statuses=statuses))
+        present = set(
+            models_present(
+                store, suite=suite, version=version, statuses=statuses, judge_id=judge_id
+            )
+        )
         n_matched = sum(1 for m in models if m in present) if models is not None else len(present)
         return (n_matched, version)
 

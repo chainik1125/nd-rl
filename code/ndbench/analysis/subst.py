@@ -25,6 +25,7 @@ from ..core.types import JSON
 from ..metrics import pass_at_k
 from ..store import Store
 from ._common import (
+    DEFAULT_JUDGE_ID,
     cfg_get,
     default_version,
     empty_view,
@@ -59,12 +60,17 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
     textbook_suite = cast(str, cfg_get(cfg, "textbook_law_suite", DEFAULT_TEXTBOOK_LAW_SUITE))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # `judge_id` (plan DANSTATE_PLAN.md §2 WP-D2 item 5 / WP-D5 item 1, default unchanged): see
+    # `analysis/yue.py:view`'s identical parameter.
+    judge_id = cast("str | None", cfg.get("judge_id", DEFAULT_JUDGE_ID))
     # Fix list item 1, applied uniformly: pick whichever version has runs rather than a
     # hard-coded "v1". `textbook_suite` is a *different* suite and so is resolved independently
     # (it need not land on the same version `suite` does).
     version = cast(
         str,
-        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+        cfg.get("version")
+        or default_version(store, suite=suite, models=override_models, judge_id=judge_id)
+        or "v1",
     )
 
     problems = problems_by_pid(store, suite, version)
@@ -76,13 +82,15 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     n_seen_excluded = sum(1 for p in problems.values() if p.seen_train) if exclude_seen else 0
     if exclude_seen:
         problems = {pid: p for pid, p in problems.items() if not p.seen_train}
-    models = override_models or models_present(store, suite=suite, version=version)
+    models = override_models or models_present(
+        store, suite=suite, version=version, judge_id=judge_id
+    )
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
     textbook_version = cast(
         str,
         cfg.get("textbook_law_version")
-        or default_version(store, suite=textbook_suite, models=models)
+        or default_version(store, suite=textbook_suite, models=models, judge_id=judge_id)
         or "v1",
     )
     textbook_problems = problems_by_pid(store, textbook_suite, textbook_version)
@@ -98,7 +106,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         pids = {pid for pid, p in problems.items() if str(p.tags.get(SCHEMA_TAG)) == schema}
         per_model: dict[str, Any] = {}
         for model in models:
-            run_id = latest_run_id(store, suite=suite, model=model, version=version)
+            run_id = latest_run_id(
+                store, suite=suite, model=model, version=version, judge_id=judge_id
+            )
             if run_id is None:
                 continue
             items = items_by_pid(store, run_id)
@@ -145,7 +155,11 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 }
                 if tb_pids:
                     tb_run = latest_run_id(
-                        store, suite=textbook_suite, model=model, version=textbook_version
+                        store,
+                        suite=textbook_suite,
+                        model=model,
+                        version=textbook_version,
+                        judge_id=judge_id,
                     )
                     if tb_run is not None:
                         tb_items = items_by_pid(store, tb_run)
@@ -180,6 +194,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "textbook_law_version": textbook_version,
             "models": models,
             "n_seen_train_excluded": n_seen_excluded,
+            "judge_id": judge_id,
         },
         "schemas": out,
     }

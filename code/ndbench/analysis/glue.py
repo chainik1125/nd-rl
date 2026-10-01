@@ -36,6 +36,7 @@ from ..core.types import JSON, ItemResult, Problem
 from ..metrics import compositionality_ratio, pass_at_k
 from ..store import Store
 from ._common import (
+    DEFAULT_JUDGE_ID,
     cfg_get,
     default_version,
     empty_view,
@@ -86,12 +87,20 @@ def _failure_location(
 
 
 def _control_pass1(
-    store: Store, control_suite: str, version: str, model: str, target_l: float
+    store: Store,
+    control_suite: str,
+    version: str,
+    model: str,
+    target_l: float,
+    *,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
 ) -> dict[str, Any] | None:
     control_problems = problems_by_pid(store, control_suite, version)
     if not control_problems:
         return None
-    run_id = latest_run_id(store, suite=control_suite, model=model, version=version)
+    run_id = latest_run_id(
+        store, suite=control_suite, model=model, version=version, judge_id=judge_id
+    )
     if run_id is None:
         return None
     items = items_by_pid(store, run_id)
@@ -109,12 +118,17 @@ def _control_pass1(
 
 
 def renamed_part_items(
-    store: Store, model: str, suite: str = DEFAULT_RENAMED_PARTS_SUITE
+    store: Store,
+    model: str,
+    suite: str = DEFAULT_RENAMED_PARTS_SUITE,
+    *,
+    judge_id: str | None = DEFAULT_JUDGE_ID,
 ) -> dict[str, ItemResult]:
     """`model`'s latest results on the renamed-parts suite, keyed `<joined pid>__p<i>` (empty when
-    the suite or a run for `model` is missing)."""
-    version = default_version(store, suite=suite, models=[model]) or "v1"
-    run_id = latest_run_id(store, suite=suite, model=model, version=version)
+    the suite or a run for `model` is missing). `judge_id` (default unchanged, "nd_v2"): plan
+    §2 WP-D2 item 5 / WP-D5 item 1 -- a Dan model's renamed-parts run is judged `"lean_v2"`."""
+    version = default_version(store, suite=suite, models=[model], judge_id=judge_id) or "v1"
+    run_id = latest_run_id(store, suite=suite, model=model, version=version, judge_id=judge_id)
     return items_by_pid(store, run_id) if run_id else {}
 
 
@@ -146,7 +160,18 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     mastery = float(cast(float, cfg_get(cfg, "mastery", DEFAULT_MASTERY)))
     B = int(cast(int, cfg_get(cfg, "B", 2000)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
+    # `cell_tag` (default unchanged, "cell"): WP-D5's Dan glue panel pools by the suite's coarse
+    # `op` tag (5 values: AND/CHAIN/CASE-dilemma/CASE-same/BOX) rather than the fine-grained `cell`
+    # tag (19 values on the real `glue` suite), since a 19-bar-per-panel chart does not read as a
+    # small multiple. Passing `cell_tag="op"` makes every lookup below key on `op` directly (the
+    # `p.tags.get(CELL_TAG, ...)` fallback to `"op"` only fires when the configured tag is itself
+    # absent, so overriding the tag name -- not just its fallback -- is what actually changes the
+    # grouping); the ordinary "ours" callers never pass this, so their behaviour is unchanged.
+    cell_tag = cast(str, cfg_get(cfg, "cell_tag", CELL_TAG))
     override_models = cast("list[str] | None", cfg.get("models"))
+    # `judge_id` (plan DANSTATE_PLAN.md §2 WP-D2 item 5 / WP-D5 item 1, default unchanged): see
+    # `analysis/yue.py:view`'s identical parameter.
+    judge_id = cast("str | None", cfg.get("judge_id", DEFAULT_JUDGE_ID))
     # Fix list item 1, applied uniformly: pick whichever version has runs rather than a
     # hard-coded "v1". `parts_suite`/`control_suite` are *different* suites (e.g. `glue` can have
     # a demo version alongside its real one -- see `glue`'s own `demo_v1` vs. `v1` on the real
@@ -154,25 +179,29 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     # independently rather than reusing `suite`'s own chosen version.
     version = cast(
         str,
-        cfg.get("version") or default_version(store, suite=suite, models=override_models) or "v1",
+        cfg.get("version")
+        or default_version(store, suite=suite, models=override_models, judge_id=judge_id)
+        or "v1",
     )
 
     problems = problems_by_pid(store, suite, version)
     if not problems:
         return empty_view(f"suite {suite!r} version {version!r} not found in the store")
-    models = override_models or models_present(store, suite=suite, version=version)
+    models = override_models or models_present(
+        store, suite=suite, version=version, judge_id=judge_id
+    )
     if not models:
         return empty_view(f"no runs found for suite {suite!r}")
     parts_version = cast(
         str,
         cfg.get("parts_suite_version")
-        or default_version(store, suite=parts_suite, models=models)
+        or default_version(store, suite=parts_suite, models=models, judge_id=judge_id)
         or "v1",
     )
     control_version = cast(
         str,
         cfg.get("control_suite_version")
-        or default_version(store, suite=control_suite, models=models)
+        or default_version(store, suite=control_suite, models=models, judge_id=judge_id)
         or "v1",
     )
     parts_problems = problems_by_pid(store, parts_suite, parts_version)
@@ -181,30 +210,36 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         {
             str(v)
             for p in problems.values()
-            if (v := p.tags.get(CELL_TAG, p.tags.get("op"))) is not None
+            if (v := p.tags.get(cell_tag, p.tags.get("op"))) is not None
         }
     )
     if not cells:
-        return empty_view(f"suite {suite!r} has no {CELL_TAG!r}/'op' tag on any item")
+        return empty_view(f"suite {suite!r} has no {cell_tag!r}/'op' tag on any item")
 
     out_cells: dict[str, Any] = {}
     for cell in cells:
         cell_pids = {
             pid
             for pid, p in problems.items()
-            if str(p.tags.get(CELL_TAG, p.tags.get("op"))) == cell
+            if str(p.tags.get(cell_tag, p.tags.get("op"))) == cell
         }
         per_model: dict[str, Any] = {}
         for model in models:
-            run_id = latest_run_id(store, suite=suite, model=model, version=version)
+            run_id = latest_run_id(
+                store, suite=suite, model=model, version=version, judge_id=judge_id
+            )
             parts_run_id = latest_run_id(
-                store, suite=parts_suite, model=model, version=parts_version
+                store,
+                suite=parts_suite,
+                model=model,
+                version=parts_version,
+                judge_id=judge_id,
             )
             if run_id is None:
                 continue
             joined_items = items_by_pid(store, run_id)
             part_items = items_by_pid(store, parts_run_id) if parts_run_id else {}
-            renamed_items = renamed_part_items(store, model, renamed_suite)
+            renamed_items = renamed_part_items(store, model, renamed_suite, judge_id=judge_id)
             groups: list[tuple[ItemResult, list[ItemResult]]] = []
             pool_groups: list[tuple[ItemResult, list[ItemResult]]] = []
             sources: Counter[str] = Counter()
@@ -246,7 +281,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             ]
             modal_l = sorted(lengths)[len(lengths) // 2] if lengths else None
             control = (
-                _control_pass1(store, control_suite, control_version, model, modal_l)
+                _control_pass1(
+                    store, control_suite, control_version, model, modal_l, judge_id=judge_id
+                )
                 if modal_l is not None
                 else None
             )
@@ -286,6 +323,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "mastery": mastery,
             "models": models,
             "B": B,
+            "judge_id": judge_id,
         },
         "cells": out_cells,
     }

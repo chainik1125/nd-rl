@@ -25,8 +25,28 @@ def _slug(label: str) -> str:
     return f"{'fig' if kind == 'Figure' else 'tab'}{int(n):02d}"
 
 
-def write_figures(charts: Sequence[ChartData], fig_dir: Path) -> list[Path]:
-    """Write all figure/table files and `captions.md` for already-computed `charts`."""
+def _dan_slug(label: str) -> str:
+    """`"Figure D3"` -> `"figD03"` (plan §6: `figDNN_*`); `"Table D1"` -> `"tabD01"`."""
+    kind, _sp, n = label.partition(" ")
+    return f"{'fig' if kind == 'Figure' else 'tab'}D{int(n[1:]):02d}"
+
+
+def write_figures(
+    charts: Sequence[ChartData],
+    fig_dir: Path,
+    *,
+    dan_charts: Sequence[ChartData] | None = None,
+    dan_crossfamily: tuple[list[str], list[list[str]], str] | None = None,
+) -> list[Path]:
+    """Write all figure/table files and `captions.md` for already-computed `charts`.
+
+    `dan_charts`/`dan_crossfamily` (default `None`, this function's behaviour then unchanged --
+    `figures --with-dan`'s own additive section, plan §6 WP-D5 item 3) write WP-D5's "State-env
+    models" figures (`figD01_<key>.*`, a `tabD01_dan_crossfamily.tex`) into the same `fig_dir` and
+    append their captions to the same `captions.md`, via `dash.dan_pages.dan_numbering`'s own
+    `"Figure Dn"`/`"Table Dn"` sequence -- a separate count from the paper's own twelve, never
+    interleaved with it.
+    """
     fig_dir = Path(fig_dir)
     fig_dir.mkdir(parents=True, exist_ok=True)
     nums = summary.numbering(charts)
@@ -85,6 +105,46 @@ def write_figures(charts: Sequence[ChartData], fig_dir: Path) -> list[Path]:
                 f"**{label}:** {caption}",
                 "",
             ]
+
+        if dan_charts or dan_crossfamily:
+            from ..dash import dan_pages
+
+            md += ["## State-env models (Dan)", ""]
+            dan_nums = dan_pages.dan_numbering(dan_charts or [])
+            if dan_crossfamily is not None:
+                headers, rows, caption = dan_crossfamily
+                tex = fig_dir / "tabD01_dan_crossfamily.tex"
+                tex.write_text(dan_pages._crossfamily_tex(headers, rows, caption))  # noqa: SLF001
+                written.append(tex)
+                md += [
+                    "### Table D1 (`tabD01_dan_crossfamily.tex`)",
+                    "",
+                    f"**Table D1:** Cross-family headline results. {caption}",
+                    "",
+                ]
+            for cd in dan_charts or []:
+                label = dan_nums.get(cd.key)
+                if label is None:
+                    continue
+                caption = summary.caption_text(cd, None)
+                if cd.kind == "missing":
+                    md += [f"### {label} ({cd.key})", "", f"**{label}:** {caption}", ""]
+                    continue
+                slug = _dan_slug(label)
+                base = fig_dir / f"{slug}_{cd.key}"
+                fig = plots.render(cd)
+                files: list[str] = []
+                if fig is not None:
+                    written += S.save(fig, base)
+                    S.close(fig)
+                    files.append(base.with_suffix(".pdf").name)
+                md += [
+                    f"### {label} (`{files[0] if files else cd.key}`)",
+                    "",
+                    f"**{label}:** {caption}",
+                    "",
+                ]
+
     cap = fig_dir / "captions.md"
     cap.write_text("\n".join(md))
     written.append(cap)
@@ -96,6 +156,22 @@ def _order_key(label: str) -> tuple[int, int]:
     return (0 if kind == "Figure" else 1, int(n) if n.isdigit() else 0)
 
 
-def build_figures(store: Store, fig_dir: Path) -> list[Path]:
-    """Compute the summary benchmarks from `store` and write their figures into `fig_dir`."""
-    return write_figures(summary.chart_data(store), Path(fig_dir))
+def build_figures(store: Store, fig_dir: Path, *, with_dan: bool = False) -> list[Path]:
+    """Compute the summary benchmarks from `store` and write their figures into `fig_dir`.
+    `with_dan=True` (default `False`, so an existing call is unaffected) also computes and writes
+    WP-D5's "State-env models" figures (plan §6) into the same directory."""
+    dan_charts = None
+    dan_crossfamily = None
+    if with_dan:
+        from ..analysis import models_registry as mr
+        from ..dash import dan_pages
+
+        registry = mr.load_registry()
+        dan_charts = dan_pages.dan_chart_data(store, registry=registry)
+        dan_crossfamily = dan_pages.dan_crossfamily_table(store, registry)
+    return write_figures(
+        summary.chart_data(store),
+        Path(fig_dir),
+        dan_charts=dan_charts,
+        dan_crossfamily=dan_crossfamily,
+    )
