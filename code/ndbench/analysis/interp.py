@@ -38,6 +38,7 @@ from ._common import (
     items_by_pid,
     latest_run_id,
     models_present,
+    run_records,
 )
 
 _STEER_RE = re.compile(r"^steer:(-?\d+):(-?[0-9.]+)$")
@@ -144,12 +145,44 @@ DEFAULT_STEERING_SUITES: tuple[str, ...] = (
 )
 
 
+#: The sweeps' own pass@1 sample count (`steering_sweep`'s `cfg["k"]`, `run_interpolation`'s
+#: `cfg["k_pass1"]`); `cfg["k_pass1"]` overrides it in the views below.
+DEFAULT_SWEEP_K_PASS1 = 8
+
+
+def _sweep_run_id(store: Store, *, suite: str, version: str, model: str, k: int) -> str | None:
+    """The `model`'s run on `suite` made at the sweep's own `k` (most recently finished first),
+    falling back to `latest_run_id` (largest `k`) only when no such run exists.
+
+    `latest_run_id` alone prefers the largest `k`, so on `textbook_dev` it handed `base`/`rl`
+    the Yue benchmark's k=4096 run while every steered/interpolated model only has the sweep's
+    k=8 run: the "unsteered" baseline then came from a different run (different k, seed and
+    batch composition) than the steered models it is compared with. The sweep runs `base`/`rl`
+    at its own k precisely to have that paired baseline."""
+    cands = [
+        r
+        for r in run_records(store, suite=suite, version=version, model=model)
+        if int(cast("int | None", r.get("k")) or 0) == k
+    ]
+    if cands:
+        cands.sort(key=lambda r: cast(str, r.get("finished_utc") or r.get("started_utc") or ""))
+        return cast(str, cands[-1]["run_id"])
+    return latest_run_id(store, suite=suite, version=version, model=model)
+
+
 def _pooled_pass1_of(
-    store: Store, *, suites: Sequence[str], version: str, model: str, B: int, seed: int
+    store: Store,
+    *,
+    suites: Sequence[str],
+    version: str,
+    model: str,
+    B: int,
+    seed: int,
+    k: int = DEFAULT_SWEEP_K_PASS1,
 ) -> tuple[float, float, float] | None:
     items: list[ItemResult] = []
     for suite in suites:
-        run_id = latest_run_id(store, suite=suite, version=version, model=model)
+        run_id = _sweep_run_id(store, suite=suite, version=version, model=model, k=k)
         if run_id is not None:
             items += list(items_by_pid(store, run_id).values())
     if not items:
@@ -178,6 +211,7 @@ def view_steering(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     )
     B = int(cast(int, cfg_get(cfg, "B", 500)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
+    k_pass1 = int(cast(int, cfg_get(cfg, "k_pass1", DEFAULT_SWEEP_K_PASS1)))
 
     models: set[str] = set()
     for suite in suites:
@@ -187,14 +221,16 @@ def view_steering(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
 
     by_layer: dict[int, list[tuple[float, float, float, float]]] = {}
     base_pass1 = _pooled_pass1_of(
-        store, suites=suites, version=version, model="base", B=B, seed=seed
+        store, suites=suites, version=version, model="base", B=B, seed=seed, k=k_pass1
     )
     rl_control: dict[str, JSON] = {}
     for m in sorted(models):
         match = _STEER_RE.match(m)
         if match is None:
             continue
-        p1 = _pooled_pass1_of(store, suites=suites, version=version, model=m, B=B, seed=seed)
+        p1 = _pooled_pass1_of(
+            store, suites=suites, version=version, model=m, B=B, seed=seed, k=k_pass1
+        )
         if p1 is None:
             continue
         layer, alpha = int(match.group(1)), float(match.group(2))
@@ -248,6 +284,7 @@ def view_interpolation(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     version = cast(str, cfg.get("version") or default_version(store, suite=pass1_suites[0]) or "v1")
     B = int(cast(int, cfg_get(cfg, "B", 500)))
     seed = int(cast(int, cfg_get(cfg, "seed", 0)))
+    k_pass1 = int(cast(int, cfg_get(cfg, "k_pass1", DEFAULT_SWEEP_K_PASS1)))
 
     models: set[str] = set()
     for s in (*pass1_suites, eval_suites.K128_SUITE):
@@ -263,7 +300,7 @@ def view_interpolation(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     for m in interp_models:
         items: list[ItemResult] = []
         for s in pass1_suites:
-            run_id = latest_run_id(store, suite=s, version=version, model=m)
+            run_id = _sweep_run_id(store, suite=s, version=version, model=m, k=k_pass1)
             if run_id is not None:
                 items += list(items_by_pid(store, run_id).values())
         if not items:
