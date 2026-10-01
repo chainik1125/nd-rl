@@ -88,8 +88,9 @@ for them.
 `dan12-t1-s0`): call `register_family("dan12")` once, in a fixed order, to give the family the
 next hue in `FAMILY_HUES` (reddish purple, sky blue, orange, black; never generated, so there is no
 ninth hue: unregistered families are grey). `parse_model_label` splits a label into family, role
-and seed; the role sets the shade (`ROLE_SHADE`: pretrained darker, RL at full hue), the seed sets
-the line style (`SEED_LINESTYLES`), and the family's position sets the marker. Sky blue and orange
+and seed; the role sets the shade (`ROLE_SHADE`: pretrained darker, RL at full hue; Dan's `fz` is
+pretrained, `t1` RL) and the bar fill (pretrained solid, RL hatched), the seed sets the line style
+(`SEED_LINESTYLES`), and the family's position sets the marker. Sky blue and orange
 are below 3:1 contrast on white, so those families rely on marker and direct labels as well.
 
 ## Summary page
@@ -111,7 +112,9 @@ base/rl/armC page and the golden regression (`test_paper_figures.py`) render byt
 with the flag off.
 
 Every multi-value Dan chart is small multiples, one panel per `plots.DAN_FAMILY_ORDER`
-(`"ours" | "dan12" | "dan6"`, left to right): `dan_panel_figure` draws each panel from
+(`"ours" | "dan12" | "dan6"`, left to right, on one y scale; the families dot plot shares its rows
+instead), each with the estimator of the paper figure for the same benchmark, so the "ours" panel
+reproduces that figure: `dan_panel_figure` draws each panel from
 `ChartData.extra["panels"][family]` -- a complete sub-`ChartData` for just that family, built by
 `dash/dan_pages.py` from the ordinary `view_<bench>(store, cfg={"models": ..., "judge_id": ...})`
 call most benchmarks already support. A family with no matching runs yet draws as a clean "not
