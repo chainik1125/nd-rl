@@ -302,22 +302,30 @@ def compositionality_ratio(
     return {"R": R, "R_min": R_min, "ci": (lo, hi), "ci_min": (lo_m, hi_m), "n_used": n_used}
 
 
-def hazard(rows: Sequence[tuple[int, bool]]) -> list[tuple[int, int, int, float]]:
+def hazard(
+    rows: Sequence[tuple[int, bool] | tuple[int, bool, int]],
+) -> list[tuple[int, int, int, float]]:
     """Discrete-time hazard of first failure by absolute line index.
 
-    `rows` is one `(exit_line, failed)` pair per attempt: `exit_line` is the line at which the
-    attempt's fate was decided (the first bad line for a failure, or the written length for a
-    proof that finished or ran out of tokens without failing at a specific line); `failed` is
-    `True` iff the attempt failed exactly at `exit_line`. Returns `(line, at_risk, failed,
-    hazard)` for every line from 1 to the largest `exit_line`.
+    `rows` is one `(exit_line, failed)` or `(exit_line, failed, entry_line)` tuple per attempt:
+    `exit_line` is the line at which the attempt's fate was decided (the first bad line for a
+    failure, or the last line reached for a proof that finished, ran out of tokens or stopped
+    without failing at a specific line -- censored); `failed` is `True` iff the attempt failed
+    exactly at `exit_line`; `entry_line` (default 1) is the first line the attempt could fail at.
+    An attempt is at risk at `line` iff `entry_line <= line <= exit_line` -- left truncation, so a
+    prefix-completion attempt whose first `j` lines were forced only enters the risk set at line
+    `j + 1` (audit 2026-10-01: counting forced lines as survived understated the hazard 2-4x).
+    Returns `(line, at_risk, failed, hazard)` for every line from 1 to the largest `exit_line`
+    (`hazard` is NaN where nothing is at risk).
     """
     if not rows:
         return []
-    max_line = max(line for line, _ in rows)
+    norm = [(r[0], r[1], r[2] if len(r) == 3 else 1) for r in rows]
+    max_line = max(line for line, _f, _e in norm)
     out: list[tuple[int, int, int, float]] = []
     for line in range(1, max_line + 1):
-        at_risk = sum(1 for exit_line, _ in rows if exit_line >= line)
-        failed = sum(1 for exit_line, f in rows if exit_line == line and f)
+        at_risk = sum(1 for exit_line, _f, entry in norm if entry <= line <= exit_line)
+        failed = sum(1 for exit_line, f, entry in norm if exit_line == line and f and entry <= line)
         out.append((line, at_risk, failed, failed / at_risk if at_risk else float("nan")))
     return out
 

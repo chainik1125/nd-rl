@@ -8,11 +8,12 @@ Reads the `prefix` suite (WP4's `suites/prefix.py`; `Problem.tags` carry `j`/`L`
   `L` (the plan's "by absolute position" -- read here as *where in the length spectrum the item
   sits*, since the prefix cut itself, `j`, already is "position from the start"; flagged as an
   interpretation in case the integration step meant something else by that phrase);
-- a first-failure hazard by absolute line index (`metrics.hazard`), pooling every attempt's exit
-  line: `ItemResult.ok_written` entries as non-failing exits, `ItemResult.fail_lines` entries as
-  failing ones -- attempts that ran out of tokens without a specific bad line (`no_qed`,
-  `unparseable`) are not in `fail_lines` and so do not contribute an exit line to the hazard table,
-  since neither `ItemResult` nor the plan's schema records one for them;
+- a first-failure hazard by absolute line index (`metrics.hazard`), left-truncated at the forced
+  prefix: an attempt enters the risk set at line `j + 1` (lines `1..j` were given, not generated,
+  and cannot fail). Built from the run's samples file when present: a bad line is a failure at
+  `first_bad_line`, everything else (verified, `early_qed`, `no_qed`, ...) is censored at its
+  `written` length. Without a samples file it falls back to `ItemResult.ok_written` (censored) and
+  `ItemResult.fail_lines` (failures), which drops attempts that stopped without a bad line;
 - a fitted logit `p = a + b*(L - j) + c*j` (`_common.irls_binomial`, item-level `n`/`c`) -- **fixed
   effects only**: the plan calls for "proof random intercepts", a mixed-effects (GLMM) term; WP0's
   `metrics.py` has no GLMM/random-effects solver and adding one is out of scope for a numpy IRLS
@@ -27,6 +28,7 @@ from typing import Any, cast
 
 import numpy as np
 
+from ..core.io import read_jsonl
 from ..core.types import JSON
 from ..metrics import hazard, pass_at_k
 from ..store import Store
@@ -63,6 +65,27 @@ def _bucket_success(rows: list[tuple[float, int, int]]) -> dict[str, Any]:
     return out
 
 
+def _hazard_rows_from_samples(
+    store: Store, run_id: str, j_by_pid: Mapping[str, int]
+) -> list[tuple[int, bool, int]] | None:
+    """`(exit_line, failed, entry_line)` per sampled attempt (see the module docstring), or `None`
+    when the run has no samples file."""
+    path = store.samples_dir / f"{run_id}.jsonl.gz"
+    if not path.exists():
+        return None
+    rows: list[tuple[int, bool, int]] = []
+    for s in read_jsonl(path):
+        j = j_by_pid.get(cast(str, s.get("pid")))
+        if j is None:
+            continue
+        bad = s.get("first_bad_line")
+        if not s.get("ok") and bad is not None:
+            rows.append((int(cast(int, bad)), True, j + 1))
+        elif s.get("written") is not None:
+            rows.append((int(cast(int, s["written"])), False, j + 1))
+    return rows
+
+
 def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
     suite = cast(str, cfg_get(cfg, "suite", DEFAULT_SUITE))
     override_models = cast("list[str] | None", cfg.get("models"))
@@ -86,7 +109,8 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             continue
         items = items_by_pid(store, run_id)
         rows: list[tuple[int, int, int, int]] = []  # (j, L, n, c)
-        hazard_rows: list[tuple[int, bool]] = []
+        item_hazard_rows: list[tuple[int, bool, int]] = []
+        j_by_pid: dict[str, int] = {}
         for pid, item in items.items():
             p = problems.get(pid)
             if p is None:
@@ -97,13 +121,18 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
                 j_val = p.prefix.j
             if j_val is None or l_val is None:
                 continue
-            rows.append((int(cast(int, j_val)), int(cast(int, l_val)), item.n, item.c))
+            j_int = int(cast(int, j_val))
+            j_by_pid[pid] = j_int
+            rows.append((j_int, int(cast(int, l_val)), item.n, item.c))
             for w in item.ok_written:
-                hazard_rows.append((w, False))
+                item_hazard_rows.append((w, False, j_int + 1))
             for line in item.fail_lines:
-                hazard_rows.append((line, True))
+                item_hazard_rows.append((line, True, j_int + 1))
         if not rows:
             continue
+        hazard_rows = _hazard_rows_from_samples(store, run_id, j_by_pid)
+        if hazard_rows is None:
+            hazard_rows = item_hazard_rows
 
         success_by_j = _bucket_success([(float(j), n, c) for j, _l, n, c in rows])
         success_by_lines_left = _bucket_success([(float(l_v - j), n, c) for j, l_v, n, c in rows])

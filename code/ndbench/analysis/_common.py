@@ -284,6 +284,20 @@ def item_length(problem: Problem) -> float | None:
     return None
 
 
+def item_tokens(problem: Problem) -> float | None:
+    """The item's own size in model tokens: `tags["tokens"]` (prompt + reference proof, set by the
+    suite builders) when present, else the whitespace-token count of the prompt plus the reference
+    body (the abs tokenizer maps 1:1 to whitespace tokens), else `None`. Never a model's own
+    generated length (`ItemResult.tokens_mean`): that depends on the outcome, failed attempts
+    included, so a slope against it is not a slope against item size (audit 2026-10-01)."""
+    tok = problem.tags.get("tokens")
+    if isinstance(tok, int | float) and not isinstance(tok, bool):
+        return float(tok)
+    if problem.ref is not None:
+        return float(len(problem.sequent.prompt().split()) + len(problem.ref.body.split()))
+    return None
+
+
 def logit_slope_safe(
     xs: Sequence[float], ns: Sequence[int], cs: Sequence[int]
 ) -> dict[str, JSON] | None:

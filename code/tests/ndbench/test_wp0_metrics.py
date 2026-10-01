@@ -207,3 +207,14 @@ def test_edl_matches_formula() -> None:
     online = [3.0, 2.5, 2.0, 1.5]
     final = 1.0
     assert edl(online, final) == pytest.approx(sum(online) - len(online) * final)
+
+
+def test_hazard_left_truncation_excludes_forced_lines() -> None:
+    # Audit 2026-10-01: a prefix attempt whose first 5 lines were forced (entry line 6) must not
+    # count as "at risk" at lines 1-5. Item A (j=0) fails at line 6; item B (j=5) fails at line 6.
+    rows = [(6, True, 1), (6, True, 6)]
+    by_line = {line: (at_risk, failed) for line, at_risk, failed, _h in hazard(rows)}
+    assert by_line[3] == (1, 0)  # only the j=0 attempt is at risk before line 6
+    assert by_line[6] == (2, 2)
+    # Two-tuples keep their old meaning (entry line 1).
+    assert hazard([(2, True)]) == hazard([(2, True, 1)])

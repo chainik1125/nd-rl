@@ -12,9 +12,10 @@ WP3 row) and, per `(family, model)`:
 - `n*_{k,tau}` with its bootstrap CI (`metrics.horizon`) at the plan's default (k=8, tau=0.5) and
   its two stated sensitivities (k=1, tau=0.5; k=32, tau -> 0, i.e. "pass@32 > 0" using a tiny
   positive threshold since `horizon` compares a continuous mean against `tau`);
-- a logit slope per added reference line and per 100 written tokens (`metrics.logit_slope`,
-  item-level `x`/`n`/`c`; `x` = `Problem.length`'s point estimate (`_common.item_length`) or
-  `ItemResult.tokens_mean / 100`).
+- a logit slope per added reference line and per 100 item tokens (`metrics.logit_slope`,
+  item-level `x`/`n`/`c`; `x` = `Problem.length`'s point estimate (`_common.item_length`) or the
+  item's own tokens / 100 (`_common.item_tokens`: prompt + reference proof, not the model's
+  outcome-dependent generated length)).
 """
 
 from __future__ import annotations
@@ -33,6 +34,7 @@ from ._common import (
     default_version,
     empty_view,
     item_length,
+    item_tokens,
     items_by_pid,
     latest_run_id,
     logit_slope_safe,
@@ -138,7 +140,8 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             for pid, item in fam_items.items():
                 length = item_length(problems[pid])
                 xs_l.append(length if length is not None else float("nan"))
-                xs_tok.append(item.tokens_mean / 100.0)
+                tok = item_tokens(problems[pid])
+                xs_tok.append(tok / 100.0 if tok is not None else float("nan"))
                 ns_arr.append(item.n)
                 cs_arr.append(item.c)
             per_model[model] = {
