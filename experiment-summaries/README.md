@@ -15,4 +15,5 @@ written_by: agent:codex
 - [Proof-cap comparison](2026-09-10-proof-cap-comparison/README.md): six completed configurations did not extend verified textbook reach beyond the supervision cap.
 - [Proof-fragment selection](2026-09-10-proof-fragment-selection/README.md): supervised transfer scores reproduced, but the tested RL curricula reduced complete-proof coverage.
 - [FLoP adaptation](2026-09-10-flop-adaptation/README.md): narrow symbolic depth extrapolation without a held-out coverage gain for the token LM.
+- [Capability benchmarks for the base and RL provers](2026-09-30-benchmarking/README.md): 12 audited benchmarks (pass@k, families, glue, skills, laws, padding, prefix, EDL, likelihood, steering, interpolation, probes); RL gains concentrate on things base cannot do on unseen theorems, case splits stay at 0% for every model.
 - [Literature for learning beyond initial training data](../docs/literature/astra_suggestions/learning-beyond-training-data.md): completed reading recommendations and experimental-design critique; no new experiment results.
