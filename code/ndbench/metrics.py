@@ -253,8 +253,12 @@ def horizon(
         boot_n = n_star(means_b)
         if boot_n is not None:
             boots.append(boot_n)
+    # No CI when the point estimate is None (audit 2026-10-01): percentiles over only the
+    # replicates that found an n* are not an interval for "fails at the smallest n".
     ci: tuple[int | None, int | None] = (
-        (int(np.percentile(boots, 2.5)), int(np.percentile(boots, 97.5))) if boots else (None, None)
+        (int(np.percentile(boots, 2.5)), int(np.percentile(boots, 97.5)))
+        if boots and observed is not None
+        else (None, None)
     )
     return {"n_star": observed, "ci": ci, "k": k, "tau": tau, "curve": curve}
 

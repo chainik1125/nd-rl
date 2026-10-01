@@ -44,7 +44,8 @@ def test_yue_view_nonempty_and_crossover_detected(tmp_path: Path) -> None:
     dev = sets["textbook_dev"]
     assert set(dev["models"]) == {"base", "rl"}
     assert dev["n_items"] == {"base": 40, "rl": 40}
-    assert len(dev["curves"]["base"]) == len(yue.KS)
+    # n=256 draws per item: the curve stops at k=256 (no extrapolated pass@512..4096 points).
+    assert len(dev["curves"]["base"]) == len([k for k in yue.KS if k <= 256])
     assert dev["pair"] == ["base", "rl"]
 
     cross = dev["crossover"]
@@ -222,3 +223,22 @@ def test_first_chunk_by_pid_reads_only_the_lowest_chunk(tmp_path: Path) -> None:
     (merged,) = store.items(run_id)
     assert merged.n == 512
     assert merged.c == 4
+
+
+def test_yue_caps_each_model_at_its_own_draw_count(tmp_path: Path) -> None:
+    # Audit 2026-10-01: a model that drew 1024 samples per item gets no pass@2048/4096 point
+    # (that would be `1-(1-c/n)^k` extrapolation, which never credits an unsolved item), while a
+    # model with 4096 draws keeps its full curve; the crossover is searched only up to the
+    # smaller of the two ceilings.
+    store = Store(tmp_path)
+    problems = [make_problem(f"p{i}", "textbook_dev", "v1", length=8) for i in range(10)]
+    store.write_suite(problems, manifest("textbook_dev", "v1", len(problems)))
+    base_run = start_run(store, suite="textbook_dev", version="v1", model="base", k=4096)
+    rl_run = start_run(store, suite="textbook_dev", version="v1", model="rl", k=1024)
+    store.append_items(base_run, [make_item(base_run, f"p{i}", 4096, i) for i in range(10)])
+    store.append_items(rl_run, [make_item(rl_run, f"p{i}", 1024, 2 * i) for i in range(10)])
+    data = yue.view(store, {"B": 20, "seed": 0})
+    s = data["sets"]["textbook_dev"]
+    assert s["k_max_by_model"] == {"base": 4096, "rl": 1024}
+    assert max(k for k, *_ in s["curves"]["base"]) == 4096
+    assert max(k for k, *_ in s["curves"]["rl"]) == 1024

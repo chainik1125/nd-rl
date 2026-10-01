@@ -173,6 +173,13 @@ def _arrays(
     return n_first, c_first, n_tot, c_tot
 
 
+def _model_k_max(rows: _Rows) -> int:
+    """The largest per-item draw count in a model's run: the k beyond which its pass@k is no
+    longer estimated from draws (adaptive runs stop solved items early, so the max -- not the min
+    -- is the design's ceiling; an item stopped early has `c >= stop_c` and `1-(1-p)^k ~ 1`)."""
+    return max((n_tot for _nf, _cf, n_tot, _ct in rows.values()), default=0)
+
+
 def _curve_for_model(
     rows: _Rows, ks: Sequence[int], B: int, seed: int
 ) -> tuple[list[tuple[int, float, float, float]], list[tuple[int, float]]]:
@@ -221,7 +228,14 @@ def _crossover(
 ) -> dict[str, Any]:
     common = sorted(set(rows_a) & set(rows_b))
     if not common:
-        return {"k_star": None, "ci": (None, None), "n_common": 0, "n_boot_found": 0, "B": B}
+        return {
+            "k_star": None,
+            "ci": (None, None),
+            "n_common": 0,
+            "n_boot_found": 0,
+            "p_none": float("nan"),
+            "B": B,
+        }
     an_first, ac_first, an_tot, ac_tot = _arrays(rows_a, common)
     bn_first, bc_first, bn_tot, bc_tot = _arrays(rows_b, common)
     vals_a = np.stack([_pk_vals(an_first, ac_first, an_tot, ac_tot, k) for k in ks])
@@ -241,13 +255,17 @@ def _crossover(
         if kb is not None:
             boots.append(kb)
     ci: tuple[int | None, int | None] = (None, None)
-    if boots:
+    # Audit 2026-10-01: a CI over only the replicates that happened to find a crossover is not a
+    # CI for "no crossover"; report it only when the point estimate exists (`p_none` = share of
+    # replicates with no crossover, either way).
+    if boots and k_star is not None:
         ci = (int(np.percentile(boots, 2.5)), int(np.percentile(boots, 97.5)))
     return {
         "k_star": k_star,
         "ci": ci,
         "n_common": n_items,
         "n_boot_found": len(boots),
+        "p_none": 1.0 - len(boots) / B if B else float("nan"),
         "B": B,
     }
 
@@ -401,6 +419,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             continue
         problems = problems_by_pid(store, suite, version)
         rows_by_model: dict[str, _Rows] = {}
+        k_max_by_model: dict[str, int] = {}
         curves: dict[str, Any] = {}
         lower_curves: dict[str, Any] = {}
         coverage: dict[str, Any] = {}
@@ -418,7 +437,12 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             if not rows:
                 continue
             rows_by_model[model] = rows
-            curve, lower = _curve_for_model(rows, ks_for_set, B, seed)
+            # Cap each model at its own draw count (audit 2026-10-01): past the largest per-item
+            # n, `1 - (1 - c/n)^k` can never credit an item the model did not solve in the draws
+            # it had, so e.g. a 1024-draw run's "pass@4096" is an extrapolation, not a measurement.
+            k_max_by_model[model] = _model_k_max(rows)
+            ks_model = [k for k in ks_for_set if k <= k_max_by_model[model]]
+            curve, lower = _curve_for_model(rows, ks_model, B, seed)
             curves[model] = curve
             lower_curves[model] = lower
             coverage[model] = _coverage(rows)
@@ -429,9 +453,16 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         venn: dict[str, Any] | None = None
         if pair is not None:
             a, b = pair
-            cross = _crossover(rows_by_model[a], rows_by_model[b], ks_for_set, B, seed)
+            k_common = min(k_max_by_model[a], k_max_by_model[b])
+            ks_pair = [k for k in ks_for_set if k <= k_common]
+            cross = _crossover(rows_by_model[a], rows_by_model[b], ks_pair, B, seed)
             venn = _venn(rows_by_model[a], rows_by_model[b], a, b)
-        per_length = {m: _per_length(rows_by_model[m], problems, ks_for_set) for m in rows_by_model}
+        per_length = {
+            m: _per_length(
+                rows_by_model[m], problems, [k for k in ks_for_set if k <= k_max_by_model[m]]
+            )
+            for m in rows_by_model
+        }
         legacy: dict[str, Any] = {}
         legacy_suite = legacy_sets.get(label)
         if legacy_suite is not None:
@@ -444,6 +475,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             "suite": suite,
             "version": version,
             "k_max": k_cap,
+            "k_max_by_model": k_max_by_model,
             "models": sorted(rows_by_model),
             "n_items": {m: len(r) for m, r in rows_by_model.items()},
             "curves": curves,
