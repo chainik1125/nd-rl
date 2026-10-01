@@ -1,0 +1,12 @@
+# `python -m code.ndbench build --suite prefix_state --version v1 --config configs/prefix_state.yaml`
+# DANSTATE_PLAN.md §3/§7 WP-D3 (plan §1's "Prefix" paragraph, the STATEPREFIX format): repacks
+# the already-built `prefix` v1 suite (1,039 items; `configs/prefix.yaml`) into Dan's state-env
+# `STATEPREFIX m=<m> | <full reference ND body>` format, one item per (theorem, j) -- same
+# buckets, same `j`/`L`/`src_pid`/`bucket` tags -- with `m = m_for_j(...)` (`suites/danstate.py`'s
+# module docstring: the smallest number of env actions whose replay materialises >= j ND lines of
+# the reference), plus `m`, `A`, `actions_left`, `open_boxes`. No certifier/excluder needed: every
+# source item is already certified/filtered by the `prefix` builder itself.
+#
+# Defaults read straight from the already-built `prefix` v1 suite under the default store root;
+# override `source_suite`/`source_version`/`store_root` to point at a different source build.
+version: v1

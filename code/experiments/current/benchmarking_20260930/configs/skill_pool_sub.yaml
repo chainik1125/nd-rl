@@ -1,0 +1,14 @@
+# `python -m code.ndbench build --suite skill_pool_sub --version v1 --config configs/skill_pool_sub.yaml`
+# DANSTATE_PLAN.md §3/§7 WP-D3 (B3 row: "needs a subsample suite"): a deterministic stratified
+# subsample of the already-built `skill_pool` v1 (11,524) by (L, skill_group) -- `skill_group`
+# the 4-valued collapse of the two skills `skill_pool` tags unconditionally (`classical`,
+# `case_split`; see `logic/skills.py`'s cost-of-the-other-five docstring) -- so Dan's models get a
+# skills profile cheaply. `n_items` is a *target* (equal-per-cell quota, taken up to each cell's
+# own availability): observed 975/1200 against the real `skill_pool` v1 (49 non-empty cells;
+# several classical+case_split cells have very few items at some L) -- per-cell
+# available/taken counts are in the build's own `stats["by_cell"]`.
+#
+# No certifier/excluder needed: every source item is already classified/excluded by the
+# `skill_pool` builder itself. `rng_seed` (the CLI's `--seed`) must be fixed across rebuilds for
+# the subsample to stay reproducible (`test_dan_suites.py` checks this).
+version: v1

@@ -35,4 +35,10 @@ BUILDERS: dict[str, str] = {
     # contract (`(cfg, *, certifier, excluder, rng_seed) -> (list[Problem], dict)`).
     "glue_length_sweep": "code.ndbench.suites.glue:build_length_sweep",
     "prefix": "code.ndbench.suites.prefix:build",
+    # WP-D3 (DANSTATE_PLAN.md §3/§7): new suites + "seen in training" tiers for Dan's state-env
+    # models. `prefix_state` repacks the `prefix` suite above into Dan's `STATEPREFIX` format.
+    "dan_heldout": "code.ndbench.suites.danstate:dan_heldout",
+    "textbook_train14": "code.ndbench.suites.danstate:textbook_train14",
+    "prefix_state": "code.ndbench.suites.danstate:prefix_state",
+    "skill_pool_sub": "code.ndbench.suites.danstate:skill_pool_sub",
 }
