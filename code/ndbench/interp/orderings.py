@@ -67,6 +67,20 @@ _ORE_RULE = "ORE"
 #: units at one level (2**22 subsets is already a lot of pure-Python DP; `INTERP_SPEC.md` §1).
 MAX_EXACT_UNITS = 22
 
+#: A second, lower cap applying only to a single connected component that `_linear_extension_count`
+#: could not split any further (performance fix, 2026-10-01): decomposing into independent
+#: components (see that function's docstring) makes the common "many independent lines" case
+#: effectively free, but a "hub" shape -- many otherwise-unrelated lines all citing one shared
+#: *non-prefix* line (so the hub and every spoke land in one connected component, just with almost
+#: no real constraint between the spokes) -- still hits the raw `O(2^n)` bitmask DP, which profiled
+#: at ~12s for a 22-unit case with no further decomposition possible (fully independent, filtered
+#: dependencies on the fixed prefix only, is already handled above; this is the residual case where
+#: that one shared citation target is itself a permutable unit, not the prefix). Above this many
+#: units in one irreducible component, `_linear_extension_count` gives up (`None`) rather than pay
+#: that cost, same as `count_orderings` giving up above `MAX_EXACT_UNITS` overall -- callers already
+#: handle `None` by falling back to `sample_orderings`.
+MAX_EXACT_COMPONENT_UNITS = 18
+
 
 class OrderingError(ValueError):
     """`body` is not a complete, well-formed ND proof this module can reorder."""
@@ -236,11 +250,74 @@ def _filtered_deps(st: _ProofStructure, cid: int, permutable: list[Unit]) -> dic
     return {u: (raw.get(u, set()) & allowed) for u in permutable}
 
 
-def _linear_extension_count(nodes: list[Unit], deps: dict[Unit, set[Unit]]) -> int:
-    """Exact count of linear extensions of `nodes` under `deps` (subset DP, `O(2^n * n)`)."""
+def _connected_components(nodes: list[Unit], deps: dict[Unit, set[Unit]]) -> list[list[Unit]]:
+    """Partition `nodes` into connected components of the dependency graph `deps` induces, treated
+    as undirected (union-find): two units share a component iff some chain of `deps` edges
+    (forwards or backwards) connects them. Real ND proof levels are typically a disjoint union of
+    several small, independent branches rather than one tangled poset -- `_linear_extension_count`
+    below exploits this directly."""
+    parent: dict[Unit, Unit] = {u: u for u in nodes}
+
+    def find(x: Unit) -> Unit:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: Unit, b: Unit) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for u in nodes:
+        for v in deps.get(u, ()):
+            union(u, v)
+
+    groups: dict[Unit, list[Unit]] = {}
+    for u in nodes:
+        groups.setdefault(find(u), []).append(u)
+    return list(groups.values())
+
+
+def _linear_extension_count(nodes: list[Unit], deps: dict[Unit, set[Unit]]) -> int | None:
+    """Exact count of linear extensions of `nodes` under `deps`, or `None` if some irreducible
+    (post-decomposition) component exceeds `MAX_EXACT_COMPONENT_UNITS`.
+
+    Splits `nodes` into connected components of `deps` (`_connected_components`) first and
+    combines them via the standard disjoint-union-of-posets formula: the number of linear
+    extensions of a union of components of sizes `n_1..n_k` (summing to `n`) is the multinomial
+    coefficient `C(n; n_1,...,n_k)` times the product of each component's own extension count
+    (choose which of the `n` output slots go to each component -- any interleaving is valid, since
+    unrelated components impose no constraint on each other -- then multiply by each one's own
+    internal count of valid orders). Real proof levels are very often exactly this: several
+    PR-derived lines or independent box arguments that only cite the level's fixed prefix (and
+    hence end up with no within-level dependencies at all once `_filtered_deps` drops edges to it),
+    i.e. `MAX_EXACT_UNITS` singleton components -- `math.factorial(n)` instead of the `2^n`-state
+    subset DP below (profiled: a 22-unit, fully-independent level took ~12s through the raw DP,
+    microseconds through this shortcut). Falls back to the original `O(2^n * n)` bitmask DP only
+    for whatever single, genuinely-entangled component remains after decomposition -- same
+    worst-case bound as before (bounded by `MAX_EXACT_UNITS` at the `count_orderings` call site),
+    just reached far less often in practice.
+    """
     n = len(nodes)
     if n <= 1:
         return 1
+    components = _connected_components(nodes, deps)
+    if len(components) > 1:
+        total = math.factorial(n)
+        for comp in components:
+            comp_deps = {u: deps.get(u, set()) & set(comp) for u in comp}
+            comp_count = _linear_extension_count(comp, comp_deps)
+            if comp_count is None:
+                return None
+            total //= math.factorial(len(comp))
+            total *= comp_count
+        return total
+    # A single connected component (no further decomposition possible): the original subset DP,
+    # capped at MAX_EXACT_COMPONENT_UNITS (module docstring) since this is the one shape the
+    # decomposition above cannot shrink.
+    if n > MAX_EXACT_COMPONENT_UNITS:
+        return None
     index = {u: i for i, u in enumerate(nodes)}
     pred_mask = [0] * n
     for u, deps_u in deps.items():
@@ -268,14 +345,19 @@ def _linear_extension_count(nodes: list[Unit], deps: dict[Unit, set[Unit]]) -> i
 def count_orderings(body: str) -> int | None:
     """Exact number of orderings equivalent to `body` (product over every container of the linear
     extensions of that container's permutable-unit DAG), or `None` if some container has more than
-    `MAX_EXACT_UNITS` permutable units (use `sample_orderings` instead)."""
+    `MAX_EXACT_UNITS` permutable units, or (performance fix: `MAX_EXACT_COMPONENT_UNITS`'s
+    docstring) some container's units don't decompose into small-enough independent components
+    (use `sample_orderings` instead in either case)."""
     st = _build_structure(body)
     total = 1
     for cid in (ROOT_ID, *st.box_meta):
         _prefix, permutable, _last = st.parts(cid)
         if len(permutable) > MAX_EXACT_UNITS:
             return None
-        total *= _linear_extension_count(permutable, _filtered_deps(st, cid, permutable))
+        level_count = _linear_extension_count(permutable, _filtered_deps(st, cid, permutable))
+        if level_count is None:
+            return None
+        total *= level_count
     return total
 
 

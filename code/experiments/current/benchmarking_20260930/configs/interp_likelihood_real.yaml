@@ -1,4 +1,31 @@
-# Real run (2026-10-01). cap 32 exact orderings, 64 importance samples beyond (the first attempt at cap 10000 exceeded 29 GPU-min on long RL proofs). 1000 neutral proofs; RL samples on gen_ctrl (crux set: base 0/512 on every item); base samples on parts_pool.
+# Real run (2026-10-01). Two timeouts before the throughput fix: cap 10000 (INTERP_SPEC.md's
+# default) exceeded 29 GPU-min on long RL proofs (the exact ordering counter's bitmask DP, and
+# `AbsGptAdapter.logprob` scoring thousands of orderings for a single item in one call); then cap
+# 32 / m 64 still exceeded 37 GPU-min with the un-batched, per-item `run_likelihood` loop (it
+# scored every item's own body twice -- once as "single", once again as part of its own ordering
+# set -- and never pooled more than one item's rows into a single `adapter.logprob` call).
+#
+# Fix (code/ndbench/interp/likelihood.py, orderings.py, data.py; see this coder's final report for
+# the full before/after profile): `marginal_logprob` reuses the already-scored copy of `body` out
+# of its own ordering set instead of a second call; `run_likelihood` plans every item's ordering
+# set on the CPU first (orderings.py's connected-components speedup makes this cheap even for
+# proofs with many independent lines: a 22-unit fully-independent level went from ~12s to
+# microseconds) and scores a whole chunk of items' pooled rows in one batched
+# `adapter.logprob`/teacher-forced-logits call per model, writing each chunk to the Store as it
+# finishes. cap/m kept at 32/64 (on the real gen_ctrl/parts_pool/reserve data, observed
+# n_orderings maxed out at 24, so every item already falls in the cheap exact branch at this cap).
+#
+# A THIRD timeout (37 GPU-min again) surfaced only after the above was in place and this run was
+# actually launched: `neutral += family_items` added every one of the real `families` suite's
+# 2,193 witnesses *uncapped*, well past where `n_neutral` (already fully satisfied by reserve.jsonl
+# alone) was checked -- CPU-only planning found ~27,400 ordering-rows across just the family
+# witnesses (one model), the real dominant cost, not anything GPU-side left to fix. `family_limit`
+# below (default 300 if omitted; `data.load_family_witnesses` now shuffles before truncating, since
+# a plain head-slice of the suite's file order was *all* `and_tower`, missing the other ~90
+# shapes/sizes) keeps a representative cross-section instead.
+#
+# 1000 neutral proofs; up to 300 (of 2,193) shuffled family witnesses; RL samples on gen_ctrl (crux
+# set: base ~0/512 on these items); base samples on parts_pool.
 seed: 0
 n_neutral: 1000
 cap: 32
@@ -6,6 +33,7 @@ m: 64
 device: cuda
 cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
 family_version: v1
+family_limit: 300
 model_samples:
   rl:
     suite: gen_ctrl
