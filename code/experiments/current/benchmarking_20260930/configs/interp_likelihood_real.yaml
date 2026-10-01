@@ -1,0 +1,23 @@
+# Real run (2026-10-01). cap 32 exact orderings, 64 importance samples beyond (the first attempt at cap 10000 exceeded 29 GPU-min on long RL proofs). 1000 neutral proofs; RL samples on gen_ctrl (crux set: base 0/512 on every item); base samples on parts_pool.
+seed: 0
+n_neutral: 1000
+cap: 32
+m: 64
+device: cuda
+cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+family_version: v1
+model_samples:
+  rl:
+    suite: gen_ctrl
+    version: v1
+    model: rl
+    limit: 500
+  base:
+    suite: parts_pool
+    version: v1
+    model: base
+    limit: 500
+base_success:
+  suite: gen_ctrl
+  version: v1
+  model: base

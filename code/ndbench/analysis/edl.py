@@ -195,6 +195,7 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         for row in grp:
             by_lr.setdefault(float(cast(float, row.get("lr", 0.0))), []).append(row)
 
+        online_by_lr: dict[str, float] = {}
         edl_final_by_lr: dict[str, float] = {}
         edl_curve_by_lr: dict[str, list[tuple[int, float]]] = {}
         ci_by_lr: dict[str, tuple[float, float]] = {}
@@ -206,6 +207,13 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
         pass8_after_by_lr: dict[str, list[float]] = {}
         l_test_after_by_lr: dict[str, list[float]] = {}
         for lr, lr_rows in by_lr.items():
+            online_sums = [
+                sum(float(x) for x in cast(list[float], r["online_nats"]))
+                for r in lr_rows
+                if r.get("online_nats")
+            ]
+            if online_sums:
+                online_by_lr[str(lr)] = _mean(online_sums)
             finals: list[float] = []
             cis: list[tuple[float, float]] = []
             curve_pts: dict[int, list[float]] = {cp: [] for cp in checkpoints}
@@ -248,7 +256,9 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             l_test_after_by_lr[str(lr)] = l_test_after
         if not edl_final_by_lr:
             continue
-        best_lr = min(edl_final_by_lr, key=lambda k: edl_final_by_lr[k])
+        # Learning rate by smallest mean online code length (MDL convention), not smallest EDL; see
+        # `edl.summarise_edl`'s docstring for why min-over-lr EDL goes spuriously negative.
+        best_lr = min(edl_final_by_lr, key=lambda k: online_by_lr.get(k, float("inf")))
         edl_star = edl_final_by_lr[best_lr] + math.log(max(len(edl_final_by_lr), 1))
 
         out_classes.setdefault(cls, {})[model] = {

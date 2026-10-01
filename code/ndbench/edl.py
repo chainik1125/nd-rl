@@ -701,10 +701,15 @@ def run_edl(
 def summarise_edl(
     rows: Sequence[Mapping[str, JSON]], *, B: int = 2000, seed: int = 0
 ) -> dict[str, JSON]:
-    """Per (class, model identity): `EDL*` (min over `lr` of the full-`n` `EDL`, plus `ln(k)` for
-    `k` distinct learning rates swept -- plan §B7's "+ ln 3" hyperparameter-search correction for
-    the default 3-LR sweep), its bootstrap CI over data orders (`nan` if fewer than 2 orders are
-    present), and the mean `L_test` curve over checkpoints.
+    """Per (class, model identity): `EDL*` -- the full-`n` `EDL` at the learning rate with the
+    smallest online code length (sum of `online_nats`, the MDL convention), plus `ln(k)` for `k`
+    distinct learning rates swept (plan §B7's "+ ln 3" hyperparameter cost) -- its bootstrap CI
+    over data orders (`nan` if fewer than 2 orders are present), and the mean `L_test` curve.
+
+    The learning rate is chosen by code length, not by the smallest EDL: on classes the model
+    already knows, a learning rate that damages the model raises the final test loss and so
+    *lowers* EDL, which made min-over-lr EDL spuriously negative (the null control heldout_cap6
+    gave about -5 nats/example that way, and about 0 with code-length selection).
     """
     groups: dict[tuple[str, str], list[Mapping[str, JSON]]] = {}
     for r in rows:
@@ -722,9 +727,12 @@ def summarise_edl(
 
         order_stars: list[float] = []
         for _order, order_rows in sorted(by_order.items()):
-            edls = [float(cast(float, r["EDL"])) for r in order_rows]
-            if edls:
-                order_stars.append(min(edls) + correction)
+            if order_rows:
+                chosen = min(
+                    order_rows,
+                    key=lambda r: sum(float(x) for x in cast(list[float], r["online_nats"])),
+                )
+                order_stars.append(float(cast(float, chosen["EDL"])) + correction)
         star_mean = float(np.mean(order_stars)) if order_stars else float("nan")
 
         if len(order_stars) >= 2:
