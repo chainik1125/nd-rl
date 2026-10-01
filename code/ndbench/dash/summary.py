@@ -136,11 +136,30 @@ def _chart_1_yue(store: Store) -> str:
             lead1, trail1 = (a1, b1) if a1 >= b1 else (b1, a1)
             lead_max, trail_max = (a_max, b_max) if a1 >= b1 else (b_max, a_max)
             if cross.get("k_star") is None:
-                takeaway = (
-                    f"{lead} is ahead of {trail} at every k; no crossover (pass@1 "
-                    f"{P.fmt(lead1, 'pct')} vs {P.fmt(trail1, 'pct')}; pass@{lead_max[0]} "
-                    f"{P.fmt(lead_max[1], 'pct')} vs {P.fmt(trail_max[1], 'pct')})."
+                p_none = cast("float | None", cross.get("p_none"))
+                robust = (
+                    ""
+                    if p_none is None or p_none != p_none or p_none >= 0.95
+                    else f", but {P.fmt(1 - p_none, 'pct')} of bootstrap resamples do cross, so "
+                    "the ordering is not robust"
                 )
+                takeaway = (
+                    f"{lead} is ahead of {trail} at every k in the point estimate (pass@1 "
+                    f"{P.fmt(lead1, 'pct')} vs {P.fmt(trail1, 'pct')}; pass@{lead_max[0]} "
+                    f"{P.fmt(lead_max[1], 'pct')} vs {P.fmt(trail_max[1], 'pct')}){robust}"
+                )
+                others = [m for m in models if m not in pair and curves.get(m)]
+                for m in others:
+                    m1, m_max = _pt(m, 1), _kmax(m)
+                    if m1 is not None and m_max is not None:
+                        takeaway += (
+                            f"; {m} starts highest ({P.fmt(m1, 'pct')} at k=1) but plateaus at "
+                            f"{P.fmt(m_max[1], 'pct')} (pass@{m_max[0]})"
+                            if m1 > max(lead1, trail1) and m_max[1] < min(lead_max[1], trail_max[1])
+                            else f"; {m}: {P.fmt(m1, 'pct')} at k=1, {P.fmt(m_max[1], 'pct')} "
+                            f"at k={m_max[0]}"
+                        )
+                takeaway += "."
             else:
                 takeaway = (
                     f"{a} and {b} cross over near k={cross['k_star']} "
