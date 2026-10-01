@@ -1087,10 +1087,13 @@ def _data_8_edl(store: Store) -> ChartData:
                 continue
             n_lrs.add(int(cast(int, d.get("n_lrs", 0))))
             orders = cast("dict[str, float]", d.get("edl_by_order_at_best_lr") or {})
+            # The per-order values are plain EDL; add EDL*'s ln(#lrs) selection cost so the
+            # whiskers bracket the plotted EDL* point.
+            sel = math.log(max(int(cast(int, d.get("n_lrs", 1))), 1))
             per.setdefault(cls, {})[model] = {
                 "edl": cast(float, d["edl_star"]) / n,
-                "lo": min(orders.values()) / n if orders else float("nan"),
-                "hi": max(orders.values()) / n if orders else float("nan"),
+                "lo": (min(orders.values()) + sel) / n if orders else float("nan"),
+                "hi": (max(orders.values()) + sel) / n if orders else float("nan"),
                 "l0": cast(float, d.get("l_test_theta0", float("nan"))),
                 "ln": cast(float, d.get("l_test_thetan", float("nan"))),
                 "best_lr": float(cast(str, d["best_lr"])),
