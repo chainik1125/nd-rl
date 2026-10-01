@@ -415,6 +415,118 @@ in the checkout's `artifacts/ttrl/`: `dev64_ttrl`, `dev64_control`, `dev64_unrel
 `s1_ttrl`, `s1_control`.
 ```
 
+## Showing the model the proof state
+
+```claude
+Every model above writes a whole proof in one pass. It sees the theorem and the proof so far,
+and it has to work out for itself which hypotheses are in scope, which boxes are open and what
+it is currently trying to prove. Dan built a different interface this week, modelled on
+AlphaProof (Hubert et al., 2025). The model sees only the current **proof state**, the way Lean
+prints it: every hypothesis in scope, then the goal. It writes one step. An environment applies
+the step and prints the new state, and the model writes the next step. The finished steps
+concatenate into an ordinary Lean proof, which Lean checks as before.
+
+An illustration, halfway through proving `P → Q, Q → R ⊢ P → R`, inside the box that assumes P:
+
+    h1 : P → Q          the premises
+    h2 : Q → R
+    n1 : P → Q          lines proved so far, still in scope
+    n2 : Q → R
+    n4 : P              the box's assumption
+    n5 : Q
+    ⊢ R                 what this box still has to prove
+
+The model's next step is `have n6 : R := n2 n5 ;`. Nothing else is in its context: no theorem
+statement (the first state is the theorem) and no proof history. The state is Markov: it
+summarises everything the history would tell the model.
+
+Dan found that on his 3.2M-parameter model this lifts what the pretrained model can reach nearly
+6× (with no RL: 779 vs 158 transfer theorems). I wanted to know two things. Does it help my pretraining recipes as much? And does my
+autoresearch ranking of recipes survive the change of format?
+```
+
+![Dev theorems solved by pretraining recipe: whole proof, whole proof with 6x RL samples, proof state, and proof so far + state](charts/state-format.png)
+
+```claude
+**Setup.** Four recipes from my autoresearch loop: 198, the incumbent (186 above plus two small
+deletions), and three of my simplified versions of it (207, 201, 204). Each was trained four
+ways, three seeds each:
+
+- **whole proof**: the usual format, as everywhere else in this post;
+- **whole proof, 6× RL samples**: the same, with 192 RL samples per target per round instead of
+  32. This was added once the first proof-state runs showed they take about 3× the wall-clock:
+  it gives whole-proof RL roughly the same time and spends it on sampling;
+- **proof state**: Dan's interface, with the environment assigning the names a step introduces;
+- **proof so far + state**: the proof so far, then the state. This separates "the state helps"
+  from "dropping the history helps".
+
+Everything else is the frozen autoresearch harness: the same data, 300 s of pretraining, and
+plain expert iteration (4 rounds × 1,500 targets), not Leon's RL. The metric is the same dev
+metric as above.
+
+| recipe | whole proof | 6× RL samples | **proof state** | proof so far + state |
+| --- | --- | --- | --- | --- |
+| 198 | 669 / 692 / 216 | 743 / 345 / 682 | **852 / 824 / 798** | 708 / 744 / – |
+| 207 | 612 / 304 / 616 | 713 / 625 / 396 | **781 / 777 / 814** | 665 / 676 / 687 |
+| 201 | 609 / 638 / 579 | 674 / 678 / 626 | **723 / 720 / 720** | 594 / 672 / 602 |
+| 204 | 566 / 552 / 571 | 610 / 642 / 629 | **705 / 744 / 790** | 660 / 702 / 658 |
+
+- **The proof state wins on every recipe**, by 111-178 theorems over the whole proof (medians).
+- **It isn't just the extra compute.** Six times the RL samples buys the whole-proof model only
+  13-65 theorems. The proof state still leads that by 46-156. The 6× arm got about three quarters
+  of the proof state's RL wall-clock, not all of it, so these leads are slightly flattered. At
+  the rate whole-proof RL improves with samples, the missing quarter won't close them.
+- **It never failed to take off.** Whole-proof expert iteration sometimes never gets going. The
+  seeds behind 216, 304, 345 and 396 start RL solving 7-11% of their samples, against 22-24%
+  for seeds that take off, and never catch up in 4 rounds. Their pretrained models look the
+  same on held-out theorems (greedy ~0.96). This happened in 4 of 24 whole-proof runs and 0 of
+  12 proof-state runs. One slow starter, 207 seed 0, caught up in the last round.
+- **My recipe ranking survives.** 198 is best in both formats, and the spread from best to worst
+  recipe is about 100 in both. I had predicted the state would shrink it: part of what the
+  recipe search bought (ALiBi/NoPE heads, handling long contexts) should matter less once the
+  context is a short state. It didn't shrink.
+- **The history doesn't help.** Adding the proof so far is worse than the state alone on every
+  recipe (84-118 lower) and takes 2-3× as long, because the context grows with every step.
+  This matches what Dan found on his model.
+- **Plain RL in the proof state gets most of the way to Leon's RL.** 198 with plain expert
+  iteration goes from 669 (whole proof) to 824. The combined model, with Leon's RL in the
+  whole-proof format, gets 904. The two haven't been combined yet.
+
+**Cost.** A proof-state run takes about 3× the wall-clock of a whole-proof run: 58 minutes
+against 17 for 198, on an A40. It doesn't fit the 2,400 s budget every other run in this post
+uses. Sampling is about 4× slower and fine-tuning about 2.6× (a proof is about 5 training
+pairs). Most of the sampling cost is engineering, not the format. The model re-reads the whole
+state at every step, with no reuse between steps. My recipes' ALiBi attention builds a bias
+tensor that grows with the square of the context, which forced the batch down from 2,048 to 512
+to fit in memory. And the environment steps a few thousand attempts in Python between model
+calls.
+
+From next week the pipeline uses the proof state.
+```
+
+<details class="aside">
+<summary>Caveats</summary>
+
+```claude
+- **Plain expert iteration only.** None of these runs use Leon's RL or the guided sampler, so
+  "proof state + Leon's RL" is untested.
+- **Dev metric, three seeds.** No held-out or textbook numbers yet for the proof-state models.
+- **Fork.** All arms, the whole-proof ones included, ran on Dan's current code, which judges with
+  Lean alone; the rest of the post uses Lean ∧ nd_verify. Whole-proof scores here match the
+  autoresearch loop's (198: 669 and 692 vs 681).
+- **Batch sizes.** The proof-state batch was 512, and the proof-so-far batch started at 256
+  and halved whenever memory ran out (down to 32 on the weakest recipes). Batch size changes
+  the random draws, not what is measured.
+- **One lost run.** 198's third proof-so-far seed was lost to a network drop and not re-run.
+- **GPUs.** 7 of 47 runs got an RTX A6000 instead of an A40 (the same chip).
+
+Code: `code/experiments/current/state_recipes_20260930/` on branch `robbie-experiments`; the
+environment is Dan's `state_env.py` (fork branch `dan_best-state`). Per-run numbers:
+`charts/state_runs.csv`.
+```
+
+</details>
+
 ## Methodology
 
 ```claude
