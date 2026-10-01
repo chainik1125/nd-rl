@@ -74,12 +74,13 @@ def _embedding_output(
     out: list[np.ndarray] = []
     try:
         model.eval()
+        device = next(model.parameters()).device
         for seq, body in pairs:
             ids = tok.encode_prompt(seq.prompt()) + tok.encode_proof(body)
-            x = torch.tensor([ids], dtype=torch.long)
+            x = torch.tensor([ids], dtype=torch.long, device=device)
             with torch.no_grad():
                 model(x)
-            out.append(captured["x"][0].numpy())
+            out.append(captured["x"][0].float().cpu().numpy())
     finally:
         handle.remove()
     return out
