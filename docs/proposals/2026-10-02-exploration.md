@@ -1,7 +1,7 @@
 ---
 written_on: 2026-10-02
 written_by: agent:claude
-status: drafted for Dan as an unqueued follow-up (2026-10-02); to run after `grpo-best`
+status: drafted for Dan as an unqueued follow-up (2026-10-02); to run after `grpo-best`. Arm E1 moved to proposal 22 (MCTS)
 ---
 
 # Proposal 20: exploration — can RL reach steps its policy almost never proposes?
