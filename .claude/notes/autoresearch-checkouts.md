@@ -8,6 +8,13 @@ written_by: agent:codex
 Robbie requested separate full clones so tooling can change without disturbing a running
 research agent. These are not Git worktrees.
 
+**Status 2026-10-02: the loops are stopped and this layout is retired.** `autoresearch-pretrain` is
+fully merged into `robbie-experiments`, which is now Robbie's working branch (TTRL and every
+experiment since 2026-09-28). `nd-rl-2`, `nd-rl-3`, `nd-rl-4` and `nd-rl-5` were deleted;
+nd-rl-3's loop session logs were kept in `nd-rl/artifacts/autoresearch/loop-from-nd-rl-3/`. The
+`autoresearch-pretrain` branch stays because the dashboard reads results from it. The table below
+is the historical layout: to restart a loop, make fresh checkouts with the same roles.
+
 | Checkout | Branch | Role |
 | --- | --- | --- |
 | `/Users/robbie/repos/nd-rl` | `autoresearch-pretrain` | Researcher: the Fable loop since 2026-09-25 (`--agent fable`); Codex (retired) ran here before. |
