@@ -602,6 +602,28 @@ def _attempt_fields(out: _RolloutOut) -> tuple[str, dict[str, JSON], bool]:
     return body, native, finished
 
 
+@dataclass(frozen=True)
+class MaskedLogProbs:
+    """Full next-token log-probabilities (natural-log `log_softmax`, every vocab entry) at every
+    *scored* position of one teacher-forced `(sequent, body)` pair at a single, caller-fixed
+    canonical-name base -- the per-model half of `interp/kl.py`'s exact token-level KL divergence
+    between two `DanStateAdapter`s that share one tokenizer/vocab (`DanStateAdapter.
+    masked_next_logprobs`'s own docstring). "Scored" is exactly `logprob`'s own per-base mask
+    (every action token, including the trailing `<eos>`, minus `exclude_defining_names`'s
+    positions when that flag is set) -- *not* marginalised over bases, unlike `logprob` itself.
+
+    `step_of[k]` is which step (0-based, in `state_env.decompose`'s own order -- the same order
+    `interp.danstate_support.classify_steps` labels) scored position `k` belongs to; `n_steps` is
+    the item's total step count, including the proof-closing `exact` (`danstate_support.
+    classify_steps`'s own "FINAL" step)."""
+
+    log_probs: np.ndarray  # (n_scored, vocab), float32
+    target_ids: np.ndarray  # (n_scored,), int64 -- the actual next token at that position
+    step_of: np.ndarray  # (n_scored,), int64
+    n_steps: int
+    n_tokens: int  # == len(target_ids)
+
+
 # --------------------------------------------------------------------------------- the adapter
 
 
@@ -1009,6 +1031,165 @@ class DanStateAdapter(ModelAdapter):
                 nats=nats, n_tokens=n_tokens_by_pair[pair_idx], per_encoding=per_encoding
             )
         return [r for r in results if r is not None]
+
+    def masked_next_logprobs(
+        self,
+        items: Sequence[tuple[Sequent, str, int]],
+        *,
+        exclude_defining_names: bool = False,
+        allow_reencode: bool = False,
+    ) -> list[MaskedLogProbs | None]:
+        """Full next-token log-probabilities at every scored position of each `(seq, body, base)`
+        triple, teacher-forced at exactly that caller-given `base` (module docstring's `logprob`
+        section: "canonical names at base b are exactly base-0 names + b") -- `interp/kl.py`'s
+        "use the sample's own name base, not a marginal over bases" requirement, unlike `logprob`
+        itself (which marginalises over every `valid_bases` entry). Masking/exclusion is identical
+        to one of `logprob`'s own per-base rows (same `_shift_name_tokens`/
+        `_defining_name_positions` helpers, same `mask_start`/`valid_end` column range, same
+        length-bucketed batching) -- it just returns the full `log_softmax` row at each scored
+        column instead of gathering-and-summing at the single target token, so
+        `sum(r.log_probs[k, r.target_ids[k]] for k in range(r.n_tokens))` reproduces exactly one
+        `valid_bases` term of `logprob([(seq, body)]).per_encoding` (modulo the uniform `- log(
+        name_base_max + 1)` prior offset `logprob` adds and this method does not).
+
+        Returns `None` for an item whose body is outside the ND/state-env grammar: the same
+        exception set `logprob` catches, plus the same uncited-box check when `allow_reencode=
+        False` -- callers count these themselves (`interp/kl.py`'s "skip ... (count them)").
+        """
+        ds = load_danstate()
+        nd_verify = load_nd_verify()
+        vocab = int(self._tok.vocab_size)
+
+        item_ok = [False] * len(items)
+        item_n_steps = [0] * len(items)
+
+        row_ids: list[list[int]] = []
+        row_mask_start: list[int] = []
+        row_prompt_len: list[int] = []
+        row_exclude: list[set[int]] = []
+        row_item: list[int] = []
+        row_step: list[int] = []
+
+        for item_idx, (seq, body, b) in enumerate(items):
+            prompt = seq.prompt()
+            try:
+                if not allow_reencode:
+                    lines = nd_verify.parse_proof_tokens(body.split())
+                    uncited = _uncited_box_lines(lines)
+                    if uncited:
+                        raise ValueError(
+                            f"uncited box(es) at line(s) {uncited}: re-encoding would silently "
+                            "drop them, denoting a different proof (allow_reencode=False)"
+                        )
+                steps, _toks, _env = ds.state_env.decompose(prompt, body, canon=True)
+            except (
+                ds.lean_tok.ParseFail,
+                nd_verify.ParseError,
+                AssertionError,
+                ValueError,
+                IndexError,
+                KeyError,
+            ):
+                continue
+            item_ok[item_idx] = True
+            item_n_steps[item_idx] = len(steps)
+            for step_idx, (state_toks, action_toks, _hist) in enumerate(steps):
+                pre = self._tok.encode_toks(_shift_name_tokens(state_toks, b))
+                post = self._tok.encode_toks(_shift_name_tokens(action_toks, b)) + [self._tok.eos]
+                row_ids.append(pre + post)
+                row_mask_start.append(len(pre) - 1)
+                row_prompt_len.append(len(pre))
+                if exclude_defining_names:
+                    defining = _defining_name_positions(action_toks)
+                    row_exclude.append({len(pre) + p for p in defining})
+                else:
+                    row_exclude.append(set())
+                row_item.append(item_idx)
+                row_step.append(step_idx)
+
+        n_rows = len(row_ids)
+        per_row_logprobs: list[np.ndarray | None] = [None] * n_rows
+        per_row_targets: list[np.ndarray | None] = [None] * n_rows
+
+        if n_rows:
+            row_lens = [len(r) for r in row_ids]
+            order = sorted(range(n_rows), key=lambda i: row_lens[i])
+            chunks = _length_bucketed_chunks(order, row_lens, _LOGPROB_MAX_ROWS, _LOGPROB_MAX_CELLS)
+
+            self._model.eval()
+            with torch.no_grad():
+                for chunk in chunks:
+                    chunk_ids = [row_ids[i] for i in chunk]
+                    b_ = len(chunk_ids)
+                    length = max(len(r) for r in chunk_ids)
+                    x = torch.full(
+                        (b_, length), self._tok.pad, dtype=torch.long, device=self._device
+                    )
+                    for bi, r in enumerate(chunk_ids):
+                        x[bi, : len(r)] = torch.tensor(r, device=self._device)
+                    lengths_t = torch.tensor([len(row_ids[i]) for i in chunk], device=self._device)
+                    mask_starts = torch.tensor(
+                        [row_mask_start[i] for i in chunk], device=self._device
+                    )
+                    prompt_lens = torch.tensor(
+                        [row_prompt_len[i] for i in chunk], dtype=torch.long, device=self._device
+                    )
+
+                    self._steer_prompt_len = prompt_lens
+                    try:
+                        logits = self._model(x[:, :-1]).float()
+                    finally:
+                        self._steer_prompt_len = 0
+
+                    logp = F.log_softmax(logits, dim=-1)
+                    tgt = x[:, 1:]
+                    col = torch.arange(logp.shape[1], device=self._device).unsqueeze(0)
+                    valid_end = (lengths_t - 1).unsqueeze(1)
+                    row_mask = (col >= mask_starts.unsqueeze(1)) & (col < valid_end)
+                    for local_i, global_i in enumerate(chunk):
+                        for pos in row_exclude[global_i]:
+                            c = pos - 1  # logp/row_mask column c predicts x[:, c + 1]
+                            if 0 <= c < row_mask.shape[1]:
+                                row_mask[local_i, c] = False
+                    for local_i, global_i in enumerate(chunk):
+                        idxs = row_mask[local_i].nonzero(as_tuple=True)[0]
+                        per_row_logprobs[global_i] = logp[local_i, idxs].cpu().numpy()
+                        per_row_targets[global_i] = tgt[local_i, idxs].cpu().numpy()
+
+        per_item_rows: list[list[int]] = [[] for _ in items]
+        for row_idx in range(n_rows):
+            per_item_rows[row_item[row_idx]].append(row_idx)
+
+        results: list[MaskedLogProbs | None] = [None] * len(items)
+        for item_idx in range(len(items)):
+            if not item_ok[item_idx]:
+                continue
+            rows_for_item = per_item_rows[item_idx]
+            if rows_for_item:
+                row_logprobs: list[np.ndarray] = []
+                row_targets: list[np.ndarray] = []
+                row_steps: list[np.ndarray] = []
+                for r in rows_for_item:
+                    lp, tg = per_row_logprobs[r], per_row_targets[r]
+                    assert lp is not None and tg is not None
+                    row_logprobs.append(lp)
+                    row_targets.append(tg)
+                    row_steps.append(np.full(lp.shape[0], row_step[r], dtype=np.int64))
+                log_probs = np.concatenate(row_logprobs, axis=0)
+                target_ids = np.concatenate(row_targets, axis=0)
+                step_of = np.concatenate(row_steps)
+            else:
+                log_probs = np.zeros((0, vocab), dtype=np.float32)
+                target_ids = np.zeros((0,), dtype=np.int64)
+                step_of = np.zeros((0,), dtype=np.int64)
+            results[item_idx] = MaskedLogProbs(
+                log_probs=log_probs.astype(np.float32, copy=False),
+                target_ids=target_ids.astype(np.int64, copy=False),
+                step_of=step_of.astype(np.int64, copy=False),
+                n_steps=item_n_steps[item_idx],
+                n_tokens=int(target_ids.shape[0]),
+            )
+        return results
 
     def activations(
         self,

@@ -1,0 +1,51 @@
+# python -m code.ndbench.interp kl \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_kl_dan12.yaml
+#
+# Token-level KL divergence between the dan12 s0 pair (fz=base, t1=rl), computed *exactly* from
+# both models' full next-token distributions along each policy's own already-sampled stored
+# attempts (no new sampling -- `interp/kl.py`'s module docstring): KL(rl||base) along rl's own
+# `dan12-t1-s0` samples, KL(base||rl) along base's own `dan12-fz-s0` samples, on
+# `textbook_dev`/`skill_pool_sub` v1 (the two suites both models have `lean_v2`-judged runs with
+# stored samples for -- see `docs/STATE.md`/the benchmarking run log for which run that is at any
+# given time; `kl.run_kl` always picks each (model, suite)'s own *latest* matching run via
+# `analysis._common.latest_run_id`). `base_model`/`rl_model` are resolved through
+# `configs/models.yaml` (default path), exactly like `interp_likelihood_dan12.yaml`/
+# `interp_probes_dan12.yaml`; `kl.run_kl` dispatches to the Dan-specific driver automatically once
+# it sees two `DanStateAdapter`s (no explicit per-command dispatch needed the way `likelihood`/
+# `probes` have, since `kl`'s own `cmd_kl` always goes through `_resolve_labeled_pair`).
+#
+# `exclude_defining_names: true` (the default if omitted) excludes the `have`'s own defining name
+# token, and a box binder's defining name, from every scored position -- the same convention
+# `DanStateAdapter.logprob`'s `exclude_defining_names=True` sensitivity variant and Dan's own
+# trajectory study use; this run records which choice it made (`exclude_defining_names` in the
+# recorded run cfg below, and in every `interp/kl` row's own schema is implicit via `n_tokens`).
+#
+# Scale estimate (forward *rows*, not separate model calls -- `masked_next_logprobs` batches
+# internally via the same `_length_bucketed_chunks` discipline `logprob` uses): cost is one
+# teacher-forced row per `(state, action)` *step*, not per token (the vocab itself is tiny -- 111
+# -- so the extra cost of a *full* distribution per scored position, vs. `logprob`'s single
+# gathered log-prob, is negligible). A CPU pilot on 20 real stored `textbook_dev` samples/model
+# (this work package's own smoke test, `exclude_defining_names: true`) found ~13 steps/sample and
+# ~110-220 scored tokens/sample on average; at `max_samples_per_suite=2000` and 2 suites, each
+# direction scores up to `2000 * 2 = 4000` samples (rl||base from t1's own samples, base||rl from
+# fz's own samples -- the two directions never share rows), each scored by *both* models, so an
+# upper bound is `2 directions * 4000 samples * ~13 steps * 2 models` ~= 208k forward rows total --
+# an order of magnitude below `interp_likelihood_dan12.yaml`'s own ~634k-row upper bound (that one
+# additionally marginalises over 33 canonical-name bases per step; this measurement scores only
+# the sample's own single base). Time a `max_samples_per_suite: 50`-ish pilot before committing to
+# the full 2,000 on GPU.
+seed: 0
+base_model: dan12-fz-s0
+rl_model: dan12-t1-s0
+judge: lean # not consumed by `kl` itself (no judging happens here) -- config-shape consistency
+# with the other dan12 interp configs.
+judge_id: lean_v2
+device: cuda
+max_samples_per_suite: 2000
+exclude_defining_names: true
+allow_reencode: false
+suites:
+  - {suite: textbook_dev, version: v1}
+  - {suite: skill_pool_sub, version: v1}
+# model_kwargs: {batch: 512, max_action: 512, max_steps: 96}   # DanStateAdapter kwargs, as strings

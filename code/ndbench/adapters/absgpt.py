@@ -94,6 +94,7 @@ import copy
 import importlib
 import random
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -474,6 +475,33 @@ def _steering_spec_hash(spec: SteeringSpec) -> str:
     return sha256_str("||".join(parts))
 
 
+@dataclass(frozen=True)
+class MaskedLogProbs:
+    """`DanStateAdapter.masked_next_logprobs`'s exact analogue for `AbsGptAdapter` (duplicated
+    rather than imported -- module docstring's "kept ... purely as the correctness oracle"/
+    duplication convention this file already follows for `_cross_request_seed`/
+    `_length_bucketed_chunks`, so `interp/kl.py` never makes this module depend on `adapters.
+    danstate`'s unrelated vendor tree): full next-token log-probabilities at every scored
+    (proof-token) position of one teacher-forced `(sequent, native proof text)` pair.
+
+    No shift marginalisation is needed here, unlike Dan's per-step name base: `native` already
+    fixes a literal, unambiguous encoding -- `AbsGptAdapter.sample`'s own docstring says
+    `Attempt.native` is the raw decoded text at whatever absolute `N<k>` indices the model
+    actually sampled, so teacher-forcing on `native` directly reproduces the exact row
+    `_batched_shift_marginal_logprobs` would score at that sample's own (unknown to the caller,
+    and not needed) shift.
+
+    `step_of[k]` is which *line* (0-based, `core.proof.split_lines`'s own order) scored position
+    `k`'s token belongs to, or `n_lines` for the final `QED` token itself -- a pseudo "FINAL" step,
+    mirroring `DanStateAdapter`'s own proof-closing-step convention; `n_steps = n_lines + 1`."""
+
+    log_probs: np.ndarray  # (n_scored, vocab), float32
+    target_ids: np.ndarray  # (n_scored,), int64
+    step_of: np.ndarray  # (n_scored,), int64
+    n_steps: int
+    n_tokens: int
+
+
 class AbsGptAdapter(ModelAdapter):
     """`ModelAdapter` for the frozen absgpt GPT: SAMPLE, PREFIX, LOGPROB, FINETUNE, ACTIVATIONS,
     STEER (plan §1/§3 WP1, §A3)."""
@@ -751,6 +779,113 @@ class AbsGptAdapter(ModelAdapter):
         return _batched_shift_marginal_logprobs(
             self._model, self._tok, self._device, self, MAXN, pairs
         )
+
+    def masked_next_logprobs(
+        self, items: Sequence[tuple[Sequent, str]]
+    ) -> list[MaskedLogProbs | None]:
+        """Full next-token log-probabilities over the literal, as-generated proof-token range of
+        each `(seq, native)` pair (`MaskedLogProbs`'s own docstring) -- `interp/kl.py`'s per-model
+        half of an exact token-level KL divergence computation against another `AbsGptAdapter`
+        sharing one tokenizer/vocab. `native` must be a complete (`'... QED'`-terminated) proof
+        text in this adapter's own tokenizer vocabulary; returns `None` for anything else (no
+        trailing `QED`, or a `KeyError`/`ValueError` from `encode_proof` -- an out-of-vocabulary
+        token or an `N<k>` index outside `1..MAXN`), `interp/kl.py`'s "skip samples whose ND body
+        is UNPARSEABLE or outside the grammar (count them)" case, for the caller to count.
+        """
+        item_ok = [False] * len(items)
+        item_n_steps = [0] * len(items)
+
+        row_ids: list[list[int]] = []
+        row_mask_start: list[int] = []
+        row_prompt_len: list[int] = []
+        row_step_of: list[np.ndarray] = []
+        row_item: list[int] = []
+
+        for item_idx, (seq, native) in enumerate(items):
+            toks_text = native.split()
+            if not toks_text or toks_text[-1] != "QED":
+                continue
+            try:
+                pid = self._tok.encode_prompt(seq.prompt())
+                qid = self._tok.encode_proof(native)
+            except (KeyError, ValueError):
+                continue
+            if len(qid) != len(toks_text):
+                continue
+            step_of = np.empty(len(toks_text), dtype=np.int64)
+            cur = 0
+            for k, t in enumerate(toks_text):
+                step_of[k] = cur
+                if t == ";":
+                    cur += 1
+            item_ok[item_idx] = True
+            item_n_steps[item_idx] = cur + 1  # n_lines + 1 (the trailing QED "FINAL" step)
+            row_ids.append(pid + qid)
+            row_mask_start.append(len(pid) - 1)
+            row_prompt_len.append(len(pid))
+            row_step_of.append(step_of)
+            row_item.append(item_idx)
+
+        n_rows = len(row_ids)
+        per_row_logprobs: list[np.ndarray | None] = [None] * n_rows
+        per_row_targets: list[np.ndarray | None] = [None] * n_rows
+
+        if n_rows:
+            row_lens = [len(r) for r in row_ids]
+            order = sorted(range(n_rows), key=lambda i: row_lens[i])
+            chunks = _length_bucketed_chunks(
+                order, row_lens, _LOGPROB_MAX_BATCH_ROWS, _LOGPROB_MAX_BATCH_CELLS
+            )
+
+            self._model.eval()
+            with torch.no_grad():
+                for chunk in chunks:
+                    chunk_ids = [row_ids[i] for i in chunk]
+                    b = len(chunk_ids)
+                    length = max(len(r) for r in chunk_ids)
+                    x = torch.full(
+                        (b, length), self._tok.pad, dtype=torch.long, device=self._device
+                    )
+                    for bi, r in enumerate(chunk_ids):
+                        x[bi, : len(r)] = torch.tensor(r, device=self._device)
+                    lengths_t = torch.tensor([len(row_ids[i]) for i in chunk], device=self._device)
+                    mask_starts = torch.tensor(
+                        [row_mask_start[i] for i in chunk], device=self._device
+                    )
+                    prompt_lens = torch.tensor(
+                        [row_prompt_len[i] for i in chunk], dtype=torch.long, device=self._device
+                    )
+
+                    self._steer_prompt_len = prompt_lens
+                    try:
+                        logits = self._model(x[:, :-1]).float()
+                    finally:
+                        self._steer_prompt_len = 0
+
+                    logp = F.log_softmax(logits, dim=-1)
+                    tgt = x[:, 1:]
+                    col = torch.arange(logp.shape[1], device=self._device).unsqueeze(0)
+                    valid_end = (lengths_t - 1).unsqueeze(1)
+                    row_mask = (col >= mask_starts.unsqueeze(1)) & (col < valid_end)
+                    for local_i, global_i in enumerate(chunk):
+                        idxs = row_mask[local_i].nonzero(as_tuple=True)[0]
+                        per_row_logprobs[global_i] = logp[local_i, idxs].cpu().numpy()
+                        per_row_targets[global_i] = tgt[local_i, idxs].cpu().numpy()
+
+        results: list[MaskedLogProbs | None] = [None] * len(items)
+        for row_idx in range(n_rows):
+            item_idx = row_item[row_idx]
+            log_probs = per_row_logprobs[row_idx]
+            target_ids = per_row_targets[row_idx]
+            assert log_probs is not None and target_ids is not None
+            results[item_idx] = MaskedLogProbs(
+                log_probs=log_probs.astype(np.float32, copy=False),
+                target_ids=target_ids.astype(np.int64, copy=False),
+                step_of=row_step_of[row_idx],
+                n_steps=item_n_steps[item_idx],
+                n_tokens=int(target_ids.shape[0]),
+            )
+        return results
 
     def learner(self, *, seed: int) -> _AbsGptLearner:
         """Narrower than `ModelAdapter.learner`'s declared `-> Learner` (a legal covariant

@@ -1,11 +1,12 @@
 """Storage layout for the interp package's own (non-`runner.run`) artefacts.
 
-`INTERP_SPEC.md`'s "Storage" section: rows for the four non-benchmark-run analyses (`likelihood`,
-`vectors`, `probes`, `lens`) go under `out/store/interp/<kind>/<run_id>.jsonl`, indexed by
-`out/store/interp/runs.jsonl` -- separate from (but nested under the same root as) `store.py`'s own
-`runs.jsonl`/`items/`/`samples/` layout, since these rows are not `ItemResult`s and were never
-produced by `runner.run`. Steering-sweep and weight-interpolation *evaluations* are ordinary
-`Store` runs instead (`interp/steering.py`, `interp/interpolate.py`) and never touch this module.
+`INTERP_SPEC.md`'s "Storage" section: rows for the non-benchmark-run analyses (`likelihood`,
+`vectors`, `probes`, `lens`, and -- added for the token-level KL measurement -- `kl`) go under
+`out/store/interp/<kind>/<run_id>.jsonl`, indexed by `out/store/interp/runs.jsonl` -- separate from
+(but nested under the same root as) `store.py`'s own `runs.jsonl`/`items/`/`samples/` layout, since
+these rows are not `ItemResult`s and were never produced by `runner.run`. Steering-sweep and
+weight-interpolation *evaluations* are ordinary `Store` runs instead (`interp/steering.py`,
+`interp/interpolate.py`) and never touch this module.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from ..core.io import append_jsonl, read_jsonl, sha256_str, utc_now_iso, write_j
 from ..core.types import JSON
 from ..store import Store
 
-KINDS: tuple[str, ...] = ("likelihood", "vectors", "probes", "probe_baselines", "lens")
+KINDS: tuple[str, ...] = ("likelihood", "vectors", "probes", "probe_baselines", "lens", "kl")
 
 
 def interp_dir(store: Store, kind: str) -> Path:

@@ -1,4 +1,4 @@
-"""`python -m code.ndbench.interp <likelihood|fit-vectors|steer-sweep|interpolate|probes> --out
+"""`python -m code.ndbench.interp <likelihood|fit-vectors|steer-sweep|interpolate|probes|kl> --out
 <store root> --config <yaml>` (`INTERP_SPEC.md`'s CLI section).
 
 A separate entry point from `code.ndbench.cli` (which owns `python -m code.ndbench <subcommand>`):
@@ -39,7 +39,7 @@ import yaml
 
 from ..adapters.base import ModelAdapter
 from ..store import Store
-from . import data, interpolate, likelihood, probes, steering
+from . import data, interpolate, kl, likelihood, probes, steering
 
 
 def _load_config(path: str | None) -> dict[str, Any]:
@@ -351,6 +351,22 @@ def cmd_probe_baselines(args: argparse.Namespace) -> None:
     _print(probes.run_position_baselines(Store(Path(args.out)), cfg))
 
 
+def cmd_kl(args: argparse.Namespace) -> None:
+    """`interp kl` (`kl.py`'s module docstring): always goes through `_resolve_labeled_pair`
+    (`base_model`/`rl_model` resolved via `configs/models.yaml`, like every other dan12-capable
+    interp subcommand) -- `kl.run_kl` itself dispatches on the resolved adapters' concrete type
+    (Dan vs. absgpt), so no `_is_danstate` branch is needed here, unlike `cmd_likelihood`/
+    `cmd_probes`."""
+    cfg = _load_config(args.config)
+    store = Store(Path(args.out))
+    base, rl, base_label, rl_label, *_rest = _resolve_labeled_pair(cfg)
+    _print(
+        kl.run_kl(
+            store, cfg, base_adapter=base, rl_adapter=rl, base_label=base_label, rl_label=rl_label
+        )
+    )
+
+
 _COMMANDS: dict[str, Any] = {
     "likelihood": cmd_likelihood,
     "fit-vectors": cmd_fit_vectors,
@@ -358,6 +374,7 @@ _COMMANDS: dict[str, Any] = {
     "interpolate": cmd_interpolate,
     "probes": cmd_probes,
     "probe-baselines": cmd_probe_baselines,
+    "kl": cmd_kl,
 }
 
 
