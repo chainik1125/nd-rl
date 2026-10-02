@@ -432,8 +432,12 @@ The 64-target runs leave two questions:
 - **Models:** c005 seeds 0-2, the combined model exactly as trained: usual pretraining, then
   the usual RL on the RL set.
 - **Baseline:** their recorded dev score at 64 samples: 915, 893, 905 of 1,108.
-- **Targets:** each seed's dev failures (193, 215, 203), all at once on one shared copy of the
-  model per seed, not one fork per theorem.
+- **Targets:** each seed's dev failures (193, 215, 203), meaning theorems with 0 of 64 samples
+  correct. Each arm adapts one shared copy of the model on all of them at once, not one fork
+  per theorem.
+- **Solved** means at least one sampled proof of the *target* passes Lean ∧ nd_verify, in any
+  round. That is pass@k with a model that may change between rounds, which is how AlphaProof
+  counts. Score = baseline + targets solved.
 
 **Three arms, same targets, same compute:**
 
@@ -451,6 +455,9 @@ mix, so TTRL is exactly targets-only EI plus variants.
 of one A40 per seed. Each arm runs until it has used 5x (2.3-2.5 h), and every round records its
 cumulative time. The result is a curve of dev solved = baseline + newly solved, read off at 1x,
 2x, 3x, 4x and 5x. Evaluation costs are left out: every arm pays the same 64-sample eval first.
+The clock is wall-clock on one GPU from the start of the loop. Sampling, Lean checks and
+fine-tuning all count; loading the model doesn't. The score at "2x" counts only rounds that
+*finished* within 2x.
 ```
 
 **Plain expert iteration on the eval statements wins. Variants add little.**
@@ -476,21 +483,59 @@ pipeline's own pretrain + RL compute:
   - On average it trails EI at every budget, and trails even sampling more until about 2.5x.
   - At 5x it is 9 behind on average. Seed 2's TTRL passes EI at about 3.5x and ends ahead
     (1,085 vs 1,078); seeds 0 and 1 stay behind.
-  - Its first round spends 0.7-0.9x sampling ~13k variants before it trains at all. EI's first
-    round takes 0.2x.
 - **EI plateaus; TTRL doesn't.** EI is within 6 of its final score by 2x. TTRL was still
   adding theorems when the budget ran out.
 - **The two solve partly different theorems.** TTRL solves 12, 4 and 11 theorems that EI never
   does; EI solves 21, 29 and 2 that TTRL doesn't. Together they leave 12, 1 and 19 unsolved.
-- **Why EI is so strong here: with ~200 targets, the targets are each other's variants.** They
-  come from the same generator and share schemas, so a proof of one teaches the next. The
-  64-target run had too few targets to show this, and it never ran the EI arm.
 - Sampling more flattens early, as before: +116 at 5x, nearly all of it by 2x.
 
 What this means for the earlier sections: the 64-target result ("TTRL 48, sampling more 31")
 stands, but its explanation doesn't. The unrelated-variants arm showed that variants of *other*
 theorems don't help. It never asked whether the targets alone would do. They do, at least when
 there are ~200 of them.
+```
+
+#### What each arm does, round by round
+
+```claude
+Seed 0, from the logs. All three arms start from the same weights, the same 193 targets and
+the same sampler.
+
+| | sample more | targets-only EI | TTRL |
+| --- | --- | --- | --- |
+| round 1 samples | 193 targets × 256 = 49,408 | the same 49,408 | 193 targets + 12,254 variants, × 16 = 199,152 |
+| round 1 time | 6.0 min | 7.3 min (23 s of it training) | 22.9 min |
+| solved after round 1 | 72 | 72 (same samples, same seed) | 26 (16 samples per target) |
+| then | sample the 121 left | train on the 72 solved, resample the 121 left | train on the 26 solved plus 40,663 records from in-band variants |
+| solved after round 2 | 81 | 97 | 68 (at 44.5 min) |
+| rounds in 5x | 50 | 112 | 16 |
+| final | 104 | 169 | 160 |
+
+Round 1 is a free consistency check: with the same samples and the same seed, EI and sample
+more must agree, and they do on all three seeds (72, 84 and 73). Round 2 is the first time
+training shows: EI gains 25 targets with no variants at all.
+```
+
+#### Why TTRL loses to EI
+
+```claude
+1. **Far fewer updates.** TTRL samples every active variant every round, so its rounds last
+   ~9 minutes against EI's ~1.3. In 5x it gets 16, 19 and 36 updates (seeds 0-2); EI gets 112,
+   166 and 110. Its first update comes at 0.7-0.9x; EI's at 0.25x. Seed 2, where TTRL ran
+   the most rounds, is the one where it ended ahead.
+2. **Each update sees under half of TTRL's data.** Every round is 135 steps of 128 (17,280
+   examples), Leon's setting. EI's mix is ~22k records (its own proofs plus the 20,000
+   retained), so one round covers most of it. TTRL's early mixes are 50-60k, so a round covers
+   28-35% of what it just collected.
+3. **The targets are already each other's variants.** About 200 failures from one generator
+   share schemas, so a proof of one teaches the next. EI gets that transfer free. The
+   statement-made variants add mostly easy neighbours that it pays to sample every round.
+
+Points 1 and 2 are settings I made for the 64-target run and kept unchanged, so this run would
+be pre-declared: k = 16 per variant, every variant every round, Leon's 135 steps. At 3× the
+targets they make TTRL sampling-bound. The honest claim is "TTRL *as configured* loses to EI",
+not "variants can't help". Two things say the variants do something: TTRL was still climbing at
+5x while EI had plateaued, and it solves 4-12 theorems per seed that EI never does.
 ```
 
 ```claude
