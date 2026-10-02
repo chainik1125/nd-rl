@@ -55,6 +55,14 @@ of this table aren't comparable unless their protocols match.
 Only `main` is shared. Everything else is a personal working branch; don't assume it's merged or
 reviewed. Commit counts are relative to `main` on 2026-09-30.
 
+Each person also keeps one branch as their own main, holding their finished work; start there for
+someone's results:
+
+- Leon: `leon/main`. Finished work is merged here from his feature branches.
+- Dan: `dan`, his integration branch, which his per-run `dan_<run-id>` branches merge into.
+- Robbie: `robbie-experiments`, his write-ups and experiment code. The autoresearch loop's own log
+  is `autoresearch-pretrain`.
+
 | Owner | Branch | Purpose |
 | --- | --- | --- |
 | Dan | `dan` | Integration branch: agent orchestration, proposals, run summaries, registry. Open as PR #16. |
@@ -62,9 +70,12 @@ reviewed. Commit counts are relative to `main` on 2026-09-30.
 | Robbie | `robbie-experiments` | Writeups, blog drafts and one-off experiment code. |
 | Robbie | `autoresearch-pretrain` | The autoresearch loop's log: one pre-registration commit and one result commit per run. Pushed by the loop; never rebased. |
 | Robbie | `combined-pipeline`, `robbie_week1`, `autoresearch-dev` | Older work, superseded by the two branches above. |
-| Leon | `leon/home-rolled-rl` | Home-rolled RL hill-climbing, length generalisation, mid-training. |
-| Leon | `leon/benchmarking` | `ndbench` benchmarks, EDL, interp measures, dashboard. |
-| Leon | `leon/rl-dashboards` | RL run dashboard proposal. |
+| Leon | `leon/main` | Leon's main branch: all his finished work merged together. It is built on `dan` (the benchmarks evaluate Dan's models), so it also contains Dan's integration branch and `main`. |
+| Leon | `leon/home-rolled-rl` | Home-rolled RL hill-climbing, length generalisation, mid-training. Merged into `leon/main`. |
+| Leon | `leon/benchmarking-dan` | `ndbench` benchmarks, EDL, interp measures, dashboard, and their run on Dan's best-state models; `leon/benchmarking` rebased onto `dan`. Merged into `leon/main`. |
+| Leon | `leon/rl-dashboards` | RL run dashboard proposal. Merged into `leon/main`. |
+| Leon | `leon/nd-verify-fix` | `nd_verify` with the forward box-citation fix (PR #22). Merged into `leon/main`. |
+| Leon | `leon/benchmarking` | Superseded by `leon/benchmarking-dan`. |
 | Charles | `charles/main` | Workstream 3 experiments (`experiments/ws3/`) and textbook-problem data (`data/textbook_problem/`). |
 | Dmitry | `dmitry/cap-comparison-textbook-eval-data` | Textbook eval data for the cap comparison. |
 
