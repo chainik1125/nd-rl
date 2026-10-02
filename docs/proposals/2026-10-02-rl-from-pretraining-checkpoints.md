@@ -1,7 +1,7 @@
 ---
 written_on: 2026-10-02
 written_by: agent:claude
-status: proposed (Dan asked for the write-up, 2026-10-02; his design: RL from 0, ¼, ½ and ¾ of pretraining)
+status: approved by Dan 2026-10-02 with the step-1,600 arm; run `rl-from-ckpt`, then `grpo-best`
 ---
 
 # Proposal 19: RL from earlier pretraining checkpoints — does RL only finish what pretraining started?
