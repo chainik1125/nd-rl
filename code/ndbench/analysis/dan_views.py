@@ -498,6 +498,8 @@ def dan_likelihood(store: Store) -> dict[str, Any] | None:
                 "median_diff": statistics.median(diffs),
                 "frac_t1_higher": sum(x > 0 for x in diffs) / len(diffs),
                 "median_lines": statistics.median(d["lines"]),
+                "min_lines": min(d["lines"]),
+                "max_lines": max(d["lines"]),
                 "n_multi_order": d["multi"],
             }
         cfg = cast("dict[str, JSON]", rec.get("cfg") or {})

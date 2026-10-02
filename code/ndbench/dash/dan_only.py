@@ -897,7 +897,7 @@ _ORIGIN_LABEL = {
 
 
 def _c_likelihood(store: Store) -> ChartData:
-    key, title = "do_likelihood", "Log-likelihood of neutral proofs under fz and t1"
+    key, title = "do_likelihood", "Log-likelihood of fixed proofs under fz and t1"
     data = dv.dan_likelihood(store)
     if data is None:
         return _missing(key, title, "no interp likelihood run scoring fz/t1 yet")
@@ -923,12 +923,35 @@ def _c_likelihood(store: Store) -> ChartData:
         f"{100 * origins[o]['frac_t1_higher']:.0f}%)"
         for o in order
     ]
+    # sets whose plotted per-model medians order opposite to the paired change
+    flipped = [
+        o
+        for o in order
+        if (origins[o]["median_t1"] - origins[o]["median_fz"]) * origins[o]["median_diff"] < 0
+    ]
+    flip_note = (
+        (
+            " In both sets"
+            if len(flipped) == len(order) > 1
+            else " On " + ", ".join(_ORIGIN_LABEL.get(o, o) for o in flipped)
+        )
+        + ", the per-model medians plotted order the other way ("
+        + "; ".join(
+            f"{_ORIGIN_LABEL.get(o, o)} fz {origins[o]['median_fz']:.2f}, t1 "
+            f"{origins[o]['median_t1']:.2f}"
+            for o in flipped
+        )
+        + "): the median of paired changes is not the change in medians."
+        if flipped
+        else ""
+    )
     small = max(abs(origins[o]["median_diff"]) for o in order) < 0.5
     takeaway = (
         ("RL barely moves" if small else "RL changes")
-        + " the likelihood of neutral proofs: the paired median change t1 - fz is "
+        + " the likelihood of fixed proofs: the paired median change t1 - fz is "
         + "; ".join(bits)
         + "."
+        + flip_note
     )
     n_tot = sum(origins[o]["n"] for o in order)
     multi = sum(origins[o]["n_multi_order"] for o in order)
@@ -942,9 +965,12 @@ def _c_likelihood(store: Store) -> ChartData:
     caption = (
         "Median log-likelihood per written line (nats) of fixed proof sets under fz and t1 (the "
         f"cap-12 seed-0 pair): {n_tot} proofs ("
-        + ", ".join(f"{origins[o]['n']} {_ORIGIN_LABEL.get(o, o)}" for o in order)
-        + f") of theorems with L = {cfg.get('l_min', '?')}-{cfg.get('l_max', '?')}, unseen in "
-        f"Dan's training tiers; run {data['run_id']}"
+        + "; ".join(
+            f"{origins[o]['n']} {_ORIGIN_LABEL.get(o, o)}, L = "
+            + _span([origins[o]["min_lines"], origins[o]["max_lines"]])
+            for o in order
+        )
+        + f"), unseen in Dan's training tiers; run {data['run_id']}"
         + ("; small n, so the medians are noisy" if n_tot < 100 else "")
         + ". Each proof's log p is marginalised over its valid line orders and the environment's "
         f"name bases ({multi} proofs have more than one order) and divided by its written lines. "
@@ -1652,7 +1678,7 @@ def overview_caption(charts: Sequence[ChartData], nums: Mapping[str, str]) -> st
         f"({ref('do_prefix')}). (i) Pass@1 by required skill ({ref('do_skills', 'a')}). (j) "
         "Pass@1 against pads added: P2 (extra ∧I lines, solid) and the two P1 kinds pooled "
         f"(distractor premises, hollow, dotted) ({ref('do_padding')}). (k) Median log p per line "
-        f"of neutral proof sets ({ref('do_likelihood')}). (l) Pass@1 (black) and pass@128 (grey, "
+        f"of the fixed proof sets ({ref('do_likelihood')}). (l) Pass@1 (black) and pass@128 (grey, "
         f"dashed) along the fz-to-t1 weight interpolation ({ref('do_weights')}). (m) Per-token "
         f"KL, pooled and for the four kinds with the largest KL ({ref('do_kl')}). (n) Pass@1 of "
         f"fz, the best fz + δ{t1_bar} and t1 − δ on dev and sealed generated theorems "
