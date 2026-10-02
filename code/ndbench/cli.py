@@ -515,8 +515,14 @@ def cmd_dash(args: argparse.Namespace) -> None:
         # `--with-dan` (WP-D5) resolves to a different entry point (`dash.dan_pages.
         # build_summary_with_dan`), not a flag on `dash.summary.build_summary` itself -- that
         # module has no import-time dependency on `dash.dan_pages`, by design (its own docstring).
+        if args.dan_only and args.with_dan:
+            raise SystemExit("dash: --dan-only and --with-dan are mutually exclusive")
+        # `--dan-only` (the Dan-only results page, `dash/dan_only.py`) writes dash-dir/index.html
+        # and shares no code path with the main summary page.
         target = (
-            "code.ndbench.dash.dan_pages:build_summary_with_dan"
+            "code.ndbench.dash.dan_only:build_dan_only"
+            if args.dan_only
+            else "code.ndbench.dash.dan_pages:build_summary_with_dan"
             if args.with_dan
             else "code.ndbench.dash.summary:build_summary"
         )
@@ -526,8 +532,8 @@ def cmd_dash(args: argparse.Namespace) -> None:
         path = build_summary(store, Path(args.dash_dir), detail_href=args.detail_href)
         print(json.dumps({"dash_dir": args.dash_dir, "summary": str(path)}, indent=2))
         return
-    if args.with_dan:
-        raise SystemExit("dash: --with-dan only applies together with --summary")
+    if args.with_dan or args.dan_only:
+        raise SystemExit("dash: --with-dan/--dan-only only apply together with --summary")
     build = _resolve_registry(
         {"dash": "code.ndbench.dash.build:build"}, "dash", "dashboard builder"
     )
@@ -543,7 +549,17 @@ def cmd_figures(args: argparse.Namespace) -> None:
     build_figures = _resolve_registry(
         {"figures": "code.ndbench.figures.build:build_figures"}, "figures", "figure builder"
     )
-    written = build_figures(store, Path(args.fig_dir), with_dan=args.with_dan)
+    if args.dan_only and args.with_dan:
+        raise SystemExit("figures: --dan-only and --with-dan are mutually exclusive")
+    if args.dan_only:
+        build_dan_only = _resolve_registry(
+            {"figures-dan-only": "code.ndbench.figures.build:build_dan_only_figures"},
+            "figures-dan-only",
+            "Dan-only figure builder",
+        )
+        written = build_dan_only(store, Path(args.fig_dir))
+    else:
+        written = build_figures(store, Path(args.fig_dir), with_dan=args.with_dan)
     print(json.dumps({"fig_dir": args.fig_dir, "files": [Path(p).name for p in written]}, indent=2))
 
 
@@ -819,6 +835,15 @@ def build_parser() -> argparse.ArgumentParser:
             "so the existing base/rl/armC summary page is unaffected (DANSTATE_PLAN.md §6)"
         ),
     )
+    d.add_argument(
+        "--dan-only",
+        action="store_true",
+        dest="dan_only",
+        help=(
+            "with --summary: write the Dan-only results page (Dan's twelve best-state models "
+            "only, no base/rl/armC) to dash-dir/index.html instead of summary.html"
+        ),
+    )
     d.set_defaults(func=cmd_dash)
 
     f = sub.add_parser(
@@ -834,6 +859,15 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "also write WP-D5's 'State-env models' figures (figD01_*.{pdf,svg,png}, a "
             "tabD01_dan_crossfamily.tex) into the same --fig-dir; default off"
+        ),
+    )
+    f.add_argument(
+        "--dan-only",
+        action="store_true",
+        dest="dan_only",
+        help=(
+            "write the Dan-only results page's figures and tables instead (fig01_overview, "
+            "figNN_do_*.{pdf,svg,png}, tabNN_do_*.tex, captions.md)"
         ),
     )
     f.set_defaults(func=cmd_figures)
