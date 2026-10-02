@@ -64,6 +64,8 @@ from __future__ import annotations
 
 import json
 import random
+import sys
+import time
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -386,7 +388,15 @@ def run_likelihood_dan(
     n_nan_fz = 0
     n_nan_t1 = 0
     rows: list[dict[str, JSON]] = []
-    for pid, origin, seq, body, length_l, lookup_pid in items:
+    t0 = time.monotonic()
+    for i_item, (pid, origin, seq, body, length_l, lookup_pid) in enumerate(items):
+        if i_item % 10 == 0:
+            # Progress for unsupervised runs: rows are only written at the end.
+            print(
+                f"likelihood_dan: {i_item}/{len(items)} items, {time.monotonic() - t0:.0f}s",
+                file=sys.stderr,
+                flush=True,
+            )
         rng = random.Random(f"{seed}:{pid}")
         row: dict[str, JSON] = {
             "pid": pid,
