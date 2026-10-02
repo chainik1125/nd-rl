@@ -1,0 +1,103 @@
+# EDL (plan §B7) for Dan Pandori's cap-12 state-env provers: dan12-fz-s0 (Stage-1) and
+# dan12-t1-s0 (after the T1 ladder). Starts from configs/edl.yaml, plus the Dan-only options
+# described in edl.py's module docstring, note 6. Written 2026-10-02; not yet run.
+#
+#   CUDA_VISIBLE_DEVICES=<free gpu> NDBENCH_ALLOWED_GPUS=<same gpu> \
+#   python -m code.ndbench edl --model dan12-fz-s0 \
+#       --config code/experiments/current/benchmarking_20260930/configs/edl_dan12.yaml \
+#       --lrs 0,1e-5,3e-5,1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64 \
+#       --run-id edl-dan12-fz-s0-64-64 --resume --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+#
+# The same six learning rates as our edl3 runs. Rows are appended as each (class, lr, order)
+# finishes, so `--resume` continues an interrupted run. Several processes can share one --run-id
+# with disjoint `--classes` lists (appends take a file lock).
+#
+# Learner (adapters/danstate.py, "Learner" section): AdamW with betas 0.9/0.95, weight decay 0 and
+# grad clip 1.0, like ours. Each update trains on 8 copies of the example, each at one random
+# name base in 0..32. The loss is the mean next-token NLL over action tokens plus <eos> (Dan's
+# per-step loss). `nll` is exactly minus the base-marginal `DanStateAdapter.logprob`. The
+# start-excluded variant drops the defining names, which the environment assigns anyway.
+#
+# Classes after the filters below (built 2026-10-02 against the store at
+# /scratch/cowifornia/nd-rl/bench/out). "x/y" is the n_train/n_test split. Ours uses 64/64 when a
+# class has at least 128 distinct items, and 32/32 otherwise.
+#   and_tower_n8         32/32  (ours 64/64: 49 of 128 items have 4 premises)
+#   and_tower_n16        32/32  (ours 64/64: 34 of 128 items have 4 premises)
+#   imp_nest_n4          32/32  imp_nest_n8          64/64
+#   reorder_and_n5       32/32  contraposition_s3    64/64
+#   dist_and_over_or_s1  32/32  gen_L10              64/64 (829 of 8,562 pool rows above 3 premises,
+#                                                     3 seen in Dan's training)
+#   dan_heldout          64/64  null control (below)
+# Skipped: reorder_or_n3 (4 items) and demorgan_nand_to_or_s1 (36 items), which ours skips too,
+# and and_glue_L12 (30 left after dropping 66 of 96 with 4 or more premises; ours runs it at
+# 32/32). The 9 classes Dan shares with ours are therefore not item-identical on and_tower: compare
+# ours run with max_premises 3 if a matched comparison is needed.
+#
+# max_premises: 3 is the premise ceiling. Dan's training theorems have at most 3 premises
+# (train_k12.jsonl: 9,263 / 40,330 / 74,839 / 30,568 with 0 / 1 / 2 / 3). His models score about
+# 0% on theorems with 4 or more premises, where the first action is usually rejected with
+# "PR position". EDL on such items would mostly measure that format failure, not elicitation.
+max_premises: 3
+#
+# exclusion_family: dan12 uses Dan's training tiers (logic.exclusion.DanExcluder: train_k12.jsonl
+# plus the T1 ladder's rl_targets.jsonl) and drops seen items from every class. Our suites' own
+# seen flags are against our training data, not his. The counts at build time: 0 in every suite
+# class, 3 in gen_L10, 22 in dan_heldout (the same 22 that suites/dan_heldout/v1/seen_dan12.json
+# marks).
+exclusion_family: dan12
+#
+# require_grammar: danstate drops reference proofs outside Dan's state-env grammar, which logprob
+# would score as NaN. 0 items were dropped at build time; it stays on as a guard. run_edl also
+# refuses to start if any NLL at the starting weights is non-finite.
+require_grammar: danstate
+#
+# Null control. For ours this is heldout_cap6 (held-out theorems from our base model's own
+# pretraining distribution). For Dan it is dan_heldout: his held-out file
+# dan_ckpts/data/heldout.jsonl (the dan_heldout v1 suite, 5,000 theorems, 2 to 6 lines, 0 to 3
+# premises), minus the 22 his training tiers contain. dan12's Stage-1 run used this file as its
+# validation set, and it was never trained on. Caveat: it comes from the cap-6 p2 generator, not
+# the k12 generator dan12 was trained on, so it is inside his training support but not identically
+# distributed with it. Dan has no k12 held-out file.
+# heldout_cap6 is left out. It is our distribution, not his, and 333 of its 5,000 items are in
+# Dan's training. The dashboard also labels heldout_cap6 as "the null control". To add it, use
+# `--classes ...,heldout_cap6`.
+classes:
+  - and_tower_n8
+  - and_tower_n16
+  - imp_nest_n4
+  - imp_nest_n8
+  - reorder_and_n5
+  - reorder_or_n3
+  - contraposition_s3
+  - dist_and_over_or_s1
+  - demorgan_nand_to_or_s1
+  - and_glue_L12
+  - gen_L10
+  - dan_heldout
+families_version: edl_v1
+laws_version: edl_v1
+glue_version: v1
+dan_heldout_version: v1
+#
+# Cost estimate. No GPU was used; this is calibrated from CPU timings and token counts on
+# 2026-10-02.
+# - One (lr, order) pass over the 9 classes processes about 115M forward tokens plus about 15.5M
+#   training tokens (counted fwd+bwd as 3x). Ours (edl.yaml, 10 classes) processes about 64M
+#   forward plus 3.8M training tokens, through a model about 3x smaller.
+# - On CPU (4 threads), Dan's learner runs about 5k tokens/s. A full model (6 lrs x 2 orders) is
+#   about 90 CPU-hours, against about 11 for ours.
+# - Ours took 28.8 min on one RTX 3090 for 3 lrs x 2 orders (edl2-base). That is a GPU speedup
+#   over CPU of about 24x. The same speedup gives about 3.8 h per Dan model; a better-utilised GPU
+#   on the larger model would give less. Expect 2 to 4 h per model on one 3090.
+# - and_tower_n16 is about 29% of the cost: states reach about 700 tokens and proofs have about 20
+#   steps. The next largest are imp_nest_n8 (14%), gen_L10 (14%), reorder_and_n5 (12%) and
+#   contraposition_s3 (11%).
+# - Time a pilot first (the worst-case class, 2 lrs, 1 order, n = m = 8):
+#     --classes and_tower_n16 --lrs 1e-4,1e-3 --orders 1 --n 8 --m 8
+#   A pilot run is about 6.2M tokens. The full config is about 12 x 130M tokens per model, so
+#   full time is about 250 x the pilot's seconds per run (the last [edl] progress line). This
+#   overestimates, because and_tower_n16 has the longest rows.
+# - To split one model across two GPUs (about 65M tokens per pass each), give both processes the
+#   same --run-id and --resume:
+#     A: --classes and_tower_n16,reorder_and_n5,dist_and_over_or_s1,imp_nest_n4
+#     B: --classes imp_nest_n8,gen_L10,contraposition_s3,and_tower_n8,dan_heldout

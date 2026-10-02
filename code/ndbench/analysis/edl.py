@@ -289,7 +289,14 @@ def view(store: Store, cfg: Mapping[str, JSON]) -> dict[str, Any]:
             continue
         # Learning rate by smallest mean online code length (MDL convention), not smallest EDL; see
         # `edl.summarise_edl`'s docstring for why min-over-lr EDL goes spuriously negative.
-        best_lr = min(edl_final_by_lr, key=lambda k: online_by_lr.get(k, float("inf")))
+        # A non-finite code length (a diverged lr) never wins: `min` with a NaN key returns
+        # whichever lr happens to come first.
+        best_lr = min(
+            edl_final_by_lr,
+            key=lambda k: (
+                v if math.isfinite(v := online_by_lr.get(k, float("inf"))) else float("inf")
+            ),
+        )
         edl_star = edl_final_by_lr[best_lr] + math.log(max(len(edl_final_by_lr), 1))
 
         out_classes.setdefault(cls, {})[model] = {

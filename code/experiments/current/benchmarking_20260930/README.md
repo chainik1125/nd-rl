@@ -24,7 +24,9 @@ the working folder itself.
   and scheduled as G11+ once its own `configs/interp_*.yaml` exist.
 - `configs/` -- one YAML per suite build (`textbook_dev.yaml`, `textbook_law.yaml`, `gen_ctrl.yaml`,
   `skill_pool.yaml`, `parts_pool.yaml`, `families.yaml`, `laws.yaml`, `padding.yaml`, `glue.yaml`,
-  `glue_length_sweep.yaml`, `prefix.yaml`), `edl.yaml` for the excess-description-length protocol,
+  `glue_length_sweep.yaml`, `prefix.yaml`), `edl.yaml` for the excess-description-length protocol
+  (`edl_dan12.yaml` for Dan's cap-12 models: premise cap 3, Dan's exclusion tiers, his own
+  held-out null control),
   and `models.yaml` (the `base`/`rl`/`armC` model-label registry: adapter, checkpoint path, sha256
   prefix). Each config's header comment names the exact `python -m code.ndbench build/run/edl`
   invocation it goes with and any real-run prerequisites (e.g. `glue.yaml`/`padding.yaml` need a

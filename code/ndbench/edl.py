@@ -87,6 +87,42 @@ module programs against them rather than editing them):
    sequent the default `Excluder` marks `seen_train` is dropped (not merely flagged, unlike the
    families/laws builders' own flag-only policy) before the generic dedup/split logic runs, per
    the main agent's 2026-10-01 instruction. `and_glue_L12` and `heldout_cap6` are unchanged.
+6. **2026-10-02: config-driven classes and filters, for Dan Pandori's state-env models.** Every
+   key below is optional and its default reproduces the behaviour above exactly, so `configs/
+   edl.yaml` runs (our absgpt models) are unchanged.
+
+   * `classes:` (a list, or a comma-separated string; `cli.py`'s `--classes` overrides it) picks
+     which classes to build, from `EDL_CLASSES` plus `EXTRA_CLASSES`; default `EDL_CLASSES`. It is
+     how one long run is split across processes (`run_edl` itself is resumable too, see
+     `cli.cmd_edl`'s `--resume`).
+   * `max_premises: k` drops every item with more than `k` premises from every class *before*
+     dedup and the train/test split, so a class is refilled from its pool rather than shrunk after
+     splitting (Dan's training theorems have at most 3 premises).
+   * `exclusion_family: dan12` (or `dan6`) swaps the seen-in-training check to Dan's tiers
+     (`logic.exclusion.DanExcluder`: that cap's Stage-1 set plus the T1 ladder's RL targets) and
+     applies the drop to *every* class, not just `gen_L10` (our suites only flag their own
+     seen items, against *our* training tiers, so they say nothing about Dan's). Without it,
+     `gen_L10` drops items our `DefaultExcluder` marks seen, exactly as before.
+   * `require_grammar: danstate` drops items whose reference proof is outside Dan's state-env
+     grammar (`adapters.danstate.dan_grammar_error`), which `DanStateAdapter.logprob` would score
+     as NaN.
+   * `dan_heldout` (in `EXTRA_CLASSES`, built only when listed in `classes:`; needs
+     `exclusion_family`) is Dan's null control, the analogue of `heldout_cap6` for ours: the
+     `dan_heldout` suite (`dan_heldout_version`, default `"v1"`), i.e. Dan's own held-out file
+     `dan_ckpts/data/heldout.jsonl`, minus anything his training tiers contain.
+
+   `stats["class_stats"]` reports, per class (built or skipped), the counts each filter dropped,
+   the distinct pool size and the premise-count distribution of the items actually used.
+   `stats["class_counts"]` keeps its old `{n_train, n_test}` shape.
+
+   `run_edl` now (a) prints one progress line to stderr per (class, lr, order) with elapsed time
+   and an ETA; (b) checks, before any training, that every item's NLL at the starting weights is
+   finite and raises `ValueError` naming the items if not (a NaN would otherwise propagate into
+   that row's EDL and into the code-length-based lr choice); a non-finite value that appears only
+   during training (a diverging lr) is counted in the row's `n_nonfinite_nll` and reported on
+   stderr instead of stopping a long run; (c) takes `skip` (combos already in the store) and
+   `on_row` (called with each row as soon as it exists) so `cli.cmd_edl` can append rows as it
+   goes and resume an interrupted run.
 """
 
 from __future__ import annotations
@@ -95,7 +131,10 @@ import hashlib
 import json
 import math
 import random
-from collections.abc import Callable, Mapping, Sequence
+import sys
+import time
+from collections import Counter
+from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import cast
@@ -148,6 +187,14 @@ EDL_CLASSES: tuple[str, ...] = (
     "gen_L10",
     "heldout_cap6",
 )
+
+#: Classes built only when a config's `classes:` list names them (module docstring note 6).
+#: `dan_heldout` is the null control for Dan's models: his own held-out set, minus his training.
+EXTRA_CLASSES: tuple[str, ...] = ("dan_heldout",)
+KNOWN_CLASSES: tuple[str, ...] = EDL_CLASSES + EXTRA_CLASSES
+
+#: `build_classes`' `require_grammar` values (module docstring note 6).
+GRAMMARS: tuple[str, ...] = ("danstate",)
 
 DEFAULT_LRS: tuple[float, ...] = (1e-4, 3e-4, 1e-3)
 DEFAULT_ORDERS = 2
@@ -249,24 +296,30 @@ def _and_glue_match(target_l: int) -> Callable[[Problem], bool]:
 def _default_excluder() -> Excluder:
     """Lazily imports `logic.exclusion.DefaultExcluder` (module docstring note 5): avoids paying
     the cost of scanning the real train/eval tier files -- or even importing this module -- for
-    every `build_classes` call that never reaches `_load_gen_l10` with a real path (e.g. every
-    test that points `gen_path` at a nonexistent file)."""
+    every `build_classes` call that never needs a seen-in-training check (e.g. every test that
+    points `gen_path` at a nonexistent file)."""
     from .logic.exclusion import DefaultExcluder
 
     return DefaultExcluder()
 
 
-def _load_gen_l10(path: Path, excluder: Excluder | None) -> list[Problem]:
+def _dan_excluder(family: str) -> Excluder:
+    """`logic.exclusion.DanExcluder(family)`, imported lazily like `_default_excluder`."""
+    from .logic.exclusion import DanExcluder
+
+    return DanExcluder(family)
+
+
+def _load_gen_l10(path: Path) -> list[Problem]:
     """`gen_L10` (module docstring note 5): `source=='gen'`, `L_true==10` rows from `reserve.jsonl`
     that have a `minlen_proof` (never falling back to the non-minimal `gen_proof` field -- a row
     without `minlen_proof` is simply dropped, since `reserve.jsonl` has thousands of qualifying
-    rows that do have one) and whose sequent the (default, unless `excluder` overrides it for a
-    test) `Excluder` does *not* mark `seen_train` (main agent instruction, 2026-10-01: dropped
-    here, not merely flagged the way the families/laws suite builders flag-only their own
-    `seen_train` items)."""
+    rows that do have one). Rows the seen-in-training check marks are dropped afterwards by
+    `build_classes` (main agent instruction, 2026-10-01: dropped, not merely flagged the way the
+    families/laws suite builders flag-only their own `seen_train` items), with our
+    `DefaultExcluder` unless `exclusion_family` selects Dan's tiers (note 6)."""
     if not path.is_file():
         raise _ClassUnavailable(f"{path} not found")
-    exc = excluder if excluder is not None else _default_excluder()
     out: list[Problem] = []
     for row in read_jsonl(path):
         if row.get("source") != "gen":
@@ -278,15 +331,11 @@ def _load_gen_l10(path: Path, excluder: Excluder | None) -> list[Problem]:
         if not isinstance(minlen_proof, str) or not minlen_proof.strip():
             continue
         p = _problem_from_raw_row(row, minlen_proof, suite="edl_gen_l10", method="minlen_exact")
-        if p is None:
-            continue
-        in_train, eval_sets = exc.status(p.sequent)
-        if in_train:
-            continue
-        out.append(replace(p, seen_eval=tuple(eval_sets)))
+        if p is not None:
+            out.append(p)
     if not out:
         raise _ClassUnavailable(
-            f"no source=='gen' rows with L_true==10, a minlen_proof, and not seen_train in {path}"
+            f"no source=='gen' rows with L_true==10 and a minlen_proof in {path}"
         )
     return out
 
@@ -351,7 +400,7 @@ def _class_specs(
     glue_version: str,
     gen_path: Path,
     heldout_cap6_path: Path,
-    excluder: Excluder | None,
+    dan_heldout_version: str,
 ) -> list[tuple[str, Callable[[Store], list[Problem]]]]:
     def suite_loader(
         suite: str, version: str, match: Callable[[Problem], bool], label: str
@@ -420,9 +469,60 @@ def _class_specs(
             ),
         ),
         ("and_glue_L12", suite_loader("glue", glue_version, _and_glue_match(12), "AND glue L=12")),
-        ("gen_L10", lambda _store: _load_gen_l10(gen_path, excluder)),
+        ("gen_L10", lambda _store: _load_gen_l10(gen_path)),
         ("heldout_cap6", lambda _store: _load_heldout_cap6(heldout_cap6_path)),
+        (
+            "dan_heldout",
+            suite_loader("dan_heldout", dan_heldout_version, lambda _p: True, "Dan held-out"),
+        ),
     ]
+
+
+def _cfg_classes(cfg: Mapping[str, JSON]) -> tuple[str, ...]:
+    """`cfg["classes"]` (list or comma-separated string) validated against `KNOWN_CLASSES`, in
+    `KNOWN_CLASSES` order; default `EDL_CLASSES`."""
+    raw = cfg.get("classes")
+    if raw is None:
+        return EDL_CLASSES
+    if isinstance(raw, str):
+        names = [x.strip() for x in raw.split(",") if x.strip()]
+    elif isinstance(raw, list):
+        names = [str(x) for x in raw]
+    else:
+        raise ValueError(f"build_classes: 'classes' must be a list or a string, got {raw!r}")
+    unknown = sorted(set(names) - set(KNOWN_CLASSES))
+    if unknown:
+        raise ValueError(
+            f"build_classes: unknown class(es) {unknown}; known: {list(KNOWN_CLASSES)}"
+        )
+    wanted = set(names)
+    return tuple(c for c in KNOWN_CLASSES if c in wanted)
+
+
+def _cfg_optional_int(cfg: Mapping[str, JSON], key: str) -> int | None:
+    raw = cfg.get(key)
+    if raw is None:
+        return None
+    if isinstance(raw, bool) or not isinstance(raw, int | str):
+        raise ValueError(f"build_classes: {key!r} must be an integer, got {raw!r}")
+    value = int(raw)
+    if value < 0:
+        raise ValueError(f"build_classes: {key!r} must be >= 0, got {value}")
+    return value
+
+
+def _grammar_filter(name: str | None) -> Callable[[Problem], str | None] | None:
+    """`require_grammar` -> a `Problem -> reason | None` check (module docstring note 6)."""
+    if name is None:
+        return None
+    if name not in GRAMMARS:
+        raise ValueError(f"build_classes: unknown require_grammar {name!r}; known: {GRAMMARS}")
+    from .adapters.danstate import dan_grammar_error
+
+    def check(p: Problem) -> str | None:
+        return dan_grammar_error(p.sequent, _must_ref(p).body)
+
+    return check
 
 
 def build_classes(
@@ -434,12 +534,14 @@ def build_classes(
     excluder: Excluder | None = None,
     rng_seed: int = 0,
 ) -> tuple[list[Problem], dict[str, JSON]]:
-    """Assemble the 12 EDL classes of plan §B7 (see the module docstring's note 3 for the tag/suite
-    assumptions, and note 5 for the 2026-10-01 `gen_L10` fix), split each into train/test, and
-    return the combined `Problem` list plus build stats. Callable as `build_classes(cfg)` alone (as
-    `cli.cmd_edl` does); `store`/`gen_path`/`heldout_cap6_path`/`excluder` are test/override hooks,
-    falling back to `cfg` keys and then plan defaults (`excluder` falls back to `_default_excluder`
-    lazily, only if `gen_L10`'s loader actually runs against a real file -- see that function).
+    """Assemble the EDL classes of plan §B7 (see the module docstring's note 3 for the tag/suite
+    assumptions, note 5 for the 2026-10-01 `gen_L10` fix, and note 6 for the config-driven class
+    list and the `max_premises`/`exclusion_family`/`require_grammar` filters), split each into
+    train/test, and return the combined `Problem` list plus build stats. Callable as
+    `build_classes(cfg)` alone (as `cli.cmd_edl` does); `store`/`gen_path`/`heldout_cap6_path`/
+    `excluder` are test/override hooks, falling back to `cfg` keys and then plan defaults.
+    `excluder` overrides whichever excluder the config implies (our `DefaultExcluder`, or Dan's
+    `DanExcluder(exclusion_family)`); either is built lazily, only if some class needs it.
     """
     if store is None:
         store = Store(Path(str(cfg.get("out", "out"))))
@@ -450,33 +552,131 @@ def build_classes(
     families_version = str(cfg.get("families_version", "v1"))
     laws_version = str(cfg.get("laws_version", "v1"))
     glue_version = str(cfg.get("glue_version", "v1"))
+    dan_heldout_version = str(cfg.get("dan_heldout_version", "v1"))
+    selected = _cfg_classes(cfg)
+    max_premises = _cfg_optional_int(cfg, "max_premises")
+    raw_family = cfg.get("exclusion_family")
+    family = None if raw_family is None else str(raw_family)
+    if family is not None:
+        from .logic.exclusion import DAN_FAMILIES
+
+        if family not in DAN_FAMILIES:
+            raise ValueError(
+                f"build_classes: unknown exclusion_family {family!r}; known: {list(DAN_FAMILIES)}"
+            )
+    if "dan_heldout" in selected and family is None and excluder is None:
+        raise ValueError(
+            "build_classes: the dan_heldout class needs exclusion_family (Dan's training tiers) "
+            "so that it can be made disjoint from his training data"
+        )
+    raw_grammar = cfg.get("require_grammar")
+    grammar_check = _grammar_filter(None if raw_grammar is None else str(raw_grammar))
+
+    excluder_memo: list[Excluder] = [excluder] if excluder is not None else []
+
+    def seen_excluder() -> Excluder:
+        if not excluder_memo:
+            excluder_memo.append(
+                _dan_excluder(family) if family is not None else _default_excluder()
+            )
+        return excluder_memo[0]
+
+    # Our policy drops seen items only from gen_L10; Dan's tiers apply to every class (note 6).
+    # dan_heldout always drops them: it exists to be disjoint from Dan's training.
+    drop_seen = set(selected) if family is not None else {"gen_L10", "dan_heldout"}
 
     warnings: list[str] = []
     problems: list[Problem] = []
     class_counts: dict[str, JSON] = {}
+    class_stats: dict[str, JSON] = {}
 
-    specs = _class_specs(
-        families_version, laws_version, glue_version, gen_path_resolved, heldout_path, excluder
+    specs = dict(
+        _class_specs(
+            families_version,
+            laws_version,
+            glue_version,
+            gen_path_resolved,
+            heldout_path,
+            dan_heldout_version,
+        )
     )
-    for name, loader in specs:
+    for name in selected:
         try:
-            pool = loader(store)
+            pool = specs[name](store)
         except _ClassUnavailable as e:
             warnings.append(f"{name}: {e}")
+            class_stats[name] = {"skipped": str(e)}
             continue
-        pool = _dedup_by_key([p for p in pool if p.ref is not None])
+        n_loaded = len(pool)
+        pool = [p for p in pool if p.ref is not None]
+        n_with_ref = len(pool)
+
+        n_dropped_premises = 0
+        if max_premises is not None:
+            kept = [p for p in pool if len(p.sequent.premises) <= max_premises]
+            n_dropped_premises = len(pool) - len(kept)
+            pool = kept
+
+        n_dropped_seen = 0
+        if name in drop_seen and pool:
+            exc = seen_excluder()
+            kept = []
+            for p in pool:
+                in_train, eval_sets = exc.status(p.sequent)
+                if in_train:
+                    n_dropped_seen += 1
+                    continue
+                # gen_L10's raw rows carry no eval flags of their own (note 5); suite items keep
+                # the flags their suite build recorded.
+                kept.append(replace(p, seen_eval=tuple(eval_sets)) if name == "gen_L10" else p)
+            pool = kept
+
+        n_dropped_grammar = 0
+        if grammar_check is not None:
+            kept = [p for p in pool if grammar_check(p) is None]
+            n_dropped_grammar = len(pool) - len(kept)
+            pool = kept
+
+        pool = _dedup_by_key(pool)
+        info: dict[str, JSON] = {
+            "n_loaded": n_loaded,
+            "n_with_ref": n_with_ref,
+            "n_dropped_premises": n_dropped_premises,
+            "n_dropped_seen": n_dropped_seen,
+            "n_dropped_grammar": n_dropped_grammar,
+            "n_distinct": len(pool),
+        }
         split = _split_train_test(pool, name, rng_seed, warnings)
         if split is None:
+            info["skipped"] = f"only {len(pool)} distinct items after filtering (need >= 64)"
+            class_stats[name] = info
             continue
         train, test = split
         problems.extend(_tag_split(train, name, "train"))
         problems.extend(_tag_split(test, name, "test"))
         class_counts[name] = {"n_train": len(train), "n_test": len(test)}
+        premise_counts = Counter(len(p.sequent.premises) for p in [*train, *test])
+        info.update(
+            {
+                "n_train": len(train),
+                "n_test": len(test),
+                "premise_counts": {str(k): v for k, v in sorted(premise_counts.items())},
+                "skipped": None,
+            }
+        )
+        class_stats[name] = info
 
     stats: dict[str, JSON] = {
         "n_classes_built": len(class_counts),
-        "n_classes_total": len(EDL_CLASSES),
+        "n_classes_total": len(selected),
         "class_counts": class_counts,
+        "class_stats": class_stats,
+        "filters": {
+            "classes": _j(list(selected)),
+            "max_premises": max_premises,
+            "exclusion_family": family,
+            "require_grammar": None if raw_grammar is None else str(raw_grammar),
+        },
         "warnings": _j(warnings),
     }
     return problems, stats
@@ -508,10 +708,13 @@ def _must_ref(p: Problem) -> ReferenceProof:
 def _train_test_from_tags(
     class_problems: Sequence[Problem], n: int, m: int
 ) -> tuple[list[Problem], list[Problem]]:
+    """The tagged train/test split (as `build_classes` makes it), capped at the first `n`/`m`
+    items of each side so a pilot can run with a small `--n/--m` (the defaults, 64/64, never cap
+    a `build_classes` split, which is at most 64/64); untagged problems: the first `n`, next `m`."""
     train = [p for p in class_problems if p.tags.get("split") == "train"]
     test = [p for p in class_problems if p.tags.get("split") == "test"]
     if train or test:
-        return train, test
+        return train[:n], test[:m]
     return list(class_problems[:n]), list(class_problems[n : n + m])
 
 
@@ -561,6 +764,34 @@ def _pass_at_8(
         return None
 
 
+def _finite_or_raise(
+    learner: Learner,
+    class_pairs: Sequence[tuple[str, Sequence[Problem]]],
+) -> None:
+    """`run_edl`'s pre-training check (module docstring note 6): every item's NLL at the starting
+    weights must be finite, else raise `ValueError` naming the items (and, for a `Learner` that
+    records them, e.g. `_DanStateLearner.last_nll_errors`, why)."""
+    bad: list[str] = []
+    for class_name, items in class_pairs:
+        lps = learner.nll([(p.sequent, _must_ref(p).body) for p in items])
+        reasons = cast(dict[int, str], getattr(learner, "last_nll_errors", {}) or {})
+        for idx, (p, lp) in enumerate(zip(items, lps, strict=True)):
+            if not math.isfinite(lp.nats):
+                why = reasons.get(idx, f"nll={lp.nats}")
+                bad.append(f"{class_name}:{p.pid} ({why})")
+    if bad:
+        shown = "; ".join(bad[:10]) + (f"; ... ({len(bad) - 10} more)" if len(bad) > 10 else "")
+        raise ValueError(
+            f"run_edl: {len(bad)} item(s) have a non-finite NLL at the starting weights, before "
+            f"any training: {shown}. Filter them out (build_classes' require_grammar, for Dan's "
+            "models) rather than letting NaN reach the EDL rows."
+        )
+
+
+def _progress(msg: str) -> None:
+    print(f"[edl] {msg}", file=sys.stderr, flush=True)
+
+
 def run_edl(
     adapter: ModelAdapter,
     problems: Sequence[Problem],
@@ -573,6 +804,9 @@ def run_edl(
     shifts_per_update: int = DEFAULT_SHIFTS_PER_UPDATE,
     seed: int = 0,
     pass8: bool = False,
+    skip: Collection[tuple[str, float, int]] = (),
+    on_row: Callable[[dict[str, JSON]], None] | None = None,
+    check_finite: bool = True,
 ) -> list[dict[str, JSON]]:
     """The plan §B7 online-EDL protocol, once per (class, `lr`, data order).
 
@@ -581,121 +815,173 @@ def run_edl(
     tagged `tags["split"] in {"train", "test"}` are used as given (as `build_classes` produces),
     else the first `n`/next `m` items (in list order) are used. See the module docstring for the
     `shifts_per_update` and start-token-excluded-variant conventions this function relies on.
+
+    `skip` lists `(class, lr, order)` combinations to leave out (already in the store, for a
+    resumed run); every other combination's seed is unchanged by skipping, so a resumed run
+    produces the same rows an uninterrupted one would. `on_row` is called with each row as soon
+    as it is computed. `check_finite` runs `_finite_or_raise` once per class before any training.
+    Progress goes to stderr, one line per combination.
     """
     if Capability.FINETUNE not in adapter.capabilities:
         raise NotSupported(f"{type(adapter).__name__} does not advertise Capability.FINETUNE")
     ckpts_parsed = _parse_ckpts(ckpts)
     identity = adapter.identity()
+    skip_set = {(str(c), float(lr), int(o)) for c, lr, o in skip}
 
     by_class: dict[str, list[Problem]] = {}
     for p in problems:
         cls = str(p.tags.get("class", p.suite))
         by_class.setdefault(cls, []).append(p)
 
-    rows: list[dict[str, JSON]] = []
+    plan: list[tuple[str, list[Problem], list[Problem], list[tuple[int, float]]]] = []
+    n_skipped = 0
     for class_name, class_problems in by_class.items():
         train_all, test_all = _train_test_from_tags(class_problems, n, m)
         if not train_all or not test_all:
             continue
+        todo = []
+        for order in range(orders):
+            for lr in lrs:
+                if (class_name, float(lr), order) in skip_set:
+                    n_skipped += 1
+                else:
+                    todo.append((order, lr))
+        if todo:
+            plan.append((class_name, train_all, test_all, todo))
+    total = sum(len(todo) for *_rest, todo in plan)
+    _progress(
+        f"{total} runs to do over {len(plan)} class(es) ({orders} order(s) x {len(lrs)} lr(s) "
+        f"each), {n_skipped} skipped as already done"
+    )
+    t_start = time.monotonic()
+    if check_finite and plan:
+        probe = adapter.learner(seed=_combo_seed(seed, "finite-check"))
+        _finite_or_raise(probe, [(c, [*tr, *te]) for c, tr, te, _todo in plan])
+        del probe
+        _progress(f"starting NLLs finite for every item ({time.monotonic() - t_start:.1f}s)")
+
+    rows: list[dict[str, JSON]] = []
+    done = 0
+    for class_name, train_all, test_all, todo in plan:
         test_pairs = [(p.sequent, _must_ref(p).body) for p in test_all]
         n_actual = len(train_all)
         m_actual = len(test_all)
         active_ckpts = sorted({c for c in ckpts_parsed if 0 < c <= n_actual} | {n_actual})
 
-        for order in range(orders):
+        for order, lr in todo:
+            t_combo = time.monotonic()
             perm = list(range(n_actual))
             random.Random(_combo_seed(seed, class_name, "order", order)).shuffle(perm)
             train_pairs = [(train_all[i].sequent, _must_ref(train_all[i]).body) for i in perm]
 
-            for lr in lrs:
-                combo_seed = _combo_seed(seed, class_name, lr, order)
-                learner = adapter.learner(seed=combo_seed)
-                # Exactly one layer makes the `shifts_per_update` random-shift copies (module
-                # docstring note 1): if this `Learner` does its own internal reshifting, make its
-                # count match ours rather than also repeating the pair ourselves below.
-                # `setattr` (not `learner.update_shifts = ...`) since `update_shifts` is a
-                # duck-typed extension, not part of the `Learner` Protocol pyright type-checks
-                # against here.
-                if hasattr(learner, "update_shifts"):
-                    setattr(learner, "update_shifts", shifts_per_update)  # noqa: B010
-                start_excluded_fn: StartExcludedFn | None = getattr(
-                    learner, "nll_start_excluded", None
-                )
+            combo_seed = _combo_seed(seed, class_name, lr, order)
+            learner = adapter.learner(seed=combo_seed)
+            # Exactly one layer makes the `shifts_per_update` random-shift copies (module
+            # docstring note 1): if this `Learner` does its own internal reshifting, make its
+            # count match ours rather than also repeating the pair ourselves below.
+            # `setattr` (not `learner.update_shifts = ...`) since `update_shifts` is a
+            # duck-typed extension, not part of the `Learner` Protocol pyright type-checks
+            # against here.
+            if hasattr(learner, "update_shifts"):
+                setattr(learner, "update_shifts", shifts_per_update)  # noqa: B010
+            start_excluded_fn: StartExcludedFn | None = getattr(learner, "nll_start_excluded", None)
 
-                l_test_0 = _mean_nll(learner, test_pairs)
-                l_test_0_se = (
-                    _mean_nll_via(start_excluded_fn, test_pairs) if start_excluded_fn else None
-                )
+            l_test_0 = _mean_nll(learner, test_pairs)
+            l_test_0_se = (
+                _mean_nll_via(start_excluded_fn, test_pairs) if start_excluded_fn else None
+            )
 
-                online_nats: list[float] = []
-                online_nats_se: list[float] | None = [] if start_excluded_fn else None
-                l_test_by_ckpt: dict[int, float] = {}
+            online_nats: list[float] = []
+            online_nats_se: list[float] | None = [] if start_excluded_fn else None
+            l_test_by_ckpt: dict[int, float] = {}
 
-                for i, pair in enumerate(train_pairs, start=1):
-                    lp = learner.nll([pair])[0]
-                    online_nats.append(lp.nats)
-                    if start_excluded_fn is not None and online_nats_se is not None:
-                        online_nats_se.append(start_excluded_fn([pair])[0].nats)
-                    learner.update([pair], lr)
-                    if i in active_ckpts:
-                        l_test_by_ckpt[i] = _mean_nll(learner, test_pairs)
+            for i, pair in enumerate(train_pairs, start=1):
+                lp = learner.nll([pair])[0]
+                online_nats.append(lp.nats)
+                if start_excluded_fn is not None and online_nats_se is not None:
+                    online_nats_se.append(start_excluded_fn([pair])[0].nats)
+                learner.update([pair], lr)
+                if i in active_ckpts:
+                    l_test_by_ckpt[i] = _mean_nll(learner, test_pairs)
 
-                if n_actual not in l_test_by_ckpt:
-                    l_test_by_ckpt[n_actual] = _mean_nll(learner, test_pairs)
-                l_test_n = l_test_by_ckpt[n_actual]
-                l_test_n_se = (
-                    _mean_nll_via(start_excluded_fn, test_pairs) if start_excluded_fn else None
-                )
+            if n_actual not in l_test_by_ckpt:
+                l_test_by_ckpt[n_actual] = _mean_nll(learner, test_pairs)
+            l_test_n = l_test_by_ckpt[n_actual]
+            l_test_n_se = (
+                _mean_nll_via(start_excluded_fn, test_pairs) if start_excluded_fn else None
+            )
 
-                edl_by_ckpt = {
-                    cp: edl_of(online_nats[:cp], l_test_by_ckpt[cp])
-                    for cp in sorted(l_test_by_ckpt)
-                }
-                edl_full = edl_by_ckpt[n_actual]
-                edl_se = (
-                    edl_of(online_nats_se, l_test_n_se)
-                    if online_nats_se is not None and l_test_n_se is not None
-                    else None
-                )
+            edl_by_ckpt = {
+                cp: edl_of(online_nats[:cp], l_test_by_ckpt[cp]) for cp in sorted(l_test_by_ckpt)
+            }
+            edl_full = edl_by_ckpt[n_actual]
+            edl_se = (
+                edl_of(online_nats_se, l_test_n_se)
+                if online_nats_se is not None and l_test_n_se is not None
+                else None
+            )
 
-                pass8_before: float | None = None
-                pass8_after: float | None = None
-                if pass8:
-                    pass8_before = _pass_at_8(adapter, test_all, combo_seed)
-                    pass8_after = _pass_at_8(learner.adapter(), test_all, combo_seed + 1)
+            pass8_before: float | None = None
+            pass8_after: float | None = None
+            if pass8:
+                pass8_before = _pass_at_8(adapter, test_all, combo_seed)
+                pass8_after = _pass_at_8(learner.adapter(), test_all, combo_seed + 1)
 
-                rows.append(
-                    {
-                        "class": class_name,
-                        "model_identity": identity,
-                        "lr": lr,
-                        "order": order,
-                        "n": n_actual,
-                        "m": m_actual,
-                        "seed": combo_seed,
-                        "online_nats": _j(online_nats),
-                        "L_test_0": l_test_0,
-                        "L_test_n": l_test_n,
-                        "L_test_by_checkpoint": _j(
-                            {str(k): v for k, v in sorted(l_test_by_ckpt.items())}
-                        ),
-                        "EDL_by_checkpoint": _j(
-                            {str(k): v for k, v in sorted(edl_by_ckpt.items())}
-                        ),
-                        "EDL": edl_full,
-                        "EDL_per_example": edl_full / n_actual if n_actual else float("nan"),
-                        "start_excluded_online_nats": _j(online_nats_se),
-                        "L_test_0_start_excluded": l_test_0_se,
-                        "L_test_n_start_excluded": l_test_n_se,
-                        "EDL_start_excluded": edl_se,
-                        "pass8_before": pass8_before,
-                        "pass8_after": pass8_after,
-                    }
+            n_nonfinite = sum(
+                1
+                for v in [*online_nats, l_test_0, *l_test_by_ckpt.values()]
+                if not math.isfinite(v)
+            )
+            row: dict[str, JSON] = {
+                "class": class_name,
+                "model_identity": identity,
+                "lr": lr,
+                "order": order,
+                "n": n_actual,
+                "m": m_actual,
+                "seed": combo_seed,
+                "online_nats": _j(online_nats),
+                "L_test_0": l_test_0,
+                "L_test_n": l_test_n,
+                "L_test_by_checkpoint": _j({str(k): v for k, v in sorted(l_test_by_ckpt.items())}),
+                "EDL_by_checkpoint": _j({str(k): v for k, v in sorted(edl_by_ckpt.items())}),
+                "EDL": edl_full,
+                "EDL_per_example": edl_full / n_actual if n_actual else float("nan"),
+                "start_excluded_online_nats": _j(online_nats_se),
+                "L_test_0_start_excluded": l_test_0_se,
+                "L_test_n_start_excluded": l_test_n_se,
+                "EDL_start_excluded": edl_se,
+                "pass8_before": pass8_before,
+                "pass8_after": pass8_after,
+                "n_nonfinite_nll": n_nonfinite,
+            }
+            rows.append(row)
+            if on_row is not None:
+                on_row(row)
+            del learner
+
+            done += 1
+            now = time.monotonic()
+            elapsed = now - t_start
+            eta = elapsed / done * (total - done)
+            _progress(
+                f"{done}/{total} {class_name} lr={lr:g} order={order} n={n_actual} m={m_actual}: "
+                f"EDL/ex {edl_full / n_actual:.3f}, L_test {l_test_0:.3f} -> {l_test_n:.3f} "
+                f"nats/ex; {now - t_combo:.1f}s; elapsed {elapsed:.0f}s, eta {eta:.0f}s"
+            )
+            if n_nonfinite:
+                _progress(
+                    f"WARNING {class_name} lr={lr:g} order={order}: {n_nonfinite} non-finite NLL "
+                    "value(s) during training (diverged?); row kept with n_nonfinite_nll set"
                 )
     return rows
 
 
 # ---------------------------------------------------------------------------------- summarise_edl
+
+
+def _finite_or_inf(x: float) -> float:
+    return x if math.isfinite(x) else float("inf")
 
 
 def summarise_edl(
@@ -728,9 +1014,13 @@ def summarise_edl(
         order_stars: list[float] = []
         for _order, order_rows in sorted(by_order.items()):
             if order_rows:
+                # A non-finite code length (a diverged lr) never wins: `min` with a NaN key
+                # returns whichever row happens to come first.
                 chosen = min(
                     order_rows,
-                    key=lambda r: sum(float(x) for x in cast(list[float], r["online_nats"])),
+                    key=lambda r: _finite_or_inf(
+                        sum(float(x) for x in cast(list[float], r["online_nats"]))
+                    ),
                 )
                 order_stars.append(float(cast(float, chosen["EDL"])) + correction)
         star_mean = float(np.mean(order_stars)) if order_stars else float("nan")
