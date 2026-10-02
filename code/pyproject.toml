@@ -33,6 +33,7 @@ build-backend = "setuptools.build_meta"
 packages = [
     "code",
     "code.models",
+    "code.shared_code",
     "code.experiments",
     "code.experiments.archived",
     "code.experiments.archived.mnist",
@@ -113,7 +114,7 @@ known-third-party = ["wandb"]
 known-first-party = ["code"]
 
 [tool.pyright]
-include = ["__init__.py", "log.py", "utils.py", "models", "tests", "conftest.py", "ndbench"]
+include = ["__init__.py", "log.py", "utils.py", "models", "shared_code", "tests", "conftest.py", "ndbench"]
 ignore = ["tests/test_literature.py", "tests/test_r1_*.py"]
 exclude = ["**/ndbench/vendor/**"]
 extraPaths = [
