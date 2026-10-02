@@ -445,16 +445,16 @@ def test_takeaways_are_computed_from_the_data(charts: list[ChartData]) -> None:
     assert "nd_v2 on the same samples changes no count" in by["do_table1"].caption
     # padding: t1 at m = 2, P2 50%, P1-shared 25%, P1-disjoint 0%; fz from 75%
     pad = by["do_padding"].takeaway
-    assert "more distractors hurt t1 more than a longer proof" in pad
+    assert "more distractors hurt the RL model more than a longer proof" in pad
     assert "from 100.0% unpadded" in pad and "leave 50.0%" in pad and "25.0% (P1-shared)" in pad
-    assert "fz goes from 75.0%" in pad
+    assert "the pretrained model goes from 75.0%" in pad
     # steering: the best fz setting is layer 1, alpha 0.5; alpha 2 the most harmful
     st = by["do_steering"].takeaway
     assert "(layer 1, α = 0.5)" in st and "(layer 1, α = 2)" in st
     # heldout: fz 8/10, t1 10/10
     assert "from 20.0% to 0.0%" in by["do_heldout"].takeaway
     # skills: case split 62.5% vs plain 50.0% for t1
-    assert "Case splits do not cost t1 anything" in by["do_skills"].takeaway
+    assert "Case splits do not cost the RL model anything" in by["do_skills"].takeaway
     assert "62.5% of case-split items vs 50.0%" in by["do_skills"].takeaway
     # textbook_law: the seen theorem tl0 is excluded (n = 3)
     assert "n = 3; 1 seen theorems excluded" in by["do_textbook_law"].caption
@@ -464,7 +464,7 @@ def test_takeaways_are_computed_from_the_data(charts: list[ChartData]) -> None:
     # probes: baselines read from the run's printed output
     assert "(70.0%)" in by["do_probes"].takeaway
     # families: t1 longer than fz in the one family
-    assert "longer than fz's in 1 of 1 families" in by["do_families"].takeaway
+    assert "longer than the pretrained model's in 1 of 1 families" in by["do_families"].takeaway
 
 
 def test_padding_split_counts_each_base_once(synth: Store) -> None:
@@ -485,11 +485,11 @@ def test_kl_run_replaces_the_placeholder(tmp_path: Path) -> None:
     assert cd.kind == "dot"
     assert [r.label for r in cd.rows] == ["all tokens", "NEGE", "AS", "PR"]
     take = cd.takeaway
-    assert take.startswith("t1 and fz differ most on elimination steps")
-    assert "KL(t1 ‖ fz) 0.200 nats/token (2.0 per sample)" in take
-    assert "KL(fz ‖ t1) 0.050 nats/token (0.5 per sample)" in take
-    assert "eliminations (NEGE) carry 0.30-0.30 (fz" not in take  # ordered fz||t1 first
-    assert "0.30-0.30 (KL(fz ‖ t1)) and 1.20-1.20 (KL(t1 ‖ fz))" in take
+    assert take.startswith("The two models differ most on elimination steps")
+    assert "KL(RL ‖ pretrained) 0.200 nats/token (2.0 per sample)" in take
+    assert "KL(pretrained ‖ RL) 0.050 nats/token (0.5 per sample)" in take
+    assert "eliminations (NEGE) carry 0.30-0.30 (pretrained" not in take  # pretrained||RL first
+    assert "0.30-0.30 (KL(pretrained ‖ RL)) and 1.20-1.20 (KL(RL ‖ pretrained))" in take
     assert "PR stay under 0.02 in both directions" in take
     assert "defining-name tokens are excluded" in cd.caption
     assert "8 of 16 sampled attempts (50%) were skipped" in cd.caption
@@ -579,16 +579,16 @@ def _steering_store(root: Path, *, with_t1: bool) -> Store:
 
 def test_steering_uses_the_unsteered_t1_baseline_once_it_exists(tmp_path: Path) -> None:
     without = dan_only._c_steering(_steering_store(tmp_path / "a", with_t1=False))  # noqa: SLF001
-    assert "no unsteered t1 run" in without.takeaway
-    assert "t1 has no unsteered run" in without.caption
+    assert "no unsteered RL run" in without.takeaway
+    assert "The RL model has no unsteered run" in without.caption
     assert not without.opts["has_t1_baseline"]
     cd = dan_only._c_steering(_steering_store(tmp_path / "b", with_t1=True))  # noqa: SLF001
     assert cd.opts["has_t1_baseline"]
     labels = [r[0] for r in cd.extra["table"]["rows"]]
-    assert labels[-2:] == ["t1 (unsteered)", "t1 − δ (layer 1)"]  # side by side
+    assert labels[-2:] == ["RL (unsteered)", "RL − δ (layer 1)"]  # side by side
     assert "against 87.5% / 87.5% unsteered (−12.5 / −12.5 points;" in cd.takeaway
-    assert "t1 has no unsteered run" not in cd.caption
-    assert any(b.name.endswith(f": t1|{T1}") for b in cd.bars)
+    assert "The RL model has no unsteered run" not in cd.caption
+    assert any(b.name.endswith(f": RL|{T1}") for b in cd.bars)
 
 
 def test_likelihood_prefers_the_newest_run_without_name_tokens(tmp_path: Path) -> None:

@@ -7,7 +7,7 @@ purple and cap 6 sky blue (`style.register_family`, done once in `figures/plots.
 family fz (Stage-1, pretrained) is the darker shade with solid bars and t1 (after the T1 RL
 ladder) the full hue with hatched bars; seeds 1 and 2 are dashed and dotted lines of their seed-0
 colour. Non-model series (pass@1 vs pass@128, position-only baselines, Dan's published values,
-R = 1) are black or grey. Legends use display names ("fz (cap 12)"), the data tables the run
+R = 1) are black or grey. Legends use display names ("pretrained (cap 12)"), the data tables the run
 labels ("dan12-fz-s0").
 
 Shared drawing helpers come from `figures/plots.py` (its private `_plot_line`, `_draw_passk`,
@@ -36,11 +36,17 @@ from . import style as S
 # --------------------------------------------------------------------------------- labels
 
 
+#: Readers' names for Dan's role codes: fz is the pretrained Stage-1 checkpoint, t1 the same
+#: checkpoint after his T1 RL ladder.
+ROLE_NAME: dict[str, str] = {"fz": "pretrained", "t1": "RL"}
+
+
 def display(label: str) -> str:
-    """`"dan12-fz-s0"` -> `"fz (cap 12)"`; seeds are told apart by line style, not the name."""
+    """`"dan12-fz-s0"` -> `"pretrained (cap 12)"`; seeds are told apart by line style, not the
+    name."""
     family, role, _seed = S.parse_model_label(label)
     if family.startswith("dan") and family[3:].isdigit() and role:
-        return f"{role} (cap {family[3:]})"
+        return f"{ROLE_NAME.get(role, role)} (cap {family[3:]})"
     return label
 
 
@@ -644,7 +650,7 @@ def _mini_heldout(ax: Axes, cd: ChartData) -> None:
         bars,
         published,
         size=3.2,
-        labels=[S.parse_model_label(b.name)[1] or b.name for b in bars],
+        labels=[ROLE_NAME.get(S.parse_model_label(b.name)[1] or "", b.name) for b in bars],
     )
     vals = [v for b in bars for v in (b.lo, b.hi, b.value) if v is not None]
     ax.set_xlim(math.floor(min(vals + list(published.values())) * 50) / 50 - 0.01, 1.0)
@@ -803,7 +809,8 @@ def _mini_kl(ax: Axes, cd: ChartData) -> None:
 
 
 def _steer_bar_style(name: str) -> tuple[S.ModelStyle, bool]:
-    """`(style, steered)` for a steering condition named "fz", "fz + δ", "t1 − δ" or "t1"."""
+    """`(style, steered)` for a steering condition named "pretrained", "pretrained + δ", "RL − δ" or
+    "RL"."""
     model = name.split("|", 1)[1]
     return S.model_style(model), ("δ" in name)
 
@@ -876,9 +883,9 @@ def _draw_weights(ax: Axes, cd: ChartData, *, size: float = 3.6, annotate: bool 
     for t in ticks or xs:
         lab = f"{t:g}"
         if annotate and t == 0:
-            lab += "\nfz"
+            lab += "\npretrained"
         elif annotate and t == 1:
-            lab += "\nt1"
+            lab += "\nRL"
         labels.append(lab)
     ax.set_xticklabels(labels)
     if xs:

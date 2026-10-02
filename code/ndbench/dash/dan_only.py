@@ -123,16 +123,18 @@ def _c_textbook(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
             f"{_pct(bh)} (gap {100 * (b1 - a1):.0f} → {100 * (bh - ah):.0f} points)"
         )
     lead = (
-        f"RL helps at every sampling budget: t1 is at or above fz at every k in all {len(pairs)} "
+        "RL helps at every sampling budget: the RL model is at or above the pretrained model at "
+        f"every k in all {len(pairs)} "
         "seed pairs"
         if pairs and all(pairs)
-        else f"t1 is at or above fz at every k in {sum(pairs)} of {len(pairs)} seed pairs"
+        else f"the RL model is at or above the pretrained model at every k in {sum(pairs)} of "
+        f"{len(pairs)} seed pairs"
     )
     k_max = {m: int(max(x for x, _y in pts)) for m, pts in curves.items()}
     kmax_note = "; ".join(
         f"cap {fam[3:]} "
         + ", ".join(
-            f"{F.S.parse_model_label(m)[1]}-s{F.S.parse_model_label(m)[2]} {k}"
+            f"{_role_name(m)} s{F.S.parse_model_label(m)[2]} {k}"
             for m, k in k_max.items()
             if m.startswith(fam + "-")
         )
@@ -146,8 +148,9 @@ def _c_textbook(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
     )
     caption = (
         f"Pass@k against samples per theorem k (log scale) on textbook_dev (n = {n_items} "
-        "textbook theorems), (a) cap 12 and (b) cap 6 on one y scale; fz (Stage-1, pretrained) "
-        "darker, t1 (after the T1 RL ladder) full hue. Seed 0 solid with a "
+        "textbook theorems), (a) cap 12 and (b) cap 6 on one y scale; pretrained (Dan's Stage-1 "
+        "checkpoint) "
+        "darker, RL (after his T1 RL ladder) full hue. Seed 0 solid with a "
         f"{_BOOT} band (B = {B_TEXTBOOK}); seeds 1 and 2 dashed and dotted, no band. Unbiased "
         "pass@k from each item's first 256 draws up to k = 256, above that from every draw of the "
         "adaptive run, with the 1-(1-c/n)^k extrapolation past an item's own draw count; each "
@@ -271,7 +274,7 @@ def _c_table1(store: Store, reg: Mapping[str, mr.ModelEntry], tb: ChartData) -> 
             solved = f"<b>{solved}</b>"
         rows.append(
             [
-                f"{r['role']}, cap {r['fam'][3:]}",
+                f"{F.ROLE_NAME.get(r['role'], r['role'])}, cap {r['fam'][3:]}",
                 _cell(r["p1"], "p1"),
                 _cell(r["p256"], "p256"),
                 solved,
@@ -391,9 +394,11 @@ def _c_families(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
     seen = _seen_note(store, "families")
     k = _run_k(store, "families", PAIR[1])
     takeaway = (
-        f"t1's horizon is longer than fz's in {longer} of {n_cmp} families, equal in {equal} "
-        f"and shorter in {shorter}; fz fails at the smallest unseen size in {fz_fail} families, "
-        f"t1 in {t1_fail}"
+        f"the RL model's horizon is longer than the pretrained model's in {longer} of {n_cmp} "
+        f"families, equal in {equal} "
+        f"and shorter in {shorter}; the pretrained model fails at the smallest unseen size in "
+        f"{fz_fail} families, "
+        f"the RL model in {t1_fail}"
         + (f"; both are censored at the same length in {', '.join(both_cens)}" if both_cens else "")
         + "."
     )
@@ -437,10 +442,11 @@ def _c_laws(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
         s0 = common[0]
         floor = next((s for s in common if dict(t1)[s] < 0.05), None)
         takeaway = (
-            f"t1 is at or above fz at {above} of {len(common)} substitution sizes, from "
+            f"the RL model is at or above the pretrained model at {above} of {len(common)} "
+            "substitution sizes, from "
             f"{_pct(dict(t1)[s0])} vs {_pct(dict(fz)[s0])} at s = {s0:g}"
             + (
-                f"; both are below 5% from s = {floor:g} (t1 {_pct(dict(t1)[floor])}, fz "
+                f"; both are below 5% from s = {floor:g} (RL {_pct(dict(t1)[floor])}, pretrained "
                 f"{_pct(dict(fz)[floor])})"
                 if floor is not None
                 else ""
@@ -515,9 +521,14 @@ def _c_glue(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
     takeaway = (
         f"Joined theorems are harder than their mastered parts predict for both models (R < 1 "
         f"with the CI below 1 on {len(below)} of {len(ops)} operators: {', '.join(below) or '-'})"
-        f"; t1's R is higher than fz's on {len(higher)} of {len(ops)}, closest to 1 on {best_op} "
-        f"(t1 {by[f'{best_op}: {PAIR[1]}'].value:.2f}"
-        + (f", fz {by[f'{best_op}: {PAIR[0]}'].value:.2f}" if f"{best_op}: {PAIR[0]}" in by else "")
+        f"; the RL model's R is higher than the pretrained model's on {len(higher)} of {len(ops)}, "
+        f"closest to 1 on {best_op} "
+        f"(RL {by[f'{best_op}: {PAIR[1]}'].value:.2f}"
+        + (
+            f", pretrained {by[f'{best_op}: {PAIR[0]}'].value:.2f}"
+            if f"{best_op}: {PAIR[0]}" in by
+            else ""
+        )
         + ")."
     )
     caption = (
@@ -603,12 +614,12 @@ def _c_skills(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
         hardest = min(
             (g for g in sizes if v(g, t1) is not None), key=lambda g: cast(float, v(g, t1))
         )
-        verb = "do not cost t1 anything" if cs >= pl else "cost t1"
+        verb = "do not cost the RL model anything" if cs >= pl else "cost the RL model"
         takeaway = (
             f"Case splits {verb}: it solves {_pct(cs)} of case-split items vs {_pct(pl)} of "
             f"plain ones"
             + (
-                f" (fz {_pct(v('case_split', fz))} vs {_pct(v('plain', fz))})"
+                f" (pretrained {_pct(v('case_split', fz))} vs {_pct(v('plain', fz))})"
                 if v("case_split", fz) is not None
                 else ""
             )
@@ -617,9 +628,9 @@ def _c_skills(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
                 if common
                 else ""
             )
-            + f"; {hardest.replace('_', ' ')} is the hardest group (t1 "
+            + f"; {hardest.replace('_', ' ')} is the hardest group (RL "
             f"{_pct(v(hardest, t1))}"
-            + (f", fz {_pct(v(hardest, fz))}" if v(hardest, fz) is not None else "")
+            + (f", pretrained {_pct(v(hardest, fz))}" if v(hardest, fz) is not None else "")
             + ")."
         )
     caption = (
@@ -695,16 +706,17 @@ def _c_padding(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
         )
         p2, p1s, p1d = d["P2"][m_cmp], d["P1-shared"][m_cmp], d["P1-disjoint"][m_cmp]
         worse = (
-            "more distractors hurt t1 more than a longer proof"
+            "more distractors hurt the RL model more than a longer proof"
             if max(p1s, p1d) < p2
-            else "a longer proof hurts t1 more than more distractors"
+            else "a longer proof hurts the RL model more than more distractors"
         )
         fz_txt = ""
         if fz in data:
             e = {t: {mm: p for mm, p, _n, _w in pts} for t, pts in data[fz].items()}
             if all(m_cmp in e.get(t, {}) for t in ("P2", "P1-shared", "P1-disjoint")):
                 fz_txt = (
-                    f"; fz goes from {_pct(e['P2'][0])} to {_pct(e['P2'][m_cmp])} (P2) and "
+                    f"; the pretrained model goes from {_pct(e['P2'][0])} to "
+                    f"{_pct(e['P2'][m_cmp])} (P2) and "
                     f"{_pct(e['P1-shared'][m_cmp])} / {_pct(e['P1-disjoint'][m_cmp])} (P1)"
                 )
         takeaway = (
@@ -756,7 +768,8 @@ def _c_prefix(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData:
         above = sum(t1[x] >= fz[x] for x in common)
         lo, hi = common[0], common[-1]
         takeaway = (
-            f"t1 completes more prefixes than fz at {above} of {len(common)} distances: "
+            f"the RL model completes more prefixes than the pretrained model at {above} of "
+            f"{len(common)} distances: "
             f"{_pct(t1[lo])} vs {_pct(fz[lo])} with {lo:g} line{'s' if lo != 1 else ''} left, "
             f"{_pct(t1[hi])} vs {_pct(fz[hi])} with {hi:g} left."
         )
@@ -868,12 +881,13 @@ def _c_textbook_law(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData
         b = {k: m for k, m, _l, _h in data[PAIR[1]]["curve"]}
         k_hi = max(set(a) & set(b))
         takeaway = (
-            f"t1's pass@1 ({_pct(b[1])}) is "
+            f"the RL model's pass@1 ({_pct(b[1])}) is "
             + ("above" if b[1] > a[k_hi] else "below")
-            + f" fz's pass@{k_hi} ({_pct(a[k_hi])}); at k = {k_hi} t1 reaches {_pct(b[k_hi])}, so "
-            "sampling more from fz does not close the gap on these theorems."
+            + f" the pretrained model's pass@{k_hi} ({_pct(a[k_hi])}); at k = {k_hi} RL reaches "
+            f"{_pct(b[k_hi])}, so "
+            "sampling more from the pretrained model does not close the gap on these theorems."
             if b[1] > a[k_hi]
-            else f"t1 is ahead at k = 1 ({_pct(b[1])} vs {_pct(a[1])}) and at k = {k_hi} "
+            else f"the RL model is ahead at k = 1 ({_pct(b[1])} vs {_pct(a[1])}) and at k = {k_hi} "
             f"({_pct(b[k_hi])} vs {_pct(a[k_hi])})."
         )
     d0 = next(iter(data.values()))
@@ -897,10 +911,13 @@ _ORIGIN_LABEL = {
 
 
 def _c_likelihood(store: Store) -> ChartData:
-    key, title = "do_likelihood", "Log-likelihood of fixed proofs under fz and t1"
+    key, title = (
+        "do_likelihood",
+        "Log-likelihood of fixed proofs under the pretrained and RL models",
+    )
     data = dv.dan_likelihood(store)
     if data is None:
-        return _missing(key, title, "no interp likelihood run scoring fz/t1 yet")
+        return _missing(key, title, "no interp likelihood run scoring pretrained/RL yet")
     origins = cast("dict[str, dict[str, Any]]", data["origins"])
     order = [o for o in ("reserve", "reference", "family") if o in origins] + sorted(
         set(origins) - {"reserve", "reference", "family"}
@@ -919,7 +936,7 @@ def _c_likelihood(store: Store) -> ChartData:
         for o in order
     ]
     bits = [
-        f"{origins[o]['median_diff']:+.2f} nats/line on {_ORIGIN_LABEL.get(o, o)} (t1 higher on "
+        f"{origins[o]['median_diff']:+.2f} nats/line on {_ORIGIN_LABEL.get(o, o)} (RL higher on "
         f"{100 * origins[o]['frac_t1_higher']:.0f}%)"
         for o in order
     ]
@@ -937,7 +954,7 @@ def _c_likelihood(store: Store) -> ChartData:
         )
         + ", the per-model medians plotted order the other way ("
         + "; ".join(
-            f"{_ORIGIN_LABEL.get(o, o)} fz {origins[o]['median_fz']:.2f}, t1 "
+            f"{_ORIGIN_LABEL.get(o, o)} pretrained {origins[o]['median_fz']:.2f}, RL "
             f"{origins[o]['median_t1']:.2f}"
             for o in flipped
         )
@@ -948,7 +965,7 @@ def _c_likelihood(store: Store) -> ChartData:
     small = max(abs(origins[o]["median_diff"]) for o in order) < 0.5
     takeaway = (
         ("RL barely moves" if small else "RL changes")
-        + " the likelihood of fixed proofs: the paired median change t1 - fz is "
+        + " the likelihood of fixed proofs: the paired median change RL − pretrained is "
         + "; ".join(bits)
         + "."
         + flip_note
@@ -963,7 +980,8 @@ def _c_likelihood(store: Store) -> ChartData:
         "environment overrides at sampling time and Dan's trajectory study excludes."
     )
     caption = (
-        "Median log-likelihood per written line (nats) of fixed proof sets under fz and t1 (the "
+        "Median log-likelihood per written line (nats) of fixed proof sets under the pretrained "
+        "and RL models (the "
         f"cap-12 seed-0 pair): {n_tot} proofs ("
         + "; ".join(
             f"{origins[o]['n']} {_ORIGIN_LABEL.get(o, o)}, L = "
@@ -1005,14 +1023,14 @@ _KIND_GLOSS = (
 
 
 def _c_kl(store: Store) -> ChartData:
-    key, title = "do_kl", "Token-level KL between t1 and fz, by action kind"
+    key, title = "do_kl", "Token-level KL between RL and pretrained, by action kind"
     data = dv.dan_kl(store)
     if data is None:
         cd = _missing(
             key,
             title,
             "not yet run: no interp kl run in the store, so the token-"
-            "level KL between t1 and fz is not measured on this page yet",
+            "level KL between RL and pretrained is not measured on this page yet",
         )
         cd.extra["missing_label"] = "not yet run"
         return cd
@@ -1020,10 +1038,10 @@ def _c_kl(store: Store) -> ChartData:
     base = cast(str, cfg.get("base_model") or PAIR[0])
     rl = cast(str, cfg.get("rl_model") or PAIR[1])
     dirs = cast("dict[str, dict[str, Any]]", data["directions"])
-    short = {"rl||base": "KL(t1 ‖ fz)", "base||rl": "KL(fz ‖ t1)"}
+    short = {"rl||base": "KL(RL ‖ pretrained)", "base||rl": "KL(pretrained ‖ RL)"}
     name = {
-        "rl||base": f"KL(t1 ‖ fz) on t1 samples|{rl}",
-        "base||rl": f"KL(fz ‖ t1) on fz samples|{base}",
+        "rl||base": f"KL(RL ‖ pretrained) on RL samples|{rl}",
+        "base||rl": f"KL(pretrained ‖ RL) on pretrained samples|{base}",
     }
     order = [d for d in ("base||rl", "rl||base") if d in dirs] + sorted(
         set(dirs) - {"base||rl", "rl||base"}
@@ -1074,7 +1092,7 @@ def _c_kl(store: Store) -> ChartData:
         if dirs[dn]["by_kind"]
     ]
     lead = (
-        "t1 and fz differ most on elimination steps: "
+        "The two models differ most on elimination steps: "
         if elim and tops and all(t in _ELIM_KINDS for t in tops)
         else "Per-token KL: "
     )
@@ -1096,8 +1114,9 @@ def _c_kl(store: Store) -> ChartData:
     )
     caption = (
         "Exact per-token KL divergence between the cap-12 seed-0 pair's next-action "
-        "distributions, teacher-forced along each model's own stored samples (KL(t1 ‖ fz) along "
-        "t1's, KL(fz ‖ t1) along fz's) from its "
+        "distributions, teacher-forced along each model's own stored samples (KL(RL ‖ pretrained) "
+        "along "
+        "the RL model's, KL(pretrained ‖ RL) along the pretrained model's) from its "
         f"{suites} runs, at most {cfg.get('max_samples_per_suite', '?')} samples per (model, "
         f'suite) (run {data["run_id"]}). "all tokens": the sum of KL over scored tokens '
         f"divided by their count, with a 95% bootstrap CI over samples (B = {data['B']}); then "
@@ -1140,7 +1159,10 @@ def _short_suite(suite: str) -> str:
 
 
 def _c_steering(store: Store) -> ChartData:
-    key, title = "do_steering", "Steering fz along the t1 - fz activation difference"
+    key, title = (
+        "do_steering",
+        "Steering the pretrained model along the RL − pretrained activation difference",
+    )
     data = dv.dan_steering(store, base=PAIR[0], rl=PAIR[1])
     rows_in = cast("list[dict[str, Any]]", data["rows"])
     if not rows_in:
@@ -1153,13 +1175,13 @@ def _c_steering(store: Store) -> ChartData:
     suites = cast("list[str]", data["suites"])
 
     def cond(r: dict[str, Any]) -> str:
-        role = "fz" if r["model"] == PAIR[0] else "t1"
+        role = "pretrained" if r["model"] == PAIR[0] else "RL"
         if not r["steered"]:
             return f"{role} (unsteered)"
         sign = "+" if r["alpha"] >= 0 else "−"
         a = abs(r["alpha"])
         return f"{role} {sign} δ (layer {r['layer']}" + (
-            f", α = {a:g})" if a != 1 or role == "fz" else ")"
+            f", α = {a:g})" if a != 1 or role == "pretrained" else ")"
         )
 
     fz_rows = [r for r in rows_in if r["model"] == PAIR[0]]
@@ -1206,10 +1228,10 @@ def _c_steering(store: Store) -> ChartData:
     t1_plain = next((r for r in rows_in if r["model"] == PAIR[1] and not r["steered"]), None)
     has_t1 = t1_plain is not None and all(t1_plain["per_suite"].get(s) for s in suites)
     for r, lab in (
-        (unsteered, "fz"),
-        (best, "fz + δ"),
-        (control, "t1 − δ"),
-        (t1_plain if has_t1 else None, "t1"),
+        (unsteered, "pretrained"),
+        (best, "pretrained + δ"),
+        (control, "RL − δ"),
+        (t1_plain if has_t1 else None, "RL"),
     ):
         if r is None:
             continue
@@ -1226,11 +1248,12 @@ def _c_steering(store: Store) -> ChartData:
         )
         vals = lambda r: " / ".join(f"{100 * r['per_suite'][s][0]:.1f}%" for s in suites)  # noqa: E731
         takeaway = (
-            "Adding the t1 - fz direction to fz does not make it t1: the best of "
+            "Adding the RL − pretrained direction to the pretrained model does not make it the RL "
+            "model: the best of "
             f"{len(steered)} settings (layer {best['layer']}, α = {best['alpha']:g}) scores "
             f"{vals(best)} "
             f"(dev / sealed) against {vals(unsteered)} unsteered"
-            + (", inside fz's 95% CI" if inside else "")
+            + (", inside the pretrained model's 95% CI" if inside else "")
             + (
                 f", and the most harmful (layer {worst['layer']}, α = {worst['alpha']:g}) lowers "
                 f"it to {vals(worst)}"
@@ -1244,18 +1267,21 @@ def _c_steering(store: Store) -> ChartData:
         s: next((r["per_suite"][s][3] for r in rows_in if r["per_suite"].get(s)), 0) for s in suites
     }
     caption = (
-        "Pass@1 of fz with the activation difference δ_l (mean t1 minus fz residual activation "
+        "Pass@1 of the pretrained model with the activation difference δ_l (mean RL minus "
+        "pretrained residual activation "
         "at layer l over the action tokens of 300 unseen reference proofs, L = 6-10) added at "
-        "every generated action token with weight α, and of t1 with δ subtracted; layers 0 and "
+        "every generated action token with weight α, and of the RL model with δ subtracted; layers "
+        "0 and "
         "1 of 6. interp_eval_dev = generated theorems L = 8-11 (n = "
         f"{ns.get('interp_eval_dev', '?')}), interp_eval_sealed = L = 12-14 (n = "
         f"{ns.get('interp_eval_sealed', '?')}); k = {data['k']} draws per theorem at T = 0.8; "
-        f"superscript/subscript: 95% item-level bootstrap CI (B = {data['B']}); bold: best fz "
+        f"superscript/subscript: 95% item-level bootstrap CI (B = {data['B']}); bold: best "
+        "pretrained "
         "condition per column. "
         + (
-            "t1 (unsteered) is sampled on the same suites with the same k, T and seed. "
+            "The RL model (unsteered) is sampled on the same suites with the same k, T and seed. "
             if has_t1
-            else "t1 has no unsteered run on these two suites. "
+            else "The RL model has no unsteered run on these two suites. "
         )
         + "Judge: Lean (lean_v2)."
     )
@@ -1286,7 +1312,8 @@ def _t1_control_text(
         return ""
     if t1_plain is None:
         return (
-            f"; subtracting it from t1 leaves {vals(control)} (no unsteered t1 run on these "
+            f"; subtracting it from the RL model leaves {vals(control)} (no unsteered RL run on "
+            "these "
             "suites to compare)"
         )
     shifts, verdicts = [], []
@@ -1298,11 +1325,12 @@ def _t1_control_text(
         where = "inside" if t[1] <= c[0] <= t[2] else "below" if c[0] < t[1] else "above"
         verdicts.append((_short_suite(s), where))
     if all(w == "inside" for _s, w in verdicts):
-        ci = "inside t1's 95% CI on every suite"
+        ci = "inside the RL model's 95% CI on every suite"
     else:
-        ci = ", ".join(f"{name} {w} t1's 95% CI" for name, w in verdicts)
+        ci = ", ".join(f"{name} {w} the RL model's 95% CI" for name, w in verdicts)
     return (
-        f"; subtracting it from t1 gives {vals(control)} against {vals(t1_plain)} unsteered "
+        f"; subtracting it from the RL model gives {vals(control)} against {vals(t1_plain)} "
+        "unsteered "
         f"({' / '.join(shifts)} points; {ci})"
     )
 
@@ -1311,7 +1339,7 @@ def _t1_control_text(
 
 
 def _c_weights(store: Store) -> ChartData:
-    key, title = "do_weights", "Interpolating weights from fz to t1"
+    key, title = "do_weights", "Interpolating weights from the pretrained to the RL model"
     data = dv.dan_interpolation(store, base=PAIR[0], rl=PAIR[1], family="dan12")
     curves = cast("dict[float, list[tuple[int, float, float, float]]]", data["curves"])
     pk: dict[float, tuple[tuple[float, float, float], tuple[float, float, float]]] = {}
@@ -1320,7 +1348,7 @@ def _c_weights(store: Store) -> ChartData:
         if 1 in by_k and 128 in by_k:
             pk[a] = (by_k[1], by_k[128])
     if not pk:
-        return _missing(key, title, "no fz/t1/interp runs on the k = 128 subset yet")
+        return _missing(key, title, "no pretrained/RL/interp runs on the k = 128 subset yet")
     alphas = sorted(pk)
     series = [
         P.Series(
@@ -1345,7 +1373,8 @@ def _c_weights(store: Store) -> ChartData:
     sat = next((a for a in alphas if p128[a] >= max(p128.values()) - 1e-9), a1)
     beyond = [a for a in alphas if a > a1]
     takeaway = (
-        f"pass@1 rises from {_pct(p1[a0])} (α = {a0:g}, fz) to {_pct(p1[a1])} (α = {a1:g}, t1), "
+        f"pass@1 rises from {_pct(p1[a0])} (α = {a0:g}, pretrained) to {_pct(p1[a1])} (α = {a1:g}, "
+        "RL), "
         f"half of the gain already by α = {half:g}"
         + (f" ({_pct(p1[half])})" if half in mids else "")
         + f", while pass@128 rises from {_pct(p128[a0])} and saturates at {_pct(p128[sat])} from "
@@ -1363,7 +1392,8 @@ def _c_weights(store: Store) -> ChartData:
     seen = _seen_note(store, "interp_eval_k128")
     caption = (
         "Pass@1 and pass@128 of θ_fz + α(θ_t1 − θ_fz) against α (cap-12 seed-0 pair; α > 1 "
-        f"extrapolates past t1) on a fixed subset of n = {n} generated theorems (L = 8-14), 128 "
+        f"extrapolates past the RL model) on a fixed subset of n = {n} generated theorems (L = "
+        "8-14), 128 "
         f"draws each at T = 0.8; shaded: {_BOOT} bands (B = {data['B']}). Not filtered for "
         "training overlap"
         + (f" ({seen[0]:,} of {seen[1]:,} in the cap-12 tiers)" if seen else "")
@@ -1376,7 +1406,7 @@ def _c_weights(store: Store) -> ChartData:
         takeaway,
         caption,
         series=series,
-        opts={"x_label": "alpha (0 = fz, 1 = t1)", "y_fmt": "pct"},
+        opts={"x_label": "alpha (0 = pretrained, 1 = RL)", "y_fmt": "pct"},
     )
 
 
@@ -1389,10 +1419,10 @@ _BASELINE_LABEL = {
 
 
 def _c_probes(store: Store) -> ChartData:
-    key, title = "do_probes", "What linear probes read from fz and t1"
+    key, title = "do_probes", "What linear probes read from the pretrained and RL models"
     data = dv.dan_probes(store)
     if data is None:
-        return _missing(key, title, "no interp probes run for fz/t1 yet")
+        return _missing(key, title, "no interp probes run for pretrained/RL yet")
     cfg = cast("dict[str, JSON]", data["cfg"])
     label = {
         "fz": cast(str, cfg.get("base_model") or PAIR[0]),
@@ -1439,14 +1469,15 @@ def _c_probes(store: Store) -> ChartData:
                 if first_above is not None
                 else f"stay at or below the best position-only lookup ({_pct(best_rule)})"
             )
-            + f", reaching {_pct(rule['fz'][last])} (fz) and {_pct(rule['t1'][last])} (t1) at "
+            + f", reaching {_pct(rule['fz'][last])} (pretrained) and {_pct(rule['t1'][last])} (RL) "
+            "at "
             f"layer {last:g}, within {100 * gap:.1f} points of each other at every layer"
         )
         if atg["fz"] and atg["t1"] and best_atg is not None:
             la = max(set(atg["fz"]) & set(atg["t1"]))
             beats = max(atg["fz"][la], atg["t1"][la]) > best_atg
             takeaway += (
-                f"; actions_to_go R² at layer {la:g} (fz {atg['fz'][la]:.2f}, t1 "
+                f"; actions_to_go R² at layer {la:g} (pretrained {atg['fz'][la]:.2f}, RL "
                 f"{atg['t1'][la]:.2f}) {'beats' if beats else 'does not beat'} the lookup "
                 f"({best_atg:.2f})"
             )
@@ -1456,7 +1487,8 @@ def _c_probes(store: Store) -> ChartData:
         "Held-out accuracy of a linear probe for next_rule (the ND rule of the next "
         "line-creating action, (a)) and R² of a linear probe for actions_to_go (actions left in "
         "the proof, (b)) on the residual stream at each action's decision token, layers 0-5, "
-        f"for fz and t1 (cap-12 seed-0 pair; {cfg.get('n_train', '?')} reference proofs with L = "
+        f"for the pretrained and RL models (cap-12 seed-0 pair; {cfg.get('n_train', '?')} "
+        "reference proofs with L = "
         f"{cfg.get('l_min', '?')}-{cfg.get('l_max', '?')} unseen in training, "
         f"{data['n_train_examples']} steps, split by theorem; {n_test} test steps). Grey lines: "
         "lookup tables fit on the same training split that predict from the step index and "
@@ -1520,7 +1552,7 @@ def dan_only_chart_data(
 SECTIONS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     (
         "Eliciting proofs",
-        "Pass rates of the pretrained (fz) and RL (t1) checkpoints: textbook theorems across "
+        "Pass rates of the pretrained and RL checkpoints: textbook theorems across "
         "sampling budgets, seeds and caps, unseen textbook law instances and Dan's held-out "
         "set; then generated benchmarks that vary one thing at a time: length within a family, "
         "substitution size in known laws, composing solved parts, finishing a given prefix, "
@@ -1540,7 +1572,8 @@ SECTIONS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ),
     (
         "Internals",
-        "Whether the change from fz to t1 shows up in the likelihood of fixed proofs, along a "
+        "Whether the change from the pretrained to the RL model shows up in the likelihood of "
+        "fixed proofs, along a "
         "weight interpolation, in a token-level KL between their next-action distributions, "
         "under activation steering and in linear probes (cap-12 seed-0 pair).",
         ("do_likelihood", "do_weights", "do_kl", "do_steering", "do_probes"),
@@ -1574,9 +1607,15 @@ def caption_text(cd: ChartData, label: str | None) -> str:
     return f"{head}{cd.title}. {cd.caption} {_cap_first(cd.takeaway)}".strip()
 
 
+def _role_name(label: str) -> str:
+    """`"dan12-fz-s0"` -> `"pretrained"` (the reader's name for the run label's role)."""
+    role = F.S.parse_model_label(label)[1] or label
+    return F.ROLE_NAME.get(role, role)
+
+
 def _cap_first(text: str) -> str:
     text = text.strip()
-    return text[:1].upper() + text[1:] if text and not text.startswith(("fz", "t1")) else text
+    return text[:1].upper() + text[1:] if text else text
 
 
 def _caption_html(cd: ChartData, label: str | None) -> str:
@@ -1654,7 +1693,7 @@ def _section_html(cards: Sequence[tuple[ChartData, str]]) -> str:
     return "".join(out)
 
 
-OVERVIEW_TITLE = "Overview: every benchmark's fz vs t1 comparison"
+OVERVIEW_TITLE = "Overview: every benchmark's pretrained vs RL comparison"
 
 
 def overview_caption(charts: Sequence[ChartData], nums: Mapping[str, str]) -> str:
@@ -1662,10 +1701,11 @@ def overview_caption(charts: Sequence[ChartData], nums: Mapping[str, str]) -> st
         return nums.get(key, "?") + sub
 
     steer = next((c for c in charts if c.key == "do_steering"), None)
-    t1_bar = ", t1" if steer is not None and steer.opts.get("has_t1_baseline") else ""
+    t1_bar = ", RL" if steer is not None and steer.opts.get("has_t1_baseline") else ""
     return (
         "One panel per benchmark, each the headline comparison of the figure or table named, in "
-        "page order; fz darker, t1 full hue (hatched bars), cap 12 reddish purple, cap 6 sky "
+        "page order; pretrained darker, RL full hue (hatched bars), cap 12 reddish purple, cap 6 "
+        "sky "
         "blue; that figure or table gives n, the CI and the takeaway. Cap-12 seed-0 pair unless "
         f"noted. (a) Pass@k on textbook_dev, log k ({ref('do_textbook', 'a')}). (b) textbook72 "
         "theorems solved at k = 256 by cap: bars = mean of three seeds, dots = seeds, black "
@@ -1679,9 +1719,11 @@ def overview_caption(charts: Sequence[ChartData], nums: Mapping[str, str]) -> st
         "Pass@1 against pads added: P2 (extra ∧I lines, solid) and the two P1 kinds pooled "
         f"(distractor premises, hollow, dotted) ({ref('do_padding')}). (k) Median log p per line "
         f"of the fixed proof sets ({ref('do_likelihood')}). (l) Pass@1 (black) and pass@128 (grey, "
-        f"dashed) along the fz-to-t1 weight interpolation ({ref('do_weights')}). (m) Per-token "
-        f"KL, pooled and for the four kinds with the largest KL ({ref('do_kl')}). (n) Pass@1 of "
-        f"fz, the best fz + δ{t1_bar} and t1 − δ on dev and sealed generated theorems "
+        f"dashed) along the pretrained-to-RL weight interpolation ({ref('do_weights')}). (m) "
+        f"Per-token KL, pooled and for the four kinds with the largest KL ({ref('do_kl')}). (n) "
+        "Pass@1 of "
+        f"pretrained, the best pretrained + δ{t1_bar} and RL − δ on dev and sealed generated "
+        "theorems "
         f"({ref('do_steering')}). (o) next_rule probe accuracy by layer; "
         f"dashed: best position-only lookup ({ref('do_probes', 'a')}). (p) Key."
     )
@@ -1734,8 +1776,10 @@ def lede(j: Mapping[str, int] | None, models_with_textbook: int) -> str:
         "Dan Pandori's best-state recipe trains a 9.56M-parameter ALiBiGPT (6 layers, width 384) "
         "to prove propositional theorems through a proof-state interface: at each step the model "
         "reads the current proof state and writes one action, the environment applies it, and "
-        "Lean checks the finished proof. We compare each pretrained Stage-1 checkpoint (fz) "
-        "with the same checkpoint after his 8-round T1 RL ladder (t1), for Stage-1 proofs of at "
+        "Lean checks the finished proof. We compare each pretrained Stage-1 checkpoint "
+        '("pretrained"; fz in Dan\'s run names) '
+        'with the same checkpoint after his 8-round T1 RL ladder ("RL"; t1), for Stage-1 proofs of '
+        "at "
         f"most 6 and at most 12 lines, three seeds each ({models_with_textbook} checkpoints), on "
         "our benchmark panel." + agree
     )
@@ -1743,7 +1787,8 @@ def lede(j: Mapping[str, int] | None, models_with_textbook: int) -> str:
 
 MODELS_NOTE = (
     "Labels: cap 12 / cap 6 (dan12 / dan6) = Stage-1 training proofs of at most 12 / 6 lines; "
-    "fz = Stage-1 only (frozen); t1 = after the T1 ladder; s0-s2 = seeds. Figure 2 and Table 1 "
+    "run labels: fz = pretrained (Stage-1 only); t1 = RL (after the T1 ladder); s0-s2 = seeds. "
+    "Figure 2 and Table 1 "
     "cover every checkpoint; every other result is the cap-12 seed-0 pair (dan12-fz-s0 vs "
     "dan12-t1-s0)."
 )
@@ -1859,7 +1904,9 @@ def limitations(
     trunc = _truncation(store, reg)
     if trunc is not None and trunc[0] > 0.001:
         worst, where, by_role = trunc
-        roles = ", ".join(f"{r} {100 * f:.2f}%" for r, f in sorted(by_role.items()))
+        roles = ", ".join(
+            f"{F.ROLE_NAME.get(r, r)} {100 * f:.2f}%" for r, f in sorted(by_role.items())
+        )
         out.append(
             "Attempts that hit the action or step cap (max_action 512, max_steps 96) count as "
             f"failures: up to {100 * worst:.1f}% of attempts in one textbook run ({where}); "
@@ -1869,8 +1916,9 @@ def limitations(
     steer = by.get("do_steering")
     if steer is not None and steer.kind != "missing" and not steer.opts.get("has_t1_baseline"):
         out.append(
-            "Steering has no unsteered t1 run on interp_eval_dev/sealed, so t1 − δ "
-            f"({nums.get('do_steering', '?')}) has no paired baseline; it shows only that t1 "
+            "Steering has no unsteered RL run on interp_eval_dev/sealed, so RL − δ "
+            f"({nums.get('do_steering', '?')}) has no paired baseline; it shows only that the RL "
+            "model "
             "keeps most of its accuracy without the direction."
         )
     lik = by.get("do_likelihood")
