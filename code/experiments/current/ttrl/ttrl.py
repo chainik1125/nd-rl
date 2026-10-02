@@ -223,6 +223,8 @@ def main():
             f"+{n_rl} RL records, targets solved {r['targets_solved']}/{len(recs)}"
         )
         dump()
+        if not a.control:  # adapted weights, so a later run can continue from here
+            torch.save({"state": model.state_dict(), "round": rnd}, a.out[:-5] + ".pt")
     dump()
 
 
