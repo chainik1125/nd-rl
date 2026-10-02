@@ -76,7 +76,7 @@ Add `rejudge --run-id X --judge {nd,lean}` (CPU only, no lease): reads `samples/
 | B5 padding v2 | as-is | the bases were chosen by our rl's mastery (caveat) |
 | B3 skills | needs a subsample suite | legacy 11,524 items have no Dan runs; about 1,200 stratified |
 | B6 prefix | needs `prefix_state` + replay | action prefix m(j) = smallest m whose actions materialise at least j ND lines; tags j, m, A, actions_left, open_boxes; no per-line hazard under Lean |
-| B7 EDL | **skip for now** | needs a state-format Learner (AdamW on (state, action) pairs, NLL averaged over bases) |
+| B7 EDL | Learner built 2026-10-02, not yet run | `DanStateAdapter.learner` (AdamW on (state, action) rows at random name bases, NLL = minus the base-marginal `logprob`); classes and cost in `configs/edl_dan12.yaml` |
 | I1 likelihood | needs `logprob` + dedupe | deduplicate orderings by action sequence |
 | I2 steering | needs ACTIVATIONS/STEER, configurable labels/judge | stage1 and T1 share an architecture |
 | I3 interpolation | `interpolate()` works unchanged | needs per-pair checkpoint dir, label prefix, judge parameter |

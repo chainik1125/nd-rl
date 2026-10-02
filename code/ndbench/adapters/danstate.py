@@ -146,12 +146,45 @@ vocabulary). Two regimes, both inside one hook (`_make_steering_hook`):
 `identity()` includes `_steering_spec_hash(spec)` whenever steering is active, so a steered adapter
 is just another model to the `Store` (plan §A3, `adapters/README.md`).
 
+**Learner (EDL, `FINETUNE`; added 2026-10-02 for plan §B7 on Dan's models).** `learner(seed=...)`
+returns a `_DanStateLearner` over a deep copy of the model (and of the tokenizer/cfg/meta), built
+to mirror `adapters.absgpt._AbsGptLearner`: AdamW (betas 0.9/0.95, weight decay 0), grad-norm clip
+1.0, one optimiser whose state persists across `update()` calls within that learner, and
+`update_shifts` (default 8, settable; `edl.run_edl` sets it) random copies of each example per
+update. The analogue of absgpt's random *start-index shift* is a random **name base** `b`:
+
+* `nll(pairs)` is exactly `-logprob(pairs)` at the learner's current weights (same rows, same
+  masks, same base marginal: `logsumexp_b(sum log p at base b) - log(name_base_max + 1)`), NaN for
+  a proof outside the grammar exactly as `logprob` gives (reasons in `last_nll_errors`).
+* `nll_start_excluded(pairs)` is `-logprob(pairs, exclude_defining_names=True)`. absgpt's
+  start-index token is the token whose value is an arbitrary encoding choice; in Dan's format the
+  analogous tokens are the *defining names* each `have` writes, which a canonical (`assign=True`)
+  environment overwrites whatever the model emits. One forward pass computes both variants, and
+  `nll_start_excluded` reuses the result when `run_edl` asks for it on the same pairs at the same
+  weights.
+* `update(pairs, lr)` draws, per copy, one base uniformly from the bases `logprob` marginalises
+  over (`b in 0..name_base_max` with `maxname + b <= 64`; a seeded `random.Random`), shifts every
+  name token of every step of that proof by `b` (the same base for the whole proof, as one sampled
+  attempt uses), and takes one AdamW step on the mean next-token NLL over every scored token of
+  every row: the action tokens plus `<eos>`, exactly `logprob`'s mask. This matches Dan's own
+  per-step loss (`state_train.py`/`state_train_best.py`: next-token CE on the action tokens of
+  each `(state, action)` row, mean over the batch's action tokens), with two documented
+  differences: Dan's trainer draws an independent offset per *row* from `U[0, 64 - max name in
+  that row]` (`LeanTokenizer.shift_pair`; `make_batch`), where this learner draws one base per
+  proof copy from the sampling-time range `U[0, name_base_max]` that `nll` scores; and Dan's
+  Stage-1 recipe adds an MTP auxiliary loss whose head is not in the checkpoint, so it cannot be
+  reproduced here.
+* `adapter()` is a fresh `DanStateAdapter` over the learner's own live model (no reload from
+  disk, nothing shared with the original adapter), with `"derived_from_learner": True` in its
+  `identity()`, for `run_edl`'s optional pass@8.
+
+`learner()` raises `NotSupported` on a steered adapter (a deep copy would carry forward hooks bound
+to the original adapter).
+
 **Everything this module is not.** `STEP_ENV` is *not* advertised: the single-step transition is
 already fully exercised inside `sample()`/`_rollout` (via `Env.apply`), but there is no standalone
 "observe one state, apply one externally-chosen action" method a caller could drive directly --
-that would be new surface area plan §1 does not ask WP-D1 to build. `FINETUNE` is not implemented
-either (no `Learner` for a step-conditioned policy is specified here; plan §3 B7/EDL explicitly
-defers a state-format `Learner` as "needs a state-format Learner", out of scope for WP-D1).
+that would be new surface area plan §1 does not ask WP-D1 to build.
 """
 
 from __future__ import annotations
@@ -343,6 +376,50 @@ def _uncited_box_lines(lines: Sequence[Mapping[str, Any]]) -> list[int]:
             cited.add(refs[1])
             cited.add(refs[3])
     return sorted(starts - cited)
+
+
+def _grammar_exceptions(ds: Any, nd_verify: Any) -> tuple[type[BaseException], ...]:
+    """The exceptions that mean "this `(prompt, body)` is outside Dan's state-env grammar" (the set
+    `logprob`/`masked_next_logprobs` have always caught)."""
+    return (
+        ds.lean_tok.ParseFail,
+        nd_verify.ParseError,
+        AssertionError,
+        ValueError,
+        IndexError,
+        KeyError,
+    )
+
+
+def _decompose_checked(
+    ds: Any, nd_verify: Any, prompt: str, body: str, *, allow_reencode: bool
+) -> tuple[Any, Any, Any]:
+    """`state_env.decompose(prompt, body, canon=True)`, preceded (unless `allow_reencode`) by the
+    uncited-box check (`_uncited_box_lines`). Raises one of `_grammar_exceptions` for a proof
+    outside the grammar."""
+    if not allow_reencode:
+        lines = nd_verify.parse_proof_tokens(body.split())
+        uncited = _uncited_box_lines(lines)
+        if uncited:
+            raise ValueError(
+                f"uncited box(es) at line(s) {uncited}: re-encoding would silently "
+                "drop them, denoting a different proof (allow_reencode=False)"
+            )
+    return ds.state_env.decompose(prompt, body, canon=True)
+
+
+def dan_grammar_error(seq: Sequent, body: str, *, allow_reencode: bool = False) -> str | None:
+    """`None` if `(seq, body)` is inside Dan's state-env grammar (so `DanStateAdapter.logprob`
+    scores it), else the reason it is not (the message `logprob` would record in
+    `last_logprob_errors`). Needs only the vendored code, not a model: `edl.build_classes`'s
+    `require_grammar: danstate` filter uses it to drop items no Dan model can be scored on."""
+    ds = load_danstate()
+    nd_verify = load_nd_verify()
+    try:
+        _decompose_checked(ds, nd_verify, seq.prompt(), body, allow_reencode=allow_reencode)
+    except _grammar_exceptions(ds, nd_verify) as exc:
+        return f"{type(exc).__name__}: {exc}"
+    return None
 
 
 def _make_capture_hook(captured: dict[int, torch.Tensor], layer: int) -> Any:
@@ -629,7 +706,8 @@ class MaskedLogProbs:
 
 class DanStateAdapter(ModelAdapter):
     """`ModelAdapter` for Dan Pandori's `best-state` checkpoints: SAMPLE, PREFIX, LOGPROB,
-    ACTIVATIONS, STEER (plan §1/§7 WP-D1; see the module docstring for the full contract)."""
+    FINETUNE, ACTIVATIONS, STEER (plan §1/§7 WP-D1; see the module docstring for the full
+    contract)."""
 
     def __init__(
         self,
@@ -679,9 +757,10 @@ class DanStateAdapter(ModelAdapter):
         kv_budget_gb: float,
         label: str | None,
         steering_spec: SteeringSpec | None,
+        from_learner: bool = False,
     ) -> DanStateAdapter:
         """Build an adapter around an already-in-memory `model` (used by `with_steering`'s
-        deep-copied model)."""
+        deep-copied model, and by `_DanStateLearner` for its scorer and its `adapter()`)."""
         obj = cls.__new__(cls)
         obj._setup(
             model=model,
@@ -697,6 +776,7 @@ class DanStateAdapter(ModelAdapter):
             kv_budget_gb=kv_budget_gb,
             label=label,
             steering_spec=steering_spec,
+            from_learner=from_learner,
         )
         return obj
 
@@ -716,6 +796,7 @@ class DanStateAdapter(ModelAdapter):
         kv_budget_gb: float,
         label: str | None,
         steering_spec: SteeringSpec | None,
+        from_learner: bool = False,
     ) -> None:
         self._model = model
         self._tok = tok
@@ -729,12 +810,15 @@ class DanStateAdapter(ModelAdapter):
         self._name_base_max = name_base_max
         self._kv_budget_gb = kv_budget_gb
         self._steering_spec: SteeringSpec = steering_spec or ()
+        self._from_learner = from_learner
         self._steer_prompt_len: int | torch.Tensor = 0
         #: `pair_idx -> reason` for the most recent `logprob()` call's NaN results (module
         #: docstring's `logprob` section). Replaced wholesale on every call.
         self.last_logprob_errors: dict[int, str] = {}
 
         default_label = f"danstate:{ckpt_path.stem}"
+        if from_learner:
+            default_label += ":learner"
         if self._steering_spec:
             default_label += f"+steer{len(self._steering_spec)}"
         self.label = label or default_label
@@ -743,6 +827,7 @@ class DanStateAdapter(ModelAdapter):
             Capability.SAMPLE
             | Capability.PREFIX
             | Capability.LOGPROB
+            | Capability.FINETUNE
             | Capability.ACTIVATIONS
             | Capability.STEER
         )
@@ -773,6 +858,8 @@ class DanStateAdapter(ModelAdapter):
             # (never splits), but keeps the `Store` run key honest if that ever changes.
             "kv_budget_gb": self._kv_budget_gb,
         }
+        if self._from_learner:
+            d["derived_from_learner"] = True
         if self._steering_spec:
             d["steering_sha256"] = _steering_spec_hash(self._steering_spec)
             d["steering_terms"] = len(self._steering_spec)
@@ -905,13 +992,30 @@ class DanStateAdapter(ModelAdapter):
         and `exclude_defining_names` are this adapter's own extensions beyond the base
         `ModelAdapter.logprob(pairs)` signature (plan §1's "sensitivity variant"); ordinary callers
         leave both at their defaults."""
+        return self._logprob_variants(
+            pairs, allow_reencode=allow_reencode, variants=(exclude_defining_names,)
+        )[0]
+
+    def _logprob_variants(
+        self,
+        pairs: Sequence[tuple[Sequent, str]],
+        *,
+        allow_reencode: bool,
+        variants: Sequence[bool],
+    ) -> list[list[LogProb]]:
+        """`logprob(pairs, exclude_defining_names=v)` for every `v` in `variants`, from one forward
+        pass (the rows and logits do not depend on `exclude_defining_names`; only the mask does).
+        Each variant's result is exactly what a separate `logprob` call returns: same rows, same
+        length-bucketed chunks, same masked sums. `_DanStateLearner` asks for `(False, True)` so
+        that `nll` and `nll_start_excluded` share one forward."""
         self.last_logprob_errors = {}
         if not pairs:
-            return []
+            return [[] for _ in variants]
         ds = load_danstate()
         nd_verify = load_nd_verify()
+        grammar_exc = _grammar_exceptions(ds, nd_verify)
 
-        results: list[LogProb | None] = [None] * len(pairs)
+        failed: list[bool] = [False] * len(pairs)
         n_tokens_by_pair: list[int] = [0] * len(pairs)
         valid_bases_by_pair: list[list[int]] = [[] for _ in pairs]
 
@@ -924,25 +1028,12 @@ class DanStateAdapter(ModelAdapter):
         for pair_idx, (seq, body) in enumerate(pairs):
             prompt = seq.prompt()
             try:
-                if not allow_reencode:
-                    lines = nd_verify.parse_proof_tokens(body.split())
-                    uncited = _uncited_box_lines(lines)
-                    if uncited:
-                        raise ValueError(
-                            f"uncited box(es) at line(s) {uncited}: re-encoding would silently "
-                            "drop them, denoting a different proof (allow_reencode=False)"
-                        )
-                steps, _toks, env = ds.state_env.decompose(prompt, body, canon=True)
-            except (
-                ds.lean_tok.ParseFail,
-                nd_verify.ParseError,
-                AssertionError,
-                ValueError,
-                IndexError,
-                KeyError,
-            ) as exc:
+                steps, _toks, env = _decompose_checked(
+                    ds, nd_verify, prompt, body, allow_reencode=allow_reencode
+                )
+            except grammar_exc as exc:
                 self.last_logprob_errors[pair_idx] = f"{type(exc).__name__}: {exc}"
-                results[pair_idx] = LogProb(nats=float("nan"), n_tokens=0, per_encoding=())
+                failed[pair_idx] = True
                 continue
 
             n_tokens_by_pair[pair_idx] = sum(len(action) + 1 for _state, action, _hist in steps)
@@ -958,20 +1049,16 @@ class DanStateAdapter(ModelAdapter):
                     row_ids.append(pre + post)
                     row_mask_start.append(len(pre) - 1)
                     row_prompt_len.append(len(pre))
-                    if exclude_defining_names:
-                        defining = _defining_name_positions(action_toks)
-                        row_exclude.append({len(pre) + p for p in defining})
-                    else:
-                        row_exclude.append(set())
+                    defining = _defining_name_positions(action_toks)
+                    row_exclude.append({len(pre) + p for p in defining})
                     row_key.append((pair_idx, b))
 
         n_rows = len(row_ids)
-        per_pair_base_logp: dict[tuple[int, int], float] = {}
+        per_row_logp: list[list[float]] = [[0.0] * n_rows for _ in variants]
         if n_rows:
             row_lens = [len(r) for r in row_ids]
             order = sorted(range(n_rows), key=lambda i: row_lens[i])
             chunks = _length_bucketed_chunks(order, row_lens, _LOGPROB_MAX_ROWS, _LOGPROB_MAX_CELLS)
-            per_row_logp = [0.0] * n_rows
 
             self._model.eval()
             with torch.no_grad():
@@ -979,11 +1066,12 @@ class DanStateAdapter(ModelAdapter):
                     chunk_ids = [row_ids[i] for i in chunk]
                     b_ = len(chunk_ids)
                     length = max(len(r) for r in chunk_ids)
-                    x = torch.full(
-                        (b_, length), self._tok.pad, dtype=torch.long, device=self._device
-                    )
+                    # Padded on the host, copied to the device once (the same int ids a per-row
+                    # copy would write; this only avoids one small host-to-device copy per row).
+                    x_host = torch.full((b_, length), self._tok.pad, dtype=torch.long)
                     for bi, r in enumerate(chunk_ids):
-                        x[bi, : len(r)] = torch.tensor(r, device=self._device)
+                        x_host[bi, : len(r)] = torch.tensor(r, dtype=torch.long)
+                    x = x_host.to(self._device)
                     lengths_t = torch.tensor([len(row_ids[i]) for i in chunk], device=self._device)
                     mask_starts = torch.tensor(
                         [row_mask_start[i] for i in chunk], device=self._device
@@ -1002,35 +1090,56 @@ class DanStateAdapter(ModelAdapter):
                     logp = F.log_softmax(logits, dim=-1).gather(-1, tgt[..., None]).squeeze(-1)
                     col = torch.arange(logp.shape[1], device=self._device).unsqueeze(0)
                     valid_end = (lengths_t - 1).unsqueeze(1)
-                    row_mask = (col >= mask_starts.unsqueeze(1)) & (col < valid_end)
-                    for local_i, global_i in enumerate(chunk):
-                        for pos in row_exclude[global_i]:
-                            c = pos - 1  # logp/row_mask column c predicts x[:, c + 1]
-                            if 0 <= c < row_mask.shape[1]:
-                                row_mask[local_i, c] = False
-                    row_sums = (logp * row_mask).sum(dim=1)
-                    for local_i, global_i in enumerate(chunk):
-                        per_row_logp[global_i] = float(row_sums[local_i].item())
-
-            for row_idx in range(n_rows):
-                key = row_key[row_idx]
-                per_pair_base_logp[key] = per_pair_base_logp.get(key, 0.0) + per_row_logp[row_idx]
+                    base_mask = (col >= mask_starts.unsqueeze(1)) & (col < valid_end)
+                    for v_idx, exclude in enumerate(variants):
+                        row_mask = base_mask
+                        if exclude:
+                            ex_rows: list[int] = []
+                            ex_cols: list[int] = []
+                            for local_i, global_i in enumerate(chunk):
+                                for pos in row_exclude[global_i]:
+                                    c = pos - 1  # logp/row_mask column c predicts x[:, c + 1]
+                                    if 0 <= c < base_mask.shape[1]:
+                                        ex_rows.append(local_i)
+                                        ex_cols.append(c)
+                            row_mask = base_mask.clone()
+                            if ex_rows:
+                                row_mask[
+                                    torch.tensor(ex_rows, device=self._device),
+                                    torch.tensor(ex_cols, device=self._device),
+                                ] = False
+                        row_sums = (logp * row_mask).sum(dim=1).tolist()
+                        for local_i, global_i in enumerate(chunk):
+                            per_row_logp[v_idx][global_i] = float(row_sums[local_i])
 
         log_n = math.log(self._name_base_max + 1)
-        for pair_idx in range(len(pairs)):
-            if results[pair_idx] is not None:
-                continue
-            valid_bases = valid_bases_by_pair[pair_idx]
-            per_encoding = tuple(per_pair_base_logp[(pair_idx, b)] - log_n for b in valid_bases)
-            nats = (
-                float(torch.logsumexp(torch.tensor(per_encoding), dim=0).item())
-                if per_encoding
-                else float("-inf")
-            )
-            results[pair_idx] = LogProb(
-                nats=nats, n_tokens=n_tokens_by_pair[pair_idx], per_encoding=per_encoding
-            )
-        return [r for r in results if r is not None]
+        out: list[list[LogProb]] = []
+        for v_idx in range(len(variants)):
+            per_pair_base_logp: dict[tuple[int, int], float] = {}
+            for row_idx in range(n_rows):
+                key = row_key[row_idx]
+                per_pair_base_logp[key] = (
+                    per_pair_base_logp.get(key, 0.0) + per_row_logp[v_idx][row_idx]
+                )
+            results: list[LogProb] = []
+            for pair_idx in range(len(pairs)):
+                if failed[pair_idx]:
+                    results.append(LogProb(nats=float("nan"), n_tokens=0, per_encoding=()))
+                    continue
+                valid_bases = valid_bases_by_pair[pair_idx]
+                per_encoding = tuple(per_pair_base_logp[(pair_idx, b)] - log_n for b in valid_bases)
+                nats = (
+                    float(torch.logsumexp(torch.tensor(per_encoding), dim=0).item())
+                    if per_encoding
+                    else float("-inf")
+                )
+                results.append(
+                    LogProb(
+                        nats=nats, n_tokens=n_tokens_by_pair[pair_idx], per_encoding=per_encoding
+                    )
+                )
+            out.append(results)
+        return out
 
     def masked_next_logprobs(
         self,
@@ -1070,26 +1179,14 @@ class DanStateAdapter(ModelAdapter):
         row_item: list[int] = []
         row_step: list[int] = []
 
+        grammar_exc = _grammar_exceptions(ds, nd_verify)
         for item_idx, (seq, body, b) in enumerate(items):
             prompt = seq.prompt()
             try:
-                if not allow_reencode:
-                    lines = nd_verify.parse_proof_tokens(body.split())
-                    uncited = _uncited_box_lines(lines)
-                    if uncited:
-                        raise ValueError(
-                            f"uncited box(es) at line(s) {uncited}: re-encoding would silently "
-                            "drop them, denoting a different proof (allow_reencode=False)"
-                        )
-                steps, _toks, _env = ds.state_env.decompose(prompt, body, canon=True)
-            except (
-                ds.lean_tok.ParseFail,
-                nd_verify.ParseError,
-                AssertionError,
-                ValueError,
-                IndexError,
-                KeyError,
-            ):
+                steps, _toks, _env = _decompose_checked(
+                    ds, nd_verify, prompt, body, allow_reencode=allow_reencode
+                )
+            except grammar_exc:
                 continue
             item_ok[item_idx] = True
             item_n_steps[item_idx] = len(steps)
@@ -1294,6 +1391,18 @@ class DanStateAdapter(ModelAdapter):
             steering_spec=spec,
         )
 
+    def learner(self, *, seed: int) -> _DanStateLearner:
+        """An online `Learner` over a deep copy of this adapter's model (module docstring's
+        "Learner" section). Narrower than `ModelAdapter.learner`'s declared `-> Learner`, as in
+        `AbsGptAdapter.learner`, so callers can reach `update_shifts`/`nll_start_excluded`
+        type-checked. Every call starts from this adapter's own (never trained) weights."""
+        if self._steering_spec:
+            raise NotSupported(
+                "DanStateAdapter.learner: not supported on a steered adapter (a deep copy of the "
+                "model would carry steering hooks bound to this adapter)"
+            )
+        return _DanStateLearner(base=self, seed=seed)
+
     def close(self) -> None:
         for h in getattr(self, "_steer_handles", ()):
             h.remove()
@@ -1309,3 +1418,241 @@ class DanStateAdapter(ModelAdapter):
             block = self._model.blocks[term.layer]
             handles.append(block.register_forward_hook(_make_steering_hook(self, term, delta)))
         return handles
+
+
+# --------------------------------------------------------------------------------- the learner
+
+#: Random-base copies per training example per `update()` (plan §B7's "8 random-shift copies";
+#: `edl.run_edl` overwrites `update_shifts` with its own `shifts_per_update`).
+DEFAULT_UPDATE_SHIFTS = 8
+
+#: Padded-token budget of one `update()` micro-batch. `ALiBiGPT.features` materialises a
+#: `(rows, n_head, T, T)` fp32 bias, so a long-state class (and_tower n=16: ~20 steps x 8 copies of
+#: rows up to ~700 tokens) would need several GB for one batch; rows are split into micro-batches
+#: within this budget and their gradients accumulated against the whole update's token count,
+#: which is the same token-mean gradient (Dan's own trainer does the same, `state_train.py`'s
+#: `--max_tokens`).
+_UPDATE_MAX_ROWS = 4096
+_UPDATE_MAX_CELLS = 1 << 16
+
+
+@dataclass(frozen=True)
+class _TrainRows:
+    """One proof's teacher-forced rows at base 0, cached per learner: `x0` is `(n_steps, T)`
+    right-padded ids on the learner's device (name tokens at base 0; the pad id is below `ref0`, so
+    shifting never touches padding), `mask_start[k] = len(pre_k) - 1`, `length[k] = len(pre_k +
+    post_k)`, and `valid_bases` the bases `logprob` marginalises over for this proof."""
+
+    x0: torch.Tensor
+    mask_start: torch.Tensor
+    length: torch.Tensor
+    valid_bases: tuple[int, ...]
+
+
+def _neg_logprob(lp: LogProb) -> LogProb:
+    """`ModelAdapter.logprob`'s log-probability -> `Learner.nll`'s positive NLL (`core.types.
+    LogProb`'s sign convention: `per_encoding` keeps its log-probability sign)."""
+    return LogProb(nats=-lp.nats, n_tokens=lp.n_tokens, per_encoding=lp.per_encoding)
+
+
+def _pairs_key(pairs: Sequence[tuple[Sequent, str]]) -> tuple[tuple[str, str], ...]:
+    return tuple((seq.prompt(), body) for seq, body in pairs)
+
+
+class _DanStateLearner:
+    """`Learner` for `DanStateAdapter` (module docstring's "Learner" section): AdamW (betas
+    0.9/0.95, wd 0, grad-clip 1.0) over a deep-copied model, trained on `update_shifts` random
+    name-base copies per example per `update()`."""
+
+    def __init__(self, *, base: DanStateAdapter, seed: int) -> None:
+        model = copy.deepcopy(base._model)
+        model.eval()
+        tok = copy.deepcopy(base._tok)
+        #: The learner's own `DanStateAdapter` over its own model copy: `nll` is computed by its
+        #: `logprob` machinery, so `nll == -logprob` holds by construction.
+        self._scorer = DanStateAdapter._from_model(
+            model=model,
+            tok=tok,
+            cfg=dict(base._cfg),
+            meta=copy.deepcopy(base._meta),
+            device=base._device,
+            ckpt_path=base._ckpt_path,
+            batch=base._batch,
+            max_action=base._max_action,
+            max_steps=base._max_steps,
+            name_base_max=base._name_base_max,
+            kv_budget_gb=base._kv_budget_gb,
+            label=f"{base.label}:learner",
+            steering_spec=None,
+            from_learner=True,
+        )
+        self._model = model
+        self._tok = tok
+        self._device = base._device
+        self._name_base_max = base._name_base_max
+        self._opt = torch.optim.AdamW(
+            model.parameters(), lr=1e-4, betas=(0.9, 0.95), weight_decay=0.0
+        )
+        #: Public (not `_`-prefixed), as on `_AbsGptLearner`: the number of random-base copies
+        #: `update()` makes per training example. `edl.run_edl` sets it (duck-typed `setattr`).
+        self.update_shifts = DEFAULT_UPDATE_SHIFTS
+        self._rng = random.Random(seed)
+        #: Bumped by every `update()`; keys the `nll_start_excluded` reuse cache.
+        self.n_updates = 0
+        self._excluded_cache: tuple[int, tuple[tuple[str, str], ...], list[LogProb]] | None = None
+        self._rows_cache: dict[tuple[str, str], _TrainRows] = {}
+        #: `pair_idx -> reason` for the most recent `nll`/`nll_start_excluded` call's NaN results
+        #: (out-of-grammar proofs; mirrors `DanStateAdapter.last_logprob_errors`).
+        self.last_nll_errors: dict[int, str] = {}
+
+    # ------------------------------------------------------------------------------- scoring
+
+    def _score_both(self, pairs: Sequence[tuple[Sequent, str]]) -> tuple[list[LogProb], ...]:
+        full, excluded = self._scorer._logprob_variants(
+            pairs, allow_reencode=False, variants=(False, True)
+        )
+        self.last_nll_errors = dict(self._scorer.last_logprob_errors)
+        return [_neg_logprob(lp) for lp in full], [_neg_logprob(lp) for lp in excluded]
+
+    def nll(self, pairs: Sequence[tuple[Sequent, str]]) -> list[LogProb]:
+        """`-DanStateAdapter.logprob(pairs)` at the learner's current weights (NaN for a proof
+        outside the grammar, reason in `last_nll_errors`). Also caches the start-excluded variant
+        computed in the same forward, for `nll_start_excluded` on the same pairs."""
+        full, excluded = self._score_both(pairs)
+        self._excluded_cache = (self.n_updates, _pairs_key(pairs), excluded)
+        return full
+
+    def nll_start_excluded(self, pairs: Sequence[tuple[Sequent, str]]) -> list[LogProb]:
+        """`-DanStateAdapter.logprob(pairs, exclude_defining_names=True)`: plan §B7's
+        start-token-excluded sensitivity variant, with Dan's environment-assigned defining names
+        standing in for absgpt's start-index token (module docstring). Reuses the previous `nll`
+        call's forward when it was on the same pairs at the same weights."""
+        cached = self._excluded_cache
+        if cached is not None and cached[0] == self.n_updates and cached[1] == _pairs_key(pairs):
+            return list(cached[2])
+        _full, excluded = self._score_both(pairs)
+        return excluded
+
+    # ------------------------------------------------------------------------------ training
+
+    def _train_rows(self, seq: Sequent, body: str) -> _TrainRows:
+        key = (seq.prompt(), body)
+        cached = self._rows_cache.get(key)
+        if cached is not None:
+            return cached
+        ds = load_danstate()
+        nd_verify = load_nd_verify()
+        try:
+            steps, _toks, env = _decompose_checked(
+                ds, nd_verify, seq.prompt(), body, allow_reencode=False
+            )
+        except _grammar_exceptions(ds, nd_verify) as exc:
+            raise ValueError(
+                f"_DanStateLearner.update: proof outside Dan's state-env grammar for "
+                f"{seq.prompt()!r} ({type(exc).__name__}: {exc}); filter such items first "
+                "(edl.build_classes' require_grammar: danstate)"
+            ) from exc
+        rows: list[list[int]] = []
+        starts: list[int] = []
+        for state_toks, action_toks, _hist in steps:
+            pre = self._tok.encode_toks(state_toks)
+            post = self._tok.encode_toks(action_toks) + [self._tok.eos]
+            rows.append(pre + post)
+            starts.append(len(pre) - 1)
+        width = max(len(r) for r in rows)
+        x0 = torch.full((len(rows), width), self._tok.pad, dtype=torch.long)
+        for i, r in enumerate(rows):
+            x0[i, : len(r)] = torch.tensor(r, dtype=torch.long)
+        valid = tuple(b for b in range(0, self._name_base_max + 1) if env.maxname + b <= 64)
+        out = _TrainRows(
+            x0=x0.to(self._device),
+            mask_start=torch.tensor(starts, dtype=torch.long, device=self._device),
+            length=torch.tensor([len(r) for r in rows], dtype=torch.long, device=self._device),
+            valid_bases=valid,
+        )
+        self._rows_cache[key] = out
+        return out
+
+    def update(self, pairs: Sequence[tuple[Sequent, str]], lr: float) -> float:
+        """One AdamW step at learning rate `lr` on `update_shifts` random-base copies of every pair
+        (module docstring); returns the pre-update loss, the mean next-token NLL (nats/token) over
+        every scored token (action tokens plus `<eos>`) of every row of every copy. Raises
+        `ValueError` for a proof outside the grammar."""
+        ref0 = int(self._tok.ref0)
+        blocks: list[torch.Tensor] = []
+        starts: list[torch.Tensor] = []
+        lengths: list[torch.Tensor] = []
+        for seq, body in pairs:
+            tr = self._train_rows(seq, body)
+            n_steps = tr.x0.shape[0]
+            bases = [
+                tr.valid_bases[self._rng.randrange(len(tr.valid_bases))]
+                for _ in range(self.update_shifts)
+            ]
+            if not bases:
+                continue
+            shift = torch.tensor(bases, dtype=torch.long, device=self._device).repeat_interleave(
+                n_steps
+            )
+            x = tr.x0.repeat(len(bases), 1)
+            blocks.append(torch.where(x >= ref0, x + shift.unsqueeze(1), x))
+            starts.append(tr.mask_start.repeat(len(bases)))
+            lengths.append(tr.length.repeat(len(bases)))
+        if not blocks:
+            return 0.0
+        width = max(int(b.shape[1]) for b in blocks)
+        x_all = torch.cat(
+            [F.pad(b, (0, width - int(b.shape[1])), value=self._tok.pad) for b in blocks]
+        )
+        mask_start_all = torch.cat(starts)
+        length_all = torch.cat(lengths)
+        lens = [int(v) for v in length_all.tolist()]
+        n_tok = max(1, sum(n - 1 - ms for n, ms in zip(lens, mask_start_all.tolist(), strict=True)))
+        chunks = _length_bucketed_chunks(
+            range(len(lens)), lens, _UPDATE_MAX_ROWS, _UPDATE_MAX_CELLS
+        )
+
+        self._model.train()
+        for g in self._opt.param_groups:
+            g["lr"] = lr
+        self._opt.zero_grad()
+        nll_sum = 0.0
+        for chunk in chunks:
+            idx = torch.tensor(chunk, dtype=torch.long, device=self._device)
+            x = x_all[idx, : max(lens[i] for i in chunk)]
+            mask_start = mask_start_all[idx]
+            length = length_all[idx]
+            logits = self._model(x[:, :-1]).float()
+            tgt = x[:, 1:]
+            logp = F.log_softmax(logits, dim=-1).gather(-1, tgt[..., None]).squeeze(-1)
+            col = torch.arange(logp.shape[1], device=self._device).unsqueeze(0)
+            mask = (col >= mask_start.unsqueeze(1)) & (col < (length - 1).unsqueeze(1))
+            chunk_nll = -(logp * mask).sum()
+            (chunk_nll / n_tok).backward()
+            nll_sum += float(chunk_nll.item())
+        torch.nn.utils.clip_grad_norm_(self._model.parameters(), max_norm=1.0)
+        self._opt.step()
+        self._model.eval()
+        self.n_updates += 1
+        self._excluded_cache = None
+        return nll_sum / n_tok
+
+    def adapter(self) -> DanStateAdapter:
+        """A fresh `DanStateAdapter` sampling with the learner's current (live) weights."""
+        sc = self._scorer
+        return DanStateAdapter._from_model(
+            model=self._model,
+            tok=self._tok,
+            cfg=sc._cfg,
+            meta=sc._meta,
+            device=self._device,
+            ckpt_path=sc._ckpt_path,
+            batch=sc._batch,
+            max_action=sc._max_action,
+            max_steps=sc._max_steps,
+            name_base_max=sc._name_base_max,
+            kv_budget_gb=sc._kv_budget_gb,
+            label=sc.label,
+            steering_spec=None,
+            from_learner=True,
+        )

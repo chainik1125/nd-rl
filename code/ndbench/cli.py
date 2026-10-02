@@ -436,13 +436,37 @@ def cmd_edl(args: argparse.Namespace) -> None:
         model_kwargs["device"] = args.device
 
     cfg = _load_config(args.config)
+    if args.classes is not None:
+        cfg["classes"] = args.classes
     store = Store(Path(args.out))
     # `--out` must reach `build_classes`, which reads suite-backed classes (families/laws/glue)
     # from the `Store` -- previously `build_classes(cfg)` was called without a `store`, so it built
     # its *own* `Store(Path(cfg.get("out", "out")))` pointed at the CLI's `--out` default ("out")
     # rather than wherever `--out` actually pointed, silently missing every suite the caller built.
     problems, stats = build_classes(cfg, store=store)
+    print(json.dumps({"build_stats": stats}, indent=2), file=sys.stderr, flush=True)
     adapter = adapter_cls(**model_kwargs)
+    run_id = args.run_id or f"edl-{store_label}-{args.n}-{args.m}"
+    # Rows are appended one at a time as `run_edl` produces them (an interrupted run keeps what it
+    # finished); `--resume` skips (class, lr, order) combinations already in this run's file, after
+    # checking they came from this exact model.
+    done: set[tuple[str, float, int]] = set()
+    if args.resume:
+        identity = json.loads(json.dumps(adapter.identity()))
+        for row in store.load_edl(run_id):
+            if row.get("model_identity") != identity:
+                raise SystemExit(
+                    f"--resume: {run_id} already holds rows from a different model identity; "
+                    "use a different --run-id"
+                )
+            done.add(
+                (str(row["class"]), float(cast(float, row["lr"])), int(cast(int, row["order"])))
+            )
+    store.append_edl(run_id, [])  # create the run file even if no row is produced
+
+    def _append(row: dict[str, Any]) -> None:
+        store.append_edl(run_id, [row])
+
     rows = run_edl(
         adapter,
         problems,
@@ -451,11 +475,21 @@ def cmd_edl(args: argparse.Namespace) -> None:
         n=args.n,
         m=args.m,
         ckpts=args.ckpts,
+        skip=done,
+        on_row=_append,
     )
-    run_id = args.run_id or f"edl-{store_label}-{args.n}-{args.m}"
-    store.append_edl(run_id, rows)
     adapter.close()
-    print(json.dumps({"run_id": run_id, "n_rows": len(rows), "build_stats": stats}, indent=2))
+    print(
+        json.dumps(
+            {
+                "run_id": run_id,
+                "n_rows": len(rows),
+                "n_resumed_skipped": len(done),
+                "build_stats": stats,
+            },
+            indent=2,
+        )
+    )
 
 
 # --------------------------------------------------------------------------------- throughput
@@ -747,6 +781,18 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--n", type=int, default=64)
     e.add_argument("--m", type=int, default=64)
     e.add_argument("--ckpts", default=None)
+    e.add_argument(
+        "--classes",
+        default=None,
+        help="comma-separated EDL classes to run (overrides the config's 'classes:'); with the "
+        "same --run-id and --resume, separate processes can each take some classes of one run",
+    )
+    e.add_argument(
+        "--resume",
+        action="store_true",
+        help="skip (class, lr, order) combinations already in this --run-id's file (refuses if "
+        "they came from a different model identity)",
+    )
     e.add_argument(
         "--run-id",
         default=None,

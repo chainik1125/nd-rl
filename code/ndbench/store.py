@@ -58,6 +58,7 @@ two, `"invalid"` included, with no change needed there.
 
 from __future__ import annotations
 
+import fcntl
 import gzip
 import json
 from collections.abc import Mapping, Sequence
@@ -408,7 +409,24 @@ class Store:
     # ------------------------------------------------------------------ edl
 
     def append_edl(self, run_id: str, rows: Sequence[Mapping[str, JSON]]) -> None:
-        append_jsonl(self.edl_dir / f"{run_id}.jsonl", rows)
+        """Append `rows` to `edl/<run_id>.jsonl` (creating it, even for no rows) in one write
+        under an exclusive `flock`, so several processes running different classes of one run
+        (`cli.cmd_edl --classes ... --resume`) can append to the same file safely."""
+        path = self.edl_dir / f"{run_id}.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = "".join(json.dumps(row) + "\n" for row in rows)
+        with open(path, "a") as f:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            try:
+                f.write(payload)
+                f.flush()
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
+
+    def load_edl(self, run_id: str) -> list[dict[str, JSON]]:
+        """Every row of `edl/<run_id>.jsonl`, or `[]` if it does not exist."""
+        path = self.edl_dir / f"{run_id}.jsonl"
+        return list(read_jsonl(path)) if path.exists() else []
 
     # --------------------------------------------------------------- ledger
 
