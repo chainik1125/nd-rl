@@ -180,7 +180,13 @@ def _legend_labels_compact(
 # =================================================================================== 1. Yue
 
 
-def _data_dan_yue(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartData:
+def _data_dan_yue(
+    store: Store,
+    registry: Mapping[str, mr.ModelEntry],
+    *,
+    families: Sequence[str] = DAN_FAMILY_ORDER,
+    B: int = DAN_B,
+) -> ChartData:
     key, title = "dan_yue", "Pass@k on textbook_dev, by model family"
     groups = _model_groups(registry)
     ref_rl: P.Series | None = None
@@ -189,7 +195,7 @@ def _data_dan_yue(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartD
     n_items: int | None = None
     k_max: dict[str, dict[str, int]] = {}
 
-    for family in DAN_FAMILY_ORDER:
+    for family in families:
         models = groups.get(family, [])
         series: list[P.Series] = []
         if models:
@@ -200,7 +206,7 @@ def _data_dan_yue(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartD
                         "sets": {"textbook_dev": "textbook_dev"},
                         "models": models,
                         "judge_id": _judge_for(family),
-                        "B": DAN_B,
+                        "B": B,
                     }
                 ),
             )
@@ -269,7 +275,12 @@ def _data_dan_yue(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartD
 # =============================================================================== 2. Families
 
 
-def _data_dan_families(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartData:
+def _data_dan_families(
+    store: Store,
+    registry: Mapping[str, mr.ModelEntry],
+    *,
+    families: Sequence[str] = DAN_FAMILY_ORDER,
+) -> ChartData:
     """Figure 3 (`dash.summary._data_2_families`) per model family: one row per restricted
     family, x = mean written length of the items at n*, the largest size with pass@8 >= 50% over
     cells of >= 5 theorems unseen in *that model's own* training tiers. Reuses Figure 3's own
@@ -284,7 +295,7 @@ def _data_dan_families(store: Store, registry: Mapping[str, mr.ModelEntry]) -> C
     groups = _model_groups(registry)
     panels: dict[str, ChartData] = {}
     n_runs: dict[str, list[str]] = {}
-    for family in DAN_FAMILY_ORDER:
+    for family in families:
         judge_id = _judge_for(family)
         models = groups.get(family, [])
         version = default_version(store, suite=suite, models=models, judge_id=judge_id) or "v1"
@@ -407,7 +418,12 @@ def _pooled_curve_vs_s(data: Mapping[str, JSON], model: str) -> list[tuple[float
     ]
 
 
-def _data_dan_laws(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartData:
+def _data_dan_laws(
+    store: Store,
+    registry: Mapping[str, mr.ModelEntry],
+    *,
+    families: Sequence[str] = DAN_FAMILY_ORDER,
+) -> ChartData:
     from . import summary
 
     key, title = "dan_laws", "Pass@1 vs substitution size s (pooled over law schemas)"
@@ -415,7 +431,7 @@ def _data_dan_laws(store: Store, registry: Mapping[str, mr.ModelEntry]) -> Chart
     panels: dict[str, ChartData] = {}
     any_data = False
     n_unseen: dict[str, int] = {}
-    for family in DAN_FAMILY_ORDER:
+    for family in families:
         models = groups.get(family, [])
         series: list[P.Series] = []
         if models:
@@ -497,7 +513,12 @@ def _glue_ratio(
     return dict(compositionality_ratio(groups, mastery=0.5, B=1000, seed=0))
 
 
-def _data_dan_glue(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartData:
+def _data_dan_glue(
+    store: Store,
+    registry: Mapping[str, mr.ModelEntry],
+    *,
+    families: Sequence[str] = DAN_FAMILY_ORDER,
+) -> ChartData:
     from . import summary
 
     key, title = "dan_glue", "Compositionality ratio R per operator, by model family"
@@ -512,7 +533,7 @@ def _data_dan_glue(store: Store, registry: Mapping[str, mr.ModelEntry]) -> Chart
     ops = [op for op in summary._OP_ORDER if op in pids_by_op]  # noqa: SLF001
     panels: dict[str, ChartData] = {}
     any_data = False
-    for family in DAN_FAMILY_ORDER:
+    for family in families:
         bars: list[P.Bar] = []
         for op in ops:
             for m in groups.get(family, []):
@@ -551,7 +572,12 @@ def _data_dan_glue(store: Store, registry: Mapping[str, mr.ModelEntry]) -> Chart
 # =============================================================================== 5. Padding
 
 
-def _data_dan_padding(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartData:
+def _data_dan_padding(
+    store: Store,
+    registry: Mapping[str, mr.ModelEntry],
+    *,
+    families: Sequence[str] = DAN_FAMILY_ORDER,
+) -> ChartData:
     from . import summary
 
     key, title = "dan_padding", "Pass@1 vs written lines W, padded proofs, by model family"
@@ -560,7 +586,7 @@ def _data_dan_padding(store: Store, registry: Mapping[str, mr.ModelEntry]) -> Ch
     panels: dict[str, ChartData] = {}
     any_data = False
     n_items: int | None = None
-    for family in DAN_FAMILY_ORDER:
+    for family in families:
         models = groups.get(family, [])
         judge_id = _judge_for(family)
         version = default_version(store, suite=suite, models=models, judge_id=judge_id) or "v1"
@@ -605,7 +631,12 @@ def _data_dan_padding(store: Store, registry: Mapping[str, mr.ModelEntry]) -> Ch
 # ========================================================================= 6. Prefix (state)
 
 
-def _data_dan_prefix_state(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartData:
+def _data_dan_prefix_state(
+    store: Store,
+    registry: Mapping[str, mr.ModelEntry],
+    *,
+    families: Sequence[str] = DAN_FAMILY_ORDER,
+) -> ChartData:
     from . import summary
 
     key = "dan_prefix_state"
@@ -614,7 +645,7 @@ def _data_dan_prefix_state(store: Store, registry: Mapping[str, mr.ModelEntry]) 
     panels: dict[str, ChartData] = {}
     any_data = False
     n_items: dict[str, int] = {}
-    for family in DAN_FAMILY_ORDER:
+    for family in families:
         models = groups.get(family, [])
         series: list[P.Series] = []
         if models:
@@ -671,7 +702,12 @@ def _data_dan_prefix_state(store: Store, registry: Mapping[str, mr.ModelEntry]) 
 # =============================================================================== 7. Skills
 
 
-def _data_dan_skills(store: Store, registry: Mapping[str, mr.ModelEntry]) -> ChartData:
+def _data_dan_skills(
+    store: Store,
+    registry: Mapping[str, mr.ModelEntry],
+    *,
+    families: Sequence[str] = DAN_FAMILY_ORDER,
+) -> ChartData:
     """Pass@1 by `skill_group` (the 4-valued classical/case_split stratum `skill_pool_sub`'s own
     builder tags every item with), by model family -- direct runs only (module docstring: this
     suite is sampled directly, unlike legacy `skill_pool`, so `analysis.skills.view`'s join
@@ -681,7 +717,7 @@ def _data_dan_skills(store: Store, registry: Mapping[str, mr.ModelEntry]) -> Cha
     groups = _model_groups(registry)
     panels: dict[str, ChartData] = {}
     any_data = False
-    for family in DAN_FAMILY_ORDER:
+    for family in families:
         models = groups.get(family, [])
         bars: list[P.Bar] = []
         if models:
