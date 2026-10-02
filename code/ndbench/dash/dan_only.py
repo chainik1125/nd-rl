@@ -1666,10 +1666,10 @@ def _c_textbook_law(store: Store, reg: Mapping[str, mr.ModelEntry]) -> ChartData
 
 def _edl_null(classes: Sequence[str]) -> str | None:
     """The null-control class (data the models already know): the main page's, else the first
-    class named `heldout*`."""
+    class with `heldout` in its name (Dan's own held-out set is `dan_heldout`)."""
     if summary._EDL_NULL_CONTROL in classes:  # noqa: SLF001
         return summary._EDL_NULL_CONTROL  # noqa: SLF001
-    return next((c for c in sorted(classes) if c.startswith("heldout")), None)
+    return next((c for c in sorted(classes) if "heldout" in c), None)
 
 
 def _c_edl(store: Store) -> ChartData:
@@ -1700,11 +1700,16 @@ def _c_edl(store: Store) -> ChartData:
     ]
     cmp = summary._edl_compare(per, PAIR[0], PAIR[1], null)  # noqa: SLF001
     n_c = cmp["n_c"]
+    # One data order (Leon, 2026-10-02) leaves no per-order spread: lo == hi everywhere.
+    one_order = all(abs(v["hi"] - v["lo"]) < 1e-12 for d in per.values() for v in d.values())
+    robust = (
+        "" if one_order else f" ({cmp['n_robust']} with no overlap between the two data orders)"
+    )
     takeaway = "EDL per example, by class and model."
     if n_c:
         takeaway = (
-            f"The RL model's EDL is lower on {cmp['n_lower']}/{n_c} classes ({cmp['n_robust']} "
-            "with no overlap between the two data orders), but it also starts with lower test "
+            f"The RL model's EDL is lower on {cmp['n_lower']}/{n_c} classes{robust}, but it "
+            "also starts with lower test "
             f"loss on {cmp['n_l0_lower']}/{n_c} and EDL tracks the starting loss (Spearman "
             f"{cmp['rho']:.2f}); per nat of test loss that training removes, the RL model costs "
             f"as much as or more than the pretrained model on {cmp['n_ratio']}/{n_c} classes."
@@ -1719,8 +1724,14 @@ def _c_edl(store: Store) -> ChartData:
         "(a) Excess description length of learning each pattern class online, per example "
         f"(nats, log scale); {n_c} classes, pretrained vs RL (cap-12 seed-0 pair); EDL* per "
         "example at the learning rate with the smallest online code length, including the "
-        f"ln({max(n_lrs) if n_lrs else 0}) cost of choosing among the learning rates; whiskers "
-        "span the per-order values at that learning rate. (b) The same EDL* against each "
+        f"ln({max(n_lrs) if n_lrs else 0}) cost of choosing among the learning rates; "
+        + (
+            "one data order, so no spread between orders and no uncertainty on each value "
+            "(32 or 64 training examples per class and as many test examples). "
+            if one_order
+            else "whiskers span the per-order values at that learning rate. "
+        )
+        + "(b) The same EDL* against each "
         "model's initial test loss on the class (mean nats per test example before any "
         "update), null control excluded. Null control "
         + (f"({null}, data the models already know): {null_bits or 'n/a'}" if null else ": none")
