@@ -1,0 +1,63 @@
+family,stage,label,format,pool,k,n_pool,checker,seeds,per_seed,mean
+ours-3.2M-SN-v2-cap6,frozen,"ours 3.2M state, cap 6 — frozen",lean_staten,textbook72,256,72,lean_only,2,16 14,15.0
+ours-3.2M-SN-v2-cap6,frozen,"ours 3.2M state, cap 6 — frozen",lean_staten,dev1108,64,1108,lean_only,2,405 329,367.0
+ours-3.2M-SN-v2-cap6,frozen,"ours 3.2M state, cap 6 — frozen",lean_staten,holdout250,256,250,lean_only,2,103 83,93.0
+ours-3.2M-SN-v2-cap6,T1,"ours 3.2M state, cap 6 — T1 ladder",lean_staten,textbook72,256,72,lean_only,2,22 16,19.0
+ours-3.2M-SN-v2-cap6,T1,"ours 3.2M state, cap 6 — T1 ladder",lean_staten,dev1108,64,1108,lean_only,2,746 663,704.5
+ours-3.2M-SN-v2-cap6,T1,"ours 3.2M state, cap 6 — T1 ladder",lean_staten,holdout250,256,250,lean_only,2,169 151,160.0
+ours-3.2M-SN-cap12,frozen,"ours 3.2M state, cap 12 — frozen",lean_staten,textbook72,256,72,lean_only,4,26 29 32 26,28.25
+ours-3.2M-SN-cap12,frozen,"ours 3.2M state, cap 12 — frozen",lean_staten,dev1108,64,1108,lean_only,4,745 782 804 781,778.0
+ours-3.2M-SN-cap12,frozen,"ours 3.2M state, cap 12 — frozen",lean_staten,holdout250,256,250,lean_only,4,183 188 198 185,188.5
+ours-3.2M-SN-cap12,T1,"ours 3.2M state, cap 12 — T1 ladder",lean_staten,textbook72,256,72,lean_only,4,37 38 36 38,37.25
+ours-3.2M-SN-cap12,T1,"ours 3.2M state, cap 12 — T1 ladder",lean_staten,dev1108,64,1108,lean_only,4,927 972 961 940,950.0
+ours-3.2M-SN-cap12,T1,"ours 3.2M state, cap 12 — T1 ladder",lean_staten,holdout250,256,250,lean_only,4,217 221 223 219,220.0
+best-9.56M-cap6,frozen,"best 9.56M state, cap 6 — frozen",lean_staten,textbook72,256,72,lean_only,3,19 18 20,19.0
+best-9.56M-cap6,frozen,"best 9.56M state, cap 6 — frozen",lean_staten,dev1108,64,1108,lean_only,3,569 466 506,513.67
+best-9.56M-cap6,frozen,"best 9.56M state, cap 6 — frozen",lean_staten,holdout250,256,250,lean_only,3,149 125 122,132.0
+best-9.56M-cap6,T1,"best 9.56M state, cap 6 — T1 ladder",lean_staten,textbook72,256,72,lean_only,3,39 40 33,37.33
+best-9.56M-cap6,T1,"best 9.56M state, cap 6 — T1 ladder",lean_staten,dev1108,64,1108,lean_only,3,1002 986 1002,996.67
+best-9.56M-cap6,T1,"best 9.56M state, cap 6 — T1 ladder",lean_staten,holdout250,256,250,lean_only,3,226 229 227,227.33
+best-9.56M-cap12,frozen,"best 9.56M state, cap 12 — frozen",lean_staten,textbook72,256,72,lean_only,3,32 27 27,28.67
+best-9.56M-cap12,frozen,"best 9.56M state, cap 12 — frozen",lean_staten,dev1108,64,1108,lean_only,3,782 767 741,763.33
+best-9.56M-cap12,frozen,"best 9.56M state, cap 12 — frozen",lean_staten,holdout250,256,250,lean_only,3,184 195 182,187.0
+best-9.56M-cap12,T1,"best 9.56M state, cap 12 — T1 ladder",lean_staten,textbook72,256,72,lean_only,3,52 51 52,51.67
+best-9.56M-cap12,T1,"best 9.56M state, cap 12 — T1 ladder",lean_staten,dev1108,64,1108,lean_only,3,1058 1050 1055,1054.33
+best-9.56M-cap12,T1,"best 9.56M state, cap 12 — T1 ladder",lean_staten,holdout250,256,250,lean_only,3,239 237 237,237.67
+ours-3.2M-C0-wp-cap6,frozen,"ours 3.2M whole proof, cap 6 — frozen*",lean_seq,textbook72,256,72,lean_only,2,12 11,11.5
+ours-3.2M-C0-wp-cap6,frozen,"ours 3.2M whole proof, cap 6 — frozen*",lean_seq,dev1108,64,1108,lean_only,2,54 36,45.0
+ours-3.2M-C0-wp-cap6,frozen,"ours 3.2M whole proof, cap 6 — frozen*",lean_seq,holdout250,256,250,lean_only,2,15 8,11.5
+ours-3.2M-C0-wp-cap6,T1,"ours 3.2M whole proof, cap 6 — T1 ladder*",lean_seq,textbook72,256,72,lean_only,2,15 13,14.0
+ours-3.2M-C0-wp-cap6,T1,"ours 3.2M whole proof, cap 6 — T1 ladder*",lean_seq,dev1108,64,1108,lean_only,2,417 465,441.0
+ours-3.2M-C0-wp-cap6,T1,"ours 3.2M whole proof, cap 6 — T1 ladder*",lean_seq,holdout250,256,250,lean_only,2,104 102,103.0
+ours-3.2M-K12-wp-cap12,frozen,"ours 3.2M whole proof, cap 12 — frozen*",lean_seq,textbook72,256,72,lean_only,2,21 21,21.0
+ours-3.2M-K12-wp-cap12,frozen,"ours 3.2M whole proof, cap 12 — frozen*",lean_seq,dev1108,64,1108,lean_only,2,415 384,399.5
+ours-3.2M-K12-wp-cap12,frozen,"ours 3.2M whole proof, cap 12 — frozen*",lean_seq,holdout250,256,250,lean_only,2,115 104,109.5
+ours-3.2M-K12-wp-cap12,T1,"ours 3.2M whole proof, cap 12 — T1 ladder*",lean_seq,textbook72,256,72,lean_only,2,25 22,23.5
+ours-3.2M-K12-wp-cap12,T1,"ours 3.2M whole proof, cap 12 — T1 ladder*",lean_seq,dev1108,64,1108,lean_only,2,797 771,784.0
+ours-3.2M-K12-wp-cap12,T1,"ours 3.2M whole proof, cap 12 — T1 ladder*",lean_seq,holdout250,256,250,lean_only,2,181 177,179.0
+robbie-factorial:lean-naive-ei,rl-harness-EI,"Robbie naive pretrain, Lean, plain EI",lean_seq,textbook72,256,72,lean_and_ndverify,3,8 6 10,8.0
+robbie-factorial:lean-naive-ei,rl-harness-EI,"Robbie naive pretrain, Lean, plain EI",lean_seq,dev1108,64,1108,lean_and_ndverify,3,209 195 174,192.67
+robbie-factorial:lean-naive-ei,rl-harness-EI,"Robbie naive pretrain, Lean, plain EI",lean_seq,holdout250,256,250,lean_and_ndverify,3,45 42 37,41.33
+robbie-factorial:lean-naive-leon,rl-leon-c005,"Robbie naive pretrain, Lean, Leon RL + guided",lean_seq,textbook72,256,72,lean_and_ndverify,3,12 10 9,10.33
+robbie-factorial:lean-naive-leon,rl-leon-c005,"Robbie naive pretrain, Lean, Leon RL + guided",lean_seq,dev1108,64,1108,lean_and_ndverify,3,434 420 387,413.67
+robbie-factorial:lean-naive-leon,rl-leon-c005,"Robbie naive pretrain, Lean, Leon RL + guided",lean_seq,holdout250,256,250,lean_and_ndverify,3,107 102 99,102.67
+robbie-factorial:lean-best-ei,rl-harness-EI,"Robbie best 9.56M, Lean, plain EI",lean_seq,textbook72,256,72,lean_and_ndverify,3,19 21 20,20.0
+robbie-factorial:lean-best-ei,rl-harness-EI,"Robbie best 9.56M, Lean, plain EI",lean_seq,dev1108,64,1108,lean_and_ndverify,3,694 677 674,681.67
+robbie-factorial:lean-best-ei,rl-harness-EI,"Robbie best 9.56M, Lean, plain EI",lean_seq,holdout250,256,250,lean_and_ndverify,3,155 161 147,154.33
+robbie-factorial:lean-best-leon,rl-leon-c005,"Robbie best 9.56M, Lean, Leon RL + guided",lean_seq,textbook72,256,72,lean_and_ndverify,3,32 30 32,31.33
+robbie-factorial:lean-best-leon,rl-leon-c005,"Robbie best 9.56M, Lean, Leon RL + guided",lean_seq,dev1108,64,1108,lean_and_ndverify,3,916 895 901,904.0
+robbie-factorial:lean-best-leon,rl-leon-c005,"Robbie best 9.56M, Lean, Leon RL + guided",lean_seq,holdout250,256,250,lean_and_ndverify,3,210 200 205,205.0
+robbie-state-recipes:198-SN,rl-harness-EI,"Robbie recipe 198 9.56M, state SN, plain EI",lean_staten,dev1108,64,1108,lean_only,3,852 824 798,824.67
+robbie-state-recipes:198-C0,rl-harness-EI,"Robbie recipe 198 9.56M, whole proof C0, plain EI",lean_seq,dev1108,64,1108,lean_only,3,669 692 216,525.67
+robbie-factorial:abs-naive-ei,rl-harness-EI,"Robbie naive pretrain, token, plain EI",token,textbook72,256,72,nd_verify,3,7 11 9,9.0
+robbie-factorial:abs-naive-ei,rl-harness-EI,"Robbie naive pretrain, token, plain EI",token,dev1108,64,1108,nd_verify,3,131 162 134,142.33
+robbie-factorial:abs-naive-ei,rl-harness-EI,"Robbie naive pretrain, token, plain EI",token,holdout250,256,250,nd_verify,3,29 40 36,35.0
+robbie-factorial:abs-naive-leon,rl-leon-c005,"Robbie naive pretrain, token, Leon RL + guided",token,textbook72,256,72,nd_verify,3,11 12 13,12.0
+robbie-factorial:abs-naive-leon,rl-leon-c005,"Robbie naive pretrain, token, Leon RL + guided",token,dev1108,64,1108,nd_verify,3,409 465 457,443.67
+robbie-factorial:abs-naive-leon,rl-leon-c005,"Robbie naive pretrain, token, Leon RL + guided",token,holdout250,256,250,nd_verify,3,102 112 111,108.33
+robbie-factorial:abs-best-ei,rl-harness-EI,"Robbie best 9.56M, token, plain EI",token,textbook72,256,72,nd_verify,3,19 17 15,17.0
+robbie-factorial:abs-best-ei,rl-harness-EI,"Robbie best 9.56M, token, plain EI",token,dev1108,64,1108,nd_verify,3,493 436 441,456.67
+robbie-factorial:abs-best-ei,rl-harness-EI,"Robbie best 9.56M, token, plain EI",token,holdout250,256,250,nd_verify,3,126 121 115,120.67
+robbie-factorial:abs-best-leon,rl-leon-c005,"Robbie best 9.56M, token, Leon RL + guided",token,textbook72,256,72,nd_verify,3,27 23 25,25.0
+robbie-factorial:abs-best-leon,rl-leon-c005,"Robbie best 9.56M, token, Leon RL + guided",token,dev1108,64,1108,nd_verify,3,815 777 755,782.33
+robbie-factorial:abs-best-leon,rl-leon-c005,"Robbie best 9.56M, token, Leon RL + guided",token,holdout250,256,250,nd_verify,3,182 178 172,177.33
