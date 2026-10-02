@@ -1744,7 +1744,11 @@ def _c_edl(store: Store) -> ChartData:
         takeaway,
         caption,
         rows=rows,
-        opts={"x_label": "EDL* per example (nats)", "log_x": True},
+        opts={
+            "x_label": "EDL* per example (nats)",
+            "log_x": True,
+            "orders_note": None if one_order else "whiskers: two data orders",
+        },
         extra={"per": per, "null_control": null, "rho": cmp["rho"], "run_ids": data["run_ids"]},
     )
     cd.extra_tables.append(

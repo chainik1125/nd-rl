@@ -543,9 +543,9 @@ def fig_edl(cd: ChartData, *, narrow: bool = False) -> Figure:
     ax.spines["left"].set_visible(False)
     S.light_grid(ax, "x")
     ax.set_xlabel("EDL* per example (nats, log scale)")
-    S.panel_title(
-        ax, "a", "EDL* per class" if narrow else "EDL* per class (whiskers: two data orders)"
-    )
+    # A chart may set `orders_note` to None (e.g. a one-order run, which has no whiskers).
+    note = cd.opts.get("orders_note", "whiskers: two data orders")
+    S.panel_title(ax, "a", "EDL* per class" if narrow or not note else f"EDL* per class ({note})")
 
     axb = axs[1]
     n_points = 0
