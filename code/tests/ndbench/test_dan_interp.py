@@ -196,6 +196,18 @@ def test_marginal_logprob_dan_matches_direct_logprob_when_single_ordering(
     assert result["logp_marginal"] == pytest.approx(lp.nats)
 
 
+def test_marginal_logprob_dan_forwards_exclude_defining_names(
+    fz_t1: tuple[DanStateAdapter, DanStateAdapter],
+) -> None:
+    fz, _t1 = fz_t1
+    seq = Sequent.from_prompt(_SIMPLE[0])
+    result = dsup.marginal_logprob_dan(fz, seq, _SIMPLE[1], exclude_defining_names=True)
+    (excl,) = fz.logprob([(seq, _SIMPLE[1])], exclude_defining_names=True)
+    (full,) = fz.logprob([(seq, _SIMPLE[1])])
+    assert result["logp_marginal"] == pytest.approx(excl.nats)
+    assert excl.nats != pytest.approx(full.nats)
+
+
 # ------------------------------------------------------------------------------------ I2: steering
 
 

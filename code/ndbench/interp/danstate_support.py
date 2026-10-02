@@ -273,6 +273,7 @@ def marginal_logprob_dan(
     cap: int = _likelihood.DEFAULT_CAP,
     m: int = _likelihood.DEFAULT_M,
     rng: random.Random | None = None,
+    exclude_defining_names: bool = False,
 ) -> dict[str, JSON]:
     """`likelihood.marginal_logprob`'s Dan-pair analogue: dedupe orderings by canonical action
     sequence first (`_dedupe_orderings_by_canonical_actions`), then score and combine exactly as
@@ -280,20 +281,24 @@ def marginal_logprob_dan(
     a plain dict (not `likelihood.MarginalResult`, since this also reports the dedup counts that
     dataclass has no fields for): `logp_single`, `logp_marginal`, `n_orderings` (before dedup),
     `n_unique_actions` (surviving distinct action sequences actually scored),
-    `n_duplicate_orderings`, `method`, `ess`.
+    `n_duplicate_orderings`, `method`, `ess`. `exclude_defining_names` is forwarded to every
+    `DanStateAdapter.logprob` call (drop each `have`'s and box binder's own defining-name token, as
+    Dan's trajectory study does).
     """
     rng = rng if rng is not None else random.Random(0)
+    excl = exclude_defining_names
     uniq_bodies, uniq_logqs, method, n, n_dup = _dedupe_orderings_by_canonical_actions(
         adapter, seq, body, cap=cap, m=m, rng=rng
     )
-    logps = [lp.nats for lp in adapter.logprob([(seq, b) for b in uniq_bodies])]
+    pairs = [(seq, b) for b in uniq_bodies]
+    logps = [lp.nats for lp in adapter.logprob(pairs, exclude_defining_names=excl)]
     if method != "importance":
         try:
             single = logps[uniq_bodies.index(body)]
         except ValueError:
-            single = adapter.logprob([(seq, body)])[0].nats
+            single = adapter.logprob([(seq, body)], exclude_defining_names=excl)[0].nats
     else:
-        single = adapter.logprob([(seq, body)])[0].nats
+        single = adapter.logprob([(seq, body)], exclude_defining_names=excl)[0].nats
     marginal, ess = _likelihood._combine_exact_or_importance(method, logps, uniq_logqs)
     return {
         "logp_single": single,
@@ -347,6 +352,7 @@ def run_likelihood_dan(
     cap = _int_cfg("cap", _likelihood.DEFAULT_CAP)
     m = _int_cfg("m", _likelihood.DEFAULT_M)
     n_neutral = _int_cfg("n_neutral", 2000)
+    exclude_defining_names = bool(cfg.get("exclude_defining_names", False))
 
     neutral, notes = reference_proofs_from_cfg(store, cfg, n=n_neutral, seed=seed)
 
@@ -394,7 +400,13 @@ def run_likelihood_dan(
                 row[key] = dict(_NULL_ROW)
                 continue
             result = marginal_logprob_dan(
-                cast(DanStateAdapter, adapter), seq, body, cap=cap, m=m, rng=rng
+                cast(DanStateAdapter, adapter),
+                seq,
+                body,
+                cap=cap,
+                m=m,
+                rng=rng,
+                exclude_defining_names=exclude_defining_names,
             )
             marginal = cast(float, result["logp_marginal"])
             if marginal != marginal:  # NaN
