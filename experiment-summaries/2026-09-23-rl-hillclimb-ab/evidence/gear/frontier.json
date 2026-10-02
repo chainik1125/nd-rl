@@ -1,0 +1,88 @@
+{
+ "frontier": [
+  {
+   "id": "n025",
+   "role": "BEST",
+   "metric": 401,
+   "by_len": {
+    "7": 104,
+    "8": 110,
+    "9": 187
+   },
+   "heldout_greedy": 0.885,
+   "n_children": 1,
+   "n_uses": 1,
+   "mean_child_improvement": -72.0,
+   "last_used_step": 35,
+   "category": "sampling",
+   "description": "training sampling temperature 1.0 transplanted from n023 onto n021 hardest first refill windows"
+  },
+  {
+   "id": "n017",
+   "role": "LEAN",
+   "metric": 393,
+   "by_len": {
+    "7": 109,
+    "8": 100,
+    "9": 184
+   },
+   "heldout_greedy": 0.91,
+   "n_children": 6,
+   "n_uses": 6,
+   "mean_child_improvement": -54.8333,
+   "last_used_step": 31,
+   "category": "schedule",
+   "description": "smaller rounds: window 400 targets, 135 ft steps, warmup 35, round cap 20, so 15 rounds fit instead of 10"
+  },
+  {
+   "id": "n023",
+   "role": "DIVERSE",
+   "metric": 385,
+   "by_len": {
+    "7": 107,
+    "8": 107,
+    "9": 171
+   },
+   "heldout_greedy": 0.895,
+   "n_children": 2,
+   "n_uses": 2,
+   "mean_child_improvement": 3.0,
+   "last_used_step": 33,
+   "category": "sampling",
+   "description": "training sampling temperature 1.0 instead of 0.8 (dev scoring stays 0.8)"
+  },
+  {
+   "id": "n027",
+   "role": "DIVERSE",
+   "metric": 377,
+   "by_len": {
+    "7": 96,
+    "8": 105,
+    "9": 176
+   },
+   "heldout_greedy": 0.915,
+   "n_children": 0,
+   "n_uses": 0,
+   "mean_child_improvement": null,
+   "last_used_step": null,
+   "category": "data",
+   "description": "max_per_thm 8 distinct proofs per target in the mix instead of 4 on hardest first refill line"
+  }
+ ],
+ "table": [
+  "id    role     metric by_len           heldout kids uses meanimp last category   description",
+  "n025  BEST        401 104/110/187        0.885    1    1   -72.0   35 sampling   training sampling temperature 1.0 transplanted from n023 onto n021 hardest first refill windows",
+  "n017  LEAN        393 109/100/184        0.910    6    6   -54.8   31 schedule   smaller rounds: window 400 targets, 135 ft steps, warmup 35, round cap 20, so 15 rounds fit instead of 10",
+  "n023  DIVERSE     385 107/107/171        0.895    2    2    +3.0   33 sampling   training sampling temperature 1.0 instead of 0.8 (dev scoring stays 0.8)",
+  "n027  DIVERSE     377 96/105/176         0.915    0    0       -    - data       max_per_thm 8 distinct proofs per target in the mix instead of 4 on hardest first refill line"
+ ],
+ "completed_experiments": 29,
+ "step": 35,
+ "inflight": {},
+ "fresh_elites": [
+  "n023",
+  "n027"
+ ],
+ "lambda": 0.15,
+ "gamma": 0.15
+}

@@ -1,0 +1,2244 @@
+{
+ "train_cap6": {
+  "counts": {
+   "proofs": 154990,
+   "has_box": 74913,
+   "sub_goals": 20808,
+   "has_split": 15356,
+   "root_split": 12870,
+   "andi_final": 17858,
+   "boxes": 105471
+  },
+  "discharge": {
+   "IMPI": 84849,
+   "IMPI:goal_directed": 81665,
+   "IMPI:lemma": 3184,
+   "NEGI": 16068,
+   "NEGI:goal_directed": 5126,
+   "NEGI:lemma": 10942,
+   "ORE": 4554,
+   "ORE:goal_directed": 4274,
+   "ORE:lemma": 280
+  },
+  "max_tokens_per_line_p99": 61,
+  "max_tokens_per_line_max": 129,
+  "by_len": {
+   "2": {
+    "n": 30999,
+    "plain_mean": 44.88077034743056,
+    "plain_max": 168,
+    "goals": {
+     "extra_mean": 0.0,
+     "total_mean": 44.88077034743056,
+     "total_max": 168,
+     "total_p99": 105,
+     "with_prompt_max": 276,
+     "with_prompt_p99": 171,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 24.26004064647247,
+     "total_mean": 69.14081099390303,
+     "total_max": 274,
+     "total_p99": 169,
+     "with_prompt_max": 382,
+     "with_prompt_p99": 235,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 24.26004064647247,
+     "total_mean": 69.14081099390303,
+     "total_max": 274,
+     "total_p99": 169,
+     "with_prompt_max": 382,
+     "with_prompt_p99": 235,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 0.0,
+     "total_mean": 44.88077034743056,
+     "total_max": 168,
+     "total_p99": 105,
+     "with_prompt_max": 276,
+     "with_prompt_p99": 171,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 31.03261395528888,
+     "total_mean": 75.91338430271944,
+     "total_max": 380,
+     "total_p99": 233,
+     "with_prompt_max": 488,
+     "with_prompt_p99": 299,
+     "over_1024": 0
+    },
+    "prompt_max": 108,
+    "plain_with_prompt_max": 276
+   },
+   "3": {
+    "n": 30999,
+    "plain_mean": 53.12016516661828,
+    "plain_max": 145,
+    "goals": {
+     "extra_mean": 1.4475950837123779,
+     "total_mean": 54.56776025033066,
+     "total_max": 182,
+     "total_p99": 113,
+     "with_prompt_max": 257,
+     "with_prompt_p99": 165,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 14.492435239846447,
+     "total_mean": 67.61260040646472,
+     "total_max": 248,
+     "total_p99": 151,
+     "with_prompt_max": 316,
+     "with_prompt_p99": 197,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 16.246943449788702,
+     "total_mean": 69.36710861640698,
+     "total_max": 248,
+     "total_p99": 153,
+     "with_prompt_max": 316,
+     "with_prompt_p99": 197,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 1.2048130584857577,
+     "total_mean": 54.32497822510403,
+     "total_max": 182,
+     "total_p99": 113,
+     "with_prompt_max": 257,
+     "with_prompt_p99": 165,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 17.166682796219234,
+     "total_mean": 70.28684796283751,
+     "total_max": 314,
+     "total_p99": 189,
+     "with_prompt_max": 382,
+     "with_prompt_p99": 229,
+     "over_1024": 0
+    },
+    "prompt_max": 123,
+    "plain_with_prompt_max": 257
+   },
+   "4": {
+    "n": 30998,
+    "plain_mean": 72.90441318794761,
+    "plain_max": 321,
+    "goals": {
+     "extra_mean": 10.611071682044003,
+     "total_mean": 83.51548486999161,
+     "total_max": 431,
+     "total_p99": 192,
+     "with_prompt_max": 557,
+     "with_prompt_p99": 251,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 29.91034905477773,
+     "total_mean": 102.81476224272534,
+     "total_max": 555,
+     "total_p99": 247,
+     "with_prompt_max": 681,
+     "with_prompt_p99": 307,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 34.28850248403123,
+     "total_mean": 107.19291567197884,
+     "total_max": 555,
+     "total_p99": 252,
+     "with_prompt_max": 681,
+     "with_prompt_p99": 307,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 9.687657268210852,
+     "total_mean": 82.59207045615847,
+     "total_max": 431,
+     "total_p99": 192,
+     "with_prompt_max": 557,
+     "with_prompt_p99": 251,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 52.624233821536876,
+     "total_mean": 125.52864700948449,
+     "total_max": 789,
+     "total_p99": 344,
+     "with_prompt_max": 915,
+     "with_prompt_p99": 400,
+     "over_1024": 0
+    },
+    "prompt_max": 126,
+    "plain_with_prompt_max": 447
+   },
+   "5": {
+    "n": 30996,
+    "plain_mean": 86.6951542134469,
+    "plain_max": 243,
+    "goals": {
+     "extra_mean": 12.965221318879856,
+     "total_mean": 99.66037553232675,
+     "total_max": 340,
+     "total_p99": 216,
+     "with_prompt_max": 420,
+     "with_prompt_p99": 268,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 29.71980255516841,
+     "total_mean": 116.41495676861531,
+     "total_max": 418,
+     "total_p99": 265,
+     "with_prompt_max": 498,
+     "with_prompt_p99": 317,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 34.371564072783585,
+     "total_mean": 121.06671828623048,
+     "total_max": 418,
+     "total_p99": 272,
+     "with_prompt_max": 498,
+     "with_prompt_p99": 325,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 12.384791586011099,
+     "total_mean": 99.07994579945799,
+     "total_max": 340,
+     "total_p99": 216,
+     "with_prompt_max": 420,
+     "with_prompt_p99": 268,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 48.278552071235,
+     "total_mean": 134.9737062846819,
+     "total_max": 560,
+     "total_p99": 350,
+     "with_prompt_max": 640,
+     "with_prompt_p99": 402,
+     "over_1024": 0
+    },
+    "prompt_max": 121,
+    "plain_with_prompt_max": 334
+   },
+   "6": {
+    "n": 30998,
+    "plain_mean": 103.09474804826118,
+    "plain_max": 401,
+    "goals": {
+     "extra_mean": 20.68501193625395,
+     "total_mean": 123.77975998451512,
+     "total_max": 591,
+     "total_p99": 288,
+     "with_prompt_max": 706,
+     "with_prompt_p99": 354,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 39.982418220530356,
+     "total_mean": 143.07716626879153,
+     "total_max": 704,
+     "total_p99": 348,
+     "with_prompt_max": 819,
+     "with_prompt_p99": 414,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 44.330053551842056,
+     "total_mean": 147.42480160010322,
+     "total_max": 704,
+     "total_p99": 352,
+     "with_prompt_max": 819,
+     "with_prompt_p99": 417,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 19.682011742693078,
+     "total_mean": 122.77675979095426,
+     "total_max": 591,
+     "total_p99": 289,
+     "with_prompt_max": 706,
+     "with_prompt_p99": 354,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 73.10416801083942,
+     "total_mean": 176.19891605910058,
+     "total_max": 1007,
+     "total_p99": 482,
+     "with_prompt_max": 1122,
+     "with_prompt_p99": 544,
+     "over_1024": 3
+    },
+    "prompt_max": 143,
+    "plain_with_prompt_max": 516
+   }
+  },
+  "overhead": {
+   "goals": 0.1267230945742846,
+   "start": 0.3836072444475132,
+   "every": 0.4255593271152684,
+   "boxes": 0.11909999645820014,
+   "naive": 0.6160496660512044
+  },
+  "groups_per_line": {
+   "goals": 0.14326010280237397,
+   "start": 0.41613276125362003,
+   "every": 0.4665283781749853,
+   "boxes": 0.12128180312711598,
+   "naive": 0.5684803320644018
+  }
+ },
+ "heldout_cap6": {
+  "counts": {
+   "proofs": 5000,
+   "has_box": 2435,
+   "sub_goals": 677,
+   "has_split": 494,
+   "root_split": 421,
+   "andi_final": 581,
+   "boxes": 3481
+  },
+  "discharge": {
+   "IMPI": 2816,
+   "IMPI:goal_directed": 2711,
+   "NEGI": 491,
+   "NEGI:lemma": 347,
+   "ORE": 174,
+   "ORE:goal_directed": 166,
+   "IMPI:lemma": 105,
+   "NEGI:goal_directed": 144,
+   "ORE:lemma": 8
+  },
+  "max_tokens_per_line_p99": 63,
+  "max_tokens_per_line_max": 104,
+  "by_len": {
+   "2": {
+    "n": 1000,
+    "plain_mean": 45.382,
+    "plain_max": 144,
+    "goals": {
+     "extra_mean": 0.0,
+     "total_mean": 45.382,
+     "total_max": 144,
+     "total_p99": 111,
+     "with_prompt_max": 236,
+     "with_prompt_p99": 181,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 24.682,
+     "total_mean": 70.064,
+     "total_max": 234,
+     "total_p99": 179,
+     "with_prompt_max": 326,
+     "with_prompt_p99": 249,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 24.682,
+     "total_mean": 70.064,
+     "total_max": 234,
+     "total_p99": 179,
+     "with_prompt_max": 326,
+     "with_prompt_p99": 249,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 0.0,
+     "total_mean": 45.382,
+     "total_max": 144,
+     "total_p99": 111,
+     "with_prompt_max": 236,
+     "with_prompt_p99": 181,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 32.34,
+     "total_mean": 77.722,
+     "total_max": 324,
+     "total_p99": 247,
+     "with_prompt_max": 416,
+     "with_prompt_p99": 317,
+     "over_1024": 0
+    },
+    "prompt_max": 92,
+    "plain_with_prompt_max": 236
+   },
+   "3": {
+    "n": 1000,
+    "plain_mean": 53.163,
+    "plain_max": 109,
+    "goals": {
+     "extra_mean": 1.381,
+     "total_mean": 54.544,
+     "total_max": 138,
+     "total_p99": 113,
+     "with_prompt_max": 188,
+     "with_prompt_p99": 159,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 14.559,
+     "total_mean": 67.722,
+     "total_max": 186,
+     "total_p99": 151,
+     "with_prompt_max": 236,
+     "with_prompt_p99": 197,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 16.041,
+     "total_mean": 69.204,
+     "total_max": 186,
+     "total_p99": 151,
+     "with_prompt_max": 236,
+     "with_prompt_p99": 197,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 1.216,
+     "total_mean": 54.379,
+     "total_max": 138,
+     "total_p99": 113,
+     "with_prompt_max": 188,
+     "with_prompt_p99": 159,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 16.917,
+     "total_mean": 70.08,
+     "total_max": 234,
+     "total_p99": 189,
+     "with_prompt_max": 284,
+     "with_prompt_p99": 229,
+     "over_1024": 0
+    },
+    "prompt_max": 79,
+    "plain_with_prompt_max": 169
+   },
+   "4": {
+    "n": 1000,
+    "plain_mean": 73.024,
+    "plain_max": 193,
+    "goals": {
+     "extra_mean": 11.146,
+     "total_mean": 84.17,
+     "total_max": 255,
+     "total_p99": 187,
+     "with_prompt_max": 329,
+     "with_prompt_p99": 243,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 30.51,
+     "total_mean": 103.534,
+     "total_max": 327,
+     "total_p99": 240,
+     "with_prompt_max": 401,
+     "with_prompt_p99": 295,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 34.658,
+     "total_mean": 107.682,
+     "total_max": 327,
+     "total_p99": 243,
+     "with_prompt_max": 401,
+     "with_prompt_p99": 299,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 9.968,
+     "total_mean": 82.992,
+     "total_max": 255,
+     "total_p99": 187,
+     "with_prompt_max": 329,
+     "with_prompt_p99": 243,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 54.012,
+     "total_mean": 127.036,
+     "total_max": 461,
+     "total_p99": 335,
+     "with_prompt_max": 535,
+     "with_prompt_p99": 390,
+     "over_1024": 0
+    },
+    "prompt_max": 75,
+    "plain_with_prompt_max": 267
+   },
+   "5": {
+    "n": 1000,
+    "plain_mean": 86.758,
+    "plain_max": 203,
+    "goals": {
+     "extra_mean": 13.284,
+     "total_mean": 100.042,
+     "total_max": 282,
+     "total_p99": 212,
+     "with_prompt_max": 349,
+     "with_prompt_p99": 265,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 29.857,
+     "total_mean": 116.615,
+     "total_max": 347,
+     "total_p99": 258,
+     "with_prompt_max": 414,
+     "with_prompt_p99": 309,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 34.528,
+     "total_mean": 121.286,
+     "total_max": 347,
+     "total_p99": 263,
+     "with_prompt_max": 414,
+     "with_prompt_p99": 314,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 12.554,
+     "total_mean": 99.312,
+     "total_max": 282,
+     "total_p99": 212,
+     "with_prompt_max": 349,
+     "with_prompt_p99": 265,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 48.325,
+     "total_mean": 135.083,
+     "total_max": 461,
+     "total_p99": 344,
+     "with_prompt_max": 528,
+     "with_prompt_p99": 397,
+     "over_1024": 0
+    },
+    "prompt_max": 113,
+    "plain_with_prompt_max": 270
+   },
+   "6": {
+    "n": 1000,
+    "plain_mean": 104.763,
+    "plain_max": 339,
+    "goals": {
+     "extra_mean": 21.481,
+     "total_mean": 126.244,
+     "total_max": 478,
+     "total_p99": 301,
+     "with_prompt_max": 579,
+     "with_prompt_p99": 367,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 41.392,
+     "total_mean": 146.155,
+     "total_max": 577,
+     "total_p99": 365,
+     "with_prompt_max": 678,
+     "with_prompt_p99": 430,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 45.849,
+     "total_mean": 150.612,
+     "total_max": 577,
+     "total_p99": 382,
+     "with_prompt_max": 678,
+     "with_prompt_p99": 442,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 20.626,
+     "total_mean": 125.389,
+     "total_max": 478,
+     "total_p99": 301,
+     "with_prompt_max": 579,
+     "with_prompt_p99": 367,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 76.541,
+     "total_mean": 181.304,
+     "total_max": 815,
+     "total_p99": 492,
+     "with_prompt_max": 916,
+     "with_prompt_p99": 559,
+     "over_1024": 0
+    },
+    "prompt_max": 101,
+    "plain_with_prompt_max": 440
+   }
+  },
+  "overhead": {
+   "goals": 0.1302486986697513,
+   "start": 0.38833347104023797,
+   "every": 0.4289790410091162,
+   "boxes": 0.12218458233495827,
+   "naive": 0.6283152937288276
+  },
+  "groups_per_line": {
+   "goals": 0.14485000000000012,
+   "start": 0.4175333333333293,
+   "every": 0.46571999999999697,
+   "boxes": 0.12267999999999901,
+   "naive": 0.573453333333331
+  }
+ },
+ "found_rl": {
+  "counts": {
+   "proofs": 59885,
+   "has_box": 56960,
+   "boxes": 130786,
+   "sub_goals": 10029,
+   "has_split": 7755,
+   "root_split": 1546,
+   "andi_final": 1546,
+   "box_cited_twice": 13
+  },
+  "discharge": {
+   "IMPI": 122594,
+   "IMPI:goal_directed": 120442,
+   "ORE": 3509,
+   "ORE:goal_directed": 2863,
+   "NEGI": 4487,
+   "NEGI:goal_directed": 3342,
+   "NEGI:lemma": 1145,
+   "IMPI:lemma": 2152,
+   "ORE:lemma": 646,
+   "undischarged": 196
+  },
+  "max_tokens_per_line_p99": 72,
+  "max_tokens_per_line_max": 104,
+  "by_len": {
+   "5": {
+    "n": 1,
+    "plain_mean": 64.0,
+    "plain_max": 64,
+    "goals": {
+     "extra_mean": 0.0,
+     "total_mean": 64.0,
+     "total_max": 64,
+     "total_p99": 64,
+     "with_prompt_max": 88,
+     "with_prompt_p99": 88,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 5.0,
+     "total_mean": 69.0,
+     "total_max": 69,
+     "total_p99": 69,
+     "with_prompt_max": 93,
+     "with_prompt_p99": 93,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 10.0,
+     "total_mean": 74.0,
+     "total_max": 74,
+     "total_p99": 74,
+     "with_prompt_max": 98,
+     "with_prompt_p99": 98,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 0.0,
+     "total_mean": 64.0,
+     "total_max": 64,
+     "total_p99": 64,
+     "with_prompt_max": 88,
+     "with_prompt_p99": 88,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 10.0,
+     "total_mean": 74.0,
+     "total_max": 74,
+     "total_p99": 74,
+     "with_prompt_max": 98,
+     "with_prompt_p99": 98,
+     "over_1024": 0
+    },
+    "prompt_max": 24,
+    "plain_with_prompt_max": 88
+   },
+   "6": {
+    "n": 9464,
+    "plain_mean": 108.70614961961115,
+    "plain_max": 339,
+    "goals": {
+     "extra_mean": 21.41768808114962,
+     "total_mean": 130.1238377007608,
+     "total_max": 478,
+     "total_p99": 307,
+     "with_prompt_max": 579,
+     "with_prompt_p99": 370,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 44.19442096365173,
+     "total_mean": 152.9005705832629,
+     "total_max": 577,
+     "total_p99": 368,
+     "with_prompt_max": 678,
+     "with_prompt_p99": 431,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 51.22305579036348,
+     "total_mean": 159.92920540997463,
+     "total_max": 577,
+     "total_p99": 403,
+     "with_prompt_max": 678,
+     "with_prompt_p99": 466,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 21.122569737954354,
+     "total_mean": 129.82871935756552,
+     "total_max": 478,
+     "total_p99": 307,
+     "with_prompt_max": 579,
+     "with_prompt_p99": 370,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 81.97633136094674,
+     "total_mean": 190.6824809805579,
+     "total_max": 815,
+     "total_p99": 492,
+     "with_prompt_max": 916,
+     "with_prompt_p99": 559,
+     "over_1024": 0
+    },
+    "prompt_max": 132,
+    "plain_with_prompt_max": 440
+   },
+   "7": {
+    "n": 14887,
+    "plain_mean": 117.11802243568214,
+    "plain_max": 299,
+    "goals": {
+     "extra_mean": 18.509504937193526,
+     "total_mean": 135.62752737287568,
+     "total_max": 444,
+     "total_p99": 290,
+     "with_prompt_max": 520,
+     "with_prompt_p99": 361,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 42.20474239269161,
+     "total_mean": 159.32276482837375,
+     "total_max": 518,
+     "total_p99": 351,
+     "with_prompt_max": 598,
+     "with_prompt_p99": 421,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 53.753812050782564,
+     "total_mean": 170.8718344864647,
+     "total_max": 559,
+     "total_p99": 373,
+     "with_prompt_max": 658,
+     "with_prompt_p99": 444,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 18.93343185329482,
+     "total_mean": 136.05145428897697,
+     "total_max": 444,
+     "total_p99": 293,
+     "with_prompt_max": 520,
+     "with_prompt_p99": 367,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 75.7075300597837,
+     "total_mean": 192.82555249546584,
+     "total_max": 708,
+     "total_p99": 461,
+     "with_prompt_max": 784,
+     "with_prompt_p99": 527,
+     "over_1024": 0
+    },
+    "prompt_max": 132,
+    "plain_with_prompt_max": 385
+   },
+   "8": {
+    "n": 11173,
+    "plain_mean": 141.1351472299293,
+    "plain_max": 308,
+    "goals": {
+     "extra_mean": 30.220442137295265,
+     "total_mean": 171.35558936722455,
+     "total_max": 452,
+     "total_p99": 349,
+     "with_prompt_max": 540,
+     "with_prompt_p99": 427,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 58.2762015573257,
+     "total_mean": 199.41134878725498,
+     "total_max": 522,
+     "total_p99": 407,
+     "with_prompt_max": 610,
+     "with_prompt_p99": 486,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 70.67860019690325,
+     "total_mean": 211.81374742683255,
+     "total_max": 579,
+     "total_p99": 427,
+     "with_prompt_max": 667,
+     "with_prompt_p99": 507,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 31.295623377785734,
+     "total_mean": 172.43077060771503,
+     "total_max": 452,
+     "total_p99": 349,
+     "with_prompt_max": 540,
+     "with_prompt_p99": 427,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 106.85250156627585,
+     "total_mean": 247.98764879620515,
+     "total_max": 705,
+     "total_p99": 540,
+     "with_prompt_max": 793,
+     "with_prompt_p99": 615,
+     "over_1024": 0
+    },
+    "prompt_max": 132,
+    "plain_with_prompt_max": 401
+   },
+   "9": {
+    "n": 9307,
+    "plain_mean": 164.26098635435693,
+    "plain_max": 360,
+    "goals": {
+     "extra_mean": 42.52884925325024,
+     "total_mean": 206.7898356076072,
+     "total_max": 528,
+     "total_p99": 412,
+     "with_prompt_max": 635,
+     "with_prompt_p99": 488,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 74.76275921349522,
+     "total_mean": 239.02374556785216,
+     "total_max": 610,
+     "total_p99": 473,
+     "with_prompt_max": 717,
+     "with_prompt_p99": 554,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 86.73686472547544,
+     "total_mean": 250.99785107983237,
+     "total_max": 654,
+     "total_p99": 500,
+     "with_prompt_max": 761,
+     "with_prompt_p99": 582,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 43.92317610400774,
+     "total_mean": 208.18416245836468,
+     "total_max": 528,
+     "total_p99": 412,
+     "with_prompt_max": 635,
+     "with_prompt_p99": 488,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 141.15590415816052,
+     "total_mean": 305.41689051251745,
+     "total_max": 819,
+     "total_p99": 635,
+     "with_prompt_max": 923,
+     "with_prompt_p99": 715,
+     "over_1024": 0
+    },
+    "prompt_max": 132,
+    "plain_with_prompt_max": 467
+   },
+   "10": {
+    "n": 5607,
+    "plain_mean": 190.74763688246836,
+    "plain_max": 410,
+    "goals": {
+     "extra_mean": 55.359550561797754,
+     "total_mean": 246.1071874442661,
+     "total_max": 593,
+     "total_p99": 472,
+     "with_prompt_max": 689,
+     "with_prompt_p99": 556,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 91.28428749777065,
+     "total_mean": 282.031924380239,
+     "total_max": 679,
+     "total_p99": 542,
+     "with_prompt_max": 774,
+     "with_prompt_p99": 623,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 108.77403245942571,
+     "total_mean": 299.52166934189404,
+     "total_max": 742,
+     "total_p99": 562,
+     "with_prompt_max": 838,
+     "with_prompt_p99": 648,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 57.49010165864098,
+     "total_mean": 248.23773854110934,
+     "total_max": 593,
+     "total_p99": 479,
+     "with_prompt_max": 689,
+     "with_prompt_p99": 557,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 174.83449259853754,
+     "total_mean": 365.5821294810059,
+     "total_max": 943,
+     "total_p99": 729,
+     "with_prompt_max": 1038,
+     "with_prompt_p99": 817,
+     "over_1024": 2
+    },
+    "prompt_max": 122,
+    "plain_with_prompt_max": 510
+   },
+   "11": {
+    "n": 6610,
+    "plain_mean": 219.92934947049923,
+    "plain_max": 430,
+    "goals": {
+     "extra_mean": 72.79682299546143,
+     "total_mean": 292.72617246596064,
+     "total_max": 642,
+     "total_p99": 532,
+     "with_prompt_max": 748,
+     "with_prompt_p99": 622,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 112.45854765506807,
+     "total_mean": 332.38789712556735,
+     "total_max": 724,
+     "total_p99": 604,
+     "with_prompt_max": 830,
+     "with_prompt_p99": 696,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 124.97004538577912,
+     "total_mean": 344.8993948562784,
+     "total_max": 759,
+     "total_p99": 619,
+     "with_prompt_max": 850,
+     "with_prompt_p99": 713,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 74.47019667170953,
+     "total_mean": 294.39954614220875,
+     "total_max": 642,
+     "total_p99": 535,
+     "with_prompt_max": 748,
+     "with_prompt_p99": 626,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 217.56656580937974,
+     "total_mean": 437.49591527987894,
+     "total_max": 993,
+     "total_p99": 820,
+     "with_prompt_max": 1099,
+     "with_prompt_p99": 912,
+     "over_1024": 5
+    },
+    "prompt_max": 124,
+    "plain_with_prompt_max": 536
+   },
+   "12": {
+    "n": 2456,
+    "plain_mean": 238.2365635179153,
+    "plain_max": 440,
+    "goals": {
+     "extra_mean": 80.09079804560261,
+     "total_mean": 318.3273615635179,
+     "total_max": 677,
+     "total_p99": 546,
+     "with_prompt_max": 763,
+     "with_prompt_p99": 631,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 121.25447882736157,
+     "total_mean": 359.49104234527687,
+     "total_max": 750,
+     "total_p99": 615,
+     "with_prompt_max": 836,
+     "with_prompt_p99": 698,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 150.01832247557005,
+     "total_mean": 388.25488599348535,
+     "total_max": 768,
+     "total_p99": 664,
+     "with_prompt_max": 851,
+     "with_prompt_p99": 761,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 81.4979641693811,
+     "total_mean": 319.7345276872964,
+     "total_max": 677,
+     "total_p99": 550,
+     "with_prompt_max": 763,
+     "with_prompt_p99": 636,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 234.98941368078175,
+     "total_mean": 473.2259771986971,
+     "total_max": 1036,
+     "total_p99": 824,
+     "with_prompt_max": 1122,
+     "with_prompt_p99": 916,
+     "over_1024": 2
+    },
+    "prompt_max": 120,
+    "plain_with_prompt_max": 526
+   },
+   "13": {
+    "n": 331,
+    "plain_mean": 259.4561933534743,
+    "plain_max": 433,
+    "goals": {
+     "extra_mean": 90.0392749244713,
+     "total_mean": 349.49546827794563,
+     "total_max": 626,
+     "total_p99": 571,
+     "with_prompt_max": 712,
+     "with_prompt_p99": 664,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 132.55287009063443,
+     "total_mean": 392.00906344410873,
+     "total_max": 707,
+     "total_p99": 637,
+     "with_prompt_max": 801,
+     "with_prompt_p99": 729,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 163.89728096676737,
+     "total_mean": 423.3534743202417,
+     "total_max": 885,
+     "total_p99": 721,
+     "with_prompt_max": 979,
+     "with_prompt_p99": 793,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 91.20845921450152,
+     "total_mean": 350.66465256797585,
+     "total_max": 626,
+     "total_p99": 571,
+     "with_prompt_max": 712,
+     "with_prompt_p99": 664,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 256.81268882175226,
+     "total_mean": 516.2688821752266,
+     "total_max": 959,
+     "total_p99": 857,
+     "with_prompt_max": 1053,
+     "with_prompt_p99": 937,
+     "over_1024": 2
+    },
+    "prompt_max": 97,
+    "plain_with_prompt_max": 527
+   },
+   "14": {
+    "n": 47,
+    "plain_mean": 263.9148936170213,
+    "plain_max": 431,
+    "goals": {
+     "extra_mean": 89.14893617021276,
+     "total_mean": 353.06382978723406,
+     "total_max": 663,
+     "total_p99": 663,
+     "with_prompt_max": 745,
+     "with_prompt_p99": 745,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 129.7659574468085,
+     "total_mean": 393.6808510638298,
+     "total_max": 728,
+     "total_p99": 728,
+     "with_prompt_max": 810,
+     "with_prompt_p99": 810,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 162.87234042553192,
+     "total_mean": 426.78723404255317,
+     "total_max": 758,
+     "total_p99": 758,
+     "with_prompt_max": 840,
+     "with_prompt_p99": 840,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 89.61702127659575,
+     "total_mean": 353.531914893617,
+     "total_max": 663,
+     "total_p99": 663,
+     "with_prompt_max": 745,
+     "with_prompt_p99": 745,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 253.63829787234042,
+     "total_mean": 517.5531914893617,
+     "total_max": 995,
+     "total_p99": 995,
+     "with_prompt_max": 1077,
+     "with_prompt_p99": 1077,
+     "over_1024": 1
+    },
+    "prompt_max": 101,
+    "plain_with_prompt_max": 513
+   },
+   "15": {
+    "n": 2,
+    "plain_mean": 271.0,
+    "plain_max": 318,
+    "goals": {
+     "extra_mean": 85.5,
+     "total_mean": 356.5,
+     "total_max": 430,
+     "total_p99": 430,
+     "with_prompt_max": 510,
+     "with_prompt_p99": 510,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 123.5,
+     "total_mean": 394.5,
+     "total_max": 472,
+     "total_p99": 472,
+     "with_prompt_max": 552,
+     "with_prompt_p99": 552,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 157.5,
+     "total_mean": 428.5,
+     "total_max": 472,
+     "total_p99": 472,
+     "with_prompt_max": 552,
+     "with_prompt_p99": 552,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 89.0,
+     "total_mean": 360.0,
+     "total_max": 437,
+     "total_p99": 437,
+     "with_prompt_max": 517,
+     "with_prompt_p99": 517,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 249.5,
+     "total_mean": 520.5,
+     "total_max": 633,
+     "total_p99": 633,
+     "with_prompt_max": 713,
+     "with_prompt_p99": 713,
+     "over_1024": 0
+    },
+    "prompt_max": 80,
+    "plain_with_prompt_max": 398
+   }
+  },
+  "overhead": {
+   "goals": 0.2459115942132673,
+   "start": 0.43991055847022625,
+   "every": 0.5226686288182018,
+   "boxes": 0.2520079491352206,
+   "naive": 0.825893796163348
+  },
+  "groups_per_line": {
+   "goals": 0.25807943835036384,
+   "start": 0.37976457225850985,
+   "every": 0.4762521949676716,
+   "boxes": 0.2515185179408133,
+   "naive": 0.6467176946048674
+  }
+ },
+ "fitcheck_constructed": {
+  "counts": {
+   "proofs": 5535,
+   "has_box": 5041,
+   "boxes": 19161,
+   "sub_goals": 8070,
+   "has_split": 3663,
+   "root_split": 3164,
+   "andi_final": 3170
+  },
+  "discharge": {
+   "IMPI": 10669,
+   "IMPI:goal_directed": 9501,
+   "NEGI": 1378,
+   "NEGI:lemma": 987,
+   "ORE": 7114,
+   "ORE:lemma": 3964,
+   "NEGI:goal_directed": 391,
+   "ORE:goal_directed": 3150,
+   "IMPI:lemma": 1168
+  },
+  "max_tokens_per_line_p99": 63,
+  "max_tokens_per_line_max": 110,
+  "by_len": {
+   "6": {
+    "n": 200,
+    "plain_mean": 102.98,
+    "plain_max": 143,
+    "goals": {
+     "extra_mean": 27.545,
+     "total_mean": 130.525,
+     "total_max": 183,
+     "total_p99": 182,
+     "with_prompt_max": 242,
+     "with_prompt_p99": 242,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 27.545,
+     "total_mean": 130.525,
+     "total_max": 183,
+     "total_p99": 182,
+     "with_prompt_max": 242,
+     "with_prompt_p99": 242,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 27.925,
+     "total_mean": 130.905,
+     "total_max": 183,
+     "total_p99": 182,
+     "with_prompt_max": 242,
+     "with_prompt_p99": 242,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 0.0,
+     "total_mean": 102.98,
+     "total_max": 143,
+     "total_p99": 139,
+     "with_prompt_max": 203,
+     "with_prompt_p99": 198,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 58.04,
+     "total_mean": 161.02,
+     "total_max": 255,
+     "total_p99": 250,
+     "with_prompt_max": 314,
+     "with_prompt_p99": 310,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 203
+   },
+   "7": {
+    "n": 200,
+    "plain_mean": 106.68,
+    "plain_max": 157,
+    "goals": {
+     "extra_mean": 23.57,
+     "total_mean": 130.25,
+     "total_max": 209,
+     "total_p99": 208,
+     "with_prompt_max": 269,
+     "with_prompt_p99": 265,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 23.57,
+     "total_mean": 130.25,
+     "total_max": 209,
+     "total_p99": 208,
+     "with_prompt_max": 269,
+     "with_prompt_p99": 265,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 25.495,
+     "total_mean": 132.175,
+     "total_max": 252,
+     "total_p99": 210,
+     "with_prompt_max": 309,
+     "with_prompt_p99": 269,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 2.77,
+     "total_mean": 109.45,
+     "total_max": 211,
+     "total_p99": 210,
+     "with_prompt_max": 271,
+     "with_prompt_p99": 267,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 53.315,
+     "total_mean": 159.995,
+     "total_max": 277,
+     "total_p99": 274,
+     "with_prompt_max": 334,
+     "with_prompt_p99": 334,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 214
+   },
+   "8": {
+    "n": 200,
+    "plain_mean": 114.745,
+    "plain_max": 169,
+    "goals": {
+     "extra_mean": 24.64,
+     "total_mean": 139.385,
+     "total_max": 233,
+     "total_p99": 215,
+     "with_prompt_max": 293,
+     "with_prompt_p99": 268,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 24.64,
+     "total_mean": 139.385,
+     "total_max": 233,
+     "total_p99": 215,
+     "with_prompt_max": 293,
+     "with_prompt_p99": 268,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 26.56,
+     "total_mean": 141.305,
+     "total_max": 251,
+     "total_p99": 233,
+     "with_prompt_max": 311,
+     "with_prompt_p99": 286,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 15.0,
+     "total_mean": 129.745,
+     "total_max": 235,
+     "total_p99": 217,
+     "with_prompt_max": 295,
+     "with_prompt_p99": 270,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 59.125,
+     "total_mean": 173.87,
+     "total_max": 309,
+     "total_p99": 284,
+     "with_prompt_max": 369,
+     "with_prompt_p99": 337,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 229
+   },
+   "9": {
+    "n": 200,
+    "plain_mean": 128.58,
+    "plain_max": 208,
+    "goals": {
+     "extra_mean": 29.3,
+     "total_mean": 157.88,
+     "total_max": 274,
+     "total_p99": 260,
+     "with_prompt_max": 331,
+     "with_prompt_p99": 319,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 29.3,
+     "total_mean": 157.88,
+     "total_max": 274,
+     "total_p99": 260,
+     "with_prompt_max": 331,
+     "with_prompt_p99": 319,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 33.07,
+     "total_mean": 161.65,
+     "total_max": 274,
+     "total_p99": 260,
+     "with_prompt_max": 331,
+     "with_prompt_p99": 319,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 27.015,
+     "total_mean": 155.595,
+     "total_max": 293,
+     "total_p99": 280,
+     "with_prompt_max": 352,
+     "with_prompt_p99": 337,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 72.155,
+     "total_mean": 200.735,
+     "total_max": 406,
+     "total_p99": 356,
+     "with_prompt_max": 463,
+     "with_prompt_p99": 415,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 265
+   },
+   "10": {
+    "n": 200,
+    "plain_mean": 139.405,
+    "plain_max": 199,
+    "goals": {
+     "extra_mean": 33.63,
+     "total_mean": 173.035,
+     "total_max": 280,
+     "total_p99": 275,
+     "with_prompt_max": 337,
+     "with_prompt_p99": 335,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 33.63,
+     "total_mean": 173.035,
+     "total_max": 280,
+     "total_p99": 275,
+     "with_prompt_max": 337,
+     "with_prompt_p99": 335,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 37.77,
+     "total_mean": 177.175,
+     "total_max": 295,
+     "total_p99": 294,
+     "with_prompt_max": 355,
+     "with_prompt_p99": 351,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 36.735,
+     "total_mean": 176.14,
+     "total_max": 282,
+     "total_p99": 277,
+     "with_prompt_max": 339,
+     "with_prompt_p99": 337,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 81.58,
+     "total_mean": 220.985,
+     "total_max": 378,
+     "total_p99": 370,
+     "with_prompt_max": 435,
+     "with_prompt_p99": 430,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 259
+   },
+   "11": {
+    "n": 200,
+    "plain_mean": 156.19,
+    "plain_max": 216,
+    "goals": {
+     "extra_mean": 38.775,
+     "total_mean": 194.965,
+     "total_max": 307,
+     "total_p99": 302,
+     "with_prompt_max": 365,
+     "with_prompt_p99": 360,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 38.775,
+     "total_mean": 194.965,
+     "total_max": 307,
+     "total_p99": 302,
+     "with_prompt_max": 365,
+     "with_prompt_p99": 360,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 44.28,
+     "total_mean": 200.47,
+     "total_max": 330,
+     "total_p99": 307,
+     "with_prompt_max": 388,
+     "with_prompt_p99": 365,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 47.35,
+     "total_mean": 203.54,
+     "total_max": 345,
+     "total_p99": 337,
+     "with_prompt_max": 402,
+     "with_prompt_p99": 397,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 96.725,
+     "total_mean": 252.915,
+     "total_max": 415,
+     "total_p99": 408,
+     "with_prompt_max": 473,
+     "with_prompt_p99": 465,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 274
+   },
+   "12": {
+    "n": 200,
+    "plain_mean": 169.15,
+    "plain_max": 229,
+    "goals": {
+     "extra_mean": 43.245,
+     "total_mean": 212.395,
+     "total_max": 302,
+     "total_p99": 295,
+     "with_prompt_max": 362,
+     "with_prompt_p99": 351,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 43.245,
+     "total_mean": 212.395,
+     "total_max": 302,
+     "total_p99": 295,
+     "with_prompt_max": 362,
+     "with_prompt_p99": 351,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 48.0,
+     "total_mean": 217.15,
+     "total_max": 308,
+     "total_p99": 302,
+     "with_prompt_max": 367,
+     "with_prompt_p99": 362,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 53.935,
+     "total_mean": 223.085,
+     "total_max": 350,
+     "total_p99": 342,
+     "with_prompt_max": 410,
+     "with_prompt_p99": 402,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 107.905,
+     "total_mean": 277.055,
+     "total_max": 410,
+     "total_p99": 399,
+     "with_prompt_max": 470,
+     "with_prompt_p99": 457,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 285
+   },
+   "13": {
+    "n": 200,
+    "plain_mean": 182.475,
+    "plain_max": 252,
+    "goals": {
+     "extra_mean": 47.32,
+     "total_mean": 229.795,
+     "total_max": 353,
+     "total_p99": 350,
+     "with_prompt_max": 412,
+     "with_prompt_p99": 409,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 47.32,
+     "total_mean": 229.795,
+     "total_max": 353,
+     "total_p99": 350,
+     "with_prompt_max": 412,
+     "with_prompt_p99": 409,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 51.555,
+     "total_mean": 234.03,
+     "total_max": 353,
+     "total_p99": 350,
+     "with_prompt_max": 412,
+     "with_prompt_p99": 409,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 59.285,
+     "total_mean": 241.76,
+     "total_max": 399,
+     "total_p99": 360,
+     "with_prompt_max": 458,
+     "with_prompt_p99": 419,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 117.28,
+     "total_mean": 299.755,
+     "total_max": 488,
+     "total_p99": 465,
+     "with_prompt_max": 547,
+     "with_prompt_p99": 521,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 311
+   },
+   "14": {
+    "n": 200,
+    "plain_mean": 189.355,
+    "plain_max": 251,
+    "goals": {
+     "extra_mean": 47.26,
+     "total_mean": 236.615,
+     "total_max": 351,
+     "total_p99": 342,
+     "with_prompt_max": 406,
+     "with_prompt_p99": 402,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 47.26,
+     "total_mean": 236.615,
+     "total_max": 351,
+     "total_p99": 342,
+     "with_prompt_max": 406,
+     "with_prompt_p99": 402,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 51.025,
+     "total_mean": 240.38,
+     "total_max": 351,
+     "total_p99": 342,
+     "with_prompt_max": 406,
+     "with_prompt_p99": 402,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 61.965,
+     "total_mean": 251.32,
+     "total_max": 362,
+     "total_p99": 353,
+     "with_prompt_max": 420,
+     "with_prompt_p99": 412,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 116.005,
+     "total_mean": 305.36,
+     "total_max": 483,
+     "total_p99": 468,
+     "with_prompt_max": 538,
+     "with_prompt_p99": 528,
+     "over_1024": 0
+    },
+    "prompt_max": 60,
+    "plain_with_prompt_max": 310
+   },
+   "15": {
+    "n": 775,
+    "plain_mean": 214.31225806451613,
+    "plain_max": 382,
+    "goals": {
+     "extra_mean": 56.90064516129032,
+     "total_mean": 271.21290322580643,
+     "total_max": 600,
+     "total_p99": 484,
+     "with_prompt_max": 695,
+     "with_prompt_p99": 579,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 74.2,
+     "total_mean": 288.5122580645161,
+     "total_max": 672,
+     "total_p99": 539,
+     "with_prompt_max": 767,
+     "with_prompt_p99": 634,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 98.37935483870967,
+     "total_mean": 312.6916129032258,
+     "total_max": 996,
+     "total_p99": 632,
+     "with_prompt_max": 1105,
+     "with_prompt_p99": 726,
+     "over_1024": 1
+    },
+    "boxes": {
+     "extra_mean": 67.31870967741935,
+     "total_mean": 281.6309677419355,
+     "total_max": 600,
+     "total_p99": 484,
+     "with_prompt_max": 695,
+     "with_prompt_p99": 579,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 141.57290322580644,
+     "total_mean": 355.88516129032257,
+     "total_max": 848,
+     "total_p99": 689,
+     "with_prompt_max": 943,
+     "with_prompt_p99": 793,
+     "over_1024": 0
+    },
+    "prompt_max": 129,
+    "plain_with_prompt_max": 477
+   },
+   "16": {
+    "n": 890,
+    "plain_mean": 224.57303370786516,
+    "plain_max": 460,
+    "goals": {
+     "extra_mean": 56.64831460674157,
+     "total_mean": 281.22134831460676,
+     "total_max": 710,
+     "total_p99": 493,
+     "with_prompt_max": 843,
+     "with_prompt_p99": 589,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 72.63820224719102,
+     "total_mean": 297.21123595505617,
+     "total_max": 804,
+     "total_p99": 548,
+     "with_prompt_max": 937,
+     "with_prompt_p99": 649,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 100.18314606741573,
+     "total_mean": 324.7561797752809,
+     "total_max": 1091,
+     "total_p99": 691,
+     "with_prompt_max": 1239,
+     "with_prompt_p99": 789,
+     "over_1024": 2
+    },
+    "boxes": {
+     "extra_mean": 69.52359550561798,
+     "total_mean": 294.09662921348314,
+     "total_max": 710,
+     "total_p99": 493,
+     "with_prompt_max": 843,
+     "with_prompt_p99": 589,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 137.7438202247191,
+     "total_mean": 362.31685393258425,
+     "total_max": 994,
+     "total_p99": 696,
+     "with_prompt_max": 1142,
+     "with_prompt_p99": 797,
+     "over_1024": 3
+    },
+    "prompt_max": 148,
+    "plain_with_prompt_max": 593
+   },
+   "17": {
+    "n": 780,
+    "plain_mean": 237.98076923076923,
+    "plain_max": 473,
+    "goals": {
+     "extra_mean": 62.792307692307695,
+     "total_mean": 300.7730769230769,
+     "total_max": 701,
+     "total_p99": 545,
+     "with_prompt_max": 839,
+     "with_prompt_p99": 641,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 78.5448717948718,
+     "total_mean": 316.52564102564105,
+     "total_max": 794,
+     "total_p99": 607,
+     "with_prompt_max": 932,
+     "with_prompt_p99": 707,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 105.23589743589744,
+     "total_mean": 343.21666666666664,
+     "total_max": 938,
+     "total_p99": 680,
+     "with_prompt_max": 1076,
+     "with_prompt_p99": 795,
+     "over_1024": 1
+    },
+    "boxes": {
+     "extra_mean": 78.48589743589744,
+     "total_mean": 316.46666666666664,
+     "total_max": 701,
+     "total_p99": 545,
+     "with_prompt_max": 839,
+     "with_prompt_p99": 641,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 152.15384615384616,
+     "total_mean": 390.13461538461536,
+     "total_max": 1070,
+     "total_p99": 767,
+     "with_prompt_max": 1167,
+     "with_prompt_p99": 863,
+     "over_1024": 2
+    },
+    "prompt_max": 138,
+    "plain_with_prompt_max": 611
+   },
+   "18": {
+    "n": 666,
+    "plain_mean": 246.19819819819818,
+    "plain_max": 430,
+    "goals": {
+     "extra_mean": 64.7012012012012,
+     "total_mean": 310.8993993993994,
+     "total_max": 643,
+     "total_p99": 510,
+     "with_prompt_max": 744,
+     "with_prompt_p99": 618,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 78.41891891891892,
+     "total_mean": 324.6171171171171,
+     "total_max": 712,
+     "total_p99": 565,
+     "with_prompt_max": 813,
+     "with_prompt_p99": 668,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 101.04054054054055,
+     "total_mean": 347.23873873873873,
+     "total_max": 873,
+     "total_p99": 645,
+     "with_prompt_max": 995,
+     "with_prompt_p99": 762,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 83.08408408408408,
+     "total_mean": 329.28228228228227,
+     "total_max": 643,
+     "total_p99": 515,
+     "with_prompt_max": 744,
+     "with_prompt_p99": 618,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 154.56906906906906,
+     "total_mean": 400.76726726726724,
+     "total_max": 913,
+     "total_p99": 710,
+     "with_prompt_max": 1014,
+     "with_prompt_p99": 796,
+     "over_1024": 0
+    },
+    "prompt_max": 131,
+    "plain_with_prompt_max": 553
+   },
+   "19": {
+    "n": 226,
+    "plain_mean": 261.429203539823,
+    "plain_max": 472,
+    "goals": {
+     "extra_mean": 71.1283185840708,
+     "total_mean": 332.5575221238938,
+     "total_max": 638,
+     "total_p99": 571,
+     "with_prompt_max": 766,
+     "with_prompt_p99": 678,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 96.13274336283186,
+     "total_mean": 357.5619469026549,
+     "total_max": 699,
+     "total_p99": 639,
+     "with_prompt_max": 827,
+     "with_prompt_p99": 742,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 134.6150442477876,
+     "total_mean": 396.04424778761063,
+     "total_max": 1052,
+     "total_p99": 737,
+     "with_prompt_max": 1192,
+     "with_prompt_p99": 853,
+     "over_1024": 1
+    },
+    "boxes": {
+     "extra_mean": 75.09292035398231,
+     "total_mean": 336.5221238938053,
+     "total_max": 638,
+     "total_p99": 571,
+     "with_prompt_max": 766,
+     "with_prompt_p99": 678,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 161.1283185840708,
+     "total_mean": 422.5575221238938,
+     "total_max": 877,
+     "total_p99": 849,
+     "with_prompt_max": 1017,
+     "with_prompt_p99": 968,
+     "over_1024": 0
+    },
+    "prompt_max": 140,
+    "plain_with_prompt_max": 600
+   },
+   "20": {
+    "n": 153,
+    "plain_mean": 278.83006535947715,
+    "plain_max": 425,
+    "goals": {
+     "extra_mean": 74.88235294117646,
+     "total_mean": 353.7124183006536,
+     "total_max": 618,
+     "total_p99": 583,
+     "with_prompt_max": 714,
+     "with_prompt_p99": 706,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 99.41830065359477,
+     "total_mean": 378.2483660130719,
+     "total_max": 672,
+     "total_p99": 644,
+     "with_prompt_max": 768,
+     "with_prompt_p99": 752,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 148.37254901960785,
+     "total_mean": 427.202614379085,
+     "total_max": 837,
+     "total_p99": 745,
+     "with_prompt_max": 938,
+     "with_prompt_p99": 840,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 78.45098039215686,
+     "total_mean": 357.281045751634,
+     "total_max": 618,
+     "total_p99": 585,
+     "with_prompt_max": 714,
+     "with_prompt_p99": 706,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 162.7843137254902,
+     "total_mean": 441.6143790849673,
+     "total_max": 857,
+     "total_p99": 851,
+     "with_prompt_max": 953,
+     "with_prompt_p99": 946,
+     "over_1024": 0
+    },
+    "prompt_max": 136,
+    "plain_with_prompt_max": 554
+   },
+   "21": {
+    "n": 97,
+    "plain_mean": 282.4020618556701,
+    "plain_max": 447,
+    "goals": {
+     "extra_mean": 81.68041237113403,
+     "total_mean": 364.08247422680415,
+     "total_max": 669,
+     "total_p99": 669,
+     "with_prompt_max": 789,
+     "with_prompt_p99": 789,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 108.25773195876289,
+     "total_mean": 390.659793814433,
+     "total_max": 736,
+     "total_p99": 736,
+     "with_prompt_max": 857,
+     "with_prompt_p99": 857,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 154.659793814433,
+     "total_mean": 437.0618556701031,
+     "total_max": 1008,
+     "total_p99": 1008,
+     "with_prompt_max": 1133,
+     "with_prompt_p99": 1133,
+     "over_1024": 1
+    },
+    "boxes": {
+     "extra_mean": 84.6082474226804,
+     "total_mean": 367.0103092783505,
+     "total_max": 673,
+     "total_p99": 673,
+     "with_prompt_max": 789,
+     "with_prompt_p99": 789,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 175.97938144329896,
+     "total_mean": 458.3814432989691,
+     "total_max": 934,
+     "total_p99": 934,
+     "with_prompt_max": 1055,
+     "with_prompt_p99": 1055,
+     "over_1024": 2
+    },
+    "prompt_max": 125,
+    "plain_with_prompt_max": 568
+   },
+   "22": {
+    "n": 70,
+    "plain_mean": 305.7142857142857,
+    "plain_max": 429,
+    "goals": {
+     "extra_mean": 90.28571428571429,
+     "total_mean": 396.0,
+     "total_max": 627,
+     "total_p99": 627,
+     "with_prompt_max": 731,
+     "with_prompt_p99": 731,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 118.3,
+     "total_mean": 424.01428571428573,
+     "total_max": 672,
+     "total_p99": 672,
+     "with_prompt_max": 776,
+     "with_prompt_p99": 776,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 165.97142857142856,
+     "total_mean": 471.6857142857143,
+     "total_max": 764,
+     "total_p99": 764,
+     "with_prompt_max": 874,
+     "with_prompt_p99": 874,
+     "over_1024": 0
+    },
+    "boxes": {
+     "extra_mean": 93.88571428571429,
+     "total_mean": 399.6,
+     "total_max": 627,
+     "total_p99": 627,
+     "with_prompt_max": 731,
+     "with_prompt_p99": 731,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 195.77142857142857,
+     "total_mean": 501.48571428571427,
+     "total_max": 834,
+     "total_p99": 834,
+     "with_prompt_max": 938,
+     "with_prompt_p99": 938,
+     "over_1024": 0
+    },
+    "prompt_max": 128,
+    "plain_with_prompt_max": 533
+   },
+   "23": {
+    "n": 40,
+    "plain_mean": 329.075,
+    "plain_max": 523,
+    "goals": {
+     "extra_mean": 120.75,
+     "total_mean": 449.825,
+     "total_max": 839,
+     "total_p99": 839,
+     "with_prompt_max": 972,
+     "with_prompt_p99": 972,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 156.225,
+     "total_mean": 485.3,
+     "total_max": 922,
+     "total_p99": 922,
+     "with_prompt_max": 1055,
+     "with_prompt_p99": 1055,
+     "over_1024": 1
+    },
+    "every": {
+     "extra_mean": 211.9,
+     "total_mean": 540.975,
+     "total_max": 926,
+     "total_p99": 926,
+     "with_prompt_max": 1059,
+     "with_prompt_p99": 1059,
+     "over_1024": 1
+    },
+    "boxes": {
+     "extra_mean": 124.775,
+     "total_mean": 453.85,
+     "total_max": 839,
+     "total_p99": 839,
+     "with_prompt_max": 972,
+     "with_prompt_p99": 972,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 256.7,
+     "total_mean": 585.775,
+     "total_max": 1117,
+     "total_p99": 1117,
+     "with_prompt_max": 1250,
+     "with_prompt_p99": 1250,
+     "over_1024": 2
+    },
+    "prompt_max": 133,
+    "plain_with_prompt_max": 656
+   },
+   "24": {
+    "n": 38,
+    "plain_mean": 325.94736842105266,
+    "plain_max": 463,
+    "goals": {
+     "extra_mean": 107.28947368421052,
+     "total_mean": 433.2368421052632,
+     "total_max": 724,
+     "total_p99": 724,
+     "with_prompt_max": 832,
+     "with_prompt_p99": 832,
+     "over_1024": 0
+    },
+    "start": {
+     "extra_mean": 138.5,
+     "total_mean": 464.44736842105266,
+     "total_max": 785,
+     "total_p99": 785,
+     "with_prompt_max": 893,
+     "with_prompt_p99": 893,
+     "over_1024": 0
+    },
+    "every": {
+     "extra_mean": 194.05263157894737,
+     "total_mean": 520.0,
+     "total_max": 1021,
+     "total_p99": 1021,
+     "with_prompt_max": 1122,
+     "with_prompt_p99": 1122,
+     "over_1024": 2
+    },
+    "boxes": {
+     "extra_mean": 112.23684210526316,
+     "total_mean": 438.1842105263158,
+     "total_max": 724,
+     "total_p99": 724,
+     "with_prompt_max": 832,
+     "with_prompt_p99": 832,
+     "over_1024": 0
+    },
+    "naive": {
+     "extra_mean": 240.5,
+     "total_mean": 566.4473684210526,
+     "total_max": 1003,
+     "total_p99": 1003,
+     "with_prompt_max": 1111,
+     "with_prompt_p99": 1111,
+     "over_1024": 2
+    },
+    "prompt_max": 129,
+    "plain_with_prompt_max": 571
+   }
+  },
+  "overhead": {
+   "goals": 0.2612519822922475,
+   "start": 0.3183263407602781,
+   "every": 0.41713083259319056,
+   "boxes": 0.299612980001792,
+   "naive": 0.6244705550766254
+  },
+  "groups_per_line": {
+   "goals": 0.31165644764234546,
+   "start": 0.33662363782770394,
+   "every": 0.43275020497734684,
+   "boxes": 0.2587008731674876,
+   "naive": 0.5805418047406794
+  }
+ }
+}

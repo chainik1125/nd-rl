@@ -1,0 +1,61 @@
+{
+ "built_utc": "2026-09-25T01:40:46Z",
+ "policy": "goals",
+ "goals_py_sha256": "b1488b879c98c409b1cb376c199425adf55f2f7b3b138b0b2b577cadae7df1ee",
+ "sources": {
+  "train_cap6": {
+   "proofs": 154990,
+   "groups": 112803,
+   "with_groups": 80245,
+   "tok_plain": 11180756,
+   "tok_annot": 12597616,
+   "max_seq": 706,
+   "overhead": 0.12672309457428454,
+   "file": "/scratch/cowifornia/nd-rl/ab3/goals/data/train_cap6_goals.jsonl",
+   "sha256": "0c9d6ec3e80b1817807c35dd17352f1bec559d8f465e98b4530bbd5fe6b8edb2",
+   "src": "/scratch/cowifornia/nd-rl/ab3/frozen/data/train_cap6.jsonl",
+   "src_sha256": "9c024cd9c6225efdb3df93da983a34efeb77e237abb8952b9341d49824719e04",
+   "n": 154990
+  },
+  "heldout_cap6": {
+   "proofs": 5000,
+   "groups": 3677,
+   "with_groups": 2610,
+   "tok_plain": 363090,
+   "tok_annot": 410382,
+   "max_seq": 579,
+   "overhead": 0.1302486986697513,
+   "file": "/scratch/cowifornia/nd-rl/ab3/goals/data/heldout_cap6_goals.jsonl",
+   "sha256": "3f510dffe3adb8d1639a1bce28ddebe0ec542394fe2babaec63574fde11192f5",
+   "src": "/scratch/cowifornia/nd-rl/ab3/frozen/data/heldout_cap6.jsonl",
+   "src_sha256": "46a49f4421c5225b1746e9b61533dee26d951636b707ef34493b69fbb8bfcc62",
+   "n": 5000
+  },
+  "found_rl": {
+   "proofs": 59885,
+   "groups": 131629,
+   "with_groups": 57771,
+   "tok_plain": 9085265,
+   "tok_annot": 11319437,
+   "max_seq": 763,
+   "overhead": 0.24591159421326725,
+   "files": [
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/A_s101/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/A_s102/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/A_s103/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/B_s101/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/B_s102/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/B_s103/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/C_s101/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/C_s102/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/lengthexp/runs/C_s103/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039_s101/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039_s102/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039s1_s101/found_targets.jsonl",
+    "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039s2_s101/found_targets.jsonl"
+   ],
+   "n": 59885
+  }
+ },
+ "ok": true
+}

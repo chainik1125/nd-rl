@@ -1,0 +1,125 @@
+{
+ "written_on": "2026-09-28",
+ "method": "Existing run outputs only; no new sampling. Written lines = the found proof as stored in found_targets.jsonl. pass@1 = mean over theorems of n_ok/k from final-evaluation per-theorem rows.",
+ "runs": [
+  {
+   "run": "ab3/base039/runs/seed039_s101",
+   "recipe": "run-3 seed (no written-line cap)",
+   "found_proofs": 8710,
+   "written_gt11": 765,
+   "written_hist_ge12": {
+    "12": 627,
+    "13": 121,
+    "14": 16,
+    "15": 1
+   },
+   "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039_s101/found_targets.jsonl",
+   "source_sha256": "c1894faa4a11500720326b9dfd49bd6f765b5edbde12ca878dd72b332fe3d873",
+   "harness_frontier_pass1_by_len_pct": {
+    "12": 18.92,
+    "13": 15.62,
+    "14": 0.38
+   }
+  },
+  {
+   "run": "ab3/base039/runs/seed039_s102",
+   "recipe": "run-3 seed (no written-line cap)",
+   "found_proofs": 8421,
+   "written_gt11": 774,
+   "written_hist_ge12": {
+    "12": 675,
+    "13": 88,
+    "14": 11
+   },
+   "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039_s102/found_targets.jsonl",
+   "source_sha256": "4f6e9d2b8fec64b35db0caee51abfacfe8fb759140138b470e019ffa6041984f",
+   "harness_frontier_pass1_by_len_pct": {
+    "12": 14.77,
+    "13": 11.99,
+    "14": 0.0
+   }
+  },
+  {
+   "run": "ab3/base039/runs/seed039s1_s101",
+   "recipe": "run-3 seed (no written-line cap)",
+   "found_proofs": 7588,
+   "written_gt11": 443,
+   "written_hist_ge12": {
+    "12": 400,
+    "13": 34,
+    "14": 8,
+    "15": 1
+   },
+   "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039s1_s101/found_targets.jsonl",
+   "source_sha256": "8c254f891b57081cfd8c9529c1033c0802d25918a9224f2c16ec5c501237a1f0",
+   "harness_frontier_pass1_by_len_pct": {
+    "12": 17.24,
+    "13": 10.27,
+    "14": 0.44
+   }
+  },
+  {
+   "run": "ab3/base039/runs/seed039s2_s101",
+   "recipe": "run-3 seed (no written-line cap)",
+   "found_proofs": 8076,
+   "written_gt11": 780,
+   "written_hist_ge12": {
+    "12": 683,
+    "13": 85,
+    "14": 12
+   },
+   "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039s2_s101/found_targets.jsonl",
+   "source_sha256": "8c0f5059fd4068aa9a38b28f13e1202b1e9fc638967ecf5b538ae87c85d31b76",
+   "harness_frontier_pass1_by_len_pct": {
+    "12": 15.67,
+    "13": 12.56,
+    "14": 0.0
+   }
+  },
+  {
+   "run": "ab3/midtrain/runs/base_s101",
+   "recipe": "arm C (written lines <= 11 trained)",
+   "found_proofs": 7631,
+   "written_gt11": 335,
+   "written_hist_ge12": {
+    "12": 303,
+    "13": 30,
+    "14": 2
+   },
+   "source": "/scratch/cowifornia/nd-rl/ab3/midtrain/runs/base_s101/found_targets.jsonl",
+   "source_sha256": "bee6229c295e9adc0b7241003ee1830a4cd2c5dc8c55d348ebd911432817bcb8"
+  },
+  {
+   "run": "ab2/audit/runs/champion2_1030",
+   "recipe": "run-2 champion 2, n060 recipe, 2 h (no cap)",
+   "found_proofs": 61663,
+   "written_gt11": 31873,
+   "written_hist_ge12": {
+    "12": 14527,
+    "13": 10287,
+    "14": 4525,
+    "15": 1672,
+    "16": 623,
+    "17": 173,
+    "18": 44,
+    "19": 13,
+    "20": 8,
+    "21": 1
+   },
+   "source": "/scratch/cowifornia/nd-rl/ab2/audit/runs/champion2_1030/found_targets.jsonl",
+   "source_sha256": "36791152c6ec553d5c5b4a136f7a40b93514ecbebd4bb9c01bc2095deeb93f93",
+   "found_L11_written_gt11": 23353,
+   "found_L11": 27092
+  }
+ ],
+ "champion2_sealed_L12_14_pass1_by_len_pct": {
+  "12": 13.93,
+  "13": 11.14,
+  "14": 1.47
+ },
+ "champion2_sealed_source": {
+  "path": "/scratch/cowifornia/nd-rl/ab2/monitor/final/champion2_n060_fullpool/sealed_L12-14_k256_s0_per_theorem.jsonl",
+  "sha256": "4c466342ec642ce3e26082c2bab5d3de337b77461f65da13306677f0c9c30acb",
+  "k": 256
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "039 base, s101": {
+  "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039_s101/summary.json",
+  "source_sha256": "0d9b97c2988c7bce59d42e3695fdc9ebe4a56ad34fd8db8669992e26513b0242",
+  "dev_of_1200": 582,
+  "frontier_of_1000": 278,
+  "heldout_greedy": 0.987,
+  "status": "ok"
+ },
+ "039 base, s102": {
+  "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039_s102/summary.json",
+  "source_sha256": "b3dca703ab656f01280784b35e37fe67bc0891dc0c6e7332fad9a4a1b694c7fc",
+  "dev_of_1200": 531,
+  "frontier_of_1000": 259,
+  "heldout_greedy": 0.982,
+  "status": "ok"
+ },
+ "039 base seed 1, s101": {
+  "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039s1_s101/summary.json",
+  "source_sha256": "2a6c2b73a430bbcd951f9c28b334f472b65a92e5e39163548230481b775e140e",
+  "dev_of_1200": 519,
+  "frontier_of_1000": 259,
+  "heldout_greedy": 0.986,
+  "status": "ok"
+ },
+ "039 base seed 2, s101": {
+  "source": "/scratch/cowifornia/nd-rl/ab3/base039/runs/seed039s2_s101/summary.json",
+  "source_sha256": "819e704cdf08ff948fac654bdde171dfbce86af003a8a1d2118937a55f137e19",
+  "dev_of_1200": 549,
+  "frontier_of_1000": 263,
+  "heldout_greedy": 0.98,
+  "status": "ok"
+ },
+ "original base, s101": {
+  "source": "/scratch/cowifornia/nd-rl/ab3/seed/runs/seed_s101/summary.json",
+  "source_sha256": "50bccb93132edaac93ce015a002ded08ecf630a2c71b3bb6dea7334c030f47de",
+  "dev_of_1200": 292,
+  "frontier_of_1000": 147,
+  "heldout_greedy": 0.958,
+  "status": "ok"
+ },
+ "original base, s102": {
+  "source": "/scratch/cowifornia/nd-rl/ab3/seed/runs/seed_s102/summary.json",
+  "source_sha256": "946fa426c33cd69186fa2541c1bab5f3f58c6ea945188777ceaf12b2ef380795",
+  "dev_of_1200": 295,
+  "frontier_of_1000": 140,
+  "heldout_greedy": 0.959,
+  "status": "ok"
+ }
+}
