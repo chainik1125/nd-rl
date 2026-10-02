@@ -28,6 +28,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from matplotlib.ticker import FixedLocator, MaxNLocator
 
+from ..analysis.dan_views import MAX_TRAIN_PREMISES
 from ..dash import primitives as P
 from ..dash.chart_data import ChartData
 from . import plots as PL
@@ -130,6 +131,125 @@ def _share_y(axs: Sequence[Axes], *, top: float | None = None) -> None:
     hi = top if top is not None else max(ax.get_ylim()[1] for ax in axs)
     for ax in axs:
         ax.set_ylim(0.0, hi)
+
+
+# ======================================================================= 1.1 premise ceiling
+
+#: The most premises any training theorem has.
+MAXP = MAX_TRAIN_PREMISES
+_PREMISE_X = (-0.5, 7.5)
+_TRAIN_COLOR = "#8a8a8a"
+
+
+def _shade_beyond(ax: Axes, *, label: bool = False, x_hi: float = _PREMISE_X[1]) -> None:
+    """Grey background over the premise counts no training theorem has."""
+    ax.axvspan(MAXP + 0.5, x_hi, color=S.SHADE, linewidth=0, zorder=0)
+    if label:
+        ax.text(
+            (MAXP + 0.5 + x_hi) / 2,
+            0.96,
+            "not in\ntraining",
+            transform=ax.get_xaxis_transform(),
+            ha="center",
+            va="top",
+            fontsize=S.FS_TICK - 1,
+            color=S.INK2,
+        )
+
+
+def _premise_axis(ax: Axes) -> None:
+    ax.set_xlim(*_PREMISE_X)
+    ax.xaxis.set_major_locator(FixedLocator(list(range(0, 8))))
+    S.light_grid(ax)
+
+
+def _draw_train(ax: Axes, cd: ChartData, *, size: float = S.FS_TICK) -> None:
+    """Share of the cap-12 checkpoints' training theorems (Stage-1 set and RL targets pooled) with
+    each number of premises."""
+    train = cast("dict[str, dict[int, int]]", cd.extra.get("train") or {})
+    pooled: dict[int, int] = {}
+    for label, counts in train.items():
+        if label.startswith("cap-6"):
+            continue
+        for k, n in counts.items():
+            pooled[k] = pooled.get(k, 0) + n
+    tot = sum(pooled.values())
+    _shade_beyond(ax)
+    if tot:
+        ks = sorted(pooled)
+        ax.bar(ks, [pooled[k] / tot for k in ks], 0.7, color=_TRAIN_COLOR, zorder=2, linewidth=0)
+        ax.text(
+            (MAXP + 0.5 + _PREMISE_X[1]) / 2,
+            0.5,
+            "none",
+            transform=ax.get_xaxis_transform(),
+            ha="center",
+            va="center",
+            fontsize=size,
+            color=S.INK2,
+        )
+    _premise_axis(ax)
+    S.pct_axis(ax, nbins=4)
+    PL._ylim_zero(ax)  # noqa: SLF001
+
+
+def _ceiling_panel(ax: Axes, series: Sequence[P.Series], *, size: float = 3.0) -> list[str]:
+    _shade_beyond(ax)
+    names: list[str] = []
+    for s in series:
+        if s.pts:
+            PL._plot_line(ax, s.pts, S.model_style(s.name), marker_size=size)  # noqa: SLF001
+            names.append(s.name)
+    _premise_axis(ax)
+    S.pct_axis(ax, nbins=4)
+    ax.set_ylim(0, 1.02)
+    return names
+
+
+def fig_ceiling(cd: ChartData, *, narrow: bool = False) -> Figure:
+    panels = cast("dict[str, list[P.Series]]", cd.extra.get("suite_panels") or {})
+    order = [s for s in cast("list[str]", cd.extra.get("order") or list(panels)) if s in panels]
+    n = 1 + len(order)
+    cols = 2 if narrow else 4
+    rows = math.ceil(n / cols)
+    if narrow:
+        fig = S.new_figure(S.NARROW_W, 0.55 + 1.6 * rows)
+    else:
+        fig = S.new_figure(S.FULL_W, 0.45 + 1.6 * rows)
+    axs = list(fig.subplots(rows, cols, squeeze=False).flat)
+    _draw_train(axs[0], cd)
+    S.panel_title(axs[0], "a", "training theorems", size=S.FS_LABEL - 0.5)
+    axs[0].set_ylabel("share")
+    names: list[str] = []
+    for i, suite in enumerate(order, start=1):
+        ax = axs[i]
+        names += _ceiling_panel(ax, panels[suite])
+        S.panel_title(ax, "abcdefghij"[i], suite, size=S.FS_LABEL - 0.5)
+        if i % cols == 0:
+            ax.set_ylabel("pass@1")
+    for i, ax in enumerate(axs[:n]):
+        if i >= n - cols:
+            ax.set_xlabel("premises")
+    for ax in axs[n:]:
+        ax.axis("off")
+    handles = S.legend_handles([dstyle(m) for m in _seed0(names)])
+    handles.append(
+        Patch(
+            facecolor=S.SHADE,
+            edgecolor="none",
+            label=f"beyond training (> {MAXP} premises)"
+            if narrow
+            else "more premises than any training theorem",
+        )
+    )
+    PL._top_legend(fig, handles, ncol=2 if narrow else 3)  # noqa: SLF001
+    return fig
+
+
+def _mini_ceiling(ax: Axes, cd: ChartData) -> None:
+    pooled = cast("dict[str, list[tuple[float, float]]]", cd.extra.get("pooled") or {})
+    _ceiling_panel(ax, [P.Series(m, pts, "var(--s1)") for m, pts in pooled.items()], size=2.4)
+    ax.set_xlabel("premises", labelpad=1)
 
 
 # ===================================================================== 2. textbook pass@k
@@ -238,6 +358,7 @@ def fig_families(cd: ChartData) -> Figure:
     ax = fig.add_subplot()
     x_hi = float(cd.extra.get("x_hi") or 1.0)
     _dot_rows(ax, order, by_label, offs, x_hi, size=4.2)
+    _out_of_range(ax, order, cd, f"out of range: every item has ≥ {MAXP + 1} premises")
     ax.set_xlabel("written lines at n* (unseen theorems)")
     handles = S.legend_handles([dstyle(m) for m in models], kind="marker")
     handles.append(
@@ -251,6 +372,22 @@ def fig_families(cd: ChartData) -> Figure:
     )
     PL._top_legend(fig, handles, ncol=2)  # noqa: SLF001
     return fig
+
+
+def _out_of_range(ax: Axes, order: Sequence[str], cd: ChartData, text: str) -> None:
+    """Write `text` across the rows of families the premise ceiling leaves no item in."""
+    for label in cast("list[str]", cd.extra.get("out_of_range") or []):
+        if label in order:
+            ax.text(
+                0.0,
+                order.index(label),
+                text,
+                ha="left",
+                va="center",
+                fontsize=S.FS_TICK - 1,
+                color=S.REF,
+                style="italic",
+            )
 
 
 def _dot_rows(
@@ -311,6 +448,7 @@ def _mini_families(ax: Axes, cd: ChartData) -> None:
     models = _role_order(list({n for r in cd.rows for n, _v, _c, _z in r.points}))
     offs = dict(zip(models, PL._row_offsets(len(models), spread=0.18), strict=True))  # noqa: SLF001
     _dot_rows(ax, order, by_label, offs, float(cd.extra.get("x_hi") or 1.0), size=2.8)
+    _out_of_range(ax, order, cd, "out of range")
     ax.xaxis.set_major_locator(MaxNLocator(nbins=3, integer=True))
     ax.set_yticklabels([_short_family(o) for o in order])
     ax.tick_params(axis="y", pad=1.5, labelsize=S.FS_SMALL - 0.5)
@@ -486,7 +624,7 @@ def fig_skills(cd: ChartData, *, narrow: bool = False) -> Figure:
         S.panel_title(axl, "abc"[i], f"{display(m)}, by length")
         axl.legend(
             handles=S.legend_handles(styles),
-            loc="upper right",
+            loc="best",
             handlelength=2.2,
             fontsize=S.FS_TICK - 0.5,
         )
@@ -525,66 +663,164 @@ def _mini_skills(ax: Axes, cd: ChartData) -> None:
 
 # ============================================================================== 7. padding
 
-PAD_TITLE = {
-    "P2": "P2: +1 ∧I line per pad",
-    "P1-shared": "P1-shared: distractors",
-    "P1-disjoint": "P1-disjoint: distractors",
-}
 PAD_SHORT = {"P2": "P2", "P1-shared": "P1-shared", "P1-disjoint": "P1-disjoint"}
+#: Pad types told apart by line style and marker fill within a model's colour.
+_PAD_LINE: dict[str, dict[str, Any]] = {
+    "P1-shared": {"linestyle": "-"},
+    "P1-disjoint": {"linestyle": (0, (4, 1.6)), "filled": False},
+    "P2": {"linestyle": (0, (1, 1.2)), "marker": "^"},
+}
+
+
+def _pad_style(model: str, pad_type: str) -> S.ModelStyle:
+    return S.variant(S.model_style(model), model, **_PAD_LINE.get(pad_type, {}))
+
+
+def _pad_handles(types: Sequence[str]) -> list[Any]:
+    """Grey legend entries for the pad types (the colour is the model's)."""
+    return S.legend_handles(
+        [S.variant(S.ModelStyle(t, S.REF, "o"), t, **_PAD_LINE.get(t, {})) for t in types]
+    )
 
 
 def fig_padding(cd: ChartData, *, narrow: bool = False) -> Figure:
-    panels = cast("dict[str, list[P.Series]]", cd.extra.get("pad_panels") or {})
-    types = [t for t in ("P2", "P1-shared", "P1-disjoint") if t in panels]
-    n = max(len(types), 1)
+    """(a) pass@1 against total premises, one line per (model, pad type), the premise counts
+    beyond training shaded; (b) P2 against pads added."""
+    by: dict[str, dict[str, P.Series]] = {}
+    for s in cd.series:
+        t, _sep, m = s.name.partition(": ")
+        by.setdefault(m, {})[t] = s
+    p2 = cast("list[P.Series]", cd.extra.get("p2") or [])
     if narrow:
-        fig = S.new_figure(S.NARROW_W, 0.55 + 1.6 * n)
-        axs = list(fig.subplots(n, 1, squeeze=False)[:, 0])
+        fig = S.new_figure(S.NARROW_W, 0.75 + 1.75 * 2)
+        axs = list(fig.subplots(2, 1, squeeze=False)[:, 0])
     else:
-        fig = S.new_figure(S.FULL_W, 2.05)
-        axs = list(fig.subplots(1, n, squeeze=False, sharey=True)[0])
-    names: list[str] = []
-    for i, (ax, t) in enumerate(zip(axs, types, strict=True)):
-        for s in panels[t]:
-            if s.pts:
-                PL._plot_line(ax, s.pts, S.model_style(s.name))  # noqa: SLF001
-                names.append(s.name)
-        PL._integer_x(ax)  # noqa: SLF001
-        S.pct_axis(ax)
-        S.light_grid(ax)
-        ax.set_xlabel("pads added m" if t == "P2" else "distractor premises m")
-        if i == 0 or narrow:
-            ax.set_ylabel("pass@1")
-        S.panel_title(ax, "abc"[i] if n > 1 else None, PAD_TITLE.get(t, t), size=S.FS_LABEL - 0.5)
-    _share_y(axs, top=1.02)
-    _model_legend(fig, names)
+        fig = S.new_figure(S.FULL_W, 2.15)
+        axs = list(fig.subplots(1, 2, squeeze=False, gridspec_kw={"width_ratios": [1.45, 1.0]})[0])
+    ax = axs[0]
+    _shade_beyond(ax, label=True)
+    models = _role_order(list(by))
+    types = [t for t in ("P1-shared", "P1-disjoint", "P2") if any(t in by[m] for m in models)]
+    for m in models:
+        for t in types:
+            s = by[m].get(t)
+            if s is not None and s.pts:
+                PL._plot_line(ax, s.pts, _pad_style(m, t), marker_size=3.2)  # noqa: SLF001
+    ax.set_xlim(0.5, _PREMISE_X[1])
+    ax.xaxis.set_major_locator(FixedLocator(list(range(1, 8))))
+    S.pct_axis(ax)
+    ax.set_ylim(0, 1.02)
+    S.light_grid(ax)
+    ax.set_xlabel("premises in all (the theorem's own + P1 pads)")
+    ax.set_ylabel("pass@1")
+    S.panel_title(ax, "a", "by total premises, padded items", size=S.FS_LABEL - 0.5)
+    axb = axs[1]
+    for s in p2:
+        if s.pts:
+            PL._plot_line(axb, s.pts, S.model_style(s.name), marker_size=3.2)  # noqa: SLF001
+    PL._integer_x(axb)  # noqa: SLF001
+    S.pct_axis(axb)
+    axb.set_ylim(0, 1.02)
+    S.light_grid(axb)
+    axb.set_xlabel("P2 pads added m (+1 ∧I line each)")
+    if narrow:
+        axb.set_ylabel("pass@1")
+    S.panel_title(axb, "b", "P2: a longer proof and goal", size=S.FS_LABEL - 0.5)
+    handles = S.legend_handles([dstyle(m) for m in _seed0(models)]) + _pad_handles(types)
+    PL._top_legend(fig, handles, ncol=3 if narrow else 5)  # noqa: SLF001
     return fig
 
 
 def _mini_padding(ax: Axes, cd: ChartData) -> None:
-    """P2 (filled, solid) against the two P1 kinds pooled (hollow, dotted), per model."""
-    pooled = cast("dict[str, dict[str, list[tuple[float, float]]]]", cd.extra.get("mini") or {})
-    for model, curves in pooled.items():
-        st = S.model_style(model)
-        if curves.get("P2"):
-            PL._plot_line(
+    """Both P1 kinds pooled, against total premises, per model."""
+    pooled = cast("dict[str, list[tuple[float, float]]]", cd.extra.get("mini") or {})
+    _shade_beyond(ax)
+    for model, pts in pooled.items():
+        if pts:
+            PL._plot_line(  # noqa: SLF001
                 ax,
-                curves["P2"],
-                S.variant(st, model, linestyle="-"),  # noqa: SLF001
+                pts,
+                S.variant(S.model_style(model), model, linestyle=(0, (1, 1.2)), filled=False),
                 marker_size=2.4,
             )
-        if curves.get("P1"):
-            PL._plot_line(
-                ax,
-                curves["P1"],  # noqa: SLF001
-                S.variant(st, model, linestyle=(0, (1, 1.2)), filled=False),
-                marker_size=2.4,
-            )
-    PL._integer_x(ax, nbins=5)  # noqa: SLF001
+    ax.set_xlim(0.5, _PREMISE_X[1])
+    ax.xaxis.set_major_locator(FixedLocator([1, 3, 5, 7]))
     S.pct_axis(ax, nbins=4)
     ax.set_ylim(0, 1.02)
     S.light_grid(ax)
-    ax.set_xlabel("pads m", labelpad=1)
+    ax.set_xlabel("premises", labelpad=1)
+
+
+# ======================================================================= 2b. failure modes
+
+
+def _mini_failures(ax: Axes, cd: ChartData) -> None:
+    lookup = PL._bar_lookup(cd.bars)  # noqa: SLF001
+    groups = list(dict.fromkeys(g for g, _m in lookup))
+    models = _role_order(list(dict.fromkeys(m for _g, m in lookup)))
+    PL._grouped_bars(  # noqa: SLF001
+        ax,
+        groups,
+        models,
+        lambda g, m: lookup.get((g, m)),
+        width=0.38,
+        label_small=None,
+        y_top=1.0,
+        styles=S.model_style,
+    )
+    ax.set_xticklabels(groups, rotation=30, ha="right", rotation_mode="anchor")
+    S.pct_axis(ax, nbins=4)
+    PL._ylim_zero(ax)  # noqa: SLF001
+    S.light_grid(ax)
+
+
+# =================================================================================== 11a. EDL
+
+
+def fig_edl(cd: ChartData, *, narrow: bool = False) -> Figure:
+    """`plots.fig_edl`'s drawing (EDL* per class with the order spread; EDL* against starting
+    loss), with the legend under display names."""
+    fig = PL.fig_edl(cd, narrow=narrow)
+    for leg in list(fig.legends):
+        leg.remove()
+    models = _role_order(list({n for r in cd.rows for n, _v, _c, _z in r.points}))
+    _model_legend(fig, models, kind="marker")
+    return fig
+
+
+def _mini_edl(ax: Axes, cd: ChartData) -> None:
+    """RL's EDL* against pretrained's, one point per class (null control excluded): below the
+    diagonal means RL's is lower."""
+    null = cd.extra.get("null_control")
+    models = _role_order(list({n for r in cd.rows for n, _v, _c, _z in r.points}))
+    fz = next((m for m in models if S.parse_model_label(m)[1] == "fz"), None)
+    t1 = next((m for m in models if S.parse_model_label(m)[1] == "t1"), None)
+    pts = []
+    for r in cd.rows:
+        vals = {n: v for n, v, _c, _z in r.points if v is not None}
+        if r.label.replace(" (null control)", "") == null or fz not in vals or t1 not in vals:
+            continue
+        if vals[fz] > 0 and vals[t1] > 0:
+            pts.append((vals[fz], vals[t1]))
+    if not pts or t1 is None:
+        PL._mini_missing(ax)  # noqa: SLF001
+        return
+    lo = min(min(p) for p in pts) / 2
+    hi = max(max(p) for p in pts) * 2
+    ax.plot([lo, hi], [lo, hi], color=S.REF, linewidth=0.6, linestyle=(0, (1, 1.5)), zorder=1)
+    ax.plot(
+        [p[0] for p in pts],
+        [p[1] for p in pts],
+        linestyle="none",
+        zorder=3,
+        **S.model_style(t1).marker_kw(3.0),
+    )
+    S.plain_log_axis(ax, "x", numticks=4)
+    S.plain_log_axis(ax, "y", numticks=4)
+    ax.set_xlim(lo, hi)
+    ax.set_ylim(lo, hi)
+    ax.set_xlabel("pretrained", labelpad=1)
+    ax.set_ylabel("RL", labelpad=1)
 
 
 # ============================================================================ 9. held-out
@@ -996,22 +1232,26 @@ def _mini_probes(ax: Axes, cd: ChartData) -> None:
 
 #: (key, panel title, drawer), in the order of the page's later figures.
 OVERVIEW_PANELS: tuple[tuple[str, str, Callable[[Axes, ChartData], None]], ...] = (
+    ("do_ceiling", "Pass@1 by premises", _mini_ceiling),
     ("do_textbook", "Textbook pass@k", _mini_textbook),
     ("do_table1", "Textbook72 solved", _mini_textbook72),
+    ("do_failures", "How attempts end", _mini_failures),
     ("do_textbook_law", "textbook_law, unseen", _mini_textbook_law),
     ("do_heldout", "Held-out greedy", _mini_heldout),
     ("do_families", "Family horizon", _mini_families),
-    ("do_laws", "Laws vs substitution s", lambda ax, cd: _mini_lines(ax, cd, "s")),
+    ("do_laws", "Laws vs s", lambda ax, cd: _mini_lines(ax, cd, "s")),
     ("do_glue", "Glue ratio R", _mini_glue),
     ("do_prefix", "Prefix completion", lambda ax, cd: _mini_lines(ax, cd, "lines left")),
     ("do_skills", "Skills pass@1", _mini_skills),
-    ("do_padding", "Padding pass@1", _mini_padding),
+    ("do_padding", "Padding (P1) pass@1", _mini_padding),
+    ("do_edl", "EDL*, RL vs pretrained", _mini_edl),
     ("do_likelihood", "Log p per line (nats)", _mini_likelihood),
     ("do_weights", "Weight interpolation", _mini_weights),
     ("do_kl", "KL per token", _mini_kl),
     ("do_steering", "Steering pass@1", _mini_steering),
     ("do_probes", "Probe accuracy", _mini_probes),
 )
+_LETTERS = "abcdefghijklmnopqrstuvwxyz"
 
 
 def _legend_cell(ax: Axes, models: Sequence[str]) -> None:
@@ -1029,9 +1269,10 @@ def _legend_cell(ax: Axes, models: Sequence[str]) -> None:
             )
         )
     handles += [
-        _ref_handle("seed (dots, b)", marker="o", color=S.INK),
-        Line2D([], [], color=S.INK, linewidth=0.6, label="Dan's count (b)"),
-        Line2D([], [], color=S.INK, marker="o", markersize=2.6, linewidth=0.9, label="pass@1 (n)"),
+        _ref_handle("seed (dots, c)", marker="o", color=S.INK),
+        Line2D([], [], color=S.INK, linewidth=0.6, label="Dan's count (c)"),
+        Patch(facecolor=S.SHADE, edgecolor="none", label="> 3 premises (a, l)"),
+        Line2D([], [], color=S.INK, marker="o", markersize=2.6, linewidth=0.9, label="pass@1 (o)"),
         Line2D(
             [],
             [],
@@ -1041,7 +1282,7 @@ def _legend_cell(ax: Axes, models: Sequence[str]) -> None:
             markersize=2.6,
             markerfacecolor=S.WHITE,
             linewidth=0.9,
-            label="pass@128 (n)",
+            label="pass@128 (o)",
         ),
         Line2D(
             [],
@@ -1052,7 +1293,7 @@ def _legend_cell(ax: Axes, models: Sequence[str]) -> None:
             markersize=2.6,
             markerfacecolor=S.WHITE,
             linewidth=0.9,
-            label="P1 pads (g)",
+            label="P1 pads (l)",
         ),
     ]
     ax.legend(
@@ -1068,12 +1309,15 @@ def _legend_cell(ax: Axes, models: Sequence[str]) -> None:
 
 def fig_overview(charts: Sequence[ChartData], *, narrow: bool = False) -> Figure:
     by = {c.key: c for c in charts}
+    n_cells = len(OVERVIEW_PANELS) + 1
     if narrow:
-        fig = S.new_figure(S.NARROW_W, 10.2)
-        axs = fig.subplots(8, 2)
+        rows = math.ceil(n_cells / 2)
+        fig = S.new_figure(S.NARROW_W, 1.275 * rows)
+        axs = fig.subplots(rows, 2)
     else:
-        fig = S.new_figure(S.FULL_W, 5.6)
-        axs = fig.subplots(4, 4)
+        rows = math.ceil(n_cells / 4)
+        fig = S.new_figure(S.FULL_W, 1.4 * rows)
+        axs = fig.subplots(rows, 4)
     flat = list(axs.flat)
     models: list[str] = []
     for c in charts:
@@ -1092,7 +1336,7 @@ def fig_overview(charts: Sequence[ChartData], *, narrow: bool = False) -> Figure
         ax.tick_params(labelsize=S.FS_SMALL)
         ax.xaxis.label.set_size(S.FS_SMALL)
         ax.yaxis.label.set_size(S.FS_SMALL)
-        S.panel_title(ax, "abcdefghijklmnop"[i], title, size=S.FS_TICK)
+        S.panel_title(ax, _LETTERS[i], title, size=S.FS_TICK)
     _legend_cell(flat[len(OVERVIEW_PANELS)], models or ["dan12-fz-s0", "dan12-t1-s0"])
     for ax in flat[len(OVERVIEW_PANELS) + 1 :]:
         ax.axis("off")
@@ -1102,8 +1346,9 @@ def fig_overview(charts: Sequence[ChartData], *, narrow: bool = False) -> Figure
 # =============================================================================== registry
 
 #: key -> (figure function, width in inches); full-width figures also have a stacked layout
-#: (`NARROW`) the page serves below 600 px. Tables (Table 1, Table 2) have no figure.
+#: (`NARROW`) the page serves below 600 px. Tables have no figure.
 FIGURES: dict[str, tuple[Callable[[ChartData], Figure], float]] = {
+    "do_ceiling": (fig_ceiling, S.FULL_W),
     "do_textbook": (fig_textbook, S.FULL_W),
     "do_families": (fig_families, S.HALF_W),
     "do_laws": (fig_laws, S.HALF_W),
@@ -1113,15 +1358,18 @@ FIGURES: dict[str, tuple[Callable[[ChartData], Figure], float]] = {
     "do_prefix": (fig_prefix, S.HALF_W),
     "do_heldout": (fig_heldout, S.HALF_W),
     "do_textbook_law": (fig_textbook_law, S.HALF_W),
+    "do_edl": (fig_edl, S.FULL_W),
     "do_likelihood": (fig_likelihood, S.HALF_W),
     "do_kl": (fig_kl_wide, S.FULL_W),
     "do_weights": (fig_weights, S.HALF_W),
     "do_probes": (fig_probes, S.FULL_W),
 }
 NARROW: dict[str, Callable[[ChartData], Figure]] = {
+    "do_ceiling": lambda cd: fig_ceiling(cd, narrow=True),
     "do_textbook": lambda cd: fig_textbook(cd, narrow=True),
     "do_skills": lambda cd: fig_skills(cd, narrow=True),
     "do_padding": lambda cd: fig_padding(cd, narrow=True),
+    "do_edl": lambda cd: fig_edl(cd, narrow=True),
     "do_probes": lambda cd: fig_probes(cd, narrow=True),
     "do_kl": fig_kl,
 }

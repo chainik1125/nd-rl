@@ -182,14 +182,26 @@ def build_figures(store: Store, fig_dir: Path, *, with_dan: bool = False) -> lis
 
 def _tex(text: str) -> str:
     """Plain-text LaTeX escape for the Dan-only tables (cells are page HTML: tags dropped)."""
+    import html
     import re
 
     text = re.sub(r"<[^>]+>", " ", text).replace("&minus;", "-")
-    text = re.sub(r"\s+", " ", text).strip()
+    text = html.unescape(re.sub(r"\s+", " ", text).strip())
     out = text.replace("\\", r"\textbackslash{}")
     for ch in "&%$#_{}":
         out = out.replace(ch, "\\" + ch)
-    return out.replace("δ", r"$\delta$").replace("α", r"$\alpha$").replace("−", "-")
+    for sym, tex in (
+        ("δ", r"$\delta$"),
+        ("α", r"$\alpha$"),
+        ("−", "-"),
+        ("≥", r"$\geq$"),
+        ("≤", r"$\leq$"),
+        ("↳", r"$\hookrightarrow$"),
+        ("∧", r"$\wedge$"),
+        ("→", r"$\to$"),
+    ):
+        out = out.replace(sym, tex)
+    return out
 
 
 def dan_only_table_tex(cd: ChartData, label: str, caption: str) -> str:

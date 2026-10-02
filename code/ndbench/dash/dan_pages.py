@@ -38,7 +38,7 @@ so nothing here duplicates that rendering logic -- only the data-shaping is Dan-
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -58,7 +58,7 @@ from ..analysis._common import (
     models_present,
     problems_by_pid,
 )
-from ..core.types import JSON, ItemResult
+from ..core.types import JSON, ItemResult, Problem
 from ..figures.plots import DAN_FAMILY_ORDER
 from ..metrics import compositionality_ratio, pass_at_k
 from ..store import Store
@@ -280,13 +280,15 @@ def _data_dan_families(
     registry: Mapping[str, mr.ModelEntry],
     *,
     families: Sequence[str] = DAN_FAMILY_ORDER,
+    keep: Callable[[Problem], bool] | None = None,
 ) -> ChartData:
     """Figure 3 (`dash.summary._data_2_families`) per model family: one row per restricted
     family, x = mean written length of the items at n*, the largest size with pass@8 >= 50% over
     cells of >= 5 theorems unseen in *that model's own* training tiers. Reuses Figure 3's own
     `_family_horizon`/`_family_written_lines`, so the "ours" panel is Figure 3's rows (audit
     2026-10-01: this chart used to plot the best n* over all families as one bar per model, with
-    no item filter, and zero bars for models with no run)."""
+    no item filter, and zero bars for models with no run). `keep` (default none) drops the items it
+    rejects before any size cell is formed (the Dan-only page's premise ceiling)."""
     from . import summary
 
     key = "dan_families"
@@ -300,6 +302,8 @@ def _data_dan_families(
         models = groups.get(family, [])
         version = default_version(store, suite=suite, models=models, judge_id=judge_id) or "v1"
         problems = problems_by_pid(store, suite, version)
+        if keep is not None:
+            problems = {pid: p for pid, p in problems.items() if keep(p)}
         pids_by_group = summary._family_group_pids(problems)  # noqa: SLF001
         points_by_label: dict[str, list[tuple[str, float | None, str, bool]]] = {}
         for m in models:
@@ -707,11 +711,12 @@ def _data_dan_skills(
     registry: Mapping[str, mr.ModelEntry],
     *,
     families: Sequence[str] = DAN_FAMILY_ORDER,
+    keep: Callable[[Problem], bool] | None = None,
 ) -> ChartData:
     """Pass@1 by `skill_group` (the 4-valued classical/case_split stratum `skill_pool_sub`'s own
     builder tags every item with), by model family -- direct runs only (module docstring: this
     suite is sampled directly, unlike legacy `skill_pool`, so `analysis.skills.view`'s join
-    machinery does not apply)."""
+    machinery does not apply). `keep` (default none) drops the items it rejects."""
     key, title = "dan_skills", "Pass@1 by skill group on skill_pool_sub, by model family"
     suite = "skill_pool_sub"
     groups = _model_groups(registry)
@@ -732,7 +737,7 @@ def _data_dan_skills(
                 by_group: dict[str, list[tuple[int, int]]] = {}
                 for pid, it in items.items():
                     p = problems.get(pid)
-                    if p is None or it.n <= 0:
+                    if p is None or it.n <= 0 or (keep is not None and not keep(p)):
                         continue
                     group = str(p.tags.get("skill_group", "plain"))
                     by_group.setdefault(group, []).append((it.n, it.c))

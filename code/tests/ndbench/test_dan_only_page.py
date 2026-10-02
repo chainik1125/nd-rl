@@ -4,15 +4,19 @@
 On a synthetic store holding both our base/rl/armC data (`build_fully_populated_store`) and
 Dan-model runs for every benchmark: the page renders every section; nothing of base/rl/armC
 appears in any chart, legend, tick label, table or caption; missing data gives placeholders (KL
-"not yet run"); takeaways are computed from the data; the KL card renders once a `kl` run exists;
-and the main summary / `--with-dan` pages are unaffected. CPU only, synthetic stores.
+and EDL "not yet run"); takeaways are computed from the data; the KL and EDL cards render once
+their runs exist; the premise ceiling (items with more premises than any training theorem) is
+split out and excluded from the headline numbers; and the main summary / `--with-dan` pages are
+unaffected. CPU only, synthetic stores; Dan's training files are replaced by tiny fixtures.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import html
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -22,7 +26,7 @@ from code.ndbench import cli
 from code.ndbench.analysis import dan_views as dv
 from code.ndbench.analysis import models_registry as mr
 from code.ndbench.core.io import write_jsonl
-from code.ndbench.core.types import JSON
+from code.ndbench.core.types import JSON, PrefixSpec, Problem, Sequent
 from code.ndbench.dash import dan_only, dan_pages, summary
 from code.ndbench.dash.chart_data import ChartData
 from code.ndbench.figures import dan_only as F
@@ -86,6 +90,30 @@ def _sidecar(store: Store, suite: str, version: str, seen: dict[str, bool]) -> N
     path = seen_sidecar_path(store.root, suite, version, "dan12")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"suite": suite, "version": version, "seen": seen}))
+
+
+def _with_premises(p: Problem, k: int) -> Problem:
+    """`p` with `k` premises (P0, P1, ...), the conclusion unchanged."""
+    return dataclasses.replace(
+        p, sequent=Sequent(premises=tuple(f"P{i}" for i in range(k)), conclusion="P0")
+    )
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _training_fixture(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
+    """Point the page at two tiny training files (premises 0-3, goals of 3-7 tokens) instead of
+    Dan's 155,000-row Stage-1 sets."""
+    d = tmp_path_factory.mktemp("dan_train")
+    stage1, targets = d / "train_k12.jsonl", d / "rl_targets.jsonl"
+    write_jsonl(
+        stage1,
+        [{"thm": "P , Q |- ( P & Q )", "n_prem": k} for k in (0, 1, 1, 2, 2, 2, 3, 3)],
+    )
+    write_jsonl(targets, [{"thm": "|- ( P > P )"}, {"thm": "P , Q , R |- P"}])
+    files = [("cap-12 Stage-1", stage1), ("T1 ladder RL targets", targets)]
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(dv, "dan_training_files", lambda family="dan12": files)
+        yield
 
 
 #: Synthetic textbook72 counts per (cap, role): seed s solves the first n of dev and train14.
@@ -169,14 +197,17 @@ def populate_dan(store: Store) -> None:
     for m, cs in ((FZ, (4, 8, 1, 10)), (T1, (8, 12, 4, 15))):
         _run(store, "glue", m, 16, {f"joined{j}": c for j, c in zip(range(1, 5), cs, strict=True)})
         _run(store, "glue_parts_renamed", m, 16, {p.pid: 16 for p in parts})
-    # padding v2: 2 bases x 3 pad types x m = 0..2
+    # padding v2: 2 bases (2 premises) x 3 pad types x m = 0..2; P1 pads add premises
     pads = [
-        make_problem(
-            f"pad-{t}-m{mm}-b{b}",
-            "padding",
-            "v2",
-            length=3 + mm,
-            tags={"pad_type": t, "m": mm, "base_pid": f"b{b}"},
+        _with_premises(
+            make_problem(
+                f"pad-{t}-m{mm}-b{b}",
+                "padding",
+                "v2",
+                length=3 + mm,
+                tags={"pad_type": t, "m": mm, "base_pid": f"b{b}"},
+            ),
+            2 + (mm if t.startswith("P1") else 0),
         )
         for t in dv.PAD_TYPES
         for mm in range(3)
@@ -352,15 +383,25 @@ def _by(charts: list[ChartData]) -> dict[str, ChartData]:
 
 def test_every_chart_has_data_except_kl(charts: list[ChartData]) -> None:
     by = _by(charts)
-    assert [c.key for c in charts][:2] == ["do_textbook", "do_table1"]
+    assert [c.key for c in charts][:4] == [
+        "do_ceiling",
+        "do_ceiling_table",
+        "do_textbook",
+        "do_table1",
+    ]
     missing = {c.key for c in charts if c.kind == "missing"}
-    assert missing == {"do_kl"}, {c.key: c.missing for c in charts if c.kind == "missing"}
+    # no k = 256 textbook run in this store (failure modes), no Dan EDL rows, no KL run
+    assert missing == {"do_kl", "do_edl", "do_failures"}, {
+        c.key: c.missing for c in charts if c.kind == "missing"
+    }
     assert by["do_kl"].extra["missing_label"] == "not yet run"
+    assert by["do_edl"].extra["missing_label"] == "not yet run"
     for c in charts:
         if c.kind != "missing":
             assert c.takeaway and c.caption, c.key
             # every judged benchmark names its judge; likelihood/probes judge nothing
             assert "Judge: Lean" in c.caption or c.key in ("do_likelihood", "do_probes"), c.key
+            assert "{ref:" not in c.caption + c.takeaway, c.key  # cross-references resolved
 
 
 def test_page_renders_sections_figures_and_tables(synth: Store, tmp_path: Path) -> None:
@@ -370,12 +411,15 @@ def test_page_renders_sections_figures_and_tables(synth: Store, tmp_path: Path) 
     for needle in (
         "Figure 1:",
         "Eliciting proofs",
+        "The 4-premise ceiling",
+        "Benchmarks",
         "Internals",
         "Limitations",
         "Table 1:",
-        "Table 2:",
-        "Figure 14:",
+        "Table 4:",
+        "Figure 16:",
         "not yet run",
+        "Premise ceiling:",
         "99.",
         "data:image/svg+xml",
     ):
@@ -443,18 +487,21 @@ def test_takeaways_are_computed_from_the_data(charts: list[ChartData]) -> None:
     worst = max(abs(o - d) for v in t72.values() for o, d in zip(v["ours"], v["dan"], strict=True))
     assert f"to within {worst} theorems" in by["do_table1"].takeaway
     assert "nd_v2 on the same samples changes no count" in by["do_table1"].caption
-    # padding: t1 at m = 2, P2 50%, P1-shared 25%, P1-disjoint 0%; fz from 75%
+    # padding: bases have 2 premises, so P1 m = 1 sits at 3 premises and m = 2 at 4. Against
+    # the bases (t1 100%), P1 costs t1 50 / 75 points at 3 and 75 / 100 at 4; P2 100 -> 50%.
     pad = by["do_padding"].takeaway
-    assert "more distractors hurt the RL model more than a longer proof" in pad
-    assert "from 100.0% unpadded" in pad and "leave 50.0%" in pad and "25.0% (P1-shared)" in pad
-    assert "the pretrained model goes from 75.0%" in pad
+    assert pad.startswith("The padding drop is the premise ceiling")
+    assert "cost the RL model 50.0 / 75.0 points" in pad and "75.0 / 100.0 points once" in pad
+    assert "the pretrained model loses 50.0 / 75.0 and 75.0 / 75.0 points" in pad
+    assert "take the RL model from 100.0% unpadded to 50.0% at m = 2" in pad
+    assert "4 of the suite's 18 items are there" in by["do_padding"].caption
     # steering: the best fz setting is layer 1, alpha 0.5; alpha 2 the most harmful
     st = by["do_steering"].takeaway
     assert "(layer 1, α = 0.5)" in st and "(layer 1, α = 2)" in st
     # heldout: fz 8/10, t1 10/10
     assert "from 20.0% to 0.0%" in by["do_heldout"].takeaway
     # skills: case split 62.5% vs plain 50.0% for t1
-    assert "Case splits do not cost the RL model anything" in by["do_skills"].takeaway
+    assert "case splits do not cost the RL model anything" in by["do_skills"].takeaway
     assert "62.5% of case-split items vs 50.0%" in by["do_skills"].takeaway
     # textbook_law: the seen theorem tl0 is excluded (n = 3)
     assert "n = 3; 1 seen theorems excluded" in by["do_textbook_law"].caption
@@ -554,12 +601,14 @@ def test_cli_dan_only_page_and_figures(synth: Store, tmp_path: Path) -> None:
     names = {p.name for p in (tmp_path / "f").iterdir()}
     assert {
         "fig01_overview.pdf",
-        "fig02_do_textbook.pdf",
-        "tab01_do_table1.tex",
-        "tab02_do_steering.tex",
+        "fig02_do_ceiling.pdf",
+        "fig03_do_textbook.pdf",
+        "tab01_do_ceiling_table.tex",
+        "tab02_do_table1.tex",
+        "tab04_do_steering.tex",
         "captions.md",
     } <= names
-    tex = (tmp_path / "f" / "tab01_do_table1.tex").read_text()
+    tex = (tmp_path / "f" / "tab02_do_table1.tex").read_text()
     assert r"\toprule" in tex and "<b>" not in tex and "|" not in tex.split("tabular}{")[1][:8]
 
 
@@ -621,3 +670,257 @@ def test_likelihood_prefers_the_newest_run_without_name_tokens(tmp_path: Path) -
     assert cd.extra["run_id"] == noname
     assert "defining-name tokens are excluded from the score" in cd.caption
     assert "+0.20 nats/line" in cd.takeaway
+
+
+# ========================================================================= premise ceiling
+
+
+def _sample_rows(pid: str, n: int, ok: int, *, end: str, steps: int) -> list[dict[str, JSON]]:
+    """`n` attempts on `pid`: the first `ok` solved, the rest ending with the env's `end`."""
+    rows: list[dict[str, JSON]] = []
+    for i in range(n):
+        solved = i < ok
+        rows.append(
+            {
+                "pid": pid,
+                "chunk": 0,
+                "i": i,
+                "body": "N1 P PR ; QED" if solved else f"UNPARSEABLE env: {end}",
+                "native": json.dumps(
+                    {"lean": None, "base": 0, "steps": steps, "end": "done" if solved else end}
+                ),
+                "ok": solved,
+                "reason": "" if solved else f"env: {end}",
+                "kind": "ok" if solved else "unparseable",
+            }
+        )
+    return rows
+
+
+def ceiling_store(root: Path) -> Store:
+    """interp_eval_dev with two in-range and two 4-premise theorems, skill_pool_sub likewise, and
+    prefix_state with 4-premise items whose forced prefix does / does not restate the premises."""
+    store = Store(root / "store")
+    dev = [
+        _with_premises(make_problem(f"d{i}", "interp_eval_dev", "v1", length=9), k)
+        for i, k in enumerate((2, 3, 4, 5))
+    ]
+    store.write_suite(dev, manifest("interp_eval_dev", "v1", len(dev)))
+    for m, cs in ((FZ, (4, 2, 0, 0)), (T1, (8, 6, 0, 0))):
+        run = _run(store, "interp_eval_dev", m, 8, {f"d{i}": c for i, c in enumerate(cs)})
+        rows = [r for i in (2, 3) for r in _sample_rows(f"d{i}", 8, 0, end=dv.PR_POSITION, steps=1)]
+        store.append_samples(run, rows)
+    sk = [
+        _with_premises(
+            make_problem(f"s{i}", "skill_pool_sub", "v1", length=7, tags={"skill_group": g}), k
+        )
+        for i, (g, k) in enumerate(
+            (("plain", 2), ("plain", 4), ("case_split", 1), ("case_split", 4))
+        )
+    ]
+    store.write_suite(sk, manifest("skill_pool_sub", "v1", len(sk)))
+    _run(store, "skill_pool_sub", FZ, 16, {"s0": 4, "s1": 0, "s2": 8, "s3": 0})
+    _run(store, "skill_pool_sub", T1, 16, {"s0": 8, "s1": 0, "s2": 12, "s3": 0})
+    pre = []
+    for i, (k, m) in enumerate(((2, 0), (4, 4), (4, 1))):
+        p = _with_premises(
+            make_problem(f"ps{i}", "prefix_state", "v1", tags={"j": 0, "L": 6, "actions_left": 6}),
+            k,
+        )
+        prefix = PrefixSpec(j=0, body=f"STATEPREFIX m={m} | N1 P0 : PR ; QED")
+        pre.append(dataclasses.replace(p, prefix=prefix))
+    store.write_suite(pre, manifest("prefix_state", "v1", len(pre)))
+    for mdl, cs in ((FZ, (8, 6, 0)), (T1, (16, 14, 1))):
+        run = _run(store, "prefix_state", mdl, 16, {f"ps{i}": c for i, c in enumerate(cs)})
+        # ps2 (4 premises, 1 forced action): rejected at the model's first own action (step 2)
+        store.append_samples(run, _sample_rows("ps2", 16, cs[2], end=dv.PR_POSITION, steps=2))
+    return store
+
+
+def test_premise_helpers() -> None:
+    p = _with_premises(make_problem("a", "s", "v1"), 4)
+    assert dv.n_premises(p) == 4 and not dv.in_premise_range(p)
+    assert dv.in_premise_range(_with_premises(p, 3))
+    forced = dataclasses.replace(p, prefix=PrefixSpec(j=0, body="STATEPREFIX m=4 | b"))
+    assert dv.forced_actions(forced) == 4 and dv.premises_forced(forced)
+    assert dv.prefix_in_range(forced) and not dv.prefix_in_range(p)
+    assert dv.quantile({1: 1, 2: 1, 10: 2}, 0.5) == 2 and dv.quantile({}, 0.5) is None
+    counts = dv.training_premise_counts(dv.dan_training_files())
+    assert counts["cap-12 Stage-1"] == {0: 1, 1: 2, 2: 3, 3: 2}
+    assert counts["T1 ladder RL targets"] == {0: 1, 3: 1}  # parsed from `thm`
+    assert dv.training_goal_tokens(dv.dan_training_files()) == {1: 1, 5: 9}
+
+
+def test_premise_split_and_first_step_rejections(tmp_path: Path) -> None:
+    store = ceiling_store(tmp_path)
+    d = dv.premise_split(store, "interp_eval_dev", T1)
+    assert d is not None
+    assert (d["n"], d["n_out"]) == (4, 2)
+    assert d["p_in"] == pytest.approx((1.0 + 0.75) / 2) and d["p_out"] == 0.0
+    assert sorted(d["out_pids"]) == ["d2", "d3"]
+    probs = {p.pid: p for p in store.load_suite("interp_eval_dev", "v1")}
+    fs = dv.first_step_rejections(store, d["run_id"], probs, d["out_pids"])
+    assert fs["n"] == 16 and fs["first_pr"] == 1.0 and fs["early_pr"] == 1.0
+    # prefix_state: the rejection at step 2 is the model's first own action after 1 forced one
+    pre = dv.premise_split(store, "prefix_state", T1, select=lambda p: not dv.premises_forced(p))
+    assert pre is not None and pre["out_pids"] == ["ps2"]
+    pprobs = {p.pid: p for p in store.load_suite("prefix_state", "v1")}
+    fs = dv.first_step_rejections(store, pre["run_id"], pprobs, pre["out_pids"])
+    assert fs["first_pr"] == pytest.approx(15 / 16) and fs["solved"] == pytest.approx(1 / 16)
+
+
+def test_ceiling_table_and_figure(tmp_path: Path) -> None:
+    store = ceiling_store(tmp_path)
+    tab = dan_only._c_ceiling_table(store)  # noqa: SLF001
+    rows = {r[0]: r for r in tab.extra["table"]["rows"]}
+    want = ["4", "2 (50%)", "37.5", "0.0", "87.5", "0.0", "100.0 / 100.0"]
+    assert rows["interp_eval_dev"][1:] == want
+    assert rows["↳ premises forced"][6] == "87.5"  # ps1: 14 of 16
+    assert rows["↳ not all forced"][6] == "6.2"  # ps2: 1 of 16
+    assert "the RL model solves 87.5% of such items when the forced prefix" in tab.takeaway
+    assert "and 100% of the RL model's attempts on them are rejected" in tab.takeaway
+    assert "n/a" not in tab.takeaway
+    fig = dan_only._c_ceiling(store)  # noqa: SLF001
+    assert fig.kind == "line"
+    assert fig.extra["train"]["cap-12 Stage-1"][3] == 2
+    assert "or more premises is at most 0.0% (" in fig.takeaway
+    with S.paper_style():
+        for narrow in (False, True):
+            f = F.render(fig, narrow=narrow)
+            assert f is not None
+            S.close(f)
+
+
+def test_headline_numbers_exclude_items_beyond_the_ceiling(tmp_path: Path) -> None:
+    store = ceiling_store(tmp_path)
+    skills = dan_only._c_skills(store, REGISTRY)  # noqa: SLF001
+    by = {b.name: b.value for b in skills.bars}
+    assert by[f"plain: {T1}"] == pytest.approx(0.5) and by[f"case_split: {T1}"] == 0.75
+    assert "The 2 of 4 items with 4 or more premises" in skills.caption
+    steer = dv.dan_steering(store, keep=dv.in_premise_range)
+    unsteered = next(r for r in steer["rows"] if r["model"] == T1)
+    assert unsteered["per_suite"]["interp_eval_dev"][3] == 2  # two theorems kept
+    assert steer["n_dropped"]["interp_eval_dev"] == 2
+    # prefix_state keeps ps0 (2 premises) and ps1 (4, all forced), drops ps2 (4, one forced)
+    assert dv.prefix_by_lines_left(store, T1, min_items=1) == [(6.0, 30 / 32, 2)]
+    assert dv.prefix_by_lines_left(store, T1, min_items=1, keep=None) == [(6.0, 31 / 48, 3)]
+
+
+def _textbook_failure_store(root: Path) -> Store:
+    store = Store(root / "store")
+    probs = [make_problem(f"t{i}", "textbook_dev", "v1", length=5) for i in range(2)]
+    store.write_suite(probs, manifest("textbook_dev", "v1", len(probs)))
+    for m, solved in ((FZ, (64, 0)), (T1, (192, 128))):
+        run = _run(store, "textbook_dev", m, 256, {"t0": solved[0], "t1": solved[1]})
+        rows: list[dict[str, JSON]] = []
+        for pid, ok in (("t0", solved[0]), ("t1", solved[1])):
+            for i in range(256):
+                if i < ok:
+                    body, reason, end = "N1 P PR ; QED", "", "done"
+                elif i < ok + 64:
+                    body, reason, end = "N1 Q PR ; QED", "lean rejected", "done"
+                else:
+                    body, reason, end = "UNPARSEABLE env: unbound", "env: unbound", "syntax:unbound"
+                rows.append(
+                    {
+                        "pid": pid,
+                        "chunk": 0,
+                        "i": i,
+                        "body": body,
+                        "native": json.dumps({"steps": 3, "end": end}),
+                        "ok": i < ok,
+                        "reason": reason,
+                    }
+                )
+        store.append_samples(run, rows)
+        # an adaptive run with more draws must not be the one read
+        _run(store, "textbook_dev", m, 2048, {"t0": 0, "t1": 0})
+    return store
+
+
+def test_failure_modes_table(tmp_path: Path) -> None:
+    cd = dan_only._c_failures(_textbook_failure_store(tmp_path))  # noqa: SLF001
+    assert cd.kind == "table"
+    rows = {re.sub(r"<[^>]+>", "", r[0]): r[1:] for r in cd.extra["table"]["rows"]}
+    # fz: t0 64 solved / 64 Lean / 128 env, t1 0 / 64 / 192 -> 12.5 / 25.0 / 62.5
+    assert rows["Solved"] == ["12.5", "62.5", "+50.0"]
+    assert rows["Finished, rejected by Lean"] == ["25.0", "25.0", "+0.0"]
+    assert rows["Rejected by the environment"] == ["62.5", "12.5", "−50.0"]
+    assert rows["unbound: cites a name not in scope"][:2] == ["62.5", "12.5"]
+    assert "256 draws per theorem" in cd.caption
+    assert "rejects 25.0% of the pretrained model's attempts and 25.0%" in cd.takeaway
+
+
+# ===================================================================================== EDL
+
+
+def _edl_rows(cls: str, label: str, edl: float, l0: float, *, n: int = 8) -> list[dict[str, JSON]]:
+    """Two data orders of one learning rate in `edl.run_edl`'s row schema; the identity carries
+    a checkpoint name, not the run's label (as Dan's adapter would)."""
+    rows: list[dict[str, JSON]] = []
+    for order, delta in ((0, -1.0), (1, 1.0)):
+        online = [(edl + delta) / n] * n
+        rows.append(
+            {
+                "class": cls,
+                "model_identity": {"adapter": "danstate", "ckpt": f"/ckpts/{label}.pt"},
+                "lr": 1e-4,
+                "order": order,
+                "n": n,
+                "m": n,
+                "seed": 0,
+                "online_nats": cast_json(online),
+                "L_test_0": l0,
+                "L_test_n": l0 / 2,
+                "L_test_by_checkpoint": {},
+                "EDL_by_checkpoint": {},
+                "EDL": edl + delta,
+                "EDL_per_example": (edl + delta) / n,
+                "pass8_before": None,
+                "pass8_after": None,
+            }
+        )
+    return rows
+
+
+def cast_json(xs: list[float]) -> JSON:
+    return [float(x) for x in xs]
+
+
+def test_edl_section_renders_from_dan_rows(tmp_path: Path) -> None:
+    store = Store(tmp_path / "store")
+    assert dan_only._c_edl(store).extra["missing_label"] == "not yet run"  # noqa: SLF001
+    store.append_edl(
+        f"edl3-{FZ}-8-8",
+        _edl_rows("pattern_a", FZ, 40.0, 4.0)
+        + _edl_rows("pattern_b", FZ, 16.0, 2.0)
+        + _edl_rows("heldout_cap6", FZ, 0.5, 0.5),
+    )
+    store.append_edl(
+        f"edl3-{T1}-8-8",
+        _edl_rows("pattern_a", T1, 8.0, 1.0)  # RL lower here, and starts lower
+        + _edl_rows("pattern_b", T1, 24.0, 3.0)
+        + _edl_rows("heldout_cap6", T1, 0.5, 0.5),
+    )
+    store.append_edl("edl3-rl-8-8", _edl_rows("pattern_a", "rl", 1.0, 1.0))  # never read
+    cd = dan_only._c_edl(store)  # noqa: SLF001
+    assert cd.kind == "dot"
+    assert [r.label for r in cd.rows] == ["pattern_a", "pattern_b", "heldout_cap6 (null control)"]
+    assert {n for r in cd.rows for n, *_ in r.points} == {FZ, T1}
+    assert cd.takeaway.startswith("The RL model's EDL is lower on 1/2 classes (1 with no overlap")
+    assert "starts with lower test loss on 1/2" in cd.takeaway
+    assert f"edl3-{FZ}-8-8" in cd.caption and "edl3-rl-8-8" not in cd.caption
+    assert "heldout_cap6, data the models already know" in cd.caption
+    per = cd.extra["per"]
+    assert per["pattern_a"][FZ]["edl"] == pytest.approx((40.0 + 0.0) / 8)  # ln(1 lr) = 0
+    assert per["pattern_a"][FZ]["lo"] == pytest.approx(39.0 / 8)
+    with S.paper_style():
+        for narrow in (False, True):
+            fig = F.render(cd, narrow=narrow)
+            assert fig is not None
+            words = " ".join(t.get_text() for t in fig.findobj(Text))
+            assert "pretrained (cap 12)" in words and not OURS.findall(words)
+            S.close(fig)
+    page = dan_only.render_page(store, registry=REGISTRY)
+    assert "Cost of learning a new pattern (EDL)" in page
+    assert "EDL (Figure" not in page  # the limitation about EDL not being run is gone

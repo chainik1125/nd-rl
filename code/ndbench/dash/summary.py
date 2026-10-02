@@ -1073,21 +1073,18 @@ def _spearman(xs: Sequence[float], ys: Sequence[float]) -> float:
     return num / den if den else float("nan")
 
 
-def _data_8_edl(store: Store) -> ChartData:
-    key, title = "edl", "Cost of learning a new pattern (EDL)"
-    # Default discovery: the newest generation per (model, n, m) (edl3 = edl2's three learning
-    # rates plus lr 0 / 1e-5 / 3e-5, 2026-10-01).
-    data = edl_view.view(store, {})
-    if data.get("empty"):
-        return _missing(key, title, str(data.get("reason", "no data")))
-    classes = cast("dict[str, dict[str, dict[str, Any]]]", data["classes"])
-    run_ids = cast("list[str]", cast("dict[str, Any]", data["meta"])["run_ids"])
-
+def _edl_per_class(
+    classes: Mapping[str, Mapping[str, Mapping[str, Any]]], models: Sequence[str]
+) -> tuple[dict[str, dict[str, dict[str, float]]], set[int]]:
+    """`({class: {model: {"edl", "lo", "hi", "l0", "ln", "best_lr"}}}, {learning-rate counts})`
+    from `analysis.edl.view`'s classes, per example, for `models` only: EDL* and the per-order
+    spread at the chosen learning rate, both including EDL*'s ln(#lrs) selection cost, and the
+    starting / final test loss (chart 8's numbers; the Dan-only page reuses them)."""
     per: dict[str, dict[str, dict[str, float]]] = {}
     n_lrs: set[int] = set()
     for cls, per_model in classes.items():
         for model, d in per_model.items():
-            if model not in ("base", "rl"):
+            if model not in models:
                 continue
             n = int(cast(int, d.get("n_examples") or 0))
             if n <= 0:
@@ -1105,6 +1102,44 @@ def _data_8_edl(store: Store) -> ChartData:
                 "ln": cast(float, d.get("l_test_thetan", float("nan"))),
                 "best_lr": float(cast(str, d["best_lr"])),
             }
+    return per, n_lrs
+
+
+def _edl_compare(
+    per: Mapping[str, Mapping[str, Mapping[str, float]]], a: str, b: str, null: str | None
+) -> dict[str, Any]:
+    """Chart 8's comparison of model `b` against `a` over the classes both have, the null control
+    excluded: how many classes `b`'s EDL* is lower on (`n_lower`; `n_robust` with no overlap of
+    the per-order spreads), how many it starts with lower test loss on, the Spearman correlation
+    of EDL* with starting loss over both models' points, and on how many `b` costs at least as
+    much per nat of test loss removed."""
+    common = {c: v for c, v in per.items() if c != null and a in v and b in v}
+
+    def _ratio(d: Mapping[str, float]) -> float:
+        drop = d["l0"] - d["ln"]
+        return d["edl"] / drop if drop > 1e-9 else float("inf")
+
+    pairs = [(v[m]["edl"], v[m]["l0"]) for v in common.values() for m in (a, b)]
+    return {
+        "n_c": len(common),
+        "n_lower": sum(1 for v in common.values() if v[b]["edl"] < v[a]["edl"]),
+        "n_robust": sum(1 for v in common.values() if v[b]["hi"] < v[a]["lo"]),
+        "n_l0_lower": sum(1 for v in common.values() if v[b]["l0"] < v[a]["l0"]),
+        "rho": _spearman([e for e, _l in pairs], [l0 for _e, l0 in pairs]),
+        "n_ratio": sum(1 for v in common.values() if _ratio(v[b]) >= _ratio(v[a])),
+    }
+
+
+def _data_8_edl(store: Store) -> ChartData:
+    key, title = "edl", "Cost of learning a new pattern (EDL)"
+    # Default discovery: the newest generation per (model, n, m) (edl3 = edl2's three learning
+    # rates plus lr 0 / 1e-5 / 3e-5, 2026-10-01).
+    data = edl_view.view(store, {})
+    if data.get("empty"):
+        return _missing(key, title, str(data.get("reason", "no data")))
+    classes = cast("dict[str, dict[str, dict[str, Any]]]", data["classes"])
+    run_ids = cast("list[str]", cast("dict[str, Any]", data["meta"])["run_ids"])
+    per, n_lrs = _edl_per_class(classes, ("base", "rl"))
     if not per:
         return _missing(key, title, "no usable EDL rows")
 
@@ -1118,19 +1153,9 @@ def _data_8_edl(store: Store) -> ChartData:
         if pts:
             dot_rows.append(P.DotRow(label, pts))
 
-    common = {c: v for c, v in per.items() if c != _EDL_NULL_CONTROL and "base" in v and "rl" in v}
-    n_c = len(common)
-    n_lower = sum(1 for v in common.values() if v["rl"]["edl"] < v["base"]["edl"])
-    n_robust = sum(1 for v in common.values() if v["rl"]["hi"] < v["base"]["lo"])
-    n_l0_lower = sum(1 for v in common.values() if v["rl"]["l0"] < v["base"]["l0"])
-    pairs = [(v[m]["edl"], v[m]["l0"]) for v in common.values() for m in ("base", "rl")]
-    rho = _spearman([e for e, _l in pairs], [l0 for _e, l0 in pairs])
-
-    def _ratio(d: Mapping[str, float]) -> float:
-        drop = d["l0"] - d["ln"]
-        return d["edl"] / drop if drop > 1e-9 else float("inf")
-
-    n_ratio = sum(1 for v in common.values() if _ratio(v["rl"]) >= _ratio(v["base"]))
+    cmp = _edl_compare(per, "base", "rl", _EDL_NULL_CONTROL)
+    n_c, n_lower, n_robust = cmp["n_c"], cmp["n_lower"], cmp["n_robust"]
+    n_l0_lower, rho, n_ratio = cmp["n_l0_lower"], cmp["rho"], cmp["n_ratio"]
     if n_c:
         takeaway = (
             f"rl's EDL is lower on {n_lower}/{n_c} classes ({n_robust} with no overlap between "
