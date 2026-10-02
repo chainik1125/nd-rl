@@ -12,6 +12,9 @@ within reach.
 
 The librarian's run-by-run digest for the week is [`digests/2026-40.md`](../digests/2026-40.md).
 
+*Corrected 2026-10-02 after the [claim audit](2026-10-03-claim-audit.md). Every headline count reproduces; three
+claims below are reworded to what the evidence supports (marked †).*
+
 ## What we did
 
 **Is RL creating or eliciting?**
@@ -21,7 +24,8 @@ The librarian's run-by-run digest for the week is [`digests/2026-40.md`](../dige
   [support-followups](../../experiment-summaries/2026-09-28-support-followups-expansion-not-removed-by-8x-params/README.md).
 - A proof-state base reaches 28 of the 29 with no RL:
   [support-state](../../experiment-summaries/2026-09-28-support-state-state-base-reaches-survivors/README.md).
-- Seeing the state is what does it, not the environment's naming:
+- † The gain survives without environment-assigned names. The audit notes that "the state" is confounded with
+  the step-by-step interface, and that the naming comparison has 2 seeds per arm:
   [state-readouts](../../experiment-summaries/2026-09-30-state-readouts-state-not-naming-reaches-survivors/README.md).
 - GRPO acquired depth-3 nesting from zero on old token-format runs:
   [run4-grpo-review](../../experiment-summaries/2026-09-28-run4-grpo-review-grpo-ignites-from-zero/README.md).
@@ -29,7 +33,7 @@ The librarian's run-by-run digest for the week is [`digests/2026-40.md`](../dige
   [lit-measures](../../experiment-summaries/2026-09-30-lit-measures-one-bad-step-and-rerun-noise/README.md).
 - How proofs become likely through pretraining and RL:
   [trajectory](../../experiment-summaries/2026-10-01-trajectory-eventual-proof-worst-step-climbs-in-pretraining-and-rl/README.md).
-  The cap-6 version is still running.
+  At cap 6: [trajectory-cap6](../../experiment-summaries/2026-10-02-trajectory-cap6-eventual-proof-worst-step-climbs-mainly-in-rl/README.md).
 
 **The proof-state environment and stronger models**
 ([proposal 13](../proposals/2026-09-28-state-conditioned-environment.md),
@@ -83,11 +87,13 @@ The librarian's run-by-run digest for the week is [`digests/2026-40.md`](../dige
 2. **The pieces compound, and evaluation is now the bottleneck.** The proof state, longer training proofs and
    Robbie's recipe stack up. The best model solves nearly all of the long pools, so its frontier can no longer be
    located.
-3. **The trajectory points toward eliciting proofs that are nearly reachable.** The theorems only RL solves were
-   already within one improbable step (about 1-in-400) after pretraining, and RL concentrated on the model's own
-   proofs. The unsolved ones have several hard steps. This rests on 3 seeds, and the pre-registered headline is
-   unresolved.
-4. **Much of our noise is GPU nondeterminism.** Identical-seed re-runs give about half the seed-to-seed spread.
+3. † **At cap 12, RL mostly completes proofs that pretraining brought close.** After pretraining, the theorems only
+   RL solves had a worst step of about 1-in-500 (IQM), and the rest of the proof still carried 7–9 nats, so this is
+   not literally "one step". At cap 6 the worst step started near 1-in-25,000 and climbed mainly in RL. RL lifted
+   its own proofs more than the reference proofs: about 1.7× on other seeds' proofs, less than first stated. The
+   unsolved theorems have several hard steps. This rests on 3 seeds per cap.
+4. † **GPU nondeterminism may be a large share of our noise.** In one cell on one pod, identical-seed re-runs gave
+   about half the seed-to-seed variance (ratio 0.54, 95 % CI 0.23–2.05). That is suggestive, not established.
    Experiments are now planned against measured noise margins, and many earlier two-seed "findings" do not survive
    them.
 5. **Two cheap no-gain results are informative.** Frontier supply and best-first search did not help at our scale.
