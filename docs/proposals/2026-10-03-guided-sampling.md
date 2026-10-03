@@ -36,8 +36,23 @@ proofs hinge on one or two improbable steps, which is where retrying should pay 
    - Use the fast path **only after** it agrees with Lean on ≥ 50,000 steps (accepted and rejected) with **0 false
      rejects**. False accepts are harmless: Lean catches them at the end. Never use `nd_verify` here; it rejects
      Lean-valid steps such as `Not.elim`.
-2. **Guided sampling:** when a step fails the check (structurally or logically), draw a new step from the same state,
-   up to R rejections per attempt (R = 10, Robbie's setting).
+2. **Guided sampling, without replacement:** when a step fails the check (structurally or logically), draw a new
+   step from the same state, up to R rejections per attempt (R = 10, Robbie's setting).
+   - **Redraws exclude every step already rejected at that state** (Dan, 2026-10-03: "re-draw w/o replacement to
+     avoid wasted work").
+   - Use exact sequence-level sampling without replacement (UniqueRandomizer, Shi et al. 2020). At each decoding
+     position, add log(1 − R(prefix + token)) to the logits, where R is the probability of going on to write a
+     rejected step exactly. The redraw then comes from the model's distribution with the rejected steps removed.
+     **Reuse Robbie's implementation:** `_swor_shift` in `code/experiments/current/test_time_scaling/engine.py` on
+     `robbie-experiments`.
+   - **Why it matters more here than for Robbie.** His engine (without replacement) and Leon's original sampler,
+     which appears to redraw with replacement, scored almost the same at k 64 (85.6 % vs 85.5 %). But after RL our
+     policy is sharp: if its most likely step at a hard state is wrong, a with-replacement redraw mostly repeats it.
+     Report how often a with-replacement redraw would have repeated a rejected step, from the same rejection logs.
+   - **Scope of the forbidden set.** For pass@k **evaluation**, keep it per attempt, so attempts stay i.i.d. and the
+     unbiased estimator holds. For **training rollouts** (Part B), share it across attempts at the same state. In
+     the SN arm the environment assigns names canonically, so states recur across attempts at a theorem. Cache
+     check verdicts per (state, step) in both cases. That saves Lean calls without changing the sampling.
    - **SMC:** N particles; a failed step gets weight 0; survivors are resampled back to N.
    - Count every sampled token, rejected ones included, as compute.
 
