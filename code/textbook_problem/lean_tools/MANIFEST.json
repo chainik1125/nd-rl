@@ -1,0 +1,21 @@
+{
+ "repo": "https://github.com/chainik1125/nd-rl (this repo), branch dan_lean_seq_tokenizer",
+ "commit": "c298be618cb3c6644a4115fe781fb9177ef02939",
+ "note": "Unmodified copies of Dan's lean_seq tokenizer and Lean checker. Their imports name code.shared_code.*; code/textbook_problem/lean.py aliases those names to this folder. Lean 4 core, tested upstream with 4.34.1.",
+ "source_paths": {
+  "lean_seq.py": "code/shared_code/lean_seq.py",
+  "lean_check.py": "code/shared_code/lean_check.py",
+  "README.md": "code/shared_code/README.md",
+  "test_lean_seq.py": "code/tests/test_lean_seq.py",
+  "test_lean_check.py": "code/tests/test_lean_check.py",
+  "fixtures/lean_seq_golden.jsonl": "code/tests/fixtures/lean_seq_golden.jsonl"
+ },
+ "files": {
+  "lean_seq.py": "78550f01929f2fb7a2fb6b65bbe7665547eb6e11b62fa2be1c304832085ecf33",
+  "lean_check.py": "edfcba313640500a89880a73beee5b1b2824c30b8568d67f416dd3db866f0744",
+  "README.md": "6ab7aab73eb27c8ce5257a5d777da80634d6dcead6b3073d39ada1cf0eb5508d",
+  "test_lean_seq.py": "cafd4671814f809f1b0dc012d2034148461dd11a38571bf10db4a53f9cf9e08f",
+  "test_lean_check.py": "94bc54d8bba7de381caeace755c607372bcbf7d3a91a508315ee62ce1de4a10a",
+  "fixtures/lean_seq_golden.jsonl": "a45a9c629cffe22b00407c644cbc06ab44038cbe14de28775799f3d1fd0578a8"
+ }
+}

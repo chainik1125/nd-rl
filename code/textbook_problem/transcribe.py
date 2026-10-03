@@ -36,6 +36,7 @@ import ndpath  # noqa: E402,F401
 from data import canon_key, load_pool, load_textbook72, thm_of_prompt  # noqa: E402
 from logic import atoms, classically_valid, intuitionistically_valid, to_tokens  # noqa: E402
 from nd_data import canonical_theorem, theorem_hash  # noqa: E402
+from other_sources import OX_SKIPPED, PEL_SKIPPED, oxford_items, pelletier_items  # noqa: E402
 from pdf_sources import CARR_SKIPPED, ROY_SKIPPED, carr_items, roy_items  # noqa: E402
 from tokenizer import SYMS  # noqa: E402
 
@@ -91,6 +92,36 @@ SOURCES = {
         "priority": 5,
         "accessed": "2026-09-29",
     },
+    "pelletier": {
+        "book": "Pelletier (1986), Seventy-five problems for testing automatic theorem provers, "
+        "J. Automated Reasoning 2, problems 1-17; statements read from Isabelle "
+        "src/FOL/ex/Classical.thy and TPTP v9.3.1 SYN040+1..SYN047+1",
+        "repo": "https://github.com/isabelle-prover/mirror-isabelle (master, 2026-09-30); "
+        "https://tptp.org/cgi-bin/SeeTPTP?Category=Problems&Domain=SYN",
+        "commit": None,
+        "licence": "journal paper (tier B); the Isabelle transcription is BSD-3",
+        "priority": 6,
+        "accessed": "2026-09-30",
+    },
+    "forallx-r3": {
+        "book": "forall x: R3 (Davis Smith, after Calgary)",
+        "repo": "https://github.com/ProfDavisSmith/forallxR3",
+        "commit": "04a5e77dac9875c44816f9a7db38a2ec72cef4de",
+        "licence": "CC BY (the preface: 'The CC BY license gives you the right to download and "
+        "distribute the book'; no LICENSE file)",
+        "priority": 8,
+        "accessed": "2026-09-30",
+    },
+    "oxford": {
+        "book": "Halbach, Exercises Booklet for The Logic Manual 2018/19, ex. 6.1; Fritz, More "
+        "Exercises for The Logic Manual, 16 Feb 2014, ex. 6.1",
+        "repo": "https://logicmanual.philosophy.ox.ac.uk/exercises/exercises.pdf; "
+        "https://logicmanual.philosophy.ox.ac.uk/exercises/exercises_peter.pdf",
+        "commit": None,
+        "licence": "none stated (authors to be asked)",
+        "priority": 7,
+        "accessed": "2026-09-30",
+    },
 }
 
 CAL, SYR = "forallx-yyc-prooftfl.tex", "forallx-04-tfl-prf.tex"
@@ -126,6 +157,9 @@ PARTS = [
     ("forallx-msu", MSU_A, 1800, 1822, "items", "ch. Theorems"),
     ("forallx-msu", MSU_A, 1973, 1992, "items", PTC),
     ("forallx-msu", MSU_B, 111, 125, "valid_or_not", "ch. Soundness"),
+    ("forallx-r3", "forallx-d-nd1.tex", 653, 666, "items", "The Basic Rules of PL / Tips"),
+    ("forallx-r3", "forallx-d-nd2.tex", 175, 188, "items", "The Idea Behind Equivalency"),
+    ("forallx-r3", "forallx-d-nd2.tex", 337, 358, "items", "Indirect Proofs"),
 ]
 
 SKIPPED_PARTS = [
@@ -141,8 +175,13 @@ SKIPPED_PARTS = [
     ("forallx-syracuse", "1147-1148", "proof templates with metavariables"),
     ("forallx-msu", "part4a 1288-1799, 1823-1972, 1993-", "answer sections"),
     ("carnap-book", "ch. 9-12", "symbolization, truth tables, first-order logic"),
+    ("forallx-r3", "nd1 30-44", "check the basic rules by truth table"),
+    ("forallx-r3", "nd1 428-500", "fill in the missing line, rule or citation"),
+    ("forallx-r3", "qlnd1, qlnd2, ml", "first-order and modal"),
     *[("roy", a, b) for a, b in ROY_SKIPPED],
     *[("carr", a, b) for a, b in CARR_SKIPPED],
+    *[("pelletier", a, b) for a, b in PEL_SKIPPED],
+    *[("oxford", a, b) for a, b in OX_SKIPPED],
 ]
 
 # ---------------------------------------------------------------- formula parsing
@@ -297,6 +336,7 @@ def clean_item(line):
     line = re.sub(r"(?<!\\)%.*", "", line)
     line = re.sub(r"\\item(\[[^]]*\])?", "", line, count=1)
     line = re.split(r"\\\\|\\hfill|\\textit|\\emph", line)[0]
+    line = re.sub(r",\s*(\\therefore)", r" \1", line)  # a stray comma before ∴ (R3 nd1 item 10)
     return line.strip().rstrip(".").strip()
 
 
@@ -551,6 +591,8 @@ def main():
     for src, fn, reader in (
         ("roy", "roy/SymLogFullTxt.pdf", roy_items),
         ("carr", "carr/NDpack.pdf", carr_items),
+        ("pelletier", "isabelle/Classical.thy", pelletier_items),
+        ("oxford", "oxford/exercises.pdf", oxford_items),
     ):
         for where, number, original, text, notes0 in reader(os.path.join(args.raw, fn)):
             if text is None:  # the reader marks items outside scope with a reason

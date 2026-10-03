@@ -220,3 +220,156 @@ added new sources.
 - **Lorain County Remix (A16).** Source found: `github.com/rob-helpy-chalk/openintroduction` @
   `b44f79557a357679fc8e632599cccd1e77c3f327`. The GitHub API detects no licence file. The book's
   download page says CC BY-SA 3.0.
+
+## Status 2026-09-30: what has been transcribed, what has not
+
+**Transcribed and in a candidate set:** A1 Calgary, A7 Syracuse, A12 Mississippi State, A5 Carnap
+Book (candidate_v0); P1 Roy, P2 Carr's pack (candidate_v1).
+
+**Counted, found to add nothing or almost nothing:** A2 Magnus (18 of 20 in A1), A3 Cambridge
+(all in A1), A4 UBC (all in A1), A6 Adelaide (4 of 7 in A1), A15 Pécs (translation).
+
+**Located but never transcribed** (best first, by expected yield):
+
+| # | Source | Expected new | Blocker | Effort |
+| --- | --- | --- | --- | --- |
+| A13 | *forall x: R³* (Davis Smith) | about 48 sequents, some "valid or invalid?" | licence secondary only (no LICENSE file); valid-or-not items need hand checking | low: LaTeX repo, same tooling |
+| A16 | *forall x: Lorain County Remix* (Loftis) | unknown; its own exercise sets sorted by strategy | licence conflict (BY-SA 3.0 vs BY-NC-SA 4.0) | low–medium: LaTeX repo `rob-helpy-chalk/openintroduction` @ b44f7955 |
+| A14 | *forall x: Bristol* (Campbell-Moore) | unknown; 10 of the 72 appear in it | different exercise markup; open by hand | low |
+| A8 | DeLancey, *A Concise Introduction to Logic* | unknown; own exercise set with proof, conditional and reductio chapters | licence unresolved (BY-NC-SA vs BY-SA); PDF behind a nonce form, manual download | medium: PDF, now readable with pdfminer |
+| P2 | Halbach's *Exercises Booklet* and Fritz's *More Exercises* (Oxford) | unknown; Carr's pack is the same course, so overlap likely | no licence stated | low: PDFs already saved |
+| A17 | Avigad et al., *Logic and Proof*, ch. 3 | about 15 | Apache-2.0 on the repo; check it covers the text | low: reST source |
+| A11 | Dortmund, Natal, Auckland, Pitt, UConn, Leeds, SLU *forall x* versions | small; Dortmund and Natal each contain 16–18 of the 72, so heavy sealed overlap | licences per repo | low each |
+| P3 | Peter Smith, IFL2 exercises | unknown | no CC licence; exercises page not located | low once found |
+| P9 | Slaney, ANU *Logic Notes* | 15+ in exercises 1, more in ch. 2–3 | no licence; ask | low: HTML |
+| P8 | Clemente, *Introduction to natural deduction* | 22 worked examples (proofs published) | GNU FDL (snippet) | low: HTML |
+| P10 | Uzquiano, *Introduction to Logic* ch. 5 | 5 | no licence | trivial |
+| P7 | Pfenning 15-317 HW1 | few; intuitionistic | none stated | low: tarball |
+| P14–P17 | MIT OCW 24.241, Edinburgh Inf1, Chalmers DAT060, Cambridge CST | small; several point at copyrighted books | mixed | low |
+| P11–P13 | Incredible Proof Machine, NaDeA, Jape task banks | unknown | open code licences but task provenance unstated | low |
+| B1 | Pelletier P1 (and P2, P4–P9, P11, P12, P14, P16 in TPTP, not yet found) | up to 11 | tier B; TPTP terms unknown | low |
+| X1 | Carnap shared documents (Zach, Magnus, Swartzer, Walsh) | 44+ from Zach alone | robots.txt disallows; must come from the authors | email |
+| X2 | Genesereth, Stanford *Introduction to Logic* Fitch exercises | unknown | TLS mismatch; copyright unknown | manual |
+| P4, P5, P20 | Zach's, Klement's, Leach-Krouse's own problem sets | unknown | behind LMS or robots; ask | email |
+| C1–C5 | Teller, Hardegree, Pospesel & Marans, Belnap, copyrighted textbooks | large | not open; Charles's approval | – |
+
+**Not worth opening:** A9 Open Logic Text (metatheory; 0 law hits), X3 Levin (informal proofs),
+P21 MSR problem-generation paper (synthetic; only its cited benchmark could count).
+
+### 2026-09-30: R³, Lorain Remix and Bristol opened (cloned into `raw/`, gitignored)
+
+| | R³ (Davis Smith) @ 04a5e77 | Lorain County Remix / *An Open Introduction to Logic* (Loftis) @ b44f795 | Bristol (Campbell-Moore & Stern) @ e9d220e |
+| --- | --- | --- | --- |
+| Licence, as read in the repo | CC BY (preface: "The CC BY license gives you the right to download and distribute") | CC BY-NC-SA 4.0 (frontmatter of this version; older editions BY-NC-SA 3.0 / BY-SA 3.0) | CC BY-SA 4.0 (`LICENSE.md`, preface) |
+| Lineage | Calgary | Magnus, rewritten and expanded | Calgary, "substantial alterations" |
+| Rule system | Fitch; adds MT and HS as basic conditional rules; ∨E is disjunctive syllogism; a redefined Dilemma rule (A→B, C→D, A∨C ⊢ B∨D); "returns to Magnus's original" ∨E, ¬I, ¬E; equivalence rules incl. TAUT (A∨A ⇔ A); no ⊥ | Magnus's 11 rules (5 I, 5 E, R); ∨E is disjunctive syllogism; ¬I/¬E by reductio with "for reductio" and "Want:" annotations; derived rules (∨* proof by cases, MT, HS, DN, DeM, MC); rules of replacement; no ⊥ | Reiteration, MP and ∧ first, then →I, ¬I/¬E as contradiction-pair rules (Y ∧ ¬Y), ∨, ↔; ⊥ sections removed; derived rules LEM, DS, MT |
+| Proof exercises seen | 44 "give a proof" sequents in the two ND chapters (12 + 12 + 20); pass 2's 49 includes valid-or-invalid items; many use 5+ letters | 85 turnstile items in "Derive the following" parts (`\sststile`), all with premises; answers inline (`\answer`) | 28 turnstile items plus "add citations" and "derivation or truth table" parts; answers inline (`\myanswer`) |
+| Other exercise kinds | truth-table checks of the rules; fill in the blank | substitution instances; "is this an instance of the rule"; fill in the blanks; translate then prove | add citations; tautology/contingency by derivation or table |
+| Parser work | none (standard `\item ... \therefore`) | `\sststile{}{}` turnstile and set braces | `problemslist`, `\entails` |
+
+### 2026-09-30: Pelletier, the Oxford booklet and MIT OCW tried
+
+- **MIT OCW 24.241 (Logic I, Fall 2009): not usable.** The derivation problem sets (2, 4, 9
+  read; PDFs in `raw/mit-ocw/`) only cite *The Logic Book* by section and item number
+  ("3.5E: 1d, 2c, …"); set 1 is translation and true/false. The problems are Bergmann's (C5).
+- **Pelletier P1–P17: all 17 obtained.** The paper is paywalled, so the statements were read from
+  Isabelle's `src/FOL/ex/Classical.thy` (BSD-3; cites the paper and its errata; one lemma per
+  problem, numbered) and cross-checked against TPTP v9.3.1 `SYN040+1`, `041`, `044`, `045`,
+  `046`, `047` (P1, P3, P10, P13, P15, P17), fetched through TPTP's viewer 10 s apart (raw
+  problem URLs 404; no robots.txt). P10 is taken in TPTP's premises form, which is the paper's.
+  Audit: 9 new (P3, P4, P5, P7, P9, P10, P12, P14, P17); P1, P8, P13, P15, P16 are already in
+  candidate_v1, P2 and P6 are validation_36 forms, P11 is P ↔ P (identity, already in v0 as
+  P ⊢ P's twin). Reader: `code/textbook_problem/other_sources.py`.
+- **Oxford: 10 propositional ND exercises in total**, not the 60–80 guessed. Halbach's booklet
+  has 7 (exercise 6.1) plus one six-premise argument with subscripted letters (excluded);
+  Fritz's *More Exercises* has 3 (exercise 6.1), harder ones. After the audit: 3 new (booklet
+  iv, Fritz ii and iii); the rest duplicate Carr, Calgary or `train`. No licence stated.
+- **Working folder:** `data/textbook_problem/candidates_v2/` (gitignored); proof search on the
+  12 started 04:26 UTC.
+- **forall x: R³ transcribed** (same day): 44 "give a proof" items in three blocks (nd1 653–666,
+  nd2 175–188, 337–358); truth-table and fill-in blocks skipped. Audit: 9 new; 4 renamings of
+  `train`/`heldout` items; the other 31 duplicate earlier sources, 20 of them Calgary items that
+  are themselves sealed overlaps (R³ is Calgary-derived; pass 2's "1 of 49 in Calgary" was a
+  string match, not a renaming-class match). One item had a stray comma before ∴ (nd1 item 10);
+  `clean_item` now drops it. Working folder `candidates_v3/`; proof searches started 04:30 UTC.
+
+### 2026-09-30: Lean proof datasets and Lean course repos scanned
+
+Prompted by feedback: "there are lots of datasets on the internet with Lean proofs; find a
+natural deduction subset". Working folder `data/textbook_problem/candidates_lean/` (gitignored;
+scanner `lean_scan.py`, commits in `sources_commits.txt`).
+
+- **Large Lean datasets hold almost no propositional problems.** miniF2F, ProofNet, PutnamBench,
+  Lean Workbook and FormalMATH are competition or undergraduate mathematics. LeanDojo, Herald and
+  LEAN-GitHub are mined from Mathlib and GitHub repos; their propositional part is library lemmas
+  (Mathlib `Logic/Basic`, core `Init/PropLemmas`) plus whatever course repos they swept in, which
+  are scanned directly below. Not scanned: LEAN-GitHub's 28,597 theorems (it may contain more
+  course repos than the six read here).
+- **Propositional Lean datasets are synthetic, so excluded by the authenticity rule:** PropL
+  (Qin et al. 2024; uniformly sampled intuitionistic formulas over 2 atoms, 200k;
+  [HF](https://huggingface.co/datasets/KomeijiForce/PropL)), `ergotts/propositional-logic`
+  (1,600 generated natural-language arguments, no Lean), LeanReasoner's ProofWriter/FOLIO
+  formalisations (127, first-order, rule bases). PropL could serve the deferred synthetic grid.
+- **Lean course and textbook repos: real exercises, scanned.** A regex scanner reads `example`,
+  `theorem`, `lemma` and lean4game `Statement` headers, keeps those whose binders are `Prop`
+  atoms and hypotheses over ∧ ∨ ¬ → ↔ False (Lean precedence; ↔ expanded per §3.1; True
+  excluded), renames to P–S, and audits by renaming class against the sealed sets (counts only),
+  the five pools and every `candidate*/` file of ours.
+
+| Source | Licence | Prop. statements | Sealed | Pool | Already ours | Dup. | **New** | Proved | 5–10 lines | 11+ |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| *Theorem Proving in Lean 4* (ch. 3, Tactics) | Apache-2.0 | 112 | 30 | 35 | 20 | 12 | **15** | 14 | 8 | 4 |
+| *Logic and Proof* (Lean chapters) | Apache-2.0 (repo) | 65 | 7 | 28 | 4 | 20 | **6** | 6 | 5 | 1 |
+| *Hitchhiker's Guide to Logical Verification* (LoVe 2024) | none in repo | 55 | 9 | 23 | 3 | 10 | **10** | 10 | 8 | 2 |
+| Buzzard, *Formalising Mathematics* 2024, Section01logic | Apache-2.0 | 108 | 23 | 26 | 10 | 26 | **23** | 19 | 11 | 6 |
+| Buzzard, M40001 Lean sheets (Lean 3) | none in repo | 214 | 43 | 59 | 22 | 81 | **9** | 9 | 6 | 2 |
+| *A Lean Intro to Logic* (lean4game, Trequetrum) | MIT | 134 | 43 | 28 | 5 | 38 | **20** | 18 | 14 | 2 |
+| Lean core `Init/PropLemmas` (library lemmas) | Apache-2.0 | 6 | 0 | 1 | 0 | 1 | **4** | 4 | 4 | 0 |
+| **Total** | | 694 | 155 | 200 | 64 | 188 | **87** | **80** | **56** | **17** |
+
+Proofs: `prove.py --secs 120 --long_secs 300` (shorter than the 300/1800 used for v0/v1), 80/87
+found, all pass strict_verify; 7 without a proof are nested biconditionals and one 5-way
+implication chain. Families of the 80: conditional 32, direct 14, negation 12, case-split 11,
+case-split-derived 6, classical 5; 10 match a schema in an RL pool. 7 of the 87 are
+classical-only.
+
+**Caveats before any of this is used:**
+- The scanner ignores section-level `variable (h : A)` hypotheses. That produced 36 invalid
+  statements (excluded), and could have produced valid but wrong transcriptions; every kept row
+  needs a hand check against its file and line, as the second-reader check does.
+- Not every hit is an exercise: some are worked examples or demo lemmas (TPiL `t1`, LoVe `*_Demo`
+  files, M40001 lecture files, core library lemmas). Per §1 a stated law or example counts, but
+  library lemmas are not textbook problems.
+- Lean 3 syntax (M40001, *Logic and Proof*) is only partly parsed; about 1,100 headers were
+  rejected as "unexpected" or "non-propositional" without being read.
+- A large share of what was found is a renaming of the sealed sets (155 of 694 hits): standard
+  laws recur in every course.
+
+### 2026-10-01: batch 4, the sources the Lean scan had missed
+
+Charles asked for all four leads in order. Working folder `data/textbook_problem/candidates_b4/`
+(gitignored: readers, merge/audit script, items, exclusions, `sources_commits.txt`). Audit rule:
+curried normal form + renaming class, against the sealed sets, the five pools, the v2 bundle and
+the batch itself; sealed matches counted only.
+
+| Source | Licence | Read | Propositional | Sealed | Pool | Bundle twin | Batch twin | **New** |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Isabelle `src/FOL/ex/` (Propositional_Int, Propositional_Cla, Intuitionistic, Intro, Classical) @ 70839b74 | BSD-3 | 208 lemmas (98 first-order skipped) | 82 | 17 | 6 | 17 | 9 | **33** |
+| Metamath `set.mm` propositional section @ ef3d7e99, only `$p` whose comment cites a book (`[WhiteheadRussell]` 203, Margaris, Hamilton, Church, Mendelson, …) | CC0 | 1,016 `$p` (818 uncited skipped) | 197 | 32 | 22 | 20 | 5 | **118** |
+| LEAN-GitHub (`internlm/Lean-Github`, 218,866 tactic steps → 21,618 theorems; first tactic state with only `Prop` binders) | Apache-2.0 (dataset); repos vary | 1,365 states with Prop | 102 (19 repos) | 27 | 26 | 17 | 14 | **18** (11 from textbook/course repos, 7 held: lean-smt, compfiles, IMOSL, a personal repo) |
+| LAMR, *Logic and Mechanized Reasoning* (Avigad, Heule, Nawrocki), ch. 8 ex. 1, 4 and ch. 9 Lean exercises | © 2021, none stated | 15 (3 unreadable: lowercase `r`) | 12 | 4 | 3 | 2 | 0 | **3** |
+| Second Lean repo scan: MIL ch. 3, *Mechanics of Proof* ch. 5, Formalising Mathematics 2022/2023 (Lean 3), LoVe 2025, Massot's tutorials, Robo | Apache / MIT / none | 346 statements | 346 | 67 | 128 | 157 | 5 | **12** (math2001 4, Robo 7, tutorials 1; MIL, FM 2022/23, LoVe 2025: 0) |
+| **Total** | | | | | | | | **184**, 177 sent to proof search |
+
+Notes:
+- LEAN-GitHub's useful new repo is Velleman's *How To Prove It with Lean* (`djvelleman/HTPILeanPackage`,
+  Apache-2.0): 6 new. Brown CS22 / CS1951x and Lewis's `leanclass` add a few course items.
+- Metamath citations give PM numbers (`Theorem *4.61 of [WhiteheadRussell] p. 120`), so the 118
+  are the first large set of named laws with a textbook citation. Hilbert-style source, but only
+  the statements are used. 3-ary ∧/∨ grouped to the left (noted per row).
+- Formalising Mathematics 2022 and 2023 are the same sheets as 2024; MIL's logic chapter is over
+  real-number predicates; LoVe 2025 repeats 2024.
+- The Lean 3 parser gap from the first scan was mostly real first-order or arithmetic statements;
+  the fix (`∀ P Q : Prop,` goals) recovered 2.
+- Proof search (prove.py 300 s / 1,800 s, 6 procs) started 2026-10-01 on the 177; results to
+  `candidates_b4/proved.jsonl`.

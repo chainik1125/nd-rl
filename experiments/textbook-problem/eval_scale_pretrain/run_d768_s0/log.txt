@@ -1,0 +1,26 @@
+2026-10-02T15:27:04+00:00 loaded scale-d768-p1200_s0/pretrain: {"tok_mode": "lean_seq", "stage": "pretrain", "seed": 0, "harness_sha": "1508dd4b72c2", "pretrain_sha": "3194489316d8", "run": "scale-d768-p1200_s0", "n_params": 37989888, "arch": {"n_layer": 6, "d": 768, "n_head": 12, "d_ff": 2560}, "vocab": 107, "fork": "/private/tmp/claude-501/-Users-cyu-Desktop-github-nd-rl/0e8fdc82-572d-4fd1-ba25-ff48dbf29acf/scratchpad/fork51604b3"}
+2026-10-02T15:27:04+00:00 == v0: 104 records x k=32
+2026-10-02T15:27:43+00:00    256/3328 samples, 39s
+2026-10-02T15:29:41+00:00    2816/3328 samples, 157s
+2026-10-02T15:30:24+00:00    v0: avg solve rate 0.0865 ± 0.0455, any-of-32 17/104, parse-fail 0.3419, 200s
+2026-10-02T15:30:24+00:00 == v1: 80 records x k=32
+2026-10-02T15:30:32+00:00    256/2560 samples, 8s
+2026-10-02T15:33:17+00:00    v1: avg solve rate 0.0582 ± 0.0452, any-of-32 11/80, parse-fail 0.3703, 173s
+2026-10-02T15:33:17+00:00 == hand14: 14 records x k=32
+2026-10-02T15:33:48+00:00    256/448 samples, 31s
+2026-10-02T15:34:16+00:00    hand14: avg solve rate 0.0 ± 0.0, any-of-32 0/14, parse-fail 0.6875, 59s
+2026-10-02T15:34:16+00:00 == batch3: 21 records x k=32
+2026-10-02T15:34:42+00:00    256/672 samples, 26s
+2026-10-02T15:35:53+00:00    batch3: avg solve rate 0.0015 ± 0.0028, any-of-32 1/21, parse-fail 0.433, 97s
+2026-10-02T15:35:53+00:00 == lean_v2: 50 records x k=32
+2026-10-02T15:36:00+00:00    256/1600 samples, 8s
+2026-10-02T15:37:43+00:00    lean_v2: avg solve rate 0.0912 ± 0.0644, any-of-32 9/50, parse-fail 0.4425, 110s
+2026-10-02T15:37:43+00:00 == derived: 202 records x k=32
+2026-10-02T15:37:51+00:00    256/6464 samples, 8s
+2026-10-02T15:40:49+00:00    2816/6464 samples, 186s
+2026-10-02T15:44:37+00:00    5376/6464 samples, 414s
+2026-10-02T15:47:04+00:00    derived: avg solve rate 0.0356 ± 0.0225, any-of-32 17/202, parse-fail 0.5243, 561s
+2026-10-02T15:47:04+00:00 == textbook72: 72 records x k=32
+2026-10-02T15:47:37+00:00    256/2304 samples, 32s
+2026-10-02T15:49:45+00:00    textbook72: avg solve rate 0.1289 ± 0.0734, any-of-32 11/72, parse-fail 0.3837, 161s
+2026-10-02T15:49:45+00:00 done

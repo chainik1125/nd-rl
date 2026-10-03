@@ -11,12 +11,12 @@
    "lines": 80
   },
   "unsolved.jsonl": {
-   "sha256": "583d02ff8753886eb9292c90f2fe36aa58693f7ddbb2423661b7528cca6250c2",
-   "lines": 10
+   "sha256": "ab1a5ad8788c23f0ac4b60259ee59a77961961bfd76a95ed46ea264ed404c0b4",
+   "lines": 14
   },
   "README.md": {
-   "sha256": "13c68bd0d3d2abd7209e253cf58835b2ece5a7e05ec0b66492bcc3e08e723d0e",
-   "lines": 91
+   "sha256": "3aacc6b600b5efc476a8e9a6e56c04b693c5ce96a62e94e2bdff3a754cc3f92b",
+   "lines": 93
   },
   "lean/candidate_v0.lean": {
    "sha256": "89615b5bfc374f7a23f62f18ad8cd40399660bef822d1983eb52d556f2923052",
@@ -27,8 +27,8 @@
    "lines": 163
   },
   "lean/unsolved.lean": {
-   "sha256": "bd5ab148851caeb06c68352d1214c0bf2f8bbe038e623142ae09f8b20bb2a84c",
-   "lines": 23
+   "sha256": "99c6be8817aa05f6db6001a771e2464a95299b40de5369d6de54355685c5bdfb",
+   "lines": 31
   }
  },
  "built_from": {
@@ -42,8 +42,8 @@
     "lines": 80
    },
    "deferred_no_proof.jsonl": {
-    "sha256": "1581433c7d6351324c9c08eba1038fa2a6d093406e379d1a876f567d16131559",
-    "lines": 10
+    "sha256": "b457ca88f82c1858ed6eff82dfefb98ea0cc329f761a14f1d5469cdec101fc19",
+    "lines": 14
    },
    "exclusions.jsonl": {
     "sha256": "9f3dc85af51aa13b004b37ac35583079ad60e468e14bf93220be25ba26988172",
@@ -71,7 +71,7 @@
  "lean_checked": {
   "lean": "4.34.1 (elan stable, arm64-apple-darwin)",
   "date": "2026-09-30",
-  "accepted": "184/184 theorems with proofs (checked before the Carr rows were merged into candidate_v1; content unchanged); 10 unsolved statements elaborate with sorry"
+  "accepted": "184/184 theorems with proofs; 14 unsolved statements elaborate with sorry (4 Pelletier added 2026-09-30)"
  },
  "code_state": "uncommitted on charles/main"
 }

@@ -1,6 +1,6 @@
--- unsolved: 10 problems, rendered by the lean_seq tokenizer pinned in code/textbook_problem/lean_tools/.
+-- unsolved: 14 problems, rendered by the lean_seq tokenizer pinned in code/textbook_problem/lean_tools/.
 -- One theorem per problem; the ND reference proof is rendered as tactic text where one exists, otherwise `sorry`.
--- Checked with Lean 4.34.1 on 2026-09-30: no errors; the unsolved file elaborates with `sorry`.
+-- Checked with Lean 4.34.1 on 2026-09-30: no errors; this file elaborates with `sorry`.
 
 -- textbook_7a4714d44497ce53e5f5 | roy T6.29 | ⊢ (A ↔ B) ↔ [(A ∧ B) ∨ (¬A ∧ ¬B)]
 theorem textbook_7a4714d44497ce53e5f5 ( P Q R S : Prop ) : ( ( ( ( P → Q ) ∧ ( Q → P ) ) → ( ( P ∧ Q ) ∨ ( ( ¬ P ) ∧ ( ¬ Q ) ) ) ) ∧ ( ( ( P ∧ Q ) ∨ ( ( ¬ P ) ∧ ( ¬ Q ) ) ) → ( ( P → Q ) ∧ ( Q → P ) ) ) ) := by sorry
@@ -31,4 +31,16 @@ theorem textbook_575abd80085c0295919c ( P Q R S : Prop ) : ( ( ( ¬ P ) → ( ( 
 
 -- textbook_95a721ce5c3b9b58ab99 | roy E6.21m | ⊢ (¬A ↔ ¬A) ↔ [¬(¬A → A) ↔ (A → ¬A)]
 theorem textbook_95a721ce5c3b9b58ab99 ( P Q R S : Prop ) : ( ( ( ( ( ¬ P ) → ( ¬ P ) ) ∧ ( ( ¬ P ) → ( ¬ P ) ) ) → ( ( ( ¬ ( ( ¬ P ) → P ) ) → ( P → ( ¬ P ) ) ) ∧ ( ( P → ( ¬ P ) ) → ( ¬ ( ( ¬ P ) → P ) ) ) ) ) ∧ ( ( ( ( ¬ ( ( ¬ P ) → P ) ) → ( P → ( ¬ P ) ) ) ∧ ( ( P → ( ¬ P ) ) → ( ¬ ( ( ¬ P ) → P ) ) ) ) → ( ( ( ¬ P ) → ( ¬ P ) ) ∧ ( ( ¬ P ) → ( ¬ P ) ) ) ) ) := by sorry
+
+-- textbook_7efe88ff3250f22c3861 | pelletier P9 | ⊢ ((P ∨ Q) ∧ (¬ P ∨ Q) ∧ (P ∨ ¬ Q)) → ¬ (¬ P ∨ ¬ Q)
+theorem textbook_7efe88ff3250f22c3861 ( P Q R S : Prop ) : ( ( ( ( P ∨ Q ) ∧ ( ( ¬ P ) ∨ Q ) ) ∧ ( P ∨ ( ¬ Q ) ) ) → ( ¬ ( ( ¬ P ) ∨ ( ¬ Q ) ) ) ) := by sorry
+
+-- textbook_828cd5b839153ec11fd4 | pelletier P12 | ⊢ ((P ↔ Q) ↔ R) ↔ (P ↔ (Q ↔ R))
+theorem textbook_828cd5b839153ec11fd4 ( P Q R S : Prop ) : ( ( ( ( ( ( P → Q ) ∧ ( Q → P ) ) → R ) ∧ ( R → ( ( P → Q ) ∧ ( Q → P ) ) ) ) → ( ( P → ( ( Q → R ) ∧ ( R → Q ) ) ) ∧ ( ( ( Q → R ) ∧ ( R → Q ) ) → P ) ) ) ∧ ( ( ( P → ( ( Q → R ) ∧ ( R → Q ) ) ) ∧ ( ( ( Q → R ) ∧ ( R → Q ) ) → P ) ) → ( ( ( ( P → Q ) ∧ ( Q → P ) ) → R ) ∧ ( R → ( ( P → Q ) ∧ ( Q → P ) ) ) ) ) ) := by sorry
+
+-- textbook_e0b988b2c8c5a34a58b2 | pelletier P14 | ⊢ (P ↔ Q) ↔ ((Q ∨ ¬ P) ∧ (¬ Q ∨ P))
+theorem textbook_e0b988b2c8c5a34a58b2 ( P Q R S : Prop ) : ( ( ( ( P → Q ) ∧ ( Q → P ) ) → ( ( Q ∨ ( ¬ P ) ) ∧ ( ( ¬ Q ) ∨ P ) ) ) ∧ ( ( ( Q ∨ ( ¬ P ) ) ∧ ( ( ¬ Q ) ∨ P ) ) → ( ( P → Q ) ∧ ( Q → P ) ) ) ) := by sorry
+
+-- textbook_124af4e361d5d46467af | pelletier P17 | ⊢ ((P ∧ (Q → R)) → S) ↔ ((¬ P ∨ Q ∨ S) ∧ (¬ P ∨ ¬ R ∨ S))
+theorem textbook_124af4e361d5d46467af ( P Q R S : Prop ) : ( ( ( ( P ∧ ( Q → R ) ) → S ) → ( ( ( ( ¬ P ) ∨ Q ) ∨ S ) ∧ ( ( ( ¬ P ) ∨ ( ¬ R ) ) ∨ S ) ) ) ∧ ( ( ( ( ( ¬ P ) ∨ Q ) ∨ S ) ∧ ( ( ( ¬ P ) ∨ ( ¬ R ) ) ∨ S ) ) → ( ( P ∧ ( Q → R ) ) → S ) ) ) := by sorry
 

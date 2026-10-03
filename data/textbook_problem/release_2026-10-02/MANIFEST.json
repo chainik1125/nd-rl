@@ -1,0 +1,69 @@
+{
+ "built": "2026-10-02",
+ "builder": "code/textbook_problem/release_1002.py",
+ "audit": "curry-aware renaming class (canonical_theorem / canon_key of the prompt and of its curried normal form) against the sealed 72, the test files, validation_36, heldout, transfer, rl_targets, train and the earlier files of this release",
+ "sealed_matches_removed_counts": {
+  "candidate_v0": 6,
+  "candidate_v1": 2,
+  "batch3": 2,
+  "derived": 3
+ },
+ "files": {
+  "candidate_v0.jsonl": {
+   "rows": 87,
+   "sha256": "4972d3d450357aa12bbbec726bf1795152136414cef3b01ed0697f971aac27f5",
+   "lean_accepted": 87,
+   "lean_not_rendered": 0
+  },
+  "lean/candidate_v0.lean": {
+   "sha256": "65a592266a3c9dbc537d60877811e7b6130c914534b8b65bb3d0851d9f235446"
+  },
+  "candidate_v1.jsonl": {
+   "rows": 72,
+   "sha256": "7b4026f13d0e1f1828800c115febae3c54049af4d826847222a57a8682c1a2b3",
+   "lean_accepted": 72,
+   "lean_not_rendered": 0
+  },
+  "lean/candidate_v1.lean": {
+   "sha256": "f323921c987e5ace4b0698a091941a914b8f01de186390119cd5e5e2f2dad4cb"
+  },
+  "hand_proved_14.jsonl": {
+   "rows": 14,
+   "sha256": "0f7b1878192b3e9407680bd62cb353294eab050fa1cb368872e5b99cca0e6e76",
+   "lean_accepted": 10,
+   "lean_not_rendered": 4
+  },
+  "lean/hand_proved_14.lean": {
+   "sha256": "0a94d32bbf6c2ade1df619ecb933defb769c402e15c694d8e3b2438181cfda4a"
+  },
+  "batch3.jsonl": {
+   "rows": 14,
+   "sha256": "90f6ccf2c8a386eb01ec13cd01f42739f104ef2dedd5b4591fb51c5ba85dfd14",
+   "lean_accepted": 14,
+   "lean_not_rendered": 0
+  },
+  "lean/batch3.lean": {
+   "sha256": "a94a2ad39f43d0675c3b107c5aaa11729ccbbc0713975b65cffddd4402aa23af"
+  },
+  "derived.jsonl": {
+   "rows": 225,
+   "sha256": "463f7e36cf428d383d9933fc50501d34f5d8a29aa3cef2dd0486523efd961e1d",
+   "lean_accepted": 225,
+   "lean_not_rendered": 0
+  },
+  "lean/derived.lean": {
+   "sha256": "14984f119b9ff743968b23ecddb5b5784b8fc363faa9a87ed6eb4fffbc91c3f9"
+  },
+  "removed.jsonl": {
+   "rows": 22,
+   "sha256": "b5439fea8fb36369a22e658cc090e3076fc9b754379e795552205bc144f8072d"
+  },
+  "README.md": {
+   "sha256": "b01619683eb68e9f2861beb90bdc5cf846399a3d6aa31b75eb79721e1f6270de"
+  },
+  "baselines.md": {
+   "sha256": "371c209040706848021999a88405f9e5fe8d3f578e7787ba8b29267e9600583d"
+  }
+ },
+ "total_problems": 412
+}

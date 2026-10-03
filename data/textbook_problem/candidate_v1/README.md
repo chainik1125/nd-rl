@@ -9,7 +9,7 @@ every sealed and RL set (same audit). All counts are aggregate.
 | File | What |
 | --- | --- |
 | `problems.jsonl` | 80 problems, each with a reference proof found by search and passing `strict_verify`. |
-| `deferred_no_proof.jsonl` | 10 transcribed and audited problems for which the search found no proof (bound 40, 300 s, then conjunct split or 1,800 s). Valid by truth table. **Not part of the set**; kept for hand proofs later. |
+| `deferred_no_proof.jsonl` | 14 transcribed and audited problems for which the search found no proof (bound 40, 300 s, then conjunct split or 1,800 s): 10 from Roy and, added 2026-09-30, 4 from Pelletier (P9, P12, P14, P17; source `pelletier`). Valid by truth table. **Not part of the set**; kept for hand proofs later. |
 | `exclusions.jsonl` | 33 items from the two sources not kept, with reasons. Sealed overlaps are counted only. |
 | `transcribe_summary.json`, `proof_summary.json` | Pipeline counts (the transcribe run covers all six sources; the proof run covers the 90). |
 | `MANIFEST.json` | sha256 of every file here and of the code that produced them. |

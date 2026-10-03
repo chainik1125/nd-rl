@@ -7,8 +7,8 @@
    "lines": 80
   },
   "deferred_no_proof.jsonl": {
-   "sha256": "1581433c7d6351324c9c08eba1038fa2a6d093406e379d1a876f567d16131559",
-   "lines": 10
+   "sha256": "b457ca88f82c1858ed6eff82dfefb98ea0cc329f761a14f1d5469cdec101fc19",
+   "lines": 14
   },
   "exclusions.jsonl": {
    "sha256": "9f3dc85af51aa13b004b37ac35583079ad60e468e14bf93220be25ba26988172",
@@ -46,5 +46,6 @@
   "code/textbook_problem/logic.py": "ea9741f673dbd57374ceb82bc9c9ae84286cd67d35d9345cfad0b9268ce6239c"
  },
  "code_state": "uncommitted on charles/main at the time of freezing",
- "relation_to_v0": "disjoint; candidate_v0 was amended the same day to 104 problems"
+ "relation_to_v0": "disjoint; candidate_v0 was amended the same day to 104 problems",
+ "amended": "2026-09-30: Pelletier P9, P12, P14, P17 added to deferred_no_proof.jsonl (14)"
 }

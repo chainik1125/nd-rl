@@ -1,0 +1,26 @@
+2026-10-02T15:15:23+00:00 loaded scale-d384-p1200_s0/pretrain: {"tok_mode": "lean_seq", "stage": "pretrain", "seed": 0, "harness_sha": "1508dd4b72c2", "pretrain_sha": "6bdbe0047ac4", "run": "scale-d384-p1200_s0", "n_params": 9557760, "arch": {"n_layer": 6, "d": 384, "n_head": 8, "d_ff": 1280}, "vocab": 107, "fork": "/private/tmp/claude-501/-Users-cyu-Desktop-github-nd-rl/0e8fdc82-572d-4fd1-ba25-ff48dbf29acf/scratchpad/fork51604b3"}
+2026-10-02T15:15:23+00:00 == v0: 104 records x k=32
+2026-10-02T15:15:36+00:00    256/3328 samples, 13s
+2026-10-02T15:16:57+00:00    2816/3328 samples, 94s
+2026-10-02T15:17:18+00:00    v0: avg solve rate 0.1109 ± 0.0521, any-of-32 22/104, parse-fail 0.2948, 115s
+2026-10-02T15:17:18+00:00 == v1: 80 records x k=32
+2026-10-02T15:17:21+00:00    256/2560 samples, 3s
+2026-10-02T15:18:40+00:00    v1: avg solve rate 0.0496 ± 0.0404, any-of-32 11/80, parse-fail 0.2844, 82s
+2026-10-02T15:18:40+00:00 == hand14: 14 records x k=32
+2026-10-02T15:18:56+00:00    256/448 samples, 16s
+2026-10-02T15:19:12+00:00    hand14: avg solve rate 0.0 ± 0.0, any-of-32 0/14, parse-fail 0.5246, 31s
+2026-10-02T15:19:12+00:00 == batch3: 21 records x k=32
+2026-10-02T15:19:16+00:00    256/672 samples, 5s
+2026-10-02T15:19:45+00:00    batch3: avg solve rate 0.0 ± 0.0, any-of-32 0/21, parse-fail 0.3467, 34s
+2026-10-02T15:19:45+00:00 == lean_v2: 50 records x k=32
+2026-10-02T15:19:52+00:00    256/1600 samples, 7s
+2026-10-02T15:20:59+00:00    lean_v2: avg solve rate 0.0881 ± 0.0673, any-of-32 11/50, parse-fail 0.3325, 73s
+2026-10-02T15:20:59+00:00 == derived: 202 records x k=32
+2026-10-02T15:21:04+00:00    256/6464 samples, 5s
+2026-10-02T15:22:26+00:00    2816/6464 samples, 87s
+2026-10-02T15:24:37+00:00    5376/6464 samples, 218s
+2026-10-02T15:25:17+00:00    derived: avg solve rate 0.0377 ± 0.0219, any-of-32 20/202, parse-fail 0.4384, 258s
+2026-10-02T15:25:17+00:00 == textbook72: 72 records x k=32
+2026-10-02T15:25:31+00:00    256/2304 samples, 14s
+2026-10-02T15:26:30+00:00    textbook72: avg solve rate 0.1037 ± 0.0641, any-of-32 12/72, parse-fail 0.3238, 73s
+2026-10-02T15:26:30+00:00 done

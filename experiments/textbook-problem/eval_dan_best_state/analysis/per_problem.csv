@@ -1,0 +1,402 @@
+set,source,number,nuance,sequent,ref_lines,n_prem,n_boxes,depth,needs_ore,uses_dn,classical_only,pt_d384,pt_d768,rl_s0,rl_s1,category,pt_min_written,rl_min_written,name
+batch3,oxford,iv,,⊢ (P → ¬P) → ¬P,6,0,2,2,False,False,False,0.0,0.0,0.906,0.875,rl_only,,6,textbook_83b62a17c8dcecce89b3
+batch3,forallx-r3,3,,"P → (Q → R), P ∧ Q ⊢ R",6,2,0,0,False,False,False,0.0,0.0,0.625,0.25,rl_only,,6,textbook_6f2750009ee529705056
+batch3,forallx-r3,4,,"P ∧ Q, P → R, Q → S ⊢ R ∧ S",8,3,0,0,False,False,False,0.0,0.0,0.0,0.031,neither,,9,textbook_9fc6c4ccff942858d7b3
+batch3,pelletier,P3,,⊢ ¬(P → Q) → (Q → P),9,0,3,3,False,False,False,0.0,0.0,0.969,0.938,rl_only,,10,textbook_9dce54aa7519dfd38167
+batch3,oxford,ii,,¬((P → ¬Q) ∨ ¬R) ⊢ Q,9,1,2,2,False,True,True,0.0,0.0,0.0,0.188,neither,,9,textbook_99f1eb6743d83db9b248
+batch3,forallx-r3,7,,"¬P → Q, ¬P ∨ R, ¬R ⊢ Q",9,3,2,1,True,False,False,0.0,0.031,0.625,0.875,rl_only,,9,textbook_2db1a03407fe63d072d5
+batch3,pelletier,P7,,⊢ P ∨ ¬¬¬P,10,0,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_05d366482a3b2495a3ec
+batch3,forallx-r3,8,,"P ∧ (¬P ∨ Q), Q → R ⊢ R",10,2,2,1,True,False,False,0.0,0.0,0.375,0.5,rl_only,,10,textbook_6f2140ac492f40fc582a
+batch3,forallx-r3,7,,"¬P ∨ Q, P → R, P ⊢ Q ∧ R",10,3,2,1,True,False,False,0.0,0.0,0.875,0.969,rl_only,,10,textbook_a09d53a197d8697f9da5
+batch3,forallx-r3,12,,"P → Q, ¬Q ∨ R, ¬R ⊢ ¬P",11,3,3,2,True,False,False,0.0,0.0,0.812,0.875,rl_only,,11,textbook_3f60b3f9f2c6ee461226
+batch3,forallx-r3,10,,"P → Q, P ∨ R, R → S, (Q ∨ S) → ¬R ⊢ P",12,4,2,1,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_5d8d72fcae79efa3d780
+batch3,forallx-r3,5,,"(P ∨ Q) ∨ R, ¬R, ¬Q ⊢ P ∨ S",14,3,4,1,True,False,False,0.0,0.0,0.312,0.562,rl_only,,14,textbook_27bbad163b491d468407
+batch3,oxford,iii,,(P ∨ ¬Q) → R ⊢ ¬R → (¬P ∧ Q),15,1,3,2,False,True,True,0.0,0.0,0.719,0.75,rl_only,,15,textbook_0e262e8e0d687eaeed5f
+batch3,pelletier,P5,,⊢ ((P ∨ Q) → (P ∨ R)) → (P ∨ (Q → R)),17,0,5,4,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_e962e4d3fc1dbfb86e79
+batch3,pelletier,P10,,"P → Q, Q → (R ∧ P), R → (P ∨ Q) ⊢ (R → P) ∧ (P → R)",17,3,4,2,True,False,False,0.0,0.0,0.031,0.062,rl_only,,22,textbook_8d12d86c4a1d9843debc
+batch3,forallx-r3,5,,"(P ∧ Q) ∨ R, ¬R, ¬(¬P ∨ ¬Q) → S ⊢ S",17,3,5,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_a67af6b24dccabdf9e78
+batch3,pelletier,P4,,⊢ ((¬P → Q) → (¬Q → P)) ∧ ((¬Q → P) → (¬P → Q)),19,0,6,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_fd057a138ffd9a9c188a
+batch3,pelletier,P9,,⊢ (((P ∨ Q) ∧ (¬P ∨ Q)) ∧ (P ∨ ¬Q)) → ¬(¬P ∨ ¬Q),26,0,10,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_7efe88ff3250f22c3861
+batch3,pelletier,P14,,⊢ (((P → Q) ∧ (Q → P)) → ((Q ∨ ¬P) ∧ (¬Q ∨ P))) ∧ (((Q ∨ ¬P) ∧ (¬Q ∨ P)) → ((P → Q) ∧ (Q → P))),45,0,12,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_e0b988b2c8c5a34a58b2
+batch3,pelletier,P17,,⊢ (((P ∧ (Q → R)) → S) → (((¬P ∨ Q) ∨ S) ∧ ((¬P ∨ ¬R) ∨ S))) ∧ ((((¬P ∨ Q) ∨ S) ∧ ((¬P ∨ ¬R) ∨ S)) → ((P ∧ (Q → R)) → S)),73,0,19,6,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_124af4e361d5d46467af
+batch3,pelletier,P12,,⊢ (((((P → Q) ∧ (Q → P)) → R) ∧ (R → ((P → Q) ∧ (Q → P)))) → ((P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P))) ∧ (((P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P)) → ((((P → Q) ∧ (Q → P)) → R) ∧ (R → ((P → Q) ∧ (Q → P))))),102,0,23,4,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_828cd5b839153ec11fd4
+derived,derived,curry,curry,⊢ (P ∧ Q) → (((R → S) ∧ (S → R)) ∨ Q),4,0,1,1,False,False,False,0.781,0.938,0.969,0.938,both,4,4,derived_curry_f3402250101373b2
+derived,derived,curry,curry,⊢ ¬¬¬¬P → P,4,0,1,1,False,True,True,0.0,0.0,0.094,0.938,rl_only,,4,derived_curry_262ef2075f8ea07c
+derived,derived,forward_control,forward_control,(P → Q) ∧ (Q → P) ⊢ (Q → P) ∧ (P → Q),4,1,0,0,False,False,False,0.031,0.0,0.531,0.156,both,4,4,derived_forward_control_d8423521f90bc5ee
+derived,derived,forward_control,forward_control,P ∧ (P → (P ∧ Q)) ⊢ Q,5,1,0,0,False,False,False,0.375,0.125,0.906,0.625,both,5,5,derived_forward_control_3d7cbc09596a7de2
+derived,derived,permutation,permutation,¬Q ⊢ ¬(P ∧ Q),5,1,1,1,False,False,False,0.938,0.875,0.938,1.0,both,5,5,derived_permutation_24fd418d355a3ddd
+derived,derived,substitution,substitution,⊢ (((P ∨ Q) → Q) ∧ (Q → (P ∨ Q))) → ((Q → (P ∨ Q)) ∧ ((P ∨ Q) → Q)),5,0,1,1,False,False,False,0.0,0.0,0.531,0.875,rl_only,,5,derived_substitution_480cdae5af30bd49
+derived,derived,forward_control,forward_control,"P ∧ Q, (Q ∧ P) → R ⊢ R",6,2,0,0,False,False,False,0.0,0.0,0.0,0.094,neither,,10,derived_forward_control_f21506ca73490e79
+derived,derived,forward_control,forward_control,"¬(P ∨ Q), R, R → P ⊢ ⊥",6,3,0,0,False,False,False,0.75,0.719,0.75,0.5,both,6,7,derived_forward_control_c65bac94d75f1b85
+derived,derived,forward_control,forward_control,"P ∧ Q, (Q → R) ∧ (R → Q) ⊢ R ∨ S",6,2,0,0,False,False,False,0.0,0.0,0.0,0.281,neither,,6,derived_forward_control_127c2b8e99e26bab
+derived,derived,near_miss,near_miss,"(P ∨ Q) → R, R → (P ∨ Q) ⊢ Q → R",6,2,1,1,False,False,False,0.031,0.0,0.469,0.656,both,6,6,derived_near_miss_e36a9e0adad9cb5f
+derived,derived,demorgan,demorgan,⊢ ¬¬(P → P) ∨ P,6,0,2,2,False,False,False,0.031,0.0,0.906,0.969,both,6,6,derived_demorgan_25ad94f63a9ea454
+derived,derived,no_dn,no_dn,P → (P ∧ ¬P) ⊢ ¬P,6,1,1,1,False,False,False,0.0,0.0,0.844,0.938,rl_only,,6,derived_no_dn_1a3eeed4868d0d44
+derived,derived,curry,curry,⊢ ((P ∧ Q) ∨ (P ∧ R)) → P,7,0,3,2,True,False,False,0.0,0.0,0.312,0.625,rl_only,,7,derived_curry_5df4858ef00ff9b8
+derived,derived,curry,curry,(P → Q) → R ⊢ Q → R,7,1,2,2,False,False,False,0.0,0.0,0.969,0.938,rl_only,,7,derived_curry_d718ce2efb05bb42
+derived,derived,curry,curry,⊢ ((P → (P → Q)) ∧ ((P → Q) → P)) → (P → Q),7,0,2,2,False,False,False,0.0,0.0,0.156,0.688,rl_only,,7,derived_curry_113e07edde50fc9e
+derived,derived,curry,curry,⊢ ¬(P ∧ Q) → (((¬(P ∧ Q) → R) ∧ (R → ¬(P ∧ Q))) → (P ∨ R)),7,0,2,2,False,False,False,0.0,0.0,0.125,0.594,rl_only,,7,derived_curry_370c4306c698572b
+derived,derived,forward_control,forward_control,"(P ∨ Q) → ((Q → R) ∧ (R → Q)), Q ⊢ Q ∧ R",7,2,0,0,False,False,False,0.0,0.0,0.062,0.0,rl_only,,28,derived_forward_control_9e9f48a96758a86e
+derived,derived,forward_control,forward_control,"P → ((Q ∧ P) → R), P ∧ Q ⊢ R",7,2,0,0,False,False,False,0.0,0.0,0.0,0.031,neither,,18,derived_forward_control_405b37bed4e609b3
+derived,derived,forward_control,forward_control,"P ∧ Q, Q → (R ∧ S) ⊢ P ∧ S",7,2,0,0,False,False,False,0.0,0.0,0.5,0.719,rl_only,,7,derived_forward_control_c3dcf7afb875b6c8
+derived,derived,wrappers,wrappers,¬¬¬(P ∨ Q) ⊢ Q → P,7,1,1,1,False,True,False,0.0,0.0,0.375,0.938,rl_only,,9,derived_wrappers_0abae1ded57b2488
+derived,derived,wrappers,wrappers,⊢ ((P ∧ ¬P) → (Q ∧ ¬Q)) ∨ R,7,0,1,1,False,False,False,0.0,0.0,0.844,0.562,rl_only,,7,derived_wrappers_290e1fc11902a060
+derived,derived,wrappers,wrappers,⊢ (¬P → (P → Q)) ∨ R,7,0,2,2,False,False,False,0.0,0.125,0.969,1.0,rl_only,,8,derived_wrappers_d085077411bf3f96
+derived,derived,permutation,permutation,(R ∧ Q) ∨ P ⊢ P ∨ Q,7,1,2,1,True,False,False,0.406,0.0,0.781,0.844,both,7,7,derived_permutation_0100c65b09a24d44
+derived,derived,substitution,substitution,⊢ ¬(P ∨ Q) → ((Q ∧ (P ∨ Q)) → R),7,0,2,2,False,False,False,0.0,0.031,0.969,0.938,rl_only,,7,derived_substitution_70dd8cab27ea31a5
+derived,derived,demorgan,demorgan,"¬(¬P ∧ ¬Q), ¬Q ⊢ P",7,2,1,1,False,True,True,0.0,0.062,0.219,0.25,rl_only,,7,derived_demorgan_59f04d9fc0cfa038
+derived,derived,line_budget,line_budget,⊢ (P → (P ∧ P)) ∧ ((P ∧ P) → P),7,0,2,1,False,False,False,0.031,0.062,0.844,1.0,both,7,7,derived_line_budget_c380159829568169
+derived,derived,line_budget,line_budget,"(P → Q) ∧ (Q → P), ¬P ⊢ ¬Q",7,2,1,1,False,False,False,0.0,0.094,0.594,0.562,rl_only,,7,derived_line_budget_4d8a0bdb425b5594
+derived,derived,no_dn,no_dn,¬(P ∨ Q) ⊢ R → ¬P,7,1,2,2,False,False,False,0.656,0.406,0.938,1.0,both,7,7,derived_no_dn_3f627f614b5d4bb3
+derived,derived,no_dn,no_dn,"(P → Q) ∧ (Q → P), ¬Q ⊢ ¬P",7,2,1,1,False,False,False,0.0,0.0,0.125,0.469,rl_only,,7,derived_no_dn_f75605ac575b3a5f
+derived,derived,curry,curry,⊢ ¬(P ∨ Q) → (R → ¬P),8,0,3,3,False,False,False,0.0,0.0,0.875,0.938,rl_only,,8,derived_curry_1c035e3a47fc837b
+derived,derived,forward_control,forward_control,"(P ∨ Q) → R, (S → R) ∧ (R → S), P ⊢ P ∧ S",8,3,0,0,False,False,False,0.0,0.0,0.156,0.0,rl_only,,16,derived_forward_control_9f4c1f5870513a25
+derived,derived,near_miss,near_miss,"P, (Q ∨ R) → ¬P, ¬P → (Q ∨ R) ⊢ ¬Q",8,3,1,1,False,False,False,0.0,0.0,0.094,0.0,rl_only,,8,derived_near_miss_0e077ddd04989509
+derived,derived,near_miss,near_miss,"¬¬P → ¬Q, ¬Q → ¬¬P ⊢ P → ¬Q",8,2,2,2,False,False,False,0.0,0.0,0.531,0.875,rl_only,,8,derived_near_miss_a2e37407d0cb02b9
+derived,derived,permutation,permutation,⊢ (P → R) → ((R → Q) → (P → Q)),8,0,3,3,False,False,False,0.0,0.0,0.0,0.031,neither,,8,derived_permutation_e57ad01c83f4d853
+derived,derived,permutation,permutation,⊢ ((Q → P) ∧ ¬P) → ¬Q,8,0,2,2,False,False,False,0.0,0.0,0.562,0.688,rl_only,,8,derived_permutation_327465d05c24daed
+derived,derived,distractor_scaling,distractor_scaling,"P ∨ (¬P ∧ Q), P → (P ∧ ¬P) ⊢ P ∨ Q",8,2,2,1,True,False,False,0.0,0.0,0.188,0.531,rl_only,,8,derived_distractor_scaling_95401ba27996e6ad
+derived,derived,distractor_scaling,distractor_scaling,"P, ¬Q → ¬P, P ∧ Q ⊢ Q",8,3,1,1,False,True,False,0.0,0.938,0.875,0.781,rl_only,,5,derived_distractor_scaling_92f795a6cd9c9f67
+derived,derived,no_dn,no_dn,(P ∧ Q) → ¬P ⊢ P → ¬Q,8,1,2,2,False,False,False,0.0,0.0,1.0,0.969,rl_only,,8,derived_no_dn_4aba9d57e90cb575
+derived,derived,force_ore,force_ore,"P → (Q ∨ ¬P), P ⊢ Q",8,2,2,1,True,False,False,0.0,0.0,0.969,0.875,rl_only,,8,derived_force_ore_cd15e96ae964a2ab
+derived,derived,forward_control,forward_control,"P ∧ Q, (P → R) ∧ (Q → S) ⊢ R ∧ S",9,2,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_forward_control_c9f75f315857e48a
+derived,derived,wrappers,wrappers,⊢ ((P → (Q → R)) → (Q → (P → R))) ∨ S,9,0,3,3,False,False,False,0.0,0.0,0.781,0.781,rl_only,,9,derived_wrappers_b55eb8aa7dda5f46
+derived,derived,wrappers,wrappers,⊢ ((P → Q) → ((R → P) → (R → Q))) ∨ S,9,0,3,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_wrappers_e66ee37a341b1d84
+derived,derived,near_miss,near_miss,"¬P → Q, Q → P, Q → ¬P ⊢ P",9,3,1,1,False,True,True,0.0,0.0,0.0,0.062,neither,,13,derived_near_miss_8bb8e1386bb4b333
+derived,derived,near_miss,near_miss,"P ∨ Q, Q → R, R → Q ⊢ P ∨ R",9,3,2,1,True,False,False,0.0,0.0,0.5,0.219,rl_only,,9,derived_near_miss_1fdc0a9ecebe0640
+derived,derived,distractor_scaling,distractor_scaling,"P ∨ (¬P ∧ Q), P → (P ∧ ¬P), (P ∧ Q) ∨ R ⊢ P ∨ Q",9,3,2,1,True,False,False,0.0,0.0,0.156,0.594,rl_only,,9,derived_distractor_scaling_f647aa0a2ab470c7
+derived,derived,distractor_scaling,distractor_scaling,"P, ¬Q → ¬P, P ∧ Q, (P ∧ Q) ∨ R ⊢ Q",9,4,1,1,False,True,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_3ce39548843364c0
+derived,derived,demorgan,demorgan,"P ∧ Q, ¬(Q ∨ R) ∨ S ⊢ S",9,2,2,1,True,False,False,0.0,0.0,0.375,0.125,rl_only,,12,derived_demorgan_348d6b3d4f04c8ce
+derived,derived,line_budget,line_budget,(P → ¬P) ∧ (¬P → P) ⊢ ⊥,9,1,1,1,False,False,False,0.0,0.0,0.406,0.031,rl_only,,10,derived_line_budget_c47fb93a1761289b
+derived,derived,line_budget,line_budget,P → Q ⊢ ((P ∧ Q) → P) ∧ (P → (P ∧ Q)),9,1,2,1,False,False,False,0.0,0.0,0.875,0.875,rl_only,,9,derived_line_budget_b7c8ffc4a9b10768
+derived,derived,line_budget,line_budget,⊢ (¬¬P → P) ∧ (P → ¬¬P),9,0,3,2,False,True,True,0.0,0.0,0.906,1.0,rl_only,,9,derived_line_budget_4a6c96192d1ec225
+derived,derived,force_ore,force_ore,⊢ (P → (P ∨ P)) ∧ ((P ∨ P) → P),9,0,4,2,True,False,False,0.0,0.0,0.938,1.0,rl_only,,9,derived_force_ore_ed81887d7f542c04
+derived,derived,curry,curry,P → (Q → R) ⊢ (S → Q) → (P → (S → R)),10,1,3,3,False,False,False,0.0,0.0,0.125,0.0,rl_only,,14,derived_curry_4f822b668c8cd919
+derived,derived,negated_conjunction,negated_conjunction,⊢ ¬(((P → (P ∨ Q)) ∧ ((P ∨ Q) → P)) ∧ ¬(Q → P)),10,0,2,2,False,False,False,0.0,0.0,0.062,0.031,rl_only,,12,derived_negated_conjunction_1f2ce625e9805dfd
+derived,derived,wrappers,wrappers,⊢ ((P → Q) → (¬Q → ¬(P ∧ R))) ∨ S,10,0,3,3,False,False,False,0.0,0.0,0.094,0.125,rl_only,,11,derived_wrappers_e454cd6960708516
+derived,derived,substitution,substitution,"(Q → P) → (Q → R), Q → ¬R ⊢ (Q → P) → ¬Q",10,2,2,2,False,False,False,0.0,0.0,0.531,0.594,rl_only,,10,derived_substitution_5407c1b4e9a5d98c
+derived,derived,substitution,substitution,(Q → P) ∧ (¬Q → ¬(Q → P)) ⊢ (Q ∧ (Q → P)) ∨ ¬(Q → P),10,1,1,1,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_substitution_c46c3d8681397b47
+derived,derived,substitution,substitution,⊢ (¬(P ∧ Q) → ¬Q) → ((¬(P ∧ Q) → Q) → (P ∧ Q)),10,0,3,3,False,True,True,0.0,0.0,0.594,0.094,rl_only,,10,derived_substitution_d2e5765eb1f46524
+derived,derived,demorgan,demorgan,⊢ ¬((P → Q) ∧ (Q → P)) ∨ (P → Q),10,0,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_demorgan_83a0ef939a463a01
+derived,derived,demorgan,demorgan,⊢ ¬((P → Q) ∧ (Q → P)) ∨ (Q → P),10,0,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_demorgan_ac21e5c447ad4b15
+derived,derived,line_budget,line_budget,"P ∧ (Q ∨ R), P → ¬R ⊢ Q",10,2,2,1,True,False,False,0.0,0.0,0.781,0.5,rl_only,,10,derived_line_budget_568b0e1beec62396
+derived,derived,no_dn,no_dn,P ∨ Q ⊢ ¬(¬P ∧ ¬Q),10,1,3,2,True,False,False,0.0,0.0,0.406,0.875,rl_only,,10,derived_no_dn_1b2f919769e86697
+derived,derived,no_dn,no_dn,"¬(P ∧ Q), ¬(P ∧ ¬Q) ⊢ ¬P",10,2,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_no_dn_eec3f7708fb7803c
+derived,derived,no_dn,no_dn,"P ∨ ¬Q, ¬P ∨ ¬Q ⊢ ¬Q",10,2,4,2,True,False,False,0.0,0.0,0.5,0.0,rl_only,,14,derived_no_dn_8b6f628bafa82699
+derived,derived,curry,curry,P ∨ Q ⊢ (P → Q) → ((Q → P) → (P ∧ Q)),11,1,4,3,True,False,False,0.0,0.0,0.0,0.656,neither,,13,derived_curry_4d85bd85c14a6039
+derived,derived,curry,curry,⊢ ((P ∧ Q) → (R ∧ S)) → (((P ∧ Q) → R) ∧ ((P ∧ Q) → S)),11,0,3,2,False,False,False,0.0,0.0,0.562,0.438,rl_only,,12,derived_curry_8d396034ec174afc
+derived,derived,negated_conjunction,negated_conjunction,⊢ ¬((P → ¬Q) ∧ ¬(Q → ¬P)),11,0,3,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_1b8263e40697dfb3
+derived,derived,wrappers,wrappers,"((P ∧ Q) ∨ (Q ∧ R)) ∨ ((P ∧ Q) ∨ (Q ∧ R)), Q → S ⊢ S",11,2,4,1,True,False,False,0.0,0.0,0.031,0.0,rl_only,,13,derived_wrappers_7bacce98d07198ca
+derived,derived,near_miss,near_miss,"P → (Q → R), (Q → R) → P ⊢ ¬R → ¬(P ∧ Q)",11,2,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_near_miss_81ccabaed685b858
+derived,derived,permutation,permutation,⊢ ¬((Q ∨ P) ∧ (¬Q ∧ ¬P)),11,0,3,2,True,False,False,0.0,0.0,0.375,0.0,rl_only,,11,derived_permutation_5414d9f77a6cef21
+derived,derived,permutation,permutation,⊢ (((Q → P) ∧ (P → Q)) → ((P → Q) ∧ (Q → P))) ∧ (((P → Q) ∧ (Q → P)) → ((Q → P) ∧ (P → Q))),11,0,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_permutation_6c5d75889e03a55a
+derived,derived,permutation,permutation,"P, Q ⊢ (¬Q → ¬P) ∧ (¬P → ¬Q)",11,2,2,1,False,False,False,0.0,0.0,0.531,0.812,rl_only,,11,derived_permutation_257a7da5124f6686
+derived,derived,distractor_scaling,distractor_scaling,"P ∨ (¬P ∧ Q), P → (P ∧ ¬P), (P ∧ Q) ∨ R, (Q → R) ∧ (R → Q), ¬P → Q ⊢ P ∨ Q",11,5,2,1,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_565bf6679b67d682
+derived,derived,distractor_scaling,distractor_scaling,"P, ¬Q → ¬P, P ∧ Q, (P ∧ Q) ∨ R, (P → Q) ∧ (Q → P), (Q → R) ∧ (R → Q) ⊢ Q",11,6,1,1,False,True,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_590c0619b789089a
+derived,derived,line_budget,line_budget,⊢ P → ((¬Q → ¬R) → (R → Q)),11,0,4,4,False,True,True,0.0,0.0,0.344,0.375,rl_only,,11,derived_line_budget_7c52872b08cc1dab
+derived,derived,no_dn,no_dn,"¬(P → Q), ¬(Q → R) ⊢ ¬S",11,2,2,2,False,False,False,0.0,0.0,0.094,0.469,rl_only,,13,derived_no_dn_75baf9e7ff0a453b
+derived,derived,force_ore,force_ore,⊢ ((P → Q) ∧ (R → Q)) → ((P ∨ R) → Q),11,0,4,3,True,False,False,0.0,0.0,0.0,0.625,neither,,11,derived_force_ore_8d224cc9b8bd97c7
+derived,derived,force_ore,force_ore,"P ∧ (Q ∨ R), P → ¬R ⊢ Q ∨ S",11,2,2,1,True,False,False,0.0,0.0,0.562,0.562,rl_only,,11,derived_force_ore_fa1d07224458ab61
+derived,derived,negated_conjunction,negated_conjunction,¬P → (Q ∨ P) ⊢ ¬(¬P ∧ ¬Q),12,1,3,2,True,False,False,0.0,0.0,0.188,0.625,rl_only,,11,derived_negated_conjunction_6644a539f95cb8eb
+derived,derived,wrappers,wrappers,(P ∧ ¬Q) → ¬R ⊢ ((P ∧ R) → Q) ∨ S,12,1,2,2,False,True,True,0.0,0.0,0.0,0.031,neither,,25,derived_wrappers_08b6a363cf8ad8ee
+derived,derived,near_miss,near_miss,"(P ∧ Q) → (R ∨ S), Q ∧ P, (R ∨ S) → (P ∧ Q) ⊢ S ∨ R",12,3,2,1,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_near_miss_8e90ad5cdb720ab6
+derived,derived,substitution,substitution,"¬Q ∨ Q, ¬Q ∨ R, ¬R ⊢ ¬Q",12,3,4,2,True,False,False,0.031,0.031,0.938,0.625,both,8,9,derived_substitution_3228ee07e99e438b
+derived,derived,demorgan,demorgan,"¬(¬P ∧ ¬¬Q), Q ∨ R, ¬P ⊢ R",12,3,3,2,True,False,False,0.0,0.0,0.062,0.312,rl_only,,18,derived_demorgan_6a93c4488f94d678
+derived,derived,demorgan,demorgan,⊢ ¬(P ∧ Q) ∨ ((P → Q) → P),12,0,3,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_demorgan_29979b085acc4402
+derived,derived,demorgan,demorgan,⊢ ¬((P → Q) ∧ (Q → P)) ∨ ((Q → P) ∧ (P → Q)),12,0,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_demorgan_783f89422063dca1
+derived,derived,no_dn,no_dn,"¬P → Q, R → ¬Q, ¬R → P ⊢ ¬¬P",12,3,2,2,False,False,False,0.0,0.0,0.062,0.0,rl_only,,12,derived_no_dn_de125f5c9a00e922
+derived,derived,force_ore,force_ore,"P ∨ ¬Q, Q ∨ R, ¬P ⊢ R",12,3,4,2,True,False,False,0.0,0.0,0.219,0.0,rl_only,,12,derived_force_ore_f73ce84c276bf907
+derived,derived,negated_conjunction,negated_conjunction,¬P → Q ⊢ ¬((P → ¬Q) ∧ ¬((¬P → Q) ∧ (Q → ¬P))),13,1,3,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_8c96aeb1deac43d4
+derived,derived,near_miss,near_miss,"(P → Q) → R, S → (P → Q), ¬S → R, R → (P → Q) ⊢ ¬¬R",13,4,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_near_miss_f0934e2dc6fa9103
+derived,derived,substitution,substitution,⊢ ¬((P ∧ Q) → Q) → ((P ∧ Q) ∧ ¬Q),13,0,4,4,False,True,False,0.0,0.0,0.969,0.688,rl_only,,7,derived_substitution_3c991c4d09097a06
+derived,derived,demorgan,demorgan,⊢ ¬(¬P → P) ∨ ¬¬P,13,0,3,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_demorgan_bae4a098ac3ebe15
+derived,derived,force_ore,force_ore,"(P ∨ Q) ∨ R, (R → Q) ∧ (Q → R) ⊢ R ∨ P",13,2,4,2,True,False,False,0.0,0.0,0.438,0.0,rl_only,,13,derived_force_ore_ec89062a13fcc939
+derived,derived,force_ore,force_ore,"P ∨ Q, (P → Q) ∧ (Q → P), ¬(P ∧ Q) ⊢ R",13,3,2,1,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_force_ore_eded77e678420e43
+derived,derived,conjoined,conjoined,"P → Q, Q → P, (Q → ((Q → P) ∧ (P → Q))) ∧ (((Q → P) ∧ (P → Q)) → Q), (P ∧ Q) → R ⊢ P ∧ (P → R)",14,4,1,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_conjoined_345de311bea8c0ad
+derived,derived,negated_conjunction,negated_conjunction,⊢ ¬(((P ∧ Q) → R) ∧ ¬((P ∧ ¬R) → ¬Q)),14,0,3,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_b2a9fe013cc4cdbd
+derived,derived,permutation,permutation,¬(¬Q ∧ ¬P) ⊢ Q ∨ P,14,1,3,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_permutation_3c07de3f30d9f4da
+derived,derived,demorgan,demorgan,"¬P ∨ ¬Q, (¬(P ∧ Q) → R) ∧ (R → ¬(P ∧ Q)) ⊢ P ∨ R",14,2,2,2,False,True,False,0.0,0.0,0.0,0.0,neither,,,derived_demorgan_4ea4d5cb1ff2e3fd
+derived,derived,force_ore,force_ore,"P ∨ Q, Q ∨ R, ¬Q ⊢ P ∧ R",14,3,4,1,True,False,False,0.0,0.0,0.094,0.031,rl_only,,16,derived_force_ore_d56326e879a02f7a
+derived,derived,conjoined,conjoined,"P → Q, Q → R, R → S ⊢ (P → S) ∧ ((Q → R) → (P → R))",15,3,3,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_conjoined_75ea413e6d8ea1a3
+derived,derived,conjoined,conjoined,P → Q ⊢ ((P ∨ (R ∧ Q)) → Q) ∧ ((R → P) → (R → Q)),15,1,5,2,True,False,False,0.0,0.0,0.031,0.0,rl_only,,25,derived_conjoined_1a9562271f1f0bc1
+derived,derived,permutation,permutation,"(R → Q) ∧ (Q → R), (P → R) ∧ (R → P) ⊢ (P → Q) ∧ (Q → P)",15,2,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_permutation_7495653a140acb21
+derived,derived,substitution,substitution,¬Q ∨ Q ⊢ ¬Q ∨ (¬¬Q ∧ Q),15,1,4,3,True,True,False,0.0,0.0,0.031,0.0,rl_only,,25,derived_substitution_95dd8a1e58d32291
+derived,derived,substitution,substitution,⊢ ¬((P ∧ Q) ∧ Q) → (¬(P ∧ Q) ∨ ¬Q),15,0,4,4,False,True,False,0.0,0.0,0.0,0.094,neither,,15,derived_substitution_29a5987efad653d0
+derived,derived,line_budget,line_budget,"P → ¬P, Q → P, R → Q, ¬R → Q ⊢ S",15,4,1,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_line_budget_6f44c31f06ce615f
+derived,derived,line_budget,line_budget,⊢ ((P ∨ Q) → (Q ∨ P)) ∧ ((Q ∨ P) → (P ∨ Q)),15,0,6,2,True,False,False,0.0,0.0,0.0,0.031,neither,,15,derived_line_budget_132bf7bd990c0344
+derived,derived,line_budget,line_budget,(P → ¬Q) ∧ (¬Q → P) ⊢ ¬((P → Q) ∧ (Q → P)),15,1,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_line_budget_bbe7955048d99997
+derived,derived,conjoined,conjoined,"P → Q, R ∧ ¬S, (¬S → (Q → P)) ∧ ((Q → P) → ¬S), (R → Q) → ¬P ⊢ ((P → Q) ∧ (Q → P)) ∧ ¬P",16,4,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_conjoined_cce06cb06d02f9ac
+derived,derived,conjoined,conjoined,"P → Q, (Q ∨ R) → S, S → ¬P ⊢ ¬P ∧ ((P ∧ R) → (Q ∨ S))",16,3,2,1,False,False,False,0.0,0.0,0.094,0.0,rl_only,,20,derived_conjoined_eb94a116d8591f12
+derived,derived,permutation,permutation,((Q ∧ R) → (Q ∧ P)) ∧ ((Q ∧ P) → (Q ∧ R)) ⊢ Q → ((R → P) ∧ (P → R)),16,1,3,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_permutation_52545afc99858731
+derived,derived,distractor_scaling,distractor_scaling,"(P → ¬((Q → ¬R) ∧ (¬R → Q))) ∧ (¬((Q → ¬R) ∧ (¬R → Q)) → P), ¬(P ∨ Q), P → (P ∧ ¬P) ⊢ R",16,3,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_f341154546b70d46
+derived,derived,negated_conjunction,negated_conjunction,(P ∨ Q) ∨ R ⊢ ¬(((Q → R) ∧ (R → Q)) ∧ ¬(R ∨ P)),17,1,5,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_1a7af0f203b2f7b3
+derived,derived,near_miss,near_miss,"(P ∨ Q) → (P ∨ R), (P ∨ R) → (P ∨ Q) ⊢ P ∨ (Q → R)",17,2,4,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,derived_near_miss_9100792def653253
+derived,derived,distractor_scaling,distractor_scaling,"(P → ¬((Q → ¬R) ∧ (¬R → Q))) ∧ (¬((Q → ¬R) ∧ (¬R → Q)) → P), ¬(P ∨ Q), P → (P ∧ ¬P), (P ∧ Q) ∨ R ⊢ R",17,4,2,2,False,True,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_2e59005ef67ec3d7
+derived,derived,distractor_scaling,distractor_scaling,"(P → Q) ∧ (Q → P), P → (P ∧ ¬P) ⊢ ((P ∧ R) → (Q ∧ R)) ∧ ((Q ∧ R) → (P ∧ R))",17,2,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_6849c10c31860e51
+derived,derived,substitution,substitution,⊢ (((P ∨ Q) → (Q → R)) → (((P ∨ Q) ∧ Q) → R)) ∧ ((((P ∨ Q) ∧ Q) → R) → ((P ∨ Q) → (Q → R))),17,0,5,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_substitution_a371bb1cc88cce4f
+derived,derived,force_ore,force_ore,"(P ∧ Q) ∨ ¬(R → ¬S), ¬Q ⊢ R ∧ S",17,2,5,4,True,True,True,0.0,0.0,0.0,0.031,neither,,24,derived_force_ore_4aaa1ab191f3a811
+derived,derived,conjoined,conjoined,"P → Q, Q → ¬P ⊢ (¬P ∨ Q) ∧ ¬P",18,2,3,2,False,True,False,0.0,0.0,0.625,0.344,rl_only,,9,derived_conjoined_500f0d484f4424ef
+derived,derived,conjoined,conjoined,"P → Q, Q → ¬R, S → P, R → S ⊢ ¬R ∧ ¬(P ∧ ¬Q)",18,4,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_conjoined_551fc483f186945d
+derived,derived,negated_conjunction,negated_conjunction,⊢ ¬((P → ¬Q) ∧ (¬(R ∧ P) ∧ ¬((Q ∨ R) → ¬P))),18,0,5,4,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_57f2135a03b1e569
+derived,derived,distractor_scaling,distractor_scaling,"(P → Q) ∧ (Q → P), P → (P ∧ ¬P), (P ∧ Q) ∨ R ⊢ ((P ∧ R) → (Q ∧ R)) ∧ ((Q ∧ R) → (P ∧ R))",18,3,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_e19a8527f71cb7a9
+derived,derived,negated_conjunction,negated_conjunction,⊢ ¬(((¬P → Q) ∧ (Q → ¬P)) ∧ ¬¬((P → Q) ∧ (Q → P))),19,0,3,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_4b6b08dac5b6ad6e
+derived,derived,negated_conjunction,negated_conjunction,⊢ ¬(((P → (¬Q ∨ R)) ∧ ((¬Q ∨ R) → P)) ∧ ((Q → R) ∧ ¬P)),19,0,3,3,False,True,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_dd0b711cbf67b1c7
+derived,derived,near_miss,near_miss,"(P ∨ Q) ∨ (R ∨ S), Q → R, ¬S, R → Q ⊢ P ∨ R",19,4,6,2,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_near_miss_465174b4ec4ee716
+derived,derived,distractor_scaling,distractor_scaling,"(P → ¬((Q → ¬R) ∧ (¬R → Q))) ∧ (¬((Q → ¬R) ∧ (¬R → Q)) → P), ¬(P ∨ Q), P → (P ∧ ¬P), (P ∧ Q) ∨ R, (P → Q) ∧ (Q → P), P → R ⊢ R",19,6,2,2,False,True,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_a3366af7d4499de3
+derived,derived,conjoined,conjoined,"P → Q, Q → R, R → S, P → (Q → R) ⊢ (P → ¬(P → ¬S)) ∧ (P → (Q ∧ R))",20,4,3,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_conjoined_ecbbf0574469a321
+derived,derived,distractor_scaling,distractor_scaling,"(P → Q) ∧ (Q → P), P → (P ∧ ¬P), (P ∧ Q) ∨ R, P → R, Q → S ⊢ ((P ∧ R) → (Q ∧ R)) ∧ ((Q ∧ R) → (P ∧ R))",20,5,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_distractor_scaling_5eb64c3078d9f67d
+derived,derived,force_ore,force_ore,"¬(P ∨ ¬Q) ∨ (¬Q → ¬R), Q → P, P → R ⊢ (Q → R) ∧ (R → Q)",20,3,5,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,derived_force_ore_fe2ceb2d5b9f6140
+derived,derived,negated_conjunction,negated_conjunction,⊢ ¬(((¬P ∨ Q) ∨ R) ∧ ((R → ¬S) ∧ ¬((P ∧ S) → Q))),22,0,6,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_negated_conjunction_bd4b7f34334a945d
+derived,derived,conjoined,conjoined,"P → Q, Q → R, R → S, P, R → (R → S) ⊢ ¬(P → ¬S) ∧ ((R ∨ P) → (Q ∨ S))",23,5,4,2,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_conjoined_48e0877ba3402e39
+derived,derived,wrappers,wrappers,⊢ (((¬P → Q) → (P ∨ Q)) ∧ ((P ∨ Q) → (¬P → Q))) ∨ R,23,0,7,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,derived_wrappers_56f45666075c92a8
+derived,derived,no_dn,no_dn,⊢ (¬(P ∨ Q) → (¬P ∧ ¬Q)) ∧ ((¬P ∧ ¬Q) → ¬(P ∨ Q)),23,0,7,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,derived_no_dn_1244b0b4b784be88
+derived,derived,wrappers,wrappers,"((P → Q) ∧ (Q → P)) ∧ ((P → Q) ∧ (Q → P)), (Q → ¬R) ∧ (¬R → Q) ⊢ ¬((P → R) ∧ (R → P))",24,2,3,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,derived_wrappers_f1536e26279069f9
+derived,derived,conjoined,conjoined,"P → (Q → R), ¬S → (P ∨ R), P → Q, Q → (R ∧ P) ⊢ (S ∨ R) ∧ ((P → Q) ∧ (Q → P))",26,4,5,2,True,True,True,0.0,0.0,0.0,0.0,neither,,,derived_conjoined_03f3b4c549206007
+hand14,roy,E6.21l,,⊢ (¬P → (¬Q → R)) → ((P ∨ Q) ∨ (¬¬Q ∨ R)),20,0,4,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_575abd80085c0295919c
+hand14,roy,E6.18o,,"(P → Q) ∧ (Q → P), (Q → ¬R) ∧ (¬R → Q) ⊢ ¬((P → R) ∧ (R → P))",23,2,3,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_76f8dfbeb57747b32fae
+hand14,pelletier,P9,,⊢ (((P ∨ Q) ∧ (¬P ∨ Q)) ∧ (P ∨ ¬Q)) → ¬(¬P ∨ ¬Q),26,0,10,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_7efe88ff3250f22c3861
+hand14,roy,E6.21m,,⊢ (((¬P → ¬P) ∧ (¬P → ¬P)) → ((¬(¬P → P) → (P → ¬P)) ∧ ((P → ¬P) → ¬(¬P → P)))) ∧ (((¬(¬P → P) → (P → ¬P)) ∧ ((P → ¬P) → ¬(¬P → P))) → ((¬P → ¬P) ∧ (¬P → ¬P))),29,0,9,4,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_95a721ce5c3b9b58ab99
+hand14,roy,E6.18i,,(P → Q) ∧ (Q → P) ⊢ (((R → P) ∧ (P → R)) → ((R → Q) ∧ (Q → R))) ∧ (((R → Q) ∧ (Q → R)) → ((R → P) ∧ (P → R))),30,1,6,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_9111869d16ada6fce314
+hand14,roy,E6.20c,,(((P → Q) ∧ (Q → P)) → ((R → S) ∧ (S → R))) ∧ (((R → S) ∧ (S → R)) → ((P → Q) ∧ (Q → P))) ⊢ ((P → R) ∧ (R → P)) → (Q → S),43,1,9,5,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_c9433284b21bf158bf1d
+hand14,pelletier,P14,,⊢ (((P → Q) ∧ (Q → P)) → ((Q ∨ ¬P) ∧ (¬Q ∨ P))) ∧ (((Q ∨ ¬P) ∧ (¬Q ∨ P)) → ((P → Q) ∧ (Q → P))),45,0,12,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_e0b988b2c8c5a34a58b2
+hand14,roy,T6.29,,⊢ (((P → Q) ∧ (Q → P)) → ((P ∧ Q) ∨ (¬P ∧ ¬Q))) ∧ (((P ∧ Q) ∨ (¬P ∧ ¬Q)) → ((P → Q) ∧ (Q → P))),46,0,11,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_7a4714d44497ce53e5f5
+hand14,roy,E6.21j,,⊢ ((P → ((Q → R) ∧ (R → Q))) → (P → ((¬Q ∨ R) ∧ (¬R ∨ Q)))) ∧ ((P → ((¬Q ∨ R) ∧ (¬R ∨ Q))) → (P → ((Q → R) ∧ (R → Q)))),51,0,14,4,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_931616bf029c05b823e1
+hand14,roy,E6.20e,,(P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P) ⊢ (((P → Q) ∧ (Q → P)) → R) ∧ (R → ((P → Q) ∧ (Q → P))),51,1,11,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_4344185c4f3bde6f4a37
+hand14,roy,E6.20d,,"¬((P → Q) ∧ (Q → P)), ¬((Q → R) ∧ (R → Q)), ¬((R → P) ∧ (P → R)) ⊢ ¬S",71,3,18,4,False,True,False,0.0,0.0,0.0,0.0,neither,,,textbook_6dd339f1fd99d36082f5
+hand14,pelletier,P17,,⊢ (((P ∧ (Q → R)) → S) → (((¬P ∨ Q) ∨ S) ∧ ((¬P ∨ ¬R) ∨ S))) ∧ ((((¬P ∨ Q) ∨ S) ∧ ((¬P ∨ ¬R) ∨ S)) → ((P ∧ (Q → R)) → S)),73,0,19,6,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_124af4e361d5d46467af
+hand14,roy,T6.30,,⊢ (((P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P)) → ((((P → Q) ∧ (Q → P)) → R) ∧ (R → ((P → Q) ∧ (Q → P))))) ∧ (((((P → Q) ∧ (Q → P)) → R) ∧ (R → ((P → Q) ∧ (Q → P)))) → ((P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P))),102,0,23,4,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_a38c8d47241d7ffa502f
+hand14,pelletier,P12,,⊢ (((((P → Q) ∧ (Q → P)) → R) ∧ (R → ((P → Q) ∧ (Q → P)))) → ((P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P))) ∧ (((P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P)) → ((((P → Q) ∧ (Q → P)) → R) ∧ (R → ((P → Q) ∧ (Q → P))))),102,0,23,4,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_828cd5b839153ec11fd4
+lean_v2,lean4game-logic,lean_lean4game-logic_010,,"(P → Q) ∧ (Q → P), (¬(((R → (S ∨ ¬Q)) ∧ ((Q ∨ R) → ¬S)) → (Q → S)) → (R ∧ (S ∧ ¬Q))) ∧ ((R ∧ (S ∧ ¬Q)) → ¬(((R → (S ∨ ¬Q)) ∧ ((Q ∨ R) → ¬S)) → (Q → S))) ⊢ (¬(((R → (S ∨ ¬P)) ∧ ((P ∨ R) → ¬S)) → (P → S)) → (R ∧ (S ∧ ¬P))) ∧ ((R ∧ (S ∧ ¬P)) → ¬(((R → (S ∨ ¬P)) ∧ ((P ∨ R) → ¬S)) → (P → S)))",,2,,,,,False,0.0,0.0,0.0,0.0,neither,,,lean_a8a8f150828b60b949d6
+lean_v2,lean4game-logic,lean_lean4game-logic_012,,⊢ ((((P ∧ Q) → (R ∧ Q)) ∧ ((R ∧ Q) → (P ∧ Q))) → (Q → ((P → R) ∧ (R → P)))) ∧ ((Q → ((P → R) ∧ (R → P))) → (((P ∧ Q) → (R ∧ Q)) ∧ ((R ∧ Q) → (P ∧ Q)))),,0,,,,,False,0.0,0.0,0.0,0.0,neither,,,lean_49eee5230f44aa220f94
+lean_v2,fm2024,lean_fm2024_025,,⊢ (((P → (Q → Q)) → ((P → Q) → Q)) → R) → (((((P → P) → Q) → (P → (P → Q))) → R) → ((((P → (P → Q)) → ((P → P) → Q)) → R) → R)),,0,,,,,False,0.0,0.0,0.0,0.0,neither,,,lean_7b3a626d7752fdefbd27
+lean_v2,lean4game-logic,lean_lean4game-logic_006,,"P → Q, Q → P ⊢ (P → Q) ∧ (Q → P)",3,2,0,0,False,False,False,1.0,0.875,0.875,0.906,both,3,3,lean_93d01c1b9d6b304d4090
+lean_v2,fm2024,lean_fm2024_031,,⊢ ⊥ → (P ∧ ⊥),3,0,1,1,False,False,False,0.969,0.625,0.906,0.969,both,3,3,lean_1cd5f32f8e17f01e39e2
+lean_v2,tpil4,lean_tpil4_044,,P ∧ Q ⊢ Q ∧ (P ∧ Q),3,1,0,0,False,False,False,1.0,0.906,0.781,1.0,both,3,3,lean_02166120549c3216b9ba
+lean_v2,lean4game-logic,lean_lean4game-logic_002,,"P ∧ Q, R ∧ S ⊢ P ∧ S",5,2,0,0,False,False,False,0.344,0.312,0.844,0.812,both,5,5,lean_cc03f024e18d34940e72
+lean_v2,lean4game-logic,lean_lean4game-logic_014,,P ⊢ ¬(¬P ∧ Q),5,1,1,1,False,False,False,0.344,0.5,0.969,0.938,both,5,5,lean_9473ee7a1a156d0842aa
+lean_v2,logic_and_proof,lean_logic_and_proof_059,,⊢ (P ∧ ¬Q) → (¬Q ∧ P),5,0,1,1,False,False,False,0.312,0.312,0.969,0.875,both,5,5,lean_c0dd4ee16bb1af0779dc
+lean_v2,love,lean_love_064,,"P, Q, P → Q, Q → R ⊢ R",5,4,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_5d731d66f8762e959781
+lean_v2,love,lean_love_070,,P ∧ (Q ∧ R) ⊢ P ∧ R,5,1,0,0,False,False,False,0.156,0.0,0.719,0.344,both,5,5,lean_06890c6c3454fd932934
+lean_v2,lean4game-logic,lean_lean4game-logic_003,,(P ∧ (((P ∧ Q) ∧ P) ∧ (P ∧ (P ∧ P)))) ∧ ((P ∧ P) ∧ P) ⊢ Q,6,1,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_c3ed4cbbc6ba40067edb
+lean_v2,logic_and_proof,lean_logic_and_proof_060,,⊢ (P ∧ ((Q → P) ∧ (P → Q))) → Q,6,0,1,1,False,False,False,0.0,0.0,0.125,0.031,rl_only,,11,lean_c84dba7d82d6b5d1b1dd
+lean_v2,love,lean_love_069,,⊢ ¬¬(¬¬P → P),6,0,2,2,False,True,False,0.188,0.812,0.938,1.0,both,6,6,lean_0901535575f84ad55110
+lean_v2,love,lean_love_071,,P ∧ ((Q ∧ R) ∧ S) ⊢ Q ∧ S,6,1,0,0,False,False,False,0.031,0.0,0.531,0.031,both,6,6,lean_ce715ad7243966bb5b3b
+lean_v2,lean4game-logic,lean_lean4game-logic_001,,"P, Q, R, S ⊢ (P ∧ Q) ∧ (R ∧ S)",7,4,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_390217c7a65cce523881
+lean_v2,lean4game-logic,lean_lean4game-logic_008,,"(P → Q) ∧ (Q → P), R → P ⊢ R → Q",7,2,1,1,False,False,False,0.0,0.0,0.5,0.219,rl_only,,7,lean_6771293e6a7d6c908cf3
+lean_v2,lean4game-logic,lean_lean4game-logic_009,,"(P → Q) ∧ (Q → P), P → R ⊢ Q → R",7,2,1,1,False,False,False,0.0,0.031,0.219,0.094,rl_only,,7,lean_faeabed36dfa0a9ba2b3
+lean_v2,lean4game-logic,lean_lean4game-logic_015,,P → ¬Q ⊢ ¬(P ∧ Q),7,1,1,1,False,False,False,0.0,0.0,0.812,0.75,rl_only,,7,lean_264749d62426703a4e0b
+lean_v2,fm2024,lean_fm2024_032,,⊢ (P ∧ Q) → ((Q ∧ R) → (P ∧ R)),7,0,2,2,False,False,False,0.031,0.0,0.844,0.812,both,7,7,lean_b9285d0e644998c2d705
+lean_v2,fm2024,lean_fm2024_036,,⊢ (⊥ → (P ∧ ⊥)) ∧ ((P ∧ ⊥) → ⊥),7,0,2,1,False,False,False,0.0,0.0,0.875,0.75,rl_only,,7,lean_cd14ddc750aa797fc2d8
+lean_v2,tpil4,lean_tpil4_050,,⊢ ((P ∧ ⊥) → ⊥) ∧ (⊥ → (P ∧ ⊥)),7,0,2,1,False,False,False,0.0,0.0,0.875,0.656,rl_only,,7,lean_21ca0bd399376eee8b4d
+lean_v2,logic_and_proof,lean_logic_and_proof_058,,"¬(P ∧ Q), P ⊢ ¬P ∨ ¬Q",7,2,1,1,False,False,False,0.0,0.0,0.438,0.094,rl_only,,7,lean_ae4da2c84472060f2555
+lean_v2,lean4game-logic,lean_lean4game-logic_005,,⊢ ¬¬(P ∨ ¬P),8,0,2,2,False,False,False,0.0,0.0,0.5,0.156,rl_only,,8,lean_8b68e975bfa747f32a42
+lean_v2,lean4game-logic,lean_lean4game-logic_016,,¬(P → Q) ⊢ ¬¬P,8,1,2,2,False,False,False,0.0,0.0,0.25,0.906,rl_only,,8,lean_3fd5f02276c148dc2c04
+lean_v2,lean4game-logic,lean_lean4game-logic_017,,"P → Q, R → Q, P ∨ R ⊢ Q",8,3,2,1,True,False,False,0.031,0.188,0.219,0.531,both,9,8,lean_e432ccf44451027ebb12
+lean_v2,lean4game-logic,lean_lean4game-logic_018,,"P → Q, P ∨ R ⊢ Q ∨ R",8,2,2,1,True,False,False,0.0,0.0,0.656,0.719,rl_only,,8,lean_2ce2164c7406186a1b53
+lean_v2,fm2024,lean_fm2024_024,,⊢ (((P → Q) → Q) → Q) → (P → Q),8,0,3,3,False,False,False,0.0,0.0,0.094,0.0,rl_only,,8,lean_1a99d69f02663f3ded0b
+lean_v2,tpil4,lean_tpil4_056,,P ⊢ ((P ∧ Q) → Q) ∧ (Q → (P ∧ Q)),8,1,2,1,False,False,False,0.0,0.0,0.969,0.938,rl_only,,8,lean_3a98ba645a0d895d471c
+lean_v2,tpil4,lean_tpil4_057,,P ⊢ (P ∨ (Q ∨ R)) ∧ ((Q ∨ (P ∨ R)) ∧ (Q ∨ (R ∨ P))),8,1,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_17337660067402871207
+lean_v2,m40001,lean_m40001_075,,¬P ⊢ (P → ⊥) ∧ (⊥ → P),8,1,2,1,False,False,False,0.0,0.0,0.812,0.75,rl_only,,8,lean_f0f771fe0532796a08d2
+lean_v2,lean4game-logic,lean_lean4game-logic_013,,⊢ P → ((Q → P) ∧ (¬Q → P)),9,0,3,2,False,False,False,0.0,0.0,0.312,0.75,rl_only,,9,lean_67289775d5eef718994c
+lean_v2,lean4game-logic,lean_lean4game-logic_019,,P → Q ⊢ (P ∨ R) → (R ∨ Q),9,1,3,2,True,False,False,0.0,0.0,0.781,0.656,rl_only,,9,lean_2b33969b604b4326407a
+lean_v2,tpil4,lean_tpil4_055,,"P, Q, R ⊢ P ∧ (((P ∧ Q) ∧ R) ∧ (Q ∧ (R ∧ P)))",9,3,0,0,False,False,False,0.0,0.0,0.5,0.406,rl_only,,16,lean_ba7053930e1a00013a41
+lean_v2,love,lean_love_067,,⊢ (P → Q) → ((P → R) → (P → (Q → R))),9,0,4,4,False,False,False,0.0,0.0,0.688,0.938,rl_only,,9,lean_4f4ecfca77b9f2e6fa9c
+lean_v2,love,lean_love_072,,P ∧ ((Q ∧ R) ∧ S) ⊢ Q ∧ (P ∧ (R ∧ Q)),9,1,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_0307adb4fa484b07566b
+lean_v2,m40001,lean_m40001_082,,⊢ (((⊥ → ⊥) → ⊥) → ⊥) ∧ (⊥ → ((⊥ → ⊥) → ⊥)),9,0,3,2,False,False,False,0.0,0.0,0.031,0.0,rl_only,,11,lean_2c73512a6746d1df91d2
+lean_v2,tpil4,lean_tpil4_049,,⊢ ((P ∨ ⊥) → P) ∧ (P → (P ∨ ⊥)),10,0,4,2,True,False,False,0.0,0.0,0.969,0.906,rl_only,,10,lean_33133839d574761a6c29
+lean_v2,m40001,lean_m40001_074,,"P → Q, ¬P → ¬R ⊢ R → Q",10,2,2,2,False,True,True,0.0,0.0,0.031,0.031,rl_only,,11,lean_2d6aa37bd78d5588f8f2
+lean_v2,fm2024,lean_fm2024_023,,⊢ ((P → Q) → Q) → ((P → R) → ((R → Q) → Q)),11,0,4,4,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_9261bf38cfdbcced0718
+lean_v2,love,lean_love_066,,⊢ ((P → Q) → (R → S)) → (R → (Q → S)),11,0,4,4,False,False,False,0.0,0.0,0.812,0.906,rl_only,,11,lean_a09473aefc31f0fd3b74
+lean_v2,love,lean_love_068,,⊢ ((((P → Q) → P) → P) → Q) → Q,12,0,4,4,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_90d2f9a659478a9d0e74
+lean_v2,fm2024,lean_fm2024_022,,⊢ ((P → Q) → R) → (((Q → R) → P) → (((R → P) → Q) → P)),13,0,5,5,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_2889287727091c944aef
+lean_v2,lean4game-logic,lean_lean4game-logic_011,,(P ∨ (Q ∨ R)) → ¬(P ∧ (Q ∧ R)) ⊢ ((P ∨ Q) ∨ R) → ¬((P ∧ Q) ∧ R),14,1,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_782043544dcdbfb5c00d
+lean_v2,fm2024,lean_fm2024_035,,⊢ (((P ∧ Q) ∧ R) → (P ∧ (Q ∧ R))) ∧ ((P ∧ (Q ∧ R)) → ((P ∧ Q) ∧ R)),17,0,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,lean_d70efde43d78006bcc7a
+lean_v2,lean4game-logic,lean_lean4game-logic_000,,(P ∧ Q) ∨ (¬P ∧ ¬Q) ⊢ (P → Q) ∧ (Q → P),20,1,6,2,True,False,False,0.0,0.0,0.188,0.25,rl_only,,26,lean_c89c57142d9d98dd99b7
+lean_v2,tpil4,lean_tpil4_046,,⊢ (((P ∨ Q) → R) → ((P → R) ∧ (Q → R))) ∧ (((P → R) ∧ (Q → R)) → ((P ∨ Q) → R)),23,0,7,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,lean_11fd9b9661c3e00715c3
+lean_v2,logic_and_proof,lean_logic_and_proof_063,,⊢ (((P ∧ ¬Q) ∨ Q) → (P ∨ Q)) ∧ ((P ∨ Q) → ((P ∧ ¬Q) ∨ Q)),25,0,8,4,True,True,True,0.0,0.0,0.0,0.0,neither,,,lean_f8092f96cc1e72c44fd8
+lean_v2,fm2024,lean_fm2024_039,,⊢ (((P ∨ Q) ∨ R) → (P ∨ (Q ∨ R))) ∧ ((P ∨ (Q ∨ R)) → ((P ∨ Q) ∨ R)),27,0,10,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,lean_976e290c796b17dba993
+lean_v2,m40001,lean_m40001_079,,⊢ ((P ∨ (Q ∨ R)) → (Q ∨ (P ∨ R))) ∧ ((Q ∨ (P ∨ R)) → (P ∨ (Q ∨ R))),27,0,10,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,lean_afde7b5a601b894dc1fe
+v0,carnap-book,4.1,,P ⊢ P,1,1,0,0,False,False,False,0.062,0.625,1.0,0.969,both,4,1,textbook_61c2a7da79562d1ee741
+v0,forallx-calgary,2,,¬¬¬¬P ⊢ P,3,1,0,0,False,True,True,0.531,0.0,0.844,0.844,both,6,3,textbook_43216153b8cb762ae45f
+v0,forallx-msu,5,,⊢ ((P → Q) ∧ (Q → P)) → (Q → P),3,0,1,1,False,False,False,0.906,0.969,0.969,0.938,both,3,3,textbook_0b779b81d28876e7d49d
+v0,forallx-calgary,1,,(P → Q) ∧ (Q → P) ⊢ (Q → P) ∧ (P → Q),4,1,0,0,False,False,False,0.0,0.0,0.469,0.156,rl_only,,4,textbook_0a3aa5c2d4abc9d9ba3d
+v0,forallx-calgary,5,,((P → P) ∧ (P → P)) ∧ (Q ∧ ¬Q) ⊢ ⊥,5,1,0,0,False,False,False,0.0,0.0,0.156,0.438,rl_only,,5,textbook_2e44197318839943ac9c
+v0,forallx-syracuse,2,,(P ∨ Q) → R ⊢ Q → R,5,1,1,1,False,False,False,0.969,0.969,1.0,0.906,both,5,5,textbook_bb93cb70858a3de279af
+v0,forallx-msu,4,,"P ∧ Q, (Q ∨ R) → S ⊢ S",5,2,0,0,False,False,False,0.938,0.656,0.688,0.031,both,5,6,textbook_9b3b736284930ddf1e19
+v0,carnap-book,9.3,,¬P ⊢ ¬(Q ∧ P),5,1,1,1,False,False,False,0.906,0.781,1.0,1.0,both,5,5,textbook_9f32715a4fdbe0ab0197
+v0,forallx-calgary,2,,P → (P ∧ ¬P) ⊢ ¬P,6,1,1,1,False,False,False,0.0,0.0,0.938,0.875,rl_only,,6,textbook_30018c9c991412364923
+v0,forallx-calgary,9,,"¬(P ∨ Q), R, R → P ⊢ ⊥",6,3,0,0,False,False,False,0.656,0.75,0.875,0.531,both,6,6,textbook_241044592d16d6e4efed
+v0,forallx-syracuse,2,,"P ∧ Q, R, (Q ∧ R) → S ⊢ S",6,3,0,0,False,False,False,0.781,0.25,0.594,0.281,both,6,6,textbook_3cce87a8e9784b381b83
+v0,forallx-syracuse,3,,"P ∧ Q, (Q ∧ P) → R ⊢ R",6,2,0,0,False,False,False,0.0,0.0,0.0,0.094,neither,,10,textbook_fcf1f314b60800e5aff4
+v0,forallx-syracuse,16,,⊢ ¬P → (P → Q),6,0,2,2,False,False,False,0.25,0.844,1.0,1.0,both,6,6,textbook_7413a625e07c41fff3a3
+v0,forallx-syracuse,3,,(P ∧ Q) ∨ (P ∧ R) ⊢ P,6,1,2,1,True,False,False,0.219,0.0,0.375,0.844,both,6,6,textbook_5de38c2037f06951c19e
+v0,forallx-msu,3,,"P ∧ Q, (Q → R) ∧ (R → Q) ⊢ R ∨ S",6,2,0,0,False,False,False,0.0,0.0,0.0,0.094,neither,,11,textbook_2af1c15bbd58c631b0db
+v0,forallx-msu,2,,P → Q ⊢ (P ∧ R) → (Q ∨ S),6,1,1,1,False,False,False,0.844,0.844,0.938,0.281,both,6,6,textbook_e5cfe82b533b6643a29c
+v0,forallx-msu,3,,¬(P ∨ Q) ⊢ Q → P,6,1,1,1,False,False,False,0.938,0.812,0.812,0.969,both,6,7,textbook_bfb605b094950125182a
+v0,carnap-book,6.5,,"(P → Q) → R, Q ⊢ R",6,2,1,1,False,False,False,0.688,0.594,0.625,0.344,both,6,6,textbook_70f616e852eadc25705c
+v0,carnap-book,7.7,,⊢ (¬P → P) → ¬¬P,6,0,2,2,False,False,False,0.0,0.0,0.906,0.844,rl_only,,6,textbook_95d404da37f07dfd2b34
+v0,forallx-calgary,5,,(P ∧ Q) ∨ R ⊢ R ∨ Q,7,1,2,1,True,False,False,0.0,0.0,0.781,0.812,rl_only,,7,textbook_95041444f8cb17626d64
+v0,forallx-calgary,4,,P → Q ⊢ ¬(P ∧ ¬Q),7,1,1,1,False,False,False,0.062,0.062,0.688,0.656,both,7,7,textbook_46701b298f4b81ffd08a
+v0,forallx-calgary,7,,¬¬P → ¬Q ⊢ P → ¬Q,7,1,2,2,False,False,False,0.094,0.188,0.969,0.969,both,7,7,textbook_b225c246ef315fe80088
+v0,forallx-syracuse,1,,P ∧ (Q ∧ R) ⊢ (P ∧ Q) ∧ R,7,1,0,0,False,False,False,0.0,0.0,0.062,0.094,rl_only,,7,textbook_34ece9058da2761b0326
+v0,forallx-syracuse,4,,"P ∧ Q, Q → (P → R) ⊢ R ∧ Q",7,2,0,0,False,False,False,0.031,0.0,0.031,0.094,both,7,8,textbook_4cb66e0be9e0934acab6
+v0,forallx-syracuse,5,,"P → ((Q ∧ P) → R), P ∧ Q ⊢ R",7,2,0,0,False,False,False,0.0,0.0,0.0,0.031,neither,,21,textbook_d082ad7b7083a55db8a1
+v0,forallx-syracuse,3,,"P → Q, Q → R ⊢ P → (Q ∧ R)",7,2,1,1,False,False,False,0.969,0.219,1.0,0.969,both,7,7,textbook_6675f2c58a518d1d279c
+v0,forallx-syracuse,4,,"(P ∧ Q) → R, P → Q ⊢ P → R",7,2,1,1,False,False,False,0.0,0.0,0.031,0.0,rl_only,,11,textbook_f2569bc3cd708f5eb866
+v0,forallx-syracuse,5,,P → Q ⊢ (P ∧ R) → (Q ∧ R),7,1,1,1,False,False,False,0.594,0.031,0.875,0.188,both,7,7,textbook_5422cf04abf318dd32a9
+v0,forallx-syracuse,6,,"P → Q, Q → (R ∧ P) ⊢ (P → Q) ∧ (Q → P)",7,2,1,1,False,False,False,0.0,0.0,0.062,0.156,rl_only,,7,textbook_87a23fa584426b3d9328
+v0,forallx-syracuse,2,,P → ¬Q ⊢ Q → ¬P,7,1,2,2,False,False,False,0.094,0.0,0.938,0.969,both,7,7,textbook_7522199c8983b99735c5
+v0,forallx-syracuse,7,,"P → Q, Q → ¬P ⊢ ¬P",7,2,1,1,False,False,False,0.0,0.0,0.25,0.375,rl_only,,7,textbook_2a874b10554baacdab52
+v0,forallx-syracuse,18,,⊢ (¬P → P) → P,7,0,2,2,False,True,True,0.0,0.0,0.031,0.406,rl_only,,7,textbook_588452d1ce99814559b0
+v0,forallx-syracuse,8,,P ∨ (¬P ∧ Q) ⊢ P ∨ Q,7,1,2,1,True,False,False,0.031,0.0,0.375,0.5,both,7,7,textbook_9b042a4a7fa74ab578cb
+v0,forallx-syracuse,1,,"(P ∨ Q) → R, ¬R ⊢ ¬P",7,2,1,1,False,False,False,0.0,0.031,0.625,0.594,rl_only,,7,textbook_4447e76b45cccb03d640
+v0,forallx-msu,9,,"P → Q, R ∧ ¬S, (¬S → (Q → P)) ∧ ((Q → P) → ¬S) ⊢ (P → Q) ∧ (Q → P)",7,3,0,0,False,False,False,0.0,0.0,0.094,0.094,rl_only,,10,textbook_c1d05f6df5cf79a1edb7
+v0,forallx-msu,12,,"P → Q, Q → P, (Q → ((Q → P) ∧ (P → Q))) ∧ (((Q → P) ∧ (P → Q)) → Q) ⊢ P",7,3,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_e2c593f0543fc6234b2d
+v0,forallx-msu,2,,¬(P ∨ Q) ⊢ R → ¬P,7,1,2,2,False,False,False,0.781,0.375,0.938,0.969,both,7,7,textbook_9d21fcccbcd6c3ebf207
+v0,carnap-book,4.4,,"¬P, ¬Q → P ⊢ Q",7,2,1,1,False,True,True,0.0,0.0,0.469,0.656,rl_only,,7,textbook_5f07170d9486281717b7
+v0,carnap-book,4.5,,"P, ¬Q → ¬P ⊢ Q",7,2,1,1,False,True,True,0.0,0.0,0.469,0.5,rl_only,,8,textbook_d37c5cb0774c7c951ead
+v0,carnap-book,6.2,,P → Q ⊢ (Q → R) → (P → R),7,1,2,2,False,False,False,0.188,0.0,0.031,0.406,both,7,8,textbook_a6623fde05d2761f32e9
+v0,carnap-book,8.2,,"P → (P → Q), (P → Q) → Q ⊢ Q",7,2,1,1,False,False,False,0.0,0.0,0.188,0.312,rl_only,,7,textbook_0ab235a31e23b0bbbc17
+v0,forallx-calgary,4,,P ∧ Q ⊢ (P → Q) ∧ (Q → P),8,1,2,1,False,False,False,0.0,0.0,0.688,0.688,rl_only,,8,textbook_7c28a8f7423fde99f79c
+v0,forallx-calgary,8,,"(P ∧ Q) ∨ (Q ∧ R), Q → S ⊢ S",8,2,2,1,True,False,False,0.0,0.0,0.344,0.062,rl_only,,8,textbook_80573e8091085933fe07
+v0,forallx-syracuse,1,,"P → (Q ∧ R), P → S ⊢ P → (S ∧ R)",8,2,1,1,False,False,False,0.0,0.0,0.781,0.75,rl_only,,8,textbook_10a0b9b200c3d7fdc17b
+v0,forallx-syracuse,2,,⊢ (P → Q) → ((Q → R) → (P → R)),8,0,3,3,False,False,False,0.0,0.0,0.031,0.312,rl_only,,8,textbook_7c718c1db52fdc350567
+v0,forallx-syracuse,3,,⊢ (P → (Q → R)) → (Q → (P → R)),8,0,3,3,False,False,False,0.0,0.0,0.875,0.719,rl_only,,8,textbook_4d60a4214d6ac5091846
+v0,forallx-syracuse,7,,"(P → (Q ∧ R)) ∧ ((Q ∧ R) → P), R → P ⊢ (P → R) ∧ (R → P)",8,2,1,1,False,False,False,0.0,0.0,0.031,0.5,rl_only,,8,textbook_36d8dc85a05b9a9d5115
+v0,forallx-syracuse,8,,(P ∧ Q) → ¬P ⊢ P → ¬Q,8,1,2,2,False,False,False,0.0,0.0,0.812,0.938,rl_only,,8,textbook_03e2f5be685c0d2ac60a
+v0,forallx-syracuse,12,,P → Q ⊢ (P ∨ (R ∧ Q)) → Q,8,1,3,2,True,False,False,0.0,0.0,0.188,0.5,rl_only,,8,textbook_b1f54ffd10be0d8d9b52
+v0,forallx-syracuse,15,,"P ∨ Q, Q → R ⊢ P ∨ R",8,2,2,1,True,False,False,0.0,0.0,0.562,0.094,rl_only,,8,textbook_c5140455df9355840a6c
+v0,forallx-msu,1,,"¬P → (Q ∨ P), ¬P ⊢ Q",8,2,2,1,True,False,False,0.0,0.0,0.969,0.969,rl_only,,8,textbook_bf61a48e793cb331db6e
+v0,forallx-msu,2,,"P → (Q ∨ ¬P), P ⊢ Q",8,2,2,1,True,False,False,0.0,0.0,1.0,0.938,rl_only,,8,textbook_9010f2a1ef772ceb138c
+v0,forallx-msu,10,,"(P ∨ Q) → R, (S → R) ∧ (R → S), P ⊢ P ∧ S",8,3,0,0,False,False,False,0.0,0.0,0.156,0.0,rl_only,,13,textbook_f84555d8d61f7d647653
+v0,forallx-calgary,4,,(P → ¬P) ∧ (¬P → P) ⊢ ⊥,9,1,1,1,False,False,False,0.0,0.0,0.219,0.031,rl_only,,9,textbook_daf2d92294493b63e627
+v0,forallx-syracuse,10,,(P ∧ ¬Q) → Q ⊢ P → Q,9,1,2,2,False,True,True,0.0,0.0,0.0,0.219,neither,,10,textbook_4814343dfe60095b930f
+v0,carnap-book,5.10,,"P → ¬Q, R → Q ⊢ P → ¬R",9,2,2,2,False,False,False,0.0,0.0,0.594,0.844,rl_only,,9,textbook_64e1ce87d7887b0f482e
+v0,carnap-book,7.10,,"P → Q, (R → Q) → ¬P ⊢ ¬P",9,2,2,2,False,False,False,0.0,0.0,0.062,0.0,rl_only,,10,textbook_d66e5d2ec8cab38d5b68
+v0,forallx-calgary,2,,P ∨ (Q → P) ⊢ ¬P → ¬Q,10,1,4,3,True,False,False,0.0,0.0,0.875,0.656,rl_only,,10,textbook_545881ef2f5176d94567
+v0,forallx-calgary,2,,P ∧ (¬Q → ¬P) ⊢ (Q ∧ P) ∨ ¬P,10,1,1,1,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_d0b1395237936017f5f3
+v0,forallx-syracuse,3,,P ∨ Q ⊢ ¬(¬P ∧ ¬Q),10,1,3,2,True,False,False,0.0,0.0,0.375,0.969,rl_only,,10,textbook_0ad92464052745011778
+v0,forallx-msu,6,,"P ∧ (Q ∨ R), P → ¬R ⊢ Q",10,2,2,1,True,False,False,0.0,0.0,0.844,0.594,rl_only,,10,textbook_1b669a5753a97113d412
+v0,carnap-book,7.8,,"P → (Q → R), Q → ¬R ⊢ P → ¬Q",10,2,2,2,False,False,False,0.0,0.0,0.469,0.188,rl_only,,10,textbook_d9dc2ee1269d002c72d2
+v0,carnap-book,9.8,,(P ∧ Q) → R ⊢ (P ∧ ¬R) → ¬Q,10,1,2,2,False,False,False,0.0,0.0,0.219,0.031,rl_only,,10,textbook_87d996531769036ca6a8
+v0,forallx-calgary,9,,"P ∧ (Q ∨ R), P → ¬R ⊢ Q ∨ S",11,2,2,1,True,False,False,0.0,0.0,0.531,0.531,rl_only,,11,textbook_12d1e9ba77154cecdaa4
+v0,forallx-calgary,3,,⊢ ((P → Q) ∧ (R → Q)) → ((P ∨ R) → Q),11,0,4,3,True,False,False,0.0,0.0,0.094,0.625,rl_only,,11,textbook_093d53538c2072386890
+v0,forallx-calgary,3,,P → Q ⊢ ¬P ∨ Q,11,1,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_0557545ab024a85bd5ed
+v0,forallx-syracuse,14,,"P → Q, R → (S ∧ Q) ⊢ (P ∨ R) → (S ∨ Q)",11,2,3,2,True,False,False,0.0,0.0,0.0,0.125,neither,,11,textbook_5fe19ee857dfdf3b89d2
+v0,forallx-syracuse,4,,¬P ∨ (Q → R) ⊢ (P ∧ Q) → R,11,1,3,2,True,False,False,0.0,0.0,0.281,0.344,rl_only,,12,textbook_4a8cfd28c11708238126
+v0,forallx-syracuse,3,,¬(P → (Q ∨ ¬R)) ⊢ (Q ∨ R) → P,11,1,3,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_1b0c86b846be078dbfc8
+v0,forallx-msu,4,,⊢ ¬((P ∨ Q) ∧ (¬P ∧ ¬Q)),11,0,3,2,True,False,False,0.0,0.0,0.281,0.25,rl_only,,13,textbook_cd721dbd56f203710bb0
+v0,carnap-book,7.4,,"P → Q, Q → R, R → S, P ⊢ ¬(P → ¬S)",11,4,1,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_7726f61a9bc2c7c9f1b4
+v0,carnap-book,8.5,,⊢ P → ((¬Q → ¬R) → (R → Q)),11,0,4,4,False,True,True,0.0,0.0,0.5,0.188,rl_only,,11,textbook_00ac94727e7280640ead
+v0,carnap-book,8.7,,"P → Q, Q → ¬R, S → P, R → S ⊢ ¬R",11,4,1,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_43e30ad215c242c5605c
+v0,carnap-book,9.6,,⊢ ((P ∧ Q) → (Q ∧ P)) ∧ ((Q ∧ P) → (P ∧ Q)),11,0,2,1,False,False,False,0.0,0.0,0.062,0.031,rl_only,,11,textbook_0961c3d8c294d4ccb124
+v0,carnap-book,9.9,,(P ∧ ¬Q) → ¬R ⊢ (P ∧ R) → Q,11,1,2,2,False,True,True,0.0,0.0,0.094,0.156,rl_only,,11,textbook_921620f6be6e3b10986f
+v0,forallx-calgary,11,,"¬¬((P → ¬P) ∧ (¬P → P)), (Q ∨ P) ∨ Q ⊢ (Q → P) ∧ Q",12,2,1,1,False,True,False,0.0,0.0,0.0,0.0,neither,,,textbook_a96986bb1c65943f0b03
+v0,forallx-syracuse,8,,P ∨ (Q ∨ R) ⊢ (P ∨ Q) ∨ R,12,1,4,2,True,False,False,0.0,0.0,0.031,0.0,rl_only,,34,textbook_681e5816d2388b53e3d9
+v0,forallx-syracuse,13,,"P → Q, R → (R → S) ⊢ (R ∨ P) → (Q ∨ S)",12,2,3,2,True,False,False,0.0,0.0,0.031,0.0,rl_only,,12,textbook_911ca699a25f56477d3e
+v0,forallx-msu,7,,"((P ∨ ¬Q) → R) ∧ (R → (P ∨ ¬Q)), R ∧ Q ⊢ P ∧ R",12,2,2,1,True,False,False,0.0,0.0,0.031,0.0,rl_only,,29,textbook_6a87e09cff5017971e42
+v0,forallx-msu,8,,"(P ∧ Q) → R, P ∨ ¬S, S ∧ Q ⊢ R",12,3,2,1,True,False,False,0.0,0.0,0.0,0.5,neither,,16,textbook_6fafb78b1ceff04e0dee
+v0,carnap-book,7.3,,"¬P → Q, R → ¬Q, ¬R → P ⊢ ¬¬P",12,3,2,2,False,False,False,0.0,0.0,0.25,0.0,rl_only,,12,textbook_3512647041a54fd55274
+v0,carnap-book,7.5,,"(P → Q) → R, S → (P → Q), ¬S → R ⊢ ¬¬R",12,3,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_cd69a60630955cea9a6d
+v0,carnap-book,7.9,,"P → Q, Q → R, R → S ⊢ P → ¬(P → ¬S)",12,3,2,2,False,False,False,0.0,0.0,0.0,0.031,neither,,13,textbook_c367f2ad3a68caa103ce
+v0,carnap-book,9.7,,"P ∨ ¬Q, Q ∨ R, ¬P ⊢ R",12,3,4,2,True,False,False,0.0,0.0,0.094,0.0,rl_only,,17,textbook_dd8c336103f01138f76d
+v0,forallx-calgary,7,,"¬P → Q, P → R ⊢ Q ∨ R",13,2,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_17cf6bcfdfe010a1d9b2
+v0,forallx-calgary,4,,⊢ ¬(P → Q) → (P ∧ ¬Q),13,0,4,4,False,True,True,0.0,0.0,0.062,0.0,rl_only,,22,textbook_bdcc2efb2f66ee4a2721
+v0,forallx-calgary,3,,⊢ (P → (P ∨ (Q ∧ ¬Q))) ∧ ((P ∨ (Q ∧ ¬Q)) → P),13,0,4,2,True,False,False,0.0,0.0,0.156,0.719,rl_only,,15,textbook_9f8530f273dc8191d06c
+v0,forallx-syracuse,10,,"(P ∨ Q) ∨ R, (R → Q) ∧ (Q → R) ⊢ R ∨ P",13,2,4,2,True,False,False,0.0,0.0,0.312,0.0,rl_only,,13,textbook_06ccd6ec0200aeb51862
+v0,carnap-book,8.8,,"¬P → ¬¬Q, ¬¬R → ¬P, ¬R → Q ⊢ Q",13,3,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_49b7d961bb8d378750b8
+v0,forallx-calgary,1,,"P ∨ Q, Q ∨ R, ¬Q ⊢ P ∧ R",14,3,4,1,True,False,False,0.0,0.0,0.031,0.188,rl_only,,16,textbook_26c5501ec4eb97272dc1
+v0,forallx-syracuse,3,,¬(¬P ∧ ¬Q) ⊢ P ∨ Q,14,1,3,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_a44e77e0ea54ed00a768
+v0,forallx-calgary,6,,"(P → Q) ∧ (Q → P), (Q → R) ∧ (R → Q) ⊢ (P → R) ∧ (R → P)",15,2,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_96a56ad8e1132658e60b
+v0,forallx-calgary,4,,⊢ ¬(P ∧ Q) → (¬P ∨ ¬Q),15,0,4,4,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_c675c4cea7507f6c903c
+v0,forallx-calgary,6,,(¬P → Q) ∧ (Q → ¬P) ⊢ ¬((P → Q) ∧ (Q → P)),15,1,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_7e11198dd38f376da50d
+v0,forallx-syracuse,11,,(P → ¬Q) ∧ (¬Q → P) ⊢ ¬((P → Q) ∧ (Q → P)),15,1,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_ed9c41eb74dfb88bfa3f
+v0,forallx-syracuse,8,,P ∨ Q ⊢ P ∨ (¬P ∧ Q),15,1,4,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_de9fce762bb7ce5e677f
+v0,forallx-msu,7,,P ∧ (Q ∧ R) ⊢ (P → ((Q → R) ∧ (R → Q))) ∧ (((Q → R) ∧ (R → Q)) → P),15,1,4,2,False,False,False,0.0,0.0,0.375,0.781,rl_only,,15,textbook_5c8618f27cf57fd6c99b
+v0,carnap-book,8.9,,"P → ¬P, Q → P, R → Q, ¬R → Q ⊢ S",15,4,1,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_f0b811e0abb0c54501ad
+v0,forallx-syracuse,3,,(P → Q) ∧ (Q → P) ⊢ ((P ∧ R) → (Q ∧ R)) ∧ ((Q ∧ R) → (P ∧ R)),16,1,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_cfa22f27d98eb6b067c6
+v0,forallx-syracuse,4,,((P ∧ Q) → (P ∧ R)) ∧ ((P ∧ R) → (P ∧ Q)) ⊢ P → ((Q → R) ∧ (R → Q)),16,1,3,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_9443266b19960950ac62
+v0,forallx-calgary,3,,"(P ∨ Q) ∧ (R ∨ S), Q → S, ¬S ⊢ P ∧ R",17,3,4,1,True,False,False,0.0,0.0,0.031,0.094,rl_only,,19,textbook_5b38b6ab0a04f4c4bb28
+v0,forallx-syracuse,8,,"(P ∧ Q) ∨ ¬(R → ¬S), ¬Q ⊢ R ∧ S",17,2,5,4,True,True,True,0.0,0.0,0.0,0.062,neither,,20,textbook_17db74b2c27db844c116
+v0,forallx-calgary,4,,"(P ∨ Q) ∨ (R ∨ S), Q → R, ¬S ⊢ P ∨ R",18,3,6,2,True,False,False,0.0,0.0,0.062,0.0,rl_only,,20,textbook_a276d846d75000fe58ae
+v0,forallx-syracuse,7,,¬((P → Q) ∧ (Q → P)) ⊢ (P → ¬Q) ∧ (¬Q → P),29,1,8,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_b7132b7858d742201ec0
+v1,roy,E6.10f,,P ∧ Q ⊢ ((R → S) ∧ (S → R)) ∨ Q,3,1,0,0,False,False,False,0.938,0.969,0.969,1.0,both,3,3,textbook_2c11961d305c0c9b6759
+v1,roy,E6.15s,,⊢ ((P → Q) ∧ (Q → P)) → (P → Q),3,0,1,1,False,False,False,0.844,0.969,0.594,1.0,both,3,3,textbook_c6d1f49595972ea2861e
+v1,roy,T6.28,,⊢ (((P → Q) ∧ (Q → P)) → ((P → Q) ∧ (Q → P))) ∧ (((P → Q) ∧ (Q → P)) → ((P → Q) ∧ (Q → P))),3,0,1,1,False,False,False,0.0,0.781,0.875,1.0,rl_only,,3,textbook_8f6a7876882d1ba65bd5
+v1,roy,E6.7c,,P ∧ (P → (P ∧ Q)) ⊢ Q,5,1,0,0,False,False,False,0.406,0.094,1.0,0.781,both,5,5,textbook_eeea9b8ca0abb3c55c55
+v1,roy,E6.13l,,⊢ ((P → Q) ∧ (Q → P)) → ((Q → P) ∧ (P → Q)),5,0,1,1,False,False,False,0.0,0.0,0.0,0.156,neither,,5,textbook_9cf0741dc74c3ffdc424
+v1,roy,E6.15c,,"¬(P ∧ Q), (¬(P ∧ Q) → R) ∧ (R → ¬(P ∧ Q)) ⊢ P ∨ R",5,2,0,0,False,False,False,0.156,0.031,0.531,0.875,both,5,5,textbook_6938b2283ffad30e6387
+v1,carr,9,,⊢ (P ∧ Q) → ((P → Q) → P),5,0,2,2,False,False,False,1.0,0.969,1.0,1.0,both,5,5,textbook_2b87804855d6199597d7
+v1,roy,E6.13b,,(P → (P ∨ Q)) ∧ ((P ∨ Q) → P) ⊢ Q → P,6,1,1,1,False,False,False,0.031,0.0,0.812,0.719,both,7,6,textbook_6f17d786f8caad1aaefd
+v1,roy,E6.15a,,(P → (P → Q)) ∧ ((P → Q) → P) ⊢ P → Q,6,1,1,1,False,False,False,0.0,0.0,0.969,1.0,rl_only,,6,textbook_68b585407ce115e1ecf6
+v1,roy,E6.15t,,⊢ (P ∧ ¬P) → (Q ∧ ¬Q),6,0,1,1,False,False,False,0.0,0.0,0.812,0.625,rl_only,,6,textbook_72ac2b43fbfaff019664
+v1,roy,E6.18b,,⊢ ¬(P → P) → P,6,0,2,2,False,False,False,0.0,0.0,0.781,0.938,rl_only,,6,textbook_88e19f830b20fb76e785
+v1,roy,E6.7d,,"P ∧ Q, Q → (R ∧ S) ⊢ P ∧ S",7,2,0,0,False,False,False,0.0,0.0,0.531,0.688,rl_only,,7,textbook_b1bba4434e7f22c50dc6
+v1,roy,E6.7f,,"P, (P ∧ Q) → (R ∧ S) ⊢ Q → R",7,2,1,1,False,False,False,0.0,0.156,0.875,0.75,rl_only,,7,textbook_158a629091d4e5e68845
+v1,roy,E6.7h,,"P → Q, Q → R ⊢ (P ∧ S) → R",7,2,1,1,False,False,False,0.0,0.0,0.312,0.219,rl_only,,7,textbook_5d3bc34b8343293008e6
+v1,roy,E6.7l,,P → Q ⊢ (R → P) → (R → Q),7,1,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_bb29730faab0dd21d095
+v1,roy,E6.10h,,"P, (Q ∨ R) → ¬P ⊢ ¬Q",7,2,1,1,False,False,False,0.094,0.219,0.719,0.188,both,7,7,textbook_af65859d15637a027a40
+v1,roy,E6.10n,,P ∨ ¬¬Q ⊢ P ∨ Q,7,1,2,1,True,True,True,0.344,0.0,0.438,0.594,both,7,7,textbook_33bfcb662809c6c030c6
+v1,roy,E6.10o,,"P ∨ Q, ¬Q ⊢ P",7,2,2,1,True,False,False,0.0,0.406,0.906,0.781,rl_only,,7,textbook_fc0f4a61255841b340fa
+v1,roy,T6.9,,"(P → Q) ∧ (Q → P), ¬P ⊢ ¬Q",7,2,1,1,False,False,False,0.0,0.031,0.531,0.625,rl_only,,7,textbook_f633c401fad3e3ed40c8
+v1,roy,T6.10,,"(P → Q) ∧ (Q → P), ¬Q ⊢ ¬P",7,2,1,1,False,False,False,0.0,0.0,0.25,0.562,rl_only,,7,textbook_38a6bc835898d989735e
+v1,roy,T6.18,,⊢ (P → (P ∧ P)) ∧ ((P ∧ P) → P),7,0,2,1,False,False,False,0.062,0.031,0.875,0.938,both,7,7,textbook_caed5d59878a9f7a961d
+v1,roy,E6.15b,,"(P ∨ Q) → ((Q → R) ∧ (R → Q)), Q ⊢ Q ∧ R",7,2,0,0,False,False,False,0.0,0.0,0.156,0.062,rl_only,,7,textbook_90ce2bec9deab50997da
+v1,roy,E6.15w,,⊢ P → (Q → (P → Q)),7,0,3,3,False,False,False,0.062,0.0,0.656,0.875,both,7,7,textbook_22aa753d5137cb7160a0
+v1,roy,E6.15x,,⊢ ¬P → ((Q ∧ P) → R),7,0,2,2,False,False,False,0.0,0.0,0.969,0.875,rl_only,,8,textbook_c5bd6ea079ef7455b1e2
+v1,roy,E6.7g,,"P → Q, P → (Q → R) ⊢ P → (Q ∧ R)",8,2,1,1,False,False,False,0.0,0.0,0.562,0.5,rl_only,,8,textbook_d6b908b9f5a04da5eb8e
+v1,roy,E6.7k,,"P → Q, Q → R, R → S ⊢ P → S",8,3,1,1,False,False,False,0.0,0.0,0.062,0.062,rl_only,,11,textbook_a65326c83332278d644e
+v1,roy,E6.10e,,"¬P → Q, Q → P ⊢ P",8,2,1,1,False,True,True,0.0,0.0,0.031,0.219,rl_only,,9,textbook_b7193995de25d68bea6d
+v1,roy,E6.15i,,"P → (Q ∧ R), ¬R ⊢ ¬(P ∧ S)",8,2,1,1,False,False,False,0.0,0.0,0.656,0.156,rl_only,,8,textbook_3e09df797e2d4b8ee95c
+v1,roy,E6.15u,,⊢ (P → Q) → ((R → P) → (R → Q)),8,0,3,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_4e82b957ab3349df0017
+v1,roy,E6.15v,,⊢ ((P → Q) ∧ ¬Q) → ¬P,8,0,2,2,False,False,False,0.0,0.0,0.656,0.625,rl_only,,8,textbook_86a113ae07a817d553eb
+v1,roy,E6.7j,,"P ∧ Q, (P → R) ∧ (Q → S) ⊢ R ∧ S",9,2,0,0,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_ee78aa5facb31dea0f2b
+v1,roy,E6.7n,,"P → (Q → R), S → Q ⊢ P → (S → R)",9,2,2,2,False,False,False,0.0,0.0,0.188,0.0,rl_only,,9,textbook_4b5310bb6a5c8a1bbf2d
+v1,roy,E6.10i,,"P ∨ Q, P → Q, Q → P ⊢ P ∧ Q",9,3,2,1,True,False,False,0.0,0.0,1.0,0.969,rl_only,,9,textbook_6bee6b9e15ba2317a665
+v1,roy,E6.13k,,⊢ (¬¬P → P) ∧ (P → ¬¬P),9,0,3,2,False,True,True,0.031,0.0,0.969,0.969,both,9,9,textbook_03c97bc75456d954d80e
+v1,roy,E6.13n,,"¬P → Q, P → ¬Q ⊢ (¬P → Q) ∧ (Q → ¬P)",9,2,2,2,False,False,False,0.0,0.0,0.875,0.656,rl_only,,9,textbook_7d7325c3e090d7880e32
+v1,roy,T6.17,,⊢ (P → ¬¬P) ∧ (¬¬P → P),9,0,3,2,False,True,True,0.0,0.0,0.906,0.969,rl_only,,9,textbook_44077e177fc389ba650a
+v1,roy,T6.19,,⊢ (P → (P ∨ P)) ∧ ((P ∨ P) → P),9,0,4,2,True,False,False,0.0,0.0,0.875,1.0,rl_only,,9,textbook_2385c0d627a315408a6e
+v1,roy,E6.15l,,(P ∧ ¬Q) → ¬P ⊢ P → Q,9,1,2,2,False,True,True,0.0,0.0,0.062,0.25,rl_only,,9,textbook_1e503e35174ab6b93062
+v1,roy,E6.15y,,⊢ (P → Q) → (¬Q → ¬(P ∧ R)),9,0,3,3,False,False,False,0.0,0.0,0.25,0.0,rl_only,,10,textbook_73852545a9a4c79efafc
+v1,carr,7,,P → Q ⊢ ((P ∧ Q) → P) ∧ (P → (P ∧ Q)),9,1,2,1,False,False,False,0.0,0.0,0.812,0.938,rl_only,,9,textbook_6372a1fb428b1517320f
+v1,roy,E6.10j,,"P → Q, (Q ∨ R) → S, S → ¬P ⊢ ¬P",10,3,1,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_da48873af5a82972d77b
+v1,roy,T6.3,,⊢ (¬P → ¬Q) → ((¬P → Q) → P),10,0,3,3,False,True,True,0.0,0.0,0.531,0.281,rl_only,,10,textbook_db6d3b54eef1e05a7c29
+v1,roy,E6.15f,,(P ∧ Q) → (R ∧ S) ⊢ ((P ∧ Q) → R) ∧ ((P ∧ Q) → S),10,1,2,1,False,False,False,0.0,0.0,0.938,1.0,rl_only,,10,textbook_6c3a988514b8a2c9259f
+v1,roy,E6.15k,,P → (Q → R) ⊢ ¬R → ¬(P ∧ Q),10,1,2,2,False,False,False,0.0,0.0,0.25,0.031,rl_only,,10,textbook_b39a067a731a88ac3b2e
+v1,roy,E6.15n,,"(¬P → Q) ∧ (Q → ¬P), R → P, Q ∧ R ⊢ ¬S",10,3,0,0,False,False,False,0.0,0.0,0.031,0.0,rl_only,,32,textbook_675c496ac27c291cd169
+v1,roy,E6.18a,,"P → ¬(Q ∧ R), Q → R ⊢ P → ¬Q",10,2,2,2,False,False,False,0.0,0.0,0.656,0.594,rl_only,,11,textbook_5de54e13acab762c32cc
+v1,roy,E6.18d,,"¬(P ∧ Q), ¬(P ∧ ¬Q) ⊢ ¬P",10,2,2,2,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_1588546a39aecfcb2ba5
+v1,roy,E6.18g,,"P ∨ ¬Q, ¬P ∨ ¬Q ⊢ ¬Q",10,2,4,2,True,False,False,0.0,0.0,0.312,0.031,rl_only,,13,textbook_331bdc4a2ec5c8c2c7c0
+v1,roy,E6.13o,,"P, Q ⊢ (¬P → ¬Q) ∧ (¬Q → ¬P)",11,2,2,1,False,False,False,0.0,0.0,0.719,0.875,rl_only,,12,textbook_950785750a0720aef8ee
+v1,roy,T6.12,,⊢ (((P → Q) ∧ (Q → P)) → ((Q → P) ∧ (P → Q))) ∧ (((Q → P) ∧ (P → Q)) → ((P → Q) ∧ (Q → P))),11,0,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_93185dd003d9622beca9
+v1,roy,E6.18l,,"¬(P → Q), ¬(Q → R) ⊢ ¬S",11,2,2,2,False,False,False,0.0,0.0,0.156,0.312,rl_only,,17,textbook_121a54da281b64d148d6
+v1,roy,E6.21a,,"(P ∧ Q) → (R ∨ S), Q ∧ P ⊢ S ∨ R",11,2,2,1,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_d337b29b8e27a24990b3
+v1,carr,6,,P → Q ⊢ ((P ∨ Q) → Q) ∧ (Q → (P ∨ Q)),11,1,4,2,True,False,False,0.0,0.0,0.5,0.312,rl_only,,11,textbook_8e25a853d044657f9d63
+v1,roy,E6.18p,,"P ∨ Q, ¬Q ∨ R, ¬R ⊢ P",12,3,4,2,True,False,False,0.0,0.0,0.0,0.281,neither,,13,textbook_d2a08b1d783ac35a6f07
+v1,roy,E6.13c,,"(P → Q) ∧ (Q → P), (Q → R) ∧ (R → Q), (R → S) ∧ (S → R), ¬P ⊢ ¬S",13,4,1,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_13651d5896b552e7d12b
+v1,roy,E6.13e,,"(P → (Q ∧ R)) ∧ ((Q ∧ R) → P), Q ⊢ (P → R) ∧ (R → P)",13,2,2,1,False,False,False,0.0,0.0,0.344,0.219,rl_only,,14,textbook_4d904e0f63f01a81988c
+v1,roy,E6.15p,,"(P ∨ Q) ∨ R, (Q → R) ∧ (R → Q) ⊢ R ∨ P",13,2,4,2,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_79bd02f38cbd6dfd6c3a
+v1,roy,E6.18m,,"P → ¬Q, ¬(R ∧ P) ⊢ (Q ∨ R) → ¬P",13,2,4,3,True,False,False,0.0,0.0,0.344,0.656,rl_only,,14,textbook_7b5ce23d034141665d02
+v1,carr,14,,"P ∨ Q, (P → Q) ∧ (Q → P), ¬(P ∧ Q) ⊢ R",13,3,2,1,True,False,False,0.0,0.0,0.0,0.062,neither,,29,textbook_66cb15032d000a4c5f35
+v1,roy,E6.18h,,"(P → (¬Q ∨ R)) ∧ ((¬Q ∨ R) → P), Q → R ⊢ P",14,2,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_8040875d110cc42408af
+v1,roy,E6.21b,,⊢ ((P ∧ Q) → (Q ∧ P)) ∧ (¬(P ∧ Q) → ¬(Q ∧ P)),14,0,3,2,False,False,False,0.0,0.0,0.0,0.625,neither,,19,textbook_43ab588df62cda9bc28b
+v1,roy,T6.13,,⊢ ((P ∨ Q) → (Q ∨ P)) ∧ ((Q ∨ P) → (P ∨ Q)),15,0,6,2,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_f293718d83c7943f5f2e
+v1,roy,E6.18j,,"(P → ¬((Q → ¬R) ∧ (¬R → Q))) ∧ (¬((Q → ¬R) ∧ (¬R → Q)) → P), ¬(P ∨ Q) ⊢ R",15,2,2,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_a9434bd440f14643825c
+v1,roy,E6.20a,,(P ∨ Q) → (P ∨ R) ⊢ P ∨ (Q → R),16,1,4,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_c88ec9ae3c9447ba6947
+v1,roy,T6.15,,⊢ ((P → (Q → R)) → ((P ∧ Q) → R)) ∧ (((P ∧ Q) → R) → (P → (Q → R))),17,0,5,3,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_d79542fa3c37d2687b26
+v1,roy,T6.16,,⊢ ((P ∧ (Q ∧ R)) → ((P ∧ Q) ∧ R)) ∧ (((P ∧ Q) ∧ R) → (P ∧ (Q ∧ R))),17,0,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_12b2fab745508e27a21e
+v1,roy,E6.18q,,"(¬P ∨ Q) ∨ R, R → ¬S ⊢ (P ∧ S) → Q",17,2,5,2,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_75a4cb543763dcbc6224
+v1,roy,T6.14,,⊢ ((P → Q) → (¬Q → ¬P)) ∧ ((¬Q → ¬P) → (P → Q)),18,0,6,3,False,True,True,0.0,0.0,0.219,0.094,rl_only,,19,textbook_22e0904a66130d3dbcb2
+v1,roy,E6.15o,,(¬P → ¬Q) ∧ (¬Q → ¬P) ⊢ (P → Q) ∧ (Q → P),18,1,4,2,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_260e73207a2aecc2bbac
+v1,roy,E6.21f,,"P → (Q → R), ¬S → (P ∨ R), P → Q ⊢ S ∨ R",19,3,4,2,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_718852d6a9d947f01167
+v1,roy,E6.21h,,"¬(P ∨ ¬Q) ∨ (¬Q → ¬R), Q → P, P → R ⊢ (Q → R) ∧ (R → Q)",20,3,5,3,True,True,True,0.0,0.0,0.031,0.0,rl_only,,30,textbook_0dc6c6c68197cd2c1774
+v1,roy,E6.13h,,"(P → Q) ∧ (Q → P), (R → S) ∧ (S → R) ⊢ ((P ∧ R) → (Q ∧ S)) ∧ ((Q ∧ S) → (P ∧ R))",21,2,2,1,False,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_5fdd267e0419f3137ff3
+v1,roy,T6.24,,⊢ ((¬P → Q) → (P ∨ Q)) ∧ ((P ∨ Q) → (¬P → Q)),22,0,7,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_6adc5f5be404a3b31142
+v1,roy,T6.25,,⊢ ((P → Q) → (¬P ∨ Q)) ∧ ((¬P ∨ Q) → (P → Q)),22,0,7,3,True,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_2e2c1312ef21c3a68875
+v1,roy,E6.21k,,⊢ ((P ∨ (Q → (P → Q))) → (P ∨ ((¬P ∨ ¬Q) ∨ Q))) ∧ ((P ∨ ((¬P ∨ ¬Q) ∨ Q)) → (P ∨ (Q → (P → Q)))),22,0,6,3,False,True,True,0.0,0.0,0.0,0.0,neither,,,textbook_f85ebc1f949fd5bacc2d
+v1,roy,T6.23,,⊢ (¬(P ∨ Q) → (¬P ∧ ¬Q)) ∧ ((¬P ∧ ¬Q) → ¬(P ∨ Q)),23,0,7,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_1ba13cd6b075e3368060
+v1,roy,T6.26,,⊢ ((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R))) ∧ (((P ∧ Q) ∨ (P ∧ R)) → (P ∧ (Q ∨ R))),25,0,6,2,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_47d992a805d5ccb5b428
+v1,roy,T6.20,,⊢ ((P ∨ (Q ∨ R)) → ((P ∨ Q) ∨ R)) ∧ (((P ∨ Q) ∨ R) → (P ∨ (Q ∨ R))),27,0,10,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_f31c1b9612d470888486
+v1,roy,E6.21i,,⊢ ((P ∨ (Q ∨ R)) → (R ∨ (Q ∨ P))) ∧ ((R ∨ (Q ∨ P)) → (P ∨ (Q ∨ R))),27,0,10,3,True,False,False,0.0,0.0,0.0,0.0,neither,,,textbook_905b5a5e1facb4782a63
+v1,roy,T6.27,,⊢ ((P ∨ (Q ∧ R)) → ((P ∨ Q) ∧ (P ∨ R))) ∧ (((P ∨ Q) ∧ (P ∨ R)) → (P ∨ (Q ∧ R))),28,0,8,3,True,False,False,0.0,0.0,0.0,0.031,neither,,34,textbook_1e38a6d607522b93c55c
