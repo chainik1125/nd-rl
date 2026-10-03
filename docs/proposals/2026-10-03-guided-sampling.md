@@ -1,7 +1,7 @@
 ---
 written_on: 2026-10-03
 written_by: agent:claude
-status: proposed for Dan (2026-10-03); not queued
+status: Part A, narrowed, queued as `guided-tts` (Dan, 2026-10-03; test time only on existing best models and textbook problems); Part B not queued
 ---
 
 # Proposal 24: verifier-guided sampling in the proof-state environment (cap 6), a replication of Robbie's test-time scaling
