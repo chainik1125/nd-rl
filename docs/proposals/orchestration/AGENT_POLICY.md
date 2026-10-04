@@ -46,6 +46,16 @@ Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and share
   - *Why:* ≈ 2× on RL sampling (2.16× end to end, 2.35× on the sampler, measured on one RTX 3090),
     nearly all of it from the batch. Until 2026-09-28 runs held batch 512 to match earlier results
     and got only ≈ 1.1×. Budget estimates made before then assume the old throughput; re-measure.
+- **Guided read-out by default (Dan, 2026-10-04).** Every evaluation of a proof-state model reports **two** numbers:
+  - **plain:** independent attempts, comparable with every earlier result;
+  - **guided:** `guided_sample.py` / `guided_eval.py` on the fork's `dan`. Each step is checked by `step_check.py`,
+    which agrees with Lean (0 false rejects on 314,541 steps against Lean). A failing step is redrawn from the same
+    state without replacement, up to 10 rejections per attempt.
+
+  Label which number is which, and compare across runs only plain with plain or guided with guided. Guided is the
+  best-system number. RL rollouts stay plain unless a brief says otherwise. *Why:* in `guided-tts`, guided beat
+  plain by 5–9 pp at matched sampled tokens on textbook problems in 6 / 6 models, and the gain came entirely from
+  the logical check.
 - **Every number names the model it was measured on** (Dan, 2026-09-23): checkpoint, parameter
   count, format, from-scratch or pretrained, training set. An inherited number carries its label;
   a reviewer treats an unlabelled number as a finding. *Why:* an efficiency run applied a premise
