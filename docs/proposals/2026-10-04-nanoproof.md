@@ -1,7 +1,7 @@
 ---
 written_on: 2026-10-04
 written_by: agent:claude
-status: proposed for Dan (2026-10-04); not queued. Phase 1 needs a decision on where the checkpoint comes from
+status: shelved (Dan, 2026-10-04) until the nanoproof author replies to Dan's email about the checkpoint; reproducing it (~100× our compute) is out of budget
 ---
 
 # Proposal 25: nanoproof on our problems, with any `sorry`-free Lean proof allowed, and how much it leans on automation
