@@ -73,6 +73,7 @@ testpaths = ["tests"]
 extend-exclude = [
     "**/r1_cot/vendor/**",
     "**/ndbench/vendor/**",
+    "**/thinking/vendor/**",
     "**/shared_code/nd_verify/**",
     "**/archived/olmo_single_gpu_20260909/**",
     "**/archived/cap_comparison_20260910/**",
@@ -84,6 +85,7 @@ extend-exclude = [
     "**/current/length_generalisation_20260925/**",
     "**/current/repr_goals_length_20260925/**",
     "**/current/midtrain_long_glued_20260926/**",
+    "**/current/thinking_traces_20261005/ood_check/**",
 ]
 force-exclude = true
 line-length = 100
@@ -121,9 +123,9 @@ known-third-party = ["wandb"]
 known-first-party = ["code"]
 
 [tool.pyright]
-include = ["__init__.py", "log.py", "utils.py", "models", "shared_code", "tests", "conftest.py", "ndbench"]
+include = ["__init__.py", "log.py", "utils.py", "models", "shared_code", "tests", "conftest.py", "ndbench", "thinking"]
 ignore = ["tests/test_literature.py", "tests/test_r1_*.py"]
-exclude = ["**/ndbench/vendor/**", "**/shared_code/nd_verify/**"]
+exclude = ["**/ndbench/vendor/**", "**/thinking/vendor/**", "**/shared_code/nd_verify/**"]
 extraPaths = [
     "..",
     "experiments/current",

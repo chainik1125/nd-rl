@@ -1,0 +1,36 @@
+# Calibration (PROPOSAL.md section 8, decision 3(i)): about 50 stratified K12 proofs x
+# {Opus 5.5, Sonnet 5.5, Haiku 4.5}, reference-guided, error-seeded.  Needs Leon's approval
+# before `distractors` and before every `submit --submit`.  Commands: README.md in this folder.
+# Usage: uv run --project code --no-sync python -m code.thinking.gen <command> --config <this file>
+run_dir: /scratch/cowifornia/nd-rl/think/gen_runs/calib_20261006
+
+select:
+  n: 50
+  seed: 20261006
+  alloc: balanced
+  strata: lines,ore,classical,prem
+  line_bins: 2-4,5-7,8-10,11-12
+  classical_rules: DN
+
+distractors:
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/stage1/stage1_best12_s0_b1200.pt
+  device: cpu
+  k: 16
+  temperature: 0.8
+  max_per_state: 3
+  seed: 0
+
+build:
+  models: [claude-opus-5-5, claude-sonnet-5-5, claude-haiku-4-5-20251001]
+  mode: reference
+  distractors: /scratch/cowifornia/nd-rl/think/gen_runs/calib_20261006/distractors.jsonl
+  effort: low
+  max_tokens: 16000
+  thinking_budget: 4096
+  cache_ttl: 1h
+  examples: [k12_16472, k12_22530]
+  deviations: allow
+
+collect:
+  max_attempts: 3
+  max_tokens_factor: 1.5

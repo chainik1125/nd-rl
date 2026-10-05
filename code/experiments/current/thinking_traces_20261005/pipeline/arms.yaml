@@ -1,0 +1,20 @@
+# Arms of the first pretraining comparison (PROPOSAL.md §6), as builder / trainer flags.
+# Every arm: Dan's best recipe (6 x 384 ALiBiGPT, Muon + AdamW, MTP 0.3, token budget 128 x 144), K12 minus the
+# eval classes, held-out = data/p2/heldout.jsonl.  Commands: README.md.
+common:
+  exclude: [OOD tiers (5 files), textbook_dev58, heldout]        # data.DEFAULT_EXCLUDE
+  extra_exclude: [textbook_train14]                              # textbook72 MANIFEST rule; see README "Decisions"
+  train: {best_steps: 24000, seeds: [0, 1, 2]}
+  eval: {k: 16, budgets: [0, 64, 256], arms: [plain, logical], max_action: 512, max_steps: 96, max_rej: 10}
+arms:
+  T0:          # no-think control, identical final actions, same vocabulary (lean_thinkn)
+    data: {plain: K12, no_trace_mode: none}
+  T0e:         # format control: every step carries an empty block (2 tokens); measures the tags' own effect
+    data: {plain: K12, no_trace_mode: empty}
+  T1:          # programmatic traces on every proof
+    data: {traces: [PROG_TRACES], plain: K12, no_trace_mode: empty}
+  T2:          # LLM traces (x4) on the subset, programmatic on the rest
+    data: {traces: ["LLM_TRACES:4", PROG_TRACES], plain: K12, no_trace_mode: empty}
+  T2_cold:     # cold start from state_env_october's Stage 1 (lean_staten -> lean_thinkn)
+    data: same as T2
+    train: {init: STAGE1, lr_scale: 0.3, best_steps: 3000}     # lr_scale / steps: unvalidated defaults
