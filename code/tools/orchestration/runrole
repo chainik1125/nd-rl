@@ -2,6 +2,8 @@
 # Start one role session for one run, with the resume loop.
 #   runrole <role> <run-id> [--repo DIR] [--brief FILE] [--stop "YYYY-MM-DD HH:MM"] [--model NAME] [--done FILE] [--done-grep REGEX]
 # role ∈ executor|reviewer|librarian|proposer. Role briefs live in $ORCH_BRIEFS (default ~/nd-rl/docs/proposals/orchestration).
+# Effort: if ~/runs/<run-id>/effort.<role> or ~/runs/<run-id>/effort exists (one word: low|medium|high|xhigh|max),
+# every invocation passes `--effort <word>`; otherwise the CLI default. Read each invocation, so it can change mid-run.
 # Messages to a running session: `runmsg` appends to ~/runs/<run-id>/<role>.inbox; the next invocation
 # puts them at the top of its prompt. The driver wakes early from its gap when one arrives, and an
 # invocation that `runmsg --now` stopped does not count as a failure.
@@ -98,7 +100,8 @@ for i in $(seq 1 ${MAX_INVOCATIONS:-120}); do
   [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify_done; break; }
   [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify_done; break; }
   M=${MODEL:-$(cat "${DEFAULT_MODEL_FILE}.$ROLE" 2>/dev/null || cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo claude-opus-5-5)}; COMMON[1]="$M"
-  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M, last gap ${SLEEP}s)" >> "$LOG"
+  EFF=$(cat "$D/effort.$ROLE" 2>/dev/null || cat "$D/effort" 2>/dev/null); EFF=$(echo $EFF); ARGS=("${COMMON[@]}"); [ -n "$EFF" ] && ARGS+=(--effort "$EFF")
+  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M${EFF:+, effort $EFF}, last gap ${SLEEP}s)" >> "$LOG"
   HEAD0=$(git -C "$REPO" rev-parse HEAD 2>/dev/null); ST0=$(stat -c %Y "$REPO/STATUS.md" 2>/dev/null); T0=$(date -u +%s)
   rm -f "$INTERRUPT"; MSG=$(take_messages)
   if [ "$i" = 1 ]; then
@@ -109,14 +112,14 @@ $(cat "$BRIEFS/$ROLE.md")
 $( [ -n "$BRIEF" ] && cat "$BRIEF" )
 
 $CTX
-Begin." "${COMMON[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
+Begin." "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
   else
     if [ "$fails" = 0 ] && [ "$quiet" -lt 2 ]; then
       RESUME="Continuing. $CTX Check what is running and carry on. If there is nothing to do until a job finishes, say so in one line and stop — the driver will wait longer before waking you again."
     else
       RESUME="Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md."
     fi
-    claude -p --continue "$MSG$RESUME" "${COMMON[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
+    claude -p --continue "$MSG$RESUME" "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
   fi
   # Run claude as a child and wait, so `runmsg --now` can find it (PIDFILE) and stop it.
   echo $! > "$PIDFILE"; wait $!; rc=$?; rm -f "$PIDFILE"
