@@ -18,6 +18,6 @@ they "really take their time" at maximum thinking effort.
 | 3. Quantify | ≥ 6 definitions computed on the same comparisons (cap-12 and cap-6, pretraining end vs r8 vs r16), with the theorems each one says RL "created", noise floors, and an agreement matrix across definitions. |
 | 4. Recommend | 2–4 definitions as the project standard with exact protocols, what our results already show under each, a plain glossary, and open questions for Dan. |
 
-**Run:** `capability-defs` on VPS1. Every role runs at `--effort max`, set through a per-run effort file that
+**Run:** `capability-defs` on agent2. Every role runs at `--effort max`, set through a per-run effort file that
 `runrole` now reads. Budget $50 / 100 pod-hours; hard stop 72 h. Brief:
 [claude-heavy/BRIEF_capability-defs.md](claude-heavy/BRIEF_capability-defs.md).
