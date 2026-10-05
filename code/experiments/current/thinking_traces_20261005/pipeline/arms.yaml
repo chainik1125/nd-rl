@@ -11,10 +11,11 @@ arms:
     data: {plain: K12, no_trace_mode: none}
   T0e:         # format control: every step carries an empty block (2 tokens); measures the tags' own effect
     data: {plain: K12, no_trace_mode: empty}
-  T1:          # programmatic traces on every proof
-    data: {traces: [PROG_TRACES], plain: K12, no_trace_mode: empty}
-  T2:          # LLM traces (x4) on the subset, programmatic on the rest
-    data: {traces: ["LLM_TRACES:4", PROG_TRACES], plain: K12, no_trace_mode: empty}
-  T2_cold:     # cold start from state_env_october's Stage 1 (lean_staten -> lean_thinkn)
-    data: same as T2
+  T1:          # programmatic traces (v2, prog_traces_v2.jsonl) on every proof; 20% of copies emptied (Leon 2026-10-05)
+    data: {traces: [PROG_TRACES], plain: K12, no_trace_mode: empty, empty_frac: 0.2}
+  T1v1:        # control: the audited v1 traces (plan names the action, ex-falso padding; TRACE_AUDIT.md)
+    data: {traces: [PROG_TRACES_V1], plain: K12, no_trace_mode: empty, empty_frac: 0.2}
+  T1_cold:     # cold start from state_env_october's Stage 1 (lean_staten -> lean_thinkn); not yet run
+    data: same as T1
     train: {init: STAGE1, lr_scale: 0.3, best_steps: 3000}     # lr_scale / steps: unvalidated defaults
+# T2 (LLM-written traces) is dropped: Claude-written traces were blocked by a safeguard on 2026-10-05.

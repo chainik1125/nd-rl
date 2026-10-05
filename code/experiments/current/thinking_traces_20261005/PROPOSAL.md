@@ -7,9 +7,16 @@ papers:
 
 # LLM-written thinking traces for the proof-state model
 
-Status: proposal. Nothing has been trained. No API calls, no GPU. Branch `leon/thinking` (worktree
+Status (updated 2026-10-05, evening):
+- **The LLM-written route (§3 (a)) is not pursued.** Claude subagents asked to write these traces
+  were blocked by a `[reasoning_extraction]` safeguard. No Claude-written trace is used for training.
+- The experiment runs on the programmatic traces (§3 (d)), built for all of K12 by
+  `code/thinking/progtrace.py`.
+- Current status: [the experiment summary](../../../../experiment-summaries/2026-10-05-thinking-traces/README.md).
+
+The rest of this note is the original proposal. Branch `leon/thinking` (worktree
 `/scratch/cowifornia/nd-rl/think/nd-rl`, base `1d13378`, which contains origin/dan `816e553`). Dan's
-fork, read-only clone at `4dcd0e4f`. Everything here is uncommitted.
+fork, read-only clone at `4dcd0e4f`.
 
 ## Summary
 

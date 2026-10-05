@@ -9,7 +9,12 @@ Inputs
             prompt, steps: [{think, action}]}, ASCII surface), validated by
             `trace_dsl.validate(strict=True)` (Lean too unless --no-lean); invalid records are
             dropped and counted by reason.  A plain record with the same prompt as a valid trace
-            is replaced by the trace.
+            is replaced by the trace, and a trace whose prompt an earlier --traces file already
+            covered is skipped (so `LLM:2 PROG` puts LLM traces on their proofs, programmatic ones
+            on the rest).
+  --empty-frac  the fraction of trace copies written with every think block emptied (`<think>
+            </think>`, Dualformer-style; Leon 2026-10-05: 0.2), chosen per (id, copy) by a hash so
+            the build is deterministic.  Repeated LLM copies are drawn independently.
   --plain   K12-style records ({prompt, proof}) decomposed by the fork's
             `state_env.decompose(canon=True)`; `--no-trace-mode empty` writes `<think> </think>`
             before the action, `none` writes the bare action (the T0 no-think control in the same
@@ -34,6 +39,7 @@ from __future__ import annotations
 import argparse
 import collections
 import glob
+import hashlib
 import json
 import os
 import pickle
@@ -204,6 +210,11 @@ def length_report(records: Sequence[Sequence[Pair]], max_len: int) -> dict[str, 
 
 
 # ------------------------------------------------------------------------------------------- build
+def unit_hash(key: str) -> float:
+    """A deterministic draw in [0, 1) from a string."""
+    return int.from_bytes(hashlib.sha256(key.encode()).digest()[:8], "big") / 2**64
+
+
 def split_weight(spec: str | Path) -> tuple[str, int]:
     """'traces.jsonl:4' -> ('traces.jsonl', 4); no ':<int>' suffix -> weight 0 (the default)."""
     s = str(spec)
@@ -218,6 +229,7 @@ def build(
     exclude: Sequence[str | Path] = (),
     lean: bool = True,
     trace_weight: int = 1,
+    empty_frac: float = 0.0,
     max_len: int = 1024,
     cap: int = 0,
     limit_plain: int = 0,
@@ -243,10 +255,16 @@ def build(
 
     n_trace_in = n_trace_ok = 0
     traced_prompts: set[str] = set()
+    n_emptied = 0
     for spec in traces:
         path, w = split_weight(spec)
+        earlier = set(traced_prompts)
         for rec in read_jsonl(path):
             n_trace_in += 1
+            if rec["prompt"] in earlier:
+                k_ = "traces_covered_by_earlier_file"
+                rep[k_] = rep.get(k_, 0) + 1
+                continue
             if excluded(rec["prompt"]):
                 rep["excluded_traces"] = rep.get("excluded_traces", 0) + 1
                 continue
@@ -267,9 +285,18 @@ def build(
                 "source": "trace",
                 "n_lines": None,
             }
-            for _ in range(w or trace_weight):
-                records.append(pairs)
-                meta.append(m)
+            empty = None
+            for c in range(w or trace_weight):
+                if empty_frac and unit_hash(f"{rec.get('id')}/{c}") < empty_frac:
+                    if empty is None:
+                        steps = [{"think": "", "action": st["action"]} for st in rec["steps"]]
+                        empty = trace_pairs({**rec, "steps": steps}, tok)
+                    records.append(empty)
+                    meta.append({**m, "source": "trace_emptied"})
+                    n_emptied += 1
+                else:
+                    records.append(pairs)
+                    meta.append(m)
     n_plain_in = n_plain_ok = 0
     for path in plain:
         for i, rec in enumerate(read_jsonl(path)):
@@ -308,6 +335,8 @@ def build(
         "traces_in": n_trace_in,
         "traces_valid": n_trace_ok,
         "trace_weight": trace_weight,
+        "empty_frac": empty_frac,
+        "trace_copies_emptied": n_emptied,
         "plain_in": n_plain_in,
         "plain_used": n_plain_ok,
         "no_trace_mode": no_trace_mode,
@@ -322,6 +351,7 @@ def build(
         "exclude": [str(p) for p in exclude],
         "lean": lean,
         "trace_weight": trace_weight,
+        "empty_frac": empty_frac,
         "max_len": max_len,
         "cap": cap,
         "limit_plain": limit_plain,
@@ -392,6 +422,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument(
         "--trace-weight", type=int, default=1, help="default repeat count per valid trace record"
     )
+    ap.add_argument(
+        "--empty-frac", type=float, default=0.0, help="fraction of trace copies with empty thinks"
+    )
     ap.add_argument("--max-len", type=int, default=1024)
     ap.add_argument(
         "--cap", type=int, default=0, help="drop plain records with n_lines > cap (0: keep all)"
@@ -411,6 +444,7 @@ def main(argv: list[str] | None = None) -> int:
         exclude,
         lean=not a.no_lean,
         trace_weight=a.trace_weight,
+        empty_frac=a.empty_frac,
         max_len=a.max_len,
         cap=a.cap,
         limit_plain=a.limit_plain,

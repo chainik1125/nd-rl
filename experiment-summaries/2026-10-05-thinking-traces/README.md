@@ -5,8 +5,10 @@ written_by: agent:claude
 
 # Thinking traces for the proof-state model (test-time scaling, LLM tradition)
 
-Status: proposal written and pipeline built and tested on CPU (2026-10-05). No training, GPU evaluation or paid
-API call has run.
+Status (2026-10-05, evening): programmatic traces built for all of K12 and under audit; the no-think controls
+(T0, T0e) are training; the programmatic-trace arm (T1) follows the audit. **The LLM-written-trace arm is
+dropped:** Claude subagents asked to write these traces were blocked by a `[reasoning_extraction]` safeguard,
+so no Claude-written trace is used for training.
 
 Question: if the small proof-state prover (state_env_october, 9.56M parameters) is pretrained to write a short
 think block before each step, can RL later make it use more thinking for more success (test-time scaling)?
@@ -68,13 +70,61 @@ API:
 - calibration of 50 proofs × 3 models: about $4 (worst case $17);
 - 2,000 proofs on Opus: about $96 (range $57-174).
 
-## Decisions pending (Leon)
+## Decisions taken (Leon, 2026-10-05)
 
-See PROPOSAL.md §8:
-1. Approve the format.
-2. Allow traces to shorten roundabout reference steps.
-3. Staged spend: calibration about $7, then 2,000 proofs ($37-154), then 20,000.
-4. Build programmatic traces.
-5. Choose the first training run (cold start vs from scratch) and approve GPU time.
+The PROPOSAL.md §8 items, as decided:
+1. **Format:** per-step Markov think blocks with `<think> </think> <no>`.
+2. **Reference actions stay fixed.** Traces never change the proof; backtracking inside proofs is emphasised.
+3. **LLM traces:** planned via Sonnet subagents instead of the Batch API. That route is now blocked by a
+   safeguard (see Status) and is not pursued.
+4. **Programmatic traces:** built (`code/thinking/progtrace.py`).
+5. **First run:** from scratch, compute approved.
 
-Also pending: an OOD calibration eval of about 2 GPU-h.
+Data mix:
+- matched compute, 24k steps per arm;
+- all 155k K12 proofs;
+- no sweep;
+- 20% of traced copies with emptied think blocks, Dualformer-style (`data.py --empty-frac 0.2`).
+
+## Programmatic traces (built and audited 2026-10-05)
+
+An Opus audit of the first version found it correct but ritual-heavy
+([TRACE_AUDIT.md](../../code/experiments/current/thinking_traces_20261005/TRACE_AUDIT.md)):
+- every hard and semantic check passed on all 154,977 traces;
+- 0 eval-class leaks;
+- Lean accepted 300/300 sampled proofs and rejected 384/384 candidates marked `<no>`.
+
+Its findings:
+- In v1 the plan named the action before any candidate was checked, so a string match predicted 94.7% of the
+  `<no>` verdicts.
+- 72% of dead ends were the trivial ex-falso move.
+
+Generator v2 fixes this: the action is decided by candidates checked before the answer is named, and ex falso is
+no longer padding. The same audit scripts on v2 report:
+- 0 failures and 0 disagreements;
+- the string-match rule falls to 51.7%;
+- after a look line the verdict is 50/50.
+
+The v2 traces are `/scratch/cowifornia/nd-rl/think/traces/prog_traces_v2.jsonl`, with `.stats.json` beside it:
+- 154,977 traces;
+- think tokens per proof: mean 238, median 201, p90 483, rising with proof length (Spearman ρ 0.75);
+- longest pair 598 tokens.
+
+Arms: T1 trains on v2. T1v1 trains on the audited v1 traces as a "ritual traces" control.
+
+Still open:
+- Real dead ends are rare in K12 states, about 12% of decision blocks.
+- Base-model mistakes are used as wrong candidates for only 7.8% of proofs.
+
+## Baseline figure
+
+Dmitry's progress figure for Dan's checkpoints is [figures/fig_lengthbin_baseline.png](figures/fig_lengthbin_baseline.png):
+- textbook72 at pass@256, plain sampling, 3 seeds each;
+- caption in `figures/fig_lengthbin_baseline.caption.md`.
+
+| | 1–5 | 6–10 | 11–15 | 16+ | train14 |
+|---|---|---|---|---|---|
+| Pretraining only | 100% | 58% | 29% | 0% | 38% |
+| After RL (round 8) | 100% | 92% | 69% | 28% | 67% |
+
+The trace arms will be added to the same figure.

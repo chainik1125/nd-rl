@@ -148,10 +148,29 @@ def test_plain_record_replaced_by_its_trace_and_trace_weight(tmp_path: Path) -> 
     assert rep["plain_skipped"] == {"replaced_by_trace": 1}
     assert rep["plain_used"] == 20 and len(d["records"]) == 8 * 3 + 20
     assert sum(m["source"] == "trace" for m in d["meta"]) == 24
-    d2 = build(traces=[f"{PILOT}:2", PILOT], lean=False)  # per-file weight, default 1
-    assert len(d2["records"]) == 8 * 3
-    d2 = build(traces=[f"{PILOT}:2", PILOT], lean=False)  # per-file weight, default 1
-    assert len(d2["records"]) == 8 * 3
+    d2 = build(traces=[f"{PILOT}:2"], lean=False)  # per-file weight
+    assert len(d2["records"]) == 8 * 2
+
+
+def test_later_trace_file_skips_prompts_an_earlier_file_covered() -> None:
+    d = build(traces=[f"{PILOT}:2", PILOT], lean=False)  # LLM:2 then PROG, same proofs
+    assert len(d["records"]) == 8 * 2
+    assert d["report"]["traces_covered_by_earlier_file"] == 8
+    assert d["report"]["traces_valid"] == 8
+
+
+def test_empty_frac_empties_whole_copies_deterministically() -> None:
+    d = build(traces=[f"{PILOT}:20"], lean=False, empty_frac=0.2)
+    rep = d["report"]
+    assert 0 < rep["trace_copies_emptied"] < 8 * 20 * 0.4
+    for r, m in zip(d["records"], d["meta"], strict=True):
+        lens = [n for _, _, n in r]
+        if m["source"] == "trace_emptied":
+            assert lens == [2] * len(r)  # <think> </think> on every step
+    full = [r for r, m in zip(d["records"], d["meta"], strict=True) if m["source"] == "trace"]
+    assert any(n > 2 for r in full for _, _, n in r)
+    again = build(traces=[f"{PILOT}:20"], lean=False, empty_frac=0.2)
+    assert again["report"]["trace_copies_emptied"] == rep["trace_copies_emptied"]
 
 
 def test_save_load_round_trip_and_report(tmp_path: Path) -> None:
