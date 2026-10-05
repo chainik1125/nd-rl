@@ -1,0 +1,109 @@
+LR2	2504.13837v5	Does RL Really Incentivize Reasoning Capacity Beyond the Base Model? (Yue et al.)
+LR2	2505.24864v1	ProRL: Prolonged RL Expands Reasoning Boundaries
+LR2	2601.04728v1	Excess Description Length of Learning Generalizable Predictors (Donoway et al.)
+LR2	2510.15020v2	The Coverage Principle (Chen, Foster et al.)
+LR2	2503.07453v2	Is a Good Foundation Necessary for Efficient RL? (Foster, Mhammedi, Rohatgi)
+LR2	2506.14245v2	RLVR Implicitly Incentivizes Correct Reasoning in Base LLMs (Wen et al.)
+LR2	2412.01951v2	Self-Improvement in LMs: The Sharpening Mechanism (Huang et al.)
+LR2	2503.01307v2	Cognitive Behaviors that Enable Self-Improving Reasoners (Gandhi et al.)
+LR2	2510.08325v2	Beyond Pass@k: Breadth-Depth Metrics (Dragoi et al.)
+LR2	2506.10947v2	Spurious Rewards: Rethinking Training Signals in RLVR (Shao et al.)
+LR2	2507.10532v3	Reasoning or Memorization? Data Contamination (Wu et al.)
+LR2	2510.01180v1	BroRL: Scaling RL via Broadened Exploration (Hu et al.)
+LR2	2510.04028v1	The Debate on RLVR Reasoning Capability Boundary: Two-Stage Dynamic View (Yao et al.)
+LR2	2606.22317v1	Curriculum RL Can Incentivize Reasoning Beyond the Base Model (Cai et al.)
+LR2	2004.12919v6	First return, then explore (Go-Explore)
+LR2	2310.16410v1	Bridging the Human-AI Knowledge Gap (Schut et al.)
+LR2	2510.11686v2	Representation-Based Exploration for LMs (RepExp)
+LR2	1905.10501v3	Learning to Reason in Large Theories without Imitation (DeepHOL-Zero)
+LR2	2601.18779v1	POPE: Privileged On-Policy Exploration
+LR2	2508.14029v4	Beyond Pass@1: Self-play Variational Problem Synthesis (SvS)
+LR2	1712.01815v1	Mastering Chess and Shogi by Self-Play (AlphaZero)
+LR2	1911.08265v2	MuZero
+LR2	2111.09259v3	Acquisition of Chess Knowledge in AlphaZero (McGrath et al.)
+LR2	2405.15143v4	Intelligent Go-Explore
+LR2	1606.01868v2	Unifying Count-Based Exploration and Intrinsic Motivation
+LR2	1810.12894v1	Exploration by Random Network Distillation
+LR2	2003.13350v1	Agent57
+LR2	1705.05363v1	Curiosity-driven Exploration by Self-supervised Prediction (ICM)
+LR2	2509.09675v1	CDE: Curiosity-Driven Exploration for LLM RL
+LR2	2506.13131v1	AlphaEvolve
+LR2	2102.09756v2	TacticZero
+LR2	2607.07646v1	RL Post-Training Builds Compositional Reasoning Strategies (Abdulsalam, Patel, Saxe)
+LR2	2510.11495v2	How RL After Next-Token Prediction Facilitates Learning (Tsilivis et al.)
+LR2	2509.22613v2	Benefits and Pitfalls of RL for LM Planning (Wang et al.)
+LR2	2601.15158v4	Outcome-Based RL Provably Leads Transformers to Reason, but Only With the Right Data
+LR2	2512.01970v3	Atomic Skills are the Prerequisite
+LR2	2602.14872v3	On the Emergence of Implicit Curriculum in RLVR Learning Dynamics
+LR2	2406.11741v4	Transcendence: Generative Models Can Outperform the Experts That Train Them
+LR2	2501.17161v2	SFT Memorizes, RL Generalizes
+LR2	2407.20311v1	Physics of LMs Part 2.1: Grade-School Math
+LR2	2305.13673v4	Physics of LMs Part 1: Hierarchical Language Structures
+LR2	2210.13382v5	Emergent World Representations (Othello-GPT)
+LR2	2301.05217v3	Progress Measures for Grokking via Mech. Interp.
+LR2	2403.06963v3	The Pitfalls of Next-Token Prediction
+LR2	2405.09220v3	ALPINE (id check)
+LR2	2006.08381v1	DreamCoder (id check)
+LR2	2201.02177v1	Grokking (id check)
+LR2	2601.21590v1	Scalable Power Sampling (Ji et al.)
+LR2	2605.04542v1	Power Distribution Bridges Sampling, Self-Reward RL, and Self-Distillation
+LR2	2512.21625v1	Rethinking Sample Polarity in RLVR (A3PO)
+LR2	2508.21188v2	Mirage or Method? Model-Task Alignment
+LR1	1705.08439v4	Thinking Fast and Slow with Deep Learning and Tree Search (ExIt)
+LR1	2205.11491v1	HyperTree Proof Search for Neural Theorem Proving (HTPS/Evariste)
+LR1	2408.08152v1	DeepSeek-Prover-V1.5
+LR1	2502.03438v3	BFS-Prover
+LR1	2410.15700v2	InternLM2.5-StepProver
+LR1	2009.03393v1	Generative Language Modeling for Automated Theorem Proving (GPT-f)
+LR1	2202.01344v1	Formal Mathematics Statement Curriculum Learning
+LR1	1805.07563v1	Reinforcement Learning of Theorem Proving (rlCoP)
+LR1	2404.03683v1	Stream of Search (SoS)
+LR1	DOI 10.1038/s41586-025-09833-y	Olympiad-level formal mathematical reasoning with RL (AlphaProof) [@Hubert_2025]
+LR1	no arXiv; NeurIPS'24 MATH-AI workshop, OpenReview kk3mSjVCUO; PDF cermics.enpc.fr/~hayata/ABEL_pre.pdf	ABEL: Sample Efficient Online RL for Neural Theorem Proving (Gloeckle, Limperg, Synnaeve, Hayat)
+LR1	2309.17179v2	AlphaZero-like Tree-Search can Guide LLM Decoding and Training (TS-LLM) — found via citations
+LR1	2407.00695v2	Learning Formal Mathematics From Intrinsic Motivation (Minimo) [@poesia2024learningformalmathematicsintrinsic] — found via citations
+LR1	2402.14083v2	Beyond A*: Search Dynamics Bootstrapping (Searchformer) — found via citations
+LR1	2502.00212v4	STP: Self-play LLM Theorem Provers with Iterative Conjecturing and Proving
+LR1	2112.10664v1; PMLR 162 aygun22a	Proving Theorems using Incremental Learning and Hindsight Experience Replay (Aygün et al.)
+LR1	2502.12272v6	LILO: Learning to Reason at the Frontier of Learnability
+LR1	2010.03934v4	Prioritized Level Replay
+LR1	2504.03380v2	Online Difficulty Filtering for Reasoning Oriented RL
+LR1	2505.14970v4	Self-Evolving Curriculum for LLM Reasoning (SEC)
+LR1	2508.03613v1	Goedel-Prover-V2
+LR1	2502.07640v3	Goedel-Prover
+LR1	2002.07019v2	Learning to Prove Theorems by Learning to Generate Theorems (MetaGen)
+LR1	2103.03798v2	Training a First-Order Theorem Prover from Synthetic Data
+LR1	DOI 10.1038/s41586-023-06747-5 (read via Europe PMC PMC10794143)	Solving olympiad geometry without human demonstrations (AlphaGeometry)
+LR1	2203.01302v3	Evolving Curricula with Regret-Based Environment Design (ACCEL)
+LR1	2506.02355v2	Rewarding the Unlikely: Lifting GRPO Beyond Distribution Sharpening (He, Fried, Welleck)
+LR1	2508.10751v1	Pass@k Training for Adaptively Balancing Exploration and Exploitation of LRMs (Chen, Qin, Wu, Ling, Ye, Zhao, Shi)
+LR1	2505.15201v5	Pass@K Policy Optimization (Walder, Karkhanis)
+LR1	2505.22617v1	The Entropy Mechanism of RL for Reasoning LMs (Cui et al.)
+LR1	2506.01347v2	The Surprising Effectiveness of Negative Reinforcement in LLM Reasoning (Zhu, Xia, Wei, Chen, Chen, Meng)
+LR1	2503.20783v2	Understanding R1-Zero-Like Training (Dr. GRPO)
+LR1	2503.14476v2	DAPO: An Open-Source LLM RL System at Scale
+LR1	2509.06941v1	Outcome-based Exploration for LLM Reasoning (Song, Kempe, Munos)
+LR1	2506.01939v2	Beyond the 80/20 Rule: High-Entropy Minority Tokens (Wang et al.)
+LR1	2509.02534v1	Jointly Reinforcing Diversity and Quality in LM Generations (Darling; Li, Wang et al.)
+LR1	2506.14758v4	Reasoning with Exploration: An Entropy Perspective (Cheng et al.)
+LR1	2507.14843v4	The Invisible Leash: Why RLVR May or May Not Escape Its Origin (Wu et al.)
+LR1	2502.01612v2	Self-Improving Transformers Overcome Easy-to-Hard and Length Generalization Challenges (N. Lee, Z. Cai, A. Schwarzschild, …, K. Lee, D. Papailiopoulos)
+LR1	2509.25123v3	From f(x) and g(x) to f(g(x)): LLMs Learn New Skills in RL by Composing Old Ones (L. Yuan, W. Chen, Y. Zhang, G. Cui, …)
+LR1	2402.09371v1	Transformers Can Achieve Length Generalization But Not Robustly (Y. Zhou, U. Alon, X. Chen, X. Wang, R. Agarwal, …, D. Zhou)
+LR1	2409.15647v5	Looped Transformers for Length Generalization (Y. Fan, Y. Du, K. Ramchandran, K. Lee)
+LR1	2405.20671v2	Position Coupling: Improving Length Generalization of Arithmetic Transformers Using Task Structure (Cho et al.)
+LR1	2405.17399v2	Transformers Can Do Arithmetic with the Right Embeddings (McLeish et al.)
+LR1	2310.16028v1	What Algorithms can Transformers Learn? A Study in Length Generalization (Zhou et al.)
+LR1	2305.19466v2	The Impact of Positional Encoding on Length Generalization in Transformers (Kazemnejad et al.)
+LR1	2207.04901v2	Exploring Length Generalization in Large Language Models (Anil et al.)
+LR1	2412.04703v2	Transformers Struggle to Learn to Search (Saparov et al., ICLR 2025)
+LR1	2305.18654v3	Faith and Fate: Limits of Transformers on Compositionality (Dziri et al.)
+LR1	2606.20068v1	Process-Verified RL for Theorem Proving via Lean (Kim, Yun et al.)
+LR1	2510.14901v1	Reasoning with Sampling: Your Base Model is Smarter Than You Think (Karan & Du)
+LR1	2504.07912v2	Echo Chamber: RL Post-training Amplifies Behaviors Learned in Pretraining (Zhao et al.)
+LR1	2512.07783v1	On the Interplay of Pre-Training, Mid-Training, and RL on Reasoning LMs
+LR1	2509.21128v2	RL Squeezes, SFT Expands (Matsutani et al.)
+LR1	2507.23726v2	Seed-Prover
+LR1	2504.11354v1	Kimina-Prover Preview
+LR1	2407.10040v5	Lean-STaR
+LR1	2503.09730v2	Local Look-Ahead Guidance via Verifier-in-the-Loop for ATP (Rajaee et al.)
