@@ -265,6 +265,8 @@ textbook72. Model-side rules tested against that, in the order they were tried:
 
 ## Map of what was done
 
+- This folder: `README.md` indexes the copies kept here of every figure (`figures/`), the worker and phase reports,
+  kickoff, schema, research log and number-to-source map (`reports/`), and the four Codex audits (`reviews/`).
 - Working folder: `code/experiments/current/proof_selection_20261006/`: kickoff `start.md`, data `schema.md`, worker
   briefs, timestamped `research_log.md` and `logs/worker_{A,B}.md` with every pre-registration and freeze, three
   Codex reviews in `reviews/` (design, midpoint recomputation with scripts, write-up red team), code in `code/`,
