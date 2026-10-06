@@ -369,11 +369,13 @@ def _write(fig: Figure, out: Path, data: dict[str, Any], caption: str) -> list[P
     return [*paths, j, c]
 
 
-def _legend(fig: Figure, handles: Sequence[Any]) -> None:
+def _legend(fig: Figure, handles: Sequence[Any], max_cols: int = 3) -> None:
+    """Legend above the panels, wrapped at `max_cols` entries a row (one row overflows the
+    text width beyond 3 entries; a half-width figure fits 2)."""
     fig.legend(
         handles=list(handles),
         loc="outside upper center",
-        ncol=len(handles),
+        ncol=min(len(handles), max_cols),
         frameon=False,
         handlelength=2.0,
         columnspacing=1.4,
@@ -739,7 +741,7 @@ def fig_budget(data: dict[str, Any]) -> Figure:
             Line2D([], [], color=S.INK2, linestyle=ARM_LINESTYLES.get(a, "-"), label=a)
             for a in arms
         ]
-    _legend(fig, handles)
+    _legend(fig, handles, max_cols=3 if ncol > 1 else 2)
     return fig
 
 
@@ -935,7 +937,7 @@ def fig_tokens(data: dict[str, Any]) -> Figure:
                 label=f"darker → lighter: B = {budgets[0]} → {budgets[-1]}",
             )
         )
-    _legend(fig, handles)
+    _legend(fig, handles, max_cols=3 if ncol > 1 else 2)
     return fig
 
 

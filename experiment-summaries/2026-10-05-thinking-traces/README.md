@@ -5,10 +5,11 @@ written_by: agent:claude
 
 # Thinking traces for the proof-state model (test-time scaling, LLM tradition)
 
-Status (2026-10-05, evening): programmatic traces built for all of K12 and under audit; the no-think controls
-(T0, T0e) are training; the programmatic-trace arm (T1) follows the audit. **The LLM-written-trace arm is
-dropped:** Claude subagents asked to write these traces were blocked by a `[reasoning_extraction]` safeguard,
-so no Claude-written trace is used for training.
+Status (2026-10-06):
+- Stage 1 is done: 4 arms × 3 seeds, with reads on textbook72 and the OOD sets (below).
+- The RL phase is proposed, not started.
+- **The LLM-written-trace arm is dropped.** Claude subagents asked to write these traces were blocked by a
+  `[reasoning_extraction]` safeguard, so no Claude-written trace is used for training.
 
 Question: if the small proof-state prover (state_env_october, 9.56M parameters) is pretrained to write a short
 think block before each step, can RL later make it use more thinking for more success (test-time scaling)?
@@ -25,17 +26,18 @@ Working folder: [`code/experiments/current/thinking_traces_20261005/`](../../cod
   "wildly OOD" axes (≥4 premises, formula depth ≥7, >4 atoms, name exhaustion) fail on format, which thinking
   cannot fix. Structural depth with small formulas (nested case splits, reordering) is the usable axis.
 - **Prior attempt** (r1_cot, 2026-09-09, old stack): a think block that re-rendered the proof lost to direct
-  proofs at matched tokens (10/58 vs 11/58 at k 16). The traces here must carry checked work that the action does not.
+  proofs at matched tokens (10/58 vs 11/58 at k 16). The Stage-1 results below change that picture: both
+  trace versions here are used by the model, including v1, whose plan lines largely re-render the reference.
 - **Design proposed** ([PROPOSAL.md](../../code/experiments/current/thinking_traces_20261005/PROPOSAL.md)):
   - a per-step Markov think block, `state <think> … </think> action <eos>`;
   - the 111 existing tokens plus `<think> </think> <no>`;
   - every think line is a claim the validator checks: goal reductions, looks, candidates, `<no>` dead ends.
-  - Traces are written by Claude Opus 5.5 through the Batch API, with structured output, strict validation and
-    retries. Programmatic search traces serve as filler and control.
+  - Traces were to be written by Claude, with programmatic search traces as filler and control. Only the
+    programmatic traces were used; the LLM route was blocked (see Status).
   - Pilot: 8/8 hand-written traces valid, all Lean-checked. This was written by an agent, so it is not a
     production acceptance rate.
 
-## Pipeline (built, CPU-tested, not yet run)
+## Pipeline (built, tested, used for Stage 1)
 
 - `code/thinking/`: the model side.
   - **Vendoring.** Dan's fork is vendored unmodified at 4dcd0e4f and loaded under private module names.
@@ -115,6 +117,79 @@ Arms: T1 trains on v2. T1v1 trains on the audited v1 traces as a "ritual traces"
 Still open:
 - Real dead ends are rare in K12 states, about 12% of decision blocks.
 - Base-model mistakes are used as wrong candidates for only 7.8% of proofs.
+
+## Stage-1 results (2026-10-06, 3 seeds per arm)
+
+**Setup:**
+- Stage 1 from scratch with Dan's best recipe: 24,000 steps on one RTX 3090, 41–60 min a run.
+- Runs in `/scratch/cowifornia/nd-rl/think/runs/stage1/`.
+- textbook72 reads: 58 dev + 14 train, k 256, plain sampling, T 0.8. B is the per-step think budget: 0 forces an
+  empty block, 256 leaves it effectively free (training blocks are at most 240 tokens).
+- Evals in `runs/eval/tb72_*` and `runs/eval/ood_*`.
+
+**textbook72, pass@256:**
+
+| arm | B | seed 0 | seed 1 | seed 2 | mean | tokens / attempt |
+|---|---|---|---|---|---|---|
+| T0, no think | – | 43.1% | 47.2% | 45.8% | 45.4% | 116 |
+| T0e, empty think | 0 | 37.5% | 37.5% | 43.1% | 39.4% | 113 |
+| T1, v2 traces | 0 | 41.7% | 36.1% | 38.9% | 38.9% | 129 |
+| T1, v2 traces | 256 | 54.2% | 47.2% | 52.8% | **51.4%** | 320 |
+| T1v1, v1 traces | 0 | 34.7% | 34.7% | 38.9% | 36.1% | 125 |
+| T1v1, v1 traces | 256 | 59.7% | 51.4% | 56.9% | **56.0%** | 420 |
+
+Noise: one T0e model, which never thinks, read twice with different budgets gave 37.5% and 40.3%.
+
+**Matched sampled tokens per theorem** (3-seed means; [fig_tokens_tb72.png](figures/fig_tokens_tb72.png)):
+
+| tokens / theorem | 1k | 3k | 10k | 29k |
+|---|---|---|---|---|
+| T0, no think | **28.8%** | **34.4%** | 40.1% | 45.2% |
+| T1 (v2), B 256 | 24.2% | 32.8% | 41.7% | 47.4% |
+| T1v1 (v1), B 256 | 23.5% | 32.3% | **42.2%** | **49.7%** |
+
+**By reference length** ([fig_lengthbin_stage1.png](figures/fig_lengthbin_stage1.png), pass@256, 3-seed means):
+
+| arm | 1–5 | 6–10 | 11–15 | 16+ | train14 |
+|---|---|---|---|---|---|
+| T0 | 100% | 72% | 27% | 0% | 43% |
+| T1 (v2), thinking | 100% | 79% | 29% | 8% | 52% |
+| T1v1 (v1), thinking | 100% | 88% | 38% | 3% | 57% |
+
+**OOD sets** (k 16, pass@16, all 898 theorems, plain unless noted):
+
+| arm | result |
+|---|---|
+| T0 s0 / s1 | 7.0% / 6.7% |
+| T1 s0 / s1, B 0 | 6.2% / 5.0% |
+| T1 s0 / s1, B 256 | 8.4% / 5.9% |
+| T1v1 s0, B 256 | 8.7% |
+| T0 s0 / s1, guided redraws | 13.7% / 13.7% |
+| T1 s0, guided + B 256 | 18.0% |
+
+Guided redraws plus thinking reach 23.8% on Charles's long problems and 25.0% on commute, at about 21k tokens per
+theorem. Dan's Stage-1 checkpoint with guided redraws at k 64 (about 24k tokens) gets 20.0% and 23.8%.
+
+**Observed:**
+- **The trace-trained models use their thinking.** Forcing the block empty costs 12.5 pp (T1) and 19.9 pp (T1v1)
+  on every seed.
+- **Trace training costs the no-think policy 6–9 pp.** With thinking forced empty, T1 and T1v1 read 38.9% / 36.1%,
+  against 45.4% for T0.
+- **At matched tokens, thinking loses at small budgets and wins at large ones.** It is 4.6–5.3 pp behind T0 at 1k
+  tokens per theorem, level around 5k, and 2.2–4.5 pp ahead at 29k. The gain is concentrated in the 6–15-line
+  problems and the train14 problems.
+- **The audited v1 traces do at least as well as v2.** At B 256 v1 leads by 4.6 pp in mean pass@256, though seed
+  ranges overlap (51.4–59.7 vs 47.2–54.2). It also leads at matched tokens above 10k, thinks longer, and depends
+  more on its thinking.
+- **OOD, at Stage 1, thinking is worth about as much as more samples.** Plain-sampling differences are within seed
+  noise.
+
+**Interpretation, open:**
+- This is the expected Stage-1 picture. The model has the format and uses it, but a think token is not yet worth
+  more than a sample token except at large budgets.
+- Making thinking pay at small budgets, and OOD, is the job of the RL phase.
+- v1's lead supports Leon's view: what the traces must supply is variety and length, not audited rigor.
+- Which init is better for RL is not settled by these reads.
 
 ## Baseline figure
 
