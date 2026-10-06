@@ -42,6 +42,7 @@ import torch
 
 from . import lean as L
 from .dan import load
+from .effort import effort_id, has_effort
 from .tok import has_think
 
 D = load()
@@ -123,6 +124,9 @@ def decode_wave(
         ban_think[[tok.eos, tok.think, tok.pad]] = True
         if mask_action_think:
             ban_act[[tok.think, tok.end_think, tok.no]] = True
+    if has_effort(tok):  # effort tokens are inputs only: never sampled
+        ban_think[list(tok.effort_ids)] = True
+        ban_act[list(tok.effort_ids)] = True
     fb = forbids or []
     cons: dict[int, list[int]] = {r: [] for r in range(B0) if fb and fb[r]}
     act_py = list(range(B0))
@@ -342,6 +346,7 @@ def think_generate(
             trace=a.trace if keep_trace else None,
         )
 
+    effort = think and has_effort(tok)  # lean_thinke: the input ends in the attempt's <eB>
     while nxt < len(prompts) or live:
         while len(live) < batch and nxt < len(prompts):
             i = order[nxt]
@@ -351,7 +356,13 @@ def think_generate(
             nxt += 1
         states = [tok.encode_toks(a.env.state_tokens()) for a in live]
         suffix = [
-            ([tok.think] + ([tok.end_think] if a.budget == 0 else [])) if think else []
+            (
+                ([effort_id(tok, a.budget)] if effort else [])
+                + [tok.think]
+                + ([tok.end_think] if a.budget == 0 else [])
+            )
+            if think
+            else []
             for a in live
         ]
         pids = [s + x for s, x in zip(states, suffix, strict=True)]

@@ -20,6 +20,12 @@ Those are the fine-tune pairs.  Options:
   --validate_think drop    keep only steps whose think block passes trace_dsl.check_step (strict);
   `empty`
                            keeps the step's action with an empty think block instead
+  --effort                 effort conditioning (`effort.py`): the init (lean_thinkn) is expanded to
+                           lean_thinke, the retained records are relabelled, and every pair's state
+                           ends in the attempt's <eB>; budgets must be effort levels (0,16,64,256)
+  --select shortest        per target, spread the kept attempts over the budgets they were found at
+                           and keep the shortest (sampled tokens) within each: a shortness pressure
+                           on the think blocks; `random` (default) is the ladder's choice
 Distinct = a different (think, action) sequence after renaming.  Files in EIDIR: found_<r>.jsonl
 (cumulative, token strings), round_<r>.json, ckpts/<name>_r<r>.pt, args.json, registry/,
 lean_gate.jsonl.
@@ -41,6 +47,7 @@ import torch
 from .ckpt import load_ckpt, run_env, save_ckpt
 from .dan import bare, load, trace_dsl
 from .data import Pair, encode_pair, load_pairs, read_jsonl
+from .effort import LEVELS, expand_to_effort, has_effort, relabel_records
 from .eval import pass_at_k
 from .sample import judge, think_generate
 from .tok import END_THINK, THINK, has_think, rebase_names
@@ -122,7 +129,29 @@ def entry_pairs(e: dict[str, Any], tok: Any, validate: str = "off") -> list[Pair
                 continue
             content = []
         block = [THINK, *content, END_THINK] if e["think_format"] == "think" else []
-        out.append(encode_pair(tok, s["state"].split(), block, s["action"].split()))
+        state = s["state"].split()
+        if has_effort(tok):
+            state.append(f"<e{e['budget']}>")
+        out.append(encode_pair(tok, state, block, s["action"].split()))
+    return out
+
+
+def pick(fs: list[dict[str, Any]], n: int, how: str, rng: random.Random) -> list[dict[str, Any]]:
+    """<= n of a target's found attempts: `random` (the ladder), or `shortest`: round-robin over the
+    budgets they were found at (ascending), shortest sampled-token count first within a budget."""
+    fs = list(fs)
+    rng.shuffle(fs)
+    if how == "random":
+        return fs[:n]
+    by: dict[int, list[dict[str, Any]]] = collections.defaultdict(list)
+    for e in fs:
+        by[int(e.get("budget", 0))].append(e)
+    queues = [sorted(by[b], key=lambda e: e["tokens"]) for b in sorted(by)]
+    out: list[dict[str, Any]] = []
+    while len(out) < n and any(queues):
+        for q in queues:
+            if q and len(out) < n:
+                out.append(q.pop(0))
     return out
 
 
@@ -136,15 +165,14 @@ def build_mix(
     rl_weight: int,
     retain: int,
     validate: str,
+    select: str = "random",
 ) -> tuple[list[list[Pair]], dict[str, int]]:
     """The ladder's mix (state_ladder_ei.py:351-364@4dcd0e4f): <= max_per_thm distinct attempts per
     target x rl_weight, plus `retain` random Stage-1 training records."""
     mix: list[list[Pair]] = []
     n_rl = n_steps_dropped = 0
     for t in targets:
-        fs = list(found.get(t["name"], []))
-        rng.shuffle(fs)
-        for e in fs[:max_per_thm]:
+        for e in pick(found.get(t["name"], []), max_per_thm, select, rng):
             pairs = entry_pairs(e, tok, validate)
             n_steps_dropped += len(e["steps"]) - len(pairs)
             if not pairs:
@@ -255,6 +283,8 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--max_per_thm", type=int, default=4)
     ap.add_argument("--rl_weight", type=int, default=4)
     ap.add_argument("--validate_think", choices=["off", "drop", "empty"], default="off")
+    ap.add_argument("--effort", action="store_true", help="effort conditioning (see the docstring)")
+    ap.add_argument("--select", choices=["random", "shortest"], default="random")
     ap.add_argument("--lean", default=None)
     ap.add_argument("--device", default=None)
     return ap
@@ -277,6 +307,14 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     train_data = None if a.no_train else load_pairs(a.train)
     rng = random.Random(a.seed * 7919)
     ckpt = a.init
+    if a.effort:
+        bad = [b for b in a.budget_list if b not in LEVELS]
+        assert not bad, f"--effort: budgets {bad} are not effort levels {LEVELS}"
+        if not a.resume:
+            ckpt = str(expand_to_effort(a.init, out / "ckpts" / f"{a.name}_r0.pt", seed=a.seed))
+        if train_data is not None and train_data["mode"] != "lean_thinke":
+            train_data = relabel_records(train_data)
+            print(f"effort levels of the retained records: {train_data['report']['effort_levels']}")
     found: dict[str, list[dict[str, Any]]] = collections.defaultdict(list)
     if a.resume:
         r0 = a.start_round - 1
@@ -358,6 +396,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 a.rl_weight,
                 a.retain,
                 a.validate_think,
+                a.select,
             )
             stats.update(ms)
             if ms["mix_rl_records"]:
