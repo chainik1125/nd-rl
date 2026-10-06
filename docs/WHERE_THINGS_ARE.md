@@ -67,6 +67,7 @@ reviewed. Commit counts are relative to `main` on 2026-09-30.
 | Leon | `leon/rl-dashboards` | RL run dashboard proposal. |
 | Charles | `charles/main` | Workstream 3 experiments (`experiments/ws3/`) and textbook-problem data (`data/textbook_problem/`). |
 | Dmitry | `dmitry/cap-comparison-textbook-eval-data` | Textbook eval data for the cap comparison. |
+| Dmitry | `dmitry/selection-sprint` | 2026-10-06 sprint: model-side proof selection and stopping on Dan's r16 model (`experiment-summaries/2026-10-06-proof-selection-sprint/`). Unmerged. |
 
 List current branches with `git fetch --prune && git branch -r --sort=-committerdate`.
 
