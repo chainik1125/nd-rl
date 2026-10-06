@@ -148,3 +148,15 @@ Every other number below traces to its source within rounding.
 | T 0.8: +0.105 [0.027, 0.186] vs +0.095 | as stated | `B5_t08_check.txt` |
 | 11 of 12 single-judge comparisons positive | — | `B3_results.json` → `<set>.penalty.auc` |
 | Worker B read test at 02:38 | see **F3** | `../logs/worker_B.md` |
+
+## Phase 7 numbers (trained pairwise judge; added after the summary was traced)
+
+| quantity | full precision | source |
+|---|---|---|
+| judge within-theorem AUROC 0.893 / 0.942 (s0 test pools) | 0.892525 / 0.941859 | `B7_results.json` → `holdout250\|s0\|within_auroc.judge`, `textbook72\|s0\|within_auroc.judge` (B); Worker A's `worker_A_phase4.md` |
+| judge pooled finished AUROC 0.88–0.96 vs siblings 0.74–0.89 | 0.8806–0.9600 vs 0.7422–0.8922 | `B7_results.json` → `<set>\|<pool>\|pooled_auroc` |
+| count-stop judge − siblings, textbook72 c=4 | +0.0199 [0.0081, 0.0337] | `B7_results.json` → `textbook72\|count\|c4.pooled_gens.diff` |
+| judge threshold holdout250 m=3: 0.928 at 2.32 attempts, +0.024 vs count-siblings, 50 % of gap | 0.928293 at 2.32112; +0.024063 [0.017187, 0.031590]; 0.5012 | `B7_results.json` → `holdout250\|Tjp\|m3.pooled_gens.{acc,att,vs_count_sib,gap_closed_vs_count_sib}` |
+| judge threshold holdout250 m=4: 0.935 at 3.12 attempts | see `holdout250\|Tjp\|m4` | `B7_results.json` |
+| judge threshold textbook72 m=4: 0.630 at 9.14 attempts | see `textbook72\|Tjp\|m4` | `B7_results.json` |
+| m≈2/4/8 table | — | `B7_table.md` |

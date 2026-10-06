@@ -1,0 +1,32 @@
+holdout250|s0|pooled_auroc {'judge': 0.9061766707073867, 'siblings': 0.790317392041085}
+holdout250|s0|within_auroc {'judge': 0.8925250041592546, 'siblings': 0.8289406446583736, 'n': 116}
+holdout250|s1|pooled_auroc {'judge': 0.8828810058444759, 'siblings': 0.8004595776642438}
+holdout250|s1|within_auroc {'judge': 0.905185753949973, 'siblings': 0.8238095466273673, 'n': 135}
+holdout250|s2|pooled_auroc {'judge': 0.8805510018696997, 'siblings': 0.8013499494137591}
+holdout250|s2|within_auroc {'judge': 0.882641522420642, 'siblings': 0.8563879148088512, 'n': 132}
+holdout250|s0b|pooled_auroc {'judge': 0.8926661205817469, 'siblings': 0.7819024519649098}
+holdout250|s0b|within_auroc {'judge': 0.90710790537798, 'siblings': 0.8484072285770293, 'n': 134}
+holdout250|count|c1 att 1.59 judge 0.889 sib 0.889 diff +0.0000 [+0.0000,+0.0000] | s0b +0.0000 [+0.0000,+0.0000]
+holdout250|count|c2 att 2.79 judge 0.920 sib 0.915 diff +0.0056 [+0.0025,+0.0089] | s0b +0.0066 [+0.0025,+0.0112]
+holdout250|count|c4 att 5.01 judge 0.933 sib 0.928 diff +0.0054 [+0.0009,+0.0104] | s0b +0.0054 [-0.0006,+0.0114]
+holdout250|count|c6 att 7.09 judge 0.938 sib 0.933 diff +0.0048 [-0.0006,+0.0106] | s0b +0.0034 [-0.0048,+0.0110]
+holdout250|Tjp|m2 att 1.59 acc 0.889 | count-judge@att 0.889 +0.0000 [-0.0000,+0.0001] | count-sib@att 0.889 +0.0000 [-0.0000,+0.0001] | T-sib 1.59/0.889 diff -0.0001 [-0.0002,+0.0000] | oracle 0.941 | gap closed vs count-judge +0.00, vs count-sib +0.00
+holdout250|Tjp|m3 att 2.32 acc 0.928 | count-judge@att 0.908 +0.0206 [+0.0144,+0.0274] | count-sib@att 0.904 +0.0241 [+0.0172,+0.0316] | T-sib 2.73/0.920 diff +0.0078 [+0.0013,+0.0147] | oracle 0.952 | gap closed vs count-judge +0.46, vs count-sib +0.50
+holdout250|Tjp|m4 att 3.12 acc 0.935 | count-judge@att 0.918 +0.0167 [+0.0110,+0.0232] | count-sib@att 0.914 +0.0212 [+0.0146,+0.0287] | T-sib 3.85/0.929 diff +0.0061 [-0.0011,+0.0135] | oracle 0.953 | gap closed vs count-judge +0.48, vs count-sib +0.53
+holdout250|Tjp|m8 att 6.45 acc 0.941 | count-judge@att 0.935 +0.0056 [+0.0025,+0.0092] | count-sib@att 0.930 +0.0103 [+0.0050,+0.0162] | T-sib 8.22/0.937 diff +0.0035 [-0.0025,+0.0103] | oracle 0.953 | gap closed vs count-judge +0.30, vs count-sib +0.44
+textbook72|s0|pooled_auroc {'judge': 0.9599918307804522, 'siblings': 0.7701169948942378}
+textbook72|s0|within_auroc {'judge': 0.9418593793123643, 'siblings': 0.7823751362001442, 'n': 34}
+textbook72|s1|pooled_auroc {'judge': 0.9310787896314212, 'siblings': 0.8922031915452968}
+textbook72|s1|within_auroc {'judge': 0.9232870050343455, 'siblings': 0.8523039572078094, 'n': 41}
+textbook72|s2|pooled_auroc {'judge': 0.9206875129426382, 'siblings': 0.8441408114021266}
+textbook72|s2|within_auroc {'judge': 0.9236375183774521, 'siblings': 0.8408817050095548, 'n': 42}
+textbook72|s0b|pooled_auroc {'judge': 0.9370992949714068, 'siblings': 0.7421668765032547}
+textbook72|s0b|within_auroc {'judge': 0.9376575768953319, 'siblings': 0.8165312497387165, 'n': 32}
+textbook72|count|c1 att 3.99 judge 0.527 sib 0.527 diff +0.0000 [+0.0000,+0.0000] | s0b +0.0000 [+0.0000,+0.0000]
+textbook72|count|c2 att 6.08 judge 0.579 sib 0.567 diff +0.0113 [+0.0044,+0.0194] | s0b +0.0108 [+0.0019,+0.0219]
+textbook72|count|c4 att 8.83 judge 0.612 sib 0.592 diff +0.0199 [+0.0081,+0.0337] | s0b +0.0189 [-0.0011,+0.0433]
+textbook72|count|c6 att 10.75 judge 0.624 sib 0.604 diff +0.0194 [+0.0055,+0.0359] | s0b +0.0192 [-0.0042,+0.0494]
+textbook72|Tjp|m2 att 3.99 acc 0.527 | count-judge@att 0.527 -0.0003 [-0.0003,-0.0002] | count-sib@att 0.527 -0.0002 [-0.0003,-0.0001] | T-sib 3.99/0.527 diff -0.0002 [-0.0006,+0.0000] | oracle 0.599 | gap closed vs count-judge -0.00, vs count-sib -0.00
+textbook72|Tjp|m3 att 7.94 acc 0.622 | count-judge@att 0.605 +0.0166 [+0.0024,+0.0318] | count-sib@att 0.585 +0.0370 [+0.0167,+0.0606] | T-sib 8.26/0.603 diff +0.0194 [+0.0021,+0.0406] | oracle 0.652 | gap closed vs count-judge +0.36, vs count-sib +0.56
+textbook72|Tjp|m4 att 9.14 acc 0.630 | count-judge@att 0.615 +0.0152 [+0.0072,+0.0245] | count-sib@att 0.595 +0.0352 [+0.0176,+0.0562] | T-sib 9.83/0.611 diff +0.0197 [+0.0033,+0.0383] | oracle 0.653 | gap closed vs count-judge +0.40, vs count-sib +0.60
+textbook72|Tjp|m8 att 12.05 acc 0.633 | count-judge@att 0.626 +0.0063 [+0.0025,+0.0109] | count-sib@att 0.608 +0.0242 [+0.0091,+0.0422] | T-sib 13.40/0.613 diff +0.0196 [+0.0051,+0.0374] | oracle 0.653 | gap closed vs count-judge +0.23, vs count-sib +0.54

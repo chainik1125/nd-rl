@@ -207,3 +207,11 @@ anchor) from s1 on s0's train pools, 2 seeds: within-theorem finished-only AUROC
 second s0 draw. SFT-on-valid variant helps less and does not transfer. k=8 selection completion-first: 0.933 /
 0.582 (oracle 0.940 / 0.594): ~93% of the gap. The judge's likelihoods drifted (invalid −0.09 → −0.31), so it is a
 ranker, not a calibrated probability. Phase 7 (B): plug it into count-stop and threshold stopping.
+
+## 07:35 UTC Worker B phase 7 done: stopping with the trained judge
+
+Threshold on the trained pairwise judge's score (τ on s0 dev; the judge was early-stopped on the same dev split):
+holdout250 0.935 @ 3.1 attempts and 0.941 @ 6.5 (oracle first-valid 0.953); textbook72 0.630 @ 9.1 (oracle 0.653).
+Closes ~50% / 60% of the count-stop → first-valid gap (phase-5 sibling threshold: 18–21%). Pooled finished-only
+AUROC of the judge 0.88–0.96 vs 0.74–0.89 for sibling likelihood. Budget still overshoots on textbook72 (4 → 9.1).
+All experiments complete. Final summary edit, delta red-team, advisor, close-out.
