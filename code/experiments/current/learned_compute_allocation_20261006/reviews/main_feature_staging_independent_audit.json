@@ -1,0 +1,40 @@
+{
+  "theorems": 400,
+  "policy_rows_checked": 18400,
+  "scalar_checks": 131310,
+  "max_absolute_error": 5.551115123125783e-17,
+  "feature_model_sha256": "76b63e869af7895d4a97186efaf50c09046e0eb2648eae98520eb621c496a333",
+  "frozen_dev_policy_sha256": "89895a8c87897ef431b667a05d526030a8e071bcb609d99f4823361289e56a9c",
+  "threshold_cost03": {
+    "accuracy": 0.849485119047619,
+    "attempts": 2.3071607142857142,
+    "generated_tokens_proxy": 782.6486547619047,
+    "generator_prefill_tokens_proxy": 6239.881824404762,
+    "generator_input_tokens_lower_bound": 6990.211776785714,
+    "required_feature_replay_tokens_unpadded": 7022.530479166666,
+    "total_model_input_tokens_lower_bound": 14012.742255952382,
+    "rewards": {
+      "0.0": 0.849485119047619,
+      "0.01": 0.8364135119047619,
+      "0.03": 0.8102702976190476,
+      "0.1": 0.7187690476190476
+    }
+  },
+  "unchanged_dev_work_mixture": {
+    "accuracy": 0.8197335184482659,
+    "attempts": 2.674216995817818,
+    "generated_tokens_proxy": 831.8619953465591,
+    "generator_prefill_tokens_proxy": 6584.359311043721,
+    "generator_input_tokens_lower_bound": 7379.261956122456,
+    "required_feature_replay_tokens_unpadded": 7416.22130639028,
+    "total_model_input_tokens_lower_bound": 14795.483262512738,
+    "rewards": {
+      "0.0": 0.8197335184482659,
+      "0.01": 0.8029913484900877,
+      "0.03": 0.7695070085737313,
+      "0.1": 0.6523118188664841
+    }
+  },
+  "test_work_difference": -782.7410065603563,
+  "feature8_accuracy": 0.875
+}

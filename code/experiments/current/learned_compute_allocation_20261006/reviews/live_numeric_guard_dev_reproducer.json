@@ -1,0 +1,1006 @@
+{
+  "original_aggregate_sha256": "70afd93cf3d62f59d48f305d9d2962fc7e26efa07a388a545d0c6c736071a80d",
+  "dev_rows": 2112,
+  "rejected_rows": 79,
+  "max_probability_excursion": 8.620554581284523e-08,
+  "all_rejections_exclusively_probability_upper_bound": true,
+  "proposed_tolerance": 1e-06,
+  "failures": [
+    [
+      "cost",
+      101,
+      "fixed2",
+      "811b64fede1d1bcf1b92",
+      1.000000037252903
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "f5b2fd22af8acc7ea35f",
+      1.0000000279396772
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "5fa5e887eabd15e32081",
+      1.0000000409781933
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "d8e6728b5ee4566819d2",
+      1.000000026077032
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "557d42977fec6d96d4bb",
+      1.000000050291419
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "78aa99ee31edefde1c6a",
+      1.0000000391155481
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "b297f61c8e0daba2b4c6",
+      1.0000000353902578
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "341eb4122fc403baa7c4",
+      1.0000000577419996
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "1515a3a72c080b7459cc",
+      1.000000013038516
+    ],
+    [
+      "cost",
+      101,
+      "fixed2",
+      "6fae58a9db0c74968574",
+      1.0000000596046448
+    ],
+    [
+      "cost",
+      101,
+      "fixed4",
+      "c42ceeee219afe499d71",
+      1.0000000521540642
+    ],
+    [
+      "cost",
+      101,
+      "fixed4",
+      "1515a3a72c080b7459cc",
+      1.000000037252903
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "811b64fede1d1bcf1b92",
+      1.0000000149011612
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "f5b2fd22af8acc7ea35f",
+      1.0000000298023224
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "d8e6728b5ee4566819d2",
+      1.0000000447034836
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "a122ab5d197149559c7f",
+      1.0000000521540642
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "27cae5f9bb3dee3b85ff",
+      1.000000037252903
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "260e1e6e72464cf1d778",
+      1.0000000298023224
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "557d42977fec6d96d4bb",
+      1.0000000298023224
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "78aa99ee31edefde1c6a",
+      1.0000000670552254
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "70e73a7f328cde88cbe3",
+      1.0000000298023224
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "8239c4cfcbd4ec9b1027",
+      1.0000000149011612
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "c42ceeee219afe499d71",
+      1.000000074505806
+    ],
+    [
+      "cost",
+      102,
+      "fixed2",
+      "341eb4122fc403baa7c4",
+      1.000000037252903
+    ],
+    [
+      "cost",
+      102,
+      "fixed4",
+      "e55b981b8bb93fd10c9c",
+      1.000000037252903
+    ],
+    [
+      "cost",
+      102,
+      "fixed4",
+      "78aa99ee31edefde1c6a",
+      1.0000000223517418
+    ],
+    [
+      "cost",
+      102,
+      "fixed4",
+      "c42ceeee219afe499d71",
+      1.000000037252903
+    ],
+    [
+      "cost",
+      102,
+      "fixed8",
+      "b297f61c8e0daba2b4c6",
+      1.0000000186264515
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "e55b981b8bb93fd10c9c",
+      1.0000000391155481
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "45466addbde9a79a481e",
+      1.000000011175871
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "27cae5f9bb3dee3b85ff",
+      1.0000000344589353
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "557d42977fec6d96d4bb",
+      1.0000000782310963
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "70e73a7f328cde88cbe3",
+      1.0000000186264515
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "b297f61c8e0daba2b4c6",
+      1.0000000204890966
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "7c84ef9a922d890e2efe",
+      1.0000000623986125
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "c42ceeee219afe499d71",
+      1.0000000400468707
+    ],
+    [
+      "cost",
+      103,
+      "fixed2",
+      "341eb4122fc403baa7c4",
+      1.0000000232830644
+    ],
+    [
+      "cost",
+      103,
+      "fixed4",
+      "45466addbde9a79a481e",
+      1.000000037252903
+    ],
+    [
+      "no_cost",
+      101,
+      "learned",
+      "b297f61c8e0daba2b4c6",
+      1.0000000176372383
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "e55b981b8bb93fd10c9c",
+      1.0000000251457095
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "a122ab5d197149559c7f",
+      1.0000000316649675
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "260e1e6e72464cf1d778",
+      1.000000037252903
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "557d42977fec6d96d4bb",
+      1.000000037252903
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "78aa99ee31edefde1c6a",
+      1.000000063329935
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "b297f61c8e0daba2b4c6",
+      1.0000000428408384
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "5ff2ca29bd18aebf815f",
+      1.0000000214204192
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "4231cf022d3beb857bdf",
+      1.0000000419095159
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "8239c4cfcbd4ec9b1027",
+      1.0000000558793545
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "c42ceeee219afe499d71",
+      1.000000056810677
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "341eb4122fc403baa7c4",
+      1.0000000670552254
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed2",
+      "6fae58a9db0c74968574",
+      1.0000000223517418
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed4",
+      "a122ab5d197149559c7f",
+      1.0000000782310963
+    ],
+    [
+      "no_cost",
+      101,
+      "fixed4",
+      "4231cf022d3beb857bdf",
+      1.000000011175871
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "e55b981b8bb93fd10c9c",
+      1.0000000149011612
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "d8e6728b5ee4566819d2",
+      1.0000000596046448
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "27cae5f9bb3dee3b85ff",
+      1.0000000447034836
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "260e1e6e72464cf1d778",
+      1.0000000521540642
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "557d42977fec6d96d4bb",
+      1.0000000409781933
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "70e73a7f328cde88cbe3",
+      1.000000063329935
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "5ff2ca29bd18aebf815f",
+      1.000000037252903
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "04e7f71c6be7a3821329",
+      1.000000026077032
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "4231cf022d3beb857bdf",
+      1.000000026077032
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "8239c4cfcbd4ec9b1027",
+      1.0000000409781933
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "341eb4122fc403baa7c4",
+      1.000000026077032
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed2",
+      "1515a3a72c080b7459cc",
+      1.0000000782310963
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed4",
+      "557d42977fec6d96d4bb",
+      1.0000000577419996
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed4",
+      "78aa99ee31edefde1c6a",
+      1.000000011175871
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed4",
+      "04e7f71c6be7a3821329",
+      1.0000000447034836
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed8",
+      "78aa99ee31edefde1c6a",
+      1.0000000800937414
+    ],
+    [
+      "no_cost",
+      102,
+      "fixed8",
+      "b297f61c8e0daba2b4c6",
+      1.0000000558793545
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed2",
+      "f5b2fd22af8acc7ea35f",
+      1.0000000321306288
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed2",
+      "d8e6728b5ee4566819d2",
+      1.000000040337909
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed2",
+      "260e1e6e72464cf1d778",
+      1.000000037602149
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed2",
+      "b297f61c8e0daba2b4c6",
+      1.0000000862055458
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed2",
+      "8239c4cfcbd4ec9b1027",
+      1.000000022482709
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed2",
+      "341eb4122fc403baa7c4",
+      1.0000000384170562
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed2",
+      "6fae58a9db0c74968574",
+      1.000000056461431
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed4",
+      "811b64fede1d1bcf1b92",
+      1.000000026106136
+    ],
+    [
+      "no_cost",
+      103,
+      "fixed4",
+      "557d42977fec6d96d4bb",
+      1.000000061292667
+    ]
+  ],
+  "minimal_examples": [
+    {
+      "dev_path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101_dev200_paths_s52006",
+      "method": "fixed2",
+      "row": {
+        "correct_probability": 1.000000037252903,
+        "attempts": 2.0,
+        "reward": 0.970000037252903,
+        "forced_termination_probability": 0.0,
+        "expected_policy_work": {
+          "generated_tokens": 490.0,
+          "forward_calls": 736.0,
+          "forward_tokens": 6718.0,
+          "attention_score_cells_per_layer": 15150704.0,
+          "controller_forward_tokens": 626.0,
+          "controller_forward_calls": 1.0,
+          "controller_attention_score_cells_per_layer": 3135008.0,
+          "policy_wall_seconds": 1.5893346222583205
+        },
+        "trace": [
+          {
+            "count": 1,
+            "reach_probability": 1.0,
+            "stop_probability": 0.0,
+            "hazard": 0.0,
+            "selected_correct_probability": 1.0,
+            "forced": false
+          },
+          {
+            "count": 2,
+            "reach_probability": 1.0,
+            "stop_probability": 1.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.000000037252903,
+            "forced": false
+          },
+          {
+            "count": 3,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.0000000204890966,
+            "forced": false
+          },
+          {
+            "count": 4,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9999999962747097,
+            "forced": false
+          },
+          {
+            "count": 5,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.0000000093132257,
+            "forced": false
+          },
+          {
+            "count": 6,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9312996082007885,
+            "forced": false
+          },
+          {
+            "count": 7,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.6778313405811787,
+            "forced": false
+          },
+          {
+            "count": 8,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.6015360988676548,
+            "forced": true
+          }
+        ],
+        "theorem_id": "811b64fede1d1bcf1b92",
+        "repeat": 0
+      }
+    },
+    {
+      "dev_path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101_dev200_paths_s52006",
+      "method": "fixed2",
+      "row": {
+        "correct_probability": 1.0000000279396772,
+        "attempts": 2.0,
+        "reward": 0.9700000279396772,
+        "forced_termination_probability": 0.0,
+        "expected_policy_work": {
+          "generated_tokens": 464.0,
+          "forward_calls": 704.0,
+          "forward_tokens": 6816.0,
+          "attention_score_cells_per_layer": 16817472.0,
+          "controller_forward_tokens": 623.0,
+          "controller_forward_calls": 1.0,
+          "controller_attention_score_cells_per_layer": 3105032.0,
+          "policy_wall_seconds": 1.2518651122227311
+        },
+        "trace": [
+          {
+            "count": 1,
+            "reach_probability": 1.0,
+            "stop_probability": 0.0,
+            "hazard": 0.0,
+            "selected_correct_probability": 1.0,
+            "forced": false
+          },
+          {
+            "count": 2,
+            "reach_probability": 1.0,
+            "stop_probability": 1.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.0000000279396772,
+            "forced": false
+          },
+          {
+            "count": 3,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9191521052271128,
+            "forced": false
+          },
+          {
+            "count": 4,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.8848036341369152,
+            "forced": false
+          },
+          {
+            "count": 5,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.8307154458016157,
+            "forced": false
+          },
+          {
+            "count": 6,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.7694147769361734,
+            "forced": false
+          },
+          {
+            "count": 7,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.5680803684517741,
+            "forced": false
+          },
+          {
+            "count": 8,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.5007925257086754,
+            "forced": true
+          }
+        ],
+        "theorem_id": "f5b2fd22af8acc7ea35f",
+        "repeat": 0
+      }
+    },
+    {
+      "dev_path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101_dev200_paths_s52006",
+      "method": "fixed2",
+      "row": {
+        "correct_probability": 1.0000000409781933,
+        "attempts": 2.0,
+        "reward": 0.9700000409781933,
+        "forced_termination_probability": 0.0,
+        "expected_policy_work": {
+          "generated_tokens": 725.0,
+          "forward_calls": 1152.0,
+          "forward_tokens": 14672.0,
+          "attention_score_cells_per_layer": 50391040.0,
+          "controller_forward_tokens": 870.0,
+          "controller_forward_calls": 1.0,
+          "controller_attention_score_cells_per_layer": 6055200.0,
+          "policy_wall_seconds": 2.0252353029791266
+        },
+        "trace": [
+          {
+            "count": 1,
+            "reach_probability": 1.0,
+            "stop_probability": 0.0,
+            "hazard": 0.0,
+            "selected_correct_probability": 1.0,
+            "forced": false
+          },
+          {
+            "count": 2,
+            "reach_probability": 1.0,
+            "stop_probability": 1.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.0000000409781933,
+            "forced": false
+          },
+          {
+            "count": 3,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9999999813735485,
+            "forced": false
+          },
+          {
+            "count": 4,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9459540750831366,
+            "forced": false
+          },
+          {
+            "count": 5,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.8857526928186417,
+            "forced": false
+          },
+          {
+            "count": 6,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.8502073623239994,
+            "forced": false
+          },
+          {
+            "count": 7,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.6824299711734056,
+            "forced": false
+          },
+          {
+            "count": 8,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.5960346255451441,
+            "forced": true
+          }
+        ],
+        "theorem_id": "5fa5e887eabd15e32081",
+        "repeat": 0
+      }
+    },
+    {
+      "dev_path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101_dev200_paths_s52006",
+      "method": "fixed2",
+      "row": {
+        "correct_probability": 1.000000026077032,
+        "attempts": 2.0,
+        "reward": 0.9700000260770321,
+        "forced_termination_probability": 0.0,
+        "expected_policy_work": {
+          "generated_tokens": 542.0,
+          "forward_calls": 768.0,
+          "forward_tokens": 7696.0,
+          "attention_score_cells_per_layer": 20625104.0,
+          "controller_forward_tokens": 662.0,
+          "controller_forward_calls": 1.0,
+          "controller_attention_score_cells_per_layer": 3505952.0,
+          "policy_wall_seconds": 1.3245235127396882
+        },
+        "trace": [
+          {
+            "count": 1,
+            "reach_probability": 1.0,
+            "stop_probability": 0.0,
+            "hazard": 0.0,
+            "selected_correct_probability": 1.0,
+            "forced": false
+          },
+          {
+            "count": 2,
+            "reach_probability": 1.0,
+            "stop_probability": 1.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.000000026077032,
+            "forced": false
+          },
+          {
+            "count": 3,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.0000000558793545,
+            "forced": false
+          },
+          {
+            "count": 4,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9466399978846312,
+            "forced": false
+          },
+          {
+            "count": 5,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.8935486171394587,
+            "forced": false
+          },
+          {
+            "count": 6,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.8258933313190937,
+            "forced": false
+          },
+          {
+            "count": 7,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.611189829185605,
+            "forced": false
+          },
+          {
+            "count": 8,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.5611054766923189,
+            "forced": true
+          }
+        ],
+        "theorem_id": "d8e6728b5ee4566819d2",
+        "repeat": 0
+      }
+    },
+    {
+      "dev_path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101_dev200_paths_s52006",
+      "method": "fixed2",
+      "row": {
+        "correct_probability": 1.000000050291419,
+        "attempts": 2.0,
+        "reward": 0.970000050291419,
+        "forced_termination_probability": 0.0,
+        "expected_policy_work": {
+          "generated_tokens": 378.0,
+          "forward_calls": 512.0,
+          "forward_tokens": 5660.0,
+          "attention_score_cells_per_layer": 14560480.0,
+          "controller_forward_tokens": 531.0,
+          "controller_forward_calls": 1.0,
+          "controller_attention_score_cells_per_layer": 2255688.0,
+          "policy_wall_seconds": 0.9079030100256205
+        },
+        "trace": [
+          {
+            "count": 1,
+            "reach_probability": 1.0,
+            "stop_probability": 0.0,
+            "hazard": 0.0,
+            "selected_correct_probability": 1.0,
+            "forced": false
+          },
+          {
+            "count": 2,
+            "reach_probability": 1.0,
+            "stop_probability": 1.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.000000050291419,
+            "forced": false
+          },
+          {
+            "count": 3,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 1.000000026077032,
+            "forced": false
+          },
+          {
+            "count": 4,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9999999757856131,
+            "forced": false
+          },
+          {
+            "count": 5,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9571947464719415,
+            "forced": false
+          },
+          {
+            "count": 6,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.965331899933517,
+            "forced": false
+          },
+          {
+            "count": 7,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.9692246774211526,
+            "forced": false
+          },
+          {
+            "count": 8,
+            "reach_probability": 0.0,
+            "stop_probability": 0.0,
+            "hazard": 1.0,
+            "selected_correct_probability": 0.970413027331233,
+            "forced": true
+          }
+        ],
+        "theorem_id": "557d42977fec6d96d4bb",
+        "repeat": 0
+      }
+    }
+  ],
+  "live_test_outcomes_read": false
+}

@@ -5,6 +5,13 @@ written_by: agent:codex
 
 # Project state
 
+The [October 6 learned-compute-allocation study](../experiment-summaries/2026-10-06-learned-compute-allocation/summary.md)
+tests proof selection and stopping with Dan's round-16 proof model. On 400 fresh theorems,
+a learned public-feature score reaches 87.5% selected accuracy against 89.5% oracle availability.
+Jointly trained retry policies improve first-proof generation but do not outperform returning
+their own first proof. The report separates these results from the reused historical benchmark
+and from the stronger, still untested claim of learning to adapt allocation across new tasks.
+
 The three completed June natural-deduction sprints have been recovered from the earlier local
 repository, with their code, summaries, ledgers, and sub-1MB figures now indexed here. The
 [bootstrapping study](../experiment-summaries/2026-06-09-nd-bootstrapping-sprint/README.md)

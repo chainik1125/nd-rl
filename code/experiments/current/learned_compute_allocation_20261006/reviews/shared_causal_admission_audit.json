@@ -1,0 +1,20 @@
+{
+  "successor_sha256": "b7374adbc8a1ccbc6ae5d524c9ddc4bd0f19424603679452df70ee2aadad85bb",
+  "original_sha256": "162e3a930620d4e2db978fa1e40f699d80de97be58467ea018516216158f84f2",
+  "prepare_ast_identical_except_original_helper_binding": true,
+  "cases": {
+    "empty": "accepted",
+    "foreign": "accepted",
+    "low_memory": "rejected",
+    "same_uid": "rejected",
+    "unclaimed": "rejected",
+    "clean": "accepted",
+    "draft": "rejected",
+    "wrong_main": "rejected",
+    "wrong_historical": "rejected",
+    "wrong_original": "rejected",
+    "wrong_successor": "rejected",
+    "changed_memory": "rejected"
+  },
+  "gpu_queries_or_launches": false
+}

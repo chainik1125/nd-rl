@@ -1,0 +1,12 @@
+{
+  "scope": "Presentation-only rendering of saved registered estimates; no new analysis",
+  "input": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/analysis/final_main/selection/metrics.json",
+  "input_sha256": "1da671bcd3264ae7dcd1cea7535cde922ab35659ab01afb04456e2ff92964b56",
+  "renderer_sha256": "7823c8fa4728def366f72becbddf2c10335d6112d59d28422f33fc20a2fad889",
+  "outputs": {
+    "selection.png": "dd77f3ca5028baf654f50022843cf516f0bd0f2fad27c3176755443937b337cf",
+    "selection.pdf": "464f155852d19396ae5dd3c8cef574f2f25455ca3c70faa683b16f184716dbc8",
+    "selection.svg": "4090948b3b8113bd521cd839c7da1ce92c61dd9e91e9397780ad6f1caf64e2ff"
+  },
+  "unit_conversion": "saved probabilities multiplied by100 only"
+}

@@ -1,0 +1,38 @@
+{
+  "builder_sha256": "03e03e03fc1d812109d7e6cbfbbccb80fd55c142848b93dbff964b0b2156f1d4",
+  "cases": {
+    "clean": {
+      "rejected": false,
+      "decision_fields_unchanged": true,
+      "historical_main_chain_matches": true
+    },
+    "missing_primary_fit": {
+      "rejected": true,
+      "message": "Incomplete live model registration"
+    },
+    "changed_fit": {
+      "rejected": true,
+      "message": "Registered model/policy changed: counter_hazards_path"
+    },
+    "changed_command": {
+      "rejected": true,
+      "message": "Collection launch does not match the frozen parent"
+    },
+    "private_read_true": {
+      "rejected": true,
+      "message": "Collection launch does not match the frozen parent"
+    },
+    "changed_public": {
+      "rejected": true,
+      "message": "Public pool changed after metadata sealing"
+    },
+    "changed_parent": {
+      "rejected": true,
+      "message": "Collection launch does not match the frozen parent"
+    },
+    "wrong_launcher": {
+      "rejected": true,
+      "message": "Collection launch does not match the frozen parent"
+    }
+  }
+}

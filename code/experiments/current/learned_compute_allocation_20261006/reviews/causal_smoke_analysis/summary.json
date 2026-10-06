@@ -1,0 +1,284 @@
+{
+  "estimand": "force one more attempt then force ACCEPT, integrate index probabilities",
+  "uncertainty": "percentile bootstrap of whole theorems; state/branch means remain together",
+  "scope": "conditions on checkpoint, sampled intervention panel and development choices",
+  "bootstrap": {
+    "draws": 500,
+    "seed": 81006,
+    "confidence": 0.95
+  },
+  "pooled_actual_history": {
+    "accept_value": {
+      "mean": 0.75,
+      "low": 0.75,
+      "high": 0.75,
+      "theorems": 2,
+      "states": 4
+    },
+    "continue_value": {
+      "mean": 0.4166666716337204,
+      "low": 0.4166666716337204,
+      "high": 0.4166666716337204,
+      "theorems": 2,
+      "states": 4
+    },
+    "delta_one": {
+      "mean": -0.3333333283662796,
+      "low": -0.3333333283662796,
+      "high": -0.3333333283662796,
+      "theorems": 2,
+      "states": 4
+    },
+    "old_correct_mass": {
+      "mean": 0.4166666716337204,
+      "low": 0.4166666716337204,
+      "high": 0.4166666716337204,
+      "theorems": 2,
+      "states": 4
+    },
+    "new_correct_mass": {
+      "mean": 0.0,
+      "low": 0.0,
+      "high": 0.0,
+      "theorems": 2,
+      "states": 4
+    },
+    "new_attempt_valid": {
+      "mean": 0.0,
+      "low": 0.0,
+      "high": 0.0,
+      "theorems": 2,
+      "states": 4
+    },
+    "oracle_before": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0,
+      "theorems": 2,
+      "states": 4
+    },
+    "oracle_after": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0,
+      "theorems": 2,
+      "states": 4
+    }
+  },
+  "by_attempt_count": {
+    "1": {
+      "accept_value": {
+        "mean": 1.0,
+        "low": 1.0,
+        "high": 1.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "continue_value": {
+        "mean": 0.5,
+        "low": 0.5,
+        "high": 0.5,
+        "theorems": 2,
+        "states": 2
+      },
+      "delta_one": {
+        "mean": -0.5,
+        "low": -0.5,
+        "high": -0.5,
+        "theorems": 2,
+        "states": 2
+      },
+      "old_correct_mass": {
+        "mean": 0.5,
+        "low": 0.5,
+        "high": 0.5,
+        "theorems": 2,
+        "states": 2
+      },
+      "new_correct_mass": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "new_attempt_valid": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "oracle_before": {
+        "mean": 1.0,
+        "low": 1.0,
+        "high": 1.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "oracle_after": {
+        "mean": 1.0,
+        "low": 1.0,
+        "high": 1.0,
+        "theorems": 2,
+        "states": 2
+      }
+    },
+    "2": {
+      "accept_value": {
+        "mean": 0.5,
+        "low": 0.5,
+        "high": 0.5,
+        "theorems": 2,
+        "states": 2
+      },
+      "continue_value": {
+        "mean": 0.3333333432674408,
+        "low": 0.3333333432674408,
+        "high": 0.3333333432674408,
+        "theorems": 2,
+        "states": 2
+      },
+      "delta_one": {
+        "mean": -0.1666666567325592,
+        "low": -0.1666666567325592,
+        "high": -0.1666666567325592,
+        "theorems": 2,
+        "states": 2
+      },
+      "old_correct_mass": {
+        "mean": 0.3333333432674408,
+        "low": 0.3333333432674408,
+        "high": 0.3333333432674408,
+        "theorems": 2,
+        "states": 2
+      },
+      "new_correct_mass": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "new_attempt_valid": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "oracle_before": {
+        "mean": 1.0,
+        "low": 1.0,
+        "high": 1.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "oracle_after": {
+        "mean": 1.0,
+        "low": 1.0,
+        "high": 1.0,
+        "theorems": 2,
+        "states": 2
+      }
+    }
+  },
+  "by_count_and_oracle": {
+    "n1_oracle0": {
+      "accept_value": null,
+      "delta_one": null,
+      "new_attempt_valid": null
+    },
+    "n1_oracle1": {
+      "accept_value": {
+        "mean": 1.0,
+        "low": 1.0,
+        "high": 1.0,
+        "theorems": 2,
+        "states": 2
+      },
+      "delta_one": {
+        "mean": -0.5,
+        "low": -0.5,
+        "high": -0.5,
+        "theorems": 2,
+        "states": 2
+      },
+      "new_attempt_valid": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "theorems": 2,
+        "states": 2
+      }
+    },
+    "n2_oracle0": {
+      "accept_value": null,
+      "delta_one": null,
+      "new_attempt_valid": null
+    },
+    "n2_oracle1": {
+      "accept_value": {
+        "mean": 0.5,
+        "low": 0.5,
+        "high": 0.5,
+        "theorems": 2,
+        "states": 2
+      },
+      "delta_one": {
+        "mean": -0.1666666567325592,
+        "low": -0.1666666567325592,
+        "high": -0.1666666567325592,
+        "theorems": 2,
+        "states": 2
+      },
+      "new_attempt_valid": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "theorems": 2,
+        "states": 2
+      }
+    }
+  },
+  "acceptance_value_association": {
+    "slope": null,
+    "reason": "no within-stratum acceptance-probability variation"
+  },
+  "history_removed_minus_actual": {
+    "delta_one": {
+      "mean": 0.4166666716337204,
+      "low": 0.4166666716337204,
+      "high": 0.4166666716337204,
+      "theorems": 1,
+      "states": 2
+    },
+    "new_attempt_valid": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0,
+      "theorems": 1,
+      "states": 2
+    },
+    "old_correct_mass": {
+      "mean": 0.0,
+      "low": 0.0,
+      "high": 0.0,
+      "theorems": 1,
+      "states": 2
+    },
+    "new_correct_mass": {
+      "mean": 0.4166666716337204,
+      "low": 0.4166666716337204,
+      "high": 0.4166666716337204,
+      "theorems": 1,
+      "states": 2
+    }
+  },
+  "inputs": {
+    "config.json": "86f9bb3f1416d5c8310f6c81342c72059696fa17a3f22f1206140876dbe8a876",
+    "completion.json": "0bfb438cdc83f1fa15a6b2ff797668bd173270d2e674e1773e75f2ed7d7abeb2",
+    "branches_scored.jsonl": "e2a7865f86c55a2095d0e15e3218f1b0c59aacdf8a86b7c76f07c1af681fe146"
+  },
+  "analysis_sha256": "da2dd5b83f6d94790cd3f33c420c6f5a2e6447738651bcbf68e90a93c0861d0d"
+}

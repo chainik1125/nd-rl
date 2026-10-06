@@ -1,0 +1,414 @@
+{
+  "sprint": "learned_compute_allocation_20261006",
+  "status": "complete",
+  "start_utc": "2026-10-06T01:39:00Z",
+  "deadline_utc": "2026-10-06T11:39:00Z",
+  "writing_start_utc": "2026-10-06T10:39:00Z",
+  "base_branch": "dmitry/main",
+  "base_commit": "315f36266bb4dd7feeff87228cb2662f8a36badc",
+  "paid_compute_cap_usd": 0,
+  "paid_compute_spend_usd": 0,
+  "team": {
+    "selection": "gpt-6.1-sol",
+    "allocation": "gpt-6.1-sol",
+    "reviewer": "gpt-6-astra"
+  },
+  "runs": [
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/base_dev48_v1",
+      "status": "complete",
+      "scope": "unadapted_generator_development_probe"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/base_dev48_boundary",
+      "status": "complete",
+      "scope": "boundary_control"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/base_dev48_unrelated",
+      "status": "complete",
+      "scope": "matched_length_unrelated_history_control"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/base_dev48_eos",
+      "status": "complete"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/format200_dev48_v1",
+      "status": "complete"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/format_safe_pilot200_s61",
+      "status": "complete",
+      "scope": "outcome_blind_format_adaptation_pilot"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/base_dev48_eos_history",
+      "status": "complete",
+      "scope": "development_delimiter_control"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/base_dev48_st_marker",
+      "status": "complete"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/format_main96_dev48_v1",
+      "status": "complete",
+      "scope": "revised_format_old_development_probe"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/base_main_dev64_v1",
+      "status": "complete",
+      "scope": "unadapted_main_development_context_probe"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_protocol_smoke_v2",
+      "status": "complete",
+      "scope": "protocol_smoke_not_learning_evidence"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/main_dev64_live_fp32_format_lr1e5_step500_s52006",
+      "status": "complete",
+      "scope": "development_format_gate"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/main_dev64_live_fp32_format_lr1e5_step1000_s52006",
+      "status": "complete",
+      "scope": "development_format_gate"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/analysis/features96_main_dev",
+      "status": "complete",
+      "scope": "preliminary_feature_baseline"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/analysis/features1600_main_dev",
+      "status": "complete",
+      "scope": "full_training_public_feature_baseline"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/analysis/threshold1600_main_dev_v2",
+      "status": "complete",
+      "scope": "development_frozen_feature_thresholds_and_compute_mixtures"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_policy_protocol_smoke_v3",
+      "status": "complete",
+      "scope": "whole_policy_protocol_smoke_not_learning_evidence"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_forced4_protocol_smoke_v4",
+      "status": "complete",
+      "scope": "forced_four_protocol_smoke_not_learning_evidence"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101",
+      "status": "complete",
+      "scope": "primary_joint_RL",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101_selection.json"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s102",
+      "status": "complete",
+      "scope": "primary_joint_RL",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s102_selection.json"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s103",
+      "status": "complete",
+      "scope": "primary_joint_RL",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s103_selection.json"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s102",
+      "status": "complete",
+      "scope": "primary_joint_RL",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s102_selection.json"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s103",
+      "status": "complete",
+      "scope": "primary_joint_RL",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s103_selection.json"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/fixed4/main_s101",
+      "status": "complete",
+      "scope": "supplementary_fixed_budget_RL",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/fixed4/main_s101_selection.json"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/fixed1/main_s101",
+      "status": "complete",
+      "scope": "supplementary_fixed_budget_RL",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/fixed1/main_s101_selection.json"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/analysis/staged_dev_aggregate_v2",
+      "status": "complete",
+      "scope": "development_statistics"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/selectors/bce_s0_e4_clean_main_dev64_v1",
+      "status": "complete",
+      "scope": "secondary_generation_retention_diagnostic"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s101_one_extra_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s101_policy1_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s101_policy2_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s101_policy4_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s102_one_extra_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s102_policy1_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s102_policy2_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/context/causal_main_nocost_s102_policy4_v1",
+      "status": "complete",
+      "scope": "prespecified_development_continuation_intervention"
+    },
+    {
+      "path": "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s101",
+      "scope": "primary_joint_RL",
+      "status": "complete",
+      "completed_updates": 200,
+      "selection": "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s101_selection.json"
+    }
+  ],
+  "artifacts": {
+    "kickoff": "start.md",
+    "log": "research_log.md",
+    "summary": "../../../../experiment-summaries/2026-10-06-learned-compute-allocation/summary.md",
+    "independent_baseline_metrics": "artifacts/learned_compute_allocation_20261006/analysis/",
+    "reviews": "reviews/",
+    "hypotheses": "hypotheses.md",
+    "evaluation_draft": "evaluation_plan_draft.md",
+    "selection_choices": "artifacts/learned_compute_allocation_20261006/selectors/frozen_primary_dev_choices.json",
+    "bce_choices": "artifacts/learned_compute_allocation_20261006/selectors/frozen_bce_dev_choices.json",
+    "joint_method": "allocation/main_method.md",
+    "causal_method": "context/causal_method_freeze.md",
+    "selection_resource_ledger": "artifacts/learned_compute_allocation_20261006/selectors/resource_ledger/ledger.json",
+    "root_resource_ledger": "artifacts/learned_compute_allocation_20261006/root_resource_ledger.json",
+    "cost_dev_launches": "artifacts/learned_compute_allocation_20261006/allocation/cost/dev_launches.jsonl",
+    "causal_DEV_aggregate": "artifacts/learned_compute_allocation_20261006/context/causal_main_dev_aggregate_v1/metrics.json",
+    "scope_and_limitations": "scope_and_limitations.md",
+    "selection_freeze_inputs": "artifacts/learned_compute_allocation_20261006/freeze_inputs/selection_v2/manifest.json",
+    "feature_staged_freeze_inputs": "artifacts/learned_compute_allocation_20261006/freeze_inputs/analysis_v1/analysis_freeze_entries.json",
+    "frozen_decisions_parent": "artifacts/learned_compute_allocation_20261006/final_evaluation/decisions_parent.json",
+    "allocation_freeze_entries": "artifacts/learned_compute_allocation_20261006/freeze_inputs/allocation_v1/entries.json",
+    "runtime_environment": "artifacts/learned_compute_allocation_20261006/runtime_environment_v1.json",
+    "next_stopping_design": "selection/followup_stopping_design.md",
+    "selection_report_figure": "artifacts/learned_compute_allocation_20261006/report_figures/selection_main_v2/provenance.json",
+    "prepared_historical_cpu_commands": {
+      "path": "artifacts/learned_compute_allocation_20261006/analysis/historical_cpu_commands_v1.json",
+      "sha256": "9dec3e58c9f119a095312a828a5083deae00d78804dac25d5906adef879b28cb",
+      "status": "all6_complete_exit0; original commands unchanged"
+    },
+    "training_data_coverage": "artifacts/learned_compute_allocation_20261006/allocation/training_theorem_coverage.json",
+    "causal_TEST_aggregate": "artifacts/learned_compute_allocation_20261006/context/causal_main_test_aggregate_v1/metrics.json",
+    "causal_TEST_review": "reviews/causal_test_aggregate_review.md",
+    "causal_TEST_presentation": "artifacts/learned_compute_allocation_20261006/report_figures/causal_test_v2/provenance.json",
+    "final_resource_interim": "artifacts/learned_compute_allocation_20261006/final_resource_ledger_interim_0713.json",
+    "cached_confidence_DEV_diagnostic": "artifacts/learned_compute_allocation_20261006/selectors/cached_confidence_dev16_v1",
+    "cached_confidence_FP32_DEV_diagnostic": "artifacts/learned_compute_allocation_20261006/selectors/cached_confidence_fp32_dev8_v1",
+    "cached_confidence_review": "reviews/cached_confidence_review.md",
+    "cached_confidence_note": "selection/cached_confidence_note.md",
+    "cached_confidence_resource_ledger": "artifacts/learned_compute_allocation_20261006/selectors/cached_confidence_resources_v1.json",
+    "descriptive_MAIN_feature_misses": "artifacts/learned_compute_allocation_20261006/analysis/feature_misses_main_descriptive_v1.json",
+    "historical_cpu_launcher": "analysis/run_historical_cpu.py",
+    "iid_stopping_control_review": "reviews/iid_stopping_control_review.md",
+    "main_live_barrier_release": "artifacts/learned_compute_allocation_20261006/analysis/root_main_barrier_release_v1.json",
+    "historical_cpu_initial_execution": "artifacts/learned_compute_allocation_20261006/analysis/historical_cpu_initial_execution_v1/ledger.json",
+    "historical_cpu_launcher_review": "reviews/historical_cpu_launcher_review.md",
+    "joint_MAIN_review": "reviews/joint_live_main_review.md",
+    "historical_cpu_remaining_execution": "artifacts/learned_compute_allocation_20261006/analysis/historical_cpu_remaining_execution_v1/ledger.json",
+    "historical_staged_aggregate": "artifacts/learned_compute_allocation_20261006/analysis/historical_test_staged_aggregate_v1/metrics.json",
+    "historical_staged_review": "reviews/historical_staged_review.md",
+    "historical_selection_review": "reviews/historical_selection_review.md",
+    "historical_frozen_head_review": "reviews/historical_frozen_head_review.md",
+    "joint_MAIN_presentation": "artifacts/learned_compute_allocation_20261006/report_figures/live_main_v3/provenance.json",
+    "joint_MAIN_presentation_review": "reviews/live_main_headline_presentation_review.md",
+    "historical_live_barrier_release": "artifacts/learned_compute_allocation_20261006/analysis/root_historical_live_barrier_release_v1.json",
+    "historical_live_aggregate": "artifacts/learned_compute_allocation_20261006/allocation/final_historical_summary_fp32_v2.json",
+    "final_resource_ledger": "artifacts/learned_compute_allocation_20261006/final_resource_ledger_v1.json",
+    "final_next_experiment_review": "reviews/final_next_experiment_review.md",
+    "resource_accounting_review": "allocation/resource_accounting_review.md",
+    "final_reader_report_review": "reviews/final_reader_report_review.md",
+    "selection_reader_review": "selection/final_report_reader_review.md",
+    "report_review_resolution": "artifacts/learned_compute_allocation_20261006/reviews/report_review_resolution_v1.json",
+    "headline_number_trace": "artifacts/learned_compute_allocation_20261006/reviews/report_headline_trace_v1.json",
+    "reviewed_report_checkpoint": "artifacts/learned_compute_allocation_20261006/reviews/report_review_checkpoint_v1.json",
+    "closure_integrity_preflight": "artifacts/learned_compute_allocation_20261006/reviews/closure_integrity_preflight_v1.json",
+    "final_writing_documentation_check": "artifacts/learned_compute_allocation_20261006/reviews/final_writing_documentation_check_v3.json",
+    "final_closure": "artifacts/learned_compute_allocation_20261006/final_closure.json",
+    "final_headline_trace": "artifacts/learned_compute_allocation_20261006/reviews/report_headline_trace_final.json",
+    "final_report_snapshot": "artifacts/learned_compute_allocation_20261006/report_drafts/final_report_snapshot.md"
+  },
+  "source": {
+    "repository": "https://github.com/dan-pandori/nd-takehome",
+    "commit": "4dcd0e4f336b3bf0ee24230dc5335ba3dba8969c"
+  },
+  "checkpoint": {
+    "path": "artifacts/learned_compute_allocation_20261006/checkpoints/la_T1_best12_s0_r16.pt",
+    "sha256": "ba5d03de5dba890be643da82f9edca826d254c862cdcd33c221954b70918da24"
+  },
+  "main_distribution": {
+    "status": "final_protocol_sealed",
+    "families": [
+      "forward_deep",
+      "ore2"
+    ],
+    "mixture_weights": [
+      0.5,
+      0.5
+    ],
+    "target_train_theorems": 1600,
+    "target_dev_theorems": 320,
+    "target_test_theorems": 400,
+    "candidate_count": 8,
+    "sampling_temperature": 0.8,
+    "max_action_tokens": 256,
+    "max_steps": 48,
+    "chooser_context": 8192,
+    "test_outcomes_opened": true,
+    "candidate_view": "schema4 public deterministic transition transcript",
+    "method_freeze": "selection/method_freeze.md",
+    "test_generation_started": true
+  },
+  "resources": {
+    "gpu_assignment": {
+      "1": "released09:18:10 UTC; final historical cost103 complete",
+      "2": "released09:22:04 UTC; complete final queues exited0",
+      "3": "released09:28:05 UTC; final historical fixed1 queue complete",
+      "4": "released09:22:04 UTC; complete final queues exited0"
+    },
+    "other_gpu_claims": {
+      "0": "unrelated_user",
+      "5-7": "Other sprint reports release07:20; observed idle09:18; never used by this sprint"
+    },
+    "additional_paid_compute_usd": 0,
+    "claim_file_observation_0918": "Current shared claim file omitted our earlier1-4 entry; refreshed only active2-4 reservation and recorded release of1, preserving other entries.",
+    "owned_active_gpu_claims": []
+  },
+  "root_active_sessions": {},
+  "phase": "complete",
+  "frozen_decisions_parent_sha256": "51c704b30edfe9ff748378a2ec18aaf189da48c36bceaf7ec186bf5f76579a7b",
+  "verification": {
+    "focused_pytest": "77 passed in 3.49s",
+    "scoped_ruff": "Entire sprint Python tree, three new shared modules and ten new test modules pass scoped Ruff lint at09:37",
+    "scope": "Whole repository preexisting failures remain separate; no model-result claim from code checks.",
+    "numeric_successor_regression": "12 passed in 0.08s; Ruff check and format pass",
+    "new_review_helper_check": "reviews/new_audit_style_check.md;9 new helpers already clean; exact originals preserved; no numerical reruns",
+    "resource_final_guard": "--require-complete passed:102 expected final model jobs all complete and metered;44305.972902683076 recorded child-process seconds. No active GPU claims.",
+    "scoped_format": "251 files already formatted; two cosmetic exceptions preserved because their exact source bytes are bound to a figure provenance record or sealed operational addendum. See reviews/final_style_exceptions.md.",
+    "documentation_prewriting": "91 notes and255 local Markdown file/image links checked; no issues. External URLs and heading fragments not revalidated.",
+    "final_report_review": "Astra found no numerical discrepancies; three required wording changes and optional attribution change resolved. Sol reader corrections resolved; exact385-head follow-up remains unrun.",
+    "headline_display_check": "35 saved-field provenance and decimal-rounding checks pass; no new estimates.",
+    "documentation_after_reader_corrections": "92 sprint notes and257 local file/image links pass; external URLs and heading fragments excluded.",
+    "closure_integrity": "Nine registry/addendum/ledger/source hashes unchanged; zero active processes matching sprint path; original repository HEAD unchanged; git diff --check passes; unrelated proof-state directory preserved.",
+    "documentation_final_writing": "92 notes and257 local file/image links checked; zero issues. Executive summary431words; four figures; no experimental estimate changed.",
+    "final_documentation": "92 dated notes and257 local file/image links; zero issues. External URLs and heading fragments excluded.",
+    "final_whitespace": "git diff --check passes; this does not override the documented two bound-source format exceptions."
+  },
+  "frozen_registry_hashes": {
+    "main": "bd289d62de0e5c3395fa10330177385184cc66d67d09fc82cead10a65894a1d2",
+    "historical": "d228e09e16fa86aa69160e84464eca5064fcecde3c057393e7cc0eecba1b2d7d"
+  },
+  "agent_active_sessions": {
+    "selection_main37": "complete",
+    "allocation_gpu2": "complete",
+    "allocation_gpu4": "complete",
+    "allocation_gpu3_main": "complete",
+    "allocation_aggregation_queue": "complete",
+    "allocation_gpu1_cost103": "complete",
+    "selection_dev_cached_confidence": "complete; independently reviewed",
+    "selection_historical37": "complete; GPU3 released09:09:29",
+    "allocation_gpu1_historical_cost103": "complete",
+    "allocation_gpu3_historical_pair": "complete"
+  },
+  "completed_main_outputs": {
+    "selection": "artifacts/learned_compute_allocation_20261006/analysis/final_main/selection",
+    "feature_staged": "artifacts/learned_compute_allocation_20261006/analysis/main_test_staged_aggregate_v1",
+    "frozen_head_paired": "artifacts/learned_compute_allocation_20261006/analysis/final_main/frozen_head_paired",
+    "frozen_head_thresholds": "artifacts/learned_compute_allocation_20261006/analysis/final_main/frozen_head_thresholds",
+    "causal_seed101": "All four registered conditions complete; aggregate independently reviewed",
+    "live_no_cost_s101": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "causal_runs": "All eight registered condition/checkpoint runs complete; aggregate and acceptance associations independently reviewed",
+    "live_cost_s101": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "live_cost_s102": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "causal_aggregate": "artifacts/learned_compute_allocation_20261006/context/causal_main_test_aggregate_v1/metrics.json",
+    "live_no_cost_s103": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "live_no_cost_s102": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "live_fixed1_control_s101": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "live_cost_s103": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "live_fixed4_control_s101": "Complete; all-nine barrier released; independent aggregate review accepted",
+    "live_format_only": "Complete; all-nine MAIN quality barrier released 09:03:42 UTC",
+    "live_joint_aggregate": "artifacts/learned_compute_allocation_20261006/allocation/final_main_summary_fp32_v2.json",
+    "live_joint_review": "Accepted:104800 policy rows,1839 aggregate/CI checks,164 bindings,36 direct Lean checks"
+  },
+  "operational_addendum": {
+    "path": "artifacts/learned_compute_allocation_20261006/operational_amendment_v1/addendum.json",
+    "sha256": "c0176301d56965d4b355c071f27c5df032ba546e9a8bfd2891da7dbaf5e89431"
+  },
+  "analysis_addendum": {
+    "path": "artifacts/learned_compute_allocation_20261006/analysis_successors/fp32_probability_domain_v2/addendum.json",
+    "sha256": "c41fba4e0dcd63feb26892184dc2e71aac21ed9c38ee610d9404d8738aefc313"
+  },
+  "selection_operational_addendum": {
+    "path": "artifacts/learned_compute_allocation_20261006/operational_selection_amendment_v1/addendum.json",
+    "sha256": "3f4121d85b7c0a1bec9fc3e0395c49ed57351fcc853c0b0c8452ca460152261f",
+    "launch_status": "historical37_dispatched_after_verified_main_barrier"
+  },
+  "historical_analysis_status": {
+    "root_six_cpu_commands": "complete; independently reviewed",
+    "selection_aggregate": "reviewed role-schema successor complete; all1944 readouts and paired intervals audited",
+    "all576_Lean_labels": "match; zero discrepancies",
+    "live": "all9_complete; independently accepted:18864 raw policy rows,4953 metric/CI checks,164 bindings"
+  },
+  "historical_role_analysis_addendum": {
+    "path": "artifacts/learned_compute_allocation_20261006/analysis_successors/historical_selection_roles_v2/addendum.json",
+    "sha256": "3c143d9459ad7c1e07a7a6d52b8a1218f9c2125e3eb3dd1174cf4a4e6bf3e9c2",
+    "sealed_tool_utc": "2026-10-06 09:14:33 UTC",
+    "status": "approved; successor executed and independently reviewed"
+  },
+  "actual_final_writing_start_tool_utc": "2026-10-06 10:39:13 UTC",
+  "completed_tool_utc": "2026-10-06 11:39:41 UTC",
+  "elapsed_wall_seconds": 36041.0,
+  "final_report_sha256": "6bb6bcd30a9481f3df9b5a63148ec2b80292ab864011353a861eb9aeb080916f",
+  "ending_branch": "dmitry/main",
+  "ending_commit": "315f36266bb4dd7feeff87228cb2662f8a36badc",
+  "remaining_required_work": []
+}

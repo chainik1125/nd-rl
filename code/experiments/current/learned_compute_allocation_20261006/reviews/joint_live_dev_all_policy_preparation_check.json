@@ -1,0 +1,26 @@
+{
+  "directory": "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s101_dev200_paths_s52006",
+  "split": "dev",
+  "policy_rows": 544,
+  "maximum_relative_work_error": 4.036701364734798e-16,
+  "selected_age_means": {
+    "learned": 1.6684884142096565,
+    "fixed1": 1.0,
+    "fixed2": 1.9828169003303628,
+    "fixed4": 3.790584731134004,
+    "fixed8": 6.310833332245238,
+    "learned_greedy_index": 1.7174395156633335,
+    "fixed1_greedy_index": 1.0,
+    "fixed2_greedy_index": 2.0,
+    "fixed4_greedy_index": 4.0,
+    "fixed8_greedy_index": 8.0,
+    "greedy_stop_greedy_index": 1.3125,
+    "counter": 1.6724441611119298,
+    "counter_greedy_index": 1.7174395156633335,
+    "context_threshold": 2.080918705018121,
+    "attempt_matched_mixture": 1.705111680958754,
+    "forward_token_matched_mixture": 1.810743980204634,
+    "joint_matched_mixture": 1.6551720070367268
+  },
+  "config_sha256": "d86cc6aca567db5868773c07707bff6d227298c546271db07d71139049cf400e"
+}

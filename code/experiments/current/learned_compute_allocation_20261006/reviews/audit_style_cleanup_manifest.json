@@ -1,0 +1,222 @@
+{
+  "original_snapshot": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/reviews/original_audit_sources_20261006T052503Z",
+  "snapshot_manifest_sha256": "a45cc39e22eeb3cf8936036faee358b1f94e5d6f3263de33f4c6061829f55894",
+  "numerical_reruns": false,
+  "files": {
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_adaptation.py": {
+      "original_sha256": "65095fb8624c5fb9f6764c6ae3e744f4c3fb656ce585f1ba86e6a07056cfc872",
+      "reformatted_sha256": "f5c6d46443083be911c90b1dc05189bfd480460d994c61422cd5ce6b65c3da49",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import hashlib, json, os, sys"
+      ],
+      "imports_added_or_split": [
+        "import hashlib",
+        "import json",
+        "import os",
+        "import sys"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_budget_mixture_math.py": {
+      "original_sha256": "edac131d66ef703b367a1617d306ee52bf0ab9f5a26b2dc7018dcc1995adb647",
+      "reformatted_sha256": "3cf42472c5b36ff31ac612ec54cb92834a58303e9f93629e6eaca6fb36ee186e",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "from fit_budget_baselines import joint_mixture, matched_mixture",
+        "import json, sys"
+      ],
+      "imports_added_or_split": [
+        "from fit_budget_baselines import joint_mixture",
+        "import json",
+        "import sys"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_causal_analysis_guards.py": {
+      "original_sha256": "44d6147367b813c384cedaabc7a396773b1149a95d0f26dcb5d73a21c8adc55a",
+      "reformatted_sha256": "784832e7810d833d3e5eafe5f7f5bc9b51415a0a332fbd761ae20bf178e39689",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_causal_dev_aggregate.py": {
+      "original_sha256": "16f2788a452ae6aa2e694b9565cf202b0e92cafdf46f5f8673f0c6e8fe0e2533",
+      "reformatted_sha256": "b1df7b672375c274d6bdf1b5fce78635e5865d7dc02011762f60bad99646d9d5",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_causal_launcher.py": {
+      "original_sha256": "15a97d63b629dc3fea80251a69a7041a6ae306c5bbbf2ece456d44cd7b2fac30",
+      "reformatted_sha256": "4a97b22d5f22c715e2c5371e084b63c29adbbd43687dcaced28fe10ad91ed80e",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import contextlib, copy, importlib.util, io, json, sys, tempfile"
+      ],
+      "imports_added_or_split": [
+        "import copy",
+        "import importlib.util",
+        "import json",
+        "import sys",
+        "import tempfile"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_causal_registration.py": {
+      "original_sha256": "f6eced17530ddcd73a81f5d5193cad8e9a2970cfcb3814d7f8e16709a0499f21",
+      "reformatted_sha256": "25ff39c917de8a09162975f4c8017f3c0af7d283bb577ef97619d05ed3785765",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_context.py": {
+      "original_sha256": "1d2f539cb72370a4436e75bb48e411944b76a922931a1096beab1a2b94715b35",
+      "reformatted_sha256": "32a593c9ac9d25c559676cef742cff0d5891570c12e0fb35f4dea9cdc9535c8d",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import collections, json, re, sys"
+      ],
+      "imports_added_or_split": [
+        "import collections",
+        "import json",
+        "import re",
+        "import sys"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_feature_baseline.py": {
+      "original_sha256": "f48db9bbc8215a474fa806849c7dca9090253b9b6cd559c3b40bb214ccc4cd30",
+      "reformatted_sha256": "3471386afa07d681ef6e9e897eb1baa5a542211c2a8708d415fa75f7ca9ea301",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import collections, json, math, sys"
+      ],
+      "imports_added_or_split": [
+        "import collections",
+        "import json",
+        "import math",
+        "import sys"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_final_protocol.py": {
+      "original_sha256": "d6b18e9563eac1c33ff5fb6573a1553fa92c6c5a36ce933ac3fdfb402778ce5c",
+      "reformatted_sha256": "a9c0bf13891de51dc2fd8371293ffe6fb737304664178ef7a694e1ea14167e7d",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import contextlib, copy, importlib.util, io, json, tempfile"
+      ],
+      "imports_added_or_split": [
+        "import contextlib",
+        "import importlib.util",
+        "import io",
+        "import json",
+        "import tempfile"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_final_queues.py": {
+      "original_sha256": "38b36c5853aa91a2f14b9ddab787173e5f69e943c3a77a16c91303f97b04a7bb",
+      "reformatted_sha256": "9d41f63a48951cd2bf394c3afcf09e006d3fc93c1c18de5a215d10c0f5cc61e7",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_frozen_head.py": {
+      "original_sha256": "1d774f0ab71373cc18f6e94508a67c1a3a8e3b370d4db3e697293caeba044d12",
+      "reformatted_sha256": "213898466512a1e77a285173db2a83b2143ffe2a84a6adc7b4b63b29c1cbd3f6",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_main_causal_s101.py": {
+      "original_sha256": "85451e655c192912ebe4fb5e0c80b79fb34a4a721d1bb6ba1af376e8c0a16a23",
+      "reformatted_sha256": "38ce4a0a2ef199bd656718f482611602422652ba03aec57b42c936b0e9241769",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import collections, hashlib, json, os, sys"
+      ],
+      "imports_added_or_split": [
+        "import collections",
+        "import hashlib",
+        "import json",
+        "import os",
+        "import sys"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_main_metadata.py": {
+      "original_sha256": "483d0fccca550806ea1f18b43458664b14a87b3a122b9b88f5ce5ab06994d62d",
+      "reformatted_sha256": "901380b9f2c0e4a3ffe9a50a2b6f6bfc26f901495b8589e530b0145486221a56",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import collections, gzip, hashlib, itertools, json"
+      ],
+      "imports_added_or_split": [
+        "import collections",
+        "import gzip",
+        "import hashlib",
+        "import itertools",
+        "import json"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_path_and_causal.py": {
+      "original_sha256": "ee95ff38b156686e5f9da6635c25ae49c1fc7c2b9fdb2485967632cd56679658",
+      "reformatted_sha256": "1deb3c458c07dc086d72a2c3dbdc919fd0d35d2248815e0d728477263aac2b4e",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import collections, hashlib, itertools, json, os, sys"
+      ],
+      "imports_added_or_split": [
+        "import collections",
+        "import json",
+        "import os",
+        "import sys"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_staged_aggregation.py": {
+      "original_sha256": "2ed60cdd74a136264bbba0d91ff4864465d82019a65b5953380756754b756b66",
+      "reformatted_sha256": "276363a19a5fceb7a98fbc0612540e029b9cd8c31044fce7d68ab4f2b6d9e629",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_staged_aggregation_guards.py": {
+      "original_sha256": "fac301d97dfb9c4e76c149dcb3dbc435652ed442e22e70f208680e0ccdb3bacb",
+      "reformatted_sha256": "3a12f7b6771f0e47e1fce3292737330da0c10e463d4e8d0d92544addf209de26",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_staged_v3_cost_training.py": {
+      "original_sha256": "dc4bd1de2a44131167eac1daeedcf0b6b7e2912699e263b2bc7d9dcfa994c157",
+      "reformatted_sha256": "28ef84f3d6533803cea1470234dca372c89b8d0f69ed1784c2e28b716abacae7",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [],
+      "imports_added_or_split": []
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_threshold_math.py": {
+      "original_sha256": "ce88c7c5fe5dadc8b240a46e9e6ebbf7ac2676ff2943ca2c17f297f5f5928508",
+      "reformatted_sha256": "b2d4a86babc366f3b97d04f669facc1dfa28e40a7a92cb6f383f0f8d14bae864",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import itertools, json, sys"
+      ],
+      "imports_added_or_split": [
+        "import itertools",
+        "import json",
+        "import sys"
+      ]
+    },
+    "code/experiments/current/learned_compute_allocation_20261006/reviews/audit_whole_policy_smoke.py": {
+      "original_sha256": "a4e418c60db62b79ea7de48b980a7e9d83d439b0c87447e2bf3370ee1af0a4df",
+      "reformatted_sha256": "daf9c2e8c1a418b83cf826bb795a80f4af947bbf572e5ef85998ee11c62a25f7",
+      "syntax_compilation": "passed",
+      "imports_removed_or_split": [
+        "import collections, hashlib, json, os, random, sys"
+      ],
+      "imports_added_or_split": [
+        "import collections",
+        "import hashlib",
+        "import json",
+        "import os",
+        "import random",
+        "import sys"
+      ]
+    }
+  }
+}

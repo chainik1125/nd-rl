@@ -1,0 +1,29 @@
+{
+  "accepted_successor_sha256": "589572eebeadda1f7e0a9436e5b33b30835245f7756fcef23ed5ccb80ecaf648",
+  "AST_identical_functions": [
+    "digest",
+    "read_rows",
+    "stratified_interval",
+    "endpoint",
+    "figure"
+  ],
+  "guard_cases": [
+    "draft rejected",
+    "approved exact binding accepted",
+    "original_sha256 mutation rejected",
+    "successor_sha256 mutation rejected",
+    "balanced role rewrite rejected",
+    "public bytes mutation rejected",
+    "bootstrap seed change rejected",
+    "MAIN registry invocation rejected"
+  ],
+  "role_weighting_test": {
+    "mean": 0.8055555555555556,
+    "low": 0.8055555555555556,
+    "high": 0.8055555555555556,
+    "bootstrap_samples": 5000,
+    "seed": 61006,
+    "theorems": 72
+  },
+  "scope": "No scientific main() call, inference, fits or historical quality reads."
+}

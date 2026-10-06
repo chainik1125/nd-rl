@@ -1,0 +1,85 @@
+{
+  "exact_arrays": {
+    "features": true,
+    "theorem_ids": true,
+    "candidate_ids": true,
+    "families": true,
+    "input_tokens": true
+  },
+  "exact_v3_logits": true,
+  "exact_v4_logits": true,
+  "exact_v4_ties": true,
+  "v4_overflows": 0,
+  "v4_unchanged_charged_lengths": true,
+  "frozen_head_fresh_dev_v3": {
+    "inference_mode": "fresh public-only frozen-trunk extraction",
+    "predictions_hash_matches": true,
+    "signature": {
+      "method": "frozen_original_r16_scalar_validity_head",
+      "head_sha256": "d15adf65253377f3505cede44c9ba68c27b70a29321de84a4059c5ca5285299f",
+      "checkpoint_sha256": "ba5d03de5dba890be643da82f9edca826d254c862cdcd33c221954b70918da24",
+      "evaluator_sha256": "9f55bcb8b79b482c18db6d212d954db0726144b4d88024eaf14d5257d7c6da97",
+      "extractor_sources": {
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/extract_frozen_head_features.py": "2ff560da616b0fb50f4be04b0a139325a6a0b5745d4bc9b9cc281f13457e4069",
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/train_bce.py": "8c5be0dc72fb94fe88d575ad18642506646d0c8fae95699ead58f2073b14ae85",
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/train.py": "42fd1b26d7f48821bd3d3073371d0d7fc847cbf111b7b8a2e9a76e354f8b561d",
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/frozen_head_method_freeze.md": "399eb803a07d643dbaaeaa821afbd36b072543dc6bf9fc759c20bb9ceeaeb259",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/model.py": "2ea3940154414c100bb941827ab9bafbbecce265737efe90006dadb6014925f3",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/best_model.py": "7d925c846d1e44eb21b69bb958c678e5cf488952b056a30dfbbe518fd305a07c",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/tokenizer.py": "60bd316cbba1173b765ef4044be8bd30c843dbe0b24a156c21c8e99c0c118282",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/lean_tok.py": "7561a8778b47d34911afc007dd5982987fa0c6bac546f2f6572b153e64e27bc7",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/nd2lean.py": "989708cb55a25e2af13db221df271e6b4366e2a909fc9c847c8f348578e0843a",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/record.py": "c5ee18c40863dcb8f91199380a98afbba4447a6b415d2a62f8b86f6e87419bce"
+      },
+      "readout_sha256": "e1c55e0087b45e709ae709d917f908fe344dff16a75d9f3c33baaa49bf5aa59a",
+      "fit_sha256": "2039c99b3094936a92c905cfde46e01bd2bc3e18228999f86102b032031c54fa",
+      "validator_sha256": "9b81e9cc12e2ed070589955b482e5581e4b3448fa405c16625ff72f802b0ef94",
+      "context": 8192,
+      "batch": 8,
+      "architecture": "frozen_factorized_scalar_head",
+      "objective": "binary",
+      "view": "transitions",
+      "precision": "BF16 frozen trunk/final LayerNorm; cached FP32 features; CPU FP64 scalar readout",
+      "ordering": "canonical candidate IDs; batches of eight; no permutation-dependent readout",
+      "overflow": "refuse overflow; no truncation or dropped candidate"
+    }
+  },
+  "frozen_head_standalone_dev_v4": {
+    "inference_mode": "existing exact frozen public feature cache; no rescoring",
+    "predictions_hash_matches": true,
+    "signature": {
+      "method": "frozen_original_r16_scalar_validity_head",
+      "head_sha256": "d15adf65253377f3505cede44c9ba68c27b70a29321de84a4059c5ca5285299f",
+      "checkpoint_sha256": "ba5d03de5dba890be643da82f9edca826d254c862cdcd33c221954b70918da24",
+      "evaluator_sha256": "86550275e2719e7c48b3d7ef49fe90ee18310d58b0d06788b847caa80f3c81e0",
+      "extractor_sources": {
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/extract_frozen_head_features.py": "2ff560da616b0fb50f4be04b0a139325a6a0b5745d4bc9b9cc281f13457e4069",
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/train_bce.py": "8c5be0dc72fb94fe88d575ad18642506646d0c8fae95699ead58f2073b14ae85",
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/train.py": "42fd1b26d7f48821bd3d3073371d0d7fc847cbf111b7b8a2e9a76e354f8b561d",
+        "/data/users/dmitry/ndrl/code/experiments/current/learned_compute_allocation_20261006/selection/frozen_head_method_freeze.md": "399eb803a07d643dbaaeaa821afbd36b072543dc6bf9fc759c20bb9ceeaeb259",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/model.py": "2ea3940154414c100bb941827ab9bafbbecce265737efe90006dadb6014925f3",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/best_model.py": "7d925c846d1e44eb21b69bb958c678e5cf488952b056a30dfbbe518fd305a07c",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/tokenizer.py": "60bd316cbba1173b765ef4044be8bd30c843dbe0b24a156c21c8e99c0c118282",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/lean_tok.py": "7561a8778b47d34911afc007dd5982987fa0c6bac546f2f6572b153e64e27bc7",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/nd2lean.py": "989708cb55a25e2af13db221df271e6b4366e2a909fc9c847c8f348578e0843a",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+        "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/source/nd-takehome-dan/record.py": "c5ee18c40863dcb8f91199380a98afbba4447a6b415d2a62f8b86f6e87419bce"
+      },
+      "readout_sha256": "e1c55e0087b45e709ae709d917f908fe344dff16a75d9f3c33baaa49bf5aa59a",
+      "fit_sha256": "2039c99b3094936a92c905cfde46e01bd2bc3e18228999f86102b032031c54fa",
+      "inference_sha256": "a58d9e621768e3c8d0723787fbe8ae616c7a079ca8c580e21b9283640e51e898",
+      "validator_sha256": "9b81e9cc12e2ed070589955b482e5581e4b3448fa405c16625ff72f802b0ef94",
+      "context": 8192,
+      "batch": 8,
+      "architecture": "frozen_factorized_scalar_head",
+      "objective": "binary",
+      "view": "transitions",
+      "precision": "BF16 frozen trunk/final LayerNorm; cached FP32 features; CPU FP64 scalar readout",
+      "ordering": "canonical candidate IDs; batches of eight; no permutation-dependent readout",
+      "overflow": "independent logit0/probability.5 fallback; no forward charge; retain all candidates"
+    }
+  }
+}

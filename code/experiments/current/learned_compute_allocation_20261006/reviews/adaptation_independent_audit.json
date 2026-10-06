@@ -1,0 +1,200 @@
+{
+  "config_equal": {
+    "input_sha256": true,
+    "limit": true,
+    "k": true,
+    "batch": true,
+    "seed": true,
+    "temperature": true,
+    "max_action": true,
+    "max_steps": true,
+    "context": true
+  },
+  "checkpoint_hash_matches": true,
+  "comparisons": {
+    "adapt_minus_base_history0": {
+      "difference": -0.125,
+      "paired_theorem_percentile95": [
+        -0.20833333333333334,
+        -0.046875
+      ],
+      "improved_theorems": 4,
+      "worsened_theorems": 14,
+      "same_theorems": 30,
+      "bootstrap_draws": 50000,
+      "bootstrap_seed": 610061
+    },
+    "adapt_minus_base_history1": {
+      "difference": 0.7916666666666666,
+      "paired_theorem_percentile95": [
+        0.703125,
+        0.875
+      ],
+      "improved_theorems": 46,
+      "worsened_theorems": 0,
+      "same_theorems": 2,
+      "bootstrap_draws": 50000,
+      "bootstrap_seed": 610061
+    },
+    "adapt_minus_base_history4": {
+      "difference": 0.6927083333333334,
+      "paired_theorem_percentile95": [
+        0.5989583333333334,
+        0.7864583333333334
+      ],
+      "improved_theorems": 42,
+      "worsened_theorems": 0,
+      "same_theorems": 6,
+      "bootstrap_draws": 50000,
+      "bootstrap_seed": 610061
+    },
+    "adapt_history1_minus_history0": {
+      "difference": 0.005208333333333333,
+      "paired_theorem_percentile95": [
+        -0.08333333333333333,
+        0.09895833333333333
+      ],
+      "improved_theorems": 6,
+      "worsened_theorems": 9,
+      "same_theorems": 33,
+      "bootstrap_draws": 50000,
+      "bootstrap_seed": 610061
+    },
+    "adapt_history4_minus_history0": {
+      "difference": -0.11979166666666667,
+      "paired_theorem_percentile95": [
+        -0.21875,
+        -0.015625
+      ],
+      "improved_theorems": 7,
+      "worsened_theorems": 22,
+      "same_theorems": 19,
+      "bootstrap_draws": 50000,
+      "bootstrap_seed": 610061
+    }
+  },
+  "counts": {
+    "base_dev48_v1/0": {
+      "theorems": 48,
+      "valid": 180,
+      "total": 192
+    },
+    "base_dev48_v1/1": {
+      "theorems": 48,
+      "valid": 5,
+      "total": 192
+    },
+    "base_dev48_v1/4": {
+      "theorems": 48,
+      "valid": 0,
+      "total": 192
+    },
+    "format200_dev48_v1/0": {
+      "theorems": 48,
+      "valid": 156,
+      "total": 192
+    },
+    "format200_dev48_v1/1": {
+      "theorems": 48,
+      "valid": 157,
+      "total": 192
+    },
+    "format200_dev48_v1/4": {
+      "theorems": 48,
+      "valid": 133,
+      "total": 192
+    }
+  },
+  "same_ids_and_candidate_sets": true,
+  "lean_spotcheck": {
+    "checked": 12,
+    "disagreement": 0,
+    "records": [
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 0,
+        "history": 0,
+        "saved_valid": true,
+        "rechecked_valid": true
+      },
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 2,
+        "history": 0,
+        "saved_valid": true,
+        "rechecked_valid": true
+      },
+      {
+        "theorem_id": "a431fef5f0d005f135e2",
+        "candidate_id": 1,
+        "history": 0,
+        "saved_valid": false,
+        "rechecked_valid": false
+      },
+      {
+        "theorem_id": "5c76c512d9926f2fd1ba",
+        "candidate_id": 3,
+        "history": 0,
+        "saved_valid": false,
+        "rechecked_valid": false
+      },
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 2,
+        "history": 1,
+        "saved_valid": true,
+        "rechecked_valid": true
+      },
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 0,
+        "history": 1,
+        "saved_valid": true,
+        "rechecked_valid": true
+      },
+      {
+        "theorem_id": "a431fef5f0d005f135e2",
+        "candidate_id": 0,
+        "history": 1,
+        "saved_valid": false,
+        "rechecked_valid": false
+      },
+      {
+        "theorem_id": "5c76c512d9926f2fd1ba",
+        "candidate_id": 0,
+        "history": 1,
+        "saved_valid": false,
+        "rechecked_valid": false
+      },
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 2,
+        "history": 4,
+        "saved_valid": true,
+        "rechecked_valid": true
+      },
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 0,
+        "history": 4,
+        "saved_valid": true,
+        "rechecked_valid": true
+      },
+      {
+        "theorem_id": "282eaaea1a4e8dc5162b",
+        "candidate_id": 1,
+        "history": 4,
+        "saved_valid": false,
+        "rechecked_valid": false
+      },
+      {
+        "theorem_id": "a431fef5f0d005f135e2",
+        "candidate_id": 0,
+        "history": 4,
+        "saved_valid": false,
+        "rechecked_valid": false
+      }
+    ],
+    "seconds": 0.31241440773010254
+  }
+}

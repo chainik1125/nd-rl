@@ -1,0 +1,13 @@
+{
+  "pool_size": 4,
+  "score_values": [
+    0.0,
+    0.5,
+    1.0
+  ],
+  "score_vectors": 81,
+  "policy_cases": 891,
+  "permutations_per_case": 24,
+  "max_absolute_error": 1.7763568394002505e-15,
+  "inputs": "synthetic only, no final-test labels opened"
+}

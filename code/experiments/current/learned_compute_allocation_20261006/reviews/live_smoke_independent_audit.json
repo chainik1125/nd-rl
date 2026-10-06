@@ -1,0 +1,17 @@
+{
+  "counts": {
+    "episodes": 8,
+    "attempts": 18,
+    "selected_correct": 5,
+    "reward_mismatch": 0,
+    "generated_accounting_mismatch": 0,
+    "prefix_accounting_mismatch": 0,
+    "candidate_complete": 8,
+    "forced": 0,
+    "lean_rechecks": 6,
+    "lean_disagreement": 0
+  },
+  "mean_reward": 0.5875,
+  "lean_wall_seconds": 0.2705817222595215,
+  "scope": "8 training episodes at updates0-1, integration only"
+}

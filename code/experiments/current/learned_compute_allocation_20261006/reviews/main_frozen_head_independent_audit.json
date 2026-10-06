@@ -1,0 +1,75 @@
+{
+  "cached_linear_logit_max_error": 1.0658141036401503e-14,
+  "arithmetic_max_error": 2.3283064365386963e-10,
+  "policy_rows_checked": 18400,
+  "frozen_parameter_digest": "594173e7d67a64f5c4ffa9ac5176e4390770e44ce7d307590474bed3957c8eb5",
+  "paired": {
+    "matched_BCE_seed0": {
+      "mean": -0.0025,
+      "low": -0.02,
+      "high": 0.015,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 400
+    },
+    "BCE_seed1": {
+      "mean": -0.005,
+      "low": -0.0225,
+      "high": 0.0125,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 400
+    },
+    "BCE_seed2": {
+      "mean": -0.01625,
+      "low": -0.035,
+      "high": 0.00125,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 400
+    },
+    "public_features": {
+      "mean": -0.035,
+      "low": -0.055,
+      "high": -0.0175,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 400
+    },
+    "random": {
+      "mean": 0.1240625,
+      "low": 0.0978125,
+      "high": 0.1496875,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 400
+    },
+    "secondary_BCE_three_seed_mean": {
+      "mean": -0.007916666666666666,
+      "low": -0.02375,
+      "high": 0.007510416666666518,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 400
+    }
+  },
+  "cost03_threshold_name": "threshold0.65",
+  "cost03_threshold": {
+    "accuracy": 0.8198511904761904,
+    "attempts": 1.8292232142857143,
+    "generated_tokens_proxy": 601.2041636904762,
+    "generator_prefill_tokens_proxy": 4619.439752976191,
+    "generator_input_tokens_lower_bound": 5195.672985119048,
+    "required_feature_replay_tokens_unpadded": 0.0,
+    "total_model_input_tokens_lower_bound": 6048.352491071428,
+    "critic_prefill_tokens_proxy": 852.679505952381,
+    "critic_dense_attention_positions_proxy": 489513.3520059524,
+    "rewards": {
+      "0.0": 0.8198511904761904,
+      "0.01": 0.8115589583333332,
+      "0.03": 0.794974494047619,
+      "0.1": 0.7369288690476189
+    }
+  },
+  "independent_combinatorics_helper_sha256": "d87d9cb932d7c1239f09999c562f480289e6d39e83507e017326a7bb71f2ef19"
+}

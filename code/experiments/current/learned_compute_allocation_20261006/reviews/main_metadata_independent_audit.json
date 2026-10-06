@@ -1,0 +1,71 @@
+{
+  "training_cache_hash_matches": true,
+  "code_hashes_match": {
+    "main_data.py": true,
+    "data.py": true,
+    "exclusions.py": true,
+    "ore_data.py": true
+  },
+  "splits": {
+    "train": {
+      "rows": 1600,
+      "families": {
+        "forward": 800,
+        "ore2": 800
+      },
+      "unique_skeletons": 1600,
+      "file_hash_matches": true,
+      "canonical_mismatch": 0,
+      "skeleton_mismatch": 0,
+      "id_mismatch": 0,
+      "exposure_match": 0,
+      "split_mismatch": 0,
+      "duplicate": 0
+    },
+    "dev": {
+      "rows": 320,
+      "families": {
+        "forward": 160,
+        "ore2": 160
+      },
+      "unique_skeletons": 320,
+      "file_hash_matches": true,
+      "canonical_mismatch": 0,
+      "skeleton_mismatch": 0,
+      "id_mismatch": 0,
+      "exposure_match": 0,
+      "split_mismatch": 0,
+      "duplicate": 0
+    },
+    "test": {
+      "rows": 400,
+      "families": {
+        "ore2": 200,
+        "forward": 200
+      },
+      "unique_skeletons": 400,
+      "file_hash_matches": true,
+      "canonical_mismatch": 0,
+      "skeleton_mismatch": 0,
+      "id_mismatch": 0,
+      "exposure_match": 0,
+      "split_mismatch": 0,
+      "duplicate": 0
+    }
+  },
+  "scope": "metadata and content hashes only; no proof fields or candidate outcomes used",
+  "cross_split_overlaps": {
+    "train_dev": {
+      "canonical": 0,
+      "skeleton": 0
+    },
+    "train_test": {
+      "canonical": 0,
+      "skeleton": 0
+    },
+    "dev_test": {
+      "canonical": 0,
+      "skeleton": 0
+    }
+  }
+}

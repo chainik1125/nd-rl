@@ -1,0 +1,551 @@
+{
+  "all_eight_point_estimates_checked": true,
+  "primary_two_seed_intervals_checked": true,
+  "max_error": 0.0,
+  "results": [
+    {
+      "condition": "one_extra64",
+      "seed": 101,
+      "associations": {
+        "unconditional": {
+          "slope": -0.004051152940519088,
+          "correlation": -0.016988838494887727,
+          "acceptance_residual_sd": 0.05102472831687557,
+          "conditioning": [],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6708841323852539,
+          "slope_interval": {
+            "low": -0.039742942438972806,
+            "high": 0.05846214265869156,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.18540563508491223,
+            "high": 0.19748836528549396,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -0.015696861060684703,
+          "correlation": -0.07310037190152947,
+          "acceptance_residual_sd": 0.05072694326789561,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6708841323852539,
+          "slope_interval": {
+            "low": -0.04987778028183251,
+            "high": 0.035962546984114656,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.2530478309755826,
+            "high": 0.1417734236715427,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": 0.024399510822680277,
+          "correlation": 0.10276056582696078,
+          "acceptance_residual_sd": 0.04251674873056686,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6708841323852539,
+          "slope_interval": {
+            "low": -0.02113030934014559,
+            "high": 0.08546535184274798,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.09158996298202361,
+            "high": 0.3052378776503193,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    },
+    {
+      "condition": "one_extra64",
+      "seed": 102,
+      "associations": {
+        "unconditional": {
+          "slope": -0.06859266003052499,
+          "correlation": -0.10446649476989131,
+          "acceptance_residual_sd": 0.032284954444466336,
+          "conditioning": [],
+          "acceptance_min": 0.6616197228431702,
+          "acceptance_max": 0.8808075189590454,
+          "slope_interval": {
+            "low": -0.22800370263528447,
+            "high": 0.10845720855593396,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.28913023762789686,
+            "high": 0.11795877901372077,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -0.08145273839049269,
+          "correlation": -0.12905999237434354,
+          "acceptance_residual_sd": 0.032212066194015995,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.6616197228431702,
+          "acceptance_max": 0.8808075189590454,
+          "slope_interval": {
+            "low": -0.21556998074747935,
+            "high": 0.06095517775192194,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.29621339657432744,
+            "high": 0.07948244529076498,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": 0.20932210574991922,
+          "correlation": 0.2512003430790781,
+          "acceptance_residual_sd": 0.02234195350766131,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.6616197228431702,
+          "acceptance_max": 0.8808075189590454,
+          "slope_interval": {
+            "low": 0.031316705316927,
+            "high": 0.3961087576211553,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": 0.034420104851365436,
+            "high": 0.4579329234378552,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    },
+    {
+      "condition": "policy_forced1_32",
+      "seed": 101,
+      "associations": {
+        "unconditional": {
+          "slope": -0.05975738368019848,
+          "correlation": -0.09516358892109818,
+          "acceptance_residual_sd": 0.0566915338606504,
+          "conditioning": [],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.19318045335375747,
+            "high": 0.18121884380566314,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.3346673162999837,
+            "high": 0.2069694859699882,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -0.08154665055676275,
+          "correlation": -0.13570618900188006,
+          "acceptance_residual_sd": 0.05636148467931818,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.22786951729721933,
+            "high": 0.12741640972708962,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.3819639305436325,
+            "high": 0.1594011930327009,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": 0.09006450958355784,
+          "correlation": 0.13063807372492808,
+          "acceptance_residual_sd": 0.04463643740898284,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.09380241680110248,
+            "high": 0.3684734711227106,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.12789163435450374,
+            "high": 0.42017733001410157,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    },
+    {
+      "condition": "policy_forced1_32",
+      "seed": 102,
+      "associations": {
+        "unconditional": {
+          "slope": -0.06692294023796808,
+          "correlation": -0.11471622675088593,
+          "acceptance_residual_sd": 0.040647949577523344,
+          "conditioning": [],
+          "acceptance_min": 0.6616197228431702,
+          "acceptance_max": 0.8808075189590454,
+          "slope_interval": {
+            "low": -0.1860706694595908,
+            "high": 0.11650725179806012,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.2886225289927562,
+            "high": 0.1372487361000399,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -0.0740693878206959,
+          "correlation": -0.1299121486853655,
+          "acceptance_residual_sd": 0.040587778890026224,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.6616197228431702,
+          "acceptance_max": 0.8808075189590454,
+          "slope_interval": {
+            "low": -0.17922260367995907,
+            "high": 0.08179507158516064,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.3041144089596627,
+            "high": 0.10593198878010526,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": 0.25083119263457954,
+          "correlation": 0.3218402980180268,
+          "acceptance_residual_sd": 0.026774135913746895,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.6616197228431702,
+          "acceptance_max": 0.8808075189590454,
+          "slope_interval": {
+            "low": 0.017955471565185788,
+            "high": 0.41072312140164546,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": 0.01564245704945747,
+            "high": 0.5583809336206034,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    },
+    {
+      "condition": "policy_forced2_16",
+      "seed": 101,
+      "associations": {
+        "unconditional": {
+          "slope": -0.19154585946534858,
+          "correlation": -0.2401086978057562,
+          "acceptance_residual_sd": 0.06327149555302457,
+          "conditioning": [],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.4135318184670061,
+            "high": 0.25062796314248215,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.5075149819333316,
+            "high": 0.2099078930890913,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -0.26588381138211437,
+          "correlation": -0.34422296389612395,
+          "acceptance_residual_sd": 0.06160924588356785,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.5171756856130446,
+            "high": 0.11701436855499307,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.6278263600367139,
+            "high": 0.10519881747480854,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": -0.009813065353200858,
+          "correlation": -0.012337893158749088,
+          "acceptance_residual_sd": 0.048860171099474374,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.4920524353014418,
+            "high": 0.4147310854602003,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.4008248774667424,
+            "high": 0.3812918134132555,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    },
+    {
+      "condition": "policy_forced2_16",
+      "seed": 102,
+      "associations": {
+        "unconditional": {
+          "slope": -0.4799086655317231,
+          "correlation": -0.3335964212685738,
+          "acceptance_residual_sd": 0.038754933921899604,
+          "conditioning": [],
+          "acceptance_min": 0.7319656014442444,
+          "acceptance_max": 0.8709326982498169,
+          "slope_interval": {
+            "low": -1.210224515793469,
+            "high": 0.15605365089561007,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.5631799622921433,
+            "high": 0.0847007264067399,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -0.4802714125144597,
+          "correlation": -0.3461122613236164,
+          "acceptance_residual_sd": 0.03875491626536066,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.7319656014442444,
+          "acceptance_max": 0.8709326982498169,
+          "slope_interval": {
+            "low": -1.1531027758574635,
+            "high": 0.08519138366936356,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.5626109628327542,
+            "high": 0.05330736396478066,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": 0.3860436462947572,
+          "correlation": 0.15991295754577223,
+          "acceptance_residual_sd": 0.01947922762170707,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.7319656014442444,
+          "acceptance_max": 0.8709326982498169,
+          "slope_interval": {
+            "low": -0.9017041234011052,
+            "high": 1.1077838780715972,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.24053796221180077,
+            "high": 0.5606813639474514,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    },
+    {
+      "condition": "policy_forced4_16",
+      "seed": 101,
+      "associations": {
+        "unconditional": {
+          "slope": -0.46443580855947236,
+          "correlation": -0.3592424353186532,
+          "acceptance_residual_sd": 0.06327149555302457,
+          "conditioning": [],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.8570592784232479,
+            "high": 0.16718763510752266,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.6294758498942453,
+            "high": 0.08990495951452726,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -0.5554141613041136,
+          "correlation": -0.427982689759209,
+          "acceptance_residual_sd": 0.06160924588356785,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.9292523215037092,
+            "high": 0.0069729928888493265,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.69126442872513,
+            "high": 0.0032046097363236537,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": -0.05262890252456468,
+          "correlation": -0.04320158300592064,
+          "acceptance_residual_sd": 0.048860171099474374,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.4196067154407501,
+          "acceptance_max": 0.6633936166763306,
+          "slope_interval": {
+            "low": -0.7307856264175746,
+            "high": 0.41969909372836195,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.3985165335735662,
+            "high": 0.28580301984517087,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    },
+    {
+      "condition": "policy_forced4_16",
+      "seed": 102,
+      "associations": {
+        "unconditional": {
+          "slope": -1.1428749871563992,
+          "correlation": -0.3624435836159962,
+          "acceptance_residual_sd": 0.038754933921899604,
+          "conditioning": [],
+          "acceptance_min": 0.7319656014442444,
+          "acceptance_max": 0.8709326982498169,
+          "slope_interval": {
+            "low": -2.3582700078700554,
+            "high": 0.2939142616920257,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.602913933436116,
+            "high": 0.0573402413279516,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count": {
+          "slope": -1.1436936065801602,
+          "correlation": -0.37687199212964473,
+          "acceptance_residual_sd": 0.03875491626536066,
+          "conditioning": [
+            "count"
+          ],
+          "acceptance_min": 0.7319656014442444,
+          "acceptance_max": 0.8709326982498169,
+          "slope_interval": {
+            "low": -2.2196128791244836,
+            "high": 0.1524110619123861,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.6187233967388397,
+            "high": 0.03790200169577361,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        },
+        "within_count_and_incumbent_validity": {
+          "slope": 0.322249035650005,
+          "correlation": 0.06038120726222894,
+          "acceptance_residual_sd": 0.01947922762170707,
+          "conditioning": [
+            "count",
+            "oracle_before"
+          ],
+          "acceptance_min": 0.7319656014442444,
+          "acceptance_max": 0.8709326982498169,
+          "slope_interval": {
+            "low": -2.701555614487276,
+            "high": 2.0836892717821276,
+            "usable_bootstrap_draws": 5000
+          },
+          "correlation_interval": {
+            "low": -0.32310062972276204,
+            "high": 0.41450500107261623,
+            "usable_bootstrap_draws": 5000
+          },
+          "interpretation": "Descriptive association between acceptance probability and continuation value"
+        }
+      }
+    }
+  ]
+}

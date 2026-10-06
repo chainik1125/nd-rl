@@ -1,0 +1,9 @@
+{
+  "source": "artifacts/learned_compute_allocation_20261006/allocation/final_historical_summary_fp32_v2.json",
+  "results_sha256": "2bf1f8f55513dc71fbf706f8d2b9e84a2ce3405eb5067edeedb66a66e86f9309",
+  "plot_source_sha256": "4c3530d323c54ec3765be50b531d212fd5b7b221c423de9bf43bd1a1cdba37c6",
+  "interval_helper_sha256": "93c0b18c3ae26da8d52ae33596644b6b9268d7fda4f9ff1d3d5dba2b9b6c7f52",
+  "frozen_protocol_sha256": "d228e09e16fa86aa69160e84464eca5064fcecde3c057393e7cc0eecba1b2d7d",
+  "scope": "Reused historical benchmark, at least one known canonical pretraining exposure; not fresh generalization. Source rl_train role does not establish actual r16 training exposure. Same bounded MAIN caps, not upstream k256/max_action512/max_steps96.",
+  "uncertainty_scope": "Paired source-role-stratified theorem bootstrap conditional on fitted models; descriptive benchmark variation, not new-training-seed uncertainty."
+}

@@ -1,0 +1,26 @@
+{
+  "original_passing_arrays_identical": 2033,
+  "newly_admitted_dev_rows": 79,
+  "metrics_ast_only_probability_tolerance_change": true,
+  "adversarial_rejections": {
+    "high_probability": true,
+    "nan_probability": true,
+    "negative_work": true,
+    "bad_reward": true,
+    "excess_attempts": true,
+    "draft": true,
+    "wrong_registry": true,
+    "wrong_successor": true,
+    "bootstrap_change": true,
+    "renormalization": true
+  },
+  "source_hashes": {
+    "aggregate_live.py": "70afd93cf3d62f59d48f305d9d2962fc7e26efa07a388a545d0c6c736071a80d",
+    "aggregate_historical.py": "95ffe902205140c205babf434f2b17280af83b48aa465722402ab2d7293acbab",
+    "aggregate_live_fp32_v2.py": "cddf226e9801dacb14d7d94fc7aa04da2bf893f2297b3e4293fd2b9875260f83",
+    "aggregate_historical_fp32_v2.py": "d21eaa8dc6c08332015390998a26134323b8f195b1cf9503a491509df73dd0d9",
+    "analysis_addendum.py": "3b36c3568e526a238ae0f48c4399768d1446ccf2bbd8cd7867808587b2ce624d"
+  },
+  "draft_sha256": "e086a5e349803270b8db5024cb414ccf6055d825f6981946e0f85fd6334422f7",
+  "live_test_outcomes_read": false
+}

@@ -1,0 +1,745 @@
+{
+ "stage1_C0_s0": {
+  "all": {
+   "n": 36,
+   "greedy": 6,
+   "pass32": 10.19,
+   "pass256": 12
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 6,
+   "pass32": 9.96,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 0.23,
+   "pass256": 1
+  },
+  "solved_k": [
+   "absorption",
+   "consequentia_mirabilis",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_elim",
+   "hypothetical_syllogism",
+   "modus_ponens",
+   "modus_tollens",
+   "positive_paradox"
+  ]
+ },
+ "stage1_C0_s1": {
+  "all": {
+   "n": 36,
+   "greedy": 7,
+   "pass32": 10.99,
+   "pass256": 11
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 7,
+   "pass32": 10.99,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 0.0,
+   "pass256": 0
+  },
+  "solved_k": [
+   "absorption",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_intro",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox"
+  ]
+ },
+ "stage1_S_s0": {
+  "all": {
+   "n": 36,
+   "greedy": 7,
+   "pass32": 11.2,
+   "pass256": 13
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 7,
+   "pass32": 9.26,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 1.94,
+   "pass256": 2
+  },
+  "solved_k": [
+   "absorption",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_elim",
+   "dn_intro",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox"
+  ]
+ },
+ "stage1_S_s1": {
+  "all": {
+   "n": 36,
+   "greedy": 3,
+   "pass32": 10.67,
+   "pass256": 13
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 3,
+   "pass32": 9.34,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 1.33,
+   "pass256": 2
+  },
+  "solved_k": [
+   "absorption",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "dn_intro",
+   "identity",
+   "positive_paradox"
+  ]
+ },
+ "stage1_SH_s0": {
+  "all": {
+   "n": 36,
+   "greedy": 8,
+   "pass32": 11.38,
+   "pass256": 13
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 8,
+   "pass32": 11.26,
+   "pass256": 12
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 0.12,
+   "pass256": 1
+  },
+  "solved_k": [
+   "absorption",
+   "consequentia_mirabilis",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox"
+  ]
+ },
+ "stage1_SH_s1": {
+  "all": {
+   "n": 36,
+   "greedy": 9,
+   "pass32": 12.55,
+   "pass256": 13
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 9,
+   "pass32": 11.0,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 1.55,
+   "pass256": 2
+  },
+  "solved_k": [
+   "absorption",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ]
+ },
+ "stage1_SN_s0": {
+  "all": {
+   "n": 36,
+   "greedy": 7,
+   "pass32": 11.73,
+   "pass256": 13
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 7,
+   "pass32": 9.53,
+   "pass256": 10
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 2.2,
+   "pass256": 3
+  },
+  "solved_k": [
+   "absorption",
+   "demorgan_nor_to_and",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_elim",
+   "dn_intro",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox"
+  ]
+ },
+ "stage1_SN_s1": {
+  "all": {
+   "n": 36,
+   "greedy": 7,
+   "pass32": 10.61,
+   "pass256": 13
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 7,
+   "pass32": 9.74,
+   "pass256": 12
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 0.87,
+   "pass256": 1
+  },
+  "solved_k": [
+   "absorption",
+   "consequentia_mirabilis",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_elim",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ]
+ },
+ "T1_C0_s0_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 10,
+   "pass32": 11.54,
+   "pass256": 13
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 10,
+   "pass32": 11.0,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 0.54,
+   "pass256": 2
+  },
+  "solved_k": [
+   "absorption",
+   "consequentia_mirabilis",
+   "contraposition",
+   "dn_elim",
+   "dn_intro",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "consequentia_mirabilis",
+   "dn_elim",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ]
+ },
+ "T1_C0_s1_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 8,
+   "pass32": 11.46,
+   "pass256": 12
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 8,
+   "pass32": 9.73,
+   "pass256": 10
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 0,
+   "pass32": 1.73,
+   "pass256": 2
+  },
+  "solved_k": [
+   "absorption",
+   "contraposition",
+   "dn_elim",
+   "dn_intro",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "dn_elim",
+   "dn_intro",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ]
+ },
+ "T1_S_s0_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 11,
+   "pass32": 14.95,
+   "pass256": 16
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 7,
+   "pass32": 9.96,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 4,
+   "pass32": 5.0,
+   "pass256": 5
+  },
+  "solved_k": [
+   "absorption",
+   "contraposition",
+   "demorgan_nor_to_and",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "reductio_pair",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "contraposition",
+   "demorgan_nor_to_and",
+   "dn_elim",
+   "dn_intro",
+   "export",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "positive_paradox",
+   "reductio_pair",
+   "triple_negation"
+  ]
+ },
+ "T1_S_s1_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 10,
+   "pass32": 12.97,
+   "pass256": 15
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 8,
+   "pass32": 9.83,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 2,
+   "pass32": 3.14,
+   "pass256": 4
+  },
+  "solved_k": [
+   "absorption",
+   "demorgan_nor_to_and",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "excluded_middle",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ]
+ },
+ "T1_SH_s0_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 9,
+   "pass32": 13.62,
+   "pass256": 14
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 8,
+   "pass32": 10.78,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 1,
+   "pass32": 2.85,
+   "pass256": 3
+  },
+  "solved_k": [
+   "absorption",
+   "contraposition",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "contraposition",
+   "dn_elim",
+   "dn_intro",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "negative_paradox",
+   "positive_paradox"
+  ]
+ },
+ "T1_SH_s1_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 12,
+   "pass32": 15.46,
+   "pass256": 17
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 10,
+   "pass32": 11.0,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 2,
+   "pass32": 4.46,
+   "pass256": 6
+  },
+  "solved_k": [
+   "absorption",
+   "contraposition",
+   "demorgan_and_to_nor",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negated_conditional_conv",
+   "negative_paradox",
+   "positive_paradox",
+   "resolution",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "contraposition",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ]
+ },
+ "T1_SN_s0_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 13,
+   "pass32": 17.01,
+   "pass256": 18
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 9,
+   "pass32": 10.81,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 4,
+   "pass32": 6.21,
+   "pass256": 7
+  },
+  "solved_k": [
+   "absorption",
+   "contraposition",
+   "demorgan_nor_to_and",
+   "demorgan_or_to_nand",
+   "disjunctive_syllogism",
+   "dist_or_over_and",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "resolution",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "demorgan_nor_to_and",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "resolution"
+  ]
+ },
+ "T1_SN_s1_r8": {
+  "all": {
+   "n": 36,
+   "greedy": 11,
+   "pass32": 12.54,
+   "pass256": 15
+  },
+  "<=6": {
+   "n": 12,
+   "greedy": 10,
+   "pass32": 10.12,
+   "pass256": 11
+  },
+  ">6": {
+   "n": 24,
+   "greedy": 1,
+   "pass32": 2.41,
+   "pass256": 4
+  },
+  "solved_k": [
+   "absorption",
+   "contraposition",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "export",
+   "hypothetical_syllogism",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "resolution",
+   "triple_negation"
+  ],
+  "solved_greedy": [
+   "absorption",
+   "disjunctive_syllogism",
+   "dn_elim",
+   "dn_intro",
+   "explosion",
+   "identity",
+   "modus_ponens",
+   "modus_tollens",
+   "negative_paradox",
+   "positive_paradox",
+   "triple_negation"
+  ]
+ }
+}

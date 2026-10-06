@@ -1,0 +1,50 @@
+{
+  "analysis_sha256": "9dd4bf4c0da9864fbf61e6ddf00b6c4cd712fc8f536819a9eb1e1716c634a288",
+  "scope": "Only copied DEV smoke outcomes and synthetic TEST metadata/registry",
+  "cases": {
+    "clean": {
+      "rejected": false,
+      "scored_branches_opened": true
+    },
+    "wrong_bootstrap": {
+      "rejected": true,
+      "message": "Model, policy or analysis implementation is not registered for test",
+      "scored_branches_opened": false
+    },
+    "wrong_registry": {
+      "rejected": true,
+      "message": "Generation and analysis use different test registrations",
+      "scored_branches_opened": false
+    },
+    "wrong_arguments": {
+      "rejected": true,
+      "message": "Generation arguments differ from registered intervention",
+      "scored_branches_opened": false
+    },
+    "wrong_input_hash": {
+      "rejected": true,
+      "message": "Generation inputs differ from registered intervention",
+      "scored_branches_opened": false
+    },
+    "wrong_upstream": {
+      "rejected": true,
+      "message": "Generation upstream sources differ from registration",
+      "scored_branches_opened": false
+    },
+    "wrong_helper": {
+      "rejected": true,
+      "message": "Generation helper snapshot differs from registration",
+      "scored_branches_opened": false
+    },
+    "wrong_generator": {
+      "rejected": true,
+      "message": "Generation implementation differs from registration",
+      "scored_branches_opened": false
+    },
+    "split_downgrade": {
+      "rejected": true,
+      "message": "Saved split differs from public intervention panel",
+      "scored_branches_opened": false
+    }
+  }
+}

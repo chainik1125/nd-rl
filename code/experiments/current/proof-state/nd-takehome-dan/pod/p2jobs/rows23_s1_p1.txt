@@ -1,0 +1,12 @@
+stage1_reductio_f0.001_s0 python3 train.py --data data/p2/train_reductio_f0.001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_reductio_f0.001_s0.pt --cap 6 --seed 0
+stage1_reductio_f0.001_s1 python3 train.py --data data/p2/train_reductio_f0.001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_reductio_f0.001_s1.pt --cap 6 --seed 1
+stage1_depth3_f0.001_s0 python3 train.py --data data/p2/train_depth3_f0.001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_depth3_f0.001_s0.pt --cap 6 --seed 0
+stage1_depth3_f0.001_s1 python3 train.py --data data/p2/train_depth3_f0.001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_depth3_f0.001_s1.pt --cap 6 --seed 1
+stage1_derived_ore_f0.001_s0 python3 train.py --data data/p2/train_derived_ore_f0.001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_derived_ore_f0.001_s0.pt --cap 6 --seed 0
+stage1_derived_ore_f0.001_s1 python3 train.py --data data/p2/train_derived_ore_f0.001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_derived_ore_f0.001_s1.pt --cap 6 --seed 1
+stage1_reductio_f0.0001_s0 python3 train.py --data data/p2/train_reductio_f0.0001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_reductio_f0.0001_s0.pt --cap 6 --seed 0
+stage1_reductio_f0.01_s0 python3 train.py --data data/p2/train_reductio_f0.01.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_reductio_f0.01_s0.pt --cap 6 --seed 0
+stage1_depth3_f0.0001_s0 python3 train.py --data data/p2/train_depth3_f0.0001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_depth3_f0.0001_s0.pt --cap 6 --seed 0
+stage1_depth3_f0.01_s0 python3 train.py --data data/p2/train_depth3_f0.01.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_depth3_f0.01_s0.pt --cap 6 --seed 0
+stage1_derived_ore_f0.0001_s0 python3 train.py --data data/p2/train_derived_ore_f0.0001.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_derived_ore_f0.0001_s0.pt --cap 6 --seed 0
+stage1_derived_ore_f0.01_s0 python3 train.py --data data/p2/train_derived_ore_f0.01.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/p2/stage1_derived_ore_f0.01_s0.pt --cap 6 --seed 0

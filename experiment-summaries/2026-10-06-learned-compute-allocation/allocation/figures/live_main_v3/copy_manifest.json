@@ -1,0 +1,22 @@
+{
+  "written_on": "2026-10-06",
+  "scope": "Copy-only presentation replica correction; no renderer/statistical changes. Independent constrained-layout saves differed slightly; preserve initial summary renders and replace public replicas with exact artifact bytes.",
+  "files": [
+    {
+      "artifact": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/report_figures/live_main_v3/learned_minus_first.png",
+      "summary_replica": "/data/users/dmitry/ndrl/experiment-summaries/2026-10-06-learned-compute-allocation/allocation/figures/live_main_v3/learned_minus_first.png",
+      "sha256": "4bac2d2c4189a5aafa5114160f57df22d448b831bfba91b8871d02b5c55bb83b",
+      "replica_equal": true,
+      "preserved_summary_first_render": "/data/users/dmitry/ndrl/experiment-summaries/2026-10-06-learned-compute-allocation/allocation/figures/live_main_v3/learned_minus_first_initial_summary_render.png",
+      "first_render_sha256": "a59c0ac94104c9d84247fe809b194aad0c3558d8df2586e42692163616ea2f1e"
+    },
+    {
+      "artifact": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/report_figures/live_main_v3/learned_minus_first.pdf",
+      "summary_replica": "/data/users/dmitry/ndrl/experiment-summaries/2026-10-06-learned-compute-allocation/allocation/figures/live_main_v3/learned_minus_first.pdf",
+      "sha256": "f226b39256fcb756158ed3b3f021274c77c3e6c4e1866b059b85081afeb7c669",
+      "replica_equal": true,
+      "preserved_summary_first_render": "/data/users/dmitry/ndrl/experiment-summaries/2026-10-06-learned-compute-allocation/allocation/figures/live_main_v3/learned_minus_first_initial_summary_render.pdf",
+      "first_render_sha256": "ef74c7e8b72e83c693aa086d05bf517547c29a795308a7729d32ebc20541b6fb"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "scope": "Training diagnostics only; not held-out evidence or confidence intervals.",
+  "trailing_window_updates": 20,
+  "input_hashes": {
+    "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101/metrics.jsonl": "66d6b34c20ed6f5888cbd108f57c3de084a34083b276ea77d377a0707a0c0d6e",
+    "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s102/metrics.jsonl": "9ef936e1eb9e5001ef8d98e5cba48a36ae959d4617a29cc09aa71712b2812ec0",
+    "artifacts/learned_compute_allocation_20261006/allocation/cost/main_s103/metrics.jsonl": "a6acaec566a18e5ef2e866899413eaca623165164f0d9f1a718f8064e8115f79",
+    "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s101/metrics.jsonl": "954e3c6c1cf360cae42a8b3b555aecb574fbc1eceb7916afc100fb917e526af8",
+    "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s102/metrics.jsonl": "c6d7d271eec4e968ee1deec8cd281dd329536c04f64420afe94256003545d6aa",
+    "artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s103/metrics.jsonl": "1b7bf91ee24cddb4c90af7f7ad9da75d4b52500aaae25eb203d4589bb11c2c24"
+  },
+  "plot_script_sha256": "6bb9444d0b294c76a1c2170b9cb24d1d860b35e40f5c72b4e5cd14ae0e5383b9"
+}

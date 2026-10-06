@@ -1,0 +1,169 @@
+{
+  "0": {
+    "counts": {
+      "valid": 180,
+      "complete": 183,
+      "completion_mismatch": 0,
+      "reason_complete": 183,
+      "failure_action_23": 1,
+      "reason_exact goal mismatch": 3,
+      "failure_action_20": 1,
+      "failure_action_25": 1,
+      "failure_action_4": 1,
+      "reason_Or.elim on non-or": 2,
+      "failure_action_3": 1,
+      "failure_action_9": 1,
+      "reason_formula": 1,
+      "failure_action_18": 1,
+      "reason_binder mismatch": 1,
+      "failure_action_6": 1,
+      "reason_malformed": 1,
+      "failure_action_2": 1,
+      "reason_unbound": 1
+    },
+    "examples": [
+      {
+        "theorem_id": "95e3c877ac169b2e8270",
+        "candidate_id": 0,
+        "failure_action": 23,
+        "reason": "exact goal mismatch",
+        "raw_action": "exact n5",
+        "unknown_names": [],
+        "prior_name_overlap": []
+      },
+      {
+        "theorem_id": "95e3c877ac169b2e8270",
+        "candidate_id": 1,
+        "failure_action": 20,
+        "reason": "exact goal mismatch",
+        "raw_action": "exact n23",
+        "unknown_names": [],
+        "prior_name_overlap": []
+      },
+      {
+        "theorem_id": "95e3c877ac169b2e8270",
+        "candidate_id": 2,
+        "failure_action": 25,
+        "reason": "exact goal mismatch",
+        "raw_action": "exact n29",
+        "unknown_names": [],
+        "prior_name_overlap": []
+      }
+    ]
+  },
+  "1": {
+    "counts": {
+      "failure_action_5": 12,
+      "valid": 5,
+      "complete": 7,
+      "completion_mismatch": 0,
+      "reason_unbound": 142,
+      "failure_action_4": 15,
+      "failure_action_6": 5,
+      "failure_action_3": 23,
+      "reason_binder mismatch": 23,
+      "unbound_has_prior_name": 101,
+      "failure_action_1": 76,
+      "failure_action_2": 20,
+      "failure_action_18": 2,
+      "failure_action_11": 1,
+      "reason_exact not last": 4,
+      "failure_action_23": 4,
+      "failure_action_12": 2,
+      "failure_action_14": 1,
+      "reason_Or.elim on non-or": 5,
+      "reason_step_cap": 2,
+      "reason_malformed": 3,
+      "failure_action_22": 2,
+      "failure_action_21": 4,
+      "failure_action_7": 6,
+      "failure_action_13": 1,
+      "failure_action_37": 1,
+      "reason_assign": 2,
+      "failure_action_9": 3,
+      "reason_complete": 7,
+      "reason_names exhausted": 1,
+      "failure_action_10": 1,
+      "reason_have name": 1,
+      "reason_term": 1,
+      "failure_action_30": 1,
+      "failure_action_34": 1,
+      "failure_action_15": 1,
+      "failure_action_8": 1,
+      "reason_formula": 1
+    },
+    "examples": [
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 0,
+        "failure_action": 5,
+        "reason": "unbound",
+        "raw_action": "have n20 : ( \u00ac S ) := n31 .2 ;",
+        "unknown_names": [
+          "n31"
+        ],
+        "prior_name_overlap": []
+      },
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 1,
+        "failure_action": 4,
+        "reason": "unbound",
+        "raw_action": "have n7 : ( \u00ac S ) := Classical.byContradiction ( fun hh => n20 hh ) ;",
+        "unknown_names": [
+          "n20"
+        ],
+        "prior_name_overlap": []
+      },
+      {
+        "theorem_id": "ced4915debf0c500243e",
+        "candidate_id": 2,
+        "failure_action": 6,
+        "reason": "unbound",
+        "raw_action": "have n37 : False := n28 n29 ;",
+        "unknown_names": [
+          "n28"
+        ],
+        "prior_name_overlap": []
+      }
+    ]
+  },
+  "first_action_logit_spotcheck": [
+    {
+      "theorem_id": "ced4915debf0c500243e",
+      "prefix_tokens": 149,
+      "clean_top": "have",
+      "history_top": "have",
+      "masked_top": "have",
+      "max_abs_masked_clean_logits": 2.86102294921875e-06,
+      "KL_clean_to_history": 1.9324766981299035e-05
+    },
+    {
+      "theorem_id": "95e3c877ac169b2e8270",
+      "prefix_tokens": 537,
+      "clean_top": "have",
+      "history_top": "have",
+      "masked_top": "have",
+      "max_abs_masked_clean_logits": 3.5762786865234375e-06,
+      "KL_clean_to_history": 7.395254215225577e-06
+    },
+    {
+      "theorem_id": "02f4ea717d191b858356",
+      "prefix_tokens": 231,
+      "clean_top": "have",
+      "history_top": "have",
+      "masked_top": "have",
+      "max_abs_masked_clean_logits": 2.86102294921875e-06,
+      "KL_clean_to_history": 3.558945536497049e-05
+    },
+    {
+      "theorem_id": "dcbf100ab807712beb80",
+      "prefix_tokens": 222,
+      "clean_top": "have",
+      "history_top": "have",
+      "masked_top": "have",
+      "max_abs_masked_clean_logits": 3.814697265625e-06,
+      "KL_clean_to_history": 5.861346380697796e-06
+    }
+  ]
+}

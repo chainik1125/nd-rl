@@ -1,0 +1,2111 @@
+{
+  "split": "dev",
+  "signature": {
+    "method": "staged_policy_aggregation",
+    "code_sha256": "933953f886714f850df95cc93336e7161c0610dabce95c676028660fbc0a6dba",
+    "bootstrap_code_sha256": "0a37863c24051f45597cbf238ba98ccf99a8505712ca0a9b1b267c380062986a",
+    "validator_sha256": "9b81e9cc12e2ed070589955b482e5581e4b3448fa405c16625ff72f802b0ef94",
+    "inventory_sha256": "b93b222bf0b1de4f9fa802d6ccbe3fef0cca88e995180062c162a8b56c3dc8e0",
+    "bootstrap_samples": 5000,
+    "bootstrap_seed": 61006,
+    "confidence": 0.95,
+    "resampling": "theorem within family; critic-seed mean within theorem",
+    "costs": [
+      "0.0",
+      "0.01",
+      "0.03",
+      "0.1"
+    ],
+    "primary_cost": "0.03",
+    "matched_metrics": [
+      "attempts",
+      "total_model_input_tokens_lower_bound"
+    ]
+  },
+  "groups": {
+    "bce": {
+      "0.0": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8574652777777778,
+            "attempts": 6.9192559523809525,
+            "total_model_input_tokens_lower_bound": 22659.05781374008,
+            "reward": 0.8574652777777778
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.8572916666666666,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 25437.0625,
+            "reward": 0.8572916666666666
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7841145833333332,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 6359.265625,
+            "reward": 0.7841145833333332
+          },
+          "fixed4": {
+            "accuracy": 0.825610119047619,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 12718.53125,
+            "reward": 0.825610119047619
+          },
+          "fixed8": {
+            "accuracy": 0.8572916666666666,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 25437.0625,
+            "reward": 0.8572916666666666
+          },
+          "matched_attempts": {
+            "accuracy": 0.8485674856172938,
+            "attempts": 6.9192559523809525,
+            "total_model_input_tokens_lower_bound": 22000.69326427641,
+            "reward": 0.8485674856172938
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.8502298455173998,
+            "attempts": 7.126312737955518,
+            "total_model_input_tokens_lower_bound": 22659.05781374008,
+            "reward": 0.8502298455173998
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.00017361111111110816,
+              "low": -0.0017361111111111143,
+              "high": 0.0020833333333333316,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -1.0807440476190477,
+              "low": -1.2654354538690475,
+              "high": -0.9051446242559524,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -2778.0046862599206,
+              "low": -3222.836183004712,
+              "high": -2356.132696800596,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.00017361111111110816,
+              "low": -0.0017361111111111143,
+              "high": 0.0020833333333333316,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.008897792160483978,
+              "low": 0.005290058657414783,
+              "high": 0.012446899137259061,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 7.605027718682322e-16,
+              "low": -0.18469140624999916,
+              "high": 0.17559942336309597,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 658.3645494636672,
+              "low": 154.06712515578656,
+              "high": 1163.5795382933618,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.008897792160483978,
+              "low": 0.005290058657414783,
+              "high": 0.012446899137259061,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.007235432260377907,
+              "low": 0.004214842121555556,
+              "high": 0.01023256060346337,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.2070567855745661,
+              "low": -0.39174819182456616,
+              "high": -0.03145736221147092,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -2.955857780762017e-13,
+              "low": -482.9761295432738,
+              "high": 485.2418041191324,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.007235432260377907,
+              "low": 0.004214842121555556,
+              "high": 0.01023256060346337,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "0": {
+            "adaptive": {
+              "accuracy": 0.859375,
+              "attempts": 7.42669642857143,
+              "total_model_input_tokens_lower_bound": 24063.98495907738,
+              "reward": 0.859375
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.859375,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.859375
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7856026785714285,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7856026785714285
+            },
+            "fixed4": {
+              "accuracy": 0.8286607142857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.8286607142857143
+            },
+            "fixed8": {
+              "accuracy": 0.859375,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.859375
+            },
+            "matched_attempts": {
+              "accuracy": 0.8549728475765306,
+              "attempts": 7.426696428571428,
+              "total_model_input_tokens_lower_bound": 23614.167652762273,
+              "reward": 0.8549728475765306
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8560591221623159,
+              "attempts": 7.568164746720226,
+              "total_model_input_tokens_lower_bound": 24063.98495907738,
+              "reward": 0.8560591221623159
+            }
+          },
+          "1": {
+            "adaptive": {
+              "accuracy": 0.8567708333333334,
+              "attempts": 6.022187499999999,
+              "total_model_input_tokens_lower_bound": 20198.393816964286,
+              "reward": 0.8567708333333334
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.85625
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7823660714285714,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7823660714285714
+            },
+            "fixed4": {
+              "accuracy": 0.8231249999999999,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.8231249999999999
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.85625
+            },
+            "matched_attempts": {
+              "accuracy": 0.8398712402343751,
+              "attempts": 6.0221875,
+              "total_model_input_tokens_lower_bound": 19148.344978027344,
+              "reward": 0.8398712402343751
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8426060582024313,
+              "attempts": 6.352429669727559,
+              "total_model_input_tokens_lower_bound": 20198.393816964286,
+              "reward": 0.8426060582024313
+            }
+          },
+          "2": {
+            "adaptive": {
+              "accuracy": 0.85625,
+              "attempts": 7.308883928571428,
+              "total_model_input_tokens_lower_bound": 23714.79466517857,
+              "reward": 0.85625
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.85625
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7843749999999998,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7843749999999998
+            },
+            "fixed4": {
+              "accuracy": 0.825044642857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.825044642857143
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.85625
+            },
+            "matched_attempts": {
+              "accuracy": 0.8508583690409758,
+              "attempts": 7.308883928571428,
+              "total_model_input_tokens_lower_bound": 23239.56716203962,
+              "reward": 0.8508583690409758
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8520243561874523,
+              "attempts": 7.4583437974187685,
+              "total_model_input_tokens_lower_bound": 23714.79466517857,
+              "reward": 0.8520243561874523
+            }
+          }
+        }
+      },
+      "0.01": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8414074900793651,
+            "attempts": 3.2637686011904763,
+            "total_model_input_tokens_lower_bound": 11758.839227430555,
+            "reward": 0.8187698040674602
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.825610119047619,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 12718.53125,
+            "reward": 0.7956101190476191
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7841145833333332,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 6359.265625,
+            "reward": 0.7741145833333333
+          },
+          "fixed4": {
+            "accuracy": 0.825610119047619,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 12718.53125,
+            "reward": 0.7956101190476191
+          },
+          "fixed8": {
+            "accuracy": 0.8572916666666666,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 25437.0625,
+            "reward": 0.7872916666666666
+          },
+          "matched_attempts": {
+            "accuracy": 0.8095375165251648,
+            "attempts": 3.2637686011904767,
+            "total_model_input_tokens_lower_bound": 10377.585736752462,
+            "reward": 0.7868998305132602
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.8165554198706891,
+            "attempts": 3.6981752047605516,
+            "total_model_input_tokens_lower_bound": 11758.839227430555,
+            "reward": 0.7895736678230836
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.015797371031745895,
+              "low": 0.004384734623015729,
+              "high": 0.027861266121031594,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.7362313988095238,
+              "low": -0.9854476376488096,
+              "high": -0.48335016741071435,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -959.6920225694445,
+              "low": -1933.5525783110122,
+              "high": 83.52041427951374,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.02315968501984112,
+              "low": 0.012225556485614925,
+              "high": 0.03432120721726174,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.03186997355420028,
+              "low": 0.01926386880022593,
+              "high": 0.044983401486835724,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -6.661338147750939e-17,
+              "low": -0.2492162388392857,
+              "high": 0.25288123139880947,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 1381.2534906780916,
+              "low": 330.9943302109137,
+              "high": 2516.578508797539,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.03186997355420022,
+              "low": 0.020112926418105383,
+              "high": 0.044528427078696746,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.024852070208675924,
+              "low": 0.013229313548449992,
+              "high": 0.037246223401962,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.4344066035700749,
+              "low": -0.6836228424093607,
+              "high": -0.1815253721712654,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -7.275957614183426e-13,
+              "low": -1004.8375595440701,
+              "high": 1077.9282777441665,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.02919613624437668,
+              "low": 0.018131889194332187,
+              "high": 0.040884096440081515,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "0": {
+            "adaptive": {
+              "accuracy": 0.8413727678571428,
+              "attempts": 3.149464285714285,
+              "total_model_input_tokens_lower_bound": 11367.129534970238,
+              "reward": 0.819878125
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.8286607142857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7986607142857144
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7856026785714285,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7756026785714285
+            },
+            "fixed4": {
+              "accuracy": 0.8286607142857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7986607142857144
+            },
+            "fixed8": {
+              "accuracy": 0.859375,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.7893749999999999
+            },
+            "matched_attempts": {
+              "accuracy": 0.8103495157047196,
+              "attempts": 3.149464285714285,
+              "total_model_input_tokens_lower_bound": 10014.139984654019,
+              "reward": 0.7888548728475765
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8195104905426861,
+              "attempts": 3.574981831324348,
+              "total_model_input_tokens_lower_bound": 11367.129534970238,
+              "reward": 0.7937606722294428
+            }
+          },
+          "1": {
+            "adaptive": {
+              "accuracy": 0.8521949404761905,
+              "attempts": 4.189877232142857,
+              "total_model_input_tokens_lower_bound": 14893.19949404762,
+              "reward": 0.8202961681547618
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.8231249999999999,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7931250000000002
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7823660714285714,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7723660714285714
+            },
+            "fixed4": {
+              "accuracy": 0.8231249999999999,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7931250000000002
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.7862499999999999
+            },
+            "matched_attempts": {
+              "accuracy": 0.8246974208286832,
+              "attempts": 4.189877232142856,
+              "total_model_input_tokens_lower_bound": 13322.271127668111,
+              "reward": 0.7927986485072547
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8287888525446151,
+              "attempts": 4.683936911047844,
+              "total_model_input_tokens_lower_bound": 14893.19949404762,
+              "reward": 0.7919494834341367
+            }
+          },
+          "2": {
+            "adaptive": {
+              "accuracy": 0.8306547619047618,
+              "attempts": 2.4519642857142854,
+              "total_model_input_tokens_lower_bound": 9016.18865327381,
+              "reward": 0.8161351190476189
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.825044642857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7950446428571429
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7843749999999998,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7743749999999998
+            },
+            "fixed4": {
+              "accuracy": 0.825044642857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7950446428571429
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.7862499999999999
+            },
+            "matched_attempts": {
+              "accuracy": 0.7935656130420917,
+              "attempts": 2.451964285714286,
+              "total_model_input_tokens_lower_bound": 7796.346097935266,
+              "reward": 0.779045970184949
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8013669165247661,
+              "attempts": 2.8356068719094623,
+              "total_model_input_tokens_lower_bound": 9016.18865327381,
+              "reward": 0.7830108478056713
+            }
+          }
+        }
+      },
+      "0.03": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8278931051587302,
+            "attempts": 2.2809375,
+            "total_model_input_tokens_lower_bound": 8391.507041170637,
+            "reward": 0.7894649801587301
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.7841145833333332,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 6359.265625,
+            "reward": 0.7541145833333331
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7841145833333332,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 6359.265625,
+            "reward": 0.7541145833333331
+          },
+          "fixed4": {
+            "accuracy": 0.825610119047619,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 12718.53125,
+            "reward": 0.7356101190476192
+          },
+          "fixed8": {
+            "accuracy": 0.8572916666666666,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 25437.0625,
+            "reward": 0.6472916666666667
+          },
+          "matched_attempts": {
+            "accuracy": 0.7899374947684151,
+            "attempts": 2.2809375,
+            "total_model_input_tokens_lower_bound": 7252.543718261719,
+            "reward": 0.751509369768415
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.7973501077495155,
+            "attempts": 2.63914342819125,
+            "total_model_input_tokens_lower_bound": 8391.507041170635,
+            "reward": 0.7481758049037781
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.043778521825396946,
+              "low": 0.02841381448412712,
+              "high": 0.06054854910714298,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 0.2809375,
+              "low": 0.054613374255952384,
+              "high": 0.5185502232142858,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 2032.2414161706347,
+              "low": 945.1890400235615,
+              "high": 3284.868765531992,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.03535039682539694,
+              "low": 0.020402232142857246,
+              "high": 0.05043432694692471,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.03795561039031509,
+              "low": 0.02336829559706787,
+              "high": 0.053817944514821796,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 8.881784197001253e-17,
+              "low": -0.22632412574404753,
+              "high": 0.23761272321428575,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 1138.9633229089159,
+              "low": 83.33078196105957,
+              "high": 2361.187419912138,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.03795561039031508,
+              "low": 0.023887096584259613,
+              "high": 0.052347363981908764,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.03054299740921449,
+              "low": 0.01678454622507779,
+              "high": 0.045375477790947506,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.35820592819124986,
+              "low": -0.5845300539352976,
+              "high": -0.12059320497696423,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -9.094947017729283e-14,
+              "low": -1025.6121231246757,
+              "high": 1185.2685335506835,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.041289175254951994,
+              "low": 0.027776577897459503,
+              "high": 0.05515476139903931,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "0": {
+            "adaptive": {
+              "accuracy": 0.8296428571428571,
+              "attempts": 2.2625669642857145,
+              "total_model_input_tokens_lower_bound": 8171.107626488095,
+              "reward": 0.7917658482142856
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.7856026785714285,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7556026785714284
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7856026785714285,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7556026785714284
+            },
+            "fixed4": {
+              "accuracy": 0.8286607142857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7386607142857144
+            },
+            "fixed8": {
+              "accuracy": 0.859375,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.649375
+            },
+            "matched_attempts": {
+              "accuracy": 0.7912554874342315,
+              "attempts": 2.2625669642857145,
+              "total_model_input_tokens_lower_bound": 7194.132160121373,
+              "reward": 0.75337847850566
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.7978705035388307,
+              "attempts": 2.5698274323894417,
+              "total_model_input_tokens_lower_bound": 8171.107626488095,
+              "reward": 0.7507756805671475
+            }
+          },
+          "1": {
+            "adaptive": {
+              "accuracy": 0.8274851190476191,
+              "attempts": 2.374888392857143,
+              "total_model_input_tokens_lower_bound": 8886.635963541667,
+              "reward": 0.7862384672619046
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.7823660714285714,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7523660714285713
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7823660714285714,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7523660714285713
+            },
+            "fixed4": {
+              "accuracy": 0.8231249999999999,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7331250000000001
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.64625
+            },
+            "matched_attempts": {
+              "accuracy": 0.7900060960419323,
+              "attempts": 2.374888392857143,
+              "total_model_input_tokens_lower_bound": 7551.273059953962,
+              "reward": 0.748759444256218
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.7985649398477793,
+              "attempts": 2.794862327689501,
+              "total_model_input_tokens_lower_bound": 8886.635963541667,
+              "reward": 0.7447190700170945
+            }
+          },
+          "2": {
+            "adaptive": {
+              "accuracy": 0.8265513392857142,
+              "attempts": 2.2053571428571432,
+              "total_model_input_tokens_lower_bound": 8116.777533482144,
+              "reward": 0.7903906249999999
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.7843749999999998,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7543749999999998
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7843749999999998,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.7543749999999998
+            },
+            "fixed4": {
+              "accuracy": 0.825044642857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.7350446428571431
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.64625
+            },
+            "matched_attempts": {
+              "accuracy": 0.7885509008290816,
+              "attempts": 2.205357142857143,
+              "total_model_input_tokens_lower_bound": 7012.225934709821,
+              "reward": 0.7523901865433672
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.7956148798619368,
+              "attempts": 2.5527405244948054,
+              "total_model_input_tokens_lower_bound": 8116.7775334821445,
+              "reward": 0.7490326641270926
+            }
+          }
+        }
+      },
+      "0.1": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8039608134920634,
+            "attempts": 1.740260416666667,
+            "total_model_input_tokens_lower_bound": 6287.998061755953,
+            "reward": 0.7299347718253968
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7841145833333332,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 6359.265625,
+            "reward": 0.6841145833333332
+          },
+          "fixed4": {
+            "accuracy": 0.825610119047619,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 12718.53125,
+            "reward": 0.5256101190476191
+          },
+          "fixed8": {
+            "accuracy": 0.8572916666666666,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 25437.0625,
+            "reward": 0.15729166666666655
+          },
+          "matched_attempts": {
+            "accuracy": 0.7644094474948182,
+            "attempts": 1.7402604166666666,
+            "total_model_input_tokens_lower_bound": 5418.14469921875,
+            "reward": 0.6903834058281515
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.7809252561855492,
+            "attempts": 1.9848026792861364,
+            "total_model_input_tokens_lower_bound": 6287.998061755953,
+            "reward": 0.6824449882569354
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.09575768849206345,
+              "low": 0.07775365823412697,
+              "high": 0.11512865823412688,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 0.7402604166666666,
+              "low": 0.5499086681547619,
+              "high": 0.9481605282738094,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 3552.057436755952,
+              "low": 2548.7431663566467,
+              "high": 4738.2314703311,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.02173164682539678,
+              "low": -0.0029827566964286266,
+              "high": 0.04611581101190471,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.039551365997245305,
+              "low": 0.025292931599519737,
+              "high": 0.055659107490245475,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 1.1102230246251566e-17,
+              "low": -0.19035174851190476,
+              "high": 0.20790011160714286,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 869.8533625372022,
+              "low": -67.91158891286724,
+              "high": 1953.144672840153,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.03955136599724528,
+              "low": 0.017701946675480106,
+              "high": 0.06096562449483377,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.023035557306514333,
+              "low": 0.009038268317423902,
+              "high": 0.038543823100853386,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.2445422626194694,
+              "low": -0.4348940111313742,
+              "high": -0.036642151012326665,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -7.275957614183426e-13,
+              "low": -915.5888088168731,
+              "high": 1066.3926842933495,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.04748978356846134,
+              "low": 0.026334261879409862,
+              "high": 0.06822940143266581,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "0": {
+            "adaptive": {
+              "accuracy": 0.8016778273809523,
+              "attempts": 1.689732142857143,
+              "total_model_input_tokens_lower_bound": 6034.987239583333,
+              "reward": 0.732704613095238
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7856026785714285,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.6856026785714284
+            },
+            "fixed4": {
+              "accuracy": 0.8286607142857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.5286607142857144
+            },
+            "fixed8": {
+              "accuracy": 0.859375,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.1593749999999999
+            },
+            "matched_attempts": {
+              "accuracy": 0.7615880849410076,
+              "attempts": 1.6897321428571428,
+              "total_model_input_tokens_lower_bound": 5235.0643415178565,
+              "reward": 0.6926148706552933
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.7786756150968261,
+              "attempts": 1.9105025396792539,
+              "total_model_input_tokens_lower_bound": 6034.9872395833345,
+              "reward": 0.6876253611289006
+            }
+          },
+          "1": {
+            "adaptive": {
+              "accuracy": 0.7983519345238095,
+              "attempts": 1.6913504464285716,
+              "total_model_input_tokens_lower_bound": 6121.400260416667,
+              "reward": 0.7292168898809523
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7823660714285714,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.6823660714285713
+            },
+            "fixed4": {
+              "accuracy": 0.8231249999999999,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.5231250000000001
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.15624999999999992
+            },
+            "matched_attempts": {
+              "accuracy": 0.7594757111218511,
+              "attempts": 1.6913504464285718,
+              "total_model_input_tokens_lower_bound": 5240.927981305804,
+              "reward": 0.6903406664789938
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.7774973952014026,
+              "attempts": 1.9343516343183862,
+              "total_model_input_tokens_lower_bound": 6121.400260416665,
+              "reward": 0.6840622317695639
+            }
+          },
+          "2": {
+            "adaptive": {
+              "accuracy": 0.8118526785714284,
+              "attempts": 1.8396986607142858,
+              "total_model_input_tokens_lower_bound": 6707.606685267858,
+              "reward": 0.7278828124999999
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7843749999999998,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 6359.265625,
+              "reward": 0.6843749999999998
+            },
+            "fixed4": {
+              "accuracy": 0.825044642857143,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 12718.53125,
+              "reward": 0.525044642857143
+            },
+            "fixed8": {
+              "accuracy": 0.85625,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 25437.0625,
+              "reward": 0.15624999999999992
+            },
+            "matched_attempts": {
+              "accuracy": 0.7721645464215958,
+              "attempts": 1.8396986607142858,
+              "total_model_input_tokens_lower_bound": 5778.4417748325895,
+              "reward": 0.6881946803501673
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.7866027582584186,
+              "attempts": 2.1095538638607683,
+              "total_model_input_tokens_lower_bound": 6707.606685267859,
+              "reward": 0.6756473718723417
+            }
+          }
+        }
+      }
+    },
+    "feature": {
+      "0.0": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8727678571428571,
+            "attempts": 6.942388392857143,
+            "total_model_input_tokens_lower_bound": 39903.908627232144,
+            "reward": 0.8727678571428571
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.871875,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 43885.409375,
+            "reward": 0.871875
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7935267857142856,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 10971.35234375,
+            "reward": 0.7935267857142856
+          },
+          "fixed4": {
+            "accuracy": 0.8390625,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 21942.7046875,
+            "reward": 0.8390625
+          },
+          "fixed8": {
+            "accuracy": 0.871875,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 43885.409375,
+            "reward": 0.871875
+          },
+          "matched_attempts": {
+            "accuracy": 0.8631992797851563,
+            "attempts": 6.942388392857142,
+            "total_model_input_tokens_lower_bound": 38083.69458259801,
+            "reward": 0.8631992797851563
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.8659211763877014,
+            "attempts": 7.274200550119788,
+            "total_model_input_tokens_lower_bound": 39903.908627232144,
+            "reward": 0.8659211763877014
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.0008928571428571362,
+              "low": -9.714451465470119e-18,
+              "high": 0.0026785714285714243,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -1.0576116071428572,
+              "low": -1.287578404017857,
+              "high": -0.8383010602678577,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -3981.500747767858,
+              "low": -4869.8504496837795,
+              "high": -3128.73207468378,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.0008928571428571362,
+              "low": -9.714451465470119e-18,
+              "high": 0.0026785714285714243,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.009568577357700881,
+              "low": 0.0058310282804527915,
+              "high": 0.013672252371651778,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 1.8318679906315082e-16,
+              "low": -0.22996679687499988,
+              "high": 0.21931054687499954,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 1820.2140446341393,
+              "low": 815.8686345586876,
+              "high": 2787.807087449792,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.009568577357700881,
+              "low": 0.0058310282804527915,
+              "high": 0.013672252371651778,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.006846680755155698,
+              "low": 0.0040421197041319275,
+              "high": 0.010003335453998893,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.3318121572626455,
+              "low": -0.5617789541376456,
+              "high": -0.11250161038764606,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 2.9103830456733705e-12,
+              "low": -965.0113125561506,
+              "high": 922.7139128003907,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.006846680755155698,
+              "low": 0.0040421197041319275,
+              "high": 0.010003335453998893,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "None": {
+            "adaptive": {
+              "accuracy": 0.8727678571428571,
+              "attempts": 6.942388392857143,
+              "total_model_input_tokens_lower_bound": 39903.908627232144,
+              "reward": 0.8727678571428571
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.871875,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 43885.409375,
+              "reward": 0.871875
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7935267857142856,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 10971.35234375,
+              "reward": 0.7935267857142856
+            },
+            "fixed4": {
+              "accuracy": 0.8390625,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 21942.7046875,
+              "reward": 0.8390625
+            },
+            "fixed8": {
+              "accuracy": 0.871875,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 43885.409375,
+              "reward": 0.871875
+            },
+            "matched_attempts": {
+              "accuracy": 0.8631992797851563,
+              "attempts": 6.942388392857142,
+              "total_model_input_tokens_lower_bound": 38083.69458259801,
+              "reward": 0.8631992797851563
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8659211763877014,
+              "attempts": 7.274200550119788,
+              "total_model_input_tokens_lower_bound": 39903.908627232144,
+              "reward": 0.8659211763877014
+            }
+          }
+        }
+      },
+      "0.01": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8573437500000001,
+            "attempts": 2.7937611607142854,
+            "total_model_input_tokens_lower_bound": 18818.002529761907,
+            "reward": 0.8394061383928569
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.8390625,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 21942.7046875,
+            "reward": 0.8090625000000001
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7935267857142856,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 10971.35234375,
+            "reward": 0.7835267857142856
+          },
+          "fixed4": {
+            "accuracy": 0.8390625,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 21942.7046875,
+            "reward": 0.8090625000000001
+          },
+          "fixed8": {
+            "accuracy": 0.871875,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 43885.409375,
+            "reward": 0.8018749999999999
+          },
+          "matched_attempts": {
+            "accuracy": 0.8115990264269769,
+            "attempts": 2.793761160714286,
+            "total_model_input_tokens_lower_bound": 15325.669029240196,
+            "reward": 0.7936614148198342
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.8260936753533491,
+            "attempts": 3.4303888782647425,
+            "total_model_input_tokens_lower_bound": 18818.002529761907,
+            "reward": 0.8017897865707017
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.018281249999999815,
+              "low": 0.005130115327380764,
+              "high": 0.032423363095237905,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -1.2062388392857142,
+              "low": -1.4817260044642855,
+              "high": -0.9213775111607144,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -3124.7021577380956,
+              "low": -5173.109772414434,
+              "high": -986.777878720239,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.030343638392856982,
+              "low": 0.017608817894345073,
+              "high": 0.04360213355654743,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.04574472357302297,
+              "low": 0.029152958216245504,
+              "high": 0.06307584374148831,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 3.108624468950438e-16,
+              "low": -0.2754871651785712,
+              "high": 0.28486132812500015,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 3492.3335005217073,
+              "low": 1183.6621743236017,
+              "high": 5922.897656116593,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.04574472357302292,
+              "low": 0.029978934631347612,
+              "high": 0.061982981861140415,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.03125007464665085,
+              "low": 0.016649128863353554,
+              "high": 0.04672965144994802,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.6366277175504562,
+              "low": -0.9121148827290276,
+              "high": -0.35176638942545624,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": -7.275957614183426e-13,
+              "low": -2180.1302147034444,
+              "high": 2286.5347627097517,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.037616351822155426,
+              "low": 0.023808060309485943,
+              "high": 0.05218530862204907,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "None": {
+            "adaptive": {
+              "accuracy": 0.8573437500000001,
+              "attempts": 2.7937611607142854,
+              "total_model_input_tokens_lower_bound": 18818.002529761907,
+              "reward": 0.8394061383928569
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.8390625,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 21942.7046875,
+              "reward": 0.8090625000000001
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7935267857142856,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 10971.35234375,
+              "reward": 0.7835267857142856
+            },
+            "fixed4": {
+              "accuracy": 0.8390625,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 21942.7046875,
+              "reward": 0.8090625000000001
+            },
+            "fixed8": {
+              "accuracy": 0.871875,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 43885.409375,
+              "reward": 0.8018749999999999
+            },
+            "matched_attempts": {
+              "accuracy": 0.8115990264269769,
+              "attempts": 2.793761160714286,
+              "total_model_input_tokens_lower_bound": 15325.669029240196,
+              "reward": 0.7936614148198342
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8260936753533491,
+              "attempts": 3.4303888782647425,
+              "total_model_input_tokens_lower_bound": 18818.002529761907,
+              "reward": 0.8017897865707017
+            }
+          }
+        }
+      },
+      "0.03": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8412909226190475,
+            "attempts": 2.215066964285714,
+            "total_model_input_tokens_lower_bound": 14669.888452380954,
+            "reward": 0.8048389136904761
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.7935267857142856,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 10971.35234375,
+            "reward": 0.7635267857142856
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7935267857142856,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 10971.35234375,
+            "reward": 0.7635267857142856
+          },
+          "fixed4": {
+            "accuracy": 0.8390625,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 21942.7046875,
+            "reward": 0.7490625000000002
+          },
+          "fixed8": {
+            "accuracy": 0.871875,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 43885.409375,
+            "reward": 0.661875
+          },
+          "matched_attempts": {
+            "accuracy": 0.7984233996332908,
+            "attempts": 2.215066964285714,
+            "total_model_input_tokens_lower_bound": 12151.140065089634,
+            "reward": 0.7619713907047194
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.8088772619583521,
+            "attempts": 2.6742169958178184,
+            "total_model_input_tokens_lower_bound": 14669.888452380948,
+            "reward": 0.7586507520838175
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.047764136904761986,
+              "low": 0.0316806175595239,
+              "high": 0.06522116815476195,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 0.21506696428571423,
+              "low": -0.02378906250000002,
+              "high": 0.4587879464285712,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 3698.536108630952,
+              "low": 1549.1866296502976,
+              "high": 5959.48550613839,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.041312127976190584,
+              "low": 0.02589177641369058,
+              "high": 0.05756063616071439,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.042867522985756856,
+              "low": 0.0274308628004425,
+              "high": 0.05955559726637241,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 4.4408920985006264e-17,
+              "low": -0.23885602678571427,
+              "high": 0.24372098214285692,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 2518.7483872913185,
+              "low": 426.3989184672046,
+              "high": 4738.956496617999,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.04286752298575684,
+              "low": 0.028093244145192292,
+              "high": 0.05849908183195155,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.032413660660695495,
+              "low": 0.018017673841470284,
+              "high": 0.04759803695416445,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.45915003153210365,
+              "low": -0.698006058317818,
+              "high": -0.21542904938924676,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 2.1827872842550277e-12,
+              "low": -2004.5059069408185,
+              "high": 2133.8307580226415,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.04618816160665864,
+              "low": 0.03251072030893099,
+              "high": 0.06062861819302078,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "None": {
+            "adaptive": {
+              "accuracy": 0.8412909226190475,
+              "attempts": 2.215066964285714,
+              "total_model_input_tokens_lower_bound": 14669.888452380954,
+              "reward": 0.8048389136904761
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.7935267857142856,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 10971.35234375,
+              "reward": 0.7635267857142856
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7935267857142856,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 10971.35234375,
+              "reward": 0.7635267857142856
+            },
+            "fixed4": {
+              "accuracy": 0.8390625,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 21942.7046875,
+              "reward": 0.7490625000000002
+            },
+            "fixed8": {
+              "accuracy": 0.871875,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 43885.409375,
+              "reward": 0.661875
+            },
+            "matched_attempts": {
+              "accuracy": 0.7984233996332908,
+              "attempts": 2.215066964285714,
+              "total_model_input_tokens_lower_bound": 12151.140065089634,
+              "reward": 0.7619713907047194
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.8088772619583521,
+              "attempts": 2.6742169958178184,
+              "total_model_input_tokens_lower_bound": 14669.888452380948,
+              "reward": 0.7586507520838175
+            }
+          }
+        }
+      },
+      "0.1": {
+        "policies": {
+          "adaptive": {
+            "accuracy": 0.8180208333333333,
+            "attempts": 1.876283482142857,
+            "total_model_input_tokens_lower_bound": 12055.112239583334,
+            "reward": 0.7303924851190475
+          },
+          "dev_best_fixed": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed1": {
+            "accuracy": 0.708203125,
+            "attempts": 1.0,
+            "total_model_input_tokens_lower_bound": 2735.940625,
+            "reward": 0.708203125
+          },
+          "fixed2": {
+            "accuracy": 0.7935267857142856,
+            "attempts": 2.0,
+            "total_model_input_tokens_lower_bound": 10971.35234375,
+            "reward": 0.6935267857142856
+          },
+          "fixed4": {
+            "accuracy": 0.8390625,
+            "attempts": 4.0,
+            "total_model_input_tokens_lower_bound": 21942.7046875,
+            "reward": 0.5390625000000002
+          },
+          "fixed8": {
+            "accuracy": 0.871875,
+            "attempts": 8.0,
+            "total_model_input_tokens_lower_bound": 43885.409375,
+            "reward": 0.17187499999999992
+          },
+          "matched_attempts": {
+            "accuracy": 0.7829708395198899,
+            "attempts": 1.8762834821428573,
+            "total_model_input_tokens_lower_bound": 9952.495882786345,
+            "reward": 0.6953424913056041
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": 0.7980248438774705,
+            "attempts": 2.1975617703045898,
+            "total_model_input_tokens_lower_bound": 12055.112239583334,
+            "reward": 0.6782686668470115
+          }
+        },
+        "comparisons": {
+          "dev_best_fixed": {
+            "accuracy": {
+              "mean": 0.10981770833333329,
+              "low": 0.09042308407738091,
+              "high": 0.13109877232142852,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": 0.8762834821428571,
+              "low": 0.6620937499999999,
+              "high": 1.105396484375,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 9319.171614583334,
+              "low": 7088.541263206844,
+              "high": 11811.186468843003,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.022189360119047565,
+              "low": -0.004577380952381005,
+              "high": 0.04887040550595229,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_attempts": {
+            "accuracy": {
+              "mean": 0.03504999381344342,
+              "low": 0.01938242171410808,
+              "high": 0.05221939795357846,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -1.2212453270876723e-16,
+              "low": -0.21418973214285725,
+              "high": 0.2291130022321425,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 2102.6163567969893,
+              "low": 98.21888870983868,
+              "high": 4290.115573053993,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.03504999381344347,
+              "low": 0.011779742649623452,
+              "high": 0.057536371903192544,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          },
+          "matched_total_model_input_tokens_lower_bound": {
+            "accuracy": {
+              "mean": 0.019995989455862746,
+              "low": 0.004961194253314566,
+              "high": 0.036351619615468164,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "attempts": {
+              "mean": -0.3212782881617331,
+              "low": -0.5354680203045903,
+              "high": -0.09216528592959045,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "total_model_input_tokens_lower_bound": {
+              "mean": 3.637978807091713e-13,
+              "low": -1934.7094098982589,
+              "high": 2118.8972572773214,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            },
+            "reward": {
+              "mean": 0.05212381827203607,
+              "low": 0.029103567585314703,
+              "high": 0.07412718088894846,
+              "bootstrap_samples": 5000,
+              "seed": 61006,
+              "theorems": 320
+            }
+          }
+        },
+        "training_seed_metrics": {
+          "None": {
+            "adaptive": {
+              "accuracy": 0.8180208333333333,
+              "attempts": 1.876283482142857,
+              "total_model_input_tokens_lower_bound": 12055.112239583334,
+              "reward": 0.7303924851190475
+            },
+            "dev_best_fixed": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed1": {
+              "accuracy": 0.708203125,
+              "attempts": 1.0,
+              "total_model_input_tokens_lower_bound": 2735.940625,
+              "reward": 0.708203125
+            },
+            "fixed2": {
+              "accuracy": 0.7935267857142856,
+              "attempts": 2.0,
+              "total_model_input_tokens_lower_bound": 10971.35234375,
+              "reward": 0.6935267857142856
+            },
+            "fixed4": {
+              "accuracy": 0.8390625,
+              "attempts": 4.0,
+              "total_model_input_tokens_lower_bound": 21942.7046875,
+              "reward": 0.5390625000000002
+            },
+            "fixed8": {
+              "accuracy": 0.871875,
+              "attempts": 8.0,
+              "total_model_input_tokens_lower_bound": 43885.409375,
+              "reward": 0.17187499999999992
+            },
+            "matched_attempts": {
+              "accuracy": 0.7829708395198899,
+              "attempts": 1.8762834821428573,
+              "total_model_input_tokens_lower_bound": 9952.495882786345,
+              "reward": 0.6953424913056041
+            },
+            "matched_total_model_input_tokens_lower_bound": {
+              "accuracy": 0.7980248438774705,
+              "attempts": 2.1975617703045898,
+              "total_model_input_tokens_lower_bound": 12055.112239583334,
+              "reward": 0.6782686668470115
+            }
+          }
+        }
+      }
+    }
+  },
+  "consumed_inputs": {
+    "artifacts/learned_compute_allocation_20261006/analysis/threshold1600_main_dev_v3/summary.json": "af5dea7dcfb63f6ce8dcab1cd21294e4fd1de4b687a702f9df29075f952a9711",
+    "artifacts/learned_compute_allocation_20261006/analysis/threshold1600_main_dev_v3/per_theorem.jsonl": "ce7ae820b62341189fba7aa8dd6949376b085bc88a56b9d0c7ccf7d950ecc8ac",
+    "artifacts/learned_compute_allocation_20261006/analysis/bce_threshold_main_dev_s0_v3/summary.json": "c55eefbc21b8b0fb162e0132043781ef4a48b9a93b1d2a1d3d817b74f9c40bbe",
+    "artifacts/learned_compute_allocation_20261006/analysis/bce_threshold_main_dev_s0_v3/per_theorem.jsonl": "ac36dcb76bd57b495216db7eadfba01c3d3c1458080be76675ead1b8b515afd9",
+    "artifacts/learned_compute_allocation_20261006/analysis/bce_threshold_main_dev_s1_v3/summary.json": "37eba2437a3587ef25f56a2b2a2a98f2293130d4bca8707cccd4743aa4f45e4b",
+    "artifacts/learned_compute_allocation_20261006/analysis/bce_threshold_main_dev_s1_v3/per_theorem.jsonl": "b765a85bfab92acbe56235a5ae1c1c1184d07b62960eeda94227194afbbd779d",
+    "artifacts/learned_compute_allocation_20261006/analysis/bce_threshold_main_dev_s2_v3/summary.json": "84308c4083d3c53600135a4886f9f019916b3effea5390bb4c4a1547f67a83ff",
+    "artifacts/learned_compute_allocation_20261006/analysis/bce_threshold_main_dev_s2_v3/per_theorem.jsonl": "70f08f14dc4cbb1d3a7317c06e807e1fafa043f0e4cc95d2d94c6eaaeb14c17b"
+  },
+  "caveats": [
+    "DEV choices are optimized and exploratory; TEST freezes them.",
+    "Intervals condition on saved candidate pools, checkpoints and development choices.",
+    "Fixed-mixture compute equality is fitted on DEV; TEST mismatch is reported.",
+    "Logical input-token lower bounds are not actual FLOPs or GPU latency."
+  ]
+}

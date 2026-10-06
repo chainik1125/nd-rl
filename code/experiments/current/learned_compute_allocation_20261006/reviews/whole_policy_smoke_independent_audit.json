@@ -1,0 +1,26 @@
+{
+  "states": 4,
+  "branches": 12,
+  "proofs_rechecked": 18,
+  "valid_proofs": 14,
+  "checks": {
+    "controller_length_mismatch": 0,
+    "forced_flag_mismatch": 0,
+    "decisions_recomputed": 18,
+    "future_count_mismatch": 0,
+    "multifuture_branches": 1,
+    "candidate_identity_mismatch": 0,
+    "generation_seed_mismatch": 0,
+    "stop_uniform_mismatch": 0,
+    "forced_continuation_mismatch": 0,
+    "stop_decision_mismatch": 0,
+    "nonterminal_accept_or_terminal_continue": 0,
+    "oracle_decrease": 0,
+    "Lean_disagreement": 0
+  },
+  "max_selection_value_arithmetic_error": 0.0,
+  "max_CPU_vs_GPU_controller_probability_error": 1.1920928955078125e-07,
+  "runner_hashes_match": true,
+  "checkpoint_hash_matches": true,
+  "scope": "two-theorem DEV integration smoke only"
+}

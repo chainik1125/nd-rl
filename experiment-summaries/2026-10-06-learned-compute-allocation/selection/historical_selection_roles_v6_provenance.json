@@ -1,0 +1,14 @@
+{
+  "scope": "Presentation only; saved role accuracies, no new estimates",
+  "inputs": {
+    "artifacts/learned_compute_allocation_20261006/analysis/final_historical/selection/metrics.json": "89b1445a28ca664cfbf8ba41a0de7e82cee1c84507ff00e1f076a5c6a8a41bc8",
+    "artifacts/learned_compute_allocation_20261006/analysis/final_historical/frozen_head_paired/metrics.json": "fa7cb5d9cfb0e29b95dd66c224c6fbf0a39f97f5b3500307c7d196cb3a82efe9"
+  },
+  "renderer_sha256": "616a7e3a7f5b535b561079010cd7c90d10c91a84a519bb0b90ee50b7623f9a51",
+  "outputs": {
+    "roles.png": "e711bd8944f4696bafde86690d48de5d27189d0c69a7f4bf1993abb9c1de9528",
+    "roles.svg": "439aad238b5a8ff07e9ecaf34fc3bd45ed20cdeb5ace2bc707b443aa16899908",
+    "roles.pdf": "de6a2adf667c5a273b0c07e29367e384c21be013016982540bc61da05d967107"
+  },
+  "unit_conversion": "Multiply saved probability values by100 only"
+}

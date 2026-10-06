@@ -1,0 +1,1 @@
+grpo_g32_a2_s0 until [ -f artifacts/p2/grpo_g32_a3_s0.done ]; do sleep 60; done; python3 grpo.py --init ckpts/p2/stage1_depth3_f0_a2_s0.pt --name r4/grpo_g32_a2_s0 --targets data/p2/targets_depth3.jsonl --transfer data/p2/transfer_depth3.jsonl --heldout data/p2/heldout.jsonl --rounds 8 --k 32 --group 32 --prompts 16 --temperature 0.8 --lr 1e-4 --seed 0 --batch 512

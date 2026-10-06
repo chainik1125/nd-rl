@@ -1,0 +1,92 @@
+[
+  {
+    "arm": "cost",
+    "seed": 101,
+    "theorem_ids": [
+      "b1d72db58ae57e6bc143",
+      "3a9e17c46034da7169a5"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "cost",
+    "seed": 102,
+    "theorem_ids": [
+      "2b77a6541bdede11a0b3",
+      "ca1d6f919d0479ff4585"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "cost",
+    "seed": 103,
+    "theorem_ids": [
+      "e50e4be8dcf1c26daf3f",
+      "7e95ffca0b04b1c92acd"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "no_cost",
+    "seed": 101,
+    "theorem_ids": [
+      "fb0b215fc1231ad5b9a1",
+      "afbe7ebe1e98ef26dcd4"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "no_cost",
+    "seed": 102,
+    "theorem_ids": [
+      "0dba25f1a08bce80108c",
+      "3f7ca5be5ed68979755b"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "no_cost",
+    "seed": 103,
+    "theorem_ids": [
+      "0ddaf2659887afb22fdc",
+      "7ff170e2377d7584d99e"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "fixed1_control",
+    "seed": 101,
+    "theorem_ids": [
+      "6ab198e40009a0e10da9",
+      "c5e91ea5f9fe7102fb7c"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "fixed4_control",
+    "seed": 101,
+    "theorem_ids": [
+      "a8e7a35eca9a78cc1eaa",
+      "71aab049d47491ec4385"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  },
+  {
+    "arm": "format_only",
+    "seed": null,
+    "theorem_ids": [
+      "81c472b8d303f64ee576",
+      "bbc02c0abfbfe167d0de"
+    ],
+    "repeat": 0,
+    "candidates": "first and last, deduplicate"
+  }
+]

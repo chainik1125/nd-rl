@@ -1,0 +1,126 @@
+{
+  "scope": "development; 48 reused theorems; one generation seed; one adaptation seed",
+  "sampling_unit": "theorem, with four attempts averaged within each theorem",
+  "bootstrap": {
+    "draws": 50000,
+    "seed": 61006,
+    "confidence": 0.95
+  },
+  "conditions": {
+    "base_0": {
+      "mean": 0.9375,
+      "low": 0.8854166666666666,
+      "high": 0.9791666666666666
+    },
+    "base_1": {
+      "mean": 0.026041666666666668,
+      "low": 0.0,
+      "high": 0.06770833333333333
+    },
+    "base_4": {
+      "mean": 0.0,
+      "low": 0.0,
+      "high": 0.0
+    },
+    "boundary": {
+      "mean": 0.052083333333333336,
+      "low": 0.010416666666666666,
+      "high": 0.10416666666666667
+    },
+    "eos": {
+      "mean": 0.921875,
+      "low": 0.8645833333333334,
+      "high": 0.96875
+    },
+    "unrelated": {
+      "mean": 0.03125,
+      "low": 0.005208333333333333,
+      "high": 0.06770833333333333
+    },
+    "adapt_0": {
+      "mean": 0.8125,
+      "low": 0.71875,
+      "high": 0.8958333333333334
+    },
+    "adapt_1": {
+      "mean": 0.8177083333333334,
+      "low": 0.7291666666666666,
+      "high": 0.8958333333333334
+    },
+    "adapt_4": {
+      "mean": 0.6927083333333334,
+      "low": 0.59375,
+      "high": 0.78125
+    }
+  },
+  "paired_differences": {
+    "adapt_0_minus_base_0": {
+      "mean": -0.125,
+      "low": -0.21354166666666666,
+      "high": -0.046875
+    },
+    "adapt_1_minus_base_1": {
+      "mean": 0.7916666666666666,
+      "low": 0.703125,
+      "high": 0.875
+    },
+    "adapt_4_minus_base_4": {
+      "mean": 0.6927083333333334,
+      "low": 0.59375,
+      "high": 0.78125
+    },
+    "adapt_1_minus_adapt_0": {
+      "mean": 0.005208333333333333,
+      "low": -0.08333333333333333,
+      "high": 0.09895833333333333
+    },
+    "adapt_4_minus_adapt_0": {
+      "mean": -0.11979166666666667,
+      "low": -0.21875,
+      "high": -0.015625
+    },
+    "eos_minus_base_0": {
+      "mean": -0.015625,
+      "low": -0.046875,
+      "high": 0.010416666666666666
+    }
+  },
+  "inputs": {
+    "base_0": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/base_dev48_v1/history_0/private.jsonl",
+      "sha256": "44e30d583142cf743d8f1f2fa5705e8cdb5004a0de01e2e90b6db30868b2f6f1"
+    },
+    "base_1": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/base_dev48_v1/history_1/private.jsonl",
+      "sha256": "2f17275706104c9bbf302d3ebcb742ae0c94cff5aaf73d9156c1af7cfb663f21"
+    },
+    "base_4": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/base_dev48_v1/history_4/private.jsonl",
+      "sha256": "c0e5fbe9795bf6571679c670dc2a3fd83bd768cbca4dc562ac6859f33dcad8a0"
+    },
+    "boundary": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/base_dev48_boundary/history_1/private.jsonl",
+      "sha256": "9f8414de237b29fa69ffd851d31fbeae6b4e421ce02a1f914291b60223a86db6"
+    },
+    "eos": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/base_dev48_eos/history_1/private.jsonl",
+      "sha256": "7e2fa7edba026b565adc8ff68a9ba03810d21fcec174caaea28c4984ee129c16"
+    },
+    "unrelated": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/base_dev48_unrelated/history_1/private.jsonl",
+      "sha256": "fcf4cc2b411e09b5ad872bde0b6d8072435c46aa80dd7755a9409f186916aadf"
+    },
+    "adapt_0": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/format200_dev48_v1/history_0/private.jsonl",
+      "sha256": "11cc22ad75b414c810f929eb84c97b6cf87bb1751fb8e072da17575193dd77a9"
+    },
+    "adapt_1": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/format200_dev48_v1/history_1/private.jsonl",
+      "sha256": "3296d3874ed837b825ad7813ab4eb877739f34b8ce951ab389b243d6f6586b82"
+    },
+    "adapt_4": {
+      "path": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/format200_dev48_v1/history_4/private.jsonl",
+      "sha256": "6038971e40bdaab490cab6bf81f3998051acd7f843577d40b0ccedc88e96f2d5"
+    }
+  }
+}

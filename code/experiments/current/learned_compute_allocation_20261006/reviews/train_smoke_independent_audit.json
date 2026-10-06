@@ -1,0 +1,45 @@
+{
+  "counts": {
+    "complete_True_valid_True": 239,
+    "sampled_pad": 0,
+    "effective_mismatch": 0,
+    "completion_mismatch": 0,
+    "complete_True_valid_False": 8,
+    "complete_False_valid_False": 9
+  },
+  "semantic_invalid_examples": [
+    {
+      "theorem_id": "5d3e2d093f73e5a8bb49",
+      "candidate_id": 6,
+      "prompt": "THM ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) , ( ~ ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) ) , ( S v P ) SEQ ( ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) > ( ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) & S ) ) PRF",
+      "text": "have n17 : ( ( ( S \u2228 P ) \u2192 ( S \u2192 Q ) ) \u2227 ( S \u2228 ( R \u2228 R ) ) ) := h1 ; <eos> have n18 : ( \u00ac ( ( ( S \u2228 P ) \u2192 ( S \u2192 Q ) ) \u2227 ( S \u2228 ( R \u2228 R ) ) ) ) := h2 ; <eos> have n19 : ( S \u2228 P ) := h3 ; <eos> have n20 : False := n18 n17 ; <eos> have n21 : ( ( ( ( S \u2228 P ) \u2192 ( S \u2192 Q ) ) \u2227 ( S \u2228 ( R \u2228 R ) ) ) \u2192 ( ( ( ( S \u2228 P ) \u2192 ( S \u2192 Q ) ) \u2227 ( S \u2228 ( R \u2228 R ) ) ) \u2227 S ) ) := ( fun ( n22 : ( ( ( S \u2228 P ) \u2192 ( S \u2192 Q ) ) \u2227 ( S \u2228 ( R \u2228 R ) ) ) ) => by <eos> have n23 : S := Or.elim n19 ( fun ( n24 : S ) => by <eos> exact n24 <eos> have n25 : S := n20.elim ; <eos> exact n25 <eos> have n24 : ( ( ( ( S \u2228 P ) \u2192 ( S \u2192 Q ) ) \u2227 ( S \u2228 ( R \u2228 R ) ) ) \u2227 S ) := \u27e8 n20 , n23 \u27e9 ; <eos> exact n24 <eos> exact n21 <eos>",
+      "nd": "N1 ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) : PR ; N2 ( ~ ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) ) : PR ; N3 ( S v P ) : PR ; N4 F : NEGE N1 N2 ; N5 | ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) : AS ; N6 | | S : AS ; N7 | | P : AS ; N8 | | S : BOTE N4 ; N9 | S : ORE N3 N6 N6 N7 N8 ; N10 | ( ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) & S ) : ANDI N4 N9 ; N11 ( ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) > ( ( ( ( S v P ) > ( S > Q ) ) & ( S v ( R v R ) ) ) & S ) ) : IMPI N5 N10 ; QED"
+    },
+    {
+      "theorem_id": "d73026b1dd546d3fcc60",
+      "candidate_id": 0,
+      "prompt": "THM ( ( ~ R ) v Q ) , ( ~ ( ~ ( ~ R ) ) ) , ( ~ ( ~ R ) ) SEQ ( ( ~ R ) > ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ Q ) ) > ( ~ ( R v ( P v Q ) ) ) ) ) ) PRF",
+      "text": "have n10 : ( ( \u00ac R ) \u2228 Q ) := h1 ; <eos> have n11 : ( \u00ac ( \u00ac ( \u00ac R ) ) ) := h2 ; <eos> have n12 : ( \u00ac ( \u00ac R ) ) := h3 ; <eos> have n13 : ( ( \u00ac ( \u00ac ( \u00ac R ) ) ) \u2192 ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac ( R \u2228 ( P \u2228 Q ) ) ) ) ) := ( fun ( n14 : ( \u00ac ( \u00ac ( \u00ac R ) ) ) ) => by <eos> have n15 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac ( R \u2228 ( P \u2228 Q ) ) ) ) := ( fun ( n16 : ( \u00ac ( \u00ac R ) ) ) => by <eos> have n17 : ( \u00ac ( R \u2228 ( P \u2228 Q ) ) ) := ( fun ( n18 : ( R \u2228 ( P \u2228 Q ) ) ) => by <eos> have n19 : False := n11 n12 ; <eos> exact n19 <eos> exact n17 <eos> exact n15 <eos> have n14 : ( ( \u00ac R ) \u2192 ( ( \u00ac ( \u00ac R ) ) \u2192 ( ( \u00ac ( \u00ac Q ) ) \u2192 ( \u00ac ( R \u2228 ( P \u2228 Q ) ) ) ) ) ) := ( fun ( n15 : ( \u00ac R ) ) => by <eos> have n16 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( ( \u00ac ( \u00ac Q ) ) \u2192 ( \u00ac ( R \u2228 ( P \u2228 Q ) ) ) ) ) := ( fun ( n17 : ( \u00ac ( \u00ac R ) ) ) => by <eos> have n18 : ( ( \u00ac ( \u00ac Q ) ) \u2192 ( \u00ac ( R \u2228 ( P \u2228 Q ) ) ) ) := ( fun ( n19 : ( \u00ac ( \u00ac Q ) ) ) => by <eos> have n20 : ( \u00ac ( R \u2228 ( P \u2228 Q ) ) ) := ( fun ( n21 : ( R \u2228 ( P \u2228 Q ) ) ) => by <eos> have n22 : False := n11 n15 ; <eos> exact n22 <eos> exact n20 <eos> exact n18 <eos> exact n16 <eos> exact n14 <eos>",
+      "nd": "N1 ( ( ~ R ) v Q ) : PR ; N2 ( ~ ( ~ ( ~ R ) ) ) : PR ; N3 ( ~ ( ~ R ) ) : PR ; N4 | ( ~ ( ~ ( ~ R ) ) ) : AS ; N5 | | ( ~ ( ~ R ) ) : AS ; N6 | | | ( R v ( P v Q ) ) : AS ; N7 | | | F : NEGE N3 N2 ; N8 | | ( ~ ( R v ( P v Q ) ) ) : NEGI N6 N7 ; N9 | ( ( ~ ( ~ R ) ) > ( ~ ( R v ( P v Q ) ) ) ) : IMPI N5 N8 ; N10 ( ( ~ ( ~ ( ~ R ) ) ) > ( ( ~ ( ~ R ) ) > ( ~ ( R v ( P v Q ) ) ) ) ) : IMPI N4 N9 ; N11 | ( ~ R ) : AS ; N12 | | ( ~ ( ~ R ) ) : AS ; N13 | | | ( ~ ( ~ Q ) ) : AS ; N14 | | | | ( R v ( P v Q ) ) : AS ; N15 | | | | F : NEGE N11 N2 ; N16 | | | ( ~ ( R v ( P v Q ) ) ) : NEGI N14 N15 ; N17 | | ( ( ~ ( ~ Q ) ) > ( ~ ( R v ( P v Q ) ) ) ) : IMPI N13 N16 ; N18 | ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ Q ) ) > ( ~ ( R v ( P v Q ) ) ) ) ) : IMPI N12 N17 ; N19 ( ( ~ R ) > ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ Q ) ) > ( ~ ( R v ( P v Q ) ) ) ) ) ) : IMPI N11 N18 ; QED"
+    }
+  ],
+  "likelihood_spotcheck": [
+    {
+      "candidate_id": 0,
+      "tokens": 616,
+      "lp_error": -0.08311038704505336,
+      "base_lp_error": -0.06516380215180106,
+      "entropy_error": -0.008285591378808022,
+      "note": "CPU float32 versus saved CUDA bfloat16"
+    },
+    {
+      "candidate_id": 1,
+      "tokens": 446,
+      "lp_error": -0.06328422411752399,
+      "base_lp_error": -0.04226062186353374,
+      "entropy_error": -0.04333463800139725,
+      "note": "CPU float32 versus saved CUDA bfloat16"
+    }
+  ],
+  "scope": "quarantined TRAIN smoke, no held-out claim"
+}

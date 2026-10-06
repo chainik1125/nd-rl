@@ -1,0 +1,17 @@
+{
+  "scope": "Exact copies of registered MAIN staged analysis outputs; no numerical or visual changes",
+  "files": {
+    "staged_policies.png": {
+      "source": "artifacts/learned_compute_allocation_20261006/analysis/main_test_staged_aggregate_v1/staged_policies.png",
+      "sha256": "3c8a86d095067adecfc07412b86a29778ce29ce86d3ab04eb711659f489bd195"
+    },
+    "staged_policies.svg": {
+      "source": "artifacts/learned_compute_allocation_20261006/analysis/main_test_staged_aggregate_v1/staged_policies.svg",
+      "sha256": "671b0a041673f6c001a3ac272ff62d4a4c0c97ebf940fa0babedfdb2b1a51b8a"
+    },
+    "metrics.json": {
+      "source": "artifacts/learned_compute_allocation_20261006/analysis/main_test_staged_aggregate_v1/metrics.json",
+      "sha256": "5cb9f93ed5136d141a2bb52c238914f0a39870b50abb943299b5f6298f3888ca"
+    }
+  }
+}

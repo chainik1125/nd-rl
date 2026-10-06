@@ -1,0 +1,19 @@
+{
+  "parent_sha256": "51c704b30edfe9ff748378a2ec18aaf189da48c36bceaf7ec186bf5f76579a7b",
+  "registry_hashes": {
+    "main": "bd289d62de0e5c3395fa10330177385184cc66d67d09fc82cead10a65894a1d2",
+    "historical": "d228e09e16fa86aa69160e84464eca5064fcecde3c057393e7cc0eecba1b2d7d"
+  },
+  "unchanged_decision_fields": true,
+  "registered_models": 9,
+  "parent_inputs_checked": 6,
+  "collection_sources_checked": 212,
+  "main_attempts_independently_lean_checked": 3200,
+  "main_valid": 2291,
+  "completed_exact_source_matches": 2559,
+  "main_label_disagreements": 0,
+  "pooled_overflow_8192": 1,
+  "lean_wall_seconds": 6.2050323486328125,
+  "lean_process_seconds": 43.75204038619995,
+  "historical_outcome_access": false
+}

@@ -1,0 +1,33 @@
+condition,measure,attempt,mean,cluster_bootstrap_low,cluster_bootstrap_high
+500 steps,validity,1,0.75,0.53125,0.9375
+500 steps,validity,2,0.34375,0.15625,0.53125
+500 steps,validity,3,0.1875,0.0625,0.3125
+500 steps,validity,4,0.25,0.0625,0.4375
+500 steps,validity,5,0.0625,0.0,0.15625
+500 steps,validity,6,0.0625,0.0,0.15625
+500 steps,validity,7,0.0625,0.0,0.15625
+500 steps,validity,8,0.03125,0.0,0.09375
+500 steps,oracle,1,0.75,0.53125,0.9375
+500 steps,oracle,2,0.75,0.53125,0.9375
+500 steps,oracle,3,0.75,0.53125,0.9375
+500 steps,oracle,4,0.75,0.53125,0.9375
+500 steps,oracle,5,0.75,0.53125,0.9375
+500 steps,oracle,6,0.75,0.53125,0.9375
+500 steps,oracle,7,0.75,0.53125,0.9375
+500 steps,oracle,8,0.75,0.53125,0.9375
+"1,000 steps (chosen)",validity,1,0.78125,0.625,0.9375
+"1,000 steps (chosen)",validity,2,0.59375,0.375,0.8125
+"1,000 steps (chosen)",validity,3,0.46875,0.25,0.65625
+"1,000 steps (chosen)",validity,4,0.3125,0.125,0.53125
+"1,000 steps (chosen)",validity,5,0.21875,0.09375,0.375
+"1,000 steps (chosen)",validity,6,0.1875,0.03125,0.375
+"1,000 steps (chosen)",validity,7,0.25,0.09375,0.40625
+"1,000 steps (chosen)",validity,8,0.21875,0.0625,0.40625
+"1,000 steps (chosen)",oracle,1,0.78125,0.625,0.9375
+"1,000 steps (chosen)",oracle,2,0.78125,0.625,0.9375
+"1,000 steps (chosen)",oracle,3,0.8125,0.65625,0.9375
+"1,000 steps (chosen)",oracle,4,0.8125,0.65625,0.9375
+"1,000 steps (chosen)",oracle,5,0.8125,0.65625,0.9375
+"1,000 steps (chosen)",oracle,6,0.8125,0.65625,0.9375
+"1,000 steps (chosen)",oracle,7,0.8125,0.65625,0.9375
+"1,000 steps (chosen)",oracle,8,0.8125,0.65625,0.9375

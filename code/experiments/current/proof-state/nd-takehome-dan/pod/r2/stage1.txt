@@ -1,0 +1,8 @@
+stage1_r2_struct_s0 python3 train.py --data data/r2/train_r2_struct.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_struct_s0.pt --cap 6 --seed 0
+stage1_r2_struct_s1 python3 train.py --data data/r2/train_r2_struct.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_struct_s1.pt --cap 6 --seed 1
+stage1_r2_impi_ore_f0_s0 python3 train.py --data data/r2/train_r2_impi_ore_f0.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_impi_ore_f0_s0.pt --cap 6 --seed 0
+stage1_r2_impi_ore_f0_s1 python3 train.py --data data/r2/train_r2_impi_ore_f0.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_impi_ore_f0_s1.pt --cap 6 --seed 1
+stage1_r2_negi_ande_hyp_f0_s0 python3 train.py --data data/r2/train_r2_negi_ande_hyp_f0.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_negi_ande_hyp_f0_s0.pt --cap 6 --seed 0
+stage1_r2_negi_ande_hyp_f0_s1 python3 train.py --data data/r2/train_r2_negi_ande_hyp_f0.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_negi_ande_hyp_f0_s1.pt --cap 6 --seed 1
+stage1_r2_ori_ore_f0_s0 python3 train.py --data data/r2/train_r2_ori_ore_f0.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_ori_ore_f0_s0.pt --cap 6 --seed 0
+stage1_r2_ori_ore_f0_s1 python3 train.py --data data/r2/train_r2_ori_ore_f0.jsonl --heldout data/p2/heldout.jsonl --mode abs --steps 6000 --bs 128 --out ckpts/r2/stage1_r2_ori_ore_f0_s1.pt --cap 6 --seed 1

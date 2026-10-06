@@ -1,0 +1,35 @@
+__pycache__/
+*.pyc
+*.pt
+*.ckpt
+.venv/
+venv/
+.DS_Store
+data/raw_*.jsonl
+data/train.jsonl
+artifacts/*/mix_*.jsonl
+artifacts/*/found_*.jsonl
+artifacts/*_k16.jsonl
+artifacts/*_k32.jsonl
+artifacts/*_greedy.jsonl
+artifacts/*_val36_judged.jsonl
+artifacts/*/mix_*.jsonl
+artifacts/*_k128.jsonl
+data/p2/raw_*
+data/p2/pool_*
+data/p2/train_*
+data/p3/*.jsonl
+artifacts/p2/*_ivS_mix.jsonl
+artifacts/p2/*/found_[1-7].jsonl
+artifacts/p2/*/found_transfer_[1-7].jsonl
+artifacts/p2/*/mix_*.jsonl
+artifacts/lf/*/found_[1-7].jsonl
+artifacts/lf/*/found_transfer_[1-7].jsonl
+artifacts/lf/*/mix_*.jsonl
+artifacts/lf/*/alloc_[1-7].json
+# run lean-judge: the 165 MB accepted-sample corpus is reproducible with
+# `python3 lj_regress.py collect` from the other runs' artifacts, and is in the bucket
+artifacts/lj/corpus_accepted.jsonl
+artifacts/lj/*.rejected.jsonl
+artifacts/lj/test_gate.*
+artifacts/lj/t2_judge.log

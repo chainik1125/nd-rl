@@ -1,0 +1,47 @@
+{
+  "source_sha256": "9dd4bf4c0da9864fbf61e6ddf00b6c4cd712fc8f536819a9eb1e1716c634a288",
+  "cases": {
+    "clean": {
+      "rejected": false,
+      "complete_panel": true,
+      "states": 4
+    },
+    "missing_branch": {
+      "rejected": true,
+      "error": "Eligible state missing its actual-history continuation"
+    },
+    "missing_state_and_branch": {
+      "rejected": false,
+      "complete_panel": false,
+      "states": 3
+    },
+    "accept_out_of_bounds": {
+      "rejected": true,
+      "error": "Branch metadata differs from its authoritative state"
+    },
+    "wrong_branch_family": {
+      "rejected": true,
+      "error": "Branch metadata differs from its authoritative state"
+    },
+    "duplicate_state_alias": {
+      "rejected": true,
+      "error": "Branch refers to an uncollected state"
+    },
+    "completion_state_mismatch": {
+      "rejected": true,
+      "error": "Collected state counts differ from completion"
+    },
+    "negative_new_count": {
+      "rejected": true,
+      "error": "Invalid number of future attempts"
+    },
+    "wrong_forced_requested": {
+      "rejected": true,
+      "error": "Branch forced-attempt request differs from protocol"
+    },
+    "wrong_replicate_id": {
+      "rejected": true,
+      "error": "Continuation replicate IDs differ from protocol"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "original_parameters": 9560832,
+  "original_parameter_sha256": "594173e7d67a64f5c4ffa9ac5176e4390770e44ce7d307590474bed3957c8eb5",
+  "head_parameters": 385,
+  "splits": {
+    "train": {
+      "candidates": 12800,
+      "theorems": 1600,
+      "binary_logloss": 0.2673254661697319,
+      "brier": 0.07700412072680866,
+      "max_input_tokens": 2368,
+      "objective": 0.28201677038192047,
+      "max_absolute_gradient": 2.01898248064068e-06
+    },
+    "dev": {
+      "candidates": 2560,
+      "theorems": 320,
+      "binary_logloss": 0.308495937318633,
+      "brier": 0.09141028890562439,
+      "max_input_tokens": 2153,
+      "accuracy": 0.84375,
+      "max_saved_logit_error": 7.105427357601002e-15
+    }
+  },
+  "cpu_original_forward_vs_extracted_feature_head_max_error": 3.814697265625e-06
+}

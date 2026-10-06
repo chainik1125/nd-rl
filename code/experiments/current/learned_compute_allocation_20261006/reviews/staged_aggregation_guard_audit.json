@@ -1,0 +1,54 @@
+{
+  "source_sha256": "933953f886714f850df95cc93336e7161c0610dabce95c676028660fbc0a6dba",
+  "clean_runs": [
+    [
+      "feature",
+      null
+    ],
+    [
+      "bce",
+      0
+    ],
+    [
+      "bce",
+      1
+    ],
+    [
+      "bce",
+      2
+    ]
+  ],
+  "mutations": {
+    "omit_seed": {
+      "rejected": true,
+      "message": "Require one feature model and exactly BCE seeds0,1,2",
+      "output_created": false
+    },
+    "relabel_checkpoint": {
+      "rejected": true,
+      "message": "Critic training seed differs from inventory",
+      "output_created": false
+    },
+    "alter_summary": {
+      "rejected": true,
+      "message": "Policy summary differs from theorem records",
+      "output_created": false
+    },
+    "nonfinite_fixed_metric": {
+      "rejected": true,
+      "message": "Nonfinite policy metric",
+      "output_created": false
+    },
+    "duplicate_public_id": {
+      "rejected": true,
+      "message": "Public pool has duplicate IDs or wrong split",
+      "output_created": false
+    },
+    "duplicate_source_public_id": {
+      "rejected": true,
+      "message": "Staged output has a different number of public theorems",
+      "output_created": false
+    }
+  },
+  "v2_estimates_unchanged": true
+}

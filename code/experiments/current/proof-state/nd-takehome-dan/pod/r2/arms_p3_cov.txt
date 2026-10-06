@@ -1,0 +1,2 @@
+cov_r2_nested_ore_s0 python3 coverage.py --ckpt ckpts/r2/stage1_r2_struct_s0.pt --in data/r2/targets_nested_ore.jsonl --out artifacts/r2/cov_nested_ore_s0 --k 2000 --temperature 0.8 --limit 300 --batch 1024 --seed 0 --procs 3
+cov_r2_nested_ore_s1 python3 coverage.py --ckpt ckpts/r2/stage1_r2_struct_s1.pt --in data/r2/targets_nested_ore.jsonl --out artifacts/r2/cov_nested_ore_s1 --k 2000 --temperature 0.8 --limit 300 --batch 1024 --seed 0 --procs 3

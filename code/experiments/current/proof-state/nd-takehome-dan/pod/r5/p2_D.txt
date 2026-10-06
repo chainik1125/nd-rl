@@ -1,0 +1,1 @@
+cov_derived_ore_strict_f0_c8_s1_req until grep -q "QUEUE DONE" artifacts/r5_queue_p2_C.log; do sleep 30; done; python3 coverage.py --ckpt ckpts/p2/stage1_derived_ore_strict_f0_c8_s1.pt --in data/p2/targets_derived_ore_req.jsonl --out artifacts/r5/cov_derived_ore_strict_f0_c8_s1_req --k 10000 --temperature 0.8 --batch 1024 --seed 0 --procs 3

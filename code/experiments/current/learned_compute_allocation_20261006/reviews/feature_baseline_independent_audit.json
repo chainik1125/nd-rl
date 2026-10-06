@@ -1,0 +1,24 @@
+{
+  "training_feature_recompute": {
+    "theorems": 1600,
+    "candidates": 12800,
+    "mean_max_error": 1.3722356584366935e-13,
+    "scale_max_error": 2.2537527399890678e-14,
+    "training_id_match": true
+  },
+  "dev_recompute": {
+    "theorems": 320,
+    "feature_accuracy": 0.871875,
+    "completion_table": {
+      "complete1_valid1": 1813,
+      "complete0_valid0": 474,
+      "complete1_valid0": 273
+    },
+    "threshold": 0.85,
+    "threshold_accuracy": 0.8412909226190475,
+    "threshold_attempts": 2.215066964285714,
+    "threshold_reward_lambda03": 0.8048389136904761,
+    "threshold_generated_tokens_proxy": 836.4075669642856,
+    "threshold_prefill_tokens_proxy": 6514.819858630952
+  }
+}

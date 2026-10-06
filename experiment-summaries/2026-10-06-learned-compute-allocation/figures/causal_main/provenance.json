@@ -1,0 +1,82 @@
+{
+  "input": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/context/causal_main_test_aggregate_v1/metrics.json",
+  "input_sha256": "b508d20822226b70e2a24fa1d09d003fd93a1312d7e6a0b92bd10e36b6d4eded",
+  "renderer_sha256": "a4c8f13066252a47307961d1de9c30617a66bc81b76f7bab02d2e67ff717a44d",
+  "split_label": "Held-out test",
+  "primary_rows": [
+    {
+      "metric": "old_mass_change",
+      "label": "Change in mass on\nold valid proofs",
+      "color": "#c66b35",
+      "mean": -0.03942878987038512,
+      "ci95": [
+        -0.04331499538653816,
+        -0.035286852597675986
+      ]
+    },
+    {
+      "metric": "new_correct_mass",
+      "label": "Mass on\nnew valid proofs",
+      "color": "#318a70",
+      "mean": 0.030761564073372938,
+      "ci95": [
+        0.027218359759717713,
+        0.0341601694508256
+      ]
+    },
+    {
+      "metric": "delta_continuation",
+      "label": "Net change",
+      "color": "#345f8c",
+      "mean": -0.008667225797012179,
+      "ci95": [
+        -0.011433597725027767,
+        -0.00603915117773397
+      ]
+    }
+  ],
+  "common16_rows": [
+    {
+      "condition": "one_extra64",
+      "label": "One extra, then select",
+      "color": "#345f8c",
+      "mean": -0.008026245760902384,
+      "ci95": [
+        -0.014068773723352024,
+        -0.002019825333309212
+      ]
+    },
+    {
+      "condition": "policy_forced1_32",
+      "label": "Force one, then resume policy",
+      "color": "#345f8c",
+      "mean": -0.023223256721394137,
+      "ci95": [
+        -0.03593283067225457,
+        -0.01166067495400968
+      ]
+    },
+    {
+      "condition": "policy_forced2_16",
+      "label": "Force two, then resume policy",
+      "color": "#345f8c",
+      "mean": -0.04318328416229633,
+      "ci95": [
+        -0.06451712947971373,
+        -0.022873727468254404
+      ]
+    },
+    {
+      "condition": "policy_forced4_16",
+      "label": "Force four, then resume policy",
+      "color": "#345f8c",
+      "mean": -0.10230994367611856,
+      "ci95": [
+        -0.14517653710856848,
+        -0.06062375507574417
+      ]
+    }
+  ],
+  "transform": "Saved means and CI endpoints multiplied by 100; no statistics refitted.",
+  "caption": "Changes compare continuation with selecting from the proofs already available. Correctness integrates categorical proof selection; mass is selection probability on valid proofs.\nForce one/two/four means a minimum number of additional attempts before resuming the policy. All old candidates remain available.\nEqual weights for two checkpoints and forced states after attempts 1 and 2. Bars: 95% family-stratified theorem-bootstrap intervals, conditional on these models and draws.\nThe right panel uses the same 16 theorems from the original 64/32/16/16 panels. Intervals do not test differences between horizons."
+}

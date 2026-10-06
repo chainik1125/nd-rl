@@ -1,0 +1,6 @@
+cov_depth3_f0_a2_s0 python3 coverage.py --ckpt ckpts/p2/stage1_depth3_f0_a2_s0.pt --in data/p2/targets_depth3.jsonl --out artifacts/ign/cov_depth3_f0_a2_s0 --k 2000 --temperature 0.8 --limit 300 --batch 2000 --seed 0 --procs 4
+cov_depth3_f0_a2_s1 python3 coverage.py --ckpt ckpts/p2/stage1_depth3_f0_a2_s1.pt --in data/p2/targets_depth3.jsonl --out artifacts/ign/cov_depth3_f0_a2_s1 --k 2000 --temperature 0.8 --limit 300 --batch 2000 --seed 0 --procs 4
+cov_depth3_f0_a3_s0 python3 coverage.py --ckpt ckpts/p2/stage1_depth3_f0_a3_s0.pt --in data/p2/targets_depth3.jsonl --out artifacts/ign/cov_depth3_f0_a3_s0 --k 2000 --temperature 0.8 --limit 300 --batch 2000 --seed 0 --procs 4
+cov_depth3_f0_a3_s1 python3 coverage.py --ckpt ckpts/p2/stage1_depth3_f0_a3_s1.pt --in data/p2/targets_depth3.jsonl --out artifacts/ign/cov_depth3_f0_a3_s1 --k 2000 --temperature 0.8 --limit 300 --batch 2000 --seed 0 --procs 4
+cov_reductio_f0_s1 python3 coverage.py --ckpt ckpts/p2/stage1_reductio_f0_s1.pt --in data/p2/targets_reductio2.jsonl --out artifacts/ign/cov_reductio_f0_s1 --k 2000 --temperature 0.8 --limit 300 --batch 2000 --seed 0 --procs 4
+cov_reductio_f0_s2 python3 coverage.py --ckpt ckpts/p2/stage1_reductio_f0_s2.pt --in data/p2/targets_reductio2.jsonl --out artifacts/ign/cov_reductio_f0_s2 --k 2000 --temperature 0.8 --limit 300 --batch 2000 --seed 0 --procs 4

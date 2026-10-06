@@ -1,0 +1,12 @@
+{
+  "500 steps": {
+    "run": "artifacts/learned_compute_allocation_20261006/allocation/format_lr1e5_500_main_dev16_paths_s52006",
+    "private_labels_sha256": "0e0d29d8dc18288552596f50ca8f6c24b10ac813017855b54cdd43e2662c61d1"
+  },
+  "1,000 steps (chosen)": {
+    "run": "artifacts/learned_compute_allocation_20261006/allocation/format_lr1e5_1000_main_dev16_paths_s52006",
+    "private_labels_sha256": "59f5e994d6ed1b7f14c8875fb6c70ba26bf357a4a54a8aaee6fa79d14e98bc49"
+  },
+  "uncertainty": "3000 bootstrap resamples of theorem clusters, seed61",
+  "script_sha256": "f6c2f65c505d320e3b3cfb4d549274e485d531749394ee5b79cbda3f9b4e3e2b"
+}

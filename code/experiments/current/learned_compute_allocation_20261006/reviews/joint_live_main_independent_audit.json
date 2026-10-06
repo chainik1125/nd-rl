@@ -1,0 +1,490 @@
+{
+  "barrier_verified": true,
+  "models": 9,
+  "path_audits": [
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s101",
+      "split": "test",
+      "policy_rows": 12800,
+      "maximum_relative_work_error": 6.604430351918357e-16,
+      "selected_age_means": {
+        "learned": 1.014223576653922,
+        "fixed1": 1.0,
+        "fixed2": 1.9724514003982767,
+        "fixed4": 3.6965401728317375,
+        "fixed8": 5.46144914633187,
+        "learned_greedy_index": 1.0149319233204652,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.0168965883182275,
+        "counter_greedy_index": 1.0174321922719738,
+        "context_threshold": 2.167437284668558,
+        "attempt_matched_mixture": 1.016951959786893,
+        "forward_token_matched_mixture": 1.0879298936223398
+      },
+      "config_sha256": "30ae5a2150af9f970843d2f465c06e36a7c81b7422b984c819a5c840911ef138"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s102",
+      "split": "test",
+      "policy_rows": 12800,
+      "maximum_relative_work_error": 6.577586470206621e-16,
+      "selected_age_means": {
+        "learned": 1.0147039755283132,
+        "fixed1": 1.0,
+        "fixed2": 1.9060175284091383,
+        "fixed4": 3.086833837539889,
+        "fixed8": 4.7042942150007,
+        "learned_greedy_index": 1.0167572480160605,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 3.9975,
+        "fixed8_greedy_index": 7.985,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.0169257889012195,
+        "counter_greedy_index": 1.019039113229667,
+        "context_threshold": 2.0187163149006664,
+        "attempt_matched_mixture": 1.0172500007853278,
+        "forward_token_matched_mixture": 1.0829884474356652
+      },
+      "config_sha256": "315d6ad718ae5b6394d0c5ccc2acf7b50d21806a4b484ed0758ed6f065c3db0b"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s103",
+      "split": "test",
+      "policy_rows": 12800,
+      "maximum_relative_work_error": 6.494516568677686e-16,
+      "selected_age_means": {
+        "learned": 1.031088517769264,
+        "fixed1": 1.0,
+        "fixed2": 1.9836185427132296,
+        "fixed4": 3.28114146269043,
+        "fixed8": 5.98752127087384,
+        "learned_greedy_index": 1.0322870210565782,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 7.995,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.0305629256925295,
+        "counter_greedy_index": 1.0313380685904172,
+        "context_threshold": 2.177786853113212,
+        "attempt_matched_mixture": 1.0308247171498182,
+        "forward_token_matched_mixture": 1.0373490206944211
+      },
+      "config_sha256": "d76348d886cdf3a73002f1764e1aa49806cb3be1adcf552d258b3969ee1890d2"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s101",
+      "split": "test",
+      "policy_rows": 13600,
+      "maximum_relative_work_error": 6.141336045705482e-16,
+      "selected_age_means": {
+        "learned": 1.6533962668506426,
+        "fixed1": 1.0,
+        "fixed2": 1.9857002881541848,
+        "fixed4": 3.788844620565942,
+        "fixed8": 6.3461373231364995,
+        "learned_greedy_index": 1.6949876153614565,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 1.1775,
+        "counter": 1.6742074046908055,
+        "counter_greedy_index": 1.7174395156633335,
+        "context_threshold": 2.2030994006240507,
+        "attempt_matched_mixture": 1.7071803373225467,
+        "forward_token_matched_mixture": 1.8131225405651379,
+        "joint_matched_mixture": 1.657721961694324
+      },
+      "config_sha256": "fe9073a167668548840ebd7a5b5e6ab50d94340f35816727e3ad9d315732eb19"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s102",
+      "split": "test",
+      "policy_rows": 13600,
+      "maximum_relative_work_error": 6.282600110168829e-16,
+      "selected_age_means": {
+        "learned": 1.171642483350963,
+        "fixed1": 1.0,
+        "fixed2": 1.9505840595497284,
+        "fixed4": 3.616923249880783,
+        "fixed8": 5.418181522646337,
+        "learned_greedy_index": 1.1855052439417435,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 7.98125,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.1832228744593842,
+        "counter_greedy_index": 1.197461211146831,
+        "context_threshold": 2.1450122641416964,
+        "attempt_matched_mixture": 1.1877045419381729,
+        "forward_token_matched_mixture": 1.2628173917299177,
+        "joint_matched_mixture": 1.1511227405776046
+      },
+      "config_sha256": "5322fc2e63617460d10d0292f00e2f8723a63d1daee544fce8f2408b667d84d5"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s103",
+      "split": "test",
+      "policy_rows": 12800,
+      "maximum_relative_work_error": 6.214774447157914e-16,
+      "selected_age_means": {
+        "learned": 4.069636416304697,
+        "fixed1": 1.0,
+        "fixed2": 1.9989801639911458,
+        "fixed4": 3.9812620483705543,
+        "fixed8": 7.918704161570349,
+        "learned_greedy_index": 4.094315623110478,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 8.0,
+        "counter": 3.7483472733236884,
+        "counter_greedy_index": 3.770586780673592,
+        "context_threshold": 2.212704040387798,
+        "attempt_matched_mixture": 3.745877673216142,
+        "forward_token_matched_mixture": 4.181484901290583
+      },
+      "config_sha256": "13df0506257f346dde8fea5ee4a6f957704d5fd53027ce4ede2969b6aa85a8db"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/fixed1_control_s101",
+      "split": "test",
+      "policy_rows": 8800,
+      "maximum_relative_work_error": 0.0,
+      "selected_age_means": {
+        "learned": 1.4960937618743628,
+        "fixed1": 1.0,
+        "fixed2": 1.5,
+        "fixed4": 2.5,
+        "fixed8": 4.5,
+        "learned_greedy_index": 1.49609375,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 1.5,
+        "fixed4_greedy_index": 2.5,
+        "fixed8_greedy_index": 4.5,
+        "greedy_stop_greedy_index": 1.0
+      },
+      "config_sha256": "ad1dcfa39bfe86aaf5f5e62637fe39455b84e0f7f00de82eb38f6f6a1d8e1a1b"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/fixed4_control_s101",
+      "split": "test",
+      "policy_rows": 8800,
+      "maximum_relative_work_error": 0.0,
+      "selected_age_means": {
+        "learned": 1.983497650527474,
+        "fixed1": 1.0,
+        "fixed2": 1.998431213423246,
+        "fixed4": 3.991124141003238,
+        "fixed8": 7.738182290493787,
+        "learned_greedy_index": 1.9921875,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 1.0
+      },
+      "config_sha256": "e23d1d9d01a9132ec4b55597127e7a3c1e0e01375de4580cb68119e0829b7e69"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/format_only",
+      "split": "test",
+      "policy_rows": 8800,
+      "maximum_relative_work_error": 0.0,
+      "selected_age_means": {
+        "learned": 1.4960937618743628,
+        "fixed1": 1.0,
+        "fixed2": 1.5,
+        "fixed4": 2.5,
+        "fixed8": 4.5,
+        "learned_greedy_index": 1.49609375,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 1.5,
+        "fixed4_greedy_index": 2.5,
+        "fixed8_greedy_index": 4.5,
+        "greedy_stop_greedy_index": 1.0
+      },
+      "config_sha256": "640a2e0b975253880afbc1136991e8b25ee3e7d72b3c9c32798a96131b9c2264"
+    }
+  ],
+  "policy_rows": 104800,
+  "aggregate_metric_interval_checks": 1839,
+  "max_relative_point_error": 0.0,
+  "max_relative_interval_error": 5.872254014546272e-15,
+  "dev_mixture_feasibility_and_optimality": [
+    {
+      "arm": "cost",
+      "seed": 101,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 101,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 101,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "method": "joint_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "method": "joint_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    }
+  ],
+  "selected_checkpoint_paths": {
+    "cost:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101/checkpoint_00200.pt",
+    "cost:102": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s102/checkpoint_00200.pt",
+    "cost:103": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s103/checkpoint_00200.pt",
+    "no_cost:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s101/checkpoint_00200.pt",
+    "no_cost:102": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s102/checkpoint_00200.pt",
+    "no_cost:103": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s103/checkpoint_00200.pt",
+    "fixed1_control:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/fixed1/main_s101/checkpoint_00100.pt",
+    "fixed4_control:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/fixed4/main_s101/checkpoint_00200.pt",
+    "format_only:None": null
+  },
+  "lean_sample_plan": [
+    {
+      "arm": "cost",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s101",
+      "theorem_id": "b1d72db58ae57e6bc143",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "cost",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s101",
+      "theorem_id": "3a9e17c46034da7169a5",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s102",
+      "theorem_id": "2b77a6541bdede11a0b3",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s102",
+      "theorem_id": "ca1d6f919d0479ff4585",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s103",
+      "theorem_id": "e50e4be8dcf1c26daf3f",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/cost_s103",
+      "theorem_id": "7e95ffca0b04b1c92acd",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s101",
+      "theorem_id": "fb0b215fc1231ad5b9a1",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s101",
+      "theorem_id": "afbe7ebe1e98ef26dcd4",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s102",
+      "theorem_id": "0dba25f1a08bce80108c",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s102",
+      "theorem_id": "3f7ca5be5ed68979755b",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s103",
+      "theorem_id": "0ddaf2659887afb22fdc",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/no_cost_s103",
+      "theorem_id": "7ff170e2377d7584d99e",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "fixed1_control",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/fixed1_control_s101",
+      "theorem_id": "6ab198e40009a0e10da9",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "fixed1_control",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/fixed1_control_s101",
+      "theorem_id": "c5e91ea5f9fe7102fb7c",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "fixed4_control",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/fixed4_control_s101",
+      "theorem_id": "a8e7a35eca9a78cc1eaa",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "fixed4_control",
+      "seed": 101,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/fixed4_control_s101",
+      "theorem_id": "71aab049d47491ec4385",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "format_only",
+      "seed": null,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/format_only",
+      "theorem_id": "81c472b8d303f64ee576",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    },
+    {
+      "arm": "format_only",
+      "seed": null,
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_main/format_only",
+      "theorem_id": "bbc02c0abfbfe167d0de",
+      "repeat": 0,
+      "candidate_rule": "first and last, deduplicate"
+    }
+  ],
+  "summary_sha256": "7a21f093c5433348a99c424782875243a977b15313fe900e2e8d5b488d070614"
+}

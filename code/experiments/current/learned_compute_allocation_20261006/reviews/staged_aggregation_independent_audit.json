@@ -1,0 +1,84 @@
+{
+  "rows_checked": 40960,
+  "max_discrepancy": 0.0,
+  "theorems_each_group_cost": {
+    "bce/0.0": 320,
+    "bce/0.01": 320,
+    "bce/0.03": 320,
+    "bce/0.1": 320,
+    "feature/0.0": 320,
+    "feature/0.01": 320,
+    "feature/0.03": 320,
+    "feature/0.1": 320
+  },
+  "cost03": {
+    "bce": {
+      "accuracy": {
+        "mean": 0.03054299740921449,
+        "low": 0.01678454622507779,
+        "high": 0.045375477790947506,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      },
+      "attempts": {
+        "mean": -0.35820592819124986,
+        "low": -0.5845300539352976,
+        "high": -0.12059320497696423,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      },
+      "total_model_input_tokens_lower_bound": {
+        "mean": -9.094947017729283e-14,
+        "low": -1025.6121231246757,
+        "high": 1185.2685335506835,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      },
+      "reward": {
+        "mean": 0.041289175254951994,
+        "low": 0.027776577897459503,
+        "high": 0.05515476139903931,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      }
+    },
+    "feature": {
+      "accuracy": {
+        "mean": 0.032413660660695495,
+        "low": 0.018017673841470284,
+        "high": 0.04759803695416445,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      },
+      "attempts": {
+        "mean": -0.45915003153210365,
+        "low": -0.698006058317818,
+        "high": -0.21542904938924676,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      },
+      "total_model_input_tokens_lower_bound": {
+        "mean": 2.1827872842550277e-12,
+        "low": -2004.5059069408185,
+        "high": 2133.8307580226415,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      },
+      "reward": {
+        "mean": 0.04618816160665864,
+        "low": 0.03251072030893099,
+        "high": 0.06062861819302078,
+        "bootstrap_samples": 5000,
+        "seed": 61006,
+        "theorems": 320
+      }
+    }
+  }
+}

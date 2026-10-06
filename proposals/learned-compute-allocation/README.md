@@ -11,6 +11,9 @@ base_commit: 0fc78d51bc654fef6862c0700de076d0eb0d51e5
 
 # Learning to select proofs and allocate attempts
 
+Execution: the [October 6 sprint report](../../experiment-summaries/2026-10-06-learned-compute-allocation/summary.md)
+records the experiments run, their results, and the remaining gaps relative to this proposal.
+
 ## Summary
 
 We want to test whether a natural-deduction model can recognize its own successful

@@ -1,0 +1,22 @@
+{
+  "actions": 1871,
+  "candidates": 128,
+  "prefixes_reconstructed": 1871,
+  "max_candidate_sum_error": 0.0,
+  "max_feature_score_error": 7.105427357601002e-15,
+  "pool_tie_agreement": 16,
+  "threshold_agreement": 128,
+  "synthetic_bookkeeping_passed": true,
+  "bf16_max_mean_difference": [
+    0.0026757292197294724,
+    0.0020499497775355313,
+    0.0005599771287966016
+  ],
+  "fp32_max_mean_difference": [
+    1.5959220979848923e-07,
+    1.5592732829876352e-07,
+    1.197254183330064e-07
+  ],
+  "precision_limitation": "Autocast mode explicit in saved source; runtime matmul precision/TF32 flags not captured.",
+  "scope": "No model inference, verifier labels, or TEST outcomes read."
+}

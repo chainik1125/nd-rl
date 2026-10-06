@@ -1,0 +1,349 @@
+{
+  "root_release": "ROOT 2026-10-06 09:28:05 UTC",
+  "models": 9,
+  "policy_rows": 18864,
+  "path_audits": [
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/cost_s101",
+      "split": "test",
+      "policy_rows": 2304,
+      "maximum_relative_work_error": 4.2094039125021257e-16,
+      "selected_age_means": {
+        "learned": 1.027772928526784,
+        "fixed1": 1.0,
+        "fixed2": 1.9747539999532617,
+        "fixed4": 3.7246135446799196,
+        "fixed8": 5.5442989355586985,
+        "learned_greedy_index": 1.028627368660519,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.0169442849407635,
+        "counter_greedy_index": 1.017432192271974,
+        "context_threshold": 3.918173156416742,
+        "attempt_matched_mixture": 1.0169920991450612,
+        "forward_token_matched_mixture": 1.0881380966583392
+      },
+      "config_sha256": "801c597dc984a9d11e19091c64851a6fb649eb1d782917a5db1274d8c6f37168"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/cost_s102",
+      "split": "test",
+      "policy_rows": 2304,
+      "maximum_relative_work_error": 4.3689234894489983e-16,
+      "selected_age_means": {
+        "learned": 1.025824273403061,
+        "fixed1": 1.0,
+        "fixed2": 1.9047356049219768,
+        "fixed4": 3.042695013625133,
+        "fixed8": 4.689402549618131,
+        "learned_greedy_index": 1.0293531086810954,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 3.986111111111111,
+        "fixed8_greedy_index": 7.944444444444445,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.0168933940220206,
+        "counter_greedy_index": 1.0190385137248548,
+        "context_threshold": 3.0792886714269923,
+        "attempt_matched_mixture": 1.0172255937728065,
+        "forward_token_matched_mixture": 1.082871027146769
+      },
+      "config_sha256": "bb056bc9b3caf454cd18c27c398488d58b0544d30649ebb7470e88b344372c2b"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/cost_s103",
+      "split": "test",
+      "policy_rows": 2304,
+      "maximum_relative_work_error": 4.36438094961076e-16,
+      "selected_age_means": {
+        "learned": 1.0565370896134054,
+        "fixed1": 1.0,
+        "fixed2": 1.9780215094861988,
+        "fixed4": 3.191638505432315,
+        "fixed8": 5.857094470485915,
+        "learned_greedy_index": 1.058679600827723,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.0303567060249241,
+        "counter_greedy_index": 1.0313380805782602,
+        "context_threshold": 3.4643302744597246,
+        "attempt_matched_mixture": 1.0306493168715503,
+        "forward_token_matched_mixture": 1.036372320445493
+      },
+      "config_sha256": "0c51773f12a6eb4606f80a9f519b5026fed92dcee686c263e17211377312b199"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/no_cost_s101",
+      "split": "test",
+      "policy_rows": 2448,
+      "maximum_relative_work_error": 7.197607030849336e-16,
+      "selected_age_means": {
+        "learned": 1.8913821822300367,
+        "fixed1": 1.0,
+        "fixed2": 1.9840158050776355,
+        "fixed4": 3.7876812281416883,
+        "fixed8": 6.318850051619746,
+        "learned_greedy_index": 1.9601568667414253,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 2.1666666666666665,
+        "counter": 1.6728069157132164,
+        "counter_greedy_index": 1.7174395156633333,
+        "context_threshold": 4.072161843439163,
+        "attempt_matched_mixture": 1.705971822599964,
+        "forward_token_matched_mixture": 1.8117329790775305,
+        "joint_matched_mixture": 1.6560201923944189
+      },
+      "config_sha256": "06c692be5240aeaf2b83d88b471a3fcb3089e241b181f7238e9cff1a50b40a89"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/no_cost_s102",
+      "split": "test",
+      "policy_rows": 2448,
+      "maximum_relative_work_error": 4.331578311772226e-16,
+      "selected_age_means": {
+        "learned": 1.2222403591878443,
+        "fixed1": 1.0,
+        "fixed2": 1.957813201514202,
+        "fixed4": 3.621481300160263,
+        "fixed8": 5.336308671636895,
+        "learned_greedy_index": 1.2388041945660593,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 7.965277777777778,
+        "greedy_stop_greedy_index": 1.0,
+        "counter": 1.1847494514375916,
+        "counter_greedy_index": 1.1974611070127372,
+        "context_threshold": 3.5677856695385546,
+        "attempt_matched_mixture": 1.1891320251443298,
+        "forward_token_matched_mixture": 1.2648161042230013,
+        "joint_matched_mixture": 1.1503827625032939
+      },
+      "config_sha256": "49ff2cea76513a94765d2da9c08a3882e7a4ed0274500b5ca9d8e136500bc256"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/no_cost_s103",
+      "split": "test",
+      "policy_rows": 2304,
+      "maximum_relative_work_error": 4.683374124042829e-16,
+      "selected_age_means": {
+        "learned": 3.88834232596224,
+        "fixed1": 1.0,
+        "fixed2": 1.9979515910828114,
+        "fixed4": 3.9749258248286625,
+        "fixed8": 7.911174687955685,
+        "learned_greedy_index": 3.916921210213536,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 8.0,
+        "counter": 3.745304547397849,
+        "counter_greedy_index": 3.7705867806735927,
+        "context_threshold": 4.179936393316085,
+        "attempt_matched_mixture": 3.7429306988322915,
+        "forward_token_matched_mixture": 4.178059553364684
+      },
+      "config_sha256": "162b4f4a61410c5a4f78a37f2758fe7e4eac1a9592d8f331b65e572d7cf35b2c"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/fixed1_control_s101",
+      "split": "test",
+      "policy_rows": 1584,
+      "maximum_relative_work_error": 0.0,
+      "selected_age_means": {
+        "learned": 1.4960937618743628,
+        "fixed1": 1.0,
+        "fixed2": 1.5,
+        "fixed4": 2.5,
+        "fixed8": 4.5,
+        "learned_greedy_index": 1.49609375,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 1.5,
+        "fixed4_greedy_index": 2.5,
+        "fixed8_greedy_index": 4.5,
+        "greedy_stop_greedy_index": 1.0
+      },
+      "config_sha256": "b59589b360446054d646bf455ccf007a606b92c610cd6ef392c4f59426aecb33"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/fixed4_control_s101",
+      "split": "test",
+      "policy_rows": 1584,
+      "maximum_relative_work_error": 0.0,
+      "selected_age_means": {
+        "learned": 1.9825780261207453,
+        "fixed1": 1.0,
+        "fixed2": 1.9975906773231853,
+        "fixed4": 3.986412554198978,
+        "fixed8": 7.747722714575705,
+        "learned_greedy_index": 1.9921875,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 2.0,
+        "fixed4_greedy_index": 4.0,
+        "fixed8_greedy_index": 8.0,
+        "greedy_stop_greedy_index": 1.0
+      },
+      "config_sha256": "89a3b780fe990ddf44c75282e0b2f257bf2413ee4a9dab3f114e2cc78ffc8a1d"
+    },
+    {
+      "directory": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/final_historical/format_only",
+      "split": "test",
+      "policy_rows": 1584,
+      "maximum_relative_work_error": 0.0,
+      "selected_age_means": {
+        "learned": 1.4960937618743628,
+        "fixed1": 1.0,
+        "fixed2": 1.5,
+        "fixed4": 2.5,
+        "fixed8": 4.5,
+        "learned_greedy_index": 1.49609375,
+        "fixed1_greedy_index": 1.0,
+        "fixed2_greedy_index": 1.5,
+        "fixed4_greedy_index": 2.5,
+        "fixed8_greedy_index": 4.5,
+        "greedy_stop_greedy_index": 1.0
+      },
+      "config_sha256": "fd47007a0fa2bde140b1c5a21b6f188b489c6ab3be91a98956db8136132cebb3"
+    }
+  ],
+  "cohort_sizes": {
+    "combined": 72,
+    "textbook_dev": 58,
+    "rl_train": 14
+  },
+  "aggregate_metric_interval_checks": 4953,
+  "max_relative_point_error": 0.0,
+  "max_relative_interval_error": 6.329521409068692e-16,
+  "dev_mixtures": [
+    {
+      "arm": "cost",
+      "seed": 101,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 101,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 101,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 102,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "cost",
+      "seed": 103,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 101,
+      "method": "joint_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 102,
+      "method": "joint_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "method": "attempt_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "method": "forward_token_matched_mixture",
+      "feasible": true
+    },
+    {
+      "arm": "no_cost",
+      "seed": 103,
+      "method": "joint_matched_mixture",
+      "feasible": false
+    }
+  ],
+  "selected_checkpoint_paths": {
+    "cost:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s101/checkpoint_00200.pt",
+    "cost:102": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s102/checkpoint_00200.pt",
+    "cost:103": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/cost/main_s103/checkpoint_00200.pt",
+    "no_cost:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s101/checkpoint_00200.pt",
+    "no_cost:102": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s102/checkpoint_00200.pt",
+    "no_cost:103": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/no_cost/main_s103/checkpoint_00200.pt",
+    "fixed1_control:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/fixed1/main_s101/checkpoint_00100.pt",
+    "fixed4_control:101": "/data/users/dmitry/ndrl/artifacts/learned_compute_allocation_20261006/allocation/fixed4/main_s101/checkpoint_00200.pt",
+    "format_only:None": null
+  },
+  "summary_sha256": "2bf1f8f55513dc71fbf706f8d2b9e84a2ce3405eb5067edeedb66a66e86f9309"
+}

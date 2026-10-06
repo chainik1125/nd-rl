@@ -1,0 +1,29 @@
+{
+  "path_smoke": {
+    "paths": 2,
+    "proofs_rechecked": 16,
+    "Lean_disagreements": 0,
+    "max_quality_attempt_generated_token_error": 0.0,
+    "seconds": 0.35492563247680664
+  },
+  "causal_smoke": {
+    "states": 4,
+    "branches": 12,
+    "attempts": 16,
+    "saved_valid": 6,
+    "proofs_rechecked": 16,
+    "Lean_disagreements": 0,
+    "max_decomposition_probability_error": 2.9802322387695312e-08,
+    "checks": {
+      "forced_states": 0,
+      "oracle_decrease": 0,
+      "nonextendible_state_used": 0,
+      "paired_intervention_branches": 4,
+      "paired_seed_mismatch": 0,
+      "paired_namebase_mismatch": 0,
+      "paired_actionseed_prefix_mismatch": 0
+    },
+    "seconds": 0.4065065383911133,
+    "scope": "uniform untrainedheads; protocol only"
+  }
+}

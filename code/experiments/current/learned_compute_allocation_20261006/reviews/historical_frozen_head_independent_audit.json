@@ -1,0 +1,75 @@
+{
+  "cached_linear_logit_max_error": 7.105427357601002e-15,
+  "arithmetic_max_error": 1.1641532182693481e-10,
+  "policy_rows_checked": 3312,
+  "frozen_parameter_digest": "594173e7d67a64f5c4ffa9ac5176e4390770e44ce7d307590474bed3957c8eb5",
+  "paired": {
+    "matched_BCE_seed0": {
+      "mean": 0.013888888888888888,
+      "low": 0.0,
+      "high": 0.041666666666666664,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 72
+    },
+    "BCE_seed1": {
+      "mean": 0.027777777777777776,
+      "low": 0.0,
+      "high": 0.06944444444444445,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 72
+    },
+    "BCE_seed2": {
+      "mean": 0.027777777777777776,
+      "low": 0.0,
+      "high": 0.06944444444444445,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 72
+    },
+    "public_features": {
+      "mean": 0.013888888888888888,
+      "low": -0.027777777777777776,
+      "high": 0.06944444444444445,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 72
+    },
+    "random": {
+      "mean": 0.14583333333333334,
+      "low": 0.0763888888888889,
+      "high": 0.2170138888888889,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 72
+    },
+    "secondary_BCE_three_seed_mean": {
+      "mean": 0.02314814814814815,
+      "low": 0.0,
+      "high": 0.060185185185185196,
+      "bootstrap_samples": 5000,
+      "seed": 61006,
+      "theorems": 72
+    }
+  },
+  "cost03_threshold_name": "threshold0.65",
+  "cost03_threshold": {
+    "accuracy": 0.565625,
+    "attempts": 4.323313492063492,
+    "generated_tokens_proxy": 1305.3948578042327,
+    "generator_prefill_tokens_proxy": 8348.154894179894,
+    "generator_input_tokens_lower_bound": 9570.138756613756,
+    "required_feature_replay_tokens_unpadded": 0.0,
+    "total_model_input_tokens_lower_bound": 11162.233416005292,
+    "critic_prefill_tokens_proxy": 1592.0946593915344,
+    "critic_dense_attention_positions_proxy": 752163.2230985449,
+    "rewards": {
+      "0.0": 0.565625,
+      "0.01": 0.5323918650793651,
+      "0.03": 0.4659255952380953,
+      "0.1": 0.23329365079365083
+    }
+  },
+  "independent_combinatorics_helper_sha256": "d87d9cb932d7c1239f09999c562f480289e6d39e83507e017326a7bb71f2ef19"
+}

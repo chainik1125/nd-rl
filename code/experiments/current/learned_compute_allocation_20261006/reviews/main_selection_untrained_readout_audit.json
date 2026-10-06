@@ -1,0 +1,14 @@
+{
+  "base_pooled": {
+    "accuracy": 0.6975,
+    "predictions_sha256": "7c51564bd0785f994ac6a9163774cd2ec013a1764eecb29271d0151f6fbee82f"
+  },
+  "base_factorized": {
+    "accuracy": 0.76375,
+    "predictions_sha256": "9904c144bcb10fd66a36ce95a1b8b6518681bcd17a91a14834029840b8b2cdc9"
+  },
+  "base_binary_factorized": {
+    "accuracy": 0.76375,
+    "predictions_sha256": "3f1444a769dde523a9a9079e87b0211267f54e025dd8cb1ef8274e8a44cc4a2d"
+  }
+}

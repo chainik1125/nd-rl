@@ -1,0 +1,26 @@
+{
+  "launcher_sha256": "162e3a930620d4e2db978fa1e40f699d80de97be58467ea018516216158f84f2",
+  "cases": {
+    "clean": {
+      "rejected": false,
+      "jobs": 4,
+      "outputs_created": false
+    },
+    "unselected_bad_condition": {
+      "rejected": true,
+      "message": "Current intervention differs from registered inventory"
+    },
+    "wrong_launcher": {
+      "rejected": true,
+      "message": "Causal launch helper is not registered"
+    },
+    "missing_analysis_registration": {
+      "rejected": true,
+      "message": "Model, policy or analysis implementation is not registered for test"
+    },
+    "wrong_checkpoint": {
+      "rejected": true,
+      "message": "Current intervention differs from registered inventory"
+    }
+  }
+}
