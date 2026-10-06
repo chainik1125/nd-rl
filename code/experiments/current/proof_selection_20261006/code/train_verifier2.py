@@ -153,7 +153,9 @@ def main():
     sp = json.load(open(os.path.join(PL.SPRINT, 'results', 'splits.json')))
     trn = {s: set(v) for s, v in sp['train'].items()}; dvn = {s: set(v) for s, v in sp['dev'].items()}
     ll_stats = None
-    if a.use_ll:
+    if a.use_ll and a.score_only:
+        ll_stats = tuple(json.load(open(os.path.join(out, 'll_stats.json'))))
+    elif a.use_ll:
         ll_stats = ll_standardisation(a.pools, trn)
         json.dump(ll_stats, open(os.path.join(out, 'll_stats.json'), 'w'))
     body, tok, _ = load_ckpt(PL.CKPT, dev)

@@ -115,3 +115,13 @@ ensemble; (5) token-cost accounting undercharges the 3-head ensemble.
   attempts into near-hopeless theorems, and a give-up rule loses on dev, so those attempts still pay.
 - Best practical policy: count-stop + sibling-judge selection: textbook72 0.564 at 6.9 attempts, 0.604 at 11.5
   (oracle pass@64 0.694). Audit-2 fixes applied (cost accounting, dev-frozen comparators, narrowed claims).
+
+## 04:50 UTC Worker B phase 3 done: self-judging penalty is real
+
+3×3 generator×judge matrix on both test sets (s1, s2 pools generated with A's collector, 0 replay mismatches).
+Two-way fit self effect δ on within-theorem AUROC: −0.029 [−0.048, −0.010] (holdout250), −0.068 [−0.115, −0.019]
+(textbook72); on k=8 selection −0.010 [−0.016, −0.005] / −0.022 [−0.036, −0.010]. Judge identity effects ±0.01.
+Sibling selection gain replicates for all 3 generators (6/6 CIs exclude 0 at k=8). Ordering random < completion <
+self < siblings < oracle holds in every row. Generator-seed sd of k=8 numbers: ≤0.01 holdout250, ≤0.03 textbook72.
+Launched phase 4 (B): headline figure over 3 generators; mechanism probe (do invalid proofs look too likely to their
+own generator?); ancestor judges (r8, stage-1) to test whether expert iteration causes the self-overconfidence.
