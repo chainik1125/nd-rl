@@ -1,0 +1,4 @@
+holdout250 T1: within-AUROC self 0.788 sibling(s1) 0.828 diff +0.040 [+0.002,+0.076] | k=8 sel self 0.917 s1 0.930 diff +0.013 [+0.004,+0.023]
+holdout250 T08: within-AUROC self 0.786 sibling(s1) 0.830 diff +0.044 [+0.006,+0.082] | k=8 sel self 0.917 s1 0.931 diff +0.013 [+0.004,+0.024]
+textbook72 T1: within-AUROC self 0.687 sibling(s1) 0.783 diff +0.095 [+0.020,+0.170] | k=8 sel self 0.543 s1 0.573 diff +0.030 [+0.007,+0.059]
+textbook72 T08: within-AUROC self 0.682 sibling(s1) 0.788 diff +0.105 [+0.027,+0.186] | k=8 sel self 0.541 s1 0.573 diff +0.032 [+0.008,+0.062]

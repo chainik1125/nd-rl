@@ -14,8 +14,8 @@ SPEC = [('random', 'pick one proof at random (fixed k)', '#52514e', '--'),
         ('ff', 'stop at the first finished proof', '#2a78d6', '-'),
         ('count_self', 'stop after c finished; the model keeps its own most-likely one', '#eb6834', '-'),
         ('count_sib', 'stop after c finished; two sibling checkpoints judge', '#1baf7a', '-'),
-        ('oracle_fixed', 'oracle: any valid proof among k (pass@k)', '#0b0b0b', ':'),
-        ('oracle_stop', 'oracle: stop at the first valid proof', '#0b0b0b', '-')]
+        ('oracle_fixed', 'oracle: Lean picks from k attempts (pass@k)', '#0b0b0b', ':'),
+        ('oracle_stop', 'oracle: Lean stops at the first valid proof', '#0b0b0b', '-')]
 fig, axes = plt.subplots(1, 2, figsize=(14, 6.4))
 for ax, set_ in zip(axes, ('holdout250', 'textbook72')):
     S = H[set_]
@@ -44,7 +44,7 @@ for ax, set_ in zip(axes, ('holdout250', 'textbook72')):
     ax.set_xlabel('mean attempts per theorem (at most 16)')
     ax.set_title(f'{set_} (test)', fontsize=11)
     ax.grid(True, color='#e6e5e0'); [ax.spines[s].set_visible(False) for s in ('top', 'right')]
-axes[0].set_ylabel('accuracy of the returned proof (Lean-valid)')
+axes[0].set_ylabel('accuracy of the returned proof (Lean says valid)')
 h, l = axes[0].get_legend_handles_labels()
 fig.legend(h, l, loc='lower center', ncol=2, fontsize=9, frameon=False)
 fig.suptitle('Can the model pick and stop on its own? Mean over 3 generator seeds (r16 s0/s1/s2, T 0.8); band = min-max across seeds;\n'

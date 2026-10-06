@@ -15,6 +15,9 @@ COL = {'random': '#8a8a85', 'completion': '#2a78d6', 'completion_loglik': '#eb68
        'verifier_ens': '#eda100', 'verifier_hist_ens': '#e87ba4', 'shortest': '#4a3aa7'}
 MK = {'random': 'x', 'completion': 'o', 'completion_loglik': 's', 'shallow_lr': '^', 'verifier_ens': 'D',
       'verifier_hist_ens': 'v', 'shortest': 'P'}
+PLAIN = {'random': 'random attempt', 'completion': 'a finished attempt', 'completion_loglik': 'finished, highest own likelihood',
+         'shallow_lr': 'logistic regression on visible features', 'verifier_ens': 'trained verifier head (3-seed ensemble)',
+         'verifier_hist_ens': 'trained head, history input'}
 plt.rcParams.update({'axes.spines.top': False, 'axes.spines.right': False, 'font.size': 9})
 
 
@@ -24,13 +27,13 @@ def sel_curves(sets=('holdout250', 'textbook72')):
         r = json.load(open(os.path.join(R, f'selection_{s}.json')))
         sel = r['selection']['all']; ms = sorted(int(m) for m in sel)
         any_sc = r['scorers'][0]
-        ax.plot(ms, [sel[str(m)][any_sc]['oracle'] for m in ms], 'k--', label='oracle pass@m')
+        ax.plot(ms, [sel[str(m)][any_sc]['oracle'] for m in ms], 'k--', label='oracle: best of m')
         for sc in SHOW:
             if sc not in r['scorers']:
                 continue
             y = [sel[str(m)][sc]['acc'] for m in ms]
             lo = [sel[str(m)][sc]['ci'][0] for m in ms]; hi = [sel[str(m)][sc]['ci'][1] for m in ms]
-            ax.plot(ms, y, marker=MK.get(sc, 'o'), ms=5, lw=2, color=COL.get(sc), label=sc,
+            ax.plot(ms, y, marker=MK.get(sc, 'o'), ms=5, lw=2, color=COL.get(sc), label=PLAIN.get(sc, sc),
                     ls='--' if sc == 'random' else '-')
             ax.fill_between(ms, lo, hi, color=COL.get(sc), alpha=0.07)
         ax.set_xscale('log', base=2); ax.set_xticks(ms); ax.set_xticklabels(ms)
@@ -38,7 +41,7 @@ def sel_curves(sets=('holdout250', 'textbook72')):
         ax.set_title(f'{s} (n={r["n_theorems"]} theorems, all incl. unsolvable)')
         ax.grid(alpha=0.3)
     np.atleast_1d(axs)[0].legend(fontsize=8, loc='lower right')
-    fig.suptitle('Selected-proof accuracy vs pool size (95% theorem-bootstrap bands)')
+    fig.suptitle('Keeping the finished proof the model itself finds most likely recovers ~75% of the gap from a random attempt to the best of m')
     fig.tight_layout(); fig.savefig(os.path.join(F, 'A_selection_vs_m.png'), dpi=150); plt.close(fig)
 
 

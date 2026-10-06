@@ -159,3 +159,10 @@ three CIs include 0). Closes 15–23% of the gap from count-stop to oracle stop-
 c=1 point (≈ first-finished) nothing is reachable. Budget transfer to textbook72 is better than the self threshold
 (2.1–2.5× target vs 3.0×) but worse than count-stop (1.5×). Advisor review at 04:58 flagged write-up corrections
 (exposure wording, "3×" → "2–3×", AUROC glosses, the "14 of 72 RL targets" claim pending evidence from A).
+
+## 05:10 UTC T=0.8 robustness and figure relabels (B)
+
+Self-judging penalty unchanged at the sampling temperature (holdout250 +0.044 [0.006, 0.082]; textbook72 +0.105
+[0.027, 0.186]); k=8 ordering unchanged. Cold-read test of the four executive figures by a context-free agent:
+takeaways of the judge matrix and data ladder were misread, so titles and legends were rewritten in plain words
+(numbers identical); the headline figure's takeaway was read correctly.

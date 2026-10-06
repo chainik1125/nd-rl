@@ -86,3 +86,21 @@ point.
 - When the policy spends more than count-stop's c = 8 point, the count-stop comparator is c = 8.
 - N_max is 16.
 - Each generator has one pool.
+
+## Robustness check: likelihood at the sampling temperature T = 0.8
+
+The s0_r16 test pools were re-scored under judges s0 (self) and s1 (sibling) with logits / 0.8 before the
+log-softmax (`score_loglik.py --temperature 0.8`, tags `s0_t08`, `s1_t08`). Masking and replay checks were the same
+(0 errors). Metrics: within-theorem finished-only AUROC and k = 8 `completion_loglik` selection (200 shared
+subsets). The diff column is sibling − self, as a paired theorem bootstrap (B = 2000). Output:
+`results/B5_t08_check.txt`.
+
+| set | T | AUROC self | AUROC s1 | AUROC diff [CI] | k=8 self | k=8 s1 | k=8 diff [CI] |
+|---|---|---|---|---|---|---|---|
+| holdout250 | 1.0 | 0.788 | 0.828 | +0.040 [0.002, 0.076] | 0.917 | 0.930 | +0.013 [0.004, 0.023] |
+| holdout250 | 0.8 | 0.786 | 0.830 | +0.044 [0.006, 0.082] | 0.917 | 0.931 | +0.013 [0.004, 0.024] |
+| textbook72 | 1.0 | 0.687 | 0.783 | +0.095 [0.020, 0.170] | 0.543 | 0.573 | +0.030 [0.007, 0.059] |
+| textbook72 | 0.8 | 0.682 | 0.788 | +0.105 [0.027, 0.186] | 0.541 | 0.573 | +0.032 [0.008, 0.062] |
+
+The self-judging penalty and the k = 8 selection ordering are unchanged at T = 0.8. If anything the penalty is
+slightly larger. The phase-1 to phase-5 conclusions do not depend on scoring at T = 1.

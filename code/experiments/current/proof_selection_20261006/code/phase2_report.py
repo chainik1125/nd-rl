@@ -79,13 +79,13 @@ def main():
         xt = res['runs']['rall_s0']['n_finished_invalid']
         ys = [res['within'][e][f'verifier2_rall_s{i}'][0] for i in range(3)]
         ye = res['within'][e]['verifier2_ens'][0] if 'verifier2_ens' in res['within'][e] else np.mean(ys)
-        ax.plot(x + [xt], y + [ye], '-o', color=cols[e], lw=2, ms=6, label=f'verifier2, {e} (top rung = 3-seed ens)')
+        ax.plot(x + [xt], y + [ye], '-o', color=cols[e], lw=2, ms=6, label={'dev (orig pools)': 'learned ranker, dev theorems', 'holdout250': 'learned ranker, holdout250 (test)', 'textbook72': 'learned ranker, textbook72 (test)'}.get(e, e))
         ax.scatter([xt] * 3, ys, color=cols[e], marker='x', s=30, zorder=3)
         ax.axhline(res['within'][e]['loglik_mean_masked'][0], color=cols[e], ls='--', lw=1.2)
         ax.text(x[0], res['within'][e]['loglik_mean_masked'][0] + 0.004, f'loglik_mean_masked, {e}', color='#444', fontsize=7)
     ax.set_xscale('log'); ax.set_xlabel('finished-invalid training attempts (log scale)')
-    ax.set_ylabel('within-theorem AUROC among finished attempts')
-    ax.set_title('Does more hard-negative data close the gap to likelihood?\n(solid: learned ranker; dashed: loglik baseline; x: individual seeds)')
+    ax.set_ylabel('how well valid proofs are ranked above\ninvalid ones of the same theorem (AUROC)', fontsize=8)
+    ax.set_title("More hard-negative training data does not bring the learned ranker\nup to the model's own likelihood (dashed)", fontsize=9)
     ax.grid(alpha=0.3); ax.legend(fontsize=7, loc='lower right')
     fig.tight_layout(); fig.savefig(os.path.join(F, f'A2_auroc_vs_data{tag}.png'), dpi=150); plt.close(fig)
     # figure 2: top-rung dev curve vs steps (undertraining check)

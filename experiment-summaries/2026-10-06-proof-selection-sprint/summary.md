@@ -216,8 +216,9 @@ first-finished point no rule that returns a finished proof can go.
 - "Finished" is not label-free in spirit: the environment's syntactic checks (scope, goal match, binder shape) reject
   some wrong proofs before Lean. Every scorer, including the random baseline's competitors, has that information; the
   likelihood and verifier results are increments on top of it.
-- Likelihood is computed at temperature 1 with environment-assigned name positions masked; it is a diagnostic
-  quantity, not the probability the T 0.8 sampler assigned.
+- Likelihood is computed at temperature 1 with environment-assigned name positions masked, so it is a diagnostic
+  quantity rather than the probability the T 0.8 sampler assigned. Rescoring at T 0.8 leaves the self-judging penalty
+  and the selection ordering unchanged (textbook72 sibling-minus-self AUROC +0.105 [0.027, 0.186] at T 0.8 vs +0.095 at T 1).
 - The test sets were visible before the freeze through an aggregate headroom table computed from Dan's earlier
   pools, and the textbook72 pool was generated one minute before the written freeze; the history-input decision for
   the phase-1 head used textbook72's label-free clipping rate. No test label influenced any choice, and all primary
