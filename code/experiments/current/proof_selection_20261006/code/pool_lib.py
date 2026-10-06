@@ -50,6 +50,7 @@ def ref_lines(rec):
 
 
 def pool_stem(set_name, k=None, gen=GEN):
+    """k may be an int or a string like '96b' (phase-2 extra pools)."""
     return f'{set_name}__{gen}__k{k or SET_K[set_name]}'
 
 

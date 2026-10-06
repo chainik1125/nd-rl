@@ -7,15 +7,16 @@ m = dict(created_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), generat
          generator_sha256=PL.sha256(PL.CKPT), nd_takehome='branch dan @ 4dcd0e4f',
          sampling=dict(temperature=0.8, max_action=512, max_steps=96, batch=2048, early='eos', arm='SN assign=True'),
          splits='splits.json', splits_sha256=PL.sha256(os.path.join(PL.POOLS, 'splits.json')), pools={})
-for s in PL.SET_FILES:
-    p = PL.pool_path(s)
+SPECS = [(s, None) for s in PL.SET_FILES] + [('rr600', '96b'), ('rl_targets', '48b'), ('dev1108', '48b')]
+for s, kk in SPECS:
+    p = PL.pool_path(s, kk)
     sf = p[:-6] + '.summary.json'
     if not os.path.exists(sf):
         continue
     S = json.load(open(sf))
-    rep = os.path.join(PL.POOLS, PL.pool_stem(s) + '.replay.json')
-    m['pools'][s] = dict(file=os.path.basename(p), sha256=PL.sha256(p), labels=os.path.basename(PL.labels_path(s)),
-                         labels_sha256=PL.sha256(PL.labels_path(s)), source=PL.SET_FILES[s],
+    rep = os.path.join(PL.POOLS, PL.pool_stem(s, kk) + '.replay.json')
+    m['pools'][PL.pool_stem(s, kk)] = dict(file=os.path.basename(p), sha256=PL.sha256(p), labels=os.path.basename(PL.labels_path(s, kk)),
+                         labels_sha256=PL.sha256(PL.labels_path(s, kk)), phase=2 if kk else 1, sampling_seed=S['seed'], source=PL.SET_FILES[s],
                          n_theorems=S['n_theorems'], k=S['k'], seed=S['seed'], attempts=S['attempts'],
                          wall_s=round(S['wall_s'], 1), sample_wall_s=round(S['sample_wall_s'], 1), lean_s=round(S['lean_s'], 1),
                          finished_rate=round(S['finished_rate'], 4), validity_rate=round(S['validity_rate'], 4),

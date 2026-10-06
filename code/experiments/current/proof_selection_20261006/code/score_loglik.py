@@ -190,9 +190,9 @@ def aggregate(step_res):
                 entropy_mean=-sum(ens) / len(ens), n_tok=n, argmax_agree=sum(ags) / len(ags))
 
 
-def load_model(device):
+def load_model(device, ckpt=None):
     from model import load_ckpt
-    m, tk, _ = load_ckpt(CKPT, device)
+    m, tk, _ = load_ckpt(ckpt or CKPT, device)
     assert tk.mode == 'lean_staten'
     return m
 
@@ -204,6 +204,9 @@ def main():
     ap.add_argument('--workers', type=int, default=6)
     ap.add_argument('--limit', type=int, default=0)
     ap.add_argument('--fp32', action='store_true')
+    ap.add_argument('--ckpt', default=CKPT, help='judge checkpoint (phase 2: sibling seeds s1/s2)')
+    ap.add_argument('--tag', default='', help='suffix for score names, e.g. s1 -> loglik_mean_masked_s1 (only the '
+                    'per-attempt likelihood scorers are written; replay checks identical)')
     a = ap.parse_args()
     t0 = time.time()
     stem = os.path.basename(a.pool)[:-len('.jsonl')]
@@ -224,7 +227,7 @@ def main():
         for s in rp['steps']:
             pairs.append(s); pair_owner.append(j)
     device = torch.device('cuda')
-    model = load_model(device)
+    model = load_model(device, a.ckpt)
     pres = score_pairs(model, pairs, device, bf16=not a.fp32)
     t2 = time.time()
     per_att = [[] for _ in jobs]
@@ -260,22 +263,24 @@ def main():
                            replay_done=rp['replay_done'], done_match=rp['done_match'], err=rp['err'], nd_match=rp['nd_match'],
                            step_mean_lp=[(sum(x for x in lp if x is not None) / max(1, sum(x is not None for x in lp)))
                                          for lp, _, _, _ in per_att[j]])
-    for s in SCORERS:
-        with open(os.path.join(a.out_dir, f'{stem}__{s}.jsonl'), 'w') as f:
+    tg = f'_{a.tag}' if a.tag else ''
+    for s in (SCORERS if not a.tag else ['loglik_mean_masked', 'loglik_mean_full', 'loglik_sum', 'loglik_min_step',
+                                          'entropy_mean', 'completion_loglik']):
+        with open(os.path.join(a.out_dir, f'{stem}__{s}{tg}.jsonl'), 'w') as f:
             for r, sc in zip(rows, out[s]):
                 f.write(json.dumps({'name': r['name'], 'scores': sc}) + '\n')
-    with open(os.path.join(a.out_dir, 'aux', f'{stem}__shallow_features.jsonl'), 'w') as f:
+    with open(os.path.join(a.out_dir, 'aux', f'{stem}__shallow_features{tg}.jsonl'), 'w') as f:
         for r, d in zip(rows, feats):     # visible per-attempt features for Worker A's shallow_lr baseline
             f.write(json.dumps({'name': r['name'], 'features': d}) + '\n')
-    with open(os.path.join(a.out_dir, 'aux', f'{stem}__loglik_detail.jsonl'), 'w') as f:
+    with open(os.path.join(a.out_dir, 'aux', f'{stem}__loglik_detail{tg}.jsonl'), 'w') as f:
         for r, d in zip(rows, det):
             f.write(json.dumps({'name': r['name'], 'detail': d}) + '\n')
     summ = dict(pool=a.pool, n_theorems=len(rows), n_attempts=len(jobs), n_pairs=len(pairs),
                 replay_done_mismatch=n_mismatch, replay_errors=n_err,
                 nd_checked=n_ndchk, nd_mismatch=n_ndbad, sha_checked_attempts=n_sha, sha_bad_steps=n_shabad,
                 attempts_with_raw_ids=n_raw, secs_replay=t1 - t0, secs_forward=t2 - t1,
-                secs_total=time.time() - t0, ckpt=CKPT, bf16=not a.fp32)
-    with open(os.path.join(a.out_dir, 'aux', f'{stem}__loglik_summary.json'), 'w') as f:
+                secs_total=time.time() - t0, ckpt=a.ckpt, bf16=not a.fp32)
+    with open(os.path.join(a.out_dir, 'aux', f'{stem}__loglik_summary{tg}.json'), 'w') as f:
         json.dump(summ, f, indent=1)
     print(json.dumps(summ))
 

@@ -121,6 +121,7 @@ def main():
     ap.add_argument('--ckpt', default=PL.CKPT)
     ap.add_argument('--out', default=None)
     ap.add_argument('--check_replay', action='store_true')
+    ap.add_argument('--names', default=None, help='json list of theorem names to keep (phase 2 extra pools)')
     a = ap.parse_args()
     k = a.k or PL.SET_K[a.set]
     out = a.out or PL.pool_path(a.set, k)
@@ -128,6 +129,9 @@ def main():
     os.makedirs(os.path.dirname(out), exist_ok=True)
     log = lambda s: print(f'[{time.strftime("%H:%M:%S", time.gmtime())}] {s}', flush=True)
     theorems = PL.load_set(a.set)
+    if a.names:
+        keep = set(json.load(open(a.names)))
+        theorems = [t for t in theorems if t['name'] in keep]
     if a.limit:
         theorems = theorems[:a.limit]
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'

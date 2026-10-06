@@ -61,3 +61,43 @@ primary pool size k=8 (secondary 2, 4, 16, 32, 64), primary comparison = `verifi
 attempts of 2 and 4 for adaptive `verifier_ens` stop vs dev-selected fixed-k mixture with the same selector vs
 first-finished stop; all thresholds, tie-breaks (lowest index), ensemble choice (mean of 3 seeds) and mixture weights
 chosen on dev. Difficulty-bucket results are exploratory.
+
+## 03:35 UTC phase 1 complete (both workers, ~6 h early)
+
+Observed (frozen test sets, one generator seed, read once after sha-freeze):
+- Selection at k=8: completion+own-likelihood 0.918 (holdout250) / 0.540 (textbook72); random 0.836 / 0.405; oracle
+  0.940 / 0.594. Recovers ~75% of the gap. The BCE verifier ensemble is *below* it (paired −0.012 / −0.025, CIs exclude 0).
+- Why: the verifier's pooled AUROC is 0.92–0.97 but its within-theorem finished-only AUROC is 0.60–0.65, vs 0.69–0.79
+  for masked likelihood. The head learned theorem difficulty, not proof correctness. Two dev-motivated fixes (unclipped
+  history input; a ranking loss) did not change it.
+- Stopping: stop-at-first-finished is strong (holdout250: 1.6 attempts → 0.904). Adaptive likelihood thresholds add
+  +0.012 [0.004, 0.021] at ≈4 attempts on holdout250 over fixed-k with the same selector, but the dev threshold does not
+  transfer to textbook72 (spends 12 attempts aiming at 4). No policy can beat fixed-1 at mean attempts 1.
+Interpretation: recognition is largely an intrinsic, free signal; the trained head's failure is a training-signal
+problem (pooled BCE on 94%-valid pools), not evidence that recognition is impossible. Stopping needs a per-theorem
+calibrated criterion, not an absolute threshold.
+
+## 03:40 UTC phase 2 launched
+
+- A: more finished-invalid training data (rr600 +k96, hard dev1108/rl_targets +k48) and a within-theorem pairwise
+  ranker on finished attempts only; data ladder 25/50/100%/+new; variant with likelihood as input feature.
+- B: sibling-checkpoint likelihood (s1, s2 judges of s0's proofs); difficulty-aware allocation using the pooled
+  verifier as a difficulty estimate; rank-based stopping that should transfer across sets.
+- Reviewer 2: recompute headline numbers from raw files; audit masking, freezes, within-theorem AUROC, comparators.
+
+## 03:45 UTC reviewer audit 2 (`reviews/02_midpoint_audit.md`, scripts in `reviews/02_scripts/`)
+
+Reviewer recomputed from raw files: k=8 completion_loglik 0.9175 / 0.5398, verifier_ens 0.9060 / 0.5144, oracle
+0.9396 / 0.5942, random 0.8357 / 0.4055 (holdout250 / textbook72); paired gap +0.0116 [0.0011, 0.0220] and +0.0254
+[0.0101, 0.0435]. All 63 frozen hashes and 12 manifest hashes match. Independent replay of 20,608 test attempts: 0
+mismatches; mask positions match the environment's overrides. Likelihood's increment beyond completion is
++0.022 [0.012, 0.031] / +0.020 [0.005, 0.040].
+Corrections to carry into the write-up: (1) "learned difficulty, not correctness" is an interpretation; scarce hard
+negatives (3,195 finished-invalid of 97,776 training attempts; 88.2% valid, not 94%), clipping and undertraining are
+unexcluded alternatives — phase 2's data ladder is the test; (2) chronology: the textbook72 pool was generated at
+02:07, one minute before the 02:08 freeze text, and A's history-input decision used textbook72 clipping rates, so the
+exposure claim must be "test *labels* were not used for any choice", not "no test read"; (3) stopping comparators in
+the headline use realised test cost (descriptive); textbook72 secondary rules completion_minstep (+0.023 [0.011,
+0.038]) and completion_loglik_sum (+0.016 [0.005, 0.031]) do beat fixed-k; count-stop c=3 beats FF on holdout250
+(+0.011 [0.002, 0.020]); (4) the verifier label-permutation artefact used a smoke checkpoint — rerun on the final
+ensemble; (5) token-cost accounting undercharges the 3-head ensemble.
