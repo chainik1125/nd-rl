@@ -7,7 +7,7 @@ papers:
   - pmlr-v267-shen25o
 ---
 
-# The proof model can pick its own best attempt; a sibling trained to rank proofs picks almost as well as Lean and closes half of the stopping gap
+# The proof model can pick its own best attempt; a sibling trained to rank proofs picks almost as well as Lean and closes roughly half of the stopping gap at mid budgets
 
 ## Executive summary
 
@@ -30,18 +30,21 @@ reject it. "Likelihood" means the mean per-token log-probability a judge model a
    −0.019] in within-theorem ranking quality): it rates its own invalid proofs +0.07 to +0.11 nats per token above
    what its siblings give them, against +0.03 to +0.04 for its valid proofs.
    - ![Generator by judge](figures/B3_judge_matrix.png)
-3. **A sibling trained to rank proofs by its own likelihood recovers about 93% of the gap; scalar verifier heads
-   never beat plain likelihood.** Fine-tuning sibling s1 so that its per-token likelihood rises on Lean-valid and
-   falls on invalid proofs of the same theorem lifts within-theorem ranking from 0.83 / 0.78 to 0.89 / 0.94 and
-   8-attempt selection to 0.933 / 0.582 (oracle 0.940 / 0.594), and the gain carries over to proofs written by the
-   other generators. Three recipes that put a scalar head on the network instead all rank below untrained likelihood.
+3. **A sibling trained to rank proofs by its own likelihood recovers about 93% of the gap; no scalar verifier head
+   showed a resolved advantage over plain likelihood.** Fine-tuning sibling s1 so that its per-token likelihood
+   separates Lean-valid from invalid proofs of the same theorem lifts within-theorem ranking from 0.83 / 0.78 to
+   0.89 / 0.94, and that ranking gain holds on proofs written by the other generators. Eight-attempt selection
+   reaches 0.933 / 0.582 (oracle 0.940 / 0.594; +0.005 and +0.015 over plain sibling selection, both unresolved).
+   Three recipes that put a scalar head on the network instead ranked at or below untrained likelihood.
    - ![Trained judge](figures/A4_trained_judge.png)
-4. **Stopping is where the headroom remains, and the trained judge closes about half of it.** An oracle that stops
-   at the first valid proof reaches 0.953 on holdout250 at about 2 attempts. "Stop after the c-th finished attempt"
-   with sibling selection reaches 0.915 at 2.8 attempts; stopping once the trained judge's score passes a threshold
-   tuned on development data reaches 0.935 at 3.1 (and 0.630 at 9.1 attempts on textbook72, oracle 0.653), closing
-   50–60% of the distance from the count rule to the oracle. Its attempt budget still overshoots on textbook72
-   (a 4-attempt target spends 9).
+4. **Stopping is where the headroom remains; trained selection plus threshold stopping closes roughly half of it
+   at mid budgets.** An oracle that stops at the first valid proof reaches 0.953 on holdout250 at about 2 attempts.
+   "Stop after the c-th finished attempt" with sibling selection reaches 0.915 at 2.8 attempts; stopping once the
+   trained judge's score passes a threshold tuned on development data reaches 0.935 at 3.1 (and 0.630 at 9.1 attempts
+   on textbook72, oracle 0.653). Measured as the accuracy gap from the count rule with sibling selection to the
+   oracle at the same attempts, that closes 44–53% on holdout250 and 54–60% on textbook72 at the three budgets
+   tried, or 30–48% and 23–40% with the trained selector held fixed in both rules. Its attempt budget still
+   overshoots on textbook72 (a 4-attempt target spends 9).
    - ![Headline: accuracy vs attempts](figures/B7_headline.png)
 
 Each primary comparison was fixed on development data and its test read logged before scoring; intervals are
@@ -151,8 +154,8 @@ concentration in long proofs.
 Two checks on where the blind spot comes from, for seed s0 only. Round 8 of the same seed judges round 16's proofs
 about as well as round 16 does (+0.005 [−0.022, 0.030] and −0.008 [−0.095, 0.073]), and clearly worse than the
 siblings (−0.036 [−0.072, −0.002] and −0.103 [−0.177, −0.036]); the pre-registered prediction that the ancestor would
-sit between self and siblings failed. The stage-1 (pretraining-only) model of the same seed is a weaker judge
-(−0.097 [−0.140, −0.053] on holdout250; −0.082 [−0.181, +0.008] on textbook72).
+sit between self and siblings failed. The stage-1 (pretraining-only) model of the same seed is a weaker judge on holdout250
+(−0.097 [−0.140, −0.053]) and unresolved on textbook72 (−0.082 [−0.181, +0.008]).
 
 ### 3. Scalar heads lose to likelihood; a likelihood judge trained on pairs wins
 
@@ -174,7 +177,7 @@ invalid examples. Within-theorem AUROC on holdout250 goes 0.629 → 0.635 → 0.
 stays below likelihood (0.788, paired −0.111 [−0.177, −0.040]); on textbook72 it reaches 0.638 against 0.687
 (−0.049 [−0.196, +0.089], unresolved). Development AUROC is flat from training step 100 to 1,300. Giving the head the
 likelihood as an input raises it to 0.718 / 0.698, still not above likelihood alone (−0.070 [−0.133, −0.010] on
-holdout250; +0.011, unresolved, on textbook72). The new data is concentrated on harder theorems, so the ladder
+holdout250; +0.011 [−0.102, +0.125] on textbook72). The new data is concentrated on harder theorems, so the ladder
 confounds "more data" with "harder theorems".
 
 Phase 3 (pre-registered): the same ranker with its body initialized from a sibling seed, two runs each from s1 and
@@ -187,8 +190,9 @@ Phase 4 (pre-registered, the last training experiment): keep the per-token likel
 *model* instead of a head. Starting from sibling s1, on s0's training pools only, two variants with two seeds each:
 continued training on Lean-valid finished proofs with Dan's action-token loss, and a pairwise variant that raises
 the masked mean log-probability of the valid proof and lowers that of the invalid proof of the same theorem
-(a DPO-style logistic against a frozen s1 reference, with a token-level KL anchor). Early stopping on development
-within-theorem AUROC. Scored with the unchanged likelihood scorer.
+(a DPO-style logistic against a frozen s1 reference, with a token-level KL anchor); this optimizes the relative
+likelihood, and in practice both fall, invalid proofs much more. Early stopping on development within-theorem AUROC.
+Scored with the unchanged likelihood scorer.
 
 | within-theorem AUROC, finished attempts | holdout250 | textbook72 |
 |---|---|---|
@@ -197,10 +201,11 @@ within-theorem AUROC. Scored with the unchanged likelihood scorer.
 | s1 trained on valid proofs | 0.865 | 0.864 |
 | s1 trained pairwise | **0.893** (+0.065 [0.036, 0.094] vs s1) | **0.942** (+0.159 [0.088, 0.236]) |
 
-The pairwise judge also beats the sibling mean (+0.064 [0.033, 0.095]; +0.159 [0.084, 0.237]), holds on the second
-sampling draw (+0.075 [0.048, 0.103]; +0.094 [0.037, 0.158]) and on proofs written by s1 and s2 (+0.03 to +0.08
-over the sibling mean, all intervals above 0), so it did not just learn s0's habits. The valid-only variant helps
-less and does not transfer beyond the sibling mean. At k=8 with completion first, the pairwise judge selects
+The pairwise judge also beats the sibling mean (+0.064 [0.033, 0.095]; +0.159 [0.084, 0.237]); on the second
+sampling draw the direction holds with smaller magnitude (+0.059 [0.035, 0.085]; +0.121 [0.058, 0.189] over the
+sibling mean), and on proofs written by s1 and s2 it leads the sibling mean by +0.03 to +0.08 in ranking (all
+intervals above 0), so it did not just learn s0's habits; in selection accuracy on those pools the lead over sibling
+selection is unresolved. The valid-only variant helps less and shows no resolved transfer beyond the sibling mean. At k=8 with completion first, the pairwise judge selects
 0.933 / 0.582 against the plain-s1 0.931 / 0.568 (+0.002 unresolved; +0.014 [0.001, 0.031]) and the oracle
 0.940 / 0.594. Its pooled AUROC on finished attempts is 0.88–0.96 across the eight test pools, against 0.74–0.89 for
 sibling likelihood, which is what makes it usable for stopping. Its likelihoods drifted during training (invalid
@@ -241,16 +246,20 @@ textbook72. Model-side rules tested against that, in the order they were tried:
 
 | dev-chosen target | count-stop, sibling pick | count-stop, trained-judge pick | sibling threshold | trained-judge threshold | oracle: first valid |
 |---|---|---|---|---|---|
-| holdout250, m≈4 | 0.915 @ 2.8 | 0.920 @ 2.8 | 0.929 @ 3.9 | **0.935 @ 3.1** | 0.953 |
-| holdout250, m≈8 | 0.933 @ 7.1 | 0.938 @ 7.1 | 0.937 @ 8.2 | **0.941 @ 6.5** | 0.953 |
+| holdout250, m≈4 | 0.915 @ 2.8 | 0.920 @ 2.8 | 0.929 @ 3.8 | **0.935 @ 3.1** | 0.953 |
+| holdout250, m≈8 | 0.933 @ 7.1 | 0.938 @ 7.1 | 0.937 @ 8.2 | **0.941 @ 6.4** | 0.953 |
 | textbook72, m≈4 | 0.567 @ 6.1 | 0.579 @ 6.1 | 0.611 @ 9.8 | **0.630 @ 9.1** | 0.653 |
-| textbook72, m≈8 | 0.604 @ 10.8 | 0.624 @ 10.8 | 0.613 @ 13.4 | **0.633 @ 12.1** | 0.653 |
+| textbook72, m≈8 | 0.604 @ 10.7 | 0.624 @ 10.7 | 0.613 @ 13.4 | **0.633 @ 12.0** | 0.653 |
 
-  At equal attempts (count rule interpolated to the threshold rule's realised cost), the trained-judge threshold adds
-  +0.024 [0.017, 0.032] over count-stop with sibling selection on holdout250 at 2.3 attempts (50% of the distance to
-  the first-valid oracle; 53% at 3.1) and +0.035 [0.018, 0.056] on textbook72 at 9.1 attempts (60%). Against the
-  sibling threshold at each rule's own development-chosen point: +0.008 [0.001, 0.015] on holdout250 with fewer
-  attempts, +0.020 [0.003, 0.038] on textbook72. Below the first-finished point (about 1.6 attempts on holdout250,
+  At equal attempts (count rule interpolated to the threshold rule's realised cost, per generator, then averaged),
+  the trained-judge threshold adds +0.024 [0.017, 0.032] over count-stop with sibling selection on holdout250 at 2.3
+  attempts and +0.035 [0.018, 0.056] on textbook72 at 9.1. As a fraction of the accuracy gap from that comparator to
+  the first-valid oracle at the same attempts: 50 / 53 / 44% on holdout250 at the targets 3 / 4 / 8 (realised 2.3 /
+  3.1 / 6.4 attempts) and 55 / 60 / 54% on textbook72 (7.9 / 9.1 / 12.0). With the trained judge as the selector in
+  both rules, so that only the stopping decision differs: 46 / 48 / 30% and 36 / 40 / 23%. These are accuracy-gap
+  fractions without interval estimates, not compute savings. Against the sibling threshold at each rule's own
+  development-chosen point: +0.008 [0.001, 0.015] on holdout250 at target 3 with fewer attempts, +0.006 [−0.001,
+  0.013] at target 4, and +0.020 [0.003, 0.038] on textbook72 at target 4. Below the first-finished point (about 1.6 attempts on holdout250,
   4.0 on textbook72) no rule that returns a finished proof can go, and the attempt budget chosen on development data
   still overshoots on textbook72 (a 4-attempt target spends 9.1).
 
@@ -271,8 +280,8 @@ textbook72. Model-side rules tested against that, in the order they were tried:
   judge matrices) and a Codex reviewer at the design stage, at the midpoint, and on an earlier draft of this
   document. Experiments finished at 07:35 UTC; the sprint's deadline was 11:42.
 - A Codex-run sprint on the same proposal started three minutes before this one in the main working tree. The two
-  were kept apart by a separate worktree, branch, run directory and GPU set; its working files were read only during
-  the first minutes of this sprint, to establish the collision. Two of Worker A's training runs were killed by an
+  were kept apart by a separate worktree, branch, run directory and GPU set; according to this sprint's log its working files
+  were read only during the first minutes of this sprint, to establish the collision. Two of Worker A's training runs were killed by an
   out-of-memory condition from a process this sprint does not own and were rerun unchanged.
 
 ## Limitations
@@ -283,12 +292,14 @@ textbook72. Model-side rules tested against that, in the order they were tried:
   used textbook72's label-free clipping rate. Worker B first read test stopping results between its 02:30 freeze and
   02:38, before A's 03:28 freeze of the selection scores. Later phases were designed knowing earlier test results,
   and the phase-5 cost-matched comparison and the phase-1 fixed-k mixture weights use realised test costs. No test
-  label was used to choose a threshold, checkpoint, or comparison.
+  label was used to choose a threshold, checkpoint, or policy parameter; the research questions of phases 2–7 were
+  test-informed.
 - Intervals are pointwise, cover theorem resampling only, and many comparisons were made. A second sampling draw of
   seed s0's test pools (`results/worker_B_phase6.md`) moves accuracy-type numbers by 0.001–0.004 on holdout250 and
   0.001–0.028 on textbook72, well inside the theorem-bootstrap half-widths of about 0.03 and 0.10, but moves
   within-theorem AUROC levels by up to 0.08 (textbook72 self-judge 0.687 → 0.764), so absolute AUROC levels quoted
-  here are draw-dependent; the sibling-minus-self and trained-minus-plain differences are not.
+  here are draw-dependent; the sibling-minus-self and trained-minus-plain differences keep their direction across
+  draws with magnitudes that vary (textbook72 trained-minus-plain 0.159 → 0.094).
 - "Finished" carries the environment's syntactic checks, which reject some wrong proofs before Lean. Every scorer
   has that information; the likelihood and judge results are increments on top of it.
 - Likelihood is a diagnostic quantity (temperature 1, environment-assigned names masked); rescoring at T 0.8 leaves
@@ -310,7 +321,7 @@ textbook72. Model-side rules tested against that, in the order they were tried:
 
 1. **Report model-selected pass rates with a trained sibling judge, or at least the plain sibling likelihood.**
    The plain sibling mean needs no training and was within 0.01–0.04 of oracle pass@8; the pairwise-trained judge
-   was within 0.01, with two forward passes per candidate. Both should be re-measured on fresh theorems.
+   was within 0.007–0.017, with two forward passes per candidate. Both should be re-measured on fresh theorems.
 2. **Make the judge's score a budget as well as a ranking.** The trained judge's threshold closes half of the
    stopping gap but its attempt budget still overshoots on textbook72. Candidates to compare on fresh test
    theorems at matched total inference cost: calibrating the judge's score to a probability per theorem

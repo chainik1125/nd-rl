@@ -215,3 +215,12 @@ holdout250 0.935 @ 3.1 attempts and 0.941 @ 6.5 (oracle first-valid 0.953); text
 Closes ~50% / 60% of the count-stop → first-valid gap (phase-5 sibling threshold: 18–21%). Pooled finished-only
 AUROC of the judge 0.88–0.96 vs 0.74–0.89 for sibling likelihood. Budget still overshoots on textbook72 (4 → 9.1).
 All experiments complete. Final summary edit, delta red-team, advisor, close-out.
+
+## 07:20 UTC reviewer audit 4: final delta (`reviews/04_final_delta.md`)
+
+Seven issues, all applied: "half the stopping gap" scoped to the accuracy-gap fraction at the three budgets with
+both comparator definitions (44–53% / 54–60%; 30–48% / 23–40% with the selector held fixed); "within 0.01" →
+residuals 0.007–0.017 and unresolved selection gains over siblings; second-draw and target-4 comparators named;
+pairwise training described as relative-likelihood separation (both likelihoods fall); categorical negatives softened
+("no resolved advantage"); stage-1 on textbook72 unresolved; table rounded from source; exposure wording
+distinguishes frozen parameters from test-informed questions.
