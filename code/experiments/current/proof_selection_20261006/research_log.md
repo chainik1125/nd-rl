@@ -138,3 +138,14 @@ own generator?); ancestor judges (r8, stage-1) to test whether expert iteration 
 - Ancestor judges: r8 of the same seed is as blind as r16 (Δ within ±0.01); stage-1 is a much weaker judge. The
   blind spot belongs to the lineage, not to rounds 9–16 of expert iteration. Prediction failed; logged as such.
 - Phase 5 launched: absolute-confidence stopping with sibling judges (threshold and calibrated P(valid)).
+
+## 04:57 UTC Worker A phase 2 done: more hard negatives do not rescue the learned head
+
+Within-theorem ranker on finished attempts only, 3.3× the finished-invalid training examples (10,676), history
+input, 3 seeds at the top rung: within-theorem finished-only AUROC 0.677 (holdout250) / 0.638 (textbook72) vs
+likelihood 0.788 / 0.687 (paired −0.111 [−0.177, −0.040] / −0.049 [−0.196, +0.089]). Data ladder 25→50→100→all:
+.629/.635/.664/.677 on holdout250, flat on dev. Undertraining excluded for this recipe (dev AUROC flat from step 100
+to 1,300). Likelihood as an extra input adds nothing. k=8 selection: completion_verifier2 0.913 / 0.514 vs
+completion_loglik 0.918 / 0.540. Permutation tests on all final checkpoints byte-identical. Two runs were OOM-killed by
+a foreign process on GPUs 5/6 (the parallel sprint) and rerun unchanged.
+Phase 3 launched: heads initialized from sibling checkpoints (does the head inherit the generator's blind spot?).
