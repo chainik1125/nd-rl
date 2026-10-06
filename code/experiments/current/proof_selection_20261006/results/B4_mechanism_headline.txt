@@ -1,0 +1,66 @@
+/data/users/dmitry/ndrl-selection-sprint/code/experiments/current/proof_selection_20261006/code/phase4.py:119: RuntimeWarning: Mean of empty slice
+  grid=GRID.tolist(), mean=np.nanmean(ys, 0).tolist() if True else None,
+== holdout250|s0
+   judge s0       valid -0.0211 invalid -0.0295 sep +0.0084 | centred valid +0.0007 invalid -0.0114 sep +0.0121 (n mixed 116)
+   judge s1       valid -0.0527 invalid -0.1026 sep +0.0500 | centred valid +0.0051 invalid -0.0378 sep +0.0430 (n mixed 116)
+   judge s2       valid -0.0546 invalid -0.0978 sep +0.0431 | centred valid +0.0036 invalid -0.0324 sep +0.0360 (n mixed 116)
+   judge siblings valid -0.0537 invalid -0.1002 sep +0.0466 | centred valid +0.0044 invalid -0.0351 sep +0.0395 (n mixed 116)
+   self-sib shift {'valid': 0.03261700300776959, 'invalid': 0.07072252054213245}
+   by length {'short': (35, 0.747, 0.858, 0.111), 'mid': (59, 0.771, 0.769, -0.002), 'long': (78, 0.745, 0.77, 0.025)}
+   step types {'premise': (0.0, 0.0005, 17345, 936), 'box_open': (0.0222, 0.0463, 36055, 1955), 'orelim_open': (0.0456, 0.0741, 14631, 990), 'have_atomic': (0.0707, 0.1641, 65628, 4486), 'exact': (-0.0041, 0.0039, 78692, 4652)}
+== holdout250|s1
+   judge s0       valid -0.0570 invalid -0.1178 sep +0.0609 | centred valid +0.0081 invalid -0.0442 sep +0.0523 (n mixed 135)
+   judge s1       valid -0.0224 invalid -0.0361 sep +0.0137 | centred valid +0.0012 invalid -0.0128 sep +0.0140 (n mixed 135)
+   judge s2       valid -0.0601 invalid -0.1146 sep +0.0545 | centred valid +0.0066 invalid -0.0428 sep +0.0494 (n mixed 135)
+   judge siblings valid -0.0586 invalid -0.1162 sep +0.0577 | centred valid +0.0074 invalid -0.0435 sep +0.0509 (n mixed 135)
+   self-sib shift {'valid': 0.03617422711471857, 'invalid': 0.08015858879580803}
+   by length {'short': (45, 0.679, 0.763, 0.084), 'mid': (60, 0.67, 0.785, 0.115), 'long': (96, 0.756, 0.786, 0.03)}
+   step types {'premise': (-0.0, 0.0091, 16856, 1294), 'box_open': (0.0219, 0.0428, 34056, 2641), 'have_atomic': (0.0688, 0.184, 67907, 6842), 'exact': (0.0069, 0.0037, 79000, 7166), 'orelim_open': (0.0729, 0.1034, 15822, 1782)}
+== holdout250|s2
+   judge s0       valid -0.0558 invalid -0.1135 sep +0.0577 | centred valid +0.0069 invalid -0.0456 sep +0.0525 (n mixed 132)
+   judge s1       valid -0.0567 invalid -0.1166 sep +0.0599 | centred valid +0.0065 invalid -0.0478 sep +0.0543 (n mixed 132)
+   judge s2       valid -0.0221 invalid -0.0317 sep +0.0095 | centred valid +0.0013 invalid -0.0130 sep +0.0143 (n mixed 132)
+   judge siblings valid -0.0562 invalid -0.1150 sep +0.0588 | centred valid +0.0067 invalid -0.0467 sep +0.0534 (n mixed 132)
+   self-sib shift {'valid': 0.03413112320897329, 'invalid': 0.08336974044060776}
+   by length {'short': (34, 0.822, 0.866, 0.044), 'mid': (71, 0.774, 0.823, 0.049), 'long': (98, 0.768, 0.836, 0.068)}
+   step types {'premise': (0.0, 0.0001, 16772, 1628), 'box_open': (0.0226, 0.0586, 34167, 3138), 'orelim_open': (0.0613, 0.0916, 13648, 1765), 'have_atomic': (0.0638, 0.1927, 64196, 8945), 'exact': (0.0083, 0.0042, 74557, 7880)}
+== textbook72|s0
+   judge s0       valid -0.0369 invalid -0.0457 sep +0.0088 | centred valid +0.0019 invalid -0.0121 sep +0.0140 (n mixed 34)
+   judge s1       valid -0.0745 invalid -0.1328 sep +0.0583 | centred valid +0.0130 invalid -0.0440 sep +0.0571 (n mixed 34)
+   judge s2       valid -0.0797 invalid -0.1346 sep +0.0550 | centred valid +0.0146 invalid -0.0378 sep +0.0524 (n mixed 34)
+   judge siblings valid -0.0771 invalid -0.1337 sep +0.0566 | centred valid +0.0138 invalid -0.0409 sep +0.0547 (n mixed 34)
+   self-sib shift {'valid': 0.0401580208475923, 'invalid': 0.0879817966009596}
+   by length {'short': (8, 0.757, 0.927, 0.17), 'mid': (18, 0.737, 0.856, 0.118), 'long': (22, 0.637, 0.751, 0.113)}
+   step types {'box_open': (0.0404, 0.0915, 2656, 1400), 'have_atomic': (0.0688, 0.1468, 9314, 3976), 'exact': (-0.0024, 0.0004, 8739, 3481), 'orelim_open': (0.0298, 0.0733, 2104, 812), 'premise': (-0.0, -0.0001, 2198, 542)}
+== textbook72|s1
+   judge s0       valid -0.0679 invalid -0.1549 sep +0.0870 | centred valid +0.0163 invalid -0.0454 sep +0.0618 (n mixed 41)
+   judge s1       valid -0.0331 invalid -0.0503 sep +0.0172 | centred valid +0.0017 invalid -0.0160 sep +0.0177 (n mixed 41)
+   judge s2       valid -0.0667 invalid -0.1574 sep +0.0907 | centred valid +0.0147 invalid -0.0485 sep +0.0632 (n mixed 41)
+   judge siblings valid -0.0673 invalid -0.1561 sep +0.0889 | centred valid +0.0155 invalid -0.0470 sep +0.0625 (n mixed 41)
+   self-sib shift {'valid': 0.034174741223343054, 'invalid': 0.10581466086127532}
+   by length {'short': (12, 0.802, 0.808, 0.005), 'mid': (17, 0.743, 0.91, 0.167), 'long': (27, 0.753, 0.878, 0.125)}
+   step types {'box_open': (0.031, 0.0584, 2967, 1519), 'have_atomic': (0.0484, 0.2063, 9937, 5345), 'exact': (0.0069, 0.0028, 9461, 4435), 'orelim_open': (0.0583, 0.087, 2246, 1154), 'premise': (0.0, 0.0001, 2263, 762)}
+== textbook72|s2
+   judge s0       valid -0.0735 invalid -0.1498 sep +0.0762 | centred valid +0.0225 invalid -0.0412 sep +0.0637 (n mixed 42)
+   judge s1       valid -0.0739 invalid -0.1526 sep +0.0787 | centred valid +0.0204 invalid -0.0423 sep +0.0627 (n mixed 42)
+   judge s2       valid -0.0350 invalid -0.0443 sep +0.0093 | centred valid +0.0038 invalid -0.0133 sep +0.0170 (n mixed 42)
+   judge siblings valid -0.0737 invalid -0.1512 sep +0.0775 | centred valid +0.0215 invalid -0.0417 sep +0.0632 (n mixed 42)
+   self-sib shift {'valid': 0.038662254087546574, 'invalid': 0.10682112273192937}
+   by length {'short': (8, 0.689, 0.771, 0.082), 'mid': (22, 0.726, 0.866, 0.14), 'long': (30, 0.771, 0.757, -0.013)}
+   step types {'box_open': (0.0559, 0.0796, 3391, 2100), 'have_atomic': (0.0564, 0.2058, 10826, 7809), 'exact': (0.0123, 0.0097, 10105, 6314), 'orelim_open': (0.0582, 0.0956, 2345, 1668), 'premise': (0.0, 0.0001, 2359, 966)}
+== holdout250
+   random m2: 0.829 [0.818,0.836] | m4: 0.829 [0.818,0.836] | m8: 0.829 [0.818,0.836]
+   fixed_completion m2: 0.870 [0.856,0.877] | m4: 0.883 [0.864,0.893] | m8: 0.889 [0.870,0.900]
+   oracle_fixed m2: 0.898 [0.889,0.904] | m4: 0.927 [0.919,0.934] | m8: 0.943 [0.935,0.955]
+   ff m2: n/a | m4: n/a | m8: n/a
+   oracle_stop m2: n/a | m4: n/a | m8: n/a
+   count_self m2: 0.898 [0.879,0.907] | m4: 0.914 [0.901,0.921] | m8: 0.921 [0.911,0.928]
+   count_sib m2: 0.900 [0.882,0.911] | m4: 0.924 [0.912,0.932] | m8: 0.934 [0.926,0.941]
+== textbook72
+   random m2: 0.427 [0.407,0.439] | m4: 0.427 [0.407,0.439] | m8: 0.427 [0.407,0.439]
+   fixed_completion m2: 0.471 [0.456,0.488] | m4: 0.501 [0.493,0.516] | m8: 0.517 [0.508,0.531]
+   oracle_fixed m2: 0.498 [0.477,0.523] | m4: 0.558 [0.539,0.595] | m8: 0.607 [0.577,0.653]
+   ff m2: 0.499 [0.483,0.523] | m4: n/a | m8: n/a
+   oracle_stop m2: 0.529 [0.507,0.563] | m4: 0.603 [0.573,0.653] | m8: n/a
+   count_self m2: n/a | m4: n/a | m8: 0.569 [0.550,0.599]
+   count_sib m2: n/a | m4: n/a | m8: 0.591 [0.572,0.627]

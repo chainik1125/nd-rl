@@ -125,3 +125,16 @@ Sibling selection gain replicates for all 3 generators (6/6 CIs exclude 0 at k=8
 self < siblings < oracle holds in every row. Generator-seed sd of k=8 numbers: ≤0.01 holdout250, ≤0.03 textbook72.
 Launched phase 4 (B): headline figure over 3 generators; mechanism probe (do invalid proofs look too likely to their
 own generator?); ancestor judges (r8, stage-1) to test whether expert iteration causes the self-overconfidence.
+
+## 04:56 UTC Worker B phase 4 done
+
+- Headline figure over 3 generators (`figures/B4_headline.png`): count-stop + sibling judges 0.924 at 3.9 attempts on
+  holdout250 (oracle pass@4 0.927); 0.587 at 7.6 attempts on textbook72 (oracle pass@8 0.607). Oracle
+  stop-at-first-valid reaches 0.95 at 2 attempts on holdout250: the remaining headroom is absolute confidence
+  (stopping), not ranking.
+- Mechanism: the generator over-rates its own proofs by +0.03–0.04 nats/token when valid and +0.07–0.11 when
+  invalid; within-theorem valid−invalid separation 0.012–0.018 (self) vs 0.040–0.063 (siblings). Concentrated on
+  atomic `have` lines, i.e. where the wrong inference is written. No length dependence.
+- Ancestor judges: r8 of the same seed is as blind as r16 (Δ within ±0.01); stage-1 is a much weaker judge. The
+  blind spot belongs to the lineage, not to rounds 9–16 of expert iteration. Prediction failed; logged as such.
+- Phase 5 launched: absolute-confidence stopping with sibling judges (threshold and calibrated P(valid)).

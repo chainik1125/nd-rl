@@ -96,7 +96,7 @@ def main():
         ax.plot([x['step'] for x in h], [x['dev_within'] for x in h], ':', color=c, lw=1.5, label=f'rall s{i}: all dev pools (early-stop metric)')
     ax.axhline(res['within']['dev (orig pools)']['loglik_mean_masked'][0], color='k', ls='--', lw=1, label='loglik_mean_masked (orig dev)')
     ax.set_xlabel('training step (16 theorems per step)'); ax.set_ylabel('dev within-theorem finished AUROC')
-    ax.set_title('Top rung: dev within-theorem AUROC over training'); ax.grid(alpha=0.3); ax.legend(fontsize=7)
+    ax.set_title('Top rung: dev within-theorem AUROC over training (plateau, not undertraining)'); ax.grid(alpha=0.3); ax.legend(fontsize=7, loc='upper right', bbox_to_anchor=(1, 0.93), ncol=2)
     fig.tight_layout(); fig.savefig(os.path.join(F, f'A2_top_rung_dev_curve{tag}.png'), dpi=150); plt.close(fig)
 
 

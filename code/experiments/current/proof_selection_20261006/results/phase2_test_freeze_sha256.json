@@ -1,0 +1,32 @@
+{
+ "frozen_utc": "2026-10-06T04:50:09Z",
+ "files": {
+  "holdout250__s0_r16__k64__completion_verifier2_ens.jsonl": "2efce030143eb3acca388c3e728c0d99518cd1f52702ef0b9ddc934d1b2f5624",
+  "holdout250__s0_r16__k64__completion_verifier2_ll.jsonl": "620e0e3cce4e30d2194f3feb46d900dd24492f183f0dc778e9a89075ae411a13",
+  "holdout250__s0_r16__k64__verifier2_ens.jsonl": "9279abd6dfb5608d56acf90f5f49b8ff5b81fe2782bb2ff739030ba424a77681",
+  "holdout250__s0_r16__k64__verifier2_ll.jsonl": "835bd38f6d0e330eb942157b6b71ab024b24da0bcbc44b408aa42c630e574d3f",
+  "holdout250__s0_r16__k64__verifier2_r100.jsonl": "541a8c4e7db56b4c9e450e2d61b8b88fbf9213660262ba612bf7295989ea25b8",
+  "holdout250__s0_r16__k64__verifier2_r25.jsonl": "fb7f00628fae4227026f4d37f0e46986b07c23ab35a5d1d9742d574bf21585f0",
+  "holdout250__s0_r16__k64__verifier2_r50.jsonl": "a6101c26b0d13b3a604c130fe9cee09b2375d9b05d5657ba5e7d69d57a75f7ad",
+  "holdout250__s0_r16__k64__verifier2_rall_s0.jsonl": "a59873294bf15721a1de5424b0ae4073a7bd29e117efdfa863dd4ce0b856f31a",
+  "holdout250__s0_r16__k64__verifier2_rall_s1.jsonl": "ad7909df388c7df723e0fb7b34318095fbf1a8f0dfc3c05386c04373025af1ed",
+  "holdout250__s0_r16__k64__verifier2_rall_s2.jsonl": "98c1ab40d539b5aace3f11162c12299c6b6f48399ee5b3923dae19e023e639c1",
+  "textbook72__s0_r16__k64__completion_verifier2_ens.jsonl": "967f1e5baa99fccb62c7febe98a304ae67e5915dc49ebda767cbcceeef89083e",
+  "textbook72__s0_r16__k64__completion_verifier2_ll.jsonl": "f3ae52c4c4cfd4c9ae9d7a4776b786160d68427866826bda266544fdbe76f136",
+  "textbook72__s0_r16__k64__verifier2_ens.jsonl": "a85b391462460d6577b36677f58f0413b864dc260658a3312f782e01c68eea32",
+  "textbook72__s0_r16__k64__verifier2_ll.jsonl": "aeefb41ac6697d2f90b21819a5ceede0b19af8962b6c7f6b2d9309f26b4bd463",
+  "textbook72__s0_r16__k64__verifier2_r100.jsonl": "d87e88cd5b94fcca359550541e5cb23478c7bdeff0099396e650c9679b7b9737",
+  "textbook72__s0_r16__k64__verifier2_r25.jsonl": "496097fe87dc42563a074bcc4d584be9d63aba49af0f9937c1b9452b3cb95412",
+  "textbook72__s0_r16__k64__verifier2_r50.jsonl": "6a074803b0f3414424e074d522f15c9a4f321a55ab95dcf9aa2e8171e50b197a",
+  "textbook72__s0_r16__k64__verifier2_rall_s0.jsonl": "0db1dbb549d04992861732e2d89a65c31e5da146b7b4d8c38e073200760b0222",
+  "textbook72__s0_r16__k64__verifier2_rall_s1.jsonl": "9ef74b9a6a0d2f36812731e5df330c65eb5f98f94f54e66c93aad3a902417387",
+  "textbook72__s0_r16__k64__verifier2_rall_s2.jsonl": "f4a52a2ef0266cc34f50a58b4d1ed34c76e8f2c88eb588fc0214d904a642761f",
+  "verifier2/ll/best.pt": "6643e9b211ccf54caebf59e69e668f0fb5b9036940868bd886133d456c594002",
+  "verifier2/r100/best.pt": "e8e1a5b2d4b365cf2de7b9a0827cc81ff2cecd3df6458a3f3308b88852c5dcb2",
+  "verifier2/r25/best.pt": "2f08386db4864bfcb915ee2f82423ec40ac9fc44ee4f7aa9c312641a7efa3aee",
+  "verifier2/r50/best.pt": "4505a9dcc9db6a3067d5ba00c2de73aa257c1d68003a15ae1dfc59476c3ca8bd",
+  "verifier2/rall_s0/best.pt": "a4749ea2e4044007723870e5f7d9d79cc06602d451890a1cacd3331c44d54f05",
+  "verifier2/rall_s1/best.pt": "ad8ab92167d410b7806b9cc848bf8f307827d9acd4f09385e8330ac30c0592bc",
+  "verifier2/rall_s2/best.pt": "946c2d723fff158baab61daf8c0fab1f5a2640fab2b139aa287ba4f2355e4e53"
+ }
+}
