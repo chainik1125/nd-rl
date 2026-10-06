@@ -7,7 +7,7 @@ papers:
   - pmlr-v267-shen25o
 ---
 
-# The proof model can pick its own best attempt; a sibling trained to rank proofs picks almost as well as Lean and closes roughly half of the stopping gap at mid budgets
+# The proof model can pick its own best attempt; a sibling trained to rank proofs picks almost as well as Lean and closes up to half of the stopping gap
 
 ## Executive summary
 
@@ -30,12 +30,13 @@ reject it. "Likelihood" means the mean per-token log-probability a judge model a
    −0.019] in within-theorem ranking quality): it rates its own invalid proofs +0.07 to +0.11 nats per token above
    what its siblings give them, against +0.03 to +0.04 for its valid proofs.
    - ![Generator by judge](figures/B3_judge_matrix.png)
-3. **A sibling trained to rank proofs by its own likelihood recovers about 93% of the gap; no scalar verifier head
-   showed a resolved advantage over plain likelihood.** Fine-tuning sibling s1 so that its per-token likelihood
-   separates Lean-valid from invalid proofs of the same theorem lifts within-theorem ranking from 0.83 / 0.78 to
-   0.89 / 0.94, and that ranking gain holds on proofs written by the other generators. Eight-attempt selection
-   reaches 0.933 / 0.582 (oracle 0.940 / 0.594; +0.005 and +0.015 over plain sibling selection, both unresolved).
-   Three recipes that put a scalar head on the network instead ranked at or below untrained likelihood.
+3. **A sibling trained to rank proofs by its own likelihood ranks valid above invalid proofs of the same theorem
+   far better than any untrained judge; no scalar verifier head showed a resolved advantage over plain likelihood.**
+   Fine-tuning sibling s1 so that its per-token likelihood separates Lean-valid from invalid proofs of the same
+   theorem lifts within-theorem ranking from 0.83 / 0.78 to 0.89 / 0.94, and the gain holds on proofs written by the
+   other generators. Eight-attempt selection with it reaches 0.933 / 0.582, about 93% of the gap (oracle 0.940 /
+   0.594; +0.005 and +0.015 over plain sibling selection, both unresolved). Three recipes that put a scalar head on
+   the network instead ranked at or below untrained likelihood.
    - ![Trained judge](figures/A4_trained_judge.png)
 4. **Stopping is where the headroom remains; trained selection plus threshold stopping closes roughly half of it
    at mid budgets.** An oracle that stops at the first valid proof reaches 0.953 on holdout250 at about 2 attempts.
@@ -277,7 +278,7 @@ textbook72. Model-side rules tested against that, in the order they were tried:
   environment code: `dan-pandori/nd-takehome` branch `dan` @ `4dcd0e4f`, cloned to `~/runs/proof-selection/nd-takehome`.
 - Team: two Opus 5.5 workers (A: collector, pools, learned heads, trained judge; B: likelihood scorer, stopping,
   judge matrices) and a Codex reviewer at the design stage, at the midpoint, and on an earlier draft of this
-  document. Experiments finished at 07:35 UTC; the sprint's deadline was 11:42.
+  document. Experiments finished at 07:10 UTC; the sprint's deadline was 11:42.
 - A Codex-run sprint on the same proposal started three minutes before this one in the main working tree. The two
   were kept apart by a separate worktree, branch, run directory and GPU set; according to this sprint's log its working files
   were read only during the first minutes of this sprint, to establish the collision. Two of Worker A's training runs were killed by an

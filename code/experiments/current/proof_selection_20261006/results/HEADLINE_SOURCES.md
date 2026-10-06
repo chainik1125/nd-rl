@@ -1,3 +1,5 @@
+> Built against commit e4421c4 (07:12 UTC). The wording edits from reviews/04_final_delta.md came after it; the numbers are unchanged.
+
 ---
 written_on: 2026-10-06
 written_by: agent:claude (Worker B)
