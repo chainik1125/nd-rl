@@ -7,12 +7,12 @@
 # A dependency counts as done when its librarian has recorded it: an nd-rl origin/dan experiment summary
 # named <date>-<run-id>-…, or ~/runs/<run-id>/librarian.done on this host (so dependencies may live on the
 # other host). A run starts only if this host has fewer than QUEUE_MAX (default 1) executor sessions
-# (tmux ex-*, queued or not) and the RunPod balance is at least the policy floor (QUEUE_FLOOR, $100)
+# (tmux ex-*, queued or not) and the RunPod balance is at least the policy floor (QUEUE_FLOOR, $35)
 # plus the run's budget. Launching goes through `newrun`. Started runs are skipped (their
 # ~/runs/<id>/executor.started exists). Log: ~/queue.log.
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
 Q=~/queue.conf; [ -f "$Q" ] || exit 0
-MODE=${1:-run}; MAX=${QUEUE_MAX:-1}; FLOOR=${QUEUE_FLOOR:-100}
+MODE=${1:-run}; MAX=${QUEUE_MAX:-1}; FLOOR=${QUEUE_FLOOR:-35}
 git -C ~/nd-rl fetch -q origin 2>/dev/null
 SUMS=$(git -C ~/nd-rl ls-tree -d --name-only origin/dan experiment-summaries/ 2>/dev/null | sed 's|^experiment-summaries/||')
 done_run() { echo "$SUMS" | grep -qE "^[0-9]{4}-[0-9]{2}-[0-9]{2}-$1(-|$)" || [ -f ~/runs/"$1"/librarian.done ]; }

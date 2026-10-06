@@ -110,8 +110,9 @@ useful" are all fair questions.
   **before the first pod** (`pod_budget_watch` warns at 80 % and deletes the run's pods at 100 %).
   $50 if a brief declares none. Extend within the declared budget with
   `podbudget <run> --extend <hours> "reason"`; beyond it, ask in `QUESTIONS.md`.
-- **Balance floor: do not take the RunPod balance below $100** (Dan, 2026-09-27; was $130 from 2026-09-24). Check it with
-  `rpbalance`.
+- **Balance floor: keep the RunPod balance above $35** (Dan, 2026-10-06; was $100 from 2026-09-27, $130 from
+  2026-09-24). Check it with `rpbalance`. `balance_floor` deletes every pod on the host if the balance falls below $25.
+  If planned work would take the balance below $35, ask in `QUESTIONS.md`.
 - No limit on concurrent pods; no fixed GPU class. Record the GPU class **and** its real billed
   rate — `podbudget`'s dollar column falls back to $0.50/h for classes it does not know. Delete
   pods when their work is pulled. Upload to the bucket as you go, not only at the end.
