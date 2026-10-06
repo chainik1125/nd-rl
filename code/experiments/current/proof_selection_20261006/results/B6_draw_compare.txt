@@ -1,0 +1,38 @@
+== holdout250
+  validity         draw1 0.836 draw2 0.832 | diff -0.004 [-0.009,+0.001] | theorem-bootstrap half-width 0.034 / 0.034
+  pass8            draw1 0.939 draw2 0.938 | diff -0.001 [-0.006,+0.003] | theorem-bootstrap half-width 0.028 / 0.028
+  pass64           draw1 0.960 draw2 0.956 | diff -0.004 [-0.012,+0.000] | theorem-bootstrap half-width 0.026 / 0.026
+  sel8_random      draw1 0.836 draw2 0.832 | diff -0.004 [-0.009,+0.001] | theorem-bootstrap half-width 0.034 / 0.034
+  sel8_completion  draw1 0.898 draw2 0.895 | diff -0.003 [-0.008,+0.002] | theorem-bootstrap half-width 0.031 / 0.030
+  sel8_self        draw1 0.917 draw2 0.915 | diff -0.003 [-0.010,+0.003] | theorem-bootstrap half-width 0.032 / 0.032
+  sel8_siblings    draw1 0.928 draw2 0.927 | diff -0.001 [-0.007,+0.005] | theorem-bootstrap half-width 0.030 / 0.031
+  sel8_oracle      draw1 0.939 draw2 0.939 | diff -0.001 [-0.006,+0.003] | theorem-bootstrap half-width 0.028 / 0.028
+  auc_self         draw1 0.788 draw2 0.813 | diff +0.012 [-0.019,+0.041] | theorem-bootstrap half-width 0.040 / 0.033
+  auc_siblings     draw1 0.829 draw2 0.848 | diff +0.027 [+0.001,+0.052] | theorem-bootstrap half-width 0.030 / 0.026
+  count2_att       draw1 2.934 draw2 2.944 | diff +0.010 [-0.051,+0.090] | theorem-bootstrap half-width 0.360 / 0.374
+  count2_acc       draw1 0.920 draw2 0.915 | diff -0.004 [-0.011,+0.002] | theorem-bootstrap half-width 0.029 / 0.030
+  count6_att       draw1 7.169 draw2 7.148 | diff -0.021 [-0.083,+0.037] | theorem-bootstrap half-width 0.340 / 0.322
+  count6_acc       draw1 0.933 draw2 0.930 | diff -0.003 [-0.010,+0.003] | theorem-bootstrap half-width 0.028 / 0.030
+== textbook72
+  validity         draw1 0.407 draw2 0.404 | diff -0.003 [-0.013,+0.007] | theorem-bootstrap half-width 0.093 / 0.092
+  pass8            draw1 0.597 draw2 0.590 | diff -0.007 [-0.022,+0.006] | theorem-bootstrap half-width 0.105 / 0.103
+  pass64           draw1 0.694 draw2 0.667 | diff -0.028 [-0.083,+0.028] | theorem-bootstrap half-width 0.104 / 0.104
+  sel8_random      draw1 0.407 draw2 0.404 | diff -0.003 [-0.013,+0.007] | theorem-bootstrap half-width 0.093 / 0.092
+  sel8_completion  draw1 0.516 draw2 0.505 | diff -0.011 [-0.029,+0.005] | theorem-bootstrap half-width 0.100 / 0.099
+  sel8_self        draw1 0.543 draw2 0.542 | diff -0.001 [-0.020,+0.018] | theorem-bootstrap half-width 0.104 / 0.102
+  sel8_siblings    draw1 0.573 draw2 0.555 | diff -0.018 [-0.044,+0.002] | theorem-bootstrap half-width 0.101 / 0.101
+  sel8_oracle      draw1 0.598 draw2 0.588 | diff -0.010 [-0.025,+0.005] | theorem-bootstrap half-width 0.106 / 0.104
+  auc_self         draw1 0.687 draw2 0.764 | diff +0.039 [-0.025,+0.098] | theorem-bootstrap half-width 0.084 / 0.072
+  auc_siblings     draw1 0.782 draw2 0.817 | diff -0.020 [-0.069,+0.023] | theorem-bootstrap half-width 0.085 / 0.062
+  count2_att       draw1 6.833 draw2 6.788 | diff -0.045 [-0.376,+0.298] | theorem-bootstrap half-width 1.215 / 1.202
+  count2_acc       draw1 0.565 draw2 0.558 | diff -0.007 [-0.031,+0.014] | theorem-bootstrap half-width 0.100 / 0.100
+  count6_att       draw1 11.482 draw2 11.407 | diff -0.076 [-0.235,+0.079] | theorem-bootstrap half-width 1.007 / 0.993
+  count6_acc       draw1 0.601 draw2 0.582 | diff -0.019 [-0.048,+0.003] | theorem-bootstrap half-width 0.102 / 0.103
+sibling-minus-self holdout250 draw1 auc: +0.041 [+0.007,+0.076]
+sibling-minus-self holdout250 draw1 sel8: +0.010 [+0.001,+0.021]
+sibling-minus-self holdout250 draw2 auc: +0.036 [+0.003,+0.068]
+sibling-minus-self holdout250 draw2 sel8: +0.013 [+0.002,+0.025]
+sibling-minus-self textbook72 draw1 auc: +0.095 [+0.020,+0.173]
+sibling-minus-self textbook72 draw1 sel8: +0.030 [+0.010,+0.055]
+sibling-minus-self textbook72 draw2 auc: +0.053 [+0.002,+0.100]
+sibling-minus-self textbook72 draw2 sel8: +0.012 [-0.001,+0.027]

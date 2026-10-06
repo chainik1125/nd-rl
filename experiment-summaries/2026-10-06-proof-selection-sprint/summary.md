@@ -49,7 +49,8 @@ still reject it. "Likelihood" means the mean per-token log-probability a judge m
 Each primary comparison was fixed on development data and its test read logged before scoring; intervals are
 paired theorem-level bootstraps (theorems resampled with all their attempts), and the headline stopping curves
 average three generator seeds. The two test sets were used across six phases, so later questions were posed knowing
-earlier test results, and some comparisons marked "descriptive" below were computed after a test read. A Codex audit
+earlier test results, and some comparisons marked "descriptive" below were computed after a test read. A second
+sampling draw reproduces every accuracy-type number within 0.03. A Codex audit
 recomputed the phase-1 numbers from the raw files; a second Codex review red-teamed this document.
 
 ## What problem this addresses, and why
@@ -135,7 +136,8 @@ We generated 64 attempts per test theorem with each of the three seeds and score
 proofs, where judge s2 scores 0.786 against the self score 0.788. A two-way fit (generator effect + judge effect +
 self indicator) gives the self penalty quoted above, with judge-identity effects within about ±0.01, so a weak seed-0
 judge does not explain it. The gain in k=8 selection from switching to sibling judges replicates for all three
-generators (six paired intervals exclude 0). Averaging all three judges is close to averaging the two siblings
+generators (six paired intervals exclude 0) and in a second sampling draw of seed s0's test pools (holdout250
++0.013 [0.002, 0.025]; textbook72 +0.012 [−0.001, 0.027], smaller than the first draw's +0.030). Averaging all three judges is close to averaging the two siblings
 (within 0.01, except 0.856 vs 0.866 for s2's proofs on holdout250), so "not the generator" and "an ensemble of
 judges" both contribute and are not separated. Rescoring at the sampling temperature leaves the penalty unchanged.
 
@@ -242,8 +244,11 @@ textbook72. Model-side rules tested against that:
   03:28 freeze of the selection scores. Later phases were designed knowing earlier test results, and the phase-5
   cost-matched comparison and the phase-1 fixed-k mixture weights use realised test costs. No test label was used to
   choose a threshold, checkpoint, or comparison.
-- One sampling run per generator and set (a second draw for seed s0 is reported in `results/worker_B_phase6.md` if
-  present); intervals are pointwise, cover theorem resampling only, and many comparisons were made.
+- Intervals are pointwise, cover theorem resampling only, and many comparisons were made. A second sampling draw of
+  seed s0's test pools (`results/worker_B_phase6.md`) moves accuracy-type numbers by 0.001–0.004 on holdout250 and
+  0.001–0.028 on textbook72, well inside the theorem-bootstrap half-widths of about 0.03 and 0.10, but moves
+  within-theorem AUROC levels by up to 0.08 (textbook72 self-judge 0.687 → 0.764), so absolute AUROC levels quoted
+  here are draw-dependent; the sibling-minus-self differences are not.
 - "Finished" carries the environment's syntactic checks, which reject some wrong proofs before Lean. Every scorer
   has that information; the likelihood and head results are increments on top of it.
 - Likelihood is a diagnostic quantity (temperature 1, environment-assigned names masked); rescoring at T 0.8 leaves

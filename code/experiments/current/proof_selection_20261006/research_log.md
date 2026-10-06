@@ -189,3 +189,11 @@ attempts; Limitations extended (ladder confounds, s0-only training data, mismatc
 multiplicity inspection, pointwise intervals, offline Lean judging unchecked against Dan's gate, 0.3–2% clipping of
 the history input, the 96-attempt pool); next steps as competing hypotheses. Figure fixes sent to A (random
 expectation curve; error bars on the ladder) and B (dev-chosen stars on the B5 threshold curve).
+
+## 05:30 UTC Worker B phase 6 done: second sampling draw
+
+Accuracy-type numbers move 0.001–0.004 (holdout250) and 0.001–0.028 (textbook72) between draws, inside the
+theorem-bootstrap half-widths (0.03 / 0.10). Within-theorem AUROC levels are the noisy quantity (textbook72 self
+0.687 → 0.764). Sibling-minus-self replicates: holdout250 +0.013 [0.002, 0.025], textbook72 +0.012 [−0.001, 0.027]
+(k=8). Count-stop budgets reproduce within 0.08 attempts. B5 figure relabelled (dev-chosen stars; bands ≠ CIs).
+All experiments and reviews complete; summary rewritten after the red team; final advisor pass next.

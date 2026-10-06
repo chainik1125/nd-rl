@@ -30,14 +30,18 @@ for ax, set_ in zip(axes, ('holdout250', 'textbook72')):
                 ax.plot(pg['att'], pg['acc'], color=col, lw=0.8, alpha=0.35, ls=ls)
         ax.plot(G[ok], m[ok], color=col, ls=ls, lw=2.2, label=lab)
         ax.fill_between(G[ok], lo[ok], hi[ok], color=col, alpha=0.15, lw=0)
-    B5 = json.load(open(os.path.join(HERE, '..', 'results', 'B5_results.json')))[f'{set_}|curves']['T_sib']
+    B5all = json.load(open(os.path.join(HERE, '..', 'results', 'B5_results.json')))
+    B5 = B5all[f'{set_}|curves']['T_sib']
     ys = []
     for g, pg in B5['per_gen'].items():
         x, y = np.array(pg['att']), np.array(pg['acc']); o = np.argsort(x)
         ax.plot(x[o], y[o], color='#4a3aa7', lw=0.8, alpha=0.35)
         ys.append(np.interp(G, x[o], y[o], left=np.nan, right=np.nan))
     ys = np.array(ys); ok = ~np.isnan(ys).any(0)
-    ax.plot(G[ok], ys.mean(0)[ok], color='#4a3aa7', lw=2.2, label='stop once the sibling judges are confident enough (absolute threshold)')
+    ax.plot(G[ok], ys.mean(0)[ok], color='#4a3aa7', lw=2.2, label='stop once the sibling judges are confident enough (threshold swept on test; stars = dev-chosen)')
+    for mm in ('3', '4', '8'):
+        rr = B5all[f'{set_}|T_sib|m{mm}']
+        ax.plot([rr['att']], [rr['acc']], marker='*', ms=15, color='#4a3aa7', mec='white', mew=1, ls='none', zorder=5)
     ax.fill_between(G[ok], ys.min(0)[ok], ys.max(0)[ok], color='#4a3aa7', alpha=0.15, lw=0)
     ax.set_xscale('log', base=2); ax.set_xlim(1, 16)
     ax.set_xticks([1, 2, 4, 8, 16]); ax.set_xticklabels(['1', '2', '4', '8', '16'])
@@ -47,8 +51,8 @@ for ax, set_ in zip(axes, ('holdout250', 'textbook72')):
 axes[0].set_ylabel('accuracy of the returned proof (Lean says valid)')
 h, l = axes[0].get_legend_handles_labels()
 fig.legend(h, l, loc='lower center', ncol=2, fontsize=9, frameon=False)
-fig.suptitle('Can the model pick and stop on its own? Mean over 3 generator seeds (r16 s0/s1/s2, T 0.8); band = min-max across seeds;\n'
-             'thin lines = each seed (count/stop policies reach different attempt ranges per seed)', fontsize=10.5)
+fig.suptitle('Can the model pick and stop on its own? Mean over 3 generator seeds (r16 s0/s1/s2, T 0.8)\n'
+             'bands = min–max over 3 generator seeds, not confidence intervals; curves are parameter sweeps, stars are development-chosen points', fontsize=10.5)
 fig.subplots_adjust(bottom=0.25, top=0.86, wspace=0.18)
 fig.savefig(os.path.join(HERE, '..', 'figures', 'B5_headline.png'), dpi=130)
 
