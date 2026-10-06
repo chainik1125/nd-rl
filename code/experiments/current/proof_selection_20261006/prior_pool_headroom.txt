@@ -1,0 +1,43 @@
+tb72 seed0 all                           thms   72 attempts   18432 finished 0.515 valid 0.409 P(valid|fin) 0.795 P(fin|invalid) 0.179
+tb72 seed1 all                           thms   72 attempts   18432 finished 0.571 valid 0.436 P(valid|fin) 0.764 P(fin|invalid) 0.239
+tb72 seed2 all                           thms   72 attempts   18432 finished 0.634 valid 0.442 P(valid|fin) 0.696 P(fin|invalid) 0.345
+tb72 pooled                              thms  216 attempts   55296 finished 0.573 valid 0.429 P(valid|fin) 0.748 P(fin|invalid) 0.253
+  tb72 pass-rate in [0,0.001)            thms   52 attempts   13312 finished 0.178 valid 0.000 P(valid|fin) 0.000 P(fin|invalid) 0.178
+  tb72 pass-rate in [0.001,0.05)         thms   26 attempts    6656 finished 0.204 valid 0.017 P(valid|fin) 0.083 P(fin|invalid) 0.190
+  tb72 pass-rate in [0.05,0.25)          thms   30 attempts    7680 finished 0.476 valid 0.143 P(valid|fin) 0.301 P(fin|invalid) 0.389
+  tb72 pass-rate in [0.25,0.5)           thms   14 attempts    3584 finished 0.571 valid 0.390 P(valid|fin) 0.683 P(fin|invalid) 0.297
+  tb72 pass-rate in [0.5,0.9)            thms   36 attempts    9216 finished 0.835 valid 0.730 P(valid|fin) 0.874 P(fin|invalid) 0.390
+  tb72 pass-rate in [0.9,1.01)           thms   58 attempts   14848 finished 0.982 valid 0.969 P(valid|fin) 0.986 P(fin|invalid) 0.427
+h250 seed0 all                           thms  250 attempts   64000 finished 0.881 valid 0.832 P(valid|fin) 0.945 P(fin|invalid) 0.288
+h250 seed1 all                           thms  250 attempts   64000 finished 0.896 valid 0.832 P(valid|fin) 0.928 P(fin|invalid) 0.383
+h250 seed2 all                           thms  250 attempts   64000 finished 0.894 valid 0.818 P(valid|fin) 0.915 P(fin|invalid) 0.418
+h250 pooled                              thms  750 attempts  192000 finished 0.890 valid 0.828 P(valid|fin) 0.929 P(fin|invalid) 0.364
+  h250 pass-rate in [0,0.001)            thms   25 attempts    6400 finished 0.122 valid 0.000 P(valid|fin) 0.000 P(fin|invalid) 0.122
+  h250 pass-rate in [0.001,0.05)         thms   10 attempts    2560 finished 0.253 valid 0.031 P(valid|fin) 0.122 P(fin|invalid) 0.229
+  h250 pass-rate in [0.05,0.25)          thms   24 attempts    6144 finished 0.524 valid 0.134 P(valid|fin) 0.255 P(fin|invalid) 0.451
+  h250 pass-rate in [0.25,0.5)           thms   34 attempts    8704 finished 0.650 valid 0.361 P(valid|fin) 0.556 P(fin|invalid) 0.452
+  h250 pass-rate in [0.5,0.9)            thms  171 attempts   43776 finished 0.873 valid 0.776 P(valid|fin) 0.890 P(fin|invalid) 0.431
+  h250 pass-rate in [0.9,1.01)           thms  486 attempts  124416 finished 0.984 valid 0.971 P(valid|fin) 0.987 P(fin|invalid) 0.446
+  tb72 ref lines [0,7)                   thms   87 attempts   22272 finished 0.674 valid 0.569 P(valid|fin) 0.845 P(fin|invalid) 0.243
+  tb72 ref lines [7,10)                  thms   27 attempts    6912 finished 0.828 valid 0.654 P(valid|fin) 0.790 P(fin|invalid) 0.504
+  tb72 ref lines [10,13)                 thms   33 attempts    8448 finished 0.683 valid 0.449 P(valid|fin) 0.657 P(fin|invalid) 0.425
+  tb72 ref lines [13,40)                 thms   69 attempts   17664 finished 0.295 valid 0.155 P(valid|fin) 0.525 P(fin|invalid) 0.166
+theorem-rows with >=8 finished and P(valid|finished)<0.8: 201 of 966
+   tb72 0 textbook_03549baa1134033548d ok 0 fin 55 ref 11
+   tb72 0 textbook_9f83d4425b7684ef58e ok 0 fin 26 ref 18
+   tb72 0 textbook_35e75d37fcd6e6fc7df ok 0 fin 62 ref 33
+   tb72 0 textbook_c070bcc0c3bc8e3b838 ok 0 fin 34 ref 22
+   tb72 0 textbook_920bfc2896e73d80d8c ok 0 fin 10 ref 15
+   tb72 0 textbook_970fbf60225a4d6e78b ok 0 fin 27 ref 20
+   tb72 0 textbook_201dc6c52fcdedeac24 ok 0 fin 29 ref 12
+   tb72 0 textbook_3d2b05bca4cbb83ed73 ok 0 fin 43 ref 29
+   tb72 0 textbook_33e465a968d29efbb44 ok 0 fin 34 ref 15
+   tb72 0 textbook_f900b1d7c659ef00e06 ok 0 fin 12 ref 20
+   tb72 0 textbook_55c0251debc570e4f3e ok 0 fin 120 ref 18
+   tb72 0 textbook_58b532c9c8cc1819378 ok 0 fin 16 ref None
+   tb72 0 textbook_6997656e16fb567550a ok 0 fin 65 ref None
+   tb72 0 textbook_9fa52f90369a7b6286f ok 0 fin 67 ref None
+   tb72 0 textbook_bcb4f30a22574210fc1 ok 0 fin 115 ref None
+
+per-theorem: P(valid|finished) distribution (rows with >=1 finished):
+[(0.0, 74), (0.1, 21), (0.2, 18), (0.3, 17), (0.4, 12), (0.5, 13), (0.6, 22), (0.7, 24), (0.8, 36), (0.9, 115), (1.0, 605)]
