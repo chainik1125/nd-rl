@@ -83,8 +83,9 @@ with atom-renaming and premise-permutation equivalence grouped. Test, frozen bef
 `holdout250` (250 theorems, 84% of attempts valid, pass@64 0.96) and `textbook72` (72 textbook problems, 41% valid,
 pass@64 0.69; eval-only by group rule). The Codex reviewer independently found no overlap between the training
 sources and the test sets under exact, renaming, or premise-permutation keys; schema-family overlap (the same
-textbook schema with different sub-formulas) is not excluded, and Dan's model card notes one textbook72 problem that overlaps the K12 pretraining data (a
-worker's note that 14 were RL targets is being checked against the audit's no-overlap result).
+textbook schema with different sub-formulas) is not excluded, and Dan's model card notes one textbook72 problem that overlaps the K12 pretraining data. (A
+worker's earlier note that 14 textbook theorems were RL targets came from a role label in the file, `rl_train`,
+which is Robbie's dev58/train14 naming and not evidence of training; it is withdrawn.)
 
 **Scorers.** A scorer maps an attempt to a number; selection keeps the argmax. `completion` is the environment's
 finished flag (legal at inference because the environment is part of the deployed system; it includes scope and goal
@@ -155,8 +156,15 @@ Phase 2 (pre-registered, after generating 113,760 more attempts on hard training
 pairwise ranker on finished attempts only, with an unclipped history input and 10,676 finished-invalid examples.
 Within-theorem AUROC rises along the data ladder (holdout250: 0.629 → 0.635 → 0.664 → 0.677 at 0.8k → 1.6k → 3.2k →
 10.7k hard negatives) and stays below likelihood (0.788). Development AUROC is flat from training step 100 to 1,300,
-so this recipe is not undertrained. Feeding likelihood to the head as an input does not help either. One recipe
-(learning rate, head, model size) was tried; the result is a negative for this recipe, not a theorem.
+so this recipe is not undertrained. Feeding likelihood to the head as an input does not help either.
+
+Phase 3 (pre-registered) tested whether the head inherits the generator's blind spot through its initialization:
+the same ranker with its body initialized from a sibling seed (two runs each from s1 and s2). It is level with the
+s0-initialized head (within-theorem AUROC 0.698 vs 0.677 and 0.609 vs 0.638, both unresolved) and far below sibling
+likelihood (−0.131 [−0.184, −0.074] and −0.174 [−0.300, −0.041]). Heads of any initialization sit at 0.53–0.75
+where likelihood judges sit at 0.69–0.84, and they show no self penalty. So the weakness is not inherited; the
+scalar-head fine-tune appears to discard the per-token signal that a likelihood judge keeps. One recipe (learning
+rate, head, model size) was tried; the result is a negative for this recipe, not a theorem.
 
 ### 4. Stopping: the count rule is as good as anything, and far from the oracle
 
@@ -237,7 +245,9 @@ first-finished point no rule that returns a finished proof can go.
    the mean likelihood of the other seeds; it is free and within 0.01–0.02 of the oracle at 8 attempts.
 2. **The stopping problem is a calibration problem.** The missing piece is an absolute estimate of "this proof is
    valid" that transfers across theorem distributions; pooled sibling likelihood (AUROC 0.77–0.80 on finished
-   attempts) is a start, and a judge trained on *sibling* samples rather than its own is the natural next head.
+   attempts) is a start. Since scalar heads lose the per-token signal, the next judge to try keeps it: a per-token
+   model trained to raise likelihood on valid proofs and lower it on invalid ones (a likelihood judge trained on
+   sibling samples), evaluated by within-theorem ranking from the first step.
 3. **Test the blind spot as an RL signal.** Expert iteration trained each seed on its own accepted samples; a reward
    from a sibling judge would be less correlated with the generator's errors. The proposal's experiments 2–3 can
    now start from pools and scorers that already exist.

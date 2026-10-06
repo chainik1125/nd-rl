@@ -166,3 +166,12 @@ Self-judging penalty unchanged at the sampling temperature (holdout250 +0.044 [0
 [0.027, 0.186]); k=8 ordering unchanged. Cold-read test of the four executive figures by a context-free agent:
 takeaways of the judge matrix and data ladder were misread, so titles and legends were rewritten in plain words
 (numbers identical); the headline figure's takeaway was read correctly.
+
+## 05:13 UTC Worker A phase 3 done: sibling-initialized heads do not help
+
+verifier3 (sibling init, 2 runs each) vs verifier2 (s0 init): +0.021 [−0.009, +0.051] / −0.029 [−0.094, +0.045];
+vs sibling likelihood −0.131 / −0.174 (CIs exclude 0). Heads show no self penalty; likelihood judges do. Hypothesis
+not supported; interpretation: the scalar-head fine-tune loses the per-token signal. The "14 of 72 textbook theorems
+were RL targets" note is withdrawn (it was the `rl_train` role label = Robbie's train14 naming).
+All planned experiments complete at 05:13 (deadline 11:42). Slack use: a second sampling seed for the s0 test pools
+to put sampling-run variance on the headline numbers; then the write-up red team.
