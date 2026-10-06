@@ -37,3 +37,27 @@ written_by: agent:claude
 Worker A: collector (keeps every attempt's raw actions; Lean verdicts in a separate labels file) → pools → baselines
 → verifier head (3 seeds). Worker B: teacher-forced scorer with name masking → stopping simulator → figures.
 Reviewer: Codex astra at ~02:45, ~06:30, ~10:40.
+
+## 02:05 UTC reviewer audit 1 (Codex astra, `reviews/01_design_audit.md`)
+
+Twelve ranked risks. Actions taken: (1) collector must keep raw ids through the actual EOS, per-action emitted
+lengths and EOS presence, failed/truncated actions, a hash of the prompt ids the model saw at every step, prefill
+token counts, and the ND text of every assembled candidate, serialised before judging; (2) likelihood masking must cover
+every environment-overridden introduction position (name after `have`, implication/negation lambda binders, first
+`Or.elim` binder) and exclude environment-inserted closures, with masked and full likelihood reported separately;
+(3) `done` carries the environment's symbolic checks: we define the environment as part of the inference-time system
+(it ends an attempt at deployment too), so `done` is legal input, and finished-only evaluation is reported separately;
+(4) a label-permutation test must show byte-identical inputs and scores; (5) reviewer's own executed check found no
+overlap between train-source sets and holdout250/textbook72 under exact prompts, atom renaming, or premise permutation,
+but rl_targets:2229 ≡ dev1108:150 after renaming/reordering — group those before splitting; (6) add a supervised
+shallow baseline (logistic regression on completion, likelihood, entropy, length, base) so a verifier gain is not
+just supervised calibration of visible cues; (7) shared m-subsets across scorers, k=8 primary, cost in tokens including
+prefills, scorer passes, failed attempts.
+
+**Pre-registration freeze (02:08 UTC).** The prior headroom table already exposed test-set difficulty breakdowns, so
+the following is fixed now, before any new test attempt is generated: primary test sets holdout250 and textbook72,
+primary pool size k=8 (secondary 2, 4, 16, 32, 64), primary comparison = `verifier_ens` vs `completion_loglik` vs
+`shallow_lr` selected-proof accuracy at k=8, paired theorem bootstrap; stopping primary = accuracy at matched mean
+attempts of 2 and 4 for adaptive `verifier_ens` stop vs dev-selected fixed-k mixture with the same selector vs
+first-finished stop; all thresholds, tie-breaks (lowest index), ensemble choice (mean of 3 seeds) and mixture weights
+chosen on dev. Difficulty-bucket results are exploratory.

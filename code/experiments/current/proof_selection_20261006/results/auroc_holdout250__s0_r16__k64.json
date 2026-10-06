@@ -1,0 +1,2406 @@
+{
+ "pool": "holdout250__s0_r16__k64",
+ "split": null,
+ "scorers": {
+  "completion": {
+   "pooled_all": 0.8634285714285714,
+   "pooled_finished": 0.5,
+   "within_all": 0.80725858741095,
+   "n_within_all": 184,
+   "within_finished": 0.5,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8212146903873786,
+    0.899705055145478
+   ],
+   "pooled_finished_ci": [
+    0.5,
+    0.5
+   ],
+   "within_all_ci": [
+    0.7775434164891131,
+    0.8366723895485545
+   ],
+   "within_finished_ci": [
+    0.5,
+    0.5
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.943630214205186,
+     "pooled_finished": 0.5,
+     "within_all": 0.8934756742464305,
+     "n_within_all": 4,
+     "within_finished": 0.5,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7851458885941645,
+     "pooled_finished": 0.5,
+     "within_all": 0.7896763467291679,
+     "n_within_all": 7,
+     "within_finished": 0.5,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9066496163682864,
+     "pooled_finished": 0.5,
+     "within_all": 0.9012395250940595,
+     "n_within_all": 10,
+     "within_finished": 0.5,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8008658008658008,
+     "pooled_finished": 0.5,
+     "within_all": 0.8068246354214934,
+     "n_within_all": 52,
+     "within_finished": 0.5,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8086642599277978,
+     "pooled_finished": 0.5,
+     "within_all": 0.7969969969969969,
+     "n_within_all": 111,
+     "within_finished": 0.5,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "completion_entropy": {
+   "pooled_all": 0.9029083827325323,
+   "pooled_finished": 0.6445390581211955,
+   "within_all": 0.8678939928792053,
+   "n_within_all": 184,
+   "within_finished": 0.6819669343555594,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8631892539849993,
+    0.9349785189815695
+   ],
+   "pooled_finished_ci": [
+    0.5711565895186511,
+    0.7191323993319533
+   ],
+   "within_all_ci": [
+    0.8391387906230903,
+    0.8961867164219469
+   ],
+   "within_finished_ci": [
+    0.6370546663220712,
+    0.7264662307409437
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9869723161718652,
+     "pooled_finished": 0.8844444444444445,
+     "within_all": 0.9043715846994536,
+     "n_within_all": 4,
+     "within_finished": 0.7712418300653594,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7958680464751373,
+     "pooled_finished": 0.5249521822291775,
+     "within_all": 0.8267607365222682,
+     "n_within_all": 7,
+     "within_finished": 0.7316219209227685,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9079078462186341,
+     "pooled_finished": 0.5067392859107663,
+     "within_all": 0.9089358427891696,
+     "n_within_all": 10,
+     "within_finished": 0.6591769988677987,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8652943093170797,
+     "pooled_finished": 0.6617715810026675,
+     "within_all": 0.8695948001070721,
+     "n_within_all": 52,
+     "within_finished": 0.689895744905941,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8737800583734158,
+     "pooled_finished": 0.6701610959380772,
+     "within_all": 0.8646792356924381,
+     "n_within_all": 111,
+     "within_finished": 0.6705709748390429,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "completion_loglik": {
+   "pooled_all": 0.9094848313306632,
+   "pooled_finished": 0.6686160142859005,
+   "within_all": 0.9114563981584243,
+   "n_within_all": 184,
+   "within_finished": 0.7879446271922556,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8608725335825391,
+    0.9430338236139884
+   ],
+   "pooled_finished_ci": [
+    0.5937825563241305,
+    0.7422726776491309
+   ],
+   "within_all_ci": [
+    0.8883737320941175,
+    0.9345864743273244
+   ],
+   "within_finished_ci": [
+    0.749867347073178,
+    0.8269795247647818
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9782036828260052,
+     "pooled_finished": 0.8066666666666666,
+     "within_all": 0.9193989071038251,
+     "n_within_all": 4,
+     "within_finished": 0.8071895424836601,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7268278103635073,
+     "pooled_finished": 0.36428447226569294,
+     "within_all": 0.726247046000032,
+     "n_within_all": 7,
+     "within_finished": 0.6439311159650142,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.918682402243244,
+     "pooled_finished": 0.5644495791384717,
+     "within_all": 0.9199549177885489,
+     "n_within_all": 10,
+     "within_finished": 0.7618598572561107,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8807461987727643,
+     "pooled_finished": 0.7005692599620493,
+     "within_all": 0.8835630846613036,
+     "n_within_all": 52,
+     "within_finished": 0.7354668577478152,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.9266365379300635,
+     "pooled_finished": 0.8082860472323359,
+     "within_all": 0.9351515561302816,
+     "n_within_all": 111,
+     "within_finished": 0.8421331091145638,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "completion_loglik_sum": {
+   "pooled_all": 0.9140834606141522,
+   "pooled_finished": 0.6854520001564149,
+   "within_all": 0.9225086475066895,
+   "n_within_all": 184,
+   "within_finished": 0.8014296855194301,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8739532922422978,
+    0.9516632810690522
+   ],
+   "pooled_finished_ci": [
+    0.6020631898280225,
+    0.7794465257426193
+   ],
+   "within_all_ci": [
+    0.8986768685206201,
+    0.9419317328914895
+   ],
+   "within_finished_ci": [
+    0.7678248011320967,
+    0.8409047493053038
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9721909056745585,
+     "pooled_finished": 0.7533333333333333,
+     "within_all": 0.9221311475409836,
+     "n_within_all": 4,
+     "within_finished": 0.8137254901960784,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.6888332648410356,
+     "pooled_finished": 0.27586506694487917,
+     "within_all": 0.7320463356009779,
+     "n_within_all": 7,
+     "within_finished": 0.5091780277161633,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9211269630953481,
+     "pooled_finished": 0.5775430489079606,
+     "within_all": 0.8992056769675548,
+     "n_within_all": 10,
+     "within_finished": 0.6462244576177126,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8830758109695491,
+     "pooled_finished": 0.7064186123257157,
+     "within_all": 0.8971091804693481,
+     "n_within_all": 52,
+     "within_finished": 0.7748114311333036,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.9364747852434613,
+     "pooled_finished": 0.8339954293626298,
+     "within_all": 0.9485316040340401,
+     "n_within_all": 111,
+     "within_finished": 0.8709686316198746,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "completion_minstep": {
+   "pooled_all": 0.898660870493992,
+   "pooled_finished": 0.6289885426035272,
+   "within_all": 0.8904530106833721,
+   "n_within_all": 184,
+   "within_finished": 0.7432154039858723,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8592178675528023,
+    0.9367317648395478
+   ],
+   "pooled_finished_ci": [
+    0.5739018589447172,
+    0.6927819932458549
+   ],
+   "within_all_ci": [
+    0.8620232964085366,
+    0.916621618432357
+   ],
+   "within_finished_ci": [
+    0.6987588227130358,
+    0.7885824886770901
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9647375673305775,
+     "pooled_finished": 0.6872222222222222,
+     "within_all": 0.9405737704918032,
+     "n_within_all": 4,
+     "within_finished": 0.857843137254902,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7252213546531177,
+     "pooled_finished": 0.36054599200139104,
+     "within_all": 0.7083675659712855,
+     "n_within_all": 7,
+     "within_finished": 0.5444635519847384,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9233506917696361,
+     "pooled_finished": 0.5894537052318864,
+     "within_all": 0.9260505045618623,
+     "n_within_all": 10,
+     "within_finished": 0.7857651732151176,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8706194501260915,
+     "pooled_finished": 0.6751423149905124,
+     "within_all": 0.8537076539579314,
+     "n_within_all": 52,
+     "within_finished": 0.6939026576423426,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.9205039310337892,
+     "pooled_finished": 0.7922602726071662,
+     "within_all": 0.9141367826175064,
+     "n_within_all": 111,
+     "within_finished": 0.790493220095978,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "completion_verifier_ens": {
+   "pooled_all": 0.9247044272363151,
+   "pooled_finished": 0.724336292183162,
+   "within_all": 0.8656916829263654,
+   "n_within_all": 184,
+   "within_finished": 0.6460380249665578,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8945823240674482,
+    0.9531257171612064
+   ],
+   "pooled_finished_ci": [
+    0.6401295803649607,
+    0.810102374807034
+   ],
+   "within_all_ci": [
+    0.8339760454835011,
+    0.8973430477771076
+   ],
+   "within_finished_ci": [
+    0.596435460386012,
+    0.6915799906003485
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9838406614054866,
+     "pooled_finished": 0.8566666666666667,
+     "within_all": 0.860655737704918,
+     "n_within_all": 4,
+     "within_finished": 0.6666666666666666,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.751727873874547,
+     "pooled_finished": 0.42223091636237176,
+     "within_all": 0.7309715125131122,
+     "n_within_all": 7,
+     "within_finished": 0.5032093209453984,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8708953460902433,
+     "pooled_finished": 0.3084942509765088,
+     "within_all": 0.8900429548715497,
+     "n_within_all": 10,
+     "within_finished": 0.4962223202767044,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8352782364167564,
+     "pooled_finished": 0.586405137089899,
+     "within_all": 0.8526859981086987,
+     "n_within_all": 52,
+     "within_finished": 0.6056425454043615,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.9045596038902203,
+     "pooled_finished": 0.7505944365810473,
+     "within_all": 0.8782679699970446,
+     "n_within_all": 111,
+     "within_finished": 0.7064225709676368,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "completion_verifier_hist_ens": {
+   "pooled_all": 0.9381637810413885,
+   "pooled_finished": 0.7736121690845814,
+   "within_all": 0.868798548299414,
+   "n_within_all": 184,
+   "within_finished": 0.647250265443857,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.9155984114213274,
+    0.957503526671672
+   ],
+   "pooled_finished_ci": [
+    0.7088346381829511,
+    0.8256291376454812
+   ],
+   "within_all_ci": [
+    0.8373991730561745,
+    0.8954016001806476
+   ],
+   "within_finished_ci": [
+    0.5931597760844519,
+    0.6995450183481788
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9731930351997996,
+     "pooled_finished": 0.7622222222222222,
+     "within_all": 0.842896174863388,
+     "n_within_all": 4,
+     "within_finished": 0.6241830065359477,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7997907871632981,
+     "pooled_finished": 0.5340810293861937,
+     "within_all": 0.8146429473580673,
+     "n_within_all": 7,
+     "within_finished": 0.5176721978250429,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9058484577696977,
+     "pooled_finished": 0.4957088628486549,
+     "within_all": 0.9015256681729247,
+     "n_within_all": 10,
+     "within_finished": 0.47116286463028406,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8624838791821714,
+     "pooled_finished": 0.6547149575117565,
+     "within_all": 0.8765382409964301,
+     "n_within_all": 52,
+     "within_finished": 0.6785458583649541,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8964955491744188,
+     "pooled_finished": 0.7295213879369244,
+     "within_all": 0.8665729940773744,
+     "n_within_all": 111,
+     "within_finished": 0.6628164167771672,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "entropy_mean": {
+   "pooled_all": 0.7807898602581219,
+   "pooled_finished": 0.6445390581211955,
+   "within_all": 0.768828601820413,
+   "n_within_all": 184,
+   "within_finished": 0.6819669343555594,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.73233388579397,
+    0.8252558813997167
+   ],
+   "pooled_finished_ci": [
+    0.56964651675071,
+    0.715702342967996
+   ],
+   "within_all_ci": [
+    0.7370660955905567,
+    0.800047558296236
+   ],
+   "within_finished_ci": [
+    0.6350777227653963,
+    0.7248586909204663
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.8619566578980333,
+     "pooled_finished": 0.8844444444444445,
+     "within_all": 0.8691808734775419,
+     "n_within_all": 4,
+     "within_finished": 0.7712418300653594,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.6976500915306161,
+     "pooled_finished": 0.5249521822291775,
+     "within_all": 0.8052370537891017,
+     "n_within_all": 7,
+     "within_finished": 0.7316219209227685,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.7774319785536006,
+     "pooled_finished": 0.5067392859107663,
+     "within_all": 0.8149952205960684,
+     "n_within_all": 10,
+     "within_finished": 0.6591769988677987,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.753236348302762,
+     "pooled_finished": 0.6617715810026675,
+     "within_all": 0.8080468089228425,
+     "n_within_all": 52,
+     "within_finished": 0.689895744905941,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.7301815942385294,
+     "pooled_finished": 0.6701610959380772,
+     "within_all": 0.7403846269781406,
+     "n_within_all": 111,
+     "within_finished": 0.6705709748390429,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "loglik_mean": {
+   "pooled_all": 0.7764703017356476,
+   "pooled_finished": 0.6686160142859005,
+   "within_all": 0.8598449269547731,
+   "n_within_all": 184,
+   "within_finished": 0.7879446271922556,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.7277870625865371,
+    0.8217654839112002
+   ],
+   "pooled_finished_ci": [
+    0.5808579681036804,
+    0.7570505676196215
+   ],
+   "within_all_ci": [
+    0.833589849735315,
+    0.8836777956925832
+   ],
+   "within_finished_ci": [
+    0.7475668702444942,
+    0.8204049522815077
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.7736439934861581,
+     "pooled_finished": 0.8066666666666666,
+     "within_all": 0.6828728186144897,
+     "n_within_all": 4,
+     "within_finished": 0.8071895424836601,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.5694698696155714,
+     "pooled_finished": 0.36428447226569294,
+     "within_all": 0.6328755093511844,
+     "n_within_all": 7,
+     "within_finished": 0.6439311159650142,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.696319806078534,
+     "pooled_finished": 0.5644495791384717,
+     "within_all": 0.7027752763422465,
+     "n_within_all": 10,
+     "within_finished": 0.7618598572561107,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.7812409812409813,
+     "pooled_finished": 0.7005692599620493,
+     "within_all": 0.8252417080937687,
+     "n_within_all": 52,
+     "within_finished": 0.7354668577478152,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.869622070796405,
+     "pooled_finished": 0.8082860472323359,
+     "within_all": 0.9108966228420139,
+     "n_within_all": 111,
+     "within_finished": 0.8421331091145638,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "loglik_mean_full": {
+   "pooled_all": 0.7548637365376057,
+   "pooled_finished": 0.6327538158735124,
+   "within_all": 0.8347320947009239,
+   "n_within_all": 184,
+   "within_finished": 0.7252957612127555,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.7097086119219923,
+    0.8037673742132365
+   ],
+   "pooled_finished_ci": [
+    0.5667981843977078,
+    0.7044971996032168
+   ],
+   "within_all_ci": [
+    0.8054135201301059,
+    0.8592263993569972
+   ],
+   "within_finished_ci": [
+    0.6847069671704278,
+    0.7682743454958402
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.8053363397219091,
+     "pooled_finished": 0.7888888888888889,
+     "within_all": 0.8451090377980912,
+     "n_within_all": 4,
+     "within_finished": 0.7875816993464052,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.6501662494863077,
+     "pooled_finished": 0.49260998087289165,
+     "within_all": 0.6656695602096645,
+     "n_within_all": 7,
+     "within_finished": 0.6182580131732672,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.739531014081903,
+     "pooled_finished": 0.5417835726467514,
+     "within_all": 0.7756488658730258,
+     "n_within_all": 10,
+     "within_finished": 0.7643155368368568,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.7391535304248776,
+     "pooled_finished": 0.6538899430740038,
+     "within_all": 0.7879827184521264,
+     "n_within_all": 52,
+     "within_finished": 0.6668149882215391,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8231067736949984,
+     "pooled_finished": 0.7306368626797128,
+     "within_all": 0.8722431741808029,
+     "n_within_all": 111,
+     "within_finished": 0.77014217538424,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "loglik_mean_masked": {
+   "pooled_all": 0.7764703017356476,
+   "pooled_finished": 0.6686160142859005,
+   "within_all": 0.8598449269547731,
+   "n_within_all": 184,
+   "within_finished": 0.7879446271922556,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.7217680864834422,
+    0.818184688670857
+   ],
+   "pooled_finished_ci": [
+    0.5813709091929895,
+    0.7470103531933722
+   ],
+   "within_all_ci": [
+    0.8338686332048437,
+    0.8825235763815692
+   ],
+   "within_finished_ci": [
+    0.7491295693619126,
+    0.8214890953245535
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.7736439934861581,
+     "pooled_finished": 0.8066666666666666,
+     "within_all": 0.6828728186144897,
+     "n_within_all": 4,
+     "within_finished": 0.8071895424836601,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.5694698696155714,
+     "pooled_finished": 0.36428447226569294,
+     "within_all": 0.6328755093511844,
+     "n_within_all": 7,
+     "within_finished": 0.6439311159650142,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.696319806078534,
+     "pooled_finished": 0.5644495791384717,
+     "within_all": 0.7027752763422465,
+     "n_within_all": 10,
+     "within_finished": 0.7618598572561107,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.7812409812409813,
+     "pooled_finished": 0.7005692599620493,
+     "within_all": 0.8252417080937687,
+     "n_within_all": 52,
+     "within_finished": 0.7354668577478152,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.869622070796405,
+     "pooled_finished": 0.8082860472323359,
+     "within_all": 0.9108966228420139,
+     "n_within_all": 111,
+     "within_finished": 0.8421331091145638,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "loglik_min_step": {
+   "pooled_all": 0.681405279928794,
+   "pooled_finished": 0.6289885426035272,
+   "within_all": 0.749981267361908,
+   "n_within_all": 184,
+   "within_finished": 0.7432154039858723,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.6192688421483328,
+    0.7286998436699623
+   ],
+   "pooled_finished_ci": [
+    0.5702365122684417,
+    0.685973922361529
+   ],
+   "within_all_ci": [
+    0.7144070850241089,
+    0.7847096135747933
+   ],
+   "within_finished_ci": [
+    0.696977967182741,
+    0.7931507170299583
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.7328698484279093,
+     "pooled_finished": 0.6872222222222222,
+     "within_all": 0.5906628516028305,
+     "n_within_all": 4,
+     "within_finished": 0.857843137254902,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.4268689057421452,
+     "pooled_finished": 0.36054599200139104,
+     "within_all": 0.4392946620844559,
+     "n_within_all": 7,
+     "within_finished": 0.5444635519847384,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.5892675561581364,
+     "pooled_finished": 0.5894537052318864,
+     "within_all": 0.5930956401656382,
+     "n_within_all": 10,
+     "within_finished": 0.7857651732151176,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.7374536911538809,
+     "pooled_finished": 0.6751423149905124,
+     "within_all": 0.7267511488371027,
+     "n_within_all": 52,
+     "within_finished": 0.6939026576423426,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.7789770053681766,
+     "pooled_finished": 0.7922602726071662,
+     "within_all": 0.8003317388504758,
+     "n_within_all": 111,
+     "within_finished": 0.790493220095978,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "loglik_sum": {
+   "pooled_all": 0.7544265028927459,
+   "pooled_finished": 0.6854520001564149,
+   "within_all": 0.8091958650249133,
+   "n_within_all": 184,
+   "within_finished": 0.8014296855194301,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.6884853916549842,
+    0.8051674277735189
+   ],
+   "pooled_finished_ci": [
+    0.595606522048351,
+    0.7809315517598712
+   ],
+   "within_all_ci": [
+    0.7759845507412949,
+    0.8362290699503577
+   ],
+   "within_finished_ci": [
+    0.7628777252757512,
+    0.8365900770947364
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.7260428410372041,
+     "pooled_finished": 0.7533333333333333,
+     "within_all": 0.5899184105159779,
+     "n_within_all": 4,
+     "within_finished": 0.8137254901960784,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.4508163036574887,
+     "pooled_finished": 0.27586506694487917,
+     "within_all": 0.5160115334017099,
+     "n_within_all": 7,
+     "within_finished": 0.5091780277161633,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.5523166836142525,
+     "pooled_finished": 0.5775430489079606,
+     "within_all": 0.5201699950090549,
+     "n_within_all": 10,
+     "within_finished": 0.6462244576177126,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.790674979669287,
+     "pooled_finished": 0.7064186123257157,
+     "within_all": 0.8073960584806223,
+     "n_within_all": 52,
+     "within_finished": 0.7748114311333036,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8406531275757695,
+     "pooled_finished": 0.8339954293626298,
+     "within_all": 0.8624683765551826,
+     "n_within_all": 111,
+     "within_finished": 0.8709686316198746,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "shallow_lr": {
+   "pooled_all": 0.9108513324432577,
+   "pooled_finished": 0.6736194163114744,
+   "within_all": 0.9100669763927225,
+   "n_within_all": 184,
+   "within_finished": 0.7598117226630642,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8623702306513962,
+    0.9471434480338173
+   ],
+   "pooled_finished_ci": [
+    0.5867847223066692,
+    0.7631853438943609
+   ],
+   "within_all_ci": [
+    0.8877020428627965,
+    0.9328079704778978
+   ],
+   "within_finished_ci": [
+    0.7109578653308745,
+    0.8074325600229099
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9655517975698359,
+     "pooled_finished": 0.6944444444444444,
+     "within_all": 0.9412568306010929,
+     "n_within_all": 4,
+     "within_finished": 0.8594771241830066,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.6902155639406732,
+     "pooled_finished": 0.27908189880020867,
+     "within_all": 0.7438355184641835,
+     "n_within_all": 7,
+     "within_finished": 0.46471181159437824,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8937848581024866,
+     "pooled_finished": 0.43109423997359303,
+     "within_all": 0.8911792043280865,
+     "n_within_all": 10,
+     "within_finished": 0.5859321155392475,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.841642228739003,
+     "pooled_finished": 0.6023842917251052,
+     "within_all": 0.883595859557475,
+     "n_within_all": 52,
+     "within_finished": 0.7416373302051962,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.9272190931072279,
+     "pooled_finished": 0.8098083848179447,
+     "within_all": 0.933528567246286,
+     "n_within_all": 111,
+     "within_finished": 0.8233200813734366,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "shallow_lr_env": {
+   "pooled_all": 0.8894240356030263,
+   "pooled_finished": 0.5951716784629623,
+   "within_all": 0.8640677120526506,
+   "n_within_all": 184,
+   "within_finished": 0.6466617275537262,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8448895869286625,
+    0.9288886375375089
+   ],
+   "pooled_finished_ci": [
+    0.5154948664076465,
+    0.6803967103326157
+   ],
+   "within_all_ci": [
+    0.8355261984411734,
+    0.8944872627591196
+   ],
+   "within_finished_ci": [
+    0.5926152029303331,
+    0.694811960610852
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9412501565827384,
+     "pooled_finished": 0.47888888888888886,
+     "within_all": 0.9453551912568305,
+     "n_within_all": 4,
+     "within_finished": 0.869281045751634,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7026375761198491,
+     "pooled_finished": 0.30798991479742654,
+     "within_all": 0.7746762674245532,
+     "n_within_all": 7,
+     "within_finished": 0.4585465768425817,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8846639755954765,
+     "pooled_finished": 0.38224129394289486,
+     "within_all": 0.8820144638140774,
+     "n_within_all": 10,
+     "within_finished": 0.526293637287334,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8150450013827623,
+     "pooled_finished": 0.5356021230371532,
+     "within_all": 0.8621912542281811,
+     "n_within_all": 52,
+     "within_finished": 0.6835676943073932,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8688871150237859,
+     "pooled_finished": 0.65737481944895,
+     "within_all": 0.8660379686728137,
+     "n_within_all": 111,
+     "within_finished": 0.6506268172253972,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "shortest": {
+   "pooled_all": 0.8799487174009791,
+   "pooled_finished": 0.5604817059659276,
+   "within_all": 0.862212959287142,
+   "n_within_all": 184,
+   "within_finished": 0.6420721246658329,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8316335756882435,
+    0.9250078863771078
+   ],
+   "pooled_finished_ci": [
+    0.4910987827245479,
+    0.6348447551939106
+   ],
+   "within_all_ci": [
+    0.8297296800578707,
+    0.8912773148824863
+   ],
+   "within_finished_ci": [
+    0.5878017864196614,
+    0.6983220882655226
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.940122760866842,
+     "pooled_finished": 0.4688888888888889,
+     "within_all": 0.930327868852459,
+     "n_within_all": 4,
+     "within_finished": 0.8333333333333333,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.6760376583106064,
+     "pooled_finished": 0.24608763693270735,
+     "within_all": 0.756190214496164,
+     "n_within_all": 7,
+     "within_finished": 0.43560315793971965,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9060436117873026,
+     "pooled_finished": 0.49675413984705946,
+     "within_all": 0.8847529761186875,
+     "n_within_all": 10,
+     "within_finished": 0.5361585371466722,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8368324064718752,
+     "pooled_finished": 0.5903074553804691,
+     "within_all": 0.857480587351116,
+     "n_within_all": 52,
+     "within_finished": 0.6724592817017324,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8566796366104027,
+     "pooled_finished": 0.6254741447271844,
+     "within_all": 0.8666308218784345,
+     "n_within_all": 111,
+     "within_finished": 0.6518832776815986,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_ens": {
+   "pooled_all": 0.9213085109034268,
+   "pooled_finished": 0.724336292183162,
+   "within_all": 0.8613355125737496,
+   "n_within_all": 184,
+   "within_finished": 0.6460380249665578,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8890035373276489,
+    0.9533553792671099
+   ],
+   "pooled_finished_ci": [
+    0.6416218611136117,
+    0.809842956296377
+   ],
+   "within_all_ci": [
+    0.8313658589932691,
+    0.8938181899754545
+   ],
+   "within_finished_ci": [
+    0.5972746774993591,
+    0.7038530972373427
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9835901290241764,
+     "pooled_finished": 0.8566666666666667,
+     "within_all": 0.8579234972677595,
+     "n_within_all": 4,
+     "within_finished": 0.6666666666666666,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7504950125154107,
+     "pooled_finished": 0.42223091636237176,
+     "within_all": 0.7309715125131122,
+     "n_within_all": 7,
+     "within_finished": 0.5032093209453984,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8708953460902433,
+     "pooled_finished": 0.3084942509765088,
+     "within_all": 0.8900429548715497,
+     "n_within_all": 10,
+     "within_finished": 0.4962223202767044,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.823901525419552,
+     "pooled_finished": 0.586405137089899,
+     "within_all": 0.8464109780590076,
+     "n_within_all": 52,
+     "within_finished": 0.6056425454043615,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8984491895721236,
+     "pooled_finished": 0.7505944365810473,
+     "within_all": 0.87408503900111,
+     "n_within_all": 111,
+     "within_finished": 0.7064225709676368,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_hist_ens": {
+   "pooled_all": 0.9343674730752114,
+   "pooled_finished": 0.7736121690845814,
+   "within_all": 0.8624578663866249,
+   "n_within_all": 184,
+   "within_finished": 0.647250265443857,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.9062738413493625,
+    0.9542871809844032
+   ],
+   "pooled_finished_ci": [
+    0.7113201750786061,
+    0.8261280213912621
+   ],
+   "within_all_ci": [
+    0.832681552155325,
+    0.8919031513580601
+   ],
+   "within_finished_ci": [
+    0.5882662661322513,
+    0.7083442056568604
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9720656394839033,
+     "pooled_finished": 0.7622222222222222,
+     "within_all": 0.842896174863388,
+     "n_within_all": 4,
+     "within_finished": 0.6241830065359477,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7997907871632981,
+     "pooled_finished": 0.5340810293861937,
+     "within_all": 0.8146429473580673,
+     "n_within_all": 7,
+     "within_finished": 0.5176721978250429,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9058484577696977,
+     "pooled_finished": 0.4957088628486549,
+     "within_all": 0.9015256681729247,
+     "n_within_all": 10,
+     "within_finished": 0.47116286463028406,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.85020412857225,
+     "pooled_finished": 0.6547149575117565,
+     "within_all": 0.8645389921550759,
+     "n_within_all": 52,
+     "within_finished": 0.6785458583649541,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8903000055134687,
+     "pooled_finished": 0.7295213879369244,
+     "within_all": 0.8616835838773493,
+     "n_within_all": 111,
+     "within_finished": 0.6628164167771672,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_hist_rank_s0": {
+   "pooled_all": 0.922791590565198,
+   "pooled_finished": 0.7403286799880082,
+   "within_all": 0.8489656687106175,
+   "n_within_all": 184,
+   "within_finished": 0.6583148484304181,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8974506420151076,
+    0.9432169161190556
+   ],
+   "pooled_finished_ci": [
+    0.6896232935456645,
+    0.7861541713066921
+   ],
+   "within_all_ci": [
+    0.8164625612592179,
+    0.8772221154623875
+   ],
+   "within_finished_ci": [
+    0.6032279042193165,
+    0.7113481198667944
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9322936239508957,
+     "pooled_finished": 0.435,
+     "within_all": 0.8579234972677595,
+     "n_within_all": 4,
+     "within_finished": 0.6666666666666666,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7933836440393022,
+     "pooled_finished": 0.5233872370022605,
+     "within_all": 0.7832951895941498,
+     "n_within_all": 7,
+     "within_finished": 0.5106610718444858,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9101264392608799,
+     "pooled_finished": 0.5186224349452605,
+     "within_all": 0.8900130362534622,
+     "n_within_all": 10,
+     "within_finished": 0.5737216665145443,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8661978965584278,
+     "pooled_finished": 0.6956294860160053,
+     "within_all": 0.8690279549242395,
+     "n_within_all": 52,
+     "within_finished": 0.7181233704107728,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8720946360885303,
+     "pooled_finished": 0.7100794152773826,
+     "within_all": 0.8396877361074637,
+     "n_within_all": 111,
+     "within_finished": 0.6452595849941839,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_hist_s0": {
+   "pooled_all": 0.9376373689363596,
+   "pooled_finished": 0.7842008889584067,
+   "within_all": 0.8698438240357164,
+   "n_within_all": 184,
+   "within_finished": 0.6600714277282181,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.9163204646699924,
+    0.9543015665312876
+   ],
+   "pooled_finished_ci": [
+    0.729450318449736,
+    0.8329840508774967
+   ],
+   "within_all_ci": [
+    0.8387681114520547,
+    0.8963233425191572
+   ],
+   "within_finished_ci": [
+    0.6084594205424341,
+    0.7058525446927304
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9685581861455593,
+     "pooled_finished": 0.7311111111111112,
+     "within_all": 0.8613718491098185,
+     "n_within_all": 4,
+     "within_finished": 0.42320261437908496,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.8057122576306647,
+     "pooled_finished": 0.5479481829247087,
+     "within_all": 0.8140776418096245,
+     "n_within_all": 7,
+     "within_finished": 0.5104651284282035,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.9161556712784642,
+     "pooled_finished": 0.5509159927380756,
+     "within_all": 0.9042839521099315,
+     "n_within_all": 10,
+     "within_finished": 0.4746874858420699,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8672367480716627,
+     "pooled_finished": 0.6953001677529357,
+     "within_all": 0.8697683331592099,
+     "n_within_all": 52,
+     "within_finished": 0.6917912254554323,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.887732601625537,
+     "pooled_finished": 0.7186520788063423,
+     "within_all": 0.8705985575503329,
+     "n_within_all": 111,
+     "within_finished": 0.6859027178267653,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_hist_s1": {
+   "pooled_all": 0.9320528206497553,
+   "pooled_finished": 0.7664012826027451,
+   "within_all": 0.8621730929186162,
+   "n_within_all": 184,
+   "within_finished": 0.6529779708192379,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.9041001205997619,
+    0.9519355235451338
+   ],
+   "pooled_finished_ci": [
+    0.7061915705589271,
+    0.8176738083197117
+   ],
+   "within_all_ci": [
+    0.8302281480281652,
+    0.8945055406106173
+   ],
+   "within_finished_ci": [
+    0.5990160492766852,
+    0.7103783917868781
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.979706877113867,
+     "pooled_finished": 0.8311111111111111,
+     "within_all": 0.8415300546448088,
+     "n_within_all": 4,
+     "within_finished": 0.630718954248366,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.8116337280980311,
+     "pooled_finished": 0.561641453660233,
+     "within_all": 0.8345446812558234,
+     "n_within_all": 7,
+     "within_finished": 0.5656837470775121,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8981141959140911,
+     "pooled_finished": 0.4542828849645156,
+     "within_all": 0.9028602956695465,
+     "n_within_all": 10,
+     "within_finished": 0.5305245102349373,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8436602402446804,
+     "pooled_finished": 0.6380936666391662,
+     "within_all": 0.8616082730824455,
+     "n_within_all": 52,
+     "within_finished": 0.6754378010899648,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8803253085201815,
+     "pooled_finished": 0.7119873211026798,
+     "within_all": 0.8612584049790334,
+     "n_within_all": 111,
+     "within_finished": 0.663217281029152,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_hist_s2": {
+   "pooled_all": 0.9191166034712951,
+   "pooled_finished": 0.7187224025339225,
+   "within_all": 0.8521994479841315,
+   "n_within_all": 184,
+   "within_finished": 0.6312206352007685,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8852214452311039,
+    0.9468715465612748
+   ],
+   "pooled_finished_ci": [
+    0.6489677958860834,
+    0.7826676172192923
+   ],
+   "within_all_ci": [
+    0.8209357170699174,
+    0.8832497843136874
+   ],
+   "within_finished_ci": [
+    0.575172827023099,
+    0.678740959599857
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9658649630464737,
+     "pooled_finished": 0.7116666666666667,
+     "within_all": 0.8285519125683061,
+     "n_within_all": 4,
+     "within_finished": 0.5996732026143791,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7917398288937871,
+     "pooled_finished": 0.5153451573639367,
+     "within_all": 0.801375993047789,
+     "n_within_all": 7,
+     "within_finished": 0.5089724473804377,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.893944062695796,
+     "pooled_finished": 0.4319469659459757,
+     "within_all": 0.8977340992007304,
+     "n_within_all": 10,
+     "within_finished": 0.5500424366210425,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8216918438929824,
+     "pooled_finished": 0.5826052580920166,
+     "within_all": 0.8556984403445173,
+     "n_within_all": 52,
+     "within_finished": 0.6765859801595677,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8826203331868855,
+     "pooled_finished": 0.7144081097097953,
+     "within_all": 0.850515305743696,
+     "n_within_all": 111,
+     "within_finished": 0.6257617313944555,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_s0": {
+   "pooled_all": 0.9154192007120605,
+   "pooled_finished": 0.7042015146182823,
+   "within_all": 0.8591495572391408,
+   "n_within_all": 184,
+   "within_finished": 0.6378826399229998,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8710037223121705,
+    0.9462521523906062
+   ],
+   "pooled_finished_ci": [
+    0.6196848848114572,
+    0.7868447710547153
+   ],
+   "within_all_ci": [
+    0.8325104930804632,
+    0.8881628426790559
+   ],
+   "within_finished_ci": [
+    0.590690057289316,
+    0.6972471367880912
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9750720280596267,
+     "pooled_finished": 0.7833333333333333,
+     "within_all": 0.8333333333333334,
+     "n_within_all": 4,
+     "within_finished": 0.6045751633986928,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7391937833899952,
+     "pooled_finished": 0.3934967831681447,
+     "within_all": 0.7068657256414139,
+     "n_within_all": 7,
+     "within_finished": 0.4209551159763025,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8696627944001069,
+     "pooled_finished": 0.3018925015129009,
+     "within_all": 0.8818476663817844,
+     "n_within_all": 10,
+     "within_finished": 0.4298291309529239,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8218977522582835,
+     "pooled_finished": 0.5829036383136705,
+     "within_all": 0.8497471981256037,
+     "n_within_all": 52,
+     "within_finished": 0.6278004784063553,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8907032862700414,
+     "pooled_finished": 0.736935081363507,
+     "within_all": 0.872043190566031,
+     "n_within_all": 111,
+     "within_finished": 0.69529545065853,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_s1": {
+   "pooled_all": 0.9263205198041834,
+   "pooled_finished": 0.741595067714647,
+   "within_all": 0.861111476147246,
+   "n_within_all": 184,
+   "within_finished": 0.6400771051114521,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8924660562900866,
+    0.9524757773814927
+   ],
+   "pooled_finished_ci": [
+    0.6683236173304721,
+    0.8187668455441928
+   ],
+   "within_all_ci": [
+    0.8300122549674791,
+    0.8917302806555298
+   ],
+   "within_finished_ci": [
+    0.5905206588904497,
+    0.69567207390801
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9838406614054866,
+     "pooled_finished": 0.86,
+     "within_all": 0.8647540983606558,
+     "n_within_all": 4,
+     "within_finished": 0.6862745098039216,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7813539059289424,
+     "pooled_finished": 0.49404451399756566,
+     "within_all": 0.7278166347004476,
+     "n_within_all": 7,
+     "within_finished": 0.47952176119548995,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8842736675602666,
+     "pooled_finished": 0.3801507399460857,
+     "within_all": 0.8979995281905374,
+     "n_within_all": 10,
+     "within_finished": 0.5142605690800143,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8295319691904132,
+     "pooled_finished": 0.599486428512499,
+     "within_all": 0.8438622586819983,
+     "n_within_all": 52,
+     "within_finished": 0.5911783648552953,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8971374001464016,
+     "pooled_finished": 0.7418106393274168,
+     "within_all": 0.8741436580304347,
+     "n_within_all": 111,
+     "within_finished": 0.7045464044530045,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  },
+  "verifier_s2": {
+   "pooled_all": 0.9157789764129951,
+   "pooled_finished": 0.7052497556016111,
+   "within_all": 0.8509401770576928,
+   "n_within_all": 184,
+   "within_finished": 0.6306341334334482,
+   "n_within_finished": 116,
+   "n_theorems": 250,
+   "n_attempts": 16000,
+   "n_finished": 14092,
+   "valid_rate": 0.8359375,
+   "p_valid_given_finished": 0.9491200681237582,
+   "pooled_all_ci": [
+    0.8788560349733826,
+    0.9449436477503464
+   ],
+   "pooled_finished_ci": [
+    0.6170018241191283,
+    0.7922205971391267
+   ],
+   "within_all_ci": [
+    0.8195568597222341,
+    0.8809329484137042
+   ],
+   "within_finished_ci": [
+    0.5751086226372645,
+    0.6783546341496856
+   ],
+   "buckets": {
+    "0-0.05": {
+     "pooled_all": 0.9898534385569335,
+     "pooled_finished": 0.9133333333333333,
+     "within_all": 0.8920765027322404,
+     "n_within_all": 4,
+     "within_finished": 0.7450980392156863,
+     "n_within_finished": 2,
+     "n_theorems": 14,
+     "n_attempts": 896,
+     "n_finished": 109,
+     "valid_rate": 0.010044642857142858,
+     "p_valid_given_finished": 0.08256880733944955
+    },
+    "0.05-0.25": {
+     "pooled_all": 0.7359248328165278,
+     "pooled_finished": 0.38928012519561817,
+     "within_all": 0.7348159966071537,
+     "n_within_all": 7,
+     "within_finished": 0.49888584310497136,
+     "n_within_finished": 7,
+     "n_theorems": 7,
+     "n_attempts": 448,
+     "n_finished": 233,
+     "valid_rate": 0.15848214285714285,
+     "p_valid_given_finished": 0.30472103004291845
+    },
+    "0.25-0.5": {
+     "pooled_all": 0.8695703530233466,
+     "pooled_finished": 0.30139737030313035,
+     "within_all": 0.8869917304732026,
+     "n_within_all": 10,
+     "within_finished": 0.5448855890795002,
+     "n_within_finished": 7,
+     "n_theorems": 10,
+     "n_attempts": 640,
+     "n_finished": 322,
+     "valid_rate": 0.3890625,
+     "p_valid_given_finished": 0.7732919254658385
+    },
+    "0.5-0.9": {
+     "pooled_all": 0.8202817001678482,
+     "pooled_finished": 0.5781680554409702,
+     "within_all": 0.8405730473612409,
+     "n_within_all": 52,
+     "within_finished": 0.5932509600763634,
+     "n_within_finished": 40,
+     "n_theorems": 52,
+     "n_attempts": 3328,
+     "n_finished": 2911,
+     "valid_rate": 0.7917668269230769,
+     "p_valid_given_finished": 0.9051872208862933
+    },
+    "0.9-1": {
+     "pooled_all": 0.8898861486063581,
+     "pooled_finished": 0.7339923484413257,
+     "within_all": 0.8583897191344132,
+     "n_within_all": 111,
+     "within_finished": 0.6771154161917131,
+     "n_within_finished": 60,
+     "n_theorems": 167,
+     "n_attempts": 10688,
+     "n_finished": 10517,
+     "valid_rate": 0.9740830838323353,
+     "p_valid_given_finished": 0.989921080155938
+    }
+   }
+  }
+ }
+}
