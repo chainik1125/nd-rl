@@ -66,19 +66,20 @@ def main():
     ap.add_argument('--workers', type=int, default=24)
     ap.add_argument('--fmt', default='pairs', choices=['pairs', 'hist'])
     ap.add_argument('--k', default=None, help="pool k tag, e.g. 96b (phase-2 extra pools)")
+    ap.add_argument('--gen', default=PL.GEN, help='pool generator tag in the stem (phase 3: s1_r16, s2_r16)')
     a = ap.parse_args()
     FMT[0] = a.fmt
     out_dir = OUT + ('_hist' if a.fmt == 'hist' else '')
     os.makedirs(out_dir, exist_ok=True)
     for s in a.sets:
-        rows = PL.load_pool(s, a.k)
+        rows = PL.load_pool(s, a.k, a.gen)
         with mp.Pool(a.workers) as pool:
             res = pool.map(build, rows, chunksize=8)
         d = {n: (sq, cl) for n, sq, cl, _ in res}
         bad = sum(r[3] for r in res)
         n = sum(len(sq) for sq, _ in d.values()); ncl = sum(sum(cl) for _, cl in d.values())
         lens = [len(x) for sq, _ in d.values() for x in sq]
-        pickle.dump(d, open(os.path.join(out_dir, PL.pool_stem(s, a.k) + '.pkl'), 'wb'))
+        pickle.dump(d, open(os.path.join(out_dir, PL.pool_stem(s, a.k, a.gen) + '.pkl'), 'wb'))
         print(f'{s} [{a.fmt}]: {n} attempts, clipped {ncl} ({ncl / n:.4f}), state sha mismatches {bad}, '
               f'len mean {np.mean(lens):.0f} max {max(lens)}', flush=True)
         assert bad == 0

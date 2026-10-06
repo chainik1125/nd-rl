@@ -25,35 +25,39 @@ attempts valid) and textbook72 (hard, 41%).
    - ![Selection accuracy vs pool size](figures/A_selection_vs_m.png)
 2. **A sibling checkpoint is a better judge than the generator itself.** Scoring the same proofs with the likelihood
    of the other two training seeds of the same recipe raises the 8-attempt selection to 0.928 / 0.573, within 0.01–0.02
-   of the oracle. A 3×3 generator-by-judge experiment shows why: every generator is the worst judge of its own
-   proofs (self penalty −0.03 to −0.07 AUROC), because it over-rates its own *invalid* proofs about three times more
-   than its valid ones. Round 8 of the same seed shares the blind spot; a stage-1 model is simply a weak judge.
+   of the oracle. A 3×3 generator-by-judge experiment shows that every generator is the worst judge of its own
+   proofs (self penalty −0.03 to −0.07 in how well it separates valid from invalid proofs of the same theorem). Any
+   sampler rates its own draws a little high; this one rates its own *invalid* proofs two to three times higher
+   still, and that excess is the blind spot. Round 8 of the same seed shares it; a stage-1 model is simply a weak judge.
    - ![Generator by judge](figures/B3_judge_matrix.png)
 3. **Training a verifier on Lean labels did not beat the free likelihood signal.** A scalar head fine-tuned from the
-   same checkpoint (3 seeds) learns which *theorems* are hard (pooled AUROC 0.92–0.97) but ranks proofs of the *same*
-   theorem worse than likelihood (within-theorem AUROC 0.60–0.65 vs 0.69–0.79). Retraining it as a within-theorem
-   ranker with 3.3× more hard negatives raised that to 0.64–0.68, still below likelihood; undertraining and data
-   scarcity are excluded for this recipe.
+   same checkpoint (3 seeds) learns which *theorems* are hard (it separates valid from invalid attempts across all
+   theorems with AUROC 0.92–0.97) but ranks proofs of the *same* theorem worse than likelihood (within-theorem AUROC
+   0.60–0.65 vs 0.69–0.79). Retraining it as a within-theorem ranker with 3.3× more hard negatives raised that to
+   0.64–0.68, still below likelihood; undertraining and data scarcity are excluded for this recipe.
    - ![Does more data help](figures/A2_auroc_vs_data.png)
 4. **Picking is nearly solved at a fixed budget; stopping is the open problem.** A rule that stops after the
    c-th finished attempt and keeps the sibling-judged favourite reaches 0.924 at 3.9 attempts on holdout250, matching
    oracle pass@4 (0.927). But an oracle that stops at the first *valid* proof reaches 0.952 at 2.0 attempts, and no
-   model-side stopping rule we tried approaches it: absolute likelihood thresholds do not transfer between theorem
-   sets, and difficulty-aware allocation does not beat the count rule.
-   - ![Headline: accuracy vs attempts](figures/B4_headline.png)
+   model-side rule approaches it. The best, stopping once the sibling judges' absolute confidence passes a
+   threshold tuned on development data, closes about a fifth of that gap; difficulty-aware allocation does not beat
+   the count rule, and thresholds on the generator's own likelihood do not transfer between theorem sets.
+   - ![Headline: accuracy vs attempts](figures/B5_headline.png)
 
-Everything is on frozen test sets read once after sha-frozen choices, with paired theorem-level bootstraps, three
-generator seeds for the headline numbers, and two independent Codex audits that recomputed the headline numbers from
-the raw files. All numbers are for one sampling run per generator, so intervals cover theorem resampling, not
-sampling-seed resampling.
+Every comparison was fixed and sha-frozen on development data before its single test read, with paired
+theorem-level bootstraps and three generator seeds for the headline numbers; a Codex audit recomputed the phase-1
+headline numbers from the raw files. The same two test sets were used across five phases, so later questions were
+chosen knowing earlier test results. All numbers are for one sampling run per generator, so intervals cover theorem
+resampling, not sampling-seed resampling.
 
 ## What problem this addresses, and why
 
 Test-time scaling only pays off if something decides which attempt to keep and when to stop sampling. In the
 current pipeline that something is Lean, which is fine for measuring pass@k and useless for deployment on theorems
 whose proofs we cannot check, or for an RL loop that wants the model's own judgement as a reward. The
-[learned-compute-allocation proposal](../../proposals/learned-compute-allocation/README.md) (2026-10-05) laid out
-three experiments: select among eight attempts, stop with an attempt cost, stop without a cost. This sprint ran the
+[learned-compute-allocation proposal](../../proposals/learned-compute-allocation/README.md) (2026-10-05), motivated by
+ReVISE's learned accept-or-refine decision [@pmlr-v267-lee25ab] and Satori's reflect-and-explore actions
+[@pmlr-v267-shen25o], laid out three experiments: select among eight attempts, stop with an attempt cost, stop without a cost. This sprint ran the
 first with a per-candidate scorer and a frozen-generator form of the second (threshold and count rules on a score),
 and added what the results demanded: sibling judges, a data ladder for the learned head, and a mechanism analysis.
 It did not train `ACCEPT`/`CONTINUE` actions by reinforcement learning, and it did not put eight proofs in one context
@@ -79,8 +83,8 @@ with atom-renaming and premise-permutation equivalence grouped. Test, frozen bef
 `holdout250` (250 theorems, 84% of attempts valid, pass@64 0.96) and `textbook72` (72 textbook problems, 41% valid,
 pass@64 0.69; eval-only by group rule). The Codex reviewer independently found no overlap between the training
 sources and the test sets under exact, renaming, or premise-permutation keys; schema-family overlap (the same
-textbook schema with different sub-formulas) is not excluded, and 14 of the 72 textbook theorems were among the
-generator's RL targets.
+textbook schema with different sub-formulas) is not excluded, and Dan's model card notes one textbook72 problem that overlaps the K12 pretraining data (a
+worker's note that 14 were RL targets is being checked against the audit's no-overlap result).
 
 **Scorers.** A scorer maps an attempt to a number; selection keeps the argmax. `completion` is the environment's
 finished flag (legal at inference because the environment is part of the deployed system; it includes scope and goal
@@ -179,7 +183,13 @@ attempts on holdout250 and 0.652 at 7.2 on textbook72. Three model-side attempts
   attempts. All policies pour attempts into near-hopeless theorems, and a give-up rule loses on development data, so
   those attempts still pay off on average.
 
-(Phase 5, absolute-confidence stopping with sibling judges: pending.)
+The best rule found (phase 5, pre-registered) stops once the sibling-judged likelihood of the current favourite
+passes an absolute threshold, or once a development-fitted estimate of its validity passes a probability. Cost-matched
+against the count rule with the same selector it adds +0.006 to +0.010 on holdout250 at 2.3–3.9 attempts (intervals
+exclude 0) and +0.011 to +0.016 on textbook72 at 8–10 attempts (two of three intervals include 0), closing 15–23% of
+the distance from the count rule to the first-valid oracle. Its budget transfers to textbook72 better than the
+self-likelihood threshold (2.1–2.5× the target instead of 3×) and worse than the count rule (1.5×). Below the
+first-finished point no rule that returns a finished proof can go.
 
 ## Map of what was done
 

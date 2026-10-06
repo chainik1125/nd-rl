@@ -24,7 +24,8 @@ from evaluate_selection import auroc
 SEQS = os.path.join(PL.RUNS, 'verifier', 'seqs_hist')
 ORIG = {'rl_targets': '16', 'dev1108': '16', 'rr600': '32', 'holdout250': '64', 'textbook72': '64'}
 SCORE_POOLS = ['rl_targets:16', 'dev1108:16', 'rr600:32', 'holdout250:64', 'textbook72:64',
-               'rr600:96b', 'rl_targets:48b', 'dev1108:48b']
+               'rr600:96b', 'rl_targets:48b', 'dev1108:48b',
+               'holdout250:64:s1_r16', 'textbook72:64:s1_r16', 'holdout250:64:s2_r16', 'textbook72:64:s2_r16']
 
 
 class Verifier2(nn.Module):
@@ -43,20 +44,21 @@ class Verifier2(nn.Module):
 
 
 def parse(spec):
-    s, k = spec.split(':')
-    return s, k
+    """'set:k' or 'set:k:gen' (gen default s0_r16)"""
+    p = spec.split(':')
+    return p[0], p[1], (p[2] if len(p) > 2 else PL.GEN)
 
 
 def load(specs, with_labels=True, ll_stats=None, finished_only=True):
     """-> list of dict(set, name, stem, i, seq, done, valid, ll)"""
     out = []
     for spec in specs:
-        s, k = parse(spec)
-        stem = PL.pool_stem(s, k)
+        s, k, gen = parse(spec)
+        stem = PL.pool_stem(s, k, gen)
         d = pickle.load(open(os.path.join(SEQS, stem + '.pkl'), 'rb'))
-        pool = PL.load_pool(s, k)
-        lab = PL.load_labels(s, k) if with_labels else None
-        ll = PL.load_scores(s, 'loglik_mean_masked', k) if ll_stats is not None else None
+        pool = PL.load_pool(s, k, gen)
+        lab = PL.load_labels(s, k, gen) if with_labels else None
+        ll = PL.load_scores(s, 'loglik_mean_masked', k, gen) if ll_stats is not None else None
         for r in pool:
             for a in r['attempts']:
                 if finished_only and not a['done']:
@@ -74,8 +76,8 @@ def load(specs, with_labels=True, ll_stats=None, finished_only=True):
 def ll_standardisation(specs, train_names):
     xs = []
     for spec in specs:
-        s, k = parse(spec)
-        ll = PL.load_scores(s, 'loglik_mean_masked', k)
+        s, k, gen = parse(spec)
+        ll = PL.load_scores(s, 'loglik_mean_masked', k, gen)
         for n, v in ll.items():
             if n in train_names.get(s, ()):
                 xs += [x for x in v if math.isfinite(x)]
@@ -142,6 +144,8 @@ def main():
     ap.add_argument('--wd', type=float, default=0.01)
     ap.add_argument('--score_pools', nargs='*', default=SCORE_POOLS)
     ap.add_argument('--score_only', action='store_true')
+    ap.add_argument('--init', default=PL.CKPT, help='body checkpoint (phase 3: sibling generator seeds)')
+    ap.add_argument('--scorer', default=None, help='score name (default verifier2_<name>)')
     a = ap.parse_args()
     out = os.path.join(PL.RUNS, 'verifier2', a.name)
     os.makedirs(out, exist_ok=True)
@@ -158,9 +162,10 @@ def main():
     elif a.use_ll:
         ll_stats = ll_standardisation(a.pools, trn)
         json.dump(ll_stats, open(os.path.join(out, 'll_stats.json'), 'w'))
-    body, tok, _ = load_ckpt(PL.CKPT, dev)
+    body, tok, _ = load_ckpt(a.init, dev)
+    assert tok.mode == 'lean_staten' and tok.vocab_size == 111, (tok.mode, tok.vocab_size)
     model = Verifier2(body, a.use_ll).to(dev)
-    scorer = f'verifier2_{a.name}'
+    scorer = a.scorer or f'verifier2_{a.name}'
     if not a.score_only:
         items = load(a.pools, ll_stats=ll_stats)
         train = [it for it in items if it['name'] in trn.get(it['set'], ())]
@@ -229,19 +234,19 @@ def main():
                        hist=hist, train_secs=time.time() - t0), open(os.path.join(out, 'summary.json'), 'w'), indent=1)
     model.load_state_dict(torch.load(os.path.join(out, 'best.pt'), map_location=dev))
     for spec in a.score_pools:
-        s, k = parse(spec)
-        if not os.path.exists(os.path.join(SEQS, PL.pool_stem(s, k) + '.pkl')):
+        s, k, gen = parse(spec)
+        if not os.path.exists(os.path.join(SEQS, PL.pool_stem(s, k, gen) + '.pkl')):
             log(f'skip scoring {spec} (no seqs)'); continue
-        if a.use_ll and not os.path.exists(os.path.join(PL.SCORES, f'{PL.pool_stem(s, k)}__loglik_mean_masked.jsonl')):
+        if a.use_ll and not os.path.exists(os.path.join(PL.SCORES, f'{PL.pool_stem(s, k, gen)}__loglik_mean_masked.jsonl')):
             log(f'skip scoring {spec} (no loglik)'); continue
         its = load([spec], with_labels=False, ll_stats=ll_stats, finished_only=False)
         p = predict(model, its, dev)
         rows = {}
         for it, v in zip(its, p):
             rows.setdefault(it['name'], {})[it['i']] = float(v)
-        PL.write_jsonl(os.path.join(PL.SCORES, f'{PL.pool_stem(s, k)}__{scorer}.jsonl'),
+        PL.write_jsonl(os.path.join(PL.SCORES, f'{PL.pool_stem(s, k, gen)}__{scorer}.jsonl'),
                        [dict(name=r['name'], scores=[rows[r['name']][i] for i in range(len(rows[r['name']]))])
-                        for r in PL.load_pool(s, k)])
+                        for r in PL.load_pool(s, k, gen)])
         log(f'scored {spec} -> {scorer}')
 
 

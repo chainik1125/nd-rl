@@ -147,5 +147,15 @@ likelihood 0.788 / 0.687 (paired −0.111 [−0.177, −0.040] / −0.049 [−0.
 .629/.635/.664/.677 on holdout250, flat on dev. Undertraining excluded for this recipe (dev AUROC flat from step 100
 to 1,300). Likelihood as an extra input adds nothing. k=8 selection: completion_verifier2 0.913 / 0.514 vs
 completion_loglik 0.918 / 0.540. Permutation tests on all final checkpoints byte-identical. Two runs were OOM-killed by
-a foreign process on GPUs 5/6 (the parallel sprint) and rerun unchanged.
+a process not owned by this sprint on GPUs 5/6 (86–127 GB; origin not verified) and rerun unchanged.
 Phase 3 launched: heads initialized from sibling checkpoints (does the head inherit the generator's blind spot?).
+
+## 05:00 UTC Worker B phase 5 done
+
+Absolute-confidence stopping with sibling judges (threshold on sibling likelihood, or a dev-fitted P(valid)),
+pre-registered 04:55, frozen 04:56, test read once. Cost-matched against count-stop + sibling selection: +0.006 to
++0.010 on holdout250 at 2.3–3.9 attempts (CIs exclude 0), +0.011 to +0.016 on textbook72 at 8–10 attempts (two of
+three CIs include 0). Closes 15–23% of the gap from count-stop to oracle stop-at-first-valid. Below count-stop's
+c=1 point (≈ first-finished) nothing is reachable. Budget transfer to textbook72 is better than the self threshold
+(2.1–2.5× target vs 3.0×) but worse than count-stop (1.5×). Advisor review at 04:58 flagged write-up corrections
+(exposure wording, "3×" → "2–3×", AUROC glosses, the "14 of 72 RL targets" claim pending evidence from A).

@@ -16,3 +16,4 @@ written_by: agent:codex
 - [Proof-fragment selection](2026-09-10-proof-fragment-selection/README.md): supervised transfer scores reproduced, but the tested RL curricula reduced complete-proof coverage.
 - [FLoP adaptation](2026-09-10-flop-adaptation/README.md): narrow symbolic depth extrapolation without a held-out coverage gain for the token LM.
 - [Literature for learning beyond initial training data](../docs/literature/astra_suggestions/learning-beyond-training-data.md): completed reading recommendations and experimental-design critique; no new experiment results.
+- [Proof selection and stopping sprint](2026-10-06-proof-selection-sprint/summary.md): with the r16 generator frozen, its own likelihood picks a valid proof for ~75% of the pass@8 gap, sibling checkpoints judge better than the generator itself, a trained verifier head does not beat likelihood, and model-side stopping stays well short of the first-valid oracle.

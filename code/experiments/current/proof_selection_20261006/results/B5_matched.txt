@@ -1,0 +1,32 @@
+holdout250 T_sib m=3: att  2.73 acc 0.920 | count@same att 0.913 | oracle-stop 0.953 | diff +0.0074 [+0.0027,+0.0124] | gap closed +0.18
+holdout250 T_sib m=4: att  3.85 acc 0.929 | count@same att 0.923 | oracle-stop 0.953 | diff +0.0062 [+0.0013,+0.0114] | gap closed +0.20
+holdout250 T_sib m=6: att  6.24 acc 0.935 | count@same att 0.931 | oracle-stop 0.953 | diff +0.0038 [+0.0001,+0.0075] | gap closed +0.17
+holdout250 T_sib m=8: att  8.22 acc 0.937 | count@same att 0.934 | oracle-stop 0.953 | diff +0.0027 [-0.0001,+0.0054] | gap closed +0.14
+holdout250 C_sib m=3: att  2.29 acc 0.915 | count@same att 0.904 | oracle-stop 0.953 | diff +0.0104 [+0.0059,+0.0148] | gap closed +0.21
+holdout250 C_sib m=4: att  2.93 acc 0.922 | count@same att 0.916 | oracle-stop 0.953 | diff +0.0066 [+0.0018,+0.0117] | gap closed +0.18
+holdout250 C_sib m=6: att  4.86 acc 0.931 | count@same att 0.927 | oracle-stop 0.953 | diff +0.0036 [-0.0006,+0.0083] | gap closed +0.14
+holdout250 C_sib m=8: att  5.95 acc 0.933 | count@same att 0.930 | oracle-stop 0.953 | diff +0.0028 [-0.0013,+0.0067] | gap closed +0.12
+holdout250 T_x   m=3: att  2.77 acc 0.920 | count@same att 0.914 | oracle-stop 0.953 | diff +0.0064 [+0.0015,+0.0113] | gap closed +0.16
+holdout250 T_x   m=4: att  3.92 acc 0.928 | count@same att 0.923 | oracle-stop 0.953 | diff +0.0048 [-0.0001,+0.0099] | gap closed +0.16
+holdout250 T_x   m=6: att  6.29 acc 0.935 | count@same att 0.932 | oracle-stop 0.953 | diff +0.0029 [-0.0012,+0.0068] | gap closed +0.13
+holdout250 T_x   m=8: att  8.36 acc 0.938 | count@same att 0.936 | oracle-stop 0.953 | diff +0.0019 [-0.0009,+0.0046] | gap closed +0.11
+holdout250 C_x   m=3: att  2.26 acc 0.914 | count@same att 0.904 | oracle-stop 0.953 | diff +0.0099 [+0.0057,+0.0142] | gap closed +0.20
+holdout250 C_x   m=4: att  2.95 acc 0.922 | count@same att 0.916 | oracle-stop 0.953 | diff +0.0054 [+0.0009,+0.0099] | gap closed +0.14
+holdout250 C_x   m=6: att  5.02 acc 0.931 | count@same att 0.928 | oracle-stop 0.953 | diff +0.0026 [-0.0017,+0.0070] | gap closed +0.10
+holdout250 C_x   m=8: att  6.21 acc 0.934 | count@same att 0.932 | oracle-stop 0.953 | diff +0.0019 [-0.0020,+0.0058] | gap closed +0.09
+textbook72 T_sib m=3: att  8.26 acc 0.603 | count@same att 0.587 | oracle-stop 0.653 | diff +0.0155 [+0.0026,+0.0293] | gap closed +0.23
+textbook72 T_sib m=4: att  9.83 acc 0.611 | count@same att 0.600 | oracle-stop 0.653 | diff +0.0109 [-0.0011,+0.0216] | gap closed +0.20
+textbook72 T_sib m=6: att 12.01 acc 0.612 | count@same att 0.608 | oracle-stop 0.653 | diff +0.0034 [-0.0066,+0.0109] | gap closed +0.07 (count beyond its c=8 range: compared with c=8)
+textbook72 T_sib m=8: att 13.40 acc 0.613 | count@same att 0.610 | oracle-stop 0.653 | diff +0.0032 [-0.0039,+0.0090] | gap closed +0.07 (count beyond its c=8 range: compared with c=8)
+textbook72 C_sib m=3: att  7.46 acc 0.593 | count@same att 0.580 | oracle-stop 0.653 | diff +0.0129 [-0.0008,+0.0274] | gap closed +0.18
+textbook72 C_sib m=4: att  8.44 acc 0.600 | count@same att 0.588 | oracle-stop 0.653 | diff +0.0116 [-0.0021,+0.0247] | gap closed +0.18
+textbook72 C_sib m=6: att 10.25 acc 0.604 | count@same att 0.602 | oracle-stop 0.653 | diff +0.0020 [-0.0091,+0.0113] | gap closed +0.04
+textbook72 C_sib m=8: att 10.89 acc 0.607 | count@same att 0.605 | oracle-stop 0.653 | diff +0.0016 [-0.0086,+0.0099] | gap closed +0.03
+textbook72 T_x   m=3: att  8.52 acc 0.605 | count@same att 0.591 | oracle-stop 0.653 | diff +0.0149 [+0.0017,+0.0285] | gap closed +0.24
+textbook72 T_x   m=4: att 10.10 acc 0.612 | count@same att 0.602 | oracle-stop 0.653 | diff +0.0101 [-0.0015,+0.0202] | gap closed +0.20
+textbook72 T_x   m=6: att 12.40 acc 0.615 | count@same att 0.611 | oracle-stop 0.653 | diff +0.0040 [-0.0038,+0.0103] | gap closed +0.09 (count beyond its c=8 range: compared with c=8)
+textbook72 T_x   m=8: att 13.59 acc 0.615 | count@same att 0.611 | oracle-stop 0.653 | diff +0.0040 [-0.0027,+0.0096] | gap closed +0.09 (count beyond its c=8 range: compared with c=8)
+textbook72 C_x   m=3: att  7.55 acc 0.592 | count@same att 0.582 | oracle-stop 0.653 | diff +0.0092 [-0.0048,+0.0235] | gap closed +0.13
+textbook72 C_x   m=4: att  8.71 acc 0.599 | count@same att 0.592 | oracle-stop 0.653 | diff +0.0074 [-0.0065,+0.0203] | gap closed +0.12
+textbook72 C_x   m=6: att 10.50 acc 0.607 | count@same att 0.604 | oracle-stop 0.653 | diff +0.0024 [-0.0088,+0.0123] | gap closed +0.05
+textbook72 C_x   m=8: att 11.24 acc 0.610 | count@same att 0.608 | oracle-stop 0.653 | diff +0.0026 [-0.0078,+0.0107] | gap closed +0.06

@@ -135,7 +135,7 @@ def batches(lengths, budget_tokens, max_rows):
 
 
 @torch.no_grad()
-def score_pairs(model, pairs, device, budget=2 ** 26, max_rows=4096, bf16=True, want_argmax=True):
+def score_pairs(model, pairs, device, budget=2 ** 26, max_rows=4096, bf16=True, want_argmax=True, temperature=1.0):
     """pairs: list of (state ids, action ids, mask positions, ended).  Returns per pair: (lp list, ent list, argmax-match
     list) over the action positions (+ <eos> if ended), with masked positions marked by None."""
     tok = _tok()
@@ -154,7 +154,7 @@ def score_pairs(model, pairs, device, budget=2 ** 26, max_rows=4096, bf16=True, 
         idx = idx.to(device)
         with torch.autocast('cuda', dtype=torch.bfloat16, enabled=bf16 and device.type == 'cuda'):
             logits = model(idx)            # right padding + causal ALiBi mask: pads never influence real positions
-        logp = F.log_softmax(logits.float(), -1)
+        logp = F.log_softmax(logits.float() / temperature, -1)
         ent = -(logp.exp() * logp).sum(-1)                         # (B, T)
         tgt_lp = logp[:, :-1].gather(-1, idx[:, 1:, None])[..., 0]  # lp of token t+1 given prefix up to t
         am = (logp[:, :-1].argmax(-1) == idx[:, 1:])
@@ -205,6 +205,7 @@ def main():
     ap.add_argument('--limit', type=int, default=0)
     ap.add_argument('--fp32', action='store_true')
     ap.add_argument('--ckpt', default=CKPT, help='judge checkpoint (phase 2: sibling seeds s1/s2)')
+    ap.add_argument('--temperature', type=float, default=1.0, help='logits / T before log-softmax (robustness check)')
     ap.add_argument('--tag', default='', help='suffix for score names, e.g. s1 -> loglik_mean_masked_s1 (only the '
                     'per-attempt likelihood scorers are written; replay checks identical)')
     a = ap.parse_args()
@@ -228,7 +229,7 @@ def main():
             pairs.append(s); pair_owner.append(j)
     device = torch.device('cuda')
     model = load_model(device, a.ckpt)
-    pres = score_pairs(model, pairs, device, bf16=not a.fp32)
+    pres = score_pairs(model, pairs, device, bf16=not a.fp32, temperature=a.temperature)
     t2 = time.time()
     per_att = [[] for _ in jobs]
     for k, j in enumerate(pair_owner):

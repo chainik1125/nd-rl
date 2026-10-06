@@ -54,25 +54,25 @@ def pool_stem(set_name, k=None, gen=GEN):
     return f'{set_name}__{gen}__k{k or SET_K[set_name]}'
 
 
-def pool_path(set_name, k=None):
-    return os.path.join(POOLS, pool_stem(set_name, k) + '.jsonl')
+def pool_path(set_name, k=None, gen=GEN):
+    return os.path.join(POOLS, pool_stem(set_name, k, gen) + '.jsonl')
 
 
-def labels_path(set_name, k=None):
-    return os.path.join(POOLS, pool_stem(set_name, k) + '.labels.jsonl')
+def labels_path(set_name, k=None, gen=GEN):
+    return os.path.join(POOLS, pool_stem(set_name, k, gen) + '.labels.jsonl')
 
 
-def load_pool(set_name, k=None):
-    return read_jsonl(pool_path(set_name, k))
+def load_pool(set_name, k=None, gen=GEN):
+    return read_jsonl(pool_path(set_name, k, gen))
 
 
-def load_labels(set_name, k=None):
+def load_labels(set_name, k=None, gen=GEN):
     """name -> list[bool] (valid), aligned with attempts.  The ONLY sanctioned path to Lean verdicts."""
-    return {r['name']: [bool(v) for v in r['valid']] for r in read_jsonl(labels_path(set_name, k))}
+    return {r['name']: [bool(v) for v in r['valid']] for r in read_jsonl(labels_path(set_name, k, gen))}
 
 
-def load_scores(set_name, scorer, k=None):
-    fn = os.path.join(SCORES, f'{pool_stem(set_name, k)}__{scorer}.jsonl')
+def load_scores(set_name, scorer, k=None, gen=GEN):
+    fn = os.path.join(SCORES, f'{pool_stem(set_name, k, gen)}__{scorer}.jsonl')
     return {r['name']: [float(x) for x in r['scores']] for r in read_jsonl(fn)}
 
 
