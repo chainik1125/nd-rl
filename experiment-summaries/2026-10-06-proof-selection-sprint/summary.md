@@ -7,7 +7,7 @@ papers:
   - pmlr-v267-shen25o
 ---
 
-# The proof model can pick its own best attempt, and a sibling checkpoint picks better, but no model-side rule yet knows when to stop
+# The proof model can pick its own best attempt, a sibling trained to rank proofs picks almost as well as Lean, but no model-side rule yet knows when to stop
 
 ## Executive summary
 
@@ -32,12 +32,14 @@ still reject it. "Likelihood" means the mean per-token log-probability a judge m
    likelihood than its siblings do, by +0.03 to +0.04 nats per token when the proof is valid and +0.07 to +0.11 when
    it is invalid.
    - ![Generator by judge](figures/B3_judge_matrix.png)
-3. **Likelihood outperforms every verifier head we trained on Lean labels.** A scalar head fine-tuned from the same
-   checkpoint separates valid from invalid attempts well across theorems but ranks proofs of the *same* theorem worse
-   than likelihood (within-theorem AUROC 0.65 / 0.60 vs 0.79 / 0.69). Retraining as a within-theorem ranker with 3.3×
-   more hard negatives reaches 0.68 / 0.64, and initializing from a sibling checkpoint changes nothing resolvable.
-   One recipe was tried; the reasons remain open.
-   - ![Does more data help](figures/A2_auroc_vs_data.png)
+3. **A sibling trained to rank proofs by its own likelihood recovers about 93% of the gap; scalar verifier heads
+   never beat plain likelihood.** Fine-tuning sibling s1 so that its per-token likelihood rises on Lean-valid and
+   falls on invalid proofs of the same theorem (a pairwise loss with a reference anchor, s0's training theorems only)
+   lifts within-theorem ranking from 0.83 / 0.78 to 0.89 / 0.94 and 8-attempt selection to 0.933 / 0.582 (oracle
+   0.940 / 0.594); the gain carries over to proofs written by the other two generators. Three recipes that put a
+   scalar head on the network instead (binary cross-entropy, a within-theorem ranker with 3.3× more hard negatives,
+   sibling initialization) all rank below untrained likelihood.
+   - ![Trained judge](figures/A4_trained_judge.png)
 4. **At a fixed budget, picking is near the oracle; stopping retains most of the headroom.** Stopping after the
    c-th finished attempt and keeping the siblings' favourite gives 0.924 at a mean of 3.9 attempts on holdout250
    (oracle pass@4 0.927) and 0.587 at 7.6 on textbook72 (oracle pass@8 0.607). An oracle that stops at the first
@@ -154,7 +156,9 @@ siblings (−0.036 [−0.072, −0.002] and −0.103 [−0.177, −0.036]); the 
 sit between self and siblings failed. The stage-1 (pretraining-only) model of the same seed is a weaker judge
 (−0.097 [−0.140, −0.053] on holdout250; −0.082 [−0.181, +0.008] on textbook72).
 
-### 3. Likelihood outperforms every learned head we trained
+### 3. Scalar heads lose to likelihood; a likelihood judge trained on pairs wins
+
+![Data ladder for the scalar-head ranker](figures/A2_auroc_vs_data.png)
 
 Phase 1 (pre-registered): the r16 checkpoint plus a scalar head, trained with class-weighted binary cross-entropy on
 all training attempts (97,776 attempts, 88% valid, 3,195 finished-but-invalid), early-stopped on development AUROC,
@@ -179,9 +183,30 @@ Phase 3 (pre-registered): the same ranker with its body initialized from a sibli
 s2. Against the s0-initialized head: +0.021 [−0.009, +0.051] and −0.029 [−0.094, +0.045]; against sibling
 likelihood: −0.131 [−0.184, −0.074] and −0.174 [−0.300, −0.041]. Heads of either initialization sit at 0.53–0.75
 across the generator-by-head matrix, without the consistent diagonal penalty the likelihood judges show. The
-hypothesis that the head inherits the generator's blind spot through initialization is not supported; why a
-scalar-head fine-tune ranks worse than the likelihood of the same network remains untested (one recipe, one head
-design, s0-generated training data only).
+hypothesis that the head inherits the generator's blind spot through initialization is not supported.
+
+Phase 4 (pre-registered, the last experiment): keep the per-token likelihood as the score and train the *model*
+instead of a head. Starting from sibling s1, on s0's training pools only, two variants with two seeds each:
+continued training on Lean-valid finished proofs with Dan's action-token loss, and a pairwise variant that raises
+the masked mean log-probability of the valid proof and lowers that of the invalid proof of the same theorem
+(a DPO-style logistic against a frozen s1 reference, with a token-level KL anchor). Early stopping on development
+within-theorem AUROC. Scored with the unchanged likelihood scorer.
+
+| within-theorem AUROC, finished attempts | holdout250 | textbook72 |
+|---|---|---|
+| plain s1 likelihood (starting point) | 0.828 | 0.783 |
+| sibling mean (s1, s2) | 0.829 | 0.782 |
+| s1 trained on valid proofs | 0.865 | 0.864 |
+| s1 trained pairwise | **0.893** (+0.065 [0.036, 0.094] vs s1) | **0.942** (+0.159 [0.088, 0.236]) |
+
+The pairwise judge also beats the sibling mean (+0.064 [0.033, 0.095]; +0.159 [0.084, 0.237]), holds on the second
+sampling draw (+0.075 [0.048, 0.103]; +0.094 [0.037, 0.158]) and on proofs written by s1 and s2 (+0.03 to +0.08
+over the sibling mean, all intervals above 0), so it did not just learn s0's habits. The valid-only variant helps
+less and does not transfer beyond the sibling mean. At k=8 with completion first, the pairwise judge selects
+0.933 / 0.582 against the plain-s1 0.931 / 0.568 (+0.002 unresolved; +0.014 [0.001, 0.031]) and the oracle
+0.940 / 0.594. Its likelihoods drifted during training (invalid proofs −0.09 → −0.31 nats per token on
+development; token KL to s1 about 0.08), so it is a ranker, not a calibrated probability and not a sampler. One
+hyper-parameter setting per variant; the valid-only seed 0 peaked at its last step.
 
 ### 4. Stopping retains most of the headroom
 
