@@ -10,6 +10,7 @@ import torch
 
 from code.thinking.data import trace_pairs
 from code.thinking.sample import (
+    LINE_CAP,
     attempt_budget,
     decode_wave,
     env_generate_think,
@@ -59,7 +60,7 @@ def test_min_budget_holds_back_the_close() -> None:
 
 
 def test_max_budget_forces_the_close() -> None:
-    w = _wave(_biased("P"), [5, 2])
+    w = _wave(_biased("P"), [5, 2], force_mode="exact")
     assert [ids.index(T.end_think) for ids in w.ids] == [5, 2]
     assert w.forced == [True, True]
     for ids in w.ids:
@@ -69,7 +70,7 @@ def test_max_budget_forces_the_close() -> None:
 
 def test_no_eos_or_nested_think_inside_a_block() -> None:
     for tokname in ("<eos>", "<think>", "<pad>"):
-        w = _wave(_biased(tokname), [7, 7])
+        w = _wave(_biased(tokname), [7, 7], force_mode="exact")
         for ids in w.ids:
             j = ids.index(T.end_think)
             assert j == 7 and not ({T.eos, T.think, T.pad} & set(ids[:j]))
@@ -101,6 +102,7 @@ def test_env_apply_receives_the_action_only(monkeypatch: pytest.MonkeyPatch) -> 
         max_rej=3,
         batch=4,
         seed=2,
+        force_mode="exact",  # the draws this test was written on
     )
     assert seen and sum(r["think"] for r in res) >= 2 * len(res)
     for act in seen:
@@ -125,7 +127,7 @@ def test_redraw_token_accounting() -> None:
     assert sum(r["tokens"] for r in res) == st["sampled_tokens"]
     for r in res:
         assert r["tokens"] == r["think"] + r["close"] + r["action"]
-        assert r["think"] <= r["draws"] * r["budget"] and r["forced"] <= r["draws"]
+        assert r["think"] <= r["draws"] * (r["budget"] + LINE_CAP) and r["forced"] <= r["draws"]
         assert r["draws"] == r["steps"] + len(r["causes"])  # accepted + rejected draws
         assert 0 <= r["rejected"] <= r["tokens"]
         if r["steps"] == 0:

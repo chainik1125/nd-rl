@@ -19,6 +19,10 @@ Inputs
             `state_env.decompose(canon=True)`; `--no-trace-mode empty` writes `<think> </think>`
             before the action, `none` writes the bare action (the T0 no-think control in the same
             vocabulary).
+  --think-filler  the filler control (LIT_CRITIQUE C3, Pfau et al. / Gandhi et al.): every
+            think-content token (`<nl>` included) becomes `<no>`, so each block keeps its length
+            and position but carries no content.  Applied after validation and emptying, so the
+            same records, copies and emptied copies as without the flag.
 
 Eval exclusion: a record is dropped if its atom-renaming class key (`canon_key`, as the fork's
 `gen.canon_key` and ndbench's `core.keys`) or its premise-order-invariant `pkey` (ndbench's dedup
@@ -129,6 +133,15 @@ def encode_pair(
     return bytes(p), bytes(q), len(think)
 
 
+def filler_pair(tok: Any, pair: Pair) -> Pair:
+    """The pair with every think-content token replaced by `<no>` (tags, action, length kept)."""
+    p, q, tl = pair
+    if tl <= 2:
+        return pair
+    assert q[0] == tok.think and q[tl - 1] == tok.end_think, "not a think block"
+    return p, bytes([q[0], *([tok.no] * (tl - 2)), *q[tl - 1 :]]), tl
+
+
 def plain_pairs(rec: dict[str, Any], tok: Any, mode: str) -> list[Pair]:
     """A K12-style record -> pairs (raises ParseFail, ValueError, ... as state_train.load does)."""
     steps, _, _ = D.state_env.decompose(rec["prompt"], rec["proof"], canon=True)
@@ -234,6 +247,7 @@ def build(
     cap: int = 0,
     limit_plain: int = 0,
     tok: Any = None,
+    think_filler: bool = False,
 ) -> dict[str, Any]:
     assert no_trace_mode in ("empty", "none"), no_trace_mode
     tok = ThinkTokenizer() if tok is None else tok
@@ -275,6 +289,8 @@ def build(
                 rep["invalid_traces"].append({"id": rec.get("id"), "error": v["error"]})
                 continue
             pairs = trace_pairs(rec, tok)
+            if think_filler:
+                pairs = [filler_pair(tok, x) for x in pairs]
             n_trace_ok += 1
             traced_prompts.add(rec["prompt"])
             k, _ = class_keys(rec["prompt"])
@@ -337,6 +353,7 @@ def build(
         "trace_weight": trace_weight,
         "empty_frac": empty_frac,
         "trace_copies_emptied": n_emptied,
+        "think_filler": think_filler,
         "plain_in": n_plain_in,
         "plain_used": n_plain_ok,
         "no_trace_mode": no_trace_mode,
@@ -355,6 +372,7 @@ def build(
         "max_len": max_len,
         "cap": cap,
         "limit_plain": limit_plain,
+        "think_filler": think_filler,
     }
     return {
         "format": FORMAT,
@@ -430,6 +448,11 @@ def main(argv: list[str] | None = None) -> int:
         "--cap", type=int, default=0, help="drop plain records with n_lines > cap (0: keep all)"
     )
     ap.add_argument("--limit-plain", type=int, default=0)
+    ap.add_argument(
+        "--think-filler",
+        action="store_true",
+        help="replace every think-content token with <no>, keeping each block's length",
+    )
     ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
     exclude = list(DEFAULT_EXCLUDE if a.exclude is None else a.exclude) + list(a.extra_exclude)
@@ -448,6 +471,7 @@ def main(argv: list[str] | None = None) -> int:
         max_len=a.max_len,
         cap=a.cap,
         limit_plain=a.limit_plain,
+        think_filler=a.think_filler,
     )
     rp = save(data, a.out)
     r = data["report"]

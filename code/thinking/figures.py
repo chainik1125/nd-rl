@@ -9,6 +9,9 @@ with a marker and line style per model, PDF with TrueType fonts + SVG + 300-dpi 
     python -m code.thinking.figures tokens --out DIR/fig_tokens --group "T0=..." --group "T2=..." \
         --arms plain,logical --sets charles_long_reach
 
+`lengthbin` and `tokens` take `--ci` for shaded 95% hierarchical-bootstrap bands (seeds and
+theorems resampled; `code.thinking.stats`, which also gives paired differences between models).
+
 A *group* is one model (one line); its comma-separated paths are one source per seed.  Each command
 writes `<out>.{pdf,svg,png}`, `<out>.json` (every plotted value, per seed, with its source) and
 `<out>.caption.md` (a NeurIPS-style caption: bold title, what is plotted, n, estimator).
@@ -54,6 +57,7 @@ from typing import Any
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 from matplotlib.ticker import FixedLocator, FuncFormatter, NullFormatter
 
 from ..ndbench.figures import style as S
@@ -387,6 +391,39 @@ def _legend(fig: Figure, handles: Sequence[Any], max_cols: int = 3) -> None:
 LENGTHBIN_TITLE = "Solve rate by reference-length bin"
 
 
+#: Bootstrap draws for the optional CI bands (`--ci`; `code.thinking.stats`).
+CI_DRAWS = 2000
+
+
+def _stats() -> Any:
+    """`code.thinking.stats`, imported late: it builds on this module's loaders."""
+    import importlib
+
+    return importlib.import_module(f"{__package__}.stats")
+
+
+def _lengthbin_ci(
+    g: Group,
+    srcs: Sequence[Source],
+    refs: dict[str, int | None],
+    k: int | None,
+    cell: str | None,
+    draws: int,
+) -> dict[str, list[float]] | None:
+    """Per bin: the 95% hierarchical-bootstrap interval (seeds x the bin's theorems) of the seed
+    mean; None when a source has no per-theorem rows (Dan's by_len summaries)."""
+    if not all(s.thms for s in srcs):
+        return None
+    st = _stats()
+    arm = st.load_arm(g.label, g.paths, cell=cell)
+    out: dict[str, list[float]] = {}
+    for b in BIN_ORDER:
+        sub = arm.subset([nm for nm, r in refs.items() if bin_of(r) == b])
+        e = st.ci(sub, k, draws=draws)
+        out[b] = [e.lo, e.hi]
+    return out
+
+
 def lengthbin_data(
     groups: Sequence[Group],
     *,
@@ -394,15 +431,20 @@ def lengthbin_data(
     k: int | None = None,
     cell: str | None = None,
     check_sizes: dict[str, int] | None = TB72_SIZES,
+    ci: bool = False,
+    ci_draws: int = CI_DRAWS,
 ) -> dict[str, Any]:
-    """Per group, per seed and bin: solved (expected at pass@k), n, rate; plus the seed mean."""
+    """Per group, per seed and bin: solved (expected at pass@k), n, rate; plus the seed mean and,
+    with `ci`, a 95% interval per bin (`code.thinking.stats.ci` on the bin's theorems)."""
     refs = refs if refs is not None else reference_lengths()
     out: dict[str, Any] = {"bins": list(BIN_ORDER), "k": k, "groups": []}
     ks_seen: set[int | None] = set()
     for g in groups:
         seeds = []
+        srcs: list[Source] = []
         for p in g.paths:
             src = load_source(p, cell)
+            srcs.append(src)
             counts = bin_counts(src, refs, k, check_sizes=check_sizes)
             ks_seen.add(k if k is not None else src.k)
             seeds.append(
@@ -419,7 +461,10 @@ def lengthbin_data(
             )
         mean = {b: _mean([sd["bins"][b]["rate"] for sd in seeds]) for b in BIN_ORDER}
         n = {b: seeds[0]["bins"][b]["n"] for b in BIN_ORDER}
-        out["groups"].append({"label": g.label, "seeds": seeds, "mean": mean, "n": n})
+        rec: dict[str, Any] = {"label": g.label, "seeds": seeds, "mean": mean, "n": n}
+        if ci:
+            rec["ci"] = _lengthbin_ci(g, srcs, refs, k, cell, ci_draws)
+        out["groups"].append(rec)
     ks_known = {x for x in ks_seen if x is not None}
     out["k_effective"] = ks_known.pop() if len(ks_known) == 1 else None
     return out
@@ -461,6 +506,19 @@ def fig_lengthbin(data: dict[str, Any], *, title: str | None = LENGTHBIN_TITLE) 
             linewidth=1.2,
             zorder=3,
         )
+        band = g.get("ci")
+        if band:
+            ax.fill_between(
+                [xs[b] + off[gi] for b in dev],
+                [band[b][0] for b in dev],
+                [band[b][1] for b in dev],
+                **_band_kw(st.color),
+            )
+            xt = xs[TRAIN] + off[gi]
+            ax.fill_between(
+                [xt - 0.045, xt + 0.045], [band[TRAIN][0]] * 2, [band[TRAIN][1]] * 2,
+                **_band_kw(st.color),
+            )  # fmt: skip
         for b in BIN_ORDER:
             x = xs[b] + off[gi]
             ax.plot([x], [g["mean"][b]], linestyle="none", zorder=4, **st.marker_kw(6.0))
@@ -551,8 +609,27 @@ def fig_lengthbin(data: dict[str, Any], *, title: str | None = LENGTHBIN_TITLE) 
             label=f"single seeds (large marker: mean of {seed_txt})",
         )
     )
+    if any(g.get("ci") for g in groups):
+        handles.append(_band_handle())
     _legend(fig, handles)
     return fig
+
+
+def _band_kw(color: str) -> dict[str, Any]:
+    """A CI band: the model's hue, light, under the lines and markers."""
+    return {"color": color, "alpha": 0.14, "linewidth": 0, "zorder": 1.5}
+
+
+def _band_handle() -> Patch:
+    return Patch(facecolor=S.REF, alpha=0.3, linewidth=0, label="95% CI (seeds × theorems)")
+
+
+CI_CAPTION = (
+    "Shaded: 95% percentile interval of a hierarchical bootstrap that resamples seeds and "
+    "theorems, one theorem resample shared by all seeds ({what}; `code.thinking.stats`); with "
+    "3 seeds the seed level is coarse. Overlapping bands do not imply no difference: the arms "
+    "are paired on theorems (see the paired-difference tables)."
+)
 
 
 def lengthbin_caption(data: dict[str, Any], *, title: str = LENGTHBIN_TITLE) -> str:
@@ -571,10 +648,15 @@ def lengthbin_caption(data: dict[str, Any], *, title: str = LENGTHBIN_TITLE) -> 
         f"The 58 dev problems are binned by the length of their reference proof in ND lines "
         f"({sizes}); the 14 train-split problems have no reference proof and are shown "
         f"separately (n = {n.get(TRAIN, '?')}). Large markers: mean over seeds; small dots: single "
-        f"seeds. Point estimates, no CI. Seed means per bin (1–5 / 6–10 / 11–15 / 16+): "
-        + "; ".join(parts)
-        + "."
+        f"seeds. {_ci_sentence(data['groups'], 'theorems resampled within each bin')} "
+        f"Seed means per bin (1–5 / 6–10 / 11–15 / 16+): " + "; ".join(parts) + "."
     )
+
+
+def _ci_sentence(items: Sequence[dict[str, Any]], what: str) -> str:
+    if any(it.get("ci") for it in items):
+        return CI_CAPTION.format(what=what)
+    return "Point estimates, no CI."
 
 
 # --------------------------------------------------------------------- shared TTS-figure loading
@@ -783,9 +865,12 @@ def tokens_data(
     arms: Sequence[str],
     sets: Sequence[str],
     budgets: Sequence[int] | None = None,
+    ci: bool = False,
+    ci_draws: int = CI_DRAWS,
 ) -> dict[str, Any]:
     """Per group, cell (arm, B), set and seed: for k = 1, 2, 4, ..., K the mean unbiased pass@k and
-    the expected sampled tokens per theorem, k x (sampled tokens per attempt, mean over the set)."""
+    the expected sampled tokens per theorem, k x (sampled tokens per attempt, mean over the set).
+    With `ci`: a pointwise 95% interval of the seed-mean pass@k at each k (`stats.ci_curve`)."""
     out: dict[str, Any] = {"sets": list(sets), "series": []}
     for g in groups:
         cells: list[str] = []
@@ -830,17 +915,25 @@ def tokens_data(
                     for i in range(len(ks))
                 ]
             arm, B = cell_budget(c)
-            out["series"].append(
-                {
-                    "group": g.label,
-                    "arm": arm,
-                    "budget": B,
-                    "cell": c,
-                    "seeds": seeds,
-                    "mean": mean,
-                    "n": {s: seeds[0]["sets"][s]["n"] for s in sets},
-                }
-            )
+            rec: dict[str, Any] = {
+                "group": g.label,
+                "arm": arm,
+                "budget": B,
+                "cell": c,
+                "seeds": seeds,
+                "mean": mean,
+                "n": {s: seeds[0]["sets"][s]["n"] for s in sets},
+            }
+            if ci:
+                st = _stats()
+                paths = [sd["path"] for sd in seeds]
+                band: dict[str, list[list[float]]] = {}
+                for s in sets:
+                    a = st.load_arm(g.label, paths, cell=c, sets=None if s == "all" else [s])
+                    ks = min((sd["sets"][s]["ks"] for sd in seeds), key=len)
+                    band[s] = [[e.lo, e.hi] for e in st.ci_curve(a, ks, draws=ci_draws)]
+                rec["ci"] = band
+            out["series"].append(rec)
     return out
 
 
@@ -869,6 +962,12 @@ def fig_tokens(data: dict[str, Any]) -> Figure:
             t = budgets.index(s["budget"]) / max(1, len(budgets) - 1) if len(budgets) > 1 else 0.0
             color = S.shade(gs.color, -0.3 + 0.6 * t) if len(budgets) > 1 else gs.color
             pts = s["mean"][st_name]
+            band = (s.get("ci") or {}).get(st_name)
+            if band:
+                ax.fill_between(
+                    [p[0] for p in pts], [b[0] for b in band], [b[1] for b in band],
+                    **_band_kw(color),
+                )  # fmt: skip
             if len(s["seeds"]) > 1:
                 for sd in s["seeds"]:
                     sp = sd["sets"][st_name]["pts"]
@@ -937,6 +1036,8 @@ def fig_tokens(data: dict[str, Any]) -> Figure:
                 label=f"darker → lighter: B = {budgets[0]} → {budgets[-1]}",
             )
         )
+    if any(s.get("ci") for s in series):
+        handles.append(_band_handle())
     _legend(fig, handles, max_cols=3 if ncol > 1 else 2)
     return fig
 
@@ -957,7 +1058,9 @@ def tokens_caption(data: dict[str, Any]) -> str:
         "the mean sampled tokens per attempt over the set, counting think tokens, `</think>`, "
         "action tokens and every rejected redraw (prompt prefill excluded). Solid lines with "
         "filled markers: plain sampling; dashed with hollow markers: guided logical redraws. "
-        "Thick lines: mean over seeds; thin lines: single seeds. Point estimates, no CI. "
+        "Thick lines: mean over seeds; thin lines: single seeds. "
+        + _ci_sentence(data["series"], "pointwise in k; tokens per attempt not resampled")
+        + " "
         + "; ".join(parts)
         + "."
     )
@@ -993,6 +1096,11 @@ def parser() -> argparse.ArgumentParser:
             "--sets", default="all", help="comma-separated set (file) names, one panel each"
         )
     to.add_argument("--budgets", default=None, help="comma-separated B to include (default all)")
+    for p in (lb, to):
+        p.add_argument(
+            "--ci", action="store_true", help="shade 95%% hierarchical-bootstrap intervals"
+        )
+        p.add_argument("--ci-draws", type=int, default=CI_DRAWS, help="bootstrap draws for --ci")
     return ap
 
 
@@ -1003,7 +1111,9 @@ def main(argv: list[str] | None = None) -> int:
     with S.paper_style():
         if a.cmd == "lengthbin":
             refs = reference_lengths(a.tb72)
-            data = lengthbin_data(a.group, refs=refs, k=a.k, cell=a.cell)
+            data = lengthbin_data(
+                a.group, refs=refs, k=a.k, cell=a.cell, ci=a.ci, ci_draws=a.ci_draws
+            )
             files = _write(
                 fig_lengthbin(data, title=a.title or None),
                 out,
@@ -1015,7 +1125,14 @@ def main(argv: list[str] | None = None) -> int:
             files = _write(fig_budget(data), out, data, budget_caption(data))
         else:
             bud = [int(b) for b in a.budgets.split(",")] if a.budgets else None
-            data = tokens_data(a.group, arms=a.arms.split(","), sets=a.sets.split(","), budgets=bud)
+            data = tokens_data(
+                a.group,
+                arms=a.arms.split(","),
+                sets=a.sets.split(","),
+                budgets=bud,
+                ci=a.ci,
+                ci_draws=a.ci_draws,
+            )
             files = _write(fig_tokens(data), out, data, tokens_caption(data))
     for f in files:
         print(f)

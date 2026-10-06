@@ -31,6 +31,7 @@ from typing import Any
 
 import torch
 
+from . import stateview
 from .dan import bare, load
 from .tok import ThinkTokenizer, make_tokenizer, remap_ids
 
@@ -64,12 +65,22 @@ def run_env(out: str | Path) -> dict[str, str]:
 def save_ckpt(
     path: str | Path, model: Any, tok_mode: str, extra: Mapping[str, Any] | None = None
 ) -> Any:
-    """The fork's save_ckpt (same format; a `ckpt_saved` registry row), forced offline."""
+    """The fork's save_ckpt (same format; a `ckpt_saved` registry row), forced offline.  An extra
+    without `state_format` gets the process's when it is not flat (absent reads as flat, so flat
+    checkpoints are unchanged); an extra naming another format than one set in this process is an
+    error."""
     ensure_offline()
     Path(path).parent.mkdir(parents=True, exist_ok=True)
+    extra = dict(extra or {})
+    cur = stateview.current()
+    if "state_format" not in extra and cur != stateview.DEFAULT:
+        extra["state_format"] = cur
+    sfmt = stateview.ckpt_format(extra)
+    if stateview.is_set() and sfmt != cur:
+        raise stateview.StateFormatError(f"saving a {sfmt!r} checkpoint in a {cur!r} process")
     with bare():
         assert D.record.offline()
-        return D.model.save_ckpt(str(path), model, tok_mode, extra=dict(extra or {}))
+        return D.model.save_ckpt(str(path), model, tok_mode, extra=extra)
 
 
 def build_model(cfg: Mapping[str, Any]) -> Any:
@@ -79,15 +90,28 @@ def build_model(cfg: Mapping[str, Any]) -> Any:
     return D.model.GPT(**cfg)
 
 
-def load_ckpt(path: str | Path, device: str = "cpu") -> tuple[Any, Any, dict[str, Any]]:
+def load_ckpt(
+    path: str | Path, device: str = "cpu", set_format: bool = True
+) -> tuple[Any, Any, dict[str, Any]]:
     """fork `model.load_ckpt` (model.py:342-354@4dcd0e4f) with this package's tokenizer dispatch, so
-    `lean_thinkn` checkpoints load too.  -> (model in eval mode, tokenizer, extra)."""
+    `lean_thinkn` checkpoints load too.  -> (model in eval mode, tokenizer, extra).  The model
+    carries `think_format` (extra's: 'think' / 'none' per step, 'root' / 'memo' for rootplan's
+    formats), so `sample.think_generate` lays out its prompts in the checkpoint's format even when
+    a caller does not pass it, and `state_format` (extra's; absent: 'flat'), which `set_format`
+    makes the process's state format (`stateview.set_state_format`: a checkpoint of another format
+    already in use in this process is an error).  `cold_start` reads its init without setting it:
+    the new model's format is its training data's."""
     ck = torch.load(str(path), map_location=device)
     tok = make_tokenizer(ck["tok_mode"])
     m = build_model(ck["cfg"]).to(device)
     m.load_state_dict(ck["state"])
     m.eval()
-    return m, tok, ck.get("extra", {})
+    extra = ck.get("extra", {})
+    m.think_format = extra.get("think_format")
+    m.state_format = stateview.ckpt_format(extra)
+    if set_format:
+        stateview.set_state_format(m.state_format)
+    return m, tok, extra
 
 
 def vocab_tensors(model: Any) -> dict[str, torch.Tensor]:
@@ -135,7 +159,7 @@ def cold_start(
     path: str | Path, device: str = "cpu", seed: int = 0
 ) -> tuple[Any, Any, dict[str, Any]]:
     """A `lean_staten` Stage-1 checkpoint expanded to `lean_thinkn` -> (model, tok, info)."""
-    m, tok, extra = load_ckpt(path, device)
+    m, tok, extra = load_ckpt(path, device, set_format=False)
     assert tok.mode == "lean_staten", f"cold start expects a lean_staten checkpoint, got {tok.mode}"
     new, ntok = expand_vocab(m, tok, seed=seed)
     info = {

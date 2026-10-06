@@ -1,0 +1,3741 @@
+{
+ "spec": {
+  "groups": [
+   {
+    "label": "T0",
+    "paths": [
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s0",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s1",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s2"
+    ]
+   },
+   {
+    "label": "T0e",
+    "paths": [
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s0/rows_plain_B0.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s1/rows_plain_B0.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s2/rows_plain_B0.jsonl"
+    ]
+   },
+   {
+    "label": "T1 B0",
+    "paths": [
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s0/rows_plain_B0.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s1/rows_plain_B0.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s2/rows_plain_B0.jsonl"
+    ]
+   },
+   {
+    "label": "T1 B256",
+    "paths": [
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s0/rows_plain_B256.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s1/rows_plain_B256.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s2/rows_plain_B256.jsonl"
+    ]
+   },
+   {
+    "label": "T1v1 B0",
+    "paths": [
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s0/rows_plain_B0.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s1/rows_plain_B0.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s2/rows_plain_B0.jsonl"
+    ]
+   },
+   {
+    "label": "T1v1 B256",
+    "paths": [
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s0/rows_plain_B256.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s1/rows_plain_B256.jsonl",
+     "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s2/rows_plain_B256.jsonl"
+    ]
+   }
+  ],
+  "ks": [
+   1,
+   5,
+   null
+  ],
+  "tokens": [
+   1000.0,
+   3000.0,
+   10000.0,
+   29000.0
+  ],
+  "ref": null,
+  "pairs": [
+   [
+    "T1 B256",
+    "T1 B0"
+   ],
+   [
+    "T1v1 B256",
+    "T1v1 B0"
+   ],
+   [
+    "T1v1 B256",
+    "T1 B256"
+   ]
+  ],
+  "cell": null,
+  "sets": null,
+  "exclude": [],
+  "draws": 4000,
+  "seed": 0,
+  "levels": "both",
+  "grid": "all",
+  "level": 0.95,
+  "mde_target": 0.03,
+  "title": "textbook72 (58 dev + 14 train), k 256",
+  "command": "python -m code.thinking.stats table --group T0=/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s0,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s1,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s2 --group T0e=/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s0/rows_plain_B0.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s1/rows_plain_B0.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s2/rows_plain_B0.jsonl --group 'T1 B0=/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s0/rows_plain_B0.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s1/rows_plain_B0.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s2/rows_plain_B0.jsonl' --group 'T1 B256=/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s0/rows_plain_B256.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s1/rows_plain_B256.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s2/rows_plain_B256.jsonl' --group 'T1v1 B0=/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s0/rows_plain_B0.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s1/rows_plain_B0.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s2/rows_plain_B0.jsonl' --group 'T1v1 B256=/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s0/rows_plain_B256.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s1/rows_plain_B256.jsonl,/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s2/rows_plain_B256.jsonl' --pair 'T1 B256 vs T1 B0' --pair 'T1v1 B256 vs T1v1 B0' --pair 'T1v1 B256 vs T1 B256' --k 1,5,n --tokens 1000,3000,10000,29000 --title 'textbook72 (58 dev + 14 train), k 256' --out code/experiments/current/thinking_traces_20261005/stage1_stats/tb72.md --json code/experiments/current/thinking_traces_20261005/stage1_stats/tb72.json"
+ },
+ "n_theorems": 72,
+ "n_clusters": null,
+ "arms": [
+  {
+   "label": "T0",
+   "paths": [
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s0/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s1/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0_s2/rows_plain_B0.jsonl"
+   ],
+   "models": [
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T0_s0/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T0_s1/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T0_s2/model.pt"
+   ],
+   "seeds": 3,
+   "tokens_per_attempt": 116.41816767939814,
+   "ci": [
+    {
+     "label": "T0",
+     "est": 0.17200159143518517,
+     "lo": 0.1043796115451389,
+     "hi": 0.2506040219907407,
+     "se": 0.03735779181491055,
+     "k": 1,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0",
+     "est": 0.2595869203007234,
+     "lo": 0.17596671309536432,
+     "hi": 0.35150306276909743,
+     "se": 0.04494211802562207,
+     "k": 5,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0",
+     "est": 0.4537037037037037,
+     "lo": 0.3472222222222222,
+     "hi": 0.5555555555555556,
+     "se": 0.055274889925041225,
+     "k": null,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T0e",
+   "paths": [
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s0/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s1/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T0e_s2/rows_plain_B0.jsonl"
+   ],
+   "models": [
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T0e_s0/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T0e_s1/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T0e_s2/model.pt"
+   ],
+   "seeds": 3,
+   "tokens_per_attempt": 113.00401475694444,
+   "ci": [
+    {
+     "label": "T0e",
+     "est": 0.13594111689814814,
+     "lo": 0.0738208912037037,
+     "hi": 0.20882794415509262,
+     "se": 0.034298229918170366,
+     "k": 1,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0e",
+     "est": 0.20657338562724523,
+     "lo": 0.13038514296971504,
+     "hi": 0.2902119721965672,
+     "se": 0.04069977846762926,
+     "k": 5,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0e",
+     "est": 0.39351851851851855,
+     "lo": 0.28703703703703703,
+     "hi": 0.5,
+     "se": 0.054321550926820686,
+     "k": null,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1 B0",
+   "paths": [
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s0/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s1/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s2/rows_plain_B0.jsonl"
+   ],
+   "models": [
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1_s0/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1_s1/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1_s2/model.pt"
+   ],
+   "seeds": 3,
+   "tokens_per_attempt": 129.19160517939815,
+   "ci": [
+    {
+     "label": "T1 B0",
+     "est": 0.13118489583333334,
+     "lo": 0.07041603370949076,
+     "hi": 0.2010665328414352,
+     "se": 0.03355308678966335,
+     "k": 1,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B0",
+     "est": 0.20746847782438782,
+     "lo": 0.12463168643213501,
+     "hi": 0.29947569948600244,
+     "se": 0.04463188306520602,
+     "k": 5,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B0",
+     "est": 0.3888888888888889,
+     "lo": 0.2777777777777778,
+     "hi": 0.5,
+     "se": 0.05695704725054842,
+     "k": null,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1 B256",
+   "paths": [
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s0/rows_plain_B256.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s1/rows_plain_B256.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1_s2/rows_plain_B256.jsonl"
+   ],
+   "models": [
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1_s0/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1_s1/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1_s2/model.pt"
+   ],
+   "seeds": 3,
+   "tokens_per_attempt": 320.42230902777777,
+   "ci": [
+    {
+     "label": "T1 B256",
+     "est": 0.1563042534722222,
+     "lo": 0.09452265986689816,
+     "hi": 0.22579571759259262,
+     "se": 0.03361533865465339,
+     "k": 1,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B256",
+     "est": 0.2786362776817391,
+     "lo": 0.1886852960914663,
+     "hi": 0.3739658549480729,
+     "se": 0.04650244973310885,
+     "k": 5,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B256",
+     "est": 0.5138888888888888,
+     "lo": 0.39351851851851855,
+     "hi": 0.625,
+     "se": 0.059032142655548556,
+     "k": null,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1v1 B0",
+   "paths": [
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s0/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s1/rows_plain_B0.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s2/rows_plain_B0.jsonl"
+   ],
+   "models": [
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1v1_s0/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1v1_s1/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1v1_s2/model.pt"
+   ],
+   "seeds": 3,
+   "tokens_per_attempt": 124.74978298611113,
+   "ci": [
+    {
+     "label": "T1v1 B0",
+     "est": 0.13109447337962962,
+     "lo": 0.07007649739583333,
+     "hi": 0.20228135850694445,
+     "se": 0.03339303564259917,
+     "k": 1,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B0",
+     "est": 0.20172445678502077,
+     "lo": 0.12533095868769875,
+     "hi": 0.28947519471650823,
+     "se": 0.04179060380085054,
+     "k": 5,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B0",
+     "est": 0.3611111111111111,
+     "lo": 0.25462962962962965,
+     "hi": 0.4675925925925926,
+     "se": 0.054175609334391125,
+     "k": null,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1v1 B256",
+   "paths": [
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s0/rows_plain_B256.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s1/rows_plain_B256.jsonl",
+    "/scratch/cowifornia/nd-rl/think/runs/eval/tb72_T1v1_s2/rows_plain_B256.jsonl"
+   ],
+   "models": [
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1v1_s0/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1v1_s1/model.pt",
+    "/scratch/cowifornia/nd-rl/think/runs/stage1/T1v1_s2/model.pt"
+   ],
+   "seeds": 3,
+   "tokens_per_attempt": 419.92777054398147,
+   "ci": [
+    {
+     "label": "T1v1 B256",
+     "est": 0.1678783275462963,
+     "lo": 0.10190565321180556,
+     "hi": 0.24144422743055563,
+     "se": 0.03532805220775256,
+     "k": 1,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B256",
+     "est": 0.2933412635316939,
+     "lo": 0.20217877833845227,
+     "hi": 0.3869071038510008,
+     "se": 0.04688387216095761,
+     "k": 5,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B256",
+     "est": 0.5601851851851852,
+     "lo": 0.4444444444444444,
+     "hi": 0.6712962962962963,
+     "se": 0.057807253791752056,
+     "k": null,
+     "tokens": null,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  }
+ ],
+ "diffs": [
+  {
+   "label": "T0e \u2212 T0",
+   "est": -0.036060474537037035,
+   "lo": -0.08499801070601852,
+   "hi": 0.00712574146412038,
+   "se": 0.023092771950911153,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.1,
+   "n_pos": 13,
+   "n_neg": 26,
+   "p_sign": 0.05325191409792751,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.036060474537037035,
+    "se": 0.01847269291394844,
+    "df": 24.947510292488264,
+    "lo": -0.07410975703182482,
+    "hi": 0.001988807957750749,
+    "p": 0.06223702457459801,
+    "seed_var": [
+     0.0002608620131706035,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.01956122333206232,
+     0.017221757255001
+    ],
+    "theorem_var": 0.005661642876858712,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T0e \u2212 T0",
+   "est": -0.05301353467347816,
+   "lo": -0.10709508915769811,
+   "hi": -0.004088702821744592,
+   "se": 0.026239861612579213,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.0335,
+   "n_pos": 14,
+   "n_neg": 25,
+   "p_sign": 0.10812902140605729,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.05301353467347816,
+    "se": 0.02035729467053925,
+    "df": 71.0,
+    "lo": -0.09360482736907907,
+    "hi": -0.012422241977877259,
+    "p": 0.011208925240141276,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.030558821358368685,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.009122484588862743,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T0e \u2212 T0",
+   "est": -0.060185185185185175,
+   "lo": -0.1388888888888889,
+   "hi": 0.013888888888888895,
+   "se": 0.03946023285030607,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.124,
+   "n_pos": 6,
+   "n_neg": 13,
+   "p_sign": 0.1670684814453125,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.060185185185185175,
+    "se": 0.028225183208879102,
+    "df": 71.0,
+    "lo": -0.11646460205075747,
+    "hi": -0.0039057683196128817,
+    "p": 0.03644038057178367,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.08815858111632757,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.006216310206920539,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B0 \u2212 T0",
+   "est": -0.04081669560185183,
+   "lo": -0.08094889322916665,
+   "hi": -0.003812210648148119,
+   "se": 0.019479134184256095,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.0305,
+   "n_pos": 9,
+   "n_neg": 30,
+   "p_sign": 0.0010650196345523,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.04081669560185183,
+    "se": 0.015490842064505449,
+    "df": 13.025348712125922,
+    "lo": -0.07427600598096654,
+    "hi": -0.007357385222737135,
+    "p": 0.020567654434753724,
+    "seed_var": [
+     0.00027215586519514974,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.00862421265603604,
+     0.017221757255001
+    ],
+    "theorem_var": 0.0017445185685692546,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B0 \u2212 T0",
+   "est": -0.05211844247633557,
+   "lo": -0.1131580485248483,
+   "hi": 0.00409566003208249,
+   "se": 0.029192468632973468,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.0685,
+   "n_pos": 11,
+   "n_neg": 28,
+   "p_sign": 0.009475304279476404,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.05211844247633557,
+    "se": 0.027170418277732235,
+    "df": 5.9345795298627335,
+    "lo": -0.11878012000144952,
+    "hi": 0.014543235048778386,
+    "p": 0.10405780613347226,
+    "seed_var": [
+     0.0012759935475508528,
+     0.0
+    ],
+    "res_ms": [
+     0.02283462759477857,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.004387847884203055,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B0 \u2212 T0",
+   "est": -0.06481481481481483,
+   "lo": -0.13888888888888884,
+   "hi": 0.0,
+   "se": 0.035419347692686044,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.0675,
+   "n_pos": 2,
+   "n_neg": 12,
+   "p_sign": 0.012939453125,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.06481481481481483,
+    "se": 0.028080423978006426,
+    "df": 50.08120340303607,
+    "lo": -0.12121374049030484,
+    "hi": -0.008415889139324804,
+    "p": 0.025156431265934254,
+    "seed_var": [
+     0.0003260302556077211,
+     0.0
+    ],
+    "res_ms": [
+     0.032081377151799685,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.016497130933750652,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B256 \u2212 T0",
+   "est": -0.015697337962962965,
+   "lo": -0.050113028067129646,
+   "hi": 0.01528275101273149,
+   "se": 0.016635608384180878,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.333,
+   "n_pos": 18,
+   "n_neg": 23,
+   "p_sign": 0.5327092552361137,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.015697337962962965,
+    "se": 0.012175527357003014,
+    "df": 24.53110268832453,
+    "lo": -0.04079763218400892,
+    "hi": 0.009402956258082993,
+    "p": 0.20933469549970862,
+    "seed_var": [
+     0.00011438818480362788,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.005148551833461708,
+     0.017221757255001
+    ],
+    "theorem_var": 8.546056135532755e-05,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B256 \u2212 T0",
+   "est": 0.019049357381015708,
+   "lo": -0.03226667724844872,
+   "hi": 0.07044369333699516,
+   "se": 0.025898147843965248,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.466,
+   "n_pos": 19,
+   "n_neg": 23,
+   "p_sign": 0.6439689563703723,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.019049357381015708,
+    "se": 0.02382524823423284,
+    "df": 8.270638008717729,
+    "lo": -0.035580395575102695,
+    "hi": 0.07367911033713412,
+    "p": 0.4463281725341668,
+    "seed_var": [
+     0.0008243313572711369,
+     0.0
+    ],
+    "res_ms": [
+     0.013073436013707177,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.006199050308524048,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B256 \u2212 T0",
+   "est": 0.06018518518518512,
+   "lo": -0.0092592592592593,
+   "hi": 0.1342592592592593,
+   "se": 0.03733633884872852,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.1195,
+   "n_pos": 12,
+   "n_neg": 4,
+   "p_sign": 0.076812744140625,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.06018518518518512,
+    "se": 0.030447874628910944,
+    "df": 21.344367620541192,
+    "lo": -0.003072489357832192,
+    "hi": 0.12344285972820243,
+    "p": 0.06114232332256342,
+    "seed_var": [
+     0.0007824726134585286,
+     0.0
+    ],
+    "res_ms": [
+     0.04088419405320814,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.012584767866458006,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B0 \u2212 T0",
+   "est": -0.04090711805555555,
+   "lo": -0.07708378544560182,
+   "hi": -0.00927463107638888,
+   "se": 0.017095253297718813,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.015,
+   "n_pos": 7,
+   "n_neg": 31,
+   "p_sign": 0.00011616700794547796,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.04090711805555555,
+    "se": 0.012855127280225193,
+    "df": 72.93039761212984,
+    "lo": -0.06652776171325402,
+    "hi": -0.015286474397857092,
+    "p": 0.0021485840283461677,
+    "seed_var": [
+     0.0,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.006315797458543214,
+     0.017221757255001
+    ],
+    "theorem_var": 0.0036664749514308294,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B0 \u2212 T0",
+   "est": -0.05786246351570262,
+   "lo": -0.1035324950872785,
+   "hi": -0.017386637546479913,
+   "se": 0.0219036242981091,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.0055,
+   "n_pos": 8,
+   "n_neg": 31,
+   "p_sign": 0.0002940768754342571,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.05786246351570262,
+    "se": 0.01715932493945988,
+    "df": 71.0,
+    "lo": -0.09207718567544676,
+    "hi": -0.023647741355958492,
+    "p": 0.0012106032022007884,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.019203584201419287,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.004269218638565116,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B0 \u2212 T0",
+   "est": -0.09259259259259262,
+   "lo": -0.16203703703703703,
+   "hi": -0.02314814814814814,
+   "se": 0.03612816083244403,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.0105,
+   "n_pos": 2,
+   "n_neg": 15,
+   "p_sign": 0.002349853515625,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.09259259259259262,
+    "se": 0.026555439512176166,
+    "df": 71.0,
+    "lo": -0.14554263508812204,
+    "hi": -0.03964255009706319,
+    "p": 0.0008428870269299171,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.06514084507042253,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.007303077725612936,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T0",
+   "est": -0.004123263888888867,
+   "lo": -0.040111852575231484,
+   "hi": 0.032590512876157426,
+   "se": 0.01867490795598059,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.81,
+   "n_pos": 26,
+   "n_neg": 22,
+   "p_sign": 0.6654658120766186,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": -0.004123263888888867,
+    "se": 0.015335167553566308,
+    "df": 8.106739866941677,
+    "lo": -0.03940534045899382,
+    "hi": 0.031158812681216085,
+    "p": 0.7947411687678365,
+    "seed_var": [
+     0.0003452529867427949,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.007236599113770805,
+     0.017221757255001
+    ],
+    "theorem_var": 0.00010721017289961818,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T0",
+   "est": 0.033754343230970485,
+   "lo": -0.020899701179563593,
+   "hi": 0.09158323646002654,
+   "se": 0.028175955085317804,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.229,
+   "n_pos": 31,
+   "n_neg": 17,
+   "p_sign": 0.05946337525377032,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.033754343230970485,
+    "se": 0.025701687741719183,
+    "df": 9.094375860988189,
+    "lo": -0.024295071003285512,
+    "hi": 0.09180375746522648,
+    "p": 0.2212447525169412,
+    "seed_var": [
+     0.000911823231251777,
+     0.0
+    ],
+    "res_ms": [
+     0.020550287392482467,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.008298231093265256,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T0",
+   "est": 0.10648148148148151,
+   "lo": 0.037037037037037035,
+   "hi": 0.18055555555555558,
+   "se": 0.0371588577763391,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.002,
+   "n_pos": 21,
+   "n_neg": 1,
+   "p_sign": 1.0967254638671875e-05,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.10648148148148151,
+    "se": 0.02898502489083781,
+    "df": 12.411046626535962,
+    "lo": 0.04355973590574168,
+    "hi": 0.16940322705722133,
+    "p": 0.0030195377653772226,
+    "seed_var": [
+     0.0009780907668231627,
+     0.0
+    ],
+    "res_ms": [
+     0.05920709441836203,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.0,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B256 \u2212 T1 B0",
+   "est": 0.025119357638888867,
+   "lo": 0.007774974681712967,
+   "hi": 0.04269838686342593,
+   "se": 0.008946967080989124,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": true,
+   "p_boot": 0.009,
+   "n_pos": 28,
+   "n_neg": 13,
+   "p_sign": 0.027533155829587486,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.025119357638888867,
+    "se": 0.007685920551211924,
+    "df": 71.0,
+    "lo": 0.009794067330011431,
+    "hi": 0.0404446479477663,
+    "p": 0.0016696432815408446,
+    "seed_var": [
+     0.0
+    ],
+    "res_ms": [
+     0.004518488016859839
+    ],
+    "theorem_var": 0.0027471203075203976,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B256 \u2212 T1 B0",
+   "est": 0.07116779985735128,
+   "lo": 0.035487734794393,
+   "hi": 0.10841396769069046,
+   "se": 0.018553747212281226,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": true,
+   "p_boot": 0.0,
+   "n_pos": 32,
+   "n_neg": 9,
+   "p_sign": 0.000430857042374555,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.07116779985735128,
+    "se": 0.01685138408813704,
+    "df": 71.0,
+    "lo": 0.03756709431579107,
+    "hi": 0.10476850539891149,
+    "p": 7.03154456347388e-05,
+    "seed_var": [
+     0.0
+    ],
+    "res_ms": [
+     0.019700599157416756
+    ],
+    "theorem_var": 0.013878912103580523,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1 B256 \u2212 T1 B0",
+   "est": 0.12499999999999994,
+   "lo": 0.055555555555555525,
+   "hi": 0.20370370370370372,
+   "se": 0.03771624171076979,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": true,
+   "p_boot": 0.0,
+   "n_pos": 15,
+   "n_neg": 1,
+   "p_sign": 0.000518798828125,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.12499999999999994,
+    "se": 0.03390068806111779,
+    "df": 71.0,
+    "lo": 0.05740394787513063,
+    "hi": 0.19259605212486924,
+    "p": 0.0004401658564636701,
+    "seed_var": [
+     0.0
+    ],
+    "res_ms": [
+     0.07022691705790297
+    ],
+    "theorem_var": 0.0593375065206051,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1v1 B0",
+   "est": 0.036783854166666685,
+   "lo": 0.009638129340277765,
+   "hi": 0.07233931929976854,
+   "se": 0.016286417051358845,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": true,
+   "p_boot": 0.0025,
+   "n_pos": 41,
+   "n_neg": 7,
+   "p_sign": 6.240408438884515e-07,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.036783854166666685,
+    "se": 0.01657586173057183,
+    "df": 4.866785206536806,
+    "lo": -0.006178958724474173,
+    "hi": 0.07974666705780754,
+    "p": 0.07868676327049307,
+    "seed_var": [
+     0.0005260292415390055
+    ],
+    "res_ms": [
+     0.008000384287468517
+    ],
+    "theorem_var": 0.004491165272568935,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1v1 B0",
+   "est": 0.09161680674667311,
+   "lo": 0.042574631333516334,
+   "hi": 0.14987628959192442,
+   "se": 0.02778719396510253,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": true,
+   "p_boot": 0.0,
+   "n_pos": 40,
+   "n_neg": 8,
+   "p_sign": 3.305266709219268e-06,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.09161680674667311,
+    "se": 0.02769191744275541,
+    "df": 7.261184758158089,
+    "lo": 0.026610287249239722,
+    "hi": 0.1566233262441065,
+    "p": 0.012304450633713993,
+    "seed_var": [
+     0.0011929692599763541
+    ],
+    "res_ms": [
+     0.026014763261243898
+    ],
+    "theorem_var": 0.017909795006078984,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1v1 B0",
+   "est": 0.19907407407407413,
+   "lo": 0.11574074074074076,
+   "hi": 0.29166666666666663,
+   "se": 0.04376238263295069,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": true,
+   "p_boot": 0.0,
+   "n_pos": 28,
+   "n_neg": 0,
+   "p_sign": 7.450580596923828e-09,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.19907407407407413,
+    "se": 0.036804007391907166,
+    "df": 57.44969111429258,
+    "lo": 0.12538782087324152,
+    "hi": 0.27276032727490673,
+    "p": 1.2819749286574478e-06,
+    "seed_var": [
+     0.00045644235785080936
+    ],
+    "res_ms": [
+     0.11065466875326029
+    ],
+    "theorem_var": 0.049687010954616605,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1 B256",
+   "est": 0.011574074074074098,
+   "lo": -0.018337673611111105,
+   "hi": 0.042447916666666675,
+   "se": 0.015396184855984638,
+   "k": 1,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.4325,
+   "n_pos": 33,
+   "n_neg": 15,
+   "p_sign": 0.013283281562245008,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.011574074074074098,
+    "se": 0.01446893358458207,
+    "df": 5.9278248800680835,
+    "lo": -0.02393488629087412,
+    "hi": 0.047083034439022314,
+    "p": 0.4546063670984817,
+    "seed_var": [
+     0.0003452529867427949,
+     0.00011438818480362788
+    ],
+    "res_ms": [
+     0.007236599113770805,
+     0.005148551833461708
+    ],
+    "theorem_var": 0.0,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1 B256",
+   "est": 0.014704985849954777,
+   "lo": -0.03996867096291535,
+   "hi": 0.07123527576934742,
+   "se": 0.02802493443054614,
+   "k": 5,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.593,
+   "n_pos": 32,
+   "n_neg": 16,
+   "p_sign": 0.0293049467205293,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.014704985849954777,
+    "se": 0.027764641343229486,
+    "df": 7.0357448578866935,
+    "lo": -0.050880402803030814,
+    "hi": 0.08029037450294037,
+    "p": 0.6126635746585083,
+    "seed_var": [
+     0.000911823231251777,
+     0.0008243313572711369
+    ],
+    "res_ms": [
+     0.020550287392482467,
+     0.013073436013707177
+    ],
+    "theorem_var": 0.002627404315494946,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1 B256",
+   "est": 0.04629629629629639,
+   "lo": -0.02777777777777779,
+   "hi": 0.125,
+   "se": 0.038761745377998924,
+   "k": null,
+   "tokens": null,
+   "T": 72,
+   "seeds": [
+    3,
+    3
+   ],
+   "paired_seeds": false,
+   "p_boot": 0.239,
+   "n_pos": 13,
+   "n_neg": 2,
+   "p_sign": 0.00738525390625,
+   "clamped": 0.0,
+   "in_range": true,
+   "draws": 4000,
+   "analytic": {
+    "est": 0.04629629629629639,
+    "se": 0.03283770519442407,
+    "df": 12.839077055715931,
+    "lo": -0.02473574567593316,
+    "hi": 0.11732833826852594,
+    "p": 0.18234568755034664,
+    "seed_var": [
+     0.0009780907668231627,
+     0.0007824726134585286
+    ],
+    "res_ms": [
+     0.05920709441836203,
+     0.04088419405320814
+    ],
+    "theorem_var": 0.0020213875847678656,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   }
+  }
+ ],
+ "tokens": [
+  {
+   "label": "T0",
+   "at": [
+    {
+     "label": "T0",
+     "est": 0.28787953314125464,
+     "lo": 0.19872930423019405,
+     "hi": 0.3842069892696803,
+     "se": 0.04760667923728276,
+     "k": null,
+     "tokens": 1000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0",
+     "est": 0.3444938182199396,
+     "lo": 0.24741712287090645,
+     "hi": 0.44753621449995595,
+     "se": 0.050598178735537354,
+     "k": null,
+     "tokens": 3000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0",
+     "est": 0.40160555361040645,
+     "lo": 0.29677141904292065,
+     "hi": 0.5045981414881359,
+     "se": 0.05335453532111165,
+     "k": null,
+     "tokens": 10000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0",
+     "est": 0.452208236943005,
+     "lo": 0.34150588716258234,
+     "hi": 0.5555555555555556,
+     "se": 0.05594169994135852,
+     "k": null,
+     "tokens": 29000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.4275,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T0e",
+   "at": [
+    {
+     "label": "T0e",
+     "est": 0.23573438229963606,
+     "lo": 0.15229449089935418,
+     "hi": 0.32211576353353616,
+     "se": 0.043759088512085424,
+     "k": null,
+     "tokens": 1000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0e",
+     "est": 0.2946819704273285,
+     "lo": 0.2016230529537888,
+     "hi": 0.39019756233062636,
+     "se": 0.04844207525145093,
+     "k": null,
+     "tokens": 3000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0e",
+     "est": 0.3501160034827866,
+     "lo": 0.249920123478749,
+     "hi": 0.4495422457504361,
+     "se": 0.05117362172492895,
+     "k": null,
+     "tokens": 10000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T0e",
+     "est": 0.3913708789666898,
+     "lo": 0.2867315034312222,
+     "hi": 0.4953703703703704,
+     "se": 0.05414989795737258,
+     "k": null,
+     "tokens": 29000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.853,
+     "in_range": false,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1 B0",
+   "at": [
+    {
+     "label": "T1 B0",
+     "est": 0.2279505386500584,
+     "lo": 0.13850276990107965,
+     "hi": 0.3265099877943325,
+     "se": 0.048162440627842196,
+     "k": null,
+     "tokens": 1000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B0",
+     "est": 0.27958373208885945,
+     "lo": 0.182514142382464,
+     "hi": 0.3868664726031185,
+     "se": 0.05233388735572365,
+     "k": null,
+     "tokens": 3000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B0",
+     "est": 0.3384281717419382,
+     "lo": 0.23470616403156208,
+     "hi": 0.4471496786715939,
+     "se": 0.054513323028140576,
+     "k": null,
+     "tokens": 10000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B0",
+     "est": 0.3843277667099551,
+     "lo": 0.2749651084630245,
+     "hi": 0.4948747341852587,
+     "se": 0.05695344717032523,
+     "k": null,
+     "tokens": 29000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0135,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1 B256",
+   "at": [
+    {
+     "label": "T1 B256",
+     "est": 0.24125902593742357,
+     "lo": 0.1573007722094956,
+     "hi": 0.33471948165662,
+     "se": 0.04505353793723871,
+     "k": null,
+     "tokens": 1000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B256",
+     "est": 0.32817475376702904,
+     "lo": 0.22799206847691705,
+     "hi": 0.4305903696266707,
+     "se": 0.05136228905280401,
+     "k": null,
+     "tokens": 3000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B256",
+     "est": 0.41687055521520794,
+     "lo": 0.30880525736277675,
+     "hi": 0.5220725654273414,
+     "se": 0.054534542367992885,
+     "k": null,
+     "tokens": 10000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1 B256",
+     "est": 0.4754744416530199,
+     "lo": 0.36127863221100925,
+     "hi": 0.5844585068973981,
+     "se": 0.05710273470130261,
+     "k": null,
+     "tokens": 29000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1v1 B0",
+   "at": [
+    {
+     "label": "T1v1 B0",
+     "est": 0.22284832011416889,
+     "lo": 0.14207148744108195,
+     "hi": 0.31531649426671154,
+     "se": 0.044424188406301746,
+     "k": null,
+     "tokens": 1000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B0",
+     "est": 0.27248583690150996,
+     "lo": 0.1821794142042733,
+     "hi": 0.36953585634724084,
+     "se": 0.0479699492508054,
+     "k": null,
+     "tokens": 3000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B0",
+     "est": 0.3212075731198473,
+     "lo": 0.22340975277995428,
+     "hi": 0.425039959627554,
+     "se": 0.05083992956583269,
+     "k": null,
+     "tokens": 10000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B0",
+     "est": 0.35937366449703684,
+     "lo": 0.2528159252767904,
+     "hi": 0.46669358285197104,
+     "se": 0.05439269613486663,
+     "k": null,
+     "tokens": 29000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.27175,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  },
+  {
+   "label": "T1v1 B256",
+   "at": [
+    {
+     "label": "T1v1 B256",
+     "est": 0.23759931719520208,
+     "lo": 0.15391287569134746,
+     "hi": 0.32900964099097507,
+     "se": 0.044754274135929716,
+     "k": null,
+     "tokens": 1000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B256",
+     "est": 0.3262716684167146,
+     "lo": 0.22614096677170492,
+     "hi": 0.426533584965526,
+     "se": 0.05095003933676407,
+     "k": null,
+     "tokens": 3000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B256",
+     "est": 0.424716443518371,
+     "lo": 0.3182876751460024,
+     "hi": 0.5286917117195066,
+     "se": 0.05444476111964089,
+     "k": null,
+     "tokens": 10000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    },
+    {
+     "label": "T1v1 B256",
+     "est": 0.49729124621657633,
+     "lo": 0.38402084563723854,
+     "hi": 0.6021492141038987,
+     "se": 0.05586061666830516,
+     "k": null,
+     "tokens": 29000.0,
+     "T": 72,
+     "seeds": [
+      3
+     ],
+     "paired_seeds": false,
+     "p_boot": null,
+     "n_pos": null,
+     "n_neg": null,
+     "p_sign": null,
+     "clamped": 0.0,
+     "in_range": true,
+     "draws": 4000
+    }
+   ]
+  }
+ ],
+ "token_diffs": [
+  [
+   {
+    "label": "T0e \u2212 T0",
+    "est": -0.05214515084161858,
+    "lo": -0.10643623370602967,
+    "hi": -0.002799964988318324,
+    "se": 0.026801846801978804,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.039,
+    "n_pos": 14,
+    "n_neg": 25,
+    "p_sign": 0.10812902140605729,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T0e \u2212 T0",
+    "est": -0.04981184779261105,
+    "lo": -0.11091755585183098,
+    "hi": 0.0038144666177876373,
+    "se": 0.029354989841923845,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.068,
+    "n_pos": 13,
+    "n_neg": 22,
+    "p_sign": 0.17546524899080396,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T0e \u2212 T0",
+    "est": -0.051489550127619854,
+    "lo": -0.11867729929333919,
+    "hi": 0.009867733565997757,
+    "se": 0.03200909293792927,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.0875,
+    "n_pos": 13,
+    "n_neg": 20,
+    "p_sign": 0.296206368599087,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T0e \u2212 T0",
+    "est": -0.060837357976315176,
+    "lo": -0.13854334999825402,
+    "hi": 0.01191530700945983,
+    "se": 0.03847530960856637,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.1065,
+    "n_pos": 10,
+    "n_neg": 17,
+    "p_sign": 0.24778856337070465,
+    "clamped": 0.87275,
+    "in_range": false,
+    "draws": 4000
+   }
+  ],
+  [
+   {
+    "label": "T1 B0 \u2212 T0",
+    "est": -0.059928994491196236,
+    "lo": -0.12598483354706358,
+    "hi": 0.0031669273799024306,
+    "se": 0.03255566466078371,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.0615,
+    "n_pos": 11,
+    "n_neg": 28,
+    "p_sign": 0.009475304279476404,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B0 \u2212 T0",
+    "est": -0.06491008613108012,
+    "lo": -0.13332204882068557,
+    "hi": 0.004036286658373183,
+    "se": 0.03528726037717302,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.064,
+    "n_pos": 8,
+    "n_neg": 26,
+    "p_sign": 0.0029350556433200836,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B0 \u2212 T0",
+    "est": -0.06317738186846827,
+    "lo": -0.1306681290313243,
+    "hi": 0.00364801927919269,
+    "se": 0.034084580623374286,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.0635,
+    "n_pos": 8,
+    "n_neg": 23,
+    "p_sign": 0.010673840530216694,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B0 \u2212 T0",
+    "est": -0.06788047023304988,
+    "lo": -0.13916641509977548,
+    "hi": -0.0007544460154333768,
+    "se": 0.03520387628376601,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.048,
+    "n_pos": 3,
+    "n_neg": 24,
+    "p_sign": 4.9233436584472656e-05,
+    "clamped": 0.4295,
+    "in_range": true,
+    "draws": 4000
+   }
+  ],
+  [
+   {
+    "label": "T1 B256 \u2212 T0",
+    "est": -0.04662050720383107,
+    "lo": -0.09883362748955976,
+    "hi": 0.0028135366941161454,
+    "se": 0.02550531496352271,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.0635,
+    "n_pos": 11,
+    "n_neg": 31,
+    "p_sign": 0.002887247974285856,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B256 \u2212 T0",
+    "est": -0.016319064452910537,
+    "lo": -0.07355823471954516,
+    "hi": 0.039622918097158746,
+    "se": 0.02889327372355187,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.546,
+    "n_pos": 14,
+    "n_neg": 28,
+    "p_sign": 0.04355852192384191,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B256 \u2212 T0",
+    "est": 0.015265001604801487,
+    "lo": -0.040893539181396626,
+    "hi": 0.07067059515799051,
+    "se": 0.02824571345442831,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.605,
+    "n_pos": 17,
+    "n_neg": 18,
+    "p_sign": 1.0,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B256 \u2212 T0",
+    "est": 0.023266204710014893,
+    "lo": -0.04180547109244127,
+    "hi": 0.0916710956168992,
+    "se": 0.03371158496650281,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.475,
+    "n_pos": 15,
+    "n_neg": 17,
+    "p_sign": 0.860050065908581,
+    "clamped": 0.42825,
+    "in_range": true,
+    "draws": 4000
+   }
+  ],
+  [
+   {
+    "label": "T1v1 B0 \u2212 T0",
+    "est": -0.06503121302708575,
+    "lo": -0.11259716827612948,
+    "hi": -0.02200190126465198,
+    "se": 0.02280846861511598,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.001,
+    "n_pos": 8,
+    "n_neg": 31,
+    "p_sign": 0.0002940768754342571,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B0 \u2212 T0",
+    "est": -0.07200798131842961,
+    "lo": -0.1220928768299869,
+    "hi": -0.02421587652598094,
+    "se": 0.024972999798898648,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.0035,
+    "n_pos": 7,
+    "n_neg": 27,
+    "p_sign": 0.0008213953115046024,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B0 \u2212 T0",
+    "est": -0.08039798049055913,
+    "lo": -0.1370324221816328,
+    "hi": -0.028549903517943558,
+    "se": 0.02781488259339735,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.006,
+    "n_pos": 5,
+    "n_neg": 26,
+    "p_sign": 0.00019219517707824707,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B0 \u2212 T0",
+    "est": -0.09283457244596816,
+    "lo": -0.163135988701889,
+    "hi": -0.023903793313416143,
+    "se": 0.03568273038361999,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.009,
+    "n_pos": 3,
+    "n_neg": 22,
+    "p_sign": 0.00015652179718017578,
+    "clamped": 0.48825,
+    "in_range": true,
+    "draws": 4000
+   }
+  ],
+  [
+   {
+    "label": "T1v1 B256 \u2212 T0",
+    "est": -0.05028021594605256,
+    "lo": -0.10244256350140052,
+    "hi": -0.002765380001975453,
+    "se": 0.025398299409911795,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.038,
+    "n_pos": 18,
+    "n_neg": 30,
+    "p_sign": 0.11140289106101875,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T0",
+    "est": -0.018222149803224952,
+    "lo": -0.0810249050608701,
+    "hi": 0.036374270682063656,
+    "se": 0.030175724718330795,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.527,
+    "n_pos": 20,
+    "n_neg": 28,
+    "p_sign": 0.31232680747326924,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T0",
+    "est": 0.02311088990796456,
+    "lo": -0.03999442912715032,
+    "hi": 0.08168487812864017,
+    "se": 0.03146635549544232,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.4535,
+    "n_pos": 23,
+    "n_neg": 17,
+    "p_sign": 0.42959050784338615,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T0",
+    "est": 0.04508300927357134,
+    "lo": -0.019376136498875412,
+    "hi": 0.11132912037559958,
+    "se": 0.032804737669975756,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.164,
+    "n_pos": 20,
+    "n_neg": 17,
+    "p_sign": 0.7428293587290682,
+    "clamped": 0.42825,
+    "in_range": true,
+    "draws": 4000
+   }
+  ],
+  [
+   {
+    "label": "T1 B256 \u2212 T1 B0",
+    "est": 0.013308487287365167,
+    "lo": -0.024437772361297336,
+    "hi": 0.046307232190795,
+    "se": 0.018026043214024803,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.446,
+    "n_pos": 22,
+    "n_neg": 19,
+    "p_sign": 0.755228657504631,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B256 \u2212 T1 B0",
+    "est": 0.04859102167816959,
+    "lo": 0.004600334508390249,
+    "hi": 0.09151711714391,
+    "se": 0.021632920727008897,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.03,
+    "n_pos": 23,
+    "n_neg": 18,
+    "p_sign": 0.5327092552361137,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B256 \u2212 T1 B0",
+    "est": 0.07844238347326976,
+    "lo": 0.026690241997456707,
+    "hi": 0.1331487868991522,
+    "se": 0.027096018725748103,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.006,
+    "n_pos": 25,
+    "n_neg": 9,
+    "p_sign": 0.00904118549078703,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1 B256 \u2212 T1 B0",
+    "est": 0.09114667494306478,
+    "lo": 0.03017665427892858,
+    "hi": 0.1595509999590547,
+    "se": 0.03294873596878134,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.0035,
+    "n_pos": 23,
+    "n_neg": 8,
+    "p_sign": 0.010673840530216694,
+    "clamped": 0.0135,
+    "in_range": true,
+    "draws": 4000
+   }
+  ],
+  [
+   {
+    "label": "T1v1 B256 \u2212 T1v1 B0",
+    "est": 0.014750997081033196,
+    "lo": -0.023407074959260393,
+    "hi": 0.05227254910179159,
+    "se": 0.01887447914577227,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.4095,
+    "n_pos": 31,
+    "n_neg": 17,
+    "p_sign": 0.05946337525377032,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T1v1 B0",
+    "est": 0.05378583151520466,
+    "lo": 0.004013474994165847,
+    "hi": 0.1042535498325231,
+    "se": 0.025728172302501486,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.0355,
+    "n_pos": 33,
+    "n_neg": 15,
+    "p_sign": 0.013283281562245008,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T1v1 B0",
+    "est": 0.10350887039852369,
+    "lo": 0.03876791404531612,
+    "hi": 0.1697950508853972,
+    "se": 0.03380421439166111,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.0015,
+    "n_pos": 35,
+    "n_neg": 6,
+    "p_sign": 4.873598300036974e-06,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T1v1 B0",
+    "est": 0.1379175817195395,
+    "lo": 0.05620255134518928,
+    "hi": 0.224067021566377,
+    "se": 0.042836894165647406,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": true,
+    "p_boot": 0.0015,
+    "n_pos": 30,
+    "n_neg": 7,
+    "p_sign": 0.00019107642583549023,
+    "clamped": 0.27175,
+    "in_range": true,
+    "draws": 4000
+   }
+  ],
+  [
+   {
+    "label": "T1v1 B256 \u2212 T1 B256",
+    "est": -0.0036597087422214902,
+    "lo": -0.0481068026325349,
+    "hi": 0.034973787288841665,
+    "se": 0.021231182029892787,
+    "k": null,
+    "tokens": 1000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.894,
+    "n_pos": 29,
+    "n_neg": 19,
+    "p_sign": 0.19341265286193732,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T1 B256",
+    "est": -0.0019030853503144152,
+    "lo": -0.062085493487243126,
+    "hi": 0.05160859147363591,
+    "se": 0.028845357138738245,
+    "k": null,
+    "tokens": 3000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.976,
+    "n_pos": 30,
+    "n_neg": 18,
+    "p_sign": 0.11140289106101875,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T1 B256",
+    "est": 0.007845888303163073,
+    "lo": -0.057195405481023975,
+    "hi": 0.06825374693441244,
+    "se": 0.03102776913208867,
+    "k": null,
+    "tokens": 10000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.774,
+    "n_pos": 28,
+    "n_neg": 13,
+    "p_sign": 0.027533155829587486,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   },
+   {
+    "label": "T1v1 B256 \u2212 T1 B256",
+    "est": 0.021816804563556447,
+    "lo": -0.041267957883269854,
+    "hi": 0.08838176321103094,
+    "se": 0.032025668369634656,
+    "k": null,
+    "tokens": 29000.0,
+    "T": 72,
+    "seeds": [
+     3,
+     3
+    ],
+    "paired_seeds": false,
+    "p_boot": 0.489,
+    "n_pos": 27,
+    "n_neg": 12,
+    "p_sign": 0.023702702470473014,
+    "clamped": 0.0,
+    "in_range": true,
+    "draws": 4000
+   }
+  ]
+ ],
+ "informative": {
+  "pass@1": {
+   "n": 72,
+   "all_0": 24,
+   "all_100": 0,
+   "informative": 48
+  },
+  "pass@5": {
+   "n": 72,
+   "all_0": 24,
+   "all_100": 0,
+   "informative": 48
+  },
+  "pass@256": {
+   "n": 72,
+   "all_0": 24,
+   "all_100": 14,
+   "informative": 34
+  }
+ },
+ "power": [
+  {
+   "label": "T0e \u2212 T0",
+   "k": 1,
+   "components": {
+    "est": -0.036060474537037035,
+    "se": 0.01847269291394844,
+    "df": 24.947510292488264,
+    "lo": -0.07410975703182482,
+    "hi": 0.001988807957750749,
+    "p": 0.06223702457459801,
+    "seed_var": [
+     0.0002608620131706035,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.01956122333206232,
+     0.017221757255001
+    ],
+    "theorem_var": 0.005661642876858712,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.023092771950911153,
+   "mde": 0.05175282340645812,
+   "seeds_needed": 22,
+   "theorems_needed": 802
+  },
+  {
+   "label": "T0e \u2212 T0",
+   "k": 5,
+   "components": {
+    "est": -0.05301353467347816,
+    "se": 0.02035729467053925,
+    "df": 71.0,
+    "lo": -0.09360482736907907,
+    "hi": -0.012422241977877259,
+    "p": 0.011208925240141276,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.030558821358368685,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.009122484588862743,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.026239861612579213,
+   "mde": 0.057032695829752664,
+   "seeds_needed": null,
+   "theorems_needed": 261
+  },
+  {
+   "label": "T0e \u2212 T0",
+   "k": null,
+   "components": {
+    "est": -0.060185185185185175,
+    "se": 0.028225183208879102,
+    "df": 71.0,
+    "lo": -0.11646460205075747,
+    "hi": -0.0039057683196128817,
+    "p": 0.03644038057178367,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.08815858111632757,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.006216310206920539,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.03946023285030607,
+   "mde": 0.07907525605652604,
+   "seeds_needed": 76,
+   "theorems_needed": 501
+  },
+  {
+   "label": "T1 B0 \u2212 T0",
+   "k": 1,
+   "components": {
+    "est": -0.04081669560185183,
+    "se": 0.015490842064505449,
+    "df": 13.025348712125922,
+    "lo": -0.07427600598096654,
+    "hi": -0.007357385222737135,
+    "p": 0.020567654434753724,
+    "seed_var": [
+     0.00027215586519514974,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.00862421265603604,
+     0.017221757255001
+    ],
+    "theorem_var": 0.0017445185685692546,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.019479134184256095,
+   "mde": 0.04339891414404104,
+   "seeds_needed": 8,
+   "theorems_needed": 558
+  },
+  {
+   "label": "T1 B0 \u2212 T0",
+   "k": 5,
+   "components": {
+    "est": -0.05211844247633557,
+    "se": 0.027170418277732235,
+    "df": 5.9345795298627335,
+    "lo": -0.11878012000144952,
+    "hi": 0.014543235048778386,
+    "p": 0.10405780613347226,
+    "seed_var": [
+     0.0012759935475508528,
+     0.0
+    ],
+    "res_ms": [
+     0.02283462759477857,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.004387847884203055,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.029192468632973468,
+   "mde": 0.07612024221684104,
+   "seeds_needed": 38,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1 B0 \u2212 T0",
+   "k": null,
+   "components": {
+    "est": -0.06481481481481483,
+    "se": 0.028080423978006426,
+    "df": 50.08120340303607,
+    "lo": -0.12121374049030484,
+    "hi": -0.008415889139324804,
+    "p": 0.025156431265934254,
+    "seed_var": [
+     0.0003260302556077211,
+     0.0
+    ],
+    "res_ms": [
+     0.032081377151799685,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.016497130933750652,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.035419347692686044,
+   "mde": 0.07866970073512775,
+   "seeds_needed": null,
+   "theorems_needed": 8173
+  },
+  {
+   "label": "T1 B256 \u2212 T0",
+   "k": 1,
+   "components": {
+    "est": -0.015697337962962965,
+    "se": 0.012175527357003014,
+    "df": 24.53110268832453,
+    "lo": -0.04079763218400892,
+    "hi": 0.009402956258082993,
+    "p": 0.20933469549970862,
+    "seed_var": [
+     0.00011438818480362788,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.005148551833461708,
+     0.017221757255001
+    ],
+    "theorem_var": 8.546056135532755e-05,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.016635608384180878,
+   "mde": 0.034110777466109694,
+   "seeds_needed": 4,
+   "theorems_needed": 106
+  },
+  {
+   "label": "T1 B256 \u2212 T0",
+   "k": 5,
+   "components": {
+    "est": 0.019049357381015708,
+    "se": 0.02382524823423284,
+    "df": 8.270638008717729,
+    "lo": -0.035580395575102695,
+    "hi": 0.07367911033713412,
+    "p": 0.4463281725341668,
+    "seed_var": [
+     0.0008243313572711369,
+     0.0
+    ],
+    "res_ms": [
+     0.013073436013707177,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.006199050308524048,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.025898147843965248,
+   "mde": 0.06674846327089883,
+   "seeds_needed": 51,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1 B256 \u2212 T0",
+   "k": null,
+   "components": {
+    "est": 0.06018518518518512,
+    "se": 0.030447874628910944,
+    "df": 21.344367620541192,
+    "lo": -0.003072489357832192,
+    "hi": 0.12344285972820243,
+    "p": 0.06114232332256342,
+    "seed_var": [
+     0.0007824726134585286,
+     0.0
+    ],
+    "res_ms": [
+     0.04088419405320814,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.012584767866458006,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.03733633884872852,
+   "mde": 0.08530231548331377,
+   "seeds_needed": null,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B0 \u2212 T0",
+   "k": 1,
+   "components": {
+    "est": -0.04090711805555555,
+    "se": 0.012855127280225193,
+    "df": 72.93039761212984,
+    "lo": -0.06652776171325402,
+    "hi": -0.015286474397857092,
+    "p": 0.0021485840283461677,
+    "seed_var": [
+     0.0,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.006315797458543214,
+     0.017221757255001
+    ],
+    "theorem_var": 0.0036664749514308294,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.017095253297718813,
+   "mde": 0.03601473456523966,
+   "seeds_needed": 6,
+   "theorems_needed": 106
+  },
+  {
+   "label": "T1v1 B0 \u2212 T0",
+   "k": 5,
+   "components": {
+    "est": -0.05786246351570262,
+    "se": 0.01715932493945988,
+    "df": 71.0,
+    "lo": -0.09207718567544676,
+    "hi": -0.023647741355958492,
+    "p": 0.0012106032022007884,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.019203584201419287,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.004269218638565116,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.0219036242981091,
+   "mde": 0.048073311103188,
+   "seeds_needed": 13,
+   "theorems_needed": 185
+  },
+  {
+   "label": "T1v1 B0 \u2212 T0",
+   "k": null,
+   "components": {
+    "est": -0.09259259259259262,
+    "se": 0.026555439512176166,
+    "df": 71.0,
+    "lo": -0.14554263508812204,
+    "hi": -0.03964255009706319,
+    "p": 0.0008428870269299171,
+    "seed_var": [
+     0.0,
+     0.0
+    ],
+    "res_ms": [
+     0.06514084507042253,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.007303077725612936,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.03612816083244403,
+   "mde": 0.0743973267978058,
+   "seeds_needed": 137,
+   "theorems_needed": 443
+  },
+  {
+   "label": "T1v1 B256 \u2212 T0",
+   "k": 1,
+   "components": {
+    "est": -0.004123263888888867,
+    "se": 0.015335167553566308,
+    "df": 8.106739866941677,
+    "lo": -0.03940534045899382,
+    "hi": 0.031158812681216085,
+    "p": 0.7947411687678365,
+    "seed_var": [
+     0.0003452529867427949,
+     1.6082620396860132e-05
+    ],
+    "res_ms": [
+     0.007236599113770805,
+     0.017221757255001
+    ],
+    "theorem_var": 0.00010721017289961818,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.01867490795598059,
+   "mde": 0.04296277873535697,
+   "seeds_needed": 7,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B256 \u2212 T0",
+   "k": 5,
+   "components": {
+    "est": 0.033754343230970485,
+    "se": 0.025701687741719183,
+    "df": 9.094375860988189,
+    "lo": -0.024295071003285512,
+    "hi": 0.09180375746522648,
+    "p": 0.2212447525169412,
+    "seed_var": [
+     0.000911823231251777,
+     0.0
+    ],
+    "res_ms": [
+     0.020550287392482467,
+     0.03158832527652687
+    ],
+    "theorem_var": 0.008298231093265256,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.028175955085317804,
+   "mde": 0.07200546845775573,
+   "seeds_needed": null,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B256 \u2212 T0",
+   "k": null,
+   "components": {
+    "est": 0.10648148148148151,
+    "se": 0.02898502489083781,
+    "df": 12.411046626535962,
+    "lo": 0.04355973590574168,
+    "hi": 0.16940322705722133,
+    "p": 0.0030195377653772226,
+    "seed_var": [
+     0.0009780907668231627,
+     0.0
+    ],
+    "res_ms": [
+     0.05920709441836203,
+     0.06527125717266563
+    ],
+    "theorem_var": 0.0,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.0371588577763391,
+   "mde": 0.08415576443772675,
+   "seeds_needed": 24,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1 B256 \u2212 T1 B0",
+   "k": 1,
+   "components": {
+    "est": 0.025119357638888867,
+    "se": 0.007685920551211924,
+    "df": 71.0,
+    "lo": 0.009794067330011431,
+    "hi": 0.0404446479477663,
+    "p": 0.0016696432815408446,
+    "seed_var": [
+     0.0
+    ],
+    "res_ms": [
+     0.004518488016859839
+    ],
+    "theorem_var": 0.0027471203075203976,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.008946967080989124,
+   "mde": 0.021532761403866,
+   "seeds_needed": 2,
+   "theorems_needed": 38
+  },
+  {
+   "label": "T1 B256 \u2212 T1 B0",
+   "k": 5,
+   "components": {
+    "est": 0.07116779985735128,
+    "se": 0.01685138408813704,
+    "df": 71.0,
+    "lo": 0.03756709431579107,
+    "hi": 0.10476850539891149,
+    "p": 7.03154456347388e-05,
+    "seed_var": [
+     0.0
+    ],
+    "res_ms": [
+     0.019700599157416756
+    ],
+    "theorem_var": 0.013878912103580523,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.018553747212281226,
+   "mde": 0.04721058856606881,
+   "seeds_needed": null,
+   "theorems_needed": 179
+  },
+  {
+   "label": "T1 B256 \u2212 T1 B0",
+   "k": null,
+   "components": {
+    "est": 0.12499999999999994,
+    "se": 0.03390068806111779,
+    "df": 71.0,
+    "lo": 0.05740394787513063,
+    "hi": 0.19259605212486924,
+    "p": 0.0004401658564636701,
+    "seed_var": [
+     0.0
+    ],
+    "res_ms": [
+     0.07022691705790297
+    ],
+    "theorem_var": 0.0593375065206051,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.03771624171076979,
+   "mde": 0.09497566655588636,
+   "seeds_needed": null,
+   "theorems_needed": 722
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1v1 B0",
+   "k": 1,
+   "components": {
+    "est": 0.036783854166666685,
+    "se": 0.01657586173057183,
+    "df": 4.866785206536806,
+    "lo": -0.006178958724474173,
+    "hi": 0.07974666705780754,
+    "p": 0.07868676327049307,
+    "seed_var": [
+     0.0005260292415390055
+    ],
+    "res_ms": [
+     0.008000384287468517
+    ],
+    "theorem_var": 0.004491165272568935,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.016286417051358845,
+   "mde": 0.046438689201854476,
+   "seeds_needed": 13,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1v1 B0",
+   "k": 5,
+   "components": {
+    "est": 0.09161680674667311,
+    "se": 0.02769191744275541,
+    "df": 7.261184758158089,
+    "lo": 0.026610287249239722,
+    "hi": 0.1566233262441065,
+    "p": 0.012304450633713993,
+    "seed_var": [
+     0.0011929692599763541
+    ],
+    "res_ms": [
+     0.026014763261243898
+    ],
+    "theorem_var": 0.017909795006078984,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.02778719396510253,
+   "mde": 0.07758126656882822,
+   "seeds_needed": null,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1v1 B0",
+   "k": null,
+   "components": {
+    "est": 0.19907407407407413,
+    "se": 0.036804007391907166,
+    "df": 57.44969111429258,
+    "lo": 0.12538782087324152,
+    "hi": 0.27276032727490673,
+    "p": 1.2819749286574478e-06,
+    "seed_var": [
+     0.00045644235785080936
+    ],
+    "res_ms": [
+     0.11065466875326029
+    ],
+    "theorem_var": 0.049687010954616605,
+    "S": [
+     3
+    ],
+    "T": 72,
+    "paired_seeds": true,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.04376238263295069,
+   "mde": 0.10310956307648753,
+   "seeds_needed": null,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1 B256",
+   "k": 1,
+   "components": {
+    "est": 0.011574074074074098,
+    "se": 0.01446893358458207,
+    "df": 5.9278248800680835,
+    "lo": -0.02393488629087412,
+    "hi": 0.047083034439022314,
+    "p": 0.4546063670984817,
+    "seed_var": [
+     0.0003452529867427949,
+     0.00011438818480362788
+    ],
+    "res_ms": [
+     0.007236599113770805,
+     0.005148551833461708
+    ],
+    "theorem_var": 0.0,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.015396184855984638,
+   "mde": 0.04065218755098944,
+   "seeds_needed": 6,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1 B256",
+   "k": 5,
+   "components": {
+    "est": 0.014704985849954777,
+    "se": 0.027764641343229486,
+    "df": 7.0357448578866935,
+    "lo": -0.050880402803030814,
+    "hi": 0.08029037450294037,
+    "p": 0.6126635746585083,
+    "seed_var": [
+     0.000911823231251777,
+     0.0008243313572711369
+    ],
+    "res_ms": [
+     0.020550287392482467,
+     0.013073436013707177
+    ],
+    "theorem_var": 0.002627404315494946,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.02802493443054614,
+   "mde": 0.0777850087733999,
+   "seeds_needed": 29,
+   "theorems_needed": null
+  },
+  {
+   "label": "T1v1 B256 \u2212 T1 B256",
+   "k": null,
+   "components": {
+    "est": 0.04629629629629639,
+    "se": 0.03283770519442407,
+    "df": 12.839077055715931,
+    "lo": -0.02473574567593316,
+    "hi": 0.11732833826852594,
+    "p": 0.18234568755034664,
+    "seed_var": [
+     0.0009780907668231627,
+     0.0007824726134585286
+    ],
+    "res_ms": [
+     0.05920709441836203,
+     0.04088419405320814
+    ],
+    "theorem_var": 0.0020213875847678656,
+    "S": [
+     3,
+     3
+    ],
+    "T": 72,
+    "paired_seeds": false,
+    "deff": 1.0,
+    "clusters": null
+   },
+   "se_boot": 0.038761745377998924,
+   "mde": 0.09199762946944989,
+   "seeds_needed": 37,
+   "theorems_needed": null
+  }
+ ]
+}

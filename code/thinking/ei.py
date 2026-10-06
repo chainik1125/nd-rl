@@ -25,10 +25,26 @@ Those are the fine-tune pairs.  Options:
                            ends in the attempt's <eB>; budgets must be effort levels (0,16,64,256)
   --select shortest        per target, spread the kept attempts over the budgets they were found at
                            and keep the shortest (sampled tokens) within each: a shortness pressure
-                           on the think blocks; `random` (default) is the ladder's choice
-Distinct = a different (think, action) sequence after renaming.  Files in EIDIR: found_<r>.jsonl
-(cumulative, token strings), round_<r>.json, ckpts/<name>_r<r>.pt, args.json, registry/,
-lean_gate.jsonl.
+                           on the think blocks; `random` (default) is the ladder's choice.  Also
+                           picks which think variant of a proof is kept (below)
+  --forced drop|keep       attempts with any forced `</think>` (a step's `forced` flag: the sampler
+                           closed the block at the budget) still count as solved, but with `drop`
+                           they are not fine-tuned on.  Default `drop`, or `keep` with --effort
+                           (there a forced close teaches budget compliance; with a hidden budget it
+                           teaches stopping at an arbitrary point)
+
+Distinct = a different **action sequence** (the actions the environment applied, renamed to base
+0).  Think variants of one proof are one entry, so a thinking model does not get more fine-tune
+records per target than the no-think control for the same proofs (LIT_CRITIQUE C6: before this,
+79% of T1's solved targets had >= 4 entries against 45% for T0, with the same share of >= 4
+distinct proofs).  Per action sequence the entry kept is the first found (`random`) or the one with
+the fewest think tokens (`shortest`; ties keep the earlier), and an entry --forced drop would
+discard is always replaced by a usable variant of the same proof.  Found records written before
+this change carry no `forced` count; it is inferred as a block of >= budget think tokens (exact for
+the hard cut, the only forcing those runs used), and a resumed found file is deduplicated by action
+sequence.  round_<r>.json reports `entries_per_target` (cumulative kept entries per solved target,
+all and usable).  Files in EIDIR: found_<r>.jsonl (cumulative, token strings), round_<r>.json,
+ckpts/<name>_r<r>.pt, args.json, registry/, lean_gate.jsonl.
 """
 
 from __future__ import annotations
@@ -64,7 +80,7 @@ def found_entry(
     x: dict[str, Any], tok: Any, target: dict[str, Any], r: int, think: bool
 ) -> dict[str, Any]:
     """An accepted attempt (a `think_generate` result with its trace) -> a found record."""
-    steps = x["trace"]
+    steps = [s for s in x["trace"] if not s.get("rejected")]
     reb = [
         (
             rebase_names(s["state"], tok, x["base"]),
@@ -89,12 +105,79 @@ def found_entry(
             {"state": _s(tok, a), "think": _s(tok, b), "action": _s(tok, c)} for a, b, c in src
         ],
         "think_tokens": sum(len(b) for _, b, _ in src),
+        "forced": sum(bool(s.get("forced")) for s in steps),
         "tokens": x["tokens"],
     }
 
 
-def entry_key(e: dict[str, Any]) -> tuple[tuple[str, str], ...]:
-    return tuple((s["think"], s["action"]) for s in e["steps"])
+def entry_key(e: dict[str, Any]) -> tuple[str, ...]:
+    """Distinctness: the applied action sequence (renamed), whatever the think blocks were."""
+    return tuple(s["action"] for s in e["steps"])
+
+
+def n_forced(e: dict[str, Any]) -> int:
+    """Forced `</think>` closes among an entry's steps.  Records from before the `forced` field: a
+    block of >= budget think tokens (the hard cut forced exactly those)."""
+    if "forced" in e:
+        return int(e["forced"])
+    b = int(e.get("budget", 0))
+    if b <= 0 or e.get("think_format") == "none":
+        return 0
+    return sum(len(s["think"].split()) >= b for s in e["steps"])
+
+
+def usable(e: dict[str, Any], forced: str) -> bool:
+    """May this entry be fine-tuned on under the --forced policy?"""
+    return forced == "keep" or n_forced(e) == 0
+
+
+def add_found(
+    have: dict[tuple[str, ...], int],
+    fs: list[dict[str, Any]],
+    e: dict[str, Any],
+    select: str = "random",
+    forced: str = "drop",
+) -> str:
+    """Add an accepted attempt to a target's entries, one per action sequence.  `have` maps a key
+    to its index in `fs`.  -> 'new', 'dup' (an existing entry stays) or 'replaced' (the existing
+    variant was unusable under --forced and this one is usable, or --select shortest and this one
+    has fewer think tokens)."""
+    k = entry_key(e)
+    i = have.get(k)
+    if i is None:
+        have[k] = len(fs)
+        fs.append(e)
+        return "new"
+    old = fs[i]
+    uo, un = usable(old, forced), usable(e, forced)
+    if (un and not uo) or (
+        un == uo and select == "shortest" and e["think_tokens"] < old["think_tokens"]
+    ):
+        fs[i] = e
+        return "replaced"
+    return "dup"
+
+
+def entries_report(found: dict[str, list[dict[str, Any]]], forced: str = "drop") -> dict[str, Any]:
+    """Kept entries (distinct proofs) per solved target: all of them, and those usable under the
+    --forced policy.  Histograms are keyed 0, 1, 2, 3, '>=4' (max_per_thm is 4 by default)."""
+
+    def hist(ns: list[int]) -> dict[str, Any]:
+        h = collections.Counter(str(n) if n < 4 else ">=4" for n in ns)
+        return {
+            "targets": len(ns),
+            "mean": round(sum(ns) / max(1, len(ns)), 3),
+            "hist": {k: h.get(k, 0) for k in ("0", "1", "2", "3", ">=4")},
+            "ge4_pct": round(100.0 * sum(n >= 4 for n in ns) / max(1, len(ns)), 2),
+        }
+
+    solved = [v for v in found.values() if v]
+    return {
+        "all": hist([len(v) for v in solved]),
+        "usable": hist([sum(usable(e, forced) for e in v) for v in solved]),
+        "entries": sum(len(v) for v in solved),
+        "entries_forced": sum(n_forced(e) > 0 for v in solved for e in v),
+    }
 
 
 def validate_entry(e: dict[str, Any]) -> list[bool]:
@@ -166,25 +249,35 @@ def build_mix(
     retain: int,
     validate: str,
     select: str = "random",
+    forced: str = "keep",
 ) -> tuple[list[list[Pair]], dict[str, int]]:
     """The ladder's mix (state_ladder_ei.py:351-364@4dcd0e4f): <= max_per_thm distinct attempts per
-    target x rl_weight, plus `retain` random Stage-1 training records."""
+    target x rl_weight, plus `retain` random Stage-1 training records.  With forced='drop' only
+    entries without a forced `</think>` are candidates."""
     mix: list[list[Pair]] = []
-    n_rl = n_steps_dropped = 0
+    n_rl = n_steps_dropped = n_forced_skipped = n_targets = 0
     for t in targets:
-        for e in pick(found.get(t["name"], []), max_per_thm, select, rng):
+        fs = found.get(t["name"], [])
+        ok = [e for e in fs if usable(e, forced)]
+        n_forced_skipped += len(fs) - len(ok)
+        used = 0
+        for e in pick(ok, max_per_thm, select, rng):
             pairs = entry_pairs(e, tok, validate)
             n_steps_dropped += len(e["steps"]) - len(pairs)
             if not pairs:
                 continue
+            used += 1
             for _ in range(rl_weight):
                 mix.append(pairs)
                 n_rl += 1
+        n_targets += used > 0
     for rec in rng.sample(train_records, min(retain, len(train_records))):
         mix.append(rec)
     return mix, {
         "mix_rl_records": n_rl,
         "mix_retained": len(mix) - n_rl,
+        "mix_targets": n_targets,
+        "entries_forced_skipped": n_forced_skipped,
         "steps_dropped": n_steps_dropped,
     }
 
@@ -285,12 +378,24 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--validate_think", choices=["off", "drop", "empty"], default="off")
     ap.add_argument("--effort", action="store_true", help="effort conditioning (see the docstring)")
     ap.add_argument("--select", choices=["random", "shortest"], default="random")
+    ap.add_argument(
+        "--forced",
+        choices=["keep", "drop"],
+        default=None,
+        help="fine-tune on attempts with a forced </think>? (default: drop; keep with --effort)",
+    )
     ap.add_argument("--lean", default=None)
     ap.add_argument("--device", default=None)
     return ap
 
 
+def forced_policy(forced: str | None, effort: bool) -> str:
+    """--forced, defaulted: keep forced closes only when the effort token states the budget."""
+    return forced or ("keep" if effort else "drop")
+
+
 def run(a: argparse.Namespace) -> list[dict[str, Any]]:
+    a.forced = forced_policy(a.forced, a.effort)
     out = Path(a.out)
     run_env(out)
     with bare():
@@ -316,10 +421,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             train_data = relabel_records(train_data)
             print(f"effort levels of the retained records: {train_data['report']['effort_levels']}")
     found: dict[str, list[dict[str, Any]]] = collections.defaultdict(list)
+    keys: dict[str, dict[tuple[str, ...], int]] = collections.defaultdict(dict)
     if a.resume:
         r0 = a.start_round - 1
         for e in read_jsonl(out / f"found_{r0}.jsonl"):
-            found[e["name"]].append(e)
+            add_found(keys[e["name"]], found[e["name"]], e, a.select, a.forced)
         if not a.no_train:
             ckpt = str(out / "ckpts" / f"{a.name}_r{r0}.pt")
     history = []
@@ -343,27 +449,33 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             "budgets": a.budget_list,
         }
         stats["targets_round"] = round_summary(per, a.k)
-        new = 0
+        added: collections.Counter[str] = collections.Counter()
+        n_forced_acc = 0
         for t, att in zip(targets, per, strict=True):
-            have = {entry_key(e) for e in found[t["name"]]}
             for x in att:
                 if not x["ok"]:
                     continue
                 e = found_entry(x, tok, t, r, think)
-                kk = entry_key(e)
-                if kk in have:
-                    continue
-                if a.validate_think != "off" and think:
+                n_forced_acc += e["forced"] > 0
+                how = add_found(keys[t["name"]], found[t["name"]], e, a.select, a.forced)
+                added[how] += 1
+                if how != "dup" and a.validate_think != "off" and think:
                     e["think_valid"] = validate_entry(e)
-                have.add(kk)
-                found[t["name"]].append(e)
-                new += 1
+        new = added["new"]
         stats["new_attempts"] = new
+        stats["accepted_attempts"] = {
+            "new_proofs": new,
+            "same_proof_kept_old": added["dup"],
+            "same_proof_replaced": added["replaced"],
+            "with_forced_close": n_forced_acc,
+        }
+        stats["forced_policy"] = a.forced
         stats["targets_cum"] = {
             "solved": sum(1 for t in targets if found.get(t["name"])),
             "n": len(targets),
             "distinct_attempts": sum(len(v) for v in found.values()),
         }
+        stats["entries_per_target"] = entries_report(found, a.forced)
         if a.validate_think != "off":
             flags = [v for vs in found.values() for e in vs for v in e.get("think_valid") or []]
             stats["think_valid_frac"] = sum(flags) / max(1, len(flags))
@@ -397,6 +509,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 a.retain,
                 a.validate_think,
                 a.select,
+                a.forced,
             )
             stats.update(ms)
             if ms["mix_rl_records"]:

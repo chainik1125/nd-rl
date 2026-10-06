@@ -18,6 +18,26 @@ Outputs in DIR: model.pt (fork checkpoint format, mode lean_thinkn), train.json 
 args.json, registry/. ND_OFFLINE=1 is forced (`ckpt.run_env`): nothing is uploaded.  Schedule:
 `--best_steps N` (step cosine; ~24,000 on an RTX 3090 for the 1,200 A40-s run), else `--budget_secs`
 (wall clock).
+
+**Formats R and M** (`rootplan`; the pickle's `think_format`, recorded in the checkpoint's extra so
+sampling and eval dispatch on it).  M (`thinking-pairs/1`, "memo") is a pair layout: the prompt
+`state <think> MEMO_prev </think> <think>` is the fork's state, the target `MEMO </think> action
+<eos>` its action, so it trains through the same code as the per-step format.  R
+(`thinking-seq/1`, "root") is one sequence per proof: `SeqData` keeps the flattened ids and a label
+per token (0 state, 1 action + <eos>, 2 the think block with its tags; `rootplan.flatten` /
+`think_mask`), the loss mask is labels > 0 (think tokens weighted `--think_weight`), one name
+offset per sequence, and the recipe's token-budget batches cut by sequence length.  Steps,
+`--tok_budget` and the optimiser are the recipe's.  The model's `max_len` (`--max_len`, 0: the
+longest train / held-out example rounded up to a multiple of 512, at least 1,024; R: 4,608) is
+checked against every example (an example over it is an error, never truncated).  ALiBiGPT has no
+position table (ALiBi heads read `pos_q - pos_k`, NoPE heads nothing), so `max_len` is the context
+the model was trained to, which the samplers enforce.  Held-out validation uses the format's own
+empty layout (`rootplan.encode(plain_record(...))`), not `heldout_records`' per-step one.
+
+**State format** (`stateview`: `flat`, or `goalstack` with every enclosing frame's goal shown):
+the pickle's `state_format` (absent: flat) becomes the process's before the held-out set is
+rendered, so validation states match the training pairs, and is recorded in the checkpoint's extra
+(`ckpt.load_ckpt` sets it back for sampling).
 """
 
 from __future__ import annotations
@@ -25,28 +45,83 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import pickle
 import random
 import sys
 import time
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
 import torch
 
+from . import stateview
 from .ckpt import cold_start, run_env, save_ckpt
 from .dan import bare, load
-from .data import Pair, heldout_records, load_pairs, to_fork
+from .data import FORMAT as PAIR_FORMAT
+from .data import Pair, heldout_records, read_jsonl, to_fork
 from .tok import ThinkTokenizer
 
 D = load()
 STB: Any = D.state_train_best
 BM: Any = D.best_model
+SEQ_FORMAT = "thinking-seq/1"  # rootplan.SEQ_FORMAT
+RM_FORMATS = ("root", "memo")
+Seg = tuple[bytes, bool]
+LAB_STATE, LAB_ACTION, LAB_THINK = 0, 1, 2
 
 
 def think_format(data: dict[str, Any]) -> str:
-    """'think' if the model learns to write `<think> ... </think>` (traces or empty blocks), else
-    'none' (T0)."""
+    """'root' / 'memo' (rootplan's whole-proof formats), else 'think' if the model learns to write
+    `<think> ... </think>` per step (traces or empty blocks), else 'none' (T0)."""
+    if data.get("think_format") in RM_FORMATS:
+        return str(data["think_format"])
     return "think" if data["has_traces"] or data["no_trace_mode"] == "empty" else "none"
+
+
+def load_data(path: str | Path, tok: Any | None = None) -> dict[str, Any]:
+    """`data.load_pairs`, plus the R pickle (`thinking-seq/1`: per proof a list of `(ids bytes,
+    is_loss)` segments)."""
+    with open(path, "rb") as f:
+        data = pickle.load(f)
+    assert data["format"] in (PAIR_FORMAT, SEQ_FORMAT), data.get("format")
+    assert (data["format"] == SEQ_FORMAT) == (data.get("think_format") == "root"), (
+        data["format"],
+        data.get("think_format"),
+    )
+    if tok is not None:
+        assert list(tok.itos) == data["itos"], "data were built for another vocabulary"
+    return data
+
+
+def heldout_rm(path: str | Path, tok: Any, fmt: str, limit: int = 2000) -> list[Any]:
+    """Validation examples of format R / M in the format's empty layout (first `limit` records
+    that decompose): R `state_0 <think> </think> action_0 <eos> state_1 ...`, M pairs with every
+    memo empty."""
+    from . import rootplan
+
+    out: list[Any] = []
+    for i, rec in enumerate(read_jsonl(path)):
+        try:
+            r = rootplan.plain_record(rec["prompt"], rec["proof"], fmt, f"heldout:{i}")
+            out.append(rootplan.encode(r, tok, fmt))
+        except (D.lean_tok.ParseFail, ValueError, AssertionError, IndexError, KeyError):
+            continue
+        if len(out) >= limit:
+            break
+    return out
+
+
+def example_lens(records: Sequence[Any], fmt: str) -> list[int]:
+    """Tokens per training example: per R sequence, else per pair."""
+    if fmt == "root":
+        return [sum(len(b) for b, _ in segs) for segs in records]
+    return [len(p) + len(q) for rec in records for p, q, _ in rec]
+
+
+def auto_max_len(n: int) -> int:
+    """The longest example rounded up to a multiple of 512, at least the fork's 1,024."""
+    return max(1024, -(-n // 512) * 512)
 
 
 def think_lens_tensor(records: list[list[Pair]]) -> torch.Tensor:
@@ -93,36 +168,145 @@ def val_loss_w(model: Any, v: Any, tlen: torch.Tensor, tok: Any, w: float, bs: i
     return tot / n
 
 
+class PairData:
+    """The fork's padded pair tensors (`state_train_best.to_device`) and the think-block lengths."""
+
+    kind = "pairs"
+
+    def __init__(self, records: list[list[Pair]], dev: str) -> None:
+        self.v = STB.to_device(to_fork(records), dev)
+        self.ids, self.plen, self.lens_cpu, self.lens = self.v
+        self.tlen = think_lens_tensor(records).to(dev)  # in to_device's pair order
+        self.T = int(self.ids.shape[1])
+
+    def batch(
+        self, idxs: torch.Tensor, T: int, tok: Any, gen: Any, w: float, shift: bool = True
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        return make_batch_w(self.ids, self.plen, self.tlen, self.lens, idxs, T, tok, gen, w, shift)
+
+    def val_loss(self, model: Any, tok: Any, autocast: Any, w: float = 1.0) -> float:
+        if w == 1.0:
+            return float(STB.val_loss(model, self.v, tok, autocast))  # the fork's, unchanged
+        return val_loss_w(model, self.v, self.tlen, tok, w)
+
+
+class SeqData:
+    """Format R: whole-proof sequences, flattened on the device (ids, a label per token: 0 state, 1
+    action + <eos>, 2 the think block with its tags; offsets, lengths)."""
+
+    kind = "sequences"
+
+    def __init__(self, seqs: Sequence[Sequence[Seg]], tok: Any, dev: str) -> None:
+        ids, lab = bytearray(), bytearray()
+        lens = []
+        think0 = bytes([tok.think])
+        for segs in seqs:
+            n = 0
+            for b, loss in segs:
+                ids += b
+                k = LAB_STATE if not loss else LAB_THINK if b[:1] == think0 else LAB_ACTION
+                lab += bytes([k]) * len(b)
+                n += len(b)
+            lens.append(n)
+        assert lens and min(lens) > 0, "empty sequence"
+        self.ids = torch.frombuffer(ids, dtype=torch.uint8).to(dev)
+        self.lab = torch.frombuffer(lab, dtype=torch.uint8).to(dev)
+        self.lens_cpu = torch.tensor(lens, dtype=torch.long)
+        self.lens = self.lens_cpu.to(dev)
+        self.offs = (self.lens_cpu.cumsum(0) - self.lens_cpu).to(dev)
+        self.T = int(self.lens_cpu.max())
+
+    def gather(self, idxs: torch.Tensor, T: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """-> (ids (B, T) right-padded with <pad> = 0, labels (B, T), 0 on padding)."""
+        ar = torch.arange(T, device=self.ids.device)[None]
+        valid = ar < self.lens[idxs, None]
+        at = torch.where(valid, self.offs[idxs, None] + ar, torch.zeros_like(ar))
+        x = torch.where(valid, self.ids[at].long(), torch.zeros_like(at))
+        lab = torch.where(valid, self.lab[at].long(), torch.zeros_like(at))
+        return x, lab
+
+    def batch(
+        self, idxs: torch.Tensor, T: int, tok: Any, gen: Any, w: float, shift: bool = True
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """(x, float loss mask): the think block weighs w, actions + <eos> 1, states 0.  With
+        `shift`, one random name offset per sequence (the fork's `make_batch`, run on the
+        gathered rows)."""
+        x, lab = self.gather(idxs, T)
+        if shift:
+            rows = torch.arange(len(idxs), device=x.device)
+            x, _ = STB.make_batch(x, torch.zeros_like(rows), self.lens[idxs], rows, T, tok, gen)
+        m = torch.where(
+            lab == LAB_THINK,
+            torch.full(lab.shape, w, dtype=torch.float32, device=x.device),
+            (lab == LAB_ACTION).float(),
+        )
+        return x, m
+
+    def val_loss(
+        self, model: Any, tok: Any, autocast: Any, w: float = 1.0, max_tokens: int = 2**17
+    ) -> float:
+        """Held-out CE over the loss tokens (think weighted w), length-sorted batches of at most
+        max_tokens padded tokens, no name offset."""
+        order = torch.argsort(self.lens_cpu, stable=True)
+        model.eval()
+        tot = n = 0.0
+        s = 0
+        with torch.no_grad(), autocast:
+            while s < len(order):
+                e = s + 1
+                while e < len(order) and (e + 1 - s) * int(self.lens_cpu[order[e]]) <= max_tokens:
+                    e += 1
+                idxs = order[s:e].to(self.ids.device)
+                x, m = self.batch(idxs, int(self.lens_cpu[order[e - 1]]), tok, None, w, False)
+                k = float(m[:, 1:].sum())
+                if k > 0:
+                    tot += float(BM.mtp_loss(model, None, x, m, weight=0)[1]) * k
+                    n += k
+                s = e
+        model.train()
+        return tot / max(n, 1e-9)
+
+
+def make_data(records: list[Any], fmt: str, tok: Any, dev: str) -> PairData | SeqData:
+    return SeqData(records, tok, dev) if fmt == "root" else PairData(records, dev)
+
+
 def train_best(
     a: Any,
     tok: Any,
-    records: list[list[Pair]],
-    held: list[list[Pair]] | None,
+    records: list[Any],
+    held: list[Any] | None,
     dev: str,
     record: Any,
     init_model: Any = None,
     force_copy: bool = False,
+    fmt: str = "think",
 ) -> tuple[Any, dict[str, Any]]:
     """state_train_best.train, or its copy (state_train_best.py:90-199@4dcd0e4f) with the changes
-    marked `# THINK`."""
-    data = to_fork(records)
-    held_fork = to_fork(held) if held else None
-    if init_model is None and a.think_weight == 1.0 and a.lr_scale == 1.0 and not force_copy:
-        return STB.train(a, tok, data, held_fork, dev, record)
+    marked `# THINK`.  `fmt` 'root': `records` are R sequences (always the copy)."""
+    max_len = int(getattr(a, "max_len", 0) or 1024)
+    if (
+        fmt != "root"
+        and init_model is None
+        and a.think_weight == 1.0
+        and a.lr_scale == 1.0
+        and max_len == 1024
+        and not force_copy
+    ):
+        return STB.train(a, tok, to_fork(records), to_fork(held) if held else None, dev, record)
     cuda = dev == "cuda"
     t_data = time.time()
-    tr = STB.to_device(data, dev)
-    ids, plen, lens_cpu, lens = tr
-    tlen = think_lens_tensor(records).to(
-        dev
-    )  # THINK: think-block length per pair, in to_device's pair order
-    vd = STB.to_device(held_fork, dev) if held_fork else None
+    tr = make_data(records, fmt, tok, dev)  # THINK: pairs or R sequences
+    lens_cpu = tr.lens_cpu
+    vd = make_data(held, fmt, tok, dev) if held else None
     print(
-        f"best: {len(lens_cpu):,} train pairs (T {ids.shape[1]}), "
-        f"{0 if not vd else len(vd[2]):,} val pairs, "
+        f"best: {len(lens_cpu):,} train {tr.kind} (T {tr.T}), "
+        f"{0 if not vd else len(vd.lens_cpu):,} val {tr.kind}, max_len {max_len}, "
         f"on {dev} in {time.time() - t_data:.0f}s",
         flush=True,
     )
+    longest = max(tr.T, vd.T if vd else 0)  # THINK: an example over max_len is never truncated
+    assert longest <= max_len, f"an example of {longest} tokens exceeds max_len {max_len}"
     t0 = time.time()
     torch.manual_seed(a.seed)
     gen = torch.Generator(device=dev)
@@ -131,10 +315,13 @@ def train_best(
     gen_cpu.manual_seed(a.seed)
     rng = random.Random(a.seed)
     if init_model is None:
-        model = BM.ALiBiGPT(tok.vocab_size, a.n_layer, a.d, a.n_head, d_ff=a.d_ff).to(dev)
+        model = BM.ALiBiGPT(
+            tok.vocab_size, a.n_layer, a.d, a.n_head, max_len=max_len, d_ff=a.d_ff
+        ).to(dev)  # THINK: max_len (a cfg entry: no parameter depends on it)
     else:  # THINK: cold start -- the given (expanded) model; only the MTP head is new
         model = init_model.to(dev)
         model.train()
+        model.cfg["max_len"] = max_len
     mtp = BM.MTPHead(a.d, a.n_head, a.d_ff)
     mtp.apply(model._init)
     mtp = mtp.to(dev)
@@ -169,6 +356,7 @@ def train_best(
     muon_graph = None
     model.train()
     step, seen, curve, recent, recent_aux = 0, 0, [], [], []
+    tokens_seen = 0  # THINK: real (unpadded) tokens, for throughput
     next_point = a.curve_every
     cuts, order, epochs_cuts = [], None, None
     main = aux = torch.zeros(())
@@ -195,9 +383,8 @@ def train_best(
         idxs = order[s:e].to(dev, non_blocking=True)
         seen += e - s
         record.count(train_steps=1, train_tokens=ntok)
-        x, m = make_batch_w(
-            ids, plen, tlen, lens, idxs, T, tok, gen, a.think_weight
-        )  # THINK: weighted mask
+        tokens_seen += ntok
+        x, m = tr.batch(idxs, T, tok, gen, a.think_weight)  # THINK: weighted mask, pairs or R
         with autocast:
             loss, main, aux = BM.mtp_loss(model, mtp, x, m, weight=a.mtp)
         model.zero_grad(set_to_none=False)
@@ -244,7 +431,7 @@ def train_best(
                 "epochs": seen / len(lens_cpu),
             }
             if vd:
-                pt["val_loss"] = STB.val_loss(model, vd, tok, autocast)
+                pt["val_loss"] = vd.val_loss(model, tok, autocast)
             curve.append(pt)
             print(
                 f"step {step} loss {pt['train_loss']:.4f} mtp {pt['mtp_loss']:.4f} lr {lr:.2e} "
@@ -257,10 +444,10 @@ def train_best(
     secs = time.time() - t0
     for b in compiled:
         b._compiled_call_impl = None
-    final_val = STB.val_loss(model, vd, tok, autocast) if vd else None
+    final_val = vd.val_loss(model, tok, autocast) if vd else None
     print(
-        f"best: done {step} steps, {seen / len(lens_cpu):.2f} epochs of pairs, {secs:.0f}s, "
-        f"final val {final_val}",
+        f"best: done {step} steps, {seen / len(lens_cpu):.2f} epochs of {tr.kind}, {secs:.0f}s "
+        f"({step / max(secs, 1e-9):.2f} steps/s), final val {final_val}",
         flush=True,
     )
     model.eval()
@@ -276,6 +463,10 @@ def train_best(
         "final_val": final_val,
         "last_train_loss": curve[-1]["train_loss"] if curve else float(main),
         "peak_mem_gb": torch.cuda.max_memory_allocated() / 2**30 if cuda else None,
+        "max_len": max_len,
+        "examples": tr.kind,
+        "tokens_seen": tokens_seen,
+        "steps_per_s": step / max(secs, 1e-9),
     }
     return model, extra
 
@@ -370,7 +561,9 @@ def parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    ap.add_argument("--data", required=True, help="pairs built by code.thinking.data")
+    ap.add_argument(
+        "--data", required=True, help="pairs (code.thinking.data) or an R / M pickle (rootplan)"
+    )
     ap.add_argument(
         "--heldout", default=None, help="K12-style jsonl; first 2,000 records, no trace"
     )
@@ -397,6 +590,12 @@ def parser() -> argparse.ArgumentParser:
         default=None,
         help='"layers,d,heads,d_ff" (tests; the recipe is 6,384,8,1280)',
     )
+    ap.add_argument(
+        "--max_len",
+        type=int,
+        default=0,
+        help="the model's context (0: longest example rounded up to 512, at least 1,024)",
+    )
     ap.add_argument("--device", default=None)
     return ap
 
@@ -414,39 +613,62 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
         a.n_layer, a.d, a.n_head, a.d_ff = (int(x) for x in a.best_dims.split(","))
     else:
         a.n_layer, a.d, a.n_head, a.d_ff = BM.N_LAYER, BM.D, BM.N_HEAD, BM.D_FF
+    tok = ThinkTokenizer()
+    data = load_data(a.data, tok)
+    fmt = think_format(data)
+    # the pickle's state format (flat / goalstack) for the held-out states and the checkpoint
+    sfmt = stateview.set_state_format(stateview.data_format(data))
+    records = data["records"]
+    held = None
+    if a.heldout:  # the format's own layout (R / M: every think empty), in the data's state format
+        held = (
+            heldout_rm(a.heldout, tok, fmt)
+            if fmt in RM_FORMATS
+            else heldout_records(a.heldout, tok, data["no_trace_mode"])
+        )
+    longest = max(example_lens(records, fmt) + (example_lens(held, fmt) if held else []))
+    if not a.max_len:
+        a.max_len = auto_max_len(longest)
+    elif longest > a.max_len:
+        raise SystemExit(f"error: an example of {longest} tokens exceeds --max_len {a.max_len}")
     with bare():
         record.save_config(vars(a), str(out) + "/", role="coldstart" if a.init else "stage1")
     torch.manual_seed(a.seed)
     dev = a.device or ("cuda" if torch.cuda.is_available() else "cpu")
-    tok = ThinkTokenizer()
-    data = load_pairs(a.data, tok)
-    records = data["records"]
-    held = heldout_records(a.heldout, tok, data["no_trace_mode"]) if a.heldout else None
-    npairs = sum(len(r) for r in records)
+    nex = len(records) if fmt == "root" else sum(len(r) for r in records)
+    unit = "sequences" if fmt == "root" else "pairs"
     print(
-        f"mode {tok.mode}, {len(records)} records, {npairs} pairs, format {think_format(data)}",
+        f"mode {tok.mode}, {len(records)} records, {nex} {unit} (longest {longest} tokens, "
+        f"max_len {a.max_len}), format {fmt}, state format {sfmt}",
         flush=True,
     )
-    model, extra = train_best(a, tok, records, held, dev, record, init_model=init_model)
+    model, extra = train_best(a, tok, records, held, dev, record, init_model=init_model, fmt=fmt)
     if held:
-        v = STB.to_device(to_fork(held), dev)
-        extra["final_val_action"] = val_loss_w(model, v, think_lens_tensor(held), tok, 0.0)
+        autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=dev == "cuda")
+        extra["final_val_action"] = make_data(held, fmt, tok, dev).val_loss(
+            model, tok, autocast, w=0.0
+        )
+    secs = extra["secs"]
+    extra.setdefault("max_len", model.cfg["max_len"])
+    extra.setdefault("examples", unit)
+    extra.setdefault("steps_per_s", extra["steps"] / max(secs, 1e-9))
     extra.update(
         args=vars(a),
         n_params=model.n_params(),
-        pairs=npairs,
+        pairs=nex,
         records=len(records),
         data=str(a.data),
-        think_format=think_format(data),
+        think_format=fmt,
+        state_format=sfmt,
         no_trace_mode=data["no_trace_mode"],
         has_traces=data["has_traces"],
+        longest_example=longest,
         **init_info,
     )
+    assert model.cfg["max_len"] == a.max_len, (model.cfg["max_len"], a.max_len)
     ck = out / "model.pt"
     save_ckpt(ck, model, tok.mode, extra=extra)
-    lab = dict(
-        ckpt=str(ck), data=str(a.data), source=str(ck), n_params=model.n_params(), pairs=npairs
-    )
+    lab = dict(ckpt=str(ck), data=str(a.data), source=str(ck), n_params=model.n_params(), pairs=nex)
     with bare():
         record.record("train_loss", extra["last_train_loss"], recipe="best", **lab)
         if held:

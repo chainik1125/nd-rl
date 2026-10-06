@@ -173,6 +173,26 @@ def test_empty_frac_empties_whole_copies_deterministically() -> None:
     assert again["report"]["trace_copies_emptied"] == rep["trace_copies_emptied"]
 
 
+def test_think_filler_keeps_block_lengths_and_actions() -> None:
+    t = ThinkTokenizer()
+    kw: dict[str, Any] = dict(traces=[f"{PILOT}:5"], lean=False, empty_frac=0.2, tok=t)
+    real = build(**kw)
+    fill = build(**kw, think_filler=True)
+    assert fill["config"]["think_filler"] and fill["report"]["think_filler"]
+    assert fill["meta"] == real["meta"]  # same records, copies and emptied copies
+    assert fill["report"]["lengths"] == real["report"]["lengths"]
+    n_filled = 0
+    for r0, r1 in zip(real["records"], fill["records"], strict=True):
+        for (p0, q0, tl0), (p1, q1, tl1) in zip(r0, r1, strict=True):
+            assert p1 == p0 and tl1 == tl0 and len(q1) == len(q0)
+            assert q1[0] == t.think and q1[tl1 - 1] == t.end_think
+            assert q1[tl1:] == q0[tl0:]  # the action and <eos> untouched
+            assert set(q1[1 : tl1 - 1]) <= {t.no}
+            n_filled += tl1 > 2
+    assert n_filled > 0
+    assert fill["report"]["trace_copies_emptied"] == real["report"]["trace_copies_emptied"] > 0
+
+
 def test_save_load_round_trip_and_report(tmp_path: Path) -> None:
     t = ThinkTokenizer()
     d = build(traces=[PILOT], lean=False, max_len=200, tok=t)

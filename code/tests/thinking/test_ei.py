@@ -93,8 +93,107 @@ def test_build_mix_weights_found_attempts(monkeypatch: pytest.MonkeyPatch) -> No
     mix, st = ei.build_mix(
         [{"name": "t"}], {"t": [e]}, retained, T, random.Random(0), 4, 4, 3, "off"
     )
-    assert st == {"mix_rl_records": 4, "mix_retained": 3, "steps_dropped": 0}
+    assert st == {
+        "mix_rl_records": 4,
+        "mix_retained": 3,
+        "mix_targets": 1,
+        "entries_forced_skipped": 0,
+        "steps_dropped": 0,
+    }
     assert sum(r == ei.entry_pairs(e, T) for r in mix) == 4
+
+
+def _variant(e: dict[str, Any], think: str = "", action_step: int | None = None) -> dict[str, Any]:
+    """The same entry with every think block replaced (a think variant of the same proof), or with
+    one action changed (another proof)."""
+    v = json.loads(json.dumps(e))
+    for s in v["steps"]:
+        s["think"] = think
+    v["think_tokens"] = len(think.split()) * len(v["steps"])
+    if action_step is not None:
+        v["steps"][action_step]["action"] += " x"
+    return v
+
+
+def test_distinct_means_distinct_action_sequence(monkeypatch: pytest.MonkeyPatch) -> None:
+    rec = pilot_rec("k12_37120")
+    e = ei.found_entry(
+        _accepted(rec, monkeypatch), T, {"name": "t", "prompt": rec["prompt"]}, 1, True
+    )
+    assert e["forced"] == 0 and e["think_tokens"] > 0
+    short = _variant(e)  # same actions, empty thinks
+    assert ei.entry_key(short) == ei.entry_key(e) == tuple(s["action"] for s in e["steps"])
+    other = _variant(e, action_step=2)
+    # random: the first found variant stays
+    have: dict[tuple[str, ...], int] = {}
+    fs: list[dict[str, Any]] = []
+    assert [ei.add_found(have, fs, x) for x in (e, short, other)] == ["new", "dup", "new"]
+    assert fs == [e, other]
+    # shortest: the variant with fewer think tokens replaces it, a longer one does not
+    have, fs = {}, []
+    got = [ei.add_found(have, fs, x, "shortest") for x in (e, short, _variant(e, "a b c d e f"))]
+    assert got == ["new", "replaced", "dup"] and fs == [short]
+    rep = ei.entries_report({"t": [e, other], "u": [short], "v": []})
+    assert rep["all"]["targets"] == 2 and rep["all"]["mean"] == 1.5
+    assert rep["all"]["hist"] == {"0": 0, "1": 1, "2": 1, "3": 0, ">=4": 0}
+
+
+def test_forced_closes_are_counted_and_dropped(monkeypatch: pytest.MonkeyPatch) -> None:
+    rec = pilot_rec("k12_37120")
+    x = _accepted(rec, monkeypatch)
+    x["trace"][1]["forced"] = True
+    x["trace"][4]["forced"] = True
+    e = ei.found_entry(x, T, {"name": "t", "prompt": rec["prompt"]}, 1, True)
+    assert e["forced"] == 2 and ei.n_forced(e) == 2
+    retained = [trace_pairs(pilot_rec("k12_16472"), T)] * 5
+    for forced, n_rl, skipped in (("drop", 0, 1), ("keep", 4, 0)):
+        mix, st = ei.build_mix(
+            [{"name": "t"}],
+            {"t": [e]},
+            retained,
+            T,
+            random.Random(0),
+            4,
+            4,
+            3,
+            "off",
+            "random",
+            forced,
+        )
+        assert st["mix_rl_records"] == n_rl and st["entries_forced_skipped"] == skipped
+        assert st["mix_retained"] == 3
+    # still solved; the entry stays in found but is not usable under drop
+    rep = ei.entries_report({"t": [e]}, "drop")
+    assert rep["all"]["targets"] == 1 and rep["usable"]["hist"]["0"] == 1
+    assert rep["entries_forced"] == 1
+    # a usable variant of the same proof replaces a forced one, even under `random`
+    clean = dict(_variant(e, "a"), forced=0)
+    have: dict[tuple[str, ...], int] = {}
+    fs: list[dict[str, Any]] = []
+    assert [ei.add_found(have, fs, y, "random", "drop") for y in (e, clean)] == ["new", "replaced"]
+    have, fs = {}, []
+    assert [ei.add_found(have, fs, y, "random", "keep") for y in (e, clean)] == ["new", "dup"]
+    # records from before the `forced` field: a block of >= budget think tokens was forced
+    legacy = {k: v for k, v in e.items() if k != "forced"}
+    legacy["budget"] = 3
+    legacy["steps"] = [
+        dict(s, think=t)
+        for s, t in zip(e["steps"][:4], ["a b c", "a b", "", "a b c d"], strict=True)
+    ]
+    assert ei.n_forced(legacy) == 2
+    assert ei.n_forced(dict(legacy, budget=0)) == 0
+
+
+def test_forced_policy_defaults() -> None:
+    assert (
+        ei.parser()
+        .parse_args(["--init", "x", "--name", "n", "--out", "o", "--targets", "t", "--train", "p"])
+        .forced
+        is None
+    )
+    assert ei.forced_policy(None, effort=False) == "drop"
+    assert ei.forced_policy(None, effort=True) == "keep"
+    assert ei.forced_policy("drop", effort=True) == "drop"
 
 
 @needs_lean
@@ -144,6 +243,10 @@ def test_ei_round_writes_traces(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     hist = ei.run(a)
     assert hist[0]["targets_round"]["solved"] == 2 and hist[0]["new_attempts"] == 2
     assert hist[0]["think_valid_frac"] == 1.0
+    # k = 2 identical scripted proofs per target: one entry each, the second attempt a duplicate
+    assert hist[0]["forced_policy"] == "drop"
+    assert hist[0]["accepted_attempts"]["same_proof_kept_old"] == 2
+    assert hist[0]["entries_per_target"]["all"]["hist"]["1"] == 2
     found = [
         json.loads(line) for line in (iso_env / "ei" / "found_1.jsonl").read_text().splitlines()
     ]

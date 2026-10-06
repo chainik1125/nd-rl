@@ -15,6 +15,15 @@ proof (`lean.gate`, the literal text).  Writes, in EVALDIR:
                          curves can be read at matched sampled tokens.
 A checkpoint without think tokens (T0 / `none` format, or a `lean_staten` checkpoint) runs once with
 B = 0 and no think block.  ND_OFFLINE=1 is forced; logs and registry rows stay in EVALDIR.
+
+The prompt layout follows the checkpoint's `think_format` (`sample.step_prompt`): per step, R
+("root": B caps ROOT, the one block at step 0; B = 0 is `<think> </think>` there) or M ("memo": B
+caps each memo; B = 0, every memo empty).  `--force_mode line|exact` (default line: a block over B
+ends at its line's end, hard cap B + 64).  `--intervene empty|corrupt|swap|filler` (plain arm)
+replaces each sampled block before the action is decoded (`sample.intervene_thinks`); the cells
+keep their `<arm>_B<B>` names, so use one EVALDIR per intervention -- every row and the summary
+record it.  States are rendered in the checkpoint's state format (`stateview`, set by `load_ckpt`;
+the summary's `state_format`).
 """
 
 from __future__ import annotations
@@ -30,9 +39,10 @@ from typing import Any
 
 import torch
 
+from . import stateview
 from .ckpt import load_ckpt, run_env
 from .dan import bare, load
-from .sample import ARMS, judge, think_generate
+from .sample import ARMS, FORCE_MODES, INTERVENTIONS, judge, sample_format, think_generate
 from .tok import has_think
 
 D = load()
@@ -80,7 +90,9 @@ def summarize(rows: list[dict[str, Any]], k: int) -> dict[str, Any]:
     return out
 
 
-def rows_for(recs: list[dict[str, Any]], res: list[dict[str, Any]], k: int) -> list[dict[str, Any]]:
+def rows_for(
+    recs: list[dict[str, Any]], res: list[dict[str, Any]], k: int, intervene: str = "none"
+) -> list[dict[str, Any]]:
     rows = []
     for j, r in enumerate(recs):
         att = res[j * k : (j + 1) * k]
@@ -96,6 +108,7 @@ def rows_for(recs: list[dict[str, Any]], res: list[dict[str, Any]], k: int) -> l
             steps=[x["steps"] for x in att],
             fail_step=[x["fail_step"] for x in att],
             budget=[x["budget"] for x in att],
+            intervene=intervene,
             **{c: [x[c] for x in att] for c in COUNTERS},
             total={c: sum(x[c] for x in att) for c in COUNTERS},
             causes=[x["causes"] for x in att if x["causes"]],
@@ -136,6 +149,30 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument(
         "--dump_traces", action="store_true", help="also write accepted attempts' traces"
     )
+    ap.add_argument(
+        "--force_mode",
+        choices=FORCE_MODES,
+        default="line",
+        help="budget forcing: close at the end of the line past B (cap B + 64), or at exactly B",
+    )
+    ap.add_argument(
+        "--intervene",
+        choices=INTERVENTIONS,
+        default="none",
+        help="replace each sampled think block before the action (plain arm)",
+    )
+    ap.add_argument(
+        "--think_format",
+        choices=["auto", "think", "root", "memo"],
+        default="auto",
+        help="prompt layout (auto: the checkpoint's)",
+    )
+    ap.add_argument(
+        "--wave_tokens",
+        type=int,
+        default=0,
+        help="rows x (prompt + decode room) per decode wave (0: one wave; R: 2^19)",
+    )
     ap.add_argument("--device", default=None)
     return ap
 
@@ -154,6 +191,11 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
     dev = a.device or ("cuda" if torch.cuda.is_available() else "cpu")
     model, tok, extra = load_ckpt(a.ckpt, dev)
     think = think_mode(a.think, tok, extra)
+    fmt = sample_format(
+        model, extra.get("think_format") if a.think_format == "auto" else a.think_format
+    )
+    if a.intervene != "none" and set(a.arms.split(",")) != {"plain"}:
+        raise SystemExit(f"error: --intervene {a.intervene} runs the plain arm only")
     budgets = [int(b) for b in a.budgets.split(",")] if think else [0]
     arms = a.arms.split(",")
     assert all(x in ARMS for x in arms), arms
@@ -166,6 +208,11 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
         tok_mode=tok.mode,
         think=think,
         think_format=extra.get("think_format"),
+        state_format=stateview.current(),  # the checkpoint's (`load_ckpt` sets it)
+        layout=fmt,
+        max_len=getattr(model, "cfg", {}).get("max_len"),
+        force_mode=a.force_mode,
+        intervene=a.intervene,
         n_theorems=len(recs),
         k=a.k,
         config={k: v for k, v in vars(a).items()},
@@ -194,10 +241,14 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
                     st,
                     keep_trace=a.dump_traces,
                     mask_action_think=a.mask_action_think,
+                    think_format=fmt,
+                    force_mode=a.force_mode,
+                    intervene=a.intervene,
+                    wave_tokens=a.wave_tokens,
                 )
                 t_loop = time.time() - t0
                 res = judge(tok, prompts, res, a.lean)
-            rows = rows_for(recs, res, a.k)
+            rows = rows_for(recs, res, a.k, a.intervene)
             name = f"{arm}_B{B}"
             with open(out / f"rows_{name}.jsonl", "w") as f:
                 for row in rows:
@@ -222,6 +273,7 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
                                 + "\n"
                             )
             cell = summarize(rows, a.k)
+            cell["intervene"] = a.intervene
             cell["wall_s"] = time.time() - t0
             cell["loop_s"] = t_loop
             cell["stats"] = {
