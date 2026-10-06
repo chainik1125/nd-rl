@@ -175,3 +175,17 @@ not supported; interpretation: the scalar-head fine-tune loses the per-token sig
 were RL targets" note is withdrawn (it was the `rl_train` role label = Robbie's train14 naming).
 All planned experiments complete at 05:13 (deadline 11:42). Slack use: a second sampling seed for the s0 test pools
 to put sampling-run variance on the headline numbers; then the write-up red team.
+
+## 05:18 UTC reviewer audit 3: write-up red team (`reviews/03_writeup_redteam.md`)
+
+Eleven ranked issues. Rewriting the summary accordingly: worker-specific exposure chronology (textbook72 labels
+summarised 02:07:36, B's first test read 02:38, A's freeze 03:28; descriptive post-read comparisons named as such);
+one evaluation draw for all selection numbers (A's registered subsets: siblings 0.928 / 0.567, oracle 0.940 / 0.594);
+unresolved intervals stated as unresolved (phase-3 heads, r8 ancestor, stage-1 on textbook72); "matches oracle" →
+"near the oracle point estimates at similar mean attempts"; "free" → "no additional training, one extra forward
+pass per judge"; mechanism stated as measured log-likelihood excess without step localisation; SD bounds 0.014 /
+0.033; sibling pooled AUROC 0.77–0.79; "closes a fifth" → 18–23% at the low-budget points, shrinking to +0.003 at 8
+attempts; Limitations extended (ladder confounds, s0-only training data, mismatched allocation selector, pre-freeze
+multiplicity inspection, pointwise intervals, offline Lean judging unchecked against Dan's gate, 0.3–2% clipping of
+the history input, the 96-attempt pool); next steps as competing hypotheses. Figure fixes sent to A (random
+expectation curve; error bars on the ladder) and B (dev-chosen stars on the B5 threshold curve).

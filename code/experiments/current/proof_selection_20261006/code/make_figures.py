@@ -28,8 +28,10 @@ def sel_curves(sets=('holdout250', 'textbook72')):
         sel = r['selection']['all']; ms = sorted(int(m) for m in sel)
         any_sc = r['scorers'][0]
         ax.plot(ms, [sel[str(m)][any_sc]['oracle'] for m in ms], 'k--', label='oracle: best of m')
+        ax.plot(ms, [sel[str(m)][any_sc]['random'] for m in ms], ls='--', marker='x', ms=5, lw=2, color=COL['random'],
+                label='random attempt (expectation)')
         for sc in SHOW:
-            if sc not in r['scorers']:
+            if sc not in r['scorers'] or sc == 'random':      # random = plotted as its expectation above
                 continue
             y = [sel[str(m)][sc]['acc'] for m in ms]
             lo = [sel[str(m)][sc]['ci'][0] for m in ms]; hi = [sel[str(m)][sc]['ci'][1] for m in ms]

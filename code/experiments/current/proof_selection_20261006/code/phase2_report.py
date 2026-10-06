@@ -28,7 +28,8 @@ def within(sets_names, scorer):
             u = auroc(z, y)
             if u is not None:
                 a.append(u)
-    return float(np.mean(a)), len(a)
+    a = np.array(a); bs = a[np.random.default_rng(0).integers(0, len(a), (1000, len(a)))].mean(1)
+    return float(a.mean()), len(a), float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))   # 95% theorem bootstrap
 
 
 def main():
@@ -79,6 +80,11 @@ def main():
         xt = res['runs']['rall_s0']['n_finished_invalid']
         ys = [res['within'][e][f'verifier2_rall_s{i}'][0] for i in range(3)]
         ye = res['within'][e]['verifier2_ens'][0] if 'verifier2_ens' in res['within'][e] else np.mean(ys)
+        W = res['within'][e]
+        ci = [W['verifier2_' + n] for n in ('r25', 'r50', 'r100', 'ens')]
+        yy = y + [ye]
+        ax.errorbar(x + [xt], yy, yerr=[[v - c[2] for v, c in zip(yy, ci)], [c[3] - v for v, c in zip(yy, ci)]],
+                    fmt='none', ecolor=cols[e], elinewidth=1.2, capsize=3, alpha=0.8)
         ax.plot(x + [xt], y + [ye], '-o', color=cols[e], lw=2, ms=6, label={'dev (orig pools)': 'learned ranker, dev theorems', 'holdout250': 'learned ranker, holdout250 (test)', 'textbook72': 'learned ranker, textbook72 (test)'}.get(e, e))
         ax.scatter([xt] * 3, ys, color=cols[e], marker='x', s=30, zorder=3)
         ax.axhline(res['within'][e]['loglik_mean_masked'][0], color=cols[e], ls='--', lw=1.2)
@@ -86,7 +92,7 @@ def main():
     ax.set_xscale('log'); ax.set_xlabel('finished-invalid training attempts (log scale)')
     ax.set_ylabel('how well valid proofs are ranked above\ninvalid ones of the same theorem (AUROC)', fontsize=8)
     ax.set_title("More hard-negative training data does not bring the learned ranker\nup to the model's own likelihood (dashed)", fontsize=9)
-    ax.grid(alpha=0.3); ax.legend(fontsize=7, loc='lower right')
+    ax.grid(alpha=0.3); ax.legend(fontsize=7, loc='lower right', title='error bars: 95% theorem bootstrap', title_fontsize=7)
     fig.tight_layout(); fig.savefig(os.path.join(F, f'A2_auroc_vs_data{tag}.png'), dpi=150); plt.close(fig)
     # figure 2: top-rung dev curve vs steps (undertraining check)
     fig, ax = plt.subplots(figsize=(7, 4))
