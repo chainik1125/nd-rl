@@ -29,8 +29,8 @@ still reject it. "Likelihood" means the mean per-token log-probability a judge m
    oracle on this draw (0.01–0.04 across generators). In a 3×3 generator-by-judge experiment, a model judging its own
    proofs is the lowest cell in 5 of 6 rows, with a fitted self penalty of −0.029 [−0.048, −0.010] (holdout250) and
    −0.068 [−0.115, −0.019] (textbook72) in within-theorem ranking quality. The generator assigns its own proofs more
-   likelihood than its siblings do, by about +0.04 nats per token when the proof is valid and +0.07 to +0.11 when it
-   is invalid.
+   likelihood than its siblings do, by +0.03 to +0.04 nats per token when the proof is valid and +0.07 to +0.11 when
+   it is invalid.
    - ![Generator by judge](figures/B3_judge_matrix.png)
 3. **Likelihood outperforms every verifier head we trained on Lean labels.** A scalar head fine-tuned from the same
    checkpoint separates valid from invalid attempts well across theorems but ranks proofs of the *same* theorem worse
@@ -42,8 +42,8 @@ still reject it. "Likelihood" means the mean per-token log-probability a judge m
    c-th finished attempt and keeping the siblings' favourite gives 0.924 at a mean of 3.9 attempts on holdout250
    (oracle pass@4 0.927) and 0.587 at 7.6 on textbook72 (oracle pass@8 0.607). An oracle that stops at the first
    *valid* proof reaches 0.952 at 2.0 attempts. The best model-side stopping rule, an absolute confidence threshold on
-   the sibling judges tuned on development data, closes 18–23% of that remaining distance at 2–4 attempts and less at
-   8.
+   the sibling judges tuned on development data, closes 18–21% of that remaining distance at 2–4 attempts on
+   holdout250 (23% on textbook72 at 8 attempts) and less at higher budgets.
    - ![Headline: accuracy vs attempts](figures/B5_headline.png)
 
 Each primary comparison was fixed on development data and its test read logged before scoring; intervals are
@@ -138,7 +138,7 @@ self indicator) gives the self penalty quoted above, with judge-identity effects
 judge does not explain it. The gain in k=8 selection from switching to sibling judges replicates for all three
 generators (six paired intervals exclude 0) and in a second sampling draw of seed s0's test pools (holdout250
 +0.013 [0.002, 0.025]; textbook72 +0.012 [−0.001, 0.027], smaller than the first draw's +0.030). Averaging all three judges is close to averaging the two siblings
-(within 0.01, except 0.856 vs 0.866 for s2's proofs on holdout250), so "not the generator" and "an ensemble of
+(within 0.01, except 0.856 vs 0.866 for s2's proofs on holdout250 and 0.852 vs 0.864 for s1's on textbook72), so "not the generator" and "an ensemble of
 judges" both contribute and are not separated. Rescoring at the sampling temperature leaves the penalty unchanged.
 
 Mechanism, descriptively: relative to its siblings, a generator assigns its own proofs +0.033 to +0.040 nats per
@@ -240,8 +240,8 @@ textbook72. Model-side rules tested against that:
 - **Test exposure, by worker.** An aggregate headroom table from Dan's earlier pools exposed both test sets' difficulty
   before the design was fixed. Worker A generated the textbook72 pool at 02:07 UTC and its aggregate label summary
   printed at 02:07:36, one minute before the written freeze of the primary comparisons; A's history-input decision
-  used textbook72's label-free clipping rate. Worker B first read test stopping results at 02:38, before A's
-  03:28 freeze of the selection scores. Later phases were designed knowing earlier test results, and the phase-5
+  used textbook72's label-free clipping rate. Worker B first read test stopping results between its 02:30 freeze and
+  02:38, before A's 03:28 freeze of the selection scores. Later phases were designed knowing earlier test results, and the phase-5
   cost-matched comparison and the phase-1 fixed-k mixture weights use realised test costs. No test label was used to
   choose a threshold, checkpoint, or comparison.
 - Intervals are pointwise, cover theorem resampling only, and many comparisons were made. A second sampling draw of
