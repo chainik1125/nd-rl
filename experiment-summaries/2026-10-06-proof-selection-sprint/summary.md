@@ -11,14 +11,14 @@ papers:
 
 ## Executive summary
 
-Dan's best natural-deduction prover (`state_env_october_r16`, a 9.6M-parameter model that writes proofs one Lean
-tactic step at a time) proves 41% of the 72 textbook problems on one attempt and 69% if it may try 64 times and
+Dan's best natural-deduction prover (`state_env_october_r16`, 9.6M parameters, writing proofs one Lean tactic step at
+a time) proves 41% of the 72 textbook problems on one attempt and 69% if it may try 64 times and
 Lean picks the winner. That gap is the test-time-scaling headroom, and only Lean collects it today. We
 froze the generator, sampled 16 to 96 attempts per theorem on 6,525 theorems, kept every attempt including the
 failures, and measured how much of the gap the model closes by itself: picking the right attempt (selection) and
 stopping once it has one (stopping). Two held-out test sets: holdout250 (250 theorems, 84% of attempts Lean-valid)
-and textbook72 (72, 41%). "Finished" means the environment accepted the attempt as a complete proof; Lean may still
-reject it. "Likelihood" means the mean per-token log-probability a judge model assigns to the proof.
+and textbook72 (72, 41%). "Finished" means the environment accepted the attempt as complete; Lean may still reject
+it. "Likelihood" means the mean per-token log-probability a judge model assigns to the proof.
 
 1. **Keeping the finished proof the generator finds most likely recovers about three quarters of the gap, with no
    training.** At 8 attempts: holdout250 0.836 (random attempt) → 0.918 (oracle 0.940); textbook72 0.405 → 0.540
@@ -33,8 +33,8 @@ reject it. "Likelihood" means the mean per-token log-probability a judge model a
 3. **A sibling trained to rank proofs by its own likelihood ranks valid above invalid proofs of the same theorem
    far better than any untrained judge; no scalar verifier head showed a resolved advantage over plain likelihood.**
    Fine-tuning sibling s1 so that its per-token likelihood separates Lean-valid from invalid proofs of the same
-   theorem lifts within-theorem ranking from 0.83 / 0.78 to 0.89 / 0.94, and the gain holds on proofs written by the
-   other generators. Eight-attempt selection with it reaches 0.933 / 0.582, about 93% of the gap (oracle 0.940 /
+   theorem lifts within-theorem ranking from 0.83 / 0.78 to 0.89 / 0.94, also on proofs written by the other
+   generators. Eight-attempt selection with it reaches 0.933 / 0.582, about 93% of the gap (oracle 0.940 /
    0.594; +0.005 and +0.015 over plain sibling selection, both unresolved). Three recipes that put a scalar head on
    the network instead ranked at or below untrained likelihood.
    - ![Trained judge](figures/A4_trained_judge.png)
@@ -48,8 +48,8 @@ reject it. "Likelihood" means the mean per-token log-probability a judge model a
    overshoots on textbook72 (a 4-attempt target spends 9).
    - ![Headline: accuracy vs attempts](figures/B7_headline.png)
 
-Each primary comparison was fixed on development data and its test read logged before scoring; intervals are
-paired theorem-level bootstraps, and the stopping curves average three generator seeds. The two test sets were used
+Each primary comparison was fixed on development data before its logged test read; intervals are paired
+theorem-level bootstraps, and the stopping curves average three generator seeds. The two test sets were used
 across seven phases, so later questions were posed knowing earlier test results, and comparisons marked
 "descriptive" below were computed after a test read. A second sampling draw reproduces every accuracy-type number
 within 0.03. Codex audits recomputed the phase-1 numbers from the raw files and red-teamed two drafts of this document.
