@@ -57,21 +57,21 @@ def per_theorem(valid, scores, m, R, seed):
     return sel.mean(), sv.max(1).mean(), sv.mean()
 
 
-def evaluate(set_name, scorers, R=200, B=1000, seed=0, k=None, only=None):
+def evaluate(set_name, scorers, R=200, B=1000, seed=0, k=None, only=None, gen=PL.GEN):
     k_arg = k
-    labels = PL.load_labels(set_name, k)
-    pool = PL.load_pool(set_name, k)
+    labels = PL.load_labels(set_name, k, gen)
+    pool = PL.load_pool(set_name, k, gen)
     if only is not None:
         pool = [r for r in pool if r['name'] in only]
     names = [r['name'] for r in pool]
     done = {r['name']: [a['done'] for a in r['attempts']] for r in pool}
     k = pool[0]['k']
-    S = {sc: PL.load_scores(set_name, sc, k_arg) for sc in scorers}
+    S = {sc: PL.load_scores(set_name, sc, k_arg, gen) for sc in scorers}
     for sc in scorers:
         assert set(names) <= set(S[sc]), f'{sc}: missing theorems'
         assert all(len(S[sc][n]) == k for n in names), f'{sc}: wrong length'
     solv = np.array([any(labels[n]) for n in names])
-    out = dict(set=set_name, pool=PL.pool_stem(set_name, k_arg), k=k, n_theorems=len(names), n_solvable=int(solv.sum()),
+    out = dict(set=set_name, pool=PL.pool_stem(set_name, k_arg, gen), k=k, n_theorems=len(names), n_solvable=int(solv.sum()),
                R=R, B=B, created_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), scorers=scorers,
                selection={}, paired={}, auroc={}, per_theorem={})
     brng = np.random.default_rng(seed + 7)
@@ -177,6 +177,8 @@ def main():
     ap.add_argument('--R', type=int, default=200)
     ap.add_argument('--B', type=int, default=1000)
     ap.add_argument('--out', default=None)
+    ap.add_argument('--k', default=None)
+    ap.add_argument('--gen', default=PL.GEN)
     ap.add_argument('--split', default=None, choices=['train', 'dev'], help='restrict to this split of results/splits.json')
     a = ap.parse_args()
     stem = PL.pool_stem(a.set)
@@ -188,7 +190,7 @@ def main():
     only = None
     if a.split:
         only = set(json.load(open(os.path.join(PL.SPRINT, 'results', 'splits.json')))[a.split][a.set])
-    res = evaluate(a.set, a.scorers, R=a.R, B=a.B, only=only)
+    res = evaluate(a.set, a.scorers, R=a.R, B=a.B, only=only, k=a.k, gen=a.gen)
     res['split'] = a.split
     out = a.out or os.path.join(PL.SPRINT, 'results', f'selection_{a.set}' + (f'_{a.split}' if a.split else '') + '.json')
     json.dump(res, open(out, 'w'))

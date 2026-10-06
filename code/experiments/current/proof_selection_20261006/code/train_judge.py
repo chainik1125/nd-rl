@@ -196,15 +196,20 @@ def main():
                 order = list(range(len(pool))); rng.shuffle(order)
             bt = [pool[order.pop()] for _ in range(a.recs)]
             pairs = [(st, act, []) for it in bt for st, act in it['eff']]
-            idx = seq_batch(pairs, dev)
-            with torch.autocast('cuda', dtype=torch.bfloat16):
-                logits = model(idx)
-            logp = F.log_softmax(logits.float(), -1)
-            tl = logp[:, :-1].gather(-1, idx[:, 1:, None])[..., 0]
-            msk = torch.zeros_like(tl)
-            for j, (s, t, _) in enumerate(pairs):
-                msk[j, len(s) - 1:len(s) - 1 + len(t)] = 1
-            loss = -(tl * msk).sum() / msk.sum(); extra = ''
+            ntok = sum(len(t) for _, t, _ in pairs)
+            opt.zero_grad(set_to_none=True); tot = 0.0
+            for ch in SL.batches([len(st) + len(t) for st, t, _ in pairs], 2 ** 25, 4096):   # length buckets, token-weighted accumulation
+                cp = [pairs[j] for j in ch]
+                idx = seq_batch(cp, dev)
+                with torch.autocast('cuda', dtype=torch.bfloat16):
+                    logp = F.log_softmax(model(idx).float(), -1)
+                tl = logp[:, :-1].gather(-1, idx[:, 1:, None])[..., 0]
+                msk = torch.zeros_like(tl)
+                for j, (st, t, _) in enumerate(cp):
+                    msk[j, len(st) - 1:len(st) - 1 + len(t)] = 1
+                lc = -(tl * msk).sum() / ntok
+                lc.backward(); tot += float(lc)
+            loss = torch.tensor(tot); extra = ''
         else:
             if len(order) < a.theorems:
                 order = list(range(len(groups))); rng.shuffle(order)
@@ -219,15 +224,33 @@ def main():
             for ai, it in enumerate(atts):
                 for p in scored_pairs(it):
                     pairs.append(p); owner.append(ai)
-            idx = seq_batch(pairs, dev)
-            with torch.autocast('cuda', dtype=torch.bfloat16):
-                logits = model(idx)
-            logp = F.log_softmax(logits.float(), -1)
-            with torch.no_grad(), torch.autocast('cuda', dtype=torch.bfloat16):
-                rlogp = F.log_softmax(ref(idx).float(), -1)
-            s_pol = attempt_scores(logp, idx, pairs, owner, len(atts))
-            with torch.no_grad():
-                s_ref = attempt_scores(rlogp, idx, pairs, owner, len(atts))
+            # length-bucketed forward (padding to the longest step of the batch OOMs on step-capped attempts)
+            L = [len(st) + len(t) for st, t, _ in pairs]
+            sums_p = [0.0] * len(atts); sums_r = [0.0] * len(atts); cnts = [0] * len(atts)
+            kl_sum, kl_n = 0.0, 0
+            for ch in SL.batches(L, 2 ** 25, 4096):
+                cp = [pairs[j] for j in ch]
+                idx = seq_batch(cp, dev)
+                with torch.autocast('cuda', dtype=torch.bfloat16):
+                    logp = F.log_softmax(model(idx).float(), -1)
+                with torch.no_grad(), torch.autocast('cuda', dtype=torch.bfloat16):
+                    rlogp = F.log_softmax(ref(idx).float(), -1)
+                tl = logp[:, :-1].gather(-1, idx[:, 1:, None])[..., 0]
+                rtl = rlogp[:, :-1].gather(-1, idx[:, 1:, None])[..., 0]
+                pos = torch.zeros_like(tl, dtype=torch.bool)
+                for r, (st, t, m) in enumerate(cp):
+                    p0 = len(st) - 1
+                    pos[r, p0:p0 + len(t)] = True
+                    keep = [q for q in range(len(t)) if q not in set(m)]
+                    if keep:
+                        o = owner[ch[r]]
+                        sums_p[o] = sums_p[o] + tl[r, p0 + torch.tensor(keep, device=dev)].sum()
+                        sums_r[o] = sums_r[o] + float(rtl[r, p0 + torch.tensor(keep, device=dev)].sum())
+                        cnts[o] += len(keep)
+                rp, pp = rlogp[:, :-1][pos], logp[:, :-1][pos]
+                kl_sum = kl_sum + (rp.exp() * (rp - pp)).sum(); kl_n += rp.shape[0]
+            s_pol = torch.stack([sp / max(c, 1) if torch.is_tensor(sp) else torch.tensor(-1e9, device=dev) for sp, c in zip(sums_p, cnts)])
+            s_ref = torch.tensor([sr / max(c, 1) for sr, c in zip(sums_r, cnts)], device=dev)
             z = s_pol - s_ref
             terms = []
             for gi in range(len(gb)):
@@ -236,14 +259,10 @@ def main():
                 d = z[pv][:, None] - z[nv][None, :]
                 terms.append(-F.logsigmoid(a.beta * d).mean())
             pl = torch.stack(terms).mean()
-            # token KL(ref || policy) at every scored action position (incl. masked name positions)
-            pos = torch.zeros(idx.shape[0], idx.shape[1] - 1, dtype=torch.bool, device=dev)
-            for j, (s, t, _) in enumerate(pairs):
-                pos[j, len(s) - 1:len(s) - 1 + len(t)] = True
-            rp, pp = rlogp[:, :-1][pos], logp[:, :-1][pos]
-            kl = (rp.exp() * (rp - pp)).sum(-1).mean()
+            kl = kl_sum / max(kl_n, 1)          # token KL(ref || policy) at every scored action position
             loss = pl + a.kl * kl; extra = f' pair {pl.item():.4f} kl {kl.item():.4f}'
-        opt.zero_grad(set_to_none=True); loss.backward()
+        if a.mode == 'pair':
+            opt.zero_grad(set_to_none=True); loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0); opt.step()
         if step % 50 == 0:
             log(f'step {step} loss {loss.item():.4f}{extra} {time.time()-t0:.0f}s')

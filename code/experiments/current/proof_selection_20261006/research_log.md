@@ -197,3 +197,13 @@ theorem-bootstrap half-widths (0.03 / 0.10). Within-theorem AUROC levels are the
 0.687 → 0.764). Sibling-minus-self replicates: holdout250 +0.013 [0.002, 0.025], textbook72 +0.012 [−0.001, 0.027]
 (k=8). Count-stop budgets reproduce within 0.08 attempts. B5 figure relabelled (dev-chosen stars; bands ≠ CIs).
 All experiments and reviews complete; summary rewritten after the red team; final advisor pass next.
+
+## 07:06 UTC Worker A phase 4 done: a sibling trained as a per-token likelihood judge works
+
+Pre-registered 05:28, frozen 07:01, one test read. Pairwise (DPO-style on masked mean log p vs frozen s1, KL
+anchor) from s1 on s0's train pools, 2 seeds: within-theorem finished-only AUROC 0.893 (holdout250) / 0.942
+(textbook72) vs plain s1 0.828 / 0.783 (+0.065 [0.036, 0.094]; +0.159 [0.088, 0.236]) and vs the sibling mean
+(+0.064; +0.159). Transfers to s1's and s2's proofs (+0.03 to +0.08 vs sibling mean, CIs exclude 0) and to the
+second s0 draw. SFT-on-valid variant helps less and does not transfer. k=8 selection completion-first: 0.933 /
+0.582 (oracle 0.940 / 0.594): ~93% of the gap. The judge's likelihoods drifted (invalid −0.09 → −0.31), so it is a
+ranker, not a calibrated probability. Phase 7 (B): plug it into count-stop and threshold stopping.
