@@ -13,7 +13,7 @@ papers:
 
 Dan's best natural-deduction prover (`state_env_october_r16`, a 9.6M-parameter model that writes proofs one Lean
 tactic step at a time) proves 41% of the 72 textbook problems on one attempt and 69% if it may try 64 times and
-Lean picks the winner. That gap is the test-time-scaling headroom, and today only the verifier can collect it. We
+Lean picks the winner. That gap is the test-time-scaling headroom, and only Lean collects it today. We
 froze the generator, sampled 16 to 96 attempts per theorem on 6,525 theorems, kept every attempt including the
 failures, and measured how much of the gap the model closes by itself: picking the right attempt (selection) and
 stopping once it has one (stopping). Two held-out test sets: holdout250 (250 theorems, 84% of attempts Lean-valid)
@@ -51,8 +51,7 @@ Each primary comparison was fixed on development data and its test read logged b
 paired theorem-level bootstraps, and the stopping curves average three generator seeds. The two test sets were used
 across seven phases, so later questions were posed knowing earlier test results, and comparisons marked
 "descriptive" below were computed after a test read. A second sampling draw reproduces every accuracy-type number
-within 0.03. A Codex audit recomputed the phase-1 numbers from the raw files; a second Codex review red-teamed an
-earlier draft of this document.
+within 0.03. Codex audits recomputed the phase-1 numbers from the raw files and red-teamed two drafts of this document.
 
 ## What problem this addresses, and why
 
