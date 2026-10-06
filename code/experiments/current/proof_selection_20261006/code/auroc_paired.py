@@ -7,7 +7,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from stopping import load_pool, RUNS
 from auroc import auroc
 pool, A, Bn = sys.argv[1], sys.argv[2], sys.argv[3]
-stem, T, _ = load_pool(pool, os.path.join(RUNS, 'scores'), None, None, [A, Bn])
+split = sys.argv[4] if len(sys.argv) > 4 else None
+names = None
+if split:
+    sp = json.load(open(os.path.join(RUNS, "pools_v2", "splits.json")))[split]; names = set(n for v in sp.values() for n in v)
+stem, T, _ = load_pool(pool, os.path.join(RUNS, "scores"), None, names, [A, Bn])
 def stats(ix):
     sa = np.concatenate([T[i]['S'][A][T[i]['d']] for i in ix]); sb = np.concatenate([T[i]['S'][Bn][T[i]['d']] for i in ix])
     y = np.concatenate([T[i]['v'][T[i]['d']] for i in ix])

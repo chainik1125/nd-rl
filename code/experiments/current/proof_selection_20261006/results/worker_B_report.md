@@ -8,7 +8,7 @@ written_by: agent:claude (Worker B)
 Branch `dmitry/selection-sprint` (worktree `/data/users/dmitry/ndrl-selection-sprint`), uncommitted. Generator frozen:
 `la_T1_best12_s0_r16.pt`, T 0.8, `max_action` 512, `max_steps` 96, pools from Worker A (`~/runs/proof-selection/pools_v2/`,
 seed 0). Timestamped decisions are in `../logs/worker_B.md`. Worker A's learned verifier scores (`verifier_*`, `shallow_lr*`)
-were included under a second dev-only freeze (03:15 UTC); see §7.
+were included under a second dev-only freeze (logged 03:23 UTC); see §7.
 
 ## Summary
 
@@ -32,7 +32,14 @@ were included under a second dev-only freeze (03:15 UTC); see §7.
     mean attempts on holdout250 (+0.012 [0.004, 0.021] at 3.9 attempts).
   - Against first-finished it is +0.008 [-0.002, 0.018], and +0.014 [0.004, 0.025] when it spends 8.3 attempts against
     first-finished's 2.6.
-  - On textbook72 no dev-chosen intrinsic policy separates from either comparator (CIs span 0).
+  - **textbook72, primary rule.** completion_loglik does not separate from either comparator (CIs span 0).
+  - **textbook72, secondary rules.** Two separate from fixed-k with the same selector, though neither beats
+    first-finished conclusively (CIs span 0): completion_minstep at m≈2 +0.023 [0.011, 0.038], and
+    completion_loglik_sum at m≈2 +0.016 [0.005, 0.031].
+  - **holdout250, post-hoc count-stop.** At c = 3 it beats first-finished by +0.011 [0.002, 0.020] at 4.03 attempts
+    (§6b).
+  - **Status.** These are secondary or exploratory results, read once each. Absence of significance is not evidence of
+    equivalence.
   - So for intrinsic scores the H2 falsifier ("first-finished matches the learned rule") is essentially met at low
     budgets. Small gains appear only by spending well past first-finished's ceiling.
 - **The learned verifier (Worker A) does not beat likelihood or first-finished.**
@@ -50,7 +57,7 @@ were included under a second dev-only freeze (03:15 UTC); see §7.
   - **Stopping, holdout250.** Dev-chosen verifier stopping is within ±0.004 of first-finished.
   - **Stopping, textbook72.** It is worse than first-finished: m = 4 point -0.024 [-0.051, -0.002] at 7.3 attempts.
     Three seeds agree.
-- **The threshold is not cost-controlled when the distribution shifts.** The dev-chosen "m = 4" threshold uses 3.9
+- **The dev-chosen BUDGET does not transfer (4 → 12 attempts on textbook72).** The accuracy benefit on textbook72 is unresolved, not shown to be absent. The dev-chosen "m = 4" threshold uses 3.9
   attempts on holdout250 but 12.1 on textbook72, because textbook proofs are longer and have lower mean likelihood even
   when easy. Textbook theorems with pass rate around 1 still burn 8 to 16 attempts
   (`figures/stopping_textbook72_allocation.png`). First-finished, by contrast, does allocate by difficulty: about 1
@@ -296,7 +303,7 @@ evidence against random-order averaging, beyond one borderline z = 2.0 among eig
 
 ## 6b. Exploratory (post-hoc): count-stop, a threshold-free stopping rule
 
-Designed after the test read of the threshold policies, because their absolute threshold did not transfer. Rule: stop
+Designed after the test read of the threshold policies, because their dev-chosen budget did not transfer. Rule: stop
 after the c-th finished attempt (or N_max = 16) and return the best so far by `completion_loglik`; c = 1 is
 first-finished. On dev it looked good (dev1108 c = 3: 0.922 at 4.0 attempts vs fixed-same 0.908; rr600 c = 2: 0.783 at
 4.9 vs 0.736). It was frozen and then read once on test (`code/stopping_count.py`, `results/countstop_test.{txt,json}`).
@@ -321,7 +328,7 @@ Reading:
   On textbook72 every comparison with first-finished includes 0.
 - **Status.** Exploratory: one post-hoc design, read once.
 
-## 7. Verifier and learned baselines (Worker A's scores; second freeze 03:15 UTC)
+## 7. Verifier and learned baselines (Worker A's scores; second freeze logged 03:23 UTC)
 
 Procedure (`code/run_verifier_stage.sh`):
 
@@ -374,12 +381,13 @@ Seeds s0 / s1 / s2 at m = 4 vs first-finished: holdout250 -0.002 / +0.000 / +0.0
 Fixed-k selection at k = 8, from the curve tables: verifier_ens pick 0.906 / 0.516, completion_loglik pick
 0.918 / 0.544, completion pick 0.901 / 0.512 (holdout250 / textbook72).
 
-The verifier's dev thresholds *do* transfer better in cost than likelihood (m = 4: 2.2 / 7.3 attempts against 3.9 /
+The verifier's dev thresholds *do* transfer better in budget than likelihood (m = 4: 2.2 / 7.3 attempts against 3.9 /
 12.1), consistent with its scores being calibrated to difficulty. Its displacement rate is higher (textbook72 m = 4:
 3.7 %; m = 8: 5.7 %).
 
 Figures `figures/stopping_{set}_acc_vs_cost.png` now include fixed-k verifier_ens pick and the adaptive verifier_ens
-frontier (aqua). The token panel charges the verifier one forward pass (≤ 1024 tokens) per candidate.
+frontier (aqua). The token panel charges `verifier_ens` three forward passes (one per seed head, each ≤ 1024 tokens) per candidate,
+after the midpoint-audit cost fix (04:05 UTC); attempt, accuracy and generated-token arrays were verified unchanged.
 
 ## 8. Limitations
 
@@ -388,17 +396,21 @@ frontier (aqua). The token panel charges the verifier one forward pass (≤ 1024
 - **Cost accounting.** The likelihood forward is counted as extra cost although it is free at sampling time.
 - **Scope.** Frozen-generator threshold stopping on i.i.d. fresh-context pools; this says nothing about accumulated
   context. A single generator seed (s0), a single sampling seed per pool, and R = 50 orderings.
-- **Thresholds.** Absolute thresholds from dev (dev1108 + rr600) transfer to holdout250 but not to textbook72 (cost
-  overshoot).
+- **Thresholds.** Absolute thresholds from dev (dev1108 + rr600) keep their budget on holdout250, but the budget does not
+  transfer to textbook72 (4 → 12 attempts); any accuracy benefit there is unresolved.
 - **Dev operating points.** The dev rule only considers N_max ∈ {8, 16}, because dev pools have k = 16 / 32. The m = 2
   and 8 dev choices for completion-based policies often collapse to first-finished (τ below every finished score).
 - **Curve tables.** These are optimistic: a frontier read on test.
 - **The verifier is Worker A's.** Training choices (early stopping on dev pooled AUROC, clipping, pos-weighting) are
   theirs; dev is therefore slightly optimistic for the verifier, which makes its weak dev and test showing more robust,
   not less.
-- **Unpriced scorers.** The total-token axis charges a forward pass only to the likelihood family and `verifier_*`;
-  `completion_verifier_*` and `shallow_lr*` (which use the likelihood features) are charged 0 there, so their `tot`
-  values in the JSON are understated. The plotted policies are charged correctly.
+- **Comparators use realised test cost** (midpoint audit item 3): the fixed-k mixture and first-finished's
+  nearest cap are matched at the policy's realised test cost, so they are descriptive, not dev-frozen. Phase 2 adds
+  strictly dev-frozen comparators.
+- **Scorer cost accounting (corrected 04:05 UTC, midpoint audit).** The total-token axis now charges every scorer
+  the passes it needs: 1 likelihood pass (likelihood family, `shallow_lr`), 3 verifier passes (`*_ens`, including
+  `completion_verifier_*_ens`), 1 per single-seed verifier. `stopping_headline.json` and the total-token panels were
+  regenerated; attempt, accuracy and generated-token arrays were verified byte-identical.
 - **Small n.** textbook72 has 72 theorems, and only 34 have both classes among finished attempts, hence wide CIs.
 - **Test exposure.** Before the freeze, an aggregate holdout250 line (validity 0.836, pass@64 0.96) from Worker A's
   collector log was seen while monitoring progress; nothing was chosen from it. Both test sets were also design-visible

@@ -101,3 +101,17 @@ the headline use realised test cost (descriptive); textbook72 secondary rules co
 0.038]) and completion_loglik_sum (+0.016 [0.005, 0.031]) do beat fixed-k; count-stop c=3 beats FF on holdout250
 (+0.011 [0.002, 0.020]); (4) the verifier label-permutation artefact used a smoke checkpoint — rerun on the final
 ensemble; (5) token-cost accounting undercharges the 3-head ensemble.
+
+## 04:15 UTC Worker B phase 2 done
+
+- Sibling judges: scoring s0's proofs by the s1/s2 checkpoints' masked likelihood raises within-theorem finished-only
+  AUROC from 0.687 to 0.78 (textbook72) and 0.788 to 0.83 (holdout250); k=8 selection 0.544 → 0.571 (+0.027
+  [0.011, 0.049]) on textbook72, oracle 0.593. Averaging all three judges is as good as siblings only, so the
+  mechanism (self-blindness vs judge ensembling vs s0 being a weaker judge) is unresolved → phase 3: 3×3
+  generator×judge matrix with s1 and s2 pools on the test sets.
+- Stopping: count-stop (stop after the c-th finished attempt, pick by likelihood) traces the same curve as the
+  rank rule and beats fixed-k at matched dev-chosen budgets (textbook72 m=4: +0.036 [0.018, 0.058] at +2.9
+  attempts). Difficulty-aware allocation from the pooled verifier does not beat count-stop. All policies pour
+  attempts into near-hopeless theorems, and a give-up rule loses on dev, so those attempts still pay.
+- Best practical policy: count-stop + sibling-judge selection: textbook72 0.564 at 6.9 attempts, 0.604 at 11.5
+  (oracle pass@64 0.694). Audit-2 fixes applied (cost accounting, dev-frozen comparators, narrowed claims).

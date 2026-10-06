@@ -84,12 +84,28 @@ def load_pool(pool, scores_dir, labels=None, names=None, scorers=None):
     return stem, T, sorted(set(['random', 'completion', 'oracle']) | set(sc))
 
 
+def n_passes(name):
+    """forward passes a scorer needs per candidate (midpoint audit item 1): (likelihood passes, verifier passes)."""
+    base = name[len('completion_'):] if name.startswith('completion_verifier') else name
+    if base.startswith('verifier'):
+        return 0, (3 if base.endswith('_ens') else 1)
+    if name.startswith('shallow_lr'):
+        return (0 if name.endswith('_env') else 1), 0          # shallow_lr uses the s0 likelihood/entropy features
+    if name.endswith('_xseed'):
+        return 3, 0
+    if name.endswith('_siblings'):
+        return 2, 0
+    if name in LOGLIK_FAMILY or name.startswith('loglik') or name.startswith('completion_loglik') or \
+            name.startswith('entropy') or name.startswith('completion_minstep') or name.startswith('completion_entropy'):
+        return 1, 0
+    return 0, 0
+
+
 def scorer_cost(name, t):
-    if name in LOGLIK_FAMILY:
-        return t['fwd']
-    if name.startswith('verifier'):
-        return np.minimum(1024.0, t['fwd'])
-    return np.zeros(t['k'])
+    """extra tokens per candidate for scoring: each teacher-forced likelihood pass reads every (state, action) pair;
+    each verifier pass reads the attempt clipped to max_len 1024."""
+    lp, vp = n_passes(name)
+    return lp * t['fwd'] + vp * np.minimum(1024.0, t['fwd'])
 
 
 def perms_for(T, R, seed, orig_order=False):

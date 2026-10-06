@@ -1,0 +1,50 @@
+holdout250__s0_r16__k64__phase2.npz
+  m=2: fixed-k frozen acc 0.889
+    ff    att  1.61 acc 0.904 | vs fixed@2 +0.016 [+0.005,+0.028] (Δatt -0.39) | vs FF +0.000 [+0.000,+0.000] (Δatt +0.00) | vs count -0.001 [-0.003,-0.000] (Δatt -0.09) | descr vs fixed@realised +0.034
+    count att  1.70 acc 0.905 | vs fixed@2 +0.017 [+0.006,+0.030] (Δatt -0.30) | vs FF +0.001 [+0.000,+0.003] (Δatt +0.09) | vs count +0.000 [+0.000,+0.000] (Δatt +0.00) | descr vs fixed@realised +0.031
+    r1    att  2.63 acc 0.916 | vs fixed@2 +0.027 [+0.016,+0.040] (Δatt +0.63) | vs FF +0.012 [+0.008,+0.016] (Δatt +1.03) | vs count +0.010 [+0.007,+0.014] (Δatt +0.93) | descr vs fixed@realised +0.019
+    r2    att  3.53 acc 0.918 | vs fixed@2 +0.029 [+0.018,+0.042] (Δatt +1.53) | vs FF +0.014 [+0.009,+0.019] (Δatt +1.92) | vs count +0.012 [+0.008,+0.017] (Δatt +1.83) | descr vs fixed@realised +0.013
+    r3    att  9.33 acc 0.923 | vs fixed@2 +0.034 [+0.021,+0.050] (Δatt +7.33) | vs FF +0.019 [+0.011,+0.027] (Δatt +7.72) | vs count +0.018 [+0.010,+0.025] (Δatt +7.63) | descr vs fixed@realised +0.002
+    da    att  1.70 acc 0.905 | vs fixed@2 +0.016 [+0.006,+0.029] (Δatt -0.30) | vs FF +0.001 [-0.001,+0.003] (Δatt +0.09) | vs count -0.001 [-0.003,+0.001] (Δatt -0.00) | descr vs fixed@realised +0.030
+    db    att  2.00 acc 0.889 | vs fixed@2 +0.000 [+0.000,+0.000] (Δatt +0.00) | vs FF -0.016 [-0.028,-0.005] (Δatt +0.39) | vs count -0.017 [-0.030,-0.006] (Δatt +0.30) | descr vs fixed@realised +0.000
+  m=4: fixed-k frozen acc 0.908
+    ff    att  1.70 acc 0.905 | vs fixed@4 -0.002 [-0.010,+0.007] (Δatt -2.30) | vs FF +0.000 [+0.000,+0.000] (Δatt +0.00) | vs count -0.013 [-0.017,-0.008] (Δatt -1.23) | descr vs fixed@realised +0.031
+    count att  2.93 acc 0.918 | vs fixed@4 +0.010 [+0.003,+0.018] (Δatt -1.07) | vs FF +0.013 [+0.008,+0.017] (Δatt +1.23) | vs count +0.000 [+0.000,+0.000] (Δatt +0.00) | descr vs fixed@realised +0.018
+    r1    att  2.81 acc 0.918 | vs fixed@4 +0.010 [+0.003,+0.018] (Δatt -1.19) | vs FF +0.012 [+0.008,+0.017] (Δatt +1.11) | vs count -0.000 [-0.002,+0.002] (Δatt -0.12) | descr vs fixed@realised +0.019
+    r2    att  3.59 acc 0.920 | vs fixed@4 +0.012 [+0.006,+0.020] (Δatt -0.41) | vs FF +0.014 [+0.009,+0.020] (Δatt +1.89) | vs count +0.002 [-0.001,+0.004] (Δatt +0.66) | descr vs fixed@realised +0.014
+    r3    att  9.33 acc 0.923 | vs fixed@4 +0.015 [+0.007,+0.024] (Δatt +5.33) | vs FF +0.018 [+0.010,+0.025] (Δatt +7.63) | vs count +0.005 [+0.000,+0.010] (Δatt +6.40) | descr vs fixed@realised +0.002
+    da    att  3.42 acc 0.918 | vs fixed@4 +0.010 [+0.002,+0.020] (Δatt -0.58) | vs FF +0.012 [+0.006,+0.019] (Δatt +1.72) | vs count -0.000 [-0.004,+0.004] (Δatt +0.49) | descr vs fixed@realised +0.014
+    db    att  3.47 acc 0.919 | vs fixed@4 +0.011 [+0.005,+0.020] (Δatt -0.53) | vs FF +0.014 [+0.008,+0.020] (Δatt +1.76) | vs count +0.001 [-0.001,+0.004] (Δatt +0.53) | descr vs fixed@realised +0.015
+  m=8: fixed-k frozen acc 0.918
+    ff    att  1.70 acc 0.905 | vs fixed@8 -0.012 [-0.019,-0.005] (Δatt -6.30) | vs FF +0.000 [+0.000,+0.000] (Δatt +0.00) | vs count -0.018 [-0.026,-0.010] (Δatt -5.46) | descr vs fixed@realised +0.031
+    count att  7.16 acc 0.923 | vs fixed@8 +0.006 [+0.002,+0.010] (Δatt -0.84) | vs FF +0.018 [+0.010,+0.026] (Δatt +5.46) | vs count +0.000 [+0.000,+0.000] (Δatt +0.00) | descr vs fixed@realised +0.007
+    r1    att  2.81 acc 0.918 | vs fixed@8 +0.000 [-0.005,+0.006] (Δatt -5.19) | vs FF +0.012 [+0.008,+0.017] (Δatt +1.11) | vs count -0.006 [-0.010,-0.001] (Δatt -4.35) | descr vs fixed@realised +0.019
+    r2    att  7.32 acc 0.923 | vs fixed@8 +0.005 [+0.001,+0.010] (Δatt -0.68) | vs FF +0.017 [+0.011,+0.024] (Δatt +5.62) | vs count -0.001 [-0.004,+0.002] (Δatt +0.16) | descr vs fixed@realised +0.006
+    r3    att  9.33 acc 0.923 | vs fixed@8 +0.005 [-0.000,+0.011] (Δatt +1.33) | vs FF +0.018 [+0.010,+0.025] (Δatt +7.63) | vs count -0.001 [-0.004,+0.003] (Δatt +2.17) | descr vs fixed@realised +0.002
+    da    att  6.65 acc 0.924 | vs fixed@8 +0.006 [+0.002,+0.012] (Δatt -1.35) | vs FF +0.019 [+0.011,+0.026] (Δatt +4.95) | vs count +0.001 [-0.001,+0.003] (Δatt -0.51) | descr vs fixed@realised +0.008
+    db    att  6.51 acc 0.923 | vs fixed@8 +0.006 [+0.001,+0.011] (Δatt -1.49) | vs FF +0.018 [+0.011,+0.026] (Δatt +4.81) | vs count -0.000 [-0.002,+0.002] (Δatt -0.65) | descr vs fixed@realised +0.008
+textbook72__s0_r16__k64__phase2.npz
+  m=2: fixed-k frozen acc 0.464
+    ff    att  4.11 acc 0.521 | vs fixed@2 +0.057 [+0.034,+0.082] (Δatt +2.11) | vs FF +0.000 [+0.000,+0.000] (Δatt +0.00) | vs count -0.004 [-0.009,-0.001] (Δatt -0.45) | descr vs fixed@realised +0.010
+    count att  4.56 acc 0.526 | vs fixed@2 +0.061 [+0.037,+0.088] (Δatt +2.56) | vs FF +0.004 [+0.001,+0.009] (Δatt +0.45) | vs count +0.000 [+0.000,+0.000] (Δatt +0.00) | descr vs fixed@realised +0.009
+    r1    att  5.71 acc 0.538 | vs fixed@2 +0.074 [+0.046,+0.104] (Δatt +3.71) | vs FF +0.017 [+0.008,+0.028] (Δatt +1.60) | vs count +0.013 [+0.004,+0.023] (Δatt +1.15) | descr vs fixed@realised +0.011
+    r2    att  5.95 acc 0.541 | vs fixed@2 +0.077 [+0.048,+0.106] (Δatt +3.95) | vs FF +0.020 [+0.011,+0.030] (Δatt +1.84) | vs count +0.016 [+0.007,+0.026] (Δatt +1.39) | descr vs fixed@realised +0.012
+    r3    att 12.09 acc 0.561 | vs fixed@2 +0.097 [+0.059,+0.138] (Δatt +10.09) | vs FF +0.040 [+0.015,+0.070] (Δatt +7.97) | vs count +0.036 [+0.011,+0.065] (Δatt +7.53) | descr vs fixed@realised +0.003
+    da    att  4.65 acc 0.526 | vs fixed@2 +0.062 [+0.039,+0.088] (Δatt +2.65) | vs FF +0.005 [-0.001,+0.012] (Δatt +0.54) | vs count +0.001 [-0.005,+0.006] (Δatt +0.10) | descr vs fixed@realised +0.009
+    db    att  2.00 acc 0.464 | vs fixed@2 +0.000 [+0.000,+0.000] (Δatt +0.00) | vs FF -0.057 [-0.082,-0.034] (Δatt -2.11) | vs count -0.061 [-0.088,-0.037] (Δatt -2.56) | descr vs fixed@realised +0.000
+  m=4: fixed-k frozen acc 0.510
+    ff    att  4.56 acc 0.526 | vs fixed@4 +0.016 [-0.001,+0.035] (Δatt +0.56) | vs FF +0.000 [+0.000,+0.000] (Δatt +0.00) | vs count -0.020 [-0.036,-0.007] (Δatt -2.32) | descr vs fixed@realised +0.009
+    count att  6.87 acc 0.546 | vs fixed@4 +0.036 [+0.018,+0.058] (Δatt +2.87) | vs FF +0.020 [+0.007,+0.036] (Δatt +2.32) | vs count +0.000 [+0.000,+0.000] (Δatt +0.00) | descr vs fixed@realised +0.009
+    r1    att  7.02 acc 0.545 | vs fixed@4 +0.035 [+0.016,+0.057] (Δatt +3.02) | vs FF +0.019 [+0.008,+0.034] (Δatt +2.47) | vs count -0.001 [-0.010,+0.007] (Δatt +0.15) | descr vs fixed@realised +0.007
+    r2    att  6.74 acc 0.547 | vs fixed@4 +0.037 [+0.019,+0.056] (Δatt +2.74) | vs FF +0.021 [+0.009,+0.035] (Δatt +2.18) | vs count +0.001 [-0.007,+0.009] (Δatt -0.13) | descr vs fixed@realised +0.011
+    r3    att 12.09 acc 0.561 | vs fixed@4 +0.051 [+0.024,+0.081] (Δatt +8.09) | vs FF +0.036 [+0.011,+0.065] (Δatt +7.53) | vs count +0.016 [+0.000,+0.033] (Δatt +5.21) | descr vs fixed@realised +0.003
+    da    att 11.86 acc 0.564 | vs fixed@4 +0.054 [+0.026,+0.088] (Δatt +7.86) | vs FF +0.039 [+0.011,+0.071] (Δatt +7.30) | vs count +0.019 [+0.000,+0.039] (Δatt +4.98) | descr vs fixed@realised +0.007
+    db    att 10.93 acc 0.562 | vs fixed@4 +0.052 [+0.025,+0.083] (Δatt +6.93) | vs FF +0.036 [+0.012,+0.066] (Δatt +6.38) | vs count +0.016 [+0.000,+0.034] (Δatt +4.06) | descr vs fixed@realised +0.009
+  m=8: fixed-k frozen acc 0.544
+    ff    att  4.56 acc 0.526 | vs fixed@8 -0.019 [-0.043,+0.004] (Δatt -3.44) | vs FF +0.000 [+0.000,+0.000] (Δatt +0.00) | vs count -0.041 [-0.070,-0.016] (Δatt -6.96) | descr vs fixed@realised +0.009
+    count att 11.52 acc 0.567 | vs fixed@8 +0.023 [+0.007,+0.039] (Δatt +3.52) | vs FF +0.041 [+0.016,+0.070] (Δatt +6.96) | vs count +0.000 [+0.000,+0.000] (Δatt +0.00) | descr vs fixed@realised +0.011
+    r1    att  7.02 acc 0.545 | vs fixed@8 +0.001 [-0.017,+0.018] (Δatt -0.98) | vs FF +0.019 [+0.008,+0.034] (Δatt +2.47) | vs count -0.022 [-0.043,-0.003] (Δatt -4.50) | descr vs fixed@realised +0.007
+    r2    att 10.35 acc 0.557 | vs fixed@8 +0.013 [+0.000,+0.026] (Δatt +2.35) | vs FF +0.031 [+0.013,+0.052] (Δatt +5.79) | vs count -0.010 [-0.023,+0.002] (Δatt -1.17) | descr vs fixed@realised +0.006
+    r3    att 12.09 acc 0.561 | vs fixed@8 +0.017 [+0.002,+0.034] (Δatt +4.09) | vs FF +0.036 [+0.011,+0.065] (Δatt +7.53) | vs count -0.006 [-0.014,+0.002] (Δatt +0.57) | descr vs fixed@realised +0.003
+    da    att 13.92 acc 0.566 | vs fixed@8 +0.022 [+0.006,+0.040] (Δatt +5.92) | vs FF +0.041 [+0.011,+0.074] (Δatt +9.36) | vs count -0.001 [-0.009,+0.005] (Δatt +2.40) | descr vs fixed@realised +0.003
+    db    att 13.71 acc 0.566 | vs fixed@8 +0.022 [+0.006,+0.040] (Δatt +5.71) | vs FF +0.041 [+0.011,+0.074] (Δatt +9.16) | vs count -0.001 [-0.009,+0.005] (Δatt +2.19) | descr vs fixed@realised +0.003
