@@ -32,7 +32,7 @@ deliberately not the bar for now.
 ## The metric
 
 `metric` in `summary.json`: dev-transfer theorems (true length >= 7, 1,108 of them) solved with
-EVAL_K = 64 attempts each, **with the harness setting `model.n_loops = EVAL_LOOPS = 8`**. Higher is
+EVAL_K = 64 attempts each, **with the harness setting `model.n_loops = EVAL_LEVEL = 8`**. Higher is
 better. `metric_diag` is the same eval at 2 loops; it is recorded so you can see what loops add,
 and it is not scored. A model that is merely good at 2 loops and no better at 8 does not answer the
 question, even if it scores well: say so in your `surprise` text when `metric` and `metric_diag`
@@ -129,7 +129,7 @@ Measure before registering anything that may change speed:
 `$PY bench_pretrain.py --secs 60` rents one A40 for about 4 minutes, runs your working-tree
 `pretrain()` for 60 s and prints steps/s, memory and sampling speed at the default loop count. It
 does not run `rl`. For the RL budget, reason from the incumbent's per-call timings in
-`results/*/results.json` (`rl_rounds`: one entry per oracle call, with `loops`, `k`,
+`results/*/results.json` (`rl_rounds`: one entry per oracle call, with `level` (the loop count), `k`,
 `samples_per_sec` and `rl_secs_used`): sampling cost grows with loops, about 2.5 times slower at 8
 loops than at 2.
 

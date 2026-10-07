@@ -13,8 +13,9 @@ Contract with harness.py (frozen):
                from it with the fork's sample.generate, so it must provide:
                  - forward(idx) -> logits (B,T,V)  and  forward(idx, pos=, mask=, caches=) with a
                    per-block KV cache dict, exactly like the fork's GPT (model.blocks must exist)
-                 - an integer `n_loops`: the loop count applied in eval mode. The harness sets it
-                   to EVAL_LOOPS for the scored eval and to DIAG_LOOPS for the diagnostic one.
+                 - an integer `n_loops` (the harness's KNOB): the loop count applied in eval
+                   mode. The harness sets it to EVAL_LEVEL for the scored eval and to DIAG_LEVEL
+                   for the diagnostic one.
   tok          must provide encode_prompt, encode_proof, decode, shift_abs, pad, eos, mode, and
                mode must be "lean_seq" (harness TOK_MODE): Lean text in and out, Lean-gated samples.
                Decoder rule: decode() is deterministic and single-pass; it may not call the

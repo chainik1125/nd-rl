@@ -5,7 +5,7 @@
 
 Forked from ../autoresearch/harness.py (sha 2aa52f23e7ec) on 2026-10-07. What changed: the RL
 stage belongs to the agent, behind a wall-clock budget and a sampling oracle, and the metric is
-measured at EVAL_LOOPS test-time loops.
+measured with the model's test-time compute knob (KNOB) set to EVAL_LEVEL.
 
 One timed run = harness owns the clocks, the oracle and the eval; `pretrain.py` (agent-editable)
 owns pretraining and RL:
@@ -13,16 +13,16 @@ owns pretraining and RL:
   1. load frozen data (Dan's cap-6 Stage-1 file, ladder RL-target pool, ladder transfer pool)
   2. call pretrain.pretrain(train_recs, PRETRAIN_SECS, ...) -> (model, tok, stats); charged for
      everything including model construction and torch.compile. Overrun past the grace -> timeout.
-  3. check n_params <= PARAM_CAP, tok.mode == TOK_MODE and that the model has `n_loops`
+  3. check n_params <= PARAM_CAP, tok.mode == TOK_MODE and that the model has the KNOB attribute
   4. call pretrain.rl(model, tok, targets, train_recs, oracle, RL_SECS, ...): expert iteration in
      whatever form the agent likes. The targets are statements only, and `oracle.sample` is the
      only way to turn them into training data: it samples the model's own attempts and returns
      the ones Lean AND nd_verify accept. RL_SECS is wall-clock inside rl() minus the time the
      oracle spent in the Lean gate (pod CPUs differ; GPU work is what is rationed). Overrun past
      the grace, or an oracle call after the budget is spent -> timeout.
-  5. eval on the dev half of the transfer pool with the harness setting model.n_loops:
-     METRIC = dev theorems solved at L_true >= 7 with EVAL_K attempts at EVAL_LOOPS loops.
-     The same eval at DIAG_LOOPS loops is recorded as a diagnostic, not scored.
+  5. eval on the dev half of the transfer pool with the harness setting the model's KNOB:
+     METRIC = dev theorems solved at L_true >= 7 with EVAL_K attempts at EVAL_LEVEL.
+     The same eval at DIAG_LEVEL is recorded as a diagnostic, not scored.
   6. SIGALRM at TOTAL_SECS from process start kills everything -> status "timeout"
 
 The holdout half of the transfer pool is never scored here. Everything is written to --out.
@@ -67,8 +67,12 @@ RL_GRACE = 60
 PARAM_CAP = 10_000_000  # unique trainable params, embeddings included; checked after RL too
 N_TARGETS, TEMP, MAX_NEW, SAMPLE_BATCH = 1500, 0.8, 512, 1024
 EVAL_K = 64
-EVAL_LOOPS = 8  # the metric: model.n_loops during the scored eval
-DIAG_LOOPS = 2  # the same eval again at this loop count, recorded but not scored
+# The model's test-time compute knob: an integer attribute the harness sets before each eval and
+# rl() sets before oracle calls. A sibling loop for another architecture changes these three
+# constants and nothing else in this file.
+KNOB = "n_loops"  # loops of the shared core
+EVAL_LEVEL = 8  # the metric: the knob's value during the scored eval
+DIAG_LEVEL = 2  # the same eval again at this value, recorded but not scored
 TOK_MODE = "lean_seq"  # required tokenizer mode (fork lean_tok.py)
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -204,7 +208,7 @@ class Oracle:
 
     def sample(self, model, targets, k, temperature=TEMP, batch=SAMPLE_BATCH):
         """k attempts at each of `targets` (records rl() was given, any subset, in any order) from
-        `model` as it is now, in eval mode, at whatever loop count the model applies. Returns one
+        `model` as it is now, in eval mode, at whatever its KNOB is set to. Returns one
         dict per target, in order: name, prompt, n_lines, proofs (the distinct accepted proof
         texts), n_ok (accepted attempts) and n_tried. Rejected attempts are not returned.
         Raises BudgetSpent, which ends the run as a timeout, once the budget is used up."""
@@ -236,7 +240,7 @@ class Oracle:
         self.calls.append(
             {
                 "round": call,
-                "loops": getattr(model, "n_loops", None),
+                "level": getattr(model, KNOB, None),
                 "k": k,
                 "n_targets": len(recs),
                 "sample_acc": sum(x["n_ok"] for x in rows) / max(samp["samples"], 1),
@@ -254,7 +258,7 @@ class Oracle:
         c = self.calls[-1]
         log(
             f"ei r{call}: acc {c['sample_acc']:.4f}, +{new} proofs, "
-            f"solved {len(solved)}/{len(self.targets)}, L*={ls}, loops {c['loops']}, "
+            f"solved {len(solved)}/{len(self.targets)}, L*={ls}, {KNOB} {c['level']}, "
             f"{len(recs)} targets x {k}, {samp['samples_per_sec']:.0f} samples/s, "
             f"RL clock {c['rl_secs_used']:.0f}/{self.a.rl_secs}s"
         )
@@ -301,15 +305,15 @@ def stage_rl(a, agent, tok, model, targets, train_recs):
     }
 
 
-def eval_at(a, tok, model, dev_pool, loops):
-    model.n_loops = loops
+def eval_at(a, tok, model, dev_pool, level):
+    setattr(model, KNOB, level)
     rows, samp = sample_and_judge(
         model, tok, dev_pool, a.eval_k, TEMP, a.seed * 1000 + 777, SAMPLE_BATCH, a.max_new
     )
     solved = {r["name"] for r in rows if r["solved"]}
     ls, ge = lstar(solved, dev_pool)
     out = {
-        "loops": loops,
+        "level": level,
         "attempts_per_theorem": a.eval_k,
         "solved": len(solved),
         "n": len(dev_pool),
@@ -322,25 +326,25 @@ def eval_at(a, tok, model, dev_pool, loops):
         "sampling": samp,
     }
     log(
-        f"eval at {loops} loops: solved {len(solved)}/{len(dev_pool)}, ge7 {ge[7]}, L*={ls}, "
+        f"eval at {KNOB} {level}: solved {len(solved)}/{len(dev_pool)}, ge7 {ge[7]}, L*={ls}, "
         f"per-sample {out['sample_acc']:.4f}, {samp['samples_per_sec']:.0f} samples/s"
     )
     return out, rows
 
 
 def stage_eval(a, tok, model, dev_pool, heldout_recs):
-    out, rows = eval_at(a, tok, model, dev_pool, a.eval_loops)
+    out, rows = eval_at(a, tok, model, dev_pool, a.eval_level)
     out["heldout_greedy"] = greedy_rate(model, tok, heldout_recs)
     with open(f"{a.out}/eval_dev.jsonl", "w") as f:
         for r in rows:
             keys = ("name", "n_lines", "solved", "n_ok", "proofs", "written_lens", "pruned_lens")
             f.write(json.dumps({k: r[k] for k in keys}) + "\n")
-    diag, _ = eval_at(a, tok, model, dev_pool, a.diag_loops)
+    diag, _ = eval_at(a, tok, model, dev_pool, a.diag_level)
     out["diag"] = diag
-    model.n_loops = a.eval_loops
+    setattr(model, KNOB, a.eval_level)
     log(
         f"eval: solved {out['solved']}/{len(dev_pool)}, ge7 {out['solved_ge7']} at "
-        f"{a.eval_loops} loops ({diag['solved_ge7']} at {a.diag_loops}), L*={out['lstar']}, "
+        f"{KNOB} {a.eval_level} ({diag['solved_ge7']} at {a.diag_level}), L*={out['lstar']}, "
         f"max pruned {out['max_pruned']}, held-out greedy {out['heldout_greedy']:.3f}"
     )
     return out
@@ -366,8 +370,9 @@ RULES = (
     "PARAM_CAP",
     "N_TARGETS",
     "EVAL_K",
-    "EVAL_LOOPS",
-    "DIAG_LOOPS",
+    "KNOB",
+    "EVAL_LEVEL",
+    "DIAG_LEVEL",
     "TOK_MODE",
 )
 
@@ -417,7 +422,7 @@ def main():
         MAX_NEW,
         N_TARGETS,
     )
-    a.eval_loops, a.diag_loops = EVAL_LOOPS, DIAG_LOOPS
+    a.eval_level, a.diag_level = EVAL_LEVEL, DIAG_LEVEL
     if a.smoke:
         a.pretrain_secs, a.rl_secs, a.eval_k, a.max_new, a.n_targets = 10, 30, 2, 120, 8
     os.makedirs(a.out, exist_ok=True)
@@ -485,8 +490,8 @@ def main():
         if n_params > PARAM_CAP:
             write_summary(a, "crash", pretrain=pre, reason=f"{n_params} params > cap {PARAM_CAP}")
             return
-        if not isinstance(getattr(model, "n_loops", None), int):
-            reason = "model has no integer n_loops for the harness to set at eval"
+        if not isinstance(getattr(model, KNOB, None), int):
+            reason = f"model has no integer {KNOB} for the harness to set at eval"
             write_summary(a, "crash", pretrain=pre, reason=reason)
             return
         save_checkpoint(a, model, tok, "pretrain")

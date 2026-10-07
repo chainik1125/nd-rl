@@ -15,7 +15,7 @@ HEADER = [
     "budget s/pre/rl",
     "patch",
     "metric",
-    "at 2 loops",
+    "at diag level",
     "RL solved",
     "status",
     "greedy",

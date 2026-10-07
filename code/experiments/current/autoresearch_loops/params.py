@@ -124,9 +124,9 @@ def fork_commit() -> str:
     return m.group(1)
 
 
-def harness_rules() -> dict[str, int | float]:
-    """The UPPER_CASE numeric constants assigned at the top level of harness.py, evaluated one
-    assignment at a time (importing harness.py needs torch and the fork)."""
+def harness_rules() -> dict[str, Any]:
+    """The UPPER_CASE numeric and string constants assigned at the top level of harness.py,
+    evaluated one assignment at a time (importing harness.py needs torch and the fork)."""
     tree = ast.parse((HERE / "harness.py").read_text())
     ns: dict[str, Any] = {}
     for node in tree.body:
@@ -135,7 +135,7 @@ def harness_rules() -> dict[str, int | float]:
             with contextlib.suppress(Exception):
                 code = compile(ast.Module(body=[node], type_ignores=[]), "harness.py", "exec")
                 exec(code, {"os": os, "__file__": str(HERE / "harness.py")}, ns)
-    return {k: v for k, v in ns.items() if k.isupper() and isinstance(v, int | float)}
+    return {k: v for k, v in ns.items() if k.isupper() and isinstance(v, int | float | str)}
 
 
 def protocol(seed: int | list[int] = 0) -> dict[str, Any]:
@@ -168,9 +168,10 @@ def protocol(seed: int | list[int] = 0) -> dict[str, Any]:
             "targets_sampled": P["rl_targets"]["sampled"] if seed == 0 else None,
         },
         "eval": {
-            "metric": "dev-transfer theorems solved at L_true >= 7 at EVAL_LOOPS loops",
-            "loops": H["EVAL_LOOPS"],
-            "diag_loops": H["DIAG_LOOPS"],
+            "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+            "knob": H["KNOB"],
+            "level": H["EVAL_LEVEL"],
+            "diag_level": H["DIAG_LEVEL"],
             "attempts_per_theorem": H["EVAL_K"],
             "temp": H["TEMP"],
             "pool": P["transfer_dev"],

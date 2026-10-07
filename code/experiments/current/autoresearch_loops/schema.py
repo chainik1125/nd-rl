@@ -124,8 +124,9 @@ class RlProtocol(Loose):
 
 class EvalProtocol(Loose):
     metric: str
-    loops: int
-    diag_loops: int
+    knob: str
+    level: int
+    diag_level: int
     attempts_per_theorem: int
     temp: float
     pool: Pool
@@ -224,7 +225,7 @@ class Results(Loose):
     recorded_at: str | None
     status: Status
     metric: int | None
-    metric_diag: int | None = None  # the same eval at DIAG_LOOPS loops; not scored
+    metric_diag: int | None = None  # the same eval at DIAG_LEVEL; not scored
     metric_rl: int | None
     harness_sha: str
     pretrain_sha: str
