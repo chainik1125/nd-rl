@@ -1,0 +1,214 @@
+{
+  "id": "501-fable",
+  "slug": "deep_rl_loops",
+  "written_at": "2026-10-07T09:28:26-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "b269b4b",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "ef76e13b9104",
+  "patch_lines": 31,
+  "title": "RL at the eval depth only: fine-tune and sample at 8 loops, never shallower",
+  "description": "Pretraining unchanged (random 1-8 loops). In rl(), every loop count is the eval's 8: each round samples every target 12 times at 8 loops (the baseline: 8 times at each of 1, 2, 4, 8), and the 600-step fine-tune draws its per-batch loop count from FT_LOOPS = (8,) instead of TRAIN_LOOPS = 1..8 (a new model.train_loops attribute that rl() sets). RL_K is 12 rather than 32 because sampling at 8 loops costs about 2.5x per sample and fine-tuning at 8 loops about 1.6x per step, and five rounds must still fit in RL_SECS. Everything else in RL (replay, weighting, optimizer, schedule, round rule) is the incumbent's.",
+  "tags": [
+    "rl",
+    "sampling",
+    "loops",
+    "schedule"
+  ],
+  "hypothesis": "The incumbent's fine-tune draws a loop count from 1..8 per batch, so every RL proof must be learnable at 1 loop and the shared core converges to a depth-invariant fixed point: in run 500 per-sample accuracy on the RL targets was 0.763 at both 4 and 8 loops by round 5, after being 0.081 vs 0.088 before any fine-tuning, so RL erased what depth added. Fine-tuning and sampling only at 8 loops removes the shallow-depth constraint: nothing stops passes 5-8 from doing work that passes 1-4 cannot undo, so the 8-loop computation gets all of the fine-tune signal and the proofs it learns are the ones found at 8 loops. Specialization to a single depth also helped the spike: its fixed-2 model beat the 1-4 model at 2 loops (666 vs 644). The 2-loop diagnostic should fall well below the incumbent's 657, since 2 loops is no longer trained in RL; that gap is the trivial part of 'loops pay'. The real test is whether the metric at 8 loops rises above 675.",
+  "p_keep": 0.45,
+  "expected_delta": "metric at 8 loops +10 to +25 over 675 (3-seed mean roughly 685-700) if depth was being suppressed; about -10 to -20 if the 4-loop plateau is a capacity ceiling and the lost attempts (12 per round at one depth instead of 32 across four) cost RL progress. metric_diag at 2 loops drops to roughly 550-630. RL targets solved after round 1 lower than 500's 287 (fewer attempts), cumulative RL solved near 1150-1200 if five rounds fit.",
+  "baseline_id": "500",
+  "baseline_metric": 675,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "ft": [
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 12,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "k_per_loop": 12,
+      "ft_loops": [
+        8
+      ],
+      "rounds": "until another round would not fit in RL_SECS",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

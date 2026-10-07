@@ -1,0 +1,74 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 560b252..239bed1 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -66,12 +66,18 @@ TRAIN_LOOPS = (1, 2, 3, 4, 5, 6, 7, 8)
+ DEFAULT_LOOPS = 2
+ VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
+ # ---- RL knobs: the old harness's expert iteration (600 AdamW steps per round on up to 4 proofs
+-# per solved target, weighted x4, mixed with 20,000 replayed pretraining records), except that
+-# each round samples every target RL_K times at each loop count in RL_SAMPLE_LOOPS (32 attempts
+-# per target in all, as before), so proofs that only deeper sampling finds enter the training
+-# set. Rounds repeat until another one would not fit in the budget.
+-RL_SAMPLE_LOOPS = (1, 2, 4, 8)
+-RL_K = 8
++# per solved target, weighted x4, mixed with 20,000 replayed pretraining records), with every
++# loop count in RL fixed at the eval's 8: each round samples every target RL_K times at each
++# loop count in RL_SAMPLE_LOOPS, and the fine-tune draws its per-batch loop count from FT_LOOPS
++# instead of TRAIN_LOOPS. Random 1-8 fine-tuning made every RL proof learnable at 1 loop, so the
++# deep passes converged to a fixed point (run 500: the same per-sample accuracy at 4 and 8
++# loops); at a single deep depth the core may spend all 8 passes on the hard proofs. RL_K is
++# 12 rather than 32 because sampling and fine-tuning at 8 loops cost about 2.5x and 1.6x the
++# 1-8 mix per sample and per step, and five rounds must still fit. Rounds repeat until another
++# one would not fit in the budget.
++RL_SAMPLE_LOOPS = (8,)
++RL_K = 12
++FT_LOOPS = (8,)
+ FT_STEPS, FT_BS, FT_LR, FT_WARMUP = 600, 128, 3e-4, 50
+ RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
+ # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+@@ -209,6 +215,7 @@ class LoopedGPT(GPT):
+         self.register_buffer("slopes", slopes, persistent=False)
+         self.ln_loop = torch.nn.LayerNorm(d)
+         self.n_loops, self.loop_rng = DEFAULT_LOOPS, random.Random(seed)
++        self.train_loops = TRAIN_LOOPS  # the per-batch draw in train mode; rl() narrows it
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+@@ -230,7 +237,7 @@ class LoopedGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        n = self.loop_rng.choice(TRAIN_LOOPS) if self.training else self.n_loops
++        n = self.loop_rng.choice(self.train_loops) if self.training else self.n_loops
+         entry, *core, exit_block = self.blocks
+         x = e = entry(self.emb(idx), None, None, bias, None if caches is None else caches[0])
+         for loop in range(n):
+@@ -487,7 +494,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+ 
+ def finetune(model, tok, data, rng, device):
+     """The old harness's RL fine-tune: FT_STEPS AdamW steps, linear warmup then cosine to lr/10.
+-    The model is in train mode, so every batch draws its own loop count from TRAIN_LOOPS."""
++    The model is in train mode, so every batch draws its own loop count from model.train_loops."""
+     opt = torch.optim.AdamW(model.parameters(), lr=FT_LR, weight_decay=0.1, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+@@ -516,6 +523,7 @@ def finetune(model, tok, data, rng, device):
+ 
+ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+     rng = random.Random(seed)
++    model.train_loops = FT_LOOPS
+     found = {t["name"]: {} for t in targets}  # name -> {normalized proof: proof text}
+     rounds, round_secs = 0, 0.0
+     # Start a round only if one as long as the last (plus 15%) still fits in the budget.
+@@ -544,4 +552,9 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+             f"round {round_secs:.0f}s, {oracle.left():.0f}s left"
+         )
+     model.n_loops = DEFAULT_LOOPS
+-    return {"rounds": rounds, "sample_loops": RL_SAMPLE_LOOPS, "k_per_loop": RL_K}
++    return {
++        "rounds": rounds,
++        "sample_loops": RL_SAMPLE_LOOPS,
++        "k_per_loop": RL_K,
++        "ft_loops": FT_LOOPS,
++    }
