@@ -1,0 +1,226 @@
+{
+  "id": "510-fable",
+  "slug": "more-shorter-rounds",
+  "written_at": "2026-10-07T16:18:11-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "13fd125",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "6c50c444778d",
+  "patch_lines": 11,
+  "title": "More, shorter RL rounds: half the fine-tune records per round (38,400 instead of 76,800), so about 16 rounds of expert iteration fit in RL_SECS instead of 11",
+  "description": "One constant: FT_RECORDS = 300 x 128 = 38,400 records per round instead of 600 x 128 = 76,800 (the old harness's 600 steps x 128, inherited unchanged through 507 and 509). Nothing else changes: the same looped trunk (1 entry + 2 shared core x n + 1 exit Peri-LN blocks, 6,400,256 parameters, trained at random 1-8 loops), the same rl() with 8 attempts at 1 loop per target and 24 retries at one of 2/4/8 loops for targets 1 loop failed, up to 4 distinct proofs per solved target weighted x4 mixed with 20,000 replayed pretraining records, the same Muon+AdamW fine-tune (FT_MUON_LR 3e-3 / FT_LR 3e-4, 50-step linear warmup then cosine to lr/10 over the round's steps, so the warmup is now ~15% of a round instead of ~7%), the same round rule (another round only if one as long as the last plus 15% fits). Pretraining is byte-identical to 509, so no bench was run. Arithmetic behind the choice, from 509 seed 0's per-call records: a late round charged ~137 s to the RL clock, ~74 s of it the fine-tune (588-762 token-budget steps) and ~63 s GPU sampling (12,000 one-loop samples plus ~2,100 retries at each of 2/4/8 loops); round 1 charged ~210 s of sampling (455 resistant targets x 24 retries x 3 depths). Halving the fine-tune makes a late round ~100 s, so about 16 rounds fit (round 1 ~245 s, round 2 ~130 s, then ~100 s each) against 11, i.e. 45% more sampling passes and 27% fewer fine-tune records per run (16 x 38,400 = 614k against 11 x 76,800 = 845k). The mix is 20,600 records in round 1 (155 proofs x 4 + 20,000 replay) and ~32,000 by round 11, so each round still covers every record 1.2-1.9 times. Checks run: make -C code check clean (ruff, format, pyright); the edit is 7 lines inserted, 4 deleted, all but one of them comment.",
+  "tags": [
+    "rl",
+    "schedule"
+  ],
+  "hypothesis": "Mechanism under test: which half of a round buys dev theorems, the sampling pass or the fine-tune volume. 502 (7 rounds against 5) and 507 (11 against 7) are this loop's two largest gains and both raised the round count and the total fine-tune records together; 507's own analysis located its +42 in pass@64 coverage with flat per-sample accuracy, and 509 (better fit per round, same rounds) raised per-sample accuracy but not coverage and moved the mean only through one seed. If coverage comes from sampling passes (each pass draws fresh proofs: 509 seed 0 added 211-567 new distinct proofs per late one-loop pass and 20-90 per retry call, and each pass re-samples under a freshly updated policy, so the data stays on-policy), then rounds are the lever and the fine-tune records above ~1 epoch of the mix are wasted: this run should solve more RL targets (more passes over the resistant ones), build larger found-proof sets, and score higher at both depths with the 8-vs-2 gap unchanged. If instead the fine-tune volume is what fits the long proofs (each round's proofs need 2+ epochs to be sampled reliably), the run fits worse: last-round 1-loop acceptance on RL targets falls clearly below 509's 0.734/0.731/0.736 and the metric falls with it despite more rounds. Secondary: with ~1.2 epochs per round the policy stays less peaked on the found proofs, which would show as more new distinct proofs per one-loop pass at matched solved counts (509 seed 0: 211-567) and a larger pass@64 relative to per-sample accuracy; a sharper policy (fewer new proofs per pass) would say the opposite. Loops are untouched: metric minus diag should stay +10 to +30 (509: +21 = 25/24/13) and retry crack rates keep their 2 < 4 <= 8 order; this experiment does not try to make deep loops pay more, it tests the RL schedule that every depth result in this loop sits on top of. What can go wrong: (a) the round count does not rise as computed (Lean gate or sampling, not the fine-tune, is the round's long pole on a slow pod): fewer than 13 rounds on two seeds falsifies the time arithmetic; (b) 50 warmup steps out of ~300-380 plus the cosine to lr/10 leave too few steps near peak lr, visible as round-2 1-loop acceptance below 0.30 (509: 0.368/0.441/0.426); (c) round-to-round oscillation from more frequent, shorter fits with fresh momentum each round, visible as 1-loop acceptance that stops rising after round 8.",
+  "p_keep": 0.5,
+  "expected_delta": "metric at 8 loops, 3-seed mean 735-785 against 509's 748 (755/761/728); point estimate 762 (+14). metric_diag 715-765 (509: 727 = 730/737/715); metric minus diag +10 to +30, unchanged within noise. RL rounds 14-17 per seed (509: 11/11/11), ft_steps 295-380 per round (509: 588-762), fine-tune time 30-40 s per round (509: 54-73 s), last round ends with under 115 s left. Cumulative RL targets solved 1,270-1,320 (509: 1,265/1,260/1,246), the extra passes cracking 10-40 more resistant targets per seed. Fit: last-round 1-loop acceptance on RL targets 0.70-0.76 (509: 0.734/0.731/0.736); at matched round 11 it is 0.02-0.05 below 509's; round-2 1-loop acceptance 0.32-0.45 (509: 0.368/0.441/0.426). New distinct proofs per late one-loop pass 250-600 (509 seed 0: 211-567). Per-sample dev accuracy 0.46-0.50 at 8 loops and 0.43-0.48 at 2 (509: 0.492/0.492/0.471 and 0.465/0.464/0.440), i.e. flat or slightly lower, with the theorem gain, if any, in coverage (pass@64 at lengths 9-11 up by 5-20 per seed) as in 507. Pretraining identical to 509 up to GPU nondeterminism: 3,300-3,500 steps, val at 2 loops 0.078-0.088. Falsified as 'fine-tune volume matters' if the mean is below 735 with 14+ rounds and last-round 1-loop acceptance below 0.70 on two seeds. Falsified as 'rounds did not rise' if two seeds get 13 or fewer rounds. Falsified as equivalent if the mean lands in 740-756 with rounds 14+ and acceptance within 0.02 of 509's: then neither passes nor fine-tune volume move the metric at this point and the next lever is elsewhere (temperature, replay mix). No crash or timeout expected: memory and code paths are 509's; the only new risk is the 15% round margin, which with ~100 s rounds wastes at most ~115 s. Decision: keep iff the 3-seed mean is above 748; if kept with the gap unchanged, say so in the surprise text.",
+  "baseline_id": "509-fable",
+  "baseline_metric": 748,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 384,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round as long as the last plus 15% would not fit in RL_SECS; expected 14-17 per seed (509: 11/11/11 with ~137 s late rounds of which ~74 s fine-tune; now ~100 s rounds)",
+      "ft_optimizer": "pretraining's split: Muon (muon_step: Nesterov momentum 0.95, five bf16 Polar Express steps, decoupled decay MUON_WD = 0.1 per unit lr) at 3e-3 on the 17 hidden matrices (qkv, proj, fc1, fc2 of the 4 unique blocks + head.weight); AdamW 3e-4, wd 0.1, betas (0.9, 0.95) on the 53 other tensors (token embeddings, every LayerNorm gain/bias, linear biases); global clip 1.0 before both steps; linear warmup 50 steps then cosine to lr/10 over the round's step count for both groups (unchanged shape); Muon momentum and AdamW moments start fresh every round; the Muon step is one CUDA graph per round (MuonStep helper, shared with pretraining)",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_steps_note": "data-dependent: the round's fine-tune runs over FT_RECORDS = 38,400 records (300 x 128, half of 509's 76,800) cut into token-budget batches of <= 18,432 padded tokens, epoch after epoch until the count is reached; 384 is the expected step count at a mean record length of ~190 tokens (509 logged 588-762 steps per round for 76,800, so expect 295-380); the actual count per round is recorded in rl stats as ft_steps",
+      "ft_records": 38400,
+      "ft_batch": "token-budget batches as pretraining: shuffled epoch stably sorted by length, cut into runs with count x max_len <= 128 x 144 = 18,432 tokens, run order shuffled; shift augmentation on the GPU (gpu_batch); replaces the fork's batch() of 128 random records padded to their longest",
+      "ft_muon_lr": 0.003,
+      "ft_muon_lr_note": "FT_MUON_LR = 10 x FT_LR, pretraining's Muon:AdamW ratio (MUON_LR 0.01 : LR 1e-3), and equal to where pretraining's cosine ends (MUON_LR x MIN_LR_FRAC = 0.003); not tuned",
+      "ft_epochs_per_round": "mix = 4 x (distinct proofs, <= 4 per solved target) + 20,000 replay = ~20,600 records in round 1 and ~32,000 by round 11 (509 seed 0: 3,076 distinct RL proofs), so 38,400 records is 1.9 epochs early and 1.2 late (509: 3.7 and 2.4)",
+      "ft_warmup_steps": 50
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
