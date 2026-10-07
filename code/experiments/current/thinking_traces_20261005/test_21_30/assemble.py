@@ -100,7 +100,7 @@ def write(a: argparse.Namespace) -> None:
             L = len(r["proof"].split(";")) - 1
             ms = r.get("minsearch", {})
             row = dict(
-                name=f"t2130_{i:04d}",
+                name=f"{a.prefix}_{i:04d}",
                 prompt=r["prompt"],
                 reference_lines=L,
                 family="cut_composite",
@@ -121,6 +121,7 @@ def write(a: argparse.Namespace) -> None:
                 key=r["key"],
                 pkey=r["pkey"],
                 minimality=dict(
+                    cert=r.get("cert"),
                     L_ub=L,
                     L_lb=(ms.get("lb", 0) + 1) if ms else None,
                     lb_search_bound=ms.get("bound"),
@@ -185,6 +186,7 @@ def main() -> None:
         s.add_argument("--hi", type=int, default=30)
         s.add_argument("--per_len", type=int, default=300)
         s.add_argument("--seed", type=int, default=0)
+        s.add_argument("--prefix", default="t2130", help="write: row-name prefix")
     m = sub.add_parser("merge")
     m.add_argument("--in", dest="inp", required=True)
     m.add_argument("--refined", required=True)

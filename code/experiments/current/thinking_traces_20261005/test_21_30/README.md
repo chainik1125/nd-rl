@@ -5,6 +5,16 @@ written_by: agent:claude
 
 # test_21_30: a sealed test set of 21–30-line natural-deduction theorems
 
+> **Update 2026-10-07.** Two changes, both made while building the [13–20 companion](../test_13_20/README.md):
+> - **Shorter references.** `test_13_20/negf.py` shortened 63 references by one line. `minlen` proves
+>   ( ~ F ) with a 3-line box; the 2-line `| F : AS ; ( ~ F ) : NEGI s s` is valid. 8 rows fell to
+>   20 lines and were dropped, so the set is now **2,767**.
+> - **Sizes and calibration.**
+>   - Per length: 391 / 403 / 396 / 402 / 392 / 297 / 165 / 170 / 117 / 34.
+>   - 2-line bins: 794 / 798 / 689 / 335 / 151.
+>   - T0 s0 B0 was calibrated on 575 stratified items (k 8): **0 solved**.
+>   - The tables below give the numbers before this update.
+
 `test_21_30.jsonl` holds **2,775 theorems**. Each reference proof has 21–30 lines, is Lean-checked, and is close to
 minimal length (see Minimality). It measures length generalisation plus genuine difficulty: training data stops
 short of it (K12 2–12 lines, median 7; RL targets 7–14; new RL pool up to 20).
