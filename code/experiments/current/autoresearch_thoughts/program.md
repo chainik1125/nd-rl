@@ -99,6 +99,31 @@ more compute for more results."
   incumbent uses 9.56M (run 198's six untied blocks), so there is little room; training-only
   modules kept off the model, like the plan probe and the MTP head, do not count.
 
+## The control that sets the real bar (2026-10-07, 16:10 PT)
+
+Run 198's untied six blocks with no thoughts at all score **792** (790 / 785 / 800) in this
+harness when given the sibling loop's current RL recipe (its experiment 590, an operator-run
+control, recorded there as a discard so it is not their incumbent). Our incumbent 704 is nearly
+the same network (pause slots it does not use) with the old RL recipe, and scores 676. So about
+115 points are sitting in `rl()` alone, and they have nothing to do with thoughts.
+
+That recipe, from `pretrain.py` on branch `autoresearch-loops` (functions `finetune` and `rl`;
+read it with `git fetch origin autoresearch-loops && git show
+origin/autoresearch-loops:code/experiments/current/autoresearch_loops/pretrain.py`):
+
+- each round samples every target 8 times, then retries only the failures 24 more times;
+- the fine-tune runs in token-budget batches like pretraining, about 2.5 times faster than
+  padded batches of 128, so 11 RL rounds fit in 1,800 s (RL solved 1,311 targets);
+- their 509 also fine-tunes with Muon.
+
+It is architecture-independent and yours to lift. Two consequences:
+
+1. Porting it is a legitimate experiment and probably the largest single gain available. It also
+   makes every later comparison fairer to thoughts with feedback, whose main handicap has been
+   how few RL rounds they fit.
+2. "Thoughts help" now has an outside bar: a thinking recipe has to beat 792 with the same
+   `rl()`, not just beat its own score at 0 thoughts.
+
 ## Ideas to start from
 
 The incumbent (experiment 701): n thought positions after every trigger, all made from the
