@@ -1,0 +1,129 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 7e5a170..b3a8b2b 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -64,6 +64,11 @@ N_LAYER, D, N_HEAD = 2 + N_CORE, 384, 8
+ # the harness's post-pretraining greedy check.
+ TRAIN_LOOPS = (1, 2, 3, 4, 5, 6, 7, 8)
+ DEFAULT_LOOPS = 2
++# Countdown embedding: pass i of an n-loop forward adds countdown[n - 1 - i] to the core's input,
++# so the shared core knows how many passes remain before its state is decoded (0 = this is the
++# last). Rows beyond MAX_LOOPS - 1 passes from the end share the last row. Zero-initialised, so
++# the model starts as the incumbent and only learns to use the signal if it lowers the loss.
++MAX_LOOPS = max(TRAIN_LOOPS)
+ VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
+ # ---- RL knobs: the old harness's expert iteration (600 AdamW steps per round on up to 4 proofs
+ # per solved target, weighted x4, mixed with 20,000 replayed pretraining records), except for
+@@ -198,7 +203,8 @@ class LoopedGPT(GPT):
+     injection as in Geiping et al. 2025): blocks[0] is the entry block, blocks[1:-1] the shared
+     core applied n times, blocks[-1] the exit block. Every core pass starts from
+     ln_loop(state) + e, with e the entry block's output, so each pass sees an input of the same
+-    scale and the prompt is re-injected instead of being buried under accumulated writes.
++    scale and the prompt is re-injected instead of being buried under accumulated writes. Each
++    pass also adds the countdown row for its number of remaining passes (P08, as a countdown).
+ 
+     P34: the fork's GPT with ALiBi (Press et al. 2021) instead of RoPE. Head h's attention
+     logits get -slope_h * (query position - key position), slopes 2^-1 .. 2^-8 for 8 heads, so
+@@ -211,13 +217,15 @@ class LoopedGPT(GPT):
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
+         self.ln_loop = torch.nn.LayerNorm(d)
++        self.countdown = torch.nn.Parameter(torch.zeros(MAX_LOOPS, d))
+         self.n_loops, self.loop_rng = DEFAULT_LOOPS, random.Random(seed)
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+ 
+-    def features(self, idx, pos=None, mask=None, caches=None):
+-        """The trunk: (final hidden state before ln_f, the ALiBi bias used)."""
++    def features(self, idx, pos=None, mask=None, caches=None, trace=None):
++        """The trunk: (final hidden state before ln_f, the ALiBi bias used). `trace`, if a
++        list, collects the entry output and the core state after every pass (diagnostics)."""
+         B, T = idx.shape
+         if pos is None:  # training/val: one (1, H, T, T) bias broadcast over the batch
+             pos = torch.arange(T, device=idx.device)[None]
+@@ -236,13 +244,17 @@ class LoopedGPT(GPT):
+         n = self.loop_rng.choice(TRAIN_LOOPS) if self.training else self.n_loops
+         entry, *core, exit_block = self.blocks
+         x = e = entry(self.emb(idx), None, None, bias, None if caches is None else caches[0])
++        if trace is not None:
++            trace.append(e)
+         for loop in range(n):
+-            x = self.ln_loop(x) + e
++            x = self.ln_loop(x) + e + self.countdown[min(n - 1 - loop, MAX_LOOPS - 1)]
+             for j, b in enumerate(core, 1):
+                 # sample.generate makes one cache dict per unique block; a shared block's keys
+                 # and values differ per pass, so each pass gets its own sub-cache inside it.
+                 c = caches and caches[j].setdefault(loop, {"max": caches[j]["max"]})
+                 x = b(x, None, None, bias, c)
++            if trace is not None:
++                trace.append(x)
+         x = exit_block(x, None, None, bias, None if caches is None else caches[-1])
+         return x, bias
+ 
+@@ -293,6 +305,32 @@ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
+     return tot / VAL_N
+ 
+ 
++def loop_probe(model, x, m, n=MAX_LOOPS):
++    """How the iteration moves at n loops on one batch (proof tokens only): the mean relative
++    change of the core state from each pass to the next, the mean norms of the entry output and
++    of the core state after the last pass, and the countdown rows' norms. A converged iteration
++    shows deltas falling to ~0 after a few passes; a used countdown shows row norms comparable
++    with the entry output's."""
++    was_training, n_loops, states = model.training, model.n_loops, []
++    model.eval()
++    model.n_loops = n
++    with torch.no_grad():
++        model.features(x, trace=states)
++    model.train(was_training)
++    model.n_loops = n_loops
++    e, core = states[0][m], [s[m] for s in states[1:]]
++    return {
++        "loops": n,
++        "pass_deltas": [
++            ((b - a).norm(dim=-1) / a.norm(dim=-1)).mean().item()
++            for a, b in zip(core, core[1:], strict=False)
++        ],
++        "entry_norm": e.norm(dim=-1).mean().item(),
++        "state_norm": core[-1].norm(dim=-1).mean().item(),
++        "countdown_norms": model.countdown.norm(dim=-1).tolist(),
++    }
++
++
+ def to_gpu(data, tok, device):
+     """Pad all (prompt, proof) records once into (N, T) ids + proof mask on the device."""
+     N, T = len(data), max(len(p) + len(q) for p, q in data)
+@@ -467,6 +505,9 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         val_by_loops[n] = val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast)
+     model.n_loops = DEFAULT_LOOPS
+     log(f"pretrain val loss by loops: {val_by_loops}")
++    probe_idxs = torch.arange(min(64, VAL_N), device=device)
++    probe = loop_probe(model, *gpu_batch(ids, mask, ref_max, lens, probe_idxs, tok, gen))
++    log(f"pretrain loop probe: {probe}")
+     for b in compiled:
+         b._compiled_call_impl = None
+     model.eval()
+@@ -483,6 +524,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "train_loops": TRAIN_LOOPS,
+             "default_loops": DEFAULT_LOOPS,
+             "val_by_loops": val_by_loops,
++            "loop_probe": probe,
+             "curve": curve,
+         },
+     )
+@@ -560,8 +602,14 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+             f"round {round_secs:.0f}s, {oracle.left():.0f}s left"
+         )
+     model.n_loops = DEFAULT_LOOPS
++    probe_data = [
++        (tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])) for r in train_recs[:64]
++    ]
++    probe = loop_probe(model, *mk_batch(probe_data, list(range(len(probe_data))), tok, rng, device))
++    log(f"rl loop probe: {probe}")
+     return {
+         "rounds": rounds,
++        "loop_probe": probe,
+         "first_loops": RL_FIRST_LOOPS,
+         "k_first": RL_K,
+         "retry_loops": RL_RETRY_LOOPS,

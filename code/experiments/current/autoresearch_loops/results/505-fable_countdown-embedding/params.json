@@ -1,0 +1,223 @@
+{
+  "id": "505-fable",
+  "slug": "countdown-embedding",
+  "written_at": "2026-10-07T12:00:11-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "85aabaa",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "81270f4dec30",
+  "patch_lines": 56,
+  "title": "Countdown embedding: every pass of the shared core is told how many passes remain before its state is decoded",
+  "description": "One change in LoopedGPT: a zero-initialised (8, 384) parameter `countdown`. Pass i of an n-loop forward adds row n - 1 - i (passes remaining, clamped at 7) to the core's input, next to the LayerNormed state and the entry re-injection: x = ln_loop(x) + e + countdown[n - 1 - i]. The last pass of any n and the single pass of n = 1 see row 0, so the shallow program is shared; the first pass of n = 8 sees row 7. Rows train under the pretraining AdamW group (with embeddings and norms, wd 0.1) and under rl()'s AdamW. Everything else is 502: loop counts drawn from 1..8 per batch, loss on the last pass, Muon on the block matrices, MTP head, 502's RL (8 attempts at 1 loop, 24 retries at one of 2/4/8 loops for targets 1 loop failed, 600 AdamW steps at random 1..8 loops, 20,000 replayed records, x4 weight). Plus a diagnostic, `loop_probe`, recorded in the pretrain and rl stats: on 64 held-out records at 8 loops, the mean relative change of the core state from each pass to the next (7 numbers), the mean norms of the entry output and the final core state, and the 8 countdown row norms. Cached decoding checked against the full forward at 1, 3 and 8 loops on CPU with random countdown rows (max abs diff 1e-6). bench_pretrain.py, one A40, 60 s: 363 steps (502 seed 0 curve: 348 at 60 s), 12.9 steps/s between 45 and 60 s against 13.1, first step at 30 s, 6,403,328 parameters (+3,072), peak 7.58 GB, 4 compiled graphs, sampling 173 samples/s at 2 loops with the Lean gate. No speed change expected in RL either.",
+  "tags": [
+    "architecture",
+    "loops"
+  ],
+  "hypothesis": "Mechanism. The incumbent's core is time-homogeneous and trained with the loss on the last pass at a loop count drawn uniformly from 1..8, so at every pass the state may be the one that gets decoded. That demands a decodable state after each pass, which is what makes the iteration converge in about 4 passes and then sit still: the spike's curves are flat from 4 to 24 loops whatever range they trained on, 503 found RL accuracy at 4 and 8 loops identical to three decimals on every seed, and pretraining val loss is depth-invariant. A core that cannot tell the first pass of eight from the only pass of one has no way to spread a computation over passes. The countdown removes that constraint: at n = 8, passes with countdown 7..1 may hold partial states no decoder reads, and only the countdown-0 pass must be decodable; at n = 1 the single pass sees countdown 0, so the shallow program keeps its own row and is not disturbed. This is P08 (iteration embedding) with the index chosen as the budget remaining rather than the passes elapsed: a Universal-Transformer step embedding would still leave every pass possibly last. Zero init means the model starts as 502 and moves only if the signal lowers the loss. It is a necessary condition for a non-converged iteration, not a sufficient one: the data is the same at every depth, and gradient descent will prefer an 8-pass program at n = 8 only if depth lowers the loss at all for this 6.4M-parameter core. The spike's evidence that the task is barely depth-limited at this scale (looped 6.4M within 1.5 points of untied 9.56M after 12 rounds; the fixed-2 arm as good as any) makes me expect the signal to be used weakly, mostly on the long RL proofs where 502's randomized retries showed 8 loops cracking 1.4x more resistant targets than 2. 503's closing note asked for exactly this test. What I do not claim: a large metric gain. Risks: (a) the rows never move far (AdamW at 1e-3 for 3,500 steps, wd 0.1 pulling back) and the result is 502 within noise; (b) if the n = 1 and n = 8 programs diverge during RL fine-tuning, the cheap 1-loop sampling pass that 502's schedule leans on yields less, costing RL targets; (c) depths between trained ones could break, but RL and eval only use 1, 2, 4 and 8, all trained.",
+  "p_keep": 0.45,
+  "expected_delta": "metric at 8 loops, 3-seed mean: 672-712 (-18 to +22 against 690; point estimate 693). Pretraining steps 3,350-3,550 per seed (502: 3,479/3,399/3,420), val loss at 2 loops 0.081-0.093 per seed and depth-invariant within 0.004 across 1, 2, 4, 8 (the countdown cannot make the fit depth-dependent unless depth helps). RL rounds 7/7/6 as 502 and cumulative RL solved 1,170-1,230 (502: 1,203). The probe decides the mechanism; the incumbent has no probe, so these are absolute thresholds on this model. Signal used: countdown row norms for rows 1-7 above 0.25 x entry_norm after pretraining and growing through RL; pass_deltas at 8 loops after RL staying above 0.10 at passes 5-7 instead of decaying toward 0; metric minus metric_diag >= +25 (502: +18, 500: +18, 503: +33 but only from the diag falling) with the diag not below 660; per-sample dev accuracy at 8 loops above 502's 0.48 on seed 0. Signal ignored: row norms below 0.05 x entry_norm, deltas decaying to below 0.05 by pass 4, metric minus diag within +10 to +25, metric within noise of 690. Falsified mechanism: rows grow but the gap and the 8-loop accuracy do not move, meaning a budget signal does not make depth useful here and the bottleneck is parameters or data, not the convergence constraint. Discard unless the 3-seed mean is above 690.",
+  "baseline_id": "502-claude",
+  "baseline_metric": 690,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection+countdown[passes remaining] per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6403328
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere, zeros on countdown",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "ft_loops": "random 1..8 per batch",
+      "rounds": "until another round as long as the last plus 15% would not fit",
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round (502, unchanged)",
+      "k_first": 8,
+      "k_retry": 24,
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ],
+    "countdown": {
+      "rows": 8,
+      "index": "n_loops - 1 - pass, clamped to 7",
+      "init": "zeros",
+      "optimizer": "adamw auxiliary group (lr 1e-3 pretrain, 3e-4 rl), wd 0.1"
+    }
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
