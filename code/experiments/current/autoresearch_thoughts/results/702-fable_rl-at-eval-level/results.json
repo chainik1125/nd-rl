@@ -1,0 +1,429 @@
+{
+  "commit": "5e624fc",
+  "recorded_at": "2026-10-07T10:37:52-0700",
+  "status": "keep",
+  "metric": 548,
+  "metric_diag": 329,
+  "metric_rl": 956,
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "91a13dac36f0",
+  "rules": {
+    "TOTAL_SECS": 5400,
+    "PRETRAIN_SECS": 300,
+    "RL_SECS": 1800,
+    "PARAM_CAP": 10000000,
+    "N_TARGETS": 1500,
+    "EVAL_K": 64,
+    "KNOB": "n_thoughts",
+    "EVAL_LEVEL": 8,
+    "DIAG_LEVEL": 0,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 2814,
+  "reason": null,
+  "pretrain": {
+    "secs": 301.9,
+    "n_params": 9564672,
+    "steps": 1555,
+    "epochs": 1.3740890846030942,
+    "last_loss": 0.04188105836510658,
+    "heldout_greedy": 0.9135,
+    "curve": [
+      {
+        "secs": 17,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 3.980907917022705,
+        "mtp_loss": null,
+        "probe_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 67,
+        "train_loss": 1.1442288557688396,
+        "val_loss": 0.8113701790571213,
+        "mtp_loss": 1.1473454236984253,
+        "probe_loss": 2.1350242296854653
+      },
+      {
+        "secs": 45,
+        "step": 152,
+        "train_loss": 0.4241413548588753,
+        "val_loss": 0.17820855788886547,
+        "mtp_loss": 0.36637892574071884,
+        "probe_loss": 1.2768559753894806
+      },
+      {
+        "secs": 60,
+        "step": 235,
+        "train_loss": 0.19260213151574135,
+        "val_loss": 0.12479293532669544,
+        "mtp_loss": 0.17804831452667713,
+        "probe_loss": 0.29461371898651123
+      },
+      {
+        "secs": 75,
+        "step": 319,
+        "train_loss": 0.14543248154222965,
+        "val_loss": 0.10069657023996115,
+        "mtp_loss": 0.12345135398209095,
+        "probe_loss": 0.45154085010290146
+      },
+      {
+        "secs": 90,
+        "step": 399,
+        "train_loss": 0.103844054043293,
+        "val_loss": 0.0833355225622654,
+        "mtp_loss": 0.10196282155811787,
+        "probe_loss": 0.15982399508357048
+      },
+      {
+        "secs": 105,
+        "step": 482,
+        "train_loss": 0.08231611549854279,
+        "val_loss": 0.10103180166333914,
+        "mtp_loss": 0.07819977179169654,
+        "probe_loss": 0.1954028993844986
+      },
+      {
+        "secs": 120,
+        "step": 566,
+        "train_loss": 0.08560259826481342,
+        "val_loss": 0.1052290452644229,
+        "mtp_loss": 0.08427741006016731,
+        "probe_loss": 0.21937213838100433
+      },
+      {
+        "secs": 135,
+        "step": 645,
+        "train_loss": 0.07242714986205101,
+        "val_loss": 0.08789994195103645,
+        "mtp_loss": 0.07096564769744873,
+        "probe_loss": 0.14389365166425705
+      },
+      {
+        "secs": 150,
+        "step": 726,
+        "train_loss": 0.07384711131453514,
+        "val_loss": 0.08540482725948095,
+        "mtp_loss": 0.07446635980159044,
+        "probe_loss": 0.0881121875718236
+      },
+      {
+        "secs": 165,
+        "step": 809,
+        "train_loss": 0.07837242726236582,
+        "val_loss": 0.08364555239677429,
+        "mtp_loss": 0.07540231943130493,
+        "probe_loss": 0.033509508706629276
+      },
+      {
+        "secs": 180,
+        "step": 892,
+        "train_loss": 0.05691958125680685,
+        "val_loss": 0.08340706303715706,
+        "mtp_loss": 0.05476532597094774,
+        "probe_loss": 0.12067429162561893
+      },
+      {
+        "secs": 195,
+        "step": 972,
+        "train_loss": 0.062023439444601536,
+        "val_loss": 0.08504651207476854,
+        "mtp_loss": 0.05911484360694885,
+        "probe_loss": 0.11336271092295647
+      },
+      {
+        "secs": 210,
+        "step": 1057,
+        "train_loss": 0.052980534732341766,
+        "val_loss": 0.0866244612261653,
+        "mtp_loss": 0.051212185993790627,
+        "probe_loss": 0.05030381865799427
+      },
+      {
+        "secs": 225,
+        "step": 1141,
+        "train_loss": 0.05822482630610466,
+        "val_loss": 0.08941546827554703,
+        "mtp_loss": 0.057338020950555804,
+        "probe_loss": 0.07147775664925575
+      },
+      {
+        "secs": 240,
+        "step": 1223,
+        "train_loss": 0.05170393269509077,
+        "val_loss": 0.0833396753296256,
+        "mtp_loss": 0.05050854571163654,
+        "probe_loss": 0.056507558561861515
+      },
+      {
+        "secs": 255,
+        "step": 1307,
+        "train_loss": 0.07797650899738073,
+        "val_loss": 0.08858862891793251,
+        "mtp_loss": 0.07739978935569525,
+        "probe_loss": 0.06580107845366001
+      },
+      {
+        "secs": 270,
+        "step": 1393,
+        "train_loss": 0.05488384980708361,
+        "val_loss": 0.08201706875115633,
+        "mtp_loss": 0.055019624531269073,
+        "probe_loss": 0.026094025932252407
+      },
+      {
+        "secs": 285,
+        "step": 1476,
+        "train_loss": 0.04780132137238979,
+        "val_loss": 0.0789977740496397,
+        "mtp_loss": 0.04685485456138849,
+        "probe_loss": 0.07799990195780993
+      },
+      {
+        "secs": 300,
+        "step": 1555,
+        "train_loss": 0.051084086298942566,
+        "val_loss": 0.08439177460968494,
+        "mtp_loss": 0.05090814083814621,
+        "probe_loss": 0.048110201489180326
+      }
+    ],
+    "records_seen": 211563,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "train_thoughts": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "default_thoughts": 8,
+    "val_by_thoughts": {
+      "0": 0.0851004533469677,
+      "2": 0.08405832201242447,
+      "8": 0.08439177460968494
+    }
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.04535416666666667,
+      "new_proofs": 375,
+      "targets_solved": 301,
+      "lstar": 8,
+      "ge": {
+        "7": 301,
+        "8": 46,
+        "9": 4,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 375,
+      "samples_per_sec": 192,
+      "secs": 251,
+      "level": 8,
+      "k": 32,
+      "n_targets": 1500,
+      "rl_secs_used": 193.63995242118835
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.3478541666666667,
+      "new_proofs": 674,
+      "targets_solved": 778,
+      "lstar": 10,
+      "ge": {
+        "7": 778,
+        "8": 350,
+        "9": 125,
+        "10": 12,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1045,
+      "samples_per_sec": 176,
+      "secs": 550,
+      "level": 8,
+      "k": 32,
+      "n_targets": 1500,
+      "rl_secs_used": 661.0897512435913
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.5116875,
+      "new_proofs": 427,
+      "targets_solved": 957,
+      "lstar": 10,
+      "ge": {
+        "7": 957,
+        "8": 470,
+        "9": 213,
+        "10": 34,
+        "11": 3,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1452,
+      "samples_per_sec": 179,
+      "secs": 608,
+      "level": 8,
+      "k": 32,
+      "n_targets": 1500,
+      "rl_secs_used": 1182.9650886058807
+    }
+  ],
+  "eval": {
+    "solved": 535,
+    "n": 1108,
+    "ge": {
+      "7": 535,
+      "8": 444,
+      "9": 357,
+      "10": 61,
+      "11": 8,
+      "12": 1,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.972,
+    "max_pruned": 11,
+    "by_bin": {
+      "7": {
+        "solved": 91,
+        "n": 150,
+        "rate": 0.6066666666666667,
+        "ci": [
+          0.5267647239233271,
+          0.6812414330589196
+        ]
+      },
+      "8": {
+        "solved": 87,
+        "n": 152,
+        "rate": 0.5723684210526315,
+        "ci": [
+          0.4928879663242575,
+          0.6482810155137111
+        ]
+      },
+      "9": {
+        "solved": 296,
+        "n": 477,
+        "rate": 0.6205450733752621,
+        "ci": [
+          0.5761980733524885,
+          0.6629659257690519
+        ]
+      },
+      "10": {
+        "solved": 53,
+        "n": 219,
+        "rate": 0.2420091324200913,
+        "ci": [
+          0.1900461912142815,
+          0.3028671606912873
+        ]
+      },
+      "11": {
+        "solved": 7,
+        "n": 49,
+        "rate": 0.14285714285714285,
+        "ci": [
+          0.07096333720544586,
+          0.2666797318916292
+        ]
+      },
+      "12": {
+        "solved": 1,
+        "n": 54,
+        "rate": 0.018518518518518517,
+        "ci": [
+          0.0032764033153519848,
+          0.09771665358487208
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Keep: 548 (535, 562, 546) against 701's 531 (510, 529, 553), up on two seeds (701's mean read from its pod logs; its results were not yet in results/ when this was recorded). The mechanism prediction held, and more: at 0 thoughts this model solves 329 (347, 319, 321) against 701's 479 (466, 476, 496), so the 8-vs-0 gap is 219 theorems here against 52 for 701; per-sample eval accuracy at 0 thoughts is 7-9% against 701's 20-23%, while at 8 thoughts both are 30-31%. I was wrong about 701: its gap did not close to within noise, so the mixed-count fine-tune weakens the thoughts rather than erasing them. Sampling every target 32 times at 8 thoughts found about as many RL targets as 701's 8 at each of 0/2/4/8 (956 against 942 after three rounds) in the same three rounds (469-549 s each, 1,460-1,548 s charged). Same-seed pretrained models vary more than expected: seed 0 started at 4.5% sample accuracy at 8 thoughts against 701's 9.6%, and still ended at 535 against 510.",
+  "seed_metrics": {
+    "0": 535,
+    "1": 562,
+    "2": 546
+  },
+  "seed_metric_rl": {
+    "0": 957,
+    "1": 977,
+    "2": 933
+  },
+  "seed_metric_diag": {
+    "0": 347,
+    "1": 319,
+    "2": 321
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08439177460968494,
+      "heldout_greedy": 0.9135,
+      "steps": 1555
+    },
+    "1": {
+      "val_loss": 0.08170499093830585,
+      "heldout_greedy": 0.8985,
+      "steps": 1530
+    },
+    "2": {
+      "val_loss": 0.08193129021674395,
+      "heldout_greedy": 0.9195,
+      "steps": 1651
+    }
+  },
+  "lean_gate": {
+    "samples": 869472,
+    "parse_fail": 205695,
+    "distinct_checked": 553585,
+    "both_ok": 183314,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 133,
+    "lean_wall_s": 1186.2114984989166
+  },
+  "migrated": false
+}

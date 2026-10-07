@@ -61,10 +61,10 @@ N_LAYER, D, N_HEAD = 6, 384, 8  # run 198's untied blocks
 # Lean tactics, and `by`, which ends the theorem statement and opens every nested block. After a
 # trigger the model takes n thought positions whose inputs are made from its own output at the
 # trigger (not from a token), all in one parallel pass, and the last thought's output predicts
-# the line's first token. Training draws n per batch from TRAIN_THOUGHTS, in pretraining and in
-# rl()'s fine-tune; eval and sampling apply model.n_thoughts, which the harness sets for its evals
-# and rl() sets before each oracle call. DEFAULT_THOUGHTS is used for the validation curve and
-# the harness's post-pretraining greedy check.
+# the line's first token. Pretraining draws n per batch from TRAIN_THOUGHTS; rl()'s fine-tune
+# uses FT_THOUGHTS (below); eval and sampling apply model.n_thoughts, which the harness sets for
+# its evals and rl() sets before each oracle call. DEFAULT_THOUGHTS is used for the validation
+# curve and the harness's post-pretraining greedy check.
 TRAIN_THOUGHTS = (0, 1, 2, 3, 4, 5, 6, 7, 8)
 DEFAULT_THOUGHTS = 8
 MAX_THOUGHTS = 16  # rows of the thought-slot embedding; n_thoughts above this is an error
@@ -82,8 +82,14 @@ PROBE_WEIGHT = 0.3
 # per solved target, weighted x4, mixed with 20,000 replayed pretraining records), except that
 # each round samples every target RL_K times at each thought count in RL_SAMPLE_THOUGHTS (32
 # attempts per target in all, as before). Rounds repeat until another would not fit the budget.
-RL_SAMPLE_THOUGHTS = (0, 2, 4, 8)
-RL_K = 8
+# RL runs entirely at the eval level: every sample is drawn at 8 thoughts per line and the
+# fine-tune trains at 8 only (FT_THOUGHTS), never at 0. In 701 the fine-tune drew n from 0..8 and
+# the no-thought path caught up within one round (sample accuracy at 0 thoughts went from 3-6% to
+# 28-33%, against 39% at 8): the proofs found with thoughts were being distilled into the path
+# that does not think. Here they are only ever learned with thoughts.
+RL_SAMPLE_THOUGHTS = (8,)
+RL_K = 32
+FT_THOUGHTS = (8,)
 FT_STEPS, FT_BS, FT_LR, FT_WARMUP = 600, 128, 3e-4, 50
 # A fine-tune step's 128 records are sorted by length and run 32 at a time, gradients accumulated.
 # run() holds attention weights over every earlier line of every row, so memory grows with rows
@@ -410,12 +416,12 @@ def next_move(x, moves):
     return label.masked_fill(label_at >= S, -100)
 
 
-def train_loss(model, aux, x, m, tok, mtp=True):
-    """Loss of one training batch at a thought count drawn for it: the fork's loss_on (next-token
-    CE on proof tokens); plus, in pretraining, MTP_WEIGHT times the CE of the MTP module's
-    token-(t+2) prediction at the same positions; plus PROBE_WEIGHT times the plan probe's CE at
-    the triggers when the batch has thoughts. Returns (total, main, mtp, probe)."""
-    n = model.t_rng.choice(TRAIN_THOUGHTS)
+def train_loss(model, aux, x, m, tok, mtp=True, thoughts=TRAIN_THOUGHTS):
+    """Loss of one training batch at a thought count drawn for it from `thoughts`: the fork's
+    loss_on (next-token CE on proof tokens); plus, in pretraining, MTP_WEIGHT times the CE of the
+    MTP module's token-(t+2) prediction at the same positions; plus PROBE_WEIGHT times the plan
+    probe's CE at the triggers when the batch has thoughts. Returns (total, main, mtp, probe)."""
+    n = model.t_rng.choice(thoughts)
     h = model.run(x[:, :-1], n)
     logits = model.head(model.ln_f(h))
     V = logits.size(-1)
@@ -659,8 +665,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
 
 def finetune(model, tok, data, rng, device):
     """The old harness's RL fine-tune (FT_STEPS AdamW steps, linear warmup then cosine to lr/10)
-    with the plan probe's loss kept on. The model is in train mode, so every micro-batch draws its
-    own thought count from TRAIN_THOUGHTS. The probe trains along; the MTP module is not used."""
+    with the plan probe's loss kept on. Every micro-batch runs at a thought count drawn from
+    FT_THOUGHTS: the eval level only. The probe trains along; the MTP module is not used."""
     params = (
         list(model.parameters()) + list(AUX.ln_probe.parameters()) + list(AUX.probe.parameters())
     )
@@ -684,7 +690,9 @@ def finetune(model, tok, data, rng, device):
         for j in range(0, FT_BS, FT_MICRO):
             x, m = mk_batch(data, idxs[j : j + FT_MICRO], tok, rng, device)
             with autocast:
-                loss, main, _, _ = train_loss(model, AUX, x, m, tok, mtp=False)
+                loss, main, _, _ = train_loss(
+                    model, AUX, x, m, tok, mtp=False, thoughts=FT_THOUGHTS
+                )
             (loss * FT_MICRO / FT_BS).backward()
         torch.nn.utils.clip_grad_norm_(params, 1.0)
         opt.step()
@@ -722,4 +730,9 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
             f"round {round_secs:.0f}s, {oracle.left():.0f}s left"
         )
     model.n_thoughts = DEFAULT_THOUGHTS
-    return {"rounds": rounds, "sample_thoughts": RL_SAMPLE_THOUGHTS, "k_per_count": RL_K}
+    return {
+        "rounds": rounds,
+        "sample_thoughts": RL_SAMPLE_THOUGHTS,
+        "k_per_count": RL_K,
+        "ft_thoughts": FT_THOUGHTS,
+    }
