@@ -24,7 +24,18 @@ Nobody has yet made deep loops pay. That is the open problem.
 
 **The bar** is the best of those models on this loop's metric:
 
-BAR_TABLE
+| spike model (seed 0, old harness) | RL | dev solved at 2 loops | at 8 loops |
+|---|---|---|---|
+| looped, trained on 1-4 loops | 12 rounds, sampled at 2 loops | 690 | **700** |
+| looped, trained on 1-4 loops | 4 rounds, sampled at 2 loops | 644 | 657 |
+| looped, trained on 1-8 loops | 4 rounds, sampled at 2 loops | 602 | 622 |
+| looped, trained on 1-16 loops | 4 rounds, sampled at 2 loops | 593 | 614 |
+| looped, trained at a fixed 2 loops | 4 rounds, sampled at 2 loops | 666 | 460 |
+
+Measured on 2026-10-07 from the spike's checkpoints with this loop's eval (whole dev pool, 64
+attempts, temperature 0.8); the 2-loop column reproduces each run's recorded harness score. The
+12-round model had about 40 minutes of RL on the GPU, more than RL_SECS allows here. Note how
+little 8 loops add in every row: 10 to 21 theorems for three times the compute per sample.
 
 Beat the best number in that table. Run 198 (the untied model the pretraining loop ended on) is
 deliberately not the bar for now.
