@@ -36,7 +36,7 @@ GPUS = os.environ.get("ND_POD_GPU", "NVIDIA A40").split(",")
 GPU = GPUS[0]
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCAL_ART = os.path.join(
-    HERE, "..", "..", "..", "..", "artifacts", "autoresearch_loops"
+    HERE, "..", "..", "..", "..", "artifacts", "autoresearch_thoughts"
 )  # repo artifacts/ is gitignored
 REMOTE = "/workspace/autoresearch"
 HF_REPO = "robbiethompson2018/nd-rl-checkpoints"  # the one HF repo for nd-rl; runs/<name>/

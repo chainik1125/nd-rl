@@ -1,0 +1,253 @@
+<title>Coconut Spike Report</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column of lab-notebook sections, the looped spike report's sibling. The
+   before/after bars carry the headline; the thought-count sweep is six small panels, one per arm;
+   tables carry every plotted number. */
+:root {
+  --bg: #f5f6f9; --surface: #ffffff; --ink: #141920; --muted: #5a6473; --rule: #dde2ea;
+  --grid: #e9edf3; --c-ref: #3d4654; --c-ctl: #98a2b1; --c-arm: #2a78d6;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a;
+  --warn-bg: #fff6df; --warn-ink: #6b4a00;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --c-ref: #d5dbe5; --c-ctl: #6f7a8a; --c-arm: #3987e5;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70;
+  --warn-bg: #2e2710; --warn-ink: #f2d58a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --c-ref: #d5dbe5; --c-ctl: #6f7a8a; --c-arm: #3987e5;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70;
+  --warn-bg: #2e2710; --warn-ink: #f2d58a; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px;
+  display: flex; flex-direction: column; gap: 36px; }
+h1 { font-size: 30px; line-height: 1.15; font-weight: 600; margin: 0; text-wrap: balance; }
+h2 { font-size: 19px; font-weight: 600; margin: 0; text-wrap: balance; }
+h3 { font: 500 12px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 18px; line-height: 1.45; max-width: 60ch; }
+.status { background: var(--warn-bg); color: var(--warn-ink); padding: 10px 14px; border-radius: 6px;
+  font-size: 14px; max-width: none; }
+ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 72ch; }
+.muted { color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); }
+.seq { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font: 12px var(--mono); }
+.blk { border: 1.5px solid var(--muted); border-radius: 4px; padding: 5px 9px; background: var(--surface); }
+.blk.th { border-color: var(--c-arm); border-style: dashed; }
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+td.wrap-cell { white-space: normal; text-align: left; min-width: 220px; }
+thead th { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .03em; vertical-align: bottom; }
+tbody tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-size: 13px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 10px;
+  display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.panel .sub { font-size: 13px; color: var(--muted); }
+.bars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 6px 10px; align-items: center;
+  font-size: 13px; }
+.bars .track { height: 14px; min-width: 0; }
+.bars .fill { height: 100%; border-radius: 0 4px 4px 0; min-width: 2px; }
+.bars .v { font: 13px var(--mono); font-variant-numeric: tabular-nums; }
+.chart { width: 100%; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font: 11px var(--mono); fill: var(--muted); }
+.empty { font-size: 13px; color: var(--muted); padding: 40px 0; text-align: center; max-width: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+.legend i.box { width: 10px; height: 10px; border: 0; border-radius: 2px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 13px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: 500 13px var(--sans); color: var(--muted); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg button:focus-visible { outline: 2px solid var(--c-arm); outline-offset: -2px; }
+#tip { position: fixed; pointer-events: none; z-index: 5; background: var(--ink); color: var(--bg);
+  font: 12px/1.5 var(--mono); padding: 6px 9px; border-radius: 5px; white-space: nowrap; }
+#tip b { font-weight: 500; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <div class="eyebrow">nd-rl · Coconut-style spike · <span id="gen"></span></div>
+    <h1>Do continuous thoughts buy proofs?</h1>
+    <p class="lede" id="headline"></p>
+    <p class="status" id="status"></p>
+  </header>
+
+  <section>
+    <h2>What is being compared</h2>
+    <div class="seq"><span class="blk">theorem statement</span><span class="blk th">thought 1</span><span class="blk th">thought 2</span><span class="muted">&hellip;</span><span class="blk th">thought T</span><span class="blk">proof</span></div>
+    <p>Every arm is run 198's untied 6-block model with T extra steps between the statement and the proof. A thought's input is the model's own previous output, not a token. Training draws T from 0 to 8 per batch; the harness samples at T = 8. The arms differ only in what trains the thoughts during the 300 s of pretraining. The plan is each training proof's sequence of inference rules.</p>
+    <div class="tablebox"><table id="arms"></table></div>
+  </section>
+
+  <section>
+    <h2>Before RL and after RL</h2>
+    <div class="legend"><span><i class="box" style="background:var(--c-arm)"></i>Feedback thoughts</span><span><i class="box" style="background:var(--c-ctl)"></i>Pause control</span><span><i class="box" style="background:var(--c-ref)"></i>Run 198, no thoughts</span></div>
+    <div class="grid2">
+      <div class="panel"><h3>Before RL: round-1 sample accuracy</h3><div class="sub">Share of samples that are valid proofs of 7 to 14 line targets, from the pretrained model</div><div class="bars" id="barsPre"></div></div>
+      <div class="panel"><h3>After RL: harness score</h3><div class="sub">Dev theorems solved after four expert-iteration rounds, of 1,108</div><div class="bars" id="barsPost"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Scorecard</h2>
+    <div class="tablebox"><table id="score"></table></div>
+    <p class="note">Validation loss is on held-out proofs of 6 lines or fewer, at 8 thoughts. A dash means that stage has not finished.</p>
+  </section>
+
+  <section>
+    <h2>Findings so far</h2>
+    <ul id="findings"></ul>
+  </section>
+
+  <section>
+    <h2>Does the thought count matter at test time?</h2>
+    <p>Each line is one checkpoint sampled again at a different thought count, with no retraining. A thought costs one extra position per sample, so compute is nearly flat along the x-axis. Counts above 8 were never seen in training.</p>
+    <div class="controls">
+      <span>Checkpoint</span><div class="seg" id="stageSeg"></div>
+    </div>
+    <div class="legend" id="poolLegend"></div>
+    <div class="grid3" id="sweepCharts"></div>
+    <div class="controls"><span>Table pool</span><div class="seg" id="poolSeg"></div></div>
+    <div class="tablebox"><table id="sweepTable"></table></div>
+  </section>
+
+  <section>
+    <h2>Validation loss by thought count, after pretraining</h2>
+    <div class="tablebox"><table id="valTable"></table></div>
+  </section>
+
+  <section>
+    <h2>Read with care</h2>
+    <ul id="caveats"></ul>
+  </section>
+
+  <footer>Pools: textbook72 (72 textbook problems, 256 samples each), long dev (the 329 dev transfer theorems with true length 10 or more, 64 samples each) and RL unsolved (each run's own RL targets that none of its rounds solved, 128 samples each; the set differs between runs). Sampling temperature 0.8, seed 0, as in the harness. Code: <span style="font-family:var(--mono)">code/experiments/current/coconut_spike_20261006</span>.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const DATA = /*DATA*/;
+const $ = id => document.getElementById(id);
+const arms = DATA.arms;
+const TS = [0, 1, 2, 4, 8, 16, 32];
+const POOLS = {textbook72: ["textbook72", "var(--p1)"], dev_long: ["Long dev", "var(--p2)"], rl_unsolved: ["RL unsolved", "var(--p3)"]};
+const state = {stage: "final", pool: "textbook72"};
+const fmt = (v, d = 0) => v == null ? "–" : Number(v).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+const pct = v => v == null ? "–" : fmt(v * 100, 1) + "%";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const color = a => a.id === "198" ? "var(--c-ref)" : a.id === "pause" ? "var(--c-ctl)" : "var(--c-arm)";
+const rows = (a, stage, pool) => ((a.sweeps || {})[stage] || []).filter(r => r.pool === pool);
+
+$("gen").textContent = "updated " + DATA.generated;
+$("headline").textContent = DATA.notes.headline; $("status").textContent = DATA.notes.status;
+$("findings").innerHTML = DATA.notes.findings.map(f => `<li>${esc(f)}</li>`).join("");
+$("caveats").innerHTML = DATA.notes.caveats.map(f => `<li>${esc(f)}</li>`).join("");
+$("arms").innerHTML = `<thead><tr><th>Arm</th><th style="text-align:left">What trains the thoughts</th></tr></thead><tbody>` +
+  arms.map(a => `<tr><td>${esc(a.label)}</td><td class="wrap-cell">${esc(a.desc)}</td></tr>`).join("") + "</tbody>";
+
+// ---------- before / after bars
+function bars(id, value, show) {
+  const vals = arms.map(value), max = Math.max(...vals.filter(v => v != null), 1e-9);
+  $(id).innerHTML = arms.map((a, i) => `<span>${esc(a.label)}</span><span class="track">` +
+    (vals[i] == null ? "" : `<div class="fill" style="width:${vals[i] / max * 100}%;background:${color(a)}"></div>`) +
+    `</span><span class="v">${vals[i] == null ? '<span class="muted">running</span>' : show(vals[i])}</span>`).join("");
+}
+bars("barsPre", a => a.rounds.length ? a.rounds[0].acc : null, pct);
+bars("barsPost", a => a.score ?? null, v => fmt(v));
+
+// ---------- scorecard
+const COLS = [
+  ["Pretrain steps", a => fmt(a.steps)],
+  ["Val loss", a => fmt(a.id === "198" ? a.val : (a.val_by_thoughts || {})[8], 4)],
+  ["Greedy, pretrained", a => fmt(a.greedy_pre, 3)],
+  ["RL targets by round, of 1,500", a => a.rounds.length ? a.rounds.map(r => fmt(r.solved)).join(" → ") : "–"],
+  ["Round-1 accuracy", a => a.rounds.length ? pct(a.rounds[0].acc) : "–"],
+  ["Round-4 accuracy", a => a.rounds.length > 3 ? pct(a.rounds[3].acc) : "–"],
+  ["Harness score", a => a.score == null ? `<span class="muted">${esc(a.status)}</span>` : `<b>${fmt(a.score)}</b>`],
+  ["Greedy, after RL", a => fmt(a.greedy_post, 3)],
+  ["Wall-clock, s", a => fmt(a.total_secs)],
+];
+$("score").innerHTML = `<thead><tr><th>Arm</th>${COLS.map(c => `<th>${c[0]}</th>`).join("")}</tr></thead><tbody>` +
+  arms.map(a => `<tr><td>${esc(a.label)}</td>${COLS.map(c => `<td class="num">${c[1](a)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+
+// ---------- charts
+const tip = $("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false;
+  const x = Math.min(window.innerWidth - tip.offsetWidth - 8, e.clientX + 14);
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 12) + "px"; }
+function niceStep(span, n) { const raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
+const charts = [];
+function chart(el, build) { const c = {el, build}; charts.push(c); draw(c); }
+function draw(c) {
+  const cfg = c.build(), el = c.el, series = cfg.series.filter(s => s.pts.length);
+  if (!series.length) { el.innerHTML = '<p class="empty">No sweep for this checkpoint yet.</p>'; return; }
+  const W = Math.max(240, el.clientWidth), H = 210, m = {l: 40, r: 12, t: 10, b: 40};
+  const x0 = 0, x1 = TS.length - 1, ymax = Math.max(...series.flatMap(s => s.pts.map(p => p[1])), 0.02) * 1.1;
+  const step = niceStep(ymax, 4), y1 = Math.ceil((ymax - 1e-9) / step) * step;
+  const X = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r), Y = v => H - m.b - v / y1 * (H - m.t - m.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label)}">`;
+  for (let v = 0; v <= y1 + 1e-9; v += step)
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--grid)"/><text x="${m.l - 8}" y="${Y(v) + 4}" text-anchor="end">${Math.round(v * 100)}%</text>`;
+  TS.forEach((t, i) => { s += `<text x="${X(i)}" y="${H - m.b + 16}" text-anchor="middle">${t}</text>`; });
+  s += `<text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">thoughts at test time</text>`;
+  s += `<line x1="${X(4)}" x2="${X(4)}" y1="${m.t}" y2="${H - m.b}" style="stroke:var(--rule);stroke-dasharray:3 3"/>`;
+  for (const se of series) {
+    const d = se.pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join("");
+    s += `<path d="${d}" fill="none" style="stroke:${se.color};stroke-width:2;stroke-linejoin:round"/>`;
+    for (const p of se.pts) s += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3.5" style="fill:${se.color};stroke:var(--surface);stroke-width:2"/>`;
+  }
+  s += `<line class="xh" y1="${m.t}" y2="${H - m.b}" style="stroke:var(--muted);stroke-width:1" visibility="hidden"/><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent"/></svg>`;
+  el.innerHTML = s;
+  const svg = el.firstChild, xh = svg.querySelector(".xh");
+  svg.onmousemove = e => { const b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * W / b.width;
+    const i = Math.max(0, Math.min(x1, Math.round((px - m.l) / (W - m.l - m.r) * x1)));
+    xh.setAttribute("x1", X(i)); xh.setAttribute("x2", X(i)); xh.setAttribute("visibility", "visible");
+    let h = `<b>${TS[i]} thoughts</b>`;
+    for (const se of series) { const p = se.pts.find(p => p[0] === i); if (p) h += `<br>${esc(se.name)}: ${p[2]}`; }
+    showTip(e, h); };
+  svg.onmouseleave = () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); };
+}
+new ResizeObserver(() => charts.forEach(draw)).observe(document.querySelector(".wrap"));
+
+// ---------- sweep
+function seg(id, opts, key) { const el = $(id);
+  el.innerHTML = opts.map(([v, lab]) => `<button id="${id}-${v}" data-v="${v}" aria-pressed="${state[key] === v}">${esc(lab)}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("button"); if (!b) return; state[key] = b.dataset.v;
+    el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); sweepTable(); charts.forEach(draw); }; }
+seg("stageSeg", [["final", "After RL"], ["pretrain", "After pretraining"]], "stage");
+seg("poolSeg", Object.entries(POOLS).map(([k, v]) => [k, v[0]]), "pool");
+$("poolLegend").innerHTML = Object.values(POOLS).map(([lab, c]) => `<span><i style="border-color:${c}"></i>${lab}, share solved</span>`).join("") +
+  `<span><i style="border-color:var(--rule);border-top-style:dashed"></i>trained maximum (8)</span>`;
+const thoughtArms = arms.filter(a => a.id !== "198");
+$("sweepCharts").innerHTML = thoughtArms.map(a => `<div class="panel"><h3>${esc(a.label)}</h3><div class="chart" id="sw-${a.id}"></div></div>`).join("");
+for (const a of thoughtArms)
+  chart($("sw-" + a.id), () => ({label: "Share solved against thought count, " + a.label,
+    series: Object.entries(POOLS).map(([pool, [lab, c]]) => ({name: lab, color: c,
+      pts: rows(a, state.stage, pool).map(r => [TS.indexOf(r.thoughts), r.solved / r.n, `${r.solved}/${r.n}`]).filter(p => p[0] >= 0)}))}));
+function sweepTable() {
+  const cell = (a, t) => { const r = rows(a, state.stage, state.pool).find(r => r.thoughts === t); return r ? `${r.solved}/${r.n}` : "–"; };
+  const ref = rows(arms[0], state.stage, state.pool)[0];
+  $("sweepTable").innerHTML = `<thead><tr><th>${POOLS[state.pool][0]}, solved by thought count</th>${TS.map(t => `<th>${t}</th>`).join("")}</tr></thead><tbody>` +
+    `<tr><td>Run 198 (no thoughts)</td><td class="num" colspan="${TS.length}" style="text-align:left">${ref ? `${ref.solved}/${ref.n}` : "–"}</td></tr>` +
+    thoughtArms.map(a => `<tr><td>${esc(a.label)}</td>${TS.map(t => `<td class="num">${cell(a, t)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+}
+sweepTable();
+$("valTable").innerHTML = `<thead><tr><th>Arm</th>${TS.map(t => `<th>${t}</th>`).join("")}</tr></thead><tbody>` +
+  thoughtArms.map(a => `<tr><td>${esc(a.label)}</td>${TS.map(t => `<td class="num">${fmt((a.val_by_thoughts || {})[t], 4)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+</script>

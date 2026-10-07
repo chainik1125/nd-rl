@@ -5,8 +5,8 @@
 
 Before renting pods, validates source hashes, fork and seeds, commits/pushes params.json + patch,
 and refuses dirty harness.py / remote.sh / pod.py. Each seed runs as
-artifacts/autoresearch_loops/<name>_s<seed>/; the merged
-artifacts/autoresearch_loops/<name>/summary.json (what record.py reads) carries the mean over
+artifacts/autoresearch_thoughts/<name>_s<seed>/; the merged
+artifacts/autoresearch_thoughts/<name>/summary.json (what record.py reads) carries the mean over
 seeds as `metric`, `metric_diag` and `metric_rl`, plus `seed_metrics`, `seed_metric_rl`,
 `seed_status`. Status is "ok" only if every seed is ok: a seed
 that times out is the model's fault (slow sampling), not bad luck.
@@ -28,7 +28,7 @@ from typing import Any
 from params import check, commit_and_push, fork_commit, git, registration_files, sha
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ART = os.path.join(HERE, "..", "..", "..", "..", "artifacts", "autoresearch_loops")
+ART = os.path.join(HERE, "..", "..", "..", "..", "artifacts", "autoresearch_thoughts")
 FROZEN = ("harness.py", "remote.sh", "pod.py")
 
 
@@ -67,9 +67,9 @@ def register(name: str, seeds: list[int]) -> None:
 
 
 def pod_prefix(name: str) -> str:
-    """ndrl-loops-<agent>-<NNN>; pod.py adds `autoresearch-` and run_idea adds `-s<seed>`."""
+    """ndrl-thoughts-<agent>-<NNN>; pod.py adds `autoresearch-` and run_idea adds `-s<seed>`."""
     number, _, agent = check(name).id.partition("-")
-    return f"ndrl-loops-{agent or os.environ.get('ND_AGENT', 'manual')}-{number}"
+    return f"ndrl-thoughts-{agent or os.environ.get('ND_AGENT', 'manual')}-{number}"
 
 
 def ensure_idle(name: str) -> None:

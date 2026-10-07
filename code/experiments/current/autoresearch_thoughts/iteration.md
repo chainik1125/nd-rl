@@ -2,16 +2,16 @@ You run unattended: nobody will answer questions, so decide and proceed. This is
 non-interactive session: ending your turn ends the session, and nothing wakes you up later.
 Run every command in the foreground and never end your turn to wait for something. Pods are
 the compute for experiments; keep local probes to a few minutes of CPU, and use
-code/experiments/current/autoresearch_loops/bench_pretrain.py (one A40, ~4 min, no registration)
+code/experiments/current/autoresearch_thoughts/bench_pretrain.py (one A40, ~4 min, no registration)
 to measure pretraining steps/s and sampling speed before registering. You have 60 minutes
 from session start to launch run_idea.py; after that the launcher kills the session and
 discards your unregistered candidate. Budget your reading accordingly. Other agents may run
 the same loop in parallel on the same branch (see program.md); start with `git pull --ff-only`.
-Read AGENTS.md, code/experiments/current/looped_spike_20261006/README.md, and
-code/experiments/current/autoresearch_loops/program.md. Complete exactly ONE experiment
+Read AGENTS.md, code/experiments/current/coconut_spike_20261006/README.md, and
+code/experiments/current/autoresearch_thoughts/program.md. Complete exactly ONE experiment
 under that protocol, then exit. The Python launcher starts the next session.
 
-The goal is more dev theorems solved at 8 test-time loops. Pretraining and RL are both yours
+The goal is more dev theorems solved at 8 test-time thoughts per proof line. Pretraining and RL are both yours
 to change, inside pretrain.py; keep the data, the oracle, the evaluation, the budgets, and the
 seed policy fixed. Change only pretrain.py and this experiment's registration/results/table;
 preserve unrelated work in the checkout. Do not modify the launcher, runner, prompt, frozen

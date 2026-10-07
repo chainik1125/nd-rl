@@ -70,9 +70,9 @@ EVAL_K = 64
 # The model's test-time compute knob: an integer attribute the harness sets before each eval and
 # rl() sets before oracle calls. A sibling loop for another architecture changes these three
 # constants and nothing else in this file.
-KNOB = "n_loops"  # loops of the shared core
+KNOB = "n_thoughts"  # continuous thoughts per proof line
 EVAL_LEVEL = 8  # the metric: the knob's value during the scored eval
-DIAG_LEVEL = 2  # the same eval again at this value, recorded but not scored
+DIAG_LEVEL = 0  # the same eval again at this value, recorded but not scored
 TOK_MODE = "lean_seq"  # required tokenizer mode (fork lean_tok.py)
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 

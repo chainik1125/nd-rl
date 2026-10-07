@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Post-run record: results/<NNN>_<slug>/results.json from
-artifacts/autoresearch_loops/<NNN>_<slug>/summary.json.
+artifacts/autoresearch_thoughts/<NNN>_<slug>/summary.json.
 
   python3 record.py <NNN>_<slug> keep|discard|crash|timeout "surprise text"
 
@@ -25,7 +25,7 @@ import table
 from params import HERE, check, commit_and_push, git, registration_files, sha
 from schema import EvalStats, PretrainStats, Results, RlRound, Status
 
-ART = HERE.parents[3] / "artifacts" / "autoresearch_loops"
+ART = HERE.parents[3] / "artifacts" / "autoresearch_thoughts"
 
 
 def results_from_summary(s: dict[str, Any], status: Status, surprise: str | None) -> Results:

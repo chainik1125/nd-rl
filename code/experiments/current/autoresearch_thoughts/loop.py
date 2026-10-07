@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-ART = ROOT / "artifacts/autoresearch_loops"
+ART = ROOT / "artifacts/autoresearch_thoughts"
 POLL_SECS = 0.5
 # Both agents share one branch, each from its own checkout. Highest effort for both (Robbie).
 FABLE, OPUS = "claude-fable-5-1", "claude-opus-5-5"
@@ -127,7 +127,7 @@ def iteration_prompt(prompt: str) -> str:
         "hash, frozen files, seeds, and absence of an active previous attempt. The matching "
         "pretrain.py edits belong to this experiment, not unrelated work. Do not propose a new "
         "idea or edit its code/registration. Run the existing experiment in the foreground:\n"
-        f"code/.venv/bin/python code/experiments/current/autoresearch_loops/run_idea.py {name} "
+        f"code/.venv/bin/python code/experiments/current/autoresearch_thoughts/run_idea.py {name} "
         f"--seeds {seed_arg}\n"
         "Then record and publish its outcome normally. Complete only this experiment."
     )

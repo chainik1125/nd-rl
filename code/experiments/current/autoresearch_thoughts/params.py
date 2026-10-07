@@ -212,7 +212,7 @@ CONFIG_TEMPLATE: dict[str, Any] = {
     "precision": TODO,
     "compile": TODO,
     "init": TODO,
-    "loops": {"train": TODO, "rl_sampling": TODO, "default": TODO},
+    "thoughts": {"train": TODO, "rl_sampling": TODO, "default": TODO},
     "rl": {
         "samples_per_target_per_round": TODO,
         "ft_steps": TODO,

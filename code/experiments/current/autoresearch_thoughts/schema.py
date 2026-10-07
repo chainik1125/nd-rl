@@ -63,10 +63,10 @@ class DataCfg(Loose):
     val_slice: int
 
 
-class LoopsCfg(Loose):
-    train: list[int]  # loop counts drawn per training batch
-    rl_sampling: list[int]  # loop counts rl() samples at
-    default: int  # model.n_loops outside the harness's evals
+class ThoughtsCfg(Loose):
+    train: list[int]  # thoughts per line drawn per training batch
+    rl_sampling: list[int]  # thoughts per line rl() samples at
+    default: int  # model.n_thoughts outside the harness's evals
 
 
 class RlCfg(Loose):
@@ -91,7 +91,7 @@ class Config(Loose):
     precision: str
     compile: bool | str
     init: str
-    loops: LoopsCfg
+    thoughts: ThoughtsCfg
     rl: RlCfg
     seed: int | list[int]  # scalar for historical runs; explicit list for multi-seed runs
 
