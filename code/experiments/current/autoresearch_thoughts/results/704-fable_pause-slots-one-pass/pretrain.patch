@@ -1,0 +1,180 @@
+diff --git a/code/experiments/current/autoresearch_thoughts/pretrain.py b/code/experiments/current/autoresearch_thoughts/pretrain.py
+index 7e4e397..6c500b2 100644
+--- a/code/experiments/current/autoresearch_thoughts/pretrain.py
++++ b/code/experiments/current/autoresearch_thoughts/pretrain.py
+@@ -59,12 +59,15 @@ from train import loss_on  # fork
+ N_LAYER, D, N_HEAD = 6, 384, 8  # run 198's untied blocks
+ # One thinking round before each proof line. A line starts after a trigger token: `;` between
+ # Lean tactics, and `by`, which ends the theorem statement and opens every nested block. After a
+-# trigger the model takes n thought positions whose inputs are made from its own output at the
+-# trigger (not from a token), all in one parallel pass, and the last thought's output predicts
+-# the line's first token. Pretraining draws n per batch from TRAIN_THOUGHTS; rl()'s fine-tune
+-# uses FT_THOUGHTS (below); eval and sampling apply model.n_thoughts, which the harness sets for
+-# its evals and rl() sets before each oracle call. DEFAULT_THOUGHTS is used for the validation
+-# curve and the harness's post-pretraining greedy check.
++# trigger the model takes n thought positions whose inputs are learned slot vectors (pause
++# tokens, Goyal et al. 2023: not a token and not the model's own output), and the last thought's
++# output predicts the line's first token. Because a slot's input does not depend on the model's
++# state, a training step is ONE causal pass over the expanded sequence, like run 198's, where
++# experiments 701-703 fed the trigger's final state into the thoughts and needed one pass per
++# line. Pretraining draws n per batch from TRAIN_THOUGHTS; rl()'s fine-tune uses FT_THOUGHTS
++# (below); eval and sampling apply model.n_thoughts, which the harness sets for its evals and
++# rl() sets before each oracle call. DEFAULT_THOUGHTS is used for the validation curve and the
++# harness's post-pretraining greedy check.
+ TRAIN_THOUGHTS = (0, 1, 2, 3, 4, 5, 6, 7, 8)
+ DEFAULT_THOUGHTS = 8
+ MAX_THOUGHTS = 16  # rows of the thought-slot embedding; n_thoughts above this is an error
+@@ -231,31 +234,29 @@ class PeriLNBlock(Block):
+ 
+ class LineThoughtGPT(GPT):
+     """Run 198's model (the fork's GPT with half-ALiBi, half-NoPE heads) with one thinking round
+-    before each proof line (Coconut, Hao et al. 2024, moved from "once after the question" to
+-    "at every line").
++    before each proof line: n pause positions (Goyal et al. 2023) after every trigger.
+ 
+-    After a trigger token the sequence gets n thought positions. Their inputs are
+-    ln_thought(output at the trigger) + slot_emb[j]: the model's own state fed back, not a
+-    token. They attend to everything before them and to each other causally, sit at the
+-    trigger's position on the ALiBi axis (so distances between tokens do not depend on n), and
+-    the last one's output replaces the trigger's as the predictor of the next token. With n = 0
+-    this is exactly run 198's network.
++    After a trigger token the sequence gets n thought positions whose inputs are slot_emb[j], a
++    learned vector per slot, the same at every line. They attend to everything before them and
++    to each other causally, sit at the trigger's position on the ALiBi axis (so distances
++    between tokens do not depend on n), and the last one's output replaces the trigger's as the
++    predictor of the next token. With n = 0 this is exactly run 198's network.
+ 
+-    Training (no caches) goes through run(); sampling (`caches` given) through cached(), which
+-    does the thinking inside the forward call, so the fork's sampler needs no change."""
++    Training (no caches) goes through run(), one causal pass over the expanded sequence;
++    sampling (`caches` given) through cached(), which does the thinking inside the forward call,
++    so the fork's sampler needs no change."""
+ 
+     def __init__(self, vocab, n_layer, d, n_head, triggers, seed, max_len=1024):
+         super().__init__(vocab, n_layer, d, n_head, max_len)
+         slopes = torch.tensor(ALIBI_SLOPES).view(1, n_head, 1, 1)
+         self.register_buffer("slopes", slopes, persistent=False)
+         self.register_buffer("triggers", torch.tensor(triggers), persistent=False)
+-        self.ln_thought = torch.nn.LayerNorm(d)
+         self.slot_emb = torch.nn.Parameter(torch.randn(MAX_THOUGHTS, d) * 0.02)
+         self.n_thoughts, self.t_rng = DEFAULT_THOUGHTS, random.Random(seed)
+ 
+-    def slots(self, h, n):
+-        """The n thought inputs of one round, from the output h (B, 1, D) at its trigger."""
+-        return self.ln_thought(h) + self.slot_emb[:n]
++    def slots(self, b, n):
++        """The n thought inputs (b, n, D) of one round, for b rows: the slot vectors."""
++        return self.slot_emb[:n].expand(b, n, -1)
+ 
+     def bias(self, qpos, kpos, allowed):
+         """ALiBi bias (B, H, Q, S) for queries at positions qpos (B, Q) over keys at kpos (B, S),
+@@ -269,66 +270,37 @@ class LineThoughtGPT(GPT):
+         n = self.t_rng.choice(TRAIN_THOUGHTS) if self.training else self.n_thoughts
+         return self.head(self.ln_f(self.run(idx, n)))
+ 
+-    # ---- training: one pass per round, a round being a line's thoughts followed by its tokens
++    # ---- training: one causal pass over the expanded sequence, thoughts inserted after triggers
+ 
+     def run(self, idx, n):
+         """Final hidden states (B, S, D) of right-padded rows idx with n thoughts per line, in
+         idx's own layout; at a trigger it is the last thought's output, which is what predicts
+-        the next token. Row b's round r holds the tokens after its r-th trigger up to and
+-        including the next one; rounds are run one after another, each attending to the keys
+-        and values of the earlier ones."""
++        the next token. The expanded layout puts token t of a row at column
++        t + n * (triggers before t) and a trigger's n thoughts at the columns after it; rows
++        with fewer triggers than the longest leave empty columns at the end, masked as keys."""
+         B, S = idx.shape
+         dev, D = idx.device, self.emb.embedding_dim
+         dtype = torch.bfloat16 if torch.is_autocast_enabled() else torch.float32
+-        if n == 0:  # run 198's forward
+-            x, ar = self.emb(idx), torch.arange(S, device=dev)[None]
+-            bias = self.bias(ar, ar, (ar[:, None, :] <= ar[:, :, None])).to(dtype)
+-            for b in self.blocks:
+-                x = b(x, None, None, bias, None)
+-            return x
++        ar = torch.arange(S, device=dev)[None].expand(B, S)
++        rows = torch.arange(B, device=dev)[:, None].expand(B, S)
+         trig = torch.isin(idx, self.triggers)
+-        rnd = trig.cumsum(1) - trig.long()  # the round each token belongs to
+-        rounds = int(trig.sum(1).max()) + 1  # the last one may hold thoughts only
+-        rows = torch.arange(B, device=dev)[:, None]
+-        pasts = [[] for _ in self.blocks]
+-        kpos = idx.new_zeros(B, 0)
+-        kvalid = trig.new_zeros(B, 0)
+-        outs, offset = [], 0
+-        where = idx.new_zeros(B, S)  # each token's column in the concatenated round outputs
+-        start = idx.new_zeros(B)  # where each row's current round begins in idx
+-        h_trig = at_trig = had_trig = None
+-        for r in range(rounds):
+-            length = (rnd == r).sum(1)
+-            L = int(length.max())
+-            src = start[:, None] + torch.arange(L, device=dev)[None]
+-            valid = torch.arange(L, device=dev)[None] < length[:, None]
+-            x, qpos, m = self.emb(idx.gather(1, src.clamp(max=S - 1))), src, n if r else 0
+-            if m:  # this line's thoughts go first; a row past its last line has none to use
+-                x = torch.cat((self.slots(h_trig, n), x), 1)
+-                qpos = torch.cat((at_trig[:, None].expand(B, n), src), 1)
+-                valid = torch.cat((had_trig[:, None].expand(B, n), valid), 1)
+-                where[rows[had_trig], at_trig[had_trig][:, None]] = offset + n - 1
+-            kpos, kvalid = torch.cat((kpos, qpos), 1), torch.cat((kvalid, valid), 1)
+-            # keys: the valid ones of earlier rounds, and of this round up to the query itself
+-            col = torch.arange(kpos.size(1), device=dev)
+-            own = (offset + torch.arange(m + L, device=dev))[:, None]
+-            allowed = (kvalid[:, None, :] & (col[None, :] <= own)[None]) | (col[None, :] == own)[
+-                None
+-            ]
+-            bias = self.bias(qpos, kpos, allowed).to(dtype)
+-            for b, past in zip(self.blocks, pasts, strict=True):
+-                x = b(x, None, None, bias, past)
+-            outs.append(x)
+-            tokens = valid[:, m:]
+-            cols = (offset + m + torch.arange(L, device=dev))[None].expand(B, L)
+-            where[rows.expand(B, L)[tokens], src[tokens]] = cols[tokens]
+-            # the round's last token: the next round's thoughts are made from its output
+-            last = (m + length - 1).clamp(min=0)
+-            at_trig = (start + length - 1).clamp(min=0)
+-            had_trig = (length > 0) & trig.gather(1, at_trig[:, None])[:, 0]
+-            h_trig = x.gather(1, last[:, None, None].expand(B, 1, D)) if m + L else h_trig
+-            start, offset = start + length, offset + m + L
+-        return torch.cat(outs, 1).gather(1, where[..., None].expand(B, S, D))
++        col = ar + n * (trig.cumsum(1) - trig.long())  # each token's column
++        E = S + n * int(trig.sum(1).max())
++        e = self.emb(idx)
++        x, pos, valid = e.new_zeros(B, E, D), idx.new_zeros(B, E), trig.new_zeros(B, E)
++        x[rows, col], pos[rows, col], valid[rows, col] = e, ar, True
++        if n:
++            tr, tc, tp = rows[trig][:, None], col[trig][:, None], ar[trig][:, None]
++            tc = tc + 1 + torch.arange(n, device=dev)[None]  # (triggers, n)
++            x[tr, tc], pos[tr, tc], valid[tr, tc] = self.slot_emb[:n], tp, True
++        ec = torch.arange(E, device=dev)
++        # column 0 is a token in every row, so no query is left without a key
++        allowed = valid[:, None, :] & (ec[None, :] <= ec[:, None])[None]
++        bias = self.bias(pos, pos, allowed).to(dtype)
++        for b in self.blocks:
++            x = b(x, None, None, bias, None)
++        out = col + n * trig.long()  # a trigger reads out at its last thought
++        return x.gather(1, out[..., None].expand(B, S, D))
+ 
+     # ---- sampling: the fork's incremental decoding, thinking after every trigger
+ 
+@@ -358,7 +330,7 @@ class LineThoughtGPT(GPT):
+         think &= c["ptr"] + n + c["tokens_left"] <= c["max"]
+         if n and bool(think.any()):
+             rows = every[think]
+-            x = self.slots(h[think, -1:], n)
++            x = self.slots(rows.size(0), n)
+             real = valid.new_ones(x.shape[:2])
+             out = self.cached_pass(x, pos[think, -1:].expand(-1, n), real, caches, rows)
+             h[think, -1] = out[:, -1]
+@@ -537,8 +509,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     aux.apply(model._init)
+     aux = aux.to(device)
+     mtp = aux.mtp
+-    # No torch.compile: a round's shapes change every call and the blocks hit the recompile limit
+-    # (measured on the 2026-10-06 Coconut spike: 10.9 steps/s compiled, 10.1 eager, minus ~15 s).
++    # No torch.compile: the expanded length changes every batch and the blocks hit the recompile
++    # limit (measured on the 2026-10-06 Coconut spike: 10.9 steps/s compiled, 10.1 eager).
+     muon_lr, muon_graph = torch.zeros((), device=device), None
+     for p in list(model.blocks.parameters()) + list(mtp.parameters()):
+         if p.ndim == 2:

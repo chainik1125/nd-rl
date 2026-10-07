@@ -1,0 +1,220 @@
+{
+  "id": "704-fable",
+  "slug": "pause-slots-one-pass",
+  "written_at": "2026-10-07T12:22:28-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "a810e62",
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "b7783907dd91",
+  "patch_lines": 122,
+  "title": "Pause-slot thoughts: a thought's input is a learned slot vector, not the trigger's output, so a training step is one causal pass",
+  "description": "Same model, data, probe, MTP and rl() as 702, with one change to what a thought is. In 701-703 the n thought inputs after a trigger were ln_thought(final state at the trigger) + slot_emb[j]: the model's own output fed back, which forces training to run one pass per proof line (run() looped over lines, concatenating KV). Here the inputs are slot_emb[j] alone (pause tokens, Goyal et al. 2023), the spike's control, now at every line. Because a slot does not depend on the model's state, run() is one causal pass over the expanded sequence (each trigger followed by its n slots, at the trigger's ALiBi position; a trigger's readout is its last slot's output), like run 198's forward. cached() changes one line (slots instead of ln(h)+slots); ln_thought is dropped (768 fewer parameters). Everything else is byte-identical to 702: TRAIN_THOUGHTS 0..8, probe 0.3, MTP, RL sampling 32 per target at 8 thoughts, fine-tune at 8 only, 600 steps. check_model.py: training and sampling agree to 2e-6 at n = 0, 1, 3, 8, 16; n = 0 equals the plain forward. bench_pretrain.py --secs 60: 552 steps in 60 s (9.05 steps/s including construction; 12.2 steps/s steady) against the incumbent's ~5.6, val loss 0.0919 at step 552 (702 seed 0: 0.105 at step 566), peak memory 10.9 GB, 130 samples/s at 8 thoughts.",
+  "tags": [
+    "thoughts",
+    "architecture",
+    "systems",
+    "simplification"
+  ],
+  "hypothesis": "What makes per-line thoughts worth 219 dev theorems after RL in 702 is extra positions of computation per line plus their supervision (the plan probe, RL trained only at 8), not the feedback of the trigger's final state into the thought inputs. A pause slot still gets 6 blocks of fresh computation per position and can chain through attention to the slots before it, and the last slot still predicts the line's first token and carries the probe. If the feedback is not needed, the single-pass training buys about 2.2x the pretraining steps (about 3,400 against 1,550 in 300 s) at a comparable per-step loss (bench), and a faster fine-tune (each micro-batch one pass instead of one per line), which should also fit a fourth RL round in 1,800 s (702: sampling ~270 s plus fine-tune 195-254 s per round, three rounds, ~1,500 s charged). The spike's one-block pause control was no better than no thoughts, so the alternative is real: if the feedback is what the thoughts need, this scores at or below 702 despite twice the steps, and future speed has to come from a cheaper feedback (lower-layer state, two passes) rather than from dropping it.",
+  "p_keep": 0.55,
+  "expected_delta": "metric 560 to 620 against 702's 548 (gain from ~2x pretraining steps and a likely fourth RL round; loss from no feedback). Pretraining val loss at 8 thoughts below 0.080 (702: 0.082-0.084) with 3,200-3,600 steps. metric_diag stays far below metric because RL trains at 8 only, exactly as in 702, so the 8-vs-0 gap says nothing new about the mechanism; the informative numbers are pretraining val_by_thoughts (702: 0, 2 and 8 level), round-1 sample accuracy at 8 thoughts (702: 4.5% mean) and the fine-tune seconds per round. If metric is at or below 548 with about twice the steps, the trigger's fed-back state is what per-line thoughts need: discard and say so.",
+  "baseline_id": "702-fable",
+  "baseline_metric": 548,
+  "config": {
+    "arch": {
+      "type": "gpt, 6 untied Peri-LN blocks, plus n pause-slot positions after every `;` and `by` (learned slot vector per position, no feedback; one causal pass)",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4; thoughts share their trigger's position",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9563904
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens (thought slots are added on top: up to n per trigger)",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "none (CUDA-graphed Muon step only)",
+    "init": "orthogonal on block matrices, fork default elsewhere; slot vectors N(0, 0.02)",
+    "thoughts": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        8
+      ],
+      "default": 8,
+      "val": [
+        0,
+        2,
+        8
+      ],
+      "where": "after every `;` and `by` token",
+      "max": 16,
+      "input": "slot_emb[j] only (pause slot); 701-703 used ln_thought(final state at the trigger) + slot_emb[j]",
+      "passes_per_step": "1 (expanded sequence); 701-703: one per proof line",
+      "probe": "token after the next `:=` or `exact`, read off the last slot, weight 0.3, pretraining and RL",
+      "ft": [
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "k_per_count": 32,
+      "rounds": "until another round would not fit in RL_SECS (1.15 x the last round); expected 4 now that the fine-tune is single-pass (702: 3 rounds at ~270 s sampling + 195-254 s fine-tune each)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "loss": "next-token CE plus the plan probe at weight 0.3, every micro-batch at 8 thoughts",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_micro_batch": 32,
+      "ft_thoughts": [
+        8
+      ]
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_thoughts",
+      "level": 8,
+      "diag_level": 0,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
