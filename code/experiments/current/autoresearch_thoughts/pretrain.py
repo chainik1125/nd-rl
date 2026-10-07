@@ -85,6 +85,10 @@ PROBE_WEIGHT = 0.3
 RL_SAMPLE_THOUGHTS = (0, 2, 4, 8)
 RL_K = 8
 FT_STEPS, FT_BS, FT_LR, FT_WARMUP = 600, 128, 3e-4, 50
+# A fine-tune step's 128 records are sorted by length and run 32 at a time, gradients accumulated.
+# run() holds attention weights over every earlier line of every row, so memory grows with rows
+# times (padded length)^2: 128 long RL proofs at once ran out of 44 GB (experiment 700).
+FT_MICRO = 32
 RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
 # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
 # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
@@ -655,8 +659,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
 
 def finetune(model, tok, data, rng, device):
     """The old harness's RL fine-tune (FT_STEPS AdamW steps, linear warmup then cosine to lr/10)
-    with the plan probe's loss kept on. The model is in train mode, so every batch draws its own
-    thought count from TRAIN_THOUGHTS. The probe trains along; the MTP module is not used."""
+    with the plan probe's loss kept on. The model is in train mode, so every micro-batch draws its
+    own thought count from TRAIN_THOUGHTS. The probe trains along; the MTP module is not used."""
     params = (
         list(model.parameters()) + list(AUX.ln_probe.parameters()) + list(AUX.probe.parameters())
     )
@@ -675,11 +679,13 @@ def finetune(model, tok, data, rng, device):
         if len(perm) < FT_BS:
             perm = list(range(len(data)))
             rng.shuffle(perm)
-        x, m = mk_batch(data, [perm.pop() for _ in range(FT_BS)], tok, rng, device)
-        with autocast:
-            loss, main, _, _ = train_loss(model, AUX, x, m, tok, mtp=False)
+        idxs = sorted((perm.pop() for _ in range(FT_BS)), key=lambda i: sum(map(len, data[i])))
         opt.zero_grad(set_to_none=True)
-        loss.backward()
+        for j in range(0, FT_BS, FT_MICRO):
+            x, m = mk_batch(data, idxs[j : j + FT_MICRO], tok, rng, device)
+            with autocast:
+                loss, main, _, _ = train_loss(model, AUX, x, m, tok, mtp=False)
+            (loss * FT_MICRO / FT_BS).backward()
         torch.nn.utils.clip_grad_norm_(params, 1.0)
         opt.step()
     model.eval()

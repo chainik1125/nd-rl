@@ -38,7 +38,13 @@ What is new here, and why it might go differently:
    in both stages: at each thinking round a training-only head must read the coming line's
    "move" (the token after its `:=` or `exact`) off the last thought.
 
-**The bar.** Experiment 700 is the incumbent recipe, unchanged; its 3-seed mean is the number to
+The first run of this recipe (700, which then crashed in RL for lack of GPU memory; 701 is the
+same recipe with the fine-tune batch run in four length-sorted parts) already showed the pre-RL
+effect per line. The pretrained model's share of valid samples on the RL targets, 8 samples per
+target, three seeds: 3.6% at 0 thoughts per line, 9.3% at 2, 11.1% at 4, 12.0% at 8, rising on
+every seed up to at least 4. Whether any of that survives RL is what this loop is for.
+
+**The bar.** Experiment 701 is the incumbent recipe, unchanged; its 3-seed mean is the number to
 beat. For scale, the looped loop's bar and run 198 (the untied model with no thoughts, 680 under
 the old harness) are not comparable with this harness's numbers until someone runs them here.
 
@@ -87,7 +93,7 @@ more compute for more results."
 
 ## Ideas to start from
 
-The incumbent (experiment 700): n thought positions after every trigger, all made from the
+The incumbent (experiment 701): n thought positions after every trigger, all made from the
 model's output at the trigger and run in one parallel pass; n drawn from 0..8 per training batch;
 a plan probe at weight 0.3 in pretraining and RL; RL samples each target 8 times at each of 0, 2,
 4 and 8 thoughts per round. Untried, roughly in the order Robbie and the spike suggest:
