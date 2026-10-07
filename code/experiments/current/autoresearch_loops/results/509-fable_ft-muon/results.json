@@ -1,0 +1,1393 @@
+{
+  "commit": "7eb0a96",
+  "recorded_at": "2026-10-07T16:10:27-0700",
+  "status": "keep",
+  "metric": 748,
+  "metric_diag": 727,
+  "metric_rl": 1257,
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "c5989f40cd49",
+  "rules": {
+    "TOTAL_SECS": 5400,
+    "PRETRAIN_SECS": 300,
+    "RL_SECS": 1800,
+    "PARAM_CAP": 10000000,
+    "N_TARGETS": 1500,
+    "EVAL_K": 64,
+    "KNOB": "n_loops",
+    "EVAL_LEVEL": 8,
+    "DIAG_LEVEL": 2,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 3901,
+  "reason": null,
+  "pretrain": {
+    "secs": 301.0,
+    "n_params": 6400256,
+    "steps": 3429,
+    "epochs": 3.0310003507267838,
+    "last_loss": 0.06601134687662125,
+    "heldout_greedy": 0.9495,
+    "curve": [
+      {
+        "secs": 31,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 4.020041525363922,
+        "mtp_loss": null
+      },
+      {
+        "secs": 34,
+        "step": 2,
+        "train_loss": null,
+        "val_loss": 3.6257933378219604,
+        "mtp_loss": null
+      },
+      {
+        "secs": 45,
+        "step": 156,
+        "train_loss": 0.6338607392140797,
+        "val_loss": 0.2034066505730152,
+        "mtp_loss": 0.6229041772229331
+      },
+      {
+        "secs": 60,
+        "step": 352,
+        "train_loss": 0.13863765001296996,
+        "val_loss": 0.12136501632630825,
+        "mtp_loss": 0.1360273353755474
+      },
+      {
+        "secs": 75,
+        "step": 552,
+        "train_loss": 0.089380007609725,
+        "val_loss": 0.0863929083570838,
+        "mtp_loss": 0.08896683417260647
+      },
+      {
+        "secs": 90,
+        "step": 740,
+        "train_loss": 0.0791509859263897,
+        "val_loss": 0.07943190541118383,
+        "mtp_loss": 0.08008603937923908
+      },
+      {
+        "secs": 105,
+        "step": 934,
+        "train_loss": 0.06665279964605968,
+        "val_loss": 0.09665769338607788,
+        "mtp_loss": 0.06948634775148498
+      },
+      {
+        "secs": 120,
+        "step": 1129,
+        "train_loss": 0.06408170647919179,
+        "val_loss": 0.1104386355727911,
+        "mtp_loss": 0.0639228519052267
+      },
+      {
+        "secs": 135,
+        "step": 1328,
+        "train_loss": 0.07025821469724178,
+        "val_loss": 0.08867574203759432,
+        "mtp_loss": 0.06939745768904686
+      },
+      {
+        "secs": 150,
+        "step": 1517,
+        "train_loss": 0.05586415694819556,
+        "val_loss": 0.08692009840160608,
+        "mtp_loss": 0.058815153108702764
+      },
+      {
+        "secs": 165,
+        "step": 1701,
+        "train_loss": 0.06020321287214756,
+        "val_loss": 0.08563062082976103,
+        "mtp_loss": 0.0608287375420332
+      },
+      {
+        "secs": 180,
+        "step": 1899,
+        "train_loss": 0.08560437998837894,
+        "val_loss": 0.07815131917595863,
+        "mtp_loss": 0.08635891601443291
+      },
+      {
+        "secs": 195,
+        "step": 2093,
+        "train_loss": 0.056272234208881854,
+        "val_loss": 0.08570817857980728,
+        "mtp_loss": 0.0566977959126234
+      },
+      {
+        "secs": 210,
+        "step": 2284,
+        "train_loss": 0.0631886027753353,
+        "val_loss": 0.08659461326897144,
+        "mtp_loss": 0.06389071568846702
+      },
+      {
+        "secs": 225,
+        "step": 2478,
+        "train_loss": 0.06471283651060528,
+        "val_loss": 0.07851498853415251,
+        "mtp_loss": 0.0645510388745202
+      },
+      {
+        "secs": 240,
+        "step": 2670,
+        "train_loss": 0.05681022070348263,
+        "val_loss": 0.08498623222112656,
+        "mtp_loss": 0.057281256467103955
+      },
+      {
+        "secs": 255,
+        "step": 2865,
+        "train_loss": 0.05481959581375122,
+        "val_loss": 0.085270537994802,
+        "mtp_loss": 0.05609163865447044
+      },
+      {
+        "secs": 270,
+        "step": 3053,
+        "train_loss": 0.07543314807116985,
+        "val_loss": 0.08258110005408525,
+        "mtp_loss": 0.07760096465547879
+      },
+      {
+        "secs": 285,
+        "step": 3236,
+        "train_loss": 0.053071513358089656,
+        "val_loss": 0.08420237526297569,
+        "mtp_loss": 0.054785008231798805
+      },
+      {
+        "secs": 300,
+        "step": 3429,
+        "train_loss": 0.054859431460499763,
+        "val_loss": 0.08722073212265968,
+        "mtp_loss": 0.05517990086227655
+      }
+    ],
+    "records_seen": 466671,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "train_loops": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "default_loops": 2,
+    "val_by_loops": {
+      "1": 0.08825514651834965,
+      "2": 0.08722073212265968,
+      "4": 0.08705758955329657,
+      "8": 0.08699646778404713
+    }
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.042166666666666665,
+      "new_proofs": 155,
+      "targets_solved": 136,
+      "lstar": 8,
+      "ge": {
+        "7": 136,
+        "8": 14,
+        "9": 2,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 155,
+      "samples_per_sec": 234,
+      "secs": 52,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 31.775275230407715
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.012545787545787546,
+      "new_proofs": 44,
+      "targets_solved": 172,
+      "lstar": 9,
+      "ge": {
+        "7": 172,
+        "8": 31,
+        "9": 6,
+        "10": 1,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 44,
+      "samples_per_sec": 208,
+      "secs": 53,
+      "level": 2,
+      "k": 24,
+      "n_targets": 455,
+      "rl_secs_used": 66.84189820289612
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.027014652014652016,
+      "new_proofs": 86,
+      "targets_solved": 241,
+      "lstar": 9,
+      "ge": {
+        "7": 241,
+        "8": 59,
+        "9": 17,
+        "10": 1,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 86,
+      "samples_per_sec": 157,
+      "secs": 70,
+      "level": 4,
+      "k": 24,
+      "n_targets": 455,
+      "rl_secs_used": 120.00563073158264
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.037995594713656385,
+      "new_proofs": 89,
+      "targets_solved": 311,
+      "lstar": 9,
+      "ge": {
+        "7": 311,
+        "8": 79,
+        "9": 21,
+        "10": 2,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 89,
+      "samples_per_sec": 102,
+      "secs": 107,
+      "level": 8,
+      "k": 24,
+      "n_targets": 454,
+      "rl_secs_used": 210.08742260932922
+    },
+    {
+      "round": 5,
+      "sample_acc": 0.368,
+      "new_proofs": 581,
+      "targets_solved": 748,
+      "lstar": 10,
+      "ge": {
+        "7": 748,
+        "8": 322,
+        "9": 111,
+        "10": 10,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 918,
+      "samples_per_sec": 254,
+      "secs": 101,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 284.5494408607483
+    },
+    {
+      "round": 6,
+      "sample_acc": 0.057806324110671936,
+      "new_proofs": 67,
+      "targets_solved": 798,
+      "lstar": 10,
+      "ge": {
+        "7": 798,
+        "8": 362,
+        "9": 140,
+        "10": 14,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 70,
+      "samples_per_sec": 213,
+      "secs": 29,
+      "level": 2,
+      "k": 24,
+      "n_targets": 253,
+      "rl_secs_used": 298.57993960380554
+    },
+    {
+      "round": 7,
+      "sample_acc": 0.09370882740447958,
+      "new_proofs": 92,
+      "targets_solved": 864,
+      "lstar": 10,
+      "ge": {
+        "7": 864,
+        "8": 403,
+        "9": 165,
+        "10": 23,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 94,
+      "samples_per_sec": 170,
+      "secs": 36,
+      "level": 4,
+      "k": 24,
+      "n_targets": 253,
+      "rl_secs_used": 317.06197357177734
+    },
+    {
+      "round": 8,
+      "sample_acc": 0.10836627140974966,
+      "new_proofs": 83,
+      "targets_solved": 924,
+      "lstar": 10,
+      "ge": {
+        "7": 924,
+        "8": 450,
+        "9": 198,
+        "10": 31,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 87,
+      "samples_per_sec": 142,
+      "secs": 43,
+      "level": 8,
+      "k": 24,
+      "n_targets": 253,
+      "rl_secs_used": 343.8167872428894
+    },
+    {
+      "round": 9,
+      "sample_acc": 0.52775,
+      "new_proofs": 210,
+      "targets_solved": 975,
+      "lstar": 10,
+      "ge": {
+        "7": 975,
+        "8": 487,
+        "9": 225,
+        "10": 40,
+        "11": 3,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1259,
+      "samples_per_sec": 235,
+      "secs": 111,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 424.4594976902008
+    },
+    {
+      "round": 10,
+      "sample_acc": 0.04846014492753623,
+      "new_proofs": 20,
+      "targets_solved": 990,
+      "lstar": 10,
+      "ge": {
+        "7": 990,
+        "8": 501,
+        "9": 236,
+        "10": 43,
+        "11": 4,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 32,
+      "samples_per_sec": 200,
+      "secs": 22,
+      "level": 2,
+      "k": 24,
+      "n_targets": 184,
+      "rl_secs_used": 434.5552444458008
+    },
+    {
+      "round": 11,
+      "sample_acc": 0.06272644927536232,
+      "new_proofs": 30,
+      "targets_solved": 1010,
+      "lstar": 10,
+      "ge": {
+        "7": 1010,
+        "8": 514,
+        "9": 246,
+        "10": 45,
+        "11": 4,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 38,
+      "samples_per_sec": 114,
+      "secs": 39,
+      "level": 4,
+      "k": 24,
+      "n_targets": 184,
+      "rl_secs_used": 460.86051082611084
+    },
+    {
+      "round": 12,
+      "sample_acc": 0.07744565217391304,
+      "new_proofs": 33,
+      "targets_solved": 1034,
+      "lstar": 11,
+      "ge": {
+        "7": 1034,
+        "8": 529,
+        "9": 257,
+        "10": 50,
+        "11": 5,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 44,
+      "samples_per_sec": 113,
+      "secs": 39,
+      "level": 8,
+      "k": 24,
+      "n_targets": 184,
+      "rl_secs_used": 487.2704212665558
+    },
+    {
+      "round": 13,
+      "sample_acc": 0.6044166666666667,
+      "new_proofs": 246,
+      "targets_solved": 1065,
+      "lstar": 11,
+      "ge": {
+        "7": 1065,
+        "8": 556,
+        "9": 280,
+        "10": 57,
+        "11": 7,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1554,
+      "samples_per_sec": 232,
+      "secs": 115,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 571.3407454490662
+    },
+    {
+      "round": 14,
+      "sample_acc": 0.025833333333333333,
+      "new_proofs": 23,
+      "targets_solved": 1078,
+      "lstar": 11,
+      "ge": {
+        "7": 1078,
+        "8": 564,
+        "9": 288,
+        "10": 60,
+        "11": 7,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 24,
+      "samples_per_sec": 204,
+      "secs": 18,
+      "level": 2,
+      "k": 24,
+      "n_targets": 150,
+      "rl_secs_used": 579.8803770542145
+    },
+    {
+      "round": 15,
+      "sample_acc": 0.059722222222222225,
+      "new_proofs": 24,
+      "targets_solved": 1095,
+      "lstar": 11,
+      "ge": {
+        "7": 1095,
+        "8": 576,
+        "9": 297,
+        "10": 61,
+        "11": 7,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 29,
+      "samples_per_sec": 116,
+      "secs": 31,
+      "level": 4,
+      "k": 24,
+      "n_targets": 150,
+      "rl_secs_used": 601.0006594657898
+    },
+    {
+      "round": 16,
+      "sample_acc": 0.08166666666666667,
+      "new_proofs": 28,
+      "targets_solved": 1109,
+      "lstar": 11,
+      "ge": {
+        "7": 1109,
+        "8": 588,
+        "9": 303,
+        "10": 63,
+        "11": 7,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 41,
+      "samples_per_sec": 93,
+      "secs": 39,
+      "level": 8,
+      "k": 24,
+      "n_targets": 150,
+      "rl_secs_used": 630.4770195484161
+    },
+    {
+      "round": 17,
+      "sample_acc": 0.63775,
+      "new_proofs": 255,
+      "targets_solved": 1131,
+      "lstar": 11,
+      "ge": {
+        "7": 1131,
+        "8": 604,
+        "9": 312,
+        "10": 67,
+        "11": 9,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1792,
+      "samples_per_sec": 222,
+      "secs": 120,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 719.9760210514069
+    },
+    {
+      "round": 18,
+      "sample_acc": 0.058012820512820515,
+      "new_proofs": 23,
+      "targets_solved": 1148,
+      "lstar": 11,
+      "ge": {
+        "7": 1148,
+        "8": 614,
+        "9": 320,
+        "10": 69,
+        "11": 9,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 28,
+      "samples_per_sec": 185,
+      "secs": 17,
+      "level": 2,
+      "k": 24,
+      "n_targets": 130,
+      "rl_secs_used": 728.4287872314453
+    },
+    {
+      "round": 19,
+      "sample_acc": 0.05458656330749354,
+      "new_proofs": 26,
+      "targets_solved": 1160,
+      "lstar": 11,
+      "ge": {
+        "7": 1160,
+        "8": 622,
+        "9": 327,
+        "10": 71,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 32,
+      "samples_per_sec": 158,
+      "secs": 20,
+      "level": 4,
+      "k": 24,
+      "n_targets": 129,
+      "rl_secs_used": 740.6918687820435
+    },
+    {
+      "round": 20,
+      "sample_acc": 0.06815245478036176,
+      "new_proofs": 28,
+      "targets_solved": 1177,
+      "lstar": 11,
+      "ge": {
+        "7": 1177,
+        "8": 634,
+        "9": 335,
+        "10": 72,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 36,
+      "samples_per_sec": 93,
+      "secs": 33,
+      "level": 8,
+      "k": 24,
+      "n_targets": 129,
+      "rl_secs_used": 768.3307812213898
+    },
+    {
+      "round": 21,
+      "sample_acc": 0.6670833333333334,
+      "new_proofs": 211,
+      "targets_solved": 1184,
+      "lstar": 11,
+      "ge": {
+        "7": 1184,
+        "8": 638,
+        "9": 336,
+        "10": 72,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1916,
+      "samples_per_sec": 220,
+      "secs": 122,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 860.8787930011749
+    },
+    {
+      "round": 22,
+      "sample_acc": 0.05847953216374269,
+      "new_proofs": 11,
+      "targets_solved": 1189,
+      "lstar": 11,
+      "ge": {
+        "7": 1189,
+        "8": 642,
+        "9": 338,
+        "10": 73,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 22,
+      "samples_per_sec": 225,
+      "secs": 12,
+      "level": 2,
+      "k": 24,
+      "n_targets": 114,
+      "rl_secs_used": 865.9318706989288
+    },
+    {
+      "round": 23,
+      "sample_acc": 0.05825958702064897,
+      "new_proofs": 13,
+      "targets_solved": 1197,
+      "lstar": 11,
+      "ge": {
+        "7": 1197,
+        "8": 647,
+        "9": 343,
+        "10": 75,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 24,
+      "samples_per_sec": 176,
+      "secs": 16,
+      "level": 4,
+      "k": 24,
+      "n_targets": 113,
+      "rl_secs_used": 875.1451983451843
+    },
+    {
+      "round": 24,
+      "sample_acc": 0.06526548672566372,
+      "new_proofs": 7,
+      "targets_solved": 1202,
+      "lstar": 11,
+      "ge": {
+        "7": 1202,
+        "8": 649,
+        "9": 343,
+        "10": 75,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 18,
+      "samples_per_sec": 86,
+      "secs": 32,
+      "level": 8,
+      "k": 24,
+      "n_targets": 113,
+      "rl_secs_used": 899.9918742179871
+    },
+    {
+      "round": 25,
+      "sample_acc": 0.67575,
+      "new_proofs": 282,
+      "targets_solved": 1206,
+      "lstar": 11,
+      "ge": {
+        "7": 1206,
+        "8": 653,
+        "9": 347,
+        "10": 76,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2123,
+      "samples_per_sec": 224,
+      "secs": 123,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 993.1556100845337
+    },
+    {
+      "round": 26,
+      "sample_acc": 0.05581761006289308,
+      "new_proofs": 9,
+      "targets_solved": 1214,
+      "lstar": 11,
+      "ge": {
+        "7": 1214,
+        "8": 660,
+        "9": 354,
+        "10": 78,
+        "11": 10,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 20,
+      "samples_per_sec": 196,
+      "secs": 13,
+      "level": 2,
+      "k": 24,
+      "n_targets": 106,
+      "rl_secs_used": 999.0861566066742
+    },
+    {
+      "round": 27,
+      "sample_acc": 0.06865079365079366,
+      "new_proofs": 16,
+      "targets_solved": 1222,
+      "lstar": 11,
+      "ge": {
+        "7": 1222,
+        "8": 667,
+        "9": 361,
+        "10": 82,
+        "11": 13,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 29,
+      "samples_per_sec": 147,
+      "secs": 17,
+      "level": 4,
+      "k": 24,
+      "n_targets": 105,
+      "rl_secs_used": 1010.3372967243195
+    },
+    {
+      "round": 28,
+      "sample_acc": 0.05396825396825397,
+      "new_proofs": 7,
+      "targets_solved": 1226,
+      "lstar": 11,
+      "ge": {
+        "7": 1226,
+        "8": 670,
+        "9": 363,
+        "10": 82,
+        "11": 13,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 16,
+      "samples_per_sec": 103,
+      "secs": 25,
+      "level": 8,
+      "k": 24,
+      "n_targets": 105,
+      "rl_secs_used": 1028.0512781143188
+    },
+    {
+      "round": 29,
+      "sample_acc": 0.69525,
+      "new_proofs": 363,
+      "targets_solved": 1228,
+      "lstar": 11,
+      "ge": {
+        "7": 1228,
+        "8": 672,
+        "9": 365,
+        "10": 84,
+        "11": 13,
+        "12": 2,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 2401,
+      "samples_per_sec": 212,
+      "secs": 125,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 1122.334820985794
+    },
+    {
+      "round": 30,
+      "sample_acc": 0.015350877192982455,
+      "new_proofs": 6,
+      "targets_solved": 1231,
+      "lstar": 11,
+      "ge": {
+        "7": 1231,
+        "8": 674,
+        "9": 367,
+        "10": 85,
+        "11": 14,
+        "12": 3,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 11,
+      "samples_per_sec": 150,
+      "secs": 15,
+      "level": 2,
+      "k": 24,
+      "n_targets": 95,
+      "rl_secs_used": 1132.0935575962067
+    },
+    {
+      "round": 31,
+      "sample_acc": 0.02543859649122807,
+      "new_proofs": 5,
+      "targets_solved": 1233,
+      "lstar": 11,
+      "ge": {
+        "7": 1233,
+        "8": 676,
+        "9": 369,
+        "10": 86,
+        "11": 15,
+        "12": 4,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 10,
+      "samples_per_sec": 109,
+      "secs": 21,
+      "level": 4,
+      "k": 24,
+      "n_targets": 95,
+      "rl_secs_used": 1147.7720353603363
+    },
+    {
+      "round": 32,
+      "sample_acc": 0.04476950354609929,
+      "new_proofs": 6,
+      "targets_solved": 1234,
+      "lstar": 11,
+      "ge": {
+        "7": 1234,
+        "8": 677,
+        "9": 370,
+        "10": 86,
+        "11": 15,
+        "12": 4,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 14,
+      "samples_per_sec": 77,
+      "secs": 29,
+      "level": 8,
+      "k": 24,
+      "n_targets": 94,
+      "rl_secs_used": 1171.7140481472015
+    },
+    {
+      "round": 33,
+      "sample_acc": 0.7078333333333333,
+      "new_proofs": 331,
+      "targets_solved": 1237,
+      "lstar": 11,
+      "ge": {
+        "7": 1237,
+        "8": 679,
+        "9": 371,
+        "10": 87,
+        "11": 15,
+        "12": 4,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 2506,
+      "samples_per_sec": 213,
+      "secs": 127,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 1266.38844871521
+    },
+    {
+      "round": 34,
+      "sample_acc": 0.04032258064516129,
+      "new_proofs": 1,
+      "targets_solved": 1238,
+      "lstar": 11,
+      "ge": {
+        "7": 1238,
+        "8": 679,
+        "9": 371,
+        "10": 87,
+        "11": 15,
+        "12": 4,
+        "13": 1,
+        "14": 0
+      },
+      "mix_rl_records": 11,
+      "samples_per_sec": 169,
+      "secs": 13,
+      "level": 2,
+      "k": 24,
+      "n_targets": 93,
+      "rl_secs_used": 1274.3060591220856
+    },
+    {
+      "round": 35,
+      "sample_acc": 0.04614695340501792,
+      "new_proofs": 5,
+      "targets_solved": 1239,
+      "lstar": 12,
+      "ge": {
+        "7": 1239,
+        "8": 680,
+        "9": 372,
+        "10": 88,
+        "11": 16,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 14,
+      "samples_per_sec": 124,
+      "secs": 18,
+      "level": 4,
+      "k": 24,
+      "n_targets": 93,
+      "rl_secs_used": 1287.4854633808136
+    },
+    {
+      "round": 36,
+      "sample_acc": 0.030797101449275364,
+      "new_proofs": 18,
+      "targets_solved": 1244,
+      "lstar": 12,
+      "ge": {
+        "7": 1244,
+        "8": 684,
+        "9": 374,
+        "10": 89,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 23,
+      "samples_per_sec": 88,
+      "secs": 25,
+      "level": 8,
+      "k": 24,
+      "n_targets": 92,
+      "rl_secs_used": 1307.715017080307
+    },
+    {
+      "round": 37,
+      "sample_acc": 0.7065833333333333,
+      "new_proofs": 481,
+      "targets_solved": 1247,
+      "lstar": 12,
+      "ge": {
+        "7": 1247,
+        "8": 686,
+        "9": 375,
+        "10": 90,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 2771,
+      "samples_per_sec": 210,
+      "secs": 129,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 1406.3539016246796
+    },
+    {
+      "round": 38,
+      "sample_acc": 0.021067415730337078,
+      "new_proofs": 6,
+      "targets_solved": 1249,
+      "lstar": 12,
+      "ge": {
+        "7": 1249,
+        "8": 688,
+        "9": 376,
+        "10": 90,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 13,
+      "samples_per_sec": 154,
+      "secs": 14,
+      "level": 2,
+      "k": 24,
+      "n_targets": 89,
+      "rl_secs_used": 1414.591458082199
+    },
+    {
+      "round": 39,
+      "sample_acc": 0.033707865168539325,
+      "new_proofs": 3,
+      "targets_solved": 1250,
+      "lstar": 12,
+      "ge": {
+        "7": 1250,
+        "8": 689,
+        "9": 377,
+        "10": 90,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 6,
+      "samples_per_sec": 126,
+      "secs": 17,
+      "level": 4,
+      "k": 24,
+      "n_targets": 89,
+      "rl_secs_used": 1426.4952185153961
+    },
+    {
+      "round": 40,
+      "sample_acc": 0.04073033707865169,
+      "new_proofs": 4,
+      "targets_solved": 1252,
+      "lstar": 12,
+      "ge": {
+        "7": 1252,
+        "8": 691,
+        "9": 379,
+        "10": 90,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 9,
+      "samples_per_sec": 85,
+      "secs": 25,
+      "level": 8,
+      "k": 24,
+      "n_targets": 89,
+      "rl_secs_used": 1446.1533460617065
+    },
+    {
+      "round": 41,
+      "sample_acc": 0.7336666666666667,
+      "new_proofs": 567,
+      "targets_solved": 1255,
+      "lstar": 12,
+      "ge": {
+        "7": 1255,
+        "8": 694,
+        "9": 382,
+        "10": 92,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 3076,
+      "samples_per_sec": 213,
+      "secs": 130,
+      "level": 1,
+      "k": 8,
+      "n_targets": 1500,
+      "rl_secs_used": 1543.6535999774933
+    },
+    {
+      "round": 42,
+      "sample_acc": 0.015196078431372549,
+      "new_proofs": 20,
+      "targets_solved": 1256,
+      "lstar": 12,
+      "ge": {
+        "7": 1256,
+        "8": 695,
+        "9": 383,
+        "10": 93,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 24,
+      "samples_per_sec": 180,
+      "secs": 11,
+      "level": 2,
+      "k": 24,
+      "n_targets": 85,
+      "rl_secs_used": 1549.0562908649445
+    },
+    {
+      "round": 43,
+      "sample_acc": 0.013888888888888888,
+      "new_proofs": 7,
+      "targets_solved": 1260,
+      "lstar": 12,
+      "ge": {
+        "7": 1260,
+        "8": 697,
+        "9": 385,
+        "10": 93,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 12,
+      "samples_per_sec": 134,
+      "secs": 15,
+      "level": 4,
+      "k": 24,
+      "n_targets": 84,
+      "rl_secs_used": 1559.8026854991913
+    },
+    {
+      "round": 44,
+      "sample_acc": 0.05654761904761905,
+      "new_proofs": 9,
+      "targets_solved": 1265,
+      "lstar": 12,
+      "ge": {
+        "7": 1265,
+        "8": 702,
+        "9": 390,
+        "10": 95,
+        "11": 17,
+        "12": 5,
+        "13": 2,
+        "14": 0
+      },
+      "mix_rl_records": 14,
+      "samples_per_sec": 103,
+      "secs": 20,
+      "level": 8,
+      "k": 24,
+      "n_targets": 84,
+      "rl_secs_used": 1574.4855318069458
+    }
+  ],
+  "eval": {
+    "solved": 755,
+    "n": 1108,
+    "ge": {
+      "7": 755,
+      "8": 632,
+      "9": 508,
+      "10": 128,
+      "11": 34,
+      "12": 8,
+      "13": 2,
+      "14": 0
+    },
+    "lstar": 12,
+    "heldout_greedy": 0.985,
+    "max_pruned": 14,
+    "by_bin": {
+      "7": {
+        "solved": 123,
+        "n": 150,
+        "rate": 0.82,
+        "ci": [
+          0.7507753195800668,
+          0.8732431513666732
+        ]
+      },
+      "8": {
+        "solved": 124,
+        "n": 152,
+        "rate": 0.8157894736842105,
+        "ci": [
+          0.7466452410364233,
+          0.8693648615292588
+        ]
+      },
+      "9": {
+        "solved": 380,
+        "n": 477,
+        "rate": 0.7966457023060797,
+        "ci": [
+          0.758221602089375,
+          0.8303298044445023
+        ]
+      },
+      "10": {
+        "solved": 94,
+        "n": 219,
+        "rate": 0.4292237442922374,
+        "ci": [
+          0.36544447645581285,
+          0.4954432572527944
+        ]
+      },
+      "11": {
+        "solved": 26,
+        "n": 49,
+        "rate": 0.5306122448979592,
+        "ci": [
+          0.39380627019919845,
+          0.6629671810210522
+        ]
+      },
+      "12": {
+        "solved": 6,
+        "n": 54,
+        "rate": 0.1111111111111111,
+        "ci": [
+          0.05192951817556753,
+          0.2219494893207673
+        ]
+      },
+      "13": {
+        "solved": 2,
+        "n": 5,
+        "rate": 0.4,
+        "ci": [
+          0.1176182311592533,
+          0.769280067791163
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "748 at 8 loops (755/761/728) against 507's 732 (746/765/684): +16, keep by the rule, not shown beyond noise. Seeds 0 and 1 moved +9 and -4; the mean gain is seed 2 (+44), where 507's seed had a weak start (1-loop acceptance 0.040, 0.145, 0.214, 0.273 over rounds 1-4) and only 9 rounds, while this run's seed 2 started at 0.133 and got 11 (11/11/11; 507: 11/11/9). The mechanism did what was predicted and bought less than predicted. Fit: last-round 1-loop acceptance on RL targets 0.734/0.731/0.736 (507: 0.716/0.703/0.678; predicted 0.72-0.78), and from round 4 on the Muon fine-tune is ahead of 507 at every round on seed 0 by 0.01-0.04 (0.604 0.638 0.667 0.676 0.695 0.708 0.707 0.734 against 0.587 0.616 0.628 0.671 0.686 0.687 0.699 0.716); round-2 acceptance 0.368/0.441/0.426 (507: 0.408/0.319/0.145; predicted 0.42-0.55, seed 0 under it). Per-sample dev accuracy rose on every seed at both depths: 0.492/0.492/0.471 at 8 loops (507: 0.480/0.483/0.445) and 0.465/0.464/0.440 at 2 (507: 0.445/0.445/0.417). Yet cumulative RL solved is 1,265/1,260/1,246 (507: 1,265/1,264/1,208), identical on seeds 0 and 1: the better-fitting model found the same targets, and pass@64 at 8 loops moved at lengths 7-8 (seed 0: 123/124 against 112/121) and not at 9+ (380/94/26/6 against 379/100/25/7), seed 1 mixed (-16 at length 8, +6 at 9). The converse of 507: that run raised coverage with flat per-sample accuracy; this one raises per-sample accuracy with flat coverage, because the proofs it samples more reliably are ones 64 attempts already found. Loops, unchanged by design and in fact: metric minus diag +21 (25/24/13; 507: +18 = 20/22/10), per-sample 8-vs-2 gap 0.027/0.028/0.031 (507: 0.035/0.038/0.028), retries pooled 11.8/14.7/15.8% cracked at 2/4/8 loops (507: 11.0/13.5/14.1), rounds 3+ 10.1/11.9/12.7 (507: 11.5/13.1/13.3), per-sample retry acceptance 0.036/0.053/0.062 (507: 0.033/0.051/0.057); the speculative Muon-on-refinement-directions effect (gap above +28 on two seeds) did not appear. Cost as benched: fine-tune time per round 54-73 s, mean 66/66/67 s (507: 65/64/59), so the graphed Muon step adds 1-2 s a round; ft_steps 588-762; RL charged 1,650/1,690/1,747 s with 150/110/53 s left; no forgetting signal (held-out greedy after RL 0.985/0.986/0.985). Pretraining is the same code (MuonStep is pretraining's capture code moved; bench 13.1-13.9 steps/s as the incumbent): 3,429/3,428/3,351 steps, val at 2 loops 0.0872/0.0877/0.0834 against 507's 0.0815/0.0868/0.0780, worse by 0.006/0.001/0.005, inside the spread the unchanged code shows across runs (503: 0.089/0.085/0.084), and depth-flat within 0.0003 from 2 to 8 loops as always. Interpretation, not established: with up to 4 proofs per target weighted x4 and two passes over 76,800 records, the fine-tune already fits the found proofs about as well as the data allows, so a better optimizer sharpens the policy on them (per-sample accuracy up, the 1-loop pass stronger) without widening what 64 eval attempts reach; 3e-3 was not too hot, and a higher Muon lr or momentum kept across rounds is untested. 85 patch lines (+54/-31), about 35 of them the helper extraction. Next: the RL bottleneck is now what the fine-tune is fed, not how it is fit. A run that spends the leftover 50-150 s per seed and the cheaper rounds on more attempts for the 235-254 targets never solved, or that raises the 1-loop sampling temperature to buy diversity, tests that directly; the loop gap has not moved in nine experiments and still needs a loss that only deep passes can lower.",
+  "seed_metrics": {
+    "0": 755,
+    "1": 761,
+    "2": 728
+  },
+  "seed_metric_rl": {
+    "0": 1265,
+    "1": 1260,
+    "2": 1246
+  },
+  "seed_metric_diag": {
+    "0": 730,
+    "1": 737,
+    "2": 715
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08722073212265968,
+      "heldout_greedy": 0.9495,
+      "steps": 3429
+    },
+    "1": {
+      "val_loss": 0.08769137319177389,
+      "heldout_greedy": 0.944,
+      "steps": 3428
+    },
+    "2": {
+      "val_loss": 0.08335604332387447,
+      "heldout_greedy": 0.9415,
+      "steps": 3351
+    }
+  },
+  "lean_gate": {
+    "samples": 1193016,
+    "parse_fail": 245729,
+    "distinct_checked": 853790,
+    "both_ok": 410884,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 29,
+    "lean_wall_s": 2666.573259830475
+  },
+  "migrated": false
+}
