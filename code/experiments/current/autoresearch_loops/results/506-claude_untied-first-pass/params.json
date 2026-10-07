@@ -1,0 +1,221 @@
+{
+  "id": "506-claude",
+  "slug": "untied-first-pass",
+  "written_at": "2026-10-07T12:41:45-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "ea2ddcf",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "34ae0c1b3ddd",
+  "patch_lines": 23,
+  "title": "Untied first pass: pass 1 of the loop gets its own two blocks, the shared core only refines (9.56M parameters, same compute per loop count)",
+  "description": "One architecture change, spending 3.16M of the 3.6M spare parameters. The trunk goes from 4 unique Peri-LN blocks to 6: entry, two first-pass blocks, two shared core blocks, exit (9,558,528 parameters, cap 10M; the same six blocks' worth as run 198's untied trunk). Forward at n loops: e = entry(emb); every pass starts from ln_loop(state) + e as before; pass 1 runs the first-pass blocks, passes 2..n run the shared core; then the exit block. Block applications per forward are unchanged at every loop count (2 + 2n, 18 at 8 loops), so at 1 loop the shared core is not used at all (a plain 4-block transformer), at 2 loops the six unique blocks run once each (198's shape plus the LayerNorm re-injection), and at 8 loops the shared core runs 7 times. Everything else is 502: loop count drawn from 1..8 per batch in pretraining and in the RL fine-tune, loss on the last pass, Muon on block matrices and head, MTP head, and 502's RL unchanged (8 attempts at 1 loop, 24 retries at one of 2/4/8 loops for targets 1 loop failed, 600 AdamW steps, 20,000 replayed records, x4 weight). One supporting line: every parameter gets a zero grad before the training loop. A 1-loop batch never runs the shared core, and the CUDA-graphed Muon step is captured at step 1 and skips parameters whose grad is None, so without this a seed whose first batch draws 1 loop (seed 2 does; first draws are 7, 3, 1 for seeds 0, 1, 2) would never update the shared core's matrices in pretraining. Consequence to know about: on the 1-in-8 pretraining steps at 1 loop the shared core takes a momentum-only Muon/AdamW step; in the RL fine-tune AdamW skips it on those steps (grad None). Checks on CPU: cached decoding equals the full forward at 1, 2, 3, 5 and 8 loops (max abs diff 5e-6, random weights); perturbing the shared core leaves the 1-loop output bit-identical and changes the 2-loop output; harness --smoke passes (seed 0 before the zero-grad line, seed 2 with the final file). make check clean. bench_pretrain.py, one A40, 60 s, final file: 324 steps (318 before the zero-grad line; 502 seed 0's curve has 348 at 60 s), first step at 33 s and second at 36 s (502: 32 and 34 s; two more blocks to compile), 13.0 steps/s between 45 and 60 s (502: 13.1), peak 7.61 GB, sampling 248 and 211 samples/s at 2 loops with the Lean gate in the two benches. RL timing should match 502: same block applications per sample and per fine-tune step.",
+  "tags": [
+    "architecture",
+    "loops"
+  ],
+  "hypothesis": "Mechanism. In the incumbent one pair of shared blocks does two jobs with one set of weights: the first pass, which builds almost all of the answer from the entry block's output (in 500 seed 0's last round, per-sample accuracy on RL targets was 0.708 at 1 loop against 0.763 at 8), and every later pass, which refines. The loss is decided almost entirely by the first job, so that is what the shared weights are fitted to, and refinement is whatever the same weights happen to do when re-applied to their own output: an iteration that settles within about 4 passes (the spike's flat curve from 4 to 24 loops; 503's identical RL accuracy at 4 and 8 loops) and buys +18 dev theorems from 2 to 8 loops. Untying the first pass gives the two jobs separate weights at identical compute: the first-pass blocks never see a refined state, and the shared core never sees an unprocessed one, so all 3.16M of its parameters are trained only to improve a state that is already decodable. If the dual role is what keeps refinement weak, the 8-vs-2 gap should widen without the 2-loop score falling, and deeper retries should crack resistant RL targets by a wider margin than 502's 1.4x. Separately, the model at 2 loops now has six unique blocks, the capacity of the untied run 198 (old harness: 680 against 666 for the spike's tied fixed-2-loop trunk, one seed; 716 against 690 for its 1-4-loop trunk at 2 loops after 12 rounds), so the level at every loop count from 2 up may rise by a capacity effect that has nothing to do with loops. The two are told apart by the 2-loop diagnostic (capacity) and by metric minus diagnostic plus the retry comparison (refinement). What I do not claim: that refinement becomes open-ended. The shared core is still asked for a decodable state after any number of applications from 1 to 7, the constraint 505 is testing. The outcome I think about as likely as the hoped one: the capacity shows up at 2 loops and the gap stays near +18. The outcome that would be most informative against the idea: the gap shrinks, meaning that with an untied path able to do the task the optional shared core goes vestigial, and that the incumbent's +18 came from repeating first-pass weights rather than from a separable refinement function. Risks: (a) 9.56M parameters at ~3,400 pretraining steps with a random loop count may be under-trained against 6.4M (198 had the same parameters at a fixed depth and more steps); (b) the 1-loop model that 502's cheap first sampling pass relies on is now a 4-block path decoded directly in only 1 batch in 8, as before, but no longer sharing weights with deeper passes, so it could fall behind and send more targets to the expensive retries; (c) a round lost to the 1.15x margin costs about 10 to 15 theorems.",
+  "p_keep": 0.5,
+  "expected_delta": "metric at 8 loops, 3-seed mean: 678-722 (-12 to +32 against 690; point estimate 698). Pretraining: 3,300-3,450 steps per seed (502: 3,479/3,399/3,420); val loss at 2 loops 0.078-0.092 per seed, mean at or below 502's 0.0866; val loss at 1 loop above val loss at 2 loops by 0.003-0.015 on the 3-seed mean, because 1 loop now lacks two of the six blocks (502: +0.0002/+0.0008/+0.0025 by seed, mean +0.0012; 503 seed 0 showed +0.0066 with unchanged pretraining code, so one seed proves nothing; a mean below 0.002 would say the shared core is idle after pretraining, as the incumbent's extra passes are), while 2, 4 and 8 loops stay within 0.003 of each other. RL: 7/7/6 rounds as 502, cumulative RL solved 1,170-1,240 (502: 1,203), last-round per-sample accuracy at 1 loop on RL targets 0.69-0.75 (502: 0.730/0.740/0.731). Capacity effect: metric_diag (2 loops) 3-seed mean at or above 680 (502: 672) with per-sample dev accuracy at 2 loops at or above 0.45 mean (502: 0.435/0.461/0.435). Refinement effect, the hypothesis proper: metric minus metric_diag at least +25 (502: +18, seeds 23/19/13; 500: +18) with the diagnostic not below 672; per-sample dev accuracy at 8 loops minus at 2 loops at least 0.04 (502: 0.031/0.028/0.025); resistant RL targets cracked at 8 loops at least 1.5x as often as at 2 loops, pooled over seeds and rounds (502: 15.9% against 11.4%, 1.39x). Falsifier: metric minus metric_diag at or below +10, or the pooled retry crack rates at 2, 4 and 8 loops within 10% of each other: a core that only refines does not refine more, and the optional loop has gone vestigial. Middle outcome I rate about as likely as the hoped one: diagnostic up by 5 to 20 and the gap between +10 and +25, i.e. capacity without more depth benefit; that is a model merely better at 2 loops and the surprise text must say so. Discard unless the 3-seed mean is above 690.",
+  "baseline_id": "502-claude",
+  "baseline_metric": 690,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 untied first-pass + 2 shared core x (n - 1) + 1 exit Peri-LN blocks; LayerNorm(state)+entry re-injection before every pass",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9558528,
+      "block_applications": "2 + 2 * n_loops (unchanged from 502)"
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere; zero grads allocated for every parameter before step 1",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ],
+      "weights_by_pass": "pass 1: blocks 1-2 (untied); passes 2..n: blocks 3-4 (shared)"
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round as long as the last plus 15% would not fit (expected 7/7/6)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged; 1-loop batches give the shared core no gradient",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 7e5a170..5297cde 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -55,9 +55,11 @@ from train import batch as mk_batch  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-# Unique blocks: one untied entry block, N_CORE shared core blocks, one untied exit block.
++# Unique blocks: one untied entry block, N_CORE untied first-pass blocks, N_CORE shared core
++# blocks, one untied exit block. Pass 1 of the loop runs the first-pass blocks and every later
++# pass the shared core, so n loops cost 2 + N_CORE * n block applications whichever weights run.
+ N_CORE = 2
+-N_LAYER, D, N_HEAD = 2 + N_CORE, 384, 8
++N_LAYER, D, N_HEAD = 2 + 2 * N_CORE, 384, 8
+ # Core applications (loops). Training draws one count per batch from TRAIN_LOOPS, in pretraining
+ # and in rl()'s fine-tune; eval and sampling apply model.n_loops, which the harness sets for its
+ # evals and rl() sets before each oracle call. DEFAULT_LOOPS is used for the validation curve and
+@@ -195,8 +197,10 @@ class PeriLNBlock(Block):
+ 
+ class LoopedGPT(GPT):
+     """Looped trunk (Universal Transformer, Dehghani et al. 2018; sandwich layout and input
+-    injection as in Geiping et al. 2025): blocks[0] is the entry block, blocks[1:-1] the shared
+-    core applied n times, blocks[-1] the exit block. Every core pass starts from
++    injection as in Geiping et al. 2025): blocks[0] is the entry block, blocks[1 : 1 + N_CORE]
++    the first pass, blocks[1 + N_CORE : -1] the shared core that runs passes 2..n, blocks[-1]
++    the exit block. The first pass has its own weights so the shared core only ever refines a
++    state that has had a full pass, instead of also building it. Every pass starts from
+     ln_loop(state) + e, with e the entry block's output, so each pass sees an input of the same
+     scale and the prompt is re-injected instead of being buried under accumulated writes.
+ 
+@@ -234,15 +238,16 @@ class LoopedGPT(GPT):
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+         n = self.loop_rng.choice(TRAIN_LOOPS) if self.training else self.n_loops
+-        entry, *core, exit_block = self.blocks
++        entry, exit_block = self.blocks[0], self.blocks[-1]
+         x = e = entry(self.emb(idx), None, None, bias, None if caches is None else caches[0])
+         for loop in range(n):
+             x = self.ln_loop(x) + e
+-            for j, b in enumerate(core, 1):
++            first = 1 if loop == 0 else 1 + N_CORE  # the untied first pass, then the shared core
++            for j in range(first, first + N_CORE):
+                 # sample.generate makes one cache dict per unique block; a shared block's keys
+                 # and values differ per pass, so each pass gets its own sub-cache inside it.
+                 c = caches and caches[j].setdefault(loop, {"max": caches[j]["max"]})
+-                x = b(x, None, None, bias, c)
++                x = self.blocks[j](x, None, None, bias, c)
+         x = exit_block(x, None, None, bias, None if caches is None else caches[-1])
+         return x, bias
+ 
+@@ -381,6 +386,10 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrices += [p for p in mtp.parameters() if p.ndim == 2]
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
++    # A 1-loop batch never runs the shared core. Give every parameter a zero grad up front, or a
++    # 1-loop first step would leave the core's grads None and out of the captured Muon graph.
++    for p in trainable:
++        p.grad = torch.zeros_like(p)
+     momentum_buffers = [torch.zeros_like(p) for p in matrices]
+     opt = torch.optim.AdamW(
+         auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=device == "cuda"
