@@ -1,0 +1,238 @@
+{
+  "commit": "125a886",
+  "recorded_at": "2026-10-07T08:54:17-0700",
+  "status": "crash",
+  "metric": null,
+  "metric_diag": null,
+  "metric_rl": null,
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "460db344050e",
+  "rules": {
+    "TOTAL_SECS": 5400,
+    "PRETRAIN_SECS": 300,
+    "RL_SECS": 1800,
+    "PARAM_CAP": 10000000,
+    "N_TARGETS": 1500,
+    "EVAL_K": 64,
+    "KNOB": "n_thoughts",
+    "EVAL_LEVEL": 8,
+    "DIAG_LEVEL": 0,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 867,
+  "reason": "seeds [0, 1, 2] not ok: ['crash', 'crash', 'crash']",
+  "pretrain": {
+    "secs": 302.0,
+    "n_params": 9564672,
+    "steps": 1532,
+    "epochs": 1.3554551004767286,
+    "last_loss": 0.06048205867409706,
+    "heldout_greedy": 0.9165,
+    "curve": [
+      {
+        "secs": 17,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 3.981701910495758,
+        "mtp_loss": null,
+        "probe_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 67,
+        "train_loss": 1.1461324294408162,
+        "val_loss": 0.8036007285118103,
+        "mtp_loss": 1.1418264110883076,
+        "probe_loss": 2.1764992078145347
+      },
+      {
+        "secs": 45,
+        "step": 150,
+        "train_loss": 0.4351467937231064,
+        "val_loss": 0.17050309665501118,
+        "mtp_loss": 0.35374750941991806,
+        "probe_loss": 1.306441992521286
+      },
+      {
+        "secs": 60,
+        "step": 231,
+        "train_loss": 0.19247561879456043,
+        "val_loss": 0.11669225245714188,
+        "mtp_loss": 0.17707686871290207,
+        "probe_loss": 0.2827553451061249
+      },
+      {
+        "secs": 75,
+        "step": 316,
+        "train_loss": 0.12434650398790836,
+        "val_loss": 0.11177743040025234,
+        "mtp_loss": 0.12071115151047707,
+        "probe_loss": 0.40220142900943756
+      },
+      {
+        "secs": 90,
+        "step": 394,
+        "train_loss": 0.10250748880207539,
+        "val_loss": 0.09217639919370413,
+        "mtp_loss": 0.09944597817957401,
+        "probe_loss": 0.155092254281044
+      },
+      {
+        "secs": 105,
+        "step": 476,
+        "train_loss": 0.08490489982068539,
+        "val_loss": 0.087272216565907,
+        "mtp_loss": 0.08105114754289389,
+        "probe_loss": 0.2172233946621418
+      },
+      {
+        "secs": 120,
+        "step": 559,
+        "train_loss": 0.09097040444612503,
+        "val_loss": 0.09703665785491467,
+        "mtp_loss": 0.08444303832948208,
+        "probe_loss": 0.25196611881256104
+      },
+      {
+        "secs": 135,
+        "step": 637,
+        "train_loss": 0.07179178763180971,
+        "val_loss": 0.0902899969369173,
+        "mtp_loss": 0.0685834800824523,
+        "probe_loss": 0.15227081067860126
+      },
+      {
+        "secs": 150,
+        "step": 716,
+        "train_loss": 0.07490686886012554,
+        "val_loss": 0.09535050764679909,
+        "mtp_loss": 0.07021826319396496,
+        "probe_loss": 0.11881383508443832
+      },
+      {
+        "secs": 165,
+        "step": 797,
+        "train_loss": 0.07979756500571966,
+        "val_loss": 0.08444773778319359,
+        "mtp_loss": 0.07828263752162457,
+        "probe_loss": 0.06253519747406244
+      },
+      {
+        "secs": 180,
+        "step": 879,
+        "train_loss": 0.0649327440187335,
+        "val_loss": 0.10173767991364002,
+        "mtp_loss": 0.06163480877876282,
+        "probe_loss": 0.0986533835530281
+      },
+      {
+        "secs": 195,
+        "step": 957,
+        "train_loss": 0.05572742782533169,
+        "val_loss": 0.08271578326821327,
+        "mtp_loss": 0.05387724190950394,
+        "probe_loss": 0.09846126474440098
+      },
+      {
+        "secs": 210,
+        "step": 1040,
+        "train_loss": 0.05503182783722878,
+        "val_loss": 0.09031203296035528,
+        "mtp_loss": 0.05462876558303833,
+        "probe_loss": 0.04551726505160332
+      },
+      {
+        "secs": 225,
+        "step": 1123,
+        "train_loss": 0.06490685045719147,
+        "val_loss": 0.09755874890834093,
+        "mtp_loss": 0.06165512464940548,
+        "probe_loss": 0.07960027549415827
+      },
+      {
+        "secs": 240,
+        "step": 1203,
+        "train_loss": 0.04627096280455589,
+        "val_loss": 0.07841427344828844,
+        "mtp_loss": 0.0450871754437685,
+        "probe_loss": 0.05836805980652571
+      },
+      {
+        "secs": 255,
+        "step": 1285,
+        "train_loss": 0.07224609423428774,
+        "val_loss": 0.08242197521030903,
+        "mtp_loss": 0.0714736906811595,
+        "probe_loss": 0.04440590273588896
+      },
+      {
+        "secs": 270,
+        "step": 1368,
+        "train_loss": 0.05882813222706318,
+        "val_loss": 0.09085678122937679,
+        "mtp_loss": 0.05861667916178703,
+        "probe_loss": 0.059198894537985325
+      },
+      {
+        "secs": 285,
+        "step": 1451,
+        "train_loss": 0.05324350576847792,
+        "val_loss": 0.08213622029870749,
+        "mtp_loss": 0.05184570234268904,
+        "probe_loss": 0.05536782555282116
+      },
+      {
+        "secs": 300,
+        "step": 1532,
+        "train_loss": 0.053707266226410866,
+        "val_loss": 0.08199809864163399,
+        "mtp_loss": 0.05279027670621872,
+        "probe_loss": 0.05960862338542938
+      }
+    ],
+    "records_seen": 208694,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "train_thoughts": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "default_thoughts": 8,
+    "val_by_thoughts": {
+      "0": 0.08225090987980366,
+      "2": 0.08158864732831717,
+      "8": 0.08199809864163399
+    }
+  },
+  "rl_rounds": [],
+  "eval": {
+    "solved": null,
+    "n": null,
+    "ge": null,
+    "lstar": null,
+    "heldout_greedy": null,
+    "max_pruned": null,
+    "by_bin": null
+  },
+  "holdout_metric": null,
+  "surprise": "All three seeds ran out of GPU memory (44 GB) on the first step of the first RL fine-tune: 128 long RL proofs per batch, and run() holds attention weights over every earlier line of every row. Before the crash, the pretrained model's sample accuracy on the RL targets rose with thoughts per line on every seed: mean 3.6% at 0, 9.3% at 2, 11.1% at 4, 12.0% at 8.",
+  "seed_metrics": {},
+  "seed_metric_rl": {},
+  "seed_metric_diag": {},
+  "seed_status": {
+    "0": "crash",
+    "1": "crash",
+    "2": "crash"
+  },
+  "seed_pretrain": {},
+  "lean_gate": null,
+  "migrated": false
+}
