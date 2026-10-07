@@ -1,0 +1,216 @@
+{
+  "id": "508-claude",
+  "slug": "train-loops-1-4",
+  "written_at": "2026-10-07T14:19:35-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "8854f5d",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "ab246e5a273c",
+  "patch_lines": 6,
+  "title": "Train on 1-4 loops instead of 1-8: the scored 8-loop eval reads out a fixed point no batch pays to train",
+  "description": "One constant changes: TRAIN_LOOPS = (1, 2, 3, 4) instead of (1, ..., 8). Every training batch, in pretraining and in every RL fine-tune, draws its loop count uniformly from 1-4. Everything else is the incumbent's (502) file byte for byte: the 6,400,256-parameter looped trunk (1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop), Muon pretraining with the MTP head, and rl() with 8 attempts at 1 loop for every target per round plus 24 retries at one of 2, 4 or 8 loops (assigned at random) for the targets whose 8 one-loop attempts all failed, 600 AdamW steps at 3e-4 on up to 4 proofs per solved target weighted x4 mixed with 20,000 replayed pretraining records, rounds until another would not fit. So the harness's scored eval (8 loops) and one third of the RL retries (8 loops) now run at a loop count the model has never been trained at; the diagnostic eval (2 loops) and the other retries stay inside the trained range. VAL_LOOPS is unchanged, so val loss is still recorded at 1, 2, 4 and 8 loops when pretraining ends: the 8-loop value is the first check of the untrained depth. Mean block applications per training batch fall from 11 (2 + 2 x 4.5) to 7 (2 + 2 x 2.5). bench_pretrain.py --secs 60 on an A40: 531 steps in 61 s, 18.6-19.2 steps/s between curve points once compiled, against the incumbent's 13.1-13.5 on 502 seed 0's curve (3,479 steps in 300 s, first step at 32 s), a ratio of 1.4-1.45, peak GPU memory 7.58 GB, sampling at 2 loops unchanged at 224 samples/s. This is the spike's best arm (1-4 loops; 657 at 8 loops after 4 old-harness rounds against 622 for its 1-8 arm, and 700 after 12 rounds, which is this loop's bar) under this loop's RL; the baseline (500) chose 1-8 so that the eval depth was trained, and no experiment here has tested whether that is needed. 6 patch lines, 4 of them comment.",
+  "tags": [
+    "loops",
+    "schedule"
+  ],
+  "hypothesis": "Mechanism: the looped core's iteration has converged by about 4 passes, so a batch drawn at 5-8 loops trains almost the same function as a 4-loop batch at 1.4-1.8x its cost. Evidence: the spike's models were flat from 4 loops to 24 whatever range they trained on (1-4 arm, long-dev per-sample success 16.8% at 4 loops and 16.6, 16.5, 16.5 at 6, 8, 12); 505 measured, on its countdown model, the relative change of the core state per pass at 8 loops as 0.28, 0.10, 0.046, 0.025, 0.017, 0.016; 503 found per-sample accuracy on RL targets equal at 4 and 8 loops (0.731 vs 0.733, 0.657 vs 0.664, 0.673 vs 0.675) and 506 found resistant targets cracked as often at 4 loops as at 8 (23.6% vs 23.9%), whatever the fine-tune or the architecture asked of depth; pretraining val loss is the same at 1, 2, 4 and 8 loops to 0.003 on every 502 seed. If the 8-loop state is the 4-loop fixed point, then training at 5-8 loops buys nothing the eval can see and costs twice: (a) compute, 11 block applications per batch instead of 7, i.e. 36% of every pretraining step and of every fine-tune, and the fine-tune is the largest item in a 502 round (120-163 s of ~235 s; the 12,000 one-loop samples are 18-32 s); (b) dilution, each of the shallow programs is decoded in 1/8 of the batches instead of 1/4, and the 1-loop program is what RL's cheap first pass runs on (506 lost its run when 1-loop accuracy on RL targets fell from 0.72 to 0.59; the spike's 1-4 arm had 13.4% at 1 loop on long dev against 9.5% for the 1-8 arm). With 1-4 I expect about 1.45x the pretraining steps, a fine-tune of 75-110 s, and so 8-9 RL rounds instead of 7/7/6, with a stronger 1-loop pass solving more targets before any retry. 501 showed the random draw matters as a regularizer (fixed 8 lost 46); four values keep it. The part that could fail is the readout: the scored eval asks for 8 loops from a model that has only ever been decoded after 1-4. The spike's fixed-2 arm collapsed there (666 at 2 loops, 460 at 8) and its 1-4 arm did not (644 and 657; after 12 rounds 690 and 700), one seed each under the old RL that sampled at 2 loops only. Whether that stability survives 8-9 rounds of fine-tuning, with a third of the retries feeding in proofs found at the untrained depth, is what this run measures. What this does NOT do: it does not try to make deep loops pay more. I expect metric minus diag to shrink, not grow (spike: +13 and +10 for the 1-4 arm against +20 for 1-8), because 2 loops gets more training and 8 loops only re-reads the fixed point. It asks whether training at the eval depth earns its 36% of the training compute. Either answer is useful: if the score rises, depths 5-8 were cost without benefit, the +18 the loop keeps seeing is a property of the fixed point and not of deep training, and later experiments get a model that is 1.5x cheaper to train; if 8 loops degrade, the fixed point is not self-stabilising under this RL and the 1-8 range is doing real work. Reasons to doubt a gain: 504 also got 1.40x the pretraining steps and 9/9/8 rounds and lost 28 (through truncated gradients, which this does not touch), and 504, 505 and 506 all improved or matched pretraining val loss without any of it reaching the metric, so more steps alone should not be expected to pay; in 502 the 8-loop retries cracked more resistant targets than the 4-loop ones on two seeds of three (pooled 15.9% against 13.8%), an edge that training at 5-8 loops may be what produces.",
+  "p_keep": 0.5,
+  "expected_delta": "metric at 8 loops, 3-seed mean 678-715 against 502's 690 (687/715/669); point estimate 698 (+8). Pretraining: 4,900-5,400 steps per seed (502: 3,479/3,399/3,420); val loss at 2 loops, 3-seed mean 0.080-0.086 (502: 0.0866); val loss at 8 loops within 0.003 of val loss at 4 loops on every seed (502: within 0.0003). If 8 loops is more than 0.01 above 4 loops on any seed, the pretrained iteration is not converged at 4 without deeper training and the premise fails before RL starts. RL: 8-9 rounds per seed on normal pods (502: 7/7/6); fine-tune 75-110 s per round, measured as the gap in rl_secs_used before each 1-loop call minus that call's charged sampling (502: 120-163 s); cumulative RL targets solved 1,200-1,250 (502: 1,203, i.e. 1192/1220/1196); last-round 1-loop per-sample accuracy on RL targets 0.73-0.78 (502: 0.730/0.740/0.731). Retry arms, the check of the untrained depth on hard targets: resistant targets cracked, pooled over seeds and rounds, 11-13% at 2 loops, 13-16% at 4 and 13-16% at 8, with 8 within 2 points of 4 (502: 11.4/13.8/15.9); if 8 loops falls more than 3 points below 4, the untrained depth degrades where it matters and the deep retries are being wasted. Eval: metric minus metric_diag +5 to +15 (502: +18, 23/19/13), i.e. smaller, not larger; metric_diag (2 loops) 680-705 (502: 672); per-sample dev accuracy 0.46-0.50 at 8 loops and 0.44-0.48 at 2 (502: 0.466/0.489/0.460 and 0.435/0.461/0.435). Falsified on the readout side if the 8-loop metric is below the 2-loop diagnostic on two or more seeds (the untrained depth degrades, as the spike's fixed-2 arm did); falsified on the speed side if a seed on a normal pod gets 7 or fewer rounds. No crash or timeout expected: memory is below the incumbent's (7.58 GB peak in the bench) and sampling cost per call is unchanged. Decision: keep if the 3-seed mean beats 690, as the rule says; otherwise discard, and report the readout check (8 vs 4 loops in val loss and in the retry arms) separately from the score.",
+  "baseline_id": "502-claude",
+  "baseline_metric": 690,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ],
+      "untrained_depths_sampled": "8: the scored eval and one third of the RL retries; val loss is recorded there too"
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round as long as the last plus 15% would not fit in RL_SECS (expected 8-9)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "ft_loops": "random 1-4 per batch (TRAIN_LOOPS)",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

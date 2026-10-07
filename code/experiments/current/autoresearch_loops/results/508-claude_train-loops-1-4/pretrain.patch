@@ -1,0 +1,17 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 7e5a170..7dfb8e2 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -61,8 +61,10 @@ N_LAYER, D, N_HEAD = 2 + N_CORE, 384, 8
+ # Core applications (loops). Training draws one count per batch from TRAIN_LOOPS, in pretraining
+ # and in rl()'s fine-tune; eval and sampling apply model.n_loops, which the harness sets for its
+ # evals and rl() sets before each oracle call. DEFAULT_LOOPS is used for the validation curve and
+-# the harness's post-pretraining greedy check.
+-TRAIN_LOOPS = (1, 2, 3, 4, 5, 6, 7, 8)
++# the harness's post-pretraining greedy check. Training stops at 4 loops: the iteration has
++# converged by then (the spike's models are flat from 4 to 24 loops), so the scored 8-loop eval
++# and the deepest RL retry read out the same fixed point without any batch paying for passes 5-8.
++TRAIN_LOOPS = (1, 2, 3, 4)
+ DEFAULT_LOOPS = 2
+ VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
+ # ---- RL knobs: the old harness's expert iteration (600 AdamW steps per round on up to 4 proofs
