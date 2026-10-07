@@ -1,0 +1,221 @@
+{
+  "id": "502-claude",
+  "slug": "retry-failures-deeper",
+  "written_at": "2026-10-07T09:38:16-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "93ef4ac",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "72bb6c44da68",
+  "patch_lines": 47,
+  "title": "RL retries only the targets 1 loop failed, each at 2, 4 or 8 loops chosen at random",
+  "description": "Pretraining and the RL fine-tune are the incumbent's. Only where rl() spends its samples changes. Each round every target gets 8 attempts at 1 loop; the targets all 8 fail on are shuffled and dealt into three equal groups, which get 24 more attempts at 2, 4 and 8 loops respectively (32 attempts in all, as before). The incumbent gave every target 8 attempts at each of 1, 2, 4 and 8 loops, so after the first fine-tune most of its 2/4/8-loop samples went to targets that 1 loop had already solved in that round. Rounds get shorter as the failed set shrinks, so more of them fit in RL_SECS (the round rule is unchanged). rl() also returns, for each retry call, how many of its targets got a proof.",
+  "tags": [
+    "rl",
+    "sampling",
+    "loops",
+    "schedule"
+  ],
+  "hypothesis": "Two claims. (1) Allocation: deep samples are the expensive ones (an 8-loop sample costs about 2.5x a 2-loop one) and in 500 they bought little once the model was fine-tuned: in round 3 the 8-loop call added 12 newly solved targets for about 75 s. Spending 2/4/8-loop attempts only on targets that just resisted 1 loop keeps 32 attempts per resistant target while cutting a late round's sampling from about 183 s to about 70 s, so about 7 rounds fit where 5 did, and the spike's models kept gaining from extra rounds (657 to 700 at 8 loops between round 4 and round 12). More rounds over the same targets should solve more long RL targets and raise dev at 8 loops. (2) Measurement: the failed targets are assigned to 2, 4 or 8 loops at random with equal attempts, so a round's three retry calls are a controlled comparison of loop counts on targets the shallow pass could not solve, at every stage of RL. If depth does real work on hard problems, 8 loops should crack more of them than 2 loops in every round, not only before the first fine-tune.",
+  "p_keep": 0.55,
+  "expected_delta": "metric at 8 loops +5 to +25 over 675 (3-seed mean about 680-700); 6 or 7 RL rounds per seed against 500's 5/5/4; cumulative RL targets solved 1180-1260 against 1149. Retry comparison: in round 1 (pretrained model) the 8-loop retry acceptance rate is at least 1.3x the 2-loop rate; from round 3 on the 8-loop and 2-loop retry rates are within 10% of each other, i.e. depth stops helping on resistant targets once the model is fine-tuned, as the spike saw on never-solved targets. metric minus metric_diag stays near 500's +18 (10 to 25): this change is about where RL samples go and is not expected to widen the 8-vs-2 gap at eval. Fewer samples go to easy targets, so fewer distinct proofs per easy target is the main risk. Discard if the 3-seed mean is not above 675.",
+  "baseline_id": "500",
+  "baseline_metric": 675,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round would not fit in RL_SECS (expected 6-7)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
