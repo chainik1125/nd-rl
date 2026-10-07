@@ -51,7 +51,6 @@ from lean_tok import MAXN  # fork
 from model import GPT, Block  # fork
 from normalize import norm  # fork
 from tokenizer import make_tokenizer  # fork
-from train import batch as mk_batch  # fork
 from train import loss_on  # fork
 
 # ---- knobs
@@ -75,7 +74,10 @@ VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
 # Rounds repeat until another one would not fit in the budget.
 RL_FIRST_LOOPS, RL_K = 1, 8
 RL_RETRY_LOOPS, RL_RETRY_K = (2, 4, 8), 24
-FT_STEPS, FT_BS, FT_LR, FT_WARMUP = 600, 128, 3e-4, 50
+# The fine-tune sees FT_RECORDS records per round (the old 600 steps x 128 records) in the same
+# token-budget batches as pretraining (TOK_BUDGET below) instead of 128-record batches padded to
+# their longest proof, which with 7-14 line RL proofs in nearly every batch was ~3x the content.
+FT_RECORDS, FT_LR, FT_WARMUP = 600 * 128, 3e-4, 50
 RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
 # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
 # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
@@ -308,11 +310,12 @@ def to_gpu(data, tok, device):
     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
 
 
-def token_batches(lens, n_train, gen, rng):
-    """One epoch of token-budget batches: a random permutation of the training records, stably
-    sorted by length (equal lengths stay shuffled), cut greedily into runs of consecutive records
-    with count * max_len <= TOK_BUDGET, and the runs' order shuffled. Returns (order, cuts)."""
-    perm = torch.randperm(n_train, device=lens.device, generator=gen) + VAL_N
+def token_batches(lens, n_train, gen, rng, first=VAL_N):
+    """One epoch of token-budget batches: a random permutation of the n_train records from
+    `first` on, stably sorted by length (equal lengths stay shuffled), cut greedily into runs of
+    consecutive records with count * max_len <= TOK_BUDGET, and the runs' order shuffled.
+    Returns (order, cuts)."""
+    perm = torch.randperm(n_train, device=lens.device, generator=gen) + first
     order = perm[torch.argsort(lens[perm], stable=True)]
     sorted_lens = lens[order].cpu()
     cuts, s = [], 0
@@ -489,24 +492,33 @@ def pretrain(train_recs, budget_secs, device, seed, log):
 
 
 def finetune(model, tok, data, rng, device):
-    """The old harness's RL fine-tune: FT_STEPS AdamW steps, linear warmup then cosine to lr/10.
-    The model is in train mode, so every batch draws its own loop count from TRAIN_LOOPS."""
+    """The old harness's RL fine-tune: AdamW, linear warmup then cosine to lr/10, over FT_RECORDS
+    records in token-budget batches (to_gpu / token_batches / gpu_batch, as pretraining). The
+    model is in train mode, so every batch draws its own loop count from TRAIN_LOOPS. Returns
+    (last loss, steps)."""
+    ids, mask, ref_max, lens = to_gpu(data, tok, device)
+    gen = torch.Generator(device=device)
+    gen.manual_seed(rng.getrandbits(31))
+    plan, seen = [], 0  # (order, start, end, padded length) per step, epoch after epoch
+    while seen < FT_RECORDS:
+        order, cuts = token_batches(lens, len(data), gen, rng, first=0)
+        for s, e, T in cuts:
+            if seen >= FT_RECORDS:
+                break
+            plan.append((order, s, e, T))
+            seen += e - s
     opt = torch.optim.AdamW(model.parameters(), lr=FT_LR, weight_decay=0.1, betas=(0.9, 0.95))
     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
     model.train()
-    perm = []
-    for step in range(1, FT_STEPS + 1):
+    for step, (order, s, e, T) in enumerate(plan, 1):
         lr = (
             FT_LR * step / FT_WARMUP
             if step < FT_WARMUP
-            else FT_LR / 10 + 0.45 * FT_LR * (1 + math.cos(math.pi * step / FT_STEPS))
+            else FT_LR / 10 + 0.45 * FT_LR * (1 + math.cos(math.pi * step / len(plan)))
         )
         for g in opt.param_groups:
             g["lr"] = lr
-        if len(perm) < FT_BS:
-            perm = list(range(len(data)))
-            rng.shuffle(perm)
-        x, m = mk_batch(data, [perm.pop() for _ in range(FT_BS)], tok, rng, device)
+        x, m = gpu_batch(ids, mask, ref_max, lens, order[s:e], tok, gen, T)
         with autocast:
             loss = loss_on(model, x, m)
         opt.zero_grad(set_to_none=True)
@@ -514,13 +526,13 @@ def finetune(model, tok, data, rng, device):
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
     model.eval()
-    return loss.item()
+    return loss.item(), len(plan)
 
 
 def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
     rng = random.Random(seed)
     found = {t["name"]: {} for t in targets}  # name -> {normalized proof: proof text}
-    rounds, round_secs, retries = 0, 0.0, []
+    rounds, round_secs, retries, ft_steps = 0, 0.0, [], []
     # Start a round only if one as long as the last (plus 15%) still fits in the budget.
     while oracle.left() > 1.15 * round_secs:
         t0 = oracle.used()
@@ -552,11 +564,12 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
             break
         mix += [(r["prompt"], r["proof"]) for r in rng.sample(train_recs, RETAIN)]
         data = [(tok.encode_prompt(p), tok.encode_proof(q)) for p, q in mix]
-        loss = finetune(model, tok, data, rng, device)
+        loss, steps = finetune(model, tok, data, rng, device)
+        ft_steps.append(steps)
         rounds += 1
         round_secs = oracle.used() - t0
         log(
-            f"rl round {rounds}: {n_rl} RL records, fine-tune loss {loss:.4f}, "
+            f"rl round {rounds}: {n_rl} RL records, fine-tune loss {loss:.4f} in {steps} steps, "
             f"round {round_secs:.0f}s, {oracle.left():.0f}s left"
         )
     model.n_loops = DEFAULT_LOOPS
@@ -567,4 +580,6 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
         "retry_loops": RL_RETRY_LOOPS,
         "k_retry": RL_RETRY_K,
         "retries": retries,
+        "ft_records": FT_RECORDS,
+        "ft_steps": ft_steps,
     }
