@@ -1,0 +1,217 @@
+{
+  "id": "702-fable",
+  "slug": "rl-at-eval-level",
+  "written_at": "2026-10-07T09:25:36-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "54ffa8c",
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "91a13dac36f0",
+  "patch_lines": 45,
+  "title": "RL at the eval level only: sample 32 per target at 8 thoughts, fine-tune at 8 and never at 0",
+  "description": "Same pretraining as 701 (n drawn from 0..8 per batch, plan probe, MTP). rl() changes in two constants and one argument: each round samples every target 32 times at n_thoughts = 8 instead of 8 times at each of 0, 2, 4 and 8 (the same 32 attempts per target), and the fine-tune runs every micro-batch at n = 8 (FT_THOUGHTS) instead of drawing n from 0..8. The RL proofs, found with thoughts, are only ever learned with thoughts; the no-thought path gets no RL training at all. Pretraining is byte-identical, so the pretrained models match 701's seed for seed.",
+  "tags": [
+    "rl",
+    "sampling",
+    "thoughts"
+  ],
+  "hypothesis": "701's fine-tune distils the proofs found with thoughts into the path that does not think: in its live logs, one round of fine-tuning at n drawn from 0..8 took sample accuracy at 0 thoughts from 3-6% to 28-33%, against 39% at 8 thoughts (seeds 0 and 1), where before RL 8 thoughts had 1.7-3x the accuracy of 0. That is the mechanism by which thoughts stopped mattering after RL in the 2026-10-06 spike. If the found proofs are only ever trained at the eval level, the no-thought path never sees a 7-14 line proof in training, so the gap between 8 and 0 thoughts should survive RL (metric_diag far below metric), and the same 32 attempts per target spent entirely at the most productive level should find at least as many proofs per round in the same number of rounds.",
+  "p_keep": 0.5,
+  "expected_delta": "metric within -20 to +40 of 701's 3-seed mean (more valid samples per round at the same attempts, same 3 rounds, all fine-tune gradient in the thought path; against that, no training at 0 thoughts might cost some shared-weight generality). The distinctive prediction is the gap: metric minus metric_diag above 100 here, against within about 20 for 701. If metric_diag ends within noise of metric anyway, the shared weights carry the RL proofs into the no-thought path on their own and the mixed-count fine-tune was not the cause.",
+  "baseline_id": "701-manual",
+  "baseline_metric": null,
+  "config": {
+    "arch": {
+      "type": "gpt, 6 untied Peri-LN blocks, plus n continuous thought positions after every `;` and `by` (LayerNorm(output at the trigger) + slot embedding, one parallel pass per line)",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4; thoughts share their trigger's position",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9564672
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "none (CUDA-graphed Muon step only)",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "thoughts": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        8
+      ],
+      "default": 8,
+      "val": [
+        0,
+        2,
+        8
+      ],
+      "where": "after every `;` and `by` token",
+      "max": 16,
+      "probe": "token after the next `:=` or `exact`, read off the last thought, weight 0.3, pretraining and RL (on in every RL micro-batch now that none has 0 thoughts)",
+      "ft": [
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "k_per_count": 32,
+      "rounds": "until another round would not fit in RL_SECS (1.15 x the last round); expected 3, as 701 (round 1 estimated ~535 s against 701's 454-485 s: 48,000 samples at 8 thoughts at ~175-200 pure samples/s plus a fine-tune ~8% slower with no 0-thought micro-batches)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "loss": "next-token CE plus the plan probe at weight 0.3, every micro-batch at 8 thoughts",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_micro_batch": 32,
+      "ft_thoughts": [
+        8
+      ]
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_thoughts",
+      "level": 8,
+      "diag_level": 0,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
