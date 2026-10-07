@@ -1,0 +1,29 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 04e6bf0..26fa2a7 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -55,7 +55,11 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ # Unique blocks: one untied entry block, N_CORE shared core blocks, one untied exit block.
+-N_CORE = 2
++N_CORE = 4
++# Control: run 198's trunk. The six blocks are independent and applied once, with no re-injection;
++# n_loops is accepted and ignored, so the harness's two evals and rl()'s retry depths all sample
++# the same model.
++UNTIED = True
+ N_LAYER, D, N_HEAD = 2 + N_CORE, 384, 8
+ # Core applications (loops). Training draws one count per batch from TRAIN_LOOPS, in pretraining
+ # and in rl()'s fine-tune; eval and sampling apply model.n_loops, which the harness sets for its
+@@ -235,6 +239,11 @@ class LoopedGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
++        if UNTIED:
++            x = self.emb(idx)
++            for j, b in enumerate(self.blocks):
++                x = b(x, None, None, bias, None if caches is None else caches[j])
++            return x, bias
+         n = self.loop_rng.choice(TRAIN_LOOPS) if self.training else self.n_loops
+         entry, *core, exit_block = self.blocks
+         x = e = entry(self.emb(idx), None, None, bias, None if caches is None else caches[0])
