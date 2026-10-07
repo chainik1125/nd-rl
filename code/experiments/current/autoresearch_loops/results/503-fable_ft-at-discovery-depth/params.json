@@ -1,0 +1,230 @@
+{
+  "id": "503-fable",
+  "slug": "ft-at-discovery-depth",
+  "written_at": "2026-10-07T10:37:51-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "e9f53b6",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "681ecdaf40a1",
+  "patch_lines": 54,
+  "title": "RL fine-tune trains each proof only at loop counts at or above the depth that found it",
+  "description": "Pretraining, the sampling schedule (8 attempts per target at each of 1, 2, 4 and 8 loops per round), replay, weighting, optimizer and round rule are the incumbent's. Only which loop counts a proof is fine-tuned at changes. rl() records for every accepted proof the shallowest loop count among the oracle calls that returned it (its discovery depth; replayed pretraining records count as depth 1). finetune() draws each step's loop count n from TRAIN_LOOPS = 1..8 first (a new model.train_loops attribute pins the forward to that n), then draws the 128-record batch with replacement from the records whose discovery depth is <= n, weighting record i by 1 / P(n >= depth_i) (1, 8/7, 8/5 and 8 for depths 1, 2, 4, 8) so every record's expected exposure per round equals the incumbent's unfiltered epochs. So a proof found only at 8 loops is trained only in 8-loop batches, a proof found at 1 loop (and all replay) in every batch. rl() also returns rl_records_by_depth, the per-round count of RL records at each discovery depth. No change to speed: same sampling, same 600 steps.",
+  "tags": [
+    "rl",
+    "loops",
+    "loss",
+    "schedule"
+  ],
+  "hypothesis": "In run 500 the pretrained model's accuracy on RL targets rose 3.6x from 1 to 8 loops (0.024, 0.059, 0.081, 0.088 at 1, 2, 4, 8) and the fine-tune then flattened it: by round 5 it was 0.708, 0.752, 0.763, 0.763. The incumbent fine-tunes every proof at a random loop count 1..8, so the one-pass core is asked to reproduce the proofs only deep passes found; the cheapest shared solution is a one-shot core whose later passes are near-identity (pretraining already lands there: val loss within 0.002 across 1-8 loops), and that is what makes 8 loops no better than 4. Training a proof only at loop counts >= its discovery depth removes that pressure: the 8-loop forward still trains on every proof, the 1-loop forward only on proofs it already produces, so the core is free to be a partial step that needs iterating for hard proofs, as in Geiping et al. 2025 where shallow recurrences are rarely demanded. 501 showed the RL fine-tune can reshape the depth profile in 3000 steps (2-loop accuracy fell from 0.46 to 0.30 when only 8 loops were trained), so the effect should be visible within RL_SECS. Discovery depth is noisy at k=8 (a proof found at 8 and missed at 1 may be luck), which only softens the curriculum. Risks: the one-shot constraint was never binding (capacity, not depth, limits the trunk; the spike's long-dev ceiling of 16.8% at any depth suggests this) and nothing changes; or with-replacement weighted batches noisier than epochs cost a little.",
+  "p_keep": 0.4,
+  "expected_delta": "metric at 8 loops 670-700 (3-seed mean; +0 to +25 over 675), metric_diag at 2 loops 590-650 (proofs found at 4 or 8 loops are no longer trained at 2), so metric minus diag widens from 500's +18 to at least +35. Mechanism check in rl_rounds: in the last round, sample_acc at level 1 at most 0.65 against 500's 0.708 while level 8 stays at or above 0.76, i.e. the 1-vs-8 gap grows from 0.055 to at least 0.10. RL rounds 5 per seed as in 500 (no speed change); cumulative RL targets solved 1120-1200 (500: 1149). rl_records_by_depth: depth-1 records a growing majority across rounds, depth-8-only records 5-15% of RL records in round 1 falling later. If metric is within noise of 675 and the 1-vs-8 RL gap did not widen, the one-pass constraint was not what limits depth. Discard unless mean metric > 675.",
+  "baseline_id": "500",
+  "baseline_metric": 675,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "ft": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "discovery_depths": [
+        1,
+        2,
+        4,
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "k_per_loop": 8,
+      "rounds": "until another round would not fit in RL_SECS",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "ft_loops": "uniform over 1..8 per step, drawn before the batch",
+      "ft_depth_rule": "record eligible at loop count n iff its discovery depth <= n; discovery depth = shallowest sampling loop count that returned the proof, replay = 1",
+      "ft_batch_sampling": "128 records with replacement from the eligible set, weight 1 / P(n >= depth): 1, 8/7, 8/5, 8 for depths 1, 2, 4, 8",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

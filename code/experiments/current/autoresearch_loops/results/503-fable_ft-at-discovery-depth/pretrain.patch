@@ -1,0 +1,125 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 560b252..e9f5501 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -70,6 +70,11 @@ VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
+ # each round samples every target RL_K times at each loop count in RL_SAMPLE_LOOPS (32 attempts
+ # per target in all, as before), so proofs that only deeper sampling finds enter the training
+ # set. Rounds repeat until another one would not fit in the budget.
++# Depth rule for the fine-tune: a proof is trained only at loop counts >= the shallowest count
++# that found it (replayed pretraining records count as depth 1). Each step draws its loop count
++# from TRAIN_LOOPS first, then its batch from the records eligible at that count, weighted by
++# 1 / P(eligible) so every record's expected exposure matches an unfiltered epoch. The one-pass
++# core is no longer asked to reproduce proofs that only deep passes found.
+ RL_SAMPLE_LOOPS = (1, 2, 4, 8)
+ RL_K = 8
+ FT_STEPS, FT_BS, FT_LR, FT_WARMUP = 600, 128, 3e-4, 50
+@@ -209,6 +214,7 @@ class LoopedGPT(GPT):
+         self.register_buffer("slopes", slopes, persistent=False)
+         self.ln_loop = torch.nn.LayerNorm(d)
+         self.n_loops, self.loop_rng = DEFAULT_LOOPS, random.Random(seed)
++        self.train_loops = TRAIN_LOOPS  # finetune() narrows it to one count per step
+ 
+     def forward(self, idx, pos=None, mask=None, caches=None):
+         return self.head(self.ln_f(self.features(idx, pos, mask, caches)[0]))
+@@ -230,7 +236,7 @@ class LoopedGPT(GPT):
+         rel = pos[:, None, :, None] - key_pos[:, None, None, :]  # (B or 1, 1, T, S)
+         bias = -self.slopes * rel.to(self.slopes.dtype)
+         bias = bias.masked_fill(rel < 0 if mask is None else ~mask, float("-inf"))
+-        n = self.loop_rng.choice(TRAIN_LOOPS) if self.training else self.n_loops
++        n = self.loop_rng.choice(self.train_loops) if self.training else self.n_loops
+         entry, *core, exit_block = self.blocks
+         x = e = entry(self.emb(idx), None, None, bias, None if caches is None else caches[0])
+         for loop in range(n):
+@@ -485,13 +491,16 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     )
+ 
+ 
+-def finetune(model, tok, data, rng, device):
++def finetune(model, tok, data, depths, rng, device):
+     """The old harness's RL fine-tune: FT_STEPS AdamW steps, linear warmup then cosine to lr/10.
+-    The model is in train mode, so every batch draws its own loop count from TRAIN_LOOPS."""
++    Each step draws its loop count n from TRAIN_LOOPS and its batch (with replacement) from the
++    records whose discovery depth is <= n, record i weighted by 1 / P(n >= depths[i])."""
+     opt = torch.optim.AdamW(model.parameters(), lr=FT_LR, weight_decay=0.1, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+-    perm = []
++    share = {d: sum(t >= d for t in TRAIN_LOOPS) / len(TRAIN_LOOPS) for d in set(depths)}
++    eligible = {n: [i for i, d in enumerate(depths) if d <= n] for n in set(TRAIN_LOOPS)}
++    weights = {n: [1 / share[depths[i]] for i in idxs] for n, idxs in eligible.items()}
+     for step in range(1, FT_STEPS + 1):
+         lr = (
+             FT_LR * step / FT_WARMUP
+@@ -500,24 +509,25 @@ def finetune(model, tok, data, rng, device):
+         )
+         for g in opt.param_groups:
+             g["lr"] = lr
+-        if len(perm) < FT_BS:
+-            perm = list(range(len(data)))
+-            rng.shuffle(perm)
+-        x, m = mk_batch(data, [perm.pop() for _ in range(FT_BS)], tok, rng, device)
++        n = rng.choice(TRAIN_LOOPS)
++        model.train_loops = (n,)
++        x, m = mk_batch(data, rng.choices(eligible[n], weights[n], k=FT_BS), tok, rng, device)
+         with autocast:
+             loss = loss_on(model, x, m)
+         opt.zero_grad(set_to_none=True)
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
++    model.train_loops = TRAIN_LOOPS
+     model.eval()
+     return loss.item()
+ 
+ 
+ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+     rng = random.Random(seed)
+-    found = {t["name"]: {} for t in targets}  # name -> {normalized proof: proof text}
+-    rounds, round_secs = 0, 0.0
++    # name -> {normalized proof: [proof text, shallowest loop count that found it]}
++    found = {t["name"]: {} for t in targets}
++    rounds, round_secs, by_depth = 0, 0.0, []
+     # Start a round only if one as long as the last (plus 15%) still fits in the budget.
+     while oracle.left() > 1.15 * round_secs:
+         t0 = oracle.used()
+@@ -525,23 +535,31 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+             model.n_loops = n
+             for row in oracle.sample(model, targets, RL_K):
+                 for proof in row["proofs"]:
+-                    found[row["name"]].setdefault(norm(proof), proof)
++                    entry = found[row["name"]].setdefault(norm(proof), [proof, n])
++                    entry[1] = min(entry[1], n)
+         mix = []
+         for t in targets:
+             proofs = list(found[t["name"]].values())
+             rng.shuffle(proofs)
+-            mix += [(t["prompt"], proof) for proof in proofs[:MAX_PER_THM]] * RL_WEIGHT
++            mix += [(t["prompt"], proof, d) for proof, d in proofs[:MAX_PER_THM]] * RL_WEIGHT
+         n_rl = len(mix)
+         if not n_rl:
+             break
+-        mix += [(r["prompt"], r["proof"]) for r in rng.sample(train_recs, RETAIN)]
+-        data = [(tok.encode_prompt(p), tok.encode_proof(q)) for p, q in mix]
+-        loss = finetune(model, tok, data, rng, device)
++        mix += [(r["prompt"], r["proof"], 1) for r in rng.sample(train_recs, RETAIN)]
++        data = [(tok.encode_prompt(p), tok.encode_proof(q)) for p, q, _ in mix]
++        depths = [d for _, _, d in mix]
++        by_depth.append({n: depths[:n_rl].count(n) for n in RL_SAMPLE_LOOPS})
++        loss = finetune(model, tok, data, depths, rng, device)
+         rounds += 1
+         round_secs = oracle.used() - t0
+         log(
+-            f"rl round {rounds}: {n_rl} RL records, fine-tune loss {loss:.4f}, "
+-            f"round {round_secs:.0f}s, {oracle.left():.0f}s left"
++            f"rl round {rounds}: {n_rl} RL records by depth {by_depth[-1]}, fine-tune loss "
++            f"{loss:.4f}, round {round_secs:.0f}s, {oracle.left():.0f}s left"
+         )
+     model.n_loops = DEFAULT_LOOPS
+-    return {"rounds": rounds, "sample_loops": RL_SAMPLE_LOOPS, "k_per_loop": RL_K}
++    return {
++        "rounds": rounds,
++        "sample_loops": RL_SAMPLE_LOOPS,
++        "k_per_loop": RL_K,
++        "rl_records_by_depth": by_depth,
++    }
