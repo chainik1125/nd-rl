@@ -1,0 +1,153 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 04e6bf0..a90a462 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -77,7 +77,10 @@ RL_RETRY_LOOPS, RL_RETRY_K = (2, 4, 8), 24
+ # The fine-tune sees FT_RECORDS records per round (the old 600 steps x 128 records) in the same
+ # token-budget batches as pretraining (TOK_BUDGET below) instead of 128-record batches padded to
+ # their longest proof, which with 7-14 line RL proofs in nearly every batch was ~3x the content.
+-FT_RECORDS, FT_LR, FT_WARMUP = 600 * 128, 3e-4, 50
++# It uses pretraining's optimizer split: Muon (muon_step, MUON_WD) on the block matrices and the
++# head, AdamW at FT_LR on embeddings, norms and biases. FT_MUON_LR keeps pretraining's 10:1
++# Muon:AdamW ratio and is where pretraining's cosine ends (MUON_LR * MIN_LR_FRAC).
++FT_RECORDS, FT_LR, FT_MUON_LR, FT_WARMUP = 600 * 128, 3e-4, 3e-3, 50
+ RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
+ # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+ # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+@@ -163,6 +166,39 @@ def muon_step(params, buffers, lr):
+         p.sub_(lr * update.reshape_as(p).to(p.dtype))
+ 
+ 
++class MuonStep:
++    """muon_step on `matrices` with fresh momentum buffers, called once per step after backward
++    (grads must keep fixed addresses: zero_grad(set_to_none=False)). On CUDA the first call
++    captures the step as one CUDA graph and later calls replay it instead of ~400 kernel
++    launches; CPU smoke runs call muon_step directly."""
++
++    def __init__(self, matrices, device):
++        self.matrices, self.device = matrices, device
++        self.buffers = [torch.zeros_like(p) for p in matrices]
++        self.lr, self.graph = torch.zeros((), device=device), None
++
++    def __call__(self, lr):
++        self.lr.fill_(lr)
++        if self.device != "cuda":
++            muon_step(self.matrices, self.buffers, self.lr)
++            return
++        if self.graph is None:
++            state = self.matrices + self.buffers
++            saved = [t.clone() for t in state]
++            side = torch.cuda.Stream()
++            side.wait_stream(torch.cuda.current_stream())
++            with torch.cuda.stream(side):
++                muon_step(self.matrices, self.buffers, self.lr)  # warm-up (lazy cuBLAS init)
++            torch.cuda.current_stream().wait_stream(side)
++            self.graph = torch.cuda.CUDAGraph()
++            with torch.cuda.graph(self.graph):
++                muon_step(self.matrices, self.buffers, self.lr)
++            with torch.no_grad():
++                for t, v in zip(state, saved, strict=True):
++                    t.copy_(v)  # undo the warm-up and capture updates
++        self.graph.replay()
++
++
+ class PeriLNBlock(Block):
+     """P22 Peri-LN (Kim et al. 2025): the fork's pre-LN block plus a LayerNorm on each branch
+     output, so every residual write has unit scale times a learned gain. Attention has no RoPE:
+@@ -366,7 +402,6 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     # steps. The coalescing tiling analysis crashes on dynamic shapes, so it is off. Undone at
+     # handoff so the harness's RL fine-tune and KV-cache sampling run eager.
+     torch._inductor.config.triton.coalesce_tiling_analysis = False
+-    muon_lr, muon_graph = torch.zeros((), device=device), None
+     compiled = list(model.blocks) + [mtp.block]
+     for b in compiled if device == "cuda" else []:  # CPU smoke runs stay eager
+         b.compile(dynamic=True)
+@@ -384,7 +419,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+     matrices += [p for p in mtp.parameters() if p.ndim == 2]
+     matrix_ids = {id(p) for p in matrices}
+     auxiliary = [p for p in trainable if id(p) not in matrix_ids]
+-    momentum_buffers = [torch.zeros_like(p) for p in matrices]
++    muon = MuonStep(matrices, device)
+     opt = torch.optim.AdamW(
+         auxiliary, lr=LR, weight_decay=WD, betas=(0.9, 0.95), fused=device == "cuda"
+     )
+@@ -421,28 +456,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+         opt.step()
+-        muon_lr.fill_(MUON_LR * lr / LR)
+-        # Capture once; later steps replay one graph instead of ~400 kernel launches. CPU smoke
+-        # runs call the step directly.
+-        if device != "cuda":
+-            muon_step(matrices, momentum_buffers, muon_lr)
+-        elif muon_graph is None:
+-            state = matrices + momentum_buffers
+-            saved = [t.clone() for t in state]
+-            side = torch.cuda.Stream()
+-            side.wait_stream(torch.cuda.current_stream())
+-            with torch.cuda.stream(side):
+-                muon_step(matrices, momentum_buffers, muon_lr)  # warm-up (lazy cuBLAS init)
+-            torch.cuda.current_stream().wait_stream(side)
+-            muon_graph = torch.cuda.CUDAGraph()
+-            with torch.cuda.graph(muon_graph):
+-                muon_step(matrices, momentum_buffers, muon_lr)
+-            with torch.no_grad():
+-                for t, v in zip(state, saved, strict=True):
+-                    t.copy_(v)  # undo the warm-up and capture updates
+-            muon_graph.replay()
+-        else:
+-            muon_graph.replay()
++        muon(MUON_LR * lr / LR)
+         if step % 20 == 0:
+             last_loss = main.item()  # the next-token CE, comparable with earlier runs
+             recent.append(last_loss)
+@@ -492,10 +506,11 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+ 
+ 
+ def finetune(model, tok, data, rng, device):
+-    """The old harness's RL fine-tune: AdamW, linear warmup then cosine to lr/10, over FT_RECORDS
+-    records in token-budget batches (to_gpu / token_batches / gpu_batch, as pretraining). The
+-    model is in train mode, so every batch draws its own loop count from TRAIN_LOOPS. Returns
+-    (last loss, steps)."""
++    """The RL fine-tune: pretraining's optimizers (Muon on the hidden matrices, AdamW on the
++    rest), linear warmup then cosine to lr/10, over FT_RECORDS records in token-budget batches
++    (to_gpu / token_batches / gpu_batch, as pretraining). Muon's momentum restarts every round,
++    as AdamW's moments did. The model is in train mode, so every batch draws its own loop count
++    from TRAIN_LOOPS. Returns (last loss, steps)."""
+     ids, mask, ref_max, lens = to_gpu(data, tok, device)
+     gen = torch.Generator(device=device)
+     gen.manual_seed(rng.getrandbits(31))
+@@ -507,7 +522,11 @@ def finetune(model, tok, data, rng, device):
+                 break
+             plan.append((order, s, e, T))
+             seen += e - s
+-    opt = torch.optim.AdamW(model.parameters(), lr=FT_LR, weight_decay=0.1, betas=(0.9, 0.95))
++    matrices = [p for p in model.blocks.parameters() if p.ndim == 2] + [model.head.weight]
++    matrix_ids = {id(p) for p in matrices}
++    auxiliary = [p for p in model.parameters() if id(p) not in matrix_ids]
++    opt = torch.optim.AdamW(auxiliary, lr=FT_LR, weight_decay=0.1, betas=(0.9, 0.95))
++    muon = MuonStep(matrices, device)
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+     for step, (order, s, e, T) in enumerate(plan, 1):
+@@ -521,10 +540,11 @@ def finetune(model, tok, data, rng, device):
+         x, m = gpu_batch(ids, mask, ref_max, lens, order[s:e], tok, gen, T)
+         with autocast:
+             loss = loss_on(model, x, m)
+-        opt.zero_grad(set_to_none=True)
++        model.zero_grad(set_to_none=False)  # grads keep fixed addresses for the Muon CUDA graph
+         loss.backward()
+         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+         opt.step()
++        muon(FT_MUON_LR * lr / FT_LR)
+     model.eval()
+     return loss.item(), len(plan)
+ 
+@@ -582,4 +602,7 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+         "retries": retries,
+         "ft_records": FT_RECORDS,
+         "ft_steps": ft_steps,
++        "ft_optimizer": "muon (polar express) on block matrices and head + adamw on the rest",
++        "ft_lr": FT_LR,
++        "ft_muon_lr": FT_MUON_LR,
+     }

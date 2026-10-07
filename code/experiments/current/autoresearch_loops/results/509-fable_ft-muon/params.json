@@ -1,0 +1,224 @@
+{
+  "id": "509-fable",
+  "slug": "ft-muon",
+  "written_at": "2026-10-07T14:52:42-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "ba0ae92",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "c5989f40cd49",
+  "patch_lines": 85,
+  "title": "Muon fine-tune in RL: pretraining's optimizer split (Polar Express Muon on the hidden matrices, AdamW on the rest) replaces AdamW-on-everything in every expert-iteration round",
+  "description": "One change, in finetune(): the RL fine-tune uses the optimizers pretraining uses. Muon, the file's own muon_step (Nesterov momentum 0.95, five bf16 Polar Express iterations, decoupled decay MUON_WD), updates the 17 hidden matrices (qkv, proj, fc1, fc2 of the entry, two core and exit blocks, plus head.weight) at FT_MUON_LR = 3e-3; AdamW at FT_LR = 3e-4, wd 0.1, betas (0.9, 0.95) updates the 53 other tensors (embeddings, all LayerNorm gains and biases, linear biases), the same split pretraining makes. 3e-3 is pretraining's 10:1 Muon:AdamW ratio applied to the incumbent's 3e-4, and is exactly where pretraining's cosine ends (0.01 x 0.3), so the fine-tune continues the pretraining optimizer at its final learning rate; it was not tuned. The schedule shape is the incumbent's (50-step linear warmup, cosine to lr/10 over the round's step count), applied to both groups; momentum buffers restart each round as the AdamW moments did; the global grad clip at 1.0 precedes both steps as in pretraining. The Muon step is captured as one CUDA graph per round so it costs under 2 ms per step instead of ~400 eager launches (about 10-15 s per round, which would have cost some seeds their last round): the capture code is pretraining's, extracted unchanged into a MuonStep helper that pretrain() now also uses, and finetune() keeps grads at fixed addresses with zero_grad(set_to_none=False). Pretraining is otherwise unchanged (bench_pretrain.py --secs 60 on an A40: 349 steps in 61 s, 13.1-13.9 steps/s once compiled, the incumbent's rate; peak 7.58 GB; sampling 226 samples/s at 2 loops; val 0.112 at 60 s). Everything else is 507's file byte for byte: the 6,400,256-parameter looped trunk trained at random 1-8 loops, rl() with 8 attempts at 1 loop per target and 24 retries at 2, 4 or 8 loops for the targets 1 loop failed, token-budget fine-tune batches over FT_RECORDS = 76,800 records per round, up to 4 proofs per solved target weighted x4 mixed with 20,000 replayed pretraining records, rounds until another would not fit. Checks run: make -C code check clean; harness --smoke on CPU status ok; a CPU call of finetune() on 400 records (17 Muon matrices, 53 AdamW tensors, loss falls, every group moves). 85 patch lines, about 35 of them the helper extraction moved out of pretrain().",
+  "tags": [
+    "rl",
+    "optimizer"
+  ],
+  "hypothesis": "Mechanism: the fine-tune is now the largest training stage in the run and it runs on an optimizer nobody chose for it. After 507 the RL fine-tune makes 7,000-8,000 steps per run (579-770 per round x 9-11 rounds), twice pretraining's 3,400, with AdamW at 3e-4 inherited from the old harness, where it was tuned for the untied 198 model under 128-record padded batches. Pretraining on the same matrices uses Muon, the pretraining loop's kept optimizer, and ends at a Muon lr of 3e-3. Muon's orthogonalized update moves every singular direction of a matrix by the same amount per step, so the directions the RL proofs need and the short replay proofs do not (long-proof features, rare rule patterns: 7-14 line proofs are 1-4% of the mix's distinct content but carry the eval) get as much movement as the dominant ones; AdamW's per-element normalization leaves them under-trained within a 600-770-step round. If that is right, each round fits its RL proofs better: the last-round 1-loop acceptance on RL targets rises above 507's 0.716/0.703/0.678, more targets are solved per round, the found-proof sets are larger and more diverse (where 507 located its gain: pass@64 rose while per-sample accuracy did not), and the scored eval rises at both depths with the 8-vs-2 gap unchanged, since nothing about loops changes. A secondary, speculative loop effect: the gradient the deep passes send to the shared core is small and low-rank once the iteration has converged (505: relative state change per pass 0.28, 0.10, 0.046, 0.025, 0.017, 0.016), and Muon amplifies small-singular-value directions of the update, so the refinement directions that AdamW under-weights get trained; if real, metric minus diag grows past +18. What can go wrong: (a) 3e-3 is too hot for fine-tuning on a mix that is half short replay proofs and the model forgets or oscillates round to round, visible as 1-loop acceptance in rounds 2+ below 507's trajectory (seed 0: 0.41, 0.53, 0.59, 0.62, 0.63, 0.67, 0.69, 0.69, 0.70, 0.72) and a lower cumulative solved count; (b) Muon's decoupled decay is 10x AdamW's per step (exp(-0.115) per round on the matrices), balanced only if the fixed-RMS updates hold the weights at the equilibrium pretraining ended at; a drift would show as both evals falling together; (c) the fine-tune is simply as good as AdamW here, in which case everything lands within noise of 507. This does not try to make deep loops pay; it tests whether the RL fine-tune, now the run's biggest consumer of gradient steps, is optimizer-limited.",
+  "p_keep": 0.45,
+  "expected_delta": "metric at 8 loops, 3-seed mean 735-770 against 507's 732 (746/765/684); point estimate 750 (+18). metric_diag (2 loops) 715-750 (507: 714 = 726/743/674); metric minus diag +8 to +28 (507: +18 = 20/22/10), i.e. unchanged within noise unless the speculative Muon-on-refinement-directions effect is real, which I put at 1 in 5 and would show as a gap above +28 on two seeds. RL rounds 11/11/9 plus or minus 1 (the graphed Muon step adds under 2 s per round; 507 seed 0 had 153 s left after round 11 with 147-s rounds, so the margin is thin on its own); a seed losing 2 or more rounds against 507 means the graph capture or the step is slower than benched. Fine-tune fit, the mechanism proper: last-round 1-loop acceptance on RL targets 0.72-0.78 (507: 0.716/0.703/0.678), round-2 1-loop acceptance 0.42-0.55 (507 seed 0: 0.408); cumulative RL targets solved 1,250-1,300 (507: 1,265/1,264/1,208, mean 1,246). Per-sample dev accuracy 0.47-0.52 at 8 loops and 0.44-0.49 at 2 (507: 0.480/0.483/0.445 and 0.445/0.445/0.417). Retry crack rates keep their order, 2 < 4 <= 8 loops pooled (507: 11.0/13.5/14.1). Pretraining identical to 507 up to GPU nondeterminism: 3,300-3,500 steps, val at 2 loops 0.078-0.087, val within 0.003 across 1-8 loops. Falsified as too hot if round-2 1-loop acceptance is below 0.30 on two seeds, or cumulative RL solved is below 1,200 with 507's round count, or both evals fall together (metric below 700 and diag below 690). Falsified as equivalent if the mean lands in 722-742 and last-round acceptance is within 0.02 of 507's per seed. No crash or timeout expected: memory is pretraining's (7.58 GB peak) and the Muon state is 17 momentum buffers, 6.2M floats. Decision: keep iff the 3-seed mean is above 732, as the rule says; if kept with the gap unchanged, say so in the surprise text, since a gain at both depths does not answer the loop question.",
+  "baseline_id": "507-fable",
+  "baseline_metric": 732,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 768,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round as long as the last plus 15% would not fit in RL_SECS (expected 11/11/9 as 507)",
+      "ft_optimizer": "pretraining's split: Muon (muon_step: Nesterov momentum 0.95, five bf16 Polar Express steps, decoupled decay MUON_WD = 0.1 per unit lr) at 3e-3 on the 17 hidden matrices (qkv, proj, fc1, fc2 of the 4 unique blocks + head.weight); AdamW 3e-4, wd 0.1, betas (0.9, 0.95) on the 53 other tensors (token embeddings, every LayerNorm gain/bias, linear biases); global clip 1.0 before both steps; linear warmup 50 steps then cosine to lr/10 over the round's step count for both groups (unchanged shape); Muon momentum and AdamW moments start fresh every round; the Muon step is one CUDA graph per round (MuonStep helper, shared with pretraining)",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_steps_note": "data-dependent now: the round's fine-tune runs over FT_RECORDS = 76,800 records (the old 600 steps x 128) cut into token-budget batches of <= 18,432 padded tokens, epoch after epoch until the count is reached; 768 is the expected step count at a mean record length of ~190 tokens (expected range 650-900); the actual count per round is logged and recorded in rl stats as ft_steps",
+      "ft_records": 76800,
+      "ft_batch": "token-budget batches as pretraining: shuffled epoch stably sorted by length, cut into runs with count x max_len <= 128 x 144 = 18,432 tokens, run order shuffled; shift augmentation on the GPU (gpu_batch); replaces the fork's batch() of 128 random records padded to their longest",
+      "ft_muon_lr": 0.003,
+      "ft_muon_lr_note": "FT_MUON_LR = 10 x FT_LR, pretraining's Muon:AdamW ratio (MUON_LR 0.01 : LR 1e-3), and equal to where pretraining's cosine ends (MUON_LR x MIN_LR_FRAC = 0.003); not tuned"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
