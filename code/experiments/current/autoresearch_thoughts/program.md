@@ -44,9 +44,17 @@ effect per line. The pretrained model's share of valid samples on the RL targets
 target, three seeds: 3.6% at 0 thoughts per line, 9.3% at 2, 11.1% at 4, 12.0% at 8, rising on
 every seed up to at least 4. Whether any of that survives RL is what this loop is for.
 
-**The bar.** Experiment 701 is the incumbent recipe, unchanged; its 3-seed mean is the number to
-beat. For scale, the looped loop's bar and run 198 (the untied model with no thoughts, 680 under
-the old harness) are not comparable with this harness's numbers until someone runs them here.
+**701's result, the first under this harness: 531 at 8 thoughts per line, 479 at 0** (seeds
+510/466, 529/476, 553/496). Thinking is worth 44 to 57 dev theorems on every seed after three RL
+rounds, which the spike never saw after RL. In RL sampling the whole gain is the step from 0 to
+2 thoughts (after round 1: 30.0%, 36.7%, 37.0%, 36.7% of samples valid at 0, 2, 4, 8) and more
+thoughts than 2 add nothing. So thoughts matter here, but more thoughts do not yet buy more.
+
+**The bar.** The incumbent's 3-seed mean `metric`, starting from 701's 531. For scale, the
+sibling loop's baseline (500, looped trunk, the same harness) scores 675 at 8 loops and 657 at 2,
+with about 5,000 pretraining steps and five RL rounds where this recipe gets about 1,550 and
+three; its target is 700. Run 198, untied and with no thoughts, scored 680 under the old harness.
+Closing that 145-point gap is mostly a matter of speed; making 8 thoughts beat 2 is the science.
 
 ## The metric
 
