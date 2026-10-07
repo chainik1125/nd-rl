@@ -1,0 +1,222 @@
+{
+  "id": "507-fable",
+  "slug": "ft-token-batches",
+  "written_at": "2026-10-07T13:16:16-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "d376584",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "fe991500c215",
+  "patch_lines": 55,
+  "title": "RL fine-tune in token-budget batches: the same 76,800 records per round in ~3x fewer padded tokens, so more RL rounds fit",
+  "description": "Pretraining, the model, and where rl() spends its samples are the incumbent's (502: 8 attempts at 1 loop per target, 24 retries at one of 2/4/8 loops for the targets 1 loop failed; proofs kept up to 4 per target, weighted x4, mixed with 20,000 replayed pretraining records). Only the fine-tune's batching changes. The incumbent's finetune() takes 600 steps of 128 records drawn at random from the mix with the fork's batch(), which pads every batch to its longest record; with 7-14 line RL proofs in nearly every batch of 128, each step is ~3x its content (the same waste the pretraining loop removed from pretraining with token-budget batches, run 198's TOK_BUDGET). The new finetune() moves the whole mix to the GPU once (to_gpu), builds a plan of token-budget batches (token_batches with first=0: a shuffled epoch stably sorted by length, cut into runs with count x max_len <= 128 x 144 = 18,432 padded tokens, run order shuffled), epoch after epoch until FT_RECORDS = 76,800 records (= 600 x 128, the old amount) are planned, and runs AdamW 3e-4 with the old warmup-50-then-cosine-to-lr/10 schedule over that plan's step count, the shift augmentation applied on the GPU by gpu_batch as in pretraining. Loop counts per batch are still drawn from 1..8 (train mode). The step count is data-dependent (about 650-900 per round: ~30-50 records per step when the run is long RL proofs, ~130 when it is short replay records) and is logged and recorded per round as ft_steps. token_batches gained a `first` argument (VAL_N by default, 0 here); the unused batch import and FT_BS are gone. The RL budget rule is unchanged, so the time saved turns into extra rounds. 55 patch lines.",
+  "tags": [
+    "rl",
+    "systems"
+  ],
+  "hypothesis": "Mechanism: the fine-tune is the largest single cost of a 502 round. In 502 seed 0 the level-1 oracle call comes 207-260 s after the previous call, of which the 12,000 one-loop samples take about 110 s (107-109 samples/s), so the 600-step fine-tune is 100-150 s of a ~250 s round, more than the deep retries. Almost all of it is padding: a mixed batch of 128 records is padded to its longest member (an RL proof of 7-14 lines, 400-600 tokens with the prompt) while the mean record is ~135 tokens for replay and ~250 for RL proofs, so the fine-tune pushes ~2.5-3x the tokens it trains on through 18-block forwards at random depth. Token-budget batches remove the padding at the same records per round, so the fine-tune should take 40-70 s and a round 170-200 s instead of ~250 s, which fits 9-10 rounds in the 1,800 s RL budget instead of 7/7/6. More rounds is the one lever this loop has already seen pay: 502 kept at +15 with 7 rounds against 500's 5 (with other changes), and the spike's looped model went from 644 to 690 at 2 loops with 12 rounds against 4. Each extra round is another 32 attempts per unsolved target (more RL proofs, 502's last rounds still added 5-10 targets each) and another 76,800 records of fine-tuning on the RL proofs, the data the dev eval transfers from. What this does not do: it does not touch loops, so the 8-vs-2 gap should stay at about +18; I am testing whether RL-round throughput, bought with zero-quality-cost speed code, moves the 8-loop metric. Quality risks that could cancel the gain: (a) length-sorted batches are homogeneous, so each step's gradient comes from only long RL proofs or only short replay proofs, where the incumbent mixed them 128 at a time; (b) a long-proof step holds 30-50 records instead of 128, so AdamW at 3e-4 (tuned for 128-record batches) sees noisier steps on the RL proofs; (c) 504 fitted 9/9/8 rounds and did not gain at 2 loops, but its fine-tune was weakened by truncated backprop, so it does not settle whether rounds 8-10 pay. Pretraining is byte-identical and its speed unchanged, so bench_pretrain was not run.",
+  "p_keep": 0.5,
+  "expected_delta": "metric at 8 loops, 3-seed mean 685-712 against 502's 690 (687/715/669); point estimate 698 (+8). Speed, the mechanism proper: RL rounds per seed 9-10 (502: 7/7/6); the interval between a round's fine-tune start and its level-1 call, i.e. the level-1 calls' secs-since-previous in rl_rounds, 140-200 s against 502's 207-260 s; fine-tune steps per round 650-900 (recorded as ft_steps). Falsified on the speed side if any seed on a normal pod gets 7 or fewer rounds. Cumulative RL targets solved 1,210-1,260 (502: 1,203, i.e. 1192/1220/1196 by seed). Last-round one-loop RL accuracy 0.71-0.76 (502: 0.730/0.740/0.731): if rounds rise to 9+ but this falls below 0.70 on two seeds, the homogeneous or smaller batches hurt the fine-tune and the extra rounds are being spent repairing it. Loops: metric minus metric_diag +10 to +25 (502: +18, 23/19/13), unchanged by design; per-sample dev accuracy at 8 loops 0.45-0.50 (502: 0.466/0.489/0.460). Pretraining identical to 502 within pod noise: 3,300-3,500 steps, val loss at 2 loops 0.080-0.093 per seed. No crash expected: the fine-tune's peak memory is pretraining's (18,432 tokens per step at depth up to 8) plus the ~200 MB mix on the GPU. Decision: keep if the 3-seed mean beats 690, as the rule says; discard otherwise, and in either case report whether the time saving materialised separately from the score.",
+  "baseline_id": "502-claude",
+  "baseline_metric": 690,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 768,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round as long as the last plus 15% would not fit in RL_SECS (expected 9-10)",
+      "ft_optimizer": "adamw 3e-4, wd 0.1, betas (0.9, 0.95), clip 1.0, warmup 50 steps then cosine to lr/10 over the round's step count (unchanged shape)",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_steps_note": "data-dependent now: the round's fine-tune runs over FT_RECORDS = 76,800 records (the old 600 steps x 128) cut into token-budget batches of <= 18,432 padded tokens, epoch after epoch until the count is reached; 768 is the expected step count at a mean record length of ~190 tokens (expected range 650-900); the actual count per round is logged and recorded in rl stats as ft_steps",
+      "ft_records": 76800,
+      "ft_batch": "token-budget batches as pretraining: shuffled epoch stably sorted by length, cut into runs with count x max_len <= 128 x 144 = 18,432 tokens, run order shuffled; shift augmentation on the GPU (gpu_batch); replaces the fork's batch() of 128 random records padded to their longest"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
