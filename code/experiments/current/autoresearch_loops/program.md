@@ -40,6 +40,17 @@ little 8 loops add in every row: 10 to 21 theorems for three times the compute p
 Beat the best number in that table. Run 198 (the untied model the pretraining loop ended on) is
 deliberately not the bar for now.
 
+**Control, 2026-10-07 (experiment 590, operator-run, read it):** run 198's six untied blocks with
+507's `rl()` unchanged score **792** (790/785/800) in this harness, where the looped incumbents
+scored 732 (507) and 748 (509) at 8 loops. The untied model applies 6 blocks per token; the looped
+eval applies 18. So the RL gains found here (502's retries, 507's token-budget fine-tune) are not
+about loops: they help regular pretraining more, and at equal RL the looped trunk is about 45 to
+60 theorems behind it at three times the sampling cost. Every kept experiment so far has left the
+gap between 8 loops and 2 loops at about +18. The incumbent rule is unchanged (beat the looped
+incumbent's 3-seed mean), but an experiment that raises the score through RL efficiency alone no
+longer tells us anything new. What would: a looped model whose score at 8 loops is far above its
+own score at 2, without 2 loops getting worse, and ultimately one that beats 792.
+
 ## The metric
 
 `metric` in `summary.json`: dev-transfer theorems (true length >= 7, 1,108 of them) solved with
