@@ -198,9 +198,10 @@ class Explorer(pt.StepGen):
         super().__init__(env, action, "decision", None, [], cfg, rng)
 
     def alts_before(
-        self, blk: pt.Block, local: Local, g: Formula, ref_sig: tuple[Any, ...], top: bool
+        self, blk: pt.Block, local: Local, g: Formula, ref_sig: tuple[Any, ...], depth: int
     ) -> tuple[int, list[pt.Alt]]:
         cfg, rng = self.cfg, self.rng
+        top = depth == 0
         alts = [a for a in pt.alternatives(blk, local, g) if a.sg != ref_sig]
         dead = [a for a in alts if a.dead and a.kind != "efq"]
         efq = [a for a in alts if a.dead and a.kind == "efq"]
@@ -216,7 +217,7 @@ class Explorer(pt.StepGen):
         k = len(shown) if rng.random() < cfg.p_ref_last else rng.randrange(len(shown) + 1)
         n_pre = 0
         for a in shown[:k]:
-            if self.explore_dead(blk, local, g, a, top):
+            if self.explore_dead(blk, local, g, a, depth):
                 n_pre += 1
                 self.bump("dead_ends")
                 self.bump("efq" if a.kind == "efq" else "real_dead_ends")
@@ -224,7 +225,9 @@ class Explorer(pt.StepGen):
             self.info["backtrack"] = True
         return n_pre, shown[k:]
 
-    def alts_after(self, blk: pt.Block, local: Local, g: Formula, post: list[pt.Alt]) -> int:
+    def alts_after(
+        self, blk: pt.Block, local: Local, g: Formula, post: list[pt.Alt], depth: int = 0
+    ) -> int:
         n = 0
         for a in post:
             if blk.attempt(lambda a=a: blk.reduce(local, g, a.build(lambda: blk.fresh()), no=True)):
@@ -349,7 +352,7 @@ class PlanWriter:
                 return
             post: list[pt.Alt] = []
             if explorer is not None and depth < explore_depth:
-                _, post = explorer.alts_before(blk, local, g, pt.sig(node), top=depth == 0)
+                _, post = explorer.alts_before(blk, local, g, pt.sig(node), depth)
             s = blk.snap()
             try:
                 holes = blk.reduce(local, g, node)
@@ -367,7 +370,7 @@ class PlanWriter:
             if keep is None:
                 self.lines.append(PLine(key, depth, parent, cost))
             if post and explorer is not None:
-                explorer.alts_after(blk, local, g, post)
+                explorer.alts_after(blk, local, g, post, depth)
             anchored.add((local, g))
             for sd, sl, srn in subs:
                 if id(sd) in seen:

@@ -36,6 +36,21 @@ action + <eos> (`to_fork` drops think_len).  The trained mask covers the whole t
 0); `think_len` (the block's length, tags included) lets the trainer weight think tokens separately.
 A JSON report (`<out>.report.json`) gives counts, the token-length distribution of the pairs and the
 number of pairs longer than --max_len.
+
+Graded effort (`lean_thinke`, `build_graded`):
+
+    python -m code.thinking.data --graded 0:0.2 16:e16.jsonl:0.2 64:e64.jsonl:0.3 \
+        256:e256.jsonl:0.3 --no-lean --out T1v1g4.pkl
+
+Each proof of the level-256 file draws ONE effort level by `unit_hash(id/effort)` (probabilities
+in ascending level order) and trains on that level's think blocks; every pair's state ends in the
+level's effort token (`pair = state <eB> | <think> ... </think> action <eos>`, the layout of
+`effort.relabel_records`).  SPEC is `0:PROB` (level 0 = the level-256 record with every think
+emptied) or `LEVEL:PATH:PROB`.  The level-256 file defines the proof list and order; the other
+files hold the same ids, prompts and actions.  A proof missing at its drawn level is skipped and
+counted in `missing_at_level`; a record whose actions or prompt differ from the level-256 record,
+or whose think block exceeds its level's budget (`ValueError`), is a broken input, not data.
+Mutually exclusive with --traces / --plain.
 """
 
 from __future__ import annotations
@@ -55,7 +70,7 @@ from typing import Any
 from code.ndbench.core.keys import canon_key, pkey, prompt_to_thm, split_thm
 
 from .dan import bare, load, trace_dsl
-from .tok import END_THINK, THINK, ThinkTokenizer
+from .tok import END_THINK, LEVELS, THINK, EffortTokenizer, ThinkTokenizer
 
 D = load()
 FORMAT = "thinking-pairs/1"
@@ -387,6 +402,150 @@ def build(
     }
 
 
+# ------------------------------------------------------------------------------- graded effort
+def draw_level(rec_id: Any, specs: Sequence[tuple[int, Any, float]]) -> int:
+    """The effort level of a record: `unit_hash(f"{id}/effort")` against the cumulative
+    probabilities of `specs` ((level, path, prob)) in ascending level order."""
+    u = unit_hash(f"{rec_id}/effort")
+    acc = 0.0
+    ordered = sorted(specs, key=lambda x: x[0])
+    for level, _, prob in ordered:
+        acc += prob
+        if u < acc:
+            return int(level)
+    return int(ordered[-1][0])  # rounding: u is in [0, 1) and the probabilities sum to 1
+
+
+def check_graded_specs(specs: Sequence[tuple[int, Any, float]]) -> None:
+    levels = [int(x[0]) for x in specs]
+    if len(set(levels)) != len(levels) or not set(levels) <= set(LEVELS):
+        raise ValueError(f"graded levels must be distinct and in {LEVELS}, got {levels}")
+    if abs(sum(float(x[2]) for x in specs) - 1.0) > 1e-9 or any(x[2] < 0 for x in specs):
+        raise ValueError(f"graded probabilities must be >= 0 and sum to 1: {[x[2] for x in specs]}")
+    for level, path, _ in specs:
+        if level == 0 and path is not None:
+            raise ValueError("level 0 takes no path (the level-256 record, thinks emptied)")
+        if level != 0 and path is None:
+            raise ValueError(f"level {level} needs a path")
+    if 256 not in levels:
+        raise ValueError("level 256 is required: its file defines the proof list and its order")
+
+
+def build_graded(
+    specs: Sequence[tuple[int, Any, float]],
+    exclude: Sequence[str | Path] = (),
+    lean: bool = False,
+    max_len: int = 1024,
+) -> dict[str, Any]:
+    """Mode `lean_thinke` pairs, one effort level per proof (see the module docstring)."""
+    check_graded_specs(specs)
+    specs = sorted(((int(a), b, float(c)) for a, b, c in specs), key=lambda x: x[0])
+    E = EffortTokenizer()
+    index = EvalIndex(exclude)
+    by_level: dict[int, dict[Any, dict[str, Any]]] = {
+        lv: {r["id"]: r for r in read_jsonl(path)} for lv, path, _ in specs if path is not None
+    }
+    top = read_jsonl(next(p for lv, p, _ in specs if lv == 256))
+    excluded_by_set: collections.Counter[str] = collections.Counter()
+    reasons: collections.Counter[str] = collections.Counter()
+    missing: collections.Counter[int] = collections.Counter()
+    counts: dict[int, int] = dict.fromkeys(LEVELS, 0)
+    think_by_level: dict[int, list[int]] = {lv: [] for lv in LEVELS}
+    records: list[list[Pair]] = []
+    meta: list[dict[str, Any]] = []
+    n_valid = 0
+    for rec in top:
+        hits = index.hit(rec["prompt"])
+        for h in hits:
+            excluded_by_set[h] += 1
+        if hits:
+            continue
+        level = draw_level(rec["id"], specs)
+        if level == 0:
+            use = {**rec, "steps": [{**st, "think": ""} for st in rec["steps"]]}
+        else:
+            use = by_level[level].get(rec["id"])
+            if use is None:
+                missing[level] += 1
+                continue
+        if use["prompt"] != rec["prompt"] or [s["action"] for s in use["steps"]] != [
+            s["action"] for s in rec["steps"]
+        ]:
+            raise ValueError(f"level {level} record {rec['id']} differs from the level-256 one")
+        v = validate_trace(use, lean)
+        if not v["ok"]:
+            reasons[str(v["error"]).split(":")[0] if v["error"] else "unknown"] += 1
+            continue
+        # the level's effort token (effort.effort_id; importing effort here closes a cycle
+        # effort -> ckpt -> stateview -> data)
+        e = bytes([E.stoi[f"<e{level}>"]])
+        pairs = [(p + e, q, n) for p, q, n in trace_pairs(use, E)]
+        body = [max(n - 2, 0) for _, _, n in pairs]
+        if max(body) > level:
+            raise ValueError(
+                f"{rec['id']}: think block of {max(body)} tokens exceeds level {level}"
+            )
+        n_valid += 1
+        counts[level] += 1
+        think_by_level[level] += [b for b in body if b > 0]
+        records.append(pairs)
+        meta.append(
+            {
+                "id": rec["id"],
+                "prompt": rec["prompt"],
+                "key": class_keys(rec["prompt"])[0],
+                "source": "trace_emptied" if level == 0 else "trace",
+                "n_lines": None,
+                "level": level,
+            }
+        )
+    ids = {x for r in records for p, q, _ in r for x in p + q}
+    assert not ids or max(ids) < E.vocab_size <= 256
+    report = {
+        "traces_in": len(top),
+        "traces_valid": n_valid,
+        "excluded_by_set": dict(excluded_by_set),
+        "invalid_trace_reasons": dict(reasons),
+        "missing_at_level": {str(k): v for k, v in sorted(missing.items())},
+        "effort_levels": counts,
+        "effort_probs": {str(lv): pr for lv, _, pr in specs},
+        "think_tokens_by_level": {str(lv): _dist(xs) for lv, xs in think_by_level.items()},
+        "lengths": length_report(records, max_len),
+    }
+    config = {
+        "graded": [[lv, None if p is None else str(p), pr] for lv, p, pr in specs],
+        "exclude": [str(p) for p in exclude],
+        "lean": lean,
+        "max_len": max_len,
+        "draw": "unit_hash(id/effort)",
+    }
+    return {
+        "format": FORMAT,
+        "mode": E.mode,
+        "itos": list(E.itos),
+        "no_trace_mode": "empty",
+        "has_traces": True,
+        "records": records,
+        "meta": meta,
+        "config": config,
+        "report": report,
+    }
+
+
+def parse_graded(specs: Sequence[str]) -> list[tuple[int, str | None, float]]:
+    """CLI specs `0:PROB` / `LEVEL:PATH:PROB` -> (level, path or None, prob)."""
+    out: list[tuple[int, str | None, float]] = []
+    for s in specs:
+        parts = s.split(":")
+        if len(parts) == 2:
+            out.append((int(parts[0]), None, float(parts[1])))
+        elif len(parts) >= 3:
+            out.append((int(parts[0]), ":".join(parts[1:-1]), float(parts[-1])))
+        else:
+            raise ValueError(f"bad --graded spec {s!r}: want 0:PROB or LEVEL:PATH:PROB")
+    return out
+
+
 def save(data: dict[str, Any], out: str | Path) -> Path:
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -453,13 +612,33 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="replace every think-content token with <no>, keeping each block's length",
     )
+    ap.add_argument(
+        "--graded",
+        nargs="+",
+        default=None,
+        metavar="SPEC",
+        help="graded effort (lean_thinke): 0:PROB and LEVEL:PATH:PROB; excludes --traces/--plain",
+    )
     ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
+    if a.graded and (a.traces or a.plain):
+        ap.error("--graded is mutually exclusive with --traces / --plain")
     exclude = list(DEFAULT_EXCLUDE if a.exclude is None else a.exclude) + list(a.extra_exclude)
     missing = [p for p in exclude if not os.path.exists(p)]
     if missing:
         print(f"error: exclusion sets not found: {missing}", file=sys.stderr)
         return 1
+    if a.graded:
+        data = build_graded(parse_graded(a.graded), exclude, lean=not a.no_lean, max_len=a.max_len)
+        rp = save(data, a.out)
+        r = data["report"]
+        print(
+            f"graded {r['traces_valid']}/{r['traces_in']} valid, levels {r['effort_levels']}, "
+            f"missing {r['missing_at_level']}, invalid {r['invalid_trace_reasons']}; "
+            f"{r['lengths']['pairs']} pairs, {r['lengths']['pairs_over_max_len']} over "
+            f"{a.max_len}; excluded {r['excluded_by_set']} -> {a.out}, {rp}"
+        )
+        return 0
     data = build(
         a.traces,
         a.plain,

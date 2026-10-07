@@ -1,5 +1,5 @@
-"""Stage-1 training of `lean_thinkn` models with Dan's best recipe (fork `state_train.py --recipe
-best`).
+"""Stage-1 training of `lean_thinkn` / `lean_thinke` models with Dan's best recipe (fork
+`state_train.py --recipe best`).
 
     python -m code.thinking.train --data pairs.pkl --heldout heldout.jsonl --out DIR --seed 0 \
         --best_steps 24000
@@ -7,17 +7,26 @@ best`).
 
 From scratch with the default loss (`--think_weight 1`) this calls the fork's
 `state_train_best.train` unchanged: the `(state, think + action + <eos>)` pairs are exactly its
-input format and its name shift reads `tok.ref0` (50). `train_best` below is a copy of that function
-for the two things it cannot do -- start from a given model (cold start: `ckpt.cold_start` expands a
-`lean_staten` checkpoint to 114 tokens; the MTP head starts fresh as in Stage 1) and weight think
-tokens (`--think_weight w`: every token of the think block, tags included, weighs w in the loss,
-action + <eos> weigh 1; 0 trains the action only).  With neither, the copy reproduces the fork's run
-bit for bit (test_train_copy_matches_fork).
+input format and its name shift reads `tok.ref0` (50; 54 in lean_thinke). `train_best` below is
+a copy of that function for the two things it cannot do -- start from a given model (cold start:
+`ckpt.cold_start` expands a `lean_staten` checkpoint to 114 tokens; the MTP head starts fresh as in
+Stage 1) and weight think tokens (`--think_weight w`: every token of the think block, tags
+included, weighs w in the loss, action + <eos> weigh 1; 0 trains the action only).  With neither,
+the copy reproduces the fork's run bit for bit (test_train_copy_matches_fork).
 
-Outputs in DIR: model.pt (fork checkpoint format, mode lean_thinkn), train.json (curve, losses),
-args.json, registry/. ND_OFFLINE=1 is forced (`ckpt.run_env`): nothing is uploaded.  Schedule:
-`--best_steps N` (step cosine; ~24,000 on an RTX 3090 for the 1,200 A40-s run), else `--budget_secs`
-(wall clock).
+**Effort mode** (`lean_thinke`, `data.build_graded`): the tokenizer follows the pickle's `mode`
+(`lean_thinkn` -> ThinkTokenizer, `lean_thinke` -> EffortTokenizer, anything else is an error).  A
+pair is `state <eB> | <think> ... </think> action <eos>` and the effort token ends the state, so
+the fork's trainer takes it unchanged (it reads `tok.vocab_size` = 118 and `tok.ref0` = 54; the
+effort ids sit below `ref0`, so the name shift leaves them alone).  The held-out layout is the
+empty block, so each held-out state gets `<e0>`.  From scratch only: `--init` (a `lean_staten`
+cold start) and the root / memo formats are not supported for `lean_thinke` (SystemExit); an
+effort model from a Stage-1 checkpoint is `effort.expand_to_effort`.
+
+Outputs in DIR: model.pt (fork checkpoint format, mode lean_thinkn or lean_thinke), train.json
+(curve, losses), args.json, registry/. ND_OFFLINE=1 is forced (`ckpt.run_env`): nothing is
+uploaded.  Schedule: `--best_steps N` (step cosine; ~24,000 on an RTX 3090 for the 1,200 A40-s
+run), else `--budget_secs` (wall clock).
 
 **Formats R and M** (`rootplan`; the pickle's `think_format`, recorded in the checkpoint's extra so
 sampling and eval dispatch on it).  M (`thinking-pairs/1`, "memo") is a pair layout: the prompt
@@ -60,7 +69,7 @@ from .ckpt import cold_start, run_env, save_ckpt
 from .dan import bare, load
 from .data import FORMAT as PAIR_FORMAT
 from .data import Pair, heldout_records, read_jsonl, to_fork
-from .tok import ThinkTokenizer
+from .tok import EFFORT_MODE, MODE, make_tokenizer
 
 D = load()
 STB: Any = D.state_train_best
@@ -77,6 +86,22 @@ def think_format(data: dict[str, Any]) -> str:
     if data.get("think_format") in RM_FORMATS:
         return str(data["think_format"])
     return "think" if data["has_traces"] or data["no_trace_mode"] == "empty" else "none"
+
+
+def tokenizer_for(data: dict[str, Any]) -> Any:
+    """The tokenizer of a pickle, from its `mode` (lean_thinkn or lean_thinke; else SystemExit)."""
+    mode = data.get("mode")
+    if mode not in (MODE, EFFORT_MODE):
+        raise SystemExit(f"error: unsupported pickle mode {mode!r} (want {MODE} or {EFFORT_MODE})")
+    return make_tokenizer(mode)
+
+
+def with_effort(records: list[list[Pair]], tok: Any, level: int) -> list[list[Pair]]:
+    """The records with the level's effort token appended to every pair's state."""
+    from .effort import effort_id
+
+    e = bytes([effort_id(tok, level)])
+    return [[(p + e, q, n) for p, q, n in rec] for rec in records]
 
 
 def load_data(path: str | Path, tok: Any | None = None) -> dict[str, Any]:
@@ -604,6 +629,16 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
     out = Path(a.out)
     run_env(out)
     record = D.record
+    data = load_data(a.data)
+    tok = tokenizer_for(data)
+    assert list(tok.itos) == data["itos"], "data were built for another vocabulary"
+    fmt = think_format(data)
+    effort = tok.mode == EFFORT_MODE
+    if effort and (a.init or fmt in RM_FORMATS):
+        raise SystemExit(
+            f"error: {EFFORT_MODE} data train from scratch in the per-step format only "
+            f"(--init {a.init!r}, format {fmt!r} unsupported; use effort.expand_to_effort)"
+        )
     init_model, init_info = None, {}
     if a.init:
         init_model, _, init_info = cold_start(a.init, "cpu", seed=a.init_seed)
@@ -613,9 +648,6 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
         a.n_layer, a.d, a.n_head, a.d_ff = (int(x) for x in a.best_dims.split(","))
     else:
         a.n_layer, a.d, a.n_head, a.d_ff = BM.N_LAYER, BM.D, BM.N_HEAD, BM.D_FF
-    tok = ThinkTokenizer()
-    data = load_data(a.data, tok)
-    fmt = think_format(data)
     # the pickle's state format (flat / goalstack) for the held-out states and the checkpoint
     sfmt = stateview.set_state_format(stateview.data_format(data))
     records = data["records"]
@@ -626,6 +658,8 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
             if fmt in RM_FORMATS
             else heldout_records(a.heldout, tok, data["no_trace_mode"])
         )
+        if effort:  # the held-out layout is the empty block: <e0>
+            held = with_effort(held, tok, 0)
     longest = max(example_lens(records, fmt) + (example_lens(held, fmt) if held else []))
     if not a.max_len:
         a.max_len = auto_max_len(longest)

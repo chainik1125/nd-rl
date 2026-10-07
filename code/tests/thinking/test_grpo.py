@@ -1,9 +1,9 @@
 """GRPO: rewards and advantages, per-step items (forced close masked, the failing draw kept), the
-alignment of the old log-probs with the scored tokens, scoring under the sampler's masks (the
-sampler's own log-probs reproduced, banned tokens never NaN), the PPO surrogate (REINFORCE at ratio
-1, the clip-higher clip, the dual clip), the logged entropy and banned mass, the direction of an
-update, the learnability curriculum, the alarms and rolling checkpoints, and end-to-end iterations
-on a tiny model."""
+LCPO length target (the deviation, its reward and logging), the alignment of the old log-probs
+with the scored tokens, scoring under the sampler's masks (the sampler's own log-probs reproduced,
+banned tokens never NaN), the PPO surrogate (REINFORCE at ratio 1, the clip-higher clip, the dual
+clip), the logged entropy and banned mass, the direction of an update, the learnability
+curriculum, the alarms and rolling checkpoints, and end-to-end iterations on a tiny model."""
 
 from __future__ import annotations
 
@@ -82,6 +82,8 @@ def test_failing_draw_is_kept_and_a_forced_close_is_masked(force_mode: str, clos
     ((p, g, m, a),) = grpo.attempt_items(x, -1.0, T)
     j = g.index(T.end_think)
     assert j == close_at and m[j] is False and sum(m) == len(g) - 1 and a == -1.0
+    # the length target sees the block the budget forcing counted, tags excluded
+    assert grpo.think_blocks(x, (T.think, T.end_think)) == [(close_at, True)] and x["think"] == j
 
 
 # --- overlong masking -------------------------------------------------------------------------
@@ -145,6 +147,175 @@ def test_the_sampler_cap_statuses_are_overlong(monkeypatch: pytest.MonkeyPatch) 
     assert y["status"] == "fail:step_cap" and grpo.is_overlong(y)
     (z,) = think_generate(scripted, T, [rec["prompt"]], "plain", budgets=256, batch=1)
     assert z["status"] == "done" and not grpo.is_overlong(z)
+
+
+# --- the length target (LCPO) -----------------------------------------------------------------
+
+IDS = (T.think, T.end_think)
+LEN_MODES = ("exact", "max")
+
+
+def _step(n: int | None, forced: bool = False) -> dict[str, Any]:
+    """A trace step with a think block of n think tokens; None: a budget-0 step (no block)."""
+    st, q, a_ = T.stoi["⊢"], T.stoi["Q"], T.stoi["exact"]
+    if n is None:
+        return {"prompt": bytes([st, T.think, T.end_think]), "gen": bytes([a_, T.eos])}
+    gen = bytes([q] * n + [T.end_think, a_, T.eos])
+    return {"prompt": bytes([st, T.think]), "gen": gen, "forced": forced}
+
+
+def _latt(
+    budget: int,
+    lens: list[int],
+    ok: bool = True,
+    tokens: int = 100,
+    status: str = "done",
+    forced: list[bool] | None = None,
+) -> dict[str, Any]:
+    """An attempt at `budget` with one step per entry of `lens` (its think tokens; ignored at 0)."""
+    fs = forced or [False] * len(lens)
+    trace = [_step(n if budget else None, f) for n, f in zip(lens, fs, strict=True)]
+    return {"status": status, "ok": ok, "tokens": tokens, "budget": budget, "trace": trace}
+
+
+@pytest.mark.parametrize(
+    ("lens", "budget", "exact", "over"),
+    [
+        ([16], 16, 0.0, 0.0),  # on target
+        ([8, 24], 16, 0.5, 0.25),  # under and over: max counts the overshoot only
+        ([4], 16, 0.75, 0.0),
+        ([100, 64], 64, 36 / 128, 36 / 128),
+        ([80, 0], 16, 1.0, 0.5),  # each block clipped at 1: d_b 4 -> 1 (the mean of raw d_b: 2.5)
+        ([40, 16], 16, 0.5, 0.5),  # d_b 1.5 -> 1, then the mean
+        ([0, 0], 0, None, None),  # budget 0: no term
+        ([], 16, None, None),  # no block: no term
+    ],
+)
+def test_length_deviation(
+    lens: list[int], budget: int, exact: float | None, over: float | None
+) -> None:
+    for mode, want in (("exact", exact), ("max", over)):
+        got = grpo.length_deviation(lens, budget, mode)
+        assert got == (None if want is None else pytest.approx(want))
+
+
+def test_one_overshooting_block_does_not_saturate_the_mean() -> None:
+    """e16 under line forcing: a block can run to B + 64 = 80 (d_b = 4). Clipping each block
+    before the mean keeps the attempt's d responsive: one such block among 3 on target gives 1/4,
+    two give 1/2 (a clip of the mean would put all of them at 1)."""
+    for mode in LEN_MODES:
+        got = [grpo.length_deviation([80] * k + [16] * (4 - k), 16, mode) for k in range(5)]
+        assert got == pytest.approx([0.0, 0.25, 0.5, 0.75, 1.0])
+    assert grpo.length_deviation([80, 2, 16, 16], 16, "exact") == pytest.approx((1 + 14 / 16) / 4)
+
+
+@pytest.mark.parametrize(
+    ("lens", "budget", "frac", "exact", "over"),
+    [
+        ([128], 256, 0.5, 0.0, 0.0),  # T = 128: on target
+        ([64], 256, 0.5, 0.5, 0.0),  # half of T
+        ([256], 256, 0.5, 1.0, 1.0),  # 2 T: d_b 1
+        ([16, 8], 16, 0.5, 0.5, 0.5),  # T = 8: 16 is 2 T (d_b 1), 8 on target
+        ([4], 0, 0.5, None, None),  # budget 0: still no term
+    ],
+)
+def test_length_target_frac(
+    lens: list[int], budget: int, frac: float, exact: float | None, over: float | None
+) -> None:
+    for mode, want in (("exact", exact), ("max", over)):
+        got = grpo.length_deviation(lens, budget, mode, frac)
+        assert got == (None if want is None else pytest.approx(want))
+
+
+def test_rewards_with_a_length_target() -> None:
+    """r = 1[ok] - len_penalty x tokens / 1k on successes - alpha x d on every attempt at B > 0."""
+    att = [
+        _latt(16, [8, 24], ok=True, tokens=500),  # d 0.5 exact, 0.25 max
+        _latt(16, [4], ok=False),  # a failure pays too: 0.75 / 0
+        _latt(64, [100, 64], ok=False),  # 36 / 128 either way
+        _latt(0, [0, 0], ok=True, tokens=200),  # budget 0: no term
+        _latt(16, [80, 0], ok=True, tokens=0),  # blocks clipped at 1: 1 exact, 0.5 max
+    ]
+    base = [1.0 - 0.05, 0.0, 0.0, 1.0 - 0.02, 1.0]
+    assert grpo.rewards(att, 0.1) == pytest.approx(base)
+    want = {
+        "exact": [0.95 - 0.1, -0.15, -0.2 * 36 / 128, 0.98, 0.8],
+        "max": [0.95 - 0.05, 0.0, -0.2 * 36 / 128, 0.98, 0.9],
+    }
+    for mode, w in want.items():
+        assert grpo.rewards(att, 0.1, 0.2, mode, IDS) == pytest.approx(w)
+        assert grpo.rewards(att, 0.1, 0.0, mode, IDS) == grpo.rewards(att, 0.1)  # alpha 0: today
+    assert grpo.rewards(att, 0.1, 0.2, "exact", None) == pytest.approx(base)  # no think vocabulary
+    # T = B / 2 (8 at B = 16, 32 at B = 64): d 0.5, 0.5, 1, -, 1
+    half = [0.95 - 0.1, -0.2 * 0.5, -0.2, 0.98, 0.8]
+    assert grpo.rewards(att, 0.1, 0.2, "exact", IDS, 0.5) == pytest.approx(half)
+
+
+def test_think_blocks_count_what_the_sampler_counted(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Per accepted step, L_b is the trace's think content (the sampler's `think` counter); a
+    budget-0 attempt has no block."""
+    monkeypatch.setattr(D.state_sample, "NAME_BASE_MAX", 0)
+    rec = pilot_rec("k12_22530")
+    model = ScriptedModel(T, script_from_pairs(trace_pairs(rec, T)))
+    (x,) = think_generate(model, T, [rec["prompt"]], "plain", budgets=256, max_action=64, batch=1)
+    blocks = grpo.think_blocks(x, IDS)
+    assert len(blocks) == len(x["trace"]) == x["draws"] > 1
+    assert [n for n, _ in blocks] == [len(s["think"]) for s in x["trace"]]
+    assert sum(n for n, _ in blocks) == x["think"] and sum(f for _, f in blocks) == x["forced"]
+    assert grpo.think_blocks(x, None) == []
+    b = torch.zeros(T.vocab_size)
+    b[T.stoi["P"]] = 60.0
+    biased = bias_logits(tiny_model(T.vocab_size), b)
+    (z,) = think_generate(biased, T, [rec["prompt"]], "plain", budgets=0, max_action=8, batch=1)
+    assert z["trace"] and grpo.think_blocks(z, IDS) == []
+
+
+def test_group_items_with_a_length_target() -> None:
+    """An all-solved group is skipped without the term and trained on with it; an overlong
+    attempt stays masked ('mask') or is a failure that pays the term too ('fail')."""
+    att = [
+        _latt(16, [16]),  # d 0
+        _latt(16, [8]),  # d 0.5
+        _latt(16, [32]),  # d 1
+        _latt(16, [16], ok=False, status="fail:step_cap"),  # overlong, d 0
+    ]
+    assert grpo.group_items(att, T, 0.0, "mask")[0] is None
+    assert grpo.group_items(att, T, 0.0, "mask", 0.0, "exact")[0] is None  # alpha 0: today
+    items, masked = grpo.group_items(att, T, 0.0, "mask", 0.2, "exact")
+    assert masked == [False, False, False, True] and items is not None
+    assert [a for *_, a in items] == pytest.approx([0.1, 0.0, -0.1])  # rewards 1, 0.9, 0.8
+    items, masked = grpo.group_items(att, T, 0.0, "fail", 0.2, "exact")
+    assert not any(masked) and items is not None  # rewards 1, 0.9, 0.8, 0: mean 0.675
+    assert [a for *_, a in items] == pytest.approx([0.325, 0.225, 0.125, -0.675])
+    items, _ = grpo.group_items(att, T, 0.0, "mask", 0.2, "max")  # overshoot only: 1, 1, 0.8
+    assert items is not None and [a for *_, a in items] == pytest.approx([1 / 15, 1 / 15, -2 / 15])
+
+
+def test_length_metrics_per_budget() -> None:
+    groups = [
+        [_latt(16, [8, 24], forced=[False, True]), _latt(16, [16])],  # d 0.5, 0 (max 0.25, 0)
+        [_latt(64, [32])],  # d 0.5 (max 0)
+        [_latt(0, [0, 0])],  # budget 0: no block
+    ]
+    m = grpo.length_metrics(groups, [16, 64, 0], IDS, "exact", 0.2)
+    assert m["think_block_by_budget"] == pytest.approx({"16": 16.0, "64": 32.0})
+    assert m["forced_by_budget"] == pytest.approx({"16": 1 / 3, "64": 0.0})
+    assert m["forced_frac"] == pytest.approx(1 / 4)
+    assert m["len_dev_by_budget"] == pytest.approx({"16": 0.25, "64": 0.5})
+    assert m["len_dev"] == pytest.approx(1 / 3)
+    assert m["len_target_penalty"] == pytest.approx(0.2 / 3)
+    line = grpo._length_line(m)
+    assert line == "think/blk 16:16.0/16 f33% 64:32.0/64 f0% forced 25.0% dev 0.333 lpen 0.067"
+    mx = grpo.length_metrics(groups, [16, 64, 0], IDS, "max", 0.0)  # logged with the term off
+    assert mx["len_dev_by_budget"] == pytest.approx({"16": 0.125, "64": 0.0})
+    assert mx["len_dev"] == pytest.approx(0.25 / 3) and mx["len_target_penalty"] == 0.0
+    none = grpo.length_metrics(groups, [16, 64, 0], None)  # no think vocabulary
+    assert none["think_block_by_budget"] == {} and none["len_dev"] == none["forced_frac"] == 0.0
+    assert grpo._length_line(none).startswith("think/blk - forced 0.0%")
+    h = grpo.length_metrics(groups, [16, 64, 0], IDS, "exact", 0.2, 0.5)  # T = B / 2
+    assert h["len_target_by_budget"] == {"16": 8.0, "64": 32.0}
+    assert h["len_dev_by_budget"] == pytest.approx({"16": 0.75, "64": 0.0})
+    assert grpo._length_line(h).startswith("think/blk 16:16.0/8 f33% 64:32.0/32 f0%")
 
 
 # --- log-probs, alignment and the PPO surrogate ------------------------------------------------
@@ -725,6 +896,41 @@ def test_two_iterations_end_to_end(
     assert rows[1]["curriculum"]["seen"] >= 2 and rows[1]["curriculum"]["pairs"] == 6
     assert (out / "ckpts" / "g_it0.pt").exists()  # the effort expansion of the init
     assert (out / "ckpts" / "g_it2.pt").exists()
+
+
+def test_length_target_end_to_end(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Two iterations with `--len_target_coef 0.2` beside the same run with the term off: the
+    first iteration samples the same attempts (same seed, same judge draws), so the length rows
+    agree, and the term only adds groups to train on. Every (target, budget) pair is drawn."""
+    runs: dict[float, tuple[list[dict[str, Any]], Path]] = {}
+    for coef in (0.0, 0.2):
+        with pytest.MonkeyPatch.context() as mp:
+            argv = ["--iters", "2", "--prompts", "6", "--len_target_coef", str(coef)]
+            (tmp_path / f"c{coef}").mkdir()
+            hist, out, _ = _tiny_run(tmp_path / f"c{coef}", mp, argv)
+            runs[coef] = (hist, out)
+    printed = capsys.readouterr().out.splitlines()
+    hist, out = runs[0.2]
+    args = json.loads((out / "args.json").read_text())
+    assert (args["len_target_coef"], args["len_target_mode"], args["len_target_frac"]) == (
+        0.2,
+        "exact",
+        1.0,
+    )
+    rows = [json.loads(x) for x in (out / "metrics.jsonl").read_text().splitlines()]
+    for h in rows:
+        assert set(h["think_block_by_budget"]) == set(h["forced_by_budget"]) == {"16"}
+        assert set(h["len_dev_by_budget"]) == {"16"} and 0 < h["len_dev"] <= 1
+        assert h["think_block_by_budget"]["16"] > 0 and 0.0 <= h["forced_frac"] <= 1.0
+        assert h["len_target_penalty"] == pytest.approx(0.2 * h["len_dev"])
+        assert h["trained_tokens"] > 0
+    off, on = runs[0.0][0][0], hist[0]
+    for k in ("think_block_by_budget", "forced_by_budget", "len_dev_by_budget", "pass1_by_budget"):
+        assert on[k] == off[k]
+    assert off["len_target_penalty"] == 0.0 < on["len_target_penalty"]
+    assert on["groups_skipped"] <= off["groups_skipped"] and on["items"] >= off["items"]
+    lines = [x for x in printed if x.startswith("it ")]
+    assert len(lines) == 4 and all(" think/blk 16:" in x and " lpen " in x for x in lines)
 
 
 def test_rolling_checkpoints(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

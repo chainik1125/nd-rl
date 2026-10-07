@@ -46,6 +46,17 @@ capped per block (`--max-binders`), and the block body at `--think-budget` token
 Inconsistent contexts (e.g. inside reductio boxes) get no goal-level `<no>`: the truth tables
 never certify one there, so only candidates are rejected (PROPOSAL section 2.3).
 
+Effort levels (`--level {0,16,64,256}`, `Cfg.level`): the same proof steps with each think block
+capped at that many body tokens (the Stage-1 effort token).  256 is the block above.  Lower
+levels generate it unchanged (same rng), recorded as segments (plan, dead end, viable, wrong
+candidate, reference, check), then COMPRESS it with a deterministic first-fit ladder, each
+variant made of the block's own lines (or such a line + `<no>`) and checked by `check_step`.
+16: the full block if it fits, else the plan lines, a prefix of them, looks at the cited
+names, the action, nothing.  64: full, no checks/viable, shortened dead ends and refuted
+candidates, then segments pruned (ex falso, the reference if the plan names it, deep dead ends,
+top dead ends, wrong candidates), prefixes of the plan (+ the action), then the 16
+fallbacks.  0: empty.
+
 Output: the JSONL, plus `<out stem>.stats.json` (counts, dropped traces, think tokens per step and
 per proof by line count and stratum, backtracking and dead-end fractions, reference-position
 histograms, empty-block fractions, maximum pair length, Spearman rho of think length against
@@ -71,6 +82,7 @@ from pathlib import Path
 from typing import Any
 
 from .dan import trace_dsl
+from .tok import LEVELS
 
 FORMAT = "progtrace/1"
 K12 = "/scratch/cowifornia/nd-rl/bench/dan_ckpts/data/train_k12.jsonl"
@@ -394,6 +406,17 @@ class Hole:
     dead: bool
 
 
+@dataclass
+class Seg:
+    """Lines [start, end) of a block that one generator segment wrote (for effort compression)."""
+
+    kind: str  # plan | dead | viable | ref | verify | wrong | deadbox | other
+    depth: int
+    start: int
+    end: int
+    meta: dict[str, Any] = field(default_factory=dict)
+
+
 class Block:
     """One think block under construction.  Mirrors `trace_dsl.check_step`'s state (binders,
     anchored holes, flagged goals, the pending candidate) and writes only true claims."""
@@ -421,6 +444,12 @@ class Block:
         self.reserved_tok = 0
         self.reserved_binders = 0
         self.ev: collections.Counter[str] = collections.Counter()
+        self.segs: list[Seg] = []
+
+    def mark(self, kind: str, start: int, depth: int = -1, **meta: Any) -> None:
+        """Record that lines [start, now) are one segment (no rng, no effect on the lines)."""
+        if start < len(self.lines):
+            self.segs.append(Seg(kind, depth, start, len(self.lines), meta))
 
     # ---- transactions
     def snap(self) -> dict[str, Any]:
@@ -434,6 +463,7 @@ class Block:
             "pending": self.pending,
             "survivors": list(self.survivors),
             "ev": collections.Counter(self.ev),
+            "segs": len(self.segs),
         }
 
     def restore(self, s: dict[str, Any]) -> None:
@@ -446,6 +476,7 @@ class Block:
         self.pending = s["pending"]
         self.survivors = s["survivors"]
         self.ev = s["ev"]
+        del self.segs[s["segs"] :]
 
     def attempt(self, fn: Callable[[], Any], optional: bool = True) -> bool:
         """Run a segment; roll it back if it breaks the budget (or any claim check)."""
@@ -785,6 +816,11 @@ class Cfg:
     p_look: float = 0.6
     viable_max_tokens: int = 45
     dead_forms: tuple[float, float, float, float] = (0.3, 0.4, 0.2, 0.1)  # short one two box
+    level: int = 256  # effort cap on think-body tokens: 0, 16, 64 or 256 (= the full block)
+
+    def __post_init__(self) -> None:
+        if self.level not in LEVELS:
+            raise ValueError(f"level must be one of {LEVELS}, got {self.level!r}")
 
     @classmethod
     def v1(cls, **kw: Any) -> Cfg:
@@ -893,6 +929,7 @@ class StepGen:
         self.info: dict[str, Any] = {}
         self._dry = False
         self.leaf_cands = False  # v2: the plan stops above the action; candidates decide it
+        self.segs: list[Seg] = []  # the final block's segments, tiling its lines
 
     def bump(self, key: str, n: int = 1) -> None:
         if not self._dry:
@@ -921,7 +958,7 @@ class StepGen:
                     node0, _, _ = render_level(blk, d, nxt, rn, local, prefer)
                 except Budget:
                     return False
-                n_pre, post = self.alts_before(blk, local, g, sig(node0), top=(i == 0))
+                n_pre, post = self.alts_before(blk, local, g, sig(node0), i)
             try:
                 node, child_local, rn2 = render_level(blk, d, nxt, rn, local, prefer)
             except Budget:
@@ -933,10 +970,11 @@ class StepGen:
             except (Budget, blk.T.TraceError, AssertionError):
                 blk.restore(mark)
                 return False
+            blk.mark("plan", mark["lines"], i)
             blk.reserved_tok = max(0, blk.reserved_tok - (blk.ntok - mark["ntok"]))
             blk.reserved_binders = max(0, blk.reserved_binders - (len(blk.binders) - nb0))
             self.bump("plan_lines")
-            n_post = self.alts_after(blk, local, g, post) if post else 0
+            n_post = self.alts_after(blk, local, g, post, i) if post else 0
             if n_pre + n_post:
                 self.info.setdefault("alt_pos", []).append((n_pre, n_pre + n_post + 1))
             if nxt is None:
@@ -947,11 +985,12 @@ class StepGen:
         return False
 
     def alts_before(
-        self, blk: Block, local: Local, g: Formula, ref_sig: tuple[Any, ...], top: bool
+        self, blk: Block, local: Local, g: Formula, ref_sig: tuple[Any, ...], depth: int
     ) -> tuple[int, list[Alt]]:
         """Dead alternatives (backtracking) and sometimes one viable one before the reference
         reduction of g.  -> (how many dead ones were written, those to write after it)."""
         cfg, rng = self.cfg, self.rng
+        top = depth == 0
         alts = [a for a in alternatives(blk, local, g) if a.sg != ref_sig]
         dead = [a for a in alts if a.dead and a.kind != "efq"]
         efq = [a for a in alts if a.dead and a.kind == "efq"]
@@ -983,11 +1022,14 @@ class StepGen:
         n_pre = 0
         for how, a in items:
             if how == "dead":
-                if self.explore_dead(blk, local, g, a, top):
+                if self.explore_dead(blk, local, g, a, depth):
                     n_pre += 1
                     self.bump("dead_ends")
-            elif blk.attempt(lambda a=a: self._viable(blk, local, g, a)):
-                self.bump("viable_shown")
+            else:
+                s0 = len(blk.lines)
+                if blk.attempt(lambda a=a: self._viable(blk, local, g, a)):
+                    blk.mark("viable", s0, depth)
+                    self.bump("viable_shown")
         if n_pre:
             self.info["backtrack"] = True
         return n_pre, post
@@ -998,21 +1040,26 @@ class StepGen:
         if len(blk.lines[-1]) > self.cfg.viable_max_tokens:
             raise Budget("viable alternative too long")
 
-    def alts_after(self, blk: Block, local: Local, g: Formula, post: list[Alt]) -> int:
+    def alts_after(self, blk: Block, local: Local, g: Formula, post: list[Alt], depth: int) -> int:
         """Dead alternatives after the reference reduction: one line each, with `<no>`."""
         n = 0
         for a in post:
+            s0 = len(blk.lines)
             if blk.attempt(lambda a=a: blk.reduce(local, g, a.build(lambda: blk.fresh()), no=True)):
+                blk.mark("dead", s0, depth, pos="post", form="short", alt=a.kind)
                 n += 1
                 self.bump("dead_ends")
                 self.bump("dead_after_ref")
         return n
 
-    def explore_dead(self, blk: Block, local: Local, g: Formula, a: Alt, top: bool) -> bool:
+    def explore_dead(self, blk: Block, local: Local, g: Formula, a: Alt, depth: int) -> bool:
         """A dead alternative: one line with `<no>`, or followed one or two levels."""
         form = self.rng.choices(("short", "one", "two", "box"), self.cfg.dead_forms)[0]
+        top = depth == 0
+        s0 = len(blk.lines)
         for f in dict.fromkeys((form, "one", "short")):
             if blk.attempt(lambda f=f: self._dead(blk, local, g, a, f, top)):
+                blk.mark("dead", s0, depth, pos="pre", form=f, alt=a.kind)
                 self.info.setdefault("dead_forms", []).append(f)
                 return True
         return False
@@ -1236,20 +1283,27 @@ class StepGen:
         n_rej = before = 0
         ref_done = False
         for c in items:
+            s0 = len(blk.lines)
             if c.src == "ref":
                 if blk.attempt(lambda: blk.candidate(self.action), optional=False):
+                    blk.mark("ref", s0)
                     ref_done, before = True, n_rej
                     pv = cfg.p_verify_leaf if self.leaf_cands else cfg.p_verify
+                    s1 = len(blk.lines)
                     if explore and rng.random() < pv and blk.attempt(lambda: self.verify(blk)):
+                        blk.mark("verify", s1)
                         self.info["verify"] = True
             elif c.src == "deadbox":
                 if blk.attempt(lambda c=c: self._dead_box(blk, c.box)):
+                    blk.mark("deadbox", s0)
                     n_rej += 1
             elif blk.attempt(lambda c=c: self._refute(blk, c)):
+                blk.mark("wrong", s0, distractor=c.src == "distractor")
                 n_rej += 1
                 if c.src == "distractor":
                     self.bump("distractors_used")
         # a look into the action's box without writing the candidate
+        s2 = len(blk.lines)
         if (
             explore
             and not ref_done
@@ -1257,6 +1311,7 @@ class StepGen:
             and self.action[0] == "have"
             and blk.attempt(lambda: self.verify(blk, box_only=True))
         ):
+            blk.mark("verify", s2)
             self.info["verify"] = True
         self.bump("rejected", n_rej)
         if ref_done:
@@ -1343,6 +1398,8 @@ class StepGen:
             blk, explore, force_ref=need_ref or (self.action[0] == "have" and not reached)
         )
         lines = blk.finish()
+        self.segs = tile(blk.segs, len(lines))
+        self.info["other_segments"] = sum(s.kind == "other" for s in self.segs)
         self.info["binders"] = len(blk.binders)
         self.info["no_goal"] = blk.ev["no_goal"]
         self.info["no_candidate"] = blk.ev["no_candidate"]
@@ -1403,6 +1460,152 @@ def join_lines(lines: Sequence[Sequence[str]]) -> list[str]:
     return out
 
 
+# ----------------------------------------------------------------------- effort-level compression
+def tile(segs: Sequence[Seg], n: int) -> list[Seg]:
+    """The segments in line order, any uncovered line a `Seg("other", ...)`."""
+    out: list[Seg] = []
+    pos = 0
+    for sg in sorted(segs, key=lambda x: x.start):
+        if sg.start > pos:
+            out.append(Seg("other", -1, pos, sg.start))
+        if sg.start < pos:  # overlapping: should not happen; keep the line range disjoint
+            sg = Seg(sg.kind, sg.depth, pos, sg.end, sg.meta)
+            if sg.end <= sg.start:
+                continue
+        out.append(sg)
+        pos = sg.end
+    if pos < n:
+        out.append(Seg("other", -1, pos, n))
+    return out
+
+
+def short_form(sg: Seg, ls: list[list[str]]) -> list[list[str]] | None:
+    """A one-or-two line form of a segment (its first line, flagged), or None."""
+    if sg.kind == "dead" and len(ls) > 1:
+        first = ls[0]
+        if "⊢" in first and ":=" in first and first[-1] != "<no>":
+            return [[*first, "<no>"]]
+    if sg.kind in ("wrong", "deadbox") and len(ls) > 2:
+        return [ls[0], ["<no>"]]
+    return None
+
+
+def prune_order(segs: Sequence[Seg], plan_reached: bool) -> list[int]:
+    """Indices of segments in the order the level-64 ladder drops them."""
+    idx = range(len(segs))
+
+    def dead(i: int) -> bool:
+        return segs[i].kind == "dead"
+
+    efq = sorted(
+        (i for i in idx if dead(i) and segs[i].meta.get("alt") == "efq"),
+        key=lambda i: (-segs[i].depth, -i),
+    )
+    done = set(efq)
+    deep = sorted(
+        (i for i in idx if dead(i) and segs[i].depth >= 1 and i not in done),
+        key=lambda i: (-segs[i].depth, segs[i].meta.get("pos") != "post", -i),
+    )
+    top = sorted(
+        (i for i in idx if dead(i) and segs[i].depth < 1 and i not in done),
+        key=lambda i: (segs[i].meta.get("pos") != "post", -i),
+    )
+
+    def wrongs(distractor: bool) -> list[int]:
+        return sorted(
+            (
+                i
+                for i in idx
+                if segs[i].kind in ("wrong", "deadbox")
+                and bool(segs[i].meta.get("distractor")) == distractor
+            ),
+            reverse=True,
+        )
+
+    ref = [i for i in idx if segs[i].kind == "ref"] if plan_reached else []
+    return efq + ref + deep + top + wrongs(False) + wrongs(True)
+
+
+def decision_fallbacks(
+    env: Any, action: list[str], level: int
+) -> list[tuple[str, list[list[str]]]]:
+    """Greedy looks at the names the action cites (each added if the block still fits `level`),
+    the action alone, nothing."""
+    T = td()
+    sc = T.scope(env)
+    term = action[parse_have(action)[2] :] if action[0] == "have" else action[1:]
+    names = list(dict.fromkeys(t for t in term if T.is_name(t) and t in sc))
+    looks = [[n, ":", *ftoks(sc[n])] for n in names]
+    out: list[tuple[str, list[list[str]]]] = []
+    kept: list[list[str]] = []
+    for lk in looks:
+        if len(join_lines([*kept, lk])) <= level:
+            kept.append(lk)
+    if kept:
+        out.append(("looks", kept))
+    out.append(("ref", [list(action)]))
+    out.append(("empty", []))
+    return out
+
+
+def compress(
+    env: Any,
+    action: list[str],
+    lines: list[list[str]],
+    segs: Sequence[Seg],
+    plan_reached: bool,
+    level: int,
+) -> tuple[list[list[str]], str]:
+    """The full (e256) block `lines` -> (a coherent block of at most `level` body tokens, its
+    rung).  A deterministic first-fit ladder of variants, most to least complete, each a list of
+    the block's own lines (or such a line + `<no>`); a variant is taken if it fits and passes
+    `trace_dsl.check_step` with no finding.  No rng."""
+    T = td()
+    segs = list(segs)
+
+    def variants() -> Iterable[tuple[str, list[list[str]]]]:
+        yield "full", lines
+        plan = [lines[s.start] for s in segs if s.kind == "plan"]
+        n_plan = len(plan)
+        if level >= 64:
+
+            def build(keep: Iterable[int], short: bool) -> list[list[str]]:
+                out: list[list[str]] = []
+                for i in sorted(keep):
+                    ls = lines[segs[i].start : segs[i].end]
+                    out += (short_form(segs[i], ls) or ls) if short else ls
+                return out
+
+            keep = [i for i, s in enumerate(segs) if s.kind not in ("verify", "viable")]
+            yield "nocheck", build(keep, False)
+            yield "short", build(keep, True)
+            for k, i in enumerate(prune_order(segs, plan_reached), 1):
+                keep.remove(i)
+                yield f"prune:{k}", build(keep, True)
+            for k in range(n_plan - 1, 0, -1):
+                yield f"plan_cut:{k}", [*plan[:k], list(action)]
+                yield f"plan_cut:{k}", plan[:k]
+        else:
+            if n_plan:
+                yield "plan", plan
+            for k in range(n_plan - 1, 0, -1):
+                yield f"plan_cut:{k}", plan[:k]
+        yield from decision_fallbacks(env, action, level)
+
+    for name, v in variants():
+        if len(join_lines(v)) > level or (not v and name != "empty"):
+            continue
+        if name != "full" and v:
+            try:
+                soft = T.check_step(env, ["<think>", *join_lines(v), "</think>"], action, {})
+            except (T.TraceError, AssertionError, KeyError, ValueError):
+                continue
+            if soft:
+                continue
+        return [list(x) for x in v], name.split(":")[0]
+    return [], "empty"
+
+
 def trace_for(
     pid: str,
     prompt: str,
@@ -1442,6 +1645,7 @@ def trace_for(
         else:
             p = cfg.p_think_premise if kind == "premise" else cfg.p_think_exact
         lines: list[list[str]] = []
+        full_tokens = 0
         if rng.random() < p:
             info["fallback"] = "empty"
             for explore in (True, False):
@@ -1458,7 +1662,17 @@ def trace_for(
                     continue
                 info.update(g.info)
                 info["fallback"] = None if explore else "plan_only"
+                if lines:
+                    full_tokens = len(join_lines(lines))
+                    info["rung"] = "full"
+                    if cfg.level == 0:
+                        lines, info["rung"] = [], "e0"
+                    elif cfg.level < 256:
+                        lines, info["rung"] = compress(
+                            env, act, lines, g.segs, bool(g.info.get("plan_reached")), cfg.level
+                        )
                 break
+        info["think_tokens_e256"] = full_tokens
         info["lines"] = len(lines)
         info["think_tokens"] = len(join_lines(lines))
         info["state_tokens"] = len(env.state_tokens())
@@ -1469,7 +1683,7 @@ def trace_for(
             {"think": "\n".join(ascii_line(x) for x in lines), "action": ascii_line(act)}
         )
         infos.append(info)
-    rec_out = {
+    rec_out: dict[str, Any] = {
         "id": pid,
         "source": source,
         "mode": "programmatic",
@@ -1477,6 +1691,8 @@ def trace_for(
         "steps": out_steps,
         "gen": {"format": f"progtrace/{cfg.profile[1:]}", "seed": seed, "epoch": epoch},
     }
+    if cfg.level != 256:
+        rec_out["gen"]["level"] = cfg.level
     return rec_out, infos
 
 
@@ -1567,6 +1783,9 @@ class Stats:
         self.think_proof_by_lines: dict[int, list[int]] = collections.defaultdict(list)
         self.alt_pos: collections.Counter[str] = collections.Counter()
         self.pair_max = 0
+        self.rungs: collections.Counter[str] = collections.Counter()
+        self.full_decision: list[int] = []
+        self.max_think = 0
         self.proof_x: list[float] = []
         self.proof_y: list[float] = []
 
@@ -1584,6 +1803,12 @@ class Stats:
             self.c[f"steps_{k}"] += 1
             self.fallback[f"{k}:{inf.get('fallback', 'nothink')}"] += 1
             tt_ = inf["think_tokens"]
+            self.max_think = max(self.max_think, tt_)
+            self.c["other_segments"] += inf.get("other_segments", 0)
+            if inf.get("think_tokens_e256"):
+                self.rungs[f"{k}:{inf.get('rung', 'full')}"] += 1
+            if k == "decision":
+                self.full_decision.append(inf.get("think_tokens_e256", 0))
             tot += tt_
             self.think_step[k].append(tt_)
             if tt_ == 0:
@@ -1628,6 +1853,10 @@ class Stats:
             },
             "reference_position_after_alternatives": dict(self.alt_pos.most_common()),
             "max_pair_tokens": self.pair_max,
+            "rungs": dict(self.rungs.most_common()),
+            "other_segments": c["other_segments"],
+            "think_tokens_e256_per_step": _dist(self.full_decision),
+            "max_think_tokens": self.max_think,
             "spearman_think_vs_lines": _spearman(self.proof_x, self.proof_y),
             "wall_s": round(wall, 1),
         }
@@ -1648,12 +1877,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-binders", type=int, default=Cfg.max_binders)
     ap.add_argument("--distractors", default=DISTRACTOR_GLOB, help="glob; '' for none")
     ap.add_argument("--no-exclude", action="store_true", help="keep rows in eval classes")
+    ap.add_argument(
+        "--level", type=int, choices=LEVELS, default=256, help="effort cap on think tokens"
+    )
     ap.add_argument("--profile", choices=["v1", "v2"], default="v2", help="v1: as audited")
     a = ap.parse_args(argv)
     t0 = time.time()
     src: str = SOURCES.get(a.source) or a.source
     mk = Cfg.v1 if a.profile == "v1" else Cfg
-    cfg = mk(think_budget=a.think_budget, max_binders=a.max_binders)
+    cfg = mk(think_budget=a.think_budget, max_binders=a.max_binders, level=a.level)
     ds = load_distractors(a.distractors) if a.distractors else {}
     index = None
     if not a.no_exclude:
@@ -1708,6 +1940,7 @@ def main(argv: list[str] | None = None) -> int:
         "source": src,
         "seed": a.seed,
         "epoch": a.epoch,
+        "level": cfg.level,
         "cfg": cfg.__dict__,
         "distractors": a.distractors,
         "excluded_by_set": dict(excluded),

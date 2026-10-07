@@ -16,6 +16,16 @@ attempt counts.
   T = `--temperature` (1.0 by default, the usual RLVR choice; evals sample at 0.8).
 * **Reward.** 1 if Lean accepts the whole proof, else 0. A success pays `--len_penalty` per 1,000
   sampled tokens (think + action, all steps): the shortness pressure.
+* **Length target** (LCPO, L1: Aggarwal & Welleck 2025, arXiv 2503.04697; off by default). With
+  `--len_target_coef` alpha > 0 every attempt at a budget B > 0, failures included, also pays
+  alpha x d, d = the mean over its think blocks of min(1, d_b), d_b = |L_b - T| / T
+  (`--len_target_mode exact`) or max(0, L_b - T) / T (`max`, overshoot only), T =
+  `--len_target_frac` x B (`length_deviation`). Each block is clipped before the mean, so one block
+  run to the line cap (B + 64: d_b up to 4 at B = 16) cannot saturate the attempt. L_b counts a
+  block's think tokens, tags excluded: what the budget forcing compares with B. Budget 0 has no
+  term. L1's LCPO-Max is multiplicative (correct x clip(alpha (n_target - n) + 0.5, 0, 1)); `max`
+  here is the additive overshoot penalty. A group that is all solved (or all failed) now gives a
+  gradient whenever its lengths differ.
 * **Overlong masking** (DAPO's overlong filtering, `--overlong mask`). An attempt that a cap ended
   rather than a verdict (`OVERLONG`: max_steps, an action at max_action, the context) gets no
   gradient and is left out of its group's baseline. A think block force-closed at its cap is not
@@ -47,8 +57,10 @@ attempt counts.
   `entropy_action`), the full-vocabulary pi_T mass on the think ban at the scored think tokens
   (`ban_think`, `ban_think_max`), the largest r (`ratio_max`), the share of the A < 0 tokens with
   r > 3 (`neg_r3`), the clip fractions below / above, the grad norm (mean and max over the
-  minibatch steps), the think tokens per attempt by budget. An `ALARM` line (`alarms`) flags a
-  think ban mass above 1e-3, a grad-norm max above 5x the median of the earlier iterations',
+  minibatch steps), the think tokens per attempt by budget, and per budget the think tokens per
+  block, the share of blocks force-closed and the mean d (`length_metrics`, also with the length
+  target off), and the mean penalty alpha x d. An `ALARM` line (`alarms`) flags a think ban mass
+  above 1e-3, a grad-norm max above 5x the median of the earlier iterations',
   clip-low above 1%, an overlong share above 5%, or a scored token banned in its phase, and the
   iteration's checkpoint is saved. A positive loss is not an alarm: the token-level mean is
   positive whenever failed attempts run longer than successes.
@@ -98,11 +110,103 @@ ALARM_GN = 5.0  # grad-norm max vs the median of the earlier iterations' grad-no
 ALARM_GN_AFTER = 5  # ... once this many iterations are in
 ALARM_CLIP_LOW = 0.01
 ALARM_OVERLONG = 0.05
+LEN_TARGET_MODES = ("exact", "max")  # --len_target_mode: |L_b - B| / B, or the overshoot only
 
 
-def rewards(att: Sequence[dict[str, Any]], len_penalty: float) -> list[float]:
-    """1 per Lean-accepted attempt minus len_penalty per 1,000 sampled tokens; 0 per failure."""
-    return [(1.0 - len_penalty * x["tokens"] / 1000.0) if x.get("ok") else 0.0 for x in att]
+def think_blocks(x: dict[str, Any], think_ids: tuple[int, int] | None) -> list[tuple[int, bool]]:
+    """An attempt's think blocks, in trace order -> (L_b, force-closed?) each. A block is a step
+    whose decoder input ends with an open `<think>` (`think_len`'s test), so budget 0 (`<think>
+    </think>` prefilled) and R's action-only steps have none; the failing draw's block counts.
+    L_b = the generated tokens before its `</think>`, tags excluded: the count
+    `sample.decode_wave` compares with B to force the close (under line forcing the tokens past B
+    are think tokens too). [] without `think_ids` or a trace."""
+    if think_ids is None:
+        return []
+    out: list[tuple[int, bool]] = []
+    for s in x.get("trace") or []:
+        p, g = s.get("prompt") or b"", s.get("gen") or b""
+        if p and p[-1] == think_ids[0]:
+            n = g.index(think_ids[1]) if think_ids[1] in g else len(g)
+            out.append((n, bool(s.get("forced"))))
+    return out
+
+
+def length_deviation(
+    blocks: Sequence[int], budget: int, mode: str = "exact", frac: float = 1.0
+) -> float | None:
+    """LCPO's length term: the mean over the attempt's blocks of min(1, d_b), d_b = |L_b - T| / T
+    ('exact') or max(0, L_b - T) / T ('max'), target T = frac x B. Each d_b is clipped before the
+    mean. None (no term) at B = 0 or without a block."""
+    assert mode in LEN_TARGET_MODES, mode
+    assert frac > 0, frac
+    if budget <= 0 or not blocks:
+        return None
+    t = frac * budget
+    dev = (abs(n - t) if mode == "exact" else max(0.0, n - t) for n in blocks)
+    return sum(min(1.0, x / t) for x in dev) / len(blocks)
+
+
+def rewards(
+    att: Sequence[dict[str, Any]],
+    len_penalty: float,
+    len_target_coef: float = 0.0,
+    len_target_mode: str = "exact",
+    think_ids: tuple[int, int] | None = None,
+    len_target_frac: float = 1.0,
+) -> list[float]:
+    """1 per Lean-accepted attempt minus len_penalty per 1,000 sampled tokens; 0 per failure. With
+    `len_target_coef` alpha > 0, every attempt (failures too, as in L1) also pays alpha x
+    `length_deviation` of its think blocks (`think_blocks`) from its target, `len_target_frac` x
+    its budget; none at B = 0."""
+    r = [(1.0 - len_penalty * x["tokens"] / 1000.0) if x.get("ok") else 0.0 for x in att]
+    if not len_target_coef:
+        return r
+    for i, x in enumerate(att):
+        blocks = [n for n, _ in think_blocks(x, think_ids)]
+        d = length_deviation(blocks, int(x.get("budget") or 0), len_target_mode, len_target_frac)
+        if d is not None:
+            r[i] -= len_target_coef * d
+    return r
+
+
+def length_metrics(
+    groups: Sequence[Sequence[dict[str, Any]]],
+    budgets: Sequence[int],
+    think_ids: tuple[int, int] | None,
+    mode: str = "exact",
+    coef: float = 0.0,
+    frac: float = 1.0,
+) -> dict[str, Any]:
+    """One iteration's think-length rows, per budget B > 0 with blocks (keys str(B)): the mean
+    think tokens per block (`think_block_by_budget`) against the target T = frac x B
+    (`len_target_by_budget`), the share of blocks
+    force-closed (`forced_by_budget`; `forced_frac` over every block) and the mean
+    `length_deviation` d per attempt (`len_dev_by_budget`; `len_dev` over the B > 0 attempts), in
+    `mode` whatever `coef` is; `len_target_penalty` = coef x len_dev, the mean reward deduction of
+    an attempt that pays it."""
+    blk: dict[int, list[int]] = collections.defaultdict(list)
+    frc: dict[int, list[bool]] = collections.defaultdict(list)
+    dev: dict[int, list[float]] = collections.defaultdict(list)
+    for att, b in zip(groups, budgets, strict=True):
+        for x in att:
+            bl = think_blocks(x, think_ids)
+            blk[b] += [n for n, _ in bl]
+            frc[b] += [f for _, f in bl]
+            d = length_deviation([n for n, _ in bl], b, mode, frac)
+            if d is not None:
+                dev[b].append(d)
+    n_blk = sum(len(v) for v in frc.values())
+    n_dev = sum(len(v) for v in dev.values())
+    len_dev = sum(map(sum, dev.values())) / n_dev if n_dev else 0.0
+    return {
+        "think_block_by_budget": {str(b): sum(v) / len(v) for b, v in sorted(blk.items()) if v},
+        "len_target_by_budget": {str(b): frac * b for b, v in sorted(blk.items()) if v},
+        "forced_by_budget": {str(b): sum(v) / len(v) for b, v in sorted(frc.items()) if v},
+        "forced_frac": sum(map(sum, frc.values())) / n_blk if n_blk else 0.0,
+        "len_dev_by_budget": {str(b): sum(v) / len(v) for b, v in sorted(dev.items())},
+        "len_dev": len_dev,
+        "len_target_penalty": coef * len_dev,
+    }
 
 
 # statuses (sample.think_generate) of attempts that a cap ended, not a verdict
@@ -141,13 +245,22 @@ def attempt_items(x: dict[str, Any], adv: float, tok: Any) -> list[Item]:
 
 
 def group_items(
-    att: Sequence[dict[str, Any]], tok: Any, len_penalty: float, overlong: str = "mask"
+    att: Sequence[dict[str, Any]],
+    tok: Any,
+    len_penalty: float,
+    overlong: str = "mask",
+    len_target_coef: float = 0.0,
+    len_target_mode: str = "exact",
+    len_target_frac: float = 1.0,
 ) -> tuple[list[Item] | None, list[bool]]:
     """One group's training items -> (items, None when the group is skipped; per attempt, whether
-    it is masked as overlong). Masked attempts give no items, so no gradient."""
+    it is masked as overlong). Masked attempts give no items, so no gradient. `len_target_*`: the
+    length target (`rewards`)."""
     assert overlong in ("mask", "fail"), overlong
     masked = [overlong == "mask" and is_overlong(x) for x in att]
-    adv = advantages(rewards(att, len_penalty), [not m for m in masked])
+    ids = (tok.think, tok.end_think) if len_target_coef and has_think(tok) else None
+    r = rewards(att, len_penalty, len_target_coef, len_target_mode, ids, len_target_frac)
+    adv = advantages(r, [not m for m in masked])
     if adv is None:
         return None, masked
     items: list[Item] = []
@@ -465,6 +578,19 @@ def sample_groups(
     return per
 
 
+def _length_line(row: dict[str, Any]) -> str:
+    """The per-iteration line's length part: per budget, think tokens per block / the target and
+    the share force-closed; then every block's forced share, the mean d and alpha x d."""
+    per = " ".join(
+        f"{b}:{n:.1f}/{row['len_target_by_budget'][b]:g} f{100 * row['forced_by_budget'][b]:.0f}%"
+        for b, n in row["think_block_by_budget"].items()
+    )
+    return (
+        f"think/blk {per or '-'} forced {100 * row['forced_frac']:.1f}% "
+        f"dev {row['len_dev']:.3f} lpen {row['len_target_penalty']:.3f}"
+    )
+
+
 def alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
     """An iteration's metrics row -> its alarms, one message each (the ALARM_* thresholds).
     `gn_prev`: the grad-norm max of the earlier iterations that took a step."""
@@ -503,6 +629,10 @@ def prune_rolling(ckdir: Path, name: str, keep: int) -> list[Path]:
 
 def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     assert not a.save_rolling or a.keep_rolling >= 1, "--keep_rolling must be >= 1"
+    assert a.len_target_coef >= 0, "--len_target_coef must be >= 0"
+    assert a.len_target_frac > 0, "--len_target_frac must be > 0"
+    if a.len_target_coef and not a.effort:
+        print("WARNING: --len_target_coef without --effort: the target is not in the prompt")
     out = Path(a.out)
     run_env(out)
     a.clip_eps_low, a.clip_eps_high = clip_range(a)  # resolved, so args.json records them
@@ -547,7 +677,15 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             think_b[b] += [float(x["think"]) for x in att]
             # the curriculum counts every attempt: a capped one is a failure at eval
             cur.update(key, sum(bool(x.get("ok")) for x in att), len(att))
-            its, masked = group_items(att, tok, a.len_penalty, a.overlong)
+            its, masked = group_items(
+                att,
+                tok,
+                a.len_penalty,
+                a.overlong,
+                a.len_target_coef,
+                a.len_target_mode,
+                a.len_target_frac,
+            )
             over_b[b] += [float(mk) for mk in masked]
             if its is None:
                 n_skip += 1
@@ -612,6 +750,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             "tokens_per_attempt": sum(x["tokens"] for x in flat) / max(1, len(flat)),
             "think_per_attempt": sum(x["think"] for x in flat) / max(1, len(flat)),
             "think_by_budget": {str(b): sum(v) / len(v) for b, v in sorted(think_b.items())},
+            **length_metrics(
+                per, tb, think_ids, a.len_target_mode, a.len_target_coef, a.len_target_frac
+            ),
             "overlong_frac": sum(map(sum, over_b.values())) / max(1, len(flat)),  # masked
             "overlong_by_budget": {str(b): sum(v) / len(v) for b, v in sorted(over_b.items())},
             "items": len(items),
@@ -649,6 +790,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             f"{ {k: round(100 * v, 1) for k, v in row['pass1_by_budget'].items()} } "
             f"skip {100 * row['groups_skipped']:.0f}% tok/att {row['tokens_per_attempt']:.0f} "
             f"over {100 * row['overlong_frac']:.1f}% think/att {row['think_per_attempt']:.0f} "
+            f"{_length_line(row)} "
             f"loss {loss:+.4f} clip lo/hi {clip_low:.4f}/{clip_high:.4f} "
             f"rmax {row['ratio_max']:.2f} neg_r3 {row['neg_r3']:.4f} "
             f"ent {ent_think:.2f}/{ent_action:.2f} "
@@ -707,6 +849,25 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--warmup", type=int, default=10)
     ap.add_argument("--clip", type=float, default=1.0)
     ap.add_argument("--len_penalty", type=float, default=0.0, help="reward per 1k tokens")
+    ap.add_argument(
+        "--len_target_coef",
+        type=float,
+        default=0.0,
+        help="LCPO length target: every attempt at B > 0 pays alpha x the mean think-block "
+        "deviation from its target (relative, each block clipped at 1); 0: off",
+    )
+    ap.add_argument(
+        "--len_target_mode",
+        choices=LEN_TARGET_MODES,
+        default="exact",
+        help="'exact': |L_b - T| / T; 'max': max(0, L_b - T) / T (overshoot only)",
+    )
+    ap.add_argument(
+        "--len_target_frac",
+        type=float,
+        default=1.0,
+        help="the length target T = frac x B per effort level",
+    )
     ap.add_argument("--temperature", type=float, default=1.0, help="sampling and log-probs")
     ap.add_argument(
         "--overlong",
