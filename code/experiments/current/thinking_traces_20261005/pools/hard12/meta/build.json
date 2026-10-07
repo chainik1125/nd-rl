@@ -1,0 +1,631 @@
+{
+ "runs": [
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b1_s0",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b1_s1",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b1_s2",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q01",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q02",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q03",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q04",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q05",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q06",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q07",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q08",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q09",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q10",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q11",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b2_q12",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b3_q13",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/b3_q14",
+  "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/passrate/pilot"
+ ],
+ "measured": 24050,
+ "in_band": 8939,
+ "band": "2-16 of 32",
+ "dedupe": {
+  "excluded": 6,
+  "lean_rejected": 0
+ },
+ "excluded_by_file": {
+  "train_depth3_f0_a1.jsonl": 6
+ },
+ "exclusion_files": [
+  {
+   "file": "/scratch/cowifornia/nd-rl/bench/dan_ckpts/data/train_k12.jsonl",
+   "records": 155000,
+   "skipped": 0,
+   "secs": 4.6
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/bench/dan_ckpts/data/heldout.jsonl",
+   "records": 5000,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/bench/dan_ckpts/data/train_depth3_f0_a1.jsonl",
+   "records": 155000,
+   "skipped": 0,
+   "secs": 3.7
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/bs/dev1108.jsonl",
+   "records": 1108,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/bs/holdout250.jsonl",
+   "records": 250,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/bs/textbook72.jsonl",
+   "records": 72,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72/textbook_dev.jsonl",
+   "records": 58,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72/textbook_train.jsonl",
+   "records": 14,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/gt/batch3.jsonl",
+   "records": 14,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/gt/candidate_v0.jsonl",
+   "records": 87,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/gt/candidate_v1.jsonl",
+   "records": 72,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/gt/hand_proved_14.jsonl",
+   "records": 14,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/gt/tb72_textbook_dev.jsonl",
+   "records": 58,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/gt/tb72_textbook_train.jsonl",
+   "records": 14,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/heldout.jsonl",
+   "records": 5000,
+   "skipped": 0,
+   "secs": 0.3
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/ladder/rl_targets.jsonl",
+   "records": 4495,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/ladder/transfer.jsonl",
+   "records": 2285,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/ladder/transfer_long.jsonl",
+   "records": 1913,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/ladder/transfer_long2.jsonl",
+   "records": 21,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/ladder/transfer_long2_calib.jsonl",
+   "records": 70,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/ladder/transfer_long_ge17.jsonl",
+   "records": 70,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/ladder/transfer_long_rr600.jsonl",
+   "records": 600,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/lj/heldout200.jsonl",
+   "records": 200,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/lj/targets200.jsonl",
+   "records": 200,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/lj/train_retain.jsonl",
+   "records": 3000,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/lj/transfer50.jsonl",
+   "records": 50,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/heldout.jsonl",
+   "records": 5000,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/heldout_c8.jsonl",
+   "records": 4998,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/reductio2_cands.jsonl",
+   "records": 945,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/reductio2_cands_minlen.jsonl",
+   "records": 945,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/run5_c8_cands.jsonl",
+   "records": 1568,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/run5_c8_nec.jsonl",
+   "records": 1568,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/run5_c8c_cands.jsonl",
+   "records": 1381,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/run5_c8c_nec.jsonl",
+   "records": 1381,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/run5_reductio_nec.jsonl",
+   "records": 945,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_c8.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_depth3.jsonl",
+   "records": 1000,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_depth3_intuit.jsonl",
+   "records": 0,
+   "skipped": 1000,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_depth3_maxdepth2.jsonl",
+   "records": 1000,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_derived_ore.jsonl",
+   "records": 1000,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_derived_ore_intuit.jsonl",
+   "records": 0,
+   "skipped": 1000,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_derived_ore_noderived.jsonl",
+   "records": 1000,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_derived_ore_strict_c8.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_none.jsonl",
+   "records": 1000,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_none_intuit.jsonl",
+   "records": 0,
+   "skipped": 1000,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_reductio.jsonl",
+   "records": 972,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_reductio2.jsonl",
+   "records": 606,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_reductio_intuit.jsonl",
+   "records": 0,
+   "skipped": 972,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/targets_reductio_req.jsonl",
+   "records": 300,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_c8.jsonl",
+   "records": 250,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_depth3.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_depth3_intuit.jsonl",
+   "records": 0,
+   "skipped": 500,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_derived_ore.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_derived_ore_intuit.jsonl",
+   "records": 0,
+   "skipped": 500,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_derived_ore_strict_c8.jsonl",
+   "records": 250,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_none.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_none_intuit.jsonl",
+   "records": 0,
+   "skipped": 500,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_reductio.jsonl",
+   "records": 332,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_reductio2.jsonl",
+   "records": 300,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_reductio_intuit.jsonl",
+   "records": 0,
+   "skipped": 332,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/p2/transfer_reductio_req.jsonl",
+   "records": 150,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r1/scale_prompts.jsonl",
+   "records": 106,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/cands_impe_chain4.jsonl",
+   "records": 1600,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/cands_nested_ore.jsonl",
+   "records": 800,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/cands_ori_ore.jsonl",
+   "records": 6000,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/nec_impe_chain4.jsonl",
+   "records": 1600,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/nec_negi_ande_hyp.jsonl",
+   "records": 807,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/nec_nested_ore.jsonl",
+   "records": 800,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/targets_depth4.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/targets_impe_chain4.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/targets_impi_ore.jsonl",
+   "records": 500,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/targets_negi_ande_hyp.jsonl",
+   "records": 400,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/targets_nested_ore.jsonl",
+   "records": 300,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/targets_ori_ore.jsonl",
+   "records": 400,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/transfer_depth4.jsonl",
+   "records": 200,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/transfer_impe_chain4.jsonl",
+   "records": 200,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/transfer_impi_ore.jsonl",
+   "records": 200,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/transfer_negi_ande_hyp.jsonl",
+   "records": 94,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/transfer_nested_ore.jsonl",
+   "records": 41,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r2/transfer_ori_ore.jsonl",
+   "records": 160,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r3/inject_depth3_gen4.jsonl",
+   "records": 4,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r3/inject_depth3_invalid4.jsonl",
+   "records": 4,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r3/inject_reductio_gen4.jsonl",
+   "records": 4,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r3/inject_reductio_invalid4.jsonl",
+   "records": 4,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r3_1/depth3_req.jsonl",
+   "records": 300,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/r3_1/depth3_req_transfer.jsonl",
+   "records": 100,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/rl_targets.jsonl",
+   "records": 3000,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/rl_targets_v1.jsonl",
+   "records": 3000,
+   "skipped": 0,
+   "secs": 0.1
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/transfer.jsonl",
+   "records": 1638,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/nd-takehome/data/transfer_v1.jsonl",
+   "records": 1600,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/ood_check/sets/charles_long_reach.jsonl",
+   "records": 80,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/ood_check/sets/ood_and_reorder.jsonl",
+   "records": 240,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/ood_check/sets/ood_case_product.jsonl",
+   "records": 40,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/ood_check/sets/ood_commute.jsonl",
+   "records": 240,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/ood_check/sets/ood_or_reorder.jsonl",
+   "records": 240,
+   "skipped": 0,
+   "secs": 0.0
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/runs/pools/rl_hard.jsonl",
+   "records": 5000,
+   "skipped": 0,
+   "secs": 0.2
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/runs/pools/rl_hard_filtered.jsonl",
+   "records": 5000,
+   "skipped": 0,
+   "secs": 0.2
+  },
+  {
+   "file": "/scratch/cowifornia/nd-rl/think/runs/pools/test_21_30/test_21_30.jsonl",
+   "records": 2775,
+   "skipped": 0,
+   "secs": 0.2
+  }
+ ],
+ "kept_after_lean": 8933,
+ "n_pool": 5000,
+ "n_test": 2500,
+ "unused_band_rows": 1433,
+ "spare_file": "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/spare_band.jsonl (in-band, deduplicated, Lean-checked, pool-row format; disjoint from pool and test)",
+ "pool_test_shared_keys": 0,
+ "pool_test_shared_pkeys": 0,
+ "seed": 12012,
+ "secs": 32.4
+}
