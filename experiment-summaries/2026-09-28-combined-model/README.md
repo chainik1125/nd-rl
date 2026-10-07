@@ -4,24 +4,9 @@ written_by: agent:claude
 draft: true
 ---
 
-```claude
 For context, see [last week's post](https://robbiewmthompson.com/blog/pretraining-ablations/).
-```
 
 # The combined model, and where its gains come from
-
-## Summary
-
-```claude
-Everyone in the group owns one stage of the pipeline: Dan the data and its format, me the
-pretraining, Leon the RL. This week I plugged the best version of each into one model and asked
-where its gains come from.
-
-The combined model solves **904 of 1,108** validation theorems of 7+ lines (64 samples each), in
-the same 2,400 s of one GPU as every other run here. The most naive version of the same pipeline
-solves **142**. On theorems no run ever touched, it proves **79%** at 64 samples (naive: 13%),
-and **31 of 72 textbook problems** at 256 samples (naive: 9).
-```
 
 ![Dev theorems solved, by pipeline](charts/by-cell.png)
 
@@ -224,30 +209,20 @@ at 1 sample either way.
 
 ## Test-time RL: making up easier problems
 
-```claude
 Search over a frozen model tops out: at 1,024 attempts the model puts almost no probability on
-any proof of about 90% of the theorems it misses. Search can't fix that, so the weights have to
-change. AlphaProof (Hubert et al., 2025) does exactly this for its hardest problems, with what
-it calls test-time RL. For each target it generates hundreds of thousands of related problems
-("variants": simplifications, generalizations, lemmas, sub-steps) and runs its normal RL loop on
-the target plus variants until the target falls. The logic: RL learns only from successes, so a
-target the model never solves gives no gradient. A variant the model solves *sometimes* does,
-and it sits right next to the target. On IMO and Putnam problems this added 15 percentage points
-beyond a 12-TPU-hour search, at a cost of 50 to several hundred TPU-days per problem.
-
-This is the simple version of that, on our model.
-```
+any proof of ~90% of the theorems it misses. So the weights have to change. AlphaProof (Hubert et
+al., 2025) does this with test-time RL: for each hard target it generates many related
+problems ("variants") and runs RL on target plus variants until the target falls. RL learns only
+from successes, and a variant the model solves *sometimes* gives signal right next to a target
+it never solves. On IMO and Putnam this added 15 points over a 12-TPU-hour search, at 50+
+TPU-days per problem. This is the simple version on our model.
 
 ### Where the variants come from
 
-```claude
-AlphaProof uses Gemini, prompted with 791 hand-made (problem, variant) pairs, plus code that
-perturbs hypotheses and goals. We don't need a language model. A theorem here is a sequent
-`Γ ⊢ G` over four atoms, and every variant below is built from the statement alone: no
-reference proof, no model. Each is kept only if it is valid. Validity is a 16-row truth table,
-because the logic is classical and has four atoms, so valid means provable. AlphaProof has no
-such check (Lean mathematics is undecidable) and instead lets its prover try to *disprove*
-each variant.
+AlphaProof prompts Gemini for variants. We don't need a language model: a theorem is a sequent
+`Γ ⊢ G` over four atoms, and every variant is built from the statement alone (no reference
+proof). Each is kept only if a 16-row truth table says it is valid, which for classical logic
+means provable.
 
 | kind | move | example: `P>Q, Q>R, R>S ⊢ P>S` |
 | --- | --- | --- |
@@ -262,54 +237,30 @@ each variant.
 | premise `~(A & B)` | strengthen it to `~A`, or to `~B` | |
 | lemma (cut) | any subformula ψ of Γ or G with Γ ⊨ ψ gives two variants: `Γ ⊢ ψ` and `Γ, ψ ⊢ G` | none: every subformula that follows from Γ is a premise or the goal |
 
-Every move is applied to the target, then once more to each result (depth 2). Duplicates are
-dropped: same premises as a set, same goal. So is any variant whose goal is already a premise.
-On the 64 targets below this gives **3,397 variants** (median 42 per target, 12 to 263). 78%
-are lemma cuts.
-
-A true lemma need not be a *useful* one. The reference proof would say which lemmas lie on the
-path to the target, but it is off limits, so the solve rates have to sort useful from useless.
-```
+Moves are applied twice (depth 2), with duplicates and trivial variants dropped. On 64 targets
+that gives 3,397 variants (median 42 per target); 78% are cuts.
 
 ### The loop
 
-```claude
-Model: c005 seed 0, the combined model above. One copy is adapted on all 64 targets at once,
-as AlphaProof does for several targets. Each round:
+One copy of the model is adapted on all targets at once. Each round:
 
-1. **Sample** 16 proofs of every active target and variant. The sampler is the one Leon's RL
-   uses: guided resampling of bad lines (4 redraws per line, 24 per proof), T 1.0.
-2. **A target with any verified proof is solved.** It leaves the pool with all its variants.
-3. **Mastered variants leave.** A variant solved in more than 75% of its 16 samples (13+) goes
-   out: the model already has it, and its proofs would only reinforce what it does anyway.
-4. **Train on the frontier.** Variants solved in 1-12 of 16 samples contribute up to 4 distinct
-   proofs each, repeated max(1, round(8 × (1 − rate))) times, so rarely solved variants count
-   up to 8×. That is Leon's weighting. Also in the mix: 20,000 random cap-6 training proofs,
-   against forgetting. Variants at 0 of 16 stay in the pool untrained. Learning on their
-   neighbours may make them solvable next round, which is how a curriculum is meant to work.
-5. **Update** with one round of Leon's RL step: GEM loss, fresh AdamW, 135 steps of 128.
+1. **Sample** 16 proofs of every active target and variant (Leon's guided sampler, T 1.0).
+2. **A target with a verified proof is solved** and leaves with its variants.
+3. **Variants solved in 13+ of 16 are mastered** and leave.
+4. **Train** on variants solved in 1-12 of 16: up to 4 proofs each, weighted up to 8× when
+   rarely solved (Leon's weighting), plus 20,000 cap-6 proofs against forgetting. Variants at
+   0 stay in the pool; learning their neighbours may unlock them.
+5. **Update** with Leon's RL step (GEM, fresh AdamW, 135 steps of 128).
 
-8 rounds. The band (0, 0.75] is my call. It follows AlphaProof's matchmaker, which prioritises
-problems with mixed recent results and lowers the priority of those that always or never
-succeed. A variant at 0 gives no data. One at 16 of 16 gives data the model doesn't need.
+The band (1-12 of 16) follows AlphaProof's matchmaker: problems always or never solved carry no
+useful signal.
 
-**Targets.** 64 dev theorems that c005 seed 0 fails at 64 plain samples, chosen by hash:
-lengths 7-14, mostly 9-10. These are dev theorems, not held-out ones: this is the development
-run. If TTRL works here, the held-out theorems that every inference method misses are the real
-test. That would reverse "training on these evaluation theorems is off the table" above:
-TTRL trains on the *statement*, never on a proof of it.
+### First test: 64 hard targets
 
-**Control.** The same sampler on the 64 targets alone: no variants, no training, 256 samples per
-target per round for 16 rounds (4,096 per target). TTRL counts as a win only if it solves more
-targets than the control at the same number of samples. The control is plain sampling at
-matched compute. TTRL also pays for fine-tuning, which is reported separately.
-```
+**Targets:** 64 dev theorems c005 seed 0 fails at 64 samples, 7-14 lines. **Control:** the same
+sampler on the targets alone, no training, 256 samples per round, compared at matched samples.
 
-### Results
-
-```claude
-**The stepping stones exist.** Round 1 samples the unadapted model, so it tests the premise
-directly: does the model solve variants of targets it can't solve?
+**The stepping stones exist.** Round 1 samples the unadapted model:
 
 | round 1, 16 samples each | items | any proof | in the band (1-12 of 16) | mean solve rate |
 | --- | --- | --- | --- | --- |
@@ -319,127 +270,45 @@ directly: does the model solve variants of targets it can't solve?
 | decompositions, depth 1 / 2 | 166 / 425 | 40% / 61% | 33% / 35% | 0.17 / 0.35 |
 | specializations, depth 1 / 2 | 26 / 146 | 73% / 58% | 19% / 29% | 0.60 / 0.36 |
 
-- The model solves variants 24× more often than their targets (0.24 vs 0.01).
-- 63 of the 64 targets have at least one variant in the training band, and every target has
-  at least one variant with a proof.
-- Specializations (stronger premises) are the easiest, as they should be: they remove a case
-  split or an implication. Many are mastered at once and leave the pool.
+Variants are solved 24× more often than their targets, and 63 of 64 targets have a variant in
+the band.
 
-**TTRL solves 48 of 64. Sampling more solves 31.** Numbers below are seed 0 unless marked.
-```
+**TTRL solves 48 of 64. Sampling more solves 31.**
 
 ![Targets solved vs samples per target: TTRL, unrelated-variant TTRL and sampling more, two seeds](charts/ttrl-dev64.png)
 
-```claude
-- **The budgets are matched.**
-  - TTRL used 2,623 samples per target (target plus its variants) and 29 minutes on one A40,
-    of which 3 minutes were fine-tuning.
-  - The control used 2,412 samples per target and 25 minutes.
-  - At 2,443 samples per target, just past the control's full budget, TTRL stood at 40.
-- **TTRL solves everything the control does, plus 17 more.** The control solves nothing TTRL
-  misses.
-- **TTRL barely samples the targets themselves.** Of its 167,872 samples, only 4,832 were on
-  targets: 75 per target, against the control's 2,412. The rest went to variants, and training
-  on those made the targets solvable.
-- **The gain is on the long theorems.** At 10 lines TTRL solves all 25 targets; the control
-  solves 10. At 11 or more lines TTRL gets 8 of 16, the control 6.
-- **It starts slower and doesn't flatten.** For the first ~2,000 samples per target TTRL is
-  behind, because it spreads its samples over variants. Then rounds 5-8 add 7, 4, 6 and 2
-  targets, while the control adds 2 over its last 1,100 samples per target. TTRL was still
-  climbing at round 8, when it stopped.
-- **Seed 1 replicates it, less cleanly.** On c005 seed 1 and its own 64 failures (48 shared
-  with seed 0), TTRL solves 41 and sampling more solves 31. TTRL again solves everything the
-  control does but one, plus 11 more.
-  - Its variant pool is bigger (4,468), so TTRL spent 3,088 samples per target, 28% more than
-    the control's 2,412.
-  - At matched samples TTRL is between 29 and 36; the extra 10 came mostly after the control's
-    budget.
-  - The control is flat by then: 29 → 31 over its last 1,200 samples per target.
-```
+- **Matched budgets:** 2,623 samples per target for TTRL (29 min, 3 of them training) vs 2,412
+  for the control (25 min). TTRL solves everything the control does, plus 17.
+- **TTRL barely samples the targets:** 75 samples per target; the rest go to variants.
+- **The gain is on long theorems:** at 10 lines, 25 of 25 vs 10.
+- **Seed 1 replicates it less cleanly:** 41 vs 31, but its bigger variant pool spent 28% more
+  samples, and at matched samples it sat at 29-36.
 
-### Is it the variants, or just more RL?
-
-```claude
-**It's the variants.** The same loop on seed 0, with the variants swapped for those of 64 *other*
-unsolved dev theorems: 4,499 variants from similar lengths, the same band and the same updates.
-The 64 targets are sampled exactly as in TTRL, 16 per round.
+**Variants of unrelated theorems don't help.** Same loop on seed 0, with the variants of 64
+*other* failures in place of the targets' own:
 
 | round | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | own variants (TTRL) | 8 | 23 | 28 | 29 | 36 | 40 | 46 | 48 |
 | unrelated variants | 7 | 11 | 20 | 23 | 25 | 25 | 26 | 28 |
 
-- Generic RL does help: 7 → 28 on targets it never trained on.
-- It ends below plain sampling (31). Against TTRL it used 2.7× the samples, 5× the training
-  records (232k vs 44k) and 79 minutes of A40 time (TTRL: 29).
-- It solves nothing that TTRL misses.
-- Its pool never shrinks, because solving a target retires no unrelated variant. That is why it
-  costs so much more.
+It ends below plain sampling (28 vs 31) after 2.7× TTRL's samples. So the gain comes from
+practising on problems built from the targets. As the at-scale run shows, that mostly means the
+targets themselves.
 
-Generic RL on similar theorems doesn't beat sampling more. So TTRL's whole lead over sampling
-more comes from practising on problems built from the target. That includes the targets
-themselves, and that turns out to be most of it: see "At scale" below.
-```
-
-### What's left
-
-```claude
-16 targets are still unsolved. For 9 of them every variant has been solved at least once, and
-most are mastered. la_transfer_1167, for one, has all 19 variants mastered, and the target is
-still unsolved. The model can prove
-every piece but doesn't write the whole proof in one pass. That's the composition gap: AlphaProof
-closes it with tree search, which assembles solved subgoals automatically. Our model writes
-proofs left to right without search.
-
-The cheap fix is mechanical. A cut gives proofs of `Γ ⊢ ψ` and `Γ, ψ ⊢ G`. Paste the first
-into the second where ψ is cited as a premise, renumber, and verify: that's a proof of the
-target, built from the model's own pieces. Training on it teaches the long proof. This wasn't
-in this run.
-```
-
-### Caveats
-
-```claude
-- **Two seeds, one run each, mostly the same 64 dev targets.** +17 and +10 over sampling more;
-  seed 1's lead at exactly matched samples is smaller. The unrelated-variants arm ran on seed 0
-  only.
-- **Dev theorems.** The 64 were picked by failing c005 at 64 plain samples on this dev split.
-  Every knob was set before the run and none was tuned, but the real test is the held-out
-  theorems every inference method missed. At 1,024 attempts about 90% of those stay unsolved.
-- **Easy targets included.** 23 of the 64 fall to 256 guided samples, so "unsolved at 64 plain
-  samples" was a weak filter for hard. The comparison is still like for like.
-- **Temperature.** Both arms sample at T 1.0, the RL temperature. The frozen eval and the
-  test-time section above use T 0.8.
-
-Code: `code/experiments/current/ttrl/` on branch `robbie-experiments`. Per-item results live
-in the checkout's `artifacts/ttrl/`: `dev64_ttrl`, `dev64_control`, `dev64_unrelated`,
-`s1_ttrl`, `s1_control`.
-```
+**What's left: a composition gap.** Of the 16 unsolved targets, 9 have every variant solved;
+la_transfer_1167 has all 19 mastered. The model proves every piece but never writes the whole
+proof. AlphaProof's tree search assembles pieces; ours writes left to right. The fix is
+mechanical: paste a proof of `Γ ⊢ ψ` into one of `Γ, ψ ⊢ G` and verify. Not tried yet.
 
 ### At scale: every dev failure, up to 5× the pipeline's compute
 
-```claude
-The 64-target runs leave two questions:
+The open question: is it the variants, or just training on the eval theorems at all? Plain
+expert iteration (EI) on the failed statements, no variants, might buy most of the gain.
 
-1. **How much does TTRL add to the real metric, per unit of compute?**
-2. **Is it the variants, or just being allowed to train on the eval theorems at all?** Plain
-   expert iteration on the eval statements, with no variants, might buy most of the gain. If
-   it does, "test-time RL helps" is the headline, not "variants help". Neither run so far
-   separates the two: the control never trains, and the unrelated-variants arm never trains on
-   the targets.
-
-**Setup.**
-- **Models:** c005 seeds 0-2, the combined model exactly as trained: usual pretraining, then
-  the usual RL on the RL set.
-- **Baseline:** their recorded dev score at 64 samples: 915, 893, 905 of 1,108.
-- **Targets:** each seed's dev failures (193, 215, 203), meaning theorems with 0 of 64 samples
-  correct. Each arm adapts one shared copy of the model on all of them at once, not one fork
-  per theorem.
-- **Solved** means at least one sampled proof of the *target* passes Lean ∧ nd_verify, in any
-  round. That is pass@k with a model that may change between rounds, which is how AlphaProof
-  counts. Score = baseline + targets solved.
-
-**Three arms, same targets, same compute:**
+**Setup.** c005 seeds 0-2, exactly as trained (dev baseline 915, 893, 905). Targets: each seed's
+dev failures (193, 215, 203), on one shared model per arm. *Solved* = at least one proof of the
+target passes Lean ∧ nd_verify in any round; score = baseline + solved.
 
 | arm | samples | trains on |
 | --- | --- | --- |
@@ -447,26 +316,15 @@ The 64-target runs leave two questions:
 | targets-only EI | targets, 256 per round | proofs of the targets it has solved |
 | TTRL | targets and variants, 16 each per round | solved targets plus variants in the band |
 
-Every arm uses the same sampler (guided, T 1.0), the same RL step (Leon's), and the same band
-and weights as above. One change from the 64-target runs: solved targets now stay in the training
-mix, so TTRL is exactly targets-only EI plus variants.
-
-**Compute.** x is what the pipeline spent producing the model: pretraining plus RL, 1,641-1,774 s
-of one A40 per seed. Each arm runs until it has used 5x (2.3-2.5 h), and every round records its
-cumulative time. The result is a curve of dev solved = baseline + newly solved, read off at 1x,
-2x, 3x, 4x and 5x. Evaluation costs are left out: every arm pays the same 64-sample eval first.
-The clock is wall-clock on one GPU from the start of the loop. Sampling, Lean checks and
-fine-tuning all count; loading the model doesn't. The score at "2x" counts only rounds that
-*finished* within 2x.
-```
+Same sampler and RL step everywhere; TTRL is exactly EI plus variants. **Compute:** x = the
+pipeline's own pretrain + RL time (1,641-1,774 s on one A40). Each arm runs to 5x of wall-clock,
+sampling and training included; a score at "2x" counts only rounds finished by 2x.
 
 **Plain expert iteration on the eval statements wins. Variants add little.**
 
-![Dev solved vs test-time compute, three arms, three seeds](charts/ttrl-scale.png)
+![Dev solved vs test-time compute: mean of three seeds with the seed range, three arms](charts/ttrl-headline.png)
 
-```claude
-Dev theorems solved (of 1,108; baseline 904), mean of three seeds, at each multiple of the
-pipeline's own pretrain + RL compute:
+Dev theorems solved (of 1,108; baseline 904), mean of three seeds:
 
 | arm | 1x | 2x | 3x | 4x | 5x |
 | --- | --- | --- | --- | --- | --- |
@@ -474,32 +332,17 @@ pipeline's own pretrain + RL compute:
 | **targets-only EI** | **1,069** | **1,082** | **1,085** | **1,086** | **1,088** |
 | TTRL | 929 | 986 | 1,034 | 1,067 | 1,079 |
 
-- **Test-time training is worth a lot, and it doesn't need variants.** Targets-only EI just
-  samples the failed theorems and trains on the proofs it finds.
-  - At 1x, i.e. doubling the pipeline's compute, it takes dev from 904 to 1,069. That's 81% of
-    the failures solved, against 48% for sampling more.
-  - By 5x it reaches 1,088 (98.2%), and 1,103 of 1,108 on seed 1.
-- **TTRL is slower, and only about catches up by 5x.**
-  - On average it trails EI at every budget, and trails even sampling more until about 2.5x.
-  - At 5x it is 9 behind on average. Seed 2's TTRL passes EI at about 3.5x and ends ahead
-    (1,085 vs 1,078); seeds 0 and 1 stay behind.
-- **EI plateaus; TTRL doesn't.** EI is within 6 of its final score by 2x. TTRL was still
-  adding theorems when the budget ran out.
-- **The two solve partly different theorems.** TTRL solves 12, 4 and 11 theorems that EI never
-  does; EI solves 21, 29 and 2 that TTRL doesn't. Together they leave 12, 1 and 19 unsolved.
-- Sampling more flattens early, as before: +116 at 5x, nearly all of it by 2x.
+- **Test-time training is worth a lot, without variants.** At 1x, EI solves 81% of the failures
+  (sampling more: 48%). At 5x it reaches 98.2%, and 1,103 of 1,108 on seed 1.
+- **TTRL is slower and only about catches up.** It trails EI on average at every budget, 9
+  behind at 5x. Seed 2's TTRL ends ahead (1,085 vs 1,078).
+- **EI plateaus by 2x; TTRL was still climbing.** They solve partly different theorems: TTRL
+  gets 12, 4 and 11 that EI never does. Together they leave 12, 1 and 19 unsolved.
 
-What this means for the earlier sections: the 64-target result ("TTRL 48, sampling more 31")
-stands, but its explanation doesn't. The unrelated-variants arm showed that variants of *other*
-theorems don't help. It never asked whether the targets alone would do. They do, at least when
-there are ~200 of them.
-```
+So the 64-target result stands, but its explanation changes: with ~200 targets, the targets
+alone do the job.
 
 #### What each arm does, round by round
-
-```claude
-Seed 0, from the logs. All three arms start from the same weights, the same 193 targets and
-the same sampler.
 
 | | sample more | targets-only EI | TTRL |
 | --- | --- | --- | --- |
@@ -511,65 +354,62 @@ the same sampler.
 | rounds in 5x | 50 | 112 | 16 |
 | final | 104 | 169 | 160 |
 
-Round 1 is a free consistency check: with the same samples and the same seed, EI and sample
-more must agree, and they do on all three seeds (72, 84 and 73). Round 2 is the first time
-training shows: EI gains 25 targets with no variants at all.
-```
+Seed 0. EI and sample more agree after round 1 on all three seeds, as they must. Round 2 is where
+training shows: +25 for EI with no variants.
 
 #### Why TTRL loses to EI
 
-```claude
-1. **Far fewer updates.** TTRL samples every active variant every round, so its rounds last
-   ~9 minutes against EI's ~1.3. In 5x it gets 16, 19 and 36 updates (seeds 0-2); EI gets 112,
-   166 and 110. Its first update comes at 0.7-0.9x; EI's at 0.25x. Seed 2, where TTRL ran
-   the most rounds, is the one where it ended ahead.
-2. **Each update sees under half of TTRL's data.** Every round is 135 steps of 128 (17,280
-   examples), Leon's setting. EI's mix is ~22k records (its own proofs plus the 20,000
-   retained), so one round covers most of it. TTRL's early mixes are 50-60k, so a round covers
-   28-35% of what it just collected.
-3. **The targets are already each other's variants.** About 200 failures from one generator
-   share schemas, so a proof of one teaches the next. EI gets that transfer free. The
-   statement-made variants add mostly easy neighbours that it pays to sample every round.
+1. **7× fewer updates.** Sampling ~12k variants makes each round ~9 min vs EI's ~1.3. TTRL gets
+   16-36 updates in 5x; EI gets 110-166. Seed 2, with the most TTRL rounds, is where it won.
+2. **Each update sees a third of its data.** 135 steps × 128 covers most of EI's ~22k-record
+   mix but only 28-35% of TTRL's 50-60k.
+3. **The targets are already each other's variants.** ~200 failures from one generator share
+   schemas, so EI gets the transfer free.
 
-Points 1 and 2 are settings I made for the 64-target run and kept unchanged, so this run would
-be pre-declared: k = 16 per variant, every variant every round, Leon's 135 steps. At 3× the
-targets they make TTRL sampling-bound. The honest claim is "TTRL *as configured* loses to EI",
-not "variants can't help". Two things say the variants do something: TTRL was still climbing at
-5x while EI had plateaued, and it solves 4-12 theorems per seed that EI never does.
-```
+Points 1 and 2 are settings from the 64-target run, kept fixed on purpose. So: TTRL *as
+configured* loses to EI. That doesn't show variants can't help.
 
-```claude
-**Caveats for this run.**
-- **One run per seed per arm.** EI beats TTRL on all three seeds up to 3x. After that, seed 2
-  swaps.
-- **The last round of each arm can finish just past its 5x budget.** The table reads only rounds
-  that finished within each multiple; the chart's end labels include that last round.
-- **Two of nine pods were RTX A6000s** (seed 1 sample more, seed 2 EI), the same chip as the
-  A40 and slightly faster. Both are baseline arms, so if anything it favours them.
-- **This is dev-transfer, the set the pretraining loop selected on.** No proof labels were used,
-  and no knob was tuned on these runs. Held-out is still untouched.
-- **EI's budget goes mostly into training.** It ran 110-166 short rounds, spending 2,500-4,300 s
-  on fine-tuning, against 500-1,100 s for TTRL. Compute here is wall-clock on one GPU, so both
-  sides are counted.
+### On the best checkpoint: TTRL edges past EI
 
-**Next.** Start with EI on the targets, then add variants only for the theorems EI leaves. The
-two arms' solved sets overlap only partly, so the combination should beat either: their union
-leaves 12, 1 and 19 per seed. Per-theorem results: `artifacts/ttrl/devall_s{0,1,2}_{ttrl,
-selftrain,control}/` in the checkout.
-```
+The best post-RL checkpoint is c004 seed 0 (925 of 1,108 dev; the c005 recipe with a later RL
+deadline). EI and TTRL ran on its 183 failures in parallel, with the same settings as above.
+
+| minutes of compute | 30 | 60 | 90 | 120 | 150 | end |
+| --- | --- | --- | --- | --- | --- | --- |
+| EI (H100) | 996 | 1,062 | 1,068 | 1,071 | 1,072 | **1,072** at 127 min |
+| TTRL (A40) | 958 | 1,007 | 1,048 | 1,066 | 1,073 | **1,076** at 167 min |
+
+- **Same shape as before.** EI leads for two hours and then flattens: 146-147 of 183 over its
+  last ten rounds. TTRL starts slow, keeps climbing, and passes EI at about 150 minutes.
+- **They solve different theorems.** TTRL gets 9 that EI misses, and EI gets 5 that TTRL misses.
+  Together they reach 1,081 (156 of 183).
+- **Caveats.**
+  - **Different GPUs.** EI ran on an H100 pod that was CPU-bound: about 37 samples/s against
+    about 130 on an A40 pod. Per minute it got about a third of the A40's samples, so this
+    table understates EI per minute.
+  - **EI was killed early.** Its job was OOM-killed on that pod after 127 minutes, in round 29.
+    It had been flat for ten rounds, so more time would probably have added little.
+  - **One seed.**
+
+### Caveats
+
+- One run per seed per arm; EI beats TTRL on all seeds only up to 3x.
+- Dev-transfer was selected on by the pretraining loop. No proof labels used, no knob tuned on
+  these runs; held-out is untouched.
+- Two of nine at-scale pods were RTX A6000s (slightly faster), both baseline arms.
+- All arms sample at T 1.0, the RL temperature; the eval uses 0.8.
+
+**Next:** EI first, then variants only for what EI leaves. Code: `code/experiments/current/ttrl/`
+on branch `robbie-experiments`.
 
 ## Showing the model the proof state
 
-```claude
-Every model above writes a whole proof in one pass. It sees the theorem and the proof so far,
-and it has to work out for itself which hypotheses are in scope, which boxes are open and what
-it is currently trying to prove. Dan built a different interface this week, modelled on
-AlphaProof (Hubert et al., 2025). The model sees only the current **proof state**, the way Lean
-prints it: every hypothesis in scope, then the goal. It writes one step. An environment applies
-the step and prints the new state, and the model writes the next step. The finished steps
-concatenate into an ordinary Lean proof, which Lean checks as before.
+Every model above writes a whole proof in one pass and has to track for itself what's in scope
+and what it's proving. Dan built an AlphaProof-style interface instead: the model sees only the
+current **proof state**, as Lean prints it, and writes one step. An environment applies it and
+prints the next state. The steps concatenate into an ordinary Lean proof.
 
-An illustration, halfway through proving `P → Q, Q → R ⊢ P → R`, inside the box that assumes P:
+Halfway through `P → Q, Q → R ⊢ P → R`, inside the box that assumes P:
 
     h1 : P → Q          the premises
     h2 : Q → R
@@ -579,33 +419,17 @@ An illustration, halfway through proving `P → Q, Q → R ⊢ P → R`, inside 
     n5 : Q
     ⊢ R                 what this box still has to prove
 
-The model's next step is `have n6 : R := n2 n5 ;`. Nothing else is in its context: no theorem
-statement (the first state is the theorem) and no proof history. The state is Markov: it
-summarises everything the history would tell the model.
-
-Dan found that on his 3.2M-parameter model this lifts what the pretrained model can reach nearly
-6× (with no RL: 779 vs 158 transfer theorems). I wanted to know two things. Does it help my pretraining recipes as much? And does my
-autoresearch ranking of recipes survive the change of format?
-```
+The model writes `have n6 : R := n2 n5 ;` and sees nothing else: no theorem, no history. On
+Dan's small model this lifted pretrained transfer ~6× (779 vs 158). Two questions: does it help
+my recipes, and does my recipe ranking survive?
 
 ![Dev theorems solved by pretraining recipe: whole proof, whole proof with 6x RL samples, proof state, and proof so far + state](charts/state-format.png)
 
-```claude
-**Setup.** Four recipes from my autoresearch loop: 198, the incumbent (186 above plus two small
-deletions), and three of my simplified versions of it (207, 201, 204). Each was trained four
-ways, three seeds each:
-
-- **whole proof**: the usual format, as everywhere else in this post;
-- **whole proof, 6× RL samples**: the same, with 192 RL samples per target per round instead of
-  32. This was added once the first proof-state runs showed they take about 3× the wall-clock:
-  it gives whole-proof RL roughly the same time and spends it on sampling;
-- **proof state**: Dan's interface, with the environment assigning the names a step introduces;
-- **proof so far + state**: the proof so far, then the state. This separates "the state helps"
-  from "dropping the history helps".
-
-Everything else is the frozen autoresearch harness: the same data, 300 s of pretraining, and
-plain expert iteration (4 rounds × 1,500 targets), not Leon's RL. The metric is the same dev
-metric as above.
+**Setup.** Four autoresearch recipes (198, the incumbent, and simplifications 207, 201, 204),
+three seeds each, in four formats: whole proof; whole proof with 6× RL samples (to match the
+proof state's extra wall-clock); proof state; and proof so far + state (to separate "the state
+helps" from "dropping history helps"). Everything else is the frozen autoresearch harness with
+plain expert iteration, not Leon's RL. Dev metric, per seed:
 
 | recipe | whole proof | 6× RL samples | **proof state** | proof so far + state |
 | --- | --- | --- | --- | --- |
@@ -614,59 +438,32 @@ metric as above.
 | 201 | 609 / 638 / 579 | 674 / 678 / 626 | **723 / 720 / 720** | 594 / 672 / 602 |
 | 204 | 566 / 552 / 571 | 610 / 642 / 629 | **705 / 744 / 790** | 660 / 702 / 658 |
 
-- **The proof state wins on every recipe**, by 111-178 theorems over the whole proof (medians).
-- **It isn't just the extra compute.** Six times the RL samples buys the whole-proof model only
-  13-65 theorems. The proof state still leads that by 46-156. The 6× arm got about three quarters
-  of the proof state's RL wall-clock, not all of it, so these leads are slightly flattered. At
-  the rate whole-proof RL improves with samples, the missing quarter won't close them.
-- **It never failed to take off.** Whole-proof expert iteration sometimes never gets going. The
-  seeds behind 216, 304, 345 and 396 start RL solving 7-11% of their samples, against 22-24%
-  for seeds that take off, and never catch up in 4 rounds. Their pretrained models look the
-  same on held-out theorems (greedy ~0.96). This happened in 4 of 24 whole-proof runs and 0 of
-  12 proof-state runs. One slow starter, 207 seed 0, caught up in the last round.
-- **My recipe ranking survives.** 198 is best in both formats, and the spread from best to worst
-  recipe is about 100 in both. I had predicted the state would shrink it: part of what the
-  recipe search bought (ALiBi/NoPE heads, handling long contexts) should matter less once the
-  context is a short state. It didn't shrink.
-- **The history doesn't help.** Adding the proof so far is worse than the state alone on every
-  recipe (84-118 lower) and takes 2-3× as long, because the context grows with every step.
-  This matches what Dan found on his model.
-- **Plain RL in the proof state gets most of the way to Leon's RL.** 198 with plain expert
-  iteration goes from 669 (whole proof) to 824. The combined model, with Leon's RL in the
-  whole-proof format, gets 904. The two haven't been combined yet.
+- **The proof state wins on every recipe:** +111 to +178 over the whole proof (medians).
+- **Not just compute:** 6× RL samples buys the whole-proof model only 13-65, and that arm got
+  ~¾ of the proof state's RL time.
+- **It always takes off.** Whole-proof RL stalled in 4 of 24 runs (the 216-396 seeds); the proof
+  state stalled in 0 of 12.
+- **The recipe ranking survives:** 198 is best in both formats, with the same ~100 spread.
+- **History hurts:** proof so far + state is 84-118 below the state alone, at 2-3× the cost.
+- **Plain RL in the proof state nearly matches Leon's RL:** 198 goes 669 → 824; the combined
+  model gets 904. The two haven't been combined yet.
 
-**Cost.** A proof-state run takes about 3× the wall-clock of a whole-proof run: 58 minutes
-against 17 for 198, on an A40. It doesn't fit the 2,400 s budget every other run in this post
-uses. Sampling is about 4× slower and fine-tuning about 2.6× (a proof is about 5 training
-pairs). Most of the sampling cost is engineering, not the format. The model re-reads the whole
-state at every step, with no reuse between steps. My recipes' ALiBi attention builds a bias
-tensor that grows with the square of the context, which forced the batch down from 2,048 to 512
-to fit in memory. And the environment steps a few thousand attempts in Python between model
-calls.
+**Cost:** ~3× the wall-clock (58 vs 17 min for 198), over the 2,400 s budget. Mostly fixable
+engineering: no reuse between steps, an ALiBi bias that forced batch 512, and Python stepping.
 
 From next week the pipeline uses the proof state.
-```
 
 <details class="aside">
 <summary>Caveats</summary>
 
-```claude
-- **Plain expert iteration only.** None of these runs use Leon's RL or the guided sampler, so
-  "proof state + Leon's RL" is untested.
-- **Dev metric, three seeds.** No held-out or textbook numbers yet for the proof-state models.
-- **Fork.** All arms, the whole-proof ones included, ran on Dan's current code, which judges with
-  Lean alone; the rest of the post uses Lean ∧ nd_verify. Whole-proof scores here match the
-  autoresearch loop's (198: 669 and 692 vs 681).
-- **Batch sizes.** The proof-state batch was 512, and the proof-so-far batch started at 256
-  and halved whenever memory ran out (down to 32 on the weakest recipes). Batch size changes
-  the random draws, not what is measured.
-- **One lost run.** 198's third proof-so-far seed was lost to a network drop and not re-run.
-- **GPUs.** 7 of 47 runs got an RTX A6000 instead of an A40 (the same chip).
+- Plain expert iteration only; proof state + Leon's RL is untested.
+- Dev metric and three seeds; no held-out or textbook numbers yet.
+- These runs judge with Lean alone (Dan's current fork), not Lean ∧ nd_verify. Whole-proof
+  scores match the loop's (198: 669 and 692 vs 681).
+- One proof-so-far seed of 198 was lost to a network drop; 7 of 47 runs used an RTX A6000.
 
-Code: `code/experiments/current/state_recipes_20260930/` on branch `robbie-experiments`; the
-environment is Dan's `state_env.py` (fork branch `dan_best-state`). Per-run numbers:
-`charts/state_runs.csv`.
-```
+Code: `code/experiments/current/state_recipes_20260930/` on `robbie-experiments`; environment:
+Dan's `state_env.py` (fork branch `dan_best-state`). Per-run numbers: `charts/state_runs.csv`.
 
 </details>
 
