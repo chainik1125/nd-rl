@@ -1,0 +1,222 @@
+{
+  "id": "504-claude",
+  "slug": "truncated-loop-backprop",
+  "written_at": "2026-10-07T11:15:21-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "9d2cadb",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "0a19962e8db8",
+  "patch_lines": 24,
+  "title": "Truncated backprop through the loops: only the last 2 passes get gradient, earlier passes hand over a no-grad draft state",
+  "description": "One change, in LoopedGPT.features: when gradients are on (pretraining and rl()'s fine-tune), a forward at n loops runs its first n - 2 core passes under no_grad and only the last GRAD_LOOPS = 2 passes build a graph. The loop count is still drawn per batch from 1..8 and the loss is still next-token CE on the last pass's output, so n = 1 and n = 2 are trained exactly as before and n = 3..8 treat the state after pass n - 2 as a constant draft that two trained passes refine. The entry block is still trained on every step: through its re-injection into the last two passes, and through its use as the initial state only when n <= 2. Sampling, eval, the RL schedule of 502 (8 attempts at 1 loop, 24 retries at 2, 4 or 8 loops for targets that failed), replay, weighting, optimizers and every other knob are the incumbent's. This is the truncated backprop of Geiping et al. 2025 (last 8 of about 32 recurrences) and the idea behind the progressive loss of Bansal et al. 2022. Measured with bench_pretrain.py on one A40 (60 s): 18.3 steps/s between 45 s and 60 s against the incumbent's 13.1 (502 seed 0 curve: step 151 at 45 s, 348 at 60 s), 1.40x; first step at 33 s as before; peak memory 7.6 GB; 3 compiled graphs; same 6,400,256 parameters.",
+  "tags": [
+    "loops",
+    "loss",
+    "rl"
+  ],
+  "hypothesis": "Mechanism. Robbie's list has 'train so the last loops refine a draft the first loops produce'; truncated backprop is the plainest way to do that and is how the recurrent-depth literature trains models meant to improve with more test-time iterations: every trained pass must improve whatever state it is handed, instead of the whole unrolled stack being fit end to end at each count. Two things we already measured say the dropped gradient is nearly worthless here: pretraining val loss is depth-invariant (within 0.001 across 1, 2, 4, 8 loops on 500 seed 0 and 502 seeds 0 and 1, 0.003 on 502 seed 2) and accuracy is flat past about 4 loops, so passes before the last two sit near a fixed point and act as a near-identity in the backward pass too. If so, truncation is free in quality and buys throughput: 1.40x pretraining steps (about 4,900 against 3,479/3,399/3,420) and a fine-tune of about 85 s instead of about 120 s per round, so about 8 RL rounds fit where 7 did. Throughput gains were among the pretraining loop's kept changes (token-budget batches, per-block compile), 502's extra rounds went with +15 (inside noise), and the spike's 1-4 model went from 657 to 700 at 8 loops between RL rounds 4 and 12. What I do not claim: that this alone makes 8 loops pay much more than 2. Deep passes are now trained every step as refiners of a state they did not shape, which is the property Bansal et al. tie to gains from extra iterations, so the 8-vs-2 gap may widen, but I put that at 1 in 5; the likelier outcome is the same +18 on a better model. Risks: (a) a 2-pass (6-block) gradient cannot teach a computation that needs three or more coordinated passes, so if full backprop was quietly building one, deep-loop accuracy drops; (b) 501 found the random-depth draw acts as a regularizer, and truncation changes what that draw regularizes; (c) the draft state is produced by the weights being trained, so its distribution moves under the trained passes, which can destabilize the fixed point (it would show as val loss rising with loop count).",
+  "p_keep": 0.45,
+  "expected_delta": "metric at 8 loops, 3-seed mean: 680-715 (-10 to +25 against 690; point estimate 698). Pretraining steps 4,700-5,200 on every seed. Pretraining val loss at 2 loops, 3-seed mean, at or below 0.085 (502: 0.0857/0.0817/0.0925, mean 0.0866) and still depth-invariant: |val at 8 loops - val at 1 loop| <= 0.004 on every seed. RL rounds 7 to 9 per seed, 8 typical (502: 7/7/6); cumulative RL targets solved 1,190-1,260 (502: 1,203). metric minus metric_diag +10 to +30 (502: +18). Retry comparison pooled over seeds and rounds: 8 loops still cracks more resistant targets than 2 loops, ratio at least 1.2 (502: 15.9% against 11.4%, 1.39). What would falsify the mechanism: val loss at 8 loops more than 0.005 above 1 loop on any seed, or metric below metric_diag, means truncation broke the deep passes; steps up 1.4x with val loss not lower means the truncated gradient is worse per step and the dropped passes mattered. Discard unless the 3-seed mean is above 690.",
+  "baseline_id": "502-claude",
+  "baseline_metric": 690,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop",
+      "n_layers": 4,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 6400256
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ],
+      "grad": 2,
+      "grad_note": "training forwards (pretraining and RL fine-tune) backpropagate through the last 2 core passes only; earlier passes run under no_grad"
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round would not fit in RL_SECS (expected 7-9, 8 typical)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged; gradient through the last 2 passes only",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

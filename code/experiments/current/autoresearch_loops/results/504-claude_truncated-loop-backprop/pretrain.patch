@@ -1,0 +1,56 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 7e5a170..ead837a 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -65,6 +65,12 @@ N_LAYER, D, N_HEAD = 2 + N_CORE, 384, 8
+ TRAIN_LOOPS = (1, 2, 3, 4, 5, 6, 7, 8)
+ DEFAULT_LOOPS = 2
+ VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
++# Truncated backprop through the loops (Geiping et al. 2025; the progressive loss of Bansal et
++# al. 2022): when training, in pretraining and in rl()'s fine-tune, only the last GRAD_LOOPS
++# passes build a graph. The earlier passes run without gradient and hand over their state as a
++# constant draft, so each trained pass learns to improve whatever state it is given, and a step
++# at n loops costs a no-grad forward for the first n - GRAD_LOOPS passes instead of backprop.
++GRAD_LOOPS = 2
+ # ---- RL knobs: the old harness's expert iteration (600 AdamW steps per round on up to 4 proofs
+ # per solved target, weighted x4, mixed with 20,000 replayed pretraining records), except for
+ # where the samples go. Each round every target gets RL_K attempts at RL_FIRST_LOOPS; a target
+@@ -237,12 +243,14 @@ class LoopedGPT(GPT):
+         entry, *core, exit_block = self.blocks
+         x = e = entry(self.emb(idx), None, None, bias, None if caches is None else caches[0])
+         for loop in range(n):
+-            x = self.ln_loop(x) + e
+-            for j, b in enumerate(core, 1):
+-                # sample.generate makes one cache dict per unique block; a shared block's keys
+-                # and values differ per pass, so each pass gets its own sub-cache inside it.
+-                c = caches and caches[j].setdefault(loop, {"max": caches[j]["max"]})
+-                x = b(x, None, None, bias, c)
++            # Only the last GRAD_LOOPS passes are differentiated; no_grad callers stay no_grad.
++            with torch.set_grad_enabled(torch.is_grad_enabled() and loop >= n - GRAD_LOOPS):
++                x = self.ln_loop(x) + e
++                for j, b in enumerate(core, 1):
++                    # sample.generate makes one cache dict per unique block; a shared block's
++                    # keys and values differ per pass, so each pass gets its own sub-cache.
++                    c = caches and caches[j].setdefault(loop, {"max": caches[j]["max"]})
++                    x = b(x, None, None, bias, c)
+         x = exit_block(x, None, None, bias, None if caches is None else caches[-1])
+         return x, bias
+ 
+@@ -481,6 +489,7 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+             "tok_budget": TOK_BUDGET,
+             "last_loss": last_loss,
+             "train_loops": TRAIN_LOOPS,
++            "grad_loops": GRAD_LOOPS,
+             "default_loops": DEFAULT_LOOPS,
+             "val_by_loops": val_by_loops,
+             "curve": curve,
+@@ -490,7 +499,8 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+ 
+ def finetune(model, tok, data, rng, device):
+     """The old harness's RL fine-tune: FT_STEPS AdamW steps, linear warmup then cosine to lr/10.
+-    The model is in train mode, so every batch draws its own loop count from TRAIN_LOOPS."""
++    The model is in train mode, so every batch draws its own loop count from TRAIN_LOOPS and
++    backpropagates through its last GRAD_LOOPS passes only."""
+     opt = torch.optim.AdamW(model.parameters(), lr=FT_LR, weight_decay=0.1, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
