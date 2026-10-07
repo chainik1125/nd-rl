@@ -1,0 +1,224 @@
+{
+  "id": "705-fable",
+  "slug": "plain-state-feedback",
+  "written_at": "2026-10-07T15:00:25-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "0996473",
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "b9b092c65e7a",
+  "patch_lines": 101,
+  "title": "Plain-state feedback: a thought's input is the no-thought network's final state at the trigger, one detached forward, so training stays one pass",
+  "description": "Same model, data, probe, MTP and rl() as 704, with one change to what a thought is. In 704 the n thought inputs after a trigger are slot_emb[j] alone (pause slots), which trained in one pass but went unused (pretraining val loss flat in n; metric_diag within 12-24 of metric on two seeds). In 701-703 they were ln_thought(final state at the trigger of the thinking network) + slot_emb[j], which depends on the earlier lines' thoughts and forced one training pass per proof line. Here the fed-back state is the PLAIN network's final state at the trigger: the same blocks run over the tokens alone with no thoughts (new plain(): run 198's forward, the model at n = 0). It depends on no thought, so run() computes it in one forward under torch.no_grad (the drafts are inputs, not targets) and then does 704's single causal pass over the expanded sequence with ln_thought(h_plain) + slot_emb[j] at the thought columns. Sampling keeps a second, token-only KV cache list for the plain network in caches[0]['plain'], allocated only when n > 0 (the 0-thought diagnostic runs 704's path unchanged), and feeds each trigger's plain state to its thoughts. ln_thought is back (768 parameters, 9,564,672 in all) with its gain initialized to ZERO, so at initialization the model is exactly 704 and the feedback enters as AdamW opens the gain; the mean |gain| is recorded as feedback_gain after pretraining and after RL. Why zero: with gain 1 (704 plus the detached state at full LayerNorm scale) bench_pretrain.py --secs 60 reached train/val loss 0.74/0.78 at 543 steps against 704's 0.09 at 552, a 5-8x slower start, so a detached, moving, final-basis input at unit scale disrupts early learning. That bench (same arithmetic as the registered file): 543 steps in 60 s (8.84 steps/s with construction, 12.0 steady; 704: 552, 9.05, 12.2), peak memory 16.8 GB (704: 10.9; the plain cache adds about 6 GB at the sampling batch of 1,024), 138 samples/s at 8 thoughts (704: 130), so neither pretraining steps nor RL rounds should fall. The zero-gain file was not benchmarked again (time). check_model.py: training and sampling agree to 2.7e-6 at n = 0, 1, 3, 8, 16; n = 0 equals the plain forward. Everything else is byte-identical to 704: TRAIN_THOUGHTS 0..8, probe 0.3, MTP, RL sampling 32 per target at 8 thoughts, fine-tune at 8 only, 600 steps.",
+  "tags": [
+    "thoughts",
+    "architecture"
+  ],
+  "hypothesis": "704 showed that per-line thoughts without feedback go unused (val loss and eval flat in n) and 701-703 that fed-back thoughts are used but cost one training pass per line. What feedback adds is depth: a thought that starts from the model's full reading of the context gets six more blocks on top of it, where a pause slot restarts from a learned vector and can reach that reading only through attention. The plain network's reading at the trigger is as informative as the thinking network's own (it is what predicts the next token at n = 0) and costs one detached forward, so the depth comes at about 1.0x of 704's step cost instead of 702's 2.2x. If depth on the context is what makes thoughts matter, the pretraining val loss at 8 thoughts falls below the val loss at 0, round-1 sample accuracy at 8 thoughts rises above 704's 5-19%, and feedback_gain grows well away from 0. If instead what 701-703's thoughts used was the joint training of the fed-back state (gradient through h, which the detached draft forbids), the gain stays small, the model stays 704 and scores 676 within noise. The zero init makes the first phase of training 704's, so the downside is the incumbent's score, not 702's.",
+  "p_keep": 0.45,
+  "expected_delta": "metric 670 to 720 against 704's 676: the same speed (3,300-3,800 pretraining steps, 6-7 RL rounds) plus whatever the feedback adds; 701's fed-back thoughts were worth 44-57 dev theorems over an in-distribution no-thought path. Pretraining val loss at 8 thoughts at least 0.002 below the val loss at 0 on every seed (704: 0.001 or less; 703's fed-back thoughts: 0.002-0.004) and feedback_gain above 0.2 after pretraining. metric_diag far below metric says nothing new (RL trains at 8 only). If the val-loss gap and the gain both stay near 0, the feedback was not learned and this is 704 re-run. Risk: the eval at 8 thoughts runs both networks; the bench's 138 samples/s says total_secs stays near 704's 3,407, well under the 5,400 s cap.",
+  "baseline_id": "704-fable",
+  "baseline_metric": 676,
+  "config": {
+    "arch": {
+      "type": "gpt, 6 untied Peri-LN blocks, plus n thought positions after every `;` and `by` whose input is ln_thought(the plain network's final state at the trigger, detached) + slot_emb[j]; one causal pass over the expanded sequence plus one no-grad plain forward",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4; thoughts share their trigger's position",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9564672
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens (thought slots are added on top: up to n per trigger)",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "none (CUDA-graphed Muon step only)",
+    "init": "orthogonal on block matrices, fork default elsewhere; slot vectors N(0, 0.02); ln_thought gain 0 and bias 0 (the model starts as 704)",
+    "thoughts": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        8
+      ],
+      "default": 8,
+      "val": [
+        0,
+        2,
+        8
+      ],
+      "where": "after every `;` and `by` token",
+      "max": 16,
+      "input": "ln_thought(final state at the trigger of the PLAIN network, no thoughts, one detached forward; gain initialized to 0) + slot_emb[j]; 704: slot_emb[j] only; 701-703: ln_thought(thinking network's own state at the trigger) + slot_emb[j] with gradient through it",
+      "passes_per_step": "1 causal pass over the expanded sequence plus 1 no-grad forward of the plain network over the tokens (bench: 12.0 steps/s steady against 704's 12.2)",
+      "probe": "token after the next `:=` or `exact`, read off the last slot, weight 0.3, pretraining and RL",
+      "ft": [
+        8
+      ],
+      "feedback": {
+        "source": "plain network (n = 0) final state at the trigger",
+        "detached": true,
+        "gain_init": 0.0,
+        "sampling": "second token-only KV cache list, caches[0]['plain']"
+      }
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "k_per_count": 32,
+      "rounds": "until another round would not fit in RL_SECS (1.15 x the last round); expected 6-7 as in 704 (bench sampling 138 samples/s at 8 thoughts against 704's 130; fine-tune one pass plus a no-grad forward per micro-batch)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "loss": "next-token CE plus the plan probe at weight 0.3, every micro-batch at 8 thoughts",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_micro_batch": 32,
+      "ft_thoughts": [
+        8
+      ]
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_thoughts",
+      "level": 8,
+      "diag_level": 0,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
