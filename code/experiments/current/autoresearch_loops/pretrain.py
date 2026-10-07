@@ -66,12 +66,15 @@ TRAIN_LOOPS = (1, 2, 3, 4, 5, 6, 7, 8)
 DEFAULT_LOOPS = 2
 VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
 # ---- RL knobs: the old harness's expert iteration (600 AdamW steps per round on up to 4 proofs
-# per solved target, weighted x4, mixed with 20,000 replayed pretraining records), except that
-# each round samples every target RL_K times at each loop count in RL_SAMPLE_LOOPS (32 attempts
-# per target in all, as before), so proofs that only deeper sampling finds enter the training
-# set. Rounds repeat until another one would not fit in the budget.
-RL_SAMPLE_LOOPS = (1, 2, 4, 8)
-RL_K = 8
+# per solved target, weighted x4, mixed with 20,000 replayed pretraining records), except for
+# where the samples go. Each round every target gets RL_K attempts at RL_FIRST_LOOPS; a target
+# all of them fail on gets RL_RETRY_K more (32 in all, as before) at ONE deeper loop count from
+# RL_RETRY_LOOPS, assigned at random, so proofs that only deeper sampling finds enter the
+# training set and no deep sample is spent on a target one loop already solves. The random
+# assignment makes the retry calls a controlled comparison of loop counts on resistant targets.
+# Rounds repeat until another one would not fit in the budget.
+RL_FIRST_LOOPS, RL_K = 1, 8
+RL_RETRY_LOOPS, RL_RETRY_K = (2, 4, 8), 24
 FT_STEPS, FT_BS, FT_LR, FT_WARMUP = 600, 128, 3e-4, 50
 RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
 # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
@@ -517,15 +520,28 @@ def finetune(model, tok, data, rng, device):
 def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
     rng = random.Random(seed)
     found = {t["name"]: {} for t in targets}  # name -> {normalized proof: proof text}
-    rounds, round_secs = 0, 0.0
+    rounds, round_secs, retries = 0, 0.0, []
     # Start a round only if one as long as the last (plus 15%) still fits in the budget.
     while oracle.left() > 1.15 * round_secs:
         t0 = oracle.used()
-        for n in RL_SAMPLE_LOOPS:
+        model.n_loops = RL_FIRST_LOOPS
+        rows = oracle.sample(model, targets, RL_K)
+        failed = [t for t, row in zip(targets, rows, strict=True) if not row["proofs"]]
+        rng.shuffle(failed)
+        for i, n in enumerate(RL_RETRY_LOOPS):
+            part = failed[i :: len(RL_RETRY_LOOPS)]
+            if not part:
+                continue
             model.n_loops = n
-            for row in oracle.sample(model, targets, RL_K):
-                for proof in row["proofs"]:
-                    found[row["name"]].setdefault(norm(proof), proof)
+            part_rows = oracle.sample(model, part, RL_RETRY_K)
+            cracked = sum(bool(row["proofs"]) for row in part_rows)
+            retries.append(
+                {"round": rounds + 1, "loops": n, "targets": len(part), "cracked": cracked}
+            )
+            rows += part_rows
+        for row in rows:
+            for proof in row["proofs"]:
+                found[row["name"]].setdefault(norm(proof), proof)
         mix = []
         for t in targets:
             proofs = list(found[t["name"]].values())
@@ -544,4 +560,11 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
             f"round {round_secs:.0f}s, {oracle.left():.0f}s left"
         )
     model.n_loops = DEFAULT_LOOPS
-    return {"rounds": rounds, "sample_loops": RL_SAMPLE_LOOPS, "k_per_loop": RL_K}
+    return {
+        "rounds": rounds,
+        "first_loops": RL_FIRST_LOOPS,
+        "k_first": RL_K,
+        "retry_loops": RL_RETRY_LOOPS,
+        "k_retry": RL_RETRY_K,
+        "retries": retries,
+    }
