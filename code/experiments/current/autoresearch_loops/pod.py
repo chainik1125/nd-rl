@@ -374,6 +374,22 @@ def main():
             f"cd {REMOTE} && bash remote.sh /tmp/warm --help > /dev/null 2>&1; "
             "nvidia-smi --query-gpu=name --format=csv,noheader",
         )
+        # A pod whose GPU PyTorch cannot use still passes nvidia-smi; the harness then falls back
+        # to CPU, takes 8 pretraining steps and times out (704-fable seed 1, 2026-10-07). Replace
+        # such a pod before anything runs on it, a few times at most.
+        probe = (
+            'PY=$(for p in python python3; do "$p" -c "import torch" 2>/dev/null && echo "$p" '
+            '&& break; done); "$PY" -c "import sys, torch; sys.exit(not torch.cuda.is_available())"'
+        )
+        if ssh_run(st, probe, check=False):
+            terminate(key, st["id"])
+            os.remove(STATE)
+            tries = int(os.environ.get("ND_POD_CUDA_RETRY", 0)) + 1
+            print(f"pod {st['id']} has no CUDA for PyTorch; terminated (try {tries})", flush=True)
+            if tries >= 3:
+                raise SystemExit("three pods in a row without working CUDA")
+            os.environ["ND_POD_CUDA_RETRY"] = str(tries)
+            os.execv(sys.executable, [sys.executable, *sys.argv])
         print(f"up after {time.time() - st['t0']:.0f}s: ssh -p {st['port']} root@{st['ip']}")
     elif cmd == "run":
         st = load_state()
