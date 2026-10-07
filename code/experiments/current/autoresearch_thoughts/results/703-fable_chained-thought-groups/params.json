@@ -1,0 +1,218 @@
+{
+  "id": "703-fable",
+  "slug": "chained-thought-groups",
+  "written_at": "2026-10-07T10:55:29-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "a73def9",
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "37f3005c59b1",
+  "patch_lines": 116,
+  "title": "Chained thought groups: level n is ceil(n/4) sequential passes of up to 4 thoughts, so 8 thoughts is two passes deep",
+  "description": "Same pretraining and RL as 702; only the thoughts' wiring changes. The incumbent makes a line's n thoughts in one parallel pass from one state (LayerNorm(output at the trigger) + slot embedding j). Here the n thoughts are split into ceil(n / THOUGHT_WIDTH) groups of up to THOUGHT_WIDTH = 4, run one pass after another: group 0's inputs are made from the trigger's output as before, and thought j of group g + 1 is made from the output of thought j of group g (4 parallel chains, Coconut's feedback applied within a line); every thought still attends to everything before it and to its group causally, and the last thought of the last group predicts the line's first token. Levels 1 to 4 are byte-for-byte the incumbent's single pass; levels 5 to 8 are two passes deep. Training (run()) does one extra pass per line for batches drawn at n >= 5 (4 of the 9 counts), sampling (cached()) one extra cached pass per trigger at 8 thoughts; the KV footprint per line is unchanged (still n positions). TRAIN_THOUGHTS 0..8, the plan probe, MTP, and 702's RL (32 samples per target at 8 thoughts, fine-tune at 8 only) are unchanged. check_model.py: training and sampling agree to 3e-6 at n = 0, 1, 3, 8, 16.",
+  "tags": [
+    "architecture",
+    "thoughts"
+  ],
+  "hypothesis": "In 701 the gain from thoughts was all in the step from 0 to 2 and flat from 2 to 8 (RL sampling after round 1: 30.0, 36.7, 37.0, 36.7% of samples valid), and the incumbent's thoughts cannot do otherwise: the n thoughts of a line are computed in one pass from the same state and differ only by slot embedding and by causal attention among themselves, so more thoughts add width to a per-line decision (which rule, which earlier lines) that needs little width. Chaining gives each extra group another full pass of the six blocks over the previous group's outputs: at 8 thoughts the chain is 12 block applications deep where at 2 it is 6. If a line's decision benefits from sequential refinement (first a candidate rule, then checking its premises against earlier lines), the two-pass level should prove more than the one-pass levels, so metric at 8 should rise above 702's 548 even with fewer pretraining steps, and the gap to metric_diag (0 thoughts) should stay as large as 702's. If depth within a line does not matter at this scale, this is a one-pass model that trains slower and the metric drops by the lost steps.",
+  "p_keep": 0.35,
+  "expected_delta": "metric 548 - 30 to 548 + 35. Costs: training batches at n >= 5 take one extra pass per line, so the step rate should fall by roughly a fifth (about 1,250 to 1,400 steps against 702's 1,530 to 1,650; bench_pretrain.py measured 4.8 steps/s in steady state, 206 steps in a 60 s run including setup, peak 11.7 GB, against the incumbent's 5.6), worth maybe 10 to 20 dev theorems; sampling at 8 thoughts takes two cached passes per trigger instead of one, so RL rounds run perhaps 10 to 20% longer, but three rounds should still fit (702 finished its third with about 350 s of RL budget to spare) and the eval stays far inside 5,400 s. Gain if the mechanism is real: +20 to +50 at 8 thoughts. Distinctive prediction: metric minus metric_diag at or above 702's 219 (the no-thought path still gets no RL training). Pretraining val loss by thought count (0, 2, 8) was flat for 701 and 702 (0.082 to 0.085 on the <= 6-line val slice) and is not expected to separate here either; the RL sample accuracy in round 1 (702: 4.5%, 701 at 8 thoughts: 9.6% to 12%) is the first real signal.",
+  "baseline_id": "702-fable",
+  "baseline_metric": 548,
+  "config": {
+    "arch": {
+      "type": "gpt, 6 untied Peri-LN blocks, plus n continuous thought positions after every `;` and `by` in ceil(n/4) chained groups of up to 4 (LayerNorm(output at the trigger, or of the previous group's thought in the same column) + slot embedding, one pass per group)",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4; thoughts share their trigger's position",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9564672
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "none (CUDA-graphed Muon step only)",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "thoughts": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        8
+      ],
+      "default": 8,
+      "val": [
+        0,
+        2,
+        8
+      ],
+      "where": "after every `;` and `by` token",
+      "max": 16,
+      "probe": "token after the next `:=` or `exact`, read off the last group's last thought, weight 0.3, pretraining and RL",
+      "ft": [
+        8
+      ],
+      "width": 4,
+      "groups": "ceil(n / 4) sequential passes; chain j of group g+1 is made from output j of group g; levels 1-4 one pass (the incumbent), 5-8 two passes, 9-12 three, 13-16 four"
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "k_per_count": 32,
+      "rounds": "until another round would not fit in RL_SECS (1.15 x the last round); expected 3 as 702, each round somewhat longer (two cached thought passes per trigger when sampling at 8)",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "loss": "next-token CE plus the plan probe at weight 0.3, every micro-batch at 8 thoughts",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_micro_batch": 32,
+      "ft_thoughts": [
+        8
+      ]
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_thoughts",
+      "level": 8,
+      "diag_level": 0,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
