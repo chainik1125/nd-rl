@@ -15,9 +15,10 @@ from code.thinking.sample import (
     decode_wave,
     env_generate_think,
     judge,
+    phase_bans,
     think_generate,
 )
-from code.thinking.tok import D, ThinkTokenizer
+from code.thinking.tok import EFFORT_TOKENS, D, ThinkTokenizer, has_think, make_tokenizer
 
 from ._pipeline_helpers import (
     ScriptedModel,
@@ -74,6 +75,27 @@ def test_no_eos_or_nested_think_inside_a_block() -> None:
         for ids in w.ids:
             j = ids.index(T.end_think)
             assert j == 7 and not ({T.eos, T.think, T.pad} & set(ids[:j]))
+
+
+@pytest.mark.parametrize("mask_action_think", [False, True])
+@pytest.mark.parametrize(
+    ("mode", "think"),
+    [("lean_staten", False), ("lean_thinkn", False), ("lean_thinkn", True)]
+    + [("lean_thinke", False), ("lean_thinke", True)],
+)
+def test_phase_bans_are_the_sampler_masks(mode: str, think: bool, mask_action_think: bool) -> None:
+    """The masks decode_wave built inline before `phase_bans` (8644bf4), which GRPO now scores
+    under too: changing them changes every sample."""
+    tok = make_tokenizer(mode)
+    assert has_think(tok) or not think
+    ban_think, ban_act = phase_bans(tok, tok.vocab_size, think, mask_action_think)
+    eff = set(EFFORT_TOKENS) if mode == "lean_thinke" else set()
+    assert {tok.itos[i] for i in ban_think.nonzero()[:, 0].tolist()} == eff | (
+        {"<eos>", "<think>", "<pad>"} if think else set()
+    )
+    assert {tok.itos[i] for i in ban_act.nonzero()[:, 0].tolist()} == eff | (
+        {"<think>", "</think>", "<no>"} if think and mask_action_think else set()
+    )
 
 
 def test_budget_zero_starts_with_the_action() -> None:

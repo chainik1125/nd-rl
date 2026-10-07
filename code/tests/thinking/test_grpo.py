@@ -1,7 +1,9 @@
 """GRPO: rewards and advantages, per-step items (forced close masked, the failing draw kept), the
-alignment of the old log-probs with the scored tokens, the PPO surrogate (REINFORCE at ratio 1, the
-clip-higher clip), the logged entropy, the direction of an update, the learnability curriculum, and
-two end-to-end iterations on a tiny model."""
+alignment of the old log-probs with the scored tokens, scoring under the sampler's masks (the
+sampler's own log-probs reproduced, banned tokens never NaN), the PPO surrogate (REINFORCE at ratio
+1, the clip-higher clip, the dual clip), the logged entropy and banned mass, the direction of an
+update, the learnability curriculum, the alarms and rolling checkpoints, and end-to-end iterations
+on a tiny model."""
 
 from __future__ import annotations
 
@@ -17,8 +19,9 @@ import torch
 from code.thinking import grpo
 from code.thinking.ckpt import save_ckpt
 from code.thinking.data import trace_pairs
-from code.thinking.sample import LINE_CAP, think_generate
-from code.thinking.tok import D, ThinkTokenizer
+from code.thinking.effort import EffortTokenizer, effort_id
+from code.thinking.sample import LINE_CAP, decode_wave, phase_bans, think_generate
+from code.thinking.tok import D, ThinkTokenizer, has_think, make_tokenizer
 
 from ._pipeline_helpers import (
     ScriptedModel,
@@ -30,6 +33,7 @@ from ._pipeline_helpers import (
 )
 
 T = ThinkTokenizer()
+E = EffortTokenizer()
 TEMP = 0.8
 
 
@@ -212,7 +216,7 @@ def test_ppo_at_ratio_one_is_reinforce() -> None:
     ("r", "adv", "eps_high", "factor"),
     [
         (math.e, 0.5, 0.28, 0.0),  # far above 1 + eps, A > 0: the clipped branch binds
-        (math.e, -0.5, 0.28, math.e),  # A < 0: the unclipped r A is the minimum
+        (math.e, -0.5, 0.28, math.e),  # A < 0: the unclipped r A is the minimum (r < dual clip 3)
         (1.25, 0.5, 0.28, 1.25),  # clip-higher: inside [0.8, 1.28], still learning
         (1.25, 0.5, 0.2, 0.0),  # the symmetric clip would have stopped it
         (1.25, -0.5, 0.2, 1.25),
@@ -234,6 +238,176 @@ def test_ppo_clip_higher(r: float, adv: float, eps_high: float, factor: float) -
             assert int(torch.count_nonzero(b)) == 0
         else:
             assert torch.allclose(b, factor * a, rtol=1e-4, atol=1e-7)
+
+
+@pytest.mark.parametrize(("dual_clip", "factor", "loss"), [(3.0, 0.0, 1.5), (0.0, 4.0, 2.0)])
+def test_dual_clip_bounds_a_negative_advantage(
+    dual_clip: float, factor: float, loss: float
+) -> None:
+    """r = 4, A = -0.5: min(r A, clip(r) A) = -2 is unbounded in r; the dual clip c = 3 floors it
+    at c A = -1.5, a constant (no gradient). Off (0), the old behaviour: 4 x REINFORCE's."""
+    model = tiny_model(T.vocab_size)
+    items = [(p, g, mk, -0.5) for p, g, mk, _ in _items()]
+    old = _old_at_ratio(model, items, 4.0)
+    g_ppo, st = _grads(model, items, old=old, dual_clip=dual_clip)
+    g_pg, _ = _grads(model, items)
+    assert st.loss == pytest.approx(loss, rel=1e-4)
+    assert st.ratio_max == pytest.approx(4.0, rel=1e-4) and st.neg_r3 == 1.0
+    assert st.tokens_neg == st.tokens and st.clip_high == 1.0 and st.clip_low == 0.0
+    for a, b in zip(g_pg, g_ppo, strict=True):
+        if factor == 0.0:
+            assert int(torch.count_nonzero(b)) == 0
+        else:
+            assert torch.allclose(b, factor * a, rtol=1e-4, atol=1e-7)
+
+
+# --- scoring under the sampler's masks ----------------------------------------------------------
+
+
+def _wave_items(w: Any, pids: list[list[int]], tok: Any) -> list[grpo.Item]:
+    """decode_wave rows -> items, a forced `</think>` masked (as attempt_items)."""
+    out: list[grpo.Item] = []
+    for p, g, f in zip(pids, w.ids, w.forced, strict=True):
+        mk = [True] * len(g)
+        if f:
+            mk[g.index(tok.end_think)] = False
+        out.append((list(p), list(g), mk, 1.0))
+    return out
+
+
+@pytest.mark.parametrize(
+    ("mode", "force_mode", "mask_action_think"),
+    [
+        ("lean_thinke", "line", False),
+        ("lean_thinke", "exact", True),
+        ("lean_staten", "line", False),
+    ],
+)
+def test_scoring_reproduces_the_sampler(
+    mode: str, force_mode: str, mask_action_think: bool
+) -> None:
+    """old_logps under `phase_bans` gives decode_wave's own log-prob (want_lq) of every non-forced
+    token: think blocks at effort levels, one force-closed at its cap, budget 0, a redraw. The
+    full-vocabulary scoring (before 2026-10-07) does not, with mass on the think ban; a T0
+    tokenizer bans nothing, so there the two are the same."""
+    tok = make_tokenizer(mode)
+    think = has_think(tok)
+    nl, cap = tok.stoi["<nl>"], 8
+    b = torch.zeros(tok.vocab_size)
+    b[tok.eos] = 3.0  # banned inside a block: mass a full-vocabulary scorer would count
+    if think:
+        b[[tok.pad, *tok.effort_ids]] = 3.0
+        b[nl] = -30.0  # line forcing never finds a line end: an unclosed block runs to the cap
+    model = bias_logits(tiny_model(tok.vocab_size, seed=4), b)
+    prompts = [pilot_rec(r)["prompt"] for r in ("k12_37120", "k12_22530", "k12_16472")]
+    states = [tok.encode_toks(D.state_env.Env(p, canon=True).state_tokens()) for p in prompts]
+    budgets = [16, 0, 64, 16] if think else [0] * 4
+    states = states + states[:1]
+    pids = [
+        s + ([effort_id(tok, B), tok.think] + ([tok.end_think] if B == 0 else []) if think else [])
+        for s, B in zip(states, budgets, strict=True)
+    ]
+    ids = (tok.think, tok.end_think) if think else None
+    bans = phase_bans(tok, tok.vocab_size, think, mask_action_think)
+    kw: dict[str, Any] = dict(
+        temperature=TEMP,
+        max_action=24,
+        want_lq=True,
+        mask_action_think=mask_action_think,
+        force_mode=force_mode,
+        line_cap=cap,
+    )
+    w = decode_wave(model, tok, pids, budgets, think, seed=1, **kw)
+    # a redraw of every segment: the shift keeps it off the first draw; lq is the unshifted pi_T
+    fb = [[(g, lq)] for g, lq in zip(w.ids, w.lqs or [], strict=True)]
+    w2 = decode_wave(model, tok, pids, budgets, think, seed=2, forbids=fb, **kw)
+    assert w.lqs is not None and w2.lqs is not None and w2.ids != w.ids
+    if think:  # some block force-closed at its cap (B, or B + the line cap)
+        at_cap = [
+            f and B > 0 and g.index(tok.end_think) == B + (cap if force_mode == "line" else 0)
+            for g, f, B in zip(w.ids, w.forced, budgets, strict=True)
+        ]
+        assert any(at_cap)
+    for wave in (w, w2):
+        items = _wave_items(wave, pids, tok)
+        old = grpo.old_logps(model, items, TEMP, "cpu", think_ids=ids, bans=bans)
+        full = grpo.old_logps(model, items, TEMP, "cpu", think_ids=ids)
+        gap = 0.0
+        for (_, _, mk, _), o, f, lq in zip(items, old, full, wave.lqs or [], strict=True):
+            want = torch.tensor([q for q, k in zip(lq, mk, strict=True) if k])
+            assert o.shape == want.shape and torch.allclose(o, want, atol=1e-5)
+            gap = max(gap, float((f - o).abs().max()))
+        if think:
+            assert gap > 0.1
+        else:
+            assert gap == 0.0
+    if not think:  # T0: the masked loss is the unmasked one, bit for bit
+        items = _wave_items(w, pids, tok)
+        old = grpo.old_logps(model, items, TEMP, "cpu")
+        g0, s0 = _grads(model, items, old=old)
+        g1, s1 = _grads(model, items, old=old, bans=bans)
+        assert s0 == s1 and all(torch.equal(x, y) for x, y in zip(g0, g1, strict=True))
+
+
+def test_banned_tokens_give_no_nan() -> None:
+    """A token banned in its phase has log-prob -inf (here `<eos>` inside the block; the prompt's
+    effort token at its own position). Masked, it adds nothing; scored (a sampler / scorer drift),
+    it is counted and left out: either way the loss and every gradient are finite and the same up
+    to the token-mean's denominator."""
+    model = tiny_model(E.vocab_size, seed=1)
+    ids, bans = (E.think, E.end_think), phase_bans(E, E.vocab_size, True)
+    q = E.stoi["Q"]
+    p = [E.stoi["⊢"], q, effort_id(E, 16), E.think]
+    g = [q, E.eos, q, E.end_think, E.stoi["exact"], E.eos]
+    masked: list[grpo.Item] = [(p, g, [True, False, True, True, True, True], -0.5)]
+    scored: list[grpo.Item] = [(p, g, [True] * 6, -0.5)]
+    o_m = grpo.old_logps(model, masked, TEMP, "cpu", think_ids=ids, bans=bans)
+    o_s = grpo.old_logps(model, scored, TEMP, "cpu", think_ids=ids, bans=bans)
+    assert torch.isfinite(o_m[0]).all() and o_s[0][1] == -math.inf
+    for ratio in (1.0, 2.0, 50.0):
+        kw = dict(think_ids=ids, bans=bans)
+        old_m = [o - math.log(ratio) for o in o_m]
+        old_s = [o - math.log(ratio) for o in o_s]
+        g_m, s_m = _grads(model, masked, old=old_m, **kw)
+        g_s, s_s = _grads(model, scored, old=old_s, **kw)
+        assert s_m.nonfinite == 0 and s_s.nonfinite == 1
+        assert math.isfinite(s_m.loss) and s_s.loss == pytest.approx(s_m.loss * 5 / 6, rel=1e-5)
+        for a, b in zip(g_m, g_s, strict=True):
+            assert torch.isfinite(a).all() and torch.allclose(b, a * 5 / 6, rtol=1e-4, atol=1e-5)
+    g_r, s_r = _grads(model, scored, think_ids=ids, bans=bans)  # REINFORCE
+    assert s_r.nonfinite == 1 and all(torch.isfinite(x).all() for x in g_r)
+
+
+def test_masked_entropy_and_banned_mass() -> None:
+    """The logged entropy is the masked pi_T's; `ban_think` is the full-vocabulary pi_T mass on
+    the think ban at the scored think tokens."""
+    b = torch.zeros(E.vocab_size)
+    b[E.eos] = 2.0
+    model = bias_logits(tiny_model(E.vocab_size, seed=3), b)
+    ids, bans = (E.think, E.end_think), phase_bans(E, E.vocab_size, True)
+    q, a_ = E.stoi["Q"], E.stoi["exact"]
+    items: list[grpo.Item] = [
+        ([E.stoi["⊢"], effort_id(E, 16), E.think], [q, q, E.end_think, a_, E.eos], [True] * 5, 0.5),
+        ([E.stoi["⊢"], q, effort_id(E, 0), E.think, E.end_think], [a_, E.eos], [True] * 2, -0.5),
+    ]
+    h: dict[bool, list[float]] = {True: [], False: []}
+    mass: list[float] = []
+    for p, g, _, _ in items:
+        with torch.no_grad():
+            z = model(torch.tensor([p + g])[:, :-1]).float()[0, len(p) - 1 :] / TEMP
+        n_think = grpo.think_len(p, g, ids)
+        for t in range(len(g)):
+            ban = bans[0] if t < n_think else bans[1]
+            lp = torch.log_softmax(z[t][~ban], -1)
+            h[t < n_think].append(float(-(lp.exp() * lp).sum()))
+            if t < n_think:
+                mass.append(float(torch.softmax(z[t], -1)[bans[0]].sum()))
+    _, st = _grads(model, items, think_ids=ids, bans=bans)
+    assert st.tokens_think == len(h[True]) == 3 and st.tokens == 7
+    assert st.entropy_think == pytest.approx(sum(h[True]) / 3, rel=1e-5)
+    assert st.entropy_action == pytest.approx(sum(h[False]) / 4, rel=1e-5)
+    assert st.ban_think == pytest.approx(sum(mass) / 3, rel=1e-5)
+    assert st.ban_think_max == pytest.approx(max(mass), rel=1e-5) and st.ban_think > 0.05
 
 
 def test_entropy_is_the_mean_over_the_scored_tokens() -> None:
@@ -389,10 +563,60 @@ def test_curriculum_draw_favours_the_frontier() -> None:
     assert min(counts[10:]) > 0  # the floor still brings the others back
 
 
+# --- alarms and checkpoints --------------------------------------------------------------------
+
+
+def _row(**kw: Any) -> dict[str, Any]:
+    row = dict(
+        ban_think=1e-5,
+        ban_think_max=1e-4,
+        grad_norm_max=0.1,
+        loss=-0.01,
+        clip_low=0.002,
+        overlong_frac=0.01,
+        nonfinite=0,
+    )
+    return {**row, **kw}
+
+
+@pytest.mark.parametrize(
+    ("kw", "prev", "want"),
+    [
+        ({}, [0.1] * 9, None),
+        ({"ban_think": 2e-3, "ban_think_max": 0.9}, [], "think banned mass 0.002 > 0.001"),
+        ({"grad_norm_max": 0.6}, [0.1] * 4, None),  # fewer than 5 earlier iterations
+        ({"grad_norm_max": 0.6}, [0.1] * 4 + [9.0], "grad-norm max 0.6 > 5 x median 0.1"),
+        ({"grad_norm_max": 0.4}, [0.1] * 5, None),
+        ({"loss": 1e-4}, [], None),  # a token-mean loss is positive whenever failures run longer
+        ({"clip_low": 0.02}, [], "clip-low 0.0200 > 0.01"),
+        ({"overlong_frac": 0.06}, [], "overlong 0.0600 > 0.05"),
+        ({"nonfinite": 2}, [], "2 scored tokens banned in their phase"),
+    ],
+)
+def test_alarms(kw: dict[str, Any], prev: list[float], want: str | None) -> None:
+    got = grpo.alarms(_row(**kw), prev)
+    assert got == [] if want is None else (len(got) == 1 and got[0].startswith(want))
+
+
+def test_prune_rolling_keeps_the_newest(tmp_path: Path) -> None:
+    keep = ["g_it15_rolling.pt", "g_it20_rolling.pt", "g_it35.pt", "g_it12_alarm.pt"]
+    other = ["g_x_it1_rolling.pt"]  # another run's
+    gone = ["g_it5_rolling.pt", "g_it5_rolling.pt.upload.json", "g_it10_rolling.pt"]
+    for n in keep + other + gone:
+        (tmp_path / n).write_text("")
+    deleted = grpo.prune_rolling(tmp_path, "g", 2)
+    assert sorted(p.name for p in deleted) == ["g_it10_rolling.pt", "g_it5_rolling.pt"]
+    assert sorted(p.name for p in tmp_path.iterdir()) == sorted(keep + other)
+
+
 # --- end to end ---------------------------------------------------------------------------------
 
 
-def test_two_iterations_end_to_end(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def _tiny_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, argv: list[str]
+) -> tuple[list[dict[str, Any]], Path, list[str]]:
+    """grpo.run on a tiny effort model (budgets 0 and 16, 2 prompts x 4 attempts, 2 minibatch
+    steps), a coin-flip judge -> (history, run dir, the sampler's force modes)."""
     iso = isolate(tmp_path, monkeypatch)
     model = tiny_model(T.vocab_size, seed=2)
     ck = iso / "init.pt"
@@ -440,8 +664,6 @@ def test_two_iterations_end_to_end(tmp_path: Path, monkeypatch: pytest.MonkeyPat
             "--budgets",
             "0,16",
             "--effort",
-            "--iters",
-            "2",
             "--prompts",
             "2",
             "--group",
@@ -454,15 +676,20 @@ def test_two_iterations_end_to_end(tmp_path: Path, monkeypatch: pytest.MonkeyPat
             "3",
             "--batch",
             "8",
-            "--save_every",
-            "1",
             "--device",
             "cpu",
             "--lr",
             "1e-3",
+            *argv,
         ]
     )
-    hist = grpo.run(a)
+    return grpo.run(a), iso / "g", modes
+
+
+def test_two_iterations_end_to_end(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    hist, out, modes = _tiny_run(tmp_path, monkeypatch, ["--iters", "2", "--save_every", "1"])
     assert len(hist) == 2 and all(h["trained_tokens"] > 0 for h in hist)
     assert all(h["steps"] == 2 and 0.0 <= h["clip_frac"] <= h["clip_frac_max"] <= 1.0 for h in hist)
     assert all(h["grad_norm"] > 0 and h["attempts_per_s"] > 0 for h in hist)
@@ -475,14 +702,44 @@ def test_two_iterations_end_to_end(tmp_path: Path, monkeypatch: pytest.MonkeyPat
         )
         assert h["think_by_budget"].get("0", 0.0) == 0.0 < h["think_by_budget"]["16"]
         assert 0.0 <= h["overlong_frac"] < 1.0
+        assert h["nonfinite"] == 0  # every sampled token is allowed where the scorer looks
+        assert 0.0 <= h["neg_r3"] <= 1.0 and h["ratio_max"] > 0.99
+        assert h["grad_norm"] <= h["grad_norm_max"]
+        # the <eos> bias puts mass on the think ban: alarmed, and saved
+        assert 1e-3 < h["ban_think"] <= h["ban_think_max"] <= 1.0
+        assert h["alarms"][0].startswith("think banned mass")
+        assert (out / "ckpts" / f"g_it{h['iter']}_alarm.pt").exists()
+    printed = capsys.readouterr().out.splitlines()
+    for h in hist:
+        assert [x for x in printed if x.startswith(f"ALARM it {h['iter']}: ")] == [
+            f"ALARM it {h['iter']}: {m}" for m in h["alarms"]
+        ]
     assert any(h["overlong_frac"] > 0 for h in hist)  # some actions still hit max_action
-    args = json.loads((iso / "g" / "args.json").read_text())
+    args = json.loads((out / "args.json").read_text())
     assert (args["clip_eps_low"], args["clip_eps_high"]) == (0.2, 0.28)  # resolved defaults
-    assert (args["temperature"], args["overlong"]) == (1.0, "mask")
+    assert (args["temperature"], args["overlong"], args["dual_clip"]) == (1.0, "mask", 3.0)
     assert modes and set(modes) == {"line"} == {args["force_mode"]}  # the sampler's default
-    rows = [json.loads(x) for x in (iso / "g" / "metrics.jsonl").read_text().splitlines()]
-    assert [r["iter"] for r in rows] == [1, 2]
+    rows = [json.loads(x) for x in (out / "metrics.jsonl").read_text().splitlines()]
+    assert [r["iter"] for r in rows] == [1, 2] and rows[1]["alarms"] == hist[1]["alarms"]
     assert set(rows[0]["pass1_by_budget"]) <= {"0", "16"}
     assert rows[1]["curriculum"]["seen"] >= 2 and rows[1]["curriculum"]["pairs"] == 6
-    assert (iso / "g" / "ckpts" / "g_it0.pt").exists()  # the effort expansion of the init
-    assert (iso / "g" / "ckpts" / "g_it2.pt").exists()
+    assert (out / "ckpts" / "g_it0.pt").exists()  # the effort expansion of the init
+    assert (out / "ckpts" / "g_it2.pt").exists()
+
+
+def test_rolling_checkpoints(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Every iteration rolls, the last 2 are kept; the permanent one replaces a roll; an alarm
+    checkpoint is never pruned."""
+    monkeypatch.setattr(grpo, "alarms", lambda row, prev: ["test"] if row["iter"] == 1 else [])
+    _, out, _ = _tiny_run(
+        tmp_path,
+        monkeypatch,
+        ["--iters", "6", "--save_every", "4", "--save_rolling", "1", "--keep_rolling", "2"],
+    )
+    names = sorted(p.name for p in (out / "ckpts").glob("*.pt"))
+    # it 1 alarm, 2 / 3 / 5 roll (2 pruned), 4 permanent, 6 the end
+    assert names == sorted(
+        ["g_it0.pt", "g_it1_alarm.pt", "g_it3_rolling.pt", "g_it4.pt", "g_it5_rolling.pt"]
+        + ["g_it6.pt"]
+    )
+    assert not (out / "ckpts" / "g_it2_rolling.pt.upload.json").exists()

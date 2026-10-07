@@ -32,9 +32,26 @@ attempt counts.
   DAPO's clip-higher (Yu et al. 2025, arXiv 2503.14476): min(r A, clip(r, 1 - `--clip_eps_low`,
   1 + `--clip_eps_high`) A), 0.2 / 0.28 by default, so a positive advantage can raise an unlikely
   token further than a symmetric clip allows, against entropy collapse; `--clip_eps` sets both.
-  There is no KL term. The mean entropy of pi_T over the scored tokens is logged per iteration
-  (`entropy`, and `entropy_think` / `entropy_action` for the think block, its `</think>` included,
-  and the action) as the collapse check, with the think tokens per attempt by budget.
+  For A < 0 the dual clip (Ye et al. 2020, arXiv 1912.09729) bounds the surrogate below by
+  `--dual_clip` x A (3 by default, 0: off), so a token whose r has blown up gives no gradient.
+  There is no KL term.
+* **Scoring** (2026-10-07). pi_T is the sampler's distribution: inside the think block (its
+  `</think>` included) and in the action, the tokens `sample.decode_wave` bans in that phase
+  (`sample.phase_bans`: `<eos>`, `<think>`, `<pad>` in the block, effort tokens everywhere) are
+  masked and the rest renormalised. Scoring over the full vocabulary instead let a negative
+  advantage move think mass onto `<eos>`, which is never sampled and so never penalised (the
+  collapsed restart2 run: up to all of the mass at think positions, word-salad think text).
+  GRPO samples with the plain arm and no min budget, so those two masks are the whole sampling
+  distribution and the old log-probs are recomputed (`old_logps`), not taken from the sampler.
+* **Monitoring.** Per iteration: the entropy of the masked pi_T (`entropy`, `entropy_think` /
+  `entropy_action`), the full-vocabulary pi_T mass on the think ban at the scored think tokens
+  (`ban_think`, `ban_think_max`), the largest r (`ratio_max`), the share of the A < 0 tokens with
+  r > 3 (`neg_r3`), the clip fractions below / above, the grad norm (mean and max over the
+  minibatch steps), the think tokens per attempt by budget. An `ALARM` line (`alarms`) flags a
+  think ban mass above 1e-3, a grad-norm max above 5x the median of the earlier iterations',
+  clip-low above 1%, an overlong share above 5%, or a scored token banned in its phase, and the
+  iteration's checkpoint is saved. A positive loss is not an alarm: the token-level mean is
+  positive whenever failed attempts run longer than successes.
 
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
@@ -42,7 +59,9 @@ in ei.py). `--force_mode` is the sampler's budget forcing: 'line' (default) lets
 its line past B, up to B + 64; 'exact' closes it at B. Either way the forced `</think>` is masked.
 
 Files in GDIR: metrics.jsonl (one row per iteration), ckpts/<name>_it<i>.pt every --save_every
-iterations and at the end, args.json, registry/, lean_gate.jsonl.
+iterations and at the end, <name>_it<i>_alarm.pt at each alarming iteration and
+<name>_it<i>_rolling.pt every --save_rolling iterations (the last --keep_rolling kept), args.json,
+registry/, lean_gate.jsonl.
 """
 
 from __future__ import annotations
@@ -52,6 +71,8 @@ import collections
 import json
 import math
 import random
+import re
+import statistics
 import sys
 import time
 from collections.abc import Sequence
@@ -64,11 +85,19 @@ from .ckpt import load_ckpt, run_env, save_ckpt
 from .dan import bare, load
 from .data import read_jsonl
 from .effort import LEVELS, expand_to_effort, has_effort
-from .sample import FORCE_MODES, judge, think_generate
+from .sample import FORCE_MODES, judge, phase_bans, sample_format, think_generate
 from .tok import has_think
 
 D = load()
 Item = tuple[list[int], list[int], list[bool], float]  # prompt, generated, loss mask, advantage
+Bans = tuple[torch.Tensor, torch.Tensor]  # sample.phase_bans: [V] bool, think block / action
+R_WATCH = 3.0  # neg_r3: the share of the scored A < 0 tokens with r above this
+# per-iteration alarms (`alarms`)
+ALARM_BAN = 1e-3  # mean full-vocabulary mass on the think ban at the scored think tokens
+ALARM_GN = 5.0  # grad-norm max vs the median of the earlier iterations' grad-norm max ...
+ALARM_GN_AFTER = 5  # ... once this many iterations are in
+ALARM_CLIP_LOW = 0.01
+ALARM_OVERLONG = 0.05
 
 
 def rewards(att: Sequence[dict[str, Any]], len_penalty: float) -> list[float]:
@@ -154,6 +183,17 @@ def think_len(p: Sequence[int], g: Sequence[int], think_ids: tuple[int, int] | N
     return g.index(think_ids[1]) + 1 if think_ids[1] in g else len(g)
 
 
+class Scored(NamedTuple):
+    """`_token_logp` -> [B, T-1] each; logits at position q predict token q + 1."""
+
+    logp: torch.Tensor  # log pi_T of the next token (-inf: banned in its phase); 0 off the mask
+    w: torch.Tensor  # advantage weights, 0 off the mask
+    m: torch.Tensor  # loss mask
+    th: torch.Tensor  # think-block positions (`think_len`)
+    ent: torch.Tensor | None  # with `entropy`: the entropy of pi_T, detached
+    ban_mass: torch.Tensor | None  # with `entropy`: full-vocabulary pi_T mass on the think ban
+
+
 def _token_logp(
     model: Any,
     chunk: Sequence[Item],
@@ -161,12 +201,13 @@ def _token_logp(
     dev: str,
     entropy: bool = False,
     think_ids: tuple[int, int] | None = None,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor | None, torch.Tensor]:
-    """-> (log pi_T of each next token [B, T-1], advantage weights [B, T-1], loss mask [B, T-1],
-    with `entropy` the entropy of pi_T at each position [B, T-1], detached, else None, think-block
-    positions [B, T-1] (`think_len`)).
-    Rows are right-padded with <pad> (id 0). The model is causal, so padding never reaches a scored
-    position, and logits at position q predict token q + 1."""
+    bans: Bans | None = None,
+) -> Scored:
+    """pi_T of every next token, the sampler's distribution: with `bans` (`sample.phase_bans`, as
+    `decode_wave` got them) the think ban is masked at the think-block positions and the action
+    ban at the others, then renormalised; without, the full vocabulary (a tokenizer with neither
+    think nor effort tokens bans nothing).  Rows are right-padded with <pad> (id 0). The model is
+    causal, so padding never reaches a scored position."""
     T = max(len(p) + len(g) for p, g, _, _ in chunk)
     x = torch.zeros((len(chunk), T), dtype=torch.long)
     w = torch.zeros((len(chunk), T - 1))
@@ -182,40 +223,65 @@ def _token_logp(
     x, w, m, th = x.to(dev), w.to(dev), m.to(dev), th.to(dev)
     with torch.autocast("cuda", dtype=torch.bfloat16, enabled=(dev == "cuda")):
         logits = model(x[:, :-1])
-    logp = torch.log_softmax(logits.float() / temperature, dim=-1)
-    ent = None
+    z = logits.float() / temperature
+    ban = b_think = None
+    if bans is not None:
+        b_think, b_act = (b.to(dev) for b in bans)
+        assert b_think.shape[-1] == z.shape[-1], "bans need the model's vocabulary size"
+        ban = torch.where(th[..., None], b_think, b_act)  # [B, T-1, V]: each position's phase
+        logp = torch.log_softmax(z.masked_fill(ban, -math.inf), dim=-1)
+    else:
+        logp = torch.log_softmax(z, dim=-1)
+    ent = ban_mass = None
     if entropy:
         with torch.no_grad():
             lp = logp.detach()
-            ent = -(lp.exp() * lp).sum(-1)
-    return logp.gather(-1, x[:, 1:, None])[..., 0], w, m, ent, th
+            ent = -(lp.exp() * (lp if ban is None else lp.masked_fill(ban, 0.0))).sum(-1)
+            ban_mass = torch.zeros_like(ent)
+            if b_think is not None:
+                ban_mass = torch.softmax(z.detach(), -1).masked_fill(~b_think, 0.0).sum(-1)
+    # a prompt or forced token can be banned in its position's phase (-inf): where, not * 0
+    tgt = torch.where(m, logp.gather(-1, x[:, 1:, None])[..., 0], 0.0)
+    return Scored(tgt, w, m, th, ent, ban_mass)
 
 
 @torch.no_grad()
 def old_logps(
-    model: Any, items: Sequence[Item], temperature: float, dev: str, max_tokens: int = 50_000
+    model: Any,
+    items: Sequence[Item],
+    temperature: float,
+    dev: str,
+    max_tokens: int = 50_000,
+    think_ids: tuple[int, int] | None = None,
+    bans: Bans | None = None,
 ) -> list[torch.Tensor]:
     """The sampling policy's log-prob of every scored token, one tensor per item (mask order)."""
     out: list[torch.Tensor] = [torch.empty(0)] * len(items)
     for ids in _chunks(items, max_tokens):
         chunk = [items[k] for k in ids]
-        tgt, _, m, _, _ = _token_logp(model, chunk, temperature, dev)
-        tgt, m = tgt.cpu(), m.cpu()
+        s = _token_logp(model, chunk, temperature, dev, think_ids=think_ids, bans=bans)
+        tgt, m = s.logp.cpu(), s.m.cpu()
         for r, k in enumerate(ids):
             out[k] = tgt[r][m[r]]
     return out
 
 
 class LossStats(NamedTuple):
-    loss: float
-    tokens: int  # scored tokens
-    clip_frac: float  # share of the scored tokens with r outside [1 - eps_low, 1 + eps_high]
-    clip_low: float  # ... with r < 1 - eps_low
-    clip_high: float  # ... with r > 1 + eps_high
-    entropy: float  # mean entropy of pi_T over the scored tokens, nats
-    tokens_think: int  # scored think-block tokens (`think_len`)
-    entropy_think: float  # mean entropy over them (0 when there are none)
-    entropy_action: float  # ... over the other scored tokens
+    loss: float = 0.0
+    tokens: int = 0  # scored tokens
+    clip_frac: float = 0.0  # share of the scored tokens with r outside [1 - eps_low, 1 + eps_high]
+    clip_low: float = 0.0  # ... with r < 1 - eps_low
+    clip_high: float = 0.0  # ... with r > 1 + eps_high
+    entropy: float = 0.0  # mean entropy of pi_T over the scored tokens, nats
+    tokens_think: int = 0  # scored think-block tokens (`think_len`)
+    entropy_think: float = 0.0  # mean entropy over them (0 when there are none)
+    entropy_action: float = 0.0  # ... over the other scored tokens
+    ban_think: float = 0.0  # mean full-vocabulary pi_T mass on the think ban, scored think tokens
+    ban_think_max: float = 0.0  # ... the largest
+    ratio_max: float = 0.0  # the largest r over the scored tokens (1 without `old`)
+    tokens_neg: int = 0  # scored tokens with A < 0
+    neg_r3: float = 0.0  # share of them with r > R_WATCH
+    nonfinite: int = 0  # scored tokens banned in their phase (log-prob -inf): left out of the loss
 
 
 def policy_loss(
@@ -228,39 +294,58 @@ def policy_loss(
     eps_low: float = 0.2,
     eps_high: float = 0.28,
     think_ids: tuple[int, int] | None = None,
+    bans: Bans | None = None,
+    dual_clip: float = 3.0,
 ) -> LossStats:
     """Backpropagate the policy-gradient loss over `items`, as a token-level mean.
     Without `old`: -A * log pi_T (REINFORCE). With `old` (`old_logps` of the sampling policy, one
     tensor per item of `items`, in the same order): the PPO clipped surrogate with DAPO's
-    clip-higher, -min(r A, clip(r, 1 - eps_low, 1 + eps_high) A), r = pi_T / pi_old. At r = 1 its
-    gradient is REINFORCE's. `think_ids` = (`<think>`, `</think>`) splits the entropy into think
-    and action tokens."""
+    clip-higher, -min(r A, clip(r, 1 - eps_low, 1 + eps_high) A), r = pi_T / pi_old, and for A < 0
+    with `dual_clip` c > 0 the dual clip, -max(that, c A). At r = 1 its gradient is REINFORCE's.
+    `think_ids` = (`<think>`, `</think>`) splits the entropy into think and action tokens, `bans`
+    masks pi_T as the sampler did (`_token_logp`)."""
     assert old is None or len(old) == len(items), "old log-probs must align with the items"
     n_tok = sum(sum(m) for _, _, m, _ in items)
     if n_tok == 0:
-        return LossStats(0.0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0.0, 0.0)
-    total = ent_sum = ent_think = 0.0
-    n_low = n_high = n_think = 0
+        return LossStats()
+    total = ent_sum = ent_think = ban_sum = ban_max = 0.0
+    r_max = 1.0 if old is None else 0.0
+    n_low = n_high = n_think = n_neg = n_r3 = n_bad = 0
     for ids in _chunks(items, max_tokens):
         chunk = [items[k] for k in ids]
-        tgt, w, m, ent, th = _token_logp(
-            model, chunk, temperature, dev, entropy=True, think_ids=think_ids
+        s = _token_logp(
+            model, chunk, temperature, dev, entropy=True, think_ids=think_ids, bans=bans
         )
-        assert ent is not None
-        ent_sum += float(ent[m].sum())
-        ent_think += float(ent[m & th].sum())
-        n_think += int((m & th).sum())
+        assert s.ent is not None and s.ban_mass is not None
+        tgt, w, m, mt = s.logp, s.w, s.m, s.m & s.th
+        ent_sum += float(s.ent[m].sum())
+        ent_think += float(s.ent[mt].sum())
+        n_think += int(mt.sum())
+        if mt.any():
+            ban_sum += float(s.ban_mass[mt].sum())
+            ban_max = max(ban_max, float(s.ban_mass[mt].max()))
         if old is None:
-            loss = -(tgt * w).sum() / n_tok
+            ok = m & torch.isfinite(tgt)
+            loss = -(torch.where(ok, tgt, 0.0) * w).sum() / n_tok
         else:
             o = torch.zeros_like(tgt)
             for r, k in enumerate(ids):
                 o[r][m[r]] = old[k].to(tgt.device)
-            ratio = torch.exp(tgt - o)
+            ok = m & torch.isfinite(tgt) & torch.isfinite(o)
+            ratio = torch.exp(torch.where(ok, tgt - o, 0.0))  # 1 off the scored tokens
             surr = torch.minimum(ratio * w, torch.clamp(ratio, 1 - eps_low, 1 + eps_high) * w)
-            loss = -(surr * m).sum() / n_tok
-            n_low += int((ratio < 1 - eps_low)[m].sum())
-            n_high += int((ratio > 1 + eps_high)[m].sum())
+            if dual_clip > 0:  # A < 0: no lower than c A however large r gets
+                surr = torch.where(w < 0, torch.maximum(surr, dual_clip * w), surr)
+            loss = -torch.where(ok, surr, 0.0).sum() / n_tok
+            rd = ratio.detach()
+            n_low += int((rd < 1 - eps_low)[ok].sum())
+            n_high += int((rd > 1 + eps_high)[ok].sum())
+            neg = ok & (w < 0)
+            n_neg += int(neg.sum())
+            n_r3 += int((rd > R_WATCH)[neg].sum())
+            if ok.any():
+                r_max = max(r_max, float(rd[ok].max()))
+        n_bad += int((m & ~ok).sum())
         loss.backward()
         total += float(loss.detach())
     n_act = n_tok - n_think
@@ -274,6 +359,12 @@ def policy_loss(
         tokens_think=n_think,
         entropy_think=ent_think / n_think if n_think else 0.0,
         entropy_action=(ent_sum - ent_think) / n_act if n_act else 0.0,
+        ban_think=ban_sum / n_think if n_think else 0.0,
+        ban_think_max=ban_max,
+        ratio_max=r_max,
+        tokens_neg=n_neg,
+        neg_r3=n_r3 / n_neg if n_neg else 0.0,
+        nonfinite=n_bad,
     )
 
 
@@ -374,7 +465,44 @@ def sample_groups(
     return per
 
 
+def alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
+    """An iteration's metrics row -> its alarms, one message each (the ALARM_* thresholds).
+    `gn_prev`: the grad-norm max of the earlier iterations that took a step."""
+    out = []
+    if row["ban_think"] > ALARM_BAN:
+        out.append(
+            f"think banned mass {row['ban_think']:.3g} > {ALARM_BAN:g} "
+            f"(max {row['ban_think_max']:.3g})"
+        )
+    if len(gn_prev) >= ALARM_GN_AFTER:
+        med = statistics.median(gn_prev)
+        if row["grad_norm_max"] > ALARM_GN * med:
+            out.append(
+                f"grad-norm max {row['grad_norm_max']:.3g} > {ALARM_GN:g} x median {med:.3g}"
+            )
+    if row["clip_low"] > ALARM_CLIP_LOW:
+        out.append(f"clip-low {row['clip_low']:.4f} > {ALARM_CLIP_LOW:g}")
+    if row["overlong_frac"] > ALARM_OVERLONG:
+        out.append(f"overlong {row['overlong_frac']:.4f} > {ALARM_OVERLONG:g}")
+    if row["nonfinite"]:
+        out.append(f"{row['nonfinite']} scored tokens banned in their phase (sampler / scorer)")
+    return out
+
+
+def prune_rolling(ckdir: Path, name: str, keep: int) -> list[Path]:
+    """Delete all but the newest `keep` rolling checkpoints `<name>_it<i>_rolling.pt` (and their
+    upload sidecars) -> the deleted. Permanent and alarm checkpoints are never matched."""
+    pat = re.compile(re.escape(name) + r"_it(\d+)_rolling\.pt")
+    found = sorted((int(mt[1]), p) for p in ckdir.iterdir() if (mt := pat.fullmatch(p.name)))
+    gone = [p for _, p in found[: max(0, len(found) - keep)]]
+    for p in gone:
+        p.unlink()
+        p.with_name(p.name + ".upload.json").unlink(missing_ok=True)
+    return gone
+
+
 def run(a: argparse.Namespace) -> list[dict[str, Any]]:
+    assert not a.save_rolling or a.keep_rolling >= 1, "--keep_rolling must be >= 1"
     out = Path(a.out)
     run_env(out)
     a.clip_eps_low, a.clip_eps_high = clip_range(a)  # resolved, so args.json records them
@@ -391,11 +519,15 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             init = str(expand_to_effort(init, out / "ckpts" / f"{a.name}_it0.pt", seed=a.seed))
     model, tok, extra = load_ckpt(init, dev)
     think = has_think(tok) and extra.get("think_format", "think") != "none"
+    think_ids = (tok.think, tok.end_think) if think else None
+    # the sampler's masks: think_generate bans think tokens in R's actions (one block per proof)
+    bans = phase_bans(tok, model.cfg["vocab"], think, think and sample_format(model) == "root")
     targets = read_jsonl(a.targets)
     rng = random.Random(a.seed * 7919)
     cur = Curriculum(len(targets), budgets if think else [0], a.floor, a.decay, a.seed)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, betas=(0.9, 0.95), weight_decay=0.0)
     history = []
+    gn_prev: list[float] = []  # grad_norm_max of the iterations that took a step
     n_step = 0
     for it in range(1, a.iters + 1):
         t0 = time.time()
@@ -423,7 +555,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             items += its
         t_sample = time.time() - t0
         D.record.phase("update", round=it)
-        old = old_logps(model, items, a.temperature, dev, a.max_tokens)
+        old = old_logps(model, items, a.temperature, dev, a.max_tokens, think_ids, bans)
         model.train()
         order = list(range(len(items)))
         rng.shuffle(order)
@@ -446,7 +578,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 old=[old[k] for k in sel],
                 eps_low=a.clip_eps_low,
                 eps_high=a.clip_eps_high,
-                think_ids=(tok.think, tok.end_think) if think else None,
+                think_ids=think_ids,
+                bans=bans,
+                dual_clip=a.dual_clip,
             )
             if st.tokens:
                 gns.append(float(torch.nn.utils.clip_grad_norm_(model.parameters(), a.clip)))
@@ -465,6 +599,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         ent_action = sum(s.entropy_action * (s.tokens - s.tokens_think) for s in stats) / max(
             1, n_tok - n_th
         )
+        ban_think = sum(s.ban_think * s.tokens_think for s in stats) / max(1, n_th)
+        n_neg = sum(s.tokens_neg for s in stats)
+        gn_max = max(gns, default=0.0)
         flat = [x for att in per for x in att]
         row: dict[str, Any] = {
             "iter": it,
@@ -484,11 +621,16 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             "clip_frac_max": max((s.clip_frac for s in stats), default=0.0),
             "clip_low": clip_low,
             "clip_high": clip_high,
-            "entropy": entropy,  # nats per scored token, pi_T, during the update
+            "entropy": entropy,  # nats per scored token, masked pi_T, during the update
             "entropy_think": ent_think,  # ... over the think-block tokens
             "entropy_action": ent_action,  # ... over the action tokens
+            "ban_think": ban_think,  # full-vocabulary pi_T mass on the think ban, think tokens
+            "ban_think_max": max((s.ban_think_max for s in stats), default=0.0),
+            "ratio_max": max((s.ratio_max for s in stats), default=0.0),
+            "neg_r3": sum(s.neg_r3 * s.tokens_neg for s in stats) / max(1, n_neg),
+            "nonfinite": sum(s.nonfinite for s in stats),
             "grad_norm": gn,  # mean pre-clip norm over the minibatch steps
-            "grad_norm_max": max(gns, default=0.0),
+            "grad_norm_max": gn_max,
             "steps": len(gns),
             "curriculum": cur.summary(),
             "lr": opt.param_groups[0]["lr"],
@@ -496,6 +638,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             "secs_sample": t_sample,  # sampling and the Lean gate
             "attempts_per_s": len(flat) / max(1e-9, t_sample),
         }
+        row["alarms"] = alarms(row, gn_prev)
+        if gns:
+            gn_prev.append(gn_max)
         with open(out / "metrics.jsonl", "a") as f:
             f.write(json.dumps(row) + "\n")
         history.append(row)
@@ -504,20 +649,34 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             f"{ {k: round(100 * v, 1) for k, v in row['pass1_by_budget'].items()} } "
             f"skip {100 * row['groups_skipped']:.0f}% tok/att {row['tokens_per_attempt']:.0f} "
             f"over {100 * row['overlong_frac']:.1f}% think/att {row['think_per_attempt']:.0f} "
-            f"loss {loss:+.4f} clip {clip_frac:.3f} ent {ent_think:.2f}/{ent_action:.2f} "
-            f"gn {gn:.3f} "
+            f"loss {loss:+.4f} clip lo/hi {clip_low:.4f}/{clip_high:.4f} "
+            f"rmax {row['ratio_max']:.2f} neg_r3 {row['neg_r3']:.4f} "
+            f"ent {ent_think:.2f}/{ent_action:.2f} "
+            f"ban {ban_think:.1e}/{row['ban_think_max']:.1e} gn {gn:.3f}/{gn_max:.3f} "
             f"frontier {row['curriculum']['frontier']:.2f} {row['secs']:.0f}s "
             f"({row['attempts_per_s']:.0f} att/s sampling)",
             flush=True,
         )
-        if it % a.save_every == 0 or it == a.iters:
-            model.eval()
+        for msg in row["alarms"]:
+            print(f"ALARM it {it}: {msg}", flush=True)
+        model.eval()
+        meta = {**extra, "grpo_iter": it, "grpo_init": a.init, "args": vars(a)}
+        ckdir = out / "ckpts"
+        saved = False
+        if row["alarms"]:
             save_ckpt(
-                str(out / "ckpts" / f"{a.name}_it{it}.pt"),
+                str(ckdir / f"{a.name}_it{it}_alarm.pt"),
                 model,
                 tok.mode,
-                extra={**extra, "grpo_iter": it, "grpo_init": a.init, "args": vars(a)},
+                extra={**meta, "grpo_alarms": row["alarms"]},
             )
+            saved = True
+        if it % a.save_every == 0 or it == a.iters:
+            save_ckpt(str(ckdir / f"{a.name}_it{it}.pt"), model, tok.mode, extra=meta)
+            saved = True
+        if a.save_rolling and it % a.save_rolling == 0 and not saved:
+            save_ckpt(str(ckdir / f"{a.name}_it{it}_rolling.pt"), model, tok.mode, extra=meta)
+            prune_rolling(ckdir, a.name, a.keep_rolling)
         if dev == "cuda":
             torch.cuda.empty_cache()
     D.record.phase(None)
@@ -542,6 +701,7 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--clip_eps", type=float, default=None, help="sets both (shortcut)")
     ap.add_argument("--clip_eps_low", type=float, default=None, help="default 0.2")
     ap.add_argument("--clip_eps_high", type=float, default=None, help="default 0.28 (DAPO)")
+    ap.add_argument("--dual_clip", type=float, default=3.0, help="A < 0: surrogate >= c A; 0: off")
     ap.add_argument("--floor", type=float, default=0.03, help="curriculum weight floor")
     ap.add_argument("--decay", type=float, default=0.7, help="curriculum count decay")
     ap.add_argument("--warmup", type=int, default=10)
@@ -571,6 +731,8 @@ def parser() -> argparse.ArgumentParser:
     )
     ap.add_argument("--batch", type=int, default=1024)
     ap.add_argument("--save_every", type=int, default=35)
+    ap.add_argument("--save_rolling", type=int, default=5, help="rolling checkpoints; 0: none")
+    ap.add_argument("--keep_rolling", type=int, default=4, help="rolling checkpoints kept")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--lean", default=None)
     ap.add_argument("--device", default=None)

@@ -84,6 +84,25 @@ class Wave:
     forced: list[bool]
 
 
+def phase_bans(
+    tok: Any, vocab: int, think: bool, mask_action_think: bool = False, device: Any = None
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """The tokens `decode_wave` never samples -> (inside a think block, in an action), [vocab]
+    bool each.  Inside the block `<eos>`, `<think>` and `<pad>` (with `think`); in an action
+    `<think>`, `</think>` and `<no>` (with `think` and `mask_action_think`); the effort tokens in
+    both (an effort tokenizer).  GRPO scores under the same masks (`grpo._token_logp`)."""
+    ban_think = torch.zeros(vocab, dtype=torch.bool, device=device)
+    ban_act = torch.zeros(vocab, dtype=torch.bool, device=device)
+    if think:
+        ban_think[[tok.eos, tok.think, tok.pad]] = True
+        if mask_action_think:
+            ban_act[[tok.think, tok.end_think, tok.no]] = True
+    if has_effort(tok):  # effort tokens are inputs only: never sampled
+        ban_think[list(tok.effort_ids)] = True
+        ban_act[list(tok.effort_ids)] = True
+    return ban_think, ban_act
+
+
 @torch.no_grad()
 def decode_wave(
     model: Any,
@@ -155,17 +174,9 @@ def decode_wave(
     forced = torch.zeros(B0, dtype=torch.bool, device=dev)
     cur_pos = pos[:, -1]
     rgen = None if greedy else torch.Generator(device=dev)
-    ban_think = torch.zeros(V, dtype=torch.bool, device=dev)
-    ban_act = torch.zeros(V, dtype=torch.bool, device=dev)
+    ban_think, ban_act = phase_bans(tok, V, think, mask_action_think, dev)
     close = getattr(tok, "end_think", -1)
     nl = tok.stoi.get("<nl>", -1)
-    if think:
-        ban_think[[tok.eos, tok.think, tok.pad]] = True
-        if mask_action_think:
-            ban_act[[tok.think, tok.end_think, tok.no]] = True
-    if has_effort(tok):  # effort tokens are inputs only: never sampled
-        ban_think[list(tok.effort_ids)] = True
-        ban_act[list(tok.effort_ids)] = True
     fb = forbids or []
     cons: dict[int, list[int]] = {r: [] for r in range(B0) if fb and fb[r]}
     act_py = list(range(B0))
