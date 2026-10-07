@@ -1,0 +1,195 @@
+diff --git a/code/experiments/current/autoresearch_thoughts/pretrain.py b/code/experiments/current/autoresearch_thoughts/pretrain.py
+index 6c500b2..48bf514 100644
+--- a/code/experiments/current/autoresearch_thoughts/pretrain.py
++++ b/code/experiments/current/autoresearch_thoughts/pretrain.py
+@@ -52,7 +52,6 @@ from lean_tok import MAXN  # fork
+ from model import GPT, Block  # fork
+ from normalize import norm  # fork
+ from tokenizer import make_tokenizer  # fork
+-from train import batch as mk_batch  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+@@ -81,23 +80,24 @@ MAX_THINKS = 48
+ # applied, `⟨`, `Or.inl`, the `(` of a `fun`, ...). It is computed from the tokens alone, so it
+ # stays on during RL fine-tuning, on proofs the model found.
+ PROBE_WEIGHT = 0.3
+-# ---- RL knobs: the old harness's expert iteration (600 AdamW steps per round on up to 4 proofs
+-# per solved target, weighted x4, mixed with 20,000 replayed pretraining records), except that
+-# each round samples every target RL_K times at each thought count in RL_SAMPLE_THOUGHTS (32
+-# attempts per target in all, as before). Rounds repeat until another would not fit the budget.
+-# RL runs entirely at the eval level: every sample is drawn at 8 thoughts per line and the
+-# fine-tune trains at 8 only (FT_THOUGHTS), never at 0. In 701 the fine-tune drew n from 0..8 and
+-# the no-thought path caught up within one round (sample accuracy at 0 thoughts went from 3-6% to
+-# 28-33%, against 39% at 8): the proofs found with thoughts were being distilled into the path
+-# that does not think. Here they are only ever learned with thoughts.
+-RL_SAMPLE_THOUGHTS = (8,)
+-RL_K = 32
++# ---- RL knobs: the sibling loop's expert iteration (its recipe 507, under which run 198's untied
++# blocks with no thoughts score 792 in this harness, against 676 for 704, nearly the same network
++# under the old harness's recipe). Each round samples every target RL_K times at
++# RL_FIRST_THOUGHTS, then only the targets that failed RL_RETRY_K more times, split evenly across
++# RL_RETRY_THOUGHTS, and fine-tunes over FT_RECORDS records (up to MAX_PER_THM proofs per solved
++# target, weighted RL_WEIGHT times, mixed with RETAIN replayed pretraining records) in
++# pretraining's token-budget batches, AdamW with linear warmup then cosine to lr/10. Token-budget
++# batches bound rows times padded length, which the old recipe's 128-row padded batches did not
++# (experiment 700 ran out of memory; 701-704 ran them 32 rows at a time). Rounds repeat until
++# another would not fit the budget. RL runs entirely at the eval level: every sample is drawn at
++# 8 thoughts per line and the fine-tune trains at 8 only (FT_THOUGHTS), never at 0. In 701 the
++# fine-tune drew n from 0..8 and the no-thought path caught up within one round (sample accuracy
++# at 0 thoughts went from 3-6% to 28-33%, against 39% at 8): the proofs found with thoughts were
++# being distilled into the path that does not think. Here they are only ever learned with thoughts.
++RL_FIRST_THOUGHTS, RL_K = 8, 8
++RL_RETRY_THOUGHTS, RL_RETRY_K = (8,), 24
+ FT_THOUGHTS = (8,)
+-FT_STEPS, FT_BS, FT_LR, FT_WARMUP = 600, 128, 3e-4, 50
+-# A fine-tune step's 128 records are sorted by length and run 32 at a time, gradients accumulated.
+-# run() holds attention weights over every earlier line of every row, so memory grows with rows
+-# times (padded length)^2: 128 long RL proofs at once ran out of 44 GB (experiment 700).
+-FT_MICRO = 32
++FT_RECORDS, FT_LR, FT_WARMUP = 600 * 128, 3e-4, 50
+ RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
+ # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
+ # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+@@ -455,11 +455,12 @@ def to_gpu(data, tok, device):
+     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
+ 
+ 
+-def token_batches(lens, n_train, gen, rng):
+-    """One epoch of token-budget batches: a random permutation of the training records, stably
+-    sorted by length (equal lengths stay shuffled), cut greedily into runs of consecutive records
+-    with count * max_len <= TOK_BUDGET, and the runs' order shuffled. Returns (order, cuts)."""
+-    perm = torch.randperm(n_train, device=lens.device, generator=gen) + VAL_N
++def token_batches(lens, n_train, gen, rng, first=VAL_N):
++    """One epoch of token-budget batches: a random permutation of the n_train records from
++    `first` on, stably sorted by length (equal lengths stay shuffled), cut greedily into runs of
++    consecutive records with count * max_len <= TOK_BUDGET, and the runs' order shuffled.
++    Returns (order, cuts)."""
++    perm = torch.randperm(n_train, device=lens.device, generator=gen) + first
+     order = perm[torch.argsort(lens[perm], stable=True)]
+     sorted_lens = lens[order].cpu()
+     cuts, s = [], 0
+@@ -636,54 +637,71 @@ def pretrain(train_recs, budget_secs, device, seed, log):
+ 
+ 
+ def finetune(model, tok, data, rng, device):
+-    """The old harness's RL fine-tune (FT_STEPS AdamW steps, linear warmup then cosine to lr/10)
+-    with the plan probe's loss kept on. Every micro-batch runs at a thought count drawn from
+-    FT_THOUGHTS: the eval level only. The probe trains along; the MTP module is not used."""
++    """The RL fine-tune: AdamW (linear warmup then cosine to lr/10) over FT_RECORDS records in
++    token-budget batches (to_gpu / token_batches / gpu_batch, as pretraining), with the plan
++    probe's loss kept on. Every batch runs at a thought count drawn from FT_THOUGHTS: the eval
++    level only. The probe trains along; the MTP module is not used. Returns (last loss, steps)."""
++    ids, mask, ref_max, lens = to_gpu(data, tok, device)
++    gen = torch.Generator(device=device)
++    gen.manual_seed(rng.getrandbits(31))
++    plan, seen = [], 0  # (order, start, end, padded length) per step, epoch after epoch
++    while seen < FT_RECORDS:
++        order, cuts = token_batches(lens, len(data), gen, rng, first=0)
++        for s, e, T in cuts:
++            if seen >= FT_RECORDS:
++                break
++            plan.append((order, s, e, T))
++            seen += e - s
+     params = (
+         list(model.parameters()) + list(AUX.ln_probe.parameters()) + list(AUX.probe.parameters())
+     )
+     opt = torch.optim.AdamW(params, lr=FT_LR, weight_decay=0.1, betas=(0.9, 0.95))
+     autocast = torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda"))
+     model.train()
+-    perm = []
+-    for step in range(1, FT_STEPS + 1):
++    for step, (order, s, e, T) in enumerate(plan, 1):
+         lr = (
+             FT_LR * step / FT_WARMUP
+             if step < FT_WARMUP
+-            else FT_LR / 10 + 0.45 * FT_LR * (1 + math.cos(math.pi * step / FT_STEPS))
++            else FT_LR / 10 + 0.45 * FT_LR * (1 + math.cos(math.pi * step / len(plan)))
+         )
+         for g in opt.param_groups:
+             g["lr"] = lr
+-        if len(perm) < FT_BS:
+-            perm = list(range(len(data)))
+-            rng.shuffle(perm)
+-        idxs = sorted((perm.pop() for _ in range(FT_BS)), key=lambda i: sum(map(len, data[i])))
++        x, m = gpu_batch(ids, mask, ref_max, lens, order[s:e], tok, gen, T)
++        with autocast:
++            loss, main, _, _ = train_loss(model, AUX, x, m, tok, mtp=False, thoughts=FT_THOUGHTS)
+         opt.zero_grad(set_to_none=True)
+-        for j in range(0, FT_BS, FT_MICRO):
+-            x, m = mk_batch(data, idxs[j : j + FT_MICRO], tok, rng, device)
+-            with autocast:
+-                loss, main, _, _ = train_loss(
+-                    model, AUX, x, m, tok, mtp=False, thoughts=FT_THOUGHTS
+-                )
+-            (loss * FT_MICRO / FT_BS).backward()
++        loss.backward()
+         torch.nn.utils.clip_grad_norm_(params, 1.0)
+         opt.step()
+     model.eval()
+-    return main.item()
++    return main.item(), len(plan)
+ 
+ 
+ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+     rng = random.Random(seed)
+     found = {t["name"]: {} for t in targets}  # name -> {normalized proof: proof text}
+-    rounds, round_secs = 0, 0.0
++    rounds, round_secs, retries, ft_steps = 0, 0.0, [], []
+     # Start a round only if one as long as the last (plus 15%) still fits in the budget.
+     while oracle.left() > 1.15 * round_secs:
+         t0 = oracle.used()
+-        for n in RL_SAMPLE_THOUGHTS:
++        model.n_thoughts = RL_FIRST_THOUGHTS
++        rows = oracle.sample(model, targets, RL_K)
++        failed = [t for t, row in zip(targets, rows, strict=True) if not row["proofs"]]
++        rng.shuffle(failed)
++        for i, n in enumerate(RL_RETRY_THOUGHTS):
++            part = failed[i :: len(RL_RETRY_THOUGHTS)]
++            if not part:
++                continue
+             model.n_thoughts = n
+-            for row in oracle.sample(model, targets, RL_K):
+-                for proof in row["proofs"]:
+-                    found[row["name"]].setdefault(norm(proof), proof)
++            part_rows = oracle.sample(model, part, RL_RETRY_K)
++            cracked = sum(bool(row["proofs"]) for row in part_rows)
++            retries.append(
++                {"round": rounds + 1, "thoughts": n, "targets": len(part), "cracked": cracked}
++            )
++            rows += part_rows
++        for row in rows:
++            for proof in row["proofs"]:
++                found[row["name"]].setdefault(norm(proof), proof)
+         mix = []
+         for t in targets:
+             proofs = list(found[t["name"]].values())
+@@ -694,17 +712,24 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
+             break
+         mix += [(r["prompt"], r["proof"]) for r in rng.sample(train_recs, RETAIN)]
+         data = [(tok.encode_prompt(p), tok.encode_proof(q)) for p, q in mix]
+-        loss = finetune(model, tok, data, rng, device)
++        loss, steps = finetune(model, tok, data, rng, device)
++        ft_steps.append(steps)
+         rounds += 1
+         round_secs = oracle.used() - t0
+         log(
+-            f"rl round {rounds}: {n_rl} RL records, fine-tune loss {loss:.4f}, "
++            f"rl round {rounds}: {n_rl} RL records, fine-tune loss {loss:.4f} in {steps} steps, "
+             f"round {round_secs:.0f}s, {oracle.left():.0f}s left"
+         )
+     model.n_thoughts = DEFAULT_THOUGHTS
+     return {
+         "rounds": rounds,
+-        "sample_thoughts": RL_SAMPLE_THOUGHTS,
+-        "k_per_count": RL_K,
++        "first_thoughts": RL_FIRST_THOUGHTS,
++        "k_first": RL_K,
++        "retry_thoughts": RL_RETRY_THOUGHTS,
++        "k_retry": RL_RETRY_K,
++        "retries": retries,
++        "ft_records": FT_RECORDS,
++        "ft_steps": ft_steps,
+         "ft_thoughts": FT_THOUGHTS,
++        "ft_lr": FT_LR,
+     }

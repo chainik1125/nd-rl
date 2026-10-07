@@ -1,0 +1,226 @@
+{
+  "id": "706-fable",
+  "slug": "sibling-rl-recipe",
+  "written_at": "2026-10-07T16:25:33-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "0b7b90f",
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "26a7fdc124f0",
+  "patch_lines": 123,
+  "title": "Sibling loop's RL recipe (507): 8 samples per target then 24 retries on the failures, fine-tune over 76,800 records in token-budget batches, all at 8 thoughts",
+  "description": "704's model and pretraining, byte for byte, with rl() replaced by the sibling loop's expert iteration (branch autoresearch-loops, functions finetune and rl, recipe 507), under which run 198's untied blocks with no thoughts score 792 in this harness (their operator control 590: 790/785/800) against 704's 676 for nearly the same network under the old harness's recipe. Three changes. (1) Sampling: each round samples every target RL_K = 8 times at 8 thoughts, then only the targets whose 8 attempts were all rejected RL_RETRY_K = 24 more times at 8 thoughts (RL_RETRY_THOUGHTS = (8,), kept as a tuple so later experiments can retry at other counts); 704 sampled every target 32 times. (2) Fine-tune batches: the round's mix (up to 4 proofs per solved target, x4, plus 20,000 replayed pretraining records, as before) is padded once with to_gpu and run in pretraining's token-budget batches (token_batches, which gets a `first` argument so the fine-tune has no held-out slice, and gpu_batch with its ref-shift augmentation), one AdamW step per batch, until FT_RECORDS = 600 x 128 = 76,800 records have been seen (the same count as 704's 600 steps of 128); the cosine schedule runs over the resulting step count, warmup 50. 704 ran 600 steps of 128 records in four length-sorted micro-batches of 32 with gradient accumulation. (3) The fork's padded batch() helper (mk_batch), FT_STEPS/FT_BS/FT_MICRO and RL_SAMPLE_THOUGHTS are gone. Everything else in rl() is 704's: the probe loss at 0.3 trains along, MTP off, AdamW lr 3e-4 / wd 0.1 / betas 0.9, 0.95, every fine-tune batch at 8 thoughts, rounds until 1.15 x the last round would not fit, n_thoughts reset to 8 at the end. Not ported: the sibling's Muon fine-tune (509, +16 there, within noise; 590 used AdamW). rl() now also returns the per-round retry counts (targets retried, cracked) and fine-tune step counts. Checks: make -C code check passes; a CPU smoke test of rl() against a stub oracle (40 targets, FT_RECORDS 150) ran 21 rounds with first-pass and retry calls, falling loss, all 101 parameter tensors updated and n_thoughts back at 8. No bench: pretraining is unchanged, so expect 704's 3,400-3,800 steps and 181-207 samples/s at 8 thoughts. The fine-tune's memory is the one untested part: a token-budget batch of long RL proofs holds about 61 rows of 300 tokens expanded to about 460 positions with 8 thoughts per trigger, roughly 2.4x pretraining's rows x length^2 in attention; the old recipe's 32-row parts were sized for 700's per-line passes, not 704's single pass, and 704 peaked at 10.9 GB in the bench.",
+  "tags": [
+    "rl",
+    "sampling",
+    "systems"
+  ],
+  "hypothesis": "About 115 of the points between 704 (676) and 590 (792) sit in rl(), not in the network: 704's pause slots compute nothing (val loss and eval flat in n), so 704 is 590's network with a slower RL. The sibling's recipe buys more rounds in the same 1,800 s (token-budget fine-tune batches with no padding waste and no 32-row micro-batching; sampling 8 + 24 x (failure fraction) attempts per target instead of 32), and spends the retries on the targets that resist, so more RL targets get solved and the last fine-tunes see a larger, harder mix. If the gain is architecture-independent as the note claims, this run lands near 590 on a 704 trunk. If it lands well short of 792 with 10+ rounds, the gap is in the pretraining or in training only at 8 thoughts (704's trunk is not 198: its slots and probe cost steps), which is the next thing to test. Either way the result is the fair baseline for feedback thoughts, whose main handicap so far has been fitting fewer rounds.",
+  "p_keep": 0.85,
+  "expected_delta": "metric 760-810 against 704's 676 (590: 790/785/800), with 10-12 RL rounds (704: 6-7; 590: 11) and 1,280-1,330 RL targets solved by the last round (704: 1,184; 590: 1,311). Round-1 retries should crack 20-35% of the first pass's failures. metric_diag at 0 thoughts says nothing new here: RL trains at 8 only, so the no-thought path drifts; in 704 it scored 670/656/121, and with more rounds expect it to fall further below metric on at least one seed, which is not evidence that the slots compute anything (704 showed they do not). Fail cases: out of memory in the first fine-tune (crash, then re-run under 706 with a smaller TOK_BUDGET for the fine-tune if the cause is the batch size), or the expanded sequence making the fine-tune no faster than 704's so that rounds stay at 6-7 and the gain is only the retries' (then expect about 700-740).",
+  "baseline_id": "704-fable",
+  "baseline_metric": 676,
+  "config": {
+    "arch": {
+      "type": "gpt, 6 untied Peri-LN blocks, plus n pause-slot positions after every `;` and `by` (learned slot vector per position, no feedback; one causal pass)",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4; thoughts share their trigger's position",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9563904
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens (thought slots are added on top: up to n per trigger)",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "none (CUDA-graphed Muon step only)",
+    "init": "orthogonal on block matrices, fork default elsewhere; slot vectors N(0, 0.02)",
+    "thoughts": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        8
+      ],
+      "default": 8,
+      "val": [
+        0,
+        2,
+        8
+      ],
+      "where": "after every `;` and `by` token",
+      "max": 16,
+      "input": "slot_emb[j] only (pause slot); 701-703 used ln_thought(final state at the trigger) + slot_emb[j]",
+      "passes_per_step": "1 (expanded sequence); 701-703: one per proof line",
+      "probe": "token after the next `:=` or `exact`, read off the last slot, weight 0.3, pretraining and RL",
+      "ft": [
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 8,
+      "retry_samples_per_failed_target": 24,
+      "first_pass_thoughts": 8,
+      "retry_thoughts": [
+        8
+      ],
+      "sampling": "every target 8 times at 8 thoughts, then only the targets with no accepted proof in that pass 24 more times at 8 thoughts (704: every target 32 times at 8 thoughts); accepted proofs accumulate across rounds as before",
+      "ft_steps": 600,
+      "ft_steps_meaning": "nominal: FT_RECORDS = 600 x 128 = 76,800 records per round, the same count as 704's 600 steps of 128; the actual AdamW step count is the number of token-budget batches that cover them (TOK_BUDGET 18,432 tokens per batch, thought slots on top), about two epochs of the round's mix, expected 600-900, recorded per round in rl()'s return as ft_steps",
+      "ft_records": 76800,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round would not fit in RL_SECS (1.15 x the last round); expected 10-12 as in the sibling's 590 (11) against 704's 6-7",
+      "ft_optimizer": "adamw on the model and the probe (lr 3e-4, wd 0.1, betas 0.9/0.95), linear warmup 50 steps then cosine to lr/10 over the round's steps; no Muon (the sibling's 509 addition is not ported; its 590 control used 507's AdamW)",
+      "ft_batches": "token-budget batches as pretraining (to_gpu / token_batches / gpu_batch, length-sorted runs with count x max_len <= 18,432, run order shuffled), one AdamW step per batch; 704: 128 records per step in four length-sorted parts of 32, gradients accumulated",
+      "loss": "next-token CE plus the plan probe at weight 0.3, every batch at 8 thoughts",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_thoughts": [
+        8
+      ]
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_thoughts",
+      "level": 8,
+      "diag_level": 0,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
