@@ -19,7 +19,6 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 | GRPO thinking with effort levels (T1v1_s0) | `restart3_grpofix/grpo_T1v1e` | 3 | it78, ~3:45 pm | budgets 0/16/64/256 |
 | matched evals: EI r1, r2 vs GRPO it39, it78, both arms | `eval/matched/`, log `logs/matched_eval.log` | 1, 4 | ALL DONE ~5–6 pm | sets: hard12_test_1k (k 16), textbook72 (k 64), test_13_20 if ready; thinking at B 0/64/256 |
 | 13–20-line test set (agent) | `pools/test_13_20/` | 0 (lock) | — | the 21–30 set is at the floor |
-| hard12r pilot (agent) | `pools/hard12r/` | 0 (lock) | after the pilot | scoped down: yield only (see "Held") |
 
 ## Queued (pipelines in `followup_20261007/`, logs `logs/followup_gpu*.log`)
 
@@ -42,9 +41,12 @@ any alarm checkpoints.
 
 ## Held
 
-- **hard12r** (≤12-line targets that stay hard after RL). Pilot only. Selecting with one of the compared
-  models biases the comparison, so any test split must be an unfiltered random sample. Revisit only if the
-  matched evals show the training signal running out.
+- **hard12r** (≤12-line targets that stay hard after RL). Pilot done, 0.3 GPU-h; see
+  [pools/hard12r/README.md](pools/hard12r/README.md).
+  - RL'd no-think GRPO (it35) solves 7–8 of 8 on 88.5% of fresh ≤12-line generator candidates, and on 85.9%
+    of hard12's spare in-band targets. Only 2.7% of fresh candidates land at 1–2 of 8.
+  - Structural features barely move this (3–9% at ≤2/8 across goal types, depth and length).
+  - So ≤12-line headroom after RL is close to exhausted. Any test split must be an unfiltered random sample.
 - **A harder pool selected by model-independent features.** Revisit on the same condition.
 - **EI with smaller rounds** (k 8 per target, 40k attempts per round, a fine-tune after each). This gives a
   checkpoint every 10 GRPO iterations, so EI and GRPO can be compared below one full round. Decide after the
