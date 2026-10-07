@@ -5,9 +5,10 @@ written_by: agent:claude
 
 # Thinking traces for the proof-state model (test-time scaling, LLM tradition)
 
-Status (2026-10-06):
+Status (2026-10-07):
 - Stage 1 is done: 4 arms × 3 seeds, with reads on textbook72 and the OOD sets (below).
-- The RL phase is proposed, not started.
+- The RL phase is running. There are expert-iteration (EI) and GRPO arms on the rl_hard12 pool, and the GRPO
+  arms await a fixed relaunch. See [RL phase](#rl-phase-2026-10-06-to-07-in-progress).
 - **The LLM-written-trace arm is dropped.** Claude subagents asked to write these traces were blocked by a
   `[reasoning_extraction]` safeguard, so no Claude-written trace is used for training.
 
@@ -190,6 +191,60 @@ theorem. Dan's Stage-1 checkpoint with guided redraws at k 64 (about 24k tokens)
 - Making thinking pay at small budgets, and OOD, is the job of the RL phase.
 - v1's lead supports Leon's view: what the traces must supply is variety and length, not audited rigor.
 - Which init is better for RL is not settled by these reads.
+
+## RL phase (2026-10-06 to 07, in progress)
+
+**Setup.**
+- Runs live in `/scratch/cowifornia/nd-rl/think/runs/`. Arms:
+  - EI (Dan's ladder, 8 rounds × k 32);
+  - GRPO (Dr. GRPO, clip-higher, 312 iterations × 256 × 16).
+- Both arms start from T0 (no thinking) and T1v1 with effort tokens `<e0>`–`<e256>`, and are matched on
+  sampled attempts.
+- Pool: `rl_hard12`, 5,000 targets of 7–12 lines with T0 seed 0 at 2–16/32. Sealed test split:
+  `hard12_test_1k`.
+
+**Retracted (2026-10-07).** Two earlier readings came from a buggy GRPO loss: "thinking shrinks under RL" and
+"no-thinking GRPO improves faster than thinking".
+- The sampler masks `<eos>` and other tokens inside think blocks, but the loss scored the full vocabulary.
+- Mass drifted onto the never-sampled `<eos>`, and the thinking GRPO run on hard12 collapsed twice.
+- The fix is `7b082b7`, with a sampler-equality test, dual clip, alarms and rolling checkpoints.
+- Details: [GRPO_COLLAPSE_AUDIT.md](../../code/experiments/current/thinking_traces_20261005/GRPO_COLLAPSE_AUDIT.md).
+- EI, no-thinking GRPO, Stage 1 and all evals are unaffected.
+
+**Observed:**
+- **Overlong masking teaches looping.**
+  - In no-thinking GRPO, attempts ending at the 48-step cap rose from 0% (iteration 40) to 21% (iteration 182),
+    and batch pass@1 fell from 93% to 75%.
+  - Under masking, a loop is neutral while a failure is penalised.
+  - The relaunch scores capped attempts as failures (`--overlong fail`).
+- **The hard12 test set is partly a selection effect**
+  ([seed control](../../code/experiments/current/thinking_traces_20261005/stage1_stats/hard12_seed_control.md)):
+  - T0 seed 0 reads 27.8% pass@1, against 42.4–42.5% for seeds 1–2.
+  - T1v1 at B 256 is level with unbiased T0 at pass@1 (42.6% vs 42.4%) and ahead at pass@5 (80.8% vs 75.2%,
+    +5.6 pp [+2.9, +8.5]).
+  - At matched tokens T1v1 at B 256 is behind: −15 pp at 1k tokens per theorem, −4.5 pp at 3k.
+  - Within T1v1, thinking adds +12.5 pp pass@1 and +19.1 pp pass@5 across 3 seeds.
+- **Thinking allocation is adaptive, and RL strengthens it** ([ADAPTIVITY.md](../../code/experiments/current/thinking_traces_20261005/ADAPTIVITY.md)):
+  - At e256, think tokens per attempt correlate with the checkpoint's own difficulty. ρ is −0.23 at the init
+    and −0.43 after one EI round.
+  - The e256 gain over e0 is largest where the model rarely succeeds without thinking: +15 to +31 pp.
+  - The gain is slightly negative where it nearly always succeeds.
+  - Short budgets are worse than none: e16 is −11 pp at the init and −26 pp after EI round 1.
+- **Filler thinking hurts.** T1f, trained with filler think blocks (1 seed), loses 3.3 pp pass@1 at B 256
+  against its own B 0 on textbook72 ([−4.9, −2.0], paired over theorems). The same seed of T1 with real traces
+  gains 1.7 pp. The content of the traces matters.
+- **The goal-stack state (all open goals) changes nothing resolvable on textbook72**
+  ([table](../../code/experiments/current/thinking_traces_20261005/stage1_stats/tb72_goalstack.md)): all pairwise differences are within ±4 pp, and every interval
+  includes 0.
+- **The sealed 21–30-line test set (2,775 theorems) is at the floor for Stage-1 models.** T1v1 at B 256 reaches
+  0.22% pass@8. Built by composing measured short pieces:
+  [test_21_30/README.md](../../code/experiments/current/thinking_traces_20261005/test_21_30/README.md).
+
+**Open:**
+- Fixed GRPO relaunch, thinking and no-thinking.
+- EI runs: no-thinking finishes about 4:30 am PDT on 2026-10-07, thinking about 9 am.
+- Fixed-problem evals of all RL checkpoints at every effort level.
+- A graded 13–20-line test set.
 
 ## Baseline figure
 
