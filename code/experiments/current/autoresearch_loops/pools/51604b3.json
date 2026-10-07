@@ -1,0 +1,83 @@
+{
+ "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+ "seed": 0,
+ "pretrain": {
+  "file": "data/train.jsonl",
+  "n": 154990,
+  "by_lines": {
+   "2": 30999,
+   "3": 30999,
+   "4": 30998,
+   "5": 30996,
+   "6": 30998
+  }
+ },
+ "pretrain_heldout": {
+  "file": "data/heldout.jsonl (2000 evenly spaced)",
+  "n": 2000,
+  "by_lines": {
+   "2": 400,
+   "3": 400,
+   "4": 400,
+   "5": 400,
+   "6": 400
+  }
+ },
+ "rl_targets": {
+  "file": "data/ladder/rl_targets.jsonl",
+  "pool": {
+   "n": 4495,
+   "by_lines": {
+    "7": 1800,
+    "8": 1000,
+    "9": 1004,
+    "10": 456,
+    "11": 99,
+    "12": 106,
+    "13": 16,
+    "14": 14
+   }
+  },
+  "sampled": {
+   "n": 1500,
+   "by_lines": {
+    "7": 590,
+    "8": 326,
+    "9": 341,
+    "10": 163,
+    "11": 37,
+    "12": 37,
+    "13": 4,
+    "14": 2
+   }
+  }
+ },
+ "transfer_dev": {
+  "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+  "n": 1108,
+  "by_lines": {
+   "7": 150,
+   "8": 152,
+   "9": 477,
+   "10": 219,
+   "11": 49,
+   "12": 54,
+   "13": 5,
+   "14": 2
+  }
+ },
+ "transfer_holdout": {
+  "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+  "n": 1177,
+  "by_lines": {
+   "7": 150,
+   "8": 148,
+   "9": 533,
+   "10": 232,
+   "11": 50,
+   "12": 48,
+   "13": 8,
+   "14": 8
+  }
+ }
+}

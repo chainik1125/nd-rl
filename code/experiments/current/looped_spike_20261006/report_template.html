@@ -1,0 +1,329 @@
+<title>Looped Spike Report</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column of lab-notebook sections; charts sit in two-up small multiples
+   (one per problem pool) that stack on a phone; tables carry every plotted number. */
+:root {
+  --bg: #f5f6f9; --surface: #ffffff; --ink: #141920; --muted: #5a6473; --rule: #dde2ea;
+  --grid: #e9edf3; --c-ref: #eb6834; --c-loop: #2a78d6; --c-ctl: #1baf7a; --c-wide: #3b4350; --c-wider: #4a3aa7;
+  --l1: #86b6ef; --l2: #5598e7; --l3: #2a78d6; --l4: #1c5cab; --l5: #0d366b;
+  --warn-bg: #fff6df; --warn-ink: #6b4a00;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --c-ref: #d95926; --c-loop: #3987e5; --c-ctl: #199e70; --c-wide: #c9d0db; --c-wider: #b3a9f5;
+  --l1: #184f95; --l2: #256abf; --l3: #3987e5; --l4: #6da7ec; --l5: #b7d3f6;
+  --warn-bg: #2e2710; --warn-ink: #f2d58a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --c-ref: #d95926; --c-loop: #3987e5; --c-ctl: #199e70; --c-wide: #c9d0db; --c-wider: #b3a9f5;
+  --l1: #184f95; --l2: #256abf; --l3: #3987e5; --l4: #6da7ec; --l5: #b7d3f6;
+  --warn-bg: #2e2710; --warn-ink: #f2d58a; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px;
+  display: flex; flex-direction: column; gap: 36px; }
+h1 { font-size: 30px; line-height: 1.15; font-weight: 600; margin: 0; text-wrap: balance; }
+h2 { font-size: 19px; font-weight: 600; margin: 0; text-wrap: balance; }
+h3 { font: 500 12px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 18px; line-height: 1.45; max-width: 60ch; }
+.status { background: var(--warn-bg); color: var(--warn-ink); padding: 10px 14px; border-radius: 6px;
+  font-size: 14px; max-width: none; }
+ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 72ch; }
+.muted { color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); }
+.arch { display: grid; grid-template-columns: max-content 1fr; gap: 10px 16px; align-items: center;
+  font: 12px var(--mono); }
+.arch .row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.blk { border: 1.5px solid var(--muted); border-radius: 4px; padding: 5px 9px; background: var(--surface); }
+.blk.shared { border-color: var(--c-loop); }
+.loopbox { display: flex; gap: 4px; align-items: center; border: 1.5px dashed var(--c-loop);
+  border-radius: 6px; padding: 4px 6px; }
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 180px; }
+thead th { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .03em; vertical-align: bottom; }
+thead th small { display: block; font-weight: 400; letter-spacing: 0; }
+tbody tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-size: 13px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: baseline; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px;
+  display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.panel .sub { font-size: 13px; color: var(--muted); }
+.chart { width: 100%; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font: 11px var(--mono); fill: var(--muted); }
+.empty { font-size: 13px; color: var(--muted); padding: 40px 0; text-align: center; max-width: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 13px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: 500 13px var(--sans); color: var(--muted); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg button:focus-visible { outline: 2px solid var(--c-loop); outline-offset: -2px; }
+#tip { position: fixed; pointer-events: none; z-index: 5; background: var(--ink); color: var(--bg);
+  font: 12px/1.5 var(--mono); padding: 6px 9px; border-radius: 5px; white-space: nowrap; }
+#tip b { font-weight: 500; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <div class="eyebrow">nd-rl · looped transformer spike · <span id="gen"></span></div>
+    <h1>Does a looped trunk buy proofs at test time?</h1>
+    <p class="lede" id="headline"></p>
+    <p class="status" id="status"></p>
+  </header>
+
+  <section>
+    <h2>What is being compared</h2>
+    <div class="arch">
+      <span class="muted">Run 198</span>
+      <div class="row"><span class="blk">B1</span><span class="blk">B2</span><span class="blk">B3</span><span class="blk">B4</span><span class="blk">B5</span><span class="blk">B6</span><span class="muted">&nbsp;6 blocks, 9.56M params</span></div>
+      <span class="muted">Looped</span>
+      <div class="row"><span class="blk">entry</span><span class="loopbox"><span class="blk shared">core A</span><span class="blk shared">core B</span><span style="color:var(--c-loop)">&times; n</span></span><span class="blk">exit</span><span class="muted">&nbsp;2 + 2n blocks per token, 6.40M params</span></div>
+    </div>
+    <p>Both models go through the same frozen harness: 300 s of pretraining on proofs of 6 lines or fewer, four rounds of expert iteration on 1,500 targets, then the dev eval. The looped model samples at n = 2 inside the harness, so it applies 6 blocks per token like run 198. Afterwards each checkpoint is sampled again at other loop counts, with no retraining.</p>
+  </section>
+
+  <section>
+    <h2>Scorecard</h2>
+    <div class="tablebox"><table id="score"></table></div>
+    <p class="note">Harness score = dev theorems solved with true length 7 or more, 64 samples each. Sweep rows give the looped models at 2 loops, with the best loop count in brackets when it differs. A dash means that stage has not finished.</p>
+  </section>
+
+  <section>
+    <h2>Findings</h2>
+    <ul id="findings"></ul>
+  </section>
+
+  <section>
+    <h2>Proofs solved against test-time loop count</h2>
+    <p>Each point is the same checkpoint sampled at a different loop count. The solid line uses every sample. The dashed line gives the model only as many samples as run 198's compute would pay for (k &times; 6 / blocks per token), which is the test for whether loops beat simply sampling more.</p>
+    <div class="controls">
+      <span>Checkpoint</span><div class="seg" id="stageSeg"></div>
+      <span>Looped arm</span><div class="seg" id="armSeg"></div>
+    </div>
+    <div class="legend" id="loopLegend"></div>
+    <div class="grid2" id="loopCharts"></div>
+    <div class="tablebox"><table id="sweepTable"></table></div>
+  </section>
+
+  <section>
+    <h2>Pass@k curves</h2>
+    <p>Expected problems solved with k samples per problem, exact over subsets of the samples drawn. Switch the x-axis to compute to charge each loop count for its extra blocks: one unit is one run-198 sample.</p>
+    <div class="controls"><span>X-axis</span><div class="seg" id="xSeg"></div></div>
+    <div class="legend" id="passLegend"></div>
+    <div class="grid2" id="passCharts"></div>
+  </section>
+
+  <section>
+    <h2>Inside the harness run</h2>
+    <div class="legend" id="armLegend"></div>
+    <div class="grid2">
+      <div class="panel"><h3>Pretraining validation loss</h3><div class="sub">Held-out short proofs, by seconds of the 300 s budget</div><div class="chart" id="valChart"></div></div>
+      <div class="panel"><h3>RL targets solved</h3><div class="sub">Cumulative, of 1,500, after each expert-iteration round; rounds 5 to 12 are the extra RL</div><div class="chart" id="rlChart"></div></div>
+      <div class="panel"><h3>Dev solve rate by proof length</h3><div class="sub">Share of dev theorems solved at each true length, 64 samples</div><div class="chart" id="binChart"></div></div>
+      <div class="panel"><h3>Validation loss by loop count</h3><div class="sub">Looped arms at the end of pretraining; loops above 4 were never trained</div><div class="chart" id="vblChart"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Time</h2>
+    <div class="tablebox"><table id="timeTable"></table></div>
+    <p class="note">All on one RunPod A40. Sampling speed includes the Lean check of every sample.</p>
+  </section>
+
+  <section>
+    <h2>Read with care</h2>
+    <ul id="caveats"></ul>
+  </section>
+
+  <footer>Pools: textbook72 (72 textbook problems, 256 samples each), long dev (the 329 dev transfer theorems with true length 10 or more, 64 samples each) and RL unsolved (each run's own RL targets that none of its rounds solved, 128 samples each; the set differs between runs). Sampling temperature 0.8, seed 0, as in the harness. Code: <span style="font-family:var(--mono)">code/experiments/current/looped_spike_20261006</span>.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const DATA = /*DATA*/;
+const $ = id => document.getElementById(id);
+const ARMC = {"198": "var(--c-ref)", loops1234: "var(--c-loop)", loops2: "var(--c-ctl)", loops12345678: "var(--c-wide)", loops1234681216: "var(--c-wider)"};
+const RAMP = {1: "var(--l1)", 2: "var(--l2)", 4: "var(--l3)", 8: "var(--l4)", 12: "var(--l5)"};
+const POOLS = {textbook72: "textbook72 (72 problems, k = 256)", dev_long: "Long dev, length 10+ (329 problems, k = 64)", rl_unsolved: "RL targets the run never solved (k = 128)"};
+const SHORT = {textbook72: "textbook72", dev_long: "long dev", rl_unsolved: "RL unsolved"};
+const arms = DATA.arms, ref = arms[0], looped = arms.slice(1);
+const state = {stage: "final", arm: "loops1234", x: "samples"};
+const fmt = (v, d = 0) => v == null ? "–" : Number(v).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+// exact expected number solved with m of the k samples
+const LF = [0]; for (let i = 1; i <= 600; i++) LF[i] = LF[i - 1] + Math.log(i);
+const lc = (n, r) => (r < 0 || r > n) ? -Infinity : LF[n] - LF[r] - LF[n - r];
+const expSolved = (counts, k, m) => counts.reduce((a, c) => a + 1 - Math.exp(lc(k - c, m) - lc(k, m)), 0);
+const rows = (arm, stage, pool) => ((arm.sweeps || {})[stage] || []).filter(r => r.pool === pool);
+const atCompute = r => expSolved(r.counts, r.k, Math.min(r.k, Math.floor(r.k * 6 / r.depth)));
+
+// ---------- charts
+const tip = $("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false;
+  const w = tip.offsetWidth, x = Math.min(window.innerWidth - w - 8, e.clientX + 14);
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 12) + "px"; }
+function niceStep(span, n) { const raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
+const charts = [];
+function chart(el, build) { const c = {el, build}; charts.push(c); draw(c); }
+function draw(c) {
+  const cfg = c.build(), el = c.el, series = (cfg.series || []).filter(s => s.pts.length);
+  if (!series.length) { el.innerHTML = '<p class="empty">No data for this checkpoint yet.</p>'; return; }
+  const W = Math.max(260, el.clientWidth), H = 250, m = {l: 46, r: 16, t: 10, b: 42};
+  const tx = v => cfg.xlog ? Math.log2(v) : v;
+  const allx = series.flatMap(s => s.pts.map(p => p[0])), ally = series.flatMap(s => s.pts.map(p => p[1])).concat((cfg.refs || []).map(r => r.y));
+  let x0 = tx(Math.min(...allx)), x1 = tx(Math.max(...allx)); if (x0 === x1) { x0 -= 1; x1 += 1; }
+  const pad = cfg.bars ? 0.6 : 0; x0 -= pad; x1 += pad;
+  let y0 = cfg.ymin ?? 0, ymax = cfg.ymax ?? Math.max(...ally) * 1.08;
+  const step = niceStep(ymax - y0, 4); const y1 = Math.ceil((ymax - 1e-9) / step) * step;
+  const X = v => m.l + (tx(v) - x0) / (x1 - x0) * (W - m.l - m.r), Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  const yf = cfg.yfmt || (v => fmt(v, step < 1 ? (step < 0.01 ? 3 : 2) : 0));
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "")}">`;
+  for (let v = y0; v <= y1 + 1e-9; v += step)
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--grid)"/><text x="${m.l - 8}" y="${Y(v) + 4}" text-anchor="end">${yf(v)}</text>`;
+  const ticks = cfg.xticks || [...new Set(allx)].sort((a, b) => a - b).map(v => [v, String(v)]);
+  let lastEnd = -1e9;
+  for (const [v, lab] of ticks) { const px = X(v), wlab = String(lab).length * 6.8;
+    if (px - wlab / 2 < lastEnd + 4) continue; lastEnd = px + wlab / 2;
+    s += `<text x="${px}" y="${H - m.b + 16}" text-anchor="middle">${esc(lab)}</text>`; }
+  s += `<text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">${esc(cfg.xlabel || "")}</text>`;
+  for (const r of cfg.refs || []) s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(r.y)}" y2="${Y(r.y)}" style="stroke:${r.color};stroke-width:2;stroke-dasharray:2 4"/>`;
+  if (cfg.bars) { const g = series.length, bw = Math.min(18, (X(1) - X(0)) * 0.8 / g);
+    series.forEach((se, i) => se.pts.forEach(p => { const h = Y(y0) - Y(p[1]), bx = X(p[0]) + (i - g / 2) * (bw + 2) + 1;
+      s += `<path d="M${bx},${Y(y0)}v${-Math.max(0, h - 3)}q0,-3 3,-3h${bw - 6}q3,0 3,3v${Math.max(0, h - 3)}z" style="fill:${se.color}" ${h < 3 ? 'opacity="0"' : ""}/>`; }));
+  } else for (const se of series) {
+    const d = se.pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join("");
+    s += `<path d="${d}" fill="none" style="stroke:${se.color};stroke-width:2;stroke-linejoin:round;${se.dash ? "stroke-dasharray:6 4" : ""}"/>`;
+    if (se.dots) for (const p of se.pts) s += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="4" style="fill:${se.color};stroke:var(--surface);stroke-width:2"/>`;
+  }
+  s += `<line class="xh" y1="${m.t}" y2="${H - m.b}" style="stroke:var(--muted);stroke-width:1" visibility="hidden"/><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent"/></svg>`;
+  el.innerHTML = s;
+  const svg = el.firstChild, xh = svg.querySelector(".xh"), xsU = [...new Set(allx)];
+  svg.onmousemove = e => { const b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * W / b.width;
+    const xv = xsU.reduce((a, v) => Math.abs(X(v) - px) < Math.abs(X(a) - px) ? v : a, xsU[0]);
+    xh.setAttribute("x1", X(xv)); xh.setAttribute("x2", X(xv)); xh.setAttribute("visibility", cfg.bars ? "hidden" : "visible");
+    let h = `<b>${esc((cfg.xtip || (v => (cfg.xlabel || "x") + " " + fmt(v, v % 1 ? 1 : 0)))(xv))}</b>`;
+    for (const se of series) { const p = se.pts.find(p => p[0] === xv); if (p) h += `<br>${esc(se.name)}: ${esc(se.tip ? se.tip(p) : yf(p[1]))}`; }
+    for (const r of cfg.refs || []) h += `<br>${esc(r.name)}: ${yf(r.y)}`;
+    showTip(e, h); };
+  svg.onmouseleave = () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); };
+}
+new ResizeObserver(() => charts.forEach(draw)).observe(document.querySelector(".wrap"));
+const redraw = () => charts.forEach(draw);
+
+// ---------- controls
+function seg(id, opts, key) { const el = $(id);
+  el.innerHTML = opts.map(([v, lab]) => `<button id="${id}-${v}" data-v="${v}" aria-pressed="${state[key] === v}">${esc(lab)}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("button"); if (!b) return; state[key] = b.dataset.v;
+    el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderSweep(); redraw(); }; }
+const legend = items => items.map(([c, lab, dash]) => `<span><i class="${dash ? "dash" : ""}" style="border-color:${c}"></i>${esc(lab)}</span>`).join("");
+
+// ---------- header, notes, scorecard
+$("gen").textContent = "updated " + DATA.generated;
+$("headline").textContent = DATA.notes.headline; $("status").textContent = DATA.notes.status;
+$("findings").innerHTML = DATA.notes.findings.map(f => `<li>${esc(f)}</li>`).join("");
+$("caveats").innerHTML = DATA.notes.caveats.map(f => `<li>${esc(f)}</li>`).join("");
+const last = a => a.length ? a[a.length - 1] : null;
+const sweepCell = (a, pool, stage = "final") => { const rs = rows(a, stage, pool); if (!rs.length) return "–";
+  const base = rs.find(r => r.loops === 2 || r.loops === 0) || rs[0], best = rs.reduce((x, r) => r.solved > x.solved ? r : x, rs[0]);
+  return `${base.solved}` + (a.id !== "198" && best.loops !== base.loops ? ` <span class="muted">(best ${best.solved} at n=${best.loops})</span>` : ""); };
+const SCORE = [
+  ["Unique parameters", a => a.params ? fmt(a.params / 1e6, 2) + "M" : "–"],
+  ["Pretrain steps in 300 s", a => fmt(a.steps)],
+  ["Validation loss, end of pretraining", a => a.curve.length ? fmt(last(a.curve).val, 4) : "–"],
+  ["Held-out greedy solve rate, after pretraining", a => fmt(a.greedy_pre, 3)],
+  ["RL targets solved by round, of 1,500", a => a.rounds.length ? a.rounds.map(r => fmt(r.solved)).join(" → ") : "–"],
+  ["Harness score, of 1,108", a => a.score == null ? "–" : `<b>${fmt(a.score)}</b>` + (a.seed_scores ? ` <span class="muted">(seeds ${Object.values(a.seed_scores).join(", ")})</span>` : "")],
+  ["textbook72 solved before RL, k = 256", a => sweepCell(a, "textbook72", "pretrain")],
+  ["Long dev solved before RL, of 329, k = 64", a => sweepCell(a, "dev_long", "pretrain")],
+  ["textbook72 solved after RL, k = 256", a => sweepCell(a, "textbook72")],
+  ["Long dev solved after RL, of 329, k = 64", a => sweepCell(a, "dev_long")],
+  ["Never-solved RL targets cracked in the sweep, k = 128", a => { const r = rows(a, "final", "rl_unsolved")[0]; return r ? sweepCell(a, "rl_unsolved") + ` <span class="muted">of ${r.n}</span>` : "–"; }],
+  ["RL targets solved after 12 rounds, of 1,500", a => a.more ? fmt(last(a.more.cumulative)) : "–"],
+  ["Dev score after 12 rounds, of 1,108", a => a.more ? `<b>${fmt(a.more.score)}</b>` : "–"],
+  ["RL sampling speed, samples/s", a => a.rounds.length ? fmt(a.rounds.reduce((s, r) => s + r.sps, 0) / a.rounds.length) : "–"],
+  ["Harness wall-clock", a => a.total_secs ? fmt(a.total_secs / 60, 1) + " min" : `<span class="muted">${esc(a.status)}</span>`],
+];
+$("score").innerHTML = `<thead><tr><th></th>${arms.map(a => `<th><span class="sw" style="background:${ARMC[a.id]}"></span>${esc(a.label)}<small>${esc(a.desc)}</small></th>`).join("")}</tr></thead><tbody>` +
+  SCORE.map(([lab, f]) => `<tr><td>${lab}</td>${arms.map(a => `<td class="num">${f(a)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+
+// ---------- sweep
+seg("stageSeg", [["final", "After 4 RL rounds"], ["more", "After 12 RL rounds"], ["pretrain", "After pretraining"]], "stage");
+seg("armSeg", looped.map(a => [a.id, a.label]), "arm");
+seg("xSeg", [["samples", "Samples per problem"], ["compute", "Compute (run-198 samples)"]], "x");
+const cur = () => looped.find(a => a.id === state.arm);
+function renderSweep() {
+  const a = cur();
+  $("loopLegend").innerHTML = legend([[ARMC[a.id], "Looped, all k samples"], [ARMC[a.id], "Looped, at run 198's compute", 1], [ARMC["198"], "Run 198 (6 blocks)", 1]]);
+  $("passLegend").innerHTML = legend([[ARMC["198"], "Run 198"]].concat(Object.keys(RAMP).map(n => [RAMP[n], n + (n === "1" ? " loop" : " loops")])));
+  const head = `<thead><tr><th>Loops at test time</th><th>Blocks per token</th>` + Object.keys(POOLS).map(p => `<th>${SHORT[p]}<small>solved</small></th><th><small>at 198's compute</small></th><th><small>pass@1</small></th>`).join("") + `<th>Samples/s</th></tr></thead>`;
+  const line = (arm, loops, lab) => { const cells = Object.keys(POOLS).map(p => { const r = rows(arm, state.stage, p).find(r => r.loops === loops);
+      return r ? `<td class="num">${r.solved}/${r.n}</td><td class="num">${fmt(atCompute(r), 1)}</td><td class="num">${fmt(r.counts.reduce((x, y) => x + y, 0) / (r.k * r.n), 3)}</td>` : `<td class="num">–</td><td class="num">–</td><td class="num">–</td>`; });
+    const r0 = rows(arm, state.stage, "dev_long").find(r => r.loops === loops) || rows(arm, state.stage, "textbook72").find(r => r.loops === loops);
+    return `<tr><td>${lab}</td><td class="num">${r0 ? r0.depth : "–"}</td>${cells.join("")}<td class="num">${r0 ? fmt(r0.sps) : "–"}</td></tr>`; };
+  const ls = [...new Set(((a.sweeps || {})[state.stage] || []).map(r => r.loops))];
+  $("sweepTable").innerHTML = head + "<tbody>" + line(ref, 0, "Run 198") + (ls.length ? ls.map(n => line(a, n, "Looped, n = " + n)).join("") : `<tr><td colspan="12" class="muted">The looped sweep for this checkpoint has not finished.</td></tr>`) + "</tbody>";
+}
+$("loopCharts").innerHTML = Object.keys(POOLS).map(p => `<div class="panel"><h3>${POOLS[p]}</h3><div class="sub">Problems solved</div><div class="chart" id="loop-${p}"></div></div>`).join("");
+$("passCharts").innerHTML = Object.keys(POOLS).map(p => `<div class="panel"><h3>${POOLS[p]}</h3><div class="sub">Expected problems solved</div><div class="chart" id="pass-${p}"></div></div>`).join("");
+for (const p of Object.keys(POOLS)) {
+  chart($("loop-" + p), () => { const a = cur(), rs = rows(a, state.stage, p), r198 = rows(ref, state.stage, p)[0];
+    return {label: "Solved against loop count, " + p, xlabel: "loops at test time (blocks per token = 2 + 2n)",
+      xticks: rs.map(r => [r.depth, String(r.loops)]), xtip: d => `n = ${(d - 2) / 2}, ${d} blocks`,
+      series: [{name: "all k samples", color: ARMC[a.id], dots: 1, pts: rs.map(r => [r.depth, r.solved])},
+               {name: "at 198's compute", color: ARMC[a.id], dash: 1, pts: rs.map(r => [r.depth, atCompute(r)]), tip: q => fmt(q[1], 1)}],
+      refs: rs.length && r198 ? [{y: r198.solved, color: ARMC["198"], name: "Run 198"}] : []}; });
+  chart($("pass-" + p), () => { const a = cur(), rs = rows(a, state.stage, p), r198 = rows(ref, state.stage, p)[0], out = [];
+    const curve = (r, name, color) => { const pts = []; for (let m = 1; m <= r.k; m *= 2) pts.push([state.x === "compute" ? m * r.depth / 6 : m, expSolved(r.counts, r.k, m)]);
+      return {name, color, pts, tip: q => fmt(q[1], 1)}; };
+    for (const r of rs) if (RAMP[r.loops]) out.push(curve(r, "n = " + r.loops, RAMP[r.loops]));
+    if (r198 && rs.length) out.push(curve(r198, "Run 198", ARMC["198"]));
+    const xs = [...new Set(out.flatMap(s => s.pts.map(q => q[0])))].filter(v => Number.isInteger(Math.log2(v)));
+    return {label: "Pass@k, " + p, xlog: 1, series: out, xticks: xs.sort((x, y) => x - y).map(v => [v, String(v)]),
+      xlabel: state.x === "compute" ? "compute per problem, in run-198 samples (log scale)" : "samples per problem k (log scale)",
+      xtip: v => (state.x === "compute" ? "compute " : "k = ") + fmt(v, v % 1 ? 1 : 0)}; });
+}
+renderSweep();
+
+// ---------- harness charts
+const shown = arms.filter(a => a.curve.length);
+$("armLegend").innerHTML = legend(arms.map(a => [ARMC[a.id], a.label]));
+chart($("valChart"), () => ({label: "Validation loss during pretraining", xlabel: "seconds", ymin: 0.07, ymax: 0.115, yfmt: v => fmt(v, 2),
+  xticks: [60, 120, 180, 240, 300].map(v => [v, String(v)]), xtip: v => v + " s",
+  series: shown.map(a => ({name: a.label, color: ARMC[a.id], pts: a.curve.filter(c => c.secs >= 45 && c.val < 0.115).map(c => [c.secs, c.val]), tip: q => fmt(q[1], 4)}))}));
+chart($("rlChart"), () => ({label: "RL targets solved by round", xlabel: "expert-iteration round", xtip: v => "round " + v,
+  series: arms.filter(a => a.rounds.length).map(a => ({name: a.label, color: ARMC[a.id], dots: 1, pts: a.rounds.map((r, i) => [i + 1, r.solved]).concat(a.more ? a.more.cumulative.map((v, i) => [a.rounds.length + i + 1, v]) : [])}))}));
+chart($("binChart"), () => { const withBins = arms.filter(a => a.by_bin && Object.keys(a.by_bin).length);
+  return {label: "Dev solve rate by proof length", bars: 1, xlabel: "true proof length (lines)", ymin: 0, ymax: 1, yfmt: v => Math.round(v * 100) + "%", xtip: v => v + " lines",
+    series: withBins.map(a => ({name: a.label, color: ARMC[a.id], pts: Object.entries(a.by_bin).map(([L, b]) => [+L, b[0] / b[1]]), tip: q => { const b = a.by_bin[q[0]]; return `${b[0]}/${b[1]}`; }}))}; });
+chart($("vblChart"), () => ({label: "Validation loss by loop count", xlabel: "loops at eval", ymin: 0.075, yfmt: v => fmt(v, 3), xtip: v => "n = " + v,
+  series: looped.filter(a => a.val_by_loops).map(a => ({name: a.label, color: ARMC[a.id], dots: 1, pts: Object.entries(a.val_by_loops).map(([n, v]) => [+n, v]), tip: q => fmt(q[1], 4)}))}));
+
+// ---------- time
+const sweepSecs = a => ["pretrain", "final"].map(st => ((a.sweeps || {})[st] || []).reduce((s, r) => s + r.secs, 0));
+const TIME = [
+  ["Pretraining, s", a => fmt(a.pretrain_secs)],
+  ["RL rounds 1 to 4, s each", a => a.rounds.length ? a.rounds.map(r => fmt(r.secs)).join(" / ") : "–"],
+  ["Whole harness run, s", a => fmt(a.total_secs)],
+  ["8 more RL rounds plus dev eval, s", a => a.more ? fmt(a.more.secs) : "–"],
+  ["Loop sweep on pretrain.pt, s", a => sweepSecs(a)[0] ? fmt(sweepSecs(a)[0]) : "–"],
+  ["Loop sweep on final.pt, s", a => sweepSecs(a)[1] ? fmt(sweepSecs(a)[1]) : "–"],
+];
+$("timeTable").innerHTML = `<thead><tr><th></th>${arms.map(a => `<th>${esc(a.label)}</th>`).join("")}</tr></thead><tbody>` +
+  TIME.map(([lab, f]) => `<tr><td>${lab}</td>${arms.map(a => `<td class="num">${f(a)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+</script>
