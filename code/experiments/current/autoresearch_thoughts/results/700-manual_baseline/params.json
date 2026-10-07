@@ -1,0 +1,214 @@
+{
+  "id": "700-manual",
+  "slug": "baseline",
+  "written_at": "2026-10-07T08:31:54-0700",
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "base_commit": "1e9f99a",
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "460db344050e",
+  "patch_lines": 0,
+  "title": "Baseline: one parallel thinking round before each proof line, plan probe kept on in RL",
+  "description": "Starting incumbent for the test-time-thoughts loop: run 198's six untied blocks with n continuous thought positions after every `;` and `by` (inputs made from the model's own output at that token, one parallel pass per line), n drawn from 0-8 per training batch, a training-only plan probe at weight 0.3 in pretraining and RL fine-tuning, and the old harness's expert iteration moved into rl() with each round sampling every target 8 times at each of 0, 2, 4 and 8 thoughts. Sets the first 3-seed mean under the shared harness.",
+  "tags": [
+    "thoughts",
+    "rl",
+    "loss",
+    "architecture"
+  ],
+  "hypothesis": "Thinking before every line, with the thoughts supervised by a plan probe during RL as well as pretraining, keeps the model using its thoughts after RL; in the 2026-10-06 spike one block of thoughts up front, unsupervised in RL, was ignored after four rounds.",
+  "p_keep": 1.0,
+  "expected_delta": "establishes the incumbent; expect roughly 450-600 at 8 thoughts (pretraining gets about 1,650 steps against run 198's 5,363) and a small gap, if any, over 0 thoughts",
+  "baseline_id": null,
+  "baseline_metric": null,
+  "config": {
+    "arch": {
+      "type": "gpt, 6 untied Peri-LN blocks, plus n continuous thought positions after every `;` and `by` (LayerNorm(output at the trigger) + slot embedding, one parallel pass per line)",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4; thoughts share their trigger's position",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9564672
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "none (CUDA-graphed Muon step only)",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "thoughts": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        0,
+        2,
+        4,
+        8
+      ],
+      "default": 8,
+      "val": [
+        0,
+        2,
+        8
+      ],
+      "where": "after every `;` and `by` token",
+      "max": 16,
+      "probe": "token after the next `:=` or `exact`, read off the last thought, weight 0.3, pretraining and RL"
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "ft_steps": 600,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "k_per_count": 8,
+      "rounds": "until another round would not fit in RL_SECS",
+      "ft_optimizer": "adamw, warmup 50 then cosine to lr/10",
+      "loss": "next-token CE plus the plan probe at weight 0.3",
+      "mtp": "pretraining only, weight 0.3"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_thoughts",
+      "level": 8,
+      "diag_level": 0,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
