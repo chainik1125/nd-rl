@@ -8,8 +8,9 @@ writes one action.  With thinking, it writes a think block first:
 Every token of a think block is a `lean_staten` token, or one of the three new tokens `<think>`,
 `</think>`, `<no>`.  A LINE is one of (EBNF in PROPOSAL.md section 2):
 
-    goal       [x : A ...] ⊢ G [:= SKEL] [<no>]   a (sub)goal under think-local binders x : A,
-                                                   optionally reduced to the holes `⊢ F` in SKEL
+    goal       [x : A ...] ⊢ G [:= SKEL] [<no> [LIT ...]]   a (sub)goal under think-local binders
+                                                   x : A, optionally reduced to the holes `⊢ F` in
+                                                   SKEL; a `<no>` may carry its countermodel
     look       n : A                               recall a hypothesis or think-local binder
     candidate  ACTION                              an action exactly as the environment takes it
     reject     <no>                                the latest candidate fails
@@ -20,6 +21,12 @@ Claims the validator checks (hard errors):
   * an unmarked reduction type-checks (bidirectionally, holes as typed metavariables);
   * `⊢ G <no>`: G is not a classical consequence of the scope (a countermodel over P Q R S);
   * `⊢ G := SKEL <no>`: SKEL is ill-typed, or one of its holes is not a consequence of its scope;
+  * countermodel evidence (optional, `searchtrace`): `<no>` followed by literals `P` / `( ¬ P )`,
+    atoms in P Q R S order, each at most once, is a partial assignment.  Under Kleene's strong
+    three-valued evaluation (an unassigned atom is unknown) it must make every hypothesis of the
+    scope (and the line's binders) true and the goal false; on a reduction it must do so for one of
+    the reduction's holes (with that hole's binders).  Any completion is then a countermodel.
+    Lines without literals are checked exactly as before;
   * an unrejected candidate is accepted by the environment, passes `step_check` and leaves no
     unprovable goal; a rejected candidate fails one of those three;
   * the final ACTION passes the same checks and equals the last unrejected candidate, if any;
@@ -160,6 +167,56 @@ def entails(hyps, goal) -> bool:
     """Classical consequence over P Q R S (16 rows).  The fragment has DN: this is provability."""
     hyps = list(hyps)
     return all(holds(goal, v) for v in VALS if all(holds(h, v) for h in hyps))
+
+
+def kleene(f, val: dict):
+    """Kleene's strong three-valued value of f under a partial assignment: True, False or None."""
+    k = f[0]
+    if k == "atom":
+        return val.get(f[1])
+    if k == "bot":
+        return False
+    if k == "not":
+        v = kleene(f[1], val)
+        return None if v is None else not v
+    a, b = kleene(f[1], val), kleene(f[2], val)
+    if k == "and":
+        return False if a is False or b is False else (True if a and b else None)
+    if k == "or":
+        return True if a is True or b is True else (False if a is False and b is False else None)
+    return True if a is False or b is True else (False if a is True and b is False else None)
+
+
+def parse_countermodel(toks: list[str]) -> dict:
+    """Literals after `<no>` (`P`, `( ¬ P )`, atoms strictly in P Q R S order) -> assignment."""
+    val, i, last = {}, 0, -1
+    while i < len(toks):
+        if toks[i] in ATOMS:
+            a, v, i = toks[i], True, i + 1
+        elif toks[i : i + 2] == ["(", "¬"] and i + 3 < len(toks) and toks[i + 3] == ")":
+            a, v, i = toks[i + 2], False, i + 4
+            if a not in ATOMS:
+                raise TraceError(f"countermodel: {a!r} is not an atom")
+        else:
+            raise TraceError(f"countermodel: unexpected {' '.join(toks[i:])}")
+        if ATOMS.index(a) <= last:
+            raise TraceError("countermodel: atoms must be in P Q R S order, each once")
+        last = ATOMS.index(a)
+        val[a] = v
+    return val
+
+
+def refutes(val: dict, hyps, goal) -> bool:
+    """val makes every hypothesis true and the goal false (Kleene): a countermodel certificate."""
+    return kleene(goal, val) is False and all(kleene(h, val) is True for h in hyps)
+
+
+def fmt_countermodel(val: dict) -> list[str]:
+    out = []
+    for a in ATOMS:
+        if a in val:
+            out += [a] if val[a] else ["(", "¬", a, ")"]
+    return out
 
 
 # ------------------------------------------------------------------- the environment scope
@@ -505,9 +562,13 @@ def check_step(env: Env, think: list[str], action: list[str], stats: dict) -> li
                     raise TraceError(f"goal context {x} : {fstr(a)} is not a think-local binder")
             g, j = pform(line, k + 1)
             rest = line[j:]
-            no = bool(rest) and rest[-1] == "<no>"
+            no = "<no>" in rest
+            evidence = None
             if no:
-                rest = rest[:-1]
+                q = rest.index("<no>")
+                if q + 1 < len(rest):  # a countermodel follows the verdict
+                    evidence = parse_countermodel(rest[q + 1 :])
+                rest = rest[:q]
             local = tuple(ctx)
             hyps = list(sc.values()) + [a for _, a in ctx]
             if (local, g) not in holes:
@@ -517,6 +578,10 @@ def check_step(env: Env, think: list[str], action: list[str], stats: dict) -> li
                 if no:
                     if entails(hyps, g):
                         raise TraceError(f"<no> on a provable goal: {' '.join(line)}")
+                    if evidence is not None:
+                        if not refutes(evidence, hyps, g):
+                            raise TraceError(f"countermodel does not refute: {' '.join(line)}")
+                        stats["countermodels"] = stats.get("countermodels", 0) + 1
                     flagged.add((local, g))
                     stats["no_goal"] = stats.get("no_goal", 0) + 1
                 elif not entails(hyps, g):
@@ -540,6 +605,10 @@ def check_step(env: Env, think: list[str], action: list[str], stats: dict) -> li
             if no:
                 if err is None and not bad:
                     raise TraceError(f"<no> on a sound reduction: {' '.join(line)}")
+                if evidence is not None:
+                    if not any(refutes(evidence, hyps_of(sc, h[0]), h[1]) for h in ch.holes):
+                        raise TraceError(f"countermodel refutes no hole: {' '.join(line)}")
+                    stats["countermodels"] = stats.get("countermodels", 0) + 1
                 flagged.update(bad)
                 stats["no_reduction"] = stats.get("no_reduction", 0) + 1
             else:

@@ -416,14 +416,14 @@ def draw_level(rec_id: Any, specs: Sequence[tuple[int, Any, float]]) -> int:
     return int(ordered[-1][0])  # rounding: u is in [0, 1) and the probabilities sum to 1
 
 
-def check_graded_specs(specs: Sequence[tuple[int, Any, float]]) -> None:
+def check_graded_specs(specs: Sequence[tuple[int, Any, float]], any_proof: bool = False) -> None:
     levels = [int(x[0]) for x in specs]
     if len(set(levels)) != len(levels) or not set(levels) <= set(LEVELS):
         raise ValueError(f"graded levels must be distinct and in {LEVELS}, got {levels}")
     if abs(sum(float(x[2]) for x in specs) - 1.0) > 1e-9 or any(x[2] < 0 for x in specs):
         raise ValueError(f"graded probabilities must be >= 0 and sum to 1: {[x[2] for x in specs]}")
     for level, path, _ in specs:
-        if level == 0 and path is not None:
+        if level == 0 and path is not None and not any_proof:
             raise ValueError("level 0 takes no path (the level-256 record, thinks emptied)")
         if level != 0 and path is None:
             raise ValueError(f"level {level} needs a path")
@@ -436,9 +436,13 @@ def build_graded(
     exclude: Sequence[str | Path] = (),
     lean: bool = False,
     max_len: int = 1024,
+    any_proof: bool = False,
 ) -> dict[str, Any]:
-    """Mode `lean_thinke` pairs, one effort level per proof (see the module docstring)."""
-    check_graded_specs(specs)
+    """Mode `lean_thinke` pairs, one effort level per proof (see the module docstring).
+    `any_proof` (search traces, `searchtrace.py`): a level's record may prove the theorem with
+    other actions than the level-256 record (same prompt), and level 0 may take its own file
+    (every think empty: the budget check enforces it)."""
+    check_graded_specs(specs, any_proof)
     specs = sorted(((int(a), b, float(c)) for a, b, c in specs), key=lambda x: x[0])
     E = EffortTokenizer()
     index = EvalIndex(exclude)
@@ -461,16 +465,17 @@ def build_graded(
         if hits:
             continue
         level = draw_level(rec["id"], specs)
-        if level == 0:
+        if level == 0 and (not any_proof or 0 not in by_level):
             use = {**rec, "steps": [{**st, "think": ""} for st in rec["steps"]]}
         else:
             use = by_level[level].get(rec["id"])
             if use is None:
                 missing[level] += 1
                 continue
-        if use["prompt"] != rec["prompt"] or [s["action"] for s in use["steps"]] != [
-            s["action"] for s in rec["steps"]
-        ]:
+        if use["prompt"] != rec["prompt"] or (
+            not any_proof
+            and [s["action"] for s in use["steps"]] != [s["action"] for s in rec["steps"]]
+        ):
             raise ValueError(f"level {level} record {rec['id']} differs from the level-256 one")
         v = validate_trace(use, lean)
         if not v["ok"]:
@@ -518,6 +523,7 @@ def build_graded(
         "lean": lean,
         "max_len": max_len,
         "draw": "unit_hash(id/effort)",
+        "any_proof": any_proof,
     }
     return {
         "format": FORMAT,
@@ -619,6 +625,11 @@ def main(argv: list[str] | None = None) -> int:
         metavar="SPEC",
         help="graded effort (lean_thinke): 0:PROB and LEVEL:PATH:PROB; excludes --traces/--plain",
     )
+    ap.add_argument(
+        "--graded-any-proof",
+        action="store_true",
+        help="graded: levels may prove a theorem differently (search traces); 0:PATH:PROB allowed",
+    )
     ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
     if a.graded and (a.traces or a.plain):
@@ -629,7 +640,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: exclusion sets not found: {missing}", file=sys.stderr)
         return 1
     if a.graded:
-        data = build_graded(parse_graded(a.graded), exclude, lean=not a.no_lean, max_len=a.max_len)
+        data = build_graded(
+            parse_graded(a.graded),
+            exclude,
+            lean=not a.no_lean,
+            max_len=a.max_len,
+            any_proof=a.graded_any_proof,
+        )
         rp = save(data, a.out)
         r = data["report"]
         print(
