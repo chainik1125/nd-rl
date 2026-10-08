@@ -86,7 +86,10 @@ KNOB = "n_loops"  # loops of the shared core
 EVAL_LEVEL = 8  # the metric: the knob's value during the scored eval
 DIAG_LEVEL = 2  # the same eval again at this value, recorded but not scored
 TOK_MODE = "lean_seq"  # required tokenizer mode (fork lean_tok.py)
-ARM = os.environ.get("ND_ARM", "iid")  # iid: run 590 unchanged; retry: error tokens; blank: <fail>
+ARM = os.environ.get(
+    "ND_ARM", "iid"
+)  # iid | retry | blank | repair | resume | resume_rl (pretrain.py)
+EP_MODE = {"blank": "blank", "resume": "resume", "resume_rl": "resume"}.get(ARM, "error")
 EP_N, EP_ATTEMPTS = 8, 8  # the episode eval: EP_N * EP_ATTEMPTS == EVAL_K proofs per theorem
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -441,7 +444,7 @@ def eval_episodes(a, tok, model, dev_pool):
         dev_pool,
         n_ep,
         n_att,
-        ARM if ARM == "blank" else "error",
+        EP_MODE,
         TEMP,
         a.seed * 1000 + 778,
         a.max_new,

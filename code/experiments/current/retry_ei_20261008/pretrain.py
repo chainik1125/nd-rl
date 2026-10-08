@@ -8,6 +8,10 @@ with the loops harness's RL recipe) plus two retry arms. ND_ARM picks:
          and the failing line's name, then writes a whole new proof; the fine-tune adds records
          whose context is the failed attempts and whose target is an accepted proof
   blank  as retry, with every error replaced by one <fail> token
+  resume iid's RL unchanged; only the eval differs: a new attempt keeps the failed one's error-free
+         prefix and samples the rest (no history, no error tokens, nothing learned)
+  resume_rl  resume, and RL's 24 extra samples for a target whose first 8 all failed are 3
+         resumed episodes of up to 8 attempts
   repair as retry, trained to REPAIR: the synthetic records put a known proof with one token
          made wrong, and its real error, in front of that same proof, in pretraining too
 
@@ -720,7 +724,7 @@ def rl_retry(model, tok, targets, train_recs, oracle, device, log, rng):
 
 def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
     rng = random.Random(seed)
-    if ARM != "iid":
+    if ARM in ("retry", "blank", "repair"):
         return rl_retry(model, tok, targets, train_recs, oracle, device, log, rng)
     found = {t["name"]: {} for t in targets}  # name -> {normalized proof: proof text}
     rounds, round_secs, retries, ft_steps = 0, 0.0, [], []
@@ -731,6 +735,21 @@ def rl(model, tok, targets, train_recs, oracle, budget_secs, device, seed, log):
         rows = oracle.sample(model, targets, RL_K)
         failed = [t for t, row in zip(targets, rows, strict=True) if not row["proofs"]]
         rng.shuffle(failed)
+        if ARM == "resume_rl" and failed:
+            eps = oracle.sample_episodes(model, failed, 3, 8, "resume")
+            part_rows = [
+                {"name": t["name"], "proofs": [ep["proof"] for ep in row if ep["proof"]]}
+                for t, row in zip(failed, eps, strict=True)
+            ]
+            retries.append(
+                {
+                    "round": rounds + 1,
+                    "targets": len(failed),
+                    "cracked": sum(bool(r["proofs"]) for r in part_rows),
+                }
+            )
+            rows += part_rows
+            failed = []
         for i, n in enumerate(RL_RETRY_LOOPS):
             part = failed[i :: len(RL_RETRY_LOOPS)]
             if not part:

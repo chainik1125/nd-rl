@@ -15,7 +15,7 @@ Acceptance is the harness's rule: the fork's Lean gate AND nd_verify.
 """
 
 import torch
-from errors import classify, error_ids
+from errors import classify, error_ids, keep_prefix
 from lean_gate import gate  # fork
 from nd_verify import verify_text  # fork
 
@@ -100,7 +100,9 @@ def generate(model, tok, prefixes, temperature, max_new, gen):
 
 
 def sample_episodes(model, tok, recs, n_ep, max_attempts, mode, temperature, seed, max_new):
-    """n_ep episodes per record. mode: 'error' or 'blank' (errors.error_ids).
+    """n_ep episodes per record. mode: 'error' or 'blank' (errors.error_ids), or 'resume': no
+    history at all, each new attempt continues the previous one's error-free prefix
+    (errors.keep_prefix) and "fails" holds the whole attempts with no error tokens.
 
     Returns one list of episodes per record. An episode is
       {"fails": [(attempt ids, error ids), ...], "codes": [error code per failed attempt],
@@ -117,9 +119,17 @@ def sample_episodes(model, tok, recs, n_ep, max_attempts, mode, temperature, see
     for _ in range(max_attempts):
         if not active:
             break
-        prefixes = [context_ids(prompt_ids[i], eps[i][j]["fails"]) for i, j in active]
+        if mode == "resume":
+            prefixes = [prompt_ids[i] + eps[i][j].get("kept", []) for i, j in active]
+        else:
+            prefixes = [context_ids(prompt_ids[i], eps[i][j]["fails"]) for i, j in active]
         outs = generate(model, tok, prefixes, temperature, max_new, gen)
         prompts = [recs[i]["prompt"] for i, _ in active]
+        if mode == "resume":
+            outs = [
+                eps[i][j].get("kept", []) + trim(o, tok)
+                for (i, j), o in zip(active, outs, strict=True)
+            ]
         nds, texts = [], []
         for o in outs:
             nds.append(tok.decode(o))
@@ -132,8 +142,13 @@ def sample_episodes(model, tok, recs, n_ep, max_attempts, mode, temperature, see
             if verify_text(p + " " + nd)[0]:
                 ep["proof"] = nd
                 continue
-            ep["fails"].append((ids, error_ids(tok, p, ids, mode)))
             ep["codes"].append(classify(tok, p, ids)[0])
+            if mode == "resume":
+                ep["fails"].append((ids, []))
+                ep["kept"] = keep_prefix(tok, p, ids)
+                nxt.append((i, j))
+                continue
+            ep["fails"].append((ids, error_ids(tok, p, ids, mode)))
             if len(context_ids(prompt_ids[i], ep["fails"])) + max_new <= MAX_CTX:
                 nxt.append((i, j))
         active = nxt

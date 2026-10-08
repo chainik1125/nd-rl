@@ -75,13 +75,12 @@ def _is_name(t):
     return len(t) > 1 and t[0] == "n" and t[1:].isdigit()
 
 
-def _parse_fail(toks):
-    """(code, name of the `have` the parser was in) for tokens the grammar rejects."""
+def _parse_stop(toks):
+    """(code, index the parser stopped at) for tokens the grammar rejects, else None."""
     try:
         lean_tok.inverse(toks)
     except lean_tok.ParseFail as e:
         msg = str(e)
-        code = "expected" if msg.startswith("expected") else msg
         # inverse() keeps its cursor in a closure, so the only way to learn where it stopped
         # without copying the parser is to read `pos` out of its frame on the traceback.
         at, tb = len(toks), e.__traceback__
@@ -89,11 +88,49 @@ def _parse_fail(toks):
             if tb.tb_frame.f_code.co_name == "inverse":
                 at = tb.tb_frame.f_locals["pos"][0]
             tb = tb.tb_next
-        for i in range(min(at, len(toks) - 1), -1, -1):
-            if toks[i] == "have" and i + 1 < len(toks) and _is_name(toks[i + 1]):
-                return code, toks[i + 1]
-        return code, None
-    return OTHER, None  # it parses after all: the caller's verdict came from somewhere else
+        return ("expected" if msg.startswith("expected") else msg), at
+    return None
+
+
+def _have_before(toks, at):
+    """Index of the last `have <name>` at or before token index `at`, or None."""
+    for i in range(min(at, len(toks) - 1), -1, -1):
+        if toks[i] == "have" and i + 1 < len(toks) and _is_name(toks[i + 1]):
+            return i
+    return None
+
+
+def _parse_fail(toks):
+    """(code, name of the `have` the parser was in) for tokens the grammar rejects."""
+    stop = _parse_stop(toks)
+    if stop is None:
+        return OTHER, None  # it parses after all: the caller's verdict came from somewhere else
+    i = _have_before(toks, stop[1])
+    return stop[0], (toks[i + 1] if i is not None else None)
+
+
+def keep_prefix(tok, prompt, ids):
+    """The ids of a failed attempt up to its first error: what a resumed attempt keeps. Cut at
+    the `have` the grammar stops in, then at the first `have` that does not type-check, until
+    what is left is a clean partial proof. A proof that only misses the goal loses its `exact`."""
+    if tok.eos not in ids:
+        return []
+    toks = [tok.itos[x] for x in ids[: ids.index(tok.eos)] if x != tok.pad]
+    while toks:
+        stop = _parse_stop(toks)
+        ran_off_end = stop is not None and stop[1] >= len(toks) and stop[0] in ("expected", "eof")
+        if stop is not None and not ran_off_end:
+            toks = toks[: _have_before(toks, stop[1]) or 0]
+            continue
+        detail = lean_prefilter.reject_detail(tok.statement(prompt), tok.text(toks))
+        if detail is None:
+            break
+        if detail[1] is None:  # 'goal'
+            toks = toks[:-2]
+            break
+        cut = max(i for i in range(len(toks) - 1) if toks[i] == "have" and toks[i + 1] == detail[1])
+        toks = toks[:cut]
+    return [tok.stoi[t] for t in toks]
 
 
 def classify(tok, prompt, ids):
