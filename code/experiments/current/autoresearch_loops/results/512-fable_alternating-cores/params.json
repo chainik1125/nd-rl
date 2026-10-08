@@ -1,0 +1,228 @@
+{
+  "id": "512-fable",
+  "slug": "alternating-cores",
+  "written_at": "2026-10-07T19:40:20-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "f3664ec",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "9dbf0172f3d7",
+  "patch_lines": 23,
+  "title": "Alternating core pairs: two shared pairs of core blocks that the loops cycle through (8 loops run A B A B A B A B, 2 loops run A B), so the trunk has the untied control's six unique blocks and 9.56M parameters at the incumbent's compute per loop count",
+  "description": "One architectural change in LoopedGPT: N_PAIRS = 2 pairs of N_CORE = 2 shared core blocks instead of one pair, and loop k applies pair k % N_PAIRS (A at loops 0, 2, 4, 6; B at 1, 3, 5, 7). Everything else is 510's file: entry block, LayerNorm(state)+entry re-injection before every pass, exit block, ALiBi on 4 heads / NoPE on 4, D 384, D_FF 1280, random 1-8 loops per batch in pretraining and in the RL fine-tune, MTP 0.3 in pretraining, Muon+AdamW in both stages, 8 attempts at 1 loop per target then 24 retries at one of 2/4/8 loops for targets 1 loop failed, up to 4 proofs per target x4 with 20,000 replay records, FT_RECORDS 38,400 per round, rounds until another would not fit. Block count per token is unchanged at every loop count (2 + 2n: 4 at 1 loop, 6 at 2, 18 at 8), so pretraining steps, sampling speed, fine-tune speed and KV-cache memory are the incumbent's; what changes is which weights the passes use. At 2 loops the model is entry, A1, A2, B1, B2, exit: six distinct Peri-LN blocks, the topology of control 590 (run 198's untied model, 9,558,528 parameters) plus the re-injection; this model has exactly 9,558,528 parameters (CPU smoke and bench). At 1 loop it is entry, A, exit (4 blocks), the depth the RL discovery pass samples at. Odd loop counts decode A's output, even ones B's; in training A is decoded directly in the n = 1, 3, 5, 7 batches and B in the n = 2, 4, 6, 8 ones, so unlike 506's untied first pass (decoded directly only at n = 1) each pair gets direct next-token gradient in half the batches and refinement gradient in the rest. CPU smoke: cached decoding equals the full forward at 1, 2, 3 and 8 loops (max abs diff 1e-6); each pass gets its own KV sub-cache inside its block's cache dict (A at keys 0, 2, 4, 6; B at 1, 3, 5, 7). Bench on one A40 (bench_pretrain.py --secs 60, torch 2.9.1): 360 steps in 61 s with step 2 at 33 s (compile of 7 blocks instead of 5), 12.9 steady steps/s against 510's bench 13.5, peak memory 7.6 GB, 196 one-loop samples/s from the 60-s model; expect ~3,250-3,400 pretraining steps (510: 3,409/3,470/3,422). Checks run: make -C code check clean (ruff, format, pyright); the edit is 14 lines inserted, 9 deleted, 4 of them code.",
+  "tags": [
+    "architecture",
+    "loops"
+  ],
+  "hypothesis": "Mechanism under test: whether the looped trunk trails the untied six-block control because its passes share weights, i.e. because a shared pair applied n times computes one fast-converging function (505: state change per pass 0.28, 0.10, 0.05, 0.02) rather than n distinct ones. Control 590 scored 792 with six untied blocks under this harness; the looped incumbents score 732-764 at 8 loops and 714-752 at 2 loops, where they apply 18 and 6 blocks per token. 511 matched 590's parameter count by widening the tied trunk and lost (746; per-sample dev accuracy within 0.01 of 510's), and 506 untied the first pass and lost 25 because the first-pass blocks were decoded directly in 1 batch of 8 and the 1-loop discovery pass collapsed to 0.58 acceptance. 511's reading was that the remaining explanations are tying and RL budget, and its proposed next test was a core with more distinct functions per loop at the same compute. This is that test: the same compute per loop count, the same loop schedule, the same RL, 590's parameter count and, at 2 loops, 590's topology, with the only change being that consecutive passes use different weights. Three readings. (a) Tying is the deficit: six distinct blocks fit the found proofs better per round and generalize better per sample, so the 2-loop diag moves most of the way from 752 toward 792 (diag at or above 775) and the 8-loop metric follows (at or above 785), with per-sample dev accuracy up by 0.02 or more at both depths on two seeds and last-round 1-loop acceptance on RL targets at or above 510's despite the 1-loop pass now being 4 blocks with half the core. (b) Tying is not the deficit, the random-depth training (every pass must also work at the other depths) or the RL schedule is: the metric lands within noise of 764 and the diag of 752, per-sample accuracy within 0.01 of 510's on two seeds, and the pretraining val loss is lower (as in 506 and 511) without reaching the metric. (c) 506's failure mode returns in a weaker form: A alone is a worse 1-loop prover than the shared core was (last-round 1-loop acceptance below 0.60 on two seeds; 510: 0.671/0.667/0.634), more targets fail the cheap pass and go to retries, rounds get longer (fewer than 12 on two seeds) and the metric falls below 764 even if the 2-loop per-sample accuracy rises; that would say the discovery pass needs the full core and the next design samples the first pass at 2 loops. Loops: the iteration is now the 4-block map AB applied n/2 times (plus a trailing A at odd n). I expect it to converge about as fast as the 2-block map did, so metric minus diag stays +5 to +25 (510: +12 = 12/20/5; 511: +19) and the retry crack rates keep their 2 <= 4 <= 8 order; if two different maps converge more slowly than one map applied twice, the gap could widen (above +30 on two seeds), which would be the one route by which this change makes deep loops pay. This experiment is the parity test every depth result in this loop is judged against, not a test of depth itself; if kept with the gap unchanged, the surprise text will say so. What can go wrong: the odd/even decoding split (exit must read both A's and B's output) costs the 1-loop and 3-loop passes; pretraining steps fall 4% from the extra compiled blocks; a lower pretraining loss that again fails to reach the metric (505, 508, 511).",
+  "p_keep": 0.5,
+  "expected_delta": "metric at 8 loops, 3-seed mean 745-800 against 510's 764 (743/815/734); point estimate 775 (+11). metric_diag 735-790 (510: 752 = 731/795/729); metric minus diag +5 to +25. Pretraining 3,250-3,400 steps (510: 3,409/3,470/3,422; bench 12.9 against 13.5 steps/s, compile 33 s), val loss at 2 loops 0.077-0.088 (510: 0.0824/0.0894/0.0912), lower than 510's on at least two seeds by 0.002-0.006 as the two earlier 9.56M models were (506: 0.0827 mean, 511: 0.0850, against 0.0866-0.0877 for the 6.4M trunk); val at 1 loop above val at 2 loops by 0.002-0.008 (510: +0.0014 on seed 0), since 1 loop is now 4 blocks with half the core; val at 4 and 8 loops within 0.001 of 2 loops as always. MTP and compile unchanged; 9,558,528 parameters, under the cap. RL rounds 11-14 per seed (510: 13/14/12), ft_steps 290-400 per round as 510, fine-tune 30-45 s per round, 1-loop sampling 190-250 samples/s, 8-loop 65-120 (510's ranges). Cumulative RL targets solved 1,240-1,310 (510: 1,264/1,314/1,243). Fit: last-round 1-loop acceptance on RL targets 0.60-0.74 (510: 0.671/0.667/0.634); under reading (a) at or above 510's seed-matched value on two seeds, under (c) below 0.60 on two seeds. Per-sample dev accuracy 0.44-0.52 at 8 loops and 0.41-0.49 at 2 (510: 0.461/0.481/0.443 and 0.422/0.444/0.417). Held-out greedy after RL 0.975-0.990. Total 3,800-4,200 s per seed (510: 3,941). Decision reading: 'tying is the deficit' is supported if the mean is at or above 785 with diag at or above 775 and per-sample dev accuracy at 2 loops above 510's by 0.02 or more on two seeds; it is falsified if the mean is within 745-775 with per-sample accuracy within 0.01 of 510's on two seeds (then six distinct blocks trained at random depth do not fit or generalize better than four, and the gap to 792 is in the random-depth training or the RL schedule, not in sharing); reading (c) holds if last-round 1-loop acceptance is below 0.60 on two seeds with the mean below 764. Crash or timeout is not expected: compute and memory per loop count are the incumbent's. Keep iff the 3-seed mean is above 764; if kept with metric minus diag inside +5 to +25, the surprise text says the gain is not from loops.",
+  "baseline_id": "510-fable",
+  "baseline_metric": 764,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 alternating shared core pairs (A1 A2 at even loops, B1 B2 at odd loops) + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop; 2 + 2n blocks per token at n loops, as the incumbent",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9558528
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ],
+      "pairs": 2,
+      "pair_assignment": "loop k applies pair k % 2: A at loops 0, 2, 4, 6 and B at 1, 3, 5, 7; odd loop counts decode A's output, even ones B's; 1 loop = entry A exit (4 blocks), 2 loops = entry A B exit (590's six-block topology), 8 loops = A B A B A B A B (18 blocks)"
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 384,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round as long as the last plus 15% would not fit in RL_SECS; expected 11-14 per seed (510: 13/14/12 with ~100-140 s late rounds); the 1-loop discovery pass is now entry A exit, so more targets may go to retries",
+      "ft_optimizer": "pretraining's split: Muon (muon_step: Nesterov momentum 0.95, five bf16 Polar Express steps, decoupled decay MUON_WD = 0.1 per unit lr) at 3e-3 on the 25 hidden matrices (qkv, proj, fc1, fc2 of the 6 unique blocks + head.weight); AdamW 3e-4, wd 0.1, betas (0.9, 0.95) on the 71 other tensors (token embeddings, every LayerNorm gain/bias, linear biases); global clip 1.0 before both steps; linear warmup 50 steps then cosine to lr/10 over the round's step count for both groups (unchanged shape); Muon momentum and AdamW moments start fresh every round; the Muon step is one CUDA graph per round (MuonStep helper, shared with pretraining)",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged; pair A gets direct next-token gradient in the odd-n batches and B in the even-n ones, both refinement gradient in the rest",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_steps_note": "data-dependent: the round's fine-tune runs over FT_RECORDS = 38,400 records (300 x 128, half of 509's 76,800) cut into token-budget batches of <= 18,432 padded tokens, epoch after epoch until the count is reached; 384 is the expected step count at a mean record length of ~190 tokens (509 logged 588-762 steps per round for 76,800, so expect 295-380); the actual count per round is recorded in rl stats as ft_steps",
+      "ft_records": 38400,
+      "ft_batch": "token-budget batches as pretraining: shuffled epoch stably sorted by length, cut into runs with count x max_len <= 128 x 144 = 18,432 tokens, run order shuffled; shift augmentation on the GPU (gpu_batch); replaces the fork's batch() of 128 random records padded to their longest",
+      "ft_muon_lr": 0.003,
+      "ft_muon_lr_note": "FT_MUON_LR = 10 x FT_LR, pretraining's Muon:AdamW ratio (MUON_LR 0.01 : LR 1e-3), and equal to where pretraining's cosine ends (MUON_LR x MIN_LR_FRAC = 0.003); not tuned",
+      "ft_epochs_per_round": "mix = 4 x (distinct proofs, <= 4 per solved target) + 20,000 replay = ~20,600 records in round 1 and ~32,000 by round 11 (509 seed 0: 3,076 distinct RL proofs), so 38,400 records is 1.9 epochs early and 1.2 late (509: 3.7 and 2.4)",
+      "ft_warmup_steps": 50
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

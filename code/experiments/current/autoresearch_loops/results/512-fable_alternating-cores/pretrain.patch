@@ -1,0 +1,51 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 5855d0a..71200ef 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -54,9 +54,12 @@ from tokenizer import make_tokenizer  # fork
+ from train import loss_on  # fork
+ 
+ # ---- knobs
+-# Unique blocks: one untied entry block, N_CORE shared core blocks, one untied exit block.
+-N_CORE = 2
+-N_LAYER, D, N_HEAD = 2 + N_CORE, 384, 8
++# Unique blocks: one untied entry block, N_PAIRS pairs of N_CORE shared core blocks that the loops
++# cycle through (loop k applies pair k % N_PAIRS, so 8 loops run A B A B A B A B and 2 loops run
++# A B: the untied six-block topology of control 590), one untied exit block. Same compute per
++# loop count as one shared pair; 6 unique blocks, 9.56M parameters, the untied control's count.
++N_CORE, N_PAIRS = 2, 2
++N_LAYER, D, N_HEAD = 2 + N_CORE * N_PAIRS, 384, 8
+ # Core applications (loops). Training draws one count per batch from TRAIN_LOOPS, in pretraining
+ # and in rl()'s fine-tune; eval and sampling apply model.n_loops, which the harness sets for its
+ # evals and rl() sets before each oracle call. DEFAULT_LOOPS is used for the validation curve and
+@@ -236,10 +239,11 @@ class PeriLNBlock(Block):
+ 
+ class LoopedGPT(GPT):
+     """Looped trunk (Universal Transformer, Dehghani et al. 2018; sandwich layout and input
+-    injection as in Geiping et al. 2025): blocks[0] is the entry block, blocks[1:-1] the shared
+-    core applied n times, blocks[-1] the exit block. Every core pass starts from
+-    ln_loop(state) + e, with e the entry block's output, so each pass sees an input of the same
+-    scale and the prompt is re-injected instead of being buried under accumulated writes.
++    injection as in Geiping et al. 2025): blocks[0] is the entry block, blocks[1:-1] the core
++    pairs, of which loop k applies pair k % N_PAIRS, blocks[-1] the exit block. Every core pass
++    starts from ln_loop(state) + e, with e the entry block's output, so each pass sees an input
++    of the same scale and the prompt is re-injected instead of being buried under accumulated
++    writes.
+ 
+     P34: the fork's GPT with ALiBi (Press et al. 2021) instead of RoPE. Head h's attention
+     logits get -slope_h * (query position - key position), slopes 2^-1 .. 2^-8 for 8 heads, so
+@@ -279,11 +283,12 @@ class LoopedGPT(GPT):
+         x = e = entry(self.emb(idx), None, None, bias, None if caches is None else caches[0])
+         for loop in range(n):
+             x = self.ln_loop(x) + e
+-            for j, b in enumerate(core, 1):
++            for i in range(N_CORE):
++                j = 1 + (loop % N_PAIRS) * N_CORE + i  # index in self.blocks
+                 # sample.generate makes one cache dict per unique block; a shared block's keys
+                 # and values differ per pass, so each pass gets its own sub-cache inside it.
+                 c = caches and caches[j].setdefault(loop, {"max": caches[j]["max"]})
+-                x = b(x, None, None, bias, c)
++                x = core[j - 1](x, None, None, bias, c)
+         x = exit_block(x, None, None, bias, None if caches is None else caches[-1])
+         return x, bias
+ 
