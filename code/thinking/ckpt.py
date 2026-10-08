@@ -63,12 +63,18 @@ def run_env(out: str | Path) -> dict[str, str]:
 
 
 def save_ckpt(
-    path: str | Path, model: Any, tok_mode: str, extra: Mapping[str, Any] | None = None
+    path: str | Path,
+    model: Any,
+    tok_mode: str,
+    extra: Mapping[str, Any] | None = None,
+    train_state: Mapping[str, Any] | None = None,
 ) -> Any:
     """The fork's save_ckpt (same format; a `ckpt_saved` registry row), forced offline.  An extra
     without `state_format` gets the process's when it is not flat (absent reads as flat, so flat
     checkpoints are unchanged); an extra naming another format than one set in this process is an
-    error."""
+    error.  `train_state` (a trainer's optimizer, RNG, ... state; `load_train_state`) is written
+    as one more top-level key, outside `extra`, so loaders that copy `extra` into the checkpoints
+    they write (EI, the effort expansion) never carry it along, and `load_ckpt` ignores it."""
     ensure_offline()
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     extra = dict(extra or {})
@@ -80,7 +86,21 @@ def save_ckpt(
         raise stateview.StateFormatError(f"saving a {sfmt!r} checkpoint in a {cur!r} process")
     with bare():
         assert D.record.offline()
-        return D.model.save_ckpt(str(path), model, tok_mode, extra=extra)
+        if train_state is None:
+            return D.model.save_ckpt(str(path), model, tok_mode, extra=extra)
+        # the fork's save_ckpt (model.py:119-125@4dcd0e4f) with the one extra key
+        D.record.run_id(required=not D.record.offline())
+        ck = {"cfg": model.cfg, "state": model.state_dict(), "tok_mode": tok_mode, "extra": extra}
+        torch.save({**ck, TRAIN_STATE: dict(train_state)}, str(path))
+        return D.record.publish_ckpt(str(path), step=extra.get("step"))
+
+
+TRAIN_STATE = "train_state"
+
+
+def load_train_state(path: str | Path, device: str = "cpu") -> dict[str, Any] | None:
+    """A checkpoint's `train_state` (`save_ckpt`), None when it was saved without one."""
+    return torch.load(str(path), map_location=device).get(TRAIN_STATE)
 
 
 def build_model(cfg: Mapping[str, Any]) -> Any:

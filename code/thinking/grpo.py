@@ -65,6 +65,46 @@ attempt counts.
   iteration's checkpoint is saved. A positive loss is not an alarm: the token-level mean is
   positive whenever failed attempts run longer than successes.
 
+Safeguards (collapse audit 2026-10-08, `experiments/.../collapse_audit/FIXES.md`; the seed-0 run
+drifted into a long-context `:` attractor the RL pool never reaches). Every one is opt-in except
+the two alarms, which only add alarm lines and alarm checkpoints; the updates are unchanged.
+* **Capped attempts** (always logged). `capped_frac` / `capped_by_budget` / `capped_kinds`: the
+  share of attempts a cap ended (`OVERLONG`), whatever `--overlong` does with them
+  (`overlong_frac` counts the masked ones, so it is 0 under `--overlong fail`). Alarm when a
+  budget's share exceeds `--alarm_capped` (0.05; 0: off).
+* **Relative clip-low.** Alarm when clip-low exceeds `--clip_low_rel` (2.0; 0: off) x its median
+  over the last `ALARM_REL_WINDOW` stepping iterations (`clip_low_median`), once `ALARM_GN_AFTER`
+  are in, and `ALARM_CLIP_LOW_FLOOR`. The absolute 1% alarm stays.
+* **Long-context canary** (`--canary FILE`, `canary.py`): every `--canary_every` iterations, after
+  the update, `--canary_n` teacher-forced reference steps of long proofs (states with >= 10
+  hypothesis lines, B0 layout, T = 1): the action NLL, P(':') at non-':' targets and the largest
+  mean probability any single wrong token gets (`row['canary']`). Its value before the first
+  iteration is the base (`canary_base.json`); alarm when one of the three exceeds `--canary_mult`
+  (5) x its base.
+* **Rollback** (`--rollback_on_alarm`): on any alarm, the alarm checkpoint is saved, then the
+  newest good checkpoint (`LoopState.last_good`: the last rolling or permanent one saved in an
+  iteration without alarms, or after a rollback; a start checkpoint `<name>_it<s>_rolling.pt` is
+  written first) is restored -- weights, optimizer, curricula, RNGs, step count, alarm histories
+  -- the lr is halved (`lr_scale`) and the run continues with the next iteration number; at most
+  `--max_rollbacks` times (`row['rollback']`).
+* **Training state in checkpoints.** Every checkpoint this script writes carries `train_state`
+  (`ckpt.save_ckpt`, a top-level key that model loaders ignore): AdamW's state, the iteration, the
+  curricula, the RNGs and `LoopState`. `--resume CKPT` restores all of it and continues to
+  iteration `--start_iter` + `--iters` (re-run the same command with `--resume` added); rows of
+  later iterations already in metrics.jsonl move to metrics.pre_resume.jsonl. `--init` stays a
+  weight-only start (fresh optimizer, warmup and curriculum); `--start_iter S` numbers its
+  iterations S + 1 .. S + `--iters` (sampling seeds and checkpoint names follow).
+* **KL anchor** (`--kl_anchor_coef` beta, `--kl_anchor_ref PATH`): at every AdamW step, beta x
+  KL(pi_ref || pi_theta) on `--kl_anchor_n` teacher-forced long-state steps (`canary.anchor_kl`;
+  from `--kl_anchor_data`, default the canary file minus the canary's own proofs), over the action
+  tokens, on the sampler's masked distribution at `--temperature`; pi_ref frozen from PATH.
+  Logged: `kl_anchor` (mean over the steps) and `grad_norm_policy` (before the anchor's gradient).
+* **Batch dumps** (`--dump_batches DIR`, `grpo_io.py`): per iteration the full training batch and
+  the AdamW state before its first step, for update attribution.
+* **Long proofs in the pool** (`--targets_extra FILE --targets_extra_frac f`): round(f x
+  `--prompts`) groups per iteration come from a second target file, with its own curriculum;
+  logged as `extra_*`.
+
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
 in ei.py). `--force_mode` is the sampler's budget forcing: 'line' (default) lets the block finish
@@ -73,13 +113,15 @@ its line past B, up to B + 64; 'exact' closes it at B. Either way the forced `</
 Files in GDIR: metrics.jsonl (one row per iteration), ckpts/<name>_it<i>.pt every --save_every
 iterations and at the end, <name>_it<i>_alarm.pt at each alarming iteration and
 <name>_it<i>_rolling.pt every --save_rolling iterations (the last --keep_rolling kept), args.json,
-registry/, lean_gate.jsonl.
+registry/, lean_gate.jsonl; with --canary, canary_base.json; with --dump_batches DIR,
+DIR/<name>_it<i>_batch.pt.
 """
 
 from __future__ import annotations
 
 import argparse
 import collections
+import dataclasses
 import json
 import math
 import random
@@ -93,10 +135,13 @@ from typing import Any, NamedTuple
 
 import torch
 
-from .ckpt import load_ckpt, run_env, save_ckpt
+from . import stateview
+from .canary import anchor_kl, canary_metrics, load_canary
+from .ckpt import TRAIN_STATE, load_ckpt, load_train_state, run_env, save_ckpt
 from .dan import bare, load
 from .data import read_jsonl
 from .effort import LEVELS, expand_to_effort, has_effort
+from .grpo_io import compact_adam, dump_batch
 from .sample import FORCE_MODES, judge, phase_bans, sample_format, think_generate
 from .tok import has_think
 
@@ -110,6 +155,13 @@ ALARM_GN = 5.0  # grad-norm max vs the median of the earlier iterations' grad-no
 ALARM_GN_AFTER = 5  # ... once this many iterations are in
 ALARM_CLIP_LOW = 0.01
 ALARM_OVERLONG = 0.05
+ALARM_CAPPED = 0.05  # --alarm_capped: a budget's share of attempts a cap ended
+ALARM_CLIP_LOW_REL = 2.0  # --clip_low_rel: clip-low vs its running median ...
+ALARM_REL_WINDOW = 20  # ... over the last this many stepping iterations (ALARM_GN_AFTER first)
+ALARM_CLIP_LOW_FLOOR = 1e-3  # ... and above this, so a near-zero median does not fire on noise
+CANARY_MULT = 5.0  # --canary_mult: a canary value vs its base
+CANARY_KEYS = (("nll", "action NLL"), ("wrong_max", "top wrong-token P"), ("colon", "P(':')"))
+STATE_VERSION = 1  # `train_state`
 LEN_TARGET_MODES = ("exact", "max")  # --len_target_mode: |L_b - B| / B, or the overshoot only
 
 
@@ -215,6 +267,28 @@ OVERLONG = ("fail:step_cap", "fail:truncated", "fail:context")
 
 def is_overlong(x: dict[str, Any]) -> bool:
     return x.get("status") in OVERLONG
+
+
+def capped_metrics(
+    groups: Sequence[Sequence[dict[str, Any]]], budgets: Sequence[int]
+) -> dict[str, Any]:
+    """The share of attempts a cap ended (`is_overlong`), whatever `--overlong` does with them:
+    over all attempts, per budget (keys str(B)), and the count per cap (`OVERLONG` without
+    'fail:')."""
+    by_b: dict[int, list[float]] = collections.defaultdict(list)
+    kinds = dict.fromkeys((s.split(":", 1)[1] for s in OVERLONG), 0)
+    for att, b in zip(groups, budgets, strict=True):
+        for x in att:
+            c = is_overlong(x)
+            by_b[b].append(float(c))
+            if c:
+                kinds[x["status"].split(":", 1)[1]] += 1
+    n = sum(len(v) for v in by_b.values())
+    return {
+        "capped_frac": sum(map(sum, by_b.values())) / max(1, n),
+        "capped_by_budget": {str(b): sum(v) / len(v) for b, v in sorted(by_b.items())},
+        "capped_kinds": kinds,
+    }
 
 
 def advantages(r: Sequence[float], keep: Sequence[bool] | None = None) -> list[float] | None:
@@ -524,6 +598,14 @@ class Curriculum:
         self.s[i] = self.s[i] * self.decay + successes
         self.n[i] = self.n[i] * self.decay + trials
 
+    def state(self) -> dict[str, Any]:
+        return {"s": list(self.s), "n": list(self.n), "rng": self.rng.getstate()}
+
+    def load_state(self, st: dict[str, Any]) -> None:
+        assert len(st["s"]) == len(self.keys), "the curriculum's pairs differ from the checkpoint's"
+        self.s, self.n = list(st["s"]), list(st["n"])
+        self.rng.setstate(st["rng"])
+
     def summary(self) -> dict[str, Any]:
         seen = [i for i in range(len(self.keys)) if self.n[i] > 0]
         ps = [self.p(i) for i in seen]
@@ -593,7 +675,30 @@ def _length_line(row: dict[str, Any]) -> str:
 
 def alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
     """An iteration's metrics row -> its alarms, one message each (the ALARM_* thresholds).
-    `gn_prev`: the grad-norm max of the earlier iterations that took a step."""
+    `gn_prev`: the grad-norm max of the earlier iterations that took a step. The safeguard alarms
+    read their thresholds from the row (`alarm_cfg`: `capped`, `clip_low_rel`, `canary_mult`; 0
+    or absent: off) with the values they compare (`capped_by_budget`, `clip_low_median`,
+    `canary` and its `base`), so a row says why it alarmed."""
+    out = _base_alarms(row, gn_prev)
+    cfg = row.get("alarm_cfg") or {}
+    cap = cfg.get("capped") or 0.0
+    over = [(b, v) for b, v in (row.get("capped_by_budget") or {}).items() if v > cap]
+    if cap > 0 and over:
+        worst = ", ".join(f"B{b} {v:.4f}" for b, v in over)
+        out.append(f"capped attempts {worst} > {cap:g}")
+    rel, med = cfg.get("clip_low_rel") or 0.0, row.get("clip_low_median")
+    if rel > 0 and med is not None and row["clip_low"] > max(rel * med, ALARM_CLIP_LOW_FLOOR):
+        out.append(f"clip-low {row['clip_low']:.4f} > {rel:g} x running median {med:.4f}")
+    mult, can = cfg.get("canary_mult") or 0.0, row.get("canary")
+    if mult > 0 and can and can.get("base"):
+        for k, label in CANARY_KEYS:
+            v, b = can[k], can["base"][k]
+            if b > 0 and v > mult * b:
+                out.append(f"canary {label} {v:.4g} > {mult:g} x base {b:.4g}")
+    return out
+
+
+def _base_alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
     out = []
     if row["ban_think"] > ALARM_BAN:
         out.append(
@@ -627,15 +732,130 @@ def prune_rolling(ckdir: Path, name: str, keep: int) -> list[Path]:
     return gone
 
 
+@dataclasses.dataclass
+class LoopState:
+    """The trainer's state besides the weights, optimizer, curricula and RNGs. A resume restores
+    all of it; a rollback restores the step count and the alarm histories, and keeps the rest."""
+
+    n_step: int = 0  # AdamW steps taken (the warmup reads it)
+    gn_prev: list[float] = dataclasses.field(default_factory=list)  # grad-norm max, per iteration
+    clip_prev: list[float] = dataclasses.field(default_factory=list)  # clip-low, per iteration
+    lr_scale: float = 1.0  # halved at each rollback
+    rollbacks: int = 0
+    canary_base: dict[str, Any] | None = None  # the canary before the first iteration
+    last_good: str | None = None  # the checkpoint a rollback restores ...
+    last_good_iter: int | None = None  # ... and its iteration
+
+
+def train_state(
+    it: int,
+    ls: LoopState,
+    opt: torch.optim.Optimizer,
+    rngs: dict[str, random.Random],
+    curs: dict[str, Curriculum],
+) -> dict[str, Any]:
+    """Everything a resume needs besides the weights (plain types and tensors, so
+    `torch.load(weights_only=True)` reads it)."""
+    return {
+        "version": STATE_VERSION,
+        "iter": it,
+        "loop": dataclasses.asdict(ls),
+        "opt": opt.state_dict(),
+        "rng": {k: r.getstate() for k, r in rngs.items()},
+        "curriculum": {k: c.state() for k, c in curs.items()},
+        "torch_rng": torch.get_rng_state(),
+        "cuda_rng": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [],
+    }
+
+
+def restore_state(
+    st: dict[str, Any],
+    opt: torch.optim.Optimizer,
+    ls: LoopState,
+    rngs: dict[str, random.Random],
+    curs: dict[str, Curriculum],
+    full: bool,
+) -> int:
+    """`train_state` back into the run's objects -> its iteration. `full` (a resume) also restores
+    the lr scale, the rollback count, the canary base, the last good checkpoint and the torch
+    RNGs; a rollback keeps its own."""
+    assert st.get("version") == STATE_VERSION, f"train_state version {st.get('version')}"
+    assert set(st["curriculum"]) == set(curs), (
+        f"the checkpoint's curricula {sorted(st['curriculum'])} are not this run's {sorted(curs)} "
+        "(--targets_extra)"
+    )
+    opt.load_state_dict(st["opt"])
+    for k, r in rngs.items():
+        r.setstate(st["rng"][k])
+    for k, c in curs.items():
+        c.load_state(st["curriculum"][k])
+    loop = st["loop"]
+    ls.n_step = int(loop["n_step"])
+    ls.gn_prev, ls.clip_prev = list(loop["gn_prev"]), list(loop["clip_prev"])
+    if full:
+        ls.lr_scale, ls.rollbacks = float(loop["lr_scale"]), int(loop["rollbacks"])
+        ls.canary_base = loop["canary_base"]
+        ls.last_good, ls.last_good_iter = loop["last_good"], loop["last_good_iter"]
+        torch.set_rng_state(st["torch_rng"].cpu())
+        cuda = st.get("cuda_rng") or []
+        if cuda and torch.cuda.is_available() and len(cuda) == torch.cuda.device_count():
+            torch.cuda.set_rng_state_all([s.cpu() for s in cuda])
+    return int(st["iter"])
+
+
+def _trim_metrics(out: Path, start: int) -> int:
+    """On a resume from iteration `start`: rows of later iterations move from metrics.jsonl to
+    metrics.pre_resume.jsonl (appended) -> how many moved."""
+    path = out / "metrics.jsonl"
+    if not path.exists():
+        return 0
+    lines = [x for x in path.read_text().splitlines() if x.strip()]
+    keep = [x for x in lines if json.loads(x)["iter"] <= start]
+    moved = [x for x in lines if json.loads(x)["iter"] > start]
+    if moved:
+        with open(out / "metrics.pre_resume.jsonl", "a") as f:
+            f.write("".join(x + "\n" for x in moved))
+        path.write_text("".join(x + "\n" for x in keep))
+    return len(moved)
+
+
+def _canary_line(it: int, c: dict[str, Any]) -> str:
+    b = c.get("base") or {}
+    base = (
+        f" | base nll {b['nll']:.4f} P(:) {100 * b['colon']:.4f}% "
+        f"wrong {100 * b['wrong_max']:.3f}% ({b['wrong_tok']})"
+        if b
+        else ""
+    )
+    return (
+        f"canary it {it}: nll {c['nll']:.4f} P(:) {100 * c['colon']:.4f}% "
+        f"(log {c['colon_logp']:.2f}) wrong {100 * c['wrong_max']:.3f}% ({c['wrong_tok']}) "
+        f"[{c['steps']} steps]{base}"
+    )
+
+
 def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     assert not a.save_rolling or a.keep_rolling >= 1, "--keep_rolling must be >= 1"
     assert a.len_target_coef >= 0, "--len_target_coef must be >= 0"
     assert a.len_target_frac > 0, "--len_target_frac must be > 0"
+    assert 0 <= a.targets_extra_frac < 1, "--targets_extra_frac must be in [0, 1)"
+    assert not a.targets_extra_frac or a.targets_extra, "--targets_extra_frac needs --targets_extra"
+    assert a.kl_anchor_coef >= 0, "--kl_anchor_coef must be >= 0"
+    assert not a.kl_anchor_coef or a.kl_anchor_ref, "--kl_anchor_coef needs --kl_anchor_ref"
+    assert not a.kl_anchor_coef or a.kl_anchor_data or a.canary, (
+        "--kl_anchor_coef needs --kl_anchor_data or --canary (the anchor's steps)"
+    )
+    assert a.canary_every >= 1 and a.canary_n >= 1 and a.kl_anchor_n >= 1
     if a.len_target_coef and not a.effort:
         print("WARNING: --len_target_coef without --effort: the target is not in the prompt")
     out = Path(a.out)
     run_env(out)
     a.clip_eps_low, a.clip_eps_high = clip_range(a)  # resolved, so args.json records them
+    if a.resume and (out / "args.json").exists():  # keep the args of the run being resumed
+        k = 0
+        while (out / f"args.pre_resume{k or ''}.json").exists():
+            k += 1
+        (out / "args.json").rename(out / f"args.pre_resume{k or ''}.json")
     with bare():
         D.record.save_config(vars(a), str(out) + "/", arm=a.name, role="rl")
     dev = a.device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -644,10 +864,20 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     if a.effort:
         bad = [b for b in budgets if b not in LEVELS]
         assert not bad, f"--effort: budgets {bad} are not effort levels {LEVELS}"
-        _, t0_, _ = load_ckpt(init)
-        if not has_effort(t0_):
-            init = str(expand_to_effort(init, out / "ckpts" / f"{a.name}_it0.pt", seed=a.seed))
-    model, tok, extra = load_ckpt(init, dev)
+    resume_state = None
+    if a.resume:  # the weights and the training state (`train_state`) of a checkpoint
+        model, tok, extra = load_ckpt(a.resume, dev)
+        assert not a.effort or has_effort(tok), "--resume --effort: no effort tokens in the ckpt"
+        resume_state = load_train_state(a.resume, dev)
+        assert resume_state is not None, f"--resume {a.resume}: saved without a training state"
+        for k in ("grpo_alarms", "grpo_rollback"):
+            extra.pop(k, None)
+    else:
+        if a.effort:
+            _, t0_, _ = load_ckpt(init)
+            if not has_effort(t0_):
+                init = str(expand_to_effort(init, out / "ckpts" / f"{a.name}_it0.pt", seed=a.seed))
+        model, tok, extra = load_ckpt(init, dev)
     think = has_think(tok) and extra.get("think_format", "think") != "none"
     think_ids = (tok.think, tok.end_think) if think else None
     # the sampler's masks: think_generate bans think tokens in R's actions (one block per proof)
@@ -655,15 +885,80 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     targets = read_jsonl(a.targets)
     rng = random.Random(a.seed * 7919)
     cur = Curriculum(len(targets), budgets if think else [0], a.floor, a.decay, a.seed)
+    curs = {"main": cur}
+    tx = read_jsonl(a.targets_extra) if a.targets_extra else []
+    n_x = round(a.targets_extra_frac * a.prompts) if tx else 0
+    assert n_x < a.prompts, "--targets_extra_frac leaves no --targets group"
+    if tx:
+        curs["extra"] = Curriculum(
+            len(tx), budgets if think else [0], a.floor, a.decay, a.seed + 7_000_003
+        )
+    kl_rng = random.Random(a.seed * 7919 + 1)  # the anchor's draws; the batch shuffle keeps `rng`
+    rngs = {"batch": rng, "kl": kl_rng}
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, betas=(0.9, 0.95), weight_decay=0.0)
     history = []
-    gn_prev: list[float] = []  # grad_norm_max of the iterations that took a step
-    n_step = 0
-    for it in range(1, a.iters + 1):
+    ls = LoopState()
+    can: list[Any] | None = None  # the canary's steps
+    pool: list[Any] = []  # the anchor's steps
+    if a.canary or a.kl_anchor_coef:
+        assert sample_format(model) == "think", "--canary / --kl_anchor: per-step formats only"
+        assert stateview.current() == "flat", "--canary / --kl_anchor: the file holds flat states"
+    if a.canary:
+        cd = load_canary(a.canary, tok, think, a.canary_n)
+        can, pool = cd.canary, cd.anchor
+        print(f"canary: {len(can)} steps of {cd.n_proofs} proofs ({a.canary})", flush=True)
+    ref = None
+    if a.kl_anchor_coef:
+        if a.kl_anchor_data and a.kl_anchor_data != a.canary:
+            pool = load_canary(a.kl_anchor_data, tok, think, 0).anchor
+        assert pool, "--kl_anchor_coef: no steps for the anchor"
+        ref, rtok, _ = load_ckpt(a.kl_anchor_ref, dev)
+        assert rtok.mode == tok.mode and ref.cfg["vocab"] == model.cfg["vocab"], (
+            f"--kl_anchor_ref {a.kl_anchor_ref}: tokenizer {rtok.mode}, the policy's {tok.mode}"
+        )
+        ref.eval()
+        ref.requires_grad_(False)
+        print(
+            f"kl anchor: beta {a.kl_anchor_coef:g}, pi_ref {a.kl_anchor_ref}, {len(pool)} steps, "
+            f"{a.kl_anchor_n} per AdamW step",
+            flush=True,
+        )
+    start = a.start_iter
+    if resume_state is not None:
+        start = restore_state(resume_state, opt, ls, rngs, curs, full=True)
+        if a.rollback_on_alarm:  # the newest good state is the one resumed
+            ls.last_good, ls.last_good_iter = str(a.resume), start
+        moved = _trim_metrics(out, start)
+        print(
+            f"resumed {a.resume} at iteration {start}"
+            + (f"; {moved} later rows moved to metrics.pre_resume.jsonl" if moved else ""),
+            flush=True,
+        )
+    last = a.start_iter + a.iters
+    ckdir = out / "ckpts"
+
+    def snapshot(i: int) -> dict[str, Any]:
+        return train_state(i, ls, opt, rngs, curs)
+
+    if can is not None and ls.canary_base is None:
+        model.eval()
+        ls.canary_base = canary_metrics(model, can, tok, bans[1], dev, a.max_tokens)
+        base_row = {"iter": start, "ckpt": a.resume or init, **ls.canary_base}
+        (out / "canary_base.json").write_text(json.dumps(base_row, indent=1) + "\n")
+        print(_canary_line(start, ls.canary_base) + " (base)", flush=True)
+    if a.rollback_on_alarm and ls.last_good is None:  # something to roll back to from the start
+        p = ckdir / f"{a.name}_it{start}_rolling.pt"
+        meta0 = {**extra, "grpo_iter": start, "grpo_init": a.init, "args": vars(a)}
+        save_ckpt(str(p), model, tok.mode, extra=meta0, train_state=snapshot(start))
+        ls.last_good, ls.last_good_iter = str(p), start
+    for it in range(start + 1, last + 1):
         t0 = time.time()
-        pairs = cur.draw(a.prompts)
-        batch = [targets[t] for t, _ in pairs]
-        tb = [b for _, b in pairs]
+        pairs = cur.draw(a.prompts - n_x)
+        pairs_x = curs["extra"].draw(n_x) if n_x else []
+        keys = pairs + pairs_x
+        src = [0] * len(pairs) + [1] * len(pairs_x)  # 1: --targets_extra
+        batch = [targets[t] for t, _ in pairs] + [tx[t] for t, _ in pairs_x]
+        tb = [b for _, b in keys]
         model.eval()
         D.record.phase("sample", round=it)
         per = sample_groups(model, tok, batch, tb, a, a.seed * 100003 + it, think)
@@ -672,11 +967,18 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         by_b: dict[int, list[float]] = collections.defaultdict(list)  # solved, per attempt
         over_b: dict[int, list[float]] = collections.defaultdict(list)  # masked as overlong
         think_b: dict[int, list[float]] = collections.defaultdict(list)  # think tokens
-        for att, b, key in zip(per, tb, pairs, strict=True):
+        dumping = bool(a.dump_batches)
+        att_meta: list[dict[str, Any]] = []  # --dump_batches: per attempt, per group, per item
+        grp_meta: list[dict[str, Any]] = []
+        item_att: list[int] = []
+        r_ids = (tok.think, tok.end_think) if a.len_target_coef and has_think(tok) else None
+        for g, (att, b, key, s) in enumerate(zip(per, tb, keys, src, strict=True)):
             by_b[b] += [float(bool(x.get("ok"))) for x in att]
             think_b[b] += [float(x["think"]) for x in att]
             # the curriculum counts every attempt: a capped one is a failure at eval
-            cur.update(key, sum(bool(x.get("ok")) for x in att), len(att))
+            curs["extra" if s else "main"].update(
+                key, sum(bool(x.get("ok")) for x in att), len(att)
+            )
             its, masked = group_items(
                 att,
                 tok,
@@ -687,6 +989,32 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 a.len_target_frac,
             )
             over_b[b] += [float(mk) for mk in masked]
+            if dumping:
+                rw = rewards(
+                    att,
+                    a.len_penalty,
+                    a.len_target_coef,
+                    a.len_target_mode,
+                    r_ids,
+                    a.len_target_frac,
+                )
+                a0 = len(att_meta)
+                att_meta += [
+                    {
+                        "group": g,
+                        "status": x.get("status"),
+                        "ok": x.get("ok"),
+                        "reward": r,
+                        "masked": m,
+                    }
+                    for x, r, m in zip(att, rw, masked, strict=True)
+                ]
+                grp_meta.append(
+                    {"budget": b, "target": key[0], "source": s, "skipped": its is None}
+                )
+                for j, (x, m) in enumerate(zip(att, masked, strict=True)):
+                    if its is not None and not m:
+                        item_att += [a0 + j] * len(attempt_items(x, 0.0, tok))
             if its is None:
                 n_skip += 1
                 continue
@@ -697,15 +1025,19 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         model.train()
         order = list(range(len(items)))
         rng.shuffle(order)
+        adam0 = compact_adam(opt, model) if dumping else {}
         stats: list[LossStats] = []
         gns: list[float] = []
+        kls: list[float] = []  # the anchor's KL, per AdamW step
+        gns_pol: list[float] = []  # the grad norm before the anchor's gradient
+        steps_meta: list[dict[str, float]] = []
         for u in range(a.updates):
             sel = order[u :: a.updates]
             if not sel:
                 continue
-            n_step += 1
+            ls.n_step += 1
             for g in opt.param_groups:
-                g["lr"] = a.lr * min(1.0, n_step / max(1, a.warmup))
+                g["lr"] = a.lr * ls.lr_scale * min(1.0, ls.n_step / max(1, a.warmup))
             opt.zero_grad(set_to_none=True)
             st = policy_loss(
                 model,
@@ -721,9 +1053,28 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 dual_clip=a.dual_clip,
             )
             if st.tokens:
+                kl = 0.0
+                if ref is not None:
+                    grads = [p.grad for p in model.parameters() if p.grad is not None]
+                    gns_pol.append(float(torch.nn.utils.get_total_norm(grads)))
+                    pick = kl_rng.sample(range(len(pool)), min(a.kl_anchor_n, len(pool)))
+                    kl = anchor_kl(
+                        model,
+                        ref,
+                        [pool[i] for i in pick],
+                        a.temperature,
+                        bans[1],
+                        dev,
+                        a.max_tokens,
+                        a.kl_anchor_coef,
+                    )
+                    kls.append(kl)
                 gns.append(float(torch.nn.utils.clip_grad_norm_(model.parameters(), a.clip)))
                 opt.step()
                 stats.append(st)
+                steps_meta.append(
+                    {"lr": opt.param_groups[0]["lr"], "grad_norm": gns[-1], "kl_anchor": kl}
+                )
         n_tok = sum(s.tokens for s in stats)
         n_st = max(1, len(stats))  # means over the minibatch steps
         loss = sum(s.loss for s in stats) / n_st
@@ -778,10 +1129,55 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             "secs": time.time() - t0,
             "secs_sample": t_sample,  # sampling and the Lean gate
             "attempts_per_s": len(flat) / max(1e-9, t_sample),
+            **capped_metrics(per, tb),  # whatever --overlong does with them
+            "clip_low_median": (
+                statistics.median(ls.clip_prev[-ALARM_REL_WINDOW:])
+                if len(ls.clip_prev) >= ALARM_GN_AFTER
+                else None
+            ),
+            "alarm_cfg": {
+                "capped": a.alarm_capped,
+                "clip_low_rel": a.clip_low_rel,
+                "canary_mult": a.canary_mult,
+            },
         }
-        row["alarms"] = alarms(row, gn_prev)
+        if pairs_x:
+            xa = [x for att, s in zip(per, src, strict=True) if s for x in att]
+            xb: dict[int, list[float]] = collections.defaultdict(list)
+            for att, b, s in zip(per, tb, src, strict=True):
+                if s:
+                    xb[b] += [float(bool(x.get("ok"))) for x in att]
+            main = [x for att, s in zip(per, src, strict=True) if not s for x in att]
+            row["extra_groups"] = len(pairs_x)
+            row["extra_pass1"] = sum(bool(x.get("ok")) for x in xa) / max(1, len(xa))
+            row["extra_pass1_by_budget"] = {str(b): sum(v) / len(v) for b, v in sorted(xb.items())}
+            row["main_pass1"] = sum(bool(x.get("ok")) for x in main) / max(1, len(main))
+            row["curriculum_extra"] = curs["extra"].summary()
+        if ref is not None:
+            row["kl_anchor"] = sum(kls) / max(1, len(kls))  # nats per anchor position
+            row["kl_anchor_coef"] = a.kl_anchor_coef
+            row["grad_norm_policy"] = sum(gns_pol) / max(1, len(gns_pol))
+        if a.rollback_on_alarm or ls.lr_scale != 1.0:
+            row["lr_scale"], row["rollbacks"] = ls.lr_scale, ls.rollbacks
+        if can is not None and it % a.canary_every == 0:  # the policy this iteration leaves
+            t1 = time.time()
+            model.eval()
+            c = canary_metrics(model, can, tok, bans[1], dev, a.max_tokens)
+            row["canary"] = {**c, "base": ls.canary_base, "secs": time.time() - t1}
+        row["alarms"] = alarms(row, ls.gn_prev)
         if gns:
-            gn_prev.append(gn_max)
+            ls.gn_prev.append(gn_max)
+            ls.clip_prev.append(clip_low)
+        rb: dict[str, Any] | None = None
+        if row["alarms"] and a.rollback_on_alarm:
+            if ls.rollbacks < a.max_rollbacks and ls.last_good:
+                rb = {
+                    "to": ls.last_good,
+                    "to_iter": ls.last_good_iter,
+                    "n": ls.rollbacks + 1,
+                    "lr_scale": ls.lr_scale * 0.5,
+                }
+            row["rollback"] = rb  # None: --max_rollbacks reached
         with open(out / "metrics.jsonl", "a") as f:
             f.write(json.dumps(row) + "\n")
         history.append(row)
@@ -789,7 +1185,8 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             f"it {it}: pass@1 {100 * row['reward_pass1']:.1f}% "
             f"{ {k: round(100 * v, 1) for k, v in row['pass1_by_budget'].items()} } "
             f"skip {100 * row['groups_skipped']:.0f}% tok/att {row['tokens_per_attempt']:.0f} "
-            f"over {100 * row['overlong_frac']:.1f}% think/att {row['think_per_attempt']:.0f} "
+            f"over {100 * row['overlong_frac']:.1f}% cap {100 * row['capped_frac']:.1f}% "
+            f"think/att {row['think_per_attempt']:.0f} "
             f"{_length_line(row)} "
             f"loss {loss:+.4f} clip lo/hi {clip_low:.4f}/{clip_high:.4f} "
             f"rmax {row['ratio_max']:.2f} neg_r3 {row['neg_r3']:.4f} "
@@ -799,11 +1196,60 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             f"({row['attempts_per_s']:.0f} att/s sampling)",
             flush=True,
         )
+        if "canary" in row:
+            print(_canary_line(it, row["canary"]), flush=True)
+        guard = []
+        if "kl_anchor" in row:
+            guard.append(
+                f"kl anchor {row['kl_anchor']:.4f} x {a.kl_anchor_coef:g} "
+                f"(gn policy {row['grad_norm_policy']:.3f})"
+            )
+        if "extra_groups" in row:
+            guard.append(f"extra {row['extra_groups']} groups {100 * row['extra_pass1']:.1f}%")
+        if "lr_scale" in row:
+            guard.append(f"lr x{row['lr_scale']:g} ({row['rollbacks']} rollbacks)")
+        if guard:
+            cap_b = " ".join(f"B{b} {100 * v:.1f}%" for b, v in row["capped_by_budget"].items())
+            print(f"guard it {it}: " + "; ".join(guard) + f"; capped {cap_b}", flush=True)
         for msg in row["alarms"]:
             print(f"ALARM it {it}: {msg}", flush=True)
+        if row["alarms"] and a.rollback_on_alarm and rb is None:
+            print(f"ALARM it {it}: no rollback (--max_rollbacks {a.max_rollbacks} reached)")
+        if dumping:  # before the checkpoints: a checkpoint of iteration i implies its dump
+            assert len(item_att) == len(items), "dump: items vs attempts"
+            dump_batch(
+                Path(a.dump_batches) / f"{a.name}_it{it}_batch.pt",
+                it=it,
+                items=items,
+                old=old,
+                item_attempt=item_att,
+                order=order,
+                updates=a.updates,
+                attempts=att_meta,
+                groups=grp_meta,
+                steps=steps_meta,
+                adam=adam0,
+                settings={
+                    k: getattr(a, k)
+                    for k in (
+                        "temperature",
+                        "clip_eps_low",
+                        "clip_eps_high",
+                        "dual_clip",
+                        "clip",
+                        "max_tokens",
+                        "len_penalty",
+                        "overlong",
+                        "len_target_coef",
+                        "len_target_mode",
+                        "len_target_frac",
+                        "kl_anchor_coef",
+                    )
+                },
+                vocab=model.cfg["vocab"],
+            )
         model.eval()
         meta = {**extra, "grpo_iter": it, "grpo_init": a.init, "args": vars(a)}
-        ckdir = out / "ckpts"
         saved = False
         if row["alarms"]:
             save_ckpt(
@@ -811,14 +1257,32 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 model,
                 tok.mode,
                 extra={**meta, "grpo_alarms": row["alarms"]},
+                train_state=snapshot(it),
             )
             saved = True
-        if it % a.save_every == 0 or it == a.iters:
-            save_ckpt(str(ckdir / f"{a.name}_it{it}.pt"), model, tok.mode, extra=meta)
+        if rb is not None:  # the alarm checkpoint holds this iteration's weights; restore
+            ck = torch.load(str(rb["to"]), map_location=dev)
+            model.load_state_dict(ck["state"])
+            restore_state(ck[TRAIN_STATE], opt, ls, rngs, curs, full=False)
+            ls.lr_scale, ls.rollbacks = rb["lr_scale"], rb["n"]
+            meta = {**meta, "grpo_rollback": rb}
+            print(
+                f"ROLLBACK it {it}: restored {rb['to']} (it {rb['to_iter']}), "
+                f"lr x{ls.lr_scale:g} from the next iteration ({ls.rollbacks}/{a.max_rollbacks})",
+                flush=True,
+            )
+        good = not row["alarms"] or rb is not None
+        if it % a.save_every == 0 or it == last:
+            p = ckdir / f"{a.name}_it{it}.pt"
+            save_ckpt(str(p), model, tok.mode, extra=meta, train_state=snapshot(it))
             saved = True
+            if good:
+                ls.last_good, ls.last_good_iter = str(p), it
         if a.save_rolling and it % a.save_rolling == 0 and not saved:
-            save_ckpt(str(ckdir / f"{a.name}_it{it}_rolling.pt"), model, tok.mode, extra=meta)
+            p = ckdir / f"{a.name}_it{it}_rolling.pt"
+            save_ckpt(str(p), model, tok.mode, extra=meta, train_state=snapshot(it))
             prune_rolling(ckdir, a.name, a.keep_rolling)
+            ls.last_good, ls.last_good_iter = str(p), it
         if dev == "cuda":
             torch.cuda.empty_cache()
     D.record.phase(None)
@@ -897,6 +1361,64 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--lean", default=None)
     ap.add_argument("--device", default=None)
+    g = ap.add_argument_group("safeguards (collapse audit 2026-10-08; module docstring)")
+    g.add_argument(
+        "--resume",
+        default=None,
+        help="a checkpoint of this script with its training state: continue the run exactly "
+        "(to iteration --start_iter + --iters); --init stays a weight-only start",
+    )
+    g.add_argument(
+        "--start_iter", type=int, default=0, help="iterations run start_iter + 1 .. + --iters"
+    )
+    g.add_argument(
+        "--alarm_capped",
+        type=float,
+        default=ALARM_CAPPED,
+        help="alarm when a budget's share of capped attempts exceeds this (0: off)",
+    )
+    g.add_argument(
+        "--clip_low_rel",
+        type=float,
+        default=ALARM_CLIP_LOW_REL,
+        help="alarm when clip-low exceeds this x its running median (0: off)",
+    )
+    g.add_argument("--canary", default=None, help="canary/1 file (canary.py): long-state steps")
+    g.add_argument("--canary_n", type=int, default=1000, help="canary steps")
+    g.add_argument("--canary_every", type=int, default=1, help="iterations between canaries")
+    g.add_argument(
+        "--canary_mult",
+        type=float,
+        default=CANARY_MULT,
+        help="alarm when a canary value exceeds this x its base (0: off)",
+    )
+    g.add_argument(
+        "--rollback_on_alarm",
+        action="store_true",
+        help="on an alarm restore the last good checkpoint and halve the lr",
+    )
+    g.add_argument("--max_rollbacks", type=int, default=3)
+    g.add_argument(
+        "--kl_anchor_coef",
+        type=float,
+        default=0.0,
+        help="beta: add beta x KL(pi_ref || pi) on long-state reference steps (0: off)",
+    )
+    g.add_argument("--kl_anchor_ref", default=None, help="pi_ref: a frozen checkpoint")
+    g.add_argument(
+        "--kl_anchor_data",
+        default=None,
+        help="canary/1 file of the anchor's steps (default: --canary minus the canary's proofs)",
+    )
+    g.add_argument("--kl_anchor_n", type=int, default=512, help="anchor steps per AdamW step")
+    g.add_argument("--dump_batches", default=None, help="DIR: per-iteration batch + AdamW dump")
+    g.add_argument("--targets_extra", default=None, help="a second target file (long proofs)")
+    g.add_argument(
+        "--targets_extra_frac",
+        type=float,
+        default=0.0,
+        help="share of each iteration's groups drawn from --targets_extra",
+    )
     return ap
 
 
