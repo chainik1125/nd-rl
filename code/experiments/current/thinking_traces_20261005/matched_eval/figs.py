@@ -7,8 +7,9 @@ Reads the stored eval rows under /scratch/cowifornia/nd-rl/think/runs/eval/ (CPU
 pass@k (unbiased, Chen et al. 2021) with 95% percentile intervals from `code.thinking.stats`
 (theorem bootstrap; one seed per arm). The 13-20 reads use the 986 items of the 1,000-item eval
 subsample that are unchanged in the final sealed set. Panels whose rows are missing are skipped.
-Palette: the dataviz reference categorical slots 1-4 (validated: CVD and normal-vision pass; slots
-3-4 below 3:1 contrast, so every series is direct-labelled and has its own marker).
+Palette: the dataviz reference categorical slots 1-6 (validated: CVD and normal-vision pass; some
+slots below 3:1 contrast, so line series are direct-labelled with their own markers, and the bar
+figures' values are tabulated in final_tables.md).
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ R = Path("/scratch/cowifornia/nd-rl/think/runs")
 E = R / "eval"
 M = E / "matched"
 BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
+MAGENTA, GREEN = "#e87ba4", "#008300"
 GRAY = "#6b6b6b"
 
 
@@ -229,6 +231,66 @@ def fig_matched(rows_all: Rows, rows_1320: Rows, out: Path) -> None:
         S.close(fig)
 
 
+def fig_variants(rows_all: Rows, rows_1320: Rows, out: Path) -> None:
+    """Thinking-arm variants vs no-think GRPO (seed 0), at it39 and it78, 3 test sets, pass@1/@5.
+    Thinking arms read at B 256 (their full budget)."""
+    arms = [
+        ("no-think", ORANGE, "grpoT0", "B0"),
+        ("effort levels", BLUE, "grpoT1v1e", "B256"),
+        ("one budget", AQUA, "T1v1_b256", "B256"),
+        ("one budget + token cost", YELLOW, "T1v1_b256_lp02", "B256"),
+        ("graded traces", MAGENTA, "T1v1g4e", "B256"),
+        ("graded + LCPO", GREEN, "T1v1g4e_lcpo", "B256"),
+    ]
+    sets = [
+        ("hard12 test (1,000)", "h12", rows_all),
+        ("textbook72", "tb72", rows_all),
+        ("13-20 lines (986)", "t1320", rows_1320),
+    ]
+    its = ["it39", "it78"]
+    w = 0.13
+    with S.paper_style():
+        fig = S.new_figure(S.FULL_W, 3.8, layout="constrained")
+        axs = fig.subplots(2, 3)
+        for row, k in enumerate((1, 5)):
+            for col, (title, s, rows) in enumerate(sets):
+                ax = axs[row][col]
+                for j, (lab, color, tag, b) in enumerate(arms):
+                    for i, it in enumerate(its):
+                        e = est(rows.arm(M / f"{s}_{tag}_{it}" / f"rows_plain_{b}.jsonl"), k)
+                        if e is None:
+                            continue
+                        x = i + (j - 2.5) * (w + 0.015)
+                        first = (row, col, i) == (0, 0, 0)
+                        ax.bar(
+                            x,
+                            e[0],
+                            width=w,
+                            color=color,
+                            edgecolor="white",
+                            linewidth=0.6,
+                            label=lab if first else None,
+                        )
+                        ax.errorbar(
+                            x,
+                            e[0],
+                            yerr=[[e[0] - e[1]], [e[2] - e[0]]],
+                            color=S.INK2,
+                            lw=0.6,
+                            capsize=1.0,
+                        )
+                ax.set_xticks([0, 1], ["iteration 39", "iteration 78"])
+                S.pct_axis(ax)
+                S.light_grid(ax)
+                if row == 0:
+                    S.panel_title(ax, None, title)
+                if col == 0:
+                    ax.set_ylabel(f"pass@{k}")
+        fig.legend(loc="outside upper center", ncol=3, frameon=False, fontsize=S.FS_TICK)
+        S.save(fig, out / "fig_rl_variants")
+        S.close(fig)
+
+
 def fig_forcing(rows: Rows, out: Path) -> None:
     """Budget forcing: pass@1 vs the forced minimum think tokens per step (cap 256)."""
     mins = [0, 64, 96, 128]
@@ -379,6 +441,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         r1320, rall = Rows(keep, tmp), Rows(None, tmp)
         fig_curves(r1320, out)
         fig_matched(rall, r1320, out)
+        fig_variants(rall, r1320, out)
         fig_forcing(rall, out)
         fig_graded(rall, out)
         fig_tokens(r1320, out)

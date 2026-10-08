@@ -5,10 +5,11 @@ written_by: agent:claude
 
 # Thinking traces for the proof-state model (test-time scaling, LLM tradition)
 
-Status (2026-10-07):
+Status (2026-10-08):
 - Stage 1 is done: 4 arms × 3 seeds, with reads on textbook72 and the OOD sets (below).
-- The RL phase is running. There are expert-iteration (EI) and GRPO arms on the rl_hard12 pool, and the GRPO
-  arms await a fixed relaunch. See [RL phase](#rl-phase-2026-10-06-to-07-in-progress).
+- The first RL phase is done (EI and fixed-loss GRPO on the rl_hard12 pool, to iteration 78). See
+  [RL phase](#rl-phase-2026-10-06-to-08) and the full write-up,
+  [RL_RESULTS.md](../../code/experiments/current/thinking_traces_20261005/RL_RESULTS.md).
 - **The LLM-written-trace arm is dropped.** Claude subagents asked to write these traces were blocked by a
   `[reasoning_extraction]` safeguard, so no Claude-written trace is used for training.
 
@@ -192,12 +193,12 @@ theorem. Dan's Stage-1 checkpoint with guided redraws at k 64 (about 24k tokens)
 - v1's lead supports Leon's view: what the traces must supply is variety and length, not audited rigor.
 - Which init is better for RL is not settled by these reads.
 
-## RL phase (2026-10-06 to 07, in progress)
+## RL phase (2026-10-06 to 08)
 
 **Setup.**
 - Runs live in `/scratch/cowifornia/nd-rl/think/runs/`. Arms:
-  - EI (Dan's ladder, 8 rounds × k 32);
-  - GRPO (Dr. GRPO, clip-higher, 312 iterations × 256 × 16).
+  - EI (Dan's ladder, rounds of 5,000 × k 32, stopped after round 4–5 and compared at rounds 1–2);
+  - GRPO (Dr. GRPO, clip-higher, 256 × 16 per iteration, stopped at iteration 78 on 2026-10-07).
 - Both arms start from T0 (no thinking) and T1v1 with effort tokens `<e0>`–`<e256>`, and are matched on
   sampled attempts.
 - Pool: `rl_hard12`, 5,000 targets of 7–12 lines with T0 seed 0 at 2–16/32. Sealed test split:
@@ -240,11 +241,34 @@ theorem. Dan's Stage-1 checkpoint with guided redraws at k 64 (about 24k tokens)
   0.22% pass@8. Built by composing measured short pieces:
   [test_21_30/README.md](../../code/experiments/current/thinking_traces_20261005/test_21_30/README.md).
 
-**Open:**
-- Fixed GRPO relaunch, thinking and no-thinking.
-- EI runs: no-thinking finishes about 4:30 am PDT on 2026-10-07, thinking about 9 am.
-- Fixed-problem evals of all RL checkpoints at every effort level.
-- A graded 13–20-line test set.
+**Results of the fixed runs** (2026-10-07; details, tables and caveats in
+[RL_RESULTS.md](../../code/experiments/current/thinking_traces_20261005/RL_RESULTS.md)).
+- Matching: one EI round = 160k attempts = 39 GRPO iterations, so r1 ↔ it39 and r2 ↔ it78.
+- 13–20 refers to the sealed 13–20-line set (986 items).
+
+- **GRPO vs EI.**
+  - GRPO is ahead in distribution at pass@1 only. hard12 no-think: 90.3% vs 78.0% at it39/r1 (+12.3 [+10.6, +13.8])
+    and 92.8% vs 82.7% at it78/r2. pass@5 ties (−1.1 to +1.4), so GRPO sharpens rather than widens.
+  - Out of distribution it is mixed. On 13–20, EI with thinking at round 2 (11.4% pass@1, 28.6% pass@5) is level
+    with or ahead of thinking GRPO at it78 (seed 1: 10.1% / 23.3%).
+- **Thinking vs no-think GRPO.**
+  - In distribution: +2–3 pp pass@1 in both seeds (seeds 0+1 pooled: +2.9 [+1.4, +4.3] at it39).
+  - On 13–20 the gain is mostly at pass@5: +14.8 (seed 0) and +9.7 (seed 1) at it39, and +9.4 for seed 1 at it78.
+  - At matched sampled tokens the 13–20 gain is about 0 at 1,000 tokens per problem and +3 to +5 at 2,000.
+  - The seed-0 run lost its 13–20 gain after it39 (−4.3 pass@1 at it78), at the same time as a clip-low spike at
+    it48–52. Seed 1 kept its gain to it78.
+  - The earlier reading that the 13–20 gain decays with training came from this one run. Seed 1 does not show it.
+- **Variants** (one seed each, so not ranked: no-think seeds alone differ by 3.2 pp on 13–20).
+  - Token cost cut tokens per attempt by about 40% at the same accuracy.
+  - Graded-length Stage-1 traces gave the best 13–20 read at it78: 11.9% / 27.9% at B 256.
+  - LCPO steered think length per effort level but did not raise accuracy.
+- **Budget forcing lowers accuracy** at every forced minimum. On textbook72, the RL'd one-budget model goes from
+  32.9% to 5.3% pass@1 at a 128-token minimum.
+- **Graded-length Stage 1** (T1v1g4) removes the no-think penalty on hard12 (e0 41.5% vs T0 42.4%) and is +6.2 pp
+  over T0 at e256. It brings no gain on textbook72.
+
+Figures: `figures/fig_rl_matched`, `fig_rl_variants`, `fig_rl_t1320_curves`, `fig_rl_t1320_tokens`, `fig_forcing`
+and `fig_graded_stage1` (png, pdf and svg).
 
 ## Baseline figure
 

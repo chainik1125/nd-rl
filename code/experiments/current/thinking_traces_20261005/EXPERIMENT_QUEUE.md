@@ -11,25 +11,32 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-07, 6:50 pm PDT)
+## Running (updated 2026-10-07, 10:05 pm PDT)
 
-| what | where | GPU | ETA | notes |
-|---|---|---|---|---|
-| GRPO from graded Stage-1 (T1v1g4), plain effort | `restart3_grpofix/grpo_T1v1g4e` | 1 | ~9 pm | to it78; keeps all rolling ckpts |
-| GRPO from T1v1g4 with the LCPO length reward | `restart3_grpofix/grpo_T1v1g4e_lcpo` | 4 | ~9:15 pm | `--len_target_coef 0.2 --len_target_mode exact --len_target_frac 0.5` |
-| seed-1 matched evals, it39 and it78 | `eval/matched/*s1*`, `followup_20261007/gpu2c.sh` | 2 | ~8 pm | |
-| seed-1 13–20 learning curve, it10–75 at B0 and B256 | `eval/matched/curve/`, `gpu3_curve.sh` | 3 | ~8 pm | auto-run under the 30-min rule |
-| graded Stage-1 evals on t1320, then the token-cost run's it78 evals | `graded_rl.sh`, `gpu0d.sh` | 0 | ~8 pm | GPU-0 queues are now serialised (an OOM collision cost one eval) |
+Nothing. Every GPU is free.
 
-## Done today (2026-10-07; numbers in chat, write-up pending)
+## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
-- **Matched EI vs GRPO** (r1/r2 vs it39/it78, both arms, seed 0) on hard12_test, textbook72 and t1320 (986 valid items). Tables come from `matched_eval/tables.sh`.
-- **Seed-1 GRPO pair.** The no-think runs replicate. The thinking gain on 13–20 at it39 is resolved in both seeds, +4.8 and +1.6 pass@1.
-- **Single-budget thinking GRPO** (`grpo_T1v1_b256`) and the token-cost variant (`grpo_T1v1_b256_lp02`), both to it78.
-- **Budget forcing (s1-style).** Forcing any minimum think length lowers accuracy, for the Stage-1 and RL'd models alike.
+From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
+1. **Second seeds of the graded arm and of one budget + token cost.** About 3 GPU-h each, plus 1.5 GPU-h of evals.
+   Seed spread is currently as large as the differences between variants.
+2. **Restart the seed-0 effort run from it39**, once with the same settings and once at half the learning rate,
+   to see whether the it48 clip-low spike and the 13–20 drop recur.
+
+## Done 2026-10-07 (write-up: [RL_RESULTS.md](RL_RESULTS.md); tables: [matched_eval/final_tables.md](matched_eval/final_tables.md))
+
+- **Matched EI vs GRPO** (r1/r2 vs it39/it78, both arms, seed 0) on hard12_test, textbook72 and t1320 (986 valid
+  items).
+- **Seed-1 GRPO pair**, plus the seed-1 13–20 learning curve (it10–75).
+- **Single-budget thinking GRPO** (`grpo_T1v1_b256`) and the token-cost variant (`grpo_T1v1_b256_lp02`), both to
+  it78.
+- **Budget forcing (s1-style).** Forcing any minimum think length lowers accuracy.
 - **Locating the 13–20 drop in the seed-0 effort run.** The gain is gone by it49 and never recovers.
-- **Graded-length traces** (`graded_traces/`) and Stage-1 T1v1g4. Effort is monotone. On hard12 the no-think penalty is gone and thinking beats T0 by about 6.5 pp. On textbook72 there is no gain.
+- **Graded-length traces** (`graded_traces/`), Stage-1 T1v1g4, and GRPO from it, plain and with LCPO. All evals
+  are done.
 - **LCPO reward** implemented (`grpo.py`, 4608e60).
+- **Process fix:** eval queues now count an eval as done only when every budget's rows file exists
+  (`followup_20261007/lib.sh` `evdone`). `summary.json` is rewritten after each budget, so it is not enough.
 
 ## Held
 
