@@ -1,0 +1,226 @@
+{
+  "id": "511-fable",
+  "slug": "wide-trunk",
+  "written_at": "2026-10-07T17:58:52-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "4447b49",
+  "harness_sha": "2eec1b61666a",
+  "pretrain_sha": "f8ffaf48aff4",
+  "patch_lines": 7,
+  "title": "Wide looped trunk: d_model 512 instead of 384, so the four unique blocks hold 9.58M parameters, the untied six-block control's 9.56M, with the same loops and the same RL",
+  "description": "One constant: D = 512 (N_HEAD stays 8, so 64-dim heads instead of 48; D_FF stays 1280, so the MLP ratio falls from 3.3 to 2.5 because 4*D or 3*D would pass the cap). Everything else is 510's file: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks with LayerNorm(state)+entry re-injection, ALiBi on 4 heads / NoPE on 4, random 1-8 loops per batch in pretraining and in the RL fine-tune, MTP 0.3 in pretraining, Muon+AdamW in both stages, 8 attempts at 1 loop per target then 24 retries at one of 2/4/8 loops for targets 1 loop failed, up to 4 proofs per target x4 with 20,000 replay records, FT_RECORDS 38,400 per round, rounds until another would not fit. Parameters: 9,580,544 (bench; 510: 6,400,256; cap 10,000,000; 590's untied 198 model: 9,558,528 per its results.json). Bench on one A40 (bench_pretrain.py --secs 60, torch 2.9.1): 287 steps in 61.3 s with step 2 at 33 s (compile and construction), so a steady 10.6 steps/s against 510 seed 0's 13.5 (step 325 at 60 s, step 2 at 36 s); peak pretraining memory 9.8 GB; 1-loop sampling of the 60-s model 169 samples/s (not comparable with a trained model's 201-249 in 510, whose samples are shorter). Arithmetic: ~2,750-2,950 pretraining steps instead of 3,400-3,470; sampling and fine-tune steps ~0.75x as fast, so a 510 late round of 102-133 s becomes ~140-175 s and round 1 ~245 s becomes ~320 s: 9-11 RL rounds against 13/14/12. The eval also slows: the two 64-attempt evals took about 1,100 s of 510's 3,941 s total, so expect ~1,500 s and totals of 4,300-4,700 s against the harness's TOTAL_SECS kill at 5,400 s; a pod 20% slower than the bench pod would make that a timeout. KV cache per core application at the eval's batch of 1,024 grows from ~0.9 to ~1.3 GB, ~23 GB at 8 loops, inside the A40's 48 GB. muon_step's QKV-by-shape test stays valid (qkv is 1536 x 512, fc1 1280 x 512, head 111 x 512). Checks run: make -C code check clean (ruff, format, pyright); the edit is 5 lines inserted, 2 deleted, one of them code.",
+  "tags": [
+    "architecture",
+    "loops"
+  ],
+  "hypothesis": "Mechanism under test: whether the looped trunk trails the untied six-block model because it has fewer parameters. Control 590 scored 792 with 198's 9.56M untied blocks under 507's RL, against 732 (507), 748 (509) and 764 (510) for the 6.4M looped trunk at 8 loops, where the looped eval applies 18 blocks per token against 6. Three readings of that 28-60 theorem gap: (a) parameters, the four unique blocks have 1.57M each and the policy is capacity-limited; (b) tying, a shared core applied n times computes a fast-converging function (505: state change per pass 0.28, 0.10, 0.05, 0.02) that is worse than six distinct blocks at any width; (c) RL budget, deep retries cost the looped model 2.5x per sample so it gets fewer rounds (590 ran 20 rounds against 11-14). 506 tried to add parameters by untying the first pass and lost 25, but that changed what the core trains on (the first-pass blocks got one application's gradient per step and the 1-loop pass collapsed to 0.58 acceptance), so it did not isolate (a). Widening every block keeps the architecture, the loop schedule and the RL identical and matches 590's parameter count to within 0.25% (9,580,544 against 9,558,528), at the price of ~20% fewer pretraining steps and ~25% fewer RL rounds, which are the costs of (c) made explicit. If (a) holds, the extra capacity shows first in the fine-tune: higher 1-loop acceptance on RL targets at matched rounds (510 at round 11: 0.665/0.668/0.663), higher per-sample dev accuracy at both depths, and a dev score at 8 loops at or above 775 despite fewer rounds, with the 2-loop diag rising by about as much. If (b) or (c) holds, the wider model fits no better per round and the fewer rounds cost 10-30 theorems: the score lands at or below 764 with per-sample accuracy within 0.01 of 510's. Loops are not the lever here and the 8-vs-2 gap should not move: metric minus diag +5 to +25 (510: +12 = 12/20/5), per-sample 8-vs-2 gap 0.02-0.04, retry crack rates in their usual 2 <= 4 <= 8 order; this experiment tests the parity comparison every depth result in this loop is judged against, not depth itself. What can go wrong: a timeout from the slower eval on a slow pod (total above 5,400 s), which would be the idea's cost and logged as such; a lower pretraining val loss that again fails to reach the metric (505, 508); the 2.5x MLP ratio being a worse shape than 3.3x at equal parameters.",
+  "p_keep": 0.4,
+  "expected_delta": "metric at 8 loops, 3-seed mean 735-795 against 510's 764 (743/815/734); point estimate 768 (+4), with the two readings pulling opposite ways: capacity +10 to +30, fewer rounds -10 to -25. metric_diag 725-780 (510: 752 = 731/795/729); metric minus diag +5 to +25. Pretraining 2,750-2,950 steps (510: 3,409/3,470/3,422), val loss at 2 loops 0.076-0.090 (510: 0.0824/0.0894/0.0912), depth-flat within 0.001 from 2 to 8 loops as always; MTP and compile unchanged. RL rounds 9-11 per seed (510: 13/14/12), ft_steps 294-400 per round as in 510 (same records, slower steps), fine-tune 55-75 s per round (510: ~45-55 s), 1-loop sampling 150-200 samples/s (510: 201-249), 8-loop 55-90 (510: 70-117). Cumulative RL targets solved 1,220-1,290 (510: 1,264/1,314/1,243). Fit: round-2 1-loop acceptance 0.25-0.45 (510: 0.231/0.410/0.292), last-round 0.66-0.76 (510: 0.671/0.667/0.634), at matched round 10 above 510's round-10 value by 0.00-0.05 on two seeds if (a) holds. Per-sample dev accuracy 0.45-0.52 at 8 loops and 0.42-0.49 at 2 (510: 0.461/0.481/0.443 and 0.422/0.444/0.417). Held-out greedy after RL 0.975-0.990 (510: 0.984/0.986/0.985). Total 4,300-4,700 s per seed (510: 3,941), eval about 1,500 s of it. Decision reading: 'parameters are the bottleneck' is supported if the mean is at or above 775 with per-sample dev accuracy at 8 loops above 510's by 0.02 or more on two seeds; it is falsified if the mean is below 764 and per-sample accuracy at 8 loops is within 0.01 of 510's on two seeds (then the deficit is tying or RL budget, and width is not the way to 792); it is left open if the mean is below 764 but per-sample accuracy is up by 0.02 or more on two seeds with rounds at 10 or fewer (capacity helped the fit and the rounds cost the coverage; the next step would be to buy the rounds back). Timeout on any seed is logged as timeout and counts against the idea. Keep iff the 3-seed mean is above 764; if kept with the gap unchanged, say so in the surprise text.",
+  "baseline_id": "510-fable",
+  "baseline_metric": 764,
+  "config": {
+    "arch": {
+      "type": "looped gpt: 1 entry + 2 shared core x n + 1 exit Peri-LN blocks, LayerNorm(state)+entry re-injection per loop; d_model 512 (64-dim heads), MLP width 1280 unchanged",
+      "n_layers": 4,
+      "d_model": 512,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9580544
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "per-block compile(dynamic=True) + CUDA-graphed Muon step",
+    "init": "orthogonal on block matrices, fork default elsewhere",
+    "loops": {
+      "train": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "default": 2,
+      "val": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "rl_first": 1,
+      "rl_retry": [
+        2,
+        4,
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "samples_note": "8 at 1 loop for every target; 24 more at one of 2/4/8 loops only for targets whose 8 one-loop attempts all failed that round, so a target 1 loop solves gets 8",
+      "k_first": 8,
+      "k_retry": 24,
+      "retry_assignment": "failed targets shuffled with the run's rng, dealt round-robin to 2, 4, 8",
+      "ft_steps": 384,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round as long as the last plus 15% would not fit in RL_SECS; expected 9-11 per seed (510: 13/14/12) because sampling and fine-tune steps run ~0.75x as fast at d 512",
+      "ft_optimizer": "pretraining's split: Muon (muon_step: Nesterov momentum 0.95, five bf16 Polar Express steps, decoupled decay MUON_WD = 0.1 per unit lr) at 3e-3 on the 17 hidden matrices (qkv, proj, fc1, fc2 of the 4 unique blocks + head.weight); AdamW 3e-4, wd 0.1, betas (0.9, 0.95) on the 53 other tensors (token embeddings, every LayerNorm gain/bias, linear biases); global clip 1.0 before both steps; linear warmup 50 steps then cosine to lr/10 over the round's step count for both groups (unchanged shape); Muon momentum and AdamW moments start fresh every round; the Muon step is one CUDA graph per round (MuonStep helper, shared with pretraining)",
+      "ft_loops": "random 1-8 per batch (TRAIN_LOOPS), unchanged",
+      "loss": "next-token CE on the last loop's output",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_steps_note": "data-dependent: FT_RECORDS = 38,400 records per round in token-budget batches of <= 18,432 padded tokens, as 510 (294-399 steps per round); same step counts expected, each ~1.3x slower",
+      "ft_records": 38400,
+      "ft_batch": "token-budget batches as pretraining: shuffled epoch stably sorted by length, cut into runs with count x max_len <= 128 x 144 = 18,432 tokens, run order shuffled; shift augmentation on the GPU (gpu_batch); replaces the fork's batch() of 128 random records padded to their longest",
+      "ft_muon_lr": 0.003,
+      "ft_muon_lr_note": "FT_MUON_LR = 10 x FT_LR, pretraining's Muon:AdamW ratio (MUON_LR 0.01 : LR 1e-3), and equal to where pretraining's cosine ends (MUON_LR x MIN_LR_FRAC = 0.003); not tuned",
+      "ft_epochs_per_round": "mix = 4 x (distinct proofs, <= 4 per solved target) + 20,000 replay = ~20,600 records in round 1 and ~32,000 by round 11 (509 seed 0: 3,076 distinct RL proofs), so 38,400 records is 1.9 epochs early and 1.2 late (509: 3.7 and 2.4)",
+      "ft_warmup_steps": 50
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_loops",
+      "level": 8,
+      "diag_level": 2,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}

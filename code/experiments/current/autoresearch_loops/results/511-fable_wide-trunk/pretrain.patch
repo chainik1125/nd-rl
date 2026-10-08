@@ -1,0 +1,26 @@
+diff --git a/code/experiments/current/autoresearch_loops/pretrain.py b/code/experiments/current/autoresearch_loops/pretrain.py
+index 5855d0a..c6e0677 100644
+--- a/code/experiments/current/autoresearch_loops/pretrain.py
++++ b/code/experiments/current/autoresearch_loops/pretrain.py
+@@ -55,8 +55,11 @@ from train import loss_on  # fork
+ 
+ # ---- knobs
+ # Unique blocks: one untied entry block, N_CORE shared core blocks, one untied exit block.
++# D 512 (64-dim heads) instead of 198's 384: the four unique blocks then hold 9.47M of the 10M
++# cap, the parameter count of the untied six-block model (590: 792), so the looped trunk is
++# compared with it at equal parameters instead of 6.4M against 9.56M.
+ N_CORE = 2
+-N_LAYER, D, N_HEAD = 2 + N_CORE, 384, 8
++N_LAYER, D, N_HEAD = 2 + N_CORE, 512, 8
+ # Core applications (loops). Training draws one count per batch from TRAIN_LOOPS, in pretraining
+ # and in rl()'s fine-tune; eval and sampling apply model.n_loops, which the harness sets for its
+ # evals and rl() sets before each oracle call. DEFAULT_LOOPS is used for the validation curve and
+@@ -85,7 +88,7 @@ RL_RETRY_LOOPS, RL_RETRY_K = (2, 4, 8), 24
+ # Muon:AdamW ratio and is where pretraining's cosine ends (MUON_LR * MIN_LR_FRAC).
+ FT_RECORDS, FT_LR, FT_MUON_LR, FT_WARMUP = 300 * 128, 3e-4, 3e-3, 50
+ RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
+-# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
++# MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (2048 at D 512 would pass the
+ # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
+ D_FF = 1280
+ BS, LR, MIN_LR_FRAC, WD = 128, 1e-3, 0.3, 0.1
