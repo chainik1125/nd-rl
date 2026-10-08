@@ -11,33 +11,25 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (2026-10-07)
+## Running (updated 2026-10-07, 6:50 pm PDT)
 
-| what | where | GPU | stops | notes |
+| what | where | GPU | ETA | notes |
 |---|---|---|---|---|
-| GRPO no-think (T0_s0), fixed code | `restart3_grpofix/grpo_T0` | 2 | it78, ~1:55 pm (`stop_at_78.sh`) | restarted from scratch after serrano's crash |
-| GRPO thinking with effort levels (T1v1_s0) | `restart3_grpofix/grpo_T1v1e` | 3 | it78, ~3:45 pm | budgets 0/16/64/256 |
-| matched evals: EI r1, r2 vs GRPO it39, it78, both arms | `eval/matched/`, log `logs/matched_eval.log` | 1, 4 | ALL DONE ~5–6 pm | sets: hard12_test_1k (k 16), textbook72 (k 64), test_13_20 if ready; thinking at B 0/64/256 |
-| 13–20-line test set (agent) | `pools/test_13_20/` | 0 (lock) | — | the 21–30 set is at the floor |
+| GRPO from graded Stage-1 (T1v1g4), plain effort | `restart3_grpofix/grpo_T1v1g4e` | 1 | ~9 pm | to it78; keeps all rolling ckpts |
+| GRPO from T1v1g4 with the LCPO length reward | `restart3_grpofix/grpo_T1v1g4e_lcpo` | 4 | ~9:15 pm | `--len_target_coef 0.2 --len_target_mode exact --len_target_frac 0.5` |
+| seed-1 matched evals, it39 and it78 | `eval/matched/*s1*`, `followup_20261007/gpu2c.sh` | 2 | ~8 pm | |
+| seed-1 13–20 learning curve, it10–75 at B0 and B256 | `eval/matched/curve/`, `gpu3_curve.sh` | 3 | ~8 pm | auto-run under the 30-min rule |
+| graded Stage-1 evals on t1320, then the token-cost run's it78 evals | `graded_rl.sh`, `gpu0d.sh` | 0 | ~8 pm | GPU-0 queues are now serialised (an OOM collision cost one eval) |
 
-## Queued (pipelines in `followup_20261007/`, logs `logs/followup_gpu*.log`)
+## Done today (2026-10-07; numbers in chat, write-up pending)
 
-Every queued GRPO run keeps all of its checkpoints, one every 5 iterations (20k attempts), via
-`--keep_rolling 100`. That gives full learning curves. The two running GRPO runs keep only it39 and it78, plus
-any alarm checkpoints.
-
-1. **Thinking GRPO, one budget, no effort token** (`grpo_T1v1_b256`, T1v1_s0, B 256, to it78). GPU 2 after
-   `grpo_T0` exits. This is the cleanest test of RL'd thinking against RL'd no-think, because updates are not
-   split over four effort levels.
-2. **The same with a token cost** (`grpo_T1v1_b256_lp02`, `--len_penalty 0.2` per 1k sampled tokens on
-   successes). GPU 3 after `grpo_T1v1e` exits. Question: can RL learn to think only where it helps?
-3. **Second seed of the main pair** (`grpo_T0_s1` from T0_s1 and `grpo_T1v1e_s1` from T1v1_s1, RL seed 1, to
-   it78). GPUs 1 and 4 after the matched evals log ALL DONE.
-4. **Budget forcing, eval only** (s1-style, no new training). The sampler bans `</think>` until `--min_think`
-   tokens per block, with the cap raised to B. Configs (B, min): (256, 0), (256, 128), (512, 256), (1024, 512).
-   - Models: Stage-1 T1v1_s0 and `grpo_T1v1_b256` it78. Both have no effort token, so B is never shown to the model.
-   - Sets: textbook72 (k 32) and the first 300 items of hard12_test_1k (k 16).
-   - Runs on GPU 2 after item 1.
+- **Matched EI vs GRPO** (r1/r2 vs it39/it78, both arms, seed 0) on hard12_test, textbook72 and t1320 (986 valid items). Tables come from `matched_eval/tables.sh`.
+- **Seed-1 GRPO pair.** The no-think runs replicate. The thinking gain on 13–20 at it39 is resolved in both seeds, +4.8 and +1.6 pass@1.
+- **Single-budget thinking GRPO** (`grpo_T1v1_b256`) and the token-cost variant (`grpo_T1v1_b256_lp02`), both to it78.
+- **Budget forcing (s1-style).** Forcing any minimum think length lowers accuracy, for the Stage-1 and RL'd models alike.
+- **Locating the 13–20 drop in the seed-0 effort run.** The gain is gone by it49 and never recovers.
+- **Graded-length traces** (`graded_traces/`) and Stage-1 T1v1g4. Effort is monotone. On hard12 the no-think penalty is gone and thinking beats T0 by about 6.5 pp. On textbook72 there is no gain.
+- **LCPO reward** implemented (`grpo.py`, 4608e60).
 
 ## Held
 
