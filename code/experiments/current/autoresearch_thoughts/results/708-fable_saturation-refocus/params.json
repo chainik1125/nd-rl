@@ -1,0 +1,227 @@
+{
+  "id": "708-fable",
+  "slug": "saturation-refocus",
+  "written_at": "2026-10-07T18:51:56-0700",
+  "provider": "anthropic",
+  "model": "claude-fable-5-1",
+  "base_commit": "9e8d2bd",
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "645ae390fa94",
+  "patch_lines": 124,
+  "title": "Saturation refocus: 704's flat 32 samples per target until a target has 4 distinct proofs, then 8 on those and the freed budget (up to 64 each) on the rest; token-budget fine-tune",
+  "description": "704's model and pretraining byte for byte (pretrain() untouched; the patch changes the RL knob block, gives token_batches a `first` argument, and replaces finetune and rl). Sampling, per round, all at 8 thoughts: the round's sample budget is RL_K x targets = 32 x 1,500 = 48,000, as 704's. A target is saturated when `found` holds MAX_PER_THM = 4 distinct (normalized) accepted proofs for it, accumulated over rounds; the fine-tune mix takes at most 4 per target, so more samples of a saturated target can only swap proofs. Saturated targets get RL_K_SAT = 8 samples each in one oracle call; the rest get k_rest = min(RL_K_MAX = 64, (48,000 - 8 x saturated) // rest) in a second call. k_rest is 32 while nothing is saturated (704's round exactly; it is never below 32 since 8 <= 32) and reaches 64 once 857+ targets are saturated; at 1,200 saturated and 300 rest a round costs 9,600 + 19,200 = 28,800 samples, 60% of 704's. The sibling loop's recipe (706: 8 first-pass samples, 24 retries on failures) focused on failures from round 1; this keeps 704's flat sampling until there is something to focus on. Accepted proofs accumulate across rounds as before; the mix is up to 4 proofs per solved target x4 plus 20,000 replayed pretraining records. The fine-tune is 706's port of the sibling's: FT_RECORDS = 600 x 128 = 76,800 records per round (704's count) in pretraining's token-budget batches (to_gpu / token_batches with first=0 / gpu_batch with the ref-shift augmentation), one AdamW step per batch (lr 3e-4, wd 0.1, betas 0.9/0.95, warmup 50, cosine to lr/10 over the round's steps), every batch at 8 thoughts, the plan probe at 0.3 training along, MTP off. Rounds repeat until 1.15 x the last round would not fit; n_thoughts is set to 8 before the first oracle call and reset to 8 at the end. rl() returns per round the saturated count and k_rest (`allocation`) and the fine-tune step counts. Checks: make -C code check passes (Ruff + Pyright); a CPU smoke test of rl() against a stub oracle (40 targets, FT_RECORDS 150, acceptance rising per call) ran 12 rounds with the allocation going 0 saturated / k_rest 32 -> 1 / 32 -> 24 / 64 -> 40 / 64 (two oracle calls per round, the empty side skipped), falling loss, all 101 parameter tensors updated and n_thoughts back at 8. No bench: pretraining is unchanged (expect 704's 3,400-3,800 steps and 181-207 samples/s at 8 thoughts), a round never samples more than 704's 48,000, and the fine-tune's speed and memory are 706's (47-60 s per round, no out-of-memory on three seeds).",
+  "tags": [
+    "rl",
+    "sampling",
+    "systems"
+  ],
+  "hypothesis": "Two findings of 706 combine. (1) Take-off in this expert iteration (first-pass acceptance jumping from 0.3-0.4 to 0.6-0.7 in one round) came on every seed under 704's flat 32 samples per target, including weak pretrained models (round-1 acceptance 2.6-5.4%), but 706's 8 first-pass samples plus 24 retries on failures stalled for 7 rounds on a seed at 2.8%; 706 read the difference as the number of distinct proofs per solved target entering the mix (2-4 under flat 32, about 1 under 8): diversity on already-solved targets drives take-off. (2) Past take-off, 706's seeds solved 1,193-1,239 RL targets against 704's 1,173-1,191, with more at length 10+ (92/15/3 against 72/11/2 on seed 0), and their dev gains sat in the long bins (length 10: 45% against 39%; 11: 45% against 39%), because the retries put samples on the unsolved targets, which past take-off are the long ones. Saturation is the natural switch between the two regimes: a target with 4 distinct proofs cannot add to the mix (MAX_PER_THM), so sampling it 32 times buys nothing once its diversity is in; before take-off few targets have 4 proofs and the recipe is 704's; after take-off most do and the budget moves to the unsolved targets, 64 samples each, at a lower round cost. The token-budget fine-tune (706) halves the fine-tune's time without changing what it trains on. So every seed should take off like 704's, rounds past take-off should be cheaper and focused, more long RL targets should be cracked, and the dev metric should rise mostly in the length 10+ bins. If a seed stalls like 706's seed 2, saturation switched too early to keep the diversity effect, or 706's diversity reading is wrong. If every seed takes off and the metric does not move, cracking more hard RL targets does not transfer to dev theorems, and the rest of the gap to 590's 792 is in the pretraining (steps), not in rl().",
+  "p_keep": 0.6,
+  "expected_delta": "metric 690-730 against 704's 676 (682/680/667): +15 to +50 on each seed if all three take off, with 8-10 RL rounds (704: 6-7; 706: 7-11) and 1,210-1,260 RL targets solved by the end (704: 1,173-1,191; 706 seeds 0/1: 1,239/1,193), at least 90 of them of length >= 10 (704 seed 0: 85). Round 1 is 704's: 0 saturated targets, k_rest 32, about 205-245 s charged. On a strong seed 300-600 targets are saturated after round 2, k_rest reaches 64 by round 3-5, and rounds fall from 240-250 s charged to 120-170 s. Dev solved at length >= 10 rises from 704's 110-133 per seed to 130-160. metric_diag within 30 of metric on seeds whose no-thought path does not drift (the slots compute nothing, as in 704/706/707); a seed drifting to 100-300 at 0 thoughts says nothing about thoughts. Fail cases: a seed stuck below take-off for 6+ rounds (that seed near 300, the mean below 676: discard, and 706's diversity reading stands with saturation as a too-early switch); the fine-tune running out of memory on long RL proofs (706 ran the same batches on three seeds without it, so unlikely).",
+  "baseline_id": "704-fable",
+  "baseline_metric": 676,
+  "config": {
+    "arch": {
+      "type": "gpt, 6 untied Peri-LN blocks, plus n pause-slot positions after every `;` and `by` (learned slot vector per position, no feedback; one causal pass)",
+      "n_layers": 6,
+      "d_model": 384,
+      "n_heads": 8,
+      "d_ff": 1280,
+      "pos": "alibi on 4 heads, none on 4; thoughts share their trigger's position",
+      "ctx": 1024,
+      "norm": "peri-ln layernorm",
+      "act": "gelu",
+      "dropout": 0.0,
+      "tied_emb": false,
+      "n_params": 9563904
+    },
+    "tokenizer": {
+      "codec": "lean_seq",
+      "maxn": 64
+    },
+    "optimizer": {
+      "name": "muon (polar express) on block matrices and head + adamw on the rest",
+      "lr": 0.001,
+      "schedule": "cosine over wall-clock",
+      "warmup_steps": 0,
+      "min_lr_frac": 0.3,
+      "wd": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "grad_clip": 1.0,
+      "muon_lr": 0.01,
+      "muon_momentum": 0.95
+    },
+    "batch": {
+      "size": 128,
+      "padding": "token-budget batches, 128 x 144 padded tokens (thought slots are added on top: up to n per trigger)",
+      "buckets": "length-sorted runs"
+    },
+    "data": {
+      "filter": null,
+      "augmentation": "random ref shift (lean_seq)",
+      "order": "token-budget batches, run order shuffled",
+      "val_slice": 1024
+    },
+    "precision": "bf16 autocast",
+    "compile": "none (CUDA-graphed Muon step only)",
+    "init": "orthogonal on block matrices, fork default elsewhere; slot vectors N(0, 0.02)",
+    "thoughts": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "rl_sampling": [
+        8
+      ],
+      "default": 8,
+      "val": [
+        0,
+        2,
+        8
+      ],
+      "where": "after every `;` and `by` token",
+      "max": 16,
+      "input": "slot_emb[j] only (pause slot); 701-703 used ln_thought(final state at the trigger) + slot_emb[j]",
+      "passes_per_step": "1 (expanded sequence); 701-703: one per proof line",
+      "probe": "token after the next `:=` or `exact`, read off the last slot, weight 0.3, pretraining and RL",
+      "ft": [
+        8
+      ]
+    },
+    "rl": {
+      "samples_per_target_per_round": 32,
+      "k": 32,
+      "k_saturated": 8,
+      "k_max": 64,
+      "saturation": "a target with MAX_PER_THM = 4 distinct normalized accepted proofs in `found`, accumulated over rounds",
+      "sampling": "two oracle calls per round at 8 thoughts: the saturated targets x 8, then the rest x k_rest = min(64, (48,000 - 8 x saturated) // rest); an empty side is skipped; accepted proofs accumulate across rounds",
+      "thoughts": 8,
+      "ft_steps": 600,
+      "ft_steps_meaning": "nominal: FT_RECORDS = 600 x 128 = 76,800 records per round, the same count as 704's 600 steps of 128; the actual AdamW step count is the number of token-budget batches that cover them (TOK_BUDGET 18,432 tokens per batch, thought slots on top), about two epochs of the round's mix, expected 600-900, recorded per round in rl()'s return as ft_steps",
+      "ft_records": 76800,
+      "ft_lr": 0.0003,
+      "replay_pretrain_records": 20000,
+      "max_proofs_per_thm": 4,
+      "rl_weight": 4,
+      "rounds": "until another round would not fit in RL_SECS (1.15 x the last round); expected 8-10 (704: 6-7, 706: 7-11)",
+      "ft_optimizer": "adamw on the model and the probe (lr 3e-4, wd 0.1, betas 0.9/0.95), linear warmup 50 steps then cosine to lr/10 over the round's steps; no Muon (the sibling's 509 addition is not ported; its 590 control used 507's AdamW)",
+      "ft_batches": "token-budget batches as pretraining (to_gpu / token_batches / gpu_batch, length-sorted runs with count x max_len <= 18,432, run order shuffled), one AdamW step per batch; 704: 128 records per step in four length-sorted parts of 32, gradients accumulated",
+      "loss": "next-token CE plus the plan probe at weight 0.3, every batch at 8 thoughts",
+      "mtp": "pretraining only, weight 0.3",
+      "ft_thoughts": [
+        8
+      ],
+      "samples_per_target_meaning": "32 x targets in all (48,000) per round: 8 each for saturated targets, the rest shared evenly by the others, 64 each at most; 32 each while nothing is saturated (704's round)"
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  },
+  "protocol": {
+    "fork_commit": "51604b3feaa5e66821d1faba22238fe6d96d46d0",
+    "budget": {
+      "total_secs": 5400,
+      "pretrain_secs": 300,
+      "grace_secs": 15,
+      "rl_secs": 1800,
+      "rl_grace_secs": 60,
+      "param_cap": 10000000
+    },
+    "pretrain_data": {
+      "max_lines": 6,
+      "file": "data/train.jsonl",
+      "n": 154990,
+      "by_lines": {
+        "2": 30999,
+        "3": 30999,
+        "4": 30998,
+        "5": 30996,
+        "6": 30998
+      }
+    },
+    "pretrain_heldout": {
+      "file": "data/heldout.jsonl (2000 evenly spaced)",
+      "n": 2000,
+      "by_lines": {
+        "2": 400,
+        "3": 400,
+        "4": 400,
+        "5": 400,
+        "6": 400
+      }
+    },
+    "rl": {
+      "rl_secs": 1800,
+      "n_targets": 1500,
+      "max_new_tokens": 512,
+      "oracle": "Lean AND nd_verify accepted samples of the model's own attempts",
+      "target_pool": {
+        "n": 4495,
+        "by_lines": {
+          "7": 1800,
+          "8": 1000,
+          "9": 1004,
+          "10": 456,
+          "11": 99,
+          "12": 106,
+          "13": 16,
+          "14": 14
+        }
+      },
+      "targets_sampled": null
+    },
+    "eval": {
+      "metric": "dev-transfer theorems solved at L_true >= 7 with KNOB at EVAL_LEVEL",
+      "knob": "n_thoughts",
+      "level": 8,
+      "diag_level": 0,
+      "attempts_per_theorem": 64,
+      "temp": 0.8,
+      "pool": {
+        "file": "data/ladder/transfer.jsonl (sha1 parity 0)",
+        "n": 1108,
+        "by_lines": {
+          "7": 150,
+          "8": 152,
+          "9": 477,
+          "10": 219,
+          "11": 49,
+          "12": 54,
+          "13": 5,
+          "14": 2
+        }
+      }
+    },
+    "holdout": {
+      "file": "data/ladder/transfer.jsonl (sha1 parity 1)",
+      "n": 1177,
+      "by_lines": {
+        "7": 150,
+        "8": 148,
+        "9": 533,
+        "10": 232,
+        "11": 50,
+        "12": 48,
+        "13": 8,
+        "14": 8
+      }
+    },
+    "seed": [
+      0,
+      1,
+      2
+    ]
+  }
+}
