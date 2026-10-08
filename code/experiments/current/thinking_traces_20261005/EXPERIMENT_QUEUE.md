@@ -11,9 +11,14 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-07, 10:05 pm PDT)
+## Running (updated 2026-10-08, 1:00 am PDT)
 
-Nothing. Every GPU is free.
+| what | where | GPU | ETA | notes |
+|---|---|---|---|---|
+| 21–30 sealed set (2,767, k 8): RL'd checkpoints at it78 / r2 plus Stage-1 T0 | `eval/t2130/`, `followup_20261007/t2130.sh` | 0–4 | ~2 am | Leon approved 2026-10-08 |
+| Audit of the seed-0 thinking GRPO 13–20 collapse (it39 → it49) | `collapse_audit/` | CPU | — | read-only, Opus |
+| Gap analysis: textbook 7–12 failures vs generator output (dev58 only, aggregate features) | `gap_analysis/` | CPU | — | first step toward a harder 7–12 generator |
+| Honest-search trace generator (Stream-of-Search style; effort = search budget) | `search_traces/`, `code/thinking/searchtrace.py` | CPU | — | Leon approved items 1 and 2: search traces, then traces on harder problems |
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
