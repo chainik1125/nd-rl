@@ -1,0 +1,116 @@
+{
+ "families": [
+  {
+   "id": "loops",
+   "knob": "loops",
+   "source": "looped",
+   "title": "Looped models: passes through the shared core",
+   "blurb": "A weight-shared trunk (one entry block, two shared core blocks applied n times, one exit block, 6.4M parameters). Each point is the same checkpoint sampled at a different loop count; more loops cost more compute per sample.",
+   "models": [
+    {
+     "id": "loops1234",
+     "label": "Trained on 1 to 4 loops",
+     "sub": "4 RL rounds sampled at 2 loops",
+     "bar": "bar_loops1234"
+    },
+    {
+     "id": "loops12345678",
+     "label": "Trained on 1 to 8 loops",
+     "sub": "4 RL rounds sampled at 2 loops",
+     "bar": "bar_loops12345678"
+    },
+    {
+     "id": "loops1234681216",
+     "label": "Trained on 1 to 16 loops",
+     "sub": "4 RL rounds sampled at 2 loops",
+     "bar": "bar_loops1234681216"
+    },
+    {
+     "id": "loops2",
+     "label": "Trained at a fixed 2 loops",
+     "sub": "control: never saw another loop count",
+     "bar": "bar_loops2"
+    },
+    {
+     "id": "loops1234/more_rl",
+     "label": "Trained on 1 to 4 loops, 12 RL rounds",
+     "sub": "the same model after 8 more rounds",
+     "bar": "bar_loops1234_rl12"
+    }
+   ]
+  },
+  {
+   "id": "block",
+   "knob": "thoughts",
+   "source": "coconut",
+   "title": "Recurrence, one block: thoughts between statement and proof",
+   "blurb": "Run 198's untied blocks plus T continuous thoughts after the theorem statement (the Coconut spike). A thought's input is the model's own previous output. Trained with 0 to 8 thoughts, old harness, 4 RL rounds the recipe could not change. A thought costs one extra position, so compute is nearly flat from left to right.",
+   "models": [
+    {
+     "id": "none",
+     "label": "Unsupervised feedback",
+     "sub": "thoughts trained by the proof loss only"
+    },
+    {
+     "id": "pause",
+     "label": "Pause tokens (control)",
+     "sub": "a learned vector per thought, no feedback"
+    },
+    {
+     "id": "curriculum",
+     "label": "Coconut curriculum",
+     "sub": "plan steps start explicit, turn latent in stages"
+    },
+    {
+     "id": "probe",
+     "label": "Rule probe",
+     "sub": "a head reads rule t off thought t"
+    },
+    {
+     "id": "codi",
+     "label": "Self-distillation",
+     "sub": "an explicit-plan pass teaches the latent pass"
+    },
+    {
+     "id": "future",
+     "label": "Future states",
+     "sub": "thought t predicts a later hidden state"
+    }
+   ]
+  },
+  {
+   "id": "line",
+   "knob": "thoughts per line",
+   "source": "loop",
+   "title": "Recurrence, per line: a thinking round before each proof line",
+   "blurb": "The thoughts autoresearch loop (shared harness, RL owned by the recipe). Each model was scored on the whole dev pool at 8 thoughts per line and at 0, 64 samples, three seeds (means shown). Only the 8-thought eval kept per-theorem counts, so smaller sample counts show that point alone.",
+   "models": [
+    {
+     "id": "701-manual_baseline-ft-parts",
+     "label": "Feedback thoughts, both paths trained (701)",
+     "sub": "score 531 at 8 thoughts, 479 at 0"
+    },
+    {
+     "id": "702-fable_rl-at-eval-level",
+     "label": "Feedback thoughts, RL only at 8 (702)",
+     "sub": "score 548 at 8 thoughts, 329 at 0"
+    },
+    {
+     "id": "704-fable_pause-slots-one-pass",
+     "label": "Pause slots, no feedback (704)",
+     "sub": "score 676 at 8 thoughts; 0 thoughts within 12 to 24 on two seeds"
+    },
+    {
+     "id": "707-fable_plain-state-feedback",
+     "label": "Detached feedback (707)",
+     "sub": "score 638 at 8 thoughts, 589 at 0"
+    },
+    {
+     "id": "708-fable_saturation-refocus",
+     "label": "Pause slots, faster fine-tune (708)",
+     "sub": "score 711 at 8 thoughts, 693 at 0"
+    }
+   ]
+  }
+ ]
+}

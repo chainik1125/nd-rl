@@ -92,3 +92,11 @@ ground. A test would keep the plan loss on during RL, which needs a forked harne
 then `python report.py OUT.html`. `check_model.py` verifies that the sampling and training paths
 agree and that T = 0 reproduces 198's forward pass. Outputs, checkpoints included (1.4 GB), are
 in the local `artifacts/coconut_spike_20261006/` and have not been uploaded to Hugging Face.
+
+## Later: problems solved by thinking budget
+
+`python passk_report.py OUT.html` draws, for the six arms here, the looped spike's five models and
+five per-line models from the thoughts loop, problems solved at a fixed sample count against the
+test-time loop or thought count (models listed in `passk_models.json`, page in
+`passk_template.html`). It reads sweeps under `~/repos/nd-rl/artifacts` and the loop's dev evals
+under the `nd-rl-12` and `nd-rl-14` checkouts; nothing is sampled.

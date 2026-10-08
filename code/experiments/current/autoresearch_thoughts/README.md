@@ -21,3 +21,11 @@ the sampling oracle with Lean-gate time not charged, the pools, 64 samples per d
 10M parameter cap, three seeds per idea, and the keep rule. The other scripts are the loops
 loop's with folder, pod and artifact names changed and the schema's `loops` block replaced by a
 `thoughts` block. `check_model.py` verifies that the recipe's sampling and training paths agree.
+
+## State: paused 2026-10-07 20:02 PT
+
+Stopped by the launcher's balance check (RunPod $4.08, floor $5) after 700 to 708. Incumbent: 708
+at 711. Summary and what was learned:
+[experiment-summaries/2026-10-07-test-time-thoughts](../../../../experiment-summaries/2026-10-07-test-time-thoughts/README.md).
+Checkouts: `~/repos/nd-rl-12` (operator) and `~/repos/nd-rl-14` (the Fable agent's). `pod.py` here
+also replaces pods whose GPU PyTorch cannot use, which the pretraining loop's copy does not.

@@ -1,0 +1,178 @@
+<title>Pass@k by Thinking Budget</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a wall of small multiples. One panel per model: thinking budget on the x-axis, share
+   solved at a fixed sample count on the y-axis, every panel on the same y-axis so the eye
+   compares shapes across models; three families stacked. */
+:root {
+  --bg: #f5f6f9; --surface: #ffffff; --ink: #141920; --muted: #5a6473; --rule: #dde2ea;
+  --grid: #e9edf3; --c-ref: #eb6834; --band: #edf2fa;
+  --l0: #86b6ef; --l1: #5598e7; --l2: #2a78d6; --l3: #1c5cab; --l4: #0d366b;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --c-ref: #d95926; --band: #1f2632;
+  --l0: #184f95; --l1: #256abf; --l2: #3987e5; --l3: #6da7ec; --l4: #b7d3f6; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --c-ref: #d95926; --band: #1f2632;
+  --l0: #184f95; --l1: #256abf; --l2: #3987e5; --l3: #6da7ec; --l4: #b7d3f6; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px;
+  display: flex; flex-direction: column; gap: 34px; }
+h1 { font-size: 30px; line-height: 1.15; font-weight: 600; margin: 0; text-wrap: balance; }
+h2 { font-size: 19px; font-weight: 600; margin: 0; text-wrap: balance; }
+h3 { font-size: 14px; font-weight: 600; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 72ch; }
+section { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 18px; line-height: 1.45; max-width: 62ch; }
+.muted { color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 3; background: var(--bg);
+  border-bottom: 1px solid var(--rule); padding-block: 10px; display: flex; flex-wrap: wrap;
+  gap: 10px 18px; align-items: center; font-size: 13px; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: 500 13px var(--sans); color: var(--muted); background: none; border: 0; padding: 6px 11px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg button:focus-visible { outline: 2px solid var(--l2); outline-offset: -2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 12px 10px;
+  display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.panel .sub { font-size: 12.5px; color: var(--muted); }
+.panel .ends { font: 11.5px/1.5 var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.panel .ends b { font-weight: 500; color: var(--ink); }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font: 11px var(--mono); fill: var(--muted); }
+.chart text.val { fill: var(--ink); font-weight: 500; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+.legend i.box { width: 14px; height: 10px; border: 0; background: var(--band); outline: 1px solid var(--rule); }
+.sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; }
+#tip { position: fixed; pointer-events: none; z-index: 5; background: var(--ink); color: var(--bg);
+  font: 12px/1.5 var(--mono); padding: 6px 9px; border-radius: 5px; white-space: nowrap; }
+#tip b { font-weight: 500; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <div class="eyebrow">nd-rl · test-time compute · <span id="gen"></span></div>
+    <h1>Pass@k by thinking budget</h1>
+    <p class="lede">One panel per model. Left to right is more test-time thinking; up is more problems solved with the same number of samples. A line that climbs means thinking longer pays. Most are flat.</p>
+    <p>Each point is one checkpoint sampled at one thinking budget: the share of a problem pool solved with k samples per problem (64 unless you change it), with the count written above it. The shaded band is the range of budgets the model was trained on. The dashed orange line is run 198, the ordinary untied model with no loops and no thoughts, after 4 RL rounds under the old harness, where it was scored on the same pool.</p>
+  </header>
+
+  <div class="bar">
+    <span>Pool</span><div class="seg" id="poolSeg"></div>
+    <span>Checkpoint</span><div class="seg" id="stageSeg"></div>
+    <span>Samples per problem</span><div class="seg" id="kSeg"></div>
+  </div>
+
+  <div id="families" style="display:flex;flex-direction:column;gap:34px"></div>
+
+  <section>
+    <h2>How to read these</h2>
+    <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:74ch">
+      <li><b>A flat line</b> means the thinking budget does nothing at that sample count.</li>
+      <li><b>A step up at the left, then flat</b> means the smallest budget is too little and everything above it is equivalent. That is the looped models: 1 loop is behind, and nothing above about 4 adds more.</li>
+      <li><b>A peak inside the shaded band that falls away outside it</b> means the model only works at the budgets it trained on. That is the fixed-2-loop control.</li>
+      <li><b>More loops are not free.</b> A loop count of n runs 2 + 2n blocks per token against run 198's 6, so 8 loops costs three times as much per sample. Thoughts cost one extra position each, so those panels are near enough equal-cost left to right.</li>
+      <li><b>RL unsolved</b> is each model's own list of RL targets it never solved, so that pool is comparable along a line, not between panels.</li>
+      <li><b>Per-line recurrence</b> was only ever scored at 0 and 8 thoughts per line, on the whole dev pool at 64 samples, so those panels have two points and appear under "Whole dev".</li>
+    </ul>
+  </section>
+
+  <footer>Pools: textbook72 (72 textbook problems, 256 samples each), long dev (the 329 dev theorems with true length 10 or more, 64 samples), whole dev (all 1,108 dev theorems of length 7 or more, 64 samples; looped models were scored on it at 2 and 8 loops only), RL unsolved (128 samples). Temperature 0.8, seed 0 unless a panel says three seeds. Built by <span style="font-family:var(--mono)">coconut_spike_20261006/passk_report.py</span>.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const DATA = /*DATA*/;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const POOLS = {dev_long: "Long dev (329)", textbook72: "textbook72", rl_unsolved: "RL unsolved", dev: "Whole dev (1,108)"};
+const TRAINED = {loops1234: [1, 4], loops12345678: [1, 8], loops1234681216: [1, 16], loops2: [2, 2], "loops1234/more_rl": [1, 4]};
+const state = {pool: "dev_long", stage: "final", k: "64"};
+const pct = v => (v * 100).toFixed(v < 0.1 ? 1 : 0) + "%";
+const at = (pts, k) => (pts.find(q => q[0] === k) || [])[1];  // share solved with k samples
+
+function poolsOf(m) { return (m.stages[state.stage] || {})[state.pool]; }
+// a model's points at the chosen k: [{level, y}], left to right by budget
+function points(m) { const p = poolsOf(m), k = +state.k; if (!p) return [];
+  const out = p.lines.map(l => ({level: l.level, y: at(l.pts, k)})).filter(q => q.y != null);
+  if (p.marker && p.marker.k === k) out.push({level: p.marker.level, y: p.marker.y});
+  return out.sort((a, b) => a.level - b.level); }
+function refY() { const r = (DATA.ref[state.stage] || {})[state.pool]; return r ? at(r.lines[0].pts, +state.k) : null; }
+function yAxis() {
+  let top = Math.max(0.02, refY() || 0);
+  for (const fam of DATA.families) for (const m of fam.models) for (const q of points(m)) top = Math.max(top, q.y);
+  const s = top < 0.12 ? 0.02 : top < 0.3 ? 0.05 : top < 0.6 ? 0.1 : 0.2;
+  return [Math.ceil(top * 1.12 / s) * s, s];
+}
+
+const tip = $("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false;
+  const x = Math.min(window.innerWidth - tip.offsetWidth - 8, e.clientX + 14);
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 12) + "px"; }
+
+function drawPanel(el, fam, m, ymax, ystep) {
+  const p = poolsOf(m), pts = points(m), ref = refY(), n = pts.length;
+  const W = Math.max(250, el.clientWidth), H = 220, mg = {l: 38, r: 14, t: 16, b: 38};
+  const X = i => n === 1 ? (mg.l + W - mg.r) / 2 : mg.l + 14 + i / (n - 1) * (W - mg.l - mg.r - 28);
+  const Y = v => H - mg.b - v / ymax * (H - mg.t - mg.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.label)}: share solved at ${state.k} samples against ${esc(fam.knob)}">`;
+  const tr = TRAINED[m.id] || (fam.id === "block" ? [0, 8] : null);
+  if (tr) { const inside = pts.map((q, i) => q.level >= tr[0] && q.level <= tr[1] ? i : -1).filter(i => i >= 0);
+    if (inside.length) { const a = X(inside[0]) - 10, b = X(inside.at(-1)) + 10;
+      s += `<rect x="${a}" y="${mg.t}" width="${b - a}" height="${H - mg.t - mg.b}" style="fill:var(--band)"/>`; } }
+  for (let v = 0; v <= ymax + 1e-9; v += ystep)
+    s += `<line x1="${mg.l}" x2="${W - mg.r}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--grid)"/><text x="${mg.l - 7}" y="${Y(v) + 4}" text-anchor="end">${Math.round(v * 100)}%</text>`;
+  pts.forEach((q, i) => { s += `<text x="${X(i)}" y="${H - mg.b + 15}" text-anchor="middle">${q.level}</text>`; });
+  s += `<text x="${(mg.l + W - mg.r) / 2}" y="${H - 5}" text-anchor="middle">${esc(fam.knob)} at test time</text>`;
+  if (ref != null) s += `<line x1="${mg.l}" x2="${W - mg.r}" y1="${Y(ref)}" y2="${Y(ref)}" style="stroke:var(--c-ref);stroke-width:2;stroke-dasharray:5 4"/>`;
+  s += `<path d="${pts.map((q, i) => (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(q.y).toFixed(1)).join("")}" fill="none" style="stroke:var(--l2);stroke-width:2.5;stroke-linejoin:round"/>`;
+  pts.forEach((q, i) => { s += `<circle cx="${X(i)}" cy="${Y(q.y)}" r="4.5" style="fill:var(--l2);stroke:var(--surface);stroke-width:2"/>` +
+    `<text class="val" x="${X(i)}" y="${Y(q.y) - 9}" text-anchor="middle">${Math.round(q.y * p.n)}</text>`; });
+  s += `<rect x="${mg.l}" y="${mg.t}" width="${W - mg.l - mg.r}" height="${H - mg.t - mg.b}" fill="transparent"/></svg>`;
+  el.innerHTML = s;
+  const svg = el.firstChild;
+  svg.onmousemove = e => { const b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * W / b.width;
+    const i = pts.reduce((a, _, j) => Math.abs(X(j) - px) < Math.abs(X(a) - px) ? j : a, 0), q = pts[i];
+    showTip(e, `<b>${esc(m.label)}</b><br>${q.level} ${esc(fam.knob)}: ${pct(q.y)} = ${Math.round(q.y * p.n)} of ${p.n} at k=${state.k}` +
+      (ref != null ? `<br>run 198: ${pct(ref)} = ${Math.round(ref * p.n)}` : "")); };
+  svg.onmouseleave = () => { tip.hidden = true; };
+}
+
+function render() {
+  const [ymax, ystep] = yAxis(), ref = refY();
+  $("families").innerHTML = DATA.families.map(fam => {
+    const shown = fam.models.filter(m => points(m).length);
+    const legend = `<span><i style="border-color:var(--l2)"></i>share solved at k = ${state.k} (count above each point)</span>` +
+      (fam.id !== "line" ? `<span><i class="box"></i>budgets seen in training</span>` : "") +
+      (ref != null ? `<span><i class="dash" style="border-color:var(--c-ref)"></i>run 198 (no loops, no thoughts)</span>` : "");
+    const has = [...new Set(fam.models.flatMap(m => Object.entries(m.stages).flatMap(([st, ps]) => Object.keys(ps).map(k => POOLS[k] + (st === "pretrain" ? " (after pretraining)" : "")))))].join(", ");
+    const body = shown.length ? `<div class="legend">${legend}</div><div class="grid">` + shown.map(m =>
+        `<div class="panel"><h3>${esc(m.label)}</h3><div class="sub">${esc(m.sub)}</div><div class="chart" id="c-${fam.id}-${m.id.replace(/\W/g, "_")}"></div></div>`).join("") + "</div>"
+      : `<p class="note">No model in this family was scored on ${esc(POOLS[state.pool])} at this checkpoint and sample count. It has: ${has}.</p>`;
+    return `<section><h2>${esc(fam.title)}</h2><p>${esc(fam.blurb)}</p>${body}</section>`;
+  }).join("");
+  for (const fam of DATA.families) for (const m of fam.models) if (points(m).length) drawPanel($(`c-${fam.id}-${m.id.replace(/\W/g, "_")}`), fam, m, ymax, ystep);
+}
+function seg(id, opts, key) { const el = $(id);
+  el.innerHTML = opts.map(([v, lab]) => `<button id="${id}-${v}" data-v="${v}" aria-pressed="${state[key] === v}">${esc(lab)}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("button"); if (!b) return; state[key] = b.dataset.v;
+    el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); render(); }; }
+$("gen").textContent = "built " + DATA.generated;
+seg("poolSeg", Object.entries(POOLS), "pool");
+seg("stageSeg", [["final", "After RL"], ["pretrain", "After pretraining"]], "stage");
+seg("kSeg", [["1", "1"], ["8", "8"], ["64", "64"]], "k");
+render();
+let rz, lastW = document.querySelector(".wrap").clientWidth;
+new ResizeObserver(es => { const w = es[0].contentRect.width; if (Math.abs(w - lastW) < 2) return; lastW = w;
+  clearTimeout(rz); rz = setTimeout(render, 120); }).observe(document.querySelector(".wrap"));
+</script>
