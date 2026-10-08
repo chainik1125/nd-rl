@@ -151,11 +151,11 @@ def fig_curves(rows: Rows, out: Path) -> None:
             nt_its = [39, 78]
             nt = [est(rows.arm(t0_dir(i) / "rows_plain_B0.jsonl")) for i in nt_its]
             if seed == 0:
-                ax.axvspan(47, 55, color=S.SHADE, zorder=0)
+                ax.axvspan(48, 52, color=S.SHADE, zorder=0)
                 ax.text(
-                    51,
+                    50,
                     0.97,
-                    "unstable\nit 47-55",
+                    "clip-low spike\nit 48-52",
                     ha="center",
                     va="top",
                     fontsize=S.FS_SMALL,
