@@ -45,7 +45,11 @@ testpaths = ["tests"]
 
 [tool.ruff]
 # Frozen historical sources must retain their recorded bytes, including in hooks.
-extend-exclude = ["**/r1_cot/vendor/**", "**/autoresearch/prelean/src/**"]
+extend-exclude = [
+    "**/r1_cot/vendor/**",
+    "**/autoresearch/prelean/src/**",
+    "**/retry_ei_20261008/lean_prefilter.py",
+]
 force-exclude = true
 line-length = 100
 fix = false
