@@ -74,13 +74,16 @@ VAL_LOOPS = (1, 2, 4, 8)  # val loss at each count, once, when pretraining ends
 # Rounds repeat until another one would not fit in the budget.
 RL_FIRST_LOOPS, RL_K = 1, 8
 RL_RETRY_LOOPS, RL_RETRY_K = (2, 4, 8), 24
-# The fine-tune sees FT_RECORDS records per round (the old 600 steps x 128 records) in the same
-# token-budget batches as pretraining (TOK_BUDGET below) instead of 128-record batches padded to
-# their longest proof, which with 7-14 line RL proofs in nearly every batch was ~3x the content.
+# The fine-tune sees FT_RECORDS records per round, half the old harness's 600 steps x 128: in
+# 509 the fine-tune had grown to ~74 s of a ~137 s round, so halving it fits about 16 rounds of
+# sampling in RL_SECS instead of 11, with 27% fewer fine-tune records per run; the mix (20-33k
+# records) still gets at least one epoch per round. Records come in the same token-budget
+# batches as pretraining (TOK_BUDGET below) instead of 128-record batches padded to their
+# longest proof, which with 7-14 line RL proofs in nearly every batch was ~3x the content.
 # It uses pretraining's optimizer split: Muon (muon_step, MUON_WD) on the block matrices and the
 # head, AdamW at FT_LR on embeddings, norms and biases. FT_MUON_LR keeps pretraining's 10:1
 # Muon:AdamW ratio and is where pretraining's cosine ends (MUON_LR * MIN_LR_FRAC).
-FT_RECORDS, FT_LR, FT_MUON_LR, FT_WARMUP = 600 * 128, 3e-4, 3e-3, 50
+FT_RECORDS, FT_LR, FT_MUON_LR, FT_WARMUP = 300 * 128, 3e-4, 3e-3, 50
 RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
 # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
 # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
