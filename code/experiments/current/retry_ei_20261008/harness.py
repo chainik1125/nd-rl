@@ -469,6 +469,9 @@ def eval_episodes(a, tok, model, dev_pool):
                         "n_lines": r["n_lines"],
                         "episodes": [
                             {
+                                "texts": [
+                                    tok.text([tok.itos[x] for x in ids]) for ids, _ in e["fails"]
+                                ],
                                 "codes": e["codes"],
                                 "n_tok": e["n_tok"],
                                 "proof": e["proof"],

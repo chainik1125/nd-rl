@@ -8,6 +8,8 @@ with the loops harness's RL recipe) plus two retry arms. ND_ARM picks:
          and the failing line's name, then writes a whole new proof; the fine-tune adds records
          whose context is the failed attempts and whose target is an accepted proof
   blank  as retry, with every error replaced by one <fail> token
+  repair as retry, trained to REPAIR: the synthetic records put a known proof with one token
+         made wrong, and its real error, in front of that same proof, in pretraining too
 
 Pretraining is the same in all three; the vocabulary carries the error tokens in all three.
 The original docstring follows.
@@ -61,7 +63,7 @@ import time
 import torch
 import torch._inductor.config  # noqa: F401  (explicit, so the attribute resolves for pyright)
 from episodes import MAX_CTX, context_ids
-from errors import extend
+from errors import OTHER, classify, error_ids, extend
 from lean_tok import MAXN  # fork
 from model import GPT, Block  # fork
 from normalize import norm  # fork
@@ -106,7 +108,17 @@ RETAIN, MAX_PER_THM, RL_WEIGHT = 20000, 4, 4
 # Episode records are long, so the retry fine-tune is cut by padded tokens instead of records:
 # FT_TOKENS is the iid arm's 600 steps of TOK_BUDGET.
 ARM = os.environ.get("ND_ARM", "iid")
-RETRY_EP, RETRY_ATTEMPTS, EP_PER_THM = 4, 8, 4
+RETRY_EP, EP_PER_THM = 4, 4
+# ---- repair arm (follow-up 1). In retry seed 0 the attempt after a failure succeeded exactly as
+# often as an independent sample: the synthetic records pair failures with unrelated proofs, so
+# ignoring the context is the best the model can learn from them. Here the synthetic record is a
+# known proof with one token made wrong, its real error, and the same proof as the target, names
+# unshifted, so the context says what to keep and what to change. REPAIR_N of them join
+# pretraining (built inside the pretraining budget) and CORRUPT_PER_THM per solved target join each
+# RL round, in place of the unrelated pairings. RL episodes stop at 3 attempts: attempts 4-8 were
+# accepted ~1% of the time and cost half the sampling.
+RETRY_ATTEMPTS = 3 if ARM == "repair" else 8
+REPAIR_N, CORRUPT_PER_THM = 40000, 2
 FT_TOKENS = 600 * 128 * 144
 # MLP width held at 151's 1280: the fork's Block hardcodes 4 * D (1536 at D 384 would pass the
 # 10M cap), so PeriLNBlock swaps fc1/fc2. 1280 != 3 * D keeps muon_step's QKV-by-shape test valid.
@@ -331,16 +343,20 @@ def val_loss(model, ids, mask, ref_max, lens, tok, gen, autocast):
 
 def to_gpu(data, tok, device):
     """Pad all (prompt, proof) records once into (N, T) ids + proof mask on the device."""
-    N, T = len(data), max(len(p) + len(q) for p, q in data)
+    N, T = len(data), max(len(d[0]) + len(d[1]) for d in data)
     ids = torch.full((N, T), tok.pad, dtype=torch.long)
     mask = torch.zeros((N, T), dtype=torch.bool)
     ref_max = torch.zeros(
         N, dtype=torch.long
     )  # largest N<k> index used in the proof, for the shift augmentation
-    for i, (p, q) in enumerate(data):
+    for i, (p, q, *fixed) in enumerate(data):
         ids[i, : len(p) + len(q)] = torch.tensor(p + q)
         mask[i, len(p) : len(p) + len(q)] = True
-        ref_max[i] = max((x - tok.ref0 + 1 for x in q if x >= tok.ref0), default=0)
+        # a third element marks a record whose target names must stay as written (repair arm):
+        # MAXN leaves gpu_batch no room to shift them
+        ref_max[i] = (
+            MAXN if fixed else max((x - tok.ref0 + 1 for x in q if x >= tok.ref0), default=0)
+        )
     return ids.to(device), mask.to(device), ref_max.to(device), (ids != tok.pad).sum(1).to(device)
 
 
@@ -382,10 +398,62 @@ def gpu_batch(ids, mask, ref_max, lens, idxs, tok, gen, max_len=None):
     return x, m
 
 
+def is_name(tok, x):
+    return tok.ref0 <= x < tok.ref0 + MAXN
+
+
+def repair_record(tok, prompt, proof, rng):
+    """(context, proof ids, True): the proof with one token made wrong and its error in front of
+    the proof itself, both at one random name offset. None if no single swap breaks the proof."""
+    ids = tok.encode_proof(proof)
+    top = max((x - tok.ref0 + 1 for x in ids if is_name(tok, x)), default=0)
+    shift = rng.randint(0, MAXN - top)
+    ids = [x + shift if is_name(tok, x) else x for x in ids]
+    names = sorted({x for x in ids if is_name(tok, x)})
+    kinds = [names] + [
+        [tok.stoi[t] for t in group]
+        for group in (
+            ("P", "Q", "R", "S", "False"),
+            ("∧", "∨", "→"),
+            (".1", ".2"),
+            ("Or.inl", "Or.inr"),
+        )
+    ]
+    spots = [(i, k) for i, x in enumerate(ids) for k in kinds if x in k and len(k) > 1]
+    # mostly wrong citations: 'unbound' and the citation type errors were ~70% of retry seed 0's
+    # failures, and a wrong formula symbol mostly gives 'premise-type', which the model rarely makes
+    cited = [(i, k) for i, k in spots if k is names]
+    if cited and rng.random() < 0.8:
+        spots = cited
+    for i, kind in rng.sample(spots, min(4, len(spots))):
+        bad = list(ids)
+        bad[i] = rng.choice([x for x in kind if x != ids[i]])
+        if classify(tok, prompt, bad)[0] != OTHER:  # OTHER: it parses and type-checks
+            prompt_ids = tok.encode_prompt(prompt)
+            return context_ids(prompt_ids, [(bad, error_ids(tok, prompt, bad, "error"))]), ids, True
+    return None
+
+
+def align(tok, proof_ids, attempt):
+    """proof ids (names from n1) moved to the name offset the failed attempt used, if it fits."""
+    first = next((x for x in attempt if is_name(tok, x)), tok.ref0)
+    top = max((x for x in proof_ids if is_name(tok, x)), default=tok.ref0)
+    shift = first - tok.ref0
+    if top + shift >= tok.ref0 + MAXN:
+        return proof_ids
+    return [x + shift if is_name(tok, x) else x for x in proof_ids]
+
+
 def pretrain(train_recs, budget_secs, device, seed, log):
     t0 = time.time()
     tok = extend(make_tokenizer(TOK_MODE))
     data = [(tok.encode_prompt(r["prompt"]), tok.encode_proof(r["proof"])) for r in train_recs]
+    if ARM == "repair":  # appended, so the validation slice (the first VAL_N records) is unchanged
+        rng = random.Random(seed)
+        picks = rng.sample(train_recs, REPAIR_N)
+        repairs = [repair_record(tok, r["prompt"], r["proof"], rng) for r in picks]
+        data += [x for x in repairs if x]
+        log(f"pretrain: {len(data) - len(train_recs):,} repair records, {time.time() - t0:.0f}s")
     ids, mask, ref_max, lens = to_gpu(data, tok, device)
     gen = torch.Generator(device=device)
     gen.manual_seed(seed)
@@ -570,12 +638,24 @@ def episode_records(tok, targets, eps, found, rng):
     for t, row in zip(targets, eps, strict=True):
         proofs = list(found[t["name"]].values())
         fails = [f for ep in row for f in ep["fails"]]
-        if not proofs or not fails:
+        if not proofs or (not fails and ARM != "repair"):
             continue
         recs = [(ep["fails"], ep["proof"]) for ep in row if ep["proof"] and ep["fails"]]
         rng.shuffle(recs)
         recs = recs[:EP_PER_THM]
         n_real += len(recs)
+        if ARM == "repair":
+            prompt_ids = tok.encode_prompt(t["prompt"])
+            for fl, proof in recs:
+                q = align(tok, tok.encode_proof(proof), fl[-1][0])
+                if len(context_ids(prompt_ids, fl)) + len(q) <= MAX_CTX:
+                    data.append((context_ids(prompt_ids, fl), q, True))
+            made = [
+                repair_record(tok, t["prompt"], rng.choice(proofs), rng)
+                for _ in range(CORRUPT_PER_THM)
+            ]
+            data += [x for x in made if x]
+            continue
         while len(recs) < EP_PER_THM:
             k = rng.randint(1, min(RETRY_ATTEMPTS - 1, len(fails)))
             recs.append((rng.sample(fails, k), rng.choice(proofs)))
