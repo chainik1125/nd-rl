@@ -1,0 +1,454 @@
+{
+  "commit": "d04f516",
+  "recorded_at": "2026-10-07T18:42:27-0700",
+  "status": "discard",
+  "metric": 638,
+  "metric_diag": 589,
+  "metric_rl": 1113,
+  "harness_sha": "3149b2713a6d",
+  "pretrain_sha": "89380bc5cc43",
+  "rules": {
+    "TOTAL_SECS": 5400,
+    "PRETRAIN_SECS": 300,
+    "RL_SECS": 1800,
+    "PARAM_CAP": 10000000,
+    "N_TARGETS": 1500,
+    "EVAL_K": 64,
+    "KNOB": "n_thoughts",
+    "EVAL_LEVEL": 8,
+    "DIAG_LEVEL": 0,
+    "TOK_MODE": "lean_seq"
+  },
+  "gpu": "NVIDIA A40",
+  "total_secs": 3266,
+  "reason": null,
+  "pretrain": {
+    "secs": 301.5,
+    "n_params": 9564672,
+    "steps": 2942,
+    "epochs": 2.6022953119519894,
+    "last_loss": 0.07022321224212646,
+    "heldout_greedy": 0.9365,
+    "curve": [
+      {
+        "secs": 19,
+        "step": 1,
+        "train_loss": null,
+        "val_loss": 3.96545347571373,
+        "mtp_loss": null,
+        "probe_loss": null
+      },
+      {
+        "secs": 30,
+        "step": 117,
+        "train_loss": 0.9282922983169556,
+        "val_loss": 0.19467349536716938,
+        "mtp_loss": 0.8884157180786133,
+        "probe_loss": 1.8929996728897094
+      },
+      {
+        "secs": 45,
+        "step": 277,
+        "train_loss": 0.20350505784153938,
+        "val_loss": 0.10189377516508102,
+        "mtp_loss": 0.18717953097075224,
+        "probe_loss": 0.615876317024231
+      },
+      {
+        "secs": 60,
+        "step": 433,
+        "train_loss": 0.10567431710660458,
+        "val_loss": 0.08277643751353025,
+        "mtp_loss": 0.10442785173654556,
+        "probe_loss": 0.25753751769661903
+      },
+      {
+        "secs": 75,
+        "step": 592,
+        "train_loss": 0.0870022289454937,
+        "val_loss": 0.09914012718945742,
+        "mtp_loss": 0.08303582668304443,
+        "probe_loss": 0.2394652906805277
+      },
+      {
+        "secs": 90,
+        "step": 749,
+        "train_loss": 0.08056709542870522,
+        "val_loss": 0.10399902891367674,
+        "mtp_loss": 0.0748719172552228,
+        "probe_loss": 0.11843640729784966
+      },
+      {
+        "secs": 105,
+        "step": 905,
+        "train_loss": 0.06766217108815908,
+        "val_loss": 0.09149312973022461,
+        "mtp_loss": 0.064023497980088,
+        "probe_loss": 0.12771272286772728
+      },
+      {
+        "secs": 120,
+        "step": 1065,
+        "train_loss": 0.06113129109144211,
+        "val_loss": 0.0822485527023673,
+        "mtp_loss": 0.058607233222573996,
+        "probe_loss": 0.09013617690652609
+      },
+      {
+        "secs": 135,
+        "step": 1221,
+        "train_loss": 0.0646080574952066,
+        "val_loss": 0.08562534023076296,
+        "mtp_loss": 0.0617460566572845,
+        "probe_loss": 0.08761995425447822
+      },
+      {
+        "secs": 150,
+        "step": 1381,
+        "train_loss": 0.07310829032212496,
+        "val_loss": 0.08680041320621967,
+        "mtp_loss": 0.0714545538648963,
+        "probe_loss": 0.07349037658423185
+      },
+      {
+        "secs": 165,
+        "step": 1539,
+        "train_loss": 0.05422871346984591,
+        "val_loss": 0.0821103760972619,
+        "mtp_loss": 0.0527979460145746,
+        "probe_loss": 0.08081130949514252
+      },
+      {
+        "secs": 180,
+        "step": 1693,
+        "train_loss": 0.06065209908410907,
+        "val_loss": 0.09125995449721813,
+        "mtp_loss": 0.05915677361190319,
+        "probe_loss": 0.11337469518184662
+      },
+      {
+        "secs": 195,
+        "step": 1849,
+        "train_loss": 0.08009280683472753,
+        "val_loss": 0.08155124541372061,
+        "mtp_loss": 0.07893307181075215,
+        "probe_loss": 0.08426816901192069
+      },
+      {
+        "secs": 210,
+        "step": 2004,
+        "train_loss": 0.06134172808378935,
+        "val_loss": 0.0898145530372858,
+        "mtp_loss": 0.06090888613834977,
+        "probe_loss": 0.07814638735726476
+      },
+      {
+        "secs": 225,
+        "step": 2161,
+        "train_loss": 0.06663821404799819,
+        "val_loss": 0.08252197317779064,
+        "mtp_loss": 0.06517978943884373,
+        "probe_loss": 0.026147749973461032
+      },
+      {
+        "secs": 240,
+        "step": 2317,
+        "train_loss": 0.05540847299354417,
+        "val_loss": 0.07772473711520433,
+        "mtp_loss": 0.0544878537101405,
+        "probe_loss": 0.0828806103340217
+      },
+      {
+        "secs": 255,
+        "step": 2474,
+        "train_loss": 0.0649010119959712,
+        "val_loss": 0.08295887243002653,
+        "mtp_loss": 0.0646671885624528,
+        "probe_loss": 0.039909465005621314
+      },
+      {
+        "secs": 270,
+        "step": 2631,
+        "train_loss": 0.052304619923233986,
+        "val_loss": 0.0790188042446971,
+        "mtp_loss": 0.051244053058326244,
+        "probe_loss": 0.06446873117238283
+      },
+      {
+        "secs": 285,
+        "step": 2785,
+        "train_loss": 0.05602967250160873,
+        "val_loss": 0.0793329356238246,
+        "mtp_loss": 0.05552979186177254,
+        "probe_loss": 0.04683990404009819
+      },
+      {
+        "secs": 300,
+        "step": 2942,
+        "train_loss": 0.07777029927819967,
+        "val_loss": 0.08452927600592375,
+        "mtp_loss": 0.07850628579035401,
+        "probe_loss": 0.0677424204768613
+      }
+    ],
+    "records_seen": 400665,
+    "batches_per_epoch": 1132,
+    "tok_budget": 18432,
+    "train_thoughts": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "default_thoughts": 8,
+    "val_by_thoughts": {
+      "0": 0.08597732707858086,
+      "2": 0.08515874482691288,
+      "8": 0.08452927600592375
+    },
+    "feedback_gain": 0.04180767387151718
+  },
+  "rl_rounds": [
+    {
+      "round": 1,
+      "sample_acc": 0.04175,
+      "new_proofs": 416,
+      "targets_solved": 361,
+      "lstar": 8,
+      "ge": {
+        "7": 361,
+        "8": 89,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 416,
+      "samples_per_sec": 138,
+      "secs": 350,
+      "level": 8,
+      "k": 32,
+      "n_targets": 1500,
+      "rl_secs_used": 311.2570080757141
+    },
+    {
+      "round": 2,
+      "sample_acc": 0.4261875,
+      "new_proofs": 717,
+      "targets_solved": 867,
+      "lstar": 10,
+      "ge": {
+        "7": 867,
+        "8": 392,
+        "9": 142,
+        "10": 15,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1133,
+      "samples_per_sec": 131,
+      "secs": 472,
+      "level": 8,
+      "k": 32,
+      "n_targets": 1500,
+      "rl_secs_used": 701.3529574871063
+    },
+    {
+      "round": 3,
+      "sample_acc": 0.5914166666666667,
+      "new_proofs": 374,
+      "targets_solved": 1046,
+      "lstar": 10,
+      "ge": {
+        "7": 1046,
+        "8": 536,
+        "9": 254,
+        "10": 40,
+        "11": 3,
+        "12": 0,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1490,
+      "samples_per_sec": 145,
+      "secs": 442,
+      "level": 8,
+      "k": 32,
+      "n_targets": 1500,
+      "rl_secs_used": 1060.1076302528381
+    },
+    {
+      "round": 4,
+      "sample_acc": 0.6765625,
+      "new_proofs": 292,
+      "targets_solved": 1125,
+      "lstar": 11,
+      "ge": {
+        "7": 1125,
+        "8": 599,
+        "9": 302,
+        "10": 58,
+        "11": 7,
+        "12": 1,
+        "13": 0,
+        "14": 0
+      },
+      "mix_rl_records": 1769,
+      "samples_per_sec": 153,
+      "secs": 427,
+      "level": 8,
+      "k": 32,
+      "n_targets": 1500,
+      "rl_secs_used": 1411.898359298706
+    }
+  ],
+  "eval": {
+    "solved": 639,
+    "n": 1108,
+    "ge": {
+      "7": 639,
+      "8": 541,
+      "9": 427,
+      "10": 85,
+      "11": 18,
+      "12": 3,
+      "13": 0,
+      "14": 0
+    },
+    "lstar": 11,
+    "heldout_greedy": 0.9865,
+    "max_pruned": 13,
+    "by_bin": {
+      "7": {
+        "solved": 98,
+        "n": 150,
+        "rate": 0.6533333333333333,
+        "ci": [
+          0.5742027248462458,
+          0.7248061258157337
+        ]
+      },
+      "8": {
+        "solved": 114,
+        "n": 152,
+        "rate": 0.75,
+        "ci": [
+          0.6755732914064452,
+          0.8121013731247197
+        ]
+      },
+      "9": {
+        "solved": 342,
+        "n": 477,
+        "rate": 0.7169811320754716,
+        "ci": [
+          0.6749463267960774,
+          0.755548871622695
+        ]
+      },
+      "10": {
+        "solved": 67,
+        "n": 219,
+        "rate": 0.3059360730593607,
+        "ci": [
+          0.24868668812128986,
+          0.36987645269263353
+        ]
+      },
+      "11": {
+        "solved": 15,
+        "n": 49,
+        "rate": 0.30612244897959184,
+        "ci": [
+          0.1951532349314748,
+          0.4452815740069374
+        ]
+      },
+      "12": {
+        "solved": 3,
+        "n": 54,
+        "rate": 0.05555555555555555,
+        "ci": [
+          0.019072922503838907,
+          0.15107451463482943
+        ]
+      },
+      "13": {
+        "solved": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      "14": {
+        "solved": 0,
+        "n": 2,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.6576280471103807
+        ]
+      }
+    }
+  },
+  "holdout_metric": null,
+  "surprise": "Discard: 638 (639, 652, 622) against 704's 676 (682, 680, 667), below on every seed. The feedback is not what the model learned to use. Pretraining val loss at 8 thoughts minus at 0: -0.0014, +0.0008, -0.0013 (predicted at least -0.002 on every seed; 704: -0.0010, -0.0002, +0.0000), so thoughts fed the plain network's state at the trigger reduce the loss no more than 704's pause slots; the prediction failed on every seed, and a seed went the wrong way. The gain opened from 0 to a mean |weight| of 0.042/0.041/0.044 after pretraining (predicted above 0.2) and RL left it there (0.043/0.042/0.045). Scale: a LayerNorm output has unit variance per element, so at 0.04 the fed-back vector has the per-element scale of a token embedding at initialization (std 0.02), not nothing; whether it is small against the trained embeddings and slot vectors is unmeasured (checkpoints are not pulled). Either way the loss did not pull it further: with the draft detached, the thoughts find nothing in the model's own reading of the context that they could not already reach through attention. 701-703's used thoughts had gradient through the fed-back state, and that joint training remains the surviving explanation. The score is the cost of a second network with no benefit. Pretraining got 2,937-2,974 steps (704: 3,398-3,784) at the same end val loss at 8 thoughts (0.0832-0.0858 against 704's 0.0843-0.0869), so per step the feedback model learns a little more, as the bench said. In RL every token runs through both networks: sampling 119-153 samples/s (704: 181-207), rounds of 350-493 s (704: 267-329), so 4 rounds fit instead of 6-7, 1,097-1,125 RL targets (704: 1,173-1,191), 1,511-1,644 s charged, total 2,932-3,266 s. metric_diag 571/625/572, 27-68 below metric (per-sample eval accuracy 0.40-0.41 at 8 thoughts against 0.30-0.36 at 0; 704: 0.43-0.45 at 8), where 704's seeds 0 and 1 sat 12-24 below: with the val loss flat in n this is the no-thought path drifting under the 8-only fine-tune (perhaps a little further here because at 8 the model also sees the 0.04-scaled draft), not computation in the thoughts. Round-1 acceptance 4.2/6.0/6.8% at 8 thoughts, held-out greedy 0.936-0.958: the weak kind of pretrained model again (704: 18.9/11.4/5.4; 706: 5.3/4.8/2.8). Next: the zero gain init may be a trap (the thoughts' downstream weights train on the slots, a random-direction draft gets a small gradient on the gain, and nothing forces it open); gain 1 from the start, 701-703's init, is untested here and costs one run. The other reading, that the gradient through the fed-back state is what makes thoughts matter, needs a second backward (702's 0.45x speed) and the speed problem solved first.",
+  "seed_metrics": {
+    "0": 639,
+    "1": 652,
+    "2": 622
+  },
+  "seed_metric_rl": {
+    "0": 1125,
+    "1": 1118,
+    "2": 1097
+  },
+  "seed_metric_diag": {
+    "0": 571,
+    "1": 625,
+    "2": 572
+  },
+  "seed_status": {
+    "0": "ok",
+    "1": "ok",
+    "2": "ok"
+  },
+  "seed_pretrain": {
+    "0": {
+      "val_loss": 0.08452927600592375,
+      "heldout_greedy": 0.9365,
+      "steps": 2942
+    },
+    "1": {
+      "val_loss": 0.0831614462658763,
+      "heldout_greedy": 0.958,
+      "steps": 2937
+    },
+    "2": {
+      "val_loss": 0.08578354772180319,
+      "heldout_greedy": 0.953,
+      "steps": 2974
+    }
+  },
+  "lean_gate": {
+    "samples": 1013472,
+    "parse_fail": 194384,
+    "distinct_checked": 673872,
+    "both_ok": 324800,
+    "nd_ok_lean_rej": 0,
+    "nd_rej_lean_ok": 14,
+    "lean_wall_s": 1641.7547917366028
+  },
+  "migrated": false
+}
