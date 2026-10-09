@@ -31,10 +31,27 @@ from code.ndbench.figures import style as S
 from code.thinking import stats
 
 CEIL = T.E / "ceil"
-ROWS = {
-    "think": CEIL / "t1320c_think_r2_k512" / "rows_plain_B64.jsonl",
-    "base": CEIL / "t1320c_nothink_r2_k512" / "rows_plain_B0.jsonl",
+SETS = {  # set -> (rows, number of problems, y label, figure name)
+    "t1320": (
+        {
+            "think": CEIL / "t1320c_think_r2_k512" / "rows_plain_B64.jsonl",
+            "base": CEIL / "t1320c_nothink_r2_k512" / "rows_plain_B0.jsonl",
+        },
+        250,
+        "problems solved (250 of 13–20 lines)",
+        "fig_ceiling",
+    ),
+    "tb72": (
+        {
+            "think": CEIL / "tb72c_think_r2_k512" / "rows_plain_B64.jsonl",
+            "base": CEIL / "tb72c_nothink_r2_k512" / "rows_plain_B0.jsonl",
+        },
+        72,
+        "problems solved (textbook72)",
+        "fig_ceiling_tb72",
+    ),
 }
+ROWS = SETS["t1320"][0]
 LOOKS = {"think": THINK, "base": BASE}
 KS = [2**i for i in range(10)]  # 1 .. 512 attempts per problem
 X_TOK = [float(x) for x in np.geomspace(250, 480_000, 61)]
@@ -54,14 +71,16 @@ def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="experiment-summaries/2026-10-05-thinking-traces/figures")
     ap.add_argument("--draws", type=int, default=T.DRAWS)
+    ap.add_argument("--set", choices=sorted(SETS), default="t1320")
     a = ap.parse_args(argv)
     out = Path(a.out)
-    arms = {k: stats.load_arm(k, [str(p)]) for k, p in ROWS.items()}
-    keep = valid_1320()
+    rows, n_prob, ylabel, name = SETS[a.set]
+    arms = {k: stats.load_arm(k, [str(p)]) for k, p in rows.items()}
+    keep = valid_1320() if a.set == "t1320" else None
     for k, arm in arms.items():
-        bad = [n for n in arm.names if n not in keep]
+        bad = [n for n in arm.names if keep is not None and n not in keep]
         assert not bad, f"{k}: {len(bad)} problems outside the valid 13-20 items, e.g. {bad[:3]}"
-        assert arm.T == 250 and arm.kmax == 512, (k, arm.T, arm.kmax)
+        assert n_prob == arm.T and arm.kmax == 512, (k, arm.T, arm.kmax)
     assert arms["think"].names == arms["base"].names
     tpa = {k: float(arm.tokens_per_attempt()[0]) for k, arm in arms.items()}
     by_k = {k: stats.ci_curve(arm, KS, draws=a.draws) for k, arm in arms.items()}
@@ -88,10 +107,10 @@ def main(argv: Sequence[str] | None = None) -> None:
     both = int((k512["think"] & k512["base"]).sum())
     print(f"at 512: only thinking {only_t}, only baseline {only_b}, both {both}")
 
-    draw(by_k, by_x, xs, tpa, out / "fig_ceiling")
+    draw(by_k, by_x, xs, tpa, out / name, ylabel)
     dump: dict[str, Any] = {
-        "rows": {k: str(p) for k, p in ROWS.items()},
-        "n_problems": 250,
+        "rows": {k: str(p) for k, p in rows.items()},
+        "n_problems": n_prob,
         "tokens_per_attempt": tpa,
         "equal_attempts": {
             n: [{"k": k, "est": e.est, "lo": e.lo, "hi": e.hi} for k, e in zip(KS, es, strict=True)]
@@ -106,8 +125,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         },
         "solved_at_512": {"only_thinking": only_t, "only_baseline": only_b, "both": both},
     }
-    (out / "fig_ceiling.json").write_text(json.dumps(dump, indent=1) + "\n")
-    print(f"wrote {out / 'fig_ceiling'}.{{pdf,svg,png,json}}")
+    (out / f"{name}.json").write_text(json.dumps(dump, indent=1) + "\n")
+    print(f"wrote {out / name}.{{pdf,svg,png,json}}")
 
 
 def _band(
@@ -131,6 +150,7 @@ def draw(
     xs: Sequence[float],
     tpa: dict[str, float],
     base: Path,
+    ylabel: str = "problems solved (250 of 13–20 lines)",
 ) -> None:
     with S.paper_style():
         fig = S.new_figure(S.FULL_W, 2.35, layout="constrained")
@@ -179,7 +199,7 @@ def draw(
         ax_k.set_ylim(0, 1.0)
         S.panel_title(ax_k, "a", "equal attempts (up to 512 each)")
         S.panel_title(ax_x, "b", "equal tokens generated")
-        ax_k.set_ylabel("problems solved (250 of 13–20 lines)")
+        ax_k.set_ylabel(ylabel)
         handles = [
             Line2D([], [], color=c.color, ls=c.ls, lw=c.lw, marker=c.marker, ms=3.4, label=c.label)
             for c in (THINK, BASE)
