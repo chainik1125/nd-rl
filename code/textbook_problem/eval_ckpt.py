@@ -45,10 +45,10 @@ DATA = os.path.join(HERE, "../../data/textbook_problem")
 HF_SNAP = os.path.expanduser(
     "~/.cache/huggingface/hub/models--robbiethompson2018--nd-rl-checkpoints/snapshots"
 )
-FORK = os.environ.get(
-    "ND_FORK",
-    "/private/tmp/claude-501/-Users-cyu-Desktop-github-nd-rl/0e8fdc82-572d-4fd1-ba25-ff48dbf29acf/scratchpad/fork51604b3",
-)
+# the fork (dan-pandori/nd-takehome) at 51604b3, the commit Robbie's scale-* runs import; kept outside the repo and
+# outside the session scratchpad (which is wiped between sessions):
+#   git clone -q https://github.com/dan-pandori/nd-takehome ~/.cache/nd-rl/fork51604b3 && git -C ~/.cache/nd-rl/fork51604b3 checkout -q 51604b3
+FORK = os.environ.get("ND_FORK", os.path.expanduser("~/.cache/nd-rl/fork51604b3"))
 UNFEEDABLE = {"repair", "cloze_justifications", "cloze_formulas"}
 
 
