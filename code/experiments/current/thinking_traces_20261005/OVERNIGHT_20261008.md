@@ -211,3 +211,51 @@ Times are PDT. Each entry is a decision or a result, with its reason.
     no-think it78, EI no-think r4, and Stage-1 S1g3 and T0S, to check the difficulty band.
     - Rule: RL on hard712 goes ahead if the best current model's pass@1 on dev is between 10% and 70% (signal), or
       above that with pass@8 < 95%.
+- **8:20 pm. Size sweep result: stop at 35.6M (pre-registered rule not met).** Stage 1, honest-search thinking (S1g3)
+  vs its no-think control (T0S), pass@1:
+
+  | | 9.6M (2 seeds) | 35.6M (seed 0) |
+  |---|---|---|
+  | thinking gain, 13–20 (986) | +2.6 [−0.7, +6.0] (seed 0: +3.8) | +1.5 [+0.2, +2.6] |
+  | env-rejected steps, 13–20, think / control | 71.4% / 82.0% | 73.5% / 78.8% |
+  | thinking gain, hard12 | +7.5 (seed 0: +12.2) | +13.8 |
+  | thinking gain, textbook72 | +10.3 | +8.1 |
+
+  - Read: a 3.7× larger model does not raise the out-of-distribution thinking gain or cut invalid steps. Size is
+    not the binding constraint at Stage 1. Caveat: one seed, and the same data and step count (24k).
+  - The 35.6M evals OOMed at batch 1024 and were re-run at batch 256 (`followup_20261007/evqb.sh`).
+- **EI pilot, no-think arm (T0S → EI r1 on rl_hard12):** 13–20 pass@1 20.9% raw (46.7% solved within 8); hard12
+  89.0%; textbook72 52.4%. Every earlier model is below this. The new models solve 95–99.6% of the rl_hard12 pool
+  in round 1, so the pool is spent for them.
+- **8:35 pm. EI pilot (round 1 from the new Stage 1, rl_hard12), 95% intervals.** 13–20 on the 986 items:
+
+  | EI r1 from | 13–20 pass@1 / pass@5 | textbook72 pass@1 | hard12 pass@1 |
+  |---|---|---|---|
+  | T0S (no think) | 20.8 / 40.8 | 52.4 | 89.0 |
+  | S1g3, B 256 | 22.0 / 45.0 | 57.6 | 90.0 |
+  | S1g3, logical sampling in EI, B 256 | 22.4 / — | 56.7 | 89.3 |
+
+  - **Compared with the old best EI:**
+    - new EI thinking r1 − old EI thinking r4, on 13–20: +5.9 [+4.0, +7.8];
+    - new EI thinking r1 − old EI thinking r2, on textbook72: +26.0 [+18.3, +33.9].
+  - **Thinking − no-think under EI:**
+    - 13–20: +1.3 [−0.8, +3.3] pass@1, +4.2 [+1.0, +7.5] pass@5, +2.3 [+0.3, +4.3] at B 64;
+    - textbook72: +5.2, not resolved;
+    - hard12: +1.1, not resolved.
+
+    Proof style now carries most of the gain; thinking adds a smaller, mainly pass@5, edge.
+  - **Logical sampling inside EI:** +0.3 [−1.0, +1.4], so that arm is dropped (rule: extend only at ≥ +2 pp).
+- **hard712 dev difficulty (k 8, pass@1 / solved within 8).** In band, so RL on hard712 goes ahead.
+  - EI thinking r4: 39.7 / 75.8
+  - S1g3: 37.7 / 72.2
+  - GRPO graded it78: 35.9 / 60.0
+  - T0S: 30.2 / 59.8
+  - EI no-think r4: 28.3 / 54.0
+  - GRPO no-think it78: 25.0 / 37.4
+- **8:40 pm. EI round 2 launched, 2 × 2: pool × thinking**, each from its pilot r1 checkpoint, one round:
+  - pools: a fixed random 5,000 of the hard712 pool, vs continuing on rl_hard12 (control);
+  - models: S1g3 thinking vs T0S no-think;
+  - after each: reads on 13–20, hard712 dev, textbook72 and hard12. The r1 models are also read on hard712 dev
+    (GPU 4) as the starting point.
+  - **Rule:** hard712 becomes the RL pool if its arm beats the rl_hard12 control by ≥ 2 pp on 13–20 pass@1, or on
+    hard712 dev, for either model.
