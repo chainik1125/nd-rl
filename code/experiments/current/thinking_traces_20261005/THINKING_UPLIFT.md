@@ -272,3 +272,25 @@ rows are not there yet (seed-1 round 3, further B0 reads) is skipped and appears
   baseline's growth continues, it would match thinking's 512-attempt coverage at about 2,000 attempts (about 600k
   tokens, against 450k for thinking).
 - *Caveat.* One seed, and 250 problems.
+
+## Update: seed-1 round 3 (added 2026-10-09, 11:30 am PDT)
+
+13–20 (986), thinking at B 64 − baseline, round 3 seed 1:
+- per attempt: +9.0 [+6.7, +11.3] pass@1;
+- at matched sampled tokens: 1k −5.0 [−7.8, −2.2], 2k −1.4, 4k +2.6, **8k +6.2 [+2.9, +9.5]**, **16k +8.2 [+4.7, +11.6]**.
+
+textbook72: +8.6 [+2.3, +15.1] per attempt, and +1.5 to +3.0 at matched tokens (not resolved).
+
+**Across the four round-2 and round-3 pairs, at 16k tokens per problem:**
+
+| pair | at 16k tokens |
+|---|---|
+| r2 seed 0 | −1.6 (n.s.) |
+| r2 seed 1 | +7.6 |
+| r3 seed 0 | −7.1 |
+| r3 seed 1 | +8.2 |
+
+- Seed 1 replicates its own high-compute uplift across rounds; seed 0 never shows one.
+- So whether thinking pays per token at high compute depends on the Stage-1 seed pair more than on the round.
+- Low compute (≤ 2k tokens): the baseline is ahead or tied in every pair.
+- Per attempt and in coverage at maximum budget (see above): thinking is ahead in every pair measured.
