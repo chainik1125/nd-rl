@@ -11,23 +11,27 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running and queued (updated 2026-10-08, 2:45 pm PDT; trimmed at Leon's prompt to short, decision-tied runs)
+## Running and queued (updated 2026-10-09, 8:15 am PDT). Scope reset by Leon.
 
-Every GPU job answers one question with a pre-registered decision rule. Pilots come before extensions.
+**The only question:** do the synthetic-thinking-trace models get uplift over the EI no-think baseline (same data,
+same EI rounds) at matched inference compute (pass@k against sampled tokens per problem), and does more thinking buy
+accuracy? EI is only the baseline.
 
-| job | GPU | ETA | question → decision rule |
+| job | GPU | ETA | why |
 |---|---|---|---|
-| Stage-1 9.6M: honest-search thinking S1g3 ×2 seeds; no-think control T0S ×2 | 1–4 | ~4:30 pm | Honest vs staged traces. **If** S1g3 B256 ≥ T1v1g4 B256 on 13–20 pass@1 and S1g3 − T0S > 0 (pooled interval), honest traces become the default Stage 1; **else** keep the staged graded traces. |
-| Step-redraw read of EI thinking r2 (13–20) | 0 | ~3:15 pm | Completes the logical-arm table. |
-| GRPO graded continued +39 iterations (it117 ≙ EI r3); 13–20, 21–30 and hard12 at B256 | 0 | ~5:30 pm | GRPO vs EI at matched attempts. **If** GRPO it117 is within 2 pp of EI r3 on 13–20 pass@1, call it a tie; **else** the RL method follows the winner. (Trimmed from +78.) |
-| Size sweep 35.6M: S1g3 and T0S, seed 0; hard12, textbook72 and 13–20 | 3–4 after T0S | ~9 pm | Is capacity the limit? **If** the thinking gain (S1g3 − T0S on 13–20 pass@1) grows by ≥ 3 pp over 9.6M, or the invalid-step rate falls by ≥ 25% relative, run 90.6M; **else** stop the sweep. |
-| CPU agents: hard712 pool; search completeness on hard theorems; GRPO safeguards + E1 script | — | — | — |
+| Thinking model at B 0, k = 64, on 13–20 (r2 seeds 0 and 1) | 2–3 | ~9 am | Adaptive budget: can the thinking model match the baseline at low compute (thinking off) and win at high compute (thinking on)? |
+| Seed-1 round-3 pair (thinking and baseline), then 13–20 and textbook72 curves | 0–1 | ~noon | Rounds 2 and 3 disagree, and seed matters. |
+| Figure and note (`THINKING_UPLIFT.md`, `fig_tts_uplift`) | CPU | — | The deliverable. |
 
-**Next, as pilots** (start when their inputs land):
-- **EI pilot, 1 round per arm** instead of 3: hard712-plain, hard712-logical and hard12-logical, against the existing hard12-plain r1. About 1.7 GPU-h each, in parallel.
-  - Extend only arms that beat hard12-plain r1 by ≥ 2 pp on 13–20 pass@1.
-- **E1 collapse confirmation: deferred.** It only matters if GRPO stays the RL method; it runs only if GRPO wins the it117 comparison.
-- **Dropped:** textbook72 logical reads (dev58 is now a design set, and it is small).
+**Dropped (off-question):**
+- GRPO fair runs;
+- Stage-1-only curves;
+- logical-arm (step redraw) curves;
+- 21–30 reads;
+- B 256 curves;
+- absolute-accuracy evals;
+- further pool building;
+- the size sweep.
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 

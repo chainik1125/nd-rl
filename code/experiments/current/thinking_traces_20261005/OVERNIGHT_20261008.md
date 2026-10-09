@@ -287,3 +287,21 @@ Times are PDT. Each entry is a decision or a result, with its reason.
   - (B) from Stage-1 S1g3 on rl_hard12, against EI r1 (re-tests "EI beats GRPO" with the new init).
   - Running on GPUs 4 and 0.
 - **New memory:** fairness controls run without asking.
+
+## 2026-10-09: scope reset by Leon. The question is uplift from the thinking traces at matched compute; EI is only the baseline
+
+- Dropped every experiment that does not compare the thinking-trace model with the EI no-think baseline (see
+  EXPERIMENT_QUEUE.md).
+- **Matched-compute result (13–20, thinking B 64 − baseline, pass@k at equal sampled tokens per problem):**
+
+  | pair | per attempt | 1k | 2k | 4k | 8k | 16k |
+  |---|---|---|---|---|---|---|
+  | r1, seed 0 | +1.3 | −11.1 | −9.6 | −7.2 | −4.7 | −2.3 |
+  | r2, seed 0 | +5.9 | −8.5 | −6.1 | −3.9 | −2.5 | −1.6 |
+  | r2, seed 1 | +6.8 | −6.5 | −3.4 | +0.7 | **+4.6** | **+7.6** |
+  | r3, seed 0 | +2.9 | −13.9 | −12.6 | −10.7 | −8.8 | −7.1 |
+
+  - textbook72: thinking ahead at ≥ 4k tokens in both seeds (seed 0 +3.5 at 8k; seed 1 +5.4 to +7.5).
+  - hard712 dev: behind at low compute, tied from 2k up.
+  - **Verdict so far:** clear per-attempt uplift, but no robust uplift at matched compute on 13–20.
+- **Next:** the thinking model's own B 0 curve (adaptive budget), the seed-1 round-3 pair, and the figure and note.
