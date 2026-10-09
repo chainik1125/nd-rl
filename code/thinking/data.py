@@ -51,6 +51,12 @@ files hold the same ids, prompts and actions.  A proof missing at its drawn leve
 counted in `missing_at_level`; a record whose actions or prompt differ from the level-256 record,
 or whose think block exceeds its level's budget (`ValueError`), is a broken input, not data.
 Mutually exclusive with --traces / --plain.
+
+Chosen effort (`encode_pair_choice`, opt-in; auto effort, `sample.choose_levels`): the effort token
+moves from the input to the target, so the model is trained to pick it:
+`pair = state | <eB> <think> ... </think> action <eos>`.  The token sequence is the graded layout's,
+only the loss mask grows by one.  `think_len` counts the effort token too, so `--think_weight`
+(the trainer's weight on [plen, plen + think_len)) weights the choice with the block.
 """
 
 from __future__ import annotations
@@ -146,6 +152,18 @@ def encode_pair(
     p = tok.encode_toks(list(state))
     q = tok.encode_toks(list(think) + list(action)) + [tok.eos]
     return bytes(p), bytes(q), len(think)
+
+
+def encode_pair_choice(
+    tok: Any, state: Sequence[str], level: int, think: Sequence[str], action: Sequence[str]
+) -> Pair:
+    """A chosen-effort pair (see the module docstring): input `state`, target `<eB>` + the think
+    block + action + `<eos>`; `think_len` = 1 + the block's length (tags included)."""
+    if f"<e{level}>" not in getattr(tok, "stoi", {}):
+        raise ValueError(f"level {level}: not an effort token of {getattr(tok, 'mode', tok)!r}")
+    p = tok.encode_toks(list(state))
+    q = tok.encode_toks([f"<e{level}>", *think, *action]) + [tok.eos]
+    return bytes(p), bytes(q), 1 + len(think)
 
 
 def filler_pair(tok: Any, pair: Pair) -> Pair:

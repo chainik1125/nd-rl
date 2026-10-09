@@ -44,6 +44,16 @@ Noise is Gumbel-max keyed by (seed, wave, step, slot) (`sample._gumbel_pick`), n
 per attempt and the wave seeds as in the fork, so a batch-size change is a re-draw, never a
 correctness change.  With per-attempt budgets the worklist is filled in budget order, because a
 wave decodes until its longest row ends.
+
+Auto effort (`auto_levels`, opt-in; a `lean_thinke` checkpoint, per-step format, no intervention):
+the model picks its own level at every step.  The step prompt ends at `state`; one token is sampled
+from the model's next-token distribution restricted to the effort ids of `auto_levels`
+(`choose_levels`, at the attempt temperature, Gumbel noise keyed by (seed, loop iteration, row)),
+and the step is then decoded exactly as a fixed-level step at that level (`state <eB> <think>`,
+`</think>` forced at B = 0, the cap and forcing of B).  The choice is a separate one-token pass, so
+the state is prefilled twice in wall-clock terms; the accounting is that of one pass: the effort
+token counts as a sampled token (`tokens`, `choice`) and is not in `prefill`.  An auto attempt's
+`budget` is "auto", `levels` lists the level of every draw, and each trace entry carries `level`.
 """
 
 from __future__ import annotations
@@ -61,10 +71,12 @@ import torch
 from . import lean as L
 from . import stateview
 from .dan import load
-from .effort import effort_id, has_effort
+from .effort import LEVELS, effort_id, has_effort
 from .tok import has_think
 
 D = load()
+AUTO = "auto"  # the `budget` of an attempt whose level the model picks per step
+AUTO_LEVELS = (0, 64, 256)  # the default auto-effort choice set
 ARMS = ("plain", "structural", "logical")
 THINK_PH, ACT_PH, DONE_PH = 1, 2, 3
 FORMATS = ("think", "root", "memo")  # per step / rootplan's R (whole-proof root) / M (memo)
@@ -281,6 +293,59 @@ def decode_wave(
     return Wave([o[i][: dl[i]] for i in range(B0)], lqs, forced.tolist())
 
 
+@torch.no_grad()
+def choose_levels(
+    model: Any,
+    tok: Any,
+    prompt_ids: Sequence[Sequence[int]],
+    levels: Sequence[int],
+    temperature: float = 1.0,
+    greedy: bool = False,
+    seed: int = 0,
+    stats: dict[str, Any] | None = None,
+) -> list[int]:
+    """Auto effort: per row, the level the model picks after its prompt (the state).  One forward
+    over the left-padded prompts (`decode_wave`'s prefill, so the model's chunked prefill applies),
+    then the next-token logits restricted to the effort ids of `levels`, divided by `temperature`
+    and sampled by Gumbel-max with noise keyed by (seed, row); `greedy`: the argmax."""
+    if not levels:
+        raise ValueError("auto effort needs at least one level")
+    ids = [effort_id(tok, b) for b in levels]
+    dev = next(model.parameters()).device
+    B0 = len(prompt_ids)
+    L0 = max(len(p) for p in prompt_ids)
+    idx = torch.full((B0, L0), tok.pad, dtype=torch.long, device=dev)
+    keep = torch.zeros((B0, L0), dtype=torch.bool, device=dev)
+    for i, p in enumerate(prompt_ids):
+        idx[i, L0 - len(p) :] = torch.tensor(list(p), device=dev)
+        keep[i, L0 - len(p) :] = True
+    pos = (keep.cumsum(1) - 1).clamp(min=0)
+    causal = torch.tril(torch.ones(L0, L0, dtype=torch.bool, device=dev))
+    mask = causal[None, None] & keep[:, None, None, :]
+    mask = mask | torch.eye(L0, dtype=torch.bool, device=dev)[None, None]
+    caches: list[dict[str, Any]] = [{"max": L0 + 1} for _ in model.blocks]
+    logits = model(idx, pos=pos, mask=mask, caches=caches)[:, -1]
+    del caches, mask, causal, idx
+    sub = logits.float()[:, ids]
+    if greedy:
+        pick = sub.argmax(-1)
+    else:
+        g = torch.Generator(device=dev)
+        g.manual_seed(seed % (2**63 - 1))
+        u = torch.rand(sub.shape, device=dev, generator=g).clamp_(1e-9, 1 - 1e-9)
+        pick = (sub / temperature - torch.log(-torch.log(u))).argmax(-1)
+    out = [int(levels[j]) for j in pick.tolist()]
+    D.record.count(gen_tokens=B0)
+    if stats is not None:
+        stats["sampled_tokens"] = stats.get("sampled_tokens", 0) + B0
+        stats["choice_prefill_tokens"] = stats.get("choice_prefill_tokens", 0) + sum(
+            len(p) for p in prompt_ids
+        )
+        c = stats.setdefault("auto_levels", collections.Counter())
+        c.update(out)
+    return out
+
+
 def split_segment(
     tok: Any, ids: Sequence[int], think: bool, budget: int
 ) -> tuple[list[int], bool, list[int]]:
@@ -313,6 +378,9 @@ class Attempt:
     rejected_actions: set[tuple[int, ...]] = field(default_factory=set)
     trace: list[dict[str, Any]] = field(default_factory=list)
     ctx: list[int] = field(default_factory=list)  # R: the transcript so far; M: the last memo
+    auto: bool = False  # auto effort: `budget` is the level the model picked for this step
+    levels: list[int] = field(default_factory=list)  # auto: the picked level of every draw
+    choice: int = 0  # auto: sampled effort tokens (one per draw)
 
 
 def attempt_budget(budgets: int | Sequence[int], seed: int, i: int) -> int:
@@ -471,6 +539,7 @@ def think_generate(
     intervene: str = "none",
     wave_tokens: int = 0,
     line_cap: int = LINE_CAP,
+    auto_levels: Sequence[int] | None = None,
 ) -> list[dict[str, Any]]:
     """k attempts = k copies of a prompt.  -> one dict per attempt (status 'done' or 'fail:<cause>',
     accepted `steps`, `fail_step`, token counters, `nd` / `text` for the Lean gate, `trace`: per
@@ -487,7 +556,10 @@ def think_generate(
     rows x (prompt + decode room) per decode wave (0: one wave of all rows; R: 0 means
     ROOT_WAVE_TOKENS).  `intervene` (plain arm): the think block is decoded alone, replaced
     (`intervene_thinks`), and the action decoded after the replaced block; the trace's `prompt` /
-    `gen` are then the action's, `think` the replaced content, `think_sampled` the original."""
+    `gen` are then the action's, `think` the replaced content, `think_sampled` the original.
+    `auto_levels` (auto effort, see the module docstring): `budgets` is ignored and every attempt
+    picks its level among these at every step (`choose_levels`); results add `levels` and
+    `choice`, and `budget` is "auto"."""
     assert arm in ARMS, arm
     assert force_mode in FORCE_MODES, force_mode
     assert intervene in INTERVENTIONS, intervene
@@ -511,6 +583,22 @@ def think_generate(
             mask_action_think = True  # one think block per proof: ROOT
             wave_tokens = wave_tokens or ROOT_WAVE_TOKENS
     ctx_max = int(getattr(model, "cfg", {}).get("max_len", 0)) if fmt != "think" else 0
+    auto = None if auto_levels is None else tuple(int(b) for b in auto_levels)
+    if auto is not None:
+        if not effort:
+            raise ValueError("auto effort needs a lean_thinke checkpoint with thinking on")
+        if fmt != "think":
+            raise ValueError(f"auto effort: the per-step format only (got {fmt!r})")
+        if intervene != "none":
+            raise ValueError(f"auto effort: no intervention (got {intervene!r})")
+        # a redraw may pick another level, so its forbidden segments would not match
+        if arm != "plain":
+            raise ValueError(f"auto effort: the plain arm only (got {arm!r})")
+        bad = [b for b in auto if b not in LEVELS]
+        if not auto or bad:
+            raise ValueError(f"auto effort: levels {list(auto)} must be effort levels {LEVELS}")
+        if min_think:
+            raise ValueError("auto effort: min_think must be 0 (a step may pick level 0)")
     if isinstance(budgets, int):
         assert budgets >= 0
     assert min_think == 0 or think
@@ -529,8 +617,12 @@ def think_generate(
     nxt = wave = 0
     # a wave decodes until its longest row ends: fill the worklist in budget order so waves are
     # (nearly) one budget each; attempts keep their index for the name base and the results
-    bud_of = [attempt_budget(budgets, seed, i) if think else 0 for i in range(len(prompts))]
+    if auto is not None:  # levels are picked per step: no budget order
+        bud_of = [auto[0]] * len(prompts)
+    else:
+        bud_of = [attempt_budget(budgets, seed, i) if think else 0 for i in range(len(prompts))]
     order = sorted(range(len(prompts)), key=lambda i: bud_of[i])
+    n_choice = 0  # auto: choice passes so far (keys the choice noise)
     D.record.count(attempts=len(prompts))
     t_start = time.time()
     SC = D.step_check
@@ -563,6 +655,10 @@ def think_generate(
             text=tok.text(e.text) if status == "done" and not nd.startswith("LEANPARSE") else None,
             trace=a.trace if keep_trace else None,
         )
+        if a.auto:
+            r = res[a.i]
+            assert r is not None
+            r.update(budget=AUTO, levels=list(a.levels), choice=a.choice)
 
     def run_wave(
         pids: list[list[int]], rb: list[int], forbids: list[Any] | None, think_only: bool
@@ -616,9 +712,30 @@ def think_generate(
             i = order[nxt]
             base = random.Random(seed * 1000003 + i).randint(0, D.state_sample.NAME_BASE_MAX)
             env = D.state_env.Env(prompts[i], canon=True, base=base, assign=True)
-            live.append(Attempt(i, env, base, bud_of[i]))
+            live.append(Attempt(i, env, base, bud_of[i], auto=auto is not None))
             nxt += 1
         states = [tok.encode_toks(stateview.render(a.env)) for a in live]
+        if auto is not None:  # the model picks this step's level from the state alone
+            if dev.type == "cuda":
+                torch.cuda.synchronize()
+            t0 = time.time()
+            with torch.autocast("cuda", dtype=torch.bfloat16, enabled=(dev.type == "cuda")):
+                picks = choose_levels(
+                    model,
+                    tok,
+                    states,
+                    auto,
+                    temperature,
+                    greedy,
+                    seed * 1000003 + 7919 * (n_choice + 1),
+                    st,
+                )
+            if dev.type == "cuda":
+                torch.cuda.synchronize()
+            st["gpu_s"] += time.time() - t0
+            n_choice += 1
+            for a, b in zip(live, picks, strict=True):
+                a.budget = b
         built = [
             step_prompt(fmt, tok, a, s, think, effort) for a, s in zip(live, states, strict=True)
         ]
@@ -685,6 +802,11 @@ def think_generate(
         for j, (a, s) in enumerate(zip(live, states, strict=True)):
             th, closed, act_ids, th_used, p, ids, pre = draws[j]
             n_tok = len(th) + int(closed) + len(act_ids)
+            if a.auto:  # the effort token in `p` was sampled (`choose_levels`), not prefilled
+                n_tok += 1
+                pre -= 1
+                a.choice += 1
+                a.levels.append(a.budget)
             a.draws += 1
             a.tokens += n_tok
             a.think += len(th)
@@ -720,7 +842,9 @@ def think_generate(
                 st["check_s"] += time.time() - t1
                 if lcause and arm == "logical":
                     cause = "L:" + lcause
-            extra = {} if intervene == "none" else {"think_sampled": bytes(th)}
+            extra: dict[str, Any] = {} if intervene == "none" else {"think_sampled": bytes(th)}
+            if a.auto:
+                extra["level"] = a.budget
             if cause is not None:
                 rej_cause[cause] += 1
                 a.causes.append(cause)
