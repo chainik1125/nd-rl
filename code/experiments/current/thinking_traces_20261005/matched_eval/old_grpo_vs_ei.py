@@ -39,14 +39,18 @@ SERIES = [
 def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="experiment-summaries/2026-10-05-thinking-traces/figures")
+    ap.add_argument("--set", choices=("h12_t1320", "tb72"), default="h12_t1320")
     a = ap.parse_args(argv)
     out = Path(a.out)
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td)
         sets = [("h12", F.H12, F.Rows(None, tmp)), ("t1320", F.T1320, F.Rows(F.valid_1320(), tmp))]
+        if a.set == "tb72":
+            sets = [("tb72", "textbook72 (72 real textbook problems)", F.Rows(None, tmp))]
+        name = "fig_old_grpo_vs_ei" if a.set == "h12_t1320" else f"fig_old_grpo_vs_ei_{a.set}"
         with S.paper_style():
-            fig = S.new_figure(S.FULL_W, 4.0, layout="constrained")
-            axs = fig.subplots(2, 2, sharex=True)
+            fig = S.new_figure(S.FULL_W, 2.2 * len(sets) - 0.4, layout="constrained")
+            axs = fig.subplots(len(sets), 2, sharex=True, squeeze=False)
             for r, (s, title, rows) in enumerate(sets):
                 for c, k in enumerate((1, 5)):
                     ax = axs[r][c]
@@ -78,9 +82,9 @@ def main(argv: Sequence[str] | None = None) -> None:
             )
             handles = [look.handle() for look, *_ in SERIES]
             fig.legend(handles=handles, loc="outside upper center", ncol=3, frameon=False)
-            S.save(fig, out / "fig_old_grpo_vs_ei")
+            S.save(fig, out / name)
             S.close(fig)
-    print(f"wrote {out / 'fig_old_grpo_vs_ei'}.{{pdf,svg,png}}")
+    print(f"wrote {out / name}.{{pdf,svg,png}}")
 
 
 if __name__ == "__main__":

@@ -41,15 +41,17 @@ def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="experiment-summaries/2026-10-05-thinking-traces/figures")
     ap.add_argument("--draws", type=int, default=T.DRAWS)
+    ap.add_argument("--set", choices=("t1320", "tb72"), default="t1320")
     a = ap.parse_args(argv)
     out = Path(a.out)
     pooled: dict[str, dict[str, object]] = {}
     with tempfile.TemporaryDirectory() as td:
         loader = T.Loader(Path(td))
         for rnd in ROUNDS:
-            rs = [T.analyse(p, loader, a.draws) for p in T.T1320 if p.key.startswith(rnd)]
+            pairs = T.T1320 if a.set == "t1320" else [p for p in T.OTHER if p.set == a.set]
+            rs = [T.analyse(p, loader, a.draws) for p in pairs if p.key.startswith(rnd)]
             rs = [r for r in rs if r is not None]
-            if len(rs) < 2:
+            if not rs:
                 print(f"skipped {rnd}: {len(rs)} seed pair(s)")
                 continue
             curves = {k: mean_curve([r.curves[k] for r in rs]) for k in ("think", "base")}
@@ -72,7 +74,8 @@ def main(argv: Sequence[str] | None = None) -> None:
                     f"  {x / 1000:>4g}k  think {100 * th[0]:.1f}  base {100 * ba[0]:.1f}"
                     f"  diff {100 * d[0]:+.1f} [{100 * d[1]:+.1f}, {100 * d[2]:+.1f}]{flag}"
                 )
-    draw(pooled, out / "fig_tts_pooled")
+    name = "fig_tts_pooled" if a.set == "t1320" else f"fig_tts_pooled_{a.set}"
+    draw(pooled, out / name, a.set)
     dump = {
         rnd: {
             "seeds": p["seeds"],
@@ -83,11 +86,11 @@ def main(argv: Sequence[str] | None = None) -> None:
         }
         for rnd, p in pooled.items()
     }
-    (out / "fig_tts_pooled.json").write_text(json.dumps(dump, indent=1) + "\n")
-    print(f"wrote {out / 'fig_tts_pooled'}.{{pdf,svg,png,json}}")
+    (out / f"{name}.json").write_text(json.dumps(dump, indent=1) + "\n")
+    print(f"wrote {out / name}.{{pdf,svg,png,json}}")
 
 
-def draw(pooled: dict[str, dict[str, object]], base: Path) -> None:
+def draw(pooled: dict[str, dict[str, object]], base: Path, set_: str = "t1320") -> None:
     with S.paper_style():
         fig = S.new_figure(S.FULL_W, 2.35, layout="constrained")
         axs = fig.subplots(1, len(pooled), sharey=True, squeeze=False)[0]
@@ -109,12 +112,15 @@ def draw(pooled: dict[str, dict[str, object]], base: Path) -> None:
                     mew=0.5,
                     zorder=4,
                 )
-            n = len(p["seeds"])  # type: ignore[arg-type]
-            S.panel_title(ax, "ab"[j], f"{ROUNDS[rnd]} (mean of {n} seeds)")
+            seeds: list[str] = p["seeds"]  # type: ignore[assignment]
+            who = f"mean of {len(seeds)} seeds" if len(seeds) > 1 else f"seed {seeds[0][-1]} only"
+            S.panel_title(ax, "ab"[j], f"{ROUNDS[rnd]} ({who})")
             T.tokens_axis(ax)
             T.pct_axis(ax)
-        axs[0].set_ylim(0, 0.8)
-        axs[0].set_ylabel("problems solved (13–20 lines)")
+        axs[0].set_ylim(0, 0.8 if set_ == "t1320" else 1.0)
+        axs[0].set_ylabel(
+            "problems solved (13–20 lines)" if set_ == "t1320" else "problems solved (textbook72)"
+        )
         fig.supxlabel("tokens generated per problem (log scale)", fontsize=S.FS_LABEL)
         handles = [
             Line2D([], [], color=c.color, ls=c.ls, lw=c.lw, marker=c.marker, ms=3.4, label=c.label)
