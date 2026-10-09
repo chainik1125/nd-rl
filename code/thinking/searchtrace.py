@@ -66,6 +66,7 @@ from __future__ import annotations
 import argparse
 import collections
 import hashlib
+import importlib
 import json
 import os
 import random
@@ -1200,11 +1201,14 @@ def trace_for(
     source: str = "",
     reference: str | None = None,
     ref_slack: int | None = None,
+    complete: bool = False,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
     """-> (record, per-step info, proof info).  The search sees `prompt` only.  `reference` (a proof
     in the source's ND format) is used after the search, for statistics; with `ref_slack` (opt-in)
     also to reject a proof longer than reference + slack (a selection filter, never a search
-    input).  Raises ProofFail when every strategy fails."""
+    input).  `complete` (opt-in, `searchcomplete`): when every strategy fails, the sampled one is
+    re-run with the planner fallback.  Raises ProofFail when every strategy fails (and the
+    fallback, if on)."""
     order_ = [strategy] if strategy else strategy_order(pid, seed)
     errors: list[str] = []
     ref = ref_steps(prompt, reference) if reference else None
@@ -1234,13 +1238,72 @@ def trace_for(
             },
         }
         pinfo: dict[str, Any] = {"strategy": name, "tries": len(errors) + 1, "errors": errors}
-        if ref is not None:
-            acts = [pt.ascii_line(a) for a in ref]
-            pinfo["ref_steps"] = len(ref)
-            pinfo["overhead"] = len(steps) - len(ref)
-            pinfo["same_as_ref"] = acts == [s["action"] for s in steps]
+        _proof_stats(pinfo, rec, ref)
+        return rec, infos, pinfo
+    if complete and not isinstance(level, str):
+        # opt-in; searchcomplete imports this module and, on first use, the fork's minlen
+        searchcomplete = importlib.import_module(f"{__package__}.searchcomplete")
+        name = order_[0]
+        try:
+            steps, infos, cst = searchcomplete.prove_complete(
+                prompt, make_strategy(name, pid, seed), int(level), ladder, labels, cap
+            )
+        except ProofFail as e:  # the fallback's reason first (batch stats keep 300 characters)
+            errors.insert(0, f"complete/{name}: {e}")
+            raise ProofFail("; ".join(errors)) from None
+        n_plan = sum(bool(i.get("planner")) for i in infos)
+        n_bare = sum(bool(s.get("planner")) for s in steps)
+        summary = {
+            "plans": cst["plans"],
+            "plan_steps": n_plan,
+            "plan_steps_without_record": n_bare,
+            "discarded_steps": cst["discarded_steps"],
+            "triggers": cst["triggers"],
+            "root_fallbacks": cst["root_fallbacks"],
+            "escalations": cst["escalations"],
+        }
+        rec = {
+            "id": pid,
+            "source": source,
+            "mode": "search",
+            "prompt": prompt,
+            "steps": steps,
+            "gen": {
+                "format": FORMAT,
+                "strategy": name,
+                "sampled": order_[0],
+                "level": budget_for(int(level)).name,
+                "levels": list(ladder),
+                "seed": seed,
+                "complete": summary,
+            },
+        }
+        pinfo = {
+            "strategy": name,
+            "tries": len(errors) + 1,
+            "errors": errors,
+            "complete": {**summary, "planner_calls": cst["planner_calls"]},
+            "planner_secs": cst["planner_secs"],
+        }
+        _proof_stats(pinfo, rec, ref)
         return rec, infos, pinfo
     raise ProofFail("; ".join(errors))
+
+
+def _proof_stats(pinfo: dict[str, Any], rec: dict[str, Any], ref: list[list[str]] | None) -> None:
+    """Statistics only (never written into the record): the proof's ND line count, and its
+    comparison with the reference when there is one."""
+    T = td()
+    env = T.Env(rec["prompt"], canon=True, base=0, assign=False)
+    for s in rec["steps"]:
+        env.apply(T.tokens(s["action"]))
+    nd = env.nd()
+    pinfo["nd_lines"] = nd.count(" : ") if env.done else None
+    if ref is not None:
+        acts = [pt.ascii_line(a) for a in ref]
+        pinfo["ref_steps"] = len(ref)
+        pinfo["overhead"] = len(rec["steps"]) - len(ref)
+        pinfo["same_as_ref"] = acts == [s["action"] for s in rec["steps"]]
 
 
 # ---------------------------------------------------------------------------------- batch run
@@ -1288,6 +1351,7 @@ def _one(job: tuple[str, str, str | None, int]) -> tuple[str, Any, list[Any], di
             _W["source"],
             proof,
             _W["ref_slack"],
+            _W.get("complete", False),
         )
     except ProofFail as e:
         return pid, None, [], {"wall": time.time() - t0}, f"fail: {str(e)[:300]}"
@@ -1341,6 +1405,8 @@ class Stats:
         self.tries: collections.Counter[int] = collections.Counter()
         self.act_kind: collections.Counter[str] = collections.Counter()
         self.chosen_kind: collections.Counter[str] = collections.Counter()
+        self.nd_over: list[int] = []
+        self.nd_by_id: dict[str, list[int]] = {}
 
     def add(
         self, pid: str, rec: Any, infos: list[Any], pinfo: dict[str, Any], err: str, n: int
@@ -1363,6 +1429,20 @@ class Stats:
             self.c["with_ref"] += 1
             self.c["over_ref_plus_4"] += pinfo["overhead"] > 4
         self.steps.append(len(rec["steps"]))
+        if pinfo.get("nd_lines"):
+            if n:
+                self.nd_over.append(pinfo["nd_lines"] - n)
+            if len(self.nd_by_id) < 20000:
+                self.nd_by_id[pid] = [pinfo["nd_lines"], n]
+        cp = pinfo.get("complete")
+        if cp:
+            self.c["repaired"] += 1
+            self.c["repaired_discarded_steps"] += cp["discarded_steps"]
+            self.c["repaired_plans"] += cp["plans"]
+            self.c["repaired_root_fallback"] += bool(cp["root_fallbacks"])
+            self.c["repaired_escalated"] += bool(cp["escalations"])
+            for t in cp["triggers"]:
+                self.c[f"repair_trigger_{t}"] += 1
         b = len_bin(n)
         tot = 0
         for st_, inf in zip(rec["steps"], infos, strict=True):
@@ -1377,6 +1457,8 @@ class Stats:
             self.natural_step.append(nat)
             self.natural_by_bin[b].append(nat)
             self.c["decision_empty"] += tt_ == 0
+            self.c["decision_planner"] += bool(inf.get("planner"))
+            self.c["decision_planner_no_record"] += bool(st_.get("planner"))
             self.c["decision_exhausted"] += bool(inf.get("exhausted"))
             self.c["decision_with_dead"] += bool(inf.get("rec_dead"))
             self.c["decision_with_dead_nonefq"] += bool(inf.get("rec_dead_other"))
@@ -1480,6 +1562,16 @@ class Stats:
             "over_reference_plus_4": round(c["over_ref_plus_4"] / max(c["with_ref"], 1), 4),
             "steps_per_proof": _pct(self.steps),
             "max_pair_tokens_per_proof": _pct(self.pair),
+            "repaired_by_planner": c["repaired"],
+            "planner_step_share": {
+                "decision_steps_from_a_plan": round(c["decision_planner"] / nd, 4),
+                "decision_steps_without_record": round(c["decision_planner_no_record"] / nd, 4),
+            },
+            "nd_overhead_vs_source_lines": _pct(self.nd_over, (0.1, 0.5, 0.9, 0.99)),
+            "nd_overhead_hist": dict(
+                sorted(collections.Counter(max(-6, min(x, 12)) for x in self.nd_over).items())
+            ),
+            "nd_lines_by_id": self.nd_by_id if len(self.nd_by_id) <= 6000 else None,
             "wall_s": round(wall, 1),
         }
 
@@ -1667,11 +1759,20 @@ def main(argv: list[str] | None = None) -> int:
         help="closers-first only at levels >= 128 (levels may then write different proofs)",
     )
     ap.add_argument(
+        "--complete",
+        action="store_true",
+        help="when every strategy fails, re-run with the planner fallback (searchcomplete.py)",
+    )
+    ap.add_argument(
         "--emit-plain",
         default=None,
         help="also write the proofs as K12-style records {id, prompt, proof, n_lines} (no think)",
     )
     a = ap.parse_args(argv)
+    # one module object (and one ProofFail) whether run with -m or imported by searchcomplete; the
+    # fork workers inherit it
+    if __name__ == "__main__":
+        sys.modules.setdefault(f"{__package__}.searchtrace", sys.modules[__name__])
     SETTINGS["closers_all"] = not a.closers_high_only
     level = parse_level(a.level)
     ladder = tuple(int(x) for x in a.levels.split(","))
@@ -1706,6 +1807,7 @@ def main(argv: list[str] | None = None) -> int:
         "strategy": a.strategy,
         "source": a.source,
         "ref_slack": a.ref_slack,
+        "complete": a.complete,
     }
     rep = run(jobs, out, kw, a.workers)
     rep["config"] = {
@@ -1723,6 +1825,7 @@ def main(argv: list[str] | None = None) -> int:
         "format": FORMAT,
         "analysis_only": a.analysis_only,
         "closers_all": SETTINGS["closers_all"],
+        "complete": a.complete,
     }
     if a.emit_plain and out is not None:
         n = emit_plain(out, Path(a.emit_plain))

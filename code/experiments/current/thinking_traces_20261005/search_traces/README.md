@@ -37,7 +37,7 @@ What the search does change:
 - proofs are the search's own: identical to the reference in 35%, mean length 0.85 × the reference's.
 
 On the 13–20 set, analysed for statistics only, dead ends are more frequent (17.4%) but the generator fails on 12% of
-theorems (§ open issues).
+theorems (§ open issues). The opt-in complete mode (§ Complete mode) brings that to 99.93%.
 
 ## What was built
 
@@ -443,6 +443,104 @@ Notes on the build:
   (about 4 ms each), so about 10–12 minutes per pickle for the full set.
 - The heavy tail (about 1 s for the slowest single proof; node cap 3,000) is included in the mean. I'd allow 2× margin.
 
+## Complete mode (`--complete`): a planner fallback for harder theorems
+
+**Status (2026-10-09):** built and measured on CPU (at most 12 workers, `nice`), not committed. Code:
+[`code/thinking/searchcomplete.py`](../../../../thinking/searchcomplete.py) (new), hooks in `searchtrace.py`, tests in
+`code/tests/thinking/test_searchcomplete.py` (new). Base commit `79749ce`.
+
+**What it does.** It is opt-in (`trace_for(..., complete=True)`, CLI `--complete`) and runs only after all four
+default strategies have failed, so every proof the default generator writes is unchanged.
+- It replays the honest search step by step, with the same strategy, budgets and records.
+- It counts as trouble when the search is stuck, the box depth reaches 5, names pass n56, or the step count passes a
+  length budget. The budget is a whole-theorem plan + 6 when one is found in 20 s; otherwise 48 steps, re-armed after
+  each repair.
+- On trouble it backs off to the states where the open boxes were opened: boxes opened in an inconsistent context
+  first (outermost first), then the others (innermost first), then the current state.
+- At each point a planner solves that point's sub-theorem: the hypotheses in scope ⊢ the focused goal, reduced to a
+  minimal support by truth tables. The planner is the fork's shortest-proof search (`minlen` through
+  `test_21_30/fastlen.py`, iterative deepening on proof length). It reads the state only. A test checks that no
+  planner function takes a reference.
+- If no point is solved within 6 s (30 s at the current state), a second round tries the same points with 90 s. The
+  last resort is a plan for the whole theorem from the root, which closes the proof.
+- The walk rewinds to the point and follows the plan, translated into the environment's names, until the plan closes
+  its frame. Then the honest search resumes.
+- A plan step keeps the search's record when the search, run at that state, commits to the same action. Otherwise
+  its think is empty and the step carries `"planner": true` in the step metadata. No record is written for a move
+  the search did not make. Labels (`min_level`) are computed at every step as usual. Every step passes `viable`,
+  `check_step` and strict validation, as in default mode.
+
+**Backward compatibility.** Default output is byte-identical to `79749ce`: sha256 over the first 120 K12 records at
+levels 0, 64, 256 and auto matches the digests computed at that commit (test). With `complete=True`, default
+successes are unchanged (test, 40 rows).
+
+**Results at e256** (ladder 0/64/256). The sealed 13–20 set was run with `--analysis-only`: statistics only, no
+traces written. The fresh sets are composites built with the 13–20 pipeline (`build_composites.py` on the same
+pieces, other seeds) and screened with `excl.py`'s index (`seal.hits`): 2 hits and 1 duplicate removed from 16–20,
+none from 13–15. `hard712/pool.jsonl` did not exist when this ran.
+
+| set | theorems | default success | `--complete` success | repaired by the planner | decision steps from a plan (without a record) |
+|---|---|---|---|---|---|
+| sealed 13–20 (statistics only) | 3,003 | 87.98% | **99.93%** (2 fail) | 359 (12.0%) | 7.0% (2.6%) |
+| fresh composites, 13–15 lines | 1,490 | 92.75% | **100%** | 108 (7.2%) | 4.1% (1.6%) |
+| fresh composites, 16–20 lines, held-out half | 749 | 85.31% | **99.73%** (2 fail) | 108 (14.4%) | 8.0% (3.2%) |
+| fresh composites, 16–20 lines, dev half (used to develop the fixes) | 748 | 83.16% | **99.87%** (1 fail) | 125 (16.7%) | 9.3% (3.7%) |
+| K12 pilot theorems the default cannot prove | 9 | 0% | **100%** | 9 | — |
+
+In repaired proofs, about half the steps come from a plan: 53% on fresh 13–15, 42% on 16–20. About a third of steps
+carry no record: 33% and 26%.
+
+- **Genuine dead ends** (non-ex-falso dead-end lines in a decision block): 16.5% of decision blocks on sealed
+  13–20, 15.6% on fresh 13–15 and 16.0% on fresh 16–20. Ex-falso dead ends are under 1% of dead-end lines. The
+  default generator reached 17.4% on the 13–20 theorems it could prove, and 12.9% on K12. Planner steps without a
+  record have no dead ends, so they dilute the share slightly.
+- **`min_level`** (share of decision steps), e0 / e64 / e256 / none viable: 87.0 / 8.3 / 4.1 / 0.6% on sealed
+  13–20, 87.4 / 7.6 / 4.3 / 0.7% on fresh 13–15, and 87.6 / 7.5 / 4.3 / 0.7% on fresh 16–20 (K12 default: e0 90.2%).
+- **Length overhead against the shortest proof** (ND lines). The honest search's proofs are long, and most of the
+  overhead does not come from repairs.
+  - Sealed 13–20, the 1,672 proofs (55.7%) whose shortest length is certified exact (`minimality.cert`): mean +5.7,
+    median +4, p90 +16, mean ratio 1.38; 28.8% are shortest and 40.8% within +2. For the other 1,329, the shortest
+    length is only bounded, and the mean overhead lies between +8.3 and +11.0.
+  - Fresh 13–15, the 666 proofs certified exact by `fresh/certify.py` (fork `minlen`, staged to 14 lines; 726 of 1,490
+    run, 60 timeouts left out): mean +4.9, median +3, p90 +14, ratio 1.36, 30.8% shortest. Repaired proofs: mean +4.6,
+    median +2 (46 certified).
+  - Fresh 16–20: not certified, since minlen does not finish at 16–20 lines. The overhead against the construction's
+    length is a lower bound on the overhead against the shortest proof: mean ≥ +7.7, median ≥ +6. For repaired proofs
+    it is ≥ +13.0 (median ≥ +11), because a local repair keeps the drift that came before it.
+- **Cost.** The sealed 13–20 run took 55 min of wall time on 6 workers, about 5.5 CPU-hours (default mode: 33 s on 12).
+  Per theorem: median 0.07 s, p99 49 s. Repairs cost up to minutes. A failure costs up to about 20 min, because the
+  last-resort whole-theorem plan has a 600 s limit.
+
+**Residual failures.** All 5 remaining failures (2 sealed, 2 held-out, 1 dev) are "planner found no plan" on 18–20-line
+theorems. The search re-drifts after a repair. Every back-off point's sub-proof then needs more than 90 s, and the
+whole theorem more than 600 s. A larger budget, or a planner that is not limited to shortest proofs, would close some
+of them.
+
+**Bugs found on the way.**
+- Under `python -m`, `searchcomplete`'s import created a second `searchtrace` module, so its `ProofFail` was not
+  caught. The run counted such failures as crashes. `main()` now aliases the module.
+- When the goal was already in scope, the planner returned no proof, because minlen treats goal ∈ premises as
+  nothing to prove. That ended in a failed whole-theorem plan. The planner now plans `exact`.
+- The first version of that `exact` cited the first name with the goal's formula. The environment accepts only the
+  frame's last name, so it now restates the goal first, as the search does. This was found through one sealed-set
+  failure ("non-viable action"), reproduced on fresh composites (f1315_0098, f1315_0124) and fixed before the final
+  runs.
+
+**Development data.** The fixes were developed on K12, the fresh composites and the 16–20 dev half. The sealed
+13–20 set was only re-measured, after each round of fixes; its failure messages were read as statistics.
+
+**Commands.**
+
+```bash
+# statistics only on the sealed 13-20 set (no traces written)
+python -m code.thinking.searchtrace --source /scratch/cowifornia/nd-rl/think/runs/pools/test_13_20/test_13_20.jsonl \
+  --level 256 --workers 10 --no-exclude --analysis-only --complete --out .../t1320_e256_complete5.jsonl
+# fresh composites (traces written)
+python -m code.thinking.searchtrace --source .../complete/fresh1620/held_src.jsonl --level 256 --workers 6 \
+  --no-exclude --complete --out .../complete/fresh1620/held_e256_complete.jsonl
+python .../complete/hard_report.py STATS.json ROWS.jsonl t1320|fresh [CERTIFIED.jsonl]
+```
+
 ## Open issues and decisions for Leon
 
 1. **Shallow search on K12 (G2 fail).**
@@ -460,8 +558,8 @@ Notes on the build:
      (near-minimal) reference.
    - The cause is Markov drift in reductio contexts. The search re-derives the box's own goal through the box's binder,
      so the proof grows.
-   - A stronger, unrecorded completeness fallback would fix it, for example a bounded closability check used only to
-     order candidates. Not done.
+   - **Addressed by complete mode** (§ Complete mode, opt-in `--complete`): 99.93% on this set (statistics only),
+     with planner steps marked and left without a record.
 3. **Length still tracks goal size** (ρ 0.62, G4 half-fail): each goal line restates its formula (TRACE_AUDIT finding
    6). Hole ids or a "same goal" token would cut this. That is a vocabulary change.
 4. **The action is the first reduction's term in 58.6% of blocks** (G1's second clause). This is inherent to a
@@ -498,6 +596,11 @@ Notes on the build:
 - `make -C code check` exits 2, but only on ruff findings in `collapse_audit/` (37) and on unformatted files in
   `collapse_audit/` and `hard712/`. Both are other agents' untracked folders, not part of this work.
 - The pilot, audit and Lean checks above, via `traces/search/run_pilot.sh`.
+- Complete mode (2026-10-09): `pytest code/tests/thinking` **374 passed, 1 skipped**, including 11 complete-mode tests
+  (byte-identical default output at e0/e64/e256/auto against `79749ce`, default successes unchanged, repairs validate
+  strictly, reference independence). ruff and pyright are clean on the changed files. A stress test followed a
+  planner plan from all 2,532 states of 130 fresh-composite proofs (2,008 plans): 0 non-viable actions, every plan
+  closed its frame.
 
 ## Files
 
@@ -506,7 +609,8 @@ Notes on the build:
 | generator, CLI | `code/thinking/searchtrace.py` |
 | validator extension | `code/experiments/current/thinking_traces_20261005/trace_dsl.py` |
 | graded hook | `code/thinking/data.py` (`any_proof`, `--graded-any-proof`) |
-| tests | `code/tests/thinking/test_searchtrace.py` |
+| tests | `code/tests/thinking/test_searchtrace.py`, `code/tests/thinking/test_searchcomplete.py` |
+| complete mode (planner fallback) | `code/thinking/searchcomplete.py`; runs in `/scratch/cowifornia/nd-rl/think/traces/search/complete/` (`fresh/`: 13–15 composites, `certified.jsonl`, `e256_complete3.*`; `fresh1620/`: 16–20 dev/held-out halves; `hard_report.py`) and `sealed_analysis_13_20/t1320_e256_complete5.stats.json` (statistics only) |
 | pilot traces and stats (5,000 K12) | `/scratch/cowifornia/nd-rl/think/traces/search/pilot/` (`e{0,16,64,256,1024,inf,auto}.jsonl`, `e256_nocap.jsonl`, `plain_e256.jsonl`, `*.stats.json`, `e256.diversity.json`) |
 | 13–20 analysis (stats only, no traces) | `/scratch/cowifornia/nd-rl/think/traces/search/sealed_analysis_13_20/` |
 | audit | `/scratch/cowifornia/nd-rl/think/traces/search/audit/` (`compare.md`, `gates.json`, `ref_agree.json`, `pairs.json`, `lean_check.json`, per-corpus `b_indep.json` / `c_stats.json`) |

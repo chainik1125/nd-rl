@@ -202,3 +202,12 @@ Times are PDT. Each entry is a decision or a result, with its reason.
     - logical-sampling EI vs plain-sampling EI, read with plain sampling: extend if ≥ +2 pp;
     - extend arms that improve on their Stage-1 init by ≥ 2 pp.
 - **Size sweep:** the 35.6M pair (S1g3 and T0S) is training on GPUs 3–4.
+- **5:30 pm. The hard712 pool is ready** ([hard712/README.md](hard712/README.md), `edc223d`).
+  - 23,092 problems: pool 21,592, sealed test_1k and dev_500, both drawn uniformly before any model filtering.
+  - 90% have a shortest proof of ≥ 9 lines (rl_hard12: 8%); 45% need reductio or a nested negation box (2%);
+    Lean 100%; 0 exclusion hits.
+  - **Short of target:** 25k problems; biconditionals 0.4%; no-premise 8.8%; case splits 24.8%.
+  - **Queued (GPU 0, after the EI pilot):** read the hard712 dev split with EI thinking r4, GRPO graded it78, GRPO
+    no-think it78, EI no-think r4, and Stage-1 S1g3 and T0S, to check the difficulty band.
+    - Rule: RL on hard712 goes ahead if the best current model's pass@1 on dev is between 10% and 70% (signal), or
+      above that with pass@8 < 95%.
