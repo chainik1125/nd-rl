@@ -231,3 +231,44 @@ ND_OFFLINE=1 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice code/.venv/bin/python
 
 CPU only, about 30 s. The command writes both figures, their JSON and `matched_eval/tts_uplift_tables.md`. A pair whose
 rows are not there yet (seed-1 round 3, further B0 reads) is skipped and appears on the next run.
+
+## Maximum budget: coverage ceilings at 512 attempts (added 2026-10-09)
+
+**Setup.**
+- Leon asked whether both methods should get their maximum budget, since the baseline can always resample.
+- Pair: round 2, seed 0 (thinking at B 64 vs the no-think baseline at B 0).
+- Problems: a random 250 of the 986 valid 13–20 problems (`t1320_ceil250.jsonl`, seed 512).
+- Budget: 512 attempts per problem for each method.
+- Data: `runs/eval/ceil/`. Tokens per attempt: thinking 884, baseline 296.
+
+**Equal attempts:**
+
+| k | thinking | baseline | thinking − baseline |
+|---|---|---|---|
+| 1 | 32.6 [28.6, 36.8] | 26.1 [22.4, 29.7] | +6.5 [+2.8, +10.5] |
+| 8 | 63.6 | 53.1 | +10.5 [+4.9, +16.3] |
+| 32 | 76.8 | 65.7 | +11.0 [+5.5, +16.7] |
+| 64 | 81.2 | 71.2 | +10.0 [+4.7, +15.5] |
+| 128 | 84.5 | 76.1 | +8.4 [+3.2, +13.8] |
+| 256 | 87.2 | 80.4 | +6.8 [+1.6, +12.1] |
+| 512 | 89.2 [85.2, 92.8] | 83.2 [78.4, 88.0] | +6.0 [+0.4, +11.6] |
+
+- At 512 each, 31 problems are solved only by thinking, 16 only by the baseline, 192 by both and 11 by neither.
+- Neither curve has flattened. From 128 to 512 attempts thinking gains about 2.0 points per doubling and the
+  baseline about 2.8.
+
+**Equal sampled tokens per problem (thinking − baseline):**
+
+| tokens | 1k | 4k | 16k | 32k | 64k | 128k | 150k |
+|---|---|---|---|---|---|---|---|
+| diff | −8.5 [−13.0, −3.7] | −1.8 [−7.0, +4.2] | +2.2 [−3.4, +8.0] | +2.7 | +2.4 | +2.3 | +2.5 [−2.9, +8.0] |
+
+**Reading.**
+- *Observed.* With every method at its maximum attempt budget, the thinking model reaches a higher ceiling (+6.0
+  points at 512) and solves about twice as many problems the baseline never solves.
+- *Observed.* Per sampled token the advantage is +2 to +3 points from 16k tokens per problem upward, but it is not
+  significant with 250 problems. At low compute the baseline wins.
+- *Interpretation.* The traces raise coverage per attempt. Their per-token edge at high compute is small. If the
+  baseline's growth continues, it would match thinking's 512-attempt coverage at about 2,000 attempts (about 600k
+  tokens, against 450k for thinking).
+- *Caveat.* One seed, and 250 problems.
