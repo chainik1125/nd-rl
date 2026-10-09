@@ -16,6 +16,7 @@ Summary and results:
 | `errors.py` | error vocabulary, the classifier, and `keep_prefix` for the resume arms |
 | `lean_prefilter.py` | vendored from `dan-pandori/nd-takehome` `903bade4`; local changes marked `retry_ei` |
 | `launch.py`, `remote.sh` | one RunPod A40 per (arm, seed): rent, run, pull, terminate |
+| `diversity.py` | repeat rates and distinct-proof counts, in episode against independent samples |
 | `analyze.py` | reads every `summary.json` under `artifacts/retry_ei_20261008/` |
 
     python launch.py go retry 0        # needs RUNPOD_API_KEY

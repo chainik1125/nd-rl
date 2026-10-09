@@ -88,6 +88,26 @@ Other observations:
 - Local check of the classifier against Lean 4.34 on 28,000 one-token corruptions of real proofs:
   17,263 Lean rejects all coded and located, none missed, none of 4,237 accepted proofs flagged.
 
+Observed, diversity (`diversity.py`; reruns of `retry` and `blank` at `40a4a85` that saved failed
+texts; proofs compared after renumbering names; per-theorem averages, three-seed means):
+
+| arm | attempt 2 identical to attempt 1 | two independent failed samples identical | distinct proofs in 8 attempts of one episode | distinct in 8 independent samples |
+|---|---|---|---|---|
+| `retry` | 19.9% | 29.5% | 5.7 | 4.7 |
+| `blank` | 21.4% | 31.3% | 5.6 | 4.5 |
+| `resume` | 47.3% | 28.0% | 3.8 | 4.9 |
+| `repair` | 72.9% | 27.2% | 2.4 | 4.8 |
+
+- `retry`, when attempt 2 differs from attempt 1: token similarity 0.84 against 0.86 for two
+  different independent samples; shared opening 61% against 63%.
+- Episodes minus 64 independent samples, dev theorems, `retry` first wave +12 / +2 / -14, rerun
+  +10 / +5 / +83; `blank` first wave -3 / +9 / +3, rerun +7 / +6 / +3.
+- Rerun dev scores with 64 independent samples: `retry` 717 / 711 / 486, `blank` 712 / 682 / 260.
+  Pooled over six runs: `retry` 675, `blank` 635; six plain runs (`iid` and `resume`) 766 with
+  none below 747. The same arm and seed does not reproduce across pods.
+- The rerun `retry` seed 2 (486) is the +83: in-episode acceptance above the independent rate at
+  every attempt (7.9% against 6.1% at attempt 2).
+
 Interpretation:
 
 - The model ignores the failure when trained on unrelated pairings, and copies it when trained to
@@ -96,6 +116,10 @@ Interpretation:
 - Keeping an error-free prefix commits the model to the failed plan, which is why resuming does
   worse than starting over.
 - The retry arms lose theorems mainly by fitting fewer RL rounds into the same GPU time.
+- With failed proofs in context the model avoids repeating them, with or without error tokens,
+  but the new attempts are close variants, and the extra variety is worth about four dev theorems.
+- Retry-style arms stalled in RL in 3 of 15 runs against 0 of 6 plain runs; their first RL round
+  goes to retries that cannot work yet. The first-wave means for `retry` and `blank` were lucky.
 - Long contexts did not degrade sampling once the statement was restated before each attempt.
 
 Open:
@@ -103,6 +127,8 @@ Open:
 - The `iid` arm averages 771 against 590's 792 (pooled with `resume`, six runs average 766). The
   cause is not established: seed noise, or the 33 extra vocabulary tokens.
 - `resume_rl`'s 811 is one seed of three, with another at 329.
+- One weak `retry` model gained 83 theorems from episodes; the weak `blank` model gained 3.
+  Whether retries with error tokens help weak models is untested beyond that one run.
 
 ## Limitations and next step
 
