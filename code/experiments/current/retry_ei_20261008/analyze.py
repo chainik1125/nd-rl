@@ -65,10 +65,11 @@ def run_row(path):
             "episode_tokens": ep["sampled_tokens"],
         }
     rounds = rl.get("rounds") or []
-    if rounds and "tried" in rounds[-1]:
-        row["rl_round_tried"] = [r["tried"] for r in rounds]
-        row["rl_round_ok"] = [r["ok"] for r in rounds]
-        row["rl_codes_last_round"] = rounds[-1]["codes"]
+    episodic = [r for r in rounds if "tried" in r]  # resume_rl mixes both kinds of oracle call
+    if episodic:
+        row["rl_round_tried"] = [r["tried"] for r in episodic]
+        row["rl_round_ok"] = [r["ok"] for r in episodic]
+        row["rl_codes_last_round"] = episodic[-1]["codes"]
         row["rl_records"] = rl["stats"].get("per_round")
     return row
 
