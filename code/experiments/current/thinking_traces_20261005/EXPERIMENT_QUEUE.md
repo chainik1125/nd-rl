@@ -11,27 +11,14 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running and queued (updated 2026-10-09, 8:15 am PDT). Scope reset by Leon.
+## Running (updated 2026-10-09, 11:45 am PDT)
 
-**The only question:** do the synthetic-thinking-trace models get uplift over the EI no-think baseline (same data,
-same EI rounds) at matched inference compute (pass@k against sampled tokens per problem), and does more thinking buy
-accuracy? EI is only the baseline.
+**The only question:** uplift of the thinking-trace models over the EI no-think baseline at matched inference
+compute. Results so far: [THINKING_UPLIFT.md](THINKING_UPLIFT.md).
 
-| job | GPU | ETA | why |
+| job | GPUs | ETA | why |
 |---|---|---|---|
-| Thinking model at B 0, k = 64, on 13–20 (r2 seeds 0 and 1) | 2–3 | ~9 am | Adaptive budget: can the thinking model match the baseline at low compute (thinking off) and win at high compute (thinking on)? |
-| Seed-1 round-3 pair (thinking and baseline), then 13–20 and textbook72 curves | 0–1 | ~noon | Rounds 2 and 3 disagree, and seed matters. |
-| Figure and note (`THINKING_UPLIFT.md`, `fig_tts_uplift`) | CPU | — | The deliverable. |
-
-**Dropped (off-question):**
-- GRPO fair runs;
-- Stage-1-only curves;
-- logical-arm (step redraw) curves;
-- 21–30 reads;
-- B 256 curves;
-- absolute-accuracy evals;
-- further pool building;
-- the size sweep.
+| Seed-2 pair: Stage 1 (S1g3 / T0S, seed 2), then EI r1 (rl_hard12), r2 (hard712 a), r3 (hard712 b); matched-compute reads after r2 and r3 on 13–20 and textbook72 | 0, 1 train; 2, 3 r2 reads | ~8–9 pm PDT | Seeds 0 and 1 disagree at high compute (16k tokens: seed 0 −1.6 / −7.1, seed 1 +7.6 / +8.2); a third seed decides which is typical. Leon approved. |
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
