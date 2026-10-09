@@ -259,3 +259,31 @@ Times are PDT. Each entry is a decision or a result, with its reason.
     (GPU 4) as the starting point.
   - **Rule:** hard712 becomes the RL pool if its arm beats the rl_hard12 control by ≥ 2 pp on 13–20 pass@1, or on
     hard712 dev, for either model.
+- **Midnight. EI round 2, pool × thinking** (95% intervals; 13–20 on the 986 items; thinking at B 256 unless
+  noted).
+
+  | arm | 13–20 pass@1 / pass@5 | hard712 dev pass@1 | textbook72 pass@1 |
+  |---|---|---|---|
+  | thinking r1 (start) | 22.0 / 45.0 | 61.2 | 57.6 |
+  | thinking r2 on the old pool | 26.2 / 49.5 | 63.0 | 58.2 |
+  | **thinking r2 on hard712** | **27.6 / 50.6** | **77.6** | **65.4** |
+  | thinking r2 on hard712, B 64 | **30.7 / 55.4** | 76.8 | **67.0** |
+  | no-think r2 on the old pool | 23.6 / 45.1 | 51.3 | 53.6 |
+  | no-think r2 on hard712 | 24.3 / 46.5 | 74.7 | 62.8 |
+
+  - **hard712 − old pool:**
+    - 13–20: +1.4 [+0.0, +2.7] thinking, +0.7 [−0.6, +2.0] no-think;
+    - textbook72: +7.2 [+3.9, +10.8] thinking, +9.3 [+3.8, +15.2] no-think (caveat: dev58 informed hard712's
+      design);
+    - hard712 dev: +14.6 thinking, +23.4 no-think (in distribution).
+  - **Thinking − no-think, both on hard712, on 13–20:** +3.2 [+1.1, +5.5] pass@1 and +4.1 pass@5 at B 256; +6.4
+    [+4.3, +8.6] pass@1 and +8.9 pass@5 at B 64. Up from +1.3 after r1, so harder training data widens thinking's
+    out-of-distribution advantage.
+  - **Decision:** hard712 is the RL pool, with thinking as the main line. **Next:** round 3 for both models on a
+    fresh, disjoint 5k of hard712 (`pool_s5k_b`), GPUs 2–3.
+- **Fair GRPO runs (Leon: "do a fair run, this shouldn't be a question"),** safeguards on (canary + rollback, KL anchor
+  β 0.02 to the init, lr 1.5e-4), 39 iterations each:
+  - (A) from EI r1 on the same hard712 5k (a), against EI r2 on hard712;
+  - (B) from Stage-1 S1g3 on rl_hard12, against EI r1 (re-tests "EI beats GRPO" with the new init).
+  - Running on GPUs 4 and 0.
+- **New memory:** fairness controls run without asking.
