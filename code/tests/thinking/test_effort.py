@@ -73,6 +73,18 @@ def test_expand_keeps_old_logits(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
         assert torch.allclose(new(r[x])[..., r], old(x), atol=1e-5)
 
 
+def test_effort_init_expands_or_copies(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """EI's round-0 checkpoint: a lean_thinkn init is expanded; an effort init is copied as is."""
+    isolate(tmp_path, monkeypatch)
+    old = tiny_model(OLD.vocab_size, seed=3)
+    p = tmp_path / "old.pt"
+    C.save_ckpt(p, old, OLD.mode)
+    q = ei.effort_init(p, tmp_path / "a" / "r0.pt", seed=1)
+    assert C.load_ckpt(q)[1].mode == "lean_thinke"
+    r = ei.effort_init(q, tmp_path / "b" / "r0.pt", seed=1)
+    assert r.read_bytes() == Path(q).read_bytes()
+
+
 def test_relabel_records_levels_and_ids() -> None:
     rec = pilot_rec("k12_37120")
     full = trace_pairs(rec, OLD)

@@ -53,6 +53,7 @@ import argparse
 import collections
 import json
 import random
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -389,6 +390,16 @@ def parser() -> argparse.ArgumentParser:
     return ap
 
 
+def effort_init(init: str | Path, r0: Path, seed: int = 0) -> Path:
+    """The round-0 checkpoint of an --effort run: a `lean_thinkn` init gets the effort tokens added;
+    an init that already has them (Stage 1 on effort-tagged traces) is copied unchanged."""
+    if has_effort(load_ckpt(str(init))[1]):
+        r0.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(init, r0)
+        return r0
+    return expand_to_effort(init, r0, seed=seed)
+
+
 def forced_policy(forced: str | None, effort: bool) -> str:
     """--forced, defaulted: keep forced closes only when the effort token states the budget."""
     return forced or ("keep" if effort else "drop")
@@ -416,7 +427,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         bad = [b for b in a.budget_list if b not in LEVELS]
         assert not bad, f"--effort: budgets {bad} are not effort levels {LEVELS}"
         if not a.resume:
-            ckpt = str(expand_to_effort(a.init, out / "ckpts" / f"{a.name}_r0.pt", seed=a.seed))
+            ckpt = str(effort_init(a.init, out / "ckpts" / f"{a.name}_r0.pt", seed=a.seed))
         if train_data is not None and train_data["mode"] != "lean_thinke":
             train_data = relabel_records(train_data)
             print(f"effort levels of the retained records: {train_data['report']['effort_levels']}")

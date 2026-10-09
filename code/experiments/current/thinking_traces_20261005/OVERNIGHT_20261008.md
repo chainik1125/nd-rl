@@ -160,3 +160,45 @@ Times are PDT. Each entry is a decision or a result, with its reason.
   - capped-attempt alarm, long-context canary, relative clip-low alarm, rollback on alarm;
   - optimizer-state resume, a long-context KL anchor, batch dumps and a long-proof target mix;
   - the E1 script.
+
+## Afternoon, 2026-10-08 (Leon back)
+
+- **Stage 1 on honest-search proofs is a large win, mostly from proof style.** 2 seeds each, pass@1 with 95%
+  intervals:
+
+  | Stage-1 model | hard12 | textbook72 | 13–20 (986) |
+  |---|---|---|---|
+  | old T0, no think | 42.4 | 17.2 | 0.8 |
+  | old staged thinking, graded e256 | 48.7 | 17.1 | 0.7 |
+  | **T0S** (no think, search proofs) | **68.4** | **31.6** | **4.7** |
+  | **S1g3** (honest-search thinking, B 256) | **75.9** | **41.8** | **7.3** |
+
+  - Proof style, T0S − T0: +26.0 [+22.8, +29.4] hard12, +14.4 [+8.0, +21.4] textbook72, +3.9 [+2.4, +5.5] 13–20.
+  - Thinking, S1g3 − T0S: +7.5 [+2.3, +12.6] hard12, +10.3 [+3.7, +17.2] textbook72; +2.6 [−0.7, +6.0] on 13–20,
+    not resolved.
+  - **Mechanism:** Lean rejections of environment-accepted proofs fall from 36.9% to 14.0% of attempts on hard12,
+    and from 55.4% to 17.8% on textbook72. The search builds Lean-clean proofs step by step through the
+    environment, so the model learns proofs that check.
+  - **Decision (pre-registered rule passed):** honest-search traces and proofs are the default Stage 1 from now on.
+- **GRPO vs EI at matched attempts: EI wins.** GRPO graded continued to it117 (≙ EI r3; weights only, fresh
+  optimizer) reads 5.2% / 12.8% on 13–20, against 11.9% / 27.9% at it78. EI thinking r3 reads 13.8% / 32.9%.
+  - EI r3 − GRPO it117: +8.6 [+7.2, +10.0] pass@1, +20.1 [+17.3, +22.6] pass@5.
+  - hard12 stayed at 93.9%. The long-proof failures turned into format errors: empty terms 22.9%, formulas 12.9%,
+    box heads 10.1%. This is the same long-context drift the audit describes, in another form.
+  - **Decision:** EI is the RL method. E1 stays deferred.
+  - My canary relaunch did not take effect (the first launch's training process was already running), so this run
+    has no canary.
+- **Queue trimmed at Leon's prompt** (see EXPERIMENT_QUEUE.md): GRPO continuation +78 → +39; EI 2×2 → a 1-round
+  pilot; E1 deferred; textbook72 logical reads dropped.
+- **`ei.py` now accepts an init that already has effort tokens** (it copies it as r0); tested.
+- **EI pilot launched (about 5:00 pm PDT), 1 round each, rl_hard12 pool:**
+  - GPU 0: from S1g3_s0, plain sampling;
+  - GPU 1: from T0S_s0, plain sampling (control);
+  - GPU 2: from S1g3_s0, logical sampling.
+
+  Then reads on 13–20, hard12 and textbook72.
+  - **Rules:**
+    - thinking vs no-think under EI on 13–20 pass@1;
+    - logical-sampling EI vs plain-sampling EI, read with plain sampling: extend if ≥ +2 pp;
+    - extend arms that improve on their Stage-1 init by ≥ 2 pp.
+- **Size sweep:** the 35.6M pair (S1g3 and T0S) is training on GPUs 3–4.
