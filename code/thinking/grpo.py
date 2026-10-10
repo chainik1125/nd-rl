@@ -105,6 +105,32 @@ the two alarms, which only add alarm lines and alarm checkpoints; the updates ar
   `--prompts`) groups per iteration come from a second target file, with its own curriculum;
   logged as `extra_*`.
 
+Verifier-guided sampling and the step penalty (opt-in; Leon 2026-10-09, "GRPO + verifier"):
+* **`--arm`** is the sampler's arm (`sample.think_generate`): `plain` (the default) ends an
+  attempt at its first rejected draw; `structural` redraws a draw the environment rejects (or a
+  truncated action); `logical` also redraws a step `step_check` rejects. `step_check` is sound with
+  respect to Lean (it rejects only steps Lean is certain to reject: Dan's guided-tts validation,
+  0 false rejects in 314,541 (state, step) pairs). A redraw is the whole think + action from the
+  same state, without replacement over that decoded segment, at most `--max_rej` (10) per attempt
+  (then `fail:max_rej`). Every decoded token counts as sampled compute (`tokens`), rejected draws
+  included. Scoring: the old log-probs are pi_T under the phase masks, as for the plain arm; the
+  without-replacement exclusion of a redraw is not modelled, so a redrawn step is scored as if pi_T
+  had drawn it (its first-minibatch ratio is 1, a small bias toward accepted redraws).
+* **`--rej_penalty` P** (0: off): every rejected draw -- each redrawn one (`keep_rejected`; by
+  default its tokens from the first one where it departs from the draw accepted at the same
+  state, since the shared prefix led to a valid step too; `--rej_penalty_scope draft` the whole
+  think + action, `action` the action only) and the draw that
+  ended a failed attempt -- gets advantage -P whatever its group's outcome, so failures give a
+  gradient even where every attempt failed. Accepted steps keep the group's advantage. A group is
+  skipped only if its outcomes give no signal and it has no rejected draw (`group_items`). The
+  penalised draws' ratios fall below 1 - eps on purpose, so with the penalty the clip-low alarms
+  (absolute and relative) read the accepted items' clip-low (`clip_low_accepted`, `clip_low_basis`).
+* **`--monitor`**: per iteration, where the gradient comes from (`row['monitor']`,
+  `monitor_metrics`): per target length and per group pass-rate band, the groups, the share with
+  a gradient, the pass rate and the share of the |A|-weighted token mass, its think and
+  rejected-draw parts; overall the think / action and accepted / rejected split, and rejections per
+  draw with their top causes. `matched_eval/rl_dashboard.py` plots these rows.
+
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
 in ei.py). `--force_mode` is the sampler's budget forcing: 'line' (default) lets the block finish
@@ -142,7 +168,7 @@ from .dan import bare, load
 from .data import read_jsonl
 from .effort import LEVELS, expand_to_effort, has_effort
 from .grpo_io import compact_adam, dump_batch
-from .sample import FORCE_MODES, judge, phase_bans, sample_format, think_generate
+from .sample import ARMS, FORCE_MODES, judge, phase_bans, sample_format, think_generate
 from .tok import has_think
 
 D = load()
@@ -302,20 +328,81 @@ def advantages(r: Sequence[float], keep: Sequence[bool] | None = None) -> list[f
     return [x - m if k else 0.0 for x, k in zip(r, keep, strict=True)]
 
 
-def attempt_items(x: dict[str, Any], adv: float, tok: Any) -> list[Item]:
+def _step_mask(s: dict[str, Any], tok: Any) -> list[bool]:
+    """A draw's loss mask: every sampled token but a forced `</think>`."""
+    gen = s["gen"]
+    mask = [True] * len(gen)
+    if s.get("forced") and tok.end_think in gen:
+        mask[list(gen).index(tok.end_think)] = False
+    return mask
+
+
+def attempt_items(x: dict[str, Any], adv: float, tok: Any, rej_extra: float = 0.0) -> list[Item]:
     """Every step of an attempt -> (prompt, generated ids, loss mask, advantage). A forced
-    `</think>` is masked out."""
+    `</think>` is masked out. `rej_extra` is added to the advantage of the draw that ended a
+    failed attempt (`rejected` in the trace): the step penalty, -P."""
     out: list[Item] = []
     for s in x.get("trace") or []:
         if "gen" not in s:
             continue
         gen = list(s["gen"])
-        mask = [True] * len(gen)
-        if s.get("forced") and tok.end_think in gen:
-            mask[gen.index(tok.end_think)] = False
         if gen:
-            out.append((list(s["prompt"]), gen, mask, adv))
+            a = adv + (rej_extra if s.get("rejected") else 0.0)
+            out.append((list(s["prompt"]), gen, _step_mask(s, tok), a))
     return out
+
+
+# --rej_penalty_scope: what a redrawn draw's -P scores. 'diverge': its tokens from the first one
+# where it differs from the draw accepted at the same state (the shared prefix led to a valid step
+# too; with no accepted draw there, the whole draw); 'draft': the whole think + action; 'action':
+# the action only.
+REJ_SCOPES = ("diverge", "draft", "action")
+
+
+def _lcp(a: Sequence[int], b: Sequence[int]) -> int:
+    n = 0
+    for u, v in zip(a, b, strict=False):
+        if u != v:
+            break
+        n += 1
+    return n
+
+
+def rejected_items(
+    x: dict[str, Any], penalty: float, tok: Any, scope: str = "diverge"
+) -> list[Item]:
+    """The draws a guided arm rejected and redrew (`sample.think_generate(keep_rejected=True)`'s
+    `redrawn`) -> items with advantage -penalty, whatever the attempt's outcome, scored as
+    `scope` says (`REJ_SCOPES`). A redrawn draw's `step` is the number of steps accepted before
+    it, so the draw accepted at its state is the attempt's accepted trace entry of that index."""
+    assert scope in REJ_SCOPES, scope
+    if penalty <= 0:
+        return []
+    think_ids = (tok.think, tok.end_think) if has_think(tok) else None
+    acc = [s for s in x.get("trace") or [] if "gen" in s and not s.get("rejected")]
+    out: list[Item] = []
+    for s in x.get("redrawn") or []:
+        p, gen = list(s["prompt"]), list(s["gen"])
+        if not gen:
+            continue
+        mask = _step_mask(s, tok)
+        if scope == "action":
+            n = think_len(p, gen, think_ids)
+            mask = [m and k >= n for k, m in enumerate(mask)]
+        elif scope == "diverge":
+            t = s.get("step")
+            if isinstance(t, int) and 0 <= t < len(acc) and list(acc[t]["prompt"]) == p:
+                n = _lcp(gen, acc[t]["gen"])
+                mask = [m and k >= n for k, m in enumerate(mask)]
+        if any(mask):
+            out.append((p, gen, mask, -penalty))
+    return out
+
+
+def n_rejected(x: dict[str, Any]) -> int:
+    """Rejected draws of an attempt: the redrawn ones and the one that ended it."""
+    end = sum(bool(s.get("rejected")) for s in x.get("trace") or [] if "gen" in s)
+    return len(x.get("redrawn") or []) + end
 
 
 def group_items(
@@ -326,21 +413,44 @@ def group_items(
     len_target_coef: float = 0.0,
     len_target_mode: str = "exact",
     len_target_frac: float = 1.0,
+    rej_penalty: float = 0.0,
+    rej_scope: str = "diverge",
+    src: list[tuple[int, str]] | None = None,
 ) -> tuple[list[Item] | None, list[bool]]:
     """One group's training items -> (items, None when the group is skipped; per attempt, whether
     it is masked as overlong). Masked attempts give no items, so no gradient. `len_target_*`: the
-    length target (`rewards`)."""
+    length target (`rewards`).
+
+    Step penalty (`rej_penalty` P > 0, a guided arm): every rejected draw gets -P on top of what
+    its attempt gives it -- the redrawn draws (`rejected_items`, of every attempt, masked ones
+    included: a rejected draw is a known-invalid step whatever the outcome) and the draw that
+    ended a failed attempt. A group is then skipped only if its outcomes give no signal AND it
+    has no rejected draw; a no-signal group with rejected draws gives only the penalised draws
+    (and the attempt-ending ones). `src`, when given, gets one (attempt index, kind) per item:
+    'acc' an attempt's steps, 'rej' a redrawn draw."""
     assert overlong in ("mask", "fail"), overlong
     masked = [overlong == "mask" and is_overlong(x) for x in att]
     ids = (tok.think, tok.end_think) if len_target_coef and has_think(tok) else None
     r = rewards(att, len_penalty, len_target_coef, len_target_mode, ids, len_target_frac)
     adv = advantages(r, [not m for m in masked])
-    if adv is None:
+    pen = rej_penalty > 0 and any(n_rejected(x) for x in att)
+    if adv is None and not pen:
         return None, masked
     items: list[Item] = []
-    for x, ad, mk in zip(att, adv, masked, strict=True):
+    for j, (x, mk) in enumerate(zip(att, masked, strict=True)):
         if not mk:
-            items += attempt_items(x, ad, tok)
+            if adv is not None:
+                its = attempt_items(x, adv[j], tok, -rej_penalty if pen else 0.0)
+            else:  # no outcome signal: only the draw that ended a failed attempt, penalised
+                its = [it for it in attempt_items(x, 0.0, tok, -rej_penalty) if it[3] != 0.0]
+            items += its
+            if src is not None:
+                src += [(j, "acc")] * len(its)
+        if pen:
+            rj = rejected_items(x, rej_penalty, tok, rej_scope)
+            items += rj
+            if src is not None:
+                src += [(j, "rej")] * len(rj)
     return items, masked
 
 
@@ -469,6 +579,8 @@ class LossStats(NamedTuple):
     tokens_neg: int = 0  # scored tokens with A < 0
     neg_r3: float = 0.0  # share of them with r > R_WATCH
     nonfinite: int = 0  # scored tokens banned in their phase (log-prob -inf): left out of the loss
+    tokens_acc: int = 0  # with `rejected`: scored tokens of the accepted items (not redrawn draws)
+    clip_low_acc: float = 0.0  # ... the share of them with r < 1 - eps_low
 
 
 def policy_loss(
@@ -483,6 +595,7 @@ def policy_loss(
     think_ids: tuple[int, int] | None = None,
     bans: Bans | None = None,
     dual_clip: float = 3.0,
+    rejected: Sequence[bool] | None = None,
 ) -> LossStats:
     """Backpropagate the policy-gradient loss over `items`, as a token-level mean.
     Without `old`: -A * log pi_T (REINFORCE). With `old` (`old_logps` of the sampling policy, one
@@ -490,7 +603,9 @@ def policy_loss(
     clip-higher, -min(r A, clip(r, 1 - eps_low, 1 + eps_high) A), r = pi_T / pi_old, and for A < 0
     with `dual_clip` c > 0 the dual clip, -max(that, c A). At r = 1 its gradient is REINFORCE's.
     `think_ids` = (`<think>`, `</think>`) splits the entropy into think and action tokens, `bans`
-    masks pi_T as the sampler did (`_token_logp`)."""
+    masks pi_T as the sampler did (`_token_logp`). `rejected` (one flag per item: a redrawn draw
+    the step penalty scores) adds clip-low over the other items' tokens (`clip_low_acc`), the
+    basis of the clip-low alarms when the penalty is on."""
     assert old is None or len(old) == len(items), "old log-probs must align with the items"
     n_tok = sum(sum(m) for _, _, m, _ in items)
     if n_tok == 0:
@@ -498,6 +613,7 @@ def policy_loss(
     total = ent_sum = ent_think = ban_sum = ban_max = 0.0
     r_max = 1.0 if old is None else 0.0
     n_low = n_high = n_think = n_neg = n_r3 = n_bad = 0
+    n_acc = n_low_acc = 0
     for ids in _chunks(items, max_tokens):
         chunk = [items[k] for k in ids]
         s = _token_logp(
@@ -526,6 +642,10 @@ def policy_loss(
             loss = -torch.where(ok, surr, 0.0).sum() / n_tok
             rd = ratio.detach()
             n_low += int((rd < 1 - eps_low)[ok].sum())
+            if rejected is not None:
+                acc = torch.tensor([not rejected[k] for k in ids], device=ok.device)[:, None] & ok
+                n_acc += int(acc.sum())
+                n_low_acc += int((rd < 1 - eps_low)[acc].sum())
             n_high += int((rd > 1 + eps_high)[ok].sum())
             neg = ok & (w < 0)
             n_neg += int(neg.sum())
@@ -552,6 +672,8 @@ def policy_loss(
         tokens_neg=n_neg,
         neg_r3=n_r3 / n_neg if n_neg else 0.0,
         nonfinite=n_bad,
+        tokens_acc=n_acc,
+        clip_low_acc=n_low_acc / n_acc if n_acc else 0.0,
     )
 
 
@@ -628,9 +750,15 @@ def sample_groups(
     a: argparse.Namespace,
     seed: int,
     think: bool,
+    stats: dict[str, Any] | None = None,
 ) -> list[list[dict[str, Any]]]:
     """`a.group` attempts per target, all at the target's budget (one think_generate call per
-    budget, so each call has one budget)."""
+    budget, so each call has one budget). `a.arm` (default plain) is the sampler's arm: a guided
+    arm redraws a rejected draw, at most `a.max_rej` times per attempt, and with a step penalty
+    the redrawn draws are kept (`keep_rejected`). `stats` gets the sampler's counters, summed
+    over the calls (`rej_cause`, `end`, `redraws`, ...)."""
+    arm = getattr(a, "arm", "plain")
+    keep_rej = arm != "plain" and getattr(a, "rej_penalty", 0.0) > 0
     by: dict[int, list[int]] = collections.defaultdict(list)
     for i, b in enumerate(budgets):
         by[b].append(i)
@@ -642,22 +770,130 @@ def sample_groups(
             model,
             tok,
             prompts,
-            arm="plain",
+            arm=arm,
             budgets=[b] if think else 0,
             think=think,
             temperature=a.temperature,
             max_action=a.max_action,
             max_steps=a.max_steps,
+            max_rej=getattr(a, "max_rej", 10),
             batch=a.batch,
             seed=seed * 10_007 + b,  # distinct per (iteration, budget) for any budget < 10,007
             stats=st,
             keep_trace=True,
             force_mode=a.force_mode,
+            keep_rejected=keep_rej,
         )
         res = judge(tok, prompts, res, a.lean)
         for n, i in enumerate(idx):
             per[i] = res[n * a.group : (n + 1) * a.group]
+        if stats is not None:
+            for k, v in st.items():
+                if isinstance(v, collections.Counter):
+                    stats.setdefault(k, collections.Counter()).update(v)
+                elif isinstance(v, (int, float)) and not isinstance(v, bool):
+                    stats[k] = stats.get(k, 0) + v
     return per
+
+
+PASS_BANDS = ("0", "(0,.25]", "(.25,.5]", "(.5,.75]", "(.75,1)", "1")  # a group's pass rate
+
+
+def pass_band(p: float) -> str:
+    if p <= 0:
+        return PASS_BANDS[0]
+    if p >= 1:
+        return PASS_BANDS[-1]
+    return PASS_BANDS[1 + min(3, int((p - 1e-12) // 0.25))]
+
+
+def target_length(t: dict[str, Any]) -> int | None:
+    """A target's proof length: `min_lines` (the minimal length, hard712 and later pools), else
+    `n_lines` (the generator's), else `reference_lines`."""
+    for k in ("min_lines", "n_lines", "reference_lines"):
+        v = t.get(k)
+        if isinstance(v, int):
+            return v
+    return None
+
+
+def monitor_metrics(
+    per: Sequence[Sequence[dict[str, Any]]],
+    lengths: Sequence[int | None],
+    skipped: Sequence[bool],
+    items: Sequence[Item],
+    item_src: Sequence[tuple[int, int, str]],
+    think_ids: tuple[int, int] | None,
+    sampler: dict[str, Any] | None = None,
+    top: int = 6,
+) -> dict[str, Any]:
+    """`--monitor`: where an iteration's gradient comes from. Per target length (str(L)) and per
+    group pass-rate band (`PASS_BANDS`): groups, the share with a gradient, the mean pass rate,
+    the band's share of the |advantage|-weighted scored-token mass (sum over items of |A| x the
+    scored tokens: the pre-clip size of each item's push), and within the band the share of that
+    mass on think-block tokens and on rejected draws. Overall: the mass split think / action and
+    accepted (an attempt's steps) / rejected (redrawn draws), and the sampler's rejections: per
+    draw, per attempt, and the most common causes (share of all rejections). `item_src`: per
+    item (group, attempt, kind) as `group_items` fills it, the group index first."""
+    n_g = len(per)
+    g_mass = [0.0] * n_g
+    g_think = [0.0] * n_g
+    g_rej = [0.0] * n_g
+    tot = th = rj = 0.0
+    for (p, g, m, adv), (gi, _, kind) in zip(items, item_src, strict=True):
+        n = sum(m)
+        nt = sum(m[: think_len(p, g, think_ids)])
+        w = abs(adv)
+        g_mass[gi] += w * n
+        g_think[gi] += w * nt
+        tot += w * n
+        th += w * nt
+        if kind == "rej":
+            g_rej[gi] += w * n
+            rj += w * n
+    rates = [sum(bool(x.get("ok")) for x in att) / max(1, len(att)) for att in per]
+
+    def bands(keys: Sequence[str]) -> dict[str, dict[str, float]]:
+        out: dict[str, dict[str, float]] = {}
+        for k in sorted(set(keys), key=lambda s: (len(s), s)):
+            ix = [i for i in range(n_g) if keys[i] == k]
+            m = sum(g_mass[i] for i in ix)
+            out[k] = {
+                "groups": len(ix),
+                "with_grad": sum(not skipped[i] for i in ix) / len(ix),
+                "pass": sum(rates[i] for i in ix) / len(ix),
+                "grad_share": m / tot if tot else 0.0,
+                "think_share": sum(g_think[i] for i in ix) / m if m else 0.0,
+                "rej_share": sum(g_rej[i] for i in ix) / m if m else 0.0,
+            }
+        return out
+
+    flat = [x for att in per for x in att]
+    draws = sum(int(x.get("draws") or 0) for x in flat)
+    n_rej = sum(len(x.get("causes") or []) for x in flat)
+    causes: collections.Counter[str] = collections.Counter(
+        c for x in flat for c in x.get("causes") or []
+    )
+    toks = sum(int(x.get("tokens") or 0) for x in flat)
+    rtoks = sum(int(x.get("rejected") or 0) for x in flat)
+    out: dict[str, Any] = {
+        "by_len": bands(["?" if L is None else str(L) for L in lengths]),
+        "by_pass": bands([pass_band(r) for r in rates]),
+        "mass_total": tot,
+        "mass_think": th / tot if tot else 0.0,
+        "mass_action": (tot - th) / tot if tot else 0.0,
+        "mass_rejected": rj / tot if tot else 0.0,
+        "mass_accepted": (tot - rj) / tot if tot else 0.0,
+        "rej_per_draw": n_rej / draws if draws else 0.0,
+        "rej_per_attempt": n_rej / max(1, len(flat)),
+        "rejected_token_share": rtoks / toks if toks else 0.0,
+        "rej_causes": {c: v / n_rej for c, v in causes.most_common(top)} if n_rej else {},
+        "draws": draws,
+    }
+    if sampler:
+        out["redraws"] = int(sampler.get("redraws", 0))
+        out["repeat_action_redraws"] = int(sampler.get("repeat_action_redraws", 0))
+    return out
 
 
 def _length_line(row: dict[str, Any]) -> str:
@@ -671,6 +907,16 @@ def _length_line(row: dict[str, Any]) -> str:
         f"think/blk {per or '-'} forced {100 * row['forced_frac']:.1f}% "
         f"dev {row['len_dev']:.3f} lpen {row['len_target_penalty']:.3f}"
     )
+
+
+def clip_low_basis(row: dict[str, Any]) -> tuple[float, str]:
+    """The clip-low the alarms read -> (value, label). With the step penalty the redrawn draws'
+    tokens are pushed down on purpose, so their ratios fall below 1 - eps_low within an
+    iteration; the alarms then read the accepted items' clip-low (`clip_low_accepted`), which
+    keeps the collapse signal they were built for. Otherwise `clip_low`."""
+    if "clip_low_accepted" in row:
+        return float(row["clip_low_accepted"]), " (accepted tokens)"
+    return float(row["clip_low"]), ""
 
 
 def alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
@@ -687,8 +933,9 @@ def alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
         worst = ", ".join(f"B{b} {v:.4f}" for b, v in over)
         out.append(f"capped attempts {worst} > {cap:g}")
     rel, med = cfg.get("clip_low_rel") or 0.0, row.get("clip_low_median")
-    if rel > 0 and med is not None and row["clip_low"] > max(rel * med, ALARM_CLIP_LOW_FLOOR):
-        out.append(f"clip-low {row['clip_low']:.4f} > {rel:g} x running median {med:.4f}")
+    cl, what = clip_low_basis(row)
+    if rel > 0 and med is not None and cl > max(rel * med, ALARM_CLIP_LOW_FLOOR):
+        out.append(f"clip-low{what} {cl:.4f} > {rel:g} x running median {med:.4f}")
     mult, can = cfg.get("canary_mult") or 0.0, row.get("canary")
     if mult > 0 and can and can.get("base"):
         for k, label in CANARY_KEYS:
@@ -711,8 +958,9 @@ def _base_alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
             out.append(
                 f"grad-norm max {row['grad_norm_max']:.3g} > {ALARM_GN:g} x median {med:.3g}"
             )
-    if row["clip_low"] > ALARM_CLIP_LOW:
-        out.append(f"clip-low {row['clip_low']:.4f} > {ALARM_CLIP_LOW:g}")
+    cl, what = clip_low_basis(row)
+    if cl > ALARM_CLIP_LOW:
+        out.append(f"clip-low{what} {cl:.4f} > {ALARM_CLIP_LOW:g}")
     if row["overlong_frac"] > ALARM_OVERLONG:
         out.append(f"overlong {row['overlong_frac']:.4f} > {ALARM_OVERLONG:g}")
     if row["nonfinite"]:
@@ -834,6 +1082,20 @@ def _canary_line(it: int, c: dict[str, Any]) -> str:
     )
 
 
+def _monitor_line(it: int, mo: dict[str, Any]) -> str:
+    """`--monitor`'s line: the gradient share and pass rate per length, the rejected-draw share of
+    the gradient, rejections per draw and the top causes."""
+    by = " ".join(
+        f"{k}:{100 * v['grad_share']:.0f}%/p{100 * v['pass']:.0f}" for k, v in mo["by_len"].items()
+    )
+    cz = ", ".join(f"{c[:28]} {100 * v:.0f}%" for c, v in list(mo["rej_causes"].items())[:3])
+    return (
+        f"mon it {it}: grad/pass by len {by} | think {100 * mo['mass_think']:.0f}% "
+        f"rejected-draw {100 * mo['mass_rejected']:.0f}% of grad | rej/draw "
+        f"{100 * mo['rej_per_draw']:.1f}% ({mo['rej_per_attempt']:.2f}/att) {cz}"
+    )
+
+
 def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     assert not a.save_rolling or a.keep_rolling >= 1, "--keep_rolling must be >= 1"
     assert a.len_target_coef >= 0, "--len_target_coef must be >= 0"
@@ -846,6 +1108,10 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         "--kl_anchor_coef needs --kl_anchor_data or --canary (the anchor's steps)"
     )
     assert a.canary_every >= 1 and a.canary_n >= 1 and a.kl_anchor_n >= 1
+    assert a.rej_penalty >= 0, "--rej_penalty must be >= 0"
+    assert a.arm in ARMS, a.arm
+    if a.rej_penalty and a.arm == "plain":
+        print("NOTE: --rej_penalty with the plain arm: only an attempt's ending draw is penalised")
     if a.len_target_coef and not a.effort:
         print("WARNING: --len_target_coef without --effort: the target is not in the prompt")
     out = Path(a.out)
@@ -961,8 +1227,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         tb = [b for _, b in keys]
         model.eval()
         D.record.phase("sample", round=it)
-        per = sample_groups(model, tok, batch, tb, a, a.seed * 100003 + it, think)
+        samp_st: dict[str, Any] | None = {} if a.monitor else None
+        per = sample_groups(model, tok, batch, tb, a, a.seed * 100003 + it, think, samp_st)
         items: list[Item] = []
+        item_src: list[tuple[int, int, str]] = []  # per item: (group, attempt, kind)
+        skipped: list[bool] = []  # per group
         n_skip = 0
         by_b: dict[int, list[float]] = collections.defaultdict(list)  # solved, per attempt
         over_b: dict[int, list[float]] = collections.defaultdict(list)  # masked as overlong
@@ -979,6 +1248,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             curs["extra" if s else "main"].update(
                 key, sum(bool(x.get("ok")) for x in att), len(att)
             )
+            src_g: list[tuple[int, str]] = []
             its, masked = group_items(
                 att,
                 tok,
@@ -987,7 +1257,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 a.len_target_coef,
                 a.len_target_mode,
                 a.len_target_frac,
+                a.rej_penalty,
+                a.rej_penalty_scope,
+                src_g,
             )
+            skipped.append(its is None)
             over_b[b] += [float(mk) for mk in masked]
             if dumping:
                 rw = rewards(
@@ -1012,13 +1286,13 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 grp_meta.append(
                     {"budget": b, "target": key[0], "source": s, "skipped": its is None}
                 )
-                for j, (x, m) in enumerate(zip(att, masked, strict=True)):
-                    if its is not None and not m:
-                        item_att += [a0 + j] * len(attempt_items(x, 0.0, tok))
+                if its is not None:
+                    item_att += [a0 + j for j, _ in src_g]
             if its is None:
                 n_skip += 1
                 continue
             items += its
+            item_src += [(g, j, kind) for j, kind in src_g]
         t_sample = time.time() - t0
         D.record.phase("update", round=it)
         old = old_logps(model, items, a.temperature, dev, a.max_tokens, think_ids, bans)
@@ -1051,6 +1325,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 think_ids=think_ids,
                 bans=bans,
                 dual_clip=a.dual_clip,
+                rejected=[item_src[k][2] == "rej" for k in sel] if a.rej_penalty else None,
             )
             if st.tokens:
                 kl = 0.0
@@ -1112,6 +1387,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             "clip_frac": clip_frac,  # mean over the minibatch steps
             "clip_frac_max": max((s.clip_frac for s in stats), default=0.0),
             "clip_low": clip_low,
+            **(
+                {"clip_low_accepted": sum(s.clip_low_acc for s in stats) / n_st}
+                if a.rej_penalty
+                else {}
+            ),
             "clip_high": clip_high,
             "entropy": entropy,  # nats per scored token, masked pi_T, during the update
             "entropy_think": ent_think,  # ... over the think-block tokens
@@ -1159,6 +1439,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             row["grad_norm_policy"] = sum(gns_pol) / max(1, len(gns_pol))
         if a.rollback_on_alarm or ls.lr_scale != 1.0:
             row["lr_scale"], row["rollbacks"] = ls.lr_scale, ls.rollbacks
+        if a.monitor:
+            row["monitor"] = monitor_metrics(
+                per, [target_length(t) for t in batch], skipped, items, item_src, think_ids, samp_st
+            )
+            row["monitor"]["arm"], row["monitor"]["rej_penalty"] = a.arm, a.rej_penalty
         if can is not None and it % a.canary_every == 0:  # the policy this iteration leaves
             t1 = time.time()
             model.eval()
@@ -1167,7 +1452,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         row["alarms"] = alarms(row, ls.gn_prev)
         if gns:
             ls.gn_prev.append(gn_max)
-            ls.clip_prev.append(clip_low)
+            ls.clip_prev.append(clip_low_basis(row)[0])  # the running median the alarm reads
         rb: dict[str, Any] | None = None
         if row["alarms"] and a.rollback_on_alarm:
             if ls.rollbacks < a.max_rollbacks and ls.last_good:
@@ -1198,6 +1483,8 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         )
         if "canary" in row:
             print(_canary_line(it, row["canary"]), flush=True)
+        if "monitor" in row:
+            print(_monitor_line(it, row["monitor"]), flush=True)
         guard = []
         if "kl_anchor" in row:
             guard.append(
@@ -1412,6 +1699,33 @@ def parser() -> argparse.ArgumentParser:
     )
     g.add_argument("--kl_anchor_n", type=int, default=512, help="anchor steps per AdamW step")
     g.add_argument("--dump_batches", default=None, help="DIR: per-iteration batch + AdamW dump")
+    v = ap.add_argument_group("verifier-guided sampling and the step penalty (module docstring)")
+    v.add_argument(
+        "--arm",
+        choices=ARMS,
+        default="plain",
+        help="the sampler's arm: plain ends an attempt at a rejected draw; structural redraws "
+        "what the environment rejects; logical also what step_check rejects (sound w.r.t. Lean)",
+    )
+    v.add_argument("--max_rej", type=int, default=10, help="guided arms: redraws per attempt")
+    v.add_argument(
+        "--rej_penalty",
+        type=float,
+        default=0.0,
+        help="P: every rejected draw gets advantage -P whatever the outcome (0: off)",
+    )
+    v.add_argument(
+        "--rej_penalty_scope",
+        choices=REJ_SCOPES,
+        default="diverge",
+        help="what P scores in a redrawn draw: from where it departs from the draw accepted at its "
+        "state (diverge), its think block and action (draft), or its action only",
+    )
+    v.add_argument(
+        "--monitor",
+        action="store_true",
+        help="log where the gradient comes from (row['monitor'], `monitor_metrics`)",
+    )
     g.add_argument("--targets_extra", default=None, help="a second target file (long proofs)")
     g.add_argument(
         "--targets_extra_frac",

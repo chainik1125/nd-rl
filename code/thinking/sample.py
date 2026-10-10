@@ -381,6 +381,7 @@ class Attempt:
     auto: bool = False  # auto effort: `budget` is the level the model picked for this step
     levels: list[int] = field(default_factory=list)  # auto: the picked level of every draw
     choice: int = 0  # auto: sampled effort tokens (one per draw)
+    redrawn: list[dict[str, Any]] = field(default_factory=list)  # keep_rejected: redrawn drafts
 
 
 def attempt_budget(budgets: int | Sequence[int], seed: int, i: int) -> int:
@@ -540,6 +541,7 @@ def think_generate(
     wave_tokens: int = 0,
     line_cap: int = LINE_CAP,
     auto_levels: Sequence[int] | None = None,
+    keep_rejected: bool = False,
 ) -> list[dict[str, Any]]:
     """k attempts = k copies of a prompt.  -> one dict per attempt (status 'done' or 'fail:<cause>',
     accepted `steps`, `fail_step`, token counters, `nd` / `text` for the Lean gate, `trace`: per
@@ -559,7 +561,9 @@ def think_generate(
     `gen` are then the action's, `think` the replaced content, `think_sampled` the original.
     `auto_levels` (auto effort, see the module docstring): `budgets` is ignored and every attempt
     picks its level among these at every step (`choose_levels`); results add `levels` and
-    `choice`, and `budget` is "auto"."""
+    `choice`, and `budget` is "auto".  `keep_rejected` (guided arms, opt-in; GRPO's step penalty):
+    results add `redrawn`, every rejected draw that was redrawn (state, think, prompt, gen,
+    forced, cause, step), in order; the draw that ended an attempt stays in `trace`, as before."""
     assert arm in ARMS, arm
     assert force_mode in FORCE_MODES, force_mode
     assert intervene in INTERVENTIONS, intervene
@@ -659,6 +663,10 @@ def think_generate(
             r = res[a.i]
             assert r is not None
             r.update(budget=AUTO, levels=list(a.levels), choice=a.choice)
+        if keep_rejected:
+            r = res[a.i]
+            assert r is not None
+            r["redrawn"] = list(a.redrawn)
 
     def run_wave(
         pids: list[list[int]], rb: list[int], forbids: list[Any] | None, think_only: bool
@@ -864,6 +872,19 @@ def think_generate(
                         )
                     finish(a, "fail:" + (cause if arm == "plain" else "max_rej"))
                     continue
+                if keep_rejected:
+                    a.redrawn.append(
+                        dict(
+                            state=bytes(s),
+                            think=bytes(th_used),
+                            prompt=bytes(p),
+                            gen=bytes(ids),
+                            forced=bool(forced_rows[j]),
+                            cause=cause,
+                            step=a.env.steps,
+                            **extra,
+                        )
+                    )
                 a.rej += 1
                 st["redraws"] += 1
                 ak = tuple(act_ids)
