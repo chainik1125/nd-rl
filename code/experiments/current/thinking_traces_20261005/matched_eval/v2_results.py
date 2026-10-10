@@ -59,13 +59,18 @@ class ArmSpec:
         return 64 if self.think else 0
 
 
+# "redraw": the logical arm redraws a rejected step (at most 10); "stop": the first rejected step
+# ends the attempt (--max_rej 0). Both put the 0.1 step penalty on rejected steps.
 ARMS = [
     ArmSpec("grpo_think", "GRPO", "grpo", True),
-    ArmSpec("grpo_think_v", "GRPO + verifier", "grpo", True),
+    ArmSpec("grpo_think_v", "GRPO + verifier (redraw)", "grpo", True),
+    ArmSpec("grpo_think_vs", "GRPO + verifier (stop)", "grpo", True),
     ArmSpec("ei_think", "EI", "ei", True),
     ArmSpec("ei_think_v", "EI + verifier", "ei", True),
     ArmSpec("grpo_nothink", "GRPO", "grpo", False),
-    ArmSpec("grpo_nothink_v", "GRPO + verifier", "grpo", False),
+    ArmSpec("grpo_nothink_v", "GRPO + verifier (redraw)", "grpo", False),
+    ArmSpec("grpo_nothink_vs", "GRPO + verifier (stop)", "grpo", False),
+    ArmSpec("ei_nothink", "EI", "ei", False),
     ArmSpec("ei_nothink_v", "EI + verifier", "ei", False),
 ]
 REFS = [
@@ -97,15 +102,16 @@ SET = {s.key: s for s in SETS}
 FIG_SETS = ("t1620", "tb72", "charles149")
 
 COMPARE = [
-    ("thinking: GRPO + verifier − EI + verifier", "grpo_think_v", "ei_think_v"),
+    ("thinking: GRPO + verifier (redraw) − EI + verifier", "grpo_think_v", "ei_think_v"),
     ("thinking, curriculum only: GRPO − EI", "grpo_think", "ei_think"),
-    ("no thinking: GRPO + verifier − EI + verifier", "grpo_nothink_v", "ei_nothink_v"),
-    (
-        "no thinking: GRPO + verifier − GRPO (the verifier's effect)",
-        "grpo_nothink_v",
-        "grpo_nothink",
-    ),
-    ("thinking: GRPO + verifier − GRPO (the verifier's effect)", "grpo_think_v", "grpo_think"),
+    ("no thinking: GRPO + verifier (redraw) − EI + verifier", "grpo_nothink_v", "ei_nothink_v"),
+    ("no thinking, curriculum only: GRPO − EI", "grpo_nothink", "ei_nothink"),
+    ("no thinking: GRPO + verifier (redraw) − GRPO", "grpo_nothink_v", "grpo_nothink"),
+    ("thinking: GRPO + verifier (redraw) − GRPO", "grpo_think_v", "grpo_think"),
+    ("no thinking: GRPO + verifier (stop) − GRPO", "grpo_nothink_vs", "grpo_nothink"),
+    ("thinking: GRPO + verifier (stop) − GRPO", "grpo_think_vs", "grpo_think"),
+    ("thinking: GRPO + verifier (stop) − EI + verifier", "grpo_think_vs", "ei_think_v"),
+    ("no thinking: GRPO + verifier (stop) − EI + verifier", "grpo_nothink_vs", "ei_nothink_v"),
 ]
 CHAIN = {
     "grpo": [
