@@ -88,6 +88,18 @@ does); GPU 1 runs `grpo_nothink` then `ei_nothink`, seed 1, after `grpo_nothink_
 7:30 pm). Pre-flight passed. GPUs 4, 2 and 0 (free about 1:30, 2:30 and 4 pm) stay open for the steps that follow
 the no-redraw reads.
 
+**10:05 am, 2026-10-10.** `grpo_nothink_vs` (no redraws) reads: 13–20 pass@1 19.9% (plain GRPO 28.7%, EI 27.2%,
+redraw arm 4.4%), textbook72 65.5% (68.1, 63.5), Charles149 57.2% (59.6, 54.4). The 13–20 gap is all on 3-premise
+problems: on 1–2 premises the arm is the best one (46.4% vs plain GRPO 41.9%, EI 44.8%), on 3 premises it falls to
+12.7% (25.0, 22.5), 43% of those attempts ending with `S:PR position` at the third premise line (premise lines must
+come first, as h1, h2, h3 in order); the redraw arm 64%; plain GRPO and EI 0%. The v2 pools have no 3-premise
+problem (L2 0–2, L3 0–2; v1's rl_hard12 had 42%), while 13–20 is 78% 3-premise, Charles149 19%, textbook72 5%.
+Plain GRPO and EI do not need them (3-premise pass@1 v1 vs v2: GRPO thinking 25.4 vs 25.3, EI 26.7 vs 27.4);
+only the verifier arms lose the third premise line. Why is open; the guided read (about 10:30 am) logs the
+checker's rejection causes. `grpo_think_v` shows no PR-position failures. **Proposed to Leon:** rebuild L2 and L3
+with about a third 3-premise problems (same lengths and pre-flight), then rerun the no-redraw arm with plain GRPO and
+EI on the new pools.
+
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
