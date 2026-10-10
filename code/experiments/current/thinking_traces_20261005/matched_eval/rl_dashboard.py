@@ -11,8 +11,12 @@ groups that give a gradient, overall and per length; (c) where the gradient come
 length's share of the |advantage|-weighted token mass (stacked); (d) the shares of that mass on
 think-block tokens and on rejected (redrawn) draws; (e) rejected draws per draw, with the most
 common causes of the last iteration; (f) the long-context canary against its base (action NLL,
-P(':'), the top wrong token), with the alarm multiple. (a), (c), (d) and (e) need `--monitor`
-rows (`grpo.monitor_metrics`); without them (a) and (b) fall back to the overall batch numbers.
+P(':'), the top wrong token), with the alarm multiple; (g) think tokens per block per budget; (h)
+the entropy of think and action tokens; (i) with the step penalty, the accepted items' share of the
+scored tokens (the loss's normaliser) and the share of redrawn draws that found the draw accepted
+at their state (`diverge_match`), with rollbacks marked here and in (b). (a), (c), (d), (e) and
+the match rate need `--monitor` rows (`grpo.monitor_metrics`); without them (a) and (b) fall back
+to the overall batch numbers.
 """
 
 from __future__ import annotations
@@ -82,9 +86,9 @@ def draw(rows: list[Row], bounds: list[int], label: str, base: Path) -> None:
     xs = [r["x"] for r in rows]
     mx = [r["x"] for r in mon]
     with S.paper_style():
-        fig = S.new_figure(S.FULL_W, 4.1, layout="constrained")
-        axs = fig.subplots(2, 3, sharex=True)
-        (a, b, c), (d, e, f) = axs
+        fig = S.new_figure(S.FULL_W, 5.9, layout="constrained")
+        axs = fig.subplots(3, 3, sharex=True)
+        (a, b, c), (d, e, f), (gg, h, ia) = axs
         # (a) batch pass rate per length
         if mon:
             for k in lens:
@@ -195,7 +199,49 @@ def draw(rows: list[Row], bounds: list[int], label: str, base: Path) -> None:
                     fontsize=S.FS_TICK,
                     color=S.REF,
                 )
-        for ax in (a, b, c, d, e, f):
+        # (g) think tokens per block, per budget (the penalty could shorten thinking)
+        buds = sorted({k for r in rows for k in r.get("think_block_by_budget") or {}}, key=int)
+        bcol = {
+            k: S.shade(AQUA, -0.35 + 0.6 * j / max(1, len(buds) - 1)) for j, k in enumerate(buds)
+        }
+        for k in buds:
+            y = [(r.get("think_block_by_budget") or {}).get(k, np.nan) for r in rows]
+            gg.plot(xs, y, color=bcol[k], lw=1.1)
+            _end_label(gg, xs, y, f"B{k}", bcol[k])
+        gg.set_ylim(bottom=0)
+        S.panel_title(gg, "g", "think tokens per block")
+        # (h) entropy, think and action tokens
+        for key, name, cc, ls in (
+            ("entropy_think", "think", AQUA, "-"),
+            ("entropy_action", "action", S.INK, (0, (3.5, 1.6))),
+        ):
+            y = [r.get(key, np.nan) for r in rows]
+            h.plot(xs, y, color=cc, lw=1.1, ls=ls)
+            _end_label(h, xs, y, name, cc)
+        h.set_ylim(bottom=0)
+        S.panel_title(h, "h", "entropy (nats per token)")
+        # (i) the loss normaliser's share and the diverge match rate; rollbacks marked
+        acc = [r.get("tokens_accepted_share", np.nan) for r in rows]
+        if any(np.isfinite(acc)):
+            ia.plot(xs, acc, color=BLUE, lw=1.1)
+            _end_label(ia, xs, acc, "accepted tokens", BLUE, -6)
+        if mon:
+            dm = [
+                np.nan
+                if r["monitor"].get("diverge_match") is None
+                else r["monitor"]["diverge_match"]
+                for r in mon
+            ]
+            ia.plot(mx, dm, color=ORANGE, lw=1.1, ls=(0, (3.5, 1.6)))
+            _end_label(ia, mx, dm, "diverge match", ORANGE, 6)
+        for r in rows:
+            if r.get("rollback"):
+                for ax in (b, ia):
+                    ax.axvline(r["x"], color=ORANGE, lw=0.6, alpha=0.6, zorder=0)
+        ia.set_ylim(0, 1)
+        S.panel_title(ia, "i", "accepted share; diverge match")
+        S.pct_axis(ia)
+        for ax in (a, b, c, d, e, f, gg, h, ia):
             S.light_grid(ax)
             for x in bounds:
                 ax.axvline(x + 0.5, color=S.GRID, lw=0.8, zorder=0)

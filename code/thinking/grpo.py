@@ -125,6 +125,9 @@ Verifier-guided sampling and the step penalty (opt-in; Leon 2026-10-09, "GRPO + 
   skipped only if its outcomes give no signal and it has no rejected draw (`group_items`). The
   penalised draws' ratios fall below 1 - eps on purpose, so with the penalty the clip-low alarms
   (absolute and relative) read the accepted items' clip-low (`clip_low_accepted`, `clip_low_basis`).
+  The loss is then normalised by the accepted items' tokens, not every scored token, so an accepted
+  token gets plain GRPO's per-token weight and the penalty comes on top (`tokens_accepted_share`
+  logs the normaliser's share of the scored tokens).
 * **`--monitor`**: per iteration, where the gradient comes from (`row['monitor']`,
   `monitor_metrics`): per target length and per group pass-rate band, the groups, the share with
   a gradient, the pass rate and the share of the |A|-weighted token mass, its think and
@@ -605,11 +608,19 @@ def policy_loss(
     `think_ids` = (`<think>`, `</think>`) splits the entropy into think and action tokens, `bans`
     masks pi_T as the sampler did (`_token_logp`). `rejected` (one flag per item: a redrawn draw
     the step penalty scores) adds clip-low over the other items' tokens (`clip_low_acc`), the
-    basis of the clip-low alarms when the penalty is on."""
+    basis of the clip-low alarms when the penalty is on, and makes the loss a sum over every
+    scored token divided by the accepted items' token count, so the penalised draws do not dilute
+    the accepted tokens' per-token weight (plain GRPO's)."""
     assert old is None or len(old) == len(items), "old log-probs must align with the items"
     n_tok = sum(sum(m) for _, _, m, _ in items)
     if n_tok == 0:
         return LossStats()
+    # the loss is a mean over the accepted items' tokens when `rejected` flags the penalised draws:
+    # an accepted token weighs what it weighs in plain GRPO, the penalised draws come on top
+    n_norm = n_tok
+    if rejected is not None:
+        n_norm = sum(sum(m) for (_, _, m, _), r in zip(items, rejected, strict=True) if not r)
+        n_norm = n_norm or n_tok  # a minibatch of penalised draws only: their own mean
     total = ent_sum = ent_think = ban_sum = ban_max = 0.0
     r_max = 1.0 if old is None else 0.0
     n_low = n_high = n_think = n_neg = n_r3 = n_bad = 0
@@ -629,7 +640,7 @@ def policy_loss(
             ban_max = max(ban_max, float(s.ban_mass[mt].max()))
         if old is None:
             ok = m & torch.isfinite(tgt)
-            loss = -(torch.where(ok, tgt, 0.0) * w).sum() / n_tok
+            loss = -(torch.where(ok, tgt, 0.0) * w).sum() / n_norm
         else:
             o = torch.zeros_like(tgt)
             for r, k in enumerate(ids):
@@ -639,7 +650,7 @@ def policy_loss(
             surr = torch.minimum(ratio * w, torch.clamp(ratio, 1 - eps_low, 1 + eps_high) * w)
             if dual_clip > 0:  # A < 0: no lower than c A however large r gets
                 surr = torch.where(w < 0, torch.maximum(surr, dual_clip * w), surr)
-            loss = -torch.where(ok, surr, 0.0).sum() / n_tok
+            loss = -torch.where(ok, surr, 0.0).sum() / n_norm
             rd = ratio.detach()
             n_low += int((rd < 1 - eps_low)[ok].sum())
             if rejected is not None:
@@ -876,6 +887,19 @@ def monitor_metrics(
     )
     toks = sum(int(x.get("tokens") or 0) for x in flat)
     rtoks = sum(int(x.get("rejected") or 0) for x in flat)
+    # the step penalty's 'diverge' scope: how many redrawn draws found the draw accepted at their
+    # state (a systematic offset between `step` and the trace would show here), and how much of a
+    # matched redrawn draw is the prefix it shares with that draw
+    n_red = n_match = 0
+    shared: list[float] = []
+    for x in flat:
+        acc = [s for s in x.get("trace") or [] if "gen" in s and not s.get("rejected")]
+        for r in x.get("redrawn") or []:
+            n_red += 1
+            st_ = r.get("step")
+            if isinstance(st_, int) and 0 <= st_ < len(acc) and acc[st_]["prompt"] == r["prompt"]:
+                n_match += 1
+                shared.append(_lcp(r["gen"], acc[st_]["gen"]) / max(1, len(r["gen"])))
     out: dict[str, Any] = {
         "by_len": bands(["?" if L is None else str(L) for L in lengths]),
         "by_pass": bands([pass_band(r) for r in rates]),
@@ -889,6 +913,9 @@ def monitor_metrics(
         "rejected_token_share": rtoks / toks if toks else 0.0,
         "rej_causes": {c: v / n_rej for c, v in causes.most_common(top)} if n_rej else {},
         "draws": draws,
+        "redrawn_drafts": n_red,
+        "diverge_match": n_match / n_red if n_red else None,
+        "shared_prefix": sum(shared) / len(shared) if shared else None,
     }
     if sampler:
         out["redraws"] = int(sampler.get("redraws", 0))
@@ -1093,6 +1120,11 @@ def _monitor_line(it: int, mo: dict[str, Any]) -> str:
         f"mon it {it}: grad/pass by len {by} | think {100 * mo['mass_think']:.0f}% "
         f"rejected-draw {100 * mo['mass_rejected']:.0f}% of grad | rej/draw "
         f"{100 * mo['rej_per_draw']:.1f}% ({mo['rej_per_attempt']:.2f}/att) {cz}"
+        + (
+            f" | diverge match {100 * mo['diverge_match']:.0f}%"
+            if mo.get("diverge_match") is not None
+            else ""
+        )
     )
 
 
@@ -1388,7 +1420,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             "clip_frac_max": max((s.clip_frac for s in stats), default=0.0),
             "clip_low": clip_low,
             **(
-                {"clip_low_accepted": sum(s.clip_low_acc for s in stats) / n_st}
+                {
+                    "clip_low_accepted": sum(s.clip_low_acc for s in stats) / n_st,
+                    # the loss's normaliser (accepted items' tokens) over every scored token
+                    "tokens_accepted_share": sum(s.tokens_acc for s in stats) / max(1, n_tok),
+                }
                 if a.rej_penalty
                 else {}
             ),

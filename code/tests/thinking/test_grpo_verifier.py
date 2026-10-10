@@ -187,6 +187,9 @@ def test_monitor_metrics() -> None:
     assert mo["rej_per_draw"] == pytest.approx(4 / 8) and mo["rej_per_attempt"] == 1.0
     assert mo["rej_causes"]["S:binder mismatch"] == pytest.approx(0.5)
     assert mo["rejected_token_share"] == pytest.approx(4 / 70)
+    # one redrawn draw found the draw accepted at its state (step 0), two had none (step 1)
+    assert mo["redrawn_drafts"] == 3 and mo["diverge_match"] == pytest.approx(1 / 3)
+    assert mo["shared_prefix"] == pytest.approx(N_THINK / (N_THINK + len(BAD) + 1))
     assert grpo.pass_band(0.0) == "0" and grpo.pass_band(0.25) == "(0,.25]"
     assert grpo.pass_band(0.5) == "(.25,.5]" and grpo.pass_band(0.9) == "(.75,1)"
     assert grpo.target_length({"min_lines": 13, "n_lines": 9}) == 13
@@ -205,6 +208,8 @@ def test_guided_penalised_iterations_end_to_end(
         assert mo["rej_per_draw"] > 0 and mo["mass_rejected"] > 0
         assert sum(v["grad_share"] for v in mo["by_len"].values()) == pytest.approx(1.0)
         assert h["nonfinite"] == 0 and h["trained_tokens"] > 0
+        assert 0 < h["tokens_accepted_share"] <= 1 and 0 <= h["clip_low_accepted"] <= 1
+        assert mo["redrawn_drafts"] == 0 or 0 <= mo["diverge_match"] <= 1
     printed = capsys.readouterr().out
     assert "mon it 1:" in printed and "rejected-draw" in printed
     args = json.loads((out / "args.json").read_text())
@@ -279,3 +284,25 @@ def test_policy_loss_splits_clip_low_by_item_kind() -> None:
     assert s.tokens_acc == n_acc and s.clip_low == 1.0 and s.clip_low_acc == 1.0
     s0 = grpo.policy_loss(model, items, 1.0, "cpu", old=old)
     assert s0.tokens_acc == 0 and s0.clip_low_acc == 0.0  # no flags: not computed
+
+
+def test_the_penalty_does_not_dilute_the_accepted_tokens() -> None:
+    """With `rejected` flags the loss is (sum over accepted + penalised tokens) / accepted tokens:
+    the accepted part equals plain GRPO's loss on the accepted items alone."""
+    model = tiny_model(T.vocab_size, seed=5)
+    att = [_att(True, [0]), _att(False, [1, 1], end_rejected=True)]
+    src: list[tuple[int, str]] = []
+    items, _ = grpo.group_items(att, T, 0.0, "fail", rej_penalty=P, src=src)
+    assert items is not None
+    rej = [k == "rej" for _, k in src]
+    acc_items = [it for it, r in zip(items, rej, strict=True) if not r]
+    rej_items = [it for it, r in zip(items, rej, strict=True) if r]
+    n_acc = sum(sum(it[2]) for it in acc_items)
+    n_rej = sum(sum(it[2]) for it in rej_items)
+    l_all = grpo.policy_loss(model, items, 1.0, "cpu", rejected=rej).loss
+    l_acc = grpo.policy_loss(model, acc_items, 1.0, "cpu").loss  # plain GRPO's normaliser
+    l_rej = grpo.policy_loss(model, rej_items, 1.0, "cpu").loss
+    assert l_all * n_acc == pytest.approx(l_acc * n_acc + l_rej * n_rej, rel=1e-5)
+    # without the flags: today's mean over every scored token
+    l_mean = grpo.policy_loss(model, items, 1.0, "cpu").loss
+    assert l_mean * (n_acc + n_rej) == pytest.approx(l_acc * n_acc + l_rej * n_rej, rel=1e-5)

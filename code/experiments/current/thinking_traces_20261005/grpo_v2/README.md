@@ -46,12 +46,20 @@ hash identically to `leon/thinking-auto` (checked on a tiny model).
     it, a small bias toward accepted redraws.
   - The penalised draws' ratios fall below 1 − ε on purpose. So with the penalty, the clip-low alarms read the
     accepted items' clip-low (`clip_low_accepted`), which keeps the collapse signal they were built for.
+  - With the penalty the loss is normalised by the accepted items' tokens: (sum over accepted and penalised
+    tokens) / accepted tokens. An accepted token gets plain GRPO's per-token weight, the penalty comes on top,
+    and plain vs guided is not confounded by a diluted outcome signal. `tokens_accepted_share` logs the
+    normaliser's share of the scored tokens.
 - **Monitoring** (`--monitor`, `row['monitor']`; `matched_eval/rl_dashboard.py` plots it). Per iteration:
   - per target length and per group pass-rate band: the groups, the share with a gradient, the pass rate, the
     share of the |advantage|-weighted token mass ("where the gradient comes from"), and its think and
     rejected-draw parts;
   - overall: the think / action and accepted / rejected split;
-  - rejected draws per draw and per attempt, with the top causes.
+  - rejected draws per draw and per attempt, with the top causes;
+  - `diverge_match`: the share of redrawn draws that found the draw accepted at their state (about 71% on the
+    Stage-1 model; a systematic offset would show here), and `shared_prefix`.
+  - The dashboard also plots think tokens per block per budget and the think / action entropy per iteration,
+    since the penalty could push think length down in groups with no outcome signal.
 - **Guided EI** is `ei.py --arm logical`. It fine-tunes on accepted proofs only: the found records keep the
   trace's non-rejected steps, and redraws never enter the trace (test `test_guided_ei_round_trains_on_accepted_steps`).
 
@@ -82,9 +90,16 @@ hash identically to `leon/thinking-auto` (checked on a tiny model).
 
 - **Stages:** L2 (10–12 lines), then L3 (13–15), from `runs/pools/curriculum/L{2,3}/pool.jsonl` (`POOL_L2` /
   `POOL_L3` override).
-- **Pre-flight** (`grpo_v2/preflight.py`): both pools exist, are in band, and share no prompt or renaming key with
-  each other or with any evaluation set. The evaluation sets are the sealed 13–20 and 21–30 sets, the hard12 test,
+- **Pre-flight** (`grpo_v2/preflight.py`): both pools exist, are in band, and share nothing with each other or
+  with any evaluation set. "Nothing" means no prompt, no renaming key, and no renaming or curried-normal-form
+  class: `classes()`, copied from `charles_eval/build_clean.py`, Charles's audit rule. The class check is the
+  one that covers textbook72 and Charles's rows, which carry no keys. It found 94 shared classes between the
+  first L2 split (`L2/old_split2`) and hard712 test_1k / dev_500, so that split would have been refused. The evaluation sets are the sealed 13–20 and 21–30 sets, the hard12 test,
   hard712 test/dev, textbook72, charles173, hand_proved_14, and the curriculum test splits.
+- **Step cap:** `--max_steps 96` for both GRPO and EI (eval's value). v1 used the default of 48. On
+  13–15-line problems 3–6% of B64 attempts exceed 48 steps at T 0.8, more at GRPO's T 1.0 and with redraws.
+  Capped attempts count against the 5% capped alarm, so v1's cap would have raised false collapse alarms
+  (and rollbacks) for GRPO only.
 - **GRPO settings** are tonight's (`grpo_think/line.sh`) plus `--monitor`:
   - lr 1.5e-4, `--overlong fail`;
   - canary + rollback, and a KL anchor of 0.02 to each stage's init;
