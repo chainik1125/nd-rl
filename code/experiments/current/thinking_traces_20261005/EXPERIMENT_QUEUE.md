@@ -100,6 +100,18 @@ checker's rejection causes. `grpo_think_v` shows no PR-position failures. **Prop
 with about a third 3-premise problems (same lengths and pre-flight), then rerun the no-redraw arm with plain GRPO and
 EI on the new pools.
 
+**11:10 am, 2026-10-10.** `grpo_think_vs` (thinking, no redraws) seed 0, 13–20 plain: pass@1 35.2% against plain GRPO
+29.1% (+6.1 [+4.8, +7.4], seed 0 paired) and EI + verifier 29.5% (+5.7 [+4.0, +7.4]); pass@5 58.6% (+6.2, +5.1);
+16–20 lines +7.1 and +6.5. No PR-position failures (3-premise problems 31.6% vs 25.3 and 27.4), so the third-premise
+failure is specific to the no-think model. One seed; problem-level intervals only. Scoping of the 3-premise options
+(subagent, read-only): pfgen never builds > 2 premises; test_13_20 is lemma composites (`test_21_30/build_composites.py`),
+3 premises by construction; no non-test pool has certified 3-premise rows at 10–15 lines. Options A (composites from
+pieces no test composite uses), B (pfgen change), C (rewrite pool rows: goal antecedents become premises).
+**11:15 am (proposed at about 10:45 am; no reply in 30 minutes):** C's build started (CPU only; subagent;
+`runs/pools/curriculum_3p/`). **Proposed at 11:15 am:** seed 1 of `grpo_think_vs` on GPU 4 after seed 0's reads; the
+no-think mechanism test (`grpo_nothink_vs` + C rows at a third of each iteration, `--targets_extra`) on GPU 2 after
+`ei_nothink_v` seed 1. A waits for Leon's yes (composite family in training; reuse of unused builder pieces).
+
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
