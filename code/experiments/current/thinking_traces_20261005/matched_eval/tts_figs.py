@@ -128,6 +128,22 @@ T1320 = [
         _rows(TTS / "t1320_nothink_r3s1_k64", 0),
         optional=True,
     ),
+    Pair(
+        "r2 s2",
+        "t1320",
+        "round 2, seed 2",
+        _rows(TTS / "t1320_think_r2s2_k32", 64),
+        _rows(TTS / "t1320_nothink_r2s2_k64", 0),
+        optional=True,
+    ),
+    Pair(
+        "r3 s2",
+        "t1320",
+        "round 3, seed 2",
+        _rows(TTS / "t1320_think_r3s2_k32", 64),
+        _rows(TTS / "t1320_nothink_r3s2_k64", 0),
+        optional=True,
+    ),
 ]
 
 OTHER = [
@@ -152,6 +168,22 @@ OTHER = [
         "textbook72, round 3, seed 1",
         _rows(TTS / "tb72_think_r3s1_k64", 64),
         _rows(TTS / "tb72_nothink_r3s1_k64", 0),
+        optional=True,
+    ),
+    Pair(
+        "r2 s2",
+        "tb72",
+        "textbook72, round 2, seed 2",
+        _rows(TTS / "tb72_think_r2s2_k64", 64),
+        _rows(TTS / "tb72_nothink_r2s2_k64", 0),
+        optional=True,
+    ),
+    Pair(
+        "r3 s2",
+        "tb72",
+        "textbook72, round 3, seed 2",
+        _rows(TTS / "tb72_think_r3s2_k64", 64),
+        _rows(TTS / "tb72_nothink_r3s2_k64", 0),
         optional=True,
     ),
     Pair(

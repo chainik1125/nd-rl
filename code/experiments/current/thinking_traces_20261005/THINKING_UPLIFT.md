@@ -294,3 +294,22 @@ textbook72: +8.6 [+2.3, +15.1] per attempt, and +1.5 to +3.0 at matched tokens (
 - So whether thinking pays per token at high compute depends on the Stage-1 seed pair more than on the round.
 - Low compute (≤ 2k tokens): the baseline is ahead or tied in every pair.
 - Per attempt and in coverage at maximum budget (see above): thinking is ahead in every pair measured.
+
+## Update: seed 2 (added 2026-10-09, 9:50 pm PDT)
+
+The seed-2 pair (Stage 1 seed 2 for both arms, then the same EI rounds) finished. 13–20 (986), thinking at B 64 −
+baseline, round 3 seed 2:
+- per attempt: +10.3 [+8.0, +12.6] pass@1 (37.9% against 27.6%);
+- at matched sampled tokens: 1k −4.8 [−7.5, −2.1], 2k −0.1, 4k +3.9 [+0.9, +7.0], **8k +6.8 [+3.7, +9.9]**,
+  **16k +8.4 [+5.2, +11.6]**.
+
+textbook72, round 3 seed 2: +6.3 [+0.1, +12.8] per attempt; −0.1 to +6.0 at matched tokens, not resolved. The round-2
+seed-2 13–20 read crashed out of memory (it shared a GPU with a GRPO job) and is being rerun.
+
+**Round 3 at 16k tokens per problem, all three seeds:** seed 0 −7.1, seed 1 +8.2, seed 2 +8.4. The mean curve
+(`fig_tts_pooled`, problem bootstrap only) is −7.9 at 1k, −4.7 at 2k, −1.4 at 4k, +1.4 at 8k and +3.2 [+0.8, +5.7]
+at 16k.
+
+**Verdict with three seeds.** At low compute (≤ 2k tokens) the no-think baseline is ahead or tied for every seed. At
+high compute (8–16k tokens) thinking is ahead by about 7–8 points in two seeds of three and behind in the third. So
+high-compute uplift is the typical outcome, but not a reliable one: which Stage-1 seed you get decides it.
