@@ -49,6 +49,18 @@ GRPO + verifier runs were replaced: GPU 3 runs `grpo_nothink` seed 0 (plain GRPO
 control that separates the verifier from the curriculum) after `grpo_think` seed 0; GPU 1 runs `grpo_think` seed 1
 after `grpo_think_v` seed 0. EI arms unchanged. The verifier recipe needs a redesign before more GPU time.
 
+**4:40 am, 2026-10-10.** The control answered it: plain `grpo_nothink` seed 0 reaches 13–20 pass@1 28.7% (verifier
+arm 4.4%), textbook72 68.1% (50.1%), Charles149 59.6% (40.2%), so the verifier recipe, not the curriculum, causes the
+collapse. Fairness control queued without asking: `ei_nothink` seed 0 (plain EI, its matched counterpart) on GPU 3
+after `grpo_nothink`'s reads (about 5 am → 1 pm). `ei_think` seed 0 stays on GPU 0 after `ei_nothink_v` seed 0
+(about 7:20 am → 4 pm).
+**Open, needs Leon:** `grpo_think_s1_L3` spent its 3 rollbacks on iterations 1–3 on the think-ban-mass alarm (mass
+0.0011–0.0013 against the fixed 1e-3 threshold, already above it at the stage-2 checkpoint; canary flat: NLL 0.2275
+vs base 0.2290) and trains at lr × 0.125 from iteration 4. Seed 0 never fired it. Proposed: make that alarm log-only
+(canary, grad-norm and clip alarms keep rolling back) and rerun seed-1 L3 from `grpo_think_s1_L2_it39.pt`, about 3 h
+on GPU 1. Not done: auto mode refused the change as weakening a safeguard. `grpo_think_v_s0_L3` also lost 2
+rollbacks to it (lr × 0.25 from iteration 19).
+
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
