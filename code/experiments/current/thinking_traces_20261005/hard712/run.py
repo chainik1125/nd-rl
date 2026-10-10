@@ -59,7 +59,7 @@ from . import pfgen as PG  # noqa: E402
 OUT = Path("/scratch/cowifornia/nd-rl/think/runs/pools/hard712")
 GAP_OUT = Path("/scratch/cowifornia/nd-rl/think/runs/gap_analysis")
 POOL12 = Path("/scratch/cowifornia/nd-rl/think/runs/pools/rl_hard12.jsonl")
-MEM_GB = 4.0
+MEM_GB = float(os.environ.get("PFG_MEM_GB", "4.0"))
 SPLIT_SEED = 20261008
 
 
@@ -159,13 +159,27 @@ def certify_safe(c: dict[str, Any]) -> dict[str, Any]:
         return dict(c, status=f"error:{type(e).__name__}:{str(e)[:80]}")
 
 
+#: Adaptive-weight values (overridable: the curriculum's 13-15-line band, where most rows are
+#: classical-only, sets PFG_CLASSICAL_VALUE=0, PFG_EXFALSO_VALUE=0 and PFG_SCARCE_BONUS=0 to
+#: weight recipes by their yield of rows that are neither classical-only nor ex falso, the two
+#: attributes the mix gate caps hardest).
+CLASSICAL_VALUE = float(os.environ.get("PFG_CLASSICAL_VALUE", "0.1"))
+SCARCE_BONUS = float(os.environ.get("PFG_SCARCE_BONUS", "0.5"))
+_EF = os.environ.get("PFG_EXFALSO_VALUE")  # unset: ex falso rows are valued like any other
+EXFALSO_VALUE = float(_EF) if _EF is not None else None
+
+
 def row_value(r: dict[str, Any]) -> float:
     """What a gated row is worth to the mix selection: classical-only rows are capped (0.1), and
     the scarce attributes add to it."""
     t, p = _feats(r)
     at = attrs(r, t, p)
-    v = 0.1 if at["classical"] else 1.0
-    return v + 0.5 * (at["case_split"] + at["no_prem"] + at["nn_reused"] + 2 * at["bicond"])
+    v = CLASSICAL_VALUE if at["classical"] else 1.0
+    if EXFALSO_VALUE is not None and at["ex_falso"]:
+        v = min(v, EXFALSO_VALUE)
+    return v + SCARCE_BONUS * (
+        at["case_split"] + at["no_prem"] + at["nn_reused"] + 2 * at["bicond"]
+    )
 
 
 def adaptive_weights(
@@ -229,6 +243,18 @@ def cmd_generate(a: argparse.Namespace) -> None:
     with open(a.index, "rb") as f:
         idx = pickle.load(f)
     log(f"index: {len(idx['keys'])} classes from {len(idx['manifest'])} files", fh)
+    # --skip: classes another source certifies anyway, or that would be dropped later (one key per
+    # line: a bare pkey, or `k:` / `p:` keys of `curriculum.heldout.keys`, the curried normal form
+    # included). Matching candidates are not certified.
+    skip: set[str] = set()
+    ckeys: Any = None
+    if a.skip:
+        from code.experiments.current.thinking_traces_20261005.curriculum.heldout import keys
+
+        ckeys = keys
+        with open(a.skip) as f:
+            skip = {line.strip() for line in f if line.strip()}
+        log(f"skip: {len(skip)} keys from {a.skip}", fh)
     t_start = time.time()
     with (
         mp.get_context("spawn").Pool(
@@ -265,6 +291,9 @@ def cmd_generate(a: argparse.Namespace) -> None:
                     counts["dup"] += 1
                     continue
                 seen.add(pk)
+                if skip and (pk in skip or ckeys(c["prompt"]) & skip):
+                    counts["skip"] += 1
+                    continue
                 c["key"], c["pkey"] = k, pk
                 h = idx["keys"].get(k, set()) | idx["pkeys"].get(pk, set())
                 if h:
@@ -589,7 +618,9 @@ def primary(r: dict[str, Any]) -> str:
     return next(f for f in PRIORITY if f in fam)
 
 
-def final_row(r: dict[str, Any], name: str, tok: Any, D: Any) -> dict[str, Any]:
+def final_row(
+    r: dict[str, Any], name: str, tok: Any, D: Any, source: str = "hard712"
+) -> dict[str, Any]:
     from code.experiments.current.thinking_traces_20261005.pools.hard12.features import features
     from code.experiments.current.thinking_traces_20261005.pools.prep import depth
     from code.thinking.dan import bare
@@ -610,7 +641,7 @@ def final_row(r: dict[str, Any], name: str, tok: Any, D: Any) -> dict[str, Any]:
         "n_lines": L,
         "L_true": L,
         "minlen_bound": r["gen_lines"],
-        "source": "hard712",
+        "source": source,
         "schema": None,
         "gen_lines": r["gen_lines"],
         "n_prem": len(prem),
@@ -662,11 +693,15 @@ def cmd_split(a: argparse.Namespace) -> None:
         "dev_500": order[a.n_test : a.n_test + a.n_dev],
         "pool": order[a.n_test + a.n_dev :],
     }
-    prefix = {"test_1k": "h712t", "dev_500": "h712d", "pool": "h712"}
+    pre = a.prefix
+    prefix = {"test_1k": f"{pre}t", "dev_500": f"{pre}d", "pool": pre}
     D = load()
     tok = ThinkTokenizer()
     for part, ids in parts.items():
-        rows = [final_row(sel[i], f"{prefix[part]}_{sel[i]['seed']}", tok, D) for i in sorted(ids)]
+        rows = [
+            final_row(sel[i], f"{prefix[part]}_{sel[i]['seed']}", tok, D, a.source)
+            for i in sorted(ids)
+        ]
         wjl(out / f"{part}.jsonl", rows)
         with open(out / f"{part}.keys.jsonl", "w") as f:
             for r in rows:
@@ -1002,6 +1037,7 @@ def main(argv: list[str] | None = None) -> None:
         help="re-weight recipes before each round by their recent accepted value per seed",
     )
     g.add_argument("--index", default=str(OUT / "work" / "excl_index.pkl"))
+    g.add_argument("--skip", default="", help="file of class keys not to certify (see generate)")
     sub.add_parser("lean")
     s = sub.add_parser("select")
     s.add_argument("--n", type=int, required=True, help="target size (test + dev + pool)")
@@ -1010,6 +1046,8 @@ def main(argv: list[str] | None = None) -> None:
     sp = sub.add_parser("split")
     sp.add_argument("--n_test", type=int, default=1000)
     sp.add_argument("--n_dev", type=int, default=500)
+    sp.add_argument("--prefix", default="h712", help="row-name prefix (test +t, dev +d)")
+    sp.add_argument("--source", default="hard712", help="the rows' `source` field")
     v = sub.add_parser("verify")
     v.add_argument("--workers", type=int, default=16)
     sub.add_parser("meta")
