@@ -40,6 +40,15 @@ About 78 GPU-hours, so two waves on five GPUs.
 
 Then: the model-chosen think budget (`leon/thinking-auto`) on top of the winning recipe.
 
+**Change at 12:46 am, 2026-10-10 (proposed to Leon at 12:25 am; no reply in 30 minutes).** The first finished v2 run,
+`grpo_nothink_v` seed 0, collapsed under plain sampling: 13–20 pass@1 4.5% (guided read 19.0%) against 24% for EI
+no-think r2; textbook72 50.1% (guided 67.3%); Charles149 40.2%. Training action entropy fell 0.22 → 0.02 while
+about 1.7 steps per attempt were still rejected and silently redrawn. Reading (not tested): with redraws an invalid
+step no longer fails the attempt, so the only pressure against it is the 0.1 penalty. So the two queued seed-1
+GRPO + verifier runs were replaced: GPU 3 runs `grpo_nothink` seed 0 (plain GRPO, no-think, curriculum: the
+control that separates the verifier from the curriculum) after `grpo_think` seed 0; GPU 1 runs `grpo_think` seed 1
+after `grpo_think_v` seed 0. EI arms unchanged. The verifier recipe needs a redesign before more GPU time.
+
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
