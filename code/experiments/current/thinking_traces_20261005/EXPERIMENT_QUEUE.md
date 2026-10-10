@@ -59,7 +59,16 @@ after `grpo_nothink`'s reads (about 5 am → 1 pm). `ei_think` seed 0 stays on G
 vs base 0.2290) and trains at lr × 0.125 from iteration 4. Seed 0 never fired it. Proposed: make that alarm log-only
 (canary, grad-norm and clip alarms keep rolling back) and rerun seed-1 L3 from `grpo_think_s1_L2_it39.pt`, about 3 h
 on GPU 1. Not done: auto mode refused the change as weakening a safeguard. `grpo_think_v_s0_L3` also lost 2
-rollbacks to it (lr × 0.25 from iteration 19).
+rollbacks to it (lr × 0.25 from iteration 19). Since then seed 1 read level with seed 0 (13–20 29.4 vs 29.1,
+textbook72 72.2 vs 72.3), so the rerun is dropped from the proposal.
+
+**7:09 am, 2026-10-10 (proposed to Leon at 6:40 am; no reply in 30 minutes).** EI + verifier holds up under plain
+sampling (13–20 pass@1 29.5 / 32.4 thinking seeds 0 / 1, 28.1 no-think) where GRPO + verifier (redraw) does not
+(14.9 / 4.4), so the redesign keeps the checker but drops the redraws: arms `grpo_think_vs` / `grpo_nothink_vs`
+(logical arm with `--max_rej 0`: the first rejected step ends the attempt and takes the 0.1 penalty; everything
+else as `grpo_*_v`; CPU smoke of both passed). Seed 0: thinking on GPU 4 from 7:09 am (about 1:30 pm), no-think
+on GPU 1 after `grpo_think` seed 1's reads (about 7:50 am → 11:30 am). Alternatives left for Leon: redraws with a
+10× penalty, or half of each group sampled plainly.
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
