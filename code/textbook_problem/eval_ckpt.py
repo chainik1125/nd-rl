@@ -169,6 +169,8 @@ def load_sets(names):
             sets[n] = [dict(name=r["name"], prompt=r["prompt"]) for r in rows]
         elif n == "textbook72":
             sets[n] = [dict(name=r.get("name") or r.get("thm"), prompt=r["prompt"]) for r in load_textbook72()]
+        elif n == "textbook72_distract2":  # the sealed 72 with two unused premises each (gitignored, aggregate only)
+            sets[n] = [dict(name=r["name"], prompt=r["prompt"]) for r in jl(f"{HERE}/../../docs/textbook-problem/textbook72/textbook72_distract2.jsonl")]
         elif n == "derived":
             rows = []
             for nu in KEPT:
@@ -301,8 +303,8 @@ def main():
         with open(os.path.join(a.out, "metrics.jsonl"), "a") as f:
             f.write(json.dumps(summ) + "\n")
         # dumps: the sealed 72 go to the gitignored textbook72 folder, never the run folder
-        dump = os.path.join(a.out, f"{name}.jsonl") if name != "textbook72" else os.path.join(
-            HERE, "../../docs/textbook-problem/textbook72", f"samples_{a.run}_{a.stage}_k{a.k}.jsonl")
+        dump = os.path.join(a.out, f"{name}.jsonl") if not name.startswith("textbook72") else os.path.join(
+            HERE, "../../docs/textbook-problem/textbook72", f"samples_{a.run}_{a.stage}_k{a.k}{'' if name == 'textbook72' else '_' + name}.jsonl")
         os.makedirs(os.path.dirname(dump), exist_ok=True)
         with open(dump, "w") as f:
             for r, js, rate, pi in zip(recs, judged, rates, prefix_info):

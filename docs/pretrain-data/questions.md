@@ -61,3 +61,10 @@ Each entry: the question, the default being followed until answered, and the dat
    reading"). The band the screens were calibrated on puts 0.05 near "far". Default: `k12_prem4_10` goes on the ladder
    list beside `k12_distract10` and `k12_joins10`; `k12_jdist10` is a stretch arm, run only if a ladder is spare or if
    the Dan-base re-screen puts it above 0.1. (2026-10-09)
+
+9. **May the sealed 72 be copied with distractors for an evaluation-only variant?** Charles asked for it (2026-10-09:
+   "Copy the original 72 problem textbook set but add in 2 irrelevant premises for each problem"). The data-integrity
+   rule forbids using the 72 as a source for new problems; the allowance is scoring and aggregate analysis. Default
+   followed: the distracted copy is an evaluation artefact only, lives in the gitignored `docs/textbook-problem/textbook72/`
+   with every per-problem output, is never trained on, used as a seed, or reported per problem; the experiment
+   (`experiments/pretrain-data/textbook72_distract2/`) reports aggregates by premise-count bin. (2026-10-09)
