@@ -11,14 +11,34 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-09, 11:45 am PDT)
+## Running (updated 2026-10-09, 5:50 pm PDT)
 
-**The only question:** uplift of the thinking-trace models over the EI no-think baseline at matched inference
-compute. Results so far: [THINKING_UPLIFT.md](THINKING_UPLIFT.md).
+**Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
+verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
+curriculum 10–12 lines, then 13–15; GRPO on both the thinking (S1g3) and no-think (T0S) models; priorities: GRPO vs
+EI in a fair setup, what each change buys, then the model-chosen think budget.
 
 | job | GPUs | ETA | why |
 |---|---|---|---|
-| Seed-2 pair: Stage 1 (S1g3 / T0S, seed 2), then EI r1 (rl_hard12), r2 (hard712 a), r3 (hard712 b); matched-compute reads after r2 and r3 on 13–20 and textbook72 | 0, 1 train; 2, 3 r2 reads | ~8–9 pm PDT | Seeds 0 and 1 disagree at high compute (16k tokens: seed 0 −1.6 / −7.1, seed 1 +7.6 / +8.2); a third seed decides which is typical. Leon approved. |
+| GRPO + thinking v1 (`grpo_think/line.sh`): S1g3 seeds 0 and 1, GRPO g1 rl_hard12 → g2 hard712 a → g3 hard712 b, 39 iterations each, safeguards on; reads after g2 and g3 (13–20 k 32 B64, textbook72 k 64) | 4 (s0), 2 (s1) | g2 reads ~6:15 pm, g3 reads ~8:45 pm | GRPO-trained thinking vs the EI no-think baseline, today's recipe. Seed 0's g2 hit the long-context canary at it30 and it32: 2 rollbacks, lr × 0.25, then finished cleanly |
+| Seed-2 EI pair (`seed2/line.sh`) | 0, 1 | ~8:30–9 pm | third seed of thinking + EI vs the EI baseline |
+| Charles held-out set reads (`followup_20261007/charles_reads.sh`): 149 problems of Charles's release 2026-10-02 that share no class with our pools, k 64, old and current models | 3 | ~6:30 pm | larger textbook-like test (Leon: "start using the larger set of Charles data"); EI vs GRPO confusion matrix |
+
+## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
+
+Launch about 9 pm once the curriculum pools (`pools/curriculum/L2`, `L3`) pass `grpo_v2/preflight.py` and the
+review fixes are in (step cap 96 for GRPO and EI, renaming-class preflight, accepted-token normalisation of the
+loss). Stages: L2 (10–12 lines) then L3 (13–15), 39 GRPO iterations or one k-32 EI round each. Reads after L3:
+13–20 (the 16–20 part is out of distribution) k 16, textbook72 k 64, Charles 173 (report the clean 149) k 64,
+hand_proved_14 k 64, 1,000 of 21–30 k 8; plain arm for all, guided arm on 13–20, textbook72 and Charles.
+About 78 GPU-hours, so two waves on five GPUs.
+
+| wave | GPU queue | arms |
+|---|---|---|
+| 1 (~9 pm → ~4–5 am) | one per GPU | seed 0: `grpo_think_v`, `ei_think_v`, `grpo_think`, `grpo_nothink_v`, `ei_nothink_v` |
+| 2 (~4–5 am → ~noon) | same GPUs | `ei_think` seed 0; seed 1 of `grpo_think_v`, `ei_think_v`, `grpo_nothink_v`, `ei_nothink_v` |
+
+Then: the model-chosen think budget (`leon/thinking-auto`) on top of the winning recipe.
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
