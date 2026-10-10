@@ -64,6 +64,7 @@ ARMS = [
     ArmSpec("grpo_think_v", "GRPO + verifier", "grpo", True),
     ArmSpec("ei_think", "EI", "ei", True),
     ArmSpec("ei_think_v", "EI + verifier", "ei", True),
+    ArmSpec("grpo_nothink", "GRPO", "grpo", False),
     ArmSpec("grpo_nothink_v", "GRPO + verifier", "grpo", False),
     ArmSpec("ei_nothink_v", "EI + verifier", "ei", False),
 ]
@@ -99,6 +100,12 @@ COMPARE = [
     ("thinking: GRPO + verifier − EI + verifier", "grpo_think_v", "ei_think_v"),
     ("thinking, curriculum only: GRPO − EI", "grpo_think", "ei_think"),
     ("no thinking: GRPO + verifier − EI + verifier", "grpo_nothink_v", "ei_nothink_v"),
+    (
+        "no thinking: GRPO + verifier − GRPO (the verifier's effect)",
+        "grpo_nothink_v",
+        "grpo_nothink",
+    ),
+    ("thinking: GRPO + verifier − GRPO (the verifier's effect)", "grpo_think_v", "grpo_think"),
 ]
 CHAIN = {
     "grpo": [
