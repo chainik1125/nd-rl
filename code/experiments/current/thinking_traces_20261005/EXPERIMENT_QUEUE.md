@@ -11,7 +11,7 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-10, 8:40 am PDT)
+## Running (updated 2026-10-10, 9:30 am PDT)
 
 **Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
 verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
@@ -25,8 +25,9 @@ All `grpo_v2/line.sh`, seed 0 unless noted; reads as in the v2 section below.
 | `grpo_think_vs`: GRPO + verifier without redraws, thinking | 4 | ~1:30 pm | the verifier redesign (7:09 am entry). One canary rollback at L2 it 3 (P(':') 29× base): back to it 0, lr × 0.5 for the rest of L2 |
 | `grpo_nothink_vs`: the same, no thinking | 1 | ~11:30 am | as above; no alarm so far |
 | `ei_think`: plain EI, thinking | 0 | ~4 pm | the matched counterpart of plain `grpo_think` |
-| `ei_nothink`: plain EI, no thinking | 3 | ~9:15 am (reads) | the matched counterpart of plain `grpo_nothink` (fairness control, 4:40 am entry) |
 | `ei_nothink_v` seed 1: EI + verifier, no thinking | 2 | ~2:30 pm | second seed |
+| `ei_think` seed 1: plain EI, thinking | 3 | ~7 pm | second seed of the thinking plain pair (`grpo_think` has seeds 0 and 1) |
+| `grpo_nothink` then `ei_nothink`, seed 1 | 1, after `grpo_nothink_vs` | ~7:30 pm | second seed of the no-think plain pair |
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
 
@@ -81,12 +82,13 @@ GRPO − EI: 13–20 pass@1 +1.6 [−0.4, +3.6], pass@5 −3.1 [−5.8, −0.4];
 as plain GRPO; no collapse). Tables: [matched_eval/v2_results.md](matched_eval/v2_results.md),
 [confusion_tb72.md](matched_eval/confusion_tb72.md), [confusion_charles149.md](matched_eval/confusion_charles149.md).
 
-## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
+**9:25 am, 2026-10-10 (proposed to Leon at about 8:50 am; no reply in 30 minutes).** Second seeds of the plain
+pairs: GPU 3 runs `ei_think` seed 1 (about 10 h, so the thinking GRPO − EI comparison has two paired seeds as GRPO
+does); GPU 1 runs `grpo_nothink` then `ei_nothink`, seed 1, after `grpo_nothink_vs`'s reads (about 11:30 am →
+7:30 pm). Pre-flight passed. GPUs 4, 2 and 0 (free about 1:30, 2:30 and 4 pm) stay open for the steps that follow
+the no-redraw reads.
 
-**Second seeds of the plain pairs (proposed 2026-10-10, 8:55 am).** GPU 3 (free about 9 am): `ei_think` seed 1,
-about 10 h, so the thinking GRPO − EI comparison has two paired seeds as GRPO does. GPU 1 after the no-redraw
-reads (about 11:30 am): `grpo_nothink` then `ei_nothink`, seed 1, about 8 h together. GPUs 4, 2 and 0 (free about
-1:30, 2:30 and 4 pm) stay open for the verifier and think-budget steps that follow the no-redraw reads.
+## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
 1. **Second seeds of the graded arm and of one budget + token cost.** About 3 GPU-h each, plus 1.5 GPU-h of evals.
