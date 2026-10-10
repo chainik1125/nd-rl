@@ -442,3 +442,18 @@ Published: prem4 (10 %, 1 %, 0.1 %), distract (10 %, 30 %, minimal 10 %), joins 
 Mistake on the way: the first build wiped the hand-written README (the builder rmtree'd the folder); restored, and the
 builder now only regenerates `slices/`. The workstream's code and docs are committed with the release (first commit
 of the workstream). Nothing trained.
+
+## 2026-10-09 (night) — textbook72_distract2: the wall holds on the sealed set
+
+Charles: copy the 72 with two irrelevant premises each, "just like the distractor set", and re-evaluate Robbie's latest
+pretrain and Dan's RL models. Pre-registered in `experiments/pretrain-data/textbook72_distract2/proposal.md` (committed
+632a2c9 before the run); sealed-set handling in questions.md 9 (evaluation-only copy, gitignored, aggregates by bin).
+Dan's worktree re-created at `~/.cache/nd-rl/fork_dan` and four checkpoints fetched (r8 s0/s1/s2, Stage-1 s0).
+Builder `textbook72_distract.py`: minimal length first (minlen, 10 s), then two depth-≤2 distractors not among the
+subformulas, satisfiable with the premises, shortcut-checked against minimal + 1; 71 of 72 placed, 25 cross to ≥ 4
+premises. Result (k 32, T 1.0, one seed each): solved-at-least-once original → distracted: Robbie d384 12 → 5, d768
+11 → 6, Dan Stage-1 25 → 12, Dan r8 s0 49 → 28; on the 25 crossing problems 5 / 3 / 8 / 17 → **0 / 0 / 0 / 0**; on
+the 46 staying at ≤ 3 premises 7 → 5, 8 → 6, 17 → 12, 32 → 28. The premise-count wall is a property of the models,
+not of generator problems. Charles asked to pause; all four jobs had finished, nothing killed, Dan's r8 seeds 1 and 2
+not launched (status PAUSED). Prediction recorded for the premise-pool Stage-1: distracted-72 ≥ 40 of 71 after the
+ladder, against 28 now.

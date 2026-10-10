@@ -1,0 +1,13 @@
+2026-10-10T04:37:58+00:00 loaded scale-d384-p1200_s0/pretrain: {"tok_mode": "lean_seq", "stage": "pretrain", "seed": 0, "harness_sha": "1508dd4b72c2", "pretrain_sha": "6bdbe0047ac4", "run": "scale-d384-p1200_s0", "n_params": 9557760, "arch": {"n_layer": 6, "d": 384, "n_head": 8, "d_ff": 1280}, "vocab": 107, "fork": "/Users/cyu/.cache/nd-rl/fork51604b3"}
+2026-10-10T04:37:58+00:00 == textbook72: 72 records x k=32
+2026-10-10T04:39:55+00:00    256/2304 samples, 117s
+2026-10-10T04:43:18+00:00    textbook72: avg solve rate 0.1037 ± 0.0641, any-of-32 12/72, parse-fail 0.3238, 320s
+2026-10-10T04:43:18+00:00 == textbook72_distract2: 71 records x k=32
+2026-10-10T04:43:38+00:00    256/2272 samples, 20s
+2026-10-10T04:47:52+00:00    textbook72_distract2: avg solve rate 0.0268 ± 0.0299, any-of-32 5/71, parse-fail 0.4296, 274s
+2026-10-10T04:47:52+00:00 done
+ook72: avg solve rate 0.1037 ± 0.0641, any-of-32 12/72, parse-fail 0.3238, 320s
+2026-10-10T04:43:18+00:00 == textbook72_distract2: 71 records x k=32
+2026-10-10T04:43:38+00:00    256/2272 samples, 20s
+2026-10-10T04:47:52+00:00    textbook72_distract2: avg solve rate 0.0268 ± 0.0299, any-of-32 5/71, parse-fail 0.4296, 274s
+2026-10-10T04:47:52+00:00 done
