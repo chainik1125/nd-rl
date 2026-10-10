@@ -9,10 +9,11 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | arm | 13–20 lines (986): pass@1 / pass@5 | 16–20 lines: pass@1 / pass@5 | textbook72: pass@1 / pass@5 | Charles149: pass@1 / pass@5 | hand-proved 14: pass@1 / pass@5 | 21–30 lines (1,000): pass@1 / pass@5 |
 |---|---|---|---|---|---|---|
-| GRPO, thinking | — | — | — | — | — | — |
-| GRPO + verifier, thinking | — | — | — | — | — | — |
+| GRPO, thinking | 29.1 [27.0, 31.1] / 52.4 [49.6, 55.1] (s0) | 22.5 [20.3, 24.8] / 44.5 [41.1, 47.8] (s0) | 72.3 [63.1, 80.9] / 80.6 [71.7, 88.6] (s0) | 67.9 [61.2, 74.1] / 77.8 [71.5, 83.6] (s0) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0) | 5.1 [4.3, 6.0] / 13.5 [11.6, 15.5] (s0) |
+| GRPO + verifier, thinking | 14.9 [13.3, 16.6] / 30.9 [28.4, 33.5] (s0) | 9.2 [7.8, 10.7] / 22.4 [19.8, 25.2] (s0) | 61.5 [51.1, 71.3] / 72.0 [62.4, 81.0] (s0) | 53.9 [46.9, 60.8] / 65.6 [58.3, 72.5] (s0) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0) | 1.7 [1.2, 2.3] / 5.1 [3.9, 6.3] (s0) |
 | EI, thinking | — | — | — | — | — | — |
 | EI + verifier, thinking | — | — | — | — | — | — |
+| GRPO, no thinking | — | — | — | — | — | — |
 | GRPO + verifier, no thinking | 4.4 [3.4, 5.5] / 9.0 [7.4, 10.6] (s0) | 1.7 [1.1, 2.4] / 4.4 [3.1, 5.7] (s0) | 50.1 [39.4, 60.7] / 57.6 [46.7, 68.1] (s0) | 40.2 [33.1, 47.3] / 49.9 [42.3, 57.5] (s0) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0) | 0.2 [0.1, 0.4] / 0.6 [0.2, 1.1] (s0) |
 | EI + verifier, no thinking | — | — | — | — | — | — |
 | GRPO v1 (old problems), thinking | 29.4 [25.4, 33.5] / 53.6 [48.4, 58.6] (s0,1) | 21.8 [17.6, 26.2] / 44.5 [37.8, 51.3] (s0,1) | 72.2 [63.5, 80.4] / 82.7 [74.5, 89.7] (s0,1) | — | — | — |
@@ -23,6 +24,26 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | arm | seed | read | set | n | pass@1 | pass@5 |
 |---|---|---|---|---|---|---|
+| GRPO | 0 | plain | 13–20 lines (986) | 986 | 29.1 [27.0, 31.1] | 52.4 [49.6, 55.1] |
+| GRPO | 0 | guided | 13–20 lines (986) | 986 | 44.5 [42.2, 46.8] | 67.9 [65.3, 70.4] |
+| GRPO | 0 | plain | 16–20 lines | 616 | 22.5 [20.3, 24.8] | 44.5 [41.1, 47.8] |
+| GRPO | 0 | guided | 16–20 lines | 616 | 37.0 [34.3, 39.9] | 61.1 [57.8, 64.4] |
+| GRPO | 0 | plain | textbook72 | 72 | 72.3 [63.1, 80.9] | 80.6 [71.7, 88.6] |
+| GRPO | 0 | guided | textbook72 | 72 | 78.6 [69.7, 86.5] | 86.2 [78.4, 92.7] |
+| GRPO | 0 | plain | Charles149 | 149 | 67.9 [61.2, 74.1] | 77.8 [71.5, 83.6] |
+| GRPO | 0 | guided | Charles149 | 149 | 77.8 [71.9, 83.3] | 84.7 [79.3, 89.8] |
+| GRPO | 0 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| GRPO | 0 | plain | 21–30 lines (1,000) | 1000 | 5.1 [4.3, 6.0] | 13.5 [11.6, 15.5] |
+| GRPO + verifier | 0 | plain | 13–20 lines (986) | 986 | 14.9 [13.3, 16.6] | 30.9 [28.4, 33.5] |
+| GRPO + verifier | 0 | guided | 13–20 lines (986) | 986 | 40.4 [38.1, 42.8] | 62.8 [60.2, 65.5] |
+| GRPO + verifier | 0 | plain | 16–20 lines | 616 | 9.2 [7.8, 10.7] | 22.4 [19.8, 25.2] |
+| GRPO + verifier | 0 | guided | 16–20 lines | 616 | 33.2 [30.4, 35.9] | 55.5 [52.1, 58.8] |
+| GRPO + verifier | 0 | plain | textbook72 | 72 | 61.5 [51.1, 71.3] | 72.0 [62.4, 81.0] |
+| GRPO + verifier | 0 | guided | textbook72 | 72 | 81.3 [72.9, 88.9] | 87.7 [80.7, 93.8] |
+| GRPO + verifier | 0 | plain | Charles149 | 149 | 53.9 [46.9, 60.8] | 65.6 [58.3, 72.5] |
+| GRPO + verifier | 0 | guided | Charles149 | 149 | 77.4 [71.2, 82.9] | 84.9 [79.2, 89.9] |
+| GRPO + verifier | 0 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| GRPO + verifier | 0 | plain | 21–30 lines (1,000) | 1000 | 1.7 [1.2, 2.3] | 5.1 [3.9, 6.3] |
 | GRPO + verifier, no thinking | 0 | plain | 13–20 lines (986) | 986 | 4.4 [3.4, 5.5] | 9.0 [7.4, 10.6] |
 | GRPO + verifier, no thinking | 0 | guided | 13–20 lines (986) | 986 | 18.8 [16.9, 20.8] | 32.5 [29.8, 35.2] |
 | GRPO + verifier, no thinking | 0 | plain | 16–20 lines | 616 | 1.7 [1.1, 2.4] | 4.4 [3.1, 5.7] |
@@ -60,11 +81,28 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | comparison | read | set | seeds | Δ pass@1 | Δ pass@5 |
 |---|---|---|---|---|---|
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | plain | 13–20 lines (986) | 0 | -14.2 [-15.7, -12.6] | -21.5 [-23.8, -19.2] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | guided | 13–20 lines (986) | 0 | -4.2 [-5.9, -2.3] | -5.1 [-7.1, -3.0] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | plain | 16–20 lines | 0 | -13.3 [-15.1, -11.6] | -22.1 [-24.9, -19.2] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | guided | 16–20 lines | 0 | -3.8 [-6.0, -1.6] | -5.5 [-8.3, -2.8] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | plain | textbook72 | 0 | -10.8 [-16.0, -6.2] | -8.6 [-15.0, -3.1] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | guided | textbook72 | 0 | +2.8 [-1.1, +7.1] | +1.6 [-1.5, +5.4] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | plain | Charles149 | 0 | -13.9 [-18.5, -9.8] | -12.2 [-17.0, -7.7] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | guided | Charles149 | 0 | -0.4 [-3.3, +2.5] | +0.2 [-3.2, +3.4] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | plain | hand-proved 14 | 0 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | plain | 21–30 lines (1,000) | 0 | -3.4 [-4.2, -2.6] | -8.4 [-10.2, -6.7] |
 
 ## 4. What each change buys (thinking, plain reads, seeds paired)
 
 | method | change | set | seeds | Δ pass@1 | Δ pass@5 |
 |---|---|---|---|---|---|
+| GRPO | + curriculum (vs GRPO v1 (old problems)) | 16–20 lines | 0 | -2.2 [-3.7, -0.7] | -4.6 [-6.9, -2.3] |
+| GRPO | + curriculum (vs GRPO v1 (old problems)) | textbook72 | 0 | +0.2 [-4.2, +4.6] | -2.0 [-6.4, +2.4] |
+| GRPO | + curriculum (vs GRPO v1 (old problems)) | 13–20 lines (986) | 0 | -3.1 [-4.4, -1.7] | -4.5 [-6.3, -2.7] |
+| GRPO | + verifier (vs GRPO) | 16–20 lines | 0 | -13.3 [-15.1, -11.6] | -22.1 [-24.9, -19.2] |
+| GRPO | + verifier (vs GRPO) | textbook72 | 0 | -10.8 [-16.0, -6.2] | -8.6 [-15.0, -3.1] |
+| GRPO | + verifier (vs GRPO) | Charles149 | 0 | -13.9 [-18.5, -9.8] | -12.2 [-17.0, -7.7] |
+| GRPO | + verifier (vs GRPO) | 13–20 lines (986) | 0 | -14.2 [-15.7, -12.6] | -21.5 [-23.8, -19.2] |
 
 ## 5. GRPO − EI at matched sampled tokens per problem (plain reads)
 
@@ -72,6 +110,9 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | comparison | set | seeds | 1k | 2k | 4k | 8k |
 |---|---|---|---|---|---|---|
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | 16–20 lines | 0 | -14.0 [-15.9, -12.1] | -18.0 [-20.4, -15.7] | -20.8 [-23.7, -18.0] | -22.2 [-25.6, -18.7] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | textbook72 | 0 | -9.1 [-15.0, -3.8] | -7.5 [-13.8, -1.8] | -5.7 [-12.5, +0.6] | -4.3 [-11.6, +2.6] |
+| thinking: GRPO + verifier − GRPO (the verifier's effect) | Charles149 | 0 | -12.5 [-17.1, -8.2] | -11.6 [-16.3, -7.2] | -10.3 [-15.0, -5.8] | -8.8 [-13.7, -4.2] |
 
 ## Notes
 
@@ -97,14 +138,14 @@ Rows not there yet (88):
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_ei_think_v_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_ei_think_v_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_ei_think_v_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_s0_logical_k64/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_s0_plain_k64/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_s1_logical_k64/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_v_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_v_s1_plain_k64/rows_plain_B0.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_s0_logical_k64/rows_logical_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_s1_plain_k64/rows_plain_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_v_s0_logical_k64/rows_logical_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_v_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_v_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_v_s1_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_ei_nothink_v_s0_plain_k64/rows_plain_B0.jsonl`
@@ -113,10 +154,10 @@ Rows not there yet (88):
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_ei_think_s1_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_ei_think_v_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_ei_think_v_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_nothink_s0_plain_k64/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_nothink_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_nothink_v_s1_plain_k64/rows_plain_B0.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_s1_plain_k64/rows_plain_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_v_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_v_s1_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_ei_nothink_v_s0_logical_k16/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_ei_nothink_v_s0_plain_k16/rows_plain_B0.jsonl`
@@ -130,14 +171,14 @@ Rows not there yet (88):
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_ei_think_v_s0_plain_k16/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_ei_think_v_s1_logical_k16/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_ei_think_v_s1_plain_k16/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_s0_logical_k16/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_s0_plain_k16/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_s1_logical_k16/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_s1_plain_k16/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_v_s1_logical_k16/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_v_s1_plain_k16/rows_plain_B0.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_s0_logical_k16/rows_logical_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_s0_plain_k16/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_s1_logical_k16/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_s1_plain_k16/rows_plain_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_v_s0_logical_k16/rows_logical_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_v_s0_plain_k16/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_v_s1_logical_k16/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_v_s1_plain_k16/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_ei_nothink_v_s0_plain_k8/rows_plain_B0.jsonl`
@@ -146,10 +187,10 @@ Rows not there yet (88):
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_ei_think_s1_plain_k8/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_ei_think_v_s0_plain_k8/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_ei_think_v_s1_plain_k8/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_nothink_s0_plain_k8/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_nothink_s1_plain_k8/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_nothink_v_s1_plain_k8/rows_plain_B0.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_s0_plain_k8/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_s1_plain_k8/rows_plain_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_v_s0_plain_k8/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_v_s1_plain_k8/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_ei_nothink_v_s0_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_ei_nothink_v_s0_plain_k64/rows_plain_B0.jsonl`
@@ -163,13 +204,13 @@ Rows not there yet (88):
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_ei_think_v_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_ei_think_v_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_ei_think_v_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_s0_logical_k64/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_s0_plain_k64/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_s1_logical_k64/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_v_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_v_s1_plain_k64/rows_plain_B0.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_s0_logical_k64/rows_logical_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_s1_plain_k64/rows_plain_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_v_s0_logical_k64/rows_logical_B64.jsonl`
-- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_v_s0_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_v_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_v_s1_plain_k64/rows_plain_B64.jsonl`
