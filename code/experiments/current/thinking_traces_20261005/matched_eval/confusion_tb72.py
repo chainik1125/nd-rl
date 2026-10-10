@@ -94,8 +94,13 @@ def main(argv: list[str] | None = None) -> None:
     ]
     lists = []
     with S.paper_style():
-        fig = S.new_figure(S.FULL_W, 1.85, layout="constrained")
-        axs = fig.subplots(1, len(done), sharex=True, sharey=True, squeeze=False)[0]
+        ncol = 3
+        nrow = -(-len(done) // ncol)
+        fig = S.new_figure(S.FULL_W, 2.0 * nrow, layout="constrained")
+        grid = fig.subplots(nrow, ncol, sharex=True, sharey=True, squeeze=False)
+        axs = list(grid.flat)[: len(done)]
+        for ax in list(grid.flat)[len(done) :]:
+            ax.set_visible(False)
         rng = np.random.default_rng(0)
         for ax, p in zip(axs, done, strict=True):
             ei, gr = rates(p.ei), rates(p.grpo)
@@ -130,7 +135,8 @@ def main(argv: list[str] | None = None) -> None:
             ax.set_xticks([0, 0.5, 1], ["0", "50%", "100%"])
             ax.set_yticks([0, 0.5, 1], ["0", "50%", "100%"])
             S.light_grid(ax)
-        axs[0].set_ylabel("GRPO pass rate")
+        for row in grid:
+            row[0].set_ylabel("GRPO pass rate")
         fig.supxlabel(
             "EI pass rate (per textbook72 problem, 64 attempts; EI round 2 vs GRPO iteration 78)",
             fontsize=S.FS_LABEL,
