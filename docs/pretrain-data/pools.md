@@ -710,3 +710,19 @@ premises or fewer) is real but moderate (0.74 vs 0.96 at three). This points to 
 premise count itself, the kind a small exposure slice should fix (hypothesis 2), rather than a premise-selection skill
 the model lacks; the premise-selection reading survives only in the 0.74 vs 0.96 gap at three premises and in Dan's
 +0.05 RL gain, which also has to be re-read by premise count.
+
+**Premise-stratified distractor check, three models (2026-10-10, `distract_by_premises.py`).** Charles asked whether the
+distractor slice's four-premise prompts were ever solved, since Dan's round-8 slice figure (0.69 on 128 prompts) left
+room for a few. A stratified sample of the `k12_distract10` slice, 120 rows at four premises, 60 at five, 120 at three or
+fewer, pass@32 per row:
+
+| model | ≤ 3 premises: solved of 120 (per-sample) | 4 premises: solved of 120 | 5 premises: solved of 60 |
+| --- | --- | --- | --- |
+| Robbie d384 base | 101 (0.55) | **0** | **0** |
+| Dan Stage-1 base | 112 (0.48) | **0** | **0** |
+| Dan RL round 8, seed 0 | 119 (0.85) | **0** | **0** |
+
+0 of 180 four-plus prompts on every model, 0 of 5,760 samples each; the round-8 model's slice figure came from a draw
+with fewer four-plus rows. Together with the matched check (Robbie, 0 of 71) and the distracted 72 (four models,
+0 of 25 crossing problems), no model has produced an accepted proof under a prompt with four or more premises in any
+run, needed or not.

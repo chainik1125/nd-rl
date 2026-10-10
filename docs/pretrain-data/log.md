@@ -457,3 +457,11 @@ the 46 staying at ≤ 3 premises 7 → 5, 8 → 6, 17 → 12, 32 → 28. The pre
 not of generator problems. Charles asked to pause; all four jobs had finished, nothing killed, Dan's r8 seeds 1 and 2
 not launched (status PAUSED). Prediction recorded for the premise-pool Stage-1: distracted-72 ≥ 40 of 71 after the
 ladder, against 28 now.
+
+## 2026-10-10 — premise-stratified distractor check
+
+Charles: "investigate the distractor slice of whether or not the 4-premise prompts were being solved" (the round-8
+slice figure of 0.69 on 128 prompts implied a few might be). `code/pretrain_data/distract_by_premises.py`: 300 rows of
+the distract10 slice stratified by premise count (120 at 4, 60 at 5, 120 at ≤ 3), pass@32 on Robbie's base, Dan's
+Stage-1 and Dan's r8 s0. Four-plus prompts: 0 of 180 on every model (0 of 5,760 samples each); ≤ 3: 101 / 112 / 119
+of 120. Recorded in pools.md; doc corrected. No model has solved a four-or-more-premise prompt in any run.
