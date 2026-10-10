@@ -1,0 +1,53 @@
+{
+ "seed": 0,
+ "n_per_split": 128,
+ "inputs": {
+  "found_1_s0": "2c4c40b70ecf6ecebe7b4a0cddd6b085",
+  "found_8_s1": "e496094227545c1bfc15412ebbd44d99",
+  "found_1_s1": "7319b406144c3a0a323c38a56cbaf8dc"
+ },
+ "streams": {
+  "new": {
+   "pool": 800,
+   "pinned_verifier_rejected": 0,
+   "leak_dropped": 0,
+   "source": {
+    "textbook": 127,
+    "gen": 129
+   },
+   "files": {
+    "train": {
+     "file": "stream_new_train.jsonl",
+     "md5": "3e96957a3b0b48ef20abfb827433ee62",
+     "n": 128
+    },
+    "held": {
+     "file": "stream_new_held.jsonl",
+     "md5": "6e539e99ab536df6b2d03d9233fc4477",
+     "n": 128
+    }
+   }
+  },
+  "ctrl": {
+   "pool": 3307,
+   "pinned_verifier_rejected": 0,
+   "leak_dropped": 0,
+   "source": {
+    "gen": 245,
+    "textbook": 11
+   },
+   "files": {
+    "train": {
+     "file": "stream_ctrl_train.jsonl",
+     "md5": "51efffc49475cdaab2be8fbfbbf47f8c",
+     "n": 128
+    },
+    "held": {
+     "file": "stream_ctrl_held.jsonl",
+     "md5": "172796e6fb707ebee2cdd962ddcda298",
+     "n": 128
+    }
+   }
+  }
+ }
+}
