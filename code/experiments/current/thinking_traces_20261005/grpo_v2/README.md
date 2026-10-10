@@ -31,8 +31,12 @@ hash identically to `leon/thinking-auto` (checked on a tiny model).
   - Re-checked here on our Lean (4.34.0) with the round-2 thinking model's own steps (13–20 problems, plain
     sampling): 166 of 166 checker rejects were rejected by Lean itself.
 - **Step penalty** (`--rej_penalty P`). Every rejected draw gets advantage −P whatever its group's outcome:
-  - each redrawn one (`keep_rejected`), with its think block and action (`--rej_penalty_scope draft`, the
-    default) or its action only;
+  - each redrawn one (`keep_rejected`). By default (`--rej_penalty_scope diverge`) only its tokens from the
+    first one where it departs from the draw accepted at the same state are scored: the shared prefix led to a
+    valid step too, and penalising it would push down valid structure. With no accepted draw at that state
+    the whole draw is scored. `draft` scores the whole think + action, `action` the action only.
+    - On the Stage-1 model on 10–12-line problems, 71% of redrawn draws have an accepted draw at their state.
+    - The shared prefix is 24% of a redrawn draw, so `diverge` scores 84% of the tokens `draft` would.
   - and the draw that ended a failed attempt, on top of that attempt's advantage.
   - A group is skipped only if its outcomes give no signal and it has no rejected draw. So groups where every
     attempt failed (or every attempt succeeded) still teach the model to avoid its invalid steps.
@@ -58,9 +62,9 @@ hash identically to `leon/thinking-auto` (checked on a tiny model).
 - But a guided attempt has many rejected draws. In the CPU smoke runs, the Stage-1 models on 10–12-line problems
   had 26–33% of draws rejected (4–6 per attempt), and at P = 0.25 the rejected draws carried 58–70% of the
   gradient mass.
-- P = 0.1 brings that to roughly a third to two fifths at the start (same arithmetic), and the share falls as
-  rejections do. Every invalid step is still pushed down, and saturated or all-failed groups still give a
-  gradient.
+- P = 0.1 brings that to roughly a third to two fifths at the start (same arithmetic; the smoke runs at
+  P = 0.1 showed 13–46%), and the share falls as rejections do. Every invalid step is still pushed down, and
+  saturated or all-failed groups still give a gradient.
 - `REJ_PENALTY=0.25 bash line.sh ...` runs the stronger version. Watch `mass_rejected`, the accepted clip-low
   and the canary in the dashboard.
 
