@@ -327,10 +327,14 @@ def tables(ld: Loader, draws: int) -> list[str]:
                 + " | ".join(cells)
                 + " |"
             )
+    md += by_premises(ld, draws)
     md += [
         "",
         "## Notes",
         "",
+        "- 12 of the 986 13–20 items contain a part (main proof or lemma of the composite)",
+        "  that is, up to renaming or currying, a row of L2 / L3; dropping them moves no v2 arm's",
+        "  pass@1 by more than 0.2 points (checked 2026-10-10; 8 of the 1,000 21–30 items too).",
         "- The v1 references trained on hard712 sample a, which holds curried twins of 3",
         "  textbook72 problems (found 2026-10-09 by the curriculum build), so textbook72 slightly",
         "  favours v1.",
@@ -342,6 +346,59 @@ def tables(ld: Loader, draws: int) -> list[str]:
     if ld.missing:
         md += ["", f"Rows not there yet ({len(set(ld.missing))}):", ""]
         md += [f"- `{p}`" for p in sorted(set(ld.missing))]
+    return md
+
+
+def n_prem(prompt: str) -> int:
+    """The premises of `THM p1 , p2 SEQ goal PRF` (commas at depth 0)."""
+    t = prompt.split()
+    body = t[1 : t.index("SEQ")]
+    depth, n = 0, int(bool(body))
+    for x in body:
+        depth += (x == "(") - (x == ")")
+        n += x == "," and depth == 0
+    return n
+
+
+def by_premises(ld: Loader, draws: int) -> list[str]:
+    """13–20, plain reads, split by premise count (the v2 pools have 0–2 premises, 78% of 13–20
+    has 3): pass@1 on each part and, on 3 premises, the share of attempts that end at a premise
+    line out of place (`S:PR position`: premise lines come first, as h1, h2, h3 in order)."""
+    with open(MATCHED / "sets/t1320_n1000.jsonl") as f:
+        prem = {r["name"]: n_prem(r["prompt"]) for r in map(json.loads, f)}
+    valid = ld.keep["t1320"] or set(prem)
+    few = sorted(n for n, p in prem.items() if p <= 2 and n in valid)
+    three = sorted(n for n, p in prem.items() if p >= 3 and n in valid)
+    md = ["", "## 6. 13–20 by premise count (plain reads; the v2 pools have 0–2 premises)", ""]
+    md += [
+        f"| arm | seeds | 0–2 premises ({len(few)}): pass@1 | 3 premises ({len(three)}): pass@1 | "
+        "3 premises: attempts ending at `S:PR position` |",
+        "|---|---|---|---|---|",
+    ]
+    for arm in ARMS + REFS:
+        seeds = ld.seeds(arm.key, "t1320", "plain")
+        a = ld.arm(arm.key, "t1320", seeds)
+        if a is None:
+            continue
+        cells = [
+            fmt(stats.ci(a.subset(sorted(set(a.names) & set(g))), 1, draws=draws))
+            for g in (few, three)
+        ]
+        att = pr = 0
+        for seed in seeds:
+            p = rows_path(arm, SET["t1320"], seed, "plain", ld.v2)
+            assert p is not None
+            with open(p) as f:
+                for r in map(json.loads, f):
+                    if r["name"] in three:
+                        st = r.get("status") or []
+                        att += len(st)
+                        pr += sum(x == "fail:S:PR position" for x in st)
+        share = f"{100 * pr / att:.0f}%" if att else "—"
+        md.append(
+            f"| {arm.label}{'' if arm.think else ', no thinking'} | {','.join(map(str, seeds))} | "
+            f"{cells[0]} | {cells[1]} | {share} |"
+        )
     return md
 
 
