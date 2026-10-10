@@ -8,9 +8,13 @@ iteration 39 r on sampled attempts.
 | old, no thinking, seed 0 | 31 | 15 | 2 | 24 | 32.4% | 32.6% |
 | old, thinking, seed 0 | 35 | 14 | 0 | 23 | 31.6% | 31.6% |
 | old, thinking, GRPO seed 1 | 35 | 14 | 2 | 21 | 31.6% | 29.7% |
+| current, thinking, seed 0 | 59 | 1 | 5 | 7 | 67.0% | 72.2% |
+| current, thinking, seed 1 | 63 | 2 | 0 | 7 | 71.8% | 72.2% |
 
 Problems in the off-diagonal cells:
 
 - old, no thinking, seed 0: EI only: textbook_0713eb0885a366161011, textbook_0dd5ea3d0aa761fea3d9, textbook_3af838bf624ac899a441, textbook_3f4b5ba98e9f3445b303, textbook_418e4b67e7e59d93fa6b, textbook_48e30865966e132d65ad, textbook_58b532c9c8cc1819378b, textbook_6997656e16fb567550a6, textbook_79e3c381d248c69d315c, textbook_94b2fb662310a6f7ac8d, textbook_98cdc8d06ea0d36428a2, textbook_9fa52f90369a7b6286f7, textbook_b98931f273313e2c32e7, textbook_f15b4e7e289f788cc70d, textbook_fef8f88a0e6c1c196603; GRPO only: textbook_33a5b9f5c6c6ad7582e7, textbook_9ad08632649f4911b2cd
 - old, thinking, seed 0: EI only: textbook_0713eb0885a366161011, textbook_0824150e3d98b3ab201f, textbook_0c463f021f70dc4f6b35, textbook_0dd5ea3d0aa761fea3d9, textbook_330042a43256968ac526, textbook_3f4b5ba98e9f3445b303, textbook_418e4b67e7e59d93fa6b, textbook_5758428c8c74f96345ad, textbook_757636e8f5ff1662c1c8, textbook_92b4192856ec54a3e1ee, textbook_936ceade34df08c26377, textbook_a2cda4772846af3ccedb, textbook_c18068b3bc4dc6b6894a, textbook_f918caefa752f2beda53; GRPO only: -
 - old, thinking, GRPO seed 1: EI only: textbook_0dd5ea3d0aa761fea3d9, textbook_3af838bf624ac899a441, textbook_3f4b5ba98e9f3445b303, textbook_418e4b67e7e59d93fa6b, textbook_5758428c8c74f96345ad, textbook_757636e8f5ff1662c1c8, textbook_79e3c381d248c69d315c, textbook_92b4192856ec54a3e1ee, textbook_936ceade34df08c26377, textbook_98cdc8d06ea0d36428a2, textbook_b98931f273313e2c32e7, textbook_cea8801c51d3f9d213d6, textbook_f918caefa752f2beda53, textbook_fef8f88a0e6c1c196603; GRPO only: textbook_48e30865966e132d65ad, textbook_58b532c9c8cc1819378b
+- current, thinking, seed 0: EI only: textbook_970fbf60225a4d6e78b3; GRPO only: textbook_0713eb0885a366161011, textbook_35e75d37fcd6e6fc7dfe, textbook_3d2b05bca4cbb83ed73b, textbook_9f83d4425b7684ef58e7, textbook_a104fab36312807439b0
+- current, thinking, seed 1: EI only: textbook_54e1d81ad54a80f1f835, textbook_6997656e16fb567550a6; GRPO only: -
