@@ -112,6 +112,8 @@ COMPARE = [
     ("thinking: GRPO + verifier (stop) − GRPO", "grpo_think_vs", "grpo_think"),
     ("thinking: GRPO + verifier (stop) − EI + verifier", "grpo_think_vs", "ei_think_v"),
     ("no thinking: GRPO + verifier (stop) − EI + verifier", "grpo_nothink_vs", "ei_nothink_v"),
+    ("thinking: EI + verifier − EI", "ei_think_v", "ei_think"),
+    ("no thinking: EI + verifier − EI", "ei_nothink_v", "ei_nothink"),
 ]
 CHAIN = {
     "grpo": [
@@ -159,6 +161,7 @@ def rows_path(arm: ArmSpec, s: SetSpec, seed: int, ra: str, v2: Path) -> Path | 
         return {
             "t1320": TTS / f"t1320_grpo_g2s{seed}_k32" / "rows_plain_B64.jsonl",
             "tb72": TTS / f"tb72_grpo_g2s{seed}_k64" / "rows_plain_B64.jsonl",
+            "charles173": CHARLES / f"ch149_grpo_g2s{seed}" / "rows_plain_B64.jsonl",
         }.get(s.read)
     kind = "think" if arm.think else "nothink"
     tb_s0 = MATCHED / ("tb72_eiS1g3_h712_r2" if arm.think else "tb72_eiT0S_h712_r2")
@@ -275,7 +278,7 @@ def tables(ld: Loader, draws: int) -> list[str]:
                         f"| {arm.label}{'' if arm.think else ', no thinking'} | {seed} | {read} | "
                         f"{s.title} | {a.T} | {fmt(p1)} | {fmt(p5)} |"
                     )
-    md += ["", "## 3. GRPO − EI at the same training budget (seeds paired by Stage-1 init)", ""]
+    md += ["", "## 3. Paired differences at the same training budget (seeds paired by init)", ""]
     md += ["| comparison | read | set | seeds | Δ pass@1 | Δ pass@5 |", "|---|---|---|---|---|---|"]
     for title, a, b in COMPARE:
         for s in SETS:
@@ -332,7 +335,7 @@ def tables(ld: Loader, draws: int) -> list[str]:
         "  textbook72 problems (found 2026-10-09 by the curriculum build), so textbook72 slightly",
         "  favours v1.",
         "  The v2 pools exclude every class shared with textbook72 and Charles's release.",
-        "- GRPO v1 was never read on Charles's set, so the GRPO chain has no v1 point there.",
+        "- The v1 Charles149 points are the reads of `followup_20261007/charles_reads.sh` (k 64).",
         "- `groups_skipped` means different things with and without the step penalty; compare the",
         "  arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.",
     ]

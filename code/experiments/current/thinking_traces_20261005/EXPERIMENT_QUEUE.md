@@ -11,18 +11,22 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-09, 5:50 pm PDT)
+## Running (updated 2026-10-10, 8:40 am PDT)
 
 **Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
 verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
 curriculum 10–12 lines, then 13–15; GRPO on both the thinking (S1g3) and no-think (T0S) models; priorities: GRPO vs
 EI in a fair setup, what each change buys, then the model-chosen think budget.
 
-| job | GPUs | ETA | why |
+All `grpo_v2/line.sh`, seed 0 unless noted; reads as in the v2 section below.
+
+| job | GPU | ETA | why |
 |---|---|---|---|
-| GRPO + thinking v1 (`grpo_think/line.sh`): S1g3 seeds 0 and 1, GRPO g1 rl_hard12 → g2 hard712 a → g3 hard712 b, 39 iterations each, safeguards on; reads after g2 and g3 (13–20 k 32 B64, textbook72 k 64) | 4 (s0), 2 (s1) | g2 reads ~6:15 pm, g3 reads ~8:45 pm | GRPO-trained thinking vs the EI no-think baseline, today's recipe. Seed 0's g2 hit the long-context canary at it30 and it32: 2 rollbacks, lr × 0.25, then finished cleanly |
-| Seed-2 EI pair (`seed2/line.sh`) | 0, 1 | ~8:30–9 pm | third seed of thinking + EI vs the EI baseline |
-| Charles held-out set reads (`followup_20261007/charles_reads.sh`): 149 problems of Charles's release 2026-10-02 that share no class with our pools, k 64, old and current models | 3 | ~6:30 pm | larger textbook-like test (Leon: "start using the larger set of Charles data"); EI vs GRPO confusion matrix |
+| `grpo_think_vs`: GRPO + verifier without redraws, thinking | 4 | ~1:30 pm | the verifier redesign (7:09 am entry). One canary rollback at L2 it 3 (P(':') 29× base): back to it 0, lr × 0.5 for the rest of L2 |
+| `grpo_nothink_vs`: the same, no thinking | 1 | ~11:30 am | as above; no alarm so far |
+| `ei_think`: plain EI, thinking | 0 | ~4 pm | the matched counterpart of plain `grpo_think` |
+| `ei_nothink`: plain EI, no thinking | 3 | ~9:15 am (reads) | the matched counterpart of plain `grpo_nothink` (fairness control, 4:40 am entry) |
+| `ei_nothink_v` seed 1: EI + verifier, no thinking | 2 | ~2:30 pm | second seed |
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
 
@@ -70,7 +74,19 @@ else as `grpo_*_v`; CPU smoke of both passed). Seed 0: thinking on GPU 4 from 7:
 on GPU 1 after `grpo_think` seed 1's reads (about 7:50 am → 11:30 am). Alternatives left for Leon: redraws with a
 10× penalty, or half of each group sampled plainly.
 
+**8:50 am, 2026-10-10.** First fair GRPO vs EI pair (no thinking, seed 0, both plain, same curriculum and attempts),
+GRPO − EI: 13–20 pass@1 +1.6 [−0.4, +3.6], pass@5 −3.1 [−5.8, −0.4]; textbook72 +4.5 [−2.1, +11.3]; Charles149
++5.2 [−0.2, +10.6]. The verifier helps EI a little (EI + verifier − EI, Charles149 +3.2 [+0.0, +6.4], 13–20
++1.0 [−0.3, +2.2]). Both no-redraw GRPO runs train cleanly through L2 (training action entropy 0.039 at it 30,
+as plain GRPO; no collapse). Tables: [matched_eval/v2_results.md](matched_eval/v2_results.md),
+[confusion_tb72.md](matched_eval/confusion_tb72.md), [confusion_charles149.md](matched_eval/confusion_charles149.md).
+
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
+
+**Second seeds of the plain pairs (proposed 2026-10-10, 8:55 am).** GPU 3 (free about 9 am): `ei_think` seed 1,
+about 10 h, so the thinking GRPO − EI comparison has two paired seeds as GRPO does. GPU 1 after the no-redraw
+reads (about 11:30 am): `grpo_nothink` then `ei_nothink`, seed 1, about 8 h together. GPUs 4, 2 and 0 (free about
+1:30, 2:30 and 4 pm) stay open for the verifier and think-budget steps that follow the no-redraw reads.
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
 1. **Second seeds of the graded arm and of one budget + token cost.** About 3 GPU-h each, plus 1.5 GPU-h of evals.
