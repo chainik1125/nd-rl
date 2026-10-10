@@ -11,7 +11,7 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-10, 9:30 am PDT)
+## Running (updated 2026-10-10, 11:50 am PDT)
 
 **Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
 verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
@@ -22,12 +22,13 @@ All `grpo_v2/line.sh`, seed 0 unless noted; reads as in the v2 section below.
 
 | job | GPU | ETA | why |
 |---|---|---|---|
-| `grpo_think_vs`: GRPO + verifier without redraws, thinking | 4 | ~1:30 pm | the verifier redesign (7:09 am entry). One canary rollback at L2 it 3 (P(':') 29× base): back to it 0, lr × 0.5 for the rest of L2 |
-| `grpo_nothink_vs`: the same, no thinking | 1 | ~11:30 am | as above; no alarm so far |
+| `grpo_think_vs`: GRPO + verifier without redraws, thinking | 4 | ~12:40 pm (reads) | the verifier redesign (7:09 am entry). One canary rollback at L2 it 3 (P(':') 29× base): back to it 0, lr × 0.5 for the rest of L2 |
 | `ei_think`: plain EI, thinking | 0 | ~4 pm | the matched counterpart of plain `grpo_think` |
 | `ei_nothink_v` seed 1: EI + verifier, no thinking | 2 | ~2:30 pm | second seed |
 | `ei_think` seed 1: plain EI, thinking | 3 | ~7 pm | second seed of the thinking plain pair (`grpo_think` has seeds 0 and 1) |
-| `grpo_nothink` then `ei_nothink`, seed 1 | 1, after `grpo_nothink_vs` | ~7:30 pm | second seed of the no-think plain pair |
+| `grpo_nothink` then `ei_nothink`, seed 1 | 1 | ~7:30 pm | second seed of the no-think plain pair |
+| `grpo_think_vs` seed 1 | 4, after seed 0 | ~7 pm | second seed of the no-redraw thinking arm |
+| C build: 3-premise rewrites of L2/L3 pool rows (CPU) | – | ~1:15 pm | input to the no-think mechanism test |
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
 
@@ -111,6 +112,11 @@ pieces no test composite uses), B (pfgen change), C (rewrite pool rows: goal ant
 `runs/pools/curriculum_3p/`). **Proposed at 11:15 am:** seed 1 of `grpo_think_vs` on GPU 4 after seed 0's reads; the
 no-think mechanism test (`grpo_nothink_vs` + C rows at a third of each iteration, `--targets_extra`) on GPU 2 after
 `ei_nothink_v` seed 1. A waits for Leon's yes (composite family in training; reuse of unused builder pieces).
+
+**11:45 am, 2026-10-10 (proposed at 11:15 am; no reply in 30 minutes).** `grpo_think_vs` seed 1 queued on GPU 4
+after seed 0's reads (about 12:40 pm → 7 pm). Seed 0's other plain reads: textbook72 75.5% (plain GRPO 72.3, +3.1
+[+0.4, +6.2]; EI + verifier 67.8, +7.7 [+2.0, +14.1]), Charles149 67.8% (67.9, −0.1; 62.8, +5.1 [+0.7, +9.9]);
+13–20 guided 50.9% (plain GRPO 44.5).
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
