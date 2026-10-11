@@ -83,10 +83,23 @@ the two alarms, which only add alarm lines and alarm checkpoints; the updates ar
   (5) x its base.
 * **Rollback** (`--rollback_on_alarm`): on any alarm, the alarm checkpoint is saved, then the
   newest good checkpoint (`LoopState.last_good`: the last rolling or permanent one saved in an
-  iteration without alarms, or after a rollback; a start checkpoint `<name>_it<s>_rolling.pt` is
-  written first) is restored -- weights, optimizer, curricula, RNGs, step count, alarm histories
-  -- the lr is halved (`lr_scale`) and the run continues with the next iteration number; at most
-  `--max_rollbacks` times (`row['rollback']`).
+  iteration without alarms, or after a rollback, or one the restore check let through; a start
+  checkpoint `<name>_it<s>_rolling.pt` is written first) is restored -- weights, optimizer,
+  curricula, RNGs, step count, alarm histories -- the lr is halved (`lr_scale`) and the run
+  continues with the next iteration number; at most `--max_rollbacks` times (`row['rollback']`).
+* **Restore check** (`--ban_restore_check`, with `--rollback_on_alarm`; Leon 2026-10-11): when an
+  iteration's only alarm is the think ban mass and a rollback is due, its training items are
+  first scored under the restore point's weights as `policy_loss` scores them
+  (`restore_ban_mass`, on a scratch copy of the model). If that mass is over `ALARM_BAN` too and
+  the iteration's own is under `BAN_SPIKE` (2) times it, restoring would only halve the lr (seed-1
+  L3 runs sat at the limit from their start: three rollbacks to it 0 left them at lr x0.125). Then
+  there is no rollback; the alarm is still logged, and the iteration is checkpointed as one without
+  alarms (no alarm checkpoint; its rolling or permanent checkpoint is good). A spike (2 times or
+  more) or a restore point under the limit rolls back as before. `row['ban_check']`: the restore
+  point, both masses and the choice.
+* **Think ban stop** (`--ban_stop` X; 0: off): an iteration whose think ban mass exceeds X writes
+  its row and its alarm checkpoint and ends the run with exit code `STOP_EXIT` (3), before any
+  rollback or restore check (`row['stop']`). Both options are in `row['alarm_cfg']`.
 * **Training state in checkpoints.** Every checkpoint this script writes carries `train_state`
   (`ckpt.save_ckpt`, a top-level key that model loaders ignore): AdamW's state, the iteration, the
   curricula, the RNGs and `LoopState`. `--resume CKPT` restores all of it and continues to
@@ -150,6 +163,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import copy
 import dataclasses
 import json
 import math
@@ -180,6 +194,10 @@ Bans = tuple[torch.Tensor, torch.Tensor]  # sample.phase_bans: [V] bool, think b
 R_WATCH = 3.0  # neg_r3: the share of the scored A < 0 tokens with r above this
 # per-iteration alarms (`alarms`)
 ALARM_BAN = 1e-3  # mean full-vocabulary mass on the think ban at the scored think tokens
+# --ban_restore_check: a think ban alarm still rolls back when the iteration's mass is at least this
+# x the restore point's on the same tokens, a spike (restoring does help then)
+BAN_SPIKE = 2.0
+STOP_EXIT = 3  # --ban_stop: the exit code of a run it ends
 ALARM_GN = 5.0  # grad-norm max vs the median of the earlier iterations' grad-norm max ...
 ALARM_GN_AFTER = 5  # ... once this many iterations are in
 ALARM_CLIP_LOW = 0.01
@@ -972,13 +990,21 @@ def alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
     return out
 
 
-def _base_alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
-    out = []
+def ban_alarm(row: dict[str, Any]) -> str | None:
+    """The think ban alarm's message, None when the row's mass is not over ALARM_BAN."""
     if row["ban_think"] > ALARM_BAN:
-        out.append(
+        return (
             f"think banned mass {row['ban_think']:.3g} > {ALARM_BAN:g} "
             f"(max {row['ban_think_max']:.3g})"
         )
+    return None
+
+
+def _base_alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
+    out = []
+    ban = ban_alarm(row)
+    if ban is not None:
+        out.append(ban)
     if len(gn_prev) >= ALARM_GN_AFTER:
         med = statistics.median(gn_prev)
         if row["grad_norm_max"] > ALARM_GN * med:
@@ -993,6 +1019,73 @@ def _base_alarms(row: dict[str, Any], gn_prev: Sequence[float]) -> list[str]:
     if row["nonfinite"]:
         out.append(f"{row['nonfinite']} scored tokens banned in their phase (sampler / scorer)")
     return out
+
+
+def ban_rollback(restore_mass: float, mass: float) -> bool:
+    """`--ban_restore_check`'s choice for an iteration whose only alarm is the think ban mass ->
+    roll back? `restore_mass`: the mass of the checkpoint the rollback would restore, on the
+    iteration's think tokens (`restore_ban_mass`); `mass`: the iteration's own (`ban_think`). No
+    when the restore point is over ALARM_BAN too and `mass` is under BAN_SPIKE x it: restoring
+    would halve the lr without bringing the mass under the limit."""
+    return not (restore_mass > ALARM_BAN and mass < BAN_SPIKE * restore_mass)
+
+
+@torch.no_grad()
+def ban_mass(
+    model: Any,
+    items: Sequence[Item],
+    temperature: float,
+    dev: str,
+    max_tokens: int = 50_000,
+    think_ids: tuple[int, int] | None = None,
+    bans: Bans | None = None,
+) -> float:
+    """`policy_loss`'s `ban_think` of `items` without a gradient: the mean full-vocabulary pi_T
+    mass on the think ban at their scored think tokens (0 without any)."""
+    tot, n = 0.0, 0
+    for ids in _chunks(items, max_tokens):
+        chunk = [items[k] for k in ids]
+        s = _token_logp(
+            model, chunk, temperature, dev, entropy=True, think_ids=think_ids, bans=bans
+        )
+        assert s.ban_mass is not None
+        mt = s.m & s.th
+        tot += float(s.ban_mass[mt].sum())
+        n += int(mt.sum())
+    return tot / n if n else 0.0
+
+
+def restore_ban_mass(
+    model: Any,
+    path: str,
+    items: Sequence[Item],
+    temperature: float,
+    dev: str,
+    max_tokens: int = 50_000,
+    think_ids: tuple[int, int] | None = None,
+    bans: Bans | None = None,
+) -> float:
+    """`ban_mass` of `items` under the weights of the checkpoint at `path` (a rollback's restore
+    point), on a scratch copy of `model`, so the run's model and optimizer are untouched. The
+    model has no dropout and no other train / eval difference, so this is what `policy_loss`
+    computes at those weights."""
+    scratch = copy.deepcopy(model).requires_grad_(False)
+    scratch.load_state_dict(torch.load(str(path), map_location="cpu")["state"])
+    scratch.eval()
+    return ban_mass(scratch, items, temperature, dev, max_tokens, think_ids, bans)
+
+
+def _ban_check_line(it: int, bc: dict[str, Any]) -> str:
+    """`--ban_restore_check`'s line: the restore point's think ban mass and the choice."""
+    x, y = bc["restore_mass"], bc["mass"]
+    head = f"ALARM it {it}: {'' if bc['rollback'] else 'no '}rollback: the restore point "
+    head += f"(it {bc['to_iter']}) has think banned mass {x:.3g}"
+    if bc["rollback"]:
+        return f"{head} on this iteration's think tokens (this iteration {y:.3g})"
+    return (
+        f"{head} > {ALARM_BAN:g} on this iteration's think tokens "
+        f"(this iteration {y:.3g} < {BAN_SPIKE:g} x {x:.3g})"
+    )
 
 
 def prune_rolling(ckdir: Path, name: str, keep: int) -> list[Path]:
@@ -1141,6 +1234,10 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     )
     assert a.canary_every >= 1 and a.canary_n >= 1 and a.kl_anchor_n >= 1
     assert a.rej_penalty >= 0, "--rej_penalty must be >= 0"
+    assert a.ban_stop >= 0, "--ban_stop must be >= 0"
+    assert not a.ban_restore_check or a.rollback_on_alarm, (
+        "--ban_restore_check needs --rollback_on_alarm"
+    )
     assert a.arm in ARMS, a.arm
     if a.rej_penalty and a.arm == "plain":
         print("NOTE: --rej_penalty with the plain arm: only an attempt's ending draw is penalised")
@@ -1455,6 +1552,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 "capped": a.alarm_capped,
                 "clip_low_rel": a.clip_low_rel,
                 "canary_mult": a.canary_mult,
+                # what a think ban alarm leads to (not alarm thresholds): `ban_check`, `stop`
+                "ban_restore_check": a.ban_restore_check,
+                "ban_stop": a.ban_stop,
             },
         }
         if pairs_x:
@@ -1489,16 +1589,35 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         if gns:
             ls.gn_prev.append(gn_max)
             ls.clip_prev.append(clip_low_basis(row)[0])  # the running median the alarm reads
+        stop = a.ban_stop > 0 and row["ban_think"] > a.ban_stop  # before any rollback or check
+        if stop:
+            row["stop"] = {"ban_think": row["ban_think"], "ban_stop": a.ban_stop}
         rb: dict[str, Any] | None = None
         if row["alarms"] and a.rollback_on_alarm:
-            if ls.rollbacks < a.max_rollbacks and ls.last_good:
+            if not stop and ls.rollbacks < a.max_rollbacks and ls.last_good:
                 rb = {
                     "to": ls.last_good,
                     "to_iter": ls.last_good_iter,
                     "n": ls.rollbacks + 1,
                     "lr_scale": ls.lr_scale * 0.5,
                 }
-            row["rollback"] = rb  # None: --max_rollbacks reached
+                if a.ban_restore_check and row["alarms"] == [ban_alarm(row)]:
+                    x = restore_ban_mass(
+                        model, rb["to"], items, a.temperature, dev, a.max_tokens, think_ids, bans
+                    )
+                    back = ban_rollback(x, row["ban_think"])
+                    row["ban_check"] = {
+                        "to": rb["to"],
+                        "to_iter": rb["to_iter"],
+                        "restore_mass": x,
+                        "mass": row["ban_think"],
+                        "rollback": back,
+                    }
+                    if not back:
+                        rb = None
+            row["rollback"] = rb  # None: --max_rollbacks reached, the restore check, or the stop
+        # an alarm the restore check let through: checkpointed as no alarm (below)
+        passed = "ban_check" in row and not row["ban_check"]["rollback"]
         with open(out / "metrics.jsonl", "a") as f:
             f.write(json.dumps(row) + "\n")
         history.append(row)
@@ -1536,7 +1655,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             print(f"guard it {it}: " + "; ".join(guard) + f"; capped {cap_b}", flush=True)
         for msg in row["alarms"]:
             print(f"ALARM it {it}: {msg}", flush=True)
-        if row["alarms"] and a.rollback_on_alarm and rb is None:
+        if "ban_check" in row:
+            print(_ban_check_line(it, row["ban_check"]), flush=True)
+        elif row["alarms"] and a.rollback_on_alarm and rb is None and not stop:
             print(f"ALARM it {it}: no rollback (--max_rollbacks {a.max_rollbacks} reached)")
         if dumping:  # before the checkpoints: a checkpoint of iteration i implies its dump
             assert len(item_att) == len(items), "dump: items vs attempts"
@@ -1574,7 +1695,13 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         model.eval()
         meta = {**extra, "grpo_iter": it, "grpo_init": a.init, "args": vars(a)}
         saved = False
-        if row["alarms"]:
+        # An alarm the restore check let through is checkpointed like an iteration without alarms:
+        # no alarm checkpoint, and its rolling or permanent checkpoint is good (`ls.last_good`).
+        # Its restore point was over the limit too, so the next check compares with these weights
+        # and a later rollback restores them rather than older ones. A stop saves the alarm
+        # checkpoint (its weights and training state) and nothing else.
+        alarmed = (bool(row["alarms"]) and not passed) or stop
+        if alarmed:
             save_ckpt(
                 str(ckdir / f"{a.name}_it{it}_alarm.pt"),
                 model,
@@ -1583,6 +1710,13 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 train_state=snapshot(it),
             )
             saved = True
+        if stop:
+            print(
+                f"STOP it {it}: think banned mass {row['ban_think']:.3g} > {a.ban_stop:g}: "
+                "ending the run",
+                flush=True,
+            )
+            break
         if rb is not None:  # the alarm checkpoint holds this iteration's weights; restore
             ck = torch.load(str(rb["to"]), map_location=dev)
             model.load_state_dict(ck["state"])
@@ -1594,7 +1728,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 f"lr x{ls.lr_scale:g} from the next iteration ({ls.rollbacks}/{a.max_rollbacks})",
                 flush=True,
             )
-        good = not row["alarms"] or rb is not None
+        good = not alarmed or rb is not None
         if it % a.save_every == 0 or it == last:
             p = ckdir / f"{a.name}_it{it}.pt"
             save_ckpt(str(p), model, tok.mode, extra=meta, train_state=snapshot(it))
@@ -1722,6 +1856,19 @@ def parser() -> argparse.ArgumentParser:
     )
     g.add_argument("--max_rollbacks", type=int, default=3)
     g.add_argument(
+        "--ban_restore_check",
+        action="store_true",
+        help="a think ban alarm alone does not roll back when the restore point's mass on the "
+        "iteration's think tokens is over the limit too and the iteration's is under "
+        "BAN_SPIKE (2) x it",
+    )
+    g.add_argument(
+        "--ban_stop",
+        type=float,
+        default=0.0,
+        help="end the run (exit code 3) when the think ban mass exceeds this (0: off)",
+    )
+    g.add_argument(
         "--kl_anchor_coef",
         type=float,
         default=0.0,
@@ -1773,8 +1920,8 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    run(parser().parse_args(argv))
-    return 0
+    hist = run(parser().parse_args(argv))
+    return STOP_EXIT if hist and "stop" in hist[-1] else 0  # --ban_stop ended the run
 
 
 if __name__ == "__main__":
