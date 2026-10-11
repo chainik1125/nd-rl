@@ -11,24 +11,22 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-10, 12:10 pm PDT)
+## Running (updated 2026-10-10, 10:30 pm PDT)
 
 **Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
 verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
 curriculum 10–12 lines, then 13–15; GRPO on both the thinking (S1g3) and no-think (T0S) models; priorities: GRPO vs
 EI in a fair setup, what each change buys, then the model-chosen think budget.
 
-All `grpo_v2/line.sh`, seed 0 unless noted; reads as in the v2 section below.
+All `grpo_v2/line.sh`; reads as in the v2 section below. `_h`: GRPO lr 7.5e-5 instead of 1.5e-4 in both stages.
 
 | job | GPU | ETA | why |
 |---|---|---|---|
-| `grpo_think_vs`: GRPO + verifier without redraws, thinking | 4 | ~12:40 pm (reads) | the verifier redesign (7:09 am entry). One canary rollback at L2 it 3 (P(':') 29× base): back to it 0, lr × 0.5 for the rest of L2 |
-| `ei_think`: plain EI, thinking | 0 | ~4 pm | the matched counterpart of plain `grpo_think` |
-| `ei_nothink_v` seed 1: EI + verifier, no thinking | 2 | ~2:30 pm | second seed |
-| `ei_think` seed 1: plain EI, thinking | 3 | ~7 pm | second seed of the thinking plain pair (`grpo_think` has seeds 0 and 1) |
-| `grpo_nothink` then `ei_nothink`, seed 1 | 1 | ~7:30 pm | second seed of the no-think plain pair |
-| `grpo_think_vs` seed 1 | 4, after seed 0 | ~7 pm | second seed of the no-redraw thinking arm |
-| `grpo_nothink_vs3`: no-redraw verifier, no thinking, plus 3-premise rewrites at a third of each iteration | 2, after `ei_nothink_v` seed 1 | ~6 pm | mechanism test: does seeing third premise lines fix the no-think failure? |
+| `grpo_think_h` seed 0: plain GRPO, thinking, half rate | 0 | ~4 am (reads) | does a lower rate help GRPO? Also the matched-rate control for `grpo_think_vs` seed 0 (L2 at ½ after its canary rollback) |
+| `grpo_think_h` seed 1 | 1 | ~4 am | second seed |
+| `grpo_think_vs_h` seed 0: GRPO + verifier (stop), thinking, half rate | 2 | ~4 am | the verifier's effect at a matched rate |
+| `grpo_think_vs_h` seed 1 | 3 | ~4 am | second seed |
+| `grpo_nothink_h` seed 1: plain GRPO, no thinking, half rate | 4 | ~1 am | does the rate explain no-think seed 1's 21.0% (seed 0 28.7%)? |
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
 
@@ -160,6 +158,14 @@ arm): `grpo_think_h` and `grpo_think_vs_h` seeds 0 and 1 on GPUs 0–3, `grpo_no
 GPU-hours, done about 4 am. Plain seed 0 is also the matched-rate control for `grpo_think_vs` seed 0. **Asked Leon
 (needs his explicit yes, not covered by the 30-minute rule):** skip a rollback when the checkpoint it would restore is
 itself over the think-ban limit, keep logging the alarm, and stop the run above 0.005.
+
+**10:30 pm, 2026-10-10 (proposed at 10:00 pm; no reply in 30 minutes).** Launched the half-rate runs on the
+30-minute rule: `grpo_think_h` seeds 0 and 1 (GPUs 0, 1), `grpo_think_vs_h` seeds 0 and 1 (GPUs 2, 3), `grpo_nothink_h`
+seed 1 (GPU 4); queue logs `logs/v2_queue_gpu{0..4}e.log`. `line.sh` now has the `_h` arms (every output name keeps
+`_h`) and the read-exit fix. A dry-run harness (stubbed python, recorded argv, outputs and files) found the 11
+existing arms unchanged (44/44 normal and smoke runs, seeds 0 and 1) and each `_h` arm equal to its base arm apart from
+`--lr` (28/28); CPU smoke passed for `grpo_think_h` and `grpo_think_vs_h`. Previous copy `line.sh.bak_20261010_2228`.
+The think-ban alarm is unchanged (Leon's call).
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
