@@ -10,11 +10,14 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | arm | 13–20 lines (986): pass@1 / pass@5 | 16–20 lines: pass@1 / pass@5 | textbook72: pass@1 / pass@5 | Charles149: pass@1 / pass@5 | hand-proved 14: pass@1 / pass@5 | 21–30 lines (1,000): pass@1 / pass@5 |
 |---|---|---|---|---|---|---|
 | GRPO, thinking | 29.3 [27.3, 31.2] / 52.8 [50.2, 55.4] (s0,1) | 22.2 [20.0, 24.4] / 44.6 [41.4, 47.9] (s0,1) | 72.3 [63.7, 80.7] / 82.7 [74.0, 90.1] (s0,1) | 69.3 [62.7, 75.5] / 79.5 [72.9, 85.6] (s0,1) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0,1) | 5.4 [4.5, 6.3] / 14.1 [12.1, 16.1] (s0,1) |
+| GRPO, half lr, thinking | — | — | — | — | — | — |
 | GRPO + verifier (redraw), thinking | 14.9 [13.3, 16.6] / 30.9 [28.4, 33.5] (s0) | 9.2 [7.8, 10.7] / 22.4 [19.8, 25.2] (s0) | 61.5 [51.1, 71.3] / 72.0 [62.4, 81.0] (s0) | 53.9 [46.9, 60.8] / 65.6 [58.3, 72.5] (s0) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0) | 1.7 [1.2, 2.3] / 5.1 [3.9, 6.3] (s0) |
 | GRPO + verifier (stop), thinking | 33.0 [29.4, 36.6] / 57.0 [53.6, 60.4] (s0,1) | 26.6 [22.1, 31.3] / 50.1 [45.0, 55.3] (s0,1) | 75.5 [67.0, 83.3] / 85.8 [78.4, 92.3] (s0,1) | 69.1 [62.5, 75.3] / 77.8 [71.0, 84.0] (s0,1) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0,1) | 7.1 [5.2, 9.2] / 18.2 [14.6, 22.0] (s0,1) |
+| GRPO + verifier (stop), half lr, thinking | — | — | — | — | — | — |
 | EI, thinking | 31.3 [29.4, 33.4] / 55.9 [53.2, 58.4] (s0,1) | 25.2 [22.9, 27.5] / 48.6 [45.4, 51.9] (s0,1) | 71.4 [60.8, 81.2] / 80.9 [71.5, 89.4] (s0,1) | 63.7 [56.9, 70.4] / 75.2 [68.6, 81.5] (s0,1) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0,1) | 6.3 [5.3, 7.4] / 17.4 [15.0, 19.9] (s0,1) |
 | EI + verifier, thinking | 31.0 [28.2, 33.8] / 55.7 [51.7, 59.5] (s0,1) | 24.6 [21.7, 27.7] / 48.3 [43.9, 52.7] (s0,1) | 71.0 [60.7, 80.5] / 81.2 [71.9, 89.3] (s0,1) | 63.5 [56.7, 70.0] / 74.9 [68.3, 81.0] (s0,1) | 0.1 [0.0, 0.2] / 0.3 [0.0, 1.1] (s0,1) | 7.2 [5.5, 9.1] / 18.9 [15.3, 22.8] (s0,1) |
 | GRPO, no thinking | 24.9 [19.6, 30.1] / 42.5 [34.3, 50.5] (s0,1) | 19.6 [13.9, 25.4] / 36.0 [27.4, 44.6] (s0,1) | 66.1 [56.2, 75.6] / 74.3 [64.8, 83.1] (s0,1) | 58.2 [51.0, 65.1] / 69.8 [61.7, 77.0] (s0,1) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0,1) | 5.0 [3.7, 6.5] / 12.4 [9.7, 15.3] (s0,1) |
+| GRPO, half lr, no thinking | 21.6 [19.7, 23.7] / 37.9 [35.1, 40.6] (s1) | 15.3 [13.2, 17.4] / 29.6 [26.3, 32.8] (s1) | 62.0 [51.9, 71.5] / 71.2 [61.2, 80.8] (s1) | 56.1 [48.7, 63.3] / 66.5 [59.1, 73.4] (s1) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s1) | 3.3 [2.6, 4.2] / 8.5 [6.9, 10.1] (s1) |
 | GRPO + verifier (redraw), no thinking | 4.4 [3.4, 5.5] / 9.0 [7.4, 10.6] (s0) | 1.7 [1.1, 2.4] / 4.4 [3.1, 5.7] (s0) | 50.1 [39.4, 60.7] / 57.6 [46.7, 68.1] (s0) | 40.2 [33.1, 47.3] / 49.9 [42.3, 57.5] (s0) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0) | 0.2 [0.1, 0.4] / 0.6 [0.2, 1.1] (s0) |
 | GRPO + verifier (stop), no thinking | 19.9 [18.0, 21.7] / 39.2 [36.5, 41.8] (s0) | 14.5 [12.6, 16.5] / 31.3 [28.1, 34.3] (s0) | 65.5 [55.6, 74.9] / 75.1 [65.7, 83.9] (s0) | 57.2 [50.2, 64.0] / 71.6 [65.0, 77.5] (s0) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0) | 2.1 [1.6, 2.6] / 6.8 [5.5, 8.2] (s0) |
 | GRPO + verifier (stop) + 3-premise rows, no thinking | 29.4 [27.3, 31.7] / 48.5 [45.8, 51.4] (s0) | 22.4 [19.8, 24.9] / 39.8 [36.3, 43.2] (s0) | 62.0 [52.1, 71.5] / 72.2 [62.6, 81.4] (s0) | 59.6 [52.8, 66.2] / 73.6 [67.0, 79.8] (s0) | 0.2 [0.0, 0.7] / 1.1 [0.0, 3.2] (s0) | 5.3 [4.3, 6.4] / 12.2 [10.3, 14.0] (s0) |
@@ -138,6 +141,16 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | GRPO, no thinking | 1 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
 | GRPO, no thinking | 0 | plain | 21–30 lines (1,000) | 1000 | 5.9 [4.9, 6.9] | 14.0 [12.1, 16.0] |
 | GRPO, no thinking | 1 | plain | 21–30 lines (1,000) | 1000 | 4.2 [3.4, 5.0] | 10.9 [9.1, 12.6] |
+| GRPO, half lr, no thinking | 1 | plain | 13–20 lines (986) | 986 | 21.6 [19.7, 23.7] | 37.9 [35.1, 40.6] |
+| GRPO, half lr, no thinking | 1 | guided | 13–20 lines (986) | 986 | 39.3 [36.8, 41.8] | 56.9 [54.0, 59.7] |
+| GRPO, half lr, no thinking | 1 | plain | 16–20 lines | 616 | 15.3 [13.2, 17.4] | 29.6 [26.3, 32.8] |
+| GRPO, half lr, no thinking | 1 | guided | 16–20 lines | 616 | 32.2 [29.2, 35.1] | 49.7 [46.1, 53.1] |
+| GRPO, half lr, no thinking | 1 | plain | textbook72 | 72 | 62.0 [51.9, 71.5] | 71.2 [61.2, 80.8] |
+| GRPO, half lr, no thinking | 1 | guided | textbook72 | 72 | 72.1 [62.8, 80.7] | 78.7 [69.3, 87.5] |
+| GRPO, half lr, no thinking | 1 | plain | Charles149 | 149 | 56.1 [48.7, 63.3] | 66.5 [59.1, 73.4] |
+| GRPO, half lr, no thinking | 1 | guided | Charles149 | 149 | 66.7 [59.7, 73.4] | 75.0 [68.3, 81.2] |
+| GRPO, half lr, no thinking | 1 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| GRPO, half lr, no thinking | 1 | plain | 21–30 lines (1,000) | 1000 | 3.3 [2.6, 4.2] | 8.5 [6.9, 10.1] |
 | GRPO + verifier (redraw), no thinking | 0 | plain | 13–20 lines (986) | 986 | 4.4 [3.4, 5.5] | 9.0 [7.4, 10.6] |
 | GRPO + verifier (redraw), no thinking | 0 | guided | 13–20 lines (986) | 986 | 18.8 [16.9, 20.8] | 32.5 [29.8, 35.2] |
 | GRPO + verifier (redraw), no thinking | 0 | plain | 16–20 lines | 616 | 1.7 [1.1, 2.4] | 4.4 [3.1, 5.7] |
@@ -507,6 +520,26 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | no thinking: EI + verifier − EI | plain | 21–30 lines (1,000) | 0 | -0.4 [-1.3, +0.4] | -0.7 [-2.8, +1.4] |
 | no thinking: EI + verifier − EI | plain | 21–30 lines (1,000) | 1 | +0.2 [-0.5, +1.0] | -0.1 [-2.0, +1.7] |
 | no thinking: EI + verifier − EI | plain | 21–30 lines (1,000) | 0,1 | -0.1 [-1.0, +0.8] | -0.4 [-2.2, +1.3] |
+| no thinking: GRPO, half lr − GRPO | plain | 13–20 lines (986) | 1 | +0.7 [-0.9, +2.3] | +1.7 [-0.6, +4.0] |
+| no thinking: GRPO, half lr − GRPO | guided | 13–20 lines (986) | 1 | +1.2 [-0.8, +3.3] | -0.0 [-2.6, +2.4] |
+| no thinking: GRPO, half lr − GRPO | plain | 16–20 lines | 1 | -0.1 [-1.9, +1.6] | +0.1 [-2.6, +2.8] |
+| no thinking: GRPO, half lr − GRPO | guided | 16–20 lines | 1 | +0.8 [-1.7, +3.2] | -1.3 [-4.4, +1.8] |
+| no thinking: GRPO, half lr − GRPO | plain | textbook72 | 1 | -2.2 [-6.1, +1.5] | -1.8 [-5.2, +1.3] |
+| no thinking: GRPO, half lr − GRPO | guided | textbook72 | 1 | +1.3 [-3.7, +6.1] | +1.5 [-2.4, +5.3] |
+| no thinking: GRPO, half lr − GRPO | plain | Charles149 | 1 | -0.8 [-4.8, +3.4] | -0.4 [-4.7, +3.9] |
+| no thinking: GRPO, half lr − GRPO | guided | Charles149 | 1 | +1.2 [-3.1, +5.5] | -0.6 [-4.5, +3.7] |
+| no thinking: GRPO, half lr − GRPO | plain | hand-proved 14 | 1 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| no thinking: GRPO, half lr − GRPO | plain | 21–30 lines (1,000) | 1 | -0.9 [-1.6, -0.1] | -2.4 [-4.0, -0.7] |
+| no thinking, curriculum only: GRPO, half lr − EI | plain | 13–20 lines (986) | 1 | -2.5 [-4.2, -0.8] | -7.1 [-9.4, -4.7] |
+| no thinking, curriculum only: GRPO, half lr − EI | guided | 13–20 lines (986) | 1 | -2.0 [-4.1, +0.2] | -6.1 [-8.7, -3.6] |
+| no thinking, curriculum only: GRPO, half lr − EI | plain | 16–20 lines | 1 | -3.2 [-5.1, -1.2] | -8.2 [-11.2, -5.1] |
+| no thinking, curriculum only: GRPO, half lr − EI | guided | 16–20 lines | 1 | -2.0 [-4.7, +0.6] | -6.7 [-10.0, -3.4] |
+| no thinking, curriculum only: GRPO, half lr − EI | plain | textbook72 | 1 | +2.3 [-4.3, +8.6] | -0.5 [-7.0, +5.8] |
+| no thinking, curriculum only: GRPO, half lr − EI | guided | textbook72 | 1 | +3.8 [-3.0, +10.5] | +1.7 [-4.8, +8.0] |
+| no thinking, curriculum only: GRPO, half lr − EI | plain | Charles149 | 1 | +1.2 [-3.9, +6.1] | -2.0 [-7.5, +3.5] |
+| no thinking, curriculum only: GRPO, half lr − EI | guided | Charles149 | 1 | -1.6 [-6.5, +3.1] | -3.7 [-8.6, +1.1] |
+| no thinking, curriculum only: GRPO, half lr − EI | plain | hand-proved 14 | 1 | -0.1 [-0.3, +0.0] | -0.6 [-1.7, +0.0] |
+| no thinking, curriculum only: GRPO, half lr − EI | plain | 21–30 lines (1,000) | 1 | -0.9 [-1.7, +0.0] | -4.4 [-6.3, -2.4] |
 
 ## 4. What each change buys (thinking, plain reads, seeds paired)
 
@@ -580,6 +613,12 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | no thinking: EI + verifier − EI | 16–20 lines | 0,1 | -0.1 [-2.0, +1.8] | +0.5 [-2.1, +3.1] | +1.4 [-2.6, +5.5] | +2.4 [-2.4, +7.5] ‡ |
 | no thinking: EI + verifier − EI | textbook72 | 0,1 | +2.5 [-1.1, +6.0] | +2.3 [-0.9, +5.7] | +2.4 [-0.9, +6.1] | +2.1 [-1.6, +6.5] |
 | no thinking: EI + verifier − EI | Charles149 | 0,1 | +4.9 [+1.4, +8.5] | +4.8 [+1.2, +8.8] | +4.5 [+0.4, +9.3] | +3.9 [-0.8, +9.4] |
+| no thinking: GRPO, half lr − GRPO | 16–20 lines | 1 | -0.5 [-2.8, +1.9] | -0.4 [-3.1, +2.5] | +0.0 [-3.3, +3.4] | +1.1 [-2.4, +4.9] ‡ |
+| no thinking: GRPO, half lr − GRPO | textbook72 | 1 | -2.3 [-5.8, +0.6] | -2.5 [-6.3, +0.6] | -2.4 [-7.0, +1.5] | -1.7 [-7.0, +2.7] |
+| no thinking: GRPO, half lr − GRPO | Charles149 | 1 | -0.9 [-5.2, +3.6] | -0.1 [-4.8, +4.7] | +1.0 [-3.8, +6.1] | +2.3 [-2.9, +7.9] |
+| no thinking, curriculum only: GRPO, half lr − EI | 16–20 lines | 1 | -7.1 [-9.8, -4.4] | -9.4 [-12.6, -6.3] | -11.2 [-15.0, -7.5] | -10.9 [-15.1, -6.8] ‡ |
+| no thinking, curriculum only: GRPO, half lr − EI | textbook72 | 1 | -2.0 [-8.6, +4.4] | -3.7 [-10.4, +2.8] | -4.3 [-10.7, +2.1] | -4.3 [-11.2, +2.5] |
+| no thinking, curriculum only: GRPO, half lr − EI | Charles149 | 1 | -1.9 [-7.4, +3.6] | -1.5 [-7.1, +3.9] | -1.3 [-6.8, +3.9] | -1.1 [-6.5, +4.1] |
 
 ## 6. 13–20 by premise count (plain reads; the v2 pools have 0–2 premises)
 
@@ -591,6 +630,7 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | EI | 0,1 | 44.2 [38.3, 50.3] | 27.9 [25.4, 30.5] | 0% |
 | EI + verifier | 0,1 | 43.7 [39.2, 48.4] | 27.5 [24.4, 30.9] | 0% |
 | GRPO, no thinking | 0,1 | 38.6 [31.9, 45.5] | 21.1 [15.7, 26.7] | 0% |
+| GRPO, half lr, no thinking | 1 | 35.1 [30.3, 40.3] | 18.0 [16.0, 20.1] | 1% |
 | GRPO + verifier (redraw), no thinking | 0 | 14.4 [10.6, 18.5] | 1.7 [1.2, 2.3] | 64% |
 | GRPO + verifier (stop), no thinking | 0 | 46.1 [41.0, 51.4] | 12.8 [11.3, 14.3] | 43% |
 | GRPO + verifier (stop) + 3-premise rows, no thinking | 0 | 41.4 [36.5, 46.6] | 26.2 [23.8, 28.6] | 0% |
@@ -613,37 +653,77 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 - `groups_skipped` means different things with and without the step penalty; compare the
   arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.
 
-Rows not there yet (32):
+Rows not there yet (72):
 
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_h_s0_logical_k64/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_h_s0_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_v_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_v_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_vs3_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_vs3_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_vs_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_nothink_vs_s1_plain_k64/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_h_s0_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_h_s0_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_h_s1_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_h_s1_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_v_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_v_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_vs_h_s0_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_vs_h_s0_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_vs_h_s1_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/charles173_grpo_think_vs_h_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_nothink_h_s0_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_nothink_v_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_nothink_vs3_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_nothink_vs_s1_plain_k64/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_h_s0_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_h_s1_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_v_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_vs_h_s0_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/hand14_grpo_think_vs_h_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_h_s0_logical_k16/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_h_s0_plain_k16/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_v_s1_logical_k16/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_v_s1_plain_k16/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_vs3_s1_logical_k16/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_vs3_s1_plain_k16/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_vs_s1_logical_k16/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_nothink_vs_s1_plain_k16/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_h_s0_logical_k16/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_h_s0_plain_k16/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_h_s1_logical_k16/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_h_s1_plain_k16/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_v_s1_logical_k16/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_v_s1_plain_k16/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_vs_h_s0_logical_k16/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_vs_h_s0_plain_k16/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_vs_h_s1_logical_k16/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t1320_grpo_think_vs_h_s1_plain_k16/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_nothink_h_s0_plain_k8/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_nothink_v_s1_plain_k8/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_nothink_vs3_s1_plain_k8/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_nothink_vs_s1_plain_k8/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_h_s0_plain_k8/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_h_s1_plain_k8/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_v_s1_plain_k8/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_vs_h_s0_plain_k8/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/t2130_grpo_think_vs_h_s1_plain_k8/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_h_s0_logical_k64/rows_logical_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_h_s0_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_v_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_v_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_vs3_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_vs3_s1_plain_k64/rows_plain_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_vs_s1_logical_k64/rows_logical_B0.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_nothink_vs_s1_plain_k64/rows_plain_B0.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_h_s0_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_h_s0_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_h_s1_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_h_s1_plain_k64/rows_plain_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_v_s1_logical_k64/rows_logical_B64.jsonl`
 - `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_v_s1_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_vs_h_s0_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_vs_h_s0_plain_k64/rows_plain_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_vs_h_s1_logical_k64/rows_logical_B64.jsonl`
+- `/scratch/cowifornia/nd-rl/think/runs/eval/v2/tb72_grpo_think_vs_h_s1_plain_k64/rows_plain_B64.jsonl`

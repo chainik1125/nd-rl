@@ -62,14 +62,18 @@ class ArmSpec:
 # "redraw": the logical arm redraws a rejected step (at most 10); "stop": the first rejected step
 # ends the attempt (--max_rej 0). Both put the 0.1 step penalty on rejected steps. "+ 3-premise
 # rows": a third of each iteration's groups from pools/curriculum_3p (goal antecedents moved into
-# the premises, `curriculum/uncurry3.py`).
+# the premises, `curriculum/uncurry3.py`). "half lr": GRPO lr 7.5e-5 instead of 1.5e-4 in both
+# stages (`line.sh` arms ending `_h`). Thinking arms come first (fig_summary splits the rows there).
 ARMS = [
     ArmSpec("grpo_think", "GRPO", "grpo", True),
+    ArmSpec("grpo_think_h", "GRPO, half lr", "grpo", True),
     ArmSpec("grpo_think_v", "GRPO + verifier (redraw)", "grpo", True),
     ArmSpec("grpo_think_vs", "GRPO + verifier (stop)", "grpo", True),
+    ArmSpec("grpo_think_vs_h", "GRPO + verifier (stop), half lr", "grpo", True),
     ArmSpec("ei_think", "EI", "ei", True),
     ArmSpec("ei_think_v", "EI + verifier", "ei", True),
     ArmSpec("grpo_nothink", "GRPO", "grpo", False),
+    ArmSpec("grpo_nothink_h", "GRPO, half lr", "grpo", False),
     ArmSpec("grpo_nothink_v", "GRPO + verifier (redraw)", "grpo", False),
     ArmSpec("grpo_nothink_vs", "GRPO + verifier (stop)", "grpo", False),
     ArmSpec("grpo_nothink_vs3", "GRPO + verifier (stop) + 3-premise rows", "grpo", False),
@@ -132,6 +136,26 @@ COMPARE = [
     ),
     ("thinking: EI + verifier − EI", "ei_think_v", "ei_think"),
     ("no thinking: EI + verifier − EI", "ei_nothink_v", "ei_nothink"),
+    ("thinking: GRPO, half lr − GRPO", "grpo_think_h", "grpo_think"),
+    (
+        "thinking: GRPO + verifier (stop), half lr − GRPO + verifier (stop)",
+        "grpo_think_vs_h",
+        "grpo_think_vs",
+    ),
+    ("no thinking: GRPO, half lr − GRPO", "grpo_nothink_h", "grpo_nothink"),
+    (
+        "thinking: GRPO + verifier (stop), half lr − GRPO, half lr",
+        "grpo_think_vs_h",
+        "grpo_think_h",
+    ),
+    ("thinking, curriculum only: GRPO, half lr − EI", "grpo_think_h", "ei_think"),
+    ("thinking: GRPO + verifier (stop), half lr − EI", "grpo_think_vs_h", "ei_think"),
+    (
+        "thinking: GRPO + verifier (stop), half lr − EI + verifier",
+        "grpo_think_vs_h",
+        "ei_think_v",
+    ),
+    ("no thinking, curriculum only: GRPO, half lr − EI", "grpo_nothink_h", "ei_nothink"),
 ]
 CHAIN = {
     "grpo": [
@@ -431,8 +455,9 @@ def _seed_means(ld: Loader, arm: str, s: str, k: int) -> tuple[list[float], floa
 
 def fig_summary(ld: Loader, out: Path) -> None:
     rows = [(a, f"{a.label}{'' if a.think else ' (no thinking)'}") for a in ARMS]
+    n_think = sum(a.think for a in ARMS)
     with S.paper_style():
-        fig = S.new_figure(S.FULL_W, 2.4, layout="constrained")
+        fig = S.new_figure(S.FULL_W, 0.6 + 0.17 * len(rows), layout="constrained")
         axs = fig.subplots(1, len(FIG_SETS), sharey=True, squeeze=False)[0]
         rng = np.random.default_rng(0)
         for j, s in enumerate(FIG_SETS):
@@ -480,10 +505,10 @@ def fig_summary(ld: Loader, out: Path) -> None:
                         fontsize=S.FS_TICK,
                         color=GRAY,
                     )
-            ax.axhline(1.5, color=S.GRID, lw=0.8)
+            ax.axhline(len(rows) - n_think - 0.5, color=S.GRID, lw=0.8)  # thinking | no thinking
             S.panel_title(ax, "abc"[j], SET[s].title)
             ax.set_xlim(0, 1)
-            S.pct_axis(ax, "x")
+            S.pct_axis(ax, "x", nbins=2)
             S.light_grid(ax, "x")
             ax.set_ylim(-0.6, len(rows) - 0.4)
         axs[0].set_yticks(range(len(rows)), [lab for _, lab in rows][::-1])

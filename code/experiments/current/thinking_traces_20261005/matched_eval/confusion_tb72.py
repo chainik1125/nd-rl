@@ -83,6 +83,9 @@ def v2_pairs(read: str) -> list[Pair]:
         ("no thinking, curriculum only", "ei_nothink", "grpo_nothink", 0),
         ("no thinking + verifier (redraw)", "ei_nothink_v", "grpo_nothink_v", 0),
         ("no thinking + verifier (stop)", "ei_nothink_v", "grpo_nothink_vs", 0),
+        ("thinking, curriculum only, GRPO at half lr", "ei_think", "grpo_think_h", 64),
+        ("thinking + verifier (stop), GRPO at half lr", "ei_think_v", "grpo_think_vs_h", 64),
+        ("no thinking, curriculum only, GRPO at half lr", "ei_nothink", "grpo_nothink_h", 0),
     ):
         out.append(Pair(f"v2, {title}, seed 0", _v2(read, ei, 0, b), _v2(read, grpo, 0, b)))
     return out

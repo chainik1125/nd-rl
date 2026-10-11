@@ -11,7 +11,7 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-11, 12:06 am PDT)
+## Running (updated 2026-10-11, 1:05 am PDT)
 
 **Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
 verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
@@ -23,11 +23,10 @@ All `grpo_v2/line.sh`; reads as in the v2 section below. `_h`: GRPO lr 7.5e-5 in
 | job | GPU | ETA | why |
 |---|---|---|---|
 | `grpo_think_h` seed 0: plain GRPO, thinking, half rate | 0 | ~4 am (reads) | does a lower rate help GRPO? Also the matched-rate control for `grpo_think_vs` seed 0 (L2 at ½ after its canary rollback) |
-| `grpo_think_h` seed 1 | 1 | ~4 am | second seed |
+| `grpo_think_h` seed 1 | 1 | ~4 am | second seed; L3 at ⅛ of the half rate from it 6 (think-ban alarm) |
 | `grpo_think_vs_h` seed 0: GRPO + verifier (stop), thinking, half rate | 2 | ~4 am | the verifier's effect at a matched rate |
 | `grpo_think_vs_h` seed 1 | 3 | ~4 am | second seed |
-| `grpo_nothink_h` seed 1: plain GRPO, no thinking, half rate | 4 | ~1 am | does the rate explain no-think seed 1's 21.0% (seed 0 28.7%)? |
-| `grpo_nothink_h` seed 0 | 4, after seed 1 | ~4 am | completes the no-think half-rate pair: full-rate seed 0 ran part of L2 at ½ after a rollback, seed 1 ran at full rate throughout |
+| `grpo_nothink_h` seed 0: plain GRPO, no thinking, half rate | 4, from 12:58 am | ~4 am | completes the no-think half-rate pair: full-rate seed 0 ran part of L2 at ½ after a rollback, seed 1 ran at full rate throughout |
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
 
@@ -173,6 +172,17 @@ healthy with no alarm or rollback: thinking runs at L2 it 18–22, `grpo_nothink
 it 9. Queued `grpo_nothink_h` seed 0 on GPU 4 behind seed 1's queue (`logs/v2_queue_gpu4f.log`; about 1 am → 4 am).
 Why: the full-rate no-think pair is not rate-matched (seed 0, 28.7%, ran part of L2 at ½ after a rollback; seed 1,
 21.0%, kept the full rate), so with seed 1 alone a half-rate gain cannot be told from a rescued bad seed.
+
+**1:05 am, 2026-10-11.** `grpo_nothink_h` seed 1 (no rate cut in either stage), 13–20 plain pass@1 / pass@5: 21.6 /
+37.9 against 21.0 / 36.1 at the full rate (+0.7 [−0.9, +2.3] / +1.7 [−0.6, +4.0]); textbook72 62.0 (64.2; −2.2
+[−6.1, +1.5]); Charles149 56.1 (56.9); 21–30 3.3 (4.2; −0.9 [−1.6, −0.1]); − EI seed 1 −2.5 [−4.2, −0.8] / −7.1.
+So the rate does not explain no-think seed 1's weak run (EI also drops from seed 0 to seed 1, 27.2 → 24.1).
+`grpo_nothink_h` seed 0 started at 12:58 am. Thinking runs: L2 clean in all four (lr × 1). In L3 `grpo_think_h` s1
+hit the think-ban alarm at it 3–5 (mass 0.00104–0.0012): 3 rollbacks, lr × 0.125 from it 6, and the alarm fired
+again at it 12 with no rollback left; the other three were clean at it 2–10. Ban mass (mean, × 10⁻³): seed-0 runs
+0.02–0.08 throughout; seed 1 starts L2 at 0.12, and plain GRPO climbs to 0.4–0.6 by L2 it 39 at either rate (stop
+arm 0.5 at the full rate, 0.1 at half), then about doubles on L3 prompts (0.8–1.4), around the fixed 1e-3 limit.
+A rollback to L3 it 0 cannot clear it. The alarm change still waits for Leon.
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
