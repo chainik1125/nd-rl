@@ -60,7 +60,9 @@ class ArmSpec:
 
 
 # "redraw": the logical arm redraws a rejected step (at most 10); "stop": the first rejected step
-# ends the attempt (--max_rej 0). Both put the 0.1 step penalty on rejected steps.
+# ends the attempt (--max_rej 0). Both put the 0.1 step penalty on rejected steps. "+ 3-premise
+# rows": a third of each iteration's groups from pools/curriculum_3p (goal antecedents moved into
+# the premises, `curriculum/uncurry3.py`).
 ARMS = [
     ArmSpec("grpo_think", "GRPO", "grpo", True),
     ArmSpec("grpo_think_v", "GRPO + verifier (redraw)", "grpo", True),
@@ -70,6 +72,7 @@ ARMS = [
     ArmSpec("grpo_nothink", "GRPO", "grpo", False),
     ArmSpec("grpo_nothink_v", "GRPO + verifier (redraw)", "grpo", False),
     ArmSpec("grpo_nothink_vs", "GRPO + verifier (stop)", "grpo", False),
+    ArmSpec("grpo_nothink_vs3", "GRPO + verifier (stop) + 3-premise rows", "grpo", False),
     ArmSpec("ei_nothink", "EI", "ei", False),
     ArmSpec("ei_nothink_v", "EI + verifier", "ei", False),
 ]
@@ -112,6 +115,21 @@ COMPARE = [
     ("thinking: GRPO + verifier (stop) − GRPO", "grpo_think_vs", "grpo_think"),
     ("thinking: GRPO + verifier (stop) − EI + verifier", "grpo_think_vs", "ei_think_v"),
     ("no thinking: GRPO + verifier (stop) − EI + verifier", "grpo_nothink_vs", "ei_nothink_v"),
+    (
+        "no thinking: GRPO + verifier (stop) + 3-premise rows − GRPO + verifier (stop)",
+        "grpo_nothink_vs3",
+        "grpo_nothink_vs",
+    ),
+    (
+        "no thinking: GRPO + verifier (stop) + 3-premise rows − GRPO",
+        "grpo_nothink_vs3",
+        "grpo_nothink",
+    ),
+    (
+        "no thinking: GRPO + verifier (stop) + 3-premise rows − EI + verifier",
+        "grpo_nothink_vs3",
+        "ei_nothink_v",
+    ),
     ("thinking: EI + verifier − EI", "ei_think_v", "ei_think"),
     ("no thinking: EI + verifier − EI", "ei_nothink_v", "ei_nothink"),
 ]

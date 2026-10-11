@@ -127,6 +127,40 @@ the C rows as `--targets_extra` at a third of each iteration's groups; CPU smoke
 Sub-problem check: 12 of the 986 13–20 items (8 of the 1,000 21–30 items) contain a part (main proof or lemma) that is a
 renamed or curried twin of an L2/L3 row; dropping them moves no arm's 13–20 pass@1 by more than 0.2 points.
 
+**1:10 pm, 2026-10-10.** `grpo_nothink` seed 1, 13–20 plain: 21.0% (seed 0 28.7%), lower at every premise count, no
+PR-position failures; EI + verifier also drops between these two inits (28.3 → 24.2). The two GRPO runs whose stage 1
+ran at half rate after a rollback were then the best seeds (`grpo_think_vs` s0, `grpo_nothink` s0). **Proposed:** a
+matched-rate control (plain `grpo_think` s0, stage 1 at half rate). Not launched: no timer was set for the 30-minute
+deadline, so nothing ran, and the GPUs sat idle from 5:20 pm.
+
+**10:00 pm, 2026-10-10.** All five runs ended cleanly: `ei_think` s0 2:51 pm, `grpo_nothink_vs3` s0 3:25 pm,
+`ei_think` s1 3:30 pm, `ei_nothink` s1 4:23 pm, `grpo_think_vs` s1 5:20 pm. 13–20 plain, pass@1 / pass@5, seed 0 and
+seed 1; paired differences over both seeds unless noted (tables: [matched_eval/v2_results.md](matched_eval/v2_results.md)).
+- **Thinking, plain pair:** EI 31.1 / 55.3 and 31.6 / 56.5; GRPO 29.1 / 52.4 and 29.4 / 53.2. GRPO − EI −2.1 [−3.6,
+  −0.6] / −3.1 [−5.1, −1.1] (seed 0 −2.0, seed 1 −2.1); textbook72 +0.9 [−6.6, +9.6]; Charles149 +5.6 [+1.2, +10.0].
+- **`grpo_think_vs` seed 1:** 30.8 / 55.4. − plain GRPO: seed 1 +1.4 [+0.3, +2.4] (seed 0 +6.1); both seeds +3.7
+  [+0.7, +7.0] / +4.2 [+1.3, +7.3]; textbook72 +3.2 [+0.2, +6.8]; Charles149 −0.2 [−2.3, +1.8]. − plain EI +1.7 [−1.9,
+  +5.2]; − EI + verifier +2.1 [−2.7, +6.8].
+- **`grpo_nothink_vs3` seed 0:** 29.4 / 48.5. 3-premise problems 26.2% (stop arm 12.8%), PR-position 0% (43%); 0–2
+  premises 41.4% (46.1%). − stop arm +9.6 [+7.7, +11.5]; − plain GRPO +0.7 [−1.1, +2.5]; − EI + verifier +1.3 [−0.8,
+  +3.4] / −5.6 [−8.2, −2.9]; textbook72 62.0% (plain GRPO 68.1%, −6.1 [−12.5, −0.0]); Charles149 59.6% (59.6%). One
+  grad-norm rollback at L2 it 38. The rewrites fix the third-premise failure, but the arm only matches plain GRPO.
+- **No thinking, plain pair:** GRPO 28.7 / 48.8 and 21.0 / 36.1; EI 27.2 / 51.9 and 24.1 / 45.0; GRPO − EI −0.8
+  [−4.3, +2.9] / −6.0 [−10.5, −1.4].
+- **Learning-rate cuts:** of the five thinking GRPO runs only `grpo_think` s0 kept the full rate. In `grpo_think` s1
+  and `grpo_think_vs` s1 the think-ban alarm fired at L3 it 1–3 (mass 0.0012–0.0014 > 0.001 whatever the rate, so the
+  starting checkpoint is over the limit and the rollback to it 0 cannot clear it): L3 at ⅛ from it 4. `grpo_think_v`
+  s0: L3 at ¼ (it 17, 19); `grpo_think_vs` s0: L2 at ½ (canary, it 3). The seed-1 stop-vs-plain pair is therefore
+  nearly rate-matched (+1.4); the seed-0 pair is not (+6.1).
+- **`line.sh` logging bug:** `read1` printed `exit $?` after `$(basename …)`, so every read line said exit 0. No
+  `v2_eval` log has a traceback; fixed in the next `line.sh`.
+
+**Proposed at 10:00 pm (30-minute rule):** half-rate GRPO (`_h` arms: lr 7.5e-5 in both stages, all else as the base
+arm): `grpo_think_h` and `grpo_think_vs_h` seeds 0 and 1 on GPUs 0–3, `grpo_nothink_h` seed 1 on GPU 4; about 24
+GPU-hours, done about 4 am. Plain seed 0 is also the matched-rate control for `grpo_think_vs` seed 0. **Asked Leon
+(needs his explicit yes, not covered by the 30-minute rule):** skip a rollback when the checkpoint it would restore is
+itself over the think-ban limit, keep logging the alarm, and stop the run above 0.005.
+
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
