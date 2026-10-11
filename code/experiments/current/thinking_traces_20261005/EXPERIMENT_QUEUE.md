@@ -11,7 +11,7 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-10, 10:30 pm PDT)
+## Running (updated 2026-10-11, 12:06 am PDT)
 
 **Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
 verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
@@ -27,6 +27,7 @@ All `grpo_v2/line.sh`; reads as in the v2 section below. `_h`: GRPO lr 7.5e-5 in
 | `grpo_think_vs_h` seed 0: GRPO + verifier (stop), thinking, half rate | 2 | ~4 am | the verifier's effect at a matched rate |
 | `grpo_think_vs_h` seed 1 | 3 | ~4 am | second seed |
 | `grpo_nothink_h` seed 1: plain GRPO, no thinking, half rate | 4 | ~1 am | does the rate explain no-think seed 1's 21.0% (seed 0 28.7%)? |
+| `grpo_nothink_h` seed 0 | 4, after seed 1 | ~4 am | completes the no-think half-rate pair: full-rate seed 0 ran part of L2 at ½ after a rollback, seed 1 ran at full rate throughout |
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
 
@@ -166,6 +167,12 @@ seed 1 (GPU 4); queue logs `logs/v2_queue_gpu{0..4}e.log`. `line.sh` now has the
 existing arms unchanged (44/44 normal and smoke runs, seeds 0 and 1) and each `_h` arm equal to its base arm apart from
 `--lr` (28/28); CPU smoke passed for `grpo_think_h` and `grpo_think_vs_h`. Previous copy `line.sh.bak_20261010_2228`.
 The think-ban alarm is unchanged (Leon's call).
+
+**12:06 am, 2026-10-11 (proposed at 11:34 pm; no reply in 30 minutes).** At 11:32 pm all five half-rate runs were
+healthy with no alarm or rollback: thinking runs at L2 it 18–22, `grpo_nothink_h` s1 through L2 at lr × 1 and at L3
+it 9. Queued `grpo_nothink_h` seed 0 on GPU 4 behind seed 1's queue (`logs/v2_queue_gpu4f.log`; about 1 am → 4 am).
+Why: the full-rate no-think pair is not rate-matched (seed 0, 28.7%, ran part of L2 at ½ after a rollback; seed 1,
+21.0%, kept the full rate), so with seed 1 alone a half-rate gain cannot be told from a rescued bad seed.
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
