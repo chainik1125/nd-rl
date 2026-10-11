@@ -11,7 +11,7 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-11, 1:05 am PDT)
+## Running (updated 2026-10-11, 2:15 am PDT)
 
 **Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
 verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
@@ -26,6 +26,7 @@ All `grpo_v2/line.sh`; reads as in the v2 section below. `_h`: GRPO lr 7.5e-5 in
 | `grpo_think_h` seed 1 | 1 | ~4 am | second seed; L3 at ⅛ of the half rate from it 6 (think-ban alarm) |
 | `grpo_think_vs_h` seed 0: GRPO + verifier (stop), thinking, half rate | 2 | ~4 am | the verifier's effect at a matched rate |
 | `grpo_think_vs_h` seed 1 | 3 | ~4 am | second seed |
+| `grpo_think_h_b` seed 1: L3 of `grpo_think_h` s1 again, from its L2 checkpoint, new think-ban rule | 1, after `grpo_think_h` s1 | ~6:45 am | seed 1 of plain GRPO at half rate without the alarm's lr cuts: the rate-matched partner of `grpo_think_vs_h` s1 |
 | `grpo_nothink_h` seed 0: plain GRPO, no thinking, half rate | 4, from 12:58 am | ~4 am | completes the no-think half-rate pair: full-rate seed 0 ran part of L2 at ½ after a rollback, seed 1 ran at full rate throughout |
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
@@ -183,6 +184,24 @@ again at it 12 with no rollback left; the other three were clean at it 2–10. B
 0.02–0.08 throughout; seed 1 starts L2 at 0.12, and plain GRPO climbs to 0.4–0.6 by L2 it 39 at either rate (stop
 arm 0.5 at the full rate, 0.1 at half), then about doubles on L3 prompts (0.8–1.4), around the fixed 1e-3 limit.
 A rollback to L3 it 0 cannot clear it. The alarm change still waits for Leon.
+
+**2:12 am, 2026-10-11 (alarm change approved by Leon after the 1:05 am report: "do alarm change").** `leon/grpo-v2`
+`e027354` (pushed): `--ban_restore_check`: when the think-ban alarm is an iteration's only alarm and a rollback is
+due, the iteration's items are scored under the restore point's weights; no rollback (alarm still logged; the
+iteration is checkpointed as one without alarms) when that mass is over 1e-3 too and the iteration's is under
+`BAN_SPIKE` = 2 × it. The spike clause goes beyond what Leon approved (a spike still rolls back) and was told to him.
+`--ban_stop 0.005`: the stage ends with exit code 3 (alarm checkpoint only) and the line stops. Defaults keep the old
+behaviour. Checks: 17 new tests, `code/tests/thinking` 417 passed / 2 skipped, ruff and pyright clean; CPU smoke
+on `grpo_think_h_s1_L2_it39.pt` with L3 rows (mass 0.0012 at its start): skip and stop both fire; with the check off
+the same run rolls back twice to it 0. `grpo_v2/line.sh`: both flags on every GRPO stage launched from now on (the
+running stages keep the old rule), and `ARM_b` arms: L3 of ARM again from ARM's L2 checkpoint, refused for EI,
+without that checkpoint, or when ARM's L2 log does not end at `lr x1 (0 rollbacks)`. Dry-run harness: the 22 arms ×
+2 seeds × normal / smoke unchanged apart from the two flags (88/88), `_b` commands as specified (56/56), refusals
+(52/52). Previous copy `line.sh.bak_20261011_0212`. Queued `grpo_think_h_b` seed 1 on GPU 1 after `grpo_think_h` s1
+(`logs/v2_queue_gpu1f.log`; proposed at 1:05 am and 1:35 am, 30-minute rule; about 3:30 am → 6:45 am).
+Also seen by 2:06 am: `grpo_nothink_h` s0 rolled back once in L2 (canary P(':') at it 24, lr × 0.5; full-rate s0: a
+grad-norm rollback at it 14). `grpo_think_h` s1's L3 mass rose to 2.1–2.2e-3 at it 22–25 (lr × 0.125) and fell back
+to 0.8e-3 by it 31; the full-rate seed-1 runs fell from 1.3e-3 to 0.2e-3 over L3.
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
