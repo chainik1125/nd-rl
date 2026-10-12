@@ -203,6 +203,11 @@ Staying problems were expected to keep 60 to 85 % of their solved count; observe
 - 27 of the 71 modified problems have "unknown" shortcut status (the 10 s search timed out). A shortcut can only make
   a problem easier, so it cannot produce the observed losses.
 - One of the 72 is absent from the modified set; Robbie's original-set figures are over 72, the paired bins over 71.
+  It is the one problem that already has four premises. Its premises are inconsistent and its reference proof is
+  20 lines; the 10 s minimal-length search timed out, so the builder used 20 as the minimum, and since explosion
+  gives much shorter proofs every distracted draw was flagged as a "shortcut" (replay over 18 fresh draws: 16
+  shortcut, 2 timeout, 0 accepted). A false rejection by the check, not a problem that cannot take distractors.
+  It would have gone from four premises to six, a crossing problem, so its absence does not affect the 0-of-25 result.
 - Dan's checkpoints were judged by the pinned verifier, not by his Lean judge; the original-set count (49 of 71)
   matches the Lean-gated 2026-10-02 figure (49 of 72), so the judge did not move the number.
 - Per-problem results stay in the gitignored `docs/textbook-problem/textbook72/` (sample dumps, hit counts); nothing
