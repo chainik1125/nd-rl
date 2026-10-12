@@ -15,3 +15,6 @@
   Stage-1); nothing was killed, nothing is running. Dan's r8 seeds 1 and 2 NOT launched. Results in results.md.
 PAUSED 2026-10-10 05:40 UTC (seeds 1 and 2 of Dan's r8 pending; relaunch with the command in
 code/pretrain_data/textbook72_distract_eval_dan.py for --ckpt la_T1_best12_s1_r8 and _s2_r8)
+- 2026-10-12: release folder `data/pretrain_data/release_2026-10-12_textbook72_distract2/` built (README, distractors +
+  apply script with hash check, examples on non-sealed exercises, metrics, MANIFEST); the modified problems themselves
+  stay out of git (sealed-set rule) and are rebuilt by `apply_distractors.py`. Still PAUSED: Dan's r8 seeds 1 and 2 not run.

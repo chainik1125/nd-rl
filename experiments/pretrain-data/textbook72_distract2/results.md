@@ -57,3 +57,11 @@ Original-set numbers reproduce the earlier figures under the same evaluators (d3
   output format more often; part of the mechanism may be formatting rather than reasoning. Dan's sampler reports no
   parse-failure rate per set.
 - One problem of the 72 is absent from the distracted set.
+
+## Release
+
+Shareable folder: `data/pretrain_data/release_2026-10-12_textbook72_distract2/` (README with the construction, four
+worked examples on non-sealed *forall x* exercises, the models with hashes, the protocol and every metric;
+`distractors.jsonl` + `apply_distractors.py` rebuild the modified set from the sealed files and check its canonical
+sha256 `5f91d124…`; `metrics/summary.json` recomputes the tables above, with 95 % intervals over problems for Dan's
+checkpoints: original 0.378 ± 0.088 / distracted 0.140 ± 0.061 for r8 s0, 0.124 ± 0.061 / 0.040 ± 0.027 for Stage-1).

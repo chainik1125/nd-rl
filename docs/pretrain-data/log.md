@@ -465,3 +465,19 @@ slice figure of 0.69 on 128 prompts implied a few might be). `code/pretrain_data
 the distract10 slice stratified by premise count (120 at 4, 60 at 5, 120 at ≤ 3), pass@32 on Robbie's base, Dan's
 Stage-1 and Dan's r8 s0. Four-plus prompts: 0 of 180 on every model (0 of 5,760 samples each); ≤ 3: 101 / 112 / 119
 of 120. Recorded in pools.md; doc corrected. No model has solved a four-or-more-premise prompt in any run.
+
+## 2026-10-12 — textbook72_distract2 release folder
+
+Charles: a separate folder for the distracted-72 experiment, pushed so others can see it, with a README (summary,
+examples of the modification, the models, exact metrics). Built `data/pretrain_data/release_2026-10-12_textbook72_distract2/`
+with `code/pretrain_data/textbook72_distract_release.py`. The modified problems contain the sealed 72 verbatim, so
+they are not committed: the folder ships `distractors.jsonl` (two added premises and their positions per problem, no
+original content) and a standard-library `apply_distractors.py` that rebuilds the set from the fetched sealed files
+and checks a canonical sha256 (`5f91d124…`; rebuild verified, 71 of 71 prompts identical). Examples use four
+*forall x: Calgary* exercises from `candidate_v0` (not sealed) through the same `distract_one` (factored out of the
+builder, behaviour unchanged). Checked on the way: the original reference proof does not verify on the modified
+prompt (every premise needs its `PR` line), so a modified problem's proof is the original plus two lines. MANIFEST
+records checkpoint sources and hashes (Robbie: HF `robbiethompson2018/nd-rl-checkpoints` snapshot b55351ac, runs
+scale-d384/d768-p1200_s0; Dan: `best-state/ckpts/bs/stage1_best12_s0_b1200.pt` and `…/ladder/la_T1_best12_s0_r8.pt`).
+Added 95 % intervals over problems for Dan's checkpoints from the gitignored hit counts. Experiment stays PAUSED.
+Next: Dan's r8 seeds 1 and 2 when Charles resumes; the premise-pool Stage-1 (prediction ≥ 40 of 71 after the ladder).

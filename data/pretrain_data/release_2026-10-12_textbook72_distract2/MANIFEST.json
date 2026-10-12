@@ -1,0 +1,129 @@
+{
+ "release": "2026-10-12",
+ "experiment": "experiments/pretrain-data/textbook72_distract2",
+ "built_by": "code/pretrain_data/textbook72_distract_release.py",
+ "sealed_inputs": {
+  "source": "origin/dmitry/cap-comparison-textbook-eval-data:code/experiments/archived/cap_comparison_20260910/evaluation",
+  "files": {
+   "textbook_dev.jsonl": {
+    "sha256": "1b04192d8a2d91b488a0884ccb096004003dbfcf40bb7aea55caa81c3f3cf53c",
+    "records": 58
+   },
+   "textbook_train.jsonl": {
+    "sha256": "e6a219e076184cc14d7c29eae1c9a6fd42d0552d6faca2d50d64da819b60a538",
+    "records": 14
+   }
+  },
+  "restore": "bash code/ws3/textbook72/fetch.sh"
+ },
+ "distracted_set": {
+  "n": 71,
+  "of": 72,
+  "builder": "code/pretrain_data/textbook72_distract.py",
+  "seed": 0,
+  "canonical_keys": [
+   "name",
+   "prompt",
+   "base_prompt",
+   "n_prem_orig",
+   "n_prem",
+   "n_distract",
+   "role",
+   "slice"
+  ],
+  "canonical_sha256": "5f91d124c32c2abab2478323c88858d547ebf35e526b2dbd155116f4fdf776e7",
+  "rebuild": "python apply_distractors.py",
+  "premises_before": {
+   "0": 16,
+   "1": 30,
+   "2": 22,
+   "3": 3
+  },
+  "premises_after": {
+   "2": 16,
+   "3": 30,
+   "4": 22,
+   "5": 3
+  },
+  "crossing_to_4plus": 25,
+  "staying_le3": 46,
+  "shortcut_check": {
+   "no_shortcut": 44,
+   "unknown": 27
+  },
+  "minimal_length_status": {
+   "found": 45,
+   "ref": 15,
+   "timeout": 11
+  },
+  "mean_prompt_tokens": {
+   "original": 28.1,
+   "distracted": 45.4
+  }
+ },
+ "files": {
+  "distractors.jsonl": "5017eb2d7aa1cbf45e63e20ae1d45bcbfab3bd954b809e5374379e23daa09c4c",
+  "examples.jsonl": "7733c589779093bc9f05bc556b31137d475b03e5f8835a6bc6ea81b50dc6ee7b",
+  "apply_distractors.py": "f9c0c0104ef8dcd1ccce254dcc3806d3dc0206ada01257c41c32a0d6384c683d"
+ },
+ "models": {
+  "robbie": {
+   "scale-d384-p1200_s0": {
+    "repo": "robbiethompson2018/nd-rl-checkpoints",
+    "snapshot": "b55351ac598af600e90a76ef8310e77971125afb",
+    "file": "runs/scale-d384-p1200_s0/pretrain.pt",
+    "sha256": "447fab6c269017669427bfc8cd3101d398994ec7f6ad82d5e23b4c75e4a0060c",
+    "n_params": 9557760,
+    "arch": {
+     "n_layer": 6,
+     "d": 384,
+     "n_head": 8,
+     "d_ff": 1280
+    },
+    "tok_mode": "lean_seq",
+    "harness_sha": "1508dd4b72c2",
+    "pretrain_sha": "6bdbe0047ac4"
+   },
+   "scale-d768-p1200_s0": {
+    "repo": "robbiethompson2018/nd-rl-checkpoints",
+    "snapshot": "b55351ac598af600e90a76ef8310e77971125afb",
+    "file": "runs/scale-d768-p1200_s0/pretrain.pt",
+    "sha256": "5297ea76bc87c479090e2cb4ab5850baa3d73126090e6862b96a8c60972f2f79",
+    "n_params": 37989888,
+    "arch": {
+     "n_layer": 6,
+     "d": 768,
+     "n_head": 12,
+     "d_ff": 2560
+    },
+    "tok_mode": "lean_seq",
+    "harness_sha": "1508dd4b72c2",
+    "pretrain_sha": "3194489316d8"
+   }
+  },
+  "dan": {
+   "stage1_best12_s0_b1200": {
+    "bucket": "hf://buckets/dan-pandori/nd-rl",
+    "file": "best-state/ckpts/bs/stage1_best12_s0_b1200.pt",
+    "sha256": "2a2a9407eb8ad321cec4d90ba609f9c0deca529b73d7f2a407d0b7ccc5a9c040",
+    "n_params": 9560832,
+    "format": "lean_staten proof-state format, Dan's nd-takehome at 0c492902"
+   },
+   "la_T1_best12_s0_r8": {
+    "bucket": "hf://buckets/dan-pandori/nd-rl",
+    "file": "best-state/ckpts/bs/ladder/la_T1_best12_s0_r8.pt",
+    "sha256": "a992485e436a85bbf51d7a1ffdf5b0b8fe789433c11f6faa4568413d2ca75971",
+    "n_params": 9560832,
+    "format": "lean_staten proof-state format, Dan's nd-takehome at 0c492902"
+   }
+  }
+ },
+ "protocol": {
+  "k": 32,
+  "temperature": 1.0,
+  "seed": 0,
+  "verifier": "pinned nd_verify via code/textbook_problem/strict_verify.py",
+  "robbie": "code/textbook_problem/eval_ckpt.py --sets textbook72,textbook72_distract2 --k 32 --temp 1.0 --max-new 400 (lean_seq, free sampling)",
+  "dan": "code/pretrain_data/textbook72_distract_eval_dan.py --ckpt <ckpt> (state_sample.env_generate, 48 steps, 256 tokens per action)"
+ }
+}
