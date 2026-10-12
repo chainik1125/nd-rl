@@ -1,7 +1,7 @@
 ---
 written_on: 2026-10-11
 written_by: agent:claude
-status: approved by Dan 2026-10-11, $150 (launched as `create-or-elicit`; `create-or-elicit-paper` queued after it)
+status: approved by Dan 2026-10-11, $150; raised to $200 for the chain on 2026-10-12 (`create-or-elicit` $190 to fund the dose curve, `create-or-elicit-paper` $10)
 ---
 
 # Proposal 27: a paper on whether RL created it, and the experiments it needs
