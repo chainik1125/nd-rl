@@ -184,6 +184,17 @@ Staying problems were expected to keep 60 to 85 % of their solved count; observe
 
 ## What this means
 
+- **Added 2026-10-12: the wall is the premise block, not the reasoning.** A ladder of trivial problems at 2 to 5
+  premises (`code/pretrain_data/elementary_prem.py`, 21 problems, k 32) gives the same cliff on Dan's round-8 model
+  and on Robbie's base: 154 of 160 and 115 of 160 samples verified at two premises, 111 of 128 and 90 of 128 at
+  three, **0 of 320 at four**, 0 of 64 at five, including `P , Q , R , S ⊢ P`. The raw samples show why. Robbie's
+  base proves `P , Q , R , S ⊢ ( P & Q )` correctly in every sample but lists only three premise lines, and the
+  pinned verifier requires the premise block to equal the declared premises exactly and in order (adding the fourth
+  `PR` line makes the same proof verify). Dan's model cites `h2` as its first premise line in 25 to 32 of 32 traces
+  on four-premise prompts and his environment rejects that first action. Neither model has learned to write a
+  fourth premise line, which K12 never shows. So the 0-of-25 above measures a premise-listing habit, not an
+  inability to reason with or ignore premises; the distractor reading below holds only once a model can list four
+  premises. Details in the experiment's `results.md`, section "Mechanism".
 - The four-premise textbook cell (0 of 7 solved by the RL model in the 2026-10-02 evaluation) is a premise-count
   failure, not a premise-selection failure. Every textbook problem with two or more premises is one unused premise
   away from it.

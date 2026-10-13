@@ -481,3 +481,16 @@ records checkpoint sources and hashes (Robbie: HF `robbiethompson2018/nd-rl-chec
 scale-d384/d768-p1200_s0; Dan: `best-state/ckpts/bs/stage1_best12_s0_b1200.pt` and `…/ladder/la_T1_best12_s0_r8.pt`).
 Added 95 % intervals over problems for Dan's checkpoints from the gitignored hit counts. Experiment stays PAUSED.
 Next: Dan's r8 seeds 1 and 2 when Charles resumes; the premise-pool Stage-1 (prediction ≥ 40 of 71 after the ladder).
+
+## 2026-10-12 (later) — why the models "collapse" at four premises
+
+Charles: elementary four-premise questions, since the collapse looked weird. Built `elementary_prem.py` (21 trivial
+problems at 2–5 premises) and `elementary_trace.py` (action-by-action through Dan's environment). Dan r8 and Robbie's
+base: 154/160 and 115/160 samples verified at two premises, 111/128 and 90/128 at three, 0/320 at four, 0/64 at five.
+Raw samples: Robbie's base proves `P , Q , R , S ⊢ ( P & Q )` correctly but lists three premise lines, and the pinned
+verifier requires the PR block to equal the declared premises exactly (adding `N4 S : PR` makes it verify); Dan's
+model cites h2 as its first premise line in 25–32 of 32 traces and the environment rejects it ("PR position"). The
+wall is the premise-listing habit learned from K12 (≤ 3 premises), not reasoning. Recorded in results.md (Mechanism),
+pools.md and the release README. Also noticed: Robbie's base fails the one-line problem `P , Q ⊢ P` (0 of 32).
+Next: the premise pool Stage-1 now has a very cheap check (does the model write four PR lines); the distractor
+screens need re-reading once it does.

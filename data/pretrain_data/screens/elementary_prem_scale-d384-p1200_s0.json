@@ -1,0 +1,640 @@
+{
+ "ckpt": "scale-d384-p1200_s0",
+ "k": 32,
+ "seed": 0,
+ "problems": [
+  {
+   "label": "pick_2",
+   "prompt": "THM P , Q SEQ P PRF",
+   "n_prem": 2,
+   "solved": 0,
+   "parse_fail": 32,
+   "reasons": {
+    "LEANPARSE name": 29,
+    "LEANPARSE no-eos": 1,
+    "LEANPARSE unbound": 1,
+    "LEANPARSE expected None": 1
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE no-eos"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    }
+   ]
+  },
+  {
+   "label": "pick_3",
+   "prompt": "THM P , Q , R SEQ P PRF",
+   "n_prem": 3,
+   "solved": 1,
+   "parse_fail": 29,
+   "reasons": {
+    "LEANPARSE name": 26,
+    "ok": 1,
+    "LEANPARSE unbound": 3,
+    "rule check failed: IMPE (line 7)": 2
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    }
+   ]
+  },
+  {
+   "label": "pick_4",
+   "prompt": "THM P , Q , R , S SEQ P PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 31,
+   "reasons": {
+    "LEANPARSE name": 17,
+    "LEANPARSE no-eos": 13,
+    "premise block does not match declared premises": 1,
+    "LEANPARSE unbound": 1
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    }
+   ]
+  },
+  {
+   "label": "pick_4_last",
+   "prompt": "THM P , Q , R , S SEQ S PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 21,
+   "reasons": {
+    "LEANPARSE unbound": 17,
+    "premise block does not match declared premises": 11,
+    "LEANPARSE name": 3,
+    "LEANPARSE formula": 1
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "LEANPARSE unbound"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & R ) : ANDI N1 N3 ; N5 | R : AS ; N6 | S : IMPE N4 N3 ; N7 ( R > S ) : IMPI N5 N6 ; N8 S : IMPE N7 N3 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 | R : AS ; N5 | S : BOTE N3 ; N6 ( R > S ) : IMPI N4 N5 ; N7 S : IMPE N6 N2 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "pick_5",
+   "prompt": "THM P , Q , R , S , ( P & Q ) SEQ P PRF",
+   "n_prem": 5,
+   "solved": 0,
+   "parse_fail": 14,
+   "reasons": {
+    "LEANPARSE name": 7,
+    "premise block does not match declared premises": 18,
+    "LEANPARSE unbound": 6,
+    "LEANPARSE expected ;": 1
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( R & R ) : ANDI N3 N3 ; N5 ( R & ( P & Q ) ) : ANDI N3 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE unbound"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 | R : AS ; N5 | ( P & Q ) : ANDI N1 N2 ; N6 ( R > ( P & Q ) ) : IMPI N4 N5 ; N7 ( P & Q ) : IMPE N6 N2 ; N8 ( P & Q ) : IMPE N7 N3 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "and_2",
+   "prompt": "THM P , Q SEQ ( P & Q ) PRF",
+   "n_prem": 2,
+   "solved": 31,
+   "parse_fail": 1,
+   "reasons": {
+    "ok": 31,
+    "LEANPARSE name": 1
+   },
+   "samples": [
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 ( P & Q ) : ANDI N1 N2 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "and_3",
+   "prompt": "THM P , Q , R SEQ ( P & Q ) PRF",
+   "n_prem": 3,
+   "solved": 30,
+   "parse_fail": 2,
+   "reasons": {
+    "ok": 30,
+    "LEANPARSE name": 1,
+    "LEANPARSE unbound": 1
+   },
+   "samples": [
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "and_4",
+   "prompt": "THM P , Q , R , S SEQ ( P & Q ) PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 0,
+   "reasons": {
+    "premise block does not match declared premises": 32
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "and_4_ends",
+   "prompt": "THM P , Q , R , S SEQ ( P & S ) PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 12,
+   "reasons": {
+    "premise block does not match declared premises": 20,
+    "LEANPARSE name": 3,
+    "LEANPARSE unbound": 8,
+    "LEANPARSE expected )": 1
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 | R : AS ; N5 | ( P & S ) : ANDI N1 N3 ; N6 ( R > ( P & S ) ) : IMPI N4 N5 ; N7 ( P & S ) : IMPE N6 N3 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 | R : AS ; N5 | ( P & S ) : ANDI N1 N3 ; N6 ( R > ( P & S ) ) : IMPI N4 N5 ; N7 ( P & S ) : IMPE N6 N1 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 | R : AS ; N5 | P : R N1 ; N6 ( R > P ) : IMPI N4 N5 ; N7 S : IMPE N6 N3 ; N8 ( P & S ) : ANDI N1 N7 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    }
+   ]
+  },
+  {
+   "label": "and_4_all",
+   "prompt": "THM P , Q , R , S SEQ ( ( P & Q ) & ( R & S ) ) PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 4,
+   "reasons": {
+    "premise block does not match declared premises": 28,
+    "LEANPARSE formula": 1,
+    "LEANPARSE unbound": 2,
+    "LEANPARSE name": 1
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; N5 ( R & S ) : ANDI N3 N2 ; N6 ( ( P & Q ) & ( R & S ) ) : ANDI N4 N5 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( R & S ) : ANDI N3 N2 ; N5 ( P & Q ) : ANDI N1 N2 ; N6 ( ( P & Q ) & ( R & S ) ) : ANDI N5 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; N5 ( ( P & Q ) & ( R & S ) ) : ANDI N4 N3 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; N5 ( ( P & Q ) & ( R & S ) ) : ANDI N4 N2 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "mp_2",
+   "prompt": "THM P , ( P > Q ) SEQ Q PRF",
+   "n_prem": 2,
+   "solved": 32,
+   "parse_fail": 0,
+   "reasons": {
+    "ok": 32
+   },
+   "samples": [
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "mp_3",
+   "prompt": "THM P , ( P > Q ) , R SEQ Q PRF",
+   "n_prem": 3,
+   "solved": 27,
+   "parse_fail": 0,
+   "reasons": {
+    "ok": 27,
+    "rule check failed: R (line 4)": 4,
+    "rule check failed: IMPE (line 7)": 1
+   },
+   "samples": [
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "mp_4",
+   "prompt": "THM P , ( P > Q ) , R , S SEQ Q PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 2,
+   "reasons": {
+    "premise block does not match declared premises": 30,
+    "LEANPARSE name": 2
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "mp_4_mid",
+   "prompt": "THM R , P , S , ( P > Q ) SEQ Q PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 23,
+   "reasons": {
+    "premise block does not match declared premises": 9,
+    "LEANPARSE expected ;": 1,
+    "LEANPARSE name": 4,
+    "LEANPARSE unbound": 18
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 R : PR ; N2 P : PR ; N3 S : PR ; N4 | S : AS ; N5 | Q : IMPE N4 N2 ; N6 ( S > Q ) : IMPI N4 N5 ; N7 Q : IMPE N6 N2 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE expected ;"
+    },
+    {
+     "ok": false,
+     "body": "N1 R : PR ; N2 P : PR ; N3 S : PR ; N4 ( S > Q ) : R N3 ; N5 Q : IMPE N4 N2 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 R : PR ; N2 P : PR ; N3 S : PR ; N4 ( S & ( R & P ) ) : ANDI N3 N1 ; N5 ( S & ( R & P ) ) : ANDI N3 N4 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "mp_5",
+   "prompt": "THM P , ( P > Q ) , R , S , ( R > S ) SEQ Q PRF",
+   "n_prem": 5,
+   "solved": 0,
+   "parse_fail": 1,
+   "reasons": {
+    "premise block does not match declared premises": 31,
+    "LEANPARSE name": 1
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : BOTE N1 ; N4 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 Q : IMPE N2 N1 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "chain_2",
+   "prompt": "THM P , ( P > Q ) SEQ Q PRF",
+   "n_prem": 2,
+   "solved": 32,
+   "parse_fail": 0,
+   "reasons": {
+    "ok": 32
+   },
+   "samples": [
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "chain_3",
+   "prompt": "THM P , ( P > Q ) , ( Q > R ) SEQ R PRF",
+   "n_prem": 3,
+   "solved": 32,
+   "parse_fail": 0,
+   "reasons": {
+    "ok": 32
+   },
+   "samples": [
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 Q : IMPE N2 N1 ; N5 R : IMPE N3 N4 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 Q : IMPE N2 N1 ; N5 R : IMPE N3 N4 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 Q : IMPE N2 N1 ; N5 R : IMPE N3 N4 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 Q : IMPE N2 N1 ; N5 R : IMPE N3 N4 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "chain_4",
+   "prompt": "THM P , ( P > Q ) , ( Q > R ) , ( R > S ) SEQ S PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 4,
+   "reasons": {
+    "premise block does not match declared premises": 28,
+    "LEANPARSE name": 1,
+    "LEANPARSE exact not last": 1,
+    "LEANPARSE unbound": 2
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 Q : IMPE N2 N1 ; N5 R : IMPE N3 N4 ; N6 S : IMPE N3 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 Q : IMPE N2 N1 ; N5 R : IMPE N3 N4 ; N6 ( R > S ) : IMPE N3 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE name"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 Q : IMPE N2 N1 ; N5 R : IMPE N3 N4 ; N6 S : IMPE N3 N4 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "chain_4_rev",
+   "prompt": "THM ( R > S ) , ( Q > R ) , ( P > Q ) , P SEQ S PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 14,
+   "reasons": {
+    "premise block does not match declared premises": 18,
+    "LEANPARSE unbound": 9,
+    "LEANPARSE name": 5
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 ( R > S ) : PR ; N2 ( Q > R ) : PR ; N3 ( P > Q ) : PR ; N4 Q : IMPE N3 N2 ; N5 S : IMPE N1 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 ( R > S ) : PR ; N2 ( Q > R ) : PR ; N3 ( P > Q ) : PR ; N4 Q : IMPE N3 N2 ; N5 S : IMPE N1 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "LEANPARSE unbound"
+    },
+    {
+     "ok": false,
+     "body": "N1 ( R > S ) : PR ; N2 ( Q > R ) : PR ; N3 ( P > Q ) : PR ; N4 Q : IMPE N3 N2 ; N5 S : IMPE N1 N4 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "ori_2",
+   "prompt": "THM P , Q SEQ ( P v R ) PRF",
+   "n_prem": 2,
+   "solved": 20,
+   "parse_fail": 2,
+   "reasons": {
+    "ok": 20,
+    "LEANPARSE unbound": 1,
+    "rule check failed: IMPE (line 4)": 2,
+    "rule check failed: IMPI (line 4)": 1,
+    "rule check failed: DN (line 4)": 1,
+    "rule check failed: IMPE (line 6)": 3,
+    "rule check failed: ANDI (line 4)": 1,
+    "rule check failed: NEGE (line 4)": 1,
+    "rule check failed: ANDI (line 3)": 1,
+    "LEANPARSE formula": 1
+   },
+   "samples": [
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 | Q : AS ; N4 | ( P v R ) : ORI1 N1 ; N5 ( Q > ( P v R ) ) : IMPI N3 N4 ; N6 ( P v R ) : IMPE N5 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 | Q : AS ; N4 | ( P v R ) : ORI1 N1 ; N5 ( Q > ( P v R ) ) : IMPI N3 N4 ; N6 ( P v R ) : IMPE N5 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 | Q : AS ; N4 | ( P v R ) : ORI1 N1 ; N5 ( Q > ( P v R ) ) : IMPI N3 N4 ; N6 ( P v R ) : IMPE N5 N2 ; QED"
+    },
+    {
+     "ok": true,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 | Q : AS ; N4 | ( P v R ) : ORI1 N1 ; N5 ( Q > ( P v R ) ) : IMPI N3 N4 ; N6 ( P v R ) : IMPE N5 N2 ; QED"
+    }
+   ]
+  },
+  {
+   "label": "ori_4",
+   "prompt": "THM P , Q , R , S SEQ ( P v ( Q & R ) ) PRF",
+   "n_prem": 4,
+   "solved": 0,
+   "parse_fail": 0,
+   "reasons": {
+    "premise block does not match declared premises": 32
+   },
+   "samples": [
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( Q & R ) : ANDI N2 N3 ; N5 ( P v ( Q & R ) ) : ORI2 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( Q & R ) : ANDI N2 N3 ; N5 ( P v ( Q & R ) ) : ORI2 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( Q & R ) : ANDI N2 N3 ; N5 ( P v ( Q & R ) ) : ORI2 N4 ; QED"
+    },
+    {
+     "ok": false,
+     "body": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( Q & R ) : ANDI N2 N3 ; N5 ( P v ( Q & R ) ) : ORI2 N4 ; QED"
+    }
+   ]
+  }
+ ]
+}

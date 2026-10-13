@@ -65,3 +65,37 @@ worked examples on non-sealed *forall x* exercises, the models with hashes, the 
 `distractors.jsonl` + `apply_distractors.py` rebuild the modified set from the sealed files and check its canonical
 sha256 `5f91d124…`; `metrics/summary.json` recomputes the tables above, with 95 % intervals over problems for Dan's
 checkpoints: original 0.378 ± 0.088 / distracted 0.140 ± 0.061 for r8 s0, 0.124 ± 0.061 / 0.040 ± 0.027 for Stage-1).
+
+## Mechanism (2026-10-12): the wall is the premise block, not the reasoning
+
+Charles: "make some very elementary questions with 4 premises; it seems weird that the RL model collapses". Ladder of
+21 trivial problems at 2 / 3 / 4 / 5 premises (`code/pretrain_data/elementary_prem.py`: pick one premise, conjoin two,
+one modus ponens with unused premises, chains that use every premise, ∨-introduction), k 32, T 1.0, seed 0, pinned
+verifier. Source: `data/pretrain_data/screens/elementary_prem_{la_T1_best12_s0_r8,scale-d384-p1200_s0}.json`.
+
+| samples verified / samples | 2 premises | 3 premises | 4 premises | 5 premises |
+| --- | --- | --- | --- | --- |
+| Dan r8 s0 | 154 / 160 | 111 / 128 | **0 / 320** | 0 / 64 |
+| Robbie d384 base | 115 / 160 | 90 / 128 | **0 / 320** | 0 / 64 |
+
+Even `P , Q , R , S ⊢ P` and `P , Q , R , S ⊢ ( P & Q )` are 0 of 32 on both. The raw samples show why:
+
+- Robbie's base on `P , Q , R , S ⊢ ( P & Q )` writes `N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ;
+  QED` in every sample: the proof is logically right, but it lists three premise lines and the pinned verifier
+  requires the PR block to equal the declared premises exactly and in order (`nd_verify/verify.py:158`:
+  "premise block does not match declared premises"; 28 to 32 of 32 samples per four-premise problem fail with this
+  reason). Adding `N4 S : PR` makes the same proof verify (checked). On the chain `P, P→Q, Q→R, R→S ⊢ S` it lists the
+  first three premises, then invents the fourth step.
+- Dan's r8 through his environment (`code/pretrain_data/elementary_trace.py`, 32 traces per prompt): on three
+  premises the first actions are `h1 h2 h3` in 30 of 32; on four premises the first premise line cites `h2` in 25 to
+  32 of 32 (the rest `h1` then `h3`), and the environment rejects it at once ("PR position", premise lines must be
+  h1, h2, … in order). The model's premise-listing routine starts one premise late when there are four, so it never
+  lists more than three.
+
+So no model has learned to write a fourth premise line, which K12 never shows (≤ 3 premises), and both judges
+require every premise to be listed before anything else counts. The 0-of-25 result on the distracted 72 and the
+0-of-180 on generator problems are this one habit, not a failure to reason with or ignore premises. It is still a
+data gap and the premise pool is still the fix, but the prediction becomes sharper and cheaper to test: a Stage-1
+that merely shows four- and five-premise PR blocks should remove the wall outright, and the "distractor" results
+should then be re-read as premise selection proper. Side note: Robbie's base also fails the one-line problems
+`P , Q ⊢ P` (0 of 32, "LEANPARSE name"), another shape K12 never shows.

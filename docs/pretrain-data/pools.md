@@ -726,3 +726,12 @@ fewer, pass@32 per row:
 with fewer four-plus rows. Together with the matched check (Robbie, 0 of 71) and the distracted 72 (four models,
 0 of 25 crossing problems), no model has produced an accepted proof under a prompt with four or more premises in any
 run, needed or not.
+
+**2026-10-12, the premise-count wall explained.** A ladder of trivial problems at 2–5 premises
+(`elementary_prem.py`, `elementary_trace.py`; write-up in `experiments/pretrain-data/textbook72_distract2/results.md`,
+Mechanism): both Dan's r8 and Robbie's base are 0 of 320 samples on every four-premise problem, including
+`P , Q , R , S ⊢ P`. Raw samples: Robbie's base writes the correct proof with only three PR lines and the pinned
+verifier rejects it ("premise block does not match declared premises"); Dan's model starts its premise block at h2 and
+his environment rejects the first action. Neither model has learned to write a fourth premise line, which K12 never
+shows. The wall is the PR block, not reasoning under distraction; the premise pool remains the fix, and the distractor
+screens should be re-read once a model lists four premises.
