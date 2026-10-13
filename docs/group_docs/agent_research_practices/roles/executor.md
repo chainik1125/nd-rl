@@ -6,16 +6,18 @@ written_by: agent:claude
 # Role brief: executor
 
 You run one experiment from a run brief. [POLICY.md](../POLICY.md) governs. The brief's design is a suggestion; its
-question is what matters. If a different design answers the question better, say why and use it.
+question is what matters. If a different design answers the question better, say why and use it. All of the run's
+files live in its working folder, `code/experiments/current/<run>/`
+([layout](../README.md#where-a-runs-files-live)).
 
 ## Before any compute
 
-1. **Write and commit `preregistration/<run>.md`** ([template](../templates/preregistration.md)). Include the question,
-   the design you will actually run, numeric or falsifiable expected results, the minimum detectable difference, what
-   the arms are matched on, the budget and the stop rule. The commit must predate the first job; a reviewer checks the
+1. **Write and commit `preregistration.md`** ([template](../templates/preregistration.md)). Include the question, the
+   design you will actually run, numeric or falsifiable expected results, the minimum detectable difference, what the
+   arms are matched on, the budget and the stop rule. The commit must predate the first job; the reviewer checks the
    timestamps.
-2. **Open a `STATUS.md` section for the run** with its start time. Keep it current: one dated line per milestone, so a
-   resumed session or a human can see where the run is.
+2. **Start `STATUS.md`** with the run's start time. Keep it current, one dated line per milestone, so a resumed session
+   or a person can see where the run is.
 
 ## During the run
 
@@ -26,17 +28,17 @@ question is what matters. If a different design answers the question better, say
 - **Raw files.** Pull them back often and keep every count reproducible from them. Upload large artefacts
   (checkpoints, sample dumps) to the project's external store as you go, and record their paths in `numbers.md`.
 - **Compute.** Record it per arm (POLICY § Compute), and release machines as soon as their work is pulled back.
-- **Pre-register additions.** If you add an experiment mid-run, add its expectations to the pre-registration as a
+- **Pre-register additions.** If you add an experiment mid-run, add its expectations to `preregistration.md` as a
   dated addendum before running it.
 
 ## At the end
 
-- **The write-up:** `run_<run>.md`, ≤ 400 words plus figures.
-  - State expectations against outcomes plainly, misses included.
-  - Name the model behind every number.
-  - Show proofs in Lean.
-- **Proposals:** costed ideas for what to do next go in `next_steps.md`, ranked by what they would teach.
-- **Done line:** push, then write `<RUN> DONE <UTC>` in `STATUS.md`.
+1. **Write `run_<run>.md`,** ≤ 400 words plus figures.
+   - State expectations against outcomes plainly, misses included.
+   - Name the model behind every number.
+   - Show proofs in Lean.
+2. **Write `next_steps.md`:** costed proposals for what to do next, ranked by what they would teach.
+3. **Write the done line** `<RUN> DONE <UTC>` in `STATUS.md`, then commit and push everything.
 
 A separate reviewer will re-derive your numbers **without reading your write-up first**, so leave a trail it can follow
 from raw files.

@@ -1,7 +1,12 @@
+---
+written_on: YYYY-MM-DD
+written_by: <human:Name or agent:claude>
+---
+
 # Run brief: <run-id> — <the question in a few words>
 
-Run id `<run-id>`. Working folder `code/experiments/current/<run-id>/`. Role: executor. Read
-`docs/group_docs/agent_research_practices/POLICY.md` with this brief. Authorised by <name>, <date>.
+Run id `<run-id>`. Saved as `code/experiments/current/<run-id>/BRIEF.md`, the run's working folder. Role: executor.
+Read `docs/group_docs/agent_research_practices/POLICY.md` with this brief. Authorised by <name>, <date>.
 
 - **Budget:** <dollars / GPU-hours>. Going beyond it is a question, asked with a costed default.
 - **Time:** <hard stop, or "no deadline">.
@@ -32,10 +37,10 @@ Run id `<run-id>`. Working folder `code/experiments/current/<run-id>/`. Role: ex
 
 ## Deliverables
 
-- `preregistration/<run-id>.md`, committed before any compute.
+- `preregistration.md`, committed before any compute.
 - `run_<run-id>.md` (≤ 400 words + figures), `numbers.md`, `log.md`, compute per arm, and the artefact paths.
 - `next_steps.md`.
-- The `STATUS.md` line `<RUN-ID> DONE <UTC>`.
+- The `STATUS.md` line `<RUN-ID> DONE <UTC>`, written before the final commit and push.
 
 **For the reviewer:** <what to recount first; any check specific to this run>.
 

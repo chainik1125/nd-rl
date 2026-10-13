@@ -1,3 +1,8 @@
+---
+written_on: YYYY-MM-DD
+written_by: <human:Name or agent:claude>
+---
+
 # Pre-registration — run `<run-id>`
 
 Committed <UTC>, before the first job. Brief: `<path>`.

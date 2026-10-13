@@ -11,8 +11,11 @@ You turn an open question into a run brief an executor can start from. [POLICY.m
 - the open questions the reviews list;
 - any question a person wrote.
 
-Write a proposal note in `docs/proposals/<date>-<slug>.md` and the matching run brief
-([template](../templates/run_brief.md)). A brief contains:
+**Write two files:**
+- a proposal note, `docs/proposals/<date>-<slug>.md` (create `docs/proposals/` if it doesn't exist yet);
+- the run brief, `code/experiments/current/<run>/BRIEF.md` ([template](../templates/run_brief.md)).
+
+**A brief contains:**
 - **the question,** in one paragraph;
 - **why it matters** given the standing findings;
 - **the design,** marked as a suggestion;

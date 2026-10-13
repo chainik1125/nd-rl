@@ -1,3 +1,8 @@
+---
+written_on: YYYY-MM-DD
+written_by: <human:Name or agent:claude>
+---
+
 # Claims ledger — <paper, report or run>
 
 Every number or claim a write-up may use, traced to the file that produces it and to its review status. Writers cite

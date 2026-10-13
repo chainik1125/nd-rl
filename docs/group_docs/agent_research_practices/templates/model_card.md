@@ -1,6 +1,6 @@
 ---
 written_on: YYYY-MM-DD
-written_by: <writer>
+written_by: <human:Name or agent:claude>
 ---
 
 # Model card: `<model-name>`
