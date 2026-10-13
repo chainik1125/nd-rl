@@ -11,5 +11,6 @@ for j in $jobs; do
   say "queue GPU $g: start $arm seed $s"
   bash $R/grpo_v2/line.sh $g $s $arm > $L/v2_${arm}_s$s.log 2>&1
   say "queue GPU $g: $arm seed $s exit $?: $(tail -1 $L/v2_${arm}_s$s.log | cut -c1-160)"
+  python3 $R/backup.py >> $L/backup.log 2>&1 || true  # ynez: mirror the arm's results to NFS
 done
 say "queue GPU $g done"

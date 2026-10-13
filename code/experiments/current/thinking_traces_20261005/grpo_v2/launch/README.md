@@ -15,9 +15,10 @@ backup (`/home/cowifornia/backups/nd-rl-think/`), for the restart on ynez. The r
 | file here | installed at (runtime path) | bytes | md5 | serrano evidence |
 |---|---|---|---|---|
 | `line.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/line.sh` | 11,227 | `daaea130…eb27a` | byte exact |
-| `queue.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/queue.sh` | 851 | `8acdfe27…008c` | byte exact |
+| `queue.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/queue.sh` | 851 | `8acdfe27…008c` | byte exact (commit `718188f`); ynez adds one line, below |
 | `lib.sh` | `/scratch/cowifornia/nd-rl/think/runs/followup_20261007/lib.sh` | 2,245 | `6f2aa471…ca95` | byte exact |
 | `watchdog.py` | `/scratch/cowifornia/nd-rl/think/runs/watchdog.py` | 3,786 | `2442d2b5…ab8a` | byte exact |
+| `backup.py` | `/scratch/cowifornia/nd-rl/think/runs/backup.py` | | | new on ynez (below) |
 | `dry/` | `/scratch/cowifornia/nd-rl/think/dry/` | | | the dry-run harness (below) |
 
 `grpo_v2/preflight.py`, which `line.sh` runs, was already in git (`../preflight.py`).
@@ -79,3 +80,52 @@ evidence in `evidence.json`: the ps / `/proc` capture of the live `grpo_think_h_
 serrano's harness records (full commands and per-call records of three runs, per-arm call counts), every launcher
 log line of a v2 arm (`launched …`, stage exits, `read …`, `grpo_v2 line done …`, queue lines) and every ps line of a
 v2 process.
+
+## ynez (2026-10-13)
+
+Paths are serrano's. Changes, all of them:
+
+1. `queue.sh` runs a backup pass after each arm:
+   `python3 $R/backup.py >> $L/backup.log 2>&1 || true` (one line; `line.sh`, `lib.sh` and `watchdog.py` are
+   serrano's bytes).
+2. `backup.py` is new (below).
+3. The install creates `runs/logs` and `runs/tmp` (`lib.sh` exports `TMPDIR=$R/tmp`; the queues write their logs to
+   `runs/logs`).
+
+Checked and left alone:
+
+- **4 GPUs, not 5.** Nothing assumes a count: the GPU is `queue.sh`'s and `line.sh`'s first argument, `waitfree`
+  and `watchdog.py` query `nvidia-smi -i GPU`, and `CUDA_DEVICE_ORDER=PCI_BUS_ID` makes that index the CUDA index.
+  On ynez start queues on GPUs 0-3 only.
+- **24 GB, not 48.** No script sets a memory size; batches are 1,024 for GRPO, EI and eval, as on serrano. On the
+  A40s the v2 jobs showed 9-15 GB in `nvidia-smi`, and the thinking EI L3 stages up to 20.7 GB (2026-10-10 11:30Z),
+  which leaves about 3 GB on a 3090: watch the first EI line.
+- **`waitfree`** is unchanged: under 500 MiB used and no compute process on that GPU, polled each minute for up to
+  3 h, after which the line stops. GPUs 0 and 1 held another user's 23 GB processes on 2026-10-13.
+- **`ND_LEAN=$HOME/.elan/bin/lean`** (`lib.sh`) works on ynez: `~/.elan` is on NFS (Lean 4.34.0, default
+  toolchain), and the gate runs core Lean on one temp file per chunk, with no Mathlib, lake project or oleans of
+  its own. A 3-theorem `lean_gate.check_sources` run on ynez returned `[True, False, True]` as expected.
+
+## Install (done 2026-10-13)
+
+    L=/scratch/cowifornia/nd-rl/think/nd-rl-v2/code/experiments/current/thinking_traces_20261005/grpo_v2/launch
+    R=/scratch/cowifornia/nd-rl/think/runs
+    mkdir -p $R/grpo_v2 $R/followup_20261007 $R/logs $R/tmp
+    install -m 644 $L/line.sh $L/queue.sh $R/grpo_v2/
+    install -m 755 $L/lib.sh $R/followup_20261007/
+    install -m 644 $L/watchdog.py $L/backup.py $R/
+
+## Backups (`backup.py`)
+
+One pass mirrors the small, expensive artifacts of `runs/` to `/home/cowifornia/backups/nd-rl-think-ynez/` (NFS),
+under the same relative paths, capped at 30 GB: launch scripts and logs, per-run args/metrics/dashboards, eval
+rows and summaries (`eval/v2`, `eval/matched`, `eval/tts`, `eval/charles`), final pools and test sets, Stage-1
+models, stage-final checkpoints (`*_it39.pt`, EI `*_r1.pt`) and data pickles under 2 GB. Never EI `found_*.jsonl`,
+work dirs, smoke dirs, registries, Lean gate logs, or rolling and alarm checkpoints. The docstring has the rules:
+tiers under the cap, the deletion guard against a lost `/scratch`, the 2-minute wait for fresh checkpoints, atomic
+copies, one pass at a time. Its log is `runs/logs/backup.log`; `.last_pass.json` in the backup dir has the last
+pass's counts.
+
+The queue runs a pass after every arm. An hourly loop, each pass bounded at 3 h:
+
+    nohup setsid bash -c 'while true; do timeout 10800 nice python3 /scratch/cowifornia/nd-rl/think/runs/backup.py >> /scratch/cowifornia/nd-rl/think/runs/logs/backup.log 2>&1; sleep 3600; done' > /dev/null 2>&1 < /dev/null &
