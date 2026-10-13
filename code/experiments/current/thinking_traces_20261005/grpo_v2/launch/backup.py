@@ -9,8 +9,9 @@ leon/grpo-v2). SRC = /scratch/cowifornia/nd-rl/think/runs, DST =
 crash, on the pattern of serrano's backup.py (/home/cowifornia/backups/nd-rl-think/backup.py).
 
 Selected, by tier:
-  1 launch scripts (runs/*.py, runs/*/*.sh, the files in runs/grpo_v2/), runs/logs/**, and per
-    GRPO/EI run (grpo_v2/<run>/) its args/metrics/round/canary json(l), markdown and figures
+  1 launch scripts (runs/*.py, runs/*/*.sh, the files in runs/grpo_v2/), runs/logs/**, the
+    ynez rebuild's scripts and notes (runs/rebuild_ynez/**), and per GRPO/EI run (grpo_v2/<run>/)
+    its args/metrics/round/canary json(l), markdown and figures
   2 eval rows and summaries: eval/v2/<read>/{rows_*, summary*, args*}; all of eval/matched,
     eval/tts and eval/charles
   3 final pool and test-set files: pools/** and restart*/*.jsonl (not work/gen/raw dirs)
@@ -23,9 +24,11 @@ rolling and alarm checkpoints, any single file over 2 GB.
 Cap (CAP_GB, 30): whole tiers are copied in order; the tier that crosses the cap copies its newest
 files that fit; everything after that is reported as over the cap and not copied, but a copy
 already in DST is kept.
-Mirror: a DST file no longer selected is deleted, except when that looks like a lost source (SRC
-missing or empty, or a pass that would delete over 20 files and over 25% of DST's, or over 2 GB):
-then nothing is deleted, the pass says why and exits 2 (--allow-mass-delete overrides).
+Mirror: a file this script put in DST (listed in DST/.manifest.json, with any DST file that
+already matched its source) is deleted once it is no longer selected; files others put in DST are
+never deleted. No deletion at all when that looks like a lost source (SRC missing or empty, or a
+pass that would delete over 20 files and over 25% of the managed ones, or over 2 GB): the pass
+says why and exits 2 (--allow-mass-delete overrides).
 Checkpoints and pickles modified in the last 2 minutes wait for the next pass (their DST copy
 stays); other files are copied as they are and recopied when they change. Copies are atomic (temp
 file + rename). One pass at a time: flock on DST/.backup.lock, a second pass waits up to 20 min.
@@ -51,7 +54,8 @@ RECENT_S = 120  # a half-written checkpoint or pickle is useless: wait for it
 RECENT_SUFFIX = (".pt", ".pkl")
 LOCK_WAIT_S = 1200
 MASS_N, MASS_FRAC, MASS_BYTES = 20, 0.25, 2e9
-KEEP = {".backup.lock", ".last_pass.json"}  # DST bookkeeping: never mirrored or deleted
+MANIFEST = ".manifest.json"  # the DST files this script manages (relative paths)
+KEEP = {".backup.lock", ".last_pass.json", MANIFEST}  # DST bookkeeping
 SKIP = re.compile(
     r"(^|/)(smoke|tmp|work|gen|raw|registry|src_snapshot)(/|$)|_work/|/v2_smoke/|INVALID|crashed"
     r"|(^|/)found_[^/]*\.jsonl$|(^|/)lean_gate[^/]*\.jsonl$|_rolling\.pt|_alarm\.pt|\.tmp-\d+$"
@@ -98,7 +102,7 @@ def pick() -> list[list[tuple[Path, int, float]]]:
     g = SRC / "grpo_v2"
     runs = [d for d in sorted(g.glob("*")) if d.is_dir() and d.name != "smoke"]
     t1 = files(SRC, "*.py") + files(SRC, "*.sh") + files(SRC, "*/*.sh") + files(g)
-    t1 += tree(SRC / "logs") + [p for r in runs for p in run_meta(r)]
+    t1 += tree(SRC / "logs") + tree(SRC / "rebuild_ynez") + [p for r in runs for p in run_meta(r)]
     t2 = files(SRC / "eval" / "v2", "*/*")
     t2 = [p for p in t2 if p.name.startswith(("rows_", "summary", "args"))]
     for d in ("matched", "tts", "charles"):
@@ -177,11 +181,17 @@ def main() -> int:
                 total += x[1]
             else:
                 over.append(x)  # this and every later file: not copied, an existing copy kept
-    want = {DST / p.relative_to(SRC) for p, _, _ in sel + over}
+    want = {p.relative_to(SRC).as_posix() for p, _, _ in sel + over}
+    try:
+        managed = set(json.loads((DST / MANIFEST).read_text()))
+    except (OSError, ValueError):
+        managed = set()
     now, copied, recent, nbytes = time.time(), 0, 0, 0
     for p, size, mtime in sel:
-        q = DST / p.relative_to(SRC)
+        rel = p.relative_to(SRC).as_posix()
+        q = DST / rel
         if q.exists() and q.stat().st_size == size and q.stat().st_mtime >= mtime:
+            managed.add(rel)  # ours now, even if another copy put it there
             continue
         if p.suffix in RECENT_SUFFIX and now - mtime < RECENT_S:  # may still be being written
             recent += 1
@@ -191,21 +201,28 @@ def main() -> int:
                 copy(p, q)
             except FileNotFoundError:  # gone since the listing
                 continue
+            managed.add(rel)
         copied += 1
         nbytes += size
-    have = [q for q in DST.rglob("*") if q.is_file() and q.relative_to(DST).as_posix() not in KEEP]
-    gone = [q for q in have if q not in want]
-    gone_bytes = sum(q.stat().st_size for q in gone)
+    have = {r for r in managed if (DST / r).is_file()}
+    gone = sorted(have - want)
+    gone_bytes = sum((DST / r).stat().st_size for r in gone)
     many = len(gone) > MASS_N and len(gone) > MASS_FRAC * len(have)
     mass = bool(gone) and (not sel or many or gone_bytes > MASS_BYTES)
     refused = mass and "--allow-mass-delete" not in sys.argv
     if not refused and not dry:
-        for q in gone:
-            q.unlink()
-        for d in sorted((d for d in DST.rglob("*") if d.is_dir()), key=lambda d: -len(d.parts)):
-            if not any(d.iterdir()):
+        for r in gone:
+            (DST / r).unlink()
+            for d in (DST / r).parents:  # prune the directories it leaves empty
+                if d == DST or any(d.iterdir()):
+                    break
                 d.rmdir()
     removed = 0 if refused else len(gone)
+    if not dry:
+        keep = sorted((have - set(gone)) if not refused else have)
+        tmp = DST / f".{MANIFEST}.tmp-{os.getpid()}"
+        tmp.write_text(json.dumps(keep, indent=0) + "\n")
+        os.replace(tmp, DST / MANIFEST)
     msg = (
         f"{stamp} backup{' (dry)' if dry else ''}: {len(sel)} files {total / 1e9:.2f} GB selected"
         f" (tiers {', '.join(str(len(t)) for t in tiers)});"
@@ -217,7 +234,7 @@ def main() -> int:
         msg += f"; OVER THE {CAP_GB:g} GB CAP: {len(over)} files ({gb:.2f} GB) not copied"
     if refused:
         msg += (
-            f"; REFUSED to delete {len(gone)} of {len(have)} backed-up files"
+            f"; REFUSED to delete {len(gone)} of {len(have)} managed files"
             f" ({gone_bytes / 1e9:.2f} GB): source lost? rerun with --allow-mass-delete if intended"
         )
     print(msg, flush=True)

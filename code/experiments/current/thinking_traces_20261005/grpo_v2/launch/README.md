@@ -111,20 +111,22 @@ Checked and left alone:
     L=/scratch/cowifornia/nd-rl/think/nd-rl-v2/code/experiments/current/thinking_traces_20261005/grpo_v2/launch
     R=/scratch/cowifornia/nd-rl/think/runs
     mkdir -p $R/grpo_v2 $R/followup_20261007 $R/logs $R/tmp
-    install -m 644 $L/line.sh $L/queue.sh $R/grpo_v2/
-    install -m 755 $L/lib.sh $R/followup_20261007/
-    install -m 644 $L/watchdog.py $L/backup.py $R/
+    install -m 664 $L/line.sh $L/queue.sh $R/grpo_v2/          # serrano's modes
+    install -m 775 $L/lib.sh $R/followup_20261007/
+    install -m 664 $L/watchdog.py $L/backup.py $R/
 
 ## Backups (`backup.py`)
 
 One pass mirrors the small, expensive artifacts of `runs/` to `/home/cowifornia/backups/nd-rl-think-ynez/` (NFS),
-under the same relative paths, capped at 30 GB: launch scripts and logs, per-run args/metrics/dashboards, eval
-rows and summaries (`eval/v2`, `eval/matched`, `eval/tts`, `eval/charles`), final pools and test sets, Stage-1
-models, stage-final checkpoints (`*_it39.pt`, EI `*_r1.pt`) and data pickles under 2 GB. Never EI `found_*.jsonl`,
-work dirs, smoke dirs, registries, Lean gate logs, or rolling and alarm checkpoints. The docstring has the rules:
-tiers under the cap, the deletion guard against a lost `/scratch`, the 2-minute wait for fresh checkpoints, atomic
-copies, one pass at a time. Its log is `runs/logs/backup.log`; `.last_pass.json` in the backup dir has the last
-pass's counts.
+under the same relative paths, capped at 30 GB: launch scripts and logs, the ynez rebuild's scripts and notes
+(`runs/rebuild_ynez`), per-run args/metrics/dashboards, eval rows and summaries (`eval/v2`, `eval/matched`,
+`eval/tts`, `eval/charles`), final pools and test sets, Stage-1 models, stage-final checkpoints (`*_it39.pt`, EI
+`*_r1.pt`) and data pickles under 2 GB. Never EI `found_*.jsonl`, work dirs, smoke dirs, registries, Lean gate
+logs, or rolling and alarm checkpoints. It deletes only files it manages (`.manifest.json`: what it copied, and
+any file already there that matched its source) once they leave the selection, so copies others put in the backup
+dir stay. The docstring has the rules: tiers under the cap, the deletion guard against a lost `/scratch`, the
+2-minute wait for fresh checkpoints, atomic copies, one pass at a time. Its log is `runs/logs/backup.log`;
+`.last_pass.json` in the backup dir has the last pass's counts.
 
 The queue runs a pass after every arm. An hourly loop, each pass bounded at 3 h:
 
