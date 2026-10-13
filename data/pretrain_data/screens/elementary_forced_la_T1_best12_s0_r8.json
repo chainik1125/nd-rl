@@ -1,0 +1,345 @@
+{
+ "ckpt": "la_T1_best12_s0_r8",
+ "forced": [
+  {
+   "prompt": "THM P SEQ P PRF",
+   "n_prem": 1,
+   "steps": [
+    {
+     "k": 1,
+     "p_correct": 0.01774254631823073,
+     "share_correct": 1.0,
+     "p_by_premise": {
+      "1": 0.017743
+     }
+    }
+   ],
+   "p_block": 0.01774254631823073,
+   "share_block": 1.0
+  },
+  {
+   "prompt": "THM P , Q SEQ P PRF",
+   "n_prem": 2,
+   "steps": [
+    {
+     "k": 1,
+     "p_correct": 0.017555737307759813,
+     "share_correct": 0.9999999999864708,
+     "p_by_premise": {
+      "1": 0.017556,
+      "2": 0.0
+     }
+    },
+    {
+     "k": 2,
+     "p_correct": 0.9990624632155091,
+     "share_correct": 0.9999999999993539,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.999062
+     }
+    }
+   ],
+   "p_block": 0.01753927815825493,
+   "share_block": 0.9999999999858247
+  },
+  {
+   "prompt": "THM P , Q , R SEQ P PRF",
+   "n_prem": 3,
+   "steps": [
+    {
+     "k": 1,
+     "p_correct": 0.017422704104639756,
+     "share_correct": 0.999999999974176,
+     "p_by_premise": {
+      "1": 0.017423,
+      "2": 0.0,
+      "3": 0.0
+     }
+    },
+    {
+     "k": 2,
+     "p_correct": 0.998882106493137,
+     "share_correct": 0.9999999999929035,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.998882,
+      "3": 0.0
+     }
+    },
+    {
+     "k": 3,
+     "p_correct": 0.9993982643780017,
+     "share_correct": 0.9999999998748793,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.999398
+     }
+    }
+   ],
+   "p_block": 0.017392755234998798,
+   "share_block": 0.9999999998419588
+  },
+  {
+   "prompt": "THM P , Q , R , S SEQ P PRF",
+   "n_prem": 4,
+   "steps": [
+    {
+     "k": 1,
+     "p_correct": 0.0011472796058768497,
+     "share_correct": 0.0702672588369428,
+     "p_by_premise": {
+      "1": 0.001147,
+      "2": 0.01518,
+      "3": 0.0,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 2,
+     "p_correct": 2.432467275880399e-10,
+     "share_correct": 2.4353221089180286e-10,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.998828,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 3,
+     "p_correct": 0.31055734751877934,
+     "share_correct": 0.9999309123333695,
+     "p_by_premise": {
+      "1": 2.1e-05,
+      "2": 0.0,
+      "3": 0.310557,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 4,
+     "p_correct": 4.607122461521759e-11,
+     "share_correct": 0.000447376063601513,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0
+     }
+    }
+   ],
+   "p_block": 3.992894588593074e-24,
+   "share_block": 7.65512279878186e-15
+  },
+  {
+   "prompt": "THM P , Q , R , S , ( P & Q ) SEQ P PRF",
+   "n_prem": 5,
+   "steps": [
+    {
+     "k": 1,
+     "p_correct": 0.0001598156508499915,
+     "share_correct": 0.008321278808502955,
+     "p_by_premise": {
+      "1": 0.00016,
+      "2": 0.019046,
+      "3": 0.0,
+      "4": 0.0,
+      "5": 0.0
+     }
+    },
+    {
+     "k": 2,
+     "p_correct": 8.319686225884608e-08,
+     "share_correct": 4.950670012459186e-05,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.00168,
+      "4": 0.0,
+      "5": 0.0
+     }
+    },
+    {
+     "k": 3,
+     "p_correct": 0.00021164454545398822,
+     "share_correct": 0.9993046812895906,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.000212,
+      "4": 0.0,
+      "5": 0.0
+     }
+    },
+    {
+     "k": 4,
+     "p_correct": 5.644252262141025e-11,
+     "share_correct": 0.0006707261817871367,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0,
+      "5": 0.0
+     }
+    },
+    {
+     "k": 5,
+     "p_correct": 4.552123771063168e-19,
+     "share_correct": 8.231565698603347e-12,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0,
+      "5": 0.0
+     }
+    }
+   ],
+   "p_block": 7.230258304892672e-44,
+   "share_block": 2.2728966202544085e-21
+  },
+  {
+   "prompt": "THM P , ( P > Q ) , R , S SEQ Q PRF",
+   "n_prem": 4,
+   "steps": [
+    {
+     "k": 1,
+     "p_correct": 0.0009678902631765167,
+     "share_correct": 0.6339592918998594,
+     "p_by_premise": {
+      "1": 0.000968,
+      "2": 0.000559,
+      "3": 0.0,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 2,
+     "p_correct": 2.7470482899016942e-11,
+     "share_correct": 2.7493136370418126e-11,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.999176,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 3,
+     "p_correct": 0.002266908535775358,
+     "share_correct": 0.9998795374824665,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.002267,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 4,
+     "p_correct": 8.425812567390846e-11,
+     "share_correct": 0.13691950770836853,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0
+     }
+    }
+   ],
+   "p_block": 5.078532155266596e-27,
+   "share_block": 2.386155089740865e-12
+  },
+  {
+   "prompt": "THM ( P > Q ) , ( Q > R ) , P , ( R > S ) SEQ S PRF",
+   "n_prem": 4,
+   "steps": [
+    {
+     "k": 1,
+     "p_correct": 1.1073214831091507e-09,
+     "share_correct": 5.8333349121949754e-08,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.018983,
+      "3": 0.0,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 2,
+     "p_correct": 4.545441908755257e-15,
+     "share_correct": 4.548517160766252e-15,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.999324,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 3,
+     "p_correct": 0.003382635936921469,
+     "share_correct": 0.9999862256376759,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.003383,
+      "4": 0.0
+     }
+    },
+    {
+     "k": 4,
+     "p_correct": 2.6728976725652936e-12,
+     "share_correct": 0.0007506410938039129,
+     "p_by_premise": {
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0
+     }
+    }
+   ],
+   "p_block": 4.5507966408869757e-38,
+   "share_block": 1.9916503780798723e-25
+  }
+ ],
+ "search": [
+  {
+   "prompt": "THM P , Q , R , S SEQ P PRF",
+   "n": 1024,
+   "temperature": 1.0,
+   "verified": 0,
+   "fail_reasons": {
+    "LEANPARSE env: PR position": 1022,
+    "LEANPARSE env: have name": 2
+   },
+   "env_fail_reason": {
+    "PR position": 1022,
+    "have name": 2
+   }
+  },
+  {
+   "prompt": "THM P , Q , R , S SEQ P PRF",
+   "n": 1024,
+   "temperature": 1.5,
+   "verified": 0,
+   "fail_reasons": {
+    "LEANPARSE env: PR position": 991,
+    "LEANPARSE env: formula": 21,
+    "LEANPARSE env: have name": 9,
+    "LEANPARSE env: action head": 2,
+    "LEANPARSE env: PR form": 1
+   },
+   "env_fail_reason": {
+    "PR position": 991,
+    "formula": 21,
+    "have name": 9,
+    "PR form": 1,
+    "action head": 2
+   }
+  }
+ ]
+}

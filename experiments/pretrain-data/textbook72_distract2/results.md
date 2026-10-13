@@ -99,3 +99,56 @@ data gap and the premise pool is still the fix, but the prediction becomes sharp
 that merely shows four- and five-premise PR blocks should remove the wall outright, and the "distractor" results
 should then be re-read as premise selection proper. Side note: Robbie's base also fails the one-line problems
 `P , Q ⊢ P` (0 of 32, "LEANPARSE name"), another shape K12 never shows.
+
+## Could RL teach the premise block? (2026-10-12, Charles's question)
+
+Three measurements on `la_T1_best12_s0_r8`, all CPU, one seed.
+
+**1. What RL has seen.** The round-8 training mix (`best-state/artifacts/bs/la_T1_best12_s0/mix_8.jsonl` in Dan's
+bucket, 89,724 rows) has 14,279 / 37,807 / 28,454 / 9,184 rows at 0 / 1 / 2 / 3 premises and none at four or more.
+The ladder never poses a four-premise prompt, so as run it cannot learn one.
+
+**2. What RL would see if it did** (`code/pretrain_data/elementary_forced.py`; source
+`data/pretrain_data/screens/elementary_forced_la_T1_best12_s0_r8.json`). Teacher-forced through Dan's environment with
+canonical names, the probability the model gives each candidate premise line at each step of the block, on
+`P , Q , R , S ⊢ P`: step 1, `h1` 0.0011 vs `h2` 0.0152 (share of the correct line 0.07); step 2 after a correct
+`h1`, `h3` 0.999 and `h2` below 1e-6; step 3 after `h1 h2`, `h3` 0.31; step 4 after `h1 h2 h3`, `h4` below 1e-6.
+Product for the whole block about 4e-24. The rule the model learned is positional: with k hypothesis lines in the
+state it emits the premise line K12 would have next (k = 3 lines → `h1` was the exception, since 3 premises is the
+most K12 shows; 4 lines → `h2`; 5 → `h3`; 7 → never a premise line). A plain search confirms there is nothing to
+reinforce: 0 of 1,024 samples at T 1.0 and 0 of 1,024 at T 1.5 (environment rejection "PR position" 1,022 and 991
+times). Expert iteration with the current environment would receive zero reward on every four-premise prompt.
+
+**3. Take the block out of the model's hands** (`code/pretrain_data/elementary_envpr.py`; source
+`data/pretrain_data/screens/elementary_envpr_la_T1_best12_s0_r8.json`, `run/metrics_envpr.jsonl`). The premise lines
+are determined by the prompt, so the environment can apply `h1..hn` itself and let the model act from that state;
+the verifier is unchanged (the finished proof still contains the lines). Same checkpoint, no training, k 32, T 1.0:
+
+| samples verified / samples | 2 premises | 3 premises | 4 premises | 5 premises |
+| --- | --- | --- | --- | --- |
+| model writes the block (as before) | 154 / 160 | 111 / 128 | 0 / 320 | 0 / 64 |
+| environment writes the block | 153 / 160 | 106 / 128 | **252 / 320** | **57 / 64** |
+
+Per problem at four premises: pick 32 / 32, conjoin 31 and 29 / 32, all-four conjunction 26 / 32, modus ponens 31
+and 29 / 32, ∨-introduction 32 / 32; the four-step chain that needs every premise 0 / 32 (the samples skip a link:
+`S : IMPE (R→S) Q`), its reversed order 10 / 32. Generator distractor rows (the 2026-10-10 stratified sample,
+300 rows): problems solved at least once 9 / 9, 33 / 33, 78 / 78 at 1 / 2 / 3 premises, **118 / 120 at four**
+(pass@1 0.83) and **55 / 60 at five** (0.74), against 0 / 180 with the model writing the block. The distracted 72
+(aggregates; names only in the gitignored hit file): original 48 of 71 (0.374), distracted **38 of 71** (0.210,
+was 28); the 25 crossing problems 16 → **10** (was 17 → 0); the 46 staying problems 32 → 28 (unchanged); by
+original premise count 9 → 7, 23 → 21, 13 → 9, 3 → 1.
+
+**Answer.** As the ladder stands, no: it never sees a four-premise prompt, and if it did, the sparse reward would never
+fire (success probability about 1e-24, 0 of 2,048 samples), because the failure is a deterministic line-counting
+habit, not noise that search could get lucky against. The habit is also not worth RL: the block is boilerplate. Two
+cheap fixes, either of which removes the wall without a single RL step: (a) the environment writes the premise block,
+which already lifts the same checkpoint to 118 of 120 four-premise generator problems and 38 of 71 distracted
+textbook problems; (b) Stage-1 exposure to four- and five-premise premise blocks (the premise pool), a supervised habit
+change. After either, RL has a dense signal (pass@1 about 0.8 at four premises) and a real residual to work on: the
+all-premises chain (0 of 32) and the 6 of 16 crossing textbook solves still lost to two unused premises, which is
+the premise-selection effect proper, now visible for the first time (37 % of crossing solves lost versus 12 % of
+staying ones).
+
+Caveats: one seed, one checkpoint; (a) changes the model's job in the environment and the evaluation protocol, so it
+is a plan decision (questions.md 10), used here as a diagnostic only; the stated probabilities are under canonical
+names with base 0 and the shares across candidate lines are the robust numbers.

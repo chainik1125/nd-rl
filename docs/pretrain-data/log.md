@@ -494,3 +494,17 @@ wall is the premise-listing habit learned from K12 (≤ 3 premises), not reasoni
 pools.md and the release README. Also noticed: Robbie's base fails the one-line problem `P , Q ⊢ P` (0 of 32).
 Next: the premise pool Stage-1 now has a very cheap check (does the model write four PR lines); the distractor
 screens need re-reading once it does.
+
+## 2026-10-12 (evening) — can RL fix the premise block?
+
+Charles: analyse Dan's RL model more closely; could RL teach it the right proof? Three measurements on r8 s0:
+(1) its round-8 training mix (89,724 rows, fetched from the bucket) has no row with four or more premises; (2)
+teacher-forced probabilities of the correct premise block (`elementary_forced.py`): a positional habit (k hypothesis
+lines in the state → the premise line K12 would have next), `h4` after `h1 h2 h3` below 1e-6, whole block about
+1e-24, 0 of 2,048 samples at T 1.0 and 1.5; (3) environment-written premise block (`elementary_envpr.py`, verifier
+unchanged, no training): 4-premise ladder 252 / 320 samples, 5-premise 57 / 64; stratified distract10 sample 118 / 120
+at four and 55 / 60 at five (0 / 180 before); distracted 72: 38 of 71 (28 before), crossing 16 → 10 (was 17 → 0),
+staying 32 → 28. Conclusion in results.md: RL as run cannot (never sees four premises; zero reward if it did); the
+block is boilerplate and either the environment or Stage-1 exposure should supply it; after that RL has a dense
+signal and a genuine residual (all-premises chain 0 / 32; 6 of 16 crossing textbook solves lost). Protocol change
+logged as questions.md 10, default: diagnostic only. Run detached (pid 32098, 35 min), finished; nothing running.

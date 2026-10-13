@@ -195,6 +195,16 @@ Staying problems were expected to keep 60 to 85 % of their solved count; observe
   fourth premise line, which K12 never shows. So the 0-of-25 above measures a premise-listing habit, not an
   inability to reason with or ignore premises; the distractor reading below holds only once a model can list four
   premises. Details in the experiment's `results.md`, section "Mechanism".
+- **Added 2026-10-12: with the premise block written by the environment, the same RL checkpoint, untrained, solves
+  four-premise problems.** Dan's environment can apply the premise lines itself before the model acts (the verifier
+  and the finished proof are unchanged). Round-8 seed 0 then verifies 252 of 320 samples on the four-premise ladder
+  problems and 57 of 64 at five; solves 118 of 120 four-premise and 55 of 60 five-premise generator distractor
+  problems at least once (0 of 180 before); and on the distracted 72 goes from 28 to 38 of 71 solved, with 10 of
+  the 16 crossing problems it solves in original form kept (0 before) and the 46 staying problems unchanged at
+  32 → 28. RL as run cannot learn the block: its round-8 training mix has no prompt with four or more premises, and
+  the model's probability of writing a correct four-line block is about 1e-24 (0 of 2,048 samples at T 1.0 and
+  1.5), so the sparse reward would never fire. Numbers in `results.md`, section "Could RL teach the premise block?";
+  the protocol change is logged as an open question, used here as a diagnostic only.
 - The four-premise textbook cell (0 of 7 solved by the RL model in the 2026-10-02 evaluation) is a premise-count
   failure, not a premise-selection failure. Every textbook problem with two or more premises is one unused premise
   away from it.

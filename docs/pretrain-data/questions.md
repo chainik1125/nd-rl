@@ -68,3 +68,11 @@ Each entry: the question, the default being followed until answered, and the dat
    followed: the distracted copy is an evaluation artefact only, lives in the gitignored `docs/textbook-problem/textbook72/`
    with every per-problem output, is never trained on, used as a seed, or reported per problem; the experiment
    (`experiments/pretrain-data/textbook72_distract2/`) reports aggregates by premise-count bin. (2026-10-09)
+
+10. **May the environment write the premise block?** (2026-10-12) The pinned verifier requires every premise as a `PR`
+    line, in order; neither Robbie's nor Dan's model writes a fourth one, and that alone produces the premise-count
+    wall. Letting Dan's environment apply `h1..hn` before the model acts (verifier unchanged) lifts his round-8 model
+    from 0 / 180 to 173 / 180 four-plus-premise generator problems and from 28 to 38 of 71 on the distracted 72 with no
+    training. This changes what the model is responsible for, in training and in every evaluation that reports a
+    number on the 72, so it is Charles's call. **Default followed:** diagnostic only; no training run and no headline
+    number uses it; the premise pool (Stage-1 exposure) remains the planned fix.

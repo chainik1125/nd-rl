@@ -1,0 +1,1877 @@
+{
+ "ckpt": "la_T1_best12_s0_r8",
+ "k": 32,
+ "seed": 0,
+ "ladder_env_premises": {
+  "rows": [
+   {
+    "label": "pick_2",
+    "prompt": "THM P , Q SEQ P PRF",
+    "n_prem": 2,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 ( Q v ( ( R & Q ) v P ) ) : ORI1 N2 ; N4 | Q : AS ; N5 | ( P v Q ) : ORI1 N1 ; N6 | | P : AS ; N7 | | Q : AS ; N8 | | P : R N1 ; N9 | P : ORE N5 N6 N6 N7 N8 ; N10 | ( ( R & Q ) v P ) : AS ; N11 | P : R N1 ; N12 P : ORE N3 N4 N9 N10 N11 ; QED"
+   },
+   {
+    "label": "pick_3",
+    "prompt": "THM P , Q , R SEQ P PRF",
+    "n_prem": 3,
+    "hits": 26,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 | R : AS ; N5 | ( ( ( P & P ) & ( Q > S ) ) v P ) : ORI2 N1 ; N6 | | ( ( P & P ) & ( Q > S ) ) : AS ; N7 | | P : R N1 ; N8 | | P : AS ; N9 | P : ORE N5 N6 N7 N8 N8 ; N10 ( R > P ) : IMPI N4 N9 ; N11 ( R & P ) : ANDI N3 N1 ; N12 ( ( R & P ) v ( ~ ( ~ P ) ) ) : O"
+   },
+   {
+    "label": "pick_4",
+    "prompt": "THM P , Q , R , S SEQ P PRF",
+    "n_prem": 4,
+    "hits": 32,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 S : PR ; N5 ( S v ( ( ( Q & R ) & P ) v P ) ) : ORI1 N4 ; N6 | S : AS ; N7 | P : R N1 ; N8 | ( ( ( Q & R ) & P ) v P ) : AS ; N9 | P : R N1 ; N10 P : ORE N5 N6 N7 N8 N9 ; QED"
+   },
+   {
+    "label": "pick_4_last",
+    "prompt": "THM P , Q , R , S SEQ S PRF",
+    "n_prem": 4,
+    "hits": 32,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 S : PR ; QED"
+   },
+   {
+    "label": "pick_5",
+    "prompt": "THM P , Q , R , S , ( P & Q ) SEQ P PRF",
+    "n_prem": 5,
+    "hits": 30,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 S : PR ; N5 ( P & Q ) : PR ; N6 | ( ~ P ) : AS ; N7 | F : NEGE N1 N6 ; N8 ( ~ ( ~ P ) ) : NEGI N6 N7 ; N9 ( P v ( ( ~ P ) & ( ~ R ) ) ) : ORI1 N1 ; N10 | P : AS ; N11 | ( ( ~ P ) & ( ~ R ) ) : AS ; N12 | P : R N1 ; N13 P : ORE N9 N10 N10 N11 N12 ; QED"
+   },
+   {
+    "label": "and_2",
+    "prompt": "THM P , Q SEQ ( P & Q ) PRF",
+    "n_prem": 2,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 ( P & Q ) : ANDI N1 N2 ; QED"
+   },
+   {
+    "label": "and_3",
+    "prompt": "THM P , Q , R SEQ ( P & Q ) PRF",
+    "n_prem": 3,
+    "hits": 30,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( R v ( ~ ( Q & R ) ) ) : ORI1 N3 ; N5 | R : AS ; N6 | ( P & Q ) : ANDI N1 N2 ; N7 | ( ~ ( Q & R ) ) : AS ; N8 | P : R N1 ; N9 | Q : R N2 ; N10 | ( P & Q ) : ANDI N8 N9 ; N11 ( P & Q ) : ORE N4 N5 N6 N7 N10 ; QED"
+   },
+   {
+    "label": "and_4",
+    "prompt": "THM P , Q , R , S SEQ ( P & Q ) PRF",
+    "n_prem": 4,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 S : PR ; N5 | ( ~ P ) : AS ; N6 | F : NEGE N1 N5 ; N7 ( ~ ( ~ P ) ) : NEGI N5 N6 ; N8 P : DN N7 ; N9 Q : R N2 ; N10 ( P & Q ) : ANDI N8 N9 ; QED"
+   },
+   {
+    "label": "and_4_ends",
+    "prompt": "THM P , Q , R , S SEQ ( P & S ) PRF",
+    "n_prem": 4,
+    "hits": 29,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 S : PR ; N5 ( P & S ) : ANDI N1 N4 ; QED"
+   },
+   {
+    "label": "and_4_all",
+    "prompt": "THM P , Q , R , S SEQ ( ( P & Q ) & ( R & S ) ) PRF",
+    "n_prem": 4,
+    "hits": 26,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 S : PR ; N5 ( P & Q ) : ANDI N1 N2 ; N6 R : R N3 ; N7 S : R N4 ; N8 ( R & S ) : ANDI N6 N7 ; N9 ( ( P & Q ) & ( R & S ) ) : ANDI N5 N8 ; QED"
+   },
+   {
+    "label": "mp_2",
+    "prompt": "THM P , ( P > Q ) SEQ Q PRF",
+    "n_prem": 2,
+    "hits": 32,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+   },
+   {
+    "label": "mp_3",
+    "prompt": "THM P , ( P > Q ) , R SEQ Q PRF",
+    "n_prem": 3,
+    "hits": 20,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 ( R v ( P > Q ) ) : ORI2 N2 ; N5 | R : AS ; N6 | Q : IMPE N2 N1 ; N7 | ( P > Q ) : AS ; N8 | Q : IMPE N2 N1 ; N9 Q : ORE N4 N5 N6 N7 N8 ; N10 ( Q v P ) : ORI2 N1 ; N11 | Q : AS ; N12 | P : AS ; N13 | Q : R N9 ; N14 Q : ORE N10 N11 N11 N12 N13 ; QED"
+   },
+   {
+    "label": "mp_4",
+    "prompt": "THM P , ( P > Q ) , R , S SEQ Q PRF",
+    "n_prem": 4,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 S : PR ; N5 Q : IMPE N2 N1 ; QED"
+   },
+   {
+    "label": "mp_4_mid",
+    "prompt": "THM R , P , S , ( P > Q ) SEQ Q PRF",
+    "n_prem": 4,
+    "hits": 29,
+    "sample": "N1 R : PR ; N2 P : PR ; N3 S : PR ; N4 ( P > Q ) : PR ; N5 Q : IMPE N4 N2 ; QED"
+   },
+   {
+    "label": "mp_5",
+    "prompt": "THM P , ( P > Q ) , R , S , ( R > S ) SEQ Q PRF",
+    "n_prem": 5,
+    "hits": 27,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 S : PR ; N5 ( R > S ) : PR ; N6 Q : IMPE N2 N3 ; QED"
+   },
+   {
+    "label": "chain_2",
+    "prompt": "THM P , ( P > Q ) SEQ Q PRF",
+    "n_prem": 2,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+   },
+   {
+    "label": "chain_3",
+    "prompt": "THM P , ( P > Q ) , ( Q > R ) SEQ R PRF",
+    "n_prem": 3,
+    "hits": 30,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 ( ( Q & ( ~ S ) ) v P ) : ORI2 N1 ; N5 Q : IMPE N2 N1 ; N6 R : IMPE N3 N5 ; QED"
+   },
+   {
+    "label": "chain_4",
+    "prompt": "THM P , ( P > Q ) , ( Q > R ) , ( R > S ) SEQ S PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 ( R > S ) : PR ; N5 ( ( ( P > Q ) > Q ) v ( P > Q ) ) : ORI2 N2 ; N6 Q : IMPE N2 N1 ; N7 S : IMPE N4 N6 ; QED"
+   },
+   {
+    "label": "chain_4_rev",
+    "prompt": "THM ( R > S ) , ( Q > R ) , ( P > Q ) , P SEQ S PRF",
+    "n_prem": 4,
+    "hits": 10,
+    "sample": "N1 ( R > S ) : PR ; N2 ( Q > R ) : PR ; N3 ( P > Q ) : PR ; N4 P : PR ; N5 ( ( S & ( S & P ) ) v P ) : ORI2 N4 ; N6 Q : IMPE N3 N4 ; N7 R : IMPE N2 N6 ; N8 S : IMPE N1 N7 ; QED"
+   },
+   {
+    "label": "ori_2",
+    "prompt": "THM P , Q SEQ ( P v R ) PRF",
+    "n_prem": 2,
+    "hits": 28,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 ( ( Q v P ) v P ) : ORI2 N1 ; N4 | ( Q v P ) : AS ; N5 | ( P v R ) : ORI1 N1 ; N6 | P : AS ; N7 | ( P v R ) : ORI1 N6 ; N8 ( P v R ) : ORE N3 N4 N5 N6 N7 ; QED"
+   },
+   {
+    "label": "ori_4",
+    "prompt": "THM P , Q , R , S SEQ ( P v ( Q & R ) ) PRF",
+    "n_prem": 4,
+    "hits": 32,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 S : PR ; N5 ( R v ( Q & R ) ) : ORI1 N3 ; N6 | R : AS ; N7 | ( Q & R ) : ANDI N2 N6 ; N8 | ( P v ( Q & R ) ) : ORI2 N7 ; N9 | ( Q & R ) : AS ; N10 | ( P v ( Q & R ) ) : ORI2 N9 ; N11 ( P v ( Q & R ) ) : ORE N5 N6 N8 N9 N10 ; QED"
+   }
+  ],
+  "fail": {
+   "formula": 5,
+   "unbound": 6,
+   "Or.elim on non-or": 2
+  }
+ },
+ "ladder_model_premises": {
+  "rows": [
+   {
+    "label": "pick_2",
+    "prompt": "THM P , Q SEQ P PRF",
+    "n_prem": 2,
+    "hits": 30,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 ( P v Q ) : ORI1 N1 ; N4 | P : AS ; N5 | Q : AS ; N6 | P : R N1 ; N7 P : ORE N3 N4 N4 N5 N6 ; QED"
+   },
+   {
+    "label": "pick_3",
+    "prompt": "THM P , Q , R SEQ P PRF",
+    "n_prem": 3,
+    "hits": 30,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( S v Q ) : ORI2 N2 ; N5 | S : AS ; N6 | ( P v ( Q & ( Q & S ) ) ) : ORI1 N1 ; N7 | | P : AS ; N8 | | ( Q & ( Q & S ) ) : AS ; N9 | | P : R N1 ; N10 | P : ORE N6 N7 N7 N8 N9 ; N11 | Q : AS ; N12 | P : R N1 ; N13 P : ORE N4 N5 N10 N11 N12 ; QED"
+   },
+   {
+    "label": "pick_4",
+    "prompt": "THM P , Q , R , S SEQ P PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "pick_4_last",
+    "prompt": "THM P , Q , R , S SEQ S PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "pick_5",
+    "prompt": "THM P , Q , R , S , ( P & Q ) SEQ P PRF",
+    "n_prem": 5,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "and_2",
+    "prompt": "THM P , Q SEQ ( P & Q ) PRF",
+    "n_prem": 2,
+    "hits": 30,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 | ( ~ P ) : AS ; N4 | F : NEGE N1 N3 ; N5 ( ~ ( ~ P ) ) : NEGI N3 N4 ; N6 P : DN N5 ; N7 ( P & Q ) : ANDI N6 N2 ; QED"
+   },
+   {
+    "label": "and_3",
+    "prompt": "THM P , Q , R SEQ ( P & Q ) PRF",
+    "n_prem": 3,
+    "hits": 28,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( R v ( ( Q v P ) & ( Q & P ) ) ) : ORI1 N3 ; N5 | R : AS ; N6 | ( P & Q ) : ANDI N1 N2 ; N7 | ( ( Q v P ) & ( Q & P ) ) : AS ; N8 | P : R N1 ; N9 | Q : R N2 ; N10 | ( P & Q ) : ANDI N8 N9 ; N11 ( P & Q ) : ORE N4 N5 N6 N7 N10 ; QED"
+   },
+   {
+    "label": "and_4",
+    "prompt": "THM P , Q , R , S SEQ ( P & Q ) PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "and_4_ends",
+    "prompt": "THM P , Q , R , S SEQ ( P & S ) PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "and_4_all",
+    "prompt": "THM P , Q , R , S SEQ ( ( P & Q ) & ( R & S ) ) PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "mp_2",
+    "prompt": "THM P , ( P > Q ) SEQ Q PRF",
+    "n_prem": 2,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 Q : IMPE N2 N1 ; QED"
+   },
+   {
+    "label": "mp_3",
+    "prompt": "THM P , ( P > Q ) , R SEQ Q PRF",
+    "n_prem": 3,
+    "hits": 22,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 R : PR ; N4 ( ( P > Q ) v ( ~ ( R & S ) ) ) : ORI1 N2 ; N5 | ( P > Q ) : AS ; N6 | Q : IMPE N5 N1 ; N7 | ( ~ ( R & S ) ) : AS ; N8 | Q : IMPE N2 N1 ; N9 Q : ORE N4 N5 N6 N7 N8 ; QED"
+   },
+   {
+    "label": "mp_4",
+    "prompt": "THM P , ( P > Q ) , R , S SEQ Q PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "mp_4_mid",
+    "prompt": "THM R , P , S , ( P > Q ) SEQ Q PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "mp_5",
+    "prompt": "THM P , ( P > Q ) , R , S , ( R > S ) SEQ Q PRF",
+    "n_prem": 5,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "chain_2",
+    "prompt": "THM P , ( P > Q ) SEQ Q PRF",
+    "n_prem": 2,
+    "hits": 32,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( ( ( P > Q ) > Q ) v P ) : ORI2 N1 ; N4 | ( ( P > Q ) > Q ) : AS ; N5 | Q : IMPE N4 N2 ; N6 | P : AS ; N7 | Q : IMPE N2 N6 ; N8 Q : ORE N3 N4 N5 N6 N7 ; QED"
+   },
+   {
+    "label": "chain_3",
+    "prompt": "THM P , ( P > Q ) , ( Q > R ) SEQ R PRF",
+    "n_prem": 3,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 ( P > Q ) : PR ; N3 ( Q > R ) : PR ; N4 ( ( ( Q & S ) v ( Q & Q ) ) v P ) : ORI2 N1 ; N5 Q : IMPE N2 N1 ; N6 R : IMPE N3 N5 ; QED"
+   },
+   {
+    "label": "chain_4",
+    "prompt": "THM P , ( P > Q ) , ( Q > R ) , ( R > S ) SEQ S PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "chain_4_rev",
+    "prompt": "THM ( R > S ) , ( Q > R ) , ( P > Q ) , P SEQ S PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   },
+   {
+    "label": "ori_2",
+    "prompt": "THM P , Q SEQ ( P v R ) PRF",
+    "n_prem": 2,
+    "hits": 31,
+    "sample": "N1 P : PR ; N2 Q : PR ; N3 | ( ~ ( P v R ) ) : AS ; N4 | ( P v R ) : ORI1 N1 ; N5 | F : NEGE N4 N3 ; N6 ( ~ ( ~ ( P v R ) ) ) : NEGI N3 N5 ; N7 ( P v R ) : DN N6 ; QED"
+   },
+   {
+    "label": "ori_4",
+    "prompt": "THM P , Q , R , S SEQ ( P v ( Q & R ) ) PRF",
+    "n_prem": 4,
+    "hits": 0,
+    "sample": "LEANPARSE env: PR position"
+   }
+  ],
+  "fail": {
+   "have name": 1,
+   "PR position": 384,
+   "formula": 2,
+   "unbound": 1,
+   "term": 1
+  }
+ },
+ "distract10_env_premises": {
+  "by_prem": {
+   "1": {
+    "n": 9,
+    "solved": 9,
+    "samples": 274,
+    "pass32": 1.0,
+    "pass1": 0.951
+   },
+   "2": {
+    "n": 33,
+    "solved": 33,
+    "samples": 895,
+    "pass32": 1.0,
+    "pass1": 0.848
+   },
+   "3": {
+    "n": 78,
+    "solved": 78,
+    "samples": 2071,
+    "pass32": 1.0,
+    "pass1": 0.83
+   },
+   "4": {
+    "n": 120,
+    "solved": 118,
+    "samples": 3178,
+    "pass32": 0.983,
+    "pass1": 0.828
+   },
+   "5": {
+    "n": 60,
+    "solved": 55,
+    "samples": 1422,
+    "pass32": 0.917,
+    "pass1": 0.741
+   }
+  },
+  "fail": {
+   "Or.elim on non-or": 116,
+   "binder mismatch": 494,
+   "formula": 38,
+   "malformed": 6,
+   "unbound": 184,
+   "term": 13,
+   "exact goal mismatch": 18,
+   "exact not last": 11,
+   "max steps": 5,
+   "box head": 9,
+   "no semicolon": 10,
+   "box on non-arrow": 4,
+   "PR position": 1,
+   "Or.elim name": 1,
+   "exact form": 1
+  },
+  "rows": [
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 26
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 8,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 18
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 5,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 10,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 24
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 5,
+    "hits": 29
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 30
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 27
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 8,
+    "hits": 28
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 26
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 8,
+    "hits": 26
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 10,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 16
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 32
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 30
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 11,
+    "hits": 29
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 10,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 26
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 0
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 8
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 25
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 23
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 6,
+    "hits": 29
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 7,
+    "hits": 30
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 9,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 9,
+    "hits": 0
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 18
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 9,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 9,
+    "hits": 28
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 6,
+    "hits": 10
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 25
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 23
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 15
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 31
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 3,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 29
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 9,
+    "hits": 30
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 24
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 32
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 6,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 8,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 29
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 11,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 6,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 13
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 13
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 15
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 9,
+    "hits": 12
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 27
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 10,
+    "hits": 28
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 6,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 12
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 30
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 6,
+    "hits": 21
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 32
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 6,
+    "hits": 28
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 6,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 25
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 32
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 25
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 8,
+    "hits": 0
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 9,
+    "hits": 16
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 26
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 27
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 29
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 3
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 9,
+    "hits": 32
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 9,
+    "hits": 25
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 26
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 9,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 2
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 9,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 6,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 12,
+    "hits": 26
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 6,
+    "hits": 1
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 7,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 29
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 28
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 7,
+    "hits": 26
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 29
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 30
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 6,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 26
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 9,
+    "hits": 24
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 8,
+    "hits": 20
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 7,
+    "hits": 20
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 28
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 7,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 8,
+    "hits": 0
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 8,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 25
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 25
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 24
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 30
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 5,
+    "hits": 31
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 27
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 9,
+    "hits": 11
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 27
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 9,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 27
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 6,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 24
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 13,
+    "hits": 23
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 5,
+    "hits": 16
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 8,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 8
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 7
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 8,
+    "hits": 30
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 12,
+    "hits": 25
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 9,
+    "hits": 4
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 6,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 19
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 8,
+    "hits": 16
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 15
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 30
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 7,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 0
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 30
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 10,
+    "hits": 8
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 8,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 29
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 22
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 12,
+    "hits": 31
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 11,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 18
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 12,
+    "hits": 2
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 9,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 26
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 29
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 6,
+    "hits": 24
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 19
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 26
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 7,
+    "hits": 29
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 10,
+    "hits": 26
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 12,
+    "hits": 26
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 9,
+    "hits": 32
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 6,
+    "hits": 29
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 29
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 11
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 26
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 24
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 24
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 9,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 12,
+    "hits": 6
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 24
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 29
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 7,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 5,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 31
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 4,
+    "hits": 27
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 30
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 22
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 25
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 12,
+    "hits": 29
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 31
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 5,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 9,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 21
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 8,
+    "hits": 30
+   },
+   {
+    "n_prem": 1,
+    "n_lines": 5,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 14
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 6,
+    "hits": 11
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 7,
+    "hits": 27
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 18
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 20
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 25
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 6,
+    "hits": 25
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 23
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 12,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 20
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 26
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 9,
+    "hits": 30
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 26
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 6,
+    "hits": 30
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 9,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 11,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 6,
+    "hits": 32
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 0
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 32
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 7
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 8,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 5,
+    "hits": 29
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 22
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 30
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 28
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 4,
+    "hits": 28
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 29
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 7,
+    "hits": 31
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 13,
+    "hits": 27
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 11,
+    "hits": 31
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 3,
+    "hits": 28
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 8,
+    "hits": 12
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 29
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 12,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 16
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 13
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 10,
+    "hits": 0
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 14,
+    "hits": 31
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 13,
+    "hits": 30
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 14
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 2
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 27
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 9,
+    "hits": 15
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 14,
+    "hits": 31
+   },
+   {
+    "n_prem": 2,
+    "n_lines": 8,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 12,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 10,
+    "hits": 23
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 9,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 7,
+    "hits": 26
+   },
+   {
+    "n_prem": 5,
+    "n_lines": 11,
+    "hits": 32
+   },
+   {
+    "n_prem": 4,
+    "n_lines": 10,
+    "hits": 31
+   },
+   {
+    "n_prem": 3,
+    "n_lines": 8,
+    "hits": 7
+   }
+  ]
+ }
+}

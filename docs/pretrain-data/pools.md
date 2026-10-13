@@ -735,3 +735,8 @@ verifier rejects it ("premise block does not match declared premises"); Dan's mo
 his environment rejects the first action. Neither model has learned to write a fourth premise line, which K12 never
 shows. The wall is the PR block, not reasoning under distraction; the premise pool remains the fix, and the distractor
 screens should be re-read once a model lists four premises.
+
+**2026-10-12, with the premise block written by the environment** (`elementary_envpr.py`): Dan's r8 solves 118 / 120
+four-premise and 55 / 60 five-premise rows of the stratified distract10 sample (pass@1 0.83 / 0.74; 0 / 180 before),
+and 38 of 71 on the distracted 72 (28 before; crossing problems 10 of 16 kept). The distractor slice's residual
+difficulty at four-plus premises is small on generator rows and real on textbook rows (6 of 16 crossing solves lost).
