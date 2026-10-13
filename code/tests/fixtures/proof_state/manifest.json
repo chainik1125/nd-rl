@@ -1,0 +1,40 @@
+{
+ "fork": "dan-pandori/nd-takehome",
+ "fork_commit": "4dcd0e4f336b3bf0ee24230dc5335ba3dba8969c",
+ "fork_dirty": false,
+ "k12_md5": "800b5486ba373a060c37218bec7fa8d3",
+ "python": "3.11.16",
+ "lean": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)",
+ "argv": [
+  "make_golden.py",
+  "--fork",
+  "/home/dan/work/shared-code-port-fork",
+  "--k12",
+  "/home/dan/work/capability-defs/data/kh/train_k12.jsonl"
+ ],
+ "utc": "2026-10-13T23:52:34Z",
+ "counts": {
+  "k12_sample": 1100,
+  "state_env_steps_plain": 8800,
+  "state_env_steps_canon": 8800,
+  "state_env_fuzz": 9524,
+  "step_check_pairs": 10724,
+  "step_check_verdicts": {
+   "None": 3619,
+   "and-elim": 173,
+   "and-intro": 142,
+   "anon-ctor": 687,
+   "app-arg": 207,
+   "app-result": 460,
+   "by-contradiction": 618,
+   "elim": 508,
+   "function-expected": 290,
+   "or-intro": 315,
+   "or-intro-target": 1066,
+   "premise-type": 1106,
+   "projection": 869,
+   "reiterate": 664
+  }
+ },
+ "seconds": 28
+}
