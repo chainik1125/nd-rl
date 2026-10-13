@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+# GRPO v2 (Leon, 2026-10-09): length curriculum L2 (10-12 lines) -> L3 (13-15), and GRPO with the verifier.
+#   bash line.sh GPU SEED ARM
+#   ARM: grpo_think (S1g3, plain GRPO)       grpo_think_v (S1g3, logical arm + step penalty)
+#        ei_think   (S1g3, plain EI)         ei_think_v   (S1g3, guided EI: logical arm, accepted proofs only)
+#        grpo_nothink_v (T0S, guided GRPO)   ei_nothink_v (T0S, guided EI)   [optional: grpo_nothink, ei_nothink]
+#        grpo_think_vs, grpo_nothink_vs: the verifier without redraws (2026-10-10): logical arm with --max_rej 0, so
+#        the first step the checker rejects ends the attempt and gets the step penalty (training only; reads as above)
+#        grpo_nothink_vs3: grpo_nothink_vs plus 3-premise rewrites of the pool rows (runs/pools/curriculum_3p, goal
+#        antecedents moved into the premises) as --targets_extra at XFRAC (0.33) of each iteration's groups (2026-10-10)
+#        ARM_h, for any grpo_* ARM above (grpo_think_h, grpo_think_vs_h, grpo_nothink_h, ...; 2026-10-10): ARM with the
+#        GRPO lr halved, 7.5e-5 instead of 1.5e-4 in both stages (a rollback halves from there); all else as ARM. Every
+#        run, log and eval name keeps the full ARM_h, so nothing collides with ARM's. ei_*_h is refused (no GRPO lr).
+#        ARM_b, for any grpo_* ARM above, ARM_h included (grpo_think_b, grpo_think_h_b, grpo_think_vs_b, ...; 2026-10-11):
+#        stage L3 of ARM again, from ARM's finished L2 checkpoint (its init and KL anchor, as in ARM's own L3), with the
+#        think ban flags below; all else as ARM, then the reads. Every run, log and eval name keeps the full ARM_b.
+#        Refused for EI, without ARM's L2 checkpoint, or when the last guard line of ARM's L2 log is not at
+#        'lr x1 (0 rollbacks)' (an alarm's rollback may have shaped that L2: rerun the whole line instead).
+# One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
+# GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
+# KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
+# Think ban (2026-10-11, every GRPO stage): --ban_restore_check (a think ban alarm alone does not roll back when the
+# checkpoint it would restore is over the limit too) and --ban_stop 0.005 (the stage ends, exit 3, and the line stops).
+# Reads after the last stage on the same GPU (one queue per GPU): t1320 (986 valid; 16-20 is a min_lines filter of
+# the rows) k16, textbook72 k64, charles173 (Charles's 2026-10-02 release: candidate_v0 + v1 + batch3) k64, each with
+# the plain and the guided (logical) arm; hand_proved_14 k64 and a 1,000-item sample of test_21_30 k8, plain only.
+# Thinking models read at B64, no-think at B0. Rows under runs/eval/v2/<set>_<arm>_s<seed>_<readarm>_k<k>/.
+# env: POOL_L2, POOL_L3 (default runs/pools/curriculum/L{2,3}/pool.jsonl), REJ_PENALTY (0.1),
+#      SMOKE=1: a tiny CPU dry run of the whole line (2 iterations, k 2, 2 eval problems) under runs/grpo_v2/smoke/.
+source /scratch/cowifornia/nd-rl/think/runs/followup_20261007/lib.sh
+WT=/scratch/cowifornia/nd-rl/think/nd-rl-v2
+cd $WT || exit 1
+[ "$(git -C $WT rev-parse --abbrev-ref HEAD)" = leon/grpo-v2 ] || { say "$WT is not on leon/grpo-v2: refusing"; exit 1; }
+PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
+"$PY" -c "import code.thinking, sys; sys.exit(0 if code.thinking.__file__.startswith('$WT/') else 1)" \
+  || { say "code.thinking does not resolve to $WT: refusing"; exit 1; }
+g=$1; s=$2; arm=$3
+[ -n "$g" ] && [ -n "$s" ] && [ -n "$arm" ] || { echo "usage: line.sh GPU SEED ARM"; exit 2; }
+src=${arm%_b}  # ARM_b: L3 only, from $src's L2; parsed before _h
+base=${src%_h}  # ARM_h: $base decides the behaviour below; the full $arm names every output
+LR=1.5e-4; LRN=""; [ "$base" = "$src" ] || { LR=7.5e-5; LRN=", lr $LR"; }  # GRPO lr, both stages
+SMOKE=${SMOKE:-0}
+P=${REJ_PENALTY:-0.1}
+L2=${POOL_L2:-$R/pools/curriculum/L2/pool.jsonl}; L3=${POOL_L3:-$R/pools/curriculum/L3/pool.jsonl}
+C=$R/grpo_v2; EV=$R/eval/v2; WD=$L/watchdog_grpo_v2.log
+TB=/scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72; CH=$R/pools/charles_1002
+case $base in
+  grpo_think|grpo_think_v|grpo_think_vs|ei_think|ei_think_v) kind=think; init0=$R/stage1/S1g3_s$s/model.pt; pkl=S1g3.pkl ;;
+  grpo_nothink|grpo_nothink_v|grpo_nothink_vs|grpo_nothink_vs3|ei_nothink|ei_nothink_v) kind=nothink; init0=$R/stage1/T0S_s$s/model.pt; pkl=T0S.pkl ;;
+  *) echo "unknown arm $arm"; exit 2 ;;
+esac
+case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
+[ $method = ei ] && [ "$src" != "$arm" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
+[ $method = ei ] && [ "$base" != "$src" ] && { say "$arm: _h halves the GRPO lr, which EI does not use (run $base): refusing"; exit 1; }
+case $base in *_v|*_vs|*_vs3) samp=logical ;; *) samp=plain ;; esac
+case $base in *_vs|*_vs3) MAXREJ_TRAIN=0 ;; *) MAXREJ_TRAIN=10 ;; esac  # GRPO training only
+X2=""; X3=""; XFRAC=${XFRAC:-0.33}  # extra GRPO targets per stage (--targets_extra)
+case $base in *_vs3) X2=$R/pools/curriculum_3p/L2_3p.jsonl; X3=$R/pools/curriculum_3p/L3_3p.jsonl ;; esac
+if [ $kind = think ]; then EFF="--effort --budgets 0,64,256"; RB=64; else EFF="--budgets 0"; RB=0; fi
+ITERS=39; PROMPTS=256; GROUP=16; K=32; BATCH=1024; FT=""; CAN="--canary_n 1000"; KLN=""; LIM=""; KS=(16 64 64 64 8)
+DEV=$g; MAXSTEPS_H14=160
+MAXSTEPS=96  # training step cap, GRPO and EI alike (eval's value; v1 used the default 48, which 13-15-line
+             # problems exceed in 3-6% of B64 attempts: capped attempts would raise false collapse alarms)
+if [ "$SMOKE" = 1 ]; then
+  C=$R/grpo_v2/smoke; EV=$R/eval/v2_smoke; WD=$C/watchdog.log; L=$C/logs; mkdir -p $C $L
+  head -n 8 $L2 > $C/L2_head.jsonl; head -n 8 $L3 > $C/L3_head.jsonl 2>/dev/null || cp $C/L2_head.jsonl $C/L3_head.jsonl
+  [ -s $C/L3_head.jsonl ] || cp $C/L2_head.jsonl $C/L3_head.jsonl
+  L2=$C/L2_head.jsonl; L3=$C/L3_head.jsonl
+  if [ -n "$X2" ]; then head -n 8 $X2 > $C/X2_head.jsonl; head -n 8 $X3 > $C/X3_head.jsonl; X2=$C/X2_head.jsonl; X3=$C/X3_head.jsonl; fi
+  ITERS=2; PROMPTS=4; GROUP=4; K=2; BATCH=16; FT="--ft_steps 3 --ft_recs 8 --retain 64"
+  CAN="--canary_n 40"; KLN="--kl_anchor_n 16"; LIM="--limit 2"; KS=(2 2 2 2 2); DEV=""
+  waitfree() { :; }  # CPU only
+fi
+if [ "$src" != "$arm" ]; then  # ARM_b: $src's finished L2, from a run no rollback touched
+  L2CK=$C/${src}_s${s}_L2/ckpts/${src}_s${s}_L2_it$ITERS.pt
+  [ -f $L2CK ] || { say "$arm: no L2 checkpoint of $src ($L2CK): refusing"; exit 1; }
+  gl=$(grep -E '^guard it' $L/v2_${src}_s${s}_L2.log 2>/dev/null | tail -1)
+  case $gl in *"lr x1 (0 rollbacks)"*) ;; *)
+    say "$arm: $src's L2 log ends '${gl:-no guard line}', not lr x1 (0 rollbacks): rerun the whole line: refusing"; exit 1 ;;
+  esac
+fi
+mkdir -p $C $EV
+if [ "$SMOKE" != 1 ]; then
+  "$PY" -m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight $L2 $L3 > $C/preflight_${arm}_s$s.log 2>&1 \
+    || { say "preflight failed (see $C/preflight_${arm}_s$s.log)"; exit 1; }
+  if [ -n "$X2" ]; then  # the extra rows are shorter than the bands by construction: only the band lines may fail
+    xl=$C/preflight_${arm}_s${s}_extra.log
+    "$PY" -m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight $X2 $X3 > $xl 2>&1
+    if grep -vE '^  BAD: [0-9]+ rows outside' $xl | grep -qE '^(BAD|MISSING|\(skip)' || [ $(grep -c '^ok ' $xl) -lt 22 ]; then
+      say "extra-targets preflight failed (see $xl)"; exit 1; fi
+  fi
+fi
+[ -f $init0 ] || { say "no Stage-1 init $init0"; exit 1; }
+git -C $WT rev-parse HEAD > $C/${arm}_s$s.base_commit.txt
+watch() {  # NAME PID LOG EXPECTED_H
+  [ "$SMOKE" = 1 ] && return 0
+  python3 $R/watchdog.py $1:$2:$g:$3:$4 >> $WD 2>&1 & }
+grpo_stage() {  # NAME INIT TARGETS [EXTRA_TARGETS] -> ckpts/NAME_it$ITERS.pt
+  local n=$1 O=$C/$1 last=$C/$1/ckpts/${1}_it$ITERS.pt
+  [ -f $last ] && return 0; waitfree $g
+  local GUIDE=""; [ $samp = logical ] && GUIDE="--arm logical --max_rej $MAXREJ_TRAIN --rej_penalty $P"
+  local XT=""; [ -n "$4" ] && XT="--targets_extra $4 --targets_extra_frac $XFRAC"
+  ( CUDA_VISIBLE_DEVICES=$DEV timeout 21600 "$PY" -m code.thinking.grpo --init $2 --name $n --out $O --targets $3 \
+      --iters $ITERS --prompts $PROMPTS --group $GROUP --batch $BATCH --lr $LR --overlong fail --save_every $ITERS \
+      --max_steps $MAXSTEPS \
+      --seed $s --keep_rolling 100 $EFF --canary $R/pools/canary_long.jsonl $CAN --canary_every 1 \
+      --rollback_on_alarm --max_rollbacks 3 --ban_restore_check --ban_stop 0.005 \
+      --kl_anchor_coef 0.02 --kl_anchor_ref $2 $KLN --monitor $GUIDE $XT \
+      > $L/v2_$n.log 2>&1 ) & local p=$!
+  sleep 5; say "launched GRPO $n ($samp${GUIDE:+, P $P}${XT:+, extra $(basename $4) x $XFRAC}$LRN) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log 3.5
+  wait $p; say "GRPO $n exit $?: $(grep -E '^it [0-9]+:' $L/v2_$n.log | tail -1 | cut -c1-150)"
+  [ -f $last ]; }
+ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt
+  local n=$1 O=$C/$1 last=$C/$1/ckpts/${1}_r1.pt
+  [ -f $last ] && return 0; waitfree $g
+  ( CUDA_VISIBLE_DEVICES=$DEV timeout 21600 "$PY" -m code.thinking.ei --init $2 --name $n --out $O --targets $3 \
+      --train $R/data/$pkl --rounds 1 --k $K --temperature 0.8 --arm $samp --max_rej 10 --batch $BATCH --seed $s \
+      --max_steps $MAXSTEPS \
+      --select shortest $EFF $FT > $L/v2_$n.log 2>&1 ) & local p=$!
+  sleep 5; say "launched EI $n ($samp) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log 4
+  wait $p; say "EI $n exit $?: $(tail -1 $L/v2_$n.log | cut -c1-150)"
+  [ -f $last ]; }
+ck() { if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$ITERS.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r1.pt; fi; }
+read1() {  # SETNAME SETS K READARM [MAXSTEPS]
+  local o=$EV/$1_${arm}_s${s}_$4_k$3 ms=${5:-96}
+  [ -f $o/rows_$4_B$RB.jsonl ] && return 0; waitfree $g; local t=$(date +%s); rm -rf $o
+  CUDA_VISIBLE_DEVICES=$DEV timeout 9000 "$PY" -m code.thinking.eval --ckpt $(ck L3) --sets $2 --out $o --k $3 \
+    --budgets $RB --arms $4 --batch $BATCH --seed 0 --temperature 0.8 --max_action 512 --max_steps $ms --max_rej 10 \
+    $LIM > $L/v2_eval_$(basename $o).log 2>&1
+  local rc=$?; say "read $(basename $o) exit $rc $(( $(date +%s) - t ))s: $(grep -E '^\[' $L/v2_eval_$(basename $o).log | tr '\n' ' ' | cut -c1-200)"; }
+stage=${method}_stage
+if [ "$src" = "$arm" ]; then  # ARM_b has no L2 of its own: L2CK is $src's (checked above)
+  $stage ${arm}_s${s}_L2 $init0 $L2 $X2 || { say "${arm}_s${s}_L2 failed"; exit 1; }
+  L2CK=$(ck L2)
+fi
+$stage ${arm}_s${s}_L3 $L2CK $L3 $X3 || { say "${arm}_s${s}_L3 failed"; exit 1; }
+CH173=$CH/candidate_v0.jsonl,$CH/candidate_v1.jsonl,$CH/batch3.jsonl
+for ra in plain logical; do
+  read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} $ra
+  read1 tb72 $TB/textbook_dev.jsonl,$TB/textbook_train.jsonl ${KS[1]} $ra
+  read1 charles173 $CH173 ${KS[2]} $ra
+done
+read1 hand14 $CH/hand_proved_14.jsonl ${KS[3]} plain $MAXSTEPS_H14
+read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain
+say "grpo_v2 line done ($arm seed $s)"

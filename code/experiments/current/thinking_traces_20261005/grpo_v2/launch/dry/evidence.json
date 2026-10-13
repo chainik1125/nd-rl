@@ -1,0 +1,2618 @@
+{
+ "ps_hb": {
+  "src": "main:17371 2026-10-11T10:40:50.696Z + main:17374 2026-10-11T10:42:28.953Z",
+  "ps": [
+   "1259978       00:43 timeout 21600 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.grpo --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_h_s1_L2/ckpts/grpo_think_h_s1_L2_it39.pt --name grpo_think_h_b_s1_L3 --out /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_h_b_s1_L3 --targets /scratch/cowifornia/nd-rl/think/runs/pools/curriculum/L3/pool.jsonl --iters 39 --prompts 256 --group 16 --batch 1024 --lr 7.5e-5 --overlong fail --save_every 39 --max_steps 96 --seed 1 --keep_rolling 100 --effort --budgets 0,64,256 --canary /scratch/cowifornia/nd-rl/thi",
+   "1259980       00:43 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.grpo --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_h_s1_L2/ckpts/grpo_think_h_s1_L2_it39.pt --name grpo_think_h_b_s1_L3 --out /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_h_b_s1_L3 --targets /scratch/cowifornia/nd-rl/think/runs/pools/curriculum/L3/pool.jsonl --iters 39 --prompts 256 --group 16 --batch 1024 --lr 7.5e-5 --overlong fail --save_every 39 --max_steps 96 --seed 1 --keep_rolling 100 --effort --budgets 0,64,256 --canary /scratch/cowifornia/nd-rl/think/runs/pools/"
+  ],
+  "launched": [
+   "10:41Z launched GRPO grpo_think_h_b_s1_L3 (plain, lr 7.5e-5) on GPU 1 (pid 1259978)"
+  ],
+  "proc": [
+   "--init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_h_s1_L2/ckpts/grpo_think_h_s1_L2_it39.pt",
+   "--lr 7.5e-5",
+   "--seed 1",
+   "--rollback_on_alarm",
+   "--max_rollbacks 3",
+   "--ban_restore_check",
+   "--ban_stop 0.005",
+   "/scratch/cowifornia/nd-rl/think/nd-rl-v2"
+  ]
+ },
+ "old_full": {
+  "src": "agent-ad6a202caf48dd21:476 2026-10-11T09:07:32.394Z",
+  "lines": [
+   "21600 PY -m code.thinking.grpo --init SB/runs/grpo_v2/grpo_think_h_s1_L2/ckpts/grpo_think_h_s1_L2_it39.pt --name grpo_think_h_b_s1_L3 --out SB/runs/grpo_v2/grpo_think_h_b_s1_L3 --targets SB/runs/pools/curriculum/L3/pool.jsonl --iters 39 --prompts 256 --group 16 --batch 1024 --lr 7.5e-5 --overlong fail --save_every 39 --max_steps 96 --seed 1 --keep_rolling 100 --effort --budgets 0\\,64\\,256 --canary SB/runs/pools/canary_long.jsonl --canary_n 1000 --canary_every 1 --rollback_on_alarm --max_rollbacks 3 --ban_restore_check --ban_stop 0.005 --kl_anchor_coef 0.02 --kl_anchor_ref SB/runs/grpo_v2/grpo_think_h_s1_L2/ckpts/grpo_think_h_s1_L2_it39.pt --monitor",
+   "21600 PY -m code.thinking.grpo --init SB/runs/grpo_v2/grpo_think_h_s1_L2/ckpts/grpo_think_h_s1_L2_it39.pt --name grpo_think_h_s1_L3 --out SB/runs/grpo_v2/grpo_think_h_s1_L3 --targets SB/runs/pools/curriculum/L3/pool.jsonl --iters 39 --prompts 256 --group 16 --batch 1024 --lr 7.5e-5 --overlong fail --save_every 39 --max_steps 96 --seed 1 --keep_rolling 100 --effort --budgets 0\\,64\\,256 --canary SB/runs/pools/canary_long.jsonl --canary_n 1000 --canary_every 1 --rollback_on_alarm --max_rollbacks 3 --kl_anchor_coef 0.02 --kl_anchor_ref SB/runs/grpo_v2/grpo_think_h_s1_L2/ckpts/grpo_think_h_s1_L2_it39.pt --monitor"
+  ],
+  "stdout": [
+   "00:00Z launched GRPO grpo_think_h_b_s1_L3 (plain, lr 7.5e-5) on GPU 3 (pid 1154776)",
+   "00:00Z GRPO grpo_think_h_b_s1_L3 exit 0: it 39: dry",
+   "00:00Z read t1320_grpo_think_h_b_s1_plain_k16 exit 0 0s: [dry] eval ",
+   "00:00Z read tb72_grpo_think_h_b_s1_plain_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read charles173_grpo_think_h_b_s1_plain_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read t1320_grpo_think_h_b_s1_logical_k16 exit 0 0s: [dry] eval ",
+   "00:00Z read tb72_grpo_think_h_b_s1_logical_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read charles173_grpo_think_h_b_s1_logical_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read hand14_grpo_think_h_b_s1_plain_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read t2130_grpo_think_h_b_s1_plain_k8 exit 0 0s: [dry] eval ",
+   "00:00Z grpo_v2 line done (grpo_think_h_b seed 1)"
+  ]
+ },
+ "rec_vs3_s0": {
+  "src": "agent-aeb7753436e4d895:116 2026-10-11T05:07:05.413Z (stdout: :113)",
+  "cut": 900,
+  "lines": [
+   "git\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t-C /scratch/cowifornia/nd-rl/think/nd-rl-v2 rev-parse --abbrev-ref HEAD",
+   "py\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-c import\\ code.thinking\\,\\ sys\\;\\ sys.exit\\(0\\ if\\ code.thinking.__file__.startswith\\(\\'/scratch/cowifornia/nd-rl/think/nd-rl-v2/\\'\\)\\ else\\ 1\\)",
+   "py\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<R>/grpo_v2/preflight_grpo_nothink_vs3_s0.log\t<R>/grpo_v2/preflight_grpo_nothink_vs3_s0.log\tenv=9d3667de9c28\t-m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight <R>/pools/curriculum/L2/pool.jsonl <R>/pools/curriculum/L3/pool.jsonl",
+   "py\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<R>/grpo_v2/preflight_grpo_nothink_vs3_s0_extra.log\t<R>/grpo_v2/preflight_grpo_nothink_vs3_s0_extra.log\tenv=9d3667de9c28\t-m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight <R>/pools/curriculum_3p/L2_3p.jsonl <R>/pools/curriculum_3p/L3_3p.jsonl",
+   "git\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<R>/grpo_v2/grpo_nothink_vs3_s0.base_commit.txt\t<stdout>\tenv=9d3667de9c28\t-C /scratch/cowifornia/nd-rl/think/nd-rl-v2 rev-parse HEAD",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "sleep\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t5",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_grpo_nothink_vs3_s0_L2.log\t<R>/logs/v2_grpo_nothink_vs3_s0_L2.log\tenv=1f599c28f238\t21600 <PY> -m code.thinking.grpo --init <R>/stage1/T0S_s0/model.pt --name grpo_nothink_vs3_s0_L2 --out <R>/grpo_v2/grpo_nothink_vs3_s0_L2 --targets <R>/pools/curriculum/L2/pool.jsonl --iters 39 --prompts 256 --group 16 --batch 1024 --lr 1.5e-4 --overlong fail --save_every 39 --max_steps 96 --seed 0 --keep_rolling 100 --budgets 0 --canary <R>/pools/canary_long.jsonl --canary_n 1000 --canary_every 1 --rollback_on_alarm --max_rollbacks 3 --kl_anchor_coef 0.02 --kl_anchor_ref <R>/stage1/T0S_s0/model.pt --monitor --arm logical --max_rej 0 --rej_penalty 0.1 --targets_extra <R>/pools/curriculum_3p/L2_3p.jsonl --targets_extra_frac 0.33",
+   "python3\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<R>/logs/watchdog_grpo_v2.log\t<R>/logs/watchdog_grpo_v2.log\tenv=ac34677b237a\t<R>/watchdog.py grpo_nothink_vs3_s0_L2:862252:3:<R>/logs/v2_grpo_nothink_vs3_s0_L2.log:3.5",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "sleep\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t5",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_grpo_nothink_vs3_s0_L3.log\t<R>/logs/v2_grpo_nothink_vs3_s0_L3.log\tenv=1f599c28f238\t21600 <PY> -m code.thinking.grpo --init <R>/grpo_v2/grpo_nothink_vs3_s0_L2/ckpts/grpo_nothink_vs3_s0_L2_it39.pt --name grpo_nothink_vs3_s0_L3 --out <R>/grpo_v2/grpo_nothink_vs3_s0_L3 --targets <R>/pools/curriculum/L3/pool.jsonl --iters 39 --prompts 256 --group 16 --batch 1024 --lr 1.5e-4 --overlong fail --save_every 39 --max_steps 96 --seed 0 --keep_rolling 100 --budgets 0 --canary <R>/pools/canary_long.jsonl --canary_n 1000 --canary_every 1 --rollback_on_alarm --max_rollbacks 3 --kl_anchor_coef 0.02 --kl_anchor_ref <R>/grpo_v2/grpo_nothink_vs3_s0_L2/ckpts/grpo_nothink_vs3_s0_L2_it39.pt --monitor --arm logical --max_rej 0 --rej_penalty 0.1 --targets_extra <R>/pools/curriculum_3p/L3_3p.jsonl --targets_extra_frac 0.33",
+   "python3\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<R>/logs/watchdog_grpo_v2.log\t<R>/logs/watchdog_grpo_v2.log\tenv=ac34677b237a\t<R>/watchdog.py grpo_nothink_vs3_s0_L3:862322:3:<R>/logs/v2_grpo_nothink_vs3_s0_L3.log:3.5",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/t1320_grpo_nothink_vs3_s0_plain_k16",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_t1320_grpo_nothink_vs3_s0_plain_k16.log\t<R>/logs/v2_eval_t1320_grpo_nothink_vs3_s0_plain_k16.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets <R>/eval/matched/sets/t1320_n1000.jsonl --out <R>/eval/v2/t1320_grpo_nothink_vs3_s0_plain_k16 --k 16 --budgets 0 --arms plain --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 96 --max_rej 10",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/tb72_grpo_nothink_vs3_s0_plain_k64",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_tb72_grpo_nothink_vs3_s0_plain_k64.log\t<R>/logs/v2_eval_tb72_grpo_nothink_vs3_s0_plain_k64.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets /scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72/textbook_dev.jsonl\\,/scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72/textbook_train.jsonl --out <R>/eval/v2/tb72_grpo_nothink_vs3_s0_plain_k64 --k 64 --budgets 0 --arms plain --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 96 --max_rej 10",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/charles173_grpo_nothink_vs3_s0_plain_k64",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_charles173_grpo_nothink_vs3_s0_plain_k64.log\t<R>/logs/v2_eval_charles173_grpo_nothink_vs3_s0_plain_k64.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets <R>/pools/charles_1002/candidate_v0.jsonl\\,<R>/pools/charles_1002/candidate_v1.jsonl\\,<R>/pools/charles_1002/batch3.jsonl --out <R>/eval/v2/charles173_grpo_nothink_vs3_s0_plain_k64 --k 64 --budgets 0 --arms plain --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 96 --max_rej 10",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/t1320_grpo_nothink_vs3_s0_logical_k16",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_t1320_grpo_nothink_vs3_s0_logical_k16.log\t<R>/logs/v2_eval_t1320_grpo_nothink_vs3_s0_logical_k16.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets <R>/eval/matched/sets/t1320_n1000.jsonl --out <R>/eval/v2/t1320_grpo_nothink_vs3_s0_logical_k16 --k 16 --budgets 0 --arms logical --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 96 --max_rej 10",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/tb72_grpo_nothink_vs3_s0_logical_k64",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_tb72_grpo_nothink_vs3_s0_logical_k64.log\t<R>/logs/v2_eval_tb72_grpo_nothink_vs3_s0_logical_k64.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets /scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72/textbook_dev.jsonl\\,/scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72/textbook_train.jsonl --out <R>/eval/v2/tb72_grpo_nothink_vs3_s0_logical_k64 --k 64 --budgets 0 --arms logical --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 96 --max_rej 10",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/charles173_grpo_nothink_vs3_s0_logical_k64",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_charles173_grpo_nothink_vs3_s0_logical_k64.log\t<R>/logs/v2_eval_charles173_grpo_nothink_vs3_s0_logical_k64.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets <R>/pools/charles_1002/candidate_v0.jsonl\\,<R>/pools/charles_1002/candidate_v1.jsonl\\,<R>/pools/charles_1002/batch3.jsonl --out <R>/eval/v2/charles173_grpo_nothink_vs3_s0_logical_k64 --k 64 --budgets 0 --arms logical --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 96 --max_rej 10",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/hand14_grpo_nothink_vs3_s0_plain_k64",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_hand14_grpo_nothink_vs3_s0_plain_k64.log\t<R>/logs/v2_eval_hand14_grpo_nothink_vs3_s0_plain_k64.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets <R>/pools/charles_1002/hand_proved_14.jsonl --out <R>/eval/v2/hand14_grpo_nothink_vs3_s0_plain_k64 --k 64 --budgets 0 --arms plain --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 160 --max_rej 10",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t<stdout>\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t<stdout>\t<stdout>\tenv=9d3667de9c28\t-rf <R>/eval/v2/t2130_grpo_nothink_vs3_s0_plain_k8",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t<R>/logs/v2_eval_t2130_grpo_nothink_vs3_s0_plain_k8.log\t<R>/logs/v2_eval_t2130_grpo_nothink_vs3_s0_plain_k8.log\tenv=961268bd0415\t9000 <PY> -m code.thinking.eval --ckpt <R>/grpo_v2/grpo_nothink_vs3_s0_L3/ckpts/grpo_nothink_vs3_s0_L3_it39.pt --sets <R>/eval/matched/sets/t2130_n1000.jsonl --out <R>/eval/v2/t2130_grpo_nothink_vs3_s0_plain_k8 --k 8 --budgets 0 --arms plain --batch 1024 --seed 0 --temperature 0.8 --max_action 512 --max_steps 96 --max_rej 10"
+  ],
+  "stdout": [
+   "00:00Z launched GRPO grpo_nothink_vs3_s0_L2 (logical, P 0.1, extra L2_3p.jsonl x 0.33) on GPU 3 (pid 862252)",
+   "00:00Z GRPO grpo_nothink_vs3_s0_L2 exit 0: it 39: dry",
+   "00:00Z launched GRPO grpo_nothink_vs3_s0_L3 (logical, P 0.1, extra L3_3p.jsonl x 0.33) on GPU 3 (pid 862322)",
+   "00:00Z GRPO grpo_nothink_vs3_s0_L3 exit 0: it 39: dry",
+   "00:00Z read t1320_grpo_nothink_vs3_s0_plain_k16 exit 0 0s: [dry] eval ",
+   "00:00Z read tb72_grpo_nothink_vs3_s0_plain_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read charles173_grpo_nothink_vs3_s0_plain_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read t1320_grpo_nothink_vs3_s0_logical_k16 exit 0 0s: [dry] eval ",
+   "00:00Z read tb72_grpo_nothink_vs3_s0_logical_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read charles173_grpo_nothink_vs3_s0_logical_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read hand14_grpo_nothink_vs3_s0_plain_k64 exit 0 0s: [dry] eval ",
+   "00:00Z read t2130_grpo_nothink_vs3_s0_plain_k8 exit 0 0s: [dry] eval ",
+   "00:00Z grpo_v2 line done (grpo_nothink_vs3 seed 0)"
+  ]
+ },
+ "rec_h_s1": {
+  "src": "agent-ad6a202caf48dd21:96 2026-10-11T08:29:04.847Z",
+  "cut": 600,
+  "prefix": "/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry",
+  "lines": [
+   "git\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t-C /scratch/cowifornia/nd-rl/think/nd-rl-v2 rev-parse --abbrev-ref HEAD",
+   "py\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=9d3667de9c28\t-c import\\ code.thinking\\,\\ sys\\;\\ sys.exit\\(0\\ if\\ code.thinking.__file__.startswith\\(\\'/scratch/cowifornia/nd-rl/think/nd-rl-v2/\\'\\)\\ else\\ 1\\)",
+   "py\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/grpo_v2/preflight_grpo_think_h_s1.log\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/grpo_v2/preflight_grpo_think_h_s1.log\tenv=9d3667de9c28\t-m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight /tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/pools/curriculum/L2/pool.jsonl /tmp/c",
+   "git\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/grpo_v2/grpo_think_h_s1.base_commit.txt\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=9d3667de9c28\t-C /scratch/cowifornia/nd-rl/think/nd-rl-v2 rev-parse HEAD",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "sleep\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=9d3667de9c28\t5",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/v2_grpo_think_h_s1_L2.log\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/v2_grpo_think_h_s1_L2.log\tenv=1f599c28f238\t21600 /tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/pybin/python -m code.thinking.grpo --init /tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-",
+   "python3\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/watchdog_grpo_v2.log\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/watchdog_grpo_v2.log\tenv=ac34677b237a\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/watchdog.py grpo_think_h_s1_L2:982609:3:/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa53",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "sleep\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=9d3667de9c28\t5",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/v2_grpo_think_h_s1_L3.log\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/v2_grpo_think_h_s1_L3.log\tenv=1f599c28f238\t21600 /tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/pybin/python -m code.thinking.grpo --init /tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-",
+   "python3\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/watchdog_grpo_v2.log\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/watchdog_grpo_v2.log\tenv=ac34677b237a\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/watchdog.py grpo_think_h_s1_L3:982678:3:/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa53",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3",
+   "rm\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=9d3667de9c28\t-rf /tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/eval/v2/t1320_grpo_think_h_s1_plain_k16",
+   "timeout\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=[3]\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/v2_eval_t1320_grpo_think_h_s1_plain_k16.log\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/sb/runs/logs/v2_eval_t1320_grpo_think_h_s1_plain_k16.log\tenv=961268bd0415\t9000 /tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/pybin/python -m code.thinking.eval --ckpt /tmp/claude-10001/-home-cowifornia-code-rese",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+   "nvidia-smi\t/scratch/cowifornia/nd-rl/think/nd-rl-v2\tCVD=unset\tpipe\t/tmp/claude-10001/-home-cowifornia-code-research-nd-rl/99f17bd8-830c-4f1b-9192-98b5fa5336e1/scratchpad/dry/run/stdout.txt\tenv=ac34677b237a\t--query-compute-apps=pid --format=csv\\,noheader -i 3"
+  ]
+ },
+ "ps_lines": [
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 535253    04:23:37 timeout 21600 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.ei --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/ei_think_v_s0_L2/ckpts/ei_think_v_"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 535255    04:23:37 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.ei --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/ei_think_v_s0_L2/ckpts/ei_think_v_s0_L2_r1.pt --"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 535401    04:23:32 /home/cowifornia/.pyenv/versions/3.13.5/bin/python3 /scratch/cowifornia/nd-rl/think/runs/watchdog.py ei_think_v_s0_L3:535253:2:/scratch/cowifornia/nd-rl/think/runs/logs/v2_ei_think"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 567285    02:31:29 timeout 21600 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.ei --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/ei_think_v_s1_L2/ckpts/ei_think_v_"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 567287    02:31:29 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.ei --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/ei_think_v_s1_L2/ckpts/ei_think_v_s1_L2_r1.pt --"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 567382    02:31:24 /home/cowifornia/.pyenv/versions/3.13.5/bin/python3 /scratch/cowifornia/nd-rl/think/runs/watchdog.py ei_think_v_s1_L3:567285:4:/scratch/cowifornia/nd-rl/think/runs/logs/v2_ei_think"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 567533    02:31:00 timeout 21600 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.ei --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/ei_nothink_v_s0_L2/ckpts/ei_nothin"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 567535    02:31:00 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.ei --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/ei_nothink_v_s0_L2/ckpts/ei_nothink_v_s0_L2_r1.p"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 567609    02:30:55 /home/cowifornia/.pyenv/versions/3.13.5/bin/python3 /scratch/cowifornia/nd-rl/think/runs/watchdog.py ei_nothink_v_s0_L3:567533:0:/scratch/cowifornia/nd-rl/think/runs/logs/v2_ei_not"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 598536       21:56 timeout 21600 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.grpo --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_s1_L2/ckpts/grpo_thin"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 598538       21:56 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.grpo --init /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_s1_L2/ckpts/grpo_think_s1_L2_it39.p"
+  },
+  {
+   "src": "main:14113 2026-10-10T11:30:16.668Z",
+   "line": " 598640       21:51 /home/cowifornia/.pyenv/versions/3.13.5/bin/python3 /scratch/cowifornia/nd-rl/think/runs/watchdog.py grpo_think_s1_L3:598536:1:/scratch/cowifornia/nd-rl/think/runs/logs/v2_grpo_thi"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1251790       30:02 timeout 9000 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_vs_h_s0_L3/ckpts/grpo_"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1251792       30:02 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_vs_h_s0_L3/ckpts/grpo_think_vs_h_s0"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1252636       26:40 timeout 9000 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_vs_h_s1_L3/ckpts/grpo_"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1252638       26:40 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_vs_h_s1_L3/ckpts/grpo_think_vs_h_s1"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1254948       17:25 timeout 9000 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_h_s0_L3/ckpts/grpo_thi"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1254950       17:25 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_h_s0_L3/ckpts/grpo_think_h_s0_L3_it"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1258238       04:58 timeout 9000 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_nothink_h_s0_L3/ckpts/grpo_n"
+  },
+  {
+   "src": "main:17349 2026-10-11T10:40:26.929Z",
+   "line": "1258240       04:58 /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python -m code.thinking.eval --ckpt /scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_nothink_h_s0_L3/ckpts/grpo_nothink_h_s0_L"
+  }
+ ],
+ "log_lines": [
+  {
+   "ts": "2026-10-10T03:18:50",
+   "src": "main:13674",
+   "line": "21:34Z launched EI think_s2_r2 on GPU 0 (pid 328255)"
+  },
+  {
+   "ts": "2026-10-10T03:18:50",
+   "src": "main:13674",
+   "line": "00:21Z launched EI think_s2_r3 on GPU 0 (pid 404742)"
+  },
+  {
+   "ts": "2026-10-10T03:18:59",
+   "src": "main:13678",
+   "line": "02:28Z read t1320_grpo_g3s0_k32 exit 0 2341s: [plain_B64] solved 733/1000 (73.3%), pass@1 30.5%, tokens/attempt 834.6 (think 468.3), 2337s "
+  },
+  {
+   "ts": "2026-10-10T03:18:59",
+   "src": "main:13678",
+   "line": "02:31Z read tb72_grpo_g3s0_k64 exit 0 169s: [plain_B64] solved 64/72 (88.9%), pass@1 75.4%, tokens/attempt 432.4 (think 242.8), 166s "
+  },
+  {
+   "ts": "2026-10-10T03:18:59",
+   "src": "main:13678",
+   "line": "02:46Z read t1320_grpo_g3s1_k32 exit 0 2423s: [plain_B64] solved 764/1000 (76.4%), pass@1 30.8%, tokens/attempt 809.8 (think 410.1), 2420s "
+  },
+  {
+   "ts": "2026-10-10T03:18:59",
+   "src": "main:13678",
+   "line": "02:50Z read tb72_grpo_g3s1_k64 exit 0 228s: [plain_B64] solved 63/72 (87.5%), pass@1 75.8%, tokens/attempt 425.3 (think 215.4), 225s "
+  },
+  {
+   "ts": "2026-10-10T03:19:22",
+   "src": "main:13690",
+   "line": "03:19Z queue GPU 0: waiting for 'seed2 line done (think)' in /scratch/cowifornia/nd-rl/think/runs/logs/seed2_think.log"
+  },
+  {
+   "ts": "2026-10-10T03:19:22",
+   "src": "main:13690",
+   "line": "03:19Z queue GPU 1: start grpo_think_v seed 0"
+  },
+  {
+   "ts": "2026-10-10T03:19:22",
+   "src": "main:13690",
+   "line": "03:19Z queue GPU 2: start ei_think_v seed 0"
+  },
+  {
+   "ts": "2026-10-10T03:19:22",
+   "src": "main:13690",
+   "line": "03:19Z queue GPU 3: start grpo_think seed 0"
+  },
+  {
+   "ts": "2026-10-10T03:19:22",
+   "src": "main:13690",
+   "line": "03:19Z queue GPU 4: start grpo_nothink_v seed 0"
+  },
+  {
+   "ts": "2026-10-10T03:21:05",
+   "src": "main:13697",
+   "line": "03:19Z launched GRPO grpo_think_v_s0_L2 (logical, P 0.1) on GPU 1 (pid 459137)"
+  },
+  {
+   "ts": "2026-10-10T03:21:05",
+   "src": "main:13697",
+   "line": "03:19Z launched EI ei_think_v_s0_L2 (logical) on GPU 2 (pid 459194)"
+  },
+  {
+   "ts": "2026-10-10T03:21:05",
+   "src": "main:13697",
+   "line": "03:19Z launched GRPO grpo_think_s0_L2 (plain) on GPU 3 (pid 459258)"
+  },
+  {
+   "ts": "2026-10-10T03:21:05",
+   "src": "main:13697",
+   "line": "03:19Z launched GRPO grpo_nothink_v_s0_L2 (logical, P 0.1) on GPU 4 (pid 459355)"
+  },
+  {
+   "ts": "2026-10-10T04:42:49",
+   "src": "main:13779",
+   "line": "19:29Z launched EI nothink_s2_r1 on GPU 1 (pid 297944)"
+  },
+  {
+   "ts": "2026-10-10T04:42:49",
+   "src": "main:13779",
+   "line": "20:24Z launched EI nothink_s2_r2 on GPU 1 (pid 308108)"
+  },
+  {
+   "ts": "2026-10-10T04:42:49",
+   "src": "main:13779",
+   "line": "21:48Z launched EI nothink_s2_r3 on GPU 1 (pid 331931)"
+  },
+  {
+   "ts": "2026-10-10T04:42:49",
+   "src": "main:13779",
+   "line": "04:39Z queue GPU 0: pre: cd /scratch/cowifornia/nd-rl/think/runs/followup_20261007 && ARMS=plain K=32 bash evq_arm.sh 0 /scratch/cowifornia/nd-rl/think/runs/eval/matched/sets/t1320_n1000.jsonl /scratc"
+  },
+  {
+   "ts": "2026-10-10T05:33:03",
+   "src": "main:13825",
+   "line": "05:27Z GRPO grpo_nothink_v_s0_L3 exit 0: it 39: pass@1 90.3% {'0': 90.3} skip 26% tok/att 231 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0051 clip lo/"
+  },
+  {
+   "ts": "2026-10-10T05:33:03",
+   "src": "main:13825",
+   "line": "05:32Z read t1320_grpo_nothink_v_s0_plain_k16 exit 0 302s: [lean_gate] 2465 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2253: ok 638, rej 1615 (filter 1615, prefilter=on); lean on 638 texts in 2 procs, 9.6s proc,"
+  },
+  {
+   "ts": "2026-10-10T05:33:03",
+   "src": "main:13825",
+   "line": "05:11Z GRPO grpo_think_s0_L2 exit 0: it 39: pass@1 82.6% {'0': 69.5, '64': 88.1, '256': 90.6} skip 43% tok/att 374 over 0.0% cap 0.1% think/att 182 think/blk 64:16.3/64 f3% 256:22.3/256 f"
+  },
+  {
+   "ts": "2026-10-10T05:33:03",
+   "src": "main:13825",
+   "line": "05:11Z launched GRPO grpo_think_s0_L3 (plain) on GPU 3 (pid 487545)"
+  },
+  {
+   "ts": "2026-10-10T07:03:40",
+   "src": "main:13851",
+   "line": "05:48Z queue GPU 0: start ei_nothink_v seed 0"
+  },
+  {
+   "ts": "2026-10-10T07:03:40",
+   "src": "main:13851",
+   "line": "05:54Z queue GPU 4: grpo_nothink_v seed 0 exit 0: 05:54Z grpo_v2 line done (grpo_nothink_v seed 0)"
+  },
+  {
+   "ts": "2026-10-10T07:03:40",
+   "src": "main:13851",
+   "line": "05:54Z queue GPU 4: start ei_think_v seed 1"
+  },
+  {
+   "ts": "2026-10-10T07:15:23",
+   "src": "main:13880",
+   "line": "05:53Z read hand14_grpo_nothink_v_s0_plain_k64 exit 0 18s: [lean_gate] 10 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 10: ok 0, rej 10 (filter 10, prefilter=on); lean on 0 texts in 0 procs, 0."
+  },
+  {
+   "ts": "2026-10-10T07:46:42",
+   "src": "main:13920",
+   "line": "07:46Z queue GPU 1: waiting for 'grpo_v2 line done (grpo_think_v seed 0)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_grpo_think_v_s0.log"
+  },
+  {
+   "ts": "2026-10-10T07:46:42",
+   "src": "main:13920",
+   "line": "07:46Z queue GPU 3: waiting for 'grpo_v2 line done (grpo_think seed 0)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_grpo_think_s0.log"
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "07:22Z read t1320_grpo_think_s0_plain_k16 exit 0 981s: [lean_gate] 6905 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 6715: ok 4515, rej 2200 (filter 2200, prefilter=on); lean on 4515 texts in 1"
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "07:24Z read tb72_grpo_think_s0_plain_k64 exit 0 120s: [lean_gate] 3667 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2281: ok 1970, rej 311 (filter 311, prefilter=on); lean on 1970 texts in 5 pr"
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "07:29Z read charles173_grpo_think_s0_plain_k64 exit 0 258s: [lean_gate] 9529 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5898: ok 4619, rej 1279 (filter 1279, prefilter=on); lean on 4619 texts"
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "08:01Z read t1320_grpo_think_s0_logical_k16 exit 0 1927s: [lean_gate] 7137 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 6930: ok 6930, rej 0 (filter 0, prefilter=on); lean on 6930 texts in 18 p"
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "08:05Z read tb72_grpo_think_s0_logical_k64 exit 0 221s: [lean_gate] 3620 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2220: ok 2220, rej 0 (filter 0, prefilter=on); lean on 2220 texts in 6 proc"
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "08:13Z read charles173_grpo_think_s0_logical_k64 exit 0 503s: [lean_gate] 8951 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5339: ok 5339, rej 0 (filter 0, prefilter=on); lean on 5339 texts in "
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "08:14Z read hand14_grpo_think_s0_plain_k64 exit 0 47s: [lean_gate] 31 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 27: ok 0, rej 27 (filter 27, prefilter=on); lean on 0 texts in 0 procs, 0.0s p"
+  },
+  {
+   "ts": "2026-10-10T08:23:16",
+   "src": "main:13945",
+   "line": "08:22Z read t2130_grpo_think_s0_plain_k8 exit 0 519s: [lean_gate] 955 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 951: ok 406, rej 545 (filter 545, prefilter=on); lean on 406 texts in 2 procs,"
+  },
+  {
+   "ts": "2026-10-10T08:24:36",
+   "src": "main:13984",
+   "line": "08:24Z queue GPU 4: waiting for 'grpo_v2 line done (ei_think_v seed 1)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_ei_think_v_s1.log"
+  },
+  {
+   "ts": "2026-10-10T09:28:57",
+   "src": "main:14015",
+   "line": "09:28Z queue GPU 1: start grpo_think seed 1"
+  },
+  {
+   "ts": "2026-10-10T09:28:57",
+   "src": "main:14015",
+   "line": "08:24Z queue GPU 3: start grpo_nothink seed 0"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "05:48Z launched EI ei_nothink_v_s0_L2 (logical) on GPU 0 (pid 496726)"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "08:59Z EI ei_nothink_v_s0_L2 exit 0: === round 1: solved 4308/5000 this round, cumulative 4308, new 22397, 11431s"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "08:59Z launched EI ei_nothink_v_s0_L3 (logical) on GPU 0 (pid 567533)"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "07:06Z EI ei_think_v_s0_L2 exit 0: === round 1: solved 4667/5000 this round, cumulative 4667, new 30291, 13621s"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "07:06Z launched EI ei_think_v_s0_L3 (logical) on GPU 2 (pid 535253)"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "09:28Z launched GRPO grpo_think_s1_L2 (plain) on GPU 1 (pid 574508)"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "11:08Z GRPO grpo_think_s1_L2 exit 0: it 39: pass@1 80.0% {'0': 68.8, '64': 87.4, '256': 87.0} skip 37% tok/att 373 over 0.0% cap 0.0% think/att 184 think/blk 64:16.5/64 f3% 256:24.8/256 f"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "11:08Z launched GRPO grpo_think_s1_L3 (plain) on GPU 1 (pid 598536)"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "10:54Z read tb72_grpo_nothink_s0_plain_k64 exit 0 72s: [lean_gate] 3510 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2100: ok 1811, rej 289 (filter 289, prefilter=on); lean on 1811 texts in 5 procs, 18.7s proc, ex"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "10:59Z read charles173_grpo_nothink_s0_plain_k64 exit 0 282s: [lean_gate] 8625 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5247: ok 4032, rej 1215 (filter 1215, prefilter=on); lean on 4032 texts in 11 procs, 45.1"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "11:27Z read t1320_grpo_nothink_s0_logical_k16 exit 0 1703s: [lean_gate] 7757 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7363: ok 7363, rej 0 (filter 0, prefilter=on); lean on 7363 texts in 19 procs, 157.0s proc,"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "11:29Z read tb72_grpo_nothink_s0_logical_k64 exit 0 121s: [lean_gate] 3616 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2142: ok 2142, rej 0 (filter 0, prefilter=on); lean on 2142 texts in 6 procs, 22.5s proc, exp"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "05:55Z launched EI ei_think_v_s1_L2 (logical) on GPU 4 (pid 498506)"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "08:58Z EI ei_think_v_s1_L2 exit 0: === round 1: solved 4709/5000 this round, cumulative 4709, new 30991, 11024s"
+  },
+  {
+   "ts": "2026-10-10T11:30:04",
+   "src": "main:14105",
+   "line": "08:58Z launched EI ei_think_v_s1_L3 (logical) on GPU 4 (pid 567285)"
+  },
+  {
+   "ts": "2026-10-10T11:36:40",
+   "src": "main:14228",
+   "line": "10:59Z read charles173_grpo_nothink_s0_plain_k64 exit 0 282s: [lean_gate] 8625 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5247: ok 4032, rej 1215 (filt"
+  },
+  {
+   "ts": "2026-10-10T11:36:40",
+   "src": "main:14228",
+   "line": "11:27Z read t1320_grpo_nothink_s0_logical_k16 exit 0 1703s: [lean_gate] 7757 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7363: ok 7363, rej 0 (filter 0,"
+  },
+  {
+   "ts": "2026-10-10T11:36:40",
+   "src": "main:14228",
+   "line": "11:29Z read tb72_grpo_nothink_s0_logical_k64 exit 0 121s: [lean_gate] 3616 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2142: ok 2142, rej 0 (filter 0, p"
+  },
+  {
+   "ts": "2026-10-10T11:36:52",
+   "src": "main:14232",
+   "line": "11:36Z queue GPU 3: waiting for 'grpo_v2 line done (grpo_nothink seed 0)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_grpo_nothink_s0.log"
+  },
+  {
+   "ts": "2026-10-10T13:30:55",
+   "src": "main:14298",
+   "line": "13:30Z read t2130_ei_think_v_s0_plain_k8 exit 0 897s: [lean_gate] 1223 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1221: ok 480, rej 741 (filter 741, prefilter=on); lean on 480 texts in 2 proc"
+  },
+  {
+   "ts": "2026-10-10T13:30:55",
+   "src": "main:14298",
+   "line": "13:30Z grpo_v2 line done (ei_think_v seed 0)"
+  },
+  {
+   "ts": "2026-10-10T13:30:55",
+   "src": "main:14298",
+   "line": "13:30Z queue GPU 2: ei_think_v seed 0 exit 0: 13:30Z grpo_v2 line done (ei_think_v seed 0)"
+  },
+  {
+   "ts": "2026-10-10T13:30:55",
+   "src": "main:14298",
+   "line": "13:30Z queue GPU 2: start ei_nothink_v seed 1"
+  },
+  {
+   "ts": "2026-10-10T13:30:55",
+   "src": "main:14298",
+   "line": "11:45Z queue GPU 3: grpo_nothink seed 0 exit 0: 11:45Z grpo_v2 line done (grpo_nothink seed 0)"
+  },
+  {
+   "ts": "2026-10-10T13:30:55",
+   "src": "main:14298",
+   "line": "11:45Z queue GPU 3 done"
+  },
+  {
+   "ts": "2026-10-10T13:30:55",
+   "src": "main:14298",
+   "line": "11:46Z queue GPU 3: start ei_nothink seed 0"
+  },
+  {
+   "ts": "2026-10-10T13:36:37",
+   "src": "main:14415",
+   "line": "13:35Z launched GRPO grpo_nothink_vs_s0_L3 (logical, P 0.1) on GPU 9 (pid 635177)"
+  },
+  {
+   "ts": "2026-10-10T13:36:37",
+   "src": "main:14415",
+   "line": "13:36Z GRPO grpo_nothink_vs_s0_L3 exit 0: it 2: pass@1 37.5% {'0': 37.5} skip 25% tok/att 120 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0887 clip lo/h"
+  },
+  {
+   "ts": "2026-10-10T13:36:37",
+   "src": "main:14415",
+   "line": "13:36Z read t1320_grpo_nothink_vs_s0_plain_k2 exit 0 7s: [lean_gate] 2 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2: ok 1, rej 1 (filter 1, prefilter=on); lean on 1 texts in 1 procs, 0.7s pro"
+  },
+  {
+   "ts": "2026-10-10T13:36:37",
+   "src": "main:14415",
+   "line": "13:36Z read tb72_grpo_nothink_vs_s0_plain_k2 exit 0 5s: [plain_B0] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 129.0 (think 0.0), 2s "
+  },
+  {
+   "ts": "2026-10-10T13:36:37",
+   "src": "main:14415",
+   "line": "13:36Z read charles173_grpo_nothink_vs_s0_plain_k2 exit 0 4s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 2, rej 2 (filter 2, prefilter=on); lean on 2 texts in 1 procs, 0.8"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:01Z GRPO grpo_think_s1_L3 exit 0: it 39: pass@1 81.0% {'0': 64.3, '64': 88.2, '256': 90.3} skip 36% tok/att 440 over "
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:23Z read t1320_grpo_think_s1_plain_k16 exit 0 1269s: [lean_gate] 6382 samples, parse-fail 0 (no-eos 0, 0.000 %), dist"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:26Z read tb72_grpo_think_s1_plain_k64 exit 0 191s: [lean_gate] 3552 samples, parse-fail 0 (no-eos 0, 0.000 %), distin"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:32Z read charles173_grpo_think_s1_plain_k64 exit 0 361s: [lean_gate] 9086 samples, parse-fail 0 (no-eos 0, 0.000 %), "
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:16Z read tb72_ei_think_v_s1_logical_k64 exit 0 183s: [lean_gate] 3681 samples, parse-fail 0 (no-eos 0, 0.000 %), dist"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:24Z read charles173_ei_think_v_s1_logical_k64 exit 0 483s: [lean_gate] 8392 samples, parse-fail 0 (no-eos 0, 0.000 %)"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:25Z read hand14_ei_think_v_s1_plain_k64 exit 0 57s: [lean_gate] 32 samples, parse-fail 0 (no-eos 0, 0.000 %), distinc"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "12:50Z read charles173_ei_nothink_v_s0_plain_k64 exit 0 355s: [lean_gate] 7766 samples, parse-fail 0 (no-eos 0, 0.000 %)"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:31Z read t1320_ei_nothink_v_s0_logical_k16 exit 0 2478s: [lean_gate] 7804 samples, parse-fail 0 (no-eos 0, 0.000 %), "
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:35Z read tb72_ei_nothink_v_s0_logical_k64 exit 0 255s: [lean_gate] 3386 samples, parse-fail 0 (no-eos 0, 0.000 %), di"
+  },
+  {
+   "ts": "2026-10-10T13:37:34",
+   "src": "main:14431",
+   "line": "13:37Z launched GRPO grpo_think_vs_s0_L2 (logical, P 0.1) on GPU 9 (pid 636031)"
+  },
+  {
+   "ts": "2026-10-10T13:40:26",
+   "src": "main:14453",
+   "line": "13:37Z read hand14_grpo_nothink_vs_s0_plain_k2 exit 0 5s: [plain_B0] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 139.2 (think 0.0), 2s "
+  },
+  {
+   "ts": "2026-10-10T13:40:26",
+   "src": "main:14453",
+   "line": "13:37Z read t2130_grpo_nothink_vs_s0_plain_k2 exit 0 7s: [plain_B0] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 234.5 (think 0.0), 4s "
+  },
+  {
+   "ts": "2026-10-10T13:40:26",
+   "src": "main:14453",
+   "line": "13:37Z grpo_v2 line done (grpo_nothink_vs seed 0)"
+  },
+  {
+   "ts": "2026-10-10T13:40:26",
+   "src": "main:14453",
+   "line": "13:40Z read hand14_grpo_think_vs_s0_plain_k2 exit 0 5s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 191.8 (think 59.5), 2s "
+  },
+  {
+   "ts": "2026-10-10T13:40:26",
+   "src": "main:14453",
+   "line": "13:40Z read t2130_grpo_think_vs_s0_plain_k2 exit 0 10s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 431.8 (think 204.0), 8s "
+  },
+  {
+   "ts": "2026-10-10T13:40:26",
+   "src": "main:14453",
+   "line": "13:40Z grpo_v2 line done (grpo_think_vs seed 0)"
+  },
+  {
+   "ts": "2026-10-10T14:09:01",
+   "src": "main:14486",
+   "line": "13:59Z queue GPU 4 done"
+  },
+  {
+   "ts": "2026-10-10T14:09:12",
+   "src": "main:14491",
+   "line": "14:09Z queue GPU 4: start grpo_think_vs seed 0"
+  },
+  {
+   "ts": "2026-10-10T14:09:12",
+   "src": "main:14491",
+   "line": "14:09Z queue GPU 1: waiting for 'grpo_v2 line done (grpo_think seed 1)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_grpo_think_s1.log"
+  },
+  {
+   "ts": "2026-10-10T14:09:12",
+   "src": "main:14491",
+   "line": "14:09Z launched GRPO grpo_think_vs_s0_L2 (logical, P 0.1) on GPU 4 (pid 643372)"
+  },
+  {
+   "ts": "2026-10-10T14:10:15",
+   "src": "main:14508",
+   "line": "13:48Z read hand14_ei_nothink_v_s0_plain_k64 exit 0 56s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 0, rej 4 (f"
+  },
+  {
+   "ts": "2026-10-10T14:10:15",
+   "src": "main:14508",
+   "line": "13:59Z read t2130_ei_nothink_v_s0_plain_k8 exit 0 611s: [lean_gate] 790 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 789: ok 384, rej"
+  },
+  {
+   "ts": "2026-10-10T14:10:15",
+   "src": "main:14508",
+   "line": "13:59Z grpo_v2 line done (ei_nothink_v seed 0)"
+  },
+  {
+   "ts": "2026-10-10T14:10:15",
+   "src": "main:14508",
+   "line": "13:59Z queue GPU 0: ei_nothink_v seed 0 exit 0: 13:59Z grpo_v2 line done (ei_nothink_v seed 0)"
+  },
+  {
+   "ts": "2026-10-10T14:10:15",
+   "src": "main:14508",
+   "line": "13:59Z queue GPU 0: start ei_think seed 0"
+  },
+  {
+   "ts": "2026-10-10T15:28:40",
+   "src": "main:14683",
+   "line": "14:45Z queue GPU 1: start grpo_nothink_vs seed 0"
+  },
+  {
+   "ts": "2026-10-10T15:30:04",
+   "src": "main:14756",
+   "line": "13:38Z queue GPU 4: ei_think_v seed 1 exit 0: 13:38Z grpo_v2 line done (ei_think_v seed 1)"
+  },
+  {
+   "ts": "2026-10-10T15:30:04",
+   "src": "main:14756",
+   "line": "13:38Z queue GPU 4 done"
+  },
+  {
+   "ts": "2026-10-10T15:30:12",
+   "src": "main:14762",
+   "line": "14:44Z queue GPU 1: grpo_think seed 1 exit 0: 14:44Z grpo_v2 line done (grpo_think seed 1)"
+  },
+  {
+   "ts": "2026-10-10T15:30:12",
+   "src": "main:14762",
+   "line": "14:44Z queue GPU 1 done"
+  },
+  {
+   "ts": "2026-10-10T15:34:24",
+   "src": "main:14963",
+   "line": "15:00Z read t1320_ei_nothink_s0_plain_k16 exit 0 841s: [lean_gate] 6098 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5911: ok 4222, rej 1689 (filter 1689, prefilter=on); lean on 4222 texts in 11 procs, 70.6s proc, exposed 8.7s, tail 7.9s, 48 worker"
+  },
+  {
+   "ts": "2026-10-10T15:34:24",
+   "src": "main:14963",
+   "line": "15:01Z read tb72_ei_nothink_s0_plain_k64 exit 0 89s: [lean_gate] 3132 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2070: ok 1901, rej 169 (filter 169, prefilter=on); lean on 1901 texts in 5 procs, 18.0s proc, exposed 4.1s, tail 4.0s, 48 workers ["
+  },
+  {
+   "ts": "2026-10-10T15:34:24",
+   "src": "main:14963",
+   "line": "15:05Z read charles173_ei_nothink_s0_plain_k64 exit 0 206s: [lean_gate] 7600 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4912: ok 4082, rej 830 (filter 830, prefilter=on); lean on 4082 texts in 11 procs, 40.4s proc, exposed 5.6s, tail 5.2s, 48 workers "
+  },
+  {
+   "ts": "2026-10-10T15:34:24",
+   "src": "main:14963",
+   "line": "15:33Z read t1320_ei_nothink_s0_logical_k16 exit 0 1678s: [lean_gate] 7883 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7640: ok 7640, rej 0 (filter 0, prefilter=on); lean on 7640 texts in 20 procs, 151.3s proc, exposed 11.7s, tail 10.3s, 48 workers ["
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "10:53Z read t1320_grpo_nothink_s0_plain_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "10:54Z read tb72_grpo_nothink_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "10:59Z read charles173_grpo_nothink_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "11:27Z read t1320_grpo_nothink_s0_logical_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "11:29Z read tb72_grpo_nothink_s0_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "11:37Z read charles173_grpo_nothink_s0_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "11:37Z read hand14_grpo_nothink_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "11:45Z read t2130_grpo_nothink_s0_plain_k8 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "11:45Z grpo_v2 line done (grpo_nothink"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "15:00Z read t1320_ei_nothink_s0_plain_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "15:01Z read tb72_ei_nothink_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "15:05Z read charles173_ei_nothink_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "15:33Z read t1320_ei_nothink_s0_logical_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:23Z read t1320_grpo_think_s1_plain_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:26Z read tb72_grpo_think_s1_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:32Z read charles173_grpo_think_s1_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "14:15Z read t1320_grpo_think_s1_logical_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "14:20Z read tb72_grpo_think_s1_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "14:32Z read charles173_grpo_think_s1_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "14:33Z read hand14_grpo_think_s1_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "14:44Z read t2130_grpo_think_s1_plain_k8 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "14:44Z grpo_v2 line done (grpo_think"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "12:31Z read t1320_ei_think_v_s1_plain_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "12:33Z read tb72_ei_think_v_s1_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "12:38Z read charles173_ei_think_v_s1_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:13Z read t1320_ei_think_v_s1_logical_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:16Z read tb72_ei_think_v_s1_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:24Z read charles173_ei_think_v_s1_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:25Z read hand14_ei_think_v_s1_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:38Z read t2130_ei_think_v_s1_plain_k8 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:38Z grpo_v2 line done (ei_think_v"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "12:42Z read t1320_ei_nothink_v_s0_plain_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "12:44Z read tb72_ei_nothink_v_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "12:50Z read charles173_ei_nothink_v_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:31Z read t1320_ei_nothink_v_s0_logical_k16 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:35Z read tb72_ei_nothink_v_s0_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:48Z read charles173_ei_nothink_v_s0_logical_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:48Z read hand14_ei_nothink_v_s0_plain_k64 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:59Z read t2130_ei_nothink_v_s0_plain_k8 exit 0"
+  },
+  {
+   "ts": "2026-10-10T15:35:31",
+   "src": "main:14985",
+   "line": "13:59Z grpo_v2 line done (ei_nothink_v"
+  },
+  {
+   "ts": "2026-10-10T15:45:57",
+   "src": "main:15006",
+   "line": "15:36Z read tb72_ei_nothink_s0_logical_k64 exit 0 187s: [lean_gate] 3308 samples"
+  },
+  {
+   "ts": "2026-10-10T15:45:57",
+   "src": "main:15006",
+   "line": "15:42Z read charles173_ei_nothink_s0_logical_k64 exit 0 398s: [lean_gate] 8460 s"
+  },
+  {
+   "ts": "2026-10-10T15:45:57",
+   "src": "main:15006",
+   "line": "15:43Z read hand14_ei_nothink_s0_plain_k64 exit 0 37s: [lean_gate] 38 samples, p"
+  },
+  {
+   "ts": "2026-10-10T16:19:30",
+   "src": "main:15055",
+   "line": "15:50Z read t2130_ei_nothink_s0_plain_k8 exit 0 404s: [lean_gate] 906 samples, parse-fail "
+  },
+  {
+   "ts": "2026-10-10T16:19:30",
+   "src": "main:15055",
+   "line": "15:50Z grpo_v2 line done (ei_nothink seed 0)"
+  },
+  {
+   "ts": "2026-10-10T16:25:38",
+   "src": "main:15103",
+   "line": "16:25Z queue GPU 3: start ei_think seed 1"
+  },
+  {
+   "ts": "2026-10-10T16:25:38",
+   "src": "main:15103",
+   "line": "16:25Z queue GPU 1: waiting for 'grpo_v2 line done (grpo_nothink_vs seed 0)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_grpo_nothink_vs_s0.log"
+  },
+  {
+   "ts": "2026-10-10T16:25:38",
+   "src": "main:15103",
+   "line": "16:25Z launched EI ei_think_s1_L2 (plain) on GPU 3 (pid 680781)"
+  },
+  {
+   "ts": "2026-10-10T16:52:22",
+   "src": "main:15138",
+   "line": "15:40Z launched GRPO grpo_nothink_vs_s0_L3 (logical, P 0.1) on GPU 1 (pid 669118)"
+  },
+  {
+   "ts": "2026-10-10T16:52:22",
+   "src": "main:15138",
+   "line": "16:43Z GRPO grpo_nothink_vs_s0_L3 exit 0: it 39: pass@1 95.0% {'0': 95.0} skip 69% tok/att 213 over 0.0% cap 0.0% think/"
+  },
+  {
+   "ts": "2026-10-10T16:52:22",
+   "src": "main:15138",
+   "line": "16:51Z read t1320_grpo_nothink_vs_s0_plain_k16 exit 0 502s: [lean_gate] 4461 samples, parse-fail 0 (no-eos 0, 0.000 %), "
+  },
+  {
+   "ts": "2026-10-10T16:59:20",
+   "src": "main:15344",
+   "line": "16:51Z read t1320_grpo_nothink_vs_s0_plain_k16 exit 0 502s: [lean_gate"
+  },
+  {
+   "ts": "2026-10-10T16:59:20",
+   "src": "main:15344",
+   "line": "16:52Z read tb72_grpo_nothink_vs_s0_plain_k64 exit 0 68s: [lean_gate] "
+  },
+  {
+   "ts": "2026-10-10T16:59:20",
+   "src": "main:15344",
+   "line": "16:56Z read charles173_grpo_nothink_vs_s0_plain_k64 exit 0 203s: [lean"
+  },
+  {
+   "ts": "2026-10-10T17:43:19",
+   "src": "main:15483",
+   "line": "15:55Z GRPO grpo_think_vs_s0_L2 exit 0: it 39: pass@1 82.2% {'0': 70.9, '64': 86.8, '256': 88.2} ski"
+  },
+  {
+   "ts": "2026-10-10T17:43:19",
+   "src": "main:15483",
+   "line": "15:55Z launched GRPO grpo_think_vs_s0_L3 (logical, P 0.1) on GPU 4 (pid 673379)"
+  },
+  {
+   "ts": "2026-10-10T18:06:13",
+   "src": "main:15503",
+   "line": "17:31Z queue GPU 1: start grpo_nothink seed 1"
+  },
+  {
+   "ts": "2026-10-10T18:45:17",
+   "src": "main:15574",
+   "line": "18:05Z read t1320_grpo_think_vs_s0_plain_k16 exit 0 992s: [lean_gate] "
+  },
+  {
+   "ts": "2026-10-10T18:45:17",
+   "src": "main:15574",
+   "line": "18:07Z read tb72_grpo_think_vs_s0_plain_k64 exit 0 117s: [lean_gate] 3"
+  },
+  {
+   "ts": "2026-10-10T18:45:17",
+   "src": "main:15574",
+   "line": "18:11Z read charles173_grpo_think_vs_s0_plain_k64 exit 0 229s: [lean_g"
+  },
+  {
+   "ts": "2026-10-10T18:45:17",
+   "src": "main:15574",
+   "line": "18:43Z read t1320_grpo_think_vs_s0_logical_k16 exit 0 1964s: [lean_gat"
+  },
+  {
+   "ts": "2026-10-10T18:45:37",
+   "src": "main:15592",
+   "line": "18:45Z queue GPU 4: waiting for 'grpo_v2 line done (grpo_think_vs seed 0)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_grpo_think_vs_s0.log"
+  },
+  {
+   "ts": "2026-10-10T18:53:53",
+   "src": "main:15745",
+   "line": "18:53Z launched GRPO grpo_nothink_vs3_s0_L2 (logical, P 0.1, extra X2_head.jsonl x 0.33) on GPU 0 (pid 731861)"
+  },
+  {
+   "ts": "2026-10-10T18:53:53",
+   "src": "main:15745",
+   "line": "18:53Z GRPO grpo_nothink_vs3_s0_L2 exit 0: it 2: pass@1 25.0% {'0': 25.0} skip 0% tok/att 114 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0628 clip lo/hi"
+  },
+  {
+   "ts": "2026-10-10T18:54:44",
+   "src": "main:15789",
+   "line": "18:54Z read t1320_grpo_nothink_vs3_s0_plain_k2 exit 0 7s: [lean_gate] 2 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2: ok 1, rej 1 (filter 1, prefilter=on); lean on 1 texts"
+  },
+  {
+   "ts": "2026-10-10T18:54:44",
+   "src": "main:15789",
+   "line": "18:54Z read tb72_grpo_nothink_vs3_s0_plain_k2 exit 0 5s: [plain_B0] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 104.2 (think 0.0), 3s "
+  },
+  {
+   "ts": "2026-10-10T18:54:44",
+   "src": "main:15789",
+   "line": "18:54Z read charles173_grpo_nothink_vs3_s0_plain_k2 exit 0 4s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 2, rej 2 (filter 2, prefilter=on); lean on 2 "
+  },
+  {
+   "ts": "2026-10-10T18:54:44",
+   "src": "main:15789",
+   "line": "18:54Z read t1320_grpo_nothink_vs3_s0_logical_k2 exit 0 11s: [lean_gate] 3 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 3: ok 3, rej 0 (filter 0, prefilter=on); lean on 3 te"
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:53Z launched GRPO grpo_nothink_vs3_s0_L3 (logical, P 0.1, extra X3_head.jsonl x 0.33) on GPU 0 (pid 732191)"
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:54Z GRPO grpo_nothink_vs3_s0_L3 exit 0: it 2: pass@1 12.5% {'0': 12.5} skip 0% tok/att 107 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0393 clip lo/hi"
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:54Z read t1320_grpo_nothink_vs3_s0_plain_k2 exit 0 7s: [lean_gate] 2 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2: ok 1, rej 1 (filter 1, prefilter=on); lean on 1 texts in 1 procs, 0.8s pr"
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:54Z read charles173_grpo_nothink_vs3_s0_plain_k2 exit 0 4s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 2, rej 2 (filter 2, prefilter=on); lean on 2 texts in 1 procs, 0."
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:54Z read t1320_grpo_nothink_vs3_s0_logical_k2 exit 0 11s: [lean_gate] 3 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 3: ok 3, rej 0 (filter 0, prefilter=on); lean on 3 texts in 1 procs, 0.7s"
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:54Z read tb72_grpo_nothink_vs3_s0_logical_k2 exit 0 11s: [logical_B0] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 371.8 (think 0.0), 8s "
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:54Z read charles173_grpo_nothink_vs3_s0_logical_k2 exit 0 4s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 4, rej 0 (filter 0, prefilter=on); lean on 4 texts in 1 procs, "
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:54Z read hand14_grpo_nothink_vs3_s0_plain_k2 exit 0 5s: [plain_B0] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 137.5 (think 0.0), 2s "
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:55Z read t2130_grpo_nothink_vs3_s0_plain_k2 exit 0 11s: [plain_B0] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 457.5 (think 0.0), 8s "
+  },
+  {
+   "ts": "2026-10-10T19:04:53",
+   "src": "main:15807",
+   "line": "18:55Z grpo_v2 line done (grpo_nothink_vs3 seed 0)"
+  },
+  {
+   "ts": "2026-10-10T19:05:04",
+   "src": "main:15812",
+   "line": "19:05Z queue GPU 2: waiting for 'grpo_v2 line done (ei_nothink_v seed 1)' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_ei_nothink_v_s1.log"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "13:30Z launched EI ei_nothink_v_s1_L2 (logical) on GPU 2 (pid 633524)"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "15:53Z EI ei_nothink_v_s1_L2 exit 0: === round 1: solved 4335/5000 this round, c"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "15:53Z launched EI ei_nothink_v_s1_L3 (logical) on GPU 2 (pid 672712)"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:04Z EI ei_nothink_v_s1_L3 exit 0: === round 1: solved 4789/5000 this round, c"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:19Z read t1320_ei_nothink_v_s1_plain_k16 exit 0 870s: [lean_gate] 5865 sample"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:20Z read tb72_ei_nothink_v_s1_plain_k64 exit 0 74s: [lean_gate] 3078 samples,"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:24Z read charles173_ei_nothink_v_s1_plain_k64 exit 0 248s: [lean_gate] 8335 s"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:52Z read t1320_ei_nothink_v_s1_logical_k16 exit 0 1692s: [lean_gate] 6789 sam"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:55Z read tb72_ei_nothink_v_s1_logical_k64 exit 0 142s: [lean_gate] 3268 sampl"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "19:02Z read charles173_ei_nothink_v_s1_logical_k64 exit 0 422s: [lean_gate] 8217"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "19:02Z read hand14_ei_nothink_v_s1_plain_k64 exit 0 33s: [lean_gate] 12 samples,"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:48Z read tb72_grpo_think_vs_s0_logical_k64 exit 0 258s: [lean_gate]"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:57Z read charles173_grpo_think_vs_s0_logical_k64 exit 0 550s: [lean"
+  },
+  {
+   "ts": "2026-10-10T19:06:30",
+   "src": "main:15857",
+   "line": "18:58Z read hand14_grpo_think_vs_s0_plain_k64 exit 0 52s: [lean_gate] "
+  },
+  {
+   "ts": "2026-10-10T19:46:26",
+   "src": "main:15875",
+   "line": "19:07Z queue GPU 4: start grpo_think_vs seed 1"
+  },
+  {
+   "ts": "2026-10-10T19:46:26",
+   "src": "main:15875",
+   "line": "19:11Z queue GPU 2: start grpo_nothink_vs3 seed 0"
+  },
+  {
+   "ts": "2026-10-10T19:46:33",
+   "src": "main:15880",
+   "line": "19:11Z launched GRPO grpo_nothink_vs3_s0_L2 (logical, P 0.1, extra L2_3p.jsonl x 0.33) on GPU 2 (pid 738821)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "21:51Z queue GPU 0: ei_think seed 0 exit 0: 21:51Z grpo_v2 line done (ei_think seed 0)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "21:51Z queue GPU 0 done"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "20:00Z queue GPU 1: grpo_nothink seed 1 exit 0: 20:00Z grpo_v2 line done (grpo_nothink seed 1)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "20:00Z queue GPU 1: start ei_nothink seed 1"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "23:23Z queue GPU 1: ei_nothink seed 1 exit 0: 23:23Z grpo_v2 line done (ei_nothink seed 1)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "23:23Z queue GPU 1 done"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "22:25Z queue GPU 2: grpo_nothink_vs3 seed 0 exit 0: 22:25Z grpo_v2 line done (grpo_nothink_vs3 seed 0)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "22:25Z queue GPU 2 done"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "15:50Z queue GPU 3: ei_nothink seed 0 exit 0: 15:50Z grpo_v2 line done (ei_nothink seed 0)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "15:50Z queue GPU 3 done"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "22:30Z queue GPU 3: ei_think seed 1 exit 0: 22:30Z grpo_v2 line done (ei_think seed 1)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "22:30Z queue GPU 3 done"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "19:07Z queue GPU 4: grpo_think_vs seed 0 exit 0: 19:07Z grpo_v2 line done (grpo_think_vs seed 0)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "19:07Z queue GPU 4 done"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "00:20Z queue GPU 4: grpo_think_vs seed 1 exit 0: 00:20Z grpo_v2 line done (grpo_think_vs seed 1)"
+  },
+  {
+   "ts": "2026-10-11T04:50:21",
+   "src": "main:16059",
+   "line": "00:20Z queue GPU 4 done"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "19:07Z launched GRPO grpo_think_vs_s1_L2 (logical, P 0.1) on GPU 4 (pid 737801)"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "20:40Z GRPO grpo_think_vs_s1_L2 exit 0: it 39: pass@1 82.7% {'0': 68.0, '64': 89.1, '256': 88.6} skip 37% tok/att 394 over 0.0% cap 0.0% think/att 207 think/blk 64:17.5/64 f4% 256:26.0/256 f"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "20:40Z launched GRPO grpo_think_vs_s1_L3 (logical, P 0.1) on GPU 4 (pid 762559)"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:37Z GRPO grpo_think_vs_s1_L3 exit 0: it 39: pass@1 81.8% {'0': 67.4, '64': 89.1, '256': 89.2} skip 36% tok/att 445 over 0.0% cap 0.0% think/att 218 think/blk 64:15.9/64 f4% 256:21.9/256 f"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:59Z read t1320_grpo_think_vs_s1_plain_k16 exit 0 1338s: [lean_gate] 6331 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 6119: ok 4721, rej 1398 (filter 1398, prefilter=on); lean on 4721 texts in 12 procs, 82.7s proc, exposed 9.6s, tail 8.6s, 48 worker"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "23:02Z read tb72_grpo_think_vs_s1_plain_k64 exit 0 191s: [lean_gate] 3717 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2351: ok 2130, rej 221 (filter 221, prefilter=on); lean on 2130 texts in 6 procs, 23.5s proc, exposed 4.9s, tail 4.7s, 48 workers ["
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "23:08Z read charles173_grpo_think_vs_s1_plain_k64 exit 0 357s: [lean_gate] 9139 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5603: ok 4883, rej 720 (filter 720, prefilter=on); lean on 4883 texts in 13 procs, 52.3s proc, exposed 5.5s, tail 5.1s, 48 worke"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "23:50Z read t1320_grpo_think_vs_s1_logical_k16 exit 0 2489s: [lean_gate] 7113 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 6873: ok 6873, rej 0 (filter 0, prefilter=on); lean on 6873 texts in 18 procs, 137.6s proc, exposed 12.1s, tail 10.7s, 48 workers "
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "23:55Z read tb72_grpo_think_vs_s1_logical_k64 exit 0 347s: [lean_gate] 3784 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2381: ok 2381, rej 0 (filter 0, prefilter=on); lean on 2381 texts in 6 procs, 26.3s proc, exposed 5.5s, tail 5.3s, 48 workers [logi"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "00:06Z read charles173_grpo_think_vs_s1_logical_k64 exit 0 659s: [lean_gate] 9090 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5507: ok 5507, rej 0 (filter 0, prefilter=on); lean on 5507 texts in 14 procs, 62.9s proc, exposed 6.1s, tail 5.7s, 48 workers"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "00:08Z read hand14_grpo_think_vs_s1_plain_k64 exit 0 86s: [lean_gate] 20 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 19: ok 0, rej 19 (filter 19, prefilter=on); lean on 0 texts in 0 procs, 0.0s proc, exposed 0.0s, tail 0.0s, 48 workers [plain_B64] so"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "00:20Z read t2130_grpo_think_vs_s1_plain_k8 exit 0 714s: [lean_gate] 905 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 898: ok 465, rej 433 (filter 433, prefilter=on); lean on 465 texts in 2 procs, 11.3s proc, exposed 8.9s, tail 8.7s, 48 workers [plai"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "00:20Z grpo_v2 line done (grpo_think_vs seed 1)"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "20:04Z GRPO grpo_nothink_vs3_s0_L2 exit 0: it 39: pass@1 85.9% {'0': 85.9} skip 53% tok/att 181 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0164 clip lo/"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "20:04Z launched GRPO grpo_nothink_vs3_s0_L3 (logical, P 0.1, extra L3_3p.jsonl x 0.33) on GPU 2 (pid 754112)"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "21:15Z GRPO grpo_nothink_vs3_s0_L3 exit 0: it 39: pass@1 91.6% {'0': 91.6} skip 63% tok/att 226 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0238 clip lo/"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "21:30Z read t1320_grpo_nothink_vs3_s0_plain_k16 exit 0 945s: [lean_gate] 6279 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5960: ok 4434, rej 1526 (filter 1526, prefilter=on); lean on 4434 texts in 12 procs, 83.0s proc, exposed 9.8s, tail 8.9s, 48 worke"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "21:32Z read tb72_grpo_nothink_vs3_s0_plain_k64 exit 0 83s: [lean_gate] 3097 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1935: ok 1728, rej 207 (filter 207, prefilter=on); lean on 1728 texts in 5 procs, 17.5s proc, exposed 4.4s, tail 4.3s, 48 workers ["
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "21:36Z read charles173_grpo_nothink_vs3_s0_plain_k64 exit 0 235s: [lean_gate] 8271 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5126: ok 4224, rej 902 (filter 902, prefilter=on); lean on 4224 texts in 11 procs, 45.9s proc, exposed 5.8s, tail 5.4s, 48 wo"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:07Z read t1320_grpo_nothink_vs3_s0_logical_k16 exit 0 1883s: [lean_gate] 7504 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7128: ok 7128, rej 0 (filter 0, prefilter=on); lean on 7128 texts in 18 procs, 150.5s proc, exposed 12.7s, tail 11.2s, 48 worke"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:09Z read tb72_grpo_nothink_vs3_s0_logical_k64 exit 0 123s: [lean_gate] 3387 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2131: ok 2131, rej 0 (filter 0, prefilter=on); lean on 2131 texts in 6 procs, 23.2s proc, exposed 5.1s, tail 5.0s, 48 workers [lo"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:17Z read charles173_grpo_nothink_vs3_s0_logical_k64 exit 0 473s: [lean_gate] 8498 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5243: ok 5243, rej 0 (filter 0, prefilter=on); lean on 5243 texts in 14 procs, 64.1s proc, exposed 6.8s, tail 6.3s, 48 work"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:17Z read hand14_grpo_nothink_vs3_s0_plain_k64 exit 0 31s: [lean_gate] 54 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 48: ok 2, rej 46 (filter 46, prefilter=on); lean on 2 texts in 1 procs, 0.7s proc, exposed 0.7s, tail 0.7s, 48 workers [plain_B0] so"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:25Z read t2130_grpo_nothink_vs3_s0_plain_k8 exit 0 468s: [lean_gate] 802 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 788: ok 417, rej 371 (filter 371, prefilter=on); lean on 417 texts in 2 procs, 9.8s proc, exposed 8.5s, tail 8.3s, 48 workers [plain"
+  },
+  {
+   "ts": "2026-10-11T04:50:27",
+   "src": "main:16071",
+   "line": "22:25Z grpo_v2 line done (grpo_nothink_vs3 seed 0)"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "16:23Z EI ei_think_s0_L2 exit 0: === round 1: solved 4140/5000 this round, cumulative 4140, new 15030, 8632s"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "19:44Z EI ei_think_s0_L3 exit 0: === round 1: solved 4887/5000 this round, cumulative 4887, new 43637, 12087s"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "20:14Z read t1320_ei_think_s0_plain_k16 exit 0 1767s: [lean_gate] 7736 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7554: ok 4851, rej 2703 (filter 2703, prefilter=on); lean on 4851 texts in 13"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "18:25Z EI ei_think_s1_L2 exit 0: === round 1: solved 4202/5000 this round, cumulative 4202, new 13790, 7205s"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "20:56Z EI ei_think_s1_L3 exit 0: === round 1: solved 4934/5000 this round, cumulative 4934, new 43081, 9036s"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "21:18Z read t1320_ei_think_s1_plain_k16 exit 0 1339s: [lean_gate] 7088 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 6908: ok 4877, rej 2031 (filter 2031, prefilter=on); lean on 4877 texts in 13"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "21:06Z EI ei_nothink_s1_L2 exit 0: === round 1: solved 3355/5000 this round, cumulative 3355, new 10396, 3942s"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "22:27Z EI ei_nothink_s1_L3 exit 0: === round 1: solved 4204/5000 this round, cumulative 4204, new 31026, 4819s"
+  },
+  {
+   "ts": "2026-10-11T04:51:05",
+   "src": "main:16099",
+   "line": "22:38Z read t1320_ei_nothink_s1_plain_k16 exit 0 676s: [lean_gate] 5756 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5578: ok 3729, rej 1849 (filter 1849, prefilter=on); lean on 3729 texts in 1"
+  },
+  {
+   "ts": "2026-10-11T04:57:59",
+   "src": "agent-aeb7753436e4d8957:25",
+   "line": "18:54Z read t1320_grpo_nothink_vs3_s0_plain_k2 exit 0 7s: [lean_gate] 2 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2: ok 1, rej 1 (filter 1, prefilter=on); lean on 1 texts in 1 procs, 0.8s proc, exposed 0.8s, tail 0.8s, 48 workers [plain_B0] solved "
+  },
+  {
+   "ts": "2026-10-11T04:57:59",
+   "src": "agent-aeb7753436e4d8957:25",
+   "line": "18:54Z read charles173_grpo_nothink_vs3_s0_plain_k2 exit 0 4s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 2, rej 2 (filter 2, prefilter=on); lean on 2 texts in 1 procs, 0.8s proc, exposed 0.8s, tail 0.8s, 48 workers [plain_B0] solved "
+  },
+  {
+   "ts": "2026-10-11T04:57:59",
+   "src": "agent-aeb7753436e4d8957:25",
+   "line": "18:54Z read t1320_grpo_nothink_vs3_s0_logical_k2 exit 0 11s: [lean_gate] 3 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 3: ok 3, rej 0 (filter 0, prefilter=on); lean on 3 texts in 1 procs, 0.7s proc, exposed 0.7s, tail 0.7s, 48 workers [logical_B0] solve"
+  },
+  {
+   "ts": "2026-10-11T04:57:59",
+   "src": "agent-aeb7753436e4d8957:25",
+   "line": "18:54Z read charles173_grpo_nothink_vs3_s0_logical_k2 exit 0 4s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 4, rej 0 (filter 0, prefilter=on); lean on 4 texts in 1 procs, 0.7s proc, exposed 0.7s, tail 0.7s, 48 workers [logical_B0] solve"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:37Z GRPO grpo_think_vs_s0_L2 exit 0: it 2: pass@1 6.2% {'64': 8.3, '256': 0.0} skip 0% tok/att 337 over 0.0% cap 0.0% think/att 198 think/blk 64:21.5/64 f0% 256:28.9/256 f0% forced 0.0% d"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:38Z launched GRPO grpo_think_vs_s0_L3 (logical, P 0.1) on GPU 9 (pid 636213)"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:38Z GRPO grpo_think_vs_s0_L3 exit 0: it 2: pass@1 12.5% {'64': 0.0, '256': 50.0} skip 0% tok/att 355 over 0.0% cap 0.0% think/att 202 think/blk 64:21.1/64 f0% 256:26.0/256 f0% forced 0.0%"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:39Z read t1320_grpo_think_vs_s0_plain_k2 exit 0 9s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 538.0 (think 299.0), 6s "
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:39Z read tb72_grpo_think_vs_s0_plain_k2 exit 0 8s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 1, rej 0 (filter 0, prefilter=on); lean on 1 texts in 1 procs, 0.8s proc, exposed 0.8s, tail 0.8s, 48 workers [plain_B64] solved"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:39Z read charles173_grpo_think_vs_s0_plain_k2 exit 0 5s: [lean_gate] 3 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 3: ok 1, rej 2 (filter 2, prefilter=on); lean on 1 texts in 1 procs, 0.9s proc, exposed 0.9s, tail 0.9s, 48 workers [plain_B64] solved"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:39Z read t1320_grpo_think_vs_s0_logical_k2 exit 0 20s: [lean_gate] 2 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2: ok 2, rej 0 (filter 0, prefilter=on); lean on 2 texts in 1 procs, 0.8s proc, exposed 0.8s, tail 0.8s, 48 workers [logical_B64] solv"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:39Z read tb72_grpo_think_vs_s0_logical_k2 exit 0 16s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 1, rej 0 (filter 0, prefilter=on); lean on 1 texts in 1 procs, 0.8s proc, exposed 0.8s, tail 0.8s, 48 workers [logical_B64] solv"
+  },
+  {
+   "ts": "2026-10-11T04:58:06",
+   "src": "agent-aeb7753436e4d8957:32",
+   "line": "13:40Z read charles173_grpo_think_vs_s0_logical_k2 exit 0 9s: [lean_gate] 3 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 3: ok 3, rej 0 (filter 0, prefilter=on); lean on 3 texts in 1 procs, 0.7s proc, exposed 0.7s, tail 0.7s, 48 workers [logical_B64] solv"
+  },
+  {
+   "ts": "2026-10-11T05:12:31",
+   "src": "agent-aeb7753436e4d8957:175",
+   "line": "05:11Z launched GRPO grpo_think_h_s0_L2 (plain, lr 7.5e-5) on GPU 0 (pid 941730)"
+  },
+  {
+   "ts": "2026-10-11T05:12:31",
+   "src": "agent-aeb7753436e4d8957:175",
+   "line": "05:12Z GRPO grpo_think_h_s0_L2 exit 0: it 2: pass@1 12.5% {'64': 16.7, '256': 0.0} skip 75% tok/att 368 over 0.0% cap 0.0% think/att 216 think/blk 64:19.0/64 f0% 256:26.6/256 f0% forced 0.0"
+  },
+  {
+   "ts": "2026-10-11T05:13:33",
+   "src": "agent-aeb7753436e4d8957:197",
+   "line": "05:12Z launched GRPO grpo_think_h_s0_L3 (plain, lr 7.5e-5) on GPU 0 (pid 942041)"
+  },
+  {
+   "ts": "2026-10-11T05:13:33",
+   "src": "agent-aeb7753436e4d8957:197",
+   "line": "05:13Z GRPO grpo_think_h_s0_L3 exit 0: it 2: pass@1 18.8% {'0': 16.7, '64': 25.0} skip 50% tok/att 236 over 0.0% cap 0.0% think/att 76 think/blk 64:26.4/64 f0% forced 0.0% dev 0.546 lpen 0."
+  },
+  {
+   "ts": "2026-10-11T05:13:33",
+   "src": "agent-aeb7753436e4d8957:197",
+   "line": "05:13Z read t1320_grpo_think_h_s0_plain_k2 exit 0 9s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 0, rej 1 (filter 1, prefilter=on); lean on 0 texts in 0 procs, 0.0s proc, "
+  },
+  {
+   "ts": "2026-10-11T05:13:33",
+   "src": "agent-aeb7753436e4d8957:197",
+   "line": "05:13Z read tb72_grpo_think_h_s0_plain_k2 exit 0 6s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 1, rej 0 (filter 0, prefilter=on); lean on 1 texts in 1 procs, 0.9s proc, e"
+  },
+  {
+   "ts": "2026-10-11T05:13:33",
+   "src": "agent-aeb7753436e4d8957:197",
+   "line": "05:13Z read charles173_grpo_think_h_s0_plain_k2 exit 0 5s: [lean_gate] 3 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 3: ok 1, rej 2 (filter 2, prefilter=on); lean on 1 texts in 1 procs, 0.9s p"
+  },
+  {
+   "ts": "2026-10-11T05:14:15",
+   "src": "agent-aeb7753436e4d8957:211",
+   "line": "05:14Z launched GRPO grpo_think_vs_h_s0_L2 (logical, P 0.1, lr 7.5e-5) on GPU 0 (pid 943467)"
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:13Z read t1320_grpo_think_h_s0_plain_k2 exit 0 9s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 0, rej 1 (filter 1, prefilter=on); lean on 0 texts in 0 procs, 0.0s proc, exposed 0.0s, tail 0"
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:13Z read tb72_grpo_think_h_s0_plain_k2 exit 0 6s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 1, rej 0 (filter 0, prefilter=on); lean on 1 texts in 1 procs, 0.9s proc, exposed 0.9s, tail 0."
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:13Z read charles173_grpo_think_h_s0_plain_k2 exit 0 5s: [lean_gate] 3 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 3: ok 1, rej 2 (filter 2, prefilter=on); lean on 1 texts in 1 procs, 0.9s proc, exposed 0.9s, t"
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:13Z read t1320_grpo_think_h_s0_logical_k2 exit 0 15s: [lean_gate] 2 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2: ok 2, rej 0 (filter 0, prefilter=on); lean on 2 texts in 1 procs, 0.8s proc, exposed 0.8s, tai"
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:13Z read tb72_grpo_think_h_s0_logical_k2 exit 0 15s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 1, rej 0 (filter 0, prefilter=on); lean on 1 texts in 1 procs, 0.6s proc, exposed 0.6s, tail"
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:13Z read charles173_grpo_think_h_s0_logical_k2 exit 0 5s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 4, rej 0 (filter 0, prefilter=on); lean on 4 texts in 1 procs, 0.7s proc, exposed 0.7s,"
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:13Z read hand14_grpo_think_h_s0_plain_k2 exit 0 4s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 167.8 (think 53.8), 1s "
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:14Z read t2130_grpo_think_h_s0_plain_k2 exit 0 7s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 445.5 (think 218.5), 4s "
+  },
+  {
+   "ts": "2026-10-11T05:14:19",
+   "src": "agent-aeb7753436e4d8957:216",
+   "line": "05:14Z grpo_v2 line done (grpo_think_h seed 0)"
+  },
+  {
+   "ts": "2026-10-11T05:14:57",
+   "src": "agent-aeb7753436e4d8957:247",
+   "line": "05:14Z GRPO grpo_think_vs_h_s0_L2 exit 0: it 2: pass@1 12.5% {'64': 16.7, '256': 0.0} skip 0% tok/att 327 over 0.0% cap 0.0% think/att 190 t"
+  },
+  {
+   "ts": "2026-10-11T05:14:57",
+   "src": "agent-aeb7753436e4d8957:247",
+   "line": "05:14Z launched GRPO grpo_think_vs_h_s0_L3 (logical, P 0.1, lr 7.5e-5) on GPU 0 (pid 943756)"
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:14Z GRPO grpo_think_vs_h_s0_L2 exit 0: it 2: pass@1 12.5% {'64': 16.7, '256': 0.0} skip 0% tok/att 327 over 0.0% cap 0.0% think/att 190 think/blk 64:19.1/64 f0% 256:29.2/256 f0% forced 0.0%"
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:15Z GRPO grpo_think_vs_h_s0_L3 exit 0: it 2: pass@1 37.5% {'64': 16.7, '256': 100.0} skip 25% tok/att 373 over 0.0% cap 0.0% think/att 208 think/blk 64:16.9/64 f0% 256:21.2/256 f0% forced 0"
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:15Z read t1320_grpo_think_vs_h_s0_plain_k2 exit 0 7s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 536.8 (think 286.5), 4s "
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:15Z read tb72_grpo_think_vs_h_s0_plain_k2 exit 0 7s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 379.8 (think 238.0), 4s "
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:15Z read charles173_grpo_think_vs_h_s0_plain_k2 exit 0 4s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 2, rej 2 (filter 2, prefilter=on); lean on 2 texts in 1 procs, 0.6"
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:15Z read t1320_grpo_think_vs_h_s0_logical_k2 exit 0 17s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 1, rej 0 (filter 0, prefilter=on); lean on 1 texts in 1 procs, 0.7s "
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:16Z read tb72_grpo_think_vs_h_s0_logical_k2 exit 0 12s: [lean_gate] 1 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1: ok 1, rej 0 (filter 0, prefilter=on); lean on 1 texts in 1 procs, 0.6s p"
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:16Z read charles173_grpo_think_vs_h_s0_logical_k2 exit 0 5s: [lean_gate] 4 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4: ok 4, rej 0 (filter 0, prefilter=on); lean on 4 texts in 1 procs, 0"
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:16Z read hand14_grpo_think_vs_h_s0_plain_k2 exit 0 4s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 178.8 (think 63.8), 1s "
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:16Z read t2130_grpo_think_vs_h_s0_plain_k2 exit 0 8s: [plain_B64] solved 0/2 (0.0%), pass@1 0.0%, tokens/attempt 528.2 (think 267.8), 6s "
+  },
+  {
+   "ts": "2026-10-11T05:16:33",
+   "src": "agent-aeb7753436e4d8957:262",
+   "line": "05:16Z grpo_v2 line done (grpo_think_vs_h seed 0)"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z queue GPU 0: start grpo_think_h seed 0"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z queue GPU 1: start grpo_think_h seed 1"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z queue GPU 2: start grpo_think_vs_h seed 0"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z queue GPU 3: start grpo_think_vs_h seed 1"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z queue GPU 4: start grpo_nothink_h seed 1"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z launched GRPO grpo_think_h_s0_L2 (plain, lr 7.5e-5) on GPU 0 (pid 1020715)"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z launched GRPO grpo_think_h_s1_L2 (plain, lr 7.5e-5) on GPU 1 (pid 1020699)"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z launched GRPO grpo_think_vs_h_s0_L2 (logical, P 0.1, lr 7.5e-5) on GPU 2 (pid 1020705)"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z launched GRPO grpo_think_vs_h_s1_L2 (logical, P 0.1, lr 7.5e-5) on GPU 3 (pid 1020708)"
+  },
+  {
+   "ts": "2026-10-11T05:31:56",
+   "src": "main:16580",
+   "line": "05:30Z launched GRPO grpo_nothink_h_s1_L2 (plain, lr 7.5e-5) on GPU 4 (pid 1020718)"
+  },
+  {
+   "ts": "2026-10-11T06:32:35",
+   "src": "main:16661",
+   "line": "06:18Z GRPO grpo_nothink_h_s1_L2 exit 0: it 39: pass@1 86.6% {'0': 86.6} skip 52% tok/att 177 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0141 clip lo/"
+  },
+  {
+   "ts": "2026-10-11T06:32:35",
+   "src": "main:16661",
+   "line": "06:18Z launched GRPO grpo_nothink_h_s1_L3 (plain, lr 7.5e-5) on GPU 4 (pid 1035277)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "17:31Z launched GRPO grpo_nothink_s1_L2 (plain) on GPU 1 (pid 703152)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "18:22Z GRPO grpo_nothink_s1_L2 exit 0: it 39: pass@1 87.2% {'0': 87.2} skip 66% tok/att 172 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 lo"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "18:22Z launched GRPO grpo_nothink_s1_L3 (plain) on GPU 1 (pid 717530)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:14Z GRPO grpo_nothink_s1_L3 exit 0: it 39: pass@1 90.4% {'0': 90.4} skip 71% tok/att 209 over 0.0% cap 0.1% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 lo"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:24Z read t1320_grpo_nothink_s1_plain_k16 exit 0 572s: [lean_gate] 6201 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5908: ok 3122, rej 2786 (filter 2786, prefil"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:25Z read tb72_grpo_nothink_s1_plain_k64 exit 0 54s: [lean_gate] 3518 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2139: ok 1650, rej 489 (filter 489, prefilter="
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:28Z read charles173_grpo_nothink_s1_plain_k64 exit 0 164s: [lean_gate] 8429 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4985: ok 3774, rej 1211 (filter 1211, p"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:48Z read t1320_grpo_nothink_s1_logical_k16 exit 0 1225s: [lean_gate] 6085 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5776: ok 5776, rej 0 (filter 0, prefilter"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:49Z read tb72_grpo_nothink_s1_logical_k64 exit 0 82s: [lean_gate] 3263 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1860: ok 1860, rej 0 (filter 0, prefilter=on"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:54Z read charles173_grpo_nothink_s1_logical_k64 exit 0 306s: [lean_gate] 7761 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 4396: ok 4396, rej 0 (filter 0, prefi"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "19:55Z read hand14_grpo_nothink_s1_plain_k64 exit 0 31s: [lean_gate] 15 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 15: ok 0, rej 15 (filter 15, prefilter=on); le"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "20:00Z read t2130_grpo_nothink_s1_plain_k8 exit 0 328s: [lean_gate] 1369 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1358: ok 331, rej 1027 (filter 1027, prefilte"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "20:00Z grpo_v2 line done (grpo_nothink seed 1)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "08:24Z launched GRPO grpo_nothink_s0_L2 (plain) on GPU 3 (pid 559963)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "09:29Z GRPO grpo_nothink_s0_L2 exit 0: it 39: pass@1 87.3% {'0': 87.3} skip 42% tok/att 175 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 lo"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "09:29Z launched GRPO grpo_nothink_s0_L3 (plain) on GPU 3 (pid 574989)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "10:38Z GRPO grpo_nothink_s0_L3 exit 0: it 39: pass@1 92.6% {'0': 92.6} skip 57% tok/att 219 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 lo"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "10:53Z read t1320_grpo_nothink_s0_plain_k16 exit 0 882s: [lean_gate] 6533 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 6213: ok 4315, rej 1898 (filter 1898, prefil"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "10:54Z read tb72_grpo_nothink_s0_plain_k64 exit 0 72s: [lean_gate] 3510 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2100: ok 1811, rej 289 (filter 289, prefilter="
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "10:59Z read charles173_grpo_nothink_s0_plain_k64 exit 0 282s: [lean_gate] 8625 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5247: ok 4032, rej 1215 (filter 1215, p"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "11:27Z read t1320_grpo_nothink_s0_logical_k16 exit 0 1703s: [lean_gate] 7757 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7363: ok 7363, rej 0 (filter 0, prefilter"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "11:29Z read tb72_grpo_nothink_s0_logical_k64 exit 0 121s: [lean_gate] 3616 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2142: ok 2142, rej 0 (filter 0, prefilter=o"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "11:37Z read charles173_grpo_nothink_s0_logical_k64 exit 0 447s: [lean_gate] 8681 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5163: ok 5163, rej 0 (filter 0, prefi"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "11:37Z read hand14_grpo_nothink_s0_plain_k64 exit 0 39s: [lean_gate] 25 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 23: ok 0, rej 23 (filter 23, prefilter=on); le"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "11:45Z read t2130_grpo_nothink_s0_plain_k8 exit 0 439s: [lean_gate] 942 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 932: ok 465, rej 467 (filter 467, prefilter=on"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "11:45Z grpo_v2 line done (grpo_nothink seed 0)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "20:04Z GRPO grpo_nothink_vs3_s0_L2 exit 0: it 39: pass@1 85.9% {'0': 85.9} skip 53% tok/att 181 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.00"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "21:15Z GRPO grpo_nothink_vs3_s0_L3 exit 0: it 39: pass@1 91.6% {'0': 91.6} skip 63% tok/att 226 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.00"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "21:30Z read t1320_grpo_nothink_vs3_s0_plain_k16 exit 0 945s: [lean_gate] 6279 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5960: ok 4434, rej 1526 (filter 1526, pr"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "21:32Z read tb72_grpo_nothink_vs3_s0_plain_k64 exit 0 83s: [lean_gate] 3097 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 1935: ok 1728, rej 207 (filter 207, prefil"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "21:36Z read charles173_grpo_nothink_vs3_s0_plain_k64 exit 0 235s: [lean_gate] 8271 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5126: ok 4224, rej 902 (filter 902,"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "22:07Z read t1320_grpo_nothink_vs3_s0_logical_k16 exit 0 1883s: [lean_gate] 7504 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7128: ok 7128, rej 0 (filter 0, prefi"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "22:09Z read tb72_grpo_nothink_vs3_s0_logical_k64 exit 0 123s: [lean_gate] 3387 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2131: ok 2131, rej 0 (filter 0, prefilt"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "22:17Z read charles173_grpo_nothink_vs3_s0_logical_k64 exit 0 473s: [lean_gate] 8498 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5243: ok 5243, rej 0 (filter 0, p"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "22:17Z read hand14_grpo_nothink_vs3_s0_plain_k64 exit 0 31s: [lean_gate] 54 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 48: ok 2, rej 46 (filter 46, prefilter=on)"
+  },
+  {
+   "ts": "2026-10-11T06:33:51",
+   "src": "main:16691",
+   "line": "22:25Z read t2130_grpo_nothink_vs3_s0_plain_k8 exit 0 468s: [lean_gate] 802 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 788: ok 417, rej 371 (filter 371, prefilte"
+  },
+  {
+   "ts": "2026-10-11T07:06:04",
+   "src": "main:16768",
+   "line": "07:06Z queue GPU 4: waiting for 'queue GPU 4 done' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_queue_gpu4e.log"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:57Z queue GPU 4 done"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:45Z GRPO grpo_think_h_s0_L2 exit 0: it 39: pass@1 81.1% {'0': 68.5, '64': 86.6, '256': 88.6} skip 34% tok/att 391 over 0.0% cap 0.5% think/att 194 think/blk 64:16.6/64 f4% 256:23.0/256 f"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:45Z launched GRPO grpo_think_h_s0_L3 (plain, lr 7.5e-5) on GPU 0 (pid 1062162)"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:17Z GRPO grpo_think_h_s1_L2 exit 0: it 39: pass@1 75.9% {'0': 58.1, '64': 83.4, '256': 82.8} skip 30% tok/att 410 over 0.0% cap 0.1% think/att 221 think/blk 64:17.7/64 f5% 256:27.3/256 f"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:17Z launched GRPO grpo_think_h_s1_L3 (plain, lr 7.5e-5) on GPU 1 (pid 1054195)"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:21Z GRPO grpo_think_vs_h_s0_L2 exit 0: it 39: pass@1 81.6% {'0': 69.7, '64': 86.0, '256': 89.5} skip 36% tok/att 395 over 0.0% cap 0.0% think/att 196 think/blk 64:17.2/64 f4% 256:23.1/256 f"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:21Z launched GRPO grpo_think_vs_h_s0_L3 (logical, P 0.1, lr 7.5e-5) on GPU 2 (pid 1055705)"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:25Z GRPO grpo_think_vs_h_s1_L2 exit 0: it 39: pass@1 77.0% {'0': 60.7, '64': 83.3, '256': 84.4} skip 27% tok/att 416 over 0.0% cap 0.0% think/att 223 think/blk 64:18.9/64 f6% 256:26.0/256 f"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:25Z launched GRPO grpo_think_vs_h_s1_L3 (logical, P 0.1, lr 7.5e-5) on GPU 3 (pid 1056871)"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:57Z read t2130_grpo_nothink_h_s1_plain_k8 exit 0 281s: [lean_gate] 816 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 808: ok 264, rej 544 (filter 544, prefilter=on); lean on 264 texts in 1 procs, 6.3s proc, expo"
+  },
+  {
+   "ts": "2026-10-11T07:57:58",
+   "src": "main:16946",
+   "line": "07:57Z grpo_v2 line done (grpo_nothink_h seed 1)"
+  },
+  {
+   "ts": "2026-10-11T07:58:14",
+   "src": "main:16950",
+   "line": "07:58Z queue GPU 4: start grpo_nothink_h seed 0"
+  },
+  {
+   "ts": "2026-10-11T07:58:21",
+   "src": "main:16954",
+   "line": "07:58Z launched GRPO grpo_nothink_h_s0_L2 (plain, lr 7.5e-5) on GPU 4 (pid 1065986)"
+  },
+  {
+   "ts": "2026-10-11T09:06:20",
+   "src": "main:17143",
+   "line": "08:53Z GRPO grpo_nothink_h_s0_L2 exit 0: it 39: pass@1 83.3% {'0': 83.3} skip 32% tok/att 181 over 0.0% cap 0.0% think/att 0 think/blk - forced 0.0% dev 0.000 lpen 0.000 loss -0.0193 clip lo/"
+  },
+  {
+   "ts": "2026-10-11T09:06:20",
+   "src": "main:17143",
+   "line": "08:53Z launched GRPO grpo_nothink_h_s0_L3 (plain, lr 7.5e-5) on GPU 4 (pid 1084798)"
+  },
+  {
+   "ts": "2026-10-11T09:11:14",
+   "src": "main:17226",
+   "line": "09:11Z queue GPU 1: waiting for 'queue GPU 1 done' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_queue_gpu1e.log"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:39Z queue GPU 1 done"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:23Z GRPO grpo_think_h_s0_L3 exit 0: it 39: pass@1 87.8% {'0': 78.2, '64': 93.2, '256': 92.7} skip 43% tok/att 476 over 0.0% cap 0.0% think/att 234 think/blk 64:15.5/64 f3% 256:22.2/256 f"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:39Z read t2130_grpo_think_h_s1_plain_k8 exit 0 491s: [lean_gate] 837 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 830: ok 373, rej 457 (filter 457, prefilter=on); lean on 373 texts in 1 procs, 7.9s proc, expose"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:39Z grpo_v2 line done (grpo_think_h seed 1)"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:04Z read tb72_grpo_think_vs_h_s0_plain_k64 exit 0 169s: [lean_gate] 3831 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2437: ok 2077, rej 360 (filter 360, prefilter=on); lean on 2077 texts in 6 procs, 24.3s proc"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:10Z read charles173_grpo_think_vs_h_s0_plain_k64 exit 0 349s: [lean_gate] 9428 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5975: ok 4747, rej 1228 (filter 1228, prefilter=on); lean on 4747 texts in 12 procs, 5"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:08Z read tb72_grpo_think_vs_h_s1_plain_k64 exit 0 180s: [lean_gate] 3406 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2187: ok 2002, rej 185 (filter 185, prefilter=on); lean on 2002 texts in 6 procs, 21.9s proc"
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:13Z read charles173_grpo_think_vs_h_s1_plain_k64 exit 0 343s: [lean_gate] 8743 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5485: ok 4917, rej 568 (filter 568, prefilter=on); lean on 4917 texts in 13 procs, 53."
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:34Z read charles173_grpo_nothink_h_s0_logical_k64 exit 0 350s: [lean_gate] 8683 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 5211: ok 5211, rej 0 (filter 0, prefilter=on); lean on 5211 texts in 14 procs, 64.2s "
+  },
+  {
+   "ts": "2026-10-11T10:40:17",
+   "src": "main:17331",
+   "line": "10:35Z read hand14_grpo_nothink_h_s0_plain_k64 exit 0 32s: [lean_gate] 42 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 41: ok 0, rej 41 (filter 41, prefilter=on); lean on 0 texts in 0 procs, 0.0s proc, exposed 0.0"
+  },
+  {
+   "ts": "2026-10-11T10:40:26",
+   "src": "main:17349",
+   "line": "10:39Z queue GPU 1: grpo_think_h seed 1 exit 0: 10:39Z grpo_v2 line done (grpo_think_h seed 1)"
+  },
+  {
+   "ts": "2026-10-11T10:40:50",
+   "src": "main:17371",
+   "line": "10:41Z queue GPU 1: start grpo_think_h_b seed 1"
+  },
+  {
+   "ts": "2026-10-11T10:40:50",
+   "src": "main:17371",
+   "line": "10:41Z launched GRPO grpo_think_h_b_s1_L3 (plain, lr 7.5e-5) on GPU 1 (pid 1259978)"
+  },
+  {
+   "ts": "2026-10-11T10:49:04",
+   "src": "main:17490",
+   "line": "13:59Z launched EI ei_think_s0_L2 (plain) on GPU 0 (pid 641381)"
+  },
+  {
+   "ts": "2026-10-11T10:49:04",
+   "src": "main:17490",
+   "line": "21:51Z grpo_v2 line done (ei_think seed 0)"
+  },
+  {
+   "ts": "2026-10-11T10:49:04",
+   "src": "main:17490",
+   "line": "19:07Z grpo_v2 line done (grpo_think_vs seed 0)"
+  },
+  {
+   "ts": "2026-10-11T10:50:19",
+   "src": "main:17506",
+   "line": "14:45Z launched GRPO grpo_nothink_vs_s0_L2 (logical, P 0.1) on GPU 1 (pid 652669)"
+  },
+  {
+   "ts": "2026-10-11T10:50:19",
+   "src": "main:17506",
+   "line": "17:31Z grpo_v2 line done (grpo_nothink_vs seed 0)"
+  },
+  {
+   "ts": "2026-10-11T10:51:51",
+   "src": "main:17547",
+   "line": "10:40Z queue GPU 4 done"
+  },
+  {
+   "ts": "2026-10-11T10:51:51",
+   "src": "main:17547",
+   "line": "10:50Z read t1320_grpo_think_h_s0_plain_k16 exit 0 1639s: [lean_gate] 7788 samples, parse-fail 0 (no-eos 0, 0."
+  },
+  {
+   "ts": "2026-10-11T10:51:51",
+   "src": "main:17547",
+   "line": "10:10Z read charles173_grpo_think_vs_h_s0_plain_k64 exit 0 349s: [lean_gate] 9428 samples, parse-fail 0 (no-eo"
+  },
+  {
+   "ts": "2026-10-11T10:51:51",
+   "src": "main:17547",
+   "line": "10:13Z read charles173_grpo_think_vs_h_s1_plain_k64 exit 0 343s: [lean_gate] 8743 samples, parse-fail 0 (no-eo"
+  },
+  {
+   "ts": "2026-10-11T10:51:51",
+   "src": "main:17547",
+   "line": "10:40Z grpo_v2 line done (grpo_nothink_h seed 0)"
+  },
+  {
+   "ts": "2026-10-11T11:22:38",
+   "src": "main:17608",
+   "line": "11:22Z queue GPU 4: start ei_think_v seed 2"
+  },
+  {
+   "ts": "2026-10-11T11:22:38",
+   "src": "main:17608",
+   "line": "11:22Z queue GPU 2: waiting for 'queue GPU 2 done$' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_queue_gpu2e.log"
+  },
+  {
+   "ts": "2026-10-11T11:22:38",
+   "src": "main:17608",
+   "line": "11:22Z queue GPU 3: waiting for 'queue GPU 3 done$' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_queue_gpu3e.log"
+  },
+  {
+   "ts": "2026-10-11T11:22:38",
+   "src": "main:17608",
+   "line": "11:22Z queue GPU 0: waiting for 'queue GPU 0 done$' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_queue_gpu0e.log"
+  },
+  {
+   "ts": "2026-10-11T11:22:38",
+   "src": "main:17608",
+   "line": "11:22Z queue GPU 1: waiting for 'queue GPU 1 done$' in /scratch/cowifornia/nd-rl/think/runs/logs/v2_queue_gpu1f.log"
+  },
+  {
+   "ts": "2026-10-11T11:23:11",
+   "src": "main:17623",
+   "line": "11:23Z launched EI ei_think_v_s2_L2 (logical) on GPU 4 (pid 1280630)"
+  },
+  {
+   "ts": "2026-10-11T11:32:45",
+   "src": "main:17770",
+   "line": "10:54Z read tb72_grpo_think_h_s0_plain_k64 exit 0 234s: [lean_gate] 3863 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2469: ok 2076, rej 393 (filter 393, prefilter=on); lean on 2076 texts in 6 procs, 36.1s proc, e"
+  },
+  {
+   "ts": "2026-10-11T11:32:45",
+   "src": "main:17770",
+   "line": "11:02Z read charles173_grpo_think_h_s0_plain_k64 exit 0 484s: [lean_gate] 9613 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 6085: ok 4737, rej 1348 (filter 1348, prefilter=on); lean on 4737 texts in 12 procs, 81.2"
+  },
+  {
+   "ts": "2026-10-11T11:32:45",
+   "src": "main:17770",
+   "line": "11:06Z read t1320_grpo_think_vs_h_s0_logical_k16 exit 0 3361s: [lean_gate] 7711 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7502: ok 7502, rej 0 (filter 0, prefilter=on); lean on 7502 texts in 19 procs, 289.9s pr"
+  },
+  {
+   "ts": "2026-10-11T11:32:45",
+   "src": "main:17770",
+   "line": "11:14Z read tb72_grpo_think_vs_h_s0_logical_k64 exit 0 511s: [lean_gate] 3722 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2310: ok 2310, rej 0 (filter 0, prefilter=on); lean on 2310 texts in 6 procs, 40.0s proc, "
+  },
+  {
+   "ts": "2026-10-11T11:32:45",
+   "src": "main:17770",
+   "line": "11:08Z read t1320_grpo_think_vs_h_s1_logical_k16 exit 0 3303s: [lean_gate] 7491 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 7264: ok 7264, rej 0 (filter 0, prefilter=on); lean on 7264 texts in 19 procs, 255.6s pr"
+  },
+  {
+   "ts": "2026-10-11T11:32:45",
+   "src": "main:17770",
+   "line": "11:17Z read tb72_grpo_think_vs_h_s1_logical_k64 exit 0 534s: [lean_gate] 3642 samples, parse-fail 0 (no-eos 0, 0.000 %), distinct 2280: ok 2280, rej 0 (filter 0, prefilter=on); lean on 2280 texts in 6 procs, 38.5s proc, "
+  },
+  {
+   "ts": "2026-10-11T11:39:55",
+   "src": "main:17849",
+   "line": "10:54Z read tb72_grpo_think_h_s0_plain_k64 exit 0 234s: [lean_gate] 3863 samples, parse-fail 0 (no-eos 0, 0.000 %), dist"
+  },
+  {
+   "ts": "2026-10-11T11:39:55",
+   "src": "main:17849",
+   "line": "11:02Z read charles173_grpo_think_h_s0_plain_k64 exit 0 484s: [lean_gate] 9613 samples, parse-fail 0 (no-eos 0, 0.000 %)"
+  },
+  {
+   "ts": "2026-10-11T11:39:55",
+   "src": "main:17849",
+   "line": "11:37Z read hand14_grpo_think_vs_h_s0_plain_k64 exit 0 139s: [lean_gate] 23 samples, parse-fail 0 (n"
+  },
+  {
+   "ts": "2026-10-11T11:39:55",
+   "src": "main:17849",
+   "line": "11:39Z read hand14_grpo_think_vs_h_s1_plain_k64 exit 0 107s: [lean_gate] 7 samples, parse-fail 0 (no"
+  }
+ ],
+ "old_counts": [
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 grpo_think        exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 grpo_think_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 grpo_think_vs     exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 grpo_nothink      exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 grpo_nothink_v    exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 grpo_nothink_vs   exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 grpo_nothink_vs3  exit 0  calls 47"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 ei_think          exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 ei_think_v        exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 ei_nothink        exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s0 ei_nothink_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 grpo_think        exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 grpo_think_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 grpo_think_vs     exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 grpo_nothink      exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 grpo_nothink_v    exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 grpo_nothink_vs   exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 grpo_nothink_vs3  exit 0  calls 47"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 ei_think          exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 ei_think_v        exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 ei_nothink        exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "normal s1 ei_nothink_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 grpo_think        exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 grpo_think_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 grpo_think_vs     exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 grpo_nothink      exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 grpo_nothink_v    exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 grpo_nothink_vs   exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 grpo_nothink_vs3  exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 ei_think          exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 ei_think_v        exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 ei_nothink        exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s0 ei_nothink_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 grpo_think        exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 grpo_think_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 grpo_think_vs     exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 grpo_nothink      exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 grpo_nothink_v    exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 grpo_nothink_vs   exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 grpo_nothink_vs3  exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 ei_think          exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 ei_think_v        exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 ei_nothink        exit 0  calls 23"
+  },
+  {
+   "src": "agent-aeb7753436e4d8957:125",
+   "text": "smoke  s1 ei_nothink_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 grpo_think        exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 grpo_think_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 grpo_think_vs     exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 grpo_nothink      exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 grpo_nothink_v    exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 grpo_nothink_vs   exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 grpo_nothink_vs3  exit 0  calls 47"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 ei_think          exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 ei_think_v        exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 ei_nothink        exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s0 ei_nothink_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 grpo_think        exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 grpo_think_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 grpo_think_vs     exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 grpo_nothink      exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 grpo_nothink_v    exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 grpo_nothink_vs   exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 grpo_nothink_vs3  exit 0  calls 47"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 ei_think          exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 ei_think_v        exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 ei_nothink        exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "normal s1 ei_nothink_v      exit 0  calls 46"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 grpo_think        exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 grpo_think_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 grpo_think_vs     exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 grpo_nothink      exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 grpo_nothink_v    exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 grpo_nothink_vs   exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 grpo_nothink_vs3  exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 ei_think          exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 ei_think_v        exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 ei_nothink        exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s0 ei_nothink_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 grpo_think        exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 grpo_think_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 grpo_think_vs     exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 grpo_nothink      exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 grpo_nothink_v    exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 grpo_nothink_vs   exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 grpo_nothink_vs3  exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 ei_think          exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 ei_think_v        exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 ei_nothink        exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:91",
+   "text": "smoke  s1 ei_nothink_v      exit 0  calls 23"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:476",
+   "text": "normal s1 grpo_think_h_b       exit 0  evals 8  L2-only calls dropped: 2 nvidia-smi, 1 python3, 1 sleep, 1 timeout ok"
+  },
+  {
+   "src": "agent-ad6a202caf48dd21c:476",
+   "text": "smoke  s1 grpo_think_h_b       exit 0  evals 8  L2-only calls dropped: 1 sleep, 1 timeout ok"
+  },
+  {
+   "src": "main:17536",
+   "text": "grpo_think_vs s2 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "ei_think_v s2 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "ei_think s2 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "grpo_think s2 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "grpo_nothink_vs s1 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "grpo_think_vs s0 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "ei_think_v s0 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "ei_think s0 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "grpo_think s0 exit 0, calls 46"
+  },
+  {
+   "src": "main:17536",
+   "text": "grpo_nothink_vs s0 exit 0, calls 46"
+  }
+ ]
+}
