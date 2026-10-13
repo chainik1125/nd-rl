@@ -29,6 +29,7 @@ import argparse
 import glob
 import os
 import pickle
+import re
 
 from code.experiments.current.thinking_traces_20261005.test_21_30.seal import build_index
 
@@ -57,7 +58,7 @@ REQUIRED = [
 ]
 
 
-def extra_files(have: set[str]) -> list[str]:
+def extra_files(have: set[str], omit: str = "") -> list[str]:
     fs = list(H712_OWN)
     for g in GLOBS:
         fs += sorted(glob.glob(g))
@@ -71,6 +72,7 @@ def extra_files(have: set[str]) -> list[str]:
             and "/pools/curriculum/" not in f
             and "_abandoned/" not in f
             and not f.endswith("/rejects.jsonl")
+            and not (omit and re.search(omit, f))
         ):
             out.append(f)
     return out
@@ -80,11 +82,22 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True, help="hard712's excl_index.pkl")
     ap.add_argument("--out", required=True)
+    ap.add_argument(
+        "--omit",
+        default="",
+        help="regex of globbed paths to leave out (ynez rebuild: files made later)",
+    )
+    ap.add_argument(
+        "--extra",
+        nargs="*",
+        default=[],
+        help="more files to index (ynez rebuild: sealed-set parts)",
+    )
     a = ap.parse_args()
     with open(a.base, "rb") as f:
         idx = pickle.load(f)
     have = {m["file"] for m in idx["manifest"]}
-    add = extra_files(have)
+    add = extra_files(have, a.omit) + [f for f in a.extra if f not in have]
     new = build_index(add)
     for k, fs in new["keys"].items():
         idx["keys"].setdefault(k, set()).update(fs)
