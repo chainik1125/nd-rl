@@ -11,25 +11,45 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-11, 4:40 am PDT)
+## Running (updated 2026-10-13, 6:15 am PDT; on ynez)
 
-**Goal since the 2026-10-09 group meeting:** a better GRPO recipe. Leon's answers (2026-10-09, 4:30 pm): GRPO +
-verifier = verifier-guided rollouts (redraw steps a Lean-sound check rejects) plus a penalty on each rejected draft;
-curriculum 10–12 lines, then 13–15; GRPO on both the thinking (S1g3) and no-think (T0S) models; priorities: GRPO vs
-EI in a fair setup, what each change buys, then the model-chosen think budget.
+**serrano is down (since 2026-10-11, about 4:48 am).** Everything below up to that date ran there. Its /scratch held
+every v2 checkpoint and read, the Stage-1 models, the curriculum pools and the launchers. None of them is reachable,
+and there was no backup after 2026-10-08. The tables in git (`matched_eval/v2_results.md` and the entries below) are
+what survives of those results. Leon (2026-10-12): "I dont think serrano is coming online soon so do it all".
 
-All `grpo_v2/line.sh`; reads as in the v2 section below. `_h`: GRPO lr 7.5e-5 instead of 1.5e-4 in both stages.
+So everything is redone on ynez:
+- Hardware: 4 × RTX 3090, shared. GPUs 0–1 hold another user's jobs, so 2–3 workers.
+- Same paths as on serrano.
+- Backups run on their own, into `/home/cowifornia/backups/nd-rl-think-ynez/`: after every arm, and hourly.
 
-| job | GPU | ETA | why |
+Rebuilt (2026-10-13):
+- Exact: the launchers (byte for byte, now in git under `leon/grpo-v2` `grpo_v2/launch/`), the S1g3 and T0S Stage-1
+  pickles (byte sizes and build summaries equal serrano's), textbook72, Charles173/149, hand_proved_14, the 13–20 and
+  21–30 test sets and samples (the 986 valid 13–20 items exactly; 14 unread rows of t1320_n1000 lost), the canary
+  set and hard712.
+- New: the six Stage-1 models, retrained with serrano's commands. textbook72 pass@1 checks:
+  - S1g3 s0 / s1: 43.8 / 39.6 (serrano 40.7 / 43.0);
+  - T0S s0 / s1: 30.9 / 33.3 (30.8 / 32.3);
+  - S1g3 s2: 32.3 and T0S s2: 31.0 (serrano never read these).
+- New: curriculum pools L2r/L3r. Serrano's could not be rebuilt exactly (search time limits and unseeded set order),
+  so these are rebuilt with the recorded recipe and limits scaled to ynez's speed (`pools/curriculum/REBUILD_NOTE.md`,
+  branch `leon/curriculum-rebuild-ynez`). Same band and mean lengths (L2 11.03; L3 13.22 vs 13.28). Ex falso rows
+  13–14% vs 10%. PREFLIGHT PASSED.
+- Results on ynez are not pooled with serrano's.
+
+Runs: thinking only, GRPO and EI each with and without the verifier (stop), seeds 2, 0, 1. Jobs are in
+`runs/grpo_v2/jobs_ynez.txt`, and one `pull_queue.sh` worker per free GPU takes the next job. Order: the headline
+pair (`ei_think_v`, `grpo_think_vs`) for seeds 2, 0, 1, then `ei_think`, `grpo_think` for seeds 2, 0, 1. About
+84 GPU-h; the pair by about Wednesday night on 2 GPUs. GRPO runs about 1.9 min per iteration here (about 3 on serrano).
+
+| job | GPU | started | note |
 |---|---|---|---|
-| `grpo_think_h` seed 0: plain GRPO, thinking, half rate | 0 | ~5 am (reads) | does a lower rate help GRPO? Also the matched-rate control for `grpo_think_vs` seed 0 (L2 at ½ after its canary rollback) |
-| `grpo_think_vs_h` seeds 0, 1: GRPO + verifier (stop), thinking, half rate | 2, 3 | ~4:45 am (reads) | the verifier's effect at a matched rate |
-| `grpo_think_h_b` seed 1: L3 of `grpo_think_h` s1 again, from its L2 checkpoint, new think-ban rule | 1, from 3:41 am | ~6:45 am | seed 1 of plain GRPO at half rate with fewer of the alarm's lr cuts; one rollback at it 8 (lr × 0.5 from it 9) |
-| `ei_think_v` seed 2: EI + verifier, thinking | 4, from 4:23 am | ~2:30 pm | third seed of the thinking 2 × 2 (GRPO / EI × verifier / none) |
-| `ei_think` seed 2: plain EI, thinking | 2, after `grpo_think_vs_h` s0 | ~12:45 pm | third seed |
-| `grpo_think_vs` seed 2: GRPO + verifier (stop), thinking | 3, after `grpo_think_vs_h` s1 | ~9:45 am | third seed |
-| `grpo_think` seed 2: plain GRPO, thinking | 0, after `grpo_think_h` s0 | ~10 am | third seed |
-| `grpo_nothink_vs` seed 1: GRPO + verifier (stop), no thinking | 1, after `grpo_think_h_b` s1 | ~9:45 am | second seed of the no-think verifier (stop) arm |
+| `ei_think_v` seed 2 | 2 | 5:05 am | |
+| `grpo_think_vs` seed 2 | 3 | 5:05 am | L2 it 31 at 6:06 am, no alarm, ban mass 5e-5 |
+
+Also: `leon/grpo-v2-auto` (GRPO with the model-chosen think level) was recovered from its agent's transcript and
+pushed (021523e, 1d24461, ae02a00). Its real-model checks wait for an L2 pilot.
 
 ## Queued: GRPO recipe v2 (`grpo_v2/line.sh`, branch `leon/grpo-v2`)
 
