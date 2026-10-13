@@ -152,6 +152,46 @@ sampler prefills `<eB>`. Without `--effort` the budget is applied but never show
 in ei.py). `--force_mode` is the sampler's budget forcing: 'line' (default) lets the block finish
 its line past B, up to B + 64; 'exact' closes it at B. Either way the forced `</think>` is masked.
 
+Auto effort (`--auto_levels 0,64,256`, opt-in, with `--effort`; Leon 2026-10-11, the model-chosen
+think budget): the model picks its own level at every step, as `eval --budgets auto` reads it.
+* **Rollouts.** `sample.think_generate(auto_levels=...)`: at each step one effort token is sampled
+  from pi_T restricted to the allowed effort ids (`sample.choose_levels`), then the step decodes
+  at that level. `--budgets` is ignored: a group is (target, "auto") and the curriculum is over
+  targets. The plain arm, or a guided one without redraws (`--arm logical --max_rej 0`, the
+  verifier stop); redraws are refused (a redrawn draw would carry its own effort token and a
+  within-level exclusion this scorer does not model).
+* **The effort token is a policy action.** Every step's `<eB>` is scored as a one-token item
+  (`choice_items`: its state, `<eB>`, the attempt's advantage), so it enters the PPO ratio and
+  clip, the dual clip, the alarms' clip-low and the loss normaliser (the accepted items' tokens
+  with the step penalty) like any sampled token. Its log-prob is the restricted log-softmax over
+  the allowed effort ids, the distribution `choose_levels` samples from (the third mask of
+  `bans`), as the phase masks make every other scored token's the sampler's. Over the full
+  vocabulary it would not be the probability the token was drawn with: the effort tokens were
+  never targets in Stage 1, and the S1g3 models put about 0.1% of the mass on the three at the
+  first state of L2 problems, where the sampler picks each with about 1/3. The step penalty P
+  scores what it scored before (a rejected draw's think + action), not the level choice before it.
+  The choice position is not a think position, so the think ban mass and its alarm,
+  `--ban_restore_check` and `--ban_stop` read what they read before.
+  With the KL anchor the level choice at each anchor state is anchored too
+  (`canary.choice_seqs`), each choice position weighing one action position (the action part
+  keeps its weight: coef x (sum over action positions + sum over choice positions) / action
+  positions).
+* **Token cost** (`--choice_lambda` lambda, 0 by default): every attempt, failures included, pays
+  lambda x its sampled tokens / 1,000 (the effort tokens included), so a group's mean reward is
+  pass rate - lambda x mean tokens / 1,000, `ei_auto`'s label score.
+* **Logged** (rows and the `it` line): `level_share`, the share of draws at each level;
+  `choice_entropy`, the mean entropy (nats) of the restricted distributions the sampler drew the
+  levels from; during the update, `entropy_choice`, `tokens_choice` and `clip_low_choice` over the
+  scored effort tokens (`entropy_action` excludes them; `entropy`, `clip_low` and the other
+  per-token rows count them like any scored token, so `entropy` is not comparable with a
+  fixed-level run's: about ln 3 per choice at the start); `choice_cost`, the mean lambda x tokens
+  / 1,000; with the anchor `kl_anchor_choice`; with `--monitor`, `mass_choice`. Per-budget rows
+  are keyed "auto", except the think block ones (`length_metrics`), which are per picked level.
+* **Cost.** A choice item repeats its step's state in the update's forward passes: on S1g3_s0's
+  auto rollouts of 8 L2 problems, +64% forward tokens (+27% padded) in old_logps + policy_loss.
+* Not with `--len_target_coef` (its target is the group's budget) or `--dump_batches` (integer
+  budgets).
+
 Files in GDIR: metrics.jsonl (one row per iteration), ckpts/<name>_it<i>.pt every --save_every
 iterations and at the end, <name>_it<i>_alarm.pt at each alarming iteration and
 <name>_it<i>_rolling.pt every --save_rolling iterations (the last --keep_rolling kept), args.json,
@@ -179,18 +219,21 @@ from typing import Any, NamedTuple
 import torch
 
 from . import stateview
-from .canary import anchor_kl, canary_metrics, load_canary
+from .canary import anchor_kl, canary_metrics, choice_seqs, load_canary
 from .ckpt import TRAIN_STATE, load_ckpt, load_train_state, run_env, save_ckpt
 from .dan import bare, load
 from .data import read_jsonl
-from .effort import LEVELS, expand_to_effort, has_effort
+from .effort import LEVELS, effort_id, expand_to_effort, has_effort
 from .grpo_io import compact_adam, dump_batch
-from .sample import ARMS, FORCE_MODES, judge, phase_bans, sample_format, think_generate
+from .sample import ARMS, AUTO, FORCE_MODES, judge, phase_bans, sample_format, think_generate
 from .tok import has_think
 
 D = load()
 Item = tuple[list[int], list[int], list[bool], float]  # prompt, generated, loss mask, advantage
-Bans = tuple[torch.Tensor, torch.Tensor]  # sample.phase_bans: [V] bool, think block / action
+# sample.phase_bans: [V] bool, think block / action; with auto effort a third, the level choice
+# (`choice_ban`: every token but the allowed effort ones)
+Bans = tuple[torch.Tensor, ...]
+Budget = int | str  # a group's budget: a level, or AUTO (auto effort: the model picks per step)
 R_WATCH = 3.0  # neg_r3: the share of the scored A < 0 tokens with r above this
 # per-iteration alarms (`alarms`)
 ALARM_BAN = 1e-3  # mean full-vocabulary mass on the think ban at the scored think tokens
@@ -222,12 +265,24 @@ def think_blocks(x: dict[str, Any], think_ids: tuple[int, int] | None) -> list[t
     if think_ids is None:
         return []
     out: list[tuple[int, bool]] = []
-    for s in x.get("trace") or []:
-        p, g = s.get("prompt") or b"", s.get("gen") or b""
-        if p and p[-1] == think_ids[0]:
-            n = g.index(think_ids[1]) if think_ids[1] in g else len(g)
-            out.append((n, bool(s.get("forced"))))
+    for s in _block_steps(x, think_ids):
+        g = s.get("gen") or b""
+        n = g.index(think_ids[1]) if think_ids[1] in g else len(g)
+        out.append((n, bool(s.get("forced"))))
     return out
+
+
+def _block_steps(x: dict[str, Any], think_ids: tuple[int, int] | None) -> list[dict[str, Any]]:
+    """The trace entries of `think_blocks`'s blocks (a decoder input ending with `<think>`)."""
+    if think_ids is None:
+        return []
+    t = think_ids[0]
+    return [s for s in x.get("trace") or [] if (p := s.get("prompt") or b"") and p[-1] == t]
+
+
+def block_levels(x: dict[str, Any], think_ids: tuple[int, int] | None) -> list[int]:
+    """Auto effort: the level of each of `think_blocks`'s blocks (its step's `level`)."""
+    return [int(s["level"]) for s in _block_steps(x, think_ids)]
 
 
 def length_deviation(
@@ -252,12 +307,16 @@ def rewards(
     len_target_mode: str = "exact",
     think_ids: tuple[int, int] | None = None,
     len_target_frac: float = 1.0,
+    choice_lambda: float = 0.0,
 ) -> list[float]:
     """1 per Lean-accepted attempt minus len_penalty per 1,000 sampled tokens; 0 per failure. With
     `len_target_coef` alpha > 0, every attempt (failures too, as in L1) also pays alpha x
     `length_deviation` of its think blocks (`think_blocks`) from its target, `len_target_frac` x
-    its budget; none at B = 0."""
+    its budget; none at B = 0. With `choice_lambda` lambda > 0 (auto effort's token cost, as
+    `ei_auto.choice_label`), every attempt also pays lambda per 1,000 sampled tokens."""
     r = [(1.0 - len_penalty * x["tokens"] / 1000.0) if x.get("ok") else 0.0 for x in att]
+    if choice_lambda:
+        r = [v - choice_lambda * x["tokens"] / 1000.0 for v, x in zip(r, att, strict=True)]
     if not len_target_coef:
         return r
     for i, x in enumerate(att):
@@ -270,7 +329,7 @@ def rewards(
 
 def length_metrics(
     groups: Sequence[Sequence[dict[str, Any]]],
-    budgets: Sequence[int],
+    budgets: Sequence[Budget],
     think_ids: tuple[int, int] | None,
     mode: str = "exact",
     coef: float = 0.0,
@@ -282,13 +341,27 @@ def length_metrics(
     force-closed (`forced_by_budget`; `forced_frac` over every block) and the mean
     `length_deviation` d per attempt (`len_dev_by_budget`; `len_dev` over the B > 0 attempts), in
     `mode` whatever `coef` is; `len_target_penalty` = coef x len_dev, the mean reward deduction of
-    an attempt that pays it."""
+    an attempt that pays it. Auto effort (budget AUTO): each block counts at its own step's level
+    (`block_levels`), and an attempt's d is the mean of its blocks' min(1, d_b), each against its
+    own level's target (`len_dev_by_budget` key "auto")."""
     blk: dict[int, list[int]] = collections.defaultdict(list)
     frc: dict[int, list[bool]] = collections.defaultdict(list)
-    dev: dict[int, list[float]] = collections.defaultdict(list)
+    dev: dict[Budget, list[float]] = collections.defaultdict(list)
     for att, b in zip(groups, budgets, strict=True):
         for x in att:
             bl = think_blocks(x, think_ids)
+            if isinstance(b, str):  # AUTO: the blocks of one attempt sit at different levels
+                lv = block_levels(x, think_ids)
+                ds: list[float] = []
+                for (n, f), lb in zip(bl, lv, strict=True):
+                    blk[lb].append(n)
+                    frc[lb].append(f)
+                    d = length_deviation([n], lb, mode, frac)
+                    if d is not None:
+                        ds.append(d)
+                if ds:
+                    dev[b].append(sum(ds) / len(ds))
+                continue
             blk[b] += [n for n, _ in bl]
             frc[b] += [f for _, f in bl]
             d = length_deviation([n for n, _ in bl], b, mode, frac)
@@ -317,12 +390,12 @@ def is_overlong(x: dict[str, Any]) -> bool:
 
 
 def capped_metrics(
-    groups: Sequence[Sequence[dict[str, Any]]], budgets: Sequence[int]
+    groups: Sequence[Sequence[dict[str, Any]]], budgets: Sequence[Budget]
 ) -> dict[str, Any]:
     """The share of attempts a cap ended (`is_overlong`), whatever `--overlong` does with them:
     over all attempts, per budget (keys str(B)), and the count per cap (`OVERLONG` without
     'fail:')."""
-    by_b: dict[int, list[float]] = collections.defaultdict(list)
+    by_b: dict[Budget, list[float]] = collections.defaultdict(list)
     kinds = dict.fromkeys((s.split(":", 1)[1] for s in OVERLONG), 0)
     for att, b in zip(groups, budgets, strict=True):
         for x in att:
@@ -370,6 +443,22 @@ def attempt_items(x: dict[str, Any], adv: float, tok: Any, rej_extra: float = 0.
         if gen:
             a = adv + (rej_extra if s.get("rejected") else 0.0)
             out.append((list(s["prompt"]), gen, _step_mask(s, tok), a))
+    return out
+
+
+def choice_items(x: dict[str, Any], adv: float, tok: Any) -> list[Item]:
+    """Auto effort: the effort token of every step of an attempt (the draw that ended it
+    included) -> (the state, [<eB>], [True], adv), the level choice as its own one-token item.
+    Its step prompt is `state <eB> <think> ...` (`sample.step_prompt`), so <eB> sits at the
+    state's length. The attempt's advantage only: the step penalty scores the draw, not the level
+    picked before it. [] for a fixed-level attempt (no `level` in its trace)."""
+    out: list[Item] = []
+    for s in x.get("trace") or []:
+        if "gen" not in s or "level" not in s:
+            continue
+        p, k = list(s["prompt"]), len(s["state"])
+        assert p[k] == effort_id(tok, int(s["level"])), "a step prompt is state <eB> <think> ..."
+        out.append((p[:k], [p[k]], [True], adv))
     return out
 
 
@@ -437,22 +526,26 @@ def group_items(
     rej_penalty: float = 0.0,
     rej_scope: str = "diverge",
     src: list[tuple[int, str]] | None = None,
+    choice_lambda: float = 0.0,
 ) -> tuple[list[Item] | None, list[bool]]:
     """One group's training items -> (items, None when the group is skipped; per attempt, whether
     it is masked as overlong). Masked attempts give no items, so no gradient. `len_target_*`: the
-    length target (`rewards`).
+    length target, `choice_lambda` the token cost (`rewards`).
 
     Step penalty (`rej_penalty` P > 0, a guided arm): every rejected draw gets -P on top of what
     its attempt gives it -- the redrawn draws (`rejected_items`, of every attempt, masked ones
     included: a rejected draw is a known-invalid step whatever the outcome) and the draw that
     ended a failed attempt. A group is then skipped only if its outcomes give no signal AND it
     has no rejected draw; a no-signal group with rejected draws gives only the penalised draws
-    (and the attempt-ending ones). `src`, when given, gets one (attempt index, kind) per item:
-    'acc' an attempt's steps, 'rej' a redrawn draw."""
+    (and the attempt-ending ones). Auto effort: an attempt with an advantage also gives its steps'
+    effort tokens (`choice_items`). `src`, when given, gets one (attempt index, kind) per item:
+    'acc' an attempt's steps, 'choice' their effort tokens, 'rej' a redrawn draw."""
     assert overlong in ("mask", "fail"), overlong
     masked = [overlong == "mask" and is_overlong(x) for x in att]
     ids = (tok.think, tok.end_think) if len_target_coef and has_think(tok) else None
-    r = rewards(att, len_penalty, len_target_coef, len_target_mode, ids, len_target_frac)
+    r = rewards(
+        att, len_penalty, len_target_coef, len_target_mode, ids, len_target_frac, choice_lambda
+    )
     adv = advantages(r, [not m for m in masked])
     pen = rej_penalty > 0 and any(n_rejected(x) for x in att)
     if adv is None and not pen:
@@ -460,13 +553,18 @@ def group_items(
     items: list[Item] = []
     for j, (x, mk) in enumerate(zip(att, masked, strict=True)):
         if not mk:
+            ch: list[Item] = []
             if adv is not None:
                 its = attempt_items(x, adv[j], tok, -rej_penalty if pen else 0.0)
+                ch = choice_items(x, adv[j], tok)
             else:  # no outcome signal: only the draw that ended a failed attempt, penalised
                 its = [it for it in attempt_items(x, 0.0, tok, -rej_penalty) if it[3] != 0.0]
             items += its
             if src is not None:
                 src += [(j, "acc")] * len(its)
+            items += ch
+            if src is not None:
+                src += [(j, "choice")] * len(ch)
         if pen:
             rj = rejected_items(x, rej_penalty, tok, rej_scope)
             items += rj
@@ -510,6 +608,7 @@ class Scored(NamedTuple):
     th: torch.Tensor  # think-block positions (`think_len`)
     ent: torch.Tensor | None  # with `entropy`: the entropy of pi_T, detached
     ban_mass: torch.Tensor | None  # with `entropy`: full-vocabulary pi_T mass on the think ban
+    ch: torch.Tensor | None = None  # with a choice ban: the level-choice positions
 
 
 def _token_logp(
@@ -525,7 +624,10 @@ def _token_logp(
     `decode_wave` got them) the think ban is masked at the think-block positions and the action
     ban at the others, then renormalised; without, the full vocabulary (a tokenizer with neither
     think nor effort tokens bans nothing).  Rows are right-padded with <pad> (id 0). The model is
-    causal, so padding never reaches a scored position."""
+    causal, so padding never reaches a scored position. Auto effort (a third ban, `choice_ban`):
+    a scored position whose token is an allowed effort token is a level choice (`choice_items`;
+    the sampler never decodes an effort token, so no other scored position holds one) and is
+    masked to the allowed effort tokens, the distribution `sample.choose_levels` samples."""
     T = max(len(p) + len(g) for p, g, _, _ in chunk)
     x = torch.zeros((len(chunk), T), dtype=torch.long)
     w = torch.zeros((len(chunk), T - 1))
@@ -542,11 +644,14 @@ def _token_logp(
     with torch.autocast("cuda", dtype=torch.bfloat16, enabled=(dev == "cuda")):
         logits = model(x[:, :-1])
     z = logits.float() / temperature
-    ban = b_think = None
+    ban = b_think = ch = None
     if bans is not None:
-        b_think, b_act = (b.to(dev) for b in bans)
+        b_think, b_act, *b_ch = (b.to(dev) for b in bans)
         assert b_think.shape[-1] == z.shape[-1], "bans need the model's vocabulary size"
         ban = torch.where(th[..., None], b_think, b_act)  # [B, T-1, V]: each position's phase
+        if b_ch:  # auto effort: the level choices
+            ch = m & ~b_ch[0][x[:, 1:]]
+            ban = torch.where(ch[..., None], b_ch[0], ban)
         logp = torch.log_softmax(z.masked_fill(ban, -math.inf), dim=-1)
     else:
         logp = torch.log_softmax(z, dim=-1)
@@ -560,7 +665,7 @@ def _token_logp(
                 ban_mass = torch.softmax(z.detach(), -1).masked_fill(~b_think, 0.0).sum(-1)
     # a prompt or forced token can be banned in its position's phase (-inf): where, not * 0
     tgt = torch.where(m, logp.gather(-1, x[:, 1:, None])[..., 0], 0.0)
-    return Scored(tgt, w, m, th, ent, ban_mass)
+    return Scored(tgt, w, m, th, ent, ban_mass, ch)
 
 
 @torch.no_grad()
@@ -593,7 +698,7 @@ class LossStats(NamedTuple):
     entropy: float = 0.0  # mean entropy of pi_T over the scored tokens, nats
     tokens_think: int = 0  # scored think-block tokens (`think_len`)
     entropy_think: float = 0.0  # mean entropy over them (0 when there are none)
-    entropy_action: float = 0.0  # ... over the other scored tokens
+    entropy_action: float = 0.0  # ... over the other scored tokens (level choices excluded)
     ban_think: float = 0.0  # mean full-vocabulary pi_T mass on the think ban, scored think tokens
     ban_think_max: float = 0.0  # ... the largest
     ratio_max: float = 0.0  # the largest r over the scored tokens (1 without `old`)
@@ -602,6 +707,9 @@ class LossStats(NamedTuple):
     nonfinite: int = 0  # scored tokens banned in their phase (log-prob -inf): left out of the loss
     tokens_acc: int = 0  # with `rejected`: scored tokens of the accepted items (not redrawn draws)
     clip_low_acc: float = 0.0  # ... the share of them with r < 1 - eps_low
+    tokens_choice: int = 0  # auto effort: scored level choices (effort tokens)
+    entropy_choice: float = 0.0  # ... the mean entropy of their restricted pi_T
+    clip_low_choice: float = 0.0  # ... the share of them with r < 1 - eps_low
 
 
 def policy_loss(
@@ -628,7 +736,10 @@ def policy_loss(
     the step penalty scores) adds clip-low over the other items' tokens (`clip_low_acc`), the
     basis of the clip-low alarms when the penalty is on, and makes the loss a sum over every
     scored token divided by the accepted items' token count, so the penalised draws do not dilute
-    the accepted tokens' per-token weight (plain GRPO's)."""
+    the accepted tokens' per-token weight (plain GRPO's). Auto effort (a choice ban in `bans`):
+    the level choices are scored tokens like the others (in the loss, the normaliser, clip-low and
+    the alarms) and also counted apart (`tokens_choice`, `entropy_choice`, `clip_low_choice`);
+    `entropy_action` leaves them out."""
     assert old is None or len(old) == len(items), "old log-probs must align with the items"
     n_tok = sum(sum(m) for _, _, m, _ in items)
     if n_tok == 0:
@@ -643,6 +754,7 @@ def policy_loss(
     r_max = 1.0 if old is None else 0.0
     n_low = n_high = n_think = n_neg = n_r3 = n_bad = 0
     n_acc = n_low_acc = 0
+    ent_ch, n_ch, n_low_ch = 0.0, 0, 0  # auto effort: the level choices
     for ids in _chunks(items, max_tokens):
         chunk = [items[k] for k in ids]
         s = _token_logp(
@@ -653,6 +765,9 @@ def policy_loss(
         ent_sum += float(s.ent[m].sum())
         ent_think += float(s.ent[mt].sum())
         n_think += int(mt.sum())
+        if s.ch is not None:
+            ent_ch += float(s.ent[s.ch].sum())
+            n_ch += int(s.ch.sum())
         if mt.any():
             ban_sum += float(s.ban_mass[mt].sum())
             ban_max = max(ban_max, float(s.ban_mass[mt].max()))
@@ -671,6 +786,8 @@ def policy_loss(
             loss = -torch.where(ok, surr, 0.0).sum() / n_norm
             rd = ratio.detach()
             n_low += int((rd < 1 - eps_low)[ok].sum())
+            if s.ch is not None:
+                n_low_ch += int((rd < 1 - eps_low)[ok & s.ch].sum())
             if rejected is not None:
                 acc = torch.tensor([not rejected[k] for k in ids], device=ok.device)[:, None] & ok
                 n_acc += int(acc.sum())
@@ -684,7 +801,7 @@ def policy_loss(
         n_bad += int((m & ~ok).sum())
         loss.backward()
         total += float(loss.detach())
-    n_act = n_tok - n_think
+    n_act = n_tok - n_think - n_ch
     return LossStats(
         loss=total,
         tokens=n_tok,
@@ -694,7 +811,7 @@ def policy_loss(
         entropy=ent_sum / n_tok,
         tokens_think=n_think,
         entropy_think=ent_think / n_think if n_think else 0.0,
-        entropy_action=(ent_sum - ent_think) / n_act if n_act else 0.0,
+        entropy_action=(ent_sum - ent_think - ent_ch) / n_act if n_act else 0.0,
         ban_think=ban_sum / n_think if n_think else 0.0,
         ban_think_max=ban_max,
         ratio_max=r_max,
@@ -703,6 +820,9 @@ def policy_loss(
         nonfinite=n_bad,
         tokens_acc=n_acc,
         clip_low_acc=n_low_acc / n_acc if n_acc else 0.0,
+        tokens_choice=n_ch,
+        entropy_choice=ent_ch / n_ch if n_ch else 0.0,
+        clip_low_choice=n_low_ch / n_ch if n_ch else 0.0,
     )
 
 
@@ -718,7 +838,7 @@ class Curriculum:
     """Learnability sampling over (target, budget) pairs; see the module docstring."""
 
     def __init__(
-        self, n: int, budgets: Sequence[int], floor: float, decay: float, seed: int
+        self, n: int, budgets: Sequence[Budget], floor: float, decay: float, seed: int
     ) -> None:
         self.keys = [(t, b) for t in range(n) for b in budgets]
         self.index = {k: i for i, k in enumerate(self.keys)}
@@ -734,7 +854,7 @@ class Curriculum:
         p = self.p(i)
         return p * (1.0 - p) + self.floor
 
-    def draw(self, m: int) -> list[tuple[int, int]]:
+    def draw(self, m: int) -> list[tuple[int, Budget]]:
         """m distinct pairs, weighted, without replacement (Efraimidis-Spirakis keys u^(1/w), as
         log(u) / w: u^(1/w) underflows to 0 for small weights, which would tie and fall back to
         index order)."""
@@ -744,7 +864,7 @@ class Curriculum:
         keyed.sort(reverse=True)
         return [self.keys[i] for _, i in keyed[: min(m, len(keyed))]]
 
-    def update(self, key: tuple[int, int], successes: int, trials: int) -> None:
+    def update(self, key: tuple[int, Budget], successes: int, trials: int) -> None:
         i = self.index[key]
         self.s[i] = self.s[i] * self.decay + successes
         self.n[i] = self.n[i] * self.decay + trials
@@ -775,43 +895,47 @@ def sample_groups(
     model: Any,
     tok: Any,
     targets: Sequence[dict[str, Any]],
-    budgets: Sequence[int],
+    budgets: Sequence[Budget],
     a: argparse.Namespace,
     seed: int,
     think: bool,
     stats: dict[str, Any] | None = None,
+    auto_levels: Sequence[int] | None = None,
 ) -> list[list[dict[str, Any]]]:
     """`a.group` attempts per target, all at the target's budget (one think_generate call per
     budget, so each call has one budget). `a.arm` (default plain) is the sampler's arm: a guided
     arm redraws a rejected draw, at most `a.max_rej` times per attempt, and with a step penalty
     the redrawn draws are kept (`keep_rejected`). `stats` gets the sampler's counters, summed
-    over the calls (`rej_cause`, `end`, `redraws`, ...)."""
+    over the calls (`rej_cause`, `end`, `redraws`, ...). Budget AUTO: the model picks every
+    step's level among `auto_levels` (auto effort)."""
     arm = getattr(a, "arm", "plain")
     keep_rej = arm != "plain" and getattr(a, "rej_penalty", 0.0) > 0
-    by: dict[int, list[int]] = collections.defaultdict(list)
+    by: dict[Budget, list[int]] = collections.defaultdict(list)
     for i, b in enumerate(budgets):
         by[b].append(i)
     per: list[list[dict[str, Any]]] = [[] for _ in targets]
-    for b, idx in sorted(by.items()):
+    for b, idx in sorted(by.items()):  # one key, AUTO, with auto effort
         prompts = [targets[i]["prompt"] for i in idx for _ in range(a.group)]
         st: dict[str, Any] = {}
+        lv = 0 if isinstance(b, str) else b  # AUTO: one call, its own seed offset
         res = think_generate(
             model,
             tok,
             prompts,
             arm=arm,
-            budgets=[b] if think else 0,
+            budgets=[lv] if think else 0,
             think=think,
             temperature=a.temperature,
             max_action=a.max_action,
             max_steps=a.max_steps,
             max_rej=getattr(a, "max_rej", 10),
             batch=a.batch,
-            seed=seed * 10_007 + b,  # distinct per (iteration, budget) for any budget < 10,007
+            seed=seed * 10_007 + lv,  # distinct per (iteration, budget) for any budget < 10,007
             stats=st,
             keep_trace=True,
             force_mode=a.force_mode,
             keep_rejected=keep_rej,
+            auto_levels=auto_levels if isinstance(b, str) else None,
         )
         res = judge(tok, prompts, res, a.lean)
         for n, i in enumerate(idx):
@@ -855,6 +979,7 @@ def monitor_metrics(
     think_ids: tuple[int, int] | None,
     sampler: dict[str, Any] | None = None,
     top: int = 6,
+    choice: bool = False,
 ) -> dict[str, Any]:
     """`--monitor`: where an iteration's gradient comes from. Per target length (str(L)) and per
     group pass-rate band (`PASS_BANDS`): groups, the share with a gradient, the mean pass rate,
@@ -863,7 +988,8 @@ def monitor_metrics(
     mass on think-block tokens and on rejected draws. Overall: the mass split think / action and
     accepted (an attempt's steps) / rejected (redrawn draws), and the sampler's rejections: per
     draw, per attempt, and the most common causes (share of all rejections). `item_src`: per
-    item (group, attempt, kind) as `group_items` fills it, the group index first."""
+    item (group, attempt, kind) as `group_items` fills it, the group index first. `choice` (auto
+    effort): the level choices' share (`mass_choice`) is split off the action's."""
     n_g = len(per)
     g_mass = [0.0] * n_g
     g_think = [0.0] * n_g
@@ -938,6 +1064,14 @@ def monitor_metrics(
     if sampler:
         out["redraws"] = int(sampler.get("redraws", 0))
         out["repeat_action_redraws"] = int(sampler.get("repeat_action_redraws", 0))
+    if choice:  # the effort tokens are not action tokens
+        ch = sum(
+            abs(adv) * sum(m)
+            for (_, _, m, adv), (_, _, kind) in zip(items, item_src, strict=True)
+            if kind == "choice"
+        )
+        out["mass_choice"] = ch / tot if tot else 0.0
+        out["mass_action"] = (tot - th - ch) / tot if tot else 0.0
     return out
 
 
@@ -952,6 +1086,61 @@ def _length_line(row: dict[str, Any]) -> str:
         f"think/blk {per or '-'} forced {100 * row['forced_frac']:.1f}% "
         f"dev {row['len_dev']:.3f} lpen {row['len_target_penalty']:.3f}"
     )
+
+
+def parse_levels(spec: str | None) -> tuple[int, ...] | None:
+    """`--auto_levels` -> the allowed levels (None: auto effort off). Distinct effort levels."""
+    if spec is None:
+        return None
+    try:
+        levels = tuple(int(x) for x in spec.split(",") if x.strip())
+    except ValueError:
+        levels = ()
+    if not levels or len(set(levels)) != len(levels) or any(b not in LEVELS for b in levels):
+        raise SystemExit(f"error: --auto_levels {spec}: distinct effort levels of {LEVELS}")
+    return levels
+
+
+def choice_ban(tok: Any, vocab: int, levels: Sequence[int]) -> torch.Tensor:
+    """The level choice's mask, as `sample.choose_levels` restricts it: [vocab] bool, every token
+    banned but the effort tokens of `levels`."""
+    ban = torch.ones(vocab, dtype=torch.bool)
+    ban[[effort_id(tok, b) for b in levels]] = False
+    return ban
+
+
+def auto_metrics(
+    flat: Sequence[dict[str, Any]],
+    levels: Sequence[int],
+    sampler: dict[str, Any],
+    stats: Sequence[LossStats],
+    choice_lambda: float,
+) -> dict[str, Any]:
+    """Auto effort's row keys: the share of draws at each allowed level (`level_share`, every
+    draw of every attempt, rejected ones included), the mean entropy of the restricted level
+    distributions the sampler drew from (`choice_entropy`, nats; `sampler`: the summed
+    `sample_groups` stats), the update's scored level choices (`tokens_choice`, their mean
+    restricted entropy `entropy_choice` and clip-low `clip_low_choice`), and the mean token cost
+    per attempt (`choice_cost`, lambda x tokens / 1,000)."""
+    c = collections.Counter(int(b) for x in flat for b in x.get("levels") or [])
+    n = sum(c.values())
+    n_pick = sum((sampler.get("auto_levels") or {}).values())
+    n_ch = sum(s.tokens_choice for s in stats)
+    return {
+        "level_share": {str(b): c[b] / n if n else 0.0 for b in levels},
+        "choice_entropy": sampler.get("choice_entropy_sum", 0.0) / n_pick if n_pick else 0.0,
+        "tokens_choice": n_ch,
+        "entropy_choice": sum(s.entropy_choice * s.tokens_choice for s in stats) / max(1, n_ch),
+        "clip_low_choice": sum(s.clip_low_choice * s.tokens_choice for s in stats) / max(1, n_ch),
+        "choice_cost": choice_lambda * sum(x["tokens"] for x in flat) / 1000.0 / max(1, len(flat)),
+    }
+
+
+def _auto_line(row: dict[str, Any]) -> str:
+    """The per-iteration line's auto-effort part: the level shares and the choice entropy (the
+    sampler's; the update's in brackets)."""
+    sh = " ".join(f"e{b} {100 * v:.0f}%" for b, v in row["level_share"].items())
+    return f"levels {sh} ch-ent {row['choice_entropy']:.3f} ({row['entropy_choice']:.3f}) "
 
 
 def clip_low_basis(row: dict[str, Any]) -> tuple[float, str]:
@@ -1239,6 +1428,22 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         "--ban_restore_check needs --rollback_on_alarm"
     )
     assert a.arm in ARMS, a.arm
+    levels = parse_levels(a.auto_levels)  # auto effort (None: off); refusals before any output
+    if a.choice_lambda < 0 or (a.choice_lambda and levels is None):
+        raise SystemExit("error: --choice_lambda must be >= 0, and needs --auto_levels")
+    if levels is not None:
+        if not a.effort:
+            raise SystemExit("error: --auto_levels needs --effort (the levels are effort tokens)")
+        if a.arm != "plain" and a.max_rej > 0:
+            raise SystemExit(
+                f"error: --auto_levels with --arm {a.arm} --max_rej {a.max_rej}: GRPO does not "
+                "support redraws with auto effort (a redrawn draw's effort token and its "
+                "within-level exclusion are not scored); use --max_rej 0, the verifier stop"
+            )
+        if a.len_target_coef:
+            raise SystemExit("error: --auto_levels with --len_target_coef: the target is per group")
+        if a.dump_batches:
+            raise SystemExit("error: --auto_levels with --dump_batches: dumps hold integer budgets")
     if a.rej_penalty and a.arm == "plain":
         print("NOTE: --rej_penalty with the plain arm: only an attempt's ending draw is penalised")
     if a.len_target_coef and not a.effort:
@@ -1276,18 +1481,26 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     think = has_think(tok) and extra.get("think_format", "think") != "none"
     think_ids = (tok.think, tok.end_think) if think else None
     # the sampler's masks: think_generate bans think tokens in R's actions (one block per proof)
-    bans = phase_bans(tok, model.cfg["vocab"], think, think and sample_format(model) == "root")
+    bans: Bans = phase_bans(
+        tok, model.cfg["vocab"], think, think and sample_format(model) == "root"
+    )
+    cb: Sequence[Budget] = budgets if think else [0]  # the groups' budgets
+    ban_ch: torch.Tensor | None = None  # auto effort: the level choice's mask
+    if levels is not None:  # a group is (target, AUTO)
+        if not (think and has_effort(tok) and sample_format(model) == "think"):
+            raise SystemExit("error: --auto_levels needs a per-step thinking effort checkpoint")
+        cb = [AUTO]
+        ban_ch = choice_ban(tok, model.cfg["vocab"], levels)
+        bans = (*bans, ban_ch)
     targets = read_jsonl(a.targets)
     rng = random.Random(a.seed * 7919)
-    cur = Curriculum(len(targets), budgets if think else [0], a.floor, a.decay, a.seed)
+    cur = Curriculum(len(targets), cb, a.floor, a.decay, a.seed)
     curs = {"main": cur}
     tx = read_jsonl(a.targets_extra) if a.targets_extra else []
     n_x = round(a.targets_extra_frac * a.prompts) if tx else 0
     assert n_x < a.prompts, "--targets_extra_frac leaves no --targets group"
     if tx:
-        curs["extra"] = Curriculum(
-            len(tx), budgets if think else [0], a.floor, a.decay, a.seed + 7_000_003
-        )
+        curs["extra"] = Curriculum(len(tx), cb, a.floor, a.decay, a.seed + 7_000_003)
     kl_rng = random.Random(a.seed * 7919 + 1)  # the anchor's draws; the batch shuffle keeps `rng`
     rngs = {"batch": rng, "kl": kl_rng}
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, betas=(0.9, 0.95), weight_decay=0.0)
@@ -1356,15 +1569,15 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         tb = [b for _, b in keys]
         model.eval()
         D.record.phase("sample", round=it)
-        samp_st: dict[str, Any] | None = {} if a.monitor else None
-        per = sample_groups(model, tok, batch, tb, a, a.seed * 100003 + it, think, samp_st)
+        samp_st: dict[str, Any] | None = {} if a.monitor or levels is not None else None
+        per = sample_groups(model, tok, batch, tb, a, a.seed * 100003 + it, think, samp_st, levels)
         items: list[Item] = []
         item_src: list[tuple[int, int, str]] = []  # per item: (group, attempt, kind)
         skipped: list[bool] = []  # per group
         n_skip = 0
-        by_b: dict[int, list[float]] = collections.defaultdict(list)  # solved, per attempt
-        over_b: dict[int, list[float]] = collections.defaultdict(list)  # masked as overlong
-        think_b: dict[int, list[float]] = collections.defaultdict(list)  # think tokens
+        by_b: dict[Budget, list[float]] = collections.defaultdict(list)  # solved, per attempt
+        over_b: dict[Budget, list[float]] = collections.defaultdict(list)  # masked as overlong
+        think_b: dict[Budget, list[float]] = collections.defaultdict(list)  # think tokens
         dumping = bool(a.dump_batches)
         att_meta: list[dict[str, Any]] = []  # --dump_batches: per attempt, per group, per item
         grp_meta: list[dict[str, Any]] = []
@@ -1389,6 +1602,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 a.rej_penalty,
                 a.rej_penalty_scope,
                 src_g,
+                a.choice_lambda,
             )
             skipped.append(its is None)
             over_b[b] += [float(mk) for mk in masked]
@@ -1432,6 +1646,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         stats: list[LossStats] = []
         gns: list[float] = []
         kls: list[float] = []  # the anchor's KL, per AdamW step
+        kls_ch: list[float] = []  # auto effort: ... of the level choice at the anchor's states
         gns_pol: list[float] = []  # the grad norm before the anchor's gradient
         steps_meta: list[dict[str, float]] = []
         for u in range(a.updates):
@@ -1473,6 +1688,22 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                         a.kl_anchor_coef,
                     )
                     kls.append(kl)
+                    if ban_ch is not None:  # the level choice at the same states, each choice
+                        # weighing one action position: coef x choices / action positions
+                        steps_kl = [pool[i] for i in pick]
+                        n_act = sum(len(t) for _, t in steps_kl)
+                        kls_ch.append(
+                            anchor_kl(
+                                model,
+                                ref,
+                                choice_seqs(steps_kl, tok),
+                                a.temperature,
+                                ban_ch,
+                                dev,
+                                a.max_tokens,
+                                a.kl_anchor_coef * len(steps_kl) / max(1, n_act),
+                            )
+                        )
                 gns.append(float(torch.nn.utils.clip_grad_norm_(model.parameters(), a.clip)))
                 opt.step()
                 stats.append(st)
@@ -1488,10 +1719,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         gn = sum(gns) / max(1, len(gns))
         entropy = sum(s.entropy * s.tokens for s in stats) / max(1, n_tok)  # per scored token
         n_th = sum(s.tokens_think for s in stats)
+        n_ch = sum(s.tokens_choice for s in stats)  # auto effort's level choices (else 0)
         ent_think = sum(s.entropy_think * s.tokens_think for s in stats) / max(1, n_th)
-        ent_action = sum(s.entropy_action * (s.tokens - s.tokens_think) for s in stats) / max(
-            1, n_tok - n_th
-        )
+        ent_action = sum(
+            s.entropy_action * (s.tokens - s.tokens_think - s.tokens_choice) for s in stats
+        ) / max(1, n_tok - n_th - n_ch)
         ban_think = sum(s.ban_think * s.tokens_think for s in stats) / max(1, n_th)
         n_neg = sum(s.tokens_neg for s in stats)
         gn_max = max(gns, default=0.0)
@@ -1557,9 +1789,13 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 "ban_stop": a.ban_stop,
             },
         }
+        if levels is not None:
+            assert samp_st is not None
+            row["auto_levels"] = list(levels)
+            row.update(auto_metrics(flat, levels, samp_st, stats, a.choice_lambda))
         if pairs_x:
             xa = [x for att, s in zip(per, src, strict=True) if s for x in att]
-            xb: dict[int, list[float]] = collections.defaultdict(list)
+            xb: dict[Budget, list[float]] = collections.defaultdict(list)
             for att, b, s in zip(per, tb, src, strict=True):
                 if s:
                     xb[b] += [float(bool(x.get("ok"))) for x in att]
@@ -1573,11 +1809,20 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             row["kl_anchor"] = sum(kls) / max(1, len(kls))  # nats per anchor position
             row["kl_anchor_coef"] = a.kl_anchor_coef
             row["grad_norm_policy"] = sum(gns_pol) / max(1, len(gns_pol))
+            if levels is not None:  # nats per level choice
+                row["kl_anchor_choice"] = sum(kls_ch) / max(1, len(kls_ch))
         if a.rollback_on_alarm or ls.lr_scale != 1.0:
             row["lr_scale"], row["rollbacks"] = ls.lr_scale, ls.rollbacks
         if a.monitor:
             row["monitor"] = monitor_metrics(
-                per, [target_length(t) for t in batch], skipped, items, item_src, think_ids, samp_st
+                per,
+                [target_length(t) for t in batch],
+                skipped,
+                items,
+                item_src,
+                think_ids,
+                samp_st,
+                choice=levels is not None,
             )
             row["monitor"]["arm"], row["monitor"]["rej_penalty"] = a.arm, a.rej_penalty
         if can is not None and it % a.canary_every == 0:  # the policy this iteration leaves
@@ -1627,6 +1872,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             f"skip {100 * row['groups_skipped']:.0f}% tok/att {row['tokens_per_attempt']:.0f} "
             f"over {100 * row['overlong_frac']:.1f}% cap {100 * row['capped_frac']:.1f}% "
             f"think/att {row['think_per_attempt']:.0f} "
+            f"{_auto_line(row) if levels is not None else ''}"
             f"{_length_line(row)} "
             f"loss {loss:+.4f} clip lo/hi {clip_low:.4f}/{clip_high:.4f} "
             f"rmax {row['ratio_max']:.2f} neg_r3 {row['neg_r3']:.4f} "
@@ -1645,6 +1891,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             guard.append(
                 f"kl anchor {row['kl_anchor']:.4f} x {a.kl_anchor_coef:g} "
                 f"(gn policy {row['grad_norm_policy']:.3f})"
+                + (f" choice {row['kl_anchor_choice']:.4f}" if "kl_anchor_choice" in row else "")
             )
         if "extra_groups" in row:
             guard.append(f"extra {row['extra_groups']} groups {100 * row['extra_pass1']:.1f}%")
@@ -1908,6 +2155,19 @@ def parser() -> argparse.ArgumentParser:
         "--monitor",
         action="store_true",
         help="log where the gradient comes from (row['monitor'], `monitor_metrics`)",
+    )
+    e = ap.add_argument_group("auto effort: the model picks its level per step (module docstring)")
+    e.add_argument(
+        "--auto_levels",
+        default=None,
+        help="e.g. 0,64,256: every step's effort token is sampled among these and trained as an "
+        "action (--budgets is ignored; needs --effort; no redraws)",
+    )
+    e.add_argument(
+        "--choice_lambda",
+        type=float,
+        default=0.0,
+        help="token cost: every attempt pays lambda per 1,000 sampled tokens (ei_auto's; 0: off)",
     )
     g.add_argument("--targets_extra", default=None, help="a second target file (long proofs)")
     g.add_argument(

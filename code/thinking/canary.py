@@ -17,6 +17,8 @@ lines, in the B0 layout the audit probed:
 * **KL anchor** (`anchor_kl`): coef x KL(pi_ref || pi_theta), the mean over the action positions
   of sum_v pi_ref(v) (log pi_ref(v) - log pi_theta(v)), both masked as the sampler masks an action
   and tempered at the training temperature. Its gradient is accumulated into the policy's .grad.
+  With auto effort the level choice at each step's state is anchored too (`choice_seqs`: the
+  position that picks the level, masked to the allowed effort tokens, as `sample.choose_levels`).
 
 The file (`canary/1`, written by collapse_audit/build_canary.py through `proof_row`): one JSON row
 per reference proof, keeping only the steps whose state holds at least `min_hyp` hypothesis lines
@@ -115,6 +117,19 @@ def row_seqs(row: dict[str, Any], tok: Any, think: bool) -> list[Seq]:
         return out
 
     return [(b0_prompt(tok, ids(s["state"]), think), ids(s["action"])) for s in row["steps"]]
+
+
+def choice_seqs(seqs: Sequence[Seq], tok: Any) -> list[Seq]:
+    """Auto effort: each B0 step (`b0_prompt` with an effort tokenizer) -> (its state, [<e0>]),
+    the position where the sampler picks the level (`sample.choose_levels`). `anchor_kl` with the
+    choice mask (every token but the allowed effort ones) is then the KL of the level choice; the
+    target is a placeholder, since the KL reads the whole distribution."""
+    tail = [effort_id(tok, 0), tok.think, tok.end_think]
+    out: list[Seq] = []
+    for p, _ in seqs:
+        assert p[-3:] == tail, "a level choice needs a B0 step of an effort tokenizer"
+        out.append((p[:-3], tail[:1]))
+    return out
 
 
 def _order_key(name: str) -> str:
