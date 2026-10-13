@@ -44,7 +44,7 @@ backup (`/home/cowifornia/backups/nd-rl-think/`), for the restart on ynez. The r
   and a `head -60` (the whole 28 lines) at 11:25Z, 23 minutes before the crash, match it byte for byte (the tool
   strips the final newline); no command wrote it after 10-08 04:50Z. Mode 755 as in the backup.
 - **`watchdog.py`**: the `Write` of 2026-10-06 19:03Z equals the NFS backup (`watchdog.py`, Oct 6). No later command
-  wrote it; reads on 10-08 09:01Z (all 104 lines), 10-08 21:38Z (lines 1-80) and 10-09 21:11Z (1-30) match.
+  wrote it; reads on 10-08 09:01Z (all 103 lines), 10-08 21:38Z (lines 1-80) and 10-09 21:11Z (1-30) match.
 
 Not rebuilt: `runs/restart3_grpofix/launch.sh`, which only `lib.sh`'s `train()` calls; the v2 line and queue never
 call `train()` (or `ev()`). A backup of it from 2026-10-06 is at
