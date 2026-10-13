@@ -31,6 +31,12 @@ The RL model loses 21 of its 49 solved textbook problems to two premises it neve
 crossing side, and only 4 on the staying side. The premise-count wall is a property of the models, not of the
 generator problems. Full metrics are in the Results section and in `metrics/`.
 
+**Follow-up (2026-10-12, section below).** The wall is a premise-listing habit, not reasoning: neither model ever
+writes a fourth `PR` line, which the verifier requires and K12 never shows. RL as run cannot fix it (its training mix
+has no four-premise prompt; the correct block has probability about 1e-24, 0 of 2,048 samples). With the environment
+writing the block, the same RL checkpoint, untrained, solves 118 of 120 four-premise generator problems and 38 of 71
+distracted textbook problems (28 before), keeping 10 of the 16 crossing problems it solves in original form.
+
 ## What is in this folder, and why the problems themselves are not
 
 The 72 are the repo's sealed test set and are never committed (`CLAUDE.md`, Data integrity); a copy with two extra
@@ -182,29 +188,113 @@ Pre-registered expectation versus outcome, crossing problems still solved (the d
 (Robbie d384), 0 to 1 (d768), 0 to 2 (Dan Stage-1), 0 to 3 (Dan r8) if the wall holds; observed 0, 0, 0, 0.
 Staying problems were expected to keep 60 to 85 % of their solved count; observed 71 %, 75 %, 71 %, 88 %.
 
+## Follow-up (2026-10-12): why the wall exists, and whether RL can remove it
+
+Everything in this section is on Dan's round-8 seed 0 (`la_T1_best12_s0_r8`) unless a row says otherwise, CPU only,
+one seed, k 32, temperature 1.0, pinned verifier. Scripts: `code/pretrain_data/elementary_prem.py`,
+`elementary_trace.py`, `elementary_forced.py`, `elementary_envpr.py`; raw outputs under
+`data/pretrain_data/screens/elementary_*.json`; the sealed-set aggregates in the experiment's
+`run/metrics_envpr.jsonl`; the full account in the experiment's `results.md` ("Mechanism" and "Could RL teach the
+premise block?").
+
+### 1. Even trivial four-premise problems fail
+
+21 problems with the same shapes at 2, 3, 4 and 5 premises: pick one premise, conjoin two, one modus ponens with
+unused premises, chains that use every premise, ∨-introduction. None is sealed.
+
+| samples verified / samples | 2 premises | 3 premises | 4 premises | 5 premises |
+| --- | --- | --- | --- | --- |
+| Dan round 8 | 154 / 160 | 111 / 128 | **0 / 320** | 0 / 64 |
+| Robbie d384 base | 115 / 160 | 90 / 128 | **0 / 320** | 0 / 64 |
+
+`P , Q , R , S ⊢ P` and `P , Q , R , S ⊢ ( P & Q )` are 0 of 32 on both models.
+
+### 2. What the samples show: nobody writes a fourth premise line
+
+The verifier requires every proof to open with one `PR` line per premise, in the prompt's order, exactly
+(`nd_verify/verify.py`, "premise block does not match declared premises"; the rule is in the verifier's first commit).
+
+- Robbie's base, on `P , Q , R , S ⊢ ( P & Q )`, writes the same body in every sample:
+  `N1 P : PR ; N2 Q : PR ; N3 R : PR ; N4 ( P & Q ) : ANDI N1 N2 ; QED`. The reasoning is right; the block lists
+  three premises. Adding `N4 S : PR` makes the identical proof verify (checked). 28 to 32 of 32 samples per
+  four-premise problem fail with this reason.
+- Dan's model, traced action by action through his environment (32 traces per prompt): with three premises its
+  first actions are `h1 h2 h3` in 30 of 32; with four premises its first premise line cites `h2` in 25 to 32 of 32
+  (the rest `h1` then `h3`), and the environment rejects that first action ("PR position"). The episode ends with
+  zero reward before any reasoning.
+
+K12, the Stage-1 data behind every model here, has no problem with more than three premises.
+
+### 3. Could RL teach it? Three measurements
+
+**What the ladder has seen.** Round 8's training mix (`best-state/artifacts/bs/la_T1_best12_s0/mix_8.jsonl` in Dan's
+bucket, 89,724 rows): 14,279 / 37,807 / 28,454 / 9,184 rows at 0 / 1 / 2 / 3 premises, none at four or more. The
+ladder never poses the prompt it would have to learn from.
+
+**What it would see if it did.** Teacher-forcing the correct premise block through Dan's environment (canonical
+names) gives the model's probability for each candidate premise line at each step, on `P , Q , R , S ⊢ P`:
+
+| step | correct line | probability on it | where the mass goes |
+| --- | --- | --- | --- |
+| 1 | h1 | 0.0011 | h2, 0.015 |
+| 2, after h1 | h2 | below 1e-6 | h3, 0.999 |
+| 3, after h1 h2 | h3 | 0.31 | non-premise actions |
+| 4, after h1 h2 h3 | h4 | below 1e-6 | never a premise line |
+
+The whole block comes out near 1e-24. The rule the model learned is positional: with k hypothesis lines in the
+state it emits the premise line K12 would have next (4 lines → h2, 5 → h3, 7 → stop listing). A plain search agrees:
+0 of 1,024 samples at temperature 1.0 and 0 of 1,024 at 1.5 ("PR position" rejections 1,022 and 991). Expert
+iteration with this environment would receive zero reward on every four-premise prompt; there is nothing to
+reinforce.
+
+**Take the block out of the model's hands.** The premise lines are fixed by the prompt, so the environment can
+apply `h1..hn` itself before the model acts; the model then starts at the first real proof step. The verifier, the
+proof format and the finished proof text are unchanged. Same checkpoint, no training:
+
+| samples verified / samples | 2 premises | 3 premises | 4 premises | 5 premises |
+| --- | --- | --- | --- | --- |
+| model writes the block (as above) | 154 / 160 | 111 / 128 | 0 / 320 | 0 / 64 |
+| environment writes the block | 153 / 160 | 106 / 128 | **252 / 320** | **57 / 64** |
+
+Per four-premise problem: pick 32 / 32, conjoin 31 and 29 / 32, conjunction of all four 26 / 32, modus ponens 31
+and 29 / 32, ∨-introduction 32 / 32; the four-step chain that needs every premise 0 / 32 (the samples skip a link),
+its reversed order 10 / 32.
+
+Generator distractor problems (the premise-stratified sample of the `k12_distract10` slice, 300 problems), solved
+at least once in 32:
+
+| premises | ≤ 3 (120) | 4 (120) | 5 (60) |
+| --- | --- | --- | --- |
+| model writes the block (2026-10-10 run) | 119 / 120 | 0 / 120 | 0 / 60 |
+| environment writes the block | 120 / 120 | **118 / 120** (pass@1 0.83) | **55 / 60** (pass@1 0.74) |
+
+The distracted 72, aggregates only, environment-written block:
+
+| | original | distracted | crossing to ≥ 4 premises (25) | staying ≤ 3 (46) |
+| --- | --- | --- | --- | --- |
+| model writes the block (headline above) | 49 of 71 (0.378) | 28 of 71 (0.140) | 17 → 0 | 32 → 28 |
+| environment writes the block | 48 of 71 (0.374) | **38 of 71** (0.210) | 16 → **10** | 32 → 28 |
+
+By original premise count, environment-written: 9 → 7, 23 → 21, 13 → 9, 3 → 1.
+
+### 4. Reading
+
+- As the ladder runs, RL cannot fix this: it never sees a four-premise prompt, and if it did, the reward would never
+  fire, because the failure is a deterministic line-counting habit (success probability about 1e-24, 0 of 2,048
+  samples), not noise a search could get lucky against.
+- The habit is boilerplate and not worth RL. Either the environment writes the block, which already lifts the same
+  checkpoint to 118 of 120 four-premise generator problems and 38 of 71 distracted textbook problems, or Stage-1 shows
+  four- and five-premise blocks (the premise pool), a supervised habit change.
+- After either, RL has a dense signal at four premises (pass@1 about 0.8) and a genuine residual to work on: the
+  all-premises chain (0 of 32) and the 6 of 16 crossing textbook solves still lost to two unused premises. That
+  residual is the premise-selection effect proper, visible for the first time: 37 % of crossing solves lost against
+  12 % of staying ones.
+- Letting the environment write the block changes what the model is responsible for, in training and in every
+  number reported on the 72, so it is logged as an open question (`docs/pretrain-data/questions.md` 10) and used
+  here as a diagnostic only.
+
 ## What this means
 
-- **Added 2026-10-12: the wall is the premise block, not the reasoning.** A ladder of trivial problems at 2 to 5
-  premises (`code/pretrain_data/elementary_prem.py`, 21 problems, k 32) gives the same cliff on Dan's round-8 model
-  and on Robbie's base: 154 of 160 and 115 of 160 samples verified at two premises, 111 of 128 and 90 of 128 at
-  three, **0 of 320 at four**, 0 of 64 at five, including `P , Q , R , S ⊢ P`. The raw samples show why. Robbie's
-  base proves `P , Q , R , S ⊢ ( P & Q )` correctly in every sample but lists only three premise lines, and the
-  pinned verifier requires the premise block to equal the declared premises exactly and in order (adding the fourth
-  `PR` line makes the same proof verify). Dan's model cites `h2` as its first premise line in 25 to 32 of 32 traces
-  on four-premise prompts and his environment rejects that first action. Neither model has learned to write a
-  fourth premise line, which K12 never shows. So the 0-of-25 above measures a premise-listing habit, not an
-  inability to reason with or ignore premises; the distractor reading below holds only once a model can list four
-  premises. Details in the experiment's `results.md`, section "Mechanism".
-- **Added 2026-10-12: with the premise block written by the environment, the same RL checkpoint, untrained, solves
-  four-premise problems.** Dan's environment can apply the premise lines itself before the model acts (the verifier
-  and the finished proof are unchanged). Round-8 seed 0 then verifies 252 of 320 samples on the four-premise ladder
-  problems and 57 of 64 at five; solves 118 of 120 four-premise and 55 of 60 five-premise generator distractor
-  problems at least once (0 of 180 before); and on the distracted 72 goes from 28 to 38 of 71 solved, with 10 of
-  the 16 crossing problems it solves in original form kept (0 before) and the 46 staying problems unchanged at
-  32 → 28. RL as run cannot learn the block: its round-8 training mix has no prompt with four or more premises, and
-  the model's probability of writing a correct four-line block is about 1e-24 (0 of 2,048 samples at T 1.0 and
-  1.5), so the sparse reward would never fire. Numbers in `results.md`, section "Could RL teach the premise block?";
-  the protocol change is logged as an open question, used here as a diagnostic only.
 - The four-premise textbook cell (0 of 7 solved by the RL model in the 2026-10-02 evaluation) is a premise-count
   failure, not a premise-selection failure. Every textbook problem with two or more premises is one unused premise
   away from it.
