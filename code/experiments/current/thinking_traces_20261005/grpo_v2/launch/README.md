@@ -98,10 +98,10 @@ Checked and left alone:
   and `watchdog.py` query `nvidia-smi -i GPU`, and `CUDA_DEVICE_ORDER=PCI_BUS_ID` makes that index the CUDA index.
   On ynez start queues on GPUs 0-3 only.
 - **24 GB, not 48.** No script sets a memory size; batches are 1,024 for GRPO, EI and eval, as on serrano. On the
-  A40s the v2 jobs showed 9-15 GB in `nvidia-smi`, and the thinking EI L3 stages up to 20.7 GB (2026-10-10 11:30Z),
-  which leaves about 3 GB on a 3090: watch the first EI line.
+  A40s the v2 jobs mostly showed 9-15 GB in `nvidia-smi` (reserved, not peak allocated), and the thinking EI L3
+  stages up to 20.7 GB (2026-10-10 11:30Z), which leaves about 3 GB on a 3090: watch the first EI line.
 - **`waitfree`** is unchanged: under 500 MiB used and no compute process on that GPU, polled each minute for up to
-  3 h, after which the line stops. GPUs 0 and 1 held another user's 23 GB processes on 2026-10-13.
+  3 h, after which the line stops. On 2026-10-13 GPUs 0 and 1 held another user's 23 GB training processes.
 - **`ND_LEAN=$HOME/.elan/bin/lean`** (`lib.sh`) works on ynez: `~/.elan` is on NFS (Lean 4.34.0, default
   toolchain), and the gate runs core Lean on one temp file per chunk, with no Mathlib, lake project or oleans of
   its own. A 3-theorem `lean_gate.check_sources` run on ynez returned `[True, False, True]` as expected.
