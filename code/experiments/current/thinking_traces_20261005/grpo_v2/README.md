@@ -148,17 +148,20 @@ rollouts, metrics rows, log lines, weights and args hash identically on three ti
     arms below.
   - Logged per iteration: `level_share`, `choice_entropy`, the scored choices (`tokens_choice`, `entropy_choice`,
     `clip_low_choice`), `kl_anchor_choice` and `mass_choice`.
-- **EI** (`ei_auto.py`, unchanged): it runs with the launcher's EI settings, with the plain arm and with the logical
-  arm (accepted proofs only).
+- **EI** (`ei_auto.py`, unchanged). The logical arm (accepted proofs only) runs with it: tested with a scripted model.
+  On serrano (2026-10-11) a CPU round with the launcher's EI settings ran with the plain arm: S1g3_s0, 8 L2
+  problems, k 2/2/2, S1g3.pkl retained records. The logical-arm round was still running when serrano went down.
 - **Reads** (`eval --budgets auto`): the plain and the logical arm. With a guided arm, a redraw picks its level again,
   and the without-replacement exclusion is per level.
-- **Arms** (launcher candidate `/scratch/cowifornia/nd-rl/think/smoke_auto/line.sh.auto`):
+- **Arms** (a launcher candidate `line.sh.auto`, dry-run on serrano; lost with serrano, to be rebuilt on the new
+  line.sh):
   - `grpo_think_auto` and `grpo_think_vs_auto`: as `grpo_think` and `grpo_think_vs`, with `--auto_levels 0,64,256`
     instead of `--budgets 0,64,256`.
   - `ei_think_auto`: `ei_auto` at k 11/11/10.
   - All three read with `--budgets auto`. Only these arms use the auto worktree; the dry run reproduced every
     existing arm's commands byte for byte.
-- **The Stage-1 start** (`smoke_auto/measure_e/first_step_levels.py`; 200 random L2 problems, first state):
+- **The Stage-1 start** (serrano, 2026-10-11, the S1g3 models before the crash; 200 random L2 problems, first
+  state; to be re-measured on the retrained models):
   - In S1g3_s0, s1 and s2, the level choice is uniform: mean shares 0.333 / 0.333 / 0.333, entropy ln 3, and no
     state above 90% at T 1 or 0.8.
   - The effort tokens were inputs only in Stage 1. Their output rows ended up nearly identical (pairwise distance
