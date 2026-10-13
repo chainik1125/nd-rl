@@ -54,6 +54,10 @@ and the step is then decoded exactly as a fixed-level step at that level (`state
 the state is prefilled twice in wall-clock terms; the accounting is that of one pass: the effort
 token counts as a sampled token (`tokens`, `choice`) and is not in `prefill`.  An auto attempt's
 `budget` is "auto", `levels` lists the level of every draw, and each trace entry carries `level`.
+With a guided arm a redraw picks its level again: the redraw is the whole effort + think + action.
+The without-replacement exclusion is kept per level (a rejected segment was decoded after its
+level's `<eB>`, so it is excluded only from later draws at that level); the level choice itself is
+not adjusted for the excluded segments.
 """
 
 from __future__ import annotations
@@ -307,7 +311,9 @@ def choose_levels(
     """Auto effort: per row, the level the model picks after its prompt (the state).  One forward
     over the left-padded prompts (`decode_wave`'s prefill, so the model's chunked prefill applies),
     then the next-token logits restricted to the effort ids of `levels`, divided by `temperature`
-    and sampled by Gumbel-max with noise keyed by (seed, row); `greedy`: the argmax."""
+    and sampled by Gumbel-max with noise keyed by (seed, row); `greedy`: the argmax.  `stats` also
+    gets `choice_entropy_sum`, the summed entropy (nats) of the distributions sampled from (not
+    with `greedy`): over the `auto_levels` counts, the mean entropy of the choice."""
     if not levels:
         raise ValueError("auto effort needs at least one level")
     ids = [effort_id(tok, b) for b in levels]
@@ -343,6 +349,9 @@ def choose_levels(
         )
         c = stats.setdefault("auto_levels", collections.Counter())
         c.update(out)
+        if not greedy:
+            h = float(torch.special.entr(torch.softmax(sub / temperature, -1)).sum())
+            stats["choice_entropy_sum"] = stats.get("choice_entropy_sum", 0.0) + h
     return out
 
 
@@ -382,6 +391,9 @@ class Attempt:
     levels: list[int] = field(default_factory=list)  # auto: the picked level of every draw
     choice: int = 0  # auto: sampled effort tokens (one per draw)
     redrawn: list[dict[str, Any]] = field(default_factory=list)  # keep_rejected: redrawn drafts
+    # auto, guided: the rejected segments at the current state, per level (`forbid` is the picked
+    # level's)
+    forbid_lv: dict[int, list[tuple[list[int], list[float]]]] = field(default_factory=dict)
 
 
 def attempt_budget(budgets: int | Sequence[int], seed: int, i: int) -> int:
@@ -560,10 +572,11 @@ def think_generate(
     (`intervene_thinks`), and the action decoded after the replaced block; the trace's `prompt` /
     `gen` are then the action's, `think` the replaced content, `think_sampled` the original.
     `auto_levels` (auto effort, see the module docstring): `budgets` is ignored and every attempt
-    picks its level among these at every step (`choose_levels`); results add `levels` and
-    `choice`, and `budget` is "auto".  `keep_rejected` (guided arms, opt-in; GRPO's step penalty):
-    results add `redrawn`, every rejected draw that was redrawn (state, think, prompt, gen,
-    forced, cause, step), in order; the draw that ended an attempt stays in `trace`, as before."""
+    picks its level among these at every step (`choose_levels`), a redraw too; results add
+    `levels` and `choice`, and `budget` is "auto".  `keep_rejected` (guided arms, opt-in; GRPO's
+    step penalty): results add `redrawn`, every rejected draw that was redrawn (state, think,
+    prompt, gen, forced, cause, step), in order; the draw that ended an attempt stays in `trace`,
+    as before."""
     assert arm in ARMS, arm
     assert force_mode in FORCE_MODES, force_mode
     assert intervene in INTERVENTIONS, intervene
@@ -595,9 +608,6 @@ def think_generate(
             raise ValueError(f"auto effort: the per-step format only (got {fmt!r})")
         if intervene != "none":
             raise ValueError(f"auto effort: no intervention (got {intervene!r})")
-        # a redraw may pick another level, so its forbidden segments would not match
-        if arm != "plain":
-            raise ValueError(f"auto effort: the plain arm only (got {arm!r})")
         bad = [b for b in auto if b not in LEVELS]
         if not auto or bad:
             raise ValueError(f"auto effort: levels {list(auto)} must be effort levels {LEVELS}")
@@ -744,6 +754,8 @@ def think_generate(
             n_choice += 1
             for a, b in zip(live, picks, strict=True):
                 a.budget = b
+                if arm != "plain":  # a redraw may pick another level: that level's exclusions
+                    a.forbid = a.forbid_lv.get(b, [])
         built = [
             step_prompt(fmt, tok, a, s, think, effort) for a, s in zip(live, states, strict=True)
         ]
@@ -893,6 +905,8 @@ def think_generate(
                 if ended:
                     assert row_lqs is not None
                     a.forbid = a.forbid + [(ids, row_lqs[j])]
+                    if a.auto:
+                        a.forbid_lv[a.budget] = a.forbid
                 keep.append(a)
                 continue
             assert e2 is not None
@@ -920,6 +934,7 @@ def think_generate(
                 a.ctx = list(th_used)
             a.env = e2
             a.forbid = []
+            a.forbid_lv = {}
             a.rejected_actions = set()
             if a.canon and not SC.canonical(atoks):
                 a.canon = False

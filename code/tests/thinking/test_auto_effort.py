@@ -1,6 +1,7 @@
-"""Auto effort: the model picks its own think level per step (`sample.choose_levels`), the
-chosen-effort pair layout (`data.encode_pair_choice`), EI over the choice (`ei_auto`), and the
-`eval --budgets auto` rows."""
+"""Auto effort: the model picks its own think level per step (`sample.choose_levels`; with a
+guided arm a redraw picks again and is excluded within its level), the chosen-effort pair layout
+(`data.encode_pair_choice`), EI over the choice (`ei_auto`, plain and logical), and the
+`eval --budgets auto` rows and guided read."""
 
 from __future__ import annotations
 
@@ -14,6 +15,7 @@ import torch
 
 from code.thinking import ei, ei_auto, stats, train
 from code.thinking import eval as ev
+from code.thinking.ckpt import save_ckpt
 from code.thinking.data import FORMAT, encode_pair, encode_pair_choice, trace_pairs
 from code.thinking.effort import EffortTokenizer, effort_id
 from code.thinking.sample import AUTO, choose_levels, decode_wave, think_generate
@@ -149,8 +151,6 @@ def test_auto_rejects_what_it_does_not_support() -> None:
     with pytest.raises(ValueError, match="lean_thinke"):
         think_generate(tiny_model(ThinkTokenizer().vocab_size), ThinkTokenizer(), prompts,
                        auto_levels=(0, 64))  # fmt: skip
-    with pytest.raises(ValueError, match="plain arm"):
-        think_generate(m, E, prompts, "logical", auto_levels=(0, 64))
     with pytest.raises(ValueError, match="intervention"):
         think_generate(m, E, prompts, "plain", intervene="empty", auto_levels=(0, 64))
     with pytest.raises(ValueError, match="effort levels"):
@@ -174,6 +174,54 @@ def test_fixed_levels_are_unchanged_by_the_auto_code() -> None:
     for r in res:
         assert r["budget"] == 64 and "levels" not in r and "choice" not in r
         assert all("level" not in s for s in r["trace"])
+
+
+@pytest.mark.parametrize("arm", ["structural", "logical"])
+def test_guided_auto_redraws_pick_again_and_exclude_within_a_level(
+    monkeypatch: pytest.MonkeyPatch, arm: str
+) -> None:
+    """A guided arm with auto effort: a redraw picks its level again (attempts redraw at both
+    levels), and every segment a row is forbidden was decoded after the same input as the row's
+    now -- the same state and the same `<eB>`: the without-replacement exclusion is per level."""
+    seen: list[tuple[list[int], list[list[int]], list[int]]] = []
+    real = decode_wave
+
+    def spy(model: Any, tok: Any, pids: list[list[int]], budgets: list[int], *a: Any, **kw: Any):
+        w = real(model, tok, pids, budgets, *a, **kw)
+        fb = kw.get("forbids") or [[] for _ in pids]
+        seen.extend(
+            (list(p), [list(ids) for ids, _ in f], list(g))
+            for p, f, g in zip(pids, fb, w.ids, strict=True)
+        )
+        return w
+
+    monkeypatch.setattr("code.thinking.sample.decode_wave", spy)
+    b = torch.zeros(E.vocab_size)
+    b[E.eos] = 3.0  # actions end within max_action, so the environment judges them
+    res = think_generate(
+        bias_logits(tiny_model(E.vocab_size, seed=3), b),
+        E,
+        [pilot_rec(REC)["prompt"]] * 6,
+        arm,
+        0,
+        temperature=2.0,
+        max_action=8,
+        max_steps=3,
+        max_rej=4,
+        batch=6,
+        seed=5,
+        auto_levels=(0, 16),
+        keep_rejected=True,
+    )
+    assert sum(r["rej"] for r in res) > 0 and any(f for _, f, _ in seen)
+    decoded: dict[tuple[int, ...], set[tuple[int, ...]]] = {}
+    for p, f, g in seen:
+        for seg in f:
+            assert tuple(p) in decoded[tuple(seg)]
+        decoded.setdefault(tuple(g), set()).add(tuple(p))
+    assert all(len(r["levels"]) == r["draws"] == r["choice"] for r in res)
+    at_state = [{x["level"] for x in r["redrawn"] if x["step"] == t} for r in res for t in range(3)]
+    assert any(len(lv) > 1 for lv in at_state)  # redraws from one state at both levels
 
 
 # ----------------------------------------------------------------------------- the pair layout
@@ -274,6 +322,72 @@ def test_auto_rows_load_as_an_arm(tmp_path: Path) -> None:
     assert ev.parse_budgets("0,auto,64", True) == [0, AUTO, 64] and ev.parse_budgets(
         "x", False
     ) == [0]
+
+
+def _done_judge(tok: Any, prompts: Any, res: list[dict[str, Any]], lean: Any = None) -> Any:
+    for r in res:
+        r["ok"] = r["status"] == "done"
+    return res
+
+
+def test_eval_reads_auto_with_the_guided_arm(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`--budgets auto --arms plain,logical`: a cell per arm; the guided rows hold the level of
+    every draw, redraws included, and the shares add up."""
+    isolate(tmp_path, monkeypatch)
+    ck = tmp_path / "m.pt"
+    save_ckpt(str(ck), tiny_model(E.vocab_size, seed=3), E.mode, extra={"think_format": "think"})
+    sets = tmp_path / "s.jsonl"
+    sets.write_text(json.dumps({"name": "a", "prompt": pilot_rec(REC)["prompt"]}) + "\n")
+    monkeypatch.setattr(ev, "judge", _done_judge)
+    argv = ["--ckpt", str(ck), "--sets", str(sets), "--out", str(tmp_path / "ev"), "--k", "3"]
+    argv += ["--budgets", "auto", "--arms", "plain,logical", "--auto_levels", "0,16"]
+    argv += ["--max_action", "8", "--max_steps", "3", "--max_rej", "2", "--device", "cpu"]
+    summ = ev.run(ev.parser().parse_args(argv))
+    assert set(summ["cells"]) == {"plain_Bauto", "logical_Bauto"}
+    for cell in summ["cells"].values():
+        assert set(cell["level_share_pct"]) <= {"0", "16"}
+        assert sum(cell["level_share_pct"].values()) == pytest.approx(100.0)
+    rows = [json.loads(x) for x in (tmp_path / "ev" / "rows_logical_Bauto.jsonl").open()]
+    assert [len(lv) for lv in rows[0]["levels"]] == rows[0]["draws"]
+    assert sum(rows[0]["rej"]) > 0  # the guided arm redrew
+
+
+def test_ei_auto_round_with_the_logical_arm(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """ei_auto --arm logical (accepted proofs only), frozen: a model scripted to write each pilot
+    proof with empty think blocks solves every target at every level; the label is the cheapest
+    level, 0, and the found records hold accepted steps only."""
+    iso = isolate(tmp_path, monkeypatch)
+    monkeypatch.setattr(D.state_sample, "NAME_BASE_MAX", 0)
+    recs = [pilot_rec(REC), pilot_rec("k12_16472")]
+    script: dict[bytes, list[int]] = {}
+    for r in recs:  # every level: `</think>` at once (or prefilled at 0), then the step's action
+        for p, q, tl in trace_pairs(r, E):
+            script[p] = [effort_id(E, 0), E.think, E.end_think, *q[tl:]]
+    model = ScriptedModel(E, script)
+    monkeypatch.setattr(ei_auto, "load_ckpt", lambda path, dev=None: (model, E, {}))
+    monkeypatch.setattr(ei, "load_ckpt", lambda path, dev=None: (model, E, {}))
+    monkeypatch.setattr(ei, "judge", _done_judge)
+    (iso / "init.pt").write_bytes(b"")
+    targets = iso / "targets.jsonl"
+    targets.write_text(
+        "".join(json.dumps({"name": r["id"], "prompt": r["prompt"]}) + "\n" for r in recs)
+    )
+    argv = ["--init", str(iso / "init.pt"), "--name", "A", "--out", str(iso / "ei")]
+    argv += ["--targets", str(targets), "--train", "unused", "--no_train", "--rounds", "1"]
+    argv += ["--choice_k", "2,2,1", "--arm", "logical", "--max_rej", "10", "--max_steps", "96"]
+    argv += ["--temperature", "0.8", "--max_action", "64", "--batch", "6", "--device", "cpu"]
+    hist = ei_auto.run(ei_auto.parser().parse_args(argv))
+    lab = hist[0]["labels"]
+    assert lab["labelled"] == 2 and lab["labels"] == {"0": 2, "64": 0, "256": 0}
+    assert all(v == 100.0 for v in lab["pass_rate_pct_by_level"].values())
+    found = [json.loads(x) for x in (iso / "ei" / "found_1.jsonl").read_text().splitlines()]
+    assert found and all(e["label"] == 0 and e["budget"] == 0 for e in found)
+    assert all(not s.get("rejected") for e in found for s in e["steps"])
+    assert json.loads((iso / "ei" / "args.json").read_text())["arm"] == "logical"
 
 
 # ------------------------------------------------------------------------ a round, end to end

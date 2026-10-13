@@ -25,11 +25,12 @@ keep their `<arm>_B<B>` names, so use one EVALDIR per intervention -- every row 
 record it.  States are rendered in the checkpoint's state format (`stateview`, set by `load_ckpt`;
 the summary's `state_format`).
 
-`--budgets auto` (a `lean_thinke` checkpoint, plain arm): the model picks its level at every step
-among `--auto_levels` (default 0,64,256; `sample.choose_levels`).  The cell is `<arm>_Bauto`
+`--budgets auto` (a `lean_thinke` checkpoint): the model picks its level at every step among
+`--auto_levels` (default 0,64,256; `sample.choose_levels`).  The cell is `<arm>_Bauto`
 (rows_plain_Bauto.jsonl, readable by `stats.load_arm`); its rows add per attempt `levels` (the level
 of every draw) and `choice` (sampled effort tokens, already in `tokens`), and the summary the shares
-of the picked levels.
+of the picked levels.  Guided arms work too: a redraw picks its level again, and the redraws are
+without replacement within a level (`sample` module docstring).
 """
 
 from __future__ import annotations
@@ -245,8 +246,8 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
     if AUTO in budgets:
         if not has_effort(tok):
             raise SystemExit("error: --budgets auto needs a lean_thinke (effort) checkpoint")
-        if set(arms) != {"plain"} or a.intervene != "none" or fmt != "think":
-            raise SystemExit("error: --budgets auto: plain arm, per-step format, no intervention")
+        if a.intervene != "none" or fmt != "think":
+            raise SystemExit("error: --budgets auto: per-step format, no intervention")
     recs = D.guided_eval.load_sets(a.sets.split(","))
     if a.limit:
         recs = recs[: a.limit]
