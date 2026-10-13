@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -42,7 +44,7 @@ R = Path("/scratch/cowifornia/nd-rl/think/runs")
 E = R / "eval"
 TTS, MATCHED, CHARLES = E / "tts", E / "matched", E / "charles"
 BLUE, ORANGE, GRAY = "#2a78d6", "#eb6834", "#6b6b6b"
-SEEDS = (0, 1)
+SEEDS = (0, 1, 2)
 TOKENS = (1000.0, 2000.0, 4000.0, 8000.0)
 
 
@@ -161,7 +163,7 @@ CHAIN = {
     "grpo": [
         ("v1: old problems", "grpo_v1"),
         ("+ curriculum", "grpo_think"),
-        ("+ verifier", "grpo_think_v"),
+        ("+ verifier (stop)", "grpo_think_vs"),
     ],
     "ei": [
         ("v1: old problems", "ei_v1"),
@@ -386,9 +388,18 @@ def tables(ld: Loader, draws: int) -> list[str]:
         "  arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.",
     ]
     if ld.missing:
-        md += ["", f"Rows not there yet ({len(set(ld.missing))}):", ""]
-        md += [f"- `{p}`" for p in sorted(set(ld.missing))]
+        runs = Counter(_run_of(p) for p in set(ld.missing))
+        md += ["", f"Rows not there yet ({sum(runs.values())} files; run: files):", ""]
+        md += [", ".join(f"`{r}`: {n}" for r, n in sorted(runs.items()))]
     return md
+
+
+def _run_of(path: str) -> str:
+    """`<arm>_s<seed>` for a v2 rows file (`<read>_<arm>_s<seed>_<read arm>_k<k>/`), else the rows
+    file's directory name."""
+    d = Path(path).parent.name
+    m = re.fullmatch(r"[a-z0-9]+_(.+_s\d+)_(?:plain|logical)_k\d+", d)
+    return m.group(1) if m else d
 
 
 def n_prem(prompt: str) -> int:
@@ -553,7 +564,7 @@ def fig_chain(ld: Loader, out: Path) -> None:
     """One line per (method, Stage-1 seed) through the three steps, so a step that only one seed
     has does not shift a seed-mean line."""
     looks = {"grpo": (BLUE, "o", "GRPO"), "ei": (ORANGE, "s", "EI")}
-    seed_ls = {0: "-", 1: (0, (1.2, 1.4))}
+    seed_ls = {0: "-", 1: (0, (1.2, 1.4)), 2: (0, (4.0, 1.5))}
     with S.paper_style():
         fig = S.new_figure(S.FULL_W, 3.6, layout="constrained")
         axs = fig.subplots(2, len(FIG_SETS), sharex=True, squeeze=False)
@@ -596,18 +607,17 @@ def fig_chain(ld: Loader, out: Path) -> None:
         axs[0][0].set_ylabel("pass@1")
         axs[1][0].set_ylabel("pass@5")
         fig.supxlabel(
-            "thinking models at 78 GRPO iterations = 2 EI rounds. v1: old problems (rl_hard12,\n"
-            "hard712 a); + curriculum: 10–12 then 13–15 lines; + verifier: guided rollouts",
+            "thinking models at 78 GRPO iterations = 2 EI rounds. v1: old problems (rl_hard12, "
+            "hard712 a);\n+ curriculum: 10–12 then 13–15 lines; + verifier: a Lean-sound step "
+            "check in training\n(GRPO: the first rejected step ends the attempt; EI: rejected "
+            "steps are redrawn)",
             fontsize=S.FS_LABEL,
         )
         handles = [
             Line2D([], [], color=c, marker=m, ms=4, lw=1.2, label=lab)
             for c, m, lab in looks.values()
-        ] + [
-            Line2D([], [], color=GRAY, ls=seed_ls[0], lw=1.2, label="seed 0"),
-            Line2D([], [], color=GRAY, ls=seed_ls[1], lw=1.2, label="seed 1"),
-        ]
-        fig.legend(handles=handles, loc="outside upper center", ncol=4, frameon=False)
+        ] + [Line2D([], [], color=GRAY, ls=seed_ls[sd], lw=1.2, label=f"seed {sd}") for sd in SEEDS]
+        fig.legend(handles=handles, loc="outside upper center", ncol=5, frameon=False)
         S.save(fig, out / "fig_v2_chain")
         S.close(fig)
 
