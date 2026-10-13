@@ -3,18 +3,23 @@
     uv run --project code --no-sync python code/tests/fixtures/proof_state/make_golden.py \\
         --fork ~/nd-takehome --k12 data/kh/train_k12.jsonl --sealed data/bs/textbook72.jsonl
 
-``--fork`` is a checkout of ``dan-pandori/nd-takehome`` (branch ``dan``). ``--k12`` is the K12
-training set (``data/kh/train_k12.jsonl``, 155,000 records, md5 800b5486...). ``--sealed`` is the
-sealed textbook72 set (``data/bs/textbook72.jsonl``): no fixture may hold a theorem in one of its
-renaming classes, and the script checks that. Lean 4 must be installed for the term sizes
-(``$LEAN``, default ``~/.elan/bin/lean``). Nothing here imports the port: every expected value is
-the fork's. ``manifest.json`` records the commits, input digests, versions and counts. Writes,
-next to this script:
+``--fork`` is a checkout of ``dan-pandori/nd-takehome`` (branch ``dan``); the K12 filter
+functions (``kh_assemble.py``, ``kh_gen.py``) are read from the cap-horizon commit with
+``git show``. ``--k12`` is the K12 training set (``data/kh/train_k12.jsonl``, 155,000 records,
+md5 800b5486...). ``--sealed`` is the sealed textbook72 set (``data/bs/textbook72.jsonl``): no
+fixture may hold a theorem in one of its renaming classes. The script checks its inputs, replaces
+a generated proof in such a class by its digest (``gen.jsonl.gz``), and leaves such proofs out of
+the filters' pool. Lean 4 must be installed for the term sizes (``$LEAN``, default
+``~/.elan/bin/lean``). Nothing here imports the port: every expected value is the fork's.
+``manifest.json`` records the commits, input digests, versions and counts. Writes, next to this
+script:
 
 - ``k12_sample.jsonl.gz``: the inputs, the first 100 K12 records of each length 2..12;
 - ``state_env.jsonl.gz``: per record, ``decompose`` (plain and canonical names), a replay with
   environment-assigned names, and random or mutated actions with the environment's verdicts;
 - ``step_check.jsonl.gz``: (state, step) pairs and ``step_check.check``'s verdicts;
+- ``gen.jsonl.gz``: ``gen.py``'s output lines for fixed seeds and settings, verbatim;
+- ``filters.jsonl.gz``: renaming classes, box depths, pruned lengths and K12 eligibility;
 - ``term_size.json``: ``lean_check``'s elaborated term size of each sample proof.
 """
 
@@ -26,16 +31,31 @@ import gzip
 import hashlib
 import importlib
 import json
+import os
 import random
 import subprocess
 import sys
+import tempfile
 import time
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 HERE = Path(__file__).resolve().parent
+CAP_HORIZON = "2e8b1914"  # origin/dan_cap-horizon: kh_gen.py, kh_assemble.py (K12's builders)
 PER_LENGTH = 100
+GEN_SETTINGS: list[tuple[str, list[str]]] = [
+    ("cap6_seed1", ["--n", "400", "--min", "2", "--max", "6", "--seed", "1"]),
+    (
+        "cap12_flat_seed7",
+        ["--n", "440", "--min", "2", "--max", "12", "--seed", "7", "--per_len", "40"],
+    ),
+    ("long_seed2", ["--n", "150", "--min", "7", "--max", "16", "--seed", "2", "--long"]),
+    (
+        "cap8_prem2_seed3",
+        ["--n", "200", "--min", "3", "--max", "8", "--seed", "3", "--max_prem", "2"],
+    ),
+]
 VOCAB = [
     *("(", ")", "¬", "∧", "∨", "→", "P", "Q", "R", "S", "False", "have", "exact", ";"),
     *("fun", "=>", "⟨", "⟩", ",", ".1", ".2", ".elim", "Or.inl", "Or.inr", "Or.elim"),
@@ -384,6 +404,83 @@ def step_check_rows(
     return rows
 
 
+def gen_rows(fork: Path, sealed: set[str], canon_key: Any) -> list[dict[str, Any]]:
+    """``gen.py``'s output for each setting; a line whose theorem is in a sealed class is replaced
+    by its SHA-256, so the test can still compare it byte for byte."""
+    rows: list[dict[str, Any]] = []
+    env = {**os.environ, "ND_REGISTRY": "0", "ND_COMPUTE": "0"}
+    with tempfile.TemporaryDirectory() as tmp:
+        for name, args in GEN_SETTINGS:
+            out = os.path.join(tmp, f"{name}.jsonl")
+            run = subprocess.run(
+                [sys.executable, str(fork / "gen.py"), *args, "--out", out],
+                check=True,
+                capture_output=True,
+                text=True,
+                env=env,
+                cwd=tmp,
+            )
+            summary = json.loads(run.stdout.strip().splitlines()[-1])
+            summary.pop("secs")
+            lines: list[Any] = []
+            for line in Path(out).read_text(encoding="utf-8").splitlines():
+                if canon_key(json.loads(line)["thm"]) in sealed:
+                    line = {"sha256": hashlib.sha256(line.encode("utf-8")).hexdigest()}
+                lines.append(line)
+            rows.append({"setting": name, "args": args, "summary": summary, "lines": lines})
+    return rows
+
+
+def filter_rows(
+    fork: Path, records: list[dict[str, Any]], sealed: set[str]
+) -> list[dict[str, Any]]:
+    """K12's per-record filters, by the fork's functions, on the K12 sample and on a small pool
+    drawn as cap-horizon drew K12's long bins (``kh_gen.worker``), which still has depth-3 proofs.
+    Pool records in a sealed class are left out. Every third of the rest, with its atoms permuted
+    (the same renaming class), is the exclusion set."""
+    patterns: Any = importlib.import_module("patterns")
+    prune: Any = importlib.import_module("prune")
+    gen: Any = importlib.import_module("gen")
+    with tempfile.TemporaryDirectory() as tmp:
+        for mod in ("kh_assemble", "kh_gen", "kh_size"):
+            src = git(fork, "show", f"{CAP_HORIZON}:{mod}.py")
+            Path(tmp, f"{mod}.py").write_text(src, encoding="utf-8")
+        sys.path.append(tmp)
+        kh_assemble: Any = importlib.import_module("kh_assemble")
+        kh_gen: Any = importlib.import_module("kh_gen")
+        out = os.path.join(tmp, "pool.jsonl")
+        kh_gen.worker((31000, 3000, out))
+        pool = [json.loads(line) for line in Path(out).read_text(encoding="utf-8").splitlines()]
+    pool = [r for r in pool if gen.canon_key(r["thm"]) not in sealed]
+    swap = str.maketrans({"P": "Q", "Q": "R", "R": "S", "S": "P"})
+    exclude = [r["thm"].translate(swap) for r in pool[::3]]
+    excluded = {gen.canon_key(t) for t in exclude}
+    rows: list[dict[str, Any]] = [{"exclude_thms": exclude}]
+    sources: list[dict[str, Any]] = [{"i": r["i"], **r} for r in records]
+    sources += [{"thm": r["thm"], "prompt": r["prompt"], "proof": r["proof"]} for r in pool]
+    for r in sources:
+        cl = patterns.classify(r["proof"])
+        key = gen.canon_key(r["thm"])
+        wd = kh_assemble.written_depth(r["proof"])
+        # kh_assemble.main's long-bin rule (lines 166-182 at the cap-horizon commit)
+        eligible = key not in excluded and not (cl["depth3"] or wd >= 3)
+        where = {"i": r["i"]} if "i" in r else {k: r[k] for k in ("thm", "prompt", "proof")}
+        rows.append(
+            {
+                **where,
+                "key": key,
+                "written_depth": wd,
+                "pruned_depth3": cl["depth3"],
+                "pruned_length": prune.pruned_length(r["prompt"], r["proof"]),
+                "pruned_length_with_premises": len(
+                    patterns.prune_lines(patterns.parse(r["proof"]))
+                ),
+                "eligible": eligible,
+            }
+        )
+    return rows
+
+
 # lean_seq texts beyond the ND rules (``.elim`` on ¬ / ∧ / ∨, ¬ A declared as A → False), which
 # model samples use and the K12 proofs do not.
 EXTRA_TEXTS = [
@@ -501,6 +598,10 @@ def main() -> None:
     write_jsonl_gz(a.out / "state_env.jsonl.gz", state_rows)
     check_rows = step_check_rows(se, sc, records, state_rows)
     write_jsonl_gz(a.out / "step_check.jsonl.gz", check_rows)
+    gen_out = gen_rows(fork, sealed, gen.canon_key)
+    write_jsonl_gz(a.out / "gen.jsonl.gz", gen_out)
+    filters = filter_rows(fork, records, sealed)
+    write_jsonl_gz(a.out / "filters.jsonl.gz", filters)
     sizes = term_sizes(fork, records)
     (a.out / "term_size.json").write_text(json.dumps(sizes) + "\n", encoding="utf-8")
 
@@ -509,6 +610,7 @@ def main() -> None:
         "fork": "dan-pandori/nd-takehome",
         "fork_commit": git(fork, "rev-parse", "HEAD").strip(),
         "fork_dirty": bool(git(fork, "status", "--porcelain", "--untracked-files=no").strip()),
+        "cap_horizon_commit": git(fork, "rev-parse", CAP_HORIZON).strip(),
         "k12_md5": hashlib.md5(a.k12.read_bytes()).hexdigest(),
         "sealed_md5": hashlib.md5(a.sealed.read_bytes()).hexdigest(),
         "sealed_classes": len(sealed),
@@ -523,6 +625,11 @@ def main() -> None:
             "state_env_fuzz": sum(len(r["fuzz"]) for r in state_rows),
             "step_check_pairs": sum(verdicts.values()),
             "step_check_verdicts": dict(sorted(verdicts.items())),
+            "gen_records": {r["setting"]: len(r["lines"]) for r in gen_out},
+            "gen_records_sealed_class": sum(
+                isinstance(x, dict) for r in gen_out for x in r["lines"]
+            ),
+            "filter_rows": len(filters) - 1,
         },
         "seconds": round(time.time() - t0),
     }
