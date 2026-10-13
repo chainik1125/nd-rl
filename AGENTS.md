@@ -14,6 +14,8 @@
 2. Use `docs/README.md` and `experiment-summaries/README.md` to locate task-relevant context.
 3. Read the relevant plans, evidence, and code before editing. Follow links selectively instead
    of loading the whole repository. Group guidance lives in `group_docs/`.
+4. For experiments run by agents (proposal → executor → independent reviewer → librarian), follow
+   `docs/group_docs/agent_research_practices/`: the standing policy, role briefs and templates.
 
 ## Store context
 
