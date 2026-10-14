@@ -94,6 +94,15 @@ Paths are serrano's. Changes, all of them:
 4. `leon/grpo-v2-sched` (2026-10-13, not yet installed): `line.sh` gains the lr-schedule arms `ARM_c`, `ARM_w` and
    `ARM_wb` (`../README.md`). `dry/all.sh` and `dry/check.py` cover them, and every earlier arm's dry-run commands
    are unchanged. From then on `line.sh` is no longer serrano's bytes.
+5. `leon/grpo-v2-pilots` (2026-10-13, not yet installed): `line.sh` adds the L3 pilot arms `ARM_rfb`, `ARM_ulb` and
+   `ARM_3pb`, and the full arm `grpo_think_vs3` (`../README.md`, "L3 pilots").
+   - `ARM_rfb` and `ARM_ulb` need `grpo.py`'s pilot options in the code worktree. `line.sh` still runs
+     `nd-rl-v2` on `leon/grpo-v2`, and it refuses these two arms until that worktree has them, for example by
+     fast-forwarding `leon/grpo-v2` to this branch. The default path is digest-identical.
+   - Arms with 3-premise rows are refused with a clear message while a `curriculum_3p` file is missing.
+   - `dry/all.sh` and `dry/check.py` cover all of this. Every earlier arm's dry-run records are byte-identical to
+     c4b8548's harness output: `exit`, stdout, call records, trees, logs, and the sandbox md5s apart from the
+     launcher copy itself.
 
 Checked and left alone:
 

@@ -142,6 +142,89 @@ Arms in `line.sh`. The schedule flags are set in one place, `SCHED_C` / `SCHED_W
 All three are refused for EI and in combination with `_h` or `_b`. The dry-run harness (`launch/dry/`) covers
 them, and every earlier arm's commands are byte-identical.
 
+## L3 pilots: refill, pass-rate filter, unlikeliness reward (2026-10-13, branch `leon/grpo-v2-pilots`)
+
+**Why.** Late in L3 about half of the groups give no gradient. In the three `grpo_think_vs` L3 runs, iterations
+30–39 skip 46–51% of groups, and almost all of them are all-solved: 46–51% all solved, 0.5–0.8% all failed, at a
+training pass@1 of 90–91%.
+
+**The prompt sampler.** It works as coded, but its prior for unseen pairs is optimistic, and that prior sets most
+draws.
+- Weights are p(1 − p) + 0.03, with p a Beta(1, 1) posterior mean. So a pair never drawn sits at p = 0.5, which is
+  the largest weight.
+- L3 has 15,000 (target, budget) pairs, and a stage draws 39 × 256 = 9,984 of them. Pairs drawn for the first time
+  are 81–86% of the stage's draws, and still 67–76% in iterations 30–39 (the curriculum's `seen` count).
+- The seen pairs' mean p is about 0.87 at B64/B256 and 0.75 at B0.
+- In the final L3 checkpoints, unseen pairs hold 63–70% of the draw weight.
+- Interpretation: the weighting can only steer the remaining third of the draws, so most groups come from a
+  near-uniform sweep of a pool that the policy mostly solves.
+
+**`--max_pass` only acts on seen pairs.** In the final checkpoints:
+- p > 0.9 holds about 9% of the draw weight: some 3,400–3,500 pairs, those last seen solved 16 of 16 times.
+- p > 0.6 holds 26–30% of the weight: 92% of the seen pairs, since one group at 10/16 already gives p = 11/18.
+- At 0.6 the filter would therefore move draws onto unseen pairs, the main source of all-solved groups.
+- Olmo 3's 62.5% is an offline filter on the SFT model, not a running estimate.
+- The pilot uses **0.9**.
+- A fix aimed at the cause would be an informed prior for unseen pairs (for example the mean p of seen pairs at
+  that budget, or of the same target at other budgets). It is not implemented: it changes the sampler for every arm.
+
+**What `grpo.py` adds** (all opt-in, left out of args.json unless given; module docstring, "Pilot options"):
+- **`--refill`** (DAPO's dynamic sampling, Olmo 3's active sampling), with `--refill_max` 2.
+  - After the rollouts, it draws ceil(deficit / signal share) more pairs, at most `--prompts`, with the same
+    curricula, excluding pairs already drawn this iteration. Up to 2 extra rounds, until 256 groups have an outcome
+    signal.
+  - Groups are trained in draw order up to the target. Later ones (the surplus) only update the curriculum.
+  - Every sampled group counts in the curriculum and in the sampling rows.
+- **Compute accounting for matching EI.** `row['refill']` logs, per iteration:
+  - groups, attempts and tokens sampled. `tokens` is the sampler's count: think + action, rejected draws included.
+  - the run totals (`groups_cum`, `attempts_cum`, `tokens_cum`), with rolled-back iterations included and carried
+    through a resume.
+  - per round: the pairs drawn, those with a signal, and those never drawn before.
+  - `skip_before` (round 0) and `skip_after` (the share of the 256 target left without a signal group).
+  - A plain stage samples 39 × 4,096 = 159,744 attempts, the same as one EI round at k 32 over 5,000 rows (160,000). A
+    refill stage samples more, and `attempts_cum` says how much. A matched-compute EI comparison then needs EI's k
+    or rows raised to that total, or GRPO cut to the same `attempts_cum`.
+- **`--max_pass x`.** Pairs with p > x are never drawn again.
+- **`--unlikely_beta β`** (He, Fried & Welleck 2025, arXiv 2506.02355, Sec. 4.1).
+  - A solved attempt's reward is 1 − β ρ / n. Here ρ is the number of the group's n unmasked attempts that are less
+    likely than it under π_old, ties counting half, so 0 is the least likely.
+  - This equals the paper's R(1 − β (G − rank)/G) with rank 1 the most likely, and its released code's
+    `argsort(argsort(logp)) / G`.
+  - Likelihood is the mean log π_old per scored token (think + action, under the phase masks, forced `</think>`
+    excluded), as in the released code. A sum would mostly rank by length and reward long proofs.
+  - The log-probs are the ones the PPO ratio already uses, so there is no extra forward pass.
+  - Only groups with an outcome signal change. All-solved groups stay skipped, as in the paper.
+  - The advantage stays Dr. GRPO's r − mean.
+  - `--rej_penalty`'s −P stays on top for rejected draws. Under `--overlong fail` capped attempts are failures and
+    are ranked.
+  - `row['unlikely']` logs the deductions and the within-group correlation of rank with length.
+- **Default unchanged.** Without the flags, digests of tiny-model runs equal those from a clean export of c4b8548:
+  rollouts, rows, log lines, weights, args.json and batch dumps (`code/tests/thinking/test_grpo_pilots.py`, plus
+  `test_grpo_sched.py`'s).
+
+**Arms** (`line.sh`; flags in `PILOT_RFB` / `PILOT_ULB` only). Each is stage L3 only, from ARM's finished L2
+checkpoint, checked as for `ARM_b`. Each is refused for EI and with any other suffix.
+
+| suffix | L3 |
+|---|---|
+| `ARM_rfb` | `--refill --refill_max 2 --max_pass 0.9` |
+| `ARM_ulb` | `--unlikely_beta 0.25` |
+| `ARM_3pb` | the L3 3-premise rows as `--targets_extra` at 0.33, exactly as `_vs3` passes them, after `_vs3`'s extra-targets preflight; refused for `*_vs3` |
+
+`line.sh` still runs the code in `nd-rl-v2` on `leon/grpo-v2`. `ARM_rfb` and `ARM_ulb` refuse until that worktree's
+`grpo.py` has the pilot options (fast-forward `leon/grpo-v2` to this branch: the default path is digest-identical).
+`ARM_3pb` needs no new code.
+
+`grpo_think_vs3` is now a full arm: `grpo_think_vs` plus the 3-premise rows in both stages, as `grpo_nothink_vs3`.
+An arm with 3-premise rows (`_vs3`, `_3pb`) is refused with "no 3-premise pool file …" while a `curriculum_3p`
+file is missing.
+
+```
+bash line.sh GPU 2 grpo_think_vs_rfb    # L3 of grpo_think_vs seed 2, from runs/grpo_v2/grpo_think_vs_s2_L2
+bash line.sh GPU 2 grpo_think_vs_ulb
+bash line.sh GPU 2 grpo_think_vs_3pb
+```
+
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)
 
 | set | k | arms |

@@ -9,13 +9,15 @@
 after each arm; without it the queue must make no backup call (serrano's queue.sh).
 
 Sections
-  A  every valid arm (11 base, 7 ARM_h, 14 ARM_b, 7 each of ARM_c, ARM_w, ARM_wb) x seeds 0-2 x normal/SMOKE=1: exit 0,
-     the full multiset and order of
+  A  every valid arm (12 base, 8 ARM_h, 16 ARM_b, 8 each of ARM_c, ARM_w, ARM_wb, ARM_rfb, ARM_ulb, 6 ARM_3pb) x seeds
+     0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
      stubbed calls (argv, cwd, CUDA_VISIBLE_DEVICES, redirections), the environment of each python call, stdout, the
      eval dirs and logs, against `expect()` below (written from the README / evidence, not from line.sh's text)
   B  refusals: ei_*_h, ei_*_b, unknown arm, ARM_b without L2 checkpoint / with a rolled-back L2 / without an L2 log,
      a seed without a Stage-1 init, usage; ei_*_c / _w / _wb, the lr schedules with _h or _b (either order), ARM_wb
-     without ARM's L2 checkpoint / with a rolled-back L2 / without an L2 log; nothing launched
+     without ARM's L2 checkpoint / with a rolled-back L2 / without an L2 log; the L3 pilots (ARM_rfb, ARM_ulb,
+     ARM_3pb) for EI, with another suffix (either order), ARM_3pb for a _vs3 arm, as ARM_b's three; a missing
+     curriculum_3p file for ARM_3pb and the _vs3 arms; nothing launched
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
   E  transcript evidence (evidence.json): the live grpo_think_h_b s1 L3 process; serrano's harness records (full
      commands and per-call records of three runs, call counts); every launcher log line and ps line of a v2 arm
@@ -49,6 +51,7 @@ BASE = [
     "ei_think_v",
     "ei_nothink",
     "ei_nothink_v",
+    "grpo_think_vs3",  # 2026-10-13: grpo_think_vs plus the 3-premise rows, as grpo_nothink_vs3
 ]
 HARMS = [a + "_h" for a in BASE if a.startswith("grpo_")]
 BARMS = [a + "_b" for a in BASE if a.startswith("grpo_")] + [a + "_b" for a in HARMS]
@@ -58,8 +61,17 @@ GBASE = [a for a in BASE if a.startswith("grpo_")]
 CARMS, WARMS, WBARMS = ([a + x for a in GBASE] for x in ("_c", "_w", "_wb"))
 SCHED_C = "--lr_schedule cosine --warmup_iters 3 --min_lr_frac 0.1"
 SCHED_W = "--lr_schedule wsd --decay_frac 0.2 --min_lr_frac 0.3 --decay_shape sqrt"
-REUSE = BARMS + WBARMS  # L3 only, from another arm's L2
-VALID = BASE + HARMS + BARMS + CARMS + WARMS + WBARMS
+# the L3 pilots (2026-10-13; written from the request): L3 of ARM from ARM's L2 with grpo.py's pilot flags (refill and
+# the pass-rate filter; the unlikeliness reward), or with the L3 3-premise rows as _vs3 passes them
+PILOT = {
+    "_rfb": "--refill --refill_max 2 --max_pass 0.9",
+    "_ulb": "--unlikely_beta 0.25",
+    "_3pb": "",
+}
+RFBARMS, ULBARMS = ([a + x for a in GBASE] for x in ("_rfb", "_ulb"))
+P3BARMS = [a + "_3pb" for a in GBASE if not a.endswith("_vs3")]
+REUSE = BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS  # L3 only, from another arm's L2
+VALID = BASE + HARMS + BARMS + CARMS + WARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS
 ENV_WANT = {
     "ND_OFFLINE": "1",
     "PYTHONDONTWRITEBYTECODE": "1",
@@ -124,17 +136,19 @@ def key(x: dict) -> tuple:
 # ---------------------------------------------------------------- the model of the recipe (README + evidence)
 def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]:
     """-> (ordered records (kind, cwd, cvd, fd1, fd2, argv), stdout lines) for a valid arm."""
-    sch = next((x for x in ("_wb", "_c", "_w") if arm.endswith(x)), "")
-    core = arm[: -len(sch)] if sch else arm
-    src = core[:-2] if core.endswith("_b") else core
-    base = src[:-2] if src.endswith("_h") else src
+    pil = next((x for x in PILOT if arm.endswith(x)), "")
+    sch = "" if pil else next((x for x in ("_wb", "_c", "_w") if arm.endswith(x)), "")
+    core = arm[: -len(pil or sch)] if pil or sch else arm
+    src = core[:-2] if core.endswith("_b") and not pil else core
+    base = src[:-2] if src.endswith("_h") and not pil else src
     sched = {"": ("", ""), "_c": (SCHED_C, SCHED_C), "_w": ("", SCHED_W), "_wb": ("", SCHED_W)}[sch]
-    l2src = base if sch == "_wb" else (arm if sch else src)  # whose L2 the L3 starts from
+    l2src = base if sch == "_wb" or pil else (arm if sch else src)  # whose L2 the L3 starts from
+    pflags = PILOT.get(pil, "")  # stage L3's pilot flags
     smoke = mode == "smoke"
     think = "_think" in base
     method = "grpo" if base.startswith("grpo_") else "ei"
     samp = "logical" if base.endswith(("_v", "_vs", "_vs3")) else "plain"
-    vs3 = base.endswith("_vs3")
+    vs3 = base.endswith("_vs3") or pil == "_3pb"  # the 3-premise rows as extra targets
     R, C = "<R>", "<R>/grpo_v2" + ("/smoke" if smoke else "")
     EV = "<R>/eval/v2" + ("_smoke" if smoke else "")
     L = C + "/logs" if smoke else "<R>/logs"
@@ -155,6 +169,18 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
             f".startswith\\(\\'{WT}/\\'\\)\\ else\\ 1\\)",
         ),
     ]
+    if pflags:  # ARM_rfb / ARM_ulb: the worktree's grpo.py must have the pilot options
+        recs.append(
+            (
+                "py",
+                WT,
+                "CVD=unset",
+                "/dev/null",
+                "/dev/null",
+                "-c import\\ sys\\,\\ code.thinking.grpo\\ as\\ g\\;\\ sys.exit\\(0\\ if\\ hasattr\\(g\\,\\ "
+                "\\'pilot_options\\'\\)\\ else\\ 1\\)",
+            )
+        )
     l2t = f"{C}/L2_head.jsonl" if smoke else f"{R}/pools/curriculum/L2/pool.jsonl"
     l3t = f"{C}/L3_head.jsonl" if smoke else f"{R}/pools/curriculum/L3/pool.jsonl"
     x2 = (f"{C}/X2_head.jsonl" if smoke else f"{R}/pools/curriculum_3p/L2_3p.jsonl") if vs3 else ""
@@ -219,7 +245,9 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
             else f"{C}/{name}/ckpts/{name}_r1.pt"
         )
 
-    def stage(name: str, init: str, targets: str, extra: str, sc: str = "") -> None:
+    def stage(
+        name: str, init: str, targets: str, extra: str, sc: str = "", pflags: str = ""
+    ) -> None:
         waitfree()
         log = f"{L}/v2_{name}.log"
         if method == "grpo":
@@ -227,6 +255,7 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
                 f"21600 <PY> -m code.thinking.grpo --init {init} --name {name} --out {C}/{name} --targets {targets} "
                 f"--iters {it} --prompts {4 if smoke else 256} --group {4 if smoke else 16} --batch {batch} --lr {lr} "
                 + (f"{sc} " if sc else "")
+                + (f"{pflags} " if pflags else "")
                 + f"--overlong fail --save_every {it} --max_steps 96 --seed {s} --keep_rolling 100 {eff} "
                 f"--canary <R>/pools/canary_long.jsonl --canary_n {40 if smoke else 1000} --canary_every 1 "
                 f"--rollback_on_alarm --max_rollbacks 3{BAN} --kl_anchor_coef 0.02 --kl_anchor_ref {init}"
@@ -243,6 +272,7 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
                 + (f", extra {os.path.basename(extra)} x 0.33" if extra else "")
                 + (f", lr {lr}" if base != src else "")
                 + (f", {sc}" if sc else "")
+                + (f", {pflags}" if pflags else "")
             )
             out.append(f"00:00Z launched GRPO {name} ({desc}) on GPU {g} (pid N)")
             out.append(f"00:00Z GRPO {name} exit 0: it {it}: dry")
@@ -271,7 +301,7 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
         l2ck = ck(f"{arm}_s{s}_L2")
     else:
         l2ck = f"{C}/{l2src}_s{s}_L2/ckpts/{l2src}_s{s}_L2_it{it}.pt"
-    stage(f"{arm}_s{s}_L3", l2ck, l3t, x3, sched[1])
+    stage(f"{arm}_s{s}_L3", l2ck, l3t, x3, sched[1], pflags)
     ch = "<R>/pools/charles_1002"
     reads = []
     for ra in ("plain", "logical"):
@@ -386,8 +416,8 @@ for mode in ("normal", "smoke"):
             want = (
                 (23 - (2 if arm in REUSE else 0))
                 if mode == "smoke"
-                else (46 + arm.startswith("grpo_nothink_vs3") - (5 if arm in REUSE else 0))
-            )
+                else (46 + ("_vs3" in arm or arm.endswith("_3pb")) - (5 if arm in REUSE else 0))
+            ) + arm.endswith(("_rfb", "_ulb"))  # the pilot options check
             ok(n == want, "A", f"{tag}: {n} calls, want {want}")
 
 # ---------------------------------------------------------------- B: refusals
@@ -501,6 +531,83 @@ for mode in ("normal", "smoke"):
                 "grpo_nothink_vs3_wb",
             )
         )
+        # the L3 pilots (2026-10-13)
+        for arm in [
+            "ei_think_rfb",
+            "ei_think_v_ulb",
+            "ei_nothink_3pb",
+            "ei_nothink_v_rfb",
+        ]:
+            refusals.append(
+                (
+                    f"{H}/res/{mode}/s{s}/{arm}",
+                    1,
+                    rf"^00:00Z {arm}: _{arm.rsplit('_', 1)[1]} is a GRPO L3 pilot, and {arm.rsplit('_', 1)[0]} is EI: refusing$",
+                    arm,
+                )
+            )
+        for arm in [
+            "ei_think_h_ulb",
+            "grpo_think_h_rfb",
+            "grpo_think_rfb_h",
+            "grpo_think_b_ulb",
+            "grpo_think_ulb_b",
+            "grpo_think_c_rfb",
+            "grpo_think_rfb_c",
+            "grpo_think_vs_w_3pb",
+            "grpo_think_vs_3pb_wb",
+            "grpo_think_wb_ulb",
+            "grpo_think_rfb_ulb",
+            "grpo_think_vs_3pb_rfb",
+            "grpo_think_ulb_3pb",
+            "grpo_think_h_b_rfb",
+        ]:
+            refusals.append(
+                (
+                    f"{H}/res/{mode}/s{s}/{arm}",
+                    1,
+                    rf"^00:00Z {arm}: _rfb, _ulb and _3pb \(L3 pilots\) do not combine with other suffixes: refusing$",
+                    arm,
+                )
+            )
+        for arm in ["grpo_think_vs3_3pb", "grpo_nothink_vs3_3pb"]:
+            refusals.append(
+                (
+                    f"{H}/res/{mode}/s{s}/{arm}",
+                    1,
+                    rf"^00:00Z {arm}: {arm[:-4]} already trains on the 3-premise rows: refusing$",
+                    arm,
+                )
+            )
+        for kind, arm, rx in (
+            (
+                "nockpt",
+                "grpo_think_vs_rfb",
+                rf"no L2 checkpoint of grpo_think_vs \({re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt\)",
+            ),
+            (
+                "rb",
+                "grpo_think_vs_ulb",
+                r"grpo_think_vs's L2 log ends 'guard it 39: .*lr x0\.5 \(1 rollbacks\).*', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "nolog",
+                "grpo_think_vs_3pb",
+                r"grpo_think_vs's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+        ):
+            refusals.append((f"{d}/{kind}_{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm))
+        # the curriculum_3p files are rebuilt by someone else: refused while one is missing
+        for x in ("L3", "L2"):
+            for arm in ("grpo_think_vs_3pb", "grpo_think_vs3", "grpo_nothink_vs3"):
+                refusals.append(
+                    (
+                        f"{d}/no3p{x}_{arm}",
+                        1,
+                        rf"^00:00Z {arm}: no 3-premise pool file {re.escape(SB)}/pools/curriculum_3p/{x}_3p\.jsonl \(runs/pools/curriculum_3p\): refusing$",
+                        arm,
+                    )
+                )
 refusals.append(
     (
         f"{H}/res/refuse/normal/s3/grpo_think",
