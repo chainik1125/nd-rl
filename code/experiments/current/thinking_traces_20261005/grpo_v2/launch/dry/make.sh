@@ -6,7 +6,8 @@
 # scratchpad/dry{,_b}/make.sh of 2026-10-11 (same stubs, same record columns), plus queue.sh and a
 # column 8 with the environment the stubbed command saw.
 #   stubs/        PATH stubs that record their argv (timeout, python3, nvidia-smi, sleep, rm, git) or fake output (date)
-#   pybin/python  stands in for $PY: records argv; -c check -> 0; the preflight -> 22 "ok" lines
+#   pybin/python  stands in for $PY: records argv; -c check -> 0; the preflight -> 22 "ok" lines; `-` (ARM_mb's
+#                 averaging) -> its output file, holding the script it read
 #   lib_dry.sh    lib.sh with only R= pointed at the sandbox ($DRY_SB/runs)
 #   line.sh.dry   line.sh with only the `source lib.sh` line and the `PY=` line swapped
 #   queue.sh.dry  queue.sh with only the `source lib.sh` line swapped (it runs $R/grpo_v2/line.sh = line.sh.dry)
@@ -69,6 +70,10 @@ cat > "$H/pybin/python" <<'EOF'
 case $1 in
   -c) exit 0 ;;
   -m) case $2 in *.preflight) for i in $(/usr/bin/seq 1 22); do echo "ok dry $i"; done; exit 0 ;; esac ;;
+  -) case ${2:-} in  # ARM_mb's checkpoint averaging (a script on stdin): its output holds the script
+       "$DRY_SB"/*) /usr/bin/mkdir -p "$(/usr/bin/dirname "$2")" && /usr/bin/cat > "$2"; echo "averaged dry"; exit 0 ;;
+     esac
+     echo "DRY: averaging outside the sandbox: '${2:-}'" >&2; exit 97 ;;
 esac
 echo "DRY: unexpected direct python call: $*" >&2; exit 98
 EOF

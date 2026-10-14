@@ -35,6 +35,11 @@
 #        ARM_pb, for a grpo_* ARM above, never with another suffix (L3 pilot, 2026-10-13): as ARM_rfb, with grpo.py's
 #        --unseen_prior mean (PILOT_PB): a never-drawn pair's pass rate starts at its budget's mean over the seen pairs
 #        instead of 1/2. Every run, log and eval name keeps the full ARM_pb. Refused for EI.
+#        ARM_mb, for a grpo_* ARM above but *_vs3, never with another suffix (the merged recipe, 2026-10-14): stage L3 of
+#        ARM from ARM's finished L2 checkpoint, checked and refused as ARM_3pb, with _wb's cooldown (SCHED_W), _3pb's
+#        3-premise extra targets and _ulb's unlikeliness reward (PILOT_ULB). After the usual reads, the mean of its L3
+#        checkpoints at AVG_ITS and the last (pilot4.sh's averaging; skipped when it exists) is read plain on t1320,
+#        tb72, charles173 and t2130 under the arm name ARM_mb_avg.
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -55,14 +60,15 @@ PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
   || { say "code.thinking does not resolve to $WT: refusing"; exit 1; }
 g=$1; s=$2; arm=$3
 [ -n "$g" ] && [ -n "$s" ] && [ -n "$arm" ] || { echo "usage: line.sh GPU SEED ARM"; exit 2; }
-pil=""; case $arm in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; esac  # L3 pilots: first
+pil=""; case $arm in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; *_mb) pil=mb ;; esac  # first
 case $arm in *_rfb_*|*_ulb_*|*_3pb_*)  # a pilot suffix with another after it
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
 case $arm in *_pb_*) say "$arm: _pb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
+case $arm in *_mb_*) say "$arm: _mb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
 core=${arm%_$pil}  # ARM of ARM_$pil
-[ -n "$pil" ] && case $core in *_[hbcw]|*_wb|*_pb)
-  [ "$pil" = pb ] && { say "$arm: _pb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1; }
+[ -n "$pil" ] && case $core in *_[hbcw]|*_wb|*_pb|*_mb)
+  case $pil in pb|mb) say "$arm: _$pil (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
 case ${arm}_ in *_[hb]_c_|*_[hb]_w_|*_[hb]_wb_|*_[cw]_[hb]_*|*_wb_[hb]_*)  # in either order
@@ -81,12 +87,14 @@ SCHED_W="--lr_schedule wsd --decay_frac 0.2 --min_lr_frac 0.3 --decay_shape sqrt
 S2=""; S3=""  # the schedule flags of stage L2 / L3
 case $sch in c) S2=$SCHED_C; S3=$SCHED_C; src=$arm ;; w) S3=$SCHED_W; src=$arm ;; wb) S3=$SCHED_W ;; esac
 # (ARM_wb keeps src=$base: L3 only, from $base's L2, as ARM_b)
+[ "$pil" = mb ] && S3=$SCHED_W  # ARM_mb: _wb's L3 cooldown
 # L3 pilots (grpo.py's pilot options): set here only. ARM_rfb: refill up to 2 extra rounds, pass-rate filter 0.9;
 # ARM_ulb: the unlikeliness reward at the paper's beta. ARM_3pb has no flags of its own (its extra targets below).
 PILOT_RFB="--refill --refill_max 2 --max_pass 0.9"
 PILOT_ULB="--unlikely_beta 0.25"
 PILOT_PB="--unseen_prior mean"  # ARM_pb: the unseen-pair prior at the budget's mean pass rate
-P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb) P3=$PILOT_ULB ;; pb) P3=$PILOT_PB ;; esac  # stage L3's pilot flags
+P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb|mb) P3=$PILOT_ULB ;; pb) P3=$PILOT_PB ;; esac  # stage L3's pilot flags
+AVG_ITS="25 30 35"  # ARM_mb: the L3 rolling checkpoints averaged with the last one (pilot4.sh's)
 SMOKE=${SMOKE:-0}
 P=${REJ_PENALTY:-0.1}
 L2=${POOL_L2:-$R/pools/curriculum/L2/pool.jsonl}; L3=${POOL_L3:-$R/pools/curriculum/L3/pool.jsonl}
@@ -111,7 +119,7 @@ case $base in *_v|*_vs|*_vs3) samp=logical ;; *) samp=plain ;; esac
 case $base in *_vs|*_vs3) MAXREJ_TRAIN=0 ;; *) MAXREJ_TRAIN=10 ;; esac  # GRPO training only
 X2=""; X3=""; XFRAC=${XFRAC:-0.33}  # extra GRPO targets per stage (--targets_extra)
 case $base in *_vs3) X2=$R/pools/curriculum_3p/L2_3p.jsonl; X3=$R/pools/curriculum_3p/L3_3p.jsonl ;; esac
-if [ "$pil" = 3pb ]; then  # ARM_3pb: _vs3's files (both for its extra-targets preflight; L3_3p trains)
+if [ "$pil" = 3pb ] || [ "$pil" = mb ]; then  # ARM_3pb, ARM_mb: _vs3's files (both for its extra-targets preflight)
   case $base in *_vs3) say "$arm: $base already trains on the 3-premise rows: refusing"; exit 1 ;; esac
   X2=$R/pools/curriculum_3p/L2_3p.jsonl; X3=$R/pools/curriculum_3p/L3_3p.jsonl
 fi
@@ -129,6 +137,7 @@ if [ "$SMOKE" = 1 ]; then
   if [ -n "$X2" ]; then head -n 8 $X2 > $C/X2_head.jsonl; head -n 8 $X3 > $C/X3_head.jsonl; X2=$C/X2_head.jsonl; X3=$C/X3_head.jsonl; fi
   ITERS=2; PROMPTS=4; GROUP=4; K=2; BATCH=16; FT="--ft_steps 3 --ft_recs 8 --retain 64"
   CAN="--canary_n 40"; KLN="--kl_anchor_n 16"; LIM="--limit 2"; KS=(2 2 2 2 2); DEV=""
+  AVG_ITS=""  # a 2-iteration stage keeps no rolling checkpoint: ARM_mb's mean is of the last one alone
   waitfree() { :; }  # CPU only
 fi
 if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil: $src's finished L2, from a run no rollback touched
@@ -183,13 +192,39 @@ ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt
   wait $p; say "EI $n exit $?: $(tail -1 $L/v2_$n.log | cut -c1-150)"
   [ -f $last ]; }
 ck() { if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$ITERS.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r1.pt; fi; }
-read1() {  # SETNAME SETS K READARM [MAXSTEPS]
-  local o=$EV/$1_${arm}_s${s}_$4_k$3 ms=${5:-96}
+read1() {  # SETNAME SETS K READARM [MAXSTEPS [ARMNAME CKPT]]  (default: $arm and its L3 checkpoint)
+  local o=$EV/$1_${6:-$arm}_s${s}_$4_k$3 ms=${5:-96} cp=${7:-$(ck L3)}
   [ -f $o/rows_$4_B$RB.jsonl ] && return 0; waitfree $g; local t=$(date +%s); rm -rf $o
-  CUDA_VISIBLE_DEVICES=$DEV timeout 9000 "$PY" -m code.thinking.eval --ckpt $(ck L3) --sets $2 --out $o --k $3 \
+  CUDA_VISIBLE_DEVICES=$DEV timeout 9000 "$PY" -m code.thinking.eval --ckpt $cp --sets $2 --out $o --k $3 \
     --budgets $RB --arms $4 --batch $BATCH --seed 0 --temperature 0.8 --max_action 512 --max_steps $ms --max_rej 10 \
     $LIM > $L/v2_eval_$(basename $o).log 2>&1
   local rc=$?; say "read $(basename $o) exit $rc $(( $(date +%s) - t ))s: $(grep -E '^\[' $L/v2_eval_$(basename $o).log | tr '\n' ' ' | cut -c1-200)"; }
+AV=$C/${arm}_avg_s${s}_L3/ckpts/${arm}_avg_s${s}_L3_it$ITERS.pt  # ARM_mb's averaged checkpoint
+avg_ckpt() {  # ARM_mb: the mean of stage L3's checkpoints at AVG_ITS and its last -> $AV; skipped when it exists
+  [ -f $AV ] && return 0
+  local K=$C/${arm}_s${s}_L3/ckpts fs=() f i
+  for i in $AVG_ITS; do fs+=($K/${arm}_s${s}_L3_it${i}_rolling.pt); done; fs+=($(ck L3))
+  for f in "${fs[@]}"; do [ -f $f ] || { say "$arm: no $f to average (an alarm iteration?): no averaged reads"; exit 1; }; done
+  mkdir -p $(dirname $AV)
+  # every floating-point tensor of "state" averaged (in float64, back to its dtype), the rest of the last checkpoint
+  # kept, train_state dropped (pilot4.sh); written to a temporary file first, so a rerun never reads half a file
+  local al=$L/v2_avg_${arm}_s$s.log
+  CUDA_VISIBLE_DEVICES="" "$PY" - $AV "${fs[@]}" > $al 2>&1 <<'EOF' || { say "$arm: averaging failed (see $al)"; exit 1; }
+import os, sys, torch
+out, paths = sys.argv[1], sys.argv[2:]
+cks = [torch.load(p, map_location="cpu", weights_only=False) for p in paths]
+keys = list(cks[-1]["state"])
+assert all(list(c["state"]) == keys for c in cks)
+avg = {k: (sum(c["state"][k].double() for c in cks) / len(cks)).to(cks[-1]["state"][k].dtype)
+       if cks[-1]["state"][k].is_floating_point() else cks[-1]["state"][k] for k in keys}
+d = {k: v for k, v in cks[-1].items() if k != "train_state"}
+d["state"] = avg
+d["extra"] = dict(d.get("extra") or {}, averaged_from=paths)
+torch.save(d, out + ".tmp")
+os.replace(out + ".tmp", out)
+print("averaged", len(cks), "checkpoints ->", out)
+EOF
+  say "averaged ${arm}_s${s}_L3 it ${AVG_ITS:+$AVG_ITS }$ITERS -> $AV"; }
 stage=${method}_stage
 if [ "$src" = "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil have no L2 of their own: L2CK is $src's (checked above)
   $stage ${arm}_s${s}_L2 $init0 $L2 $X2 || { say "${arm}_s${s}_L2 failed"; exit 1; }
@@ -204,4 +239,11 @@ for ra in plain logical; do
 done
 read1 hand14 $CH/hand_proved_14.jsonl ${KS[3]} plain $MAXSTEPS_H14
 read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain
+if [ "$pil" = mb ]; then  # ARM_mb: the averaged checkpoint, read plain under ARM_mb_avg (pilot4.sh's reads)
+  avg_ckpt
+  read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} plain 96 ${arm}_avg $AV
+  read1 tb72 $TB/textbook_dev.jsonl,$TB/textbook_train.jsonl ${KS[1]} plain 96 ${arm}_avg $AV
+  read1 charles173 $CH173 ${KS[2]} plain 96 ${arm}_avg $AV
+  read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain 96 ${arm}_avg $AV
+fi
 say "grpo_v2 line done ($arm seed $s)"

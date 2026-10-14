@@ -108,6 +108,11 @@ Paths are serrano's. Changes, all of them:
    refuses until the code worktree's `grpo.py` has `--unseen_prior` (the guard checks `UNSEEN_PRIORS`).
    `dry/all.sh` and `dry/check.py` cover it. Every earlier arm's dry-run records match 0de954e's harness output in
    the same way as above.
+7. `leon/grpo-v2-merged` (2026-10-14, not yet installed): `line.sh` adds `ARM_mb`, the merged recipe
+   (`../README.md`, "Merged recipe"). Its averaging is a `"$PY" -` call, so `dry/make.sh`'s python stub now also
+   accepts `-` and writes the output file. `dry/all.sh` and `dry/check.py` cover `ARM_mb`: its arms and refusals, a
+   missing rolling checkpoint, and a rerun that does not average again (section D). Every earlier arm's dry-run
+   records match 7523c16's harness output in the same way as above.
 
 Checked and left alone:
 

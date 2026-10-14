@@ -23,12 +23,16 @@ COMBO=(grpo_think_c_h grpo_think_c_b grpo_think_h_c grpo_think_b_c grpo_think_vs
 # needs the base arm's L2 (a setup)
 PARMS=("${GBASE[@]/%/_rfb}" "${GBASE[@]/%/_ulb}" grpo_think_3pb grpo_think_v_3pb grpo_think_vs_3pb grpo_nothink_3pb
        grpo_nothink_v_3pb grpo_nothink_vs_3pb "${GBASE[@]/%/_pb}")
+# ARM_mb (2026-10-14), every GRPO base arm but the _vs3 ones; its setup also holds the L3 rolling checkpoints it averages
+MBARMS=(grpo_think_mb grpo_think_v_mb grpo_think_vs_mb grpo_nothink_mb grpo_nothink_v_mb grpo_nothink_vs_mb)
 PREF=(ei_think_rfb ei_think_v_ulb ei_nothink_3pb ei_nothink_v_rfb ei_think_h_ulb
       grpo_think_h_rfb grpo_think_rfb_h grpo_think_b_ulb grpo_think_ulb_b grpo_think_c_rfb grpo_think_rfb_c
       grpo_think_vs_w_3pb grpo_think_vs_3pb_wb grpo_think_wb_ulb grpo_think_rfb_ulb grpo_think_vs_3pb_rfb grpo_think_ulb_3pb
       grpo_think_h_b_rfb grpo_think_vs3_3pb grpo_nothink_vs3_3pb
       ei_think_pb ei_nothink_v_pb grpo_think_h_pb grpo_think_pb_h grpo_think_b_pb grpo_think_pb_rfb grpo_think_rfb_pb
-      grpo_think_vs_pb_3pb grpo_think_c_pb grpo_think_wb_pb)  # ARM_pb (2026-10-13): EI, other suffixes
+      grpo_think_vs_pb_3pb grpo_think_c_pb grpo_think_wb_pb  # ARM_pb (2026-10-13): EI, other suffixes
+      ei_think_mb ei_nothink_v_mb grpo_think_h_mb grpo_think_mb_h grpo_think_wb_mb grpo_think_mb_ulb grpo_think_ulb_mb
+      grpo_think_vs_mb_pb grpo_think_pb_mb grpo_think_vs3_mb grpo_nothink_vs3_mb)  # ARM_mb (2026-10-14)
 MODES=(normal smoke); SEEDS=(0 1 2)
 OKLOG='guard it 39: kl anchor 0.0004 x 0.02 (gn policy 0.014); lr x1 (0 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
 RBLOG='guard it 39: kl anchor 0.0006 x 0.02 (gn policy 0.013); lr x0.5 (1 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
@@ -68,6 +72,39 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_ulb "$H/res/refuse/$mode/s$seed/rb_grpo_think_vs_ulb" $su
   su=$(setup pnolog_${mode}_s$seed $mode $seed grpo_think_vs yes none)
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_3pb "$H/res/refuse/$mode/s$seed/nolog_grpo_think_vs_3pb" $su
+  mbsetup() {  # NAME MODE SEED ARM GUARDLINE [ITERATIONS]: ARM's base L2 (setup), and ARM's L3 rolling checkpoints
+    local su c=runs/grpo_v2 i; [ $2 = smoke ] && c=runs/grpo_v2/smoke
+    su=$(setup $1 $2 $3 ${4%_mb} yes "$5")
+    for i in ${6-25 30 35}; do [ $2 = smoke ] && continue
+      echo "mkdir -p \"\$SB/$c/${4}_s${3}_L3/ckpts\" && : > \"\$SB/$c/${4}_s${3}_L3/ckpts/${4}_s${3}_L3_it${i}_rolling.pt\""
+    done >> $su
+    echo $su; }
+  for arm in "${MBARMS[@]}"; do
+    su=$(mbsetup mb_${mode}_s${seed}_$arm $mode $seed $arm "$OKLOG")
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
+  done
+  # ARM_mb: as ARM_3pb's refusals; a rolling checkpoint missing (its averaged reads refused); a rerun with the averaged
+  # checkpoint there (no averaging)
+  su=$(mbsetup mbnockpt_${mode}_s$seed $mode $seed grpo_think_vs_mb "$OKLOG"); sed -i '/_L2_it[0-9]*\.pt"$/d' $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb "$H/res/refuse/$mode/s$seed/nockpt_grpo_think_vs_mb" $su
+  su=$(mbsetup mbrb_${mode}_s$seed $mode $seed grpo_think_vs_mb "$RBLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb "$H/res/refuse/$mode/s$seed/rb_grpo_think_vs_mb" $su
+  su=$(mbsetup mbnolog_${mode}_s$seed $mode $seed grpo_nothink_vs_mb none)
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_nothink_vs_mb "$H/res/refuse/$mode/s$seed/nolog_grpo_nothink_vs_mb" $su
+  su=$(mbsetup mbno3p_${mode}_s$seed $mode $seed grpo_think_vs_mb "$OKLOG")
+  echo 'rm -f "$SB/runs/pools/curriculum_3p/L3_3p.jsonl"' >> $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb "$H/res/refuse/$mode/s$seed/no3pL3_grpo_think_vs_mb" $su
+  if [ $mode = normal ]; then
+    su=$(mbsetup mbnoroll_s$seed $mode $seed grpo_think_vs_mb "$OKLOG" "25 35")
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb "$H/res/mb/$mode/s$seed/noroll30_grpo_think_vs_mb" $su
+    n=$((n+1))
+  fi
+  su=$(mbsetup mbavg_${mode}_s$seed $mode $seed grpo_think_vs_mb "$OKLOG")
+  c=runs/grpo_v2; [ $mode = smoke ] && c=runs/grpo_v2/smoke; it=39; [ $mode = smoke ] && it=2
+  a=grpo_think_vs_mb_avg_s${seed}_L3
+  echo "mkdir -p \"\$SB/$c/$a/ckpts\" && : > \"\$SB/$c/$a/ckpts/${a}_it$it.pt\"" >> $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb "$H/res/mb/$mode/s$seed/rerun_grpo_think_vs_mb" $su
+  n=$((n+5))
   # ARM_pb's three, as ARM_rfb's
   su=$(setup pbnockpt_${mode}_s$seed $mode $seed grpo_think_vs no "$OKLOG")
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_pb "$H/res/refuse/$mode/s$seed/nockpt_grpo_think_vs_pb" $su

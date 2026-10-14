@@ -288,6 +288,40 @@ checks and refusals as `ARM_rfb`, and refuses until the code worktree's `grpo.py
 bash line.sh GPU 2 grpo_think_vs_pb     # L3 of grpo_think_vs seed 2, from runs/grpo_v2/grpo_think_vs_s2_L2
 ```
 
+## Merged recipe (2026-10-14, branch `leon/grpo-v2-merged`)
+
+`ARM_mb`, approved by Leon, at least for `grpo_think_vs_mb`. It is stage L3 only, from ARM's finished L2 checkpoint,
+with the same checks and refusals as `ARM_3pb`: refused for EI, for `*_vs3`, and with any other suffix. It combines
+three pilots. The flags come from the existing constants, so each value is set in one place:
+
+- `_wb`'s cooldown (`SCHED_W`: `--lr_schedule wsd --decay_frac 0.2 --min_lr_frac 0.3 --decay_shape sqrt`);
+- `_3pb`'s 3-premise rows (L3_3p at `--targets_extra_frac` 0.33, after `_vs3`'s extra-targets preflight);
+- `_ulb`'s unlikeliness reward (`PILOT_ULB`: `--unlikely_beta 0.25`).
+
+It has no refill and no unseen prior.
+
+**Reads.**
+- First the usual reads, plain and guided, on the final checkpoint.
+- Then `line.sh` averages the stage's L3 checkpoints at it 25, 30 and 35 (rolling) and 39 (final). This is
+  `pilot4.sh`'s averaging:
+  - every floating-point tensor of `state` is averaged in float64 and cast back to its dtype;
+  - the other fields come from it 39, `train_state` is dropped, and `extra.averaged_from` lists the inputs;
+  - the result is written to a temporary file first and then renamed.
+- The averaged checkpoint goes to `runs/grpo_v2/ARM_avg_sSEED_L3/ckpts/ARM_avg_sSEED_L3_it39.pt`.
+- It is read plain only, on t1320 (k 16), tb72 (k 64), charles173 (k 64) and t2130 (k 8). Reads are at B64 (B0
+  for no-think) and T 0.8, under the arm name `ARM_avg`, so rows land in
+  `eval/v2/<set>_ARM_avg_sSEED_plain_k<k>/`.
+
+**Reruns and failures.**
+- A rerun skips the averaging when the averaged checkpoint exists, and skips each read whose rows exist.
+- If a rolling checkpoint is missing, the averaged reads are refused with "no … to average (an alarm iteration?)".
+  An iteration with an alarm saves an alarm checkpoint instead of its rolling one.
+- Under `SMOKE=1` the mean is of the last checkpoint alone, since a 2-iteration stage keeps no rolling checkpoint.
+
+```
+bash line.sh GPU SEED grpo_think_vs_mb    # L3 of grpo_think_vs, from runs/grpo_v2/grpo_think_vs_sSEED_L2
+```
+
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)
 
 | set | k | arms |

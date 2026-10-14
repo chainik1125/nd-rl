@@ -19,6 +19,7 @@ Sections
      ARM_3pb) for EI, with another suffix (either order), ARM_3pb for a _vs3 arm, as ARM_b's three; a missing
      curriculum_3p file for ARM_3pb and the _vs3 arms; nothing launched
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
+  D  ARM_mb's averaging: a missing rolling checkpoint refuses the averaged reads; a rerun does not average again
   E  transcript evidence (evidence.json): the live grpo_think_h_b s1 L3 process; serrano's harness records (full
      commands and per-call records of three runs, call counts); every launcher log line and ps line of a v2 arm
 """
@@ -68,13 +69,27 @@ PILOT = {
     "_ulb": "--unlikely_beta 0.25",
     "_3pb": "",
     "_pb": "--unseen_prior mean",  # 2026-10-13: the unseen-pair prior at the budget's mean
+    "_mb": "--unlikely_beta 0.25",  # 2026-10-14, the merged recipe: _ulb's, with _wb's cooldown and _3pb's rows
 }
-GUARD = {"_rfb": "pilot_options", "_ulb": "pilot_options", "_pb": "UNSEEN_PRIORS"}  # grpo.py's
+GUARD = {
+    "_rfb": "pilot_options",
+    "_ulb": "pilot_options",
+    "_pb": "UNSEEN_PRIORS",
+    "_mb": "pilot_options",
+}
 RFBARMS, ULBARMS = ([a + x for a in GBASE] for x in ("_rfb", "_ulb"))
 P3BARMS = [a + "_3pb" for a in GBASE if not a.endswith("_vs3")]
 PBARMS = [a + "_pb" for a in GBASE]
-REUSE = BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS  # L3 only, from another arm's L2
-VALID = BASE + HARMS + BARMS + CARMS + WARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS
+MBARMS = [a + "_mb" for a in GBASE if not a.endswith("_vs3")]
+REUSE = (
+    BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS
+)  # L3 only, from another arm's L2
+VALID = (
+    BASE + HARMS + BARMS + CARMS + WARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS
+)
+# ARM_mb's averaged reads (pilot4.sh's): the L3 rolling checkpoints averaged with the last one, and the plain reads
+AVG_ITS = [25, 30, 35]
+AVG_READS = [("t1320", 16), ("tb72", 64), ("charles173", 64), ("t2130", 8)]
 ENV_WANT = {
     "ND_OFFLINE": "1",
     "PYTHONDONTWRITEBYTECODE": "1",
@@ -137,8 +152,11 @@ def key(x: dict) -> tuple:
 
 
 # ---------------------------------------------------------------- the model of the recipe (README + evidence)
-def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]:
-    """-> (ordered records (kind, cwd, cvd, fd1, fd2, argv), stdout lines) for a valid arm."""
+def expect(
+    arm: str, s: int, mode: str, g: int, avg_there: bool = False
+) -> tuple[list[tuple], list[str]]:
+    """-> (ordered records (kind, cwd, cvd, fd1, fd2, argv), stdout lines) for a valid arm. `avg_there`: ARM_mb
+    with its averaged checkpoint already written (a rerun)."""
     pil = next((x for x in PILOT if arm.endswith(x)), "")
     sch = "" if pil else next((x for x in ("_wb", "_c", "_w") if arm.endswith(x)), "")
     core = arm[: -len(pil or sch)] if pil or sch else arm
@@ -147,11 +165,13 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
     sched = {"": ("", ""), "_c": (SCHED_C, SCHED_C), "_w": ("", SCHED_W), "_wb": ("", SCHED_W)}[sch]
     l2src = base if sch == "_wb" or pil else (arm if sch else src)  # whose L2 the L3 starts from
     pflags = PILOT.get(pil, "")  # stage L3's pilot flags
+    if pil == "_mb":
+        sched = ("", SCHED_W)  # _wb's L3 cooldown
     smoke = mode == "smoke"
     think = "_think" in base
     method = "grpo" if base.startswith("grpo_") else "ei"
     samp = "logical" if base.endswith(("_v", "_vs", "_vs3")) else "plain"
-    vs3 = base.endswith("_vs3") or pil == "_3pb"  # the 3-premise rows as extra targets
+    vs3 = base.endswith("_vs3") or pil in ("_3pb", "_mb")  # the 3-premise rows as extra targets
     R, C = "<R>", "<R>/grpo_v2" + ("/smoke" if smoke else "")
     EV = "<R>/eval/v2" + ("_smoke" if smoke else "")
     L = C + "/logs" if smoke else "<R>/logs"
@@ -323,9 +343,26 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
         ("hand14", f"{ch}/hand_proved_14.jsonl", 64, "plain", 160),
         ("t2130", "<R>/eval/matched/sets/t2130_n1000.jsonl", 8, "plain", 96),
     ]
-    for name, sets, k, ra, ms in reads:
+    av = f"{C}/{arm}_avg_s{s}_L3/ckpts/{arm}_avg_s{s}_L3_it{it}.pt"
+    sets_of = {n: x for n, x, *_ in reads}
+    n_usual = len(reads)
+    if (
+        pil == "_mb"
+    ):  # after the usual reads: the averaging, then the averaged checkpoint's plain reads
+        reads += [(n, sets_of[n], k, "plain", 96) for n, k in AVG_READS]
+    for j, (name, sets, k, ra, ms) in enumerate(reads):
         k = 2 if smoke else k
-        o = f"{EV}/{name}_{arm}_s{s}_{ra}_k{k}"
+        avg = j >= n_usual  # ARM_mb's averaged reads
+        if avg and j == n_usual and not avg_there:
+            its = [] if smoke else AVG_ITS
+            fs = [f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{i}_rolling.pt" for i in its]
+            fs.append(ck(f"{arm}_s{s}_L3"))
+            al = f"{L}/v2_avg_{arm}_s{s}.log"
+            recs.append(("py", WT, "CVD=[]", al, al, " ".join(["-", av, *fs])))
+            out.append(
+                f"00:00Z averaged {arm}_s{s}_L3 it {' '.join(map(str, [*its, it]))} -> {av.replace('<R>', SB)}"
+            )
+        o = f"{EV}/{name}_{arm}{'_avg' if avg else ''}_s{s}_{ra}_k{k}"
         waitfree()
         recs.append(("rm", WT, "CVD=unset", st, st, f"-rf {o}"))
         log = f"{L}/v2_eval_{os.path.basename(o)}.log"
@@ -336,7 +373,7 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
                 cvd,
                 log,
                 log,
-                f"9000 <PY> -m code.thinking.eval --ckpt {ck(f'{arm}_s{s}_L3')} --sets {sets} --out {o} --k {k} "
+                f"9000 <PY> -m code.thinking.eval --ckpt {av if avg else ck(f'{arm}_s{s}_L3')} --sets {sets} --out {o} --k {k} "
                 f"--budgets {rb} --arms {ra} --batch {batch} --seed 0 --temperature 0.8 --max_action 512 "
                 f"--max_steps {ms} --max_rej 10" + (" --limit 2" if smoke else ""),
             )
@@ -397,11 +434,30 @@ for mode in ("normal", "smoke"):
             ok(len(ev) == 8, "A", f"{tag}: {len(ev)} eval dirs")
             lg = "./runs/grpo_v2/smoke/logs" if mode == "smoke" else "./runs/logs"
             el = [t for t in r["tree"] if t.startswith(f"f {lg}/v2_eval_")]
+            mb = arm.endswith("_mb")
+            if mb:  # the averaged checkpoint and its 4 plain reads
+                ev_avg = [
+                    t
+                    for t in r["tree"]
+                    if re.match(
+                        rf"^d \./runs/eval/v2(_smoke)?/[a-z0-9]+_{re.escape(arm)}_avg_s{s}_plain_k\d+$",
+                        t,
+                    )
+                ]
+                ok(len(ev_avg) == 4, "A", f"{tag}: {len(ev_avg)} averaged-read dirs")
+                c_ = "grpo_v2/smoke" if mode == "smoke" else "grpo_v2"
+                a_ = f"{arm}_avg_s{s}_L3"
+                ok(
+                    f"f ./runs/{c_}/{a_}/ckpts/{a_}_it{2 if mode == 'smoke' else 39}.pt"
+                    in r["tree"],
+                    "A",
+                    f"{tag}: averaged ckpt",
+                )
             ok(
-                len(el) == 8
+                len(el) == (12 if mb else 8)
                 and all(
                     re.match(
-                        rf"^f {re.escape(lg)}/v2_eval_(t1320|tb72|charles173|hand14|t2130)_{re.escape(arm)}_s{s}_(plain|logical)_k\d+\.log$",
+                        rf"^f {re.escape(lg)}/v2_eval_(t1320|tb72|charles173|hand14|t2130)_{re.escape(arm)}(_avg)?_s{s}_(plain|logical)_k\d+\.log$",
                         t,
                     )
                     for t in el
@@ -419,8 +475,16 @@ for mode in ("normal", "smoke"):
             want = (
                 (23 - (2 if arm in REUSE else 0))
                 if mode == "smoke"
-                else (46 + ("_vs3" in arm or arm.endswith("_3pb")) - (5 if arm in REUSE else 0))
-            ) + arm.endswith(("_rfb", "_ulb", "_pb"))  # the pilot options check
+                else (
+                    46
+                    + ("_vs3" in arm or arm.endswith(("_3pb", "_mb")))
+                    - (5 if arm in REUSE else 0)
+                )
+            ) + arm.endswith(("_rfb", "_ulb", "_pb", "_mb"))  # the pilot options check
+            if (
+                mb
+            ):  # the averaging, and 4 reads (rm, eval; and waitfree's 2 nvidia-smi outside SMOKE=1)
+                want += 1 + 4 * (2 if mode == "smoke" else 4)
             ok(n == want, "A", f"{tag}: {n} calls, want {want}")
 
 # ---------------------------------------------------------------- B: refusals
@@ -648,8 +712,54 @@ for mode in ("normal", "smoke"):
                 "grpo_think_pb",
                 r"grpo_think's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line",
             ),
+            # ARM_mb (2026-10-14): as ARM_3pb's
+            (
+                "nockpt",
+                "grpo_think_vs_mb",
+                rf"no L2 checkpoint of grpo_think_vs \({re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt\)",
+            ),
+            (
+                "rb",
+                "grpo_think_vs_mb",
+                r"grpo_think_vs's L2 log ends 'guard it 39: .*lr x0\.5 \(1 rollbacks\).*', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "nolog",
+                "grpo_nothink_vs_mb",
+                r"grpo_nothink_vs's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "no3pL3",
+                "grpo_think_vs_mb",
+                rf"no 3-premise pool file {re.escape(SB)}/pools/curriculum_3p/L3_3p\.jsonl \(runs/pools/curriculum_3p\)",
+            ),
         ):
             refusals.append((f"{d}/{kind}_{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm))
+        # ARM_mb: EI; another suffix (in either order; _ulb or _pb before it keeps theirs); a _vs3 arm
+        for arm, rx in (
+            ("ei_think_mb", r"_mb is a GRPO L3 pilot, and ei_think is EI"),
+            ("ei_nothink_v_mb", r"_mb is a GRPO L3 pilot, and ei_nothink_v is EI"),
+            *(
+                (a, r"_mb \(an L3 pilot\) does not combine with other suffixes")
+                for a in (
+                    "grpo_think_h_mb",
+                    "grpo_think_mb_h",
+                    "grpo_think_wb_mb",
+                    "grpo_think_mb_ulb",
+                    "grpo_think_vs_mb_pb",
+                )
+            ),
+            (
+                "grpo_think_ulb_mb",
+                r"_rfb, _ulb and _3pb \(L3 pilots\) do not combine with other suffixes",
+            ),
+            ("grpo_think_pb_mb", r"_pb \(an L3 pilot\) does not combine with other suffixes"),
+            ("grpo_think_vs3_mb", r"grpo_think_vs3 already trains on the 3-premise rows"),
+            ("grpo_nothink_vs3_mb", r"grpo_nothink_vs3 already trains on the 3-premise rows"),
+        ):
+            refusals.append(
+                (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm)
+            )
         # the curriculum_3p files are rebuilt by someone else: refused while one is missing
         for x in ("L3", "L2"):
             for arm in ("grpo_think_vs_3pb", "grpo_think_vs3", "grpo_nothink_vs3"):
@@ -702,6 +812,47 @@ for d, code, rx, arm in refusals:
         if arm in t and not (arm == "grpo_think_s3" and t.endswith("/preflight_grpo_think_s3.log"))
     ]
     ok(not wrote, "B", f"{tag}: wrote {wrote[:3]}")
+
+# ---------------------------------------------------------------- D: ARM_mb's averaging (2026-10-14)
+# a rolling checkpoint missing (an alarm iteration saves none): the stage and the usual reads as always, then the refusal
+# of the averaged reads; a rerun with the averaged checkpoint there: no averaging, the same reads
+for s in (0, 1, 2):
+    r = load(f"{H}/res/mb/normal/s{s}/noroll30_grpo_think_vs_mb")
+    exp, eout = expect("grpo_think_vs_mb", s, "normal", 3)
+    n_pre = next(i for i, x in enumerate(exp) if x[0] == "py" and x[5].startswith("- "))
+    f = f"{SB}/grpo_v2/grpo_think_vs_mb_s{s}_L3/ckpts/grpo_think_vs_mb_s{s}_L3_it30_rolling.pt"
+    want_out = [
+        x for x in eout if not x.startswith(("00:00Z averaged", "00:00Z grpo_v2 line done"))
+    ]
+    want_out = [x for x in want_out if "_avg_" not in x]
+    want_out.append(
+        f"00:00Z grpo_think_vs_mb: no {f} to average (an alarm iteration?): no averaged reads"
+    )
+    got = [key(x) for x in r["rec"]]
+    ok(r["exit"] == "1", "D", f"noroll30 s{s}: exit {r['exit']}")
+    ok(
+        sorted(got) == sorted(exp[:n_pre]),
+        "D",
+        f"noroll30 s{s}: calls differ from the usual line's",
+    )
+    ok(stdout_lines(r) == want_out, "D", f"noroll30 s{s}: stdout {stdout_lines(r)[-1:]}")
+for mode in ("normal", "smoke"):
+    for s in (0, 1, 2):
+        r = load(f"{H}/res/mb/{mode}/s{s}/rerun_grpo_think_vs_mb")
+        exp, eout = expect("grpo_think_vs_mb", s, mode, 3, avg_there=True)
+        got = [key(x) for x in r["rec"]]
+        ok(r["exit"] == "0", "D", f"rerun {mode} s{s}: exit {r['exit']}")
+        ok(
+            sorted(got) == sorted(exp),
+            "D",
+            f"rerun {mode} s{s}: calls {sorted(set(got) ^ set(exp))[:2]}",
+        )
+        ok(stdout_lines(r) == eout, "D", f"rerun {mode} s{s}: stdout")
+        ok(
+            not any(x[0] == "py" and x[5].startswith("- ") for x in got),
+            "D",
+            f"rerun {mode} s{s}: averaged again",
+        )
 
 # ---------------------------------------------------------------- C: busy GPU and queue.sh
 r = load(f"{H}/res/busy/grpo_think_s0")
