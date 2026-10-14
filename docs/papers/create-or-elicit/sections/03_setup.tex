@@ -28,7 +28,9 @@ family member, which is never trained on.
 \paragraph{Evaluation.} An evaluation draws $k=256$ independent attempts per theorem at $T=0.8$, with at most 96 steps
 and 512 tokens per step. A theorem is \emph{proved} if any attempt is accepted. Two sample seeds give two independent
 draws of the same checkpoint. A \emph{guided} evaluation uses the same budget, but a step that a per-step logical
-checker rejects is redrawn from the same state without replacement, up to 10 times per attempt. The checker never
+checker rejects is redrawn from the same state without replacement, up to 10 times per attempt. \rv{} On plain reads of
+six earlier r8 models of the same network (run \run{guided-tts}: the full-exposure seeds s0--s2, and three seeds
+pretrained on proofs of at most six lines), the checker never
 rejected a step Lean accepts in 314,541 tested atomic (state, step) pairs. General ability is measured on 5,000 held-out
 generator theorems decoded greedily, and on 322 evaluation theorems (72 textbook problems plus 250 held-out generator
 theorems; \S\ref{sec:case}).

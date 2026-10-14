@@ -6,7 +6,8 @@ grows \citep{yue2025doesrl}. Others report gains where the base fails, read at $
 shrink the boundary of what is solved while prolonged RL expands it \citep{yao2025twostage}, and wider rollouts revive
 plateaued runs \citep{hu2025brorl}. Much of RL's measured gain corresponds to operating points the base attains with
 search at small sample counts \citep{sun2026budgeted}. In five public RLVR pairs, the visible pass@$k$ crossovers were not statistically
-established \citep{yang2026kernel}, and reward and contamination controls change conclusions
+established \rv{} in the initial evaluations (a 32k-token evaluation on fresh prompts then located one, with the first
+loss between 11 and 61 samples) \citep{yang2026kernel}, and reward and contamination controls change conclusions
 \citep{shao2025spurious,wu2025contamination}. These studies compare base and RL at equal $k$, or through exchange rates
 up to 16 samples \citep{sun2026budgeted}. None ties the base's budget to RL's training compute, which we do, reporting
 the created set as a curve.

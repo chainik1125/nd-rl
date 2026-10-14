@@ -82,7 +82,8 @@ construction, since the proof is selected at r8. RL also lifts the pretraining r
 about three times less. On theorems neither r0 nor r8 proves, the reference proofs do not improve.
 
 \paragraph{Test-time compute before and after RL.} If RL mostly converts rare-but-possible proofs into likely
-ones, extra compute at test time should help the base more than the RL model (Fig.~\ref{fig:ttc}). A guided evaluation
+ones, extra compute at test time should help the base more than the RL model (Fig.~\ref{fig:ttc}). \rv{} Unless stated
+otherwise, the models here are the earlier full-exposure seeds s0--s2 at r0, r8 and r16. A guided evaluation
 adds 18--22 holdout250 theorems to the base and $-1$ to $+4$ to the RL models. On holdout250 the RL models are within
 3--14 theorems of the ceiling, and guided reading halves the gap between the base and r8 (44/31/37 theorems plain,
 21/14/19 guided). Textbook72 is the fairer pool: there, guided redraws add 8--12 to the base and 3--6 at r8. Guided attempts cost about 2.2 times the GPU time of plain ones (measured on r8 models), so this is not
@@ -92,17 +93,18 @@ on proofs of at most six lines), by 5.2--10.3 points. A PUCT tree search over pr
 with sampling at equal wall-clock. At r8 it is within $\pm3$ theorems of sampling on every pool, and it failed its
 pre-registered gate on the theorems neither r0 nor r8 proves. At r0 it adds 10--19 theorems on 100 long theorems
 (13--16 lines), about 44\% of what eight EI rounds add there by sampling. That fraction is 14\% on holdout250 and 17\% on
-textbook72. Neither method proves most of the compute-matched creations: the guided base proves 3/4/1 of the 22/21/14
-at $\Kpub$. DeepSeek-Prover-V1.5 reported its search and RL gains as orthogonal \citep{xin2024deepseekprover}. Here they overlap:
+textbook72. \rv{} Guided decoding does not recover most of the compute-matched creations: the guided base proves 3/4/1
+of the 22/21/14 at $\Kpub$. DeepSeek-Prover-V1.5 reported its search and RL gains as orthogonal \citep{xin2024deepseekprover}. Here they overlap:
 search recovers part of RL's gain at the base and adds little after RL.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig7_ttc.pdf}
 \caption{\textbf{Test-time compute helps the base more than the RL model.} (a) Guided minus plain evaluations ($k=256$
-each) for the base (r0) and after 8 and 16 rounds; bars are means, dots are seeds. Not compute-matched: guided
+each) for \rv{} the earlier full-exposure seeds s0--s2: the base (r0) and after 8 and 16 rounds; bars are means, dots
+are seeds. Not compute-matched: guided
 attempts cost about 2.2 times the GPU time. (b) PUCT search with a learned value head minus sampling at equal
-wall-clock. ``Group C'' holds the theorems neither r0 nor r8 proves in an earlier evaluation (28--36 per seed); ``long
+wall-clock \rv{} (the same seeds at r0 and r8). ``Group C'' holds the theorems neither r0 nor r8 proves in an earlier evaluation (28--36 per seed); ``long
 rrQ100'' holds 100 theorems of 13--16 lines; ``long2'' holds 21 longer theorems.}
 \label{fig:ttc}
 \end{figure}
