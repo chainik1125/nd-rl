@@ -5,6 +5,7 @@ The golden fixture was produced by the original tokenizer (``dan-pandori/nd-take
 rule. Matching it id for id is what makes checkpoints trained there usable here.
 """
 
+import gzip
 import json
 import os
 import random
@@ -17,11 +18,17 @@ import pytest
 
 from code.shared_code.lean_seq import (
     RULES,
+    Atom,
+    BinOp,
+    LeanParseError,
     LeanSeqTokenizer,
     NDParseError,
+    parse_lean_formula,
     parse_prompt,
     parse_proof,
+    proof_symbols,
     proof_tokens,
+    term_size,
 )
 
 
@@ -129,6 +136,36 @@ def test_bad_nd_proofs_raise(proof: str) -> None:
 def test_bad_prompt_raises() -> None:
     with pytest.raises(NDParseError):
         parse_prompt("THM P Q")
+
+
+def test_proof_symbols_and_formulas() -> None:
+    proof = "N1 ( P & Q ) : PR ; N2 ( Q > R ) : PR ; N3 Q : ANDE2 N1 ; N4 R : IMPE N2 N3 ; QED"
+    symbols = proof_symbols(proof)
+    assert [TOK.stoi[t] for t in symbols] + [TOK.eos_id] == TOK.encode_proof(proof)
+    assert symbols[:9] == ["have", "n1", ":", "(", "P", "∧", "Q", ")", ":="]
+    f, end = parse_lean_formula(symbols, 3)
+    assert (f, end) == (BinOp("and", Atom("P"), Atom("Q")), 8)
+    with pytest.raises(LeanParseError):
+        parse_lean_formula(["(", "P", ")"], 0)
+    with pytest.raises(LeanParseError):  # nested too deeply to parse
+        parse_lean_formula(["(", "¬"] * 3000 + ["P"] + [")"] * 3000, 0)
+
+
+# Term size against Lean's own count: the take-home fork's ``lean_check.py`` elaborated each proof
+# with Lean 4 and counted the inference nodes (``fixtures/proof_state/make_golden.py``).
+TERM_SIZES = json.loads((FIXTURE.parent / "proof_state" / "term_size.json").read_text("utf-8"))
+with gzip.open(FIXTURE.parent / "proof_state" / "k12_sample.jsonl.gz", "rt", encoding="utf-8") as f:
+    K12 = [json.loads(line) for line in f]
+
+
+def test_term_size_matches_lean() -> None:
+    assert len(K12) == len(TERM_SIZES["sizes"]) == 1100
+    got = [term_size(proof_symbols(r["proof"])) for r in K12]
+    assert got == TERM_SIZES["sizes"]
+    for _, text, size in TERM_SIZES["extra"]:  # .elim on ¬ / ∧ / ∨ / False, ¬ A as A → False, ...
+        assert term_size(text.split()) == size, text
+    and_elim = [n for _, t, n in TERM_SIZES["extra"] if t.startswith("have n1 : ( P ∧ Q ) := h1")]
+    assert and_elim == [2]  # And.elim takes the conjunction second: Lean eta-expands n1.elim
 
 
 # The experiment pipeline's tokenizer interface (``nd_model.ProofTokenizer``).

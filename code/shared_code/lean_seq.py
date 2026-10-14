@@ -29,8 +29,8 @@ Provenance and compatibility: ported from the take-home fork ``dan-pandori/nd-ta
 (``lean_tok.py``, mode ``lean_seq``), with the same 107-token vocabulary in the same order, so a
 checkpoint trained there decodes here unchanged. ``tests/test_lean_seq.py`` checks this against 68
 golden examples produced by the original. The fork's other modes are not included: ``lean_rand``
-(random name permutations, which trained worse) and the step-level state-conditioned modes
-(``lean_state*``), which need the proof-state environment.
+(random name permutations, which trained worse) and the vocabularies of the state-conditioned
+modes (``lean_state*``); their states and actions are ``state_env``'s.
 
 Checking: the rendered text is ordinary Lean 4 core (no Mathlib); ``statement(prompt) + " " + text``
 is a complete theorem. Which checker decides whether a proof counts is up to the caller; this module
@@ -74,6 +74,7 @@ class BinOp:
 
 
 Formula: TypeAlias = Atom | Bot | Not | BinOp
+FALSE = Bot()
 
 ATOMS = ("P", "Q", "R", "S")
 ND_BINOPS: dict[str, BinOpName] = {"&": "and", "v": "or", ">": "imp"}
@@ -357,6 +358,21 @@ def proof_tokens(body: str) -> list[Token]:
     return [*stack[0], "exact", Name(lines[-1].idx)]
 
 
+def proof_symbols(body: str) -> list[str]:
+    """An ND proof body as ``lean_seq`` symbols, names ``n1``, ``n2``, ... by first appearance."""
+    order: dict[int, int] = {}
+    out: list[str] = []
+    for t in proof_tokens(body):
+        if isinstance(t, Name):
+            k = order.setdefault(t.idx, len(order) + 1)
+            if k > MAX_NAMES:
+                raise ValueError(f"more than {MAX_NAMES} names")
+            out.append(f"n{k}")
+        else:
+            out.append(t)
+    return out
+
+
 # --------------------------------------------------------------------------------------------------
 # The tokenizer
 
@@ -418,17 +434,7 @@ class LeanSeqTokenizer:
 
     def encode_proof(self, body: str) -> list[int]:
         """An ND proof body as ids, names numbered by first appearance, ``<eos>`` appended."""
-        order: dict[int, int] = {}
-        out: list[int] = []
-        for t in proof_tokens(body):
-            if isinstance(t, Name):
-                k = order.setdefault(t.idx, len(order) + 1)
-                if k > MAX_NAMES:
-                    raise ValueError(f"more than {MAX_NAMES} names")
-                out.append(self.first_name + k - 1)
-            else:
-                out.append(self.stoi[t])
-        return [*out, self.eos_id]
+        return [*(self.stoi[t] for t in proof_symbols(body)), self.eos_id]
 
     def encode_record(self, record: str | dict[str, str]) -> list[int]:
         """One training sequence: prompt ids, then proof ids ending in ``<eos>``.
@@ -524,6 +530,21 @@ _TO_ND = {
 }
 
 
+def parse_lean_formula(toks: Sequence[str], i: int) -> tuple[Formula, int]:
+    """Parse one formula in ``lean_formula_tokens``' form starting at ``toks[i]``; return it and the
+    index after it. Raises ``LeanParseError`` if there is none (or it nests too deeply to parse)."""
+    nd: list[str] = []
+    j = i
+    while j < len(toks) and toks[j] in _TO_ND:
+        nd.append(_TO_ND[toks[j]])
+        j += 1
+    try:
+        f, used = parse_formula([*nd, "$"], 0)
+    except (NDParseError, RecursionError) as e:
+        raise LeanParseError("formula") from e
+    return f, i + used
+
+
 def _is_name(t: str) -> bool:
     return len(t) > 1 and t[0] == "n" and t[1:].isdigit()
 
@@ -560,16 +581,7 @@ class _Inverse:
         return t
 
     def formula(self) -> Formula:
-        nd: list[str] = []
-        j = self.pos
-        while j < len(self.toks) and self.toks[j] in _TO_ND:
-            nd.append(_TO_ND[self.toks[j]])
-            j += 1
-        try:
-            f, used = parse_formula([*nd, "$"], 0)
-        except NDParseError as e:
-            raise LeanParseError("formula") from e
-        self.pos += used
+        f, self.pos = parse_lean_formula(self.toks, self.pos)
         return f
 
     def ref(self, scope: dict[str, int]) -> int:
@@ -705,3 +717,52 @@ def inverse(toks: Sequence[str]) -> str:
     and the final ``exact`` cites the last top-level line.
     """
     return _Inverse(toks).parse()
+
+
+# --------------------------------------------------------------------------------------------------
+# Term size
+
+# Lean's elaborated term size per ND line of the ``lean_seq`` rendering (see ``term_size``).
+TERM_SIZE = {
+    "PR": 0,
+    "AS": 0,
+    "R": 0,
+    "ANDI": 1,
+    "ANDE1": 1,
+    "ANDE2": 1,
+    "IMPE": 1,
+    "NEGE": 1,
+    "ORI1": 1,
+    "ORI2": 1,
+    "BOTE": 1,
+    "IMPI": 1,
+    "NEGI": 1,
+    "ORE": 3,
+    "DN": 3,
+}
+
+
+def term_size(toks: Sequence[str]) -> int:
+    """The size of the proof term Lean elaborates from a proof's ``lean_seq`` symbols (``.1``,
+    ``.2`` and ``.elim`` separate, as ``proof_symbols`` and ``LeanSeqTokenizer.tokens`` return
+    them); raises ``LeanParseError`` outside the strict grammar.
+
+    The fork's definition (``lean_check.py``): the inference nodes of the elaborated value, 1 per
+    application headed by an inference constant (``And.intro``, ``Or.inl``, ``False.elim``,
+    ``Classical.byContradiction``, ...), 1 per argument of an application headed by a hypothesis,
+    1 per ``fun`` binder and 1 per projection; a ``have`` adds nothing, and names and types count
+    0. On this fragment that is a weight per line (``TERM_SIZE``): a premise or a reiteration is
+    free, ``Or.elim`` with its two binders is 3 and ``Classical.byContradiction ( fun hh => a hh )``
+    3. One exception: ``n .elim`` on a conjunction is 2, as Lean eta-expands it to
+    ``fun f => And.elim f n``. Unlike a line count, it does not depend on how a proof is split into
+    lines. ``tests/test_lean_seq.py`` checks it against Lean's own count.
+    """
+    lines = parse_proof(inverse(toks).split())
+    formulas = {ln.idx: ln.formula for ln in lines}
+    size = 0
+    for ln in lines:
+        size += TERM_SIZE[ln.rule]
+        if ln.rule == "BOTE":
+            cited = formulas[ln.refs[0]]
+            size += isinstance(cited, BinOp) and cited.op == "and"
+    return size
