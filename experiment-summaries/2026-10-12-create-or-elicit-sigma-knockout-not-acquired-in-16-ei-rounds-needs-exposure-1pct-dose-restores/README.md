@@ -353,6 +353,9 @@ r16. The proofs scored are the old full ladders'.*
 - Three of its four contraposition_conv members (`1246`, `1460`, `2256`) are among the four its base already had
   within reach at K_train.
 - The reviewer endorses the executor's reading in `log.md` 07:09: elicitation of a rare base behaviour, not a creation.
+
+  > **Update 2026-10-14 (librarian, `create-or-elicit-paper`).** The writing run's pre-registered check C4 sampled knockout s1's base 18,432 times per member with no early stopping. Only `1460` of `1246` / `1460` / `2256` is within reach, so its drop rule fired: the reading that knockout s1's ladder solved "mostly members its base already had within reach" (elicitation, not creation; Observations 5 and the Interpretation below) is **dropped**. The base reaches 2 of the 5 theorems the ladder proves. Reviewed in [create-or-elicit-paper](../2026-10-13-create-or-elicit-paper-draft-and-blog-no-headline-number-wrong-c4-drops-knockout-s1-elicitation-reading/README.md).
+
 - Its r20 proofs of these members: σ 32, σ⁺-only 24, lemma route 7.
 
 **6. Phase 3a, one seeded EI round** (exploratory, Addendum 6).
@@ -633,6 +636,7 @@ not itself a reviewed claim.
     the 4 contraposition_conv members it solves at r24 (`1019` is the exception). Its held-out set then stayed at
     5 / 106 from r20 to r24. The reviewer agrees with the executor that this is elicitation of a rare base behaviour,
     not creation.
+    *Update 2026-10-14: dropped by `create-or-elicit-paper`'s pre-registered check C4; see the note under Observations 5 and [its summary](../2026-10-13-create-or-elicit-paper-draft-and-blog-no-headline-number-wrong-c4-drops-knockout-s1-elicitation-reading/README.md).*
   - The "created" rule had little power if creation happens on fewer than one seed in five: 0 / 6 bounds the per-seed
     rate below 0.39.
 - In the full arm, the headline family (contraposition_conv) is already a pretraining capability. The RL-only

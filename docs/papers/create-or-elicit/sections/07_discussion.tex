@@ -1,0 +1,122 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{What the knockout shows.} Without \sig{} in pretraining or replay, 16 rounds of this EI acquired no classical
+family on any of six seeds. With it, full-exposure seeds gained 8--69 strict held-out theorems during the RL phase, and a
+1\% dose was enough on three seeds. The pre-registered verdict, \textsc{needs exposure}, holds for converse
+contraposition, the family the full bases mostly had before RL, and for the primary indicator. It is
+\textsc{undetermined} for four families at six seeds and \textsc{neither} for De Morgan. \rv{} These per-family verdicts
+rest on the pre-registered Holm correction; uncorrected, three of the undetermined families ($p = 0.034$) would meet
+\textsc{needs exposure}. Beyond the waiting-time null
+(post hoc), three knockout ladders first proved a strict training theorem sooner than their base rates predict. Unless the
+training theorems were easier for the bases than the held-out ones, the ladders raised their own rate of the free
+positive reductio. They did not raise it to a family.
+
+\paragraph{Four readings of the null.}
+\begin{enumerate}
+\item \emph{\sig{} has zero probability under the base.} This is false for five of six bases, which proved strict theorems with
+\sig{} at large $k$, and for four of six under guided decoding at $k = 256$. Seed 0's base is certified out of reach only
+for plain sampling \rv{} at $T = 0.8$ (plain sampling at $T = 1$ proved \texttt{la\_transfer\_916} on it), at one budget
+and with an 8\% margin; its guided evaluation proved a strict theorem.
+\item \emph{EI samples too little.} At 32 attempts per theorem, EI's per-round budget on the strict theorems is about
+4,000 attempts, against base rates near $10^{-6}$. That explains why most ladders saw nothing for many rounds. It does
+not explain everything: three ladders first proved strict training theorems sooner than this null predicts \rv{} ($p = 0.006$--$0.020$).
+\item \emph{EI amplifies rare finds too slowly, or too narrowly.} Seed 5 wrote a free positive reductio in round 2 and did
+not spread it far in 14 more rounds. Seed 1 multiplied its free positive reductio more than tenfold in eight extra rounds and still
+proved the same five held-out theorems. In EI a single new proof enters a fine-tuning mix of about 70,000 RL records (up
+to four proofs for each of 4,495 theorems, each repeated four times) plus 20,000 replay records.
+\item \emph{The knockout made the bases worse learners in general.} The general costs are a few theorems out of
+hundreds, and the knockout's gains elsewhere are not clearly smaller (partly catch-up). The dose arm restores
+acquisition while moving the constituents by about one point. This reading is not excluded, but it is not needed.
+\end{enumerate}
+
+\paragraph{Positive-only or signed updates?} Whether another RL algorithm would do better from the knockout bases is the
+main open question. EI updates only on successes. GRPO also pushes down failures and gives a lone success in a group of
+32 an advantage of $\sqrt{31} \approx 5.6$ standard deviations. That helps only after a first success: when all 32
+attempts fail, the group baseline gives no gradient, so on the strict theorems GRPO at $k=32$ faces the same waiting time
+as EI. The evidence cuts both ways.
+\begin{itemize}
+\item \textbf{Against EI-specificity.} In this organism, from the same full-exposure bases at equal sampled attempts,
+GRPO did not prove more theorems than EI. Default and unlikeliness-weighted GRPO proved significantly fewer of the 322
+(theorems solved only by GRPO vs only by EI: 15 vs 38, sign test $p = 0.0022$; 15 vs 44, $p = 0.0002$; both at r8).
+EI also replayed 20,000 pretraining records per round, which favours it on retention, and GRPO replayed none. A pass@4
+advantage was level (33 vs 20, $p = 0.098$), ahead on the hardest theorems mostly through one seed. Interplay's 0\%
+exposure null used GRPO \citep{zhang2025interplay}. A strategy removed at fine-tuning did not re-emerge under GRPO
+\citep{krishnamurthy2026select}. In LLM reasoning EI matched or beat PPO \citep{havrilla2024teaching}.
+\item \textbf{For EI-specificity.} Rejection-sampling fine-tuning plateaued where GRPO built new shortcuts
+\citep{abdulsalam2026rewrite}, iterated RFT failed where RL composed functions \citep{yuan2025fgx}, and GRPO produced a
+pattern family absent from its RL data \citep{park2025countdown}. Training on negative samples preserves breadth that
+positive-only training loses \citep{zhu2025nsr}. In our earlier 3.2M organism, GRPO acquired a depth-3 nesting habit from
+zero-rate bases where EI mostly did not (below).
+\end{itemize}
+GRPO has not been run from a reductio-free base in any of our organisms. A GRPO arm from the six knockout bases, with per-seed
+predictions written down first, is the decisive experiment. By sampling alone, GRPO would most likely first succeed \rv{} on
+seed 1, then on seed 4: under the waiting-time null, a strict success by r16 has probability 0.29, 0.13, 0.085 and 0.046
+on seeds 1, 4, 5 and 2. EI first succeeded on seeds 1, 2 and 5. A rescue of seed 0, whose base had no strict success in 1.5 million attempts, would point to
+drift.
+
+\paragraph{Earlier organisms.} The project studied related patterns in earlier organisms: 3.2M--85M-parameter models
+that write whole proofs, pretrained on proofs of at most six lines (their RL proofs ran to seven or eight). They were
+judged by an older in-house checker, with Lean confirmation where stated. Their criterion for \emph{igniting} a pattern
+was at least 2\% of the targets that require it, much weaker than our family bar.
+\begin{itemize}
+\item \textbf{Reductio, required pools.} Four of eleven reductio-free bases emitted the strict reductio before RL
+($8\times10^{-6}$--$2.3\times10^{-4}$ per sample), and exactly those four ignited under EI. First proofs arrived about
+when $1/(rkN)$ predicts (rounds 1, 2, 6 and 6, against 0.2, 1.7, 2.6 and 6.2). The other seven stayed at 0 of 606.
+In those pools every target needed the pattern, so a zero-rate base gave EI no training step at all. At 3.2M, 25M and
+85M parameters the rates did not rise with size. A rare 85M base that read 0 of 300 after eight rounds produced its
+first proof in round 13 when continued. Igniting arms saturated the seven-line targets and went no further, an analogue
+of knockout seed 1's narrow spread.
+\item \textbf{Injected data.} One fine-tuning step on a sibling's found proofs ignited all 11 dead arms. A single injected
+proof ignited the reductio on two dead seeds, with 6 and 17 targets proved in the next round. Four unrelated generator
+instances, and even four invalid pattern strings, ignited some arms. In the present organism, 16 demonstrations taught
+excluded middle to a base pretrained with no \texttt{DN} (35--37 of 39 members with replay of the full pretraining set,
+34--36 with \texttt{DN}-free replay).
+\item \textbf{Mixed pools.} Where EI could train on other proofs, it ignited a depth-3 nesting habit from zero on three
+of five bases, decided during training rather than by sampling luck. GRPO ignited it on every surviving arm from two
+zero-rate bases (12 of 12), where paired EI did so in 1 of 3. That habit was not needed for the targets, the zero rates
+were measured with the older checker, and the checkpoints are lost.
+\end{itemize}
+The knockout fits these results only partly. As there, the base rate predicts which seeds move, and no ladder that
+started at a pooled rate near $10^{-6}$ acquired a family. Unlike the required pools, our mixed pool let knockout
+seed 1's rate rise (by the earlier criterion it ignited at round 13), and three ladders first proved strict training
+theorems sooner than their bases' held-out rates predict. ``Needs exposure'' should therefore be read as ``needs exposure,
+demonstrations, or perhaps a different update, for this EI to acquire the family within 16 rounds''.
+
+\paragraph{An amplification threshold?} One might expect EI to amplify a composition once some training theorems' rates
+are high enough for 32 attempts per round to hit them within a few rounds. Our data do not show one. Knockout seed 1's
+ladder proved by r16 the two members its base proved most often (\texttt{916} and \texttt{1460}, at about
+$7\times10^{-4}$ and $2\times10^{-4}$). From r20 it proved often three members its base did not reach in 18,432
+attempts each (\texttt{1019}, \texttt{1246}, \texttt{2256}; \rv{} \texttt{1019} already once in two of four plain r16 draws, and twice in the guided one), and it never proved two its base reaches at about $10^{-4}$
+(\texttt{1096}, \texttt{1606}). Knockout seed 4's base proved three members once each in early-stopped samples, and its
+ladder amplified none. These are held-out members; the rates that would set a threshold are on training theorems, which
+we did not measure. Two doses cannot tell a threshold from a graded response. The median likelihood of known proofs also
+misses it: the nearest dose and knockout bases (dose s0, knockout s1) are within 0.7 nats, yet at r16 one proves 58
+strict theorems and the other 2. The 0.1\% dose, and per-theorem rates on training
+theorems at several checkpoints, would test it.
+
+\paragraph{What transfers to larger models.} The protocol transfers: budgets matched to RL's compute and reported as
+curves, RL-free controls, certificates. So does the waiting-time logic. A first success is expected after about
+$1/(rkN)$ rounds, so with $10^5$ prompts and $k = 64$, LLM RL could find compositions about 45 times rarer than our 123
+strict theorems allow, if a comparable share of prompts needs them; at $10^4$ prompts and $k = 8$ it could not. The numbers do not transfer. Two practical points
+follow, with that caveat.
+\begin{itemize}
+\item \textbf{Evaluation.} Absence at modest $k$ under plain sampling is not absence. Our knockout bases \rv{} prove no strict theorem in the
+pre-registered plain evaluation at $k=256$ (one proves one in a second draw), yet a million plain attempts or a guided evaluation at $k=256$ reveals the composition.
+\item \textbf{Data filtering.} Removing a composition from pretraining kept this EI from acquiring it for 16 rounds, but
+1\% of records restored it. We did not test the leakage levels a real filter leaves. In the same organism, 16
+demonstrations taught a no-\texttt{DN} base excluded middle, even with \texttt{DN}-free replay, so fine-tuning on demonstrations would likely defeat such a
+filter.
+\end{itemize}
+
+\paragraph{An evidence hierarchy for ``RL created it''.} In increasing strength:
+\begin{enumerate}
+\item success at equal $k$;
+\item a compute-matched base budget, reported as a curve over defensible allocations;
+\item RL-free controls with matched training;
+\item a certificate against the base at that budget;
+\item an intervention on what the base saw.
+\end{enumerate}
+For our full-exposure seeds the claim shrinks at each step (Table~\ref{tab:budgets}). With the intervention, exposure was
+followed by acquisition within 16 rounds, and its absence by none, for one composition and one algorithm. Steps 2 and 3
+cost about as much as the RL run they audit, so they are affordable wherever that run was; they are rarely reported.
