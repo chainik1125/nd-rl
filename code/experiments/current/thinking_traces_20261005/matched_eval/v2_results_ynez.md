@@ -9,13 +9,13 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | arm | 13–20 lines (986): pass@1 / pass@5 | 16–20 lines: pass@1 / pass@5 | textbook72: pass@1 / pass@5 | Charles149: pass@1 / pass@5 | hand-proved 14: pass@1 / pass@5 | 21–30 lines (1,000): pass@1 / pass@5 |
 |---|---|---|---|---|---|---|
-| GRPO, thinking | — | — | — | — | — | — |
+| GRPO, thinking | 26.2 [24.2, 28.3] / 48.4 [45.6, 51.2] (s2) | 18.9 [16.8, 21.1] / 39.2 [36.0, 42.5] (s2) | 73.1 [63.5, 81.8] / 80.4 [71.3, 88.6] (s2) | 68.9 [62.5, 75.1] / 79.8 [73.6, 85.5] (s2) | — | — |
 | GRPO, half lr, thinking | — | — | — | — | — | — |
 | GRPO + verifier (redraw), thinking | — | — | — | — | — | — |
-| GRPO + verifier (stop), thinking | 24.5 [22.6, 26.5] / 47.3 [44.7, 50.1] (s2) | 18.4 [16.3, 20.5] / 39.6 [36.3, 42.7] (s2) | 72.4 [62.6, 81.4] / 78.9 [69.3, 87.7] (s2) | 67.8 [61.3, 74.3] / 77.3 [70.9, 83.3] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 3.5 [2.8, 4.2] / 10.2 [8.5, 11.9] (s2) |
+| GRPO + verifier (stop), thinking | 29.2 [24.6, 33.2] / 53.0 [47.3, 58.0] (s0,1,2) | 22.4 [18.4, 25.9] / 45.1 [39.4, 50.3] (s0,1,2) | 74.8 [65.1, 83.8] / 81.7 [72.6, 89.6] (s0,1,2) | 70.2 [63.5, 76.7] / 78.7 [72.4, 84.4] (s0,1,2) | 0.0 [0.0, 0.2] / 0.2 [0.0, 0.9] (s0,1,2) | 5.6 [3.5, 7.5] / 15.0 [10.6, 19.0] (s0,1,2) |
 | GRPO + verifier (stop), half lr, thinking | — | — | — | — | — | — |
-| EI, thinking | — | — | — | — | — | — |
-| EI + verifier, thinking | 29.5 [26.5, 32.4] / 55.2 [51.8, 58.6] (s0,2) | 23.1 [19.9, 26.4] / 47.7 [43.1, 52.2] (s0,2) | 69.5 [60.4, 78.1] / 80.6 [72.0, 88.6] (s2) | 58.0 [51.3, 64.6] / 71.7 [64.7, 78.3] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 5.6 [4.7, 6.6] / 15.4 [13.5, 17.5] (s2) |
+| EI, thinking | 29.1 [27.1, 31.1] / 54.3 [51.7, 56.9] (s2) | 23.4 [21.1, 25.6] / 46.7 [43.4, 50.1] (s2) | 69.9 [60.4, 78.9] / 78.2 [68.9, 86.5] (s2) | 59.1 [52.1, 65.9] / 70.7 [63.7, 77.3] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 6.6 [5.6, 7.6] / 17.0 [15.0, 19.2] (s2) |
+| EI + verifier, thinking | 31.1 [27.5, 34.8] / 57.4 [52.9, 62.2] (s0,1,2) | 25.1 [21.1, 29.3] / 50.7 [44.9, 56.8] (s0,1,2) | 70.3 [61.0, 78.6] / 80.7 [72.2, 88.4] (s0,1,2) | 63.7 [55.8, 71.0] / 75.9 [68.9, 82.1] (s0,1,2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0,1,2) | 6.7 [5.3, 8.2] / 18.4 [14.9, 22.3] (s0,1,2) |
 | GRPO, no thinking | — | — | — | — | — | — |
 | GRPO, half lr, no thinking | — | — | — | — | — | — |
 | GRPO + verifier (redraw), no thinking | — | — | — | — | — | — |
@@ -31,48 +31,156 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | arm | seed | read | set | n | pass@1 | pass@5 |
 |---|---|---|---|---|---|---|
+| GRPO | 2 | plain | 13–20 lines (986) | 986 | 26.2 [24.2, 28.3] | 48.4 [45.6, 51.2] |
+| GRPO | 2 | plain | 16–20 lines | 616 | 18.9 [16.8, 21.1] | 39.2 [36.0, 42.5] |
+| GRPO | 2 | plain | textbook72 | 72 | 73.1 [63.5, 81.8] | 80.4 [71.3, 88.6] |
+| GRPO | 2 | plain | Charles149 | 149 | 68.9 [62.5, 75.1] | 79.8 [73.6, 85.5] |
+| GRPO + verifier (stop) | 0 | plain | 13–20 lines (986) | 986 | 30.5 [28.5, 32.6] | 54.2 [51.5, 56.9] |
+| GRPO + verifier (stop) | 1 | plain | 13–20 lines (986) | 986 | 32.7 [30.6, 34.8] | 57.6 [54.9, 60.3] |
 | GRPO + verifier (stop) | 2 | plain | 13–20 lines (986) | 986 | 24.5 [22.6, 26.5] | 47.3 [44.7, 50.1] |
+| GRPO + verifier (stop) | 0 | guided | 13–20 lines (986) | 986 | 48.2 [45.9, 50.4] | 72.0 [69.6, 74.4] |
+| GRPO + verifier (stop) | 1 | guided | 13–20 lines (986) | 986 | 49.1 [46.9, 51.4] | 74.6 [72.3, 76.9] |
 | GRPO + verifier (stop) | 2 | guided | 13–20 lines (986) | 986 | 38.8 [36.6, 41.0] | 64.7 [62.2, 67.1] |
+| GRPO + verifier (stop) | 0 | plain | 16–20 lines | 616 | 24.1 [21.9, 26.5] | 46.3 [42.9, 49.6] |
+| GRPO + verifier (stop) | 1 | plain | 16–20 lines | 616 | 24.7 [22.3, 27.1] | 49.4 [46.0, 52.8] |
 | GRPO + verifier (stop) | 2 | plain | 16–20 lines | 616 | 18.4 [16.3, 20.5] | 39.6 [36.3, 42.7] |
+| GRPO + verifier (stop) | 0 | guided | 16–20 lines | 616 | 40.7 [37.9, 43.5] | 65.8 [62.6, 69.0] |
+| GRPO + verifier (stop) | 1 | guided | 16–20 lines | 616 | 40.9 [38.1, 43.6] | 68.1 [65.0, 71.2] |
 | GRPO + verifier (stop) | 2 | guided | 16–20 lines | 616 | 31.9 [29.3, 34.5] | 57.7 [54.4, 60.8] |
+| GRPO + verifier (stop) | 0 | plain | textbook72 | 72 | 72.7 [63.4, 81.0] | 82.1 [73.5, 89.6] |
+| GRPO + verifier (stop) | 1 | plain | textbook72 | 72 | 79.3 [70.3, 87.2] | 84.2 [75.4, 91.7] |
 | GRPO + verifier (stop) | 2 | plain | textbook72 | 72 | 72.4 [62.6, 81.4] | 78.9 [69.3, 87.7] |
+| GRPO + verifier (stop) | 0 | guided | textbook72 | 72 | 80.7 [72.4, 88.0] | 88.0 [80.6, 94.1] |
+| GRPO + verifier (stop) | 1 | guided | textbook72 | 72 | 83.3 [74.6, 90.7] | 86.9 [78.9, 93.6] |
 | GRPO + verifier (stop) | 2 | guided | textbook72 | 72 | 77.5 [68.3, 85.9] | 82.8 [74.0, 90.8] |
+| GRPO + verifier (stop) | 0 | plain | Charles149 | 149 | 69.6 [62.9, 75.9] | 78.1 [71.8, 83.8] |
+| GRPO + verifier (stop) | 1 | plain | Charles149 | 149 | 73.1 [66.7, 79.2] | 80.8 [74.8, 86.4] |
 | GRPO + verifier (stop) | 2 | plain | Charles149 | 149 | 67.8 [61.3, 74.3] | 77.3 [70.9, 83.3] |
+| GRPO + verifier (stop) | 0 | guided | Charles149 | 149 | 80.4 [74.8, 85.5] | 88.3 [83.6, 92.5] |
+| GRPO + verifier (stop) | 1 | guided | Charles149 | 149 | 80.6 [74.9, 85.9] | 87.1 [82.0, 91.6] |
 | GRPO + verifier (stop) | 2 | guided | Charles149 | 149 | 75.3 [69.1, 81.0] | 83.4 [77.7, 88.7] |
+| GRPO + verifier (stop) | 0 | plain | hand-proved 14 | 14 | 0.1 [0.0, 0.3] | 0.6 [0.0, 1.7] |
+| GRPO + verifier (stop) | 1 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
 | GRPO + verifier (stop) | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| GRPO + verifier (stop) | 0 | plain | 21–30 lines (1,000) | 1000 | 7.3 [6.2, 8.4] | 18.4 [16.3, 20.7] |
+| GRPO + verifier (stop) | 1 | plain | 21–30 lines (1,000) | 1000 | 6.0 [5.1, 7.0] | 16.5 [14.5, 18.6] |
 | GRPO + verifier (stop) | 2 | plain | 21–30 lines (1,000) | 1000 | 3.5 [2.8, 4.2] | 10.2 [8.5, 11.9] |
+| EI | 2 | plain | 13–20 lines (986) | 986 | 29.1 [27.1, 31.1] | 54.3 [51.7, 56.9] |
+| EI | 2 | guided | 13–20 lines (986) | 986 | 45.2 [43.0, 47.5] | 71.4 [69.0, 73.7] |
+| EI | 2 | plain | 16–20 lines | 616 | 23.4 [21.1, 25.6] | 46.7 [43.4, 50.1] |
+| EI | 2 | guided | 16–20 lines | 616 | 37.7 [35.0, 40.4] | 64.4 [61.1, 67.4] |
+| EI | 2 | plain | textbook72 | 72 | 69.9 [60.4, 78.9] | 78.2 [68.9, 86.5] |
+| EI | 2 | guided | textbook72 | 72 | 75.2 [66.1, 83.6] | 83.0 [74.5, 90.4] |
+| EI | 2 | plain | Charles149 | 149 | 59.1 [52.1, 65.9] | 70.7 [63.7, 77.3] |
+| EI | 2 | guided | Charles149 | 149 | 70.6 [64.4, 76.6] | 82.3 [76.7, 87.5] |
+| EI | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| EI | 2 | plain | 21–30 lines (1,000) | 1000 | 6.6 [5.6, 7.6] | 17.0 [15.0, 19.2] |
 | EI + verifier | 0 | plain | 13–20 lines (986) | 986 | 31.1 [29.1, 33.1] | 56.8 [54.2, 59.3] |
+| EI + verifier | 1 | plain | 13–20 lines (986) | 986 | 34.5 [32.5, 36.6] | 61.9 [59.4, 64.5] |
 | EI + verifier | 2 | plain | 13–20 lines (986) | 986 | 27.8 [26.0, 29.7] | 53.6 [51.0, 56.2] |
+| EI + verifier | 0 | guided | 13–20 lines (986) | 986 | 45.3 [43.0, 47.5] | 71.4 [68.9, 73.7] |
+| EI + verifier | 1 | guided | 13–20 lines (986) | 986 | 50.0 [47.8, 52.3] | 76.7 [74.6, 79.0] |
 | EI + verifier | 2 | guided | 13–20 lines (986) | 986 | 41.9 [39.7, 44.0] | 69.1 [66.5, 71.5] |
 | EI + verifier | 0 | plain | 16–20 lines | 616 | 24.8 [22.6, 27.2] | 50.0 [46.9, 53.4] |
+| EI + verifier | 1 | plain | 16–20 lines | 616 | 29.1 [26.7, 31.6] | 56.6 [53.2, 59.9] |
 | EI + verifier | 2 | plain | 16–20 lines | 616 | 21.4 [19.3, 23.6] | 45.4 [42.0, 48.7] |
+| EI + verifier | 0 | guided | 16–20 lines | 616 | 38.7 [35.9, 41.4] | 64.9 [61.7, 68.2] |
+| EI + verifier | 1 | guided | 16–20 lines | 616 | 42.9 [40.1, 45.5] | 71.6 [68.5, 74.5] |
 | EI + verifier | 2 | guided | 16–20 lines | 616 | 35.1 [32.5, 37.8] | 62.4 [59.2, 65.6] |
+| EI + verifier | 0 | plain | textbook72 | 72 | 70.9 [61.5, 79.5] | 81.2 [72.5, 89.0] |
+| EI + verifier | 1 | plain | textbook72 | 72 | 70.6 [61.1, 79.3] | 80.4 [71.6, 88.2] |
 | EI + verifier | 2 | plain | textbook72 | 72 | 69.5 [60.4, 78.1] | 80.6 [72.0, 88.6] |
+| EI + verifier | 0 | guided | textbook72 | 72 | 76.8 [68.1, 84.7] | 86.2 [79.0, 92.9] |
+| EI + verifier | 1 | guided | textbook72 | 72 | 76.0 [66.8, 84.2] | 84.6 [76.5, 91.5] |
 | EI + verifier | 2 | guided | textbook72 | 72 | 77.1 [68.3, 85.1] | 84.9 [76.6, 91.9] |
+| EI + verifier | 0 | plain | Charles149 | 149 | 67.1 [60.4, 73.6] | 77.5 [71.1, 83.5] |
+| EI + verifier | 1 | plain | Charles149 | 149 | 65.9 [59.4, 72.0] | 78.5 [72.6, 84.0] |
 | EI + verifier | 2 | plain | Charles149 | 149 | 58.0 [51.3, 64.6] | 71.7 [64.7, 78.3] |
+| EI + verifier | 0 | guided | Charles149 | 149 | 78.6 [72.9, 84.0] | 87.7 [82.6, 92.2] |
+| EI + verifier | 1 | guided | Charles149 | 149 | 74.5 [68.5, 80.3] | 85.3 [79.9, 90.2] |
 | EI + verifier | 2 | guided | Charles149 | 149 | 71.4 [65.2, 77.4] | 82.5 [76.9, 87.8] |
+| EI + verifier | 0 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| EI + verifier | 1 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
 | EI + verifier | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| EI + verifier | 0 | plain | 21–30 lines (1,000) | 1000 | 6.5 [5.5, 7.5] | 17.4 [15.3, 19.5] |
+| EI + verifier | 1 | plain | 21–30 lines (1,000) | 1000 | 8.1 [7.1, 9.2] | 22.3 [20.1, 24.7] |
 | EI + verifier | 2 | plain | 21–30 lines (1,000) | 1000 | 5.6 [4.7, 6.6] | 15.4 [13.5, 17.5] |
 
 ## 3. Paired differences at the same training budget (seeds paired by init)
 
 | comparison | read | set | seeds | Δ pass@1 | Δ pass@5 |
 |---|---|---|---|---|---|
+| thinking, curriculum only: GRPO − EI | plain | 13–20 lines (986) | 2 | -2.9 [-4.7, -1.2] | -5.9 [-8.4, -3.5] |
+| thinking, curriculum only: GRPO − EI | plain | 16–20 lines | 2 | -4.5 [-6.5, -2.5] | -7.6 [-10.7, -4.4] |
+| thinking, curriculum only: GRPO − EI | plain | textbook72 | 2 | +3.2 [-0.9, +7.7] | +2.2 [-2.0, +6.7] |
+| thinking, curriculum only: GRPO − EI | plain | Charles149 | 2 | +9.8 [+5.7, +14.3] | +9.1 [+5.0, +13.5] |
+| thinking: GRPO + verifier (stop) − GRPO | plain | 13–20 lines (986) | 2 | -1.7 [-3.0, -0.5] | -1.1 [-3.0, +0.9] |
+| thinking: GRPO + verifier (stop) − GRPO | plain | 16–20 lines | 2 | -0.5 [-1.9, +0.9] | +0.4 [-2.2, +2.9] |
+| thinking: GRPO + verifier (stop) − GRPO | plain | textbook72 | 2 | -0.7 [-3.4, +2.2] | -1.4 [-4.3, +0.7] |
+| thinking: GRPO + verifier (stop) − GRPO | plain | Charles149 | 2 | -1.1 [-4.4, +2.1] | -2.5 [-5.4, +0.1] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 13–20 lines (986) | 0 | -0.6 [-2.3, +1.1] | -2.6 [-4.9, -0.4] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 13–20 lines (986) | 1 | -1.8 [-3.6, -0.1] | -4.4 [-6.8, -2.0] |
 | thinking: GRPO + verifier (stop) − EI + verifier | plain | 13–20 lines (986) | 2 | -3.3 [-4.9, -1.8] | -6.3 [-8.6, -3.9] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 13–20 lines (986) | 0,1,2 | -1.9 [-3.7, -0.1] | -4.4 [-6.9, -1.9] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | 13–20 lines (986) | 0 | +2.9 [+0.8, +4.9] | +0.6 [-1.7, +3.0] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | 13–20 lines (986) | 1 | -0.9 [-2.9, +1.0] | -2.2 [-4.4, +0.1] |
 | thinking: GRPO + verifier (stop) − EI + verifier | guided | 13–20 lines (986) | 2 | -3.1 [-5.1, -1.2] | -4.4 [-6.8, -2.2] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | 13–20 lines (986) | 0,1,2 | -0.4 [-3.4, +2.9] | -2.0 [-4.8, +1.0] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 16–20 lines | 0 | -0.7 [-2.8, +1.3] | -3.8 [-6.9, -0.8] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 16–20 lines | 1 | -4.5 [-6.4, -2.5] | -7.3 [-10.2, -4.2] |
 | thinking: GRPO + verifier (stop) − EI + verifier | plain | 16–20 lines | 2 | -3.1 [-4.9, -1.3] | -5.8 [-8.8, -2.8] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 16–20 lines | 0,1,2 | -2.8 [-5.1, -0.4] | -5.6 [-8.4, -2.7] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | 16–20 lines | 0 | +2.0 [-0.6, +4.7] | +0.9 [-2.4, +4.0] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | 16–20 lines | 1 | -2.0 [-4.2, +0.4] | -3.5 [-6.4, -0.5] |
 | thinking: GRPO + verifier (stop) − EI + verifier | guided | 16–20 lines | 2 | -3.2 [-5.7, -0.7] | -4.7 [-7.9, -1.5] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | 16–20 lines | 0,1,2 | -1.1 [-4.0, +2.4] | -2.4 [-6.0, +1.5] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | textbook72 | 0 | +1.8 [-3.7, +7.5] | +0.9 [-5.1, +6.9] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | textbook72 | 1 | +8.8 [+3.5, +14.8] | +3.7 [-1.8, +9.7] |
 | thinking: GRPO + verifier (stop) − EI + verifier | plain | textbook72 | 2 | +2.9 [-1.7, +7.3] | -1.7 [-7.6, +3.7] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | textbook72 | 0,1,2 | +4.5 [-0.8, +10.4] | +1.0 [-4.9, +6.7] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | textbook72 | 0 | +3.8 [-2.7, +10.6] | +1.8 [-4.0, +7.5] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | textbook72 | 1 | +7.3 [+2.1, +13.3] | +2.3 [-1.3, +6.4] |
 | thinking: GRPO + verifier (stop) − EI + verifier | guided | textbook72 | 2 | +0.5 [-5.3, +5.6] | -2.0 [-8.7, +4.3] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | textbook72 | 0,1,2 | +3.9 [-2.2, +9.9] | +0.7 [-4.8, +5.6] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | Charles149 | 0 | +2.5 [-2.2, +7.1] | +0.6 [-3.4, +4.7] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | Charles149 | 1 | +7.2 [+2.0, +12.7] | +2.3 [-2.5, +7.1] |
 | thinking: GRPO + verifier (stop) − EI + verifier | plain | Charles149 | 2 | +9.8 [+5.2, +14.6] | +5.6 [+1.3, +10.2] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | Charles149 | 0,1,2 | +6.5 [+1.1, +12.0] | +2.8 [-1.4, +7.4] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | Charles149 | 0 | +1.8 [-2.6, +6.4] | +0.7 [-2.8, +4.2] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | Charles149 | 1 | +6.1 [+1.3, +10.8] | +1.8 [-2.6, +5.9] |
 | thinking: GRPO + verifier (stop) − EI + verifier | guided | Charles149 | 2 | +3.8 [-1.3, +8.8] | +0.9 [-3.5, +5.4] |
+| thinking: GRPO + verifier (stop) − EI + verifier | guided | Charles149 | 0,1,2 | +3.9 [-0.7, +8.6] | +1.1 [-2.3, +4.7] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | hand-proved 14 | 0 | +0.1 [+0.0, +0.3] | +0.6 [+0.0, +1.7] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | hand-proved 14 | 1 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
 | thinking: GRPO + verifier (stop) − EI + verifier | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | hand-proved 14 | 0,1,2 | +0.0 [+0.0, +0.2] | +0.2 [+0.0, +0.9] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 21–30 lines (1,000) | 0 | +0.8 [-0.2, +1.8] | +1.0 [-1.2, +3.2] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 21–30 lines (1,000) | 1 | -2.1 [-3.1, -1.1] | -5.9 [-8.2, -3.5] |
 | thinking: GRPO + verifier (stop) − EI + verifier | plain | 21–30 lines (1,000) | 2 | -2.1 [-3.0, -1.3] | -5.2 [-7.3, -3.3] |
+| thinking: GRPO + verifier (stop) − EI + verifier | plain | 21–30 lines (1,000) | 0,1,2 | -1.1 [-2.7, +0.7] | -3.3 [-6.8, +0.8] |
+| thinking: EI + verifier − EI | plain | 13–20 lines (986) | 2 | -1.3 [-2.5, -0.1] | -0.7 [-2.6, +1.1] |
+| thinking: EI + verifier − EI | guided | 13–20 lines (986) | 2 | -3.3 [-4.7, -1.9] | -2.3 [-4.0, -0.5] |
+| thinking: EI + verifier − EI | plain | 16–20 lines | 2 | -1.9 [-3.3, -0.5] | -1.3 [-3.8, +1.1] |
+| thinking: EI + verifier − EI | guided | 16–20 lines | 2 | -2.6 [-4.3, -0.9] | -2.0 [-4.4, +0.5] |
+| thinking: EI + verifier − EI | plain | textbook72 | 2 | -0.4 [-3.4, +2.5] | +2.5 [+0.3, +5.3] |
+| thinking: EI + verifier − EI | guided | textbook72 | 2 | +1.9 [-0.3, +5.0] | +1.9 [-1.1, +5.6] |
+| thinking: EI + verifier − EI | plain | Charles149 | 2 | -1.1 [-3.9, +1.9] | +1.0 [-2.4, +4.4] |
+| thinking: EI + verifier − EI | guided | Charles149 | 2 | +0.8 [-1.6, +3.6] | +0.2 [-2.3, +2.8] |
+| thinking: EI + verifier − EI | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: EI + verifier − EI | plain | 21–30 lines (1,000) | 2 | -1.0 [-1.8, -0.2] | -1.6 [-3.4, +0.2] |
 
 ## 4. What each change buys (thinking, plain reads, seeds paired)
 
 | method | change | set | seeds | Δ pass@1 | Δ pass@5 |
 |---|---|---|---|---|---|
+| GRPO | + verifier (stop) (vs GRPO) | 16–20 lines | 2 | -0.5 [-1.9, +0.9] | +0.4 [-2.2, +2.9] |
+| GRPO | + verifier (stop) (vs GRPO) | textbook72 | 2 | -0.7 [-3.4, +2.2] | -1.4 [-4.3, +0.7] |
+| GRPO | + verifier (stop) (vs GRPO) | Charles149 | 2 | -1.1 [-4.4, +2.1] | -2.5 [-5.4, +0.1] |
+| GRPO | + verifier (stop) (vs GRPO) | 13–20 lines (986) | 2 | -1.7 [-3.0, -0.5] | -1.1 [-3.0, +0.9] |
+| EI | + verifier (vs EI) | 16–20 lines | 2 | -1.9 [-3.3, -0.5] | -1.3 [-3.8, +1.1] |
+| EI | + verifier (vs EI) | textbook72 | 2 | -0.4 [-3.4, +2.5] | +2.5 [+0.3, +5.3] |
+| EI | + verifier (vs EI) | Charles149 | 2 | -1.1 [-3.9, +1.9] | +1.0 [-2.4, +4.4] |
+| EI | + verifier (vs EI) | 13–20 lines (986) | 2 | -1.3 [-2.5, -0.1] | -0.7 [-2.6, +1.1] |
 
 ## 5. GRPO − EI at matched sampled tokens per problem (plain reads)
 
@@ -80,16 +188,27 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | comparison | set | seeds | 1k | 2k | 4k | 8k |
 |---|---|---|---|---|---|---|
-| thinking: GRPO + verifier (stop) − EI + verifier | 16–20 lines | 2 | +1.0 [-1.0, +2.9] | -0.0 [-2.5, +2.4] | -1.0 [-3.9, +2.0] | -1.8 [-5.2, +1.6] |
-| thinking: GRPO + verifier (stop) − EI + verifier | textbook72 | 2 | +1.9 [-3.6, +7.4] | -0.8 [-6.5, +4.7] | -2.4 [-8.3, +3.1] | -2.9 [-9.5, +3.4] |
-| thinking: GRPO + verifier (stop) − EI + verifier | Charles149 | 2 | +9.2 [+4.5, +14.3] | +7.2 [+2.8, +12.0] | +5.7 [+1.4, +10.3] | +4.7 [+0.6, +9.0] |
+| thinking, curriculum only: GRPO − EI | 16–20 lines | 2 | -2.2 [-4.4, -0.1] | -3.7 [-6.4, -1.0] | -4.7 [-7.8, -1.6] | -4.9 [-8.5, -1.2] |
+| thinking, curriculum only: GRPO − EI | textbook72 | 2 | +3.2 [-1.1, +8.1] | +2.7 [-1.3, +7.3] | +2.6 [-1.3, +6.8] | +2.8 [-1.5, +7.1] |
+| thinking, curriculum only: GRPO − EI | Charles149 | 2 | +11.0 [+6.7, +15.6] | +10.1 [+5.7, +14.5] | +8.7 [+4.4, +13.1] | +7.0 [+3.0, +11.4] |
+| thinking: GRPO + verifier (stop) − GRPO | 16–20 lines | 2 | -0.1 [-1.7, +1.5] | +0.2 [-1.8, +2.4] | +0.8 [-1.8, +3.4] | +1.3 [-2.1, +4.6] |
+| thinking: GRPO + verifier (stop) − GRPO | textbook72 | 2 | -0.5 [-2.5, +1.3] | -1.5 [-4.4, +0.7] | -2.2 [-6.4, +0.9] | -2.5 [-7.3, +1.4] |
+| thinking: GRPO + verifier (stop) − GRPO | Charles149 | 2 | -2.1 [-5.1, +0.9] | -2.4 [-5.1, +0.2] | -1.9 [-4.5, +0.4] | -1.1 [-3.2, +1.0] |
+| thinking: GRPO + verifier (stop) − EI + verifier | 16–20 lines | 0,1,2 | -0.2 [-3.6, +2.9] ‡ | -1.1 [-5.1, +2.6] | -2.3 [-6.2, +1.4] | -3.4 [-7.2, +0.1] |
+| thinking: GRPO + verifier (stop) − EI + verifier | textbook72 | 0,1,2 | +3.5 [-1.8, +9.2] | +1.7 [-3.9, +7.5] | +0.3 [-5.4, +5.8] | -0.4 [-6.1, +4.7] |
+| thinking: GRPO + verifier (stop) − EI + verifier | Charles149 | 0,1,2 | +5.7 [+0.6, +11.1] | +4.0 [-0.4, +8.9] | +2.8 [-1.3, +7.3] | +1.9 [-1.8, +6.1] |
+| thinking: EI + verifier − EI | 16–20 lines | 2 | -3.3 [-4.8, -1.8] | -3.4 [-5.2, -1.5] | -2.9 [-5.2, -0.6] | -1.8 [-4.8, +1.0] |
+| thinking: EI + verifier − EI | textbook72 | 2 | +0.8 [-1.6, +3.5] | +2.1 [+0.1, +4.6] | +2.8 [+0.6, +5.4] | +3.2 [+0.4, +6.4] |
+| thinking: EI + verifier − EI | Charles149 | 2 | -0.3 [-3.5, +3.0] | +0.5 [-2.8, +4.0] | +1.1 [-2.3, +4.6] | +1.2 [-2.1, +4.7] |
 
 ## 6. 13–20 by premise count (plain reads; the v2 pools have 0–2 premises)
 
 | arm | seeds | 0–2 premises (210): pass@1 | 3 premises (776): pass@1 | 3 premises: attempts ending at `S:PR position` |
 |---|---|---|---|---|
-| GRPO + verifier (stop) | 2 | 39.2 [34.6, 44.0] | 20.5 [18.5, 22.5] | 1% |
-| EI + verifier | 0,2 | 42.8 [38.2, 47.6] | 25.9 [22.7, 29.2] | 0% |
+| GRPO | 2 | 42.3 [37.4, 47.6] | 21.9 [19.9, 24.0] | 1% |
+| GRPO + verifier (stop) | 0,1,2 | 45.0 [38.2, 52.1] | 25.0 [20.5, 28.7] | 0% |
+| EI | 2 | 42.7 [38.1, 47.6] | 25.5 [23.3, 27.5] | 0% |
+| EI + verifier | 0,1,2 | 44.8 [39.6, 50.4] | 27.4 [23.7, 31.0] | 0% |
 
 ## Notes
 
@@ -104,6 +223,6 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 - `groups_skipped` means different things with and without the step penalty; compare the
   arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.
 
-Rows not there yet (346 files; run: files):
+Rows not there yet (304 files; run: files):
 
-`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `ei_think_s0`: 8, `ei_think_s1`: 8, `ei_think_s2`: 8, `ei_think_v_s0`: 7, `ei_think_v_s1`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_s0`: 8, `grpo_think_s1`: 8, `grpo_think_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_s0`: 8, `grpo_think_vs_s1`: 8, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
+`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `ei_think_s0`: 8, `ei_think_s1`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_s0`: 8, `grpo_think_s1`: 8, `grpo_think_s2`: 5, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
