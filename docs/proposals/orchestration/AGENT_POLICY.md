@@ -5,10 +5,12 @@ from there for every role, so there is one copy. Copies of `AGENT_POLICY.md` ins
 are historical; where they disagree with this one, this one wins. Every brief is read together with
 this file, and where a brief and this file disagree, this file wins.
 
-## The one hard rule
+## A firm default: no outside contact
 
 **Do not contact or involve other humans.** No PR reviewers, no messages, nothing sent to
-Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and shares things himself.
+Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and shares things himself, and agents
+notify only Dan. This is a firm default, not an absolute (Dan, 2026-10-13): in a genuinely extreme situation, use
+your judgment, and tell Dan at once what you did and why.
 
 ## Standards with reasons (keep them; say when and why you deviate)
 
