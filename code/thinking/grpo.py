@@ -118,6 +118,28 @@ the two alarms, which only add alarm lines and alarm checkpoints; the updates ar
   `--prompts`) groups per iteration come from a second target file, with its own curriculum;
   logged as `extra_*`.
 
+Learning-rate schedule (opt-in, `--lr_schedule`; Leon 2026-10-13). The default, constant, is the
+earlier code's lr: `--lr` x the rollback scale `lr_scale`, after a linear ramp over the first
+`--warmup` (10) AdamW steps of the run (each stage's `--init` starts a fresh AdamW and step count:
+2.5 iterations at `--updates` 4). `cosine` and `wsd` multiply it by a factor per iteration: the
+run's iteration t = 1 .. T (T = `--iters`, t = the iteration's number minus `--start_iter`) trains
+at `--lr` x m(t) x `lr_scale` x the step ramp, m = `lr_mult`. With `--warmup_iters` W > 0 the
+warmup is m's, t / W while t < W, and the step ramp is off; with W = 0 (the default) the step ramp
+stays, as in the constant schedule. After the warmup,
+* **cosine**: m from 1 at t = W to f = `--min_lr_frac` at t = T (EI's fine-tune schedule,
+  `train.finetune`, over iterations instead of steps);
+* **wsd** (warmup-stable-decay): m = 1 until the last D = round(`--decay_frac` x T) iterations (at
+  least 1), then down to f at t = T, linearly, along a half cosine, or as 1 - sqrt
+  (`--decay_shape`; the 1-sqrt cooldown of Hägele et al. 2024, arXiv 2405.18392). Until the decay
+  its lr is the constant schedule's bit for bit.
+A rollback halves `lr_scale` from the next iteration, as before, on top of the schedule. It restores
+the training state (the step count too) but not the iteration number, so the schedule goes on from
+the alarming iteration's number and the run still ends at m(T) (f, unless the warmup covers it). A
+resume continues the same schedule and refuses a checkpoint whose run had another one. Logged:
+`lr` (the iteration's last step's; its next step's when it takes none), `lr_mult`, `lr_ramp`,
+`alarm_cfg['lr_schedule']` and the guard line's `lr L = base x kind m x scale [x ramp r]`. The
+options are left out of args.json unless given.
+
 Verifier-guided sampling and the step penalty (opt-in; Leon 2026-10-09, "GRPO + verifier"):
 * **`--arm`** is the sampler's arm (`sample.think_generate`): `plain` (the default) ends an
   attempt at its first rejected draw; `structural` redraws a draw the environment rejects (or a
@@ -714,6 +736,122 @@ def clip_range(a: argparse.Namespace) -> tuple[float, float]:
     return (0.2 if lo is None else lo), (0.28 if hi is None else hi)
 
 
+# --lr_schedule (module docstring, "Learning-rate schedule"): its options and their defaults. The
+# parser leaves them out of the namespace unless given (argparse.SUPPRESS), so a constant run's
+# args.json and checkpoint args are the earlier code's; `lr_schedule` resolves the ones a kind uses
+LR_SCHEDULES = ("constant", "cosine", "wsd")
+DECAY_SHAPES = ("linear", "cosine", "sqrt")  # wsd's decay; sqrt: 1 - sqrt(p), Hägele et al. 2024
+SCHED_DEFAULTS: dict[str, Any] = {
+    "warmup_iters": 0,
+    "min_lr_frac": 0.1,
+    "decay_frac": 0.2,
+    "decay_shape": "linear",
+}
+SCHED_USES = {
+    "constant": (),
+    "cosine": ("warmup_iters", "min_lr_frac"),
+    "wsd": ("warmup_iters", "min_lr_frac", "decay_frac", "decay_shape"),
+}
+
+
+def lr_schedule(a: argparse.Namespace) -> dict[str, Any] | None:
+    """`--lr_schedule` and its options -> the run's schedule (kind, `iters` T, the options the kind
+    uses, `warmup_steps`: the --warmup ramp over AdamW steps that applies on top, --warmup without
+    --warmup_iters and 0 with it; wsd also `decay_iters`), None for constant (the earlier code's lr:
+    --lr after the --warmup ramp). Refuses an option the kind does not use (it would do nothing).
+    Sets the used options on `a`, defaults resolved, so args.json records them."""
+    kind = getattr(a, "lr_schedule", "constant")
+    assert kind in LR_SCHEDULES, kind
+    bad = [k for k in SCHED_DEFAULTS if hasattr(a, k) and k not in SCHED_USES[kind]]
+    assert not bad, f"--lr_schedule {kind} does not use --{', --'.join(bad)}"
+    if kind == "constant":
+        return None
+    s: dict[str, Any] = {"kind": kind, "iters": int(a.iters)}
+    for k in SCHED_USES[kind]:
+        s[k] = getattr(a, k, SCHED_DEFAULTS[k])
+        setattr(a, k, s[k])
+    a.lr_schedule = kind
+    assert s["iters"] >= 1, "--lr_schedule needs --iters >= 1"
+    assert s["warmup_iters"] >= 0, "--warmup_iters must be >= 0"
+    # one warmup: over iterations (in m(t)) when --warmup_iters is set, else --warmup's step ramp
+    s["warmup_steps"] = 0 if s["warmup_iters"] else int(a.warmup)
+    assert 0.0 <= s["min_lr_frac"] <= 1.0, "--min_lr_frac must be in [0, 1]"
+    if kind == "wsd":
+        assert 0.0 < s["decay_frac"] <= 1.0, "--decay_frac must be in (0, 1]"
+        assert s["decay_shape"] in DECAY_SHAPES, s["decay_shape"]
+        # round half up, at least one: the last iteration is always at min_lr_frac
+        s["decay_iters"] = min(s["iters"], max(1, math.floor(s["decay_frac"] * s["iters"] + 0.5)))
+    return s
+
+
+def lr_mult(t: int, s: dict[str, Any]) -> float:
+    """The schedule's lr factor m(t) at iteration t = 1 .. T of the run (`lr_schedule`'s `iters`;
+    the iteration's number minus --start_iter). A linear warmup t / W while t < W (W =
+    `warmup_iters`, none at 0); then cosine: f + (1 - f) (1 + cos(pi (t - W) / (T - W))) / 2, from 1
+    at t = W to f = `min_lr_frac` at t = T; wsd: 1 until the last D = `decay_iters` iterations, then
+    f + (1 - f) g(p), p = (t - (T - D)) / D, g = 1 - p (linear), (1 + cos(pi p)) / 2 (cosine) or
+    1 - sqrt(p) (sqrt), f at t = T. The warmup comes first: a run no longer than its warmup (as a
+    2-iteration smoke run at W = 3) is all warmup and does not reach f. EI's fine-tune
+    (`train.finetune`) has the same warmup and cosine, over AdamW steps."""
+    T, W, f = s["iters"], s["warmup_iters"], s["min_lr_frac"]
+    assert 1 <= t <= T, f"iteration {t} outside the schedule's 1 .. {T}"
+    if t < W:
+        return t / W
+    if s["kind"] == "cosine":
+        return f + (1.0 - f) * 0.5 * (1.0 + math.cos(math.pi * (t - W) / max(1, T - W)))
+    assert s["kind"] == "wsd", s["kind"]
+    D = s["decay_iters"]
+    if t <= T - D:
+        return 1.0
+    p = (t - (T - D)) / D
+    g = {
+        "linear": 1.0 - p,
+        "cosine": 0.5 * (1.0 + math.cos(math.pi * p)),
+        "sqrt": 1.0 - math.sqrt(p),
+    }[s["decay_shape"]]
+    return f + (1.0 - f) * g
+
+
+def sched_lr(base: float, mult: float, scale: float, n_step: int, warmup_steps: int) -> float:
+    """A scheduled run's lr at its AdamW step `n_step`: --lr x m(t) x the rollback scale x the
+    step ramp (`warmup_steps`; 1 at 0). The constant code's product with m(t) inserted, so m = 1
+    gives its lr bit for bit."""
+    return base * mult * scale * min(1.0, n_step / max(1, warmup_steps))
+
+
+def _sched_line(s: dict[str, Any], lr: float) -> str:
+    """The run's opening line under a schedule."""
+    head = f"lr schedule: {s['kind']} over {s['iters']} iterations, --lr {lr:g}"
+    if s["warmup_iters"]:
+        warm = f", warmup over {s['warmup_iters']} iterations"
+    else:
+        warm = f", warmup over {s['warmup_steps']} AdamW steps (--warmup)"
+    tail = (
+        f", decay over the last {s['decay_iters']} ({s['decay_shape']})"
+        if s["kind"] == "wsd"
+        else ""
+    )
+    return f"{head}{warm}{tail}, x{s['min_lr_frac']:g} at the last; a rollback halves on top"
+
+
+def check_resume_schedule(path: str, sched: dict[str, Any] | None, start_iter: int) -> None:
+    """`--resume`: the checkpoint's run (its saved args) must have this command's schedule, T and
+    `--start_iter` included, else the resumed iterations would get another run's lrs. Two
+    constant runs are not compared (a resume may change --iters, as before). The checkpoint is
+    memory-mapped: only its args are read."""
+    ck = torch.load(str(path), map_location="cpu", mmap=True)
+    prev = (ck.get("extra") or {}).get("args") or {}
+    if sched is None and prev.get("lr_schedule", "constant") == "constant":
+        return
+    keys = ("lr_schedule", "iters", "warmup", *SCHED_DEFAULTS)
+    was = lr_schedule(argparse.Namespace(**{k: prev[k] for k in keys if k in prev}))
+    p0 = prev.get("start_iter", 0)
+    assert (was, p0) == (sched, start_iter), (
+        f"--resume {path}: its run's lr schedule {was} (start_iter {p0}) is not this "
+        f"command's {sched} (start_iter {start_iter})"
+    )
+
+
 class Curriculum:
     """Learnability sampling over (target, budget) pairs; see the module docstring."""
 
@@ -1243,9 +1381,20 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         print("NOTE: --rej_penalty with the plain arm: only an attempt's ending draw is penalised")
     if a.len_target_coef and not a.effort:
         print("WARNING: --len_target_coef without --effort: the target is not in the prompt")
+    sched = lr_schedule(a)  # None: constant; else resolved onto `a` (args.json)
+    if a.resume:  # before anything is written: a refused resume leaves the run's files alone
+        check_resume_schedule(a.resume, sched, a.start_iter)
     out = Path(a.out)
     run_env(out)
     a.clip_eps_low, a.clip_eps_high = clip_range(a)  # resolved, so args.json records them
+    if sched is not None:
+        print(_sched_line(sched, a.lr), flush=True)
+        # m(T) = min_lr_frac unless the warmup covers the last iteration (`lr_mult`)
+        if sched["warmup_iters"] >= sched["iters"] + (sched["kind"] == "wsd"):
+            print(
+                f"NOTE: --warmup_iters {sched['warmup_iters']} covers the last of the run's "
+                f"{sched['iters']} iterations: it ends above --min_lr_frac"
+            )
     if a.resume and (out / "args.json").exists():  # keep the args of the run being resumed
         k = 0
         while (out / f"args.pre_resume{k or ''}.json").exists():
@@ -1434,13 +1583,29 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         kls: list[float] = []  # the anchor's KL, per AdamW step
         gns_pol: list[float] = []  # the grad norm before the anchor's gradient
         steps_meta: list[dict[str, float]] = []
+        # --lr_schedule: every step of iteration t at base x m(t) x the rollback scale x the step
+        # ramp (`sched_lr`). t follows the loop's iteration number, which a rollback does not move
+        # back, so the last iteration is at m(T). Set here too, so the row's lr is this iteration's
+        # (its next step's) when it takes no step.
+        mult = 1.0 if sched is None else lr_mult(it - a.start_iter, sched)
+        n_lr = ls.n_step + 1  # the step the optimizer's lr is set for
+        if sched is not None:
+            lr_it = sched_lr(a.lr, mult, ls.lr_scale, n_lr, sched["warmup_steps"])
+            for g in opt.param_groups:
+                g["lr"] = lr_it
         for u in range(a.updates):
             sel = order[u :: a.updates]
             if not sel:
                 continue
             ls.n_step += 1
-            for g in opt.param_groups:
-                g["lr"] = a.lr * ls.lr_scale * min(1.0, ls.n_step / max(1, a.warmup))
+            if sched is None:  # constant: --lr after the --warmup ramp over AdamW steps
+                for g in opt.param_groups:
+                    g["lr"] = a.lr * ls.lr_scale * min(1.0, ls.n_step / max(1, a.warmup))
+            else:
+                n_lr = ls.n_step
+                lr_it = sched_lr(a.lr, mult, ls.lr_scale, n_lr, sched["warmup_steps"])
+                for g in opt.param_groups:
+                    g["lr"] = lr_it
             opt.zero_grad(set_to_none=True)
             st = policy_loss(
                 model,
@@ -1575,6 +1740,11 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             row["grad_norm_policy"] = sum(gns_pol) / max(1, len(gns_pol))
         if a.rollback_on_alarm or ls.lr_scale != 1.0:
             row["lr_scale"], row["rollbacks"] = ls.lr_scale, ls.rollbacks
+        if sched is not None:  # row['lr'] = --lr x lr_mult x lr_scale x lr_ramp
+            row["lr_mult"] = mult
+            row["lr_ramp"] = min(1.0, n_lr / max(1, sched["warmup_steps"]))  # the step ramp
+            # a rollback's lr halving multiplies the schedule (`row['rollback']['lr_scale']`)
+            row["alarm_cfg"]["lr_schedule"] = dict(sched)
         if a.monitor:
             row["monitor"] = monitor_metrics(
                 per, [target_length(t) for t in batch], skipped, items, item_src, think_ids, samp_st
@@ -1650,6 +1820,12 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             guard.append(f"extra {row['extra_groups']} groups {100 * row['extra_pass1']:.1f}%")
         if "lr_scale" in row:
             guard.append(f"lr x{row['lr_scale']:g} ({row['rollbacks']} rollbacks)")
+        if sched is not None:  # the effective lr; the entry above keeps its text (line.sh's _b)
+            ramp = f" x ramp {row['lr_ramp']:.2f}" if row["lr_ramp"] < 1 else ""
+            guard.append(
+                f"lr {row['lr']:.3g} = {a.lr:g} x {sched['kind']} {row['lr_mult']:.4f} "
+                f"x {ls.lr_scale:g}{ramp}"
+            )
         if guard:
             cap_b = " ".join(f"B{b} {100 * v:.1f}%" for b, v in row["capped_by_budget"].items())
             print(f"guard it {it}: " + "; ".join(guard) + f"; capped {cap_b}", flush=True)
@@ -1767,8 +1943,43 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--dual_clip", type=float, default=3.0, help="A < 0: surrogate >= c A; 0: off")
     ap.add_argument("--floor", type=float, default=0.03, help="curriculum weight floor")
     ap.add_argument("--decay", type=float, default=0.7, help="curriculum count decay")
-    ap.add_argument("--warmup", type=int, default=10)
+    ap.add_argument(
+        "--warmup", type=int, default=10, help="lr ramp over AdamW steps (off with --warmup_iters)"
+    )
     ap.add_argument("--clip", type=float, default=1.0)
+    s = ap.add_argument_group("learning-rate schedule (opt-in; module docstring)")
+    s.add_argument(
+        "--lr_schedule",
+        choices=LR_SCHEDULES,
+        default=argparse.SUPPRESS,
+        help="per iteration of the run: constant (default; --lr after the --warmup step ramp), "
+        "cosine, or wsd (warmup-stable-decay); a rollback's halving multiplies it",
+    )
+    s.add_argument(
+        "--warmup_iters",
+        type=int,
+        default=argparse.SUPPRESS,
+        help="cosine / wsd: linear warmup over this many iterations instead of --warmup's "
+        "step ramp (default 0: the step ramp)",
+    )
+    s.add_argument(
+        "--min_lr_frac",
+        type=float,
+        default=argparse.SUPPRESS,
+        help="cosine / wsd: the lr at the run's last iteration, x --lr (default 0.1)",
+    )
+    s.add_argument(
+        "--decay_frac",
+        type=float,
+        default=argparse.SUPPRESS,
+        help="wsd: the share of the run's iterations spent decaying (default 0.2)",
+    )
+    s.add_argument(
+        "--decay_shape",
+        choices=DECAY_SHAPES,
+        default=argparse.SUPPRESS,
+        help="wsd: the decay, linear (default), cosine or sqrt (1 - sqrt; Hägele et al. 2024)",
+    )
     ap.add_argument("--len_penalty", type=float, default=0.0, help="reward per 1k tokens")
     ap.add_argument(
         "--len_target_coef",
