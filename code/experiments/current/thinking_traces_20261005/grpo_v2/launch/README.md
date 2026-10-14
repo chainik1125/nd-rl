@@ -103,6 +103,11 @@ Paths are serrano's. Changes, all of them:
    - `dry/all.sh` and `dry/check.py` cover all of this. Every earlier arm's dry-run records are byte-identical to
      c4b8548's harness output: `exit`, stdout, call records, trees, logs, and the sandbox md5s apart from the
      launcher copy itself.
+6. `leon/grpo-v2-prior` (2026-10-13, not yet installed): `line.sh` adds the L3 pilot arm `ARM_pb`, which is
+   `grpo.py --unseen_prior mean` (`../README.md`, "Unseen-pair prior"). It has `ARM_rfb`'s checks and refusals, and
+   refuses until the code worktree's `grpo.py` has `--unseen_prior` (the guard checks `UNSEEN_PRIORS`).
+   `dry/all.sh` and `dry/check.py` cover it. Every earlier arm's dry-run records match 0de954e's harness output in
+   the same way as above.
 
 Checked and left alone:
 

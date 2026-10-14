@@ -225,6 +225,69 @@ bash line.sh GPU 2 grpo_think_vs_ulb
 bash line.sh GPU 2 grpo_think_vs_3pb
 ```
 
+## Unseen-pair prior (2026-10-13, branch `leon/grpo-v2-prior`)
+
+The fix aimed at the cause in the sampler finding above, as its own opt-in pilot: `grpo.py --unseen_prior mean` and
+the launcher arm `ARM_pb`.
+
+**Shrinkage is already in the estimate.**
+- A pair's p is the Beta(1, 1) posterior mean (s + 1) / (n + 2) of its decayed counts. Its rate s / n is pulled
+  toward 1/2 with weight 2 / (n + 2), and a never-drawn pair sits at 1/2.
+- `half` (the default) keeps this.
+- `mean` swaps the prior for Beta(2 m_b, 2 (1 − m_b)): the same strength 2, but with mean m_b. So
+  p = (s + 2 m_b) / (n + 2). A never-drawn pair sits at m_b, and seen pairs are pulled toward m_b instead of 1/2, so
+  the shrinkage stays consistent. With one group of 16 behind it, a pair moves by at most 2/18 of (m_b − 1/2).
+
+**m_b, per budget and per curriculum.**
+- m_b is the mean over budget b's seen pairs of their raw decayed rate s / n. It is not shrunk, so the estimate of
+  the prior does not feed on itself.
+- The extra targets' curriculum has its own m_b.
+- It is recomputed at every draw.
+- Fallback: 1/2 until 32 of the budget's pairs are seen (`PRIOR_MIN_SEEN`). In practice that only holds before the
+  first update, since iteration 1 draws about 85 pairs per budget.
+
+**Why budget and not target.**
+- Budget is the curriculum's own summary grouping, and the budgets' means differ: m_b is 0.76–0.81 at B0 against
+  0.90–0.93 at B64/B256 in the final v2 L3 states.
+- A pair's same-target pairs at other budgets do correlate with its rate (r = 0.36–0.41 in the final v2 L3
+  checkpoints). But their offset-corrected rate predicts it worse than the budget mean: squared error 0.043–0.053
+  against 0.035–0.043.
+
+**`--max_pass` now applies to seen pairs only.** Under `half` this is unchanged, because an unseen pair at 1/2 is
+never above a threshold of at least 1/2.
+
+**Expected effect.** This replays the final L3 curriculum states of the three `grpo_think_vs` runs under each prior,
+so it is not a run of the new arm.
+- The unseen pairs' mean weight falls from 0.28 to 0.13–0.19.
+- Their share of the total draw weight goes:
+  - from 90–91% to 87% at iteration 10;
+  - from 80–85% to 74–80% at iteration 20;
+  - from 63–70% to 53–58% at iteration 39.
+- The effect is modest. Most seen pairs are solved too: their mean weight is 0.10–0.14 under `mean`, against about
+  0.25 for a frontier pair. The weight also has a floor of 0.03.
+- The effect compounds in a run, since fewer first draws leave more seen frontier pairs to redraw. The pilot
+  measures it.
+
+**Logged.** `row['prior']` is written whenever the option is given, `half` included. It has:
+- the pairs drawn this iteration, and how many were never drawn before (every refill round);
+- at the first draw: m_b per budget (`fallback`: still at 1/2), the seen and unseen pair counts, their mean weight,
+  and the unseen pairs' share of the total weight;
+- an `extra` entry for the extra curriculum.
+
+The `prior it N:` line prints the same.
+
+**Default unchanged.** `test_grpo_prior.py` checks it:
+- without the option, the digests equal c4b8548's and 0de954e's;
+- with `--refill`, `--max_pass` and `--unlikely_beta` together, the digest equals a clean export of 0de954e;
+- `--unseen_prior half` gives the same rollouts and weights.
+
+**Arm.** `ARM_pb` (`PILOT_PB="--unseen_prior mean"`) is stage L3 only, from ARM's finished L2. It has the same
+checks and refusals as `ARM_rfb`, and refuses until the code worktree's `grpo.py` has `--unseen_prior`.
+
+```
+bash line.sh GPU 2 grpo_think_vs_pb     # L3 of grpo_think_vs seed 2, from runs/grpo_v2/grpo_think_vs_s2_L2
+```
+
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)
 
 | set | k | arms |

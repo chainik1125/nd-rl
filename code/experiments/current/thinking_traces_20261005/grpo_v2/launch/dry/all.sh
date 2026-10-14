@@ -22,11 +22,13 @@ COMBO=(grpo_think_c_h grpo_think_c_b grpo_think_h_c grpo_think_b_c grpo_think_vs
 # the L3 pilots (2026-10-13): ARM_rfb, ARM_ulb for every GRPO base arm, ARM_3pb for those without the 3-premise rows; each
 # needs the base arm's L2 (a setup)
 PARMS=("${GBASE[@]/%/_rfb}" "${GBASE[@]/%/_ulb}" grpo_think_3pb grpo_think_v_3pb grpo_think_vs_3pb grpo_nothink_3pb
-       grpo_nothink_v_3pb grpo_nothink_vs_3pb)
+       grpo_nothink_v_3pb grpo_nothink_vs_3pb "${GBASE[@]/%/_pb}")
 PREF=(ei_think_rfb ei_think_v_ulb ei_nothink_3pb ei_nothink_v_rfb ei_think_h_ulb
       grpo_think_h_rfb grpo_think_rfb_h grpo_think_b_ulb grpo_think_ulb_b grpo_think_c_rfb grpo_think_rfb_c
       grpo_think_vs_w_3pb grpo_think_vs_3pb_wb grpo_think_wb_ulb grpo_think_rfb_ulb grpo_think_vs_3pb_rfb grpo_think_ulb_3pb
-      grpo_think_h_b_rfb grpo_think_vs3_3pb grpo_nothink_vs3_3pb)
+      grpo_think_h_b_rfb grpo_think_vs3_3pb grpo_nothink_vs3_3pb
+      ei_think_pb ei_nothink_v_pb grpo_think_h_pb grpo_think_pb_h grpo_think_b_pb grpo_think_pb_rfb grpo_think_rfb_pb
+      grpo_think_vs_pb_3pb grpo_think_c_pb grpo_think_wb_pb)  # ARM_pb (2026-10-13): EI, other suffixes
 MODES=(normal smoke); SEEDS=(0 1 2)
 OKLOG='guard it 39: kl anchor 0.0004 x 0.02 (gn policy 0.014); lr x1 (0 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
 RBLOG='guard it 39: kl anchor 0.0006 x 0.02 (gn policy 0.013); lr x0.5 (1 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
@@ -66,6 +68,14 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_ulb "$H/res/refuse/$mode/s$seed/rb_grpo_think_vs_ulb" $su
   su=$(setup pnolog_${mode}_s$seed $mode $seed grpo_think_vs yes none)
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_3pb "$H/res/refuse/$mode/s$seed/nolog_grpo_think_vs_3pb" $su
+  # ARM_pb's three, as ARM_rfb's
+  su=$(setup pbnockpt_${mode}_s$seed $mode $seed grpo_think_vs no "$OKLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_pb "$H/res/refuse/$mode/s$seed/nockpt_grpo_think_vs_pb" $su
+  su=$(setup pbrb_${mode}_s$seed $mode $seed grpo_nothink_vs yes "$RBLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_nothink_vs_pb "$H/res/refuse/$mode/s$seed/rb_grpo_nothink_vs_pb" $su
+  su=$(setup pbnolog_${mode}_s$seed $mode $seed grpo_think yes none)
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_pb "$H/res/refuse/$mode/s$seed/nolog_grpo_think_pb" $su
+  n=$((n+3))
   for x in L3 L2; do for arm in grpo_think_vs_3pb grpo_think_vs3 grpo_nothink_vs3; do
     su=$(setup no3p${x}_${mode}_s${seed}_$arm $mode $seed grpo_think_vs yes "$OKLOG")
     echo "rm -f \"\$SB/runs/pools/curriculum_3p/${x}_3p.jsonl\"" >> $su

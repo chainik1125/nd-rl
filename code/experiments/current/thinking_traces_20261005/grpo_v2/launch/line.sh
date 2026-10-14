@@ -32,6 +32,9 @@
 #        preflight; refused for *_vs3 (it has them). Every run, log and eval name keeps the full ARM_rfb / ARM_ulb /
 #        ARM_3pb. Refused for EI. An arm with 3-premise targets (_vs3, _3pb) is refused while a curriculum_3p file is
 #        missing.
+#        ARM_pb, for a grpo_* ARM above, never with another suffix (L3 pilot, 2026-10-13): as ARM_rfb, with grpo.py's
+#        --unseen_prior mean (PILOT_PB): a never-drawn pair's pass rate starts at its budget's mean over the seen pairs
+#        instead of 1/2. Every run, log and eval name keeps the full ARM_pb. Refused for EI.
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -52,12 +55,14 @@ PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
   || { say "code.thinking does not resolve to $WT: refusing"; exit 1; }
 g=$1; s=$2; arm=$3
 [ -n "$g" ] && [ -n "$s" ] && [ -n "$arm" ] || { echo "usage: line.sh GPU SEED ARM"; exit 2; }
-pil=""; case $arm in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; esac  # L3 pilots: parsed first
+pil=""; case $arm in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; esac  # L3 pilots: first
 case $arm in *_rfb_*|*_ulb_*|*_3pb_*)  # a pilot suffix with another after it
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
+case $arm in *_pb_*) say "$arm: _pb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
 core=${arm%_$pil}  # ARM of ARM_$pil
-[ -n "$pil" ] && case $core in *_[hbcw]|*_wb)
+[ -n "$pil" ] && case $core in *_[hbcw]|*_wb|*_pb)
+  [ "$pil" = pb ] && { say "$arm: _pb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1; }
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
 case ${arm}_ in *_[hb]_c_|*_[hb]_w_|*_[hb]_wb_|*_[cw]_[hb]_*|*_wb_[hb]_*)  # in either order
@@ -80,7 +85,8 @@ case $sch in c) S2=$SCHED_C; S3=$SCHED_C; src=$arm ;; w) S3=$SCHED_W; src=$arm ;
 # ARM_ulb: the unlikeliness reward at the paper's beta. ARM_3pb has no flags of its own (its extra targets below).
 PILOT_RFB="--refill --refill_max 2 --max_pass 0.9"
 PILOT_ULB="--unlikely_beta 0.25"
-P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb) P3=$PILOT_ULB ;; esac  # stage L3's pilot flags
+PILOT_PB="--unseen_prior mean"  # ARM_pb: the unseen-pair prior at the budget's mean pass rate
+P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb) P3=$PILOT_ULB ;; pb) P3=$PILOT_PB ;; esac  # stage L3's pilot flags
 SMOKE=${SMOKE:-0}
 P=${REJ_PENALTY:-0.1}
 L2=${POOL_L2:-$R/pools/curriculum/L2/pool.jsonl}; L3=${POOL_L3:-$R/pools/curriculum/L3/pool.jsonl}
@@ -96,9 +102,10 @@ case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
 [ $method = ei ] && [ -n "$sch" ] && { say "$arm: _$sch schedules the GRPO lr, and EI's fine-tune has its own (run $base): refusing"; exit 1; }
 [ $method = ei ] && [ "$src" != "$arm" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
 [ $method = ei ] && [ "$base" != "$src" ] && { say "$arm: _h halves the GRPO lr, which EI does not use (run $base): refusing"; exit 1; }
-if [ -n "$P3" ]; then  # ARM_rfb / ARM_ulb need grpo.py's pilot options (leon/grpo-v2-pilots) in $WT
-  "$PY" -c "import sys, code.thinking.grpo as g; sys.exit(0 if hasattr(g, 'pilot_options') else 1)" > /dev/null 2>&1 \
-    || { say "$arm: $WT's grpo.py has no pilot options (--refill, --unlikely_beta): refusing"; exit 1; }
+if [ -n "$P3" ]; then  # ARM_rfb / ARM_ulb / ARM_pb need their grpo.py options in $WT (leon/grpo-v2-pilots, -prior)
+  PA=pilot_options; PN="--refill, --unlikely_beta"; [ "$pil" = pb ] && { PA=UNSEEN_PRIORS; PN="--unseen_prior"; }
+  "$PY" -c "import sys, code.thinking.grpo as g; sys.exit(0 if hasattr(g, '$PA') else 1)" > /dev/null 2>&1 \
+    || { say "$arm: $WT's grpo.py has no pilot options ($PN): refusing"; exit 1; }
 fi
 case $base in *_v|*_vs|*_vs3) samp=logical ;; *) samp=plain ;; esac
 case $base in *_vs|*_vs3) MAXREJ_TRAIN=0 ;; *) MAXREJ_TRAIN=10 ;; esac  # GRPO training only

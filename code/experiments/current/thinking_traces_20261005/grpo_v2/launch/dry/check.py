@@ -9,7 +9,7 @@
 after each arm; without it the queue must make no backup call (serrano's queue.sh).
 
 Sections
-  A  every valid arm (12 base, 8 ARM_h, 16 ARM_b, 8 each of ARM_c, ARM_w, ARM_wb, ARM_rfb, ARM_ulb, 6 ARM_3pb) x seeds
+  A  every valid arm (12 base, 8 ARM_h, 16 ARM_b, 8 each of ARM_c, ARM_w, ARM_wb, ARM_rfb, ARM_ulb, ARM_pb, 6 ARM_3pb) x seeds
      0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
      stubbed calls (argv, cwd, CUDA_VISIBLE_DEVICES, redirections), the environment of each python call, stdout, the
      eval dirs and logs, against `expect()` below (written from the README / evidence, not from line.sh's text)
@@ -67,11 +67,14 @@ PILOT = {
     "_rfb": "--refill --refill_max 2 --max_pass 0.9",
     "_ulb": "--unlikely_beta 0.25",
     "_3pb": "",
+    "_pb": "--unseen_prior mean",  # 2026-10-13: the unseen-pair prior at the budget's mean
 }
+GUARD = {"_rfb": "pilot_options", "_ulb": "pilot_options", "_pb": "UNSEEN_PRIORS"}  # grpo.py's
 RFBARMS, ULBARMS = ([a + x for a in GBASE] for x in ("_rfb", "_ulb"))
 P3BARMS = [a + "_3pb" for a in GBASE if not a.endswith("_vs3")]
-REUSE = BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS  # L3 only, from another arm's L2
-VALID = BASE + HARMS + BARMS + CARMS + WARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS
+PBARMS = [a + "_pb" for a in GBASE]
+REUSE = BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS  # L3 only, from another arm's L2
+VALID = BASE + HARMS + BARMS + CARMS + WARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS
 ENV_WANT = {
     "ND_OFFLINE": "1",
     "PYTHONDONTWRITEBYTECODE": "1",
@@ -169,7 +172,7 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
             f".startswith\\(\\'{WT}/\\'\\)\\ else\\ 1\\)",
         ),
     ]
-    if pflags:  # ARM_rfb / ARM_ulb: the worktree's grpo.py must have the pilot options
+    if pflags:  # ARM_rfb / ARM_ulb / ARM_pb: the worktree's grpo.py must have their options
         recs.append(
             (
                 "py",
@@ -178,7 +181,7 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
                 "/dev/null",
                 "/dev/null",
                 "-c import\\ sys\\,\\ code.thinking.grpo\\ as\\ g\\;\\ sys.exit\\(0\\ if\\ hasattr\\(g\\,\\ "
-                "\\'pilot_options\\'\\)\\ else\\ 1\\)",
+                f"\\'{GUARD[pil]}\\'\\)\\ else\\ 1\\)",
             )
         )
     l2t = f"{C}/L2_head.jsonl" if smoke else f"{R}/pools/curriculum/L2/pool.jsonl"
@@ -417,7 +420,7 @@ for mode in ("normal", "smoke"):
                 (23 - (2 if arm in REUSE else 0))
                 if mode == "smoke"
                 else (46 + ("_vs3" in arm or arm.endswith("_3pb")) - (5 if arm in REUSE else 0))
-            ) + arm.endswith(("_rfb", "_ulb"))  # the pilot options check
+            ) + arm.endswith(("_rfb", "_ulb", "_pb"))  # the pilot options check
             ok(n == want, "A", f"{tag}: {n} calls, want {want}")
 
 # ---------------------------------------------------------------- B: refusals
@@ -570,6 +573,41 @@ for mode in ("normal", "smoke"):
                     arm,
                 )
             )
+        # ARM_pb (2026-10-13): EI; another suffix (_rfb after it keeps _rfb's message)
+        for arm in ["ei_think_pb", "ei_nothink_v_pb"]:
+            refusals.append(
+                (
+                    f"{H}/res/{mode}/s{s}/{arm}",
+                    1,
+                    rf"^00:00Z {arm}: _pb is a GRPO L3 pilot, and {arm[:-3]} is EI: refusing$",
+                    arm,
+                )
+            )
+        for arm in [
+            "grpo_think_h_pb",
+            "grpo_think_pb_h",
+            "grpo_think_b_pb",
+            "grpo_think_pb_rfb",
+            "grpo_think_vs_pb_3pb",
+            "grpo_think_c_pb",
+            "grpo_think_wb_pb",
+        ]:
+            refusals.append(
+                (
+                    f"{H}/res/{mode}/s{s}/{arm}",
+                    1,
+                    rf"^00:00Z {arm}: _pb \(an L3 pilot\) does not combine with other suffixes: refusing$",
+                    arm,
+                )
+            )
+        refusals.append(
+            (
+                f"{H}/res/{mode}/s{s}/grpo_think_rfb_pb",
+                1,
+                r"^00:00Z grpo_think_rfb_pb: _rfb, _ulb and _3pb \(L3 pilots\) do not combine with other suffixes: refusing$",
+                "grpo_think_rfb_pb",
+            )
+        )
         for arm in ["grpo_think_vs3_3pb", "grpo_nothink_vs3_3pb"]:
             refusals.append(
                 (
@@ -594,6 +632,21 @@ for mode in ("normal", "smoke"):
                 "nolog",
                 "grpo_think_vs_3pb",
                 r"grpo_think_vs's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "nockpt",
+                "grpo_think_vs_pb",
+                rf"no L2 checkpoint of grpo_think_vs \({re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt\)",
+            ),
+            (
+                "rb",
+                "grpo_nothink_vs_pb",
+                r"grpo_nothink_vs's L2 log ends 'guard it 39: .*lr x0\.5 \(1 rollbacks\).*', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "nolog",
+                "grpo_think_pb",
+                r"grpo_think's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line",
             ),
         ):
             refusals.append((f"{d}/{kind}_{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm))
