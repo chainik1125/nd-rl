@@ -1,3 +1,15 @@
+---
+written_on: 2026-10-13
+written_by: agent:claude
+---
+
+> **Reading copy (librarian, 2026-10-14).** This is run `paper-clean`'s `paper/next_steps.md` (fork
+> `dan-pandori/nd-takehome`, branch `dan_paper-clean`, `86b705ee`). The writing run `create-or-elicit-paper` wrote it
+> on 2026-10-13. `paper-clean` corrected item 1b's cost and added the presentation proposals at the end. The
+> [paper-clean review](https://github.com/dan-pandori/nd-takehome/blob/792db421/review_paper-clean.md) confirmed
+> the cost correction (12.35 ms per attempt; 2.4 × 10⁷ attempts ≈ 82 A40-hours). Its correction to presentation
+> proposal 6, and its view of proposal 4's blog cuts, are added below, marked *[review]*.
+
 # next_steps — what would make "Did Expert Iteration Create It?" a stronger paper (create-or-elicit-paper, 2026-10-13)
 
 Costs use the A40 price the experiments paid ($0.59 per hour) and measured times:
@@ -157,6 +169,14 @@ file and line.
 
    If the cap is relaxed, restore the likelihood sentence first: it is the blog's only statement that RL did not raise
    the knockout models' likelihood of the known σ proofs.
+
+   *[review]* The review would restore two of these cuts:
+   - the seeding null (F1, should fix). The paper reports it as a null and as a missed pre-registered expectation,
+     and the earlier review's B2 held the blog to the paper's negative and null results;
+   - the likelihood sentence (F2, recommended).
+
+   The blog has 13 words of headroom: F1 alone (≈ 23 words) needs ≈ 10 words cut elsewhere, F1 and F2 (≈ 38) ≈ 25.
+   Dan's call.
 5. **Watch the abstract's length.** It is exactly 250 words (`wc -w sections/00_abstract.tex`); any later edit needs
    a matching cut.
 6. **Two labels the blog lacks, in both the reviewed and the clean version** (the equivalence check's m8).
@@ -164,4 +184,4 @@ file and line.
      post hoc measure (§7 of the paper).
    - The continuation to round 24 was exploratory.
 
-   Labelling both costs about ten words, which the 2,500-word cap no longer leaves.
+   Labelling both costs about ten words. *[review]* The blog is at 2,487 words, 13 under the cap, so both labels fit.
