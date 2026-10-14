@@ -78,6 +78,10 @@ ARMS = [
     ArmSpec("grpo_think_vs_rfb", "pilot: + refill, drop p > 0.9", "grpo", True, fig=False),
     ArmSpec("grpo_think_vs_ulb", "pilot: + unlikeliness reward", "grpo", True, fig=False),
     ArmSpec("grpo_think_vs_pb", "pilot: + unseen prior = mean", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_b", "control: L3 rerun, same settings", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_avg", "pilot: mean of L3 it 25-39 weights", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_t10", "GRPO + verifier (stop), read at T 1.0", "grpo", True, fig=False),
+    ArmSpec("ei_think_v_t10", "EI + verifier, read at T 1.0", "ei", True, fig=False),
     ArmSpec("ei_think", "EI", "ei", True),
     ArmSpec("ei_think_v", "EI + verifier", "ei", True),
     ArmSpec("grpo_nothink", "GRPO", "grpo", False),
@@ -123,8 +127,17 @@ PILOTS = [
     ("grpo_think_vs_rfb", "refill"),
     ("grpo_think_vs_ulb", "unlikeliness reward"),
     ("grpo_think_vs_pb", "unseen prior"),
+    ("grpo_think_vs_b", "noise control (L3 rerun)"),
+    ("grpo_think_vs_avg", "weight averaging"),
 ]
 COMPARE = [
+    (
+        "thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0",
+        "grpo_think_vs_t10",
+        "ei_think_v_t10",
+    ),
+    ("thinking: GRPO + verifier (stop), T 1.0 − T 0.8", "grpo_think_vs_t10", "grpo_think_vs"),
+    ("thinking: EI + verifier, T 1.0 − T 0.8", "ei_think_v_t10", "ei_think_v"),
     ("thinking: GRPO + verifier (redraw) − EI + verifier", "grpo_think_v", "ei_think_v"),
     ("thinking, curriculum only: GRPO − EI", "grpo_think", "ei_think"),
     ("no thinking: GRPO + verifier (redraw) − EI + verifier", "grpo_nothink_v", "ei_nothink_v"),

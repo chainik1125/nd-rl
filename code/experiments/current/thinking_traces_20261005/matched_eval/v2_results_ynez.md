@@ -15,10 +15,14 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | GRPO + verifier (stop), thinking | 29.2 [24.6, 33.2] / 53.0 [47.3, 58.0] (s0,1,2) | 22.4 [18.4, 25.9] / 45.1 [39.4, 50.3] (s0,1,2) | 74.8 [65.1, 83.8] / 81.7 [72.6, 89.6] (s0,1,2) | 70.2 [63.5, 76.7] / 78.7 [72.4, 84.4] (s0,1,2) | 0.0 [0.0, 0.2] / 0.2 [0.0, 0.9] (s0,1,2) | 5.6 [3.5, 7.5] / 15.0 [10.6, 19.0] (s0,1,2) |
 | GRPO + verifier (stop), half lr, thinking | — | — | — | — | — | — |
 | pilot: + L3 cooldown, thinking | 28.4 [26.3, 30.5] / 50.4 [47.7, 53.1] (s2) | 21.7 [19.4, 24.1] / 42.6 [39.3, 46.0] (s2) | 73.7 [64.3, 82.2] / 82.8 [74.3, 90.4] (s2) | 70.4 [63.7, 76.5] / 79.9 [73.6, 85.6] (s2) | 0.2 [0.0, 0.7] / 1.1 [0.0, 3.2] (s2) | 4.6 [3.9, 5.3] / 14.0 [12.0, 15.9] (s2) |
-| pilot: + 3-premise rows in L3, thinking | 27.6 [25.5, 29.7] / 49.0 [46.2, 51.7] (s2) | 21.0 [18.8, 23.3] / 41.3 [38.0, 44.6] (s2) | — | — | — | — |
-| pilot: + refill, drop p > 0.9, thinking | — | — | — | — | — | — |
-| pilot: + unlikeliness reward, thinking | — | — | — | — | — | — |
-| pilot: + unseen prior = mean, thinking | — | — | — | — | — | — |
+| pilot: + 3-premise rows in L3, thinking | 27.6 [25.5, 29.7] / 49.0 [46.2, 51.7] (s2) | 21.0 [18.8, 23.3] / 41.3 [38.0, 44.6] (s2) | 75.0 [65.7, 83.5] / 82.3 [73.3, 90.4] (s2) | 71.1 [64.6, 77.0] / 80.3 [74.0, 85.9] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 4.2 [3.4, 5.0] / 11.2 [9.4, 13.0] (s2) |
+| pilot: + refill, drop p > 0.9, thinking | 27.6 [25.4, 29.8] / 48.9 [46.1, 51.6] (s2) | 20.7 [18.4, 23.0] / 41.1 [37.9, 44.5] (s2) | 75.5 [66.2, 83.9] / 82.9 [74.0, 90.7] (s2) | 70.9 [64.4, 77.0] / 79.1 [72.7, 85.0] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 4.3 [3.5, 5.1] / 11.9 [10.1, 13.8] (s2) |
+| pilot: + unlikeliness reward, thinking | 26.6 [24.6, 28.6] / 49.9 [47.1, 52.5] (s2) | 19.6 [17.4, 21.8] / 41.0 [37.7, 44.2] (s2) | 73.8 [64.4, 82.1] / 81.5 [72.4, 89.6] (s2) | 70.4 [64.0, 76.3] / 80.2 [73.9, 86.0] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 4.1 [3.4, 4.9] / 12.7 [10.9, 14.6] (s2) |
+| pilot: + unseen prior = mean, thinking | 22.8 [20.8, 24.8] / 41.7 [38.9, 44.5] (s2) | 16.9 [14.8, 19.1] / 34.3 [31.1, 37.6] (s2) | 73.9 [64.5, 82.2] / 82.8 [74.0, 90.4] (s2) | 69.8 [63.3, 75.8] / 79.7 [73.3, 85.5] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 2.9 [2.3, 3.6] / 8.9 [7.4, 10.5] (s2) |
+| control: L3 rerun, same settings, thinking | 25.8 [23.8, 27.9] / 46.6 [43.9, 49.4] (s2) | 19.2 [17.1, 21.5] / 38.1 [34.9, 41.5] (s2) | 73.1 [63.6, 81.8] / 81.3 [72.5, 89.1] (s2) | 70.7 [64.2, 76.6] / 81.0 [74.8, 86.6] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 3.8 [3.1, 4.5] / 11.4 [9.7, 13.1] (s2) |
+| pilot: mean of L3 it 25-39 weights, thinking | 26.7 [24.7, 28.8] / 49.5 [46.7, 52.2] (s2) | 19.7 [17.6, 22.0] / 40.7 [37.4, 44.0] (s2) | 73.0 [63.5, 81.5] / 81.1 [72.0, 89.3] (s2) | 69.1 [62.7, 75.2] / 79.1 [72.8, 84.9] (s2) | — | 4.4 [3.7, 5.3] / 12.6 [10.8, 14.5] (s2) |
+| GRPO + verifier (stop), read at T 1.0, thinking | 20.3 [18.6, 22.0] / 42.5 [39.9, 45.1] (s2) | 14.8 [13.1, 16.7] / 34.8 [31.8, 38.0] (s2) | 70.4 [60.9, 79.2] / 79.5 [70.1, 88.0] (s2) | 65.9 [59.5, 72.3] / 77.1 [70.8, 83.1] (s2) | — | 2.5 [2.0, 3.1] / 7.8 [6.3, 9.3] (s2) |
+| EI + verifier, read at T 1.0, thinking | 23.5 [21.8, 25.2] / 49.8 [47.4, 52.5] (s2) | 17.3 [15.6, 19.2] / 41.9 [38.7, 44.9] (s2) | 66.4 [57.1, 75.1] / 79.4 [70.6, 87.6] (s2) | 55.0 [48.6, 61.3] / 71.5 [64.6, 77.9] (s2) | — | 4.2 [3.5, 5.0] / 12.9 [11.1, 14.8] (s2) |
 | EI, thinking | 31.5 [28.7, 34.1] / 57.9 [53.7, 61.9] (s0,1,2) | 25.5 [22.7, 28.2] / 51.2 [46.0, 56.4] (s0,1,2) | 68.4 [58.9, 77.4] / 77.9 [69.1, 85.9] (s0,1,2) | 62.2 [55.2, 68.8] / 73.8 [66.9, 80.0] (s0,1,2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0,1,2) | 7.4 [6.2, 8.6] / 19.5 [16.7, 22.3] (s0,1,2) |
 | EI + verifier, thinking | 31.1 [27.5, 34.8] / 57.4 [52.9, 62.2] (s0,1,2) | 25.1 [21.1, 29.3] / 50.7 [44.9, 56.8] (s0,1,2) | 70.3 [61.0, 78.6] / 80.7 [72.2, 88.4] (s0,1,2) | 63.7 [55.8, 71.0] / 75.9 [68.9, 82.1] (s0,1,2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s0,1,2) | 6.7 [5.3, 8.2] / 18.4 [14.9, 22.3] (s0,1,2) |
 | GRPO, no thinking | — | — | — | — | — | — |
@@ -107,7 +111,70 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | pilot: + L3 cooldown | 2 | plain | hand-proved 14 | 14 | 0.2 [0.0, 0.7] | 1.1 [0.0, 3.2] |
 | pilot: + L3 cooldown | 2 | plain | 21–30 lines (1,000) | 1000 | 4.6 [3.9, 5.3] | 14.0 [12.0, 15.9] |
 | pilot: + 3-premise rows in L3 | 2 | plain | 13–20 lines (986) | 986 | 27.6 [25.5, 29.7] | 49.0 [46.2, 51.7] |
+| pilot: + 3-premise rows in L3 | 2 | guided | 13–20 lines (986) | 986 | 42.9 [40.5, 45.2] | 66.7 [64.1, 69.2] |
 | pilot: + 3-premise rows in L3 | 2 | plain | 16–20 lines | 616 | 21.0 [18.8, 23.3] | 41.3 [38.0, 44.6] |
+| pilot: + 3-premise rows in L3 | 2 | guided | 16–20 lines | 616 | 35.6 [32.7, 38.4] | 60.3 [56.9, 63.6] |
+| pilot: + 3-premise rows in L3 | 2 | plain | textbook72 | 72 | 75.0 [65.7, 83.5] | 82.3 [73.3, 90.4] |
+| pilot: + 3-premise rows in L3 | 2 | guided | textbook72 | 72 | 79.5 [70.4, 87.7] | 84.9 [76.5, 92.3] |
+| pilot: + 3-premise rows in L3 | 2 | plain | Charles149 | 149 | 71.1 [64.6, 77.0] | 80.3 [74.0, 85.9] |
+| pilot: + 3-premise rows in L3 | 2 | guided | Charles149 | 149 | 77.9 [71.9, 83.3] | 85.2 [79.6, 90.3] |
+| pilot: + 3-premise rows in L3 | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| pilot: + 3-premise rows in L3 | 2 | plain | 21–30 lines (1,000) | 1000 | 4.2 [3.4, 5.0] | 11.2 [9.4, 13.0] |
+| pilot: + refill, drop p > 0.9 | 2 | plain | 13–20 lines (986) | 986 | 27.6 [25.4, 29.8] | 48.9 [46.1, 51.6] |
+| pilot: + refill, drop p > 0.9 | 2 | guided | 13–20 lines (986) | 986 | 41.8 [39.4, 44.2] | 65.2 [62.6, 67.8] |
+| pilot: + refill, drop p > 0.9 | 2 | plain | 16–20 lines | 616 | 20.7 [18.4, 23.0] | 41.1 [37.9, 44.5] |
+| pilot: + refill, drop p > 0.9 | 2 | guided | 16–20 lines | 616 | 33.8 [31.1, 36.6] | 58.4 [54.9, 61.7] |
+| pilot: + refill, drop p > 0.9 | 2 | plain | textbook72 | 72 | 75.5 [66.2, 83.9] | 82.9 [74.0, 90.7] |
+| pilot: + refill, drop p > 0.9 | 2 | guided | textbook72 | 72 | 80.1 [71.5, 87.8] | 85.8 [77.8, 92.9] |
+| pilot: + refill, drop p > 0.9 | 2 | plain | Charles149 | 149 | 70.9 [64.4, 77.0] | 79.1 [72.7, 85.0] |
+| pilot: + refill, drop p > 0.9 | 2 | guided | Charles149 | 149 | 76.9 [70.7, 82.7] | 83.8 [78.0, 88.9] |
+| pilot: + refill, drop p > 0.9 | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| pilot: + refill, drop p > 0.9 | 2 | plain | 21–30 lines (1,000) | 1000 | 4.3 [3.5, 5.1] | 11.9 [10.1, 13.8] |
+| pilot: + unlikeliness reward | 2 | plain | 13–20 lines (986) | 986 | 26.6 [24.6, 28.6] | 49.9 [47.1, 52.5] |
+| pilot: + unlikeliness reward | 2 | guided | 13–20 lines (986) | 986 | 40.6 [38.3, 42.9] | 66.9 [64.5, 69.3] |
+| pilot: + unlikeliness reward | 2 | plain | 16–20 lines | 616 | 19.6 [17.4, 21.8] | 41.0 [37.7, 44.2] |
+| pilot: + unlikeliness reward | 2 | guided | 16–20 lines | 616 | 33.2 [30.5, 35.9] | 60.1 [56.9, 63.3] |
+| pilot: + unlikeliness reward | 2 | plain | textbook72 | 72 | 73.8 [64.4, 82.1] | 81.5 [72.4, 89.6] |
+| pilot: + unlikeliness reward | 2 | guided | textbook72 | 72 | 78.3 [69.6, 86.4] | 85.1 [77.0, 92.0] |
+| pilot: + unlikeliness reward | 2 | plain | Charles149 | 149 | 70.4 [64.0, 76.3] | 80.2 [73.9, 86.0] |
+| pilot: + unlikeliness reward | 2 | guided | Charles149 | 149 | 76.8 [70.5, 82.4] | 84.0 [78.1, 89.2] |
+| pilot: + unlikeliness reward | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| pilot: + unlikeliness reward | 2 | plain | 21–30 lines (1,000) | 1000 | 4.1 [3.4, 4.9] | 12.7 [10.9, 14.6] |
+| pilot: + unseen prior = mean | 2 | plain | 13–20 lines (986) | 986 | 22.8 [20.8, 24.8] | 41.7 [38.9, 44.5] |
+| pilot: + unseen prior = mean | 2 | guided | 13–20 lines (986) | 986 | 36.1 [33.9, 38.5] | 58.1 [55.4, 60.8] |
+| pilot: + unseen prior = mean | 2 | plain | 16–20 lines | 616 | 16.9 [14.8, 19.1] | 34.3 [31.1, 37.6] |
+| pilot: + unseen prior = mean | 2 | guided | 16–20 lines | 616 | 28.7 [26.1, 31.5] | 50.5 [47.1, 53.9] |
+| pilot: + unseen prior = mean | 2 | plain | textbook72 | 72 | 73.9 [64.5, 82.2] | 82.8 [74.0, 90.4] |
+| pilot: + unseen prior = mean | 2 | guided | textbook72 | 72 | 80.0 [71.3, 87.5] | 86.8 [78.7, 93.5] |
+| pilot: + unseen prior = mean | 2 | plain | Charles149 | 149 | 69.8 [63.3, 75.8] | 79.7 [73.3, 85.5] |
+| pilot: + unseen prior = mean | 2 | guided | Charles149 | 149 | 77.3 [71.3, 82.8] | 85.9 [80.3, 90.7] |
+| pilot: + unseen prior = mean | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| pilot: + unseen prior = mean | 2 | plain | 21–30 lines (1,000) | 1000 | 2.9 [2.3, 3.6] | 8.9 [7.4, 10.5] |
+| control: L3 rerun, same settings | 2 | plain | 13–20 lines (986) | 986 | 25.8 [23.8, 27.9] | 46.6 [43.9, 49.4] |
+| control: L3 rerun, same settings | 2 | guided | 13–20 lines (986) | 986 | 39.0 [36.7, 41.3] | 62.7 [60.0, 65.3] |
+| control: L3 rerun, same settings | 2 | plain | 16–20 lines | 616 | 19.2 [17.1, 21.5] | 38.1 [34.9, 41.5] |
+| control: L3 rerun, same settings | 2 | guided | 16–20 lines | 616 | 31.0 [28.4, 33.8] | 54.9 [51.5, 58.4] |
+| control: L3 rerun, same settings | 2 | plain | textbook72 | 72 | 73.1 [63.6, 81.8] | 81.3 [72.5, 89.1] |
+| control: L3 rerun, same settings | 2 | guided | textbook72 | 72 | 77.9 [68.8, 86.2] | 85.5 [77.6, 92.1] |
+| control: L3 rerun, same settings | 2 | plain | Charles149 | 149 | 70.7 [64.2, 76.6] | 81.0 [74.8, 86.6] |
+| control: L3 rerun, same settings | 2 | guided | Charles149 | 149 | 77.3 [71.1, 82.7] | 85.5 [79.9, 90.5] |
+| control: L3 rerun, same settings | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| control: L3 rerun, same settings | 2 | plain | 21–30 lines (1,000) | 1000 | 3.8 [3.1, 4.5] | 11.4 [9.7, 13.1] |
+| pilot: mean of L3 it 25-39 weights | 2 | plain | 13–20 lines (986) | 986 | 26.7 [24.7, 28.8] | 49.5 [46.7, 52.2] |
+| pilot: mean of L3 it 25-39 weights | 2 | plain | 16–20 lines | 616 | 19.7 [17.6, 22.0] | 40.7 [37.4, 44.0] |
+| pilot: mean of L3 it 25-39 weights | 2 | plain | textbook72 | 72 | 73.0 [63.5, 81.5] | 81.1 [72.0, 89.3] |
+| pilot: mean of L3 it 25-39 weights | 2 | plain | Charles149 | 149 | 69.1 [62.7, 75.2] | 79.1 [72.8, 84.9] |
+| pilot: mean of L3 it 25-39 weights | 2 | plain | 21–30 lines (1,000) | 1000 | 4.4 [3.7, 5.3] | 12.6 [10.8, 14.5] |
+| GRPO + verifier (stop), read at T 1.0 | 2 | plain | 13–20 lines (986) | 986 | 20.3 [18.6, 22.0] | 42.5 [39.9, 45.1] |
+| GRPO + verifier (stop), read at T 1.0 | 2 | plain | 16–20 lines | 616 | 14.8 [13.1, 16.7] | 34.8 [31.8, 38.0] |
+| GRPO + verifier (stop), read at T 1.0 | 2 | plain | textbook72 | 72 | 70.4 [60.9, 79.2] | 79.5 [70.1, 88.0] |
+| GRPO + verifier (stop), read at T 1.0 | 2 | plain | Charles149 | 149 | 65.9 [59.5, 72.3] | 77.1 [70.8, 83.1] |
+| GRPO + verifier (stop), read at T 1.0 | 2 | plain | 21–30 lines (1,000) | 1000 | 2.5 [2.0, 3.1] | 7.8 [6.3, 9.3] |
+| EI + verifier, read at T 1.0 | 2 | plain | 13–20 lines (986) | 986 | 23.5 [21.8, 25.2] | 49.8 [47.4, 52.5] |
+| EI + verifier, read at T 1.0 | 2 | plain | 16–20 lines | 616 | 17.3 [15.6, 19.2] | 41.9 [38.7, 44.9] |
+| EI + verifier, read at T 1.0 | 2 | plain | textbook72 | 72 | 66.4 [57.1, 75.1] | 79.4 [70.6, 87.6] |
+| EI + verifier, read at T 1.0 | 2 | plain | Charles149 | 149 | 55.0 [48.6, 61.3] | 71.5 [64.6, 77.9] |
+| EI + verifier, read at T 1.0 | 2 | plain | 21–30 lines (1,000) | 1000 | 4.2 [3.5, 5.0] | 12.9 [11.1, 14.8] |
 | EI | 0 | plain | 13–20 lines (986) | 986 | 32.2 [30.1, 34.2] | 58.0 [55.4, 60.5] |
 | EI | 1 | plain | 13–20 lines (986) | 986 | 33.2 [31.2, 35.1] | 61.4 [58.8, 63.9] |
 | EI | 2 | plain | 13–20 lines (986) | 986 | 29.1 [27.1, 31.1] | 54.3 [51.7, 56.9] |
@@ -173,6 +240,21 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | comparison | read | set | seeds | Δ pass@1 | Δ pass@5 |
 |---|---|---|---|---|---|
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | plain | 13–20 lines (986) | 2 | -3.2 [-4.6, -1.8] | -7.4 [-9.7, -5.1] |
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | plain | 16–20 lines | 2 | -2.5 [-4.0, -1.0] | -7.0 [-9.8, -4.2] |
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | plain | textbook72 | 2 | +4.1 [+0.2, +7.8] | +0.1 [-5.3, +4.9] |
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | plain | Charles149 | 2 | +11.0 [+6.7, +15.4] | +5.6 [+1.6, +9.9] |
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | plain | 21–30 lines (1,000) | 2 | -1.7 [-2.4, -1.0] | -5.1 [-7.0, -3.3] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | plain | 13–20 lines (986) | 2 | -4.2 [-5.0, -3.5] | -4.8 [-6.2, -3.5] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | plain | 16–20 lines | 2 | -3.6 [-4.4, -2.7] | -4.7 [-6.4, -3.0] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | plain | textbook72 | 2 | -2.0 [-3.2, -0.9] | +0.6 [-0.4, +1.9] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | plain | Charles149 | 2 | -1.9 [-2.7, -1.1] | -0.2 [-0.9, +0.5] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | plain | 21–30 lines (1,000) | 2 | -0.9 [-1.4, -0.4] | -2.5 [-3.9, -1.1] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | plain | 13–20 lines (986) | 2 | -4.4 [-5.1, -3.6] | -3.7 [-5.0, -2.4] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | plain | 16–20 lines | 2 | -4.1 [-5.0, -3.1] | -3.5 [-5.2, -1.7] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | plain | textbook72 | 2 | -3.1 [-4.5, -1.8] | -1.2 [-2.5, -0.0] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | plain | Charles149 | 2 | -3.0 [-4.2, -1.9] | -0.2 [-1.5, +1.1] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | plain | 21–30 lines (1,000) | 2 | -1.4 [-2.0, -0.8] | -2.6 [-4.1, -1.1] |
 | thinking, curriculum only: GRPO − EI | plain | 13–20 lines (986) | 0 | -1.7 [-3.4, +0.1] | -4.2 [-6.6, -1.8] |
 | thinking, curriculum only: GRPO − EI | plain | 13–20 lines (986) | 1 | -5.1 [-6.8, -3.4] | -12.0 [-14.5, -9.4] |
 | thinking, curriculum only: GRPO − EI | plain | 13–20 lines (986) | 2 | -2.9 [-4.7, -1.2] | -5.9 [-8.4, -3.5] |
@@ -344,7 +426,60 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking, L3 cooldown: pilot − GRPO + verifier (stop) | plain | hand-proved 14 | 2 | +0.2 [+0.0, +0.7] | +1.1 [+0.0, +3.2] |
 | thinking, L3 cooldown: pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +1.2 [+0.5, +1.8] | +3.8 [+2.2, +5.3] |
 | thinking, 3-premise rows: pilot − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | +3.2 [+2.0, +4.2] | +1.7 [-0.0, +3.4] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | guided | 13–20 lines (986) | 2 | +4.1 [+2.8, +5.4] | +2.0 [+0.2, +3.8] |
 | thinking, 3-premise rows: pilot − GRPO + verifier (stop) | plain | 16–20 lines | 2 | +2.6 [+1.3, +4.0] | +1.7 [-0.4, +3.9] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | guided | 16–20 lines | 2 | +3.7 [+2.1, +5.3] | +2.6 [+0.3, +4.9] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | +2.6 [-0.2, +5.5] | +3.4 [-0.5, +8.1] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | guided | textbook72 | 2 | +2.0 [-1.2, +5.2] | +2.1 [-1.3, +6.1] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | +3.3 [+1.0, +5.8] | +3.0 [+1.1, +5.1] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | guided | Charles149 | 2 | +2.6 [+0.6, +4.8] | +1.8 [-0.1, +3.7] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +0.8 [+0.1, +1.5] | +1.0 [-0.6, +2.6] |
+| thinking, refill: pilot − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | +3.1 [+2.0, +4.2] | +1.6 [-0.1, +3.2] |
+| thinking, refill: pilot − GRPO + verifier (stop) | guided | 13–20 lines (986) | 2 | +3.1 [+1.7, +4.4] | +0.6 [-1.2, +2.4] |
+| thinking, refill: pilot − GRPO + verifier (stop) | plain | 16–20 lines | 2 | +2.3 [+1.1, +3.5] | +1.5 [-0.6, +3.6] |
+| thinking, refill: pilot − GRPO + verifier (stop) | guided | 16–20 lines | 2 | +1.9 [+0.3, +3.6] | +0.7 [-1.7, +3.1] |
+| thinking, refill: pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | +3.1 [+0.2, +6.1] | +4.0 [+0.5, +8.3] |
+| thinking, refill: pilot − GRPO + verifier (stop) | guided | textbook72 | 2 | +2.6 [-0.3, +5.5] | +3.0 [+0.8, +6.0] |
+| thinking, refill: pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | +3.0 [+0.4, +5.6] | +1.8 [-0.6, +4.2] |
+| thinking, refill: pilot − GRPO + verifier (stop) | guided | Charles149 | 2 | +1.7 [-0.8, +4.0] | +0.3 [-1.6, +2.2] |
+| thinking, refill: pilot − GRPO + verifier (stop) | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, refill: pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +0.8 [+0.2, +1.5] | +1.7 [+0.3, +3.1] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | +2.1 [+1.0, +3.2] | +2.5 [+0.8, +4.3] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | guided | 13–20 lines (986) | 2 | +1.8 [+0.4, +3.2] | +2.3 [+0.5, +4.0] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | plain | 16–20 lines | 2 | +1.2 [+0.0, +2.3] | +1.4 [-0.7, +3.6] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | guided | 16–20 lines | 2 | +1.3 [-0.4, +2.9] | +2.5 [+0.1, +4.7] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | +1.4 [-0.8, +3.8] | +2.6 [+0.3, +5.4] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | guided | textbook72 | 2 | +0.8 [-1.6, +3.7] | +2.3 [-0.6, +5.5] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | +2.6 [+0.2, +5.2] | +2.9 [+0.8, +5.3] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | guided | Charles149 | 2 | +1.6 [-1.0, +4.1] | +0.6 [-1.8, +3.1] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +0.7 [+0.0, +1.3] | +2.5 [+0.7, +4.2] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | -1.7 [-2.9, -0.6] | -5.6 [-7.6, -3.7] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | guided | 13–20 lines (986) | 2 | -2.6 [-4.2, -1.1] | -6.5 [-8.7, -4.3] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | plain | 16–20 lines | 2 | -1.5 [-2.8, -0.1] | -5.3 [-7.8, -2.8] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | guided | 16–20 lines | 2 | -3.2 [-5.0, -1.3] | -7.1 [-9.9, -4.4] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | +1.5 [-1.3, +4.4] | +3.9 [+0.6, +8.0] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | guided | textbook72 | 2 | +2.5 [-0.0, +5.4] | +3.9 [+0.8, +7.9] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | +2.0 [-0.3, +4.4] | +2.4 [-0.0, +5.1] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | guided | Charles149 | 2 | +2.1 [-0.2, +4.4] | +2.5 [+0.4, +4.8] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | -0.5 [-1.1, +0.1] | -1.3 [-2.9, +0.3] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | +1.3 [+0.2, +2.4] | -0.7 [-2.5, +1.0] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | guided | 13–20 lines (986) | 2 | +0.2 [-1.2, +1.6] | -2.0 [-3.9, -0.1] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | plain | 16–20 lines | 2 | +0.8 [-0.4, +2.1] | -1.5 [-3.7, +0.8] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | guided | 16–20 lines | 2 | -0.9 [-2.5, +0.8] | -2.8 [-5.2, -0.3] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | +0.7 [-2.2, +3.5] | +2.4 [-0.3, +5.5] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | guided | textbook72 | 2 | +0.4 [-2.0, +2.5] | +2.6 [+0.3, +5.4] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | +2.9 [-0.1, +6.0] | +3.7 [+1.2, +6.4] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | guided | Charles149 | 2 | +2.0 [-0.5, +4.6] | +2.1 [-0.1, +4.5] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +0.3 [-0.3, +1.0] | +1.2 [-0.5, +2.8] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | +2.2 [+1.4, +3.1] | +2.2 [+0.7, +3.6] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | 16–20 lines | 2 | +1.3 [+0.4, +2.3] | +1.1 [-0.7, +3.1] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | +0.6 [-1.1, +2.3] | +2.2 [+0.5, +4.6] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | +1.3 [-0.0, +2.7] | +1.8 [+0.2, +3.7] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +1.0 [+0.4, +1.5] | +2.4 [+0.9, +3.9] |
 | thinking, L3 cooldown: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | +0.6 [-1.2, +2.2] | -3.2 [-5.6, -0.8] |
 | thinking, L3 cooldown: pilot − EI + verifier | guided | 13–20 lines (986) | 2 | +2.1 [+0.1, +4.0] | -0.2 [-2.5, +2.0] |
 | thinking, L3 cooldown: pilot − EI + verifier | plain | 16–20 lines | 2 | +0.3 [-1.6, +2.3] | -2.7 [-5.9, +0.3] |
@@ -356,7 +491,60 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking, L3 cooldown: pilot − EI + verifier | plain | hand-proved 14 | 2 | +0.2 [+0.0, +0.7] | +1.1 [+0.0, +3.2] |
 | thinking, L3 cooldown: pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.0 [-1.8, -0.1] | -1.4 [-3.5, +0.6] |
 | thinking, 3-premise rows: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | -0.2 [-1.9, +1.5] | -4.6 [-7.1, -2.2] |
+| thinking, 3-premise rows: pilot − EI + verifier | guided | 13–20 lines (986) | 2 | +1.0 [-1.0, +2.9] | -2.4 [-4.8, -0.0] |
 | thinking, 3-premise rows: pilot − EI + verifier | plain | 16–20 lines | 2 | -0.4 [-2.3, +1.5] | -4.1 [-7.1, -1.0] |
+| thinking, 3-premise rows: pilot − EI + verifier | guided | 16–20 lines | 2 | +0.4 [-2.0, +2.9] | -2.1 [-5.4, +1.2] |
+| thinking, 3-premise rows: pilot − EI + verifier | plain | textbook72 | 2 | +5.5 [+1.3, +10.1] | +1.7 [-3.7, +7.7] |
+| thinking, 3-premise rows: pilot − EI + verifier | guided | textbook72 | 2 | +2.5 [-3.2, +8.3] | +0.0 [-6.7, +6.5] |
+| thinking, 3-premise rows: pilot − EI + verifier | plain | Charles149 | 2 | +13.1 [+8.7, +17.6] | +8.6 [+4.5, +13.0] |
+| thinking, 3-premise rows: pilot − EI + verifier | guided | Charles149 | 2 | +6.4 [+1.5, +11.4] | +2.7 [-1.8, +7.0] |
+| thinking, 3-premise rows: pilot − EI + verifier | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, 3-premise rows: pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.4 [-2.3, -0.5] | -4.3 [-6.3, -2.3] |
+| thinking, refill: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | -0.2 [-1.9, +1.5] | -4.7 [-7.1, -2.3] |
+| thinking, refill: pilot − EI + verifier | guided | 13–20 lines (986) | 2 | -0.0 [-2.1, +2.0] | -3.8 [-6.3, -1.4] |
+| thinking, refill: pilot − EI + verifier | plain | 16–20 lines | 2 | -0.8 [-2.7, +1.2] | -4.3 [-7.4, -1.1] |
+| thinking, refill: pilot − EI + verifier | guided | 16–20 lines | 2 | -1.3 [-3.8, +1.3] | -4.0 [-7.3, -0.6] |
+| thinking, refill: pilot − EI + verifier | plain | textbook72 | 2 | +6.1 [+1.4, +10.9] | +2.3 [-3.4, +8.1] |
+| thinking, refill: pilot − EI + verifier | guided | textbook72 | 2 | +3.0 [-2.6, +8.8] | +1.0 [-5.4, +7.2] |
+| thinking, refill: pilot − EI + verifier | plain | Charles149 | 2 | +12.8 [+8.5, +17.5] | +7.4 [+3.4, +11.7] |
+| thinking, refill: pilot − EI + verifier | guided | Charles149 | 2 | +5.5 [+0.5, +10.5] | +1.3 [-2.9, +5.3] |
+| thinking, refill: pilot − EI + verifier | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, refill: pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.3 [-2.2, -0.4] | -3.6 [-5.6, -1.7] |
+| thinking, unlikeliness reward: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | -1.3 [-2.8, +0.3] | -3.7 [-6.0, -1.4] |
+| thinking, unlikeliness reward: pilot − EI + verifier | guided | 13–20 lines (986) | 2 | -1.3 [-3.1, +0.5] | -2.2 [-4.4, +0.0] |
+| thinking, unlikeliness reward: pilot − EI + verifier | plain | 16–20 lines | 2 | -1.9 [-3.7, -0.1] | -4.4 [-7.4, -1.6] |
+| thinking, unlikeliness reward: pilot − EI + verifier | guided | 16–20 lines | 2 | -1.9 [-4.3, +0.5] | -2.2 [-5.4, +0.8] |
+| thinking, unlikeliness reward: pilot − EI + verifier | plain | textbook72 | 2 | +4.3 [-0.7, +9.3] | +0.9 [-5.5, +7.0] |
+| thinking, unlikeliness reward: pilot − EI + verifier | guided | textbook72 | 2 | +1.3 [-5.0, +7.4] | +0.2 [-6.7, +6.7] |
+| thinking, unlikeliness reward: pilot − EI + verifier | plain | Charles149 | 2 | +12.4 [+8.1, +17.0] | +8.6 [+4.6, +13.0] |
+| thinking, unlikeliness reward: pilot − EI + verifier | guided | Charles149 | 2 | +5.4 [+0.3, +10.4] | +1.6 [-2.9, +6.2] |
+| thinking, unlikeliness reward: pilot − EI + verifier | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, unlikeliness reward: pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.5 [-2.4, -0.6] | -2.7 [-4.8, -0.6] |
+| thinking, unseen prior: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | -5.0 [-6.7, -3.4] | -11.9 [-14.5, -9.3] |
+| thinking, unseen prior: pilot − EI + verifier | guided | 13–20 lines (986) | 2 | -5.7 [-7.8, -3.7] | -11.0 [-13.6, -8.4] |
+| thinking, unseen prior: pilot − EI + verifier | plain | 16–20 lines | 2 | -4.5 [-6.5, -2.6] | -11.1 [-14.4, -7.7] |
+| thinking, unseen prior: pilot − EI + verifier | guided | 16–20 lines | 2 | -6.4 [-8.9, -3.8] | -11.8 [-15.2, -8.5] |
+| thinking, unseen prior: pilot − EI + verifier | plain | textbook72 | 2 | +4.4 [-0.0, +9.1] | +2.2 [-2.4, +7.2] |
+| thinking, unseen prior: pilot − EI + verifier | guided | textbook72 | 2 | +2.9 [-3.0, +8.9] | +1.9 [-4.1, +7.8] |
+| thinking, unseen prior: pilot − EI + verifier | plain | Charles149 | 2 | +11.8 [+7.4, +16.2] | +8.1 [+4.2, +12.4] |
+| thinking, unseen prior: pilot − EI + verifier | guided | Charles149 | 2 | +5.9 [+0.9, +10.9] | +3.4 [-0.9, +7.7] |
+| thinking, unseen prior: pilot − EI + verifier | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, unseen prior: pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -2.7 [-3.5, -1.8] | -6.5 [-8.5, -4.6] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | plain | 13–20 lines (986) | 2 | -2.0 [-3.7, -0.3] | -6.9 [-9.4, -4.6] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | guided | 13–20 lines (986) | 2 | -2.9 [-4.9, -0.9] | -6.4 [-8.8, -4.0] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | plain | 16–20 lines | 2 | -2.2 [-4.2, -0.2] | -7.3 [-10.4, -4.2] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | guided | 16–20 lines | 2 | -4.1 [-6.5, -1.6] | -7.5 [-10.8, -4.2] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | plain | textbook72 | 2 | +3.6 [-1.1, +8.1] | +0.7 [-4.4, +5.7] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | guided | textbook72 | 2 | +0.9 [-4.9, +6.3] | +0.6 [-5.2, +6.1] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | plain | Charles149 | 2 | +12.7 [+8.3, +17.2] | +9.3 [+5.1, +13.9] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | guided | Charles149 | 2 | +5.8 [+0.6, +10.9] | +3.0 [-1.5, +7.7] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.8 [-2.7, -0.9] | -4.1 [-6.1, -2.1] |
+| thinking, weight averaging: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | -1.1 [-2.8, +0.6] | -4.1 [-6.5, -1.7] |
+| thinking, weight averaging: pilot − EI + verifier | plain | 16–20 lines | 2 | -1.7 [-3.6, +0.2] | -4.7 [-7.8, -1.5] |
+| thinking, weight averaging: pilot − EI + verifier | plain | textbook72 | 2 | +3.5 [-1.3, +8.2] | +0.5 [-5.5, +6.2] |
+| thinking, weight averaging: pilot − EI + verifier | plain | Charles149 | 2 | +11.1 [+6.7, +15.6] | +7.5 [+3.4, +11.9] |
+| thinking, weight averaging: pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.2 [-2.1, -0.3] | -2.8 [-5.0, -0.7] |
 
 ## 4. What each change buys (thinking, plain reads, seeds paired)
 
@@ -377,6 +565,15 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | comparison | set | seeds | 1k | 2k | 4k | 8k |
 |---|---|---|---|---|---|---|
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | 16–20 lines | 2 | +0.6 [-1.1, +2.4] | -0.7 [-3.0, +1.5] | -2.4 [-5.3, +0.4] | -4.4 [-7.9, -0.9] |
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | textbook72 | 2 | +3.4 [-1.5, +8.1] | +1.0 [-4.4, +5.9] | -0.5 [-6.2, +4.5] | -1.4 [-7.5, +4.1] |
+| thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0 | Charles149 | 2 | +9.5 [+5.1, +14.2] | +7.0 [+2.8, +11.5] | +5.1 [+1.3, +9.2] | +3.6 [-0.1, +7.4] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | 16–20 lines | 2 | -2.9 [-3.9, -2.0] | -3.4 [-4.7, -2.1] | -3.5 [-5.3, -1.6] | -3.2 [-5.9, -0.5] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | textbook72 | 2 | +0.0 [-0.9, +0.9] | +0.8 [-0.4, +2.1] | +1.0 [-0.6, +2.9] | +0.4 [-1.5, +2.6] |
+| thinking: GRPO + verifier (stop), T 1.0 − T 0.8 | Charles149 | 2 | -0.3 [-1.0, +0.4] | +0.0 [-0.7, +0.7] | +0.3 [-0.6, +1.3] | +0.8 [-0.3, +2.0] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | 16–20 lines | 2 | -2.6 [-3.5, -1.6] | -2.7 [-4.0, -1.5] | -2.0 [-3.6, -0.3] | -0.6 [-2.8, +1.7] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | textbook72 | 2 | -1.4 [-2.6, -0.3] | -1.0 [-2.1, +0.1] | -1.0 [-2.5, +0.5] | -1.0 [-3.0, +1.1] |
+| thinking: EI + verifier, T 1.0 − T 0.8 | Charles149 | 2 | -0.5 [-1.7, +0.6] | +0.2 [-1.0, +1.5] | +0.9 [-0.6, +2.5] | +2.0 [+0.0, +4.2] |
 | thinking, curriculum only: GRPO − EI | 16–20 lines | 0,1,2 | -2.5 [-6.0, +1.0] | -4.7 [-9.7, -0.2] | -6.7 [-13.2, -1.0] | -7.8 [-15.5, -1.5] |
 | thinking, curriculum only: GRPO − EI | textbook72 | 0,1,2 | +5.7 [+0.9, +11.0] | +4.8 [+0.3, +10.0] | +4.0 [-0.3, +8.9] | +3.7 [-0.6, +8.6] |
 | thinking, curriculum only: GRPO − EI | Charles149 | 0,1,2 | +7.4 [+2.7, +12.4] | +6.2 [+1.4, +11.1] | +4.8 [-0.2, +9.8] | +3.7 [-1.4, +8.6] |
@@ -393,10 +590,44 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking, L3 cooldown: pilot − GRPO + verifier (stop) | textbook72 | 2 | +1.8 [-1.9, +5.5] | +3.6 [-0.2, +8.1] | +4.8 [+1.1, +9.5] | +4.7 [+1.2, +9.4] |
 | thinking, L3 cooldown: pilot − GRPO + verifier (stop) | Charles149 | 2 | +2.1 [-0.6, +5.0] | +2.3 [-0.2, +5.0] | +2.1 [-0.2, +4.7] | +1.5 [-0.6, +3.9] |
 | thinking, 3-premise rows: pilot − GRPO + verifier (stop) | 16–20 lines | 2 | +1.3 [-0.0, +2.8] | +0.9 [-0.8, +2.8] | +0.3 [-1.9, +2.5] | -0.5 [-3.3, +2.2] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | textbook72 | 2 | +2.3 [-1.0, +5.9] | +3.2 [-0.6, +7.7] | +3.4 [-0.8, +8.3] | +2.6 [-1.8, +7.5] |
+| thinking, 3-premise rows: pilot − GRPO + verifier (stop) | Charles149 | 2 | +2.9 [+0.9, +5.0] | +2.7 [+0.9, +4.7] | +2.3 [+0.5, +4.4] | +1.5 [-0.4, +3.5] |
+| thinking, refill: pilot − GRPO + verifier (stop) | 16–20 lines | 2 | +1.0 [-0.3, +2.4] | +0.7 [-1.1, +2.3] | +0.1 [-2.0, +2.2] | -0.3 [-3.1, +2.4] |
+| thinking, refill: pilot − GRPO + verifier (stop) | textbook72 | 2 | +2.7 [-0.5, +6.0] | +3.7 [+0.3, +7.7] | +4.3 [+0.8, +8.7] | +4.1 [+0.7, +8.6] |
+| thinking, refill: pilot − GRPO + verifier (stop) | Charles149 | 2 | +2.0 [-0.4, +4.4] | +1.4 [-0.9, +3.7] | +0.6 [-1.3, +2.6] | +0.1 [-1.6, +1.7] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | 16–20 lines | 2 | -2.1 [-3.4, -0.9] | -2.3 [-4.0, -0.7] | -2.4 [-4.5, -0.2] | -2.3 [-5.0, +0.5] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | textbook72 | 2 | +1.1 [-0.7, +3.2] | +2.0 [+0.0, +4.4] | +2.5 [+0.2, +5.3] | +2.5 [-0.2, +5.6] |
+| thinking, unlikeliness reward: pilot − GRPO + verifier (stop) | Charles149 | 2 | +1.9 [-0.4, +4.3] | +2.0 [+0.0, +4.2] | +1.5 [-0.4, +3.6] | +0.7 [-1.6, +2.7] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | 16–20 lines | 2 | +1.7 [+0.2, +3.2] | +0.4 [-1.6, +2.3] | -2.2 [-4.8, +0.4] | -5.4 [-8.8, -2.1] ‡ |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | textbook72 | 2 | +2.1 [-0.7, +5.3] | +3.8 [+0.7, +7.6] | +4.6 [+1.3, +8.8] | +4.3 [+0.8, +8.8] |
+| thinking, unseen prior: pilot − GRPO + verifier (stop) | Charles149 | 2 | +2.3 [-0.1, +4.9] | +2.2 [-0.2, +4.8] | +2.0 [-0.4, +4.5] | +1.4 [-1.0, +3.8] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | 16–20 lines | 2 | +0.1 [-1.3, +1.5] | -0.8 [-2.6, +1.1] | -2.3 [-4.6, +0.1] | -3.8 [-6.8, -0.8] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | textbook72 | 2 | +0.7 [-2.1, +3.3] | +2.2 [-0.5, +5.0] | +3.4 [+0.8, +6.6] | +3.9 [+1.0, +7.7] |
+| thinking, noise control (L3 rerun): pilot − GRPO + verifier (stop) | Charles149 | 2 | +2.8 [+0.1, +5.7] | +3.2 [+0.8, +5.7] | +3.0 [+0.7, +5.5] | +2.4 [+0.1, +5.0] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | 16–20 lines | 2 | +1.3 [+0.2, +2.4] | +1.3 [-0.2, +2.8] | +1.0 [-1.0, +3.1] | +0.6 [-2.0, +3.4] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | textbook72 | 2 | +1.4 [-0.1, +3.3] | +2.3 [+0.6, +4.6] | +2.9 [+0.9, +5.4] | +3.1 [+0.7, +6.0] |
+| thinking, weight averaging: pilot − GRPO + verifier (stop) | Charles149 | 2 | +1.8 [+0.3, +3.5] | +1.8 [+0.1, +3.6] | +1.6 [-0.1, +3.4] | +1.3 [-0.2, +3.0] |
 | thinking, L3 cooldown: pilot − EI + verifier | 16–20 lines | 2 | +3.6 [+1.5, +5.7] | +2.6 [+0.1, +5.3] | +1.0 [-2.1, +4.0] | -1.5 [-5.0, +2.0] |
 | thinking, L3 cooldown: pilot − EI + verifier | textbook72 | 2 | +3.7 [-0.5, +8.4] | +2.9 [-1.2, +7.5] | +2.4 [-2.1, +7.4] | +1.9 [-3.5, +7.7] |
 | thinking, L3 cooldown: pilot − EI + verifier | Charles149 | 2 | +11.3 [+7.0, +16.1] | +9.5 [+5.2, +14.1] | +7.8 [+3.8, +12.2] | +6.3 [+2.4, +10.5] |
 | thinking, 3-premise rows: pilot − EI + verifier | 16–20 lines | 2 | +2.3 [+0.3, +4.4] | +0.9 [-1.6, +3.5] | -0.7 [-3.7, +2.3] | -2.3 [-5.8, +1.2] |
+| thinking, 3-premise rows: pilot − EI + verifier | textbook72 | 2 | +4.2 [-0.6, +9.5] | +2.4 [-2.8, +8.2] | +1.0 [-4.7, +7.2] | -0.3 [-6.5, +6.3] |
+| thinking, 3-premise rows: pilot − EI + verifier | Charles149 | 2 | +12.1 [+7.5, +17.0] | +9.9 [+5.6, +14.6] | +7.9 [+3.6, +12.6] | +6.2 [+1.8, +10.9] |
+| thinking, refill: pilot − EI + verifier | 16–20 lines | 2 | +2.0 [-0.1, +4.1] | +0.6 [-2.0, +3.3] | -0.9 [-3.9, +2.2] | -2.1 [-5.7, +1.4] |
+| thinking, refill: pilot − EI + verifier | textbook72 | 2 | +4.6 [-0.6, +10.0] | +2.9 [-2.5, +8.6] | +1.9 [-3.4, +7.8] | +1.2 [-4.5, +7.4] |
+| thinking, refill: pilot − EI + verifier | Charles149 | 2 | +11.2 [+6.8, +16.0] | +8.6 [+4.4, +13.2] | +6.3 [+2.3, +10.7] | +4.8 [+0.9, +9.2] |
+| thinking, unlikeliness reward: pilot − EI + verifier | 16–20 lines | 2 | -1.1 [-3.0, +0.8] | -2.4 [-4.7, +0.0] | -3.3 [-6.2, -0.6] | -4.0 [-7.4, -0.8] |
+| thinking, unlikeliness reward: pilot − EI + verifier | textbook72 | 2 | +3.0 [-2.7, +8.5] | +1.2 [-4.9, +7.2] | +0.1 [-6.2, +6.5] | -0.3 [-6.6, +6.2] |
+| thinking, unlikeliness reward: pilot − EI + verifier | Charles149 | 2 | +11.1 [+6.6, +15.9] | +9.2 [+5.1, +13.9] | +7.2 [+3.1, +11.8] | +5.4 [+1.3, +9.9] |
+| thinking, unseen prior: pilot − EI + verifier | 16–20 lines | 2 | +2.7 [+0.4, +5.0] | +0.3 [-2.5, +3.2] | -3.2 [-6.4, +0.2] | -7.2 [-11.1, -3.2] ‡ |
+| thinking, unseen prior: pilot − EI + verifier | textbook72 | 2 | +4.0 [-0.5, +9.0] | +3.0 [-1.5, +7.8] | +2.2 [-2.6, +7.3] | +1.4 [-4.1, +7.4] |
+| thinking, unseen prior: pilot − EI + verifier | Charles149 | 2 | +11.5 [+7.0, +16.3] | +9.4 [+5.3, +14.1] | +7.6 [+3.5, +12.1] | +6.1 [+1.8, +10.6] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | 16–20 lines | 2 | +1.0 [-1.1, +3.2] | -0.8 [-3.5, +1.9] | -3.3 [-6.4, -0.2] | -5.6 [-9.1, -2.1] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | textbook72 | 2 | +2.6 [-2.6, +7.8] | +1.4 [-3.6, +6.4] | +1.0 [-4.1, +6.0] | +1.1 [-4.2, +6.5] |
+| thinking, noise control (L3 rerun): pilot − EI + verifier | Charles149 | 2 | +12.0 [+7.5, +17.0] | +10.4 [+5.9, +15.2] | +8.7 [+4.4, +13.3] | +7.1 [+2.9, +11.6] |
+| thinking, weight averaging: pilot − EI + verifier | 16–20 lines | 2 | +2.3 [+0.1, +4.3] | +1.2 [-1.4, +3.9] | +0.0 [-3.1, +3.1] | -1.1 [-4.7, +2.3] |
+| thinking, weight averaging: pilot − EI + verifier | textbook72 | 2 | +3.3 [-2.4, +9.0] | +1.5 [-4.3, +7.1] | +0.5 [-5.3, +6.3] | +0.2 [-5.9, +6.5] |
+| thinking, weight averaging: pilot − EI + verifier | Charles149 | 2 | +11.0 [+6.5, +16.0] | +8.9 [+4.7, +13.7] | +7.2 [+3.1, +11.6] | +6.0 [+1.8, +10.4] |
 
 ## 6. 13–20 by premise count (plain reads; the v2 pools have 0–2 premises)
 
@@ -406,6 +637,13 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | GRPO + verifier (stop) | 0,1,2 | 45.0 [38.2, 52.1] | 25.0 [20.5, 28.7] | 0% |
 | pilot: + L3 cooldown | 2 | 42.7 [37.8, 47.9] | 24.5 [22.3, 26.8] | 7% |
 | pilot: + 3-premise rows in L3 | 2 | 43.9 [39.1, 49.0] | 23.3 [21.0, 25.5] | 0% |
+| pilot: + refill, drop p > 0.9 | 2 | 43.6 [38.6, 48.9] | 23.3 [21.1, 25.6] | 2% |
+| pilot: + unlikeliness reward | 2 | 44.7 [40.0, 49.6] | 21.6 [19.6, 23.7] | 1% |
+| pilot: + unseen prior = mean | 2 | 38.4 [33.5, 43.6] | 18.6 [16.6, 20.6] | 36% |
+| control: L3 rerun, same settings | 2 | 42.5 [37.4, 47.7] | 21.3 [19.2, 23.3] | 9% |
+| pilot: mean of L3 it 25-39 weights | 2 | 43.3 [38.5, 48.3] | 22.3 [20.1, 24.4] | 5% |
+| GRPO + verifier (stop), read at T 1.0 | 2 | 33.3 [29.0, 37.7] | 16.7 [14.9, 18.5] | 1% |
+| EI + verifier, read at T 1.0 | 2 | 36.4 [32.2, 40.8] | 20.0 [18.1, 21.7] | 0% |
 | EI | 0,1,2 | 45.2 [40.5, 50.0] | 27.8 [25.0, 30.5] | 0% |
 | EI + verifier | 0,1,2 | 44.8 [39.6, 50.4] | 27.4 [23.7, 31.0] | 0% |
 
@@ -422,6 +660,6 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 - `groups_skipped` means different things with and without the step penalty; compare the
   arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.
 
-Rows not there yet (378 files; run: files):
+Rows not there yet (423 files; run: files):
 
-`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_3pb_s0`: 8, `grpo_think_vs_3pb_s1`: 8, `grpo_think_vs_3pb_s2`: 7, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_pb_s0`: 8, `grpo_think_vs_pb_s1`: 8, `grpo_think_vs_pb_s2`: 8, `grpo_think_vs_rfb_s0`: 8, `grpo_think_vs_rfb_s1`: 8, `grpo_think_vs_rfb_s2`: 8, `grpo_think_vs_ulb_s0`: 8, `grpo_think_vs_ulb_s1`: 8, `grpo_think_vs_ulb_s2`: 8, `grpo_think_vs_wb_s0`: 8, `grpo_think_vs_wb_s1`: 8, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
+`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `ei_think_v_t10_s0`: 8, `ei_think_v_t10_s1`: 8, `ei_think_v_t10_s2`: 4, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_3pb_s0`: 8, `grpo_think_vs_3pb_s1`: 8, `grpo_think_vs_avg_s0`: 8, `grpo_think_vs_avg_s1`: 8, `grpo_think_vs_avg_s2`: 4, `grpo_think_vs_b_s0`: 8, `grpo_think_vs_b_s1`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_pb_s0`: 8, `grpo_think_vs_pb_s1`: 8, `grpo_think_vs_rfb_s0`: 8, `grpo_think_vs_rfb_s1`: 8, `grpo_think_vs_t10_s0`: 8, `grpo_think_vs_t10_s1`: 8, `grpo_think_vs_t10_s2`: 4, `grpo_think_vs_ulb_s0`: 8, `grpo_think_vs_ulb_s1`: 8, `grpo_think_vs_wb_s0`: 8, `grpo_think_vs_wb_s1`: 8, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
