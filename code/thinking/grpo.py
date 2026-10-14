@@ -169,6 +169,55 @@ Verifier-guided sampling and the step penalty (opt-in; Leon 2026-10-09, "GRPO + 
   rejected-draw parts; overall the think / action and accepted / rejected split, and rejections per
   draw with their top causes. `matched_eval/rl_dashboard.py` plots these rows.
 
+Pilot options (opt-in; Leon 2026-10-13: late in stage L3 about half the groups were all solved and
+skipped). Without them the rollouts, rows, log lines, weights and args.json are c4b8548's
+(digests in test_grpo_pilots.py); the options are left out of args.json unless given.
+* **Refill** (`--refill`; dynamic sampling, DAPO: Yu et al. 2025, arXiv 2503.14476; Olmo 3's active
+  sampling). A group has an outcome signal when its unmasked rewards are not all equal (not all
+  solved, not all failed). While fewer than `--prompts` of the iteration's groups have one and
+  fewer than `--refill_max` (2) extra rounds have run, another round of pairs is drawn with the same
+  curricula and weights (updated with the groups so far; pairs already drawn this iteration
+  excluded; `--targets_extra_frac` of them from the extra file) and sampled: ceil(D / q) pairs, at
+  most `--prompts`, for a deficit D and the iteration's share q of groups with a signal so far.
+  Groups are taken in draw order until `--prompts` with a signal are in; later ones (the surplus)
+  update the curriculum and the sampling metrics but are not trained on. Every sampled group
+  updates its curriculum and counts in the rows' sampling metrics (pass@1, tokens, capped, the
+  monitor; `groups_skipped` is over every sampled group), and every sampled attempt counts as
+  compute. `row['refill']`: per round the pairs drawn, those with a signal and those never drawn
+  before; `skip_before` (round 0's share without a signal) and `skip_after` (the share of the
+  `--prompts` target left without one); the surplus; this iteration's sampled groups, attempts
+  and tokens (`tokens` as the sampler counts them, rejected draws included) and the run's totals
+  (`*_cum`: rolled-back iterations included, carried through a resume in `train_state`).
+* **Pass-rate filter** (`--max_pass` x, 0.5 <= x <= 1): pairs whose estimate p is above x are not
+  drawn, in any round. Olmo 3 drops prompts its SFT model solves more than 62.5% of the time,
+  offline; here it is the running estimate, so a pair once over x is not drawn again (no floor).
+  Unseen pairs (p = 0.5) are never filtered. `row['max_pass']`: the pairs over x per curriculum.
+* **Unlikeliness reward** (`--unlikely_beta` beta, 0 <= beta <= 1; He, Fried & Welleck 2025,
+  arXiv 2506.02355, Sec. 4.1, beta_rank = 0.25 there). In a group with an outcome signal the n
+  unmasked attempts are ranked by their likelihood under the sampling policy pi_old (the weights
+  before this iteration's update): rho_j = the number of attempts less likely than j, ties
+  counting half, so 0 is the least likely and n - 1 the most likely. A solved attempt's reward 1
+  becomes 1 - beta rho_j / n; failures keep 0. This is the paper's r_i = R(x, y_i) (1 - beta_rank
+  (G - rank(y_i)) / G) with rank 1 the most likely of the G samples (its text also says "rank 0";
+  the released code, `ray_lean_trainer._compute_advantages`, uses rank = argsort(argsort(log p))
+  ascending / G, which is rho / n). Only groups with an outcome signal change: the paper skips
+  groups with zero advantage before the perturbation, so an all-solved group stays skipped and
+  the outcome still sets each attempt's sign. The advantage stays r - the group mean (Dr. GRPO;
+  the paper divides by the std). The likelihood is the mean log pi_old per scored token of the
+  attempt's steps (`old_logps`, the PPO ratio's log-probs, so no extra forward pass): every
+  sampled think and action token, under the phase masks at T, the draw that ended a failed attempt
+  included, a forced `</think>` excluded. The released code also takes the per-token mean; the sum
+  would rank mostly by length (a longer proof or think block is less likely) and so reward long
+  proofs. Redrawn draws (guided arms) are not part of the attempt and do not count; non-finite
+  log-probs (a token banned in its phase: the `nonfinite` alarm) are left out. With `--rej_penalty`
+  the rejected draws keep -P on top of their attempt's advantage; with `--overlong fail` a capped
+  attempt is a failure (reward 0) and is ranked like the others; with `--overlong mask` the masked
+  attempts are out of the ranking, as they are out of the baseline. `--len_penalty` and
+  `--len_target_coef` stay additive (a success's 1 - beta rho / n pays them as its 1 did).
+  `row['unlikely']`: the groups and solved attempts ranked, the mean and largest deduction, and
+  the mean within-group correlation of rho with the attempt's scored tokens (a length bias shows
+  there).
+
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
 in ei.py). `--force_mode` is the sampler's budget forcing: 'line' (default) lets the block finish
@@ -194,7 +243,7 @@ import re
 import statistics
 import sys
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Collection, Sequence
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -459,10 +508,14 @@ def group_items(
     rej_penalty: float = 0.0,
     rej_scope: str = "diverge",
     src: list[tuple[int, str]] | None = None,
+    signal: list[bool] | None = None,
+    unlikely: Sequence[float] | None = None,
 ) -> tuple[list[Item] | None, list[bool]]:
     """One group's training items -> (items, None when the group is skipped; per attempt, whether
     it is masked as overlong). Masked attempts give no items, so no gradient. `len_target_*`: the
-    length target (`rewards`).
+    length target (`rewards`). `signal`, when given, gets whether the outcomes give a signal (the
+    unmasked rewards are not all equal). `unlikely`: per attempt a deduction from its reward (the
+    unlikeliness reward, `unlikely_penalties`), applied only when the outcomes give a signal.
 
     Step penalty (`rej_penalty` P > 0, a guided arm): every rejected draw gets -P on top of what
     its attempt gives it -- the redrawn draws (`rejected_items`, of every attempt, masked ones
@@ -475,7 +528,13 @@ def group_items(
     masked = [overlong == "mask" and is_overlong(x) for x in att]
     ids = (tok.think, tok.end_think) if len_target_coef and has_think(tok) else None
     r = rewards(att, len_penalty, len_target_coef, len_target_mode, ids, len_target_frac)
-    adv = advantages(r, [not m for m in masked])
+    keep = [not m for m in masked]
+    adv = advantages(r, keep)
+    if signal is not None:
+        signal.append(adv is not None)
+    if adv is not None and unlikely is not None:  # the skip rule reads the rewards before it
+        adv2 = advantages([x - u for x, u in zip(r, unlikely, strict=True)], keep)
+        adv = adv if adv2 is None else adv2
     pen = rej_penalty > 0 and any(n_rejected(x) for x in att)
     if adv is None and not pen:
         return None, masked
@@ -495,6 +554,126 @@ def group_items(
             if src is not None:
                 src += [(j, "rej")] * len(rj)
     return items, masked
+
+
+def frac_ranks(v: Sequence[float]) -> list[float]:
+    """Ascending ranks from 0, ties averaged: rho_i = #{k: v_k < v_i} + #{k != i: v_k = v_i} / 2."""
+    return [sum(y < x for y in v) + (sum(y == x for y in v) - 1) / 2 for x in v]
+
+
+def attempt_logp(
+    n_att: int, src: Sequence[tuple[int, str]], old: Sequence[torch.Tensor]
+) -> list[float | None]:
+    """A group's attempts -> the mean log pi_old per scored token of each (the unlikeliness
+    reward's likelihood), from its items' `old_logps` (`old`, aligned with `src`, `group_items`'s
+    (attempt, kind) per item): the attempt's own steps ('acc'), not its redrawn draws; non-finite
+    log-probs left out. None for an attempt without a scored token."""
+    tot, cnt = [0.0] * n_att, [0] * n_att
+    for (j, kind), o in zip(src, old, strict=True):
+        if kind == "acc":
+            f = o[torch.isfinite(o)]
+            tot[j] += float(f.sum())
+            cnt[j] += int(f.numel())
+    return [t / c if c else None for t, c in zip(tot, cnt, strict=True)]
+
+
+def unlikely_penalties(
+    att: Sequence[dict[str, Any]],
+    scores: Sequence[float | None],
+    masked: Sequence[bool],
+    beta: float,
+) -> list[float]:
+    """The unlikeliness reward (module docstring; He, Fried & Welleck 2025, Sec. 4.1) -> per
+    attempt the deduction from its reward: beta x rho / n for a solved attempt, rho its rank among
+    the n unmasked attempts with a score (`attempt_logp`), ascending in likelihood (`frac_ranks`: 0
+    the least likely); 0 for the others."""
+    ranked = [
+        (j, s)
+        for j, (s, m) in enumerate(zip(scores, masked, strict=True))
+        if s is not None and not m
+    ]
+    out = [0.0] * len(att)
+    rho = frac_ranks([s for _, s in ranked])
+    for (j, _), r in zip(ranked, rho, strict=True):
+        if att[j].get("ok"):
+            out[j] = beta * r / len(ranked)
+    return out
+
+
+GroupFn = Callable[..., tuple[list[Item] | None, list[bool]]]
+
+
+def unlikely_rewrite(
+    per: Sequence[Sequence[dict[str, Any]]],
+    sig: Sequence[bool],
+    spans: Sequence[tuple[int, int, int, int, list[bool]]],
+    items: list[Item],
+    item_src: Sequence[tuple[int, int, str]],
+    old: Sequence[torch.Tensor],
+    beta: float,
+    grp: GroupFn,
+) -> dict[str, Any]:
+    """--unlikely_beta: the items of every trained group with an outcome signal get the
+    unlikeliness reward's advantages, in place (`grp`: `group_items` with the run's settings,
+    called with the deductions). The items' tokens, masks and order stay, so `old` (their
+    `old_logps`, which the ranks read) still aligns. `spans`: per trained group (group, first item,
+    one past its last, dump row, masked). -> row['unlikely']: the groups and solved attempts
+    ranked, the mean and largest deduction, the mean within-group Pearson correlation of rho with
+    the attempt's scored tokens (`len_corr`, over `len_corr_groups` groups with 3 or more ranked
+    attempts); plus 'spans' and 'pens', the rewritten groups' spans and per-attempt deductions."""
+    done: list[tuple[int, int, int, int, list[bool]]] = []
+    pens: list[list[float]] = []
+    solved: list[float] = []
+    corrs: list[float] = []
+    for sp in spans:
+        g, i0, i1, _, masked = sp
+        if not sig[g]:
+            continue
+        att = per[g]
+        sg = [(j, kind) for _, j, kind in item_src[i0:i1]]
+        sc = attempt_logp(len(att), sg, old[i0:i1])
+        pen = unlikely_penalties(att, sc, masked, beta)
+        src2: list[tuple[int, str]] = []
+        its, _ = grp(att, src2, None, pen)
+        assert (
+            its is not None
+            and src2 == sg
+            and all(x[:3] == y[:3] for x, y in zip(its, items[i0:i1], strict=True))
+        ), "the unlikeliness reward changed a group's items, not only their advantages"
+        items[i0:i1] = its
+        done.append(sp)
+        pens.append(pen)
+        ranked = [(j, s) for j, s in enumerate(sc) if s is not None and not masked[j]]
+        solved += [pen[j] for j, _ in ranked if att[j].get("ok")]
+        n_tok = [0] * len(att)
+        for (j, kind), x in zip(sg, its, strict=True):
+            if kind == "acc":
+                n_tok[j] += sum(x[2])
+        c = _corr(frac_ranks([s for _, s in ranked]), [float(n_tok[j]) for j, _ in ranked])
+        if c is not None:
+            corrs.append(c)
+    return {
+        "beta": beta,
+        "groups": len(done),
+        "solved": len(solved),
+        "pen_mean": sum(solved) / len(solved) if solved else 0.0,
+        "pen_max": max(solved, default=0.0),
+        "len_corr": sum(corrs) / len(corrs) if corrs else None,
+        "len_corr_groups": len(corrs),
+        "spans": done,
+        "pens": pens,
+    }
+
+
+def _corr(x: Sequence[float], y: Sequence[float]) -> float | None:
+    """Pearson's r; None for fewer than 3 points or a constant side."""
+    n = len(x)
+    if n < 3:
+        return None
+    mx, my = sum(x) / n, sum(y) / n
+    sxy = sum((u - mx) * (v - my) for u, v in zip(x, y, strict=True))
+    sxx, syy = sum((u - mx) ** 2 for u in x), sum((v - my) ** 2 for v in y)
+    return sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None
 
 
 def _chunks(items: Sequence[Item], max_tokens: int) -> list[list[int]]:
@@ -872,15 +1051,28 @@ class Curriculum:
         p = self.p(i)
         return p * (1.0 - p) + self.floor
 
-    def draw(self, m: int) -> list[tuple[int, int]]:
+    def draw(
+        self, m: int, exclude: Collection[int] = (), max_pass: float | None = None
+    ) -> list[tuple[int, int]]:
         """m distinct pairs, weighted, without replacement (Efraimidis-Spirakis keys u^(1/w), as
         log(u) / w: u^(1/w) underflows to 0 for small weights, which would tie and fall back to
-        index order)."""
+        index order). `exclude` (pair indices) and pairs with p > `max_pass` are not drawn (fewer
+        than m when too few are left); the RNG draws one number per pair either way."""
         keyed = [
             (math.log(1.0 - self.rng.random()) / self.weight(i), i) for i in range(len(self.keys))
         ]
+        if exclude or max_pass is not None:
+            keyed = [
+                (k, i)
+                for k, i in keyed
+                if i not in exclude and (max_pass is None or self.p(i) <= max_pass)
+            ]
         keyed.sort(reverse=True)
         return [self.keys[i] for _, i in keyed[: min(m, len(keyed))]]
+
+    def over(self, max_pass: float) -> int:
+        """How many pairs `draw(max_pass=...)` leaves out."""
+        return sum(self.p(i) > max_pass for i in range(len(self.keys)))
 
     def update(self, key: tuple[int, int], successes: int, trials: int) -> None:
         i = self.index[key]
@@ -1259,10 +1451,12 @@ def train_state(
     opt: torch.optim.Optimizer,
     rngs: dict[str, random.Random],
     curs: dict[str, Curriculum],
+    compute: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """Everything a resume needs besides the weights (plain types and tensors, so
-    `torch.load(weights_only=True)` reads it)."""
-    return {
+    `torch.load(weights_only=True)` reads it). `compute`: --refill's run totals of sampled
+    groups, attempts and tokens (a rollback does not restore them; a resume does)."""
+    st = {
         "version": STATE_VERSION,
         "iter": it,
         "loop": dataclasses.asdict(ls),
@@ -1272,6 +1466,9 @@ def train_state(
         "torch_rng": torch.get_rng_state(),
         "cuda_rng": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [],
     }
+    if compute is not None:
+        st["compute"] = dict(compute)
+    return st
 
 
 def restore_state(
@@ -1340,6 +1537,35 @@ def _canary_line(it: int, c: dict[str, Any]) -> str:
     )
 
 
+def _pilot_lines(it: int, row: dict[str, Any]) -> list[str]:
+    """The pilot options' lines (module docstring): --refill's rounds, skip shares and sampled
+    compute; --max_pass's filtered pairs; the unlikeliness reward's deductions."""
+    out = []
+    if "refill" in row:
+        f = row["refill"]
+        out.append(
+            f"refill it {it}: {f['rounds']} rounds, drawn {f['drawn']} signal {f['signal']} "
+            f"unseen {f['unseen']}; skip {100 * f['skip_before']:.0f}% -> "
+            f"{100 * f['skip_after']:.0f}% ({f['signal_groups']}/{f['target']} with a signal), "
+            f"surplus {f['surplus']}; sampled "
+            f"{f['attempts']} attempts {f['tokens']} tokens (run {f['attempts_cum']} / "
+            f"{f['tokens_cum']})"
+        )
+    if "max_pass" in row:
+        mp = row["max_pass"]
+        extra = f", extra {mp['over_extra']}" if "over_extra" in mp else ""
+        out.append(f"max_pass it {it}: {mp['over']} pairs over {mp['threshold']:g}{extra}")
+    if "unlikely" in row:
+        u = row["unlikely"]
+        lc = "-" if u["len_corr"] is None else f"{u['len_corr']:+.2f}"
+        out.append(
+            f"unlikely it {it}: beta {u['beta']:g}, {u['groups']} groups, {u['solved']} solved "
+            f"attempts ranked, deduction mean {u['pen_mean']:.3f} max {u['pen_max']:.3f}, "
+            f"rank/length corr {lc} ({u['len_corr_groups']} groups)"
+        )
+    return out
+
+
 def _monitor_line(it: int, mo: dict[str, Any]) -> str:
     """`--monitor`'s line: the gradient share and pass rate per length, the rejected-draw share of
     the gradient, rejections per draw and the top causes."""
@@ -1357,6 +1583,27 @@ def _monitor_line(it: int, mo: dict[str, Any]) -> str:
             else ""
         )
     )
+
+
+REFILL_MAX = 2  # --refill_max: extra sampling rounds per iteration
+
+
+def pilot_options(a: argparse.Namespace) -> tuple[bool, float | None, float]:
+    """The pilot options (module docstring; left out of the namespace unless given) -> (--refill,
+    --max_pass or None, --unlikely_beta or 0). With --refill, --refill_max is set on `a` (default
+    REFILL_MAX), so args.json records it."""
+    refill = bool(getattr(a, "refill", False))
+    assert refill or not hasattr(a, "refill_max"), "--refill_max needs --refill"
+    if refill:
+        a.refill_max = int(getattr(a, "refill_max", REFILL_MAX))
+        assert a.refill_max >= 1, "--refill_max must be >= 1"
+    max_pass = getattr(a, "max_pass", None)
+    assert max_pass is None or 0.5 <= max_pass <= 1.0, (
+        "--max_pass must be in [0.5, 1] (unseen pairs are at p = 0.5)"
+    )
+    beta = float(getattr(a, "unlikely_beta", 0.0))
+    assert 0.0 <= beta <= 1.0, "--unlikely_beta must be in [0, 1]"
+    return refill, max_pass, beta
 
 
 def run(a: argparse.Namespace) -> list[dict[str, Any]]:
@@ -1382,6 +1629,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     if a.len_target_coef and not a.effort:
         print("WARNING: --len_target_coef without --effort: the target is not in the prompt")
     sched = lr_schedule(a)  # None: constant; else resolved onto `a` (args.json)
+    refill, max_pass, beta = pilot_options(a)  # resolved onto `a` when given (args.json)
     if a.resume:  # before anything is written: a refused resume leaves the run's files alone
         check_resume_schedule(a.resume, sched, a.start_iter)
     out = Path(a.out)
@@ -1480,9 +1728,15 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         )
     last = a.start_iter + a.iters
     ckdir = out / "ckpts"
+    # --refill: the run's sampled compute (rolled-back iterations included; a resume carries it)
+    compute: dict[str, int] | None = None
+    if refill:
+        compute = {"groups": 0, "attempts": 0, "tokens": 0}
+        if resume_state is not None:
+            compute.update(resume_state.get("compute") or {})
 
     def snapshot(i: int) -> dict[str, Any]:
-        return train_state(i, ls, opt, rngs, curs)
+        return train_state(i, ls, opt, rngs, curs, compute)
 
     if can is not None and ls.canary_base is None:
         model.eval()
@@ -1495,14 +1749,46 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         meta0 = {**extra, "grpo_iter": start, "grpo_init": a.init, "args": vars(a)}
         save_ckpt(str(p), model, tok.mode, extra=meta0, train_state=snapshot(start))
         ls.last_good, ls.last_good_iter = str(p), start
+
+    def grp(
+        att: Sequence[dict[str, Any]],
+        src_g: list[tuple[int, str]],
+        signal: list[bool] | None = None,
+        unlikely: Sequence[float] | None = None,
+    ) -> tuple[list[Item] | None, list[bool]]:
+        return group_items(
+            att,
+            tok,
+            a.len_penalty,
+            a.overlong,
+            a.len_target_coef,
+            a.len_target_mode,
+            a.len_target_frac,
+            a.rej_penalty,
+            a.rej_penalty_scope,
+            src_g,
+            signal,
+            unlikely,
+        )
+
+    def n_unseen(ks: Sequence[tuple[int, int]], ss: Sequence[int]) -> int:
+        """--refill's rows: how many of the pairs no group has been drawn for yet."""
+        cs = [curs["extra" if s else "main"] for s in ss]
+        return sum(c.n[c.index[k]] == 0 for c, k in zip(cs, ks, strict=True))
+
     for it in range(start + 1, last + 1):
         t0 = time.time()
-        pairs = cur.draw(a.prompts - n_x)
-        pairs_x = curs["extra"].draw(n_x) if n_x else []
+        pairs = cur.draw(a.prompts - n_x, max_pass=max_pass)
+        pairs_x = curs["extra"].draw(n_x, max_pass=max_pass) if n_x else []
+        assert pairs or pairs_x, f"--max_pass {max_pass}: no pair left to draw"
         keys = pairs + pairs_x
         src = [0] * len(pairs) + [1] * len(pairs_x)  # 1: --targets_extra
         batch = [targets[t] for t, _ in pairs] + [tx[t] for t, _ in pairs_x]
         tb = [b for _, b in keys]
+        # --refill: per round the pairs drawn, those with an outcome signal, those never drawn
+        rinfo: dict[str, list[int]] = {"drawn": [len(keys)], "signal": [], "unseen": []}
+        if refill:
+            rinfo["unseen"].append(n_unseen(keys, src))
         model.eval()
         D.record.phase("sample", round=it)
         samp_st: dict[str, Any] | None = {} if a.monitor else None
@@ -1519,61 +1805,107 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         grp_meta: list[dict[str, Any]] = []
         item_att: list[int] = []
         r_ids = (tok.think, tok.end_think) if a.len_target_coef and has_think(tok) else None
-        for g, (att, b, key, s) in enumerate(zip(per, tb, keys, src, strict=True)):
-            by_b[b] += [float(bool(x.get("ok"))) for x in att]
-            think_b[b] += [float(x["think"]) for x in att]
-            # the curriculum counts every attempt: a capped one is a failure at eval
-            curs["extra" if s else "main"].update(
-                key, sum(bool(x.get("ok")) for x in att), len(att)
-            )
-            src_g: list[tuple[int, str]] = []
-            its, masked = group_items(
-                att,
-                tok,
-                a.len_penalty,
-                a.overlong,
-                a.len_target_coef,
-                a.len_target_mode,
-                a.len_target_frac,
-                a.rej_penalty,
-                a.rej_penalty_scope,
-                src_g,
-            )
-            skipped.append(its is None)
-            over_b[b] += [float(mk) for mk in masked]
-            if dumping:
-                rw = rewards(
-                    att,
-                    a.len_penalty,
-                    a.len_target_coef,
-                    a.len_target_mode,
-                    r_ids,
-                    a.len_target_frac,
+        sig: list[bool] = []  # per group: its outcomes give a signal
+        # per trained group: (group, its first item, one past its last, its first dump attempt
+        # row or -1, its attempts masked as overlong): the unlikeliness reward rewrites its items
+        spans: list[tuple[int, int, int, int, list[bool]]] = []
+        n_sig = n_surplus = 0  # trained groups with a signal; --refill: groups past the target
+        rnd = r_at = 0  # the sampling round (0, then --refill's), and its first group
+        while True:
+            for g in range(r_at, len(per)):
+                att, b, key, s = per[g], tb[g], keys[g], src[g]
+                by_b[b] += [float(bool(x.get("ok"))) for x in att]
+                think_b[b] += [float(x["think"]) for x in att]
+                # the curriculum counts every attempt: a capped one is a failure at eval
+                curs["extra" if s else "main"].update(
+                    key, sum(bool(x.get("ok")) for x in att), len(att)
                 )
-                a0 = len(att_meta)
-                att_meta += [
-                    {
-                        "group": g,
-                        "status": x.get("status"),
-                        "ok": x.get("ok"),
-                        "reward": r,
-                        "masked": m,
-                    }
-                    for x, r, m in zip(att, rw, masked, strict=True)
-                ]
-                grp_meta.append(
-                    {"budget": b, "target": key[0], "source": s, "skipped": its is None}
-                )
-                if its is not None:
-                    item_att += [a0 + j for j, _ in src_g]
-            if its is None:
-                n_skip += 1
-                continue
-            items += its
-            item_src += [(g, j, kind) for j, kind in src_g]
+                src_g: list[tuple[int, str]] = []
+                its, masked = grp(att, src_g, sig)
+                surplus = rnd > 0 and n_sig >= a.prompts  # --refill: the target is reached
+                skipped.append(its is None or surplus)
+                over_b[b] += [float(mk) for mk in masked]
+                a0 = -1
+                if dumping:
+                    rw = rewards(
+                        att,
+                        a.len_penalty,
+                        a.len_target_coef,
+                        a.len_target_mode,
+                        r_ids,
+                        a.len_target_frac,
+                    )
+                    a0 = len(att_meta)
+                    att_meta += [
+                        {
+                            "group": g,
+                            "status": x.get("status"),
+                            "ok": x.get("ok"),
+                            "reward": r,
+                            "masked": m,
+                        }
+                        for x, r, m in zip(att, rw, masked, strict=True)
+                    ]
+                    grp_meta.append(
+                        {
+                            "budget": b,
+                            "target": key[0],
+                            "source": s,
+                            "skipped": its is None or surplus,
+                            **({"round": rnd, "surplus": surplus} if refill else {}),
+                        }
+                    )
+                    if its is not None and not surplus:
+                        item_att += [a0 + j for j, _ in src_g]
+                if its is None:
+                    n_skip += 1
+                    continue
+                if surplus:
+                    n_surplus += 1
+                    continue
+                n_sig += sig[g]
+                spans.append((g, len(items), len(items) + len(its), a0, masked))
+                items += its
+                item_src += [(g, j, kind) for j, kind in src_g]
+            if not refill:
+                break
+            rinfo["signal"].append(sum(sig[r_at:]))
+            if rnd >= a.refill_max or n_sig >= a.prompts:
+                break
+            # the next round: enough pairs for the deficit at this iteration's signal share so far
+            q = sum(sig) / len(per)
+            m = a.prompts if q <= 0 else min(a.prompts, math.ceil((a.prompts - n_sig) / q))
+            m_x = round(a.targets_extra_frac * m) if tx else 0
+            new = cur.draw(m - m_x, {cur.index[k] for k in pairs}, max_pass)
+            new_x = (
+                curs["extra"].draw(m_x, {curs["extra"].index[k] for k in pairs_x}, max_pass)
+                if m_x
+                else []
+            )
+            if not new and not new_x:  # every pair is drawn or filtered
+                break
+            rnd, r_at = rnd + 1, len(per)
+            k_r, s_r = new + new_x, [0] * len(new) + [1] * len(new_x)
+            b_r = [targets[t] for t, _ in new] + [tx[t] for t, _ in new_x]
+            tb_r = [b for _, b in k_r]
+            rinfo["drawn"].append(len(k_r))
+            rinfo["unseen"].append(n_unseen(k_r, s_r))
+            seed_r = a.seed * 100003 + it + rnd * 1_000_003  # apart from every round 0's
+            per = per + sample_groups(model, tok, b_r, tb_r, a, seed_r, think, samp_st)
+            pairs, pairs_x = pairs + new, pairs_x + new_x
+            keys, src, batch, tb = keys + k_r, src + s_r, batch + b_r, tb + tb_r
         t_sample = time.time() - t0
         D.record.phase("update", round=it)
         old = old_logps(model, items, a.temperature, dev, a.max_tokens, think_ids, bans)
+        ul: dict[str, Any] | None = None
+        if beta > 0:  # the unlikeliness reward: the advantages from pi_old's ranks
+            ul = unlikely_rewrite(per, sig, spans, items, item_src, old, beta, grp)
+            spans_u, pens_u = ul.pop("spans"), ul.pop("pens")
+            if dumping:  # the attempts' rewards as trained
+                for (_, _, _, a0, _), pen in zip(spans_u, pens_u, strict=True):
+                    for j, u in enumerate(pen):
+                        att_meta[a0 + j]["reward"] -= u
+                        att_meta[a0 + j]["unlikely"] = u
         model.train()
         order = list(range(len(items)))
         rng.shuffle(order)
@@ -1750,6 +2082,34 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 per, [target_length(t) for t in batch], skipped, items, item_src, think_ids, samp_st
             )
             row["monitor"]["arm"], row["monitor"]["rej_penalty"] = a.arm, a.rej_penalty
+        if refill:
+            assert compute is not None
+            n_att = sum(len(att) for att in per)
+            n_tok_s = sum(int(x["tokens"]) for x in flat)
+            compute["groups"] += len(per)
+            compute["attempts"] += n_att
+            compute["tokens"] += n_tok_s
+            row["refill"] = {
+                "rounds": rnd,
+                "refill_max": a.refill_max,
+                "target": a.prompts,
+                **rinfo,
+                "skip_before": 1.0 - rinfo["signal"][0] / max(1, rinfo["drawn"][0]),
+                "skip_after": 1.0 - n_sig / a.prompts,
+                "signal_groups": n_sig,  # trained, with a signal
+                "trained_groups": len(spans),
+                "surplus": n_surplus,
+                "groups": len(per),
+                "attempts": n_att,
+                "tokens": n_tok_s,
+                **{f"{k}_cum": v for k, v in compute.items()},
+            }
+        if max_pass is not None:  # the pairs the next draw leaves out
+            row["max_pass"] = {"threshold": max_pass, "over": cur.over(max_pass)}
+            if tx:
+                row["max_pass"]["over_extra"] = curs["extra"].over(max_pass)
+        if ul is not None:
+            row["unlikely"] = ul
         if can is not None and it % a.canary_every == 0:  # the policy this iteration leaves
             t1 = time.time()
             model.eval()
@@ -1810,6 +2170,8 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             print(_canary_line(it, row["canary"]), flush=True)
         if "monitor" in row:
             print(_monitor_line(it, row["monitor"]), flush=True)
+        for line in _pilot_lines(it, row):
+            print(line, flush=True)
         guard = []
         if "kl_anchor" in row:
             guard.append(
@@ -2126,6 +2488,34 @@ def parser() -> argparse.ArgumentParser:
         type=float,
         default=0.0,
         help="share of each iteration's groups drawn from --targets_extra",
+    )
+    # left out of the namespace (and args.json) unless given: `pilot_options`
+    pg = ap.add_argument_group("pilot options (opt-in; module docstring)")
+    pg.add_argument(
+        "--refill",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="draw and sample more pairs until --prompts groups have an outcome signal "
+        "(dynamic sampling), at most --refill_max extra rounds",
+    )
+    pg.add_argument(
+        "--refill_max",
+        type=int,
+        default=argparse.SUPPRESS,
+        help=f"--refill: extra sampling rounds per iteration (default {REFILL_MAX})",
+    )
+    pg.add_argument(
+        "--max_pass",
+        type=float,
+        default=argparse.SUPPRESS,
+        help="do not draw pairs whose pass-rate estimate is above this (0.5 - 1)",
+    )
+    pg.add_argument(
+        "--unlikely_beta",
+        type=float,
+        default=argparse.SUPPRESS,
+        help="unlikeliness reward (He et al. 2025): a solved attempt's reward is 1 - beta x its "
+        "likelihood rank / n in its group (default 0: off; 0.25 in the paper)",
     )
     return ap
 
