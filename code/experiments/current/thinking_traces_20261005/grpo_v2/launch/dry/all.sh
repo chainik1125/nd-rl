@@ -10,6 +10,13 @@ HARMS=(grpo_think_h grpo_think_v_h grpo_think_vs_h grpo_nothink_h grpo_nothink_v
 GRPO=(grpo_think grpo_think_v grpo_think_vs grpo_nothink grpo_nothink_v grpo_nothink_vs grpo_nothink_vs3 "${HARMS[@]}")
 EIH=(ei_think_h ei_think_v_h ei_nothink_h ei_nothink_v_h)
 EIB=(ei_think_b ei_think_v_b ei_nothink_b ei_nothink_v_b ei_think_h_b)
+# the lr schedules (2026-10-13): ARM_c, ARM_w for every GRPO base arm; ARM_wb needs the base arm's L2 (a setup)
+GBASE=(grpo_think grpo_think_v grpo_think_vs grpo_nothink grpo_nothink_v grpo_nothink_vs grpo_nothink_vs3)
+CARMS=("${GBASE[@]/%/_c}"); WARMS=("${GBASE[@]/%/_w}"); WBARMS=("${GBASE[@]/%/_wb}")
+EIS=(ei_think_c ei_think_v_c ei_nothink_c ei_nothink_v_c ei_think_w ei_think_v_w ei_nothink_w ei_nothink_v_w
+     ei_think_wb ei_think_v_wb ei_nothink_wb ei_nothink_v_wb)
+COMBO=(grpo_think_c_h grpo_think_c_b grpo_think_h_c grpo_think_b_c grpo_think_vs_w_h grpo_think_vs_w_b grpo_think_vs_h_w
+       grpo_think_vs_wb_b grpo_think_vs_h_wb grpo_think_vs_b_wb grpo_think_c_h_b grpo_think_vs_h_b_w ei_think_c_h)
 MODES=(normal smoke); SEEDS=(0 1 2)
 OKLOG='guard it 39: kl anchor 0.0004 x 0.02 (gn policy 0.014); lr x1 (0 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
 RBLOG='guard it 39: kl anchor 0.0006 x 0.02 (gn policy 0.013); lr x0.5 (1 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
@@ -25,12 +32,17 @@ setup() {  # NAME MODE SEED SRC CKPT(yes|no) GUARDLINE|none -> a SETUP file: SRC
 
 rm -rf "$H/res" "$H/setups"; t0=$(date +%s); n=0
 for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
-  for arm in "${BASE[@]}" "${HARMS[@]}" "${EIH[@]}" "${EIB[@]}" bogus_arm; do
+  for arm in "${BASE[@]}" "${HARMS[@]}" "${EIH[@]}" "${EIB[@]}" bogus_arm "${CARMS[@]}" "${WARMS[@]}" "${EIS[@]}" \
+             "${COMBO[@]}"; do
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm"; n=$((n+1))
   done
   for arm in "${GRPO[@]}"; do
     su=$(setup b_${mode}_s${seed}_$arm $mode $seed $arm yes "$OKLOG")
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed ${arm}_b "$H/res/$mode/s$seed/${arm}_b" $su; n=$((n+1))
+  done
+  for arm in "${GBASE[@]}"; do  # ARM_wb from ARM's L2
+    su=$(setup wb_${mode}_s${seed}_$arm $mode $seed $arm yes "$OKLOG")
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed ${arm}_wb "$H/res/$mode/s$seed/${arm}_wb" $su; n=$((n+1))
   done
   # ARM_b refusals: no L2 checkpoint; an L2 log at lr x0.5 (1 rollbacks); no L2 log
   su=$(setup nockpt_${mode}_s$seed $mode $seed grpo_think_h no "$OKLOG")
@@ -39,7 +51,14 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_b "$H/res/refuse/$mode/s$seed/rb_grpo_think_b" $su
   su=$(setup nolog_${mode}_s$seed $mode $seed grpo_think_vs yes none)
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_b "$H/res/refuse/$mode/s$seed/nolog_grpo_think_vs_b" $su
-  n=$((n+3))
+  # the same three for ARM_wb (from ARM's L2)
+  su=$(setup wbnockpt_${mode}_s$seed $mode $seed grpo_think_vs no "$OKLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_wb "$H/res/refuse/$mode/s$seed/nockpt_grpo_think_vs_wb" $su
+  su=$(setup wbrb_${mode}_s$seed $mode $seed grpo_think_vs yes "$RBLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_wb "$H/res/refuse/$mode/s$seed/rb_grpo_think_vs_wb" $su
+  su=$(setup wbnolog_${mode}_s$seed $mode $seed grpo_nothink_vs3 yes none)
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_nothink_vs3_wb "$H/res/refuse/$mode/s$seed/nolog_grpo_nothink_vs3_wb" $su
+  n=$((n+6))
 done; done
 # seed 3 has no Stage-1 init in the sandbox; usage error
 bash "$D/run.sh" "$H/line.sh.dry" normal 3 grpo_think "$H/res/refuse/normal/s3/grpo_think"

@@ -106,6 +106,42 @@ hash identically to `leon/thinking-auto` (checked on a tiny model).
   - budgets 0/64/256 with effort tokens for thinking.
 - **EI settings** are `seed2/line.sh`'s (`--select shortest`, the default `--max_per_thm`).
 
+## Learning-rate schedules (2026-10-13, branch `leon/grpo-v2-sched`)
+
+- **Today** each stage is a fresh `--init`, so it gets a new AdamW and step count. The lr ramps linearly over the
+  first 10 AdamW steps (`--warmup`, which `line.sh` does not set). At 4 steps per iteration that is 2.5 iterations:
+  iteration 1 runs at 0.1–0.4 × lr, iteration 2 at 0.5–0.8 ×, iteration 3 at 0.9 × and then 1 ×. After that the lr
+  stays at 1.5e-4 to the stage's end. The only decay is a rollback's halving (at most 3), which in practice fired
+  late in L3.
+- **`grpo.py --lr_schedule {constant,cosine,wsd}`** (module docstring) multiplies that lr by a factor m(t) for each
+  iteration t = 1–39 of the stage:
+  - `cosine`: m goes from 1 down to `--min_lr_frac` along a cosine after the warmup. This is EI's fine-tune
+    schedule, counted in iterations.
+  - `wsd`: m stays at 1 until the last round(`--decay_frac` × 39) iterations, then falls to `--min_lr_frac`.
+    `--decay_shape` sets how: `linear`, `cosine`, or `sqrt` (the 1−sqrt cooldown of Hägele et al. 2024).
+  - `--warmup_iters W` replaces the 10-step ramp with a ramp of t / W over iterations. Without it the step ramp
+    stays.
+- **Rollbacks** still halve the lr, and the halving multiplies the schedule. A rollback restores the training state,
+  step count included, but not the iteration number. So the schedule keeps following the loop's counter, and a
+  stage with rollbacks still ends at `--min_lr_frac` × 0.5^rollbacks.
+- **Resume:** `--resume` continues the schedule, and refuses a checkpoint whose run had a different one.
+- **Logged:** `lr`, `lr_mult`, `lr_ramp` and `alarm_cfg.lr_schedule` in the rows, and `lr L = 1.5e-4 x kind m x
+  scale` in the guard line.
+- **Default unchanged.** Without `--lr_schedule` the rollouts, rows, log lines, weights and args.json match
+  fa28f6e: digests of four tiny-model configs, in `code/tests/thinking/test_grpo_sched.py`. Before its decay
+  starts, WSD is bit for bit the constant run.
+
+Arms in `line.sh`. The schedule flags are set in one place, `SCHED_C` / `SCHED_W`:
+
+| suffix | L2 | L3 |
+|---|---|---|
+| `ARM_c` | cosine, 3-iteration warmup, down to 0.1× | the same |
+| `ARM_w` | ARM's command, no schedule | WSD with today's warmup: constant to iteration 31, then 1−sqrt over the last 8 iterations down to 0.3× |
+| `ARM_wb` | none: starts from ARM's finished L2 checkpoint, checked as for `ARM_b` | as `ARM_w` |
+
+All three are refused for EI and in combination with `_h` or `_b`. The dry-run harness (`launch/dry/`) covers
+them, and every earlier arm's commands are byte-identical.
+
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)
 
 | set | k | arms |

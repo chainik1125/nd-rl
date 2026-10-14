@@ -91,6 +91,9 @@ Paths are serrano's. Changes, all of them:
 2. `backup.py` is new (below).
 3. The install creates `runs/logs` and `runs/tmp` (`lib.sh` exports `TMPDIR=$R/tmp`; the queues write their logs to
    `runs/logs`).
+4. `leon/grpo-v2-sched` (2026-10-13, not yet installed): `line.sh` gains the lr-schedule arms `ARM_c`, `ARM_w` and
+   `ARM_wb` (`../README.md`). `dry/all.sh` and `dry/check.py` cover them, and every earlier arm's dry-run commands
+   are unchanged. From then on `line.sh` is no longer serrano's bytes.
 
 Checked and left alone:
 

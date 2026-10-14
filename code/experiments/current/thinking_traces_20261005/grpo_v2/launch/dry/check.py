@@ -9,11 +9,13 @@
 after each arm; without it the queue must make no backup call (serrano's queue.sh).
 
 Sections
-  A  every valid arm (11 base, 7 ARM_h, 14 ARM_b) x seeds 0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
+  A  every valid arm (11 base, 7 ARM_h, 14 ARM_b, 7 each of ARM_c, ARM_w, ARM_wb) x seeds 0-2 x normal/SMOKE=1: exit 0,
+     the full multiset and order of
      stubbed calls (argv, cwd, CUDA_VISIBLE_DEVICES, redirections), the environment of each python call, stdout, the
      eval dirs and logs, against `expect()` below (written from the README / evidence, not from line.sh's text)
   B  refusals: ei_*_h, ei_*_b, unknown arm, ARM_b without L2 checkpoint / with a rolled-back L2 / without an L2 log,
-     a seed without a Stage-1 init, usage; nothing launched
+     a seed without a Stage-1 init, usage; ei_*_c / _w / _wb, the lr schedules with _h or _b (either order), ARM_wb
+     without ARM's L2 checkpoint / with a rolled-back L2 / without an L2 log; nothing launched
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
   E  transcript evidence (evidence.json): the live grpo_think_h_b s1 L3 process; serrano's harness records (full
      commands and per-call records of three runs, call counts); every launcher log line and ps line of a v2 arm
@@ -50,7 +52,14 @@ BASE = [
 ]
 HARMS = [a + "_h" for a in BASE if a.startswith("grpo_")]
 BARMS = [a + "_b" for a in BASE if a.startswith("grpo_")] + [a + "_b" for a in HARMS]
-VALID = BASE + HARMS + BARMS
+# the lr schedules (2026-10-13; written from the request, not from line.sh): ARM_c cosine in both stages, ARM_w WSD in
+# L3 only (L2 is ARM's command), ARM_wb ARM_w's L3 from ARM's L2 (as ARM_b)
+GBASE = [a for a in BASE if a.startswith("grpo_")]
+CARMS, WARMS, WBARMS = ([a + x for a in GBASE] for x in ("_c", "_w", "_wb"))
+SCHED_C = "--lr_schedule cosine --warmup_iters 3 --min_lr_frac 0.1"
+SCHED_W = "--lr_schedule wsd --decay_frac 0.2 --min_lr_frac 0.3 --decay_shape sqrt"
+REUSE = BARMS + WBARMS  # L3 only, from another arm's L2
+VALID = BASE + HARMS + BARMS + CARMS + WARMS + WBARMS
 ENV_WANT = {
     "ND_OFFLINE": "1",
     "PYTHONDONTWRITEBYTECODE": "1",
@@ -115,8 +124,12 @@ def key(x: dict) -> tuple:
 # ---------------------------------------------------------------- the model of the recipe (README + evidence)
 def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]:
     """-> (ordered records (kind, cwd, cvd, fd1, fd2, argv), stdout lines) for a valid arm."""
-    src = arm[:-2] if arm.endswith("_b") else arm
+    sch = next((x for x in ("_wb", "_c", "_w") if arm.endswith(x)), "")
+    core = arm[: -len(sch)] if sch else arm
+    src = core[:-2] if core.endswith("_b") else core
     base = src[:-2] if src.endswith("_h") else src
+    sched = {"": ("", ""), "_c": (SCHED_C, SCHED_C), "_w": ("", SCHED_W), "_wb": ("", SCHED_W)}[sch]
+    l2src = base if sch == "_wb" else (arm if sch else src)  # whose L2 the L3 starts from
     smoke = mode == "smoke"
     think = "_think" in base
     method = "grpo" if base.startswith("grpo_") else "ei"
@@ -206,14 +219,15 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
             else f"{C}/{name}/ckpts/{name}_r1.pt"
         )
 
-    def stage(name: str, init: str, targets: str, extra: str) -> None:
+    def stage(name: str, init: str, targets: str, extra: str, sc: str = "") -> None:
         waitfree()
         log = f"{L}/v2_{name}.log"
         if method == "grpo":
             a = (
                 f"21600 <PY> -m code.thinking.grpo --init {init} --name {name} --out {C}/{name} --targets {targets} "
                 f"--iters {it} --prompts {4 if smoke else 256} --group {4 if smoke else 16} --batch {batch} --lr {lr} "
-                f"--overlong fail --save_every {it} --max_steps 96 --seed {s} --keep_rolling 100 {eff} "
+                + (f"{sc} " if sc else "")
+                + f"--overlong fail --save_every {it} --max_steps 96 --seed {s} --keep_rolling 100 {eff} "
                 f"--canary <R>/pools/canary_long.jsonl --canary_n {40 if smoke else 1000} --canary_every 1 "
                 f"--rollback_on_alarm --max_rollbacks 3{BAN} --kl_anchor_coef 0.02 --kl_anchor_ref {init}"
                 + (" --kl_anchor_n 16" if smoke else "")
@@ -228,6 +242,7 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
                 + (", P 0.1" if samp == "logical" else "")
                 + (f", extra {os.path.basename(extra)} x 0.33" if extra else "")
                 + (f", lr {lr}" if base != src else "")
+                + (f", {sc}" if sc else "")
             )
             out.append(f"00:00Z launched GRPO {name} ({desc}) on GPU {g} (pid N)")
             out.append(f"00:00Z GRPO {name} exit 0: it {it}: dry")
@@ -251,12 +266,12 @@ def expect(arm: str, s: int, mode: str, g: int) -> tuple[list[tuple], list[str]]
             )
 
     init0 = f"<R>/stage1/{'S1g3' if think else 'T0S'}_s{s}/model.pt"
-    if src == arm:
-        stage(f"{arm}_s{s}_L2", init0, l2t, x2)
+    if l2src == arm:
+        stage(f"{arm}_s{s}_L2", init0, l2t, x2, sched[0])
         l2ck = ck(f"{arm}_s{s}_L2")
     else:
-        l2ck = f"{C}/{src}_s{s}_L2/ckpts/{src}_s{s}_L2_it{it}.pt"
-    stage(f"{arm}_s{s}_L3", l2ck, l3t, x3)
+        l2ck = f"{C}/{l2src}_s{s}_L2/ckpts/{l2src}_s{s}_L2_it{it}.pt"
+    stage(f"{arm}_s{s}_L3", l2ck, l3t, x3, sched[1])
     ch = "<R>/pools/charles_1002"
     reads = []
     for ra in ("plain", "logical"):
@@ -361,17 +376,17 @@ for mode in ("normal", "smoke"):
                 "A",
                 f"{tag}: eval logs {el[:2]}",
             )
-            if arm in BARMS:
+            if arm in REUSE:
                 ok(
                     not any(f"{arm}_s{s}_L2" in t for t in r["tree"]),
                     "A",
-                    f"{tag}: ARM_b made an L2 of its own",
+                    f"{tag}: ARM_b / ARM_wb made an L2 of its own",
                 )
             n = len(r["rec"])
             want = (
-                (23 - (2 if arm in BARMS else 0))
+                (23 - (2 if arm in REUSE else 0))
                 if mode == "smoke"
-                else (46 + arm.startswith("grpo_nothink_vs3") - (5 if arm in BARMS else 0))
+                else (46 + arm.startswith("grpo_nothink_vs3") - (5 if arm in REUSE else 0))
             )
             ok(n == want, "A", f"{tag}: {n} calls, want {want}")
 
@@ -400,6 +415,40 @@ for mode in ("normal", "smoke"):
         refusals.append(
             (f"{H}/res/{mode}/s{s}/bogus_arm", 2, r"^unknown arm bogus_arm$", "bogus_arm")
         )
+        for eb in ("ei_think", "ei_think_v", "ei_nothink", "ei_nothink_v"):
+            for x in ("c", "w", "wb"):
+                arm = f"{eb}_{x}"
+                refusals.append(
+                    (
+                        f"{H}/res/{mode}/s{s}/{arm}",
+                        1,
+                        rf"^00:00Z {arm}: _{x} schedules the GRPO lr, and EI's fine-tune has its own \(run {eb}\): refusing$",
+                        arm,
+                    )
+                )
+        for arm in [
+            "grpo_think_c_h",
+            "grpo_think_c_b",
+            "grpo_think_h_c",
+            "grpo_think_b_c",
+            "grpo_think_vs_w_h",
+            "grpo_think_vs_w_b",
+            "grpo_think_vs_h_w",
+            "grpo_think_vs_wb_b",
+            "grpo_think_vs_h_wb",
+            "grpo_think_vs_b_wb",
+            "grpo_think_c_h_b",
+            "grpo_think_vs_h_b_w",
+            "ei_think_c_h",
+        ]:
+            refusals.append(
+                (
+                    f"{H}/res/{mode}/s{s}/{arm}",
+                    1,
+                    rf"^00:00Z {arm}: _c, _w and _wb \(lr schedules\) do not combine with _h or _b: refusing$",
+                    arm,
+                )
+            )
         d = f"{H}/res/refuse/{mode}/s{s}"
         it = 2 if mode == "smoke" else 39
         c = "grpo_v2/smoke" if mode == "smoke" else "grpo_v2"
@@ -425,6 +474,31 @@ for mode in ("normal", "smoke"):
                 1,
                 r"^00:00Z grpo_think_vs_b: grpo_think_vs's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line: refusing$",
                 "grpo_think_vs_b",
+            )
+        )
+        # ARM_wb: from ARM's L2, refused as ARM_b
+        refusals.append(
+            (
+                f"{d}/nockpt_grpo_think_vs_wb",
+                1,
+                rf"^00:00Z grpo_think_vs_wb: no L2 checkpoint of grpo_think_vs \({re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt\): refusing$",
+                "grpo_think_vs_wb",
+            )
+        )
+        refusals.append(
+            (
+                f"{d}/rb_grpo_think_vs_wb",
+                1,
+                r"^00:00Z grpo_think_vs_wb: grpo_think_vs's L2 log ends 'guard it 39: .*lr x0\.5 \(1 rollbacks\).*', not lr x1 \(0 rollbacks\): rerun the whole line: refusing$",
+                "grpo_think_vs_wb",
+            )
+        )
+        refusals.append(
+            (
+                f"{d}/nolog_grpo_nothink_vs3_wb",
+                1,
+                r"^00:00Z grpo_nothink_vs3_wb: grpo_nothink_vs3's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line: refusing$",
+                "grpo_nothink_vs3_wb",
             )
         )
 refusals.append(
