@@ -8,6 +8,8 @@ Reusable implementation shared across experiments.
 | `lean_check` | Lean 4 as the judge of `lean_seq` samples |
 | `state_env` | The proof-state environment: a proof as (tactic state, action) steps |
 | `step_check` | A check of one step in that environment, sound with respect to Lean |
+| `proof_gen` | The random ND proof generator, and the K12 training-set filters |
+| `estimators` | pass@k, Clopper–Pearson bounds, k-to-solve, known-proof and Good–Turing estimates |
 
 ## `state_env`: the proof-state environment
 
@@ -90,6 +92,63 @@ def next_state(env, draw, max_rejections=10):
   and the 11th rejection ends the attempt.
 - The verdict depends only on the state and the action, so it can be cached.
 - Report plain sampling beside guided (the fork's policy). Lean still judges every finished proof.
+
+## `proof_gen`: random ND proofs
+
+The take-home generator, which made the cap-6 and K12 training sets. It draws proofs forward (rules
+applied to what is citable, boxes opened and closed at random, premises added lazily) or toward a
+random goal, keeps only the lines the conclusion cites, and keeps one theorem per renaming class.
+
+```python
+from collections import Counter
+
+from code.shared_code.proof_gen import eligible, generate, renaming_class
+
+stats = Counter()
+records = list(generate(1100, min_lines=2, max_lines=12, seed=0, per_length=100, stats=stats))
+# {"thm", "prompt", "proof", "n_lines", "rules", "key", "text", ...}; stats counts the rejected draws
+
+held_out = {renaming_class(r["thm"]) for r in evaluation_pool}
+train = [r for r in records if eligible(r["thm"], r["proof"], exclude=held_out)]
+```
+
+- **Same draws as the fork.** For a seed and settings, `generate` returns the fork's `gen.py`
+  output byte for byte (`long=True` is its `--long`, `per_length` its `--per_len`).
+- **K12's filters.** `eligible` is K12's rule: box depth at most 2 and a renaming class outside the
+  given pools. K12's 7-12-line proofs came from this generator's short mode (`sample_one`, in
+  cap-horizon's own loop), filtered that way and drawn evenly over lengths; `prune`,
+  `pruned_length` and `max_box_depth` are there for such filters.
+- **No ND verifier.** The fork checked each proof with its ND verifier and rejected none of
+  160,000; here Lean checks the fixture's proofs (`tests/test_proof_gen.py`).
+
+## `estimators`: per-theorem success probability
+
+The quantities the fork's `capability-defs` and `create-or-elicit` runs used, for one theorem with
+c successes in n i.i.d. attempts (each docstring says when it is valid):
+
+```python
+from code.shared_code.estimators import (
+    certified_budget,
+    clopper_pearson_upper,
+    k_to_solve,
+    known_proof_log_p,
+    pass_at_k,
+    zero_success_threshold,
+)
+
+pass_at_k(256, 3, 16)  # unbiased pass@16 from 3 / 256: 0.177
+clopper_pearson_upper(0, 2048)  # one-sided 95 % bound with no success: 0.0015 (≈ 3 / n)
+k_to_solve(3, 2048)  # expected attempts to the first proof, 1 / p: (264, 2504)
+known_proof_log_p(log_probs)  # log of Σ π(y) over known proofs: a lower bound on log p
+zero_success_threshold(20000)  # failures that certify "out of reach in 20,000": 1.2 million
+certified_budget(0, 1_200_000)  # the largest such budget for 0 / 1.2 million: 20,029
+```
+
+- **Exact.** Clopper–Pearson bounds are roots of the binomial tail (summed term by term, or by
+  the incomplete beta function for large counts), with the standard library only. They agree with
+  the fork's SciPy values to about 1e-11, and take milliseconds even at a million attempts.
+- **Calibration of the known-proof estimate.** `create-or-elicit` found it close to sampled rates
+  above 1e-4 and 2-4 times too low below; `capability-defs` used a factor-2 margin.
 
 ## `lean_seq`: ND proofs as Lean 4 tactic text
 

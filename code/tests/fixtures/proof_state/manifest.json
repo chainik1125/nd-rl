@@ -2,6 +2,7 @@
  "fork": "dan-pandori/nd-takehome",
  "fork_commit": "4dcd0e4f336b3bf0ee24230dc5335ba3dba8969c",
  "fork_dirty": false,
+ "cap_horizon_commit": "2e8b19146c6174c6ea4a7bc4569943ad0d66cffb",
  "k12_md5": "800b5486ba373a060c37218bec7fa8d3",
  "sealed_md5": "90355c3692b00e3e5a92d0cadae3ddcf",
  "sealed_classes": 72,
@@ -16,7 +17,7 @@
   "--sealed",
   "textbook72.jsonl"
  ],
- "utc": "2026-10-14T01:05:32Z",
+ "utc": "2026-10-14T01:10:46Z",
  "counts": {
   "k12_sample": 1100,
   "state_env_steps_plain": 8800,
@@ -38,7 +39,15 @@
    "premise-type": 1106,
    "projection": 869,
    "reiterate": 664
-  }
+  },
+  "gen_records": {
+   "cap6_seed1": 400,
+   "cap12_flat_seed7": 440,
+   "long_seed2": 150,
+   "cap8_prem2_seed3": 200
+  },
+  "gen_records_sealed_class": 12,
+  "filter_rows": 1392
  },
- "seconds": 29
+ "seconds": 33
 }
