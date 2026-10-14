@@ -113,6 +113,15 @@ Paths are serrano's. Changes, all of them:
    accepts `-` and writes the output file. `dry/all.sh` and `dry/check.py` cover `ARM_mb`: its arms and refusals, a
    missing rolling checkpoint, and a rerun that does not average again (section D). Every earlier arm's dry-run
    records match 7523c16's harness output in the same way as above.
+8. `leon/grpo-v2-feedback` (2026-10-14, not yet installed): `line.sh` adds the L3 pilot arm `ARM_fbb`. It is
+   `grpo.py --feedback context` with `--max_rej 2` retries per step (`../README.md`, "In-context verifier
+   feedback"), followed by feedback-arm reads on t1320 and charles173.
+   - It applies only to thinking arms with the verifier, and has `ARM_rfb`'s other checks and refusals.
+   - It refuses until the code worktree's `grpo.py` and `eval.py` have the feedback options. The guard checks
+     `FEEDBACK_MODES` and `READ_ARMS`.
+   - `read1` takes an optional eighth argument, `--max_rej`, which defaults to the earlier 10.
+   - `dry/all.sh` and `dry/check.py` cover it. Every earlier arm's dry-run records match ccfa1c7's harness output in
+     the same way as above.
 
 Checked and left alone:
 

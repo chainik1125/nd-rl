@@ -1,5 +1,5 @@
 #!/bin/bash
-# all.sh: dry-run every GRPO v2 arm (the L3 pilots too), seeds 0-2, normal and SMOKE=1, plus the refusals and queue.sh; results under
+# all.sh: dry-run every GRPO v2 arm (the L3 pilots, ARM_mb and ARM_fbb too), seeds 0-2, normal and SMOKE=1, plus the refusals and queue.sh; results under
 # $H/res/. No python, no GPU (make.sh's stubs). Then check.py compares the records with the transcript evidence.
 #   bash make.sh [DIR] && bash all.sh && python3 check.py
 H=${DRY_HOME:-/scratch/cowifornia/nd-rl/think/dry}  # outputs and the built harness
@@ -33,6 +33,14 @@ PREF=(ei_think_rfb ei_think_v_ulb ei_nothink_3pb ei_nothink_v_rfb ei_think_h_ulb
       grpo_think_vs_pb_3pb grpo_think_c_pb grpo_think_wb_pb  # ARM_pb (2026-10-13): EI, other suffixes
       ei_think_mb ei_nothink_v_mb grpo_think_h_mb grpo_think_mb_h grpo_think_wb_mb grpo_think_mb_ulb grpo_think_ulb_mb
       grpo_think_vs_mb_pb grpo_think_pb_mb grpo_think_vs3_mb grpo_nothink_vs3_mb)  # ARM_mb (2026-10-14)
+# ARM_fbb (2026-10-14): the thinking verifier arms, each from its base arm's L2 (a setup); refused for EI, no-think and
+# plain-sampling arms, and with another suffix in either order
+FBARMS=(grpo_think_v_fbb grpo_think_vs_fbb grpo_think_vs3_fbb)
+FBREF=(ei_think_v_fbb ei_think_fbb grpo_nothink_vs_fbb grpo_nothink_v_fbb grpo_nothink_fbb grpo_think_fbb grpo_think_h_fbb
+       grpo_think_vs_h_fbb grpo_think_vs_fbb_h grpo_think_vs_b_fbb grpo_think_vs_fbb_b grpo_think_vs_c_fbb grpo_think_vs_fbb_c
+       grpo_think_vs_wb_fbb grpo_think_vs_fbb_w grpo_think_vs_rfb_fbb grpo_think_vs_fbb_rfb grpo_think_vs_pb_fbb
+       grpo_think_vs_fbb_pb grpo_think_vs_3pb_fbb grpo_think_vs_fbb_3pb grpo_think_vs_ulb_fbb grpo_think_vs_fbb_ulb
+       grpo_think_vs_mb_fbb grpo_think_vs_fbb_mb grpo_think_vs_fbb_fbb)
 MODES=(normal smoke); SEEDS=(0 1 2)
 OKLOG='guard it 39: kl anchor 0.0004 x 0.02 (gn policy 0.014); lr x1 (0 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
 RBLOG='guard it 39: kl anchor 0.0006 x 0.02 (gn policy 0.013); lr x0.5 (1 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
@@ -49,7 +57,7 @@ setup() {  # NAME MODE SEED SRC CKPT(yes|no) GUARDLINE|none -> a SETUP file: SRC
 rm -rf "$H/res" "$H/setups"; t0=$(date +%s); n=0
 for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   for arm in "${BASE[@]}" "${HARMS[@]}" "${EIH[@]}" "${EIB[@]}" bogus_arm "${CARMS[@]}" "${WARMS[@]}" "${EIS[@]}" \
-             "${COMBO[@]}" "${PREF[@]}"; do
+             "${COMBO[@]}" "${PREF[@]}" "${FBREF[@]}"; do
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm"; n=$((n+1))
   done
   for arm in "${GRPO[@]}"; do
@@ -112,6 +120,19 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_nothink_vs_pb "$H/res/refuse/$mode/s$seed/rb_grpo_nothink_vs_pb" $su
   su=$(setup pbnolog_${mode}_s$seed $mode $seed grpo_think yes none)
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_pb "$H/res/refuse/$mode/s$seed/nolog_grpo_think_pb" $su
+  n=$((n+3))
+  for arm in "${FBARMS[@]}"; do  # ARM_fbb, from the base arm's L2
+    b=${arm%_fbb}
+    su=$(setup f_${mode}_s${seed}_$arm $mode $seed $b yes "$OKLOG")
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
+  done
+  # ARM_fbb's three, as ARM_rfb's
+  su=$(setup fbnockpt_${mode}_s$seed $mode $seed grpo_think_vs no "$OKLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_fbb "$H/res/refuse/$mode/s$seed/nockpt_grpo_think_vs_fbb" $su
+  su=$(setup fbrb_${mode}_s$seed $mode $seed grpo_think_v yes "$RBLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_v_fbb "$H/res/refuse/$mode/s$seed/rb_grpo_think_v_fbb" $su
+  su=$(setup fbnolog_${mode}_s$seed $mode $seed grpo_think_vs3 yes none)
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs3_fbb "$H/res/refuse/$mode/s$seed/nolog_grpo_think_vs3_fbb" $su
   n=$((n+3))
   for x in L3 L2; do for arm in grpo_think_vs_3pb grpo_think_vs3 grpo_nothink_vs3; do
     su=$(setup no3p${x}_${mode}_s${seed}_$arm $mode $seed grpo_think_vs yes "$OKLOG")

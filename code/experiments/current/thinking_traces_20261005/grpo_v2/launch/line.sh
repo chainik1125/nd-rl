@@ -40,6 +40,13 @@
 #        3-premise extra targets and _ulb's unlikeliness reward (PILOT_ULB). After the usual reads, the mean of its L3
 #        checkpoints at AVG_ITS and the last (pilot4.sh's averaging; skipped when it exists) is read plain on t1320,
 #        tb72, charles173 and t2130 under the arm name ARM_mb_avg.
+#        ARM_fbb, for a grpo_think_* ARM with the verifier (grpo_think_v, grpo_think_vs, grpo_think_vs3), never with another
+#        suffix (L3 pilot, 2026-10-14; grpo_think_vs_fbb is the one asked for): as ARM_rfb, with grpo.py's in-context
+#        verifier feedback (PILOT_FBB: --feedback context; a rejected step is retried with its action in the think block
+#        as a dead-end line, feedback.py) and --max_rej FB_MAXREJ retries per step; then the usual reads plus the feedback
+#        read arm (eval.py --arms feedback, --max_rej FB_MAXREJ) on t1320 and charles173, alongside the logical reads.
+#        Refused for EI, for no-think ARMs (no think block) and for ARMs without the verifier, and until $WT's grpo.py
+#        and eval.py have the feedback options (the guard checks FEEDBACK_MODES and READ_ARMS).
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -60,15 +67,16 @@ PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
   || { say "code.thinking does not resolve to $WT: refusing"; exit 1; }
 g=$1; s=$2; arm=$3
 [ -n "$g" ] && [ -n "$s" ] && [ -n "$arm" ] || { echo "usage: line.sh GPU SEED ARM"; exit 2; }
-pil=""; case $arm in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; *_mb) pil=mb ;; esac  # first
+pil=""; case $arm in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; *_mb) pil=mb ;; *_fbb) pil=fbb ;; esac  # first
 case $arm in *_rfb_*|*_ulb_*|*_3pb_*)  # a pilot suffix with another after it
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
 case $arm in *_pb_*) say "$arm: _pb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
 case $arm in *_mb_*) say "$arm: _mb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
+case $arm in *_fbb_*) say "$arm: _fbb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
 core=${arm%_$pil}  # ARM of ARM_$pil
 [ -n "$pil" ] && case $core in *_[hbcw]|*_wb|*_pb|*_mb)
-  case $pil in pb|mb) say "$arm: _$pil (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
+  case $pil in pb|mb|fbb) say "$arm: _$pil (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
 case ${arm}_ in *_[hb]_c_|*_[hb]_w_|*_[hb]_wb_|*_[cw]_[hb]_*|*_wb_[hb]_*)  # in either order
@@ -93,7 +101,9 @@ case $sch in c) S2=$SCHED_C; S3=$SCHED_C; src=$arm ;; w) S3=$SCHED_W; src=$arm ;
 PILOT_RFB="--refill --refill_max 2 --max_pass 0.9"
 PILOT_ULB="--unlikely_beta 0.25"
 PILOT_PB="--unseen_prior mean"  # ARM_pb: the unseen-pair prior at the budget's mean pass rate
-P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb|mb) P3=$PILOT_ULB ;; pb) P3=$PILOT_PB ;; esac  # stage L3's pilot flags
+PILOT_FBB="--feedback context"  # ARM_fbb: in-context verifier feedback, with ...
+FB_MAXREJ=2  # ... at most this many retries per step, in L3 and in the feedback reads
+P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb|mb) P3=$PILOT_ULB ;; pb) P3=$PILOT_PB ;; fbb) P3=$PILOT_FBB ;; esac  # stage L3's pilot flags
 AVG_ITS="25 30 35"  # ARM_mb: the L3 rolling checkpoints averaged with the last one (pilot4.sh's)
 SMOKE=${SMOKE:-0}
 P=${REJ_PENALTY:-0.1}
@@ -110,13 +120,19 @@ case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
 [ $method = ei ] && [ -n "$sch" ] && { say "$arm: _$sch schedules the GRPO lr, and EI's fine-tune has its own (run $base): refusing"; exit 1; }
 [ $method = ei ] && [ "$src" != "$arm" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
 [ $method = ei ] && [ "$base" != "$src" ] && { say "$arm: _h halves the GRPO lr, which EI does not use (run $base): refusing"; exit 1; }
-if [ -n "$P3" ]; then  # ARM_rfb / ARM_ulb / ARM_pb need their grpo.py options in $WT (leon/grpo-v2-pilots, -prior)
+if [ "$pil" = fbb ]; then  # ARM_fbb: the lines go into the think block, and the verifier writes them
+  [ $kind = think ] || { say "$arm: _fbb writes the verifier's feedback into the think block, and $base has none: refusing"; exit 1; }
+  case $base in *_v|*_vs|*_vs3) ;; *) say "$arm: _fbb needs the verifier (the logical arm), and $base samples plain: refusing"; exit 1 ;; esac
+  "$PY" -c "import sys, code.thinking.grpo as g, code.thinking.eval as e; sys.exit(0 if hasattr(g, 'FEEDBACK_MODES') and 'feedback' in getattr(e, 'READ_ARMS', ()) else 1)" > /dev/null 2>&1 \
+    || { say "$arm: $WT's grpo.py / eval.py have no in-context feedback (--feedback, --arms feedback): refusing"; exit 1; }
+elif [ -n "$P3" ]; then  # ARM_rfb / ARM_ulb / ARM_pb need their grpo.py options in $WT (leon/grpo-v2-pilots, -prior)
   PA=pilot_options; PN="--refill, --unlikely_beta"; [ "$pil" = pb ] && { PA=UNSEEN_PRIORS; PN="--unseen_prior"; }
   "$PY" -c "import sys, code.thinking.grpo as g; sys.exit(0 if hasattr(g, '$PA') else 1)" > /dev/null 2>&1 \
     || { say "$arm: $WT's grpo.py has no pilot options ($PN): refusing"; exit 1; }
 fi
 case $base in *_v|*_vs|*_vs3) samp=logical ;; *) samp=plain ;; esac
 case $base in *_vs|*_vs3) MAXREJ_TRAIN=0 ;; *) MAXREJ_TRAIN=10 ;; esac  # GRPO training only
+[ "$pil" = fbb ] && MAXREJ_TRAIN=$FB_MAXREJ  # ARM_fbb: retries per step (with --feedback)
 X2=""; X3=""; XFRAC=${XFRAC:-0.33}  # extra GRPO targets per stage (--targets_extra)
 case $base in *_vs3) X2=$R/pools/curriculum_3p/L2_3p.jsonl; X3=$R/pools/curriculum_3p/L3_3p.jsonl ;; esac
 if [ "$pil" = 3pb ] || [ "$pil" = mb ]; then  # ARM_3pb, ARM_mb: _vs3's files (both for its extra-targets preflight)
@@ -192,11 +208,11 @@ ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt
   wait $p; say "EI $n exit $?: $(tail -1 $L/v2_$n.log | cut -c1-150)"
   [ -f $last ]; }
 ck() { if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$ITERS.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r1.pt; fi; }
-read1() {  # SETNAME SETS K READARM [MAXSTEPS [ARMNAME CKPT]]  (default: $arm and its L3 checkpoint)
-  local o=$EV/$1_${6:-$arm}_s${s}_$4_k$3 ms=${5:-96} cp=${7:-$(ck L3)}
+read1() {  # SETNAME SETS K READARM [MAXSTEPS [ARMNAME CKPT [MAXREJ]]]  (default: $arm, its L3 checkpoint, 10)
+  local o=$EV/$1_${6:-$arm}_s${s}_$4_k$3 ms=${5:-96} cp=${7:-$(ck L3)} mr=${8:-10}
   [ -f $o/rows_$4_B$RB.jsonl ] && return 0; waitfree $g; local t=$(date +%s); rm -rf $o
   CUDA_VISIBLE_DEVICES=$DEV timeout 9000 "$PY" -m code.thinking.eval --ckpt $cp --sets $2 --out $o --k $3 \
-    --budgets $RB --arms $4 --batch $BATCH --seed 0 --temperature 0.8 --max_action 512 --max_steps $ms --max_rej 10 \
+    --budgets $RB --arms $4 --batch $BATCH --seed 0 --temperature 0.8 --max_action 512 --max_steps $ms --max_rej $mr \
     $LIM > $L/v2_eval_$(basename $o).log 2>&1
   local rc=$?; say "read $(basename $o) exit $rc $(( $(date +%s) - t ))s: $(grep -E '^\[' $L/v2_eval_$(basename $o).log | tr '\n' ' ' | cut -c1-200)"; }
 AV=$C/${arm}_avg_s${s}_L3/ckpts/${arm}_avg_s${s}_L3_it$ITERS.pt  # ARM_mb's averaged checkpoint
@@ -237,6 +253,10 @@ for ra in plain logical; do
   read1 tb72 $TB/textbook_dev.jsonl,$TB/textbook_train.jsonl ${KS[1]} $ra
   read1 charles173 $CH173 ${KS[2]} $ra
 done
+if [ "$pil" = fbb ]; then  # ARM_fbb: the feedback read arm too (FB_MAXREJ retries per step), next to the logical reads
+  read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} feedback 96 "" "" $FB_MAXREJ
+  read1 charles173 $CH173 ${KS[2]} feedback 96 "" "" $FB_MAXREJ
+fi
 read1 hand14 $CH/hand_proved_14.jsonl ${KS[3]} plain $MAXSTEPS_H14
 read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain
 if [ "$pil" = mb ]; then  # ARM_mb: the averaged checkpoint, read plain under ARM_mb_avg (pilot4.sh's reads)

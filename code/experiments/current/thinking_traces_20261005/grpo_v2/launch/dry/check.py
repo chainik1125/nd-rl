@@ -9,15 +9,16 @@
 after each arm; without it the queue must make no backup call (serrano's queue.sh).
 
 Sections
-  A  every valid arm (12 base, 8 ARM_h, 16 ARM_b, 8 each of ARM_c, ARM_w, ARM_wb, ARM_rfb, ARM_ulb, ARM_pb, 6 ARM_3pb) x seeds
-     0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
+  A  every valid arm (12 base, 8 ARM_h, 16 ARM_b, 8 each of ARM_c, ARM_w, ARM_wb, ARM_rfb, ARM_ulb, ARM_pb, 6 ARM_3pb,
+     6 ARM_mb, 3 ARM_fbb) x seeds 0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
      stubbed calls (argv, cwd, CUDA_VISIBLE_DEVICES, redirections), the environment of each python call, stdout, the
      eval dirs and logs, against `expect()` below (written from the README / evidence, not from line.sh's text)
   B  refusals: ei_*_h, ei_*_b, unknown arm, ARM_b without L2 checkpoint / with a rolled-back L2 / without an L2 log,
      a seed without a Stage-1 init, usage; ei_*_c / _w / _wb, the lr schedules with _h or _b (either order), ARM_wb
      without ARM's L2 checkpoint / with a rolled-back L2 / without an L2 log; the L3 pilots (ARM_rfb, ARM_ulb,
      ARM_3pb) for EI, with another suffix (either order), ARM_3pb for a _vs3 arm, as ARM_b's three; a missing
-     curriculum_3p file for ARM_3pb and the _vs3 arms; nothing launched
+     curriculum_3p file for ARM_3pb and the _vs3 arms; ARM_mb's; ARM_fbb (2026-10-14) for EI, no-think and
+     plain-sampling arms, with another suffix (either order), as ARM_b's three; nothing launched
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
   D  ARM_mb's averaging: a missing rolling checkpoint refuses the averaged reads; a rerun does not average again
   E  transcript evidence (evidence.json): the live grpo_think_h_b s1 L3 process; serrano's harness records (full
@@ -70,7 +71,15 @@ PILOT = {
     "_3pb": "",
     "_pb": "--unseen_prior mean",  # 2026-10-13: the unseen-pair prior at the budget's mean
     "_mb": "--unlikely_beta 0.25",  # 2026-10-14, the merged recipe: _ulb's, with _wb's cooldown and _3pb's rows
+    "_fbb": "--feedback context",  # 2026-10-14: in-context verifier feedback (grpo_think_vs_fbb asked for)
 }
+FB_MAXREJ = 2  # ARM_fbb: retries per step in L3 and in its feedback reads
+# ARM_fbb's guard: grpo.py has --feedback and eval.py the feedback read arm
+FB_GUARD = (
+    "-c import\\ sys\\,\\ code.thinking.grpo\\ as\\ g\\,\\ code.thinking.eval\\ as\\ e\\;\\ "
+    "sys.exit\\(0\\ if\\ hasattr\\(g\\,\\ \\'FEEDBACK_MODES\\'\\)\\ and\\ \\'feedback\\'\\ in\\ "
+    "getattr\\(e\\,\\ \\'READ_ARMS\\'\\,\\ \\(\\)\\)\\ else\\ 1\\)"
+)
 GUARD = {
     "_rfb": "pilot_options",
     "_ulb": "pilot_options",
@@ -81,11 +90,24 @@ RFBARMS, ULBARMS = ([a + x for a in GBASE] for x in ("_rfb", "_ulb"))
 P3BARMS = [a + "_3pb" for a in GBASE if not a.endswith("_vs3")]
 PBARMS = [a + "_pb" for a in GBASE]
 MBARMS = [a + "_mb" for a in GBASE if not a.endswith("_vs3")]
+# ARM_fbb: only the thinking arms with the verifier (the lines go into the think block)
+FBBARMS = [a + "_fbb" for a in ("grpo_think_v", "grpo_think_vs", "grpo_think_vs3")]
 REUSE = (
-    BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS
+    BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS + FBBARMS
 )  # L3 only, from another arm's L2
 VALID = (
-    BASE + HARMS + BARMS + CARMS + WARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS
+    BASE
+    + HARMS
+    + BARMS
+    + CARMS
+    + WARMS
+    + WBARMS
+    + RFBARMS
+    + ULBARMS
+    + P3BARMS
+    + PBARMS
+    + MBARMS
+    + FBBARMS
 )
 # ARM_mb's averaged reads (pilot4.sh's): the L3 rolling checkpoints averaged with the last one, and the plain reads
 AVG_ITS = [25, 30, 35]
@@ -192,7 +214,9 @@ def expect(
             f".startswith\\(\\'{WT}/\\'\\)\\ else\\ 1\\)",
         ),
     ]
-    if pflags:  # ARM_rfb / ARM_ulb / ARM_pb: the worktree's grpo.py must have their options
+    if pil == "_fbb":  # ARM_fbb: the worktree's grpo.py and eval.py must have the feedback options
+        recs.append(("py", WT, "CVD=unset", "/dev/null", "/dev/null", FB_GUARD))
+    elif pflags:  # ARM_rfb / ARM_ulb / ARM_pb: the worktree's grpo.py must have their options
         recs.append(
             (
                 "py",
@@ -286,7 +310,10 @@ def expect(
                 + " --monitor"
             )
             if samp == "logical":
-                a += f" --arm logical --max_rej {0 if base.endswith(('_vs', '_vs3')) else 10} --rej_penalty 0.1"
+                mr = 0 if base.endswith(("_vs", "_vs3")) else 10
+                if pil == "_fbb" and name.endswith("_L3"):  # retries per step, with --feedback
+                    mr = FB_MAXREJ
+                a += f" --arm logical --max_rej {mr} --rej_penalty 0.1"
             if extra:
                 a += f" --targets_extra {extra} --targets_extra_frac 0.33"
             desc = (
@@ -339,6 +366,18 @@ def expect(
                 96,
             ),
         ]
+    if pil == "_fbb":  # the feedback read arm on 13-20 and charles173, FB_MAXREJ retries per step
+        reads += [
+            ("t1320", "<R>/eval/matched/sets/t1320_n1000.jsonl", 16, "feedback", 96, FB_MAXREJ),
+            (
+                "charles173",
+                f"{ch}/candidate_v0.jsonl\\,{ch}/candidate_v1.jsonl\\,{ch}/batch3.jsonl",
+                64,
+                "feedback",
+                96,
+                FB_MAXREJ,
+            ),
+        ]
     reads += [
         ("hand14", f"{ch}/hand_proved_14.jsonl", 64, "plain", 160),
         ("t2130", "<R>/eval/matched/sets/t2130_n1000.jsonl", 8, "plain", 96),
@@ -350,7 +389,8 @@ def expect(
         pil == "_mb"
     ):  # after the usual reads: the averaging, then the averaged checkpoint's plain reads
         reads += [(n, sets_of[n], k, "plain", 96) for n, k in AVG_READS]
-    for j, (name, sets, k, ra, ms) in enumerate(reads):
+    reads = [r if len(r) == 6 else (*r, 10) for r in reads]  # --max_rej 10 unless given (ARM_fbb's)
+    for j, (name, sets, k, ra, ms, mrr) in enumerate(reads):
         k = 2 if smoke else k
         avg = j >= n_usual  # ARM_mb's averaged reads
         if avg and j == n_usual and not avg_there:
@@ -375,7 +415,7 @@ def expect(
                 log,
                 f"9000 <PY> -m code.thinking.eval --ckpt {av if avg else ck(f'{arm}_s{s}_L3')} --sets {sets} --out {o} --k {k} "
                 f"--budgets {rb} --arms {ra} --batch {batch} --seed 0 --temperature 0.8 --max_action 512 "
-                f"--max_steps {ms} --max_rej 10" + (" --limit 2" if smoke else ""),
+                f"--max_steps {ms} --max_rej {mrr}" + (" --limit 2" if smoke else ""),
             )
         )
         out.append(f"00:00Z read {os.path.basename(o)} exit 0 0s: [dry] eval ")
@@ -427,11 +467,12 @@ for mode in ("normal", "smoke"):
                 if re.match(
                     r"^d \./runs/eval/v2(_smoke)?/[a-z0-9]+_"
                     + re.escape(arm)
-                    + rf"_s{s}_(plain|logical)_k\d+$",
+                    + rf"_s{s}_(plain|logical|feedback)_k\d+$",
                     t,
                 )
             ]
-            ok(len(ev) == 8, "A", f"{tag}: {len(ev)} eval dirs")
+            fbb = arm.endswith("_fbb")  # two feedback reads
+            ok(len(ev) == 8 + 2 * fbb, "A", f"{tag}: {len(ev)} eval dirs")
             lg = "./runs/grpo_v2/smoke/logs" if mode == "smoke" else "./runs/logs"
             el = [t for t in r["tree"] if t.startswith(f"f {lg}/v2_eval_")]
             mb = arm.endswith("_mb")
@@ -454,10 +495,10 @@ for mode in ("normal", "smoke"):
                     f"{tag}: averaged ckpt",
                 )
             ok(
-                len(el) == (12 if mb else 8)
+                len(el) == (12 if mb else 10 if fbb else 8)
                 and all(
                     re.match(
-                        rf"^f {re.escape(lg)}/v2_eval_(t1320|tb72|charles173|hand14|t2130)_{re.escape(arm)}(_avg)?_s{s}_(plain|logical)_k\d+\.log$",
+                        rf"^f {re.escape(lg)}/v2_eval_(t1320|tb72|charles173|hand14|t2130)_{re.escape(arm)}(_avg)?_s{s}_(plain|logical|feedback)_k\d+\.log$",
                         t,
                     )
                     for t in el
@@ -480,7 +521,9 @@ for mode in ("normal", "smoke"):
                     + ("_vs3" in arm or arm.endswith(("_3pb", "_mb")))
                     - (5 if arm in REUSE else 0)
                 )
-            ) + arm.endswith(("_rfb", "_ulb", "_pb", "_mb"))  # the pilot options check
+            ) + arm.endswith(("_rfb", "_ulb", "_pb", "_mb", "_fbb"))  # the pilot options check
+            if fbb:  # two more reads: waitfree (2, normal), rm, timeout
+                want += 8 if mode == "normal" else 4
             if (
                 mb
             ):  # the averaging, and 4 reads (rm, eval; and waitfree's 2 nvidia-smi outside SMOKE=1)
@@ -672,6 +715,53 @@ for mode in ("normal", "smoke"):
                 "grpo_think_rfb_pb",
             )
         )
+        # ARM_fbb (2026-10-14): EI; no-think and plain-sampling arms; another suffix, in either order (a pilot
+        # suffix before it keeps that pilot's message)
+        fbb_no = r"_fbb \(an L3 pilot\) does not combine with other suffixes"
+        for arm, rx in (
+            ("ei_think_v_fbb", r"_fbb is a GRPO L3 pilot, and ei_think_v is EI"),
+            ("ei_think_fbb", r"_fbb is a GRPO L3 pilot, and ei_think is EI"),
+            *(
+                (
+                    a,
+                    rf"_fbb writes the verifier's feedback into the think block, and {a[:-4]} has none",
+                )
+                for a in ("grpo_nothink_vs_fbb", "grpo_nothink_v_fbb", "grpo_nothink_fbb")
+            ),
+            (
+                "grpo_think_fbb",
+                r"_fbb needs the verifier \(the logical arm\), and grpo_think samples plain",
+            ),
+            *(
+                (a, fbb_no)
+                for a in (
+                    "grpo_think_h_fbb",
+                    "grpo_think_vs_h_fbb",
+                    "grpo_think_vs_fbb_h",
+                    "grpo_think_vs_b_fbb",
+                    "grpo_think_vs_fbb_b",
+                    "grpo_think_vs_c_fbb",
+                    "grpo_think_vs_fbb_c",
+                    "grpo_think_vs_wb_fbb",
+                    "grpo_think_vs_fbb_w",
+                    "grpo_think_vs_fbb_rfb",
+                    "grpo_think_vs_fbb_pb",
+                    "grpo_think_vs_fbb_3pb",
+                    "grpo_think_vs_fbb_ulb",
+                    "grpo_think_vs_fbb_mb",
+                    "grpo_think_vs_fbb_fbb",
+                )
+            ),
+            *(
+                (a, r"_rfb, _ulb and _3pb \(L3 pilots\) do not combine with other suffixes")
+                for a in ("grpo_think_vs_rfb_fbb", "grpo_think_vs_3pb_fbb", "grpo_think_vs_ulb_fbb")
+            ),
+            ("grpo_think_vs_pb_fbb", r"_pb \(an L3 pilot\) does not combine with other suffixes"),
+            ("grpo_think_vs_mb_fbb", r"_mb \(an L3 pilot\) does not combine with other suffixes"),
+        ):
+            refusals.append(
+                (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm)
+            )
         for arm in ["grpo_think_vs3_3pb", "grpo_nothink_vs3_3pb"]:
             refusals.append(
                 (
@@ -732,6 +822,21 @@ for mode in ("normal", "smoke"):
                 "no3pL3",
                 "grpo_think_vs_mb",
                 rf"no 3-premise pool file {re.escape(SB)}/pools/curriculum_3p/L3_3p\.jsonl \(runs/pools/curriculum_3p\)",
+            ),
+            (  # ARM_fbb's three (2026-10-14)
+                "nockpt",
+                "grpo_think_vs_fbb",
+                rf"no L2 checkpoint of grpo_think_vs \({re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt\)",
+            ),
+            (
+                "rb",
+                "grpo_think_v_fbb",
+                r"grpo_think_v's L2 log ends 'guard it 39: .*lr x0\.5 \(1 rollbacks\).*', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "nolog",
+                "grpo_think_vs3_fbb",
+                r"grpo_think_vs3's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line",
             ),
         ):
             refusals.append((f"{d}/{kind}_{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm))

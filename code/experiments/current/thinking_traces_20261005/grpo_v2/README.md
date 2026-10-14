@@ -322,6 +322,153 @@ It has no refill and no unseen prior.
 bash line.sh GPU SEED grpo_think_vs_mb    # L3 of grpo_think_vs, from runs/grpo_v2/grpo_think_vs_sSEED_L2
 ```
 
+## In-context verifier feedback (2026-10-14, branch `leon/grpo-v2-feedback`)
+
+Dmitry asked at the 2026-10-09 group meeting: "Combine Robbie's in-context verifier idea with GRPO to provide gradient
+signal from failures, not just successes." This adds code, tests and a dry run only. Nothing was trained.
+
+**Robbie's format.**
+- His verifier-in-context work is `retry_ei_20261008` on `robbie-experiments` (summary
+  `experiment-summaries/2026-10-08-retry-ei`). Its episodes are whole-proof retries:
+  `STATEMENT attempt_1 <eos> <err:CODE> [name] STATEMENT attempt_2 <eos> ...`.
+  - It adds 32 new error-code tokens. The `blank` arm has a single `<fail>` token instead.
+  - Retries were accepted no more often than independent samples.
+  - Failed proofs in context cut exact repeats: attempt 2 equalled attempt 1 in 20% of episodes, against 30% for
+    two independent failed samples. The error codes and `<fail>` did the same.
+- His test-time-scaling resampler, `engine._swor_shift`, is the without-replacement shift our guided arms use. The
+  "50–55% of rejections redraw a segment already rejected" figure comes from that work.
+- The `plain-state-feedback` autoresearch commits (705/707) feed hidden states back (Coconut-style), not verifier
+  output.
+
+**Ours, and the rendering chosen.**
+- S1g3 was trained only on `searchtrace` traces. Their think blocks are goal lines `ctx ⊢ G := SKEL`. A candidate
+  tried and found dead is the same line with `<no>`, plus a countermodel.
+- In the first 20,000 e64 traces, 93% of the blocks with a dead end have it on their first line, before the viable
+  reduction.
+- So a rejected action is written as the dead reduction it tried, and the retry's think block starts with these
+  lines (`code/thinking/feedback.py`, `render`):
+
+```
+rejected action                                        line prefilled in the retry's think block
+have n21 : R := n20 .2 ;                               ⊢ R := n20 .2 <no>
+have n1 : S := h1 ;                                    ⊢ S := h1 <no>
+have n3 : ( Q → S ) := ( fun ( n4 : Q ) => by          ⊢ ( Q → S ) := fun ( n4 : Q ) => ⊢ S <no>
+have n39 : P := ( fun ( n40 : ( P ∧ S ) ) => by        ⊢ P := fun ( n40 : ( P ∧ S ) ) => ⊢ P <no>
+have n2 : ( Q ∨ P ) := Or.elim n1 ( fun ( n3 : Q ) => by
+          ⊢ ( Q ∨ P ) := Or.elim n1 ( fun ( n3 : Q ) => ⊢ ( Q ∨ P ) ) ( fun ( n4 : Q ) => ⊢ ( Q ∨ P ) ) <no>
+exact n2                                               ⊢ G := n2 <no>        (G: the focused goal)
+```
+
+- **The retry's prompt.** It is `state <eB> <think> LINE_1 <nl> … LINE_m <nl>`, and the model's own think tokens
+  follow. At B = 0 it is `<think> LINES </think>`, then the action.
+- **Which lines.** One per distinct action rejected at this state, the newest 8 at most. They reset when a draw is
+  accepted.
+- **Trace syntax.** Each line's reduction parses with the trace DSL's own skeleton parser, `trace_dsl.Skel` (tested).
+- **No reason.** The checker's reason is not written: the vocabulary has no tokens for it, and Robbie's error codes
+  did no better than `<fail>`.
+- **No countermodel.** The verifier says that the step is invalid, not why the claim fails, and a truth-table
+  countermodel would be a second oracle. In the first 20,000 e64 and e256 traces, 99.7% of the `<no>` lines carry one,
+  so the bare form is the rare one.
+- **No line** for:
+  - actions outside the grammar, and truncated ones;
+  - `Or.elim` on a non-disjunction, whose second branch would have no binder type.
+  The retry is then a plain resample, counted as `unrendered`.
+
+**Design** (`sample.think_generate(feedback='context')`, `grpo.py --feedback context`, `eval.py --arms feedback`):
+- **Retries.** Under feedback, `--max_rej` counts retries per step. A state's (`max_rej` + 1)-th rejection ends the
+  attempt (`fail:max_rej`).
+  - So `--max_rej 0` is the stop arm. Tested: the same rollouts, and the same GRPO weights as the stop digest.
+  - There is no without-replacement exclusion. Each retry is an exact sample of π_T given its prompt, so the PPO
+    ratio is exact. The repeat rate is measured, not suppressed.
+- **Masking.** The feedback tokens sit in the retry's decoder input, an item's prompt. So they are out of the loss,
+  the PPO ratio and the think ban mass, exactly as prompt tokens are. The KL anchor reads only its reference steps.
+  - A retry's input ends inside an open think block (`grpo.open_think`). Its own think tokens are therefore scored as
+    think tokens, under the think ban.
+  - Retries and rejected drafts are policy tokens.
+- **Cost of a rejected draft.** `--rej_penalty` P works as before:
+  - every retried draft is kept and scored at −P, whatever the outcome;
+  - the draw that ends an attempt gets −P on top of the failure;
+  - the `diverge` scope compares a draft with the draw accepted at its state. It matches them by state, because the
+    prompts differ by the lines.
+- **The redraw-collapse risk.**
+  - A recovered invalid first draw costs −P only. In the stop arm the same draw ends the attempt: it gets the
+    failure's advantage (0 minus the group's pass rate, about −0.9 late in L3) and −P on top.
+  - The per-step cap is the other cost: past `FB_MAXREJ` retries the attempt fails, as in the stop arm.
+  - At the L3 init below, two retries left 41% of rejected first draws unrecovered at B64, 52% at B0 and 32% at B256.
+- **Logged.** Per iteration in `row['feedback']` and the `fb it N:` line (`feedback.metrics`), overall and per budget:
+  - rejections and retries per attempt;
+  - the retries accepted, overall and per retry index;
+  - the repeat rate of identical rejected actions at a state, of the rejected retries and of all rejections
+    (Robbie's denominator);
+  - feedback tokens and lines per attempt, and the unrendered share;
+  - the share of solved attempts that needed a retry.
+  - Eval cells add the same: `feedback` in `summary.json`, and `fb` in the rows.
+
+**At the pilot's init.** These are observed CPU numbers on the checkpoint `grpo_think_vs_s2_L2_it39`: 24 L3 pool rows ×
+8 attempts, T 1.0, `--max_rej 3`, one seed. "Blind" is the same per-step retry loop with no lines.
+
+| B | retries | pass@1 | retry accepted | rejected retries that repeat an action rejected at the state |
+|---|---|---|---|---|
+| 64 | feedback | 85.9% | 31% (43/137) | 39% |
+| 64 | blind | 89.6% | 43% (70/162) | 25% |
+| 0 | feedback | 66.1% | 25% (76/305) | 44% |
+| 0 | blind | 69.8% | 31% (114/362) | 19% |
+| 256 | feedback | 87.0% | 40% (68/171) | 31% |
+| 256 | blind | 89.1% | 47% (87/187) | 17% |
+
+- The model has not been trained to use the lines, and it often copies a dead line's term into its action (examples
+  in the smoke below).
+- So at init, feedback does worse than blind resampling at every budget.
+  - The B0 repeat gap is large (two-proportion z ≈ 6). The other gaps are z ≈ 1.3–2.3. Attempts of one problem
+    are correlated, so with 24 problems these z values overstate the evidence.
+- The pilot measures whether GRPO teaches the model to use the lines. Compare the repeat rate in its `fb it` lines with
+  the blind numbers here.
+- Retries recover mostly on the first try: 32/70, 9/38 and 2/29 at retries 1, 2 and 3 (B64). The pilot uses
+  `FB_MAXREJ=2`.
+
+**Smoke on the Stage-1 model** (CPU, `S1g3_s2/model.pt`, 4 L2 + 4 L3 pool rows, 2 iterations × 4 prompts × group 4,
+the launcher's L3 flags for `grpo_think_vs_fbb` at SMOKE=1 sizes; output in `/scratch/cowifornia/nd-rl/think/fb_smoke/`):
+- It runs end to end with the real Lean gate, the canary, the KL anchor and rollbacks. The log lines are:
+
+```
+fb it 1: rej/att 4.12 retries/att 3.12 retry acc 28% (14/50) repeat 36% of rejected retries (20% of rejections) fb tok/att 28.8 lines/att 1.62 unrendered 34% assisted - of solved
+fb it 2: rej/att 3.94 retries/att 3.19 retry acc 39% (20/51) repeat 29% of rejected retries (14% of rejections) fb tok/att 34.0 lines/att 2.06 unrendered 24% assisted 25% of solved
+```
+
+- Iteration 1 (pass@1 0%) raised a clip-low alarm on the accepted tokens and rolled back. With no solved attempt, the
+  gradient is the penalised draws only. The draws that end attempts count as accepted items in the alarm's basis, as
+  they do in the stop arm; the retried drafts do not. Most likely an effect of the tiny batch (interpretation).
+- Two retries from its rollouts (B0, the action only after the block):
+
+```
+state … n33 : ( ¬ R ) <nl> n35 : ( ¬ Q ) <nl> ⊢ False <act>
+rejected   have n36 : ( ¬ ( ¬ ( S ∧ Q ) ) ) := n51 ;                  (S:unbound)
+retry      <e0> <think> ⊢ ( ¬ ( ¬ ( S ∧ Q ) ) ) := n51 <no> </think>
+           have n36 : ( ¬ ( ¬ ( S ∧ Q ) ) ) := ( fun ( n37 : ( ¬ ( S ∧ Q ) ) ) => by        accepted
+
+state … n11 : P <nl> n13 : ( P → Q ) <nl> ⊢ S <act>
+rejected   have n14 : ( ¬ P ) := n7 n13 ;                             (L:app-arg)
+retry      <e0> <think> ⊢ ( ¬ P ) := n7 n13 <no> </think>
+           have n14 : ( ¬ P ) := n7 n13 ;                             copied at both retries: fail:max_rej
+```
+
+**Arm `ARM_fbb`** (`line.sh`; its flags are in `PILOT_FBB` and `FB_MAXREJ` only). It applies to `grpo_think_v`,
+`grpo_think_vs` or `grpo_think_vs3`; `grpo_think_vs_fbb` is the one asked for.
+- **Stage.** L3 only, from ARM's finished L2 checkpoint, with `--feedback context --arm logical --max_rej 2
+  --rej_penalty 0.1`. It is checked and refused as for `ARM_rfb`.
+- **Refusals.** EI, no-think arms (they have no think block), arms without the verifier, and any other suffix. It is
+  also refused until the code worktree's `grpo.py` and `eval.py` have the options; the guard checks `FEEDBACK_MODES`
+  and `READ_ARMS`.
+- **Reads.** The usual plain and logical reads, plus the feedback arm on t1320 and charles173 (`--max_rej 2` retries
+  per step).
+  - These run alongside the logical reads, not in their place: logical vs feedback on the same checkpoint is the
+    test-time comparison.
+  - The plain read stays the headline.
+
+```
+bash line.sh GPU 2 grpo_think_vs_fbb    # L3 of grpo_think_vs seed 2, from runs/grpo_v2/grpo_think_vs_s2_L2
+```
+
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)
 
 | set | k | arms |
@@ -331,6 +478,8 @@ bash line.sh GPU SEED grpo_think_vs_mb    # L3 of grpo_think_vs, from runs/grpo_
 | charles173 (Charles's 2026-10-02 release: candidate_v0 87 + candidate_v1 72 + batch3 14) | 64 | plain, logical |
 | hand_proved_14 (20–102-line hand proofs; `--max_steps 160`) | 64 | plain |
 | t2130_n1000 (a fixed random 1,000 of test_21_30, seed 2130) | 8 | plain |
+
+`ARM_fbb` adds the feedback arm on t1320 and charles173 (`--max_rej 2`, retries per step).
 
 charles173 and hand_proved_14 are eval only:
 - every prompt loads through `code.thinking.eval` unchanged and tokenises for both models (atoms P–S only);
