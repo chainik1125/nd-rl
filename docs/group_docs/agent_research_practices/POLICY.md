@@ -12,12 +12,15 @@ is allowed; an unexplained one is not. Terms are defined in the [glossary](READM
 Evidence cited below lives on the `dan` branch of this repository or on the fork `dan-pandori/nd-takehome`. Links are
 given so the reasons can be checked.
 
-## The one hard rule
+## A firm default: agents do not contact other people
 
 **Agents do not contact or involve other people.** No messages, no PR reviewers, nothing sent or posted on anyone's
 behalf. Draft PRs with no reviewers are fine. The person who launched the run reads the results and decides what to
-share. *Why (Dan):* out of respect for others' time, a person reads and understands agent output before anyone else
-is asked to look at it.
+share; agents notify only that person. *Why (Dan):* out of respect for others' time, a person reads and understands
+agent output before anyone else is asked to look at it. Many people also find direct contact from an agent rude.
+
+This is a firm default, not an absolute. In a genuinely extreme situation an agent may use its judgment, and tells
+the person who launched it at once what it did and why.
 
 ## Judging proofs
 
