@@ -11,7 +11,7 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-13, 6:15 am PDT; on ynez)
+## Running (updated 2026-10-13, 9:30 pm PDT; on ynez)
 
 **serrano is down (since 2026-10-11, about 4:48 am).** Everything below up to that date ran there. Its /scratch held
 every v2 checkpoint and read, the Stage-1 models, the curriculum pools and the launchers. None of them is reachable,
@@ -43,10 +43,21 @@ Runs: thinking only, GRPO and EI each with and without the verifier (stop), seed
 pair (`ei_think_v`, `grpo_think_vs`) for seeds 2, 0, 1, then `ei_think`, `grpo_think` for seeds 2, 0, 1. About
 84 GPU-h; the pair by about Wednesday night on 2 GPUs. GRPO runs about 1.9 min per iteration here (about 3 on serrano).
 
-| job | GPU | started | note |
-|---|---|---|---|
-| `ei_think_v` seed 2 | 2 | 5:05 am | |
-| `grpo_think_vs` seed 2 | 3 | 5:05 am | L2 it 31 at 6:06 am, no alarm, ban mass 5e-5 |
+Status at 9:30 pm, 2026-10-13:
+- **Headline pair:** done for seeds 0–2. Tables in `matched_eval/v2_results_ynez.md`; length and source breakdowns in
+  `length_split_ynez.md` and `source_split_ynez.md`.
+- **Plain pair:** seed 2 done; seeds 0 and 1 land by about 2 am.
+- **Recipe pilots** (Leon, 2026-10-13: screen features in small quick runs, then merge the winners into one full
+  run against EI): 1 seed (2), stage L3 only from `grpo_think_vs_s2_L2_it39.pt`, full reads. Code on `leon/grpo-v2`
+  (7523c16).
+
+| pilot (seed 2) | change | why |
+|---|---|---|
+| `grpo_think_vs_wb` | L3 holds the lr, then a 1−sqrt cooldown over the last 8 iterations to 0.3× | EI ends each round annealed, GRPO did not (Hägele 2024; LR research) |
+| `grpo_think_vs_3pb` | a third of each batch from the 3-premise rewrites (`curriculum_3p/L3_3p`) | the split traces to the generated sets' case-split problems; the pools have no 3+-premise problems |
+| `grpo_think_vs_rfb` | refill groups without signal (up to 2 extra rounds); drop seen pairs with p > 0.9 | late L3 half the groups are all-solved |
+| `grpo_think_vs_ulb` | unlikeliness reward β 0.25 (He, Fried & Welleck 2025) | GRPO loses more at pass@5 |
+| `grpo_think_vs_pb` | unseen pairs start at the budget's mean pass rate, not 1/2 | 81–86% of L3 draws are never-drawn pairs at the max-weight prior 1/2 |
 
 Also: `leon/grpo-v2-auto` (GRPO with the model-chosen think level) was recovered from its agent's transcript and
 pushed (021523e, 1d24461, ae02a00). Its real-model checks wait for an L2 pilot.
