@@ -1,0 +1,197 @@
+\section{Glossary}
+\label{app:glossary}
+\begin{description}[leftmargin=1.2em,style=nextline]
+\item[ladder; r$N$; r0] one 16-round expert-iteration run from one pretrained seed; the model after $N$ rounds; the
+pretrained base.
+\item[evaluation; x0, x1; guided] $k=256$ independent attempts per theorem at $T=0.8$; two sample seeds; the same with
+logically rejected steps redrawn (at most 10 per attempt).
+\item[\sig, \sigp, lemma route, free positive reductio, classical-only, strict] see Table~\ref{tab:concepts}.
+\item[acquired] at least 50\% of a family's strict held-out members proved in one evaluation.
+\item[within reach / not reached / certified at $K$] $\hat p \geq 1/K$; 0 successes in $\geq K$ attempts; one-sided
+95\% Clopper--Pearson bound $< 0.05/K$ (\S\ref{sec:setup}).
+\item[\dcov] theorems RL proves at $k=256$ minus theorems the base reaches within $K$.
+\item[\KT, \KTko, \KTdose] the full, knockout and 1\% dose pretraining sets (155,000 records each).
+\end{description}
+
+\section{Construction of the knockout set}
+\label{app:k12ko}
+\KTko{} removes every \KT{} record whose written or pruned proof applies \texttt{DN} to a derived double negation:
+16,961 records, of which 16,703 are \sig{} and 258 cite an $\to$-elimination, $\lor$-elimination, $\bot$-elimination,
+\texttt{DN} or $\land$-elimination line. It refills 16,961 records drawn uniformly, length by length, from \KT{}'s own
+unused source pools: lengths up to 6 from the depth-3 generator pool and 7--12 from the long-proof pool. Every refill
+record passes every \KT{} filter (no box depth $\geq 3$), applies \texttt{DN} only to assumptions or premises, and
+contains no \sigp{} and no lemma route. Under an order-sensitive and a premise-order-invariant renaming key, the refill shares no
+class with \KT{} or with any of the 100 data and target files of the repository. One of \KT{}'s 11 exclusion pools was
+absent when the set was built and could not be checked. Every refill proof, translated to Lean, is accepted
+(16,961/16,961). Unchanged proofs pass the same harness and goal-negated proofs fail it. Per-length counts are identical
+to \KT{}'s. The dose set \KTdose{} swaps 1,550 refill records for removed \sig{} records at \KT{}'s \sig{} length mix.
+A 0.1\% set is built but unused.
+
+\section{When each ladder first trained on each family}
+\label{app:shares}
+First round in which at least half of a family's strict training theorems had an accepted proof in the ladder (every
+training theorem receives 32 attempts per round; ``--'' = not within 16 rounds).
+\begin{center}\small
+\begin{tabular}{lcccccc}
+\toprule
+ladder & conv.\ contrap. & neg.\ cond. & Peirce & Peirce seq. & excl.\ middle & De Morgan \\
+\midrule
+\Kfull{} s0/s1/s2 & 1/2/1 & 4/13/3 & --/--/3 & --/--/5 & --/14/-- & never \\
+\Kfull{} s3/s4/s5 & 2/1/1 & 2/--/-- & 8/--/-- & 3/--/16 & never & never \\
+\Kko{} s0--s5 & never & never & never & never & never & never \\
+\Kdose{} s0/s1/s2 & 2/1/3 & 3/7/7 & 12/--/-- & 7/--/-- & never & never \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Budgets at r16, the number of evaluation theorems, and the estimator}
+\label{app:budgets}
+At r16 the five allocations for full seeds s0/s1/s2 are $\Katt = 7{,}147$, $\Ktrain = 17{,}531/15{,}884/20{,}422$,
+$\Kuni = 24{,}619/22{,}827/29{,}510$, $\Kpub = 47{,}962/49{,}428/50{,}447$ and
+$\Kadapt = 109{,}875/100{,}929/119{,}575$ base attempts per theorem. $\Kadapt$ exceeds the 66,304 attempts most hard
+theorems received, so the r16 sets at $\Kadapt$ are mostly undetermined.
+
+Every $K$ scales as $1/N_{\mathrm{eval}}$. For the knockout certificates (Table~\ref{tab:certs}), spreading each
+ladder's training-phase compute over the 106 strict theorems instead of the 322 evaluation theorems would triple $K$
+(seed 0: 70,846) and void seed 0's certificate. Spreading it over 1,054 theorems would cut $K$ to 5,251--7,125;
+then every base but seed 1 certifies (5 of 6). The certified count is thus 0, 1 or 5 of 6 at $N_{\mathrm{eval}} = 106$,
+322 or 1,054.
+
+Figure~\ref{fig:estimator} shows the known-proof estimator's calibration. Because the ratios are binned by measured
+$\hat p$, they condition on at least one success, which inflates $\hat p$ in the lowest bins.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/fig5_estimator.pdf}
+\caption{Known-proof estimator, full-exposure bases s0--s2. (a) Estimate against measured $\hat p$ for (seed, theorem)
+pairs with at least one success in large-$k$ sampling. (b) Median and 10--90\% range of $E/\hat p$ by $\hat p$ bin:
+0.937 (106 pairs), 0.883 (52), 0.454 (36) and 0.36 (2).}
+\label{fig:estimator}
+\end{figure}
+
+\paragraph{Other measurements on the full seeds.} At matched gains in item-response-theory ability, EI flags no more
+items as differentially improved than replay-only training. Eight RL rounds move the weights about as far as
+replay-only training (relative Frobenius norm 0.28 vs 0.30, one seed). Twelve operational definitions of ``created''
+agree poorly: the mean pairwise Jaccard similarity of their sets at $\Kpub$ is 0.29 at r8 and 0.34 at r16.
+
+\section{Two more knockout-base proofs in Lean}
+\label{app:lean}
+Both are large-$k$ successes of knockout bases before any RL. Lean~4.35.0 accepts each and rejects it with the goal
+negated (\texttt{paper/scripts/lean\_examples.py}); the experiment's loop used Lean~4.34.1. (a) Knockout seed 1's base on \texttt{la\_transfer\_1246}, a held-out
+converse-contraposition member: \sig{}, then \texttt{DN} in both branches of an $\lor$-elimination.
+\begin{lstlisting}
+theorem t (P Q R S : Prop) (h1 : (((*$\neg$*)S) (*$\to$*) ((*$\neg$*)((S (*$\land$*) R) (*$\lor$*) R)))) : (((S (*$\land$*) R) (*$\lor$*) R) (*$\to$*) S) := by
+  have n1 : (((*$\neg$*)S) (*$\to$*) ((*$\neg$*)((S (*$\land$*) R) (*$\lor$*) R))) := h1
+  have n12 : (((S (*$\land$*) R) (*$\lor$*) R) (*$\to$*) S) := (fun (n2 : ((S (*$\land$*) R) (*$\lor$*) R)) => by
+    have n6 : ((*$\neg$*)((*$\neg$*)S)) := (fun (n3 : ((*$\neg$*)S)) => by
+      have n4 : ((*$\neg$*)((S (*$\land$*) R) (*$\lor$*) R)) := n1 n3
+      have n5 : False := n4 n2
+      exact (n5 : False))
+    have n11 : S := Or.elim n2 (fun (n7 : (S (*$\land$*) R)) => by
+      have n8 : S := Classical.byContradiction (fun hh => n6 hh)
+      exact n8) (fun (n9 : R) => by
+      have n10 : S := Classical.byContradiction (fun hh => n6 hh)
+      exact n10)
+    exact n11)
+  exact n12
+\end{lstlisting}
+(b) Knockout seed 0's base on \texttt{la\_transfer\_916} at $T=1$: the refutation is built by $\to$-introduction
+(\texttt{n6 : $\neg$S $\to$ False}), not $\neg$-introduction, which Lean accepts because $\neg\neg S$ unfolds to
+$\neg S \to \mathrm{False}$. No pretraining set contains \texttt{DN} on such a line.
+\begin{lstlisting}
+theorem t (P Q R S : Prop) (h1 : (((*$\neg$*)S) (*$\to$*) ((*$\neg$*)P))) (h2 : P) : (R (*$\to$*) S) := by
+  have n1 : (((*$\neg$*)S) (*$\to$*) ((*$\neg$*)P)) := h1
+  have n2 : P := h2
+  have n6 : (((*$\neg$*)S) (*$\to$*) False) := (fun (n3 : ((*$\neg$*)S)) => by
+    have n4 : ((*$\neg$*)P) := n1 n3
+    have n5 : False := n4 n2
+    exact n5)
+  have n9 : (R (*$\to$*) S) := (fun (n7 : R) => by
+    have n8 : S := Classical.byContradiction (fun hh => n6 hh)
+    exact n8)
+  exact n9
+\end{lstlisting}
+
+\section{Power sampling}
+\label{app:power}
+The sampler targets $p^\alpha$ over whole proofs by Metropolis--Hastings with suffix resampling: 32 chains per theorem,
+blocks of 4 proof steps, 8 MH steps per block (32 in a convergence check), $\alpha \in \{4, 2\}$ (and 1.5 in the
+control). Acceptance rates were 0.55--0.74. On a development pilot the per-chain success was 0.752 at 8 MH steps per
+block and 0.760 at 32. The plain comparators received exactly the decoded tokens of the power runs and took 1.6--2.7
+times less wall-clock. They kept no proof text, so their 1--2 successes could not be re-checked in Lean.
+
+\section{Pre-registered expectations against outcomes}
+\label{app:expectations}
+The experiment's pre-registration stated numeric expectations. Tallied independently, they \emph{hit} on:
+\begin{itemize}
+\item the shape of \KTko{};
+\item the general-ability gap on held-out greedy decoding and on non-\sig{} theorems;
+\item 0/123 strict training theorems in round 1 on all knockout seeds, and 0/106 held-out strict theorems at r0 in the
+x0 evaluation (the x1 evaluation found 1 on seed 1, and the guided evaluation 1, 1, 0, 1, 3, 0 across seeds 0--5);
+\item knockout median log-probabilities at or below $-15$ nats;
+\item converse contraposition acquired on 3/3 new full seeds;
+\item at least one family on 6/6 full and 0/6 knockout seeds, the primary $p$ and the arm medians;
+\item recovery of non-classical holdout250 by r16;
+\item $\dcov > 0$ on 3/3 new full seeds;
+\item the dose arm's round-1 \sig{} proofs and its families;
+\item knockout seed 1's extension.
+\end{itemize}
+They \emph{missed} on:
+\begin{itemize}
+\item the classical-only share falling by $\geq 70\%$ (observed 67.6\%);
+\item textbook72 within $\pm4$ at r0 (observed $-6.5$ over all 72 theorems with six full seeds, three read at another
+batch; $-4.0$ on its 53 intuitionistic theorems with three);
+\item certificates on $\geq 5/6$ knockout bases (observed 2/6 on the 105 family members, 1/6 on the pre-registered
+106);
+\item negated conditional on $\geq 2/3$ new full seeds (observed 1/3);
+\item the first \sigp{} proof after round 4 (it came in round 1, on theorems supplying $\neg\neg G$);
+\item $\dcov$ within $+8$ to $+35$ (two seeds at $+36$ and $+37$);
+\item 3--15 strict training theorems in the dose arm's round 1 (observed 2/17/2);
+\item a seeded-round gain on $\geq 3$ seeds (observed 1/5);
+\item ``0/106 on the knockout bases for every sampler'' (plain sampling at $T=1$ solved \texttt{la\_transfer\_916} on
+both bases).
+\end{itemize}
+Near-misses: the earlier full seed s1's base cost 8.04\,ms per attempt on an A40 (expected 6--8\,ms), the earlier full
+seed s2's uniform-allocation budget at r8 was 0.61 times the published one (expected 0.4--0.6), and the dose arm's r16
+count lay between the two arms' medians on 2/3 seeds. The
+power-sampling expectations (0 solves) were met, but the sampler failed its positive control, so they are uninformative
+rather than hits. Deviations from the plan: more than 0.1\% of some stratum was cut off in 64 of 74 plain evaluations;
+the dose arm had no compute-matched reach measurement, no r16 redraw and no guided evaluation (the last two are added
+here); and the refill's Lean check ran on the VPS rather than the first pod.
+
+\section{Corrections applied}
+\label{app:corrections}
+Three Boschloo $p$-values in the experiment's reports (the exploratory RL-only test and two of the pre-registered
+per-family tests) came from a transposed table. With the arms as
+columns, the RL-only test is $p = 0.0032$ (reported 0.0020), excluded middle $0.39$ (0.30) and the three-versus-none
+family tests $0.034$ (0.035). The primary $p = 0.00024$ and the dose test $p = 0.0033$ are unchanged.
+\texttt{paper/scripts/stats\_extra.py} recomputes all of them. This paper also reports the knockout certificates on the
+pre-registered 106-theorem pool: the experiment's reports and their review used the 105 family members, which certifies
+seed 3 as well (Table~\ref{tab:certs}). The review's ten rewordings are applied throughout. The most important replace
+``need'' with ``not acquired by this EI within 16 rounds'', use ``reach'' only in its technical sense, and state the
+sharpening null for one sampler.
+
+\section{This paper's checks and analyses}
+\label{sec:checks}
+\input{sections/11_checks}
+
+\section{Provenance of earlier results}
+\label{app:provenance}
+Run names refer to reviewed reports in the fork \texttt{dan-pandori/nd-takehome} (branch \texttt{dan\_<run>}, file
+\texttt{review\_<run>.md}) and to their summaries in the project's \texttt{experiment-summaries}.
+\begin{itemize}
+\item \run{create-or-elicit}: the knockout, dose and full s3--s5 ladders; the budgets and estimator calibration; power
+sampling. Review commits \texttt{dd8ee82e} (blind recount) and \texttt{8e195390} (verdict).
+\item \run{capability-defs}: the measurement case study on full seeds s0--s2 (budgets, certificates, controls,
+definitions, guided evaluations); the no-\texttt{DN} knockout taught by demonstrations (J6). Review \texttt{da11be78}.
+\item \run{trajectory}, \run{rl-continue}: full seeds s0--s2, rounds 1--8 and 9--16; likelihoods along RL.
+\item \run{rl-from-ckpt}: the replay-only control. \run{guided-tts}: guided redraws at matched tokens and the step
+checker. \run{mcts-a}: PUCT search with a learned value (review \texttt{5e70afbd}). \run{grpo-best}: GRPO variants from
+the same checkpoints.
+\item Earlier organisms (whole-proof token models of 3.2M--85M parameters, judged by the project's older checker with
+Lean confirmation where stated): the ignition study (review \texttt{review\_ignition.md}), round 2 run 3 (minimum
+outside data), round 3 run 4a (reductio against model size) and the run4-grpo review.
+\item \run{support-curves}, \run{support-state}, \run{claim-audit}: the 3.2M interface result.
+\end{itemize}
+The claims ledger (\texttt{claims\_ledger.md}, rows L1--L101) and \texttt{paper/LEDGER.md} map every inherited number to
+its reviewed source.

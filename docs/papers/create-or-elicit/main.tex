@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+\PassOptionsToPackage{hyphens}{url}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\captionsetup{font=small,labelfont=bf}
+\setlist{nosep,leftmargin=1.4em}
+\emergencystretch=3em
+
+% notation
+\newcommand{\sig}{\ensuremath{\sigma}}
+\newcommand{\sigp}{\ensuremath{\sigma^{+}}}
+\newcommand{\Kfull}{\textsc{full}}
+\newcommand{\Kko}{\textsc{knockout}}
+\newcommand{\Kdose}{\textsc{dose}}
+\newcommand{\phat}{\ensuremath{\hat p}}
+\newcommand{\ub}{\ensuremath{\mathrm{UB}_{95}}}
+\newcommand{\Katt}{\ensuremath{K_{\mathrm{att}}}}
+\newcommand{\Ktrain}{\ensuremath{K_{\mathrm{train}}}}
+\newcommand{\Kuni}{\ensuremath{K_{\mathrm{uni}}}}
+\newcommand{\Kpub}{\ensuremath{K_{\mathrm{pub}}}}
+\newcommand{\Kadapt}{\ensuremath{K_{\mathrm{adapt}}}}
+\newcommand{\dcov}{\ensuremath{\Delta_{\mathrm{cov}}}}
+\newcommand{\KT}{\ensuremath{\mathcal{D}}}
+\newcommand{\KTko}{\ensuremath{\mathcal{D}^{-}}}
+\newcommand{\KTdose}{\ensuremath{\mathcal{D}^{1\%}}}
+\newcommand{\run}[1]{\textsf{#1}}
+
+\lstset{basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces=true,breaklines=true,escapeinside={(*}{*)},
+  literate={¬}{{$\neg$}}1 {→}{{$\to$}}1 {∧}{{$\land$}}1 {∨}{{$\lor$}}1 {⊢}{{$\vdash$}}1}
+
+\title{Did Expert Iteration Create It?\\[0.3em]\large A Pretraining Knockout and Compute-Matched Budgets\\in a From-Scratch Theorem Prover}
+\author{Dan Pandori et al.\ (author list for Dan to decide)}
+\date{Draft, \today. Not for circulation.}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/00_abstract}
+\end{abstract}
+
+\input{sections/01_intro}
+\input{sections/03_setup}
+\input{sections/05_results}
+\input{sections/04_measurement}
+\input{sections/02_related}
+\input{sections/07_discussion}
+\input{sections/08_limitations}
+\input{sections/09_repro}
+
+\section*{Acknowledgements}
+Left for Dan.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\appendix
+\input{sections/10_appendix}
+
+\end{document}
