@@ -1,0 +1,78 @@
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Does RL expand what the base can do?} Equal-$k$ comparisons in LLMs find base models overtaking RL as $k$
+grows \citep{yue2025doesrl}. Others report gains where the base fails, read at $k=128$ \citep{liu2025prorl}. Early RL can
+shrink the boundary of what is solved while prolonged RL expands it \citep{yao2025twostage}, and wider rollouts revive
+plateaued runs \citep{hu2025brorl}. Much of RL's measured gain corresponds to operating points the base attains with
+search at small sample counts \citep{sun2026budgeted}. In five public RLVR pairs, the visible pass@$k$ crossovers were not statistically
+established in the initial evaluations (a 32k-token evaluation on fresh prompts then located one, with the first
+loss between 11 and 61 samples) \citep{yang2026kernel}, and reward and contamination controls change conclusions
+\citep{shao2025spurious,wu2025contamination}. These studies compare base and RL at equal $k$, or through exchange rates
+up to 16 samples \citep{sun2026budgeted}. None ties the base's budget to RL's training compute, which we do, reporting
+the created set as a curve.
+
+\paragraph{Controlled organisms and pretraining exposure.} The closest design is \citet{abdulsalam2026rewrite}. They
+pretrain on primitive rewrites that exclude later shortcuts, read the base at pass@1024 and RL at pass@16, and find GRPO
+building the shortcuts. Rejection-sampling fine-tuning, the family our EI belongs to, ``then plateaus, while RL improves
+more slowly at first but continues climbing''. Pretraining at a low contraction weight $\rho$ ``never
+reliably enters the macro or parallel regime''. Their RFT and low-$\rho$ results resemble ours; their GRPO result is
+the contrast. \citet{tsilivis2025rlntp} set the share of long demonstrations exactly and show RL amplifying that mode
+efficiently unless the share is exponentially small. \citet{zhang2025interplay} find no RL transfer to a context with
+0\% or 0.1\% pretraining exposure and transfer at 1\%, with GRPO in a 100M model; our dose result parallels theirs for
+a composition of two rules. Pretraining with more reasoning data leaves a lead that survives RL at 8B \citep{akter2025frontloading}.
+Priming with demonstrations of a behaviour enables RL to use it \citep{gandhi2025cognitive}. RL composes new strategies
+only from atomic skills already mastered \citep{cheng2025atomicskills}. If \sig{}'s two rules count as mastered here,
+the knockout shows that mastery is not sufficient for EI at this scale within 16 rounds; if not, rules at a quarter to a third of their
+former frequency are not mastered. RL composes known string functions where iterated RFT ``never surpasses 2.6\%''
+\citep{yuan2025fgx}. Knockouts after pretraining disagree. With a strategy removed at the fine-tuning stage, ``we do not
+observe novel patterns emerging through reinforcement learning'' \citep{krishnamurthy2026select}. With a pattern family
+removed from the RL data, a 1.5B model ``successfully learns to generate the held-out patterns despite zero training
+exposure'' \citep{park2025countdown}. Neither measures the removed behaviour's base rate. In from-scratch organisms, RL collapses onto one pretraining
+mode \citep{zhao2025echochamber} and surfaces chess moves to which fine-tuning gave probability below 0.05
+\citep{shen2026chess}. Small from-scratch provers and solvers also improve on their own filtered outputs
+\citep{poesia2024minimo,lee2025selfimproving}. On graph path-finding, 0/1-reward policy gradient without a KL term
+equals fine-tuning on the model's own successes, yet ``can explore and discover new correct paths that were absent from
+the initial training set'' \citep{wang2025rlplanning}. Our knockout keeps both constituents of the removed composition, refills
+the data, and measures the base's rate for the composition at about a million attempts.
+
+\paragraph{Why on-policy RL may stay near the base.} With an outcome reward, the number of reward queries policy gradient needs
+grows as the base's likelihood of a solution shrinks, and going beyond the base's support can cost exponentially
+much \citep{mousavihosseini2026barrier}. ``Passive exploration'' is unlikely to ``generate novel and
+correct proofs by chance'' \citep{xie2024xpo}. On-policy RL prefers solutions close to the base \citep{shenfeld2025rlrazor},
+and the KL-regularised optimum with a binary reward re-weights the base toward success
+\citep{korbak2022rlkl}. On hard problems, on-policy RL rarely sees a correct rollout \citep{qu2026pope}, and in a one-layer theory,
+outcome-reward policy gradient ``becomes infeasible'' when the data's mass on simple examples vanishes
+\citep{ranmilo2026outcomerl}. Negative samples matter too: training only on the model's failures keeps the base's
+pass@256, while training only on successes lowers it \citep{zhu2025nsr}. In GRPO on a
+Lean prover, gains fade at large $N$ because rare correct proofs are seldom uplifted \citep{he2025unlikely}. In LLM
+reasoning, EI matched or beat PPO, and RL models ``fail to explore significantly beyond solutions already produced by
+SFT models'' \citep{havrilla2024teaching}. Our knockout measures this limit directly: the base's rate for the missing
+composition, and whether EI amplifies it.
+
+\paragraph{Sharpening without training.} Metropolis--Hastings sampling from the base's power distribution $p^\alpha$
+approaches GRPO on MATH500 at 8.84 times the tokens \citep{karan2025power}; a token-level approximation is reported to
+match one-shot GRPO \citep{ji2026scalablepower}. Practical power samplers, however, do not converge to $p^\alpha$ at
+realistic budgets \citep{talwar2026power}, and one $\alpha$ sharpens different problems very differently
+\citep{yang2026correctmass}. Our sampler failed its own positive control, so our null concerns the sampler.
+
+\paragraph{Elicitation and measurement.} A latent capability is one a model shows rarely by default and that small
+interventions reveal \citep{hofstatter2025elicitation,vanderweij2024sandbagging}. Password-locked models show that a few
+demonstrations, or expert iteration from lucky samples, recover hidden skills, while RL from a weak policy can fail to
+explore \citep{greenblatt2024passwordlocked}. Fine-tuning often enhances or wraps existing mechanisms
+\citep{prakash2024finetuning,jain2023mechanistically}. \citet{li2026elicitcreate} define creation as a change in the
+support a model reaches under a stated budget, decoding policy and signal, and a control that never had the capability
+makes such claims checkable \citep{deeb2024unlearning}. With unlimited samples, any model with full support covers
+everything \citep{brown2024monkeys}. Rare events need importance sampling, extrapolation or sampling until a fixed number of successes
+\citep{wu2024rareoutputs,jones2025forecasting,hu2023passuntil}, and reference-solution likelihoods predict success at
+larger $k$ \citep{schaeffer2025generative}. Thresholded metrics can manufacture jumps \citep{schaeffer2023mirage}, so we report
+our family criterion beside counts. In compositional generalisation, compounds can be held out while atoms stay
+\citep{keysers2020cfq}, and composing rare concepts ``requires considerably more optimization steps''
+\citep{okawa2023multiplicative}. Our knockout holds out a compound, but it thins the atoms too (\S\ref{sec:side}).
+
+\paragraph{Expert iteration for theorem proving.} Neural provers run the sample--verify--train loop with search as the
+expert \citep{polu2020gptf,polu2022curriculum,lample2022htps,wu2024internlmstepprover,xin2025bfsprover} or with GRPO
+on a Lean reward \citep{xin2024deepseekprover}. The loop stalls when hard targets yield no successes: a from-scratch HOL
+prover stays at 7\% without injected exploration \citep{bansal2019deepholzero}, and a self-play prover found 131 correct
+proofs in 2.5 million attempts on unproved statements \citep{dong2025stp}. At least one formal-mathematics creation claim
+rests on a 64-attempt base budget \citep{burton2026diversity}.

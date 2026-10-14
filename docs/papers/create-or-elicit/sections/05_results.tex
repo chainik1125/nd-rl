@@ -1,0 +1,365 @@
+\section{Results: the \sig{} knockout}
+\label{sec:results}
+
+All numbers in this section are on the 9.56M-parameter models of Table~\ref{tab:arms}, judged by Lean alone (except
+the earlier organism's seeding result quoted for contrast in \S\ref{sec:nulls}, which is labelled there). They come
+from the evaluation with sample seed x0 unless stated. An analyst who had not written the experiment's code recounted the
+experiment's counts from the raw files, with separate code, and re-checked the proofs in Lean. Numbers computed for this
+paper from those recounted files are marked (\emph{this paper}).
+
+\subsection{No knockout seed acquired a family in 16 rounds}
+\label{sec:primary}
+
+\begin{table}[t]
+\centering\small
+\caption{Strict held-out theorems proved (of 106) per seed. r0 is the base. x0 and x1 are two sample seeds of the plain
+evaluation; g is the guided evaluation. Families: cc = converse contraposition, nc = negated conditional, pe = Peirce,
+ps = Peirce sequent, em = excluded middle; underlined = already acquired at r0. $\dagger$ = seeds from earlier runs. The
+dose arm's other r16 evaluations are in Appendix~\ref{sec:checks}.}
+\label{tab:primary}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lrrrrrrll}
+\toprule
+model & r0 x0 & r0 g & r8 x0 & r16 x0 & r16 x1 & r16 g & acquired at r16 (x0) & gain r0$\to$r16 (x0) \\
+\midrule
+\Kfull{} s0$^\dagger$ & 18 & 20 & 38 & 42 & 43 & 44 & \underline{cc}, nc & 24 \\
+\Kfull{} s1$^\dagger$ & 6 & 13 & 25 & 75 & 73 & 75 & cc, em, pe & 69 \\
+\Kfull{} s2$^\dagger$ & 22 & 36 & 66 & 77 & 77 & 80 & \underline{cc}, nc, pe, ps & 55 \\
+\Kfull{} s3 & 23 & 35 & 59 & 65 & 64 & 64 & \underline{cc}, nc, pe, ps & 42 \\
+\Kfull{} s4 & 15 & 19 & 21 & 23 & 22 & 24 & \underline{cc} & 8 \\
+\Kfull{} s5 & 18 & 17 & 19 & 33 & 34 & 33 & \underline{cc}, ps & 15 \\
+\midrule
+\Kko{} s0 & 0 & 1 & 0 & 0 & 0 & 0 & -- & 0 \\
+\Kko{} s1 & 0 & 1 & 1 & 2 & 2 & 3 & -- (r20: 5; r24: 5) & 2 \\
+\Kko{} s2 & 0 & 0 & 0 & 1 & 1 & 0 & -- & 1 \\
+\Kko{} s3 & 0 & 1 & 0 & 0 & 0 & 0 & -- & 0 \\
+\Kko{} s4 & 0 & 3 & 0 & 0 & 0 & 0 & -- & 0 \\
+\Kko{} s5 & 0 & 0 & 0 & 2 & 1 & 2 & -- & 2 \\
+\midrule
+\Kdose{} s0 & 6 & 8 & 53 & 58 & & & cc, nc, pe, ps & 52 \\
+\Kdose{} s1 & 18 & 21 & 33 & 39 & & & \underline{cc}, nc & 21 \\
+\Kdose{} s2 & 8 & 13 & 28 & 30 & & & cc, nc & 22 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+No knockout seed acquired any classical family by r16, and every full seed had at least one (Table~\ref{tab:primary},
+Fig.~\ref{fig:endpoint}). This is the pre-registered primary indicator: 6/6 against 0/6, one-sided Boschloo
+$p = 0.00024$. The same holds in the second sample seed, in the guided evaluation, and with the looser held-out sets
+first pre-registered (178 theorems). Those were replaced by the strict sets in a dated amendment after round 1 of the
+first knockout ladder, because that base proved 136 of 155 generated ``classical'' targets using a $\neg\neg$ that the
+sequent supplied. The 0/6 bounds the per-seed rate at which this EI acquires a family from a \sig-free pretraining set
+below 0.39 (one-sided 95\%).
+
+The indicator is a weak statement about RL. Converse contraposition is acquired \emph{before} RL on 5/6 full bases (6/6
+in the guided evaluation). Applied to the bases, the indicator already gives 5/6 against 0/6 ($p = 0.0032$; 6/6 against
+0/6 guided, $p = 0.00024$; \emph{this paper}). Per family, the pre-registered rule gives \textsc{needs exposure} only
+for converse contraposition (6 vs 0 seeds; Holm-corrected over six families, 0.0015). It gives \textsc{undetermined}
+for negated conditional, Peirce and the Peirce sequent (3 vs 0 each; $p = 0.034$, Holm 0.17) and for excluded middle
+(1 vs 0). It gives \textsc{neither} for De Morgan, whose four strict members no model proves. The three
+\textsc{undetermined} verdicts at $p = 0.034$ rest on the Holm correction over six families that the pre-registration
+specifies for its secondary, per-family test; the decision rule itself reads one-sided Boschloo $p \leq 0.05$ per family,
+and without the correction those three families would meet \textsc{needs exposure}. Holm is the conservative reading, and the experiment's
+review applied it too.
+
+The RL-phase comparisons were not pre-registered. The RL phase includes replay of pretraining data, so they compare the
+whole RL phase, not RL proofs alone. During it, the full seeds gained 24, 69, 55, 42, 8 and 15 strict held-out theorems
+and the knockout seeds 0, 2, 1, 0, 0 and 2. The arms do not overlap: exact one-sided Mann--Whitney $U = 36$, $p = 0.0011$
+(\emph{this paper}). In the guided evaluations the gains are 5--62 against $-3$ to $+2$, again $p = 0.0011$. On the three
+full seeds that ran on the knockout's hardware, $p = 0.012$. Five of six full seeds acquired a family during RL and no
+knockout seed did ($p = 0.0032$). By coincidence this is the same 5/6 as the r0 indicator, from different seeds. On the
+three new full seeds alone it is 2/3 against 0/6 ($p = 0.034$). On the training side, the knockout ladders proved none of
+the 123 strict training theorems in round 1 and only 0, 5, 1, 0, 0 and 2 of them by round 16. The full ladders went
+from 21, 1, 27, 17, 15 and 20 in round 1 to 49, 80, 86, 78, 33 and 36 (Fig.~\ref{fig:dynamics}a). No knockout ladder ever
+had proofs for half of any family's strict training theorems (Appendix~\ref{app:shares}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig1_endpoint.pdf}
+\caption{\textbf{Per seed and per family.} (a) Strict held-out theorems proved at r0, r8 and r16; knockout seed 1 was
+continued to r24 (dashed; exploratory). (b) Share of each family's strict held-out members proved at r16; a dot marks
+an acquired family ($\geq 50\%$).}
+\label{fig:endpoint}
+\end{figure}
+
+\subsection{One percent is enough}
+\label{sec:dose}
+
+The dose bases proved 6, 18 and 8 strict held-out theorems at r0, and 58, 39 and 30 at r16. All three acquired families
+during RL; dose s1 had already acquired converse contraposition at r0. That is 3/3 against the knockout's 0/6 (Boschloo
+$p = 0.0033$). This arm was added by a dated amendment before it ran, and it is exploratory. At r16 the dose seeds lie
+inside the full arm's range (two-sided Mann--Whitney $p = 0.55$ with three seeds; \emph{this paper}). The dose restores
+about a tenth of the full set's \sigp{} share (1.00\% against 10.94\%), and it moves the constituents little. In \KTdose{},
+\texttt{DN} appears in 4.24\% of records and $\neg$-introduction in 6.12\%, against 3.29\% and 5.19\% in \KTko{} and
+13.73\% and 15.21\% in \KT{}. Classical-only theorems are 1.56\% of a 20,000-record sample, against 1.33\% and 4.13\%
+in \KTko{} and \KT{} by the same script (\emph{this paper} for \KTdose{}; the review's own sample of \KTko{} and \KT{} gives
+1.35\% and 4.17\%). In round 1 the dose bases wrote 223, 183 and 241 \sig{} proofs, the new
+full seeds 635--885 and the knockout seeds 6--13. The dose bases' rates were read only at $k = 256$ and in round 1, not
+at large $k$. A second sample seed and a guided evaluation, run for this paper, prove 56, 39 and 30 (second seed) and
+58, 42 and 29 (guided), with the same families (Appendix~\ref{sec:checks}).
+
+\subsection{\sig{} is rare in the knockout arm, not absent}
+\label{sec:rare}
+
+\paragraph{The bases, sampled about a million times.} We drew 1.1--1.5 million attempts from each knockout base, spread
+over the 106 strict held-out theorems (about $10^4$ per theorem, with sampling on a theorem paused after its first
+success in each block of 1,024). Five of the six bases proved strict theorems: seed 1 seven times, seed 4 three times,
+seed 5 twice, and seeds 2 and 3 once each. Every success is a genuine \sig{} proof. The successes are concentrated
+(Table~\ref{tab:fambase}). Eleven are on converse contraposition, the family the full bases mostly had before RL, and
+two are on the generated theorem \texttt{la\_transfer\_916}. On the other five families the six bases together wrote one
+\sig{} proof in 6.7 million attempts. Excluded middle had none in 2.9 million. Pooled rates per base are 0 to
+$6\times10^{-6}$ per attempt. On the theorems with a success, the per-theorem estimates are $7.5\times10^{-5}$ to
+$4.9\times10^{-4}$, each from one to three successes in an early-stopped sample, which biases them upward. A fresh
+sample of seed 1's members (\S\ref{sec:ko-s1}) found three of its four such members at 0 in 18,432 attempts. With guided decoding, at about 2.6 times the cost per attempt,
+four of the six bases proved a strict theorem in 256 attempts at r0: seeds 0, 1, 3 and 4.
+
+\begin{table}[t]
+\centering\small
+\caption{Knockout bases at large $k$ (plain sampling, $T=0.8$), pooled over the six bases per family (\emph{this
+paper}, from the independent recount's files). UB = one-sided 95\% Clopper--Pearson bound on the pooled rate.}
+\label{tab:fambase}
+\begin{tabular}{lrrrl}
+\toprule
+family (strict held-out members) & attempts & successes & UB & successes by seed (s0--s5) \\
+\midrule
+converse contraposition (18) & 1,349,310 & 11 & $1.35\times10^{-5}$ & 0, 6, 1, 0, 3, 1 \\
+Peirce sequent (19) & 1,459,630 & 1 & $3.3\times10^{-6}$ & 0, 0, 0, 0, 0, 1 \\
+excluded middle (37) & 2,862,986 & 0 & $1.05\times10^{-6}$ & -- \\
+negated conditional (15) & 1,160,670 & 0 & $2.6\times10^{-6}$ & -- \\
+Peirce (12) & 928,536 & 0 & $3.2\times10^{-6}$ & -- \\
+De Morgan (4) & 309,512 & 0 & $9.7\times10^{-6}$ & -- \\
+\texttt{la\_transfer\_916} (generated) & 53,872 & 2 & & 0, 1, 0, 1, 0, 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Certificates.} As pre-registered, pooled over the 106 theorems at each seed's $\Ktrain(16)$, only seed 0's
+base is certified out of reach (the pre-registered expectation of certificates on at least five of six bases
+missed; Appendix~\ref{app:expectations}). It had 0 successes in 1.50 million plain attempts: $\mathrm{UB}_{95} = 1.99\times10^{-6}
+< 0.05/K = 2.14\times10^{-6}$ (Table~\ref{tab:certs}). Its certificate holds for budgets up to $K_{\max} = 25{,}112$, 8\%
+above the budget, and it holds for plain sampling only: its guided evaluation at r0 proved a converse-contraposition
+member. The certificate is also specific to $T=0.8$: plain sampling at $T=1.0$ proved \texttt{la\_transfer\_916} on
+this base (and on seed 1's; Appendix~\ref{app:expectations}). The number of certified bases depends on how the budget is spread (\S\ref{sec:setup}). With the same compute
+spread over the 106 strict theorems it is 0 of 6, over the 322 evaluation theorems 1 of 6, and over 1,054 theorems 5 of 6
+(Appendix~\ref{app:budgets}). Pooled over the 105 family members alone, as the experiment reported it, seed 3 is also
+certified; the difference is its success on \texttt{la\_transfer\_916}. No family is certified for any seed, since the
+largest certifiable $K$ per family is 717--8,772. A pooled certificate bounds the mean rate over the pool, not any
+theorem in it. It also assumes that the pre-filter never rejected a valid proof in the large-$k$ sample, which we could
+not check (\S\ref{sec:robust}).
+
+\begin{table}[t]
+\centering\small
+\caption{Knockout bases at large $k$, pooled over the 106 strict held-out theorems (the pre-registered pool), at each
+seed's $K = \Ktrain(16)$, for compute spread over the 322 evaluation theorems. Certified out of reach if
+$\mathrm{UB}_{95} < 0.05/K$; $K_{\max} = 0.05/\mathrm{UB}_{95}$ is the largest budget the data certify (\emph{this
+paper}). In parentheses: the 105 family members only.}
+\label{tab:certs}
+\begin{tabular}{lrrrrc}
+\toprule
+knockout base & $K$ & attempts & successes & $K_{\max}$ & certified \\
+\midrule
+s0 & 23,322 & 1,504,600 & 0 (0) & 25,112 (24,892) & yes (yes) \\
+s1 & 17,189 & 1,122,426 & 7 (6) & 4,268 (4,730) & no (no) \\
+s2 & 20,907 & 1,350,143 & 1 (1) & 14,230 (14,106) & no (no) \\
+s3 & 20,782 & 1,342,688 & 1 (0) & 14,152 (22,376) & no (yes) \\
+s4 & 21,554 & 1,372,403 & 3 (3) & 8,850 (8,772) & no (no) \\
+s5 & 22,297 & 1,432,256 & 2 (2) & 11,375 (11,275) & no (no) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The ladders.} Every knockout ladder wrote \sig{} in round 1, 6--13 distinct proofs per ladder, on theorems
+that supply $\neg\neg G$ or whose goal is a negation. Over 16 rounds each wrote about 2,200--4,400 distinct accepted
+proofs using \sigp{} (0.33--0.64\% of its distinct proofs; \emph{this paper}, from the recount's counts and shares),
+nearly all of that kind. Its fine-tuning mixes carried 16--276 \sig{} records per round (each proof repeated four times;
+844--3,272 records over rounds 1--16). The free positive reductio was rare. Over 16 rounds the knockout ladders produced
+0, 34, 4, 1, 2 and 16 distinct proofs using it, first in rounds never, 9, 12, 15, 15 and 2. The full ladders produced
+17,507--50,222 each, and the dose ladders 20,597--26,662, from round 1 (Fig.~\ref{fig:dynamics}b). EI practised \sig{}
+where the problem supplied the double negation, and rarely carried it to where it did not.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig2_dynamics.pdf}
+\caption{\textbf{Ladder dynamics.} (a) Strict training theorems (of 123) with an accepted proof so far. (b) Accepted
+proofs per round, in each round's $k=32$ sample over all 4,495 training theorems, that use a free positive reductio
+(symmetric-log scale). Full and dose ladders write hundreds in round 1 and thousands later. Knockout seed 5 first writes one
+in round 2; the others write a few, late or never. Knockout seed 1 (dashed beyond round 16) spreads it, from 11 in round 16
+to 123 in round 24.}
+\label{fig:dynamics}
+\end{figure}
+
+\paragraph{Beyond the waiting-time null (\emph{this paper}, post hoc).} Suppose each knockout ladder kept sampling the
+123 strict training theorems at its base's pooled rate, with held-out rates standing in for training ones. It would then
+expect a first strict success only after dozens to hundreds of rounds: 47 for seed 1 and 115--340 for seeds 2, 4 and 5,
+with plug-in rates on the 105 family members. The expected number of seeds with a strict success by round 16 is 0.55.
+Three had one: seed 1 in round 9, seeds 2 and 5 in round 14. Under the null that has probability 0.006. Under other
+reasonable choices the probability rises to 0.020, and the expected number of seeds to 0.74. Those choices are the 106
+pool, family weights matched to the training mix (converse contraposition is 22\% of the strict training theorems and 17\%
+of the held-out ones), and a Jeffreys posterior on each rate. Either way, unless the strict training theorems were easier for the bases than the
+held-out ones, the knockout ladders' rate rose during RL. Why it rose is not identified: practice on cued \sig{}, general drift from fine-tuning, or both. It did not rise enough to
+acquire a family.
+
+\paragraph{Likelihood.} We scored the best known \sig{} proof of each of 101 strict held-out theorems under the r0, r4,
+r8, r12 and r16 checkpoints of the twelve new ladders and under full seed 0's base, teacher-forced at $T=0.8$ (Fig.~\ref{fig:logp}). The proofs are those the earlier full ladders (s0--s2) found,
+not the scored ladders' own. At r0 the median
+log-probability is $-15.4$ to $-20.9$ nats under the four full bases scored, $-18.9$ to $-25.3$ under the dose bases,
+and $-26.0$ to $-36.0$ under the knockout bases. Full and dose overlap; the nearest dose and knockout bases are within
+0.7 nats. The costliest step is the box that assumes $\neg G$: $-18.0$ to $-21.6$ nats under the knockout bases, $-10.5$
+under full seed 0's base. Two ladders move strongly toward these proofs by r16 (full s3 $+10.2$ nats, dose s0 $+16.6$).
+The other full and dose ladders move $+1.6$ to $+4.2$, and the knockout ladders $-7.5$ to $+3.7$. The path matters as
+well. By r4, knockout seeds 2 and 3 had risen 8.4 and 8.0 nats, more than full seeds 4 and 5 ($+5.0$, $+4.1$) and dose
+seeds 1 and 2 ($+1.6$, $+2.7$), and then they fell back. At every checkpoint the levels separate the knockout arm from the full and dose arms,
+which overlap; the changes do not. Two caveats apply.
+The scores condition on one of the 33 line-numbering offsets; subtracting $\ln 33 \approx 3.5$ nats gives a lower bound
+on the proof's log-probability. And a knockout ladder that found its own spelling (seed 1, below) need not raise these.
+
+\begin{figure}[t]
+\centering
+\begin{minipage}{0.49\linewidth}
+\includegraphics[width=\linewidth]{figures/fig3_logp.pdf}
+\caption{Median log-probability of the best known \sig{} proof of the strict held-out theorems, along each ladder (one
+line-numbering offset, $T=0.8$). The outlined point is full seed 0's base, whose ladder was not rescored.}
+\label{fig:logp}
+\end{minipage}\hfill
+\begin{minipage}{0.49\linewidth}
+\includegraphics[width=\linewidth]{figures/fig6_prior.pdf}
+\caption{Exploratory (\emph{this paper}): the base's median log-probability of known \sig{} proofs against strict
+held-out theorems proved at r16, for the 13 ladders with a scored base.}
+\label{fig:prior}
+\end{minipage}
+\end{figure}
+
+\subsection{The one knockout ladder that moved}
+\label{sec:ko-s1}
+
+Knockout seed 1's free positive reductio kept spreading, so it was continued to round 24 (exploratory). Its free positive
+reductio proofs per round rose from 11 in round 16 to 123 in round 24. From round 21 it had proofs for 9 of the 27
+strict converse-contraposition training theorems, and it never got past 9 strict training theorems in all. By the
+earlier organisms' criterion for igniting a pattern (at least 2\% of the targets that require it), it ignited at round 13
+(3 of 123), but it did not acquire a family. At r16 it proved two strict held-out theorems in the main evaluation,
+\texttt{la\_transfer\_916} and \texttt{1460}; both fresh r16 draws for this paper also found \texttt{1019} once. At r20
+and r24 it proved the same five, each more often than at r16: four converse-contraposition
+members and \texttt{916}. The largest gain is on \texttt{la\_transfer\_1019}, from 0 to 32 to 214 successes in 256
+attempts at r16, r20 and r24 (the experiment's per-member counts, not recounted). Its r20 proofs of these
+theorems take three routes: \sig{} (32 proofs), other \sigp{} (24) and the lemma route (7), a route absent from every
+pretraining set.
+
+Is this elicitation of something the base already did? The review read it so. In the large-$k$ sample the base had
+proved four of its 18 converse-contraposition members, one to three times each in 7,168--10,240 early-stopped attempts,
+and three of them (\texttt{1246}, \texttt{1460}, \texttt{2256}) are among the four the ladder proves. A pre-registered
+re-sample for this paper, 18,432 attempts per member with no early stopping (C4, Appendix~\ref{sec:checks}), does not
+support that reading. By the pre-registered criterion ($\hat p \geq 1/K$, here at least two successes) the base reaches
+four of these 19 theorems: \texttt{916} (13 successes), \texttt{1460} (4), and \texttt{1096} and \texttt{1606} (2 each).
+The ladder proves the first two, the two its base proved most often, in every r16 draw, and never proves the other two.
+The three members it proves often from r20 had no success in the re-sample: \texttt{1019}, the largest gain, which two
+of the four plain r16 draws had already proved once (the guided draw, twice), and \texttt{1246} and \texttt{2256}, which had one success each in the
+earlier sample. We had registered that if at most one of \texttt{1246}, \texttt{1460} and
+\texttt{2256} was within reach, the paper would drop the reading that the ladder amplified mostly members its base could
+already reach. Only \texttt{1460} is, so we drop it. Pooled over the 18 members, the re-sample's rate (10 successes in
+331,776 attempts, $3.0\times10^{-5}$) matches the earlier sample's (6 in 186,172, $3.2\times10^{-5}$). What does not
+replicate is which members succeed: at rates of $10^{-5}$ to $10^{-4}$, about $10^4$ attempts per member cannot rank
+the members. The other knockout seeds say little at the member level, because their ladders prove members only once or twice in
+256 attempts. Seed 4's base proved three converse-contraposition members once each in early-stopped samples, and its
+ladder proves no strict theorem at r16. Seed 5's base proved \texttt{1811} and the Peirce-sequent member \texttt{1142}; its ladder proves \texttt{1246} and
+\texttt{2256}, the members seed 1's ladder proves from r20, in four and three of the four plain r16 draws respectively, and
+neither \texttt{1811} nor \texttt{1142} in any. Seed
+2's base proved \texttt{1096}; its ladder proved \texttt{1963} in the main evaluation and \texttt{1096} in the other
+three plain r16 draws (one of which also found \texttt{1963}).
+At these counts, single successes, of a base or of a ladder, do not settle which members EI amplifies.
+
+\subsection{What else the knockout changes}
+\label{sec:side}
+
+\paragraph{Data.} Removing \sigp{} records also thins its constituents. In \KTko{}, \texttt{DN} appears in 3.29\% of
+records (13.73\% in \KT{}) and $\neg$-introduction in 5.19\% (15.21\%). Theorems with no intuitionistic proof fall from
+4.17\% to 1.35\% of a 20,000-record sample; the rest use \texttt{DN} on a $\neg\neg$ that a premise or an assumption
+supplies. Mean proof term size moves from 35.91 to 36.25 nodes. The knockout removes the composition, and it also makes
+\texttt{DN} 4.2 times and $\neg$-introduction 2.9 times rarer.
+
+\paragraph{General ability.} The knockout bases are 6.88 points worse at greedy decoding of 5,000 held-out generator
+theorems (0.8829 vs 0.9517). The gap comes from the 679 theorems whose reference proof uses \sig{} (0.45 vs 0.96); on
+the other 4,321 the knockout is 0.12 points better. With 256 attempts, though, the knockout bases also prove 4.3 fewer
+of the 225 intuitionistic theorems of holdout250, and 4.0 fewer of textbook72's 53 (three full seeds against six
+knockout seeds). By r16 the holdout250 gap closes (0.996 vs 0.996), while textbook72 keeps $-2.5$ on its 53 intuitionistic theorems ($-7.5$ on all 72).
+
+\paragraph{Gains elsewhere.} On the 322 evaluation theorems, the base was given 512 attempts and then at least
+$\Ktrain(16)$ on every theorem it failed. Within that budget the knockout bases reach 241--259 theorems and the full bases s3--s5
+255--261; at r16 the knockout models prove 277--286 and the full models 291--298. RL's gain over what its own base reaches
+(\dcov{}) is $+37$, $+36$ and $+32$ for full seeds s3--s5 and $+21$ to $+37$ for the knockout seeds. The means are 35.0
+and 29.8, one-sided Mann--Whitney $p = 0.095$ (exact, allowing for the one tie; \emph{this paper}). Part of the knockout's gain is
+catching up on its own pretraining deficit. The knockout ladders may be somewhat worse at RL in general. They are not
+clearly so, and the difference is small beside 8--69 against 0--2 strict theorems. These sets are not netted against
+RL-free controls.
+
+\paragraph{What this means for the interpretation.} Two things favour exposure to the composition over a general
+deficit. The general costs are a few theorems: at r0, 4.3 of holdout250's 225 and 4.0 of textbook72's 53 intuitionistic
+theorems (2.5 of the 53 at r16). And the dose arm restores acquisition while moving
+\texttt{DN} and $\neg$-introduction by about one point each (\S\ref{sec:dose}). The design cannot separate exposure in
+pretraining from exposure through replay during RL (\S\ref{sec:setup}). Nor can it separate exposure to the composition
+from the constituents' frequency, which a matched-frequency knockout would \citep{abdulsalam2026rewrite,keysers2020cfq}.
+
+\subsection{The base's prior predicts what is proved at r16 (exploratory)}
+\label{sec:prior}
+
+Across the 13 ladders with a scored base, the base's median log-probability of known \sig{} proofs is rank-correlated
+with strict held-out theorems proved at r16 (Spearman $\rho = 0.88$; Fig.~\ref{fig:prior}). This is mostly the
+difference between arms: $\rho = 0.39$ ($p = 0.38$) without the knockout. Within a ladder, the base's log-probability of
+a member's best known proof predicts whether the member is proved at r16. The AUC is 0.92--0.95 on the four full seeds
+with scored bases (pre-registered expectation $\geq 0.7$) and 0.85--0.86 on the three dose seeds. Restricted to members
+not proved at r0, so that only RL-phase gains count (post hoc, Addendum 5), it is 0.83--0.93 (full) and 0.74--0.84
+(dose). Comparing only members
+of the same family, the AUC is 0.47--0.98 (full) and 0.28--0.60 (dose). One full seed (s3) is higher within families than
+overall, and one (s5) is below 0.5 (0.47), against the expectation stated before computing. Each part of that
+expectation (lower than overall; above 0.5) holds on three of the four full seeds, the minimum it set. The base's log-probability also predicts \emph{when} a member
+is first proved in the ladder's per-round samples. The Spearman $\rho$ with the first-solve round is $-0.69$ to $-0.87$ on
+the full seeds and $-0.61$ to $-0.72$ on the dose seeds. Within families it is $-0.33$ to $-0.48$ (full) and $-0.22$ to
+$+0.14$ (dose). On the dose seeds, then, the prior predicts across families and not within them (all \emph{this paper}).
+Reference-solution likelihood predicts success at larger $k$ \citep{schaeffer2025generative}, and RL gains concentrate
+where the base already succeeds sometimes \citep{zhang2025interplay}.
+
+\subsection{Two nulls}
+\label{sec:nulls}
+
+\paragraph{One seeded round.} From five knockout r16 checkpoints we ran one more EI round, with and without four copies of
+one free positive reductio proof written by knockout seed 1's base (of \texttt{la\_transfer\_916}). Seeded minus control
+was $+0$, $+0$, $+2$, $+0$ and $+0$ strict family members on seeds 0, 1, 2, 3 and 5 (seed 4 was not run). Seed 2's two
+were single successes in 256 attempts (one-sided exact $p = 0.25$). This contrasts with the earlier, smaller organism
+(the 3.2M-parameter whole-proof models of round 2 run 3, judged by the project's older checker, not by Lean alone),
+where a single injected sibling proof put the reductio on 6 and 17 targets in the next round
+(\S\ref{sec:discussion}). Two explanations remain open: this organism resists one-proof seeding, or the read-outs
+differ. The injected proof here is of a non-family theorem, and the outcome is strict held-out members rather than
+training targets.
+
+\paragraph{Power sampling.} Metropolis--Hastings sampling from $p^\alpha$ of the full and knockout bases
+\citep{karan2025power} ($\alpha = 2$, 4; 32 chains per theorem) proved none of the theorems RL r8 proves beyond the base's
+reach (0/33, 0/27), and none of the 106 strict theorems for knockout bases s0 and s1. Plain sampling with the same decoded
+tokens proved 0--2. The sampler also failed its positive control: on 17 theorems the base proves rarely, it proved 0/17,
+where plain sampling at the same tokens proved 6/17 ($T=0.8$) and 13/17 ($T=1.0$). This is a null for this sampler at
+these settings, not for sharpening. Practical power samplers do not converge to $p^\alpha$ at realistic budgets
+\citep{talwar2026power}. Details are in Appendix~\ref{app:power}.
+
+\subsection{Robustness}
+\label{sec:robust}
+
+The independent re-check accepted every stored knockout proof of a strict theorem in Lean 4.34.1 (448/448), the version
+used in the loop. It rejected all 150 re-submitted texts that the gate had rejected (all by its pre-filter), all 60 proofs paired with the wrong theorem, all 40
+strict knockout proofs with \texttt{Classical.byContradiction} removed, and \texttt{sorry}. Every Lean-gate
+rejection in the experiment was the pre-filter's, so its false-reject rate matters. Most failed attempts never reach the
+gate: in the knockout r16 evaluations, 72--88\% of attempts (77--89\% with cut-offs) end earlier, in the environment's
+grammar and action checks, and only 10--23\% reach it. Neither check below covers those earlier failures. Re-checking 150 rejections per reason for its 13
+reasons gave 0 accepted, a 95\% bound of 2.0\% per reason. For this paper, every pre-filter rejection in knockout
+seed 1's ladder (222,135 rejected rows in rounds 1--16: 210,151 distinct texts, 21,055 of them on a by-contradiction
+step) was re-checked in Lean, and none was accepted. That bounds the pre-filter's false-reject rate in that ladder
+at $1.4\times10^{-5}$ per distinct text ($1.4\times10^{-4}$ on by-contradiction steps; one-sided 95\%; C5). The
+same harness accepted 400 of 400 texts the run's Lean gate had accepted, and none of them when paired with another
+theorem. An independent checker written for this paper's review also accepted none of the 210,151 distinct texts.
+The knockout ladders' counts (strict training theorems,
+free positive reductio proofs, the waiting-time observations) rest on the pre-filter rejecting no valid proof, which C5
+supports for seed 1's ladder only. It does not cover the large-$k$ samples behind the certificates, whose rejected texts
+were not stored. Cut-offs (a step over 512 tokens or a proof over 96 steps) can only hide successes. On the strict theorems at r16
+they affect 0.04--4.97\% of knockout attempts, 0.11--2.89\% of full and 0.68--8.84\% of dose attempts. Same-seed
+re-evaluations of ten r16 checkpoints with standard and doubled caps, run for this paper, differ by at most one strict
+theorem per checkpoint and in no family verdict; they are independent draws, so these $\pm1$ differences are sampling,
+not cap effects (C1, Appendix~\ref{sec:checks}). The training theorems share no renaming class with any evaluation set, and no
+pretraining set shares one with the 106 strict theorems (the pretraining sets do share 21--22 classes under a
+premise-order-invariant key with the 5,000 greedy-decoding theorems).
