@@ -16,7 +16,7 @@ paper and blog state `create-or-elicit`'s result at the strength its review allo
 
 Before the draft goes to Dan's readers, the review asks for rewordings: **17 in the paper (P1–P17) and 8 in the blog
 (B1–B8)**. None changes a headline number. They are applied, each marked *[review]*, in the reading copy
-[`docs/papers/create-or-elicit/`](../../docs/papers/create-or-elicit/README.md) (see "Reading copy" below).
+[`docs/papers/create-or-elicit/review_marked/`](../../docs/papers/create-or-elicit/review_marked/README.md) (see "Reading copy" below).
 
 **Not supported as written:**
 - that every rejection was the pre-filter's (P9). Only the Lean gate's rejections were: 72–88 % of knockout r16 attempts
@@ -171,7 +171,7 @@ drafts for Dan: nothing was posted, submitted or sent, and the author list and a
   Only captions have defects: Fig. 7's models are unnamed, and the blog's Fig. 2 caption says "each model" when 12 of
   the 15 ladders are drawn.
 
-  ![Design and result: held-out strict theorems proved per seed at pend, r8 and r16](../../docs/papers/create-or-elicit/figures/fig0_overview.png)
+  ![Design and result: held-out strict theorems proved per seed at pend, r8 and r16](../../docs/papers/create-or-elicit/review_marked/figures/fig0_overview.png)
 
   *Fig. 0 of the paper. Held-out strict classical theorems proved (of 106, 256 attempts each) at the end of
   pretraining and after 8 and 16 EI rounds, one line per seed: full (6 seeds), 1 % dose (3) and knockout (6).*
@@ -298,7 +298,7 @@ theorem, seeds 9,500 + chunk.
   so the expectation (ρ ≥ 0.6) holds. The ρ is mostly the arm split: without the six knockout seeds it is **0.39**
   (p 0.38). Within the dose arm the relation is not monotone, as expected.
 
-  ![A2: base prior vs strict theorems proved at r16](../../docs/papers/create-or-elicit/figures/fig6_prior.png)
+  ![A2: base prior vs strict theorems proved at r16](../../docs/papers/create-or-elicit/review_marked/figures/fig6_prior.png)
 
 - **A3 / A3b** (AUC of a member's pend best-known log p for "solved at r16"):
 
@@ -446,7 +446,8 @@ Records:
 ## Reading copy in nd-rl
 
 The brief asks the librarian to copy the paper, the blog and the figures to nd-rl `docs/papers/create-or-elicit/`. Its
-[README](../../docs/papers/create-or-elicit/README.md) lists every change.
+[README](../../docs/papers/create-or-elicit/review_marked/README.md) lists every change. Since 2026-10-14 the copy is in
+`review_marked/`, and `docs/papers/create-or-elicit/` holds run `paper-clean`'s clean versions.
 - **Two commits.** The first is a byte-identical copy of the executor's files at `ed8cf1ea`: `main.tex`, `sections/`,
   `refs.bib`, `build.sh`, `main.pdf`, `blog.md`, `figures/` and `lean/`. The second applies the review. So the diff
   between them is exactly what the librarian changed.

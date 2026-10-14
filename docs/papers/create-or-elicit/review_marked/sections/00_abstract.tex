@@ -1,0 +1,15 @@
+Whether reinforcement learning (RL) against a verifier creates capabilities or amplifies behaviour the
+base already had is contested; large-model studies can rarely change what the base saw. We study it in a
+9.56M-parameter transformer prover trained from scratch on 155,000 synthetic propositional-logic proofs and judged only
+by Lean~4. We remove one inference composition from pretraining, the classical reductio \sig{} (assume $\neg G$, refute
+it, eliminate the double negation) \rv{} and its variants, keep both rules (each 3--4 times rarer), refill to
+the same size, and run 16 rounds of expert iteration (EI, rejection-sampling RL). No knockout seed acquired a
+classical family (half its \rv{} strict held-out members proved in 256 attempts): 0/6 against 6/6 full-exposure seeds, a
+pre-registered contrast ($p=0.00024$) largely present before RL. During RL, full-exposure seeds gained 8--69 held-out
+classical theorems and knockout seeds 0--2; 5/6 against 0/6 acquired a new family ($p=0.0032$; not pre-registered).
+Restoring \sig{} in 1\% of pretraining restored acquisition (3/3 seeds; exploratory). The knockout bases were not
+\sig-free: five of six proved held-out theorems with \sig{} \rv{} (four on family members, mostly one family), 1--7 times in
+1.1--1.4M attempts. EI practised \sig{} where the double negation was supplied but rarely carried it to theorems that require building one. In
+three earlier \rv{} 8-round full-exposure runs, 51--60 theorems look RL-created at equal sample counts \rv{} and 14--34 at
+RL's compute as base attempts (14--21 under all five allocations). In this organism EI amplified a composition pretraining had exposed, but within 16
+rounds did not acquire the classical families without it.

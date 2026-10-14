@@ -6,7 +6,7 @@ grows \citep{yue2025doesrl}. Others report gains where the base fails, read at $
 shrink the boundary of what is solved while prolonged RL expands it \citep{yao2025twostage}, and wider rollouts revive
 plateaued runs \citep{hu2025brorl}. Much of RL's measured gain corresponds to operating points the base attains with
 search at small sample counts \citep{sun2026budgeted}. In five public RLVR pairs, the visible pass@$k$ crossovers were not statistically
-established \rv{} in the initial evaluations (a 32k-token evaluation on fresh prompts then located one, with the first
+established in the initial evaluations (a 32k-token evaluation on fresh prompts then located one, with the first
 loss between 11 and 61 samples) \citep{yang2026kernel}, and reward and contamination controls change conclusions
 \citep{shao2025spurious,wu2025contamination}. These studies compare base and RL at equal $k$, or through exchange rates
 up to 16 samples \citep{sun2026budgeted}. None ties the base's budget to RL's training compute, which we do, reporting
@@ -23,7 +23,7 @@ efficiently unless the share is exponentially small. \citet{zhang2025interplay} 
 a composition of two rules. Pretraining with more reasoning data leaves a lead that survives RL at 8B \citep{akter2025frontloading}.
 Priming with demonstrations of a behaviour enables RL to use it \citep{gandhi2025cognitive}. RL composes new strategies
 only from atomic skills already mastered \citep{cheng2025atomicskills}. If \sig{}'s two rules count as mastered here,
-the knockout shows that mastery is not sufficient for EI at this scale; if not, rules at a quarter to a third of their
+the knockout shows that mastery is not sufficient for EI at this scale within 16 rounds; if not, rules at a quarter to a third of their
 former frequency are not mastered. RL composes known string functions where iterated RFT ``never surpasses 2.6\%''
 \citep{yuan2025fgx}. Knockouts after pretraining disagree. With a strategy removed at the fine-tuning stage, ``we do not
 observe novel patterns emerging through reinforcement learning'' \citep{krishnamurthy2026select}. With a pattern family

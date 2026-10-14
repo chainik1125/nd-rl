@@ -21,16 +21,16 @@ pretraining (0\%, 0.1\%, 1\%) in a 100M model and find no transfer from RL below
 exclude shortcuts from pretraining and see GRPO build them. \citet{tsilivis2025rlntp} set the share of long
 demonstrations exactly. A strategy removed at the fine-tuning stage did not re-emerge under GRPO
 \citep{krishnamurthy2026select}, while a pattern family removed from the RL data did \citep{park2025countdown}. None of
-these measures the removed behaviour's rate under the base beyond about a thousand attempts. We remove a single inference composition \rv{} and its variants from pretraining
-and refill the data to the same size. Both of the composition's rules stay in the data, though each becomes three to four
-times rarer. We then measure the base's rate for the composition at about a million attempts.
+these measures the removed behaviour's rate under the base beyond about a thousand attempts. We remove a single inference composition and its variants from pretraining
+and refill the data to the same size. Both of the composition's rules stay in the data, though negation introduction becomes 2.9 times
+rarer and double-negation elimination 4.2 times. We then measure the base's rate for the composition at about a million attempts.
 
 We do this in a model organism small enough to allow it. It is a 9.56M-parameter transformer prover for propositional
 logic, pretrained from scratch on 155,000 synthetic natural-deduction proofs. It acts through a proof-state interface,
 one inference step at a time, and Lean~4 alone decides whether a proof counts. The composition we remove is the
-classical reductio \sig{}: to prove a positive goal $G$, assume $\neg G$, derive a contradiction, conclude $\neg\neg G$
+classical reductio \sig{}: to prove a goal $G$, assume $\neg G$, derive a contradiction, conclude $\neg\neg G$
 by negation introduction, and eliminate the double negation (\texttt{DN}, Lean's \texttt{Classical.byContradiction}).
-\rv{} Its variants, which apply \texttt{DN} to other derived lines, are removed with it (together \sigp{}, 16,961 of the
+Its variants, which apply \texttt{DN} to other derived lines, are removed with it (together \sigp{}, 16,961 of the
 155,000 records).
 We track six classical theorem families, such as excluded middle and Peirce's law, whose \emph{strict} members can only
 be proved by eliminating a double negation the proof itself built. Their 105 held-out strict members, plus one generated
@@ -65,15 +65,16 @@ share, restored acquisition on 3/3 seeds (exploratory).
 \item \textbf{Rare, not absent, mostly in one family.} The knockout bases' successes at large $k$ are almost all on
 converse contraposition, the family the full bases had before RL. On the other five families they wrote one \sig{}
 proof in 6.7 million attempts. With guided decoding, four of six knockout bases proved a strict theorem in 256
-attempts, including \rv{} seed 0, the only base whose rate is certified out of reach under plain sampling at $T=0.8$ on
+attempts, including seed 0, the only base whose rate is certified out of reach under plain sampling at $T=0.8$ on
 the pre-registered pool of 106 theorems (at $T=1$, plain sampling solved \texttt{la\_transfer\_916} on it).
 \item \textbf{Beyond the null} (post hoc). The knockout ladders wrote \sig{} from round 1 on theorems that supply the
 double negation. Three of six first proved a strict training theorem sooner than their base rates predict: 0.55--0.74 seeds
-expected by round 16 against 3 observed (\rv{} $p = 0.006$--$0.020$ under the null). None carried the step to a family. The
+expected by round 16 against 3 observed ($p = 0.006$--$0.020$ under the null). None carried the step to a family. The
 ladder that went furthest, continued to 24 rounds, proved the same 5 of the 106 held-out theorems at rounds 20 and 24,
-each more often than at round 16 (the experiment's per-member counts). Its base had no success on three of the five in 18,432 fresh attempts each.
-\item \textbf{Measurement.} In three earlier full-exposure runs \rv{} (seeds s0--s2 of the same prover, after 8 rounds,
-on 322 evaluation theorems), 51--60 theorems per run look RL-created at equal sample counts. \rv{} Between 14 and 34
+each more often than at round 16 (the experiment's per-member counts). Its base had no success on three of the five in 18,432 fresh attempts each, though two of those three had one success
+each in an earlier, early-stopped sample.
+\item \textbf{Measurement.} In three earlier full-exposure runs (seeds s0--s2 of the same prover, after 8 rounds,
+on 322 evaluation theorems), 51--60 theorems per run look RL-created at equal sample counts. Between 14 and 34
 remain when the base gets RL's compute as attempts, depending on how that compute is counted; 14--21 remain under all
 five budget allocations we tried.
 \end{itemize}
@@ -83,7 +84,7 @@ five budget allocations we tried.
 \item \textbf{A composition knockout in pretraining} (\S\ref{sec:results}), with a dose arm and diagnostics that
 separate ``absent'' from ``rare'': base rates at about $10^6$ attempts, certificates, and likelihoods of known proofs
 along twelve of the fifteen ladders. The primary indicator, the certificates and the likelihood expectations were pre-registered, the
-dose arm by a dated amendment. \rv{} The certificate expectation, at least five of six knockout bases certified, was
+dose arm by a dated amendment. The certificate expectation, at least five of six knockout bases certified, was
 missed: one of six on the pre-registered 106 strict theorems, two of six on the 105 family members. The RL-phase contrasts and the waiting-time analysis are post hoc. An analyst who had not
 written the experiment's code recounted it independently.
 \item \textbf{A compute-matched measurement protocol} (\S\ref{sec:setup}, \S\ref{sec:case}), applied to three earlier
@@ -101,15 +102,15 @@ are public.
 this organism. Three findings may.
 \begin{itemize}
 \item \textbf{The waiting time scales as $1/(kNr)$.} Here $k$ is attempts per problem, $N$ the number of training
-problems that require the composition or a variant (here 123 of 4,495), and $r$ the base's rate. The null is a property of the RL pool
+problems that need the composition, a variant or the lemma route of Table~\ref{tab:concepts} (here 123 of 4,495), and $r$ the base's rate. The null is a property of the RL pool
 as much as of pretraining.
-\item \rv{} \textbf{Cued practice did not yield a family within 16 rounds.} Each knockout ladder wrote thousands of
+\item \textbf{Cued practice did not yield a family within 16 rounds.} Each knockout ladder wrote thousands of
 accepted proofs using \sig{} or a variant where the problem supplied the double negation, and almost none where it did
 not.
 \item \textbf{Exposure set what this EI found within 16 rounds, not what the model could learn.} In this organism,
 16 demonstrations taught excluded middle to a base pretrained with no \texttt{DN} at all, even with \texttt{DN}-free
 replay.
 \end{itemize}
-Failure at modest $k$ does not show absence \citep{brown2024monkeys,hofstatter2025elicitation}. Our knockout bases \rv{} prove
+Failure at modest $k$ does not show absence \citep{brown2024monkeys,hofstatter2025elicitation}. Our knockout bases prove
 none of the 106 held-out strict theorems at $k=256$ under plain sampling in the pre-registered evaluation (one proves
 one in a second draw), yet guided decoding or a million plain attempts reveals the composition.

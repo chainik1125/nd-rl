@@ -118,7 +118,9 @@ The sampler targets $p^\alpha$ over whole proofs by Metropolis--Hastings with su
 blocks of 4 proof steps, 8 MH steps per block (32 in a convergence check), $\alpha \in \{4, 2\}$ (and 1.5 in the
 control). Acceptance rates were 0.55--0.74. On a development pilot the per-chain success was 0.752 at 8 MH steps per
 block and 0.760 at 32. The plain comparators received exactly the decoded tokens of the power runs and took 1.6--2.7
-times less wall-clock. They kept no proof text, so their 1--2 successes could not be re-checked in Lean.
+times less wall-clock. Those of full s0 and s1 and knockout s0 kept no proof text, so their 1--2 successes could not be re-checked in Lean.
+The others stored their accepted proofs (knockout s1's one, and the 8 and 15 distinct proofs behind the positive
+control's 6/17 and 13/17): Lean~4.34.1 accepts all 24 and rejects all 24 with the goal negated (\emph{this paper}).
 
 \section{Pre-registered expectations against outcomes}
 \label{app:expectations}
