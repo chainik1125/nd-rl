@@ -115,11 +115,11 @@ train = [r for r in records if eligible(r["thm"], r["proof"], exclude=held_out)]
 - **Same draws as the fork.** For a seed and settings, `generate` returns the fork's `gen.py`
   output byte for byte (`long=True` is its `--long`, `per_length` its `--per_len`).
 - **K12's filters.** `eligible` is K12's rule: box depth at most 2 and a renaming class outside the
-  given pools. K12 drew its 7-12-line proofs from `generate`'s short mode, kept the eligible ones
-  and took the same number of each length (`prune`, `pruned_length` and `max_box_depth` are there
-  for such filters).
+  given pools. K12's 7-12-line proofs came from this generator's short mode (`sample_one`, in
+  cap-horizon's own loop), filtered that way and drawn evenly over lengths; `prune`,
+  `pruned_length` and `max_box_depth` are there for such filters.
 - **No ND verifier.** The fork checked each proof with its ND verifier and rejected none of
-  160,000; here Lean checks the fixture's 1,190 proofs (`tests/test_proof_gen.py`).
+  160,000; here Lean checks the fixture's proofs (`tests/test_proof_gen.py`).
 
 ## `estimators`: per-theorem success probability
 
@@ -144,8 +144,9 @@ zero_success_threshold(20000)  # failures that certify "out of reach in 20,000":
 certified_budget(0, 1_200_000)  # the largest such budget for 0 / 1.2 million: 20,029
 ```
 
-- **Exact.** Clopper–Pearson bounds are roots of the binomial tail, with the standard library
-  only; they agree with the fork's SciPy values to about 1e-11.
+- **Exact.** Clopper–Pearson bounds are roots of the binomial tail (summed term by term, or by
+  the incomplete beta function for large counts), with the standard library only. They agree with
+  the fork's SciPy values to about 1e-11, and take milliseconds even at a million attempts.
 - **Calibration of the known-proof estimate.** `create-or-elicit` found it close to sampled rates
   above 1e-4 and 2-4 times too low below; `capability-defs` used a factor-2 margin.
 

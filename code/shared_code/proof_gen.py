@@ -14,7 +14,7 @@ How it samples (``Generator``):
 - **Dependency pruning** (``Generator.finish``): only the lines the conclusion transitively cites
   are kept, and unused premises are dropped, so a proof's length is its pruned length.
 - ``long=True`` is the strict variant that made the 7-16-line pools: no lazy ``( Z > G )`` or
-  ``G`` premise, no ``F`` in the theorem, no conclusion by an introduction rule.
+  ``G`` premise, no ``F`` in the theorem, and no conclusion by ANDI, ORI1, ORI2, BOTE or R.
 
 ``generate`` is the take-home's ``gen.py`` loop: keep proofs whose length is in range, cap the
 count per length if asked (``per_length``, which flattens the length histogram), and keep one
@@ -607,9 +607,10 @@ class Generator:
         }
 
 
-def sample_one(g: Generator, rng: random.Random, long: bool = False) -> GenRecord:
+def sample_one(g: Generator, long: bool = False) -> GenRecord:
     """One draw with the take-home's settings: forward mode 55 % of the time (1-10 steps), else
     goal mode; ``long``: the strict generator, half each, longer runs and deeper goals."""
+    rng = g.rng
     g.ore_steps = 3 if long else 1
     g.strict = long
     g.bot_p = 0.0 if long else 0.02
@@ -657,7 +658,7 @@ def generate(
     while n_out < n:
         stats["tries"] += 1
         try:
-            r = sample_one(g, rng, long)
+            r = sample_one(g, long)
         except (GenFail, RecursionError) as e:
             stats["fail:" + str(e).split(":")[0]] += 1
             continue

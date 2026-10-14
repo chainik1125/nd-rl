@@ -132,12 +132,12 @@ def test_generator_is_reproducible() -> None:
     g1, g2 = Generator(random.Random(3)), Generator(random.Random(3))
     for _ in range(50):
         try:
-            a = sample_one(g1, g1.rng)
+            a = sample_one(g1)
         except GenFail as e:
             with pytest.raises(GenFail, match=str(e)):
-                sample_one(g2, g2.rng)
+                sample_one(g2)
         else:
-            assert sample_one(g2, g2.rng) == a
+            assert sample_one(g2) == a
 
 
 @pytest.mark.slow
