@@ -79,6 +79,9 @@ ARMS = [
     ArmSpec("grpo_think_vs_ulb", "pilot: + unlikeliness reward", "grpo", True, fig=False),
     ArmSpec("grpo_think_vs_pb", "pilot: + unseen prior = mean", "grpo", True, fig=False),
     ArmSpec("grpo_think_vs_b", "control: L3 rerun, same settings", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_mb", "GRPO, merged recipe (L3)", "grpo", True),
+    ArmSpec("grpo_think_vs_mb_avg", "GRPO, merged recipe, weight average", "grpo", True),
+    ArmSpec("grpo_think_vs_fbb", "pilot: + in-context verifier feedback", "grpo", True, fig=False),
     ArmSpec("grpo_think_vs_avg", "pilot: mean of L3 it 25-39 weights", "grpo", True, fig=False),
     ArmSpec("grpo_think_vs_t10", "GRPO + verifier (stop), read at T 1.0", "grpo", True, fig=False),
     ArmSpec("ei_think_v_t10", "EI + verifier, read at T 1.0", "ei", True, fig=False),
@@ -129,8 +132,22 @@ PILOTS = [
     ("grpo_think_vs_pb", "unseen prior"),
     ("grpo_think_vs_b", "noise control (L3 rerun)"),
     ("grpo_think_vs_avg", "weight averaging"),
+    ("grpo_think_vs_fbb", "in-context feedback"),
 ]
 COMPARE = [
+    ("thinking: merged recipe − GRPO + verifier (stop)", "grpo_think_vs_mb", "grpo_think_vs"),
+    ("thinking: merged recipe − EI + verifier", "grpo_think_vs_mb", "ei_think_v"),
+    ("thinking: merged recipe − EI", "grpo_think_vs_mb", "ei_think"),
+    (
+        "thinking: merged recipe, weight average − merged recipe",
+        "grpo_think_vs_mb_avg",
+        "grpo_think_vs_mb",
+    ),
+    (
+        "thinking: merged recipe, weight average − EI + verifier",
+        "grpo_think_vs_mb_avg",
+        "ei_think_v",
+    ),
     (
         "thinking: GRPO + verifier (stop) − EI + verifier, both read at T 1.0",
         "grpo_think_vs_t10",
