@@ -260,92 +260,92 @@ the hypothesis that EI gains with closeness predicts a negative slope.
 
 | feature | category | source | n | seeds | Δ pass@1 | Δ pass@5 |
 |---|---|---|---|---|---|---|
-| premises | 0 | human | 46 | 2 | +0.0 [-3.5, +3.8] | -0.7 [-5.3, +3.6] |
-| premises | 1 | human | 73 | 2 | +7.1 [+1.5, +12.7] | +10.4 [+4.4, +17.3] |
-| premises | 1 | generated | 12 | 2 | +3.1 [-6.2, +11.5] | +1.4 [-16.2, +18.9] |
-| premises | 2 | human | 69 | 2 | +12.5 [+6.1, +19.5] | +7.5 [+1.9, +13.6] |
-| premises | 2 | generated | 217 | 2 | -0.3 [-4.7, +4.0] | -2.1 [-7.5, +3.3] |
-| premises | 3+ | human | 33 | 2 | +9.5 [+1.4, +18.4] | +8.4 [+0.8, +17.5] |
-| premises | 3+ | generated | 1757 | 2 | -3.3 [-4.3, -2.4] | -7.0 [-8.7, -5.3] |
-| goal | atom | human | 35 | 2 | +15.4 [+5.4, +26.7] | +13.6 [+4.1, +24.7] |
-| goal | atom | generated | 345 | 2 | -2.7 [-5.2, -0.2] | -5.7 [-9.7, -1.7] |
-| goal | ¬A | human | 28 | 2 | +2.8 [-4.4, +10.5] | +3.8 [+0.2, +9.6] |
-| goal | ¬A | generated | 85 | 2 | -1.6 [-6.7, +3.5] | -7.5 [-15.1, +0.3] |
-| goal | A∧B | human | 67 | 2 | +5.3 [-0.4, +11.8] | +7.0 [+0.4, +14.5] |
-| goal | A∧B | generated | 197 | 2 | +1.5 [-2.8, +6.0] | -5.4 [-11.3, +0.7] |
-| goal | A∨B | human | 34 | 2 | +12.9 [+3.9, +21.8] | +8.2 [-0.8, +17.9] |
-| goal | A∨B | generated | 23 | 2 | -4.3 [-11.1, +3.3] | -17.4 [-29.8, -6.4] |
-| goal | A→B | human | 43 | 2 | +6.8 [+1.9, +12.1] | +3.8 [+0.4, +8.3] |
-| goal | A→B | generated | 875 | 2 | -3.9 [-5.4, -2.5] | -6.0 [-8.5, -3.5] |
-| goal | (A→B)→C | human | 7 | 2 | +0.4 [-0.7, +1.6] | +2.2 [+0.0, +6.5] |
-| goal | (A→B)→C | generated | 461 | 2 | -3.4 [-4.8, -2.0] | -7.3 [-10.3, -4.4] |
-| goal | ⊥ | human | 7 | 2 | -1.6 [-7.4, +3.6] | +1.0 [-0.0, +3.0] |
-| atoms | 1–2 | human | 95 | 2 | +2.4 [-1.3, +6.3] | +4.4 [-0.1, +9.3] |
-| atoms | 1–2 | generated | 7 | 2 | -17.9 [-43.8, +3.6] | -36.1 [-70.9, -7.7] |
-| atoms | 3 | human | 78 | 2 | +11.9 [+5.6, +19.0] | +8.1 [+2.4, +14.5] |
-| atoms | 3 | generated | 350 | 2 | -1.9 [-4.8, +0.9] | -5.9 [-9.8, -1.8] |
-| atoms | 4 | human | 48 | 2 | +11.1 [+4.6, +18.4] | +9.7 [+3.6, +16.9] |
-| atoms | 4 | generated | 1629 | 2 | -3.1 [-4.1, -2.1] | -6.4 [-8.1, -4.6] |
-| connectives | ≤8 | human | 170 | 2 | +8.0 [+4.5, +11.8] | +6.3 [+3.2, +9.7] |
-| connectives | ≤8 | generated | 39 | 2 | +0.6 [-7.9, +8.8] | +1.6 [-5.0, +8.1] |
-| connectives | 9–12 | human | 38 | 2 | +8.4 [+0.4, +17.3] | +10.9 [+0.3, +22.3] |
-| connectives | 9–12 | generated | 364 | 2 | -2.0 [-5.4, +1.3] | -3.5 [-8.0, +1.0] |
-| connectives | 13–16 | human | 11 | 2 | +1.1 [-2.6, +6.0] | +2.9 [-9.6, +17.1] |
-| connectives | 13–16 | generated | 662 | 2 | -3.9 [-5.8, -1.9] | -8.5 [-11.7, -5.2] |
-| connectives | 17+ | human | 2 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
-| connectives | 17+ | generated | 921 | 2 | -2.9 [-3.8, -1.9] | -6.4 [-8.3, -4.5] |
-| classical-only statement | no | human | 172 | 2 | +7.6 [+4.1, +11.3] | +6.2 [+3.1, +9.4] |
-| classical-only statement | no | generated | 1687 | 2 | -3.3 [-4.4, -2.2] | -7.2 [-9.0, -5.4] |
-| classical-only statement | yes | human | 49 | 2 | +8.1 [+0.6, +15.9] | +9.2 [-0.2, +19.1] |
-| classical-only statement | yes | generated | 299 | 2 | -1.1 [-3.4, +1.0] | -2.1 [-5.8, +1.6] |
-| ¬¬ in statement | no | human | 206 | 2 | +8.2 [+4.8, +11.6] | +7.1 [+3.8, +10.6] |
-| ¬¬ in statement | no | generated | 1176 | 2 | -3.8 [-5.3, -2.4] | -8.0 [-10.3, -5.8] |
-| ¬¬ in statement | yes | human | 15 | 2 | -0.1 [-6.6, +5.6] | +3.3 [-5.5, +13.2] |
-| ¬¬ in statement | yes | generated | 810 | 2 | -1.7 [-3.1, -0.4] | -4.0 [-6.4, -1.7] |
-| padding (A∨A, A∨(A∧B), …) | no | human | 214 | 2 | +7.9 [+4.8, +11.3] | +7.1 [+3.8, +10.4] |
-| padding (A∨A, A∨(A∧B), …) | no | generated | 273 | 2 | -3.3 [-6.8, -0.0] | -6.6 [-11.7, -1.5] |
-| padding (A∨A, A∨(A∧B), …) | yes | human | 7 | 2 | +0.2 [-7.1, +7.4] | +1.1 [-0.0, +3.3] |
-| padding (A∨A, A∨(A∧B), …) | yes | generated | 1713 | 2 | -2.9 [-4.0, -1.9] | -6.4 [-8.0, -4.7] |
-| case split (∨E) | no | human | 149 | 2 | +5.8 [+2.1, +9.8] | +6.0 [+2.6, +10.0] |
-| case split (∨E) | no | generated | 41 | 2 | +10.5 [+1.7, +19.4] | +3.9 [-8.4, +16.7] |
-| case split (∨E) | yes | human | 71 | 2 | +11.8 [+6.2, +17.6] | +8.7 [+2.6, +15.3] |
-| case split (∨E) | yes | generated | 1945 | 2 | -3.3 [-4.3, -2.3] | -6.6 [-8.2, -5.0] |
-| ex falso (⊥E) | no | human | 180 | 2 | +6.3 [+3.0, +10.0] | +5.8 [+2.7, +9.0] |
-| ex falso (⊥E) | no | generated | 992 | 2 | -1.9 [-3.3, -0.5] | -5.3 [-7.4, -3.0] |
-| ex falso (⊥E) | yes | human | 40 | 2 | +13.8 [+5.9, +22.1] | +12.0 [+1.4, +23.0] |
-| ex falso (⊥E) | yes | generated | 994 | 2 | -4.0 [-5.5, -2.6] | -7.5 [-10.0, -5.2] |
-| ¬¬E (reductio / classical) | no | human | 168 | 2 | +7.7 [+4.2, +11.5] | +6.6 [+3.6, +10.1] |
-| ¬¬E (reductio / classical) | no | generated | 1431 | 2 | -3.4 [-4.6, -2.2] | -7.0 [-8.9, -5.2] |
-| ¬¬E (reductio / classical) | yes | human | 52 | 2 | +7.9 [+0.7, +15.4] | +7.9 [-1.2, +17.4] |
-| ¬¬E (reductio / classical) | yes | generated | 555 | 2 | -1.9 [-3.5, -0.3] | -4.8 [-7.6, -2.0] |
-| nested ¬-subproof | no | human | 159 | 2 | +9.3 [+5.7, +13.5] | +7.2 [+3.9, +10.9] |
-| nested ¬-subproof | no | generated | 1823 | 2 | -3.3 [-4.3, -2.2] | -7.1 [-8.7, -5.4] |
-| nested ¬-subproof | yes | human | 61 | 2 | +3.6 [-2.0, +9.4] | +6.1 [-0.9, +13.7] |
-| nested ¬-subproof | yes | generated | 163 | 2 | +0.4 [-2.6, +3.5] | +1.1 [-3.9, +5.9] |
-| box depth | 0–1 | human | 103 | 2 | +8.3 [+3.8, +13.3] | +7.1 [+2.8, +12.0] |
-| box depth | 0–1 | generated | 653 | 2 | -1.6 [-3.4, +0.0] | -5.3 [-8.0, -2.5] |
-| box depth | 2 | human | 84 | 2 | +7.3 [+2.4, +12.6] | +5.5 [+1.6, +9.8] |
-| box depth | 2 | generated | 1080 | 2 | -3.8 [-5.2, -2.4] | -7.1 [-9.4, -4.8] |
-| box depth | 3+ | human | 33 | 2 | +6.9 [-1.5, +16.1] | +9.9 [-1.8, +23.4] |
-| box depth | 3+ | generated | 253 | 2 | -2.8 [-5.0, -0.6] | -6.2 [-10.2, -2.1] |
-| ∨E steps | 1 | human | 51 | 2 | +11.9 [+5.2, +18.9] | +9.4 [+1.6, +17.9] |
-| ∨E steps | 1 | generated | 378 | 2 | -2.3 [-5.0, +0.4] | -1.9 [-5.6, +2.0] |
-| ∨E steps | 2 | human | 16 | 2 | +9.8 [+0.7, +20.2] | +5.2 [-1.3, +15.0] |
-| ∨E steps | 2 | generated | 678 | 2 | -2.7 [-4.4, -0.9] | -7.4 [-10.1, -4.6] |
-| ∨E steps | 3+ | human | 4 | 2 | +18.0 [+0.0, +53.9] | +13.7 [+0.0, +41.2] |
-| ∨E steps | 3+ | generated | 889 | 2 | -4.1 [-5.4, -2.9] | -8.0 [-10.5, -5.6] |
-| ∨E on a premise | no | human | 38 | 2 | +11.4 [+4.6, +19.0] | +8.7 [-0.6, +18.4] |
-| ∨E on a premise | no | generated | 502 | 2 | +1.9 [+0.5, +3.3] | +3.0 [+0.5, +5.7] |
-| ∨E on a premise | yes | human | 33 | 2 | +12.1 [+3.4, +21.9] | +8.8 [+1.4, +18.4] |
-| ∨E on a premise | yes | generated | 1443 | 2 | -5.0 [-6.2, -3.8] | -10.0 [-11.8, -8.0] |
-| ∨E with a trivial branch | no | human | 39 | 2 | +10.5 [+2.8, +18.8] | +8.7 [+1.7, +16.9] |
-| ∨E with a trivial branch | no | generated | 122 | 2 | -7.0 [-12.0, -2.0] | -8.3 [-14.7, -2.0] |
-| ∨E with a trivial branch | yes | human | 32 | 2 | +13.3 [+5.5, +21.8] | +8.8 [-1.5, +20.1] |
-| ∨E with a trivial branch | yes | generated | 1823 | 2 | -3.0 [-4.1, -2.0] | -6.5 [-8.2, -4.8] |
-| ∨E result reused | no | human | 61 | 2 | +11.3 [+5.4, +18.2] | +9.2 [+2.4, +16.9] |
-| ∨E result reused | no | generated | 476 | 2 | -2.3 [-4.6, -0.1] | -3.0 [-6.4, +0.3] |
-| ∨E result reused | yes | human | 10 | 2 | +14.7 [+4.2, +29.2] | +6.1 [+0.0, +13.7] |
-| ∨E result reused | yes | generated | 1469 | 2 | -3.6 [-4.6, -2.5] | -7.8 [-9.7, -5.9] |
+| premises | 0 | human | 46 | 0,1,2 | -5.0 [-14.6, +1.7] | -2.2 [-11.0, +4.8] |
+| premises | 1 | human | 73 | 0,1,2 | +8.1 [+2.9, +13.6] | +7.3 [+1.5, +14.2] |
+| premises | 1 | generated | 12 | 0,1,2 | +9.5 [-6.9, +28.1] | +8.0 [-10.6, +28.8] |
+| premises | 2 | human | 69 | 0,1,2 | +11.8 [+5.7, +19.1] | +6.7 [+2.4, +11.8] |
+| premises | 2 | generated | 217 | 0,1,2 | +0.1 [-3.4, +3.7] | -3.9 [-8.2, +0.7] |
+| premises | 3+ | human | 33 | 0,1,2 | +8.4 [+0.6, +17.2] | +5.9 [-1.3, +14.1] |
+| premises | 3+ | generated | 1757 | 0,1,2 | -3.5 [-5.5, -1.7] | -8.0 [-12.4, -4.2] |
+| goal | atom | human | 35 | 0,1,2 | +8.1 [-1.9, +19.6] | +6.4 [-0.8, +16.3] |
+| goal | atom | generated | 345 | 0,1,2 | -2.3 [-5.0, +0.7] | -6.0 [-10.3, -1.4] |
+| goal | ¬A | human | 28 | 0,1,2 | +1.3 [-3.7, +7.7] | +0.7 [-3.7, +5.5] |
+| goal | ¬A | generated | 85 | 0,1,2 | -2.3 [-9.0, +4.0] | -7.3 [-16.7, +1.7] |
+| goal | A∧B | human | 67 | 0,1,2 | +2.9 [-4.0, +9.5] | +3.6 [-4.6, +11.3] |
+| goal | A∧B | generated | 197 | 0,1,2 | +0.7 [-2.7, +4.3] | -4.4 [-11.0, +2.3] |
+| goal | A∨B | human | 34 | 0,1,2 | +17.1 [+8.0, +27.1] | +12.4 [+3.3, +23.1] |
+| goal | A∨B | generated | 23 | 0,1,2 | -5.1 [-13.6, +2.4] | -13.8 [-28.1, +0.6] |
+| goal | A→B | human | 43 | 0,1,2 | +9.1 [+3.2, +16.2] | +4.3 [+0.6, +8.8] |
+| goal | A→B | generated | 875 | 0,1,2 | -3.9 [-5.5, -2.2] | -8.0 [-12.1, -4.5] |
+| goal | (A→B)→C | human | 7 | 0,1,2 | -1.3 [-9.9, +5.2] | +1.7 [-0.1, +6.3] |
+| goal | (A→B)→C | generated | 461 | 0,1,2 | -3.7 [-5.8, -1.9] | -8.5 [-13.2, -4.4] |
+| goal | ⊥ | human | 7 | 0,1,2 | -3.9 [-14.7, +1.8] | -2.3 [-10.5, +1.2] |
+| atoms | 1–2 | human | 95 | 0,1,2 | +0.3 [-4.4, +5.0] | +1.4 [-3.3, +6.4] |
+| atoms | 1–2 | generated | 7 | 0,1,2 | -6.0 [-26.8, +5.1] | -9.0 [-43.0, +12.0] |
+| atoms | 3 | human | 78 | 0,1,2 | +12.1 [+6.6, +18.4] | +8.1 [+2.8, +13.8] |
+| atoms | 3 | generated | 350 | 0,1,2 | -1.9 [-4.3, +0.5] | -5.8 [-9.3, -2.2] |
+| atoms | 4 | human | 48 | 0,1,2 | +10.0 [+4.4, +16.4] | +6.8 [+1.2, +13.0] |
+| atoms | 4 | generated | 1629 | 0,1,2 | -3.3 [-5.2, -1.4] | -7.8 [-12.6, -4.0] |
+| connectives | ≤8 | human | 170 | 0,1,2 | +8.8 [+5.3, +12.8] | +6.4 [+3.7, +9.5] |
+| connectives | ≤8 | generated | 39 | 0,1,2 | -0.6 [-8.8, +7.1] | -1.4 [-10.9, +6.4] |
+| connectives | 9–12 | human | 38 | 0,1,2 | +0.0 [-10.3, +10.9] | +1.0 [-11.6, +14.2] |
+| connectives | 9–12 | generated | 364 | 0,1,2 | -2.9 [-6.0, +0.2] | -7.5 [-13.6, -1.8] |
+| connectives | 13–16 | human | 11 | 0,1,2 | -3.5 [-17.3, +5.8] | -3.2 [-25.2, +16.3] |
+| connectives | 13–16 | generated | 662 | 0,1,2 | -3.6 [-6.4, -0.8] | -8.2 [-13.3, -2.9] |
+| connectives | 17+ | human | 2 | 0,1,2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| connectives | 17+ | generated | 921 | 0,1,2 | -2.8 [-4.1, -1.6] | -7.2 [-10.7, -4.1] |
+| classical-only statement | no | human | 172 | 0,1,2 | +6.7 [+2.5, +11.0] | +4.1 [+0.5, +7.7] |
+| classical-only statement | no | generated | 1687 | 0,1,2 | -3.4 [-5.3, -1.6] | -7.9 [-11.9, -4.3] |
+| classical-only statement | yes | human | 49 | 0,1,2 | +6.2 [-2.4, +14.7] | +7.7 [-1.2, +16.4] |
+| classical-only statement | yes | generated | 299 | 0,1,2 | -1.0 [-3.0, +0.9] | -5.2 [-10.2, -0.7] |
+| ¬¬ in statement | no | human | 206 | 0,1,2 | +7.5 [+4.2, +11.0] | +5.2 [+1.7, +8.7] |
+| ¬¬ in statement | no | generated | 1176 | 0,1,2 | -3.4 [-5.2, -1.4] | -8.0 [-11.5, -4.4] |
+| ¬¬ in statement | yes | human | 15 | 0,1,2 | -5.9 [-16.5, +2.6] | +0.9 [-6.3, +9.9] |
+| ¬¬ in statement | yes | generated | 810 | 0,1,2 | -2.6 [-4.7, -0.7] | -6.7 [-11.8, -2.5] |
+| padding (A∨A, A∨(A∧B), …) | no | human | 214 | 0,1,2 | +6.9 [+3.5, +10.4] | +5.3 [+2.1, +8.5] |
+| padding (A∨A, A∨(A∧B), …) | no | generated | 273 | 0,1,2 | -2.4 [-6.1, +1.4] | -7.5 [-13.5, -1.9] |
+| padding (A∨A, A∨(A∧B), …) | yes | human | 7 | 0,1,2 | -3.8 [-21.7, +7.2] | -6.0 [-28.6, +7.5] |
+| padding (A∨A, A∨(A∧B), …) | yes | generated | 1713 | 0,1,2 | -3.2 [-4.8, -1.6] | -7.5 [-11.5, -4.1] |
+| case split (∨E) | no | human | 149 | 0,1,2 | +4.0 [+0.1, +8.2] | +2.8 [-1.3, +7.4] |
+| case split (∨E) | no | generated | 41 | 0,1,2 | +8.2 [+0.4, +16.2] | +7.0 [-3.4, +17.8] |
+| case split (∨E) | yes | human | 71 | 0,1,2 | +12.0 [+6.1, +18.1] | +9.4 [+3.8, +15.4] |
+| case split (∨E) | yes | generated | 1945 | 0,1,2 | -3.3 [-5.1, -1.5] | -7.8 [-12.1, -4.3] |
+| ex falso (⊥E) | no | human | 180 | 0,1,2 | +5.3 [+1.9, +8.9] | +3.6 [+0.3, +7.2] |
+| ex falso (⊥E) | no | generated | 992 | 0,1,2 | -2.6 [-4.3, -1.0] | -6.9 [-10.6, -3.7] |
+| ex falso (⊥E) | yes | human | 40 | 0,1,2 | +12.4 [+3.7, +21.3] | +11.0 [+1.4, +20.4] |
+| ex falso (⊥E) | yes | generated | 994 | 0,1,2 | -3.5 [-5.7, -1.0] | -8.0 [-12.7, -3.5] |
+| ¬¬E (reductio / classical) | no | human | 168 | 0,1,2 | +6.8 [+2.6, +11.2] | +4.4 [+0.8, +8.2] |
+| ¬¬E (reductio / classical) | no | generated | 1431 | 0,1,2 | -3.5 [-5.5, -1.4] | -7.9 [-12.1, -4.2] |
+| ¬¬E (reductio / classical) | yes | human | 52 | 0,1,2 | +5.9 [-2.6, +13.9] | +6.9 [-1.6, +15.1] |
+| ¬¬E (reductio / classical) | yes | generated | 555 | 0,1,2 | -2.0 [-3.6, -0.6] | -6.2 [-10.3, -2.7] |
+| nested ¬-subproof | no | human | 159 | 0,1,2 | +8.1 [+3.5, +13.2] | +5.6 [+1.6, +9.6] |
+| nested ¬-subproof | no | generated | 1823 | 0,1,2 | -3.2 [-5.0, -1.4] | -7.7 [-11.8, -4.1] |
+| nested ¬-subproof | yes | human | 61 | 0,1,2 | +2.6 [-5.7, +10.0] | +3.4 [-4.6, +10.7] |
+| nested ¬-subproof | yes | generated | 163 | 0,1,2 | -1.4 [-4.7, +1.7] | -4.2 [-10.9, +2.1] |
+| box depth | 0–1 | human | 103 | 0,1,2 | +6.4 [+0.6, +12.2] | +4.3 [-0.6, +9.3] |
+| box depth | 0–1 | generated | 653 | 0,1,2 | -2.1 [-4.5, +0.1] | -6.5 [-10.3, -3.1] |
+| box depth | 2 | human | 84 | 0,1,2 | +7.4 [+2.5, +12.7] | +4.4 [-0.0, +8.9] |
+| box depth | 2 | generated | 1080 | 0,1,2 | -3.6 [-5.3, -1.7] | -7.9 [-12.5, -3.8] |
+| box depth | 3+ | human | 33 | 0,1,2 | +5.4 [-4.8, +15.3] | +8.5 [-4.0, +20.5] |
+| box depth | 3+ | generated | 253 | 0,1,2 | -3.3 [-6.0, -0.7] | -7.9 [-13.4, -2.6] |
+| ∨E steps | 1 | human | 51 | 0,1,2 | +8.8 [+1.2, +16.0] | +7.0 [-0.8, +14.7] |
+| ∨E steps | 1 | generated | 378 | 0,1,2 | -0.5 [-3.3, +2.1] | -2.1 [-5.0, +0.9] |
+| ∨E steps | 2 | human | 16 | 0,1,2 | +21.3 [+3.5, +42.8] | +16.9 [+1.7, +36.8] |
+| ∨E steps | 2 | generated | 678 | 0,1,2 | -4.5 [-7.7, -1.7] | -9.5 [-14.4, -5.3] |
+| ∨E steps | 3+ | human | 4 | 0,1,2 | +15.1 [+0.0, +45.3] | +9.6 [+0.0, +28.7] |
+| ∨E steps | 3+ | generated | 889 | 0,1,2 | -3.5 [-5.5, -1.3] | -8.8 [-13.8, -4.1] |
+| ∨E on a premise | no | human | 38 | 0,1,2 | +9.7 [+2.0, +17.3] | +10.9 [+1.5, +20.9] |
+| ∨E on a premise | no | generated | 502 | 0,1,2 | -0.3 [-2.6, +2.0] | -1.6 [-6.5, +3.1] |
+| ∨E on a premise | yes | human | 33 | 0,1,2 | +14.6 [+5.5, +24.5] | +7.7 [+1.0, +15.2] |
+| ∨E on a premise | yes | generated | 1443 | 0,1,2 | -4.3 [-6.3, -2.1] | -9.9 [-14.2, -5.8] |
+| ∨E with a trivial branch | no | human | 39 | 0,1,2 | +13.0 [+5.1, +21.1] | +10.3 [+3.5, +18.4] |
+| ∨E with a trivial branch | no | generated | 122 | 0,1,2 | -3.8 [-8.7, +1.1] | -5.9 [-11.3, -0.4] |
+| ∨E with a trivial branch | yes | human | 32 | 0,1,2 | +10.7 [+1.5, +20.6] | +8.2 [-0.8, +17.9] |
+| ∨E with a trivial branch | yes | generated | 1823 | 0,1,2 | -3.3 [-5.2, -1.4] | -7.9 [-12.3, -4.4] |
+| ∨E result reused | no | human | 61 | 0,1,2 | +12.5 [+6.3, +19.2] | +10.6 [+4.0, +17.8] |
+| ∨E result reused | no | generated | 476 | 0,1,2 | -2.1 [-3.9, -0.3] | -4.2 [-6.9, -1.4] |
+| ∨E result reused | yes | human | 10 | 0,1,2 | +8.9 [-7.7, +25.6] | +2.2 [-8.3, +11.6] |
+| ∨E result reused | yes | generated | 1469 | 0,1,2 | -3.7 [-6.0, -1.3] | -8.9 [-13.9, -4.5] |
 
 ### 2b. Human-written − generated gap after reweighting
 
@@ -355,54 +355,54 @@ them are left out: 'human kept'). ESS: effective number of generated problems.
 
 | problems | reweighted on | k | human kept | ESS | Δ human-written | Δ generated (reweighted) | human − generated | p |
 |---|---|---|---|---|---|---|---|---|
-| all problems | unadjusted | pass@1 | 221/221 | 1986 | +7.7 [+4.5, +11.0] | -3.0 [-4.0, -2.0] | +10.6 [+7.4, +14.1] | 0.000 |
-| one feature | premises | pass@1 | 175/221 | 66 | +9.7 [+5.9, +13.8] | +0.5 [-4.0, +4.5] | +9.1 [+3.5, +15.3] | 0.002 |
-| one feature | goal | pass@1 | 214/221 | 520 | +8.0 [+4.7, +11.4] | -1.8 [-3.8, +0.3] | +9.8 [+5.8, +13.7] | 0.000 |
-| one feature | atoms | pass@1 | 221/221 | 37 | +7.7 [+4.5, +11.0] | -9.0 [-21.5, +1.4] | +16.7 [+5.7, +29.6] | 0.000 |
-| one feature | connectives | pass@1 | 221/221 | 66 | +7.7 [+4.5, +11.0] | -0.1 [-6.5, +6.4] | +7.7 [+0.8, +15.0] | 0.024 |
-| one feature | classical-only statement | pass@1 | 221/221 | 1910 | +7.7 [+4.5, +11.0] | -2.8 [-3.8, -1.8] | +10.5 [+7.2, +14.0] | 0.000 |
-| one feature | ¬¬ in statement | pass@1 | 221/221 | 1343 | +7.7 [+4.5, +11.0] | -3.7 [-5.0, -2.4] | +11.4 [+8.0, +14.9] | 0.000 |
-| one feature | padding (A∨A, A∨(A∧B), …) | pass@1 | 221/221 | 291 | +7.7 [+4.5, +11.0] | -3.3 [-6.5, -0.1] | +11.0 [+6.5, +15.6] | 0.000 |
-| one feature | case split (∨E) | pass@1 | 220/221 | 89 | +7.7 [+4.5, +11.1] | +6.1 [+0.2, +12.8] | +1.6 [-5.7, +8.4] | 0.651 |
-| one feature | ex falso (⊥E) | pass@1 | 220/221 | 1412 | +7.7 [+4.5, +11.1] | -2.3 [-3.5, -1.0] | +10.0 [+6.5, +13.6] | 0.000 |
-| one feature | ¬¬E (reductio / classical) | pass@1 | 220/221 | 1968 | +7.7 [+4.5, +11.1] | -3.0 [-4.1, -2.0] | +10.7 [+7.4, +14.3] | 0.000 |
-| one feature | nested ¬-subproof | pass@1 | 220/221 | 1319 | +7.7 [+4.5, +11.1] | -2.2 [-3.4, -1.1] | +10.0 [+6.6, +13.5] | 0.000 |
-| one feature | box depth | pass@1 | 220/221 | 1787 | +7.7 [+4.5, +11.1] | -2.6 [-3.7, -1.6] | +10.3 [+7.0, +13.9] | 0.000 |
-| several features | case split + premises + connectives | pass@1 | 174/221 | 12 | +9.7 [+5.9, +13.9] | +1.6 [-9.1, +10.0] | +8.2 [-1.5, +19.6] | 0.122 |
-| several features | proof features (5) | pass@1 | 220/221 | 49 | +7.7 [+4.5, +11.1] | +8.3 [+1.4, +15.9] | -0.6 [-9.1, +7.1] | 0.890 |
-| several features | statement + proof features (12) | pass@1 | 168/221 | 7 | +10.1 [+6.2, +14.4] | +4.4 [-15.4, +15.6] | +5.8 [-5.7, +26.5] | 0.205 |
-| case-split problems only | ∨E problems: unadjusted | pass@1 | 71/71 | 1945 | +11.8 [+6.0, +17.9] | -3.3 [-4.3, -2.3] | +15.0 [+9.3, +21.3] | 0.000 |
-| case-split problems only | ∨E problems: ∨E steps | pass@1 | 71/71 | 693 | +11.8 [+6.0, +17.9] | -2.5 [-4.4, -0.5] | +14.2 [+8.3, +20.7] | 0.000 |
-| case-split problems only | ∨E problems: ∨E on a premise | pass@1 | 71/71 | 1388 | +11.8 [+6.0, +17.9] | -1.3 [-2.6, -0.0] | +13.1 [+7.3, +19.6] | 0.000 |
-| case-split problems only | ∨E problems: ∨E with a trivial branch | pass@1 | 71/71 | 387 | +11.8 [+6.0, +17.9] | -5.2 [-8.1, -2.5] | +16.9 [+10.7, +23.6] | 0.000 |
-| case-split problems only | ∨E problems: ∨E result reused | pass@1 | 71/71 | 639 | +11.8 [+6.0, +17.9] | -2.5 [-4.4, -0.6] | +14.2 [+8.4, +20.7] | 0.000 |
-| closeness to the RL pools | subformula shapes in the pool | pass@1 | 214/221 | 620 | +7.9 [+4.7, +11.4] | -3.2 [-5.3, -1.1] | +11.2 [+7.3, +15.1] | 0.000 |
-| closeness to the RL pools | nearest pool problem (−distance) | pass@1 | 220/221 | 586 | +7.7 [+4.5, +11.1] | -2.3 [-4.8, +0.2] | +10.0 [+6.0, +14.1] | 0.000 |
-| closeness to the RL pools | proof skeleton in the pool | pass@1 | 220/221 | 516 | +7.7 [+4.5, +11.1] | -3.8 [-6.4, -1.3] | +11.5 [+7.5, +15.7] | 0.000 |
-| all problems | unadjusted | pass@5 | 221/221 | 1986 | +6.9 [+3.6, +10.4] | -6.4 [-8.0, -4.8] | +13.3 [+9.7, +16.9] | 0.000 |
-| one feature | premises | pass@5 | 175/221 | 66 | +8.9 [+5.1, +13.0] | -1.5 [-9.9, +6.5] | +10.4 [+1.7, +19.4] | 0.024 |
-| one feature | goal | pass@5 | 214/221 | 520 | +7.1 [+3.7, +10.6] | -7.8 [-11.0, -4.9] | +14.9 [+10.5, +19.6] | 0.000 |
-| one feature | atoms | pass@5 | 221/221 | 37 | +6.9 [+3.6, +10.4] | -19.0 [-35.8, -3.4] | +25.9 [+10.0, +42.9] | 0.000 |
-| one feature | connectives | pass@5 | 221/221 | 66 | +6.9 [+3.6, +10.4] | +0.1 [-5.1, +5.3] | +6.7 [+0.7, +13.0] | 0.029 |
-| one feature | classical-only statement | pass@5 | 221/221 | 1910 | +6.9 [+3.6, +10.4] | -6.0 [-7.7, -4.4] | +12.9 [+9.3, +16.6] | 0.000 |
-| one feature | ¬¬ in statement | pass@5 | 221/221 | 1343 | +6.9 [+3.6, +10.4] | -7.7 [-9.8, -5.7] | +14.6 [+10.8, +18.5] | 0.000 |
-| one feature | padding (A∨A, A∨(A∧B), …) | pass@5 | 221/221 | 291 | +6.9 [+3.6, +10.4] | -6.6 [-11.7, -1.6] | +13.4 [+7.6, +19.4] | 0.000 |
-| one feature | case split (∨E) | pass@5 | 220/221 | 89 | +6.9 [+3.7, +10.4] | +0.5 [-7.4, +9.4] | +6.4 [-3.1, +15.3] | 0.168 |
-| one feature | ex falso (⊥E) | pass@5 | 220/221 | 1412 | +6.9 [+3.7, +10.4] | -5.7 [-7.5, -3.8] | +12.6 [+8.9, +16.5] | 0.000 |
-| one feature | ¬¬E (reductio / classical) | pass@5 | 220/221 | 1968 | +6.9 [+3.7, +10.4] | -6.5 [-8.2, -4.9] | +13.4 [+9.8, +17.1] | 0.000 |
-| one feature | nested ¬-subproof | pass@5 | 220/221 | 1319 | +6.9 [+3.7, +10.4] | -4.8 [-6.6, -2.9] | +11.7 [+7.9, +15.6] | 0.000 |
-| one feature | box depth | pass@5 | 220/221 | 1787 | +6.9 [+3.7, +10.4] | -6.1 [-7.8, -4.5] | +13.0 [+9.4, +16.8] | 0.000 |
-| several features | case split + premises + connectives | pass@5 | 174/221 | 12 | +8.9 [+5.1, +13.1] | -0.7 [-8.2, +4.2] | +9.6 [+3.1, +18.0] | 0.004 |
-| several features | proof features (5) | pass@5 | 220/221 | 49 | +6.9 [+3.7, +10.4] | +2.8 [-5.9, +11.6] | +4.2 [-5.0, +13.7] | 0.380 |
-| several features | statement + proof features (12) | pass@5 | 168/221 | 7 | +9.2 [+5.3, +13.5] | -4.9 [-39.4, +17.4] | +14.1 [-8.8, +49.2] | 0.162 |
-| case-split problems only | ∨E problems: unadjusted | pass@5 | 71/71 | 1945 | +8.7 [+2.4, +15.6] | -6.6 [-8.3, -5.0] | +15.4 [+8.9, +22.5] | 0.000 |
-| case-split problems only | ∨E problems: ∨E steps | pass@5 | 71/71 | 693 | +8.7 [+2.4, +15.6] | -3.5 [-6.3, -0.6] | +12.2 [+5.4, +19.8] | 0.000 |
-| case-split problems only | ∨E problems: ∨E on a premise | pass@5 | 71/71 | 1388 | +8.7 [+2.4, +15.6] | -3.0 [-5.2, -0.7] | +11.8 [+5.0, +19.0] | 0.000 |
-| case-split problems only | ∨E problems: ∨E with a trivial branch | pass@5 | 71/71 | 387 | +8.7 [+2.4, +15.6] | -7.5 [-11.1, -4.0] | +16.2 [+9.0, +24.2] | 0.000 |
-| case-split problems only | ∨E problems: ∨E result reused | pass@5 | 71/71 | 639 | +8.7 [+2.4, +15.6] | -3.7 [-6.5, -0.8] | +12.4 [+5.5, +19.8] | 0.000 |
-| closeness to the RL pools | subformula shapes in the pool | pass@5 | 214/221 | 620 | +7.1 [+3.8, +10.7] | -6.4 [-9.7, -3.0] | +13.5 [+8.8, +18.3] | 0.000 |
-| closeness to the RL pools | nearest pool problem (−distance) | pass@5 | 220/221 | 586 | +6.9 [+3.7, +10.4] | -4.8 [-7.9, -1.7] | +11.7 [+7.1, +16.2] | 0.000 |
-| closeness to the RL pools | proof skeleton in the pool | pass@5 | 220/221 | 516 | +6.9 [+3.7, +10.4] | -7.2 [-11.1, -3.5] | +14.1 [+9.2, +19.2] | 0.000 |
+| all problems | unadjusted | pass@1 | 221/221 | 1986 | +6.6 [+3.2, +9.9] | -3.1 [-4.8, -1.4] | +9.6 [+5.5, +13.8] | 0.000 |
+| one feature | premises | pass@1 | 175/221 | 66 | +9.6 [+5.4, +14.0] | +3.4 [-4.0, +11.5] | +6.3 [-2.8, +14.3] | 0.154 |
+| one feature | goal | pass@1 | 214/221 | 520 | +6.9 [+3.6, +10.3] | -2.2 [-5.1, +0.5] | +9.1 [+4.4, +13.9] | 0.001 |
+| one feature | atoms | pass@1 | 221/221 | 37 | +6.6 [+3.2, +9.9] | -4.0 [-13.0, +1.0] | +10.5 [+4.0, +20.7] | 0.001 |
+| one feature | connectives | pass@1 | 221/221 | 66 | +6.6 [+3.2, +9.9] | -1.2 [-7.3, +4.6] | +7.8 [+1.1, +14.3] | 0.024 |
+| one feature | classical-only statement | pass@1 | 221/221 | 1910 | +6.6 [+3.2, +9.9] | -2.9 [-4.5, -1.3] | +9.5 [+5.4, +13.6] | 0.000 |
+| one feature | ¬¬ in statement | pass@1 | 221/221 | 1343 | +6.6 [+3.2, +9.9] | -3.3 [-5.1, -1.4] | +9.9 [+5.6, +14.2] | 0.000 |
+| one feature | padding (A∨A, A∨(A∧B), …) | pass@1 | 221/221 | 291 | +6.6 [+3.2, +9.9] | -2.4 [-5.9, +1.3] | +9.0 [+3.4, +14.4] | 0.003 |
+| one feature | case split (∨E) | pass@1 | 220/221 | 89 | +6.6 [+3.3, +10.0] | +4.5 [-0.9, +9.9] | +2.1 [-3.9, +8.2] | 0.504 |
+| one feature | ex falso (⊥E) | pass@1 | 220/221 | 1412 | +6.6 [+3.3, +10.0] | -2.8 [-4.4, -1.3] | +9.4 [+5.5, +13.4] | 0.000 |
+| one feature | ¬¬E (reductio / classical) | pass@1 | 220/221 | 1968 | +6.6 [+3.3, +10.0] | -3.1 [-4.8, -1.4] | +9.7 [+5.6, +13.9] | 0.000 |
+| one feature | nested ¬-subproof | pass@1 | 220/221 | 1319 | +6.6 [+3.3, +10.0] | -2.7 [-4.5, -1.1] | +9.3 [+5.4, +13.5] | 0.000 |
+| one feature | box depth | pass@1 | 220/221 | 1787 | +6.6 [+3.3, +10.0] | -2.9 [-4.7, -1.1] | +9.5 [+5.3, +13.7] | 0.000 |
+| several features | case split + premises + connectives | pass@1 | 174/221 | 12 | +9.7 [+5.4, +14.1] | +0.4 [-7.9, +10.4] | +9.2 [-2.2, +18.9] | 0.113 |
+| several features | proof features (5) | pass@1 | 220/221 | 49 | +6.6 [+3.3, +10.0] | +5.3 [-1.6, +11.7] | +1.3 [-5.6, +8.2] | 0.721 |
+| several features | statement + proof features (12) | pass@1 | 168/221 | 7 | +10.2 [+5.9, +14.7] | +3.5 [-16.3, +14.5] | +6.7 [-5.3, +26.3] | 0.157 |
+| case-split problems only | ∨E problems: unadjusted | pass@1 | 71/71 | 1945 | +12.0 [+6.3, +17.9] | -3.3 [-5.0, -1.5] | +15.3 [+9.0, +21.8] | 0.000 |
+| case-split problems only | ∨E problems: ∨E steps | pass@1 | 71/71 | 693 | +12.0 [+6.3, +17.9] | -1.6 [-3.4, +0.3] | +13.5 [+7.1, +20.0] | 0.000 |
+| case-split problems only | ∨E problems: ∨E on a premise | pass@1 | 71/71 | 1388 | +12.0 [+6.3, +17.9] | -2.2 [-4.1, -0.5] | +14.2 [+7.9, +20.8] | 0.000 |
+| case-split problems only | ∨E problems: ∨E with a trivial branch | pass@1 | 71/71 | 387 | +12.0 [+6.3, +17.9] | -3.6 [-6.3, -1.0] | +15.5 [+9.1, +22.0] | 0.000 |
+| case-split problems only | ∨E problems: ∨E result reused | pass@1 | 71/71 | 639 | +12.0 [+6.3, +17.9] | -2.3 [-3.9, -0.8] | +14.3 [+8.2, +20.5] | 0.000 |
+| closeness to the RL pools | subformula shapes in the pool | pass@1 | 214/221 | 620 | +6.5 [+3.0, +10.0] | -3.5 [-6.3, -0.7] | +10.0 [+5.1, +14.9] | 0.000 |
+| closeness to the RL pools | nearest pool problem (−distance) | pass@1 | 220/221 | 586 | +6.6 [+3.3, +10.0] | -2.5 [-5.1, +0.1] | +9.1 [+4.4, +13.6] | 0.000 |
+| closeness to the RL pools | proof skeleton in the pool | pass@1 | 220/221 | 516 | +6.6 [+3.3, +10.0] | -2.8 [-5.1, -0.6] | +9.4 [+5.0, +13.8] | 0.000 |
+| all problems | unadjusted | pass@5 | 221/221 | 1986 | +4.9 [+1.7, +8.2] | -7.5 [-11.5, -4.1] | +12.4 [+7.7, +17.1] | 0.000 |
+| one feature | premises | pass@5 | 175/221 | 66 | +6.8 [+3.0, +10.8] | +0.3 [-8.4, +9.7] | +6.5 [-4.8, +16.3] | 0.217 |
+| one feature | goal | pass@5 | 214/221 | 520 | +5.2 [+1.9, +8.5] | -7.4 [-12.7, -2.2] | +12.6 [+6.2, +18.7] | 0.001 |
+| one feature | atoms | pass@5 | 221/221 | 37 | +4.9 [+1.7, +8.2] | -7.6 [-21.9, +1.2] | +12.6 [+2.1, +28.5] | 0.018 |
+| one feature | connectives | pass@5 | 221/221 | 66 | +4.9 [+1.7, +8.2] | -2.8 [-9.9, +3.4] | +7.7 [+1.0, +14.8] | 0.024 |
+| one feature | classical-only statement | pass@5 | 221/221 | 1910 | +4.9 [+1.7, +8.2] | -7.3 [-11.2, -4.0] | +12.2 [+7.6, +16.9] | 0.000 |
+| one feature | ¬¬ in statement | pass@5 | 221/221 | 1343 | +4.9 [+1.7, +8.2] | -7.9 [-11.4, -4.3] | +12.8 [+7.9, +17.7] | 0.000 |
+| one feature | padding (A∨A, A∨(A∧B), …) | pass@5 | 221/221 | 291 | +4.9 [+1.7, +8.2] | -7.5 [-13.0, -2.1] | +12.4 [+6.1, +18.6] | 0.001 |
+| one feature | case split (∨E) | pass@5 | 220/221 | 89 | +5.0 [+1.8, +8.3] | +2.2 [-5.5, +10.0] | +2.7 [-6.3, +11.4] | 0.503 |
+| one feature | ex falso (⊥E) | pass@5 | 220/221 | 1412 | +5.0 [+1.8, +8.3] | -7.1 [-10.9, -4.0] | +12.1 [+7.7, +16.6] | 0.000 |
+| one feature | ¬¬E (reductio / classical) | pass@5 | 220/221 | 1968 | +5.0 [+1.8, +8.3] | -7.5 [-11.6, -4.1] | +12.5 [+7.7, +17.2] | 0.000 |
+| one feature | nested ¬-subproof | pass@5 | 220/221 | 1319 | +5.0 [+1.8, +8.3] | -6.8 [-11.0, -3.3] | +11.7 [+7.1, +16.4] | 0.000 |
+| one feature | box depth | pass@5 | 220/221 | 1787 | +5.0 [+1.8, +8.3] | -7.3 [-11.1, -4.0] | +12.2 [+7.6, +16.8] | 0.000 |
+| several features | case split + premises + connectives | pass@5 | 174/221 | 12 | +6.8 [+3.1, +10.9] | -2.7 [-11.5, +3.1] | +9.5 [+2.4, +18.2] | 0.014 |
+| several features | proof features (5) | pass@5 | 220/221 | 49 | +5.0 [+1.8, +8.3] | +2.9 [-5.6, +12.7] | +2.1 [-8.9, +10.9] | 0.645 |
+| several features | statement + proof features (12) | pass@5 | 168/221 | 7 | +7.2 [+3.4, +11.3] | -7.1 [-34.2, +12.7] | +14.2 [-6.2, +41.8] | 0.150 |
+| case-split problems only | ∨E problems: unadjusted | pass@5 | 71/71 | 1945 | +9.4 [+3.7, +15.4] | -7.8 [-11.8, -4.3] | +17.2 [+10.5, +24.4] | 0.000 |
+| case-split problems only | ∨E problems: ∨E steps | pass@5 | 71/71 | 693 | +9.4 [+3.7, +15.4] | -4.1 [-7.0, -1.4] | +13.5 [+7.1, +20.4] | 0.000 |
+| case-split problems only | ∨E problems: ∨E on a premise | pass@5 | 71/71 | 1388 | +9.4 [+3.7, +15.4] | -5.5 [-9.7, -1.9] | +14.9 [+8.0, +22.3] | 0.000 |
+| case-split problems only | ∨E problems: ∨E with a trivial branch | pass@5 | 71/71 | 387 | +9.4 [+3.7, +15.4] | -6.8 [-10.4, -3.2] | +16.2 [+9.7, +23.1] | 0.000 |
+| case-split problems only | ∨E problems: ∨E result reused | pass@5 | 71/71 | 639 | +9.4 [+3.7, +15.4] | -4.8 [-7.4, -2.2] | +14.2 [+8.0, +20.7] | 0.000 |
+| closeness to the RL pools | subformula shapes in the pool | pass@5 | 214/221 | 620 | +4.8 [+1.3, +8.3] | -8.1 [-14.0, -2.9] | +12.9 [+6.8, +18.9] | 0.000 |
+| closeness to the RL pools | nearest pool problem (−distance) | pass@5 | 220/221 | 586 | +5.0 [+1.8, +8.3] | -6.3 [-9.8, -2.9] | +11.2 [+6.9, +15.6] | 0.000 |
+| closeness to the RL pools | proof skeleton in the pool | pass@5 | 220/221 | 516 | +5.0 [+1.8, +8.3] | -6.4 [-10.0, -2.7] | +11.3 [+6.2, +16.6] | 0.001 |
 
 ### 2c. Closeness to the RL pools
 
@@ -410,38 +410,34 @@ Quartiles over all four sets (Q1 farthest); `skel`: 0 = skeleton not in the pool
 
 | measure | bin | source | n | Δ pass@1 |
 |---|---|---|---|---|
-| subformula shapes in the pool | Q1 | human | 26 | +6.6 [-0.5, +15.0] |
-| subformula shapes in the pool | Q2 | human | 23 | +0.6 [-4.0, +5.6] |
-| subformula shapes in the pool | Q3 | human | 32 | +6.1 [-1.2, +14.5] |
-| subformula shapes in the pool | Q4 | human | 133 | +9.9 [+5.4, +14.6] |
-| nearest pool problem (−distance) | Q1 | human | 10 | +13.9 [-1.6, +34.1] |
-| nearest pool problem (−distance) | Q2 | human | 13 | -0.7 [-6.1, +4.3] |
-| nearest pool problem (−distance) | Q3 | human | 22 | -3.8 [-8.5, -0.3] |
-| nearest pool problem (−distance) | Q4 | human | 175 | +9.4 [+5.6, +13.3] |
-| proof skeleton in the pool | 0 | human | 142 | +8.6 [+4.6, +12.9] |
-| proof skeleton in the pool | 1 | human | 78 | +6.1 [+1.3, +11.4] |
-| subformula shapes in the pool | Q1 | generated | 559 | -3.3 [-5.1, -1.5] |
-| subformula shapes in the pool | Q2 | generated | 636 | -1.4 [-3.0, +0.3] |
-| subformula shapes in the pool | Q3 | generated | 538 | -4.4 [-6.3, -2.6] |
-| subformula shapes in the pool | Q4 | generated | 253 | -3.2 [-6.6, +0.1] |
-| nearest pool problem (−distance) | Q1 | generated | 542 | -1.5 [-2.4, -0.7] |
-| nearest pool problem (−distance) | Q2 | generated | 538 | -3.9 [-5.5, -2.4] |
-| nearest pool problem (−distance) | Q3 | generated | 529 | -4.2 [-6.6, -1.9] |
-| nearest pool problem (−distance) | Q4 | generated | 377 | -2.0 [-5.2, +1.2] |
-| proof skeleton in the pool | 0 | generated | 1913 | -2.9 [-3.9, -1.9] |
-| proof skeleton in the pool | 1 | generated | 73 | -5.5 [-12.2, +1.3] |
+| subformula shapes in the pool | Q1 | human | 26 | +4.9 [-3.5, +13.8] |
+| subformula shapes in the pool | Q2 | human | 23 | -7.8 [-21.6, +1.1] |
+| subformula shapes in the pool | Q3 | human | 32 | +3.8 [-3.3, +11.5] |
+| subformula shapes in the pool | Q4 | human | 133 | +10.0 [+5.5, +14.7] |
+| nearest pool problem (−distance) | Q1 | human | 10 | +10.0 [-0.3, +28.6] |
+| nearest pool problem (−distance) | Q2 | human | 13 | -8.7 [-27.4, +3.1] |
+| nearest pool problem (−distance) | Q3 | human | 22 | -4.2 [-9.9, +1.7] |
+| nearest pool problem (−distance) | Q4 | human | 175 | +8.9 [+5.0, +13.0] |
+| proof skeleton in the pool | 0 | human | 142 | +6.2 [+1.4, +11.4] |
+| proof skeleton in the pool | 1 | human | 78 | +7.4 [+2.5, +12.2] |
+| subformula shapes in the pool | Q1 | generated | 559 | -2.8 [-4.6, -0.9] |
+| subformula shapes in the pool | Q2 | generated | 636 | -2.0 [-3.7, -0.3] |
+| subformula shapes in the pool | Q3 | generated | 538 | -4.3 [-6.9, -1.8] |
+| subformula shapes in the pool | Q4 | generated | 253 | -3.7 [-7.4, -0.0] |
+| nearest pool problem (−distance) | Q1 | generated | 542 | -1.7 [-2.8, -0.8] |
+| nearest pool problem (−distance) | Q2 | generated | 538 | -3.9 [-6.1, -1.7] |
+| nearest pool problem (−distance) | Q3 | generated | 529 | -4.1 [-6.9, -1.1] |
+| nearest pool problem (−distance) | Q4 | generated | 377 | -2.3 [-5.1, +0.7] |
+| proof skeleton in the pool | 0 | generated | 1913 | -3.1 [-5.0, -1.3] |
+| proof skeleton in the pool | 1 | generated | 73 | -2.1 [-8.0, +3.6] |
 
 Within-source slope of Δ pass@1 on the closeness rank (0 = farthest, 1 = closest);
 the hypothesis that EI gains with closeness predicts a negative slope.
 
 | source | measure | n | slope (points per full rank range) | p |
 |---|---|---|---|---|
-| human | subformula shapes in the pool | 214 | +8.7 [-2.8, +20.5] | 0.145 |
-| generated | subformula shapes in the pool | 1986 | -2.1 [-5.7, +1.5] | 0.268 |
-| human | nearest pool problem (−distance) | 220 | +5.6 [-4.1, +15.2] | 0.273 |
-| generated | nearest pool problem (−distance) | 1986 | -1.3 [-4.9, +2.1] | 0.475 |
-
-Rows not there yet (16 files; run: files):
-
-`ei_think_s0`: 4, `ei_think_s1`: 4, `grpo_think_s0`: 4, `grpo_think_s1`: 4
+| human | subformula shapes in the pool | 214 | +16.1 [+3.7, +31.1] | 0.008 |
+| generated | subformula shapes in the pool | 1986 | -2.0 [-5.7, +1.8] | 0.315 |
+| human | nearest pool problem (−distance) | 220 | +14.0 [+2.0, +26.2] | 0.019 |
+| generated | nearest pool problem (−distance) | 1986 | -1.5 [-4.4, +1.4] | 0.307 |
 

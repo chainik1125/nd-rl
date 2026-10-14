@@ -55,6 +55,7 @@ class ArmSpec:
     method: str  # "grpo" or "ei"
     think: bool
     v2: bool = True  # False: a v1 reference read
+    fig: bool = True  # False: tables only, not in fig_summary
 
     @property
     def budget(self) -> int:
@@ -72,6 +73,11 @@ ARMS = [
     ArmSpec("grpo_think_v", "GRPO + verifier (redraw)", "grpo", True),
     ArmSpec("grpo_think_vs", "GRPO + verifier (stop)", "grpo", True),
     ArmSpec("grpo_think_vs_h", "GRPO + verifier (stop), half lr", "grpo", True),
+    ArmSpec("grpo_think_vs_wb", "pilot: + L3 cooldown", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_3pb", "pilot: + 3-premise rows in L3", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_rfb", "pilot: + refill, drop p > 0.9", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_ulb", "pilot: + unlikeliness reward", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_pb", "pilot: + unseen prior = mean", "grpo", True, fig=False),
     ArmSpec("ei_think", "EI", "ei", True),
     ArmSpec("ei_think_v", "EI + verifier", "ei", True),
     ArmSpec("grpo_nothink", "GRPO", "grpo", False),
@@ -110,6 +116,14 @@ SETS = [
 SET = {s.key: s for s in SETS}
 FIG_SETS = ("t1620", "tb72", "charles149")
 
+# L3-only pilots from grpo_think_vs's L2 checkpoint (seed 2; `line.sh` arms ending `b`)
+PILOTS = [
+    ("grpo_think_vs_wb", "L3 cooldown"),
+    ("grpo_think_vs_3pb", "3-premise rows"),
+    ("grpo_think_vs_rfb", "refill"),
+    ("grpo_think_vs_ulb", "unlikeliness reward"),
+    ("grpo_think_vs_pb", "unseen prior"),
+]
 COMPARE = [
     ("thinking: GRPO + verifier (redraw) − EI + verifier", "grpo_think_v", "ei_think_v"),
     ("thinking, curriculum only: GRPO − EI", "grpo_think", "ei_think"),
@@ -158,6 +172,11 @@ COMPARE = [
         "ei_think_v",
     ),
     ("no thinking, curriculum only: GRPO, half lr − EI", "grpo_nothink_h", "ei_nothink"),
+    *[
+        (f"thinking, {lab}: pilot − GRPO + verifier (stop)", key, "grpo_think_vs")
+        for key, lab in PILOTS
+    ],
+    *[(f"thinking, {lab}: pilot − EI + verifier", key, "ei_think_v") for key, lab in PILOTS],
 ]
 CHAIN = {
     "grpo": [
@@ -465,8 +484,8 @@ def _seed_means(ld: Loader, arm: str, s: str, k: int) -> tuple[list[float], floa
 
 
 def fig_summary(ld: Loader, out: Path) -> None:
-    rows = [(a, f"{a.label}{'' if a.think else ' (no thinking)'}") for a in ARMS]
-    n_think = sum(a.think for a in ARMS)
+    rows = [(a, f"{a.label}{'' if a.think else ' (no thinking)'}") for a in ARMS if a.fig]
+    n_think = sum(a.think for a, _ in rows)
     with S.paper_style():
         fig = S.new_figure(S.FULL_W, 0.6 + 0.17 * len(rows), layout="constrained")
         axs = fig.subplots(1, len(FIG_SETS), sharey=True, squeeze=False)[0]
