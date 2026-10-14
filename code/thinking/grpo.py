@@ -237,6 +237,32 @@ skipped). Without them the rollouts, rows, log lines, weights and args.json are 
   the prior per budget (`fallback`: still at 1/2), the seen / unseen pairs, their mean weight and
   the unseen pairs' share of the total weight; `extra` for the extra curriculum.
 
+In-context verifier feedback (`--feedback context`, opt-in, a guided arm; Leon 2026-10-14, Dmitry's
+2026-10-09 "combine Robbie's in-context verifier idea with GRPO"; left out of args.json unless
+given). A rejected draw is retried with the rejected action in its think block, written as the
+search traces write a dead end (`⊢ F := TERM <no>`; `feedback.py`, `sample.think_generate`), and
+`--max_rej` counts retries per step: a state's (`--max_rej` + 1)-th rejection ends the attempt
+(`fail:max_rej`), as the stop arm's first does. Training:
+* **Feedback tokens are not policy tokens.** They are prefilled in the retry's decoder input (an
+  item's prompt), so they are out of the loss, the PPO ratio and the think ban mass exactly as
+  prompt tokens are; the KL anchor reads only its reference steps. The retry's own think tokens
+  are think-block tokens (`open_think`: its input ends inside the open block) and are scored under
+  the think ban; at B = 0 the block is closed after the lines and the retry is an action. Retries
+  and rejected drafts are policy tokens.
+* **A rejected draft still costs.** With `--rej_penalty` P every rejected draft is kept and scored
+  at -P whatever the outcome (`rejected_items`; the 'diverge' scope compares it with the draw
+  accepted at its state, its prompt differing by the lines), and the draw that ended an attempt
+  gets -P on top of the failure. A retried step no longer fails the attempt, so this -P is what an
+  invalid first draw costs when a retry recovers it (the stop arm: the failure's advantage, minus
+  P): the retry cap is the other cost.
+* No without-replacement exclusion: each retry is an exact sample of pi_T given its prompt, so
+  the first-minibatch ratio is exactly 1 (the redraw arm's exclusion is not modelled).
+Logged per iteration (`row['feedback']`, `feedback.metrics`, the `fb it N:` line): rejections and
+retries per attempt, retries accepted (overall and per retry index), the repeat rate of identical
+rejected actions at a state (of the rejected retries, and of all rejections: Robbie's
+denominator), feedback tokens and lines per attempt, the unrendered share, the share of solved
+attempts that needed a retry; per budget too.
+
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
 in ei.py). `--force_mode` is the sampler's budget forcing: 'line' (default) lets the block finish
@@ -268,6 +294,7 @@ from typing import Any, NamedTuple
 
 import torch
 
+from . import feedback as FB
 from . import stateview
 from .canary import anchor_kl, canary_metrics, load_canary
 from .ckpt import TRAIN_STATE, load_ckpt, load_train_state, run_env, save_ckpt
@@ -300,11 +327,29 @@ CANARY_MULT = 5.0  # --canary_mult: a canary value vs its base
 CANARY_KEYS = (("nll", "action NLL"), ("wrong_max", "top wrong-token P"), ("colon", "P(':')"))
 STATE_VERSION = 1  # `train_state`
 LEN_TARGET_MODES = ("exact", "max")  # --len_target_mode: |L_b - B| / B, or the overshoot only
+FEEDBACK_MODES = FB.MODES  # --feedback (module docstring); line.sh's guard reads it
+
+
+def open_think(p: Sequence[int], think_ids: tuple[int, int] | None) -> bool:
+    """Does a decoder input end inside an open think block: its last token is `<think>`, or its
+    last `<think>` comes after its last `</think>` (an in-context feedback retry, whose lines are
+    prefilled in the block: `sample.step_prompt`)? No for budget 0 (`<think> </think>`), R's
+    action-only steps and an intervention's re-prefilled block; False without `think_ids`."""
+    if think_ids is None or not p:
+        return False
+    if p[-1] == think_ids[0]:
+        return True
+    for x in reversed(p):
+        if x == think_ids[1]:
+            return False
+        if x == think_ids[0]:
+            return True
+    return False
 
 
 def think_blocks(x: dict[str, Any], think_ids: tuple[int, int] | None) -> list[tuple[int, bool]]:
     """An attempt's think blocks, in trace order -> (L_b, force-closed?) each. A block is a step
-    whose decoder input ends with an open `<think>` (`think_len`'s test), so budget 0 (`<think>
+    whose decoder input ends inside an open think block (`open_think`), so budget 0 (`<think>
     </think>` prefilled) and R's action-only steps have none; the failing draw's block counts.
     L_b = the generated tokens before its `</think>`, tags excluded: the count
     `sample.decode_wave` compares with B to force the close (under line forcing the tokens past B
@@ -314,7 +359,7 @@ def think_blocks(x: dict[str, Any], think_ids: tuple[int, int] | None) -> list[t
     out: list[tuple[int, bool]] = []
     for s in x.get("trace") or []:
         p, g = s.get("prompt") or b"", s.get("gen") or b""
-        if p and p[-1] == think_ids[0]:
+        if open_think(p, think_ids):
             n = g.index(think_ids[1]) if think_ids[1] in g else len(g)
             out.append((n, bool(s.get("forced"))))
     return out
@@ -485,7 +530,9 @@ def rejected_items(
     """The draws a guided arm rejected and redrew (`sample.think_generate(keep_rejected=True)`'s
     `redrawn`) -> items with advantage -penalty, whatever the attempt's outcome, scored as
     `scope` says (`REJ_SCOPES`). A redrawn draw's `step` is the number of steps accepted before
-    it, so the draw accepted at its state is the attempt's accepted trace entry of that index."""
+    it, so the draw accepted at its state is the attempt's accepted trace entry of that index.
+    Under feedback (entries with `fb`) the two prompts differ by the feedback lines, so the draws
+    are matched by their state (`same_state`)."""
     assert scope in REJ_SCOPES, scope
     if penalty <= 0:
         return []
@@ -502,12 +549,20 @@ def rejected_items(
             mask = [m and k >= n for k, m in enumerate(mask)]
         elif scope == "diverge":
             t = s.get("step")
-            if isinstance(t, int) and 0 <= t < len(acc) and list(acc[t]["prompt"]) == p:
+            if isinstance(t, int) and 0 <= t < len(acc) and same_state(acc[t], s):
                 n = _lcp(gen, acc[t]["gen"])
                 mask = [m and k >= n for k, m in enumerate(mask)]
         if any(mask):
             out.append((p, gen, mask, -penalty))
     return out
+
+
+def same_state(acc: dict[str, Any], r: dict[str, Any]) -> bool:
+    """Was redrawn draw `r` drawn where accepted draw `acc` was: the same decoder input, or, under
+    feedback (`fb` in the entries; the input carries the state's lines), the same state."""
+    if "fb" in r and "fb" in acc:
+        return acc.get("state") == r.get("state")
+    return list(acc["prompt"]) == list(r["prompt"])
 
 
 def n_rejected(x: dict[str, Any]) -> int:
@@ -715,9 +770,11 @@ def _chunks(items: Sequence[Item], max_tokens: int) -> list[list[int]]:
 
 def think_len(p: Sequence[int], g: Sequence[int], think_ids: tuple[int, int] | None) -> int:
     """How many leading tokens of g are think-block tokens (its `</think>` included): those after
-    a prompt that ends with an open `<think>`. 0 without `think_ids` (no think vocabulary)."""
-    if think_ids is None or not p or p[-1] != think_ids[0]:
+    a prompt that ends inside an open think block (`open_think`; a feedback retry's prefilled lines
+    are prompt tokens). 0 without `think_ids` (no think vocabulary)."""
+    if not open_think(p, think_ids):
         return 0
+    assert think_ids is not None
     return g.index(think_ids[1]) + 1 if think_ids[1] in g else len(g)
 
 
@@ -1201,6 +1258,8 @@ def sample_groups(
     over the calls (`rej_cause`, `end`, `redraws`, ...)."""
     arm = getattr(a, "arm", "plain")
     keep_rej = arm != "plain" and getattr(a, "rej_penalty", 0.0) > 0
+    fb = getattr(a, "feedback", "none")  # --feedback context: in-context verifier feedback
+    fbkw: dict[str, Any] = {} if fb == "none" else {"feedback": fb}
     by: dict[int, list[int]] = collections.defaultdict(list)
     for i, b in enumerate(budgets):
         by[b].append(i)
@@ -1225,6 +1284,7 @@ def sample_groups(
             keep_trace=True,
             force_mode=a.force_mode,
             keep_rejected=keep_rej,
+            **fbkw,
         )
         res = judge(tok, prompts, res, a.lean)
         for n, i in enumerate(idx):
@@ -1328,7 +1388,7 @@ def monitor_metrics(
         for r in x.get("redrawn") or []:
             n_red += 1
             st_ = r.get("step")
-            if isinstance(st_, int) and 0 <= st_ < len(acc) and acc[st_]["prompt"] == r["prompt"]:
+            if isinstance(st_, int) and 0 <= st_ < len(acc) and same_state(acc[st_], r):
                 n_match += 1
                 shared.append(_lcp(r["gen"], acc[st_]["gen"]) / max(1, len(r["gen"])))
     out: dict[str, Any] = {
@@ -1717,6 +1777,13 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         "--ban_restore_check needs --rollback_on_alarm"
     )
     assert a.arm in ARMS, a.arm
+    fb = getattr(a, "feedback", "none")  # --feedback; left out of args.json unless given
+    assert fb in FEEDBACK_MODES, fb
+    assert fb == "none" or a.arm != "plain", (
+        "--feedback context needs a guided --arm (the verifier)"
+    )
+    if fb != "none" and not a.rej_penalty:
+        print("NOTE: --feedback without --rej_penalty: a retried rejected draft costs nothing")
     if a.rej_penalty and a.arm == "plain":
         print("NOTE: --rej_penalty with the plain arm: only an attempt's ending draw is penalised")
     if a.len_target_coef and not a.effort:
@@ -1766,6 +1833,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         model, tok, extra = load_ckpt(init, dev)
     think = has_think(tok) and extra.get("think_format", "think") != "none"
     think_ids = (tok.think, tok.end_think) if think else None
+    assert fb == "none" or (think and sample_format(model) == "think"), (
+        "--feedback: the lines go into the think block (a per-step thinking checkpoint)"
+    )
     # the sampler's masks: think_generate bans think tokens in R's actions (one block per proof)
     bans = phase_bans(tok, model.cfg["vocab"], think, think and sample_format(model) == "root")
     targets = read_jsonl(a.targets)
@@ -1894,7 +1964,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             rinfo["unseen"].append(n_unseen(keys, src))
         model.eval()
         D.record.phase("sample", round=it)
-        samp_st: dict[str, Any] | None = {} if a.monitor else None
+        samp_st: dict[str, Any] | None = {} if a.monitor or fb != "none" else None
         per = sample_groups(model, tok, batch, tb, a, a.seed * 100003 + it, think, samp_st)
         items: list[Item] = []
         item_src: list[tuple[int, int, str]] = []  # per item: (group, attempt, kind)
@@ -2185,6 +2255,16 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 per, [target_length(t) for t in batch], skipped, items, item_src, think_ids, samp_st
             )
             row["monitor"]["arm"], row["monitor"]["rej_penalty"] = a.arm, a.rej_penalty
+        if fb != "none":  # the feedback summary (`feedback.metrics`), every sampled attempt
+            assert samp_st is not None
+            row["feedback"] = FB.metrics(
+                flat, [b for att, b in zip(per, tb, strict=True) for _ in att]
+            )
+            kd, ka = samp_st.get("fb_retry_k_draws") or {}, samp_st.get("fb_retry_k_acc") or {}
+            row["feedback"]["retry_accept_by_k"] = {
+                k: {"draws": int(kd[k]), "acc": int(ka.get(k, 0))} for k in sorted(kd, key=int)
+            }
+            row["feedback"]["max_rej"] = a.max_rej
         if refill:
             assert compute is not None
             n_att = sum(len(att) for att in per)
@@ -2283,6 +2363,8 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             print(_canary_line(it, row["canary"]), flush=True)
         if "monitor" in row:
             print(_monitor_line(it, row["monitor"]), flush=True)
+        if "feedback" in row:
+            print(f"fb it {it}: " + FB.line_text(row["feedback"]), flush=True)
         for line in _pilot_lines(it, row):
             print(line, flush=True)
         guard = []
@@ -2576,7 +2658,12 @@ def parser() -> argparse.ArgumentParser:
         help="the sampler's arm: plain ends an attempt at a rejected draw; structural redraws "
         "what the environment rejects; logical also what step_check rejects (sound w.r.t. Lean)",
     )
-    v.add_argument("--max_rej", type=int, default=10, help="guided arms: redraws per attempt")
+    v.add_argument(
+        "--max_rej",
+        type=int,
+        default=10,
+        help="guided arms: redraws per attempt (with --feedback: retries per step)",
+    )
     v.add_argument(
         "--rej_penalty",
         type=float,
@@ -2589,6 +2676,13 @@ def parser() -> argparse.ArgumentParser:
         default="diverge",
         help="what P scores in a redrawn draw: from where it departs from the draw accepted at its "
         "state (diverge), its think block and action (draft), or its action only",
+    )
+    v.add_argument(
+        "--feedback",
+        choices=FEEDBACK_MODES,
+        default=argparse.SUPPRESS,
+        help="context: a rejected draw is retried with its action in the think block as a dead-end "
+        "line (feedback.py); --max_rej then counts retries per step (default none: blind redraws)",
     )
     v.add_argument(
         "--monitor",

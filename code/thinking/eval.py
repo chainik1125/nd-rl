@@ -30,6 +30,12 @@ among `--auto_levels` (default 0,64,256; `sample.choose_levels`).  The cell is `
 (rows_plain_Bauto.jsonl, readable by `stats.load_arm`); its rows add per attempt `levels` (the level
 of every draw) and `choice` (sampled effort tokens, already in `tokens`), and the summary the shares
 of the picked levels.
+
+`--arms feedback` (a thinking checkpoint, per-step format): the logical arm with in-context
+verifier feedback (`sample.think_generate(feedback='context')`, `feedback.py`): a rejected draw is
+retried with its action in the think block as a dead-end line, at most `--max_rej` retries per
+step.  The cell is `feedback_B<B>`; its rows add per attempt `fb` (the feedback counters,
+`feedback.KEYS`), and the summary `feedback` (`feedback.metrics`).
 """
 
 from __future__ import annotations
@@ -45,6 +51,7 @@ from typing import Any
 
 import torch
 
+from . import feedback as FB
 from . import stateview
 from .ckpt import load_ckpt, run_env
 from .dan import bare, load
@@ -62,6 +69,8 @@ from .sample import (
 from .tok import has_think
 
 D = load()
+FEEDBACK_ARM = "feedback"  # the logical arm with in-context verifier feedback
+READ_ARMS = (*ARMS, FEEDBACK_ARM)  # --arms; line.sh's feedback guard reads it
 COUNTERS = ("tokens", "think", "close", "action", "rejected", "prefill", "draws", "rej", "forced")
 
 
@@ -133,6 +142,8 @@ def rows_for(
         if att and "levels" in att[0]:  # auto effort: the level picked at every draw
             row["levels"] = [x["levels"] for x in att]
             row["choice"] = [x["choice"] for x in att]
+        if att and "fb" in att[0]:  # the feedback arm: its counters per attempt
+            row["fb"] = {c: [x["fb"][c] for x in att] for c in FB.KEYS}
         rows.append(row)
     return rows
 
@@ -240,7 +251,11 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
         raise SystemExit(f"error: --intervene {a.intervene} runs the plain arm only")
     budgets = parse_budgets(a.budgets, think)
     arms = a.arms.split(",")
-    assert all(x in ARMS for x in arms), arms
+    assert all(x in READ_ARMS for x in arms), arms
+    if FEEDBACK_ARM in arms and (not think or fmt != "think" or a.intervene != "none"):
+        raise SystemExit(
+            "error: --arms feedback: a thinking checkpoint, per-step format, no intervention"
+        )
     auto_levels = [int(b) for b in a.auto_levels.split(",") if b.strip()]
     if AUTO in budgets:
         if not has_effort(tok):
@@ -271,12 +286,14 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
             st: dict[str, Any] = {}
             t0 = time.time()
             auto = B == AUTO
+            fbk = arm == FEEDBACK_ARM
+            fbkw: dict[str, Any] = {"feedback": "context"} if fbk else {}
             with D.record.compute(phase="read", arm=f"{arm}_B{B}", ckpt=a.ckpt):
                 res = think_generate(
                     model,
                     tok,
                     prompts,
-                    arm,
+                    "logical" if fbk else arm,
                     0 if isinstance(B, str) else B,
                     0 if isinstance(B, str) else min(a.min_think, B),
                     think,
@@ -295,6 +312,7 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
                     intervene=a.intervene,
                     wave_tokens=a.wave_tokens,
                     auto_levels=auto_levels if auto else None,
+                    **fbkw,
                 )
                 t_loop = time.time() - t0
                 res = judge(tok, prompts, res, a.lean)
@@ -332,6 +350,9 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
             if auto:
                 cell["auto_levels"] = auto_levels
                 cell["level_share_pct"] = level_shares(res)
+            if fbk:
+                cell["feedback"] = FB.metrics(res)
+                cell["feedback"]["max_rej"] = a.max_rej
             summary["cells"][name] = cell
             allc = cell["all"]
             tpa = allc["tokens_per_attempt"]
@@ -347,6 +368,8 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
                 f"{cell['wall_s']:.0f}s",
                 flush=True,
             )
+            if fbk:
+                print(f"[{name}] feedback: " + FB.line_text(cell["feedback"]), flush=True)
             (out / "summary.json").write_text(json.dumps(summary, indent=1, default=str))
     return summary
 

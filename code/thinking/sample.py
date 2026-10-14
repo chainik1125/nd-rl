@@ -54,6 +54,18 @@ and the step is then decoded exactly as a fixed-level step at that level (`state
 the state is prefilled twice in wall-clock terms; the accounting is that of one pass: the effort
 token counts as a sampled token (`tokens`, `choice`) and is not in `prefill`.  An auto attempt's
 `budget` is "auto", `levels` lists the level of every draw, and each trace entry carries `level`.
+
+In-context verifier feedback (`feedback='context'`, opt-in; a guided arm, per-step format, thinking
+on; `feedback.py`): a rejected draw is not redrawn blind.  Its action is rendered as a dead-end line
+of the search traces (`⊢ F := TERM <no>`, `feedback.render`) and the retry's prompt is `state [<eB>]
+<think> LINE_1 <nl> ... LINE_m <nl>`, the model's own think tokens following (B = 0: `<think>
+LINES </think>`, the action only).  The lines are the distinct actions rejected at the state so far
+(at most `feedback.MAX_LINES`, the newest), reset when a draw is accepted.  `max_rej` is then per
+step: a state's (max_rej + 1)-th rejection ends the attempt (`fail:max_rej`), so max_rej 0 is the
+stop arm.  There is no without-replacement exclusion: the context differs between draws, and a
+retry is an exact sample of pi_T given its prompt (the repeat rate is measured instead).  The
+feedback tokens are in the draw's `prompt`, never in `gen`.  Results add `fb` (counters,
+`feedback.KEYS`); trace and redrawn entries add `fb` (the feedback tokens in their prompt).
 """
 
 from __future__ import annotations
@@ -68,6 +80,7 @@ from typing import Any
 
 import torch
 
+from . import feedback as F
 from . import lean as L
 from . import stateview
 from .dan import load
@@ -382,6 +395,9 @@ class Attempt:
     levels: list[int] = field(default_factory=list)  # auto: the picked level of every draw
     choice: int = 0  # auto: sampled effort tokens (one per draw)
     redrawn: list[dict[str, Any]] = field(default_factory=list)  # keep_rejected: redrawn drafts
+    fb: list[list[int]] = field(default_factory=list)  # feedback: the state's dead-end lines
+    step_rej: int = 0  # feedback: rejections at the current state
+    fbc: collections.Counter[str] = field(default_factory=collections.Counter)  # feedback.KEYS
 
 
 def attempt_budget(budgets: int | Sequence[int], seed: int, i: int) -> int:
@@ -407,10 +423,16 @@ def step_prompt(
     think   `state [<eB>] <think>` (+ `</think>` at B = 0); T0: `state`
     root    step 0 `state_0 <think>` (+ `</think>` at B = 0), budget B; step t > 0 the transcript
             so far (every earlier prompt and draw) + `state_t`, budget 0 (the action only)
-    memo    `state_t <think> MEMO_{t-1} </think> <think>` (+ `</think>` at B = 0)"""
+    memo    `state_t <think> MEMO_{t-1} </think> <think>` (+ `</think>` at B = 0)
+    feedback (think, `a.fb` lines): `state [<eB>] <think> LINES <nl>`; at B = 0 `<think> LINES
+            </think>`"""
     if not think:
         return list(state), 0
     shut = [tok.end_think] if a.budget == 0 else []
+    if a.fb:  # in-context verifier feedback (per-step format only)
+        nl = tok.stoi["<nl>"]
+        body = F.block(a.fb, nl) + (shut or [nl])
+        return state + ([effort_id(tok, a.budget)] if effort else []) + [tok.think] + body, a.budget
     if fmt == "root":
         if a.env.steps:
             return a.ctx + state, 0
@@ -542,6 +564,7 @@ def think_generate(
     line_cap: int = LINE_CAP,
     auto_levels: Sequence[int] | None = None,
     keep_rejected: bool = False,
+    feedback: str = "none",
 ) -> list[dict[str, Any]]:
     """k attempts = k copies of a prompt.  -> one dict per attempt (status 'done' or 'fail:<cause>',
     accepted `steps`, `fail_step`, token counters, `nd` / `text` for the Lean gate, `trace`: per
@@ -563,8 +586,12 @@ def think_generate(
     picks its level among these at every step (`choose_levels`); results add `levels` and
     `choice`, and `budget` is "auto".  `keep_rejected` (guided arms, opt-in; GRPO's step penalty):
     results add `redrawn`, every rejected draw that was redrawn (state, think, prompt, gen,
-    forced, cause, step), in order; the draw that ended an attempt stays in `trace`, as before."""
+    forced, cause, step), in order; the draw that ended an attempt stays in `trace`, as before.
+    `feedback` 'context' (guided arms, opt-in): in-context verifier feedback, `max_rej` per step
+    (the module docstring)."""
     assert arm in ARMS, arm
+    assert feedback in F.MODES, feedback
+    fbk = feedback != "none"
     assert force_mode in FORCE_MODES, force_mode
     assert intervene in INTERVENTIONS, intervene
     if intervene != "none" and arm != "plain":
@@ -586,6 +613,13 @@ def think_generate(
         if fmt == "root":
             mask_action_think = True  # one think block per proof: ROOT
             wave_tokens = wave_tokens or ROOT_WAVE_TOKENS
+    if fbk:
+        if arm == "plain":
+            raise ValueError("feedback: the verifier's arms only (structural, logical), not plain")
+        if not think or fmt != "think":
+            raise ValueError("feedback: the per-step format with thinking on (lines in the block)")
+        if intervene != "none" or auto_levels is not None:
+            raise ValueError("feedback: no intervention and no auto effort")
     ctx_max = int(getattr(model, "cfg", {}).get("max_len", 0)) if fmt != "think" else 0
     auto = None if auto_levels is None else tuple(int(b) for b in auto_levels)
     if auto is not None:
@@ -667,6 +701,10 @@ def think_generate(
             r = res[a.i]
             assert r is not None
             r["redrawn"] = list(a.redrawn)
+        if fbk:
+            r = res[a.i]
+            assert r is not None
+            r["fb"] = {k: int(a.fbc[k]) for k in F.KEYS}
 
     def run_wave(
         pids: list[list[int]], rb: list[int], forbids: list[Any] | None, think_only: bool
@@ -763,7 +801,8 @@ def think_generate(
         D.record.count(actions=len(live))
         n = len(live)
         if intervene == "none":
-            w = run_wave(pids, rb, [a.forbid for a in live] if guided else None, False)
+            # feedback: no without-replacement exclusion (each retry has its own context)
+            w = run_wave(pids, rb, [a.forbid for a in live] if guided and not fbk else None, False)
             draws = []
             for j in range(n):
                 th, closed, act_ids = split_segment(tok, w.ids[j], think, rb[j])
@@ -853,11 +892,28 @@ def think_generate(
             extra: dict[str, Any] = {} if intervene == "none" else {"think_sampled": bytes(th)}
             if a.auto:
                 extra["level"] = a.budget
+            if fbk:  # the feedback tokens in this draw's prompt; the draw's place among retries
+                # the tokens the lines add to the prompt: the lines and, at B > 0, the last <nl>
+                nfb = len(F.block(a.fb, 0)) + (a.budget > 0) if a.fb else 0
+                extra["fb"] = nfb
+                a.fbc["draws"] += bool(a.fb)
+                a.fbc["tokens"] += nfb
+                if a.step_rej > 0:  # a retry: per retry index, its draws and acceptances
+                    a.fbc["retry_draws"] += 1
+                    st.setdefault("fb_retry_k_draws", collections.Counter())[str(a.step_rej)] += 1
+                if cause is not None:
+                    a.fbc["rejections"] += 1
+                    if a.step_rej > 0:
+                        a.fbc["rej_after_rej"] += 1
+                        a.fbc["repeats"] += tuple(act_ids) in a.rejected_actions
+                elif a.step_rej > 0:
+                    a.fbc["retry_acc"] += 1
+                    st.setdefault("fb_retry_k_acc", collections.Counter())[str(a.step_rej)] += 1
             if cause is not None:
                 rej_cause[cause] += 1
                 a.causes.append(cause)
                 a.rejected += n_tok
-                if arm == "plain" or a.rej >= max_rej:
+                if arm == "plain" or (a.step_rej if fbk else a.rej) >= max_rej:
                     if keep_trace:  # the draw that ended the attempt (GRPO credits it)
                         a.trace.append(
                             dict(
@@ -890,7 +946,17 @@ def think_generate(
                 ak = tuple(act_ids)
                 st["repeat_action_redraws"] += int(ak in a.rejected_actions)
                 a.rejected_actions.add(ak)
-                if ended:
+                if fbk:  # the retry sees the rejected action as a dead-end line
+                    a.step_rej += 1
+                    line = F.render(a.env, atoks) if ended else None
+                    if line is None or any(t not in tok.stoi for t in line):
+                        a.fbc["unrendered"] += 1
+                    else:
+                        li = tok.encode_toks(line)
+                        if li not in a.fb:
+                            a.fb = (a.fb + [li])[-F.MAX_LINES :]
+                            a.fbc["lines"] += 1
+                elif ended:
                     assert row_lqs is not None
                     a.forbid = a.forbid + [(ids, row_lqs[j])]
                 keep.append(a)
@@ -921,6 +987,7 @@ def think_generate(
             a.env = e2
             a.forbid = []
             a.rejected_actions = set()
+            a.fb, a.step_rej = [], 0
             if a.canon and not SC.canonical(atoks):
                 a.canon = False
                 st["noncanon_attempts"] = st.get("noncanon_attempts", 0) + 1
