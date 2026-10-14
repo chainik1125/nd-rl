@@ -217,6 +217,25 @@ skipped). Without them the rollouts, rows, log lines, weights and args.json are 
   `row['unlikely']`: the groups and solved attempts ranked, the mean and largest deduction, and
   the mean within-group correlation of rho with the attempt's scored tokens (a length bias shows
   there).
+* **Unseen-pair prior** (`--unseen_prior`; Leon 2026-10-13). The pass-rate estimate is already a
+  shrunk one: the Beta(1, 1) posterior mean (s + 1) / (n + 2) pulls a pair's decayed rate s / n
+  toward 1/2 with weight 2 / (n + 2), and a pair never drawn sits at 1/2, the largest weight.
+  L3's 15,000 pairs outnumber a stage's 9,984 draws, so in the v2 L3 runs unseen pairs were
+  81-86% of the draws while the seen pairs' mean p was about 0.87 (0.75 at B0). `half` (the
+  default) keeps that. `mean` makes the prior Beta(2 m_b, 2 (1 - m_b)), the same strength 2 with
+  mean m_b: p = (s + 2 m_b) / (n + 2), so an unseen pair is at m_b and a seen one is pulled toward
+  m_b instead of 1/2 (the shrinkage stays as consistent as before). m_b is the mean over budget
+  b's seen pairs of their decayed rate s / n, unshrunk, per curriculum (the extra targets have
+  their own), recomputed at every draw; until PRIOR_MIN_SEEN (32) of the budget's pairs are seen
+  it is 1/2 (in practice only before the first update). Budget, not target, is the grouping: the
+  budget is the curriculum's summary grouping and its means differ (B0 lower); a pair's
+  same-target pairs at other budgets correlate with its rate (r 0.36-0.41 at the end of v2 L3)
+  but predict it worse than the budget mean (squared error 0.043-0.053 vs 0.035-0.043). The
+  `--max_pass` filter applies to seen pairs only (the same under `half`, where an unseen pair is
+  at 1/2 <= x). `row['prior']` (whenever the option is given, `half` too): the pairs drawn this
+  iteration and how many were never drawn before (every --refill round), and at its first draw
+  the prior per budget (`fallback`: still at 1/2), the seen / unseen pairs, their mean weight and
+  the unseen pairs' share of the total weight; `extra` for the extra curriculum.
 
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
@@ -1031,21 +1050,59 @@ def check_resume_schedule(path: str, sched: dict[str, Any] | None, start_iter: i
     )
 
 
+UNSEEN_PRIORS = ("half", "mean")  # --unseen_prior (module docstring, "Unseen-pair prior")
+PRIOR_MIN_SEEN = 32  # --unseen_prior mean: a budget's seen pairs before its mean replaces 1/2
+
+
 class Curriculum:
-    """Learnability sampling over (target, budget) pairs; see the module docstring."""
+    """Learnability sampling over (target, budget) pairs; see the module docstring. `prior`: the
+    prior of a pair's pass rate, 'half' (Beta(1, 1)) or 'mean' (--unseen_prior)."""
 
     def __init__(
-        self, n: int, budgets: Sequence[int], floor: float, decay: float, seed: int
+        self,
+        n: int,
+        budgets: Sequence[int],
+        floor: float,
+        decay: float,
+        seed: int,
+        prior: str = "half",
     ) -> None:
+        assert prior in UNSEEN_PRIORS, prior
         self.keys = [(t, b) for t in range(n) for b in budgets]
         self.index = {k: i for i, k in enumerate(self.keys)}
         self.s = [0.0] * len(self.keys)
         self.n = [0.0] * len(self.keys)
         self.floor, self.decay = floor, decay
         self.rng = random.Random(seed)
+        self.prior = prior
+        self._mu: dict[int, tuple[float, int]] | None = None  # `prior_means`, until s / n change
+
+    def prior_means(self) -> dict[int, tuple[float, int]]:
+        """Per budget -> (m_b, the budget's seen pairs): the prior mean of a pair's pass rate.
+        'half': 1/2. 'mean': the mean over the budget's seen pairs (n > 0) of their decayed pass
+        rate s / n (unshrunk), once PRIOR_MIN_SEEN are seen; 1/2 before. Cached until an update."""
+        if self._mu is None:
+            tot: dict[int, float] = collections.defaultdict(float)
+            cnt: dict[int, int] = collections.defaultdict(int)
+            for i, (_, b) in enumerate(self.keys):
+                cnt[b] += 0
+                if self.n[i] > 0:
+                    tot[b] += self.s[i] / self.n[i]
+                    cnt[b] += 1
+            ok = self.prior == "mean"
+            self._mu = {
+                b: (tot[b] / c if ok and c >= PRIOR_MIN_SEEN else 0.5, c) for b, c in cnt.items()
+            }
+        return self._mu
 
     def p(self, i: int) -> float:
-        return (self.s[i] + 1.0) / (self.n[i] + 2.0)
+        """The pair's pass-rate estimate: the posterior mean under Beta(1, 1), (s + 1) / (n + 2),
+        or with --unseen_prior mean under Beta(2 m_b, 2 (1 - m_b)) (the same strength 2, mean
+        m_b), (s + 2 m_b) / (n + 2): an unseen pair is at m_b."""
+        if self.prior == "half":
+            return (self.s[i] + 1.0) / (self.n[i] + 2.0)
+        m = self.prior_means()[self.keys[i][1]][0]
+        return (self.s[i] + 2.0 * m) / (self.n[i] + 2.0)
 
     def weight(self, i: int) -> float:
         p = self.p(i)
@@ -1056,8 +1113,8 @@ class Curriculum:
     ) -> list[tuple[int, int]]:
         """m distinct pairs, weighted, without replacement (Efraimidis-Spirakis keys u^(1/w), as
         log(u) / w: u^(1/w) underflows to 0 for small weights, which would tie and fall back to
-        index order). `exclude` (pair indices) and pairs with p > `max_pass` are not drawn (fewer
-        than m when too few are left); the RNG draws one number per pair either way."""
+        index order). `exclude` (pair indices) and seen pairs with p > `max_pass` are not drawn
+        (fewer than m when too few are left); the RNG draws one number per pair either way."""
         keyed = [
             (math.log(1.0 - self.rng.random()) / self.weight(i), i) for i in range(len(self.keys))
         ]
@@ -1065,19 +1122,44 @@ class Curriculum:
             keyed = [
                 (k, i)
                 for k, i in keyed
-                if i not in exclude and (max_pass is None or self.p(i) <= max_pass)
+                if i not in exclude
+                and (max_pass is None or self.n[i] == 0 or self.p(i) <= max_pass)
             ]
         keyed.sort(reverse=True)
         return [self.keys[i] for _, i in keyed[: min(m, len(keyed))]]
 
     def over(self, max_pass: float) -> int:
-        """How many pairs `draw(max_pass=...)` leaves out."""
-        return sum(self.p(i) > max_pass for i in range(len(self.keys)))
+        """How many pairs `draw(max_pass=...)` leaves out (seen ones only: under the 1/2 prior an
+        unseen pair, at 1/2, is never over a --max_pass, which is at least 1/2)."""
+        return sum(self.n[i] > 0 and self.p(i) > max_pass for i in range(len(self.keys)))
+
+    def prior_stats(self) -> dict[str, Any]:
+        """--unseen_prior's row: the prior per budget (`prior_mean`; `fallback`: the budgets still
+        at 1/2 under 'mean'), the seen and unseen pairs, their mean draw weight, and the unseen
+        pairs' share of the total weight (the expected unseen share of a draw's first pick)."""
+        mu = self.prior_means()
+        w = [self.weight(i) for i in range(len(self.keys))]
+        un = [self.n[i] == 0 for i in range(len(self.keys))]
+        n_un = sum(un)
+        w_un = sum(x for x, u in zip(w, un, strict=True) if u)
+        w_all = sum(w)
+        return {
+            "prior_mean": {str(b): m for b, (m, _) in sorted(mu.items())},
+            "fallback": [
+                b for b, (_, c) in sorted(mu.items()) if self.prior == "mean" and c < PRIOR_MIN_SEEN
+            ],
+            "seen": len(w) - n_un,
+            "unseen": n_un,
+            "w_seen": (w_all - w_un) / max(1, len(w) - n_un),
+            "w_unseen": w_un / max(1, n_un),
+            "unseen_weight_share": w_un / w_all if w_all else 0.0,
+        }
 
     def update(self, key: tuple[int, int], successes: int, trials: int) -> None:
         i = self.index[key]
         self.s[i] = self.s[i] * self.decay + successes
         self.n[i] = self.n[i] * self.decay + trials
+        self._mu = None
 
     def state(self) -> dict[str, Any]:
         return {"s": list(self.s), "n": list(self.n), "rng": self.rng.getstate()}
@@ -1086,6 +1168,7 @@ class Curriculum:
         assert len(st["s"]) == len(self.keys), "the curriculum's pairs differ from the checkpoint's"
         self.s, self.n = list(st["s"]), list(st["n"])
         self.rng.setstate(st["rng"])
+        self._mu = None
 
     def summary(self) -> dict[str, Any]:
         seen = [i for i in range(len(self.keys)) if self.n[i] > 0]
@@ -1563,6 +1646,16 @@ def _pilot_lines(it: int, row: dict[str, Any]) -> list[str]:
             f"attempts ranked, deduction mean {u['pen_mean']:.3f} max {u['pen_max']:.3f}, "
             f"rank/length corr {lc} ({u['len_corr_groups']} groups)"
         )
+    if "prior" in row:
+        q = row["prior"]
+        mu = " ".join(f"{b}:{m:.3f}" for b, m in q["prior_mean"].items())
+        fb = f" (fallback 1/2 at B{','.join(map(str, q['fallback']))})" if q["fallback"] else ""
+        out.append(
+            f"prior it {it}: {q['mode']}, prior mean {mu}{fb}; unseen drawn "
+            f"{q['unseen_drawn']}/{q['drawn']} ({100 * q['unseen_drawn_share']:.0f}%); unseen "
+            f"{q['unseen']} pairs hold {100 * q['unseen_weight_share']:.0f}% of the weight "
+            f"(mean weight unseen {q['w_unseen']:.3f}, seen {q['w_seen']:.3f})"
+        )
     return out
 
 
@@ -1630,6 +1723,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         print("WARNING: --len_target_coef without --effort: the target is not in the prompt")
     sched = lr_schedule(a)  # None: constant; else resolved onto `a` (args.json)
     refill, max_pass, beta = pilot_options(a)  # resolved onto `a` when given (args.json)
+    prior = getattr(a, "unseen_prior", None)  # --unseen_prior; None: not given (half, no row)
     if a.resume:  # before anything is written: a refused resume leaves the run's files alone
         check_resume_schedule(a.resume, sched, a.start_iter)
     out = Path(a.out)
@@ -1676,14 +1770,21 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
     bans = phase_bans(tok, model.cfg["vocab"], think, think and sample_format(model) == "root")
     targets = read_jsonl(a.targets)
     rng = random.Random(a.seed * 7919)
-    cur = Curriculum(len(targets), budgets if think else [0], a.floor, a.decay, a.seed)
+    cur = Curriculum(
+        len(targets), budgets if think else [0], a.floor, a.decay, a.seed, prior or "half"
+    )
     curs = {"main": cur}
     tx = read_jsonl(a.targets_extra) if a.targets_extra else []
     n_x = round(a.targets_extra_frac * a.prompts) if tx else 0
     assert n_x < a.prompts, "--targets_extra_frac leaves no --targets group"
     if tx:
         curs["extra"] = Curriculum(
-            len(tx), budgets if think else [0], a.floor, a.decay, a.seed + 7_000_003
+            len(tx),
+            budgets if think else [0],
+            a.floor,
+            a.decay,
+            a.seed + 7_000_003,
+            prior or "half",
         )
     kl_rng = random.Random(a.seed * 7919 + 1)  # the anchor's draws; the batch shuffle keeps `rng`
     rngs = {"batch": rng, "kl": kl_rng}
@@ -1778,6 +1879,8 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
 
     for it in range(start + 1, last + 1):
         t0 = time.time()
+        # --unseen_prior: the weights this iteration's first draw uses
+        pstats = {k: c.prior_stats() for k, c in curs.items()} if prior else {}
         pairs = cur.draw(a.prompts - n_x, max_pass=max_pass)
         pairs_x = curs["extra"].draw(n_x, max_pass=max_pass) if n_x else []
         assert pairs or pairs_x, f"--max_pass {max_pass}: no pair left to draw"
@@ -1787,7 +1890,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         tb = [b for _, b in keys]
         # --refill: per round the pairs drawn, those with an outcome signal, those never drawn
         rinfo: dict[str, list[int]] = {"drawn": [len(keys)], "signal": [], "unseen": []}
-        if refill:
+        if refill or prior:
             rinfo["unseen"].append(n_unseen(keys, src))
         model.eval()
         D.record.phase("sample", round=it)
@@ -2110,6 +2213,16 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 row["max_pass"]["over_extra"] = curs["extra"].over(max_pass)
         if ul is not None:
             row["unlikely"] = ul
+        if prior:  # the draws' unseen share (every round), the weights at the first draw
+            row["prior"] = {
+                "mode": prior,
+                "drawn": sum(rinfo["drawn"]),
+                "unseen_drawn": sum(rinfo["unseen"]),
+                "unseen_drawn_share": sum(rinfo["unseen"]) / max(1, sum(rinfo["drawn"])),
+                **pstats["main"],
+            }
+            if "extra" in pstats:
+                row["prior"]["extra"] = pstats["extra"]
         if can is not None and it % a.canary_every == 0:  # the policy this iteration leaves
             t1 = time.time()
             model.eval()
@@ -2516,6 +2629,13 @@ def parser() -> argparse.ArgumentParser:
         default=argparse.SUPPRESS,
         help="unlikeliness reward (He et al. 2025): a solved attempt's reward is 1 - beta x its "
         "likelihood rank / n in its group (default 0: off; 0.25 in the paper)",
+    )
+    pg.add_argument(
+        "--unseen_prior",
+        choices=UNSEEN_PRIORS,
+        default=argparse.SUPPRESS,
+        help="the pass-rate prior: half (default: Beta(1, 1), an unseen pair at 1/2) or mean "
+        "(the budget's mean pass rate over its seen pairs, as Beta(2 m, 2 (1 - m)))",
     )
     return ap
 
