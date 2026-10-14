@@ -74,6 +74,7 @@ class BinOp:
 
 
 Formula: TypeAlias = Atom | Bot | Not | BinOp
+FALSE = Bot()
 
 ATOMS = ("P", "Q", "R", "S")
 ND_BINOPS: dict[str, BinOpName] = {"&": "and", "v": "or", ">": "imp"}
@@ -531,7 +532,7 @@ _TO_ND = {
 
 def parse_lean_formula(toks: Sequence[str], i: int) -> tuple[Formula, int]:
     """Parse one formula in ``lean_formula_tokens``' form starting at ``toks[i]``; return it and the
-    index after it. Raises ``LeanParseError`` if there is none."""
+    index after it. Raises ``LeanParseError`` if there is none (or it nests too deeply to parse)."""
     nd: list[str] = []
     j = i
     while j < len(toks) and toks[j] in _TO_ND:
@@ -539,7 +540,7 @@ def parse_lean_formula(toks: Sequence[str], i: int) -> tuple[Formula, int]:
         j += 1
     try:
         f, used = parse_formula([*nd, "$"], 0)
-    except NDParseError as e:
+    except (NDParseError, RecursionError) as e:
         raise LeanParseError("formula") from e
     return f, i + used
 
@@ -742,8 +743,9 @@ TERM_SIZE = {
 
 
 def term_size(toks: Sequence[str]) -> int:
-    """The size of the proof term Lean elaborates from ``lean_seq`` symbols (a proof's text, e.g.
-    ``proof_symbols(body)``); raises ``LeanParseError`` outside the strict grammar.
+    """The size of the proof term Lean elaborates from a proof's ``lean_seq`` symbols (``.1``,
+    ``.2`` and ``.elim`` separate, as ``proof_symbols`` and ``LeanSeqTokenizer.tokens`` return
+    them); raises ``LeanParseError`` outside the strict grammar.
 
     The fork's definition (``lean_check.py``): the inference nodes of the elaborated value, 1 per
     application headed by an inference constant (``And.intro``, ``Or.inl``, ``False.elim``,

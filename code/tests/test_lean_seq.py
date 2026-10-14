@@ -139,14 +139,16 @@ def test_bad_prompt_raises() -> None:
 
 
 def test_proof_symbols_and_formulas() -> None:
-    proof = "N1 ( P > Q ) : PR ; N2 P : PR ; N3 Q : IMPE N1 N2 ; QED"
+    proof = "N1 ( P & Q ) : PR ; N2 ( Q > R ) : PR ; N3 Q : ANDE2 N1 ; N4 R : IMPE N2 N3 ; QED"
     symbols = proof_symbols(proof)
     assert [TOK.stoi[t] for t in symbols] + [TOK.eos_id] == TOK.encode_proof(proof)
-    assert symbols[:9] == ["have", "n1", ":", "(", "P", "→", "Q", ")", ":="]
+    assert symbols[:9] == ["have", "n1", ":", "(", "P", "∧", "Q", ")", ":="]
     f, end = parse_lean_formula(symbols, 3)
-    assert (f, end) == (BinOp("imp", Atom("P"), Atom("Q")), 8)
+    assert (f, end) == (BinOp("and", Atom("P"), Atom("Q")), 8)
     with pytest.raises(LeanParseError):
         parse_lean_formula(["(", "P", ")"], 0)
+    with pytest.raises(LeanParseError):  # nested too deeply to parse
+        parse_lean_formula(["(", "¬"] * 3000 + ["P"] + [")"] * 3000, 0)
 
 
 # Term size against Lean's own count: the take-home fork's ``lean_check.py`` elaborated each proof
@@ -162,7 +164,8 @@ def test_term_size_matches_lean() -> None:
     assert got == TERM_SIZES["sizes"]
     for _, text, size in TERM_SIZES["extra"]:  # .elim on ¬ / ∧ / ∨ / False, ¬ A as A → False, ...
         assert term_size(text.split()) == size, text
-    assert {size for _, text, size in TERM_SIZES["extra"] if "( P ∧ Q ) := h1" in text} == {2}
+    and_elim = [n for _, t, n in TERM_SIZES["extra"] if t.startswith("have n1 : ( P ∧ Q ) := h1")]
+    assert and_elim == [2]  # And.elim takes the conjunction second: Lean eta-expands n1.elim
 
 
 # The experiment pipeline's tokenizer interface (``nd_model.ProofTokenizer``).

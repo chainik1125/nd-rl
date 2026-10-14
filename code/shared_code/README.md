@@ -76,7 +76,7 @@ from code.shared_code.step_check import check_step
 
 
 def next_state(env, draw, max_rejections=10):
-    """One accepted step, or None once max_rejections steps have been rejected."""
+    """One accepted step, or None if max_rejections + 1 draws in a row are rejected."""
     for _ in range(max_rejections + 1):
         action = draw(env.state_tokens())  # the model's next action, as symbols
         trial = copy.deepcopy(env)
@@ -86,7 +86,8 @@ def next_state(env, draw, max_rejections=10):
 ```
 
 - The fork drew redraws without replacement (a rejected action's probability is removed before
-  the next draw), and counted the rejection budget per attempt, not per step.
+  the next draw), and counted the rejection budget per attempt, not per step: up to 10 redraws,
+  and the 11th rejection ends the attempt.
 - The verdict depends only on the state and the action, so it can be cached.
 - Report plain sampling beside guided (the fork's policy). Lean still judges every finished proof.
 
@@ -155,7 +156,7 @@ term_size(tok.tokens(ids)[0])  # a sample in the strict grammar
 ### Lean
 
 Lean 4 core only, no Mathlib, no project. Install it with [elan](https://github.com/leanprover/elan).
-Tested with Lean 4.34.1. `find_lean()` looks at `$LEAN`, then `PATH`, then `~/.elan/bin/lean`. The
+Tested with Lean 4.34.1 (the proof-state tests with 4.35.0). `find_lean()` looks at `$LEAN`, then `PATH`, then `~/.elan/bin/lean`. The
 tests that need Lean run under `--runslow` and skip when it is not installed.
 
 ### Compatibility

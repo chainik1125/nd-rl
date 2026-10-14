@@ -44,6 +44,7 @@ import functools
 from collections.abc import Mapping, Sequence
 
 from code.shared_code.lean_seq import (
+    FALSE,
     BinOp,
     Bot,
     Formula,
@@ -54,8 +55,6 @@ from code.shared_code.lean_seq import (
     text,
 )
 from code.shared_code.state_env import Env
-
-FALSE = Bot()
 
 
 @functools.lru_cache(maxsize=1 << 16)
@@ -196,7 +195,10 @@ def check_step(env: Env, action: Sequence[str]) -> str | None:
     declared, term = have
     if not term or term[0] in ("(", "Or.elim"):
         return None
-    return check_term(env.premises, env.scope(), declared, term)
+    try:
+        return check_term(env.premises, env.scope(), declared, term)
+    except RecursionError:  # a formula nested hundreds deep: not modelled
+        return None
 
 
 def formula_text(f: Formula) -> str:

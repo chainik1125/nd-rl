@@ -17,7 +17,13 @@ import pytest
 
 from code.shared_code.lean_check import check_theorems, find_lean
 from code.shared_code.lean_seq import LeanParseError, LeanSeqTokenizer, text
-from code.shared_code.state_env import Env, canonicalise, decompose, split_actions
+from code.shared_code.state_env import (
+    STATE_SYMBOLS,
+    Env,
+    canonicalise,
+    decompose,
+    split_actions,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures" / "proof_state"
 
@@ -99,7 +105,7 @@ def test_random_and_mutated_actions_match_the_fork() -> None:
             "canon": [a.split() for _, a in row["canon"]["steps"]],
             "assign": [a.split() for a in row["assign"]["actions"]],
         }
-        for config, k, act, ok, why, after in row["fuzz"]:
+        for config, k, act, ok, why, after, state_after in row["fuzz"]:
             if config.startswith("assign:"):  # a high base, replaying the plain actions
                 env = Env(r["prompt"], canon=True, base=int(config[7:]), assign=True)
                 prefix = replays["plain"][:k]
@@ -111,7 +117,8 @@ def test_random_and_mutated_actions_match_the_fork() -> None:
                 if not env.apply(a)[0]:
                     break
             got = env.apply(act.split())
-            if got != (ok, why) or (ok and " ".join(env.text) != after):
+            text_after = [" ".join(env.text), digest(" ".join(env.state_tokens()))]
+            if got != (ok, why) or (ok and text_after != [after, state_after]):
                 bad.append((row["i"], act, (ok, why), got))
     assert not bad, bad[:5]
 
@@ -197,13 +204,32 @@ def test_canonical_names() -> None:
 
 
 def test_assigned_names_override_the_policys() -> None:
-    env = Env("THM P SEQ ( Q > P ) PRF", canon=True, base=5, assign=True)
+    env = Env("THM P SEQ ( Q > ( P & P ) ) PRF", canon=True, base=5, assign=True)
     for action in ("have n40 : P := h1 ;", "have n9 : ( Q → P ) := ( fun ( n9 : Q ) => by"):
         assert env.apply(action.split()) == (True, "")
     assert " ".join(env.text) == "have n6 : P := h1 ; have n7 : ( Q → P ) := ( fun ( n8 : Q ) => by"
     assert (env.defined, env.renamed) == (3, 3)
     env = Env("THM P SEQ P PRF", canon=True, base=64, assign=True)
     assert env.apply(act("have n1 : P := h1 ;")) == (False, "names exhausted")
+
+
+def test_state_symbols() -> None:
+    """A state is lean_seq's symbols plus the four state symbols a model's vocabulary adds."""
+    tok = LeanSeqTokenizer()
+    used = {t for row in ROWS for s, _ in row["canon"]["steps"] for t in s.split()}
+    assert used - set(tok.itos) == set(STATE_SYMBOLS)
+
+
+def test_deep_nesting_never_raises() -> None:
+    """A formula nested thousands deep does not parse; one nested hundreds deep parses, but
+    comparing two of them runs out of stack, and that action is rejected too."""
+    deep = " ".join(["(", "¬"] * 3000 + ["P"] + [")"] * 3000)
+    assert Env("THM P SEQ P PRF").apply(act(f"have n1 : {deep} := h1 ;")) == (False, "formula")
+    nd = " ".join(["(", "~"] * 700 + ["P"] + [")"] * 700)
+    deep = " ".join(["(", "¬"] * 700 + ["P"] + [")"] * 700)
+    env = Env(f"THM {nd} SEQ {nd} PRF")
+    assert env.apply(act(f"have n1 : {deep} := h1 ;")) == (True, "")
+    assert env.apply(act("exact n1")) == (False, "malformed")
 
 
 def test_split_actions_rejects_text_outside_the_grammar() -> None:

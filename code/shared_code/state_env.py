@@ -39,7 +39,9 @@ catches the certain errors one step at a time). The environment checks what the 
 ``lean_seq.inverse`` checks, so a finished attempt always parses: cited names in scope; ``exact n``
 only for the focused frame's last statement, whose declared formula is the goal; premise lines
 ``:= h<k>`` only at depth 0, in order, before any other line; a box binder of the formula its
-``have`` implies. A rejected action ends the attempt; malformed input never raises.
+``have`` implies. A rejected action ends the attempt; malformed input never raises. (A formula
+nested hundreds of levels deep is rejected, which the fork may accept; an action within the fork's
+512-token cap cannot nest that deep.)
 
 Provenance: the take-home fork ``dan-pandori/nd-takehome``, ``state_env.py`` at commit 4dcd0e4f
 (runs ``state-env`` and ``best-state``), on ``lean_seq``'s types instead of formula tuples. There,
@@ -57,9 +59,9 @@ from dataclasses import dataclass, field
 from typing import Literal, NamedTuple
 
 from code.shared_code.lean_seq import (
+    FALSE,
     MAX_NAMES,
     BinOp,
-    Bot,
     Formula,
     LeanParseError,
     Not,
@@ -70,8 +72,7 @@ from code.shared_code.lean_seq import (
     proof_symbols,
 )
 
-STATE_SYMBOLS = ("<st>", "<nl>", "⊢", "<act>")
-FALSE = Bot()
+STATE_SYMBOLS = ("<st>", "<nl>", "⊢", "<act>")  # the symbols a state adds to lean_seq's
 
 
 def is_name(t: str) -> bool:
@@ -220,8 +221,7 @@ class Env:
         top.lines = [list(line) for line in lines]
         self.frames: list[Frame] = [top]
         self.text: list[str] = []  # the rendered lean_seq symbols
-        self.history: list[str] = []  # the accepted actions, concatenated (as the policy wrote
-        # them, with assigned names)
+        self.history: list[str] = []  # the accepted actions, concatenated, names as assigned
         self.n_premises = 0
         self.seen_non_premise = False
         self.max_name = 0
@@ -286,7 +286,7 @@ class Env:
         except LeanParseError as e:
             self.failed = str(e)
             return False, str(e)
-        except (IndexError, KeyError, ValueError):
+        except (IndexError, KeyError, ValueError, RecursionError):
             self.failed = "malformed"
             return False, "malformed"
         self.history += effective

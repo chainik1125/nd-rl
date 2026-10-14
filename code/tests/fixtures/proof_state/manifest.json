@@ -3,16 +3,20 @@
  "fork_commit": "4dcd0e4f336b3bf0ee24230dc5335ba3dba8969c",
  "fork_dirty": false,
  "k12_md5": "800b5486ba373a060c37218bec7fa8d3",
+ "sealed_md5": "90355c3692b00e3e5a92d0cadae3ddcf",
+ "sealed_classes": 72,
  "python": "3.11.16",
  "lean": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)",
  "argv": [
   "make_golden.py",
   "--fork",
-  "/home/dan/work/shared-code-port-fork",
+  "shared-code-port-fork",
   "--k12",
-  "/home/dan/work/capability-defs/data/kh/train_k12.jsonl"
+  "train_k12.jsonl",
+  "--sealed",
+  "textbook72.jsonl"
  ],
- "utc": "2026-10-13T23:52:34Z",
+ "utc": "2026-10-14T01:05:32Z",
  "counts": {
   "k12_sample": 1100,
   "state_env_steps_plain": 8800,
@@ -36,5 +40,5 @@
    "reiterate": 664
   }
  },
- "seconds": 28
+ "seconds": 29
 }

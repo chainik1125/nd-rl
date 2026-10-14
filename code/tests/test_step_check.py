@@ -125,6 +125,13 @@ def test_rejects_certain_errors() -> None:
     assert check_step(env, act("have n1 : ( Q ∧ P ) := h2 ;")) == "unknown-premise"
 
 
+def test_deep_nesting_passes() -> None:
+    """A formula nested hundreds deep is not modelled (the fork's check passed it too)."""
+    env = Env("THM P SEQ P PRF")
+    deep = " ".join(["(", "¬"] * 700 + ["P"] + [")"] * 700)
+    assert check_step(env, act(f"have n1 : {deep} := h1 ;")) is None
+
+
 def test_lean_source() -> None:
     env = _env()
     assert lean_source(env, act("have n7 : P := n4 .1 ;")) == (

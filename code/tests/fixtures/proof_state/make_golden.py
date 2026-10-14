@@ -1,14 +1,15 @@
 """Golden fixtures for the proof-state port, made by running the take-home fork's own code.
 
     uv run --project code --no-sync python code/tests/fixtures/proof_state/make_golden.py \\
-        --fork ~/nd-takehome --k12 data/kh/train_k12.jsonl
+        --fork ~/nd-takehome --k12 data/kh/train_k12.jsonl --sealed data/bs/textbook72.jsonl
 
 ``--fork`` is a checkout of ``dan-pandori/nd-takehome`` (branch ``dan``). ``--k12`` is the K12
-training set (``data/kh/train_k12.jsonl``, 155,000 records,
-md5 800b5486...). Lean 4 must be installed for the term sizes (``$LEAN``, default
-``~/.elan/bin/lean``). Nothing here imports the port: every expected value is the fork's.
-``manifest.json`` records the commits, input digest, versions and counts. Writes, next to this
-script:
+training set (``data/kh/train_k12.jsonl``, 155,000 records, md5 800b5486...). ``--sealed`` is the
+sealed textbook72 set (``data/bs/textbook72.jsonl``): no fixture may hold a theorem in one of its
+renaming classes, and the script checks that. Lean 4 must be installed for the term sizes
+(``$LEAN``, default ``~/.elan/bin/lean``). Nothing here imports the port: every expected value is
+the fork's. ``manifest.json`` records the commits, input digests, versions and counts. Writes,
+next to this script:
 
 - ``k12_sample.jsonl.gz``: the inputs, the first 100 K12 records of each length 2..12;
 - ``state_env.jsonl.gz``: per record, ``decompose`` (plain and canonical names), a replay with
@@ -59,6 +60,19 @@ def write_jsonl_gz(path: Path, rows: list[dict[str, Any]]) -> None:
     with open(path, "wb") as raw, gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as f:
         for row in rows:
             f.write((json.dumps(row, ensure_ascii=False) + "\n").encode("utf-8"))
+
+
+def thm_of(prompt: str) -> str:
+    """``THM a , b SEQ c PRF`` -> ``a , b |- c``."""
+    t = prompt.split()
+    i = t.index("SEQ")
+    return " ".join(t[1:i]) + " |- " + " ".join(t[i + 1 : -1])
+
+
+def sealed_classes(path: Path, canon_key: Any) -> set[str]:
+    """The renaming classes of the sealed evaluation set, which no fixture may contain."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return {canon_key(thm_of(json.loads(line)["prompt"])) for line in lines}
 
 
 def k12_sample(path: Path) -> list[dict[str, Any]]:
@@ -172,7 +186,10 @@ def state_env_rows(se: Any, records: list[dict[str, Any]]) -> list[dict[str, Any
             else:
                 act = mutate(seq[k], rng)
             ok, why = env.apply(act)
-            fuzz.append([config, k, " ".join(act), ok, why, " ".join(env.text) if ok else None])
+            after = (
+                [" ".join(env.text), digest(" ".join(env.state_tokens()))] if ok else [None, None]
+            )
+            fuzz.append([config, k, " ".join(act), ok, why, *after])
         fuzz += targeted(se, prompt, plain_actions, rng)
         row["fuzz"] = fuzz
         rows.append(row)
@@ -257,13 +274,14 @@ def targeted(se: Any, prompt: str, actions: list[list[str]], rng: random.Random)
     for act in tries:
         e = copy.deepcopy(env)
         ok, why = e.apply(act)
-        out.append(["plain", k, " ".join(act), ok, why, " ".join(e.text) if ok else None])
+        after = [" ".join(e.text), digest(" ".join(e.state_tokens()))] if ok else [None, None]
+        out.append(["plain", k, " ".join(act), ok, why, *after])
     base = rng.randint(56, 64)
     env = se.Env(prompt, canon=True, base=base, assign=True)
     for k, a in enumerate(actions):
         ok, why = env.apply(a)
         if not ok:
-            out.append([f"assign:{base}", k, " ".join(a), ok, why, None])
+            out.append([f"assign:{base}", k, " ".join(a), ok, why, None, None])
             break
     return out
 
@@ -403,10 +421,10 @@ EXTRA_TEXTS = [
         ],
     ),
     (
-        "THM ( ~ ( ~ P ) ) SEQ P PRF",
+        "THM ( ~ ( ~ ( P & Q ) ) ) SEQ ( P & Q ) PRF",
         [
-            "have n1 : ( ¬ ( ¬ P ) ) := h1",
-            "have n2 : P := Classical.byContradiction ( fun hh => n1 hh )",
+            "have n1 : ( ¬ ( ¬ ( P ∧ Q ) ) ) := h1",
+            "have n2 : ( P ∧ Q ) := Classical.byContradiction ( fun hh => n1 hh )",
             "exact n2",
         ],
     ),
@@ -422,12 +440,14 @@ EXTRA_TEXTS = [
         ],
     ),
     (
-        "THM P SEQ ( ~ ( ~ P ) ) PRF",
+        "THM P , ( P > Q ) SEQ ( ~ ( ~ Q ) ) PRF",
         [
             "have n1 : P := h1",
-            "have n2 : ( ¬ ( ¬ P ) ) := ( fun ( n3 : ( ¬ P ) ) => by have n4 : False := n3 n1",
-            "exact ( n4 : False ) )",
-            "exact n2",
+            "have n2 : ( P → Q ) := h2",
+            "have n3 : Q := n2 n1",
+            "have n4 : ( ¬ ( ¬ Q ) ) := ( fun ( n5 : ( ¬ Q ) ) => by have n6 : False := n5 n3",
+            "exact ( n6 : False ) )",
+            "exact n4",
         ],
     ),
 ]
@@ -460,15 +480,22 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--fork", type=Path, required=True)
     ap.add_argument("--k12", type=Path, required=True)
+    ap.add_argument(
+        "--sealed", type=Path, required=True, help="textbook72 (data/bs/textbook72.jsonl)"
+    )
     ap.add_argument("--out", type=Path, default=HERE)
     a = ap.parse_args()
     fork = a.fork.resolve()
     sys.path.insert(0, str(fork))
     se: Any = importlib.import_module("state_env")
     sc: Any = importlib.import_module("step_check")
+    gen: Any = importlib.import_module("gen")
     t0 = time.time()
 
     records = k12_sample(a.k12)
+    sealed = sealed_classes(a.sealed, gen.canon_key)
+    inputs = [r["thm"] for r in records] + [thm_of(p) for p, _ in EXTRA_TEXTS]
+    assert not any(gen.canon_key(t) in sealed for t in inputs), "an input is in a sealed class"
     write_jsonl_gz(a.out / "k12_sample.jsonl.gz", records)
     state_rows = state_env_rows(se, records)
     write_jsonl_gz(a.out / "state_env.jsonl.gz", state_rows)
@@ -483,9 +510,11 @@ def main() -> None:
         "fork_commit": git(fork, "rev-parse", "HEAD").strip(),
         "fork_dirty": bool(git(fork, "status", "--porcelain", "--untracked-files=no").strip()),
         "k12_md5": hashlib.md5(a.k12.read_bytes()).hexdigest(),
+        "sealed_md5": hashlib.md5(a.sealed.read_bytes()).hexdigest(),
+        "sealed_classes": len(sealed),
         "python": sys.version.split()[0],
         "lean": sizes["lean"],
-        "argv": [Path(sys.argv[0]).name, *sys.argv[1:]],
+        "argv": [Path(x).name for x in sys.argv],
         "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "counts": {
             "k12_sample": len(records),
