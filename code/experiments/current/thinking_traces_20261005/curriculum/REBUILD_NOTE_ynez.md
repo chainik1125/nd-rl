@@ -139,3 +139,41 @@ Files:
 - `calib/`;
 - `logs/`;
 - `work/excl_index.pkl`, `work/sealed_parts.jsonl`.
+
+## curriculum_3p (added 2026-10-13, 10:00 UTC)
+
+`runs/pools/curriculum_3p/L2_3p.jsonl` and `L3_3p.jsonl` hold the 3-premise (uncurried) versions of the **L2r/L3r**
+pool rows, so they are new files too.
+
+- **Recipe:** `curriculum/uncurry3.py`'s docstring commands (unchanged from `6bdbd78`): build and lean per band with
+  `PFG_MIN_L=6 PFG_MAX_L=15 PFG_MAX_GAP=9`, 12 workers, then finish, preflight and report.
+- **Script:** `curriculum_3p/build_3p_ynez.sh` (a copy is `curriculum/build_3p_ynez.sh` on the branch).
+- **Environment:** `PYTHONHASHSEED=0`, the same limits as L2r/L3r (`PFG_SEARCH_SECS=12`, `PFG_NEC_SECS=14.5`).
+  The certifier had 0 search timeouts in both bands, as on serrano.
+
+| | L2_3p (ynez) | L2_3p (serrano) | L3_3p (ynez) | L3_3p (serrano) |
+|---|---|---|---|---|
+| rows | 1,546 | 1,400 | 1,843 | 1,796 |
+| shortest lines | 7–14 | 7–13 | 11–15 | 11–15 |
+| mean shortest lines | 9.78 | 9.79 | 12.14 | 12.21 |
+| line histogram | 7:6 8:89 9:493 10:625 11:318 12:11 13:3 14:1 | 7:7 8:67 9:452 10:565 11:301 12:6 13:2 | 11:187 12:1263 13:345 14:47 15:1 | 11:164 12:1186 13:354 14:91 15:1 |
+| line shares 8 / 9 / 10 / 11 | 6 / 32 / 40 / 21% | 5 / 32 / 40 / 22% | – | – |
+| line shares 11 / 12 / 13 / 14 | – | – | 10 / 69 / 19 / 3% | 9 / 66 / 20 / 5% |
+| goal cannot reach 3 premises | 3,338 | 3,404 | 2,867 | 2,951 |
+| certified | 1,579 | 1,487 | 1,849 | 1,806 |
+| exclusion-index removals | 33 | 87 | 6 | 10 |
+| antecedents moved 1 / 2 / 3 | 71 / 28 / 1% | 73 / 26 / 1% | 90 / 10% | – |
+| md5 | 0c43de02… | d70471f8… | 8d2d6922… | 159700b6… |
+
+Why there are more L2_3p rows than serrano's:
+- the exclusion index is smaller (see above): 33 removals instead of 87;
+- L2r's pool certifies 92 more rows.
+
+Rows that match a part of a sealed composite are still removed (15 hits on `work/sealed_parts.jsonl`).
+
+**Preflight:** checked as line.sh's `_vs3` arm does.
+- The main preflight on L2r/L3r prints PREFLIGHT PASSED.
+- The extra-targets preflight on L2_3p/L3_3p (`curriculum_3p/preflight_grpo_nothink_vs3_s0_extra.log`) has 22 of 22
+  overlap checks ok.
+- Its only BAD lines are the length bands (592 rows outside 10–12, 1,450 outside 13–15). line.sh ignores those by
+  design, as on serrano.
