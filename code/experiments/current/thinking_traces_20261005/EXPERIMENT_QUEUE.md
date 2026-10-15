@@ -33,6 +33,26 @@ running there are redone on serrano, started 11:07 pm with the same commit (`leo
 
 The ynez partial copies (it 19 and it 18 of 39) are kept as `*.ynez_partial` in `grpo_v2/` and `logs/`.
 
+**Knob pilots (from 12:57 am, 2026-10-15).** Leon (2026-10-14): find RL knobs that change how many long proofs
+(16–20 and 21–30 lines) the model solves. Each pilot is the merged recipe's L3 (`grpo_think_vs_mb`, from
+`grpo_think_vs_s0_L2_it39.pt`, seed 0) with one setting changed, then plain reads on t1320 k16, t2130 k8 and
+Charles173 k64 only (knob selection never reads textbook72). Arms `grpo_think_vs_mb_k<KNOB>` (`leon/grpo-v2`
+f35d3da); jobs in `runs/grpo_v2/jobs_knobs.txt`, one `pull_queue.sh` worker per GPU (GPUs 2–4; 0–1 join when the
+two reruns end). About 2.3 GPU-h each (`i78` about 4.5). Controls: `grpo_think_vs_mb` s0 (done) and `krr`.
+
+| knob | change | why |
+|---|---|---|
+| `i78` | L3 78 iterations instead of 39 (2× compute) | prolonged RL |
+| `rr` | nothing: the same settings again | noise control |
+| `x66` | 3-premise rows 0.66 of each batch instead of 0.33 | 98% of the 21–30 set has 3+ premises; the main pools 0% |
+| `g64` | 64 targets × 64 attempts instead of 256 × 16 | at a 5% pass rate a group of 16 has a success 56% of the time, 64: 96% |
+| `p3` | invalid-step penalty 0.3 instead of 0.1 | long proofs mostly die on an invalid step in a big state |
+| `t12` | training temperature 1.2 instead of 1.0 | exploration (expect think-ban alarms: its ban mass starts near the 1e-3 limit) |
+| `kl0`, `kl1` | KL anchor 0 or 0.1 instead of 0.02 | how far RL may drift from the start model |
+| `ch4` | clip-higher 0.4 instead of 0.28 | entropy |
+
+One seed resolves only about 3 points of 21–30 pass@5; winners get 3 seeds before going into the recipe.
+
 ### On ynez (2026-10-12 to 2026-10-14)
 
 **serrano was down (from 2026-10-11, about 4:48 am).** Everything below up to that date ran there. Its /scratch held
@@ -291,9 +311,11 @@ trained as an action; no token cost by default). Its runs will be proposed separ
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
 
-Cancelled by Leon (2026-10-14): the E1–E5 experiments from the report on longer proofs (large-k reads, step
-validity vs state size, bigger training problems, mid-proof starts, group size) and the A0/A1a/A1b/A1b-frozen arms
-of the staged self-improvement proposal. Nothing of them ran. The reports' finding stands as background: the pools
+Cancelled by Leon (2026-10-14): the E1–E5 experiments as proposed (large-k reads, step validity vs state size,
+bigger training problems, mid-proof starts, group size) and the A0/A1a/A1b/A1b-frozen arms of the staged
+self-improvement proposal. Nothing of them ran. Leon then clarified that E was meant as RL knobs that change the
+long-proof outcomes: those are the knob pilots under Running. Two knobs need new work and wait for Leon: a
+16–20-line training pool from the generator (sealed against the 13–20 test set), and mid-proof starts. The reports' finding stands as background: the pools
 have 0% of problems with 3+ premises, 4 atoms, more than 8 connectives or 3+ case splits, while the 21–30 set has
 98%, 90%, 100% and 70%.
 
