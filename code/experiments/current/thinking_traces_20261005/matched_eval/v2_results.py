@@ -21,9 +21,11 @@ problem resample, with seeds paired when both arms have the same Stage-1 seeds (
 reads have k 32 on 13-20 and the v2 reads k 16, so the chain compares pass@1 and pass@5 only.
 §7: the knob pilots (`grpo_think_vs_mb_kKNOB`, seed 0, plain reads, never textbook72) against the
 merged recipe at seed 0, with krr (nothing changed) as the noise band; then the screening's winner,
-kkl0, against the merged recipe at seeds 0, 1 and 2 (paired by seed). §8: the in-context verifier
-feedback pilot against grpo_think_vs s2, including the feedback read arm (`rows_feedback_B64`:
-the guided rows' fields plus per-attempt `fb` counters, which these tables do not use).
+kkl0, against the merged recipe at seeds 0, 1 and 2 (paired by seed). kkl0 (the merged recipe with
+KL anchor 0 in L3) is also a main arm in §1–6, with the merged recipe's reads at seeds 0, 1 and 2
+except the averaged checkpoint's. §8: the in-context verifier feedback pilot against
+grpo_think_vs s2, including the feedback read arm (`rows_feedback_B64`: the guided rows' fields
+plus per-attempt `fb` counters, which these tables do not use).
 Rows that are not there yet are skipped; the note at the end lists those of planned reads only
 (`ArmSpec.seeds`, `reads`, `extra`).
 """
@@ -94,7 +96,9 @@ class ArmSpec:
 # the premises, `curriculum/uncurry3.py`). "half lr": GRPO lr 7.5e-5 instead of 1.5e-4 in both
 # stages (`line.sh` arms ending `_h`). Thinking arms come first (fig_summary splits the rows there).
 # The L3 pilots and `pilot4.sh`'s reads ran at seed 2 only (`seeds`; LINE_READS for `reads`).
-# grpo_think_vs s2 is also read with feedback (`fbctl.sh`: §8's control).
+# grpo_think_vs s2 is also read with feedback (`fbctl.sh`: §8's control). "+ KL 0": the merged
+# recipe with KL anchor 0 in L3 (§7's knob kl0, the screening's winner), read like the merged recipe
+# at seeds 0, 1 and 2 but with no averaged checkpoint.
 S2 = (2,)
 ARMS = [
     ArmSpec("grpo_think", "GRPO", "grpo", True),
@@ -121,6 +125,7 @@ ARMS = [
         "grpo_think_vs_b", "control: L3 rerun, same settings", "grpo", True, fig=False, seeds=S2
     ),
     ArmSpec("grpo_think_vs_mb", "GRPO, merged recipe (L3)", "grpo", True),
+    ArmSpec("grpo_think_vs_mb_kkl0", "GRPO, merged recipe + KL 0 (L3)", "grpo", True),
     ArmSpec(
         "grpo_think_vs_mb_avg", "GRPO, merged recipe, weight average", "grpo", True, reads=PLAIN4
     ),
@@ -178,7 +183,8 @@ REFS = [
 # The knob pilots (2026-10-15, `line.sh` ARM_mb_kKNOB): grpo_think_vs_mb's L3 at seed 0, from its
 # L2, with one setting changed (the merged recipe's value in brackets); plain reads on 13-20, 21-30
 # and charles173 only. Tables only (§7), never textbook72. krr changes nothing: the noise control.
-# kl0 won the screening, so it is also run at seeds 1 and 2 (KNOB_3SEED; §7's 3-seed table).
+# kl0 won the screening, so it is also run at seeds 1 and 2 (KNOB_3SEED; §7's 3-seed table) and is
+# a main arm: its ArmSpec is the one in ARMS (the merged recipe's reads), not in KNOB_ARMS.
 KNOB_BASE = "grpo_think_vs_mb"
 KNOB_3SEED = "kl0"
 KNOBS = [
@@ -199,12 +205,14 @@ KNOB_ARMS = [
         "grpo",
         True,
         fig=False,
-        seeds=SEEDS if k == KNOB_3SEED else (0,),
+        seeds=(0,),
         reads=KNOB_READS,
     )
     for k, c in KNOBS
+    if k != KNOB_3SEED
 ]
 SPEC = {a.key: a for a in ARMS + REFS + KNOB_ARMS}
+assert len(SPEC) == len(ARMS + REFS + KNOB_ARMS), "an arm key is defined twice"
 
 
 @dataclass(frozen=True)
@@ -242,6 +250,18 @@ COMPARE = [
     ("thinking: merged recipe − GRPO + verifier (stop)", "grpo_think_vs_mb", "grpo_think_vs"),
     ("thinking: merged recipe − EI + verifier", "grpo_think_vs_mb", "ei_think_v"),
     ("thinking: merged recipe − EI", "grpo_think_vs_mb", "ei_think"),
+    (
+        "thinking: merged recipe + KL 0 − GRPO + verifier (stop)",
+        "grpo_think_vs_mb_kkl0",
+        "grpo_think_vs",
+    ),
+    ("thinking: merged recipe + KL 0 − EI + verifier", "grpo_think_vs_mb_kkl0", "ei_think_v"),
+    ("thinking: merged recipe + KL 0 − EI", "grpo_think_vs_mb_kkl0", "ei_think"),
+    (
+        "thinking: merged recipe + KL 0 − merged recipe",
+        "grpo_think_vs_mb_kkl0",
+        "grpo_think_vs_mb",
+    ),
     (
         "thinking: merged recipe, weight average − merged recipe",
         "grpo_think_vs_mb_avg",
@@ -689,23 +709,23 @@ def knob_tables(ld: Loader, draws: int) -> list[str]:
             f"{_cell(base[5])} | — |"
         )
         band: dict[int, stats.Estimate | None] = {}
-        for key, _ in KNOBS:
+        for key, c in KNOBS:  # c, not SPEC's label: kkl0's is the main arm's
             arm = f"{KNOB_BASE}_k{key}"
             e = {k: _one(ld, arm, s, 0, "plain", k, draws) for k in KS}
             d = {k: diff(ld, arm, KNOB_BASE, s, [0], "plain", k, draws) for k in KS}
             if arm == rr:
                 band = d
-                lab = f"k{key}: {SPEC[arm].label[len('knob: ') :]}; Δ = the noise band"
+                lab = f"k{key}: {c}; Δ = the noise band"
                 marks = {k: "" for k in KS}
             else:
-                lab = f"k{key}: {SPEC[arm].label[len('knob: ') :]}"
+                lab = f"k{key}: {c}"
                 marks = {k: _flag(d[k], band.get(k)) for k in KS}
             md.append(
                 f"| {lab} | {_cell(e[1])} | {_cell(d[1], True, marks[1])} | {_cell(e[5])} | "
                 f"{_cell(d[5], True, marks[5])} |"
             )
     conf = f"{KNOB_BASE}_k{KNOB_3SEED}"
-    lab, sd = SPEC[conf].label[len("knob: ") :], ",".join(map(str, SEEDS))
+    lab, sd = dict(KNOBS)[KNOB_3SEED], ",".join(map(str, SEEDS))
     md += ["", f"**k{KNOB_3SEED} at {len(SEEDS)} seeds: {lab}**", ""]
     md += [
         f"k{KNOB_3SEED} at seed 0 (above) was the screening; this is the confirmation. Its L3 was",

@@ -21,6 +21,7 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | pilot: + unseen prior = mean, thinking | 22.8 [20.8, 24.8] / 41.7 [38.9, 44.5] (s2) | 16.9 [14.8, 19.1] / 34.3 [31.1, 37.6] (s2) | 73.9 [64.5, 82.2] / 82.8 [74.0, 90.4] (s2) | 69.8 [63.3, 75.8] / 79.7 [73.3, 85.5] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 2.9 [2.3, 3.6] / 8.9 [7.4, 10.5] (s2) |
 | control: L3 rerun, same settings, thinking | 25.8 [23.8, 27.9] / 46.6 [43.9, 49.4] (s2) | 19.2 [17.1, 21.5] / 38.1 [34.9, 41.5] (s2) | 73.1 [63.6, 81.8] / 81.3 [72.5, 89.1] (s2) | 70.7 [64.2, 76.6] / 81.0 [74.8, 86.6] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 3.8 [3.1, 4.5] / 11.4 [9.7, 13.1] (s2) |
 | GRPO, merged recipe (L3), thinking | 30.4 [26.4, 34.5] / 55.4 [49.8, 60.6] (s0,1,2) | 24.0 [19.8, 29.0] / 47.8 [41.4, 54.4] (s0,1,2) | 74.7 [65.5, 83.1] / 83.1 [74.5, 90.6] (s0,1,2) | 70.4 [64.0, 76.5] / 79.8 [73.7, 85.3] (s0,1,2) | 0.1 [0.0, 0.9] / 0.7 [0.0, 4.1] (s0,1,2) | 6.0 [3.9, 8.7] / 16.0 [11.2, 21.9] (s0,1,2) |
+| GRPO, merged recipe + KL 0 (L3), thinking | 32.1 [28.2, 36.1] / 57.8 [52.9, 62.2] (s0,1,2) | 25.9 [22.1, 30.3] / 50.5 [45.3, 55.7] (s0,1,2) | 74.0 [64.7, 82.6] / 82.3 [73.6, 90.0] (s0,1,2) | 70.5 [64.2, 76.3] / 78.9 [72.6, 84.8] (s0,1,2) | 0.3 [0.0, 1.3] / 1.1 [0.0, 5.7] (s0,1,2) | 7.2 [5.0, 10.0] / 19.4 [14.8, 25.2] (s0,1,2) |
 | GRPO, merged recipe, weight average, thinking | 30.3 [25.3, 34.9] / 55.6 [48.7, 61.1] (s0,1,2) | 23.7 [18.8, 29.0] / 47.7 [40.4, 54.6] (s0,1,2) | 75.0 [65.7, 83.3] / 83.5 [75.0, 90.9] (s0,1,2) | 70.5 [63.8, 76.9] / 79.8 [73.6, 85.5] (s0,1,2) | — | 6.2 [3.7, 9.1] / 16.8 [10.8, 23.3] (s0,1,2) |
 | pilot: + in-context verifier feedback, thinking | 18.3 [16.5, 20.1] / 36.4 [33.7, 39.0] (s2) | 11.9 [10.2, 13.8] / 27.1 [24.3, 30.3] (s2) | 69.2 [59.5, 78.2] / 78.8 [69.6, 87.1] (s2) | 67.1 [60.5, 73.3] / 78.1 [71.7, 83.9] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 2.1 [1.6, 2.7] / 6.8 [5.4, 8.2] (s2) |
 | pilot: mean of L3 it 25-39 weights, thinking | 26.7 [24.7, 28.8] / 49.5 [46.7, 52.2] (s2) | 19.7 [17.6, 22.0] / 40.7 [37.4, 44.0] (s2) | 73.0 [63.5, 81.5] / 81.1 [72.0, 89.3] (s2) | 69.1 [62.7, 75.2] / 79.1 [72.8, 84.9] (s2) | — | 4.4 [3.7, 5.3] / 12.6 [10.8, 14.5] (s2) |
@@ -193,6 +194,36 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | GRPO, merged recipe (L3) | 0 | plain | 21–30 lines (1,000) | 1000 | 8.9 [7.8, 10.1] | 22.4 [20.1, 24.8] |
 | GRPO, merged recipe (L3) | 1 | plain | 21–30 lines (1,000) | 1000 | 5.1 [4.2, 6.0] | 14.3 [12.3, 16.3] |
 | GRPO, merged recipe (L3) | 2 | plain | 21–30 lines (1,000) | 1000 | 4.0 [3.2, 4.8] | 11.3 [9.6, 13.0] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | plain | 13–20 lines (986) | 986 | 36.0 [33.9, 38.1] | 61.7 [59.0, 64.3] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | plain | 13–20 lines (986) | 986 | 32.1 [30.0, 34.1] | 58.5 [55.9, 61.1] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | plain | 13–20 lines (986) | 986 | 28.4 [26.4, 30.3] | 53.2 [50.4, 55.8] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | guided | 13–20 lines (986) | 986 | 50.7 [48.4, 53.0] | 74.7 [72.3, 77.0] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | guided | 13–20 lines (986) | 986 | 49.7 [47.5, 51.9] | 77.2 [75.0, 79.3] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | guided | 13–20 lines (986) | 986 | 42.9 [40.6, 45.1] | 68.8 [66.3, 71.2] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | plain | 16–20 lines | 616 | 30.3 [27.9, 32.8] | 55.4 [52.1, 58.7] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | plain | 16–20 lines | 616 | 24.2 [21.9, 26.5] | 49.7 [46.3, 52.9] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | plain | 16–20 lines | 616 | 23.2 [21.0, 25.6] | 46.3 [42.9, 49.7] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | guided | 16–20 lines | 616 | 44.3 [41.5, 47.1] | 69.2 [66.0, 72.2] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | guided | 16–20 lines | 616 | 41.4 [38.7, 44.1] | 70.8 [67.8, 73.8] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | guided | 16–20 lines | 616 | 36.9 [34.2, 39.6] | 63.4 [60.2, 66.6] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | plain | textbook72 | 72 | 71.7 [62.2, 80.2] | 80.3 [71.0, 88.4] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | plain | textbook72 | 72 | 76.8 [67.7, 84.7] | 84.3 [76.0, 91.5] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | plain | textbook72 | 72 | 73.6 [64.3, 82.0] | 82.3 [73.5, 90.1] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | guided | textbook72 | 72 | 78.0 [69.2, 85.6] | 85.9 [77.8, 92.7] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | guided | textbook72 | 72 | 83.6 [75.3, 90.9] | 88.6 [81.4, 94.9] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | guided | textbook72 | 72 | 79.2 [70.5, 87.1] | 85.1 [76.9, 92.3] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | plain | Charles149 | 149 | 70.5 [63.9, 76.5] | 78.8 [72.4, 84.6] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | plain | Charles149 | 149 | 70.8 [64.4, 76.9] | 78.4 [71.9, 84.6] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | plain | Charles149 | 149 | 70.4 [63.9, 76.4] | 79.6 [73.3, 85.5] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | guided | Charles149 | 149 | 79.5 [73.7, 84.6] | 87.2 [82.2, 91.6] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | guided | Charles149 | 149 | 76.8 [70.6, 82.7] | 82.7 [76.9, 88.1] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | guided | Charles149 | 149 | 75.8 [69.5, 81.6] | 82.4 [76.3, 87.9] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | plain | hand-proved 14 | 14 | 0.8 [0.0, 2.2] | 3.4 [0.0, 9.7] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
+| GRPO, merged recipe + KL 0 (L3) | 0 | plain | 21–30 lines (1,000) | 1000 | 10.1 [8.9, 11.3] | 25.6 [23.1, 28.0] |
+| GRPO, merged recipe + KL 0 (L3) | 1 | plain | 21–30 lines (1,000) | 1000 | 6.4 [5.4, 7.4] | 17.5 [15.4, 19.6] |
+| GRPO, merged recipe + KL 0 (L3) | 2 | plain | 21–30 lines (1,000) | 1000 | 5.1 [4.3, 6.0] | 15.0 [13.1, 17.0] |
 | GRPO, merged recipe, weight average | 0 | plain | 13–20 lines (986) | 986 | 34.7 [32.7, 36.9] | 60.6 [58.1, 63.2] |
 | GRPO, merged recipe, weight average | 1 | plain | 13–20 lines (986) | 986 | 30.9 [29.0, 32.9] | 57.7 [55.1, 60.3] |
 | GRPO, merged recipe, weight average | 2 | plain | 13–20 lines (986) | 986 | 25.3 [23.3, 27.2] | 48.4 [45.8, 51.1] |
@@ -418,6 +449,166 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking: merged recipe − EI | plain | 21–30 lines (1,000) | 1 | -3.1 [-4.0, -2.1] | -6.9 [-9.0, -4.8] |
 | thinking: merged recipe − EI | plain | 21–30 lines (1,000) | 2 | -2.6 [-3.5, -1.7] | -5.7 [-7.8, -3.7] |
 | thinking: merged recipe − EI | plain | 21–30 lines (1,000) | 0,1,2 | -1.4 [-3.4, +1.2] | -3.5 [-7.6, +1.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 13–20 lines (986) | 0 | +5.5 [+4.2, +6.8] | +7.5 [+5.7, +9.4] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 13–20 lines (986) | 1 | -0.6 [-1.8, +0.6] | +0.9 [-0.9, +2.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | +3.9 [+2.6, +5.1] | +5.9 [+3.9, +7.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 13–20 lines (986) | 0,1,2 | +2.9 [-0.4, +5.7] | +4.8 [+1.1, +7.9] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 13–20 lines (986) | 0 | +2.5 [+1.0, +4.1] | +2.7 [+0.9, +4.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 13–20 lines (986) | 1 | +0.6 [-0.8, +1.9] | +2.6 [+1.0, +4.2] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 13–20 lines (986) | 2 | +4.1 [+2.5, +5.7] | +4.2 [+2.2, +6.2] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 13–20 lines (986) | 0,1,2 | +2.4 [+0.5, +4.4] | +3.2 [+1.6, +4.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 16–20 lines | 0 | +6.2 [+4.6, +7.8] | +9.2 [+6.9, +11.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 16–20 lines | 1 | -0.5 [-1.9, +1.0] | +0.3 [-2.1, +2.7] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 16–20 lines | 2 | +4.9 [+3.4, +6.3] | +6.7 [+4.2, +9.2] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 16–20 lines | 0,1,2 | +3.5 [-0.2, +6.5] | +5.4 [+0.6, +9.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 16–20 lines | 0 | +3.6 [+1.8, +5.5] | +3.4 [+1.1, +5.7] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 16–20 lines | 1 | +0.5 [-1.2, +2.1] | +2.7 [+0.4, +4.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 16–20 lines | 2 | +5.0 [+3.2, +6.9] | +5.7 [+3.2, +8.3] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | 16–20 lines | 0,1,2 | +3.0 [+0.5, +5.5] | +3.9 [+1.7, +6.3] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | textbook72 | 0 | -1.0 [-3.5, +1.2] | -1.7 [-4.5, +0.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | textbook72 | 1 | -2.6 [-4.6, -0.9] | +0.2 [-1.5, +1.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | textbook72 | 2 | +1.2 [-1.1, +3.6] | +3.3 [+0.6, +6.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | textbook72 | 0,1,2 | -0.8 [-3.2, +1.6] | +0.6 [-2.4, +4.0] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | textbook72 | 0 | -2.7 [-5.9, +0.1] | -2.1 [-4.6, -0.2] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | textbook72 | 1 | +0.3 [-1.5, +2.2] | +1.7 [-0.9, +4.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | textbook72 | 2 | +1.7 [-0.7, +4.4] | +2.2 [+0.8, +4.1] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | textbook72 | 0,1,2 | -0.2 [-3.4, +2.6] | +0.6 [-2.4, +3.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | Charles149 | 0 | +0.9 [-0.8, +2.8] | +0.7 [-1.2, +2.7] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | Charles149 | 1 | -2.3 [-4.2, -0.7] | -2.3 [-4.6, -0.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | Charles149 | 2 | +2.5 [+0.0, +5.3] | +2.3 [+0.2, +4.6] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | Charles149 | 0,1,2 | +0.4 [-2.3, +3.2] | +0.2 [-2.5, +2.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | Charles149 | 0 | -0.9 [-2.9, +1.1] | -1.2 [-3.6, +0.9] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | Charles149 | 1 | -3.8 [-6.9, -1.0] | -4.4 [-7.5, -1.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | Charles149 | 2 | +0.6 [-1.5, +2.9] | -1.0 [-3.6, +1.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | guided | Charles149 | 0,1,2 | -1.4 [-4.3, +1.2] | -2.2 [-5.1, +0.3] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | hand-proved 14 | 0 | +0.7 [+0.0, +2.0] | +2.9 [+0.0, +8.6] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | hand-proved 14 | 1 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | hand-proved 14 | 0,1,2 | +0.2 [+0.0, +1.3] | +1.0 [+0.0, +5.7] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 0 | +2.8 [+1.9, +3.7] | +7.2 [+5.1, +9.2] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 1 | +0.4 [-0.3, +1.1] | +1.0 [-0.8, +2.8] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +1.7 [+1.0, +2.4] | +4.8 [+3.0, +6.6] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 0,1,2 | +1.6 [+0.3, +3.0] | +4.3 [+1.1, +7.5] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 13–20 lines (986) | 0 | +4.9 [+3.1, +6.6] | +4.9 [+2.5, +7.2] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 13–20 lines (986) | 1 | -2.5 [-4.1, -0.8] | -3.5 [-5.8, -1.1] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 13–20 lines (986) | 2 | +0.6 [-1.2, +2.2] | -0.4 [-2.9, +2.1] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 13–20 lines (986) | 0,1,2 | +1.0 [-2.5, +4.7] | +0.3 [-3.8, +4.7] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 13–20 lines (986) | 0 | +5.4 [+3.4, +7.4] | +3.3 [+1.0, +5.6] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 13–20 lines (986) | 1 | -0.3 [-2.1, +1.4] | +0.5 [-1.5, +2.5] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 13–20 lines (986) | 2 | +1.0 [-0.9, +2.9] | -0.2 [-2.6, +2.0] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 13–20 lines (986) | 0,1,2 | +2.0 [-0.9, +5.3] | +1.2 [-1.3, +3.8] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 16–20 lines | 0 | +5.5 [+3.3, +7.7] | +5.4 [+2.4, +8.4] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 16–20 lines | 1 | -4.9 [-6.9, -3.0] | -6.9 [-9.9, -3.9] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 16–20 lines | 2 | +1.8 [-0.2, +3.8] | +0.9 [-2.2, +4.1] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 16–20 lines | 0,1,2 | +0.8 [-4.5, +5.5] | -0.2 [-6.6, +5.6] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 16–20 lines | 0 | +5.6 [+3.1, +8.3] | +4.3 [+1.0, +7.4] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 16–20 lines | 1 | -1.5 [-3.7, +0.7] | -0.8 [-3.6, +2.1] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 16–20 lines | 2 | +1.8 [-0.6, +4.2] | +1.0 [-2.1, +4.1] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | 16–20 lines | 0,1,2 | +2.0 [-1.7, +5.8] | +1.5 [-1.8, +4.9] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | textbook72 | 0 | +0.8 [-4.8, +6.5] | -0.9 [-6.7, +4.7] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | textbook72 | 1 | +6.2 [+1.0, +11.8] | +3.9 [-1.9, +10.0] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | textbook72 | 2 | +4.1 [-0.3, +8.6] | +1.6 [-3.9, +7.2] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | textbook72 | 0,1,2 | +3.7 [-1.3, +8.7] | +1.6 [-3.9, +7.2] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | textbook72 | 0 | +1.1 [-5.3, +7.4] | -0.3 [-6.5, +5.6] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | textbook72 | 1 | +7.7 [+2.3, +13.7] | +4.0 [-1.1, +9.4] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | textbook72 | 2 | +2.2 [-3.2, +7.7] | +0.2 [-6.6, +6.7] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | textbook72 | 0,1,2 | +3.6 [-2.3, +9.6] | +1.3 [-4.4, +7.0] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | Charles149 | 0 | +3.4 [-0.6, +7.5] | +1.3 [-2.3, +5.1] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | Charles149 | 1 | +4.9 [-0.4, +10.4] | -0.0 [-5.5, +5.2] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | Charles149 | 2 | +12.4 [+7.9, +16.9] | +7.9 [+3.6, +12.5] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | Charles149 | 0,1,2 | +6.9 [+1.0, +13.2] | +3.1 [-2.2, +8.8] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | Charles149 | 0 | +0.9 [-3.5, +5.3] | -0.5 [-4.3, +3.1] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | Charles149 | 1 | +2.3 [-3.2, +7.7] | -2.6 [-8.0, +2.6] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | Charles149 | 2 | +4.4 [-1.1, +9.8] | -0.1 [-5.1, +4.9] |
+| thinking: merged recipe + KL 0 − EI + verifier | guided | Charles149 | 0,1,2 | +2.5 [-2.2, +7.6] | -1.1 [-5.4, +3.2] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | hand-proved 14 | 0 | +0.8 [+0.0, +2.2] | +3.4 [+0.0, +9.7] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | hand-proved 14 | 1 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | hand-proved 14 | 0,1,2 | +0.3 [+0.0, +1.3] | +1.1 [+0.0, +5.7] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 21–30 lines (1,000) | 0 | +3.6 [+2.5, +4.7] | +8.2 [+5.8, +10.5] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 21–30 lines (1,000) | 1 | -1.7 [-2.7, -0.8] | -4.8 [-7.1, -2.5] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 21–30 lines (1,000) | 2 | -0.5 [-1.3, +0.3] | -0.4 [-2.5, +1.6] |
+| thinking: merged recipe + KL 0 − EI + verifier | plain | 21–30 lines (1,000) | 0,1,2 | +0.5 [-1.8, +3.4] | +1.0 [-4.6, +7.9] |
+| thinking: merged recipe + KL 0 − EI | plain | 13–20 lines (986) | 0 | +3.8 [+2.0, +5.5] | +3.7 [+1.3, +6.0] |
+| thinking: merged recipe + KL 0 − EI | plain | 13–20 lines (986) | 1 | -1.1 [-2.7, +0.5] | -2.9 [-5.2, -0.7] |
+| thinking: merged recipe + KL 0 − EI | plain | 13–20 lines (986) | 2 | -0.8 [-2.5, +1.0] | -1.1 [-3.7, +1.4] |
+| thinking: merged recipe + KL 0 − EI | plain | 13–20 lines (986) | 0,1,2 | +0.6 [-1.9, +3.7] | -0.1 [-3.6, +3.6] |
+| thinking: merged recipe + KL 0 − EI | guided | 13–20 lines (986) | 0 | +3.8 [+1.9, +5.9] | +1.0 [-1.3, +3.2] |
+| thinking: merged recipe + KL 0 − EI | guided | 13–20 lines (986) | 1 | -0.3 [-2.1, +1.5] | -0.2 [-2.3, +1.8] |
+| thinking: merged recipe + KL 0 − EI | guided | 13–20 lines (986) | 2 | -2.3 [-4.4, -0.3] | -2.5 [-4.9, -0.3] |
+| thinking: merged recipe + KL 0 − EI | guided | 13–20 lines (986) | 0,1,2 | +0.4 [-2.7, +3.9] | -0.6 [-3.2, +1.7] |
+| thinking: merged recipe + KL 0 − EI | plain | 16–20 lines | 0 | +4.0 [+2.0, +6.3] | +4.4 [+1.4, +7.3] |
+| thinking: merged recipe + KL 0 − EI | plain | 16–20 lines | 1 | -2.6 [-4.5, -0.8] | -6.1 [-9.0, -3.2] |
+| thinking: merged recipe + KL 0 − EI | plain | 16–20 lines | 2 | -0.1 [-2.2, +1.9] | -0.5 [-3.6, +2.8] |
+| thinking: merged recipe + KL 0 − EI | plain | 16–20 lines | 0,1,2 | +0.4 [-2.9, +4.1] | -0.7 [-6.1, +4.5] |
+| thinking: merged recipe + KL 0 − EI | guided | 16–20 lines | 0 | +4.7 [+2.2, +7.3] | +2.2 [-0.9, +5.3] |
+| thinking: merged recipe + KL 0 − EI | guided | 16–20 lines | 1 | -2.0 [-4.3, +0.3] | -1.9 [-4.8, +0.8] |
+| thinking: merged recipe + KL 0 − EI | guided | 16–20 lines | 2 | -0.8 [-3.3, +1.6] | -1.0 [-3.9, +2.0] |
+| thinking: merged recipe + KL 0 − EI | guided | 16–20 lines | 0,1,2 | +0.6 [-2.8, +4.7] | -0.2 [-3.2, +3.0] |
+| thinking: merged recipe + KL 0 − EI | plain | textbook72 | 0 | +5.2 [-0.7, +11.5] | +2.1 [-4.7, +8.9] |
+| thinking: merged recipe + KL 0 − EI | plain | textbook72 | 1 | +8.1 [+2.2, +14.3] | +6.9 [+1.1, +13.3] |
+| thinking: merged recipe + KL 0 − EI | plain | textbook72 | 2 | +3.7 [-0.1, +7.9] | +4.1 [-0.8, +9.3] |
+| thinking: merged recipe + KL 0 − EI | plain | textbook72 | 0,1,2 | +5.6 [+0.8, +10.9] | +4.4 [-1.2, +10.3] |
+| thinking: merged recipe + KL 0 − EI | guided | textbook72 | 0 | +5.1 [-1.3, +12.1] | +4.4 [-2.5, +11.7] |
+| thinking: merged recipe + KL 0 − EI | guided | textbook72 | 1 | +7.1 [+1.9, +12.8] | +4.3 [-0.7, +9.3] |
+| thinking: merged recipe + KL 0 − EI | guided | textbook72 | 2 | +4.1 [-0.9, +9.3] | +2.1 [-4.3, +8.1] |
+| thinking: merged recipe + KL 0 − EI | guided | textbook72 | 0,1,2 | +5.4 [+0.2, +10.7] | +3.6 [-1.9, +9.0] |
+| thinking: merged recipe + KL 0 − EI | plain | Charles149 | 0 | +5.6 [+1.2, +10.3] | +2.9 [-1.1, +7.2] |
+| thinking: merged recipe + KL 0 − EI | plain | Charles149 | 1 | +8.3 [+3.4, +13.3] | +3.5 [-1.4, +8.3] |
+| thinking: merged recipe + KL 0 − EI | plain | Charles149 | 2 | +11.3 [+7.0, +15.7] | +8.9 [+4.3, +13.6] |
+| thinking: merged recipe + KL 0 − EI | plain | Charles149 | 0,1,2 | +8.4 [+3.6, +13.1] | +5.1 [+0.5, +10.4] |
+| thinking: merged recipe + KL 0 − EI | guided | Charles149 | 0 | +2.2 [-2.2, +6.8] | +0.3 [-3.3, +4.0] |
+| thinking: merged recipe + KL 0 − EI | guided | Charles149 | 1 | +3.8 [-1.4, +8.9] | -1.0 [-5.3, +3.3] |
+| thinking: merged recipe + KL 0 − EI | guided | Charles149 | 2 | +5.2 [+0.5, +9.9] | +0.1 [-4.8, +4.8] |
+| thinking: merged recipe + KL 0 − EI | guided | Charles149 | 0,1,2 | +3.7 [-0.6, +8.3] | -0.2 [-4.0, +3.5] |
+| thinking: merged recipe + KL 0 − EI | plain | hand-proved 14 | 0 | +0.8 [+0.0, +2.2] | +3.4 [+0.0, +9.7] |
+| thinking: merged recipe + KL 0 − EI | plain | hand-proved 14 | 1 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − EI | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − EI | plain | hand-proved 14 | 0,1,2 | +0.3 [+0.0, +1.3] | +1.1 [+0.0, +5.7] |
+| thinking: merged recipe + KL 0 − EI | plain | 21–30 lines (1,000) | 0 | +2.5 [+1.4, +3.7] | +5.2 [+2.7, +7.6] |
+| thinking: merged recipe + KL 0 − EI | plain | 21–30 lines (1,000) | 1 | -1.8 [-2.7, -0.8] | -3.7 [-6.0, -1.5] |
+| thinking: merged recipe + KL 0 − EI | plain | 21–30 lines (1,000) | 2 | -1.4 [-2.4, -0.6] | -2.0 [-4.1, +0.1] |
+| thinking: merged recipe + KL 0 − EI | plain | 21–30 lines (1,000) | 0,1,2 | -0.2 [-2.1, +2.4] | -0.2 [-4.3, +4.9] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 13–20 lines (986) | 0 | +1.6 [+0.3, +2.8] | +1.3 [-0.5, +3.1] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 13–20 lines (986) | 1 | +2.0 [+0.8, +3.2] | +2.4 [+0.6, +4.2] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 13–20 lines (986) | 2 | +1.7 [+0.5, +2.8] | +3.3 [+1.5, +5.1] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 13–20 lines (986) | 0,1,2 | +1.7 [+0.8, +2.6] | +2.4 [+0.7, +4.0] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 13–20 lines (986) | 0 | -1.2 [-2.6, +0.1] | -2.6 [-4.2, -0.9] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 13–20 lines (986) | 1 | +1.1 [-0.3, +2.3] | +1.4 [-0.1, +3.0] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 13–20 lines (986) | 2 | +0.3 [-1.1, +1.6] | -0.2 [-1.9, +1.5] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 13–20 lines (986) | 0,1,2 | +0.0 [-1.5, +1.5] | -0.4 [-2.8, +1.7] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 16–20 lines | 0 | +1.2 [-0.3, +2.6] | +0.8 [-1.4, +3.1] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 16–20 lines | 1 | +1.8 [+0.4, +3.2] | +2.7 [+0.2, +5.1] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 16–20 lines | 2 | +2.6 [+1.2, +4.0] | +4.3 [+2.0, +6.6] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 16–20 lines | 0,1,2 | +1.9 [+0.6, +3.1] | +2.6 [+0.2, +4.9] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 16–20 lines | 0 | -1.3 [-3.0, +0.5] | -2.6 [-4.9, -0.3] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 16–20 lines | 1 | +1.6 [-0.2, +3.3] | +2.0 [-0.2, +4.1] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 16–20 lines | 2 | +1.3 [-0.4, +2.9] | +1.1 [-1.1, +3.3] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | 16–20 lines | 0,1,2 | +0.5 [-1.6, +2.4] | +0.2 [-2.7, +2.8] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | textbook72 | 0 | -2.3 [-4.5, -0.3] | -3.6 [-7.1, -0.9] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | textbook72 | 1 | -0.6 [-2.5, +1.0] | -0.7 [-2.4, +0.9] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | textbook72 | 2 | +0.8 [-1.0, +2.6] | +2.0 [-0.8, +5.1] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | textbook72 | 0,1,2 | -0.7 [-2.8, +1.4] | -0.8 [-4.2, +2.5] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | textbook72 | 0 | -4.6 [-7.5, -2.3] | -4.0 [-7.9, -1.1] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | textbook72 | 1 | +0.7 [-1.3, +2.8] | +0.6 [-2.5, +4.0] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | textbook72 | 2 | +1.0 [-1.1, +3.5] | +0.9 [-1.2, +3.0] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | textbook72 | 0,1,2 | -1.0 [-4.7, +2.2] | -0.8 [-4.7, +2.5] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | Charles149 | 0 | +0.5 [-1.5, +2.5] | -1.5 [-2.8, -0.3] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | Charles149 | 1 | -1.2 [-3.0, +0.6] | -1.5 [-3.9, +0.8] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | Charles149 | 2 | +1.1 [-1.4, +3.6] | +0.4 [-2.0, +2.9] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | Charles149 | 0,1,2 | +0.1 [-1.7, +2.1] | -0.8 [-2.6, +1.1] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | Charles149 | 0 | -1.9 [-4.3, +0.5] | -1.9 [-4.3, +0.3] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | Charles149 | 1 | -2.2 [-4.9, +0.3] | -3.0 [-6.0, -0.2] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | Charles149 | 2 | -0.7 [-3.1, +1.5] | -2.8 [-5.7, -0.4] |
+| thinking: merged recipe + KL 0 − merged recipe | guided | Charles149 | 0,1,2 | -1.6 [-3.6, +0.3] | -2.6 [-4.9, -0.6] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | hand-proved 14 | 0 | +0.3 [+0.0, +0.9] | +1.4 [+0.0, +3.3] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | hand-proved 14 | 1 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | hand-proved 14 | 2 | +0.0 [+0.0, +0.0] | +0.0 [+0.0, +0.0] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | hand-proved 14 | 0,1,2 | +0.1 [+0.0, +0.4] | +0.5 [+0.0, +1.8] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 21–30 lines (1,000) | 0 | +1.2 [+0.3, +2.1] | +3.2 [+1.3, +5.1] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 21–30 lines (1,000) | 1 | +1.3 [+0.6, +2.0] | +3.2 [+1.4, +5.0] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 21–30 lines (1,000) | 2 | +1.1 [+0.5, +1.8] | +3.7 [+2.0, +5.5] |
+| thinking: merged recipe + KL 0 − merged recipe | plain | 21–30 lines (1,000) | 0,1,2 | +1.2 [+0.6, +1.8] | +3.4 [+2.0, +4.7] |
 | thinking: merged recipe, weight average − merged recipe | plain | 13–20 lines (986) | 0 | +0.3 [-0.5, +1.1] | +0.2 [-1.0, +1.5] |
 | thinking: merged recipe, weight average − merged recipe | plain | 13–20 lines (986) | 1 | +0.9 [+0.1, +1.6] | +1.6 [+0.2, +3.1] |
 | thinking: merged recipe, weight average − merged recipe | plain | 13–20 lines (986) | 2 | -1.4 [-2.2, -0.7] | -1.5 [-2.8, -0.2] |
@@ -812,6 +1003,18 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking: merged recipe − EI | 16–20 lines | 0,1,2 | -0.9 [-4.1, +2.8] | -1.7 [-6.1, +3.1] | -2.4 [-7.8, +3.1] | -2.7 [-8.6, +3.3] |
 | thinking: merged recipe − EI | textbook72 | 0,1,2 | +6.0 [+0.6, +12.1] | +5.3 [-0.0, +11.3] | +4.5 [-0.8, +10.2] | +3.8 [-1.6, +9.3] |
 | thinking: merged recipe − EI | Charles149 | 0,1,2 | +7.6 [+3.1, +12.1] | +6.4 [+2.2, +10.8] | +5.2 [+1.2, +9.6] | +4.3 [+0.5, +8.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | 16–20 lines | 0,1,2 | +1.3 [-0.7, +3.4] ‡ | +2.1 [-0.4, +4.5] | +2.7 [-0.2, +5.8] | +3.2 [-0.2, +6.5] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | textbook72 | 0,1,2 | -0.6 [-2.8, +1.7] | +0.3 [-2.6, +3.3] | +0.7 [-2.9, +4.4] | +0.5 [-3.5, +4.6] |
+| thinking: merged recipe + KL 0 − GRPO + verifier (stop) | Charles149 | 0,1,2 | +0.3 [-1.7, +2.3] | -0.2 [-2.5, +2.1] | -1.1 [-3.8, +1.3] | -2.1 [-5.1, +0.5] |
+| thinking: merged recipe + KL 0 − EI + verifier | 16–20 lines | 0,1,2 | +1.1 [-3.5, +5.5] ‡ | +0.9 [-4.6, +6.2] | +0.4 [-5.4, +5.9] | -0.3 [-5.6, +4.7] |
+| thinking: merged recipe + KL 0 − EI + verifier | textbook72 | 0,1,2 | +2.9 [-2.3, +8.4] | +2.0 [-3.4, +7.5] | +1.0 [-4.5, +6.5] | +0.1 [-5.3, +5.5] |
+| thinking: merged recipe + KL 0 − EI + verifier | Charles149 | 0,1,2 | +6.0 [+0.5, +11.9] | +3.9 [-1.3, +9.8] | +1.6 [-3.8, +7.5] | -0.1 [-5.7, +5.6] |
+| thinking: merged recipe + KL 0 − EI | 16–20 lines | 0,1,2 | -0.2 [-3.3, +3.6] ‡ | -0.7 [-4.5, +3.5] | -1.3 [-5.9, +3.6] | -1.7 [-6.9, +3.3] |
+| thinking: merged recipe + KL 0 − EI | textbook72 | 0,1,2 | +5.2 [+0.0, +10.8] | +4.6 [-0.9, +10.4] | +3.6 [-2.3, +9.5] | +2.9 [-3.2, +8.8] |
+| thinking: merged recipe + KL 0 − EI | Charles149 | 0,1,2 | +7.3 [+2.6, +12.4] | +5.5 [+0.8, +10.7] | +3.3 [-1.3, +8.8] | +1.7 [-3.2, +7.2] |
+| thinking: merged recipe + KL 0 − merged recipe | 16–20 lines | 0,1,2 | +0.7 [-0.7, +2.1] ‡ | +0.9 [-0.7, +2.6] | +1.2 [-0.7, +3.1] | +1.0 [-1.4, +3.3] |
+| thinking: merged recipe + KL 0 − merged recipe | textbook72 | 0,1,2 | -0.8 [-3.1, +1.4] | -0.8 [-3.8, +2.1] | -0.8 [-4.7, +2.4] | -0.9 [-5.7, +2.6] |
+| thinking: merged recipe + KL 0 − merged recipe | Charles149 | 0,1,2 | -0.2 [-1.9, +1.5] | -0.9 [-2.7, +1.0] | -1.9 [-3.9, +0.3] | -2.7 [-5.3, -0.0] |
 | thinking: merged recipe, weight average − merged recipe | 16–20 lines | 0,1,2 | -0.3 [-1.3, +0.8] | -0.3 [-1.5, +1.1] | -0.0 [-1.6, +1.7] | +0.1 [-1.8, +2.2] |
 | thinking: merged recipe, weight average − merged recipe | textbook72 | 0,1,2 | +0.4 [-0.3, +1.3] | +0.5 [-0.4, +1.5] | +0.5 [-0.7, +1.8] | +0.2 [-1.5, +1.6] |
 | thinking: merged recipe, weight average − merged recipe | Charles149 | 0,1,2 | +0.1 [-1.3, +1.2] | +0.1 [-1.2, +1.3] | +0.2 [-0.9, +1.4] | -0.0 [-1.2, +1.4] |
@@ -901,6 +1104,7 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | pilot: + unseen prior = mean | 2 | 38.4 [33.5, 43.6] | 18.6 [16.6, 20.6] | 36% |
 | control: L3 rerun, same settings | 2 | 42.5 [37.4, 47.7] | 21.3 [19.2, 23.3] | 9% |
 | GRPO, merged recipe (L3) | 0,1,2 | 44.0 [38.0, 49.9] | 26.7 [22.9, 30.9] | 0% |
+| GRPO, merged recipe + KL 0 (L3) | 0,1,2 | 45.0 [38.5, 51.0] | 28.7 [25.0, 32.7] | 0% |
 | GRPO, merged recipe, weight average | 0,1,2 | 44.6 [38.2, 50.7] | 26.4 [21.4, 31.3] | 1% |
 | pilot: + in-context verifier feedback | 2 | 31.5 [27.1, 36.3] | 14.7 [13.0, 16.5] | 24% |
 | pilot: mean of L3 it 25-39 weights | 2 | 43.3 [38.5, 48.3] | 22.3 [20.1, 24.4] | 5% |
