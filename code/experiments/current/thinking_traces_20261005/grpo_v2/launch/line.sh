@@ -57,6 +57,10 @@
 #        value, so every flag is in the command once. Then plain reads only, t1320 k16, t2130 k8 and charles173 k64
 #        (never textbook72, which knob selection must not see; no guided, hand14 or averaged-checkpoint reads). Every
 #        run, log and eval name keeps the full ARM_mb_kKNOB. Another knob, or any suffix after the knob, is refused.
+#        KNOB_FULL=1 (2026-10-15, for a knob that won the screening): ARM_mb_kKNOB's usual reads instead, all of ARM_mb's
+#        but the averaged checkpoint's (a rollback can leave a hole in AVG_ITS); a finished L3 and reads already there
+#        are skipped, so on a finished pilot this adds textbook72, the guided reads and hand14; HEAD goes to
+#        ARM_sSEED.reads_commit.txt, leaving the training's base_commit.txt as it was.
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -211,7 +215,8 @@ if [ "$SMOKE" != 1 ]; then
   fi
 fi
 [ -f $init0 ] || { say "no Stage-1 init $init0"; exit 1; }
-git -C $WT rev-parse HEAD > $C/${arm}_s$s.base_commit.txt
+bc=base_commit; [ -n "$knob" ] && [ "${KNOB_FULL:-0}" = 1 ] && bc=reads_commit  # KNOB_FULL keeps the training's record
+git -C $WT rev-parse HEAD > $C/${arm}_s$s.$bc.txt
 watch() {  # NAME PID LOG EXPECTED_H
   [ "$SMOKE" = 1 ] && return 0
   python3 $R/watchdog.py $1:$2:$g:$3:$4 >> $WD 2>&1 & }
@@ -286,7 +291,7 @@ if [ "$src" = "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil have no L2 of their own:
 fi
 $stage ${arm}_s${s}_L3 $L2CK $L3 $X3 || { say "${arm}_s${s}_L3 failed"; exit 1; }
 CH173=$CH/candidate_v0.jsonl,$CH/candidate_v1.jsonl,$CH/batch3.jsonl
-if [ -n "$knob" ]; then  # ARM_mb_kKNOB: plain reads on 13-20, 21-30 and charles173 only (knob selection never sees tb72)
+if [ -n "$knob" ] && [ "${KNOB_FULL:-0}" != 1 ]; then  # ARM_mb_kKNOB: plain reads on 13-20, 21-30 and charles173 only (knob selection never sees tb72)
   read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} plain
   read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain
   read1 charles173 $CH173 ${KS[2]} plain
@@ -303,7 +308,7 @@ if [ "$pil" = fbb ]; then  # ARM_fbb: the feedback read arm too (FB_MAXREJ retri
 fi
 read1 hand14 $CH/hand_proved_14.jsonl ${KS[3]} plain $MAXSTEPS_H14
 read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain
-if [ "$pil" = mb ]; then  # ARM_mb: the averaged checkpoint, read plain under ARM_mb_avg (pilot4.sh's reads)
+if [ "$pil" = mb ] && [ -z "$knob" ]; then  # ARM_mb: the averaged checkpoint, read plain under ARM_mb_avg (pilot4.sh's reads)
   avg_ckpt
   read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} plain 96 ${arm}_avg $AV
   read1 tb72 $TB/textbook_dev.jsonl,$TB/textbook_train.jsonl ${KS[1]} plain 96 ${arm}_avg $AV
