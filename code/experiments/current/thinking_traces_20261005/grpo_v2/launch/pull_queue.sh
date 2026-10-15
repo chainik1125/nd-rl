@@ -3,7 +3,9 @@
 # line.sh for it, until no job is left. Unlike queue.sh, the jobs are not bound to a GPU when the worker starts:
 # reorder or add pending jobs by editing the job file under its lock (flock JOBFILE.lock), and start another
 # worker when a GPU frees up. A job is removed from the file when a worker takes it.
-#   bash pull_queue.sh GPU JOBFILE
+#   [BACKUP=1] bash pull_queue.sh GPU JOBFILE
+# BACKUP=1: a backup.py pass after each job. Off by default since 2026-10-15: its destination on /home was removed
+# on purpose (Leon: minimal data duplication on /home), and a pass would recreate it.
 source /scratch/cowifornia/nd-rl/think/runs/followup_20261007/lib.sh
 g=$1; jf=$2
 take() {  # the first ARM:SEED line of $jf, removed from the file under the lock; empty when none is left
@@ -24,6 +26,6 @@ while j=$(take) && [ -n "$j" ]; do
   say "worker GPU $g: start $arm seed $s"
   bash $R/grpo_v2/line.sh $g $s $arm > $L/v2_${arm}_s$s.log 2>&1
   say "worker GPU $g: $arm seed $s exit $?: $(tail -1 $L/v2_${arm}_s$s.log | cut -c1-160)"
-  python3 $R/backup.py >> $L/backup.log 2>&1 || true
+  if [ "${BACKUP:-0}" = 1 ]; then python3 $R/backup.py >> $L/backup.log 2>&1 || true; fi  # opt-in (2026-10-15)
 done
 say "worker GPU $g done"

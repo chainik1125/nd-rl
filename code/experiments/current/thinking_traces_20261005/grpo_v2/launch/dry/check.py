@@ -10,17 +10,22 @@ after each arm; without it the queue must make no backup call (serrano's queue.s
 
 Sections
   A  every valid arm (12 base, 8 ARM_h, 16 ARM_b, 8 each of ARM_c, ARM_w, ARM_wb, ARM_rfb, ARM_ulb, ARM_pb, 6 ARM_3pb,
-     6 ARM_mb, 3 ARM_fbb) x seeds 0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
+     6 ARM_mb, 3 ARM_fbb, 16 ARM_mb_kKNOB) x seeds 0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
      stubbed calls (argv, cwd, CUDA_VISIBLE_DEVICES, redirections), the environment of each python call, stdout, the
-     eval dirs and logs, against `expect()` below (written from the README / evidence, not from line.sh's text)
+     eval dirs and logs, against `expect()` below (written from the README / evidence, not from line.sh's text);
+     every flag at most once in each grpo / eval command; each ARM_mb_kKNOB's L3 command is ARM_mb's but for its
+     knob's flags (KNOB_DIFF), and its reads are plain on t1320, t2130 and charles173 only (never tb72)
   B  refusals: ei_*_h, ei_*_b, unknown arm, ARM_b without L2 checkpoint / with a rolled-back L2 / without an L2 log,
      a seed without a Stage-1 init, usage; ei_*_c / _w / _wb, the lr schedules with _h or _b (either order), ARM_wb
      without ARM's L2 checkpoint / with a rolled-back L2 / without an L2 log; the L3 pilots (ARM_rfb, ARM_ulb,
      ARM_3pb) for EI, with another suffix (either order), ARM_3pb for a _vs3 arm, as ARM_b's three; a missing
      curriculum_3p file for ARM_3pb and the _vs3 arms; ARM_mb's; ARM_fbb (2026-10-14) for EI, no-think and
-     plain-sampling arms, with another suffix (either order), as ARM_b's three; nothing launched
+     plain-sampling arms, with another suffix (either order), as ARM_b's three; ARM_mb_kKNOB (2026-10-15) with an
+     unknown knob or a suffix after it, another suffix before _mb, EI, _vs3, _kp3 for a plain arm, a knob without
+     _mb, as ARM_mb's L2 and 3-premise refusals; nothing launched
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
   D  ARM_mb's averaging: a missing rolling checkpoint refuses the averaged reads; a rerun does not average again
+  K  ARM_mb_ki78: an it39 L3 checkpoint does not end its 78-iteration stage; with its it78 checkpoint only the reads run
   E  transcript evidence (evidence.json): the live grpo_think_h_b s1 L3 process; serrano's harness records (full
      commands and per-call records of three runs, call counts); every launcher log line and ps line of a v2 arm
 """
@@ -92,8 +97,39 @@ PBARMS = [a + "_pb" for a in GBASE]
 MBARMS = [a + "_mb" for a in GBASE if not a.endswith("_vs3")]
 # ARM_fbb: only the thinking arms with the verifier (the lines go into the think block)
 FBBARMS = [a + "_fbb" for a in ("grpo_think_v", "grpo_think_vs", "grpo_think_vs3")]
+# ARM_mb_kKNOB (2026-10-15; written from the request): ARM_mb's L3 with one setting changed, then plain reads on 13-20,
+# 21-30 and charles173 only. KNOB_DIFF: the knob's flags as (ARM_mb's value, the knob's) per mode; None: not passed
+KNOB_DIFF = {
+    "x66": {"--targets_extra_frac": ("0.33", "0.66")},
+    "g64": {
+        "--prompts": ("256", "64"),
+        "--group": ("16", "64"),
+    },  # SMOKE=1: 4 x 4 -> 2 x 8 (KNOB_SMOKE)
+    "t12": {"--temperature": (None, "1.2")},
+    "kl0": {"--kl_anchor_coef": ("0.02", "0")},
+    "kl1": {"--kl_anchor_coef": ("0.02", "0.1")},
+    "ch4": {"--clip_eps_high": (None, "0.4")},
+    "p3": {"--rej_penalty": ("0.1", "0.3")},
+    "i78": {"--iters": ("39", "78"), "--save_every": ("39", "78")},
+    "rr": {},
+}
+KNOB_SMOKE = {
+    "g64": {"--prompts": ("4", "2"), "--group": ("4", "8")},
+    "i78": {"--iters": ("2", "4"), "--save_every": ("2", "4")},
+}
+KNOB_RX = re.compile(r"(.+_mb)_k(" + "|".join(KNOB_DIFF) + ")")
+KARMS = [f"grpo_think_vs_mb_k{k}" for k in KNOB_DIFF] + [
+    "grpo_think_mb_kg64",
+    "grpo_think_v_mb_kp3",
+    "grpo_nothink_vs_mb_kt12",
+    "grpo_nothink_mb_ki78",
+    "grpo_nothink_v_mb_kx66",
+    "grpo_think_mb_krr",
+    "grpo_nothink_vs_mb_kkl1",
+]
+KNOB_READS = [("t1320", 16), ("t2130", 8), ("charles173", 64)]
 REUSE = (
-    BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS + FBBARMS
+    BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS + FBBARMS + KARMS
 )  # L3 only, from another arm's L2
 VALID = (
     BASE
@@ -108,6 +144,7 @@ VALID = (
     + PBARMS
     + MBARMS
     + FBBARMS
+    + KARMS
 )
 # ARM_mb's averaged reads (pilot4.sh's): the L3 rolling checkpoints averaged with the last one, and the plain reads
 AVG_ITS = [25, 30, 35]
@@ -179,9 +216,11 @@ def expect(
 ) -> tuple[list[tuple], list[str]]:
     """-> (ordered records (kind, cwd, cvd, fd1, fd2, argv), stdout lines) for a valid arm. `avg_there`: ARM_mb
     with its averaged checkpoint already written (a rerun)."""
-    pil = next((x for x in PILOT if arm.endswith(x)), "")
-    sch = "" if pil else next((x for x in ("_wb", "_c", "_w") if arm.endswith(x)), "")
-    core = arm[: -len(pil or sch)] if pil or sch else arm
+    km = KNOB_RX.fullmatch(arm)  # ARM_mb_kKNOB: ARM_mb's recipe ($pa), every name the full arm's
+    knob, pa = (km.group(2), km.group(1)) if km else ("", arm)
+    pil = next((x for x in PILOT if pa.endswith(x)), "")
+    sch = "" if pil else next((x for x in ("_wb", "_c", "_w") if pa.endswith(x)), "")
+    core = pa[: -len(pil or sch)] if pil or sch else pa
     src = core[:-2] if core.endswith("_b") and not pil else core
     base = src[:-2] if src.endswith("_h") and not pil else src
     sched = {"": ("", ""), "_c": (SCHED_C, SCHED_C), "_w": ("", SCHED_W), "_wb": ("", SCHED_W)}[sch]
@@ -198,6 +237,12 @@ def expect(
     EV = "<R>/eval/v2" + ("_smoke" if smoke else "")
     L = C + "/logs" if smoke else "<R>/logs"
     it, batch, cvd = (2, 16, "CVD=[]") if smoke else (39, 1024, f"CVD=[{g}]")
+    kd = {**KNOB_DIFF.get(knob, {}), **(KNOB_SMOKE.get(knob, {}) if smoke else {})}
+
+    def kv(flag: str, default: str) -> str:  # the knob's value of a flag the recipe passes
+        return kd[flag][1] if flag in kd else default
+
+    it3 = int(kv("--iters", str(it)))  # stage L3's iterations
     lr = "7.5e-5" if base != src else "1.5e-4"
     eff = "--effort --budgets 0\\,64\\,256" if think else "--budgets 0"
     rb = 64 if think else 0
@@ -287,7 +332,7 @@ def expect(
 
     def ck(name: str) -> str:
         return (
-            f"{C}/{name}/ckpts/{name}_it{it}.pt"
+            f"{C}/{name}/ckpts/{name}_it{it3 if name.endswith('_L3') else it}.pt"
             if method == "grpo"
             else f"{C}/{name}/ckpts/{name}_r1.pt"
         )
@@ -297,36 +342,55 @@ def expect(
     ) -> None:
         waitfree()
         log = f"{L}/v2_{name}.log"
+        l3 = name.endswith("_L3")  # the knob is stage L3's (a knob arm has no L2 of its own)
         if method == "grpo":
+            n_it = it3 if l3 else it
+            new = (
+                [f for f, (old, _) in kd.items() if old is None] if l3 else []
+            )  # flags the recipe leaves out
+            kf = "".join(
+                f"{f} {kd[f][1]} " for f in ("--temperature", "--clip_eps_high") if f in new
+            )
+            assert len(kf.split()) == 2 * len(new), "a new knob flag without a place in the command"
             a = (
-                f"21600 <PY> -m code.thinking.grpo --init {init} --name {name} --out {C}/{name} --targets {targets} "
-                f"--iters {it} --prompts {4 if smoke else 256} --group {4 if smoke else 16} --batch {batch} --lr {lr} "
+                f"{43200 if n_it == 2 * it else 21600} <PY> -m code.thinking.grpo --init {init} --name {name} "
+                f"--out {C}/{name} --targets {targets} "
+                f"--iters {n_it} --prompts {kv('--prompts', '4' if smoke else '256')} "
+                f"--group {kv('--group', '4' if smoke else '16')} --batch {batch} --lr {lr} "
                 + (f"{sc} " if sc else "")
                 + (f"{pflags} " if pflags else "")
-                + f"--overlong fail --save_every {it} --max_steps 96 --seed {s} --keep_rolling 100 {eff} "
+                + kf
+                + f"--overlong fail --save_every {n_it} --max_steps 96 --seed {s} --keep_rolling 100 {eff} "
                 f"--canary <R>/pools/canary_long.jsonl --canary_n {40 if smoke else 1000} --canary_every 1 "
-                f"--rollback_on_alarm --max_rollbacks 3{BAN} --kl_anchor_coef 0.02 --kl_anchor_ref {init}"
-                + (" --kl_anchor_n 16" if smoke else "")
-                + " --monitor"
+                f"--rollback_on_alarm --max_rollbacks 3{BAN} --kl_anchor_coef {kv('--kl_anchor_coef', '0.02')} "
+                f"--kl_anchor_ref {init}" + (" --kl_anchor_n 16" if smoke else "") + " --monitor"
             )
+            p_ = kv("--rej_penalty", "0.1")
+            xf = kv("--targets_extra_frac", "0.33")
             if samp == "logical":
                 mr = 0 if base.endswith(("_vs", "_vs3")) else 10
                 if pil == "_fbb" and name.endswith("_L3"):  # retries per step, with --feedback
                     mr = FB_MAXREJ
-                a += f" --arm logical --max_rej {mr} --rej_penalty 0.1"
+                a += f" --arm logical --max_rej {mr} --rej_penalty {p_}"
             if extra:
-                a += f" --targets_extra {extra} --targets_extra_frac 0.33"
+                a += f" --targets_extra {extra} --targets_extra_frac {xf}"
+            kdesc = ""
+            if knob and l3:
+                kdesc = " ".join(f"{f} {v}" for f, (_, v) in kd.items() if f != "--save_every")
+                kdesc = kdesc or "nothing changed"
+                kdesc = f", knob {knob}: {kdesc}"
             desc = (
                 samp
-                + (", P 0.1" if samp == "logical" else "")
-                + (f", extra {os.path.basename(extra)} x 0.33" if extra else "")
+                + (f", P {p_}" if samp == "logical" else "")
+                + (f", extra {os.path.basename(extra)} x {xf}" if extra else "")
                 + (f", lr {lr}" if base != src else "")
                 + (f", {sc}" if sc else "")
                 + (f", {pflags}" if pflags else "")
+                + kdesc
             )
             out.append(f"00:00Z launched GRPO {name} ({desc}) on GPU {g} (pid N)")
-            out.append(f"00:00Z GRPO {name} exit 0: it {it}: dry")
-            wh = "3.5"
+            out.append(f"00:00Z GRPO {name} exit 0: it {n_it}: dry")
+            wh = "7" if n_it == 2 * it else "3.5"
         else:
             a = (
                 f"21600 <PY> -m code.thinking.ei --init {init} --name {name} --out {C}/{name} --targets {targets} "
@@ -354,7 +418,7 @@ def expect(
     stage(f"{arm}_s{s}_L3", l2ck, l3t, x3, sched[1], pflags)
     ch = "<R>/pools/charles_1002"
     reads = []
-    for ra in ("plain", "logical"):
+    for ra in ("plain", "logical") if not knob else ():
         reads += [
             ("t1320", "<R>/eval/matched/sets/t1320_n1000.jsonl", 16, ra, 96),
             ("tb72", f"{TB}/textbook_dev.jsonl\\,{TB}/textbook_train.jsonl", 64, ra, 96),
@@ -378,15 +442,23 @@ def expect(
                 FB_MAXREJ,
             ),
         ]
-    reads += [
-        ("hand14", f"{ch}/hand_proved_14.jsonl", 64, "plain", 160),
-        ("t2130", "<R>/eval/matched/sets/t2130_n1000.jsonl", 8, "plain", 96),
-    ]
+    if not knob:
+        reads += [
+            ("hand14", f"{ch}/hand_proved_14.jsonl", 64, "plain", 160),
+            ("t2130", "<R>/eval/matched/sets/t2130_n1000.jsonl", 8, "plain", 96),
+        ]
+    else:  # ARM_mb_kKNOB: plain on 13-20, 21-30 and charles173, in that order; nothing else
+        sets = {
+            "t1320": "<R>/eval/matched/sets/t1320_n1000.jsonl",
+            "t2130": "<R>/eval/matched/sets/t2130_n1000.jsonl",
+            "charles173": f"{ch}/candidate_v0.jsonl\\,{ch}/candidate_v1.jsonl\\,{ch}/batch3.jsonl",
+        }
+        reads += [(n, sets[n], k, "plain", 96) for n, k in KNOB_READS]
     av = f"{C}/{arm}_avg_s{s}_L3/ckpts/{arm}_avg_s{s}_L3_it{it}.pt"
     sets_of = {n: x for n, x, *_ in reads}
     n_usual = len(reads)
     if (
-        pil == "_mb"
+        pil == "_mb" and not knob
     ):  # after the usual reads: the averaging, then the averaged checkpoint's plain reads
         reads += [(n, sets_of[n], k, "plain", 96) for n, k in AVG_READS]
     reads = [r if len(r) == 6 else (*r, 10) for r in reads]  # --max_rej 10 unless given (ARM_fbb's)
@@ -472,7 +544,8 @@ for mode in ("normal", "smoke"):
                 )
             ]
             fbb = arm.endswith("_fbb")  # two feedback reads
-            ok(len(ev) == 8 + 2 * fbb, "A", f"{tag}: {len(ev)} eval dirs")
+            kn = arm in KARMS  # three plain reads
+            ok(len(ev) == (3 if kn else 8 + 2 * fbb), "A", f"{tag}: {len(ev)} eval dirs")
             lg = "./runs/grpo_v2/smoke/logs" if mode == "smoke" else "./runs/logs"
             el = [t for t in r["tree"] if t.startswith(f"f {lg}/v2_eval_")]
             mb = arm.endswith("_mb")
@@ -495,7 +568,7 @@ for mode in ("normal", "smoke"):
                     f"{tag}: averaged ckpt",
                 )
             ok(
-                len(el) == (12 if mb else 10 if fbb else 8)
+                len(el) == (12 if mb else 10 if fbb else 3 if kn else 8)
                 and all(
                     re.match(
                         rf"^f {re.escape(lg)}/v2_eval_(t1320|tb72|charles173|hand14|t2130)_{re.escape(arm)}(_avg)?_s{s}_(plain|logical|feedback)_k\d+\.log$",
@@ -506,6 +579,21 @@ for mode in ("normal", "smoke"):
                 "A",
                 f"{tag}: eval logs {el[:2]}",
             )
+            if kn:  # never textbook72, the guided arm, hand14 or an averaged checkpoint
+                ok(
+                    sorted(re.sub(r"^.*/v2_eval_", "", t) for t in el)
+                    == sorted(
+                        f"{n}_{arm}_s{s}_plain_k{2 if mode == 'smoke' else k}.log"
+                        for n, k in KNOB_READS
+                    ),
+                    "A",
+                    f"{tag}: knob reads {el}",
+                )
+                ok(
+                    not any("tb72" in t or "_avg" in t or "logical" in t for t in r["tree"]),
+                    "A",
+                    f"{tag}: a tb72 / averaged / guided read",
+                )
             if arm in REUSE:
                 ok(
                     not any(f"{arm}_s{s}_L2" in t for t in r["tree"]),
@@ -518,10 +606,14 @@ for mode in ("normal", "smoke"):
                 if mode == "smoke"
                 else (
                     46
-                    + ("_vs3" in arm or arm.endswith(("_3pb", "_mb")))
+                    + ("_vs3" in arm or arm.endswith(("_3pb", "_mb")) or kn)  # the extra preflight
                     - (5 if arm in REUSE else 0)
                 )
-            ) + arm.endswith(("_rfb", "_ulb", "_pb", "_mb", "_fbb"))  # the pilot options check
+            ) + (
+                arm.endswith(("_rfb", "_ulb", "_pb", "_mb", "_fbb")) or kn
+            )  # the pilot options check
+            if kn:  # 3 reads instead of 8: waitfree (2, normal), rm, timeout each
+                want -= 5 * (4 if mode == "normal" else 2)
             if fbb:  # two more reads: waitfree (2, normal), rm, timeout
                 want += 8 if mode == "normal" else 4
             if (
@@ -529,6 +621,51 @@ for mode in ("normal", "smoke"):
             ):  # the averaging, and 4 reads (rm, eval; and waitfree's 2 nvidia-smi outside SMOKE=1)
                 want += 1 + 4 * (2 if mode == "smoke" else 4)
             ok(n == want, "A", f"{tag}: {n} calls, want {want}")
+            for x in r["rec"]:
+                if x["kind"] == "timeout" and " -m code.thinking." in x["argv"]:
+                    fl = [t for t in x["argv"].split() if t.startswith("--")]
+                    dup = sorted({t for t in fl if fl.count(t) > 1})
+                    ok(not dup, "A", f"{tag}: flags given twice {dup} in {x['argv'][:80]}")
+
+
+def flags(argv: str) -> dict[str, str | None]:
+    """A recorded grpo command -> {flag: its value (None: a switch)}, the timeout's limit as 'timeout'."""
+    t = argv.split()
+    d: dict[str, str | None] = {"timeout": t[0]}
+    for i, x in enumerate(t):
+        if x.startswith("--"):
+            v = t[i + 1] if i + 1 < len(t) and not t[i + 1].startswith("--") else None
+            d[x] = v
+    return d
+
+
+for mode in ("normal", "smoke"):
+    for s in (0, 1, 2):
+        for arm in KARMS:
+            km = KNOB_RX.fullmatch(arm)
+            assert km
+            mb, knob = km.group(1), km.group(2)
+            tag = f"{mode} s{s} {arm}"
+            mine, theirs = (
+                [
+                    x["argv"]
+                    for x in runs[(mode, s, a)]["rec"]
+                    if x["kind"] == "timeout" and " -m code.thinking.grpo " in x["argv"]
+                ]
+                for a in (arm, mb)
+            )
+            if not ok(len(mine) == 1 and len(theirs) == 1, "A", f"{tag}: L3 commands {len(mine)}"):
+                continue
+            fk = flags(mine[0])
+            fm = flags(theirs[0].replace(f"{mb}_s{s}_L3", f"{arm}_s{s}_L3"))
+            want = {**KNOB_DIFF[knob], **(KNOB_SMOKE.get(knob, {}) if mode == "smoke" else {})}
+            if knob == "i78":
+                want["timeout"] = ("21600", "43200")
+            diff = {f: (fm.get(f), fk.get(f)) for f in set(fk) | set(fm) if fm.get(f) != fk.get(f)}
+            diff |= {
+                f: (None, None) for f in set(fk) ^ set(fm) if f not in diff
+            }  # a switch added or dropped
+            ok(diff == want, "A", f"{tag}: L3 command vs {mb}'s: {diff}, want {want}")
 
 # ---------------------------------------------------------------- B: refusals
 refusals = []
@@ -865,6 +1002,95 @@ for mode in ("normal", "smoke"):
             refusals.append(
                 (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm)
             )
+        # ARM_mb_kKNOB (2026-10-15): an unknown knob or anything after it; another suffix before _mb (that suffix's
+        # message); EI; _vs3; _kp3 without the step penalty; a knob without _mb (not a knob arm)
+        k_no = r"_mb_k takes one knob of x66 g64 t12 kl0 kl1 ch4 p3 i78 rr, with nothing after it"
+        for arm, rx in (
+            *(
+                (a, k_no)
+                for a in (
+                    "grpo_think_vs_mb_kfoo",
+                    "grpo_think_vs_mb_k",
+                    "grpo_think_vs_mb_kx66_h",
+                    "grpo_think_vs_mb_kx66_krr",
+                    "grpo_think_vs_mb_kmb",
+                    "grpo_think_vs_mb_krr_mb",
+                    "grpo_think_vs_mb_kt12_b",
+                )
+            ),
+            *(
+                (a, r"_mb \(an L3 pilot\) does not combine with other suffixes")
+                for a in (
+                    "grpo_think_vs_h_mb_kx66",
+                    "grpo_think_vs_wb_mb_ki78",
+                    "grpo_think_vs_mb_mb_krr",
+                )
+            ),
+            (
+                "grpo_think_vs_ulb_mb_krr",
+                r"_rfb, _ulb and _3pb \(L3 pilots\) do not combine with other suffixes",
+            ),
+            (
+                "grpo_think_vs_pb_mb_kt12",
+                r"_pb \(an L3 pilot\) does not combine with other suffixes",
+            ),
+            (
+                "grpo_think_vs_fbb_mb_kkl0",
+                r"_fbb \(an L3 pilot\) does not combine with other suffixes",
+            ),
+            ("ei_think_mb_krr", r"_mb is a GRPO L3 pilot, and ei_think is EI"),
+            ("ei_nothink_v_mb_kg64", r"_mb is a GRPO L3 pilot, and ei_nothink_v is EI"),
+            ("grpo_think_vs3_mb_kx66", r"grpo_think_vs3 already trains on the 3-premise rows"),
+            *(
+                (
+                    a,
+                    rf"_kp3 raises the step penalty, and {a[:-7]} samples plain \(no penalty\)",
+                )
+                for a in ("grpo_think_mb_kp3", "grpo_nothink_mb_kp3")
+            ),
+            (
+                "grpo_think_vs_fbb_kx66",
+                r"_fbb \(an L3 pilot\) does not combine with other suffixes",
+            ),
+            (
+                "grpo_think_vs_ulb_kp3",
+                r"_rfb, _ulb and _3pb \(L3 pilots\) do not combine with other suffixes",
+            ),
+        ):
+            refusals.append(
+                (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm)
+            )
+        refusals.append(
+            (
+                f"{H}/res/{mode}/s{s}/grpo_think_vs_kx66",
+                2,
+                r"^unknown arm grpo_think_vs_kx66$",
+                "grpo_think_vs_kx66",
+            )
+        )
+        for kind, arm, rx in (  # as ARM_mb's
+            (
+                "nockpt",
+                "grpo_think_vs_mb_ki78",
+                rf"no L2 checkpoint of grpo_think_vs \({re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt\)",
+            ),
+            (
+                "rb",
+                "grpo_think_vs_mb_kt12",
+                r"grpo_think_vs's L2 log ends 'guard it 39: .*lr x0\.5 \(1 rollbacks\).*', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "nolog",
+                "grpo_think_vs_mb_kg64",
+                r"grpo_think_vs's L2 log ends 'no guard line', not lr x1 \(0 rollbacks\): rerun the whole line",
+            ),
+            (
+                "no3pL3",
+                "grpo_think_vs_mb_kx66",
+                rf"no 3-premise pool file {re.escape(SB)}/pools/curriculum_3p/L3_3p\.jsonl \(runs/pools/curriculum_3p\)",
+            ),
+        ):
+            refusals.append((f"{d}/{kind}_{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm))
         # the curriculum_3p files are rebuilt by someone else: refused while one is missing
         for x in ("L3", "L2"):
             for arm in ("grpo_think_vs_3pb", "grpo_think_vs3", "grpo_nothink_vs3"):
@@ -957,6 +1183,53 @@ for mode in ("normal", "smoke"):
             not any(x[0] == "py" and x[5].startswith("- ") for x in got),
             "D",
             f"rerun {mode} s{s}: averaged again",
+        )
+
+# ---------------------------------------------------------------- K: ARM_mb_ki78's 78-iteration L3 (2026-10-15)
+# an it39 L3 checkpoint there (39 iterations' worth) does not end the stage: the same line as a fresh one; with its it78
+# checkpoint there, no stage runs and the reads take it78
+for mode in ("normal", "smoke"):
+    for s in (0, 1, 2):
+        exp, eout = expect("grpo_think_vs_mb_ki78", s, mode, 3)
+        r = load(f"{H}/res/knob/{mode}/s{s}/it39_grpo_think_vs_mb_ki78")
+        got = [key(x) for x in r["rec"]]
+        ok(r["exit"] == "0", "K", f"it39 {mode} s{s}: exit {r['exit']}")
+        ok(sorted(got) == sorted(exp), "K", f"it39 {mode} s{s}: calls differ from a fresh line's")
+        ok(stdout_lines(r) == eout, "K", f"it39 {mode} s{s}: stdout")
+        r = load(f"{H}/res/knob/{mode}/s{s}/it78_grpo_think_vs_mb_ki78")
+        got = [key(x) for x in r["rec"]]
+        it78 = 4 if mode == "smoke" else 78
+        name = f"grpo_think_vs_mb_ki78_s{s}_L3"
+        stage = [x for x in exp if " -m code.thinking.grpo " in x[5]]
+        launched = [x for x in eout if x.startswith(("00:00Z launched GRPO", "00:00Z GRPO "))]
+        # the stage's calls: waitfree's 2 nvidia-smi (normal), the timeout, sleep 5 and the watchdog launch
+        n_stage = 3 + (2 if mode == "normal" else 0) - (1 if mode == "smoke" else 0)
+        ok(r["exit"] == "0", "K", f"it78 {mode} s{s}: exit {r['exit']}")
+        ok(
+            not any(" -m code.thinking.grpo " in x[5] for x in got) and len(stage) == 1,
+            "K",
+            f"it78 {mode} s{s}: the stage ran again",
+        )
+        ok(
+            len(got) == len(exp) - n_stage,
+            "K",
+            f"it78 {mode} s{s}: {len(got)} calls, want {len(exp) - n_stage}",
+        )
+        ok(
+            stdout_lines(r) == [x for x in eout if x not in launched],
+            "K",
+            f"it78 {mode} s{s}: stdout {stdout_lines(r)[:2]}",
+        )
+        ev = [x[5] for x in got if " -m code.thinking.eval " in x[5]]
+        ok(
+            len(ev) == 3
+            and all(
+                f"--ckpt <R>/grpo_v2{'/smoke' if mode == 'smoke' else ''}/{name}/ckpts/{name}_it{it78}.pt "
+                in x
+                for x in ev
+            ),
+            "K",
+            f"it78 {mode} s{s}: reads {[x[:120] for x in ev]}",
         )
 
 # ---------------------------------------------------------------- C: busy GPU and queue.sh

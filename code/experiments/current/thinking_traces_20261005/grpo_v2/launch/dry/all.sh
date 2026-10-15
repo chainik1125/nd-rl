@@ -1,5 +1,5 @@
 #!/bin/bash
-# all.sh: dry-run every GRPO v2 arm (the L3 pilots, ARM_mb and ARM_fbb too), seeds 0-2, normal and SMOKE=1, plus the refusals and queue.sh; results under
+# all.sh: dry-run every GRPO v2 arm (the L3 pilots, ARM_mb, ARM_fbb and ARM_mb_kKNOB too), seeds 0-2, normal and SMOKE=1, plus the refusals and queue.sh; results under
 # $H/res/. No python, no GPU (make.sh's stubs). Then check.py compares the records with the transcript evidence.
 #   bash make.sh [DIR] && bash all.sh && python3 check.py
 H=${DRY_HOME:-/scratch/cowifornia/nd-rl/think/dry}  # outputs and the built harness
@@ -41,6 +41,17 @@ FBREF=(ei_think_v_fbb ei_think_fbb grpo_nothink_vs_fbb grpo_nothink_v_fbb grpo_n
        grpo_think_vs_wb_fbb grpo_think_vs_fbb_w grpo_think_vs_rfb_fbb grpo_think_vs_fbb_rfb grpo_think_vs_pb_fbb
        grpo_think_vs_fbb_pb grpo_think_vs_3pb_fbb grpo_think_vs_fbb_3pb grpo_think_vs_ulb_fbb grpo_think_vs_fbb_ulb
        grpo_think_vs_mb_fbb grpo_think_vs_fbb_mb grpo_think_vs_fbb_fbb)
+# ARM_mb_kKNOB (2026-10-15): every knob of grpo_think_vs_mb (the ones asked for), and some on other ARM_mb arms, each from
+# its base arm's L2 (a setup); refused: another knob or a suffix after it, another suffix before _mb, EI, _vs3, _kp3 for a
+# plain-sampling arm, a knob without _mb, as ARM_mb's L2 and 3-premise checks
+KNOBS=(x66 g64 t12 kl0 kl1 ch4 p3 i78 rr)
+KARMS=("${KNOBS[@]/#/grpo_think_vs_mb_k}" grpo_think_mb_kg64 grpo_think_v_mb_kp3 grpo_nothink_vs_mb_kt12 grpo_nothink_mb_ki78
+       grpo_nothink_v_mb_kx66 grpo_think_mb_krr grpo_nothink_vs_mb_kkl1)
+KREF=(grpo_think_vs_mb_kfoo grpo_think_vs_mb_k grpo_think_vs_mb_kx66_h grpo_think_vs_mb_kx66_krr grpo_think_vs_mb_kmb
+      grpo_think_vs_mb_krr_mb grpo_think_vs_mb_kt12_b grpo_think_vs_h_mb_kx66 grpo_think_vs_wb_mb_ki78 grpo_think_vs_mb_mb_krr
+      grpo_think_vs_ulb_mb_krr grpo_think_vs_pb_mb_kt12 grpo_think_vs_fbb_mb_kkl0 ei_think_mb_krr ei_nothink_v_mb_kg64
+      grpo_think_vs3_mb_kx66 grpo_think_mb_kp3 grpo_nothink_mb_kp3 grpo_think_vs_kx66 grpo_think_vs_fbb_kx66
+      grpo_think_vs_ulb_kp3)
 MODES=(normal smoke); SEEDS=(0 1 2)
 OKLOG='guard it 39: kl anchor 0.0004 x 0.02 (gn policy 0.014); lr x1 (0 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
 RBLOG='guard it 39: kl anchor 0.0006 x 0.02 (gn policy 0.013); lr x0.5 (1 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
@@ -57,7 +68,7 @@ setup() {  # NAME MODE SEED SRC CKPT(yes|no) GUARDLINE|none -> a SETUP file: SRC
 rm -rf "$H/res" "$H/setups"; t0=$(date +%s); n=0
 for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   for arm in "${BASE[@]}" "${HARMS[@]}" "${EIH[@]}" "${EIB[@]}" bogus_arm "${CARMS[@]}" "${WARMS[@]}" "${EIS[@]}" \
-             "${COMBO[@]}" "${PREF[@]}" "${FBREF[@]}"; do
+             "${COMBO[@]}" "${PREF[@]}" "${FBREF[@]}" "${KREF[@]}"; do
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm"; n=$((n+1))
   done
   for arm in "${GRPO[@]}"; do
@@ -134,6 +145,32 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   su=$(setup fbnolog_${mode}_s$seed $mode $seed grpo_think_vs3 yes none)
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs3_fbb "$H/res/refuse/$mode/s$seed/nolog_grpo_think_vs3_fbb" $su
   n=$((n+3))
+  for arm in "${KARMS[@]}"; do  # ARM_mb_kKNOB, from the base arm's L2
+    b=${arm%_mb_k*}
+    su=$(setup k_${mode}_s${seed}_$arm $mode $seed $b yes "$OKLOG")
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
+  done
+  # ARM_mb_kKNOB's refusals, as ARM_mb's: no L2 checkpoint, a rolled-back L2, no L2 log, no L3 3-premise file
+  su=$(setup knockpt_${mode}_s$seed $mode $seed grpo_think_vs no "$OKLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_ki78 "$H/res/refuse/$mode/s$seed/nockpt_grpo_think_vs_mb_ki78" $su
+  su=$(setup krb_${mode}_s$seed $mode $seed grpo_think_vs yes "$RBLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_kt12 "$H/res/refuse/$mode/s$seed/rb_grpo_think_vs_mb_kt12" $su
+  su=$(setup knolog_${mode}_s$seed $mode $seed grpo_think_vs yes none)
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_kg64 "$H/res/refuse/$mode/s$seed/nolog_grpo_think_vs_mb_kg64" $su
+  su=$(setup kno3p_${mode}_s$seed $mode $seed grpo_think_vs yes "$OKLOG")
+  echo 'rm -f "$SB/runs/pools/curriculum_3p/L3_3p.jsonl"' >> $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_kx66 "$H/res/refuse/$mode/s$seed/no3pL3_grpo_think_vs_mb_kx66" $su
+  n=$((n+4))
+  # ARM_mb_ki78's L3 is it78: an it39 L3 checkpoint there does not end the stage; with it78 there, only the reads run
+  c=runs/grpo_v2; it=39; [ $mode = smoke ] && { c=runs/grpo_v2/smoke; it=2; }
+  a=grpo_think_vs_mb_ki78_s${seed}_L3
+  su=$(setup ki39_${mode}_s$seed $mode $seed grpo_think_vs yes "$OKLOG")
+  echo "mkdir -p \"\$SB/$c/$a/ckpts\" && : > \"\$SB/$c/$a/ckpts/${a}_it$it.pt\"" >> $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_ki78 "$H/res/knob/$mode/s$seed/it39_grpo_think_vs_mb_ki78" $su
+  su=$(setup ki78_${mode}_s$seed $mode $seed grpo_think_vs yes "$OKLOG")
+  echo "mkdir -p \"\$SB/$c/$a/ckpts\" && : > \"\$SB/$c/$a/ckpts/${a}_it$((2 * it)).pt\"" >> $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_ki78 "$H/res/knob/$mode/s$seed/it78_grpo_think_vs_mb_ki78" $su
+  n=$((n+2))
   for x in L3 L2; do for arm in grpo_think_vs_3pb grpo_think_vs3 grpo_nothink_vs3; do
     su=$(setup no3p${x}_${mode}_s${seed}_$arm $mode $seed grpo_think_vs yes "$OKLOG")
     echo "rm -f \"\$SB/runs/pools/curriculum_3p/${x}_3p.jsonl\"" >> $su

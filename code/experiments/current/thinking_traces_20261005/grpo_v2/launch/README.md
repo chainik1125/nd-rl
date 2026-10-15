@@ -19,6 +19,7 @@ backup (`/home/cowifornia/backups/nd-rl-think/`), for the restart on ynez. The r
 | `lib.sh` | `/scratch/cowifornia/nd-rl/think/runs/followup_20261007/lib.sh` | 2,245 | `6f2aa471…ca95` | byte exact |
 | `watchdog.py` | `/scratch/cowifornia/nd-rl/think/runs/watchdog.py` | 3,786 | `2442d2b5…ab8a` | byte exact |
 | `backup.py` | `/scratch/cowifornia/nd-rl/think/runs/backup.py` | | | new on ynez (below) |
+| `pull_queue.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/pull_queue.sh` | | | new on ynez: one worker per GPU on a shared job file |
 | `dry/` | `/scratch/cowifornia/nd-rl/think/dry/` | | | the dry-run harness (below) |
 
 `grpo_v2/preflight.py`, which `line.sh` runs, was already in git (`../preflight.py`).
@@ -122,6 +123,52 @@ Paths are serrano's. Changes, all of them:
    - `read1` takes an optional eighth argument, `--max_rej`, which defaults to the earlier 10.
    - `dry/all.sh` and `dry/check.py` cover it. Every earlier arm's dry-run records match ccfa1c7's harness output in
      the same way as above.
+9. `leon/grpo-v2` (2026-10-15): `line.sh` adds the knob pilots `ARM_mb_kKNOB`. Each one is `ARM_mb`'s L3 (the merged
+   recipe) from the same L2 checkpoint, with the same checks and refusals, and one setting changed:
+
+   | KNOB | change from `ARM_mb` |
+   |---|---|
+   | `x66` | `--targets_extra_frac 0.66` (`XFRAC`, 0.33) |
+   | `g64` | `--prompts 64 --group 64` (256 x 16: the same attempts per iteration; `SMOKE=1`: 2 x 8 for 4 x 4) |
+   | `t12` | `--temperature 1.2`, training only (grpo.py's default is 1.0; the reads stay at 0.8) |
+   | `kl0`, `kl1` | `--kl_anchor_coef 0`, `0.1` (0.02) |
+   | `ch4` | `--clip_eps_high 0.4` (grpo.py's default is 0.28) |
+   | `p3` | `--rej_penalty 0.3` (0.1); refused for an arm without the step penalty |
+   | `i78` | `--iters 78 --save_every 78` in L3 (39). The WSD cooldown is the last 20% of the longer run, the reads use its `_it78` checkpoint, and the L2 checkpoint it starts from stays `_it39`. The stage timeout is 12 h instead of 6 h, and the watchdog expects 7 h instead of 3.5 h. |
+   | `rr` | nothing: `ARM_mb`'s L3 again, as a noise control (GPU runs are not bit-reproducible) |
+
+   - The knob replaces the recipe's value, so every flag is in the command once. `--kl_anchor_coef`'s 0.02 became
+     `KLC`, and L3's iterations are `IT3` (`ITERS` otherwise). `t12` and `ch4` add a flag the recipe leaves at
+     grpo.py's default. All of this is in one block of `line.sh`.
+   - Reads: plain only, on t1320 k16, t2130 k8 and charles173 k64, in that order, under the usual names
+     (`eval/v2/<set>_<arm>_s<seed>_plain_k<k>/`). Knob selection must never use textbook72, so there is no tb72
+     read, and no guided, hand14 or averaged-checkpoint read.
+   - Parsing: `_mb_k` must be followed by one knob from the table and nothing else. Every earlier suffix rule is
+     applied to the arm without `_kKNOB`, so `_mb` combined with any other suffix is still refused.
+   - `dry/all.sh` and `dry/check.py` cover all nine knobs on `grpo_think_vs_mb` and some on other `ARM_mb` arms.
+     `check.py` compares each knob arm's L3 command with `ARM_mb`'s: only the knob's flags may differ. It also checks
+     that no flag appears twice in any grpo or eval command, covers the refusals, and checks the 78-iteration stage
+     (section K). Every earlier arm's dry-run results match 4796bd0's harness output: all 1,370 result dirs (exit,
+     stdout, call records, trees, logs). For this comparison, pids were normalised, and the stage's two background
+     calls (`sleep 5` and the watchdog launch), which race, were compared as a multiset. The only md5 differences are
+     the sandbox launcher copy and the queue's logs, which hold pids.
+   - `t12` and the safeguards at T = 1.2:
+     - The canary is always scored at T = 1, and so is its base.
+     - The KL anchor tempers both pi_ref and pi.
+     - The unlikeliness reward ranks attempts under pi_old at the sampling temperature.
+     - The clip-low and grad-norm alarms compare a run with its own history.
+
+     So no alarm compares a tempered value with a base taken at another temperature. The think-ban mass (alarm
+     1e-3, `--ban_stop` 0.005) is an absolute threshold on the tempered full-vocabulary mass.
+
+     A CPU check (2026-10-15) ran one iteration from `grpo_think_vs_s0_L2_it39`, 24 groups x 8 attempts. On the
+     same T = 1.0 samples, scoring at T = 1.2 raised the mean mass from 2.0e-4 to 3.1e-4. On T = 1.2 samples it was
+     7.8e-4 scored at T = 1.0 and 8.6e-4 at T = 1.2. Most of the rise comes from the states T = 1.2 sampling
+     reaches, not from the scoring, so grpo.py is unchanged. `t12` starts L3 near the alarm, though, so expect
+     think-ban alarms (with the restore check, possibly rollbacks) in its guard lines.
+10. `pull_queue.sh` (2026-10-15): the backup pass after each job is opt-in (`BACKUP=1`). Its destination on `/home`
+    was removed on purpose (minimal data duplication on `/home`), and a pass would recreate it. `queue.sh` still
+    runs one after each arm.
 
 Checked and left alone:
 
@@ -159,6 +206,7 @@ dir stay. The docstring has the rules: tiers under the cap, the deletion guard a
 2-minute wait for fresh checkpoints, atomic copies, one pass at a time. Its log is `runs/logs/backup.log`;
 `.last_pass.json` in the backup dir has the last pass's counts.
 
-The queue runs a pass after every arm. An hourly loop, each pass bounded at 3 h:
+`queue.sh` runs a pass after every arm, and `pull_queue.sh` only with `BACKUP=1` (since 2026-10-15; the destination
+was removed on purpose, item 10 above). An hourly loop, each pass bounded at 3 h:
 
     nohup setsid bash -c 'while true; do timeout 10800 nice python3 /scratch/cowifornia/nd-rl/think/runs/backup.py >> /scratch/cowifornia/nd-rl/think/runs/logs/backup.log 2>&1; sleep 3600; done' > /dev/null 2>&1 < /dev/null &

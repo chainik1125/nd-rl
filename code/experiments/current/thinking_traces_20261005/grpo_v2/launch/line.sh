@@ -47,6 +47,16 @@
 #        read arm (eval.py --arms feedback, --max_rej FB_MAXREJ) on t1320 and charles173, alongside the logical reads.
 #        Refused for EI, for no-think ARMs (no think block) and for ARMs without the verifier, and until $WT's grpo.py
 #        and eval.py have the feedback options (the guard checks FEEDBACK_MODES and READ_ARMS).
+#        ARM_mb_kKNOB, for an ARM_mb above (the knob pilots, 2026-10-15; grpo_think_vs_mb_kKNOB at seed 0 asked for):
+#        ARM_mb's L3, checked and refused as ARM_mb, with one setting changed, set in the knob block below and nowhere
+#        else: x66 --targets_extra_frac 0.66 (XFRAC, 0.33); g64 --prompts 64 --group 64 (256 x 16: the same attempts per
+#        iteration); t12 --temperature 1.2 (training only; grpo.py's default 1.0); kl0, kl1 --kl_anchor_coef 0, 0.1
+#        (0.02); ch4 --clip_eps_high 0.4 (grpo.py's 0.28); p3 --rej_penalty 0.3 (0.1; refused for an ARM without the step
+#        penalty); i78 --iters 78 in L3 (39; the WSD cooldown is its last 20%, the reads take its it78 checkpoint, the L2
+#        it starts from stays it39); rr nothing (ARM_mb's L3 again: the noise control). The knob overrides the recipe's
+#        value, so every flag is in the command once. Then plain reads only, t1320 k16, t2130 k8 and charles173 k64
+#        (never textbook72, which knob selection must not see; no guided, hand14 or averaged-checkpoint reads). Every
+#        run, log and eval name keeps the full ARM_mb_kKNOB. Another knob, or any suffix after the knob, is refused.
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -67,23 +77,29 @@ PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
   || { say "code.thinking does not resolve to $WT: refusing"; exit 1; }
 g=$1; s=$2; arm=$3
 [ -n "$g" ] && [ -n "$s" ] && [ -n "$arm" ] || { echo "usage: line.sh GPU SEED ARM"; exit 2; }
-pil=""; case $arm in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; *_mb) pil=mb ;; *_fbb) pil=fbb ;; esac  # first
-case $arm in *_rfb_*|*_ulb_*|*_3pb_*)  # a pilot suffix with another after it
+knob=""; pa=$arm  # ARM_mb_kKNOB: the suffixes below are parsed on ARM_mb ($pa); $arm names every output
+case $arm in *_mb_k*) knob=${arm##*_mb_k}; pa=${arm%_k$knob}
+  case $knob in x66|g64|t12|kl0|kl1|ch4|p3|i78|rr) ;; *)
+    say "$arm: _mb_k takes one knob of x66 g64 t12 kl0 kl1 ch4 p3 i78 rr, with nothing after it: refusing"; exit 1 ;;
+  esac ;;
+esac
+pil=""; case $pa in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; *_mb) pil=mb ;; *_fbb) pil=fbb ;; esac  # first
+case $pa in *_rfb_*|*_ulb_*|*_3pb_*)  # a pilot suffix with another after it
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
-case $arm in *_pb_*) say "$arm: _pb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
-case $arm in *_mb_*) say "$arm: _mb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
-case $arm in *_fbb_*) say "$arm: _fbb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
-core=${arm%_$pil}  # ARM of ARM_$pil
+case $pa in *_pb_*) say "$arm: _pb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
+case $pa in *_mb_*) say "$arm: _mb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
+case $pa in *_fbb_*) say "$arm: _fbb (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
+core=${pa%_$pil}  # ARM of ARM_$pil
 [ -n "$pil" ] && case $core in *_[hbcw]|*_wb|*_pb|*_mb)
   case $pil in pb|mb|fbb) say "$arm: _$pil (an L3 pilot) does not combine with other suffixes: refusing"; exit 1 ;; esac
   say "$arm: _rfb, _ulb and _3pb (L3 pilots) do not combine with other suffixes: refusing"; exit 1 ;;
 esac
-case ${arm}_ in *_[hb]_c_|*_[hb]_w_|*_[hb]_wb_|*_[cw]_[hb]_*|*_wb_[hb]_*)  # in either order
+case ${pa}_ in *_[hb]_c_|*_[hb]_w_|*_[hb]_wb_|*_[cw]_[hb]_*|*_wb_[hb]_*)  # in either order
   say "$arm: _c, _w and _wb (lr schedules) do not combine with _h or _b: refusing"; exit 1 ;;
 esac
-sch=""; case $arm in *_c) sch=c ;; *_w) sch=w ;; *_wb) sch=wb ;; esac  # ARM_c / ARM_w / ARM_wb: parsed first
-x=$arm; [ -n "$sch" ] && x=${arm%_$sch}
+sch=""; case $pa in *_c) sch=c ;; *_w) sch=w ;; *_wb) sch=wb ;; esac  # ARM_c / ARM_w / ARM_wb: parsed first
+x=$pa; [ -n "$sch" ] && x=${pa%_$sch}
 src=${x%_b}  # ARM_b: L3 only, from $src's L2; parsed before _h
 base=${src%_h}  # ARM_h: $base decides the behaviour below; the full $arm names every output
 [ -n "$pil" ] && { src=$core; base=$core; }  # ARM_$pil: L3 only, from $core's L2, as ARM_b
@@ -131,6 +147,8 @@ elif [ -n "$P3" ]; then  # ARM_rfb / ARM_ulb / ARM_pb need their grpo.py options
     || { say "$arm: $WT's grpo.py has no pilot options ($PN): refusing"; exit 1; }
 fi
 case $base in *_v|*_vs|*_vs3) samp=logical ;; *) samp=plain ;; esac
+[ "$knob" = p3 ] && [ $samp = plain ] && {  # ARM_mb_kp3: the step penalty needs the verifier
+  say "$arm: _kp3 raises the step penalty, and $base samples plain (no penalty): refusing"; exit 1; }
 case $base in *_vs|*_vs3) MAXREJ_TRAIN=0 ;; *) MAXREJ_TRAIN=10 ;; esac  # GRPO training only
 [ "$pil" = fbb ] && MAXREJ_TRAIN=$FB_MAXREJ  # ARM_fbb: retries per step (with --feedback)
 X2=""; X3=""; XFRAC=${XFRAC:-0.33}  # extra GRPO targets per stage (--targets_extra)
@@ -156,6 +174,23 @@ if [ "$SMOKE" = 1 ]; then
   AVG_ITS=""  # a 2-iteration stage keeps no rolling checkpoint: ARM_mb's mean is of the last one alone
   waitfree() { :; }  # CPU only
 fi
+# ARM_mb_kKNOB: the knob, set here only (stage L3; a knob arm has no L2 of its own). It overrides the recipe's value
+# (XFRAC, P, PROMPTS x GROUP, KLC, IT3), or KF adds a flag the recipe leaves at grpo.py's default: one copy of each flag.
+KLC=0.02  # --kl_anchor_coef, both stages
+KF=""; KD=""; IT3=$ITERS; TO3=21600; WH3=3.5  # stage L3: knob flags, their log text, iterations, timeout s, watchdog h
+case $knob in
+  x66) XFRAC=0.66; KD="--targets_extra_frac $XFRAC" ;;
+  g64) if [ "$SMOKE" = 1 ]; then PROMPTS=2; GROUP=8; else PROMPTS=64; GROUP=64; fi  # the same attempts per iteration
+       KD="--prompts $PROMPTS --group $GROUP" ;;
+  t12) KF="--temperature 1.2"; KD=$KF ;;
+  kl0) KLC=0; KD="--kl_anchor_coef $KLC" ;;
+  kl1) KLC=0.1; KD="--kl_anchor_coef $KLC" ;;
+  ch4) KF="--clip_eps_high 0.4"; KD=$KF ;;
+  p3) P=0.3; KD="--rej_penalty $P" ;;
+  i78) IT3=$((2 * ITERS)); TO3=43200; WH3=7; KD="--iters $IT3" ;;  # twice the iterations (SMOKE=1: 4), timeout, watchdog h
+  rr) KD="nothing changed" ;;  # the recipe's L3 again
+esac
+[ -n "$knob" ] && KD="knob $knob: $KD"
 if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil: $src's finished L2, from a run no rollback touched
   L2CK=$C/${src}_s${s}_L2/ckpts/${src}_s${s}_L2_it$ITERS.pt
   [ -f $L2CK ] || { say "$arm: no L2 checkpoint of $src ($L2CK): refusing"; exit 1; }
@@ -180,21 +215,23 @@ git -C $WT rev-parse HEAD > $C/${arm}_s$s.base_commit.txt
 watch() {  # NAME PID LOG EXPECTED_H
   [ "$SMOKE" = 1 ] && return 0
   python3 $R/watchdog.py $1:$2:$g:$3:$4 >> $WD 2>&1 & }
-grpo_stage() {  # NAME INIT TARGETS [EXTRA_TARGETS] -> ckpts/NAME_it$ITERS.pt
-  local n=$1 O=$C/$1 last=$C/$1/ckpts/${1}_it$ITERS.pt
+grpo_stage() {  # NAME INIT TARGETS [EXTRA_TARGETS] -> ckpts/NAME_it$ITERS.pt (stage L3: _it$IT3)
+  local n=$1 O=$C/$1 it=$ITERS to=21600 wh=3.5; case $1 in *_L3) it=$IT3; to=$TO3; wh=$WH3 ;; esac
+  local last=$C/$1/ckpts/${1}_it$it.pt
   [ -f $last ] && return 0; waitfree $g
   local GUIDE=""; [ $samp = logical ] && GUIDE="--arm logical --max_rej $MAXREJ_TRAIN --rej_penalty $P"
   local XT=""; [ -n "$4" ] && XT="--targets_extra $4 --targets_extra_frac $XFRAC"
   local SC=$S3; case $n in *_L2) SC=$S2 ;; esac  # the stage's lr schedule flags (none: constant)
   local PF=$P3; case $n in *_L2) PF="" ;; esac  # the stage's pilot flags (L3 only)
-  ( CUDA_VISIBLE_DEVICES=$DEV timeout 21600 "$PY" -m code.thinking.grpo --init $2 --name $n --out $O --targets $3 \
-      --iters $ITERS --prompts $PROMPTS --group $GROUP --batch $BATCH --lr $LR $SC $PF --overlong fail --save_every $ITERS \
+  local KN=$KF KT=$KD; case $n in *_L2) KN=""; KT="" ;; esac  # ARM_mb_kKNOB's flags and their text (L3 only)
+  ( CUDA_VISIBLE_DEVICES=$DEV timeout $to "$PY" -m code.thinking.grpo --init $2 --name $n --out $O --targets $3 \
+      --iters $it --prompts $PROMPTS --group $GROUP --batch $BATCH --lr $LR $SC $PF $KN --overlong fail --save_every $it \
       --max_steps $MAXSTEPS \
       --seed $s --keep_rolling 100 $EFF --canary $R/pools/canary_long.jsonl $CAN --canary_every 1 \
       --rollback_on_alarm --max_rollbacks 3 --ban_restore_check --ban_stop 0.005 \
-      --kl_anchor_coef 0.02 --kl_anchor_ref $2 $KLN --monitor $GUIDE $XT \
+      --kl_anchor_coef $KLC --kl_anchor_ref $2 $KLN --monitor $GUIDE $XT \
       > $L/v2_$n.log 2>&1 ) & local p=$!
-  sleep 5; say "launched GRPO $n ($samp${GUIDE:+, P $P}${XT:+, extra $(basename $4) x $XFRAC}$LRN${SC:+, $SC}${PF:+, $PF}) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log 3.5
+  sleep 5; say "launched GRPO $n ($samp${GUIDE:+, P $P}${XT:+, extra $(basename $4) x $XFRAC}$LRN${SC:+, $SC}${PF:+, $PF}${KT:+, $KT}) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log $wh
   wait $p; say "GRPO $n exit $?: $(grep -E '^it [0-9]+:' $L/v2_$n.log | tail -1 | cut -c1-150)"
   [ -f $last ]; }
 ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt
@@ -207,7 +244,8 @@ ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt
   sleep 5; say "launched EI $n ($samp) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log 4
   wait $p; say "EI $n exit $?: $(tail -1 $L/v2_$n.log | cut -c1-150)"
   [ -f $last ]; }
-ck() { if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$ITERS.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r1.pt; fi; }
+ck() { local it=$ITERS; [ "$1" = L3 ] && it=$IT3  # STAGE -> the stage's last checkpoint
+  if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$it.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r1.pt; fi; }
 read1() {  # SETNAME SETS K READARM [MAXSTEPS [ARMNAME CKPT [MAXREJ]]]  (default: $arm, its L3 checkpoint, 10)
   local o=$EV/$1_${6:-$arm}_s${s}_$4_k$3 ms=${5:-96} cp=${7:-$(ck L3)} mr=${8:-10}
   [ -f $o/rows_$4_B$RB.jsonl ] && return 0; waitfree $g; local t=$(date +%s); rm -rf $o
@@ -248,6 +286,12 @@ if [ "$src" = "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil have no L2 of their own:
 fi
 $stage ${arm}_s${s}_L3 $L2CK $L3 $X3 || { say "${arm}_s${s}_L3 failed"; exit 1; }
 CH173=$CH/candidate_v0.jsonl,$CH/candidate_v1.jsonl,$CH/batch3.jsonl
+if [ -n "$knob" ]; then  # ARM_mb_kKNOB: plain reads on 13-20, 21-30 and charles173 only (knob selection never sees tb72)
+  read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} plain
+  read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain
+  read1 charles173 $CH173 ${KS[2]} plain
+  say "grpo_v2 line done ($arm seed $s)"; exit 0
+fi
 for ra in plain logical; do
   read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} $ra
   read1 tb72 $TB/textbook_dev.jsonl,$TB/textbook_train.jsonl ${KS[1]} $ra
