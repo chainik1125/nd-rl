@@ -925,10 +925,10 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
 |---|---|---|---|---|
 | GRPO, merged recipe (L3), seed 0 (reference) | 34.4 [32.3, 36.5] | — | 60.4 [57.8, 62.9] | — |
-| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| krr: nothing changed (noise control); Δ = the noise band | 33.2 [31.2, 35.3] | -1.2 [-2.3, -0.1] | 59.5 [56.8, 62.1] | -0.9 [-2.5, +0.6] |
 | ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
-| kx66: 3-premise rows 0.66 (0.33) | 35.0 [32.9, 37.0] | +0.5 [-0.6, +1.6] | 62.0 [59.5, 64.5] | +1.7 [+0.1, +3.2] ° |
-| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kx66: 3-premise rows 0.66 (0.33) | 35.0 [32.9, 37.0] | +0.5 [-0.6, +1.6] | 62.0 [59.5, 64.5] | +1.7 [+0.1, +3.2] † |
+| kg64: 64 targets × 64 attempts (256 × 16) | 28.9 [27.0, 30.9] | -5.5 [-6.7, -4.3] † | 55.0 [52.3, 57.6] | -5.4 [-7.1, -3.7] † |
 | kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
 | kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
 | kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
@@ -940,10 +940,10 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
 |---|---|---|---|---|
 | GRPO, merged recipe (L3), seed 0 (reference) | 29.1 [26.7, 31.6] | — | 54.6 [51.3, 57.8] | — |
-| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| krr: nothing changed (noise control); Δ = the noise band | 27.5 [25.2, 30.0] | -1.6 [-2.9, -0.3] | 53.3 [50.0, 56.6] | -1.3 [-3.3, +0.6] |
 | ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
 | kx66: 3-premise rows 0.66 (0.33) | 29.0 [26.6, 31.4] | -0.1 [-1.4, +1.1] | 55.4 [52.0, 58.7] | +0.8 [-1.2, +2.9] |
-| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kg64: 64 targets × 64 attempts (256 × 16) | 23.9 [21.8, 26.1] | -5.2 [-6.6, -3.8] † | 48.8 [45.5, 52.0] | -5.8 [-8.0, -3.7] † |
 | kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
 | kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
 | kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
@@ -955,10 +955,10 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
 |---|---|---|---|---|
 | GRPO, merged recipe (L3), seed 0 (reference) | 8.9 [7.8, 10.1] | — | 22.4 [20.1, 24.8] | — |
-| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| krr: nothing changed (noise control); Δ = the noise band | 8.3 [7.2, 9.5] | -0.7 [-1.4, +0.1] | 21.3 [19.1, 23.7] | -1.1 [-2.8, +0.7] |
 | ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
 | kx66: 3-premise rows 0.66 (0.33) | 8.8 [7.6, 10.0] | -0.1 [-0.9, +0.7] | 22.8 [20.5, 25.1] | +0.4 [-1.5, +2.2] |
-| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kg64: 64 targets × 64 attempts (256 × 16) | 6.2 [5.3, 7.1] | -2.7 [-3.6, -1.9] † | 18.1 [16.0, 20.2] | -4.3 [-6.3, -2.4] † |
 | kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
 | kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
 | kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
@@ -970,10 +970,10 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
 |---|---|---|---|---|
 | GRPO, merged recipe (L3), seed 0 (reference) | 70.0 [63.7, 76.1] | — | 80.3 [74.1, 85.8] | — |
-| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| krr: nothing changed (noise control); Δ = the noise band | 69.6 [63.2, 75.6] | -0.4 [-2.5, +1.6] | 79.4 [73.3, 85.1] | -0.9 [-2.3, +0.3] |
 | ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
-| kx66: 3-premise rows 0.66 (0.33) | 69.3 [62.9, 75.4] | -0.7 [-2.8, +1.4] | 78.5 [72.1, 84.4] | -1.8 [-3.5, -0.3] ° |
-| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kx66: 3-premise rows 0.66 (0.33) | 69.3 [62.9, 75.4] | -0.7 [-2.8, +1.4] | 78.5 [72.1, 84.4] | -1.8 [-3.5, -0.3] † |
+| kg64: 64 targets × 64 attempts (256 × 16) | 67.8 [61.5, 73.8] | -2.2 [-4.3, -0.1] † | 79.4 [73.2, 85.0] | -0.8 [-2.3, +0.6] |
 | kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
 | kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
 | kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
@@ -1044,6 +1044,6 @@ feedback, so `vs guided` is not the feedback alone.
 - `groups_skipped` means different things with and without the step penalty; compare the
   arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.
 
-Rows not there yet (291 files; run: files):
+Rows not there yet (285 files; run: files):
 
-`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_mb_kch4_s0`: 3, `grpo_think_vs_mb_kg64_s0`: 3, `grpo_think_vs_mb_ki78_s0`: 3, `grpo_think_vs_mb_kkl0_s0`: 3, `grpo_think_vs_mb_kkl1_s0`: 3, `grpo_think_vs_mb_kp3_s0`: 3, `grpo_think_vs_mb_krr_s0`: 3, `grpo_think_vs_mb_kt12_s0`: 3, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
+`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_mb_kch4_s0`: 3, `grpo_think_vs_mb_ki78_s0`: 3, `grpo_think_vs_mb_kkl0_s0`: 3, `grpo_think_vs_mb_kkl1_s0`: 3, `grpo_think_vs_mb_kp3_s0`: 3, `grpo_think_vs_mb_kt12_s0`: 3, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
