@@ -11,7 +11,9 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-14, 11:30 pm PDT; back on serrano)
+## Running (updated 2026-10-15, 7:50 am PDT; on serrano)
+
+Nothing is running. Proposed next (30-min rule, 7:25 am): the `kl0` knob at seeds 1 and 2, below.
 
 **Back on serrano (2026-10-14).**
 - The ynez tree is restored into `/scratch/cowifornia/nd-rl/think/` and is canonical: ynez's Stage-1 models, the
@@ -19,39 +21,49 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 - serrano's own pre-crash tree is kept untouched at `/scratch/cowifornia/nd-rl/think_serrano_20261011/` (75 GB; the
   git links of its worktrees are stale). Its results are not pooled with the ynez world's.
 - The /home staging copy of the ynez tree was deleted after a checksum check against scratch (Leon, 2026-10-14:
-  keep /home duplication minimal). `/home/cowifornia/backups/nd-rl-think-ynez/` (3.4 GB, ynez's hourly backup) and
-  `nd-rl-think/` (1.7 GB, serrano's pre-crash backup) remain, pending Leon's call. No backup loop runs on serrano.
+  keep /home duplication minimal). `nd-rl-think-ynez/` (3.4 GB) and `nd-rl-think/` (1.7 GB) followed on 2026-10-15
+  at about 1 am (Leon: "yes you can clean up home"). No backup loop runs on serrano; `pull_queue.sh` runs
+  `backup.py` only with `BACKUP=1`.
 
-ynez's session closed at about 4:45 pm on 2026-10-14, and nothing was staged after that. So the three jobs still
-running there are redone on serrano, started 11:07 pm with the same commit (`leon/grpo-v2` 4796bd0) and checkpoints:
+**ynez reruns: done.** ynez's session closed at about 4:45 pm on 2026-10-14 and nothing was staged after that, so its
+three unfinished jobs were redone on serrano from 11:07 pm with the same commit (`leon/grpo-v2` 4796bd0) and
+checkpoints. All three finished on 2026-10-15 (results: `matched_eval/v2_results_ynez.md` §§ 6 and 8).
 
-| GPU | job | what |
-|---|---|---|
-| 0 | `line.sh 0 1 grpo_think_vs_mb` | merged recipe, seed 1 (L3 from `grpo_think_vs_s1_L2_it39.pt`); seeds 0 and 2 ran on ynez |
-| 1 | `line.sh 1 2 grpo_think_vs_fbb` | in-context verifier feedback pilot, seed 2 |
-| 2 | `fbctl.sh` | its control: the baseline `grpo_think_vs_s2_L3` read with the feedback arm |
+| GPU | job | what | finished |
+|---|---|---|---|
+| 0 | `line.sh 0 1 grpo_think_vs_mb` | merged recipe, seed 1 (L3 from `grpo_think_vs_s1_L2_it39.pt`) | 2:58 am, 0 rollbacks |
+| 1 | `line.sh 1 2 grpo_think_vs_fbb` | in-context verifier feedback pilot, seed 2 | 2:15 am, 2 rollbacks (it 19, it 38) |
+| 2 | `fbctl.sh` | its control: the baseline `grpo_think_vs_s2_L3` read with the feedback arm | 11:30 pm |
 
 The ynez partial copies (it 19 and it 18 of 39) are kept as `*.ynez_partial` in `grpo_v2/` and `logs/`.
 
-**Knob pilots (from 12:57 am, 2026-10-15).** Leon (2026-10-14): find RL knobs that change how many long proofs
-(16–20 and 21–30 lines) the model solves. Each pilot is the merged recipe's L3 (`grpo_think_vs_mb`, from
+**Knob pilots: done (12:57 am to 7:37 am, 2026-10-15).** Leon (2026-10-14): find RL knobs that change how many long
+proofs (16–20 and 21–30 lines) the model solves. Each pilot is the merged recipe's L3 (`grpo_think_vs_mb`, from
 `grpo_think_vs_s0_L2_it39.pt`, seed 0) with one setting changed, then plain reads on t1320 k16, t2130 k8 and
 Charles173 k64 only (knob selection never reads textbook72). Arms `grpo_think_vs_mb_k<KNOB>` (`leon/grpo-v2`
-f35d3da); jobs in `runs/grpo_v2/jobs_knobs.txt`, one `pull_queue.sh` worker per GPU (GPUs 2–4; 0–1 join when the
-two reruns end). About 2.3 GPU-h each (`i78` about 4.5). Controls: `grpo_think_vs_mb` s0 (done) and `krr`.
+f35d3da); jobs in `runs/grpo_v2/jobs_knobs.txt`, one `pull_queue.sh` worker per GPU. Results:
+`matched_eval/v2_results_ynez.md` § 7. Δ is pass@1 / pass@5 in points, knob minus the merged recipe seed 0, plain
+reads; `rr` (nothing changed) gives the run-to-run noise band, about 1–1.5 points.
 
-| knob | change | why |
-|---|---|---|
-| `i78` | L3 78 iterations instead of 39 (2× compute) | prolonged RL |
-| `rr` | nothing: the same settings again | noise control |
-| `x66` | 3-premise rows 0.66 of each batch instead of 0.33 | 98% of the 21–30 set has 3+ premises; the main pools 0% |
-| `g64` | 64 targets × 64 attempts instead of 256 × 16 | at a 5% pass rate a group of 16 has a success 56% of the time, 64: 96% |
-| `p3` | invalid-step penalty 0.3 instead of 0.1 | long proofs mostly die on an invalid step in a big state |
-| `t12` | training temperature 1.2 instead of 1.0 | exploration (expect think-ban alarms: its ban mass starts near the 1e-3 limit) |
-| `kl0`, `kl1` | KL anchor 0 or 0.1 instead of 0.02 | how far RL may drift from the start model |
-| `ch4` | clip-higher 0.4 instead of 0.28 | entropy |
+| knob | change | why | 13–20 | 16–20 | 21–30 | Charles149 | rollbacks |
+|---|---|---|---|---|---|---|---|
+| `rr` | nothing: the same settings again | noise control | −1.2 / −0.9 | −1.6 / −1.3 | −0.7 / −1.1 | −0.4 / −0.9 | 0 |
+| `kl0` | KL anchor 0 instead of 0.02 | how far RL may drift from the start model | **+1.6 / +1.3** | +1.2 / +0.8 | **+1.2 / +3.2** | +0.5 / −1.5 | 1 (canary, it 29) |
+| `kl1` | KL anchor 0.1 instead of 0.02 | the same, the other way | −2.7 / −2.2 | −3.3 / −3.7 | −1.3 / −2.0 | 0.0 / −1.0 | 0 |
+| `i78` | L3 78 iterations instead of 39 (2× compute) | prolonged RL | −1.5 / −1.5 | −2.2 / −2.8 | −0.6 / −1.6 | −1.1 / −0.5 | 2 (think ban; it 76–78 above the limit, no restore point below it) |
+| `x66` | 3-premise rows 0.66 of each batch instead of 0.33 | 98% of the 21–30 set has 3+ premises; the main pools 0% | +0.5 / +1.7 | −0.1 / +0.8 | −0.1 / +0.4 | −0.7 / −1.8 | 0 |
+| `g64` | 64 targets × 64 attempts instead of 256 × 16 | at a 5% pass rate a group of 16 has a success 56% of the time, 64: 96% | −5.5 / −5.4 | −5.2 / −5.8 | −2.7 / −4.3 | −2.2 / −0.8 | 0 |
+| `p3` | invalid-step penalty 0.3 instead of 0.1 | long proofs mostly die on an invalid step in a big state | 0.0 / +1.7 | −0.9 / +0.7 | −0.1 / 0.0 | +1.0 / −0.5 | 3 (canary; lr × 0.125) |
+| `t12` | training temperature 1.2 instead of 1.0 | exploration | −2.2 / −3.0 | −3.0 / −3.7 | −1.5 / −3.0 | +1.0 / −0.6 | 0 |
+| `ch4` | clip-higher 0.4 instead of 0.28 | entropy | −1.7 / −1.2 | −2.0 / −2.1 | −1.1 / −1.0 | +0.6 / −0.3 | 1 (think ban, it 34) |
 
-One seed resolves only about 3 points of 21–30 pass@5; winners get 3 seeds before going into the recipe.
+Reading (one seed each, screening only): the KL anchor is the one knob with a dose response on the long sets
+(0 > 0.02 > 0.1). Fewer, larger groups (`g64`), temperature 1.2 and twice the iterations hurt; the other changes are
+within noise or confounded by rollbacks.
+
+**Proposed: `kl0` at seeds 1 and 2** (`runs/grpo_v2/jobs_kl0_seeds.txt`; L3 from `grpo_think_vs_s{1,2}_L2_it39.pt`,
+the same plain reads). With seed 0 this gives KL 0 against the merged recipe at 3 seeds, paired by seed. Two GPUs,
+about 2.5 h with reads. If it holds, KL 0 replaces 0.02 in the merged recipe for the EI comparison.
 
 ### On ynez (2026-10-12 to 2026-10-14)
 

@@ -933,7 +933,7 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | kt12: training temperature 1.2 (1.0) | 32.2 [30.2, 34.4] | -2.2 [-3.4, -1.0] † | 57.4 [54.8, 60.1] | -3.0 [-4.7, -1.4] † |
 | kkl0: KL anchor 0 (0.02) | 36.0 [33.9, 38.1] | +1.6 [+0.3, +2.8] † | 61.7 [59.0, 64.3] | +1.3 [-0.5, +3.1] |
 | kkl1: KL anchor 0.1 (0.02) | 31.8 [29.7, 33.8] | -2.7 [-3.8, -1.6] † | 58.2 [55.5, 60.7] | -2.2 [-3.9, -0.6] † |
-| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | 32.7 [30.7, 34.7] | -1.7 [-2.8, -0.6] † | 59.1 [56.6, 61.8] | -1.2 [-2.8, +0.3] |
 
 **16–20 lines** (plain reads)
 
@@ -948,7 +948,7 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | kt12: training temperature 1.2 (1.0) | 26.1 [23.8, 28.5] | -3.0 [-4.4, -1.6] † | 50.9 [47.5, 54.2] | -3.7 [-5.9, -1.5] † |
 | kkl0: KL anchor 0 (0.02) | 30.3 [27.9, 32.8] | +1.2 [-0.3, +2.6] | 55.4 [52.1, 58.7] | +0.8 [-1.4, +3.1] |
 | kkl1: KL anchor 0.1 (0.02) | 25.8 [23.5, 28.2] | -3.3 [-4.7, -2.0] † | 50.9 [47.6, 54.3] | -3.7 [-5.7, -1.7] † |
-| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | 27.1 [24.7, 29.4] | -2.0 [-3.4, -0.7] † | 52.5 [49.0, 55.9] | -2.1 [-4.3, +0.0] |
 
 **21–30 lines (1,000)** (plain reads)
 
@@ -963,7 +963,7 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | kt12: training temperature 1.2 (1.0) | 7.4 [6.3, 8.5] | -1.5 [-2.3, -0.7] † | 19.4 [17.2, 21.6] | -3.0 [-4.8, -1.1] † |
 | kkl0: KL anchor 0 (0.02) | 10.1 [8.9, 11.3] | +1.2 [+0.3, +2.1] † | 25.6 [23.1, 28.0] | +3.2 [+1.3, +5.1] † |
 | kkl1: KL anchor 0.1 (0.02) | 7.6 [6.5, 8.7] | -1.3 [-2.1, -0.6] † | 20.4 [18.1, 22.7] | -2.0 [-3.8, -0.2] † |
-| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | 7.8 [6.8, 8.9] | -1.1 [-1.9, -0.3] † | 21.4 [19.2, 23.7] | -1.0 [-2.8, +0.9] |
 
 **Charles149** (plain reads)
 
@@ -978,7 +978,7 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | kt12: training temperature 1.2 (1.0) | 71.0 [64.5, 77.0] | +1.0 [-1.2, +3.3] | 79.7 [73.4, 85.3] | -0.6 [-2.7, +1.3] |
 | kkl0: KL anchor 0 (0.02) | 70.5 [63.9, 76.5] | +0.5 [-1.5, +2.5] | 78.8 [72.4, 84.6] | -1.5 [-2.8, -0.3] † |
 | kkl1: KL anchor 0.1 (0.02) | 70.0 [63.6, 76.1] | +0.0 [-2.1, +2.1] | 79.3 [72.9, 85.1] | -1.0 [-3.1, +0.9] |
-| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | 70.6 [64.4, 76.5] | +0.6 [-1.4, +2.7] | 80.0 [73.8, 85.6] | -0.3 [-1.6, +1.0] |
 
 ## 8. In-context verifier feedback
 
@@ -1044,6 +1044,6 @@ feedback, so `vs guided` is not the feedback alone.
 - `groups_skipped` means different things with and without the step penalty; compare the
   arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.
 
-Rows not there yet (270 files; run: files):
+Rows not there yet (267 files; run: files):
 
-`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_mb_kch4_s0`: 3, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
+`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
