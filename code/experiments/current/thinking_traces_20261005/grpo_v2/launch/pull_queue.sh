@@ -24,7 +24,8 @@ say "worker GPU $g: start ($jf)"
 while j=$(take) && [ -n "$j" ]; do
   IFS=: read -r arm s <<< "$j"
   say "worker GPU $g: start $arm seed $s"
-  bash $R/grpo_v2/line.sh $g $s $arm > $L/v2_${arm}_s$s.log 2>&1
+  echo "== $(date -u +%H:%MZ) worker GPU $g${KNOB_FULL:+ KNOB_FULL=$KNOB_FULL}" >> $L/v2_${arm}_s$s.log
+  bash $R/grpo_v2/line.sh $g $s $arm >> $L/v2_${arm}_s$s.log 2>&1  # appended: a rerun keeps the earlier line log
   say "worker GPU $g: $arm seed $s exit $?: $(tail -1 $L/v2_${arm}_s$s.log | cut -c1-160)"
   if [ "${BACKUP:-0}" = 1 ]; then python3 $R/backup.py >> $L/backup.log 2>&1 || true; fi  # opt-in (2026-10-15)
 done
