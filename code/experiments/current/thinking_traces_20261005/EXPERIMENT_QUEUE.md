@@ -11,12 +11,35 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-13, 9:30 pm PDT; on ynez)
+## Running (updated 2026-10-14, 11:30 pm PDT; back on serrano)
 
-**serrano is down (since 2026-10-11, about 4:48 am).** Everything below up to that date ran there. Its /scratch held
-every v2 checkpoint and read, the Stage-1 models, the curriculum pools and the launchers. None of them is reachable,
-and there was no backup after 2026-10-08. The tables in git (`matched_eval/v2_results.md` and the entries below) are
-what survives of those results. Leon (2026-10-12): "I dont think serrano is coming online soon so do it all".
+**Back on serrano (2026-10-14).**
+- The ynez tree is restored into `/scratch/cowifornia/nd-rl/think/` and is canonical: ynez's Stage-1 models, the
+  L2r/L3r pools and every v2 run. Preflight passes. Hardware: 5 × RTX 3090, as on ynez.
+- serrano's own pre-crash tree is kept untouched at `/scratch/cowifornia/nd-rl/think_serrano_20261011/` (75 GB; the
+  git links of its worktrees are stale). Its results are not pooled with the ynez world's.
+- The /home staging copy of the ynez tree was deleted after a checksum check against scratch (Leon, 2026-10-14:
+  keep /home duplication minimal). `/home/cowifornia/backups/nd-rl-think-ynez/` (3.4 GB, ynez's hourly backup) and
+  `nd-rl-think/` (1.7 GB, serrano's pre-crash backup) remain, pending Leon's call. No backup loop runs on serrano.
+
+ynez's session closed at about 4:45 pm on 2026-10-14, and nothing was staged after that. So the three jobs still
+running there are redone on serrano, started 11:07 pm with the same commit (`leon/grpo-v2` 4796bd0) and checkpoints:
+
+| GPU | job | what |
+|---|---|---|
+| 0 | `line.sh 0 1 grpo_think_vs_mb` | merged recipe, seed 1 (L3 from `grpo_think_vs_s1_L2_it39.pt`); seeds 0 and 2 ran on ynez |
+| 1 | `line.sh 1 2 grpo_think_vs_fbb` | in-context verifier feedback pilot, seed 2 |
+| 2 | `fbctl.sh` | its control: the baseline `grpo_think_vs_s2_L3` read with the feedback arm |
+
+The ynez partial copies (it 19 and it 18 of 39) are kept as `*.ynez_partial` in `grpo_v2/` and `logs/`.
+
+### On ynez (2026-10-12 to 2026-10-14)
+
+**serrano was down (from 2026-10-11, about 4:48 am).** Everything below up to that date ran there. Its /scratch held
+every v2 checkpoint and read, the Stage-1 models, the curriculum pools and the launchers. None of them was reachable,
+and there was no backup after 2026-10-08. (That tree survived; it is now `think_serrano_20261011/`, see above.) The
+tables in git (`matched_eval/v2_results.md` and the entries below) record those results. Leon (2026-10-12): "I dont
+think serrano is coming online soon so do it all".
 
 So everything is redone on ynez:
 - Hardware: 4 × RTX 3090, shared. GPUs 0–1 hold another user's jobs, so 2–3 workers.
@@ -267,6 +290,12 @@ Started, code only: `leon/grpo-v2-auto`, GRPO with the model-chosen think level 
 trained as an action; no token cost by default). Its runs will be proposed separately.
 
 ## Proposed (not run; waiting for Leon, 30-min auto-run rule applies)
+
+Cancelled by Leon (2026-10-14): the E1–E5 experiments from the report on longer proofs (large-k reads, step
+validity vs state size, bigger training problems, mid-proof starts, group size) and the A0/A1a/A1b/A1b-frozen arms
+of the staged self-improvement proposal. Nothing of them ran. The reports' finding stands as background: the pools
+have 0% of problems with 3+ premises, 4 atoms, more than 8 connectives or 3+ case splits, while the 21–30 set has
+98%, 90%, 100% and 70%.
 
 From [RL_RESULTS.md](RL_RESULTS.md#proposals-not-run-need-leons-call):
 1. **Second seeds of the graded arm and of one budget + token cost.** About 3 GPU-h each, plus 1.5 GPU-h of evals.
