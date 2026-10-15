@@ -43,7 +43,8 @@ hard pops. Seeds of such proofs existed in another run (v4 s1) that never took o
 ![GRPO timeline](figs/f2_grpo_timeline.png)
 
 **4. Mechanism.** The fix is a small, distributed change to blocks 0-2 at the closing tokens: g0_fin's blocks 0-2
-transplanted into g0_pre take the key pop from 28% to 63%; any single component does nothing; patching g0_fin's residual
+transplanted into g0_pre take the key pop from 28% to 63%, and in free generation blocks 0-3 take spine-3 targets
+solved from 1/60 to 45/60 (g0_fin: 52/60; blocks 3-5: 1/60); any single component does nothing; patching g0_fin's residual
 into g0_pre only at the closing tokens takes k=1 pops 7% → 88%. Downstream, "pointer" heads in layers 3-5 attend to a
 box header and copy its opener's name; they existed before RL and pointed at the wrong header; afterwards they land on
 the right one. No single head is causal. True depth was already linearly decodable before RL (90% on the pops the model

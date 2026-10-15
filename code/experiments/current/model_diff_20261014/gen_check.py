@@ -55,7 +55,7 @@ def walk(toks):
 
 
 for mname in sys.argv[3:]:
-    model, tok = nd.load(nd.CKPT[mname])
+    model, tok = nd.load(nd.CKPT.get(mname, mname))
     out = nd.H.sample(model, tok, recs, K, 0, nd.H.MAX_NEW)
     c = collections.Counter()
     for per in out:

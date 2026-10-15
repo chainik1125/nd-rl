@@ -10,7 +10,7 @@ find anything interesting. Context: [long-RL findings](../../../../.claude/notes
 s0's "wall" over oracle calls 84-102 = learning depth-3 nested assumption boxes; s1 never did). Summary for humans:
 [experiment-summaries/2026-10-14-grpo-wall-model-diff](../../../../experiment-summaries/2026-10-14-grpo-wall-model-diff/README.md).
 
-Status: done for the night (2026-10-15 ~00:30 PDT). Everything below is teacher-forced on Lean-accepted proofs unless it
+Status: done (2026-10-14, ~22:45 PDT). Pod terminated; total RunPod cost ~$2. Everything below is teacher-forced on Lean-accepted proofs unless it
 says "free generation". Proof length = body lines.
 
 ## One-paragraph answer
@@ -110,6 +110,9 @@ targets whose goal is a 3-deep implication `A → (B → (C → D))`.
    - Whole blocks of g0_fin in g0_pre (hard / k1 r2 / k2 r1): blocks 0-1 25/30/28%; **blocks 0-2 46/63/42%**; 0-3
      63/68/70%; 3-5 26/29/30%; 1-5 46/**30**/68% (block 0 is necessary for k1 r2; k2 r1 rides on blocks 1-3). g0_fin
      69/72/78%.
+   - The same transplants in free generation (`gen_check.py`, 60 spine-3 targets x 4, Lean): g0_pre solves 1/60
+     targets; + g0_fin blocks 3-5: 1/60; + blocks 0-2: 27/60 (58 accepted samples at depth 3); + blocks 0-3: 45/60
+     (128 at depth 3); g0_fin: 52/60.
    - Residual patching: g0_fin's residual after 3 blocks written into g0_pre **only at the closing tokens**
      (`exact nE )`, `;`, pop `exact`) takes k=1 pops 7% → 88%; box-header tokens do nothing. g0_pre's residual after one
      block written into g0_fin at the closing tokens breaks them (92% → 11%).
@@ -136,8 +139,8 @@ accuracy 75.8% clean vs 75.0% with the layer replaced by its reconstruction), so
 
     | crosscoder | layer | exclusive (r<0.1 or >0.9) | decoder cos < 0.5 |
     | --- | --- | --- | --- |
-    | g0 pre/fin (GRPO, wall) | 1 / 2 / 3 | 0 / 0 / 0 | 4% / - / 8% |
-    | g1 pre/fin (GRPO, no wall) | 3 | 0 | 4% |
+    | g0 pre/fin (GRPO, wall) | 1 / 2 / 3 / 4 | 0 / 0 / 0 / 0 | 4% / 11% / 8% / 6% |
+    | g1 pre/fin (GRPO, no wall) | 3 / 5 | 0 / 0 | 4% / 4% |
     | e1 pre/fin (EI) | 3 / 5 | 0 / 2 | 92% / 94% |
     | g0_pre vs g1_pre (two pretraining seeds: positive control) | 3 | 28 (latent scaling: partly shared) | 100% |
 
@@ -177,7 +180,9 @@ accuracy 75.8% clean vs 75.0% with the layer replaced by its reconstruction), so
     only when D_start >= 2 (96-98% at D_start 3, 66-73% at 2, ~2% at 1); #1873 on the first close and following pop
     of D_start >= 2 runs; #37/#712 on later pops of deep runs; #2128/#979/#2018 on name tokens of r >= 2 closes. That is
     the missing ingredient in readable form: D_start-aware run-position features. GRPO s1's diff is small by
-    comparison (full diff at L3: g1_pre 46.8% → 53.1%).
+    comparison (full diff at L3: g1_pre 46.8% → 53.1%) and holds no hard-pop fix: its top 400 diff latents at the
+    closing tokens leave g1_pre's k1 r2 at 29-30%. EI s1's diff-SAE at layer 3 also captures its change: e1_pre +
+    reconstructed diff 48.6% → 67.0% pop accuracy (full diff 64.6%).
 13. **First-order attribution fails here** (`attrib.py`, `diff_analyze.py` without `--mag`). Metric logit(correct) −
     logit(enclosing box's opener), gradient at g0_pre's closing-token residuals: the first-order total of the change is
     **negative** (−226 over 465 pops) while the actual patch raises accuracy 27% → 73%; latents ranked by attribution
