@@ -20,7 +20,8 @@ seeds and problems, 95% intervals, % of the set); differences from `stats.paired
 problem resample, with seeds paired when both arms have the same Stage-1 seeds (same inits). The v1
 reads have k 32 on 13-20 and the v2 reads k 16, so the chain compares pass@1 and pass@5 only.
 §7: the knob pilots (`grpo_think_vs_mb_kKNOB`, seed 0, plain reads, never textbook72) against the
-merged recipe at seed 0, with krr (nothing changed) as the noise band. §8: the in-context verifier
+merged recipe at seed 0, with krr (nothing changed) as the noise band; then the screening's winner,
+kkl0, against the merged recipe at seeds 0, 1 and 2 (paired by seed). §8: the in-context verifier
 feedback pilot against grpo_think_vs s2, including the feedback read arm (`rows_feedback_B64`:
 the guided rows' fields plus per-attempt `fb` counters, which these tables do not use).
 Rows that are not there yet are skipped; the note at the end lists those of planned reads only
@@ -177,7 +178,9 @@ REFS = [
 # The knob pilots (2026-10-15, `line.sh` ARM_mb_kKNOB): grpo_think_vs_mb's L3 at seed 0, from its
 # L2, with one setting changed (the merged recipe's value in brackets); plain reads on 13-20, 21-30
 # and charles173 only. Tables only (§7), never textbook72. krr changes nothing: the noise control.
+# kl0 won the screening, so it is also run at seeds 1 and 2 (KNOB_3SEED; §7's 3-seed table).
 KNOB_BASE = "grpo_think_vs_mb"
+KNOB_3SEED = "kl0"
 KNOBS = [
     ("rr", "nothing changed (noise control)"),
     ("i78", "78 L3 iterations (39)"),
@@ -191,7 +194,13 @@ KNOBS = [
 ]
 KNOB_ARMS = [
     ArmSpec(
-        f"{KNOB_BASE}_k{k}", f"knob: {c}", "grpo", True, fig=False, seeds=(0,), reads=KNOB_READS
+        f"{KNOB_BASE}_k{k}",
+        f"knob: {c}",
+        "grpo",
+        True,
+        fig=False,
+        seeds=SEEDS if k == KNOB_3SEED else (0,),
+        reads=KNOB_READS,
     )
     for k, c in KNOBS
 ]
@@ -625,6 +634,15 @@ def _one(
     return estimate(ld, arm, s, [seed], ra, k, draws) if ld.have(arm, s, seed, ra) else None
 
 
+def _pooled(
+    ld: Loader, arm: str, s: str, seeds: Sequence[int], ra: str, k: int, draws: int
+) -> stats.Estimate | None:
+    """pass@k of `seeds`' reads pooled, or None (each planned one that is missing noted) unless all
+    are there."""
+    there = [ld.have(arm, s, seed, ra) for seed in seeds]  # a list, so every missing read is noted
+    return estimate(ld, arm, s, seeds, ra, k, draws) if all(there) else None
+
+
 def _cell(e: stats.Estimate | None, sign: bool = False, mark: str = "") -> str:
     return NOT_YET if e is None else fmt(e, sign) + mark
 
@@ -645,9 +663,10 @@ KNOB_SETS = ("t1320", "t1620", "t2130", "charles149")  # never textbook72 (knob 
 def knob_tables(ld: Loader, draws: int) -> list[str]:
     """§7: each knob pilot's pass@1 and pass@5 at seed 0 and its difference from the merged recipe
     at seed 0 (the same Stage-1 seed and L2 checkpoint), paired on problems; krr − merged is the
-    noise band of one more L3 run."""
+    noise band of one more L3 run. Then the screening's winner (KNOB_3SEED) against the merged
+    recipe at seeds 0, 1 and 2, paired by seed and on problems."""
     rr = f"{KNOB_BASE}_krr"
-    md = ["", "## 7. Knob pilots (seed 0, L3 only)", ""]
+    md = ["", "## 7. Knob pilots (L3 only; seed 0, kkl0 also seeds 1 and 2)", ""]
     md += [
         "The merged recipe's L3 (`grpo_think_vs_mb`, seed 0, from its L2 checkpoint) rerun with",
         "one setting changed (the merged recipe's value in brackets), read plain at T 0.8 (B64).",
@@ -685,6 +704,32 @@ def knob_tables(ld: Loader, draws: int) -> list[str]:
                 f"| {lab} | {_cell(e[1])} | {_cell(d[1], True, marks[1])} | {_cell(e[5])} | "
                 f"{_cell(d[5], True, marks[5])} |"
             )
+    conf = f"{KNOB_BASE}_k{KNOB_3SEED}"
+    lab, sd = SPEC[conf].label[len("knob: ") :], ",".join(map(str, SEEDS))
+    md += ["", f"**k{KNOB_3SEED} at {len(SEEDS)} seeds: {lab}**", ""]
+    md += [
+        f"k{KNOB_3SEED} at seed 0 (above) was the screening; this is the confirmation. Its L3 was",
+        "also run from the seed-1 and seed-2 L2 checkpoints that the merged recipe's L3 starts",
+        f"from, and read as above. pass@k pools the {len(SEEDS)} seeds. Δ = k{KNOB_3SEED} − merged",
+        "recipe in points, paired by seed and on problems; its interval is a paired bootstrap over",
+        "problems and seeds, so it covers run-to-run training noise as well (hence no † or °).",
+        f"{NOT_YET}: at least one seed's read has not landed.",
+    ]
+    for s in KNOB_SETS:
+        md += ["", f"**{SET[s].title}**, seeds {sd} (plain reads)", ""]
+        md += [
+            "| arm | pass@1 | Δ pass@1 vs merged | pass@5 | Δ pass@5 vs merged |",
+            "|---|---|---|---|---|",
+        ]
+        base = {k: _pooled(ld, KNOB_BASE, s, SEEDS, "plain", k, draws) for k in KS}
+        e = {k: _pooled(ld, conf, s, SEEDS, "plain", k, draws) for k in KS}
+        d = {k: diff(ld, conf, KNOB_BASE, s, SEEDS, "plain", k, draws) for k in KS}
+        md += [
+            f"| {SPEC[KNOB_BASE].label}, seeds {sd} (reference) | {_cell(base[1])} | — | "
+            f"{_cell(base[5])} | — |",
+            f"| k{KNOB_3SEED}: {lab}, seeds {sd} | {_cell(e[1])} | {_cell(d[1], True)} | "
+            f"{_cell(e[5])} | {_cell(d[5], True)} |",
+        ]
     return md
 
 

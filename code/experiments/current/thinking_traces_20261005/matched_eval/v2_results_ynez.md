@@ -909,7 +909,7 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | EI | 0,1,2 | 45.2 [40.5, 50.0] | 27.8 [25.0, 30.5] | 0% |
 | EI + verifier | 0,1,2 | 44.8 [39.6, 50.4] | 27.4 [23.7, 31.0] | 0% |
 
-## 7. Knob pilots (seed 0, L3 only)
+## 7. Knob pilots (L3 only; seed 0, kkl0 also seeds 1 and 2)
 
 The merged recipe's L3 (`grpo_think_vs_mb`, seed 0, from its L2 checkpoint) rerun with
 one setting changed (the merged recipe's value in brackets), read plain at T 0.8 (B64).
@@ -979,6 +979,43 @@ twice the iterations, so it is not at the merged recipe's training budget.
 | kkl0: KL anchor 0 (0.02) | 70.5 [63.9, 76.5] | +0.5 [-1.5, +2.5] | 78.8 [72.4, 84.6] | -1.5 [-2.8, -0.3] † |
 | kkl1: KL anchor 0.1 (0.02) | 70.0 [63.6, 76.1] | +0.0 [-2.1, +2.1] | 79.3 [72.9, 85.1] | -1.0 [-3.1, +0.9] |
 | kch4: clip-higher 0.4 (0.28) | 70.6 [64.4, 76.5] | +0.6 [-1.4, +2.7] | 80.0 [73.8, 85.6] | -0.3 [-1.6, +1.0] |
+
+**kkl0 at 3 seeds: KL anchor 0 (0.02)**
+
+kkl0 at seed 0 (above) was the screening; this is the confirmation. Its L3 was
+also run from the seed-1 and seed-2 L2 checkpoints that the merged recipe's L3 starts
+from, and read as above. pass@k pools the 3 seeds. Δ = kkl0 − merged
+recipe in points, paired by seed and on problems; its interval is a paired bootstrap over
+problems and seeds, so it covers run-to-run training noise as well (hence no † or °).
+not yet: at least one seed's read has not landed.
+
+**13–20 lines (986)**, seeds 0,1,2 (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged | pass@5 | Δ pass@5 vs merged |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seeds 0,1,2 (reference) | 30.4 [26.4, 34.5] | — | 55.4 [49.8, 60.6] | — |
+| kkl0: KL anchor 0 (0.02), seeds 0,1,2 | 32.1 [28.2, 36.1] | +1.7 [+0.8, +2.6] | 57.8 [52.9, 62.2] | +2.4 [+0.7, +4.0] |
+
+**16–20 lines**, seeds 0,1,2 (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged | pass@5 | Δ pass@5 vs merged |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seeds 0,1,2 (reference) | 24.0 [19.8, 29.0] | — | 47.8 [41.4, 54.4] | — |
+| kkl0: KL anchor 0 (0.02), seeds 0,1,2 | 25.9 [22.1, 30.3] | +1.9 [+0.6, +3.1] | 50.5 [45.3, 55.7] | +2.6 [+0.2, +4.9] |
+
+**21–30 lines (1,000)**, seeds 0,1,2 (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged | pass@5 | Δ pass@5 vs merged |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seeds 0,1,2 (reference) | 6.0 [3.9, 8.7] | — | 16.0 [11.2, 21.9] | — |
+| kkl0: KL anchor 0 (0.02), seeds 0,1,2 | 7.2 [5.0, 10.0] | +1.2 [+0.6, +1.8] | 19.4 [14.8, 25.2] | +3.4 [+2.0, +4.7] |
+
+**Charles149**, seeds 0,1,2 (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged | pass@5 | Δ pass@5 vs merged |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seeds 0,1,2 (reference) | 70.4 [64.0, 76.5] | — | 79.8 [73.7, 85.3] | — |
+| kkl0: KL anchor 0 (0.02), seeds 0,1,2 | 70.5 [64.2, 76.3] | +0.1 [-1.7, +2.1] | 78.9 [72.6, 84.8] | -0.8 [-2.6, +1.1] |
 
 ## 8. In-context verifier feedback
 

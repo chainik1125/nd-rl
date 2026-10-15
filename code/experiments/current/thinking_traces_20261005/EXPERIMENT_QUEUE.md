@@ -11,9 +11,10 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-15, 7:50 am PDT; on serrano)
+## Running (updated 2026-10-15, 11:00 am PDT; on serrano)
 
-Nothing is running. Proposed next (30-min rule, 7:25 am): the `kl0` knob at seeds 1 and 2, below.
+Nothing is running. The `kl0` knob at seeds 1 and 2 ran 7:52 to 10:23 am (proposed 7:25 am, started under the
+30-min rule); results below.
 
 **Back on serrano (2026-10-14).**
 - The ynez tree is restored into `/scratch/cowifornia/nd-rl/think/` and is canonical: ynez's Stage-1 models, the
@@ -61,9 +62,21 @@ Reading (one seed each, screening only): the KL anchor is the one knob with a do
 (0 > 0.02 > 0.1). Fewer, larger groups (`g64`), temperature 1.2 and twice the iterations hurt; the other changes are
 within noise or confounded by rollbacks.
 
-**Proposed: `kl0` at seeds 1 and 2** (`runs/grpo_v2/jobs_kl0_seeds.txt`; L3 from `grpo_think_vs_s{1,2}_L2_it39.pt`,
-the same plain reads). With seed 0 this gives KL 0 against the merged recipe at 3 seeds, paired by seed. Two GPUs,
-about 2.5 h with reads. If it holds, KL 0 replaces 0.02 in the merged recipe for the EI comparison.
+**`kl0` at seeds 1 and 2: done** (`runs/grpo_v2/jobs_kl0_seeds.txt`, 7:52 to 10:23 am; L3 from
+`grpo_think_vs_s{1,2}_L2_it39.pt`, the same plain reads). Seed 2 had no rollbacks. Seed 1 rolled back twice on the
+think ban (it 35 and it 38, both to it 30), so its last checkpoint is it 30 plus one iteration at lr × 0.25. KL 0
+minus the merged recipe, 3 seeds pooled and paired by seed and problem (`matched_eval/v2_results_ynez.md` § 7), with
+each seed's Δ pass@5 after it:
+
+| set | Δ pass@1 | Δ pass@5 | per-seed Δ pass@5 (s0, s1, s2) |
+|---|---|---|---|
+| 13–20 | +1.7 [+0.8, +2.6] | +2.4 [+0.7, +4.0] | +1.3, +2.4, +3.3 |
+| 16–20 | +1.9 [+0.6, +3.1] | +2.6 [+0.2, +4.9] | +0.8, +2.7, +4.3 |
+| 21–30 | +1.2 [+0.6, +1.8] | +3.4 [+2.0, +4.7] | +3.2, +3.2, +3.7 |
+| Charles149 | +0.1 [−1.7, +2.1] | −0.8 [−2.6, +1.1] | −1.5, −1.5, +0.4 |
+
+KL 0 helps on every generated set at every seed; on Charles149 it is level. The per-seed numbers come from a one-off
+script, not from v2_results.
 
 ### On ynez (2026-10-12 to 2026-10-14)
 
