@@ -11,10 +11,10 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-15, 11:00 am PDT; on serrano)
+## Running (updated 2026-10-15, 12:30 pm PDT; on serrano)
 
 Nothing is running. The `kl0` knob at seeds 1 and 2 ran 7:52 to 10:23 am (proposed 7:25 am, started under the
-30-min rule); results below.
+30-min rule); its full reads at seeds 0–2 ran 11:06 am to 12:06 pm (proposed 10:35 am, same rule). Results below.
 
 **Back on serrano (2026-10-14).**
 - The ynez tree is restored into `/scratch/cowifornia/nd-rl/think/` and is canonical: ynez's Stage-1 models, the
@@ -77,6 +77,24 @@ each seed's Δ pass@5 after it:
 
 KL 0 helps on every generated set at every seed; on Charles149 it is level. The per-seed numbers come from a one-off
 script, not from v2_results.
+
+**`kl0` full reads: done** (`runs/grpo_v2/jobs_kl0_full.txt`, workers with `KNOB_FULL=1`, `leon/grpo-v2` 38e12690):
+textbook72 plain, guided reads on t1320, textbook72 and charles173, and hand14, at seeds 0–2 (no averaged-checkpoint
+reads). `grpo_think_vs_mb_kkl0` is now a main arm of `matched_eval/v2_results_ynez.md` (§§ 1–6), labelled "GRPO,
+merged recipe + KL 0 (L3)". Pooled over 3 seeds, pass@1 / pass@5 in points:
+
+| merged recipe + KL 0 minus | 13–20 plain | 13–20 guided | 21–30 plain | textbook72 plain | Charles149 plain | Charles149 guided |
+|---|---|---|---|---|---|---|
+| merged recipe | +1.7 / +2.4 | +0.0 / −0.4 | +1.2 / +3.4 | −0.7 / −0.8 | +0.1 / −0.8 | −1.6 / −2.6 |
+| EI + verifier | +1.0 / +0.3 | +2.0 / +1.2 | +0.5 / +1.0 | +3.7 / +1.6 | +6.9 / +3.1 | +2.5 / −1.1 |
+
+KL 0's gain is on plain reads of the generated sets; with the verifier guiding the read it is level, and on Charles149
+guided pass@5 it is lower (interval [−4.9, −0.6]). Against EI + verifier every pooled difference is level or positive
+on the main sets; of those, only Charles149 plain pass@1 has an interval that excludes 0 ([+1.0, +13.2]).
+
+The rerun's queue worker truncated the three kl0 line logs (`logs/v2_grpo_think_vs_mb_kkl0_s{0,1,2}.log`) from the
+training runs; training, eval, watchdog and worker logs are intact. `pull_queue.sh` appends since `leon/grpo-v2`
+168cf41.
 
 ### On ynez (2026-10-12 to 2026-10-14)
 
