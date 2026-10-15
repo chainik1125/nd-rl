@@ -19,7 +19,12 @@ that share no class with any training pool (`charles_eval/build_clean.py`), hand
 seeds and problems, 95% intervals, % of the set); differences from `stats.paired_diff` on a shared
 problem resample, with seeds paired when both arms have the same Stage-1 seeds (same inits). The v1
 reads have k 32 on 13-20 and the v2 reads k 16, so the chain compares pass@1 and pass@5 only.
-Rows that are not there yet are skipped with a note.
+§7: the knob pilots (`grpo_think_vs_mb_kKNOB`, seed 0, plain reads, never textbook72) against the
+merged recipe at seed 0, with krr (nothing changed) as the noise band. §8: the in-context verifier
+feedback pilot against grpo_think_vs s2, including the feedback read arm (`rows_feedback_B64`:
+the guided rows' fields plus per-attempt `fb` counters, which these tables do not use).
+Rows that are not there yet are skipped; the note at the end lists those of planned reads only
+(`ArmSpec.seeds`, `reads`, `extra`).
 """
 
 from __future__ import annotations
@@ -47,6 +52,19 @@ BLUE, ORANGE, GRAY = "#2a78d6", "#eb6834", "#6b6b6b"
 SEEDS = (0, 1, 2)
 TOKENS = (1000.0, 2000.0, 4000.0, 8000.0)
 
+# The reads an arm was planned with, as (read set, read arm) pairs; the missing-rows report lists
+# only these. LINE_READS: `line.sh`'s usual reads (13-20, textbook72 and charles173 plain and
+# guided; hand14 and 21-30 plain). PLAIN4: `runs/grpo_v2/pilot4.sh`'s and the averaged checkpoint's
+# (`line.sh` ARM_mb_avg). KNOB_READS: the knob pilots' (`line.sh` ARM_mb_kKNOB; never textbook72).
+LINE_READS = (
+    *((r, ra) for r in ("t1320", "tb72", "charles173") for ra in ("plain", "logical")),
+    ("hand14", "plain"),
+    ("t2130", "plain"),
+)
+PLAIN4 = tuple((r, "plain") for r in ("t1320", "tb72", "charles173", "t2130"))
+KNOB_READS = (("t1320", "plain"), ("t2130", "plain"), ("charles173", "plain"))
+FB_READS = (("t1320", "feedback"), ("charles173", "feedback"))  # line.sh ARM_fbb; grpo_v2/fbctl.sh
+
 
 @dataclass(frozen=True)
 class ArmSpec:
@@ -56,10 +74,17 @@ class ArmSpec:
     think: bool
     v2: bool = True  # False: a v1 reference read
     fig: bool = True  # False: tables only, not in fig_summary
+    seeds: tuple[int, ...] = SEEDS  # the Stage-1 seeds it was run at
+    reads: tuple[tuple[str, str], ...] = LINE_READS  # (read set, read arm) at each of `seeds`
+    extra: tuple[tuple[str, str, int], ...] = ()  # one-off reads: (read set, read arm, seed)
 
     @property
     def budget(self) -> int:
         return 64 if self.think else 0
+
+    def planned(self, read: str, seed: int, ra: str) -> bool:
+        """Whether this arm was to be read on `read` (a `SetSpec.read`) with `ra` at `seed`."""
+        return (seed in self.seeds and (read, ra) in self.reads) or (read, ra, seed) in self.extra
 
 
 # "redraw": the logical arm redraws a rejected step (at most 10); "stop": the first rejected step
@@ -67,24 +92,73 @@ class ArmSpec:
 # rows": a third of each iteration's groups from pools/curriculum_3p (goal antecedents moved into
 # the premises, `curriculum/uncurry3.py`). "half lr": GRPO lr 7.5e-5 instead of 1.5e-4 in both
 # stages (`line.sh` arms ending `_h`). Thinking arms come first (fig_summary splits the rows there).
+# The L3 pilots and `pilot4.sh`'s reads ran at seed 2 only (`seeds`; LINE_READS for `reads`).
+# grpo_think_vs s2 is also read with feedback (`fbctl.sh`: §8's control).
+S2 = (2,)
 ARMS = [
     ArmSpec("grpo_think", "GRPO", "grpo", True),
     ArmSpec("grpo_think_h", "GRPO, half lr", "grpo", True),
     ArmSpec("grpo_think_v", "GRPO + verifier (redraw)", "grpo", True),
-    ArmSpec("grpo_think_vs", "GRPO + verifier (stop)", "grpo", True),
+    ArmSpec(
+        "grpo_think_vs",
+        "GRPO + verifier (stop)",
+        "grpo",
+        True,
+        extra=tuple((r, ra, 2) for r, ra in FB_READS),
+    ),
     ArmSpec("grpo_think_vs_h", "GRPO + verifier (stop), half lr", "grpo", True),
-    ArmSpec("grpo_think_vs_wb", "pilot: + L3 cooldown", "grpo", True, fig=False),
-    ArmSpec("grpo_think_vs_3pb", "pilot: + 3-premise rows in L3", "grpo", True, fig=False),
-    ArmSpec("grpo_think_vs_rfb", "pilot: + refill, drop p > 0.9", "grpo", True, fig=False),
-    ArmSpec("grpo_think_vs_ulb", "pilot: + unlikeliness reward", "grpo", True, fig=False),
-    ArmSpec("grpo_think_vs_pb", "pilot: + unseen prior = mean", "grpo", True, fig=False),
-    ArmSpec("grpo_think_vs_b", "control: L3 rerun, same settings", "grpo", True, fig=False),
+    ArmSpec("grpo_think_vs_wb", "pilot: + L3 cooldown", "grpo", True, fig=False, seeds=S2),
+    ArmSpec(
+        "grpo_think_vs_3pb", "pilot: + 3-premise rows in L3", "grpo", True, fig=False, seeds=S2
+    ),
+    ArmSpec(
+        "grpo_think_vs_rfb", "pilot: + refill, drop p > 0.9", "grpo", True, fig=False, seeds=S2
+    ),
+    ArmSpec("grpo_think_vs_ulb", "pilot: + unlikeliness reward", "grpo", True, fig=False, seeds=S2),
+    ArmSpec("grpo_think_vs_pb", "pilot: + unseen prior = mean", "grpo", True, fig=False, seeds=S2),
+    ArmSpec(
+        "grpo_think_vs_b", "control: L3 rerun, same settings", "grpo", True, fig=False, seeds=S2
+    ),
     ArmSpec("grpo_think_vs_mb", "GRPO, merged recipe (L3)", "grpo", True),
-    ArmSpec("grpo_think_vs_mb_avg", "GRPO, merged recipe, weight average", "grpo", True),
-    ArmSpec("grpo_think_vs_fbb", "pilot: + in-context verifier feedback", "grpo", True, fig=False),
-    ArmSpec("grpo_think_vs_avg", "pilot: mean of L3 it 25-39 weights", "grpo", True, fig=False),
-    ArmSpec("grpo_think_vs_t10", "GRPO + verifier (stop), read at T 1.0", "grpo", True, fig=False),
-    ArmSpec("ei_think_v_t10", "EI + verifier, read at T 1.0", "ei", True, fig=False),
+    ArmSpec(
+        "grpo_think_vs_mb_avg", "GRPO, merged recipe, weight average", "grpo", True, reads=PLAIN4
+    ),
+    ArmSpec(
+        "grpo_think_vs_fbb",
+        "pilot: + in-context verifier feedback",
+        "grpo",
+        True,
+        reads=LINE_READS + FB_READS,
+        fig=False,
+        seeds=S2,
+    ),
+    ArmSpec(
+        "grpo_think_vs_avg",
+        "pilot: mean of L3 it 25-39 weights",
+        "grpo",
+        True,
+        reads=PLAIN4,
+        fig=False,
+        seeds=S2,
+    ),
+    ArmSpec(
+        "grpo_think_vs_t10",
+        "GRPO + verifier (stop), read at T 1.0",
+        "grpo",
+        True,
+        reads=PLAIN4,
+        fig=False,
+        seeds=S2,
+    ),
+    ArmSpec(
+        "ei_think_v_t10",
+        "EI + verifier, read at T 1.0",
+        "ei",
+        True,
+        reads=PLAIN4,
+        fig=False,
+        seeds=S2,
+    ),
     ArmSpec("ei_think", "EI", "ei", True),
     ArmSpec("ei_think_v", "EI + verifier", "ei", True),
     ArmSpec("grpo_nothink", "GRPO", "grpo", False),
@@ -100,7 +174,28 @@ REFS = [
     ArmSpec("ei_v1", "EI v1 (old problems)", "ei", True, v2=False),
     ArmSpec("ei_nothink_v1", "EI v1, no thinking (old problems)", "ei", False, v2=False),
 ]
-SPEC = {a.key: a for a in ARMS + REFS}
+# The knob pilots (2026-10-15, `line.sh` ARM_mb_kKNOB): grpo_think_vs_mb's L3 at seed 0, from its
+# L2, with one setting changed (the merged recipe's value in brackets); plain reads on 13-20, 21-30
+# and charles173 only. Tables only (§7), never textbook72. krr changes nothing: the noise control.
+KNOB_BASE = "grpo_think_vs_mb"
+KNOBS = [
+    ("rr", "nothing changed (noise control)"),
+    ("i78", "78 L3 iterations (39)"),
+    ("x66", "3-premise rows 0.66 (0.33)"),
+    ("g64", "64 targets × 64 attempts (256 × 16)"),
+    ("p3", "invalid-step penalty 0.3 (0.1)"),
+    ("t12", "training temperature 1.2 (1.0)"),
+    ("kl0", "KL anchor 0 (0.02)"),
+    ("kl1", "KL anchor 0.1 (0.02)"),
+    ("ch4", "clip-higher 0.4 (0.28)"),
+]
+KNOB_ARMS = [
+    ArmSpec(
+        f"{KNOB_BASE}_k{k}", f"knob: {c}", "grpo", True, fig=False, seeds=(0,), reads=KNOB_READS
+    )
+    for k, c in KNOBS
+]
+SPEC = {a.key: a for a in ARMS + REFS + KNOB_ARMS}
 
 
 @dataclass(frozen=True)
@@ -274,15 +369,19 @@ class Loader:
         self.missing: list[str] = []
         self._cache: dict[tuple[str, str, tuple[int, ...], str], stats.Arm | None] = {}
 
+    def have(self, arm: str, s: str, seed: int, ra: str) -> bool:
+        """Whether the rows of (arm, set, seed, read arm) are there; a read the arm was planned
+        with (`ArmSpec.planned`) that is not there yet goes to `missing`."""
+        spec = SPEC[arm]
+        p = rows_path(spec, SET[s], seed, ra, self.v2)
+        if p is not None and p.exists():
+            return True
+        if p is not None and spec.planned(SET[s].read, seed, ra):
+            self.missing.append(str(p))
+        return False
+
     def seeds(self, arm: str, s: str, ra: str) -> list[int]:
-        out = []
-        for seed in SEEDS:
-            p = rows_path(SPEC[arm], SET[s], seed, ra, self.v2)
-            if p is not None and p.exists():
-                out.append(seed)
-            elif p is not None:
-                self.missing.append(str(p))
-        return out
+        return [seed for seed in SEEDS if self.have(arm, s, seed, ra)]
 
     def arm(self, arm: str, s: str, seeds: Sequence[int], ra: str = "plain") -> stats.Arm | None:
         key = (arm, s, tuple(seeds), ra)
@@ -314,9 +413,18 @@ def estimate(
 
 
 def diff(
-    ld: Loader, a: str, b: str, s: str, seeds: Sequence[int], ra: str, k: int, draws: int
+    ld: Loader,
+    a: str,
+    b: str,
+    s: str,
+    seeds: Sequence[int],
+    ra: str,
+    k: int,
+    draws: int,
+    rb: str | None = None,
 ) -> stats.Estimate | None:
-    x, y = ld.arm(a, s, seeds, ra), ld.arm(b, s, seeds, ra)
+    """pass@k of arm a read with `ra` minus arm b read with `rb` (default `ra`)."""
+    x, y = ld.arm(a, s, seeds, ra), ld.arm(b, s, seeds, rb or ra)
     if x is None or y is None:
         return None
     return stats.paired_diff(x, y, k, paired_seeds=True, draws=draws)
@@ -421,6 +529,8 @@ def tables(ld: Loader, draws: int) -> list[str]:
                 + " |"
             )
     md += by_premises(ld, draws)
+    md += knob_tables(ld, draws)
+    md += feedback_tables(ld, draws)
     md += [
         "",
         "## Notes",
@@ -447,7 +557,7 @@ def _run_of(path: str) -> str:
     """`<arm>_s<seed>` for a v2 rows file (`<read>_<arm>_s<seed>_<read arm>_k<k>/`), else the rows
     file's directory name."""
     d = Path(path).parent.name
-    m = re.fullmatch(r"[a-z0-9]+_(.+_s\d+)_(?:plain|logical)_k\d+", d)
+    m = re.fullmatch(r"[a-z0-9]+_(.+_s\d+)_(?:plain|logical|feedback)_k\d+", d)
     return m.group(1) if m else d
 
 
@@ -501,6 +611,156 @@ def by_premises(ld: Loader, draws: int) -> list[str]:
             f"| {arm.label}{'' if arm.think else ', no thinking'} | {','.join(map(str, seeds))} | "
             f"{cells[0]} | {cells[1]} | {share} |"
         )
+    return md
+
+
+KS = (1, 5)
+NOT_YET = "not yet"
+
+
+def _one(
+    ld: Loader, arm: str, s: str, seed: int, ra: str, k: int, draws: int
+) -> stats.Estimate | None:
+    """pass@k of one seed's read, or None (noted as missing if planned) when it is not there."""
+    return estimate(ld, arm, s, [seed], ra, k, draws) if ld.have(arm, s, seed, ra) else None
+
+
+def _cell(e: stats.Estimate | None, sign: bool = False, mark: str = "") -> str:
+    return NOT_YET if e is None else fmt(e, sign) + mark
+
+
+def _flag(d: stats.Estimate | None, band: stats.Estimate | None) -> str:
+    """† : the interval excludes 0 and |Δ| > |krr − merged| (the noise band); ° : it excludes 0 but
+    the noise band is not there yet."""
+    if d is None or d.lo <= 0 <= d.hi:
+        return ""
+    if band is None:
+        return " °"
+    return " †" if abs(d.est) > abs(band.est) else ""
+
+
+KNOB_SETS = ("t1320", "t1620", "t2130", "charles149")  # never textbook72 (knob selection)
+
+
+def knob_tables(ld: Loader, draws: int) -> list[str]:
+    """§7: each knob pilot's pass@1 and pass@5 at seed 0 and its difference from the merged recipe
+    at seed 0 (the same Stage-1 seed and L2 checkpoint), paired on problems; krr − merged is the
+    noise band of one more L3 run."""
+    rr = f"{KNOB_BASE}_krr"
+    md = ["", "## 7. Knob pilots (seed 0, L3 only)", ""]
+    md += [
+        "The merged recipe's L3 (`grpo_think_vs_mb`, seed 0, from its L2 checkpoint) rerun with",
+        "one setting changed (the merged recipe's value in brackets), read plain at T 0.8 (B64).",
+        "Δ = knob − merged recipe s0 in points, paired on problems. With one seed and one training",
+        "run per arm, the intervals cover problem and sampling noise but not run-to-run training",
+        "noise; `krr − merged s0` (the same L3 rerun with nothing changed) is one draw of that.",
+        "†: the interval excludes 0 and |Δ| > |krr − merged s0| on that set and k. °: the interval",
+        f"excludes 0 but krr is not in yet. {NOT_YET}: the read has not landed. i78 trains L3 for",
+        "twice the iterations, so it is not at the merged recipe's training budget.",
+    ]
+    for s in KNOB_SETS:
+        md += ["", f"**{SET[s].title}** (plain reads)", ""]
+        md += [
+            "| arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |",
+            "|---|---|---|---|---|",
+        ]
+        base = {k: _one(ld, KNOB_BASE, s, 0, "plain", k, draws) for k in KS}
+        md.append(
+            f"| {SPEC[KNOB_BASE].label}, seed 0 (reference) | {_cell(base[1])} | — | "
+            f"{_cell(base[5])} | — |"
+        )
+        band: dict[int, stats.Estimate | None] = {}
+        for key, _ in KNOBS:
+            arm = f"{KNOB_BASE}_k{key}"
+            e = {k: _one(ld, arm, s, 0, "plain", k, draws) for k in KS}
+            d = {k: diff(ld, arm, KNOB_BASE, s, [0], "plain", k, draws) for k in KS}
+            if arm == rr:
+                band = d
+                lab = f"k{key}: {SPEC[arm].label[len('knob: ') :]}; Δ = the noise band"
+                marks = {k: "" for k in KS}
+            else:
+                lab = f"k{key}: {SPEC[arm].label[len('knob: ') :]}"
+                marks = {k: _flag(d[k], band.get(k)) for k in KS}
+            md.append(
+                f"| {lab} | {_cell(e[1])} | {_cell(d[1], True, marks[1])} | {_cell(e[5])} | "
+                f"{_cell(d[5], True, marks[5])} |"
+            )
+    return md
+
+
+FB_PILOT, FB_BASE, FB_SEED = "grpo_think_vs_fbb", "grpo_think_vs", 2
+FB_SETS = ("t1320", "t1620", "charles149")  # the sets read with feedback (charles149: charles173)
+READ_NAME = {"plain": "plain", "logical": "guided", "feedback": "feedback"}
+
+
+def _vs_row(ld: Loader, s: str, ra: str, draws: int) -> str:
+    """One row of §8a/b: the pilot and the baseline at seed 2, both read with `ra`, and pilot −
+    baseline paired on problems."""
+    a = {k: _one(ld, FB_PILOT, s, FB_SEED, ra, k, draws) for k in KS}
+    b = {k: _one(ld, FB_BASE, s, FB_SEED, ra, k, draws) for k in KS}
+    d = {k: diff(ld, FB_PILOT, FB_BASE, s, [FB_SEED], ra, k, draws) for k in KS}
+    return (
+        f"| {READ_NAME[ra]} | {SET[s].title} | {_cell(a[1])} | {_cell(a[5])} | {_cell(b[1])} | "
+        f"{_cell(b[5])} | {_cell(d[1], True)} | {_cell(d[5], True)} |"
+    )
+
+
+def feedback_tables(ld: Loader, draws: int) -> list[str]:
+    """§8: the in-context verifier feedback pilot (grpo_think_vs_fbb s2) against its baseline
+    (grpo_think_vs s2, whose L2 checkpoint the pilot's L3 starts from), on the usual reads and on
+    the feedback read arm; and, per model, what reading with feedback buys over its plain and
+    guided reads."""
+    md = ["", "## 8. In-context verifier feedback", ""]
+    md += [
+        f"Pilot: `{FB_PILOT}` s2, `{FB_BASE}`'s L3 from its seed-2 L2 with a rejected step",
+        "retried (at most 2 times per step) and the rejected action written into the think block",
+        f"as a dead-end line (`⊢ F := T <no>`, `feedback.py`). Baseline: `{FB_BASE}` s2",
+        f"({SPEC[FB_BASE].label}), whose L3 ends the attempt at the first rejected step. The",
+        "feedback read arm is the guided arm with that in-context feedback and at most 2 retries",
+        "per step (the guided read redraws blind, at most 10 rejected steps per attempt), on",
+        "13–20 (k 16) and Charles149 (k 64); the baseline's feedback reads are the matched",
+        "control (`fbctl.sh`). One seed per model: intervals are paired on problems and cover",
+        "problem and sampling noise, not training noise (§7's krr band is one draw of that).",
+        f"Δ in points. {NOT_YET}: the read has not landed.",
+    ]
+    hdr = [
+        "| read | set | pilot pass@1 | pilot pass@5 | baseline pass@1 | baseline pass@5 | "
+        "Δ pass@1 (pilot − baseline) | Δ pass@5 (pilot − baseline) |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    md += ["", "**a. The pilot vs the baseline, seed 2, plain and guided reads**", ""] + hdr
+    for s in SETS:
+        for ra in ("plain", "logical") if s.guided else ("plain",):
+            md.append(_vs_row(ld, s.key, ra, draws))
+    md += ["", "**b. Both read with feedback, seed 2**", ""] + hdr
+    for s in FB_SETS:
+        md.append(_vs_row(ld, s, "feedback", draws))
+    md += [
+        "",
+        "**c. What feedback at read time buys: the feedback read − the plain (and guided) read of",
+        "the same checkpoint, seed 2, paired on problems**",
+        "",
+        "| model | set | feedback pass@1 | feedback pass@5 | Δ pass@1 vs plain | "
+        "Δ pass@5 vs plain | Δ pass@1 vs guided | Δ pass@5 vs guided |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for arm, lab in ((FB_PILOT, "pilot"), (FB_BASE, "baseline")):
+        for s in FB_SETS:
+            e = {k: _one(ld, arm, s, FB_SEED, "feedback", k, draws) for k in KS}
+            cells = [_cell(e[1]), _cell(e[5])]
+            for rb in ("plain", "logical"):  # (8a notes these reads when they are missing)
+                cells += [
+                    _cell(diff(ld, arm, arm, s, [FB_SEED], "feedback", k, draws, rb=rb), True)
+                    for k in KS
+                ]
+            md.append(
+                f"| {lab} (`{arm}` s{FB_SEED}) | {SET[s].title} | " + " | ".join(cells) + " |"
+            )
+    md += [
+        "",
+        "The guided read differs from the feedback read in its rejection budget as well as in the",
+        "feedback, so `vs guided` is not the feedback alone.",
+    ]
     return md
 
 

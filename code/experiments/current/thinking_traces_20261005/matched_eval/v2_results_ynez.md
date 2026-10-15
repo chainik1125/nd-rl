@@ -20,9 +20,9 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | pilot: + unlikeliness reward, thinking | 26.6 [24.6, 28.6] / 49.9 [47.1, 52.5] (s2) | 19.6 [17.4, 21.8] / 41.0 [37.7, 44.2] (s2) | 73.8 [64.4, 82.1] / 81.5 [72.4, 89.6] (s2) | 70.4 [64.0, 76.3] / 80.2 [73.9, 86.0] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 4.1 [3.4, 4.9] / 12.7 [10.9, 14.6] (s2) |
 | pilot: + unseen prior = mean, thinking | 22.8 [20.8, 24.8] / 41.7 [38.9, 44.5] (s2) | 16.9 [14.8, 19.1] / 34.3 [31.1, 37.6] (s2) | 73.9 [64.5, 82.2] / 82.8 [74.0, 90.4] (s2) | 69.8 [63.3, 75.8] / 79.7 [73.3, 85.5] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 2.9 [2.3, 3.6] / 8.9 [7.4, 10.5] (s2) |
 | control: L3 rerun, same settings, thinking | 25.8 [23.8, 27.9] / 46.6 [43.9, 49.4] (s2) | 19.2 [17.1, 21.5] / 38.1 [34.9, 41.5] (s2) | 73.1 [63.6, 81.8] / 81.3 [72.5, 89.1] (s2) | 70.7 [64.2, 76.6] / 81.0 [74.8, 86.6] (s2) | 0.0 [0.0, 0.0] / 0.0 [0.0, 0.0] (s2) | 3.8 [3.1, 4.5] / 11.4 [9.7, 13.1] (s2) |
-| GRPO, merged recipe (L3), thinking | 30.6 [25.4, 35.8] / 55.1 [48.0, 62.1] (s0,2) | 24.9 [19.1, 30.8] / 48.3 [39.7, 56.7] (s0,2) | 73.4 [64.1, 81.5] / 82.1 [73.0, 89.8] (s0,2) | 69.6 [63.2, 75.6] / 79.7 [73.4, 85.4] (s0,2) | 0.2 [0.0, 0.9] / 1.0 [0.0, 4.1] (s0,2) | 6.5 [3.5, 9.7] / 16.8 [10.1, 24.0] (s0,2) |
+| GRPO, merged recipe (L3), thinking | 30.4 [26.4, 34.5] / 55.4 [49.8, 60.6] (s0,1,2) | 24.0 [19.8, 29.0] / 47.8 [41.4, 54.4] (s0,1,2) | 74.7 [65.5, 83.1] / 83.1 [74.5, 90.6] (s0,1,2) | 69.6 [63.2, 75.6] / 79.7 [73.4, 85.4] (s0,2) | 0.2 [0.0, 0.9] / 1.0 [0.0, 4.1] (s0,2) | 6.5 [3.5, 9.7] / 16.8 [10.1, 24.0] (s0,2) |
 | GRPO, merged recipe, weight average, thinking | 30.0 [24.0, 36.1] / 54.5 [46.6, 62.3] (s0,2) | 24.0 [17.7, 30.6] / 47.4 [38.0, 56.7] (s0,2) | 73.6 [64.2, 82.0] / 82.5 [73.8, 90.2] (s0,2) | 69.2 [62.4, 75.4] / 79.2 [72.6, 85.2] (s0,2) | — | 6.5 [3.2, 10.1] / 17.1 [9.4, 25.2] (s0,2) |
-| pilot: + in-context verifier feedback, thinking | — | — | — | — | — | — |
+| pilot: + in-context verifier feedback, thinking | 18.3 [16.5, 20.1] / 36.4 [33.7, 39.0] (s2) | 11.9 [10.2, 13.8] / 27.1 [24.3, 30.3] (s2) | 69.2 [59.5, 78.2] / 78.8 [69.6, 87.1] (s2) | 67.1 [60.5, 73.3] / 78.1 [71.7, 83.9] (s2) | — | — |
 | pilot: mean of L3 it 25-39 weights, thinking | 26.7 [24.7, 28.8] / 49.5 [46.7, 52.2] (s2) | 19.7 [17.6, 22.0] / 40.7 [37.4, 44.0] (s2) | 73.0 [63.5, 81.5] / 81.1 [72.0, 89.3] (s2) | 69.1 [62.7, 75.2] / 79.1 [72.8, 84.9] (s2) | — | 4.4 [3.7, 5.3] / 12.6 [10.8, 14.5] (s2) |
 | GRPO + verifier (stop), read at T 1.0, thinking | 20.3 [18.6, 22.0] / 42.5 [39.9, 45.1] (s2) | 14.8 [13.1, 16.7] / 34.8 [31.8, 38.0] (s2) | 70.4 [60.9, 79.2] / 79.5 [70.1, 88.0] (s2) | 65.9 [59.5, 72.3] / 77.1 [70.8, 83.1] (s2) | — | 2.5 [2.0, 3.1] / 7.8 [6.3, 9.3] (s2) |
 | EI + verifier, read at T 1.0, thinking | 23.5 [21.8, 25.2] / 49.8 [47.4, 52.5] (s2) | 17.3 [15.6, 19.2] / 41.9 [38.7, 44.9] (s2) | 66.4 [57.1, 75.1] / 79.4 [70.6, 87.6] (s2) | 55.0 [48.6, 61.3] / 71.5 [64.6, 77.9] (s2) | — | 4.2 [3.5, 5.0] / 12.9 [11.1, 14.8] (s2) |
@@ -164,14 +164,17 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | control: L3 rerun, same settings | 2 | plain | hand-proved 14 | 14 | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] |
 | control: L3 rerun, same settings | 2 | plain | 21–30 lines (1,000) | 1000 | 3.8 [3.1, 4.5] | 11.4 [9.7, 13.1] |
 | GRPO, merged recipe (L3) | 0 | plain | 13–20 lines (986) | 986 | 34.4 [32.3, 36.5] | 60.4 [57.8, 62.9] |
+| GRPO, merged recipe (L3) | 1 | plain | 13–20 lines (986) | 986 | 30.1 [28.0, 32.0] | 56.1 [53.4, 58.7] |
 | GRPO, merged recipe (L3) | 2 | plain | 13–20 lines (986) | 986 | 26.7 [24.7, 28.7] | 49.9 [47.2, 52.6] |
 | GRPO, merged recipe (L3) | 0 | guided | 13–20 lines (986) | 986 | 51.9 [49.7, 54.1] | 77.3 [75.1, 79.4] |
 | GRPO, merged recipe (L3) | 2 | guided | 13–20 lines (986) | 986 | 42.6 [40.3, 44.8] | 69.0 [66.5, 71.4] |
 | GRPO, merged recipe (L3) | 0 | plain | 16–20 lines | 616 | 29.1 [26.7, 31.6] | 54.6 [51.3, 57.8] |
+| GRPO, merged recipe (L3) | 1 | plain | 16–20 lines | 616 | 22.4 [20.2, 24.7] | 47.0 [43.7, 50.3] |
 | GRPO, merged recipe (L3) | 2 | plain | 16–20 lines | 616 | 20.6 [18.4, 22.8] | 42.0 [38.7, 45.3] |
 | GRPO, merged recipe (L3) | 0 | guided | 16–20 lines | 616 | 45.6 [42.9, 48.4] | 71.8 [68.7, 74.7] |
 | GRPO, merged recipe (L3) | 2 | guided | 16–20 lines | 616 | 35.7 [33.0, 38.3] | 62.3 [59.1, 65.5] |
 | GRPO, merged recipe (L3) | 0 | plain | textbook72 | 72 | 74.0 [65.0, 81.9] | 83.9 [75.7, 91.0] |
+| GRPO, merged recipe (L3) | 1 | plain | textbook72 | 72 | 77.4 [68.5, 85.2] | 85.0 [76.4, 92.3] |
 | GRPO, merged recipe (L3) | 2 | plain | textbook72 | 72 | 72.8 [63.2, 81.4] | 80.3 [70.9, 88.6] |
 | GRPO, merged recipe (L3) | 0 | guided | textbook72 | 72 | 82.6 [74.6, 89.5] | 89.9 [83.0, 95.6] |
 | GRPO, merged recipe (L3) | 2 | guided | textbook72 | 72 | 78.2 [69.0, 86.4] | 84.1 [75.9, 91.3] |
@@ -193,6 +196,10 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | GRPO, merged recipe, weight average | 2 | plain | Charles149 | 149 | 67.9 [61.2, 74.1] | 77.9 [71.4, 83.7] |
 | GRPO, merged recipe, weight average | 0 | plain | 21–30 lines (1,000) | 1000 | 9.3 [8.1, 10.5] | 23.7 [21.3, 26.1] |
 | GRPO, merged recipe, weight average | 2 | plain | 21–30 lines (1,000) | 1000 | 3.7 [2.9, 4.5] | 10.5 [8.8, 12.2] |
+| pilot: + in-context verifier feedback | 2 | plain | 13–20 lines (986) | 986 | 18.3 [16.5, 20.1] | 36.4 [33.7, 39.0] |
+| pilot: + in-context verifier feedback | 2 | plain | 16–20 lines | 616 | 11.9 [10.2, 13.8] | 27.1 [24.3, 30.3] |
+| pilot: + in-context verifier feedback | 2 | plain | textbook72 | 72 | 69.2 [59.5, 78.2] | 78.8 [69.6, 87.1] |
+| pilot: + in-context verifier feedback | 2 | plain | Charles149 | 149 | 67.1 [60.5, 73.3] | 78.1 [71.7, 83.9] |
 | pilot: mean of L3 it 25-39 weights | 2 | plain | 13–20 lines (986) | 986 | 26.7 [24.7, 28.8] | 49.5 [46.7, 52.2] |
 | pilot: mean of L3 it 25-39 weights | 2 | plain | 16–20 lines | 616 | 19.7 [17.6, 22.0] | 40.7 [37.4, 44.0] |
 | pilot: mean of L3 it 25-39 weights | 2 | plain | textbook72 | 72 | 73.0 [63.5, 81.5] | 81.1 [72.0, 89.3] |
@@ -274,20 +281,23 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | comparison | read | set | seeds | Δ pass@1 | Δ pass@5 |
 |---|---|---|---|---|---|
 | thinking: merged recipe − GRPO + verifier (stop) | plain | 13–20 lines (986) | 0 | +3.9 [+2.8, +5.1] | +6.2 [+4.5, +7.9] |
+| thinking: merged recipe − GRPO + verifier (stop) | plain | 13–20 lines (986) | 1 | -2.6 [-3.6, -1.5] | -1.5 [-3.1, +0.1] |
 | thinking: merged recipe − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | +2.2 [+1.1, +3.3] | +2.5 [+0.7, +4.3] |
-| thinking: merged recipe − GRPO + verifier (stop) | plain | 13–20 lines (986) | 0,2 | +3.1 [+1.5, +4.7] | +4.4 [+1.3, +7.2] |
+| thinking: merged recipe − GRPO + verifier (stop) | plain | 13–20 lines (986) | 0,1,2 | +1.2 [-2.4, +4.0] | +2.4 [-1.4, +6.1] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | 13–20 lines (986) | 0 | +3.8 [+2.4, +5.1] | +5.3 [+3.7, +6.8] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | 13–20 lines (986) | 2 | +3.8 [+2.5, +5.1] | +4.3 [+2.6, +6.1] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | 13–20 lines (986) | 0,2 | +3.8 [+2.6, +4.9] | +4.8 [+3.1, +6.4] |
 | thinking: merged recipe − GRPO + verifier (stop) | plain | 16–20 lines | 0 | +5.0 [+3.6, +6.3] | +8.3 [+6.3, +10.4] |
+| thinking: merged recipe − GRPO + verifier (stop) | plain | 16–20 lines | 1 | -2.3 [-3.5, -1.0] | -2.4 [-4.6, -0.0] |
 | thinking: merged recipe − GRPO + verifier (stop) | plain | 16–20 lines | 2 | +2.3 [+1.0, +3.6] | +2.4 [+0.1, +4.6] |
-| thinking: merged recipe − GRPO + verifier (stop) | plain | 16–20 lines | 0,2 | +3.6 [+1.4, +5.9] | +5.4 [+0.9, +9.7] |
+| thinking: merged recipe − GRPO + verifier (stop) | plain | 16–20 lines | 0,1,2 | +1.7 [-2.1, +4.9] | +2.8 [-2.3, +7.9] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | 16–20 lines | 0 | +4.9 [+3.2, +6.6] | +6.0 [+4.0, +7.9] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | 16–20 lines | 2 | +3.8 [+2.3, +5.4] | +4.6 [+2.4, +6.9] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | 16–20 lines | 0,2 | +4.3 [+2.7, +6.1] | +5.3 [+3.1, +7.3] |
 | thinking: merged recipe − GRPO + verifier (stop) | plain | textbook72 | 0 | +1.2 [-1.4, +3.8] | +1.8 [-1.6, +5.7] |
+| thinking: merged recipe − GRPO + verifier (stop) | plain | textbook72 | 1 | -2.0 [-3.6, -0.5] | +0.9 [-0.6, +2.8] |
 | thinking: merged recipe − GRPO + verifier (stop) | plain | textbook72 | 2 | +0.3 [-1.9, +2.7] | +1.3 [-0.5, +3.6] |
-| thinking: merged recipe − GRPO + verifier (stop) | plain | textbook72 | 0,2 | +0.8 [-1.4, +3.1] | +1.6 [-0.7, +4.5] |
+| thinking: merged recipe − GRPO + verifier (stop) | plain | textbook72 | 0,1,2 | -0.1 [-2.2, +2.2] | +1.3 [-0.4, +3.5] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | textbook72 | 0 | +1.9 [-1.0, +5.0] | +1.9 [-0.4, +4.9] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | textbook72 | 2 | +0.7 [-1.8, +3.0] | +1.3 [-0.3, +3.6] |
 | thinking: merged recipe − GRPO + verifier (stop) | guided | textbook72 | 0,2 | +1.3 [-1.1, +3.9] | +1.6 [-0.1, +4.0] |
@@ -304,20 +314,23 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking: merged recipe − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +0.5 [-0.1, +1.2] | +1.1 [-0.6, +2.7] |
 | thinking: merged recipe − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 0,2 | +1.1 [+0.1, +2.2] | +2.5 [+0.0, +5.2] |
 | thinking: merged recipe − EI + verifier | plain | 13–20 lines (986) | 0 | +3.3 [+1.7, +5.0] | +3.5 [+1.3, +5.8] |
+| thinking: merged recipe − EI + verifier | plain | 13–20 lines (986) | 1 | -4.4 [-6.1, -2.8] | -5.9 [-8.3, -3.5] |
 | thinking: merged recipe − EI + verifier | plain | 13–20 lines (986) | 2 | -1.1 [-2.8, +0.5] | -3.7 [-6.1, -1.3] |
-| thinking: merged recipe − EI + verifier | plain | 13–20 lines (986) | 0,2 | +1.1 [-2.2, +4.4] | -0.1 [-5.3, +5.1] |
+| thinking: merged recipe − EI + verifier | plain | 13–20 lines (986) | 0,1,2 | -0.7 [-4.4, +3.1] | -2.0 [-6.6, +3.1] |
 | thinking: merged recipe − EI + verifier | guided | 13–20 lines (986) | 0 | +6.6 [+4.8, +8.4] | +5.8 [+3.8, +8.0] |
 | thinking: merged recipe − EI + verifier | guided | 13–20 lines (986) | 2 | +0.7 [-1.3, +2.6] | -0.1 [-2.4, +2.1] |
 | thinking: merged recipe − EI + verifier | guided | 13–20 lines (986) | 0,2 | +3.7 [-0.5, +7.9] | +2.9 [-1.6, +7.2] |
 | thinking: merged recipe − EI + verifier | plain | 16–20 lines | 0 | +4.3 [+2.3, +6.3] | +4.6 [+1.6, +7.3] |
+| thinking: merged recipe − EI + verifier | plain | 16–20 lines | 1 | -6.7 [-8.6, -4.9] | -9.6 [-12.6, -6.6] |
 | thinking: merged recipe − EI + verifier | plain | 16–20 lines | 2 | -0.8 [-2.6, +1.0] | -3.4 [-6.5, -0.5] |
-| thinking: merged recipe − EI + verifier | plain | 16–20 lines | 0,2 | +1.7 [-2.0, +5.6] | +0.6 [-5.3, +6.4] |
+| thinking: merged recipe − EI + verifier | plain | 16–20 lines | 0,1,2 | -1.1 [-6.4, +4.1] | -2.8 [-9.5, +4.0] |
 | thinking: merged recipe − EI + verifier | guided | 16–20 lines | 0 | +6.9 [+4.6, +9.3] | +6.8 [+3.8, +9.7] |
 | thinking: merged recipe − EI + verifier | guided | 16–20 lines | 2 | +0.5 [-1.9, +3.0] | -0.1 [-3.3, +3.2] |
 | thinking: merged recipe − EI + verifier | guided | 16–20 lines | 0,2 | +3.7 [-1.1, +8.5] | +3.4 [-2.2, +8.7] |
 | thinking: merged recipe − EI + verifier | plain | textbook72 | 0 | +3.1 [-2.6, +9.0] | +2.7 [-2.8, +8.4] |
+| thinking: merged recipe − EI + verifier | plain | textbook72 | 1 | +6.8 [+1.9, +12.3] | +4.6 [-1.0, +10.6] |
 | thinking: merged recipe − EI + verifier | plain | textbook72 | 2 | +3.3 [-1.5, +8.1] | -0.4 [-6.1, +5.2] |
-| thinking: merged recipe − EI + verifier | plain | textbook72 | 0,2 | +3.2 [-1.6, +7.9] | +1.2 [-4.5, +6.7] |
+| thinking: merged recipe − EI + verifier | plain | textbook72 | 0,1,2 | +4.4 [-0.4, +9.3] | +2.3 [-3.1, +7.7] |
 | thinking: merged recipe − EI + verifier | guided | textbook72 | 0 | +5.8 [-0.6, +12.0] | +3.7 [-2.4, +9.9] |
 | thinking: merged recipe − EI + verifier | guided | textbook72 | 2 | +1.1 [-4.7, +7.0] | -0.7 [-7.2, +5.7] |
 | thinking: merged recipe − EI + verifier | guided | textbook72 | 0,2 | +3.4 [-3.1, +10.1] | +1.5 [-5.2, +8.2] |
@@ -334,20 +347,23 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking: merged recipe − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.6 [-2.5, -0.8] | -4.2 [-6.2, -2.3] |
 | thinking: merged recipe − EI + verifier | plain | 21–30 lines (1,000) | 0,2 | +0.4 [-2.2, +3.1] | +0.4 [-5.4, +6.6] |
 | thinking: merged recipe − EI | plain | 13–20 lines (986) | 0 | +2.3 [+0.5, +3.9] | +2.4 [+0.0, +4.6] |
+| thinking: merged recipe − EI | plain | 13–20 lines (986) | 1 | -3.1 [-4.7, -1.6] | -5.3 [-7.7, -2.9] |
 | thinking: merged recipe − EI | plain | 13–20 lines (986) | 2 | -2.4 [-4.2, -0.8] | -4.4 [-7.0, -2.0] |
-| thinking: merged recipe − EI | plain | 13–20 lines (986) | 0,2 | -0.1 [-3.6, +3.5] | -1.0 [-6.1, +3.9] |
+| thinking: merged recipe − EI | plain | 13–20 lines (986) | 0,1,2 | -1.1 [-3.8, +2.1] | -2.5 [-6.4, +2.1] |
 | thinking: merged recipe − EI | guided | 13–20 lines (986) | 0 | +5.1 [+3.2, +7.0] | +3.5 [+1.4, +5.6] |
 | thinking: merged recipe − EI | guided | 13–20 lines (986) | 2 | -2.6 [-4.6, -0.6] | -2.4 [-4.6, -0.1] |
 | thinking: merged recipe − EI | guided | 13–20 lines (986) | 0,2 | +1.2 [-4.0, +6.3] | +0.6 [-4.0, +4.9] |
 | thinking: merged recipe − EI | plain | 16–20 lines | 0 | +2.8 [+0.9, +4.9] | +3.5 [+0.7, +6.4] |
+| thinking: merged recipe − EI | plain | 16–20 lines | 1 | -4.4 [-6.3, -2.6] | -8.8 [-11.9, -5.8] |
 | thinking: merged recipe − EI | plain | 16–20 lines | 2 | -2.7 [-4.7, -0.8] | -4.8 [-7.7, -1.7] |
-| thinking: merged recipe − EI | plain | 16–20 lines | 0,2 | +0.0 [-4.1, +4.3] | -0.6 [-6.8, +5.6] |
+| thinking: merged recipe − EI | plain | 16–20 lines | 0,1,2 | -1.5 [-4.9, +2.6] | -3.3 [-9.2, +3.0] |
 | thinking: merged recipe − EI | guided | 16–20 lines | 0 | +6.0 [+3.6, +8.4] | +4.8 [+1.8, +7.6] |
 | thinking: merged recipe − EI | guided | 16–20 lines | 2 | -2.1 [-4.5, +0.4] | -2.0 [-5.3, +1.1] |
 | thinking: merged recipe − EI | guided | 16–20 lines | 0,2 | +2.0 [-3.8, +7.5] | +1.4 [-4.1, +6.6] |
 | thinking: merged recipe − EI | plain | textbook72 | 0 | +7.4 [+1.5, +13.8] | +5.7 [-1.1, +12.8] |
+| thinking: merged recipe − EI | plain | textbook72 | 1 | +8.7 [+3.2, +14.7] | +7.6 [+2.3, +13.8] |
 | thinking: merged recipe − EI | plain | textbook72 | 2 | +2.8 [-1.1, +7.2] | +2.1 [-2.5, +7.2] |
-| thinking: merged recipe − EI | plain | textbook72 | 0,2 | +5.1 [-0.2, +11.5] | +3.9 [-1.8, +10.6] |
+| thinking: merged recipe − EI | plain | textbook72 | 0,1,2 | +6.3 [+1.2, +12.0] | +5.1 [-0.2, +11.2] |
 | thinking: merged recipe − EI | guided | textbook72 | 0 | +9.7 [+3.0, +16.8] | +8.4 [+1.1, +16.1] |
 | thinking: merged recipe − EI | guided | textbook72 | 2 | +3.0 [-2.4, +8.6] | +1.2 [-5.1, +7.1] |
 | thinking: merged recipe − EI | guided | textbook72 | 0,2 | +6.4 [-0.9, +14.5] | +4.8 [-3.2, +13.7] |
@@ -633,6 +649,10 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | +0.6 [-1.1, +2.3] | +2.2 [+0.5, +4.6] |
 | thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | +1.3 [-0.0, +2.7] | +1.8 [+0.2, +3.7] |
 | thinking, weight averaging: pilot − GRPO + verifier (stop) | plain | 21–30 lines (1,000) | 2 | +1.0 [+0.4, +1.5] | +2.4 [+0.9, +3.9] |
+| thinking, in-context feedback: pilot − GRPO + verifier (stop) | plain | 13–20 lines (986) | 2 | -6.2 [-7.4, -5.1] | -10.9 [-12.9, -9.1] |
+| thinking, in-context feedback: pilot − GRPO + verifier (stop) | plain | 16–20 lines | 2 | -6.5 [-7.8, -5.1] | -12.4 [-14.9, -9.9] |
+| thinking, in-context feedback: pilot − GRPO + verifier (stop) | plain | textbook72 | 2 | -3.2 [-6.6, -0.1] | -0.1 [-3.7, +3.8] |
+| thinking, in-context feedback: pilot − GRPO + verifier (stop) | plain | Charles149 | 2 | -0.8 [-3.8, +2.3] | +0.8 [-1.7, +3.1] |
 | thinking, L3 cooldown: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | +0.6 [-1.2, +2.2] | -3.2 [-5.6, -0.8] |
 | thinking, L3 cooldown: pilot − EI + verifier | guided | 13–20 lines (986) | 2 | +2.1 [+0.1, +4.0] | -0.2 [-2.5, +2.0] |
 | thinking, L3 cooldown: pilot − EI + verifier | plain | 16–20 lines | 2 | +0.3 [-1.6, +2.3] | -2.7 [-5.9, +0.3] |
@@ -698,6 +718,10 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking, weight averaging: pilot − EI + verifier | plain | textbook72 | 2 | +3.5 [-1.3, +8.2] | +0.5 [-5.5, +6.2] |
 | thinking, weight averaging: pilot − EI + verifier | plain | Charles149 | 2 | +11.1 [+6.7, +15.6] | +7.5 [+3.4, +11.9] |
 | thinking, weight averaging: pilot − EI + verifier | plain | 21–30 lines (1,000) | 2 | -1.2 [-2.1, -0.3] | -2.8 [-5.0, -0.7] |
+| thinking, in-context feedback: pilot − EI + verifier | plain | 13–20 lines (986) | 2 | -9.5 [-11.2, -8.0] | -17.2 [-19.7, -14.9] |
+| thinking, in-context feedback: pilot − EI + verifier | plain | 16–20 lines | 2 | -9.5 [-11.3, -7.7] | -18.2 [-21.1, -15.2] |
+| thinking, in-context feedback: pilot − EI + verifier | plain | textbook72 | 2 | -0.2 [-4.1, +3.4] | -1.8 [-7.0, +3.3] |
+| thinking, in-context feedback: pilot − EI + verifier | plain | Charles149 | 2 | +9.0 [+5.0, +13.3] | +6.4 [+2.5, +10.5] |
 
 ## 4. What each change buys (thinking, plain reads, seeds paired)
 
@@ -718,14 +742,14 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 
 | comparison | set | seeds | 1k | 2k | 4k | 8k |
 |---|---|---|---|---|---|---|
-| thinking: merged recipe − GRPO + verifier (stop) | 16–20 lines | 0,2 | +1.7 [+0.1, +3.3] | +2.6 [-0.1, +5.2] | +3.2 [-0.7, +6.9] | +3.6 [-1.5, +8.5] |
-| thinking: merged recipe − GRPO + verifier (stop) | textbook72 | 0,2 | +0.4 [-1.7, +2.6] | +1.1 [-1.2, +3.7] | +1.7 [-1.0, +4.5] | +1.6 [-1.0, +4.7] |
+| thinking: merged recipe − GRPO + verifier (stop) | 16–20 lines | 0,1,2 | +0.6 [-1.6, +2.7] | +1.1 [-2.0, +4.1] | +1.6 [-2.1, +5.3] | +2.2 [-1.9, +6.5] |
+| thinking: merged recipe − GRPO + verifier (stop) | textbook72 | 0,1,2 | +0.3 [-1.4, +1.9] | +1.0 [-0.7, +3.0] | +1.5 [-0.3, +3.7] | +1.4 [-0.5, +3.7] |
 | thinking: merged recipe − GRPO + verifier (stop) | Charles149 | 0,2 | +1.1 [-1.0, +3.4] | +1.5 [-0.6, +3.6] | +1.5 [-0.6, +3.5] | +1.3 [-1.3, +3.7] |
-| thinking: merged recipe − EI + verifier | 16–20 lines | 0,2 | +3.3 [+0.6, +5.9] ‡ | +3.5 [-0.6, +7.5] | +2.7 [-2.1, +7.4] | +1.8 [-3.6, +6.9] |
-| thinking: merged recipe − EI + verifier | textbook72 | 0,2 | +2.5 [-2.6, +7.7] | +1.5 [-4.1, +7.0] | +1.0 [-5.0, +6.7] | +0.9 [-5.8, +7.1] |
+| thinking: merged recipe − EI + verifier | 16–20 lines | 0,1,2 | +0.5 [-4.7, +4.9] ‡ | -0.0 [-6.4, +5.8] | -0.8 [-7.3, +5.5] | -1.2 [-7.3, +4.8] |
+| thinking: merged recipe − EI + verifier | textbook72 | 0,1,2 | +3.8 [-1.2, +9.2] | +2.7 [-2.4, +8.2] | +1.8 [-3.6, +7.0] | +1.0 [-4.4, +6.1] |
 | thinking: merged recipe − EI + verifier | Charles149 | 0,2 | +7.0 [+1.1, +13.4] | +5.9 [+1.0, +11.5] | +5.0 [+0.7, +9.7] | +4.2 [+0.5, +8.0] |
-| thinking: merged recipe − EI | 16–20 lines | 0,2 | +0.7 [-2.7, +4.2] | +0.4 [-4.1, +5.0] | +0.2 [-5.1, +5.4] | +0.2 [-5.6, +5.7] |
-| thinking: merged recipe − EI | textbook72 | 0,2 | +4.9 [-0.6, +11.7] | +4.2 [-1.5, +10.9] | +3.4 [-2.4, +10.0] | +2.9 [-3.1, +9.3] |
+| thinking: merged recipe − EI | 16–20 lines | 0,1,2 | -0.9 [-4.1, +2.8] | -1.7 [-6.1, +3.1] | -2.4 [-7.8, +3.1] | -2.7 [-8.6, +3.3] |
+| thinking: merged recipe − EI | textbook72 | 0,1,2 | +6.0 [+0.6, +12.1] | +5.3 [-0.0, +11.3] | +4.5 [-0.8, +10.2] | +3.8 [-1.6, +9.3] |
 | thinking: merged recipe − EI | Charles149 | 0,2 | +7.6 [+2.4, +13.0] | +6.9 [+2.1, +12.2] | +6.1 [+1.6, +11.0] | +5.6 [+1.9, +9.7] |
 | thinking: merged recipe, weight average − merged recipe | 16–20 lines | 0,2 | -0.6 [-1.8, +0.6] | -0.7 [-2.2, +0.7] | -0.6 [-2.3, +1.0] | -0.5 [-2.3, +1.3] |
 | thinking: merged recipe, weight average − merged recipe | textbook72 | 0,2 | +0.4 [-0.6, +1.6] | +0.6 [-0.6, +1.9] | +0.5 [-1.1, +2.2] | -0.0 [-2.2, +1.6] |
@@ -775,6 +799,9 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking, weight averaging: pilot − GRPO + verifier (stop) | 16–20 lines | 2 | +1.3 [+0.2, +2.4] | +1.3 [-0.2, +2.8] | +1.0 [-1.0, +3.1] | +0.6 [-2.0, +3.4] |
 | thinking, weight averaging: pilot − GRPO + verifier (stop) | textbook72 | 2 | +1.4 [-0.1, +3.3] | +2.3 [+0.6, +4.6] | +2.9 [+0.9, +5.4] | +3.1 [+0.7, +6.0] |
 | thinking, weight averaging: pilot − GRPO + verifier (stop) | Charles149 | 2 | +1.8 [+0.3, +3.5] | +1.8 [+0.1, +3.6] | +1.6 [-0.1, +3.4] | +1.3 [-0.2, +3.0] |
+| thinking, in-context feedback: pilot − GRPO + verifier (stop) | 16–20 lines | 2 | -4.4 [-6.0, -2.8] | -6.5 [-8.5, -4.4] | -8.3 [-10.9, -5.6] | -9.6 [-13.1, -6.1] ‡ |
+| thinking, in-context feedback: pilot − GRPO + verifier (stop) | textbook72 | 2 | -1.4 [-5.2, +2.3] | +0.3 [-3.1, +4.1] | +1.6 [-1.3, +5.2] | +1.9 [-0.8, +5.5] |
+| thinking, in-context feedback: pilot − GRPO + verifier (stop) | Charles149 | 2 | +0.8 [-1.9, +3.5] | +0.9 [-1.4, +3.1] | +0.9 [-0.9, +2.7] | +0.9 [-0.9, +2.8] |
 | thinking, L3 cooldown: pilot − EI + verifier | 16–20 lines | 2 | +3.6 [+1.5, +5.7] | +2.6 [+0.1, +5.3] | +1.0 [-2.1, +4.0] | -1.5 [-5.0, +2.0] |
 | thinking, L3 cooldown: pilot − EI + verifier | textbook72 | 2 | +3.7 [-0.5, +8.4] | +2.9 [-1.2, +7.5] | +2.4 [-2.1, +7.4] | +1.9 [-3.5, +7.7] |
 | thinking, L3 cooldown: pilot − EI + verifier | Charles149 | 2 | +11.3 [+7.0, +16.1] | +9.5 [+5.2, +14.1] | +7.8 [+3.8, +12.2] | +6.3 [+2.4, +10.5] |
@@ -796,6 +823,9 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | thinking, weight averaging: pilot − EI + verifier | 16–20 lines | 2 | +2.3 [+0.1, +4.3] | +1.2 [-1.4, +3.9] | +0.0 [-3.1, +3.1] | -1.1 [-4.7, +2.3] |
 | thinking, weight averaging: pilot − EI + verifier | textbook72 | 2 | +3.3 [-2.4, +9.0] | +1.5 [-4.3, +7.1] | +0.5 [-5.3, +6.3] | +0.2 [-5.9, +6.5] |
 | thinking, weight averaging: pilot − EI + verifier | Charles149 | 2 | +11.0 [+6.5, +16.0] | +8.9 [+4.7, +13.7] | +7.2 [+3.1, +11.6] | +6.0 [+1.8, +10.4] |
+| thinking, in-context feedback: pilot − EI + verifier | 16–20 lines | 2 | -3.5 [-5.4, -1.5] | -6.5 [-8.9, -4.0] | -9.3 [-12.3, -6.3] | -11.4 [-15.2, -7.6] ‡ |
+| thinking, in-context feedback: pilot − EI + verifier | textbook72 | 2 | +0.5 [-3.7, +4.8] | -0.4 [-5.2, +4.5] | -0.8 [-6.1, +4.9] | -1.0 [-6.9, +5.4] |
+| thinking, in-context feedback: pilot − EI + verifier | Charles149 | 2 | +10.0 [+5.8, +14.6] | +8.1 [+4.0, +12.6] | +6.6 [+2.5, +10.9] | +5.6 [+1.6, +9.9] |
 
 ## 6. 13–20 by premise count (plain reads; the v2 pools have 0–2 premises)
 
@@ -809,13 +839,136 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 | pilot: + unlikeliness reward | 2 | 44.7 [40.0, 49.6] | 21.6 [19.6, 23.7] | 1% |
 | pilot: + unseen prior = mean | 2 | 38.4 [33.5, 43.6] | 18.6 [16.6, 20.6] | 36% |
 | control: L3 rerun, same settings | 2 | 42.5 [37.4, 47.7] | 21.3 [19.2, 23.3] | 9% |
-| GRPO, merged recipe (L3) | 0,2 | 43.2 [35.6, 50.6] | 27.2 [22.1, 32.4] | 1% |
+| GRPO, merged recipe (L3) | 0,1,2 | 44.0 [38.0, 49.9] | 26.7 [22.9, 30.9] | 0% |
 | GRPO, merged recipe, weight average | 0,2 | 43.6 [35.8, 51.2] | 26.3 [20.3, 32.7] | 1% |
+| pilot: + in-context verifier feedback | 2 | 31.5 [27.1, 36.3] | 14.7 [13.0, 16.5] | 24% |
 | pilot: mean of L3 it 25-39 weights | 2 | 43.3 [38.5, 48.3] | 22.3 [20.1, 24.4] | 5% |
 | GRPO + verifier (stop), read at T 1.0 | 2 | 33.3 [29.0, 37.7] | 16.7 [14.9, 18.5] | 1% |
 | EI + verifier, read at T 1.0 | 2 | 36.4 [32.2, 40.8] | 20.0 [18.1, 21.7] | 0% |
 | EI | 0,1,2 | 45.2 [40.5, 50.0] | 27.8 [25.0, 30.5] | 0% |
 | EI + verifier | 0,1,2 | 44.8 [39.6, 50.4] | 27.4 [23.7, 31.0] | 0% |
+
+## 7. Knob pilots (seed 0, L3 only)
+
+The merged recipe's L3 (`grpo_think_vs_mb`, seed 0, from its L2 checkpoint) rerun with
+one setting changed (the merged recipe's value in brackets), read plain at T 0.8 (B64).
+Δ = knob − merged recipe s0 in points, paired on problems. With one seed and one training
+run per arm, the intervals cover problem and sampling noise but not run-to-run training
+noise; `krr − merged s0` (the same L3 rerun with nothing changed) is one draw of that.
+†: the interval excludes 0 and |Δ| > |krr − merged s0| on that set and k. °: the interval
+excludes 0 but krr is not in yet. not yet: the read has not landed. i78 trains L3 for
+twice the iterations, so it is not at the merged recipe's training budget.
+
+**13–20 lines (986)** (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seed 0 (reference) | 34.4 [32.3, 36.5] | — | 60.4 [57.8, 62.9] | — |
+| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
+| kx66: 3-premise rows 0.66 (0.33) | not yet | not yet | not yet | not yet |
+| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
+| kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
+| kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
+| kkl1: KL anchor 0.1 (0.02) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+
+**16–20 lines** (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seed 0 (reference) | 29.1 [26.7, 31.6] | — | 54.6 [51.3, 57.8] | — |
+| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
+| kx66: 3-premise rows 0.66 (0.33) | not yet | not yet | not yet | not yet |
+| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
+| kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
+| kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
+| kkl1: KL anchor 0.1 (0.02) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+
+**21–30 lines (1,000)** (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seed 0 (reference) | 8.9 [7.8, 10.1] | — | 22.4 [20.1, 24.8] | — |
+| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
+| kx66: 3-premise rows 0.66 (0.33) | not yet | not yet | not yet | not yet |
+| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
+| kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
+| kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
+| kkl1: KL anchor 0.1 (0.02) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+
+**Charles149** (plain reads)
+
+| arm | pass@1 | Δ pass@1 vs merged s0 | pass@5 | Δ pass@5 vs merged s0 |
+|---|---|---|---|---|
+| GRPO, merged recipe (L3), seed 0 (reference) | 70.0 [63.7, 76.1] | — | 80.3 [74.1, 85.8] | — |
+| krr: nothing changed (noise control); Δ = the noise band | not yet | not yet | not yet | not yet |
+| ki78: 78 L3 iterations (39) | not yet | not yet | not yet | not yet |
+| kx66: 3-premise rows 0.66 (0.33) | not yet | not yet | not yet | not yet |
+| kg64: 64 targets × 64 attempts (256 × 16) | not yet | not yet | not yet | not yet |
+| kp3: invalid-step penalty 0.3 (0.1) | not yet | not yet | not yet | not yet |
+| kt12: training temperature 1.2 (1.0) | not yet | not yet | not yet | not yet |
+| kkl0: KL anchor 0 (0.02) | not yet | not yet | not yet | not yet |
+| kkl1: KL anchor 0.1 (0.02) | not yet | not yet | not yet | not yet |
+| kch4: clip-higher 0.4 (0.28) | not yet | not yet | not yet | not yet |
+
+## 8. In-context verifier feedback
+
+Pilot: `grpo_think_vs_fbb` s2, `grpo_think_vs`'s L3 from its seed-2 L2 with a rejected step
+retried (at most 2 times per step) and the rejected action written into the think block
+as a dead-end line (`⊢ F := T <no>`, `feedback.py`). Baseline: `grpo_think_vs` s2
+(GRPO + verifier (stop)), whose L3 ends the attempt at the first rejected step. The
+feedback read arm is the guided arm with that in-context feedback and at most 2 retries
+per step (the guided read redraws blind, at most 10 rejected steps per attempt), on
+13–20 (k 16) and Charles149 (k 64); the baseline's feedback reads are the matched
+control (`fbctl.sh`). One seed per model: intervals are paired on problems and cover
+problem and sampling noise, not training noise (§7's krr band is one draw of that).
+Δ in points. not yet: the read has not landed.
+
+**a. The pilot vs the baseline, seed 2, plain and guided reads**
+
+| read | set | pilot pass@1 | pilot pass@5 | baseline pass@1 | baseline pass@5 | Δ pass@1 (pilot − baseline) | Δ pass@5 (pilot − baseline) |
+|---|---|---|---|---|---|---|---|
+| plain | 13–20 lines (986) | 18.3 [16.5, 20.1] | 36.4 [33.7, 39.0] | 24.5 [22.6, 26.5] | 47.3 [44.7, 50.1] | -6.2 [-7.4, -5.1] | -10.9 [-12.9, -9.1] |
+| guided | 13–20 lines (986) | not yet | not yet | 38.8 [36.6, 41.0] | 64.7 [62.2, 67.1] | not yet | not yet |
+| plain | 16–20 lines | 11.9 [10.2, 13.8] | 27.1 [24.3, 30.3] | 18.4 [16.3, 20.5] | 39.6 [36.3, 42.7] | -6.5 [-7.8, -5.1] | -12.4 [-14.9, -9.9] |
+| guided | 16–20 lines | not yet | not yet | 31.9 [29.3, 34.5] | 57.7 [54.4, 60.8] | not yet | not yet |
+| plain | textbook72 | 69.2 [59.5, 78.2] | 78.8 [69.6, 87.1] | 72.4 [62.6, 81.4] | 78.9 [69.3, 87.7] | -3.2 [-6.6, -0.1] | -0.1 [-3.7, +3.8] |
+| guided | textbook72 | not yet | not yet | 77.5 [68.3, 85.9] | 82.8 [74.0, 90.8] | not yet | not yet |
+| plain | Charles149 | 67.1 [60.5, 73.3] | 78.1 [71.7, 83.9] | 67.8 [61.3, 74.3] | 77.3 [70.9, 83.3] | -0.8 [-3.8, +2.3] | +0.8 [-1.7, +3.1] |
+| guided | Charles149 | not yet | not yet | 75.3 [69.1, 81.0] | 83.4 [77.7, 88.7] | not yet | not yet |
+| plain | hand-proved 14 | not yet | not yet | 0.0 [0.0, 0.0] | 0.0 [0.0, 0.0] | not yet | not yet |
+| plain | 21–30 lines (1,000) | not yet | not yet | 3.5 [2.8, 4.2] | 10.2 [8.5, 11.9] | not yet | not yet |
+
+**b. Both read with feedback, seed 2**
+
+| read | set | pilot pass@1 | pilot pass@5 | baseline pass@1 | baseline pass@5 | Δ pass@1 (pilot − baseline) | Δ pass@5 (pilot − baseline) |
+|---|---|---|---|---|---|---|---|
+| feedback | 13–20 lines (986) | not yet | not yet | 31.7 [29.6, 33.8] | 56.9 [54.3, 59.5] | not yet | not yet |
+| feedback | 16–20 lines | not yet | not yet | 24.9 [22.6, 27.2] | 50.0 [46.7, 53.2] | not yet | not yet |
+| feedback | Charles149 | not yet | not yet | 71.7 [65.3, 77.9] | 80.6 [74.5, 86.2] | not yet | not yet |
+
+**c. What feedback at read time buys: the feedback read − the plain (and guided) read of
+the same checkpoint, seed 2, paired on problems**
+
+| model | set | feedback pass@1 | feedback pass@5 | Δ pass@1 vs plain | Δ pass@5 vs plain | Δ pass@1 vs guided | Δ pass@5 vs guided |
+|---|---|---|---|---|---|---|---|
+| pilot (`grpo_think_vs_fbb` s2) | 13–20 lines (986) | not yet | not yet | not yet | not yet | not yet | not yet |
+| pilot (`grpo_think_vs_fbb` s2) | 16–20 lines | not yet | not yet | not yet | not yet | not yet | not yet |
+| pilot (`grpo_think_vs_fbb` s2) | Charles149 | not yet | not yet | not yet | not yet | not yet | not yet |
+| baseline (`grpo_think_vs` s2) | 13–20 lines (986) | 31.7 [29.6, 33.8] | 56.9 [54.3, 59.5] | +7.2 [+6.4, +8.0] | +9.6 [+8.1, +11.1] | -7.0 [-8.0, -6.1] | -7.7 [-9.2, -6.2] |
+| baseline (`grpo_think_vs` s2) | 16–20 lines | 24.9 [22.6, 27.2] | 50.0 [46.7, 53.2] | +6.5 [+5.5, +7.5] | +10.4 [+8.5, +12.3] | -7.0 [-8.2, -5.9] | -7.7 [-9.5, -5.9] |
+| baseline (`grpo_think_vs` s2) | Charles149 | 71.7 [65.3, 77.9] | 80.6 [74.5, 86.2] | +3.9 [+2.5, +5.5] | +3.3 [+1.6, +5.3] | -3.6 [-5.2, -2.1] | -2.8 [-4.8, -1.1] |
+
+The guided read differs from the feedback read in its rejection budget as well as in the
+feedback, so `vs guided` is not the feedback alone.
 
 ## Notes
 
@@ -830,6 +983,6 @@ Plain reads unless marked guided. Thinking at B64, no thinking at B0.
 - `groups_skipped` means different things with and without the step penalty; compare the
   arms' training signal with the dashboards' `with_grad` and `by_pass` panels instead.
 
-Rows not there yet (471 files; run: files):
+Rows not there yet (311 files; run: files):
 
-`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `ei_think_v_t10_s0`: 8, `ei_think_v_t10_s1`: 8, `ei_think_v_t10_s2`: 4, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_3pb_s0`: 8, `grpo_think_vs_3pb_s1`: 8, `grpo_think_vs_avg_s0`: 8, `grpo_think_vs_avg_s1`: 8, `grpo_think_vs_avg_s2`: 4, `grpo_think_vs_b_s0`: 8, `grpo_think_vs_b_s1`: 8, `grpo_think_vs_fbb_s0`: 8, `grpo_think_vs_fbb_s1`: 8, `grpo_think_vs_fbb_s2`: 8, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_mb_avg_s0`: 4, `grpo_think_vs_mb_avg_s1`: 8, `grpo_think_vs_mb_avg_s2`: 4, `grpo_think_vs_mb_s1`: 8, `grpo_think_vs_pb_s0`: 8, `grpo_think_vs_pb_s1`: 8, `grpo_think_vs_rfb_s0`: 8, `grpo_think_vs_rfb_s1`: 8, `grpo_think_vs_t10_s0`: 8, `grpo_think_vs_t10_s1`: 8, `grpo_think_vs_t10_s2`: 4, `grpo_think_vs_ulb_s0`: 8, `grpo_think_vs_ulb_s1`: 8, `grpo_think_vs_wb_s0`: 8, `grpo_think_vs_wb_s1`: 8, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
+`ch149_grpo_g2s0`: 1, `ch149_grpo_g2s1`: 1, `ch149_grpo_g2s2`: 1, `ch149_nothink_r2s0`: 1, `ch149_nothink_r2s1`: 1, `ch149_nothink_r2s2`: 1, `ch149_think_r2s0`: 1, `ch149_think_r2s1`: 1, `ch149_think_r2s2`: 1, `ei_nothink_s0`: 8, `ei_nothink_s1`: 8, `ei_nothink_s2`: 8, `ei_nothink_v_s0`: 8, `ei_nothink_v_s1`: 8, `ei_nothink_v_s2`: 8, `grpo_nothink_h_s0`: 8, `grpo_nothink_h_s1`: 8, `grpo_nothink_h_s2`: 8, `grpo_nothink_s0`: 8, `grpo_nothink_s1`: 8, `grpo_nothink_s2`: 8, `grpo_nothink_v_s0`: 8, `grpo_nothink_v_s1`: 8, `grpo_nothink_v_s2`: 8, `grpo_nothink_vs3_s0`: 8, `grpo_nothink_vs3_s1`: 8, `grpo_nothink_vs3_s2`: 8, `grpo_nothink_vs_s0`: 8, `grpo_nothink_vs_s1`: 8, `grpo_nothink_vs_s2`: 8, `grpo_think_h_s0`: 8, `grpo_think_h_s1`: 8, `grpo_think_h_s2`: 8, `grpo_think_v_s0`: 8, `grpo_think_v_s1`: 8, `grpo_think_v_s2`: 8, `grpo_think_vs_fbb_s2`: 7, `grpo_think_vs_h_s0`: 8, `grpo_think_vs_h_s1`: 8, `grpo_think_vs_h_s2`: 8, `grpo_think_vs_mb_avg_s1`: 4, `grpo_think_vs_mb_kch4_s0`: 3, `grpo_think_vs_mb_kg64_s0`: 3, `grpo_think_vs_mb_ki78_s0`: 3, `grpo_think_vs_mb_kkl0_s0`: 3, `grpo_think_vs_mb_kkl1_s0`: 3, `grpo_think_vs_mb_kp3_s0`: 3, `grpo_think_vs_mb_krr_s0`: 3, `grpo_think_vs_mb_kt12_s0`: 3, `grpo_think_vs_mb_kx66_s0`: 3, `grpo_think_vs_mb_s1`: 6, `t1320_grpo_g2s0_k32`: 1, `t1320_grpo_g2s1_k32`: 1, `t1320_grpo_g2s2_k32`: 1, `t1320_nothink_r2_k64`: 1, `t1320_nothink_r2s1_k64`: 1, `t1320_nothink_r2s2_k64`: 1, `t1320_think_r2_k32`: 1, `t1320_think_r2s1_k32`: 1, `t1320_think_r2s2_k32`: 1, `tb72_eiS1g3_h712_r2`: 1, `tb72_eiT0S_h712_r2`: 1, `tb72_grpo_g2s0_k64`: 1, `tb72_grpo_g2s1_k64`: 1, `tb72_grpo_g2s2_k64`: 1, `tb72_nothink_r2s1_k64`: 1, `tb72_nothink_r2s2_k64`: 1, `tb72_think_r2s1_k64`: 1, `tb72_think_r2s2_k64`: 1
