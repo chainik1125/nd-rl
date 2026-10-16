@@ -11,9 +11,31 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-15, 12:30 pm PDT; on serrano)
+## Running (updated 2026-10-15, 8:15 pm PDT; on serrano)
 
-Nothing is running. The `kl0` knob at seeds 1 and 2 ran 7:52 to 10:23 am (proposed 7:25 am, started under the
+**EI knob pilots: running since 8:09 pm** (GPUs 0–3; `runs/grpo_v2/jobs_ei_knobs.txt`, one `pull_queue.sh` worker per
+GPU; `leon/grpo-v2` 17cd1e6a). Leon (about 6 pm): the GRPO arm for the head-to-head is the merged recipe + KL 0
+(`grpo_think_vs_mb_kkl0`); EI gets about 4 single-seed pilots first, because GRPO had about 15 and EI none; KL 0 in L2
+waits. Each pilot is `ei_think_v`'s L3 (one round of 5,000 × 32, one 600-step fine-tune) from
+`ei_think_v_s0_L2_r1.pt`, seed 0, with one setting changed, then plain reads on t1320 k16, t2130 k8 and charles173 k64
+only (no textbook72). ei_think_v's own L3 solved 4,989 of the 5,000 L3 targets, so the data knobs may matter more
+than exploration.
+
+| knob | change | why |
+|---|---|---|
+| `rr` | nothing | noise control |
+| `3p` | targets: 3,333 L3 rows + 1,667 3-premise rewrites (`pools/curriculum_3p/L3_mix_ei.jsonl`, preflight passed) | the merged GRPO recipe draws a third of each batch from them |
+| `ret0` | `--retain 0` (no Stage-1 records in the fine-tune) | EI's anchor to the start model; GRPO's winning knob was KL 0 |
+| `t10` | sampling temperature 1.0 instead of 0.8 | GRPO trains at 1.0 |
+| `r2` | 2 rounds × k 16, 300 fine-tune steps each (not started: waits on a launcher fix) | closer to on-policy at the same attempts and steps |
+
+The first workers were given a relative job-file path and exited at once (`flock` could not open the lock); restarted
+with absolute paths at 8:09 pm.
+
+serrano went down at about 4:50 pm on 2026-10-15 and was back by 5:56 pm; nothing was running, and the tree, the
+reads and both branches were intact afterwards.
+
+**Before 8 pm, 2026-10-15:** the `kl0` knob at seeds 1 and 2 ran 7:52 to 10:23 am (proposed 7:25 am, started under the
 30-min rule); its full reads at seeds 0–2 ran 11:06 am to 12:06 pm (proposed 10:35 am, same rule). Results below.
 
 **Back on serrano (2026-10-14).**
