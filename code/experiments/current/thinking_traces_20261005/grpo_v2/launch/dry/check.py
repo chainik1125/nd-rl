@@ -10,11 +10,12 @@ after each arm; without it the queue must make no backup call (serrano's queue.s
 
 Sections
   A  every valid arm (12 base, 8 ARM_h, 16 ARM_b, 8 each of ARM_c, ARM_w, ARM_wb, ARM_rfb, ARM_ulb, ARM_pb, 6 ARM_3pb,
-     6 ARM_mb, 3 ARM_fbb, 16 ARM_mb_kKNOB) x seeds 0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
+     6 ARM_mb, 3 ARM_fbb, 16 ARM_mb_kKNOB, 10 EI ARM_kKNOB) x seeds 0-2 x normal/SMOKE=1: exit 0, the full multiset and order of
      stubbed calls (argv, cwd, CUDA_VISIBLE_DEVICES, redirections), the environment of each python call, stdout, the
      eval dirs and logs, against `expect()` below (written from the README / evidence, not from line.sh's text);
      every flag at most once in each grpo / eval command; each ARM_mb_kKNOB's L3 command is ARM_mb's but for its
-     knob's flags (KNOB_DIFF), and its reads are plain on t1320, t2130 and charles173 only (never tb72)
+     knob's flags (KNOB_DIFF), and its reads are plain on t1320, t2130 and charles173 only (never tb72); each EI
+     ARM_kKNOB's L3 command is ARM's L3 command but for its knob's flags (eknob_diff), with the same reads
   B  refusals: ei_*_h, ei_*_b, unknown arm, ARM_b without L2 checkpoint / with a rolled-back L2 / without an L2 log,
      a seed without a Stage-1 init, usage; ei_*_c / _w / _wb, the lr schedules with _h or _b (either order), ARM_wb
      without ARM's L2 checkpoint / with a rolled-back L2 / without an L2 log; the L3 pilots (ARM_rfb, ARM_ulb,
@@ -22,10 +23,16 @@ Sections
      curriculum_3p file for ARM_3pb and the _vs3 arms; ARM_mb's; ARM_fbb (2026-10-14) for EI, no-think and
      plain-sampling arms, with another suffix (either order), as ARM_b's three; ARM_mb_kKNOB (2026-10-15) with an
      unknown knob or a suffix after it, another suffix before _mb, EI, _vs3, _kp3 for a plain arm, a knob without
-     _mb, as ARM_mb's L2 and 3-premise refusals; nothing launched
+     _mb, as ARM_mb's L2 and 3-premise refusals; EI ARM_kKNOB (2026-10-16) with an unknown or a GRPO knob, a suffix
+     before or after it, _mb_k on an EI arm, an EI knob on a GRPO arm, without the base arm's L2 checkpoint (_r1.pt),
+     ARM_k3p without its mix, without its pass record or with a pass record of another mix; nothing launched
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
   D  ARM_mb's averaging: a missing rolling checkpoint refuses the averaged reads; a rerun does not average again
   K  ARM_mb_ki78: an it39 L3 checkpoint does not end its 78-iteration stage; with its it78 checkpoint only the reads run
+  J  EI ARM_kKNOB (2026-10-16): ARM_kr2's stage ends at _r2.pt (an _r1.pt does not end it; with _r2.pt only the reads
+     run, on it); a rerun of a finished pilot runs nothing, of a partly read one the missing reads; KNOB_FULL=1 on a
+     finished pilot (EI, and a GRPO knob arm) runs ARM's other reads only and records HEAD in reads_commit.txt, on a
+     fresh one the stage and all of ARM's reads
   E  transcript evidence (evidence.json): the live grpo_think_h_b s1 L3 process; serrano's harness records (full
      commands and per-call records of three runs, call counts); every launcher log line and ps line of a v2 arm
 """
@@ -33,6 +40,7 @@ Sections
 from __future__ import annotations
 
 import collections
+import hashlib
 import json
 import os
 import re
@@ -128,8 +136,39 @@ KARMS = [f"grpo_think_vs_mb_k{k}" for k in KNOB_DIFF] + [
     "grpo_nothink_vs_mb_kkl1",
 ]
 KNOB_READS = [("t1320", 16), ("t2130", 8), ("charles173", 64)]
+# EI ARM_kKNOB (2026-10-16; written from the request): ARM's L3 from ARM's L2 (_r1.pt) with one setting changed, then
+# ARM_mb_kKNOB's plain reads
+EKNOBS = ["rr", "3p", "ret0", "t10", "r2"]
+EKNOB_RX = re.compile(r"(ei_(?:no)?think(?:_v)?)_k(" + "|".join(EKNOBS) + ")")
+EKARMS = [f"ei_think_v_k{k}" for k in EKNOBS] + [
+    "ei_think_kr2",
+    "ei_think_k3p",
+    "ei_nothink_v_kret0",
+    "ei_nothink_kt10",
+    "ei_nothink_v_krr",
+]
+M3 = "<R>/pools/curriculum_3p/L3_mix_ei.jsonl"  # ARM_k3p's targets
+
+
+def eknob_diff(knob: str, smoke: bool) -> dict[str, tuple[str | None, str]]:
+    """EI ARM_kKNOB's L3 flags as (ARM's L3 value, the knob's); None: not passed."""
+    c = "<R>/grpo_v2/smoke" if smoke else "<R>/grpo_v2"
+    l3, m3 = (
+        (f"{c}/L3_head.jsonl", f"{c}/M3_head.jsonl")
+        if smoke
+        else ("<R>/pools/curriculum/L3/pool.jsonl", M3)
+    )
+    return {
+        "rr": {},
+        "3p": {"--targets": (l3, m3)},  # SMOKE=1: the mix's first 8 rows
+        "ret0": {"--retain": ("64" if smoke else None, "0")},
+        "t10": {"--temperature": ("0.8", "1.0")},
+        "r2": {"--rounds": ("1", "2"), "--k": ("2", "1") if smoke else ("32", "16")},
+    }[knob]
+
+
 REUSE = (
-    BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS + FBBARMS + KARMS
+    BARMS + WBARMS + RFBARMS + ULBARMS + P3BARMS + PBARMS + MBARMS + FBBARMS + KARMS + EKARMS
 )  # L3 only, from another arm's L2
 VALID = (
     BASE
@@ -145,6 +184,7 @@ VALID = (
     + MBARMS
     + FBBARMS
     + KARMS
+    + EKARMS
 )
 # ARM_mb's averaged reads (pilot4.sh's): the L3 rolling checkpoints averaged with the last one, and the plain reads
 AVG_ITS = [25, 30, 35]
@@ -212,11 +252,20 @@ def key(x: dict) -> tuple:
 
 # ---------------------------------------------------------------- the model of the recipe (README + evidence)
 def expect(
-    arm: str, s: int, mode: str, g: int, avg_there: bool = False
+    arm: str,
+    s: int,
+    mode: str,
+    g: int,
+    avg_there: bool = False,
+    full: bool = False,
+    l3_there: bool = False,
+    reads_there: frozenset[str] = frozenset(),
 ) -> tuple[list[tuple], list[str]]:
     """-> (ordered records (kind, cwd, cvd, fd1, fd2, argv), stdout lines) for a valid arm. `avg_there`: ARM_mb
-    with its averaged checkpoint already written (a rerun)."""
-    km = KNOB_RX.fullmatch(arm)  # ARM_mb_kKNOB: ARM_mb's recipe ($pa), every name the full arm's
+    with its averaged checkpoint already written (a rerun). `full`: KNOB_FULL=1 (a knob arm). `l3_there`: the L3
+    stage's last checkpoint is there; `reads_there`: the eval dirs (basenames) whose rows are there (a rerun)."""
+    # ARM_mb_kKNOB / EI ARM_kKNOB: the recipe of ARM_mb / ARM ($pa), every name the full arm's
+    km = KNOB_RX.fullmatch(arm) or EKNOB_RX.fullmatch(arm)
     knob, pa = (km.group(2), km.group(1)) if km else ("", arm)
     pil = next((x for x in PILOT if pa.endswith(x)), "")
     sch = "" if pil else next((x for x in ("_wb", "_c", "_w") if pa.endswith(x)), "")
@@ -290,8 +339,13 @@ def expect(
                 f"{pf} <R>/pools/curriculum/L2/pool.jsonl <R>/pools/curriculum/L3/pool.jsonl",
             )
         )
-        if vs3:
+        if vs3 or knob == "3p":  # EI ARM_k3p: its mix against the L2 pool and every evaluation set
             f = f"{C}/preflight_{arm}_s{s}_extra.log"
+            xa = (
+                f"<R>/pools/curriculum/L2/pool.jsonl {M3}"
+                if knob == "3p"
+                else "<R>/pools/curriculum_3p/L2_3p.jsonl <R>/pools/curriculum_3p/L3_3p.jsonl"
+            )
             recs.append(
                 (
                     "py",
@@ -299,11 +353,18 @@ def expect(
                     "CVD=unset",
                     f,
                     f,
-                    f"{pf} <R>/pools/curriculum_3p/L2_3p.jsonl <R>/pools/curriculum_3p/L3_3p.jsonl",
+                    f"{pf} {xa}",
                 )
             )
     recs.append(
-        ("git", WT, "CVD=unset", f"{C}/{arm}_s{s}.base_commit.txt", st, f"-C {WT} rev-parse HEAD")
+        (
+            "git",
+            WT,
+            "CVD=unset",
+            f"{C}/{arm}_s{s}.{'reads_commit' if knob and full else 'base_commit'}.txt",
+            st,
+            f"-C {WT} rev-parse HEAD",
+        )
     )
     out: list[str] = []
 
@@ -330,16 +391,20 @@ def expect(
                 )
             )
 
+    rd3 = 2 if knob == "r2" and method == "ei" else 1  # EI stage L3's rounds
+
     def ck(name: str) -> str:
         return (
             f"{C}/{name}/ckpts/{name}_it{it3 if name.endswith('_L3') else it}.pt"
             if method == "grpo"
-            else f"{C}/{name}/ckpts/{name}_r1.pt"
+            else f"{C}/{name}/ckpts/{name}_r{rd3 if name.endswith('_L3') else 1}.pt"
         )
 
     def stage(
         name: str, init: str, targets: str, extra: str, sc: str = "", pflags: str = ""
     ) -> None:
+        if l3_there and name.endswith("_L3"):  # its last checkpoint is there: nothing runs
+            return
         waitfree()
         log = f"{L}/v2_{name}.log"
         l3 = name.endswith("_L3")  # the knob is stage L3's (a knob arm has no L2 of its own)
@@ -392,13 +457,29 @@ def expect(
             out.append(f"00:00Z GRPO {name} exit 0: it {n_it}: dry")
             wh = "7" if n_it == 2 * it else "3.5"
         else:
+            # EI ARM_kKNOB: stage L3's knob flags
+            ed = eknob_diff(knob, smoke) if knob and l3 else {}
+
+            def ekv(flag: str, default: str | None) -> str | None:
+                return ed[flag][1] if flag in ed else default
+
+            ret = ekv("--retain", "64" if smoke else None)
             a = (
-                f"21600 <PY> -m code.thinking.ei --init {init} --name {name} --out {C}/{name} --targets {targets} "
-                f"--train <R>/data/{'S1g3' if think else 'T0S'}.pkl --rounds 1 --k {2 if smoke else 32} --temperature 0.8 "
+                f"21600 <PY> -m code.thinking.ei --init {init} --name {name} --out {C}/{name} --targets {ekv('--targets', targets)} "
+                f"--train <R>/data/{'S1g3' if think else 'T0S'}.pkl --rounds {ekv('--rounds', '1')} "
+                f"--k {ekv('--k', '2' if smoke else '32')} --temperature {ekv('--temperature', '0.8')} "
                 f"--arm {samp} --max_rej 10 --batch {batch} --seed {s} --max_steps 96 --select shortest {eff}"
-                + (" --ft_steps 3 --ft_recs 8 --retain 64" if smoke else "")
+                + (" --ft_steps 3 --ft_recs 8" if smoke else "")
+                + (f" --retain {ret}" if ret is not None else "")
             )
-            out.append(f"00:00Z launched EI {name} ({samp}) on GPU {g} (pid N)")
+            kdesc = ""
+            if knob and l3:
+                kdesc = " ".join(
+                    f"{f} {os.path.basename(v) if f == '--targets' else v}"
+                    for f, (_, v) in ed.items()
+                )
+                kdesc = f", knob {knob}: {kdesc or 'nothing changed'}"
+            out.append(f"00:00Z launched EI {name} ({samp}{kdesc}) on GPU {g} (pid N)")
             out.append(f"00:00Z EI {name} exit 0: ei dry")
             wh = "4"
         recs.append(("timeout", WT, cvd, log, log, a))
@@ -413,12 +494,15 @@ def expect(
     if l2src == arm:
         stage(f"{arm}_s{s}_L2", init0, l2t, x2, sched[0])
         l2ck = ck(f"{arm}_s{s}_L2")
+    elif method == "ei":  # EI ARM_kKNOB: ARM's one round
+        l2ck = f"{C}/{l2src}_s{s}_L2/ckpts/{l2src}_s{s}_L2_r1.pt"
     else:
         l2ck = f"{C}/{l2src}_s{s}_L2/ckpts/{l2src}_s{s}_L2_it{it}.pt"
     stage(f"{arm}_s{s}_L3", l2ck, l3t, x3, sched[1], pflags)
     ch = "<R>/pools/charles_1002"
     reads = []
-    for ra in ("plain", "logical") if not knob else ():
+    # KNOB_FULL=1: a knob arm gets the usual reads
+    for ra in ("plain", "logical") if not knob or full else ():
         reads += [
             ("t1320", "<R>/eval/matched/sets/t1320_n1000.jsonl", 16, ra, 96),
             ("tb72", f"{TB}/textbook_dev.jsonl\\,{TB}/textbook_train.jsonl", 64, ra, 96),
@@ -442,7 +526,7 @@ def expect(
                 FB_MAXREJ,
             ),
         ]
-    if not knob:
+    if not knob or full:
         reads += [
             ("hand14", f"{ch}/hand_proved_14.jsonl", 64, "plain", 160),
             ("t2130", "<R>/eval/matched/sets/t2130_n1000.jsonl", 8, "plain", 96),
@@ -475,6 +559,8 @@ def expect(
                 f"00:00Z averaged {arm}_s{s}_L3 it {' '.join(map(str, [*its, it]))} -> {av.replace('<R>', SB)}"
             )
         o = f"{EV}/{name}_{arm}{'_avg' if avg else ''}_s{s}_{ra}_k{k}"
+        if os.path.basename(o) in reads_there:  # its rows are there: skipped
+            continue
         waitfree()
         recs.append(("rm", WT, "CVD=unset", st, st, f"-rf {o}"))
         log = f"{L}/v2_eval_{os.path.basename(o)}.log"
@@ -544,8 +630,10 @@ for mode in ("normal", "smoke"):
                 )
             ]
             fbb = arm.endswith("_fbb")  # two feedback reads
-            kn = arm in KARMS  # three plain reads
-            ok(len(ev) == (3 if kn else 8 + 2 * fbb), "A", f"{tag}: {len(ev)} eval dirs")
+            kn = arm in KARMS
+            ek = arm in EKARMS
+            kr = kn or ek  # three plain reads
+            ok(len(ev) == (3 if kr else 8 + 2 * fbb), "A", f"{tag}: {len(ev)} eval dirs")
             lg = "./runs/grpo_v2/smoke/logs" if mode == "smoke" else "./runs/logs"
             el = [t for t in r["tree"] if t.startswith(f"f {lg}/v2_eval_")]
             mb = arm.endswith("_mb")
@@ -568,7 +656,7 @@ for mode in ("normal", "smoke"):
                     f"{tag}: averaged ckpt",
                 )
             ok(
-                len(el) == (12 if mb else 10 if fbb else 3 if kn else 8)
+                len(el) == (12 if mb else 10 if fbb else 3 if kr else 8)
                 and all(
                     re.match(
                         rf"^f {re.escape(lg)}/v2_eval_(t1320|tb72|charles173|hand14|t2130)_{re.escape(arm)}(_avg)?_s{s}_(plain|logical|feedback)_k\d+\.log$",
@@ -579,7 +667,7 @@ for mode in ("normal", "smoke"):
                 "A",
                 f"{tag}: eval logs {el[:2]}",
             )
-            if kn:  # never textbook72, the guided arm, hand14 or an averaged checkpoint
+            if kr:  # never textbook72, the guided arm, hand14 or an averaged checkpoint
                 ok(
                     sorted(re.sub(r"^.*/v2_eval_", "", t) for t in el)
                     == sorted(
@@ -606,13 +694,14 @@ for mode in ("normal", "smoke"):
                 if mode == "smoke"
                 else (
                     46
-                    + ("_vs3" in arm or arm.endswith(("_3pb", "_mb")) or kn)  # the extra preflight
+                    # the extra preflight
+                    + ("_vs3" in arm or arm.endswith(("_3pb", "_mb", "_k3p")) or kn)
                     - (5 if arm in REUSE else 0)
                 )
             ) + (
                 arm.endswith(("_rfb", "_ulb", "_pb", "_mb", "_fbb")) or kn
             )  # the pilot options check
-            if kn:  # 3 reads instead of 8: waitfree (2, normal), rm, timeout each
+            if kr:  # 3 reads instead of 8: waitfree (2, normal), rm, timeout each
                 want -= 5 * (4 if mode == "normal" else 2)
             if fbb:  # two more reads: waitfree (2, normal), rm, timeout
                 want += 8 if mode == "normal" else 4
@@ -666,6 +755,37 @@ for mode in ("normal", "smoke"):
                 f: (None, None) for f in set(fk) ^ set(fm) if f not in diff
             }  # a switch added or dropped
             ok(diff == want, "A", f"{tag}: L3 command vs {mb}'s: {diff}, want {want}")
+
+for mode in ("normal", "smoke"):
+    for s in (0, 1, 2):
+        # EI ARM_kKNOB: ARM's L3 command (the same init, ARM's L2 _r1.pt) but for the knob's flags
+        for arm in EKARMS:
+            km = EKNOB_RX.fullmatch(arm)
+            assert km
+            b, knob = km.group(1), km.group(2)
+            tag = f"{mode} s{s} {arm}"
+            mine, theirs = (
+                [
+                    x["argv"]
+                    for x in runs[(mode, s, a)]["rec"]
+                    if x["kind"] == "timeout" and f" --name {a}_s{s}_L3 " in x["argv"]
+                ]
+                for a in (arm, b)
+            )
+            if not ok(len(mine) == 1 and len(theirs) == 1, "A", f"{tag}: L3 commands {len(mine)}"):
+                continue
+            fk = flags(mine[0])
+            fm = flags(theirs[0].replace(f"{b}_s{s}_L3", f"{arm}_s{s}_L3"))
+            want = eknob_diff(knob, mode == "smoke")
+            diff = {f: (fm.get(f), fk.get(f)) for f in set(fk) | set(fm) if fm.get(f) != fk.get(f)}
+            diff |= {f: (None, None) for f in set(fk) ^ set(fm) if f not in diff}
+            ok(diff == want, "A", f"{tag}: L3 command vs {b}'s: {diff}, want {want}")
+            ok(
+                fk["--init"]
+                == f"<R>/grpo_v2{'/smoke' if mode == 'smoke' else ''}/{b}_s{s}_L2/ckpts/{b}_s{s}_L2_r1.pt",
+                "A",
+                f"{tag}: init {fk['--init']}",
+            )
 
 # ---------------------------------------------------------------- B: refusals
 refusals = []
@@ -1091,6 +1211,78 @@ for mode in ("normal", "smoke"):
             ),
         ):
             refusals.append((f"{d}/{kind}_{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm))
+        # EI ARM_kKNOB (2026-10-16): an unknown or a GRPO knob, or anything after the knob; a suffix before it; _mb_k on an
+        # EI arm (_mb_k's message); an EI knob on a GRPO arm; no L2 checkpoint; ARM_k3p's mix and pass record
+        ek_no = r"_k on an EI arm takes one EI knob of rr 3p ret0 t10 r2, with nothing after it"
+        for arm, rx in (
+            *(
+                (a, ek_no)
+                for a in (
+                    "ei_think_v_kfoo",
+                    "ei_think_v_k",
+                    "ei_think_v_kx66",
+                    "ei_think_v_kp3",
+                    "ei_think_v_k3p_h",
+                    "ei_think_v_kret0_krr",
+                    "ei_think_v_kt10_b",
+                    "ei_think_v_kr2_k3p",
+                )
+            ),
+            *(
+                (
+                    a,
+                    rf"_k{a.rsplit('_k', 1)[1]} \(an EI knob pilot\) does not combine with other suffixes",
+                )
+                for a in (
+                    "ei_think_v_h_krr",
+                    "ei_think_v_b_k3p",
+                    "ei_think_v_c_kr2",
+                    "ei_think_v_wb_kt10",
+                    "ei_think_v_rfb_krr",
+                    "ei_think_v_fbb_kret0",
+                )
+            ),
+            *(
+                (a, k_no)
+                for a in ("ei_think_v_mb_k3p", "ei_nothink_v_mb_kret0", "grpo_think_vs_mb_kret0")
+            ),
+            *(
+                (
+                    a,
+                    rf"_k{a.rsplit('_k', 1)[1]} is an EI knob \(ARM_kKNOB, for ei_\* arms\); GRPO's knob pilots are ARM_mb_kKNOB",
+                )
+                for a in (
+                    "grpo_think_v_k3p",
+                    "grpo_think_vs_kret0",
+                    "grpo_nothink_v_kt10",
+                    "grpo_think_kr2",
+                    "grpo_think_vs_krr",
+                    "grpo_nothink_vs3_k3p",
+                )
+            ),
+        ):
+            refusals.append(
+                (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm)
+            )
+        m3 = re.escape(f"{SB}/pools/curriculum_3p/L3_mix_ei.jsonl")
+        nopass = rf"no preflight pass record of {m3} as it is \({re.escape(SB)}/pools/curriculum_3p/L3_mix_ei\.preflight_pass\.txt; grpo_v2/build_mix_ei\.py\)"
+        for kind, rx in (
+            (
+                "nockpt",
+                rf"no L2 checkpoint of ei_think_v \({re.escape(SB)}/{c}/ei_think_v_s{s}_L2/ckpts/ei_think_v_s{s}_L2_r1\.pt\)",
+            ),
+            ("nomix", rf"no 3-premise mix {m3} \(grpo_v2/build_mix_ei\.py builds it\)"),
+            ("nopass", nopass),
+            ("stale", nopass),
+        ):
+            refusals.append(
+                (
+                    f"{d}/{kind}_ei_think_v_k3p",
+                    1,
+                    rf"^00:00Z ei_think_v_k3p: {rx}: refusing$",
+                    "ei_think_v_k3p",
+                )
+            )
         # the curriculum_3p files are rebuilt by someone else: refused while one is missing
         for x in ("L3", "L2"):
             for arm in ("grpo_think_vs_3pb", "grpo_think_vs3", "grpo_nothink_vs3"):
@@ -1231,6 +1423,111 @@ for mode in ("normal", "smoke"):
             "K",
             f"it78 {mode} s{s}: reads {[x[:120] for x in ev]}",
         )
+
+
+# ---------------------------------------------------------------- J: EI ARM_kKNOB reruns, ARM_kr2, KNOB_FULL (2026-10-16)
+def kreads(arm: str, s: int, mode: str) -> frozenset[str]:
+    """A knob arm's three plain reads (eval dir basenames)."""
+    return frozenset(f"{n}_{arm}_s{s}_plain_k{2 if mode == 'smoke' else k}" for n, k in KNOB_READS)
+
+
+for mode in ("normal", "smoke"):
+    for s in (0, 1, 2):
+        c_ = "grpo_v2/smoke" if mode == "smoke" else "grpo_v2"
+        jobs: list[tuple[str, str, dict]] = [  # (result dir, arm, expect()'s options)
+            ("r1_ei_think_v_kr2", "ei_think_v_kr2", {}),  # with _r1.pt: as a fresh line
+            ("r2_ei_think_v_kr2", "ei_think_v_kr2", {"l3_there": True}),
+            (
+                "part_ei_think_v_kt10",
+                "ei_think_v_kt10",
+                {
+                    "l3_there": True,
+                    "reads_there": frozenset(
+                        [f"t2130_ei_think_v_kt10_s{s}_plain_k{2 if mode == 'smoke' else 8}"]
+                    ),
+                },
+            ),
+            ("fresh_ei_think_v_k3p", "ei_think_v_k3p", {"full": True}),
+            (
+                "full_grpo_think_vs_mb_kkl0",
+                "grpo_think_vs_mb_kkl0",
+                {
+                    "full": True,
+                    "l3_there": True,
+                    "reads_there": kreads("grpo_think_vs_mb_kkl0", s, mode),
+                },
+            ),
+        ]
+        for kn in EKNOBS:
+            a = f"ei_think_v_k{kn}"
+            jobs.append((f"done_{a}", a, {"l3_there": True, "reads_there": kreads(a, s, mode)}))
+            jobs.append(
+                (
+                    f"full_{a}",
+                    a,
+                    {"full": True, "l3_there": True, "reads_there": kreads(a, s, mode)},
+                )
+            )
+        for d, arm, kw in jobs:
+            r = load(f"{H}/res/eiknob/{mode}/s{s}/{d}")
+            exp, eout = expect(arm, s, mode, 3, **kw)
+            got = [key(x) for x in r["rec"]]
+            tag = f"{d} {mode} s{s}"
+            ok(r["exit"] == "0", "J", f"{tag}: exit {r['exit']}")
+            ok(
+                sorted(got) == sorted(exp),
+                "J",
+                f"{tag}: calls: missing {sorted(set(exp) - set(got))[:2]} extra {sorted(set(got) - set(exp))[:2]}",
+            )
+            ok(
+                [x for x in got if x[0] not in ("python3", "sleep")]
+                == [x for x in exp if x[0] not in ("python3", "sleep")],
+                "J",
+                f"{tag}: call order",
+            )
+            ok(stdout_lines(r) == eout, "J", f"{tag}: stdout {stdout_lines(r)[:3]} / {eout[:3]}")
+            stage_ran = any(f" --name {arm}_s{s}_L3 " in x[5] for x in got)
+            ok(stage_ran == (not kw.get("l3_there")), "J", f"{tag}: the L3 stage ran: {stage_ran}")
+            ok(
+                not any(f"{arm}_s{s}_L2" in t for t in r["tree"]),
+                "J",
+                f"{tag}: an L2 of its own",
+            )
+            evs = [x[5] for x in got if " -m code.thinking.eval " in x[5]]
+            if arm.endswith("_kr2"):  # ARM_kr2's stage ends at, and every read takes, _r2.pt
+                ok(
+                    all(
+                        f"--ckpt <R>/{c_}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_r2.pt " in x
+                        for x in evs
+                    ),
+                    "J",
+                    f"{tag}: reads {[x[:100] for x in evs]}",
+                )
+            n_reads = 3 - len(kw.get("reads_there", ())) + (5 if kw.get("full") else 0)
+            ok(len(evs) == n_reads, "J", f"{tag}: {len(evs)} reads, want {n_reads}")
+            # the setup's base_commit.txt (all but fresh_*'s) holds 'dry training commit': KNOB_FULL=1 writes HEAD to
+            # reads_commit.txt and leaves it alone; a rerun without KNOB_FULL writes HEAD over it (as for every arm)
+            md5 = dict(
+                ln.split("  ", 1)[::-1]
+                for ln in Path(f"{H}/res/eiknob/{mode}/s{s}/{d}/md5.txt").read_text().split("\n")
+                if ln
+            )
+            bc = f"./runs/{c_}/{arm}_s{s}.base_commit.txt"
+            rc = f"./runs/{c_}/{arm}_s{s}.reads_commit.txt"
+            train_rec = hashlib.md5(b"dry training commit\n").hexdigest()
+            fresh = f"f {bc}" not in r["pre"]
+            if kw.get("full"):
+                ok(
+                    rc in md5 and (bc not in md5 if fresh else md5[bc] == train_rec),
+                    "J",
+                    f"{tag}: commit records {bc in md5} {rc in md5}",
+                )
+            else:
+                ok(
+                    rc not in md5 and bc in md5 and md5[bc] != train_rec,
+                    "J",
+                    f"{tag}: commit records {bc in md5} {rc in md5}",
+                )
 
 # ---------------------------------------------------------------- C: busy GPU and queue.sh
 r = load(f"{H}/res/busy/grpo_think_s0")

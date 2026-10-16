@@ -72,7 +72,7 @@ and `git` stubbed to record every call (argv, cwd, `CUDA_VISIBLE_DEVICES`, redir
 
     cd /scratch/cowifornia/nd-rl/think/dry
     bash make.sh [DIR]      # DIR with line.sh, lib.sh, queue.sh; default the installed copies
-    bash all.sh             # every arm x seeds 0-2 x normal/SMOKE=1, refusals, a busy GPU, queue.sh (~4 min)
+    bash all.sh             # every arm x seeds 0-2 x normal/SMOKE=1, refusals, a busy GPU, queue.sh (~20 min)
     python3 check.py [--expect-hook]
     python3 extract_evidence.py   # regenerates evidence.json from the transcripts
 
@@ -169,6 +169,40 @@ Paths are serrano's. Changes, all of them:
 10. `pull_queue.sh` (2026-10-15): the backup pass after each job is opt-in (`BACKUP=1`). Its destination on `/home`
     was removed on purpose (minimal data duplication on `/home`), and a pass would recreate it. `queue.sh` still
     runs one after each arm.
+11. `leon/grpo-v2` (2026-10-16, not yet installed): `line.sh` adds the EI knob pilots `ARM_kKNOB`, for an EI arm
+    (`ei_think_v_kKNOB` asked for; `../README.md`, "EI knob pilots"). Each is ARM's L3 from ARM's finished L2
+    checkpoint (`ARM_sSEED_L2_r1.pt`; refused without it), with one setting changed in the knob block:
+
+    | KNOB | change from ARM's L3 |
+    |---|---|
+    | `rr` | nothing (the noise control) |
+    | `3p` | `--targets` the fixed L3 + 3-premise mix `runs/pools/curriculum_3p/L3_mix_ei.jsonl` (`T3`; `SMOKE=1`: its first 8 rows) |
+    | `ret0` | `--retain 0` (`RT3`; the default passes none, ei.py's 20,000; `SMOKE=1` passes 64) |
+    | `t10` | `--temperature 1.0` (`ET`, training samples only; 0.8) |
+    | `r2` | `--rounds 2 --k 16` (`RD3`, `K3`; `SMOKE=1`: k 1). The stage ends at, and the reads take, `_r2.pt` (`ck` and `ei_stage`) |
+
+    - Every flag is in the command once: the smoke `--retain 64` moved out of `FT` into `RET`, so the existing EI
+      commands are unchanged. `ei_stage` takes stage L3's rounds, k, temperature and retain from the knob block, and
+      L2's are as before.
+    - `3p` is refused while the mix is missing, or while its pass record
+      (`L3_mix_ei.preflight_pass.txt`, from `grpo_v2/build_mix_ei.py`) does not name the mix's md5. At launch the
+      mix also gets the extra-targets preflight (L2 pool vs the mix; only the band line may fail).
+    - Reads and `KNOB_FULL=1` are as for `ARM_mb_kKNOB`.
+    - Parsing: an EI arm's first `_k` starts the knob. It must be one of `rr 3p ret0 t10 r2` with nothing after it,
+      and the part before it must be an EI arm with no other suffix. `_mb_k` on an EI arm keeps `_mb_k`'s parse and
+      refusal. An EI knob on a GRPO arm (`grpo_think_vs_kret0`) is refused, and any other `grpo_*_kX` stays an
+      unknown arm, as before.
+    - `pull_queue.sh` runs these arms unchanged: its job lines are `[a-z0-9_]+:[0-9]+`, and `ei_think_v_kret0:0`
+      is one.
+    - `dry/run.sh` passes `DRY_KNOB_FULL` on as `KNOB_FULL`. `dry/all.sh` and `dry/check.py` cover the ten EI knob
+      arms and their refusals (section B), each knob command against ARM's L3 command (only the knob's flags may
+      differ), and section J: `_kr2`'s `_r1` / `_r2` checkpoints, reruns of finished and part-read pilots, and
+      `KNOB_FULL=1` on finished EI pilots, on a fresh one and on a finished GRPO knob pilot. That is 1,940 result
+      dirs, and all checks pass. All 1,628 result dirs of 7c19dac's harness match its output (exit, stdout, call
+      records, trees, md5s, logs), with pids normalised, a stage's two racing background calls compared as a
+      multiset, and the sandbox launcher copy's md5 dropped.
+    - Smoke (`SMOKE=1`, CPU, a scratch runs root with the inputs linked read-only): `ei_think_v`, then each of the
+      five knobs, then `KNOB_FULL=1` and two reruns on `ei_think_v_kr2`, and four refusals. All ran as described.
 
 Checked and left alone:
 

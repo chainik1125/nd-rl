@@ -61,6 +61,19 @@
 #        but the averaged checkpoint's (a rollback can leave a hole in AVG_ITS); a finished L3 and reads already there
 #        are skipped, so on a finished pilot this adds textbook72, the guided reads and hand14; HEAD goes to
 #        ARM_sSEED.reads_commit.txt, leaving the training's base_commit.txt as it was.
+#        ARM_kKNOB, for an ei_* ARM above, never with another suffix (the EI knob pilots, 2026-10-16; ei_think_v_kKNOB at
+#        seed 0 asked for): stage L3 of ARM from ARM's finished L2 checkpoint (ARM_sSEED_L2_r1.pt; refused without it,
+#        never retrained), with one setting changed, set in the knob block below and nowhere else: rr nothing (ARM's L3
+#        again: the noise control); 3p the targets are a fixed mix of 5,000 (M3: 3,333 L3 pool rows and 1,667 L3_3p
+#        rows, the third ARM_mb's GRPO draws from them; the same mix for every seed), built by grpo_v2/build_mix_ei.py,
+#        refused unless its pass record (M3P, written only when the build's preflight passed) names the mix's md5, and
+#        preflighted again at launch as the extra GRPO targets are; ret0 --retain 0 (ei.py's 20,000 Stage-1 records: the
+#        fine-tune mix is the found proofs alone); t10 --temperature 1.0 (training samples only; 0.8); r2 --rounds 2 --k 16
+#        (1 x 32: the same 160k attempts; round 2 samples from round 1's checkpoint and fine-tunes it again on the
+#        cumulative found proofs; the stage ends at, and the reads take, _r2.pt; the 6 h timeout holds the second
+#        fine-tune, ~1,700 s). Then ARM_mb_kKNOB's plain reads (KNOB_FULL=1: ARM's usual reads, as above). Every run, log
+#        and eval name keeps the full ARM_kKNOB. Another knob, any suffix before or after the knob, and an EI knob on a
+#        grpo_* ARM are refused.
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -81,10 +94,20 @@ PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
   || { say "code.thinking does not resolve to $WT: refusing"; exit 1; }
 g=$1; s=$2; arm=$3
 [ -n "$g" ] && [ -n "$s" ] && [ -n "$arm" ] || { echo "usage: line.sh GPU SEED ARM"; exit 2; }
-knob=""; pa=$arm  # ARM_mb_kKNOB: the suffixes below are parsed on ARM_mb ($pa); $arm names every output
+knob=""; pa=$arm  # ARM_mb_kKNOB, ARM_kKNOB (EI): the suffixes below are parsed on ARM_mb / ARM ($pa); $arm names every output
 case $arm in *_mb_k*) knob=${arm##*_mb_k}; pa=${arm%_k$knob}
   case $knob in x66|g64|t12|kl0|kl1|ch4|p3|i78|rr) ;; *)
     say "$arm: _mb_k takes one knob of x66 g64 t12 kl0 kl1 ch4 p3 i78 rr, with nothing after it: refusing"; exit 1 ;;
+  esac ;;
+  ei_*_k*) knob=${arm#*_k}; pa=${arm%%_k*}  # at the first _k (no EI arm name has one)
+  case $knob in rr|3p|ret0|t10|r2) ;; *)
+    say "$arm: _k on an EI arm takes one EI knob of rr 3p ret0 t10 r2, with nothing after it: refusing"; exit 1 ;;
+  esac
+  case $pa in ei_think|ei_think_v|ei_nothink|ei_nothink_v) ;; *)  # ARM_kKNOB: ARM is an EI arm as listed above
+    say "$arm: _k$knob (an EI knob pilot) does not combine with other suffixes: refusing"; exit 1 ;;
+  esac ;;
+  grpo_*_k*) case ${arm##*_k} in rr|3p|ret0|t10|r2)  # an EI knob on a GRPO arm (other names: unknown arm, below)
+    say "$arm: _k${arm##*_k} is an EI knob (ARM_kKNOB, for ei_* arms); GRPO's knob pilots are ARM_mb_kKNOB: refusing"; exit 1 ;;
   esac ;;
 esac
 pil=""; case $pa in *_rfb) pil=rfb ;; *_ulb) pil=ulb ;; *_3pb) pil=3pb ;; *_pb) pil=pb ;; *_mb) pil=mb ;; *_fbb) pil=fbb ;; esac  # first
@@ -138,7 +161,7 @@ esac
 case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
 [ $method = ei ] && [ -n "$pil" ] && { say "$arm: _$pil is a GRPO L3 pilot, and $base is EI: refusing"; exit 1; }
 [ $method = ei ] && [ -n "$sch" ] && { say "$arm: _$sch schedules the GRPO lr, and EI's fine-tune has its own (run $base): refusing"; exit 1; }
-[ $method = ei ] && [ "$src" != "$arm" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
+[ $method = ei ] && [ "$src" != "$arm" ] && [ -z "$knob" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
 [ $method = ei ] && [ "$base" != "$src" ] && { say "$arm: _h halves the GRPO lr, which EI does not use (run $base): refusing"; exit 1; }
 if [ "$pil" = fbb ]; then  # ARM_fbb: the lines go into the think block, and the verifier writes them
   [ $kind = think ] || { say "$arm: _fbb writes the verifier's feedback into the think block, and $base has none: refusing"; exit 1; }
@@ -162,9 +185,16 @@ if [ "$pil" = 3pb ] || [ "$pil" = mb ]; then  # ARM_3pb, ARM_mb: _vs3's files (b
   X2=$R/pools/curriculum_3p/L2_3p.jsonl; X3=$R/pools/curriculum_3p/L3_3p.jsonl
 fi
 for xf in $X2 $X3; do [ -f $xf ] || { say "$arm: no 3-premise pool file $xf (runs/pools/curriculum_3p): refusing"; exit 1; }; done
+M3=$R/pools/curriculum_3p/L3_mix_ei.jsonl; M3P=$R/pools/curriculum_3p/L3_mix_ei.preflight_pass.txt  # EI ARM_k3p's
+if [ "$knob" = 3p ]; then  # targets and their pass record ('PREFLIGHT PASSED <md5>'), both from grpo_v2/build_mix_ei.py
+  [ -f $M3 ] || { say "$arm: no 3-premise mix $M3 (grpo_v2/build_mix_ei.py builds it): refusing"; exit 1; }
+  grep -qx "PREFLIGHT PASSED $(md5sum < $M3 | cut -c1-32)" $M3P 2> /dev/null \
+    || { say "$arm: no preflight pass record of $M3 as it is ($M3P; grpo_v2/build_mix_ei.py): refusing"; exit 1; }
+fi
 if [ $kind = think ]; then EFF="--effort --budgets 0,64,256"; RB=64; else EFF="--budgets 0"; RB=0; fi
 ITERS=39; PROMPTS=256; GROUP=16; K=32; BATCH=1024; FT=""; CAN="--canary_n 1000"; KLN=""; LIM=""; KS=(16 64 64 64 8)
 DEV=$g; MAXSTEPS_H14=160
+RET=""  # EI --retain (Stage-1 records in each fine-tune; empty: ei.py's 20,000)
 MAXSTEPS=96  # training step cap, GRPO and EI alike (eval's value; v1 used the default 48, which 13-15-line
              # problems exceed in 3-6% of B64 attempts: capped attempts would raise false collapse alarms)
 if [ "$SMOKE" = 1 ]; then
@@ -173,15 +203,17 @@ if [ "$SMOKE" = 1 ]; then
   [ -s $C/L3_head.jsonl ] || cp $C/L2_head.jsonl $C/L3_head.jsonl
   L2=$C/L2_head.jsonl; L3=$C/L3_head.jsonl
   if [ -n "$X2" ]; then head -n 8 $X2 > $C/X2_head.jsonl; head -n 8 $X3 > $C/X3_head.jsonl; X2=$C/X2_head.jsonl; X3=$C/X3_head.jsonl; fi
-  ITERS=2; PROMPTS=4; GROUP=4; K=2; BATCH=16; FT="--ft_steps 3 --ft_recs 8 --retain 64"
+  ITERS=2; PROMPTS=4; GROUP=4; K=2; BATCH=16; FT="--ft_steps 3 --ft_recs 8"; RET=64
   CAN="--canary_n 40"; KLN="--kl_anchor_n 16"; LIM="--limit 2"; KS=(2 2 2 2 2); DEV=""
   AVG_ITS=""  # a 2-iteration stage keeps no rolling checkpoint: ARM_mb's mean is of the last one alone
   waitfree() { :; }  # CPU only
 fi
-# ARM_mb_kKNOB: the knob, set here only (stage L3; a knob arm has no L2 of its own). It overrides the recipe's value
-# (XFRAC, P, PROMPTS x GROUP, KLC, IT3), or KF adds a flag the recipe leaves at grpo.py's default: one copy of each flag.
+# ARM_mb_kKNOB, ARM_kKNOB (EI): the knob, set here only (stage L3; a knob arm has no L2 of its own). It overrides the
+# recipe's value (XFRAC, P, PROMPTS x GROUP, KLC, IT3; EI: T3, RT3, ET, RD3 x K3), or KF adds a flag the recipe leaves at
+# grpo.py's default: one copy of each flag.
 KLC=0.02  # --kl_anchor_coef, both stages
 KF=""; KD=""; IT3=$ITERS; TO3=21600; WH3=3.5  # stage L3: knob flags, their log text, iterations, timeout s, watchdog h
+T3=$L3; RT3=$RET; ET=0.8; RD3=1; K3=$K  # stage L3: targets; EI: --retain, sampling temperature, rounds x k per round
 case $knob in
   x66) XFRAC=0.66; KD="--targets_extra_frac $XFRAC" ;;
   g64) if [ "$SMOKE" = 1 ]; then PROMPTS=2; GROUP=8; else PROMPTS=64; GROUP=64; fi  # the same attempts per iteration
@@ -192,14 +224,21 @@ case $knob in
   ch4) KF="--clip_eps_high 0.4"; KD=$KF ;;
   p3) P=0.3; KD="--rej_penalty $P" ;;
   i78) IT3=$((2 * ITERS)); TO3=43200; WH3=7; KD="--iters $IT3" ;;  # twice the iterations (SMOKE=1: 4), timeout, watchdog h
-  rr) KD="nothing changed" ;;  # the recipe's L3 again
+  rr) KD="nothing changed" ;;  # the recipe's L3 again (GRPO's or EI's)
+  # EI ARM_kKNOB's from here on
+  3p) T3=$M3; if [ "$SMOKE" = 1 ]; then head -n 8 $M3 > $C/M3_head.jsonl; T3=$C/M3_head.jsonl; fi  # the mix (SMOKE=1:
+      KD="--targets $(basename $T3)" ;;                                                               # its first 8 rows)
+  ret0) RT3=0; KD="--retain $RT3" ;;  # the found proofs alone
+  t10) ET=1.0; KD="--temperature $ET" ;;  # training samples only (the reads stay at 0.8)
+  r2) RD3=2; K3=$((K / 2)); KD="--rounds $RD3 --k $K3" ;;  # the same attempts (SMOKE=1: k 1); the stage ends at _r2
 esac
 [ -n "$knob" ] && KD="knob $knob: $KD"
-if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil: $src's finished L2, from a run no rollback touched
+if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil, ARM_kKNOB: $src's finished L2, from a run no rollback touched
   L2CK=$C/${src}_s${s}_L2/ckpts/${src}_s${s}_L2_it$ITERS.pt
+  [ $method = ei ] && L2CK=$C/${src}_s${s}_L2/ckpts/${src}_s${s}_L2_r1.pt  # EI ARM_kKNOB: its one round's
   [ -f $L2CK ] || { say "$arm: no L2 checkpoint of $src ($L2CK): refusing"; exit 1; }
   gl=$(grep -E '^guard it' $L/v2_${src}_s${s}_L2.log 2>/dev/null | tail -1)
-  case $gl in *"lr x1 (0 rollbacks)"*) ;; *)
+  [ $method = ei ] || case $gl in *"lr x1 (0 rollbacks)"*) ;; *)  # (EI has no guard and no rollbacks)
     say "$arm: $src's L2 log ends '${gl:-no guard line}', not lr x1 (0 rollbacks): rerun the whole line: refusing"; exit 1 ;;
   esac
 fi
@@ -207,9 +246,10 @@ mkdir -p $C $EV
 if [ "$SMOKE" != 1 ]; then
   "$PY" -m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight $L2 $L3 > $C/preflight_${arm}_s$s.log 2>&1 \
     || { say "preflight failed (see $C/preflight_${arm}_s$s.log)"; exit 1; }
-  if [ -n "$X2" ]; then  # the extra rows are shorter than the bands by construction: only the band lines may fail
-    xl=$C/preflight_${arm}_s${s}_extra.log
-    "$PY" -m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight $X2 $X3 > $xl 2>&1
+  if [ -n "$X2" ] || [ "$knob" = 3p ]; then  # the extra rows (EI ARM_k3p: a third of its mix) are shorter than the
+    xl=$C/preflight_${arm}_s${s}_extra.log  # bands by construction: only the band lines may fail
+    xp="$X2 $X3"; [ "$knob" = 3p ] && xp="$L2 $M3"  # ARM_k3p: the mix against L2 and every evaluation set
+    "$PY" -m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight $xp > $xl 2>&1
     if grep -vE '^  BAD: [0-9]+ rows outside' $xl | grep -qE '^(BAD|MISSING|\(skip)' || [ $(grep -c '^ok ' $xl) -lt 22 ]; then
       say "extra-targets preflight failed (see $xl)"; exit 1; fi
   fi
@@ -239,18 +279,20 @@ grpo_stage() {  # NAME INIT TARGETS [EXTRA_TARGETS] -> ckpts/NAME_it$ITERS.pt (s
   sleep 5; say "launched GRPO $n ($samp${GUIDE:+, P $P}${XT:+, extra $(basename $4) x $XFRAC}$LRN${SC:+, $SC}${PF:+, $PF}${KT:+, $KT}) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log $wh
   wait $p; say "GRPO $n exit $?: $(grep -E '^it [0-9]+:' $L/v2_$n.log | tail -1 | cut -c1-150)"
   [ -f $last ]; }
-ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt
-  local n=$1 O=$C/$1 last=$C/$1/ckpts/${1}_r1.pt
+ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt (stage L3: _r$RD3)
+  local n=$1 O=$C/$1 rd=1 k=$K t=0.8 rt=$RET KT=""  # stage L3: ARM_kKNOB's values and their text
+  case $1 in *_L3) rd=$RD3; k=$K3; t=$ET; rt=$RT3; KT=$KD ;; esac
+  local last=$C/$1/ckpts/${1}_r$rd.pt
   [ -f $last ] && return 0; waitfree $g
   ( CUDA_VISIBLE_DEVICES=$DEV timeout 21600 "$PY" -m code.thinking.ei --init $2 --name $n --out $O --targets $3 \
-      --train $R/data/$pkl --rounds 1 --k $K --temperature 0.8 --arm $samp --max_rej 10 --batch $BATCH --seed $s \
+      --train $R/data/$pkl --rounds $rd --k $k --temperature $t --arm $samp --max_rej 10 --batch $BATCH --seed $s \
       --max_steps $MAXSTEPS \
-      --select shortest $EFF $FT > $L/v2_$n.log 2>&1 ) & local p=$!
-  sleep 5; say "launched EI $n ($samp) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log 4
+      --select shortest $EFF $FT ${rt:+--retain $rt} > $L/v2_$n.log 2>&1 ) & local p=$!
+  sleep 5; say "launched EI $n ($samp${KT:+, $KT}) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log 4
   wait $p; say "EI $n exit $?: $(tail -1 $L/v2_$n.log | cut -c1-150)"
   [ -f $last ]; }
-ck() { local it=$ITERS; [ "$1" = L3 ] && it=$IT3  # STAGE -> the stage's last checkpoint
-  if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$it.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r1.pt; fi; }
+ck() { local it=$ITERS rd=1; [ "$1" = L3 ] && { it=$IT3; rd=$RD3; }  # STAGE -> the stage's last checkpoint
+  if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$it.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r$rd.pt; fi; }
 read1() {  # SETNAME SETS K READARM [MAXSTEPS [ARMNAME CKPT [MAXREJ]]]  (default: $arm, its L3 checkpoint, 10)
   local o=$EV/$1_${6:-$arm}_s${s}_$4_k$3 ms=${5:-96} cp=${7:-$(ck L3)} mr=${8:-10}
   [ -f $o/rows_$4_B$RB.jsonl ] && return 0; waitfree $g; local t=$(date +%s); rm -rf $o
@@ -285,13 +327,13 @@ print("averaged", len(cks), "checkpoints ->", out)
 EOF
   say "averaged ${arm}_s${s}_L3 it ${AVG_ITS:+$AVG_ITS }$ITERS -> $AV"; }
 stage=${method}_stage
-if [ "$src" = "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil have no L2 of their own: L2CK is $src's (checked above)
+if [ "$src" = "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil, ARM_kKNOB have no L2 of their own: L2CK is $src's (checked above)
   $stage ${arm}_s${s}_L2 $init0 $L2 $X2 || { say "${arm}_s${s}_L2 failed"; exit 1; }
   L2CK=$(ck L2)
 fi
-$stage ${arm}_s${s}_L3 $L2CK $L3 $X3 || { say "${arm}_s${s}_L3 failed"; exit 1; }
+$stage ${arm}_s${s}_L3 $L2CK $T3 $X3 || { say "${arm}_s${s}_L3 failed"; exit 1; }
 CH173=$CH/candidate_v0.jsonl,$CH/candidate_v1.jsonl,$CH/batch3.jsonl
-if [ -n "$knob" ] && [ "${KNOB_FULL:-0}" != 1 ]; then  # ARM_mb_kKNOB: plain reads on 13-20, 21-30 and charles173 only (knob selection never sees tb72)
+if [ -n "$knob" ] && [ "${KNOB_FULL:-0}" != 1 ]; then  # ARM_mb_kKNOB, ARM_kKNOB: plain reads on 13-20, 21-30 and charles173 only (knob selection never sees tb72)
   read1 t1320 $R/eval/matched/sets/t1320_n1000.jsonl ${KS[0]} plain
   read1 t2130 $R/eval/matched/sets/t2130_n1000.jsonl ${KS[4]} plain
   read1 charles173 $CH173 ${KS[2]} plain

@@ -469,6 +469,80 @@ retry      <e0> <think> ⊢ ( ¬ P ) := n7 n13 <no> </think>
 bash line.sh GPU 2 grpo_think_vs_fbb    # L3 of grpo_think_vs seed 2, from runs/grpo_v2/grpo_think_vs_s2_L2
 ```
 
+## EI knob pilots (2026-10-16, branch `leon/grpo-v2`)
+
+`ARM_kKNOB` screens one EI setting at a time, as `ARM_mb_kKNOB` does for GRPO (`launch/README.md`, item 9). It takes an
+EI arm (`ei_think`, `ei_think_v`, `ei_nothink`, `ei_nothink_v`); `ei_think_v_kKNOB` at seed 0 is the one asked for.
+
+**Stage.** L3 only, from ARM's finished L2 checkpoint, `runs/grpo_v2/ARM_sSEED_L2/ckpts/ARM_sSEED_L2_r1.pt`. The arm is
+refused when that checkpoint is missing; L2 is never retrained. Output goes to `runs/grpo_v2/ARM_kKNOB_sSEED_L3/`.
+ARM's own L3 is one round: 5,000 targets x 32 attempts (160k, matched to 39 GRPO iterations), then one 600-step
+fine-tune. Each knob changes one setting, set in `line.sh`'s knob block and nowhere else:
+
+| KNOB | change from ARM's L3 |
+|---|---|
+| `rr` | nothing: ARM's L3 again, the noise control (GPU runs are not bit-reproducible) |
+| `3p` | `--targets runs/pools/curriculum_3p/L3_mix_ei.jsonl`: 3,333 L3 pool rows and 1,667 L3 3-premise rows (below) |
+| `ret0` | `--retain 0`: the fine-tune mix is the found proofs alone (ei.py's default adds 20,000 Stage-1 records) |
+| `t10` | `--temperature 1.0` for the training samples (0.8); the reads stay at 0.8 |
+| `r2` | `--rounds 2 --k 16`: the same 160k attempts in two rounds, each followed by its fine-tune; the stage ends at `_r2.pt` |
+
+**Reads.** The GRPO knob pilots' reads: plain only, on t1320 (k 16), t2130 (k 8) and charles173 (k 64), under the
+full arm name (`eval/v2/<set>_ARM_kKNOB_sSEED_plain_k<k>/`). Knob selection never sees textbook72, so there is no
+tb72 read and no guided or hand14 read. `KNOB_FULL=1` gives a finished pilot ARM's usual reads instead. The finished
+L3 and the reads already there are skipped, so on a finished pilot this adds tb72, the guided reads and hand14. HEAD
+then goes to `ARM_kKNOB_sSEED.reads_commit.txt`, and the training's `base_commit.txt` is kept.
+
+**Refusals.** An unknown knob or a GRPO knob (`ei_think_v_kx66`), anything after the knob, and any suffix before it
+(`ei_think_v_h_krr`). `_mb_k` on an EI arm gets `_mb_k`'s refusal, and an EI knob on a GRPO arm
+(`grpo_think_vs_kret0`) is refused with a pointer to `ARM_mb_kKNOB`.
+
+**The `3p` mix** (`grpo_v2/build_mix_ei.py`). GRPO's merged recipe draws a third of each iteration's groups from the
+L3 3-premise rows (`--targets_extra L3_3p.jsonl --targets_extra_frac 0.33`). EI samples every target k times in one
+round, so `3p` gets the same share from a fixed file instead.
+- The builder samples 3,333 rows of `curriculum/L3/pool.jsonl` and 1,667 of `curriculum_3p/L3_3p.jsonl` (1,843 rows),
+  without replacement. It shuffles them together with seed 20261016, so every run seed trains on the same mix.
+- Rows are copied byte for byte and keep their own names, which are checked unique (EI keys found proofs by name).
+- The mix built on 2026-10-16 has md5 `8748b4b17d452485fe45095b30263ecc`. Building it again gives the same bytes.
+  - Shortest-proof lines (`min_lines`) of the 3-premise rows: 11: 167, 12: 1,143, 13: 312, 14: 45 (mean 12.14).
+    Of the pool rows: 13: 2,742, 14: 455, 15: 136 (mean 13.22).
+  - 1,108 of the 1,667 3-premise rows have their original in the mix as well. GRPO's draws can pair them the same way,
+    since every L3_3p row's original is in the L3 pool.
+  - Its first 8 rows (what `SMOKE=1` uses) are 4 of each kind.
+- Preflight: the same as the GRPO extra targets get (`preflight.py` on the L2 pool and the mix). It checks prompt,
+  renaming-key and renaming / curried-class overlap with the L2 pool and with all 11 evaluation sets, including
+  textbook72 and the sealed 13-20 and 21-30 sets. Only the band line may fail, and all 22 evaluation-set lines must be
+  `ok`. It passed: 0 shared prompts, keys or classes anywhere. The only failure is `1310 rows outside 13-15`, the
+  3-premise rows below the band (`L3_mix_ei.preflight.log`).
+- The pass record `L3_mix_ei.preflight_pass.txt` holds `PREFLIGHT PASSED <md5 of the mix>`. The builder writes it only
+  when the preflight passes, and deletes it before writing a new mix. `line.sh` refuses `ARM_k3p` without the mix or
+  without a pass record naming the mix's current md5. At launch it also runs the same preflight again, into
+  `preflight_ARM_k3p_sSEED_extra.log`, as it does for the GRPO extra targets.
+- `L3_mix_ei.json` has the counts, the seed and the md5s of the mix and its two sources.
+
+**ei.py, checked for `ret0` and `r2`** (no code change):
+- `ret0`: `build_mix` takes `rng.sample(train_records, min(0, n))`, which is empty and draws nothing from the rng.
+  The mix is then the found proofs alone: at most 4 per target, x `--rl_weight` 4 (78,156 records in ei_think_v s0's
+  L3). The fine-tune still takes 600 steps of 128 records, now about one pass over those records instead of over
+  98,156. A round with no found proof skips the fine-tune as before, for any `--retain`. `--train` is still loaded
+  (vocabulary check, effort relabelling), but nothing from it is used.
+- `r2`: within one invocation, round 2 loads round 1's checkpoint. It samples 5,000 x 16 again (round seed
+  `seed * 1000 + 2`) and adds the new proofs to round 1's. `found_2.jsonl` is cumulative, one entry per action
+  sequence, and with `--select shortest` a shorter think variant replaces the kept one. Round 2 then fine-tunes `_r1`
+  again: another full 600-step schedule from lr 3e-4, on the cumulative picks plus a fresh 20,000 retained records.
+  - So `r2` doubles the fine-tune compute (1,200 steps against 600), and the sampled attempts stay at 160k.
+  - `line.sh` does not resume. An interrupted `r2` stage reruns from round 1 on the next launch, because an `_r1.pt`
+    alone does not end the stage. ei.py could resume (`--resume --start_round 2` reads `found_1.jsonl` and `_r1.pt`),
+    but the other EI stages do not use it either.
+  - Timeout: ei_think_v s0's one-round L3 took 7,709 s on ynez, of which the fine-tune was 1,723 s. `r2` adds about
+    one more fine-tune and a checkpoint load, so about 9,500 s. The slowest one-round EI L3 so far (ei_think_v s2,
+    11,838 s, fine-tune 1,748 s) would come to about 13,600 s. Both are inside the stage's 21,600 s timeout. The
+    watchdog keeps EI's 4 h expectation, so its OVERRUN alert comes at 6 h, the same as the timeout.
+
+```
+bash line.sh GPU 0 ei_think_v_k3p    # L3 of ei_think_v seed 0 on the mix, from runs/grpo_v2/ei_think_v_s0_L2
+```
+
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)
 
 | set | k | arms |
