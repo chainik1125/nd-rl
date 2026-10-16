@@ -15,7 +15,10 @@ For each band (L1, L2, L3) it reads `pool.jsonl` and `test_1k.jsonl` and:
 * asserts that all six files are pairwise disjoint by renaming class (`pkey`);
 * tabulates size, shortest-proof lengths, where the rows came from, and the mix-gate shares.
 
-Writes `ROOT/report.json` and `ROOT/report.md`.
+Writes `ROOT/report.json` and `ROOT/report.md`. With `--bands L4 --out ROOT/L4` only those bands
+are re-checked and tabulated (into `OUT/report.json`, `OUT/report.md`); the disjointness check
+still covers every band's files, and the feature table adds the other bands' pool columns from
+`ROOT/report.json` for comparison.
 """
 
 from __future__ import annotations
@@ -30,7 +33,7 @@ from typing import Any
 from code.experiments.current.thinking_traces_20261005.curriculum import heldout as HO
 from code.experiments.current.thinking_traces_20261005.hard712 import run as RN
 
-BANDS = {"L1": (7, 9), "L2": (10, 12), "L3": (13, 15)}
+BANDS = {"L1": (7, 9), "L2": (10, 12), "L3": (13, 15), "L4": (16, 18)}
 TB = "/scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72"
 H712 = "/scratch/cowifornia/nd-rl/think/runs/pools/hard712"
 OWN = {
@@ -44,6 +47,22 @@ def mean(xs: list[float]) -> float:
     return round(sum(xs) / len(xs), 2)
 
 
+TOKENS = ("prompt_tokens", "max_state", "max_action")
+
+
+def dist(xs: list[int]) -> dict[str, float]:
+    """Mean and quantiles (nearest rank) of a token count."""
+    s = sorted(xs)
+    q = {f"p{k}": s[min(len(s) - 1, len(s) * k // 100)] for k in (10, 25, 50, 75, 90, 99)}
+    return {"mean": mean([float(x) for x in s]), "min": s[0], **q, "max": s[-1]}
+
+
+def tokens(rows: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
+    """Statement tokens (`prompt_tokens`) and the largest state / action of the reference proof's
+    state-env decomposition (`max_state`, `max_action`), as `run.py final_row` stores them."""
+    return {k: dist([r[k] for r in rows]) for k in TOKENS}
+
+
 def jl(p: str | Path) -> list[dict[str, Any]]:
     with open(p) as f:
         return [json.loads(line) for line in f if line.strip()]
@@ -53,8 +72,11 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--index", default="")
+    ap.add_argument("--bands", nargs="*", default=list(BANDS), help="bands to check and tabulate")
+    ap.add_argument("--out", default="", help="where report.json / report.md go (default: ROOT)")
     a = ap.parse_args()
     root = Path(a.root)
+    out_dir = Path(a.out) if a.out else root
     with open(a.index or root / "work" / "excl_index.pkl", "rb") as f:
         idx = pickle.load(f)
     tb_keys: set[str] = set()
@@ -71,13 +93,17 @@ def main() -> None:
         d = root / band
         if not (d / "pool.jsonl").exists():
             continue
+        for part in ("pool", "test_1k"):
+            rows = jl(d / f"{part}.jsonl")
+            allk[f"{band}/{part}"] = {r["pkey"] for r in rows}
+            allc[f"{band}/{part}"] = set().union(*(HO.keys(r["prompt"]) for r in rows))
+        if band not in a.bands:
+            continue
         origin = {r["pkey"]: r.get("origin", "?") for r in jl(d / "work" / "selected.jsonl")}
         sel = json.loads((d / "work" / "select_report.json").read_text())
         b: dict[str, Any] = {}
         for part in ("pool", "test_1k"):
             rows = jl(d / f"{part}.jsonl")
-            allk[f"{band}/{part}"] = {r["pkey"] for r in rows}
-            allc[f"{band}/{part}"] = set().union(*(HO.keys(r["prompt"]) for r in rows))
             ml = collections.Counter(r["min_lines"] for r in rows)
             assert all(lo <= x <= hi for x in ml), (band, part, ml)
             g = RN.lean_flags(rows, "gen_proof")
@@ -111,6 +137,7 @@ def main() -> None:
                     },
                 },
                 top_recipes=collections.Counter(r["recipe"] for r in rows).most_common(5),
+                tokens=tokens(rows),
             )
         b["mix_selected"] = {k: sel["shares_selected"][k] for k in SHARES}
         b["mix_reservoir"] = {k: sel["shares_gated"][k] for k in SHARES}
@@ -123,7 +150,8 @@ def main() -> None:
             assert not (allk[x] & allk[y]), (x, y, len(allk[x] & allk[y]))
             assert not (allc[x] & allc[y]), (x, y, "curried", len(allc[x] & allc[y]))
     rep["disjoint"] = names
-    (root / "report.json").write_text(json.dumps(rep, indent=1))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "report.json").write_text(json.dumps(rep, indent=1))
     lines = [
         "| band | file | n | shortest-proof lines (%) | mean | origin | Lean constructed / "
         "reference | index / textbook72 / held-out (curried) / sealed (curried) hits |",
@@ -142,14 +170,29 @@ def main() -> None:
                 f"{p['textbook72_hits']} / {p['heldout_curried_hits']} / "
                 f"{p['sealed_curried_hits']} |"
             )
-    feats = [b for b in rep if b != "disjoint"]
+    cols = {b: rep[b] for b in rep if b != "disjoint"}
+    if out_dir != root and (root / "report.json").exists():  # the other bands, for comparison
+        old = json.loads((root / "report.json").read_text())
+        cols = {b: old[b] for b in BANDS if b in old and b not in cols} | cols
+    feats = list(cols)
     if feats:
-        keys = list(rep[feats[0]]["pool"]["features"])
+        keys = list(cols[feats[0]]["pool"]["features"])
         lines += ["", "| pool feature | " + " | ".join(feats) + " |", "|---|" + "---|" * len(feats)]
         for k in keys:
-            vals = " | ".join(str(rep[b]["pool"]["features"][k]) for b in feats)
+            vals = " | ".join(str(cols[b]["pool"]["features"].get(k, "")) for b in feats)
             lines.append(f"| {k} | {vals} |")
-    (root / "report.md").write_text("\n".join(lines) + "\n")
+        # token counts, recomputed from every band's pool file (older report.json files lack them)
+        tok = {b: tokens(jl(root / b / "pool.jsonl")) for b in feats}
+        rep["pool_tokens"] = tok
+        (out_dir / "report.json").write_text(json.dumps(rep, indent=1))
+        lines += ["", "| pool tokens (mean / p10 / p50 / p90 / max) | " + " | ".join(feats) + " |"]
+        lines.append("|---|" + "---|" * len(feats))
+        for k in TOKENS:
+            vals = " | ".join(
+                "{mean} / {p10} / {p50} / {p90} / {max}".format(**tok[b][k]) for b in feats
+            )
+            lines.append(f"| {k} | {vals} |")
+    (out_dir / "report.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
 
