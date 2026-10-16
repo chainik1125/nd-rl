@@ -1,7 +1,7 @@
 """The largest selection a small band's reservoir fills at fixed mix caps (L4).
 
     python -m code.experiments.current.thinking_traces_20261005.curriculum.find_n \
-        .../curriculum/L4 '{"classical": 0.4477, "ex_falso": 0.14, ...}'
+        .../curriculum/L4 '{"classical": 0.4477, "ex_falso": 0.14, ...}' [WORKERS (8)]
 
 `run.py select --n N` scales every cap to N and, when the reservoir cannot fill N, relaxes the
 blocking caps in hard712's order and finally shrinks N. L2r took L3r's realized shares as caps
@@ -24,8 +24,11 @@ PY = "/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python"
 X = "code.experiments.current.thinking_traces_20261005.hard712.run"
 
 
+WORKERS = 8  # select's feature pool (serrano: at most 8 cores for CPU builds, 2026-10-16)
+
+
 def select(out: str, n: int, caps: dict[str, float]) -> dict[str, Any]:
-    cmd = [PY, "-m", X, "--out", out, "select", "--n", str(n), "--workers", "12"]
+    cmd = [PY, "-m", X, "--out", out, "select", "--n", str(n), "--workers", str(WORKERS)]
     subprocess.run([*cmd, "--caps", json.dumps(caps)], check=True, capture_output=True)
     with open(f"{out}/work/select_report.json") as f:
         return json.load(f)
@@ -37,7 +40,10 @@ def fills(rep: dict[str, Any], n: int, caps: dict[str, float]) -> bool:
 
 
 def main() -> None:
+    global WORKERS
     out, caps = sys.argv[1], json.loads(sys.argv[2])
+    if len(sys.argv) > 3:
+        WORKERS = int(sys.argv[3])
     with open(f"{out}/work/gated_lean.jsonl") as f:
         n_in = sum(1 for line in f if line.strip())
     lo, hi = 0, n_in  # fills(lo) holds (n = 0 trivially); find the largest n that fills

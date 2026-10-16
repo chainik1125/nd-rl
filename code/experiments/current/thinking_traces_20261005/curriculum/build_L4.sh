@@ -27,7 +27,12 @@
 #                               2 skip keys (+ gen to L4_STOP_C) | 3 gap regen + gen gap 3 for L4_HOURS_D h |
 #                               3g gen gap 3 resumed for L4_HOURS_G h | 4 Lean, assemble, select, split, report)
 #     As built (2026-10-16): 0; 1; 1b; 2; 3 with L4_HOURS_D=4 (cut by serrano's crash at 1.41 h); 3g with
-#     L4_HOURS_G=2.6; 4. 20 workers up to the crash, 14 after it.
+#     L4_HOURS_G=2.6, stopped after 0.19 h (round 75, seeds to 37.5M) when CPU builds were limited to 8 cores; 4 with
+#     8 workers. 20 workers up to the crash, 14 after it.
+#   * yield (as built): 249 certified rows from seeds 0-37.5M (6.6 per 1M seeds; 5,424 classes certified, 93% of them
+#     shorter than 16 lines), about 110 rows per hour on 20 cores; + 12 regen-long + 13 regen-gap. Reservoir 255
+#     (16: 232, 17: 22, 18: 1) -> pool 212, test 43. 5,000 + 1,000 would take roughly 50 h on 20 cores, longer as the
+#     class space thins out (new classes per round fell from ~130 to ~50).
 set -uo pipefail   # no -e: each step's exit status is logged; phase 4 stops on a failed step
 WT=${L4_WT:-/scratch/cowifornia/nd-rl/think/nd-rl-long}
 R=/scratch/cowifornia/nd-rl/think/runs
@@ -38,7 +43,7 @@ X=code.experiments.current.thinking_traces_20261005
 cd $WT
 export PYTHONPATH=$WT ND_OFFLINE=1 PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=0 CUDA_VISIBLE_DEVICES= PFG_MEM_GB=3.0
 export PFG_SEARCH_SECS=${L4_SEARCH_SECS:-60} PFG_NEC_SECS=${L4_NEC_SECS:-60}
-W=${L4_WORKERS:-20}
+W=${L4_WORKERS:-8}  # serrano, 2026-10-16: at most 8 cores (20 up to the crash at 11:03Z, 14 after it)
 STOP_B=${L4_STOP_B:-8500000}; STOP_C=${L4_STOP_C:-$STOP_B}; STOP_D=${L4_STOP_D:-200000000}
 HOURS_D=${L4_HOURS_D:-4}  # phase 3's generation stops after the round that crosses this many hours (or at STOP_D)
 N="nice -n 10"
@@ -126,7 +131,7 @@ EOF
   say "gen gap 3 resumed exit $?" ;;
 4)
   say "phase 4: Lean, assemble, select, split, report"
-  export LEAN_GATE_WORKERS=$W
+  export LEAN_GATE_WORKERS=$W LEAN_GATE_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
   srcs=()
   for s in regen regen_gap gen; do
     [ -f $D/$s/work/gated.jsonl ] || continue
@@ -147,7 +152,7 @@ EOF
 )
   say "CAPS_L3 $CAPS" | tee -a $L/caps.log
   # the reservoir cannot fill 6,000. Always measured: the largest selection at L3r's shares, none relaxed (find_n.py)
-  timeout 7200 $N $PY -m $X.curriculum.find_n $D "$CAPS" > $L/find_n_l3mix.log 2>&1 || { say "find_n FAILED"; exit 1; }
+  timeout 7200 $N $PY -m $X.curriculum.find_n $D "$CAPS" $W > $L/find_n_l3mix.log 2>&1 || { say "find_n FAILED"; exit 1; }
   cp $D/work/select_report.json $D/work/select_report_l3mix.json; tail -2 $L/find_n_l3mix.log
   if [ "${L4_MIX:-natural}" = natural ]; then  # L4 as built: every reservoir row (L3r's own procedure, relaxing every
     NRES=$(grep -c . $D/work/gated_lean.jsonl)  # cap until the target fills, with the target = the reservoir)
