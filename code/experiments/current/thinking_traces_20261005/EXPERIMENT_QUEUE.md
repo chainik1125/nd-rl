@@ -11,9 +11,32 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-15, 8:15 pm PDT; on serrano)
+## Running (updated 2026-10-16, 2:50 am PDT; on serrano)
 
-**EI knob pilots: running since 8:09 pm** (GPUs 0–3; `runs/grpo_v2/jobs_ei_knobs.txt`, one `pull_queue.sh` worker per
+**Leon's decisions, about 1:40–2:45 am, 2026-10-16.**
+- GRPO is the RL method from now on; EI is retired. The primary recipe (merged recipe + KL 0) is on `leon/main`
+  (690817d8, with `RECIPE.md`); the PR to `main` waits until Dan merges his draft #16, which `leon/main` contains.
+- Next question: *what causes generalization of RL training* (to longer and bigger proofs, and to other sources), not
+  score tuning; no lr/optimizer knobs. textbook72 stays sealed; Charles149 is the source proxy.
+- Test bed: **mini RL runs from the Stage-1 base** (`S1g3_s0` always), 1,000 L2 + 1,000 L3 pool rows (and 20% of the
+  3-premise extras), 10 + 10 iterations, the recipe's flags per stage, rolling checkpoints every 2 iterations; reads
+  include the held-out in-distribution `L2/test_1k`, `L3/test_1k`.
+- Order: a **validation wave** first (reference at RL seeds 0–3; known-effect controls KL 0.1 and 64 × 64 groups),
+  gated on the mini setup reproducing known effects; **checkpoint reads** of the ~12 existing full-scale L3 runs
+  (dynamics, no training) alongside; then knobs: temperature 0.7–1.3, think-length reward (−0.1, +0.2, +0.5, with
+  the all-solved-group fixes), pool size 250/500, loss on action vs think tokens, positive- vs negative-only
+  advantages, statement-size twins (same proofs, bigger statements); a 16–18-line pool (L4) is being built.
+- Dropped: lr knobs and the unlikeliness dose (Leon); updates per batch (it changes the number of AdamW steps, i.e.
+  an lr knob).
+- Overnight: experiments may launch without Leon if an auditing subagent signs off on each (Leon, 2:45 am).
+- Design review and knob proposals (agent reports, not results): to be filed with the experiment.
+
+**EI knob pilots: done** (rr, 3p, ret0, t10, r2 all finished by 1:38 am, before the stop; reads on disk, not analysed
+since EI is retired).
+
+### 2026-10-15 evening
+
+**EI knob pilots: ran 8:09 pm to 1:38 am** (GPUs 0–3; `runs/grpo_v2/jobs_ei_knobs.txt`, one `pull_queue.sh` worker per
 GPU; `leon/grpo-v2` 17cd1e6a). Leon (about 6 pm): the GRPO arm for the head-to-head is the merged recipe + KL 0
 (`grpo_think_vs_mb_kkl0`); EI gets about 4 single-seed pilots first, because GRPO had about 15 and EI none; KL 0 in L2
 waits. Each pilot is `ei_think_v`'s L3 (one round of 5,000 × 32, one 600-step fine-tune) from
