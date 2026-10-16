@@ -158,6 +158,17 @@ Some flags are passed with grpo.py's default value: `--prompts 256 --group 16 --
 - `--kl_anchor_n 512`;
 - `--rej_penalty_scope diverge`, which has no effect without redraws.
 
+**Where the inputs' builders live (on `leon/main`).**
+
+- **The L2 / L3 pools and the 3-premise rewrites** (`runs/pools/curriculum/L{2,3}/pool.jsonl`,
+  `runs/pools/curriculum_3p/L3_3p.jsonl`) are built by [`curriculum/`](curriculum/README.md).
+  - `uncurry3.py` makes the 3-premise rewrites.
+  - The ynez rebuild used here is `build_ynez.sh` and `build_3p_ynez.sh`, documented in
+    [curriculum/REBUILD_NOTE_ynez.md](curriculum/REBUILD_NOTE_ynez.md). It was merged from
+    `leon/curriculum-rebuild-ynez` (970c1669).
+- **The canary set** (`runs/pools/canary_long.jsonl`) is built by `collapse_audit/build_canary.py`. Its ynez rebuild
+  ran with `--skip_missing`, merged from `leon/rebuild-canary-ynez` (346c5575).
+
 ## How to launch it (`line.sh`)
 
 The launcher is [`grpo_v2/launch/line.sh`](grpo_v2/launch/line.sh). Its installed copy,
@@ -326,10 +337,11 @@ Observed facts and interpretation are kept apart; interpretation is marked.
   Of the merged recipe's L3 runs, only seed 2 rolled back, once. All three L2 runs ended with 0 rollbacks.
 - **Reproducibility.**
   - GPU runs are not bit-reproducible; the rerun noise band is about 1–1.5 points.
-  - The pools used here, L2, L3 and the 3-premise rewrites, were rebuilt on ynez. Their builders and rebuild note are
-    on branch `leon/curriculum-rebuild-ynez`, which is not merged into `leon/main`.
-  - The canary builder's ynez-rebuild option (`--skip_missing`) is on `leon/rebuild-canary-ynez`, also not merged.
+  - The pools used here, L2, L3 and the 3-premise rewrites, were rebuilt on ynez (not serrano's lost originals).
   - The pools themselves live only on `/scratch` (`runs/pools/`).
+- **Known limitation: `line.sh` is tied to one worktree.** It hard-codes its code worktree (`WT=…/nd-rl-v2`) and
+  refuses to run unless that worktree is on `leon/grpo-v2`. Its paths are also serrano's. Running the recipe from
+  `leon/main` means editing `WT` and the branch check.
 - **Interpretation (untested).** The KL dose response suggests that, in L3, an anchor to the L2 model limits how far
   the policy moves toward the long, 3-premise problems. No run tests this directly; for example, KL 0 in L2 has not
   been run.
@@ -338,6 +350,4 @@ Observed facts and interpretation are kept apart; interpretation is marked.
 
 - Analyse the EI knob pilots' reads, so that the GRPO-vs-EI comparison is less one-sided in tuning.
 - KL 0 in L2 as well. Leon (2026-10-15): this waits.
-- Merge the pool builders (`leon/curriculum-rebuild-ynez`) and the canary option (`leon/rebuild-canary-ynez`), so
-  that the recipe's inputs can be rebuilt from `leon/main`.
 - Let `line.sh` take its code worktree as a setting instead of the fixed `nd-rl-v2` on `leon/grpo-v2`.
