@@ -56,7 +56,10 @@ def test_subst_is_simultaneous() -> None:
     assert SZ.subst("THM P SEQ ( P v Q ) PRF", sig) == (
         "THM ( Q & P ) SEQ ( ( Q & P ) v ( ~ Q ) ) PRF"
     )
-    # rule names and line names are untouched
+    # rule names (`R`: reiteration) and line names are untouched
+    assert SZ.subst("N1 R : PR ; N2 | R : R N1 ; QED", {"R": "( R v R )"}) == (
+        "N1 ( R v R ) : PR ; N2 | ( R v R ) : R N1 ; QED"
+    )
     assert (
         SZ.subst("N1 P : PR ; N2 | Q : AS ; QED", sig)
         == "N1 ( Q & P ) : PR ; N2 | ( ~ Q ) : AS ; QED"

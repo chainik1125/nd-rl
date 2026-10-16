@@ -215,8 +215,10 @@ def row_key(row: dict[str, Any], set_name: str) -> str:
 
 
 def subst(text: str, sig: dict[str, str]) -> str:
-    """Simultaneous substitution on a prompt or proof text (atoms are single tokens)."""
-    return " ".join(sig.get(t, t) for t in text.split())
+    """Simultaneous substitution on a prompt or proof text (atoms are single tokens). The token
+    after `:` in a proof line is its rule name, which can spell an atom (`R`, reiteration)."""
+    toks = text.split()
+    return " ".join(t if i and toks[i - 1] == ":" else sig.get(t, t) for i, t in enumerate(toks))
 
 
 def row_atoms(prompt: str) -> list[str]:
@@ -1021,12 +1023,71 @@ def cmd_report(a: argparse.Namespace) -> None:
             features=dict(twin=feat_summary(out), orig=feat_summary(orig)),
             secs_per_row=qs([r["secs"] for r in gated + rejects]),
         )
+    rep["think_cost"] = {
+        f.stem.removeprefix("think_cost_"): RN.rjson(f)["summary"]
+        for f in sorted(root.glob("think_cost_*.json"))
+    }
     RN.wjson(root / "report.json", rep)
     print(
         json.dumps(
             {s: dict(out=v["out"], drops=v["drops"]) for s, v in rep["sets"].items()}, indent=1
         )
     )
+
+
+# ---------------------------------------------------------------------- think cost
+def _think_one(job: tuple[str, str, str]) -> dict[str, Any]:
+    """Honest search traces (`searchtrace.trace_for`, the Stage-1 trace format) for one prompt at
+    effort 256 (with the 0 / 64 / 256 level labels) and at 64: think tokens per decision step,
+    the share of decision steps whose action needs more than 64 think tokens (`min_level`), and
+    whether the search proves the theorem."""
+    from code.thinking import searchtrace as ST
+
+    pid, prompt, which = job
+    out: dict[str, Any] = {"pid": pid, "which": which}
+    for level in (256, 64):
+        try:
+            rec, infos, _ = ST.trace_for(pid, prompt, level, labels=(level == 256))
+        except Exception as e:  # noqa: BLE001  (ProofFail or a generator error: counted)
+            out[f"ok{level}"] = False
+            out[f"err{level}"] = type(e).__name__
+            continue
+        dec = [i for i in infos if i.get("think_tokens", 0) > 0 or i.get("kind") == "decision"]
+        out[f"ok{level}"] = True
+        out[f"steps{level}"] = len(rec["steps"])
+        out[f"think{level}"] = [i["think_tokens"] for i in dec]
+        out[f"state{level}"] = max(i["state_tokens"] for i in infos)
+        if level == 256:
+            out["min_level"] = [st.get("min_level") for st in rec["steps"] if st.get("think")]
+    return out
+
+
+def cmd_think(a: argparse.Namespace) -> None:
+    root = Path(a.out)
+    rows = RN.jl(root / a.set / "work" / "gated.jsonl")
+    rows.sort(key=lambda r: _h(f"{SEED}|think|{r['orig_name']}"))
+    rows = rows[: a.n]
+    jobs = [(r["orig_name"], r["orig_prompt"], "orig") for r in rows]
+    jobs += [(r["orig_name"], r["prompt"], "twin") for r in rows]
+    with mp.get_context("spawn").Pool(a.workers) as p:
+        res = p.map(_think_one, jobs, chunksize=4)
+    summ: dict[str, Any] = {"set": a.set, "n_pairs": len(rows)}
+    for w in ("orig", "twin"):
+        rs = [r for r in res if r["which"] == w]
+        t256 = [t for r in rs if r.get("ok256") for t in r["think256"]]
+        ml = [m for r in rs if r.get("ok256") for m in r["min_level"] if m is not None]
+        summ[w] = dict(
+            proved_256=round(sum(bool(r.get("ok256")) for r in rs) / max(1, len(rs)), 3),
+            proved_64=round(sum(bool(r.get("ok64")) for r in rs) / max(1, len(rs)), 3),
+            steps_256=qs([r["steps256"] for r in rs if r.get("ok256")]),
+            think_tokens_per_thinking_step_256=qs(t256),
+            think_tokens_per_proof_256=qs([sum(r["think256"]) for r in rs if r.get("ok256")]),
+            share_steps_needing_over_64=round(sum(m > 64 for m in ml) / max(1, len(ml)), 3),
+            min_level=hist(ml),
+            max_state_tokens_256=qs([r["state256"] for r in rs if r.get("ok256")]),
+        )
+    RN.wjson(root / f"think_cost_{a.set}.json", dict(summary=summ, rows=res))
+    print(json.dumps(summ, indent=1))
 
 
 # ---------------------------------------------------------------------- main
@@ -1046,6 +1107,10 @@ def main() -> None:
     f.add_argument("--workers", type=int, default=8)
     sub.add_parser("check")
     sub.add_parser("report")
+    t = sub.add_parser("think", help="search-trace think cost, originals vs twins (analysis)")
+    t.add_argument("--set", choices=list(SOURCES), required=True)
+    t.add_argument("--n", type=int, default=200)
+    t.add_argument("--workers", type=int, default=2)
     a = ap.parse_args()
     {
         "build": cmd_build,
@@ -1053,6 +1118,7 @@ def main() -> None:
         "finish": cmd_finish,
         "check": cmd_check,
         "report": cmd_report,
+        "think": cmd_think,
     }[a.cmd](a)
 
 
