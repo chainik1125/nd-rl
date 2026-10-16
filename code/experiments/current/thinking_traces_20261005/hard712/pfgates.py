@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import os
 import time
 from typing import Any
 
@@ -54,11 +55,14 @@ MAX_PREM = 2
 MAX_CONN = 7
 MIN_ATOMS, MAX_ATOMS = 2, 3
 MAX_FDEPTH = 3
-MIN_L, MAX_L = 7, 12
-MAX_GAP = 1
+# The length band and search limits can be overridden through the environment (the curriculum
+# pools, `../curriculum/`, build 7-9, 10-12 and 13-15-line bands with the same gates); the
+# defaults are hard712's.
+MIN_L, MAX_L = int(os.environ.get("PFG_MIN_L", "7")), int(os.environ.get("PFG_MAX_L", "12"))
+MAX_GAP = int(os.environ.get("PFG_MAX_GAP", "1"))
 NEC_EXTRA = 2
-SEARCH_SECS = 20.0
-NEC_SECS = 20.0
+SEARCH_SECS = float(os.environ.get("PFG_SEARCH_SECS", "20"))
+NEC_SECS = float(os.environ.get("PFG_NEC_SECS", "20"))
 MAX_IRRELEVANT = 2
 TEXTBOOK = "/scratch/cowifornia/nd-rl/think/nd-takehome/data/eval_only/textbook72"
 ELIM = {"ANDE1", "ANDE2", "IMPE", "NEGE", "BOTE", "DN", "ORE"}
