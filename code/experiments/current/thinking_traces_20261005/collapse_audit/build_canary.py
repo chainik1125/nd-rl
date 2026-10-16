@@ -19,6 +19,13 @@ premise-order-invariant key; a record is out when either key matches):
   sealed-set files only (the index also holds the candidate pools themselves).
 * duplicates within the pools (the same atom-renaming class twice) keep the first.
 The report (`<out>.meta.json`) gives both checks per set, which must be zero for the kept rows.
+
+`--skip_missing` (rebuild on ynez, 2026-10-13; off by default, which keeps the original
+behaviour of failing on any missing input): sealed files that do not exist are left out of the
+fresh index and listed under `missing_sealed_files`, and a missing old index skips the cross-check
+(`old_index.missing`). Neither can change the kept rows of a pool that had no sealed-set hit with
+them: dropping an index file only removes hits, and the old index's hits are limited to sealed
+files the fresh index also holds.
 """
 
 from __future__ import annotations
@@ -81,13 +88,25 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n\n")[0])
     ap.add_argument("--out", required=True)
     ap.add_argument("--min_hyp", type=int, default=MIN_HYP)
+    ap.add_argument("--old_index", default=OLD_INDEX)
+    ap.add_argument(
+        "--skip_missing",
+        action="store_true",
+        help="leave missing sealed files out of the fresh index and skip a missing old index "
+        "(both recorded in the meta)",
+    )
     a = ap.parse_args(argv)
     files = {f: s for s, fs in SEALED.items() for f in fs}
     missing = [f for f in files if not os.path.exists(f)]
-    assert not missing, f"sealed files missing: {missing}"
+    assert a.skip_missing or not missing, f"sealed files missing: {missing}"
+    files = {f: s for f, s in files.items() if f not in missing}
     fresh = build_index(list(files))
-    with open(OLD_INDEX, "rb") as fh:
-        old = pickle.load(fh)
+    old_missing = a.skip_missing and not os.path.exists(a.old_index)
+    if old_missing:
+        old: dict[str, Any] = {"keys": {}, "pkeys": {}, "manifest": []}
+    else:
+        with open(a.old_index, "rb") as fh:
+            old = pickle.load(fh)
     old_sealed = {m["file"] for m in old["manifest"]} & set(files)
     seen: set[str] = set()
     excl: dict[str, collections.Counter[str]] = {"fresh": collections.Counter()}
@@ -154,8 +173,13 @@ def main(argv: list[str] | None = None) -> int:
             for s, p in SOURCES.items()
         },
         "sealed_files": {s: fs for s, fs in SEALED.items()},
+        "missing_sealed_files": missing,
         "fresh_index_manifest": fresh["manifest"],
-        "old_index": {"path": OLD_INDEX, "sealed_files_in_it": sorted(old_sealed)},
+        "old_index": {
+            "path": a.old_index,
+            "missing": old_missing,
+            "sealed_files_in_it": sorted(old_sealed),
+        },
         "exclusion_hits_by_set": {k: dict(v) for k, v in excl.items()},
         "kept_rows_hitting_a_sealed_set": recheck,
         "counts": dict(stats),
