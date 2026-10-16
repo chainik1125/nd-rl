@@ -13,6 +13,10 @@ from code.ndbench.logic.skills import classical, necessity, needs_depth, needs_o
 
 from ._fixtures import load_valid_proofs
 
+# `classical` runs the vendored `intuit.py`, which raises the recursion limit at import: run at that
+# limit and restore it afterwards (conftest.py).
+pytestmark = pytest.mark.usefixtures("intuit_recursion_limit")
+
 # ------------------------------------------------------------------------------------ classical
 
 

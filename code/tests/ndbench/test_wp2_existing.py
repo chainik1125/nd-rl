@@ -21,6 +21,10 @@ from code.ndbench.logic.certify import MinlenCertifier
 from code.ndbench.store import Store
 from code.ndbench.suites import existing
 
+# `classical` runs the vendored `intuit.py`, which raises the recursion limit at import: run at that
+# limit and restore it afterwards (conftest.py).
+pytestmark = pytest.mark.usefixtures("intuit_recursion_limit")
+
 #: `existing`'s builders return `dict[str, JSON]` stats (the plan's builder contract); tests dig
 #: into nested stats freely, which the recursive `JSON` union makes painful for pyright to follow
 #: through plain indexing. `_build`/`_import_legacy` narrow the result to `dict[str, Any]` once,
