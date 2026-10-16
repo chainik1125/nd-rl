@@ -1,5 +1,5 @@
 #!/bin/bash
-# all.sh: dry-run every GRPO v2 arm (the L3 pilots, ARM_mb, ARM_fbb, ARM_mb_kKNOB and EI ARM_kKNOB too), seeds 0-2, normal and SMOKE=1, plus the refusals and queue.sh; results under
+# all.sh: dry-run every GRPO v2 arm (the L3 pilots, ARM_mb, ARM_fbb, ARM_mb_kKNOB, EI ARM_kKNOB, the mini runs and ARM_ckreads too), seeds 0-2, normal and SMOKE=1, plus the refusals and queue.sh; results under
 # $H/res/. No python, no GPU (make.sh's stubs). Then check.py compares the records with the transcript evidence.
 #   bash make.sh [DIR] && bash all.sh && python3 check.py
 H=${DRY_HOME:-/scratch/cowifornia/nd-rl/think/dry}  # outputs and the built harness
@@ -61,6 +61,19 @@ EKREF=(ei_think_v_kfoo ei_think_v_k ei_think_v_kx66 ei_think_v_kp3 ei_think_v_k3
        ei_think_v_kr2_k3p ei_think_v_h_krr ei_think_v_b_k3p ei_think_v_c_kr2 ei_think_v_wb_kt10 ei_think_v_rfb_krr
        ei_think_v_fbb_kret0 ei_think_v_mb_k3p ei_nothink_v_mb_kret0 grpo_think_v_k3p grpo_think_vs_kret0 grpo_nothink_v_kt10
        grpo_think_kr2 grpo_think_vs_krr grpo_nothink_vs3_k3p grpo_think_vs_mb_kret0)
+# the mini runs (2026-10-16): grpo_think_vs_mini and each of its knobs, with the mini subsets and their pass record (a
+# setup); refused: another base arm, a suffix before _mini, another knob or anything after it, KNOB_FULL=1 (MREF), a
+# missing subset, no pass record, a stale one; ARM_ckreads: a GRPO knob pilot's checkpoints (a setup: its base arm's L2,
+# its L3 checkpoints, the pilot reads there); refused for other arms, i78, KNOB_FULL=1 (CKREF), without the finished L3
+MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 kl1 g64)
+MARMS=(grpo_think_vs_mini "${MKNOBS[@]/#/grpo_think_vs_mini_k}")
+MREF=(grpo_think_mini grpo_nothink_vs_mini grpo_think_vs_h_mini grpo_think_vs_mb_mini grpo_think_vs_mb_kkl0_mini ei_think_v_mini
+      grpo_think_vs_mini_kfoo grpo_think_vs_mini_k grpo_think_vs_mini_kt07_krr grpo_think_vs_mini_kt07_h grpo_think_vs_mini_h
+      grpo_think_vs_mini_kx66 grpo_think_vs_mini_kkl0 grpo_think_vs_mini_mini grpo_think_vs_mini_kg64_mini grpo_think_vs_mini_ku1
+      grpo_think_vs_mini_kg8 grpo_think_vs_mini_klp5 grpo_think_vs_mini_klp100 grpo_think_vs_mini_klpx1 grpo_think_vs_mini_klpm
+      grpo_think_vs_mini_klp00 grpo_think_vs_mini_klpm00)
+CKREF=(grpo_think_vs_ckreads grpo_think_vs_mb_ckreads grpo_think_vs_mb_ki78_ckreads ei_think_v_krr_ckreads
+       grpo_think_vs_mini_ckreads grpo_think_vs_mini_kt07_ckreads grpo_think_vs_mb_kfoo_ckreads)
 MODES=(normal smoke); SEEDS=(0 1 2)
 OKLOG='guard it 39: kl anchor 0.0004 x 0.02 (gn policy 0.014); lr x1 (0 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
 RBLOG='guard it 39: kl anchor 0.0006 x 0.02 (gn policy 0.013); lr x0.5 (1 rollbacks); capped B0 0.0% B64 0.0% B256 0.0%'
@@ -100,10 +113,29 @@ donesetup() {  # SETUP MODE SEED ARM CKPT [SET_K...]: append ARM's training reco
     echo "mkdir -p \"\$SB/$o\" && : > \"\$SB/$o/rows_plain_B$rb.jsonl\"" >> $su
   done; }
 
+minisetup() {  # NAME [nosub|nopass|stale] -> a SETUP file: the mini subsets (10 rows each) and their pass record (each
+  local f=$H/setups/$1.sh m='$SB/runs/pools/mini' x  # subset's md5); nosub: no 3-premise subset, nopass: no pass record,
+  mkdir -p $H/setups                                # stale: the L3 subset changed after its record
+  { echo "mkdir -p \"$m\""
+    for x in L2_mini L3_mini L3_3p_mini; do
+      echo "for i in 1 2 3 4 5 6 7 8 9 10; do echo \"{\\\"dry\\\": \\\"$x row \$i\\\"}\"; done > \"$m/$x.jsonl\""
+    done
+    [ "${2:-}" = nopass ] \
+      || echo "for x in L2_mini L3_mini L3_3p_mini; do echo \"PREFLIGHT PASSED \$(md5sum < \"$m/\$x.jsonl\" | cut -c1-32) \$x.jsonl\"; done > \"$m/preflight_pass.txt\""
+    [ "${2:-}" = nosub ] && echo "rm \"$m/L3_3p_mini.jsonl\""  # after its pass record
+    [ "${2:-}" = stale ] && echo "echo '{\"dry\": \"another row\"}' >> \"$m/L3_mini.jsonl\""
+    echo true; } > $f
+  echo $f; }
+ckrsetup() {  # SETUP MODE SEED ARM IT...: append ARM's L3 rolling checkpoints at each IT (with donesetup: its finished L3)
+  local su=$1 mode=$2 seed=$3 a=$4 c=runs/grpo_v2 i
+  shift 4; [ $mode = smoke ] && c=runs/grpo_v2/smoke
+  for i in "$@"; do
+    echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L3/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L3/ckpts/${a}_s${seed}_L3_it${i}_rolling.pt\"" >> $su
+  done; }
 rm -rf "$H/res" "$H/setups"; t0=$(date +%s); n=0
 for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   for arm in "${BASE[@]}" "${HARMS[@]}" "${EIH[@]}" "${EIB[@]}" bogus_arm "${CARMS[@]}" "${WARMS[@]}" "${EIS[@]}" \
-             "${COMBO[@]}" "${PREF[@]}" "${FBREF[@]}" "${KREF[@]}" "${EKREF[@]}"; do
+             "${COMBO[@]}" "${PREF[@]}" "${FBREF[@]}" "${KREF[@]}" "${EKREF[@]}" "${MREF[@]}" "${CKREF[@]}"; do
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm"; n=$((n+1))
   done
   for arm in "${GRPO[@]}"; do
@@ -249,6 +281,57 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   donesetup $su $mode $seed grpo_think_vs_mb_kkl0 grpo_think_vs_mb_kkl0_s${seed}_L3_it$it.pt "${rk[@]}"
   DRY_KNOB_FULL=1 bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_kkl0 "$H/res/eiknob/$mode/s$seed/full_grpo_think_vs_mb_kkl0" $su
   n=$((n+15))
+  # the mini runs (2026-10-16), two stages from the Stage-1 init, with the subsets and their pass record
+  for arm in "${MARMS[@]}"; do
+    su=$(minisetup mini_${mode}_s${seed}_$arm)
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
+  done
+  # their refusals: no 3-premise subset, no pass record, a stale one; KNOB_FULL=1 (with the subsets there)
+  for x in nosub nopass stale; do
+    su=$(minisetup mini${x}_${mode}_s$seed $x)
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_kt07 "$H/res/refuse/$mode/s$seed/${x}_grpo_think_vs_mini_kt07" $su
+  done
+  su=$(minisetup minifull_${mode}_s$seed)
+  DRY_KNOB_FULL=1 bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini "$H/res/refuse/$mode/s$seed/full_grpo_think_vs_mini" $su
+  n=$((n+4))
+  # reruns (section N): L2-mini finished (only L3-mini and the reads run); both stages finished and two reads there (the
+  # other three run)
+  c=runs/grpo_v2; it=10; rm2=(l2test_8 charles173_64); [ $mode = smoke ] && { c=runs/grpo_v2/smoke; it=2; rm2=(l2test_2 charles173_2); }
+  a=grpo_think_vs_mini_klp20
+  su=$(minisetup minil2_${mode}_s$seed)
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it$it.pt\"" >> $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $a "$H/res/mini/$mode/s$seed/l2done_$a" $su
+  a=grpo_think_vs_mini_kg64
+  su=$(minisetup minidone_${mode}_s$seed)
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it$it.pt\"" >> $su
+  donesetup $su $mode $seed $a ${a}_s${seed}_L3_it$it.pt "${rm2[@]}"
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $a "$H/res/mini/$mode/s$seed/done_$a" $su
+  # MINI_ROLL (the time-resolved reads' hook): L2:4 and L3:2 there, L3:6 not (an alarm iteration: skipped)
+  a=grpo_think_vs_mini; i2=4; i3=2; [ $mode = smoke ] && i2=2
+  su=$(minisetup miniroll_${mode}_s$seed)
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" \"\$SB/$c/${a}_s${seed}_L3/ckpts\"" >> $su
+  echo ": > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it${i2}_rolling.pt\"" >> $su
+  echo ": > \"\$SB/$c/${a}_s${seed}_L3/ckpts/${a}_s${seed}_L3_it${i3}_rolling.pt\"" >> $su
+  DRY_MINI_ROLL="L2:$i2 L3:$i3 L3:6" bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $a "$H/res/mini/$mode/s$seed/roll_$a" $su
+  n=$((n+3))
+  # ARM_ckreads (section Q): the finished kl0 pilot (grpo_think_vs's L2, its L3's last and it10 / it20 / it30 rolling
+  # checkpoints, its three pilot reads); without it20; the t12 pilot, without its reads; refused without the finished
+  # L3, without the L2 checkpoint, with KNOB_FULL=1
+  it=39; [ $mode = smoke ] && it=2
+  for x in kl0:10_20_30 kl0:10_30 t12:10_20_30; do
+    k=${x%%:*}; a=grpo_think_vs_mb_k$k; its=${x#*:}
+    su=$(setup ckr${k}${its}_${mode}_s$seed $mode $seed grpo_think_vs yes "$OKLOG")
+    if [ $k = kl0 ]; then donesetup $su $mode $seed $a ${a}_s${seed}_L3_it$it.pt "${rk[@]}"
+    else donesetup $su $mode $seed $a ${a}_s${seed}_L3_it$it.pt; fi
+    ckrsetup $su $mode $seed $a ${its//_/ }
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed ${a}_ckreads "$H/res/ckreads/$mode/s$seed/${k}_${its}_${a}_ckreads" $su
+  done
+  su=$(setup ckrnol3_${mode}_s$seed $mode $seed grpo_think_vs yes "$OKLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_kkl0_ckreads "$H/res/refuse/$mode/s$seed/nol3_grpo_think_vs_mb_kkl0_ckreads" $su
+  su=$(setup ckrnockpt_${mode}_s$seed $mode $seed grpo_think_vs no "$OKLOG")
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_kkl0_ckreads "$H/res/refuse/$mode/s$seed/nockpt_grpo_think_vs_mb_kkl0_ckreads" $su
+  DRY_KNOB_FULL=1 bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mb_kkl0_ckreads "$H/res/refuse/$mode/s$seed/full_grpo_think_vs_mb_kkl0_ckreads"
+  n=$((n+6))
   for x in L3 L2; do for arm in grpo_think_vs_3pb grpo_think_vs3 grpo_nothink_vs3; do
     su=$(setup no3p${x}_${mode}_s${seed}_$arm $mode $seed grpo_think_vs yes "$OKLOG")
     echo "rm -f \"\$SB/runs/pools/curriculum_3p/${x}_3p.jsonl\"" >> $su
@@ -271,6 +354,11 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_nothink_vs3_wb "$H/res/refuse/$mode/s$seed/nolog_grpo_nothink_vs3_wb" $su
   n=$((n+6))
 done; done
+# the mini reference at seed 3: its init is S1g3_s0 whatever the seed (the sandbox has no seed-3 init)
+for mode in "${MODES[@]}"; do
+  su=$(minisetup mini3_$mode)
+  bash "$D/run.sh" "$H/line.sh.dry" $mode 3 grpo_think_vs_mini "$H/res/$mode/s3/grpo_think_vs_mini" $su; n=$((n+1))
+done
 # seed 3 has no Stage-1 init in the sandbox; usage error
 bash "$D/run.sh" "$H/line.sh.dry" normal 3 grpo_think "$H/res/refuse/normal/s3/grpo_think"
 bash "$D/run.sh" "$H/line.sh.dry" normal "" "" "$H/res/refuse/normal/usage"

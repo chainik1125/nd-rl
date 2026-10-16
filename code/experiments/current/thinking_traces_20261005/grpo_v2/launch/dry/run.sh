@@ -16,6 +16,7 @@ envs=(HOME="$HOME" USER="$USER" LOGNAME="$USER" PATH="$H/stubs:/usr/local/bin:/u
 [ -n "${DRY_GPU_MEM:-}" ] && envs+=(DRY_GPU_MEM="$DRY_GPU_MEM")  # a busy GPU for waitfree
 [ -n "${DRY_GPU_PID:-}" ] && envs+=(DRY_GPU_PID="$DRY_GPU_PID")
 [ -n "${DRY_KNOB_FULL:-}" ] && envs+=(KNOB_FULL="$DRY_KNOB_FULL")  # a knob arm's full reads (2026-10-16)
+[ -n "${DRY_MINI_ROLL:-}" ] && envs+=(MINI_ROLL="$DRY_MINI_ROLL")  # a mini run's rolling-checkpoint reads (2026-10-16)
 : > "$H/run/rec.tsv"
 if [ "$script" = queue ]; then  # run.sh queue MODE - - RESDIR [SETUP] -- QUEUE ARGS...: queue.sh.dry instead of a line
   shift 6; [ "${1:-}" = -- ] && shift

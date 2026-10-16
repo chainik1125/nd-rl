@@ -15,7 +15,14 @@ attempt counts.
   are drawn rarely, but the floor brings them back as the policy changes. Plain arm, temperature
   T = `--temperature` (1.0 by default, the usual RLVR choice; evals sample at 0.8).
 * **Reward.** 1 if Lean accepts the whole proof, else 0. A success pays `--len_penalty` per 1,000
-  sampled tokens (think + action, all steps): the shortness pressure.
+  sampled tokens (think + action, all steps): the shortness pressure (negative: a bonus for
+  length). An all-solved group's rewards then differ by length alone: such a group is
+  *length-only* (2026-10-16). It is trained, its attempts' items are kind 'len', and it has no
+  outcome signal: the unlikeliness reward and `--refill` read the outcomes without the penalty
+  (`group_items`), and the loss divides by the other items' tokens, so the length term comes on
+  top of the outcome signal, as the step penalty does, instead of diluting it (`policy_loss`'s
+  `on_top`). `row['len_only']` (with the penalty only): the length-only groups, their items and
+  tokens. With `--len_penalty 0` none of this changes anything.
 * **Length target** (LCPO, L1: Aggarwal & Welleck 2025, arXiv 2503.04697; off by default). With
   `--len_target_coef` alpha > 0 every attempt at a budget B > 0, failures included, also pays
   alpha x d, d = the mean over its think blocks of min(1, d_b), d_b = |L_b - T| / T
@@ -174,7 +181,8 @@ skipped). Without them the rollouts, rows, log lines, weights and args.json are 
 (digests in test_grpo_pilots.py); the options are left out of args.json unless given.
 * **Refill** (`--refill`; dynamic sampling, DAPO: Yu et al. 2025, arXiv 2503.14476; Olmo 3's active
   sampling). A group has an outcome signal when its unmasked rewards are not all equal (not all
-  solved, not all failed). While fewer than `--prompts` of the iteration's groups have one and
+  solved, not all failed; `--len_penalty` left out: a length-only group has none). While fewer
+  than `--prompts` of the iteration's groups have one and
   fewer than `--refill_max` (2) extra rounds have run, another round of pairs is drawn with the same
   curricula and weights (updated with the groups so far; pairs already drawn this iteration
   excluded; `--targets_extra_frac` of them from the extra file) and sampled: ceil(D / q) pairs, at
@@ -201,8 +209,9 @@ skipped). Without them the rollouts, rows, log lines, weights and args.json are 
   (G - rank(y_i)) / G) with rank 1 the most likely of the G samples (its text also says "rank 0";
   the released code, `ray_lean_trainer._compute_advantages`, uses rank = argsort(argsort(log p))
   ascending / G, which is rho / n). Only groups with an outcome signal change: the paper skips
-  groups with zero advantage before the perturbation, so an all-solved group stays skipped and
-  the outcome still sets each attempt's sign. The advantage stays r - the group mean (Dr. GRPO;
+  groups with zero advantage before the perturbation, so an all-solved group stays skipped (with
+  `--len_penalty`, length-only: no deduction) and the outcome still sets each attempt's sign.
+  The advantage stays r - the group mean (Dr. GRPO;
   the paper divides by the std). The likelihood is the mean log pi_old per scored token of the
   attempt's steps (`old_logps`, the PPO ratio's log-probs, so no extra forward pass): every
   sampled think and action token, under the phase masks at T, the draw that ended a failed attempt
@@ -590,6 +599,9 @@ def group_items(
     length target (`rewards`). `signal`, when given, gets whether the outcomes give a signal (the
     unmasked rewards are not all equal). `unlikely`: per attempt a deduction from its reward (the
     unlikeliness reward, `unlikely_penalties`), applied only when the outcomes give a signal.
+    The outcome signal leaves `len_penalty` out: a group whose rewards differ only by it (all
+    solved, unequal lengths) is length-only, trained on the penalty's advantages alone, with no
+    signal and no deduction; its attempts' items are kind 'len' (`src`; module docstring).
 
     Step penalty (`rej_penalty` P > 0, a guided arm): every rejected draw gets -P on top of what
     its attempt gives it -- the redrawn draws (`rejected_items`, of every attempt, masked ones
@@ -597,16 +609,21 @@ def group_items(
     ended a failed attempt. A group is then skipped only if its outcomes give no signal AND it
     has no rejected draw; a no-signal group with rejected draws gives only the penalised draws
     (and the attempt-ending ones). `src`, when given, gets one (attempt index, kind) per item:
-    'acc' an attempt's steps, 'rej' a redrawn draw."""
+    'acc' an attempt's steps, 'len' a length-only group's, 'rej' a redrawn draw."""
     assert overlong in ("mask", "fail"), overlong
     masked = [overlong == "mask" and is_overlong(x) for x in att]
     ids = (tok.think, tok.end_think) if len_target_coef and has_think(tok) else None
     r = rewards(att, len_penalty, len_target_coef, len_target_mode, ids, len_target_frac)
     keep = [not m for m in masked]
     adv = advantages(r, keep)
+    sig = adv is not None  # the outcome signal: the rewards without the length penalty differ
+    if len_penalty and sig:
+        r0 = rewards(att, 0.0, len_target_coef, len_target_mode, ids, len_target_frac)
+        sig = advantages(r0, keep) is not None
+    kind = "acc" if sig or adv is None else "len"  # a length-only group's steps: 'len'
     if signal is not None:
-        signal.append(adv is not None)
-    if adv is not None and unlikely is not None:  # the skip rule reads the rewards before it
+        signal.append(sig)
+    if sig and unlikely is not None:  # the skip rule reads the rewards before it
         adv2 = advantages([x - u for x, u in zip(r, unlikely, strict=True)], keep)
         adv = adv if adv2 is None else adv2
     pen = rej_penalty > 0 and any(n_rejected(x) for x in att)
@@ -621,7 +638,7 @@ def group_items(
                 its = [it for it in attempt_items(x, 0.0, tok, -rej_penalty) if it[3] != 0.0]
             items += its
             if src is not None:
-                src += [(j, "acc")] * len(its)
+                src += [(j, kind)] * len(its)
         if pen:
             rj = rejected_items(x, rej_penalty, tok, rej_scope)
             items += rj
@@ -894,6 +911,7 @@ def policy_loss(
     bans: Bans | None = None,
     dual_clip: float = 3.0,
     rejected: Sequence[bool] | None = None,
+    on_top: Sequence[bool] | None = None,
 ) -> LossStats:
     """Backpropagate the policy-gradient loss over `items`, as a token-level mean.
     Without `old`: -A * log pi_T (REINFORCE). With `old` (`old_logps` of the sampling policy, one
@@ -905,17 +923,24 @@ def policy_loss(
     the step penalty scores) adds clip-low over the other items' tokens (`clip_low_acc`), the
     basis of the clip-low alarms when the penalty is on, and makes the loss a sum over every
     scored token divided by the accepted items' token count, so the penalised draws do not dilute
-    the accepted tokens' per-token weight (plain GRPO's)."""
+    the accepted tokens' per-token weight (plain GRPO's). `on_top` (one flag per item: a
+    length-only group's, `group_items`) leaves those items' tokens out of that count too, so the
+    length penalty's gradient comes on top as well; they stay in clip-low's accepted tokens."""
     assert old is None or len(old) == len(items), "old log-probs must align with the items"
+    assert on_top is None or len(on_top) == len(items), "on_top must align with the items"
     n_tok = sum(sum(m) for _, _, m, _ in items)
     if n_tok == 0:
         return LossStats()
     # the loss is a mean over the accepted items' tokens when `rejected` flags the penalised draws:
     # an accepted token weighs what it weighs in plain GRPO, the penalised draws come on top
     n_norm = n_tok
-    if rejected is not None:
+    if rejected is not None and on_top is None:
         n_norm = sum(sum(m) for (_, _, m, _), r in zip(items, rejected, strict=True) if not r)
         n_norm = n_norm or n_tok  # a minibatch of penalised draws only: their own mean
+    elif on_top is not None:  # and the length-only groups' items (--len_penalty)
+        out = [bool(t) or bool(rejected is not None and rejected[k]) for k, t in enumerate(on_top)]
+        n_norm = sum(sum(m) for (_, _, m, _), o in zip(items, out, strict=True) if not o)
+        n_norm = n_norm or n_tok  # a minibatch of those only: their own mean
     total = ent_sum = ent_think = ban_sum = ban_max = 0.0
     r_max = 1.0 if old is None else 0.0
     n_low = n_high = n_think = n_neg = n_r3 = n_bad = 0
@@ -2125,6 +2150,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 bans=bans,
                 dual_clip=a.dual_clip,
                 rejected=[item_src[k][2] == "rej" for k in sel] if a.rej_penalty else None,
+                on_top=[item_src[k][2] == "len" for k in sel] if a.len_penalty else None,
             )
             if st.tokens:
                 kl = 0.0
@@ -2255,6 +2281,19 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 per, [target_length(t) for t in batch], skipped, items, item_src, think_ids, samp_st
             )
             row["monitor"]["arm"], row["monitor"]["rej_penalty"] = a.arm, a.rej_penalty
+        # --len_penalty: the length-only groups, trained on the penalty alone, on top of the loss
+        if a.len_penalty:
+            lo = [
+                (g, sum(x[2])) for x, (g, _, kd) in zip(items, item_src, strict=True) if kd == "len"
+            ]
+            row["len_only"] = {
+                "groups": len({g for g, _ in lo}),
+                "items": len(lo),
+                "tokens": sum(n for _, n in lo),
+                "token_share": sum(n for _, n in lo) / max(1, sum(sum(x[2]) for x in items)),
+            }
+            if a.monitor:
+                row["monitor"]["len_only_groups"] = row["len_only"]["groups"]
         if fb != "none":  # the feedback summary (`feedback.metrics`), every sampled attempt
             assert samp_st is not None
             row["feedback"] = FB.metrics(
@@ -2363,6 +2402,14 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             print(_canary_line(it, row["canary"]), flush=True)
         if "monitor" in row:
             print(_monitor_line(it, row["monitor"]), flush=True)
+        if "len_only" in row:
+            lo = row["len_only"]
+            print(
+                f"len it {it}: {lo['groups']} length-only groups of {len(per)} (all solved: "
+                f"--len_penalty {a.len_penalty:g} alone), {lo['items']} items, "
+                f"{100 * lo['token_share']:.1f}% of the scored tokens, outside the loss's divisor",
+                flush=True,
+            )
         if "feedback" in row:
             print(f"fb it {it}: " + FB.line_text(row["feedback"]), flush=True)
         for line in _pilot_lines(it, row):

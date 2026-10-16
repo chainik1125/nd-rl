@@ -207,6 +207,42 @@ Paths are serrano's. Changes, all of them:
       In the dry run, all checks pass. Of 17cd1e6a's 1,940 result dirs, only the 18 where an `r2` L3 stage runs
       differ, in its command and launch line alone (`--ft_steps 300`; `SMOKE=1`: 1 instead of 3). A CPU smoke of
       `ei_think_v_kr2`, then `KNOB_FULL=1` and a rerun, ran 2 x 1 fine-tune step.
+12. `leon/grpo-v2` (2026-10-16, not yet installed): the mini runs and the checkpoint reads (`../README.md`, "Mini runs").
+    - `grpo_think_vs_mini[_kKNOB]`: L2-mini then L3-mini, 10 iterations each, from `S1g3_s0` at every seed, on
+      `runs/pools/mini` (`grpo_v2/build_mini.py`; refused without the subsets or with a subset that differs from its
+      pass record). Both commands come from `grpo_stage`.
+      - L2-mini is `grpo_think_vs`'s L2 and L3-mini `grpo_think_vs_mb_kkl0`'s L3. They differ only in `--iters` /
+        `--save_every`, the subsets, `--save_rolling 2`, the 2 h timeout (watchdog 1 h) and L3-mini's init (L2-mini's
+        `_it10`).
+      - New variables keep every earlier command byte for byte: `TO2` / `WH2` (stage L2's timeout and watchdog, the
+        former literals), `KL3` (stage L3's KL coefficient when set), `ROLL` (`--save_rolling`, empty), `$mk` (the mini
+        knob). `init0` is fixed to `S1g3_s0` for the mini arms. In `SMOKE=1` the 3-premise subset gets its head even
+        without an L2 extra file.
+      - Knobs: `rr`, `t07` `t085` `t115` `t13`, `lpNN` / `lpmNN` (`--len_penalty` ±NN/100), `kl1` (L3-mini only), `g64`.
+      - Reads: `MINI_READS` of L3-mini's last checkpoint (`l2test` k8, `l3test` k8, t1320 k8, t2130 k8, charles173
+        k64). `MINI_ROLL` (env) adds the `MINI_PANEL` reads of rolling checkpoints. After each stage the line logs its
+        `ALARM` lines and rollback count (`stage_alarms`).
+    - `ARM_mb_kKNOB_ckreads`: `CKR_READS` of a finished GRPO knob pilot at it0 (its L2 init), it10 / it20 / it30
+      (rolling) and it39 (its own names), skipping the reads already there. It writes `ckreads_commit.txt`, runs no
+      preflight and trains nothing.
+    - Refused: another base arm, another or a second knob, `lp00`, anything after the knob, `KNOB_FULL=1`; for
+      `_ckreads`: a non-knob or EI arm, `_ki78`, `KNOB_FULL=1`, no finished L3, no L2 checkpoint.
+    - grpo.py: `--len_penalty`'s length-only groups (no outcome signal; on top of the loss's divisor; `row['len_only']`).
+      At lp 0 nothing changes: c4b8548's digests hold for `plain` and for the new `mixed0`.
+    - `pull_queue.sh` runs these unchanged (`grpo_think_vs_mini_klpm10:0` and `grpo_think_vs_mb_kkl0_ckreads:0` match
+      `[a-z0-9_]+:[0-9]+`).
+    - `dry/run.sh` passes `DRY_MINI_ROLL` on as `MINI_ROLL`. `dry/all.sh` and `dry/check.py` cover all of it in sections
+      M (every mini arm at seeds 0-2 and the reference at 3, against `expect()` and against the full recipe's commands),
+      N (reruns, `MINI_ROLL`), Q (`_ckreads`) and B (the refusals). That is 2,272 result dirs, and all checks pass.
+      All 1,940 result dirs of 765161f9's harness match its output (exit, stdout, call records, trees, md5s, logs),
+      with pids and the two harness homes normalised, the racing background calls compared as a multiset, and the
+      launcher copy's md5 and the records' environment hash (it holds the harness home) dropped.
+    - Smoke (`SMOKE=1`, CPU, a scratch runs root): the reference at seeds 0 and 3 (both from `S1g3_s0`), each knob, a
+      rerun (nothing runs), `MINI_ROLL` (its 2-iteration stages have no rolling checkpoint: all three skipped), and four
+      refusals. All ran as described. The `len it` lines show the length-only groups (`lpm10` it 1: 1 of 4 groups, no
+      unlikeliness ranking there), `kl1`'s L3 has the anchor at 0.1 and its L2 at 0.02, and `t13`'s L3 raised the think
+      ban alarm at its first iteration (mass 2.0e-3 against a restore point at 2.1e-3: no rollback, as the restore check
+      says).
 
 Checked and left alone:
 
