@@ -485,7 +485,7 @@ fine-tune. Each knob changes one setting, set in `line.sh`'s knob block and nowh
 | `3p` | `--targets runs/pools/curriculum_3p/L3_mix_ei.jsonl`: 3,333 L3 pool rows and 1,667 L3 3-premise rows (below) |
 | `ret0` | `--retain 0`: the fine-tune mix is the found proofs alone (ei.py's default adds 20,000 Stage-1 records) |
 | `t10` | `--temperature 1.0` for the training samples (0.8); the reads stay at 0.8 |
-| `r2` | `--rounds 2 --k 16`: the same 160k attempts in two rounds, each followed by its fine-tune; the stage ends at `_r2.pt` |
+| `r2` | `--rounds 2 --k 16 --ft_steps 300`: the same 160k attempts and 600 fine-tune steps, in two rounds of 80k and 300 (below); the stage ends at `_r2.pt` |
 
 **Reads.** The GRPO knob pilots' reads: plain only, on t1320 (k 16), t2130 (k 8) and charles173 (k 64), under the
 full arm name (`eval/v2/<set>_ARM_kKNOB_sSEED_plain_k<k>/`). Knob selection never sees textbook72, so there is no
@@ -529,15 +529,20 @@ round, so `3p` gets the same share from a fixed file instead.
 - `r2`: within one invocation, round 2 loads round 1's checkpoint. It samples 5,000 x 16 again (round seed
   `seed * 1000 + 2`) and adds the new proofs to round 1's. `found_2.jsonl` is cumulative, one entry per action
   sequence, and with `--select shortest` a shorter think variant replaces the kept one. Round 2 then fine-tunes `_r1`
-  again: another full 600-step schedule from lr 3e-4, on the cumulative picks plus a fresh 20,000 retained records.
-  - So `r2` doubles the fine-tune compute (1,200 steps against 600), and the sampled attempts stay at 160k.
+  again, on the cumulative picks plus a fresh 20,000 retained records.
+  - `--ft_steps 300` (a follow-up the same day) makes each round's fine-tune 300 steps, so the two total one round's
+    600, as the sampled attempts total one round's 160k. The difference meant to be tested is that round 2 samples
+    from `_r1` (more on-policy). The code also differs in three smaller ways. The lr schedule is two cycles (each
+    fine-tune has ei.py's 50-step warmup and its cosine from 3e-4 to 3e-5) instead of one. Each fine-tune draws
+    300 x 128 records from its mix, instead of 600 x 128 once. Round 2's mix is the cumulative picks with a fresh
+    retained sample.
   - `line.sh` does not resume. An interrupted `r2` stage reruns from round 1 on the next launch, because an `_r1.pt`
     alone does not end the stage. ei.py could resume (`--resume --start_round 2` reads `found_1.jsonl` and `_r1.pt`),
     but the other EI stages do not use it either.
-  - Timeout: ei_think_v s0's one-round L3 took 7,709 s on ynez, of which the fine-tune was 1,723 s. `r2` adds about
-    one more fine-tune and a checkpoint load, so about 9,500 s. The slowest one-round EI L3 so far (ei_think_v s2,
-    11,838 s, fine-tune 1,748 s) would come to about 13,600 s. Both are inside the stage's 21,600 s timeout. The
-    watchdog keeps EI's 4 h expectation, so its OVERRUN alert comes at 6 h, the same as the timeout.
+  - Timeout: the attempts and fine-tune steps are one round's, plus a second checkpoint load and round setup, so
+    `r2` should take about as long as ARM's one-round L3: 7,709 s for ei_think_v s0 on ynez, and 11,838 s for the
+    slowest so far (ei_think_v s2). That is well inside the stage's 21,600 s timeout. The watchdog keeps EI's 4 h
+    expectation, so its OVERRUN alert comes at 6 h, the same as the timeout.
 
 ```
 bash line.sh GPU 0 ei_think_v_k3p    # L3 of ei_think_v seed 0 on the mix, from runs/grpo_v2/ei_think_v_s0_L2

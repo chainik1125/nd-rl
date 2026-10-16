@@ -179,11 +179,11 @@ Paths are serrano's. Changes, all of them:
     | `3p` | `--targets` the fixed L3 + 3-premise mix `runs/pools/curriculum_3p/L3_mix_ei.jsonl` (`T3`; `SMOKE=1`: its first 8 rows) |
     | `ret0` | `--retain 0` (`RT3`; the default passes none, ei.py's 20,000; `SMOKE=1` passes 64) |
     | `t10` | `--temperature 1.0` (`ET`, training samples only; 0.8) |
-    | `r2` | `--rounds 2 --k 16` (`RD3`, `K3`; `SMOKE=1`: k 1). The stage ends at, and the reads take, `_r2.pt` (`ck` and `ei_stage`) |
+    | `r2` | `--rounds 2 --k 16 --ft_steps 300` (`RD3`, `K3`, `FS3`: one round's attempts and fine-tune steps; `SMOKE=1`: k 1, 1 step a round). The stage ends at, and the reads take, `_r2.pt` (`ck` and `ei_stage`) |
 
-    - Every flag is in the command once: the smoke `--retain 64` moved out of `FT` into `RET`, so the existing EI
-      commands are unchanged. `ei_stage` takes stage L3's rounds, k, temperature and retain from the knob block, and
-      L2's are as before.
+    - Every flag is in the command once: the smoke `--ft_steps 3` and `--retain 64` moved out of `FT` into `FS` and
+      `RET` (in the same order), so the existing EI commands are unchanged. `ei_stage` takes stage L3's rounds, k,
+      temperature, retain and fine-tune steps from the knob block, and L2's are as before.
     - `3p` is refused while the mix is missing, or while its pass record
       (`L3_mix_ei.preflight_pass.txt`, from `grpo_v2/build_mix_ei.py`) does not name the mix's md5. At launch the
       mix also gets the extra-targets preflight (L2 pool vs the mix; only the band line may fail).
@@ -203,6 +203,10 @@ Paths are serrano's. Changes, all of them:
       multiset, and the sandbox launcher copy's md5 dropped.
     - Smoke (`SMOKE=1`, CPU, a scratch runs root with the inputs linked read-only): `ei_think_v`, then each of the
       five knobs, then `KNOB_FULL=1` and two reruns on `ei_think_v_kr2`, and four refusals. All ran as described.
+    - Follow-up (2026-10-16): `r2` adds `--ft_steps 300` (`FS3`), so its two fine-tunes total one round's 600 steps.
+      In the dry run, all checks pass. Of 17cd1e6a's 1,940 result dirs, only the 18 where an `r2` L3 stage runs
+      differ, in its command and launch line alone (`--ft_steps 300`; `SMOKE=1`: 1 instead of 3). A CPU smoke of
+      `ei_think_v_kr2`, then `KNOB_FULL=1` and a rerun, ran 2 x 1 fine-tune step.
 
 Checked and left alone:
 

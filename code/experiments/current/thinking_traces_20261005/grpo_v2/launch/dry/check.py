@@ -163,7 +163,11 @@ def eknob_diff(knob: str, smoke: bool) -> dict[str, tuple[str | None, str]]:
         "3p": {"--targets": (l3, m3)},  # SMOKE=1: the mix's first 8 rows
         "ret0": {"--retain": ("64" if smoke else None, "0")},
         "t10": {"--temperature": ("0.8", "1.0")},
-        "r2": {"--rounds": ("1", "2"), "--k": ("2", "1") if smoke else ("32", "16")},
+        "r2": {  # the same attempts and fine-tune steps in two rounds (SMOKE=1: halved, rounded down)
+            "--rounds": ("1", "2"),
+            "--k": ("2", "1") if smoke else ("32", "16"),
+            "--ft_steps": ("3", "1") if smoke else (None, "300"),
+        },
     }[knob]
 
 
@@ -464,12 +468,14 @@ def expect(
                 return ed[flag][1] if flag in ed else default
 
             ret = ekv("--retain", "64" if smoke else None)
+            fs = ekv("--ft_steps", "3" if smoke else None)
             a = (
                 f"21600 <PY> -m code.thinking.ei --init {init} --name {name} --out {C}/{name} --targets {ekv('--targets', targets)} "
                 f"--train <R>/data/{'S1g3' if think else 'T0S'}.pkl --rounds {ekv('--rounds', '1')} "
                 f"--k {ekv('--k', '2' if smoke else '32')} --temperature {ekv('--temperature', '0.8')} "
                 f"--arm {samp} --max_rej 10 --batch {batch} --seed {s} --max_steps 96 --select shortest {eff}"
-                + (" --ft_steps 3 --ft_recs 8" if smoke else "")
+                + (f" --ft_steps {fs}" if fs is not None else "")
+                + (" --ft_recs 8" if smoke else "")
                 + (f" --retain {ret}" if ret is not None else "")
             )
             kdesc = ""

@@ -69,11 +69,12 @@
 #        refused unless its pass record (M3P, written only when the build's preflight passed) names the mix's md5, and
 #        preflighted again at launch as the extra GRPO targets are; ret0 --retain 0 (ei.py's 20,000 Stage-1 records: the
 #        fine-tune mix is the found proofs alone); t10 --temperature 1.0 (training samples only; 0.8); r2 --rounds 2 --k 16
-#        (1 x 32: the same 160k attempts; round 2 samples from round 1's checkpoint and fine-tunes it again on the
-#        cumulative found proofs; the stage ends at, and the reads take, _r2.pt; the 6 h timeout holds the second
-#        fine-tune, ~1,700 s). Then ARM_mb_kKNOB's plain reads (KNOB_FULL=1: ARM's usual reads, as above). Every run, log
-#        and eval name keeps the full ARM_kKNOB. Another knob, any suffix before or after the knob, and an EI knob on a
-#        grpo_* ARM are refused.
+#        --ft_steps 300 (2 x 16 attempts and 2 x 300 fine-tune steps against 1 x 32 and 1 x 600: the same 160k attempts
+#        and 600 steps, so only how on-policy round 2's samples are differs; round 2 samples from round 1's checkpoint
+#        and fine-tunes it again on the cumulative found proofs; each fine-tune has its own warmup and cosine; the stage
+#        ends at, and the reads take, _r2.pt; about one round's time, inside the 6 h timeout). Then ARM_mb_kKNOB's plain
+#        reads (KNOB_FULL=1: ARM's usual reads, as above). Every run, log and eval name keeps the full ARM_kKNOB. Another
+#        knob, any suffix before or after the knob, and an EI knob on a grpo_* ARM are refused.
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -195,6 +196,7 @@ if [ $kind = think ]; then EFF="--effort --budgets 0,64,256"; RB=64; else EFF="-
 ITERS=39; PROMPTS=256; GROUP=16; K=32; BATCH=1024; FT=""; CAN="--canary_n 1000"; KLN=""; LIM=""; KS=(16 64 64 64 8)
 DEV=$g; MAXSTEPS_H14=160
 RET=""  # EI --retain (Stage-1 records in each fine-tune; empty: ei.py's 20,000)
+FS=""  # EI --ft_steps (each round's fine-tune; empty: ei.py's 600)
 MAXSTEPS=96  # training step cap, GRPO and EI alike (eval's value; v1 used the default 48, which 13-15-line
              # problems exceed in 3-6% of B64 attempts: capped attempts would raise false collapse alarms)
 if [ "$SMOKE" = 1 ]; then
@@ -203,17 +205,18 @@ if [ "$SMOKE" = 1 ]; then
   [ -s $C/L3_head.jsonl ] || cp $C/L2_head.jsonl $C/L3_head.jsonl
   L2=$C/L2_head.jsonl; L3=$C/L3_head.jsonl
   if [ -n "$X2" ]; then head -n 8 $X2 > $C/X2_head.jsonl; head -n 8 $X3 > $C/X3_head.jsonl; X2=$C/X2_head.jsonl; X3=$C/X3_head.jsonl; fi
-  ITERS=2; PROMPTS=4; GROUP=4; K=2; BATCH=16; FT="--ft_steps 3 --ft_recs 8"; RET=64
+  ITERS=2; PROMPTS=4; GROUP=4; K=2; BATCH=16; FT="--ft_recs 8"; FS=3; RET=64
   CAN="--canary_n 40"; KLN="--kl_anchor_n 16"; LIM="--limit 2"; KS=(2 2 2 2 2); DEV=""
   AVG_ITS=""  # a 2-iteration stage keeps no rolling checkpoint: ARM_mb's mean is of the last one alone
   waitfree() { :; }  # CPU only
 fi
 # ARM_mb_kKNOB, ARM_kKNOB (EI): the knob, set here only (stage L3; a knob arm has no L2 of its own). It overrides the
-# recipe's value (XFRAC, P, PROMPTS x GROUP, KLC, IT3; EI: T3, RT3, ET, RD3 x K3), or KF adds a flag the recipe leaves at
+# recipe's value (XFRAC, P, PROMPTS x GROUP, KLC, IT3; EI: T3, RT3, ET, RD3 x K3, FS3), or KF adds a flag the recipe leaves at
 # grpo.py's default: one copy of each flag.
 KLC=0.02  # --kl_anchor_coef, both stages
 KF=""; KD=""; IT3=$ITERS; TO3=21600; WH3=3.5  # stage L3: knob flags, their log text, iterations, timeout s, watchdog h
-T3=$L3; RT3=$RET; ET=0.8; RD3=1; K3=$K  # stage L3: targets; EI: --retain, sampling temperature, rounds x k per round
+T3=$L3; RT3=$RET; ET=0.8; RD3=1; K3=$K; FS3=$FS  # stage L3: targets; EI: --retain, sampling temperature, rounds x k
+                                                 # per round, fine-tune steps per round
 case $knob in
   x66) XFRAC=0.66; KD="--targets_extra_frac $XFRAC" ;;
   g64) if [ "$SMOKE" = 1 ]; then PROMPTS=2; GROUP=8; else PROMPTS=64; GROUP=64; fi  # the same attempts per iteration
@@ -230,7 +233,8 @@ case $knob in
       KD="--targets $(basename $T3)" ;;                                                               # its first 8 rows)
   ret0) RT3=0; KD="--retain $RT3" ;;  # the found proofs alone
   t10) ET=1.0; KD="--temperature $ET" ;;  # training samples only (the reads stay at 0.8)
-  r2) RD3=2; K3=$((K / 2)); KD="--rounds $RD3 --k $K3" ;;  # the same attempts (SMOKE=1: k 1); the stage ends at _r2
+  r2) RD3=2; K3=$((K / 2)); if [ "$SMOKE" = 1 ]; then FS3=1; else FS3=300; fi  # the same attempts and fine-tune steps
+      KD="--rounds $RD3 --k $K3 --ft_steps $FS3" ;;  # (SMOKE=1: k 1 and 1 step a round, for k 2 and 3); ends at _r2
 esac
 [ -n "$knob" ] && KD="knob $knob: $KD"
 if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil, ARM_kKNOB: $src's finished L2, from a run no rollback touched
@@ -280,14 +284,14 @@ grpo_stage() {  # NAME INIT TARGETS [EXTRA_TARGETS] -> ckpts/NAME_it$ITERS.pt (s
   wait $p; say "GRPO $n exit $?: $(grep -E '^it [0-9]+:' $L/v2_$n.log | tail -1 | cut -c1-150)"
   [ -f $last ]; }
 ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt (stage L3: _r$RD3)
-  local n=$1 O=$C/$1 rd=1 k=$K t=0.8 rt=$RET KT=""  # stage L3: ARM_kKNOB's values and their text
-  case $1 in *_L3) rd=$RD3; k=$K3; t=$ET; rt=$RT3; KT=$KD ;; esac
+  local n=$1 O=$C/$1 rd=1 k=$K t=0.8 rt=$RET fs=$FS KT=""  # stage L3: ARM_kKNOB's values and their text
+  case $1 in *_L3) rd=$RD3; k=$K3; t=$ET; rt=$RT3; fs=$FS3; KT=$KD ;; esac
   local last=$C/$1/ckpts/${1}_r$rd.pt
   [ -f $last ] && return 0; waitfree $g
   ( CUDA_VISIBLE_DEVICES=$DEV timeout 21600 "$PY" -m code.thinking.ei --init $2 --name $n --out $O --targets $3 \
       --train $R/data/$pkl --rounds $rd --k $k --temperature $t --arm $samp --max_rej 10 --batch $BATCH --seed $s \
       --max_steps $MAXSTEPS \
-      --select shortest $EFF $FT ${rt:+--retain $rt} > $L/v2_$n.log 2>&1 ) & local p=$!
+      --select shortest $EFF ${fs:+--ft_steps $fs} $FT ${rt:+--retain $rt} > $L/v2_$n.log 2>&1 ) & local p=$!
   sleep 5; say "launched EI $n ($samp${KT:+, $KT}) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log 4
   wait $p; say "EI $n exit $?: $(tail -1 $L/v2_$n.log | cut -c1-150)"
   [ -f $last ]; }
