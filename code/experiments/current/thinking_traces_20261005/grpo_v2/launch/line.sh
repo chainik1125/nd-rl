@@ -87,17 +87,27 @@
 #        the timeout (2 h, watchdog 1 h) differ. KNOB, in both stages unless said, set in the knob block below and
 #        nowhere else: rr nothing (the noise control); t07, t085, t115, t13 --temperature 0.7 / 0.85 / 1.15 / 1.3
 #        (training only); lpNN, lpmNN --len_penalty +NN / -NN hundredths (two digits: lp20 0.2, lpm10 -0.1; per 1,000
-#        sampled tokens of a success; grpo.py's length-only groups); kl1 --kl_anchor_coef 0.1 in L3-mini (0; L2-mini
-#        keeps 0.02: the full-scale kl1 pilot); g64 --prompts 64 --group 64 (the same attempts per iteration). After each
-#        stage its ALARM lines and rollbacks; then plain reads only (never textbook72): MINI_READS of L3-mini's last
-#        checkpoint, L2 and L3 test_1k k8, t1320 k8, t2130 k8, charles173 k64; with MINI_ROLL (env, none by default:
-#        STAGE:IT, e.g. "L2:4 L3:2 L3:6") also the MINI_PANEL reads of those rolling checkpoints. Refused: another base
-#        arm, another knob, anything after it, KNOB_FULL=1.
-#        ARM_mb_kKNOB_ckreads (2026-10-16; grpo_think_vs_mb_kkl0_ckreads asked for): no training; plain reads CKR_READS
-#        (L2 and L3 test_1k k8, t1320 k16, t2130 k8, charles173 k64) of the finished knob pilot's L3 at CKR_ITS: it0 (its
-#        init, the base arm's L2 checkpoint), the it10 / it20 / it30 rolling checkpoints (one missing: its reads skipped)
-#        and the last, under ARM_mb_kKNOB_itN (the last: ARM_mb_kKNOB, so its pilot reads are skipped); HEAD in
-#        ARM_mb_kKNOB_sSEED.ckreads_commit.txt. Refused for other arms, i78, without the finished L3, KNOB_FULL=1.
+#        sampled tokens of a success; grpo.py's length-only groups); g64b --prompts 64 --group 64 (the same attempts per
+#        iteration); pool250, pool500 the nested 250- / 500-row subsets of each stage's targets (and the same fraction
+#        of the 3-premise rows: the same attempts, more draws per row); size refused (a placeholder until its data is
+#        built). The controls kl1 (--kl_anchor_coef 0.1, 0 in the reference) and g64 (64 x 64) are L3-mini forks: from
+#        the reference's L2-mini at the same seed (its _it10.pt, also the KL anchor's reference), no L2-mini of their own;
+#        a fork waits up to 3 h for that L2-mini to finish (the checkpoint and its line's exit-0 line in pull_queue.sh's
+#        job log) and refuses one that did not end at lr x1 (0 rollbacks). After each stage its ALARM lines, rollbacks
+#        and, without its last checkpoint (--ban_stop's exit 3, a timeout), a FAILED line. Then plain reads only (never
+#        textbook72) of L3-mini's last checkpoint: MINI_READS (L2 and L3 test_1k k8, t1320 k8, t2130 k8, charles173
+#        k64); for the reference, rr and the pool arms also MINI_TRAIN (their own L2 / L3 training subsets, k8); for the
+#        t arms also MINI_PANEL at their training temperature (dirs ending _T07 ... _T13); with MINI_ROLL (env, none by
+#        default: STAGE:IT, e.g. "L2:4 L3:2 L3:6") MINI_PANEL of those rolling checkpoints. Refused: another base arm,
+#        another knob, anything after it, KNOB_FULL=1.
+#        ARM_ckreads (2026-10-16): no training; plain reads of a finished full GRPO L3 run that started from another
+#        arm's L2 (the knob pilots, ARM_mb, ARM_fbb, ...): CKR_PANEL (L2 and L3 test_1k k8, t1320 k4, t2130 k4,
+#        charles173 k16) of its rolling checkpoints at CKR_ITS (every 10 before its last; a missing one: the nearest
+#        earlier rolling one, said and recorded in ARM_ckreads_sSEED.ckpts.txt) under ARM_itN, and CKR_FINAL (the test_1k
+#        pair) of its last under ARM (its pilot reads are there). Its it0, the base arm's L2 checkpoint, is shared:
+#        ARM_l2_ckreads reads a base arm's L2 last (grpo_think_vs_l2_ckreads, as grpo_think_vs_L2) and s1g3_ckreads the
+#        Stage-1 base S1g3_sSEED (as s1g3), each on CKR_PANEL and MINI_READS. HEAD in ARM_ckreads_sSEED.base_commit.txt.
+#        Refused for other arms, without the checkpoint, KNOB_FULL=1.
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
@@ -110,23 +120,31 @@
 # env: POOL_L2, POOL_L3 (default runs/pools/curriculum/L{2,3}/pool.jsonl), REJ_PENALTY (0.1),
 #      SMOKE=1: a tiny CPU dry run of the whole line (2 iterations, k 2, 2 eval problems) under runs/grpo_v2/smoke/.
 source /scratch/cowifornia/nd-rl/think/runs/followup_20261007/lib.sh
-WT=/scratch/cowifornia/nd-rl/think/nd-rl-v2
+WT=/scratch/cowifornia/nd-rl/think/nd-rl-v2; BR=leon/grpo-v2  # the code every line imports
+[ "${SMOKE:-0}" = 1 ] && [ -n "${SMOKE_WT:-}" ] && { WT=$SMOKE_WT; BR=leon/grpo-v2-dev; }  # SMOKE=1 only: a dev worktree
 cd $WT || exit 1
-[ "$(git -C $WT rev-parse --abbrev-ref HEAD)" = leon/grpo-v2 ] || { say "$WT is not on leon/grpo-v2: refusing"; exit 1; }
+[ "$(git -C $WT rev-parse --abbrev-ref HEAD)" = $BR ] || { say "$WT is not on $BR: refusing"; exit 1; }
 PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
 "$PY" -c "import code.thinking, sys; sys.exit(0 if code.thinking.__file__.startswith('$WT/') else 1)" \
   || { say "code.thinking does not resolve to $WT: refusing"; exit 1; }
 g=$1; s=$2; arm=$3
 [ -n "$g" ] && [ -n "$s" ] && [ -n "$arm" ] || { echo "usage: line.sh GPU SEED ARM"; exit 2; }
-job=$arm; ckr=""; case $arm in *_ckreads) ckr=1; arm=${arm%_ckreads} ;; esac  # ARM_ckreads: $arm is the arm it reads
+job=$arm; ckr=""  # ARM_ckreads (l3: a full L3's checkpoints), ARM_l2_ckreads (l2), s1g3_ckreads (base): $arm, the arm read
+                  # (job names in lower case: pull_queue.sh takes [a-z0-9_]+:[0-9]+ lines only)
+case $arm in s1g3_ckreads) ckr=base; arm=grpo_think_vs ;; *_l2_ckreads) ckr=l2; arm=${arm%_l2_ckreads} ;;
+  *_ckreads) ckr=l3; arm=${arm%_ckreads} ;; esac
 knob=""; pa=$arm  # ARM_mb_kKNOB, ARM_kKNOB (EI): the suffixes below are parsed on ARM_mb / ARM ($pa); $arm names every output
-mini=""; mk=""  # ARM_mini[_kKNOB]: parsed first, then as grpo_think_vs_mb ($pa: L3-mini's recipe), its knob in $mk
+mini=""; mk=""; mfork=""; MPN=""  # ARM_mini[_kKNOB]: parsed first, then as grpo_think_vs_mb ($pa: L3-mini's recipe);
+                                  # its knob $mk, a fork of the reference's L2-mini, the pool arms' subset size
 case $arm in *_mini|*_mini_*) mini=1; mb=${arm%%_mini*}; mk=${arm#"${mb}"_mini}
   [ "$mb" = grpo_think_vs ] || { say "$arm: _mini runs the primary recipe, grpo_think_vs's: refusing"; exit 1; }
-  case $mk in ""|_krr|_kt07|_kt085|_kt115|_kt13|_klp[0-9][0-9]|_klpm[0-9][0-9]|_kkl1|_kg64) mk=${mk#_k} ;; *)
-    say "$arm: _mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64, with nothing after it: refusing"; exit 1 ;;
+  case $mk in ""|_krr|_kt07|_kt085|_kt115|_kt13|_klp[0-9][0-9]|_klpm[0-9][0-9]|_kkl1|_kg64|_kg64b|_kpool250|_kpool500|_ksize)
+    mk=${mk#_k} ;; *)
+    say "$arm: _mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64 g64b pool250 pool500 size, with nothing after it: refusing"; exit 1 ;;
   esac
-  case $mk in lp00|lpm00) say "$arm: _k$mk is no length penalty (grpo_think_vs_mini): refusing"; exit 1 ;; esac
+  case $mk in lp00|lpm00) say "$arm: _k$mk is no length penalty (grpo_think_vs_mini): refusing"; exit 1 ;;
+    size) say "$arm: _ksize (big-statement twins of half the mini rows) has no data yet: refusing"; exit 1 ;;
+    kl1|g64) mfork=1 ;; pool250) MPN=250 ;; pool500) MPN=500 ;; esac
   [ "${KNOB_FULL:-0}" = 1 ] && { say "$arm: KNOB_FULL=1 is the knob pilots' (a mini run has one set of reads): refusing"; exit 1; }
   pa=${mb}_mb ;;
   *_mb_k*) knob=${arm##*_mb_k}; pa=${arm%_k$knob}
@@ -173,7 +191,8 @@ S2=""; S3=""  # the schedule flags of stage L2 / L3
 case $sch in c) S2=$SCHED_C; S3=$SCHED_C; src=$arm ;; w) S3=$SCHED_W; src=$arm ;; wb) S3=$SCHED_W ;; esac
 # (ARM_wb keeps src=$base: L3 only, from $base's L2, as ARM_b)
 [ "$pil" = mb ] && S3=$SCHED_W  # ARM_mb: _wb's L3 cooldown
-[ -n "$mini" ] && src=$arm  # ARM_mini: both stages (L2-mini without schedule flags, as grpo_think_vs's L2)
+[ -n "$mini" ] && src=$arm  # ARM_mini: both stages (L2-mini without schedule flags, as grpo_think_vs's L2) ...
+[ -n "$mfork" ] && src=${mb}_mini  # ... but a fork: L3-mini only, from the reference's L2-mini
 # L3 pilots (grpo.py's pilot options): set here only. ARM_rfb: refill up to 2 extra rounds, pass-rate filter 0.9;
 # ARM_ulb: the unlikeliness reward at the paper's beta. ARM_3pb has no flags of its own (its extra targets below).
 PILOT_RFB="--refill --refill_max 2 --max_pass 0.9"
@@ -184,10 +203,12 @@ FB_MAXREJ=2  # ... at most this many retries per step, in L3 and in the feedback
 P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb|mb) P3=$PILOT_ULB ;; pb) P3=$PILOT_PB ;; fbb) P3=$PILOT_FBB ;; esac  # stage L3's pilot flags
 AVG_ITS="25 30 35"  # ARM_mb: the L3 rolling checkpoints averaged with the last one (pilot4.sh's)
 MINI_ITERS=10  # ARM_mini: each stage's iterations (the recipe's 39)
-MINI_READS="l2test:8 l3test:8 t1320:8 t2130:8 charles173:64"  # ARM_mini: the plain reads (SET:K, rsets) of L3-mini's last
-MINI_PANEL="l3test:8 t1320:8"  # ... and of each MINI_ROLL checkpoint, a smaller fixed panel (a hook for time-resolved reads)
+MINI_READS="l2test:8 l3test:8 t1320:8 t2130:8 charles173:64"  # ARM_mini: the plain reads (SET:K, rsets) of L3-mini's last;
+MINI_TRAIN="l2train:8 l3train:8"  # the reference's, rr's and the pool arms' training subsets (memorisation vs held out);
+MINI_PANEL="l3test:8 t1320:8 t2130:4 charles173:16"  # the T arms' reads at their T, and of each MINI_ROLL checkpoint:
 MINI_ROLL=${MINI_ROLL:-}  # env: STAGE:IT rolling checkpoints of the mini stages (--save_rolling 2) to read; none by default
-CKR_READS="l2test:8 l3test:8 t1320:16 t2130:8 charles173:64"  # ARM_ckreads: the knob pilots' t1320 / t2130 / ch173 k
+CKR_PANEL="l2test:8 l3test:8 t1320:4 t2130:4 charles173:16"  # ARM_ckreads: the dynamics panel of each checkpoint, and
+CKR_FINAL="l2test:8 l3test:8"  # of a full L3's last (its pilot reads hold the out-of-distribution ones)
 SMOKE=${SMOKE:-0}
 P=${REJ_PENALTY:-0.1}
 L2=${POOL_L2:-$R/pools/curriculum/L2/pool.jsonl}; L3=${POOL_L3:-$R/pools/curriculum/L3/pool.jsonl}
@@ -204,12 +225,14 @@ case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
 [ $method = ei ] && [ -n "$sch" ] && { say "$arm: _$sch schedules the GRPO lr, and EI's fine-tune has its own (run $base): refusing"; exit 1; }
 [ $method = ei ] && [ "$src" != "$arm" ] && [ -z "$knob" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
 [ $method = ei ] && [ "$base" != "$src" ] && { say "$arm: _h halves the GRPO lr, which EI does not use (run $base): refusing"; exit 1; }
-if [ -n "$ckr" ]; then  # ARM_ckreads: a GRPO knob pilot's 39-iteration L3
-  { [ -n "$knob" ] && [ $method = grpo ] && [ -z "$mini" ]; } \
-    || { say "$job: _ckreads reads a GRPO knob pilot's L3 checkpoints (ARM_mb_kKNOB_ckreads): refusing"; exit 1; }
-  [ "$knob" = i78 ] && { say "$job: _ckreads reads 39-iteration L3s (CKR_ITS), and _ki78's has 78: refusing"; exit 1; }
-  [ "${KNOB_FULL:-0}" = 1 ] && { say "$job: KNOB_FULL=1 is the knob pilots' (_ckreads has its own reads): refusing"; exit 1; }
+if [ "$ckr" = l3 ]; then  # a full GRPO L3 that started from another arm's L2 (ARM_b, ARM_wb, the L3 pilots, ARM_mb_kKNOB)
+  { [ "$src" != "$arm" ] && [ $method = grpo ] && [ -z "$mini" ]; } \
+    || { say "$job: _ckreads reads a full GRPO L3 that started from another arm's L2 (a knob pilot, ARM_mb, ARM_fbb, ...): refusing"; exit 1; }
+elif [ -n "$ckr" ]; then  # a base GRPO arm's own L2 (ARM_l2_ckreads), or the Stage-1 base (s1g3_ckreads)
+  { [ "$src" = "$arm" ] && [ "$base" = "$arm" ] && [ $method = grpo ] && [ -z "$mini$sch" ]; } \
+    || { say "$job: _l2_ckreads reads a base GRPO arm's own L2 (grpo_think_vs_l2_ckreads): refusing"; exit 1; }
 fi
+[ -n "$ckr" ] && [ "${KNOB_FULL:-0}" = 1 ] && { say "$job: KNOB_FULL=1 is the knob pilots' (_ckreads has its own reads): refusing"; exit 1; }
 if [ "$pil" = fbb ]; then  # ARM_fbb: the lines go into the think block, and the verifier writes them
   [ $kind = think ] || { say "$arm: _fbb writes the verifier's feedback into the think block, and $base has none: refusing"; exit 1; }
   case $base in *_v|*_vs|*_vs3) ;; *) say "$arm: _fbb needs the verifier (the logical arm), and $base samples plain: refusing"; exit 1 ;; esac
@@ -233,7 +256,7 @@ if [ "$pil" = 3pb ] || [ "$pil" = mb ]; then  # ARM_3pb, ARM_mb: _vs3's files (b
 fi
 MINI=$R/pools/mini; MP=$MINI/preflight_pass.txt  # ARM_mini's targets and their pass record, grpo_v2/build_mini.py's
 if [ -n "$mini" ]; then  # the L2 and L3 subsets; L3-mini's extra targets the 3-premise subset (L2-mini has none)
-  L2=$MINI/L2_mini.jsonl; L3=$MINI/L3_mini.jsonl; X2=""; X3=$MINI/L3_3p_mini.jsonl
+  L2=$MINI/L2_mini$MPN.jsonl; L3=$MINI/L3_mini$MPN.jsonl; X2=""; X3=$MINI/L3_3p_mini$MPN.jsonl  # (pool arms: MPN rows)
   for xf in $L2 $L3 $X3; do  # each as its pass record ('PREFLIGHT PASSED <md5> <file>') names it
     [ -f $xf ] || { say "$arm: no mini subset $xf (grpo_v2/build_mini.py builds it): refusing"; exit 1; }
     grep -qx "PREFLIGHT PASSED $(md5sum < $xf | cut -c1-32) $(basename $xf)" $MP 2> /dev/null \
@@ -241,6 +264,7 @@ if [ -n "$mini" ]; then  # the L2 and L3 subsets; L3-mini's extra targets the 3-
   done
 fi
 for xf in $X2 $X3; do [ -f $xf ] || { say "$arm: no 3-premise pool file $xf (runs/pools/curriculum_3p): refusing"; exit 1; }; done
+L2T=$L2; L3T=$L3  # the training targets as read (MINI_TRAIN), before SMOKE=1 takes their heads
 M3=$R/pools/curriculum_3p/L3_mix_ei.jsonl; M3P=$R/pools/curriculum_3p/L3_mix_ei.preflight_pass.txt  # EI ARM_k3p's
 if [ "$knob" = 3p ]; then  # targets and their pass record ('PREFLIGHT PASSED <md5>'), both from grpo_v2/build_mix_ei.py
   [ -f $M3 ] || { say "$arm: no 3-premise mix $M3 (grpo_v2/build_mix_ei.py builds it): refusing"; exit 1; }
@@ -306,21 +330,36 @@ if [ -n "$mini" ]; then  # ARM_mini: L3-mini at kl0's KL anchor (L2-mini at KLC'
     t13) KF="--temperature 1.3"; KD=$KF ;;
     lp[0-9][0-9]|lpm[0-9][0-9])  # per 1,000 sampled tokens of a success, NN hundredths (lpm: negative, a length bonus)
       KF="--len_penalty $([ "${mk#lpm}" = "$mk" ] || echo -)$(awk -v n=$((10#${mk: -2})) 'BEGIN { print n / 100 }')"; KD=$KF ;;
-    kl1) KL3=0.1; KD="--kl_anchor_coef $KL3 in L3" ;;  # L3-mini only, as the full-scale kl1 pilot (L2 keeps KLC)
-    g64) if [ "$SMOKE" = 1 ]; then PROMPTS=2; GROUP=8; else PROMPTS=64; GROUP=64; fi  # the same attempts per iteration
-         KD="--prompts $PROMPTS --group $GROUP" ;;
+    kl1) KL3=0.1; KD="--kl_anchor_coef $KL3" ;;  # a fork, L3-mini only (the full-scale kl1 pilot's change)
+    g64|g64b) if [ "$SMOKE" = 1 ]; then PROMPTS=2; GROUP=8; else PROMPTS=64; GROUP=64; fi  # the same attempts per
+              KD="--prompts $PROMPTS --group $GROUP" ;;  # iteration; g64: a fork, L3-mini only; g64b: both stages
+    pool250|pool500) KD="the $MPN-row subsets" ;;  # L2T / L3T (above), the same iterations and attempts
   esac
   [ -n "$mk" ] && KD="knob $mk: $KD"
 fi
-CKR_ITS="0 10 20 30 $IT3"  # ARM_ckreads: the L3 iterations read (0: its init; the last: the finished L3)
+MT=""; case $mk in t07|t085|t115|t13) MT=${KF#--temperature } ;; esac  # the T arms' training temperature (their reads)
+CKR_ITS=$(seq 10 10 $((IT3 - 1)))  # ARM_ckreads: the L3 checkpoints read before its last, every 10 (i78: 10 ... 70)
 if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil, ARM_kKNOB: $src's finished L2, from a run no rollback touched
   L2CK=$C/${src}_s${s}_L2/ckpts/${src}_s${s}_L2_it$ITERS.pt
   [ $method = ei ] && L2CK=$C/${src}_s${s}_L2/ckpts/${src}_s${s}_L2_r1.pt  # EI ARM_kKNOB: its one round's
+  if [ -n "$mfork" ]; then  # an ARM_mini fork: wait until the reference's L2-mini at this seed has finished, its
+    rl=$L/v2_${src}_s${s}.log  # checkpoint there and its line's exit line in pull_queue.sh's job log (save_ckpt is not
+    fin() { [ -f $L2CK ] && grep -q "GRPO ${src}_s${s}_L2 exit 0:" $rl 2> /dev/null; }  # atomic), for up to 3 h
+    fin || { say "$arm: waiting for $src's L2-mini at seed $s to finish ($L2CK, 'GRPO ${src}_s${s}_L2 exit 0' in $rl), up to 3 h"
+      for i in $(seq 1 180); do sleep 60; fin && break; done
+      fin || { say "$arm: $src's L2-mini at seed $s did not finish in 3 h: FAILED"; exit 1; }; }
+  fi
   [ -f $L2CK ] || { say "$arm: no L2 checkpoint of $src ($L2CK): refusing"; exit 1; }
   gl=$(grep -E '^guard it' $L/v2_${src}_s${s}_L2.log 2>/dev/null | tail -1)
   [ $method = ei ] || case $gl in *"lr x1 (0 rollbacks)"*) ;; *)  # (EI has no guard and no rollbacks)
+    [ -n "$mfork" ] && { say "$arm: $src's L2-mini at seed $s ended '${gl:-no guard line}', not lr x1 (0 rollbacks): a fork needs a reference L2-mini without rollbacks (run the control at another seed): refusing"; exit 1; }
     say "$arm: $src's L2 log ends '${gl:-no guard line}', not lr x1 (0 rollbacks): rerun the whole line: refusing"; exit 1 ;;
   esac
+fi
+if [ -n "$ckr" ]; then  # ARM_ckreads: refused, with nothing written, without the checkpoint it reads last
+  CK3=$C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it$IT3.pt; CK2=$C/${arm}_s${s}_L2/ckpts/${arm}_s${s}_L2_it$ITERS.pt
+  [ $ckr = l3 ] && [ ! -f $CK3 ] && { say "$job: no finished L3 of $arm ($CK3) to read: refusing"; exit 1; }
+  [ $ckr = l2 ] && [ ! -f $CK2 ] && { say "$job: no checkpoint $CK2 to read: refusing"; exit 1; }
 fi
 mkdir -p $C $EV
 if [ "$SMOKE" != 1 ] && [ -z "$ckr" ]; then  # (ARM_ckreads trains on nothing)
@@ -337,8 +376,8 @@ if [ "$SMOKE" != 1 ] && [ -z "$ckr" ]; then  # (ARM_ckreads trains on nothing)
 fi
 [ -f $init0 ] || { say "no Stage-1 init $init0"; exit 1; }
 bc=base_commit; [ -n "$knob" ] && [ "${KNOB_FULL:-0}" = 1 ] && bc=reads_commit  # KNOB_FULL keeps the training's record
-[ -n "$ckr" ] && bc=ckreads_commit  # and ARM_ckreads, the arm it reads
-git -C $WT rev-parse HEAD > $C/${arm}_s$s.$bc.txt
+cr=$C/${arm}_s$s.$bc.txt; [ -n "$ckr" ] && cr=$C/${job}_s$s.base_commit.txt  # ARM_ckreads: its own, not the arm's
+git -C $WT rev-parse HEAD > $cr
 watch() {  # NAME PID LOG EXPECTED_H
   [ "$SMOKE" = 1 ] && return 0
   python3 $R/watchdog.py $1:$2:$g:$3:$4 >> $WD 2>&1 & }
@@ -360,8 +399,9 @@ grpo_stage() {  # NAME INIT TARGETS [EXTRA_TARGETS] -> ckpts/NAME_it$ITERS.pt (s
       --kl_anchor_coef $kl --kl_anchor_ref $2 $KLN --monitor $GUIDE $XT \
       > $L/v2_$n.log 2>&1 ) & local p=$!
   sleep 5; say "launched GRPO $n ($samp${GUIDE:+, P $P}${XT:+, extra $(basename $4) x $XFRAC}$LRN${SC:+, $SC}${PF:+, $PF}${KT:+, $KT}) on GPU $g (pid $p)"; watch $n $p $L/v2_$n.log $wh
-  wait $p; say "GRPO $n exit $?: $(grep -E '^it [0-9]+:' $L/v2_$n.log | tail -1 | cut -c1-150)"
+  wait $p; local rc=$?; say "GRPO $n exit $rc: $(grep -E '^it [0-9]+:' $L/v2_$n.log | tail -1 | cut -c1-150)"
   [ -n "$mini" ] && stage_alarms $n $L/v2_$n.log
+  [ -n "$mini" ] && [ ! -f $last ] && say "GRPO $n FAILED: exit $rc$([ $rc = 3 ] && echo ' (--ban_stop: the think ban mass passed 0.005)'), no $(basename $last): the run counts as failed"
   [ -f $last ]; }
 stage_alarms() {  # NAME LOG: ARM_mini's record of a stage's alarms (grpo.py's ALARM lines: each alarm, the rollback
   local x                # it led to or why none) and the rollbacks it ended with (its last guard line)
@@ -382,11 +422,11 @@ ei_stage() {  # NAME INIT TARGETS -> ckpts/NAME_r1.pt (stage L3: _r$RD3)
   [ -f $last ]; }
 ck() { local it=$ITERS rd=1; [ "$1" = L3 ] && { it=$IT3; rd=$RD3; }  # STAGE -> the stage's last checkpoint
   if [ $method = grpo ]; then echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_it$it.pt; else echo $C/${arm}_s${s}_$1/ckpts/${arm}_s${s}_$1_r$rd.pt; fi; }
-read1() {  # SETNAME SETS K READARM [MAXSTEPS [ARMNAME CKPT [MAXREJ]]]  (default: $arm, its L3 checkpoint, 10)
-  local o=$EV/$1_${6:-$arm}_s${s}_$4_k$3 ms=${5:-96} cp=${7:-$(ck L3)} mr=${8:-10}
+read1() {  # SETNAME SETS K READARM [MAXSTEPS [ARMNAME CKPT [MAXREJ [T]]]]  (default: $arm, its L3 checkpoint, 10, 0.8;
+  local o=$EV/$1_${6:-$arm}_s${s}_$4_k$3${9:+_T${9//./}} ms=${5:-96} cp=${7:-$(ck L3)} mr=${8:-10} tp=${9:-0.8}  # T: _T13)
   [ -f $o/rows_$4_B$RB.jsonl ] && return 0; waitfree $g; local t=$(date +%s); rm -rf $o
   CUDA_VISIBLE_DEVICES=$DEV timeout 9000 "$PY" -m code.thinking.eval --ckpt $cp --sets $2 --out $o --k $3 \
-    --budgets $RB --arms $4 --batch $BATCH --seed 0 --temperature 0.8 --max_action 512 --max_steps $ms --max_rej $mr \
+    --budgets $RB --arms $4 --batch $BATCH --seed 0 --temperature $tp --max_action 512 --max_steps $ms --max_rej $mr \
     $LIM > $L/v2_eval_$(basename $o).log 2>&1
   local rc=$?; say "read $(basename $o) exit $rc $(( $(date +%s) - t ))s: $(grep -E '^\[' $L/v2_eval_$(basename $o).log | tr '\n' ' ' | cut -c1-200)"; }
 AV=$C/${arm}_avg_s${s}_L3/ckpts/${arm}_avg_s${s}_L3_it$ITERS.pt  # ARM_mb's averaged checkpoint
@@ -422,17 +462,28 @@ rsets() {  # SET -> its files: ARM_mini's and ARM_ckreads's reads (MINI_READS, C
     l3test) echo $R/pools/curriculum/L3/test_1k.jsonl ;;  # checks the pools against them)
     t1320) echo $R/eval/matched/sets/t1320_n1000.jsonl ;; t2130) echo $R/eval/matched/sets/t2130_n1000.jsonl ;;
     charles173) echo $CH173 ;;
+    l2train) echo $L2T ;; l3train) echo $L3T ;;  # a mini run's own training subsets
   esac; }
-reads_of() {  # NAME CKPT READS: plain reads (SET:K each; SMOKE=1: k 2) of CKPT, named after NAME
-  local r k; for r in $3; do k=${r#*:}; [ "$SMOKE" = 1 ] && k=2; read1 ${r%:*} $(rsets ${r%:*}) $k plain 96 $1 $2; done; }
-if [ -n "$ckr" ]; then  # ARM_ckreads: no training; CKR_READS of $arm's L3 at each of CKR_ITS
-  [ -f $(ck L3) ] || { say "$job: no finished L3 of $arm ($(ck L3)) to read: refusing"; exit 1; }
-  for i in $CKR_ITS; do  # 0: the L3's init ($src's L2); the last: $arm's own names (its pilot reads are there)
-    case $i in 0) cp=$L2CK; nm=${arm}_it0 ;; $IT3) cp=$(ck L3); nm=$arm ;;
-      *) cp=$C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it${i}_rolling.pt; nm=${arm}_it$i ;; esac
-    [ -f $cp ] || { say "$job: no $cp (an alarm iteration?): its reads skipped"; continue; }
-    reads_of $nm $cp "$CKR_READS"
+RDONE=" "  # the eval dirs reads_of has read (or tried) in this line: a read in two of its lists runs once
+reads_of() {  # NAME CKPT READS [T]: plain reads (SET:K each; SMOKE=1: k 2) of CKPT, named after NAME, at T (0.8)
+  local r k o; for r in $3; do k=${r#*:}; [ "$SMOKE" = 1 ] && k=2
+    o=${r%:*}_$1_s${s}_plain_k$k${4:+_T${4//./}}  # (read1's name)
+    case $RDONE in *" $o "*) continue ;; esac; RDONE="$RDONE$o "
+    read1 ${r%:*} $(rsets ${r%:*}) $k plain 96 $1 $2 "" $4; done; }
+if [ "$ckr" = l3 ]; then  # ARM_ckreads: no training; CKR_PANEL of $arm's L3 at CKR_ITS, CKR_FINAL of its last
+  rec=$C/${job}_s$s.ckpts.txt; : > $rec  # the iteration asked for and the checkpoint read
+  for i in $CKR_ITS; do  # a missing rolling checkpoint (an alarm iteration saves none): the nearest earlier one
+    j=$i; while [ $j -gt 0 ] && [ ! -f $C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it${j}_rolling.pt ]; do j=$((j - 1)); done
+    [ $j -gt 0 ] || { say "$job: no rolling checkpoint at or before it$i: its reads skipped"; continue; }
+    [ $j = $i ] || say "$job: no it$i rolling checkpoint (an alarm iteration): it$j's instead"
+    cp=$C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it${j}_rolling.pt; echo "it$i $cp" >> $rec
+    reads_of ${arm}_it$j $cp "$CKR_PANEL"
   done
+  echo "it$IT3 $(ck L3)" >> $rec; reads_of $arm $(ck L3) "$CKR_FINAL"
+  say "grpo_v2 line done ($job seed $s)"; exit 0
+elif [ -n "$ckr" ]; then  # ARM_l2_ckreads: $arm's L2 last, as ARM_L2; s1g3_ckreads: Stage-1 S1g3_sSEED, as s1g3
+  if [ $ckr = l2 ]; then cp=$(ck L2); nm=${arm}_L2; else cp=$init0; nm=s1g3; fi  # (both checked above)
+  reads_of $nm $cp "$CKR_PANEL"; reads_of $nm $cp "$MINI_READS"  # (a read in both: once)
   say "grpo_v2 line done ($job seed $s)"; exit 0
 fi
 stage=${method}_stage
@@ -441,9 +492,11 @@ if [ "$src" = "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil, ARM_kKNOB have no L2 of
   L2CK=$(ck L2)
 fi
 $stage ${arm}_s${s}_L3 $L2CK $T3 $X3 || { say "${arm}_s${s}_L3 failed"; exit 1; }
-if [ -n "$mini" ]; then  # ARM_mini: MINI_READS of L3-mini's last checkpoint under $arm (never tb72); MINI_PANEL of
-  reads_of $arm $(ck L3) "$MINI_READS"  # each MINI_ROLL one under ARM_STAGEitIT
-  for c in $MINI_ROLL; do
+if [ -n "$mini" ]; then  # ARM_mini: MINI_READS of L3-mini's last checkpoint under $arm (never tb72); MINI_TRAIN and
+  reads_of $arm $(ck L3) "$MINI_READS"  # MINI_PANEL at the training T (as above); MINI_PANEL of each MINI_ROLL one
+  case $mk in ""|rr|pool250|pool500) reads_of $arm $(ck L3) "$MINI_TRAIN" ;; esac
+  [ -n "$MT" ] && reads_of $arm $(ck L3) "$MINI_PANEL" $MT
+  for c in $MINI_ROLL; do  # under ARM_STAGEitIT
     st=${c%%:*}; i=${c#*:}; cp=$C/${arm}_s${s}_$st/ckpts/${arm}_s${s}_${st}_it${i}_rolling.pt
     [ -f $cp ] || { say "$arm: no $cp (an alarm iteration?): its reads skipped"; continue; }
     reads_of ${arm}_${st}it$i $cp "$MINI_PANEL"

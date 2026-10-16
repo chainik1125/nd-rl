@@ -569,6 +569,11 @@ has been trained yet. The knob list is still open (the values are parameters of 
   are `ok` in both.
 - The pass record `preflight_pass.txt` names each subset's md5. line.sh refuses a mini arm while a subset is missing or
   differs from its record, and runs both preflights again at launch.
+- Nested subsets for the pool knobs: `L2_mini{250,500}.jsonl` are the first 250 / 500 of a fixed shuffle (seed
+  20261018) of `L2_mini`'s rows, so 250 ⊂ 500 ⊂ 1,000. `L3_mini{250,500}` are nested the same way within each stratum
+  (seeds 20261019 with a rewrite, 20261020 without), 92 / 184 rows with a rewrite. `L3_3p_mini{250,500}` are exactly
+  those rows' rewrites (92 / 184). Rows stay in file order. Each size passed the same two preflights, and the pass
+  record has all nine files. The rebuild left the three 1,000-row files byte for byte as they were.
 
 **Stages.** Both 10 iterations (`MINI_ITERS`), chained. The commands come from `grpo_stage`, the same code as the full
 recipe's, and differ from it only in what is listed here (the dry run checks this).
@@ -590,6 +595,9 @@ recipe's, and differ from it only in what is listed here (the dry run checks thi
   per-step protection the recipe has, which is the thing kept fixed here.
 - After each stage the line logs its `ALARM` lines (each alarm, the rollback it led to or why none) and its last guard
   line's rollback count, as `GRPO <stage> ALARM it N: …` and `GRPO <stage> rollbacks: lr xS (N rollbacks)`.
+- A stage that ends without its last checkpoint (for example `--ban_stop`, exit 3, when the think-ban mass passes
+  0.005) logs `GRPO <stage> FAILED: exit 3 (--ban_stop: …), no <ckpt>: the run counts as failed`, and the line stops
+  with no reads.
 
 **Knobs** (`grpo_think_vs_mini_kKNOB`, both stages unless noted, in line.sh's knob block only):
 
@@ -598,8 +606,20 @@ recipe's, and differ from it only in what is listed here (the dry run checks thi
 | `rr` | nothing: the noise control |
 | `t07`, `t085`, `t115`, `t13` | `--temperature 0.7 / 0.85 / 1.15 / 1.3` (training only; the reads stay at 0.8) |
 | `lpNN`, `lpmNN` | `--len_penalty` +NN / −NN hundredths, two digits (`lp20` 0.2, `lp50` 0.5, `lpm10` −0.1; `lp00` refused) |
-| `kl1` | `--kl_anchor_coef 0.1` in L3-mini (0); L2-mini keeps 0.02, mirroring the full-scale `kl1` pilot (a negative control) |
-| `g64` | `--prompts 64 --group 64`, both stages (the same 4,096 attempts per iteration; it hurt by about 5 points at full scale) |
+| `kl1` | a fork (below): `--kl_anchor_coef 0.1` in L3-mini (0), mirroring the full-scale `kl1` pilot (a negative control) |
+| `g64` | a fork: `--prompts 64 --group 64` in L3-mini (the same 4,096 attempts per iteration; about 5 points worse at full scale) |
+| `g64b` | `--prompts 64 --group 64` in both stages |
+| `pool250`, `pool500` | the nested 250- / 500-row subsets in both stages, the same iterations and attempts (each row seen 4x / 2x as often) |
+| `size` | a placeholder for big-statement twins of half the mini rows: refused until its files exist |
+
+**Forks** (`kl1`, `g64`: the controls, seeds 0 and 1). A fork has no L2-mini of its own. Its L3-mini starts from the
+reference `grpo_think_vs_mini`'s `_L2_it10` at the same seed, which is also its KL reference, so it differs from the
+reference's L3-mini only in its knob. This removes L2-mini's run-to-run noise from the comparison.
+- The fork waits until that L2-mini has finished: its `_it10.pt` is there *and* the reference's job log
+  (`logs/v2_grpo_think_vs_mini_s<seed>.log`, pull_queue.sh's) has the line `GRPO grpo_think_vs_mini_s<seed>_L2 exit 0:`.
+  `save_ckpt` is not atomic, so the file alone is not enough. It logs the wait, checks once a minute for up to 3 h, then
+  logs FAILED and stops.
+- It refuses unless the reference's L2-mini log ends at `lr x1 (0 rollbacks)` (run the control at another seed).
 
 Dropped: `--updates` (it changes the AdamW steps per iteration and the warmup's length, an lr-like knob) and the lr and
 unlikeliness knobs.
@@ -617,9 +637,13 @@ L3-mini's last checkpoint (`MINI_READS`):
 
 - The `test_1k` files (1,000 rows each) have the `prompt` eval.py reads and `min_lines` (10-12, 13-15). The preflight
   checks every pool and subset against both, as evaluation sets; they are not sealed.
-- Time-resolved reads hook: `MINI_ROLL="L2:4 L3:2 …"` (env) also reads the `MINI_PANEL` sets (`l3test` k8, t1320 k8)
-  of those rolling checkpoints, as `<set>_<arm>_L3it2_s<seed>_plain_k8`. One missing (an alarm iteration saves none) is
-  skipped. It is off by default.
+- The reference, `rr` and the pool arms also read their own training subsets (`MINI_TRAIN`: `l2train`, `l3train`, k8;
+  the pool arms' 250 / 500 rows), memorisation against the held-out splits.
+- The T arms also read `MINI_PANEL` (`l3test` k8, t1320 k8, t2130 k4, charles173 k16) at their training temperature,
+  as `<set>_<arm>_s<seed>_plain_k<k>_T07` (`_T085`, `_T115`, `_T13`), next to the 0.8 reads.
+- Time-resolved reads hook: `MINI_ROLL="L2:4 L3:2 …"` (env) also reads `MINI_PANEL` of those rolling checkpoints, as
+  `<set>_<arm>_L3it2_s<seed>_plain_k8`. One missing (an alarm iteration saves none) is skipped. It is off by default.
+- A read named in two of a line's lists runs once.
 
 **`--len_penalty` in grpo.py** (needed for the `lp` knobs; with `--len_penalty 0` nothing changes, see the tests below).
 - An all-solved group's rewards 1 − lp·n/1000 differ by length alone. Such a group is *length-only*: it is trained,
@@ -654,21 +678,31 @@ reads the tempered mass (what is sampled), unchanged. At T = 1.2 the full-scale 
 by its last iteration (the alarm is at 1e-3), so `t13` may raise ban alarms and rollbacks, which the stage lines record.
 The gradient on the logits scales as 1/T (1.43x at 0.7, 0.77x at 1.3), partly absorbed by the grad-norm clip at 1.
 
-**Checkpoint reads of a full knob pilot** (`ARM_mb_kKNOB_ckreads`; `grpo_think_vs_mb_kkl0_ckreads` asked for). There is
-no training. `CKR_READS` (`l2test` k8, `l3test` k8, t1320 k16, t2130 k8, charles173 k64: the pilots' k) are read at
-`CKR_ITS`:
-- it0: the L3's init, the base arm's `_L2_it39`;
-- it10, it20, it30: the rolling checkpoints;
-- it39: the last one, under the pilot's own names, so its three existing reads are skipped.
-
-Other checkpoints are named `ARM_itN`. A missing rolling checkpoint skips its reads. HEAD goes to
-`ARM_sSEED.ckreads_commit.txt`, and the pilot's `base_commit.txt` stays. For `grpo_think_vs_mb_kkl0_s0` this means 22
-new reads. Its it29 alarm rolled back to it25, so its it30 checkpoint is it25 plus one more iteration (26 updates' worth).
+**Checkpoint reads of the full-scale L3 runs** (`ARM_ckreads`, for every finished GRPO L3 that started from another
+arm's L2: the knob pilots, `ARM_mb`, `ARM_fbb`, …). There is no training and no preflight. Each distinct checkpoint is
+read once:
+- `ARM_ckreads`: `CKR_PANEL` (`l2test` k8, `l3test` k8, t1320 k4, t2130 k4, charles173 k16) at `CKR_ITS`, it10, it20 and
+  it30 (`_ki78`: it10 to it70). Each is read from the rolling checkpoint there or, after an alarm iteration (which saves
+  none), from the nearest earlier one. That substitution is logged, the reads are named after the checkpoint read
+  (`ARM_itJ`), and `ARM_ckreads_sSEED.ckpts.txt` records each iteration and its file. No rolling checkpoint at or before
+  an iteration skips its reads. Then `CKR_FINAL` (`l2test`, `l3test` k8) of the last checkpoint, under the arm's own
+  names; the pilot's own reads hold its out-of-distribution ones.
+- `ARM_l2_ckreads` (`grpo_think_vs_l2_ckreads`): a base arm's own last L2 checkpoint, the init every pilot of that seed
+  shares, as `ARM_L2`; `s1g3_ckreads`: Stage-1 `S1g3_sSEED`, as `s1g3`. Both read `CKR_PANEL` and `MINI_READS` (8 reads:
+  the two test splits are in both). That covers the "it0" of every pilot once per seed.
+- HEAD goes to the job's own `<job>_sSEED.base_commit.txt`; the arm's training record stays. A rerun reads only what is
+  missing. Refused: other arms, KNOB_FULL=1, no finished L3 (no last L2 checkpoint), nothing written.
+- Holes in the existing runs (no rolling checkpoint at the iteration; the nearest earlier one read instead): `kp3` s0
+  it10 → it5 and it30 → it25; `kkl0` s0 it30 is the post-rollback checkpoint (it25 plus one iteration). Every 5
+  iterations is saved, so a missing one is an alarm iteration.
 
 ```
-bash line.sh GPU 0 grpo_think_vs_mini          # L2-mini then L3-mini from S1g3_s0, then the five reads
+bash line.sh GPU 0 grpo_think_vs_mini          # L2-mini then L3-mini from S1g3_s0, then the reads
 bash line.sh GPU 2 grpo_think_vs_mini_klp20    # the same with --len_penalty 0.2 in both stages
+bash line.sh GPU 1 grpo_think_vs_mini_kkl1     # seed 1: L3-mini from grpo_think_vs_mini_s1_L2_it10, KL anchor 0.1
 bash line.sh GPU 0 grpo_think_vs_mb_kkl0_ckreads
+bash line.sh GPU 0 grpo_think_vs_l2_ckreads    # shared by every pilot of the seed
+bash line.sh GPU 0 s1g3_ckreads
 ```
 
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)

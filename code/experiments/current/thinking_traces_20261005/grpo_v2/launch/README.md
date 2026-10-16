@@ -243,6 +243,46 @@ Paths are serrano's. Changes, all of them:
       unlikeliness ranking there), `kl1`'s L3 has the anchor at 0.1 and its L2 at 0.02, and `t13`'s L3 raised the think
       ban alarm at its first iteration (mass 2.0e-3 against a restore point at 2.1e-3: no rollback, as the restore check
       says).
+13. `leon/grpo-v2-dev` (2026-10-16, launcher only: nothing imported by `code.thinking.grpo` / `eval` changes, so it can
+    be fast-forwarded while runs are going): the mini forks, the pool knobs and the generalised checkpoint reads
+    (`../README.md`, "Mini runs").
+    - Forks `grpo_think_vs_mini_kkl1` and `_kg64` (now L3-mini only): `src` is the reference, whose `_L2_it10` at the
+      same seed is the init and KL reference. A fork waits (once a minute, up to 3 h, then FAILED) until that
+      checkpoint is there and the reference's job log has `GRPO grpo_think_vs_mini_sS_L2 exit 0:`, and refuses unless
+      the reference's L2 log ends at `lr x1 (0 rollbacks)`. `g64b` is the both-stage `g64`.
+    - `pool250` / `pool500`: `MPN` picks the nested subsets (`L2_mini250.jsonl`, …), checked against the pass record as
+      the 1,000-row ones. `size` is refused until its data exists.
+    - A mini stage that ends without its last checkpoint logs `GRPO <stage> FAILED: exit N (--ban_stop: …)`.
+    - Reads: `MINI_TRAIN` (`l2train`, `l3train`: the training subsets as read, `L2T` / `L3T`, before `SMOKE=1` takes
+      their heads) for the reference, `rr` and the pool arms; the T arms' `MINI_PANEL` at their T (`read1`'s 9th
+      argument: `--temperature` and the `_T07` suffix); `MINI_PANEL` is now `l3test` k8, t1320 k8, t2130 k4,
+      charles173 k16. `reads_of` runs a read named in two of its lists once.
+    - `ARM_ckreads` for any full GRPO L3 that started from another arm's L2 (`_ki78` included: `CKR_ITS` is every 10
+      below `IT3`), each iteration from the nearest earlier rolling checkpoint, recorded in `ARM_ckreads_sS.ckpts.txt`,
+      then `CKR_FINAL` of the last. `ARM_l2_ckreads` (lower case, as pull_queue.sh's job lines must be) and
+      `s1g3_ckreads` read a base arm's last L2 and the Stage-1 init (`CKR_PANEL` and `MINI_READS`). HEAD goes to
+      `<job>_sS.base_commit.txt`. A missing checkpoint is refused before anything is written.
+    - `SMOKE_WT` (with `SMOKE=1` only): a dev worktree for the line (`WT`, and its branch `leon/grpo-v2-dev`). Without
+      `SMOKE=1` the line stays pinned to `nd-rl-v2` / `leon/grpo-v2`.
+    - `dry/`: `make.sh`'s grpo stub exits 3 without a checkpoint for a stage name containing `DRY_GRPO_STOP` (`run.sh`
+      passes it on). `dry/all.sh` and `dry/check.py` cover the forks, `g64b`, the pool
+      arms, the training-subset and T reads, the fork's wait (180 one-minute waits, then FAILED) and rollback
+      refusal, `--ban_stop`'s FAILED line, the new `_ckreads` jobs (kl0; t12 with holes; i78; `ARM_mb`; fbb without
+      rolling checkpoints; the shared L2; s1g3) and their refusals. That is 2,374 result dirs, and all 41,438 checks
+      pass (`check.py --expect-hook`). All 1,940 result dirs of 765161f9's harness match its output at the same
+      harness home, environment hash included (the commit records' contents aside: another `nd-rl-v2` HEAD).
+      Against 74864c28's harness only mini and `_ckreads` dirs differ. The `lp` arms' calls and stdout are unchanged
+      (only the setups' nested subsets are new), and the reference's commands are unchanged but for its two added
+      reads.
+    - Smoke: `SMOKE=1`, CPU, a scratch runs root, `SMOKE_WT` the dev worktree. The reference at seed 0 (L2,
+      L3, seven reads); `g64b`, `t07` (four `_T07` reads), `pool250` (its 250-row training reads); `MINI_ROLL="L2:0
+      L3:0 L3:6"` on a rerun (eight reads of the two real `_it0_rolling.pt` files, L3:6 skipped); `ksize` refused; a
+      fork at seed 1 with no reference waits (stopped by its 90 s timeout). Both forks at seed 0 refused, as they
+      should: the smoke reference's 4 x 4 L2-mini rolled back once at a clip-low alarm. At seed 2 (no rollback) both
+      ran L3-mini only from `grpo_think_vs_mini_s2_L2_it2.pt`, which is also their KL reference (`kl1`: coefficient
+      0.1; `g64`: 2 x 8 at 0). Then `grpo_think_vs` and `_kkl0`, `_kkl0_ckreads` (`CKR_FINAL` only: a 2-iteration L3
+      has no `CKR_ITS`), `grpo_think_vs_l2_ckreads` and `s1g3_ckreads` (five reads each: in `SMOKE=1` every k is 2,
+      so `MINI_READS` repeats `CKR_PANEL`'s dirs and runs once), and a rerun of `_kkl0_ckreads` that read nothing.
 
 Checked and left alone:
 

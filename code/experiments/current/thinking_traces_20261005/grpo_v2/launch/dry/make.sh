@@ -56,7 +56,8 @@ for ((i = 0; i < ${#a[@]}; i++)); do
 done
 case $out in "$DRY_SB"/*) ;; *) echo "DRY: --out outside the sandbox: '$out'" >&2; exit 97 ;; esac
 case $mod in
-  code.thinking.grpo) /usr/bin/mkdir -p "$out/ckpts" && : > "$out/ckpts/${name}_it$iters.pt"; echo "it $iters: dry" ;;
+  code.thinking.grpo) case $name in *"${DRY_GRPO_STOP:-//}"*) echo "STOP it 1: dry"; exit 3 ;; esac  # --ban_stop, no ckpt
+    /usr/bin/mkdir -p "$out/ckpts" && : > "$out/ckpts/${name}_it$iters.pt"; echo "it $iters: dry" ;;
   code.thinking.ei) /usr/bin/mkdir -p "$out/ckpts" && : > "$out/ckpts/${name}_r$rounds.pt"; echo "ei dry" ;;
   code.thinking.eval) /usr/bin/mkdir -p "$out"; echo "[dry] eval" ;;
   *) echo "DRY: unexpected module '$mod'" >&2; exit 98 ;;
