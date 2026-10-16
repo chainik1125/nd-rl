@@ -86,6 +86,8 @@ extend-exclude = [
     "**/current/repr_goals_length_20260925/**",
     "**/current/midtrain_long_glued_20260926/**",
     "**/current/thinking_traces_20261005/ood_check/**",
+    # serrano's runs/watchdog.py, rebuilt byte for byte after the 2026-10-11 crash
+    "**/current/thinking_traces_20261005/grpo_v2/launch/watchdog.py",
 ]
 force-exclude = true
 line-length = 100

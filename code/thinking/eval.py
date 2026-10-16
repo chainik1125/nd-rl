@@ -24,6 +24,18 @@ replaces each sampled block before the action is decoded (`sample.intervene_thin
 keep their `<arm>_B<B>` names, so use one EVALDIR per intervention -- every row and the summary
 record it.  States are rendered in the checkpoint's state format (`stateview`, set by `load_ckpt`;
 the summary's `state_format`).
+
+`--budgets auto` (a `lean_thinke` checkpoint, plain arm): the model picks its level at every step
+among `--auto_levels` (default 0,64,256; `sample.choose_levels`).  The cell is `<arm>_Bauto`
+(rows_plain_Bauto.jsonl, readable by `stats.load_arm`); its rows add per attempt `levels` (the level
+of every draw) and `choice` (sampled effort tokens, already in `tokens`), and the summary the shares
+of the picked levels.
+
+`--arms feedback` (a thinking checkpoint, per-step format): the logical arm with in-context
+verifier feedback (`sample.think_generate(feedback='context')`, `feedback.py`): a rejected draw is
+retried with its action in the think block as a dead-end line, at most `--max_rej` retries per
+step.  The cell is `feedback_B<B>`; its rows add per attempt `fb` (the feedback counters,
+`feedback.KEYS`), and the summary `feedback` (`feedback.metrics`).
 """
 
 from __future__ import annotations
@@ -39,13 +51,26 @@ from typing import Any
 
 import torch
 
+from . import feedback as FB
 from . import stateview
 from .ckpt import load_ckpt, run_env
 from .dan import bare, load
-from .sample import ARMS, FORCE_MODES, INTERVENTIONS, judge, sample_format, think_generate
+from .effort import has_effort
+from .sample import (
+    ARMS,
+    AUTO,
+    AUTO_LEVELS,
+    FORCE_MODES,
+    INTERVENTIONS,
+    judge,
+    sample_format,
+    think_generate,
+)
 from .tok import has_think
 
 D = load()
+FEEDBACK_ARM = "feedback"  # the logical arm with in-context verifier feedback
+READ_ARMS = (*ARMS, FEEDBACK_ARM)  # --arms; line.sh's feedback guard reads it
 COUNTERS = ("tokens", "think", "close", "action", "rejected", "prefill", "draws", "rej", "forced")
 
 
@@ -114,8 +139,31 @@ def rows_for(
             causes=[x["causes"] for x in att if x["causes"]],
             accepted=dict(collections.Counter(x["text"] for x in att if x["ok"])),
         )
+        if att and "levels" in att[0]:  # auto effort: the level picked at every draw
+            row["levels"] = [x["levels"] for x in att]
+            row["choice"] = [x["choice"] for x in att]
+        if att and "fb" in att[0]:  # the feedback arm: its counters per attempt
+            row["fb"] = {c: [x["fb"][c] for x in att] for c in FB.KEYS}
         rows.append(row)
     return rows
+
+
+def level_shares(res: list[dict[str, Any]]) -> dict[str, float]:
+    """Auto effort: % of draws at each picked level (all attempts, rejected draws included)."""
+    c = collections.Counter(b for x in res for b in x.get("levels", []))
+    n = sum(c.values())
+    return {str(b): 100.0 * c[b] / n for b in sorted(c)} if n else {}
+
+
+def parse_budgets(spec: str, think: bool) -> list[int | str]:
+    """--budgets -> the cells' budgets: ints, or 'auto' (auto effort)."""
+    if not think:
+        return [0]
+    out: list[int | str] = []
+    for b in spec.split(","):
+        b = b.strip()
+        out.append(AUTO if b == AUTO else int(b))
+    return out
 
 
 def parser() -> argparse.ArgumentParser:
@@ -173,6 +221,11 @@ def parser() -> argparse.ArgumentParser:
         default=0,
         help="rows x (prompt + decode room) per decode wave (0: one wave; R: 2^19)",
     )
+    ap.add_argument(
+        "--auto_levels",
+        default=",".join(str(b) for b in AUTO_LEVELS),
+        help="--budgets auto: the effort levels the model picks from at every step",
+    )
     ap.add_argument("--device", default=None)
     return ap
 
@@ -196,9 +249,19 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
     )
     if a.intervene != "none" and set(a.arms.split(",")) != {"plain"}:
         raise SystemExit(f"error: --intervene {a.intervene} runs the plain arm only")
-    budgets = [int(b) for b in a.budgets.split(",")] if think else [0]
+    budgets = parse_budgets(a.budgets, think)
     arms = a.arms.split(",")
-    assert all(x in ARMS for x in arms), arms
+    assert all(x in READ_ARMS for x in arms), arms
+    if FEEDBACK_ARM in arms and (not think or fmt != "think" or a.intervene != "none"):
+        raise SystemExit(
+            "error: --arms feedback: a thinking checkpoint, per-step format, no intervention"
+        )
+    auto_levels = [int(b) for b in a.auto_levels.split(",") if b.strip()]
+    if AUTO in budgets:
+        if not has_effort(tok):
+            raise SystemExit("error: --budgets auto needs a lean_thinke (effort) checkpoint")
+        if set(arms) != {"plain"} or a.intervene != "none" or fmt != "think":
+            raise SystemExit("error: --budgets auto: plain arm, per-step format, no intervention")
     recs = D.guided_eval.load_sets(a.sets.split(","))
     if a.limit:
         recs = recs[: a.limit]
@@ -222,14 +285,17 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
         for B in budgets:
             st: dict[str, Any] = {}
             t0 = time.time()
+            auto = B == AUTO
+            fbk = arm == FEEDBACK_ARM
+            fbkw: dict[str, Any] = {"feedback": "context"} if fbk else {}
             with D.record.compute(phase="read", arm=f"{arm}_B{B}", ckpt=a.ckpt):
                 res = think_generate(
                     model,
                     tok,
                     prompts,
-                    arm,
-                    B,
-                    min(a.min_think, B),
+                    "logical" if fbk else arm,
+                    0 if isinstance(B, str) else B,
+                    0 if isinstance(B, str) else min(a.min_think, B),
                     think,
                     a.temperature,
                     a.greedy,
@@ -245,6 +311,8 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
                     force_mode=a.force_mode,
                     intervene=a.intervene,
                     wave_tokens=a.wave_tokens,
+                    auto_levels=auto_levels if auto else None,
+                    **fbkw,
                 )
                 t_loop = time.time() - t0
                 res = judge(tok, prompts, res, a.lean)
@@ -260,7 +328,7 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
                             steps = [
                                 {
                                     k2: v
-                                    if isinstance(v, bool)
+                                    if isinstance(v, (bool, int))
                                     else " ".join(tok.itos[i] for i in v)
                                     for k2, v in s.items()
                                 }
@@ -279,16 +347,29 @@ def run(a: argparse.Namespace) -> dict[str, Any]:
             cell["stats"] = {
                 k: (dict(v) if isinstance(v, collections.Counter) else v) for k, v in st.items()
             }
+            if auto:
+                cell["auto_levels"] = auto_levels
+                cell["level_share_pct"] = level_shares(res)
+            if fbk:
+                cell["feedback"] = FB.metrics(res)
+                cell["feedback"]["max_rej"] = a.max_rej
             summary["cells"][name] = cell
             allc = cell["all"]
             tpa = allc["tokens_per_attempt"]
+            shares = ""
+            if auto:
+                shares = ", levels " + " ".join(
+                    f"e{b} {v:.1f}%" for b, v in cell["level_share_pct"].items()
+                )
             print(
                 f"[{name}] solved {allc['solved']}/{allc['n']} ({allc['solved_pct']:.1f}%), "
                 f"pass@1 {allc['pass_at_k_pct']['1']:.1f}%, tokens/attempt "
-                f"{tpa['tokens']:.1f} (think {tpa['think']:.1f}), "
+                f"{tpa['tokens']:.1f} (think {tpa['think']:.1f}){shares}, "
                 f"{cell['wall_s']:.0f}s",
                 flush=True,
             )
+            if fbk:
+                print(f"[{name}] feedback: " + FB.line_text(cell["feedback"]), flush=True)
             (out / "summary.json").write_text(json.dumps(summary, indent=1, default=str))
     return summary
 

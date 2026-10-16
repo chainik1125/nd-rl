@@ -103,6 +103,22 @@ def test_build_mix_weights_found_attempts(monkeypatch: pytest.MonkeyPatch) -> No
     assert sum(r == ei.entry_pairs(e, T) for r in mix) == 4
 
 
+def test_build_mix_retain_zero_is_the_found_proofs_alone(monkeypatch: pytest.MonkeyPatch) -> None:
+    """--retain 0 (line.sh's EI knob pilot ARM_kret0): no Stage-1 record, the same found records."""
+    rec = pilot_rec("k12_37120")
+    e = ei.found_entry(
+        _accepted(rec, monkeypatch), T, {"name": "t", "prompt": rec["prompt"]}, 1, True
+    )
+    retained = [trace_pairs(pilot_rec("k12_16472"), T)] * 5
+    mixes = [
+        ei.build_mix([{"name": "t"}], {"t": [e]}, retained, T, random.Random(0), 4, 4, n, "off")
+        for n in (0, 3)
+    ]
+    (mix0, st0), (mix3, st3) = mixes
+    assert st0["mix_retained"] == 0 and st0["mix_rl_records"] == st3["mix_rl_records"] == 4
+    assert mix0 == mix3[:4] == [ei.entry_pairs(e, T)] * 4
+
+
 def _variant(e: dict[str, Any], think: str = "", action_step: int | None = None) -> dict[str, Any]:
     """The same entry with every think block replaced (a think variant of the same proof), or with
     one action changed (another proof)."""

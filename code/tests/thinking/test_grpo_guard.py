@@ -1,7 +1,8 @@
 """GRPO safeguards (collapse audit 2026-10-08): the capped-attempt share and its alarm, the relative
 clip-low and canary alarms, the long-context canary and its file (rows, layout, name shift, the
 canary / anchor split), the KL anchor, exact resume from a checkpoint's training state, rollback on
-an alarm, the batch dumps, and long proofs mixed into the pool."""
+an alarm, the think ban restore check and stop (2026-10-11), the batch dumps, and long proofs mixed
+into the pool."""
 
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ import hashlib
 import json
 import math
 import zlib
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -299,7 +301,8 @@ def _crc_judge(tok: Any, prompts: Any, res: list[dict[str, Any]], lean: Any = No
 class Go:
     """grpo.run on a tiny effort model (as test_grpo._tiny_run: budgets 0 and 16, 2 prompts x 4
     attempts, 2 minibatch steps, an <eos>-biased init) with a content-hash judge; `go(argv,
-    out=...)` runs into iso / out with a shared init, targets, extra targets and canary file."""
+    out=...)` runs into iso / out with a shared init, targets, extra targets and canary file
+    (`go.argv(argv, out)`: the full command line, for `grpo.main`)."""
 
     def __init__(self, iso: Path) -> None:
         self.iso = iso
@@ -313,12 +316,15 @@ class Go:
         (iso / "extra.jsonl").write_text(json.dumps(extra) + "\n")
         _canary_file(iso / "canary.jsonl")
 
-    def __call__(self, argv: list[str], out: str = "g") -> tuple[list[dict[str, Any]], Path]:
+    def argv(self, argv: list[str], out: str = "g") -> list[str]:
         base = ["--init", str(self.init), "--name", "g", "--out", str(self.iso / out)]
         base += ["--targets", str(self.iso / "targets.jsonl"), "--budgets", "0,16", "--effort"]
         base += ["--prompts", "2", "--group", "4", "--updates", "2", "--max_action", "8"]
         base += ["--max_steps", "3", "--batch", "8", "--device", "cpu", "--lr", "1e-3"]
-        return grpo.run(grpo.parser().parse_args(base + argv)), self.iso / out
+        return base + argv
+
+    def __call__(self, argv: list[str], out: str = "g") -> tuple[list[dict[str, Any]], Path]:
+        return grpo.run(grpo.parser().parse_args(self.argv(argv, out))), self.iso / out
 
 
 @pytest.fixture
@@ -427,6 +433,260 @@ def test_rollback_restores_the_parameters_and_halves_the_lr(
     assert torch.load(str(ck / "g_it3.pt"))["extra"]["grpo_rollback"]["to_iter"] == 2
     printed = capsys.readouterr().out
     assert "ROLLBACK it 3: restored" in printed and "ALARM it 4: no rollback" in printed
+
+
+# --- the think ban restore check and stop (2026-10-11) -------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("x", "y", "back"),
+    [
+        (1.1e-3, 1.2e-3, False),  # the restore point is over the limit too: restoring cannot help
+        (1.1e-3, 2.19e-3, False),
+        (9e-4, 1.2e-3, True),  # under the limit: restoring helps
+        (1e-3, 1.2e-3, True),  # at the limit is not over it (the alarm's own test)
+        (1.1e-3, 2.2e-3, True),  # a spike: twice the restore point's mass
+        (1.1e-3, 9e-3, True),
+        (math.nan, 1.2e-3, True),  # an unusable score rolls back, as without the check
+    ],
+)
+def test_ban_rollback_choice(x: float, y: float, back: bool) -> None:
+    assert grpo.ban_rollback(x, y) is back
+
+
+def test_restore_ban_mass_is_the_loss_ban_think_at_the_restore_weights(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`ban_mass` is `policy_loss`'s `ban_think` (whatever the chunking; 0 without think tokens);
+    `restore_ban_mass` gives it at a checkpoint's weights from a scratch copy of another model,
+    which keeps its weights and gradients."""
+    isolate(tmp_path, monkeypatch)
+    b = torch.zeros(E.vocab_size)
+    b[E.eos] = 2.0  # mass on the think ban
+    model = bias_logits(tiny_model(E.vocab_size, seed=3), b)
+    ids, bans = (E.think, E.end_think), phase_bans(E, E.vocab_size, True)
+    st_, q, a_ = E.stoi["⊢"], E.stoi["Q"], E.stoi["exact"]
+    items: list[grpo.Item] = [
+        ([st_, effort_id(E, 16), E.think], [q, q, E.end_think, a_, E.eos], [True] * 5, 0.5),
+        ([st_, q, effort_id(E, 64), E.think], [q, a_, q, E.end_think, a_, E.eos], [True] * 6, -0.5),
+        ([st_, q, effort_id(E, 0), E.think, E.end_think], [a_, E.eos], [True] * 2, -0.5),
+    ]
+    assert len(grpo._chunks(items, 16)) > 1
+    st = grpo.policy_loss(model, items, 0.8, "cpu", think_ids=ids, bans=bans)
+    assert st.ban_think > grpo.ALARM_BAN
+    for max_tokens in (16, 50_000):
+        got = grpo.ban_mass(model, items, 0.8, "cpu", max_tokens, ids, bans)
+        assert got == pytest.approx(st.ban_think, rel=1e-6)
+    assert grpo.ban_mass(model, items[2:], 0.8, "cpu", 16, ids, bans) == 0.0  # budget 0 only
+    path = tmp_path / "restore.pt"
+    save_ckpt(str(path), model, E.mode)
+    other = bias_logits(tiny_model(E.vocab_size, seed=4), b)
+    other.train()
+    grpo.policy_loss(other, items, 0.8, "cpu", think_ids=ids, bans=bans)  # gradients, as an update
+    w0 = {k: v.clone() for k, v in other.state_dict().items()}
+    g0 = [p.grad.clone() for p in other.parameters() if p.grad is not None]
+    got = grpo.restore_ban_mass(other, str(path), items, 0.8, "cpu", 16, ids, bans)
+    assert got == pytest.approx(st.ban_think, rel=1e-6)
+    assert grpo.ban_mass(other, items, 0.8, "cpu", 16, ids, bans) != pytest.approx(got, rel=1e-3)
+    assert _same(w0, other.state_dict()) and other.training
+    g1 = [p.grad for p in other.parameters() if p.grad is not None]
+    assert g0 and all(torch.equal(x, y) for x, y in zip(g0, g1, strict=True))
+
+
+def _ban_alarms(
+    monkeypatch: pytest.MonkeyPatch,
+    ys: dict[int, float],
+    other: Sequence[int] = (),
+    restore: float | None = None,
+) -> list[str]:
+    """Iteration i's think ban mass is ys[i] (1e-5 for the others): the alarms read it and the row
+    keeps it. The alarms are the think ban alarm, plus 'test' at the iterations in `other`. With
+    `restore`, the restore check scores every restore point at `restore` -> the restore points it
+    scored, one per check."""
+
+    def fake_alarms(row: dict[str, Any], prev: Any) -> list[str]:
+        row["ban_think"] = ys.get(row["iter"], 1e-5)
+        ban = grpo.ban_alarm(row)
+        return ([ban] if ban else []) + (["test"] if row["iter"] in other else [])
+
+    monkeypatch.setattr(grpo, "alarms", fake_alarms)
+    scored: list[str] = []
+    if restore is not None:
+
+        def fake_restore(model: Any, path: str, *args: Any) -> float:
+            scored.append(path)
+            return restore
+
+        monkeypatch.setattr(grpo, "restore_ban_mass", fake_restore)
+    return scored
+
+
+ROLL = ["--rollback_on_alarm", "--save_rolling", "1", "--save_every", "3", "--warmup", "1"]
+CHECK = [*ROLL, "--ban_restore_check"]
+
+
+def test_ban_alarm_without_the_check_rolls_back(go: Go, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The options off (the default): a think ban alarm rolls back as before, nothing is scored,
+    and the row records the options."""
+    scored = _ban_alarms(monkeypatch, {3: 1.2e-3}, restore=1.1e-3)
+    hist, out = go(["--iters", "4", *ROLL])
+    assert scored == [] and not any("ban_check" in h or "stop" in h for h in hist)
+    assert hist[2]["rollback"] == {
+        "to": str(out / "ckpts" / "g_it2_rolling.pt"),
+        "to_iter": 2,
+        "n": 1,
+        "lr_scale": 0.5,
+    }
+    assert [(h["lr_scale"], h["rollbacks"]) for h in hist] == [(1.0, 0)] * 3 + [(0.5, 1)]
+    assert (out / "ckpts" / "g_it3_alarm.pt").exists()
+    cfg = hist[0]["alarm_cfg"]
+    assert (cfg["ban_restore_check"], cfg["ban_stop"]) == (False, 0.0)
+
+
+def test_ban_check_skips_the_rollback_when_the_restore_point_is_over_the_limit(
+    go: Go, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """it3 and it4 alarm on the think ban alone, their restore points are over the limit as well
+    and they are under twice theirs: no rollback, the alarm logged, no alarm checkpoint, the lr
+    kept. it3's permanent checkpoint is good, so it is it4's restore point; it4 rolls."""
+    scored = _ban_alarms(monkeypatch, {3: 1.2e-3, 4: 1.3e-3}, restore=1.1e-3)
+    hist, out = go(["--iters", "5", *CHECK])
+    ck = out / "ckpts"
+    assert scored == [str(ck / "g_it2_rolling.pt"), str(ck / "g_it3.pt")]
+    assert hist[2]["ban_check"] == {
+        "to": str(ck / "g_it2_rolling.pt"),
+        "to_iter": 2,
+        "restore_mass": 1.1e-3,
+        "mass": 1.2e-3,
+        "rollback": False,
+    }
+    assert hist[3]["ban_check"]["to_iter"] == 3 and hist[3]["ban_check"]["rollback"] is False
+    assert [h["rollback"] for h in hist[2:4]] == [None, None]
+    assert [h["alarms"] for h in hist[2:4]] == [[grpo.ban_alarm(h)] for h in hist[2:4]]
+    assert all((h["lr_scale"], h["rollbacks"]) == (1.0, 0) for h in hist)
+    assert hist[0]["alarm_cfg"]["ban_restore_check"] is True
+    assert not list(ck.glob("*_alarm.pt"))
+    names = sorted(p.name for p in ck.glob("g_it*.pt"))
+    assert names == sorted(
+        ["g_it0.pt", "g_it0_rolling.pt", "g_it1_rolling.pt", "g_it2_rolling.pt", "g_it3.pt"]
+        + ["g_it4_rolling.pt", "g_it5.pt"]
+    )
+    # nothing was restored: it3 trained on from it2 (weights, AdamW steps)
+    assert hist[2]["steps"] > 0 and not _same(
+        _weights(ck / "g_it2_rolling.pt"), _weights(ck / "g_it3.pt")
+    )
+    s2, s3 = load_train_state(ck / "g_it2_rolling.pt"), load_train_state(ck / "g_it3.pt")
+    assert s2 is not None and s3 is not None
+    assert s3["loop"]["n_step"] == s2["loop"]["n_step"] + hist[2]["steps"]
+    printed = capsys.readouterr().out
+    assert (
+        "ALARM it 3: no rollback: the restore point (it 2) has think banned mass 0.0011 > 0.001 on "
+        "this iteration's think tokens (this iteration 0.0012 < 2 x 0.0011)"
+    ) in printed.splitlines()
+    assert "ALARM it 3: think banned mass 0.0012 > 0.001" in printed
+    assert "ROLLBACK" not in printed and "--max_rollbacks" not in printed
+
+
+@pytest.mark.parametrize(("y", "x"), [(1.2e-3, 5e-4), (2.5e-3, 1.1e-3)])  # under; a spike
+def test_ban_check_rolls_back_from_under_the_limit_or_a_spike(
+    go: Go, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], y: float, x: float
+) -> None:
+    scored = _ban_alarms(monkeypatch, {3: y}, restore=x)
+    hist, out = go(["--iters", "4", *CHECK])
+    ck = out / "ckpts"
+    assert scored == [str(ck / "g_it2_rolling.pt")]
+    to = {"to": str(ck / "g_it2_rolling.pt"), "to_iter": 2}
+    assert hist[2]["ban_check"] == {**to, "restore_mass": x, "mass": y, "rollback": True}
+    assert hist[2]["rollback"] == {**to, "n": 1, "lr_scale": 0.5}
+    assert [(h["lr_scale"], h["rollbacks"]) for h in hist] == [(1.0, 0)] * 3 + [(0.5, 1)]
+    assert (ck / "g_it3_alarm.pt").exists()
+    assert _same(_weights(ck / "g_it2_rolling.pt"), _weights(ck / "g_it3.pt"))  # restored
+    printed = capsys.readouterr().out
+    assert (
+        f"ALARM it 3: rollback: the restore point (it 2) has think banned mass {x:.3g} on this "
+        f"iteration's think tokens (this iteration {y:.3g})"
+    ) in printed.splitlines()
+    assert "ROLLBACK it 3: restored" in printed
+
+
+@pytest.mark.parametrize("ys", [{3: 1.2e-3}, {}])
+def test_another_alarm_rolls_back_unchecked(
+    go: Go, monkeypatch: pytest.MonkeyPatch, ys: dict[int, float]
+) -> None:
+    """A think ban alarm with another alarm, or another alarm alone: rolled back, not scored."""
+    scored = _ban_alarms(monkeypatch, ys, other=[3], restore=1.1e-3)
+    hist, _ = go(["--iters", "4", *CHECK])
+    assert scored == [] and not any("ban_check" in h for h in hist)
+    assert hist[2]["rollback"]["to_iter"] == 2 and hist[3]["lr_scale"] == 0.5
+
+
+def test_ban_check_after_max_rollbacks(
+    go: Go, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--max_rollbacks reached: no check, the old line, the alarm checkpoint."""
+    scored = _ban_alarms(monkeypatch, {3: 1.2e-3, 4: 1.2e-3}, restore=5e-4)
+    hist, out = go(["--iters", "4", *CHECK, "--max_rollbacks", "1"])
+    assert len(scored) == 1 and hist[2]["ban_check"]["rollback"] is True
+    assert hist[3]["rollback"] is None and "ban_check" not in hist[3]
+    assert (out / "ckpts" / "g_it4_alarm.pt").exists()
+    printed = capsys.readouterr().out
+    assert "ALARM it 4: no rollback (--max_rollbacks 1 reached)" in printed.splitlines()
+    assert "ALARM it 4: no rollback:" not in printed
+
+
+def test_ban_check_scores_the_iteration_under_the_restore_point(
+    go: Go, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The real check on the <eos>-biased model, whose think ban mass is far over the limit from
+    the start: it1 is let through. Its restore mass is `policy_loss`'s `ban_think` of it1's
+    trained items (the dump) under the start checkpoint's weights; it2 checks against it1."""
+    monkeypatch.setattr(grpo, "alarms", lambda row, prev: [m for m in [grpo.ban_alarm(row)] if m])
+    dumps = go.iso / "dumps"
+    hist, out = go(["--iters", "2", *CHECK, "--dump_batches", str(dumps)])
+    ck = out / "ckpts"
+    bc = hist[0]["ban_check"]
+    assert (bc["to"], bc["to_iter"]) == (str(ck / "g_it0_rolling.pt"), 0)
+    assert bc["mass"] == hist[0]["ban_think"] > grpo.ALARM_BAN
+    model, tok, _ = grpo.load_ckpt(ck / "g_it0_rolling.pt")  # the fixture's <eos> bias too
+    items, _ = unpack_items(load_batch(dumps / "g_it1_batch.pt"))
+    bans = phase_bans(tok, model.cfg["vocab"], True)
+    st = grpo.policy_loss(model, items, 1.0, "cpu", think_ids=(tok.think, tok.end_think), bans=bans)
+    assert bc["restore_mass"] == pytest.approx(st.ban_think, rel=1e-5)
+    assert bc["rollback"] is False and hist[0]["rollback"] is None
+    assert hist[1]["ban_check"]["to"] == str(ck / "g_it1_rolling.pt")
+    assert not list(ck.glob("*_alarm.pt"))
+    assert "ALARM it 1: no rollback: the restore point (it 0)" in capsys.readouterr().out
+
+
+def test_ban_stop_ends_the_run_with_exit_code_3(
+    go: Go, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """it2's think ban mass is over --ban_stop: its row, its usual lines and its alarm checkpoint,
+    then the STOP line and exit code 3; no rollback, no check, nothing after. Under the stop,
+    the run goes on (exit code 0)."""
+    scored = _ban_alarms(monkeypatch, {2: 6e-3}, restore=1.1e-3)
+    assert grpo.main(go.argv(["--iters", "4", *CHECK, "--ban_stop", "0.005"])) == 3
+    out, ck = go.iso / "g", go.iso / "g" / "ckpts"
+    rows = [json.loads(x) for x in (out / "metrics.jsonl").read_text().splitlines()]
+    assert [r["iter"] for r in rows] == [1, 2] and scored == []
+    assert rows[1]["stop"] == {"ban_think": 6e-3, "ban_stop": 0.005}
+    assert rows[1]["rollback"] is None and "stop" not in rows[0]
+    assert (
+        rows[1]["alarms"] == [grpo.ban_alarm(rows[1])] and rows[1]["alarm_cfg"]["ban_stop"] == 0.005
+    )
+    assert sorted(p.name for p in ck.glob("g_it*.pt")) == sorted(
+        ["g_it0.pt", "g_it0_rolling.pt", "g_it1_rolling.pt", "g_it2_alarm.pt"]
+    )
+    st = load_train_state(ck / "g_it2_alarm.pt")
+    assert st is not None and st["iter"] == 2
+    printed = capsys.readouterr().out.splitlines()
+    assert printed[-1] == "STOP it 2: think banned mass 0.006 > 0.005: ending the run"
+    assert any(x.startswith("it 2: ") for x in printed) and "ALARM it 2: think banned mass" in (
+        "\n".join(printed)
+    )
+    assert not any("ROLLBACK" in x or "no rollback" in x or x.startswith("it 3:") for x in printed)
+    assert grpo.main(go.argv(["--iters", "3", "--ban_stop", "0.01"], out="under")) == 0
+    assert len((go.iso / "under" / "metrics.jsonl").read_text().splitlines()) == 3
 
 
 def test_batch_dump_round_trip(tmp_path: Path) -> None:

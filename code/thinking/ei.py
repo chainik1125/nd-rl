@@ -63,7 +63,7 @@ import torch
 
 from .ckpt import load_ckpt, run_env, save_ckpt
 from .dan import bare, load, trace_dsl
-from .data import Pair, encode_pair, load_pairs, read_jsonl
+from .data import Pair, encode_pair, encode_pair_choice, load_pairs, read_jsonl
 from .effort import LEVELS, expand_to_effort, has_effort, relabel_records
 from .eval import pass_at_k
 from .sample import judge, think_generate
@@ -94,6 +94,12 @@ def found_entry(
     src: list[tuple[Any, Any, Any]] = (
         list(reb) if rebased else [(s["state"], s["think"], s["applied"]) for s in steps]
     )
+    out_steps: list[dict[str, Any]] = [
+        {"state": _s(tok, a), "think": _s(tok, b), "action": _s(tok, c)} for a, b, c in src
+    ]
+    if any("level" in s for s in steps):  # auto effort: the level the model picked at each step
+        for d, s in zip(out_steps, steps, strict=True):
+            d["level"] = int(s["level"])
     return {
         "name": target.get("name"),
         "prompt": target["prompt"],
@@ -102,9 +108,7 @@ def found_entry(
         "sample_base": x["base"],
         "budget": x["budget"],
         "think_format": "think" if think else "none",
-        "steps": [
-            {"state": _s(tok, a), "think": _s(tok, b), "action": _s(tok, c)} for a, b, c in src
-        ],
+        "steps": out_steps,
         "think_tokens": sum(len(b) for _, b, _ in src),
         "forced": sum(bool(s.get("forced")) for s in steps),
         "tokens": x["tokens"],
@@ -202,8 +206,15 @@ def validate_entry(e: dict[str, Any]) -> list[bool]:
     return out
 
 
-def entry_pairs(e: dict[str, Any], tok: Any, validate: str = "off") -> list[Pair]:
-    """A found record -> training pairs (state, think block + action + <eos>)."""
+def entry_pairs(
+    e: dict[str, Any], tok: Any, validate: str = "off", choice: bool = False
+) -> list[Pair]:
+    """A found record -> training pairs (state, think block + action + <eos>).  `choice` (auto
+    effort, `ei_auto`): the step's effort token is a target, `state | <eB> <think> ...`
+    (`data.encode_pair_choice`), at the step's picked `level` if it has one, else the entry's
+    budget."""
+    if choice and not (has_effort(tok) and e["think_format"] == "think"):
+        raise ValueError("choice pairs need a lean_thinke tokenizer and a per-step think entry")
     valid = e.get("think_valid") or [True] * len(e["steps"])
     out = []
     for s, ok in zip(e["steps"], valid, strict=True):
@@ -214,6 +225,10 @@ def entry_pairs(e: dict[str, Any], tok: Any, validate: str = "off") -> list[Pair
             content = []
         block = [THINK, *content, END_THINK] if e["think_format"] == "think" else []
         state = s["state"].split()
+        if choice:
+            level = int(s.get("level", e["budget"]))
+            out.append(encode_pair_choice(tok, state, level, block, s["action"].split()))
+            continue
         if has_effort(tok):
             state.append(f"<e{e['budget']}>")
         out.append(encode_pair(tok, state, block, s["action"].split()))
