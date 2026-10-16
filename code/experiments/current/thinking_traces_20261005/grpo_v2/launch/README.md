@@ -256,7 +256,12 @@ Paths are serrano's. Changes, all of them:
     - Reads: `MINI_TRAIN` (`l2train`, `l3train`: the training subsets as read, `L2T` / `L3T`, before `SMOKE=1` takes
       their heads) for the reference, `rr` and the pool arms; the T arms' `MINI_PANEL` at their T (`read1`'s 9th
       argument: `--temperature` and the `_T07` suffix); `MINI_PANEL` is now `l3test` k8, t1320 k8, t2130 k4,
-      charles173 k16. `reads_of` runs a read named in two of its lists once.
+      charles173 k16. `reads_of` runs a read named in two of its lists once. Follow-up: a rerun of a finished mini
+      line (its L3-mini's last checkpoint there) writes HEAD to `ARM_sS.reads_commit.txt` and keeps the training's
+      `base_commit.txt` (`bc`, as `KNOB_FULL=1`); `dry/check.py` section N checks both records. In the dry run all
+      41,450 checks pass; against c00f45a6's 2,374 result dirs only the six finished-line reruns differ (their record
+      file and call), the harness home aside. A smoke rerun of a finished `grpo_think_vs_mini` (`MINI_ROLL=L3:0`) kept
+      its `base_commit.txt` and wrote `reads_commit.txt`.
     - `ARM_ckreads` for any full GRPO L3 that started from another arm's L2 (`_ki78` included: `CKR_ITS` is every 10
       below `IT3`), each iteration from the nearest earlier rolling checkpoint, recorded in `ARM_ckreads_sS.ckpts.txt`,
       then `CKR_FINAL` of the last. `ARM_l2_ckreads` (lower case, as pull_queue.sh's job lines must be) and

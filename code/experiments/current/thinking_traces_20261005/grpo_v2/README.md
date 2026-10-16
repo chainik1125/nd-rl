@@ -644,6 +644,8 @@ L3-mini's last checkpoint (`MINI_READS`):
 - Time-resolved reads hook: `MINI_ROLL="L2:4 L3:2 …"` (env) also reads `MINI_PANEL` of those rolling checkpoints, as
   `<set>_<arm>_L3it2_s<seed>_plain_k8`. One missing (an alarm iteration saves none) is skipped. It is off by default.
 - A read named in two of a line's lists runs once.
+- Rerunning a finished line (both stages there: to add `MINI_TRAIN` or `MINI_ROLL` reads) trains nothing and writes HEAD
+  to `ARM_sSEED.reads_commit.txt`, as `KNOB_FULL=1` does; the training's `base_commit.txt` stays.
 
 **`--len_penalty` in grpo.py** (needed for the `lp` knobs; with `--len_penalty 0` nothing changes, see the tests below).
 - An all-solved group's rewards 1 − lp·n/1000 differ by length alone. Such a group is *length-only*: it is trained,

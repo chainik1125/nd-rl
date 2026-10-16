@@ -376,6 +376,8 @@ if [ "$SMOKE" != 1 ] && [ -z "$ckr" ]; then  # (ARM_ckreads trains on nothing)
 fi
 [ -f $init0 ] || { say "no Stage-1 init $init0"; exit 1; }
 bc=base_commit; [ -n "$knob" ] && [ "${KNOB_FULL:-0}" = 1 ] && bc=reads_commit  # KNOB_FULL keeps the training's record
+[ -n "$mini" ] && [ -f $C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it$IT3.pt ] && bc=reads_commit  # a finished mini line
+  # rerun (MINI_TRAIN, MINI_ROLL reads): HEAD in reads_commit.txt, the training's base_commit.txt kept
 cr=$C/${arm}_s$s.$bc.txt; [ -n "$ckr" ] && cr=$C/${job}_s$s.base_commit.txt  # ARM_ckreads: its own, not the arm's
 git -C $WT rev-parse HEAD > $cr
 watch() {  # NAME PID LOG EXPECTED_H

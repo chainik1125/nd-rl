@@ -39,7 +39,8 @@ Sections
      at their T (_T07 ...); --ban_stop in L3-mini: the FAILED line, no reads; a fork whose reference never finishes:
      180 waits, then FAILED
   N  mini reruns: with L2-mini's last checkpoint only L3-mini and the reads run; with both stages and two reads, the
-     others; MINI_ROLL: MINI_PANEL of the rolling checkpoints named, one missing skipped
+     others, HEAD in reads_commit.txt and the training's base_commit.txt kept; MINI_ROLL: MINI_PANEL of the rolling
+     checkpoints named, one missing skipped
   Q  ARM_ckreads (2026-10-16): a full L3's CKR_PANEL at it10 / 20 / 30 (i78: to 70), each from the nearest earlier
      rolling checkpoint (named after it; none: skipped), recorded in ARM_ckreads_sS.ckpts.txt, then CKR_FINAL of its
      last; the shared L2 (ARM_l2_ckreads) and the Stage-1 base (s1g3_ckreads): CKR_PANEL and MINI_READS, a read in
@@ -513,7 +514,7 @@ def expect(
             "git",
             WT,
             "CVD=unset",
-            f"{C}/{arm}_s{s}.{'reads_commit' if knob and full else 'base_commit'}.txt",
+            f"{C}/{arm}_s{s}.{'reads_commit' if (knob and full) or (mm and l3_there) else 'base_commit'}.txt",
             st,
             f"-C {WT} rev-parse HEAD",
         )
@@ -2126,6 +2127,23 @@ for mode in ("normal", "smoke"):
             n_ev = sum(" -m code.thinking.eval " in x[5] for x in got)
             n_want = len(mini_read_dirs(arm, s, smoke)) - len(kw.get("reads_there", ()))  # type: ignore[arg-type]
             ok(n_ev == n_want, "N", f"{d} {mode} s{s}: {n_ev} reads, want {n_want}")
+            # a finished line's rerun (its setup's training record: 'dry training commit') writes HEAD to
+            # reads_commit.txt and keeps base_commit.txt; a line that trains writes base_commit.txt alone
+            md5 = dict(
+                ln.split("  ", 1)[::-1]
+                for ln in Path(f"{H}/res/mini/{mode}/s{s}/{d}/md5.txt").read_text().split("\n")
+                if ln
+            )
+            c2 = "grpo_v2/smoke" if smoke else "grpo_v2"
+            bc, rc = (f"./runs/{c2}/{arm}_s{s}.{x}_commit.txt" for x in ("base", "reads"))
+            train_rec = hashlib.md5(b"dry training commit\n").hexdigest()
+            ok(
+                (md5.get(bc) == train_rec and rc in md5)
+                if kw.get("l3_there")
+                else (bc in md5 and md5[bc] != train_rec and rc not in md5),
+                "N",
+                f"{d} {mode} s{s}: commit records {bc in md5} {rc in md5}",
+            )
         # MINI_ROLL "L2:4 L3:2 L3:6" (SMOKE=1: L2:2): after the usual reads, MINI_PANEL of the two rolling checkpoints
         # there, under ARM_STAGEitIT; L3:6's reads skipped
         arm = MREF
