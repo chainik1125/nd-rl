@@ -5,6 +5,13 @@ written_by: agent:claude
 
 # Thinking traces for the proof-state model (test-time scaling, LLM tradition)
 
+**Primary RL recipe (Leon, 2026-10-16).** GRPO is the RL method from now on, and EI is retired. The recipe is GRPO
+with thinking from S1g3, with verifier-guided rollouts that stop on the first invalid step. It trains on a length
+curriculum, L2 (10–12 lines) then L3 (13–15), and its L3 is the merged recipe with KL anchor 0. Commands, launch,
+the evidence (3 seeds, pass@1 / pass@5) and caveats are in
+[RECIPE.md](../../code/experiments/current/thinking_traces_20261005/RECIPE.md). The GRPO v2 tables are in
+[v2_results_ynez.md](../../code/experiments/current/thinking_traces_20261005/matched_eval/v2_results_ynez.md).
+
 Status (2026-10-08):
 - Stage 1 is done: 4 arms × 3 seeds, with reads on textbook72 and the OOD sets (below).
 - The first RL phase is done (EI and fixed-loss GRPO on the rl_hard12 pool, to iteration 78). See
