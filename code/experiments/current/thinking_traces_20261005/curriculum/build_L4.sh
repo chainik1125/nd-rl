@@ -16,16 +16,22 @@
 #     L3r's pools, test splits and reservoirs and curriculum_3p's files (excl.py --extra);
 #   * assemble avoids L3r's and L2r's reservoirs (renaming class and curried form), so L4 shares no class with any
 #     earlier band, its test split included;
-#   * the mix caps are L3r's realized shares (as L2r's were). The reservoir cannot fill 6,000 at any caps, so the
-#     selection is the largest one that fills at those caps without relaxing them (find_n.py), and the test split is a
-#     sixth of it (L3r's 1,000 of 6,000; still written as test_1k.jsonl, the name the readers expect);
+#   * the mix gate: the reservoir cannot fill 6,000 at any caps. At L3r's realized shares (L2r's procedure) only
+#     ~1/5 of it fills (find_n.py; measured every build, work/select_report_l3mix.json): at 16 lines most rows are
+#     classical-only, reductio and nested negation. L4 as built (L4_MIX=natural) keeps every reservoir row, which is
+#     L3r's own procedure (relax every cap until the target fills) with the target = the reservoir; L4_MIX=l3 keeps the
+#     L3r-share selection instead. The test split is a sixth of the selection (L3r's 1,000 of 6,000; still written as
+#     test_1k.jsonl, the name the readers expect);
 #   * generation length: rounds of 500k seeds up to L4_STOP_B (no skip) / L4_STOP_C (skip keys) / L4_STOP_D (gap 3).
-#     bash build_L4.sh PHASE   (PHASE: 0 index | 1 regen-long + gen 0-1M | 2 skip keys + gen to L4_STOP_C |
-#                               3 gap regen + gen to L4_STOP_D | 4 Lean, assemble, select, split, report)
+#     bash build_L4.sh PHASE   (PHASE: 0 index | 1 regen-long + gen 0-1M | 1b gen to L4_STOP_B, adaptive |
+#                               2 skip keys (+ gen to L4_STOP_C) | 3 gap regen + gen gap 3 for L4_HOURS_D h |
+#                               3g gen gap 3 resumed for L4_HOURS_G h | 4 Lean, assemble, select, split, report)
+#     As built (2026-10-16): 0; 1; 1b; 2; 3 with L4_HOURS_D=4 (cut by serrano's crash at 1.41 h); 3g with
+#     L4_HOURS_G=2.6; 4. 20 workers up to the crash, 14 after it.
 set -uo pipefail   # no -e: each step's exit status is logged; phase 4 stops on a failed step
 WT=${L4_WT:-/scratch/cowifornia/nd-rl/think/nd-rl-long}
 R=/scratch/cowifornia/nd-rl/think/runs
-C=$R/pools/curriculum
+C=${L4_ROOT:-$R/pools/curriculum}  # (L4_ROOT: a dry run of phase 4 elsewhere)
 D=$C/L4
 PY=/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python
 X=code.experiments.current.thinking_traces_20261005
@@ -111,6 +117,13 @@ EOF
   env $B16 $ADAPT PFG_MAX_GAP=3 timeout $((HOURS_D * 3600 + 3600)) $N $PY -m $G --workers $W --adaptive \
     --stop_seed $STOP_D --hours $HOURS_D --skip $D/gen/skip_keys.txt > $L/gen_d.log 2>&1
   say "gen $STOP_C-$STOP_D (or $HOURS_D h) exit $?" ;;
+3g)  # resume phase 3's gap-3 generation alone (it resumes at progress.json's next_seed) for L4_HOURS_G more hours:
+     # serrano went down at 11:03Z on 2026-10-16, 1.41 h into phase 3's 4 h, after round 68 (seeds to 34M)
+  HG=${L4_HOURS_G:?hours}
+  say "phase 3g: gen gap 3 resumed for $HG h ($W workers)"
+  env $B16 $ADAPT PFG_MAX_GAP=3 timeout $(awk "BEGIN {print int($HG * 3600 + 3600)}") $N $PY -m $G --workers $W \
+    --adaptive --stop_seed $STOP_D --hours $HG --skip $D/gen/skip_keys.txt >> $L/gen_d.log 2>&1
+  say "gen gap 3 resumed exit $?" ;;
 4)
   say "phase 4: Lean, assemble, select, split, report"
   export LEAN_GATE_WORKERS=$W
@@ -132,12 +145,20 @@ sh = r["shares_selected"]
 print(json.dumps({k: round(float(sh[k]), 4) for k in ("classical", "ex_falso", "reductio", "nested_neg", "nn_plain")}))
 EOF
 )
-  say "CAPS_L4 $CAPS" | tee -a $L/caps.log
-  # the reservoir cannot fill 6,000: the largest selection at those caps, none of them relaxed (find_n.py)
-  timeout 7200 $N $PY -m $X.curriculum.find_n $D "$CAPS" > $L/find_n.log 2>&1 || { say "find_n FAILED"; exit 1; }
+  say "CAPS_L3 $CAPS" | tee -a $L/caps.log
+  # the reservoir cannot fill 6,000. Always measured: the largest selection at L3r's shares, none relaxed (find_n.py)
+  timeout 7200 $N $PY -m $X.curriculum.find_n $D "$CAPS" > $L/find_n_l3mix.log 2>&1 || { say "find_n FAILED"; exit 1; }
+  cp $D/work/select_report.json $D/work/select_report_l3mix.json; tail -2 $L/find_n_l3mix.log
+  if [ "${L4_MIX:-natural}" = natural ]; then  # L4 as built: every reservoir row (L3r's own procedure, relaxing every
+    NRES=$(grep -c . $D/work/gated_lean.jsonl)  # cap until the target fills, with the target = the reservoir)
+    ONE='{"classical": 1, "ex_falso": 1, "reductio": 1, "nested_neg": 1, "nn_plain": 1, "goal_ho": 1, "short78": 1,
+          "bicond": 1, "no_prem": 1, "case_split": 1, "irrelevant1": 1, "irrelevant2": 1}'
+    timeout 3600 $N $PY -m $X.hard712.run --out $D select --n $NRES --workers $W --caps "$ONE" > $L/select.log 2>&1 \
+      || { say "select FAILED"; exit 1; }
+  fi
   NSEL=$($PY -c "import json; print(json.load(open('$D/work/select_report.json'))['n_selected'])")
   NTEST=${L4_NTEST:-$(( (NSEL + 3) / 6 ))}  # L3r's 1,000 of 6,000
-  say "selected $NSEL; test $NTEST, pool $((NSEL - NTEST))"; tail -2 $L/find_n.log
+  say "selected $NSEL (L4_MIX=${L4_MIX:-natural}); test $NTEST, pool $((NSEL - NTEST))"
   timeout 1800 $N $PY -m $X.hard712.run --out $D split --n_test $NTEST --n_dev 0 --prefix cL4 \
     --source curriculum_L4 > $L/split.log 2>&1 || { say "split FAILED"; exit 1; }
   rm -f $D/dev_500.jsonl $D/dev_500.keys.jsonl
