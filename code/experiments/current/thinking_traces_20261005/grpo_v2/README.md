@@ -611,6 +611,8 @@ recipe's, and differ from it only in what is listed here (the dry run checks thi
 | `g64b` | `--prompts 64 --group 64` in both stages |
 | `pool250`, `pool500` | the nested 250- / 500-row subsets in both stages, the same iterations and attempts (each row seen 4x / 2x as often) |
 | `size` | a placeholder for big-statement twins of half the mini rows: refused until its files exist |
+| `lossact`, `lossthink` | `--loss_tokens action / think`: the policy loss on that phase's scored tokens alone (below) |
+| `advpos`, `advneg` | `--adv_sign pos / neg`: one sign of the outcome advantage, the other zeroed (below) |
 
 **Forks** (`kl1`, `g64`: the controls, seeds 0 and 1). A fork has no L2-mini of its own. Its L3-mini starts from the
 reference `grpo_think_vs_mini`'s `_L2_it10` at the same seed, which is also its KL reference, so it differs from the
@@ -672,6 +674,32 @@ L3-mini's last checkpoint (`MINI_READS`):
 - Tests: `tests/thinking/test_grpo_len_penalty.py`. `test_grpo_pilots.py`'s c4b8548 digests still hold at lp 0, for
   `plain` and for `mixed0` (the `mixed` config without its penalty, new). `mixed` itself (lp 0.05) keeps c4b8548's
   rollouts and args.json, and its rows, lines, weights and dumps are pinned anew.
+
+**`--loss_tokens` and `--adv_sign` in grpo.py** (the `loss` and `adv` knobs; opt-in, left out of args.json unless
+given, so without them nothing changes: c4b8548's digests hold, and given at their defaults `all` / `both` they change
+only args.json; `tests/thinking/test_grpo_mini_knobs.py`). line.sh refuses these arms unless the worktree's grpo.py has
+`LOSS_TOKENS` and `ADV_SIGNS`.
+- `--loss_tokens action|think` trains only the scored tokens of one phase. The think phase is the think block, its
+  `</think>` included (`think_len`); the action phase is the rest. The loss's divisor counts the trained tokens alone,
+  so the loss is a mean over them and each weighs more than in a full run (about 2x for `action`, whose tokens are about
+  half of an attempt's). This is the "normalise over the selected tokens" choice. The clip and ratio statistics, and
+  so the clip-low alarm, count those tokens too.
+  - Unchanged: the entropy and the think-ban mass are over every scored token, so the ban alarm, the restore check
+    and `--ban_stop` are unchanged (under `action` the think tokens get no gradient of their own, but the weights are
+    shared). The KL anchor is a separate term on the anchor set's tokens. The unlikeliness ranks use each attempt's
+    whole sequence.
+  - The step penalty's −P falls on the trained phase's tokens of its draws.
+  - Budget 0 has no think block, so `think` trains nothing there. A minibatch with no token of the phase takes no
+    step, and so no KL-anchor step either (L3-mini's anchor is 0 anyway). `trained_tokens` is the phase's count, and
+    the logged entropies stay per scored token (`LossStats.tokens_all`).
+- `--adv_sign pos|neg` zeroes every outcome advantage of the other sign. The advantage is r minus the group mean,
+  after the unlikeliness deduction (which can make a solved attempt's advantage negative in a mostly solved group:
+  then `pos` drops it) and the length terms.
+  - The zeroed items stay in the batch, their tokens in the divisor, so a kept token weighs exactly what it weighs in
+    the full run. The update is about half as large on average, an lr-like effect that comes with the knob.
+  - The step penalty is not an outcome advantage. Its −P stays on the redrawn draws and on the draw that ended a
+    failed attempt; under `pos` that draw keeps −P alone.
+  - The KL anchor and the ban mass are unchanged. All-solved and all-failed groups are skipped as before.
 
 **Temperature** (`t` knobs). grpo.py uses `--temperature` for sampling, the PPO ratio's old and new log-probs, the
 unlikeliness ranks, the entropy and think-ban mass in the loss, and the ban restore check. The canary is always at

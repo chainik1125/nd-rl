@@ -67,7 +67,7 @@ EKREF=(ei_think_v_kfoo ei_think_v_k ei_think_v_kx66 ei_think_v_kp3 ei_think_v_k3
 # fork whose reference L2-mini rolled back or never finishes. ARM_ckreads: a full L3 run's checkpoints, a base arm's L2
 # (ARM_l2_ckreads), the Stage-1 base (s1g3_ckreads), each with a setup; refused (CKREF) for other arms, KNOB_FULL=1,
 # without the checkpoints
-MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 g64b pool250 pool500)
+MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 g64b pool250 pool500 lossact lossthink advpos advneg)
 MARMS=(grpo_think_vs_mini "${MKNOBS[@]/#/grpo_think_vs_mini_k}")
 MFORKS=(grpo_think_vs_mini_kkl1 grpo_think_vs_mini_kg64)
 MREF=(grpo_think_mini grpo_nothink_vs_mini grpo_think_vs_h_mini grpo_think_vs_mb_mini grpo_think_vs_mb_kkl0_mini ei_think_v_mini

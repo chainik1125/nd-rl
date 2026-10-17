@@ -288,6 +288,26 @@ Paths are serrano's. Changes, all of them:
       0.1; `g64`: 2 x 8 at 0). Then `grpo_think_vs` and `_kkl0`, `_kkl0_ckreads` (`CKR_FINAL` only: a 2-iteration L3
       has no `CKR_ITS`), `grpo_think_vs_l2_ckreads` and `s1g3_ckreads` (five reads each: in `SMOKE=1` every k is 2,
       so `MINI_READS` repeats `CKR_PANEL`'s dirs and runs once), and a rerun of `_kkl0_ckreads` that read nothing.
+14. `leon/grpo-v2-dev` (2026-10-16): grpo.py's mini-run knobs and their arms. This one changes `code.thinking.grpo`:
+    fast-forward it only once no run that imports `nd-rl-v2`'s grpo.py is going.
+    - grpo.py: `--loss_tokens all|action|think` and `--adv_sign both|pos|neg`, opt-in (`argparse.SUPPRESS`: left out of
+      args.json unless given). `policy_loss(tokens=)` trains one phase's scored tokens, with its divisor over them;
+      the entropy and the ban mass stay over every scored token (`LossStats.tokens_all` weights the logged
+      entropies). `group_items(adv_sign=)` zeroes one sign of the outcome advantage after the deductions; the step
+      penalty's −P stays.
+    - Tests: `tests/thinking/test_grpo_mini_knobs.py` (each phase's loss and gradient equal the full loss on masks
+      that keep that phase, with or without the PPO ratio; budget 0 under `think`; the signs, after the unlikeliness
+      deduction; the step penalty kept; args.json; the defaults given change nothing but args.json against c4b8548's
+      `plain` digest). All 267 GRPO / EI tests pass (10 new), and ruff, ruff format and pyright are clean over `code/`.
+    - line.sh: `grpo_think_vs_mini_klossact` / `_klossthink` / `_kadvpos` / `_kadvneg`, both stages, refused unless
+      the worktree's grpo.py has `LOSS_TOKENS` and `ADV_SIGNS`. In the dry run (sections A-Q and the
+      four arms at seeds 0-2, both modes, in M) all 42,170 checks pass over 2,398 result dirs. All 1,940 of
+      765161f9's match, and against 0923b391's 2,374 only the 17 refused mini names' stdout differs (the knob list in
+      the message), the harness home aside.
+    - Smoke: `SMOKE=1`, CPU, `SMOKE_WT` the dev worktree. `lossact`, `lossthink` and `advpos` ran both stages and
+      the five reads (args.json records the knob). `advneg`'s 4 x 4 L3-mini at seed 0 hit `--ban_stop` at its second
+      iteration (think-ban mass 0.0113) and logged the FAILED line with no reads; at seed 2 it ran through. Without
+      `SMOKE_WT` (`nd-rl-v2`'s grpo.py, which has neither option) `lossact` is refused.
 
 Checked and left alone:
 

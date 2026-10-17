@@ -29,7 +29,7 @@ Sections
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
   D  ARM_mb's averaging: a missing rolling checkpoint refuses the averaged reads; a rerun does not average again
   K  ARM_mb_ki78: an it39 L3 checkpoint does not end its 78-iteration stage; with its it78 checkpoint only the reads run
-  M  the mini runs (2026-10-16): grpo_think_vs_mini and 12 knob arms x seeds 0-2 (the reference at 3 too) x normal /
+  M  the mini runs (2026-10-16): grpo_think_vs_mini and 16 knob arms x seeds 0-2 (the reference at 3 too) x normal /
      SMOKE=1, as section A, against `expect()`; from S1g3_s0 at every seed, L3-mini from L2-mini's last checkpoint;
      L2-mini's command is grpo_think_vs's L2 command and L3-mini's grpo_think_vs_mb_kkl0's L3 command but for the
      iterations, the subsets, --save_rolling 2, the timeout and the inits; each knob's commands are the reference's
@@ -168,7 +168,9 @@ M3 = "<R>/pools/curriculum_3p/L3_mix_ei.jsonl"  # ARM_k3p's targets
 # recipe), MINI_IT iterations each, chained from Stage-1 S1g3_s0 whatever the seed, on the mini subsets, a rolling
 # checkpoint every 2 iterations; a knob; then plain reads in and out of distribution, never tb72
 MINI_IT = 10
-MKNOB_RX = r"rr|t07|t085|t115|t13|lpm?\d\d|kl1|g64b?|pool250|pool500"
+MKNOB_RX = (
+    r"rr|t07|t085|t115|t13|lpm?\d\d|kl1|g64b?|pool250|pool500|lossact|lossthink|advpos|advneg"
+)
 MINI_RX = re.compile(r"grpo_think_vs_mini(?:_k(" + MKNOB_RX + "))?")
 MREF = "grpo_think_vs_mini"  # the reference, whose L2-mini the forks start from
 MARMS = [MREF] + [
@@ -186,10 +188,24 @@ MARMS = [MREF] + [
         "g64b",
         "pool250",
         "pool500",
+        "lossact",
+        "lossthink",
+        "advpos",
+        "advneg",
     )
 ]
 MFORK = ("kl1", "g64")  # L3-mini only, from the reference's L2-mini at the same seed
 MFORKS = [f"grpo_think_vs_mini_k{k}" for k in MFORK]
+MLOSS = {  # grpo.py's mini-run knobs: (flag, value), both stages
+    "lossact": ("--loss_tokens", "action"),
+    "lossthink": ("--loss_tokens", "think"),
+    "advpos": ("--adv_sign", "pos"),
+    "advneg": ("--adv_sign", "neg"),
+}
+MLOSS_GUARD = (  # line.sh's guard for them: the worktree's grpo.py has both options
+    "-c import\\ sys\\,\\ code.thinking.grpo\\ as\\ g\\;\\ sys.exit\\(0\\ if\\ hasattr\\(g\\,\\ "
+    "\\'LOSS_TOKENS\\'\\)\\ and\\ hasattr\\(g\\,\\ \\'ADV_SIGNS\\'\\)\\ else\\ 1\\)"
+)
 MT = {
     "t07": "0.7",
     "t085": "0.85",
@@ -222,6 +238,8 @@ def mknob(
         l3 = dict(g64)
     elif mk == "kl1":  # a fork: L3-mini only
         l3["--kl_anchor_coef"] = ("0", "0.1")
+    elif mk in MLOSS:  # grpo.py's mini-run knobs (opt-in: not passed by the reference)
+        both[MLOSS[mk][0]] = (None, MLOSS[mk][1])
     elif (
         mk.startswith("pool") and not smoke
     ):  # the nested subsets (SMOKE=1: 8-row heads either way)
@@ -467,6 +485,8 @@ def expect(
                 f"\\'{GUARD[pil]}\\'\\)\\ else\\ 1\\)",
             )
         )
+    if mk in MLOSS:  # ARM_mini's grpo.py knobs: their options in the worktree's grpo.py
+        recs.append(("py", WT, "CVD=unset", "/dev/null", "/dev/null", MLOSS_GUARD))
     l2t = f"{C}/L2_head.jsonl" if smoke else f"{R}/pools/curriculum/L2/pool.jsonl"
     l3t = f"{C}/L3_head.jsonl" if smoke else f"{R}/pools/curriculum/L3/pool.jsonl"
     x2 = (f"{C}/X2_head.jsonl" if smoke else f"{R}/pools/curriculum_3p/L2_3p.jsonl") if vs3 else ""
@@ -581,6 +601,8 @@ def expect(
                     "--len_penalty",
                     "--updates",
                     "--warmup",
+                    "--loss_tokens",
+                    "--adv_sign",
                 )
                 if f in new
             )
@@ -1473,7 +1495,7 @@ for mode in ("normal", "smoke"):
         # size (no data yet); KNOB_FULL=1; a missing subset, no pass record, a stale one; a fork whose reference
         # L2-mini rolled back. ARM_ckreads: other arms, KNOB_FULL=1, no finished L3, no L2 checkpoint, nothing to read
         mb_no = r"_mini runs the primary recipe, grpo_think_vs's"
-        mk_no = r"_mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64 g64b pool250 pool500 size, with nothing after it"
+        mk_no = r"_mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64 g64b pool250 pool500 size lossact lossthink advpos advneg, with nothing after it"
         ck_no = r"_ckreads reads a full GRPO L3 that started from another arm's L2 \(a knob pilot, ARM_mb, ARM_fbb, \.\.\.\)"
         ck2_no = r"_l2_ckreads reads a base GRPO arm's own L2 \(grpo_think_vs_l2_ckreads\)"
         for arm, rx in (

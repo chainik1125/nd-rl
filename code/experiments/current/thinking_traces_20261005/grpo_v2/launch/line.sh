@@ -90,8 +90,11 @@
 #        sampled tokens of a success; grpo.py's length-only groups); g64b --prompts 64 --group 64 (the same attempts per
 #        iteration); pool250, pool500 the nested 250- / 500-row subsets of each stage's targets (and the same fraction
 #        of the 3-premise rows: the same attempts, more draws per row); size refused (a placeholder until its data is
-#        built). The controls kl1 (--kl_anchor_coef 0.1, 0 in the reference) and g64 (64 x 64) are L3-mini forks: from
-#        the reference's L2-mini at the same seed (its _it10.pt, also the KL anchor's reference), no L2-mini of their own;
+#        built); lossact, lossthink --loss_tokens action / think (the policy loss and its divisor on that phase's
+#        tokens alone; grpo.py's mini-run knobs, guarded); advpos, advneg --adv_sign pos / neg (one sign of the outcome
+#        advantage; the zeroed items stay in the divisor, the step penalty stays). The controls kl1 (--kl_anchor_coef
+#        0.1, 0 in the reference) and g64 (64 x 64) are L3-mini forks: from the reference's L2-mini at the same seed (its
+#        _it10.pt, also the KL anchor's reference), no L2-mini of their own;
 #        a fork waits up to 3 h for that L2-mini to finish (the checkpoint and its line's exit-0 line in pull_queue.sh's
 #        job log) and refuses one that did not end at lr x1 (0 rollbacks). After each stage its ALARM lines, rollbacks
 #        and, without its last checkpoint (--ban_stop's exit 3, a timeout), a FAILED line. Then plain reads only (never
@@ -138,9 +141,9 @@ mini=""; mk=""; mfork=""; MPN=""  # ARM_mini[_kKNOB]: parsed first, then as grpo
                                   # its knob $mk, a fork of the reference's L2-mini, the pool arms' subset size
 case $arm in *_mini|*_mini_*) mini=1; mb=${arm%%_mini*}; mk=${arm#"${mb}"_mini}
   [ "$mb" = grpo_think_vs ] || { say "$arm: _mini runs the primary recipe, grpo_think_vs's: refusing"; exit 1; }
-  case $mk in ""|_krr|_kt07|_kt085|_kt115|_kt13|_klp[0-9][0-9]|_klpm[0-9][0-9]|_kkl1|_kg64|_kg64b|_kpool250|_kpool500|_ksize)
+  case $mk in ""|_krr|_kt07|_kt085|_kt115|_kt13|_klp[0-9][0-9]|_klpm[0-9][0-9]|_kkl1|_kg64|_kg64b|_kpool250|_kpool500|_ksize|_klossact|_klossthink|_kadvpos|_kadvneg)
     mk=${mk#_k} ;; *)
-    say "$arm: _mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64 g64b pool250 pool500 size, with nothing after it: refusing"; exit 1 ;;
+    say "$arm: _mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64 g64b pool250 pool500 size lossact lossthink advpos advneg, with nothing after it: refusing"; exit 1 ;;
   esac
   case $mk in lp00|lpm00) say "$arm: _k$mk is no length penalty (grpo_think_vs_mini): refusing"; exit 1 ;;
     size) say "$arm: _ksize (big-statement twins of half the mini rows) has no data yet: refusing"; exit 1 ;;
@@ -243,6 +246,10 @@ elif [ -n "$P3" ]; then  # ARM_rfb / ARM_ulb / ARM_pb need their grpo.py options
   "$PY" -c "import sys, code.thinking.grpo as g; sys.exit(0 if hasattr(g, '$PA') else 1)" > /dev/null 2>&1 \
     || { say "$arm: $WT's grpo.py has no pilot options ($PN): refusing"; exit 1; }
 fi
+case $mk in lossact|lossthink|advpos|advneg)  # ARM_mini's grpo.py knobs (--loss_tokens, --adv_sign) need them in $WT
+  "$PY" -c "import sys, code.thinking.grpo as g; sys.exit(0 if hasattr(g, 'LOSS_TOKENS') and hasattr(g, 'ADV_SIGNS') else 1)" > /dev/null 2>&1 \
+    || { say "$arm: $WT's grpo.py has no mini-run knobs (--loss_tokens, --adv_sign): refusing"; exit 1; } ;;
+esac
 case $base in *_v|*_vs|*_vs3) samp=logical ;; *) samp=plain ;; esac
 [ "$knob" = p3 ] && [ $samp = plain ] && {  # ARM_mb_kp3: the step penalty needs the verifier
   say "$arm: _kp3 raises the step penalty, and $base samples plain (no penalty): refusing"; exit 1; }
@@ -334,6 +341,10 @@ if [ -n "$mini" ]; then  # ARM_mini: L3-mini at kl0's KL anchor (L2-mini at KLC'
     g64|g64b) if [ "$SMOKE" = 1 ]; then PROMPTS=2; GROUP=8; else PROMPTS=64; GROUP=64; fi  # the same attempts per
               KD="--prompts $PROMPTS --group $GROUP" ;;  # iteration; g64: a fork, L3-mini only; g64b: both stages
     pool250|pool500) KD="the $MPN-row subsets" ;;  # L2T / L3T (above), the same iterations and attempts
+    lossact) KF="--loss_tokens action"; KD=$KF ;;  # the policy loss on the action tokens alone (its divisor too)
+    lossthink) KF="--loss_tokens think"; KD=$KF ;;  # ... on the think-block tokens alone (budget 0 trains nothing)
+    advpos) KF="--adv_sign pos"; KD=$KF ;;  # the positive outcome advantages alone (the step penalty's -P stays)
+    advneg) KF="--adv_sign neg"; KD=$KF ;;  # the negative ones alone
   esac
   [ -n "$mk" ] && KD="knob $mk: $KD"
 fi
