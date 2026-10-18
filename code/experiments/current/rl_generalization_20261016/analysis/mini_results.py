@@ -28,6 +28,10 @@ Inputs (read only):
   `grpo_think_vs_mb_kkl0`; for the replicate, `grpo_think_vs_mb[_kg64]` (t1320 k16, t2130 k8,
   charles173 k64). Loaded with v2_results' Loader (the mini arms and (set, k) specs are added to
   its registries) and its subsets.
+- mini20 only, the B0 reads (§ 6, 2026-10-18, ba275d73 and 963d90b3; `reads_b0_l3test.sh`: line.sh's
+  l3test k8 at `--budgets 0`), `runs/eval/v2/l3test_<name>_s<seed>_plain_k8_B0/rows_plain_B0.jsonl`:
+  the references, the base, `grpo_think_vs_mb[_kkl0]` s0 (full scale, context only), every wave-2
+  arm and trajectory point (`<ref>_<STAGE>it<IT>`) found.
 - Training, `runs/grpo_v2/<arm>_s<seed>_<stage>/`: metrics.jsonl (a stage that crashed and was
   rerun keeps only the rerun's rows, § 6 2026-10-17), ckpts/ and args.json; the line log
   `runs/logs/v2_<arm>_s<seed>.log` (the exit, ALARM and FAILED lines after the stage's last
@@ -47,9 +51,14 @@ U = Δ + t(0.95, n_r − 1) SE. "reproduces" iff Δ <= E/2, U < 0 and the Δ poi
 statistic) on 16–20 pass@1 and 21–30 pass@5 are both < 0; "partial" if Δ < 0 otherwise; "fails" if
 Δ >= 0. E: kl1 −0.19, g64 −0.255 (§ 3, § 5). G0: all 4 references end with their L3-mini last
 checkpoint and every read; at most 1 rolled back; their mean 13–20 pass@1 in [12%, 60%] and >= the
-base + 5 points (7.3% without a base read); their mean L3 test_1k pass@1 <= 90%. G1: s_ref <= 0.11
-logit. Then § 3's decision table. Also § 4.3's competence-versus-generalization residuals (they
-need the reference trajectories and say so while those are missing) and G3 (informational).
+base + 5 points (7.3% without a base read); their mean L3 test_1k pass@1 <= 90% (mini20: § 6's
+deviation decides this on their mean B0 L3 test pass@1, the clause's named fix; the B64 value is
+reported only). G1: s_ref <= 0.11 logit. Then § 3's decision table (mini20: as amended in § 6, a
+branch that would call for remedy A again retires the mini). A control seed without its final
+checkpoint (a FAILED line) is excluded from n_c and replaced by the next unused seed whose
+reference L2-mini exists (§ 4.6; § 6, 963d90b3). Also § 4.3's competence-versus-generalization
+residuals (they need the reference trajectories and say so while those are missing) and G3
+(informational).
 """
 
 from __future__ import annotations
@@ -86,6 +95,18 @@ CLIP = (0.005, 0.995)
 G0_RANGE, G0_ABOVE_BASE, G0_ID_MAX, G1_MAX = (0.12, 0.60), 0.05, 0.90, 0.11
 LIVE = 1800  # s: a stage whose log changed within this is training; older, with no exit: stopped
 TRAIN_KNOBS = ("", "rr", "pool250", "pool500")  # line.sh: the arms that also read MINI_TRAIN
+# § 6 (2026-10-18, ba275d73; completed in 963d90b3), mini20: G0's ceiling check on B0 L3 test
+G0_B0 = (
+    "reference mean B0 L3 test pass@1 ≤ 90% (§ 6 deviation, 2026-10-18, ba275d73: the clause's "
+    "named fix)"
+)
+B0_MET = "MET BY THE CLAUSE'S FIX (B0)"  # never "PASS" (§ 6, 963d90b3)
+G0_DECIDES = {"PASS", "FAIL", "PENDING", B0_MET}  # a G0 row whose result is not one never gates
+B0_FULL = (("grpo_think_vs_mb", 0), ("grpo_think_vs_mb_kkl0", 0))  # full-scale B0 reads: context
+RETIRED = (  # § 6 (963d90b3): where § 3 would call for remedy A again
+    "NO-GO: the mini is retired (remedy A is spent); remedy C is not started overnight; "
+    "Leon decides"
+)
 
 
 @dataclass(frozen=True)
@@ -111,6 +132,7 @@ class Regime:
     train_reads: bool  # whether its reference's line reads MINI_TRAIN (G0's "every read")
     remedy_a_done: bool  # whether this regime is remedy A's rerun
     wave2_sref: float | None = None  # § 6: 1-seed screening at s_ref <= this, else 2 seeds
+    b0: bool = False  # § 6 (ba275d73): G0's ceiling check on B0 L3 test; B0 columns
 
     @property
     def controls(self) -> tuple[Control, ...]:
@@ -150,6 +172,7 @@ REGIMES = {
         True,
         True,
         0.050,  # § 6 (2026-10-18): s_ref <= 0.050 screens at 1 seed, > 0.050 at 2
+        True,  # § 6 (2026-10-18, ba275d73, 963d90b3): the B0 deviation
     ),
 }
 ROLL_SEEDS = (0, 1)
@@ -175,7 +198,10 @@ TRAIN_SUBS = (
     Sub("l2train", "L2-mini train subset", "l2train", None),
     Sub("l3train", "L3-mini train subset", "l3train", None),
 )
-SUB = {s.key: s for s in SUBS + TRAIN_SUBS}
+# § 6 (2026-10-18, ba275d73): the L3 test read at budget 0 (`_B0` dirs, rows_plain_B0.jsonl)
+B0_SUB = Sub("l3test_b0", "L3 test B0", "l3test", None)
+B0 = B0_SUB.key
+SUB = {s.key: s for s in SUBS + TRAIN_SUBS + (B0_SUB,)}
 TABLE_SUBS = tuple(s.key for s in SUBS)
 FINAL_K = {"l2test": 8, "l3test": 8, "t1320": 8, "t2130": 8, "charles173": 64}  # MINI_READS
 TRAIN_K = {"l2train": 8, "l3train": 8}  # MINI_TRAIN
@@ -202,6 +228,10 @@ REP_METRICS = (("t1320", 1), ("t1620", 1), ("t2130", 5), ("t1320", 5), ("charles
 def skey(sub: str, k: int) -> str:
     """A (problem subset, read k) spec key in v2_results' SET registry."""
     return f"mini:{sub}@k{k}"
+
+
+def is_b0(key: str) -> bool:
+    return key.startswith(f"mini:{B0}@")
 
 
 def logit(p: float) -> float:
@@ -266,16 +296,42 @@ def seeds_str(seeds: list[int] | tuple[int, ...]) -> str:
 
 class Loader(v2.Loader):
     """v2_results' Loader; a read is there once its summary.json is written (after the rows), and
-    a planned read that is not there goes to `missing` once."""
+    a planned read that is not there goes to `missing` once. A B0 read (§ 6) is
+    `<set>_<arm>_s<seed>_<ra>_k<k>_B0/rows_<ra>_B0.jsonl`, planned at the (arm, seed) in `b0`."""
+
+    def __init__(
+        self, ev: Path, keep: dict[str, set[str] | None], b0: set[tuple[str, int]] | None = None
+    ) -> None:
+        super().__init__(ev, keep)
+        self.b0 = b0 or set()
+
+    def path(self, arm: str, s: str, seed: int, ra: str) -> Path | None:
+        ss = v2.SET[s]
+        if is_b0(s):
+            return self.v2 / f"{ss.read}_{arm}_s{seed}_{ra}_k{ss.k}_B0" / f"rows_{ra}_B0.jsonl"
+        return v2.rows_path(v2.SPEC[arm], ss, seed, ra, self.v2)
 
     def have(self, arm: str, s: str, seed: int, ra: str) -> bool:
-        spec, ss = v2.SPEC[arm], v2.SET[s]
-        p = v2.rows_path(spec, ss, seed, ra, self.v2)
+        p = self.path(arm, s, seed, ra)
         if p is not None and p.exists() and (p.parent / "summary.json").exists():
             return True
-        if p is not None and spec.planned(ss.read, seed, ra) and str(p) not in self.missing:
+        planned = (
+            (arm, seed) in self.b0 if is_b0(s) else v2.SPEC[arm].planned(v2.SET[s].read, seed, ra)
+        )
+        if p is not None and planned and str(p) not in self.missing:
             self.missing.append(str(p))
         return False
+
+    def arm(self, arm: str, s: str, seeds, ra: str = "plain") -> stats.Arm | None:
+        if not is_b0(s):
+            return super().arm(arm, s, seeds, ra)
+        key = (arm, s, tuple(seeds), ra)
+        if key not in self._cache:
+            ps = [self.path(arm, s, x, ra) for x in seeds]
+            ok = bool(seeds) and all(p is not None and p.exists() for p in ps)
+            name = f"{arm} {s} s{seeds_str(seeds)}"
+            self._cache[key] = stats.load_arm(name, [str(p) for p in ps]) if ok else None
+        return self._cache[key]
 
 
 def discover(ev: Path, rg: Regime) -> tuple[dict[str, set[int]], dict[str, set[int]]]:
@@ -291,7 +347,7 @@ def discover(ev: Path, rg: Regime) -> tuple[dict[str, set[int]], dict[str, set[i
             m = p.fullmatch(x.name)
             if m:
                 found.setdefault(m.group(1), set()).add(int(m.group(2)))
-    panel = re.compile(sets + rg.ref + r"_(L[23]it\d+)_s(\d+)_plain_k\d+")
+    panel = re.compile(sets + rg.ref + r"_(L[23]it\d+)_s(\d+)_plain_k\d+(?:_B0)?")
     roll: dict[str, set[int]] = {c: set(ROLL_SEEDS) for c in rg.roll}
     for x in ev.iterdir():
         m = panel.fullmatch(x.name)
@@ -319,7 +375,8 @@ def register(rg: Regime, found: dict[str, set[int]], roll: dict[str, set[int]]) 
         reads = tuple(FINAL_K)
         if a != BASE and rg.train_reads and rg.knob(a) in TRAIN_KNOBS:
             reads += tuple(TRAIN_K)
-        add_spec(a, planned.get(a, seeds), reads)
+        # a control's later seeds (the forks at 2, 3; a replacement) are planned once they exist
+        add_spec(a, seeds if a in rg.ctrl else planned.get(a, seeds), reads)
     for c, seeds in roll.items():
         add_spec(f"{rg.ref}_{c}", tuple(sorted(seeds)), tuple(PANEL_K))
     return arms
@@ -331,6 +388,16 @@ def add_spec(key: str, seeds: tuple[int, ...], reads: tuple[str, ...]) -> None:
         v2.SPEC[key] = v2.ArmSpec(key, key, "grpo", True, fig=False, seeds=seeds, reads=plain)
 
 
+def b0_plan(rg: Regime, arms: dict, roll: dict[str, set[int]]) -> set[tuple[str, int]]:
+    """§ 6 (2026-10-18, ba275d73, 963d90b3): the planned B0 L3 test reads, (arm, seed): every arm
+    but the controls (the references, the base, wave-2 arms) at its seeds, the trajectory points
+    found, and the full-scale context reads (reads_b0_l3test.sh)."""
+    if not rg.b0:
+        return set()
+    plan = {(a, s) for a, seeds in arms.items() if a not in rg.ctrl for s in seeds}
+    return plan | {(f"{rg.ref}_{c}", s) for c, ss in roll.items() for s in ss} | set(B0_FULL)
+
+
 def register_sets() -> dict[str, set[str] | None]:
     """Adds the (set, k) specs to v2_results' SET registry and returns the Loader's `keep` (the
     problem subset of each spec key)."""
@@ -338,7 +405,7 @@ def register_sets() -> dict[str, set[str] | None]:
         add_spec(a, G3_SEEDS, ("l3test", "t1320"))
     names = v2.subsets()
     keep: dict[str, set[str] | None] = {}
-    for s in SUBS + TRAIN_SUBS:
+    for s in SUBS + TRAIN_SUBS + (B0_SUB,):
         ks = {READ_K[s.read], PANEL_K.get(s.read, READ_K[s.read])} | EXTRA_K.get(s.key, set())
         for k in ks:
             key = skey(s.key, k)
@@ -603,6 +670,33 @@ class CtrlResult:
     sec_pts: dict[tuple[str, int], float] = field(default_factory=dict)
     cls: str = "pending"
     complete: bool = False  # this round's planned seeds are all in
+    round: int = 1  # 1: seeds 0, 1; 2: with the forks at 2, 3 (§ 3's table)
+    want: list[int] = field(default_factory=list)  # this round's seeds, failed ones replaced
+    forks: list[int] = field(default_factory=list)  # round 2's seeds beyond round 1's
+    full: int = 0  # round 2's n_c: 4, fewer when failed seeds leave too few unused ones
+    failed: list[int] = field(default_factory=list)  # runs without their final checkpoint (§ 4.6)
+    ended: int = 0  # the control's runs that ended (final checkpoint or failed): the rate's n
+    short: bool = False  # fewer unused seeds than the round needs: the reduced n_c, flagged
+
+    @property
+    def unstable(self) -> bool:  # § 4.6: replaced once; a second failure makes it unstable
+        return len(self.failed) >= 2
+
+    def failed_note(self) -> str:
+        if not self.failed:
+            return ""
+        s = "s" if len(self.failed) > 1 else ""
+        if self.unstable:
+            return (
+                f" Seeds {seeds_str(self.failed)} failed (§ 4.6: no final checkpoint): the "
+                'control is "unstable" (a failed run is replaced once), so no GO.'
+            )
+        left = f"; none left, so the reduced n_c {len(self.want)}, flagged" if self.short else ""
+        return (
+            f" Seed{s} {seeds_str(self.failed)} failed (§ 4.6: no final checkpoint), excluded "
+            "from n_c: replace with the next unused seed whose reference L2-mini exists (this "
+            f"round's seeds: {seeds_str(self.want) or 'none'}{left})."
+        )
 
 
 def mean_p(ld: Loader, arm: str, seeds: list[int], sub: str, k: int) -> float:
@@ -610,15 +704,38 @@ def mean_p(ld: Loader, arm: str, seeds: list[int], sub: str, k: int) -> float:
     return mean([p for p in ps if p is not None])
 
 
-def classify(ld: Loader, rg: Regime, c: Control, ref_seeds: list[int], s_ref: float) -> CtrlResult:
+def classify(
+    ld: Loader,
+    rg: Regime,
+    c: Control,
+    ref_seeds: list[int],
+    s_ref: float,
+    failed: set[int] | None = None,
+    l2: list[int] | None = None,
+) -> CtrlResult:
+    """§ 3's class of control c on the seeds with its gate reads. Round 1 is seeds 0, 1; round 2
+    adds the forks at 2, 3 (it starts once any seed after round 1's has its reads or has failed).
+    A seed in `failed` (§ 4.6) is skipped and its place taken by the next unused seed whose
+    reference L2-mini exists (`l2`: those of REF_SEEDS; § 6, 963d90b3); a round left with too few
+    is assessed at the reduced n_c, flagged. 2 or more failed runs: "unstable" (§ 4.6)."""
+    failed = failed or set()
+    order = [s for s in (*c.seeds, *c.more) if l2 is None or s in l2]
+    good = [s for s in order if s not in failed]
     have = [
         s
-        for s in sorted(set(c.seeds) | set(c.more))
+        for s in good
         if all(p_of(ld, c.arm, sub, s, k) is not None for sub, k in (PRIMARY, *SECONDARY))
     ]
     res = CtrlResult(c, have, len(ref_seeds))
-    more = [s for s in c.more if s in have]
-    res.complete = all(s in have for s in c.seeds) and len(more) in (0, len(c.more))
+    n1, n2 = len(c.seeds), len(c.seeds) + len(c.more)
+    res.forks, res.full = [s for s in good[:n2] if s not in good[:n1]], len(good[:n2])
+    # round 1's seeds and the failed ones among them sit before `cut` in `order`
+    cut = order.index(good[n1 - 1]) + 1 if len(good) >= n1 else len(order)
+    res.round = 2 if any(s in have or s in failed for s in order[cut:]) else 1
+    n = n2 if res.round == 2 else n1
+    res.want, res.short = good[:n], len(good) < n
+    res.failed = [s for s in order if s in failed]
+    res.complete = all(s in have for s in res.want)
     if not have or len(ref_seeds) < 2 or math.isnan(s_ref):
         return res
     for sub, k in (PRIMARY, *SECONDARY):
@@ -642,67 +759,106 @@ def classify(ld: Loader, rg: Regime, c: Control, ref_seeds: list[int], s_ref: fl
     return res
 
 
-def decide(rg: Regime, g0: str, g1: str, cr: dict[str, CtrlResult]) -> str:
-    """§ 3's decision table, on the current classes. For remedy A's rerun (mini20), § 6 (2026-10-18,
-    about 04:45Z, and its clarification): § 3 row by row, but where § 3 would call for remedy A
-    again the mini is retired as the knob testbed (knobs to remedy C, budget permitting); a G1
-    failure follows § 3's own row (remedy B if both mini20 controls reproduce, else remedy C); a
-    partial control's seeds 2 and 3 queue automatically; a GO runs the knob wave at 20 + 20."""
-    kind, row, why = _decide(g0, g1, cr)
+def at(r: CtrlResult) -> str:
+    """A control's fork seeds, for the decision text."""
+    return f"seed{'s' if len(r.forks) > 1 else ''} {' and '.join(map(str, r.forks))}"
+
+
+def rate(rg: Regime, r: CtrlResult) -> str:
+    """§ 4.6's failure rate of a control's runs (mini20)."""
+    return f" Failed runs (§ 4.6): {len(r.failed)} of {r.ended}." if rg.remedy_a_done else ""
+
+
+def decide(rg: Regime, g0: str, g1: str, cr: dict[str, CtrlResult]) -> tuple[str, tuple[str, ...]]:
+    """§ 3's decision table, on the current classes, and the inputs it rests on (`_decide`). For
+    remedy A's rerun (mini20), § 6 (2026-10-18, about 04:45Z, its clarification, ba275d73 and
+    963d90b3): § 3 row by row, but where § 3 would call for remedy A again the mini is retired,
+    remedy C is not started overnight and Leon decides; a G1 failure follows § 3's own row (remedy
+    B if both mini20 controls reproduce, else retired); a partial control's fork seeds queue
+    automatically, a partial kl1 alongside a partial g64; with g64 failed or still partial at n_c
+    4, kl1's class decides nothing (and is not waited for); an unstable control (§ 4.6) gives no
+    GO; a GO runs the knob wave at 20 + 20."""
+    kind, row, why, needs = _decide(g0, g1, cr)
     text = f"{row} ({why})" if why else row
-    if not rg.remedy_a_done or kind == "pending":
-        return text
+    if not rg.remedy_a_done or kind in ("pending", "unstable"):
+        return text, needs
+    g, k = cr["g64"], cr["kl1"]
     if kind == "g1fail":
         cls = {n: r.cls for n, r in cr.items()}
         if all(c == "reproduces" for c in cls.values()):
-            then = "remedy B (knobs as L3 forks of the 4 mini20 reference L2-minis)"
-            then += ": both controls reproduce"
-        elif "pending" in cls.values():
-            then = "remedy B if both controls reproduce, else remedy C (controls pending)"
-        else:
-            then = "remedy C: " + ", ".join(f"{n} {c}" for n, c in cls.items())
-        return f"NO-GO for both-stage knobs ({why}): {then} (§ 6)"
+            then = "remedy B (knobs as L3 forks of the 4 mini20 reference L2-minis): both"
+            return f"NO-GO for both-stage knobs ({why}): {then} controls reproduce (§ 6)", needs
+        if "pending" in cls.values():
+            then = "remedy B if both controls reproduce, else the mini is retired"
+            return f"NO-GO for both-stage knobs ({why}): {then} (controls pending; § 6)", needs
+        cl = ", ".join(f"{n} {c}" for n, c in cls.items())
+        return f"{RETIRED} ({why}; {cl}; § 6)", needs
     if kind == "nogo":
-        return (
-            f"NO-GO ({why}): § 6 retires the mini as the knob testbed; knobs go to remedy C, "
-            "budget permitting"
+        if needs == ("G0", "G1", "g64"):  # g64 failed or still partial at n_c 4
+            why += f"; kl1 {k.cls} at n_c {len(k.seeds)}: reported, decides nothing"
+        return f"{RETIRED} ({why}; § 6)", needs
+    if kind == "more" and g.cls == "partial":
+        more = f"g64 forks at {at(g)}, then re-apply at n_c {g.full}"
+        if k.cls == "partial" and k.round == 1:
+            more += f"; kl1 forks at {at(k)} alongside"
+        more += (
+            f"; if g64 is still partial at n_c {g.full}, the mini is retired (remedy A is spent) "
+            "and kl1's class is reported but decides nothing"
         )
+        return f"{more}; the forks queue automatically (§ 6)", needs
     if kind == "more":
-        more = text.replace("remedy A", "NO-GO and the mini retired (§ 6)")
-        return f"{more}; seeds 2 and 3 queue automatically (§ 6)"
-    return f"{text}: the knob wave at 20 + 20 (§ 6)"
+        more = f"kl1 forks at {at(k)}, re-apply at n_c {k.full}; if still partial, restricted GO"
+        return f"{more}; the forks queue automatically (§ 6)", needs
+    via = " (via the § 6 B0 deviation, ba275d73)" if rg.b0 else ""
+    return f"{text}{via}: the knob wave at 20 + 20 (§ 6)", needs
 
 
-def _decide(g0: str, g1: str, cr: dict[str, CtrlResult]) -> tuple[str, str, str]:
-    """(kind, § 3's row, why); kind is pending, g1fail, nogo (§ 3 calls for remedy A), more (more
-    control seeds first) or go."""
+GATE_INPUTS = ("G0", "G1", "kl1", "g64")
+
+
+def _decide(g0: str, g1: str, cr: dict[str, CtrlResult]) -> tuple[str, str, str, tuple[str, ...]]:
+    """(kind, § 3's row, why, needs); kind is pending, g1fail, unstable (§ 4.6), nogo (§ 3 calls
+    for remedy A), more (more control seeds first) or go; needs: the GATE_INPUTS the row rests
+    on, so a row that does not wait for an input is final while that input is incomplete."""
     if g0 != "PASS":
-        return (
-            ("nogo", "NO-GO, remedy A", "G0 failed")
-            if g0 == "FAIL"
-            else ("pending", "PENDING", "G0")
-        )
+        if g0 == "FAIL":
+            return "nogo", "NO-GO, remedy A", "G0 failed", ("G0",)
+        return "pending", "PENDING", "G0", GATE_INPUTS
     if g1 != "PASS":
         if g1 == "FAIL":
-            return "g1fail", "NO-GO for both-stage knobs, remedy B (or C)", "G1: s_ref > 0.11"
-        return "pending", "PENDING", "G1"
+            row = "NO-GO for both-stage knobs, remedy B (or C)"
+            return "g1fail", row, "G1: s_ref > 0.11", GATE_INPUTS
+        return "pending", "PENDING", "G1", GATE_INPUTS
     g, k = cr["g64"], cr["kl1"]
-    if g.cls == "pending" or k.cls == "pending":
-        return "pending", "PENDING", "control reads"
+    bad = [r for r in (k, g) if r.unstable]
+    if bad:
+        row = (
+            f"NO-GO: control {' and '.join(r.c.name for r in bad)} unstable (§ 4.6); nothing "
+            "starts overnight; Leon decides"
+        )
+        why = "; ".join(f"{r.c.name}: {len(r.failed)} of {r.ended} runs failed" for r in bad)
+        return "unstable", row, why, ("G0", "G1")
+    g64 = ("G0", "G1", "g64")  # g64 failed or still partial at n_c 4: kl1 decides nothing
+    if g.cls == "pending":
+        return "pending", "PENDING", "control reads", GATE_INPUTS
     if g.cls == "fails":
-        return "nogo", "NO-GO, remedy A; if that also fails, remedy C", "g64 fails"
+        return "nogo", "NO-GO, remedy A; if that also fails, remedy C", "g64 fails", g64
+    if g.cls == "partial" and g.complete and (g.round == 2 or not g.forks):
+        return "nogo", "remedy A", f"g64 still partial at n_c = {len(g.seeds)}", g64
+    if k.cls == "pending":
+        return "pending", "PENDING", "control reads", GATE_INPUTS
     if g.cls == "partial":
-        if len(g.seeds) >= 4:
-            return "nogo", "remedy A", "g64 still partial at n_c = 4"
-        return "more", "g64 forks at seeds 2 and 3, re-apply; if still partial, remedy A", ""
+        row = "g64 forks at seeds 2 and 3, re-apply; if still partial, remedy A"
+        return "more", row, "", GATE_INPUTS
     if k.cls == "reproduces":
-        return "go", "GO, all knobs", ""
+        return "go", "GO, all knobs", "", GATE_INPUTS
     if k.cls == "partial":
-        if len(k.seeds) >= 4:
-            return "go", "restricted GO", "kl1 still partial at n_c = 4"
+        if k.complete and (k.round == 2 or not k.forks):
+            why = f"kl1 still partial at n_c = {len(k.seeds)}"
+            return "go", "restricted GO", why, GATE_INPUTS
         row = "kl1 forks at seeds 2 and 3, re-apply at n_c = 4; if still partial, restricted GO"
-        return "more", row, ""
-    return "go", "restricted GO", "kl1 fails"
+        return "more", row, "", GATE_INPUTS
+    return "go", "restricted GO", "kl1 fails", GATE_INPUTS
 
 
 # --------------------------------------------------------------- competence vs generalization
@@ -920,11 +1076,26 @@ def g0_checks(ld: Loader, rg: Regime, runs: dict) -> list[tuple[str, str, str]]:
         checks.append(("reference mean 13–20 pass@1: in range, >= base + 5", "PENDING", "reads"))
     p3 = [p_of(ld, rg.ref, "l3test", s, 1) for s in REF_SEEDS]
     what = "reference mean L3 test_1k pass@1 <= 90%"
+    if rg.b0:  # § 6 deviation: reported, never gating (G0_DECIDES)
+        what += " (B64, as § 3 wrote it)"
     if all(p is not None for p in p3):
         m3 = mean([p for p in p3 if p is not None])
-        checks.append((what, "PASS" if m3 <= G0_ID_MAX else "FAIL", f"{pp(m3)}%"))
+        res = "PASS" if m3 <= G0_ID_MAX else "FAIL"
+        if rg.b0:
+            res = f"{'met' if res == 'PASS' else 'not met'}: reported; the B0 row decides (§ 6)"
+        checks.append((what, res, f"{pp(m3)}%"))
     else:
-        checks.append((what, "PENDING", "reads missing"))
+        checks.append((what, "pending: reported only" if rg.b0 else "PENDING", "reads missing"))
+    if rg.b0:
+        p0 = {s: p_of(ld, rg.ref, B0, s, 1) for s in REF_SEEDS}
+        miss = [s for s, p in p0.items() if p is None]
+        if miss:
+            checks.append((G0_B0, "PENDING", f"B0 reads missing: s{', s'.join(map(str, miss))}"))
+        else:
+            ps = [p for p in p0.values() if p is not None]
+            per = ", ".join(pp(p) for p in ps)
+            res = B0_MET if mean(ps) <= G0_ID_MAX else "FAIL"
+            checks.append((G0_B0, res, f"{pp(mean(ps))}% (s0–s3: {per})"))
     return checks
 
 
@@ -949,7 +1120,7 @@ def gate_md(ld: Loader, est: Est, rg: Regime, arms: dict, roll: list[str], runs:
         "",
     ]
     checks = g0_checks(ld, rg, runs)
-    states = {c[1] for c in checks}
+    states = {c[1] for c in checks if c[1] in G0_DECIDES}
     g0 = "FAIL" if "FAIL" in states else "PENDING" if "PENDING" in states else "PASS"
     xr = x_of(ld, rg.ref, ref_seeds, *PRIMARY) or []
     s_ref = sd(xr)
@@ -960,34 +1131,60 @@ def gate_md(ld: Loader, est: Est, rg: Regime, arms: dict, roll: list[str], runs:
         if df >= 1
         else (float("nan"), float("nan"))
     )
-    cr = {c.name: classify(ld, rg, c, ref_seeds, s_ref) for c in rg.controls}
-    decision = decide(rg, g0, g1, cr)
-    pending = [n for n, r in cr.items() if not r.complete or r.cls == "pending"]
+    # § 4.6: a control seed whose run ended without its final checkpoint; § 6 (963d90b3): its
+    # replacement is the next unused seed whose reference L2-mini exists, among REF_SEEDS only
+    # (a later reference seed must not reopen the gate)
+    l2 = [s for s in REF_SEEDS if (rg.ref, s) in runs and runs[(rg.ref, s)].stages["L2"].final]
+    cr = {}
+    for c in rg.controls:
+        rs = {s: runs[(c.arm, s)] for s in arms[c.arm]}
+        bad = {s for s, r in rs.items() if r.failed and not r.finished}
+        cr[c.name] = classify(ld, rg, c, ref_seeds, s_ref, bad, l2)
+        cr[c.name].ended = sum(r.finished or s in bad for s, r in rs.items())
+    decision, needs = decide(rg, g0, g1, cr)
+    incomplete = {"G0": g0 == "PENDING", "G1": g1 == "PENDING"}
+    incomplete |= {n: not r.complete or r.cls == "pending" for n, r in cr.items()}
+    waits = [n for n in ("G0", "G1", *cr) if n in needs and incomplete[n]]
+    g0_line = f"- **G0 (the setup learns): {g0}.**"
+    if rg.b0 and g0 == "PASS":
+        g0_line = (
+            "- **G0 (the setup learns): PASS (the ceiling check is met by the clause's fix, B0: a "
+            "§ 6 deviation, 2026-10-18, ba275d73).** The B64 value is reported and does not decide."
+        )
+    elif rg.b0:
+        b0 = next(r for w, r, _ in checks if w == G0_B0)
+        g0_line += (
+            f" Its ceiling check (§ 6 deviation, 2026-10-18, ba275d73): {b0}, on B0 L3 test pass@1;"
+            " the B64 value is reported and does not decide."
+        )
     md += [
         "## Verdict",
         "",
-        f"- **G0 (the setup learns): {g0}.**",
+        g0_line,
         f"- **G1 (noise): {g1}**: s_ref = {s_ref:.3f} logit on 13–20 pass@1 (threshold 0.11; "
         f"n_r {len(xr)}; 95% interval for σ [{ci_s[0]:.3f}, {ci_s[1]:.3f}]).",
     ]
     for c in rg.controls:
         r = cr[c.name]
         if r.cls == "pending":
-            md.append(f"- **{c.name}: pending** (no seed with the 13–20 and 21–30 reads yet).")
+            md.append(
+                f"- **{c.name}: pending** (no seed with the 13–20 and 21–30 reads yet)."
+                + rate(rg, r)
+                + r.failed_note()
+            )
             continue
         tag = "" if r.complete else f" (provisional: seeds {seeds_str(r.seeds)} so far)"
         md.append(
             f"- **{c.name}: {r.cls}**{tag}: n_c {len(r.seeds)}, Δ {lg(r.delta)} logit "
             f"({pp(r.delta_pts, True)} points), ½E {c.E / 2:+.4f}, SE {r.se:.4f}, U {lg(r.U)}; "
             f"16–20 pass@1 Δ {lg(r.sec[SECONDARY[0]])}, 21–30 pass@5 Δ {lg(r.sec[SECONDARY[1]])}."
+            + rate(rg, r)
+            + r.failed_note()
         )
-    if g0 == "PENDING" or g1 == "PENDING" or pending:
-        why = ", ".join(
-            [*(["G0"] if g0 == "PENDING" else []), *(["G1"] if g1 == "PENDING" else []), *pending]
-        )
+    if waits:
         md.append(
-            f"- **Decision: PENDING** (not complete: {why}). On the current numbers § 3's table "
-            f"gives: {decision}."
+            f"- **Decision: PENDING** (not complete: {', '.join(waits)}). On the current numbers "
+            f"§ 3's table gives: {decision}."
         )
     else:
         md.append(f"- **Decision (§ 3's table): {decision}.**")
@@ -1000,6 +1197,13 @@ def gate_md(ld: Loader, est: Est, rg: Regime, arms: dict, roll: list[str], runs:
         )
     md += ["", "## G0: the setup learns and is sane", "", "| check | result | value |"]
     md += ["|---|---|---|", *(f"| {a} | {b} | {c} |" for a, b, c in checks)]
+    if rg.b0:  # the deviation's reason 1, at B0 (reads_b0_l3test.sh's full-scale reads)
+        full = []
+        for a, s in B0_FULL:
+            p0, p64 = p_of(ld, a, B0, s, 1), p_of(ld, a, "l3test", s, 1)
+            b64 = "" if p64 is None else f" (B64 {pp(p64)}%)"
+            full.append(f"{a} s{s} {'—' if p0 is None else pp(p0) + '%'}{b64}")
+        md += ["", f"Full-scale B0 L3 test pass@1 (context; does not gate): {'; '.join(full)}."]
     md += [
         "",
         "## G1 and the controls (13–20 pass@1, logit)",
@@ -1038,7 +1242,8 @@ def gate_md(ld: Loader, est: Est, rg: Regime, arms: dict, roll: list[str], runs:
             f"| {c.name} | {len(r.seeds)} | {lg(r.delta)} | {pp(r.delta_pts, True)} | {c.E} | "
             f"{c.E / 2:+.4f} | {r.se:.4f} | {lg(r.U)} | {lg(r.sec[s1])} "
             f"({pp(r.sec_pts[s1], True)}) | {lg(r.sec[s5])} ({pp(r.sec_pts[s5], True)}) | "
-            f"{r.cls}{'' if r.complete else ' (provisional)'} |"
+            f"{r.cls}{'' if r.complete else ' (provisional)'}"
+            f"{' (reduced n_c, flagged)' if r.short else ''} |"
         )
     md += [
         "",
@@ -1120,10 +1325,30 @@ def notes(rg: Regime) -> list[str]:
         md += [
             "- This regime is remedy A's rerun (§ 6, 2026-10-18, about 04:45Z, and its",
             "  clarification): § 3 row by row, mini20 runs only, the same base read. Where § 3",
-            "  would call for remedy A again, the mini is retired as the knob testbed (remedy C,",
-            "  budget permitting). A G1 failure follows § 3's own row: remedy B if both mini20",
-            "  controls reproduce, else remedy C. A GO runs the knob wave at 20 + 20. Wave-2",
-            "  seeds: 1 per knob at s_ref ≤ 0.050, else 2, applied mechanically (± 0.005 flagged).",
+            "  would call for remedy A again (G0 fails, g64 fails, g64 still partial at n_c 4),",
+            "  the mini is retired; remedy C is not started overnight and Leon decides (§ 6,",
+            "  963d90b3, committed 09:36Z). Those rows do not wait for kl1, whose class is",
+            "  reported and decides nothing; a G0 failure waits for no control. A G1 failure",
+            "  follows § 3's own row: remedy B if both mini20 controls reproduce, else retired. A",
+            "  partial g64 forks at seeds 2 and 3, a partial kl1 alongside it. A GO runs the knob",
+            "  wave at 20 + 20. Wave-2 seeds: 1 per knob at s_ref ≤ 0.050, else 2, applied",
+            "  mechanically (± 0.005 flagged).",
+            "- A control seed whose run has a FAILED line and no final checkpoint (`--ban_stop`'s",
+            "  exit 3, a crash, a timeout) is reported as failed (a rate: failed of the runs that",
+            "  ended) and excluded from n_c. It is replaced once, with the next unused seed among",
+            "  0–3 whose reference L2-mini exists; a round left with too few seeds is assessed at",
+            '  the reduced n_c, flagged; a control with 2 or more failed runs is "unstable" and',
+            "  gives no GO (§ 4.6; § 6, 963d90b3). A run stopped with no exit line (a power loss)",
+            "  is not counted as failed. A later reference seed (4) never enters the gate.",
+        ]
+    if rg.b0:
+        md += [
+            "- G0's ceiling check is a § 6 DEVIATION (2026-10-18, ba275d73, 09:27Z; completed in",
+            "  963d90b3, committed 09:36Z): it is decided on the references' mean B0 L3 test",
+            '  pass@1 (≤ 90.0%), the clause\'s named fix ("add B0 … before knob work"), and is',
+            '  reported as "met by the clause\'s fix (B0)", never as "passed". The B64 L3 test',
+            "  value is reported and does not decide. A GO reached through it is tagged so. P1",
+            "  stays B64 L3 test pass@1; the B0 column is reported next to it.",
         ]
     return md
 
@@ -1257,14 +1482,15 @@ def missing_md(ld: Loader, rg: Regime | None) -> list[str]:
     if not miss:
         return ["", "## Missing reads", "", "None of the planned reads is missing."]
     by: dict[str, list[str]] = {}
-    for p in miss:
-        by.setdefault(v2._run_of(p), []).append(Path(p).parent.name)
+    for p in miss:  # (a B0 read's dir ends in _B0)
+        by.setdefault(v2._run_of(re.sub(r"_B0(?=/rows_)", "", p)), []).append(Path(p).parent.name)
     if rg is None:
         parts = [("Planned", by)]
     else:
         mini = {r: d for r, d in by.items() if r.startswith(rg.ref)}
         other = {r: d for r, d in by.items() if r not in mini}
-        parts = [("Mini runs", mini), ("Other (base, G3's ckreads)", other)]
+        what = "base, G3's ckreads" + (", full-scale B0" if rg.b0 else "")
+        parts = [("Mini runs", mini), (f"Other ({what})", other)]
     md = ["", "## Missing reads (planned, not there yet)", ""]
     for title, part in parts:
         if part:
@@ -1275,7 +1501,8 @@ def missing_md(ld: Loader, rg: Regime | None) -> list[str]:
 
 
 def table_md(ld: Loader, est: Est, rg: Regime, arms: dict, runs: dict) -> list[str]:
-    head = "| " + " | ".join(SUB[s].title for s in TABLE_SUBS) + " |"
+    cols = TABLE_SUBS + ((B0,) if rg.b0 else ())  # § 6 (ba275d73): + L3 test B0
+    head = "| " + " | ".join(SUB[s].title for s in cols) + " |"
     md = [
         f"# Mini runs ({rg.title}): pass@1 / pass@5 per arm and seed",
         "",
@@ -1286,22 +1513,29 @@ def table_md(ld: Loader, est: Est, rg: Regime, arms: dict, runs: dict) -> list[s
         "plain reads at B64 and T 0.8 of L3-mini's last checkpoint (the base: S1g3_s0). Per run:",
         "95% problem bootstrap; pooled: hierarchical bootstrap over seeds and problems;",
         f"differences: paired on problems. The gate: [{rg.gate}]({rg.gate}).",
+    ]
+    if rg.b0:
+        md += [
+            "L3 test B0: the same L3 test_1k k8 read at budget 0, no thinking (§ 6 deviation,",
+            "2026-10-18: G0's ceiling check; `reads_b0_l3test.sh`). P1 stays the B64 L3 test_1k.",
+        ]
+    md += [
         "",
         "## 1. Per run",
         "",
         "| arm | seed | flags " + head,
-        "|---|---|---|" + "---|" * len(TABLE_SUBS),
+        "|---|---|---|" + "---|" * len(cols),
     ]
     for arm, seeds in arms.items():
         for s in seeds:
-            cells = [cell(est.ci(arm, u, (s,), 1), est.ci(arm, u, (s,), 5)) for u in TABLE_SUBS]
+            cells = [cell(est.ci(arm, u, (s,), 1), est.ci(arm, u, (s,), 5)) for u in cols]
             fl = "—" if arm == BASE else runs[(arm, s)].flags()
             md.append(f"| {label(rg, arm)} | {s} | {fl} | " + " | ".join(cells) + " |")
     md += ["", "## 2. Pooled over seeds", "", "| arm | seeds " + head]
-    md.append("|---|---|" + "---|" * len(TABLE_SUBS))
+    md.append("|---|---|" + "---|" * len(cols))
     for arm, seeds in arms.items():
         cells, used = [], set()
-        for sub in TABLE_SUBS:
+        for sub in cols:
             have = tuple(with_reads(ld, arm, seeds, sub))
             used |= set(have)
             cells.append(
@@ -1320,7 +1554,7 @@ def table_md(ld: Loader, est: Est, rg: Regime, arms: dict, runs: dict) -> list[s
         f"base: what the {rg.iters} + {rg.iters} iterations buy.",
         "",
         "| comparison | seeds " + head,
-        "|---|---|" + "---|" * len(TABLE_SUBS),
+        "|---|---|" + "---|" * len(cols),
     ]
     rs = tuple(with_reads(ld, rg.ref, REF_SEEDS, "t1320"))
     if rs:
@@ -1328,7 +1562,7 @@ def table_md(ld: Loader, est: Est, rg: Regime, arms: dict, runs: dict) -> list[s
             cell(
                 est.diff(rg.ref, rs, BASE, (0,), u, 1), est.diff(rg.ref, rs, BASE, (0,), u, 5), True
             )
-            for u in TABLE_SUBS
+            for u in cols
         ]
         md.append(f"| reference − base | {seeds_str(rs)} vs 0 | " + " | ".join(cells) + " |")
     for arm, seeds in arms.items():
@@ -1336,7 +1570,7 @@ def table_md(ld: Loader, est: Est, rg: Regime, arms: dict, runs: dict) -> list[s
             continue
         for g in [(s,) for s in seeds] + ([tuple(seeds)] if len(seeds) > 1 else []):
             cells = []
-            for sub in TABLE_SUBS:
+            for sub in cols:
                 both = with_reads(ld, rg.ref, g, sub)
                 gs = tuple(s for s in with_reads(ld, arm, g, sub) if s in both)
                 ok = gs and (len(g) == 1 or len(gs) > 1)
@@ -1548,7 +1782,9 @@ def replicate_md(ld: Loader, est: Est) -> list[str]:
 def run_regime(ev: Path, keep: dict, rg: Regime, out: Path, draws: int) -> list[str]:
     found, roll = discover(ev, rg)
     arms = register(rg, found, roll)
-    ld = Loader(ev, keep)
+    ld = Loader(ev, keep, b0_plan(rg, arms, roll))
+    for a, s in sorted(ld.b0):  # a planned B0 read that is not there is listed (§ 6)
+        ld.have(a, skey(B0, READ_K[B0_SUB.read]), s, "plain")
     est = Est(ld, draws)
     runs = {(a, s): run_info(ld, rg, a, s) for a, seeds in arms.items() if a != BASE for s in seeds}
     rolls = sorted(roll, key=ckpt_order)
