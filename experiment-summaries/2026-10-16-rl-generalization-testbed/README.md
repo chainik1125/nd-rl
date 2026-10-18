@@ -5,13 +5,15 @@ written_by: agent:claude
 
 # RL generalization testbed: a mini RL run, validated against known full-scale effects
 
-Status (2026-10-18, about 3:30 am PT; drafted by agent:claude for Leon):
-- **The validation gate is not decided yet.** At 20 + 20 iterations (remedy A), G0 and G1 pass and the KL 0.1
-  control reproduces. G0's ceiling check is met only through a recorded deviation (B0, below). The 64 × 64 control
-  is partial at two seeds. As pre-registered, g64 forks at seeds 2 and 3 are running, and the gate will be re-applied
-  at n_c 4: **PENDING**.
+Status (2026-10-18, 5:35 am PT; the validation stage is finished; written by agent:claude for Leon):
+- **The validation gate is NO-GO, and the mini is retired as the knob testbed.** At 20 + 20 iterations (remedy A):
+  - G0 and G1 pass. G0's ceiling check is met only through a recorded deviation (B0, below).
+  - The KL 0.1 control reproduces at n_c 2. It is reported and decides nothing.
+  - The 64 × 64 control is still partial at n_c 4: Δ −0.060 logit (−1.3 points), against ½E −0.1275.
+  - Remedy A is spent, so nothing starts overnight and **Leon decides on the next step** ([What's next](#whats-next)).
+- **The full-scale g64 replicate does not replicate.** Seed 2, in place of the failed seed 1, gives Δ −0.064 logit
+  (−1.2 points), against seed 0's −0.255. 1 of 3 full-scale kg64 runs failed.
 - **No knob has been run.**
-- **The full-scale g64 replicate is PENDING.** Its seed 1 failed (`--ban_stop`) and seed 2 is training.
 
 Working folder: [`code/experiments/current/rl_generalization_20261016/`](../../code/experiments/current/rl_generalization_20261016/)
 (branch `leon/thinking`; launcher `leon/grpo-v2` at 79105ffe). Background: the
@@ -35,12 +37,15 @@ The knobs should be judged with in-distribution competence (L2 and L3 `test_1k`)
   partial at four seeds, so the gate said NO-GO and called for remedy A.
 - *At 20 + 20 iterations:*
   - the mini learns (13–20 pass@1 31.0% against the base's 8.5%) and is quiet (0.042 logit);
-  - it sits on the full-scale ID→OOD line;
-  - kl1 reproduces (−3.0 points), but g64 is partial again (−1.6 points at two seeds, against −5.5 at full scale);
+  - it sits on the seed-0 full-scale ID→OOD line, and above the line refitted with seeds 1 and 2 (G3, informational);
+  - kl1 reproduces (−3.0 points);
+  - g64 is partial again at four seeds: −1.3 points, against −5.5 for the full-scale seed-0 pilot;
   - its B64 in-distribution read (91.9%) is above the gate's 90% ceiling. A recorded deviation handled this with a
     no-thinking (B0) read.
-- *Next:* the gate is re-applied once g64's seeds 2 and 3 land. If g64 is still partial, the mini is retired and Leon
-  decides whether knobs go to full-scale forks (remedy C).
+- *The verdict:* NO-GO, so the mini is retired as the knob testbed.
+- *The replicate:* the full-scale g64 effect does not replicate at seed 2 (−1.2 points). The mini's g64 shift is
+  close to that replicate's. That reading is post hoc, and it changes neither E nor the gate (see Interpretation).
+- *Next:* Leon chooses the next step. The options are listed neutrally in [What's next](#whats-next).
 
 ## Setup
 
@@ -165,11 +170,12 @@ Pooled pass@1 / pass@5, % of the set
 | kl1 (L3 fork) | 0, 1 | 80.2 / 93.4 | 80.5 / 96.8 | 21.0 / 44.6 | 15.3 / 36.4 | 3.8 / 11.2 | 58.6 / 71.2 |
 | g64 (L3 fork) | 0–3 | 82.1 / 94.1 | 81.9 / 96.9 | 23.9 / 48.5 | 19.1 / 42.2 | 5.1 / 14.2 | 60.6 / 72.2 |
 
-### (b) The 20 + 20 gate (remedy A): g64 forks at seeds 2 and 3, PENDING
+### (b) The 20 + 20 gate (remedy A): NO-GO, the mini is retired
 
 Source: [results/gate_mini20.md](../../code/experiments/current/rl_generalization_20261016/results/gate_mini20.md)
 and [mini20_table.md](../../code/experiments/current/rl_generalization_20261016/results/mini20_table.md), generated at
-3:25 am PT on 2026-10-18. The gate uses 20 + 20 runs only; nothing is pooled with the 10 + 10 runs.
+5:32 am PT on 2026-10-18 (the decision is committed in b9c6a7c6). The gate uses 20 + 20 runs only; nothing is pooled
+with the 10 + 10 runs.
 
 Per run and pooled, pass@1 / pass@5, % of the set (95% intervals in `mini20_table.md`):
 
@@ -186,8 +192,9 @@ Per run and pooled, pass@1 / pass@5, % of the set (95% intervals in `mini20_tabl
 | **kl1, pooled** | 0, 1 | 88.4 / 96.0 | 90.4 / 99.2 | 27.9 / 54.0 | 22.9 / 47.5 | 6.2 / 16.3 | 65.4 / 76.4 | — |
 | g64 (L3 fork) | 0 | 89.4 / 96.5 | 91.0 / 99.2 | 29.5 / 54.7 | 24.5 / 49.0 | 7.0 / 18.6 | 66.3 / 75.6 | — |
 | g64 (L3 fork) | 1 | 89.8 / 96.7 | 90.4 / 99.0 | 29.3 / 55.7 | 23.7 / 49.6 | 6.8 / 18.7 | 63.3 / 74.5 | — |
-| **g64, pooled** | 0, 1 | 89.6 / 96.6 | 90.7 / 99.1 | 29.4 / 55.2 | 24.1 / 49.3 | 6.9 / 18.7 | 64.8 / 75.1 | — |
-| g64 (L3 fork) | 2, 3 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | — |
+| g64 (L3 fork) | 2 | 88.7 / 96.8 | 91.7 / 99.5 | 31.1 / 56.6 | 25.0 / 49.5 | 7.0 / 18.1 | 67.3 / 76.9 | — |
+| g64 (L3 fork) | 3 | 89.8 / 96.7 | 91.6 / 99.2 | 28.9 / 54.4 | 23.6 / 48.2 | 6.4 / 16.5 | 63.8 / 74.7 | — |
+| **g64, pooled** | 0–3 | 89.4 / 96.7 | 91.2 / 99.2 | 29.7 / 55.4 | 24.2 / 49.0 | 6.8 / 18.0 | 65.2 / 75.4 | — |
 
 Paired differences against the reference at the same seeds (points, pass@1 / pass@5, 95% paired intervals):
 
@@ -195,7 +202,7 @@ Paired differences against the reference at the same seeds (points, pass@1 / pas
 |---|---|---|---|---|---|
 | reference − base | +68.3 / +46.5 | +22.4 [+20.6, +24.3] / +33.0 | +20.2 / +33.2 | +6.6 / +16.7 | +27.7 / +21.6 |
 | kl1 − reference (s0, s1) | −1.4 [−2.3, −0.7] / +0.0 | −3.2 [−4.4, −1.9] / −2.6 | −2.6 / −2.3 | −1.1 / −3.1 | −1.9 [−3.9, −0.2] / −1.4 |
-| g64 − reference (s0, s1) | −1.2 [−2.1, −0.3] / −0.1 | −1.7 [−2.9, −0.5] / −1.4 | −1.4 / −0.5 | −0.4 / −0.7 | −2.4 [−4.6, −0.5] / −2.7 |
+| g64 − reference (s0–s3) | −0.8 [−1.6, +0.0] / +0.0 | −1.3 [−2.2, −0.3] / −1.0 | −1.2 / −0.5 | −0.4 / −0.9 | −1.3 [−3.3, +0.8] / −2.0 |
 
 **Learning and noise.**
 - *G0's learning checks pass.* All 4 references finished with every read, with 0 rollbacks. Their mean 13–20 pass@1
@@ -208,7 +215,8 @@ Paired differences against the reference at the same seeds (points, pass@1 / pas
   |---|---|---|---|---|
   | 0.060 | 0.018 | 0.051 | 0.046 | 0.052 |
 
-- *Wave-2 seeds* (§ 6, mechanical): s_ref is 0.042, at or below 0.050, so each knob is screened at **1 seed**.
+- *Wave-2 seeds* (§ 6, mechanical): s_ref is 0.042, at or below 0.050, so each knob would have been screened at
+  **1 seed**. After the NO-GO this matters only for option (c) in [What's next](#whats-next).
 - *Training subsets:* the L3-mini train subset reads 94.0–94.6% pass@1. Against L3 test that is a gap of +0.324 to
   +0.430 logit; the L2 gap is +0.011 to +0.144.
 
@@ -248,37 +256,47 @@ logit(13–20) = −1.826 + 0.386 · logit(L3 test). More full-scale points have
 | as the deviation cited | 5 (seed 0) | −1.826 + 0.386 x | 0.082 | +0.083 |
 | in `gate_mini20.md`, 3:25 am PT | 6 (adds seed 1 it0) | −1.984 + 0.438 x | 0.081 | +0.115 |
 | `summary_figures.py`, about 3:35 am PT | 7 (adds seed 1 it10) | −1.960 + 0.432 x | 0.076 | +0.107 |
+| in `gate_mini20.md`, 5:32 am PT | 12 (seeds 0 and 1 at it 0–39, seed 2 at it0 and it10) | −2.239 + 0.515 x | 0.112 | **+0.184** |
 
-The 10 + 10 references sit at a mean residual of +0.075 against the seed-0 line ([Figure 1](#figures)).
+The 10 + 10 references sit at a mean residual of +0.075 against the seed-0 line, and +0.275 against the 12-point line
+([Figure 1](#figures)).
 
-**The controls** (n_c 2 each; 0 of 2 failed runs each):
+**The controls** (kl1 at n_c 2, 0 of 2 runs failed; g64 at n_c 4, 0 of 4 runs failed):
 - **kl1 reproduces:** Δ −0.147 logit (−3.0 points), U −0.062. Secondaries: 16–20 −0.139 (−2.5 points), 21–30 pass@5
   −0.182 (−2.6 points).
-- **g64 is partial:** Δ −0.074 logit (−1.6 points) against ½E −0.1275, U +0.011. Secondaries: 16–20 −0.068 (−1.3
-  points), 21–30 pass@5 −0.014 (−0.2 points).
+- **g64 is partial at n_c 4:** Δ −0.060 logit (−1.3 points) against ½E −0.1275, SE 0.0294, U +0.010. Secondaries:
+  16–20 −0.064 (−1.2 points), 21–30 pass@5 −0.060 (−0.9 points). At n_c 2 it had been Δ −0.074 (−1.6 points),
+  U +0.011.
 - *Paired seed differences on 13–20 pass@1, in logit:*
 
-  | control | seed 0 | seed 1 |
-  |---|---|---|
-  | kl1 | −0.134 [−0.191, −0.076] | −0.171 [−0.235, −0.109] |
-  | g64 | −0.085 [−0.148, −0.024] | −0.074 [−0.139, −0.012] |
+  | control | seed 0 | seed 1 | seed 2 | seed 3 |
+  |---|---|---|---|---|
+  | kl1 | −0.134 [−0.191, −0.076] | −0.171 [−0.235, −0.109] | — | — |
+  | g64 | −0.085 [−0.148, −0.024] | −0.074 [−0.139, −0.012] | −0.036 [−0.095, +0.026] | −0.043 [−0.105, +0.021] |
 
   See [Figure 2](#figures).
-- *Both controls also lower in-distribution competence:* L3 test −1.4 and −1.2 points pass@1. The § 4.3 residuals that
-  would separate competence from generalization are not computed yet ("needs trajectories").
-- *On Charles149,* kl1 is −1.9 points, against a full-scale −0.5 (null). g64 is −2.4 points, against a full-scale
-  −2.2.
+- *Both controls also lower in-distribution competence:* L3 test pass@1 is −1.4 [−2.3, −0.7] points for kl1 and
+  −0.8 [−1.6, +0.0] for g64. The § 4.3 residuals that would separate competence from generalization were never
+  computed ("needs trajectories").
+- *On Charles149,* kl1 is −1.9 points, against a full-scale −0.5 (null). g64 is −1.3 [−3.3, +0.8] points at four
+  seeds, against a full-scale −2.2 at seed 0.
 
-**Decision** (8d3f69d6, 3:27 am PT). g64 forks at seeds 2 and 3, then the gate is re-applied at n_c 4. If g64 is still
-partial at n_c 4, the mini is retired and kl1's class decides nothing.
+**Decision.**
+- *At n_c 2* (8d3f69d6, 3:27 am PT): g64 forks at seeds 2 and 3, then the gate is re-applied at n_c 4.
+- *At n_c 4* (b9c6a7c6, 5:33 am PT):
 
-At drafting, g64 seed 2's L3-mini was at it 1 of 20 and seed 3 had not started.
+  | n_c 4 gate | Δ (logit) | U | 16–20 Δ | 21–30 pass@5 Δ | class | decision |
+  |---|---|---|---|---|---|---|
+  | g64 | −0.060 (−1.3 points) | +0.010 | −0.064 | −0.060 | partial | **NO-GO** |
 
-| n_c 4 gate | Δ (logit) | U | 16–20 Δ | 21–30 pass@5 Δ | class | decision |
-|---|---|---|---|---|---|---|
-| g64 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
+- By § 3 and the § 6 clarification:
+  - the mini is retired as the knob testbed, since remedy A is spent;
+  - kl1's class (reproduces, n_c 2) is reported and decides nothing;
+  - remedy C is not started overnight, and Leon decides.
+- *The deviation did not decide this outcome.* Without it, G0 would have failed, and the gate would have been NO-GO
+  just the same.
 
-### (c) The full-scale g64 replicate: PENDING
+### (c) The full-scale g64 replicate: does not replicate
 
 Source: [results/g64_replicate.md](../../code/experiments/current/rl_generalization_20261016/results/g64_replicate.md).
 
@@ -294,16 +312,22 @@ It changes neither E nor the gate.
   (its 1–20) to 0.0057.
 - It had rolled back once (it 22, lr × 0.5).
 - The line exited 3 with no `_it39.pt`, so no reads ran.
-- The failure rate is **1 of 2** full-scale kg64 runs (seeds 0, 1).
+**Seed 2 replaced it,** paired with `grpo_think_vs_mb` s2.
+- Δ is **−0.064 [−0.118, −0.013] logit**, or −1.2 [−2.3, −0.2] points: kg64 reads 25.5% against the merged recipe's
+  26.7%.
+- That is above −0.1275, so it **does not replicate** the full-scale g64 effect (63babdaa, 4:21 am PT).
+- The failure rate is **1 of 3** full-scale kg64 runs (seeds 0, 1, 2).
+- As pre-registered, the result changes neither E nor the gate.
 
-**Seed 2 replaces it,** paired with `grpo_think_vs_mb` s2. At 3:26 am PT it was training (it 27 of 39). Its Δ and
-call: **PENDING**.
+**Both seeds,** kg64 − merged, logit [95%] / points:
 
-**Seed 0** (the pilot behind E), kg64 − merged, logit [95%] / points:
+| seed | 13–20 pass@1 | 16–20 pass@1 | 21–30 pass@5 | 13–20 pass@5 | Charles149 pass@1 |
+|---|---|---|---|---|---|
+| 0 (the pilot behind E) | −0.255 [−0.308, −0.201] / −5.5 | −0.266 [−0.337, −0.196] / −5.2 | −0.267 [−0.390, −0.150] / −4.3 | −0.222 [−0.290, −0.151] / −5.4 | −0.104 [−0.204, −0.007] / −2.2 |
+| 2 (the replicate) | **−0.064 [−0.118, −0.013]** / −1.2 | −0.052 [−0.124, +0.023] / −0.8 | +0.104 [−0.042, +0.261] / +1.1 | −0.012 [−0.082, +0.055] / −0.3 | −0.120 [−0.239, +0.002] / −2.6 |
 
-| 13–20 pass@1 | 16–20 pass@1 | 21–30 pass@5 | 13–20 pass@5 | Charles149 pass@1 |
-|---|---|---|---|---|
-| −0.255 [−0.308, −0.201] / −5.5 | −0.266 [−0.337, −0.196] / −5.2 | −0.267 [−0.390, −0.150] / −4.3 | −0.222 [−0.290, −0.151] / −5.4 | −0.104 [−0.204, −0.007] / −2.2 |
+**The full-scale reference itself varies by seed.** The merged recipe reads 34.4% on 13–20 pass@1 at seed 0 and 26.7%
+at seed 2: 7.7 points. The full-scale seeds differ in Stage-1 seed and L2 as well as in RL seed.
 
 ### (d) The thinking gap on L3 test: B64 − B0 (observation)
 
@@ -323,19 +347,30 @@ read.
   reach 31.0% on 13–20 pass@1, against 36.0% for full-scale `kkl0` s0 at it39.
 - Its seed noise is low: 0.017 and 0.042 logit, against the 0.11 limit. At 10 + 10 it was about the size of k8
   attempt noise alone.
-- Its ID→OOD relation lies on the full-scale trajectory line: 20 + 20 residuals of about +0.08 to +0.12 logit, against a
-  line SD of about 0.08. G3 is informational, and its line rests on 5–7 points from one or two seeds.
+- *Its ID→OOD relation (G3, informational) depends on which full-scale points define the line.*
+  - Against the seed-0 line, the 20 + 20 references sit at +0.083 logit (line SD 0.082).
+  - Against the 12-point line with seeds 1 and 2, they sit at +0.184 (SD 0.112), and the 10 + 10 references at +0.275.
+  - So the mini sits somewhat above the full-scale relation, by about 1–2 residual SDs. The deviation's reason 3 is
+    weaker now than it read at 2:27 am.
 - KL 0.1's harm reproduces in sign and roughly in size: 115% of E at 10 + 10 (−0.218 / −0.19) and 77% at 20 + 20
   (−0.147 / −0.19).
 
 **What it does not reproduce.**
-- *g64's size.* g64 reaches 21% of E at 10 + 10 (−0.053 / −0.255) and 29% at 20 + 20 (−0.074 / −0.255). One of the
-  four 10 + 10 seeds went the other way (+0.104).
-- *What n_c 4 would need* (arithmetic, not a prediction): for g64 to reach ½E, seeds 2 and 3 must average x ≤ −0.98.
-  That is a shift of about −0.18 logit against the reference mean, more than twice the seed-0 and seed-1 shifts.
-- *Open hypotheses for the gap,* not tested:
-  - the full-scale g64 effect is a single seed-0 estimate, and its replicate is pending;
-  - it was measured on the merged recipe at KL 0.02, while the mini's L3 runs at KL 0;
+- *g64's size against the pre-registered E.* g64 reaches 21% of E at 10 + 10 (−0.053 / −0.255) and 24% at 20 + 20,
+  n_c 4 (−0.060 / −0.255). One of the four 10 + 10 seeds went the other way (+0.104). At 20 + 20, seeds 2 and 3 (−0.036,
+  −0.043) were smaller than seeds 0 and 1.
+- *Is the gap in the mini or in E?* (post hoc interpretation, not a result)
+  - The mini's g64 shift at n_c 4 (−0.060) is close to the full-scale replicate's (−0.064, seed 2). Only the seed-0
+    pilot (−0.255) is far from both.
+  - So the gate's g64 failure may reflect an E inflated by seed 0, rather than a mini that fails to reproduce full
+    scale.
+  - This reading is post hoc. The pre-registration fixed that the replicate changes neither E nor the gate, so the
+    NO-GO stands as written, and how much weight this deserves is for Leon to weigh.
+  - The full-scale reference's own seed spread bears on it too: 34.4% against 26.7% on 13–20 pass@1 at seeds 0 and 2.
+    A single-seed full-scale contrast is a weak E, even when its problem-bootstrap interval is narrow, because that
+    interval holds no training noise.
+- *Other open hypotheses for the gap,* not tested:
+  - the full-scale g64 effect was measured on the merged recipe at KL 0.02, while the mini's L3 runs at KL 0;
   - group shape may matter differently in the mini's learning regime than in full scale's saturated L3, as the design
     review anticipated
     ([DESIGN_REVIEW.md](../../code/experiments/current/rl_generalization_20261016/DESIGN_REVIEW.md) Q4).
@@ -345,7 +380,7 @@ read.
   B64 is therefore compressed.
 - Substituting B0 applies the clause's named fix; it is not a test that the mini passed. Given B0 training pass of
   77.5–81.0%, the check was always going to be met, and the completion amendment says so.
-- The deviation is reported as such in every write-up of the knob wave. Any GO is tagged as reached through it.
+- The deviation is reported as such. It did not decide the final NO-GO (see (b)).
 
 **The competence axis: B0 against B64.**
 - B0 measures competence without thinking, while every OOD read is at B64.
@@ -356,7 +391,10 @@ read.
 
 **Single-replicate limits.**
 - Both E values come from one seed-0 full-scale contrast each. Full-scale rerun noise is about 0.05 logit (`krr`).
-- At n_c 2 the gate's SE is 0.036 logit, and s_ref itself rests on 4 references (σ interval [0.024, 0.155]).
+  g64's has now been replicated once and came out at a quarter of the size (−0.064 against −0.255). kl1's has not
+  been replicated.
+- The gate's SE is 0.036 logit at n_c 2 and 0.029 at n_c 4. s_ref itself rests on 4 references (σ interval
+  [0.024, 0.155]).
 - The 16–20 and 21–30 secondaries count only by the sign of their point estimate.
 
 **Hardware.**
@@ -370,27 +408,35 @@ read.
 
 ## What's next
 
-1. **The n_c 4 gate (PENDING).** g64 forks at seeds 2 and 3 from the 20 + 20 references' L2-minis.
-   - *If g64 reproduces and kl1 still reproduces:* GO, tagged as reached through the B0 deviation. Wave 2 then runs at
-     20 + 20:
-     - 1 seed per knob for screening, and 2 fresh seeds to confirm each screening hit;
-     - every arm gets a B0 L3 test read;
-     - references s0 and s1 get trajectory reads (L2 it 8, L3 it 0 / 8 / 16, at B0 and B64) for the § 4.3 lines;
-     - reference seed 4 runs last, as a drift check.
-   - *Wave-2 knobs:*
-     - temperature 0.7 and 1.3;
-     - length reward −0.1 and +0.5;
-     - pool size 250;
-     - loss on action-only and think-only tokens;
-     - positive-only and negative-only advantages, as L3 forks;
-     - the statement-size twins.
-2. **If g64 is still partial or fails at n_c 4:** the mini is retired as the knob testbed and nothing starts
-   overnight. **Leon decides on remedy C:** full-scale L3 forks from `grpo_think_vs_s{0,1,2}_L2_it39.pt`, 3 seeds,
-   about 2.5 h a job.
-3. **The full-scale g64 replicate (seed 2, PENDING).** It bears only on whether the full-scale g64 effect is a reliable
-   reference. If seed 2 also fails, full-scale g64 is "unstable".
-4. **To fill in here:** the g64 seed 2 and 3 rows, the n_c 4 gate row, and the replicate's Δ. Rerun
-   `analysis/mini_results.py` and `analysis/summary_figures.py`.
+The mini is retired as the validated knob testbed, and nothing has started. These are Leon's options, listed without a
+recommendation:
+
+**(a) Remedy C, as pre-registered.**
+- Full-scale L3 forks from `grpo_think_vs_s{0,1,2}_L2_it39.pt`, 3 seeds per knob, about 2.5 GPU-h a job.
+- At the 3-GPU limit, that is about 2.5 h of wall time per 3 jobs, so one knob at 3 seeds per 2.5 h.
+- Full-scale B64 ID is near its ceiling: L3 test pass@1 is 94.9–96.9% for the seed-0 L3 runs. The § 4.3 competence
+  axis would therefore need the B0 read there too. B0 reads 88.7% for `grpo_think_vs_mb` and `grpo_think_vs_mb_kkl0`
+  at seed 0.
+
+**(b) Re-validate the mini against a better-measured g64 E.**
+- For example, E could be the mean of the full-scale seeds 0 and 2: (−0.255 − 0.064) / 2 ≈ −0.160 logit, so
+  ½E ≈ −0.080.
+- This would be a new pre-registered decision on fresh runs, not a re-reading of this gate. § 3 says that a gate
+  counts only for the configuration it ran on, and § 6 says that the replicate changes neither E nor the gate.
+- For scale only, and not as a re-reading: this gate's Δ of −0.060 sits above that ½E as well.
+- kl1's E is still a single seed-0 contrast.
+
+**(c) Run the knob wave on the mini as exploratory only.**
+- Every result would be labelled unvalidated.
+- The wave would follow the planned wave-2 design:
+  - 1 seed per knob, with a B0 L3 test read on every arm;
+  - the knobs: temperature 0.7 and 1.3, length reward −0.1 and +0.5, pool size 250, action-only and think-only loss,
+    positive-only and negative-only advantages (L3 forks), and the statement-size twins.
+- § 4.5 already requires a remedy-C confirmation before any mini result becomes a full-scale claim.
+
+**Closed either way.**
+- The full-scale g64 replicate: it does not replicate at seed 2, and 1 of 3 kg64 runs failed.
+- The 10 + 10 and 20 + 20 gates, both NO-GO.
 
 ## Figures
 
@@ -404,29 +450,34 @@ cd /scratch/cowifornia/nd-rl/think/nd-rl && ND_OFFLINE=1 PYTHONDONTWRITEBYTECODE
 
 ![G3 line](figures/fig_g3_line.png)
 
-**Figure 1: the mini references sit on the full-scale ID→OOD line.** L3 test_1k pass@1 against 13–20 pass@1, both on
+**Figure 1: the mini references sit on the seed-0 full-scale ID→OOD line, and above the line refitted with seeds 1
+and 2.** L3 test_1k pass@1 against 13–20 pass@1, both on
 logit axes (point estimates). The figure shows:
 - *Full scale, black squares:* `grpo_think_vs_mb_kkl0` (merged recipe, KL 0 in L3), seed 0, at L3 it 0 (the shared L2
   checkpoint), 10, 20, 30 and 39. Reads are L3 test k8 and t1320 k4 (k16 at it39).
 - *Solid black line:* their OLS line in logit, −1.826 + 0.386 x (residual SD 0.082), dashed where extrapolated.
-- *Grey dotted line:* the refit on all 7 full-scale points available at drafting, which adds seed 1's it0 and it10
-  (open squares).
+- *Open squares:* the other full-scale points, seeds 1 and 2: seed 1 at it 0–39, seed 2 at it0 and it10. Only seed 0's
+  ends are labelled; its L3 test rises at every checkpoint, from it0 on the left to it39 on the right.
+- *Grey dotted line:* the refit on all 12 full-scale points, −2.239 + 0.515 x (residual SD 0.112), as in
+  `gate_mini20.md`.
 - *Mini:* circles are the four 10 + 10 references and triangles the four 20 + 20 references (k8). The diamond is the
   base S1g3_s0.
 
-The 20 + 20 references' mean residual against the seed-0 line is +0.083 logit. PDF / SVG:
+The 20 + 20 references' mean residual is +0.083 logit against the seed-0 line and +0.184 against the 12-point line. PDF / SVG:
 [pdf](figures/fig_g3_line.pdf), [svg](figures/fig_g3_line.svg).
 
 ![Control effects](figures/fig_controls.png)
 
-**Figure 2: KL 0.1 reproduces its full-scale harm in both configurations; 64 × 64 groups stay short of half of it.**
+**Figure 2: KL 0.1 reproduces its full-scale harm in both configurations. 64 × 64 groups stay short of half the seed-0
+shift, and so does the full-scale replicate.**
 The y axis is Δ logit of 13–20 pass@1, control minus reference.
 - *Blue points:* per seed, the paired fork difference against the reference at the same seed (the same L2-mini), with
   95% problem-bootstrap intervals (4,000 draws; attempt and problem noise only).
 - *Black diamonds:* the gate's unpaired Δ (seed-mean logits against all four references), with a bar to its one-sided
   95% bound U = Δ + 2.353 · SE.
+- *Open squares,* panel (b) only: the full-scale contrast kg64 − merged recipe (both L3 at KL 0.02, t1320 k16) at
+  seed 0, the pilot behind E (−0.255), and at seed 2, the replicate (−0.064). Intervals are 95% problem bootstraps.
 - *Dashed line:* E, the full-scale seed-0 shift. *Dotted line:* ½E, the gate's threshold.
-- The 20 + 20 g64 seeds 2 and 3 are PENDING.
 
 PDF / SVG: [pdf](figures/fig_controls.pdf), [svg](figures/fig_controls.svg).
 
@@ -466,7 +517,10 @@ PDF / SVG: [pdf](figures/fig_controls.pdf), [svg](figures/fig_controls.svg).
 | 963d90b3 | 2:36 am | pre-registration: the deviation completed after its audit |
 | efdc89a8 | 3:07 am | pre-registration: errata to the G0 deviation |
 | d752f676 | 3:16 am | analysis: the B0 deviation in the mini20 gate |
-| 8d3f69d6 | 3:27 am | the mini20 gate decision: g64 forks at seeds 2 and 3 |
+| 8d3f69d6 | 3:27 am | the mini20 gate decision at n_c 2: g64 forks at seeds 2 and 3 |
+| faf268c9 | 3:43 am | this summary, first draft (n_c 4 and the replicate PENDING) |
+| 63babdaa | 4:21 am | the full-scale g64 replicate does not replicate (seed 2: −0.064 logit) |
+| b9c6a7c6 | 5:33 am | the mini20 gate at n_c 4 is NO-GO, and the mini is retired |
 
 **Launcher.** `leon/grpo-v2` at 79105ffe, the mini20 variant of `line.sh`. The 10 + 10 runs used 74864c28 (references)
 and c00f45a6 (forks).

@@ -11,23 +11,37 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-18, 9:15 pm PDT; on serrano)
+## Running (updated 2026-10-18, 5:38 am PDT; on serrano)
 
-**serrano's crashes: the PSU** (`runs/vitals/CRASH_REPORT.md`, `runs/vitals/stress/`). The BMC logged `CPU_THERMTRIP`
-within ~10 s of three of our deaths (Oct 8, 11, 16), but a deliberate load test (2026-10-16) kept the CPU at 55–66 °C
-for 70 min at full CPU + 5 GPUs at 150 W and survived; raising the GPU caps killed it at 5 × 250 W (~1.5 kW total, CPU
-63 °C). A replacement PSU died within a minute at stock limits (~2.1 kW). The GPUs are now at stock limits (350/420 W),
-so jobs run on **3 GPUs at most** (~0.9 kW of GPU), with `LEAN_GATE_WORKERS=8` and CPU builders at ≤ 8 cores.
+**serrano's crashes: the PSU** (`runs/vitals/CRASH_REPORT.md`, `runs/vitals/stress/`).
+- The BMC logged `CPU_THERMTRIP` within about 10 s of three of our deaths (Oct 8, 11, 16).
+- A deliberate load test (2026-10-16, 4:02 pm) kept the CPU at 55–66 °C:
+  - it ran 25 min of full CPU, then 47 min of full CPU with 5 GPUs at 150 W, then 5 min at 5 × 200 W;
+  - it died at 5 × 250 W (about 1.5 kW in total, CPU 63 °C).
+- A replacement PSU died within a minute at stock limits (about 2.1 kW).
+- Since then our jobs run on **at most 3 GPUs (0–2)**, with `LEAN_GATE_WORKERS=8` and CPU builders at ≤ 8 cores.
+  - From 2026-10-18 all five GPUs read a 200 W limit.
+  - GPU 4 belongs to another agent (Leon, 2:20 am: "you can keep using all 3").
 
-**RL generalization study** (`code/experiments/current/rl_generalization_20261016/`: DESIGN_REVIEW, KNOB_PROPOSALS,
-PREREGISTRATION, `results/gate.md`). The validation gate of the mini runs (1,000 + 1,000 rows from the Stage-1 base,
-10 + 10 iterations; `leon/grpo-v2` c00f45a6) came out **NO-GO** on 2026-10-18: G0 and G1 pass (references 24.9% on
-13–20 vs the base's 8.5%; seed spread 0.017 logit), the KL 0.1 control reproduces (−3.8 points), the 64 × 64 control
-stays partial at four seeds (−0.9 points). Leon (9:10 pm): follow the pre-registration, i.e. remedy A (the validation
-wave again at 20 + 20 iterations), then the knob wave at 20 + 20, plus a full-scale 64 × 64 replicate. Checkpoint
-reads of the full-scale L3 runs (dynamics) run meanwhile on GPUs 0–2 (`jobs_ckreads_core_run.txt`, `jobs_ckreads.txt`).
-Data built for later knobs: 16–18-line pool L4 (255 rows only; `leon/long-pool`), statement-size twins
-(`leon/size-twins`, `runs/pools/size_twins/`).
+**RL generalization study** (`code/experiments/current/rl_generalization_20261016/`; summary
+`experiment-summaries/2026-10-16-rl-generalization-testbed/`).
+- **10 + 10 gate: NO-GO** (Oct 17, 8:47 pm). Leon (9:10 pm): follow the pre-registration, remedy A.
+- **20 + 20 gate** (remedy A, `leon/grpo-v2` 79105ffe):
+  - G0 passes only through a recorded deviation (B0 L3 test 76.3% for the ≤ 90% ceiling, where B64 reads 91.9%;
+    ba275d73, 963d90b3, efdc89a8). Leon delegated the decision at 2:25 am.
+  - G1 passes (s_ref 0.042 logit). kl1 reproduces (−3.0 points).
+  - g64 stays partial at n_c 4: −1.3 points (−0.060 logit, U +0.010, against ½E −0.1275), after forks at seeds 2
+    and 3 by § 3.
+  - **Decision (5:33 am, b9c6a7c6): NO-GO.** The mini is retired as the knob testbed, since remedy A is spent. Nothing
+    starts overnight. **Leon decides** on remedy C or a re-validation (options in the summary).
+- **The full-scale g64 replicate does not replicate:** seed 2 gives −0.064 logit (−1.2 points) against seed 0's −0.255.
+  Seed 1 failed (`--ban_stop` at it 39 of 39). By the pre-registration this changes neither E nor the gate.
+- **On the GPUs:**
+  - GPU 0: B0 and B64 trajectory reads of the 20 + 20 references s0 and s1 (`reads_b0.sh`, `roll_reads_mini20.sh`).
+  - GPU 1: the held full-scale checkpoint reads (`jobs_ckreads_core_run_held.txt`, then `jobs_ckreads_held.txt`).
+  - GPU 2: the same checkpoint reads, after g64 fork seed 3 (done 5:31 am).
+- Data built for later knobs: the 16–18-line pool L4 (255 rows only; `leon/long-pool`) and the statement-size twins
+  (`leon/size-twins`, `runs/pools/size_twins/`).
 
 ### 2026-10-16
 

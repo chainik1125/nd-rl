@@ -12,14 +12,18 @@ plotted number, so the summary can quote them.
 1. G3 (PREREGISTRATION.md § 3, informational): L3 test_1k pass@1 against 13–20 pass@1, both on a
    logit axis. Full-scale grpo_think_vs_mb_kkl0 seed 0 at it 0/10/20/30/39 (it0 is the shared
    grpo_think_vs L2 checkpoint) with its OLS line (the line the 09:27Z deviation, ba275d73, cited);
-   the other full-scale points G3 now has (seed 1's it0) and the refit on all of them, as in
-   results/gate_mini20.md; the four 10 + 10 and four 20 + 20 references; the base S1g3_s0.
+   the other full-scale points G3 has when run (other seeds, unlabelled) and the refit on all of
+   them, as in results/gate_mini20.md; the four 10 + 10 and four 20 + 20 references; the base
+   S1g3_s0.
    Reads and k exactly as mini_results.g3_view (l3test k8; t1320 k4, k16 at it39; the mini runs'
    MINI_READS k8).
 2. The controls: per seed, the paired fork difference c_s − r_s in logit of 13–20 pass@1 (the same
    L2-mini; 95% problem bootstrap, attempt and problem noise only), for kl1 and g64 at 10 + 10 and
    20 + 20, next to the gate's unpaired Δ with its one-sided 95% upper bound U (§ 3), against the
-   expected shifts E (kl1 −0.19, g64 −0.255) and ½E.
+   expected shifts E (kl1 −0.19, g64 −0.255) and ½E. Panel (b) also shows the full-scale g64
+   contrast per seed (kg64 − merged recipe, both L3 at KL 0.02; t1320 k16, as
+   results/g64_replicate.md): seed 0, the pilot behind E, and the replicate seed (2, in place of
+   failed seed 1).
 """
 
 from __future__ import annotations
@@ -38,14 +42,9 @@ EV = mr.R / "eval/v2"
 REGIMES = ("mini", "mini20")
 TAG = {"mini": "10 + 10", "mini20": "20 + 20"}
 S0_ITS = ("it0", "it10", "it20", "it30", "it39")
-# label offsets (points) of the seed-0 trajectory, so neighbouring labels and markers never touch
-LABEL_AT = {
-    "it0": (-4, 5, "right"),
-    "it10": (-4, 4, "right"),
-    "it20": (-4, 5, "right"),
-    "it30": (4, -5, "left"),
-    "it39": (-4, 5, "right"),
-}
+# label offsets (points) of the seed-0 trajectory's ends; its L3 test rises with every checkpoint,
+# so the points in between need no labels (with seeds 1 and 2 drawn, theirs would collide)
+LABEL_AT = {"it0": (-4, 5, "right"), "it39": (-4, 5, "right")}
 
 
 def expit(x: float | np.ndarray) -> float | np.ndarray:
@@ -154,9 +153,11 @@ def fig_g3(ld: mr.Loader, out: Path) -> None:
             zorder=3,
         )
         for _, n, x, y in s0:
-            dx, dy, ha = LABEL_AT.get(n, (-3, 4, "right"))
+            if n not in LABEL_AT:
+                continue
+            dx, dy, ha = LABEL_AT[n]
             ax.annotate(
-                n,
+                f"s0 {n}",
                 (x, y),
                 xytext=(dx, dy),
                 textcoords="offset points",
@@ -177,15 +178,6 @@ def fig_g3(ld: mr.Loader, out: Path) -> None:
                 mew=0.8,
                 zorder=3,
             )
-            for s, n, x, y in other:
-                ax.annotate(
-                    f"s{s} {n}",
-                    (x, y),
-                    xytext=(4, -7),
-                    textcoords="offset points",
-                    fontsize=st.FS_SMALL,
-                    color=st.INK2,
-                )
         for key, col, mk in (("mini", c10, "o"), ("mini20", c20, "^")):
             ax.plot(
                 [p[1] for p in mini[key]],
@@ -227,7 +219,10 @@ def fig_g3(ld: mr.Loader, out: Path) -> None:
         labels = [
             "full scale, KL 0, seed 0 (it 0–39) and its line",
             f"refit with every full-scale point ({len(pts)})",
-            "full scale, seed 1 (checkpoints as labelled)",
+            "full scale, KL 0, seed"
+            + ("s " if len({p[0] for p in other}) > 1 else " ")
+            + " and ".join(str(x) for x in sorted({p[0] for p in other}))
+            + " (it 0–39)",
             "mini 10 + 10 references (s0–s3)",
             "mini 20 + 20 references (s0–s3)",
         ]
@@ -265,18 +260,34 @@ def control_data(ld: mr.Loader, est: mr.Est) -> Ctl:
     return out
 
 
-def fig_controls(data: Ctl, out: Path) -> None:
+def replicate_data(est: mr.Est) -> list[tuple[int, float, float, float]]:
+    """Full-scale kg64 − merged, 13–20 pass@1 in logit, at the pilot seed and every replicate seed
+    with reads (mini_results.replicate_md's statistic)."""
+    out = []
+    for s in (mr.REP_PILOT, *mr.REP_TRY):
+        d = est.logit_diff(mr.REP_ARM, mr.REP_PAIR, s, *mr.PRIMARY, mr.REP_K["t1320"])
+        if d is not None:
+            out.append((s, *d))
+    print(
+        "full-scale g64 (kg64 − mb): "
+        + "; ".join(f"s{s} {d:+.3f} [{lo:+.3f}, {hi:+.3f}]" for s, d, lo, hi in out)
+    )
+    return out
+
+
+def fig_controls(data: Ctl, rep: list[tuple[int, float, float, float]], out: Path) -> None:
     seed_col = st.OKABE_ITO["blue"]
     with st.paper_style():
-        fig = st.new_figure(st.FULL_W, 2.45)
-        axes = fig.subplots(1, 2, sharey=True)
+        fig = st.new_figure(st.FULL_W, 2.55)
+        axes = fig.subplots(1, 2, sharey=True, width_ratios=[2.45, 3.3])
         for ax, (letter, name, title) in zip(
             axes,
             (("a", "kl1", "KL anchor 0.1 (L3 fork)"), ("b", "g64", "64 × 64 groups (L3 fork)")),
             strict=True,
         ):
             E = data[("mini", name)][0]
-            x0, x1 = -0.5, 1.45
+            full = name == "g64" and bool(rep)
+            x0, x1 = -0.5, 2.3 if full else 1.45
             ax.hlines(0, x0, x1, color=st.REF, lw=0.6, zorder=1)
             ax.hlines(E, x0, x1, color=st.INK, lw=0.8, ls=(0, (4, 2)), zorder=1)
             ax.hlines(E / 2, x0, x1, color=st.INK, lw=0.8, ls=(0, (1, 1.3)), zorder=1)
@@ -325,27 +336,55 @@ def fig_controls(data: Ctl, out: Path) -> None:
                     ls="none",
                     zorder=4,
                 )
-            ax.set_xticks(
-                [0, 1],
-                [
-                    f"{TAG[k]}\nn_c {len(data[(k, name)][2])}: {data[(k, name)][1].cls}"
-                    for k in REGIMES
-                ],
-            )
-            ax.set_xlim(-0.5, 1.95)
+            ticks = [
+                f"{TAG[k]}\nn_c {len(data[(k, name)][2])}: {data[(k, name)][1].cls}"
+                for k in REGIMES
+            ]
+            if full:
+                offs = np.linspace(-0.12, 0.12, len(rep)) if len(rep) > 1 else np.array([0.0])
+                for (s, d, lo, hi), dx in zip(rep, offs, strict=True):
+                    ax.errorbar(
+                        2 + dx,
+                        d,
+                        yerr=[[d - lo], [hi - d]],
+                        fmt="s",
+                        ms=3.6,
+                        color=st.INK2,
+                        mfc=st.WHITE,
+                        mec=st.INK,
+                        mew=0.8,
+                        elinewidth=0.7,
+                        capsize=1.4,
+                        zorder=3,
+                    )
+                    ax.annotate(
+                        f"s{s}",
+                        (2 + dx, hi),
+                        xytext=(0, 1.5),
+                        textcoords="offset points",
+                        ha="center",
+                        va="bottom",
+                        fontsize=5.5,
+                        color=st.INK2,
+                    )
+                ticks.append("full scale,\nseeds " + " / ".join(str(r[0]) for r in rep))
+            ax.set_xticks(list(range(len(ticks))), ticks)
+            ax.set_xlim(-0.5, x1 + 0.5)
             st.panel_title(ax, letter, title)
             st.light_grid(ax, "y")
         axes[0].set_ylabel("Δ logit, 13–20 pass@1\n(control − reference)")
         handles = [
             Line2D([], [], ls="none", marker="o", ms=3.4, mfc=seed_col, mec=st.WHITE),
             Line2D([], [], ls="none", marker="D", ms=4.2, mfc=st.INK, mec=st.WHITE),
+            Line2D([], [], ls="none", marker="s", ms=3.6, mfc=st.WHITE, mec=st.INK, mew=0.8),
             Line2D([], [], color=st.INK, lw=0.8, ls=(0, (4, 2))),
             Line2D([], [], color=st.INK, lw=0.8, ls=(0, (1, 1.3))),
         ]
         labels = [
             "paired fork difference, one seed (95% problem bootstrap)",
             "gate Δ, bar to its one-sided 95% bound U",
-            "E, the full-scale shift",
+            "full scale: kg64 − merged recipe, one seed (95% problem bootstrap)",
+            "E, the full-scale seed-0 shift",
             "½E, the gate's threshold",
         ]
         fig.legend(handles, labels, loc="outside lower center", ncol=2, fontsize=st.FS_TICK)
@@ -360,7 +399,7 @@ def main(argv: list[str] | None = None) -> int:
     out = Path(a.out)
     ld, est = load()
     fig_g3(ld, out)
-    fig_controls(control_data(ld, est), out)
+    fig_controls(control_data(ld, est), replicate_data(est), out)
     print(f"wrote {out}/fig_g3_line.* and fig_controls.*")
     return 0
 
