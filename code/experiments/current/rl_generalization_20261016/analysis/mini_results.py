@@ -12,8 +12,9 @@ regime's gate and tables use its own runs only, never pooled with the other's):
   `results/mini_table.md`;
 - mini20 (20 + 20, `grpo_think_vs_mini20*`, remedy A's rerun of the validation wave):
   `results/gate_mini20.md`, `results/mini20_table.md`;
-and always `results/g64_replicate.md`: the full-scale g64 replicate, kg64 − merged recipe at seed
-1 next to seed 0 (both L3 at KL 0.02 from grpo_think_vs's L2).
+and always `results/g64_replicate.md`: the full-scale g64 replicate, kg64 − merged recipe at the
+replicate seed (1, or 2 in its place once 1 has failed: § 4.6) next to seed 0 (both L3 at KL 0.02
+from grpo_think_vs's L2).
 Rerunnable as reads land: a read that is not there yet is listed, never fatal, and a gate input
 that is missing makes its check PENDING. A read counts once its `summary.json` is written (the eval
 writes it after the rows). CPU only, one process, about 30 s a regime at 4,000 draws.
@@ -30,7 +31,8 @@ Inputs (read only):
 - Training, `runs/grpo_v2/<arm>_s<seed>_<stage>/`: metrics.jsonl (a stage that crashed and was
   rerun keeps only the rerun's rows, § 6 2026-10-17), ckpts/ and args.json; the line log
   `runs/logs/v2_<arm>_s<seed>.log` (the exit, ALARM and FAILED lines after the stage's last
-  launch; `line done`).
+  launch; `line done`); for the replicate, the kg64 L3 runs' last metrics row (`stop`) and
+  `_it39.pt`.
 
 Sets: L2 / L3 test_1k (1,000 each, in distribution), 13–20 (the 986 valid items of t1320_n1000),
 16–20 (its 616 with min_lines >= 16), 21–30 (t2130_n1000), Charles149 (the clean 149 of
@@ -189,8 +191,10 @@ G3_SEEDS, G3_ITS = (0, 1, 2), (10, 20, 30)
 # the gate's metrics (set, pass@k): the primary and the two secondaries
 PRIMARY, SECONDARY = ("t1320", 1), (("t1620", 1), ("t2130", 5))
 # the full-scale g64 replicate: kg64 − the merged recipe (both L3 at KL 0.02 from grpo_think_vs's
-# L2 at the same seed), seed 1 the replicate, seed 0 the knob pilot (§ 5's contrast)
-REP_ARM, REP_PAIR, REP_SEEDS, REP_NEW = "grpo_think_vs_mb_kg64", "grpo_think_vs_mb", (0, 1), 1
+# L2 at the same seed), seed 0 the knob pilot (§ 5's contrast); the replicate seed 1, replaced once
+# by seed 2 if it fails (§ 4.6; § 6, 2026-10-18, 06:20Z)
+REP_ARM, REP_PAIR, REP_PILOT, REP_TRY = "grpo_think_vs_mb_kg64", "grpo_think_vs_mb", 0, (1, 2)
+REP_ITERS = 39  # line.sh's full-scale L3 iterations
 REP_K = {"t1320": 16, "t1620": 16, "t2130": 8, "charles149": 64}  # line.sh's knob reads
 REP_METRICS = (("t1320", 1), ("t1620", 1), ("t2130", 5), ("t1320", 5), ("charles149", 1))
 
@@ -1399,13 +1403,47 @@ def train_table(ld: Loader, est: Est, rg: Regime, arms: dict) -> list[str]:
 REP_HALF = -0.1275  # § 6: ½ of the full-scale g64 effect, −0.255 logit (§ 5)
 
 
+def rep_state(seed: int) -> tuple[str, str]:
+    """A full-scale kg64 L3 run: "failed" without its final checkpoint (§ 4.6: its last metrics row
+    has `stop`, from `--ban_stop`, or it has no `_it<iters>.pt` and is not training), else "done",
+    "training" or "not started"; with how, for the report."""
+    f = LOGS / f"v2_{REP_ARM}_s{seed}.log"
+    log = f.read_text(errors="replace").splitlines() if f.exists() else []
+    st = stage_info(REP_ARM, seed, "L3", REP_ITERS, log)
+    m = GV / st.name / "metrics.jsonl"
+    last = metrics_rows(m)[0][-1:] if m.exists() else []
+    ex = f", exit {st.exit}" if st.exit else ""
+    if last and last[0].get("stop"):
+        stop = last[0]["stop"]
+        flag = "--ban_stop" + (f" {stop['ban_stop']:g}" if "ban_stop" in stop else "")
+        return "failed", (
+            f"ended by `{flag}` at it {last[0]['iter']} of {REP_ITERS} (think ban mass "
+            f"{stop['ban_think']:.4f}{ex}), no `_it{REP_ITERS}.pt`, so no reads"
+        )
+    if st.final:
+        return "done", f"done (it {st.iters} of {REP_ITERS})"
+    if st.running:
+        return "training", f"training (it {st.iters} of {REP_ITERS})"
+    if st.exists:
+        return "failed", f"no `_it{REP_ITERS}.pt` (it {st.iters} of {REP_ITERS}{ex}), not training"
+    return "not started", "not started"
+
+
 def replicate_md(ld: Loader, est: Est) -> list[str]:
-    """The full-scale g64 replicate (§ 6, 2026-10-18, about 04:45Z): Δ = kg64 s1 − mb s1 on 13–20
-    pass@1, logit of the set mean, from the knob-pilot plain reads, next to seed 0's. It replicates
-    iff Δ <= −0.1275 and its 95% problem-bootstrap interval excludes 0; it does not if
+    """The full-scale g64 replicate (§ 6, 2026-10-18, about 04:45Z and 06:20Z): Δ = kg64 − mb at
+    the replicate seed on 13–20 pass@1, logit of the set mean, from the knob-pilot plain reads, next
+    to seed 0's. The replicate seed is the first of REP_TRY that has not failed (§ 4.6: seed 1,
+    replaced once by seed 2); if both fail, full-scale g64 is "unstable". It replicates iff
+    Δ <= −0.1275 and its 95% problem-bootstrap interval excludes 0; it does not if
     Δ > −0.1275; otherwise it is reported with no call."""
+    state = {s: rep_state(s) for s in (REP_PILOT, *REP_TRY)}
+    failed = [s for s in REP_TRY if state[s][0] == "failed"]
+    new = next((s for s in REP_TRY if s not in failed), None)
     rows, got, missing = [], {}, []
-    for s in REP_SEEDS:
+    for s in sorted({REP_PILOT, *failed, *([] if new is None else [new])}):
+        if s in failed:
+            rows.append(f"| {s} | failed run (§ 4.6), no reads | — | — | — | — |")
+            continue
         for arm in (REP_ARM, REP_PAIR):
             for sub in ("t1320", "t2130", "charles149"):
                 if p_of(ld, arm, sub, s, 1, REP_K[sub]) is None:
@@ -1423,11 +1461,23 @@ def replicate_md(ld: Loader, est: Est) -> list[str]:
                 f"| {s} | {SUB[sub].title} pass@{k} | {ldiff_cell(d)} | {v2.fmt(e, True)} | "
                 f"{pp(pa)}% | {pp(pb)}% |"
             )
-    new, old = got.get((REP_NEW, *PRIMARY)), got.get((0, *PRIMARY))
+    old = got.get((REP_PILOT, *PRIMARY))
+    cur = None if new is None else got.get((new, *PRIMARY))
+    instead = f" (in place of failed seed {seeds_str(failed)}, § 4.6)" if failed else ""
     if new is None:
-        verdict = "**PENDING** (seed 1's reads are not all there yet)"
+        verdict = (
+            f"**UNSTABLE** (§ 4.6): seed {REP_TRY[0]} and its replacement, seed {REP_TRY[1]}, "
+            'both failed, so full-scale g64 is "unstable" and there is no call. Their last good '
+            "rolling checkpoints are read as secondaries only (not in this file)."
+        )
+    elif cur is None:
+        verdict = (
+            f"**PENDING** (seed {new}'s reads are not all there yet; its L3 run: {state[new][1]})."
+        )
+        if failed:
+            verdict += f" Seed {new} replaces failed seed {seeds_str(failed)} (§ 4.6)."
     else:
-        d, lo, hi = new
+        d, lo, hi = cur
         if d <= REP_HALF and (hi < 0 or lo > 0):
             call = "**replicates** the full-scale g64 effect"
         elif d > REP_HALF:
@@ -1435,12 +1485,22 @@ def replicate_md(ld: Loader, est: Est) -> list[str]:
         else:
             call = "**no call** (Δ ≤ −0.1275, but the interval includes 0): reported as is"
         sec = "; ".join(
-            f"{SUB[u].title} pass@{k} {ldiff_cell(got.get((REP_NEW, u, k)))}" for u, k in SECONDARY
+            f"{SUB[u].title} pass@{k} {ldiff_cell(got.get((new, u, k)))}" for u, k in SECONDARY
         )
         seed0 = "" if old is None else f" Seed 0 (the pilot): {ldiff_cell(old)}."
         verdict = (
-            f"Seed 1: Δ {ldiff_cell(new)} logit against −0.1275: {call}. Secondaries: {sec}.{seed0}"
+            f"Seed {new}{instead}: Δ {ldiff_cell(cur)} logit against −0.1275: {call}. "
+            f"Secondaries: {sec}.{seed0}"
         )
+    ended = [s for s, (k, _) in state.items() if k in ("done", "failed")]
+    bad = [s for s in ended if state[s][0] == "failed"]
+    fails = (
+        f"Failed runs (§ 4.6): {len(bad)} of {len(ended)} full-scale kg64 runs "
+        f"(seeds {seeds_str(ended)}"
+        + "".join(f"; seed {s} {how}" for s, (_, how) in state.items() if s not in ended)
+        + ")."
+        + "".join(f" Seed {s}: {state[s][1]}." for s in bad)
+    )
     md = [
         "# Full-scale g64 replicate",
         "",
@@ -1448,22 +1508,28 @@ def replicate_md(ld: Loader, est: Est) -> list[str]:
         "",
         f"`{REP_ARM}` − `{REP_PAIR}` at the same seed: the merged recipe's L3 (KL 0.02) with 64",
         "targets × 64 attempts against 256 × 16, both from grpo_think_vs's L2 at that seed.",
-        "Seed 0 is the knob pilot behind § 5's expected shift (−0.255 logit); seed 1 is the",
-        "replicate. Logit of the set mean (clipped to [0.005, 0.995]); 95% problem-bootstrap",
-        "intervals (attempt and problem noise, no training noise); points are % of the set, paired",
-        "on problems. Reads: t1320 k16, t2130 k8, charles173 k64 (plain, B64). Rerun:",
+        "Seed 0 is the knob pilot behind § 5's expected shift (−0.255 logit). The replicate is",
+        f"seed {REP_TRY[0]}, replaced once by seed {REP_TRY[1]} if it fails (§ 4.6). Logit of",
+        "the set mean (clipped to [0.005, 0.995]); 95% problem-bootstrap intervals (attempt and",
+        "problem noise, no training noise); points are % of the set, paired on problems. Reads:",
+        "t1320 k16, t2130 k8, charles173 k64 (plain, B64). Rerun:",
         "",
         f"    {RERUN}",
         "",
-        "## Verdict (PREREGISTRATION.md § 6, 2026-10-18, about 04:45Z)",
+        "## Verdict (PREREGISTRATION.md § 6, 2026-10-18, about 04:45Z and 06:20Z; § 4.6)",
         "",
         verdict,
         "",
-        "The criterion: Δ = kg64 s1 − mb s1 on 13–20 pass@1 (logit). It replicates if",
-        "Δ ≤ −0.1275 (½ of −0.255) and its 95% problem-bootstrap interval excludes 0; it does not",
-        "if Δ > −0.1275; in between, no call. A single replicate: full-scale rerun noise is about",
-        "0.05 logit (krr), so its resolution is about ± 0.1. It does not change the gate; it bears",
-        "only on whether the full-scale g64 effect is a reliable reference.",
+        fails,
+        "",
+        "The criterion: Δ = kg64 − mb at the replicate seed on 13–20 pass@1 (logit). It replicates",
+        "if Δ ≤ −0.1275 (½ of −0.255) and its 95% problem-bootstrap interval excludes 0; it does",
+        "not if Δ > −0.1275; in between, no call. A single replicate: full-scale rerun noise is",
+        "about 0.05 logit (krr), so its resolution is about ± 0.1. It does not change the gate; it",
+        "bears only on whether the full-scale g64 effect is a reliable reference. A run without",
+        "its final checkpoint is a failure, replaced once with the next seed; if the replacement",
+        'also fails, full-scale g64 is "unstable" and its last good rolling checkpoints are read',
+        "as secondaries only (§ 4.6).",
         "",
         "## Differences",
         "",

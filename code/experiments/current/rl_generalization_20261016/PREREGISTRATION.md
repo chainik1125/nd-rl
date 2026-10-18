@@ -386,3 +386,18 @@ replicate result existed.
   (`l2train` / `l3train`) serve the pool-size analysis and do not gate.
 - **The wave-2 seed threshold** is mechanical: s_ref ≤ 0.050 logit screens at 1 seed, and > 0.050 at 2. A value within
   ±0.005 of 0.050 is flagged to Leon, but the rule still applies. A Leon override is recorded as a deviation.
+
+**2026-10-18, 06:20Z (11:20 PM PDT, Oct 17): the g64 replicate run failed** (written before any seed-2 kg64 run
+existed; nothing from the seed-1 run has been read).
+- **What happened.** `grpo_think_vs_mb_kg64:1` was ended by `--ban_stop 0.005` at its last iteration (it 39 of 39).
+  - Its think ban mass rose from about 0.0006 (its 1–20) to 0.0057.
+  - It rolled back once (it 22, lr × 0.5); the restore check let its 35–38 through.
+  - The line exited 3 with no `_it39.pt`, so none of its reads ran.
+- **Under § 4.6 it is a failed run** (1 of 2 full-scale kg64 runs). It is replaced once with the next seed:
+  `grpo_think_vs_mb_kg64:2`, paired with `grpo_think_vs_mb_s2`, whose reads exist. It is queued after the validation
+  wave.
+- **The criterion is unchanged**, with seed 2 in place of seed 1.
+- **If seed 2 also fails**, full-scale g64 is "unstable". The last good rolling checkpoints (seed 1's it 35, and
+  seed 2's) are then read as secondaries only.
+- **Observation, not a test.** Seed 0's kg64 ban mass stayed under about 0.0008, and the merged recipe at seed 1 stayed
+  near 0.001. One run cannot separate g64 from seed.
