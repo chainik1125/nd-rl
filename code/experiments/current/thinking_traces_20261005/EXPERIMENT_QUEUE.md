@@ -11,7 +11,7 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-18, 5:38 am PDT; on serrano)
+## Running (updated 2026-10-18, 7:00 am PDT; on serrano)
 
 **serrano's crashes: the PSU** (`runs/vitals/CRASH_REPORT.md`, `runs/vitals/stress/`).
 - The BMC logged `CPU_THERMTRIP` within about 10 s of three of our deaths (Oct 8, 11, 16).
@@ -37,9 +37,10 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 - **The full-scale g64 replicate does not replicate:** seed 2 gives −0.064 logit (−1.2 points) against seed 0's −0.255.
   Seed 1 failed (`--ban_stop` at it 39 of 39). By the pre-registration this changes neither E nor the gate.
 - **On the GPUs:**
-  - GPU 0: B0 and B64 trajectory reads of the 20 + 20 references s0 and s1 (`reads_b0.sh`, `roll_reads_mini20.sh`).
-  - GPU 1: the held full-scale checkpoint reads (`jobs_ckreads_core_run_held.txt`, then `jobs_ckreads_held.txt`).
-  - GPU 2: the same checkpoint reads, after g64 fork seed 3 (done 5:31 am).
+  - GPU 0: idle. The B0 and B64 trajectory reads of the 20 + 20 references s0 and s1 finished at 6:49 am
+    (`reads_b0.sh`, `roll_reads_mini20.sh`); `gate_mini20.md` now has the § 4.3 split, which changes no decision.
+  - GPUs 1 and 2: the held full-scale checkpoint reads (`jobs_ckreads_held.txt`; at 6:50 am, fbb s2 and kp3 s0
+    running, ki78 s0 queued).
 - Data built for later knobs: the 16–18-line pool L4 (255 rows only; `leon/long-pool`) and the statement-size twins
   (`leon/size-twins`, `runs/pools/size_twins/`).
 

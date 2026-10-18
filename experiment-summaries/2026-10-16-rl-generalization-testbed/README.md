@@ -256,10 +256,12 @@ logit(13–20) = −1.826 + 0.386 · logit(L3 test). More full-scale points have
 | as the deviation cited | 5 (seed 0) | −1.826 + 0.386 x | 0.082 | +0.083 |
 | in `gate_mini20.md`, 3:25 am PT | 6 (adds seed 1 it0) | −1.984 + 0.438 x | 0.081 | +0.115 |
 | `summary_figures.py`, about 3:35 am PT | 7 (adds seed 1 it10) | −1.960 + 0.432 x | 0.076 | +0.107 |
-| in `gate_mini20.md`, 5:32 am PT | 12 (seeds 0 and 1 at it 0–39, seed 2 at it0 and it10) | −2.239 + 0.515 x | 0.112 | **+0.184** |
+| in `gate_mini20.md`, 5:32 am PT | 12 (seeds 0 and 1 at it 0–39, seed 2 at it0 and it10) | −2.239 + 0.515 x | 0.112 | +0.184 |
+| in `gate_mini20.md`, 6:50 am PT | 15 (seeds 0, 1 and 2 at it 0–39) | −2.086 + 0.438 x | 0.148 | **+0.218** |
 
-The 10 + 10 references sit at a mean residual of +0.075 against the seed-0 line, and +0.275 against the 12-point line
-([Figure 1](#figures)).
+The 10 + 10 references sit at a mean residual of +0.075 against the seed-0 line, +0.275 against the 12-point line and
++0.249 against the 15-point line ([Figure 1](#figures)). The full-scale seeds differ among themselves by more than
+that: at it39, seed 0 reads 96.0% L3 test and 36.0% on 13–20, seed 2 reads 95.7% and 28.4%.
 
 **The controls** (kl1 at n_c 2, 0 of 2 runs failed; g64 at n_c 4, 0 of 4 runs failed):
 - **kl1 reproduces:** Δ −0.147 logit (−3.0 points), U −0.062. Secondaries: 16–20 −0.139 (−2.5 points), 21–30 pass@5
@@ -276,8 +278,14 @@ The 10 + 10 references sit at a mean residual of +0.075 against the seed-0 line,
 
   See [Figure 2](#figures).
 - *Both controls also lower in-distribution competence:* L3 test pass@1 is −1.4 [−2.3, −0.7] points for kl1 and
-  −0.8 [−1.6, +0.0] for g64. The § 4.3 residuals that would separate competence from generalization were never
-  computed ("needs trajectories").
+  −0.8 [−1.6, +0.0] for g64.
+- *The § 4.3 split* (informational, computed at 6:50 am PT, after the decision, once the trajectory reads landed):
+  - It uses the references' own ID→OOD line: 12 points, the 4 finals plus L2 it8 and L3 it 0, 8 and 16 on seeds 0
+    and 1.
+  - On 13–20, kl1's −0.147 splits into −0.085 competence (b·ΔID) and −0.061 generalization; g64's −0.060 into
+    −0.043 and −0.017.
+  - The line's slope is poorly pinned (b +0.451, bootstrap SD 1.31), so the 95% intervals on the generalization part
+    are wide: [−0.859, +0.736] for kl1 and [−0.425, +0.392] for g64 (`gate_mini20.md`).
 - *On Charles149,* kl1 is −1.9 points, against a full-scale −0.5 (null). g64 is −1.3 [−3.3, +0.8] points at four
   seeds, against a full-scale −2.2 at seed 0.
 
@@ -349,9 +357,11 @@ read.
   attempt noise alone.
 - *Its ID→OOD relation (G3, informational) depends on which full-scale points define the line.*
   - Against the seed-0 line, the 20 + 20 references sit at +0.083 logit (line SD 0.082).
-  - Against the 12-point line with seeds 1 and 2, they sit at +0.184 (SD 0.112), and the 10 + 10 references at +0.275.
-  - So the mini sits somewhat above the full-scale relation, by about 1–2 residual SDs. The deviation's reason 3 is
-    weaker now than it read at 2:27 am.
+  - Against the 15-point line with seeds 1 and 2 (it 0–39 each), they sit at +0.218 (SD 0.148), and the 10 + 10
+    references at +0.249.
+  - So the mini sits somewhat above the full-scale relation, by about 1–1.5 residual SDs. The deviation's reason 3 is
+    weaker now than it read at 2:27 am. The full-scale seeds themselves spread by more than this offset (seed 0 and
+    seed 2 at it39: 36.0% and 28.4% on 13–20 at about the same L3 test).
 - KL 0.1's harm reproduces in sign and roughly in size: 115% of E at 10 + 10 (−0.218 / −0.19) and 77% at 20 + 20
   (−0.147 / −0.19).
 
@@ -456,14 +466,14 @@ logit axes (point estimates). The figure shows:
 - *Full scale, black squares:* `grpo_think_vs_mb_kkl0` (merged recipe, KL 0 in L3), seed 0, at L3 it 0 (the shared L2
   checkpoint), 10, 20, 30 and 39. Reads are L3 test k8 and t1320 k4 (k16 at it39).
 - *Solid black line:* their OLS line in logit, −1.826 + 0.386 x (residual SD 0.082), dashed where extrapolated.
-- *Open squares:* the other full-scale points, seeds 1 and 2: seed 1 at it 0–39, seed 2 at it0 and it10. Only seed 0's
+- *Open squares:* the other full-scale points, seeds 1 and 2 at it 0–39. Only seed 0's
   ends are labelled; its L3 test rises at every checkpoint, from it0 on the left to it39 on the right.
-- *Grey dotted line:* the refit on all 12 full-scale points, −2.239 + 0.515 x (residual SD 0.112), as in
+- *Grey dotted line:* the refit on all 15 full-scale points, −2.086 + 0.438 x (residual SD 0.148), as in
   `gate_mini20.md`.
 - *Mini:* circles are the four 10 + 10 references and triangles the four 20 + 20 references (k8). The diamond is the
   base S1g3_s0.
 
-The 20 + 20 references' mean residual is +0.083 logit against the seed-0 line and +0.184 against the 12-point line. PDF / SVG:
+The 20 + 20 references' mean residual is +0.083 logit against the seed-0 line and +0.218 against the 15-point line. PDF / SVG:
 [pdf](figures/fig_g3_line.pdf), [svg](figures/fig_g3_line.svg).
 
 ![Control effects](figures/fig_controls.png)

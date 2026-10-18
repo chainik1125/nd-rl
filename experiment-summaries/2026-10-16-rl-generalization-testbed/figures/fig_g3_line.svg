@@ -1149,9 +1149,9 @@ L 394.56 16.673135
 " clip-path="url(#p1d21f9d153)" style="fill: none; stroke-dasharray: 2.7,1.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.9"/>
    </g>
    <g id="line2d_30">
-    <path d="M 42.967914 199 
-L 394.56 12.596731 
-L 394.56 12.596731 
+    <path d="M 28.770781 186.885027 
+L 394.56 21.881359 
+L 394.56 21.881359 
 " clip-path="url(#p1d21f9d153)" style="fill: none; stroke-dasharray: 0.7,0.98; stroke-dashoffset: 0; stroke: #6b6b6b; stroke-width: 0.7"/>
    </g>
    <g id="patch_3">
@@ -1221,6 +1221,9 @@ z
      <use xlink:href="#mdba24b4df2" x="354.519024" y="41.431275" style="fill: #ffffff; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
      <use xlink:href="#mdba24b4df2" x="261.008648" y="92.734097" style="fill: #ffffff; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
      <use xlink:href="#mdba24b4df2" x="302.192819" y="72.589326" style="fill: #ffffff; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mdba24b4df2" x="328.299018" y="66.96303" style="fill: #ffffff; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mdba24b4df2" x="355.377055" y="54.395363" style="fill: #ffffff; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mdba24b4df2" x="354.946849" y="54.236424" style="fill: #ffffff; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
     </g>
    </g>
    <g id="text_18">
@@ -1588,7 +1591,7 @@ L 44.870781 16.609
 " style="fill: none; stroke-dasharray: 0.7,0.98; stroke-dashoffset: 0; stroke: #6b6b6b; stroke-width: 0.7"/>
     </g>
     <g id="text_20">
-     <!-- refit with every full-scale point (12) -->
+     <!-- refit with every full-scale point (15) -->
      <g transform="translate(48.020781 19.059) scale(0.07 -0.07)">
       <defs>
        <path id="NimbusRoman-Regular-53" d="M 32 0 
@@ -1805,7 +1808,7 @@ z
       <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1233.3125 0)"/>
       <use xlink:href="#NimbusRoman-Regular-9" transform="translate(1258.3125 0)"/>
       <use xlink:href="#NimbusRoman-Regular-12" transform="translate(1291.609375 0)"/>
-      <use xlink:href="#NimbusRoman-Regular-13" transform="translate(1341.609375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-16" transform="translate(1341.609375 0)"/>
       <use xlink:href="#NimbusRoman-Regular-a" transform="translate(1391.609375 0)"/>
      </g>
     </g>
