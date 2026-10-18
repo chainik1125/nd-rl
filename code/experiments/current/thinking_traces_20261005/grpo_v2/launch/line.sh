@@ -91,10 +91,11 @@
 #        iteration); pool250, pool500 the nested 250- / 500-row subsets of each stage's targets (and the same fraction
 #        of the 3-premise rows: the same attempts, more draws per row); size refused (a placeholder until its data is
 #        built); lossact, lossthink --loss_tokens action / think (the policy loss and its divisor on that phase's
-#        tokens alone; grpo.py's mini-run knobs, guarded); advpos, advneg --adv_sign pos / neg (one sign of the outcome
-#        advantage; the zeroed items stay in the divisor, the step penalty stays). The controls kl1 (--kl_anchor_coef
-#        0.1, 0 in the reference) and g64 (64 x 64) are L3-mini forks: from the reference's L2-mini at the same seed (its
-#        _it10.pt, also the KL anchor's reference), no L2-mini of their own;
+#        tokens alone; grpo.py's mini-run knobs, guarded). The controls kl1 (--kl_anchor_coef 0.1, 0 in the reference)
+#        and g64 (64 x 64) and the advantage knobs advpos (--adv_sign pos: the positive outcome advantages alone, at
+#        --rej_penalty 0) and advneg (--adv_sign neg: the failed attempts' alone; guarded as lossact) are L3-mini forks:
+#        from the reference's L2-mini at the same seed (its _it10.pt, also the KL anchor's reference), no L2-mini of their
+#        own;
 #        a fork waits up to 3 h for that L2-mini to finish (the checkpoint and its line's exit-0 line in pull_queue.sh's
 #        job log) and refuses one that did not end at lr x1 (0 rollbacks). After each stage its ALARM lines, rollbacks
 #        and, without its last checkpoint (--ban_stop's exit 3, a timeout), a FAILED line. Then plain reads only (never
@@ -102,7 +103,10 @@
 #        k64); for the reference, rr and the pool arms also MINI_TRAIN (their own L2 / L3 training subsets, k8); for the
 #        t arms also MINI_PANEL at their training temperature (dirs ending _T07 ... _T13); with MINI_ROLL (env, none by
 #        default: STAGE:IT, e.g. "L2:4 L3:2 L3:6") MINI_PANEL of those rolling checkpoints. Refused: another base arm,
-#        another knob, anything after it, KNOB_FULL=1.
+#        another knob, anything after it, KNOB_FULL=1. The training's base_commit.txt is written once: a finished
+#        line's rerun records HEAD in reads_commit.txt, one that trains again in rerun_commit.txt.
+#        grpo_think_vs_mini_tpanel: no training; MINI_PANEL of the reference's L3-mini last at each TPANEL_TS (0.7, 1.3),
+#        named as the t arms' training-T reads (_T07, _T13): their reference.
 #        ARM_ckreads (2026-10-16): no training; plain reads of a finished full GRPO L3 run that started from another
 #        arm's L2 (the knob pilots, ARM_mb, ARM_fbb, ...): CKR_PANEL (L2 and L3 test_1k k8, t1320 k4, t2130 k4,
 #        charles173 k16) of its rolling checkpoints at CKR_ITS (every 10 before its last; a missing one: the nearest
@@ -114,6 +118,8 @@
 # One stage = 160k sampled attempts: 39 GRPO iterations x 256 targets x 16, or one EI round at k 32 over 5,000.
 # GRPO keeps tonight's settings and safeguards (grpo_think/line.sh): lr 1.5e-4, --overlong fail, canary + rollback,
 # KL anchor 0.02 to each stage's init, effort budgets 0,64,256 for thinking; plus --monitor. EI as seed2/line.sh.
+# A GRPO stage that an earlier run left without its last checkpoint (its dir has args.json or metrics.jsonl: a crash,
+# a stop) has its dir and log moved aside to *.crashed_<UTC> before it reruns (2026-10-18), so the rerun starts clean.
 # Think ban (2026-10-11, every GRPO stage): --ban_restore_check (a think ban alarm alone does not roll back when the
 # checkpoint it would restore is over the limit too) and --ban_stop 0.005 (the stage ends, exit 3, and the line stops).
 # Reads after the last stage on the same GPU (one queue per GPU): t1320 (986 valid; 16-20 is a min_lines filter of
@@ -135,7 +141,7 @@ g=$1; s=$2; arm=$3
 job=$arm; ckr=""  # ARM_ckreads (l3: a full L3's checkpoints), ARM_l2_ckreads (l2), s1g3_ckreads (base): $arm, the arm read
                   # (job names in lower case: pull_queue.sh takes [a-z0-9_]+:[0-9]+ lines only)
 case $arm in s1g3_ckreads) ckr=base; arm=grpo_think_vs ;; *_l2_ckreads) ckr=l2; arm=${arm%_l2_ckreads} ;;
-  *_ckreads) ckr=l3; arm=${arm%_ckreads} ;; esac
+  *_ckreads) ckr=l3; arm=${arm%_ckreads} ;; *_tpanel) ckr=tpanel; arm=${arm%_tpanel} ;; esac  # (tpanel: TPANEL_TS)
 knob=""; pa=$arm  # ARM_mb_kKNOB, ARM_kKNOB (EI): the suffixes below are parsed on ARM_mb / ARM ($pa); $arm names every output
 mini=""; mk=""; mfork=""; MPN=""  # ARM_mini[_kKNOB]: parsed first, then as grpo_think_vs_mb ($pa: L3-mini's recipe);
                                   # its knob $mk, a fork of the reference's L2-mini, the pool arms' subset size
@@ -147,7 +153,7 @@ case $arm in *_mini|*_mini_*) mini=1; mb=${arm%%_mini*}; mk=${arm#"${mb}"_mini}
   esac
   case $mk in lp00|lpm00) say "$arm: _k$mk is no length penalty (grpo_think_vs_mini): refusing"; exit 1 ;;
     size) say "$arm: _ksize (big-statement twins of half the mini rows) has no data yet: refusing"; exit 1 ;;
-    kl1|g64) mfork=1 ;; pool250) MPN=250 ;; pool500) MPN=500 ;; esac
+    kl1|g64|advpos|advneg) mfork=1 ;; pool250) MPN=250 ;; pool500) MPN=500 ;; esac
   [ "${KNOB_FULL:-0}" = 1 ] && { say "$arm: KNOB_FULL=1 is the knob pilots' (a mini run has one set of reads): refusing"; exit 1; }
   pa=${mb}_mb ;;
   *_mb_k*) knob=${arm##*_mb_k}; pa=${arm%_k$knob}
@@ -210,6 +216,7 @@ MINI_READS="l2test:8 l3test:8 t1320:8 t2130:8 charles173:64"  # ARM_mini: the pl
 MINI_TRAIN="l2train:8 l3train:8"  # the reference's, rr's and the pool arms' training subsets (memorisation vs held out);
 MINI_PANEL="l3test:8 t1320:8 t2130:4 charles173:16"  # the T arms' reads at their T, and of each MINI_ROLL checkpoint:
 MINI_ROLL=${MINI_ROLL:-}  # env: STAGE:IT rolling checkpoints of the mini stages (--save_rolling 2) to read; none by default
+TPANEL_TS="0.7 1.3"  # grpo_think_vs_mini_tpanel: the temperatures it reads the reference at (the T arms' extremes)
 CKR_PANEL="l2test:8 l3test:8 t1320:4 t2130:4 charles173:16"  # ARM_ckreads: the dynamics panel of each checkpoint, and
 CKR_FINAL="l2test:8 l3test:8"  # of a full L3's last (its pilot reads hold the out-of-distribution ones)
 SMOKE=${SMOKE:-0}
@@ -228,7 +235,10 @@ case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
 [ $method = ei ] && [ -n "$sch" ] && { say "$arm: _$sch schedules the GRPO lr, and EI's fine-tune has its own (run $base): refusing"; exit 1; }
 [ $method = ei ] && [ "$src" != "$arm" ] && [ -z "$knob" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
 [ $method = ei ] && [ "$base" != "$src" ] && { say "$arm: _h halves the GRPO lr, which EI does not use (run $base): refusing"; exit 1; }
-if [ "$ckr" = l3 ]; then  # a full GRPO L3 that started from another arm's L2 (ARM_b, ARM_wb, the L3 pilots, ARM_mb_kKNOB)
+if [ "$ckr" = tpanel ]; then  # the mini reference's last checkpoint, read at the T arms' temperatures
+  [ "$arm" = grpo_think_vs_mini ] \
+    || { say "$job: _tpanel reads the mini reference's last checkpoint (grpo_think_vs_mini_tpanel): refusing"; exit 1; }
+elif [ "$ckr" = l3 ]; then  # a full GRPO L3 that started from another arm's L2 (ARM_b, ARM_wb, the L3 pilots, ARM_mb_kKNOB)
   { [ "$src" != "$arm" ] && [ $method = grpo ] && [ -z "$mini" ]; } \
     || { say "$job: _ckreads reads a full GRPO L3 that started from another arm's L2 (a knob pilot, ARM_mb, ARM_fbb, ...): refusing"; exit 1; }
 elif [ -n "$ckr" ]; then  # a base GRPO arm's own L2 (ARM_l2_ckreads), or the Stage-1 base (s1g3_ckreads)
@@ -343,8 +353,9 @@ if [ -n "$mini" ]; then  # ARM_mini: L3-mini at kl0's KL anchor (L2-mini at KLC'
     pool250|pool500) KD="the $MPN-row subsets" ;;  # L2T / L3T (above), the same iterations and attempts
     lossact) KF="--loss_tokens action"; KD=$KF ;;  # the policy loss on the action tokens alone (its divisor too)
     lossthink) KF="--loss_tokens think"; KD=$KF ;;  # ... on the think-block tokens alone (budget 0 trains nothing)
-    advpos) KF="--adv_sign pos"; KD=$KF ;;  # the positive outcome advantages alone (the step penalty's -P stays)
-    advneg) KF="--adv_sign neg"; KD=$KF ;;  # the negative ones alone
+    advpos) P=0; KF="--adv_sign pos"; KD="$KF --rej_penalty 0" ;;  # a fork: the positive outcome advantages alone,
+            # without the step penalty (its -P would be the one negative signal left, at twice its relative weight)
+    advneg) KF="--adv_sign neg"; KD=$KF ;;  # a fork: the failed attempts' outcome advantages alone (by outcome)
   esac
   [ -n "$mk" ] && KD="knob $mk: $KD"
 fi
@@ -369,7 +380,7 @@ if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil, ARM_kKNOB: $src's fini
 fi
 if [ -n "$ckr" ]; then  # ARM_ckreads: refused, with nothing written, without the checkpoint it reads last
   CK3=$C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it$IT3.pt; CK2=$C/${arm}_s${s}_L2/ckpts/${arm}_s${s}_L2_it$ITERS.pt
-  [ $ckr = l3 ] && [ ! -f $CK3 ] && { say "$job: no finished L3 of $arm ($CK3) to read: refusing"; exit 1; }
+  case $ckr in l3|tpanel) [ -f $CK3 ] || { say "$job: no finished L3 of $arm ($CK3) to read: refusing"; exit 1; } ;; esac
   [ $ckr = l2 ] && [ ! -f $CK2 ] && { say "$job: no checkpoint $CK2 to read: refusing"; exit 1; }
 fi
 mkdir -p $C $EV
@@ -387,8 +398,11 @@ if [ "$SMOKE" != 1 ] && [ -z "$ckr" ]; then  # (ARM_ckreads trains on nothing)
 fi
 [ -f $init0 ] || { say "no Stage-1 init $init0"; exit 1; }
 bc=base_commit; [ -n "$knob" ] && [ "${KNOB_FULL:-0}" = 1 ] && bc=reads_commit  # KNOB_FULL keeps the training's record
-[ -n "$mini" ] && [ -f $C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it$IT3.pt ] && bc=reads_commit  # a finished mini line
-  # rerun (MINI_TRAIN, MINI_ROLL reads): HEAD in reads_commit.txt, the training's base_commit.txt kept
+if [ -n "$mini" ]; then  # ARM_mini: the training's base_commit.txt is written once. A finished line's rerun (MINI_TRAIN,
+  # MINI_ROLL reads) records HEAD in reads_commit.txt; a rerun that trains again (a crash, a stop) in rerun_commit.txt
+  if [ -f $C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it$IT3.pt ]; then bc=reads_commit
+  elif [ -f $C/${arm}_s$s.base_commit.txt ]; then bc=rerun_commit; fi
+fi
 cr=$C/${arm}_s$s.$bc.txt; [ -n "$ckr" ] && cr=$C/${job}_s$s.base_commit.txt  # ARM_ckreads: its own, not the arm's
 git -C $WT rev-parse HEAD > $cr
 watch() {  # NAME PID LOG EXPECTED_H
@@ -397,7 +411,12 @@ watch() {  # NAME PID LOG EXPECTED_H
 grpo_stage() {  # NAME INIT TARGETS [EXTRA_TARGETS] -> ckpts/NAME_it$ITERS.pt (stage L3: _it$IT3)
   local n=$1 O=$C/$1 it=$ITERS to=$TO2 wh=$WH2 kl=$KLC; case $1 in *_L3) it=$IT3; to=$TO3; wh=$WH3; kl=${KL3:-$KLC} ;; esac
   local last=$C/$1/ckpts/${1}_it$it.pt
-  [ -f $last ] && return 0; waitfree $g
+  [ -f $last ] && return 0
+  if [ -f $O/args.json ] || [ -f $O/metrics.jsonl ]; then  # an earlier run of this stage that did not finish (a crash,
+    local t=$(date -u +%Y%m%dT%H%M%SZ)  # a stop): its dir (rolling checkpoints too) and log aside, so the rerun starts
+    mv $O $O.crashed_$t; [ -f $L/v2_$n.log ] && mv $L/v2_$n.log $L/v2_$n.crashed_$t.log  # clean (grpo.py appends
+    say "GRPO $n: an earlier run left no $(basename $last): its dir moved aside to $O.crashed_$t"; fi  # metrics.jsonl)
+  waitfree $g
   local GUIDE=""; [ $samp = logical ] && GUIDE="--arm logical --max_rej $MAXREJ_TRAIN --rej_penalty $P"
   local XT=""; [ -n "$4" ] && XT="--targets_extra $4 --targets_extra_frac $XFRAC"
   local SC=$S3; case $n in *_L2) SC=$S2 ;; esac  # the stage's lr schedule flags (none: constant)
@@ -493,6 +512,9 @@ if [ "$ckr" = l3 ]; then  # ARM_ckreads: no training; CKR_PANEL of $arm's L3 at 
     reads_of ${arm}_it$j $cp "$CKR_PANEL"
   done
   echo "it$IT3 $(ck L3)" >> $rec; reads_of $arm $(ck L3) "$CKR_FINAL"
+  say "grpo_v2 line done ($job seed $s)"; exit 0
+elif [ "$ckr" = tpanel ]; then  # grpo_think_vs_mini_tpanel: MINI_PANEL of the reference's L3-mini last at each TPANEL_TS
+  for t in $TPANEL_TS; do reads_of $arm $(ck L3) "$MINI_PANEL" $t; done  # (the T arms' names: _T07, _T13)
   say "grpo_v2 line done ($job seed $s)"; exit 0
 elif [ -n "$ckr" ]; then  # ARM_l2_ckreads: $arm's L2 last, as ARM_L2; s1g3_ckreads: Stage-1 S1g3_sSEED, as s1g3
   if [ $ckr = l2 ]; then cp=$(ck L2); nm=${arm}_L2; else cp=$init0; nm=s1g3; fi  # (both checked above)

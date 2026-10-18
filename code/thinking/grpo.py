@@ -284,12 +284,15 @@ rollouts, rows, log lines, weights and args.json are unchanged (test_grpo_mini_k
   KL anchor is a separate term on the anchor's action tokens and is unchanged. At budget 0 there
   is no think block, so `think` trains nothing there; a minibatch without a token of the phase
   takes no step (and so no KL anchor step either). The logged entropies stay per scored token.
-* **`--adv_sign pos|neg`** zeroes every attempt's outcome advantage of the other sign: r - the
-  group mean, after the unlikeliness deduction (which can make a solved attempt's advantage
-  negative in a mostly solved group) and the length terms. The zeroed items stay, with their tokens
-  in the divisor, so a kept token weighs exactly what it weighs in the full run. The step penalty is
-  not an outcome advantage: its -P stays on the rejected draws and on the draw that ended a failed
-  attempt (under `pos`, that draw keeps -P alone).
+* **`--adv_sign pos|neg`** keeps one side of the outcome advantage (r - the group mean, after the
+  unlikeliness deduction and the length terms) and zeroes the rest. `pos` keeps the positive
+  advantages, by sign. `neg` keeps the failed attempts' advantages, by outcome: every solved
+  attempt's is zeroed, also when the unlikeliness deduction made it negative (in a mostly solved
+  group), and a failed attempt's is kept up to 0 (it is <= 0 unless the length terms push the mean
+  below 0). The zeroed items stay, with their tokens in the divisor, so a kept token weighs
+  exactly what it weighs in the full run. The step penalty is not an outcome advantage: its -P
+  stays on the rejected draws and on the draw that ended a failed attempt (under `pos`, that draw
+  keeps -P alone; line.sh's advpos arm runs at --rej_penalty 0).
 
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
@@ -624,9 +627,10 @@ def group_items(
     The outcome signal leaves `len_penalty` out: a group whose rewards differ only by it (all
     solved, unequal lengths) is length-only, trained on the penalty's advantages alone, with no
     signal and no deduction; its attempts' items are kind 'len' (`src`; module docstring).
-    `adv_sign` (`ADV_SIGNS`, --adv_sign): 'pos' / 'neg' zero each attempt's outcome advantage (r -
-    the mean, after the deductions) of the other sign; the items stay, with their tokens in the
-    loss's divisor, and the step penalty's -P stays on its draws.
+    `adv_sign` (`ADV_SIGNS`, --adv_sign): 'pos' keeps the positive outcome advantages (r - the
+    mean, after the deductions), 'neg' the failed attempts' (by outcome: a solved attempt's is
+    zeroed even when the deduction made it negative; a failed one's at most 0); the items stay,
+    with their tokens in the loss's divisor, and the step penalty's -P stays on its draws.
 
     Step penalty (`rej_penalty` P > 0, a guided arm): every rejected draw gets -P on top of what
     its attempt gives it -- the redrawn draws (`rejected_items`, of every attempt, masked ones
@@ -651,9 +655,12 @@ def group_items(
     if sig and unlikely is not None:  # the skip rule reads the rewards before it
         adv2 = advantages([x - u for x, u in zip(r, unlikely, strict=True)], keep)
         adv = adv if adv2 is None else adv2
-    if adv is not None and adv_sign != "both":  # --adv_sign: one sign of the outcome advantage
+    if adv is not None and adv_sign != "both":  # --adv_sign: one side of the outcome advantage
         assert adv_sign in ADV_SIGNS, adv_sign
-        adv = [max(0.0, x) if adv_sign == "pos" else min(0.0, x) for x in adv]
+        if adv_sign == "pos":  # by sign
+            adv = [max(0.0, x) for x in adv]
+        else:  # 'neg', by outcome: the failed attempts' alone
+            adv = [0.0 if a.get("ok") else min(0.0, x) for a, x in zip(att, adv, strict=True)]
     pen = rej_penalty > 0 and any(n_rejected(x) for x in att)
     if adv is None and not pen:
         return None, masked
@@ -2846,8 +2853,9 @@ def parser() -> argparse.ArgumentParser:
         "--adv_sign",
         choices=ADV_SIGNS,
         default=argparse.SUPPRESS,
-        help="the outcome advantages kept: both (default), pos or neg (the others are zeroed, "
-        "their tokens stay in the divisor; the step penalty's -P stays)",
+        help="the outcome advantages kept: both (default), pos (the positive ones) or neg (the "
+        "failed attempts'); the others are zeroed, their tokens stay in the divisor; the step "
+        "penalty's -P stays",
     )
     return ap
 

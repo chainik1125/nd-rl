@@ -62,14 +62,16 @@ EKREF=(ei_think_v_kfoo ei_think_v_k ei_think_v_kx66 ei_think_v_kp3 ei_think_v_k3
        ei_think_v_fbb_kret0 ei_think_v_mb_k3p ei_nothink_v_mb_kret0 grpo_think_v_k3p grpo_think_vs_kret0 grpo_nothink_v_kt10
        grpo_think_kr2 grpo_think_vs_krr grpo_nothink_vs3_k3p grpo_think_vs_mb_kret0)
 # the mini runs (2026-10-16): grpo_think_vs_mini and each of its knobs, with the mini subsets and their pass record (a
-# setup; the forks kl1 and g64 also the reference's finished L2-mini); refused: another base arm, a suffix before
-# _mini, another knob or anything after it, size, KNOB_FULL=1 (MREF), a missing subset, no pass record, a stale one, a
-# fork whose reference L2-mini rolled back or never finishes. ARM_ckreads: a full L3 run's checkpoints, a base arm's L2
-# (ARM_l2_ckreads), the Stage-1 base (s1g3_ckreads), each with a setup; refused (CKREF) for other arms, KNOB_FULL=1,
-# without the checkpoints
-MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 g64b pool250 pool500 lossact lossthink advpos advneg)
+# setup; the forks kl1, g64, advpos and advneg also the reference's finished L2-mini); refused: another base arm, a
+# suffix before _mini, another knob or anything after it, size, KNOB_FULL=1 (MREF), a missing subset, no pass record, a
+# stale one, a fork whose reference L2-mini rolled back or never finishes. ARM_ckreads: a full L3 run's checkpoints, a
+# base arm's L2 (ARM_l2_ckreads), the Stage-1 base (s1g3_ckreads), each with a setup; refused (CKREF) for other arms,
+# KNOB_FULL=1, without the checkpoints. grpo_think_vs_mini_tpanel (2026-10-18): the finished reference (a setup);
+# refused (TPREF) for other arms, without it. A crashed stage's rerun (CRASH, 2026-10-18): its dir and log aside
+MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 g64b pool250 pool500 lossact lossthink)
 MARMS=(grpo_think_vs_mini "${MKNOBS[@]/#/grpo_think_vs_mini_k}")
-MFORKS=(grpo_think_vs_mini_kkl1 grpo_think_vs_mini_kg64)
+MFORKS=(grpo_think_vs_mini_kkl1 grpo_think_vs_mini_kg64 grpo_think_vs_mini_kadvpos grpo_think_vs_mini_kadvneg)
+TPREF=(grpo_think_vs_tpanel grpo_think_vs_mini_kt07_tpanel grpo_think_vs_mb_kkl0_tpanel)
 MREF=(grpo_think_mini grpo_nothink_vs_mini grpo_think_vs_h_mini grpo_think_vs_mb_mini grpo_think_vs_mb_kkl0_mini ei_think_v_mini
       grpo_think_vs_mini_kfoo grpo_think_vs_mini_k grpo_think_vs_mini_kt07_krr grpo_think_vs_mini_kt07_h grpo_think_vs_mini_h
       grpo_think_vs_mini_kx66 grpo_think_vs_mini_kkl0 grpo_think_vs_mini_mini grpo_think_vs_mini_kg64_mini grpo_think_vs_mini_ku1
@@ -318,6 +320,34 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   su=$(minisetup ministop_${mode}_s$seed)
   DRY_GRPO_STOP=_L3 bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_kt13 "$H/res/refuse/$mode/s$seed/stop_grpo_think_vs_mini_kt13" $su
   n=$((n+7))
+  # grpo_think_vs_mini_tpanel (2026-10-18): the finished reference at this seed (both stages, its training record); refused
+  # without its L3-mini, and (TPREF) for other arms
+  c=runs/grpo_v2; l=runs/logs; it=10; [ $mode = smoke ] && { c=runs/grpo_v2/smoke; l=$c/logs; it=2; }
+  a=grpo_think_vs_mini
+  su=$(minisetup tpanel_${mode}_s$seed)
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it$it.pt\"" >> $su
+  donesetup $su $mode $seed $a ${a}_s${seed}_L3_it$it.pt
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_tpanel "$H/res/mini/$mode/s$seed/grpo_think_vs_mini_tpanel" $su
+  su=$(minisetup tpanelnol3_${mode}_s$seed)
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_tpanel "$H/res/refuse/$mode/s$seed/nol3_grpo_think_vs_mini_tpanel" $su
+  for a in "${TPREF[@]}"; do
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $a "$H/res/refuse/$mode/s$seed/$a"; n=$((n+1))
+  done
+  # CRASH (2026-10-18): a stage an earlier run left without its last checkpoint (args.json, metrics.jsonl, a rolling
+  # checkpoint, its log): its dir and log moved aside before it reruns. The reference's L3-mini, L2-mini finished, its
+  # training record there (rerun_commit.txt, base_commit.txt kept); grpo_think_vs's L2 (base_commit.txt written, as before)
+  a=grpo_think_vs_mini
+  su=$(minisetup crash_${mode}_s$seed)
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it$it.pt\"" >> $su
+  echo "mkdir -p \"\$SB/$c\" && echo 'dry training commit' > \"\$SB/$c/${a}_s${seed}.base_commit.txt\"" >> $su
+  for x in "$c/${a}_s${seed}_L3:L3_it2_rolling" "$c/grpo_think_vs_s${seed}_L2:L2_it5_rolling"; do
+    d=${x%%:*}; nm=$(basename $d)
+    echo "mkdir -p \"\$SB/$d/ckpts\" \"\$SB/$l\" && echo '{}' > \"\$SB/$d/args.json\" && echo '{\"iter\": 1}' > \"\$SB/$d/metrics.jsonl\"" >> $su
+    echo ": > \"\$SB/$d/ckpts/${nm}_it${x##*_it}.pt\" && echo 'it 1: crashed' > \"\$SB/$l/v2_$nm.log\"" >> $su
+  done
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $a "$H/res/mini/$mode/s$seed/crash_$a" $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs "$H/res/mini/$mode/s$seed/crash_grpo_think_vs" $su
+  n=$((n+4))
   # reruns (section N): L2-mini finished (only L3-mini and the reads run); both stages finished and two reads there (the
   # other reads run)
   c=runs/grpo_v2; it=10; rm2=(l2test_8 charles173_64); [ $mode = smoke ] && { c=runs/grpo_v2/smoke; it=2; rm2=(l2test_2 charles173_2); }

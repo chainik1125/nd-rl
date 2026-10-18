@@ -612,9 +612,10 @@ recipe's, and differ from it only in what is listed here (the dry run checks thi
 | `pool250`, `pool500` | the nested 250- / 500-row subsets in both stages, the same iterations and attempts (each row seen 4x / 2x as often) |
 | `size` | a placeholder for big-statement twins of half the mini rows: refused until its files exist |
 | `lossact`, `lossthink` | `--loss_tokens action / think`: the policy loss on that phase's scored tokens alone (below) |
-| `advpos`, `advneg` | `--adv_sign pos / neg`: one sign of the outcome advantage, the other zeroed (below) |
+| `advpos`, `advneg` | forks (below): `--adv_sign pos` at `--rej_penalty 0` / `--adv_sign neg`: one side of the outcome advantage (below) |
 
-**Forks** (`kl1`, `g64`: the controls, seeds 0 and 1). A fork has no L2-mini of its own. Its L3-mini starts from the
+**Forks** (`kl1`, `g64`: the controls, seeds 0 and 1; `advpos`, `advneg` since 2026-10-18, so that L2-mini's KL
+anchor keeps its relative weight and each is paired with the reference). A fork has no L2-mini of its own. Its L3-mini starts from the
 reference `grpo_think_vs_mini`'s `_L2_it10` at the same seed, which is also its KL reference, so it differs from the
 reference's L3-mini only in its knob. This removes L2-mini's run-to-run noise from the comparison.
 - The fork waits until that L2-mini has finished: its `_it10.pt` is there *and* the reference's job log
@@ -647,7 +648,15 @@ L3-mini's last checkpoint (`MINI_READS`):
   `<set>_<arm>_L3it2_s<seed>_plain_k8`. One missing (an alarm iteration saves none) is skipped. It is off by default.
 - A read named in two of a line's lists runs once.
 - Rerunning a finished line (both stages there: to add `MINI_TRAIN` or `MINI_ROLL` reads) trains nothing and writes HEAD
-  to `ARM_sSEED.reads_commit.txt`, as `KNOB_FULL=1` does; the training's `base_commit.txt` stays.
+  to `ARM_sSEED.reads_commit.txt`, as `KNOB_FULL=1` does; the training's `base_commit.txt` stays. `base_commit.txt` is
+  written once (2026-10-18): a rerun that trains again (after a crash or a stop) records HEAD in `rerun_commit.txt`.
+- `grpo_think_vs_mini_tpanel` (2026-10-18, a job, no training) reads the reference's L3-mini last at seed SEED with
+  `MINI_PANEL` at T 0.7 and 1.3 (`TPANEL_TS`), under the reference's names with `_T07` / `_T13`: the reference point
+  for the T arms' training-T reads (`t07`'s `_T07`, `t13`'s `_T13`). About 0.5 GPU-h (8 reads).
+- A GRPO stage that an earlier run left without its last checkpoint (its dir has `args.json` or `metrics.jsonl`: a
+  crash, a stop) has its dir, rolling checkpoints included, and its log moved aside to `<dir>.crashed_<UTC>` before
+  it reruns, and the line says so (grpo.py would otherwise append to the old `metrics.jsonl`). Every GRPO arm, not
+  only the mini ones.
 
 **`--len_penalty` in grpo.py** (needed for the `lp` knobs; with `--len_penalty 0` nothing changes, see the tests below).
 - An all-solved group's rewards 1 − lp·n/1000 differ by length alone. Such a group is *length-only*: it is trained,
@@ -692,13 +701,19 @@ only args.json; `tests/thinking/test_grpo_mini_knobs.py`). line.sh refuses these
   - Budget 0 has no think block, so `think` trains nothing there. A minibatch with no token of the phase takes no
     step, and so no KL-anchor step either (L3-mini's anchor is 0 anyway). `trained_tokens` is the phase's count, and
     the logged entropies stay per scored token (`LossStats.tokens_all`).
-- `--adv_sign pos|neg` zeroes every outcome advantage of the other sign. The advantage is r minus the group mean,
-  after the unlikeliness deduction (which can make a solved attempt's advantage negative in a mostly solved group:
-  then `pos` drops it) and the length terms.
+- `--adv_sign pos|neg` keeps one side of the outcome advantage, r minus the group mean after the unlikeliness
+  deduction and the length terms, and zeroes the rest.
+  - `pos` keeps the positive advantages (by sign). The deduction can make a solved attempt's advantage negative in a
+    mostly solved group; `pos` drops it.
+  - `neg` keeps the failed attempts' advantages (by outcome, 2026-10-18): every solved attempt's is zeroed, also one
+    the deduction made negative, and a failed attempt's is kept up to 0. It is ≤ 0 anyway unless a length penalty
+    takes long successes below 0 and the mean with them.
+  - The `advpos` arm runs at `--rej_penalty 0`: otherwise the step penalty's −P would be the one negative signal left,
+    at twice its relative weight. Both adv arms are L3-mini forks.
   - The zeroed items stay in the batch, their tokens in the divisor, so a kept token weighs exactly what it weighs in
     the full run. The update is about half as large on average, an lr-like effect that comes with the knob.
   - The step penalty is not an outcome advantage. Its −P stays on the redrawn draws and on the draw that ended a
-    failed attempt; under `pos` that draw keeps −P alone.
+    failed attempt (under `pos` that draw keeps −P alone, which is why `advpos` runs without it).
   - The KL anchor and the ban mass are unchanged. All-solved and all-failed groups are skipped as before.
 
 **Temperature** (`t` knobs). grpo.py uses `--temperature` for sampling, the PPO ratio's old and new log-probs, the

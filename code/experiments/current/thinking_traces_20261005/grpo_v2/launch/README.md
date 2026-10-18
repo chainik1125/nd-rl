@@ -308,6 +308,33 @@ Paths are serrano's. Changes, all of them:
       the five reads (args.json records the knob). `advneg`'s 4 x 4 L3-mini at seed 0 hit `--ban_stop` at its second
       iteration (think-ban mass 0.0113) and logged the FAILED line with no reads; at seed 2 it ran through. Without
       `SMOKE_WT` (`nd-rl-v2`'s grpo.py, which has neither option) `lossact` is refused.
+15. `leon/grpo-v2-dev` (2026-10-18, audit 3): the adv knobs reworked, crash-safe reruns, the T-panel reference job.
+    Changes `code.thinking.grpo` (`--adv_sign neg` only), so fast-forward it between jobs.
+    - grpo.py: `--adv_sign neg` decides by outcome. It keeps the failed attempts' advantages (at most 0) and zeroes
+      every solved attempt's, also one the unlikeliness deduction made negative. `pos` is unchanged (by sign).
+    - line.sh: `advpos` and `advneg` are L3-mini forks of the reference's L2-mini at the same seed, with the same wait
+      and guard as `kl1` / `g64`; `advpos` runs at `--rej_penalty 0` (`P`, in its launch line as `P 0` and `knob advpos:
+      --adv_sign pos --rej_penalty 0`). `lossact` / `lossthink` stay both-stage.
+    - A mini line writes `base_commit.txt` once; a rerun that trains again records HEAD in `rerun_commit.txt` (a
+      finished line's rerun: `reads_commit.txt`, as before).
+    - `grpo_stage`: a stage dir with `args.json` or `metrics.jsonl` but no last checkpoint (a crash, a stop) is moved
+      aside with its log to `*.crashed_<UTC>` before the stage reruns; the line logs it. Every GRPO arm (EI stages are
+      unchanged). Dirs without either file (the dry harness's stub rolling checkpoints) stay, so earlier result dirs
+      are unchanged.
+    - `grpo_think_vs_mini_tpanel` (`ckr=tpanel`): MINI_PANEL of the reference's L3-mini last at `TPANEL_TS` (0.7,
+      1.3), under the reference's names with `_T07` / `_T13`; refused for another arm or without the L3-mini.
+    - Tests: `test_grpo_mini_knobs.py`'s sign test covers neg by outcome (a solved attempt made negative by the
+      deduction is zeroed; with a length penalty that takes the mean below 0, a failed attempt's positive advantage is
+      capped at 0). All 267 GRPO / EI tests pass; ruff, ruff format and pyright are clean. Dry run (`dry/`: the adv forks, tpanel
+      and its refusals, a crashed stage's rerun for the mini reference's L3-mini and for `grpo_think_vs`'s L2): all
+      42,479 checks pass over 2,440 result dirs. All 1,940 of 765161f9's match, and of 344d80b0's 2,398 only the
+      12 adv-arm dirs differ (now forks).
+    - Smoke: `SMOKE=1`, CPU, `SMOKE_WT` the dev worktree, 4 threads. The reference at seed 2, then `advpos` (L3-mini only
+      from its `_L2_it2`, which is also its KL reference; `--rej_penalty 0`, the launch line `P 0`) and `advneg`; then
+      `tpanel` (eight reads, `_T07` / `_T13`). A crash: the reference at seed 5 killed (its whole process group) 35 s
+      into L2-mini, with `args.json` and a one-row `metrics.jsonl` there. The rerun moved the dir (its `_it0_rolling.pt`
+      too) and the log aside to `*.crashed_20261018T024716Z`; the new `metrics.jsonl` holds only the rerun's rows;
+      `base_commit.txt` was kept and `rerun_commit.txt` written.
 
 Checked and left alone:
 

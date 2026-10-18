@@ -113,7 +113,8 @@ def _oatt(i: int, ok: bool) -> dict[str, Any]:
     return {"status": "done" if ok else "fail:S:bad", "ok": ok, "tokens": 2, "trace": [step]}
 
 
-def test_adv_sign_keeps_one_sign_of_the_outcome() -> None:
+def test_adv_sign_keeps_one_side_of_the_outcome() -> None:
+    """pos keeps the positive outcome advantages (by sign), neg the failed attempts' (outcome)."""
     att = [_oatt(0, True), _oatt(1, True), _oatt(2, False), _oatt(3, False)]
     base = [x[3] for x in grpo.group_items(att, T, 0.0, "fail")[0] or []]
     assert base == pytest.approx([0.5, 0.5, -0.5, -0.5])
@@ -121,16 +122,24 @@ def test_adv_sign_keeps_one_sign_of_the_outcome() -> None:
         items, _ = grpo.group_items(att, T, 0.0, "fail", adv_sign=sign)
         assert [x[3] for x in items or []] == pytest.approx(want)  # every item stays
     # the unlikeliness deduction comes first: in a mostly solved group it can make a solved
-    # attempt's advantage negative (rewards 0.7, 1, 1, 0: mean 0.675)
+    # attempt's advantage negative (rewards 0.5, 1, 1, 0: mean 0.625). pos drops it (its sign),
+    # and so does neg (a solved attempt: its outcome)
     att3 = [_oatt(0, True), _oatt(1, True), _oatt(2, True), _oatt(3, False)]
-    pen = [0.3, 0.0, 0.0, 0.0]
+    pen = [0.5, 0.0, 0.0, 0.0]
     got = {
         s: [x[3] for x in grpo.group_items(att3, T, 0.0, "fail", unlikely=pen, adv_sign=s)[0] or []]
         for s in ("both", "pos", "neg")
     }
-    assert got["both"] == pytest.approx([0.025, 0.325, 0.325, -0.675])
-    assert got["pos"] == pytest.approx([0.025, 0.325, 0.325, 0.0])
-    assert got["neg"] == pytest.approx([0.0, 0.0, 0.0, -0.675])
+    assert got["both"] == pytest.approx([-0.125, 0.375, 0.375, -0.625])
+    assert got["pos"] == pytest.approx([0.0, 0.375, 0.375, 0.0])
+    assert got["neg"] == pytest.approx([0.0, 0.0, 0.0, -0.625])
+    # a length penalty that takes long successes below 0 (lp 0.5, 4,000 tokens: r = -1) puts the
+    # mean below 0 and the failed attempts' advantages above it: neg keeps them only up to 0
+    long = [dict(_oatt(i, i < 2), tokens=4000) for i in range(4)]
+    a_both = [x[3] for x in grpo.group_items(long, T, 0.5, "fail")[0] or []]
+    assert a_both == pytest.approx([-0.5, -0.5, 0.5, 0.5])
+    a_neg = [x[3] for x in grpo.group_items(long, T, 0.5, "fail", adv_sign="neg")[0] or []]
+    assert a_neg == pytest.approx([0.0, 0.0, 0.0, 0.0])
     # an all-solved group stays skipped
     assert (
         grpo.group_items([_oatt(i, True) for i in range(4)], T, 0.0, "fail", adv_sign="pos")[0]
