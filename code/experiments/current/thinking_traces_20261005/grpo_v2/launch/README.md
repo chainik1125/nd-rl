@@ -335,6 +335,24 @@ Paths are serrano's. Changes, all of them:
       into L2-mini, with `args.json` and a one-row `metrics.jsonl` there. The rerun moved the dir (its `_it0_rolling.pt`
       too) and the log aside to `*.crashed_20261018T024716Z`; the new `metrics.jsonl` holds only the rerun's rows;
       `base_commit.txt` was kept and `rerun_commit.txt` written.
+16. `leon/grpo-v2-dev` (2026-10-18): the size knob. Launcher only (nothing `code.thinking.grpo` / `eval` imports).
+    - `grpo_v2/build_size.py` builds the size-twin mix into `runs/pools/mini/` (`L{2,3}_mini_size.jsonl`,
+      `L3_3p_mini_size.jsonl`, `size.json`, `preflight_size*.log`, its own `preflight_pass_size.txt`); built, and a
+      rebuild gives the same bytes.
+    - `grpo_think_vs_mini_ksize`: both stages on the mix (`MPN=_size`, checked against `preflight_pass_size.txt`; the
+      refusal names `build_size.py`), knob text `the size-twin mix (a fixed half of the rows as their big-statement
+      twins)`; reads `MINI_READS`, then `SIZE_READS`.
+    - `grpo_think_vs_mini_szpanel` (`ckr=szpanel`): `SIZE_READS` of the reference's L3-mini last; refused for another
+      arm, without the L3-mini.
+    - `SIZE_READS` = `l2test_sz`, `l3test_sz` (the test_1k twins) and `l2test_om`, `l3test_om` (their matched
+      originals), k8, from `runs/pools/size_twins/` (`SZ_SETS`, checked before anything is written).
+    - Dry run (`dry/`: `_ksize` in M at seeds 0-2, both modes, `szpanel`, the refusals): all 42,893 checks pass over
+      2,482 result dirs. All 1,940 of 765161f9's match, and of 80eaca21's 2,440 only the six `_ksize` dirs differ
+      (refused before). `_ksize` against the reference: L2 `--targets` `L2_mini` -> `L2_mini_size`; L3 `--targets`
+      `L3_mini` -> `L3_mini_size`, `--targets_extra` `L3_3p_mini` -> `L3_3p_mini_size`, and the names and init.
+    - Smoke: `SMOKE=1`, CPU, `SMOKE_WT` the dev worktree, 4 threads: `_ksize` at seed 0 (both stages on the mix's heads,
+      five of the first eight L2 rows twins; `MINI_READS` and the four size reads), the reference at seed 2, then
+      `szpanel` (four reads) and its rerun (nothing left to read).
 
 Checked and left alone:
 

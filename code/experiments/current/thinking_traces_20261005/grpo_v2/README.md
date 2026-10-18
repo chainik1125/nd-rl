@@ -610,7 +610,7 @@ recipe's, and differ from it only in what is listed here (the dry run checks thi
 | `g64` | a fork: `--prompts 64 --group 64` in L3-mini (the same 4,096 attempts per iteration; about 5 points worse at full scale) |
 | `g64b` | `--prompts 64 --group 64` in both stages |
 | `pool250`, `pool500` | the nested 250- / 500-row subsets in both stages, the same iterations and attempts (each row seen 4x / 2x as often) |
-| `size` | a placeholder for big-statement twins of half the mini rows: refused until its files exist |
+| `size` | the size-twin mix in both stages: a fixed half of the rows as their big-statement twins (below); also the size reads |
 | `lossact`, `lossthink` | `--loss_tokens action / think`: the policy loss on that phase's scored tokens alone (below) |
 | `advpos`, `advneg` | forks (below): `--adv_sign pos` at `--rej_penalty 0` / `--adv_sign neg`: one side of the outcome advantage (below) |
 
@@ -650,6 +650,10 @@ L3-mini's last checkpoint (`MINI_READS`):
 - Rerunning a finished line (both stages there: to add `MINI_TRAIN` or `MINI_ROLL` reads) trains nothing and writes HEAD
   to `ARM_sSEED.reads_commit.txt`, as `KNOB_FULL=1` does; the training's `base_commit.txt` stays. `base_commit.txt` is
   written once (2026-10-18): a rerun that trains again (after a crash or a stop) records HEAD in `rerun_commit.txt`.
+- `grpo_think_vs_mini_szpanel` (2026-10-18, a job, no training) reads the reference's L3-mini last at seed SEED on
+  `SIZE_READS`: the L2 / L3 test_1k twins (`l2test_sz`, `l3test_sz`, k8) and their matched originals (`l2test_om`,
+  `l3test_om`, k8: the test_1k rows whose twin was built, in the twins' order). `_ksize` reads them too. So both arms
+  have paired size effects in distribution. About 0.5 GPU-h.
 - `grpo_think_vs_mini_tpanel` (2026-10-18, a job, no training) reads the reference's L3-mini last at seed SEED with
   `MINI_PANEL` at T 0.7 and 1.3 (`TPANEL_TS`), under the reference's names with `_T07` / `_T13`: the reference point
   for the T arms' training-T reads (`t07`'s `_T07`, `t13`'s `_T13`). About 0.5 GPU-h (8 reads).
@@ -657,6 +661,30 @@ L3-mini's last checkpoint (`MINI_READS`):
   crash, a stop) has its dir, rolling checkpoints included, and its log moved aside to `<dir>.crashed_<UTC>` before
   it reruns, and the line says so (grpo.py would otherwise append to the old `metrics.jsonl`). Every GRPO arm, not
   only the mini ones.
+
+**The size knob** (`_ksize`, 2026-10-18; `grpo_v2/build_size.py`, into `runs/pools/mini/`). The twins are in
+`runs/pools/size_twins/` (branch `leon/size-twins`, its README): the same problem under one uniform substitution, a
+bigger statement and the same proof, `min_lines` re-certified.
+- Each mini subset keeps its rows and order. A row is in the twinned half when the first byte of sha256(salt + its
+  name) is even: a fixed function of the original name, never a run seed. A chosen row is replaced by its twin when
+  it has one. A 3-premise extra is replaced by its own twin exactly when its L3 parent was.
+- The twin share: `L2_mini_size` 504 of 1,000 (50.4%; 1 chosen row has no twin and stays original), `L3_mini_size`
+  476 of 1,000 (47.6%), `L3_3p_mini_size` 183 of 369 (49.6%).
+- Statement tokens (whitespace tokens of the statement, without THM / SEQ / PRF; mean, p10 / p50 / p90, max):
+
+  | file | original rows | twin rows | the mix |
+  |---|---|---|---|
+  | `L2_mini_size` | 26.9, 23 / 27.5 / 30, 32 | 60.2, 46 / 60 / 75, 87 | 43.7, 25 / 42 / 70 |
+  | `L3_mini_size` | 28.5, 25 / 29 / 31, 32 | 60.8, 46 / 60.5 / 76.5, 87 | 43.8, 27 / 31 / 71.1 |
+  | `L3_3p_mini_size` | 27.4, 25 / 28 / 30, 30 | 57.7, 43.2 / 57 / 74, 85 | 42.4, 26 / 30 / 69 |
+
+  (The size-twin README's statement-size table counts the whole prompt, 3 tokens more.) `size.json` has the
+  10-token histograms.
+- Checks: line.sh's two preflights on the mixed files (the L2 and L3 files pass, 22 of 22 evaluation-set lines ok;
+  the L2 file with the 3-premise file fails only its band line, as the original mini does), and no mixed row shares
+  a prompt, `key` or `pkey` with the twin test sets. The pass record `preflight_pass_size.txt` is separate from
+  build_mini.py's; line.sh refuses `_ksize` without it, and both `_ksize` and `szpanel` without the four test sets.
+  A rebuild gives the same bytes.
 
 **`--len_penalty` in grpo.py** (needed for the `lp` knobs; with `--len_penalty 0` nothing changes, see the tests below).
 - An all-solved group's rewards 1 − lp·n/1000 differ by length alone. Such a group is *length-only*: it is trained,

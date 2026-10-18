@@ -89,8 +89,10 @@
 #        (training only); lpNN, lpmNN --len_penalty +NN / -NN hundredths (two digits: lp20 0.2, lpm10 -0.1; per 1,000
 #        sampled tokens of a success; grpo.py's length-only groups); g64b --prompts 64 --group 64 (the same attempts per
 #        iteration); pool250, pool500 the nested 250- / 500-row subsets of each stage's targets (and the same fraction
-#        of the 3-premise rows: the same attempts, more draws per row); size refused (a placeholder until its data is
-#        built); lossact, lossthink --loss_tokens action / think (the policy loss and its divisor on that phase's
+#        of the 3-premise rows: the same attempts, more draws per row); size the size-twin mix (2026-10-18: a fixed
+#        half of each subset's rows, by a hash of the row name, as their big-statement twins, the 3-premise extras
+#        following their parent; grpo_v2/build_size.py, its own pass record), which also reads SIZE_READS; lossact,
+#        lossthink --loss_tokens action / think (the policy loss and its divisor on that phase's
 #        tokens alone; grpo.py's mini-run knobs, guarded). The controls kl1 (--kl_anchor_coef 0.1, 0 in the reference)
 #        and g64 (64 x 64) and the advantage knobs advpos (--adv_sign pos: the positive outcome advantages alone, at
 #        --rej_penalty 0) and advneg (--adv_sign neg: the failed attempts' alone; guarded as lossact) are L3-mini forks:
@@ -106,7 +108,9 @@
 #        another knob, anything after it, KNOB_FULL=1. The training's base_commit.txt is written once: a finished
 #        line's rerun records HEAD in reads_commit.txt, one that trains again in rerun_commit.txt.
 #        grpo_think_vs_mini_tpanel: no training; MINI_PANEL of the reference's L3-mini last at each TPANEL_TS (0.7, 1.3),
-#        named as the t arms' training-T reads (_T07, _T13): their reference.
+#        named as the t arms' training-T reads (_T07, _T13): their reference. grpo_think_vs_mini_szpanel: no training;
+#        SIZE_READS (the L2 / L3 test_1k twins, l2test_sz / l3test_sz, and their matched originals, l2test_om /
+#        l3test_om, k8) of the reference's L3-mini last: the size knob's reference.
 #        ARM_ckreads (2026-10-16): no training; plain reads of a finished full GRPO L3 run that started from another
 #        arm's L2 (the knob pilots, ARM_mb, ARM_fbb, ...): CKR_PANEL (L2 and L3 test_1k k8, t1320 k4, t2130 k4,
 #        charles173 k16) of its rolling checkpoints at CKR_ITS (every 10 before its last; a missing one: the nearest
@@ -141,7 +145,8 @@ g=$1; s=$2; arm=$3
 job=$arm; ckr=""  # ARM_ckreads (l3: a full L3's checkpoints), ARM_l2_ckreads (l2), s1g3_ckreads (base): $arm, the arm read
                   # (job names in lower case: pull_queue.sh takes [a-z0-9_]+:[0-9]+ lines only)
 case $arm in s1g3_ckreads) ckr=base; arm=grpo_think_vs ;; *_l2_ckreads) ckr=l2; arm=${arm%_l2_ckreads} ;;
-  *_ckreads) ckr=l3; arm=${arm%_ckreads} ;; *_tpanel) ckr=tpanel; arm=${arm%_tpanel} ;; esac  # (tpanel: TPANEL_TS)
+  *_ckreads) ckr=l3; arm=${arm%_ckreads} ;; *_tpanel) ckr=tpanel; arm=${arm%_tpanel} ;;
+  *_szpanel) ckr=szpanel; arm=${arm%_szpanel} ;; esac  # (tpanel: TPANEL_TS; szpanel: SIZE_READS)
 knob=""; pa=$arm  # ARM_mb_kKNOB, ARM_kKNOB (EI): the suffixes below are parsed on ARM_mb / ARM ($pa); $arm names every output
 mini=""; mk=""; mfork=""; MPN=""  # ARM_mini[_kKNOB]: parsed first, then as grpo_think_vs_mb ($pa: L3-mini's recipe);
                                   # its knob $mk, a fork of the reference's L2-mini, the pool arms' subset size
@@ -152,7 +157,7 @@ case $arm in *_mini|*_mini_*) mini=1; mb=${arm%%_mini*}; mk=${arm#"${mb}"_mini}
     say "$arm: _mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64 g64b pool250 pool500 size lossact lossthink advpos advneg, with nothing after it: refusing"; exit 1 ;;
   esac
   case $mk in lp00|lpm00) say "$arm: _k$mk is no length penalty (grpo_think_vs_mini): refusing"; exit 1 ;;
-    size) say "$arm: _ksize (big-statement twins of half the mini rows) has no data yet: refusing"; exit 1 ;;
+    size) MPN=_size ;;  # the size-twin mix, grpo_v2/build_size.py's (its own pass record, MP below)
     kl1|g64|advpos|advneg) mfork=1 ;; pool250) MPN=250 ;; pool500) MPN=500 ;; esac
   [ "${KNOB_FULL:-0}" = 1 ] && { say "$arm: KNOB_FULL=1 is the knob pilots' (a mini run has one set of reads): refusing"; exit 1; }
   pa=${mb}_mb ;;
@@ -217,6 +222,8 @@ MINI_TRAIN="l2train:8 l3train:8"  # the reference's, rr's and the pool arms' tra
 MINI_PANEL="l3test:8 t1320:8 t2130:4 charles173:16"  # the T arms' reads at their T, and of each MINI_ROLL checkpoint:
 MINI_ROLL=${MINI_ROLL:-}  # env: STAGE:IT rolling checkpoints of the mini stages (--save_rolling 2) to read; none by default
 TPANEL_TS="0.7 1.3"  # grpo_think_vs_mini_tpanel: the temperatures it reads the reference at (the T arms' extremes)
+SIZE_READS="l2test_sz:8 l3test_sz:8 l2test_om:8 l3test_om:8"  # _ksize, grpo_think_vs_mini_szpanel: the L2 / L3 test_1k
+                                                             # twins and their matched originals (paired size effects)
 CKR_PANEL="l2test:8 l3test:8 t1320:4 t2130:4 charles173:16"  # ARM_ckreads: the dynamics panel of each checkpoint, and
 CKR_FINAL="l2test:8 l3test:8"  # of a full L3's last (its pilot reads hold the out-of-distribution ones)
 SMOKE=${SMOKE:-0}
@@ -238,6 +245,9 @@ case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
 if [ "$ckr" = tpanel ]; then  # the mini reference's last checkpoint, read at the T arms' temperatures
   [ "$arm" = grpo_think_vs_mini ] \
     || { say "$job: _tpanel reads the mini reference's last checkpoint (grpo_think_vs_mini_tpanel): refusing"; exit 1; }
+elif [ "$ckr" = szpanel ]; then  # the mini reference's last checkpoint, read on the size-twin test sets
+  [ "$arm" = grpo_think_vs_mini ] \
+    || { say "$job: _szpanel reads the mini reference's last checkpoint (grpo_think_vs_mini_szpanel): refusing"; exit 1; }
 elif [ "$ckr" = l3 ]; then  # a full GRPO L3 that started from another arm's L2 (ARM_b, ARM_wb, the L3 pilots, ARM_mb_kKNOB)
   { [ "$src" != "$arm" ] && [ $method = grpo ] && [ -z "$mini" ]; } \
     || { say "$job: _ckreads reads a full GRPO L3 that started from another arm's L2 (a knob pilot, ARM_mb, ARM_fbb, ...): refusing"; exit 1; }
@@ -271,14 +281,20 @@ if [ "$pil" = 3pb ] || [ "$pil" = mb ]; then  # ARM_3pb, ARM_mb: _vs3's files (b
   case $base in *_vs3) say "$arm: $base already trains on the 3-premise rows: refusing"; exit 1 ;; esac
   X2=$R/pools/curriculum_3p/L2_3p.jsonl; X3=$R/pools/curriculum_3p/L3_3p.jsonl
 fi
-MINI=$R/pools/mini; MP=$MINI/preflight_pass.txt  # ARM_mini's targets and their pass record, grpo_v2/build_mini.py's
+MINI=$R/pools/mini; MP=$MINI/preflight_pass.txt; MB=build_mini.py  # ARM_mini's targets, their pass record, its builder
+[ "$mk" = size ] && { MP=$MINI/preflight_pass_size.txt; MB=build_size.py; }  # _ksize: the size-twin mix's
 if [ -n "$mini" ]; then  # the L2 and L3 subsets; L3-mini's extra targets the 3-premise subset (L2-mini has none)
   L2=$MINI/L2_mini$MPN.jsonl; L3=$MINI/L3_mini$MPN.jsonl; X2=""; X3=$MINI/L3_3p_mini$MPN.jsonl  # (pool arms: MPN rows)
   for xf in $L2 $L3 $X3; do  # each as its pass record ('PREFLIGHT PASSED <md5> <file>') names it
-    [ -f $xf ] || { say "$arm: no mini subset $xf (grpo_v2/build_mini.py builds it): refusing"; exit 1; }
+    [ -f $xf ] || { say "$arm: no mini subset $xf (grpo_v2/$MB builds it): refusing"; exit 1; }
     grep -qx "PREFLIGHT PASSED $(md5sum < $xf | cut -c1-32) $(basename $xf)" $MP 2> /dev/null \
-      || { say "$arm: no preflight pass record of $xf as it is ($MP; grpo_v2/build_mini.py): refusing"; exit 1; }
+      || { say "$arm: no preflight pass record of $xf as it is ($MP; grpo_v2/$MB): refusing"; exit 1; }
   done
+fi
+SZ=$R/pools/size_twins  # the size-twin test sets (leon/size-twins) and their matched originals: SIZE_READS's
+SZ_SETS="$SZ/L2_test_1k_sz.jsonl $SZ/L3_test_1k_sz.jsonl $SZ/L2_test_1k_orig_matched.jsonl $SZ/L3_test_1k_orig_matched.jsonl"
+if [ "$mk" = size ] || [ "$ckr" = szpanel ]; then
+  for xf in $SZ_SETS; do [ -f $xf ] || { say "$job: no size-twin test set $xf (runs/pools/size_twins): refusing"; exit 1; }; done
 fi
 for xf in $X2 $X3; do [ -f $xf ] || { say "$arm: no 3-premise pool file $xf (runs/pools/curriculum_3p): refusing"; exit 1; }; done
 L2T=$L2; L3T=$L3  # the training targets as read (MINI_TRAIN), before SMOKE=1 takes their heads
@@ -351,6 +367,7 @@ if [ -n "$mini" ]; then  # ARM_mini: L3-mini at kl0's KL anchor (L2-mini at KLC'
     g64|g64b) if [ "$SMOKE" = 1 ]; then PROMPTS=2; GROUP=8; else PROMPTS=64; GROUP=64; fi  # the same attempts per
               KD="--prompts $PROMPTS --group $GROUP" ;;  # iteration; g64: a fork, L3-mini only; g64b: both stages
     pool250|pool500) KD="the $MPN-row subsets" ;;  # L2T / L3T (above), the same iterations and attempts
+    size) KD="the size-twin mix (a fixed half of the rows as their big-statement twins)" ;;  # L2T / L3T, as the pools
     lossact) KF="--loss_tokens action"; KD=$KF ;;  # the policy loss on the action tokens alone (its divisor too)
     lossthink) KF="--loss_tokens think"; KD=$KF ;;  # ... on the think-block tokens alone (budget 0 trains nothing)
     advpos) P=0; KF="--adv_sign pos"; KD="$KF --rej_penalty 0" ;;  # a fork: the positive outcome advantages alone,
@@ -380,7 +397,7 @@ if [ "$src" != "$arm" ]; then  # ARM_b, ARM_wb, ARM_$pil, ARM_kKNOB: $src's fini
 fi
 if [ -n "$ckr" ]; then  # ARM_ckreads: refused, with nothing written, without the checkpoint it reads last
   CK3=$C/${arm}_s${s}_L3/ckpts/${arm}_s${s}_L3_it$IT3.pt; CK2=$C/${arm}_s${s}_L2/ckpts/${arm}_s${s}_L2_it$ITERS.pt
-  case $ckr in l3|tpanel) [ -f $CK3 ] || { say "$job: no finished L3 of $arm ($CK3) to read: refusing"; exit 1; } ;; esac
+  case $ckr in l3|tpanel|szpanel) [ -f $CK3 ] || { say "$job: no finished L3 of $arm ($CK3) to read: refusing"; exit 1; } ;; esac
   [ $ckr = l2 ] && [ ! -f $CK2 ] && { say "$job: no checkpoint $CK2 to read: refusing"; exit 1; }
 fi
 mkdir -p $C $EV
@@ -495,6 +512,9 @@ rsets() {  # SET -> its files: ARM_mini's and ARM_ckreads's reads (MINI_READS, C
     t1320) echo $R/eval/matched/sets/t1320_n1000.jsonl ;; t2130) echo $R/eval/matched/sets/t2130_n1000.jsonl ;;
     charles173) echo $CH173 ;;
     l2train) echo $L2T ;; l3train) echo $L3T ;;  # a mini run's own training subsets
+    l2test_sz) echo $SZ/L2_test_1k_sz.jsonl ;; l3test_sz) echo $SZ/L3_test_1k_sz.jsonl ;;  # the test_1k twins and
+    l2test_om) echo $SZ/L2_test_1k_orig_matched.jsonl ;; l3test_om) echo $SZ/L3_test_1k_orig_matched.jsonl ;;  # the
+                                                                                     # originals of those, in order
   esac; }
 RDONE=" "  # the eval dirs reads_of has read (or tried) in this line: a read in two of its lists runs once
 reads_of() {  # NAME CKPT READS [T]: plain reads (SET:K each; SMOKE=1: k 2) of CKPT, named after NAME, at T (0.8)
@@ -513,6 +533,9 @@ if [ "$ckr" = l3 ]; then  # ARM_ckreads: no training; CKR_PANEL of $arm's L3 at 
   done
   echo "it$IT3 $(ck L3)" >> $rec; reads_of $arm $(ck L3) "$CKR_FINAL"
   say "grpo_v2 line done ($job seed $s)"; exit 0
+elif [ "$ckr" = szpanel ]; then  # grpo_think_vs_mini_szpanel: SIZE_READS of the reference's L3-mini last
+  reads_of $arm $(ck L3) "$SIZE_READS"
+  say "grpo_v2 line done ($job seed $s)"; exit 0
 elif [ "$ckr" = tpanel ]; then  # grpo_think_vs_mini_tpanel: MINI_PANEL of the reference's L3-mini last at each TPANEL_TS
   for t in $TPANEL_TS; do reads_of $arm $(ck L3) "$MINI_PANEL" $t; done  # (the T arms' names: _T07, _T13)
   say "grpo_v2 line done ($job seed $s)"; exit 0
@@ -530,6 +553,7 @@ $stage ${arm}_s${s}_L3 $L2CK $T3 $X3 || { say "${arm}_s${s}_L3 failed"; exit 1; 
 if [ -n "$mini" ]; then  # ARM_mini: MINI_READS of L3-mini's last checkpoint under $arm (never tb72); MINI_TRAIN and
   reads_of $arm $(ck L3) "$MINI_READS"  # MINI_PANEL at the training T (as above); MINI_PANEL of each MINI_ROLL one
   case $mk in ""|rr|pool250|pool500) reads_of $arm $(ck L3) "$MINI_TRAIN" ;; esac
+  [ "$mk" = size ] && reads_of $arm $(ck L3) "$SIZE_READS"  # paired size reads in distribution
   [ -n "$MT" ] && reads_of $arm $(ck L3) "$MINI_PANEL" $MT
   for c in $MINI_ROLL; do  # under ARM_STAGEitIT
     st=${c%%:*}; i=${c#*:}; cp=$C/${arm}_s${s}_$st/ckpts/${arm}_s${s}_${st}_it${i}_rolling.pt

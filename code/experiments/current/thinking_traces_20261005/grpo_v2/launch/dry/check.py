@@ -37,7 +37,8 @@ Sections
      reference's L2-mini at the same seed (init and KL reference), its L3 command but for the knob's flags; the five
      plain reads (never tb72), the training subsets' reads (the reference, rr, the pool arms), the T arms' MINI_PANEL
      at their T (_T07 ...); --ban_stop in L3-mini: the FAILED line, no reads; a fork whose reference never finishes:
-     180 waits, then FAILED. The adv forks (advpos at --rej_penalty 0) as kl1 / g64 (2026-10-18)
+     180 waits, then FAILED. The adv forks (advpos at --rej_penalty 0) as kl1 / g64 (2026-10-18); size: the
+     size-twin mix's files and SIZE_READS (2026-10-18)
   N  mini reruns: with L2-mini's last checkpoint only L3-mini and the reads run; with both stages and two reads, the
      others, HEAD in reads_commit.txt and the training's base_commit.txt kept; MINI_ROLL: MINI_PANEL of the rolling
      checkpoints named, one missing skipped; a crashed stage (2026-10-18): its dir and log aside, then a clean rerun
@@ -46,7 +47,7 @@ Sections
      rolling checkpoint (named after it; none: skipped), recorded in ARM_ckreads_sS.ckpts.txt, then CKR_FINAL of its
      last; the shared L2 (ARM_l2_ckreads) and the Stage-1 base (s1g3_ckreads): CKR_PANEL and MINI_READS, a read in
      both once; grpo_think_vs_mini_tpanel: MINI_PANEL of the reference's L3-mini last at T 0.7 and 1.3 (_T07,
-     _T13); HEAD in the job's base_commit.txt, the arm's untouched; nothing trained or preflighted; refusals in B
+     _T13); grpo_think_vs_mini_szpanel: its SIZE_READS; HEAD in the job's base_commit.txt, the arm's untouched; nothing trained or preflighted; refusals in B
   J  EI ARM_kKNOB (2026-10-16): ARM_kr2's stage ends at _r2.pt (an _r1.pt does not end it; with _r2.pt only the reads
      run, on it); a rerun of a finished pilot runs nothing, of a partly read one the missing reads; KNOB_FULL=1 on a
      finished pilot (EI, and a GRPO knob arm) runs ARM's other reads only and records HEAD in reads_commit.txt, on a
@@ -171,7 +172,7 @@ M3 = "<R>/pools/curriculum_3p/L3_mix_ei.jsonl"  # ARM_k3p's targets
 # checkpoint every 2 iterations; a knob; then plain reads in and out of distribution, never tb72
 MINI_IT = 10
 MKNOB_RX = (
-    r"rr|t07|t085|t115|t13|lpm?\d\d|kl1|g64b?|pool250|pool500|lossact|lossthink|advpos|advneg"
+    r"rr|t07|t085|t115|t13|lpm?\d\d|kl1|g64b?|pool250|pool500|lossact|lossthink|advpos|advneg|size"
 )
 MINI_RX = re.compile(r"grpo_think_vs_mini(?:_k(" + MKNOB_RX + "))?")
 MREF = "grpo_think_vs_mini"  # the reference, whose L2-mini the forks start from
@@ -192,6 +193,7 @@ MARMS = [MREF] + [
         "pool500",
         "lossact",
         "lossthink",
+        "size",
     )
 ]
 MFORK = (
@@ -255,9 +257,15 @@ def mknob(
         l2only["--targets"] = (f"{MINI}/L2_mini.jsonl", f"{MINI}/L2_mini{n}.jsonl")
         l3["--targets"] = (f"{MINI}/L3_mini.jsonl", f"{MINI}/L3_mini{n}.jsonl")
         l3["--targets_extra"] = (f"{MINI}/L3_3p_mini.jsonl", f"{MINI}/L3_3p_mini{n}.jsonl")
+    elif mk == "size" and not smoke:  # the size-twin mix (2026-10-18; SMOKE=1: its heads)
+        l2only["--targets"] = (f"{MINI}/L2_mini.jsonl", f"{MINI}/L2_mini_size.jsonl")
+        l3["--targets"] = (f"{MINI}/L3_mini.jsonl", f"{MINI}/L3_mini_size.jsonl")
+        l3["--targets_extra"] = (f"{MINI}/L3_3p_mini.jsonl", f"{MINI}/L3_3p_mini_size.jsonl")
     desc = (
         f"the {mk[4:]}-row subsets"
         if mk.startswith("pool")
+        else "the size-twin mix (a fixed half of the rows as their big-statement twins)"
+        if mk == "size"
         else " ".join(f"{f} {v}" for f, (_, v) in {**both, **l3}.items()) or "nothing changed"
     )
     return {**both, **l2only}, {**both, **l3}, desc
@@ -272,6 +280,8 @@ def mini_reads(mk: str) -> list[tuple]:
         reads += [(x, train[x], k, None) for x, k in MINI_TRAIN]
     if mk in MT:  # MINI_PANEL at the training T too
         reads += [(x, READ_SETS[x], k, MT[mk]) for x, k in MINI_PANEL]
+    if mk == "size":  # the size-twin test sets and their matched originals
+        reads += [(x, READ_SETS[x], k, None) for x, k in SIZE_READS]
     return reads
 
 
@@ -289,6 +299,10 @@ _CH = "<R>/pools/charles_1002"
 READ_SETS = {  # the reads' files, as recorded (escaped commas)
     "l2test": "<R>/pools/curriculum/L2/test_1k.jsonl",
     "l3test": "<R>/pools/curriculum/L3/test_1k.jsonl",
+    "l2test_sz": "<R>/pools/size_twins/L2_test_1k_sz.jsonl",  # the size knob's (2026-10-18)
+    "l3test_sz": "<R>/pools/size_twins/L3_test_1k_sz.jsonl",
+    "l2test_om": "<R>/pools/size_twins/L2_test_1k_orig_matched.jsonl",
+    "l3test_om": "<R>/pools/size_twins/L3_test_1k_orig_matched.jsonl",
     "t1320": "<R>/eval/matched/sets/t1320_n1000.jsonl",
     "t2130": "<R>/eval/matched/sets/t2130_n1000.jsonl",
     "charles173": f"{_CH}/candidate_v0.jsonl\\,{_CH}/candidate_v1.jsonl\\,{_CH}/batch3.jsonl",
@@ -296,6 +310,7 @@ READ_SETS = {  # the reads' files, as recorded (escaped commas)
 MINI_READS = [("l2test", 8), ("l3test", 8), ("t1320", 8), ("t2130", 8), ("charles173", 64)]
 MINI_TRAIN = [("l2train", 8), ("l3train", 8)]
 MINI_PANEL = [("l3test", 8), ("t1320", 8), ("t2130", 4), ("charles173", 16)]
+SIZE_READS = [("l2test_sz", 8), ("l3test_sz", 8), ("l2test_om", 8), ("l3test_om", 8)]
 CKR_PANEL = [("l2test", 8), ("l3test", 8), ("t1320", 4), ("t2130", 4), ("charles173", 16)]
 CKR_FINAL = [("l2test", 8), ("l3test", 8)]
 
@@ -431,7 +446,9 @@ def expect(
         arm
     )  # a mini run: L3-mini is grpo_think_vs_mb_kkl0's recipe ($pa), its knob mk in both stages
     mk = (mm.group(1) or "") if mm else ""
-    mpn = mk[4:] if mk.startswith("pool") else ""  # the pool arms' subset size
+    mpn = (
+        mk[4:] if mk.startswith("pool") else "_size" if mk == "size" else ""
+    )  # the pool / size arms' files
     if mm:
         pa = "grpo_think_vs_mb"
     pil = next((x for x in PILOT if pa.endswith(x)), "")
@@ -1554,10 +1571,6 @@ for mode in ("normal", "smoke"):
                 (f"grpo_think_vs_mini_k{k}", rf"_k{k} is no length penalty \(grpo_think_vs_mini\)")
                 for k in ("lp00", "lpm00")
             ),
-            (
-                "grpo_think_vs_mini_ksize",
-                r"_ksize \(big-statement twins of half the mini rows\) has no data yet",
-            ),
         ):
             refusals.append(
                 (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm)
@@ -1676,6 +1689,30 @@ for mode in ("normal", "smoke"):
                     a,
                 )
             )
+        # the size knob (2026-10-18): szpanel for another arm, without the size-twin test sets, without the L3-mini;
+        # _ksize without the mix's pass record, without the test sets
+        zs = re.escape(f"{SB}/pools/size_twins/L2_test_1k_sz.jsonl")
+        mz = re.escape(f"{SB}/pools/mini")
+        for a in ("grpo_think_vs_szpanel", "grpo_think_vs_mini_ksize_szpanel"):
+            refusals.append(
+                (
+                    f"{d}/{a}",
+                    1,
+                    rf"^00:00Z {a}: _szpanel reads the mini reference's last checkpoint \(grpo_think_vs_mini_szpanel\): refusing$",
+                    a,
+                )
+            )
+        for kind, job, rx in (
+            ("nosets", f"{MREF}_szpanel", rf"no size-twin test set {zs} \(runs/pools/size_twins\)"),
+            ("nol3", f"{MREF}_szpanel", rf"no finished L3 of {MREF} \({ck3}\) to read"),
+            (
+                "nopass",
+                f"{MREF}_ksize",
+                rf"no preflight pass record of {mz}/L2_mini_size\.jsonl as it is \({mz}/preflight_pass_size\.txt; grpo_v2/build_size\.py\)",
+            ),
+            ("nosets", f"{MREF}_ksize", rf"no size-twin test set {zs} \(runs/pools/size_twins\)"),
+        ):
+            refusals.append((f"{d}/{kind}_{job}", 1, rf"^00:00Z {job}: {rx}: refusing$", job))
         # the curriculum_3p files are rebuilt by someone else: refused while one is missing
         for x in ("L3", "L2"):
             for arm in ("grpo_think_vs_3pb", "grpo_think_vs3", "grpo_nothink_vs3"):
@@ -2270,6 +2307,8 @@ def expect_ckreads(
         arm, kind = "grpo_think_vs", "base"
     elif job == f"{MREF}_tpanel":  # the mini reference's last checkpoint at TPANEL_TS (2026-10-18)
         arm, kind = MREF, "tpanel"
+    elif job == f"{MREF}_szpanel":  # ... on the size-twin test sets (2026-10-18)
+        arm, kind = MREF, "szpanel"
     elif job.endswith("_l2_ckreads"):
         arm, kind = job[: -len("_l2_ckreads")], "l2"
     else:
@@ -2352,11 +2391,14 @@ def expect_ckreads(
         lines.append(f"it{last} {cp}")
         reads(cp, arm, CKR_FINAL)
         rec = "".join(ln.replace("<R>", SB) + "\n" for ln in lines)
-    elif (
-        kind == "tpanel"
-    ):  # MINI_PANEL of L3-mini's last at each temperature, named as the T arms' training-T reads
-        cp = f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{2 if smoke else MINI_IT}.pt"
-        for tp in TPANEL_TS:
+    elif kind in (
+        "tpanel",
+        "szpanel",
+    ):  # L3-mini's last: MINI_PANEL at each temperature, named as the
+        cp = f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{2 if smoke else MINI_IT}.pt"  # T arms' training-T
+        if kind == "szpanel":  # reads; or SIZE_READS
+            reads(cp, arm, SIZE_READS)
+        for tp in TPANEL_TS if kind == "tpanel" else ():
             reads(cp, arm, MINI_PANEL, tp)
     else:  # the shared L2's last checkpoint, or the Stage-1 base: CKR_PANEL and MINI_READS, a read in both once
         cp, nm = (
@@ -2378,14 +2420,15 @@ CKR_JOBS = [  # (job, its L3 rolling checkpoints as all.sh sets them up)
     ("grpo_think_vs_fbb_ckreads", []),
     ("grpo_think_vs_l2_ckreads", []),
     ("s1g3_ckreads", []),
-    (f"{MREF}_tpanel", []),  # (2026-10-18; its result dir under mini/)
+    (f"{MREF}_tpanel", []),  # (2026-10-18; their result dirs under mini/)
+    (f"{MREF}_szpanel", []),
 ]
 for mode in ("normal", "smoke"):
     smoke = mode == "smoke"
     c_ = "grpo_v2/smoke" if smoke else "grpo_v2"
     for s in (0, 1, 2):
         for job, rolling in CKR_JOBS:
-            tp = job.endswith("_tpanel")
+            tp = job.endswith(("_tpanel", "_szpanel"))
             d = f"{H}/res/{'mini' if tp else 'ckreads'}/{mode}/s{s}/{job}"
             r = load(d)
             exp, eout, rec = expect_ckreads(job, s, mode, rolling)

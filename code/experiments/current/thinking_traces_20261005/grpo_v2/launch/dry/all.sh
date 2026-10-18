@@ -68,15 +68,16 @@ EKREF=(ei_think_v_kfoo ei_think_v_k ei_think_v_kx66 ei_think_v_kp3 ei_think_v_k3
 # base arm's L2 (ARM_l2_ckreads), the Stage-1 base (s1g3_ckreads), each with a setup; refused (CKREF) for other arms,
 # KNOB_FULL=1, without the checkpoints. grpo_think_vs_mini_tpanel (2026-10-18): the finished reference (a setup);
 # refused (TPREF) for other arms, without it. A crashed stage's rerun (CRASH, 2026-10-18): its dir and log aside
-MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 g64b pool250 pool500 lossact lossthink)
+MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 g64b pool250 pool500 lossact lossthink size)
 MARMS=(grpo_think_vs_mini "${MKNOBS[@]/#/grpo_think_vs_mini_k}")
 MFORKS=(grpo_think_vs_mini_kkl1 grpo_think_vs_mini_kg64 grpo_think_vs_mini_kadvpos grpo_think_vs_mini_kadvneg)
-TPREF=(grpo_think_vs_tpanel grpo_think_vs_mini_kt07_tpanel grpo_think_vs_mb_kkl0_tpanel)
+TPREF=(grpo_think_vs_tpanel grpo_think_vs_mini_kt07_tpanel grpo_think_vs_mb_kkl0_tpanel grpo_think_vs_szpanel
+       grpo_think_vs_mini_ksize_szpanel)
 MREF=(grpo_think_mini grpo_nothink_vs_mini grpo_think_vs_h_mini grpo_think_vs_mb_mini grpo_think_vs_mb_kkl0_mini ei_think_v_mini
       grpo_think_vs_mini_kfoo grpo_think_vs_mini_k grpo_think_vs_mini_kt07_krr grpo_think_vs_mini_kt07_h grpo_think_vs_mini_h
       grpo_think_vs_mini_kx66 grpo_think_vs_mini_kkl0 grpo_think_vs_mini_mini grpo_think_vs_mini_kg64_mini grpo_think_vs_mini_ku1
       grpo_think_vs_mini_kg8 grpo_think_vs_mini_klp5 grpo_think_vs_mini_klp100 grpo_think_vs_mini_klpx1 grpo_think_vs_mini_klpm
-      grpo_think_vs_mini_klp00 grpo_think_vs_mini_klpm00 grpo_think_vs_mini_ksize grpo_think_vs_mini_kpool100
+      grpo_think_vs_mini_klp00 grpo_think_vs_mini_klpm00 grpo_think_vs_mini_kpool100
       grpo_think_vs_mini_kpool250_krr)
 CKREF=(grpo_think_vs_ckreads grpo_think_vs_mb_l2_ckreads grpo_think_vs_mb_kkl0_l2_ckreads ei_think_v_krr_ckreads
        ei_think_v_l2_ckreads grpo_think_vs_mini_ckreads grpo_think_vs_mini_kt07_ckreads grpo_think_vs_mini_l2_ckreads
@@ -133,6 +134,17 @@ minisetup() {  # NAME [nosub|nopass|stale] -> a SETUP file: the mini subsets (10
     [ "${2:-}" = stale ] && echo "echo '{\"dry\": \"another row\"}' >> \"$m/L3_mini.jsonl\""
     echo true; } > $f
   echo $f; }
+sizesetup() {  # SETUP [nopass|nosets]: append the size knob's files (2026-10-18): the size-twin mix (10 rows each) and
+  local su=$1 m='$SB/runs/pools/mini' z='$SB/runs/pools/size_twins' x  # its pass record (nopass: none), and the
+  { echo "mkdir -p \"$m\" \"$z\""                                       # size-twin test sets (nosets: none)
+    for x in L2_mini_size L3_mini_size L3_3p_mini_size; do
+      echo "for i in 1 2 3 4 5 6 7 8 9 10; do echo \"{\\\"dry\\\": \\\"$x row \$i\\\"}\"; done > \"$m/$x.jsonl\""
+    done
+    [ "${2:-}" = nopass ] \
+      || echo "for x in L2_mini_size L3_mini_size L3_3p_mini_size; do echo \"PREFLIGHT PASSED \$(md5sum < \"$m/\$x.jsonl\" | cut -c1-32) \$x.jsonl\"; done > \"$m/preflight_pass_size.txt\""
+    [ "${2:-}" = nosets ] \
+      || echo "for x in L2_test_1k_sz L3_test_1k_sz L2_test_1k_orig_matched L3_test_1k_orig_matched; do echo '{}' > \"$z/\$x.jsonl\"; done"
+  } >> $su; }
 forksetup() {  # SETUP MODE SEED GUARDLINE [nojob]: append the reference grpo_think_vs_mini's L2-mini at SEED: its last
   local su=$1 c=runs/grpo_v2 l=runs/logs it=10 a=grpo_think_vs_mini_s$3  # checkpoint, its stage log (GUARDLINE last)
   [ $2 = smoke ] && { c=runs/grpo_v2/smoke; l=$c/logs; it=2; }    # and its line's exit line (nojob: not yet)
@@ -296,7 +308,7 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   n=$((n+15))
   # the mini runs (2026-10-16), two stages from the Stage-1 init, with the subsets and their pass record
   for arm in "${MARMS[@]}"; do
-    su=$(minisetup mini_${mode}_s${seed}_$arm)
+    su=$(minisetup mini_${mode}_s${seed}_$arm); [ $arm = grpo_think_vs_mini_ksize ] && sizesetup $su
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
   done
   # the forks, L3-mini only, from the reference's finished L2-mini at the same seed
@@ -333,6 +345,25 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   for a in "${TPREF[@]}"; do
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $a "$H/res/refuse/$mode/s$seed/$a"; n=$((n+1))
   done
+  # the size knob (2026-10-18): grpo_think_vs_mini_szpanel on the finished reference (its setup, and the size files);
+  # refused without the size-twin test sets, without the L3-mini; _ksize refused without the mix's pass record, without
+  # the test sets
+  a=grpo_think_vs_mini
+  su=$(minisetup szpanel_${mode}_s$seed); sizesetup $su
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it$it.pt\"" >> $su
+  donesetup $su $mode $seed $a ${a}_s${seed}_L3_it$it.pt
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_szpanel "$H/res/mini/$mode/s$seed/grpo_think_vs_mini_szpanel" $su
+  su=$(minisetup szpanelnosets_${mode}_s$seed); sizesetup $su nosets
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it$it.pt\"" >> $su
+  donesetup $su $mode $seed $a ${a}_s${seed}_L3_it$it.pt
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_szpanel "$H/res/refuse/$mode/s$seed/nosets_grpo_think_vs_mini_szpanel" $su
+  su=$(minisetup szpanelnol3_${mode}_s$seed); sizesetup $su
+  bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_szpanel "$H/res/refuse/$mode/s$seed/nol3_grpo_think_vs_mini_szpanel" $su
+  for x in nopass nosets; do
+    su=$(minisetup ksize${x}_${mode}_s$seed); sizesetup $su $x
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_ksize "$H/res/refuse/$mode/s$seed/${x}_grpo_think_vs_mini_ksize" $su
+  done
+  n=$((n+5))
   # CRASH (2026-10-18): a stage an earlier run left without its last checkpoint (args.json, metrics.jsonl, a rolling
   # checkpoint, its log): its dir and log moved aside before it reruns. The reference's L3-mini, L2-mini finished, its
   # training record there (rerun_commit.txt, base_commit.txt kept); grpo_think_vs's L2 (base_commit.txt written, as before)
