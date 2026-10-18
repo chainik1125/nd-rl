@@ -154,3 +154,11 @@ def test_classical_lost_rejected() -> None:
     }
     att = SZ.try_sigma(row, {"P": "( ~ P )", "Q": "( Q & S )"})
     assert att["outcome"] == "gate:classical_lost", att
+
+
+def test_search_detects_a_shorter_proof() -> None:
+    # the fixture's minimum is 5 lines: certified at L = 5, a shortcut if L were 6
+    ref, gen = ROW["reference_proof"], ROW["gen_proof"]
+    assert SZ.search(ROW["prompt"], ref, gen, 5)["outcome"] == "certified"
+    s = SZ.search(ROW["prompt"], ref, gen, 6)
+    assert s["outcome"] == "shortcut" and s["found"] == 5

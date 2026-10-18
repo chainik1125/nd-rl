@@ -5,11 +5,15 @@
 runs, from the worktree root with `ND_OFFLINE=1 PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=0
 PFG_MEM_GB=1.5`, for O=/scratch/cowifornia/nd-rl/think/runs/pools/size_twins:
 
-    python -m $X.curriculum.size_twins --out $O build --set S --workers 12   # each set; L3_mini
+    python -m $X.curriculum.size_twins --out $O build --set S --workers 7    # each set; L3_mini
     python -m $X.curriculum.size_twins --out $O lean                         # before L3_3p_mini
-    python -m $X.curriculum.size_twins --out $O finish --workers 8
+    python -m $X.curriculum.size_twins --out $O finish --workers 7
     python -m $X.curriculum.size_twins --out $O check     # preflight + extra overlap checks
     python -m $X.curriculum.size_twins --out $O report
+    python -m $X.curriculum.size_twins --out $O think --set S --n 300 --workers 7   # analysis
+
+Timeouts (`SEARCH_SECS`, `NEC_SECS`) are wall-clock limits, as in `pfgates`, so the share of
+`nec_timeout` rows (and, rarely, of searched candidates that time out) depends on machine load.
 
 **What a twin is.** The knob "bigger statements, same proofs" (knob proposal A1, 2026-10-16):
 the RL pools' statements have at most 35 whitespace tokens, the sealed 13-20-line set's average
