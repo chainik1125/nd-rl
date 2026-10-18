@@ -402,16 +402,17 @@ existed; nothing from the seed-1 run has been read).
 - **Observation, not a test.** Seed 0's kg64 ban mass stayed under about 0.0008, and the merged recipe at seed 1 stayed
   near 0.001. One run cannot separate g64 from seed.
 
-**2026-10-18, 09:30Z (2:30 AM PDT): DEVIATION, the remedy-A G0 ceiling check** (decided by agent:claude, delegated by
+**2026-10-18, 09:27Z (2:27 AM PDT; commit ba275d73): DEVIATION, the remedy-A G0 ceiling check** (decided by agent:claude, delegated by
 Leon at about 09:25Z: "make decisions for me since im gonna be asleep").
 - **When it was written.** After the four mini20 references' B64 L3 test pass@1 was seen: 91.9% mean, against
   G0's ≤ 90%. Every other G0 check passed, and G1 passed (s_ref 0.042). kl1 s0 (provisionally reproduces) and g64 s0
-  (provisionally partial) had also been seen. It was written before any B0 read existed. kl1 s1's reads were being
-  written and had not been examined. g64 s1 and the kg64 s2 replicate were still training.
+  (provisionally partial) had also been seen. It was written before any B0 read existed. g64 s1 and the kg64 s2
+  replicate were still training. kl1 s1's L2 and L3 test reads were already in `mini20_table.md` (regenerated at
+  09:21Z) but had not been looked at. Its t1320 read finished at 09:27Z, the minute of the commit.
 - **What the mechanical reading gives.** NO-GO (G0). Remedy A is spent, so the mini is retired and the knobs go to
   remedy C.
 - **Why it deviates.**
-  1. Remedy C cannot pass the failing check. The full-scale L3 runs' B64 L3 test pass@1 is 94.9–96.9% (kg64, kkl0,
+  1. Remedy C cannot pass the failing check. The full-scale L3 runs' B64 L3 test pass@1 is 94.9–96.8% (kg64, kkl0,
      kkl1, krr, kt12 at s0), and even the shared L2 start is 89.3%.
   2. G0's ceiling clause names its own fix: "add B0 or a hard ID subset before knob work". There is no usable hard
      subset in test_1k. By `min_lines`, the references score about 92.5% at 13 lines, 90% at 14 and 87% at 15, and
@@ -434,3 +435,31 @@ Leon at about 09:25Z: "make decisions for me since im gonna be asleep").
     changes how thinking is used can move the two differently. Report both residuals, and flag any knob whose call
     differs between them.
 - **Status.** This is a deviation from § 3 and § 6, reported as such in every write-up of the knob wave.
+
+**2026-10-18, 09:40Z (2:40 AM PDT): the deviation, completed after an audit** (written before any B0 read or g64 s1
+read existed).
+- **The B0 check was predictable, and the amendment should have said so.**
+  - The references' L3-mini `it 20` training lines show B0 training pass of 81.0, 79.0, 77.5 and 79.6%.
+  - So B0 L3 test ≤ 90% was close to certain when the rule was written.
+  - The substitution therefore applies the clause's named fix ("add B0 … before knob work"). It is not a test the
+    mini passes. G0's ceiling check is reported as "met by the clause's fix (B0)", never as "passed".
+- **The primary ID outcome stays as it was.** P1 (§ 4.1) is still B64 L3 test pass@1. It is resolvable: s_ref 0.018
+  logit, and kl1 s0's paired shift is −0.172 [−0.279, −0.063].
+  - The deviation changes only the § 4.3 competence axis: B0 primary, with B64 as the sensitivity check.
+- **No retire branch starts anything overnight.** This covers g64 still partial at n_c 4, g64 failing, and kl1 or g64
+  reaching § 3's "remedy A" row. In each, the mini is retired as the clarification says. Remedy C is not started
+  tonight (§ 3 already allows at most one remedy round per night), and Leon decides.
+- **"Forked together" means:**
+  - § 3's two steps run in parallel: g64 forks first, kl1 forks if kl1 is partial too.
+  - If g64 is still partial at n_c 4, kl1's class at n_c 4 is reported but decides nothing.
+- **A control seed that fails** (`ban_stop`, crash or timeout; § 4.6) is replaced by the next seed whose reference
+  L2-mini exists and that this control has not used yet. If there is none, the control is assessed at the reduced
+  n_c, flagged.
+- **The kg64 s2 full-scale replicate changes neither E nor the gate,** whatever its value. It informs only the
+  write-up's note on the full-scale g64 effect.
+- **The knob wave and its B0 reads.**
+  - Wave 2 starts only once the gate decision is written in `results/gate_mini20.md`.
+  - Every wave-2 arm's final L3-mini checkpoint gets the B0 L3 test read.
+  - The references s0 and s1 get B0 and B64 L3 test reads of their trajectory checkpoints (L2 it 8, L3 it 0, 8, 16)
+    for the § 4.3 lines.
+  - `grpo_think_vs_mini20:4` (a 5th reference outside n_r) moves to the end of the wave.
