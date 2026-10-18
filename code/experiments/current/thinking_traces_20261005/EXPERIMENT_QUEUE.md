@@ -11,7 +11,25 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-16, 2:50 am PDT; on serrano)
+## Running (updated 2026-10-18, 9:15 pm PDT; on serrano)
+
+**serrano's crashes: the PSU** (`runs/vitals/CRASH_REPORT.md`, `runs/vitals/stress/`). The BMC logged `CPU_THERMTRIP`
+within ~10 s of three of our deaths (Oct 8, 11, 16), but a deliberate load test (2026-10-16) kept the CPU at 55–66 °C
+for 70 min at full CPU + 5 GPUs at 150 W and survived; raising the GPU caps killed it at 5 × 250 W (~1.5 kW total, CPU
+63 °C). A replacement PSU died within a minute at stock limits (~2.1 kW). The GPUs are now at stock limits (350/420 W),
+so jobs run on **3 GPUs at most** (~0.9 kW of GPU), with `LEAN_GATE_WORKERS=8` and CPU builders at ≤ 8 cores.
+
+**RL generalization study** (`code/experiments/current/rl_generalization_20261016/`: DESIGN_REVIEW, KNOB_PROPOSALS,
+PREREGISTRATION, `results/gate.md`). The validation gate of the mini runs (1,000 + 1,000 rows from the Stage-1 base,
+10 + 10 iterations; `leon/grpo-v2` c00f45a6) came out **NO-GO** on 2026-10-18: G0 and G1 pass (references 24.9% on
+13–20 vs the base's 8.5%; seed spread 0.017 logit), the KL 0.1 control reproduces (−3.8 points), the 64 × 64 control
+stays partial at four seeds (−0.9 points). Leon (9:10 pm): follow the pre-registration, i.e. remedy A (the validation
+wave again at 20 + 20 iterations), then the knob wave at 20 + 20, plus a full-scale 64 × 64 replicate. Checkpoint
+reads of the full-scale L3 runs (dynamics) run meanwhile on GPUs 0–2 (`jobs_ckreads_core_run.txt`, `jobs_ckreads.txt`).
+Data built for later knobs: 16–18-line pool L4 (255 rows only; `leon/long-pool`), statement-size twins
+(`leon/size-twins`, `runs/pools/size_twins/`).
+
+### 2026-10-16
 
 **Leon's decisions, about 1:40–2:45 am, 2026-10-16.**
 - GRPO is the RL method from now on; EI is retired. The primary recipe (merged recipe + KL 0) is on `leon/main`
