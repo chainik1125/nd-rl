@@ -71,6 +71,9 @@ EKREF=(ei_think_v_kfoo ei_think_v_k ei_think_v_kx66 ei_think_v_kp3 ei_think_v_k3
 MKNOBS=(rr t07 t085 t115 t13 lpm10 lp20 lp50 lp05 g64b pool250 pool500 lossact lossthink size)
 MARMS=(grpo_think_vs_mini "${MKNOBS[@]/#/grpo_think_vs_mini_k}")
 MFORKS=(grpo_think_vs_mini_kkl1 grpo_think_vs_mini_kg64 grpo_think_vs_mini_kadvpos grpo_think_vs_mini_kadvneg)
+# the mini20 variant (2026-10-18): the same arms, 20 iterations a stage; its forks from its own reference's L2-mini
+MARMS20=(grpo_think_vs_mini20 "${MKNOBS[@]/#/grpo_think_vs_mini20_k}")
+MFORKS20=("${MFORKS[@]/grpo_think_vs_mini_/grpo_think_vs_mini20_}")
 TPREF=(grpo_think_vs_tpanel grpo_think_vs_mini_kt07_tpanel grpo_think_vs_mb_kkl0_tpanel grpo_think_vs_szpanel
        grpo_think_vs_mini_ksize_szpanel)
 MREF=(grpo_think_mini grpo_nothink_vs_mini grpo_think_vs_h_mini grpo_think_vs_mb_mini grpo_think_vs_mb_kkl0_mini ei_think_v_mini
@@ -78,7 +81,7 @@ MREF=(grpo_think_mini grpo_nothink_vs_mini grpo_think_vs_h_mini grpo_think_vs_mb
       grpo_think_vs_mini_kx66 grpo_think_vs_mini_kkl0 grpo_think_vs_mini_mini grpo_think_vs_mini_kg64_mini grpo_think_vs_mini_ku1
       grpo_think_vs_mini_kg8 grpo_think_vs_mini_klp5 grpo_think_vs_mini_klp100 grpo_think_vs_mini_klpx1 grpo_think_vs_mini_klpm
       grpo_think_vs_mini_klp00 grpo_think_vs_mini_klpm00 grpo_think_vs_mini_kpool100
-      grpo_think_vs_mini_kpool250_krr)
+      grpo_think_vs_mini_kpool250_krr grpo_think_vs_mini20_kfoo grpo_think_vs_mini20_mini grpo_think_vs_mini20_kt07_krr)
 CKREF=(grpo_think_vs_ckreads grpo_think_vs_mb_l2_ckreads grpo_think_vs_mb_kkl0_l2_ckreads ei_think_v_krr_ckreads
        ei_think_v_l2_ckreads grpo_think_vs_mini_ckreads grpo_think_vs_mini_kt07_ckreads grpo_think_vs_mini_l2_ckreads
        grpo_think_vs_mb_kfoo_ckreads grpo_think_vs_c_l2_ckreads)
@@ -145,9 +148,10 @@ sizesetup() {  # SETUP [nopass|nosets]: append the size knob's files (2026-10-18
     [ "${2:-}" = nosets ] \
       || echo "for x in L2_test_1k_sz L3_test_1k_sz L2_test_1k_orig_matched L3_test_1k_orig_matched; do echo '{}' > \"$z/\$x.jsonl\"; done"
   } >> $su; }
-forksetup() {  # SETUP MODE SEED GUARDLINE [nojob]: append the reference grpo_think_vs_mini's L2-mini at SEED: its last
-  local su=$1 c=runs/grpo_v2 l=runs/logs it=10 a=grpo_think_vs_mini_s$3  # checkpoint, its stage log (GUARDLINE last)
-  [ $2 = smoke ] && { c=runs/grpo_v2/smoke; l=$c/logs; it=2; }    # and its line's exit line (nojob: not yet)
+forksetup() {  # SETUP MODE SEED GUARDLINE [nojob] [REF]: append the reference REF's (grpo_think_vs_mini) L2-mini at
+  local su=$1 c=runs/grpo_v2 l=runs/logs it=10 a=${6:-grpo_think_vs_mini}_s$3  # SEED: its last checkpoint, its stage
+  [ "${6:-}" = grpo_think_vs_mini20 ] && it=20                    # log (GUARDLINE last) and its line's exit line
+  [ $2 = smoke ] && { c=runs/grpo_v2/smoke; l=$c/logs; it=2; }    # (nojob: not yet)
   { echo "mkdir -p \"\$SB/$c/${a}_L2/ckpts\" \"\$SB/$l\" && : > \"\$SB/$c/${a}_L2/ckpts/${a}_L2_it$it.pt\""
     printf 'printf "%%s\\n" "it %s: dry" %q > "$SB/%s/v2_%s_L2.log"\n' $it "$4" "$l" "$a"
     [ "${5:-}" = nojob ] || echo "echo '00:00Z GRPO ${a}_L2 exit 0: it $it: dry' > \"\$SB/$l/v2_$a.log\""; } >> $su; }
@@ -316,6 +320,15 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
     su=$(minisetup fork_${mode}_s${seed}_$arm); forksetup $su $mode $seed "$OKLOG"
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
   done
+  # mini20 (2026-10-18): its reference and knobs (the size files for _ksize), its forks from its reference's L2-mini
+  for arm in "${MARMS20[@]}"; do
+    su=$(minisetup mini20_${mode}_s${seed}_$arm); [ $arm = grpo_think_vs_mini20_ksize ] && sizesetup $su
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
+  done
+  for arm in "${MFORKS20[@]}"; do
+    su=$(minisetup fork20_${mode}_s${seed}_$arm); forksetup $su $mode $seed "$OKLOG" "" grpo_think_vs_mini20
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $arm "$H/res/$mode/s$seed/$arm" $su; n=$((n+1))
+  done
   # their refusals: no 3-premise subset, no pass record, a stale one; KNOB_FULL=1 (with the subsets there); a fork whose
   # reference L2-mini rolled back, or never finished (no exit line: 180 waits, then FAILED)
   for x in nosub nopass stale; do
@@ -344,6 +357,14 @@ for mode in "${MODES[@]}"; do for seed in "${SEEDS[@]}"; do
   bash "$D/run.sh" "$H/line.sh.dry" $mode $seed grpo_think_vs_mini_tpanel "$H/res/refuse/$mode/s$seed/nol3_grpo_think_vs_mini_tpanel" $su
   for a in "${TPREF[@]}"; do
     bash "$D/run.sh" "$H/line.sh.dry" $mode $seed $a "$H/res/refuse/$mode/s$seed/$a"; n=$((n+1))
+  done
+  # mini20's tpanel and szpanel (2026-10-18) on its finished reference (20 iterations a stage)
+  a=grpo_think_vs_mini20; it20=20; [ $mode = smoke ] && it20=2
+  su=$(minisetup panel20_${mode}_s$seed); sizesetup $su
+  echo "mkdir -p \"\$SB/$c/${a}_s${seed}_L2/ckpts\" && : > \"\$SB/$c/${a}_s${seed}_L2/ckpts/${a}_s${seed}_L2_it$it20.pt\"" >> $su
+  donesetup $su $mode $seed $a ${a}_s${seed}_L3_it$it20.pt
+  for j in tpanel szpanel; do
+    bash "$D/run.sh" "$H/line.sh.dry" $mode $seed ${a}_$j "$H/res/mini/$mode/s$seed/${a}_$j" $su; n=$((n+1))
   done
   # the size knob (2026-10-18): grpo_think_vs_mini_szpanel on the finished reference (its setup, and the size files);
   # refused without the size-twin test sets, without the L3-mini; _ksize refused without the mix's pass record, without

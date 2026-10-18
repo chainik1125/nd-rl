@@ -107,6 +107,10 @@
 #        default: STAGE:IT, e.g. "L2:4 L3:2 L3:6") MINI_PANEL of those rolling checkpoints. Refused: another base arm,
 #        another knob, anything after it, KNOB_FULL=1. The training's base_commit.txt is written once: a finished
 #        line's rerun records HEAD in reads_commit.txt, one that trains again in rerun_commit.txt.
+#        grpo_think_vs_mini20[_kKNOB] (2026-10-18): the same but MINI20_ITERS (20) iterations a stage (--iters /
+#        --save_every 20; SCHED_W's cooldown the last 4 of L3-mini's 20; the warmup still 10 AdamW steps), 3 h a stage
+#        (watchdog 2 h); its forks from grpo_think_vs_mini20_sSEED_L2_it20.pt; the same subsets, knobs and reads, and
+#        grpo_think_vs_mini20_tpanel / _szpanel read its reference.
 #        grpo_think_vs_mini_tpanel: no training; MINI_PANEL of the reference's L3-mini last at each TPANEL_TS (0.7, 1.3),
 #        named as the t arms' training-T reads (_T07, _T13): their reference. grpo_think_vs_mini_szpanel: no training;
 #        SIZE_READS (the L2 / L3 test_1k twins, l2test_sz / l3test_sz, and their matched originals, l2test_om /
@@ -148,9 +152,10 @@ case $arm in s1g3_ckreads) ckr=base; arm=grpo_think_vs ;; *_l2_ckreads) ckr=l2; 
   *_ckreads) ckr=l3; arm=${arm%_ckreads} ;; *_tpanel) ckr=tpanel; arm=${arm%_tpanel} ;;
   *_szpanel) ckr=szpanel; arm=${arm%_szpanel} ;; esac  # (tpanel: TPANEL_TS; szpanel: SIZE_READS)
 knob=""; pa=$arm  # ARM_mb_kKNOB, ARM_kKNOB (EI): the suffixes below are parsed on ARM_mb / ARM ($pa); $arm names every output
-mini=""; mk=""; mfork=""; MPN=""  # ARM_mini[_kKNOB]: parsed first, then as grpo_think_vs_mb ($pa: L3-mini's recipe);
-                                  # its knob $mk, a fork of the reference's L2-mini, the pool arms' subset size
-case $arm in *_mini|*_mini_*) mini=1; mb=${arm%%_mini*}; mk=${arm#"${mb}"_mini}
+mini=""; mk=""; mfork=""; MPN=""; MV=""  # ARM_mini[20][_kKNOB]: parsed first, then as grpo_think_vs_mb ($pa: L3-mini's
+  # recipe); its knob $mk, a fork of the reference's L2-mini, the pool arms' subset size, the variant (MV=20: mini20)
+case $arm in *_mini|*_mini_*|*_mini20|*_mini20_*) mini=1; mb=${arm%%_mini*}; mk=${arm#"${mb}"_mini}
+  case $mk in 20|20_*) MV=20; mk=${mk#20} ;; esac  # grpo_think_vs_mini20[_kKNOB] (2026-10-18): 20 iterations a stage
   [ "$mb" = grpo_think_vs ] || { say "$arm: _mini runs the primary recipe, grpo_think_vs's: refusing"; exit 1; }
   case $mk in ""|_krr|_kt07|_kt085|_kt115|_kt13|_klp[0-9][0-9]|_klpm[0-9][0-9]|_kkl1|_kg64|_kg64b|_kpool250|_kpool500|_ksize|_klossact|_klossthink|_kadvpos|_kadvneg)
     mk=${mk#_k} ;; *)
@@ -206,7 +211,7 @@ case $sch in c) S2=$SCHED_C; S3=$SCHED_C; src=$arm ;; w) S3=$SCHED_W; src=$arm ;
 # (ARM_wb keeps src=$base: L3 only, from $base's L2, as ARM_b)
 [ "$pil" = mb ] && S3=$SCHED_W  # ARM_mb: _wb's L3 cooldown
 [ -n "$mini" ] && src=$arm  # ARM_mini: both stages (L2-mini without schedule flags, as grpo_think_vs's L2) ...
-[ -n "$mfork" ] && src=${mb}_mini  # ... but a fork: L3-mini only, from the reference's L2-mini
+[ -n "$mfork" ] && src=${mb}_mini$MV  # ... but a fork: L3-mini only, from the reference's L2-mini (mini20: its own)
 # L3 pilots (grpo.py's pilot options): set here only. ARM_rfb: refill up to 2 extra rounds, pass-rate filter 0.9;
 # ARM_ulb: the unlikeliness reward at the paper's beta. ARM_3pb has no flags of its own (its extra targets below).
 PILOT_RFB="--refill --refill_max 2 --max_pass 0.9"
@@ -217,6 +222,7 @@ FB_MAXREJ=2  # ... at most this many retries per step, in L3 and in the feedback
 P3=""; case $pil in rfb) P3=$PILOT_RFB ;; ulb|mb) P3=$PILOT_ULB ;; pb) P3=$PILOT_PB ;; fbb) P3=$PILOT_FBB ;; esac  # stage L3's pilot flags
 AVG_ITS="25 30 35"  # ARM_mb: the L3 rolling checkpoints averaged with the last one (pilot4.sh's)
 MINI_ITERS=10  # ARM_mini: each stage's iterations (the recipe's 39)
+MINI20_ITERS=20  # ARM_mini20 (2026-10-18): each stage's; SCHED_W's --decay_frac 0.2 then cools the last 4 of 20
 MINI_READS="l2test:8 l3test:8 t1320:8 t2130:8 charles173:64"  # ARM_mini: the plain reads (SET:K, rsets) of L3-mini's last;
 MINI_TRAIN="l2train:8 l3train:8"  # the reference's, rr's and the pool arms' training subsets (memorisation vs held out);
 MINI_PANEL="l3test:8 t1320:8 t2130:4 charles173:16"  # the T arms' reads at their T, and of each MINI_ROLL checkpoint:
@@ -242,11 +248,11 @@ case $base in grpo_*) method=grpo ;; *) method=ei ;; esac
 [ $method = ei ] && [ -n "$sch" ] && { say "$arm: _$sch schedules the GRPO lr, and EI's fine-tune has its own (run $base): refusing"; exit 1; }
 [ $method = ei ] && [ "$src" != "$arm" ] && [ -z "$knob" ] && { say "$arm: _b reruns a GRPO L3 stage, and $src is EI: refusing"; exit 1; }
 [ $method = ei ] && [ "$base" != "$src" ] && { say "$arm: _h halves the GRPO lr, which EI does not use (run $base): refusing"; exit 1; }
-if [ "$ckr" = tpanel ]; then  # the mini reference's last checkpoint, read at the T arms' temperatures
-  [ "$arm" = grpo_think_vs_mini ] \
+if [ "$ckr" = tpanel ]; then  # the mini reference's last checkpoint (mini or mini20), read at the T arms' temperatures
+  { [ "$arm" = grpo_think_vs_mini ] || [ "$arm" = grpo_think_vs_mini20 ]; } \
     || { say "$job: _tpanel reads the mini reference's last checkpoint (grpo_think_vs_mini_tpanel): refusing"; exit 1; }
-elif [ "$ckr" = szpanel ]; then  # the mini reference's last checkpoint, read on the size-twin test sets
-  [ "$arm" = grpo_think_vs_mini ] \
+elif [ "$ckr" = szpanel ]; then  # the mini reference's last checkpoint (mini or mini20), read on the size-twin test sets
+  { [ "$arm" = grpo_think_vs_mini ] || [ "$arm" = grpo_think_vs_mini20 ]; } \
     || { say "$job: _szpanel reads the mini reference's last checkpoint (grpo_think_vs_mini_szpanel): refusing"; exit 1; }
 elif [ "$ckr" = l3 ]; then  # a full GRPO L3 that started from another arm's L2 (ARM_b, ARM_wb, the L3 pilots, ARM_mb_kKNOB)
   { [ "$src" != "$arm" ] && [ $method = grpo ] && [ -z "$mini" ]; } \
@@ -307,6 +313,7 @@ fi
 if [ $kind = think ]; then EFF="--effort --budgets 0,64,256"; RB=64; else EFF="--budgets 0"; RB=0; fi
 ITERS=39; PROMPTS=256; GROUP=16; K=32; BATCH=1024; FT=""; CAN="--canary_n 1000"; KLN=""; LIM=""; KS=(16 64 64 64 8)
 [ -n "$mini" ] && ITERS=$MINI_ITERS  # ARM_mini: both stages
+[ "$MV" = 20 ] && ITERS=$MINI20_ITERS  # ARM_mini20: both stages
 DEV=$g; MAXSTEPS_H14=160
 RET=""  # EI --retain (Stage-1 records in each fine-tune; empty: ei.py's 20,000)
 FS=""  # EI --ft_steps (each round's fine-tune; empty: ei.py's 600)
@@ -355,6 +362,7 @@ esac
 ROLL=""  # --save_rolling (grpo.py's 5 when empty)
 if [ -n "$mini" ]; then  # ARM_mini: L3-mini at kl0's KL anchor (L2-mini at KLC's, as grpo_think_vs's L2); 2 h a stage;
   KL3=0; TO2=7200; WH2=1; TO3=7200; WH3=1; ROLL=2  # a rolling checkpoint every 2 iterations (MINI_ROLL's)
+  [ "$MV" = 20 ] && { TO2=10800; WH2=2; TO3=10800; WH3=2; }  # ARM_mini20: 3 h a stage, watchdog 2 h
   case $mk in  # ARM_mini_kKNOB, both stages unless said
     rr) KD="nothing changed" ;;  # the reference's two stages again: the noise control
     t07) KF="--temperature 0.7"; KD=$KF ;;  # training only (grpo.py's default 1.0; the reads stay at 0.8)

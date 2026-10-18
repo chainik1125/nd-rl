@@ -353,6 +353,18 @@ Paths are serrano's. Changes, all of them:
     - Smoke: `SMOKE=1`, CPU, `SMOKE_WT` the dev worktree, 4 threads: `_ksize` at seed 0 (both stages on the mix's heads,
       five of the first eight L2 rows twins; `MINI_READS` and the four size reads), the reference at seed 2, then
       `szpanel` (four reads) and its rerun (nothing left to read).
+17. `leon/grpo-v2-dev` (2026-10-18): the mini20 variant, launcher only. `grpo_think_vs_mini20[_kKNOB]` parses as a mini
+    arm with `MV=20`: `ITERS=$MINI20_ITERS` (20), `TO2` / `TO3` 10800 and `WH2` / `WH3` 2; a fork's `src` is
+    `grpo_think_vs_mini20`, so it waits for and starts from that reference's `_L2_it20`; `_tpanel` / `_szpanel`
+    accept `grpo_think_vs_mini20` too. Nothing else in the mini path changes.
+    - Dry run (`dry/`: every mini arm and fork again as mini20 at seeds 0-2, both modes, its tpanel and szpanel,
+      three refused names): all 46,799 checks pass over 2,632 result dirs, and every result dir of 765161f9's
+      (1,940) and 0a7d2cc4's (2,482) is unchanged. The mini20 reference against the mini reference: in both stages
+      `--iters` and `--save_every` 10 -> 20 and the timeout 7200 -> 10800 (watchdog 1 -> 2 h); in L3-mini `--init` and
+      `--kl_anchor_ref` its own L2-mini's `_it20`; the names.
+    - Smoke: `SMOKE=1` (2-iteration stages whatever the variant), CPU, `SMOKE_WT` the dev worktree, 4 threads: the mini20
+      reference at seed 2 (seven reads), its `kl1` fork (L3-mini from `grpo_think_vs_mini20_s2_L2_it2.pt`, also
+      the KL reference, at 0.1), its `tpanel` (eight reads) and `szpanel` (four), and `ksize` at seed 0 (nine).
 
 Checked and left alone:
 

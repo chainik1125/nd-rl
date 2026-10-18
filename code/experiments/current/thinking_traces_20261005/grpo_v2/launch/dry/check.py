@@ -38,7 +38,9 @@ Sections
      plain reads (never tb72), the training subsets' reads (the reference, rr, the pool arms), the T arms' MINI_PANEL
      at their T (_T07 ...); --ban_stop in L3-mini: the FAILED line, no reads; a fork whose reference never finishes:
      180 waits, then FAILED. The adv forks (advpos at --rej_penalty 0) as kl1 / g64 (2026-10-18); size: the
-     size-twin mix's files and SIZE_READS (2026-10-18)
+     size-twin mix's files and SIZE_READS (2026-10-18). mini20 (2026-10-18): every mini arm and fork again at 20
+     iterations a stage; its reference against the mini reference (--iters / --save_every 20, the 3 h timeout, its
+     L2-mini's _it20 as L3-mini's init), each knob against its own reference
   N  mini reruns: with L2-mini's last checkpoint only L3-mini and the reads run; with both stages and two reads, the
      others, HEAD in reads_commit.txt and the training's base_commit.txt kept; MINI_ROLL: MINI_PANEL of the rolling
      checkpoints named, one missing skipped; a crashed stage (2026-10-18): its dir and log aside, then a clean rerun
@@ -174,8 +176,25 @@ MINI_IT = 10
 MKNOB_RX = (
     r"rr|t07|t085|t115|t13|lpm?\d\d|kl1|g64b?|pool250|pool500|lossact|lossthink|advpos|advneg|size"
 )
-MINI_RX = re.compile(r"grpo_think_vs_mini(?:_k(" + MKNOB_RX + "))?")
+MINI_RX = re.compile(
+    r"grpo_think_vs_mini(?P<v>20)?(?:_k(?P<k>" + MKNOB_RX + "))?"
+)  # v: mini20 (2026-10-18)
 MREF = "grpo_think_vs_mini"  # the reference, whose L2-mini the forks start from
+MREF20 = "grpo_think_vs_mini20"  # the mini20 variant's: 20 iterations a stage (MINI_IT20), 3 h, watchdog 2 h
+MINI_IT20 = 20
+
+
+def mref_of(arm: str) -> str:
+    """A mini arm's reference (its variant's)."""
+    mm = MINI_RX.fullmatch(arm)
+    return MREF20 if mm and mm.group("v") else MREF
+
+
+def mit_of(arm: str) -> int:
+    """A mini arm's iterations a stage (its variant's)."""
+    return MINI_IT20 if mref_of(arm) == MREF20 else MINI_IT
+
+
 MARMS = [MREF] + [
     f"grpo_think_vs_mini_k{k}"
     for k in (
@@ -203,6 +222,8 @@ MFORK = (
     "advneg",
 )  # L3-mini only, from the reference's L2-mini at the same seed
 MFORKS = [f"grpo_think_vs_mini_k{k}" for k in MFORK]
+MARMS20 = [a.replace(MREF, MREF20, 1) for a in MARMS]  # the mini20 variant's (2026-10-18)
+MFORKS20 = [a.replace(MREF, MREF20, 1) for a in MFORKS]
 MLOSS = {  # grpo.py's mini-run knobs: (flag, value); the loss knobs both stages, the adv knobs forks (L3-mini)
     "lossact": ("--loss_tokens", "action"),
     "lossthink": ("--loss_tokens", "think"),
@@ -290,7 +311,7 @@ def mini_read_dirs(arm: str, s: int, smoke: bool) -> list[str]:
     assert mm
     return [
         f"{x}_{arm}_s{s}_plain_k{2 if smoke else k}" + (f"_T{t.replace('.', '')}" if t else "")
-        for x, _, k, t in mini_reads(mm.group(1) or "")
+        for x, _, k, t in mini_reads(mm.group("k") or "")
     ]
 
 
@@ -445,7 +466,8 @@ def expect(
     mm = MINI_RX.fullmatch(
         arm
     )  # a mini run: L3-mini is grpo_think_vs_mb_kkl0's recipe ($pa), its knob mk in both stages
-    mk = (mm.group(1) or "") if mm else ""
+    mk = (mm.group("k") or "") if mm else ""
+    m20 = bool(mm and mm.group("v"))  # the mini20 variant
     mpn = (
         mk[4:] if mk.startswith("pool") else "_size" if mk == "size" else ""
     )  # the pool / size arms' files
@@ -459,7 +481,7 @@ def expect(
     sched = {"": ("", ""), "_c": (SCHED_C, SCHED_C), "_w": ("", SCHED_W), "_wb": ("", SCHED_W)}[sch]
     l2src = base if sch == "_wb" or pil else (arm if sch else src)  # whose L2 the L3 starts from
     if mm:  # both stages, from the Stage-1 init; a fork: L3-mini only, from the reference's L2-mini
-        l2src = MREF if mk in MFORK else arm
+        l2src = mref_of(arm) if mk in MFORK else arm
     pflags = PILOT.get(pil, "")  # stage L3's pilot flags
     if pil == "_mb":
         sched = ("", SCHED_W)  # _wb's L3 cooldown
@@ -475,7 +497,7 @@ def expect(
     kd = {**KNOB_DIFF.get(knob, {}), **(KNOB_SMOKE.get(knob, {}) if smoke else {})}
     kd2 = kd  # stage L2's (a knob arm has no L2 of its own: unused)
     if mm:  # MINI_IT iterations a stage (SMOKE=1: 2, as every stage); the mini knob's flags in each stage
-        it = it if smoke else MINI_IT
+        it = it if smoke else mit_of(arm)
         kd2, kd, _ = mknob(mk, smoke)
 
     def kv(
@@ -643,7 +665,7 @@ def expect(
             )
             assert len(kf.split()) == 2 * len(new), "a new knob flag without a place in the command"
             a = (
-                f"{7200 if mm else 43200 if n_it == 2 * it else 21600} <PY> -m code.thinking.grpo --init {init} --name {name} "
+                f"{10800 if m20 else 7200 if mm else 43200 if n_it == 2 * it else 21600} <PY> -m code.thinking.grpo --init {init} --name {name} "
                 f"--out {C}/{name} --targets {targets} "
                 f"--iters {n_it} --prompts {kvs('--prompts', '4' if smoke else '256')} "
                 f"--group {kvs('--group', '4' if smoke else '16')} --batch {batch} --lr {lr} "
@@ -686,7 +708,7 @@ def expect(
             out.append(f"00:00Z GRPO {name} exit 0: it {n_it}: dry")
             if mm:  # its alarms (none: the stub's log has none) and rollbacks
                 out.append(f"00:00Z GRPO {name} rollbacks: no guard line")
-            wh = "1" if mm else "7" if n_it == 2 * it else "3.5"
+            wh = "2" if m20 else "1" if mm else "7" if n_it == 2 * it else "3.5"
         else:
             # EI ARM_kKNOB: stage L3's knob flags
             ed = eknob_diff(knob, smoke) if knob and l3 else {}
@@ -1565,6 +1587,9 @@ for mode in ("normal", "smoke"):
                     "grpo_think_vs_mini_klpm",
                     "grpo_think_vs_mini_kpool100",
                     "grpo_think_vs_mini_kpool250_krr",
+                    "grpo_think_vs_mini20_kfoo",
+                    "grpo_think_vs_mini20_mini",
+                    "grpo_think_vs_mini20_kt07_krr",
                 )
             ),
             *(
@@ -1985,8 +2010,8 @@ def check_mini_run(r: dict, arm: str, s: int, mode: str, sect: str, **kw: object
     fork, each KL anchor at its init)."""
     smoke = mode == "smoke"
     c_ = "<R>/grpo_v2" + ("/smoke" if smoke else "")
-    it = 2 if smoke else MINI_IT
-    fork = arm in MFORKS
+    it = 2 if smoke else mit_of(arm)
+    fork = arm in MFORKS + MFORKS20
     tag = f"{mode} s{s} {arm}" + (f" {kw}" if kw else "")
     exp, eout = expect(arm, s, mode, 3, **kw)  # type: ignore[arg-type]
     got = [key(x) for x in r["rec"]]
@@ -2038,7 +2063,7 @@ def check_mini_run(r: dict, arm: str, s: int, mode: str, sect: str, **kw: object
         )
     if f"{arm}_s{s}_L3" in names:
         f3 = mini_flags(r, f"{arm}_s{s}_L3")
-        a2 = MREF if fork else arm
+        a2 = mref_of(arm) if fork else arm
         l2last = f"{c_}/{a2}_s{s}_L2/ckpts/{a2}_s{s}_L2_it{it}.pt"
         ok(f3["--init"] == l2last == f3["--kl_anchor_ref"], sect, f"{tag}: L3 init {f3['--init']}")
 
@@ -2057,7 +2082,7 @@ for mode in ("normal", "smoke"):
     it = 2 if smoke else MINI_IT
     for s in (0, 1, 2, 3):
         for arm in (
-            MARMS + MFORKS if s < 3 else MARMS[:1]
+            MARMS + MFORKS + MARMS20 + MFORKS20 if s < 3 else MARMS[:1]
         ):  # seed 3: the reference alone (its init is S1g3_s0's)
             r = runs[(mode, s, arm)] = load(f"{H}/res/{mode}/s{s}/{arm}")
             check_mini_run(r, arm, s, mode, "M")
@@ -2105,9 +2130,33 @@ for mode in ("normal", "smoke"):
                 "M",
                 f"{mode} s{s} {ref} {st}: vs {full}'s: {fdiff(ff, fm)}, want {mwant}",
             )
+        # mini20 (2026-10-18): its reference's commands are the mini reference's but for --iters / --save_every 20,
+        # the 3 h timeout and L3-mini's init (its own L2-mini's _it20); the names its own
+        r20 = runs[(mode, s, MREF20)]
+        for st in ("L2", "L3"):
+            fm = mini_flags(r, f"{MREF}_s{s}_{st}")
+            fm = {
+                k_: (v.replace(f"{MREF}_s{s}_", f"{MREF20}_s{s}_") if v else v)
+                for k_, v in fm.items()
+            }
+            f20 = mini_flags(r20, f"{MREF20}_s{s}_{st}")
+            mwant = {"timeout": ("7200", "10800")}
+            if not smoke:
+                mwant |= {"--iters": ("10", "20"), "--save_every": ("10", "20")}
+                if st == "L3":
+                    l2a = f"{c_}/{MREF20}_s{s}_L2/ckpts/{MREF20}_s{s}_L2_it"
+                    mwant["--init"] = mwant["--kl_anchor_ref"] = (f"{l2a}10.pt", f"{l2a}20.pt")
+            ok(
+                fdiff(fm, f20) == mwant,
+                "M",
+                f"{mode} s{s} {MREF20} {st}: vs {MREF}'s: {fdiff(fm, f20)}, want {mwant}",
+            )
         # each knob's commands: the reference's but for its flags; a fork's L3-mini: the reference's L3-mini (the same
-        # init and KL reference) but for its flags
-        for arm in MARMS[1:] + MFORKS:
+        # init and KL reference) but for its flags (mini and mini20 each against its own reference)
+        for arm, ref in [(a, MREF) for a in MARMS[1:] + MFORKS] + [
+            (a, MREF20) for a in MARMS20[1:] + MFORKS20
+        ]:
+            r = runs[(mode, s, ref)]
             mk = arm.rsplit("_k", 1)[1]
             l2k, l3k, _ = mknob(mk, smoke)
             fork = mk in MFORK
@@ -2305,10 +2354,16 @@ def expect_ckreads(
     cvd, st = ("CVD=[]" if smoke else "CVD=[3]"), "<stdout>"
     if job == "s1g3_ckreads":
         arm, kind = "grpo_think_vs", "base"
-    elif job == f"{MREF}_tpanel":  # the mini reference's last checkpoint at TPANEL_TS (2026-10-18)
-        arm, kind = MREF, "tpanel"
-    elif job == f"{MREF}_szpanel":  # ... on the size-twin test sets (2026-10-18)
-        arm, kind = MREF, "szpanel"
+    elif job in (
+        f"{MREF}_tpanel",
+        f"{MREF20}_tpanel",
+    ):  # a mini reference's last at TPANEL_TS (2026-10-18)
+        arm, kind = job[: -len("_tpanel")], "tpanel"
+    elif job in (
+        f"{MREF}_szpanel",
+        f"{MREF20}_szpanel",
+    ):  # ... on the size-twin test sets (2026-10-18)
+        arm, kind = job[: -len("_szpanel")], "szpanel"
     elif job.endswith("_l2_ckreads"):
         arm, kind = job[: -len("_l2_ckreads")], "l2"
     else:
@@ -2395,7 +2450,7 @@ def expect_ckreads(
         "tpanel",
         "szpanel",
     ):  # L3-mini's last: MINI_PANEL at each temperature, named as the
-        cp = f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{2 if smoke else MINI_IT}.pt"  # T arms' training-T
+        cp = f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{2 if smoke else mit_of(arm)}.pt"  # T arms' training-T
         if kind == "szpanel":  # reads; or SIZE_READS
             reads(cp, arm, SIZE_READS)
         for tp in TPANEL_TS if kind == "tpanel" else ():
@@ -2422,6 +2477,8 @@ CKR_JOBS = [  # (job, its L3 rolling checkpoints as all.sh sets them up)
     ("s1g3_ckreads", []),
     (f"{MREF}_tpanel", []),  # (2026-10-18; their result dirs under mini/)
     (f"{MREF}_szpanel", []),
+    (f"{MREF20}_tpanel", []),  # mini20's (2026-10-18)
+    (f"{MREF20}_szpanel", []),
 ]
 for mode in ("normal", "smoke"):
     smoke = mode == "smoke"
@@ -2450,7 +2507,7 @@ for mode in ("normal", "smoke"):
                 ln.split("  ", 1)[::-1] for ln in Path(f"{d}/md5.txt").read_text().split("\n") if ln
             )
             jr = f"./runs/{c_}/{job}_s{s}.base_commit.txt"
-            arm = MREF if tp else job[: -len("_ckreads")]
+            arm = job.rsplit("_", 1)[0] if tp else job[: -len("_ckreads")]
             ab = f"./runs/{c_}/{arm}_s{s}.base_commit.txt"
             ok(
                 jr in md5

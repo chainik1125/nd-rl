@@ -662,6 +662,18 @@ L3-mini's last checkpoint (`MINI_READS`):
   it reruns, and the line says so (grpo.py would otherwise append to the old `metrics.jsonl`). Every GRPO arm, not
   only the mini ones.
 
+**mini20** (`grpo_think_vs_mini20[_kKNOB]`, 2026-10-18: remedy A after the validation gate's NO-GO). The mini runs
+with 20 iterations a stage instead of 10, nothing else changed:
+- `--iters 20 --save_every 20` in both stages (`MINI20_ITERS`). SCHED_W's `--decay_frac 0.2` then cools the last 4 of
+  L3-mini's 20 iterations. The warmup stays at 10 AdamW steps (2.5 iterations).
+- Each stage's timeout is 3 h (10800 s) and its watchdog expectation 2 h.
+- The forks (`kl1`, `g64`, `advpos`, `advneg`) start from `grpo_think_vs_mini20_sSEED_L2_it20.pt`, with the same wait
+  and guard on the mini20 reference's L2-mini.
+- The same subsets, knobs and reads. `grpo_think_vs_mini20_tpanel` and `grpo_think_vs_mini20_szpanel` read the mini20
+  reference.
+- The dry run checks the commands: the mini20 reference's are the mini reference's but for `--iters` / `--save_every`
+  (10 to 20), the timeout (7200 to 10800 s), L3-mini's init and KL reference (its own L2-mini's `_it20`) and the names.
+
 **The size knob** (`_ksize`, 2026-10-18; `grpo_v2/build_size.py`, into `runs/pools/mini/`). The twins are in
 `runs/pools/size_twins/` (branch `leon/size-twins`, its README): the same problem under one uniform substitution, a
 bigger statement and the same proof, `min_lines` re-certified.
