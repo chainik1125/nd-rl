@@ -337,3 +337,42 @@ input; before any control read or any knob run was examined.
 - **Expected precision.** The panel's slope at k4, for a single run and checkpoint, will be noisier than the
   full-scale k16/k8 estimates. The KL-0 slope analysis therefore pools seeds and checkpoints with a hierarchical
   bootstrap (seed, then problem). No per-checkpoint slope call is made.
+
+**2026-10-18, about 04:45Z, after the gate's NO-GO** (`results/gate.md`, 03:47Z). Written before any mini20 or g64
+replicate result existed.
+
+- **The gate's outcome, for the record.**
+  - G0 and G1 pass; kl1 reproduces.
+  - g64 was still partial after its seeds 2 and 3: Δ −0.053 logit, against ½E −0.1275.
+  - § 3's decision is therefore **remedy A**, which Leon chose to run as pre-registered.
+- **Remedy A, as run.** The arm is `grpo_think_vs_mini20` (`leon/grpo-v2` 79105ffe, `line.sh` c338f00f).
+  - Both stages run at `--iters 20 --save_every 20`; nothing else in the reference commands changes. The data are the
+    same subsets, and the init is the same S1g3_s0.
+  - `--decay_frac 0.2` puts the L3 cooldown on the last 4 of the 20 iterations. The 10-step warmup is unchanged.
+  - Stage timeout 3 h, watchdog 2 h.
+  - The runs are 4 fresh references (seeds 0–3), plus kl1 and g64 as L3 forks of each reference's `_L2_it20` at seeds
+    0 and 1.
+  - The base read (`s1g3`) is reused, since it is the same checkpoint.
+- **Remedy-A gate.** § 3 applies unchanged: the same E (kl1 −0.19, g64 −0.255 logit), the same ½E, secondaries, G0
+  thresholds, G1 limit and decision table.
+  - **The gate analysis uses mini20 runs only.** Nothing is pooled with the 10+10 runs, references or controls.
+  - **Seeds 2 and 3 are queued automatically** for any control that is partial after seeds 0 and 1, as § 3 requires.
+  - If the remedy-A gate ends NO-GO, the mini is retired as the knob testbed, and knobs go to remedy C budget
+    permitting.
+  - If the remedy-A gate passes, the knob wave runs at 20+20: the gate counts only for the configuration it ran on.
+    The fork knobs (`advpos`, `advneg`) fork from the mini20 `_L2_it20`.
+- **Wave-2 seeds at 20+20.** Recompute s_ref (13–20 pass@1, logit) from the 4 mini20 references before wave 2.
+  - The § 6 (2026-10-18) single-seed screening applies only if s_ref ≤ about 0.05 logit.
+  - Otherwise each wave-2 knob is screened at 2 seeds.
+  - The confirmation rule is unchanged: 2 fresh seeds, and claims rest on the confirmation seeds alone.
+- **The full-scale g64 replicate** (`grpo_think_vs_mb_kg64:1`: the merged recipe's L3 at KL 0.02 with 64 × 64, from
+  `grpo_think_vs_s1_L2_it39.pt`).
+  - **Statistic.** Δ = `kg64` s1 − `mb` s1 on 13–20 pass@1, the logit of the set mean, from the knob-pilot plain reads.
+  - **It replicates the full-scale g64 effect** if Δ ≤ −0.1275 (½ of −0.255) and its 95% problem-bootstrap interval
+    excludes 0.
+  - **It does not replicate** if Δ > −0.1275.
+  - Between the two, the outcome is reported as is, with no call.
+  - Report it next to seed 0's −0.255. It is a single replicate. Full-scale rerun noise is about 0.05 logit (krr), so
+    its resolution is about ±0.1.
+  - This replicate does not change the gate. It bears only on whether the full-scale g64 effect is a reliable
+    reference (the write-up note).
