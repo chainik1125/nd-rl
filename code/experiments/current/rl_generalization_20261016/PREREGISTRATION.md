@@ -463,3 +463,17 @@ read existed).
   - The references s0 and s1 get B0 and B64 L3 test reads of their trajectory checkpoints (L2 it 8, L3 it 0, 8, 16)
     for the § 4.3 lines.
   - `grpo_think_vs_mini20:4` (a 5th reference outside n_r) moves to the end of the wave.
+
+**2026-10-18, 10:10Z (3:10 AM PDT): errata to the two deviation amendments, after a second audit** (written after the
+B0 reads were seen; no rule changes).
+- **Timestamp.** The completion amendment's header says 09:40Z. It was committed at 09:36:23Z (963d90b3), and the
+  deviation itself at 09:27:42Z (ba275d73).
+- **Reason 1 holds only at B64.** At B0, full-scale `grpo_think_vs_mb` s0 and `grpo_think_vs_mb_kkl0` s0 both read
+  88.7% L3 test pass@1, under 90%. So remedy C could also meet the clause's fix.
+  - Keeping the mini rather than going to remedy C therefore rests on reasons 2 and 3.
+  - It also rests on cost and on the measured noise: a mini20 run is 1.2–1.9 GPU-h against about 2.5 h, and the
+    mini20 s_ref is 0.042.
+  - The references' B0 mean was 76.3% (75.9, 77.4, 75.3, 76.7). The base S1g3_s0 reads 11.5% at B0.
+- **The size twins (`ksize`) run in wave 2,** although the "Extremes only" list above does not name them. They are a
+  single-level knob (twins against matched originals), are in § 3's restricted GO and in § 4.7, and were approved by
+  Leon on 2026-10-16.
