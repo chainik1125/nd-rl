@@ -464,7 +464,7 @@ read existed).
     for the § 4.3 lines.
   - `grpo_think_vs_mini20:4` (a 5th reference outside n_r) moves to the end of the wave.
 
-**2026-10-18, 10:10Z (3:10 AM PDT): errata to the two deviation amendments, after a second audit** (written after the
+**2026-10-18, 10:07Z (3:07 AM PDT; efdc89a8): errata to the two deviation amendments, after a second audit** (written after the
 B0 reads were seen; no rule changes).
 - **Timestamp.** The completion amendment's header says 09:40Z. It was committed at 09:36:23Z (963d90b3), and the
   deviation itself at 09:27:42Z (ba275d73).
