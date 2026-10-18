@@ -80,7 +80,11 @@ Observed results below use the reviewer's wording where it differs from the exec
 - **C0 T1 vs Robbie's `lean-naive-ei`** (statement (ii)): 15, 13 vs 8, 6, 10 on textbook72, and 104, 102 vs 45, 42, 37
   on holdout250. It **holds**. Robbie's cells are Lean gate ∧ `nd_verify`, and on textbook72 they were RL-trained on
   14 of the 72 theorems. Both differences favour his cells, so the direction stands a fortiori. His model size is not
-  recorded.
+  recorded. *[peer-rl-review, 2026-10-17]* A later review finds this RL-training claim looks wrong: Robbie's
+  `factorial_20260929/passk.py` (L5–7) calls textbook72 "never trained on", `split` names only the source file (train14
+  is `textbook_train.jsonl`), and the RL pools of his `leon_rl.py` are our `rl_targets`. That file does hold
+  substitution instances of 10 textbook72 theorems, which our ladders share
+  ([summary](../2026-10-17-peer-rl-review-leon-recipe-leads-ours-31-39-pass1-points-on-his-protocol-not-grpo-vs-ei/README.md)).
 - **Expected ranges:** 6 of 12 cells are in range in both seeds. The frozen bases fell far below on long theorems:
   C0 frozen holdout250 15 / 8 against an expected 30–90, and dev 54 / 36 against 100–400; K12 frozen holdout250
   115 / 104 against 120–190, and dev 415 / 384 against 450–750. K12 T1 textbook72 s1 (22) fell below its range of 25–38.
@@ -116,6 +120,7 @@ Observed results below use the reviewer's wording where it differs from the exec
   read at another batch and decode limit (a sampling re-draw, not a correctness change; see `NOISE_FLOOR.md`).
 - Fork ↔ Robbie textbook72 comparisons are only **partly** apples to apples: his cells trained on 14 / 72, use a
   different checker, have an unrecorded model size, and ran a 2,400 s pipeline against our T1 ladder.
+  *[peer-rl-review, 2026-10-17]* The "trained on 14 / 72" part looks wrong (see the note under statement (ii) above).
 - The inherited headline numbers (rr600 2 % → 87 %, support survivors 28 / 29, depth-3 13–28 %, Robbie's main effects,
   "6–11 of 70 flips") were not re-derived here. They carry their source runs' review status.
 - The billed rate was not verified ($0.54 is the fallback rate; the cost is under $1.5 either way).

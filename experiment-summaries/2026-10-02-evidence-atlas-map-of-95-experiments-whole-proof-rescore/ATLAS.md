@@ -60,7 +60,11 @@ All models are from scratch. Training sets are the cap-6 control set (depth3 f0 
    - Robbie's best factorial cell (best recipe, Lean whole proof, Leon RL + guided sampling, cap-6 data, 2,400 s
      budget) solves 32 / 30 / 32 †. *[review]* Robbie's factorial cells were RL-trained on 14 of the 72 textbook72
      theorems (`split = train` in `passk.csv`), so these counts are not held-out on those 14; their parameter count is
-     not recorded in the harmonized table.
+     not recorded in the harmonized table. *[peer-rl-review, 2026-10-17]* A later review finds this RL-training claim
+     looks wrong: Robbie's `factorial_20260929/passk.py` (L5–7) calls textbook72 "never trained on", `split` names only
+     the source file (train14 is `textbook_train.jsonl`), and the RL pools of his `leon_rl.py` are our `rl_targets`.
+     That file does hold substitution instances of 10 textbook72 theorems, which our ladders share
+     ([summary](../2026-10-17-peer-rl-review-leon-recipe-leads-ours-31-39-pass1-points-on-his-protocol-not-grpo-vs-ei/README.md)).
    - The cap-6 state version of the same recipe (best-state, also trained on cap-6 data) solves 39 / 40 / 33.
    - That gap mixes interface and RL algorithm, and the runs are not compute-matched.
 3. **Interface is the largest single factor we can now isolate (new in this run).**
@@ -201,6 +205,7 @@ pod was an RTX 3090, two jobs per card. Pre-registered in addendum 1 (commit b4f
 - (ii) C0 T1 above Robbie's `lean-naive-ei`: **held.** textbook72 14 vs 8, holdout250 103 vs 41. Not compute-matched:
   his pipeline is 2,400 s; ours is a full T1 ladder. *[review]* His cells are † (Lean gate ∧ `nd_verify`) and were
   RL-trained on 14 of the 72 textbook72 theorems; both favour his cells, so the direction stands a fortiori.
+  *[peer-rl-review, 2026-10-17]* The RL-training part looks wrong (see §1, headline 2).
 - Range predictions:
   - textbook72: 7 of 8 seeds in range (K12 T1 s1, 22, fell below 25–38);
   - holdout250: C0 frozen (15 / 8 vs 30–90) and K12 frozen (115 / 104 vs 120–190) fell below; the T1 rows were in range;
@@ -230,7 +235,7 @@ completed are kept as re-draws in `artifacts/atlas/b4096_partial/` (fork / bucke
 |---|---|---|
 | fork families on textbook72 / dev / holdout250 (Figures 2–4) | **yes**, with a decode-cap note | Lean, T 0.8, same k and pool; state `max_steps` 96 vs whole-proof `max_new` 512 |
 | fork state vs Robbie factorial lean cells | **partly** | same pools, k, T; † vs Lean; interface, RL and compute differ |
-| fork whole proof (this run) vs Robbie naive lean cells | **partly** *[review]* | same format, pools, k, T; † vs Lean; T1 ladder vs 2,400 s EI; his model size not recorded; on textbook72 his cells RL-trained on 14 / 72 |
+| fork whole proof (this run) vs Robbie naive lean cells | **partly** *[review]* | same format, pools, k, T; † vs Lean; T1 ladder vs 2,400 s EI; his model size not recorded; on textbook72 his cells RL-trained on 14 / 72 (*[peer-rl-review, 2026-10-17]* looks wrong; see §1, headline 2) |
 | Robbie autoresearch dev scores across eras | **no** | token-era ‡ vs Lean-era †; ±10 seed noise at the start (000 vs 001) |
 | Leon textbook dev58 / Charles textbook72 vs fork textbook72 | **no** | k 32–4,096; T 1.0 (Charles); `strict_verify` / nd_v2; 3.2M token models |
 | any number before vs after 2026-09-27 | **yes, if labelled** | measured Lean-only excess 0.021 %; C0 counts +2 / +1 (T1), +7 / +2 (frozen) |
