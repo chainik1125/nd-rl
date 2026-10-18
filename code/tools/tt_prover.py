@@ -28,8 +28,9 @@ import os
 import subprocess
 import sys
 import tempfile
+from typing import Any
 
-Formula = str | tuple
+Formula = str | tuple[Any, ...]  # an atom, or (op, *operands) with op in ~ & v > F
 ATOMS = ("P", "Q", "R", "S")
 OPS = {"&": "∧", "v": "∨", ">": "→"}
 
