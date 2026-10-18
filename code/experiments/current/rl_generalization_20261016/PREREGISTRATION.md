@@ -401,3 +401,36 @@ existed; nothing from the seed-1 run has been read).
   seed 2's) are then read as secondaries only.
 - **Observation, not a test.** Seed 0's kg64 ban mass stayed under about 0.0008, and the merged recipe at seed 1 stayed
   near 0.001. One run cannot separate g64 from seed.
+
+**2026-10-18, 09:30Z (2:30 AM PDT): DEVIATION, the remedy-A G0 ceiling check** (decided by agent:claude, delegated by
+Leon at about 09:25Z: "make decisions for me since im gonna be asleep").
+- **When it was written.** After the four mini20 references' B64 L3 test pass@1 was seen: 91.9% mean, against
+  G0's ≤ 90%. Every other G0 check passed, and G1 passed (s_ref 0.042). kl1 s0 (provisionally reproduces) and g64 s0
+  (provisionally partial) had also been seen. It was written before any B0 read existed. kl1 s1's reads were being
+  written and had not been examined. g64 s1 and the kg64 s2 replicate were still training.
+- **What the mechanical reading gives.** NO-GO (G0). Remedy A is spent, so the mini is retired and the knobs go to
+  remedy C.
+- **Why it deviates.**
+  1. Remedy C cannot pass the failing check. The full-scale L3 runs' B64 L3 test pass@1 is 94.9–96.9% (kg64, kkl0,
+     kkl1, krr, kt12 at s0), and even the shared L2 start is 89.3%.
+  2. G0's ceiling clause names its own fix: "add B0 or a hard ID subset before knob work". There is no usable hard
+     subset in test_1k. By `min_lines`, the references score about 92.5% at 13 lines, 90% at 14 and 87% at 15, and
+     the 15-line stratum has only 44 problems.
+  3. G3 (informational) puts the four references on the full-scale kkl0 trajectory line: a mean residual of +0.083
+     logit, against the line's residual SD of 0.082. So the mini is not in a different generalization regime.
+- **The rule, fixed before the B0 numbers.**
+  - **B0 substitution.** The ceiling check alone uses the references' **B0** L3 test pass@1 (`reads_b0_l3test.sh`:
+    line.sh's `l3test:8` read with `--budgets 0`, otherwise identical). G0 passes if the mean over the four is
+    ≤ 90.0%; nothing else in G0 changes. B64 L3 test is still reported everywhere.
+  - **Then § 3 applies mechanically** to kl1 and g64 once their seed-1 runs land. A partial control gets forks at
+    seeds 2 and 3, and the gate is re-applied at n_c = 4. A partial kl1 and a partial g64 are forked together.
+  - **If the B0 mean is > 90.0%,** G0 fails as written, the mini is retired, and no knob wave starts. Remedy C is not
+    started overnight, because it would fail the same check. The choice goes to Leon.
+- **Analysis consequences (§ 4.3).**
+  - On a GO, every wave-2 arm also gets the B0 L3 test read.
+  - The competence axis for the residual analysis is then B0 L3 test pass@1 (logit). The B64 L3 test residuals are a
+    sensitivity check.
+  - Caveat: B0 measures competence without thinking, while the out-of-distribution reads are at B64. A knob that
+    changes how thinking is used can move the two differently. Report both residuals, and flag any knob whose call
+    differs between them.
+- **Status.** This is a deviation from § 3 and § 6, reported as such in every write-up of the knob wave.
