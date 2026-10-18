@@ -376,3 +376,13 @@ replicate result existed.
     its resolution is about ±0.1.
   - This replicate does not change the gate. It bears only on whether the full-scale g64 effect is a reliable
     reference (the write-up note).
+
+**2026-10-18, clarification** (written before any mini20 result existed).
+- **What governs the remedy-A gate.** § 3's table, row by row.
+  - "Retired, remedy C" applies only where § 3 would call for remedy A again, since A cannot be repeated.
+  - A mini20 **G1 failure** (s_ref > 0.11) follows § 3's own row: remedy B (knobs as L3 forks of the 4 mini20
+    reference L2-minis) if both mini20 controls reproduce, otherwise remedy C.
+- **G0's "every read"** means MINI_READS, the five reads the gate uses, as applied at 10+10. The training-subset reads
+  (`l2train` / `l3train`) serve the pool-size analysis and do not gate.
+- **The wave-2 seed threshold** is mechanical: s_ref ≤ 0.050 logit screens at 1 seed, and > 0.050 at 2. A value within
+  ±0.005 of 0.050 is flagged to Leon, but the rule still applies. A Leon override is recorded as a deviation.
