@@ -147,7 +147,7 @@ REGIMES = {
         (),  # none planned yet; any `<ref>_<STAGE>it<IT>` panel read found is used
         True,
         True,
-        0.05,  # § 6 (2026-10-18, about 04:45Z): "about 0.05 logit"
+        0.050,  # § 6 (2026-10-18): s_ref <= 0.050 screens at 1 seed, > 0.050 at 2
     ),
 }
 ROLL_SEEDS = (0, 1)
@@ -502,7 +502,8 @@ class Run:
     line_done: bool
     line_failed: list[str]
     commit: str | None
-    reads: dict[str, bool]  # planned final read set -> there
+    reads: dict[str, bool]  # MINI_READS set -> there (G0's "every read")
+    train: dict[str, bool]  # planned MINI_TRAIN set -> there (reported; never gates, § 6)
 
     @property
     def rolled_back(self) -> bool:
@@ -572,9 +573,13 @@ def run_info(ld: Loader, rg: Regime, arm: str, seed: int) -> Run:
     cf = GV / f"{arm}_s{seed}.base_commit.txt"
     commit = cf.read_text().strip()[:8] if cf.exists() else None
     subs = {"charles173": "charles149"}
-    planned = [r for r, _ in v2.SPEC[arm].reads]
-    reads = {r: ld.have(arm, skey(subs.get(r, r), READ_K[r]), seed, "plain") for r in planned}
-    return Run(arm, seed, fork, stages, done, lf, commit, reads)
+    have = {
+        r: ld.have(arm, skey(subs.get(r, r), READ_K[r]), seed, "plain")
+        for r, _ in v2.SPEC[arm].reads
+    }
+    reads = {r: x for r, x in have.items() if r in FINAL_K}
+    train = {r: x for r, x in have.items() if r in TRAIN_K}
+    return Run(arm, seed, fork, stages, done, lf, commit, reads, train)
 
 
 # ------------------------------------------------------------------------------------------ gate
@@ -634,14 +639,25 @@ def classify(ld: Loader, rg: Regime, c: Control, ref_seeds: list[int], s_ref: fl
 
 
 def decide(rg: Regime, g0: str, g1: str, cr: dict[str, CtrlResult]) -> str:
-    """§ 3's decision table, on the current classes. For remedy A's rerun (mini20), § 6
-    (2026-10-18, about 04:45Z): a NO-GO retires the mini as the knob testbed (knobs to remedy C,
-    budget permitting), a partial control's seeds 2 and 3 queue automatically, and a GO runs the
-    knob wave at 20 + 20."""
+    """§ 3's decision table, on the current classes. For remedy A's rerun (mini20), § 6 (2026-10-18,
+    about 04:45Z, and its clarification): § 3 row by row, but where § 3 would call for remedy A
+    again the mini is retired as the knob testbed (knobs to remedy C, budget permitting); a G1
+    failure follows § 3's own row (remedy B if both mini20 controls reproduce, else remedy C); a
+    partial control's seeds 2 and 3 queue automatically; a GO runs the knob wave at 20 + 20."""
     kind, row, why = _decide(g0, g1, cr)
     text = f"{row} ({why})" if why else row
     if not rg.remedy_a_done or kind == "pending":
         return text
+    if kind == "g1fail":
+        cls = {n: r.cls for n, r in cr.items()}
+        if all(c == "reproduces" for c in cls.values()):
+            then = "remedy B (knobs as L3 forks of the 4 mini20 reference L2-minis)"
+            then += ": both controls reproduce"
+        elif "pending" in cls.values():
+            then = "remedy B if both controls reproduce, else remedy C (controls pending)"
+        else:
+            then = "remedy C: " + ", ".join(f"{n} {c}" for n, c in cls.items())
+        return f"NO-GO for both-stage knobs ({why}): {then} (§ 6)"
     if kind == "nogo":
         return (
             f"NO-GO ({why}): § 6 retires the mini as the knob testbed; knobs go to remedy C, "
@@ -654,7 +670,8 @@ def decide(rg: Regime, g0: str, g1: str, cr: dict[str, CtrlResult]) -> str:
 
 
 def _decide(g0: str, g1: str, cr: dict[str, CtrlResult]) -> tuple[str, str, str]:
-    """(kind, § 3's row, why); kind is pending, nogo, more (more control seeds first) or go."""
+    """(kind, § 3's row, why); kind is pending, g1fail, nogo (§ 3 calls for remedy A), more (more
+    control seeds first) or go."""
     if g0 != "PASS":
         return (
             ("nogo", "NO-GO, remedy A", "G0 failed")
@@ -663,7 +680,7 @@ def _decide(g0: str, g1: str, cr: dict[str, CtrlResult]) -> tuple[str, str, str]
         )
     if g1 != "PASS":
         if g1 == "FAIL":
-            return "nogo", "NO-GO for both-stage knobs, remedy B (or C)", "G1: s_ref > 0.11"
+            return "g1fail", "NO-GO for both-stage knobs, remedy B (or C)", "G1: s_ref > 0.11"
         return "pending", "PENDING", "G1"
     g, k = cr["g64"], cr["kl1"]
     if g.cls == "pending" or k.cls == "pending":
@@ -974,8 +991,8 @@ def gate_md(ld: Loader, est: Est, rg: Regime, arms: dict, roll: list[str], runs:
         n = 1 if s_ref <= rg.wave2_sref else 2
         near = abs(s_ref - rg.wave2_sref) <= 0.005
         md.append(
-            f"- **Wave-2 seeds (§ 6): {n} per knob**: s_ref {s_ref:.3f} against about "
-            f"{rg.wave2_sref} logit{' (at the boundary: Leon’s call)' if near else ''}."
+            f"- **Wave-2 seeds (§ 6): {n} per knob**: s_ref {s_ref:.3f} against {rg.wave2_sref:.3f}"
+            f" logit{' (within ± 0.005 of it: flagged to Leon; the rule applies)' if near else ''}."
         )
     md += ["", "## G0: the setup learns and is sane", "", "| check | result | value |"]
     md += ["|---|---|---|", *(f"| {a} | {b} | {c} |" for a, b, c in checks)]
@@ -1073,8 +1090,9 @@ def notes(rg: Regime) -> list[str]:
     ]
     if rg.train_reads:
         md += [
-            '- G0\'s "every read" is MINI_READS and MINI_TRAIN (l2train, l3train k8): line.sh',
-            "  reads both for this regime's references.",
+            "- G0's \"every read\" is the five MINI_READS (§ 6's clarification). The references'",
+            "  MINI_TRAIN reads (l2train, l3train k8) serve the pool-size analysis: listed, never",
+            "  gating.",
         ]
     else:
         md += [
@@ -1096,11 +1114,12 @@ def notes(rg: Regime) -> list[str]:
     ]
     if rg.remedy_a_done:
         md += [
-            "- This regime is remedy A's rerun (§ 6, 2026-10-18, about 04:45Z): § 3 unchanged,",
-            "  mini20 runs only, the same base read. Where § 3's table would send to remedy A",
-            "  again, § 6 applies: a NO-GO retires the mini as the knob testbed (remedy C, budget",
-            "  permitting); a GO runs the knob wave at 20 + 20. § 6's wave-2 rule (1 seed per knob",
-            "  at s_ref ≤ about 0.05, else 2) is applied at exactly 0.05, with ± 0.005 flagged.",
+            "- This regime is remedy A's rerun (§ 6, 2026-10-18, about 04:45Z, and its",
+            "  clarification): § 3 row by row, mini20 runs only, the same base read. Where § 3",
+            "  would call for remedy A again, the mini is retired as the knob testbed (remedy C,",
+            "  budget permitting). A G1 failure follows § 3's own row: remedy B if both mini20",
+            "  controls reproduce, else remedy C. A GO runs the knob wave at 20 + 20. Wave-2",
+            "  seeds: 1 per knob at s_ref ≤ 0.050, else 2, applied mechanically (± 0.005 flagged).",
         ]
     return md
 
@@ -1163,7 +1182,7 @@ def run_table(rg: Regime, runs: dict, arms: dict) -> list[str]:
             md.append(
                 f"| {label(rg, arm)} | {s} | {r.commit or '—'} | {r.status()} | "
                 f"{st(r.stages.get('L2'))} | {st(r.stages['L3'])} | "
-                f"{sum(r.reads.values())}/{len(r.reads)} | {r.flags()} |"
+                f"{sum(r.reads.values())}/{len(r.reads)}{train_cell(r)} | {r.flags()} |"
             )
     md.append("")
     rs = list(runs.values())
@@ -1190,6 +1209,10 @@ def run_table(rg: Regime, runs: dict, arms: dict) -> list[str]:
             note = "the reference's L2-mini at its seed" if init == want else "NOT the reference's"
             md.append(f"- {label(rg, r.arm)} s{r.seed} forks from `{Path(init).name}` ({note}).")
     return md
+
+
+def train_cell(r: Run) -> str:
+    return f" (+ train {sum(r.train.values())}/{len(r.train)})" if r.train else ""
 
 
 def idood_table(ld: Loader, rg: Regime, arms: dict, ref_seeds: list[int]) -> list[str]:
