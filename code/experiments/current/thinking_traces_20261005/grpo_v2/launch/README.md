@@ -21,6 +21,9 @@ backup (`/home/cowifornia/backups/nd-rl-think/`), for the restart on ynez. The r
 | `backup.py` | `/scratch/cowifornia/nd-rl/think/runs/backup.py` | | | new on ynez (below) |
 | `pull_queue.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/pull_queue.sh` | | | new on ynez: one worker per GPU on a shared job file |
 | `dry/` | `/scratch/cowifornia/nd-rl/think/dry/` | | | the dry-run harness (below) |
+| `reads_b0_l3test.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/reads_b0_l3test.sh` | | | new 2026-10-18: line.sh's `l3test:8` read at `--budgets 0` for 7 fixed checkpoints (the G0 deviation in `rl_generalization_20261016/PREREGISTRATION.md` § 6) |
+| `reads_b0.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/reads_b0.sh` | | | new 2026-10-18: the same read for `ARM:SEED` (final L3-mini) or `ARM:SEED:STAGE:IT` (rolling) specs of mini20 arms; refuses lines that are not done |
+| `roll_reads_mini20.sh` | `/scratch/cowifornia/nd-rl/think/runs/grpo_v2/roll_reads_mini20.sh` | | | new 2026-10-18: reruns line.sh with `MINI_ROLL="L2:8 L3:0 L3:8 L3:16"` on the finished mini20 references s0 and s1 (reads only: finished stages and existing reads are skipped) |
 
 `grpo_v2/preflight.py`, which `line.sh` runs, was already in git (`../preflight.py`).
 
