@@ -89,6 +89,8 @@ extend-exclude = [
     "**/current/rl_generalization_20261016/analysis/**",
     # serrano's runs/watchdog.py, rebuilt byte for byte after the 2026-10-11 crash
     "**/current/thinking_traces_20261005/grpo_v2/launch/watchdog.py",
+    # Robbie's experiment code, kept exactly as it ran
+    "**/current/long_proofs_20261013/**",
 ]
 force-exclude = true
 line-length = 100
