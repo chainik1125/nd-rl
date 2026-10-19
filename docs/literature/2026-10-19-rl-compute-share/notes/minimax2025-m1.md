@@ -37,7 +37,8 @@ My interpretation:
   needs FLOP models for both stages (tokens × active parameters; 512 H800 × 3 weeks × assumed utilisation). That is the
   executor's step.
 - **Token totals (my arithmetic, not stated).** The phases sum to 11.4T tokens. With 0.358T of long-context data and
-  7.5T of CPT, M1's base saw about 19.3T tokens.
+  7.5T of CPT, M1's base saw about 19.3T tokens. *[review]* Unclear: "the remaining 3.2T tokens" can also mean the
+  last 3.2T of the 7.2T. That gives 8.2T for the phases, D ≈ 16.1T, and an M1 ratio 1.2× higher.
 
 ## Evidence and limitations
 

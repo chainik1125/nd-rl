@@ -37,12 +37,12 @@ Exceptions the paper reports:
 
 Interpretation:
 - Comparing different checkpoints confounds RL scale with recipe, data and base model. No run is followed across RL steps, so the paper cannot say how squeezing depends on RL length.
-- Cluster counts are threshold-dependent (App. C.5) and are not pass@k; pass@k appears only in figures.
+- *[review]* Cluster counts are not pass@k; pass@k appears only in figures. App. C.5 does not make them threshold-dependent: there the varied thresholds "yielded identical results".
 - Length confound: the Qwen2.5-Math base and Oat-Zero models are evaluated at max_model_len=4096, against 16000 for the others (C-RLSQ-maxlen4096).
 - AceReason-Nemotron-14B "does not show performance improvement over the pre-RL DeepSeek-R1-Distill-Qwen-14B on the AIME25 and AMC23 domains" (C-RLSQ-ace14b_caveat). Some SFT+RL comparisons are therefore near-null RL effects.
 - Which ProRL revision was evaluated (v1, 2,000 steps; or v2, 3,000 steps) is not stated.
 
 ## Connections and questions
 
-- This independently supports [wu2025-invisible-leash.md](wu2025-invisible-leash.md): long RL from distilled bases (ProRL, AceReason) still loses correct-solution diversity at 256 samples. It adds a mechanism-level contrast, SFT adding paths where RL removes them.
-- For the hypothesis: the squeeze appears both in short zero-RL runs (Oat-Zero, SimpleRL-Zoo) and in long or large-scale runs (ProRL, AceReason). That is cross-sectional evidence that narrowing persists at the largest open RL scales tested, not a within-run scaling test. See [liu2025-prorl-compute.md](liu2025-prorl-compute.md).
+- This independently supports [wu2025-invisible-leash.md](wu2025-invisible-leash.md): long RL from distilled bases (ProRL, AceReason) still loses correct-solution diversity at 256 samples. It adds a mechanism-level contrast, SFT adding paths where RL removes them. *[review]* Unclear: the paper's general sentence supports the loss of correct-solution diversity, but its SFT+RL summary and the AceReason-14B appendix speak only of incorrect trajectories or minimal change.
+- For the hypothesis: the squeeze appears both in short zero-RL runs (Oat-Zero, SimpleRL-Zoo) and in long or large-scale runs (ProRL, AceReason). *[review]* That is cross-sectional evidence, not a within-run scaling test, and it does not show that narrowing persists at the largest open RL scales tested: the paper reports Llama-3.1-8B and AceReason-1.1-7B expanding correct paths. See [liu2025-prorl-compute.md](liu2025-prorl-compute.md).
