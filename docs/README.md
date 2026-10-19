@@ -1,6 +1,11 @@
 # Knowledge index
 
-This folder is meant to keep all documents relevant to the project. The folders are:
+This folder is meant to keep all documents relevant to the project.
+
+Relevant checkpoints are in [MODELS.md](MODELS.md), datasets in [DATASETS.md](DATASETS.md), and the
+training pipelines in [PIPELINES.md](PIPELINES.md).
+
+The folders are:
 
 
 1. /group_docs: Working principles for the group, research advice, how to collaborate etc..
