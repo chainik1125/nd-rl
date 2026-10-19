@@ -91,6 +91,8 @@ extend-exclude = [
     "**/current/thinking_traces_20261005/grpo_v2/launch/watchdog.py",
     # Robbie's experiment code, kept exactly as it ran
     "**/current/long_proofs_20261013/**",
+    "**/current/long_rl_20261014/**",
+    "**/current/autoresearch/**",
 ]
 force-exclude = true
 line-length = 100
