@@ -29,6 +29,27 @@ Sections
   C  waitfree with a busy GPU; queue.sh (wait line, PRE_CMD, two arms, done line[, backup hook])
   D  ARM_mb's averaging: a missing rolling checkpoint refuses the averaged reads; a rerun does not average again
   K  ARM_mb_ki78: an it39 L3 checkpoint does not end its 78-iteration stage; with its it78 checkpoint only the reads run
+  M  the mini runs (2026-10-16): grpo_think_vs_mini and 16 knob arms x seeds 0-2 (the reference at 3 too) x normal /
+     SMOKE=1, as section A, against `expect()`; from S1g3_s0 at every seed, L3-mini from L2-mini's last checkpoint;
+     L2-mini's command is grpo_think_vs's L2 command and L3-mini's grpo_think_vs_mb_kkl0's L3 command but for the
+     iterations, the subsets, --save_rolling 2, the timeout and the inits; each knob's commands are the reference's
+     but for its flags (`mknob`; the pool arms: their nested subsets); the forks kl1 and g64: L3-mini only, from the
+     reference's L2-mini at the same seed (init and KL reference), its L3 command but for the knob's flags; the five
+     plain reads (never tb72), the training subsets' reads (the reference, rr, the pool arms), the T arms' MINI_PANEL
+     at their T (_T07 ...); --ban_stop in L3-mini: the FAILED line, no reads; a fork whose reference never finishes:
+     180 waits, then FAILED. The adv forks (advpos at --rej_penalty 0) as kl1 / g64 (2026-10-18); size: the
+     size-twin mix's files and SIZE_READS (2026-10-18). mini20 (2026-10-18): every mini arm and fork again at 20
+     iterations a stage; its reference against the mini reference (--iters / --save_every 20, the 3 h timeout, its
+     L2-mini's _it20 as L3-mini's init), each knob against its own reference
+  N  mini reruns: with L2-mini's last checkpoint only L3-mini and the reads run; with both stages and two reads, the
+     others, HEAD in reads_commit.txt and the training's base_commit.txt kept; MINI_ROLL: MINI_PANEL of the rolling
+     checkpoints named, one missing skipped; a crashed stage (2026-10-18): its dir and log aside, then a clean rerun
+     (a mini line: HEAD in rerun_commit.txt, base_commit.txt kept)
+  Q  ARM_ckreads (2026-10-16): a full L3's CKR_PANEL at it10 / 20 / 30 (i78: to 70), each from the nearest earlier
+     rolling checkpoint (named after it; none: skipped), recorded in ARM_ckreads_sS.ckpts.txt, then CKR_FINAL of its
+     last; the shared L2 (ARM_l2_ckreads) and the Stage-1 base (s1g3_ckreads): CKR_PANEL and MINI_READS, a read in
+     both once; grpo_think_vs_mini_tpanel: MINI_PANEL of the reference's L3-mini last at T 0.7 and 1.3 (_T07,
+     _T13); grpo_think_vs_mini_szpanel: its SIZE_READS; HEAD in the job's base_commit.txt, the arm's untouched; nothing trained or preflighted; refusals in B
   J  EI ARM_kKNOB (2026-10-16): ARM_kr2's stage ends at _r2.pt (an _r1.pt does not end it; with _r2.pt only the reads
      run, on it); a rerun of a finished pilot runs nothing, of a partly read one the missing reads; KNOB_FULL=1 on a
      finished pilot (EI, and a GRPO knob arm) runs ARM's other reads only and records HEAD in reads_commit.txt, on a
@@ -148,6 +169,171 @@ EKARMS = [f"ei_think_v_k{k}" for k in EKNOBS] + [
     "ei_nothink_v_krr",
 ]
 M3 = "<R>/pools/curriculum_3p/L3_mix_ei.jsonl"  # ARM_k3p's targets
+# the mini runs (2026-10-16; written from the request): grpo_think_vs's L2 and grpo_think_vs_mb_kkl0's L3 (the primary
+# recipe), MINI_IT iterations each, chained from Stage-1 S1g3_s0 whatever the seed, on the mini subsets, a rolling
+# checkpoint every 2 iterations; a knob; then plain reads in and out of distribution, never tb72
+MINI_IT = 10
+MKNOB_RX = (
+    r"rr|t07|t085|t115|t13|lpm?\d\d|kl1|g64b?|pool250|pool500|lossact|lossthink|advpos|advneg|size"
+)
+MINI_RX = re.compile(
+    r"grpo_think_vs_mini(?P<v>20)?(?:_k(?P<k>" + MKNOB_RX + "))?"
+)  # v: mini20 (2026-10-18)
+MREF = "grpo_think_vs_mini"  # the reference, whose L2-mini the forks start from
+MREF20 = "grpo_think_vs_mini20"  # the mini20 variant's: 20 iterations a stage (MINI_IT20), 3 h, watchdog 2 h
+MINI_IT20 = 20
+
+
+def mref_of(arm: str) -> str:
+    """A mini arm's reference (its variant's)."""
+    mm = MINI_RX.fullmatch(arm)
+    return MREF20 if mm and mm.group("v") else MREF
+
+
+def mit_of(arm: str) -> int:
+    """A mini arm's iterations a stage (its variant's)."""
+    return MINI_IT20 if mref_of(arm) == MREF20 else MINI_IT
+
+
+MARMS = [MREF] + [
+    f"grpo_think_vs_mini_k{k}"
+    for k in (
+        "rr",
+        "t07",
+        "t085",
+        "t115",
+        "t13",
+        "lpm10",
+        "lp20",
+        "lp50",
+        "lp05",
+        "g64b",
+        "pool250",
+        "pool500",
+        "lossact",
+        "lossthink",
+        "size",
+    )
+]
+MFORK = (
+    "kl1",
+    "g64",
+    "advpos",
+    "advneg",
+)  # L3-mini only, from the reference's L2-mini at the same seed
+MFORKS = [f"grpo_think_vs_mini_k{k}" for k in MFORK]
+MARMS20 = [a.replace(MREF, MREF20, 1) for a in MARMS]  # the mini20 variant's (2026-10-18)
+MFORKS20 = [a.replace(MREF, MREF20, 1) for a in MFORKS]
+MLOSS = {  # grpo.py's mini-run knobs: (flag, value); the loss knobs both stages, the adv knobs forks (L3-mini)
+    "lossact": ("--loss_tokens", "action"),
+    "lossthink": ("--loss_tokens", "think"),
+    "advpos": ("--adv_sign", "pos"),
+    "advneg": ("--adv_sign", "neg"),
+}
+MLOSS_GUARD = (  # line.sh's guard for them: the worktree's grpo.py has both options
+    "-c import\\ sys\\,\\ code.thinking.grpo\\ as\\ g\\;\\ sys.exit\\(0\\ if\\ hasattr\\(g\\,\\ "
+    "\\'LOSS_TOKENS\\'\\)\\ and\\ hasattr\\(g\\,\\ \\'ADV_SIGNS\\'\\)\\ else\\ 1\\)"
+)
+TPANEL_TS = ("0.7", "1.3")  # grpo_think_vs_mini_tpanel's temperatures (the T arms' extremes)
+MT = {
+    "t07": "0.7",
+    "t085": "0.85",
+    "t115": "1.15",
+    "t13": "1.3",
+}  # the T arms' training temperatures
+
+
+def mknob(
+    mk: str, smoke: bool
+) -> tuple[dict[str, tuple[str | None, str]], dict[str, tuple[str | None, str]], str]:
+    """A mini knob -> (its flags in L2-mini, its flags in L3-mini, as (the reference's value, the knob's); None: not
+    passed), and its launch-line text."""
+    both: dict[str, tuple[str | None, str]] = {}
+    l3: dict[str, tuple[str | None, str]] = {}
+    l2only: dict[str, tuple[str | None, str]] = {}
+    g64: dict[str, tuple[str | None, str]] = (
+        {"--prompts": ("4", "2"), "--group": ("4", "8")}  # SMOKE=1: 4 x 4 -> 2 x 8
+        if smoke
+        else {"--prompts": ("256", "64"), "--group": ("16", "64")}
+    )
+    if mk in MT:
+        both["--temperature"] = (None, MT[mk])
+    elif mk.startswith("lp"):  # lpNN / lpmNN: +-NN hundredths
+        v = int(mk[-2:]) / 100
+        both["--len_penalty"] = (None, f"{-v if mk.startswith('lpm') else v:g}")
+    elif mk == "g64b":
+        both = g64
+    elif mk == "g64":  # a fork: L3-mini only
+        l3 = dict(g64)
+    elif mk == "kl1":  # a fork: L3-mini only
+        l3["--kl_anchor_coef"] = ("0", "0.1")
+    elif mk in MLOSS:  # grpo.py's mini-run knobs (opt-in: not passed by the reference)
+        (l3 if mk in MFORK else both)[MLOSS[mk][0]] = (None, MLOSS[mk][1])
+        if mk == "advpos":  # without the step penalty (a negative signal)
+            l3["--rej_penalty"] = ("0.1", "0")
+    elif (
+        mk.startswith("pool") and not smoke
+    ):  # the nested subsets (SMOKE=1: 8-row heads either way)
+        n = mk[4:]
+        l2only["--targets"] = (f"{MINI}/L2_mini.jsonl", f"{MINI}/L2_mini{n}.jsonl")
+        l3["--targets"] = (f"{MINI}/L3_mini.jsonl", f"{MINI}/L3_mini{n}.jsonl")
+        l3["--targets_extra"] = (f"{MINI}/L3_3p_mini.jsonl", f"{MINI}/L3_3p_mini{n}.jsonl")
+    elif mk == "size" and not smoke:  # the size-twin mix (2026-10-18; SMOKE=1: its heads)
+        l2only["--targets"] = (f"{MINI}/L2_mini.jsonl", f"{MINI}/L2_mini_size.jsonl")
+        l3["--targets"] = (f"{MINI}/L3_mini.jsonl", f"{MINI}/L3_mini_size.jsonl")
+        l3["--targets_extra"] = (f"{MINI}/L3_3p_mini.jsonl", f"{MINI}/L3_3p_mini_size.jsonl")
+    desc = (
+        f"the {mk[4:]}-row subsets"
+        if mk.startswith("pool")
+        else "the size-twin mix (a fixed half of the rows as their big-statement twins)"
+        if mk == "size"
+        else " ".join(f"{f} {v}" for f, (_, v) in {**both, **l3}.items()) or "nothing changed"
+    )
+    return {**both, **l2only}, {**both, **l3}, desc
+
+
+def mini_reads(mk: str) -> list[tuple]:
+    """A mini run's reads of L3-mini's last checkpoint, in order: (SET, files, K, T or None)."""
+    n = mk[4:] if mk.startswith("pool") else ""
+    train = {"l2train": f"{MINI}/L2_mini{n}.jsonl", "l3train": f"{MINI}/L3_mini{n}.jsonl"}
+    reads = [(x, READ_SETS[x], k, None) for x, k in MINI_READS]
+    if mk in ("", "rr", "pool250", "pool500"):  # the training subsets (memorisation vs held out)
+        reads += [(x, train[x], k, None) for x, k in MINI_TRAIN]
+    if mk in MT:  # MINI_PANEL at the training T too
+        reads += [(x, READ_SETS[x], k, MT[mk]) for x, k in MINI_PANEL]
+    if mk == "size":  # the size-twin test sets and their matched originals
+        reads += [(x, READ_SETS[x], k, None) for x, k in SIZE_READS]
+    return reads
+
+
+def mini_read_dirs(arm: str, s: int, smoke: bool) -> list[str]:
+    mm = MINI_RX.fullmatch(arm)
+    assert mm
+    return [
+        f"{x}_{arm}_s{s}_plain_k{2 if smoke else k}" + (f"_T{t.replace('.', '')}" if t else "")
+        for x, _, k, t in mini_reads(mm.group("k") or "")
+    ]
+
+
+MINI = "<R>/pools/mini"
+_CH = "<R>/pools/charles_1002"
+READ_SETS = {  # the reads' files, as recorded (escaped commas)
+    "l2test": "<R>/pools/curriculum/L2/test_1k.jsonl",
+    "l3test": "<R>/pools/curriculum/L3/test_1k.jsonl",
+    "l2test_sz": "<R>/pools/size_twins/L2_test_1k_sz.jsonl",  # the size knob's (2026-10-18)
+    "l3test_sz": "<R>/pools/size_twins/L3_test_1k_sz.jsonl",
+    "l2test_om": "<R>/pools/size_twins/L2_test_1k_orig_matched.jsonl",
+    "l3test_om": "<R>/pools/size_twins/L3_test_1k_orig_matched.jsonl",
+    "t1320": "<R>/eval/matched/sets/t1320_n1000.jsonl",
+    "t2130": "<R>/eval/matched/sets/t2130_n1000.jsonl",
+    "charles173": f"{_CH}/candidate_v0.jsonl\\,{_CH}/candidate_v1.jsonl\\,{_CH}/batch3.jsonl",
+}
+MINI_READS = [("l2test", 8), ("l3test", 8), ("t1320", 8), ("t2130", 8), ("charles173", 64)]
+MINI_TRAIN = [("l2train", 8), ("l3train", 8)]
+MINI_PANEL = [("l3test", 8), ("t1320", 8), ("t2130", 4), ("charles173", 16)]
+SIZE_READS = [("l2test_sz", 8), ("l3test_sz", 8), ("l2test_om", 8), ("l3test_om", 8)]
+CKR_PANEL = [("l2test", 8), ("l3test", 8), ("t1320", 4), ("t2130", 4), ("charles173", 16)]
+CKR_FINAL = [("l2test", 8), ("l3test", 8)]
 
 
 def eknob_diff(knob: str, smoke: bool) -> dict[str, tuple[str | None, str]]:
@@ -264,13 +450,29 @@ def expect(
     full: bool = False,
     l3_there: bool = False,
     reads_there: frozenset[str] = frozenset(),
+    l2_there: bool = False,
+    base_there: bool = False,
+    crashed: frozenset[str] = frozenset(),
 ) -> tuple[list[tuple], list[str]]:
     """-> (ordered records (kind, cwd, cvd, fd1, fd2, argv), stdout lines) for a valid arm. `avg_there`: ARM_mb
     with its averaged checkpoint already written (a rerun). `full`: KNOB_FULL=1 (a knob arm). `l3_there`: the L3
-    stage's last checkpoint is there; `reads_there`: the eval dirs (basenames) whose rows are there (a rerun)."""
+    stage's last checkpoint is there; `reads_there`: the eval dirs (basenames) whose rows are there (a rerun);
+    `l2_there`: the L2 stage's (a mini run's rerun). `base_there`: the arm's base_commit.txt is there (a mini line
+    then records HEAD in rerun_commit.txt). `crashed`: the stages an earlier run left without their last checkpoint
+    (their dir and log are moved aside first)."""
     # ARM_mb_kKNOB / EI ARM_kKNOB: the recipe of ARM_mb / ARM ($pa), every name the full arm's
     km = KNOB_RX.fullmatch(arm) or EKNOB_RX.fullmatch(arm)
     knob, pa = (km.group(2), km.group(1)) if km else ("", arm)
+    mm = MINI_RX.fullmatch(
+        arm
+    )  # a mini run: L3-mini is grpo_think_vs_mb_kkl0's recipe ($pa), its knob mk in both stages
+    mk = (mm.group("k") or "") if mm else ""
+    m20 = bool(mm and mm.group("v"))  # the mini20 variant
+    mpn = (
+        mk[4:] if mk.startswith("pool") else "_size" if mk == "size" else ""
+    )  # the pool / size arms' files
+    if mm:
+        pa = "grpo_think_vs_mb"
     pil = next((x for x in PILOT if pa.endswith(x)), "")
     sch = "" if pil else next((x for x in ("_wb", "_c", "_w") if pa.endswith(x)), "")
     core = pa[: -len(pil or sch)] if pil or sch else pa
@@ -278,6 +480,8 @@ def expect(
     base = src[:-2] if src.endswith("_h") and not pil else src
     sched = {"": ("", ""), "_c": (SCHED_C, SCHED_C), "_w": ("", SCHED_W), "_wb": ("", SCHED_W)}[sch]
     l2src = base if sch == "_wb" or pil else (arm if sch else src)  # whose L2 the L3 starts from
+    if mm:  # both stages, from the Stage-1 init; a fork: L3-mini only, from the reference's L2-mini
+        l2src = mref_of(arm) if mk in MFORK else arm
     pflags = PILOT.get(pil, "")  # stage L3's pilot flags
     if pil == "_mb":
         sched = ("", SCHED_W)  # _wb's L3 cooldown
@@ -291,8 +495,14 @@ def expect(
     L = C + "/logs" if smoke else "<R>/logs"
     it, batch, cvd = (2, 16, "CVD=[]") if smoke else (39, 1024, f"CVD=[{g}]")
     kd = {**KNOB_DIFF.get(knob, {}), **(KNOB_SMOKE.get(knob, {}) if smoke else {})}
+    kd2 = kd  # stage L2's (a knob arm has no L2 of its own: unused)
+    if mm:  # MINI_IT iterations a stage (SMOKE=1: 2, as every stage); the mini knob's flags in each stage
+        it = it if smoke else mit_of(arm)
+        kd2, kd, _ = mknob(mk, smoke)
 
-    def kv(flag: str, default: str) -> str:  # the knob's value of a flag the recipe passes
+    def kv(
+        flag: str, default: str
+    ) -> str:  # the knob's value of a flag the recipe passes (stage L3)
         return kd[flag][1] if flag in kd else default
 
     it3 = int(kv("--iters", str(it)))  # stage L3's iterations
@@ -326,10 +536,18 @@ def expect(
                 f"\\'{GUARD[pil]}\\'\\)\\ else\\ 1\\)",
             )
         )
+    if mk in MLOSS:  # ARM_mini's grpo.py knobs: their options in the worktree's grpo.py
+        recs.append(("py", WT, "CVD=unset", "/dev/null", "/dev/null", MLOSS_GUARD))
     l2t = f"{C}/L2_head.jsonl" if smoke else f"{R}/pools/curriculum/L2/pool.jsonl"
     l3t = f"{C}/L3_head.jsonl" if smoke else f"{R}/pools/curriculum/L3/pool.jsonl"
     x2 = (f"{C}/X2_head.jsonl" if smoke else f"{R}/pools/curriculum_3p/L2_3p.jsonl") if vs3 else ""
     x3 = (f"{C}/X3_head.jsonl" if smoke else f"{R}/pools/curriculum_3p/L3_3p.jsonl") if vs3 else ""
+    if (
+        mm
+    ):  # the subsets (SMOKE=1: their first 8 rows, as for the pools); L2-mini has no extra targets
+        l2t = f"{C}/L2_head.jsonl" if smoke else f"{MINI}/L2_mini{mpn}.jsonl"
+        l3t = f"{C}/L3_head.jsonl" if smoke else f"{MINI}/L3_mini{mpn}.jsonl"
+        x2, x3 = "", (f"{C}/X3_head.jsonl" if smoke else f"{MINI}/L3_3p_mini{mpn}.jsonl")
     pf = "-m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight"
     if not smoke:
         f = f"{C}/preflight_{arm}_s{s}.log"
@@ -340,7 +558,7 @@ def expect(
                 "CVD=unset",
                 f,
                 f,
-                f"{pf} <R>/pools/curriculum/L2/pool.jsonl <R>/pools/curriculum/L3/pool.jsonl",
+                f"{pf} {l2t} {l3t}",
             )
         )
         if vs3 or knob == "3p":  # EI ARM_k3p: its mix against the L2 pool and every evaluation set
@@ -350,6 +568,8 @@ def expect(
                 if knob == "3p"
                 else "<R>/pools/curriculum_3p/L2_3p.jsonl <R>/pools/curriculum_3p/L3_3p.jsonl"
             )
+            if mm:  # the 3-premise subset against the L2 subset
+                xa = f"{l2t} {x3}"
             recs.append(
                 (
                     "py",
@@ -365,7 +585,7 @@ def expect(
             "git",
             WT,
             "CVD=unset",
-            f"{C}/{arm}_s{s}.{'reads_commit' if knob and full else 'base_commit'}.txt",
+            f"{C}/{arm}_s{s}.{'reads_commit' if (knob and full) or (mm and l3_there) else 'rerun_commit' if mm and base_there else 'base_commit'}.txt",
             st,
             f"-C {WT} rev-parse HEAD",
         )
@@ -409,33 +629,58 @@ def expect(
     ) -> None:
         if l3_there and name.endswith("_L3"):  # its last checkpoint is there: nothing runs
             return
+        if l2_there and name.endswith("_L2"):
+            return
+        if name in crashed:  # its dir and log aside (no record: mv; date's stub: 00:00)
+            n_last = it3 if name.endswith("_L3") else it
+            out.append(
+                f"00:00Z GRPO {name}: an earlier run left no {name}_it{n_last}.pt: its dir moved aside to "
+                f"{C.replace('<R>', SB)}/{name}.crashed_00:00"
+            )
         waitfree()
         log = f"{L}/v2_{name}.log"
         l3 = name.endswith("_L3")  # the knob is stage L3's (a knob arm has no L2 of its own)
         if method == "grpo":
             n_it = it3 if l3 else it
+            ks = kd if l3 else kd2  # the stage's knob flags
+
+            def kvs(flag: str, default: str) -> str:
+                return ks[flag][1] if flag in ks else default
+
             new = (
-                [f for f, (old, _) in kd.items() if old is None] if l3 else []
-            )  # flags the recipe leaves out
+                [f for f, (old, _) in ks.items() if old is None] if l3 or mm else []
+            )  # flags the recipe leaves out (a mini run's knob: both stages)
             kf = "".join(
-                f"{f} {kd[f][1]} " for f in ("--temperature", "--clip_eps_high") if f in new
+                f"{f} {ks[f][1]} "
+                for f in (
+                    "--temperature",
+                    "--clip_eps_high",
+                    "--len_penalty",
+                    "--updates",
+                    "--warmup",
+                    "--loss_tokens",
+                    "--adv_sign",
+                )
+                if f in new
             )
             assert len(kf.split()) == 2 * len(new), "a new knob flag without a place in the command"
             a = (
-                f"{43200 if n_it == 2 * it else 21600} <PY> -m code.thinking.grpo --init {init} --name {name} "
+                f"{10800 if m20 else 7200 if mm else 43200 if n_it == 2 * it else 21600} <PY> -m code.thinking.grpo --init {init} --name {name} "
                 f"--out {C}/{name} --targets {targets} "
-                f"--iters {n_it} --prompts {kv('--prompts', '4' if smoke else '256')} "
-                f"--group {kv('--group', '4' if smoke else '16')} --batch {batch} --lr {lr} "
+                f"--iters {n_it} --prompts {kvs('--prompts', '4' if smoke else '256')} "
+                f"--group {kvs('--group', '4' if smoke else '16')} --batch {batch} --lr {lr} "
                 + (f"{sc} " if sc else "")
                 + (f"{pflags} " if pflags else "")
                 + kf
-                + f"--overlong fail --save_every {n_it} --max_steps 96 --seed {s} --keep_rolling 100 {eff} "
+                + f"--overlong fail --save_every {n_it} --max_steps 96 --seed {s} --keep_rolling 100 "
+                + ("--save_rolling 2 " if mm else "")
+                + f"{eff} "
                 f"--canary <R>/pools/canary_long.jsonl --canary_n {40 if smoke else 1000} --canary_every 1 "
-                f"--rollback_on_alarm --max_rollbacks 3{BAN} --kl_anchor_coef {kv('--kl_anchor_coef', '0.02')} "
+                f"--rollback_on_alarm --max_rollbacks 3{BAN} --kl_anchor_coef {kvs('--kl_anchor_coef', '0' if mm and l3 else '0.02')} "
                 f"--kl_anchor_ref {init}" + (" --kl_anchor_n 16" if smoke else "") + " --monitor"
             )
-            p_ = kv("--rej_penalty", "0.1")
-            xf = kv("--targets_extra_frac", "0.33")
+            p_ = kvs("--rej_penalty", "0.1")
+            xf = kvs("--targets_extra_frac", "0.33")
             if samp == "logical":
                 mr = 0 if base.endswith(("_vs", "_vs3")) else 10
                 if pil == "_fbb" and name.endswith("_L3"):  # retries per step, with --feedback
@@ -448,6 +693,8 @@ def expect(
                 kdesc = " ".join(f"{f} {v}" for f, (_, v) in kd.items() if f != "--save_every")
                 kdesc = kdesc or "nothing changed"
                 kdesc = f", knob {knob}: {kdesc}"
+            elif mk:
+                kdesc = f", knob {mk}: {mknob(mk, smoke)[2]}"
             desc = (
                 samp
                 + (f", P {p_}" if samp == "logical" else "")
@@ -459,7 +706,9 @@ def expect(
             )
             out.append(f"00:00Z launched GRPO {name} ({desc}) on GPU {g} (pid N)")
             out.append(f"00:00Z GRPO {name} exit 0: it {n_it}: dry")
-            wh = "7" if n_it == 2 * it else "3.5"
+            if mm:  # its alarms (none: the stub's log has none) and rollbacks
+                out.append(f"00:00Z GRPO {name} rollbacks: no guard line")
+            wh = "2" if m20 else "1" if mm else "7" if n_it == 2 * it else "3.5"
         else:
             # EI ARM_kKNOB: stage L3's knob flags
             ed = eknob_diff(knob, smoke) if knob and l3 else {}
@@ -497,6 +746,8 @@ def expect(
             )
 
     init0 = f"<R>/stage1/{'S1g3' if think else 'T0S'}_s{s}/model.pt"
+    if mm:  # one init for every seed: the seed is the RL's
+        init0 = "<R>/stage1/S1g3_s0/model.pt"
     if l2src == arm:
         stage(f"{arm}_s{s}_L2", init0, l2t, x2, sched[0])
         l2ck = ck(f"{arm}_s{s}_L2")
@@ -544,15 +795,21 @@ def expect(
             "charles173": f"{ch}/candidate_v0.jsonl\\,{ch}/candidate_v1.jsonl\\,{ch}/batch3.jsonl",
         }
         reads += [(n, sets[n], k, "plain", 96) for n, k in KNOB_READS]
+    if mm:  # a mini run: MINI_READS of L3-mini's last checkpoint, plain, in and out of distribution, then (`mini_reads`)
+        reads = [
+            (n, x, k, "plain", 96, 10, t) for n, x, k, t in mini_reads(mk)
+        ]  # MINI_TRAIN, MINI_PANEL at T
     av = f"{C}/{arm}_avg_s{s}_L3/ckpts/{arm}_avg_s{s}_L3_it{it}.pt"
     sets_of = {n: x for n, x, *_ in reads}
     n_usual = len(reads)
     if (
-        pil == "_mb" and not knob
+        pil == "_mb" and not knob and not mm
     ):  # after the usual reads: the averaging, then the averaged checkpoint's plain reads
         reads += [(n, sets_of[n], k, "plain", 96) for n, k in AVG_READS]
-    reads = [r if len(r) == 6 else (*r, 10) for r in reads]  # --max_rej 10 unless given (ARM_fbb's)
-    for j, (name, sets, k, ra, ms, mrr) in enumerate(reads):
+    reads = [
+        (*r, *(10, None)[len(r) - 5 :]) for r in reads
+    ]  # --max_rej 10 unless given (ARM_fbb's), T 0.8 unless given (the mini T arms')
+    for j, (name, sets, k, ra, ms, mrr, tp) in enumerate(reads):
         k = 2 if smoke else k
         avg = j >= n_usual  # ARM_mb's averaged reads
         if avg and j == n_usual and not avg_there:
@@ -564,7 +821,9 @@ def expect(
             out.append(
                 f"00:00Z averaged {arm}_s{s}_L3 it {' '.join(map(str, [*its, it]))} -> {av.replace('<R>', SB)}"
             )
-        o = f"{EV}/{name}_{arm}{'_avg' if avg else ''}_s{s}_{ra}_k{k}"
+        o = f"{EV}/{name}_{arm}{'_avg' if avg else ''}_s{s}_{ra}_k{k}" + (
+            f"_T{str(tp).replace('.', '')}" if tp else ""
+        )
         if os.path.basename(o) in reads_there:  # its rows are there: skipped
             continue
         waitfree()
@@ -578,7 +837,7 @@ def expect(
                 log,
                 log,
                 f"9000 <PY> -m code.thinking.eval --ckpt {av if avg else ck(f'{arm}_s{s}_L3')} --sets {sets} --out {o} --k {k} "
-                f"--budgets {rb} --arms {ra} --batch {batch} --seed 0 --temperature 0.8 --max_action 512 "
+                f"--budgets {rb} --arms {ra} --batch {batch} --seed 0 --temperature {tp or '0.8'} --max_action 512 "
                 f"--max_steps {ms} --max_rej {mrr}" + (" --limit 2" if smoke else ""),
             )
         )
@@ -1289,6 +1548,196 @@ for mode in ("normal", "smoke"):
                     "ei_think_v_k3p",
                 )
             )
+        # the mini runs (2026-10-16): another base arm or a suffix before _mini; another knob or anything after it;
+        # size (no data yet); KNOB_FULL=1; a missing subset, no pass record, a stale one; a fork whose reference
+        # L2-mini rolled back. ARM_ckreads: other arms, KNOB_FULL=1, no finished L3, no L2 checkpoint, nothing to read
+        mb_no = r"_mini runs the primary recipe, grpo_think_vs's"
+        mk_no = r"_mini takes one knob _kKNOB of rr t07 t085 t115 t13 lpNN lpmNN kl1 g64 g64b pool250 pool500 size lossact lossthink advpos advneg, with nothing after it"
+        ck_no = r"_ckreads reads a full GRPO L3 that started from another arm's L2 \(a knob pilot, ARM_mb, ARM_fbb, \.\.\.\)"
+        ck2_no = r"_l2_ckreads reads a base GRPO arm's own L2 \(grpo_think_vs_l2_ckreads\)"
+        for arm, rx in (
+            *(
+                (a, mb_no)
+                for a in (
+                    "grpo_think_mini",
+                    "grpo_nothink_vs_mini",
+                    "grpo_think_vs_h_mini",
+                    "grpo_think_vs_mb_mini",
+                    "grpo_think_vs_mb_kkl0_mini",
+                    "ei_think_v_mini",
+                )
+            ),
+            *(
+                (a, mk_no)
+                for a in (
+                    "grpo_think_vs_mini_kfoo",
+                    "grpo_think_vs_mini_k",
+                    "grpo_think_vs_mini_kt07_krr",
+                    "grpo_think_vs_mini_kt07_h",
+                    "grpo_think_vs_mini_h",
+                    "grpo_think_vs_mini_kx66",
+                    "grpo_think_vs_mini_kkl0",
+                    "grpo_think_vs_mini_mini",
+                    "grpo_think_vs_mini_kg64_mini",
+                    "grpo_think_vs_mini_ku1",
+                    "grpo_think_vs_mini_kg8",
+                    "grpo_think_vs_mini_klp5",
+                    "grpo_think_vs_mini_klp100",
+                    "grpo_think_vs_mini_klpx1",
+                    "grpo_think_vs_mini_klpm",
+                    "grpo_think_vs_mini_kpool100",
+                    "grpo_think_vs_mini_kpool250_krr",
+                    "grpo_think_vs_mini20_kfoo",
+                    "grpo_think_vs_mini20_mini",
+                    "grpo_think_vs_mini20_kt07_krr",
+                )
+            ),
+            *(
+                (f"grpo_think_vs_mini_k{k}", rf"_k{k} is no length penalty \(grpo_think_vs_mini\)")
+                for k in ("lp00", "lpm00")
+            ),
+        ):
+            refusals.append(
+                (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {arm}: {rx}: refusing$", arm)
+            )
+        for arm, who, rx in (
+            *(
+                (a, a, ck_no)
+                for a in (
+                    "grpo_think_vs_ckreads",
+                    "ei_think_v_krr_ckreads",
+                    "grpo_think_vs_mini_ckreads",
+                    "grpo_think_vs_mini_kt07_ckreads",
+                )
+            ),
+            *(
+                (a, a, ck2_no)
+                for a in (
+                    "grpo_think_vs_mb_l2_ckreads",
+                    "grpo_think_vs_mb_kkl0_l2_ckreads",
+                    "ei_think_v_l2_ckreads",
+                    "grpo_think_vs_mini_l2_ckreads",
+                    "grpo_think_vs_c_l2_ckreads",
+                )
+            ),
+            (
+                "grpo_think_vs_mb_kfoo_ckreads",
+                "grpo_think_vs_mb_kfoo",
+                k_no,
+            ),  # parsed as the arm it reads
+        ):
+            refusals.append(
+                (f"{H}/res/{mode}/s{s}/{arm}", 1, rf"^00:00Z {who}: {rx}: refusing$", arm)
+            )
+        mp = re.escape(f"{SB}/pools/mini")
+        for kind, arm, who, rx in (
+            (
+                "nosub",
+                "grpo_think_vs_mini_kt07",
+                None,
+                rf"no mini subset {mp}/L3_3p_mini\.jsonl \(grpo_v2/build_mini\.py builds it\)",
+            ),
+            (
+                "nopass",
+                "grpo_think_vs_mini_kt07",
+                None,
+                rf"no preflight pass record of {mp}/L2_mini\.jsonl as it is \({mp}/preflight_pass\.txt; grpo_v2/build_mini\.py\)",
+            ),
+            (
+                "stale",
+                "grpo_think_vs_mini_kt07",
+                None,
+                rf"no preflight pass record of {mp}/L3_mini\.jsonl as it is \({mp}/preflight_pass\.txt; grpo_v2/build_mini\.py\)",
+            ),
+            (
+                "full",
+                "grpo_think_vs_mini",
+                None,
+                r"KNOB_FULL=1 is the knob pilots' \(a mini run has one set of reads\)",
+            ),
+            (
+                "nol3",
+                "grpo_think_vs_mb_kkl0_ckreads",
+                None,
+                rf"no finished L3 of grpo_think_vs_mb_kkl0 \({re.escape(SB)}/{c}/grpo_think_vs_mb_kkl0_s{s}_L3/ckpts/grpo_think_vs_mb_kkl0_s{s}_L3_it{it}\.pt\) to read",
+            ),
+            (
+                "nockpt",
+                "grpo_think_vs_mb_kkl0_ckreads",
+                "grpo_think_vs_mb_kkl0",
+                rf"no L2 checkpoint of grpo_think_vs \({re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt\)",
+            ),
+            (
+                "full",
+                "grpo_think_vs_mb_kkl0_ckreads",
+                None,
+                r"KNOB_FULL=1 is the knob pilots' \(_ckreads has its own reads\)",
+            ),
+            (
+                "nol2",
+                "grpo_think_vs_l2_ckreads",
+                None,
+                rf"no checkpoint {re.escape(SB)}/{c}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{it}\.pt to read",
+            ),
+            (
+                "rb",
+                "grpo_think_vs_mini_kkl1",
+                None,
+                rf"grpo_think_vs_mini's L2-mini at seed {s} ended 'guard it 39: .*lr x0\.5 \(1 rollbacks\).*', not lr x1 \(0 rollbacks\): a "
+                r"fork needs a reference L2-mini without rollbacks \(run the control at another seed\)",
+            ),
+        ):
+            refusals.append(
+                (f"{d}/{kind}_{arm}", 1, rf"^00:00Z {who or arm}: {rx}: refusing$", arm)
+            )
+        # grpo_think_vs_mini_tpanel (2026-10-18): without the reference's L3-mini; another arm's _tpanel
+        it_m = 2 if mode == "smoke" else MINI_IT
+        ck3 = re.escape(f"{SB}/{c}/{MREF}_s{s}_L3/ckpts/{MREF}_s{s}_L3_it{it_m}.pt")
+        refusals.append(
+            (
+                f"{d}/nol3_{MREF}_tpanel",
+                1,
+                rf"^00:00Z {MREF}_tpanel: no finished L3 of {MREF} \({ck3}\) to read: refusing$",
+                f"{MREF}_tpanel",
+            )
+        )
+        for a in (
+            "grpo_think_vs_tpanel",
+            "grpo_think_vs_mini_kt07_tpanel",
+            "grpo_think_vs_mb_kkl0_tpanel",
+        ):
+            refusals.append(
+                (
+                    f"{d}/{a}",
+                    1,
+                    rf"^00:00Z {a}: _tpanel reads the mini reference's last checkpoint \(grpo_think_vs_mini_tpanel\): refusing$",
+                    a,
+                )
+            )
+        # the size knob (2026-10-18): szpanel for another arm, without the size-twin test sets, without the L3-mini;
+        # _ksize without the mix's pass record, without the test sets
+        zs = re.escape(f"{SB}/pools/size_twins/L2_test_1k_sz.jsonl")
+        mz = re.escape(f"{SB}/pools/mini")
+        for a in ("grpo_think_vs_szpanel", "grpo_think_vs_mini_ksize_szpanel"):
+            refusals.append(
+                (
+                    f"{d}/{a}",
+                    1,
+                    rf"^00:00Z {a}: _szpanel reads the mini reference's last checkpoint \(grpo_think_vs_mini_szpanel\): refusing$",
+                    a,
+                )
+            )
+        for kind, job, rx in (
+            ("nosets", f"{MREF}_szpanel", rf"no size-twin test set {zs} \(runs/pools/size_twins\)"),
+            ("nol3", f"{MREF}_szpanel", rf"no finished L3 of {MREF} \({ck3}\) to read"),
+            (
+                "nopass",
+                f"{MREF}_ksize",
+                rf"no preflight pass record of {mz}/L2_mini_size\.jsonl as it is \({mz}/preflight_pass_size\.txt; grpo_v2/build_size\.py\)",
+            ),
+            ("nosets", f"{MREF}_ksize", rf"no size-twin test set {zs} \(runs/pools/size_twins\)"),
+        ):
+            refusals.append((f"{d}/{kind}_{job}", 1, rf"^00:00Z {job}: {rx}: refusing$", job))
         # the curriculum_3p files are rebuilt by someone else: refused while one is missing
         for x in ("L3", "L2"):
             for arm in ("grpo_think_vs_3pb", "grpo_think_vs3", "grpo_nothink_vs3"):
@@ -1534,6 +1983,615 @@ for mode in ("normal", "smoke"):
                     "J",
                     f"{tag}: commit records {bc in md5} {rc in md5}",
                 )
+
+
+# ---------------------------------------------------------------- M: the mini runs (2026-10-16)
+def mini_flags(r: dict, name: str) -> dict[str, str | None]:
+    """The flags of run r's stage `name` (its one grpo command)."""
+    cmds = [
+        x["argv"]
+        for x in r["rec"]
+        if x["kind"] == "timeout"
+        and " -m code.thinking.grpo " in x["argv"]
+        and f" --name {name} " in x["argv"]
+    ]
+    assert len(cmds) == 1, (name, len(cmds))
+    return flags(cmds[0])
+
+
+def fdiff(a: dict, b: dict) -> dict[str, tuple]:
+    d = {f: (a.get(f), b.get(f)) for f in set(a) | set(b) if a.get(f) != b.get(f)}
+    return d | {f: (None, None) for f in set(a) ^ set(b) if f not in d}  # a switch added or dropped
+
+
+def check_mini_run(r: dict, arm: str, s: int, mode: str, sect: str, **kw: object) -> None:
+    """A mini run's result dir against `expect()`: exit, the calls (multiset and order), stdout, the environment, no flag
+    twice, its eval dirs; the chain (L2-mini from S1g3_s0, L3-mini from L2-mini's last checkpoint, the reference's for a
+    fork, each KL anchor at its init)."""
+    smoke = mode == "smoke"
+    c_ = "<R>/grpo_v2" + ("/smoke" if smoke else "")
+    it = 2 if smoke else mit_of(arm)
+    fork = arm in MFORKS + MFORKS20
+    tag = f"{mode} s{s} {arm}" + (f" {kw}" if kw else "")
+    exp, eout = expect(arm, s, mode, 3, **kw)  # type: ignore[arg-type]
+    got = [key(x) for x in r["rec"]]
+    ok(r["exit"] == "0", sect, f"{tag}: exit {r['exit']}")
+    ok(
+        sorted(got) == sorted(exp),
+        sect,
+        f"{tag}: calls: missing {sorted(set(exp) - set(got))[:2]} extra {sorted(set(got) - set(exp))[:2]}",
+    )
+    ok(
+        [x for x in got if x[0] not in ("python3", "sleep")]
+        == [x for x in exp if x[0] not in ("python3", "sleep")],
+        sect,
+        f"{tag}: call order",
+    )
+    ok(
+        stdout_lines(r) == eout,
+        sect,
+        f"{tag}: stdout {[x for x in stdout_lines(r) if x not in eout][:2]} / {[x for x in eout if x not in stdout_lines(r)][:2]}",
+    )
+    for x in r["rec"]:
+        if x["kind"] in ("py", "timeout", "python3"):
+            e = {k: norm(v) for k, v in x["env"].items() if k in ENV_WANT}
+            ok(
+                e == ENV_WANT and ("SMOKE" in x["env"]) == smoke,
+                sect,
+                f"{tag}: {x['kind']} env {e}",
+            )
+        if x["kind"] == "timeout" and " -m code.thinking." in x["argv"]:
+            fl = [t for t in x["argv"].split() if t.startswith("--")]
+            ok(len(fl) == len(set(fl)), sect, f"{tag}: a flag given twice in {x['argv'][:80]}")
+    ok(
+        not any("tb72" in t or "logical" in t or "_avg" in t for t in r["tree"]),
+        sect,
+        f"{tag}: a tb72 / guided / averaged read",
+    )
+    ok(
+        not fork or not any(f"{arm}_s{s}_L2" in t for t in r["tree"]),
+        sect,
+        f"{tag}: a fork's L2 of its own",
+    )
+    names = [x[5].split(" --name ")[1].split()[0] for x in got if " -m code.thinking.grpo " in x[5]]
+    if f"{arm}_s{s}_L2" in names:
+        f2 = mini_flags(r, f"{arm}_s{s}_L2")
+        ok(
+            f2["--init"] == "<R>/stage1/S1g3_s0/model.pt" == f2["--kl_anchor_ref"],
+            sect,
+            f"{tag}: L2 init {f2['--init']}",
+        )
+    if f"{arm}_s{s}_L3" in names:
+        f3 = mini_flags(r, f"{arm}_s{s}_L3")
+        a2 = mref_of(arm) if fork else arm
+        l2last = f"{c_}/{a2}_s{s}_L2/ckpts/{a2}_s{s}_L2_it{it}.pt"
+        ok(f3["--init"] == l2last == f3["--kl_anchor_ref"], sect, f"{tag}: L3 init {f3['--init']}")
+
+
+def eval_dirs(r: dict) -> list[str]:
+    return sorted(
+        re.sub(r"^d \./runs/eval/v2(_smoke)?/", "", t)
+        for t in r["tree"]
+        if re.match(r"^d \./runs/eval/v2(_smoke)?/[^/]+$", t)
+    )
+
+
+for mode in ("normal", "smoke"):
+    smoke = mode == "smoke"
+    c_ = "<R>/grpo_v2" + ("/smoke" if smoke else "")
+    it = 2 if smoke else MINI_IT
+    for s in (0, 1, 2, 3):
+        for arm in (
+            MARMS + MFORKS + MARMS20 + MFORKS20 if s < 3 else MARMS[:1]
+        ):  # seed 3: the reference alone (its init is S1g3_s0's)
+            r = runs[(mode, s, arm)] = load(f"{H}/res/{mode}/s{s}/{arm}")
+            check_mini_run(r, arm, s, mode, "M")
+            want_ev = sorted(mini_read_dirs(arm, s, smoke))
+            ok(eval_dirs(r) == want_ev, "M", f"{mode} s{s} {arm}: eval dirs {eval_dirs(r)}")
+        if s == 3:
+            continue
+        # L2-mini vs grpo_think_vs's L2 and L3-mini vs grpo_think_vs_mb_kkl0's L3: the iterations, the subsets, the
+        # rolling checkpoints, the timeout and the inits only (SMOKE=1: 2-iteration stages on 8-row heads either way)
+        ref = MREF
+        r = runs[(mode, s, ref)]
+        for st, full, fn in (
+            ("L2", "grpo_think_vs", f"grpo_think_vs_s{s}_L2"),
+            ("L3", "grpo_think_vs_mb_kkl0", f"grpo_think_vs_mb_kkl0_s{s}_L3"),
+        ):
+            fm = mini_flags(r, f"{ref}_s{s}_{st}")
+            ff = mini_flags(runs[(mode, s, full)], fn)
+            for k_ in ("--name", "--out"):
+                ff[k_] = (ff[k_] or "").replace(fn, f"{ref}_s{s}_{st}")
+            mwant: dict[str, tuple] = {"timeout": ("21600", "7200"), "--save_rolling": (None, "2")}
+            if not smoke:
+                mwant |= {"--iters": ("39", "10"), "--save_every": ("39", "10")}
+                mwant["--targets"] = (
+                    f"<R>/pools/curriculum/{st}/pool.jsonl",
+                    f"{MINI}/{st}_mini.jsonl",
+                )
+                if st == "L3":
+                    mwant["--targets_extra"] = (
+                        "<R>/pools/curriculum_3p/L3_3p.jsonl",
+                        f"{MINI}/L3_3p_mini.jsonl",
+                    )
+            if (
+                st == "L2" and s != 0
+            ):  # the full recipe's seed s from S1g3_s{s}, the mini run's from S1g3_s0
+                mwant["--init"] = mwant["--kl_anchor_ref"] = (
+                    f"<R>/stage1/S1g3_s{s}/model.pt",
+                    "<R>/stage1/S1g3_s0/model.pt",
+                )
+            if st == "L3":  # from L2-mini's last checkpoint, not the base arm's 39-iteration L2
+                l2full = f"{c_}/grpo_think_vs_s{s}_L2/ckpts/grpo_think_vs_s{s}_L2_it{2 if smoke else 39}.pt"
+                l2mini = f"{c_}/{ref}_s{s}_L2/ckpts/{ref}_s{s}_L2_it{it}.pt"
+                mwant["--init"] = mwant["--kl_anchor_ref"] = (l2full, l2mini)
+            ok(
+                fdiff(ff, fm) == mwant,
+                "M",
+                f"{mode} s{s} {ref} {st}: vs {full}'s: {fdiff(ff, fm)}, want {mwant}",
+            )
+        # mini20 (2026-10-18): its reference's commands are the mini reference's but for --iters / --save_every 20,
+        # the 3 h timeout and L3-mini's init (its own L2-mini's _it20); the names its own
+        r20 = runs[(mode, s, MREF20)]
+        for st in ("L2", "L3"):
+            fm = mini_flags(r, f"{MREF}_s{s}_{st}")
+            fm = {
+                k_: (v.replace(f"{MREF}_s{s}_", f"{MREF20}_s{s}_") if v else v)
+                for k_, v in fm.items()
+            }
+            f20 = mini_flags(r20, f"{MREF20}_s{s}_{st}")
+            mwant = {"timeout": ("7200", "10800")}
+            if not smoke:
+                mwant |= {"--iters": ("10", "20"), "--save_every": ("10", "20")}
+                if st == "L3":
+                    l2a = f"{c_}/{MREF20}_s{s}_L2/ckpts/{MREF20}_s{s}_L2_it"
+                    mwant["--init"] = mwant["--kl_anchor_ref"] = (f"{l2a}10.pt", f"{l2a}20.pt")
+            ok(
+                fdiff(fm, f20) == mwant,
+                "M",
+                f"{mode} s{s} {MREF20} {st}: vs {MREF}'s: {fdiff(fm, f20)}, want {mwant}",
+            )
+        # each knob's commands: the reference's but for its flags; a fork's L3-mini: the reference's L3-mini (the same
+        # init and KL reference) but for its flags (mini and mini20 each against its own reference)
+        for arm, ref in [(a, MREF) for a in MARMS[1:] + MFORKS] + [
+            (a, MREF20) for a in MARMS20[1:] + MFORKS20
+        ]:
+            r = runs[(mode, s, ref)]
+            mk = arm.rsplit("_k", 1)[1]
+            l2k, l3k, _ = mknob(mk, smoke)
+            fork = mk in MFORK
+            for st in ("L3",) if fork else ("L2", "L3"):
+                fk = mini_flags(runs[(mode, s, arm)], f"{arm}_s{s}_{st}")
+                fr = mini_flags(r, f"{ref}_s{s}_{st}")
+                fr = {
+                    k_: (
+                        v.replace(f"{ref}_s{s}_", f"{arm}_s{s}_")
+                        if v and (k_ in ("--name", "--out") or not fork)
+                        else v
+                    )
+                    for k_, v in fr.items()
+                }
+                mwant = l3k if st == "L3" else l2k
+                ok(
+                    fdiff(fr, fk) == mwant,
+                    "M",
+                    f"{mode} s{s} {arm} {st}: vs {ref}'s: {fdiff(fr, fk)}, want {mwant}",
+                )
+        # --ban_stop in L3-mini (the stub exits 3 without a checkpoint): the calls up to L3-mini's, its exit, rollbacks
+        # and FAILED lines, no reads
+        arm = "grpo_think_vs_mini_kt13"
+        r = load(f"{H}/res/refuse/{mode}/s{s}/stop_{arm}")
+        exp, eout = expect(arm, s, mode, 3)
+        got = [key(x) for x in r["rec"]]
+        i3 = next(
+            i for i, x in enumerate(exp) if x[0] == "timeout" and f" --name {arm}_s{s}_L3 " in x[5]
+        )
+        j3 = next(
+            i for i, x in enumerate(eout) if x.startswith(f"00:00Z launched GRPO {arm}_s{s}_L3 ")
+        )
+        tail = [
+            f"00:00Z GRPO {arm}_s{s}_L3 exit 3: ",
+            f"00:00Z GRPO {arm}_s{s}_L3 rollbacks: no guard line",
+            f"00:00Z GRPO {arm}_s{s}_L3 FAILED: exit 3 (--ban_stop: the think ban mass passed 0.005), no "
+            f"{arm}_s{s}_L3_it{it}.pt: the run counts as failed",
+            f"00:00Z {arm}_s{s}_L3 failed",
+        ]
+        tag = f"stop {mode} s{s}"
+        ok(r["exit"] == "1", "M", f"{tag}: exit {r['exit']}")
+        ok(
+            [x for x in got if x[0] not in ("python3", "sleep")]
+            == [x for x in exp[: i3 + 1] if x[0] not in ("python3", "sleep")],
+            "M",
+            f"{tag}: calls",
+        )
+        ok(stdout_lines(r) == eout[: j3 + 1] + tail, "M", f"{tag}: stdout {stdout_lines(r)[-4:]}")
+        ok(not eval_dirs(r), "M", f"{tag}: eval dirs {eval_dirs(r)}")
+        # a fork whose reference L2-mini never finishes (its checkpoint there, no exit line): the wait line, 180 waits of
+        # a minute, the FAILED line; nothing launched or written
+        arm = "grpo_think_vs_mini_kg64"
+        r = load(f"{H}/res/refuse/{mode}/s{s}/wait_{arm}")
+        cr = "grpo_v2/smoke" if smoke else "grpo_v2"
+        lg = f"{SB}/grpo_v2/smoke/logs" if smoke else f"{SB}/logs"
+        ck2 = f"{SB}/{cr}/{MREF}_s{s}_L2/ckpts/{MREF}_s{s}_L2_it{it}.pt"
+        want = [
+            f"00:00Z {arm}: waiting for {MREF}'s L2-mini at seed {s} to finish ({ck2}, 'GRPO {MREF}_s{s}_L2 exit 0' in "
+            f"{lg}/v2_{MREF}_s{s}.log), up to 3 h",
+            f"00:00Z {arm}: {MREF}'s L2-mini at seed {s} did not finish in 3 h: FAILED",
+        ]
+        tag = f"forkwait {mode} s{s}"
+        sl = [x for x in r["rec"] if x["kind"] == "sleep"]
+        ok(
+            r["exit"] == "1" and stdout_lines(r) == want,
+            "M",
+            f"{tag}: exit {r['exit']} {stdout_lines(r)}",
+        )
+        ok(
+            len(sl) == 180
+            and all(x["argv"] == "60" for x in sl)
+            and not any(
+                x["kind"] == "timeout" or (x["kind"] == "py" and x["argv"].startswith("-m "))
+                for x in r["rec"]
+            ),
+            "M",
+            f"{tag}: {len(sl)} sleeps, something launched",
+        )
+        ok(
+            not [t for t in set(r["tree"]) - set(r["pre"]) if arm in t],
+            "M",
+            f"{tag}: wrote something",
+        )
+
+# ---------------------------------------------------------------- N: mini reruns and MINI_ROLL
+for mode in ("normal", "smoke"):
+    smoke = mode == "smoke"
+    for s in (0, 1, 2):
+        k2 = 2 if smoke else None
+        for d, arm, kw in (
+            ("l2done_grpo_think_vs_mini_klp20", "grpo_think_vs_mini_klp20", {"l2_there": True}),
+            (
+                "done_grpo_think_vs_mini_kpool250",
+                "grpo_think_vs_mini_kpool250",
+                {
+                    "l2_there": True,
+                    "l3_there": True,
+                    "reads_there": frozenset(
+                        f"{n}_grpo_think_vs_mini_kpool250_s{s}_plain_k{k2 or k}"
+                        for n, k in (("l2test", 8), ("charles173", 64))
+                    ),
+                },
+            ),
+        ):
+            r = load(f"{H}/res/mini/{mode}/s{s}/{d}")
+            check_mini_run(r, arm, s, mode, "N", **kw)
+            got = [key(x) for x in r["rec"]]
+            ran = [
+                x[5].split(" --name ")[1].split()[0]
+                for x in got
+                if " -m code.thinking.grpo " in x[5]
+            ]
+            ok(
+                ran == ([] if kw.get("l3_there") else [f"{arm}_s{s}_L3"]),
+                "N",
+                f"{d} {mode} s{s}: stages {ran}",
+            )
+            n_ev = sum(" -m code.thinking.eval " in x[5] for x in got)
+            n_want = len(mini_read_dirs(arm, s, smoke)) - len(kw.get("reads_there", ()))  # type: ignore[arg-type]
+            ok(n_ev == n_want, "N", f"{d} {mode} s{s}: {n_ev} reads, want {n_want}")
+            # a finished line's rerun (its setup's training record: 'dry training commit') writes HEAD to
+            # reads_commit.txt and keeps base_commit.txt; a line that trains writes base_commit.txt alone
+            md5 = dict(
+                ln.split("  ", 1)[::-1]
+                for ln in Path(f"{H}/res/mini/{mode}/s{s}/{d}/md5.txt").read_text().split("\n")
+                if ln
+            )
+            c2 = "grpo_v2/smoke" if smoke else "grpo_v2"
+            bc, rc = (f"./runs/{c2}/{arm}_s{s}.{x}_commit.txt" for x in ("base", "reads"))
+            train_rec = hashlib.md5(b"dry training commit\n").hexdigest()
+            ok(
+                (md5.get(bc) == train_rec and rc in md5)
+                if kw.get("l3_there")
+                else (bc in md5 and md5[bc] != train_rec and rc not in md5),
+                "N",
+                f"{d} {mode} s{s}: commit records {bc in md5} {rc in md5}",
+            )
+        # MINI_ROLL "L2:4 L3:2 L3:6" (SMOKE=1: L2:2): after the usual reads, MINI_PANEL of the two rolling checkpoints
+        # there, under ARM_STAGEitIT; L3:6's reads skipped
+        arm = MREF
+        r = load(f"{H}/res/mini/{mode}/s{s}/roll_{arm}")
+        exp, eout = expect(arm, s, mode, 3)
+        got = [key(x) for x in r["rec"]]
+        cg, ce = collections.Counter(got), collections.Counter(exp)
+        c_ = "<R>/grpo_v2" + ("/smoke" if smoke else "")
+        i2 = 2 if smoke else 4
+        want_cp = [
+            f"{c_}/{arm}_s{s}_L2/ckpts/{arm}_s{s}_L2_it{i2}_rolling.pt",
+            f"{c_}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it2_rolling.pt",
+        ]
+        evs = [
+            x[5] for x in got if " -m code.thinking.eval " in x[5] and x not in ce
+        ]  # the panel's, in order
+        npan = len(MINI_PANEL)
+        n_extra = (
+            2 * npan * (4 if not smoke else 2)
+        )  # each read: waitfree's 2 nvidia-smi (normal), rm, the eval
+        ok(
+            r["exit"] == "0" and not (ce - cg) and sum((cg - ce).values()) == n_extra,
+            "N",
+            f"roll {mode} s{s}: exit / calls",
+        )
+        ok(
+            len(evs) == 2 * npan
+            and [e.split(" --ckpt ")[1].split()[0] for e in evs]
+            == [want_cp[0]] * npan + [want_cp[1]] * npan
+            and all(
+                f"_{arm}_{st}it{i}_s{s}_plain_k" in e
+                for e, (st, i) in zip(evs, [("L2", i2)] * npan + [("L3", 2)] * npan, strict=True)
+            )
+            and [e.split(" --sets ")[1].split()[0] for e in evs]
+            == [READ_SETS[n] for n, _ in MINI_PANEL] * 2
+            and all(" --temperature 0.8 " in e for e in evs),
+            "N",
+            f"roll {mode} s{s}: panel reads {[e[:150] for e in evs]}",
+        )
+        skip = f"00:00Z {arm}: no {SB}/grpo_v2{'/smoke' if smoke else ''}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it6_rolling.pt (an alarm iteration?): its reads skipped"
+        ok(
+            skip in stdout_lines(r) and stdout_lines(r)[-1] == eout[-1],
+            "N",
+            f"roll {mode} s{s}: stdout {stdout_lines(r)[-3:]}",
+        )
+
+
+# ---------------------------------------------------------------- Q: ARM_ckreads (2026-10-16)
+def expect_ckreads(
+    job: str, s: int, mode: str, rolling: list[int]
+) -> tuple[list[tuple], list[str], str | None]:
+    """-> (records, stdout, its ckpts.txt or None) of the ARM_ckreads job `job` with L3 rolling checkpoints at `rolling`
+    (an L3 job's): written from the request, as expect()."""
+    smoke = mode == "smoke"
+    C = "<R>/grpo_v2" + ("/smoke" if smoke else "")
+    EV = "<R>/eval/v2" + ("_smoke" if smoke else "")
+    L = C + "/logs" if smoke else "<R>/logs"
+    cvd, st = ("CVD=[]" if smoke else "CVD=[3]"), "<stdout>"
+    if job == "s1g3_ckreads":
+        arm, kind = "grpo_think_vs", "base"
+    elif job in (
+        f"{MREF}_tpanel",
+        f"{MREF20}_tpanel",
+    ):  # a mini reference's last at TPANEL_TS (2026-10-18)
+        arm, kind = job[: -len("_tpanel")], "tpanel"
+    elif job in (
+        f"{MREF}_szpanel",
+        f"{MREF20}_szpanel",
+    ):  # ... on the size-twin test sets (2026-10-18)
+        arm, kind = job[: -len("_szpanel")], "szpanel"
+    elif job.endswith("_l2_ckreads"):
+        arm, kind = job[: -len("_l2_ckreads")], "l2"
+    else:
+        arm, kind = job[: -len("_ckreads")], "l3"
+    exp, _ = expect(arm, s, mode, 3)
+    recs: list[tuple] = []
+    for x in exp:  # the branch and import checks (an L3 pilot's: its options guard), up to the preflight / record
+        if (x[0] == "py" and x[5].startswith("-m ")) or (
+            x[0] == "git" and x[5].endswith(" rev-parse HEAD")
+        ):
+            break
+        recs.append(x)
+    recs.append(
+        ("git", WT, "CVD=unset", f"{C}/{job}_s{s}.base_commit.txt", st, f"-C {WT} rev-parse HEAD")
+    )
+    out: list[str] = []
+    done: set[str] = set()
+
+    def reads(cp: str, nm: str, panel: list[tuple[str, int]], tp: str = "0.8") -> None:
+        for n, k in panel:
+            k = 2 if smoke else k
+            o = f"{EV}/{n}_{nm}_s{s}_plain_k{k}" + (
+                "" if tp == "0.8" else f"_T{tp.replace('.', '')}"
+            )
+            if o in done:  # read once
+                continue
+            done.add(o)
+            if not smoke:
+                recs.extend(
+                    (
+                        "nvidia-smi",
+                        WT,
+                        "CVD=unset",
+                        "pipe",
+                        st,
+                        q,
+                    )
+                    for q in (
+                        "--query-gpu=memory.used --format=csv\\,noheader\\,nounits -i 3",
+                        "--query-compute-apps=pid --format=csv\\,noheader -i 3",
+                    )
+                )
+            recs.append(("rm", WT, "CVD=unset", st, st, f"-rf {o}"))
+            log = f"{L}/v2_eval_{os.path.basename(o)}.log"
+            recs.append(
+                (
+                    "timeout",
+                    WT,
+                    cvd,
+                    log,
+                    log,
+                    f"9000 <PY> -m code.thinking.eval --ckpt {cp} --sets {READ_SETS[n]} --out {o} --k {k} "
+                    f"--budgets 64 --arms plain --batch {16 if smoke else 1024} --seed 0 --temperature {tp} --max_action 512 "
+                    f"--max_steps 96 --max_rej 10" + (" --limit 2" if smoke else ""),
+                )
+            )
+            out.append(f"00:00Z read {os.path.basename(o)} exit 0 0s: [dry] eval ")
+
+    rec = None
+    if (
+        kind == "l3"
+    ):  # CKR_PANEL every 10 iterations before the last, from the nearest earlier rolling checkpoint
+        last = (4 if smoke else 78) if arm.endswith("_ki78") else (2 if smoke else 39)
+        lines = []
+        for i in range(10, last, 10):
+            j = max((x for x in rolling if x <= i), default=0)
+            if not j:
+                out.append(
+                    f"00:00Z {job}: no rolling checkpoint at or before it{i}: its reads skipped"
+                )
+                continue
+            if j != i:
+                out.append(
+                    f"00:00Z {job}: no it{i} rolling checkpoint (an alarm iteration): it{j}'s instead"
+                )
+            cp = f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{j}_rolling.pt"
+            lines.append(f"it{i} {cp}")
+            reads(cp, f"{arm}_it{j}", CKR_PANEL)
+        cp = f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{last}.pt"
+        lines.append(f"it{last} {cp}")
+        reads(cp, arm, CKR_FINAL)
+        rec = "".join(ln.replace("<R>", SB) + "\n" for ln in lines)
+    elif kind in (
+        "tpanel",
+        "szpanel",
+    ):  # L3-mini's last: MINI_PANEL at each temperature, named as the
+        cp = f"{C}/{arm}_s{s}_L3/ckpts/{arm}_s{s}_L3_it{2 if smoke else mit_of(arm)}.pt"  # T arms' training-T
+        if kind == "szpanel":  # reads; or SIZE_READS
+            reads(cp, arm, SIZE_READS)
+        for tp in TPANEL_TS if kind == "tpanel" else ():
+            reads(cp, arm, MINI_PANEL, tp)
+    else:  # the shared L2's last checkpoint, or the Stage-1 base: CKR_PANEL and MINI_READS, a read in both once
+        cp, nm = (
+            (f"{C}/{arm}_s{s}_L2/ckpts/{arm}_s{s}_L2_it{2 if smoke else 39}.pt", f"{arm}_L2")
+            if kind == "l2"
+            else (f"<R>/stage1/S1g3_s{s}/model.pt", "s1g3")
+        )
+        reads(cp, nm, CKR_PANEL)
+        reads(cp, nm, MINI_READS)
+    out.append(f"00:00Z grpo_v2 line done ({job} seed {s})")
+    return recs, out, rec
+
+
+CKR_JOBS = [  # (job, its L3 rolling checkpoints as all.sh sets them up)
+    ("grpo_think_vs_mb_kkl0_ckreads", [10, 20, 30]),
+    ("grpo_think_vs_mb_kt12_ckreads", [5, 15, 25, 30]),
+    ("grpo_think_vs_mb_ki78_ckreads", list(range(5, 80, 5))),
+    ("grpo_think_vs_mb_ckreads", [10, 20, 30]),
+    ("grpo_think_vs_fbb_ckreads", []),
+    ("grpo_think_vs_l2_ckreads", []),
+    ("s1g3_ckreads", []),
+    (f"{MREF}_tpanel", []),  # (2026-10-18; their result dirs under mini/)
+    (f"{MREF}_szpanel", []),
+    (f"{MREF20}_tpanel", []),  # mini20's (2026-10-18)
+    (f"{MREF20}_szpanel", []),
+]
+for mode in ("normal", "smoke"):
+    smoke = mode == "smoke"
+    c_ = "grpo_v2/smoke" if smoke else "grpo_v2"
+    for s in (0, 1, 2):
+        for job, rolling in CKR_JOBS:
+            tp = job.endswith(("_tpanel", "_szpanel"))
+            d = f"{H}/res/{'mini' if tp else 'ckreads'}/{mode}/s{s}/{job}"
+            r = load(d)
+            exp, eout, rec = expect_ckreads(job, s, mode, rolling)
+            got = [key(x) for x in r["rec"]]
+            tag = f"{job} {mode} s{s}"
+            ok(r["exit"] == "0", "Q", f"{tag}: exit {r['exit']}")
+            ok(
+                sorted(got) == sorted(exp),
+                "Q",
+                f"{tag}: calls: missing {sorted(set(exp) - set(got))[:2]} extra {sorted(set(got) - set(exp))[:2]}",
+            )
+            ok(got == exp, "Q", f"{tag}: call order")
+            ok(
+                stdout_lines(r) == eout,
+                "Q",
+                f"{tag}: stdout {[x for x in stdout_lines(r) if x not in eout][:2]} / {[x for x in eout if x not in stdout_lines(r)][:2]}",
+            )
+            md5 = dict(
+                ln.split("  ", 1)[::-1] for ln in Path(f"{d}/md5.txt").read_text().split("\n") if ln
+            )
+            jr = f"./runs/{c_}/{job}_s{s}.base_commit.txt"
+            arm = job.rsplit("_", 1)[0] if tp else job[: -len("_ckreads")]
+            ab = f"./runs/{c_}/{arm}_s{s}.base_commit.txt"
+            ok(
+                jr in md5
+                and (
+                    (rec is None and not tp)
+                    or md5.get(ab) == hashlib.md5(b"dry training commit\n").hexdigest()
+                ),
+                "Q",
+                f"{tag}: commit records",
+            )
+            ck_rec = f"./runs/{c_}/{job}_s{s}.ckpts.txt"
+            ok(
+                (ck_rec not in md5)
+                if rec is None
+                else md5.get(ck_rec) == hashlib.md5(rec.encode()).hexdigest(),
+                "Q",
+                f"{tag}: the checkpoint record {md5.get(ck_rec)}",
+            )
+            ok(
+                not any(" -m code.thinking.grpo " in x[5] or x[5].startswith("-m ") for x in got),
+                "Q",
+                f"{tag}: trained or preflighted",
+            )
+
+# ---------------------------------------------------------------- N: a crashed stage's rerun (2026-10-18)
+# a stage an earlier run left without its last checkpoint (args.json, metrics.jsonl, a rolling checkpoint, its log):
+# its dir and log moved aside to *.crashed_<UTC> (date's stub: 00:00), logged, then the stage reruns from scratch. The
+# mini reference's L3-mini (L2-mini finished; its training record there: rerun_commit.txt, base_commit.txt kept) and
+# grpo_think_vs's L2 (base_commit.txt written, as for every non-mini arm)
+for mode in ("normal", "smoke"):
+    smoke = mode == "smoke"
+    c_ = "grpo_v2/smoke" if smoke else "grpo_v2"
+    lg = "grpo_v2/smoke/logs" if smoke else "logs"
+    for s in (0, 1, 2):
+        for arm, st, kw in (
+            (MREF, "L3", {"l2_there": True, "base_there": True}),
+            ("grpo_think_vs", "L2", {}),
+        ):
+            nm = f"{arm}_s{s}_{st}"
+            d = f"{H}/res/mini/{mode}/s{s}/crash_{arm}"
+            r = load(d)
+            tag = f"crash {arm} {mode} s{s}"
+            if arm == MREF:
+                check_mini_run(r, arm, s, mode, "N", crashed=frozenset([nm]), **kw)
+            else:
+                exp, eout = expect(arm, s, mode, 3, crashed=frozenset([nm]))
+                got = [key(x) for x in r["rec"]]
+                ok(r["exit"] == "0" and sorted(got) == sorted(exp), "N", f"{tag}: exit / calls")
+                ok(
+                    [x for x in got if x[0] not in ("python3", "sleep")]
+                    == [x for x in exp if x[0] not in ("python3", "sleep")],
+                    "N",
+                    f"{tag}: call order",
+                )
+                ok(stdout_lines(r) == eout, "N", f"{tag}: stdout {stdout_lines(r)[:2]}")
+            tree = set(r["tree"])
+            aside = f"./runs/{c_}/{nm}.crashed_00:00"
+            ok(
+                {
+                    f"f {aside}/args.json",
+                    f"f {aside}/metrics.jsonl",
+                    f"f {aside}/ckpts/{nm}_it{2 if st == 'L3' else 5}_rolling.pt",
+                    f"f ./runs/{lg}/v2_{nm}.crashed_00:00.log",
+                }
+                <= tree
+                and not any(t.startswith(f"f ./runs/{c_}/{nm}/") and "_rolling" in t for t in tree)
+                and f"f ./runs/{c_}/{nm}/metrics.jsonl" not in tree,
+                "N",
+                f"{tag}: the crashed dir and log aside, the rerun's dir clean",
+            )
+            md5 = dict(
+                ln.split("  ", 1)[::-1] for ln in Path(f"{d}/md5.txt").read_text().split("\n") if ln
+            )
+            bc, rr, rc = (
+                f"./runs/{c_}/{arm}_s{s}.{x}_commit.txt" for x in ("base", "rerun", "reads")
+            )
+            train_rec = hashlib.md5(b"dry training commit\n").hexdigest()
+            ok(
+                (md5.get(bc) == train_rec and rr in md5 and rc not in md5)
+                if arm == MREF
+                else (bc in md5 and rr not in md5 and rc not in md5),
+                "N",
+                f"{tag}: commit records {bc in md5} {rr in md5} {rc in md5}",
+            )
 
 # ---------------------------------------------------------------- C: busy GPU and queue.sh
 r = load(f"{H}/res/busy/grpo_think_s0")

@@ -15,7 +15,14 @@ attempt counts.
   are drawn rarely, but the floor brings them back as the policy changes. Plain arm, temperature
   T = `--temperature` (1.0 by default, the usual RLVR choice; evals sample at 0.8).
 * **Reward.** 1 if Lean accepts the whole proof, else 0. A success pays `--len_penalty` per 1,000
-  sampled tokens (think + action, all steps): the shortness pressure.
+  sampled tokens (think + action, all steps): the shortness pressure (negative: a bonus for
+  length). An all-solved group's rewards then differ by length alone: such a group is
+  *length-only* (2026-10-16). It is trained, its attempts' items are kind 'len', and it has no
+  outcome signal: the unlikeliness reward and `--refill` read the outcomes without the penalty
+  (`group_items`), and the loss divides by the other items' tokens, so the length term comes on
+  top of the outcome signal, as the step penalty does, instead of diluting it (`policy_loss`'s
+  `on_top`). `row['len_only']` (with the penalty only): the length-only groups, their items and
+  tokens. With `--len_penalty 0` none of this changes anything.
 * **Length target** (LCPO, L1: Aggarwal & Welleck 2025, arXiv 2503.04697; off by default). With
   `--len_target_coef` alpha > 0 every attempt at a budget B > 0, failures included, also pays
   alpha x d, d = the mean over its think blocks of min(1, d_b), d_b = |L_b - T| / T
@@ -174,7 +181,8 @@ skipped). Without them the rollouts, rows, log lines, weights and args.json are 
 (digests in test_grpo_pilots.py); the options are left out of args.json unless given.
 * **Refill** (`--refill`; dynamic sampling, DAPO: Yu et al. 2025, arXiv 2503.14476; Olmo 3's active
   sampling). A group has an outcome signal when its unmasked rewards are not all equal (not all
-  solved, not all failed). While fewer than `--prompts` of the iteration's groups have one and
+  solved, not all failed; `--len_penalty` left out: a length-only group has none). While fewer
+  than `--prompts` of the iteration's groups have one and
   fewer than `--refill_max` (2) extra rounds have run, another round of pairs is drawn with the same
   curricula and weights (updated with the groups so far; pairs already drawn this iteration
   excluded; `--targets_extra_frac` of them from the extra file) and sampled: ceil(D / q) pairs, at
@@ -201,8 +209,9 @@ skipped). Without them the rollouts, rows, log lines, weights and args.json are 
   (G - rank(y_i)) / G) with rank 1 the most likely of the G samples (its text also says "rank 0";
   the released code, `ray_lean_trainer._compute_advantages`, uses rank = argsort(argsort(log p))
   ascending / G, which is rho / n). Only groups with an outcome signal change: the paper skips
-  groups with zero advantage before the perturbation, so an all-solved group stays skipped and
-  the outcome still sets each attempt's sign. The advantage stays r - the group mean (Dr. GRPO;
+  groups with zero advantage before the perturbation, so an all-solved group stays skipped (with
+  `--len_penalty`, length-only: no deduction) and the outcome still sets each attempt's sign.
+  The advantage stays r - the group mean (Dr. GRPO;
   the paper divides by the std). The likelihood is the mean log pi_old per scored token of the
   attempt's steps (`old_logps`, the PPO ratio's log-probs, so no extra forward pass): every
   sampled think and action token, under the phase masks at T, the draw that ended a failed attempt
@@ -262,6 +271,28 @@ retries per attempt, retries accepted (overall and per retry index), the repeat 
 rejected actions at a state (of the rejected retries, and of all rejections: Robbie's
 denominator), feedback tokens and lines per attempt, the unrendered share, the share of solved
 attempts that needed a retry; per budget too.
+
+Mini-run knobs (opt-in, left out of args.json unless given; Leon 2026-10-16). Without them the
+rollouts, rows, log lines, weights and args.json are unchanged (test_grpo_mini_knobs.py):
+* **`--loss_tokens action|think`** trains only the scored tokens of one phase: the think block (its
+  `</think>` included: `think_len`) or the rest, the actions. The loss, its divisor and the clip /
+  ratio statistics and alarms count those tokens alone: the token-level mean is over the trained
+  tokens, so each weighs 1 / their count, more than in a full run, whose count has both phases.
+  The entropy and the think ban mass, and so the ban alarm, the restore check and `--ban_stop`,
+  stay over every scored token. The unlikeliness ranks keep the attempt's every scored token; the
+  step penalty's -P falls on its draws' tokens of that phase (under `--rej_penalty_scope`); the
+  KL anchor is a separate term on the anchor's action tokens and is unchanged. At budget 0 there
+  is no think block, so `think` trains nothing there; a minibatch without a token of the phase
+  takes no step (and so no KL anchor step either). The logged entropies stay per scored token.
+* **`--adv_sign pos|neg`** keeps one side of the outcome advantage (r - the group mean, after the
+  unlikeliness deduction and the length terms) and zeroes the rest. `pos` keeps the positive
+  advantages, by sign. `neg` keeps the failed attempts' advantages, by outcome: every solved
+  attempt's is zeroed, also when the unlikeliness deduction made it negative (in a mostly solved
+  group), and a failed attempt's is kept up to 0 (it is <= 0 unless the length terms push the mean
+  below 0). The zeroed items stay, with their tokens in the divisor, so a kept token weighs
+  exactly what it weighs in the full run. The step penalty is not an outcome advantage: its -P
+  stays on the rejected draws and on the draw that ended a failed attempt (under `pos`, that draw
+  keeps -P alone; line.sh's advpos arm runs at --rej_penalty 0).
 
 Budget tokens (`--effort`): a `lean_thinkn` init is expanded to `lean_thinke` (effort.py), and the
 sampler prefills `<eB>`. Without `--effort` the budget is applied but never shown to the model (as
@@ -328,6 +359,8 @@ CANARY_KEYS = (("nll", "action NLL"), ("wrong_max", "top wrong-token P"), ("colo
 STATE_VERSION = 1  # `train_state`
 LEN_TARGET_MODES = ("exact", "max")  # --len_target_mode: |L_b - B| / B, or the overshoot only
 FEEDBACK_MODES = FB.MODES  # --feedback (module docstring); line.sh's guard reads it
+LOSS_TOKENS = ("all", "action", "think")  # --loss_tokens: the scored tokens the policy loss trains
+ADV_SIGNS = ("both", "pos", "neg")  # --adv_sign: the outcome advantages kept
 
 
 def open_think(p: Sequence[int], think_ids: tuple[int, int] | None) -> bool:
@@ -584,12 +617,20 @@ def group_items(
     src: list[tuple[int, str]] | None = None,
     signal: list[bool] | None = None,
     unlikely: Sequence[float] | None = None,
+    adv_sign: str = "both",
 ) -> tuple[list[Item] | None, list[bool]]:
     """One group's training items -> (items, None when the group is skipped; per attempt, whether
     it is masked as overlong). Masked attempts give no items, so no gradient. `len_target_*`: the
     length target (`rewards`). `signal`, when given, gets whether the outcomes give a signal (the
     unmasked rewards are not all equal). `unlikely`: per attempt a deduction from its reward (the
     unlikeliness reward, `unlikely_penalties`), applied only when the outcomes give a signal.
+    The outcome signal leaves `len_penalty` out: a group whose rewards differ only by it (all
+    solved, unequal lengths) is length-only, trained on the penalty's advantages alone, with no
+    signal and no deduction; its attempts' items are kind 'len' (`src`; module docstring).
+    `adv_sign` (`ADV_SIGNS`, --adv_sign): 'pos' keeps the positive outcome advantages (r - the
+    mean, after the deductions), 'neg' the failed attempts' (by outcome: a solved attempt's is
+    zeroed even when the deduction made it negative; a failed one's at most 0); the items stay,
+    with their tokens in the loss's divisor, and the step penalty's -P stays on its draws.
 
     Step penalty (`rej_penalty` P > 0, a guided arm): every rejected draw gets -P on top of what
     its attempt gives it -- the redrawn draws (`rejected_items`, of every attempt, masked ones
@@ -597,18 +638,29 @@ def group_items(
     ended a failed attempt. A group is then skipped only if its outcomes give no signal AND it
     has no rejected draw; a no-signal group with rejected draws gives only the penalised draws
     (and the attempt-ending ones). `src`, when given, gets one (attempt index, kind) per item:
-    'acc' an attempt's steps, 'rej' a redrawn draw."""
+    'acc' an attempt's steps, 'len' a length-only group's, 'rej' a redrawn draw."""
     assert overlong in ("mask", "fail"), overlong
     masked = [overlong == "mask" and is_overlong(x) for x in att]
     ids = (tok.think, tok.end_think) if len_target_coef and has_think(tok) else None
     r = rewards(att, len_penalty, len_target_coef, len_target_mode, ids, len_target_frac)
     keep = [not m for m in masked]
     adv = advantages(r, keep)
+    sig = adv is not None  # the outcome signal: the rewards without the length penalty differ
+    if len_penalty and sig:
+        r0 = rewards(att, 0.0, len_target_coef, len_target_mode, ids, len_target_frac)
+        sig = advantages(r0, keep) is not None
+    kind = "acc" if sig or adv is None else "len"  # a length-only group's steps: 'len'
     if signal is not None:
-        signal.append(adv is not None)
-    if adv is not None and unlikely is not None:  # the skip rule reads the rewards before it
+        signal.append(sig)
+    if sig and unlikely is not None:  # the skip rule reads the rewards before it
         adv2 = advantages([x - u for x, u in zip(r, unlikely, strict=True)], keep)
         adv = adv if adv2 is None else adv2
+    if adv is not None and adv_sign != "both":  # --adv_sign: one side of the outcome advantage
+        assert adv_sign in ADV_SIGNS, adv_sign
+        if adv_sign == "pos":  # by sign
+            adv = [max(0.0, x) for x in adv]
+        else:  # 'neg', by outcome: the failed attempts' alone
+            adv = [0.0 if a.get("ok") else min(0.0, x) for a, x in zip(att, adv, strict=True)]
     pen = rej_penalty > 0 and any(n_rejected(x) for x in att)
     if adv is None and not pen:
         return None, masked
@@ -621,7 +673,7 @@ def group_items(
                 its = [it for it in attempt_items(x, 0.0, tok, -rej_penalty) if it[3] != 0.0]
             items += its
             if src is not None:
-                src += [(j, "acc")] * len(its)
+                src += [(j, kind)] * len(its)
         if pen:
             rj = rejected_items(x, rej_penalty, tok, rej_scope)
             items += rj
@@ -879,6 +931,7 @@ class LossStats(NamedTuple):
     nonfinite: int = 0  # scored tokens banned in their phase (log-prob -inf): left out of the loss
     tokens_acc: int = 0  # with `rejected`: scored tokens of the accepted items (not redrawn draws)
     clip_low_acc: float = 0.0  # ... the share of them with r < 1 - eps_low
+    tokens_all: int = 0  # every scored token, the entropy's (`tokens` but with --loss_tokens)
 
 
 def policy_loss(
@@ -894,6 +947,8 @@ def policy_loss(
     bans: Bans | None = None,
     dual_clip: float = 3.0,
     rejected: Sequence[bool] | None = None,
+    on_top: Sequence[bool] | None = None,
+    tokens: str = "all",
 ) -> LossStats:
     """Backpropagate the policy-gradient loss over `items`, as a token-level mean.
     Without `old`: -A * log pi_T (REINFORCE). With `old` (`old_logps` of the sampling policy, one
@@ -905,17 +960,37 @@ def policy_loss(
     the step penalty scores) adds clip-low over the other items' tokens (`clip_low_acc`), the
     basis of the clip-low alarms when the penalty is on, and makes the loss a sum over every
     scored token divided by the accepted items' token count, so the penalised draws do not dilute
-    the accepted tokens' per-token weight (plain GRPO's)."""
+    the accepted tokens' per-token weight (plain GRPO's). `on_top` (one flag per item: a
+    length-only group's, `group_items`) leaves those items' tokens out of that count too, so the
+    length penalty's gradient comes on top as well; they stay in clip-low's accepted tokens.
+    `tokens` (`LOSS_TOKENS`, --loss_tokens): 'action' / 'think' trains only the scored tokens of
+    that phase (`think_len`): the loss, its divisor and the clip / ratio statistics count those
+    alone (`tokens` in the stats); the entropy and the think ban mass stay over every scored
+    token."""
     assert old is None or len(old) == len(items), "old log-probs must align with the items"
-    n_tok = sum(sum(m) for _, _, m, _ in items)
+    assert on_top is None or len(on_top) == len(items), "on_top must align with the items"
+    assert tokens in LOSS_TOKENS, tokens
+    cnt = [sum(m) for _, _, m, _ in items]  # per item: its trained tokens
+    n_all = sum(cnt)  # every scored token (the entropy's and the ban mass's)
+    if tokens != "all":  # --loss_tokens: the scored tokens of one phase
+        n_th = [think_len(p, g, think_ids) for p, g, _, _ in items]
+        cnt = [
+            sum(m[:n] if tokens == "think" else m[n:])
+            for (_, _, m, _), n in zip(items, n_th, strict=True)
+        ]
+    n_tok = sum(cnt)
     if n_tok == 0:
         return LossStats()
     # the loss is a mean over the accepted items' tokens when `rejected` flags the penalised draws:
     # an accepted token weighs what it weighs in plain GRPO, the penalised draws come on top
     n_norm = n_tok
-    if rejected is not None:
-        n_norm = sum(sum(m) for (_, _, m, _), r in zip(items, rejected, strict=True) if not r)
+    if rejected is not None and on_top is None:
+        n_norm = sum(c for c, r in zip(cnt, rejected, strict=True) if not r)
         n_norm = n_norm or n_tok  # a minibatch of penalised draws only: their own mean
+    elif on_top is not None:  # and the length-only groups' items (--len_penalty)
+        out = [bool(t) or bool(rejected is not None and rejected[k]) for k, t in enumerate(on_top)]
+        n_norm = sum(c for c, o in zip(cnt, out, strict=True) if not o)
+        n_norm = n_norm or n_tok  # a minibatch of those only: their own mean
     total = ent_sum = ent_think = ban_sum = ban_max = 0.0
     r_max = 1.0 if old is None else 0.0
     n_low = n_high = n_think = n_neg = n_r3 = n_bad = 0
@@ -934,13 +1009,17 @@ def policy_loss(
             ban_sum += float(s.ban_mass[mt].sum())
             ban_max = max(ban_max, float(s.ban_mass[mt].max()))
         if old is None:
-            ok = m & torch.isfinite(tgt)
+            ok = okf = m & torch.isfinite(tgt)
+            if tokens != "all":  # --loss_tokens: one phase's tokens
+                ok = ok & (s.th if tokens == "think" else ~s.th)
             loss = -(torch.where(ok, tgt, 0.0) * w).sum() / n_norm
         else:
             o = torch.zeros_like(tgt)
             for r, k in enumerate(ids):
                 o[r][m[r]] = old[k].to(tgt.device)
-            ok = m & torch.isfinite(tgt) & torch.isfinite(o)
+            ok = okf = m & torch.isfinite(tgt) & torch.isfinite(o)
+            if tokens != "all":
+                ok = ok & (s.th if tokens == "think" else ~s.th)
             ratio = torch.exp(torch.where(ok, tgt - o, 0.0))  # 1 off the scored tokens
             surr = torch.minimum(ratio * w, torch.clamp(ratio, 1 - eps_low, 1 + eps_high) * w)
             if dual_clip > 0:  # A < 0: no lower than c A however large r gets
@@ -958,17 +1037,17 @@ def policy_loss(
             n_r3 += int((rd > R_WATCH)[neg].sum())
             if ok.any():
                 r_max = max(r_max, float(rd[ok].max()))
-        n_bad += int((m & ~ok).sum())
+        n_bad += int((m & ~okf).sum())
         loss.backward()
         total += float(loss.detach())
-    n_act = n_tok - n_think
+    n_act = n_all - n_think
     return LossStats(
         loss=total,
         tokens=n_tok,
         clip_frac=(n_low + n_high) / n_tok,
         clip_low=n_low / n_tok,
         clip_high=n_high / n_tok,
-        entropy=ent_sum / n_tok,
+        entropy=ent_sum / n_all,
         tokens_think=n_think,
         entropy_think=ent_think / n_think if n_think else 0.0,
         entropy_action=(ent_sum - ent_think) / n_act if n_act else 0.0,
@@ -980,6 +1059,7 @@ def policy_loss(
         nonfinite=n_bad,
         tokens_acc=n_acc,
         clip_low_acc=n_low_acc / n_acc if n_acc else 0.0,
+        tokens_all=n_all,
     )
 
 
@@ -1790,6 +1870,10 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         print("WARNING: --len_target_coef without --effort: the target is not in the prompt")
     sched = lr_schedule(a)  # None: constant; else resolved onto `a` (args.json)
     refill, max_pass, beta = pilot_options(a)  # resolved onto `a` when given (args.json)
+    # the mini-run knobs (module docstring); left out of the namespace and args.json unless given
+    loss_tokens = getattr(a, "loss_tokens", "all")
+    adv_sign = getattr(a, "adv_sign", "both")
+    assert loss_tokens in LOSS_TOKENS and adv_sign in ADV_SIGNS, (loss_tokens, adv_sign)
     prior = getattr(a, "unseen_prior", None)  # --unseen_prior; None: not given (half, no row)
     if a.resume:  # before anything is written: a refused resume leaves the run's files alone
         check_resume_schedule(a.resume, sched, a.start_iter)
@@ -1832,6 +1916,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 init = str(expand_to_effort(init, out / "ckpts" / f"{a.name}_it0.pt", seed=a.seed))
         model, tok, extra = load_ckpt(init, dev)
     think = has_think(tok) and extra.get("think_format", "think") != "none"
+    assert loss_tokens == "all" or think, "--loss_tokens action / think: a thinking checkpoint only"
     think_ids = (tok.think, tok.end_think) if think else None
     assert fb == "none" or (think and sample_format(model) == "think"), (
         "--feedback: the lines go into the think block (a per-step thinking checkpoint)"
@@ -1940,6 +2025,7 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             src_g,
             signal,
             unlikely,
+            adv_sign,
         )
 
     def n_unseen(ks: Sequence[tuple[int, int]], ss: Sequence[int]) -> int:
@@ -2125,6 +2211,8 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 bans=bans,
                 dual_clip=a.dual_clip,
                 rejected=[item_src[k][2] == "rej" for k in sel] if a.rej_penalty else None,
+                on_top=[item_src[k][2] == "len" for k in sel] if a.len_penalty else None,
+                tokens=loss_tokens,
             )
             if st.tokens:
                 kl = 0.0
@@ -2156,11 +2244,12 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         clip_low = sum(s.clip_low for s in stats) / n_st
         clip_high = sum(s.clip_high for s in stats) / n_st
         gn = sum(gns) / max(1, len(gns))
-        entropy = sum(s.entropy * s.tokens for s in stats) / max(1, n_tok)  # per scored token
+        n_sc = sum(s.tokens_all for s in stats)  # the scored tokens (n_tok but with --loss_tokens)
+        entropy = sum(s.entropy * s.tokens_all for s in stats) / max(1, n_sc)  # per scored token
         n_th = sum(s.tokens_think for s in stats)
         ent_think = sum(s.entropy_think * s.tokens_think for s in stats) / max(1, n_th)
-        ent_action = sum(s.entropy_action * (s.tokens - s.tokens_think) for s in stats) / max(
-            1, n_tok - n_th
+        ent_action = sum(s.entropy_action * (s.tokens_all - s.tokens_think) for s in stats) / max(
+            1, n_sc - n_th
         )
         ban_think = sum(s.ban_think * s.tokens_think for s in stats) / max(1, n_th)
         n_neg = sum(s.tokens_neg for s in stats)
@@ -2255,6 +2344,19 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 per, [target_length(t) for t in batch], skipped, items, item_src, think_ids, samp_st
             )
             row["monitor"]["arm"], row["monitor"]["rej_penalty"] = a.arm, a.rej_penalty
+        # --len_penalty: the length-only groups, trained on the penalty alone, on top of the loss
+        if a.len_penalty:
+            lo = [
+                (g, sum(x[2])) for x, (g, _, kd) in zip(items, item_src, strict=True) if kd == "len"
+            ]
+            row["len_only"] = {
+                "groups": len({g for g, _ in lo}),
+                "items": len(lo),
+                "tokens": sum(n for _, n in lo),
+                "token_share": sum(n for _, n in lo) / max(1, sum(sum(x[2]) for x in items)),
+            }
+            if a.monitor:
+                row["monitor"]["len_only_groups"] = row["len_only"]["groups"]
         if fb != "none":  # the feedback summary (`feedback.metrics`), every sampled attempt
             assert samp_st is not None
             row["feedback"] = FB.metrics(
@@ -2363,6 +2465,14 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             print(_canary_line(it, row["canary"]), flush=True)
         if "monitor" in row:
             print(_monitor_line(it, row["monitor"]), flush=True)
+        if "len_only" in row:
+            lo = row["len_only"]
+            print(
+                f"len it {it}: {lo['groups']} length-only groups of {len(per)} (all solved: "
+                f"--len_penalty {a.len_penalty:g} alone), {lo['items']} items, "
+                f"{100 * lo['token_share']:.1f}% of the scored tokens, outside the loss's divisor",
+                flush=True,
+            )
         if "feedback" in row:
             print(f"fb it {it}: " + FB.line_text(row["feedback"]), flush=True)
         for line in _pilot_lines(it, row):
@@ -2730,6 +2840,22 @@ def parser() -> argparse.ArgumentParser:
         default=argparse.SUPPRESS,
         help="the pass-rate prior: half (default: Beta(1, 1), an unseen pair at 1/2) or mean "
         "(the budget's mean pass rate over its seen pairs, as Beta(2 m, 2 (1 - m)))",
+    )
+    mk = ap.add_argument_group("mini-run knobs (opt-in; left out of args.json unless given)")
+    mk.add_argument(
+        "--loss_tokens",
+        choices=LOSS_TOKENS,
+        default=argparse.SUPPRESS,
+        help="the scored tokens the policy loss trains: all (default), action or think; its "
+        "divisor counts those alone (the entropy and the think ban mass stay over all)",
+    )
+    mk.add_argument(
+        "--adv_sign",
+        choices=ADV_SIGNS,
+        default=argparse.SUPPRESS,
+        help="the outcome advantages kept: both (default), pos (the positive ones) or neg (the "
+        "failed attempts'); the others are zeroed, their tokens stay in the divisor; the step "
+        "penalty's -P stays",
     )
     return ap
 

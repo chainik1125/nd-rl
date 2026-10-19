@@ -548,6 +548,248 @@ round, so `3p` gets the same share from a fixed file instead.
 bash line.sh GPU 0 ei_think_v_k3p    # L3 of ei_think_v seed 0 on the mix, from runs/grpo_v2/ei_think_v_s0_L2
 ```
 
+## Mini runs (2026-10-16, branch `leon/grpo-v2`)
+
+Leon's knob sweep, for a science of what makes GRPO generalise (to longer proofs, to other sources). Each run is the
+primary recipe in miniature, the knob active for the whole run, with in- and out-of-distribution reads. Nothing here
+has been trained yet. The knob list is still open (the values are parameters of the launcher).
+
+**Data** (`grpo_v2/build_mini.py`, into `runs/pools/mini/`; seed 20261016 for L2, 20261017 for L3, never a run seed).
+- `L2_mini.jsonl`: 1,000 of the L2 pool's 5,000 rows (min_lines 10 / 11 / 12: 273 / 417 / 310, the pool's shares).
+- `L3_mini.jsonl`: 1,000 of the L3 pool's 5,000 (13 / 14 / 15: 804 / 159 / 37).
+- `L3_3p_mini.jsonl`: the 369 3-premise rewrites of those L3 rows, the same fifth of `L3_3p.jsonl`'s 1,843.
+  - Every L3_3p row rewrites exactly one L3 pool row (`orig_name`), and in the full recipe every 3-premise target's
+    original is an L3 target. So the L3 subset is drawn in two strata in the pool's proportions: 369 of the 1,843 rows
+    with a rewrite and 631 of the 3,157 without. The 3-premise subset is exactly those 369 rows' rewrites.
+- Rows are copied byte for byte, in file order. A rebuild gives the same bytes (md5s `e22652a9…`, `f5c95cd9…`,
+  `74469403…`, in `mini.json`).
+- Preflight, as line.sh runs it: the two subsets (bands; no shared prompt, key or renaming / curried class with each
+  other or any of the 11 evaluation sets, the L2 / L3 `test_1k` splits included) passed. The L2 subset against the
+  3-premise subset failed only the band line (281 of the 369 rewrites are under 13 lines). All 22 evaluation-set lines
+  are `ok` in both.
+- The pass record `preflight_pass.txt` names each subset's md5. line.sh refuses a mini arm while a subset is missing or
+  differs from its record, and runs both preflights again at launch.
+- Nested subsets for the pool knobs: `L2_mini{250,500}.jsonl` are the first 250 / 500 of a fixed shuffle (seed
+  20261018) of `L2_mini`'s rows, so 250 ⊂ 500 ⊂ 1,000. `L3_mini{250,500}` are nested the same way within each stratum
+  (seeds 20261019 with a rewrite, 20261020 without), 92 / 184 rows with a rewrite. `L3_3p_mini{250,500}` are exactly
+  those rows' rewrites (92 / 184). Rows stay in file order. Each size passed the same two preflights, and the pass
+  record has all nine files. The rebuild left the three 1,000-row files byte for byte as they were.
+
+**Stages.** Both 10 iterations (`MINI_ITERS`), chained. The commands come from `grpo_stage`, the same code as the full
+recipe's, and differ from it only in what is listed here (the dry run checks this).
+- **L2-mini** = `grpo_think_vs`'s L2 command: verifier stop (`--arm logical --max_rej 0 --rej_penalty 0.1`), KL anchor
+  0.02 to its init, the constant lr after the 10-step warmup, all the safeguards. Init: always `stage1/S1g3_s0`, at every
+  seed. The seed sets the RL sampling and data order only.
+- **L3-mini** = `grpo_think_vs_mb_kkl0`'s L3 command, the primary recipe: KL anchor 0, SCHED_W, `--unlikely_beta 0.25`,
+  the 3-premise subset as extra targets at 0.33. Init and anchor reference: L2-mini's `_it10`.
+- Differences from the full commands: `--iters 10` / `--save_every 10` (39), the subsets as `--targets` /
+  `--targets_extra`, `--save_rolling 2` (grpo.py's default 5; `--keep_rolling 100` keeps them all: it2, it4, it6 and
+  it8, with it10 the stage's own checkpoint), the stage timeout 2 h (6 h) with a 1 h watchdog expectation (3.5 h), and
+  L3-mini's init.
+- **The cooldown scales by itself.** `--decay_frac 0.2` of 10 iterations is the last 2 (grpo.py rounds half up:
+  floor(0.2 × 10 + 0.5) = 2; 39 gives 8). The lr factor is then 0.505 at it 9 and 0.3 at it 10 (1-sqrt, down to 0.3), so
+  no schedule flag changes.
+- **The warmup is kept at 10 AdamW steps**, the recipe's. At `--updates 4` that is 2.5 iterations: 25% of a mini stage
+  instead of 6%. Iteration 1 trains at 0.1-0.4x the lr, iteration 2 at 0.5-0.8x, iteration 3 at 0.9x and then 1x. Each
+  stage is a fresh `--init`, so both mini stages warm up, as both full stages do. Shortening it would change the
+  per-step protection the recipe has, which is the thing kept fixed here.
+- After each stage the line logs its `ALARM` lines (each alarm, the rollback it led to or why none) and its last guard
+  line's rollback count, as `GRPO <stage> ALARM it N: …` and `GRPO <stage> rollbacks: lr xS (N rollbacks)`.
+- A stage that ends without its last checkpoint (for example `--ban_stop`, exit 3, when the think-ban mass passes
+  0.005) logs `GRPO <stage> FAILED: exit 3 (--ban_stop: …), no <ckpt>: the run counts as failed`, and the line stops
+  with no reads.
+
+**Knobs** (`grpo_think_vs_mini_kKNOB`, both stages unless noted, in line.sh's knob block only):
+
+| KNOB | change |
+|---|---|
+| `rr` | nothing: the noise control |
+| `t07`, `t085`, `t115`, `t13` | `--temperature 0.7 / 0.85 / 1.15 / 1.3` (training only; the reads stay at 0.8) |
+| `lpNN`, `lpmNN` | `--len_penalty` +NN / −NN hundredths, two digits (`lp20` 0.2, `lp50` 0.5, `lpm10` −0.1; `lp00` refused) |
+| `kl1` | a fork (below): `--kl_anchor_coef 0.1` in L3-mini (0), mirroring the full-scale `kl1` pilot (a negative control) |
+| `g64` | a fork: `--prompts 64 --group 64` in L3-mini (the same 4,096 attempts per iteration; about 5 points worse at full scale) |
+| `g64b` | `--prompts 64 --group 64` in both stages |
+| `pool250`, `pool500` | the nested 250- / 500-row subsets in both stages, the same iterations and attempts (each row seen 4x / 2x as often) |
+| `size` | the size-twin mix in both stages: a fixed half of the rows as their big-statement twins (below); also the size reads |
+| `lossact`, `lossthink` | `--loss_tokens action / think`: the policy loss on that phase's scored tokens alone (below) |
+| `advpos`, `advneg` | forks (below): `--adv_sign pos` at `--rej_penalty 0` / `--adv_sign neg`: one side of the outcome advantage (below) |
+
+**Forks** (`kl1`, `g64`: the controls, seeds 0 and 1; `advpos`, `advneg` since 2026-10-18, so that L2-mini's KL
+anchor keeps its relative weight and each is paired with the reference). A fork has no L2-mini of its own. Its L3-mini starts from the
+reference `grpo_think_vs_mini`'s `_L2_it10` at the same seed, which is also its KL reference, so it differs from the
+reference's L3-mini only in its knob. This removes L2-mini's run-to-run noise from the comparison.
+- The fork waits until that L2-mini has finished: its `_it10.pt` is there *and* the reference's job log
+  (`logs/v2_grpo_think_vs_mini_s<seed>.log`, pull_queue.sh's) has the line `GRPO grpo_think_vs_mini_s<seed>_L2 exit 0:`.
+  `save_ckpt` is not atomic, so the file alone is not enough. It logs the wait, checks once a minute for up to 3 h, then
+  logs FAILED and stops.
+- It refuses unless the reference's L2-mini log ends at `lr x1 (0 rollbacks)` (run the control at another seed).
+
+Dropped: `--updates` (it changes the AdamW steps per iteration and the warmup's length, an lr-like knob) and the lr and
+unlikeliness knobs.
+
+**Reads** (plain only, never textbook72; under the full arm name, `eval/v2/<set>_<arm>_s<seed>_plain_k<k>/`), of
+L3-mini's last checkpoint (`MINI_READS`):
+
+| set | k | what |
+|---|---|---|
+| `l2test` = `pools/curriculum/L2/test_1k.jsonl` | 8 | in distribution: the L2 pool's held-out split |
+| `l3test` = `pools/curriculum/L3/test_1k.jsonl` | 8 | in distribution: the L3 pool's held-out split |
+| t1320 | 8 | length OOD |
+| t2130 | 8 | length OOD |
+| charles173 | 64 | source OOD |
+
+- The `test_1k` files (1,000 rows each) have the `prompt` eval.py reads and `min_lines` (10-12, 13-15). The preflight
+  checks every pool and subset against both, as evaluation sets; they are not sealed.
+- The reference, `rr` and the pool arms also read their own training subsets (`MINI_TRAIN`: `l2train`, `l3train`, k8;
+  the pool arms' 250 / 500 rows), memorisation against the held-out splits.
+- The T arms also read `MINI_PANEL` (`l3test` k8, t1320 k8, t2130 k4, charles173 k16) at their training temperature,
+  as `<set>_<arm>_s<seed>_plain_k<k>_T07` (`_T085`, `_T115`, `_T13`), next to the 0.8 reads.
+- Time-resolved reads hook: `MINI_ROLL="L2:4 L3:2 …"` (env) also reads `MINI_PANEL` of those rolling checkpoints, as
+  `<set>_<arm>_L3it2_s<seed>_plain_k8`. One missing (an alarm iteration saves none) is skipped. It is off by default.
+- A read named in two of a line's lists runs once.
+- Rerunning a finished line (both stages there: to add `MINI_TRAIN` or `MINI_ROLL` reads) trains nothing and writes HEAD
+  to `ARM_sSEED.reads_commit.txt`, as `KNOB_FULL=1` does; the training's `base_commit.txt` stays. `base_commit.txt` is
+  written once (2026-10-18): a rerun that trains again (after a crash or a stop) records HEAD in `rerun_commit.txt`.
+- `grpo_think_vs_mini_szpanel` (2026-10-18, a job, no training) reads the reference's L3-mini last at seed SEED on
+  `SIZE_READS`: the L2 / L3 test_1k twins (`l2test_sz`, `l3test_sz`, k8) and their matched originals (`l2test_om`,
+  `l3test_om`, k8: the test_1k rows whose twin was built, in the twins' order). `_ksize` reads them too. So both arms
+  have paired size effects in distribution. About 0.5 GPU-h.
+- `grpo_think_vs_mini_tpanel` (2026-10-18, a job, no training) reads the reference's L3-mini last at seed SEED with
+  `MINI_PANEL` at T 0.7 and 1.3 (`TPANEL_TS`), under the reference's names with `_T07` / `_T13`: the reference point
+  for the T arms' training-T reads (`t07`'s `_T07`, `t13`'s `_T13`). About 0.5 GPU-h (8 reads).
+- A GRPO stage that an earlier run left without its last checkpoint (its dir has `args.json` or `metrics.jsonl`: a
+  crash, a stop) has its dir, rolling checkpoints included, and its log moved aside to `<dir>.crashed_<UTC>` before
+  it reruns, and the line says so (grpo.py would otherwise append to the old `metrics.jsonl`). Every GRPO arm, not
+  only the mini ones.
+
+**mini20** (`grpo_think_vs_mini20[_kKNOB]`, 2026-10-18: remedy A after the validation gate's NO-GO). The mini runs
+with 20 iterations a stage instead of 10, nothing else changed:
+- `--iters 20 --save_every 20` in both stages (`MINI20_ITERS`). SCHED_W's `--decay_frac 0.2` then cools the last 4 of
+  L3-mini's 20 iterations. The warmup stays at 10 AdamW steps (2.5 iterations).
+- Each stage's timeout is 3 h (10800 s) and its watchdog expectation 2 h.
+- The forks (`kl1`, `g64`, `advpos`, `advneg`) start from `grpo_think_vs_mini20_sSEED_L2_it20.pt`, with the same wait
+  and guard on the mini20 reference's L2-mini.
+- The same subsets, knobs and reads. `grpo_think_vs_mini20_tpanel` and `grpo_think_vs_mini20_szpanel` read the mini20
+  reference.
+- The dry run checks the commands: the mini20 reference's are the mini reference's but for `--iters` / `--save_every`
+  (10 to 20), the timeout (7200 to 10800 s), L3-mini's init and KL reference (its own L2-mini's `_it20`) and the names.
+
+**The size knob** (`_ksize`, 2026-10-18; `grpo_v2/build_size.py`, into `runs/pools/mini/`). The twins are in
+`runs/pools/size_twins/` (branch `leon/size-twins`, its README): the same problem under one uniform substitution, a
+bigger statement and the same proof, `min_lines` re-certified.
+- Each mini subset keeps its rows and order. A row is in the twinned half when the first byte of sha256(salt + its
+  name) is even: a fixed function of the original name, never a run seed. A chosen row is replaced by its twin when
+  it has one. A 3-premise extra is replaced by its own twin exactly when its L3 parent was.
+- The twin share: `L2_mini_size` 504 of 1,000 (50.4%; 1 chosen row has no twin and stays original), `L3_mini_size`
+  476 of 1,000 (47.6%), `L3_3p_mini_size` 183 of 369 (49.6%).
+- Statement tokens (whitespace tokens of the statement, without THM / SEQ / PRF; mean, p10 / p50 / p90, max):
+
+  | file | original rows | twin rows | the mix |
+  |---|---|---|---|
+  | `L2_mini_size` | 26.9, 23 / 27.5 / 30, 32 | 60.2, 46 / 60 / 75, 87 | 43.7, 25 / 42 / 70 |
+  | `L3_mini_size` | 28.5, 25 / 29 / 31, 32 | 60.8, 46 / 60.5 / 76.5, 87 | 43.8, 27 / 31 / 71.1 |
+  | `L3_3p_mini_size` | 27.4, 25 / 28 / 30, 30 | 57.7, 43.2 / 57 / 74, 85 | 42.4, 26 / 30 / 69 |
+
+  (The size-twin README's statement-size table counts the whole prompt, 3 tokens more.) `size.json` has the
+  10-token histograms.
+- Checks: line.sh's two preflights on the mixed files (the L2 and L3 files pass, 22 of 22 evaluation-set lines ok;
+  the L2 file with the 3-premise file fails only its band line, as the original mini does), and no mixed row shares
+  a prompt, `key` or `pkey` with the twin test sets. The pass record `preflight_pass_size.txt` is separate from
+  build_mini.py's; line.sh refuses `_ksize` without it, and both `_ksize` and `szpanel` without the four test sets.
+  A rebuild gives the same bytes.
+
+**`--len_penalty` in grpo.py** (needed for the `lp` knobs; with `--len_penalty 0` nothing changes, see the tests below).
+- An all-solved group's rewards 1 − lp·n/1000 differ by length alone. Such a group is *length-only*: it is trained,
+  with the Dr. GRPO advantage −lp·(n − n̄)/1000 (no std division, so nothing amplifies it). Its items are kind `len`.
+- (a) The outcome signal now leaves the penalty out. Before, these groups counted as having a signal, so the recipe's
+  unlikeliness reward (mean |A| about 0.06 in a group of 16) applied to them and swamped the length term. It no longer
+  does (the paper skips such groups), and `--refill` counts them as having no signal.
+- (b) The loss's divisor leaves their tokens out, as it does for the step penalty's draws. Otherwise the about 45% of L3
+  groups that are all solved late in a stage would dilute the outcome signal's per-token weight by about half, an lr
+  cut.
+- `row['len_only']` (groups, items, tokens, their share of the scored tokens), `row['monitor']['len_only_groups']` and a
+  `len it N:` line, only with the penalty.
+- Sizes, at about 460 tokens per attempt and a within-group mean |n − n̄| of about 70 tokens (0.15 × the mean: the kl0
+  pilot's all-solved t1320 groups at B64). The reward change of a 460-token success and the length-only |A|:
+  - `lpm10`: +0.046, 0.007;
+  - `lp20`: −0.092, 0.014;
+  - `lp50`: −0.23, 0.035.
+
+  For comparison, an outcome |A| at pass rate 0.9 is 0.18.
+- At `lp50` a success over 2,000 tokens scores below a failure (r < 0). In the kl0 pilot's B64 t1320 reads that is 0.7%
+  of the solved 13-15-line attempts. B256 attempts run longer. Nothing in grpo.py assumes rewards in [0, 1] or "solved"
+  = r of 1 (`ok` decides the curriculum, pass@1, `--max_pass`, the monitor's bands and who pays the unlikeliness
+  deduction), so negative and >1 rewards (`lpm`) run as they are.
+- Tests: `tests/thinking/test_grpo_len_penalty.py`. `test_grpo_pilots.py`'s c4b8548 digests still hold at lp 0, for
+  `plain` and for `mixed0` (the `mixed` config without its penalty, new). `mixed` itself (lp 0.05) keeps c4b8548's
+  rollouts and args.json, and its rows, lines, weights and dumps are pinned anew.
+
+**`--loss_tokens` and `--adv_sign` in grpo.py** (the `loss` and `adv` knobs; opt-in, left out of args.json unless
+given, so without them nothing changes: c4b8548's digests hold, and given at their defaults `all` / `both` they change
+only args.json; `tests/thinking/test_grpo_mini_knobs.py`). line.sh refuses these arms unless the worktree's grpo.py has
+`LOSS_TOKENS` and `ADV_SIGNS`.
+- `--loss_tokens action|think` trains only the scored tokens of one phase. The think phase is the think block, its
+  `</think>` included (`think_len`); the action phase is the rest. The loss's divisor counts the trained tokens alone,
+  so the loss is a mean over them and each weighs more than in a full run (about 2x for `action`, whose tokens are about
+  half of an attempt's). This is the "normalise over the selected tokens" choice. The clip and ratio statistics, and
+  so the clip-low alarm, count those tokens too.
+  - Unchanged: the entropy and the think-ban mass are over every scored token, so the ban alarm, the restore check
+    and `--ban_stop` are unchanged (under `action` the think tokens get no gradient of their own, but the weights are
+    shared). The KL anchor is a separate term on the anchor set's tokens. The unlikeliness ranks use each attempt's
+    whole sequence.
+  - The step penalty's −P falls on the trained phase's tokens of its draws.
+  - Budget 0 has no think block, so `think` trains nothing there. A minibatch with no token of the phase takes no
+    step, and so no KL-anchor step either (L3-mini's anchor is 0 anyway). `trained_tokens` is the phase's count, and
+    the logged entropies stay per scored token (`LossStats.tokens_all`).
+- `--adv_sign pos|neg` keeps one side of the outcome advantage, r minus the group mean after the unlikeliness
+  deduction and the length terms, and zeroes the rest.
+  - `pos` keeps the positive advantages (by sign). The deduction can make a solved attempt's advantage negative in a
+    mostly solved group; `pos` drops it.
+  - `neg` keeps the failed attempts' advantages (by outcome, 2026-10-18): every solved attempt's is zeroed, also one
+    the deduction made negative, and a failed attempt's is kept up to 0. It is ≤ 0 anyway unless a length penalty
+    takes long successes below 0 and the mean with them.
+  - The `advpos` arm runs at `--rej_penalty 0`: otherwise the step penalty's −P would be the one negative signal left,
+    at twice its relative weight. Both adv arms are L3-mini forks.
+  - The zeroed items stay in the batch, their tokens in the divisor, so a kept token weighs exactly what it weighs in
+    the full run. The update is about half as large on average, an lr-like effect that comes with the knob.
+  - The step penalty is not an outcome advantage. Its −P stays on the redrawn draws and on the draw that ended a
+    failed attempt (under `pos` that draw keeps −P alone, which is why `advpos` runs without it).
+  - The KL anchor and the ban mass are unchanged. All-solved and all-failed groups are skipped as before.
+
+**Temperature** (`t` knobs). grpo.py uses `--temperature` for sampling, the PPO ratio's old and new log-probs, the
+unlikeliness ranks, the entropy and think-ban mass in the loss, and the ban restore check. The canary is always at
+T = 1, against its T = 1 base. The KL anchor tempers both distributions, and in L3-mini it is off. The think-ban alarm
+reads the tempered mass (what is sampled), unchanged. At T = 1.2 the full-scale pilot's mass rose from 4.2e-4 to 8.2e-4
+by its last iteration (the alarm is at 1e-3), so `t13` may raise ban alarms and rollbacks, which the stage lines record.
+The gradient on the logits scales as 1/T (1.43x at 0.7, 0.77x at 1.3), partly absorbed by the grad-norm clip at 1.
+
+**Checkpoint reads of the full-scale L3 runs** (`ARM_ckreads`, for every finished GRPO L3 that started from another
+arm's L2: the knob pilots, `ARM_mb`, `ARM_fbb`, …). There is no training and no preflight. Each distinct checkpoint is
+read once:
+- `ARM_ckreads`: `CKR_PANEL` (`l2test` k8, `l3test` k8, t1320 k4, t2130 k4, charles173 k16) at `CKR_ITS`, it10, it20 and
+  it30 (`_ki78`: it10 to it70). Each is read from the rolling checkpoint there or, after an alarm iteration (which saves
+  none), from the nearest earlier one. That substitution is logged, the reads are named after the checkpoint read
+  (`ARM_itJ`), and `ARM_ckreads_sSEED.ckpts.txt` records each iteration and its file. No rolling checkpoint at or before
+  an iteration skips its reads. Then `CKR_FINAL` (`l2test`, `l3test` k8) of the last checkpoint, under the arm's own
+  names; the pilot's own reads hold its out-of-distribution ones.
+- `ARM_l2_ckreads` (`grpo_think_vs_l2_ckreads`): a base arm's own last L2 checkpoint, the init every pilot of that seed
+  shares, as `ARM_L2`; `s1g3_ckreads`: Stage-1 `S1g3_sSEED`, as `s1g3`. Both read `CKR_PANEL` and `MINI_READS` (8 reads:
+  the two test splits are in both). That covers the "it0" of every pilot once per seed.
+- HEAD goes to the job's own `<job>_sSEED.base_commit.txt`; the arm's training record stays. A rerun reads only what is
+  missing. Refused: other arms, KNOB_FULL=1, no finished L3 (no last L2 checkpoint), nothing written.
+- Holes in the existing runs (no rolling checkpoint at the iteration; the nearest earlier one read instead): `kp3` s0
+  it10 → it5 and it30 → it25; `kkl0` s0 it30 is the post-rollback checkpoint (it25 plus one iteration). Every 5
+  iterations is saved, so a missing one is an alarm iteration.
+
+```
+bash line.sh GPU 0 grpo_think_vs_mini          # L2-mini then L3-mini from S1g3_s0, then the reads
+bash line.sh GPU 2 grpo_think_vs_mini_klp20    # the same with --len_penalty 0.2 in both stages
+bash line.sh GPU 1 grpo_think_vs_mini_kkl1     # seed 1: L3-mini from grpo_think_vs_mini_s1_L2_it10, KL anchor 0.1
+bash line.sh GPU 0 grpo_think_vs_mb_kkl0_ckreads
+bash line.sh GPU 0 grpo_think_vs_l2_ckreads    # shared by every pilot of the seed
+bash line.sh GPU 0 s1g3_ckreads
+```
+
 ## Reads (after the last stage, on the same GPU; thinking at B64, no-think at B0; rows under `runs/eval/v2/`)
 
 | set | k | arms |

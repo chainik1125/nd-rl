@@ -60,16 +60,21 @@ def _dump_digest(d: Path) -> str:
     return h.hexdigest()
 
 
-EXTRA: dict[str, Callable[[Path], list[str]]] = {
-    "plain": lambda iso: ["--iters", "3"],
-    # --overlong mask, both length terms, the extra targets, the batch dumps and the monitor: the
-    # code paths the refill loop rewrote
-    "mixed": lambda iso: [
+def _mixed(*lp: str) -> Callable[[Path], list[str]]:
+    """--overlong mask, both length terms (`lp`: --len_penalty's value, or none), the extra
+    targets, the batch dumps and the monitor: the code paths the refill loop rewrote."""
+    return lambda iso: [
         *("--iters", "3", "--overlong", "mask", "--len_target_coef", "0.2"),
-        *("--len_penalty", "0.05", "--targets_extra", str(iso / "extra.jsonl")),
+        *(("--len_penalty", *lp) if lp else ()),
+        *("--targets_extra", str(iso / "extra.jsonl")),
         *("--targets_extra_frac", "0.5", "--prompts", "4", "--dump_batches", str(iso / "dumps")),
         *("--monitor", "--seed", "1"),
-    ],
+    ]
+
+
+EXTRA: dict[str, Callable[[Path], list[str]]] = {
+    "plain": lambda iso: ["--iters", "3"],
+    "mixed0": _mixed(),  # 2026-10-16: "mixed" without its length penalty
 }
 # `_grpo_digest.run_digest` (+ `_dump_digest`) on a clean export of c4b8548 (`git archive c4b8548
 # code`, loaded first on sys.path), the commit the live v2 runs import; its default path is
@@ -82,14 +87,33 @@ GOLDEN = {
         "weights": "e70b343d15e22df571f140802a8a8d53131ff6e0161e6d27a4c2a40a9bbc3052",
         "args": "6028cb12ef8e9a6b11421c549bff14a093e9599870ded0f99fe1d652e798e808",
     },
-    "mixed": {
-        "rollouts": "b57a404df572e548e9ac8597fcf220f0754001ddc82c18a284bcc25af98b608e",
-        "rows": "6eecf38a5eaa4b84aa15f5759f02359ded070b897c8ed546836c5914aafb1661",
-        "lines": "aac9201e2a2947a1636d978ece2cf729e369d9a5a96523f543881ef1ae4691d7",
-        "weights": "36187b5167d34a322b42cf9696246b9522d89422cf10db16f6a63cf01159e61c",
-        "args": "ceb91c7ef8a696e3fb1924fd1ad759e75cb0044ee16d3ab0879dcecb9304709b",
-        "dumps": "53075c218fdc0c8bfa1e5ea897fafcfc632f48de2e60b5abc043f0a191035bb8",
+    "mixed0": {
+        "rollouts": "a3588a61e81a1f296da3ed5234b54d36808b1e16279d7ac930cd6a1692ed8522",
+        "rows": "0bd4f7c7a19af2720cdd158c52326d11dd18f9412b77e8867eff9b96372e7878",
+        "lines": "669458118865a5f5632afaf4f5234c816978c7036aa3515f3d76cd82a30811cd",
+        "weights": "fdbf480827c6df5614ade1dc957432afe95a7e764c8c4d6c4e726e19a96b295a",
+        "args": "89274ce7c4c75d1dacdef9cebcb8b585ad94395d6a3bfee6f679953601f84187",
+        "dumps": "9242eec08792c673f06ec2bfeade4dd9ace6478b87a0a5de68df8e9502a5023f",
     },
+}
+# "mixed" (with --len_penalty 0.05): c4b8548's digests until 2026-10-16, when a length-only group
+# (all solved: its rewards differ by the penalty alone) lost its outcome signal and went on top of
+# the loss's divisor (test_grpo_len_penalty.py). The sampler's results and args.json are still
+# c4b8548's; the rows (`len_only`), lines (`len it`), weights and dumps are this commit's.
+MIXED_C4B = {
+    "rollouts": "b57a404df572e548e9ac8597fcf220f0754001ddc82c18a284bcc25af98b608e",
+    "rows": "6eecf38a5eaa4b84aa15f5759f02359ded070b897c8ed546836c5914aafb1661",
+    "lines": "aac9201e2a2947a1636d978ece2cf729e369d9a5a96523f543881ef1ae4691d7",
+    "weights": "36187b5167d34a322b42cf9696246b9522d89422cf10db16f6a63cf01159e61c",
+    "args": "ceb91c7ef8a696e3fb1924fd1ad759e75cb0044ee16d3ab0879dcecb9304709b",
+    "dumps": "53075c218fdc0c8bfa1e5ea897fafcfc632f48de2e60b5abc043f0a191035bb8",
+}
+MIXED_LEN = {
+    **{k: MIXED_C4B[k] for k in ("rollouts", "args")},
+    "rows": "a59d3d4497466e7c1816b63ffa713371a546708cdace51851bdbf3411046b654",
+    "lines": "ef698b58ae0c495dd1231a26f59ab1f7d30ae5225bf434a5fc297e81b2afac1f",
+    "weights": "8eaec7c21671b91ac7aac5ea6779edf1b3408d471345a363e79b9213d305ba9b",
+    "dumps": "2f0dd773fb2ad88d2cd817d3d2d8e7a0f3286d15889653df06591a59b0ba7e22",
 }
 PILOT_ARGS = ("refill", "refill_max", "max_pass", "unlikely_beta")
 
@@ -107,6 +131,17 @@ def test_default_path_is_c4b8548(
     if dumps:
         got["dumps"] = _dump_digest(dumps[0])
     assert got == GOLDEN[config]
+
+
+def test_the_length_penalty_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """ "mixed" with --len_penalty 0.05: c4b8548's rollouts and args.json, this commit's rest."""
+    monkeypatch.setitem(CONFIGS, "mixed", _mixed("0.05"))
+    got = run_digest(tmp_path, monkeypatch, "mixed")
+    got["dumps"] = _dump_digest(next(tmp_path.rglob("dumps")))
+    assert got == MIXED_LEN
+    assert {k: v for k, v in got.items() if v == MIXED_C4B[k]} == {
+        k: MIXED_C4B[k] for k in ("rollouts", "args")
+    }
 
 
 @pytest.mark.parametrize(
