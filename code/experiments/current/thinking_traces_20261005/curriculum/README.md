@@ -207,6 +207,23 @@ Worktree `/scratch/cowifornia/nd-rl/think/nd-rl-curr`, branch `leon/thinking-cur
 Checks: ruff check and format are clean on the new and changed files. pyright reports 0 errors in this folder; the 5
 errors in `run.py` and `pfgates.py` are also in the unmodified files.
 
+## Big-statement twins (`size_twins.py`, 2026-10-16)
+
+A statement-size knob for the mini RL runs (knob proposal A1, "bigger statements, same proofs"). `size_twins.py`
+substitutes each row's atoms with small formulas over P–S, so that the statement grows to 45–90 whitespace tokens
+(drawn from test_13_20's sizes) while the reference and constructed proofs keep their rules, boxes, citations and
+line count.
+
+- Each substitution is *independent*: the images reach every truth-value combination, so the twin keeps the
+  original's truth-table facts (consistency, premise non-redundancy, no tautological goal).
+- The builders' shortest-proof search (`fastlen.fast_minlen`, bound L − 1) re-certifies `min_lines` = L on the twin.
+- The builders' necessity search checks the needed structures.
+- A classical-only original keeps a classical-only twin.
+
+Built for the mini subsets (`runs/pools/mini/`) and both `test_1k` splits. The data, `report.json` and a README are
+under `/scratch/cowifornia/nd-rl/think/runs/pools/size_twins/`; `build_size_twins.sh` lists the steps, and
+`test_size_twins.py` has the tests.
+
 ## Found on the way (outside this build)
 
 - **hard712's own splits are not disjoint up to currying.**
