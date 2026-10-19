@@ -3,6 +3,11 @@ written_on: 2026-10-18
 written_by: agent:claude
 ---
 
+> **Reading copy (librarian, 2026-10-19).** This is the blog draft of run `proof-strategies` (fork
+> `dan-pandori/nd-takehome`, branch `dan_proof-strategies`, DONE `441de472`) with the corrections from its review
+> applied. Each change is marked *[review]*. The corrections take it from 1,999 to about 2,300 words, against the
+> brief's 1,000–2,000. See [README.md](README.md) for the list of changes and what was left for Dan.
+
 # What kinds of reasoning are in our prover's training data?
 
 *Draft for Dan, 2026-10-18. Not for circulation.*
@@ -20,7 +25,7 @@ textbook would recognise.
 - **Proof by contradiction, the move our knockout experiment removed (called σ there), almost never does any work in
   K12.** It appears in 10.8 % of proofs, but in only 59 of those 16,717 does the assumption "not G" (G the goal) do more
   than clash at once with G or a stated "not not G", none on a theorem that needs it.
-- **Textbook problems use what K12 lacks.** In 187 textbook problems, 21 % use a working proof by contradiction (K12:
+- **Textbook problems use what is rare in K12** *[review]*. In 187 textbook problems, 21 % use a working proof by contradiction (K12:
   0.04 %), 38 % a working proof of a negation (2 %) and 12 % modus tollens (0.05 %).
 
 The full (non-knockout) models thus saw the *form* of proof by contradiction, almost never its use, and wrote working
@@ -42,7 +47,8 @@ K12 has about 14,100 proofs at each length from 2 to 12 lines. Create-or-elicit,
 pretrained models on K12 (the *full* arm) or on K12⁻ (the *knockout* arm): K12 minus the 16,961 proofs with σ or a close
 variant, topped up to 155,000.
 It then trained them by *expert iteration*, a simple form of reinforcement learning (RL): try each training problem 32
-times, keep what Lean accepts, fine-tune, repeat. A *seed* is one trained model.
+times, keep what Lean accepts, fine-tune, repeat. Each round's fine-tune also replays 20,000 records from the arm's
+own pretraining set, so the full arm kept seeing K12's σ templates during RL *[review]*. A *seed* is one trained model.
 
 ## A field guide
 
@@ -59,7 +65,8 @@ A *strategy* is an inference pattern with a standard name (mostly *forall x: Cal
    `example (S : Prop) (h : ¬S) : S ∨ ¬S := Or.inr h`
 5. **Proof by cases** (use an "or" by handling each side), 44 %:
    `example (P S : Prop) (h : P ∧ S ∨ S) : S := h.elim (fun c => c.2) (fun s => s)`
-6. **Disjunctive syllogism** (one case is impossible, so the other holds), 0.03 %:
+6. **Disjunctive syllogism** (one case is impossible, so the other holds), 0.03 % (under the final rule, tightened
+   after the hand check; 0.24 % under the pre-registered rule *[review]*):
    `example (P Q S : Prop) (h1 : ¬¬S) (h2 : ¬S ∨ P) : (Q ∨ S) ∨ P := h2.elim (fun n => False.elim (h1 n)) Or.inr`
 7. **Proof of a negation** (¬I: assume A, reach absurdity, conclude "not A"), 4.7 %:
    `example (R : Prop) (h : ¬(R ∨ ¬R)) : ¬¬R := fun n => h (Or.inr n)`
@@ -115,16 +122,19 @@ It splits on the first premise: R contradicts "not R", and the other case the se
 this is avoidable: all 59 working reductios are on theorems provable without the classical rule (48 prove a "not").
 
 The theorems agree. K12's 6,238 *classical-only* theorems (provable only with the classical rule) all state a double
-negation and were proved by eliminating it or by a template reductio. None is *σ-covered* (classical-only with no double
-negation anywhere, so that every proof needs a working reductio).
+negation, counting "not X implies falsum", which Lean reads as "not not X" *[review]*, and were proved by eliminating it or by a
+template reductio. Counted that way, none is *σ-covered* (classical-only with no double negation anywhere, so that every
+proof must eliminate a double negation it built itself *[review]*). The pre-registered rule, which is also create-or-elicit's,
+counts only a literal "not not"; under it K12 has 2,340 σ-covered theorems (1.51 %), each containing a "not X
+implies falsum". The run changed the rule without logging it *[review]*.
 
-## What textbooks use that K12 lacks
+## What textbooks use that is rare in K12 *[review]*
 
 We compared K12 with three textbook-like sets:
 - 187 problems from logic textbooks such as *forall x*, collected by a colleague (Charles), with his reference proofs
-  (173 minimal ones found by search, 14 written by hand);
+  (173 found by search, 17 of them minimal only conjunct by conjunct *[review]*, and 14 written by hand);
 - 1,610 instances of textbook laws (De Morgan's, Peirce's, …) from our RL training and evaluation pools;
-- textbook72, 72 textbook problems held out from training and never printed (6 K12 records match some up to renaming, premise order or currying).
+- textbook72, 72 textbook problems held out from training and not shown here *[review]* (6 K12 records match some up to renaming, premise order or currying).
 
 For the last two our search found Lean-checked shortest proofs (for 58 of the 72).
 
@@ -134,12 +144,13 @@ For the last two our search found Lean-checked shortest proofs (for 58 of the 72
 |---|---|---|
 | working proof by contradiction | 21 % | 0.04 % |
 | modus tollens | 12 % | 0.05 % |
-| disjunctive syllogism | 14 % | 0.03 % |
+| disjunctive syllogism | 14 % | 0.03 % (0.24 % under the pre-registered rule *[review]*) |
 | working proof of a negation | 38 % | 2 % |
 | genuine case analysis (every case used) | 34 % | 9 % |
 
 The law instances and textbook72 agree (they share some laws). The theorems differ too:
-- 19 % of the 187 textbook problems are σ-covered, against none in K12.
+- 19 % of the 187 textbook problems are σ-covered, against none in K12 as counted here (1.51 % under the
+  pre-registered literal rule *[review]*).
 - Of the 124 textbook problems a bounded search could settle, 37 % need a negation introduction (¬I or a reductio) in
   every short proof; of a K12 sample, 3.7 %.
 
@@ -152,8 +163,11 @@ set (1 before RL; exploratory). K12 holds 59 working reductios (6 free); the 1 %
 acquired families anyway.
 
 We classified every distinct proof found by 12 of create-or-elicit's 15 RL runs (three are older) by the round it
-was first found, counting *free* working reductios, the kind σ-covered problems need (positive goal, no double
-negation supplied):
+was first found, counting *free* working reductios (positive goal, no double negation supplied). A σ-covered problem
+needs a double negation that the proof builds and then eliminates. A free working reductio does that, but it is not the
+only way: at least 573 accepted RL proofs of σ-covered problems in rounds 1–16 (491 in one dose run, none in knockout
+runs) eliminate it as the assumption of a case split or a lemma, and are not counted as reductios here. Which problems
+were solved does not change; the per-proof counts below would rise under a wider definition *[review]*:
 - **Round 1** (the pretrained models): the three full models wrote 38, 27 and 45, proving 17, 15 and 20 of the 123
   σ-covered problems.
 - **Rounds 2–16**: 22,013, 7,886 and 5,915 more; 78, 33 and 36 σ-covered problems by round 16. Dose models: 13, 43 and
@@ -165,7 +179,9 @@ So pretraining supplied the *form* (assume "not G", close the box, drop the doub
 work: rarely before RL (0.15–0.27 % of the full models' proofs), more often in round 16 (1.2–3.9 % of that round's new
 proofs), and where needed on 33–78 of the 123 σ-covered problems. Both arms saw both halves of the move, working proofs
 of a negation (2 % of each set) and eliminations of a stated double negation (3 %); the knockout removed only their
-combination. This is our reading, not a tested result.
+combination, plus double-negation elimination on a derived double negation (0.17 % of K12) *[review]*. This is our reading,
+not a tested result. It has a confound: during RL the full models kept replaying K12, σ templates included, so the form
+may have been re-supplied during RL rather than only by pretraining *[review]*.
 
 ## Caveats
 
@@ -173,4 +189,6 @@ combination. This is our reading, not a tested result.
   theorem-level checks guard against this (classical-only exactly, necessity within 12 lines).
 - "Working" means the assumption does logical work; for a reductio, more than a clash with G or a supplied "not not G".
 - The knockout reading rests on 15 models of one small architecture (9.6 million parameters): 6 full, 6 knockout, 3
-  dose; our RL counts use 12 (3 full, 6 knockout, 3 dose).
+  dose; our RL counts use 12 (3 full, 6 knockout, 3 dose). They are create-or-elicit's 9,560,832-parameter ALiBiGPT
+  policies in the Lean proof-state format (`lean_staten`), trained from scratch; the counts read each run's accepted
+  proofs through round 16, where round 1 is the pretrained model's samples *[review]*.

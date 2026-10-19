@@ -1,8 +1,20 @@
+---
+written_on: 2026-10-18
+written_by: agent:claude
+---
+
+> **Reading copy (librarian, 2026-10-19).** This is `proof_strategies/TAXONOMY.md` of run `proof-strategies` (fork
+> `dan-pandori/nd-takehome`, branch `dan_proof-strategies`, DONE `441de472`) with the corrections from its review
+> applied, each marked *[review]*. In eight places a rule schema or law formula, read with its letters as atoms, is in
+> a textbook72 renaming class; these are restated in words and marked *[librarian]*. File names in `code` refer to the
+> fork. See [README.md](README.md).
+
 # A taxonomy of the proof strategies in our pretraining data
 
 Run `proof-strategies` (executor, 2026-10-18; pre-registration `preregistration/proof-strategies.md`). Taxonomy **v1.2**
 (v0 = the pre-registered list, code at commit 82fa2c47; v1.1 = after reading the data; v1.2 = after the blind spot-check:
-disjunctive syllogism and excluded middle tightened, wording clarified; changes and reasons in `log.md`, 2026-10-18). Code:
+disjunctive syllogism and excluded middle tightened, wording clarified; changes and reasons in `log.md`, 2026-10-18,
+except the last disjunctive-syllogism change, K12 47 → 43 records, commit e0511ae6, which is not logged *[review]*). Code:
 `proof_strategies/strategies.py` (labels), `theorem_level.py`, `necessity_ps.py`; numbers: `TABLES.md`; examples:
 `EXAMPLES.md`. Checker: Lean alone (every proof shown or searched here was accepted by Lean; nothing is judged by
 `nd_verify`).
@@ -75,10 +87,11 @@ separately).
 **#2 Conjunction introduction.** Instances: ANDI lines. Sub-type `root`.
 
 **#3 Conditional proof.** Instances: IMPI lines citing (s, e). Sub-types: `vacuous` if s ≠ e and s ∉ hyps(e) (the
-assumption is never used: weakening, B ⊢ A → B), else `working` (a one-line box, s = e, the identity A → A, counts as
+assumption is never used: weakening, a conditional whose consequent holds without its antecedent *[librarian]*), else `working` (a one-line box, s = e, the identity A → A, counts as
 using its assumption); `explosive` if origin(e) is a BOTE line inside the box
 that depends on s (¬A ⊢ A → B); `curried` if origin(e) is an IMPI line inside the box (A → (B → C)); `hyp_syll` if
-origin(e) is an IMPE line inside the box reached from s by ≥ 2 steps of modus ponens (A → B, B → C ⊢ A → C; the steps
+origin(e) is an IMPE line inside the box reached from s by ≥ 2 steps of modus ponens (hypothetical syllogism, chaining
+conditionals *[librarian]*; the steps
 are those of the refutation route below, all of kind `mp`).
 
 **#4 ∨-introduction.** Instances: ORI1/2 lines. Sub-types (a line may have several): `root`; `case_branch` (it is
@@ -89,14 +102,16 @@ origin(e_k) of a branch of some ORE and lies inside that branch); `feeds_ore` (i
 (s_k = e_k or s_k ∈ hyps(e_k)), else **`redundant`** (a branch proves the goal without its case, so the split can be
 deleted); `on_premise` / `on_hypothesis` / `on_derived` by the rule of origin(j) (PR / AS / other); `nested` (the ORE line
 lies inside a branch of another ORE); `constructive_dilemma` (each branch ends, inside the branch, in an ORI of an IMPE
-whose minor premise is the branch assumption: A ∨ B, A → C, B → D ⊢ C ∨ D); `trivial_merge` (the disjunction is X ∨ X);
+whose minor premise is the branch assumption: the textbook constructive dilemma, one conditional applied to each
+disjunct *[librarian]*); `trivial_merge` (the disjunction is X ∨ X);
 `or_intro_decoration` (origin(j) is an ORI line; `patterns2.ori_ore`); `all_refuted` (both branches refuted, below);
 `bot_case` (a case whose assumption is ⊥ itself: an empty case, never "refuted"); `on_lem` (origin(j) is an
 excluded-middle line, #12).
 
 **#6 Disjunctive syllogism.** Instances: ORE lines with exactly one **refuted** branch whose other branch uses its case
 (s = e or s ∈ hyps(e)) and is not itself a ⊥ case. Branch (s, e) is refuted iff its assumption s is not ⊥ itself and origin(e) is a BOTE line
-inside the branch whose cited ⊥ depends on s (the case leads to a contradiction). A ∨ B, ¬A ⊢ B. (v1.1 also counted a
+inside the branch whose cited ⊥ depends on s (the case leads to a contradiction). From a disjunction and a refutation
+of one disjunct, conclude the other *[librarian]*. (v1.1 also counted a
 case that is ⊥ itself, A ∨ ⊥ ⊢ A, and splits whose other branch ignored its case; the spot-check found these were most
 of the K12 instances.) Explosion done another way (a vacuous ¬I or reductio closing the case) is not counted here.
 
@@ -135,18 +150,18 @@ last line, after R, of a →I box and its ⊥ depends on that box's assumption),
 **#10 Proof by contradiction (classical).** Instances: DN lines d (conclusion G) whose cited line c = origin(cited) is
 either a NEGI line (**σ**: assume ¬G, derive ⊥, conclude ¬¬G, eliminate it) or a line derived by another rule (not PR,
 AS, NEGI) whose ¬¬G is not in Sub (**`built_other`**: a disguised reductio, e.g. ¬¬G built in both branches of a ∨E).
-Its route is the refutation route of c (σ); for `built_other` it is `vacuous` when c is BOTE (⊥ → ¬¬G → G is explosion),
+Its route is the refutation route of c (σ); for `built_other` it is `vacuous` when c is BOTE (going from ⊥ to ¬¬G and then to G is explosion *[librarian]*),
 and when c is an ORE whose two branches each build ¬¬G vacuously (by BOTE or a vacuous ¬I, recursively), `cases` for
 any other ORE, `other` otherwise.
 One **kind** per instance, first match: `vacuous` (route vacuous: ⊥ without ¬G, explosion in disguise) > `pointless`
 (route immediate and the independent premise of the clash has formula G: G was already derived) > `scaffolded` (¬¬G or ¬G → ⊥ is in Sub:
-the theorem supplies the double negation) > `neg_goal` (G is a negation: ¬¬¬X → ¬X is intuitionistic) > **`free`**.
+the theorem supplies the double negation) > `neg_goal` (G is a negation: reducing a triple negation to a single one is intuitionistic *[librarian]*) > **`free`**.
 An instance is a **template** if its kind is vacuous or pointless, or scaffolded with route immediate (the reductio does
 no logical work); otherwise it is **working**. Position sub-types: `root` (the DN line is the root), `lemma` (it is
 not); `via_r` (DN cites an R copy).
 
 **#11 Double-negation elimination.** Instances: DN lines that are not #10: c = origin(cited) is a premise (`on_premise`),
-an assumption (`on_hypothesis`, e.g. proving ¬¬A → A), or a derived line whose ¬¬G is in Sub (`on_derived`).
+an assumption (`on_hypothesis`, e.g. proving double-negation elimination as a conditional *[librarian]*), or a derived line whose ¬¬G is in Sub (`on_derived`).
 
 **#12 Excluded middle.** Instances: DN lines whose formula is X ∨ ¬X or ¬X ∨ X: excluded middle proved by
 contradiction, the classical lemma. (v1.1 also counted any X ∨ ¬X line depending on some DN step, e.g. ∨I of an X got by
@@ -186,8 +201,15 @@ A proof shows how the generator proved a theorem; these say what the theorem for
 - **classical-only**: provable classically (a proof exists) but not intuitionistically (G4ip, `intuit.py`); every proof
   then uses DN, i.e. #10, #11 or #12.
 - **dneg**: the sequent contains a double negation, semantically (¬¬X, ¬X → ⊥, ¬(X → ⊥) or (X → ⊥) → ⊥).
-- **σ-covered** (create-or-elicit's definition): classical-only and no dneg. Every proof must then eliminate a double
-  negation it built itself: a working #10 (or #12, which needs one).
+- **σ-covered**: classical-only and no dneg, with dneg semantic as above *[review]*. This is not create-or-elicit's
+  definition, which is also the pre-registered one: create-or-elicit counts only a literal ¬¬ subformula. Under that
+  rule K12 has 2,340 σ-covered theorems (1.51 %), all with a (¬X → ⊥) subformula; cap-6 has 2,235 and the dose set 232.
+  The RL pools, Charles's problems and textbook72 agree under both rules. The switch is not logged in `log.md` *[review]*.
+  Every proof must then eliminate a double negation it built itself. That need not be a #10 *[review]*: at least 573
+  Lean-accepted RL proofs of σ-covered targets (create-or-elicit ladders, rounds 1–16) eliminate a double negation they
+  built themselves by applying DN to a ¬¬X that a box assumes: an ∨E case, or the assumption of a →I lemma that states
+  double-negation elimination (create-or-elicit's "lemma route"). The classifier labels these #11 `on_hypothesis`, with no #10. The review's fix:
+  extend #10 to DN on any box hypothesis ¬¬X that is not in Sub, when the proof builds ¬¬X by ¬I *[review]*.
 - **inconsistent premises**: no truth assignment satisfies all premises (so ex falso proves the conclusion).
 - **requires X** (bounded, on samples): the shortest-proof search of `minlen.py` finds a proof of ≤ 12 lines, and the
   same search with rule X banned finds none within 12 lines and does not time out (60 s). Bans: ORE (#5), NEGI (#7, #8
@@ -201,7 +223,7 @@ A proof shows how the generator proved a theorem; these say what the theorem for
 | `patterns.reductio` (P2, σ strict) | DN citing a NEGI line directly | same, no R | 16,703 |
 | σ⁺ (`coe_sigma.dn_derived`, the knockout's removal rule) | DN citing a line that is not PR / AS | #10 ∪ #11 `on_derived` | 16,961 = 16,961 (0 differ either way) |
 | `coe_rounds.sigma_subtype` scaffold / free | the prompt contains ~~G or ~G > F | #10 kinds `scaffolded` / `free` (+ `vacuous`, `pointless`, `neg_goal` split out) | – |
-| σ-covered (create-or-elicit) | classical-only, no ¬¬ in the sequent | theorem-level σ-covered | 0 |
+| σ-covered (create-or-elicit) | classical-only, no ¬¬ in the sequent | theorem-level σ-covered (semantic dneg) | 0 here; 2,340 under the definition in column 2 *[review]* |
 | `patterns.derived_ore` (P1) / `derived_ore_strict` | ORE whose disjunction line is not PR (strict: not PR / AS, X ≠ Y) | #5 `on_derived` (origin after R) | in `TABLES.md` |
 | `patterns2.nested_ore`, `ori_ore`, `impe_chain4`, `negi_ande_hyp` | ORE in an ORE branch; ORE on an ORI line; IMPE chain ≥ 4; ANDE on a NEGI box's assumption | #5 `nested`, #5 `or_intro_decoration`, #1 `mp_chain3` (≥ 3), #7 `and_elim` (narrower: the refuting path is ∧E only) | in `TABLES.md` |
 
@@ -219,7 +241,10 @@ A proof shows how the generator proved a theorem; these say what the theorem for
   random positives, 4 random negatives, 4 borderline; seed 20261018; `data/ps/validation/`). Agreement with the v1.1
   labels: uses 260 / 260, primary 260 / 260 (20 / 20 for every strategy; `artifacts/ps/validation/spot_compare_v1.1.json`).
   Their notes produced v1.2: 10 of the 12 sampled disjunctive-syllogism positives had a ⊥ case or an idle other case,
-  and 5 of the 20 excluded-middle items were ∨I of a DNE'd X or rested on a vacuous reductio.
+  and 5 of the 20 excluded-middle items were ∨I of a DNE'd X or rested on a vacuous reductio. Against the final v1.2
+  definitions the same blind labels agree on 245 / 260 uses and 258 / 260 primary: disjunctive syllogism 10 / 20 and
+  excluded middle 15 / 20 on uses (`spot_compare_v1.2.json`). The final #6 and #12 were never hand-checked blind; only
+  the second implementation validates them *[review]*.
 - **Second implementation** (an independent subagent; own parser; written from this document and `spec.md` only;
   counts frozen before it read our labels; `proof_strategies/validation/second_impl.py`). It covers proof by
   contradiction (instances, kinds, routes, working / template), DNE, proof by cases (genuine / redundant / `bot_case`),
@@ -228,11 +253,13 @@ A proof shows how the generator proved a theorem; these say what the theorem for
     20 K12 records differed in a sub-type: two gaps in the text and one id missing from our output, all fixed.
   - v1.2 (final): every compared label agrees on every record of both sets.
   - Its 25 hand-built fixtures cover sub-types the data never exercise (`cases_on_lem`, `all_refuted`, `via_r`,
-    `bot_case`, …): 25 / 25 are Lean-accepted and get exactly the labels it expected.
+    `bot_case`, …): 25 / 25 are Lean-accepted and get exactly the labels it expected. (`bot_case` is listed wrongly
+    here: 2,070 K12 records have it *[review]*.)
   - Reports: `artifacts/ps/validation/second_impl.md` and `second_impl_v1.2.md`.
 - **Coverage.** Every K12 proof has a primary label (0 unlabelled) and at least one "uses" label. Under v0, 277 K12
   proofs had none: each proved ⊥ by one ¬E from contradictory premises, and v1 counts a root ¬E as direct reasoning.
-  The curried primary is "trivial" for 3.26 %: the curried goal is an assumption or premise (B ⊢ A → B, ⊢ A → A).
+  The curried primary is "trivial" for 3.26 %: the curried goal is an assumption or premise (a consequent that is a
+  premise, or the identity conditional *[librarian]*).
 - **Not exercised by the data.** No K12 or schema proof has a dead line, so pruning is tested only by unit tests.
   Sub-types with no data instances are tested only by the fixtures.
 
