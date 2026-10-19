@@ -7,6 +7,13 @@ Reusable components belong in `../shared_code/`, tests in `../tests/`, and dated
 Current experiments:
 
 - [`r1_cot/`](current/r1_cot/README.md): symbolic scratchpad reasoning for natural-deduction RL.
+- [`long_proofs_20261013/`](current/long_proofs_20261013/README.md): generators and an exact
+  minimal-length certifier for natural-deduction theorems that need 20+ body lines.
+- [`long_rl_20261014/`](current/long_rl_20261014/README.md): the whole-proof training pipeline
+  (run 198 pretraining, then expert iteration), see [PIPELINES.md](../../docs/PIPELINES.md).
+- [`autoresearch/`](current/autoresearch/pod.py): only the RunPod helpers (`pod.py`, `watchdog.sh`)
+  that `long_rl_20261014/launch.py` imports; the autoresearch harness is on branch
+  `autoresearch-pretrain`.
 
 Archived experiment snapshots:
 

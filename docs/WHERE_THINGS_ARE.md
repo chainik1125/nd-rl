@@ -18,7 +18,7 @@ members get write access to every repo in the org, including private ones.
 | Owner | Location | Layout | What's there |
 | --- | --- | --- | --- |
 | Dan | bucket [`hf://buckets/dan-pandori/nd-rl/`](https://huggingface.co/buckets/dan-pandori/nd-rl) | `<run-id>/{ckpts,artifacts,data}/`, plus `registry/<run-id>/` | About 40 runs from Dan's agent campaign (`cap-horizon`, `state-env`, `support-curves`, ...). Datasets live under each run's `data/`, e.g. `cap-horizon/data/kh/train_k12.jsonl.gz`. `registry/` holds the per-run results rows (see §2). |
-| Robbie | model repo [`robbiethompson2018/nd-rl-checkpoints`](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints) | `runs/<RUN_ID>_s<seed>/`, `sources/`, `pretrain_poc/`, `previous_attempts/` | Autoresearch runs uploaded by `pod.py`, one directory per seed: `pretrain.pt`, `rl_round_0N.pt`, `final.pt` (includes RL), `summary.json`, `source/pretrain.py`. |
+| Robbie | model repo [`robbiethompson2018/nd-rl-checkpoints`](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints) | `runs/<RUN_ID>_s<seed>/`, `data/<name>/`, `sources/`, `pretrain_poc/`, `previous_attempts/` | Autoresearch runs uploaded by `pod.py`, one directory per seed: `pretrain.pt`, `rl_round_0N.pt`, `final.pt` (includes RL), `summary.json`, `source/pretrain.py`. `data/` holds Robbie's datasets ([DATASETS.md](DATASETS.md)). |
 | Robbie | private dataset [`ndrl/nd-rl-autoresearch`](https://huggingface.co/datasets/ndrl/nd-rl-autoresearch) (join the org to see it) | `<checkout>/<run>/`, one folder per local checkout (`nd-rl`, `nd-rl-2` … `nd-rl-9`) | Everything that was in `artifacts/autoresearch/` on Robbie's laptop on 2026-10-01, including runs that never reached `nd-rl-checkpoints` (e.g. the `st-*` runs). Same files per run; JSONL over 1 MB is gzipped. Agent session transcripts (`loop/`) are not included. |
 | Leon | TODO | | |
 | Charles | TODO | | Charles's branch loads Robbie's run 039 checkpoint from Robbie's repo. |
@@ -39,16 +39,9 @@ there are three stores, above; which one new work should use is still open.
 
 ## 2. Best models
 
-A "best" model is a claim about one person's metric and protocol. Two numbers from different rows
-of this table aren't comparable unless their protocols match.
-
-| Owner | Model | Where | Metric and protocol |
-| --- | --- | --- | --- |
-| Robbie | Autoresearch run 198 (`198-claude_lean-muon-no-rms-retest`): ALiBi/NoPE heads, Peri-LN, MTP head, Polar Express Muon | HF: [`runs/198-claude_lean-muon-no-rms-retest_s0/`](https://huggingface.co/robbiethompson2018/nd-rl-checkpoints/tree/main/runs/198-claude_lean-muon-no-rms-retest_s0) (also `_s1`, `_s2`); source `pretrain.py` at `c891da8` on `autoresearch-pretrain` | Score 681 on the autoresearch harness: 300 s pretraining, then fixed expert-iteration RL, Lean-format fork `51604b3`. `pretrain.pt` is pretraining only; `final.pt` includes RL. |
-| Dan | `state_env_october_r16` ([model card](https://github.com/chainik1125/nd-rl/blob/dan/docs/models/state_env_october_r16.md)): Robbie's 9.56M ALiBiGPT recipe (1,200 s pretraining) on cap-12 synthetic proofs, in Dan's proof-state environment, then 16 rounds of expert iteration. After 8 rounds the same model is [`state_env_october`](https://github.com/chainik1125/nd-rl/blob/dan/docs/models/state_env_october.md). | Bucket: `hf://buckets/dan-pandori/nd-rl/rl-continue/ckpts/rc/ladder/la_T1_best12_s{0,1,2}_r16.pt` (three seeds). Code: [`dan-pandori/nd-takehome`](https://github.com/dan-pandori/nd-takehome/tree/dan), branch `dan` (`state_env.py`, `state_sample.py`, `state_ladder_ei.py`). | textbook72 pass@256: 51 / 57 / 56 of 72 (per seed; plain sampling, T 0.8, Lean alone; checked 2026-10-04). Proofs are written one step at a time in the proof-state environment, not as whole `lean_seq` proofs, so these numbers aren't comparable with the autoresearch harness score. Dan's results registry (bucket `registry/`) lists checkpoint URIs and headline metrics for his other runs. |
-| Leon | TODO | | |
-| Charles | TODO | | |
-| Dmitry | TODO | | |
+Moved to [MODELS.md](MODELS.md) (2026-10-18): one row per relevant checkpoint with its weights,
+source commit and protocol. Datasets are in [DATASETS.md](DATASETS.md) and the two training
+pipelines in [PIPELINES.md](PIPELINES.md).
 
 ## 3. Branches
 
