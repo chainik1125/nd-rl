@@ -37,26 +37,19 @@ recipe. The shipped files are byte-identical to the `source/` of the v5 checkpoi
    ```
 
    `pools` reads the certified theorems from `../long_proofs_20261013`. That folder holds the
-   generators and the exact minimal-length certifier, `certifier_exact/certify_fast.py`, which
+   generator and the exact minimal-length certifier, `certifier_exact/certify_fast.py`, which
    compiles `fastmin.c` with clang on first use.
 
-2. **Checks** (CPU): `python selftest_tok.py`, `python test_paths.py`, `python harness.py --smoke --out /tmp/smoke`.
-
-3. **Train** on a RunPod A40 (`RUNPOD_API_KEY` set; pod helpers in
-   [`../autoresearch/pod.py`](../code/experiments/current/autoresearch/pod.py)):
+2. **Train** on one CUDA box (an A40 takes about 4 h):
 
    ```bash
-   python launch.py go untied ei 0                         # 600 s pretraining, 3 h RL, eval
-   python launch.py go untied ei 0 --resume <dir> --rl-hours 4   # v5: 4 more RL hours on a finished run
+   ND_ARCH=untied ND_RL=ei bash remote.sh out/untied-ei_s0 --seed 0      # 600 s pretraining, 3 h RL, eval
+   ND_ARCH=untied ND_RL=ei bash remote.sh out/more --resume out/untied-ei_s0 --rl-hours 4   # v5: 4 more RL hours
    ```
 
-   The remote side (`remote.sh`) clones Dan's fork at `51604b3` for the model, sampler and
-   `nd2lean`, installs Lean 4.34.0, and runs `harness.py`. The tokenizer and the Lean-only gate
-   come from `overlay/`.
-
-   **Before launching, change `RUN` in `launch.py`.** It is still `"v5"`, and the checkpoint upload
-   path is `runs/long-rl-20261014-<RUN>_<arch>-<rl>_s<seed>/`, so a new run with the old name would
-   overwrite the v5 checkpoints.
+   `remote.sh` clones Dan's fork at `51604b3` for the model, sampler and `nd2lean`, installs
+   Lean 4.34.0, and runs `harness.py`. The tokenizer and the Lean-only gate come from `overlay/`.
+   `python harness.py --smoke --out /tmp/smoke` is a CPU plumbing check.
 
 Expected: about 230–250 dev theorems of 843 after 3 h of RL, 313–433 after 7 h. Seed spread at 3 h
 is about ±30.
