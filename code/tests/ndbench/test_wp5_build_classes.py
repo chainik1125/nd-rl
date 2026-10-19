@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 from typing import cast
 
+import pytest
+
 from code.ndbench.core.io import git_commit_sha, sha256_str, utc_now_iso
 from code.ndbench.core.types import (
     JSON,
@@ -24,6 +26,7 @@ from code.ndbench.core.types import (
     SuiteManifest,
 )
 from code.ndbench.edl import EDL_CLASSES, build_classes
+from code.ndbench.logic.exclusion import default_tiers
 from code.ndbench.store import Store
 
 _MISSING = "/nonexistent/does-not-exist.jsonl"
@@ -185,6 +188,14 @@ def _write_jsonl(path: Path, rows: list[dict[str, JSON]]) -> None:
             f.write(json.dumps(row) + "\n")
 
 
+# gen_L10's seen-in-training check builds the default excluder, which reads every real tier file.
+_MISSING_TIER_FILES = [str(p) for ps in default_tiers().values() for p in ps if not p.is_file()]
+
+
+@pytest.mark.skipif(
+    bool(_MISSING_TIER_FILES),
+    reason=f"real exclusion tier files not available here: {', '.join(_MISSING_TIER_FILES)}",
+)
 def test_gen_l10_file_loader(tmp_path: Path) -> None:
     rows: list[dict[str, JSON]] = []
     for i in range(70):

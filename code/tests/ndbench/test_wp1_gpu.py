@@ -9,8 +9,12 @@ from typing import Any
 
 import pytest
 
-from code.ndbench.runner.gpu import BudgetExceeded, budget_guard, lease
+from code.ndbench.runner.gpu import GPULOCK_SCRIPT, BudgetExceeded, budget_guard, lease
 from code.ndbench.store import Store
+
+needs_gpulock = pytest.mark.skipif(
+    not Path(GPULOCK_SCRIPT).is_file(), reason=f"{GPULOCK_SCRIPT} not available here"
+)
 
 
 @pytest.fixture
@@ -27,6 +31,7 @@ def _temp_gpulock_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "4")
 
 
+@needs_gpulock
 def test_lease_succeeds_when_cuda_visible_devices_is_already_4_and_appends_ledger(
     store: Store,
 ) -> None:
@@ -74,6 +79,7 @@ def test_lease_refuses_when_cuda_visible_devices_is_the_wrong_gpu(
     assert store.ledger_total_s() == 0.0
 
 
+@needs_gpulock
 def test_lease_releases_the_lock_so_a_second_lease_can_acquire_it(store: Store) -> None:
     with lease("job-1", est_s=1.0, store=store) as gpu1:
         assert gpu1 == 4
@@ -82,6 +88,7 @@ def test_lease_releases_the_lock_so_a_second_lease_can_acquire_it(store: Store) 
     assert store.ledger_total_s() > 0.0
 
 
+@needs_gpulock
 def test_lease_appends_ledger_entry_even_when_the_body_raises(store: Store) -> None:
     class _Boom(Exception):
         pass

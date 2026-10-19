@@ -817,9 +817,9 @@ SMOKE=1 bash line.sh 0 0 ARM    # a tiny CPU dry run of the whole line (2 iterat
 
 ## Model-chosen think budget (auto effort; branch `leon/grpo-v2-auto`, 2026-10-11)
 
-Worktree `/scratch/cowifornia/nd-rl/think/nd-rl-v2auto`. Without the new options the GRPO runs are e027354's:
-rollouts, metrics rows, log lines, weights and args hash identically on three tiny-model configurations
-(`tests/thinking/test_grpo_auto.py::test_default_path_is_e027354`).
+The code lives on branch `leon/grpo-v2-auto` (not merged). Without the new options the GRPO runs there are
+e027354's: rollouts, metrics rows, log lines, weights and args hash identically on three tiny-model
+configurations.
 
 - **GRPO** (`grpo.py --auto_levels 0,64,256`, module docstring): at every step the effort token is sampled from the
   policy restricted to `<e0> <e64> <e256>`, then the step is decoded at that level.
