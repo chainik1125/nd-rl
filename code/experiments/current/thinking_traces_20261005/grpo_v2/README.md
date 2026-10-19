@@ -572,3 +572,42 @@ cd /scratch/cowifornia/nd-rl/think/runs/grpo_v2
 nohup setsid bash line.sh GPU SEED ARM > /scratch/cowifornia/nd-rl/think/runs/logs/grpo_v2_ARM_sSEED.log 2>&1 < /dev/null &
 SMOKE=1 bash line.sh 0 0 ARM    # a tiny CPU dry run of the whole line (2 iterations, k 2, 2 eval problems)
 ```
+
+## Model-chosen think budget (auto effort; branch `leon/grpo-v2-auto`, 2026-10-11)
+
+Worktree `/scratch/cowifornia/nd-rl/think/nd-rl-v2auto`. Without the new options the GRPO runs are e027354's:
+rollouts, metrics rows, log lines, weights and args hash identically on three tiny-model configurations
+(`tests/thinking/test_grpo_auto.py::test_default_path_is_e027354`).
+
+- **GRPO** (`grpo.py --auto_levels 0,64,256`, module docstring): at every step the effort token is sampled from the
+  policy restricted to `<e0> <e64> <e256>`, then the step is decoded at that level.
+  - The effort token is trained as an action. It is a one-token item with its attempt's advantage, scored with the
+    restricted log-softmax, the distribution it was sampled from. It enters the PPO ratio and clip, the loss
+    normaliser and the clip-low alarms.
+  - The step penalty does not reach the effort token, and the think ban mass does not read it.
+  - With the KL anchor, the level choice at the anchor's states is anchored too; each choice weighs one action
+    position.
+  - Plain arm, or the verifier stop (`--arm logical --max_rej 0`). Redraws are refused.
+  - `--choice_lambda` is ei_auto's token cost (every attempt pays lambda per 1,000 sampled tokens). It is 0 in the
+    arms below.
+  - Logged per iteration: `level_share`, `choice_entropy`, the scored choices (`tokens_choice`, `entropy_choice`,
+    `clip_low_choice`), `kl_anchor_choice` and `mass_choice`.
+- **EI** (`ei_auto.py`, unchanged). The logical arm (accepted proofs only) runs with it: tested with a scripted model.
+  On serrano (2026-10-11) a CPU round with the launcher's EI settings ran with the plain arm: S1g3_s0, 8 L2
+  problems, k 2/2/2, S1g3.pkl retained records. The logical-arm round was still running when serrano went down.
+- **Reads** (`eval --budgets auto`): the plain and the logical arm. With a guided arm, a redraw picks its level again,
+  and the without-replacement exclusion is per level.
+- **Arms** (a launcher candidate `line.sh.auto`, dry-run on serrano; lost with serrano, to be rebuilt on the new
+  line.sh):
+  - `grpo_think_auto` and `grpo_think_vs_auto`: as `grpo_think` and `grpo_think_vs`, with `--auto_levels 0,64,256`
+    instead of `--budgets 0,64,256`.
+  - `ei_think_auto`: `ei_auto` at k 11/11/10.
+  - All three read with `--budgets auto`. Only these arms use the auto worktree; the dry run reproduced every
+    existing arm's commands byte for byte.
+- **The Stage-1 start** (serrano, 2026-10-11, the S1g3 models before the crash; 200 random L2 problems, first
+  state; to be re-measured on the retrained models):
+  - In S1g3_s0, s1 and s2, the level choice is uniform: mean shares 0.333 / 0.333 / 0.333, entropy ln 3, and no
+    state above 90% at T 1 or 0.8.
+  - The effort tokens were inputs only in Stage 1. Their output rows ended up nearly identical (pairwise distance
+    about 4e-3, against about 2 between other tokens' rows), so the choice starts state-independent.
+  - GRPO-auto therefore starts with full exploration and no prior over levels.
