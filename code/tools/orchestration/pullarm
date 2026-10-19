@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Trim an expert_iter arm dir on a pod (drop mix files and intermediate found files, keep round_*.json and the last found files) and pull it flat. Usage: pullarm <pod> <arm-relative-to-artifacts/p2>
+P=$1; A=$2
+podrun $P "cd artifacts/p2/$A && last=\$(ls found_*.jsonl | sed 's/found_transfer_//;s/found_//;s/.jsonl//' | sort -n | tail -1); rm -f mix_*.jsonl; for f in found_*.jsonl; do case \$f in found_\$last.jsonl|found_transfer_\$last.jsonl) ;; *) rm -f \$f;; esac; done; ls | tr '\n' ' '" && podpull $P artifacts/p2/$A >/dev/null && D=~/nd-takehome/artifacts/p2/$A && if [ -d $D/$A ]; then mv $D/$A/* $D/ && rmdir $D/$A; fi && ls $D | tr '\n' ' '; echo

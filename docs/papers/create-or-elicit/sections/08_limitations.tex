@@ -1,0 +1,72 @@
+\section{Limitations}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{Scale and domain.} One architecture with 9.56M parameters, propositional logic over at most four atoms,
+and pretraining proofs of at most 12 lines. Nothing here is measured on a large language model or on first-order logic.
+The organism was chosen because it allows interventions that large models do not, and its results are results about
+it.
+\item \textbf{Near-saturated pools.} Outside the strict theorems, the evaluation pools are close to their ceilings
+after RL: the r8 models of the earlier full seeds s0--s2 prove 236--240 of holdout250, and the r16 models 277--303
+of the 322 (303: the earlier full seed s1, in its x1 evaluation). Gains, \dcov{} and the
+test-time-compute comparisons on these pools are compressed by the ceiling. That is why the paper leans on textbook72
+and on the strict theorems, which no model saturates (at most 80 of 106). One textbook72 problem
+(\texttt{textbook\_3ed45280}\ldots) has a premise-swapped twin in every pretraining set: \KT{}, \KTko{} and \KTdose{}
+each share its premise-order-invariant renaming class (no order-sensitive one), and none shares a class with the strict
+theorems.
+\item \textbf{One RL algorithm, 16 rounds, one composition.} Expert iteration at $k=32$, $T=0.8$ is rejection-sampling
+fine-tuning. GRPO-style updates, more exploration, demonstrations or longer runs could behave differently, and in the
+closest controlled study GRPO did, and in our earlier organism GRPO acquired a depth-3 nesting habit more often than EI;
+in this organism, from full-exposure bases, plain GRPO proved fewer theorems than EI, which alone replayed pretraining
+data (\S\ref{sec:discussion}). One knockout ladder was still
+changing at round 24. Only one composition was removed.
+\item \textbf{What the headline test measures.} The pre-registered indicator is largely decided before RL. The RL-phase
+contrasts (gains during the RL phase, families acquired during it) were not pre-registered, and the RL phase includes
+replay. On the three full seeds that match the knockout's hardware, the gains test gives $p = 0.012$ and the family
+contrast 2/3 vs 0/6 ($p = 0.034$). The free positive reductio (Table~\ref{tab:concepts}), used for the ladder
+dynamics, is also a post hoc measure: it was defined after round 3 of the experiment and was not pre-registered.
+\item \textbf{Seeds and power.} Six seeds per main arm power the primary indicator but not most per-family tests (three
+families 3 vs 0, Holm 0.17; excluded middle 1 vs 0). A 0/6 outcome bounds the per-seed rate of acquisition after
+\sig-free pretraining below 0.39 only. The dose arm has three seeds and two doses (0\% and 1\%) cannot locate a threshold.
+\item \textbf{The knockout is not surgical, and exposure includes replay.} It makes \texttt{DN} 4.2 times and $\neg$-introduction
+2.9 times rarer and removes two thirds of the classical-only theorems. It costs general ability
+(\S\ref{sec:side}): at r0 the knockout bases are 6.88 points worse at greedy decoding of 5,000 held-out generator
+theorems, all of it on the 679 whose reference proof uses \sig{}, and with 256 attempts they prove 4.0 fewer of
+textbook72's 53 intuitionistic theorems and 4.3 fewer of holdout250's 225. Exposure in pretraining cannot be separated from exposure through replay during RL.
+\item \textbf{``Absent'' is not established.} Five of six knockout bases proved strict theorems with \sig{} at large
+$k$, and four of six under guided decoding at $k = 256$. Only one is certified out of reach as pre-registered: under plain
+sampling, on a pooled mean rate, at one allocation, with an 8\% margin. That holds at $T = 0.8$ on the
+pre-registered 106 strict theorems (two of six certify on the 105 family members); plain sampling at $T = 1$ proved
+\texttt{la\_transfer\_916} on the bases of seeds 0 and 1, and the pre-registered expectation of at least five certified
+bases missed. Spreading the same compute over 106 or 1,054
+theorems would certify 0 or 5 of 6. The certificate assumes the pre-filter rejected no valid proof in the large-$k$
+sample. That could not be checked there; in one knockout ladder (seed 1, rounds 1--16), none of the 222,135 rows
+the pre-filter rejected (210,151 distinct texts) is Lean-accepted, which bounds its false-reject rate at
+$1.4\times10^{-5}$ per distinct text ($1.4\times10^{-4}$ on by-contradiction steps; one-sided 95\%). Attempts that end
+earlier, in the environment's grammar and action checks (72--88\% of knockout r16 attempts), are outside this check. No family could be certified at the sampling used, so the \textsc{created} verdict
+was impossible by design. The ``rare'' evidence comes almost entirely from one family (converse contraposition); on the
+others the bases sit at the sampling floor.
+\item \textbf{Within-reach labels.} Per-theorem base rates in the knockout arm rest on one to three successes in fewer
+than $K$ attempts, from sampling that paused after a first success. A fresh sample at $n \geq K$ of one base's members
+(C4) found three of its four such members at zero, and two others with no early-stopped success within reach, so
+these labels are unreliable in both directions. The other bases' members were not
+re-sampled.
+\item \textbf{Estimators.} The known-proof estimate runs two- to three-fold low below $10^{-4}$ and was calibrated on
+full-exposure bases. The likelihood scores use the earlier full ladders' (s0--s2) known proofs, not each scored ladder's own,
+and one line-numbering offset.
+\item \textbf{Budgets.} $K$ depends on the allocation, on the number of evaluation theorems it is spread over, and on
+one measured GPU-class ratio. The knockout certificates and \dcov{} were computed at one allocation. $K$ also
+rests on one timing read per base of its cost per attempt ($c_{\mathrm{base}}$), whose co-tenancy was not recorded; a
+read slowed by a shared card lowers $K$, so seed 0's certificate, with its 8\% margin, depends on it.
+\item \textbf{Settings.} Old and new full seeds differ in GPU class, batch, resumption and evaluation-phase sampling,
+and are pooled. Many evaluations cut off more than 0.1\% of attempts in some stratum (up to 8.8\% of strict-theorem
+attempts on one dose seed). With doubled caps, each strict count differed by at most one theorem (Appendix~\ref{sec:checks}), but the
+cut-off share fell only 1.0--2.2-fold on nine of ten checkpoints: nearly all cut-offs that remain are single actions longer
+than 1,024 tokens, runaway generations rather than proofs that need more room. The standard- and doubled-cap reads are
+independent draws, not a paired comparison, so their $\pm1$ differences are sampling, not cap effects. The power-sampling comparators of full s0 and s1 and
+knockout s0 kept no proof text, so their few successes were not re-checked in Lean; the other comparators' stored
+proofs, including the positive control's, all re-check (Appendix~\ref{app:power}).
+\item \textbf{Interface.} In an earlier 3.2M organism, a base acting through the proof-state interface found at
+least one proof of 28 of the 29 theorems that whole-proof EI had ``created'' (in up to 400,000 attempts; at EI's own
+bar of $\hat p \geq 0.01$, 21 and 14), with two seeds per arm and the state confounded with the whole step interface. Whether creation verdicts depend on the interface is untested at this scale.
+\end{itemize}

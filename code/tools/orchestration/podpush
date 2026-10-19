@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Push one path to a pod.  Usage: podpush <pod> <relpath>   (relative to POD_LOCAL_ROOT, default ~/nd-takehome)
+# The path lands at the same relative place on the pod. rsync copies into the parent directory, so pushing a
+# directory that already exists on the pod updates it instead of nesting it (`data/r3` used to become
+# `data/r3/r3`, which broke jobs twice).
+. ~/.config/nd-rl/env; N=$1; shift; F=~/.config/nd-rl/pods/$N; [ -f "$F" ] || { echo "no pod $N (podls to list, podnew to create)"; exit 1; }; . "$F"; SSHO="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ServerAliveInterval=30"
+P=${1%/}; [ -n "$P" ] || { echo "usage: podpush <pod> <relpath>"; exit 1; }
+L=${POD_LOCAL_ROOT:-$HOME/nd-takehome}; D=$(dirname "$P")
+ssh $SSHO -p "$POD_PORT" "root@$POD_IP" "mkdir -p /workspace/nd-takehome/$D"
+exec rsync -rlptz --no-o --no-g -e "ssh $SSHO -p $POD_PORT" "$L/$P" "root@$POD_IP:/workspace/nd-takehome/$D/"

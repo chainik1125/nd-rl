@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Cron: warn a run at 80 % of its pod-hour ceiling, delete its pods at 100 %.
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
+L=~/.config/nd-rl/limits; [ -d "$L" ] || exit 0
+for f in "$L"/*; do
+  [ -f "$f" ] || continue; RUN=$(basename "$f"); HOURS=""; USD=""; . "$f"; [ -n "${HOURS:-}" ] || continue
+  set -- $(podbudget "$RUN" | awk '{print $3, $5}' | tr -d '$'); used=${1:-0}; dollars=${2:-0}
+  live=$(grep -lx "RUN=$RUN" ~/.config/nd-rl/pods/* 2>/dev/null | wc -l); [ "$live" -gt 0 ] || continue
+  if awk -v u="$used" -v h="$HOURS" 'BEGIN{exit !(u>=h)}'; then
+    notify "$RUN: pod-hour ceiling reached ($used / $HOURS h, \$$dollars)" "Deleting this run's $live pod(s). The run may extend with: podbudget $RUN --extend <h> \"reason\"" high
+    for p in $(grep -lx "RUN=$RUN" ~/.config/nd-rl/pods/* 2>/dev/null); do n=$(basename "$p")
+      for path in artifacts numbers.md log.md STATUS.md; do timeout 600 podpull "$n" "$path" >/dev/null 2>&1 || true; done
+      podrm "$n" >/dev/null 2>&1 || true; done
+    echo "$(date -u +%FT%TZ) $RUN ENFORCED at $used/$HOURS h" >> ~/podbudget.log
+  elif awk -v u="$used" -v h="$HOURS" 'BEGIN{exit !(u>=0.8*h)}'; then
+    W=~/runs/$RUN/BUDGET_WARNING; [ -f "$W" ] && continue
+    mkdir -p ~/runs/$RUN; printf "%s used %s of %s pod-hours (\$%s). Wrap up, or extend with: podbudget %s --extend <hours> \"reason\"\n" "$RUN" "$used" "$HOURS" "$dollars" "$RUN" > "$W"
+    # The warning is for the run (BUDGET_WARNING), not for Dan: he gets the 100 % enforcement message only (2026-09-30).
+    echo "$(date -u +%FT%TZ) $RUN warned at $used/$HOURS h" >> ~/podbudget.log
+  fi
+done

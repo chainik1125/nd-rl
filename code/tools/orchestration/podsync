@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Push ~/nd-takehome code to a pod (excludes .git, data/, artifacts/, ckpts/). Usage: podsync <pod>
+. ~/.config/nd-rl/env; N=$1; shift; F=~/.config/nd-rl/pods/$N; [ -f "$F" ] || { echo "no pod $N (podls to list, podnew to create)"; exit 1; }; . "$F"; SSHO="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o LogLevel=ERROR -o ServerAliveInterval=30"
+exec rsync -rlptz --no-o --no-g --delete --exclude .git --exclude data/ --exclude artifacts/ --exclude ckpts/ --exclude __pycache__ -e "ssh $SSHO -p $POD_PORT" ~/nd-takehome/ "root@$POD_IP:/workspace/nd-takehome/"

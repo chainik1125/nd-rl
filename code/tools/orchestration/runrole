@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+# Start one role session for one run, with the resume loop.
+#   runrole <role> <run-id> [--repo DIR] [--brief FILE] [--stop "YYYY-MM-DD HH:MM"] [--model NAME] [--done FILE] [--done-grep REGEX]
+# role ∈ executor|reviewer|librarian|proposer. Role briefs live in $ORCH_BRIEFS (default ~/nd-rl/docs/proposals/orchestration).
+# Effort: if ~/runs/<run-id>/effort.<role> or ~/runs/<run-id>/effort exists (one word: low|medium|high|xhigh|max),
+# every invocation passes `--effort <word>`; otherwise the CLI default. Read each invocation, so it can change mid-run.
+# Messages to a running session: `runmsg` appends to ~/runs/<run-id>/<role>.inbox; the next invocation
+# puts them at the top of its prompt. The driver wakes early from its gap when one arrives, and an
+# invocation that `runmsg --now` stopped does not count as a failure.
+set -u
+ROLE=$1; RUN=$2; shift 2
+REPO=~/nd-takehome; BRIEF=""; STOP=""; MODEL=""; DONE=""; DONEGREP=""
+while [ $# -gt 0 ]; do case $1 in
+  --repo) REPO=$2; shift 2;; --brief) BRIEF=$2; shift 2;; --stop) STOP=$2; shift 2;; --model) MODEL=$2; shift 2;;
+  --done) DONE=$2; shift 2;; --done-grep) DONEGREP=$2; shift 2;; *) echo "unknown arg $1"; exit 1;; esac; done
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env
+BRIEFS=${ORCH_BRIEFS:-$HOME/nd-rl/docs/proposals/orchestration}
+D=~/runs/$RUN; mkdir -p "$D"; LOG=$D/$ROLE.driver.log
+[ -n "$DONE" ] || DONE=$D/$ROLE.done
+date -u +%FT%TZ > "$D/$ROLE.started"
+STOPTS=$(date -u -d "${STOP:-+30 hours}" +%s)
+export ND_RUN_ID="$RUN"
+export GIT_AUTHOR_NAME="agent:claude ($ROLE)" GIT_AUTHOR_EMAIL="dantweinand@gmail.com" GIT_COMMITTER_NAME="Dan Pandori" GIT_COMMITTER_EMAIL="dantweinand@gmail.com"
+
+# True only for a real usage/rate limit: an error result with a 429 or limit message, or rate_limit_info.status != allowed.
+limit_hit() { python3 - "$1" <<'PY'
+import json,sys
+hit=False
+for l in open(sys.argv[1]):
+    try: d=json.loads(l)
+    except Exception: continue
+    if d.get("type")!="result": continue
+    txt=(d.get("result") or "").lower()
+    if d.get("is_error") and (d.get("api_error_status")==429 or "usage limit" in txt or "hit your limit" in txt or "limit reached" in txt): hit=True
+    rl=d.get("rate_limit_info") or {}
+    if rl and rl.get("status") not in (None,"allowed"): hit=True
+sys.exit(0 if hit else 1)
+PY
+}
+
+# The CLI's own error output for one invocation: result events it marked is_error, plus any non-JSON
+# line it printed. Never the transcript body — that holds file contents the agent read, and this
+# project's docs quote these very error messages: on 2026-09-24 and 2026-09-28 two librarians were
+# stopped as "out of credits" after finishing successfully, because they had read the spend ledger.
+cli_errors() { python3 - "$1" <<'PY'
+import json, sys
+for l in open(sys.argv[1], errors="ignore"):
+    l = l.strip()
+    if not l: continue
+    try: d = json.loads(l)
+    except Exception: print(l); continue
+    if d.get("type") == "result" and d.get("is_error"):
+        print(d.get("result") or "", d.get("terminal_reason") or "", d.get("api_error_status") or "")
+PY
+}
+# True when the invocation failed on authentication (expired OAuth, invalid key): stop, do not spin.
+auth_failed() { cli_errors "$1" 2>/dev/null | grep -qiE "Failed to authenticate|OAuth session expired|authentication_error|invalid x-api-key|Not logged in"; }
+# True when the account is out of credits for this model: stop and name the model.
+out_of_credits() { cli_errors "$1" 2>/dev/null | grep -qiE "out of usage credits|insufficient credit|Switch to another model"; }
+fails=0; authfails=0
+# One message per run when it is recorded (the librarian finishing), naming its summary. Executor and reviewer
+# completions are logged, not sent: on 2026-09-30 about five messages per run, some quoting another run's DONE line
+# from the shared STATUS.md, were too many. Failures, stops and quarantines still notify.
+notify_done() {
+  [ "$ROLE" = librarian ] || return 0
+  git -C ~/nd-rl fetch -q origin 2>/dev/null
+  local sum title
+  sum=$(git -C ~/nd-rl ls-tree -d --name-only origin/dan experiment-summaries/ 2>/dev/null | grep -E "/[0-9]{4}-[0-9]{2}-[0-9]{2}-$RUN(-|\$)" | tail -1)
+  [ -n "$sum" ] && title=$(git -C ~/nd-rl show "origin/dan:$sum/README.md" 2>/dev/null | grep -m1 '^# ' | sed 's/^# //')
+  notify "$RUN: recorded" "${title:-no summary found in nd-rl experiment-summaries}${sum:+ — https://github.com/chainik1125/nd-rl/tree/dan/$sum}"
+}
+INBOX=$D/$ROLE.inbox; INTERRUPT=$D/$ROLE.interrupt; PIDFILE=$D/$ROLE.claude.pid
+# Take pending messages (atomically, so a runmsg writing now lands in the next file) and print them
+# as a prompt preamble; print nothing when there are none.
+take_messages() {
+  [ -s "$INBOX" ] || return 0
+  local f=$D/$ROLE.inbox.delivered.$(date -u +%Y%m%dT%H%M%SZ)
+  mv "$INBOX" "$f" || return 0
+  echo "[driver] $(date -u +%FT%TZ) delivering $(grep -c '^--- message' "$f") message(s) from $f" >> "$LOG"
+  printf 'MESSAGE FROM DAN (relayed by the orchestrator). Read it and act on it before anything else, even\nif you are in the middle of something; record it in log.md.\n\n%s\n\n' "$(cat "$f")"
+}
+# Sleep up to $1 seconds, waking early when a message arrives.
+nap() { local end=$(( $(date -u +%s) + $1 )); while [ "$(date -u +%s)" -lt "$end" ]; do [ -s "$INBOX" ] && { echo "[driver] $(date -u +%FT%TZ) message waiting — waking early" >> "$LOG"; return; }; sleep 10; done; }
+# Adaptive re-invoke delay. Every resume re-reads the whole conversation from cache, so an
+# invocation that did nothing costs about as much as one that did the work. When the agent is
+# waiting on a pod job there is nothing to re-enter for, and the driver should wait longer.
+BASE_SLEEP=${BASE_SLEEP:-90}; MAX_SLEEP=${MAX_SLEEP:-1800}; SLEEP=$BASE_SLEEP; quiet=0
+DEFAULT_MODEL_FILE=~/.config/nd-rl/model
+COMMON=(--model "$MODEL" --dangerously-skip-permissions --verbose --output-format stream-json)
+CTX="Run id: $RUN. Role: $ROLE. Repository: $REPO. Runs directory: $D. Current UTC time: $(date -u).
+Commit trailers to use: 'Edited-by: agent:claude', 'Agent-role: $ROLE', 'Run-id: $RUN'.
+When finished, create the file $DONE."
+[ "$ROLE" = reviewer ] && CTX="$CTX
+Phase-1 workspace (executor write-ups removed): ~/review/$RUN"
+cd "$REPO" || exit 1
+# One canonical policy for every run (nd-rl); a fork branch's own copy is only a fallback.
+POLICY=$BRIEFS/AGENT_POLICY.md; [ -f "$POLICY" ] || POLICY=$REPO/AGENT_POLICY.md
+for i in $(seq 1 ${MAX_INVOCATIONS:-120}); do
+  [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; notify "$RUN: $ROLE hit its hard stop" "Session ended by time limit; check STATUS.md." high; break; }
+  [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify_done; break; }
+  [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify_done; break; }
+  M=${MODEL:-$(cat "${DEFAULT_MODEL_FILE}.$ROLE" 2>/dev/null || cat "$DEFAULT_MODEL_FILE" 2>/dev/null || echo claude-opus-5-5)}; COMMON[1]="$M"
+  EFF=$(cat "$D/effort.$ROLE" 2>/dev/null || cat "$D/effort" 2>/dev/null); EFF=$(echo $EFF); ARGS=("${COMMON[@]}"); [ -n "$EFF" ] && ARGS+=(--effort "$EFF")
+  OUT=$D/$ROLE.claude_$i.jsonl; echo "[driver] $(date -u +%FT%TZ) $ROLE invocation $i (model $M${EFF:+, effort $EFF}, last gap ${SLEEP}s)" >> "$LOG"
+  HEAD0=$(git -C "$REPO" rev-parse HEAD 2>/dev/null); ST0=$(stat -c %Y "$REPO/STATUS.md" 2>/dev/null); T0=$(date -u +%s)
+  rm -f "$INTERRUPT"; MSG=$(take_messages)
+  if [ "$i" = 1 ]; then
+    claude -p "$MSG$(cat "$POLICY")
+
+$(cat "$BRIEFS/$ROLE.md")
+
+$( [ -n "$BRIEF" ] && cat "$BRIEF" )
+
+$CTX
+Begin." "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
+  else
+    if [ "$fails" = 0 ] && [ "$quiet" -lt 2 ]; then
+      RESUME="Continuing. $CTX Check what is running and carry on. If there is nothing to do until a job finishes, say so in one line and stop — the driver will wait longer before waking you again."
+    else
+      RESUME="Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md."
+    fi
+    claude -p --continue "$MSG$RESUME" "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
+  fi
+  # Run claude as a child and wait, so `runmsg --now` can find it (PIDFILE) and stop it.
+  echo $! > "$PIDFILE"; wait $!; rc=$?; rm -f "$PIDFILE"
+  echo "[driver] $(date -u +%FT%TZ) invocation $i exited rc=$rc" >> "$LOG"
+  if [ -f "$INTERRUPT" ]; then
+    # Stopped on purpose by `runmsg --now`: not a failure; resume the same conversation right away.
+    rm -f "$INTERRUPT"; echo "[driver] $(date -u +%FT%TZ) stopped by runmsg --now — resuming with the message" >> "$LOG"
+    fails=0; quiet=0; SLEEP=$BASE_SLEEP; sleep 2; continue
+  fi
+  if out_of_credits "$OUT"; then echo "[driver] OUT OF CREDITS (model $M) — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped — out of usage credits for model $M" "Set a different model (echo <model> > ~/.config/nd-rl/model) or top up, then relaunch. Check podls for pods this run created." high; break; fi
+  if auth_failed "$OUT"; then authfails=$((${authfails:-0}+1)); echo "[driver] auth failure $authfails" >> "$LOG"; if [ "$authfails" -lt 3 ]; then sleep 120; continue; fi; echo "[driver] AUTH FAILURE — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped — Claude authentication failed" "OAuth/API auth failed on $(hostname); the session cannot continue. Pods it created are still running: check podls. Log in again on this host (claude) or provide an API key, then relaunch." high; break; fi
+  if [ "$rc" != 0 ] || grep -q '"is_error":true' "$OUT" 2>/dev/null; then fails=$((fails+1)); else fails=0; authfails=0; fi
+  if [ "$fails" -ge 3 ]; then echo "[driver] three consecutive failed invocations — stopping" >> "$LOG"; notify "$RUN: $ROLE stopped after 3 consecutive failures" "Last result: $(tail -c 300 "$OUT" | tr -d '\n' | cut -c1-280)" high; break; fi
+  # Did that invocation do anything? Turns taken, a commit, a STATUS.md write, or simply a long
+  # run all count. If none of them, the agent is idle-waiting and the gap doubles (capped).
+  TURNS=$(grep -o '"num_turns":[0-9]*' "$OUT" 2>/dev/null | tail -1 | cut -d: -f2); TURNS=${TURNS:-0}
+  HEAD1=$(git -C "$REPO" rev-parse HEAD 2>/dev/null); ST1=$(stat -c %Y "$REPO/STATUS.md" 2>/dev/null)
+  DUR=$(( $(date -u +%s) - T0 ))
+  if [ "$TURNS" -ge 4 ] || [ "$HEAD0" != "$HEAD1" ] || [ "$ST0" != "$ST1" ] || [ "$DUR" -ge 300 ]; then
+    quiet=0; SLEEP=$BASE_SLEEP
+  else
+    quiet=$((quiet+1)); SLEEP=$(( SLEEP * 2 )); [ "$SLEEP" -gt "$MAX_SLEEP" ] && SLEEP=$MAX_SLEEP
+    echo "[driver] quiet invocation ($TURNS turns, ${DUR}s, no commit, no STATUS write) — next gap ${SLEEP}s" >> "$LOG"
+  fi
+  if limit_hit "$OUT"; then
+    echo "[driver] LIMIT_HIT $(date -u +%FT%TZ)" >> "$LOG"; echo "LIMIT_HIT $(date -u +%FT%TZ) $RUN/$ROLE" >> ~/LIMIT_HITS; notify "$RUN: usage limit hit ($ROLE)" "Sleeping 30 min, then resuming." low; sleep 1800; SLEEP=$BASE_SLEEP; quiet=0
+  else nap "$SLEEP"; fi
+done
+echo "[driver] $(date -u +%FT%TZ) loop finished" >> "$LOG"

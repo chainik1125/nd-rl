@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Registered pods vs. what RunPod reports.
+. ~/.config/nd-rl/env; export PATH="$HOME/.local/bin:$PATH"
+for f in ~/.config/nd-rl/pods/*; do [ -f "$f" ] && { . "$f"; echo "$(basename $f): $POD_ID $POD_IP:$POD_PORT"; }; done
+echo "--- runpod: $(runpodctl pod list 2>&1 | jq -r "map(.id + \" \" + .name + \" \" + (.desiredStatus // .status // \"\")) | join(\", \")" 2>/dev/null)"

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Every 15 min: for each run with registered pods on this host, if the run shows no sign of life at two consecutive
+# ticks, pull its pods' results, delete its pods (only its own), and notify.
+#
+# A run is alive if (a) its Claude process is running (the pid file runrole keeps while an invocation runs), or
+# (b) its driver is running AND wrote its log in the last 45 min. (b) matters because a driver waiting on pod jobs
+# backs off for up to 30 min between invocations of a few seconds each, so a Claude process exists only briefly.
+# Checking (a) alone deleted frontier-supply's five live pods on 2026-09-30. A queued wrapper whose command line
+# merely mentions runrole is not alive: it cost ~$75 of idle pods on 2026-09-22. (b) therefore needs the
+# driver's own log to be fresh.
+# Pods registered without a run fall back to host-level liveness: any Claude process.
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env
+podreconcile >/dev/null 2>&1 || true
+shopt -s nullglob
+REGS=(~/.config/nd-rl/pods/*)
+rm -f ~/watchdog.strike   # the old host-wide strike file
+[ ${#REGS[@]} -gt 0 ] || { rm -f ~/watchdog.strike.*; exit 0; }
+
+run_alive() {
+  local R=$1 f
+  if [ -z "$R" ] || [ "$R" = unknown ]; then pgrep -f "[c]laude (-p|--print)" >/dev/null; return; fi
+  for f in ~/runs/"$R"/*.claude.pid; do kill -0 "$(cat "$f" 2>/dev/null)" 2>/dev/null && return 0; done
+  pgrep -f "runrole [a-z]+ $R( |\$)" >/dev/null \
+    && [ -n "$(find ~/runs/"$R" -maxdepth 1 -name '*.driver.log' -mmin -45 2>/dev/null)" ] && return 0
+  return 1
+}
+
+declare -A PODS
+for f in "${REGS[@]}"; do R=$(sed -n 's/^RUN=//p' "$f"); R=${R:-unknown}; PODS[$R]+="$(basename "$f") "; done
+for R in "${!PODS[@]}"; do
+  S=~/watchdog.strike.$R
+  if run_alive "$R"; then rm -f "$S"; continue; fi
+  if [ ! -f "$S" ]; then date -u +%FT%TZ > "$S"; continue; fi
+  notify "pod watchdog: run $R has no live agent on $(hostname)" \
+    "No Claude process and no driver activity at two checks 15 min apart; pulling results and deleting its pod(s): ${PODS[$R]}" high
+  echo "[pod_watchdog] $(date -u +%FT%TZ) run $R orphaned; removing ${PODS[$R]}" >> ~/killswitch.log
+  for N in ${PODS[$R]}; do
+    for p in artifacts numbers.md log.md STATUS.md; do timeout 900 podpull "$N" "$p" >> ~/killswitch.log 2>&1 || true; done
+    podrm "$N" >> ~/killswitch.log 2>&1 || true
+  done
+  rm -f "$S"
+done
+for S in ~/watchdog.strike.*; do R=${S#*watchdog.strike.}; [ -n "${PODS[$R]+x}" ] || rm -f "$S"; done

@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+# Which finished run directories can go, and why the others must stay. Two kinds:
+#   ~/work/<run>    the run's git worktree (made by newrun)
+#   ~/review/<run>  the reviewer's blind-recount copy (made by review_workspace; hard-linked, no .git)
+#
+#   worktree_gc                 report each: SAFE or KEEP with reasons, and what removing it frees
+#   worktree_gc --brief         SAFE ones only, one line each
+#   worktree_gc --delete        remove the ones reported SAFE (never anything else)
+#   --min-age-hours N           also require the librarian to have finished ≥ N hours ago (disk_watch: 24)
+#   --publish                   for a finished run whose only reason to keep a directory is files stored nowhere
+#                               else, upload those files to <bucket>/<run>/_ws/<work|review>/ (after a credential
+#                               scan: the bucket is public), confirm them in a bucket listing, and then judge again.
+#                               disk_watch uses --publish --delete (Dan, 2026-09-30: finished reviewers' scratch held
+#                               ≈ 13 GB across the two VPSs and blocked new runs).
+#
+# SAFE requires all of:
+#   - nothing running for the run (tmux session, live Claude process) and its librarian done;
+#   - worktree: no modified or added tracked file (deleted tracked files are fine — their content is in
+#     git) and nothing unpushed. Review copy: the reviewer done and review_<run>.md committed;
+#   - every file that removal would actually destroy is kept somewhere else: in the HF bucket (same path
+#     and size, under any run's directory), in the committed tree, or byte-identical at the same path in
+#     the main checkout ~/nd-takehome. For a worktree that is every untracked file; for a review copy,
+#     every file with no other hard link.
+# "frees" counts only files with no other hard link: removing one name of a hard-linked file frees
+# nothing, which is why `du` on a single directory overstates it (2026-09-27: a 7.4 GB worktree freed
+# ≈ 0). Branches are never touched. (2026-09-22: a manual cleanup deleted checkpoints that had never
+# been uploaded; these checks exist because of that.)
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env 2>/dev/null
+MODE=report; MINAGE=0; PUBLISH=0
+while [ $# -gt 0 ]; do case $1 in --brief|--delete) MODE=$1; shift;; --min-age-hours) MINAGE=$2; shift 2;;
+  --publish) PUBLISH=1; shift;;
+  *) echo "unknown arg $1"; exit 1;; esac; done
+M=~/nd-takehome; BUCKET=hf://buckets/dan-pandori/nd-rl
+IDX=$(mktemp); TI=$(mktemp); trap 'rm -f "$IDX" "$TI"' EXIT
+# bucket index "<size> <path below the run directory>"; any run's directory counts, since worktrees hold
+# checkpoints pulled from other runs.
+hf buckets ls -R "$BUCKET/" 2>/dev/null | awk '$1 ~ /^[0-9]+$/ {p=$NF; sub(/^[^\/]*\//,"",p); print $1, p}' | sort -u > "$IDX"
+[ -s "$IDX" ] || { echo "could not list $BUCKET (hf CLI logged in?) — refusing to judge anything SAFE"; exit 1; }
+git -C "$M" fetch -q origin 2>/dev/null
+gb() { awk -v b="$1" 'BEGIN{printf "%.2f GB", b/1e9}'; }
+
+common_checks() { # $1 run -> appends to why[]
+  local RUN=$1 LD=~/runs/$1/librarian.done
+  tmux ls 2>/dev/null | grep -qE "^(ex|rev|lib)-$RUN:" && why+=("session running")
+  pgrep -f "[c]laude -p.*Run id: $RUN\." >/dev/null && why+=("live Claude process")
+  if [ ! -f "$LD" ]; then why+=("librarian not done")
+  elif [ "$MINAGE" != 0 ] && [ $(( ($(date +%s) - $(stat -c %Y "$LD")) / 3600 )) -lt "$MINAGE" ]; then
+    why+=("finished < ${MINAGE} h ago"); fi
+}
+kept_elsewhere() { # $1 dir, $2 relative path, $3 size -> 0 if a copy survives removal
+  grep -qxF "$3 $2" "$IDX" && return 0
+  grep -qxF "$3 _ws/$KIND/$2" "$IDX" && return 0
+  [ -s "$TI" ] && grep -qxF "$3 $2" "$TI" && return 0
+  [ -f "$M/$2" ] && { [ "$1/$2" -ef "$M/$2" ] || cmp -s "$1/$2" "$M/$2"; } && return 0
+  return 1
+}
+# Upload MISS[] (paths relative to $2) to $BUCKET/<run>/_ws/<kind>/ and add what the bucket then lists to the index.
+publish() { # $1 kind, $2 dir, $3 run -> 0 if uploaded and listed
+  local k=$1 D=$2 RUN=$3 T f hit
+  hit=$(cd "$D" && printf '%s\0' "${MISS[@]}" | xargs -0 -r grep -l -I -E \
+    'hf_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|rpa_[A-Za-z0-9]{20,}|BEGIN [A-Z ]*PRIVATE KEY|(HF_TOKEN|RUNPOD_API_KEY|ANTHROPIC_API_KEY|RESEND_API_KEY)=["'"'"']?[A-Za-z0-9_-]{16,}' \
+    2>/dev/null | head -3 | tr '\n' ' ')
+  [ -z "$hit" ] || { PUBWHY="not published: credential-like string in $hit"; return 1; }
+  T=$(mktemp -d "$HOME/.ws_publish.XXXX")   # same filesystem as the directory, so hard links cost no space
+  for f in "${MISS[@]}"; do mkdir -p "$T/$(dirname "$f")"; ln "$D/$f" "$T/$f" 2>/dev/null || cp -p "$D/$f" "$T/$f"; done
+  if timeout 7200 hf buckets sync "$T" "$BUCKET/$RUN/_ws/$k" >> ~/worktree_gc_publish.log 2>&1; then
+    hf buckets ls -R "$BUCKET/$RUN/_ws/$k/" 2>/dev/null | awk '$1 ~ /^[0-9]+$/ {p=$NF; sub(/^[^\/]*\//,"",p); print $1, p}' >> "$IDX"
+    echo "$(date -u +%FT%TZ) published ${#MISS[@]} file(s) of $k/$RUN to $BUCKET/$RUN/_ws/$k" >> ~/worktree_gc_publish.log
+    rm -rf "$T"; return 0
+  fi
+  rm -rf "$T"; PUBWHY="publish to the bucket failed (see ~/worktree_gc_publish.log)"; return 1
+}
+# If allowed and the only obstacle is unkept files: publish them, then recount. Sets why[] from base[] and MISS[].
+settle() { # $1 kind, $2 dir, $3 run, $4 label for the files
+  local k=$1 D=$2 RUN=$3 lab=$4 f miss=0 ex=""; PUBWHY=""
+  if [ "$PUBLISH" = 1 ] && [ ${#base[@]} = 0 ] && [ ${#MISS[@]} -gt 0 ] && [ "$MODE" != --brief ]; then
+    publish "$k" "$D" "$RUN" && { local left=(); for f in "${MISS[@]}"; do
+      kept_elsewhere "$D" "$f" "$(stat -c %s "$D/$f")" || left+=("$f"); done; MISS=("${left[@]}"); }
+  fi
+  why=("${base[@]}")
+  for f in "${MISS[@]}"; do miss=$((miss+1)); [ ${#ex} -lt 160 ] && ex="$ex $f"; done
+  [ "$miss" = 0 ] || why+=("$miss $lab kept nowhere else, e.g.$ex")
+  [ -z "$PUBWHY" ] || why+=("$PUBWHY")
+}
+verdict() { # $1 kind, $2 dir, $3 run, $4 bytes freed
+  local k=$1 D=$2 RUN=$3 fr; fr=$(gb "$4")
+  if [ ${#why[@]} = 0 ]; then
+    [ "$MODE" = --brief ] && echo "$k/$RUN frees $fr" || echo "SAFE  $k/$RUN (frees $fr)"
+    if [ "$MODE" = --delete ]; then
+      if [ "$k" = work ]; then git -C "$M" worktree remove --force "$D"; else rm -rf --one-file-system "$D"; fi \
+        && echo "      removed $D"
+    fi
+  elif [ "$MODE" != --brief ]; then echo "KEEP  $k/$RUN (frees $fr): $(IFS=';'; echo "${why[*]}")"; fi
+}
+
+for W in ~/work/*/; do
+  [ -d "$W" ] || continue; W=${W%/}; RUN=$(basename "$W"); why=(); : > "$TI"; KIND=work
+  common_checks "$RUN"
+  mod=$(git -C "$W" status --porcelain --untracked-files=no 2>/dev/null | grep -cvE '^( D|D ) ')
+  [ "$mod" = 0 ] || why+=("$mod modified/added tracked file(s)")
+  # compare with the run's own branch on origin: a worktree made from origin/<base> tracks <base>, so
+  # @{u} would count every commit of the run as "unpushed"
+  br=$(git -C "$W" rev-parse --abbrev-ref HEAD 2>/dev/null); up=""
+  git -C "$W" rev-parse -q --verify "refs/remotes/origin/$br" >/dev/null && up="origin/$br"
+  if [ -z "$up" ]; then why+=("branch $br not on origin"); else
+    n=$(git -C "$W" rev-list --count "$up..HEAD" 2>/dev/null || echo 1); [ "$n" = 0 ] || why+=("$n commit(s) not pushed"); fi
+  MISS=()
+  while IFS= read -r f; do
+    case "$f" in *__pycache__/*|*.pyc) continue;; esac
+    sz=$(stat -c %s "$W/$f" 2>/dev/null) || continue
+    kept_elsewhere "$W" "$f" "$sz" || MISS+=("$f")
+  done < <(git -C "$W" ls-files --others 2>/dev/null)
+  base=("${why[@]}"); settle work "$W" "$RUN" "untracked file(s)"
+  verdict work "$W" "$RUN" "$(find "$W" -type f -links 1 -printf '%s\n' | awk '{s+=$1} END{print s+0}')"
+done
+
+for R in ~/review/*/; do
+  [ -d "$R" ] || continue; R=${R%/}; RUN=$(basename "$R"); why=(); : > "$TI"; KIND=review
+  common_checks "$RUN"
+  [ -f ~/runs/"$RUN"/reviewer.done ] || why+=("reviewer not done")
+  C=$(git -C "$M" log --all -1 --format=%H -- "review_$RUN.md" 2>/dev/null)
+  if [ -z "$C" ]; then why+=("review_$RUN.md not committed on any branch")
+  else git -C "$M" ls-tree -r --long "$C" | awk '{print $4, $5}' > "$TI"; fi
+  MISS=(); freed=0
+  while IFS=' ' read -r -d '' sz f; do
+    freed=$((freed+sz)); case "$f" in *__pycache__/*|*.pyc) continue;; esac
+    kept_elsewhere "$R" "$f" "$sz" || MISS+=("$f")
+  done < <(cd "$R" && find . -type f -links 1 -printf '%s %P\0')
+  base=("${why[@]}"); settle review "$R" "$RUN" "unshared file(s)"
+  verdict review "$R" "$RUN" "$freed"
+done
+[ "$MODE" = --delete ] && git -C "$M" worktree prune
+[ "$MODE" = --brief ] || echo "disk: $(df -h --output=avail "$HOME" | tail -1 | tr -d ' ') free on $(hostname)"

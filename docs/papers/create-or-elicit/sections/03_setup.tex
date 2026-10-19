@@ -1,0 +1,182 @@
+\section{The organism and the experiment}
+\label{sec:setup}
+
+\paragraph{Logic, data and judge.} Theorems are sequents $\Gamma \vdash G$ of propositional logic over at most four
+atoms, with $\land,\lor,\to,\neg,\bot$. Proofs are Fitch-style natural deduction: premises, assumptions that open boxes,
+the introduction and elimination rules of each connective, $\bot$-elimination and double-negation elimination
+(\texttt{DN}). The pretraining set \KT{} (``K12'' in the released code) holds 155,000 synthetic proofs of 2--12 lines from a
+generator, with a flat length distribution. A proof counts if and only if Lean~4 core accepts it. A syntactic pre-filter may reject
+malformed text before Lean, but never accepts anything on its own (\S\ref{sec:robust}).
+
+\paragraph{Model and interface.} Every model is the same decoder-only transformer: 6 layers, width 384, ALiBi and NoPE
+attention heads, 9,560,832 parameters. It is pretrained from scratch for 1,200\,s on one NVIDIA A40, about 24,000 steps
+or 3.7 passes over the (state, action) pairs of \KT{}. It acts in a \emph{proof-state environment}. It sees the focused
+goal's Lean tactic state and writes one step, such as \texttt{have n5 : $\neg$P := n1 n4}. The environment applies the
+step, opens and closes the boxes of $\to$- and $\neg$-introduction and the branches of $\lor$-elimination, and ends the
+attempt at the first step it cannot apply. It also numbers the lines from one of 33 random starting offsets, so every
+proof has 33 spellings. The finished proof is rendered in Lean and judged.
+
+\paragraph{Expert iteration.} Each round, the current model samples $k=32$ attempts at temperature $T=0.8$ on each of
+4,495 training theorems. Accepted proofs accumulate across rounds, up to four per theorem. The model is then fine-tuned
+for 600 steps, from where it left off, on those proofs (each repeated four times) mixed with 20,000 records replayed
+from its own pretraining set. The training budget is the same for every theorem. This is rejection-sampling fine-tuning
+in the lineage of expert iteration \citep{anthony2017exit,polu2022curriculum}, STaR \citep{zelikman2022star} and
+ReST$^{\mathrm{EM}}$ \citep{singh2023restem}. We call one 16-round run from one pretrained seed a \emph{ladder}, and
+the model after $N$ rounds r$N$; r0 is the pretrained base. Each round also samples $k=32$ attempts on every held-out
+family member, which is never trained on.
+
+\paragraph{Evaluation.} An evaluation draws $k=256$ independent attempts per theorem at $T=0.8$, with at most 96 steps
+and 512 tokens per step. A theorem is \emph{proved} if any attempt is accepted. Two sample seeds give two independent
+draws of the same checkpoint. A \emph{guided} evaluation uses the same budget, but a step that a per-step logical
+checker rejects is redrawn from the same state without replacement, up to 10 times per attempt. On plain reads of
+six earlier r8 models of the same network (run \run{guided-tts}: the full-exposure seeds s0--s2, and three seeds
+pretrained on proofs of at most six lines), the checker never
+rejected a step Lean accepts in 314,541 tested atomic (state, step) pairs. General ability is measured on 5,000 held-out
+generator theorems decoded greedily, and on 322 evaluation theorems (72 textbook problems plus 250 held-out generator
+theorems; \S\ref{sec:case}).
+
+\paragraph{The composition and the theorem families.} Table~\ref{tab:concepts} defines the terms used throughout
+(glossary: Appendix~\ref{app:glossary}).
+In \KT{}, \sig{} occurs in 16,703 records and \sigp{} in 16,961 (10.94\%); the lemma route occurs in none. We track six
+classical generator families: converse contraposition ($\neg B \to \neg A \vdash A \to B$), negated conditional
+(a negated implication entails its antecedent and the negation of its consequent), Peirce's law, the Peirce sequent ($(A\to B)\to A \vdash A$), excluded middle, and
+De Morgan ($\neg(A\land B) \vdash \neg A \lor \neg B$). Each has 40 training members and 40 held-out members,
+substitution instances of the family's schema. The strict members number 123 in training and 106 held out: 105 family
+members plus one generated theorem, \texttt{la\_transfer\_916} (Table~\ref{tab:families}). A model \emph{acquires} a
+family if it proves at least half of the family's strict held-out members in one evaluation. Figure~\ref{fig:lean}
+shows a \sig{} proof written by a knockout base.
+
+\begin{table}[t]
+\centering\small
+\caption{The terms that separate ``absent'' from ``rare''. A \emph{derived} line is one produced by a rule, not a premise
+or an assumption.}
+\label{tab:concepts}
+\begin{tabular}{p{3.0cm}p{12.2cm}}
+\toprule
+term & definition \\
+\midrule
+\sig{} (classical reductio) & \texttt{DN} applied to a $\neg\neg G$ that the proof built by $\neg$-introduction
+(assume $\neg G$, derive $\bot$). In Lean: \texttt{Classical.byContradiction} on that refutation. \\
+\sigp{} & \texttt{DN} applied to any derived line (\sig{} plus routes through $\to$-introduction, $\lor$-elimination,
+\dots). \\
+lemma route & prove $\neg\neg G \to G$ inside an implication box (\texttt{DN} on the box's assumption), then apply it to a
+$\neg\neg G$ built by $\neg$-introduction. Classical, but not \sigp{}. \\
+free positive reductio & a \sigp{} step whose conclusion $G$ is not a negation and whose $\neg\neg G$ does not occur in
+the theorem. It is the genuinely classical use; using \sig{} on a theorem that supplies $\neg\neg G$ is not. \\
+classical-only & the theorem has no intuitionistic proof (decided by the complete G4ip procedure). \\
+strict member & a classical-only family member with no $\neg\neg$ subformula in its sequent. Every proof of it must
+eliminate a double negation that the proof built: by a free positive reductio or by the lemma route. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{Strict members per family. The held-out total adds one generated theorem, \texttt{la\_transfer\_916}.}
+\label{tab:families}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccc|c}
+\toprule
+ & conv.\ contrap. & neg.\ cond. & Peirce & Peirce seq. & excl.\ middle & De Morgan & total \\
+\midrule
+training (of 40 each) & 27 & 16 & 15 & 18 & 38 & 9 & 123 \\
+held-out (of 40 each) & 18 & 15 & 12 & 19 & 37 & 4 & 105 + 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}{0.96\linewidth}
+\begin{lstlisting}
+theorem t (P Q R S : Prop) (h1 : (((*$\neg$*)S) (*$\to$*) ((*$\neg$*)P))) (h2 : P) : (R (*$\to$*) S) := by
+  have n1 : (((*$\neg$*)S) (*$\to$*) ((*$\neg$*)P)) := h1
+  have n2 : P := h2
+  have n9 : (R (*$\to$*) S) := (fun (n3 : R) => by
+    have n7 : ((*$\neg$*)((*$\neg$*)S)) := (fun (n4 : ((*$\neg$*)S)) => by
+      have n5 : ((*$\neg$*)P) := n1 n4
+      have n6 : False := n5 n2
+      exact (n6 : False))
+    have n8 : S := Classical.byContradiction (fun hh => n7 hh)
+    exact n8)
+  exact n9
+\end{lstlisting}
+\end{minipage}
+\caption{\textbf{A free positive reductio written by a knockout base before any RL}: $\neg S \to \neg P,\ P \vdash R
+\to S$ (\texttt{la\_transfer\_916}), one of the rare successes of knockout seed 1's base in large-$k$ sampling. Assume
+$\neg S$ and refute it (\texttt{n7}), then eliminate the double negation (\texttt{n8}). Lean accepts it and rejects the
+same proof of the negated goal. Appendix~\ref{app:lean} gives two more.}
+\label{fig:lean}
+\end{figure}
+
+\paragraph{Arms.} The arms share the network, the pretraining recipe and the EI protocol (Table~\ref{tab:arms}).
+\begin{itemize}
+\item \textbf{\Kko{}} pretrains on \KTko{}. This is \KT{} minus exactly its 16,961 \sigp{} records, refilled with
+16,961 records drawn length by length from \KT{}'s own unused source pools. Every refill record passes \KT{}'s filters
+and contains no \sigp{} and no lemma route. Under two renaming-invariant keys, the refill shares no theorem with \KT{}
+or with any evaluation file. Lean accepts all 16,961 refill records (Appendix~\ref{app:k12ko}).
+\item \textbf{\Kdose{}} restores 1,550 removed \sig{} records in place of refill records, at the length mix of \KT{}'s
+\sig{} records: 1.00\% of the records.
+\item \textbf{\Kfull{}} pretrains on \KT{}. Seeds s0--s2 come from earlier runs. They differ from the new seeds s3--s5
+in three ways. Rounds 1--8 ran on RTX A6000 cards at sampling batch 2,048 (s2 at 1,024 from round 2), whereas the new seeds
+ran on A40s at 1,024.
+The ladders were resumed at rounds 9 and 13, which restarted the replay sampler. And each round's evaluation phase
+sampled more theorems. Changing the batch changes which samples are drawn, not how they are judged.
+\end{itemize}
+Because each ladder replays its own pretraining data, exposure differs during RL as well. Full ladders replay about
+2,200 \sigp{} records per round, dose ladders about 200, and knockout ladders none. ``Exposure'' below therefore means
+pretraining together with the replay drawn from it. Arms with the same seed number share initial weights and sampling
+seeds, not data.
+
+\begin{table}[t]
+\centering\small
+\caption{Arms. Every model: 9,560,832-parameter transformer, proof-state interface, pretrained from scratch, then 16
+rounds of expert iteration ($k=32$, $T=0.8$, 600 fine-tuning steps per round, 4,495 training theorems). Lean~4 alone
+judges.}
+\label{tab:arms}
+\begin{tabular}{llcc}
+\toprule
+arm & pretraining set (155,000 records each) & seeds & \sigp{} share \\
+\midrule
+\Kfull{} & \KT{} & 6 (s0--s5) & 10.94\% \\
+\Kko{} & \KTko{}: \KT{} $-$ 16,961 \sigp{} records $+$ 16,961 refill & 6 (s0--s5) & 0 \\
+\Kdose{} & \KTdose{}: \KTko{} with 1,550 \sig{} records restored & 3 (s0--s2) & 1.00\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Budgets, reach and certificates.} We write $p_M(t)$ for the probability that one attempt of model $M$ on
+theorem $t$ is accepted, and $\hat p = c/n$ for its estimate from $c$ successes in $n$ attempts. For a budget of $K$
+attempts per theorem:
+\begin{align*}
+t \text{ within reach of the base at } K \;&\Longleftrightarrow\; \hat p \geq 1/K, \\
+t \text{ not reached at } K \;&\Longleftrightarrow\; c = 0 \text{ with } n \geq K, \\
+t \text{ certified out of reach at } K \;&\Longleftrightarrow\; \mathrm{UB}_{95}(c, n) < 0.05/K,
+\end{align*}
+where $\mathrm{UB}_{95}$ is the one-sided 95\% Clopper--Pearson bound; with $c=0$, certification needs $n \approx 60K$.
+``Within reach'' from a single success in fewer than $K$ attempts is weak evidence, and we flag it where it occurs. A
+\emph{pooled} certificate over a set of theorems bounds their mean per-attempt rate, not any one of them. $K$ is
+matched to RL's compute as $K = C_{\mathrm{RL}} / (N_{\mathrm{eval}}\, c_{\mathrm{base}})$. Here $C_{\mathrm{RL}}$ is
+what the ladder spent, and $c_{\mathrm{base}}$ is the base's measured cost per attempt. ``What the ladder spent'' has several defensible
+readings, each an \emph{allocation}: its sampling attempts on training theorems ($\Katt$); the GPU time of its sampling and
+fine-tuning phases ($\Ktrain$; $\Ktrain(16)$ for a 16-round ladder); all of its GPU time ($\Kuni$); the value of an
+earlier report ($\Kpub$, \S\ref{sec:case}); or an adaptive spend of 512 attempts on every theorem and the rest on the
+base's failures ($\Kadapt$). $N_{\mathrm{eval}} = 322$ is the number of evaluation theorems the budget is spread
+over. $N_{\mathrm{eval}}$ is a choice: spreading the same compute over the 1,054 theorems of our largest evaluation
+would make every $K$ 3.3 times smaller. The \emph{compute-matched set} $\mathcal{C}(K)$ holds the theorems that RL
+proves and its base cannot reach within $K$. $\dcov(K)$ is the number RL proves minus the number the base reaches.
+
+\paragraph{The pre-registered decision rule.} Per family, at r16:
+\begin{itemize}
+\item \textsc{created} if at least 2 of 6 knockout seeds acquire it and the knockout base is certified out of reach on
+it;
+\item \textsc{needs exposure} if at most one knockout seed acquires it and more full seeds do (one-sided Boschloo test,
+$p \leq 0.05$);
+\item \textsc{neither} if no seed acquires it;
+\item \textsc{undetermined} otherwise.
+\end{itemize}
+The primary test compares, per seed, the indicator ``at least one family acquired at r16'' between the full and
+knockout arms. The pre-registration fixed the certificate pool as the 106 strict held-out theorems, at each knockout
+seed's training-phase budget $\Ktrain(16)$. As sampled, about $10^4$ attempts per theorem, no single family could be
+certified at that budget, so \textsc{created} could not be returned. Section~\ref{sec:results} reports what the
+remaining verdicts can and cannot say.

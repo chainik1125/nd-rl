@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Start a run in one step: disk check, slim worktree, pod budget, orchestrator entry, executor session.
+#   newrun <run-id> --brief FILE [--base BRANCH] [--hours H --usd D] [--stop "YYYY-MM-DD HH:MM"]
+#          [--done-grep REGEX] [--no-launch]
+# --base is a fork branch (default `dan`); the run's branch is dan_<run-id>. --done-grep defaults to
+# "<RUN-ID> DONE", the STATUS.md line the orchestrator waits for.
+#
+# The worktree is a sparse checkout. The base branch carries every earlier run's committed
+# artifacts/<dir>/ tree (≈ 4 GB on `dan` in 2026-09), and a full checkout per run is what kept
+# filling the VPS disks. Those directories are left out; everything else is checked out. To read an
+# old artifact: `git show HEAD:artifacts/<dir>/<file>`; to check a directory out:
+# `git sparse-checkout add /artifacts/<dir>/`. The run's own new artifacts/<dir>/ is unaffected.
+set -eu
+RUN=${1:?usage: newrun <run-id> --brief FILE [...]}; shift
+BASE=dan; BRIEF=""; HOURS=""; USD=""; STOP=""; DG=""; LAUNCH=1
+while [ $# -gt 0 ]; do case $1 in
+  --base) BASE=$2; shift 2;; --brief) BRIEF=$2; shift 2;; --hours) HOURS=$2; shift 2;; --usd) USD=$2; shift 2;;
+  --stop) STOP=$2; shift 2;; --done-grep) DG=$2; shift 2;; --no-launch) LAUNCH=0; shift;;
+  *) echo "unknown arg $1"; exit 1;; esac; done
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+M=~/nd-takehome; W=${NEWRUN_WORK:-$HOME/work}/$RUN; MIN=${NEWRUN_MIN_FREE_GB:-10}
+[ -n "$BRIEF" ] || [ "$LAUNCH" = 0 ] || { echo "--brief is required to launch"; exit 1; }
+[ -z "$BRIEF" ] || [ -f "$BRIEF" ] || { echo "no brief at $BRIEF"; exit 1; }
+[ ! -e "$W" ] || { echo "$W already exists"; exit 1; }
+free=$(df -BG --output=avail "$HOME" | tail -1 | tr -dc 0-9)
+if [ "$free" -lt "$MIN" ]; then
+  echo "refusing: ${free} GB free on $(hostname), need ${MIN} GB (NEWRUN_MIN_FREE_GB). Reclaimable:"; worktree_gc || true; exit 1; fi
+
+git -C "$M" fetch -q origin
+git -C "$M" worktree add -q --no-checkout --no-track -b "dan_$RUN" "$W" "origin/$BASE"
+pats=("/*"); while IFS= read -r d; do pats+=("!/$d/"); done < <(git -C "$W" ls-tree -d --name-only HEAD artifacts/)
+git -C "$W" sparse-checkout set --no-cone "${pats[@]}"
+git -C "$W" checkout -q "dan_$RUN"
+mkdir -p "$W/artifacts"
+echo "worktree $W (dan_$RUN from origin/$BASE): $(du -sh "$W" | cut -f1), $(( ${#pats[@]} - 1 )) earlier artifact dirs left out"
+
+mkdir -p ~/runs/"$RUN"
+[ -z "$HOURS" ] || podbudget "$RUN" --set "$HOURS" "$USD"
+DG=${DG:-"$(echo "$RUN" | tr '[:lower:]' '[:upper:]') DONE"}
+touch ~/orchestrator.conf
+grep -q "^$RUN|" ~/orchestrator.conf || echo "$RUN|$W|$DG|" >> ~/orchestrator.conf
+echo "orchestrator: reviewer and librarian follow when STATUS.md shows /$DG/"
+
+if [ "$LAUNCH" = 1 ]; then
+  tmux new-session -d -s "ex-$RUN" "runrole executor $RUN --repo $W --brief $BRIEF ${STOP:+--stop \"$STOP\"}"
+  echo "executor launched: tmux ex-$RUN (log ~/runs/$RUN/executor.driver.log)"
+fi
+echo "disk: $(df -h --output=avail "$HOME" | tail -1 | tr -d ' ') free on $(hostname)"

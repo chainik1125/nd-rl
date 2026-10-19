@@ -18,5 +18,7 @@ Here is an overview of the current choices.
 
     - Most compute will use Runpod GPUs.
 
+    - [RunPod setup](runpod.md): account, MCP/CLI access, pod template, and cost estimates.
+
 
 3. 

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Cron tick. Config ~/orchestrator.conf lines (pipe-separated):  <run-id>|<repo>|<done-regex>|[review-brief]
+# When the executor's done line appears: gate1 → review_workspace → runrole reviewer.  When reviewer.done: gate2 → runrole librarian.
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; L=~/orchestrator.log
+[ -f ~/orchestrator.conf ] || exit 0
+# Every 2 min since 2026-09-30 (was 10; Dan). A slow tick (gate checks, copying a review workspace) can outlast
+# that, so only one tick runs at a time: a second one exits rather than starting a run's reviewer twice.
+exec 9> ~/.orchestrator.lock; flock -n 9 || exit 0
+while IFS='|' read -r RUN REPO DG BRIEF; do
+  RUN=$(echo $RUN); REPO=$(echo $REPO); DG=$(echo $DG); BRIEF=$(echo $BRIEF)
+  [ -z "$RUN" ] || [ "${RUN:0:1}" = "#" ] && continue
+  D=~/runs/$RUN; mkdir -p "$D"
+  # Notify Dan when this run's agent adds a question to QUESTIONS.md. Lines that are already on origin/dan came in
+  # through a merge (other runs' questions, Dan's answers) and are not news: on 2026-09-30 such merges sent Dan
+  # "new question" alerts that quoted his own answer.
+  Q="$REPO/QUESTIONS.md"; H=$D/questions.sha
+  if [ -f "$Q" ]; then NEW=$(sha256sum "$Q" | cut -c1-16); OLD=$(cat "$H" 2>/dev/null)
+    if [ "$NEW" != "$OLD" ]; then
+      if [ -n "$OLD" ]; then LINES=$(diff <(cat "$D/questions.prev" 2>/dev/null) "$Q" | grep '^>' | sed 's/^> //' \
+          | grep -vxF -f <(git -C "$REPO" show origin/dan:QUESTIONS.md 2>/dev/null | grep -v '^[[:space:]]*$') | grep -v '^[[:space:]]*$' | head -c 1500)
+        [ -n "$LINES" ] && notify "$RUN: new question(s) for you in QUESTIONS.md" "$LINES ($(cd "$REPO" && git remote get-url origin 2>/dev/null | sed 's|\.git$||')/blob/$(cd "$REPO" && git branch --show-current)/QUESTIONS.md)"; fi
+      echo "$NEW" > "$H"; cp "$Q" "$D/questions.prev"; fi; fi
+  if [ ! -f "$D/reviewer.started" ] && grep -qE "$DG" "$REPO/STATUS.md" 2>/dev/null; then
+    echo "$(date -u +%FT%TZ) $RUN: executor done line seen" >> $L
+    gate1 "$REPO" "$RUN" --done-grep "$DG" >> $L 2>&1 || echo "$(date -u +%FT%TZ) $RUN: gate1 failed — reviewer still started with the failure noted" >> $L
+    review_workspace "$RUN" "$REPO" >> $L 2>&1
+    tmux new-session -d -s "rev-$RUN" "bash -lc 'runrole reviewer $RUN --repo $REPO ${BRIEF:+--brief $BRIEF} --stop \"+12 hours\"'"
+    echo "$(date -u +%FT%TZ) $RUN: reviewer session started (tmux rev-$RUN)" >> $L
+  fi
+  if [ -f "$D/reviewer.done" ] && [ ! -f "$D/librarian.started" ]; then
+    if gate2 "$REPO" "$RUN" >> $L 2>&1; then
+      tmux new-session -d -s "lib-$RUN" "bash -lc 'runrole librarian $RUN --repo $HOME/nd-rl --stop \"+6 hours\"'"
+      echo "$(date -u +%FT%TZ) $RUN: librarian session started" >> $L
+    else echo "$(date -u +%FT%TZ) $RUN: gate2 failed; librarian not started" >> $L; touch "$D/librarian.started"; notify "$RUN: review failed gate 2" "Librarian not started; see ~/orchestrator.log" high; fi
+  fi
+done < ~/orchestrator.conf
