@@ -108,10 +108,12 @@ useful" are all fair questions.
 
 ## Spend and compute
 
-- **Pod budget:** the brief's declared budget, registered with `podbudget <run> --set <hours> <usd>`
-  **before the first pod** (`pod_budget_watch` warns at 80 % and deletes the run's pods at 100 %).
-  $50 if a brief declares none. Extend within the declared budget with
-  `podbudget <run> --extend <hours> "reason"`; beyond it, ask in `QUESTIONS.md`.
+- **Pod budget: the dollar budget is the real limit; hour ceilings are advice** (Dan, 2026-10-19). Register the
+  brief's budget with `podbudget <run> --set <hours> <usd>` **before the first pod**; $50 if a brief declares none.
+  `pod_budget_watch` warns the run at 80 % of the dollars and deletes its pods at 100 %. Crossing the hour figure only
+  writes `~/runs/<run>/HOURS_ADVISORY`, so cheaper GPUs and longer jobs are fine within the dollars, and you may raise
+  the hour figure yourself (`podbudget <run> --set` / `--extend`). Going beyond the dollar budget is a question for Dan
+  in `QUESTIONS.md`.
 - **Balance floor: keep the RunPod balance above $35** (Dan, 2026-10-06; was $100 from 2026-09-27, $130 from
   2026-09-24). Check it with `rpbalance`. `balance_floor` deletes every pod on the host if the balance falls below $25.
   If planned work would take the balance below $35, ask in `QUESTIONS.md`.

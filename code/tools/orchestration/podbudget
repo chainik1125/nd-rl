@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Per-run pod-hour ledger and ceiling.
+# Per-run pod-hour ledger, advisory hour ceiling and binding dollar budget (see pod_budget_watch; Dan, 2026-10-19).
 #   podbudget                      show every run's used / ceiling hours and estimated dollars
 #   podbudget <run>                show one run
 #   podbudget <run> --set H [USD]  set the ceiling (at run start, from the brief)
