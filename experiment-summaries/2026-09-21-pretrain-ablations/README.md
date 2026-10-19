@@ -1,4 +1,5 @@
 ---
+title: SPAR, Capability Emergence: Pretraining Ablations, Sep 21
 written_on: 2026-09-26
 written_by: human:Robbie
 draft: false
