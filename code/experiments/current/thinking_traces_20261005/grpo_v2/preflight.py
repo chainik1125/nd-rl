@@ -1,7 +1,8 @@
 """Pre-flight for the GRPO v2 lines: the curriculum pools exist, have their lengths, and share no
 theorem with any evaluation set or with each other.
 
-    python -m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight POOL_L2 POOL_L3
+    python -m code.experiments.current.thinking_traces_20261005.grpo_v2.preflight POOL_L2 POOL_L3 \
+        [POOL_L4]
 
 Overlap is checked three ways, and any hit fails: by normalised prompt; by renaming-class key where
 both sides carry one (`key` / `pkey`, as the pool builders write them); and by class, for every row
@@ -9,6 +10,12 @@ of every set: the renaming class (atoms P-S permuted, premises as a set) of the 
 curried normal form (leading antecedents of the goal moved into the premises), Charles's audit rule
 of 2026-09-30 (`classes`, copied from `charles_eval/build_clean.py` on leon/thinking, 591d785).
 Exits 1 on any overlap or missing file.
+
+A third pool (L4, 16-18 lines) is optional. When it is given, it gets the same band, pairwise and
+evaluation-set checks, and the L4 test split joins the evaluation sets for every pool; with two
+pools the output is unchanged (line.sh and build_mix_ei.py count its `ok` lines). Passing the L4
+test split as the third pool checks it against every other evaluation set (the comparison with
+itself is skipped).
 """
 
 from __future__ import annotations
@@ -40,7 +47,9 @@ EVAL_SETS: dict[str, list[Path]] = {
     "curriculum L2 test_1k": [CURR / "L2/test_1k.jsonl"],
     "curriculum L3 test_1k": [CURR / "L3/test_1k.jsonl"],
 }
-BANDS = {"L2": (10, 12), "L3": (13, 15)}
+BANDS = {"L2": (10, 12), "L3": (13, 15), "L4": (16, 18)}
+#: Joins EVAL_SETS only when an L4 pool is checked.
+L4_TEST = {"curriculum L4 test_1k": [CURR / "L4/test_1k.jsonl"]}
 ATOMS = ("P", "Q", "R", "S")
 Formula = tuple[str, ...]
 Key = tuple[tuple[str, ...], str]
@@ -134,7 +143,8 @@ def keys(rs: list[dict[str, Any]]) -> set[str]:
 
 
 def main(argv: list[str]) -> int:
-    pools = {"L2": Path(argv[0]), "L3": Path(argv[1])}
+    pools: dict[str, Path] = dict(zip(("L2", "L3", "L4"), map(Path, argv), strict=False))
+    eval_sets = {**EVAL_SETS, **(L4_TEST if "L4" in pools else {})}
     bad = 0
     loaded: dict[str, list[dict[str, Any]]] = {}
     for name, p in pools.items():
@@ -157,13 +167,14 @@ def main(argv: list[str]) -> int:
     pp = {n: {norm(r["prompt"]) for r in rs} for n, rs in loaded.items()}
     pk = {n: keys(rs) for n, rs in loaded.items()}
     pc = {n: class_set(rs) for n, rs in loaded.items()}
-    if pp["L2"] & pp["L3"] or pk["L2"] & pk["L3"] or pc["L2"] & pc["L3"]:
-        print(
-            f"BAD: L2 and L3 share {len(pp['L2'] & pp['L3'])} prompts, "
-            f"{len(pk['L2'] & pk['L3'])} keys, {len(pc['L2'] & pc['L3'])} classes"
-        )
-        bad += 1
-    for ename, paths in EVAL_SETS.items():
+    for x, y in itertools.combinations(loaded, 2):
+        if pp[x] & pp[y] or pk[x] & pk[y] or pc[x] & pc[y]:
+            print(
+                f"BAD: {x} and {y} share {len(pp[x] & pp[y])} prompts, "
+                f"{len(pk[x] & pk[y])} keys, {len(pc[x] & pc[y])} classes"
+            )
+            bad += 1
+    for ename, paths in eval_sets.items():
         have = [p for p in paths if p.exists()]
         if not have:
             print(f"(skip {ename}: not built)")
@@ -171,6 +182,9 @@ def main(argv: list[str]) -> int:
         es = rows(have)
         ep, ek, ec = {norm(r["prompt"]) for r in es}, keys(es), class_set(es)
         for n in loaded:
+            if pools[n].resolve() in {q.resolve() for q in have}:  # a test split checked as a pool
+                print(f"(self {n} vs {ename}: the same file)")
+                continue
             a, b, c = len(pp[n] & ep), len(pk[n] & ek), len(pc[n] & ec)
             flag = "BAD" if a or b or c else "ok "
             print(
