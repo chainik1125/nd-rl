@@ -1,0 +1,61 @@
+## O6: outcome shares (% of attempts), solved steps / min_lines, fail_step / min_lines
+
+t1320_grpo_think_vs_mb_s0_plain_k16
+   ok 34.4, done, Lean-rejected 18.5, fail:S:binder mismatch 14.7, fail:S:unbound 12.5, fail:S:Or.elim on non-or 5.4, fail:S:term 2.5, fail:S:assign 2.4, fail:S:exact goal mismatch 1.6
+   solved steps/min_lines median 1.59; fail_step/min_lines median 1.00
+t1320_grpo_think_vs_mb_kkl0_s0_plain_k16
+   ok 36.0, done, Lean-rejected 16.4, fail:S:binder mismatch 15.1, fail:S:unbound 11.6, fail:S:Or.elim on non-or 5.6, fail:S:exact goal mismatch 2.7, fail:S:formula 2.5, fail:S:assign 1.6
+   solved steps/min_lines median 1.68; fail_step/min_lines median 1.14
+t1320_ei_think_v_s0_plain_k16
+   ok 31.1, done, Lean-rejected 18.8, fail:S:binder mismatch 15.2, fail:S:unbound 12.0, fail:S:Or.elim on non-or 10.6, fail:S:names exhausted 2.5, fail:S:malformed 2.2, fail:S:exact goal mismatch 2.0
+   solved steps/min_lines median 1.50; fail_step/min_lines median 1.29
+t2130_grpo_think_vs_mb_s0_plain_k8
+   fail:S:binder mismatch 29.7, fail:S:unbound 19.8, done, Lean-rejected 12.7, ok 8.9, fail:S:Or.elim on non-or 8.4, fail:S:assign 3.3, fail:S:term 3.2, fail:S:exact not last 2.8
+   solved steps/min_lines median 1.55; fail_step/min_lines median 0.76
+t2130_grpo_think_vs_mb_kkl0_s0_plain_k8
+   fail:S:binder mismatch 30.8, fail:S:unbound 17.8, done, Lean-rejected 11.3, ok 10.1, fail:S:Or.elim on non-or 7.5, fail:S:formula 4.4, fail:S:exact goal mismatch 3.6, fail:S:assign 2.7
+   solved steps/min_lines median 1.65; fail_step/min_lines median 0.83
+t2130_ei_think_v_s0_plain_k8
+   fail:S:binder mismatch 29.0, fail:S:unbound 18.8, fail:S:Or.elim on non-or 14.3, done, Lean-rejected 12.9, ok 6.5, fail:S:exact goal mismatch 3.9, fail:S:names exhausted 3.9, fail:S:malformed 2.5
+   solved steps/min_lines median 1.52; fail_step/min_lines median 0.96
+
+## O6: Lean-rejection classes (lean_gate.leanrej.jsonl `filter`)
+
+t1320_grpo_think_vs_mb_kkl0_s0_plain_k16: 2565 rejections; app-arg 46%, app-result 16%, and-intro 10%, projection 6%, and-elim 6%, function-expected 5%, reiterate 4%, by-contradiction 4%
+t2130_grpo_think_vs_mb_kkl0_s0_plain_k8: 903 rejections; app-arg 56%, app-result 15%, and-intro 6%, function-expected 5%, projection 5%, and-elim 5%, reiterate 4%, by-contradiction 1%
+t1320_ei_think_v_s0_plain_k16: 2925 rejections; app-arg 49%, app-result 17%, and-elim 9%, projection 7%, by-contradiction 5%, function-expected 4%, and-intro 3%, reiterate 3%
+
+## O8: ok / env-rejected / Lean-rejected (% of attempts) by training arm and seed
+
+t1320_grpo_think_s0_plain_k16        ok  30.5  env-rejected  48.3  Lean-rejected  21.1
+t2130_grpo_think_s0_plain_k8         ok   6.3  env-rejected  78.4  Lean-rejected  15.3
+t1320_grpo_think_s1_plain_k16        ok  28.1  env-rejected  60.1  Lean-rejected  11.8
+t2130_grpo_think_s1_plain_k8         ok   3.7  env-rejected  89.6  Lean-rejected   6.7
+t1320_grpo_think_s2_plain_k16        ok  26.2  env-rejected  57.7  Lean-rejected  16.0
+t2130_grpo_think_s2_plain_k8         ok   3.5  env-rejected  84.5  Lean-rejected  12.0
+t1320_grpo_think_vs_s0_plain_k16     ok  30.5  env-rejected  48.5  Lean-rejected  21.0
+t2130_grpo_think_vs_s0_plain_k8      ok   7.3  env-rejected  76.7  Lean-rejected  16.0
+t1320_grpo_think_vs_s1_plain_k16     ok  32.7  env-rejected  54.8  Lean-rejected  12.5
+t2130_grpo_think_vs_s1_plain_k8      ok   6.0  env-rejected  86.2  Lean-rejected   7.8
+t1320_grpo_think_vs_s2_plain_k16     ok  24.5  env-rejected  63.1  Lean-rejected  12.4
+t2130_grpo_think_vs_s2_plain_k8      ok   3.5  env-rejected  89.0  Lean-rejected   7.6
+t1320_ei_think_s0_plain_k16          ok  32.2  env-rejected  47.8  Lean-rejected  20.0
+t2130_ei_think_s0_plain_k8           ok   7.5  env-rejected  77.7  Lean-rejected  14.8
+t1320_ei_think_s1_plain_k16          ok  33.2  env-rejected  52.3  Lean-rejected  14.5
+t2130_ei_think_s1_plain_k8           ok   8.1  env-rejected  81.7  Lean-rejected  10.2
+t1320_ei_think_s2_plain_k16          ok  29.1  env-rejected  55.7  Lean-rejected  15.2
+t2130_ei_think_s2_plain_k8           ok   6.6  env-rejected  83.3  Lean-rejected  10.1
+t1320_ei_think_v_s0_plain_k16        ok  31.1  env-rejected  50.1  Lean-rejected  18.8
+t2130_ei_think_v_s0_plain_k8         ok   6.5  env-rejected  80.7  Lean-rejected  12.9
+t1320_ei_think_v_s1_plain_k16        ok  34.5  env-rejected  52.6  Lean-rejected  12.9
+t2130_ei_think_v_s1_plain_k8         ok   8.1  env-rejected  83.1  Lean-rejected   8.8
+t1320_ei_think_v_s2_plain_k16        ok  27.8  env-rejected  57.9  Lean-rejected  14.3
+t2130_ei_think_v_s2_plain_k8         ok   5.6  env-rejected  84.7  Lean-rejected   9.7
+
+## B2: formula repeats in solved proofs
+
+t1320_grpo_think_vs_mb_kkl0_s0_plain_k16         have-lines 113280: repeat of an earlier formula 44.7%; atomic lines 73287: same formula as the line before 1.0%
+t1320_ei_think_v_s0_plain_k16                    have-lines 87693: repeat of an earlier formula 42.8%; atomic lines 56173: same formula as the line before 0.6%
+t2130_grpo_think_vs_mb_kkl0_s0_plain_k8          have-lines 21394: repeat of an earlier formula 51.4%; atomic lines 12965: same formula as the line before 0.9%
+charles173_grpo_think_vs_mb_kkl0_s0_plain_k64    have-lines 75860: repeat of an earlier formula 25.1%; atomic lines 55965: same formula as the line before 0.5%
+

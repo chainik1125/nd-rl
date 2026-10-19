@@ -1,0 +1,57 @@
+## O9: pass@1 / pass@4 (% of set) of the EI knob pilots and GRPO references, plain reads at B64
+
+t1320      ei_think_v_s0                n= 986 pass@1  31.1 pass@4  53.5
+t1320      ei_think_v_krr_s0            n= 986 pass@1  30.8 pass@4  52.2
+t1320      ei_think_v_kret0_s0          n= 986 pass@1  28.4 pass@4  48.8
+t1320      ei_think_v_kr2_s0            n= 986 pass@1  32.2 pass@4  55.0
+t1320      ei_think_v_kt10_s0           n= 986 pass@1  31.1 pass@4  54.2
+t1320      ei_think_v_k3p_s0            n= 986 pass@1  30.3 pass@4  52.5
+t1320      grpo_think_vs_mb_s0          n= 986 pass@1  34.4 pass@4  57.2
+t1320      grpo_think_vs_mb_krr_s0      n= 986 pass@1  33.2 pass@4  56.3
+t1320      grpo_think_vs_mb_kkl0_s0     n= 986 pass@1  36.0 pass@4  58.8
+
+t2130      ei_think_v_s0                n=1000 pass@1   6.5 pass@4  15.5
+t2130      ei_think_v_krr_s0            n=1000 pass@1   6.5 pass@4  15.6
+t2130      ei_think_v_kret0_s0          n=1000 pass@1   6.2 pass@4  13.9
+t2130      ei_think_v_kr2_s0            n=1000 pass@1   7.6 pass@4  17.6
+t2130      ei_think_v_kt10_s0           n=1000 pass@1   7.0 pass@4  17.3
+t2130      ei_think_v_k3p_s0            n=1000 pass@1   6.9 pass@4  17.1
+t2130      grpo_think_vs_mb_s0          n=1000 pass@1   8.9 pass@4  20.3
+t2130      grpo_think_vs_mb_krr_s0      n=1000 pass@1   8.3 pass@4  19.1
+t2130      grpo_think_vs_mb_kkl0_s0     n=1000 pass@1  10.1 pass@4  23.1
+
+charles173 ei_think_v_s0                n= 173 pass@1  71.3 pass@4  79.7
+charles173 ei_think_v_krr_s0            n= 173 pass@1  71.5 pass@4  79.9
+charles173 ei_think_v_kret0_s0          n= 173 pass@1  69.6 pass@4  78.6
+charles173 ei_think_v_kr2_s0            n= 173 pass@1  72.8 pass@4  79.9
+charles173 ei_think_v_kt10_s0           n= 173 pass@1  70.4 pass@4  78.9
+charles173 ei_think_v_k3p_s0            n= 173 pass@1  69.5 pass@4  78.3
+charles173 grpo_think_vs_mb_s0          n= 173 pass@1  74.1 pass@4  82.2
+charles173 grpo_think_vs_mb_krr_s0      n= 173 pass@1  73.7 pass@4  81.5
+charles173 grpo_think_vs_mb_kkl0_s0     n= 173 pass@1  74.5 pass@4  81.2
+
+## O1, O10: GRPO stages (metrics.jsonl)
+
+grpo_think_s0_L2               iters  39 pairs seen  7993 pass1 first {'0': 0.16, '256': 0.3, '64': 0.24} last {'0': 0.76, '256': 0.94, '64': 0.84}
+                               think tokens/block first {'256': 31.63, '64': 17.81} last {'256': 21.95, '64': 16.98} action entropy 0.055 -> 0.039
+grpo_think_vs_s0_L2            iters  39 pairs seen  8023 pass1 first {'0': 0.16, '256': 0.29, '64': 0.25} last {'0': 0.79, '256': 0.92, '64': 0.86}
+                               think tokens/block first {'256': 35.64, '64': 20.16} last {'256': 22.78, '64': 17.31} action entropy 0.061 -> 0.034
+grpo_think_vs_s2_L3            iters  39 pairs seen  8086 pass1 first {'0': 0.58, '256': 0.86, '64': 0.82} last {'0': 0.83, '256': 0.94, '64': 0.93}
+                               think tokens/block first {'256': 21.57, '64': 17.17} last {'256': 20.37, '64': 14.16} action entropy 0.042 -> 0.039
+grpo_think_vs_b_s2_L3          iters  39 pairs seen  8107 pass1 first {'0': 0.58, '256': 0.86, '64': 0.82} last {'0': 0.83, '256': 0.92, '64': 0.95}
+                               think tokens/block first {'256': 21.57, '64': 17.17} last {'256': 19.76, '64': 14.51} action entropy 0.042 -> 0.048
+grpo_think_vs_pb_s2_L3         iters  39 pairs seen  7575 pass1 first {'0': 0.58, '256': 0.86, '64': 0.82} last {'0': 0.84, '256': 0.91, '64': 0.95}
+                               think tokens/block first {'256': 21.57, '64': 17.17} last {'256': 19.06, '64': 14.18} action entropy 0.042 -> 0.041
+grpo_think_vs_mb_s0_L3         iters  39 pairs seen  5940 pass1 first {'0': 0.75, '256': 0.87, '64': 0.82} last {'0': 0.85, '256': 0.95, '64': 0.95}
+                               think tokens/block first {'256': 20.0, '64': 16.01} last {'256': 19.49, '64': 15.5} action entropy 0.039 -> 0.076
+grpo_think_vs_mb_krr_s0_L3     iters  39 pairs seen  5926 pass1 first {'0': 0.75, '256': 0.87, '64': 0.82} last {'0': 0.86, '256': 0.93, '64': 0.94}
+                               think tokens/block first {'256': 20.0, '64': 16.01} last {'256': 21.33, '64': 15.41} action entropy 0.039 -> 0.050
+grpo_think_vs_mb_kkl0_s0_L3    iters  39 pairs seen  5416 pass1 first {'0': 0.75, '256': 0.87, '64': 0.82} last {'0': 0.9, '256': 0.95, '64': 0.92}
+                               think tokens/block first {'256': 20.0, '64': 16.01} last {'256': 21.46, '64': 15.63} action entropy 0.039 -> 0.080
+grpo_think_vs_mb_kg64_s0_L3    iters  39 pairs seen  1635 pass1 first {'0': 0.74, '256': 0.83, '64': 0.8} last {'0': 0.8, '256': 0.89, '64': 0.92}
+                               think tokens/block first {'256': 20.21, '64': 16.14} last {'256': 26.51, '64': 16.79} action entropy 0.037 -> 0.094
+grpo_think_vs_mb_ki78_s0_L3    iters  78 pairs seen  9789 pass1 first {'0': 0.75, '256': 0.87, '64': 0.82} last {'0': 0.85, '256': 0.89, '64': 0.89}
+                               think tokens/block first {'256': 20.0, '64': 16.01} last {'256': 21.12, '64': 16.6} action entropy 0.039 -> 0.139
+grpo_think_vs_mb_kt12_s0_L3    iters  39 pairs seen  5822 pass1 first {'0': 0.61, '256': 0.76, '64': 0.7} last {'0': 0.81, '256': 0.89, '64': 0.89}
+                               think tokens/block first {'256': 20.87, '64': 16.52} last {'256': 23.49, '64': 15.74} action entropy 0.050 -> 0.084
+

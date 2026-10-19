@@ -188,15 +188,19 @@ def nd_lines(proof: str) -> int:
     return sum(bool(re.match(r"N\d+\s", part.strip())) for part in proof.split(";"))
 
 
-def references(keep: dict[str, set[str] | None]) -> dict[str, dict[str, int]]:
-    """Reference length per problem of each set; the stored proofs are recounted and must give
-    the stored `reference_lines`."""
+def references(
+    keep: dict[str, set[str] | None], sets: Sequence[str] = SETS
+) -> dict[str, dict[str, int]]:
+    """Reference length per problem of each of `sets` (only those files are read); the stored
+    proofs are recounted and must give the stored `reference_lines`."""
     out: dict[str, dict[str, int]] = {}
     for s, path in (
         ("t1320", V.MATCHED / "sets/t1320_n1000.jsonl"),
         ("t2130", V.MATCHED / "sets/t2130_n1000.jsonl"),
         ("charles149", V.R / "pools/charles_1002/charles_clean.jsonl"),
     ):
+        if s not in sets:
+            continue
         ref: dict[str, int] = {}
         for r in jsonl(path):
             n = nd_lines(r["reference_proof"])
@@ -208,7 +212,10 @@ def references(keep: dict[str, set[str] | None]) -> dict[str, dict[str, int]]:
             if names is None or r["name"] in names:
                 ref[r["name"]] = n
         out[s] = ref
-    out["tb72"] = {r["name"]: int(r["reference_lines"]) for r in jsonl(TB / "textbook_dev.jsonl")}
+    if "tb72" in sets:
+        out["tb72"] = {
+            r["name"]: int(r["reference_lines"]) for r in jsonl(TB / "textbook_dev.jsonl")
+        }
     return out
 
 

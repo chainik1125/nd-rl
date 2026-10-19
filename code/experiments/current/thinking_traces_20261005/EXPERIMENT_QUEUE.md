@@ -11,9 +11,66 @@ changes; Git keeps the history. All paths are under `/scratch/cowifornia/nd-rl/t
 **Matched budget.** One EI round is 5,000 × 32 = 160k attempts, and 39 GRPO iterations are 256 × 16 × 39 =
 160k. So EI r1 ↔ GRPO it39 and EI r2 ↔ GRPO it78.
 
-## Running (updated 2026-10-15, 8:15 pm PDT; on serrano)
+## Running (updated 2026-10-18, 8:30 am PDT; on serrano)
 
-**EI knob pilots: running since 8:09 pm** (GPUs 0–3; `runs/grpo_v2/jobs_ei_knobs.txt`, one `pull_queue.sh` worker per
+**serrano's crashes: the PSU** (`runs/vitals/CRASH_REPORT.md`, `runs/vitals/stress/`).
+- The BMC logged `CPU_THERMTRIP` within about 10 s of three of our deaths (Oct 8, 11, 16).
+- A deliberate load test (2026-10-16, 4:02 pm) kept the CPU at 55–66 °C:
+  - it ran 25 min of full CPU, then 47 min of full CPU with 5 GPUs at 150 W, then 5 min at 5 × 200 W;
+  - it died at 5 × 250 W (about 1.5 kW in total, CPU 63 °C).
+- A replacement PSU died within a minute at stock limits (about 2.1 kW).
+- Since then our jobs run on **at most 3 GPUs (0–2)**, with `LEAN_GATE_WORKERS=8` and CPU builders at ≤ 8 cores.
+  - From 2026-10-18 all five GPUs read a 200 W limit.
+  - GPU 4 belongs to another agent (Leon, 2:20 am: "you can keep using all 3").
+
+**RL generalization study** (`code/experiments/current/rl_generalization_20261016/`; summary
+`experiment-summaries/2026-10-16-rl-generalization-testbed/`).
+- **10 + 10 gate: NO-GO** (Oct 17, 8:47 pm). Leon (9:10 pm): follow the pre-registration, remedy A.
+- **20 + 20 gate** (remedy A, `leon/grpo-v2` 79105ffe):
+  - G0 passes only through a recorded deviation (B0 L3 test 76.3% for the ≤ 90% ceiling, where B64 reads 91.9%;
+    ba275d73, 963d90b3, efdc89a8). Leon delegated the decision at 2:25 am.
+  - G1 passes (s_ref 0.042 logit). kl1 reproduces (−3.0 points).
+  - g64 stays partial at n_c 4: −1.3 points (−0.060 logit, U +0.010, against ½E −0.1275), after forks at seeds 2
+    and 3 by § 3.
+  - **Decision (5:33 am, b9c6a7c6): NO-GO.** The mini is retired as the knob testbed, since remedy A is spent. Nothing
+    starts overnight. **Leon decides** on remedy C or a re-validation (options in the summary).
+- **The full-scale g64 replicate does not replicate:** seed 2 gives −0.064 logit (−1.2 points) against seed 0's −0.255.
+  Seed 1 failed (`--ban_stop` at it 39 of 39). By the pre-registration this changes neither E nor the gate.
+- **On the GPUs:**
+  - GPU 0: idle. The B0 and B64 trajectory reads of the 20 + 20 references s0 and s1 finished at 6:49 am
+    (`reads_b0.sh`, `roll_reads_mini20.sh`); `gate_mini20.md` now has the § 4.3 split, which changes no decision.
+  - GPUs 1 and 2: idle. The held full-scale checkpoint reads (`jobs_ckreads_core_run_held.txt`,
+    `jobs_ckreads_held.txt`) all finished by 8:27 am, with no failed read; the last were kp3 s0, fbb s2 and ki78 s0.
+  - Nothing of ours is queued. GPU 4 is the other agent's.
+- Data built for later knobs: the 16–18-line pool L4 (255 rows only; `leon/long-pool`) and the statement-size twins
+  (`leon/size-twins`, `runs/pools/size_twins/`).
+
+### 2026-10-16
+
+**Leon's decisions, about 1:40–2:45 am, 2026-10-16.**
+- GRPO is the RL method from now on; EI is retired. The primary recipe (merged recipe + KL 0) is on `leon/main`
+  (690817d8, with `RECIPE.md`); the PR to `main` waits until Dan merges his draft #16, which `leon/main` contains.
+- Next question: *what causes generalization of RL training* (to longer and bigger proofs, and to other sources), not
+  score tuning; no lr/optimizer knobs. textbook72 stays sealed; Charles149 is the source proxy.
+- Test bed: **mini RL runs from the Stage-1 base** (`S1g3_s0` always), 1,000 L2 + 1,000 L3 pool rows (and 20% of the
+  3-premise extras), 10 + 10 iterations, the recipe's flags per stage, rolling checkpoints every 2 iterations; reads
+  include the held-out in-distribution `L2/test_1k`, `L3/test_1k`.
+- Order: a **validation wave** first (reference at RL seeds 0–3; known-effect controls KL 0.1 and 64 × 64 groups),
+  gated on the mini setup reproducing known effects; **checkpoint reads** of the ~12 existing full-scale L3 runs
+  (dynamics, no training) alongside; then knobs: temperature 0.7–1.3, think-length reward (−0.1, +0.2, +0.5, with
+  the all-solved-group fixes), pool size 250/500, loss on action vs think tokens, positive- vs negative-only
+  advantages, statement-size twins (same proofs, bigger statements); a 16–18-line pool (L4) is being built.
+- Dropped: lr knobs and the unlikeliness dose (Leon); updates per batch (it changes the number of AdamW steps, i.e.
+  an lr knob).
+- Overnight: experiments may launch without Leon if an auditing subagent signs off on each (Leon, 2:45 am).
+- Design review and knob proposals (agent reports, not results): to be filed with the experiment.
+
+**EI knob pilots: done** (rr, 3p, ret0, t10, r2 all finished by 1:38 am, before the stop; reads on disk, not analysed
+since EI is retired).
+
+### 2026-10-15 evening
+
+**EI knob pilots: ran 8:09 pm to 1:38 am** (GPUs 0–3; `runs/grpo_v2/jobs_ei_knobs.txt`, one `pull_queue.sh` worker per
 GPU; `leon/grpo-v2` 17cd1e6a). Leon (about 6 pm): the GRPO arm for the head-to-head is the merged recipe + KL 0
 (`grpo_think_vs_mb_kkl0`); EI gets about 4 single-seed pilots first, because GRPO had about 15 and EI none; KL 0 in L2
 waits. Each pilot is `ei_think_v`'s L3 (one round of 5,000 × 32, one 600-step fine-tune) from
