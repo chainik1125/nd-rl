@@ -1,0 +1,30 @@
+# python -m code.ndbench.interp kl \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_kl_ours.yaml
+#
+# Token-level KL divergence for our own absgpt pair (base/rl -- `configs/models.yaml`'s `base`/
+# `rl` labels), the same measurement `interp_kl_dan12.yaml` runs for Dan's pair
+# (`interp/kl.py`'s module docstring), on `textbook_dev` v1 (the only suite both `base`/`rl` have
+# `nd_v2`-judged runs with stored samples for -- `kl.DEFAULT_ABSGPT_SUITES`). No per-step name-base
+# marginalisation is needed here (unlike Dan's `exclude_defining_names`/per-base convention):
+# `AbsGptAdapter.masked_next_logprobs` teacher-forces each sample's own literal, as-generated
+# `Attempt.native` text directly -- there is no encoding ambiguity to resolve, since the model's
+# own sampled token ids already fix one.
+#
+# Scale estimate: like the Dan config, cost is one forward row per *sample* (not per step -- a
+# whole proof is one teacher-forced row here, unlike Dan's one-row-per-action-step), so this is
+# far cheaper per sample than the dan12 measurement: `max_samples_per_suite=2000` scores up to
+# `2000` samples per direction (`rl||base` from `rl`'s own samples, `base||rl` from `base`'s own),
+# each scored by both models -> `2 * 2000 * 2 models` = 8,000 forward rows total, an order of
+# magnitude below `interp_kl_dan12.yaml`'s own estimate. A CPU pilot on 20 real stored
+# `textbook_dev` samples/model (this work package's own smoke test) found essentially 0 skips
+# (every sampled attempt in that slice ended in `QED`) and ~100-250 proof tokens/sample.
+seed: 0
+base_model: base
+rl_model: rl
+judge: nd # not consumed by `kl` itself (no judging happens here)
+judge_id: nd_v2
+device: cuda
+max_samples_per_suite: 2000
+suites:
+  - {suite: textbook_dev, version: v1}

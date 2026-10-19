@@ -1,0 +1,113 @@
+# Audit log (run 2, auditor)
+
+Code audit of every node entering the frontier (and replicate candidates). Check: reads only allowed files
+(paths['targets'], paths['train_cap6']; heldout only via paths['heldout_greedy']), trains only on verified
+self-generated proofs / verified by-products / cap-6 records, no proof literals, no sealed/scorer paths,
+no other workspace. Tool: audit/tools/codeaudit.py (regex scan + diff vs parent1), then a manual read of the diff.
+
+- 2026-09-24T02:28Z n000 seed (frozen/rl.py, identical): reads paths['train_cap6'] only; writes found_targets.jsonl and round ckpts under out_dir; OK.
+- 2026-09-24T02:29Z ideas.md URL check: arXiv 2509.25849 = Knapsack RL (Li et al.), per-task rollout budget allocation by difficulty: supports w4 and w6 rows. arXiv 2502.20122 = Self-Training Elicits Concise Reasoning (Munkhbat et al.), best-of-N shortest correct self-training: supports w3 row. w4 and w6 are the same family (adaptive per-target k from Knapsack RL), distinct variants; will be cross-referenced once results exist.
+- 2026-09-24T02:38Z ideas URL check w2: arXiv 2510.08892 = multi-temperature token-level control in RLVR (Zhuang et al.), supports the row; 2605.28295 = REFT first-token diversification (top-N first tokens, not temperature): related, acceptable as 'also'.
+- 2026-09-24T02:58Z n001 (w4, FILL, BEST-by-fill, dev 179, front 17, hg 0.923): diff vs n000 = alloc_k knapsack per-target k (length prior / solve-rate weights), sample_round takes rate; no file reads, no new data sources, trains on same verified-sample path; rate uses per-target count c (correct with variable k). OK.
+- 2026-09-24T03:00Z n000 evaluated: dev 185, front 42, hg 0.946 (FILL; BEST stays n001 179 by stickiness, 185 < 179+8). Code = seed, OK.
+- 2026-09-24T03:00Z n002 (w1, FILL, dev 177): weighted water-filling quotas in subset_targets + len_weights config; only reorders which pool targets are used. OK.
+- 2026-09-24T03:00Z n003 (w3, FILL, dev 184): select_short sorts verified proofs by (pruned, written) length before max_per_thm cut. OK.
+- 2026-09-24T03:20Z n004 (w5, DISCARD, dev 136, front 3 on 1,000 subset): schema sibling spreading draws only from the rl.run targets list (RL pool), 'textbook' only in a comment. OK (not promoted).
+- 2026-09-24T03:24Z n005 (w6, PENDING_BEST, dev 201, front 8 on subset, hg 0.926): prefix branching; valid prefixes are cut from the model's own failed samples of the prompted target, continuations sampled by the model, full text re-judged by judge_samples (verify_text) before training; imports nd_verify parse/rule names (frozen lib, read-only). No file reads, no external proofs. OK.
+- 2026-09-24T03:26Z n006 (w2, PENDING_BEST, dev 201, front 12, hg 0.941): token-level multi-temperature in the in-file sampler (line-head tokens at 1.4); sampling-only change. OK.
+- 2026-09-24T03:27Z n007 (DISCARD, dev 107): annealed per-token temperature in sampler; sampling-only. OK (not promoted).
+- 2026-09-24T03:28Z n008 (w3, crossover, DISCARD, dev 175): n002's weighted quotas onto n003. OK.
+- 2026-09-24T03:52Z URL check: 2506.11902 = TreeRL (Hou et al.), on-policy tree search branching from intermediate steps: supports n005/w6 prefix branching (TreeRL branches at high-uncertainty tokens; w6 branches at the longest verifier-valid line prefix, an adaptation). 2510.05251 = Exploratory Annealed Decoding (Yang et al.): supports n007.
+- 2026-09-24T03:52Z n009 (w6, DISCARD, dev 158): reweights cap-6 retention by rule set; cap-6 records only. OK.
+- 2026-09-24T03:56Z n010 (w1, PENDING_BEST, dev 211, front 23, hg 0.908): line-verified sampling, an in-file incremental Fitch checker (reimplements nd_verify rules) rejects and resamples bad lines during generation; final texts still gated by judge_samples/verify_text; trained text = model's own accepted tokens. Allowed (a). OK. Note heldout 0.908 is near the floor.
+- 2026-09-24T03:59Z n011 (w3, DISCARD, dev 148): refill ordering by valid-prefix fraction; no new file access flagged. OK (not promoted).
+- 2026-09-24T04:03Z n012 (w7, FLOOR, dev 1, hg 0.683): NSR negative log-prob term on the first verifier-invalid line of the model's own failed samples. Interpretation: negatives are own samples labelled by the verifier (same class as a GRPO negative advantage), not an external proof source, so compliant; noted as borderline for the monitor's reading of rule 3. Collapsed, not promoted.
+- 2026-09-24T04:16Z n013 (w2, DIVERSE, dev 182, front 16, hg 0.930): WiSE-FT end-of-run interpolation; validation on 300 unused RL-pool targets (targets_L6-11 only), no training data change. OK.
+- 2026-09-24T04:25Z n014 (w?, crossover, DISCARD, 155): n003 select_short onto n005. OK.
+- 2026-09-24T04:31Z n015 (crossover, DISCARD, 114): n001 knapsack onto n003. OK.
+- 2026-09-24T04:42Z n016 (w1, PENDING_BEST, dev 259, front 50/1000, hg 0.922): n005 prefix branching + n010's line-verified main-pass sampler (same LineChecker code as audited in n010, length weights dropped). OK.
+- 2026-09-24T04:45Z n017 (w5, DIVERSE, dev 188, front 13, hg 0.938): GEM loss in place of CE for all fine-tune records; objective only, same data. OK. URL 2408.16673 = GEM (Li et al., ICLR 2025), matches.
+- 2026-09-24T04:51Z n018 (w2, crossover, DIVERSE, 191): select_short onto n006. OK.
+- 2026-09-24T04:56Z n019 (DISCARD, 160): refill from unused RL-pool targets only. OK.
+- 2026-09-24T05:00Z n020 (w3, DIVERSE, 192, front 10): CUDA-graph sampler (Gumbel-max), efficiency only. OK.
+- 2026-09-24T05:11Z n021 (w1, PENDING_BEST, dev 249, front 66, hg 0.918): lower-overhead rewrite of n010's line-verified sampler (host-sync packing, vectorised mask); sampling-only, same judge path. OK.
+- 2026-09-24T05:18Z n022 (w4, crossover, PENDING_BEST, dev 227, front 18, hg 0.939): functionally identical to n016 (only a renamed arity dict and comment); same seed 0 gave 227 vs n016's 259, i.e. 32 points of pure run nondeterminism (clock-bounded rounds). OK code-wise; duplicate idea (w1 n016 first, 04:42).
+- 2026-09-24T05:23Z n023 (w2, PENDING_BEST, dev 222, front 23, hg 0.936): capped abs-index shift in fine-tune batches (renumbering only; same records). OK.
+- 2026-09-24T05:23Z n024 (w5, PENDING_BEST, dev 314, front 59, hg 0.913): its own verifier-guided line sampler (LineChecker.add_line) on n017 (GEM + knapsack); trained texts pass judge_samples/verify_text. OK. Third independent LV implementation (w1 n010 first at 03:56; w4 n022, w5 n024).
+- 2026-09-24T05:28Z n025 (crossover, DISCARD, 160): GEM onto n005. OK.
+- 2026-09-24T05:34Z correction: n024 is w6's node (built on w5's n017), not w5's.
+- 2026-09-24T05:45Z n026 (w3, DIVERSE, score 299 = dev 247 + 4*13): length-grouped fine-tune batches + fused AdamW; efficiency, same records. OK.
+- 2026-09-24T05:49Z n027 (w1, REPLACE_WEAKEST, score 342 = 238 + 4*26): one-line backtracking inside the LV sampler; sampling-only. OK.
+- 2026-09-24T05:57Z n028 (w7, DISCARD, score 127): pass@k temperature calibration on unused RL-pool prompts, then scales the output head by 0.8/T* so the scorer's fixed T=0.8 samples at T*. Uses only pool prompts; not a rule violation. Note for the monitor: head scaling changes the effective scoring temperature and leaves heldout_greedy (argmax) untouched, so the floor cannot see it; in this run only T 0.8 fit, head unscaled.
+- 2026-09-24T05:58Z RULING (monitor 06:00): deterministic transforms of the final logits/head inside the checkpoint are not promotable. n028: not promotable (decoding transform) - moot, DISCARD and head unscaled. Added a head/logits-transform pattern to tools/codeaudit.py; every promoted node is checked for it from now on.
+- 2026-09-24T05:58Z decoding-transform scan of frontier n021 n016 n027 n023 and pending n024: no head/logit transforms. OK.
+- 2026-09-24T06:05Z n029 (PENDING_BEST, score 541 = 285 + 4*64, hg 0.930): n010's LV sampler onto n006's line-head temperature (training sampling only); no head transform. OK.
+- 2026-09-24T06:16Z ideas.md hygiene: removed an exact duplicate row (w6 n024, twice); appended three auditor rows (two-seed verdicts for n005/n006/n010 and n016/n021/n024; LV-family provenance, w1 first). URL spot-checks: 2504.10478 = weight ensembling / WiSE-FT for reasoning (Dang et al.) supports n013; 2502.03438 = BFS-Prover best-first tree search with Lean-checked tactics (the step-checking reading is an adaptation, acceptable); 2502.05234 = temperature optimisation for multi-sample inference (Du et al.) supports n028; 2506.01347 = negative sample reinforcement (Zhu et al.) supports n012.
+- 2026-09-24T06:19Z n030 (w2, DISCARD, 151): canonical numbering (index_room 64). OK.
+- 2026-09-24T06:20Z n031 (w6, REPLACE_WEAKEST, score 460 = 252 + 4*52): GEM loss onto n010 (attribution test for n024). OK; no head transform.
+- 2026-09-24T06:27Z n032 (w5, REPLACE_WEAKEST, score 487 = 271 + 4*54): n021 LV sampler on n018 with line-head temperature inside the LV loop; sampling-only. OK.
+- 2026-09-24T06:40Z n033 (w3, crossover, DISCARD, 332): n026 length-grouped batches onto n016. OK.
+- 2026-09-24T06:41Z n034 (w1, crossover, DISCARD, 358): n023 index cap onto n027. OK.
+- 2026-09-24T06:47Z n035 (w4, crossover, DISCARD, 154, hg 0.886): n027 backtracking LV onto n016. OK.
+- 2026-09-24T06:49Z n036 (w2, PENDING_BEST, score 648 = 308 + 4*85, hg 0.920): n023's index-shift cap onto n024; renumbering of the same records; no head transform. OK.
+- 2026-09-24T06:57Z n037 (crossover, REPLACE_WEAKEST, score 512): GEM onto n029. OK.
+- 2026-09-24T07:08Z n038 (w6, crossover, PENDING_BEST, score 897 = 297 + 4*150, hg 0.919): n002's length-weighted subset quotas onto n024; target selection from the RL pool only. OK.
+- 2026-09-24T07:14Z n039 (crossover, REPLACE_WEAKEST, 532): n021/n032 fast LV sampler onto n029. OK.
+- 2026-09-24T07:27Z n040 (DISCARD, 544): GEM onto n032. OK.
+- 2026-09-24T07:33Z n041 (w1, PENDING_BEST, score 727 = 307 + 4*105, hg 0.924): schema-coverage water-filling inside each length quota of the RL-pool subset; 'textbook' is the pool's own source field (targets_L6-11), not the sealed textbook set. OK.
+- 2026-09-24T07:45Z n042 (w4, REPLACE_WEAKEST, score 597): easy-to-hard first-pass ordering (run 1 KNOWN_FAILURE family: length curriculum; here +56 over n029 on one seed). OK.
+- 2026-09-24T07:58Z n043 (crossover, DISCARD, 467): fast LV sampler onto n037. OK.
+- 2026-09-24T07:59Z n044 (w2, DIVERSE, 522, hg 0.896): entropy-minimisation term on rule/citation tokens added to the training loss; a training change (allowed under the 06:00 ruling), not a checkpoint logits transform. OK.
+- 2026-09-24T08:08Z n045 (w6, DISCARD, 364): ft_batch 256. OK.
+- 2026-09-24T08:25Z n046 (w3, PENDING_BEST, score 1083 = 383 + 4*175, hg 0.930): LV sampler as a CUDA-graph decode step (reads model.head/ln_f in the forward only; no weight or logits transform in the returned model); 30 rounds vs 22. OK.
+- 2026-09-24T08:27Z n047 (w5, DISCARD, 446): length weights onto n039. OK.
+- 2026-09-24T08:34Z n048 (w1, REPLACE_WEAKEST, 653): retry heating inside the guided sampler (training sampling). OK.
+- 2026-09-24T08:43Z n049 (w2, crossover, REPLACE_WEAKEST, 754): n041 schema coverage onto n036. OK.
+- 2026-09-24T08:53Z n050 (w2, PENDING_BEST, score 968 = 352 + 4*154, hg 0.929): schema coverage onto n036; code-identical to n049 (w4, 754, recorded 08:43) except a comment line. Same code, same seed 0: 968 vs 754. OK code-wise; duplicate idea (w4 n049 first).
+- 2026-09-24T08:56Z n051 (crossover, DISCARD, 540): e2h onto n041. OK.
+- 2026-09-24T09:02Z n052 (DISCARD, 724): long-heavy length weights on n036. OK.
+- 2026-09-24T09:16Z n053 (REPLACE_WEAKEST, 859): n046's graph LV sampler onto n038 (head read in forward only). OK.
+- 2026-09-24T09:18Z n054 (DIVERSE, 779): staged training temperature 1.0/1.1/1.2 (training sampling only). OK. URL check: hkunlp POLARIS blog recommends raising sampling temperature in stages during RL: supports the row.
+- 2026-09-24T09:25Z n055 (crossover, DISCARD, 446): retry heating onto n038. OK.
+- 2026-09-24T09:29Z n056 (DISCARD, 628): e2h on n049. OK.
+- 2026-09-24T09:44Z n057 (DISCARD, 685): tail-only retries in the guided sampler. OK. n058 (DIVERSE, 757): POLARIS linear temperature ramp 1.0 -> 1.3 (training sampling). OK; same idea family as n054 (staged 1.0/1.1/1.2), n054 first.
+- 2026-09-24T09:52Z n059 (DISCARD, 424): longest-first proof selection. OK.
+- 2026-09-24T09:56Z n060 (w5, crossover, PENDING_BEST, score 1064 = 360 + 4*176, hg 0.934): n046/n053 graph LV sampler onto n050 (head read only). OK.
+- 2026-09-24T09:59Z n061 (w3, DISCARD, 460): deeper guided search params. OK.
+- 2026-09-24T10:11Z n062 (REPLACE_WEAKEST, 970): two-stage adaptive rollout (AR3PO) on n046; same family as w6's two-stage adaptive-k row of 02:26 (untested then). OK.
+- 2026-09-24T10:12Z n063 (crossover, DISCARD, 778): POLARIS stages onto n053. OK.
+- 2026-09-24T10:21Z n064 (crossover, DISCARD, 727): POLARIS ramp onto n050. OK.
+- 2026-09-24T10:23Z n065 (w2, PENDING_BEST, score 1103 = 359 + 4*186, hg 0.930): n023 index cap onto n053. OK.
+- 2026-09-24T10:30Z n066 (DIVERSE, 797): budget-aware subset top-up from the RL pool (the monitor-requested budget-aware node). OK.
+- 2026-09-24T10:40Z n067 (w5, DIVERSE, 968): code-identical to n063 (w1, 778, DISCARD) except a comment; third same-code/same-seed pair: 968 vs 778 (190 points). OK code-wise; duplicate (w1 n063 first).
+- 2026-09-24T10:50Z n068 (crossover, DISCARD, 755): schema coverage onto n062. OK.
+- 2026-09-24T10:51Z n069 (w3, DISCARD, 865): length-grouped batches on n053. OK.
+- 2026-09-24T11:00Z n070 (w1, DISCARD, 507): reductio-first seeding: the line checker only accepts 'AS ~goal' as the first body line for 25% of samples of unsolved OR/atom-goal targets; every token is still model-sampled and full proofs are verified. A hand-coded search constraint, not a hand-written proof: compliant (same class as the LV checker).
+- 2026-09-24T11:05Z n071 (w7, REPLACE_WEAKEST, 1026): POLARIS ramp on n053 (training sampling). OK.
+- 2026-09-24T11:07Z n072 (w2, DISCARD, 322, hg 0.884): step-level DPO pairs built from the model's own verified proofs (chosen) and its own checker-rejected lines (rejected); verifier-labelled own samples, compliant under the 04:32 ruling on negatives.
+- 2026-09-24T11:23Z n073 (w6, DIVERSE, 897): retain 12000 (run-1 KNOWN_FAILURE family: lighter retention). OK.
+- 2026-09-24T11:30Z n074 (crossover, DIVERSE, 881): length weights onto n060. OK.
+- 2026-09-24T11:32Z n075 (w4, crossover, PENDING_BEST, score 1183 = 359 + 4*206, hg 0.918): POLARIS stages onto n065. OK.
+- 2026-09-24T11:34Z n076 (w3, REPLACE_WEAKEST, 1120): returns the uniform average of the last 3 round-end weights. Weight averaging of trained checkpoints is not a decoding transform (not equivalent to a scorer-temperature change), same class as n013's WiSE-FT: allowed. OK.
+- 2026-09-24T11:52Z n077 (w1, DISCARD, 818): max_targets 9000. OK.
+- 2026-09-24T11:58Z n078 (w2, PENDING_BEST, score 1198 = 378 + 4*205, hg 0.924): index cap onto n071. OK.
+- 2026-09-24T11:59Z n079 (w7, crossover, DISCARD, 1031): byte-identical rl.py to n078 (w2, PENDING 1198; same sha). Fourth same-code/same-seed pair: 1198 vs 1031. OK code-wise; duplicate (w2 n078 first, 11:58).
+- 2026-09-24T12:02Z n080 (w6, DISCARD, 915): length weights onto n060 (same idea as n074, w5, 881). OK.
+- 2026-09-24T12:11Z note: n080 (w6) is code-identical to n074 (w5) up to comments: 915 vs 881 on seed 0
+- 2026-09-24T12:23Z n081 (w1, CRASH): index cap onto n071, patch error. OK (no promotion).
+- 2026-09-24T12:24Z n082 (w4, PENDING_BEST, score 1218 = 386 + 4*208, hg 0.921): max_targets 9000 on n071 (length-weighted quotas). OK.
+- 2026-09-24T12:29Z n083 (crossover, DISCARD, 782): weight average onto n071 (trained-weight average, allowed). OK. n084 (REPLACE_WEAKEST, 1132): index cap onto n076. OK.
+- 2026-09-24T12:51Z n085 (DISCARD, 922): schema coverage onto n071. OK.
+- 2026-09-24T12:58Z n086 (REPLACE_WEAKEST, 1173): last-3 weight average onto n060. OK.
+- 2026-09-24T13:01Z n087 (DISCARD, 957): line-head temperature in the graph sampler (training sampling). OK.
+- 2026-09-24T13:18Z n088 (w4, PENDING_BEST, score 1235 = 375 + 4*215, hg 0.930): max_targets 9000 on n076. OK.
+- 2026-09-24T13:26Z n089 (w1, DIVERSE, 1047): skeleton-diverse proof selection among own verified proofs. OK. n090 (w3, REPLACE_WEAKEST, 1179): average of last 5 round weights. OK.
+- 2026-09-24T13:31Z n091 (DISCARD, 812): line-head temperature on n084 graph sampler. OK.
+- 2026-09-24T13:45Z n092 (w2, crossover, PENDING_BEST, score 1286 = 378 + 4*227, hg 0.937): last-3 weight average onto n065. OK.
+- 2026-09-24T13:49Z n093 (crossover, DISCARD, 742): weight average onto n078. OK.
+- 2026-09-24T13:53Z n094 (DIVERSE, 1074): POLARIS ramp on n086. OK.
+- 2026-09-24T13:55Z n095 (w4, DIVERSE, 1104): max_targets 12000 on n076. OK.
+- 2026-09-24T14:11Z n096 (w3, PENDING_BEST, score 1311 = 395 + 4*229, hg 0.929): max_targets 9000 on n090. OK.
+- 2026-09-24T14:18Z n097 (DISCARD, 1058): weight average onto n089. OK.
+- 2026-09-24T14:21Z n098 (DIVERSE, 1077): max_targets 9000 on n090; code-identical to n096 (w3, PENDING 1311) up to one comment line: sixth same-code pair, 1311 vs 1077 on seed 0. OK.
+- 2026-09-24T14:41Z closing: all 99 nodes reviewed (n000-n098); no violations; two rulings recorded (04:32 negatives allowed, 06:00 decoding transforms not promotable); controller versions v10-v17 each tested (test_controller.py + --dry-run) and saved in controller_versions/.

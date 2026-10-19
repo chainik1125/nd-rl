@@ -1,0 +1,183 @@
+# Model registry for `ndbench` (plan §3 WP8, fix list item 6).
+#
+# `python -m code.ndbench {run,edl,throughput} --model <label>` resolves `<label>` through this
+# file (see `cli.py`'s `_load_models_registry`/`_resolve_model`): `adapter` names an entry in
+# `adapters.base.ADAPTERS`, `ckpt` is the checkpoint path, and `sha256_prefix` is checked against
+# `sha256(ckpt)` before the checkpoint is loaded (a friendly `SystemExit` on mismatch, never a
+# silent load of the wrong weights). When a label is used, the `Store` run's `model` field is set
+# to exactly that label (not `"absgpt:<path>"`), which is what `analysis/yue.py`'s `_pick_pair`
+# needs to find "base" vs "rl" runs by name without extra `cfg` overrides.
+#
+# Verified 2026-09-30 (WP8 integration): `sha256sum` on each checkpoint file matched the prefix
+# below in full (`f4409e4f82d8922f853a5c53eeb2820d05acea17bbd5cf92d24c073d97709e18` /
+# `548a9e343c71675f917a19b5fd5511a8a9adea4688e63d7544e7f3a3e73aa383` /
+# `9ec083a966662fdc388ca2ec48be5e6af1b91fdbf794e8a81a9e527e1d1e1133`); armC's path and sha256 were
+# not given by the plan and were confirmed/computed as part of this fix.
+
+base:
+  adapter: absgpt
+  ckpt: /scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt
+  sha256_prefix: f4409e4f82d8922f
+  description: frozen pretrain checkpoint (plan §0's base model)
+
+rl:
+  adapter: absgpt
+  ckpt: /scratch/cowifornia/nd-rl/ab2/monitor/final/champion2_n060_fullpool/final.pt
+  sha256_prefix: 548a9e343c71675f
+  description: RL champion (champion2_n060_fullpool), trained on the full ab2 pool + cap-6 retention
+
+armC:
+  adapter: absgpt
+  ckpt: /scratch/cowifornia/nd-rl/ab3/lengthexp/runs/C_s101/final.pt
+  sha256_prefix: 9ec083a966662fdc
+  description: lengthexp arm C (C_s101), optional middle model for G10
+
+# Dan's best-state models (fork dan-pandori/nd-takehome@0c492902, run `best-state`; public bucket
+# hf://buckets/dan-pandori/nd-rl/best-state/ckpts/bs/). ALiBiGPT 6x384, 9,560,832 params, proof-state
+# interface `lean_staten`; fz = Stage-1 only (frozen), t1 = after the 8-round T1 ladder. md5 matches
+# each checkpoint's .upload.json. family/role/cap/seed are read by the Dan dashboard pages.
+# Verified 2026-10-01 (main agent): full sha256 below.
+
+dan12-fz-s0:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/stage1/stage1_best12_s0_b1200.pt
+  sha256_prefix: 2a2a9407eb8ad321
+  # sha256 2a2a9407eb8ad321cec4d90ba609f9c0deca529b73d7f2a407d0b7ccc5a9c040
+  md5: 9c436c35fa462a4124043bd1d8473ab7
+  family: dan12
+  role: base
+  cap: 12
+  seed: 0
+  description: Dan best-state cap-12 Stage-1 (frozen), seed 0
+
+dan12-fz-s1:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/stage1/stage1_best12_s1_b1200.pt
+  sha256_prefix: 9e814c12ce53a879
+  # sha256 9e814c12ce53a879ce8ed86f6bf6edbb35568521621c26fc4b1dd2439c272c03
+  md5: f7ae9a9ef6729d9e1419a5c8e996c8a3
+  family: dan12
+  role: base
+  cap: 12
+  seed: 1
+  description: Dan best-state cap-12 Stage-1 (frozen), seed 1
+
+dan12-fz-s2:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/stage1/stage1_best12_s2_b1200.pt
+  sha256_prefix: bfd9633c5d1ffc7b
+  # sha256 bfd9633c5d1ffc7b843ead9f989cc59a6694138502ef6b02d5beb0795b34f607
+  md5: 354c4428673e1d6e8c278af1cb1cc63b
+  family: dan12
+  role: base
+  cap: 12
+  seed: 2
+  description: Dan best-state cap-12 Stage-1 (frozen), seed 2
+
+dan12-t1-s0:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/ladder/la_T1_best12_s0_r8.pt
+  sha256_prefix: a992485e436a85bb
+  # sha256 a992485e436a85bbf51d7a1ffdf5b0b8fe789433c11f6faa4568413d2ca75971
+  md5: 991a0ac8db160d497e4727bb9811cb97
+  family: dan12
+  role: rl
+  cap: 12
+  seed: 0
+  description: Dan best-state cap-12 T1 ladder round 8, seed 0
+
+dan12-t1-s1:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/ladder/la_T1_best12_s1_r8.pt
+  sha256_prefix: fa9d2528e0659891
+  # sha256 fa9d2528e0659891958a344a579d08c501aacfee636f93462ae015f7267e23df
+  md5: 164a6c17a3b0ce6b5a53c241f4ae7f2f
+  family: dan12
+  role: rl
+  cap: 12
+  seed: 1
+  description: Dan best-state cap-12 T1 ladder round 8, seed 1
+
+dan12-t1-s2:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/ladder/la_T1_best12_s2_r8.pt
+  sha256_prefix: 5cdf8cf78b29ee8f
+  # sha256 5cdf8cf78b29ee8f020c81634e617dbea9b4f373349937323012f7cc306126e4
+  md5: d43c0381e87f83bab0578d5a94316b2e
+  family: dan12
+  role: rl
+  cap: 12
+  seed: 2
+  description: Dan best-state cap-12 T1 ladder round 8, seed 2
+
+dan6-fz-s0:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/stage1/stage1_best6_s0_b1200.pt
+  sha256_prefix: 552d238173868d19
+  # sha256 552d238173868d192ce35bdf06b92c5d5de9a773ad57db0c6fc9118a0ae1c9bb
+  md5: 931239c7c8180d10876c73c168738227
+  family: dan6
+  role: base
+  cap: 6
+  seed: 0
+  description: Dan best-state cap-6 Stage-1 (frozen), seed 0
+
+dan6-fz-s1:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/stage1/stage1_best6_s1_b1200.pt
+  sha256_prefix: 7f18a7f6b933492b
+  # sha256 7f18a7f6b933492b9f779f535c0dbdbb9af18676f7bc1c7709dd27defab79ed9
+  md5: 3a62b33883744f626b19cb76edeaf684
+  family: dan6
+  role: base
+  cap: 6
+  seed: 1
+  description: Dan best-state cap-6 Stage-1 (frozen), seed 1
+
+dan6-fz-s2:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/stage1/stage1_best6_s2_b1200.pt
+  sha256_prefix: 1386e376410abd69
+  # sha256 1386e376410abd696e79f470f26f09a7007463f56c6cde18cebda895bddffec6
+  md5: e9120ddf931bc32737820d0e7d476c01
+  family: dan6
+  role: base
+  cap: 6
+  seed: 2
+  description: Dan best-state cap-6 Stage-1 (frozen), seed 2
+
+dan6-t1-s0:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/ladder/la_T1_best6_s0_r8.pt
+  sha256_prefix: 2e12e48207a6175c
+  # sha256 2e12e48207a6175c282b00ba0c6616c1d7de7370d5cc63e7f4dc46e9cc56c812
+  md5: cd009237f92761728712f8764586f4a6
+  family: dan6
+  role: rl
+  cap: 6
+  seed: 0
+  description: Dan best-state cap-6 T1 ladder round 8, seed 0
+
+dan6-t1-s1:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/ladder/la_T1_best6_s1_r8.pt
+  sha256_prefix: 27ffb6acd53a7853
+  # sha256 27ffb6acd53a785393cb44801057afdc824e622b104e61df6a7a814312fe8824
+  md5: e4e4e10f1456a9de0d3c22f2a0d37f3f
+  family: dan6
+  role: rl
+  cap: 6
+  seed: 1
+  description: Dan best-state cap-6 T1 ladder round 8, seed 1
+
+dan6-t1-s2:
+  adapter: danstate
+  ckpt: /scratch/cowifornia/nd-rl/bench/dan_ckpts/best-state/ladder/la_T1_best6_s2_r8.pt
+  sha256_prefix: d470e638510fe0ce
+  # sha256 d470e638510fe0ce9ed0a2e9e340547d0a72f0e024efd7994d53b7c160f6925c
+  md5: 1f41900001541b435bb1f6b960e32fda
+  family: dan6
+  role: rl
+  cap: 6
+  seed: 2
+  description: Dan best-state cap-6 T1 ladder round 8, seed 2

@@ -1,0 +1,9 @@
+# `python -m code.ndbench build --suite textbook_law --version v1 --config configs/textbook_law.yaml`
+# Plan §2 B8: stratified subsample of `source == "textbook"` items from `ab2/data/dev_L8-11.jsonl`
+# and `ab2/sealed/sealed_L12-14.jsonl` (<= 6 per (L, schema), ~40 per L for L8-14). No certifier
+# needed (existing `L_true` labels are kept as-is). Defaults (`dev_path`/`sealed_path`) match the
+# builder's own; listed here for visibility.
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

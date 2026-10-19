@@ -1,0 +1,28 @@
+# python -m code.ndbench.interp steer-sweep \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_steer_sweep.yaml
+#
+# INTERP_SPEC.md §2's sweep: run `interp_vectors.yaml` (`fit-vectors`) first so
+# `out/interp/vectors/diff_l<layer>_proof.npy` exist for every layer below -- a missing vector is
+# skipped with a note, not an error, so an incomplete `fit-vectors` run silently narrows the sweep
+# rather than failing it. Builds/reuses `interp_eval_dev`/`interp_eval_sealed`/`interp_eval_k128`
+# (`interp/eval_suites.py`) in this Store; `alpha=0` (unsteered base) and the RL `-delta` control
+# (on whichever layer scores best mean dev pass@1) are always run too.
+#
+# GPU cost estimate: 4 layers x 5 alphas = 20 steered runs, + 1 unsteered base + 1 RL `-delta`
+# control = 22 sampling runs, each at k=8 over dev (720) + sealed (1240) + k128 (150) = 2,110 items
+# -> 16,880 samples/run -> ~371k samples total. At the plan's own observed 212-706 samples/s range
+# (`PLAN.md` §0), using a middle estimate of ~300/s: **rough estimate 20-25 GPU-min**. This is the
+# figure the main agent should replace with a measured rate from a short pilot (as `PLAN.md`'s own
+# G0 job does for the benchmark runs) before scheduling the full sweep.
+seed: 0
+position_type: proof
+layers: [0, 1, 2, 3]
+alphas: [0.25, 0.5, 1.0, 1.5, 2.0]
+k: 8
+temperature: 0.8
+vectors_dir: /scratch/cowifornia/nd-rl/bench/out/interp/vectors
+device: cuda
+exclude_train: false # eval suites are flag-only by convention; set true to also drop seen_train items
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# budget_s: null   # per-RunSpec wall-clock budget, if a partial run is preferred to none

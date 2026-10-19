@@ -1,0 +1,23 @@
+# `python -m code.ndbench edl --model <base|rl> --config configs/edl.yaml --out <out> \
+#     --lrs 1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64`
+# Plan §B7 / G8: 12 EDL classes (and_tower n=8/16, imp_nest n=4/8, reorder_and n=5, reorder_or n=3,
+# contraposition s=3, dist_and_over_or s=1, demorgan_nand_to_or s=1, and_glue L=12, gen L10,
+# heldout_cap6), each split 64/64 (or 32/32 below 128 distinct items). `build_classes` reads the
+# suite-backed classes (families/laws/glue) from the Store at the versions below -- these must
+# already be built -- and falls back to the real, read-only `ab2`/`ab3` files for `gen_L10`/
+# `heldout_cap6` (no override needed for a real run; only tests point these at nonexistent paths).
+#
+# 2026-10-01 EDL-pool fix (edl.py module docstring note 5): the first EDL run built only 2 of 12
+# classes -- the main "v1" families/laws suites have only ~40 distinct items per (family, n) /
+# (schema, s) cell, short of the >=64-distinct threshold `build_classes` requires, and the old
+# `dev_gen_L10` class read `ab2/data/dev_L8-11.jsonl`, which has no `minlen_proof` field at all.
+# `families_version`/`laws_version` now point at a dedicated, larger "edl_v1" suite version (built
+# by `build_edl_pools.py`, 128-distinct-item target, same certifier/excluder as the main "v1"
+# suites) covering exactly the six families cells and three laws cells plan §B7's EDL classes need
+# -- a single version string per suite type is enough since every families-backed (resp.
+# laws-backed) EDL class moves to the new version together, so no finer per-class config key was
+# needed. `and_glue_L12` (glue_version, still "v1") and `heldout_cap6` are unchanged; `gen_L10`
+# (edl.py's `DEFAULT_GEN_L10_PATH`) now reads `ab2/data/reserve.jsonl` instead.
+families_version: edl_v1
+laws_version: edl_v1
+glue_version: v1

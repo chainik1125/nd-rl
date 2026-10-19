@@ -1,0 +1,49 @@
+{
+ "C_s101 (ab3/frozen)": {
+  "data/heldout_cap6.jsonl": "46a49f4421c5225b1746e9b61533dee26d951636b707ef34493b69fbb8bfcc62",
+  "data/targets_L6-11.jsonl": "9cba7173cc0836dc80da2a275f3e6f5d2a73809b00c8e02c69f92a4ff21dc299",
+  "data/train_cap6.jsonl": "9c024cd9c6225efdb3df93da983a34efeb77e237abb8952b9341d49824719e04",
+  "gpulock.py": "90e5c08873581405d0e8a7db5ff2711e5d894f9e313d7f380824ff72bed65f44",
+  "harness.py": "ec6d1b0413c73128e4f53cecbe5449d9a5cc0757573df622a1bedc0c60a232a3",
+  "lib/eval_set.py": "9fb1c374ff1b8536ca1ace1a254a199c7b9d449e349a66b0f7f3073b9050d0ab",
+  "lib/keys.py": "dcd244aec3b8432b4a54c5be4b608d4f6f314cde10053916f4456c591e207b6a",
+  "lib/model.py": "aa3516fc8d01d5ed36321278ec59245f0f945c553137d83097b75f3eee13f4f9",
+  "lib/nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+  "lib/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+  "lib/normalize.py": "027ff740df5af646b251cb7cf75319447c99f4c8cad3aee038d5ed8035c4e973",
+  "lib/prune.py": "f836a20995af7dc6b41d71a880b2ecb53a81764365c198388387de3156de89ce",
+  "lib/sample.py": "73221da6224932f003322afe29d8a750f7e3adfc0e6cc8e8930dda62a0a03a0c",
+  "lib/tokenizer.py": "bc5d19d68bdaa909f5baf2fe1de977b800363feedf1a5cb2712da01a9d039d5b",
+  "lib/train.py": "d797481876ca96e78439fd662be36ca737906448599b61c28e6fb4e7f09c90ba",
+  "meter.py": "a6350b9e0fa3ba01ec8ca3b8705d307e0c570e774486847afb6c8a977f9eee88",
+  "metrics.py": "6851192fa37dd2a01f8fac4a73df8941ca9aa1f7bbcc173c996e890a06eed3e1",
+  "pretrain.pt": "f4409e4f82d8922f853a5c53eeb2820d05acea17bbd5cf92d24c073d97709e18",
+  "rl.py": "96eb9f162f3ff0e395878b16f2a2b02da61ccda0848310aae4c15d096be7f275",
+  "score.py": "307b87fad5ae57247670a66279cf6cee4f5ac0557f8c3ffdc3fb30404cf15a68"
+ },
+ "D_s101 (ab3/frozen_comp)": {
+  "data/heldout_cap6.jsonl": "46a49f4421c5225b1746e9b61533dee26d951636b707ef34493b69fbb8bfcc62",
+  "data/targets_L6-11.jsonl": "4be46c5089a4462b6885e3af2a71d6097eb257232fcd33d61b48bbfcfbcd7652",
+  "data/train_cap6.jsonl": "9c024cd9c6225efdb3df93da983a34efeb77e237abb8952b9341d49824719e04",
+  "gpulock.py": "90e5c08873581405d0e8a7db5ff2711e5d894f9e313d7f380824ff72bed65f44",
+  "harness.py": "ec6d1b0413c73128e4f53cecbe5449d9a5cc0757573df622a1bedc0c60a232a3",
+  "lib/eval_set.py": "9fb1c374ff1b8536ca1ace1a254a199c7b9d449e349a66b0f7f3073b9050d0ab",
+  "lib/keys.py": "dcd244aec3b8432b4a54c5be4b608d4f6f314cde10053916f4456c591e207b6a",
+  "lib/model.py": "aa3516fc8d01d5ed36321278ec59245f0f945c553137d83097b75f3eee13f4f9",
+  "lib/nd_verify/__init__.py": "e85e494a40b10e0d87b591d60285b09b0eee16a2b796d7f4b1cd996eb5c1cd75",
+  "lib/nd_verify/verify.py": "5dc502c2fc0a9c2f5b535a4044e6e5af00d1527c18a9c56cadece2904f62e614",
+  "lib/normalize.py": "027ff740df5af646b251cb7cf75319447c99f4c8cad3aee038d5ed8035c4e973",
+  "lib/prune.py": "f836a20995af7dc6b41d71a880b2ecb53a81764365c198388387de3156de89ce",
+  "lib/sample.py": "73221da6224932f003322afe29d8a750f7e3adfc0e6cc8e8930dda62a0a03a0c",
+  "lib/tokenizer.py": "bc5d19d68bdaa909f5baf2fe1de977b800363feedf1a5cb2712da01a9d039d5b",
+  "lib/train.py": "d797481876ca96e78439fd662be36ca737906448599b61c28e6fb4e7f09c90ba",
+  "meter.py": "a6350b9e0fa3ba01ec8ca3b8705d307e0c570e774486847afb6c8a977f9eee88",
+  "metrics.py": "6851192fa37dd2a01f8fac4a73df8941ca9aa1f7bbcc173c996e890a06eed3e1",
+  "pretrain.pt": "f4409e4f82d8922f853a5c53eeb2820d05acea17bbd5cf92d24c073d97709e18",
+  "rl.py": "96eb9f162f3ff0e395878b16f2a2b02da61ccda0848310aae4c15d096be7f275",
+  "score.py": "307b87fad5ae57247670a66279cf6cee4f5ac0557f8c3ffdc3fb30404cf15a68"
+ },
+ "differing": [
+  "data/targets_L6-11.jsonl"
+ ]
+}

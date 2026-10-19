@@ -1,0 +1,43 @@
+## O4: statement and state sizes (whitespace tokens of the prompt; max_state tokens)
+
+L2 pool                        n=  5000 prompt[mean 30 p10 26 p50 31 p90 33 max 35] >45 tok  0.0%
+                                        max_state[mean 80 p10 64 p50 80 p90 97 max 118]
+L3 pool                        n=  5000 prompt[mean 31 p10 28 p50 32 p90 34 max 35] >45 tok  0.0%
+                                        max_state[mean 83 p10 70 p50 82 p90 100 max 120]
+L3_3p rewrites                 n=  1843 prompt[mean 30 p10 27 p50 31 p90 32 max 33] >45 tok  0.0%
+                                        max_state[mean 92 p10 82 p50 92 p90 104 max 124]
+hard712 pool                   n= 21592 prompt[mean 30 p10 26 p50 31 p90 33 max 35] >45 tok  0.0%
+                                        max_state[mean 76 p10 60 p50 75 p90 92 max 121]
+long_cands                     n=  2720 prompt[mean 47 p10 28 p50 45 p90 67 max 132] >45 tok 47.7%
+                                        max_state[mean 138 p10 92 p50 133 p90 191 max 328]
+test_13_20 (full sealed set)   n=  3003 prompt[mean 62 p10 46 p50 62 p90 80 max 90] >45 tok 90.4%
+                                        max_state[mean 178 p10 132 p50 174 p90 230 max 312]
+test_21_30 (full sealed set)   n=  2767 prompt[mean 74 p10 59 p50 76 p90 87 max 90] >45 tok 99.5%
+                                        max_state[mean 215 p10 161 p50 214 p90 268 max 357]
+Charles149 (charles_clean)     n=   149 prompt[mean 32 p10 20 p50 29 p90 48 max 76] >45 tok 12.8%
+K12 train (Stage-1 source)     n=155000 prompt[mean 41 p10 25 p50 39 p90 59 max 156] >45 tok 30.3%
+
+## O5: pass@1 and binder-mismatch share by min_lines bin x statement-size tercile
+
+t1320_grpo_think_vs_mb_kkl0_s0_plain_k16: terciles S <= 56, M <= 69, L > 69 tokens
+   lines 12-13  S: p1  67.5 binder  5.4 (n=58)  M: p1  34.8 binder 13.4 (n=40)  L: p1  37.2 binder  7.5 (n=25)
+   lines 14-15  S: p1  56.7 binder  8.3 (n=104)  M: p1  40.6 binder 10.6 (n=87)  L: p1  20.5 binder 19.9 (n=56)
+   lines 16-17  S: p1  52.4 binder 13.3 (n=80)  M: p1  37.6 binder 14.2 (n=93)  L: p1  15.1 binder 18.6 (n=75)
+   lines 18-19  S: p1  49.2 binder 10.7 (n=66)  M: p1  38.2 binder 12.6 (n=79)  L: p1  11.0 binder 27.0 (n=98)
+   lines 20-21  S: p1  36.3 binder 20.8 (n=21)  M: p1  24.6 binder 18.1 (n=46)  L: p1  10.6 binder 27.4 (n=58)
+
+t1320_ei_think_v_s0_plain_k16: terciles S <= 56, M <= 69, L > 69 tokens
+   lines 12-13  S: p1  61.2 binder  7.0 (n=58)  M: p1  32.2 binder 12.0 (n=40)  L: p1  30.5 binder 10.0 (n=25)
+   lines 14-15  S: p1  51.1 binder  9.0 (n=104)  M: p1  36.1 binder  8.5 (n=87)  L: p1  23.5 binder 16.7 (n=56)
+   lines 16-17  S: p1  41.6 binder 15.9 (n=80)  M: p1  28.8 binder 16.5 (n=93)  L: p1  22.2 binder 14.6 (n=75)
+   lines 18-19  S: p1  37.5 binder 14.7 (n=66)  M: p1  31.0 binder 13.4 (n=79)  L: p1   7.5 binder 25.3 (n=98)
+   lines 20-21  S: p1  27.4 binder 18.5 (n=21)  M: p1  22.4 binder 19.6 (n=46)  L: p1   6.2 binder 26.5 (n=58)
+
+t2130_grpo_think_vs_mb_kkl0_s0_plain_k8: terciles S <= 71, M <= 81, L > 81 tokens
+   lines 20-21  S: p1  25.7 binder 23.8 (n=84)  M: p1   9.4 binder 26.6 (n=40)  L: p1   6.5 binder 31.5 (n=21)
+   lines 22-23  S: p1  24.0 binder 25.8 (n=128)  M: p1   6.1 binder 28.0 (n=78)  L: p1   4.7 binder 31.2 (n=67)
+   lines 24-25  S: p1  15.4 binder 29.1 (n=103)  M: p1   5.2 binder 36.7 (n=99)  L: p1   2.7 binder 29.6 (n=105)
+   lines 26-27  S: p1  13.5 binder 32.2 (n=26)  M: p1   4.0 binder 34.2 (n=60)  L: p1   2.4 binder 33.2 (n=67)
+   lines 28-29  S: p1   4.5 binder 38.4 (n=14)  M: p1   3.0 binder 36.4 (n=46)  L: p1   2.8 binder 36.5 (n=50)
+   lines 30-31  S: p1   0.0 binder 43.8 (n=2)  M: p1   8.3 binder 45.8 (n=3)  L: p1   5.4 binder 57.1 (n=7)
+

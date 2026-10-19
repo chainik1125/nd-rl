@@ -1,0 +1,47 @@
+- 2026-09-23T01:17Z | W=w1 | experiment | step 1 | fresh state, follow controller
+- 2026-09-23T01:17Z | W=w2 | experiment | step 1 | first iteration, nothing to evaluate yet
+- 2026-09-23T01:26Z | W=w1 | experiment | step 2 | frontier has 1 elite; filling phase
+- 2026-09-23T01:28Z | W=w2 | experiment | step 2 | frontier has 2 nodes, filling phase
+- 2026-09-23T01:37Z | W=w1 | experiment | step 3 | frontier still filling (2-3/4)
+- 2026-09-23T01:38Z | W=w1 | controller | after exp 4 | filling gave me p1=n000 (174, wastes 200s of budget) because the BEST n001 (289) was in flight for w2; excluding the in-flight elite should not force a >100-point-worse parent. I ran relabel on n001 via --parents override
+- 2026-09-23T01:38Z | W=w1 | controller step done: p1_candidates keeps an in-flight p1 when every alternative is >30 (SHARE_MARGIN) below it; dry-run ok, test_controller 15/15 ok, version 2
+- 2026-09-23T01:40Z | W=w2 | experiment | step 3 | filling phase, frontier 3-4 nodes
+- 2026-09-23T01:49Z | W=w1 | experiment | step 5 | frontier full & fresh after v2 fix; 3 distinct p1 so far
+- 2026-09-23T01:49Z | W=w1 | controller | after exp 5 | forced crossover chose p1=n000 (seed, 174, 115 below best) on inflated productivity +47.5 and paired it with its own descendant n004; add a p1 floor
+- 2026-09-23T01:49Z | W=w1 | controller step done: pick_p1 drops elites more than FLOOR_GAP=50 below the best metric (if another candidate remains); released my n000+n004 assignment and re-asked -> n003+n004; dry-run ok, tests ok, version 3
+- 2026-09-23T01:52Z | W=w2 | experiment | step 4 | w1 just made a controller step (p1 floor); 4 distinct p1 in 8 steps, frontier spans schedule/curriculum/data
+- 2026-09-23T02:01Z | W=w1 | experiment | step 9 | frontier all within noise (275-289); need a mechanism with a larger effect, try budget-fit on best
+- 2026-09-23T02:05Z | W=w2 | experiment | step 5 | fresh BEST n007 just promoted; all elites within noise of each other, need larger-effect mechanisms, no policy defect seen yet
+- 2026-09-23T02:14Z | W=w1 | experiment | step 11 | frontier distinct p1s (n001,n003,n004,n007); w1 NEXT IDEA (to avoid duplicates with w2): sample_batch 384->1024 with OOM fallback (throughput); then k16/window1200
+- 2026-09-23T02:17Z | W=w2 | experiment | step 6 (after 5 consecutive) | search healthy: last 4 steps had 3 distinct p1 (n003,n004,n007), crossovers n003+n004 and n007+n003 distinct pairs, 3 promotions in last 4 experiments, and w1 already fixed the p1 floor; the bottleneck is mechanism effect size (all elites 281-294), not allocation
+- 2026-09-23T02:21Z | W=w2 | note | FYI w1: benchmarked generate() on this GPU, 3072 samples: batch 384 ~400 s/s, 768 ~500 (noisy), 1536 ~170 s/s, 3072 ~128 s/s (much slower); max_new 360 vs 512 no change (all samples hit QED early). Big sample_batch is a loss; w2 is running pass@k rarity weighting and leaves k16/window1200 to w1
+- 2026-09-23T02:26Z | W=w1 | experiment | step 14 | healthy: p1s n003,n004,n006,n007 distinct in last steps, 2 controller fixes in place; frontier spread 272-294; taking k16/window1200 as agreed with w2
+- 2026-09-23T02:26Z | W=w1 | controller | after exp 14 | forced fresh-elite crossover n007+n010 would transplant sample_batch 1024, a change that lost to its parent (-9) and measured slower; DIVERSE entries that lost to parent1 should not force recombination
+- 2026-09-23T02:26Z | W=w1 | controller step done: cmd_next skips fresh elites whose metric < their parent1's metric (note printed); released my n007+n010 assignment; dry-run ok, tests ok, version 4. Next dry-run gives mutate n010 (Eq.1 novelty); I will record with --parents n007 because n010 carries the slower batch-1024 sampler
+- 2026-09-23T02:34Z | W=w2 | experiment | step 8 | w1 made controller step v4 at 02:26 (fresh-elite skip); p1s rotating (n007,n009,n006,n010); plan: compacting sampler in rl.py (1.35x measured)
+- 2026-09-23T02:39Z | W=w1 | experiment | step 16 | healthy by allocation (distinct p1s, v4 in place), but all mechanisms are neutral within noise; moving to optimizer/objective changes
+- 2026-09-23T02:40Z | W=w1 | controller | after exp 16 | forced crossover paired n012 with its own parent n007 (nothing to transplant); add ancestor/descendant exclusion to pick_p2
+- 2026-09-23T02:40Z | W=w1 | controller step done: pick_p2 excludes p1's ancestors and descendants when another candidate remains; released + re-asked -> n012+n009; dry-run ok, tests ok, version 5
+- 2026-09-23T02:47Z | W=w2 | note | n013 (compacting sampler, /work/nodes/n013/rl.py fast_generate) = 358; w1: the sampler is a drop-in for generate() in sample_round, transplant it onto your lines
+- 2026-09-23T02:48Z | W=w2 | experiment | step 9 | fresh BEST n013 (+64); w1 controller v5 fixed ancestor pairing; policy healthy
+- 2026-09-23T02:50Z | W=w2 | controller | after exp 14 | forced fresh-elite crossover gave n013 (BEST) + n009, but n009, n007, n001 are all ancestors of n013 (whole frontier is n013's lineage) so there is nothing to transplant; I ran n013 + n001's plain window instead (recorded with --parents override)
+- 2026-09-23T02:50Z | W=w2 | controller step done: v6 - forced crossovers (fresh-elite and due) fall back to mutate p1 when every other elite is an ancestor/descendant of p1 (new unrelated()); dry-run ok, test_controller ok (copy at /work/test_controller.py, asserts relaxed for the v4 skip and v6 fallback notes), version 6
+- 2026-09-23T02:53Z | W=w1 | experiment | step 19 | v5 fixed ancestor pairing; last crossover promoted (+19); p1s distinct
+- 2026-09-23T03:01Z | W=w2 | experiment | step 11 | v6 in place; frontier n013/n015 (fast sampler line) + n014/n007
+- 2026-09-23T03:06Z | W=w1 | experiment | step 22 | healthy: v5/v6 in place, frontier has 2 lines (fast sampler n013/n015, older n007/n016), last promotion BEST n013
+- 2026-09-23T03:14Z | W=w2 | experiment | step 12 | fresh BEST n017; v6 prevents empty lineage crossovers
+- 2026-09-23T03:15Z | W=w2 | controller | after exp 18 | forced fresh-elite crossover paired BEST n017 with n016 (grpo pass, -56 vs its parent, slows rounds): a known-bad idea chosen as p2 on Jaccard novelty; v4 only filtered fresh elites, not p2
+- 2026-09-23T03:15Z | W=w2 | controller step done: v7 - pick_p2 drops partners that scored > LOSS_BAND=15 below their own parent1 when others remain; released n017+n016 and re-asked; dry-run ok, tests ok, version 7
+- 2026-09-23T03:16Z | W=w2 | controller step v7 amended: lost_to_parent() also feeds v6 unrelated(), so when the only non-lineage partner lost to its parent (n016) the forced crossover becomes mutate of the fresh BEST (n017); dry-run ok, test_controller ok (v6 note accepted in the due-crossover assert, /work/test_controller.py updated), version 7
+- 2026-09-23T03:17Z | W=w2 | experiment | step 13 | mutate fresh BEST n017 per v7; round-count lever still rising
+- 2026-09-23T03:20Z | W=w1 | experiment | step 25 | healthy: v7 in place, BEST n017 fresh (+35), 2 workers on distinct ideas (w2 window 300, w1 persistent AdamW)
+- 2026-09-23T03:21Z | W=w1 | controller | after exp 25 | due crossover gave n015 (343) + n018 (ft130, neutral) while BEST n017 (393) leads every other elite by 35; with ~4 runs left the leader should be exploited
+- 2026-09-23T03:21Z | W=w1 | controller step done: v8 - when the best frontier elite leads every other by > SHARE_MARGIN=30, next returns mutate of the leader (skips the due crossover / Eq.1 pick); released + re-asked -> mutate n017; dry-run ok, tests 15/15 ok, version 8
+- 2026-09-23T03:29Z | W=w2 | experiment | step 14 | w1's v8 exploits leader n017 (35 ahead); follow it
+- 2026-09-23T03:35Z | W=w1 | experiment | step 28 | v8 exploit of leader; trying targets_extra pool growth (w2's n019 note: pool wrap limits smaller rounds)
+- 2026-09-23T03:42Z | W=w2 | experiment | step 15 | v8 leader exploitation still apt (n017 393 vs next 361); ~38 min left, 2-3 runs
+- 2026-09-23T03:48Z | W=w1 | experiment | step 30 | v8 leader exploit continues; note GPU0 ~20% slower than GPU1 (rounds 48s vs 40s), a confound for cross-worker comparisons
+- 2026-09-23T03:55Z | W=w2 | experiment | step 16 | last launch window (~25 min left); following controller
+- 2026-09-23T04:00Z | W=w1 | experiment | step 32 | last launch window; frontier n017/n023 near-tie, v8 inactive
+- 2026-09-23T04:07Z | W=w2 | experiment | step 17 | final launch before 04:20; following controller
+- 2026-09-23T04:13Z | W=w1 | experiment | step 34 | final launch before 04:20

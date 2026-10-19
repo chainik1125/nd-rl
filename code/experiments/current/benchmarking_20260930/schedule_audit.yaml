@@ -1,0 +1,18 @@
+# Audit reruns (2026-10-01, approved by Leon): armC textbook_dev to 4096 samples so its pass@4096 is
+# measured rather than extrapolated (audit A finding 3); glue renamed parts sampled standalone so the
+# glue R denominators use the parts as they appear inside the joined theorems (audit A finding 6).
+# GPU 4 only: GPUs 0-3 are in use by another user's vLLM.
+cap_h: 6.5  # ledger total (5.68 h spent before these reruns)
+jobs:
+- id: AU
+  job: yue_textbook_dev_armC
+  est_min: 12
+  command: python -m code.ndbench run --suite textbook_dev --version v1 --model armC --k 4096 --adaptive 256,4096,32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+- id: AU2
+  job: glue_parts_renamed_base
+  est_min: 4
+  command: python -m code.ndbench run --suite glue_parts_renamed --version v1 --model base --k 32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+- id: AU2
+  job: glue_parts_renamed_rl
+  est_min: 4
+  command: python -m code.ndbench run --suite glue_parts_renamed --version v1 --model rl --k 32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out

@@ -1,0 +1,19 @@
+# `python -m code.ndbench build --suite textbook_train14 --version v1 --config configs/textbook_train14.yaml`
+# DANSTATE_PLAN.md §3/§7 WP-D3: Dan's textbook72 train14 half (dev58 is our own `textbook_dev`
+# v1, prompt-identical -- plan §0). These 14 rows carry no `L_true`, so relabel by minlen (bound
+# 16, 120 s -- same budget as `textbook_dev.yaml`; 14 items, <=8 workers, well under plan SSA2's
+# per-job CPU budget: observed ~2 minutes, 1/14 timeout at bound 16). Also reports overlap with
+# our already-built `textbook_dev`/`textbook_law` v1 suites by theorem-class key (observed: 0
+# overlap with either, as expected -- train14 is disjoint from dev58 by construction).
+#
+# `certifier` names a class (`cli.cmd_build`'s `_resolve_instance` instantiates it bare -- see
+# `textbook_dev.yaml`'s comment for the same caveat about constructor kwargs).
+certifier: code.ndbench.logic.certify:MinlenCertifier
+bound: 16
+time_s: 120.0
+version: v1
+
+# Dedup against our own training data (plan section 2); flags, does not drop (this suite is
+# Dan's own eval-only data, never ours to begin with -- a hit here is a genuine cross-
+# contamination finding, not expected).
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

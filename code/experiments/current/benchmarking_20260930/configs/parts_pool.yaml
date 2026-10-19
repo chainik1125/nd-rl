@@ -1,0 +1,9 @@
+# `python -m code.ndbench build --suite parts_pool --version v1 --config configs/parts_pool.yaml`
+# Plan §2 B1/B5's parts pool ("parts_v1"): 1,200 `gen` items from `ab2/data/reserve.jsonl` with a
+# `minlen_proof`, stratified L2-8 x atom-count 1-4, one per pkey. No certifier needed (existing
+# `L_true` kept). Defaults (`path`, `n_items`) match the builder's own.
+n_items: 1200
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

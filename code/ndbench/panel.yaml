@@ -1,0 +1,243 @@
+# ndbench benchmark panel: every benchmark as one job, tagged with its cost tier.
+#
+# Run with `run_schedule.py` (see code/ndbench/README.md, "Cost tiers"):
+#
+#   nvidia-smi   # first: allow only free GPUs
+#   NDBENCH_ALLOWED_GPUS=<free GPUs> code/.venv/bin/python \
+#     code/experiments/current/benchmarking_20260930/run_schedule.py \
+#     --schedule code/ndbench/panel.yaml --model <label> --max-tier cheap --budget-h 0.5 --dry-run
+#
+# tier: cpu (no GPU at all) < cheap (<= 3 GPU-min per model) < moderate (<= 15) < expensive (> 15).
+# est_min: the largest GPU minutes measured for this job on one RTX 3090 (out/store/ledger.jsonl,
+# 2026-09-30/10-01) for the base / rl / armC absgpt models, rounded up. A model with another
+# adapter or size can differ a lot: run one cheap job first and rescale with --scale.
+# scope: model jobs take `{model}` (a label in configs/models.yaml); pair jobs are the interp
+# measurements, whose configs name the base/rl pair (copy and edit a config for another pair) and
+# which run only with --include-pair. `needs` lists jobs whose results a job's analysis reads.
+#
+# Every suite must be built first (`python -m code.ndbench build ...`, CPU only); the suites below
+# already exist in /scratch/cowifornia/nd-rl/bench/out/suites.
+
+cap_h: 9.5
+
+jobs:
+  # ---------------------------------------------------------------- cpu: no GPU
+  - id: P0
+    job: summary_page
+    tier: cpu
+    scope: any
+    est_min: 1
+    command: >-
+      python -m code.ndbench dash --out {out} --dash-dir {out}/dash_summary --summary
+    notes: Rebuilds every view and the one-page summary from stored results.
+  - id: P0
+    job: detail_pages
+    tier: cpu
+    scope: any
+    est_min: 2
+    command: python -m code.ndbench dash --out {out} --dash-dir {out}/dash_v3
+  - id: P0
+    job: paper_figures
+    tier: cpu
+    scope: any
+    est_min: 3
+    command: python -m code.ndbench figures --out {out} --fig-dir {out}/figures_paper
+    notes: The summary's benchmarks as NeurIPS-style PDF/SVG/PNG figures plus captions.md.
+  - id: P0
+    job: probe_position_baselines
+    tier: cpu
+    scope: any
+    est_min: 1
+    command: >-
+      python -m code.ndbench.interp probe-baselines --out {out}
+      --config code/experiments/current/benchmarking_20260930/configs/interp_probes_real.yaml
+    notes: Position-only lookup baselines on the probes' split (needs the probe items).
+
+  # ---------------------------------------------------------------- cheap: <= 3 GPU-min / model
+  - id: P1
+    job: parts_{model}
+    tier: cheap
+    scope: model
+    bench: glue
+    est_min: 2
+    command: >-
+      python -m code.ndbench run --suite parts_pool --version v1 --model {model} --k 32
+      --device cuda --out {out}
+    notes: Mastered-parts pool; glue reads it.
+  - id: P1
+    job: glue_parts_renamed_{model}
+    tier: cheap
+    scope: model
+    bench: glue
+    est_min: 2
+    command: >-
+      python -m code.ndbench run --suite glue_parts_renamed --version v1 --model {model} --k 32
+      --device cuda --out {out}
+    notes: Each glue part as it appears inside the join (the R denominators).
+  - id: P1
+    job: glue_{model}
+    tier: cheap
+    scope: model
+    bench: glue
+    needs: ["parts_{model}", "glue_parts_renamed_{model}"]
+    est_min: 3
+    command: >-
+      python -m code.ndbench run --suite glue --version v1 --model {model} --k 32
+      --device cuda --out {out}
+  - id: P1
+    job: gen_ctrl_{model}
+    tier: cheap
+    scope: model
+    bench: padding
+    est_min: 2
+    command: >-
+      python -m code.ndbench run --suite gen_ctrl --version v1 --model {model} --k 512
+      --device cuda --out {out}
+    notes: >-
+      Natural theorems at L8-11 (padding's reference curve). This is the dev set the RL hill-climb
+      selected on, so rl's numbers here are optimistic.
+  - id: P1
+    job: padding_{model}
+    tier: cheap
+    scope: model
+    bench: padding
+    needs: ["gen_ctrl_{model}"]
+    est_min: 3
+    command: >-
+      python -m code.ndbench run --suite padding --version v2 --model {model} --k 32
+      --device cuda --out {out}
+  - id: P1
+    job: prefix_{model}
+    tier: cheap
+    scope: model
+    bench: prefix
+    est_min: 2
+    command: >-
+      python -m code.ndbench run --suite prefix --version v1 --model {model} --k 16
+      --device cuda --out {out}
+  - id: P1
+    job: interp_vectors
+    tier: cheap
+    scope: pair
+    bench: steering
+    est_min: 1
+    command: >-
+      python -m code.ndbench.interp fit-vectors --out {out}
+      --config code/experiments/current/benchmarking_20260930/configs/interp_vectors_real.yaml
+    notes: Mean rl-base activation differences; steering and probes read them.
+  - id: P1
+    job: interp_probes
+    tier: cheap
+    scope: pair
+    bench: probes
+    est_min: 3
+    command: >-
+      python -m code.ndbench.interp probes --out {out}
+      --config code/experiments/current/benchmarking_20260930/configs/interp_probes_real.yaml
+  - id: P1
+    job: interp_likelihood_crux_control
+    tier: cheap
+    scope: pair
+    bench: likelihood
+    est_min: 1
+    command: >-
+      python -m code.ndbench.interp likelihood --out {out}
+      --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood_crux_control.yaml
+    notes: Neutral minimal proofs of the rl-only theorems (the likelihood chart's main control).
+
+  # ---------------------------------------------------------------- moderate: <= 15 GPU-min / model
+  - id: P2
+    job: yue_textbook_dev_{model}
+    tier: moderate
+    scope: model
+    bench: yue
+    est_min: 6
+    command: >-
+      python -m code.ndbench run --suite textbook_dev --version v1 --model {model} --k 4096
+      --adaptive 256,4096,32 --device cuda --out {out}
+  - id: P2
+    job: yue_textbook_law_{model}
+    tier: moderate
+    scope: model
+    bench: yue
+    est_min: 7
+    command: >-
+      python -m code.ndbench run --suite textbook_law --version v1 --model {model} --k 1024
+      --adaptive 256,1024,32 --device cuda --out {out}
+  - id: P2
+    job: families_{model}
+    tier: moderate
+    scope: model
+    bench: families
+    est_min: 12
+    command: >-
+      python -m code.ndbench run --suite families --version v1 --model {model} --k 32
+      --device cuda --out {out}
+  - id: P2
+    job: laws_{model}
+    tier: moderate
+    scope: model
+    bench: laws
+    est_min: 12
+    command: >-
+      python -m code.ndbench run --suite laws --version v1 --model {model} --k 32
+      --device cuda --out {out}
+  - id: P2
+    job: interp_interpolate
+    tier: moderate
+    scope: pair
+    bench: interpolation
+    est_min: 15
+    command: >-
+      python -m code.ndbench.interp interpolate --out {out}
+      --config code/experiments/current/benchmarking_20260930/configs/interp_interpolate.yaml
+
+  # ---------------------------------------------------------------- expensive: > 15 GPU-min / model
+  - id: P3
+    job: skills_{model}
+    tier: expensive
+    scope: model
+    bench: skills
+    est_min: 40
+    command: >-
+      python -m code.ndbench run --suite skill_pool --version v1 --model {model} --k 32
+      --device cuda --out {out}
+    notes: >-
+      Not measured: base/rl skill results are legacy imports. 11,524 items, about 4.7x families,
+      so roughly 40 min.
+  - id: P3
+    job: edl_{model}
+    tier: expensive
+    scope: model
+    bench: edl
+    est_min: 50
+    command: >-
+      python -m code.ndbench edl --model {model}
+      --config code/experiments/current/benchmarking_20260930/configs/edl.yaml
+      --lrs 0,1e-5,3e-5,1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64 --device cuda --out {out}
+    notes: >-
+      Fine-tunes a copy of the model per (class, lr, order). Writes edl-<model>-64-64; for a
+      model that already has EDL rows, pass a new generation (--run-id edl4-<model>-64-64) so the
+      view keeps only the newest.
+  - id: P3
+    job: interp_steer_sweep
+    tier: expensive
+    scope: pair
+    bench: steering
+    needs: [interp_vectors]
+    est_min: 28
+    command: >-
+      python -m code.ndbench.interp steer-sweep --out {out}
+      --config code/experiments/current/benchmarking_20260930/configs/interp_steer_sweep.yaml
+  - id: P3
+    job: interp_likelihood
+    tier: expensive
+    scope: pair
+    bench: likelihood
+    est_min: 50
+    notes: >-
+      The full run took one 37-min pass that hit its timeout plus two 8-min resumes (the runner
+      resumes from stored rows), so budget about 50 min.
+    command: >-
+      python -m code.ndbench.interp likelihood --out {out}
+      --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood_real.yaml

@@ -1,0 +1,5 @@
+# Real run: 2000 training proofs, 500 long proofs for length generalisation.
+seed: 0
+n_train: 2000
+n_ood: 500
+device: cuda

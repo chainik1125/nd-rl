@@ -1,0 +1,44 @@
+# python -m code.ndbench.interp steer-sweep \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_steer_sweep_dan12.yaml
+#
+# DANSTATE_PLAN.md §3 row I2 / §4 row D12: run `interp_vectors_dan12.yaml` (`fit-vectors`) first so
+# `out/interp/vectors/diff_l<layer>_action.npy` exist for layers 0/1 below -- a missing vector is
+# skipped with a note, not an error (`steering.steering_sweep`, unchanged by this work package
+# except for its new `judge`/`base_label`/`rl_label` parameters). Steers Fz with `+alpha*delta`
+# (`alpha` in {0.5, 1, 2}) and, on whichever layer scores best mean dev pass@1, T1 with `-delta`
+# as a control -- D12's own "2 layers x alpha {0.5,1,2} ..., plus -delta on T1". Builds/reuses
+# `interp_eval_dev`/`interp_eval_sealed`/`interp_eval_k128` -- the SAME suites the absgpt configs
+# use (the theorem pool is shared; plan §0). Run labels are `dan12-fz-s0`, `steer:dan12-fz-s0:
+# <layer>:<alpha>`, `steer:dan12-t1-s0:<layer>:-1` (the generalised, label-prefixed format --
+# `base_label != "base"` below, so the old bare `steer:<layer>:<alpha>` format from
+# `interp_steer_sweep.yaml`'s own runs is never touched). Judged with Lean (`lean_v2`) -- Dan's
+# headline judge (plan §2), unlike the absgpt configs' implicit `nd` default.
+#
+# Scale estimate: 2 layers x 3 alphas = 6 steered runs, + 1 unsteered Fz + 1 T1 `-delta` control =
+# 8 sampling runs, each at `k=8` over dev (720) + sealed (1240) + k128 (150) = 2,110 items ->
+# 16,880 attempts/run -> ~135k attempts total (D12's own ~85k estimate assumed k8 on the sealed
+# set alone; this config runs the full dev+sealed+k128 set every `steering_sweep` call always
+# does -- narrow `k128` out by pointing `vectors_dir`/cfg at a build with `K128_SUITE` empty, or
+# ask D5/the main agent for a `run_eval_suites` option to skip it, if the main agent wants to
+# match D12's figure exactly). At Fz's own ~45-90 attempts/s planning rate (plan §4; a step-by-step
+# env rollout, not a one-shot whole-proof sample, so this does not transfer directly from the
+# absgpt estimates without its own timed pilot): **rough estimate 25-50 GPU-min**.
+seed: 0
+base_model: dan12-fz-s0
+rl_model: dan12-t1-s0
+judge: lean
+device: cuda
+position_type: action # matches fit_diff_vectors_dan's own file naming (diff_l<layer>_action.npy)
+layers: [0, 1]
+alphas: [0.5, 1.0, 2.0]
+k: 8
+# Dev selects the best (layer, alpha), as for ours; sealed is the clean comparison. k128 and
+# textbook_dev are skipped to fit the approved GPU budget (main agent, 2026-10-01).
+eval_suites: [interp_eval_dev, interp_eval_sealed]
+temperature: 0.8
+vectors_dir: /scratch/cowifornia/nd-rl/bench/out/interp/vectors
+exclude_train: false # eval suites are flag-only by convention; set true to also drop seen_train items
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# model_kwargs: {batch: 512, max_action: 512, max_steps: 96}
+# budget_s: null   # per-RunSpec wall-clock budget, if a partial run is preferred to none

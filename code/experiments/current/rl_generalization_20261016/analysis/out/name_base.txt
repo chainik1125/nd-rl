@@ -1,0 +1,24 @@
+t2130_grpo_think_vs_mb_kkl0_s0_plain_k8: reconstructed bases match the accepted texts in 1000 / 1000 rows (seed 0)
+   base 0-10 : pass@1   9.8 (within-problem -0.2)  names exhausted  0.0  unbound 17.5  binder mismatch 30.4
+   base 11-21: pass@1  10.3 (within-problem +0.4)  names exhausted  0.0  unbound 20.8  binder mismatch 28.9
+   base 22-32: pass@1  10.1 (within-problem -0.2)  names exhausted  0.9  unbound 15.3  binder mismatch 33.1
+t2130_grpo_think_vs_mb_s0_plain_k8: reconstructed bases match the accepted texts in 1000 / 1000 rows (seed 0)
+   base 0-10 : pass@1   8.3 (within-problem -0.4)  names exhausted  0.0  unbound 20.0  binder mismatch 28.8
+   base 11-21: pass@1   9.4 (within-problem +0.1)  names exhausted  0.0  unbound 21.1  binder mismatch 28.4
+   base 22-32: pass@1   9.0 (within-problem +0.2)  names exhausted  0.5  unbound 18.4  binder mismatch 31.9
+t2130_ei_think_v_s0_plain_k8: reconstructed bases match the accepted texts in 1000 / 1000 rows (seed 0)
+   base 0-10 : pass@1   6.4 (within-problem +0.2)  names exhausted  0.5  unbound 20.2  binder mismatch 29.3
+   base 11-21: pass@1   6.1 (within-problem -0.1)  names exhausted  2.1  unbound 19.4  binder mismatch 28.7
+   base 22-32: pass@1   6.9 (within-problem -0.1)  names exhausted  8.8  unbound 16.8  binder mismatch 29.0
+t1320_grpo_think_vs_mb_kkl0_s0_plain_k16: reconstructed bases match the accepted texts in 986 / 986 rows (seed 0)
+   base 0-10 : pass@1  36.0 (within-problem -0.0)  names exhausted  0.0  unbound 11.2  binder mismatch 15.4
+   base 11-21: pass@1  35.3 (within-problem -0.5)  names exhausted  0.0  unbound 13.0  binder mismatch 15.3
+   base 22-32: pass@1  36.6 (within-problem +0.5)  names exhausted  0.7  unbound 10.6  binder mismatch 14.7
+t1320_ei_think_v_s0_plain_k16: reconstructed bases match the accepted texts in 986 / 986 rows (seed 0)
+   base 0-10 : pass@1  30.1 (within-problem -1.2)  names exhausted  0.6  unbound 13.3  binder mismatch 15.4
+   base 11-21: pass@1  31.5 (within-problem +0.9)  names exhausted  1.5  unbound 12.8  binder mismatch 15.1
+   base 22-32: pass@1  31.7 (within-problem +0.3)  names exhausted  5.5  unbound  9.9  binder mismatch 15.1
+charles173_grpo_think_vs_mb_kkl0_s0_plain_k64: reconstructed bases match the accepted texts in 173 / 173 rows (seed 0)
+   base 0-10 : pass@1  74.7 (within-problem -0.2)  names exhausted  0.0  unbound  2.5  binder mismatch  1.0
+   base 11-21: pass@1  74.5 (within-problem +0.5)  names exhausted  0.0  unbound  2.3  binder mismatch  1.3
+   base 22-32: pass@1  74.2 (within-problem -0.3)  names exhausted  0.0  unbound  2.6  binder mismatch  1.0

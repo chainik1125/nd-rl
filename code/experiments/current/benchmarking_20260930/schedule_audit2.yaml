@@ -1,0 +1,25 @@
+# Interp-audit reruns (2026-10-01, approved by Leon), GPU 4 only (GPUs 0-3: another user's vLLM).
+# 1. likelihood neutral control (audit B finding 4).
+# 2. steering sweep after the sample() prompt-boundary fix (audit B finding 1, critical); the
+#    fixed steered adapters have a new identity, so the old (delta-everywhere) runs are not reused.
+# 3-4. EDL with three extra learning rates (0 = no update, 1e-5, 3e-5; audit B finding 2), under a
+#    temporary run id outside the edl<gen>- convention; merged afterwards with edl2's 1e-4/3e-4/1e-3
+#    rows (identical classes, orders, n, m and per-combination seeds) into edl3-<model>-64-64.
+cap_h: 8.0  # ledger total (~5.8 h spent before these)
+jobs:
+- id: AB
+  job: interp_likelihood_crux_control
+  est_min: 3
+  command: python -m code.ndbench.interp likelihood --out /scratch/cowifornia/nd-rl/bench/out --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood_crux_control.yaml
+- id: AB
+  job: interp_steer_sweep_fixed
+  est_min: 30
+  command: python -m code.ndbench.interp steer-sweep --out /scratch/cowifornia/nd-rl/bench/out --config code/experiments/current/benchmarking_20260930/configs/interp_steer_sweep.yaml
+- id: AB
+  job: edlx_base
+  est_min: 30
+  command: python -m code.ndbench edl --model base --config code/experiments/current/benchmarking_20260930/configs/edl.yaml --lrs 0,1e-5,3e-5 --orders 2 --n 64 --m 64 --run-id edlx-base-64-64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+- id: AB
+  job: edlx_rl
+  est_min: 30
+  command: python -m code.ndbench edl --model rl --config code/experiments/current/benchmarking_20260930/configs/edl.yaml --lrs 0,1e-5,3e-5 --orders 2 --n 64 --m 64 --run-id edlx-rl-64-64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out

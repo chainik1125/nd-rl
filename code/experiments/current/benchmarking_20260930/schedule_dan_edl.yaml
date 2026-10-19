@@ -1,0 +1,32 @@
+# EDL for Dan's dan12 s0 pair (Leon, 2026-10-02). Pilot first (worst-case class), then the full runs.
+# Check nvidia-smi first and allow only free GPUs.
+cap_h: 20
+jobs:
+  - id: EP
+    job: edl_pilot_dan12_fz_and_tower_n16
+    tier: expensive
+    est_min: 10
+    command: python -m code.ndbench edl --model dan12-fz-s0 --config code/experiments/current/benchmarking_20260930/configs/edl_dan12.yaml --classes and_tower_n16 --lrs 1e-4,1e-3 --orders 1 --n 8 --m 8 --run-id edl-dan12-fz-s0-8-8 --device cuda --out /scratch/cowifornia/nd-rl/bench/edl_pilot_out
+    notes: Times the slowest class (longest states) and checks GPU memory; writes to a scratch out.
+  # Full run, one data order (Leon, 2026-10-02), each model split across two GPUs by class (same
+  # run id, --resume; appends take a file lock). Pilot: 72 s per (lr) run on and_tower_n16 at n=m=8.
+  - id: EF
+    job: edl_dan12_fz_s0_A
+    tier: expensive
+    est_min: 75
+    command: python -m code.ndbench edl --model dan12-fz-s0 --config code/experiments/current/benchmarking_20260930/configs/edl_dan12.yaml --classes and_tower_n16,reorder_and_n5,dist_and_over_or_s1,imp_nest_n4 --lrs 0,1e-5,3e-5,1e-4,3e-4,1e-3 --orders 1 --n 64 --m 64 --run-id edl-dan12-fz-s0-64-64 --resume --device cuda --out {out}
+  - id: EF
+    job: edl_dan12_fz_s0_B
+    tier: expensive
+    est_min: 75
+    command: python -m code.ndbench edl --model dan12-fz-s0 --config code/experiments/current/benchmarking_20260930/configs/edl_dan12.yaml --classes imp_nest_n8,gen_L10,contraposition_s3,and_tower_n8,dan_heldout --lrs 0,1e-5,3e-5,1e-4,3e-4,1e-3 --orders 1 --n 64 --m 64 --run-id edl-dan12-fz-s0-64-64 --resume --device cuda --out {out}
+  - id: EF
+    job: edl_dan12_t1_s0_A
+    tier: expensive
+    est_min: 75
+    command: python -m code.ndbench edl --model dan12-t1-s0 --config code/experiments/current/benchmarking_20260930/configs/edl_dan12.yaml --classes and_tower_n16,reorder_and_n5,dist_and_over_or_s1,imp_nest_n4 --lrs 0,1e-5,3e-5,1e-4,3e-4,1e-3 --orders 1 --n 64 --m 64 --run-id edl-dan12-t1-s0-64-64 --resume --device cuda --out {out}
+  - id: EF
+    job: edl_dan12_t1_s0_B
+    tier: expensive
+    est_min: 75
+    command: python -m code.ndbench edl --model dan12-t1-s0 --config code/experiments/current/benchmarking_20260930/configs/edl_dan12.yaml --classes imp_nest_n8,gen_L10,contraposition_s3,and_tower_n8,dan_heldout --lrs 0,1e-5,3e-5,1e-4,3e-4,1e-3 --orders 1 --n 64 --m 64 --run-id edl-dan12-t1-s0-64-64 --resume --device cuda --out {out}

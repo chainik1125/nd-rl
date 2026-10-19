@@ -1,0 +1,15 @@
+# Batch 2 (2026-10-01): padding (v2 = real bases), interp measures, then EDL and glue once glue v1 is built.
+cap_h: 9.5
+jobs:
+  - {id: B2, job: padding_base_v2, est_min: 3, command: "python -m code.ndbench run --suite padding --version v2 --model base --k 32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out"}
+  - {id: B2, job: padding_rl_v2, est_min: 3, command: "python -m code.ndbench run --suite padding --version v2 --model rl --k 32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out"}
+  - {id: B2, job: interp_vectors, est_min: 6, command: "python -m code.ndbench.interp fit-vectors --out /scratch/cowifornia/nd-rl/bench/out --config code/experiments/current/benchmarking_20260930/configs/interp_vectors_real.yaml"}
+  - {id: B2, job: interp_steer_sweep, est_min: 15, command: "python -m code.ndbench.interp steer-sweep --out /scratch/cowifornia/nd-rl/bench/out --config code/experiments/current/benchmarking_20260930/configs/interp_steer_sweep.yaml"}
+  - {id: B2, job: interp_interpolate, est_min: 10, command: "python -m code.ndbench.interp interpolate --out /scratch/cowifornia/nd-rl/bench/out --config code/experiments/current/benchmarking_20260930/configs/interp_interpolate.yaml"}
+  - {id: B2, job: interp_probes, est_min: 10, command: "python -m code.ndbench.interp probes --out /scratch/cowifornia/nd-rl/bench/out --config code/experiments/current/benchmarking_20260930/configs/interp_probes_real.yaml"}
+  - {id: B2, job: interp_likelihood, est_min: 12, command: "python -m code.ndbench.interp likelihood --out /scratch/cowifornia/nd-rl/bench/out --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood_real.yaml"}
+  - {id: B3, job: glue_base, est_min: 4, command: "python -m code.ndbench run --suite glue --version v1 --model base --k 32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out"}
+  - {id: B3, job: glue_rl, est_min: 4, command: "python -m code.ndbench run --suite glue --version v1 --model rl --k 32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out"}
+  - {id: B3, job: glue_armC, est_min: 4, command: "python -m code.ndbench run --suite glue --version v1 --model armC --k 32 --device cuda --out /scratch/cowifornia/nd-rl/bench/out"}
+  - {id: B3, job: edl_base, est_min: 25, command: "python -m code.ndbench edl --model base --config code/experiments/current/benchmarking_20260930/configs/edl.yaml --lrs 1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out"}
+  - {id: B3, job: edl_rl, est_min: 25, command: "python -m code.ndbench edl --model rl --config code/experiments/current/benchmarking_20260930/configs/edl.yaml --lrs 1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out"}

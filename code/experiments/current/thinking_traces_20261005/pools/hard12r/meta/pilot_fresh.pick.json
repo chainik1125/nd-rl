@@ -1,0 +1,101 @@
+{
+ "args": {
+  "inp": [
+   "/scratch/cowifornia/nd-rl/think/runs/pools/hard12r/work/raw/h12streams_x.jsonl",
+   "/scratch/cowifornia/nd-rl/think/runs/pools/hard12r/work/raw/fresh1_x.jsonl"
+  ],
+  "cfg": "strict_long:300,takehome:300,fwd_strict_d2:300,fwd_strict_d1:300,fwd_takehome_d2:300,goal_takehome:300",
+  "min_score": 0.3,
+  "max_score": 1.0,
+  "order": "random",
+  "per_len_frac": 0.3,
+  "max_state": 386,
+  "skip_measured": null,
+  "skip": [],
+  "tag": "fp",
+  "shards": 1,
+  "seed": 31,
+  "out": "/scratch/cowifornia/nd-rl/think/runs/pools/hard12r/work/pilot_fresh"
+ },
+ "n": 1800,
+ "per_cfg": {
+  "strict_long": {
+   "available": 22462,
+   "picked": 300,
+   "state_out": 0,
+   "per_len": {
+    "7": 19,
+    "8": 49,
+    "9": 32,
+    "10": 37,
+    "11": 81,
+    "12": 82
+   }
+  },
+  "takehome": {
+   "available": 125789,
+   "picked": 300,
+   "state_out": 0,
+   "per_len": {
+    "7": 55,
+    "8": 58,
+    "9": 60,
+    "10": 44,
+    "11": 49,
+    "12": 34
+   }
+  },
+  "fwd_strict_d2": {
+   "available": 36204,
+   "picked": 300,
+   "state_out": 0,
+   "per_len": {
+    "7": 17,
+    "8": 74,
+    "9": 41,
+    "10": 43,
+    "11": 66,
+    "12": 59
+   }
+  },
+  "fwd_strict_d1": {
+   "available": 51738,
+   "picked": 300,
+   "state_out": 0,
+   "per_len": {
+    "7": 73,
+    "8": 62,
+    "9": 35,
+    "10": 33,
+    "11": 44,
+    "12": 53
+   }
+  },
+  "fwd_takehome_d2": {
+   "available": 96627,
+   "picked": 300,
+   "state_out": 0,
+   "per_len": {
+    "7": 44,
+    "8": 62,
+    "9": 43,
+    "10": 39,
+    "11": 50,
+    "12": 62
+   }
+  },
+  "goal_takehome": {
+   "available": 221326,
+   "picked": 300,
+   "state_out": 0,
+   "per_len": {
+    "7": 47,
+    "8": 84,
+    "9": 74,
+    "10": 37,
+    "11": 38,
+    "12": 20
+   }
+  }
+ }
+}

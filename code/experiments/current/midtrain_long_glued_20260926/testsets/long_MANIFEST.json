@@ -1,0 +1,33 @@
+{
+ "src": "/scratch/cowifornia/nd-rl/ab3/midtrain/data/test_long.jsonl",
+ "src_sha256": "71ff3063a8ed1137f9855067495478bf183153c3d7dbe590e7497416389cca2d",
+ "n": 450,
+ "by_L": {
+  "22": 150,
+  "24": 150,
+  "26": 150
+ },
+ "overlap_by_pkey": {},
+ "records_sharing_a_part_with_sft": 0,
+ "sft_parts_known": 4508,
+ "internal_duplicates": 0,
+ "fields_in_source": [
+  "L_true",
+  "cert14",
+  "constructed_proof",
+  "family",
+  "key",
+  "label_kind",
+  "n_lines",
+  "n_prem",
+  "n_tokens",
+  "name",
+  "part_L",
+  "part_pkeys",
+  "parts",
+  "pkey",
+  "prompt",
+  "source",
+  "thm"
+ ]
+}

@@ -1,0 +1,174 @@
+{
+ "repr_gpu_hours": {
+  "pretrain_15": 2.8051551022132237,
+  "rl_12": 5.847692739102576,
+  "eval_12": 2.4035570226775276,
+  "total": 11.056404863993327,
+  "method": "pretrain train_secs + heldout_secs; RL harness total_secs; evaluation sample_secs + check_secs per unit. Excludes model loading, lock waits, tests, smokes and diagnostics."
+ },
+ "pretraining_citation_distance": {
+  "source": "repr report section 8 (pretraining row)",
+  "total_citations": 534505,
+  "B1": {
+   "count": 285125,
+   "share": 0.5334374795371418
+  },
+  "B2": {
+   "count": 165891,
+   "share": 0.3103637945388724
+  },
+  "B3": {
+   "count": 60364,
+   "share": 0.11293439724605009
+  },
+  "B4": {
+   "count": 14803,
+   "share": 0.02769478302354515
+  },
+  "B5": {
+   "count": 8322,
+   "share": 0.015569545654390511
+  },
+  "B6": {
+   "count": 0,
+   "share": 0.0
+  },
+  "B7": {
+   "count": 0,
+   "share": 0.0
+  },
+  "B8": {
+   "count": 0,
+   "share": 0.0
+  },
+  "B9": {
+   "count": 0,
+   "share": 0.0
+  },
+  "B10": {
+   "count": 0,
+   "share": 0.0
+  }
+ },
+ "rl_trained_citations_beyond_B5": {
+  "source": "repr report section 8 (RL-trained proofs rows)",
+  "abs_s0": {
+   "citations": 52846,
+   "share_beyond_B5": 0.09453884873027286
+  },
+  "abs_s1": {
+   "citations": 55647,
+   "share_beyond_B5": 0.09775908854026273
+  },
+  "abs_s2": {
+   "citations": 64095,
+   "share_beyond_B5": 0.10276932678056011
+  },
+  "rel_s0": {
+   "citations": 16952,
+   "share_beyond_B5": 0.0
+  },
+  "rel_s1": {
+   "citations": 17422,
+   "share_beyond_B5": 0.0
+  },
+  "rel_s2": {
+   "citations": 19005,
+   "share_beyond_B5": 0.0
+  }
+ },
+ "L12_18_theorems_by_longest_needed_jump": {
+  "source": "repr report section 8 (bins header)",
+  "theorems": 1835,
+  "needs B1-B5": {
+   "theorems": 1,
+   "share": 0.0005449591280653951
+  },
+  "needs B6": {
+   "theorems": 15,
+   "share": 0.008174386920980926
+  },
+  "needs B7-B8": {
+   "theorems": 181,
+   "share": 0.09863760217983651
+  },
+  "needs B9-B10": {
+   "theorems": 686,
+   "share": 0.37384196185286106
+  },
+  "needs B11-B64": {
+   "theorems": 952,
+   "share": 0.5188010899182561
+  }
+ },
+ "goals_minus_abs_paired": {
+  "pass@1 L12": {
+   "per_pair": [
+    0.0008333333333333248,
+    0.03572916666666666,
+    0.01645833333333334
+   ],
+   "mean": 0.01767361111111111,
+   "ci95": [
+    -0.025748197396402144,
+    0.06109541961862436
+   ]
+  },
+  "pass@1 L13": {
+   "per_pair": [
+    0.020729166666666667,
+    0.013125,
+    0.014895833333333334
+   ],
+   "mean": 0.01625,
+   "ci95": [
+    0.0063660149273355,
+    0.0261339850726645
+   ]
+  },
+  "pass@1 pooled L12-14": {
+   "per_pair": [
+    0.008698878627968337,
+    0.01933542216358839,
+    0.012409300791556728
+   ],
+   "mean": 0.013481200527704485,
+   "ci95": [
+    7.013694928429196e-05,
+    0.026892264106124678
+   ]
+  },
+  "pass@1 pooled L12-18": {
+   "per_pair": [
+    0.0033675944841675166,
+    0.007501276813074567,
+    0.00499553115423902
+   ],
+   "mean": 0.005288134150493701,
+   "ci95": [
+    0.00011537154783414997,
+    0.010460896753153252
+   ]
+  },
+  "pass@1 pooled L6-11": {
+   "per_pair": [
+    -0.05234375000000002,
+    0.004861111111111094,
+    -0.04970486111111111
+   ],
+   "mean": -0.032395833333333346,
+   "ci95": [
+    -0.1126146699777247,
+    0.047823003311058
+   ]
+  },
+  "source": "goals/report/results.json (pass, pooled, indist); seed pairs goals s_i vs repr abs s_i"
+ },
+ "repr_results_json_keys": [
+  "attempt_median_lines",
+  "attempt_share_ge_L",
+  "first_error",
+  "pass",
+  "slopes"
+ ]
+}

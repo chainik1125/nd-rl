@@ -1,0 +1,29 @@
+# One-job schedule for the interp-likelihood throughput fix's real run (2026-10-01), GPU 2 only
+# (per the main agent's instructions for this fix -- not GPU 4; launch with
+# NDBENCH_ALLOWED_GPUS=2 so run_schedule.py's own GPU allowlist accepts it).
+#
+#   NDBENCH_ALLOWED_GPUS=2 code/.venv/bin/python \
+#       code/experiments/current/benchmarking_20260930/run_schedule.py \
+#       --schedule code/experiments/current/benchmarking_20260930/schedule_ll2.yaml \
+#       --jobs interp_likelihood2
+#
+# est_min is a generous ceiling, not the expected time: a small (30+30+30 item) real-data profile
+# of the post-fix code measured ~11s of GPU scoring for 151 total orderings across both models;
+# extrapolating linearly to the full config's ~1,540 items (~1,762 total orderings, reserve/
+# gen_ctrl/parts_pool data) gives roughly 2-3 GPU-minutes of scoring plus ~20s of one-time data
+# loading (streaming the 426k-row reserve.jsonl for the neutral sample) -- see this coder's final
+# report for the full before/after profile and the real run's actual wall time.
+cap_h: 9.5
+
+jobs:
+  - id: interp_likelihood2
+    job: interp_likelihood2
+    est_min: 12
+    command: >-
+      python -m code.ndbench.interp likelihood
+      --out /scratch/cowifornia/nd-rl/bench/out
+      --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood_real.yaml
+    notes: >-
+      Re-run of the likelihood work after the throughput fix (code/ndbench/interp/likelihood.py,
+      orderings.py): batched per-chunk scoring instead of per-item, incremental writes, and a
+      connected-components speedup for orderings.count_orderings. GPU 2 only.

@@ -1,0 +1,39 @@
+# python -m code.ndbench.interp fit-vectors \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_vectors_dan12.yaml
+#
+# DANSTATE_PLAN.md §3 row I2 / §1: the mean (T1 - Fz) activation difference at every *action*
+# token (`DanStateAdapter.activations(..., positions="action")`), per layer, over `n_pairs`
+# reserve proofs (same pool as `interp_likelihood_dan12.yaml`, via `family: dan12`'s
+# `DanExcluder`). `cmd_fit_vectors` dispatches to `danstate_support.fit_diff_vectors_dan`
+# automatically once `base_model`/`rl_model` resolve to `DanStateAdapter`s. Unlike the absgpt
+# version (`interp_vectors_real.yaml`'s `position_types: [proof, prompt, line_start]`) there is
+# only one position type here -- `DanStateAdapter.activations` already does its own per-step
+# position selection, so there is nothing left to additionally slice by "prompt"/"line_start" --
+# hence no `position_types:` key below. Writes `out/interp/vectors/diff_l<layer>_action.npy` +
+# `.json` sidecars to `out_dir`, which `interp_steer_sweep_dan12.yaml` (`position_type: action`)
+# reads back.
+#
+# Scale estimate: one `activations` call per model over `n_pairs` reserve proofs, each proof
+# costing one forward row per decompose step (same order of magnitude as D11's likelihood/probes
+# "forward only" estimate): `n_pairs=300` reserve proofs at L6-10 (average ~8 steps each, PR
+# restated as its own action -- `danstate_support.RULE_CLASSES`' own "PR" class) -> ~2,400 rows
+# per model, ~4,800 total (batched internally, not 4,800 separate calls) -- an order of magnitude
+# below `interp_vectors_real.yaml`'s own `n_pairs=3000` estimate (8-12 GPU-min there); time a
+# pilot before raising `n_pairs`.
+seed: 0
+base_model: dan12-fz-s0
+rl_model: dan12-t1-s0
+judge: lean # not consumed by `fit-vectors` itself (no judging happens here)
+device: cuda
+n_pairs: 300
+l_min: 6
+l_max: 10
+family: dan12
+exclude_train: true
+family_limit: 0
+layers: [0, 1, 2, 3, 4, 5] # DanStateAdapter.activations: block indices into the real 6-layer model
+out_dir: /scratch/cowifornia/nd-rl/bench/out/interp/vectors
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# scan_limit: null
+# model_kwargs: {batch: 512, max_action: 512, max_steps: 96}

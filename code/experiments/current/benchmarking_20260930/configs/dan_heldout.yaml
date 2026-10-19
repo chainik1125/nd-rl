@@ -1,0 +1,8 @@
+# `python -m code.ndbench build --suite dan_heldout --version v1 --config configs/dan_heldout.yaml`
+# DANSTATE_PLAN.md §3/§7 WP-D3: Dan's held-out greedy-gate set (`heldout.jsonl`, 5,000; gate V5).
+# Each row already carries its own (generator) proof/length; no relabelling, no CPU-heavy work
+# (plain JSON -> Problem conversion, a few seconds). `excluder` here checks against *our own*
+# tiers only, as a cross-contamination diagnostic -- Dan's "seen in training" tiers for this suite
+# are a separate per-suite sidecar (`logic.exclusion.build_seen_sidecars`), not this field.
+version: v1
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

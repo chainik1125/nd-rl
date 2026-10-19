@@ -1,0 +1,229 @@
+{
+ "args": {
+  "configs": "strict_long,takehome,fwd_strict_d2,fwd_strict_d1,fwd_takehome_d2,goal_takehome",
+  "model": "/scratch/cowifornia/nd-rl/think/runs/pools/hard12_work/band_model.json",
+  "out": "/scratch/cowifornia/nd-rl/think/runs/pools/hard12r/work/raw/fresh1.jsonl",
+  "secs": 300.0,
+  "workers": 3,
+  "seed": 1300000,
+  "min": 7,
+  "max": 12,
+  "max_fdepth": 5,
+  "max_prompt": 156,
+  "min_score": 0.3
+ },
+ "configs": {
+  "strict_long": {
+   "gen": {
+    "max_prem": 3,
+    "max_depth": 3
+   },
+   "mode": "sample_one",
+   "long": true
+  },
+  "takehome": {
+   "gen": {
+    "max_prem": 3,
+    "max_depth": 3
+   },
+   "mode": "sample_one",
+   "long": false
+  },
+  "fwd_strict_d2": {
+   "gen": {
+    "max_prem": 3,
+    "max_depth": 2
+   },
+   "strict": true,
+   "ore_steps": 3,
+   "mode": "forward",
+   "steps": [
+    6,
+    22
+   ],
+   "n_prem": [
+    1,
+    2,
+    2,
+    3,
+    3
+   ]
+  },
+  "fwd_strict_d1": {
+   "gen": {
+    "max_prem": 3,
+    "max_depth": 1
+   },
+   "strict": true,
+   "ore_steps": 3,
+   "mode": "forward",
+   "steps": [
+    6,
+    22
+   ],
+   "n_prem": [
+    1,
+    2,
+    2,
+    3,
+    3
+   ]
+  },
+  "fwd_takehome_d2": {
+   "gen": {
+    "max_prem": 3,
+    "max_depth": 2
+   },
+   "strict": false,
+   "ore_steps": 3,
+   "mode": "forward",
+   "steps": [
+    4,
+    16
+   ],
+   "n_prem": [
+    1,
+    2,
+    2,
+    3,
+    3
+   ]
+  },
+  "goal_takehome": {
+   "gen": {
+    "max_prem": 3,
+    "max_depth": 3
+   },
+   "strict": false,
+   "ore_steps": 3,
+   "mode": "goal",
+   "n_prem": [
+    0,
+    1,
+    1,
+    2,
+    2
+   ],
+   "gdepth": [
+    2,
+    3,
+    3
+   ],
+   "budgets": [
+    3,
+    4,
+    5
+   ]
+  }
+ },
+ "generator": "fork gen.Gen (4dcd0e4f), unchanged; knobs as in `configs`",
+ "per_config": {
+  "strict_long": {
+   "tries": 6743255,
+   "contra": 73367,
+   "fail": 5032782,
+   "scored": 209145,
+   "score_low": 189573,
+   "len_out": 1327476,
+   "kept": 19572,
+   "shape_out": 44901,
+   "dup": 55584
+  },
+  "takehome": {
+   "tries": 7957376,
+   "len_out": 4687013,
+   "fail": 2537446,
+   "scored": 454717,
+   "score_low": 373256,
+   "kept": 81461,
+   "shape_out": 35345,
+   "contra": 82594,
+   "dup": 160261
+  },
+  "fwd_strict_d2": {
+   "tries": 4083795,
+   "fail": 2160304,
+   "len_out": 1550178,
+   "scored": 223709,
+   "kept": 23610,
+   "score_low": 200099,
+   "contra": 86860,
+   "shape_out": 19527,
+   "dup": 43217
+  },
+  "fwd_strict_d1": {
+   "tries": 4661647,
+   "fail": 2218271,
+   "len_out": 2143927,
+   "scored": 185337,
+   "score_low": 152387,
+   "contra": 71636,
+   "kept": 32950,
+   "shape_out": 6924,
+   "dup": 35552
+  },
+  "fwd_takehome_d2": {
+   "tries": 3981164,
+   "fail": 1181936,
+   "len_out": 2251341,
+   "scored": 362916,
+   "score_low": 303372,
+   "contra": 92891,
+   "kept": 59544,
+   "shape_out": 35010,
+   "dup": 57070
+  },
+  "goal_takehome": {
+   "tries": 13312780,
+   "len_out": 8120021,
+   "fail": 4533625,
+   "scored": 333749,
+   "score_low": 184201,
+   "contra": 64773,
+   "kept": 149548,
+   "dup": 260610,
+   "shape_out": 2
+  }
+ },
+ "per_config_len": {
+  "fwd_strict_d1:7": 7769,
+  "fwd_strict_d1:8": 5723,
+  "fwd_strict_d1:9": 3091,
+  "fwd_strict_d1:10": 3410,
+  "fwd_strict_d1:11": 6166,
+  "fwd_strict_d1:12": 5576,
+  "fwd_strict_d2:7": 2344,
+  "fwd_strict_d2:8": 4999,
+  "fwd_strict_d2:9": 3314,
+  "fwd_strict_d2:10": 2834,
+  "fwd_strict_d2:11": 4621,
+  "fwd_strict_d2:12": 4880,
+  "fwd_takehome_d2:7": 9345,
+  "fwd_takehome_d2:8": 11236,
+  "fwd_takehome_d2:9": 7985,
+  "fwd_takehome_d2:10": 7454,
+  "fwd_takehome_d2:11": 11627,
+  "fwd_takehome_d2:12": 10516,
+  "goal_takehome:7": 21751,
+  "goal_takehome:8": 37543,
+  "goal_takehome:9": 35908,
+  "goal_takehome:10": 15423,
+  "goal_takehome:11": 15312,
+  "goal_takehome:12": 6065,
+  "strict_long:7": 1504,
+  "strict_long:8": 3731,
+  "strict_long:9": 2411,
+  "strict_long:10": 2802,
+  "strict_long:11": 4578,
+  "strict_long:12": 4320,
+  "takehome:7": 12225,
+  "takehome:8": 15621,
+  "takehome:9": 13910,
+  "takehome:10": 10618,
+  "takehome:11": 14880,
+  "takehome:12": 10944
+ },
+ "distinct_classes": 342436,
+ "cross_worker_dups": 24249,
+ "secs": 311.4
+}

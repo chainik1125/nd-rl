@@ -1,0 +1,249 @@
+{
+ "bins": [
+  "1\u20135",
+  "6\u201310",
+  "11\u201315",
+  "16+",
+  "train14"
+ ],
+ "k": null,
+ "groups": [
+  {
+   "label": "Pretraining only",
+   "seeds": [
+    {
+     "path": "/scratch/cowifornia/nd-rl/think/tb72_eval_20261005/stage1_s0_plain/rows_plain_B0.jsonl",
+     "kind": "thinking.eval",
+     "cell": "plain_B0",
+     "k": 256,
+     "bins": {
+      "1\u20135": {
+       "solved": 5.0,
+       "n": 5,
+       "rate": 1.0
+      },
+      "6\u201310": {
+       "solved": 13.0,
+       "n": 24,
+       "rate": 0.5416666666666666
+      },
+      "11\u201315": {
+       "solved": 6.0,
+       "n": 16,
+       "rate": 0.375
+      },
+      "16+": {
+       "solved": 0.0,
+       "n": 13,
+       "rate": 0.0
+      },
+      "train14": {
+       "solved": 5.0,
+       "n": 14,
+       "rate": 0.35714285714285715
+      }
+     }
+    },
+    {
+     "path": "/scratch/cowifornia/nd-rl/think/tb72_eval_20261005/stage1_s1_plain/rows_plain_B0.jsonl",
+     "kind": "thinking.eval",
+     "cell": "plain_B0",
+     "k": 256,
+     "bins": {
+      "1\u20135": {
+       "solved": 5.0,
+       "n": 5,
+       "rate": 1.0
+      },
+      "6\u201310": {
+       "solved": 15.0,
+       "n": 24,
+       "rate": 0.625
+      },
+      "11\u201315": {
+       "solved": 5.0,
+       "n": 16,
+       "rate": 0.3125
+      },
+      "16+": {
+       "solved": 0.0,
+       "n": 13,
+       "rate": 0.0
+      },
+      "train14": {
+       "solved": 5.0,
+       "n": 14,
+       "rate": 0.35714285714285715
+      }
+     }
+    },
+    {
+     "path": "/scratch/cowifornia/nd-rl/think/tb72_eval_20261005/stage1_s2_plain/rows_plain_B0.jsonl",
+     "kind": "thinking.eval",
+     "cell": "plain_B0",
+     "k": 256,
+     "bins": {
+      "1\u20135": {
+       "solved": 5.0,
+       "n": 5,
+       "rate": 1.0
+      },
+      "6\u201310": {
+       "solved": 14.0,
+       "n": 24,
+       "rate": 0.5833333333333334
+      },
+      "11\u201315": {
+       "solved": 3.0,
+       "n": 16,
+       "rate": 0.1875
+      },
+      "16+": {
+       "solved": 0.0,
+       "n": 13,
+       "rate": 0.0
+      },
+      "train14": {
+       "solved": 6.0,
+       "n": 14,
+       "rate": 0.42857142857142855
+      }
+     }
+    }
+   ],
+   "mean": {
+    "1\u20135": 1.0,
+    "6\u201310": 0.5833333333333334,
+    "11\u201315": 0.2916666666666667,
+    "16+": 0.0,
+    "train14": 0.38095238095238093
+   },
+   "n": {
+    "1\u20135": 5,
+    "6\u201310": 24,
+    "11\u201315": 16,
+    "16+": 13,
+    "train14": 14
+   }
+  },
+  {
+   "label": "After RL (round 8)",
+   "seeds": [
+    {
+     "path": "/scratch/cowifornia/nd-rl/think/tb72_eval_20261005/r8_s0_plain/rows_plain_B0.jsonl",
+     "kind": "thinking.eval",
+     "cell": "plain_B0",
+     "k": 256,
+     "bins": {
+      "1\u20135": {
+       "solved": 5.0,
+       "n": 5,
+       "rate": 1.0
+      },
+      "6\u201310": {
+       "solved": 21.0,
+       "n": 24,
+       "rate": 0.875
+      },
+      "11\u201315": {
+       "solved": 11.0,
+       "n": 16,
+       "rate": 0.6875
+      },
+      "16+": {
+       "solved": 4.0,
+       "n": 13,
+       "rate": 0.3076923076923077
+      },
+      "train14": {
+       "solved": 9.0,
+       "n": 14,
+       "rate": 0.6428571428571429
+      }
+     }
+    },
+    {
+     "path": "/scratch/cowifornia/nd-rl/think/tb72_eval_20261005/r8_s1_plain/rows_plain_B0.jsonl",
+     "kind": "thinking.eval",
+     "cell": "plain_B0",
+     "k": 256,
+     "bins": {
+      "1\u20135": {
+       "solved": 5.0,
+       "n": 5,
+       "rate": 1.0
+      },
+      "6\u201310": {
+       "solved": 22.0,
+       "n": 24,
+       "rate": 0.9166666666666666
+      },
+      "11\u201315": {
+       "solved": 11.0,
+       "n": 16,
+       "rate": 0.6875
+      },
+      "16+": {
+       "solved": 4.0,
+       "n": 13,
+       "rate": 0.3076923076923077
+      },
+      "train14": {
+       "solved": 8.0,
+       "n": 14,
+       "rate": 0.5714285714285714
+      }
+     }
+    },
+    {
+     "path": "/scratch/cowifornia/nd-rl/think/tb72_eval_20261005/r8_s2_plain/rows_plain_B0.jsonl",
+     "kind": "thinking.eval",
+     "cell": "plain_B0",
+     "k": 256,
+     "bins": {
+      "1\u20135": {
+       "solved": 5.0,
+       "n": 5,
+       "rate": 1.0
+      },
+      "6\u201310": {
+       "solved": 23.0,
+       "n": 24,
+       "rate": 0.9583333333333334
+      },
+      "11\u201315": {
+       "solved": 11.0,
+       "n": 16,
+       "rate": 0.6875
+      },
+      "16+": {
+       "solved": 3.0,
+       "n": 13,
+       "rate": 0.23076923076923078
+      },
+      "train14": {
+       "solved": 11.0,
+       "n": 14,
+       "rate": 0.7857142857142857
+      }
+     }
+    }
+   ],
+   "mean": {
+    "1\u20135": 1.0,
+    "6\u201310": 0.9166666666666666,
+    "11\u201315": 0.6875,
+    "16+": 0.2820512820512821,
+    "train14": 0.6666666666666666
+   },
+   "n": {
+    "1\u20135": 5,
+    "6\u201310": 24,
+    "11\u201315": 16,
+    "16+": 13,
+    "train14": 14
+   }
+  }
+ ],
+ "k_effective": 256
+}

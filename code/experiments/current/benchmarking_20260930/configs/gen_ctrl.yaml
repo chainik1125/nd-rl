@@ -1,0 +1,8 @@
+# `python -m code.ndbench build --suite gen_ctrl --version v1 --config configs/gen_ctrl.yaml`
+# Plan §2 B8's Yue-replication control: 60 `source == "gen"` dev items, L8-11, evenly split. No
+# certifier needed (existing `L_true` kept, `method="reference"`).
+n_items: 60
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

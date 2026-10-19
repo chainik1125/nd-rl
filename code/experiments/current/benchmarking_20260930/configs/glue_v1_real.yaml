@@ -1,0 +1,15 @@
+# Real glue build after G1 (2026-09-30): parts mastered by RL at p>=0.5 in run parts_pool-v1-rl-bcdc6849aa14c027.
+needs_ore: code.ndbench.suites.glue:needs_ore_from_skills
+mastery_threshold: 0.5
+target_per_cell: 100
+min_per_cell: 80
+version: v1
+excluder: code.ndbench.logic.exclusion:DefaultExcluder
+mastery_run_ids:
+  rl: parts_pool-v1-rl-bcdc6849aa14c027
+  base: parts_pool-v1-base-02c0fe0fc6b766d7
+gate_model: rl
+certifier: code.ndbench.logic.certify:MinlenCertifier
+max_tries_per_cell: 300
+time_s: 10.0
+store_root: /scratch/cowifornia/nd-rl/bench/out

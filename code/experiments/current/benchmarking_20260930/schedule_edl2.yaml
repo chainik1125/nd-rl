@@ -1,0 +1,21 @@
+# EDL rerun (2026-10-01 EDL-pool fix): same command shape as schedule_batch3.yaml's edl_base/
+# edl_rl jobs, but against the fixed configs/edl.yaml (now pointing at the dedicated families/
+# edl_v1 and laws/edl_v1 suites, and gen_L10 instead of dev_gen_L10) and with an explicit
+# --run-id so these rows land in new store/edl/edl2-*.jsonl files rather than appending into the
+# existing edl-base-64-64.jsonl/edl-rl-64-64.jsonl from the earlier 2-class run.
+#
+# Launch from the worktree root (both jobs run in parallel, one per GPU):
+#   NDBENCH_ALLOWED_GPUS=0,1 code/.venv/bin/python \
+#       code/experiments/current/benchmarking_20260930/run_schedule.py \
+#       --schedule code/experiments/current/benchmarking_20260930/schedule_edl2.yaml \
+#       --jobs edl2_base,edl2_rl
+cap_h: 9.5
+jobs:
+- id: E2
+  job: edl2_base
+  est_min: 25
+  command: python -m code.ndbench edl --model base --config code/experiments/current/benchmarking_20260930/configs/edl.yaml --lrs 1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64 --run-id edl2-base-64-64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out
+- id: E2
+  job: edl2_rl
+  est_min: 25
+  command: python -m code.ndbench edl --model rl --config code/experiments/current/benchmarking_20260930/configs/edl.yaml --lrs 1e-4,3e-4,1e-3 --orders 2 --n 64 --m 64 --run-id edl2-rl-64-64 --device cuda --out /scratch/cowifornia/nd-rl/bench/out

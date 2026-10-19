@@ -1,0 +1,16 @@
+# `python -m code.ndbench build --suite families --version v1 --config configs/families.yaml`
+# Plan §2 B2: ~40 distinct classes per (family, n), all ten families (and_tower, and_tree,
+# or_tower, imp_nest, and_extract, dn_elim, dn_intro, reorder_and, reorder_or, ILTP-style), n
+# ranges per plan §2's table. `certifier` is omitted: `families.build`'s own `default_certifier()`
+# (WP2's `MinlenCertifier` if importable, else a local fallback) is used, matching plan §A2's
+# worker cap by default (`procs=8`).
+#
+# CPU cost note (plan §A2): this suite's exact-tier certification (`exact_time_s` per candidate,
+# up to n<=8 for several families) is the most CPU-expensive build in this experiment; split by
+# `families:` subset across multiple `build` invocations if a single run risks exceeding ~15
+# minutes on this shared host.
+target_per_n: 40
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

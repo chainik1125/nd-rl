@@ -1,0 +1,35 @@
+# Interp for Dan's dan12 s0 pair (DANSTATE_PLAN.md §4 D11-D13), trimmed to the approved budget.
+# Phase A (independent): --jobs IA ; phase B (needs A's vectors / the likelihood pilot): --jobs IB.
+# Check nvidia-smi first and allow only free GPUs; Lean judge for sampled runs.
+cap_h: 9.5
+jobs:
+  - id: IA
+    job: interp_vectors_dan12
+    tier: cheap
+    est_min: 4
+    command: python -m code.ndbench.interp fit-vectors --out {out} --config code/experiments/current/benchmarking_20260930/configs/interp_vectors_dan12.yaml
+  - id: IA
+    job: interp_probes_dan12
+    tier: cheap
+    est_min: 6
+    command: python -m code.ndbench.interp probes --out {out} --config code/experiments/current/benchmarking_20260930/configs/interp_probes_dan12.yaml
+  - id: IA
+    job: interp_likelihood_dan12_pilot
+    tier: cheap
+    est_min: 8
+    command: python -m code.ndbench.interp likelihood --out {out} --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood_dan12_pilot.yaml
+  - id: IA
+    job: interp_interpolate_dan12
+    tier: expensive
+    est_min: 50
+    command: python -m code.ndbench.interp interpolate --out {out} --config code/experiments/current/benchmarking_20260930/configs/interp_interpolate_dan12.yaml
+  - id: IB
+    job: interp_steer_sweep_dan12
+    tier: expensive
+    est_min: 45
+    command: python -m code.ndbench.interp steer-sweep --out {out} --config code/experiments/current/benchmarking_20260930/configs/interp_steer_sweep_dan12.yaml
+  - id: IB
+    job: interp_likelihood_dan12
+    tier: expensive
+    est_min: 30
+    command: python -m code.ndbench.interp likelihood --out {out} --config code/experiments/current/benchmarking_20260930/configs/interp_likelihood_dan12.yaml

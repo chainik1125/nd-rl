@@ -1,0 +1,10 @@
+# `python -m code.ndbench build --suite skill_pool --version v1 --config configs/skill_pool.yaml`
+# Plan §2 B3: dev L8-11 + sealed L12-14 + frontier + lengthexp std/matched (L6-18), tagged with
+# `classical`/`case_split` (cheap, exact, applied unconditionally) and `rule_uses` where a
+# `minlen_proof` is available. Does NOT precompute `necessity`/`needs_depth` (too slow at this
+# scale; see `logic/skills.py`'s cost note) -- a downstream analysis pass computes those on demand
+# for a deliberately-sized subset. Defaults (`sources`) match the builder's own.
+version: v1
+
+# Dedup against training data (plan section 2); flags or drops per suite policy.
+excluder: code.ndbench.logic.exclusion:DefaultExcluder

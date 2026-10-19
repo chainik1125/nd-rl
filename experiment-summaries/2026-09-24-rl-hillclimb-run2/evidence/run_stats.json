@@ -1,0 +1,21 @@
+{
+ "nodes": 99,
+ "status": {
+  "evaluated": 98,
+  "crash": 1
+ },
+ "two_seed_nodes": 16,
+ "nodes_by_worker": {
+  "w7": 12,
+  "w4": 15,
+  "w1": 15,
+  "w3": 15,
+  "w5": 13,
+  "w6": 15,
+  "w2": 14
+ },
+ "nodes_with_arxiv_source": 50,
+ "replicates": 16,
+ "ideas_rows": 165,
+ "controller_versions": []
+}

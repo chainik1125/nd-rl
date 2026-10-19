@@ -1,0 +1,27 @@
+# python -m code.ndbench.interp interpolate \
+#   --out /scratch/cowifornia/nd-rl/bench/out \
+#   --config code/experiments/current/benchmarking_20260930/configs/interp_interpolate.yaml
+#
+# INTERP_SPEC.md §3: theta = theta_base + alpha*(theta_rl - theta_base) for every alpha below,
+# evaluated on dev+sealed `gen` items at k=8 (pass@1) and the fixed 150-theorem k128 subset at
+# k=128 (pass@k curve). alpha in {0, 1} reuse the existing `base`/`rl` checkpoints/labels (no new
+# checkpoint file, per the spec's storage convention); the other 5 alphas are materialised as
+# ~13 MB `out/interp/ckpts/interp_a<alpha>.pt` files with sha256 sidecars (`interp/interpolate.py`
+# `build_checkpoints`, idempotent -- a second run with the same alphas does not recompute them).
+#
+# GPU cost estimate: 7 alphas x (720 dev + 1240 sealed at k=8, + 150 k128 items at k=128) =
+# 7 x 34,880 = 244,160 samples. At the plan's ~300 samples/s middle estimate: **rough estimate
+# 14-18 GPU-min** (checkpoint interpolation itself is a CPU-only tensor op, ~13 MB x 5 files,
+# seconds not minutes -- see the "CPU runs" note in this coder's final report).
+seed: 0
+alphas: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5]
+k_pass1: 8
+k_pass_k: 128
+temperature: 0.8
+ckpt_dir: /scratch/cowifornia/nd-rl/bench/out/interp/ckpts
+device: cuda
+exclude_train: false
+# cache_dir: /scratch/cowifornia/nd-rl/bench/out/cache
+# base_ckpt: /scratch/cowifornia/nd-rl/ab2/frozen/pretrain.pt   # defaults match interp.data.BASE_CKPT
+# rl_ckpt: /scratch/cowifornia/nd-rl/ab2/monitor/final/champion2_n060_fullpool/final.pt
+# budget_s: null
