@@ -1,0 +1,700 @@
+{
+ "host": "Daniels-MacBook-Pro.local",
+ "machine": "arm64",
+ "kalmar_k12_by_atoms": [
+  {
+   "atoms": 1,
+   "n": 400,
+   "accepted": 400,
+   "gen_ms_median": 0.03220850021534716,
+   "lean_ms_per_proof": 186.48087739944458,
+   "size_median": 18.0,
+   "size_p90": 23,
+   "size_max": 32,
+   "k12_lines_median": 6.0
+  },
+  {
+   "atoms": 2,
+   "n": 400,
+   "accepted": 400,
+   "gen_ms_median": 0.0594789999013301,
+   "lean_ms_per_proof": 13.592489957809448,
+   "size_median": 45.0,
+   "size_p90": 55,
+   "size_max": 74,
+   "k12_lines_median": 7.0
+  },
+  {
+   "atoms": 3,
+   "n": 400,
+   "accepted": 400,
+   "gen_ms_median": 0.10781299988593673,
+   "lean_ms_per_proof": 24.235780239105225,
+   "size_median": 103.0,
+   "size_p90": 122,
+   "size_max": 148,
+   "k12_lines_median": 7.0
+  },
+  {
+   "atoms": 4,
+   "n": 400,
+   "accepted": 400,
+   "gen_ms_median": 0.22833300045022042,
+   "lean_ms_per_proof": 36.81752860546112,
+   "size_median": 219.0,
+   "size_p90": 258,
+   "size_max": 326,
+   "k12_lines_median": 7.0
+  }
+ ],
+ "kalmar_evalsets": {
+  "holdout250": {
+   "n": 250,
+   "judged_invalid": 0,
+   "accepted": 250,
+   "lean_ms_per_proof": 25.739563941955566,
+   "size_median": 111.0,
+   "size_max": 374,
+   "atoms_hist": {
+    "1": 8,
+    "2": 59,
+    "3": 99,
+    "4": 84
+   }
+  },
+  "textbook72": {
+   "n": 72,
+   "judged_invalid": 0,
+   "accepted": 72,
+   "lean_ms_per_proof": 27.517626682917278,
+   "size_median": 58.0,
+   "size_max": 256,
+   "atoms_hist": {
+    "1": 7,
+    "2": 32,
+    "3": 25,
+    "4": 8
+   }
+  }
+ },
+ "kalmar_scaling": [
+  {
+   "atoms": 1,
+   "family": "chain",
+   "gen_s": 4.016700040665455e-05,
+   "chars": 259,
+   "steps": 10,
+   "lean_ok": true,
+   "size": 14,
+   "lean_s": 1.5294358730316162
+  },
+  {
+   "atoms": 1,
+   "family": "lem",
+   "gen_s": 4.3542000639718026e-05,
+   "chars": 280,
+   "steps": 10,
+   "lean_ok": true,
+   "size": 14,
+   "lean_s": 1.6515421867370605
+  },
+  {
+   "atoms": 2,
+   "family": "chain",
+   "gen_s": 4.9166001190315e-05,
+   "chars": 673,
+   "steps": 27,
+   "lean_ok": true,
+   "size": 39,
+   "lean_s": 1.4372470378875732
+  },
+  {
+   "atoms": 2,
+   "family": "lem",
+   "gen_s": 0.00010083300003316253,
+   "chars": 812,
+   "steps": 31,
+   "lean_ok": true,
+   "size": 41,
+   "lean_s": 1.5165457725524902
+  },
+  {
+   "atoms": 3,
+   "family": "chain",
+   "gen_s": 6.641700019827113e-05,
+   "chars": 1533,
+   "steps": 62,
+   "lean_ok": true,
+   "size": 92,
+   "lean_s": 1.6064820289611816
+  },
+  {
+   "atoms": 3,
+   "family": "lem",
+   "gen_s": 0.00025920799998857547,
+   "chars": 2002,
+   "steps": 73,
+   "lean_ok": true,
+   "size": 97,
+   "lean_s": 1.413940191268921
+  },
+  {
+   "atoms": 4,
+   "family": "chain",
+   "gen_s": 0.00011191600060556084,
+   "chars": 3285,
+   "steps": 133,
+   "lean_ok": true,
+   "size": 201,
+   "lean_s": 1.3844950199127197
+  },
+  {
+   "atoms": 4,
+   "family": "lem",
+   "gen_s": 0.0005509580005309545,
+   "chars": 5280,
+   "steps": 173,
+   "lean_ok": true,
+   "size": 235,
+   "lean_s": 2.1292290687561035
+  },
+  {
+   "atoms": 5,
+   "family": "chain",
+   "gen_s": 0.00019429100029810797,
+   "chars": 6821,
+   "steps": 276,
+   "lean_ok": true,
+   "size": 422,
+   "lean_s": 1.3515410423278809
+  },
+  {
+   "atoms": 5,
+   "family": "lem",
+   "gen_s": 0.0017761250001058215,
+   "chars": 10883,
+   "steps": 342,
+   "lean_ok": true,
+   "size": 447,
+   "lean_s": 1.4649112224578857
+  },
+  {
+   "atoms": 6,
+   "family": "chain",
+   "gen_s": 0.00036424999962036964,
+   "chars": 13925,
+   "steps": 563,
+   "lean_ok": true,
+   "size": 867,
+   "lean_s": 1.6593568325042725
+  },
+  {
+   "atoms": 6,
+   "family": "lem",
+   "gen_s": 0.0038831669990031514,
+   "chars": 24820,
+   "steps": 771,
+   "lean_ok": true,
+   "size": 977,
+   "lean_s": 1.5213680267333984
+  },
+  {
+   "atoms": 7,
+   "family": "chain",
+   "gen_s": 0.0006812079991505016,
+   "chars": 28165,
+   "steps": 1138,
+   "lean_ok": true,
+   "size": 1760,
+   "lean_s": 2.4682581424713135
+  },
+  {
+   "atoms": 7,
+   "family": "lem",
+   "gen_s": 0.0102575410001009,
+   "chars": 61739,
+   "steps": 1639,
+   "lean_ok": true,
+   "size": 2178,
+   "lean_s": 3.353074073791504
+  },
+  {
+   "atoms": 8,
+   "family": "chain",
+   "gen_s": 0.0013974589983263286,
+   "chars": 56677,
+   "steps": 2289,
+   "lean_ok": true,
+   "size": 3549,
+   "lean_s": 2.0335001945495605
+  },
+  {
+   "atoms": 8,
+   "family": "lem",
+   "gen_s": 0.021644166999976733,
+   "chars": 106651,
+   "steps": 3025,
+   "lean_ok": true,
+   "size": 4009,
+   "lean_s": 2.7808837890625
+  },
+  {
+   "atoms": 9,
+   "family": "chain",
+   "gen_s": 0.002951624999695923,
+   "chars": 113733,
+   "steps": 4592,
+   "lean_ok": true,
+   "size": 7130,
+   "lean_s": 2.286334991455078
+  },
+  {
+   "atoms": 9,
+   "family": "lem",
+   "gen_s": 0.05733904099906795,
+   "chars": 267495,
+   "steps": 6421,
+   "lean_ok": true,
+   "size": 8496,
+   "lean_s": 4.277552127838135
+  },
+  {
+   "atoms": 10,
+   "family": "chain",
+   "gen_s": 0.005310167000061483,
+   "chars": 227877,
+   "steps": 9199,
+   "lean_ok": true,
+   "size": 14295,
+   "lean_s": 5.327730178833008
+  },
+  {
+   "atoms": 10,
+   "family": "lem",
+   "gen_s": 0.11762958399958734,
+   "chars": 608025,
+   "steps": 13792,
+   "lean_ok": true,
+   "size": 18019,
+   "lean_s": 10.776913166046143
+  },
+  {
+   "atoms": 11,
+   "family": "chain",
+   "gen_s": 0.010596167001494905,
+   "chars": 456208,
+   "steps": 18414,
+   "lean_ok": true,
+   "size": 28628,
+   "lean_s": 8.672491073608398
+  },
+  {
+   "atoms": 11,
+   "family": "lem",
+   "gen_s": 0.23794850000012957,
+   "chars": 1295624,
+   "steps": 29456,
+   "lean_ok": true,
+   "size": 37860,
+   "lean_s": 17.269092082977295
+  },
+  {
+   "atoms": 12,
+   "family": "chain",
+   "gen_s": 0.02065016600136005,
+   "chars": 912902,
+   "steps": 36845,
+   "lean_ok": true,
+   "size": 57297,
+   "lean_s": 10.852397918701172
+  },
+  {
+   "atoms": 12,
+   "family": "lem",
+   "gen_s": 0.6511927079991437,
+   "chars": 2544297,
+   "steps": 52341,
+   "lean_ok": false,
+   "size": null,
+   "lean_s": 24.370478868484497
+  }
+ ],
+ "model_reads": {
+  "r8_h250": [
+   {
+    "n": 250,
+    "pass1": 0.81403125,
+    "solved_256": 240,
+    "attempts_per_solve_median": 1.0470391435262631,
+    "attempts_per_solve_p90": 2.0317460317460316,
+    "expected_attempts_per_theorem_cap256": 13.17851089247245,
+    "by_atoms": {
+     "1": {
+      "n": 8,
+      "pass1": 0.86572265625,
+      "solved": 7
+     },
+     "2": {
+      "n": 59,
+      "pass1": 0.7629104872881356,
+      "solved": 55
+     },
+     "3": {
+      "n": 99,
+      "pass1": 0.8473011363636364,
+      "solved": 96
+     },
+     "4": {
+      "n": 84,
+      "pass1": 0.8058035714285714,
+      "solved": 82
+     }
+    }
+   },
+   {
+    "n": 250,
+    "pass1": 0.797171875,
+    "solved_256": 236,
+    "attempts_per_solve_median": 1.0666666666666667,
+    "attempts_per_solve_p90": 1.7066666666666668,
+    "expected_attempts_per_theorem_cap256": 17.011634312773765,
+    "by_atoms": {
+     "1": {
+      "n": 8,
+      "pass1": 0.73046875,
+      "solved": 7
+     },
+     "2": {
+      "n": 59,
+      "pass1": 0.7798596398305084,
+      "solved": 54
+     },
+     "3": {
+      "n": 99,
+      "pass1": 0.8275331439393939,
+      "solved": 93
+     },
+     "4": {
+      "n": 84,
+      "pass1": 0.7799014136904762,
+      "solved": 82
+     }
+    }
+   },
+   {
+    "n": 250,
+    "pass1": 0.812328125,
+    "solved_256": 237,
+    "attempts_per_solve_median": 1.0491803278688525,
+    "attempts_per_solve_p90": 1.7655172413793103,
+    "expected_attempts_per_theorem_cap256": 15.428328648745637,
+    "by_atoms": {
+     "1": {
+      "n": 8,
+      "pass1": 0.83203125,
+      "solved": 7
+     },
+     "2": {
+      "n": 59,
+      "pass1": 0.810646186440678,
+      "solved": 55
+     },
+     "3": {
+      "n": 99,
+      "pass1": 0.8145912247474747,
+      "solved": 94
+     },
+     "4": {
+      "n": 84,
+      "pass1": 0.8089657738095238,
+      "solved": 81
+     }
+    }
+   }
+  ],
+  "r8_tb72": [
+   {
+    "n": 72,
+    "pass1": 0.3885633680555556,
+    "solved_256": 48,
+    "attempts_per_solve_median": 1.242982063308742,
+    "attempts_per_solve_p90": 64.0,
+    "expected_attempts_per_theorem_cap256": 95.90640464488442,
+    "by_atoms": {
+     "1": {
+      "n": 7,
+      "pass1": 0.5948660714285714,
+      "solved": 7
+     },
+     "2": {
+      "n": 32,
+      "pass1": 0.4383544921875,
+      "solved": 21
+     },
+     "3": {
+      "n": 25,
+      "pass1": 0.30578125,
+      "solved": 16
+     },
+     "4": {
+      "n": 8,
+      "pass1": 0.267578125,
+      "solved": 4
+     }
+    }
+   },
+   {
+    "n": 72,
+    "pass1": 0.3597005208333333,
+    "solved_256": 48,
+    "attempts_per_solve_median": 1.587711213517665,
+    "attempts_per_solve_p90": 64.0,
+    "expected_attempts_per_theorem_cap256": 98.59542748071239,
+    "by_atoms": {
+     "1": {
+      "n": 7,
+      "pass1": 0.6316964285714286,
+      "solved": 7
+     },
+     "2": {
+      "n": 32,
+      "pass1": 0.3677978515625,
+      "solved": 22
+     },
+     "3": {
+      "n": 25,
+      "pass1": 0.3175,
+      "solved": 15
+     },
+     "4": {
+      "n": 8,
+      "pass1": 0.22119140625,
+      "solved": 4
+     }
+    }
+   },
+   {
+    "n": 72,
+    "pass1": 0.4263237847222222,
+    "solved_256": 53,
+    "attempts_per_solve_median": 1.641025641025641,
+    "attempts_per_solve_p90": 19.692307692307693,
+    "expected_attempts_per_theorem_cap256": 74.21723899082284,
+    "by_atoms": {
+     "1": {
+      "n": 7,
+      "pass1": 0.6584821428571429,
+      "solved": 7
+     },
+     "2": {
+      "n": 32,
+      "pass1": 0.5125732421875,
+      "solved": 25
+     },
+     "3": {
+      "n": 25,
+      "pass1": 0.32171875,
+      "solved": 17
+     },
+     "4": {
+      "n": 8,
+      "pass1": 0.205078125,
+      "solved": 4
+     }
+    }
+   }
+  ],
+  "r16_h250": [
+   {
+    "n": 250,
+    "pass1": 0.832421875,
+    "solved_256": 240,
+    "attempts_per_solve_median": 1.0406504065040652,
+    "attempts_per_solve_p90": 1.610062893081761,
+    "expected_attempts_per_theorem_cap256": 12.037378549818525,
+    "by_atoms": {
+     "1": {
+      "n": 8,
+      "pass1": 0.86474609375,
+      "solved": 7
+     },
+     "2": {
+      "n": 59,
+      "pass1": 0.7966101694915254,
+      "solved": 55
+     },
+     "3": {
+      "n": 99,
+      "pass1": 0.8614267676767676,
+      "solved": 96
+     },
+     "4": {
+      "n": 84,
+      "pass1": 0.8203125,
+      "solved": 82
+     }
+    }
+   },
+   {
+    "n": 250,
+    "pass1": 0.831875,
+    "solved_256": 246,
+    "attempts_per_solve_median": 1.0406504065040652,
+    "attempts_per_solve_p90": 2.5346534653465347,
+    "expected_attempts_per_theorem_cap256": 6.068880789512484,
+    "by_atoms": {
+     "1": {
+      "n": 8,
+      "pass1": 0.87255859375,
+      "solved": 8
+     },
+     "2": {
+      "n": 59,
+      "pass1": 0.8261387711864406,
+      "solved": 58
+     },
+     "3": {
+      "n": 99,
+      "pass1": 0.84375,
+      "solved": 98
+     },
+     "4": {
+      "n": 84,
+      "pass1": 0.8180338541666666,
+      "solved": 82
+     }
+    }
+   },
+   {
+    "n": 250,
+    "pass1": 0.818421875,
+    "solved_256": 239,
+    "attempts_per_solve_median": 1.0491803278688525,
+    "attempts_per_solve_p90": 1.9692307692307693,
+    "expected_attempts_per_theorem_cap256": 13.51253296233424,
+    "by_atoms": {
+     "1": {
+      "n": 8,
+      "pass1": 0.77587890625,
+      "solved": 7
+     },
+     "2": {
+      "n": 59,
+      "pass1": 0.8291181144067796,
+      "solved": 56
+     },
+     "3": {
+      "n": 99,
+      "pass1": 0.806936553030303,
+      "solved": 94
+     },
+     "4": {
+      "n": 84,
+      "pass1": 0.8284970238095238,
+      "solved": 82
+     }
+    }
+   }
+  ],
+  "r16_tb72": [
+   {
+    "n": 72,
+    "pass1": 0.4094509548611111,
+    "solved_256": 51,
+    "attempts_per_solve_median": 1.6305732484076434,
+    "attempts_per_solve_p90": 51.2,
+    "expected_attempts_per_theorem_cap256": 83.59720971558107,
+    "by_atoms": {
+     "1": {
+      "n": 7,
+      "pass1": 0.66015625,
+      "solved": 7
+     },
+     "2": {
+      "n": 32,
+      "pass1": 0.4434814453125,
+      "solved": 23
+     },
+     "3": {
+      "n": 25,
+      "pass1": 0.33125,
+      "solved": 16
+     },
+     "4": {
+      "n": 8,
+      "pass1": 0.29833984375,
+      "solved": 5
+     }
+    }
+   },
+   {
+    "n": 72,
+    "pass1": 0.4361436631944444,
+    "solved_256": 57,
+    "attempts_per_solve_median": 1.4143646408839778,
+    "attempts_per_solve_p90": 128.0,
+    "expected_attempts_per_theorem_cap256": 73.74526369175095,
+    "by_atoms": {
+     "1": {
+      "n": 7,
+      "pass1": 0.5943080357142857,
+      "solved": 7
+     },
+     "2": {
+      "n": 32,
+      "pass1": 0.4268798828125,
+      "solved": 26
+     },
+     "3": {
+      "n": 25,
+      "pass1": 0.43640625,
+      "solved": 20
+     },
+     "4": {
+      "n": 8,
+      "pass1": 0.333984375,
+      "solved": 4
+     }
+    }
+   },
+   {
+    "n": 72,
+    "pass1": 0.4416232638888889,
+    "solved_256": 56,
+    "attempts_per_solve_median": 1.5779092702169626,
+    "attempts_per_solve_p90": 23.272727272727273,
+    "expected_attempts_per_theorem_cap256": 63.12631021745952,
+    "by_atoms": {
+     "1": {
+      "n": 7,
+      "pass1": 0.6506696428571429,
+      "solved": 7
+     },
+     "2": {
+      "n": 32,
+      "pass1": 0.5150146484375,
+      "solved": 25
+     },
+     "3": {
+      "n": 25,
+      "pass1": 0.34796875,
+      "solved": 19
+     },
+     "4": {
+      "n": 8,
+      "pass1": 0.2578125,
+      "solved": 5
+     }
+    }
+   }
+  ]
+ },
+ "model_proof_size_h250_r8_s0": {
+  "n": 240,
+  "accepted": 240,
+  "median": 6.0,
+  "p90": 9,
+  "max": 17,
+  "lean_ms_per_proof": 25.544275840123493
+ }
+}

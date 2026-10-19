@@ -1,0 +1,6 @@
+{
+ "note": "Warm re-timing after a Lean warm-up call (same K12 sample, same machine), recorded from the run's printed output; results.json's first stratum includes a cold start.",
+ "warm_lean_ms_per_proof_by_atoms": {"1": 11.07, "2": 13.24, "3": 19.87, "4": 33.63},
+ "single_trivial_proof_check_s (Lean startup baseline)": 1.513,
+ "n12_excluded_middle": {"lean_ok": false, "reason": "error: (deterministic) timeout at `isDefEq`, maximum number of heartbeats (200000) has been reached", "proof_chars": 2544297}
+}
