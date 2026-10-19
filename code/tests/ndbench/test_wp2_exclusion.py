@@ -7,8 +7,16 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from code.ndbench.core.types import Sequent
-from code.ndbench.logic.exclusion import EVAL_FILES, TRAIN_FILES, ExclusionIndex, default_tiers
+from code.ndbench.logic.exclusion import (
+    EVAL_FILES,
+    ROOT,
+    TRAIN_FILES,
+    ExclusionIndex,
+    default_tiers,
+)
 
 
 def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -151,6 +159,13 @@ def test_marks_a_known_train_cap6_theorem(tmp_path: Path) -> None:
         assert index.status(definitely_absent)[0] is False
 
 
+_MISSING_DATA_ROOTS = [str(ROOT / d) for d in ("ab2", "ab3") if not (ROOT / d).is_dir()]
+
+
+@pytest.mark.skipif(
+    bool(_MISSING_DATA_ROOTS),
+    reason=f"real tier data not available here: {', '.join(_MISSING_DATA_ROOTS)}",
+)
 def test_default_tiers_layout_and_paths_exist() -> None:
     tiers = default_tiers()
     assert "train" in tiers

@@ -13,6 +13,7 @@ import torch
 
 from code.ndbench.core.types import Problem
 from code.ndbench.interp import eval_suites, interpolate
+from code.ndbench.interp.data import DEV_L8_11_PATH, SEALED_L12_14_PATH
 from code.ndbench.interp.runner_support import run_eval_suites
 from code.ndbench.store import Store
 from code.ndbench.vendor import load_absgpt_module
@@ -20,6 +21,12 @@ from code.ndbench.vendor import load_absgpt_module
 from .test_wp5_fixtures import TinyGptAdapter, new_tiny_model, new_tokenizer
 
 _model_mod = load_absgpt_module("model")
+
+_MISSING_GEN_DATA = [str(p) for p in (DEV_L8_11_PATH, SEALED_L12_14_PATH) if not p.is_file()]
+needs_gen_data = pytest.mark.skipif(
+    bool(_MISSING_GEN_DATA),
+    reason=f"real gen data not available here: {', '.join(_MISSING_GEN_DATA)}",
+)
 
 
 def _save_tiny_ckpt(path: Path, *, seed: int) -> None:
@@ -132,6 +139,7 @@ def test_absgpt_adapter_loads_interpolated_checkpoint_and_identity_differs(tmp_p
 # ------------------------------------------------------------------------------- eval_suites
 
 
+@needs_gen_data
 def test_build_dev_and_sealed_gen_suites_match_known_counts(tmp_path: Path) -> None:
     store = Store(tmp_path / "out")
     dev = eval_suites.build_dev_gen(store)
@@ -144,6 +152,7 @@ def test_build_dev_and_sealed_gen_suites_match_known_counts(tmp_path: Path) -> N
     assert len(store.load_suite(eval_suites.DEV_GEN_SUITE, "v1")) == 720
 
 
+@needs_gen_data
 def test_k128_subset_is_stratified_and_fixed_size(tmp_path: Path) -> None:
     store = Store(tmp_path / "out")
     dev = eval_suites.build_dev_gen(store)
@@ -169,6 +178,7 @@ def test_load_textbook_dev_skips_with_note_when_absent(tmp_path: Path) -> None:
 # --------------------------------------------------------------------------- run_eval_suites
 
 
+@needs_gen_data
 def test_run_eval_suites_writes_ordinary_store_runs(tmp_path: Path) -> None:
     store = Store(tmp_path / "out")
     dev = eval_suites.build_dev_gen(store)[:3]
@@ -221,6 +231,7 @@ def test_run_eval_suites_writes_ordinary_store_runs(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------- run_interpolation
 
 
+@needs_gen_data
 def test_run_interpolation_orchestrates_alpha_loop(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
