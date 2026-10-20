@@ -54,7 +54,8 @@ asked how many bits a model must absorb to learn the recipe, and whether the sho
   7,000–12,000 bits with parsing and the exact output format.
 - **It is the largest algorithm we compared, in every language.** The languages agree on the ordering. The
   largest simpler algorithm, truth-table checking, is 13 times smaller in lambda calculus but only 4 times in
-  compressed Python and 8 in RASP-L; a second version of the recipe sits between them. *[review]*
+  compressed Python and 8 in RASP-L; a second version of the recipe sits between them in lambda calculus and
+  Python. *[review]*
 - **Length does not order learnability.**
   - The style of the earlier run's comparison data is learned easily, yet its generator is about twice as long
     (comparing two mechanically shrunk upper bounds). *[review]*
