@@ -19,6 +19,9 @@ authority), then the run's files.
 Work on a branch `dan_<slug>` from **`origin/dan`** (Dan's integration branch, the source of
 truth for his work), commit with the trailers, push, then **merge the branch into `dan`**
 (`git checkout dan && git pull && git merge --no-ff dan_<slug> && git push origin dan`; the
-additive index files use a union merge driver via `.gitattributes`). Do not open a new PR per
-run: one standing draft PR `dan` → `main` exists. Then `touch ~/runs/<run-id>/librarian.done`.
+additive index files use a union merge driver via `.gitattributes`). Once `dan` is pushed, delete
+the run branch from origin (`git push origin --delete dan_<slug>`): its commits are now in `dan`,
+and the merge commit records its name. This applies to the nd-rl branch only; never delete the
+run's fork branch. Do not open a new PR per run: one standing draft PR `dan` → `main` exists.
+Then `touch ~/runs/<run-id>/librarian.done`.
 Never add reviewers; never message anyone.
