@@ -1,6 +1,7 @@
 ---
 written_on: 2026-09-29
 written_by: agent:claude
+repo: https://github.com/chainik1125/nd-rl
 draft: true
 ---
 
