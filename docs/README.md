@@ -9,6 +9,7 @@ The folders are:
 
 
 1. /group_docs: Working principles for the group, research advice, how to collaborate etc..
+    - `agent_research_practices/`: how agent-run experiments are proposed, pre-registered, reviewed and recorded.
 
 2. /infra: Descriptions of relevant infrastructure, how to set it up etc...
 
