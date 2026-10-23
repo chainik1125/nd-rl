@@ -10,20 +10,22 @@ written_by: agent:claude
 > [review](https://github.com/dan-pandori/nd-takehome/blob/e378b944/review_style-edl.md) applied. Each change is marked
 > *[review]*. The numbers in parentheses are the review's claim numbers; "Must be reworded" and "Not supported, or
 > missing" are the lists in its verdict.
-> - The shortest proofs' apparent cost comes *mostly*, not wholly, from the split; other corrections leave up to about
->   1 bit per proof (23–24, "Must be reworded" 1).
-> - The alternative styles' EDL is "none above the learner's resampled proofs by more than the floor", not "essentially
+> - The shortest proofs' apparent cost comes *mostly*, not wholly, from the split. Swapping the halves leaves 0.06–0.33
+>   bits, not 0.1–0.3, and other corrections leave up to about 1 bit per proof (23–24, "Must be reworded" 1).
+> - The alternative styles' split-corrected EDL is "none above S_own2 + F", in the review's words, not "essentially
 >   zero"; one held-out theorem is missed in one cell (21–22 and 28, "Must be reworded" 2 and 6).
 > - "EDL charges only for style the learner can pick up" is a hypothesis from exploratory numbers. It rests on 14–39
->   differing proofs per cell and is confounded by the learning rate (25, "Must be reworded" 3).
-> - The Kalmár number depends on the limit on training passes, which every Kalmár fit reached (26, "Not supported, or
->   missing" 1).
+>   differing proofs per cell and is confounded by the learning rate; the "1–4 bits" per shortest proof is 0.6–4 in a
+>   count over both halves (25, "Must be reworded" 3).
+> - The Kalmár number depends on the limit on training passes, which every Kalmár fit at the chosen learning rate
+>   reached (26, "Not supported, or missing" 1).
 > - The style-blind score counts only the correct proofs the run collected, so its dip may be valid proofs outside the
 >   collection (27, "Must be reworded" 4).
-> - "No EDL gap" becomes "no detectable gap", for small style differences only, and the general rule about systematic
->   styles is dropped (29, "Must be reworded" 6, "Not supported, or missing" 2).
+> - "No EDL gap" becomes "no detectable gap", for small style differences only. The general rule about systematic
+>   styles is dropped; what remains says that Kalmár's cost mixes style with capability (29, "Must be reworded" 6,
+>   "Not supported, or missing" 2).
 >
-> The corrections take it from 594 to about 840 words, against the brief's 600. The executor's text, byte for byte, is
+> The corrections take it from 594 to about 850 words, against the brief's 600. The executor's text, byte for byte, is
 > this file at commit `edd07b7`. See the [summary](README.md) for the reviewed numbers.
 
 # style-edl in plain language (2026-10-23; with the review's corrections) *[review]*
@@ -49,8 +51,9 @@ EDL gap between a base and a reinforcement-learning (RL) model could be style, n
 **What came out.**
 1. **On these theorems, styles that keep the learner's ability barely differ from its own.** The other learner, the RL
    model and the shortest-proof search write exactly the learner's proof for 85–94 % of the theorems.
-2. **Their EDL is not detectably above that of the learner's own resampled proofs.** *[review]* None exceeds it by more
-   than the 0.1-bit floor, and the nine stream-and-seed cells span −0.40 to +0.06 bits per proof around it *[review]*.
+2. **Their EDL, once corrected for which theorems landed in the training half, is not detectably above that of the
+   learner's own resampled proofs.** *[review]* None exceeds it by more than the 0.1-bit floor, and the nine
+   stream-and-seed cells span −0.40 to +0.06 bits per proof around it *[review]*.
    After training on them, the learner still proves every held-out theorem but one, missed in one of the nine cells
    *[review]*.
 3. **One apparent effect was mostly an artefact.** *[review]* By the brief's formula, the shortest proofs cost about 1
@@ -67,16 +70,16 @@ EDL gap between a base and a reinforcement-learning (RL) model could be style, n
    learner's own, so that part is not style *[review]*.
 5. **A really different style costs a lot, but it also breaks the learner.** Kalmár proofs are about 25 times longer
    and at first surprise it by about 1,300 bits each. It learns most of the style from 128 examples (down to about 90
-   bits), an EDL of about 180 bits per proof. Every Kalmár fit stopped at the limit of 8 passes over its data, so this
-   number depends on that limit *[review]*. But then it proves only 25–38 % of the held-out theorems (100 % before):
-   it writes Kalmár-like proofs and loses track of the bookkeeping.
+   bits), an EDL of about 180 bits per proof. Every Kalmár fit at the chosen learning rate stopped at the limit of 8
+   passes over its data, so this number depends on that limit *[review]*. But then it proves only 25–38 % of the
+   held-out theorems (100 % before): it writes Kalmár-like proofs and loses track of the bookkeeping.
 6. **Counting any correct proof the run collected as a hit** *[review]*, instead of the exact text, the Kalmár stream's
    EDL turns negative: training on it made correct proofs less likely overall. The shortest-proof stream shows a small
    cost (0.1–0.2 bits), from a dip in the collected correct proofs midway through learning *[review]*. The models
    midway may have moved to correct proofs outside the collection; that was not checked *[review]*.
 
-**What it means.** For this base model and its RL version, on theorems both prove, style creates no *detectable* EDL
-gap *[review]*: the RL proofs are mostly identical to the base's, and the rest do not look like a learnable style (an
+**What it means.** For this base model and its RL version, on theorems both prove, style alone creates no *detectable*
+EDL gap *[review]*: the RL proofs are mostly identical to the base's, and the rest do not look like a learnable style (an
 exploratory reading) *[review]*. The styles that keep the learner's ability differ from its own proofs on only 6–15 %
 of the theorems, so a gap of a few tenths of a bit per proof would not have been detected; this is not evidence that
 EDL ignores style *[review]*. The one systematic, very different style tested, Kalmár's, could not be learned without
