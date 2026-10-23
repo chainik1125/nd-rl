@@ -87,7 +87,8 @@ step, so a style gap need not be cheap or transient. That is the case to test.
 **Ask first.** Leon's numbers for Dan's pair and Charles's `edl_mock` results may already bound part of this. Charles's
 control stream comes closest, but its proofs come from another base seed, whose style is similar.
 
-**Experiment sketch: style-swap EDL at fixed capability.**
+**Experiment sketch: style-swap EDL at fixed capability.** This is now running as `style-edl`
+([proposal 32](../proposals/2026-10-22-style-edl.md)).
 - **Learner:** the K12 base `stage1_best12_s{0,1,2}_b1200`.
 - **Theorems:** held-out K12-distribution theorems that the learner already proves (for example the tf1200 theorems with
   pass@32 ≥ 0.9). Split by renaming class into a 128-proof stream and a 128-proof test set.
