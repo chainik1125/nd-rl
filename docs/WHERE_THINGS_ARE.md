@@ -75,6 +75,13 @@ someone's results:
 | Leon | `leon/benchmarking-dan` | `ndbench` benchmarks, EDL, interp measures, dashboard, and their run on Dan's best-state models; `leon/benchmarking` rebased onto `dan`. Merged into `leon/main`. |
 | Leon | `leon/rl-dashboards` | RL run dashboard proposal. Merged into `leon/main`. |
 | Leon | `leon/nd-verify-fix` | `nd_verify` with the forward box-citation fix (PR #22). Merged into `leon/main`. |
+| Leon | `leon/thinking` | Programmatic thinking traces, the Stage-1 thinking models, the EI-vs-GRPO matched evals. Merged into `leon/main` (2026-10-28). |
+| Leon | `leon/grpo-v2`, `leon/grpo-v2-dev` | GRPO v2: launcher, recipe pilots, the primary recipe (`code/experiments/current/thinking_traces_20261005/RECIPE.md`), the RL-generalization mini testbed (NO-GO). Merged into `leon/main` (2026-10-28). |
+| Leon | `leon/grpo-v2-auto` | Auto-effort for GRPO v2. Only its README section is merged into `leon/main`; the feature stays on this branch. |
+| Leon | `leon/long-pool`, `leon/size-twins` | Curriculum L4 (16–18-line pool) and big-statement twins of the test sets. Merged into `leon/main` (2026-10-28). |
+| Leon | `leon/reward-hacking` | Synthetic ideal-paper figures for the reward-hacking toy model. Built on `main`, so its one commit was cherry-picked into `leon/main` (2026-10-28). |
+| Leon | `leon/high-rl-paper` | The group's high-RL-regime paper (`docs/papers/high-rl-regime/`). In progress, not merged. |
+| Leon | other `leon/grpo-v2-*`, `leon/*-ynez` | Earlier pilot and rebuild branches, all contained in `leon/main`. |
 | Leon | `leon/benchmarking` | Superseded by `leon/benchmarking-dan`. |
 | Charles | `charles/main` | Workstream 3 experiments (`experiments/ws3/`) and textbook-problem data (`data/textbook_problem/`). |
 | Dmitry | `dmitry/cap-comparison-textbook-eval-data` | Textbook eval data for the cap comparison. |
