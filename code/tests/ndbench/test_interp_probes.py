@@ -15,6 +15,8 @@ from code.ndbench.adapters.absgpt import AbsGptAdapter
 from code.ndbench.adapters.base import ModelAdapter
 from code.ndbench.core.types import Sequent
 from code.ndbench.interp import probes
+from code.ndbench.interp.data import RESERVE_PATH, SEALED_L12_14_PATH
+from code.ndbench.logic.exclusion import TRAIN_FILES
 from code.ndbench.store import Store
 
 from ._fixtures import load_valid_proofs
@@ -218,7 +220,15 @@ def test_run_length_generalisation_empty_when_no_ood() -> None:
 
 # ------------------------------------------------------------------------------- run_probes
 
+_MISSING_PROBE_DATA = [
+    str(p) for p in (*TRAIN_FILES, RESERVE_PATH, SEALED_L12_14_PATH) if not p.is_file()
+]
 
+
+@pytest.mark.skipif(
+    bool(_MISSING_PROBE_DATA),
+    reason=f"real probe data not available here: {', '.join(_MISSING_PROBE_DATA)}",
+)
 def test_run_probes_end_to_end_smoke(tmp_path: Path) -> None:
     store = Store(tmp_path / "out")
     ckpt_base, ckpt_rl = tmp_path / "base.pt", tmp_path / "rl.pt"
