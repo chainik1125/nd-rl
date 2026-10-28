@@ -1,0 +1,47 @@
+\documentclass{article}
+% NeurIPS 2025 style (2026's was not posted when this was set up). Swap the year or the option when we pick a venue:
+% [preprint] for arXiv, [final] for camera-ready, no option for anonymous submission.
+\usepackage[preprint,nonatbib]{neurips_2025}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage[backend=bibtex,style=numeric-comp,maxbibnames=10,maxcitenames=2,url=false,isbn=false]{biblatex}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+% build.sh copies the repo's references.bib (generated from Zotero; never edit it by hand) next to this file
+\addbibresource{references.bib}
+
+% ---- writing notes ------------------------------------------------------------------------------------------------
+% \talk{...} prints an orange "talk about" box; \todo{...} an inline red marker; \figplaceholder{...} a grey figure box.
+% Set \notesfalse to see the page as a reader would (the boxes disappear, the text stays).
+\newif\ifnotes
+\notestrue
+\newcommand{\talk}[1]{\ifnotes\par\smallskip\noindent\fcolorbox{orange!70!black}{orange!6}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\scriptsize\sffamily\textbf{Talk about:} #1}}\par\smallskip\fi}
+\newcommand{\todo}[1]{\ifnotes{\color{red!70!black}\sffamily[TODO: #1]}\fi}
+\newcommand{\figplaceholder}[1]{\fbox{\parbox[c][1.3in][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centering\sffamily\small\color{black!55}#1}}}
+
+\title{Working title: What Changes in the High-RL Regime?\\A From-Scratch Testbed}
+\author{Leon, Dan, Charles, Robbie, Dmitry (author list and order to decide)}
+
+\begin{document}
+\maketitle
+
+% The abstract waits until the sections exist.
+% \begin{abstract}
+% \end{abstract}
+
+\input{sections/01_intro}
+
+% ---- the rest of the paper (from the meeting notes), not started ------------------------------------------------
+% \input{sections/02_high_rl_regime} % Paper I: we are in a high-RL regime (Leon, Dan), 1-2 pages
+% \input{sections/03_metrics}        % Paper II: proxy metrics for "diverged from pretraining" (Charles, Robbie)
+% \input{sections/04_behaviour}      % Paper III: behaviour in the regime, reward hacking + new proof strategies
+% \input{sections/05_llms}           % Paper IV: future experiments in language models
+
+\printbibliography
+
+\end{document}

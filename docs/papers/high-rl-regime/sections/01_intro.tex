@@ -1,0 +1,81 @@
+% Introduction: one page, four paragraphs plus a teaser figure (about 600 words of prose).
+% Each paragraph below has its job and word budget in a comment, a \talk box of points with their sources, and a
+% \todo where the prose goes. The numbers in the boxes are copied from their sources; recheck before they go in the text.
+% Main source for the compute numbers: Dan's review, origin/dan
+% docs/literature/2026-10-19-rl-compute-share/REVIEW.md (section given as Q3, Q5, ...). It is not on leon/main.
+
+\section{Introduction}
+
+\begin{figure}[b]
+  \centering
+  \figplaceholder{Figure 1 (teaser), to choose.\\[0.4em]
+    (a) RL / pretraining compute on a log axis: the create-vs-elicit papers, the graded frontier band, our runs.\\
+    Dan has this plot (origin/dan, rl-compute-share \texttt{figures/ratio.png}); redraw in \texttt{style.py} and add the GRPO runs.\\[0.3em]
+    (b) Cartoon: low RL selects behaviour learned in pretraining; high RL builds new behaviour.}
+  \caption{\todo{caption}}
+  \label{fig:teaser}
+\end{figure}
+
+% P1 (~130 words). The shift: frontier RL is no longer small next to pretraining.
+\talk{
+\begin{itemize}[nosep,leftmargin=1.2em]
+  \item Frontier RL has grown from a thin layer to roughly pretraining scale. Graded per-model estimates of
+    RL / pretraining compute: 0.01--0.1 in 2024 (grade C), 0.3--1 in H2 2025 (D), about 1--2 in 2026 (D, mixed units).
+    No lab publishes the FLOP ratio. Closest statements: xAI's Grok 4 ran RL ``at pretraining scale''; DeepSeek-V3.2's
+    post-training budget exceeds 10\% of pretraining cost. (REVIEW.md Q3; quote the range with its units and grade,
+    never as one number.)
+  \item Most of what we believe about what RL does was measured in the small-RL regime: Yue et al.'s RL is a median
+    $1.2\times10^{-4}$ of pretraining FLOPs, and no create-vs-elicit test on a pretrained LLM with a computable ratio
+    exceeds about $2\times10^{-2}$ (REVIEW.md bottom line 1--2).
+  \item Possible opener: ``Reinforcement learning is no longer a thin layer on top of pretraining.''
+  \item Cite: \cite{yueDoesReinforcementLearning2025,guoDeepSeekR1IncentivizesReasoning2025}. Not in references.bib
+    yet: DeepSeek-V3.2 (arXiv 2512.02556), the Grok 4 post, the Epoch estimates.
+\end{itemize}}
+\todo{write P1}
+
+% P2 (~150 words). Why it matters for safety: our intuitions come from low RL, and the risks come from high RL.
+\talk{
+\begin{itemize}[nosep,leftmargin=1.2em]
+  \item The low-RL picture: post-training mostly selects among behaviours (personas) the model learned in
+    pretraining, the persona selection model (PSM). \todo{PSM citation: ask Dmitry which source}
+  \item Misalignment risks crop up under heavy RL: reward hacking, and strategies that never appeared in pretraining.
+    \todo{citations, none in references.bib yet: e.g.\ MacDiarmid et al.\ 2025 (misalignment emerging from reward
+    hacking in production RL), Baker et al.\ 2025 (monitoring CoT, obfuscation under pressure)}
+  \item End on the three questions from the notes:
+    (1) at what point does the PSM break down?
+    (2) how much RL does it take to remove a behaviour instilled in pretraining, or to install one?
+    (3) are there proxy metrics that tell you that you are in this regime?
+\end{itemize}}
+\todo{write P2}
+
+% P3 (~150 words). Why a toy model, and why ours is already in the regime.
+\talk{
+\begin{itemize}[nosep,leftmargin=1.2em]
+  \item At frontier scale, high-RL experiments are expensive and the pretraining data is uncontrolled: you cannot knock
+    a skill out of the corpus and then ask whether RL builds it.
+  \item Our setting: a small transformer trained from scratch on natural-deduction proofs, rewarded by a Lean-checked
+    verifier, so every pretraining token is ours. \todo{parameter count of the GRPO base (S1g3); the EI runs' ALiBiGPT
+    6$\times$384 has 9,560,832 (REVIEW.md Q5)}
+  \item Dmitry (Oct 22 sync): toy models are how we reach the ``high RL, low pretraining'' regime cheaply.
+  \item Our EI runs spend 0.9--19$\times$ pretraining FLOPs on RL (RL-only count; 9--180$\times$ by GPU-time):
+    at or above the frontier band, about 4--5 orders of magnitude above Yue et al.'s median (REVIEW.md Q5).
+    \todo{the same ratio for the GRPO runs (merged recipe + KL 0); not computed yet}
+  \item Nearest from-scratch organisms: Interplay (Zhang et al., arXiv 2512.07783; RL $\approx 0.4\times$
+    pretraining) and Echo Chamber (Zhao et al., arXiv 2504.07912). Dan's knockout is the only controlled
+    create-vs-elicit test above $1\times$ (REVIEW.md implication 1).
+\end{itemize}}
+\todo{write P3}
+
+% P4 (~150 words). Contributions, one per later section. Say "we propose" where there is no result yet.
+\talk{
+\begin{enumerate}[nosep,leftmargin=1.4em]
+  \item We are in a high-RL regime, and not just by GPU-hours: RL / pretraining FLOPs, capabilities that emerge only
+    during RL, performance on the held-out textbook set (never trained on). (\S2, Leon + Dan; 1--2 pages)
+  \item Proxy metrics for ``the model has diverged from pretraining'' that also apply to real LLMs: EDL (the best
+    Dmitry has seen), KL to the pretrained model (Robbie's pick). Do they move smoothly or jump? (\S3, Charles + Robbie)
+  \item The metrics line up with behaviour: the model reward hacks more, and it uses proof strategies pretraining never
+    showed it (Dan's proof-strategies taxonomy; the reward-hacking figures in
+    \nolinkurl{code/experiments/current/reward_hack_inoculation_20261023/}). (\S4)
+  \item What this predicts for language models, and the experiments to run there. (\S5)
+\end{enumerate}}
+\todo{write P4}
