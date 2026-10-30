@@ -413,6 +413,8 @@ def est_minutes(j: dict[str, Any], done: list[tuple[dict[str, Any], dict[str, An
     """The job's estimate, scaled by the observed / estimated wall time of finished jobs of its
     class (same set and model class) on any GPU."""
     same = [(x, s) for x, s in done if x.get("cls") == j.get("cls") and s.get("wall_s")]
+    if not same:  # no finished job of its class yet: all finished reads (or trains)
+        same = [(x, s) for x, s in done if x["kind"] == j["kind"] and s.get("wall_s")]
     if same:
         ratio = sum(s["wall_s"] / 60 for _, s in same) / sum(x["est_min"] for x, _ in same)
         return j["est_min"] * ratio
@@ -436,10 +438,17 @@ def write_status() -> str:
             pid, alive = -1, False
         slots = Q / f"slots_{p.name}"
         workers.append((p.name, pid, alive, slots.read_text().strip() if slots.exists() else "-"))
-    n_slots = max(1, sum(1 for _, _, a, _ in workers if a))
+    n_slots = max(
+        1, sum(int(s) if s.isdigit() else 1 for _, _, a, s in workers if a)
+    )  # concurrent jobs: per-job wall times are measured at this concurrency
     rem_run = sum(max(0.0, est_minutes(j, done) - (now - s["start"]) / 60) for j, s in running)
     rem_pend = sum(est_minutes(j, done) for j in pending)
     eta = now + 60 * (rem_run + rem_pend) / n_slots
+    # each block's rough finish: the queue's remaining work in order, over the slots
+    cum, block_eta = rem_run, {}
+    for j in pending:
+        cum += est_minutes(j, done)
+        block_eta[j.get("block", "?")] = now + 60 * cum / n_slots
     lines = [
         "# think_hirl queue status",
         "",
@@ -452,6 +461,9 @@ def write_status() -> str:
         f"Rough ETA for the whole queue at the current worker count: {fmt_pt(eta)} "
         f"({(rem_run + rem_pend) / 60:.1f} GPU-slot-hours left; estimates scaled by finished jobs "
         "of the same class).",
+        "",
+        "Blocks (pending work in queue order over the current slots; rough): "
+        + "; ".join(f"{b} done by ~{fmt_pt(t)}" for b, t in block_eta.items()),
         "",
         "## Running",
     ]
