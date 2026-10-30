@@ -2251,8 +2251,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             if hs_log is not None:  # --save_steps: this step's compute row, and its checkpoint
                 took = bool(st.tokens)
                 hs_tot["trained_tokens"] += st.tokens if took else 0
-                if took and ref is not None:  # the anchor's scored positions (`anchor_kl`'s n)
-                    hs_tot["anchor_tokens"] += sum(len(pool[i][1]) for i in pick)
+                if took and ref is not None:  # the anchor's scored positions (`anchor_kl`'s n);
+                    # `pick` is bound: the anchor branch above ran under these same conditions
+                    hs_tot["anchor_tokens"] += sum(len(pool[i][1]) for i in pick)  # pyright: ignore[reportPossiblyUnboundVariable]
                 hs_ck = None
                 if ls.n_step in save_steps:  # model only; a step replayed after a rollback: _r1
                     hs_ck = ckdir / f"{a.name}_st{ls.n_step}.pt"
