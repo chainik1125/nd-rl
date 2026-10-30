@@ -15,6 +15,7 @@ Blocks (README.md next to this file):
   J3  S1g3 s1 and s2: s1g3_ckreads's reads (line.sh CKR_PANEL + MINI_READS); textbook72 B64 k64
       for S1g3 s0-s2 (sealed: read only)
   J4a Charles149 k1024 along the RL axis (most informative checkpoints first)
+  J5  Charles149 k1024 (as J1) of S1g3 s1, s2 and the L3 end s1, s2 (between J4a and J4b)
   J4b t1320s250 k256 (4 chunks) along the RL axis
   J4c J4b extended to k512 (chunks 4-7; 0-3 are J4b's), last in the queue
 A read's chunk is one eval.py call; eval.py --seed is the chunk's seed. Names follow
@@ -63,11 +64,13 @@ def chunk_jobs(
     after: list[str] | None = None,
     repro0: bool = False,
     gpus: dict[int, list[int]] | None = None,
+    mseed: int = 0,
 ) -> list[dict[str, Any]]:
-    """`nchunks` k64 chunks of one read; repro0: chunk 0 on charles173 (the existing k64 read's
-    exact sets), its Charles149 rows kept in the merge."""
+    """`nchunks` k64 chunks of one read of the seed-`mseed` model (the name's _sN; each chunk's
+    eval --seed is its index); repro0: chunk 0 on charles173 (the existing k64 read's exact
+    sets), its Charles149 rows kept in the merge."""
     k = 64 * nchunks
-    group = f"{'charles149' if set_ == 'c149' else 't1320s250'}_{arm}_s0_plain_k{k}"
+    group = f"{'charles149' if set_ == 'c149' else 't1320s250'}_{arm}_s{mseed}_plain_k{k}"
     est = EST[(set_, mc)]
     out = []
     for c in range(nchunks):
@@ -310,6 +313,19 @@ def plan() -> list[dict[str, Any]]:
     ]
     for arm, ck, mc, after in first + rest:
         js += chunk_jobs("J4a", arm, ck, mc, "c149", 16, after=after)
+    # J5 (added 2026-10-30 ~22:00Z, between J4a and J4b): J1's Charles149 k1024 reads at model
+    # seeds 1 and 2. Chunk 0 is the existing k64 read's command (charles173, seed 0, batch 1024):
+    # for the base it is J3's charles173_s1g3_sN_plain_k64 read itself (its dir, run after it:
+    # recorded done without a GPU); for the L3 end a new reproduction chunk, as in J1.
+    for ms in (1, 2):
+        b5 = chunk_jobs("J5", "s1g3", BASE[ms], "base", "c149", 16, repro0=True, mseed=ms)
+        j3 = f"charles173_s1g3_s{ms}_plain_k64"
+        b5[0].update(out=str(H / f"eval/final/{j3}"), after=[j3], est_min=0.1)
+        js += b5
+        l3s = str(CK / f"grpo_think_vs_mb_kkl0_s{ms}_L3_it39.pt")
+        js += chunk_jobs(
+            "J5", "grpo_think_vs_mb_kkl0", l3s, "rl", "c149", 16, repro0=True, mseed=ms
+        )
     for arm, ck, mc, after in first + rest:
         js += chunk_jobs("J4b", arm, ck, mc, "t250", 4, after=after)
     # J4c (added 2026-10-30 21:50Z, last in the queue): J4b's reads extended to k512. Chunks 0-3
