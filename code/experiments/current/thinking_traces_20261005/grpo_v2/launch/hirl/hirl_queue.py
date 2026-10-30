@@ -737,6 +737,10 @@ def worker(g: int, slots0: int, free_for: float) -> None:
                                 create=True,
                             )
                             say(f"{j['id']}: already done ({done_why})")
+                            try:  # (a reused chunk can be a group's last)
+                                maybe_merge(j, jobs())
+                            except Exception as e:
+                                say(f"merge after {j['id']} failed: {e!r}")
                         else:
                             if not write_state(
                                 j["id"],

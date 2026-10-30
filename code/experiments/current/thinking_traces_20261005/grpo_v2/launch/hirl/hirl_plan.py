@@ -16,6 +16,7 @@ Blocks (README.md next to this file):
       for S1g3 s0-s2 (sealed: read only)
   J4a Charles149 k1024 along the RL axis (most informative checkpoints first)
   J4b t1320s250 k256 (4 chunks) along the RL axis
+  J4c J4b extended to k512 (chunks 4-7; 0-3 are J4b's), last in the queue
 A read's chunk is one eval.py call; eval.py --seed is the chunk's seed. Names follow
 runs/eval/v2: <set>_<arm>[_tag]_s<seed>_plain_k<k>.
 """
@@ -311,6 +312,14 @@ def plan() -> list[dict[str, Any]]:
         js += chunk_jobs("J4a", arm, ck, mc, "c149", 16, after=after)
     for arm, ck, mc, after in first + rest:
         js += chunk_jobs("J4b", arm, ck, mc, "t250", 4, after=after)
+    # J4c (added 2026-10-30 21:50Z, last in the queue): J4b's reads extended to k512. Chunks 0-3
+    # are J4b's own (their out dirs, run after those jobs: recorded done without a GPU); 4-7 new
+    for arm, ck, mc, after in first + rest:
+        k256 = chunk_jobs("J4b", arm, ck, mc, "t250", 4, after=after)
+        ext = chunk_jobs("J4c", arm, ck, mc, "t250", 8, after=after)
+        for c in range(4):
+            ext[c].update(out=k256[c]["out"], after=[*(after or []), k256[c]["id"]], est_min=0.1)
+        js += ext
     return js
 
 
