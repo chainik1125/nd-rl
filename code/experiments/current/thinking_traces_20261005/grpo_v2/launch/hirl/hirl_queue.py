@@ -62,7 +62,7 @@ ENV = {
     "TMPDIR": str(H / "tmp"),
     "LEAN_GATE_WORKERS": "16",
 }
-READ_FLAGS = ["--budgets", "64", "--arms", "plain", "--batch", "1024", "--temperature", "0.8"]
+READ_FLAGS = ["--budgets", "64", "--arms", "plain", "--temperature", "0.8"]
 READ_FLAGS += ["--max_action", "512", "--max_steps", "96", "--max_rej", "10"]
 MEM_MAX = 500  # MiB
 POLL = 20
@@ -199,7 +199,7 @@ def gate(g: int, ours: list[int]) -> tuple[bool, str]:
 
 
 # ---------------------------------------------------------------- jobs
-def read_cmd(j: dict[str, Any], g: int) -> list[str]:
+def read_cmd(j: dict[str, Any], g: int, batch: int = 1024) -> list[str]:
     return [
         "timeout",
         "--kill-after=120",
@@ -215,6 +215,8 @@ def read_cmd(j: dict[str, Any], g: int) -> list[str]:
         j["out"],
         "--k",
         str(j["k"]),
+        "--batch",
+        str(batch),
         *READ_FLAGS,
         "--seed",
         str(j["seed"]),
@@ -531,6 +533,15 @@ def worker(g: int, slots0: int, free_for: float) -> None:
     lk = claim_gpu(g)
     say(f"worker GPU {g}: start (pid {os.getpid()}, slots {slots0}, free_for {free_for} min)")
     running: dict[str, tuple[subprocess.Popen[bytes], dict[str, Any], Any]] = {}
+    # jobs an earlier worker of this GPU launched and left running (a restart): polled by pid
+    adopted: dict[str, tuple[int, dict[str, Any]]] = {}
+    with Locked():
+        for j in jobs():
+            st = state(j["id"]) or {}
+            here = st.get("host", os.uname().nodename) == os.uname().nodename
+            if st.get("status") == "running" and st.get("gpu") == g and st.get("pid") and here:
+                adopted[j["id"]] = (int(st["pid"]), j)
+                say(f"worker GPU {g}: adopting {j['id']} (pid {st['pid']})")
     free_since: float | None = None
     last_status = 0.0
     stop_seen = False
@@ -542,41 +553,56 @@ def worker(g: int, slots0: int, free_for: float) -> None:
         except (OSError, ValueError):
             return slots0
 
+    def finish(jid: str, j: dict[str, Any], rc: int | None) -> None:
+        st = state(jid) or {}
+        ok = (rc == 0 or rc is None) and finished_ok(j)
+        st.update(
+            status="done" if ok else "failed",
+            rc=rc,
+            end=time.time(),
+            wall_s=time.time() - st.get("start", time.time()),
+        )
+        if not ok:
+            st["why"] = (
+                "exit 124: hard timeout"
+                if rc == 124
+                else (f"exit {rc}" + ("" if finished_ok(j) else ", no output"))
+            )
+        tries_f = ST / f"{jid}.tries"
+        tries = int(tries_f.read_text()) if tries_f.exists() else 0
+        with Locked():
+            if not ok and rc != 124 and tries < 1:  # one automatic retry (e.g. a CUDA OOM)
+                tries_f.write_text(f"{tries + 1}\n")
+                (ST / f"{jid}.json").rename(ST / f"{jid}.failed{tries + 1}.json")
+                say(f"{jid}: FAILED exit {rc} ({st['why']}): requeued for one retry")
+                return
+            write_state(jid, st)
+        say(
+            f"{jid}: {'done' if ok else 'FAILED'} exit {rc} in {st['wall_s'] / 60:.1f} min"
+            + (f": {tail(LOGS / (jid + '.log'))}" if j["kind"] == "read" else "")
+        )
+        if ok:
+            try:
+                with Locked():
+                    maybe_merge(j, jobs())
+            except Exception as e:  # a merge problem must not stop the queue
+                say(f"merge after {jid} failed: {e!r}")
+
     def reap() -> bool:
         changed = False
+        for jid, (pid, j) in list(adopted.items()):
+            if not Path(f"/proc/{pid}").exists():
+                del adopted[jid]
+                changed = True
+                finish(jid, j, None)
         for jid, (proc, j, logf) in list(running.items()):
             rc = proc.poll()
             if rc is None:
                 continue
             logf.close()
-            st = state(jid) or {}
-            ok = rc == 0 and finished_ok(j)
-            st.update(
-                status="done" if ok else "failed",
-                rc=rc,
-                end=time.time(),
-                wall_s=time.time() - st.get("start", time.time()),
-            )
-            if not ok:
-                st["why"] = (
-                    "exit 124: hard timeout"
-                    if rc == 124
-                    else (f"exit {rc}" + ("" if finished_ok(j) else ", no output"))
-                )
-            with Locked():
-                write_state(jid, st)
             del running[jid]
             changed = True
-            say(
-                f"{jid}: {'done' if ok else 'FAILED'} exit {rc} in {st['wall_s'] / 60:.1f} min"
-                + (f": {tail(LOGS / (jid + '.log'))}" if j["kind"] == "read" else "")
-            )
-            if ok:
-                try:
-                    with Locked():
-                        maybe_merge(j, jobs())
-                except Exception as e:  # a merge problem must not stop the queue
-                    say(f"merge after {jid} failed: {e!r}")
+            finish(jid, j, rc)
         return changed
 
     def next_job() -> dict[str, Any] | None:
@@ -616,11 +642,12 @@ def worker(g: int, slots0: int, free_for: float) -> None:
                 say(f"worker GPU {g}: STOP file seen: no new launches")
             stop_seen = stop
             if stop:
-                if not running:
+                if not running and not adopted:
                     break
                 time.sleep(POLL)
                 continue
-            ours = [p.pid for p, _, _ in running.values()]
+            ours = [p.pid for p, _, _ in running.values()] + [p for p, _ in adopted.values()]
+            n_run = len(running) + len(adopted)
             ok, why = gate(g, ours)
             if not ok:
                 if free_since is not None:
@@ -631,17 +658,19 @@ def worker(g: int, slots0: int, free_for: float) -> None:
             if free_since is None:
                 free_since = now
                 say(f"worker GPU {g}: gate open: {why}")
-            if not running and now - free_since < 60 * free_for:
+            if not n_run and now - free_since < 60 * free_for:
                 time.sleep(POLL)  # a GPU's first launch: free for --free_for minutes first
                 continue
-            excl = any(j["kind"] == "train" for _, j, _ in running.values())
-            if excl or len(running) >= slots():
+            excl = any(j["kind"] == "train" for _, j, _ in running.values()) or any(
+                j["kind"] == "train" for _, j in adopted.values()
+            )
+            if excl or n_run >= slots():
                 time.sleep(POLL)
                 continue
             launched = False
             with Locked():
                 j = next_job()
-                if j is not None and j["kind"] == "train" and running:
+                if j is not None and j["kind"] == "train" and n_run:
                     j = None  # a train job runs alone: wait for this GPU's reads to end
                 if j is not None:
                     ok, why = gate(g, ours)  # again, right before the launch
@@ -675,7 +704,7 @@ def worker(g: int, slots0: int, free_for: float) -> None:
                                 j = None
                             if j is not None:
                                 launched = True
-            if j is None and not running:
+            if j is None and not n_run:
                 with Locked():
                     if blocked_forever():
                         say(f"worker GPU {g}: nothing left to run")
@@ -687,7 +716,10 @@ def worker(g: int, slots0: int, free_for: float) -> None:
                 continue
             log = LOGS / f"{j['id']}.log"
             logf = open(log, "ab")  # noqa: SIM115 (open while the job runs; closed by reap)
-            cmd = read_cmd(j, g) if j["kind"] == "read" else train_cmd(j, g)
+            # two reads on a GPU at --batch 1024 run out of memory (24 GB): a chunk that may
+            # (flex_batch) runs at 512 while the GPU's slots are 2 or more
+            batch = 512 if j.get("flex_batch") and slots() >= 2 else 1024
+            cmd = read_cmd(j, g, batch) if j["kind"] == "read" else train_cmd(j, g)
             env = {**os.environ, **ENV, "CUDA_VISIBLE_DEVICES": str(g)}
             logf.write(f"{utc()} GPU {g} cwd {WT}\n$ {' '.join(cmd)}\n".encode())
             logf.flush()
@@ -709,7 +741,7 @@ def worker(g: int, slots0: int, free_for: float) -> None:
             running[j["id"]] = (proc, j, logf)
             with Locked():
                 st = state(j["id"]) or {}
-                st.update(pid=proc.pid, cmd=cmd)
+                st.update(pid=proc.pid, cmd=cmd, batch=batch if j["kind"] == "read" else None)
                 write_state(j["id"], st)
             wl = open(LOGS / "watchdog.log", "a")  # noqa: SIM115 (handed to the watchdog)
             subprocess.Popen(
@@ -726,12 +758,15 @@ def worker(g: int, slots0: int, free_for: float) -> None:
             wl.close()
             say(
                 f"{j['id']}: launched on GPU {g} (pid {proc.pid}, est {j['est_min']} min, "
-                f"timeout {j['timeout_s'] // 60} min; {len(running)} running here)"
+                f"timeout {j['timeout_s'] // 60} min, batch {batch}; {len(running)} running here)"
             )
             time.sleep(5)
     finally:
         for jid, (proc, _, _) in running.items():  # an exception: let the jobs finish alone
-            say(f"worker GPU {g}: exiting with {jid} still running (pid {proc.pid})")
+            say(
+                f"worker GPU {g}: exiting with {jid} still running (pid {proc.pid}; adopted by "
+                "the next worker of this GPU)"
+            )
         with Locked():
             write_status()
         (lk / "pid").unlink(missing_ok=True)

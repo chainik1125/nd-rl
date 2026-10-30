@@ -95,6 +95,7 @@ def chunk_jobs(
             )
         else:
             j["sets"] = sets
+            j["flex_batch"] = True  # --batch 512 when its GPU runs two reads (hirl_queue.py)
         j["timeout_s"] = int(max(30, 4 * j["est_min"]) * 60)
         j["needs"] = [ckpt]
         if after:
