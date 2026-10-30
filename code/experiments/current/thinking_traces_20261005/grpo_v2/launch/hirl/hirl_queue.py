@@ -387,6 +387,13 @@ def merge_group(group: str, members: list[dict[str, Any]]) -> Path:
     return dst
 
 
+def mark_ready(name: str) -> None:
+    """eval/ready.txt: the finished reads in eval/final (merged or single), one name a line, for
+    hirl_sync.sh (serrano pulls them into runs/eval/v2, never over an existing dir)."""
+    with open(H / "eval/ready.txt", "a") as fh:
+        fh.write(name + "\n")
+
+
 def maybe_merge(j: dict[str, Any], all_jobs: list[dict[str, Any]]) -> None:
     g = j.get("group")
     if not g or j["kind"] != "read" or (FINAL / g).exists():
@@ -396,6 +403,7 @@ def maybe_merge(j: dict[str, Any], all_jobs: list[dict[str, Any]]) -> None:
         return
     if all((state(x["id"]) or {}).get("status") == "done" for x in mem):
         p = merge_group(g, mem)
+        mark_ready(g)
         c = json.loads((p / "summary.json").read_text())["cells"]["plain_B64"]["all"]
         pk = c["pass_at_k_pct"]
         say(
@@ -508,6 +516,9 @@ def write_status() -> str:
             f"STALL / OVERRUN lines: {len(alerts)}; EXIT lines: {len(exits)}.",
         ]
         lines += [f"- {x}" for x in alerts[-10:]]
+    notes = H / "STATUS_notes.md"  # findings written by hand (agent), shown on every rewrite
+    if notes.exists():
+        lines += ["", notes.read_text().rstrip()]
     lines += [
         "",
         "Logs: logs/<job>.log, logs/worker_gpuN.log, logs/watchdog.log. Results: "
@@ -593,6 +604,8 @@ def worker(g: int, slots0: int, free_for: float) -> None:
             f"{jid}: {'done' if ok else 'FAILED'} exit {rc} in {st['wall_s'] / 60:.1f} min"
             + (f": {tail(LOGS / (jid + '.log'))}" if j["kind"] == "read" else "")
         )
+        if ok and j["kind"] == "read" and not j.get("group"):
+            mark_ready(Path(j["out"]).name)  # a single read, written to eval/final itself
         if ok:
             try:
                 with Locked():
