@@ -77,3 +77,21 @@ Every read is `code.thinking.eval` with line.sh's `read1` flags: plain arm, B64,
   through 48.
 - **No other changes.** Both keep the KL anchor's 512 steps per AdamW step, the 10-step warmup and
   the safeguards.
+
+## Blocks, in queue order
+
+- **T and J1.** T is the first base chunks (timing). J1 is the base and the L3 end on Charles149
+  at k1024 and on t1320s250 at k512.
+- **J2.** The two training runs above, on GPU 1.
+- **J3.** S1g3 s1 and s2 get `s1g3_ckreads`'s reads. textbook72 is read at B64 k64 for S1g3 s0-s2.
+- **J4a.** Charles149 at k1024 along the RL axis, in log-spaced RL-compute order.
+- **J4b.** t1320s250 at k256 along the RL axis.
+- **J4c.** J4b extended to k512, last in the queue. It reuses J4b's chunks 0-3 and adds 4-7.
+
+## Results so far (2026-10-30)
+
+- **Reproduction.** The existing `charles173_s1g3_s0_plain_k64` and
+  `charles173_grpo_think_vs_mb_kkl0_s0_plain_k64` reads reproduce bit-for-bit on a ynez 3090.
+- **mini20 rerun.** Iteration 1's rollouts are identical to the original's. The first update
+  differs at float precision, so later iterations are a statistical replicate; see
+  `STATUS_notes.md` on ynez.
