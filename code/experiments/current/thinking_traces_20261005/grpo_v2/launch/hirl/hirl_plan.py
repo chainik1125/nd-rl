@@ -282,41 +282,29 @@ def plan() -> list[dict[str, Any]]:
     tb = ",".join(str(S / f"tb72/{f}.jsonl") for f in ("textbook_dev", "textbook_train"))
     for s in (0, 1, 2):
         js.append(single("J3", f"tb72_s1g3_s{s}_plain_k64", BASE[s], tb, 64, 3, "j3:tb72:64"))
-    # J4: the RL axis, most informative first: R ~ 1e-4 (p16 st1), 2e-4 (p16 it1 = st4), 8e-4
-    # (p16 it4 = st16), 1.6e-3 (dense st1), mini20 it2 / it4 / it8, L2 end, ki78; then the rest
+    # J4: the RL axis in log-spaced order first (R from lowrl/compute.tsv): ~1e-4 (p16 st2),
+    # 1.6e-3 (dense st1), 1.4e-2 (mini20 it4), 0.15 (L2 end), then 3.7e-4 (p16 st8), 6.6e-3
+    # (mini20 it2), 3.0e-2 (mini20 it8), 0.45 (ki78), then the rest. (Reordered on ynez under the
+    # lock on 2026-10-30 21:25Z, before any J4 job started; this list is that order.)
     tr = {DENSE: [f"train.{DENSE}"], P16: [f"train.{P16}"]}
+    m20 = {i: str(CK / f"grpo_think_vs_mini20_s0_L2_it{i}_rolling.pt") for i in (2, 4, 8)}
     first = [
-        ("grpo_think_vs_mini20_kp16_L2st1", st_ckpt(P16, 1), "low", tr[P16]),
-        ("grpo_think_vs_mini20_kp16_L2st4", st_ckpt(P16, 4), "low", tr[P16]),
-        ("grpo_think_vs_mini20_kp16_L2st16", st_ckpt(P16, 16), "low", tr[P16]),
+        ("grpo_think_vs_mini20_kp16_L2st2", st_ckpt(P16, 2), "low", tr[P16]),
         ("grpo_think_vs_mini20_kdense_L2st1", st_ckpt(DENSE, 1), "low", tr[DENSE]),
-        (
-            "grpo_think_vs_mini20_L2it2",
-            str(CK / "grpo_think_vs_mini20_s0_L2_it2_rolling.pt"),
-            "low",
-            None,
-        ),
-        (
-            "grpo_think_vs_mini20_L2it4",
-            str(CK / "grpo_think_vs_mini20_s0_L2_it4_rolling.pt"),
-            "low",
-            None,
-        ),
-        (
-            "grpo_think_vs_mini20_L2it8",
-            str(CK / "grpo_think_vs_mini20_s0_L2_it8_rolling.pt"),
-            "rl",
-            None,
-        ),
+        ("grpo_think_vs_mini20_L2it4", m20[4], "low", None),
         ("grpo_think_vs_L2", str(CK / "grpo_think_vs_s0_L2_it39.pt"), "rl", None),
+        ("grpo_think_vs_mini20_kp16_L2st8", st_ckpt(P16, 8), "low", tr[P16]),
+        ("grpo_think_vs_mini20_L2it2", m20[2], "low", None),
+        ("grpo_think_vs_mini20_L2it8", m20[8], "rl", None),
         ("grpo_think_vs_mb_ki78", str(CK / "grpo_think_vs_mb_ki78_s0_L3_it78.pt"), "rl", None),
     ]
     rest = [
-        ("grpo_think_vs_mini20_kp16_L2st2", st_ckpt(P16, 2), "low", tr[P16]),
-        ("grpo_think_vs_mini20_kp16_L2st8", st_ckpt(P16, 8), "low", tr[P16]),
+        ("grpo_think_vs_mini20_kp16_L2st1", st_ckpt(P16, 1), "low", tr[P16]),
+        ("grpo_think_vs_mini20_kp16_L2st16", st_ckpt(P16, 16), "low", tr[P16]),
+        ("grpo_think_vs_mini20_kdense_L2st4", st_ckpt(DENSE, 4), "low", tr[DENSE]),
+        ("grpo_think_vs_mini20_kp16_L2st4", st_ckpt(P16, 4), "low", tr[P16]),
         ("grpo_think_vs_mini20_kp16_L2st32", st_ckpt(P16, 32), "low", tr[P16]),
         ("grpo_think_vs_mini20_kdense_L2st2", st_ckpt(DENSE, 2), "low", tr[DENSE]),
-        ("grpo_think_vs_mini20_kdense_L2st4", st_ckpt(DENSE, 4), "low", tr[DENSE]),
         ("grpo_think_vs_mini20_kdense_L2st8", st_ckpt(DENSE, 8), "low", tr[DENSE]),
     ]
     for arm, ck, mc, after in first + rest:
