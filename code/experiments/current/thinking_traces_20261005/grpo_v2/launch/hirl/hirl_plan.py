@@ -320,7 +320,7 @@ def plan() -> list[dict[str, Any]]:
     for ms in (1, 2):
         b5 = chunk_jobs("J5", "s1g3", BASE[ms], "base", "c149", 16, repro0=True, mseed=ms)
         j3 = f"charles173_s1g3_s{ms}_plain_k64"
-        b5[0].update(out=str(H / f"eval/final/{j3}"), after=[j3], est_min=0.1)
+        b5[0].update(out=str(H / f"eval/final/{j3}"), after=[j3], est_min=0.1, reuse=True)
         js += b5
         l3s = str(CK / f"grpo_think_vs_mb_kkl0_s{ms}_L3_it39.pt")
         js += chunk_jobs(
@@ -334,7 +334,9 @@ def plan() -> list[dict[str, Any]]:
         k256 = chunk_jobs("J4b", arm, ck, mc, "t250", 4, after=after)
         ext = chunk_jobs("J4c", arm, ck, mc, "t250", 8, after=after)
         for c in range(4):
-            ext[c].update(out=k256[c]["out"], after=[*(after or []), k256[c]["id"]], est_min=0.1)
+            ext[c].update(
+                out=k256[c]["out"], after=[*(after or []), k256[c]["id"]], est_min=0.1, reuse=True
+            )
         js += ext
     return js
 

@@ -249,6 +249,16 @@ def prepare(j: dict[str, Any]) -> str | None:
     return None
 
 
+def exclusive(j: dict[str, Any]) -> bool:
+    """A job that runs alone on its GPU, taking all its slots: a train job, and a read at
+    --batch 1024 (one that is not flex_batch: J3, the reproduction chunks). Two batch-1024 reads
+    need about 2 x 12 GB and run out of memory on a 24 GB 3090 (2026-10-30, 20:55Z and 22:28Z).
+    A reuse job (an earlier read's output, recorded done without a GPU) is not exclusive."""
+    if j.get("reuse"):
+        return False
+    return j["kind"] == "train" or (j["kind"] == "read" and not j.get("flex_batch"))
+
+
 def finished_ok(j: dict[str, Any]) -> bool:
     if j["kind"] == "read":
         return rows_file(j).exists() and (out_dir(j) / "summary.json").exists()
@@ -708,8 +718,13 @@ def worker(g: int, slots0: int, free_for: float) -> None:
             if not n_run and now - free_since < 60 * free_for:
                 time.sleep(POLL)  # a GPU's first launch: free for --free_for minutes first
                 continue
-            excl = any(j["kind"] == "train" for _, j, _ in running.values()) or any(
-                j["kind"] == "train" for _, j in adopted.values()
+            # nothing starts next to an exclusive job, nor next to any read that was launched at
+            # --batch 1024 (a flex chunk started while the GPU had one slot)
+            here = [j for _, j, _ in running.values()] + [j for _, j in adopted.values()]
+            excl = any(
+                exclusive(j)
+                or (j["kind"] == "read" and (state(j["id"]) or {}).get("batch") == 1024)
+                for j in here
             )
             if excl or n_run >= slots():
                 time.sleep(POLL)
@@ -717,11 +732,24 @@ def worker(g: int, slots0: int, free_for: float) -> None:
             launched = False
             with Locked():
                 j = next_job()
-                if j is not None and j["kind"] == "train" and n_run:
-                    j = None  # a train job runs alone: wait for this GPU's reads to end
+                if j is not None and exclusive(j) and n_run and not j.get("reuse"):
+                    j = None  # it runs alone (exclusive): wait for this GPU's jobs to end
                 if j is not None:
                     ok, why = gate(g, ours)  # again, right before the launch
-                    if ok:
+                    if ok and j.get("reuse") and not finished_ok(j):
+                        # a reuse job never runs eval and never moves its (another job's) dir
+                        write_state(
+                            j["id"],
+                            {
+                                "status": "failed",
+                                "gpu": g,
+                                "why": f"reuse: no finished read in {j['out']}",
+                            },
+                            create=True,
+                        )
+                        say(f"{j['id']}: FAILED: reuse source {j['out']} not finished")
+                        j, ok = None, False
+                    if ok and j is not None:
                         done_why = prepare(j)
                         if done_why:
                             write_state(
