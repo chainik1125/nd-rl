@@ -477,13 +477,20 @@ def write_status() -> str:
     n_slots = max(
         1, sum(int(s) if s.isdigit() else 1 for _, _, a, s in workers if a)
     )  # concurrent jobs: per-job wall times are measured at this concurrency
-    rem_run = sum(max(0.0, est_minutes(j, done) - (now - s["start"]) / 60) for j, s in running)
-    rem_pend = sum(est_minutes(j, done) for j in pending)
+    per_gpu = n_slots / max(1, sum(1 for _, _, a, _ in workers if a))
+
+    def w(j: dict[str, Any]) -> float:  # an exclusive job holds all of its GPU's slots
+        return per_gpu if exclusive(j) else 1.0
+
+    rem_run = sum(
+        w(j) * max(0.0, est_minutes(j, done) - (now - s["start"]) / 60) for j, s in running
+    )
+    rem_pend = sum(w(j) * est_minutes(j, done) for j in pending)
     eta = now + 60 * (rem_run + rem_pend) / n_slots
     # each block's rough finish: the queue's remaining work in order, over the slots
     cum, block_eta = rem_run, {}
     for j in pending:
-        cum += est_minutes(j, done)
+        cum += w(j) * est_minutes(j, done)
         block_eta[j.get("block", "?")] = now + 60 * cum / n_slots
     lines = [
         "# think_hirl queue status",
