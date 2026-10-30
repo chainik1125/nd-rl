@@ -1991,6 +1991,14 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
         if resume_state is not None:
             compute.update(resume_state.get("compute") or {})
 
+    # --save_steps (opt-in): model-only checkpoints after the listed AdamW steps, and a compute row
+    # per step in steps.jsonl. Nothing here draws a random number or touches the training state.
+    hs_spec = getattr(a, "save_steps", None)
+    save_steps = parse_save_steps(hs_spec) if hs_spec is not None else set()
+    hs_log = out / "steps.jsonl" if hs_spec is not None else None
+    assert hs_log is None or not a.resume, "--save_steps: a fresh run only (its totals start at 0)"
+    hs_tot = {"attempts": 0, "sampled_tokens": 0, "trained_tokens": 0, "anchor_tokens": 0}
+
     def snapshot(i: int) -> dict[str, Any]:
         return train_state(i, ls, opt, rngs, curs, compute)
 
@@ -2154,6 +2162,9 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
             pairs, pairs_x = pairs + new, pairs_x + new_x
             keys, src, batch, tb = keys + k_r, src + s_r, batch + b_r, tb + tb_r
         t_sample = time.time() - t0
+        if hs_log is not None:  # --save_steps: every round's attempts (rolled back ones too)
+            hs_tot["sampled_tokens"] += sum(x["tokens"] for att in per for x in att)
+            hs_tot["attempts"] += sum(len(att) for att in per)
         D.record.phase("update", round=it)
         old = old_logps(model, items, a.temperature, dev, a.max_tokens, think_ids, bans)
         ul: dict[str, Any] | None = None
@@ -2237,6 +2248,34 @@ def run(a: argparse.Namespace) -> list[dict[str, Any]]:
                 steps_meta.append(
                     {"lr": opt.param_groups[0]["lr"], "grad_norm": gns[-1], "kl_anchor": kl}
                 )
+            if hs_log is not None:  # --save_steps: this step's compute row, and its checkpoint
+                took = bool(st.tokens)
+                hs_tot["trained_tokens"] += st.tokens if took else 0
+                if took and ref is not None:  # the anchor's scored positions (`anchor_kl`'s n)
+                    hs_tot["anchor_tokens"] += sum(len(pool[i][1]) for i in pick)
+                hs_ck = None
+                if ls.n_step in save_steps:  # model only; a step replayed after a rollback: _r1
+                    hs_ck = ckdir / f"{a.name}_st{ls.n_step}.pt"
+                    j = 1
+                    while hs_ck.exists():
+                        hs_ck = ckdir / f"{a.name}_st{ls.n_step}_r{j}.pt"
+                        j += 1
+                    hs_meta = {"grpo_iter": it, "grpo_step": ls.n_step, "grpo_init": a.init}
+                    save_ckpt(str(hs_ck), model, tok.mode, extra={**extra, **hs_meta})
+                hs_row = {
+                    "iter": it,
+                    "minibatch": u + 1,
+                    "updates": a.updates,
+                    "step": ls.n_step,
+                    "stepped": took,
+                    "rollbacks": ls.rollbacks,
+                    "items": len(sel),
+                    "trained_tokens_step": st.tokens,
+                    **hs_tot,
+                    "ckpt": str(hs_ck) if hs_ck else None,
+                }
+                with open(hs_log, "a") as fh:
+                    fh.write(json.dumps(hs_row) + "\n")
         n_tok = sum(s.tokens for s in stats)
         n_st = max(1, len(stats))  # means over the minibatch steps
         loss = sum(s.loss for s in stats) / n_st
@@ -2857,7 +2896,23 @@ def parser() -> argparse.ArgumentParser:
         "failed attempts'); the others are zeroed, their tokens stay in the divisor; the step "
         "penalty's -P stays",
     )
+    hs = ap.add_argument_group("step checkpoints (opt-in; left out of args.json unless given)")
+    hs.add_argument(
+        "--save_steps",
+        default=argparse.SUPPRESS,
+        help="comma-separated AdamW step numbers (the run's step count, 1 = the first step): a "
+        "model-only checkpoint ckpts/<name>_st<N>.pt right after that step; and one row per "
+        "AdamW step in steps.jsonl (cumulative sampled / trained / anchor tokens, rolled-back "
+        "compute included)",
+    )
     return ap
+
+
+def parse_save_steps(spec: str) -> set[int]:
+    """--save_steps '1,2,4' -> {1, 2, 4}; every entry a positive int."""
+    out = {int(x) for x in spec.split(",") if x.strip()}
+    assert out and all(x >= 1 for x in out), f"--save_steps {spec!r}: positive step numbers"
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
