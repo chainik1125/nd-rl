@@ -429,6 +429,24 @@ def est_minutes(j: dict[str, Any], done: list[tuple[dict[str, Any], dict[str, An
     return float(j["est_min"])
 
 
+_PK_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+
+
+def read_passk(rows: Path) -> dict[str, Any]:
+    """pass@1, @5, @64, @256 and @k (as % of the set) of a rows file, cached by mtime."""
+    m = rows.stat().st_mtime
+    hit = _PK_CACHE.get(str(rows))
+    if hit and hit[0] == m:
+        return dict(hit[1])
+    rs = [json.loads(x) for x in rows.read_text().splitlines() if x.strip()]
+    k = len(rs[0]["ok"])
+    out: dict[str, Any] = {"n": len(rs)}
+    for x in dict.fromkeys(i for i in (1, 5, 64, 256, k) if i <= k):
+        out[str(x)] = 100.0 * sum(pass_at_k(len(r["ok"]), sum(r["ok"]), x) for r in rs) / len(rs)
+    _PK_CACHE[str(rows)] = (m, out)
+    return dict(out)
+
+
 def write_status() -> str:
     js = jobs()
     sts = {j["id"]: state(j["id"]) for j in js}
@@ -486,17 +504,21 @@ def write_status() -> str:
         groups.setdefault(j.get("group") or j["id"], []).append(j)
     for g, mem in groups.items():
         st = [(sts[x["id"]] or {}).get("status", "pending") for x in mem]
-        fin = (FINAL / g).exists() if mem[0]["kind"] == "read" else st == ["done"]
+        fin = st.count("done") == len(mem) and (
+            mem[0]["kind"] != "read" or (FINAL / g / "rows_plain_B64.jsonl").exists()
+        )
         tag = "DONE" if fin else f"{st.count('done')}/{len(mem)} done"
         if st.count("failed"):
             tag += f", {st.count('failed')} FAILED"
         extra = ""
-        if mem[0]["kind"] == "read" and (FINAL / g).exists():
-            c = json.loads((FINAL / g / "summary.json").read_text())["cells"]["plain_B64"]["all"]
-            pk = c["pass_at_k_pct"]
-            kmax = max(map(int, pk))
-            sel = [x for x in (1, 5, 64, 256, kmax) if str(x) in pk]
-            extra = " — " + ", ".join(f"pass@{x} {pk[str(x)]:.1f}%" for x in dict.fromkeys(sel))
+        if mem[0]["kind"] == "read" and (FINAL / g / "rows_plain_B64.jsonl").exists() and fin:
+            pk = read_passk(FINAL / g / "rows_plain_B64.jsonl")
+            extra = (
+                " — n "
+                + str(pk.pop("n"))
+                + ": "
+                + ", ".join(f"pass@{x} {v:.1f}%" for x, v in pk.items())
+            )
         lines.append(f"- [{mem[0].get('block', '?')}] {g}: {tag}{extra}")
     if failed:
         lines += ["", "## Failed (state files in queue/state; delete one to requeue)"]
