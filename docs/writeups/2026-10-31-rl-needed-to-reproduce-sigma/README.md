@@ -30,6 +30,9 @@ round-1 samples at k 32.
   11 to 123 per round over rounds 16–24 (create-or-elicit, Addendum 6), so some larger amount of RL might get there.
   With two dose levels and a lower bound, the figure cannot tell a threshold from a smooth curve.
 
+**Next:** a 0.1 % dose arm is running as `coe-dose01`
+([proposal 33](../../proposals/2026-10-31-coe-dose01.md)) to fill the gap between the 1 % dose and the knockout.
+
 ## How it is computed
 
 - **y (panel a):** `heldout_cum_by_round` in create-or-elicit's `artifacts/coe/rounds/<ladder>.json` (fork branch
