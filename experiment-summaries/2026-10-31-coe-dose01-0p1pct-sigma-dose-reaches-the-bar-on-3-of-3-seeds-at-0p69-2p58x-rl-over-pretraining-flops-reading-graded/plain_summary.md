@@ -13,10 +13,10 @@ written_by: agent:claude (executor, run coe-dose01; reviewed 2026-11-01, correct
 >   below it (review, Verdict item 1);
 > - "RL found the trace and amplified it" is replaced: seed 1's base wrote no free proof by contradiction, and the
 >   training mix also replays about 20 σ proofs per round, so without a replay-only control the rise cannot be
->   attributed to RL alone (item 2);
+>   attributed to RL alone (item 2); the interpretation's "amplified" gets the same note;
 > - two caveats the review asks the write-ups to add: one σ draw per dose, and attempts cut off by length limits.
 >
-> The corrections take it from about 600 to about 730 words, against the brief's 600. The executor's text, byte for
+> The corrections take it from about 600 to about 750 words, against the brief's 600. The executor's text, byte for
 > byte, is this file at commit `c53febd`. See the [summary](README.md) for the reviewed numbers.
 
 # How much RL does it take to bring back a reasoning move that pretraining barely showed? (plain-language summary)
@@ -48,8 +48,8 @@ seeds, sixteen rounds).
    and 2 "free" proofs by contradiction across 4,495 problems (knockout: 0; 1 % models: 170–219). They solved 0, 0 and 3
    of the 106 held-out theorems (1 % models: 3, 13, 2). Their accuracy on a 5,000-theorem general test (0.84–0.89) was
    in or below the knockout models' range (0.87–0.90), not near the 1 % models' (0.92–0.95).
-2. **During RL the move became common on every seed** *[review]*. The free proofs by contradiction grew to 464–1,116 per
-   round by round 16 *[review]* (seed 1's base wrote none, and with about 20 σ proofs replayed per round the rise
+2. **During RL, free proofs by contradiction grew on every seed** *[review]*. They reached 464–1,116 per round by
+   round 16 *[review]* (seed 1's base wrote none, and with about 20 σ proofs replayed per round the rise
    cannot be attributed to RL alone without a replay-only control). The models crossed the bar at round 3, 5 and 8. In compute terms that is **0.69, 1.37 and 2.58 times their
    pretraining compute** (median 1.37×). The 1 % models needed 0.39–0.73×.
 3. **By round 16** the models solved 30, 28 and 19 of the 106 (1 % models: 58, 34, 30; knockout: 0–3). By the plain reads, all
@@ -61,7 +61,8 @@ seeds, sixteen rounds).
 was about three times the 1 % arm's (descriptive: three seeds, and they overlap), but RL still got there. Removing σ entirely
 moved the requirement past everything we tried (over 13× on the one knockout seed run that long); 0.01 % is untested. *Interpretation, not tested here:* this fits the
 "elicitation" picture — RL amplified a behaviour the base showed only at a trace level (0–2 distinct free proofs by
-contradiction among 143,840 first-round attempts), and needed more compute the rarer the trace was.
+contradiction among 143,840 first-round attempts), and needed more compute the rarer the trace was. *[review]* With
+about 20 σ proofs replayed per round, RL alone is not shown to have done the amplifying.
 
 **Caveats.**
 - Three seeds per dose. The 0.1 % vs 1 % differences (final scores and crossing compute) are descriptive at this n;

@@ -12,8 +12,9 @@ written_by: agent:claude
 > The version before the run is this folder at commit `ad163fc`, and the executor's files, byte for byte, are this
 > folder at `c53febd`. The executor's `updated_on` field is dropped: the history is in Git. Panel b's label "not
 > reached by 5.6–13.2×" is a range over seeds: five knockout seeds are bounded at 5.6–6.1× and s1 at 13.2× (the
-> arrows) *[review]*. Full s5's curve is fixed as the review recommends, and the figure and `rl_curve.json` were
-> regenerated for it *[librarian]* (Caveats). Reviewed summary of the run: [coe-dose01](../../../experiment-summaries/2026-10-31-coe-dose01-0p1pct-sigma-dose-reaches-the-bar-on-3-of-3-seeds-at-0p69-2p58x-rl-over-pretraining-flops-reading-graded/README.md).
+> arrows) *[review]*. Full s5's curve is fixed as the review recommends *[librarian]* (Caveats): the librarian changed
+> both scripts (`extract_rl_curve.py` reads full s5's round files from `COE_BUCKET` and stops if any ladder's round
+> file is missing; `make_figure.py` drops the dashed style) and regenerated `rl_curve.json` and the figure. Reviewed summary of the run: [coe-dose01](../../../experiment-summaries/2026-10-31-coe-dose01-0p1pct-sigma-dose-reaches-the-bar-on-3-of-3-seeds-at-0p69-2p58x-rl-over-pretraining-flops-reading-graded/README.md).
 
 A figure for the midterm write-up: create-or-elicit's 15 expert-iteration ladders plus coe-dose01's three 0.1 % σ dose
 ladders and knockout s1's rounds 25–32, with compute measured the way rl-compute-share measured it.
@@ -79,7 +80,8 @@ Reviewed in [`review_coe-dose01.md`](https://github.com/dan-pandori/nd-takehome/
     create-or-elicit's rows for rounds 1–24 with coe-dose01's for 25–32).
 - **Files:**
   - `extract_rl_curve.py` ran read-only on agent2 and wrote `rl_curve.json` (re-run 2026-11-01 by coe-dose01, and
-    again by the librarian with full s5's round files from a copy of the bucket folder, `COE_BUCKET` *[librarian]*);
+    again by the librarian with full s5's round files from a copy of the bucket folder on agent2, `COE_BUCKET` =
+    `~/rl_needed_inputs/…`; it now stops if a ladder's round file is missing *[librarian]*);
   - `make_figure.py` draws `rl_needed.png` / `.pdf` from it. Run it with any Python that has matplotlib.
 
 ## Caveats
@@ -92,7 +94,7 @@ Reviewed in [`review_coe-dose01.md`](https://github.com/dan-pandori/nd-takehome/
   (`la_full_s5/round_*.json`) were never tracked on the fork, so the extraction had no state re-prefill for that ladder
   and put it at r1 0.02×, r16 4.01× (4.28× with the last fine-tune), about 30 % below its siblings. With the round files
   from the create-or-elicit bucket folder it sits at r1 0.106×, r16 6.17× (6.44×), slightly above its siblings'
-  5.80–6.05× (review, Verdict item 3). *[librarian]* The librarian re-ran the extraction with those files (sha256-equal to
+  5.80–6.05× (review, §Compare and Verdict item 3). *[librarian]* The librarian re-ran the extraction with those files (sha256-equal to
   the copies the create-or-elicit reviewer downloaded) and redrew the figure without the dashed style. All 16 rounds
   equal the review's own FLOP code exactly, and the other 17 ladders are byte-identical to the executor's
   `rl_curve.json`; the unchanged scripts reproduce the executor's JSON and PNG byte for byte. Only full s5's line

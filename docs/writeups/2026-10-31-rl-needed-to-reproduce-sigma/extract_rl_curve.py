@@ -16,7 +16,7 @@ D01_ROUNDS = f'{W}/coe-dose01/artifacts/coe/rounds'
 # la_full_s5's round files were never tracked on the fork (bucket only), so without them the extraction had no state
 # re-prefill for that ladder (coe-dose01 review, Verdict item 3). Copies of
 # hf://buckets/dan-pandori/nd-rl/create-or-elicit/artifacts/coe/ladder/la_full_s5/round_*.json (librarian, 2026-11-01).
-COE_BUCKET = '/home/dan/scratch_coe_dose01_lib/bucket/create-or-elicit/artifacts/coe/ladder'
+COE_BUCKET = '/home/dan/rl_needed_inputs/create-or-elicit/artifacts/coe/ladder'
 regs = {r: O.load_reg(r) for r in ('create-or-elicit', 'trajectory', 'rl-continue', 'coe-dose01')}
 s1 = {**O.stage1_rows(regs['create-or-elicit']), **O.stage1_rows(regs['trajectory']), **O.stage1_rows(regs['coe-dose01'])}
 
@@ -53,6 +53,9 @@ for sp in specs:
     for reg, dirs, rr in sp['parts']:
         per = O.ladder_rows(regs[reg], sp['ladder'])
         p, mix = O.round_files(dirs, sp['ladder'])
+        gap = sorted({rd for (ph, rd) in per if ph == 'sample' and rd is not None and (rr is None or rd in rr)} - set(p))
+        if gap:  # a missing round file silently drops that round's state re-prefill from x (the old full s5 curve)
+            sys.exit(f"{sp['name']}: no round file for rounds {gap} in {dirs}")
         for (ph, rd), mets in per.items():
             if rd is None or (rr is not None and rd not in rr):
                 continue
