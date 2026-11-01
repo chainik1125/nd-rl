@@ -26,7 +26,7 @@ ROW = {"full": "full exposure\n(σ in 10.9 % of\npretraining)", "dose1": "1 % σ
        "knockout": "knockout\n(σ removed)"}
 ORDER = [a for a in ("full", "dose1", "dose01", "knockout") if any(o["arm"] == a for o in DATA)]
 TEXT, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
-XLIM, XTICKS = (0.015, 14), [0.03, 0.1, 0.3, 1, 3, 10]
+XLIM, XTICKS = (0.015, 22), [0.03, 0.1, 0.3, 1, 3, 10]
 
 plt.rcParams.update({"font.size": 9, "axes.edgecolor": MUTED, "axes.labelcolor": TEXT, "xtick.color": MUTED,
                      "ytick.color": MUTED, "axes.spines.top": False, "axes.spines.right": False,
@@ -58,11 +58,10 @@ for o in DATA:
     xs = [r["x_train"] for r in o["rounds"]]
     ys = [r["heldout_cum"] for r in o["rounds"]]
     c = COLOR[o["arm"]]
-    uncertain = o["name"] == "la_full_s5"  # compute rows ~30 % low; left out of rl-compute-share's count
     n_pre = 16 if o["name"] == "la_ko_s1" else len(xs)
-    a.plot(xs[:n_pre], ys[:n_pre], color=c, lw=1.6, marker="o", ms=2.6, ls="--" if uncertain else "-",
+    a.plot(xs[:n_pre], ys[:n_pre], color=c, lw=1.6, marker="o", ms=2.6, ls="-",
            alpha=0.9, solid_capstyle="round")
-    if n_pre < len(xs):  # knockout s1's exploratory rounds 17-24
+    if n_pre < len(xs):  # knockout s1's exploratory rounds 17-32 (17-24 create-or-elicit, 25-32 coe-dose01)
         a.plot(xs[n_pre - 1:], ys[n_pre - 1:], color=c, lw=1.6, marker="o", ms=2.6, ls=":", mfc=SURFACE)
     ends.setdefault(o["arm"], []).append((xs[-1], ys[-1]))
 # Full and dose lines interleave, so only the knockout cluster is labelled at its end; the legend names every arm.
@@ -77,8 +76,7 @@ handles = [Line2D([], [], color=COLOR[arm], lw=1.8, marker="o", ms=3, label=ROW[
            for arm in ORDER]
 handles += [Line2D([], [], color=MUTED, lw=1, ls=(0, (4, 3)),
                    label=f"full bases before RL: median {THR:g} (band: range {min(full_r1)}–{max(full_r1)})"),
-            Line2D([], [], color=MUTED, lw=1.4, ls="--", label="full s5 (compute rows uncertain)"),
-            Line2D([], [], color=MUTED, lw=1.4, ls=":", label="knockout s1, exploratory rounds 17–24")]
+            Line2D([], [], color=MUTED, lw=1.4, ls=":", label=f"knockout s1, exploratory rounds 17–{max(len(o['rounds']) for o in DATA if o['name'] == 'la_ko_s1')}")]
 a.legend(handles=handles, loc="upper left", frameon=False, fontsize=7.6, handlelength=2.4)
 
 # (b) RL needed to reach the threshold ---------------------------------------------------------------------
@@ -119,11 +117,13 @@ b.set_xlabel("RL compute ÷ pretraining compute needed")
 b.set_title(f"b   RL needed to reach the full bases' level ({THR:g} of 106)", loc="left", fontsize=10, color=TEXT)
 
 fig.text(0.01, -0.07,
-         "9.56M ALiBiGPT bases, T1 expert iteration, k 32 per round, judged by Lean (create-or-elicit). Held-out theorems "
+         "9.56M ALiBiGPT bases, T1 expert iteration, k 32 per round, judged by Lean (create-or-elicit; the 0.1 % arm and knockout "
+         "s1's rounds 25–32: coe-dose01). Held-out theorems "
          "are never trained on; a theorem counts once any round's sample solves it.\nx: sampling (decoded and re-read "
          "state tokens) × 2N plus fine-tuning × 6N, including the 20,000 replayed pretraining records per round, over "
          "Stage-1's 6N·D (rl-compute-share's definitions;\nexcluding replay lowers x by ≈ 14 %). Round 1 is the base's own "
-         "samples, so it sits at ≈ 0.1×. Knockout values are lower bounds: those ladders stopped at round 16 (s1: 24).",
+         f"samples, so it sits at ≈ 0.1×. Knockout values are lower bounds: those ladders stopped at round 16 (s1: "
+         f"{max(len(o['rounds']) for o in DATA if o['name'] == 'la_ko_s1')}).",
          fontsize=7.4, color=MUTED, va="top")
 for ext in ("png", "pdf"):
     fig.savefig(HERE / f"rl_needed.{ext}", dpi=200, bbox_inches="tight")
