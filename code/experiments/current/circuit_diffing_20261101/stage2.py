@@ -16,6 +16,7 @@ Conditions (the latent sets come from the Stage 1 classification of the crosscod
   base_transplant     the base with every live latent switched to its RL version (norm, direction)
   rl_revert           the RL model with every live latent switched back to its base version
   rl_unscale          the RL model with shared latents scaled back to the base's strength
+  rl_revertperm       rl_revert with the latents' difference vectors permuted (matched control)
 Problems: `stage2_problems.json` (G: RL-gained, S: shared). Every attempt is the read setting of
 the reads (plain arm, B64, temperature 0.8, max_action 512, max_steps 96), judged by Lean. Writes
 `/scratch/cowifornia/nd-rl/circuits/stage2/<cc dir>/<condition>.json`.
@@ -111,7 +112,7 @@ def run(a: argparse.Namespace) -> None:
             mode, _, which = what.partition("_")
             if mode in ("rescale", "unscale"):
                 lat = torch.from_numpy(sets["shared"])
-            elif mode in ("transplant", "revert"):
+            elif mode in ("transplant", "revert", "revertperm"):
                 lat = torch.from_numpy(sets["live"])
             elif which:
                 lat = torch.from_numpy(sets[which])

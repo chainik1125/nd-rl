@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Run jobs one after another on one GPU, each under its own timeout, after an optional PID exits.
+# Before each job it waits until serrano has fewer than 3 GPU jobs and the GPU is idle.
 #   queue2.sh GPU JOBFILE LOG [WAIT_PID]
 # JOBFILE: one job per line, "<module> <args>", the module relative to the experiment package
 # (e.g. "crosscoder --b L3:0 --layer 5"); "--gpu GPU" is appended. '#' lines are skipped.
@@ -22,6 +23,8 @@ fi
 for line in "${LINES[@]}"; do
   [[ -z "$line" || "$line" == \#* ]] && continue
   read -r mod args <<<"$line"
+  # wait for a free slot: fewer than 3 GPU jobs on serrano (every user) and this GPU idle
+  bash "$ROOT/code/experiments/current/circuit_diffing_20261101/gpu_gate.sh" "$GPU"
   echo "=== $(TZ=America/Los_Angeles date '+%I:%M %p') job: $line" >>"$LOG"
   # shellcheck disable=SC2086
   timeout 3600 nice "$PY" -m "$PKG.$mod" $args --gpu "$GPU" >>"$LOG" 2>&1

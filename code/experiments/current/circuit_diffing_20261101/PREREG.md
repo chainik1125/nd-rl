@@ -210,3 +210,56 @@ RL-only latents (and its matched random control) is dropped because the set is e
   circuits that read existing features differently.
 - **Reweighting.** If `base_rescale` recovers most of the gap, that supports magnitude
   reweighting of existing features.
+
+## Stage 2 addendum: the same tests at layer 5 (GPU)
+
+Written after the layer-3 conditions `rl_clean`, `base_clean` and `base_replace` were seen, and
+before any layer-5 sampling.
+- `rl_clean`: G 67.1%, S 93.0%.
+- `base_clean`: G 2.0%, S 70.9%.
+- `base_replace` at layer 3: G 13.9%, S 81.3%. That is 18% of the G gap, just under P2.3's 20%.
+
+So most of RL's gain on G does not pass through the layer-3 residual alone. Block 4–6 changes
+matter too. The layer-5 crosscoder (`L3_s0_L5_n8192_k32_seed0`) also has 0 strict RL-only
+latents.
+
+**Conditions.**
+- Run `base_replace`, `base_transplant`, `base_rescale` and `rl_revert` with the layer-5
+  crosscoder: same problems, attempts and settings.
+- `rl_clean` and `base_clean` do not depend on the crosscoder. They are copied from the layer-3
+  run, with the same seed and the same samples.
+
+**Predictions.**
+- **P2.7.** `base_replace` at layer 5 recovers more of the G gap than at layer 3, at least 40%.
+- **P2.8.** `base_transplant` at layer 5 recovers at least half of what `base_replace` at layer 5
+  recovers on G.
+- **P2.9.** `base_rescale` at layer 5 recovers under 15% of the G gap.
+
+**Reading.** If P2.7 and P2.8 hold and P2.9 holds, then most of the RL − base difference that
+layer 5 carries is expressed through latents the base already has. Those latents are rotated and
+rescaled, not new. Pure magnitude reweighting is not enough.
+
+## Stage 2 addendum: a matched control for `rl_revert`
+
+Written after the layer-3 results for `base_transplant`, `base_rescale`, `rl_revert` and
+`rl_unscale` were seen, and before this control ran.
+- `rl_revert` removes 41% [34, 47] of the G gap, with a relative drop of 40% on G against 6% on S.
+- `rl_unscale` removes −1% [−5, 3].
+
+Harder problems may simply be more fragile under any perturbation of this size: the edit is 34%
+of the residual norm. So a matched control is added.
+
+**Condition.** `rl_revertperm`: the same revert edit, but each latent's difference vector
+(d^RL / s_RL − d^base / s_base) is permuted among the live latents (seed 0). The set of
+difference vectors is the same, but each one is applied when the wrong latent fires. It runs at
+layer 3, and at layer 5 with the layer-5 conditions.
+
+**Prediction.**
+- **P2.10.** `rl_revertperm` removes less of the G gap than `rl_revert` and has lower selectivity
+  (relative drop G − S).
+
+**Reading.**
+- If `rl_revertperm` hurts G as much as `rl_revert` does, the revert effect is a generic
+  perturbation effect. It is then not evidence that RL's gains run through those particular
+  feature rotations.
+- If `rl_revertperm` hurts less, the specific directions matter.

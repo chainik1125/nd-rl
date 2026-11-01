@@ -23,6 +23,9 @@ model's scale s_m; f is the crosscoder's inference-time encoding of both models'
                   model's latents in S put back to the base's version, the RL error kept
   unscale         driver RL:   h + sum_{j in S} f_j (1 / r_j - 1) d_j^RL / s_RL: the latents in S
                   scaled back to the base's strength along the RL model's own directions
+  revertperm      driver RL:   revert with the difference vectors permuted among the latents in S
+                  (seed 0): the same set of edits, each applied when the wrong latent fires; the
+                  matched control for revert
 """
 
 from __future__ import annotations
@@ -35,8 +38,18 @@ import torch
 from .common import capture
 from .crosscoder import Crosscoder
 
-MODES = ("ablate", "rescale", "inject", "replace", "recon", "transplant", "revert", "unscale")
-RL_DRIVEN = ("ablate", "recon", "revert", "unscale")
+MODES = (
+    "ablate",
+    "rescale",
+    "inject",
+    "replace",
+    "recon",
+    "transplant",
+    "revert",
+    "unscale",
+    "revertperm",
+)
+RL_DRIVEN = ("ablate", "recon", "revert", "unscale", "revertperm")
 
 
 def load_cc(d: Path, device: str) -> tuple[Crosscoder, dict[str, Any]]:
@@ -77,6 +90,11 @@ class PairPatched(torch.nn.Module):
         self.sel = sel
         norms = cc.dec_norms()
         self.r = (norms[:, 1] / self.scale[1]) / (norms[:, 0] / self.scale[0]).clamp_min(1e-12)
+        self.perm = torch.arange(n, device=dev)
+        if mode == "revertperm":
+            idx = sel.nonzero().squeeze(1)
+            g = torch.Generator().manual_seed(0)
+            self.perm[idx] = idx[torch.randperm(len(idx), generator=g).to(dev)]
         for m in (base, rl):
             m.PREFILL_ELEMS = 2**62
         self.blocks = list(self.driver.blocks) + list(self.other.blocks[: self.layer])
@@ -131,8 +149,10 @@ class PairPatched(torch.nn.Module):
                 new = hd + (fs @ D[:, 1]).view(B, T, d) / self.scale[1]
             elif self.mode == "rescale":
                 new = hd + ((fs * (self.r - 1)) @ D[:, 0]).view(B, T, d) / self.scale[0]
-            elif self.mode in ("transplant", "revert"):
+            elif self.mode in ("transplant", "revert", "revertperm"):
                 diff = D[:, 1] / self.scale[1] - D[:, 0] / self.scale[0]
+                if self.mode == "revertperm":
+                    diff = diff[self.perm]
                 sign = 1.0 if self.mode == "transplant" else -1.0
                 new = hd + sign * (fs @ diff).view(B, T, d)
             elif self.mode == "unscale":

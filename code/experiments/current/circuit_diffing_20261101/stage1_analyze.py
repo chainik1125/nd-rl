@@ -94,9 +94,11 @@ def summarize(d: Path) -> dict[str, Any] | None:
     b_label, b_seed = meta["b"].split(":")
     loss = ev["loss"]
     rec = [loss[s][f"m{m}_recovered"] for s in ("b_roll", "a_roll") for m in (0, 1)]
+    planted = meta.get("plant") is not None
     row: dict[str, Any] = dict(
         dir=d.name,
-        b=b_label,
+        b=b_label + (" + planted" if planted else ""),
+        planted=planted,
         seed=int(b_seed),
         layer=meta["layer"],
         cc_seed=meta["seed"],
@@ -181,6 +183,8 @@ def main(argv: list[str] | None = None) -> int:
     tz = teaser()
     for r in rows:
         t = tz.get(TEASER_NAME.get(r["b"], ""), None) if r["seed"] == 0 else None
+        if r["planted"]:
+            t = None
         r["gap1024"] = t["gapK"][0] if t else None
         r["gap1"] = t["gap1"][0] if t else None
     (HERE / f"stage1{a.tag}.json").write_text(json.dumps(rows, indent=1))

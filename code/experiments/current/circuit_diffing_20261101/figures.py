@@ -20,6 +20,7 @@ from .common import HERE
 
 FIG = HERE / "figs"
 C = S.OKABE_ITO
+INK = S.INK
 ARM = {  # label prefix -> (legend, colour, marker)
     "kp16": ("low-RL, 16 prompts/step", C["sky_blue"], "o"),
     "kdense": ("low-RL, dense", C["blue"], "s"),
@@ -110,20 +111,96 @@ def main(argv: list[str] | None = None) -> int:
         stage1()
     if "stage2" in todo and (HERE / "stage2.json").exists():
         stage2()
+        stage2("L3_s0_L5_n8192_k32_seed0", "L5")
     return 0
 
 
 def stage1(layer: int = 3) -> None:
+    import torch
+
+    from .stage1_analyze import CC, arrays, classify
+
     rows = json.loads((HERE / "stage1.json").read_text())
     rows = [r for r in rows if r["layer"] == layer and r["cc_seed"] == 0]
+    main = [r for r in rows if not r["planted"]]
     with S.paper_style():
-        fig = S.new_figure(S.FULL_W, 1.95, layout="constrained")
+        fig = S.new_figure(S.FULL_W, 2.0, layout="constrained")
         axs = fig.subplots(1, 3)
-        seen: set[str] = set()
-        cpt = [r for r in rows if r["b"].startswith("cpt")]
-        for r in rows:
-            if r["b"].startswith("cpt"):
+        # (a) Δnorm histograms
+        bins = np.linspace(0, 1, 21)
+        mids = 0.5 * (bins[1:] + bins[:-1])
+        pick = [
+            ("kp16_st1", False, "null (R 7.6e-5)", C["sky_blue"], "-"),
+            ("L3", False, "L3 end (R 0.29)", C["vermillion"], "-"),
+            ("L3", True, "L3 end + 6 planted", INK, ":"),
+        ]
+        for b, pl, lab, col, ls in pick:
+            for r in rows:
+                if r["b"].split(" ")[0] == b and r["planted"] == pl and r["seed"] == 0:
+                    h = np.array(r["dnorm_hist"], dtype=float)
+                    axs[0].step(
+                        mids, np.maximum(h, 0.3), where="mid", color=col, ls=ls, lw=1.0, label=lab
+                    )
+        axs[0].set_yscale("log")
+        axs[0].set_ylim(0.3, 2e4)
+        axs[0].set_xlabel("Δnorm (0 = RL-only, 1 = base-only)")
+        axs[0].set_ylabel("live latents")
+        axs[0].axvspan(0, 0.1, color=S.SHADE, zorder=0)
+        axs[0].axvspan(0.9, 1, color=S.SHADE, zorder=0)
+        S.panel_title(axs[0], "a", "decoder-norm balance")
+        axs[0].legend(loc="upper right", fontsize=S.FS_TICK - 1.5, frameon=False)
+        axs[0].set_ylim(0.3, 2e5)
+        # (b) Δnorm vs decoder cosine, L3 end and the planted control
+        for name, col, mk, sz in (
+            (f"L3_s0_L{layer}_n8192_k32_seed0", S.REF, ".", 2),
+            (f"L3_s0_L{layer}_n8192_k32_seed0_plant", INK, "x", 14),
+        ):
+            p = CC / name / "latents.pt"
+            if not p.exists():
                 continue
+            L = arrays(torch.load(p, weights_only=False))
+            c = classify(L)
+            live = c["live"]
+            if mk == "x":  # only the latents that track a planted feature
+                ev = json.loads((CC / name / "eval.json").read_text())
+                ids = sorted(
+                    {
+                        cand["latent"]
+                        for pl in ev["planted"]
+                        for cand in pl["candidates"]
+                        if (cand["precision"] or 0) > 0.25 and (cand["recall"] or 0) > 0.25
+                    }
+                )
+                axs[1].scatter(
+                    c["dnorm"][ids],
+                    L["cos"][ids],
+                    marker="x",
+                    s=sz,
+                    color=col,
+                    linewidths=0.8,
+                    label="planted features",
+                    zorder=4,
+                )
+            else:
+                axs[1].scatter(
+                    c["dnorm"][live],
+                    L["cos"][live],
+                    marker=".",
+                    s=sz,
+                    color=col,
+                    linewidths=0,
+                    label="L3 end latents",
+                    rasterized=True,
+                )
+        axs[1].axvspan(0, 0.1, color=S.SHADE, zorder=0)
+        axs[1].set_xlim(0, 1)
+        axs[1].set_xlabel("Δnorm")
+        axs[1].set_ylabel("decoder cosine (base, RL)")
+        S.panel_title(axs[1], "b", "every RL latent has a base twin")
+        axs[1].legend(loc="lower right", fontsize=S.FS_TICK - 1.5, frameon=False)
+        # (c) rotation vs R
+        seen: set[str] = set()
+        for r in main:
             arm = arm_of(r["b"])
             name, col, mk = ARM[arm]
             other = r["seed"] != 0
@@ -131,50 +208,92 @@ def stage1(layer: int = 3) -> None:
             kw["facecolors"] = "none" if other else col
             lab = None if arm in seen or other else name
             seen.add(arm)
-            axs[0].scatter(r["R"], r["N_RL"] + 0.5, label=lab, **kw)
-            axs[1].scatter(r["R"], 100 * r["E_RL"]["all"] + 1e-3, **kw)
-        for r in cpt:  # no RL compute: drawn as a horizontal reference
-            axs[0].axhline(r["N_RL"] + 0.5, color=ARM["cpt"][1], ls="--", lw=0.8)
-            axs[1].axhline(100 * r["E_RL"]["all"] + 1e-3, color=ARM["cpt"][1], ls="--", lw=0.8)
-        for ax in axs[:2]:
-            ax.set_xscale("log")
-            ax.set_yscale("log")
-            ax.set_xlabel("RL / Stage-1 FLOPs (R)")
-            S.light_grid(ax, "both")
-        axs[0].set_ylabel("strict RL-only latents (+0.5)")
-        axs[1].set_ylabel("RL variance in RL-only latents (%)")
-        S.panel_title(axs[0], "a", "RL-only latents")
-        S.panel_title(axs[1], "b", "their share of variance")
-        if cpt:
-            axs[0].plot([], [], color=ARM["cpt"][1], ls="--", lw=0.8, label=ARM["cpt"][0])
-        axs[0].legend(loc="upper left", fontsize=S.FS_TICK - 1.5, frameon=False)
-        bins = np.linspace(0, 1, 21)
-        mids = 0.5 * (bins[1:] + bins[:-1])
-        pick = {
-            "kp16_st1": ("null (R 7.6e-5)", C["sky_blue"], "-"),
-            "mini_it8": ("mini20 L2 it8", C["bluish_green"], "-"),
-            "L3": ("L3 end", C["vermillion"], "-"),
-        }
-        for r in rows:
-            if r["seed"] == 0 and r["b"] in pick:
-                lab, col, ls = pick[r["b"]]
-                h = np.array(r["dnorm_hist"], dtype=float)
-                axs[2].step(
-                    mids, np.maximum(h, 0.5), where="mid", color=col, ls=ls, lw=1.0, label=lab
-                )
+            y = 1 - r["ewt_cos"]
+            if arm == "cpt":
+                axs[2].axhline(max(y, 1e-5), color=col, ls="--", lw=0.8)
+                continue
+            axs[2].scatter(r["R"], max(y, 1e-5), label=lab, **kw)
+        if any(arm_of(r["b"]) == "cpt" for r in main):
+            axs[2].plot([], [], color=INK, ls="--", lw=0.8, label=ARM["cpt"][0])
+        axs[2].set_xscale("log")
         axs[2].set_yscale("log")
-        axs[2].set_xlabel("Δnorm (0 = RL-only, 1 = base-only)")
-        axs[2].set_ylabel("live latents")
-        axs[2].axvspan(0, 0.1, color=S.SHADE, zorder=0)
-        axs[2].axvspan(0.9, 1, color=S.SHADE, zorder=0)
-        S.panel_title(axs[2], "c", "decoder-norm balance")
+        axs[2].set_xlabel("RL / Stage-1 FLOPs (R)")
+        axs[2].set_ylabel("1 − energy-weighted decoder cos")
+        S.light_grid(axs[2], "both")
+        S.panel_title(axs[2], "c", "rotation grows with R")
         axs[2].legend(loc="upper left", fontsize=S.FS_TICK - 1.5, frameon=False)
         S.save(fig, FIG / f"stage1_L{layer}")
         S.close(fig)
 
 
-def stage2() -> None:  # filled in once Stage 2 has numbers
-    pass
+S2_LABEL = {
+    "base_clean": "base",
+    "base_rescale": "base, shared latents at RL norm",
+    "base_transplant": "base, latents switched to RL version",
+    "base_replace": "base, residual replaced by RL's",
+    "rl_clean": "RL (L3 end)",
+    "rl_unscale": "RL, shared latents at base norm",
+    "rl_recon": "RL, reconstruction only",
+    "rl_revert": "RL, latents switched to base version",
+    "rl_revertperm": "RL, the same edits permuted (control)",
+}
+S2_ORDER = [
+    "base_clean",
+    "base_rescale",
+    "base_transplant",
+    "base_replace",
+    "rl_clean",
+    "rl_unscale",
+    "rl_recon",
+    "rl_revert",
+    "rl_revertperm",
+]
+
+
+def stage2(name: str = "L3_s0_L3_n8192_k32_seed0", tag: str = "L3") -> None:
+    allres = json.loads((HERE / "stage2.json").read_text())
+    if name not in allres:
+        return
+    res = allres[name]["conditions"]
+    conds = [c for c in S2_ORDER if c in res]
+    with S.paper_style():
+        fig = S.new_figure(S.FULL_W, 2.5, layout="constrained")
+        ax = fig.subplots(1, 1)
+        ys = np.arange(len(conds))[::-1].astype(float)
+        nb = sum(c.startswith("base") for c in conds)
+        ys[nb:] -= 0.6  # a gap between the base-driven and the RL-driven conditions
+        for y, cnd in zip(ys, conds, strict=True):
+            r = res[cnd]
+            for cat, col, mk, dy, lab in (
+                ("G", C["vermillion"], "o", 0.14, "RL-gained problems (G, 80)"),
+                ("S", C["blue"], "s", -0.14, "shared problems (S, 121)"),
+            ):
+                v = r["solve_pct"][cat]
+                lo, hi = r["solve_ci"][cat]
+                ax.errorbar(
+                    v,
+                    y + dy,
+                    xerr=[[v - lo], [hi - v]],
+                    fmt=mk,
+                    color=col,
+                    ms=3.2,
+                    lw=0.8,
+                    capsize=1.5,
+                    label=lab if cnd == conds[0] else None,
+                )
+        for ref, ls in (("base_clean", ":"), ("rl_clean", "--")):
+            if ref in res:
+                for cat, col in (("G", C["vermillion"]), ("S", C["blue"])):
+                    ax.axvline(res[ref]["solve_pct"][cat], color=col, ls=ls, lw=0.6, alpha=0.6)
+        ax.axhline(ys[nb - 1] - 0.8 if nb else 0, color=S.GRID, lw=0.6)
+        ax.set_yticks(ys)
+        ax.set_yticklabels([S2_LABEL[c] for c in conds])
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("solve rate (% of attempts, mean over problems; 95% problem bootstrap)")
+        S.light_grid(ax, "x")
+        ax.legend(loc="upper center", fontsize=S.FS_TICK - 1, frameon=True, framealpha=0.9)
+        S.save(fig, FIG / f"stage2_{tag}")
+        S.close(fig)
 
 
 if __name__ == "__main__":
