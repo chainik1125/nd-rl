@@ -13,6 +13,10 @@ COE = f'{W}/create-or-elicit/artifacts/coe/ladder'
 ROUNDS = f'{W}/create-or-elicit/artifacts/coe/rounds'
 D01 = f'{W}/coe-dose01/artifacts/coe/ladder'
 D01_ROUNDS = f'{W}/coe-dose01/artifacts/coe/rounds'
+# la_full_s5's round files were never tracked on the fork (bucket only), so without them the extraction had no state
+# re-prefill for that ladder (coe-dose01 review, Verdict item 3). Copies of
+# hf://buckets/dan-pandori/nd-rl/create-or-elicit/artifacts/coe/ladder/la_full_s5/round_*.json (librarian, 2026-11-01).
+COE_BUCKET = '/home/dan/scratch_coe_dose01_lib/bucket/create-or-elicit/artifacts/coe/ladder'
 regs = {r: O.load_reg(r) for r in ('create-or-elicit', 'trajectory', 'rl-continue', 'coe-dose01')}
 s1 = {**O.stage1_rows(regs['create-or-elicit']), **O.stage1_rows(regs['trajectory']), **O.stage1_rows(regs['coe-dose01'])}
 
@@ -21,7 +25,7 @@ for arm, seeds in (('ko', range(6)), ('full', range(3, 6)), ('dose1', range(3)))
     for sd in seeds:
         lad = f'la_{arm}_s{sd}'
         specs.append(dict(name=lad, arm={'ko': 'knockout', 'full': 'full', 'dose1': 'dose1'}[arm], seed=sd,
-                          parts=[('create-or-elicit', [COE], None)], ladder=lad,
+                          parts=[('create-or-elicit', [COE] + ([COE_BUCKET] if lad == 'la_full_s5' else []), None)], ladder=lad,
                           D=s1[f'ckpts/coe/stage1_{arm}_s{sd}.pt']['train_tokens'], rounds_file=f'{ROUNDS}/{lad}.json'))
 for sd in range(3):                                   # coe-dose01: the 0.1 % sigma dose arm
     lad = f'la_dose01_s{sd}'

@@ -58,9 +58,8 @@ for o in DATA:
     xs = [r["x_train"] for r in o["rounds"]]
     ys = [r["heldout_cum"] for r in o["rounds"]]
     c = COLOR[o["arm"]]
-    uncertain = o["name"] == "la_full_s5"  # compute rows ~30 % low; left out of rl-compute-share's count
     n_pre = 16 if o["name"] == "la_ko_s1" else len(xs)
-    a.plot(xs[:n_pre], ys[:n_pre], color=c, lw=1.6, marker="o", ms=2.6, ls="--" if uncertain else "-",
+    a.plot(xs[:n_pre], ys[:n_pre], color=c, lw=1.6, marker="o", ms=2.6, ls="-",
            alpha=0.9, solid_capstyle="round")
     if n_pre < len(xs):  # knockout s1's exploratory rounds 17-32 (17-24 create-or-elicit, 25-32 coe-dose01)
         a.plot(xs[n_pre - 1:], ys[n_pre - 1:], color=c, lw=1.6, marker="o", ms=2.6, ls=":", mfc=SURFACE)
@@ -77,7 +76,6 @@ handles = [Line2D([], [], color=COLOR[arm], lw=1.8, marker="o", ms=3, label=ROW[
            for arm in ORDER]
 handles += [Line2D([], [], color=MUTED, lw=1, ls=(0, (4, 3)),
                    label=f"full bases before RL: median {THR:g} (band: range {min(full_r1)}–{max(full_r1)})"),
-            Line2D([], [], color=MUTED, lw=1.4, ls="--", label="full s5 (compute rows uncertain)"),
             Line2D([], [], color=MUTED, lw=1.4, ls=":", label=f"knockout s1, exploratory rounds 17–{max(len(o['rounds']) for o in DATA if o['name'] == 'la_ko_s1')}")]
 a.legend(handles=handles, loc="upper left", frameon=False, fontsize=7.6, handlelength=2.4)
 
