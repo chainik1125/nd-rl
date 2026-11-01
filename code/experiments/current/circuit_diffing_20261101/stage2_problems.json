@@ -1,0 +1,1427 @@
+{
+ "G": [
+  {
+   "name": "textbook_093d53538c2072386890",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( ( P > Q ) & ( R > Q ) ) > ( ( P v R ) > Q ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5927734375
+  },
+  {
+   "name": "textbook_0e262e8e0d687eaeed5f",
+   "set": "charles149",
+   "prompt": "THM ( ( P v ( ~ Q ) ) > R ) SEQ ( ( ~ R ) > ( ( ~ P ) & Q ) ) PRF",
+   "base_rate": 0.0087890625,
+   "rl_rate": 0.9921875
+  },
+  {
+   "name": "textbook_17db74b2c27db844c116",
+   "set": "charles149",
+   "prompt": "THM ( ( P & Q ) v ( ~ ( R > ( ~ S ) ) ) ) , ( ~ Q ) SEQ ( R & S ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.974609375
+  },
+  {
+   "name": "textbook_1b0c86b846be078dbfc8",
+   "set": "charles149",
+   "prompt": "THM ( ~ ( P > ( Q v ( ~ R ) ) ) ) SEQ ( ( Q v R ) > P ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_26c5501ec4eb97272dc1",
+   "set": "charles149",
+   "prompt": "THM ( P v Q ) , ( Q v R ) , ( ~ Q ) SEQ ( P & R ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.98828125
+  },
+  {
+   "name": "textbook_49b7d961bb8d378750b8",
+   "set": "charles149",
+   "prompt": "THM ( ( ~ P ) > ( ~ ( ~ Q ) ) ) , ( ( ~ ( ~ R ) ) > ( ~ P ) ) , ( ( ~ R ) > Q ) SEQ Q PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.578125
+  },
+  {
+   "name": "textbook_5b38b6ab0a04f4c4bb28",
+   "set": "charles149",
+   "prompt": "THM ( ( P v Q ) & ( R v S ) ) , ( Q > S ) , ( ~ S ) SEQ ( P & R ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.9609375
+  },
+  {
+   "name": "textbook_5fe19ee857dfdf3b89d2",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( R > ( S & Q ) ) SEQ ( ( P v R ) > ( S v Q ) ) PRF",
+   "base_rate": 0.0087890625,
+   "rl_rate": 0.931640625
+  },
+  {
+   "name": "textbook_681e5816d2388b53e3d9",
+   "set": "charles149",
+   "prompt": "THM ( P v ( Q v R ) ) SEQ ( ( P v Q ) v R ) PRF",
+   "base_rate": 0.0068359375,
+   "rl_rate": 0.994140625
+  },
+  {
+   "name": "textbook_718852d6a9d947f01167",
+   "set": "charles149",
+   "prompt": "THM ( P > ( Q > R ) ) , ( ( ~ S ) > ( P v R ) ) , ( P > Q ) SEQ ( S v R ) PRF",
+   "base_rate": 0.0087890625,
+   "rl_rate": 0.5380859375
+  },
+  {
+   "name": "textbook_8040875d110cc42408af",
+   "set": "charles149",
+   "prompt": "THM ( ( P > ( ( ~ Q ) v R ) ) & ( ( ( ~ Q ) v R ) > P ) ) , ( Q > R ) SEQ P PRF",
+   "base_rate": 0.0068359375,
+   "rl_rate": 0.3212890625
+  },
+  {
+   "name": "textbook_8d12d86c4a1d9843debc",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( Q > ( R & P ) ) , ( R > ( P v Q ) ) SEQ ( ( R > P ) & ( P > R ) ) PRF",
+   "base_rate": 0.00390625,
+   "rl_rate": 0.115234375
+  },
+  {
+   "name": "textbook_911ca699a25f56477d3e",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( R > ( R > S ) ) SEQ ( ( R v P ) > ( Q v S ) ) PRF",
+   "base_rate": 0.0048828125,
+   "rl_rate": 0.8056640625
+  },
+  {
+   "name": "textbook_99f1eb6743d83db9b248",
+   "set": "charles149",
+   "prompt": "THM ( ~ ( ( P > ( ~ Q ) ) v ( ~ R ) ) ) SEQ Q PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_a44e77e0ea54ed00a768",
+   "set": "charles149",
+   "prompt": "THM ( ~ ( ( ~ P ) & ( ~ Q ) ) ) SEQ ( P v Q ) PRF",
+   "base_rate": 0.0048828125,
+   "rl_rate": 0.9833984375
+  },
+  {
+   "name": "textbook_b7132b7858d742201ec0",
+   "set": "charles149",
+   "prompt": "THM ( ~ ( ( P > Q ) & ( Q > P ) ) ) SEQ ( ( P > ( ~ Q ) ) & ( ( ~ Q ) > P ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.13671875
+  },
+  {
+   "name": "textbook_c88ec9ae3c9447ba6947",
+   "set": "charles149",
+   "prompt": "THM ( ( P v Q ) > ( P v R ) ) SEQ ( P v ( Q > R ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.642578125
+  },
+  {
+   "name": "textbook_d0b1395237936017f5f3",
+   "set": "charles149",
+   "prompt": "THM ( P & ( ( ~ Q ) > ( ~ P ) ) ) SEQ ( ( Q & P ) v ( ~ P ) ) PRF",
+   "base_rate": 0.0029296875,
+   "rl_rate": 0.345703125
+  },
+  {
+   "name": "textbook_d337b29b8e27a24990b3",
+   "set": "charles149",
+   "prompt": "THM ( ( P & Q ) > ( R v S ) ) , ( Q & P ) SEQ ( S v R ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.869140625
+  },
+  {
+   "name": "textbook_da48873af5a82972d77b",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( ( Q v R ) > S ) , ( S > ( ~ P ) ) SEQ ( ~ P ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.9921875
+  },
+  {
+   "name": "t1320_0462",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ S ) > ( P & R ) ) v P ) , ( ~ ( ( ~ ( P > R ) ) & ( ~ ( P > R ) ) ) ) , ( ~ S ) SEQ R PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_0602",
+   "set": "t1320",
+   "prompt": "THM ( ( S v S ) v ( R & S ) ) , ( P > R ) , ( ( ( ~ ( ~ R ) ) > ( ( ~ ( ~ R ) ) & ( ~ ( ~ R ) ) ) ) > ( R v P ) ) SEQ ( ( ~ Q ) > ( ( ( S v S ) v ( R & S ) ) & R ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_1968",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ Q ) > F ) , ( ( P & Q ) > S ) , ( ( P & Q ) v P ) SEQ ( ( ~ ( ~ R ) ) > ( S & ( ( ~ ( ~ R ) ) > ( S v Q ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0254",
+   "set": "t1320",
+   "prompt": "THM ( R > ( ( P v Q ) & S ) ) , R , ( Q > ( ( P & P ) & ( P & P ) ) ) SEQ ( S > ( ( P & P ) & ( P & P ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_0203",
+   "set": "t1320",
+   "prompt": "THM ( ( R & ( ~ P ) ) > ( ~ Q ) ) , ( R > ( ~ P ) ) , ( ( ~ Q ) v R ) SEQ ( ( ~ ( ~ Q ) ) > ( S & ( R > P ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_0210",
+   "set": "t1320",
+   "prompt": "THM ( ~ ( ( ( Q v P ) & R ) & Q ) ) , ( P & S ) , ( P > ( ( Q v R ) & ( R > Q ) ) ) SEQ ( ~ R ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_1186",
+   "set": "t1320",
+   "prompt": "THM ( ( Q & R ) > ( ( S v S ) & R ) ) , ( ( Q & R ) v S ) SEQ ( ( ~ ( ~ P ) ) > ( ( ( ~ P ) > P ) & S ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_1351",
+   "set": "t1320",
+   "prompt": "THM R , ( ( ( R > Q ) & ( ~ R ) ) v Q ) , ( Q > ( ( Q > S ) v ( S v P ) ) ) SEQ ( ( ( S v P ) > ( Q > S ) ) > S ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_1662",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ ( ~ ( S & S ) ) ) > R ) , ( P > S ) , ( ( ( R & S ) v P ) v P ) SEQ R PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_0664",
+   "set": "t1320",
+   "prompt": "THM ( ( S v ( R > P ) ) > ( ( P > P ) & ( ~ Q ) ) ) , ( ( ( P > P ) & ( ~ Q ) ) v ( S v ( R > P ) ) ) , ( Q v ( ( P v P ) & S ) ) SEQ S PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_0682",
+   "set": "t1320",
+   "prompt": "THM ( Q > ( ( S v P ) & S ) ) , ( ( S & P ) v ( S > F ) ) , ( ( ( S v P ) & S ) v Q ) SEQ P PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_2163",
+   "set": "t1320",
+   "prompt": "THM ( ( Q v ( ~ S ) ) v P ) , ( ( ~ S ) > Q ) , ( P > ( ~ S ) ) SEQ ( ( ~ ( ~ ( P v R ) ) ) > ( ( Q & ( P > P ) ) & ( Q & ( P > P ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_2346",
+   "set": "t1320",
+   "prompt": "THM ( ( ( R & R ) v ( ~ P ) ) v ( R & Q ) ) , ( ( ( ~ Q ) > ( P & P ) ) v ( ( S & R ) & P ) ) , ( ~ Q ) SEQ R PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_2990",
+   "set": "t1320",
+   "prompt": "THM Q , ( S v ( ~ Q ) ) , ( ( ~ ( ~ ( ~ ( ~ S ) ) ) ) > ( ( P v R ) > P ) ) SEQ ( ( P v R ) > ( ( P v R ) > ( ( Q > Q ) & P ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.6875
+  },
+  {
+   "name": "t1320_0675",
+   "set": "t1320",
+   "prompt": "THM ( ( ( S v P ) > Q ) > ( Q v Q ) ) , ( ( ( Q v Q ) & Q ) v ( ( S v P ) > Q ) ) SEQ ( ( ~ Q ) > ( ( ~ ( ~ P ) ) v R ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_0054",
+   "set": "t1320",
+   "prompt": "THM ( P > ( S v ( S & R ) ) ) , ( ( ( ~ ( ~ R ) ) > ( R v P ) ) > ( ~ ( ~ P ) ) ) SEQ S PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_1805",
+   "set": "t1320",
+   "prompt": "THM ( R > ( P v Q ) ) , ( Q > ( ( ~ ( ~ P ) ) v P ) ) , R SEQ ( ( ~ ( ~ ( ~ P ) ) ) > ( P & ( ( S > R ) > S ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_0121",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ Q ) & ( P > Q ) ) v Q ) , ( R > ( P & ( F v ( ~ ( P & R ) ) ) ) ) , ( P v R ) SEQ Q PRF",
+   "base_rate": 0.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_2680",
+   "set": "t1320",
+   "prompt": "THM ( S v ( R v R ) ) , ( ( R v R ) > ( Q v Q ) ) , ( S > ( Q v Q ) ) SEQ ( ( ( ( ~ S ) > ( P v P ) ) v P ) > ( ( ( ~ S ) > ( P v P ) ) & Q ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_1953",
+   "set": "t1320",
+   "prompt": "THM P , ( R v ( ~ ( ~ R ) ) ) , ( ( P > R ) > Q ) SEQ ( ~ ( ~ ( ( Q & P ) & ( P > Q ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0558",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ ( S & Q ) ) > ( ~ ( S & Q ) ) ) > ( S v ( R > F ) ) ) , ( ( R > F ) > S ) SEQ ( P > ( ( Q > ( ~ P ) ) > ( S & S ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_2354",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ ( P v P ) ) > ( ~ ( P v P ) ) ) > ( P v ( R & P ) ) ) , ( ( ( R & P ) > S ) v S ) SEQ ( ( ( R & P ) > S ) & ( P & ( P > P ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_0062",
+   "set": "t1320",
+   "prompt": "THM ( ( S > ( ~ R ) ) > ( ( P & Q ) & P ) ) , ( ( ( P & Q ) & P ) v ( S > ( ~ R ) ) ) , ( ( ~ S ) v ( ~ ( P & Q ) ) ) SEQ ( ~ S ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_0991",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ ( ~ S ) ) > ( ( R & Q ) v ( Q & Q ) ) ) , ( ( ~ F ) > P ) , ( ~ ( ~ S ) ) SEQ ( ( ~ F ) > ( ( ~ F ) > ( P & Q ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_0587",
+   "set": "t1320",
+   "prompt": "THM ( P v P ) , ( ( P v P ) > ( P > ( Q v Q ) ) ) SEQ ( R > ( ( Q v P ) & Q ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_2712",
+   "set": "t1320",
+   "prompt": "THM ( P > R ) , ( ( S & ( S v ( S & Q ) ) ) > ( R > Q ) ) , ( ( R v ( F & R ) ) v P ) SEQ ( ( S v ( S & Q ) ) > Q ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_1279",
+   "set": "t1320",
+   "prompt": "THM ( ( Q v S ) > ( P > R ) ) , ( ( P > R ) v ( Q v S ) ) , ( R v P ) SEQ ( ( ~ ( ~ ( ~ S ) ) ) > ( ( ~ S ) > ( R & ( ~ S ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_0969",
+   "set": "t1320",
+   "prompt": "THM ( ( P v S ) > ( ( Q & S ) v ( S & Q ) ) ) , ( P v S ) SEQ ( ( ~ ( ~ ( Q v S ) ) ) > ( ( S > Q ) > ( ( ( ~ S ) > ( ~ S ) ) & S ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_0712",
+   "set": "t1320",
+   "prompt": "THM ( S > ( ( S & R ) v ( Q v Q ) ) ) , ( ( Q v Q ) > R ) , ( ( ( S & P ) & R ) v ( S & ( S > P ) ) ) SEQ R PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.6875
+  },
+  {
+   "name": "t1320_0895",
+   "set": "t1320",
+   "prompt": "THM ( S > P ) , ( ( ( ~ ( ~ ( ~ S ) ) ) > ( ~ S ) ) > ( P v S ) ) , ( ( P v Q ) > ( ( R v S ) & ( Q & Q ) ) ) SEQ Q PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_1950",
+   "set": "t1320",
+   "prompt": "THM ( ( Q > S ) > ( ~ Q ) ) , ( ( Q > S ) v S ) , ( ( ~ Q ) > ( ~ ( S v Q ) ) ) SEQ ( ( R v ( P & R ) ) > ( ( ~ ( S v Q ) ) & R ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_0069",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ S ) > ( ~ P ) ) , ( ( ( ~ R ) > ( ~ R ) ) > ( ( ~ P ) v ( ~ S ) ) ) SEQ ( P > ( P > ( ( P v S ) & ( Q v R ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_0302",
+   "set": "t1320",
+   "prompt": "THM ( P v ( ~ ( Q & Q ) ) ) , ( ( S v Q ) > ( Q & Q ) ) , ( ( S v Q ) v Q ) SEQ P PRF",
+   "base_rate": 0.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_1945",
+   "set": "t1320",
+   "prompt": "THM ( R > S ) , ( ( ( P v P ) & P ) > ( S v R ) ) , P SEQ ( ( Q v ( ~ S ) ) > ( Q v Q ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.6875
+  },
+  {
+   "name": "t1320_0617",
+   "set": "t1320",
+   "prompt": "THM ( ( ( S > Q ) v R ) > Q ) , ( ( ( ~ P ) > ( ~ P ) ) > ( R v ( R & S ) ) ) SEQ ( ( S > Q ) & ( ( S > Q ) v R ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.6875
+  },
+  {
+   "name": "t1320_1104",
+   "set": "t1320",
+   "prompt": "THM ( ( S v S ) > ( ( ~ Q ) & ( ~ Q ) ) ) , ( ( S & ( P & P ) ) v Q ) , ( ( ~ Q ) v ( S v S ) ) SEQ P PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_0697",
+   "set": "t1320",
+   "prompt": "THM ( ( ( Q v Q ) & S ) v ( ~ ( R v R ) ) ) , ( ( ~ ( R v R ) ) > S ) , ( ( ~ P ) > F ) SEQ ( S & ( ( ( ~ ( ~ P ) ) & ( ~ ( ~ P ) ) ) & S ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.6875
+  },
+  {
+   "name": "t1320_0938",
+   "set": "t1320",
+   "prompt": "THM ( ( Q v R ) v S ) , ( R > Q ) , ( S > Q ) SEQ ( ( ( Q > R ) > R ) & Q ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_0622",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ P ) v Q ) , ( ( ( S & R ) > ( S & R ) ) > S ) , ( ( ( ~ P ) v Q ) > ( ~ Q ) ) SEQ ( S & ( ( ~ P ) & ( ( ~ P ) v Q ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_1188",
+   "set": "t1320",
+   "prompt": "THM ( Q > ( P v S ) ) , ( P v Q ) , ( S > P ) SEQ ( ( ~ ( ~ ( Q > R ) ) ) > ( R > ( P & P ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_2118",
+   "set": "t1320",
+   "prompt": "THM ( ~ ( ~ Q ) ) , ( ( ~ ( Q > ( S v S ) ) ) > F ) SEQ ( ( ~ ( P & R ) ) > ( R > ( ( ( R & S ) v ( S & S ) ) & ( S & S ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_2218",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ ( S v ( Q v Q ) ) ) > F ) , ( ( Q v Q ) > S ) , ( S > ( ~ R ) ) SEQ ( P > ( ( ~ R ) & ( Q > P ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_1299",
+   "set": "t1320",
+   "prompt": "THM ( ( R > ( ( ~ P ) v R ) ) > ( Q v P ) ) , ( P > Q ) SEQ ( ( ~ ( ~ R ) ) > ( ( ( S > Q ) > R ) > ( Q & ( Q & Q ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_2544",
+   "set": "t1320",
+   "prompt": "THM ( P > R ) , ( ( S > S ) > ( ( P v P ) v ( R v P ) ) ) , ( ( R v P ) > ( P v P ) ) SEQ ( ( ~ ( ~ ( Q v Q ) ) ) > ( Q > ( P & R ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_1483",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ ( R > Q ) ) > ( ~ ( R > Q ) ) ) > ( ( R & S ) v R ) ) SEQ ( P > ( P > ( ( ( ~ S ) & ( P v S ) ) > ( R & ( ~ S ) ) ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_0159",
+   "set": "t1320",
+   "prompt": "THM ( ( ( P > Q ) & R ) > ( ~ P ) ) , ( ( S > ( S & Q ) ) v P ) , ( ( ~ P ) v ( ( P > Q ) & R ) ) SEQ ( ( ~ P ) & ( S > ( S & Q ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_1187",
+   "set": "t1320",
+   "prompt": "THM ( ( Q & R ) v R ) , ( ( Q & R ) > ( R & ( ~ P ) ) ) , ( ~ ( ~ Q ) ) SEQ ( ( ( ~ P ) & ( ~ P ) ) & ( ( ~ ( ( ~ P ) & ( ~ P ) ) ) > S ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_2728",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ ( ~ P ) ) > ( ~ ( ~ P ) ) ) > ( R > P ) ) , ( ( ( ~ S ) v ( ~ P ) ) v ( P & F ) ) , ( R v P ) SEQ ( ~ S ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_2271",
+   "set": "t1320",
+   "prompt": "THM ( P > ( S & R ) ) , ( ( ( ~ R ) & P ) v ( R > Q ) ) , ( ( ~ ( ( S & R ) v P ) ) > F ) SEQ Q PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_0923",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ Q ) & ( ~ Q ) ) > ( P v ( R & P ) ) ) , ( ~ ( ( ( ~ ( ~ S ) ) & P ) v F ) ) , ( ~ Q ) SEQ ( ~ S ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_1629",
+   "set": "t1320",
+   "prompt": "THM ( ( Q & P ) v Q ) , ( ( Q & P ) > S ) , ( ( ~ P ) > F ) SEQ ( ( ~ ( ~ ( S > Q ) ) ) > ( ( S > Q ) > ( S v R ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_1261",
+   "set": "t1320",
+   "prompt": "THM ( R > P ) , ( S > P ) , ( ( S v R ) v R ) SEQ ( ( P & ( R > R ) ) & ( P & ( R > R ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_1995",
+   "set": "t1320",
+   "prompt": "THM ( ( ( P v P ) & ( S > P ) ) v ( ( P & S ) v ( S & Q ) ) ) , ( ( ( P & S ) v ( S & Q ) ) > ( P v P ) ) SEQ ( ( ( R & P ) v R ) > ( ( ~ ( ~ S ) ) > ( R & P ) ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_2610",
+   "set": "t1320",
+   "prompt": "THM ( ( R v R ) v R ) , ( S > ( R > P ) ) , S SEQ ( ( ( P > ( ~ Q ) ) v ( ~ P ) ) > ( ~ Q ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_2360",
+   "set": "t1320",
+   "prompt": "THM ( S > P ) , ( ( Q & R ) v Q ) , ( ( ( ~ ( ~ P ) ) > P ) > ( ( R & P ) v S ) ) SEQ ( ( P > R ) > ( Q & R ) ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_1808",
+   "set": "t1320",
+   "prompt": "THM ( ( ( S v R ) > S ) > ( ( P v Q ) & P ) ) , ( ( ( ~ ( ~ ( ~ P ) ) ) > S ) > S ) , ( R > S ) SEQ S PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_2165",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ S ) > ( ( ~ ( ~ R ) ) v ( P & R ) ) ) , ( ( R > Q ) v ( Q & ( R > Q ) ) ) , ( ( P & R ) v ( ~ S ) ) SEQ Q PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_0216",
+   "set": "t1320",
+   "prompt": "THM ( ~ ( ~ ( Q v Q ) ) ) , ( ( ( ~ P ) & P ) v S ) , ( Q > ( S > ( ~ P ) ) ) SEQ ( ~ P ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_1001",
+   "set": "t1320",
+   "prompt": "THM ( S > ( ( ~ P ) & ( S & Q ) ) ) , ( S v ( ~ R ) ) , ( ( ( Q & R ) & ( R & P ) ) v R ) SEQ ( ~ P ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_0287",
+   "set": "t1320",
+   "prompt": "THM ( ( P & R ) > ( ~ Q ) ) , ( ( ( Q v R ) & P ) v ( P & R ) ) , ( P > ( ( ~ Q ) v ( P & R ) ) ) SEQ ( ~ Q ) PRF",
+   "base_rate": 0.0,
+   "rl_rate": 0.875
+  }
+ ],
+ "S": [
+  {
+   "name": "textbook_03c97bc75456d954d80e",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( ( ~ ( ~ P ) ) > P ) & ( P > ( ~ ( ~ P ) ) ) ) PRF",
+   "base_rate": 0.9482421875,
+   "rl_rate": 0.9697265625
+  },
+  {
+   "name": "textbook_0ab235a31e23b0bbbc17",
+   "set": "charles149",
+   "prompt": "THM ( P > ( P > Q ) ) , ( ( P > Q ) > Q ) SEQ Q PRF",
+   "base_rate": 0.7939453125,
+   "rl_rate": 0.923828125
+  },
+  {
+   "name": "textbook_0ad92464052745011778",
+   "set": "charles149",
+   "prompt": "THM ( P v Q ) SEQ ( ~ ( ( ~ P ) & ( ~ Q ) ) ) PRF",
+   "base_rate": 0.515625,
+   "rl_rate": 0.9609375
+  },
+  {
+   "name": "textbook_10a0b9b200c3d7fdc17b",
+   "set": "charles149",
+   "prompt": "THM ( P > ( Q & R ) ) , ( P > S ) SEQ ( P > ( S & R ) ) PRF",
+   "base_rate": 0.984375,
+   "rl_rate": 0.998046875
+  },
+  {
+   "name": "textbook_12d1e9ba77154cecdaa4",
+   "set": "charles149",
+   "prompt": "THM ( P & ( Q v R ) ) , ( P > ( ~ R ) ) SEQ ( Q v S ) PRF",
+   "base_rate": 0.6220703125,
+   "rl_rate": 0.966796875
+  },
+  {
+   "name": "textbook_158a629091d4e5e68845",
+   "set": "charles149",
+   "prompt": "THM P , ( ( P & Q ) > ( R & S ) ) SEQ ( Q > R ) PRF",
+   "base_rate": 0.9443359375,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_1b669a5753a97113d412",
+   "set": "charles149",
+   "prompt": "THM ( P & ( Q v R ) ) , ( P > ( ~ R ) ) SEQ Q PRF",
+   "base_rate": 0.8984375,
+   "rl_rate": 0.9814453125
+  },
+  {
+   "name": "textbook_2385c0d627a315408a6e",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( P > ( P v P ) ) & ( ( P v P ) > P ) ) PRF",
+   "base_rate": 0.986328125,
+   "rl_rate": 0.984375
+  },
+  {
+   "name": "textbook_241044592d16d6e4efed",
+   "set": "charles149",
+   "prompt": "THM ( ~ ( P v Q ) ) , R , ( R > P ) SEQ F PRF",
+   "base_rate": 0.9951171875,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "textbook_27bbad163b491d468407",
+   "set": "charles149",
+   "prompt": "THM ( ( P v Q ) v R ) , ( ~ R ) , ( ~ Q ) SEQ ( P v S ) PRF",
+   "base_rate": 0.43359375,
+   "rl_rate": 0.9921875
+  },
+  {
+   "name": "textbook_2b87804855d6199597d7",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( P & Q ) > ( ( P > Q ) > P ) ) PRF",
+   "base_rate": 0.998046875,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "textbook_2c11961d305c0c9b6759",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) SEQ ( ( ( R > S ) & ( S > R ) ) v Q ) PRF",
+   "base_rate": 0.943359375,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_2e44197318839943ac9c",
+   "set": "charles149",
+   "prompt": "THM ( ( ( P > P ) & ( P > P ) ) & ( Q & ( ~ Q ) ) ) SEQ F PRF",
+   "base_rate": 0.53125,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_30018c9c991412364923",
+   "set": "charles149",
+   "prompt": "THM ( P > ( P & ( ~ P ) ) ) SEQ ( ~ P ) PRF",
+   "base_rate": 0.6240234375,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "textbook_331bdc4a2ec5c8c2c7c0",
+   "set": "charles149",
+   "prompt": "THM ( P v ( ~ Q ) ) , ( ( ~ P ) v ( ~ Q ) ) SEQ ( ~ Q ) PRF",
+   "base_rate": 0.306640625,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "textbook_33bfcb662809c6c030c6",
+   "set": "charles149",
+   "prompt": "THM ( P v ( ~ ( ~ Q ) ) ) SEQ ( P v Q ) PRF",
+   "base_rate": 0.673828125,
+   "rl_rate": 0.998046875
+  },
+  {
+   "name": "textbook_34ece9058da2761b0326",
+   "set": "charles149",
+   "prompt": "THM ( P & ( Q & R ) ) SEQ ( ( P & Q ) & R ) PRF",
+   "base_rate": 0.490234375,
+   "rl_rate": 0.9912109375
+  },
+  {
+   "name": "textbook_36d8dc85a05b9a9d5115",
+   "set": "charles149",
+   "prompt": "THM ( ( P > ( Q & R ) ) & ( ( Q & R ) > P ) ) , ( R > P ) SEQ ( ( P > R ) & ( R > P ) ) PRF",
+   "base_rate": 0.5244140625,
+   "rl_rate": 0.9423828125
+  },
+  {
+   "name": "textbook_3cce87a8e9784b381b83",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) , R , ( ( Q & R ) > S ) SEQ S PRF",
+   "base_rate": 0.8828125,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_3e09df797e2d4b8ee95c",
+   "set": "charles149",
+   "prompt": "THM ( P > ( Q & R ) ) , ( ~ R ) SEQ ( ~ ( P & S ) ) PRF",
+   "base_rate": 0.8642578125,
+   "rl_rate": 0.998046875
+  },
+  {
+   "name": "textbook_43216153b8cb762ae45f",
+   "set": "charles149",
+   "prompt": "THM ( ~ ( ~ ( ~ ( ~ P ) ) ) ) SEQ P PRF",
+   "base_rate": 0.8798828125,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_44077e177fc389ba650a",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( P > ( ~ ( ~ P ) ) ) & ( ( ~ ( ~ P ) ) > P ) ) PRF",
+   "base_rate": 0.9521484375,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_46701b298f4b81ffd08a",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) SEQ ( ~ ( P & ( ~ Q ) ) ) PRF",
+   "base_rate": 0.953125,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "textbook_4814343dfe60095b930f",
+   "set": "charles149",
+   "prompt": "THM ( ( P & ( ~ Q ) ) > Q ) SEQ ( P > Q ) PRF",
+   "base_rate": 0.9345703125,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "textbook_4a8cfd28c11708238126",
+   "set": "charles149",
+   "prompt": "THM ( ( ~ P ) v ( Q > R ) ) SEQ ( ( P & Q ) > R ) PRF",
+   "base_rate": 0.9833984375,
+   "rl_rate": 0.98046875
+  },
+  {
+   "name": "textbook_4b5310bb6a5c8a1bbf2d",
+   "set": "charles149",
+   "prompt": "THM ( P > ( Q > R ) ) , ( S > Q ) SEQ ( P > ( S > R ) ) PRF",
+   "base_rate": 0.8662109375,
+   "rl_rate": 0.9912109375
+  },
+  {
+   "name": "textbook_4cb66e0be9e0934acab6",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) , ( Q > ( P > R ) ) SEQ ( R & Q ) PRF",
+   "base_rate": 0.740234375,
+   "rl_rate": 0.998046875
+  },
+  {
+   "name": "textbook_5d3bc34b8343293008e6",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( Q > R ) SEQ ( ( P & S ) > R ) PRF",
+   "base_rate": 0.65234375,
+   "rl_rate": 0.998046875
+  },
+  {
+   "name": "textbook_5de38c2037f06951c19e",
+   "set": "charles149",
+   "prompt": "THM ( ( P & Q ) v ( P & R ) ) SEQ P PRF",
+   "base_rate": 0.994140625,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_5de54e13acab762c32cc",
+   "set": "charles149",
+   "prompt": "THM ( P > ( ~ ( Q & R ) ) ) , ( Q > R ) SEQ ( P > ( ~ Q ) ) PRF",
+   "base_rate": 0.5302734375,
+   "rl_rate": 0.982421875
+  },
+  {
+   "name": "textbook_6372a1fb428b1517320f",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) SEQ ( ( ( P & Q ) > P ) & ( P > ( P & Q ) ) ) PRF",
+   "base_rate": 0.9697265625,
+   "rl_rate": 0.9990234375
+  },
+  {
+   "name": "textbook_68b585407ce115e1ecf6",
+   "set": "charles149",
+   "prompt": "THM ( ( P > ( P > Q ) ) & ( ( P > Q ) > P ) ) SEQ ( P > Q ) PRF",
+   "base_rate": 0.37109375,
+   "rl_rate": 0.712890625
+  },
+  {
+   "name": "textbook_6938b2283ffad30e6387",
+   "set": "charles149",
+   "prompt": "THM ( ~ ( P & Q ) ) , ( ( ( ~ ( P & Q ) ) > R ) & ( R > ( ~ ( P & Q ) ) ) ) SEQ ( P v R ) PRF",
+   "base_rate": 0.3310546875,
+   "rl_rate": 0.8681640625
+  },
+  {
+   "name": "textbook_6c3a988514b8a2c9259f",
+   "set": "charles149",
+   "prompt": "THM ( ( P & Q ) > ( R & S ) ) SEQ ( ( ( P & Q ) > R ) & ( ( P & Q ) > S ) ) PRF",
+   "base_rate": 0.85546875,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_6f2140ac492f40fc582a",
+   "set": "charles149",
+   "prompt": "THM ( P & ( ( ~ P ) v Q ) ) , ( Q > R ) SEQ R PRF",
+   "base_rate": 0.9619140625,
+   "rl_rate": 0.9912109375
+  },
+  {
+   "name": "textbook_6fafb78b1ceff04e0dee",
+   "set": "charles149",
+   "prompt": "THM ( ( P & Q ) > R ) , ( P v ( ~ S ) ) , ( S & Q ) SEQ R PRF",
+   "base_rate": 0.458984375,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "textbook_70f616e852eadc25705c",
+   "set": "charles149",
+   "prompt": "THM ( ( P > Q ) > R ) , Q SEQ R PRF",
+   "base_rate": 0.98046875,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "textbook_72ac2b43fbfaff019664",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( P & ( ~ P ) ) > ( Q & ( ~ Q ) ) ) PRF",
+   "base_rate": 0.9931640625,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_75a4cb543763dcbc6224",
+   "set": "charles149",
+   "prompt": "THM ( ( ( ~ P ) v Q ) v R ) , ( R > ( ~ S ) ) SEQ ( ( P & S ) > Q ) PRF",
+   "base_rate": 0.82421875,
+   "rl_rate": 0.9794921875
+  },
+  {
+   "name": "textbook_7b5ce23d034141665d02",
+   "set": "charles149",
+   "prompt": "THM ( P > ( ~ Q ) ) , ( ~ ( R & P ) ) SEQ ( ( Q v R ) > ( ~ P ) ) PRF",
+   "base_rate": 0.732421875,
+   "rl_rate": 0.9990234375
+  },
+  {
+   "name": "textbook_7c28a8f7423fde99f79c",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) SEQ ( ( P > Q ) & ( Q > P ) ) PRF",
+   "base_rate": 0.482421875,
+   "rl_rate": 0.8564453125
+  },
+  {
+   "name": "textbook_7d7325c3e090d7880e32",
+   "set": "charles149",
+   "prompt": "THM ( ( ~ P ) > Q ) , ( P > ( ~ Q ) ) SEQ ( ( ( ~ P ) > Q ) & ( Q > ( ~ P ) ) ) PRF",
+   "base_rate": 0.6142578125,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "textbook_80573e8091085933fe07",
+   "set": "charles149",
+   "prompt": "THM ( ( P & Q ) v ( Q & R ) ) , ( Q > S ) SEQ S PRF",
+   "base_rate": 0.9775390625,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_86a113ae07a817d553eb",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( ( P > Q ) & ( ~ Q ) ) > ( ~ P ) ) PRF",
+   "base_rate": 0.8623046875,
+   "rl_rate": 0.9990234375
+  },
+  {
+   "name": "textbook_87a23fa584426b3d9328",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( Q > ( R & P ) ) SEQ ( ( P > Q ) & ( Q > P ) ) PRF",
+   "base_rate": 0.9765625,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_9010f2a1ef772ceb138c",
+   "set": "charles149",
+   "prompt": "THM ( P > ( Q v ( ~ P ) ) ) , P SEQ Q PRF",
+   "base_rate": 0.9921875,
+   "rl_rate": 0.9990234375
+  },
+  {
+   "name": "textbook_90ce2bec9deab50997da",
+   "set": "charles149",
+   "prompt": "THM ( ( P v Q ) > ( ( Q > R ) & ( R > Q ) ) ) , Q SEQ ( Q & R ) PRF",
+   "base_rate": 0.927734375,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_921620f6be6e3b10986f",
+   "set": "charles149",
+   "prompt": "THM ( ( P & ( ~ Q ) ) > ( ~ R ) ) SEQ ( ( P & R ) > Q ) PRF",
+   "base_rate": 0.7568359375,
+   "rl_rate": 0.994140625
+  },
+  {
+   "name": "textbook_95041444f8cb17626d64",
+   "set": "charles149",
+   "prompt": "THM ( ( P & Q ) v R ) SEQ ( R v Q ) PRF",
+   "base_rate": 0.3837890625,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_950785750a0720aef8ee",
+   "set": "charles149",
+   "prompt": "THM P , Q SEQ ( ( ( ~ P ) > ( ~ Q ) ) & ( ( ~ Q ) > ( ~ P ) ) ) PRF",
+   "base_rate": 0.4814453125,
+   "rl_rate": 0.404296875
+  },
+  {
+   "name": "textbook_9b042a4a7fa74ab578cb",
+   "set": "charles149",
+   "prompt": "THM ( P v ( ( ~ P ) & Q ) ) SEQ ( P v Q ) PRF",
+   "base_rate": 0.6806640625,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_9b3b736284930ddf1e19",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) , ( ( Q v R ) > S ) SEQ S PRF",
+   "base_rate": 0.8876953125,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_9dce54aa7519dfd38167",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( ~ ( P > Q ) ) > ( Q > P ) ) PRF",
+   "base_rate": 0.9970703125,
+   "rl_rate": 0.9990234375
+  },
+  {
+   "name": "textbook_9f32715a4fdbe0ab0197",
+   "set": "charles149",
+   "prompt": "THM ( ~ P ) SEQ ( ~ ( Q & P ) ) PRF",
+   "base_rate": 0.9921875,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "textbook_9f8530f273dc8191d06c",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( P > ( P v ( Q & ( ~ Q ) ) ) ) & ( ( P v ( Q & ( ~ Q ) ) ) > P ) ) PRF",
+   "base_rate": 0.9072265625,
+   "rl_rate": 0.9140625
+  },
+  {
+   "name": "textbook_9fc6c4ccff942858d7b3",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) , ( P > R ) , ( Q > S ) SEQ ( R & S ) PRF",
+   "base_rate": 0.5986328125,
+   "rl_rate": 0.998046875
+  },
+  {
+   "name": "textbook_a65326c83332278d644e",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( Q > R ) , ( R > S ) SEQ ( P > S ) PRF",
+   "base_rate": 0.6806640625,
+   "rl_rate": 0.994140625
+  },
+  {
+   "name": "textbook_b1bba4434e7f22c50dc6",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) , ( Q > ( R & S ) ) SEQ ( P & S ) PRF",
+   "base_rate": 0.9267578125,
+   "rl_rate": 0.9990234375
+  },
+  {
+   "name": "textbook_b39a067a731a88ac3b2e",
+   "set": "charles149",
+   "prompt": "THM ( P > ( Q > R ) ) SEQ ( ( ~ R ) > ( ~ ( P & Q ) ) ) PRF",
+   "base_rate": 0.8017578125,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_bf61a48e793cb331db6e",
+   "set": "charles149",
+   "prompt": "THM ( ( ~ P ) > ( Q v P ) ) , ( ~ P ) SEQ Q PRF",
+   "base_rate": 0.986328125,
+   "rl_rate": 0.9970703125
+  },
+  {
+   "name": "textbook_caed5d59878a9f7a961d",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( P > ( P & P ) ) & ( ( P & P ) > P ) ) PRF",
+   "base_rate": 0.984375,
+   "rl_rate": 0.9384765625
+  },
+  {
+   "name": "textbook_d082ad7b7083a55db8a1",
+   "set": "charles149",
+   "prompt": "THM ( P > ( ( Q & P ) > R ) ) , ( P & Q ) SEQ R PRF",
+   "base_rate": 0.44140625,
+   "rl_rate": 0.9951171875
+  },
+  {
+   "name": "textbook_d2a08b1d783ac35a6f07",
+   "set": "charles149",
+   "prompt": "THM ( P v Q ) , ( ( ~ Q ) v R ) , ( ~ R ) SEQ P PRF",
+   "base_rate": 0.4287109375,
+   "rl_rate": 0.994140625
+  },
+  {
+   "name": "textbook_d66e5d2ec8cab38d5b68",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( ( R > Q ) > ( ~ P ) ) SEQ ( ~ P ) PRF",
+   "base_rate": 0.3408203125,
+   "rl_rate": 0.98828125
+  },
+  {
+   "name": "textbook_d6b908b9f5a04da5eb8e",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) , ( P > ( Q > R ) ) SEQ ( P > ( Q & R ) ) PRF",
+   "base_rate": 0.8095703125,
+   "rl_rate": 0.853515625
+  },
+  {
+   "name": "textbook_daf2d92294493b63e627",
+   "set": "charles149",
+   "prompt": "THM ( ( P > ( ~ P ) ) & ( ( ~ P ) > P ) ) SEQ F PRF",
+   "base_rate": 0.6259765625,
+   "rl_rate": 0.98828125
+  },
+  {
+   "name": "textbook_db6d3b54eef1e05a7c29",
+   "set": "charles149",
+   "prompt": "THM SEQ ( ( ( ~ P ) > ( ~ Q ) ) > ( ( ( ~ P ) > Q ) > P ) ) PRF",
+   "base_rate": 0.8671875,
+   "rl_rate": 0.953125
+  },
+  {
+   "name": "textbook_dd8c336103f01138f76d",
+   "set": "charles149",
+   "prompt": "THM ( P v ( ~ Q ) ) , ( Q v R ) , ( ~ P ) SEQ R PRF",
+   "base_rate": 0.7294921875,
+   "rl_rate": 0.9912109375
+  },
+  {
+   "name": "textbook_e5cfe82b533b6643a29c",
+   "set": "charles149",
+   "prompt": "THM ( P > Q ) SEQ ( ( P & R ) > ( Q v S ) ) PRF",
+   "base_rate": 0.6298828125,
+   "rl_rate": 0.9921875
+  },
+  {
+   "name": "textbook_ee78aa5facb31dea0f2b",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) , ( ( P > R ) & ( Q > S ) ) SEQ ( R & S ) PRF",
+   "base_rate": 0.6337890625,
+   "rl_rate": 0.970703125
+  },
+  {
+   "name": "textbook_eeea9b8ca0abb3c55c55",
+   "set": "charles149",
+   "prompt": "THM ( P & ( P > ( P & Q ) ) ) SEQ Q PRF",
+   "base_rate": 0.5556640625,
+   "rl_rate": 0.609375
+  },
+  {
+   "name": "textbook_fcf1f314b60800e5aff4",
+   "set": "charles149",
+   "prompt": "THM ( P & Q ) , ( ( Q & P ) > R ) SEQ R PRF",
+   "base_rate": 0.888671875,
+   "rl_rate": 0.99609375
+  },
+  {
+   "name": "t1320_2204",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ P ) v ( S & S ) ) v S ) , ( P v ( Q & ( R v P ) ) ) , ( ( S & S ) > ( ~ P ) ) SEQ Q PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_1216",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ Q ) v P ) v ( ~ ( ~ P ) ) ) , ( ( ~ ( ( ~ P ) & ( ( ~ P ) v P ) ) ) > F ) SEQ ( ~ Q ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_1098",
+   "set": "t1320",
+   "prompt": "THM ( ( R & ( S v P ) ) v ( ( S & P ) > Q ) ) , ( ( ( S & P ) > Q ) > ( R v ( R & ( S v P ) ) ) ) SEQ ( ( ~ ( ~ ( ~ R ) ) ) > ( ( ~ R ) > R ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_2535",
+   "set": "t1320",
+   "prompt": "THM ( ( ( Q v Q ) v ( R > Q ) ) v Q ) , R SEQ ( ( P > P ) > ( P > ( ( ~ ( ~ S ) ) > ( Q & P ) ) ) ) PRF",
+   "base_rate": 0.9166666666666666,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_1278",
+   "set": "t1320",
+   "prompt": "THM ( ( P & ( R > Q ) ) v ( Q & ( R v Q ) ) ) , R , ( ( ( Q & R ) & S ) v ( S & P ) ) SEQ ( R & ( ( Q & R ) & S ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_1846",
+   "set": "t1320",
+   "prompt": "THM ( ( ( R v R ) & ( R v R ) ) v ( ~ ( R v P ) ) ) , ( ( ~ ( R v P ) ) > ( ( R v R ) & ( R v R ) ) ) , ( ( R & ( Q > R ) ) > S ) SEQ ( ( R & ( Q > R ) ) & S ) PRF",
+   "base_rate": 0.9166666666666666,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0027",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ P ) v ( Q & P ) ) , ( ( Q & P ) > ( R & ( ~ P ) ) ) SEQ ( ( ~ ( ~ ( R v S ) ) ) > ( P > ( ( ~ R ) > ( R & Q ) ) ) ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 0.5625
+  },
+  {
+   "name": "t1320_0273",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ ( ( R > S ) & ( S & P ) ) ) > F ) , R , ( R > Q ) SEQ ( ( R & Q ) & ( P v S ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_0279",
+   "set": "t1320",
+   "prompt": "THM ( ( P & ( ~ S ) ) v ( ~ ( ~ P ) ) ) , ( ( ~ S ) > F ) SEQ ( ( P v P ) & S ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_1143",
+   "set": "t1320",
+   "prompt": "THM ( ( ( R v R ) v R ) v R ) SEQ ( ( ~ S ) > ( ( ~ R ) > ( P > ( ~ P ) ) ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_2234",
+   "set": "t1320",
+   "prompt": "THM ( ( Q > P ) v ( R & Q ) ) , ( ( R & Q ) > ( ( Q > P ) v P ) ) , Q SEQ ( ( S > S ) > ( P & ( ( Q & ( P & P ) ) v S ) ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_2319",
+   "set": "t1320",
+   "prompt": "THM ( ( P v P ) v ( ( S > S ) & P ) ) , ( ( P & ( ~ R ) ) > ( Q & ( S v S ) ) ) , ( ( Q & ( S v S ) ) v ( P & ( ~ R ) ) ) SEQ ( P & S ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_1044",
+   "set": "t1320",
+   "prompt": "THM ( ( ( P v R ) & R ) v ( Q v R ) ) , ( ( Q v R ) > ( ( P v R ) & R ) ) , ( P v P ) SEQ ( ( ~ ( R & P ) ) > ( ( ~ ( R & P ) ) & ( R & P ) ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0358",
+   "set": "t1320",
+   "prompt": "THM ( S v S ) , ( ( R v P ) & ( R v P ) ) , ( S > ( P > F ) ) SEQ R PRF",
+   "base_rate": 0.5,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_1225",
+   "set": "t1320",
+   "prompt": "THM ( ( P v ( R & P ) ) v ( Q & ( P > S ) ) ) , ( ( Q & ( P > S ) ) > ( R & P ) ) SEQ ( ( ~ ( ~ ( ~ P ) ) ) > ( ( ~ R ) & F ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_1039",
+   "set": "t1320",
+   "prompt": "THM ( ( P > ( P v P ) ) > ( ~ S ) ) , ( ( R v ( S & R ) ) v S ) SEQ R PRF",
+   "base_rate": 0.8333333333333334,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0330",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ ( Q & R ) ) > ( P & Q ) ) , ( ( ( ~ P ) & ( P & Q ) ) v ( ~ ( Q & R ) ) ) SEQ ( ( P > S ) > ( ( ( Q & S ) > S ) > S ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_2923",
+   "set": "t1320",
+   "prompt": "THM ( ( ( ~ ( ~ Q ) ) > ( Q v ( ~ ( ~ Q ) ) ) ) > Q ) , ( ( Q & ( R > S ) ) v S ) , ( ( Q & ( R > S ) ) > P ) SEQ ( R > ( ( R v ( ~ P ) ) & ( P & Q ) ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.5
+  },
+  {
+   "name": "t1320_0975",
+   "set": "t1320",
+   "prompt": "THM ( S > ( ( Q & Q ) v ( Q & P ) ) ) , ( ( ( Q & Q ) v ( Q & P ) ) v S ) SEQ ( ( ~ ( ~ R ) ) > ( Q & ( Q v R ) ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_0436",
+   "set": "t1320",
+   "prompt": "THM ( P v ( ( ~ F ) & P ) ) , ( R v ( ~ P ) ) SEQ ( R & ( ( P & P ) & ( R v ( ~ P ) ) ) ) PRF",
+   "base_rate": 0.8333333333333334,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_0038",
+   "set": "t1320",
+   "prompt": "THM ( ( ( Q > P ) & P ) v ( S > F ) ) , ( ( ( ~ Q ) > ( R > R ) ) > S ) SEQ P PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0196",
+   "set": "t1320",
+   "prompt": "THM ( ( ( Q & Q ) & Q ) > P ) , ( Q v P ) SEQ ( S > ( ( ~ P ) > ( P & ( ~ P ) ) ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_0691",
+   "set": "t1320",
+   "prompt": "THM ( P v ( ~ ( ~ R ) ) ) , ( P > ( ( Q & Q ) & R ) ) SEQ ( ( R v ( ~ R ) ) > ( ( ~ R ) > ( ( ~ R ) > ( ( S > Q ) & ( Q > R ) ) ) ) ) PRF",
+   "base_rate": 0.8333333333333334,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_1636",
+   "set": "t1320",
+   "prompt": "THM ( F v R ) , ( ( ( S v S ) v ( R & S ) ) v S ) SEQ ( S & R ) PRF",
+   "base_rate": 1.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0357",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ S ) v ( ( ~ S ) v ( S & P ) ) ) , ( ( ( ~ S ) v ( S & P ) ) > ( ~ ( Q > S ) ) ) SEQ ( ( ~ ( S & ( R & Q ) ) ) > ( ( Q > S ) > ( Q > R ) ) ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_1135",
+   "set": "t1320",
+   "prompt": "THM ( ( ( P & R ) v R ) v ( ( ~ F ) & Q ) ) , ( ( ( ~ F ) & Q ) > ( ( P & R ) v R ) ) SEQ ( ( ~ ( ~ P ) ) > ( S v ( ( ~ R ) > R ) ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_0787",
+   "set": "t1320",
+   "prompt": "THM ( S v ( ~ ( ~ S ) ) ) , ( ( ( P v P ) & ( Q v Q ) ) v ( Q & S ) ) SEQ ( ( Q & S ) & S ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_2380",
+   "set": "t1320",
+   "prompt": "THM ( S > R ) , ( ( ( R v R ) v R ) v S ) , ( ( Q v P ) v ( Q & P ) ) SEQ ( R & ( Q v P ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_1024",
+   "set": "t1320",
+   "prompt": "THM ( ( R & R ) v ( ~ Q ) ) , ( ( ( Q & P ) & ( Q v Q ) ) v ( ~ ( ~ Q ) ) ) SEQ ( ( ( R & R ) v ( ~ Q ) ) & R ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_0314",
+   "set": "t1320",
+   "prompt": "THM ( ( ( S & S ) v ( R & S ) ) v S ) SEQ ( ( ( ~ ( ~ S ) ) > S ) & S ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_1032",
+   "set": "t1320",
+   "prompt": "THM ( ( R & R ) v ( Q > R ) ) , Q , ( ( R > P ) & ( S > S ) ) SEQ ( S > ( ( P & P ) & ( R v P ) ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_0115",
+   "set": "t1320",
+   "prompt": "THM ( P & P ) , R , ( ( R & R ) > ( ( Q > S ) v ( ~ P ) ) ) SEQ ( Q > ( Q > S ) ) PRF",
+   "base_rate": 0.75,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_1031",
+   "set": "t1320",
+   "prompt": "THM ( ( Q v P ) v Q ) , ( ( Q & ( ( Q v P ) v Q ) ) > P ) SEQ ( ( ~ P ) > ( ( S v S ) > ( ( S v S ) > ( R > P ) ) ) ) PRF",
+   "base_rate": 1.0,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0275",
+   "set": "t1320",
+   "prompt": "THM S , ( ( S > ( P & R ) ) v ( R & ( Q & F ) ) ) SEQ ( ( R > ( R v R ) ) & ( R v R ) ) PRF",
+   "base_rate": 0.8333333333333334,
+   "rl_rate": 0.75
+  },
+  {
+   "name": "t1320_0157",
+   "set": "t1320",
+   "prompt": "THM S , ( ( S > ( ( ( S v S ) v S ) v P ) ) > P ) SEQ ( ( ( ~ R ) > ( R & S ) ) > ( ( R > S ) & P ) ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_1101",
+   "set": "t1320",
+   "prompt": "THM ( ( R > ( P v P ) ) v ( R & P ) ) , R , ( ( Q > P ) > ( S > Q ) ) SEQ ( ( Q > P ) & ( S > Q ) ) PRF",
+   "base_rate": 0.9166666666666666,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_0957",
+   "set": "t1320",
+   "prompt": "THM ( ~ ( ~ P ) ) , ( ( P & Q ) v Q ) , ( ( P & Q ) > ( Q & ( ~ R ) ) ) SEQ ( ( R > S ) & ( R > S ) ) PRF",
+   "base_rate": 1.0,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_3011",
+   "set": "t1320",
+   "prompt": "THM ( ( S v ( S & S ) ) v ( ( ~ Q ) & ( P v S ) ) ) , ( ( ( ~ Q ) & ( P v S ) ) > S ) , ( ( Q v ( P & Q ) ) v ( ~ S ) ) SEQ Q PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_1647",
+   "set": "t1320",
+   "prompt": "THM S , ( ( S > ( P & R ) ) v ( R & ( R v S ) ) ) , ( R > ( ( P v F ) v P ) ) SEQ P PRF",
+   "base_rate": 0.9166666666666666,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0377",
+   "set": "t1320",
+   "prompt": "THM ( ( S > R ) > ( ( ( ~ S ) v ( ~ S ) ) & ( ~ S ) ) ) , ( ( ~ S ) v ( S > R ) ) SEQ ( ( ~ Q ) > ( ( ~ ( ~ S ) ) > ( S > ( ( ~ S ) & P ) ) ) ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 0.6875
+  },
+  {
+   "name": "t1320_0972",
+   "set": "t1320",
+   "prompt": "THM ( ( S v P ) v ( ( S v S ) & S ) ) , Q , ( ( ( Q v S ) & Q ) > ( ~ P ) ) SEQ S PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.8125
+  },
+  {
+   "name": "t1320_0392",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ R ) v ( R > Q ) ) , ( ( R > Q ) > ( ( ( ~ R ) v ( R > Q ) ) & ( ~ R ) ) ) , ( ( ( P > P ) & P ) v R ) SEQ P PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_0450",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ ( ~ Q ) ) v Q ) , ( ( ( ~ ( ~ Q ) ) v P ) > P ) SEQ ( ( ~ P ) > ( ( ( ~ P ) & R ) & P ) ) PRF",
+   "base_rate": 0.8333333333333334,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_0264",
+   "set": "t1320",
+   "prompt": "THM ( ( P v S ) > ( S & P ) ) , ( Q > ( P v S ) ) , ( Q v ( ( P v R ) & Q ) ) SEQ ( R > ( ( ( P v S ) & ( P v S ) ) & ( S & P ) ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 0.625
+  },
+  {
+   "name": "t1320_0468",
+   "set": "t1320",
+   "prompt": "THM ( ( ( Q v R ) > ( S > S ) ) > S ) , ( ( P & R ) v ( ~ S ) ) SEQ ( ( R v ( ~ P ) ) v R ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 0.875
+  },
+  {
+   "name": "t1320_0747",
+   "set": "t1320",
+   "prompt": "THM ( ( R v ( ( S & P ) v P ) ) > ( P > S ) ) , ( ( S & P ) v P ) , Q SEQ ( Q & ( ( R > S ) & Q ) ) PRF",
+   "base_rate": 0.5833333333333334,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0520",
+   "set": "t1320",
+   "prompt": "THM ( ( ~ R ) v ( ~ P ) ) , ( ( Q & ( Q v S ) ) v Q ) , ( Q > ( P & ( Q v S ) ) ) SEQ ( ~ R ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 1.0
+  },
+  {
+   "name": "t1320_0067",
+   "set": "t1320",
+   "prompt": "THM ( ( ( Q & Q ) v ( R & S ) ) > Q ) , ( Q v ( ( Q & Q ) v ( R & S ) ) ) , ( ~ ( ~ ( P > R ) ) ) SEQ ( P > ( ( Q & ( P > R ) ) & ( ( Q & ( P > R ) ) v Q ) ) ) PRF",
+   "base_rate": 0.6666666666666666,
+   "rl_rate": 0.9375
+  },
+  {
+   "name": "t1320_2183",
+   "set": "t1320",
+   "prompt": "THM ( ( P > S ) v S ) , ( R > ( ( P & P ) v P ) ) , ( P v R ) SEQ ( Q > ( S & S ) ) PRF",
+   "base_rate": 0.5,
+   "rl_rate": 1.0
+  }
+ ],
+ "info": {
+  "G": {
+   "charles149": 20,
+   "t1320": 60
+  },
+  "S": {
+   "charles149": 72,
+   "t1320": 49
+  },
+  "t1320_pool": {
+   "G": 155,
+   "S": 49
+  }
+ }
+}
