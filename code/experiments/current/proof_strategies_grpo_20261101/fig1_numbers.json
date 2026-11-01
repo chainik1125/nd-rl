@@ -1,0 +1,386 @@
+{
+ "a": {
+  "base": {
+   "k": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024
+   ],
+   "mean": [
+    32.646025587248324,
+    40.95414833822092,
+    47.78731084423378,
+    53.26047651043212,
+    57.74641449535301,
+    61.60674614311129,
+    65.06443531204225,
+    68.09083824742102,
+    70.73321424464794,
+    72.93590848913517,
+    74.49664429530202
+   ],
+   "lo": [
+    24.33448467211969,
+    31.631937685317542,
+    38.32440820889026,
+    43.977432127241066,
+    48.663050778524386,
+    52.86693469110892,
+    56.67155238038093,
+    59.94771831291039,
+    62.65981082365792,
+    65.09398125257007,
+    66.66666666666666
+   ],
+   "hi": [
+    41.01153414254754,
+    50.07469642486648,
+    57.18206526692073,
+    62.3699419260435,
+    66.49612043206294,
+    70.01284838085408,
+    73.10841908343369,
+    75.88972545607207,
+    78.38306938487963,
+    80.34823963349552,
+    81.65548098434004
+   ]
+  },
+  "rl": {
+   "k": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024
+   ],
+   "mean": [
+    70.54822951621924,
+    75.54748201871496,
+    78.3384075939414,
+    79.96295428647582,
+    81.14571513930827,
+    82.34163112902532,
+    83.63198963835957,
+    84.84209391071936,
+    85.71413002758004,
+    86.2634239825434,
+    86.57718120805369
+   ],
+   "lo": [
+    64.12385740002797,
+    69.20752635764784,
+    72.01852124378216,
+    73.69005740432908,
+    74.97257481670817,
+    76.26324015785993,
+    77.5286660487397,
+    78.72358101645628,
+    79.63254010796807,
+    80.0802133132438,
+    80.31319910514542
+   ],
+   "hi": [
+    76.32854555543904,
+    81.30150811348082,
+    84.13426722293482,
+    85.64549520790979,
+    86.71090877693307,
+    87.75725305236787,
+    88.89552097950398,
+    89.9463849101514,
+    90.71703282972166,
+    91.26448897182149,
+    91.72259507829978
+   ]
+  }
+ },
+ "b": [
+  {
+   "name": "textbook_49b7d961bb8d378750b8",
+   "prompt": "THM ( ( ~ P ) > ( ~ ( ~ Q ) ) ) , ( ( ~ ( ~ R ) ) > ( ~ P ) ) , ( ( ~ R ) > Q ) SEQ Q PRF",
+   "nd": "N1 ( ( ~ P ) > ( ~ ( ~ Q ) ) ) : PR ; N2 ( ( ~ ( ~ R ) ) > ( ~ P ) ) : PR ; N3 ( ( ~ R ) > Q ) : PR ; N4 | ( ~ Q ) : AS ; N5 | | ( ~ R ) : AS ; N6 | | Q : IMPE N3 N5 ; N7 | | F : NEGE N6 N4 ; N8 | ( ~ ( ~ R ) ) : NEGI N5 N7 ; N9 | ( ~ P ) : IMPE N2 N8 ; N10 | ( ~ ( ~ Q ) ) : IMPE N1 N9 ; N11 | F : NEGE N4 N10 ; N12 ( ~ ( ~ Q ) ) : NEGI N4 N11 ; N13 Q : DN N12 ; QED",
+   "count": 41,
+   "seed": 2,
+   "k": 1024,
+   "rl_n_ok_seeds": [
+    592,
+    3,
+    451
+   ],
+   "base_n_ok_seeds": [
+    0,
+    0,
+    0
+   ],
+   "lean_texts": [
+    "have n3 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n4 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n5 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n6 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n7 : ( \u00ac Q ) ) => by have n8 : ( \u00ac ( \u00ac R ) ) := ( fun ( n9 : ( \u00ac R ) ) => by have n10 : Q := n5 n9 ; have n11 : False := n7 n10 ; exact ( n11 : False ) ) ; have n9 : ( \u00ac P ) := n4 n8 ; have n10 : ( \u00ac ( \u00ac Q ) ) := n3 n9 ; have n11 : False := n10 n7 ; exact ( n11 : False ) ) ; have n7 : Q := Classical.byContradiction ( fun hh => n6 hh ) ; exact n7",
+    "have n27 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n28 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n29 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n30 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n31 : ( \u00ac Q ) ) => by have n32 : ( \u00ac ( \u00ac R ) ) := ( fun ( n33 : ( \u00ac R ) ) => by have n34 : Q := n29 n33 ; have n35 : False := n31 n34 ; exact ( n35 : False ) ) ; have n33 : ( \u00ac P ) := n28 n32 ; have n34 : ( \u00ac ( \u00ac Q ) ) := n27 n33 ; have n35 : False := n34 n31 ; exact ( n35 : False ) ) ; have n31 : Q := Classical.byContradiction ( fun hh => n30 hh ) ; exact n31",
+    "have n25 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n26 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n27 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n28 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n29 : ( \u00ac Q ) ) => by have n30 : ( \u00ac ( \u00ac R ) ) := ( fun ( n31 : ( \u00ac R ) ) => by have n32 : Q := n27 n31 ; have n33 : False := n29 n32 ; exact ( n33 : False ) ) ; have n31 : ( \u00ac P ) := n26 n30 ; have n32 : ( \u00ac ( \u00ac Q ) ) := n25 n31 ; have n33 : False := n32 n29 ; exact ( n33 : False ) ) ; have n29 : Q := Classical.byContradiction ( fun hh => n28 hh ) ; exact n29",
+    "have n12 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n13 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n14 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n15 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n16 : ( \u00ac Q ) ) => by have n17 : ( \u00ac ( \u00ac R ) ) := ( fun ( n18 : ( \u00ac R ) ) => by have n19 : Q := n14 n18 ; have n20 : False := n16 n19 ; exact ( n20 : False ) ) ; have n18 : ( \u00ac P ) := n13 n17 ; have n19 : ( \u00ac ( \u00ac Q ) ) := n12 n18 ; have n20 : False := n19 n16 ; exact ( n20 : False ) ) ; have n16 : Q := Classical.byContradiction ( fun hh => n15 hh ) ; exact n16",
+    "have n15 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n16 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n17 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n18 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n19 : ( \u00ac Q ) ) => by have n20 : ( \u00ac ( \u00ac R ) ) := ( fun ( n21 : ( \u00ac R ) ) => by have n22 : Q := n17 n21 ; have n23 : False := n19 n22 ; exact ( n23 : False ) ) ; have n21 : ( \u00ac P ) := n16 n20 ; have n22 : ( \u00ac ( \u00ac Q ) ) := n15 n21 ; have n23 : False := n22 n19 ; exact ( n23 : False ) ) ; have n19 : Q := Classical.byContradiction ( fun hh => n18 hh ) ; exact n19",
+    "have n19 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n20 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n21 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n22 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n23 : ( \u00ac Q ) ) => by have n24 : ( \u00ac ( \u00ac R ) ) := ( fun ( n25 : ( \u00ac R ) ) => by have n26 : Q := n21 n25 ; have n27 : False := n23 n26 ; exact ( n27 : False ) ) ; have n25 : ( \u00ac P ) := n20 n24 ; have n26 : ( \u00ac ( \u00ac Q ) ) := n19 n25 ; have n27 : False := n26 n23 ; exact ( n27 : False ) ) ; have n23 : Q := Classical.byContradiction ( fun hh => n22 hh ) ; exact n23",
+    "have n5 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n6 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n7 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n8 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n9 : ( \u00ac Q ) ) => by have n10 : ( \u00ac ( \u00ac R ) ) := ( fun ( n11 : ( \u00ac R ) ) => by have n12 : Q := n7 n11 ; have n13 : False := n9 n12 ; exact ( n13 : False ) ) ; have n11 : ( \u00ac P ) := n6 n10 ; have n12 : ( \u00ac ( \u00ac Q ) ) := n5 n11 ; have n13 : False := n12 n9 ; exact ( n13 : False ) ) ; have n9 : Q := Classical.byContradiction ( fun hh => n8 hh ) ; exact n9",
+    "have n16 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n17 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n18 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n19 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n20 : ( \u00ac Q ) ) => by have n21 : ( \u00ac ( \u00ac R ) ) := ( fun ( n22 : ( \u00ac R ) ) => by have n23 : Q := n18 n22 ; have n24 : False := n20 n23 ; exact ( n24 : False ) ) ; have n22 : ( \u00ac P ) := n17 n21 ; have n23 : ( \u00ac ( \u00ac Q ) ) := n16 n22 ; have n24 : False := n23 n20 ; exact ( n24 : False ) ) ; have n20 : Q := Classical.byContradiction ( fun hh => n19 hh ) ; exact n20",
+    "have n20 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n21 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n22 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n23 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n24 : ( \u00ac Q ) ) => by have n25 : ( \u00ac ( \u00ac R ) ) := ( fun ( n26 : ( \u00ac R ) ) => by have n27 : Q := n22 n26 ; have n28 : False := n24 n27 ; exact ( n28 : False ) ) ; have n26 : ( \u00ac P ) := n21 n25 ; have n27 : ( \u00ac ( \u00ac Q ) ) := n20 n26 ; have n28 : False := n27 n24 ; exact ( n28 : False ) ) ; have n24 : Q := Classical.byContradiction ( fun hh => n23 hh ) ; exact n24",
+    "have n1 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n2 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n3 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n4 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n5 : ( \u00ac Q ) ) => by have n6 : ( \u00ac ( \u00ac R ) ) := ( fun ( n7 : ( \u00ac R ) ) => by have n8 : Q := n3 n7 ; have n9 : False := n5 n8 ; exact ( n9 : False ) ) ; have n7 : ( \u00ac P ) := n2 n6 ; have n8 : ( \u00ac ( \u00ac Q ) ) := n1 n7 ; have n9 : False := n8 n5 ; exact ( n9 : False ) ) ; have n5 : Q := Classical.byContradiction ( fun hh => n4 hh ) ; exact n5",
+    "have n14 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n15 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n16 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n17 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n18 : ( \u00ac Q ) ) => by have n19 : ( \u00ac ( \u00ac R ) ) := ( fun ( n20 : ( \u00ac R ) ) => by have n21 : Q := n16 n20 ; have n22 : False := n18 n21 ; exact ( n22 : False ) ) ; have n20 : ( \u00ac P ) := n15 n19 ; have n21 : ( \u00ac ( \u00ac Q ) ) := n14 n20 ; have n22 : False := n21 n18 ; exact ( n22 : False ) ) ; have n18 : Q := Classical.byContradiction ( fun hh => n17 hh ) ; exact n18",
+    "have n10 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n11 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n12 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n13 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n14 : ( \u00ac Q ) ) => by have n15 : ( \u00ac ( \u00ac R ) ) := ( fun ( n16 : ( \u00ac R ) ) => by have n17 : Q := n12 n16 ; have n18 : False := n14 n17 ; exact ( n18 : False ) ) ; have n16 : ( \u00ac P ) := n11 n15 ; have n17 : ( \u00ac ( \u00ac Q ) ) := n10 n16 ; have n18 : False := n17 n14 ; exact ( n18 : False ) ) ; have n14 : Q := Classical.byContradiction ( fun hh => n13 hh ) ; exact n14",
+    "have n8 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n9 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n10 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n11 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n12 : ( \u00ac Q ) ) => by have n13 : ( \u00ac ( \u00ac R ) ) := ( fun ( n14 : ( \u00ac R ) ) => by have n15 : Q := n10 n14 ; have n16 : False := n12 n15 ; exact ( n16 : False ) ) ; have n14 : ( \u00ac P ) := n9 n13 ; have n15 : ( \u00ac ( \u00ac Q ) ) := n8 n14 ; have n16 : False := n15 n12 ; exact ( n16 : False ) ) ; have n12 : Q := Classical.byContradiction ( fun hh => n11 hh ) ; exact n12",
+    "have n24 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n25 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n26 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n27 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n28 : ( \u00ac Q ) ) => by have n29 : ( \u00ac ( \u00ac R ) ) := ( fun ( n30 : ( \u00ac R ) ) => by have n31 : Q := n26 n30 ; have n32 : False := n28 n31 ; exact ( n32 : False ) ) ; have n30 : ( \u00ac P ) := n25 n29 ; have n31 : ( \u00ac ( \u00ac Q ) ) := n24 n30 ; have n32 : False := n31 n28 ; exact ( n32 : False ) ) ; have n28 : Q := Classical.byContradiction ( fun hh => n27 hh ) ; exact n28",
+    "have n2 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n3 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n4 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n5 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n6 : ( \u00ac Q ) ) => by have n7 : ( \u00ac ( \u00ac R ) ) := ( fun ( n8 : ( \u00ac R ) ) => by have n9 : Q := n4 n8 ; have n10 : False := n6 n9 ; exact ( n10 : False ) ) ; have n8 : ( \u00ac P ) := n3 n7 ; have n9 : ( \u00ac ( \u00ac Q ) ) := n2 n8 ; have n10 : False := n9 n6 ; exact ( n10 : False ) ) ; have n6 : Q := Classical.byContradiction ( fun hh => n5 hh ) ; exact n6",
+    "have n32 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n33 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n34 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n35 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n36 : ( \u00ac Q ) ) => by have n37 : ( \u00ac ( \u00ac R ) ) := ( fun ( n38 : ( \u00ac R ) ) => by have n39 : Q := n34 n38 ; have n40 : False := n36 n39 ; exact ( n40 : False ) ) ; have n38 : ( \u00ac P ) := n33 n37 ; have n39 : ( \u00ac ( \u00ac Q ) ) := n32 n38 ; have n40 : False := n39 n36 ; exact ( n40 : False ) ) ; have n36 : Q := Classical.byContradiction ( fun hh => n35 hh ) ; exact n36",
+    "have n29 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n30 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n31 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n32 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n33 : ( \u00ac Q ) ) => by have n34 : ( \u00ac ( \u00ac R ) ) := ( fun ( n35 : ( \u00ac R ) ) => by have n36 : Q := n31 n35 ; have n37 : False := n33 n36 ; exact ( n37 : False ) ) ; have n35 : ( \u00ac P ) := n30 n34 ; have n36 : ( \u00ac ( \u00ac Q ) ) := n29 n35 ; have n37 : False := n36 n33 ; exact ( n37 : False ) ) ; have n33 : Q := Classical.byContradiction ( fun hh => n32 hh ) ; exact n33",
+    "have n9 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n10 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n11 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n12 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n13 : ( \u00ac Q ) ) => by have n14 : ( \u00ac ( \u00ac R ) ) := ( fun ( n15 : ( \u00ac R ) ) => by have n16 : Q := n11 n15 ; have n17 : False := n13 n16 ; exact ( n17 : False ) ) ; have n15 : ( \u00ac P ) := n10 n14 ; have n16 : ( \u00ac ( \u00ac Q ) ) := n9 n15 ; have n17 : False := n16 n13 ; exact ( n17 : False ) ) ; have n13 : Q := Classical.byContradiction ( fun hh => n12 hh ) ; exact n13",
+    "have n21 : ( ( \u00ac P ) \u2192 ( \u00ac ( \u00ac Q ) ) ) := h1 ; have n22 : ( ( \u00ac ( \u00ac R ) ) \u2192 ( \u00ac P ) ) := h2 ; have n23 : ( ( \u00ac R ) \u2192 Q ) := h3 ; have n24 : ( \u00ac ( \u00ac Q ) ) := ( fun ( n25 : ( \u00ac Q ) ) => by have n26 : ( \u00ac ( \u00ac R ) ) := ( fun ( n27 : ( \u00ac R ) ) => by have n28 : Q := n23 n27 ; have n29 : False := n25 n28 ; exact ( n29 : False ) ) ; have n27 : ( \u00ac P ) := n22 n26 ; have n28 : ( \u00ac ( \u00ac Q ) ) := n21 n27 ; have n29 : False := n28 n25 ; exact ( n29 : False ) ) ; have n25 : Q := Classical.byContradiction ( fun hh => n24 hh ) ; exact n25"
+   ],
+   "u": [
+    "contradiction",
+    "direct",
+    "mod_tollens",
+    "neg_intro"
+   ]
+  },
+  {
+   "name": "textbook_5b38b6ab0a04f4c4bb28",
+   "prompt": "THM ( ( P v Q ) & ( R v S ) ) , ( Q > S ) , ( ~ S ) SEQ ( P & R ) PRF",
+   "nd": "N1 ( ( P v Q ) & ( R v S ) ) : PR ; N2 ( Q > S ) : PR ; N3 ( ~ S ) : PR ; N4 ( P v Q ) : ANDE1 N1 ; N5 | P : AS ; N6 | Q : AS ; N7 | S : IMPE N2 N6 ; N8 | F : NEGE N7 N3 ; N9 | P : BOTE N8 ; N10 P : ORE N4 N5 N5 N6 N9 ; N11 ( R v S ) : ANDE2 N1 ; N12 | R : AS ; N13 | S : AS ; N14 | F : NEGE N13 N3 ; N15 | R : BOTE N14 ; N16 R : ORE N11 N12 N12 N13 N15 ; N17 ( P & R ) : ANDI N10 N16 ; QED",
+   "count": 96,
+   "seed": 1,
+   "k": 1024,
+   "rl_n_ok_seeds": [
+    984,
+    145,
+    478
+   ],
+   "base_n_ok_seeds": [
+    0,
+    4,
+    0
+   ],
+   "lean_texts": [
+    "have n17 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n18 : ( Q \u2192 S ) := h2 ; have n19 : ( \u00ac S ) := h3 ; have n20 : ( P \u2228 Q ) := n17.1 ; have n21 : P := Or.elim n20 ( fun ( n22 : P ) => by exact n22 ) ( fun ( n22 : Q ) => by have n23 : S := n18 n22 ; have n24 : False := n19 n23 ; have n25 : P := n24.elim ; exact n25 ) ; have n22 : ( R \u2228 S ) := n17.2 ; have n23 : R := Or.elim n22 ( fun ( n24 : R ) => by exact n24 ) ( fun ( n24 : S ) => by have n25 : False := n19 n24 ; have n26 : R := n25.elim ; exact n26 ) ; have n24 : ( P \u2227 R ) := \u27e8 n21 , n23 \u27e9 ; exact n24",
+    "have n19 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n20 : ( Q \u2192 S ) := h2 ; have n21 : ( \u00ac S ) := h3 ; have n22 : ( P \u2228 Q ) := n19.1 ; have n23 : P := Or.elim n22 ( fun ( n24 : P ) => by exact n24 ) ( fun ( n24 : Q ) => by have n25 : S := n20 n24 ; have n26 : False := n21 n25 ; have n27 : P := n26.elim ; exact n27 ) ; have n24 : ( R \u2228 S ) := n19.2 ; have n25 : R := Or.elim n24 ( fun ( n26 : R ) => by exact n26 ) ( fun ( n26 : S ) => by have n27 : False := n21 n26 ; have n28 : R := n27.elim ; exact n28 ) ; have n26 : ( P \u2227 R ) := \u27e8 n23 , n25 \u27e9 ; exact n26",
+    "have n16 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n17 : ( Q \u2192 S ) := h2 ; have n18 : ( \u00ac S ) := h3 ; have n19 : ( P \u2228 Q ) := n16.1 ; have n20 : P := Or.elim n19 ( fun ( n21 : P ) => by exact n21 ) ( fun ( n21 : Q ) => by have n22 : S := n17 n21 ; have n23 : False := n18 n22 ; have n24 : P := n23.elim ; exact n24 ) ; have n21 : ( R \u2228 S ) := n16.2 ; have n22 : R := Or.elim n21 ( fun ( n23 : R ) => by exact n23 ) ( fun ( n23 : S ) => by have n24 : False := n18 n23 ; have n25 : R := n24.elim ; exact n25 ) ; have n23 : ( P \u2227 R ) := \u27e8 n20 , n22 \u27e9 ; exact n23",
+    "have n10 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n11 : ( Q \u2192 S ) := h2 ; have n12 : ( \u00ac S ) := h3 ; have n13 : ( P \u2228 Q ) := n10.1 ; have n14 : P := Or.elim n13 ( fun ( n15 : P ) => by exact n15 ) ( fun ( n15 : Q ) => by have n16 : S := n11 n15 ; have n17 : False := n12 n16 ; have n18 : P := n17.elim ; exact n18 ) ; have n15 : ( R \u2228 S ) := n10.2 ; have n16 : R := Or.elim n15 ( fun ( n17 : R ) => by exact n17 ) ( fun ( n17 : S ) => by have n18 : False := n12 n17 ; have n19 : R := n18.elim ; exact n19 ) ; have n17 : ( P \u2227 R ) := \u27e8 n14 , n16 \u27e9 ; exact n17",
+    "have n8 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n9 : ( Q \u2192 S ) := h2 ; have n10 : ( \u00ac S ) := h3 ; have n11 : ( P \u2228 Q ) := n8.1 ; have n12 : P := Or.elim n11 ( fun ( n13 : P ) => by exact n13 ) ( fun ( n13 : Q ) => by have n14 : S := n9 n13 ; have n15 : False := n10 n14 ; have n16 : P := n15.elim ; exact n16 ) ; have n13 : ( R \u2228 S ) := n8.2 ; have n14 : R := Or.elim n13 ( fun ( n15 : R ) => by exact n15 ) ( fun ( n15 : S ) => by have n16 : False := n10 n15 ; have n17 : R := n16.elim ; exact n17 ) ; have n15 : ( P \u2227 R ) := \u27e8 n12 , n14 \u27e9 ; exact n15",
+    "have n3 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n4 : ( Q \u2192 S ) := h2 ; have n5 : ( \u00ac S ) := h3 ; have n6 : ( P \u2228 Q ) := n3.1 ; have n7 : P := Or.elim n6 ( fun ( n8 : P ) => by exact n8 ) ( fun ( n8 : Q ) => by have n9 : S := n4 n8 ; have n10 : False := n5 n9 ; have n11 : P := n10.elim ; exact n11 ) ; have n8 : ( R \u2228 S ) := n3.2 ; have n9 : R := Or.elim n8 ( fun ( n10 : R ) => by exact n10 ) ( fun ( n10 : S ) => by have n11 : False := n5 n10 ; have n12 : R := n11.elim ; exact n12 ) ; have n10 : ( P \u2227 R ) := \u27e8 n7 , n9 \u27e9 ; exact n10",
+    "have n26 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n27 : ( Q \u2192 S ) := h2 ; have n28 : ( \u00ac S ) := h3 ; have n29 : ( P \u2228 Q ) := n26.1 ; have n30 : P := Or.elim n29 ( fun ( n31 : P ) => by exact n31 ) ( fun ( n31 : Q ) => by have n32 : S := n27 n31 ; have n33 : False := n28 n32 ; have n34 : P := n33.elim ; exact n34 ) ; have n31 : ( R \u2228 S ) := n26.2 ; have n32 : R := Or.elim n31 ( fun ( n33 : R ) => by exact n33 ) ( fun ( n33 : S ) => by have n34 : False := n28 n33 ; have n35 : R := n34.elim ; exact n35 ) ; have n33 : ( P \u2227 R ) := \u27e8 n30 , n32 \u27e9 ; exact n33",
+    "have n9 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n10 : ( Q \u2192 S ) := h2 ; have n11 : ( \u00ac S ) := h3 ; have n12 : ( P \u2228 Q ) := n9.1 ; have n13 : P := Or.elim n12 ( fun ( n14 : P ) => by exact n14 ) ( fun ( n14 : Q ) => by have n15 : S := n10 n14 ; have n16 : False := n11 n15 ; have n17 : P := n16.elim ; exact n17 ) ; have n14 : ( R \u2228 S ) := n9.2 ; have n15 : R := Or.elim n14 ( fun ( n16 : R ) => by exact n16 ) ( fun ( n16 : S ) => by have n17 : False := n11 n16 ; have n18 : R := n17.elim ; exact n18 ) ; have n16 : ( P \u2227 R ) := \u27e8 n13 , n15 \u27e9 ; exact n16",
+    "have n2 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n3 : ( Q \u2192 S ) := h2 ; have n4 : ( \u00ac S ) := h3 ; have n5 : ( P \u2228 Q ) := n2.1 ; have n6 : P := Or.elim n5 ( fun ( n7 : P ) => by exact n7 ) ( fun ( n7 : Q ) => by have n8 : S := n3 n7 ; have n9 : False := n4 n8 ; have n10 : P := n9.elim ; exact n10 ) ; have n7 : ( R \u2228 S ) := n2.2 ; have n8 : R := Or.elim n7 ( fun ( n9 : R ) => by exact n9 ) ( fun ( n9 : S ) => by have n10 : False := n4 n9 ; have n11 : R := n10.elim ; exact n11 ) ; have n9 : ( P \u2227 R ) := \u27e8 n6 , n8 \u27e9 ; exact n9",
+    "have n1 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n2 : ( Q \u2192 S ) := h2 ; have n3 : ( \u00ac S ) := h3 ; have n4 : ( P \u2228 Q ) := n1.1 ; have n5 : P := Or.elim n4 ( fun ( n6 : P ) => by exact n6 ) ( fun ( n6 : Q ) => by have n7 : S := n2 n6 ; have n8 : False := n3 n7 ; have n9 : P := n8.elim ; exact n9 ) ; have n6 : ( R \u2228 S ) := n1.2 ; have n7 : R := Or.elim n6 ( fun ( n8 : R ) => by exact n8 ) ( fun ( n8 : S ) => by have n9 : False := n3 n8 ; have n10 : R := n9.elim ; exact n10 ) ; have n8 : ( P \u2227 R ) := \u27e8 n5 , n7 \u27e9 ; exact n8",
+    "have n18 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n19 : ( Q \u2192 S ) := h2 ; have n20 : ( \u00ac S ) := h3 ; have n21 : ( P \u2228 Q ) := n18.1 ; have n22 : P := Or.elim n21 ( fun ( n23 : P ) => by exact n23 ) ( fun ( n23 : Q ) => by have n24 : S := n19 n23 ; have n25 : False := n20 n24 ; have n26 : P := n25.elim ; exact n26 ) ; have n23 : ( R \u2228 S ) := n18.2 ; have n24 : R := Or.elim n23 ( fun ( n25 : R ) => by exact n25 ) ( fun ( n25 : S ) => by have n26 : False := n20 n25 ; have n27 : R := n26.elim ; exact n27 ) ; have n25 : ( P \u2227 R ) := \u27e8 n22 , n24 \u27e9 ; exact n25",
+    "have n28 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n29 : ( Q \u2192 S ) := h2 ; have n30 : ( \u00ac S ) := h3 ; have n31 : ( P \u2228 Q ) := n28.1 ; have n32 : P := Or.elim n31 ( fun ( n33 : P ) => by exact n33 ) ( fun ( n33 : Q ) => by have n34 : S := n29 n33 ; have n35 : False := n30 n34 ; have n36 : P := n35.elim ; exact n36 ) ; have n33 : ( R \u2228 S ) := n28.2 ; have n34 : R := Or.elim n33 ( fun ( n35 : R ) => by exact n35 ) ( fun ( n35 : S ) => by have n36 : False := n30 n35 ; have n37 : R := n36.elim ; exact n37 ) ; have n35 : ( P \u2227 R ) := \u27e8 n32 , n34 \u27e9 ; exact n35",
+    "have n5 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n6 : ( Q \u2192 S ) := h2 ; have n7 : ( \u00ac S ) := h3 ; have n8 : ( P \u2228 Q ) := n5.1 ; have n9 : P := Or.elim n8 ( fun ( n10 : P ) => by exact n10 ) ( fun ( n10 : Q ) => by have n11 : S := n6 n10 ; have n12 : False := n7 n11 ; have n13 : P := n12.elim ; exact n13 ) ; have n10 : ( R \u2228 S ) := n5.2 ; have n11 : R := Or.elim n10 ( fun ( n12 : R ) => by exact n12 ) ( fun ( n12 : S ) => by have n13 : False := n7 n12 ; have n14 : R := n13.elim ; exact n14 ) ; have n12 : ( P \u2227 R ) := \u27e8 n9 , n11 \u27e9 ; exact n12",
+    "have n32 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n33 : ( Q \u2192 S ) := h2 ; have n34 : ( \u00ac S ) := h3 ; have n35 : ( P \u2228 Q ) := n32.1 ; have n36 : P := Or.elim n35 ( fun ( n37 : P ) => by exact n37 ) ( fun ( n37 : Q ) => by have n38 : S := n33 n37 ; have n39 : False := n34 n38 ; have n40 : P := n39.elim ; exact n40 ) ; have n37 : ( R \u2228 S ) := n32.2 ; have n38 : R := Or.elim n37 ( fun ( n39 : R ) => by exact n39 ) ( fun ( n39 : S ) => by have n40 : False := n34 n39 ; have n41 : R := n40.elim ; exact n41 ) ; have n39 : ( P \u2227 R ) := \u27e8 n36 , n38 \u27e9 ; exact n39",
+    "have n15 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n16 : ( Q \u2192 S ) := h2 ; have n17 : ( \u00ac S ) := h3 ; have n18 : ( P \u2228 Q ) := n15.1 ; have n19 : P := Or.elim n18 ( fun ( n20 : P ) => by exact n20 ) ( fun ( n20 : Q ) => by have n21 : S := n16 n20 ; have n22 : False := n17 n21 ; have n23 : P := n22.elim ; exact n23 ) ; have n20 : ( R \u2228 S ) := n15.2 ; have n21 : R := Or.elim n20 ( fun ( n22 : R ) => by exact n22 ) ( fun ( n22 : S ) => by have n23 : False := n17 n22 ; have n24 : R := n23.elim ; exact n24 ) ; have n22 : ( P \u2227 R ) := \u27e8 n19 , n21 \u27e9 ; exact n22",
+    "have n20 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n21 : ( Q \u2192 S ) := h2 ; have n22 : ( \u00ac S ) := h3 ; have n23 : ( P \u2228 Q ) := n20.1 ; have n24 : P := Or.elim n23 ( fun ( n25 : P ) => by exact n25 ) ( fun ( n25 : Q ) => by have n26 : S := n21 n25 ; have n27 : False := n22 n26 ; have n28 : P := n27.elim ; exact n28 ) ; have n25 : ( R \u2228 S ) := n20.2 ; have n26 : R := Or.elim n25 ( fun ( n27 : R ) => by exact n27 ) ( fun ( n27 : S ) => by have n28 : False := n22 n27 ; have n29 : R := n28.elim ; exact n29 ) ; have n27 : ( P \u2227 R ) := \u27e8 n24 , n26 \u27e9 ; exact n27",
+    "have n25 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n26 : ( Q \u2192 S ) := h2 ; have n27 : ( \u00ac S ) := h3 ; have n28 : ( P \u2228 Q ) := n25.1 ; have n29 : P := Or.elim n28 ( fun ( n30 : P ) => by exact n30 ) ( fun ( n30 : Q ) => by have n31 : S := n26 n30 ; have n32 : False := n27 n31 ; have n33 : P := n32.elim ; exact n33 ) ; have n30 : ( R \u2228 S ) := n25.2 ; have n31 : R := Or.elim n30 ( fun ( n32 : R ) => by exact n32 ) ( fun ( n32 : S ) => by have n33 : False := n27 n32 ; have n34 : R := n33.elim ; exact n34 ) ; have n32 : ( P \u2227 R ) := \u27e8 n29 , n31 \u27e9 ; exact n32",
+    "have n22 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n23 : ( Q \u2192 S ) := h2 ; have n24 : ( \u00ac S ) := h3 ; have n25 : ( P \u2228 Q ) := n22.1 ; have n26 : P := Or.elim n25 ( fun ( n27 : P ) => by exact n27 ) ( fun ( n27 : Q ) => by have n28 : S := n23 n27 ; have n29 : False := n24 n28 ; have n30 : P := n29.elim ; exact n30 ) ; have n27 : ( R \u2228 S ) := n22.2 ; have n28 : R := Or.elim n27 ( fun ( n29 : R ) => by exact n29 ) ( fun ( n29 : S ) => by have n30 : False := n24 n29 ; have n31 : R := n30.elim ; exact n31 ) ; have n29 : ( P \u2227 R ) := \u27e8 n26 , n28 \u27e9 ; exact n29",
+    "have n7 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n8 : ( Q \u2192 S ) := h2 ; have n9 : ( \u00ac S ) := h3 ; have n10 : ( P \u2228 Q ) := n7.1 ; have n11 : P := Or.elim n10 ( fun ( n12 : P ) => by exact n12 ) ( fun ( n12 : Q ) => by have n13 : S := n8 n12 ; have n14 : False := n9 n13 ; have n15 : P := n14.elim ; exact n15 ) ; have n12 : ( R \u2228 S ) := n7.2 ; have n13 : R := Or.elim n12 ( fun ( n14 : R ) => by exact n14 ) ( fun ( n14 : S ) => by have n15 : False := n9 n14 ; have n16 : R := n15.elim ; exact n16 ) ; have n14 : ( P \u2227 R ) := \u27e8 n11 , n13 \u27e9 ; exact n14",
+    "have n11 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n12 : ( Q \u2192 S ) := h2 ; have n13 : ( \u00ac S ) := h3 ; have n14 : ( P \u2228 Q ) := n11.1 ; have n15 : P := Or.elim n14 ( fun ( n16 : P ) => by exact n16 ) ( fun ( n16 : Q ) => by have n17 : S := n12 n16 ; have n18 : False := n13 n17 ; have n19 : P := n18.elim ; exact n19 ) ; have n16 : ( R \u2228 S ) := n11.2 ; have n17 : R := Or.elim n16 ( fun ( n18 : R ) => by exact n18 ) ( fun ( n18 : S ) => by have n19 : False := n13 n18 ; have n20 : R := n19.elim ; exact n20 ) ; have n18 : ( P \u2227 R ) := \u27e8 n15 , n17 \u27e9 ; exact n18",
+    "have n27 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n28 : ( Q \u2192 S ) := h2 ; have n29 : ( \u00ac S ) := h3 ; have n30 : ( P \u2228 Q ) := n27.1 ; have n31 : P := Or.elim n30 ( fun ( n32 : P ) => by exact n32 ) ( fun ( n32 : Q ) => by have n33 : S := n28 n32 ; have n34 : False := n29 n33 ; have n35 : P := n34.elim ; exact n35 ) ; have n32 : ( R \u2228 S ) := n27.2 ; have n33 : R := Or.elim n32 ( fun ( n34 : R ) => by exact n34 ) ( fun ( n34 : S ) => by have n35 : False := n29 n34 ; have n36 : R := n35.elim ; exact n36 ) ; have n34 : ( P \u2227 R ) := \u27e8 n31 , n33 \u27e9 ; exact n34",
+    "have n14 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n15 : ( Q \u2192 S ) := h2 ; have n16 : ( \u00ac S ) := h3 ; have n17 : ( P \u2228 Q ) := n14.1 ; have n18 : P := Or.elim n17 ( fun ( n19 : P ) => by exact n19 ) ( fun ( n19 : Q ) => by have n20 : S := n15 n19 ; have n21 : False := n16 n20 ; have n22 : P := n21.elim ; exact n22 ) ; have n19 : ( R \u2228 S ) := n14.2 ; have n20 : R := Or.elim n19 ( fun ( n21 : R ) => by exact n21 ) ( fun ( n21 : S ) => by have n22 : False := n16 n21 ; have n23 : R := n22.elim ; exact n23 ) ; have n21 : ( P \u2227 R ) := \u27e8 n18 , n20 \u27e9 ; exact n21",
+    "have n13 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n14 : ( Q \u2192 S ) := h2 ; have n15 : ( \u00ac S ) := h3 ; have n16 : ( P \u2228 Q ) := n13.1 ; have n17 : P := Or.elim n16 ( fun ( n18 : P ) => by exact n18 ) ( fun ( n18 : Q ) => by have n19 : S := n14 n18 ; have n20 : False := n15 n19 ; have n21 : P := n20.elim ; exact n21 ) ; have n18 : ( R \u2228 S ) := n13.2 ; have n19 : R := Or.elim n18 ( fun ( n20 : R ) => by exact n20 ) ( fun ( n20 : S ) => by have n21 : False := n15 n20 ; have n22 : R := n21.elim ; exact n22 ) ; have n20 : ( P \u2227 R ) := \u27e8 n17 , n19 \u27e9 ; exact n20",
+    "have n33 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n34 : ( Q \u2192 S ) := h2 ; have n35 : ( \u00ac S ) := h3 ; have n36 : ( P \u2228 Q ) := n33.1 ; have n37 : P := Or.elim n36 ( fun ( n38 : P ) => by exact n38 ) ( fun ( n38 : Q ) => by have n39 : S := n34 n38 ; have n40 : False := n35 n39 ; have n41 : P := n40.elim ; exact n41 ) ; have n38 : ( R \u2228 S ) := n33.2 ; have n39 : R := Or.elim n38 ( fun ( n40 : R ) => by exact n40 ) ( fun ( n40 : S ) => by have n41 : False := n35 n40 ; have n42 : R := n41.elim ; exact n42 ) ; have n40 : ( P \u2227 R ) := \u27e8 n37 , n39 \u27e9 ; exact n40",
+    "have n31 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n32 : ( Q \u2192 S ) := h2 ; have n33 : ( \u00ac S ) := h3 ; have n34 : ( P \u2228 Q ) := n31.1 ; have n35 : P := Or.elim n34 ( fun ( n36 : P ) => by exact n36 ) ( fun ( n36 : Q ) => by have n37 : S := n32 n36 ; have n38 : False := n33 n37 ; have n39 : P := n38.elim ; exact n39 ) ; have n36 : ( R \u2228 S ) := n31.2 ; have n37 : R := Or.elim n36 ( fun ( n38 : R ) => by exact n38 ) ( fun ( n38 : S ) => by have n39 : False := n33 n38 ; have n40 : R := n39.elim ; exact n40 ) ; have n38 : ( P \u2227 R ) := \u27e8 n35 , n37 \u27e9 ; exact n38",
+    "have n29 : ( ( P \u2228 Q ) \u2227 ( R \u2228 S ) ) := h1 ; have n30 : ( Q \u2192 S ) := h2 ; have n31 : ( \u00ac S ) := h3 ; have n32 : ( P \u2228 Q ) := n29.1 ; have n33 : P := Or.elim n32 ( fun ( n34 : P ) => by exact n34 ) ( fun ( n34 : Q ) => by have n35 : S := n30 n34 ; have n36 : False := n31 n35 ; have n37 : P := n36.elim ; exact n37 ) ; have n34 : ( R \u2228 S ) := n29.2 ; have n35 : R := Or.elim n34 ( fun ( n36 : R ) => by exact n36 ) ( fun ( n36 : S ) => by have n37 : False := n31 n36 ; have n38 : R := n37.elim ; exact n38 ) ; have n36 : ( P \u2227 R ) := \u27e8 n33 , n35 \u27e9 ; exact n36"
+   ],
+   "u": [
+    "and_intro",
+    "cases",
+    "direct",
+    "disj_syll",
+    "ex_falso"
+   ]
+  }
+ ],
+ "b_lean": [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+ ],
+ "c": {
+  "charles149_never_rate": [
+   [
+    7.557e-05,
+    0.0091552734375
+   ],
+   [
+    0.0001041,
+    0.01220703125
+   ],
+   [
+    0.0001574,
+    0.030517578125
+   ],
+   [
+    0.0003718,
+    0.2197265625
+   ],
+   [
+    0.0007553,
+    0.3204345703125
+   ],
+   [
+    0.001574,
+    0.006103515625
+   ],
+   [
+    0.001776,
+    3.277587890625
+   ],
+   [
+    0.002185,
+    0.01220703125
+   ],
+   [
+    0.003356,
+    0.0335693359375
+   ],
+   [
+    0.006547,
+    0.1800537109375
+   ],
+   [
+    0.006578,
+    0.1678466796875
+   ],
+   [
+    0.01408,
+    1.3763427734375
+   ],
+   [
+    0.03041,
+    7.4005126953125
+   ],
+   [
+    0.1461,
+    23.3245849609375
+   ],
+   [
+    0.2888,
+    27.45361328125
+   ],
+   [
+    0.4482,
+    26.4923095703125
+   ]
+  ],
+  "charles149_never_n": 32,
+  "t1320s250_work_red_A": [
+   [
+    7.557e-05,
+    0.4671875
+   ],
+   [
+    0.0001041,
+    0.45312499999999994
+   ],
+   [
+    0.0001574,
+    0.49843750000000003
+   ],
+   [
+    0.0003718,
+    0.45703125
+   ],
+   [
+    0.0007553,
+    0.6265625
+   ],
+   [
+    0.001574,
+    0.48515625
+   ],
+   [
+    0.001776,
+    0.7210937500000001
+   ],
+   [
+    0.002185,
+    0.5421874999999999
+   ],
+   [
+    0.003356,
+    0.553125
+   ],
+   [
+    0.006547,
+    0.7882812499999999
+   ],
+   [
+    0.006578,
+    0.76328125
+   ],
+   [
+    0.01408,
+    1.290625
+   ],
+   [
+    0.03041,
+    2.25390625
+   ],
+   [
+    0.1461,
+    8.359375
+   ],
+   [
+    0.2888,
+    13.075781249999999
+   ],
+   [
+    0.4482,
+    10.15859375
+   ]
+  ],
+  "t1320s250_base_work_red_A": 0.43203125000000003,
+  "fits": {
+   "never_rate": {
+    "aic_linear": 58.64378664834646,
+    "aic_logistic": 3.9647138906654558,
+    "delta_aic": 54.679072757681006,
+    "mid_log10R": -1.2682267401088914,
+    "mid_R": 0.053922902379639384,
+    "scale_decades": 0.2177111883697264,
+    "lo": 0.27773341944040175,
+    "hi": 27.327950176985222,
+    "slope_per_decade": 7.197222269239742,
+    "midpoint_inside": true
+   },
+   "work_red_A_t1320s250": {
+    "aic_linear": 30.538223573231804,
+    "aic_logistic": -5.338444052131296,
+    "delta_aic": 35.8766676253631,
+    "mid_log10R": -1.0795706186098277,
+    "mid_R": 0.08325865319463172,
+    "scale_decades": 0.23077948724637418,
+    "lo": 0.5899110558254594,
+    "hi": 12.036568898604203,
+    "slope_per_decade": 2.808218147586584,
+    "midpoint_inside": true
+   }
+  }
+ },
+ "paths": [
+  "/home/cowifornia/code/research/nd-rl/docs/papers/high-rl-regime/figures/fig1_emergence.pdf",
+  "/home/cowifornia/code/research/nd-rl/docs/papers/high-rl-regime/figures/fig1_emergence.png"
+ ]
+}

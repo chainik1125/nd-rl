@@ -4,22 +4,24 @@
 % Main source for the compute numbers: Dan's review, origin/dan
 % docs/literature/2026-10-19-rl-compute-share/REVIEW.md (section given as Q3, Q5, ...). It is not on leon/main.
 
-% Teaser: placed before the heading with [h!] so it sits under the title block ([t] would float above the title).
+% Figure 1: placed before the heading with [h!] so it sits under the title block ([t] would float above the title).
+% Layout from Leon's sketch of 1 Nov (pass@k, example proofs, emergence curve, a pending panel). Script, numbers and
+% the long caption: code/experiments/current/proof_strategies_grpo_20261101/ (fig1.py, fig1_numbers.json, caption.md).
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=\linewidth]{figures/teaser_passk.pdf}
-  \caption{RL at frontier-like scale creates capabilities the base model lacks. (a) pass@$k$ on 149 held-out
-    textbook-style problems for the pretrained base and for RL checkpoints (seed 0), coloured by RL / pretraining FLOPs; bands
-    are 95\% bootstrap intervals over problems. (b) RL minus base at $k = 1$ and $k = 1024$ against RL / pretraining
-    FLOPs, with the median RL budget of Yue et al.~\cite{yueDoesReinforcementLearning2025} marked. Near that budget
-    our checkpoints differ from the base by about a point at both $k$. The gap at $k = 1024$ opens as RL grows, and at
-    about $0.3\times$ pretraining FLOPs the RL model stays ahead of its base out to $k = 1024$. No checkpoint falls
-    below the base at $k = 1024$.}
-  \label{fig:teaser}
+  \includegraphics[width=\linewidth]{figures/fig1_emergence.pdf}
+  \caption{Capabilities emerge under heavy RL. (a) pass@$k$ on 149 held-out textbook-style problems for the
+    pretrained base and the RL model, as means over three seeds; bands are 95\% bootstrap intervals over problems and
+    seeds. RL leads at every $k$, from 70.5\% vs 32.6\% at $k = 1$ to 86.6\% vs 74.5\% at $k = 1024$. (b) RL proofs,
+    identical to the textbooks' own, of two problems on which the base succeeds in 0 and 4 of 3,072 attempts and RL
+    in 34\% and 52\% of its attempts: a proof by contradiction that uses modus tollens, and two disjunctive
+    syllogisms. Each of these strategies appears in at most 1.5\% of the proofs in the pretraining corpus. (c)
+    Against RL / pretraining FLOPs (seed 0): RL's per-attempt solve rate on the 32 problems its base never solves in
+    1,024 attempts, and the share of attempts on 13--20-line problems that are correct proofs using a working proof by
+    contradiction. Both stay at the base level through the median RL budget of Yue
+    et al.~\cite{yueDoesReinforcementLearning2025}, then rise in an S-curve. (d) Pending.}
+  \label{fig:emergence}
 \end{figure}
-% Regenerate after new reads land (from the repo root):
-%   ND_OFFLINE=1 PYTHONDONTWRITEBYTECODE=1 code/.venv/bin/python -m code.experiments.current.high_rl_passk_20261030.teaser
-% Low-RL checkpoints (R down to 7.6e-5) added 30 Oct, 7:30 pm; numbers in teaser_numbers.md next to the script.
 
 \section{Introduction}
 
@@ -162,7 +164,7 @@ capabilities. Our main GRPO run spends about $0.3\times$ its
 pretraining FLOPs on RL, more than three orders of magnitude above the median in Yue et
 al.~\cite{yueDoesReinforcementLearning2025} and comparable to outside estimates for recent frontier models. By the
 standard pass@$k$ test, the RL model beats its base at every number of attempts we measured, in each of three
-seeds: on 149 held-out textbook-style problems it solves 86.6\% within 1,024 attempts against the base's 74.5\%
+seeds (Figure~\ref{fig:emergence}a): on 149 held-out textbook-style problems it solves 86.6\% within 1,024 attempts against the base's 74.5\%
 (means over seeds). Across 3,072 attempts per model, the RL models solve 9 problems (6.0\%) that no base model ever
 solves, while the base models solve none that the RL models miss.
 % Sources: GRPO ratio 0.29 = (6 x 84.0M trained + 2 x 129.8M sampled tokens) / (6 x 440.6M Stage-1 tokens), prefill
@@ -210,7 +212,16 @@ solves, while the base models solve none that the RL models miss.
     Every seed is above its base at every $k$ (k1024: +10.7, +10.7, +14.8). The bases spread widely (pass@1 39.2, 33.0,
     25.7) but the RL ends do not (70.3, 70.9, 70.4). RL-only / base-only per seed: 16 / 0, 17 / 1, 25 / 3; pooled over
     3,072 attempts, 9 / 0.
-  \item \textbf{Low-RL arm (Figure 1b; Charles149 k1024, one seed).} Checkpoints inside the first iterations of the
+  \item \textbf{Proof strategies (Dan's 13-strategy taxonomy run on our models, 1 Nov; Figure 1b, c).} Pretraining
+    corpus: working proof by contradiction 1.47\%, modus tollens 0.13\%, disjunctive syllogism 1.19\% of proofs
+    (Charles149's textbook proofs 17.5 / 7.4 / 14.1). Where the base succeeds it already uses all of them at about
+    textbook rates, so no strategy is new. RL shifts toward proof by contradiction (13--20 lines: working 7.1 $\to$
+    34.6\% of proofs) but also adds idle ones (4.9 $\to$ 34.7\%) and longer proofs. Figure 1c's S-curve is the solve
+    rate on base-unsolved problems (midpoint about 0.05$\times$); it tracks the k1024 gap (Spearman 0.97 over 16
+    checkpoints). Caveat: the GRPO pools are 40--45\% classical-only theorems, so the contradiction habit may come from
+    the pools rather than be discovered. Say ``new capabilities'', not ``new strategies''. Summary:
+    \nolinkurl{experiment-summaries/2026-11-01-proof-strategies-grpo-thinking/}.
+  \item \textbf{Low-RL arm (Candidate C0; Charles149 k1024, one seed).} Checkpoints inside the first iterations of the
     mini20 config (256 prompts per iteration) and of a 16-prompt variant, $7.6\times10^{-5}$ to
     $3\times10^{-2}$ of Stage-1 FLOPs. Near Yue's median RL is within about a point of the base at k1 and k1024
     (k1024 +0.7 [$-1.3$, +2.7] at $7.6\times10^{-5}$). No checkpoint falls below the base at k1024, so we see no gain
@@ -219,7 +230,7 @@ solves, while the base models solve none that the RL models miss.
   \item \textbf{On Charles149, optimizer steps seem to set the early large-$k$ gain, not FLOPs.} At equal steps the
     16-prompt variant matches the 256-prompt config at k1024 with 1/16 of the FLOPs (8 steps +3.4 vs +2.7; 16 steps
     +5.4 vs +5.4; 32 steps +6.0 vs +9.4), while its k1 gain is smaller and noisier (16 steps: $-5.0$ [$-8.8$, $-1.4$]
-    at k1, +5.4 [1.3, 10.1] at k1024). So R alone does not place a run in Figure 1(b). One seed per point; same
+    at k1, +5.4 [1.3, 10.1] at k1024). So R alone does not place a run in Candidate C0(b). One seed per point; same
     learning rate. \textbf{Not on the 13--20 subset:} there the 16-prompt variant gains nothing at k512 by 32 steps
     (+1.6 [$-2.4$, +5.6]) while the 256-prompt config gains +10.4 [6.4, 14.8], so for long proofs FLOPs (or batch
     size) matter.
@@ -240,8 +251,17 @@ solves, while the base models solve none that the RL models miss.
 
 
 % Candidate figures for the pass@k evidence. Notes only: they float to the end and vanish with \notesfalse.
-% The teaser (Figure 1) is built from C1/C3's data; the rest are candidates for Section 2.
+% C0 was the teaser until 1 Nov; C1-C4 and C0 are candidates for Section 2.
 \ifnotes
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth]{figures/teaser_passk.pdf}
+  \caption{Candidate C0 (the teaser until 1 Nov; for Section 2). (a) pass@$k$ on Charles149 for the base and RL
+    checkpoints (seed 0), coloured by RL / pretraining FLOPs. (b) RL minus base at $k = 1$ and $k = 1024$ against RL /
+    pretraining FLOPs, with Yue et al.'s median marked. Near that budget the checkpoints differ from the base by about
+    a point at both $k$; the gap at $k = 1024$ opens as RL grows; no checkpoint falls below the base at $k = 1024$.
+    Regenerate: \nolinkurl{python -m code.experiments.current.high_rl_passk_20261030.teaser}.}
+\end{figure}
 \begin{figure}[p]
   \centering
   \includegraphics[width=\linewidth]{figures/passk_base_vs_rl.pdf}
@@ -260,7 +280,7 @@ solves, while the base models solve none that the RL models miss.
   \centering
   \includegraphics[width=\linewidth]{figures/gap_vs_rl_compute.pdf}
   \caption{Candidate C3. RL minus base against RL / Stage-1 FLOPs ($6N$ per trained token, $2N$ per sampled token,
-    prefill excluded). Primary-recipe points only, at $k \le 64$; superseded by Figure 1(b), which adds the low-RL arm
+    prefill excluded). Primary-recipe points only, at $k \le 64$; superseded by Candidate C0(b), which adds the low-RL arm
     at k1024.}
 \end{figure}
 \begin{figure}[p]
