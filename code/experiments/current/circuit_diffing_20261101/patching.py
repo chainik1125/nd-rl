@@ -17,6 +17,12 @@ model's scale s_m; f is the crosscoder's inference-time encoding of both models'
   inject          driver base: h + sum_{j in S} f_j d_j^RL / s_RL
   replace         driver base: h <- the RL model's residual at that layer (the positive control)
   recon           driver RL:   h <- the crosscoder reconstruction (no error term)
+  transplant      driver base: h + sum_{j in S} f_j (d_j^RL / s_RL - d_j^base / s_base): the RL
+                  model's version of every latent in S (norm and direction), the base's error kept
+  revert          driver RL:   h - sum_{j in S} f_j (d_j^RL / s_RL - d_j^base / s_base): the RL
+                  model's latents in S put back to the base's version, the RL error kept
+  unscale         driver RL:   h + sum_{j in S} f_j (1 / r_j - 1) d_j^RL / s_RL: the latents in S
+                  scaled back to the base's strength along the RL model's own directions
 """
 
 from __future__ import annotations
@@ -29,7 +35,8 @@ import torch
 from .common import capture
 from .crosscoder import Crosscoder
 
-MODES = ("ablate", "rescale", "inject", "replace", "recon")
+MODES = ("ablate", "rescale", "inject", "replace", "recon", "transplant", "revert", "unscale")
+RL_DRIVEN = ("ablate", "recon", "revert", "unscale")
 
 
 def load_cc(d: Path, device: str) -> tuple[Crosscoder, dict[str, Any]]:
@@ -57,7 +64,7 @@ class PairPatched(torch.nn.Module):
         super().__init__()
         assert mode in MODES, mode
         self.mode, self.layer = mode, int(meta["layer"])
-        drv_rl = mode in ("ablate", "recon")
+        drv_rl = mode in RL_DRIVEN
         self.driver, self.other = (rl, base) if drv_rl else (base, rl)
         self.drv_idx = 1 if drv_rl else 0  # crosscoder model index of the driver
         self.cc = cc
@@ -124,6 +131,12 @@ class PairPatched(torch.nn.Module):
                 new = hd + (fs @ D[:, 1]).view(B, T, d) / self.scale[1]
             elif self.mode == "rescale":
                 new = hd + ((fs * (self.r - 1)) @ D[:, 0]).view(B, T, d) / self.scale[0]
+            elif self.mode in ("transplant", "revert"):
+                diff = D[:, 1] / self.scale[1] - D[:, 0] / self.scale[0]
+                sign = 1.0 if self.mode == "transplant" else -1.0
+                new = hd + sign * (fs @ diff).view(B, T, d)
+            elif self.mode == "unscale":
+                new = hd + ((fs * (1 / self.r - 1)) @ D[:, 1]).view(B, T, d) / self.scale[1]
             else:  # recon
                 xh = self.cc.decode(f)
                 new = (xh[:, 1] / self.scale[1]).view(B, T, d)

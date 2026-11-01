@@ -42,6 +42,18 @@ from .common import ART, assert_gpu_free, capture, load_model, pt_now, registry
 SEQ = ART / "seqs"
 CC = ART / "crosscoders"
 SOURCES = ("b_roll", "a_roll", "pretrain")
+#: Planted-feature positive control (`--plant`): (m, a, b, r, magnitude). Feature i fires on a
+#: token with id t at position q when (a t + b q) mod m == r, and adds magnitude x v_i (a fixed
+#: random unit vector, in scaled units) to model B's activation only. A random function of token
+#: and position mod m is not something the base can represent linearly.
+PLANT = (
+    (29, 7, 3, 0, 2.0),
+    (29, 11, 5, 1, 4.0),
+    (29, 13, 2, 2, 8.0),
+    (331, 17, 3, 3, 2.0),
+    (331, 19, 7, 4, 4.0),
+    (331, 23, 5, 5, 8.0),
+)
 
 
 class Crosscoder(torch.nn.Module):
@@ -105,6 +117,24 @@ class Acts:
     def __init__(self, ma: Any, mb: Any, layer: int, device: str) -> None:
         self.models, self.layer, self.device = (ma, mb), layer, device
         self.scale = torch.ones(2, device=device)
+        self.plant_on = False
+        self.plant_v: torch.Tensor | None = None
+
+    def set_plant(self, d: int, seed: int = 99) -> None:
+        g = torch.Generator().manual_seed(seed)
+        v = torch.randn(len(PLANT), d, generator=g)
+        self.plant_v = (v / v.norm(dim=-1, keepdim=True)).to(self.device)
+        self.plant_on = True
+
+    @staticmethod
+    def indicators(seqs: list[np.ndarray]) -> np.ndarray:
+        """(N, n_plant) bool, in the token order of `run`'s output."""
+        rows = []
+        for s in seqs:
+            t = s.astype(np.int64)
+            q = np.arange(len(s))
+            rows.append(np.stack([(a * t + b * q) % m == r for m, a, b, r, _ in PLANT], 1))
+        return np.concatenate(rows)
 
     @torch.no_grad()
     def run(
@@ -137,7 +167,13 @@ class Acts:
             i = j
             del L
         lens = [len(s) for s in seqs]
-        return torch.cat([x for x in out if x is not None]) * self.scale[None, :, None], lens
+        x = torch.cat([x for x in out if x is not None]) * self.scale[None, :, None]
+        if self.plant_on:
+            assert self.plant_v is not None
+            ind = torch.from_numpy(self.indicators(seqs)).to(self.device).float()
+            mag = torch.tensor([p[4] for p in PLANT], device=self.device)
+            x[:, 1] += (ind * mag) @ self.plant_v
+        return x, lens
 
 
 def batches(n: int, bs: int, gen: torch.Generator, device: str):
@@ -180,6 +216,8 @@ def train(a: argparse.Namespace) -> dict[str, Any]:
     acts.scale = (d / (x**2).sum(-1).mean(0)).sqrt()
     mean0 = (x * acts.scale[None, :, None]).mean(0)
     del x
+    if a.plant:
+        acts.set_plant(d)
     cc = Crosscoder(d, a.n_latents, a.k, seed=a.seed).to(dev)
     with torch.no_grad():
         cc.b_dec.copy_(mean0)
@@ -283,6 +321,7 @@ def train(a: argparse.Namespace) -> dict[str, Any]:
         theta=float(cc.theta),
         held_out=held,
         sources={k: str(v) for k, v in paths.items()},
+        plant=[list(p) for p in PLANT] if a.plant else None,
         train_secs=time.time() - t0,
     )
     torch.save({"state": cc.state_dict(), "meta": meta}, out / "crosscoder.pt")
@@ -320,6 +359,17 @@ def evaluate(
         for y in ("err", "rec")
     }
     tot = {"err": torch.zeros(2, device=dev), "var": torch.zeros(2, device=dev), "N": 0}
+    pl = None
+    if acts.plant_on:
+        assert acts.plant_v is not None
+        cosv = F.normalize(D[:, 1], dim=-1) @ acts.plant_v.T  # (n, n_plant)
+        cand = cosv.abs().topk(3, dim=0).indices  # (3, n_plant)
+        pl = {
+            "cand": cand,
+            "both": torch.zeros(3, len(PLANT), device=dev, dtype=torch.float64),
+            "fire": torch.zeros(3, len(PLANT), device=dev, dtype=torch.float64),
+            "ind": torch.zeros(len(PLANT), device=dev, dtype=torch.float64),
+        }
     n_tok = {s: 0 for s in SOURCES}
     n_gen = {s: 0 for s in SOURCES}
     for src, p in paths.items():
@@ -330,6 +380,9 @@ def evaluate(
         gs = meta["gen_start"][ho]
         se = {"err": torch.zeros(2, device=dev), "var": torch.zeros(2, device=dev), "N": 0}
         x_all, lens = acts.run(hs)
+        ind_all = None
+        if pl is not None:
+            ind_all = torch.from_numpy(acts.indicators(hs)).to(dev)
         is_gen = torch.cat(
             [torch.arange(L, device=dev) >= int(g) for L, g in zip(lens, gs, strict=True)]
         )
@@ -354,6 +407,12 @@ def evaluate(
                 for m in (0, 1):
                     ls[(ref, m, "err")] += (f * (err[:, m] @ dref.T)).double().sum(0)
                     ls[(ref, m, "rec")] += (f * (rec[:, m] @ dref.T)).double().sum(0)
+            if pl is not None and ind_all is not None:
+                ib = ind_all[i : i + 8192].double()  # (b, n_plant)
+                fc = (f[:, pl["cand"]] > 0).double()  # (b, 3, n_plant)
+                pl["both"] += (fc * ib[:, None, :]).sum(0)
+                pl["fire"] += fc.sum(0)
+                pl["ind"] += ib.sum(0)
             n_tok[src] += x.shape[0]
             n_gen[src] += int(gm.sum())
         res["per_source"][src] = {
@@ -388,6 +447,34 @@ def evaluate(
         **{f"energy_b_{s}": acc["energy"][s][:, 1].tolist() for s in SOURCES},
         **{k: v.tolist() for k, v in beta.items()},
     }
+    if pl is not None:
+        assert acts.plant_v is not None
+        cosv = F.normalize(D[:, 1], dim=-1) @ acts.plant_v.T
+        det = []
+        for i, spec in enumerate(PLANT):
+            rows = []
+            for c in range(3):
+                j = int(pl["cand"][c, i])
+                both, fire, ind = (
+                    float(pl[k][c, i]) if k != "ind" else float(pl[k][i])
+                    for k in ("both", "fire", "ind")
+                )
+                na_, nb_ = float(norms[j, 0]), float(norms[j, 1])
+                rows.append(
+                    dict(
+                        latent=j,
+                        cos_b=float(cosv[j, i]),
+                        dnorm=0.5 * ((na_ - nb_) / max(na_, nb_) + 1),
+                        precision=both / fire if fire else None,
+                        recall=both / ind if ind else None,
+                    )
+                )
+            det.append(
+                dict(
+                    spec=list(spec), freq=float(pl["ind"][i]) / sum(n_tok.values()), candidates=rows
+                )
+            )
+        res["planted"] = det
     res["n_tokens"] = n_tok
     res["var_total"] = tot["var"].tolist()
     res["loss"] = splice_loss(cc, acts, paths, held, a.n_held)
@@ -483,6 +570,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--buffer", type=int, default=2_000_000)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--plant", action="store_true", help="planted-feature positive control")
     ap.add_argument("--gpu", type=int, default=None)
     ap.add_argument("--device", default="cuda", help="cpu: smoke tests only")
     ap.add_argument("--n_held", type=int, default=1500, help="splice-loss sequences per source")

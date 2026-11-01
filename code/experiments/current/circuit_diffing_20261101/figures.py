@@ -12,6 +12,8 @@ import argparse
 import json
 import math
 
+import numpy as np
+
 from code.ndbench.figures import style as S
 
 from .common import HERE
@@ -111,8 +113,64 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def stage1() -> None:  # filled in once Stage 1 has numbers
-    pass
+def stage1(layer: int = 3) -> None:
+    rows = json.loads((HERE / "stage1.json").read_text())
+    rows = [r for r in rows if r["layer"] == layer and r["cc_seed"] == 0]
+    with S.paper_style():
+        fig = S.new_figure(S.FULL_W, 1.95, layout="constrained")
+        axs = fig.subplots(1, 3)
+        seen: set[str] = set()
+        cpt = [r for r in rows if r["b"].startswith("cpt")]
+        for r in rows:
+            if r["b"].startswith("cpt"):
+                continue
+            arm = arm_of(r["b"])
+            name, col, mk = ARM[arm]
+            other = r["seed"] != 0
+            kw = dict(color=col, marker=mk, s=13, linewidths=0.8, zorder=3)
+            kw["facecolors"] = "none" if other else col
+            lab = None if arm in seen or other else name
+            seen.add(arm)
+            axs[0].scatter(r["R"], r["N_RL"] + 0.5, label=lab, **kw)
+            axs[1].scatter(r["R"], 100 * r["E_RL"]["all"] + 1e-3, **kw)
+        for r in cpt:  # no RL compute: drawn as a horizontal reference
+            axs[0].axhline(r["N_RL"] + 0.5, color=ARM["cpt"][1], ls="--", lw=0.8)
+            axs[1].axhline(100 * r["E_RL"]["all"] + 1e-3, color=ARM["cpt"][1], ls="--", lw=0.8)
+        for ax in axs[:2]:
+            ax.set_xscale("log")
+            ax.set_yscale("log")
+            ax.set_xlabel("RL / Stage-1 FLOPs (R)")
+            S.light_grid(ax, "both")
+        axs[0].set_ylabel("strict RL-only latents (+0.5)")
+        axs[1].set_ylabel("RL variance in RL-only latents (%)")
+        S.panel_title(axs[0], "a", "RL-only latents")
+        S.panel_title(axs[1], "b", "their share of variance")
+        if cpt:
+            axs[0].plot([], [], color=ARM["cpt"][1], ls="--", lw=0.8, label=ARM["cpt"][0])
+        axs[0].legend(loc="upper left", fontsize=S.FS_TICK - 1.5, frameon=False)
+        bins = np.linspace(0, 1, 21)
+        mids = 0.5 * (bins[1:] + bins[:-1])
+        pick = {
+            "kp16_st1": ("null (R 7.6e-5)", C["sky_blue"], "-"),
+            "mini_it8": ("mini20 L2 it8", C["bluish_green"], "-"),
+            "L3": ("L3 end", C["vermillion"], "-"),
+        }
+        for r in rows:
+            if r["seed"] == 0 and r["b"] in pick:
+                lab, col, ls = pick[r["b"]]
+                h = np.array(r["dnorm_hist"], dtype=float)
+                axs[2].step(
+                    mids, np.maximum(h, 0.5), where="mid", color=col, ls=ls, lw=1.0, label=lab
+                )
+        axs[2].set_yscale("log")
+        axs[2].set_xlabel("Δnorm (0 = RL-only, 1 = base-only)")
+        axs[2].set_ylabel("live latents")
+        axs[2].axvspan(0, 0.1, color=S.SHADE, zorder=0)
+        axs[2].axvspan(0.9, 1, color=S.SHADE, zorder=0)
+        S.panel_title(axs[2], "c", "decoder-norm balance")
+        axs[2].legend(loc="upper left", fontsize=S.FS_TICK - 1.5, frameon=False)
+        S.save(fig, FIG / f"stage1_L{layer}")
+        S.close(fig)
 
 
 def stage2() -> None:  # filled in once Stage 2 has numbers

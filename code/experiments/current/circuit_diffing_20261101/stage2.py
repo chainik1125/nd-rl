@@ -13,6 +13,9 @@ Conditions (the latent sets come from the Stage 1 classification of the crosscod
   base_rescale        the base with every shared latent rescaled to the RL model's strength
   base_inject         the base with the strict RL-only latents' RL decoders added
   base_replace        the base with the layer replaced by the RL model's residual (positive control)
+  base_transplant     the base with every live latent switched to its RL version (norm, direction)
+  rl_revert           the RL model with every live latent switched back to its base version
+  rl_unscale          the RL model with shared latents scaled back to the base's strength
 Problems: `stage2_problems.json` (G: RL-gained, S: shared). Every attempt is the read setting of
 the reads (plain arm, B64, temperature 0.8, max_action 512, max_steps 96), judged by Lean. Writes
 `/scratch/cowifornia/nd-rl/circuits/stage2/<cc dir>/<condition>.json`.
@@ -43,7 +46,7 @@ def latent_sets(cc_dir: Path, n_rand: int = 3) -> dict[str, np.ndarray]:
     c = classify(L)
     rl = np.flatnonzero(c["rl"])
     shared = np.flatnonzero(c["shared"])
-    out = {"rlonly": rl, "shared": shared}
+    out = {"rlonly": rl, "shared": shared, "live": np.flatnonzero(c["live"])}
     e = L["energy_b_b_roll"]
     if len(rl):
         edges = np.quantile(e[rl], np.linspace(0, 1, 11))
@@ -82,16 +85,18 @@ def run(a: argparse.Namespace) -> None:
 
     run_env(ART / "runenv")
     reg = registry()
-    base, _, _ = load_model(reg[("base", 0)].path, "cuda")
-    rl, tok, _ = load_model(reg[(a.b, 0)].path, "cuda")
+    base, _, _ = load_model(reg[("base", 0)].path, a.device)
+    rl, tok, _ = load_model(reg[(a.b, 0)].path, a.device)
     cc_dir = Path(a.cc)
-    cc, meta = load_cc(cc_dir, "cuda")
+    cc, meta = load_cc(cc_dir, a.device)
     assert meta["b"] == f"{a.b}:0" and meta["a"] == "base:0", meta
     sets = latent_sets(cc_dir)
     probs = json.loads((HERE / "stage2_problems.json").read_text())
     recs = [dict(p, cat=cat) for cat in ("G", "S") for p in probs[cat]]
+    if a.limit:
+        recs = recs[: a.limit] + [r for r in recs if r["cat"] == "S"][: a.limit]
     prompts = [r["prompt"] for r in recs for _ in range(a.k)]
-    out_dir = OUT / cc_dir.name
+    out_dir = Path(a.out) if a.out else OUT / cc_dir.name
     out_dir.mkdir(parents=True, exist_ok=True)
     for cond in a.conditions.split(","):
         path = out_dir / f"{cond}.json"
@@ -104,8 +109,10 @@ def run(a: argparse.Namespace) -> None:
             model = rl if drv == "rl" else base
         else:
             mode, _, which = what.partition("_")
-            if mode == "rescale":
+            if mode in ("rescale", "unscale"):
                 lat = torch.from_numpy(sets["shared"])
+            elif mode in ("transplant", "revert"):
+                lat = torch.from_numpy(sets["live"])
             elif which:
                 lat = torch.from_numpy(sets[which])
             model = PairPatched(base, rl, cc, meta, mode, lat)
@@ -169,7 +176,10 @@ def run(a: argparse.Namespace) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--gpu", type=int, required=True)
+    ap.add_argument("--gpu", type=int, default=None)
+    ap.add_argument("--device", default="cuda", help="cpu: smoke tests only")
+    ap.add_argument("--limit", type=int, default=0, help="smoke tests: problems per category")
+    ap.add_argument("--out", default=None)
     ap.add_argument("--cc", required=True)
     ap.add_argument("--b", default="L3")
     ap.add_argument("--conditions", required=True)
@@ -178,8 +188,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--force", action="store_true")
     a = ap.parse_args(argv)
-    assert_gpu_free(a.gpu)
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(a.gpu)
+    if a.device == "cuda":
+        assert a.gpu is not None, "--gpu"
+        assert_gpu_free(a.gpu)
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(a.gpu)
     print(f"{pt_now()} start {vars(a)}", flush=True)
     run(a)
     return 0

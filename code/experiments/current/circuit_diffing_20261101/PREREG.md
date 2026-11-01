@@ -147,3 +147,66 @@ per step, but leaves the training distribution unchanged.
   firing rates: consistent with reweighting at that layer.
 - The threshold between "new" and "strongly upweighted" is a choice. The base-to-RL strength
   ratios (Δnorm, ν) are reported as distributions, not only counts.
+
+## Stage 2: causal tests, revised to the reweighting branch (GPU)
+
+Written after these Stage 1 results were seen, and before any Stage 2 sampling.
+- The primary crosscoder (base vs L3 end, seed 0, layer 3, pre-registered recipe) has 0 strict
+  RL-only latents and 0 base-only latents. The null also has 0.
+- The planted positive control recovers 4 of 6 planted features as strict RL-only, with no
+  false positives.
+
+As pre-registered, Stage 2 therefore tests reweighting, not RL-only ablation. The ablation of
+RL-only latents (and its matched random control) is dropped because the set is empty.
+
+**Setup.** Crosscoder `L3_s0_L3_n8192_k32_seed0`.
+- Problems: `stage2_problems.json`, 80 RL-gained problems (G) and 121 shared ones (S).
+  - G: 20 from Charles149 and 60 from 13–20.
+  - S: 72 from Charles149 and 49 from 13–20.
+  - Neither set was used for crosscoder training.
+- 32 attempts per problem, at the reads' setting: plain arm, B64, temperature 0.8,
+  max_action 512, max_steps 96. Every attempt is judged by Lean.
+- Patching runs inside the sampler, at every token (`patching.PairPatched`).
+
+**Conditions.**
+- `rl_clean` and `base_clean`: the references.
+- `rl_recon`: the RL model with layer 3 replaced by its crosscoder reconstruction, a fidelity
+  check.
+- `base_replace`: the base with layer 3 replaced by the RL model's layer-3 residual on the same
+  tokens. This is the positive control for any layer-3 intervention.
+- `base_transplant`: the base with every live latent switched to its RL version (norm and
+  direction), keeping the base's reconstruction error.
+- `base_rescale`: the base with every shared latent rescaled to the RL model's strength along
+  the base's own direction. This is pure reweighting, with no rotation.
+- `rl_revert`: the RL model with every live latent switched back to its base version.
+- `rl_unscale`: the RL model with shared latents scaled back to base strength along its own
+  directions. This undoes the reweighting only.
+
+**Metrics.**
+- Solve %: the mean over problems of n_ok / 32, for G and S.
+- Gap recovered for base-driven conditions: (cond − base_clean) / (rl_clean − base_clean).
+- Gap removed for RL-driven conditions: (rl_clean − cond) / (rl_clean − base_clean).
+- Relative drops and selectivity (drop G − drop S).
+- 95% paired problem-bootstrap intervals (`stage2_analyze.py`).
+
+**Predictions.**
+- **P2.1.** `base_clean` and `rl_clean` match the reads' category definitions:
+  - `base_clean`: G ≤ 5% and S ≥ 40%;
+  - `rl_clean`: G ≥ 30% and S ≥ 60%.
+- **P2.2.** `rl_recon` keeps at least 80% of `rl_clean`'s solve % on both G and S.
+- **P2.3.** `base_replace` recovers 20–80% of the RL − base gap on G.
+- **P2.4.** `base_transplant` recovers at least half as much of the G gap as `base_replace`.
+- **P2.5.** `base_rescale` recovers under 15% of the G gap.
+- **P2.6.** `rl_revert` removes at least 30% of the G gap, with selectivity > 0. `rl_unscale`
+  removes under 15%.
+
+**Pre-registered reading.**
+- **Rotation, not new features.** Suppose `base_replace` and `base_transplant` recover a large
+  share of the gap but `base_rescale` does not, and `rl_revert` removes it but `rl_unscale` does
+  not. Then the part of RL's gain carried at layer 3 lives in changed write directions of
+  features the base already has. That is neither new features nor pure magnitude reweighting.
+- **Change downstream.** If `base_replace` recovers little, the gain depends on changes after
+  layer 3, which a layer-3 crosscoder cannot speak to. That leaves room for new downstream
+  circuits that read existing features differently.
+- **Reweighting.** If `base_rescale` recovers most of the gap, that supports magnitude
+  reweighting of existing features.
