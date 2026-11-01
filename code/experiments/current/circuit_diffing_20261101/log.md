@@ -142,3 +142,10 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
 - **3:43 PM.** Another user (`despair8`) started two new GPU jobs (GPUs 1 and 3), so other users
   again hold 3 GPUs. The GPU guard refused every remaining job in queue F, and the queue drained
   without running anything. `interpret.py` runs on CPU instead. GPU jobs wait for a free slot.
+- **3:47 PM.** `interpret.py` ran on CPU for the layer-3 L3-end crosscoder. The 11 exploratory
+  latents and the 5 most-rotated high-energy latents all fire on proof-state syntax (atoms, `:`
+  after hypothesis names, name tokens, `:=`), at equal rates on RL and base rollouts. None looks
+  RL-specific.
+- **3:52 PM.** All 5 GPUs are now held by other users (`despair8` 4, `cipeng` 1). Queue H
+  (`jobs_gpuH.txt`) waits for a slot through `gpu_gate.sh`. Its order puts the CPT crosscoder
+  first, because whether rotation is RL-specific is the main open question.
