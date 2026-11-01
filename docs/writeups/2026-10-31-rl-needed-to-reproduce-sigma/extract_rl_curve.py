@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Per-round cumulative RL / pretraining FLOPs and sigma capability for create-or-elicit's ladders.
-Read-only. Reuses the rl-compute-share reviewer's FLOP functions (review_rcs/ourruns.py)."""
-import glob, json, re, sys
+"""Per-round cumulative RL / pretraining FLOPs and sigma capability for create-or-elicit's ladders, coe-dose01's 0.1 % dose
+ladders and (when run) knockout s1's rounds 25-32 from coe-dose01.
+Read-only. Reuses the rl-compute-share reviewer's FLOP functions (review_rcs/ourruns.py).
+coe-dose01 additions: arm "dose01" (registry coe-dose01, round files and rounds JSONs in the coe-dose01 worktree), and
+knockout s1 as two parts (create-or-elicit r1-24, coe-dose01 r25-32) with its rounds JSON through r32."""
+import glob, json, os, re, sys
 sys.path.insert(0, '/home/dan/work/rl-compute-share/review_rcs')
 import ourruns as O
 
 W = '/home/dan/work'
 COE = f'{W}/create-or-elicit/artifacts/coe/ladder'
 ROUNDS = f'{W}/create-or-elicit/artifacts/coe/rounds'
-regs = {r: O.load_reg(r) for r in ('create-or-elicit', 'trajectory', 'rl-continue')}
-s1 = {**O.stage1_rows(regs['create-or-elicit']), **O.stage1_rows(regs['trajectory'])}
+D01 = f'{W}/coe-dose01/artifacts/coe/ladder'
+D01_ROUNDS = f'{W}/coe-dose01/artifacts/coe/rounds'
+regs = {r: O.load_reg(r) for r in ('create-or-elicit', 'trajectory', 'rl-continue', 'coe-dose01')}
+s1 = {**O.stage1_rows(regs['create-or-elicit']), **O.stage1_rows(regs['trajectory']), **O.stage1_rows(regs['coe-dose01'])}
 
 specs = []
 for arm, seeds in (('ko', range(6)), ('full', range(3, 6)), ('dose1', range(3))):
@@ -18,6 +23,16 @@ for arm, seeds in (('ko', range(6)), ('full', range(3, 6)), ('dose1', range(3)))
         specs.append(dict(name=lad, arm={'ko': 'knockout', 'full': 'full', 'dose1': 'dose1'}[arm], seed=sd,
                           parts=[('create-or-elicit', [COE], None)], ladder=lad,
                           D=s1[f'ckpts/coe/stage1_{arm}_s{sd}.pt']['train_tokens'], rounds_file=f'{ROUNDS}/{lad}.json'))
+for sd in range(3):                                   # coe-dose01: the 0.1 % sigma dose arm
+    lad = f'la_dose01_s{sd}'
+    if not os.path.exists(f'{D01_ROUNDS}/{lad}.json'):
+        print(f'{lad}: no rounds file yet, skipped'); continue
+    specs.append(dict(name=lad, arm='dose01', seed=sd, parts=[('coe-dose01', [D01], None)], ladder=lad,
+                      D=s1[f'ckpts/coe/stage1_dose01_s{sd}.pt']['train_tokens'], rounds_file=f'{D01_ROUNDS}/{lad}.json'))
+if os.path.exists(f'{D01_ROUNDS}/la_ko_s1_r32.json'):    # coe-dose01 priority 2: knockout s1 rounds 25-32
+    sp = next(sp for sp in specs if sp['name'] == 'la_ko_s1')
+    sp['parts'] = [('create-or-elicit', [COE], set(range(1, 25))), ('coe-dose01', [D01], set(range(25, 33)))]
+    sp['rounds_file'] = f'{D01_ROUNDS}/la_ko_s1_r32.json'
 for sd in range(3):
     lad = f'la_T1_best12_s{sd}'
     specs.append(dict(name=f'old_full_s{sd}', arm='full', seed=sd, ladder=lad,
