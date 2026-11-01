@@ -1,0 +1,57 @@
+{
+ "S1g3_s0": {
+  "epochs": 4.333555005659941,
+  "steps": 24000,
+  "pairs_per_epoch": 959374,
+  "state_tokens_per_epoch": 73690463,
+  "completion_tokens_per_epoch": 27971956,
+  "tokens": 440559684.74494827,
+  "completion_tokens": 121218009.94189961,
+  "n_params": 9566208,
+  "secs": 1329.70183467865
+ },
+ "T1v1_s0": {
+  "epochs": 2.726961171783001,
+  "steps": 24000,
+  "pairs_per_epoch": 1239820,
+  "state_tokens_per_epoch": 100733323,
+  "completion_tokens_per_epoch": 60670936,
+  "tokens": 440143147.25340694,
+  "completion_tokens": 165447286.72773147,
+  "n_params": 9563136,
+  "secs": 3141.0007090568542
+ },
+ "T1v1_s1": {
+  "epochs": 2.7265861173396138,
+  "steps": 24000,
+  "pairs_per_epoch": 1239820,
+  "state_tokens_per_epoch": 100733323,
+  "completion_tokens_per_epoch": 60670936,
+  "tokens": 440082611.8688874,
+  "completion_tokens": 165424531.8236002,
+  "n_params": 9563136,
+  "secs": 3283.1398842334747
+ },
+ "T0_s0": {
+  "epochs": 3.6741075317384784,
+  "steps": 24000,
+  "pairs_per_epoch": 1239820,
+  "state_tokens_per_epoch": 100733323,
+  "completion_tokens_per_epoch": 19372918,
+  "tokens": 441283244.6668968,
+  "completion_tokens": 71178183.93555194,
+  "n_params": 9563136,
+  "secs": 2475.7159814834595
+ },
+ "T0_s1": {
+  "epochs": 3.67011179042119,
+  "steps": 24000,
+  "pairs_per_epoch": 1239820,
+  "state_tokens_per_epoch": 100733323,
+  "completion_tokens_per_epoch": 19372918,
+  "tokens": 440803331.19726896,
+  "completion_tokens": 71100774.7666629,
+  "n_params": 9563136,
+  "secs": 2468.117563724518
+ }
+}

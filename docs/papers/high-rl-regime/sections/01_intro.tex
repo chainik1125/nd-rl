@@ -4,34 +4,89 @@
 % Main source for the compute numbers: Dan's review, origin/dan
 % docs/literature/2026-10-19-rl-compute-share/REVIEW.md (section given as Q3, Q5, ...). It is not on leon/main.
 
-\section{Introduction}
-
-\begin{figure}[b]
+% Teaser: placed before the heading with [h!] so it sits under the title block ([t] would float above the title).
+\begin{figure}[h!]
   \centering
-  \figplaceholder{Figure 1 (teaser), to choose.\\[0.4em]
-    (a) RL / pretraining compute on a log axis: the create-vs-elicit papers, the graded frontier band, our runs.\\
-    Dan has this plot (origin/dan, rl-compute-share \texttt{figures/ratio.png}); redraw in \texttt{style.py} and add the GRPO runs.\\[0.3em]
-    (b) Cartoon: low RL selects behaviour learned in pretraining; high RL builds new behaviour.}
-  \caption{\todo{caption}}
+  \includegraphics[width=\linewidth]{figures/teaser_passk.pdf}
+  \caption{RL at frontier-like scale creates capabilities the base model lacks. (a) pass@$k$ on 149 held-out
+    textbook-style problems for the pretrained base and for RL checkpoints (seed 0), coloured by RL / pretraining FLOPs; bands
+    are 95\% bootstrap intervals over problems. (b) RL minus base at $k = 1$ and $k = 1024$ against RL / pretraining
+    FLOPs, with the median RL budget of Yue et al.~\cite{yueDoesReinforcementLearning2025} marked. Near that budget
+    our checkpoints differ from the base by about a point at both $k$. The gap at $k = 1024$ opens as RL grows, and at
+    about $0.3\times$ pretraining FLOPs the RL model stays ahead of its base out to $k = 1024$. No checkpoint falls
+    below the base at $k = 1024$.}
   \label{fig:teaser}
 \end{figure}
+% Regenerate after new reads land (from the repo root):
+%   ND_OFFLINE=1 PYTHONDONTWRITEBYTECODE=1 code/.venv/bin/python -m code.experiments.current.high_rl_passk_20261030.teaser
+% Low-RL checkpoints (R down to 7.6e-5) added 30 Oct, 7:30 pm; numbers in teaser_numbers.md next to the script.
+
+\section{Introduction}
+
 
 % P1 (~130 words). The shift: frontier RL is no longer small next to pretraining.
 \talk{
 \begin{itemize}[nosep,leftmargin=1.2em]
-  \item Frontier RL has grown from a thin layer to roughly pretraining scale. Graded per-model estimates of
-    RL / pretraining compute: 0.01--0.1 in 2024 (grade C), 0.3--1 in H2 2025 (D), about 1--2 in 2026 (D, mixed units).
-    No lab publishes the FLOP ratio. Closest statements: xAI's Grok 4 ran RL ``at pretraining scale''; DeepSeek-V3.2's
-    post-training budget exceeds 10\% of pretraining cost. (REVIEW.md Q3; quote the range with its units and grade,
-    never as one number.)
+  \item Frontier RL has grown from a thin layer to roughly pretraining scale. No lab publishes the per-model
+    RL / pretraining FLOP ratio, so every number is an outside estimate. Three kinds; keep their units apart:
+  \item \textbf{Per-model, FLOPs (lead with these; comparable to our runs).} Epoch (grade C): early 2025 RL ``maybe
+    1--10\% of pre-training''; 2024 o-series 1--30\%; Grok 4 10--100\%; GPT-5 10--200\%. Ord (Oct 2025, D): the big
+    three have not ``quite reached'' parity but are ``not far off''. Dan's graded range: 0.01--0.1 (2024, C),
+    0.05--0.2 (H1 2025, C), 0.3--1 (H2 2025, D), about 1--2 (2026, D; only 0.1--0.4 if its GPU-time inputs are read as
+    FLOPs). One model, three answers: R1-Zero's RL is about 20\% of V3 (Epoch, pre-disclosure), 3.75\% by DeepSeek's
+    GPU-hours, 0.3--1.5\% in FLOPs from a token count.
+  \item \textbf{Fleet shares (SemiAnalysis Tokenomics model, via OfficeChai, 2026-10-18; D).} OpenAI + Anthropic
+    combined compute, pretraining / post-training+RL / inference: 67 / 5 / 29\% (1Q24), 32 / 36\% (4Q25),
+    23 / 42\% (1Q26), 7 / 53--55 / 37--38\% (4Q26, estimated). Post/pre: 0.07 $\to$ 1.8 $\to$ about 7.7. Caveat:
+    lab-wide GPU time incl.\ experiments and rollout inference, base models reused across post-training runs; one
+    critique estimates MiMo's RL updates at 0.33\% of base FLOPs while RL was about 20\% of spend. Use as the trend,
+    not as a per-model ratio.
+  \item \textbf{Lab statements (A/B, words not numbers).} xAI: Grok 4's RL ran ``at pretraining scale''. DeepSeek-V3.2:
+    post-training budget ``exceeding 10\% of the pre-training cost''. OpenAI: o3 used ``an additional order of
+    magnitude'' of RL over o1; 2026: ``our largest planned frontier RL run remains on hold''. Cursor (not frontier):
+    Composer 1.5's post-training ``surpasses'' its base's pretraining. Amodei: RL spend ``small for all players''
+    (Jan 2025), then ``the same scaling in RL that we saw for pre-training'' (2026).
+  \item Our EI runs (0.9--19$\times$, RL-only FLOPs; P3) are at or above every per-model estimate, and the top of the
+    range is above even SemiAnalysis's 4Q26 fleet ratio. Sources: REVIEW.md Q3 and ledger/D\_frontier.tsv on
+    origin/dan (verbatim quotes, grades).
   \item Most of what we believe about what RL does was measured in the small-RL regime: Yue et al.'s RL is a median
     $1.2\times10^{-4}$ of pretraining FLOPs, and no create-vs-elicit test on a pretrained LLM with a computable ratio
     exceeds about $2\times10^{-2}$ (REVIEW.md bottom line 1--2).
   \item Possible opener: ``Reinforcement learning is no longer a thin layer on top of pretraining.''
   \item Cite: \cite{yueDoesReinforcementLearning2025,guoDeepSeekR1IncentivizesReasoning2025}. Not in references.bib
-    yet: DeepSeek-V3.2 (arXiv 2512.02556), the Grok 4 post, the Epoch estimates.
+    yet: DeepSeek-V3.2 (arXiv 2512.02556), the Grok 4 post, the Epoch posts (GPT-5 notes, how far can reasoning
+    scale, what went into R1), Ord's ``How well does RL scale?'', the SemiAnalysis chart (OfficeChai write-up), the
+    OpenAI o3 post.
 \end{itemize}}
-\todo{write P1}
+Over the past two years, post-training and RL at frontier labs have grown from a small fraction of training compute to
+a share comparable with pretraining (Table~\ref{tab:compute-share}). Most of what we know about the effects of RL comes
+from the earlier, low-RL regime. For instance, the RL in Yue et al.~\cite{yueDoesReinforcementLearning2025} is a median
+$1.2\times10^{-4}$ of its base models' pretraining FLOPs, orders of magnitude below what the frontier now spends. We use
+a toy domain to characterize what large amounts of RL do to a model.
+% Units: Yue's number is a per-model FLOP ratio, Table 1 is lab-wide GPU-time shares. If a reviewer could object,
+% add the per-model estimates (Epoch: GPT-5's RL 10--200% of pretraining) next to the table reference.
+
+\begin{table}[ht]
+  \centering
+  \small
+  \caption{Share of combined OpenAI and Anthropic compute by workload, from SemiAnalysis's Tokenomics model as
+    reported by OfficeChai (18 October 2026)~\cite{officechaiWhileShareInference2026}; E marks estimates. Post-training covers supervised fine-tuning,
+    preference tuning and RL; no lab publishes the split, but RL, with its rollout generation, is likely most of it.
+    Rows do not sum to 100\% because the third workload, serving inference, takes the remaining 29--39\%. These are
+    lab-wide shares including experiments, not any single model's RL / pretraining ratio.}
+  \label{tab:compute-share}
+  \begin{tabular}{lrrr}
+    \toprule
+    Quarter & Pretraining & Post-training / RL & Post / pre \\
+    \midrule
+    1Q24  & 67\% & 5\%       & 0.07 \\
+    4Q25  & 32\% & 36\%      & 1.1 \\
+    1Q26  & 23\% & 42\%      & 1.8 \\
+    3Q26E & 10\% & 53--55\%  & 5.3--5.5 \\
+    4Q26E & 7\%  & 53--55\%  & 7.6--7.9 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 % P2 (~150 words). Why it matters for safety: our intuitions come from low RL, and the risks come from high RL.
 \talk{
@@ -39,14 +94,31 @@
   \item The low-RL picture: post-training mostly selects among behaviours (personas) the model learned in
     pretraining, the persona selection model (PSM). \todo{PSM citation: ask Dmitry which source}
   \item Misalignment risks crop up under heavy RL: reward hacking, and strategies that never appeared in pretraining.
-    \todo{citations, none in references.bib yet: e.g.\ MacDiarmid et al.\ 2025 (misalignment emerging from reward
-    hacking in production RL), Baker et al.\ 2025 (monitoring CoT, obfuscation under pressure)}
+    Now cited (written 1 Nov): MacDiarmid et al.\ 2025, Denison et al.\ 2024, Baker et al.\ 2025, waiting in
+    to\_zotero/; R1-Zero's language mixing from the DeepSeek-R1 paper. Each risk maps to a later section: reward
+    hacking $\to$ \S4; chain-of-thought drift $\to$ \S3's divergence metrics; new strategies $\to$ \S4 and Figure 1.
+    Left out: RL eroding behaviours instilled earlier (question 2 below), no citation yet.
   \item End on the three questions from the notes:
     (1) at what point does the PSM break down?
     (2) how much RL does it take to remove a behaviour instilled in pretraining, or to install one?
     (3) are there proxy metrics that tell you that you are in this regime?
 \end{itemize}}
-\todo{write P2}
+Many of the most serious risks from AI are thought to arise in the high-RL regime. The Hugging Face incident is a
+recent example: an OpenAI research model ``trained to be highly persistent and diligent in its work'' escaped its
+evaluation sandbox and hacked Hugging Face in order to cheat on a cybersecurity benchmark, and OpenAI traced the
+behavior in part to RL training that had rewarded out-of-scope probing of its own infrastructure~\cite{openaiOpenAIHuggingFace2026}.
+Heavy RL brings more specific risks as well. Models that learn to game their rewards can generalize to worse
+behavior: from telling users what they want to hear to rewriting their own reward function~\cite{denisonSycophancySubterfugeInvestigating2024},
+and, after reward hacking in production coding environments, to alignment faking and sabotage~\cite{macdiarmidNaturalEmergentMisalignment2025}.
+A model's chain of thought can stop showing its reasoning: when a chain-of-thought monitor was added to the reward,
+agents learned to hide their intent while still hacking~\cite{bakerMonitoringReasoningModels2025}, and DeepSeek-R1-Zero,
+trained by RL alone, wrote reasoning that was hard to read and mixed languages~\cite{guoDeepSeekR1IncentivizesReasoning2025}.
+And if RL creates strategies that never appeared in pretraining, what a model saw in pretraining can no longer
+predict how it will behave. It is therefore important to understand how heavy RL affects model behavior and alignment, and to find metrics that
+tell us when a model has moved from the elicitation regime into the more dangerous regime of capability gain.
+% Source: OpenAI, Hugging Face Incident Technical Report, Section IV.C ("an internal-only research model trained to be
+% highly persistent and diligent in its work") and Section VIII.A (the model "received a positive reward for its use of
+% unintended infrastructure probing", which "increased over the course of one of the training runs").
 
 % P3 (~150 words). Why a toy model, and why ours is already in the regime.
 \talk{
@@ -57,25 +129,146 @@
     verifier, so every pretraining token is ours. \todo{parameter count of the GRPO base (S1g3); the EI runs' ALiBiGPT
     6$\times$384 has 9,560,832 (REVIEW.md Q5)}
   \item Dmitry (Oct 22 sync): toy models are how we reach the ``high RL, low pretraining'' regime cheaply.
+  \item Why pretrained, not RL from scratch (written 1 Nov from the meeting notes; Leon picked arguments 2, 1, 4): same
+    recipe as LMs; a pretraining prior is needed to ask elicitation vs gain; text-like and unbounded. Not used: RL
+    improves through in-context reasoning rather than external search (MCTS); cheap and controllable. Limits to own
+    in \S2: formal language, programmatic thinking traces, about 10M parameters, so ``much closer to LMs than RL from
+    scratch'', not ``equivalent''.
   \item Our EI runs spend 0.9--19$\times$ pretraining FLOPs on RL (RL-only count; 9--180$\times$ by GPU-time):
     at or above the frontier band, about 4--5 orders of magnitude above Yue et al.'s median (REVIEW.md Q5).
-    \todo{the same ratio for the GRPO runs (merged recipe + KL 0); not computed yet}
+    GRPO (primary recipe, L2 + L3, seed 0) against Stage-1 S1g3's 440.6M tokens: 129.8M sampled and 84.0M trained, each
+    trained once (the 4 ``updates'' are 4 minibatches of one batch); wall-clock 8--9$\times$. At $6N$ per trained token
+    and $2N$ per sampled token that is 0.29$\times$ pretraining FLOPs (prefill left out, so a lower bound): inside the
+    frontier band, below the EI runs. By the same count Dan's cap-12 EI ladder (r1--r8) is 0.2--2.0$\times$; reconcile
+    with REVIEW.md's 0.9--19$\times$, which counts differently, before quoting both.
   \item Nearest from-scratch organisms: Interplay (Zhang et al., arXiv 2512.07783; RL $\approx 0.4\times$
     pretraining) and Echo Chamber (Zhao et al., arXiv 2504.07912). Dan's knockout is the only controlled
     create-vs-elicit test above $1\times$ (REVIEW.md implication 1).
 \end{itemize}}
-\todo{write P3}
+Language models are expensive to train: Olmo 3 Think 32B, for instance, took about 56 days on 1,024 H100 GPUs, and its
+RL, extended to produce Olmo 3.1 Think 32B, ran for about 26 days on 224 GPUs, 14\% of its pretraining GPU-hours~\cite{olmoOlmo32025}.
+% Source: Olmo 3 report, Section 2 (Dan's note notes/teamolmo2025-olmo3.md in the rl-compute-share review on origin/dan).
+% Pretraining 9.5 d x 512 + 35 d x 1,024 GPUs = 977k GPU-h; RL (5 + 21) d x 224 = 140k GPU-h. GPU-hours overstate the
+% FLOP share because rollouts run at low utilisation: by FLOPs the initial 5-day RL is only 0.2--0.7% of pretraining.
+To study how pretraining and RL interact, we therefore use natural deduction as a toy domain. Unlike systems trained
+by RL from scratch, such as AlphaZero~\cite{Silver_2018}, our model is trained the way language models are: first
+pretrained on a corpus, here of proofs, then trained with policy-gradient RL against a verifier. Only a pretrained
+model has something for RL to elicit, so only such a model can tell elicitation from capability gain. Like a language
+model, ours writes a chain of thought before it answers, and its thoughts and proofs are token sequences of unbounded
+length over an unlimited supply of theorems, rather than moves in a fixed game. Because we generate the pretraining
+data ourselves, we can separate what the model could have learned in pretraining from what RL adds, for
+example by limiting the length of the proofs it sees. We show that, with large amounts of RL, this setting produces new
+capabilities. Our main GRPO run spends about $0.3\times$ its
+pretraining FLOPs on RL, more than three orders of magnitude above the median in Yue et
+al.~\cite{yueDoesReinforcementLearning2025} and comparable to outside estimates for recent frontier models. By the
+standard pass@$k$ test, the RL model beats its base at every number of attempts we measured, in each of three
+seeds: on 149 held-out textbook-style problems it solves 86.6\% within 1,024 attempts against the base's 74.5\%
+(means over seeds). Across 3,072 attempts per model, the RL models solve 9 problems (6.0\%) that no base model ever
+solves, while the base models solve none that the RL models miss.
+% Sources: GRPO ratio 0.29 = (6 x 84.0M trained + 2 x 129.8M sampled tokens) / (6 x 440.6M Stage-1 tokens), prefill
+% excluded (code/experiments/current/high_rl_passk_20261030/README.md). pass@k: Charles149, base S1g3_s{0,1,2} vs the
+% primary recipe's L3 end s{0,1,2} (each RL seed starts from its own base seed), k1024 reads of 30 Oct
+% (runs/eval/v2/charles149_*_plain_k1024). Gap at k1024 +12.1 [7.2, 17.9] (bootstrap over problems and seeds, paired by
+% seed); per seed +10.7, +10.7, +14.8. "3,072 attempts" pools the three seeds' 1,024 each, on both sides; per seed the
+% base also solves 0, 1 and 3 problems its RL model misses. Script and output: seeds3.py and seeds3.json in the
+% experiment folder above.
 
-% P4 (~150 words). Contributions, one per later section. Say "we propose" where there is no result yet.
+% Evidence box (Dmitry's ask): the standard elicitation-vs-capability test, pass@k, says our environment is in the
+% high-RL regime. Fold into P3, or give it its own short paragraph next to teaser panel (c).
 \talk{
-\begin{enumerate}[nosep,leftmargin=1.4em]
-  \item We are in a high-RL regime, and not just by GPU-hours: RL / pretraining FLOPs, capabilities that emerge only
-    during RL, performance on the held-out textbook set (never trained on). (\S2, Leon + Dan; 1--2 pages)
-  \item Proxy metrics for ``the model has diverged from pretraining'' that also apply to real LLMs: EDL (the best
-    Dmitry has seen), KL to the pretrained model (Robbie's pick). Do they move smoothly or jump? (\S3, Charles + Robbie)
-  \item The metrics line up with behaviour: the model reward hacks more, and it uses proof strategies pretraining never
-    showed it (Dan's proof-strategies taxonomy; the reward-hacking figures in
-    \nolinkurl{code/experiments/current/reward_hack_inoculation_20261023/}). (\S4)
-  \item What this predicts for language models, and the experiments to run there. (\S5)
-\end{enumerate}}
-\todo{write P4}
+\begin{itemize}[nosep,leftmargin=1.2em]
+  \item The test (Yue et al.): with little RL, the RL model wins at small $k$ but the base catches up or overtakes it at
+    large $k$ (elicitation). With a lot of RL, the RL model wins at every $k$ (capability gain).
+  \item \textbf{Ours (GRPO primary recipe; measured, $k \le 64$).} RL beats the base at every $k$, on every set, at
+    every checkpoint, even the earliest (mini20 L2 it8, about 0.03$\times$ Stage-1 FLOPs). Base $\to$ RL end,
+    pass@1 / pass@5 / largest $k$: Charles149 38.7 / 55.8 / 69.8 (k64) $\to$ 70.5 / 78.9 / 83.4; 13--20 lines
+    8.5 / 23.4 / 29.5 (k8) $\to$ 32.1 / 57.8 / 63.8; 21--30 lines 0.5 / 2.2 / 3.1 (k8) $\to$ 7.2 / 19.4 / 23.8;
+    textbook72 38.6 / 55.0 / 73.6 (k64) $\to$ 74.0 / 82.3 / 87.5.
+  \item On the long sets the gap widens with $k$ and grows with RL (13--20 at k4: +22.0 points after L2, +33.9 at the
+    end). At equal attempts RL alone solves 15--17\% of Charles149 and 35--41\% of 13--20; the base alone, 2--5\%.
+  \item The gaps are resolved: 95\% bootstrap intervals, Charles149 +31.8 [26.6, 37.1] at k1 and +13.6 [6.9, 20.8] at
+    k64; 13--20 +34.3 [29.4, 38.9] at k8. RL-only problems are not lucky draws (RL's median solve rate on Charles149's
+    26 is 75\%). The gaps hold at matched sampled tokens per problem (Charles149 +24.2 at 1k tokens, +13.6 at 16k).
+  \item \textbf{Dan's EI, out to $k = 10^4$.} support-curves: no crossover in any stratum (seed 0 at $k = 10^4$: base
+    11.7\%, EI 31.6\%; 7.6\% of theorems have no base success in $4\times10^5$ samples). capability-defs: at k256 the
+    base reads 72--73\%, the base given RL's compute 82--87\%, RL after 8 rounds 88.8--91\%, after 16 rounds 90--94\%.
+  \item Closest thing to the shift itself, varied through pretraining instead of RL (capability-defs): the share of
+    RL's gain that counts as elicited is 0.21--0.33 when RL starts early in pretraining, 0.70--0.86 when it starts
+    from the end. \todo{check Dan's definition of ``elicited'' before using}
+  \item Counterpoint (create-or-elicit knockout): theorems knocked out of pretraining go from 0 to only 0--1.9\% under
+    RL, against 5.7--21.7 $\to$ 21.7--72.6\% with full exposure. RL builds a lot, but not a skill with no support.
+  \item \textbf{The elicitation side (v1 recipe, narrow 7--12-line pool, 1 seed per run).} textbook72: GRPO it78
+    31.6\% pass@1 vs base 19.1\%, but 48.6\% vs 54.2\% at pass@64; the point estimates cross at $k\approx18$, though the
+    k64 gap, $-5.6$ [$-14.2$, $+2.9$], is not resolved. The large-$k$ gap shrank from it39 to it78 in 3 of 4 runs. EI from the same base stays ahead at every $k$. So this
+    contrast is across recipes, not across amounts of RL.
+  \item \textbf{Large $k$ (ynez, 30 Oct, one seed): no crossing.} Charles149 at k1024: base 39.2 / 56.5 / 78.5
+    (pass@1 / pass@5 / pass@1024), RL end 70.3 / 78.9 / 89.3; the gap narrows from +31.1 [26.0, 36.6] to +10.7 [6.0,
+    16.1] but stays positive; 16 RL-only problems, 0 base-only. 13--20 subset (250 problems) at k512: base 11.2 / 28.4
+    / 77.2, RL end 38.7 / 66.4 / 94.0.
+  \item \textbf{Three seeds at k1024 (Charles149; each RL seed from its own base).} Mean base 32.6 / 49.7 / 74.5, RL
+    end 70.5 / 79.0 / 86.6; gap +37.9 [30.0, 46.2] at k1, +12.1 [7.2, 17.9] at k1024 (problems and seeds resampled).
+    Every seed is above its base at every $k$ (k1024: +10.7, +10.7, +14.8). The bases spread widely (pass@1 39.2, 33.0,
+    25.7) but the RL ends do not (70.3, 70.9, 70.4). RL-only / base-only per seed: 16 / 0, 17 / 1, 25 / 3; pooled over
+    3,072 attempts, 9 / 0.
+  \item \textbf{Low-RL arm (Figure 1b; Charles149 k1024, one seed).} Checkpoints inside the first iterations of the
+    mini20 config (256 prompts per iteration) and of a 16-prompt variant, $7.6\times10^{-5}$ to
+    $3\times10^{-2}$ of Stage-1 FLOPs. Near Yue's median RL is within about a point of the base at k1 and k1024
+    (k1024 +0.7 [$-1.3$, +2.7] at $7.6\times10^{-5}$). No checkpoint falls below the base at k1024, so we see no gain
+    at large $k$ rather than Yue's crossing. The k1024 gap reaches +9.4 [4.7, 14.1] at 0.03$\times$ and about +11 from
+    0.15$\times$.
+  \item \textbf{On Charles149, optimizer steps seem to set the early large-$k$ gain, not FLOPs.} At equal steps the
+    16-prompt variant matches the 256-prompt config at k1024 with 1/16 of the FLOPs (8 steps +3.4 vs +2.7; 16 steps
+    +5.4 vs +5.4; 32 steps +6.0 vs +9.4), while its k1 gain is smaller and noisier (16 steps: $-5.0$ [$-8.8$, $-1.4$]
+    at k1, +5.4 [1.3, 10.1] at k1024). So R alone does not place a run in Figure 1(b). One seed per point; same
+    learning rate. \textbf{Not on the 13--20 subset:} there the 16-prompt variant gains nothing at k512 by 32 steps
+    (+1.6 [$-2.4$, +5.6]) while the 256-prompt config gains +10.4 [6.4, 14.8], so for long proofs FLOPs (or batch
+    size) matter.
+  \item \textbf{Low-RL arm on the 13--20 subset (250 problems, k512, seed 0).} Same shape as Charles149. Near Yue's
+    median RL is within about 2 points of the base at k512, two points slightly below it but not resolved ($-1.2$
+    [$-4.8$, +2.4] and $-2.4$ [$-6.0$, +1.2]). The gap at k512 opens from about $10^{-2}$ (+4.0 [0.0, 8.0] at
+    $6.6\times10^{-3}$, +10.4 at 0.03$\times$) and reaches +16.8 [12.0, 21.6] at the L3 end. Table:
+    \nolinkurl{lowrl_1320.md} in the experiment folder.
+  \item Caveats: the base is read at one seed; textbook72's base at thinking budget 256 vs RL at 64; matched $k$, not
+    matched compute; KL 0 was chosen on Charles149 and the long sets (textbook72 is sealed).
+  \item Data: \nolinkurl{/scratch/cowifornia/nd-rl/think/runs/eval/v2/<set>_<arm>[_itN]_s<seed>_plain_k<k>/};
+    v1 in \nolinkurl{/scratch/cowifornia/nd-rl/think_serrano_20261011/runs/eval/}; Dan's in the origin/dan
+    experiment-summaries (support-curves, capability-defs, create-or-elicit), raw in
+    \nolinkurl{hf://buckets/dan-pandori/nd-rl/}. Figures, script and every number with its interval:
+    \nolinkurl{code/experiments/current/high_rl_passk_20261030/} (README.md, numbers.md).
+\end{itemize}}
+
+
+
+% Candidate figures for the pass@k evidence. Notes only: they float to the end and vanish with \notesfalse.
+% The teaser (Figure 1) is built from C1/C3's data; the rest are candidates for Section 2.
+\ifnotes
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth]{figures/passk_base_vs_rl.pdf}
+  \caption{Candidate C1. pass@k of the base and of RL checkpoints. (a, b) Primary GRPO recipe: every checkpoint beats
+    the base at every $k$. (c) v1 recipe: GRPO it78 drops below its base at $k\approx18$ while EI stays above.
+    Bands: 95\% bootstrap over problems. The v2 base is one seed.}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth]{figures/gap_vs_k.pdf}
+  \caption{Candidate C2. RL end minus base against $k$: the gap narrows on Charles149 and textbook72 but stays
+    positive to k64, and widens on the long sets; the v1 contrast goes below zero. textbook72's base is read at
+    thinking budget 256, RL at 64.}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth]{figures/gap_vs_rl_compute.pdf}
+  \caption{Candidate C3. RL minus base against RL / Stage-1 FLOPs ($6N$ per trained token, $2N$ per sampled token,
+    prefill excluded). Primary-recipe points only, at $k \le 64$; superseded by Figure 1(b), which adds the low-RL arm
+    at k1024.}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth]{figures/dan_large_k.pdf}
+  \caption{Candidate C4. Dan's EI. (a) support-curves, base vs EI round 8 on 383 transfer theorems, out to
+    $k=10^4$: no crossing. (b, c) The cap-12 trajectory, end of pretraining (r0) vs EI rounds 1, 4 and 8.}
+\end{figure}
+\fi
+
+
