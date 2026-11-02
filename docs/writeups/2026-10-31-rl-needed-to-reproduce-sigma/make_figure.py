@@ -128,3 +128,70 @@ fig.text(0.01, -0.07,
 for ext in ("png", "pdf"):
     fig.savefig(HERE / f"rl_needed.{ext}", dpi=200, bbox_inches="tight")
 print("threshold", THR, "full r1", sorted(full_r1))
+
+# Headline: RL needed against sigma's share of pretraining ------------------------------------------------------
+# One dot per seed at the cumulative RL compute after the first round whose samples have solved >= THR held-out
+# members. Hollow: already there in the base's own round-1 samples (no update yet). Triangles: lower bounds.
+SHARE = {"full": 10.9, "dose1": 1.0, "dose01": 0.1, "knockout": None}
+ZERO_X = 0.025  # where "0 %" sits on the log axis, behind a break mark
+fig2, h = plt.subplots(figsize=(6.6, 4.6))
+h.set_xscale("log")
+h.set_yscale("log")
+h.set_xlim(0.016, 22)
+h.set_ylim(0.06, 40)
+xt = [ZERO_X] + [SHARE[a_] for a_ in ORDER if SHARE[a_]]
+h.set_xticks(sorted(xt), [{ZERO_X: "0 %\n(removed)", 0.1: "0.1 %", 1.0: "1 %", 10.9: "10.9 %\n(all of K12)"}[t]
+                          for t in sorted(xt)])
+h.set_yticks([0.1, 0.3, 1, 3, 10, 30], ["0.1×", "0.3×", "1×", "3×", "10×", "30×"])
+h.minorticks_off()
+h.grid(axis="y", color=GRID, lw=0.8)
+h.set_axisbelow(True)
+h.text(0.05, 0.06, "//", color=MUTED, ha="center", va="center", fontsize=9, clip_on=False)  # axis break
+for arm in ORDER:
+    lads = sorted((o for o in DATA if o["arm"] == arm), key=lambda o: (o["name"].startswith("old"), o["seed"]))
+    x0 = SHARE[arm] or ZERO_X
+    spread = [0.8 + 0.4 * k / max(1, len(lads) - 1) for k in range(len(lads))]  # multiplicative jitter
+    hits, firsts, misses = [], 0, []
+    for f, o in zip(spread, lads):
+        hit = next((r for r in o["rounds"] if r["heldout_cum"] >= THR), None)
+        if hit:
+            hits.append(hit["x_train"])
+            first = hit["round"] == 1
+            firsts += first
+            h.plot([x0 * f], [hit["x_train"]], "o", ms=8, color=COLOR[arm], mfc=SURFACE if first else COLOR[arm],
+                   mec=COLOR[arm] if first else SURFACE, mew=1.6 if first else 1.2, zorder=3)
+        else:
+            last = o["rounds"][-1]
+            misses.append((last["x_train"], last["heldout_cum"], o["name"]))
+            h.plot([x0 * f] * 2, [0.09, last["x_train"]], color=COLOR[arm], lw=1.1, alpha=0.35)
+            h.plot([x0 * f], [last["x_train"]], "^", ms=8, color=COLOR[arm], mec=SURFACE, mew=1.2, zorder=3)
+    if hits and len(hits) == len(lads) and arm != "full":
+        m = st.median(hits)
+        h.plot([x0 * 0.72, x0 * 1.38], [m, m], color=MUTED, lw=1.2, zorder=2)
+    if arm == "full":
+        rest = sorted(x for x in hits if x > 0.2)
+        h.text(x0 / 1.6, 0.17, f"{firsts} of {len(lads)} seeds at the bar\nbefore any update (hollow);\n"
+               f"{len(rest)} reach it at {min(rest):.2f}–{max(rest):.2f}×", ha="right", va="center", color=TEXT,
+               fontsize=8)
+    elif hits:
+        h.text(x0 * 1.5, st.median(hits), f"{min(hits):.2f}–{max(hits):.2f}×\n(median {st.median(hits):.2f}×)",
+               va="center", color=TEXT, fontsize=8.5)
+    if misses:
+        short = [m for m in misses if m[2] != "la_ko_s1"]
+        s1 = [m for m in misses if m[2] == "la_ko_s1"]
+        txt = f"not reached by {min(m[0] for m in short):.1f}–{max(m[0] for m in short):.1f}×\n({len(short)} seeds, 16 rounds)"
+        if s1:
+            txt += f"\nnor by {s1[0][0]:.1f}× (s1, {len(next(o for o in DATA if o['name'] == 'la_ko_s1')['rounds'])} rounds;\nbest {s1[0][1]} of 106)"
+        h.text(x0 * 1.45, 6.5, txt, va="center", color=TEXT, fontsize=8.5)
+h.set_xlabel("σ's share of the pretraining proofs (log scale)")
+h.set_ylabel(f"RL compute ÷ pretraining compute\nneeded to solve {THR:g} of 106 held-out σ theorems")
+h.set_title("RL needed to bring back proof by contradiction,\nby how much of it pretraining contained", loc="left",
+            fontsize=10.5, color=TEXT)
+fig2.text(0.01, -0.02,
+          f"One dot per seed (9.56M ALiBiGPT, T1 expert iteration, Lean judge). Bar: {THR:g} of 106 strict σ-covered "
+          "held-out theorems,\nthe full bases' median before RL. Grey ticks: medians. Only the contrast with the "
+          "knockout is resolved (3 / 3 vs 0 / 6,\np = 0.0033); 1 % vs 0.1 % is descriptive at 3 seeds and one σ draw "
+          "per dose (p = 0.10). Replay carries σ at each\narm's own rate, so the dose arms' recovery is not RL alone.",
+          fontsize=7.4, color=MUTED, va="top")
+for ext in ("png", "pdf"):
+    fig2.savefig(HERE / f"rl_needed_headline.{ext}", dpi=200, bbox_inches="tight")

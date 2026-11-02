@@ -5,62 +5,63 @@ written_by: agent:claude
 
 # How much RL does it take to bring back proof by contradiction?
 
-> **Updated by run coe-dose01 (librarian, 2026-11-01).** This README, the two scripts, `rl_curve.json` and the figure
-> are the executor's update (fork `dan-pandori/nd-takehome`, branch `dan_coe-dose01`, DONE
-> [`ec488738`](https://github.com/dan-pandori/nd-takehome/commit/ec488738)), which adds the 0.1 % σ dose arm and
-> knockout s1's rounds 25–32. The corrections from its [review](https://github.com/dan-pandori/nd-takehome/blob/4c932eec/review_coe-dose01.md) are applied and marked *[review]*.
-> The version before the run is this folder at commit `ad163fc`, and the executor's files, byte for byte, are this
-> folder at `c53febd`. The executor's `updated_on` field is dropped: the history is in Git. Panel b's label "not
-> reached by 5.6–13.2×" is a range over seeds: five knockout seeds are bounded at 5.6–6.1× and s1 at 13.2× (the
-> arrows) *[review]*. Full s5's curve is fixed as the review recommends *[librarian]* (Caveats): the librarian changed
-> both scripts (`extract_rl_curve.py` reads full s5's round files from `COE_BUCKET` and stops if any ladder's round
-> file is missing; `make_figure.py` drops the dashed style) and regenerated `rl_curve.json` and the figure. Reviewed summary of the run: [coe-dose01](../../../experiment-summaries/2026-10-31-coe-dose01-0p1pct-sigma-dose-reaches-the-bar-on-3-of-3-seeds-at-0p69-2p58x-rl-over-pretraining-flops-reading-graded/README.md).
+A figure for the midterm write-up. It uses create-or-elicit's expert-iteration ladders plus one run made for this
+figure (coe-dose01), with compute measured the way rl-compute-share measured it.
 
-A figure for the midterm write-up: create-or-elicit's 15 expert-iteration ladders plus coe-dose01's three 0.1 % σ dose
-ladders and knockout s1's rounds 25–32, with compute measured the way rl-compute-share measured it.
-
-![RL needed to reach the full bases' level](rl_needed.png)
+![RL needed to bring back proof by contradiction, by how much of it pretraining contained](rl_needed_headline.png)
 
 ## Summary
 
-The capability is solving held-out theorems whose every proof needs σ (classical proof by contradiction). These are the
-106 strict σ-covered members of create-or-elicit's classical families; no ladder trains on them. The bar is what the
-full-exposure bases solve **before any RL update**: a median of 14 of 106 (range 2–19 across 6 seeds) in their
-round-1 samples at k 32.
+**Setup.** The capability is solving held-out theorems whose every proof needs σ (classical proof by contradiction).
+These are the 106 strict σ-covered members of create-or-elicit's classical families, and no ladder trains on them. The
+bar is **14 of 106**: the median that the full-exposure bases solve before any RL update, in their own round-1 samples
+at k 32 (range 2–19 across 6 seeds). Compute is the cumulative RL compute divided by the base's pretraining compute.
 
-| pretraining | RL ÷ pretraining compute needed to reach 14 of 106 | seeds |
+| σ in pretraining | RL ÷ pretraining compute to reach 14 of 106 | seeds that reach it |
 |---|---|---|
-| full exposure (σ in 10.9 % of K12) | none: it is their median before RL *[review]* (3 of the 6 start below it and reach it in round 2, at 0.39–0.43×) | 6 |
-| 1 % σ dose | **0.39–0.73×** (rounds 2–3) | 3 of 3 |
-| 0.1 % σ dose | **0.69–2.58×** (rounds 3, 5, 8; median 1.37×) | 3 of 3 |
-| knockout (σ removed) | **not reached by 5.6–6.1×** (five seeds, 16 rounds) **or by 13.2×** (s1, 32 rounds; it solved 6 of 106) *[review]* | 0 of 6 |
+| 10.9 % (all of K12) | at the bar by construction: 3 of 6 seeds are already there in their own samples, and the other 3 reach it at 0.39–0.43× (round 2) | 6 of 6 |
+| 1 % | **0.39–0.73×** (rounds 2–3; median 0.41×) | 3 of 3 |
+| 0.1 % (155 of 155,000 proofs) | **0.69–2.58×** (rounds 3, 5 and 8; median 1.37×) | 3 of 3 |
+| 0 % (σ removed) | **not by 5.6–6.1×** (five seeds, 16 rounds), **nor by 13.2×** (s1, 32 rounds; it solved 6 of 106) | 0 of 6 |
 
-- **Observed:** a little σ in pretraining makes it cheap for RL to recover the capability. With none, 16 rounds of
-  this RL (32 for knockout s1) leave all six knockout seeds far below the bar. So without σ the RL needed is at least
-  about 8× what a 1 % dose needs (5.6× against 0.73×; about 15× seed against seed at the medians).
-- **Observed (coe-dose01): a graded response.** With σ in 0.1 % of pretraining (155 of 155,000 proofs) the bases barely
-  use σ in their own round-1 samples (0–2 free positive reductios; knockout 0, 1 % 170–219; 0, 0 and 3 of 106 held-out
-  members), yet RL crosses the bar on all three seeds, at a median 1.37× (≈ 3× the 1 % arm's median 0.41×; s2's 0.69×
-  overlaps the 1 % range).
-  At round 16 they solve 30 / 28 / 19 of 106 (1 %: 58 / 34 / 30). Crossing 3 / 3 against the knockout's 0 / 6: one-sided
-  Boschloo p = 0.0033. The 0.1 % vs 1 % differences are descriptive at n = 3 *[review]* and confound the dose with the σ
-  draw: all three 0.1 % seeds share one draw of 155 σ records, drawn separately from the 1 % arm's 1,550 (17 shared).
-- **Interpretation, not tested here:** the knockout row is a lower bound. Knockout s1's free positive reductios grew from
-  11 to 123 per round over rounds 16–24 (create-or-elicit, Addendum 6) and then levelled off at ≈ 140 per round over
-  rounds 25–32 (coe-dose01), with y 5 → 6; more RL of this kind looks unlikely to get there soon. Between the 0.1 % dose
-  and none the requirement jumps from ≈ 1.4× to more than 5.6–6.1× (five knockout seeds) and more than 13.2× (s1)
-  *[review]*; whether 0.01 % would fall in between is untested.
+**Observed:**
+- **With no σ in pretraining, none of the RL we ran got there.** All three 0.1 % seeds cross the bar, against none of
+  the six knockout seeds (one-sided Boschloo p = 0.0033). At round 16 the 0.1 % arm also solves more held-out theorems
+  than the knockout (exact Mann–Whitney p = 0.012, the smallest attainable at these sizes).
+- **A trace is enough.** The 0.1 % bases barely use σ in their own round-1 samples. They write 1, 0 and 2 free positive
+  reductios (the knockout bases none, the 1 % bases 170–219) and solve 0, 0 and 3 of the 106. Yet all three cross. At
+  round 16 they solve 30, 28 and 19 (1 %: 58, 34 and 30), and all three acquire the converse-contraposition family.
+- **RL alone grows the form, not the coverage.** Knockout s1's free positive reductios rose from 11 to 123 per round
+  over rounds 16–24, then stayed at about 140 per round over rounds 25–32. Meanwhile its held-out count went only from
+  5 to 6.
 
-**Source of the new rows:** run `coe-dose01` ([proposal 33](../../proposals/2026-10-31-coe-dose01.md)), fork branch
-`dan_coe-dose01`: `run_coe_dose01.md`, `numbers.md` § coe-dose01, pre-registration `preregistration/coe-dose01.md`.
-Reviewed in [`review_coe-dose01.md`](https://github.com/dan-pandori/nd-takehome/blob/4c932eec/review_coe-dose01.md); nd-rl
-[summary](../../../experiment-summaries/2026-10-31-coe-dose01-0p1pct-sigma-dose-reaches-the-bar-on-3-of-3-seeds-at-0p69-2p58x-rl-over-pretraining-flops-reading-graded/README.md).
+**Interpretation (labelled, not established):**
+- **The requirement looks graded.** The medians are 0.41× at 1 %, 1.37× at 0.1 %, and more than 5.6× at 0 %. That
+  matches the pre-registered reading "graded". It rests on two crossing doses with three seeds and one σ draw each, so
+  1 % against 0.1 % is descriptive: p = 0.10 for both the crossing compute and the round-16 count. Only the contrast
+  with the knockout is resolved. Whether 0.01 % would fall between 0.1 % and none is untested.
+- **The dose arms' recovery is not RL alone.** Each round's fine-tune replays 20,000 records of the arm's own
+  pretraining set, which carries σ at the arm's rate (about 20 σ records per round at 0.1 %). Without a replay-only
+  control, part of the recovery may be replayed exposure. The knockout ladders replay no σ and still grew free
+  reductios, so RL alone can produce the form.
+
+## The full trajectories
+
+![Held-out σ-covered theorems against RL compute, and the RL needed per arm](rl_needed.png)
+
+- **Panel a:** each ladder's held-out count against cumulative compute.
+  - The dashed line is the bar, and the band is the full bases' range before RL.
+  - Dotted is knockout s1's exploratory rounds 17–32.
+- **Panel b:** the same crossings, one row per arm. The arrows are lower bounds: those ladders ended before reaching the
+  bar.
 
 ## How it is computed
 
-- **y (panel a):** `heldout_cum_by_round` in `artifacts/coe/rounds/<ladder>.json` (create-or-elicit's on fork branch
-  `dan_create-or-elicit`; `la_dose01_s*.json` and knockout s1's `la_ko_s1_r32.json` on `dan_coe-dose01`), summed over families. A held-out theorem counts once any round's k 32 sample solves it,
-  under the Lean-alone judge. Every arm gets the same samples per round.
+- **y:** `heldout_cum_by_round` in each ladder's `artifacts/coe/rounds/<ladder>.json`, summed over families.
+  - create-or-elicit's files are on fork branch `dan_create-or-elicit`; `la_dose01_s*.json` and `la_ko_s1_r32.json` are
+    on `dan_coe-dose01`.
+  - A held-out theorem counts once any round's k 32 sample solves it, under the Lean-alone judge. Every arm gets the
+    same samples per round.
 - **x:** cumulative RL compute after each round's sampling, over the ladder's Stage-1 compute, as defined by
   rl-compute-share's reviewer (`review_rcs/ourruns.py`, fork branch `dan_rl-compute-share`):
   - sampling counts 2N per decoded token and per re-read state token;
@@ -69,48 +70,56 @@ Reviewed in [`review_coe-dose01.md`](https://github.com/dan-pandori/nd-takehome/
   - Stage-1 counts 6N·D, and N cancels.
 
   Round 1 is the base's own samples, so it sits at about 0.1×.
+- **Crossing:** the x of the first round whose cumulative held-out count is at least 14.
 - **Check:** each ladder's total, including its last fine-tune, agrees with rl-compute-share's published ratio to two
-  decimals (largest gap 0.0012×, 0.021 %: the extraction splits the state re-prefill per round, `ourruns.py` per ladder) on all 14
-  ladders it counted (for example knockout s1 9.78× at r24, dose1 s0 5.97×). coe-dose01 re-ran the unchanged extraction
-  and reproduced the published `rl_curve.json` exactly before adding its ladders.
+  decimals on all 14 ladders it counted (largest gap 0.0012×). coe-dose01's review recomputed the new ladders' ratios
+  with its own implementation of the same definitions.
 - **Ladders:**
-  - full s0–s2 are the trajectory (r1–8) + rl-continue (r9–16) ladders, as in create-or-elicit's own figure;
-  - full s3–s5, knockout s0–s5 and dose1 s0–s2 are create-or-elicit's;
-  - dose01 s0–s2 and knockout s1's rounds 25–32 are coe-dose01's (registry `coe-dose01`; the knockout s1 curve joins
-    create-or-elicit's rows for rounds 1–24 with coe-dose01's for 25–32).
-- **Files:**
-  - `extract_rl_curve.py` ran read-only on agent2 and wrote `rl_curve.json` (re-run 2026-11-01 by coe-dose01, and
-    again by the librarian with full s5's round files from a copy of the bucket folder on agent2, `COE_BUCKET` =
-    `~/rl_needed_inputs/…`; it now stops if a ladder's round file is missing *[librarian]*);
-  - `make_figure.py` draws `rl_needed.png` / `.pdf` from it. Run it with any Python that has matplotlib.
+  - full s0–s2 are the trajectory (rounds 1–8) and rl-continue (rounds 9–16) ladders, as in create-or-elicit's own
+    figure;
+  - full s3–s5, knockout s0–s5 and the 1 % dose s0–s2 are create-or-elicit's;
+  - the 0.1 % dose s0–s2 and knockout s1's rounds 25–32 are coe-dose01's.
 
 ## Caveats
 
-- **One organism:** 9.56M ALiBiGPT bases, T1 expert iteration, one family set. GRPO or a larger model could need more or
-  less RL.
-- **The bar is one choice:** the full bases' median before RL. A lower bar (5 of 106) would let knockout s1 count, at 7.3×
-  (round 19). It is the only knockout seed above 1 of 106.
-- *[review]* **Full s5's curve sat too far left; it is fixed here** *[librarian]*. Its compute rows were fine. Its round files
-  (`la_full_s5/round_*.json`) were never tracked on the fork, so the extraction had no state re-prefill for that ladder
-  and put it at r1 0.02×, r16 4.01× (4.28× with the last fine-tune), about 30 % below its siblings. With the round files
-  from the create-or-elicit bucket folder it sits at r1 0.106×, r16 6.17× (6.44×), slightly above its siblings'
-  5.80–6.05× (review, §Compare and Verdict item 3). *[librarian]* The librarian re-ran the extraction with those files (sha256-equal to
-  the copies the create-or-elicit reviewer downloaded) and redrew the figure without the dashed style. All 16 rounds
-  equal the review's own FLOP code exactly, and the other 17 ladders are byte-identical to the executor's
-  `rl_curve.json`; the unchanged scripts reproduce the executor's JSON and PNG byte for byte. Only full s5's line
-  moved. rl-compute-share's count of 14 ladders can now include full s5 (review). No number in the table changes.
-- **Knockout s1's rounds 17–32 were exploratory** (17–24 create-or-elicit, Addendum 6; 25–32 coe-dose01, the same
-  procedure) and are plotted dotted.
-- **The 0.1 % arm has three seeds.** Replay carries σ at the arm's own rate (≈ 20 records per round at 0.1 %), so part of
-  its recovery may be replayed exposure rather than RL on the model's own proofs. *[review]* The three seeds share one σ
-  draw (above); seeds vary only the initialisation and the sampling.
-- *[review]* **Cut-offs in the samples y comes from.** The 0.1 % ladders' own k 32 transfer samples (max_action 256,
-  max_steps 48) cut off up to 1.7 / 3.1 / 2.8 % (s0 / s1 / s2) of all transfer attempts per round in late rounds (lower
-  bounds from the round files; per-stratum shares are not derivable). In the r16 reads, excluded_middle (37 of the 106) reaches
-  3.6 / 6.0 / 20.7 %. A truncated attempt counts as a failure, so y can only be biased down on long-proof families. The
-  1 % arm ran the same protocol, so the arms stay comparable.
-- **The review of create-or-elicit holds** that the families "need" σ only within 16 rounds of this EI, not beyond. This
-  figure states the same thing as a compute bound.
+- **One organism:** 9.56M ALiBiGPT bases, T1 expert iteration and one family set. GRPO or a larger model could need more
+  or less RL.
+- **The bar is one choice.** With a lower bar of 5 of 106, knockout s1 would count, at 7.3× (round 19). It is the only
+  knockout seed above 1 of 106.
+- **Three seeds and one σ draw per dose.** All three 0.1 % seeds share the same 155 σ records, and the two doses share
+  17 of them, so the seeds vary only initialisation and sampling.
+- **Cut-offs bias y down on long proofs.** The 0.1 % ladders' k 32 samples (max_action 256, max_steps 48) cut off up to
+  1.7 / 3.1 / 2.8 % of attempts per round in late rounds (s0 / s1 / s2). In the round-16 reads, excluded middle (37 of
+  the 106) reaches 3.6 / 6.0 / 20.7 %. A cut-off attempt counts as a failure. The 1 % arm ran the same protocol, so
+  the arms stay comparable.
+- **Knockout s1's rounds 17–32 were exploratory:** rounds 17–24 in create-or-elicit (Addendum 6), and 25–32 in
+  coe-dose01 with the same procedure.
+- **Full s5 was misplaced in the first version.** Its round files were not tracked on the fork, so the extraction had
+  no state re-prefill for it and put it at 0.02× in round 1. With the round files from create-or-elicit's bucket folder
+  it sits at 0.106× in round 1 and 6.17× in round 16, alongside its siblings. No number in the table changed.
+- **create-or-elicit's review** holds that the families "need" σ only within 16 rounds of this EI, not beyond. This
+  figure states the same thing as a compute bound, now extended to 13.2× for one seed.
+
+## Files
+
+- `extract_rl_curve.py`: read-only on agent2; writes `rl_curve.json`. It stops if any ladder's round file is missing.
+- `make_figure.py`: draws `rl_needed.png` / `.pdf` and the headline `rl_needed_headline.png` / `.pdf` from
+  `rl_curve.json`. Run it with any Python that has matplotlib.
+
+## Provenance
+
+- **2026-10-31, `ad163fc`:** the first version, from create-or-elicit's ladders only (agent:claude).
+- **2026-11-01, coe-dose01** ([proposal 33](../../proposals/2026-10-31-coe-dose01.md)): added the 0.1 % arm and
+  knockout s1's rounds 25–32. Fork `dan-pandori/nd-takehome`, branch `dan_coe-dose01`, DONE
+  [`ec488738`](https://github.com/dan-pandori/nd-takehome/commit/ec488738).
+  - Reviewed in [`review_coe-dose01.md`](https://github.com/dan-pandori/nd-takehome/blob/4c932eec/review_coe-dose01.md):
+    every headline number stands.
+  - The librarian applied the review's corrections, marked inline, and fixed full s5 (`c948e1a`, `a1ed3ee`). That
+    marked version is this folder at `cb2020b`.
+  - Summary:
+    [coe-dose01](../../../experiment-summaries/2026-10-31-coe-dose01-0p1pct-sigma-dose-reaches-the-bar-on-3-of-3-seeds-at-0p69-2p58x-rl-over-pretraining-flops-reading-graded/README.md).
+- **2026-11-01, this version:** the corrections are folded into the text, and the headline chart has been added
+  (agent:claude). `rl_curve.json`, `rl_needed.png` and `rl_needed.pdf` are unchanged from `cb2020b`.
 
 ## Sources
 
@@ -118,5 +127,5 @@ Reviewed in [`review_coe-dose01.md`](https://github.com/dan-pandori/nd-takehome/
   and its round figure `coe_rounds.png`, which shows the same data against EI rounds.
 - [rl-compute-share summary](../../../experiment-summaries/2026-10-19-rl-compute-share-yue-rl-is-1e-4-of-pretraining-no-computable-tested-run-above-2e-2-hypothesis-supported/README.md),
   Q5 and its "scale curve" recommendation.
-- [create-or-elicit next steps](../../papers/create-or-elicit/next_steps.md), item 3 (the 0.1 % and 0.01 % dose arms)
-  and item 6 (longer knockout ladders).
+- [create-or-elicit next steps](../../papers/create-or-elicit/next_steps.md): item 3 lists the 0.01 % dose arm, the
+  next point for this figure.
