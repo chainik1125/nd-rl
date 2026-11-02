@@ -193,8 +193,9 @@ def train(a: argparse.Namespace) -> dict[str, Any]:
     out.mkdir(parents=True, exist_ok=True)
     ma, _, _ = load_model(ca.path, dev)
     mb, _, _ = load_model(cb.path, dev)
+    b_roll = a.b_roll_from.replace(":", "_s") if a.b_roll_from else f"{cb.label}_s{cb.seed}"
     paths = {
-        "b_roll": SEQ / f"{cb.label}_s{cb.seed}.npz",
+        "b_roll": SEQ / f"{b_roll}.npz",
         "a_roll": SEQ / f"{ca.label}_s{ca.seed}.npz",
         "pretrain": SEQ / "pretrain.npz",
     }
@@ -571,6 +572,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--plant", action="store_true", help="planted-feature positive control")
+    ap.add_argument(
+        "--b_roll_from",
+        default=None,
+        help="label:seed whose rollouts stand in for B's (CPU fallback when B has none)",
+    )
     ap.add_argument("--gpu", type=int, default=None)
     ap.add_argument("--device", default="cuda", help="cpu: smoke tests only")
     ap.add_argument("--n_held", type=int, default=1500, help="splice-loss sequences per source")

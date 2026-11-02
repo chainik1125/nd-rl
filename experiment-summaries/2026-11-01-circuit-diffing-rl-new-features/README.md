@@ -7,9 +7,10 @@ written_by: agent:claude
 
 Status (2026-11-01, written by agent:claude for Leon):
 - Stages 0–2 are done for the seed-0 primary pair, base `S1g3_s0` against the L3 end.
+- The CPT weight-drift crosscoder ran on CPU at reduced size.
 - Replicates are queued but not run: seeds 1 and 2, the crosscoder-seed replicate, the
-  low-RL sweep, the CPT crosscoder and Stage 2 at layer 5. Other users hold 3 of serrano's GPUs,
-  the power-supply limit.
+  low-RL sweep and Stage 2 at layer 5. From 3:43 pm, other users held 3–5 of serrano's 5 GPUs,
+  at or over the power-supply limit.
 - Stage 3 (edge-level circuits) was not attempted.
 
 Working folder: [`code/experiments/current/circuit_diffing_20261101/`](../../code/experiments/current/circuit_diffing_20261101/)
@@ -44,6 +45,11 @@ continuation. RL ends at about 0.29× Stage-1 FLOPs. On Charles149 the L3 end be
    - Decoder norms barely move: latents whose norm changes more than 2× carry 0.03% of RL
      variance.
    - The decoder bias (the mean residual) also shifts, by about 20% of a typical activation norm.
+   - **Most of this rotation is generic weight drift.** Continued pretraining on the base's own
+     data, at matched weight change ("CPT", no RL), rotates shared latents almost as much. With
+     the same reduced crosscoder, the energy-weighted decoder cosine is 0.953 for CPT and 0.946
+     for the L3 end. RL's tail is heavier: the 5% quantile of the cosine is 0.55 against 0.66,
+     and rotated latents carry 0.10% of variance against 0.04%.
 3. **The rotations, not the magnitudes, matter causally.** These tests patch inside the sampler
    at layer 3, on 80 RL-gained (G) and 121 shared (S) problems.
    - Pure magnitude reweighting does nothing in either direction:
@@ -67,8 +73,13 @@ continuation. RL ends at about 0.29× Stage-1 FLOPs. On Charles149 the L3 end be
 - So the capability gain looks like new computation over existing features (changed write
   directions and downstream use), not new features. That is a middle position: it is neither
   "new circuits = new features" nor "elicitation = upweighting".
-- **For the paper, the count of RL-only crosscoder latents is not a usable "new circuits"
-  metric.** It is 0 at every R we tested, including where the behavioural gain is large.
+- **The size of the representational change is not a capability signature either.** CPT, which
+  should gain nothing (not measured here), drifts about as much as RL, in weights and in
+  rotation. What separates RL is *which* directions changed: reverting RL's particular
+  rotations costs 41% of the G gap, while the same edits permuted among latents wreck the model.
+- **For the paper, neither the count of RL-only crosscoder latents nor a rotation index is a
+  usable "new circuits" metric.** The count is 0 at every R we tested, including where the
+  behavioural gain is large. The rotation index barely separates RL from drift.
 
 ## Setup
 
@@ -157,6 +168,14 @@ Numbers in [`stage1.md`](../../code/experiments/current/circuit_diffing_20261101
 | L3 end | 5 | 7,918 | 1 (removed by Latent Scaling) | 0 | 0 | 0.08–0.89 | 0.925 |
 | L3 end | 1 | 4,204 | 0 | 0 | 0 | 0.27–0.71 | 0.967 |
 | L3 end + 6 planted features | 3 | 7,097 | 4 | **4, all planted** | 0 | 0.00–0.82 | 0.934 |
+
+**Reduced CPU crosscoders** (4,096 latents, 6M tokens;
+[`stage1_cpu.md`](../../code/experiments/current/circuit_diffing_20261101/stage1_cpu.md)):
+
+| pair (seed 0) | layer | live | strict RL-only / base-only | Δnorm range | energy-weighted decoder cos | cos 5% quantile |
+|---|---|---|---|---|---|---|
+| L3 end | 3 | 1,823 | 0 / 0 | 0.31–0.76 | 0.946 | 0.55 |
+| CPT, no RL (base rollouts stand in for B's) | 3 | 1,801 | 0 / 0 | 0.27–0.80 | 0.953 | 0.66 |
 
 **Planted control** (`eval.json`, `planted`). Features 1, 2, 3 and 5 are each recovered by one
 latent with Δnorm ≤ 0.02, precision ≥ 0.998 and recall 0.79–1.0.
@@ -253,17 +272,22 @@ bootstrap intervals.
   to RL's norms does nothing. Direction changes are needed. But direction changes of existing
   features are also a form of re-use, not creation, so this does not show capability creation
   either.
-- **Open: is the rotation RL-specific?**
-  - The CPT crosscoder is pending. If CPT, at the same weight change, rotates shared latents as
-    much (energy-weighted cosine ≈ 0.95), then rotation is generic drift. Its causal share would
-    then still matter, but the rotation index would not mark capability gain.
+- **Is the rotation RL-specific? Mostly not.**
+  - CPT, at matched weight change, rotates shared latents nearly as much: energy-weighted cosine
+    0.953 against 0.946, on a reduced CPU crosscoder. Its L3-end twin matches the GPU recipe to
+    0.001.
   - Stage 0 already shows CPT and RL are indistinguishable in weight-space geometry.
+  - What remains RL-specific is the content of the change, not its size: reverting RL's
+    rotations removes 41% of the G gap.
+  - Open: does reverting CPT's rotations do nothing? That control has not run, and it would
+    show that the 41% reflects function, not fragility.
 
 ## Is this a usable "new circuits" metric for the paper?
 
 **Not as originally framed.** The RL-only latent count is 0 everywhere, including the large-gain
 end of the R axis, so it cannot track capability gain. The method is sensitive enough: it finds
-planted features.
+planted features. The fallback, decoder rotation, is not usable either: continued pretraining
+with no RL produces about as much.
 
 What the paper can use:
 - **A negative mechanistic result.** "Crosscoders find no RL-exclusive features, but causal
@@ -289,13 +313,22 @@ and the layer-5 Stage 2.
   - The relative-drop selectivity partly reflects how fragile harder, longer problems are.
   - The permuted control is an off-manifold perturbation, so it is not a perfect magnitude match.
   - The `edit / ‖h‖` numbers in `stage2.md` include padded positions and are indicative only.
-- **GPU.** Serrano had 3 other-user GPU jobs from 11:33 am to 1:05 pm and again from 3:43 pm, so
-  this run had 0–1 GPUs. Queue G (`/scratch/cowifornia/nd-rl/circuits/logs/jobs_gpuG.txt`) holds
-  the remaining jobs and waits for a slot.
+- **GPU.** Serrano had 3 or more other-user GPU jobs from 11:33 am to 1:05 pm and from 3:43 pm
+  onwards, so this run had 0–1 GPUs.
+- **CPT caveats.**
+  - CPT's own solve rates were not measured. It is assumed to be base-like, because it trained
+    only on the base's own data.
+  - Its CPU crosscoder used the base's rollouts in place of CPT's own, since sampling CPT needs a
+    GPU.
 - **Next.**
-  1. Finish queue G: seeds 1 and 2, CPT crosscoder, layer-5 Stage 2, replicate, R sweep.
-  2. Run an acausal multi-layer crosscoder on the L3 end.
-  3. Stage 3: edge attribution (EAP-IG) on next-rule choice. Compare base and RL top edges over
+  1. Finish queue H (`/scratch/cowifornia/nd-rl/circuits/logs/jobs_gpuH.txt`; it was stopped at
+     hand-off). It holds the GPU CPT crosscoder with CPT rollouts, seeds 1 and 2, the replicate,
+     layer-5 Stage 2, the layer-5 planted control and the R sweep. Relaunch it with
+     `bash code/experiments/current/circuit_diffing_20261101/queue2.sh 0 <jobs file> <log>`; it
+     waits for a GPU slot.
+  2. Run `rl_revert`'s counterpart on CPT (`cpt_revert`), and measure CPT's solve rates.
+  3. Run an acausal multi-layer crosscoder on the L3 end.
+  4. Stage 3: edge attribution (EAP-IG) on next-rule choice. Compare base and RL top edges over
      shared latents.
 
 ## Reproduce

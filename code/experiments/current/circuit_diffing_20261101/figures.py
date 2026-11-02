@@ -213,15 +213,23 @@ def stage1(layer: int = 3) -> None:
                 axs[2].axhline(max(y, 1e-5), color=col, ls="--", lw=0.8)
                 continue
             axs[2].scatter(r["R"], max(y, 1e-5), label=lab, **kw)
-        if any(arm_of(r["b"]) == "cpt" for r in main):
-            axs[2].plot([], [], color=INK, ls="--", lw=0.8, label=ARM["cpt"][0])
+        cpu = HERE / "stage1_cpu.json"
+        cpt_cpu = [
+            r
+            for r in (json.loads(cpu.read_text()) if cpu.exists() else [])
+            if r["b"].startswith("cpt") and r["layer"] == layer
+        ]
+        for r in cpt_cpu:  # reduced CPU crosscoder (its L3-end twin matches the GPU index)
+            axs[2].axhline(1 - r["ewt_cos"], color=INK, ls="--", lw=0.8)
+        if cpt_cpu or any(arm_of(r["b"]) == "cpt" for r in main):
+            axs[2].plot([], [], color=INK, ls="--", lw=0.8, label="CPT, no RL (matched ΔW)")
         axs[2].set_xscale("log")
         axs[2].set_yscale("log")
         axs[2].set_xlabel("RL / Stage-1 FLOPs (R)")
         axs[2].set_ylabel("1 − energy-weighted decoder cos")
         S.light_grid(axs[2], "both")
-        S.panel_title(axs[2], "c", "rotation grows with R")
-        axs[2].legend(loc="upper left", fontsize=S.FS_TICK - 1.5, frameon=False)
+        S.panel_title(axs[2], "c", "decoder rotation vs R")
+        axs[2].legend(loc="lower right", fontsize=S.FS_TICK - 1.5, frameon=False)
         S.save(fig, FIG / f"stage1_L{layer}")
         S.close(fig)
 

@@ -149,3 +149,22 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
 - **3:52 PM.** All 5 GPUs are now held by other users (`despair8` 4, `cipeng` 1). Queue H
   (`jobs_gpuH.txt`) waits for a slot through `gpu_gate.sh`. Its order puts the CPT crosscoder
   first, because whether rotation is RL-specific is the main open question.
+- **4:15 PM.** The GPUs are still all taken. The reduced CPU crosscoder for base vs L3 end
+  (4,096 latents, 6M tokens) has the same rotation index as the GPU recipe: energy-weighted
+  decoder cosine 0.946 vs 0.945. So a reduced CPU crosscoder can answer the open question of
+  whether rotation is RL-specific.
+- Started on CPU (7 threads, no visible GPU): base vs CPT, reduced recipe.
+  - Deviation: CPT has no rollouts of its own (sampling needs a GPU), so the base's rollouts
+    stand in for B's (`--b_roll_from base:0`).
+  - Output: `crosscoders_cpu/cpt_lr0.00015_0_L3_n4096_k32_cpu_baseroll`.
+  - The GPU version in queue H, with CPT's own rollouts, replaces it if a slot opens.
+- **5:21 PM.** The CPU CPT crosscoder finished (reduced recipe, base rollouts standing in for
+  CPT's own). FVU 0.019 / 0.019; 1,801 live latents; 0 CPT-only and 0 base-only.
+  - Energy-weighted decoder cosine 0.953, against 0.946 for the L3 end on the same recipe.
+  - Cosine 5% quantile 0.66 against 0.55; rotated-latent energy 0.04% against 0.10%.
+  - So most of the rotation seen for RL is generic weight drift. RL's tail is heavier.
+  - Numbers: `stage1_cpu.md`.
+- **5:25 PM.** Wrapped up and handed back. Queue H was stopped before it ran anything,
+  because no GPU slot opened between 3:43 pm and 5:25 pm. Its job list
+  (`/scratch/cowifornia/nd-rl/circuits/logs/jobs_gpuH.txt`) holds the remaining replicates.
+  No job of this experiment is running.

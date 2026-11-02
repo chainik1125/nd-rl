@@ -5,3 +5,11 @@ Strict RL-only: Δnorm < 0.1, ν^ε < 0.3, ν^r < 0.3 (PREREG Stage 1). E: share
 | B | seed | layer | cc seed | R | FVU a / b | rec | L0 | live | shared | RL cand | N_RL (0.2/0.3/0.5) | E_RL | base cand | N_base (0.3) | E_base | gap1024 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | L3 | 0 | 3 | 0 | 2.89e-01 | 0.019 / 0.018 | 99.9% | 31.8 | 1823 | 1727 | 0 | 0 / 0 / 0 | 0.000% | 0 | 0 | 0.000% | +10.7 |
+| cpt_lr0.00015 | 0 | 3 | 0 | nan | 0.019 / 0.019 | 99.9% | 31.8 | 1801 | 1743 | 0 | 0 / 0 / 0 | 0.000% | 0 | 0 | 0.000% |  |
+
+## Change indices (live latents; E = share of the RL model's held-out variance)
+
+| B | seed | layer | cc seed | Δnorm range | energy-weighted decoder cos | cos 5% | E rotated (cos < 0.5) | E reweighted (> 2×) | E used ≥ 10× more on RL / base rollouts | latents firing only on RL / base rollouts |
+|---|---|---|---|---|---|---|---|---|---|---|
+| L3 | 0 | 3 | 0 | 0.31–0.76 | 0.946 | 0.55 | 0.10% | 0.02% | 0.000% / 0.000% | 30 / 20 |
+| cpt_lr0.00015 | 0 | 3 | 0 | 0.27–0.80 | 0.953 | 0.66 | 0.04% | 0.00% | 0.000% / 0.000% | 20 / 12 |
