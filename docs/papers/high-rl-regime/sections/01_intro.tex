@@ -221,6 +221,16 @@ solves, while the base models solve none that the RL models miss.
     checkpoints). Caveat: the GRPO pools are 40--45\% classical-only theorems, so the contradiction habit may come from
     the pools rather than be discovered. Say ``new capabilities'', not ``new strategies''. Summary:
     \nolinkurl{experiment-summaries/2026-11-01-proof-strategies-grpo-thinking/}.
+  \item \textbf{Circuit diffing (exploratory, 1 Nov; seed 0, base vs the L3 end; not reviewed).} Does RL build features
+    the base lacks? BatchTopK crosscoders (8,192 latents) on the residual stream find 0 RL-only and 0 base-only
+    features at layers 1, 3 and 5; a planted control recovers 4 of 6 synthetic RL-only features. On 80 RL-gained
+    problems, rescaling shared features to RL's norms recovers 0\% [$-1$, 1] of the gain, so it is not upweighting;
+    switching every feature in RL back to its base version removes 41\% [34, 47], and RL's whole layer-3 residual
+    recovers only 18\% [14, 23] in the base, so most of the gain sits after layer 3. Continued pretraining with no RL
+    rotates features about as much as RL does. So neither an RL-only feature count nor a rotation index works as a
+    ``new circuits'' metric; what we can say is ``no RL-exclusive features, and not magnitude reweighting either''.
+    Seeds 1--2 and a CPT-revert control not run yet. Branch \nolinkurl{leon/circuit-diffing}, summary
+    \nolinkurl{experiment-summaries/2026-11-01-circuit-diffing-rl-new-features/}.
   \item \textbf{Low-RL arm (Candidate C0; Charles149 k1024, one seed).} Checkpoints inside the first iterations of the
     mini20 config (256 prompts per iteration) and of a 16-prompt variant, $7.6\times10^{-5}$ to
     $3\times10^{-2}$ of Stage-1 FLOPs. Near Yue's median RL is within about a point of the base at k1 and k1024
