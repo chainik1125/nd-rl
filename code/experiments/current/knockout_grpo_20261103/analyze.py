@@ -50,45 +50,55 @@ def curve(tag: str) -> list[dict]:
     return [rows[c] for c in sorted(rows)]
 
 
+def _interp(prev: dict | None, r: dict, bar: float) -> dict:
+    """The crossing between `prev` (below the bar, or None = the base at R 0) and `r` (at or
+    above it): linear in log10 R; bounded by r when it is the first checkpoint."""
+    if prev is None:
+        return {"R": r["R"], "R_upper_only": True, "c": r["c"], "gpu_h": r["secs"] / 3600}
+    lo, hi = math.log10(prev["R"]), math.log10(r["R"])
+    f = (bar - prev["e32"]) / (r["e32"] - prev["e32"])
+    return {"R": 10 ** (lo + f * (hi - lo)), "c_lo": prev["c"], "c_hi": r["c"],
+            "R_lo": prev["R"], "R_hi": r["R"],
+            "gpu_h": (prev["secs"] + f * (r["secs"] - prev["secs"])) / 3600}  # fmt: skip
+
+
 def crossing(base_e32: float, rows: list[dict], bar: float) -> dict:
-    """First R with E32 >= bar, linear in log10 R between the bracketing checkpoints."""
+    """Primary (pre-registered): the first checkpoint with E32 >= bar, interpolated in log10 R.
+    Held (Amendment 1): the first streak of >= 3 consecutive checkpoints >= bar whose last is at
+    >= 2x its first's R; `holds` says whether the first crossing's own streak is that one."""
     if base_e32 >= bar:
         return {"status": "at_bar_before_rl", "R": 0.0}
-    prev = None
-    for r in rows:
-        if r["e32"] >= bar:
-            if prev is None:  # between the base (R = 0) and the first checkpoint: bounded by it
-                return {
-                    "status": "reached",
-                    "R": r["R"],
-                    "R_upper_only": True,
-                    "c": r["c"],
-                    "gpu_h": r["secs"] / 3600,
-                }
-            lo, hi = math.log10(prev["R"]), math.log10(r["R"])
-            f = (bar - prev["e32"]) / (r["e32"] - prev["e32"])
-            R = 10 ** (lo + f * (hi - lo))
-            g = prev["secs"] + f * (r["secs"] - prev["secs"])
-            return {
-                "status": "reached",
-                "R": R,
-                "c_lo": prev["c"],
-                "c_hi": r["c"],
-                "R_lo": prev["R"],
-                "R_hi": r["R"],
-                "gpu_h": g / 3600,
-            }
-        prev = r
     if not rows:
         return {"status": "no_run"}
+    first = held = None
+    prev = None
+    streak: list[dict] = []
+    streak_prev = None
+    for r in rows:
+        if r["e32"] >= bar:
+            if not streak:
+                streak_prev = prev
+            streak.append(r)
+            if first is None:
+                first = _interp(prev, r, bar)
+            if held is None and len(streak) >= 3 and streak[-1]["R"] >= 2.0 * streak[0]["R"]:
+                held = {
+                    **_interp(streak_prev, streak[0], bar),
+                    "c_held": r["c"],
+                    "R_held_at": r["R"],
+                }
+        else:
+            streak = []
+        prev = r
     last = rows[-1]
-    return {
-        "status": "not_reached",
-        "R_max": last["R"],
-        "c_max": last["c"],
-        "best_e32": max(x["e32"] for x in rows),
-        "gpu_h": last["secs"] / 3600,
-    }
+    if first is None:
+        return {"status": "not_reached", "R_max": last["R"], "c_max": last["c"],
+                "best_e32": max(x["e32"] for x in rows), "gpu_h": last["secs"] / 3600}  # fmt: skip
+    out = {"status": "reached", **first, "held": held,
+           "holds": held is not None and abs(held["R"] - first["R"]) < 1e-12}  # fmt: skip
+    if held is None:
+        out["held_status"] = f"not held by R {last['R']:.3g} (c {last['c']})"
+    return out
 
 
 def dan_cumulative(tag: str, base: dict, rows: list[dict], bar_d: float) -> dict:

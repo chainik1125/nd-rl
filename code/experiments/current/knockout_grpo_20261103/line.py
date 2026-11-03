@@ -92,10 +92,11 @@ class Line:
     def __init__(self, a: argparse.Namespace) -> None:
         self.a = a
         self.arm, self.s = a.arm, a.seed
-        self.tag = f"{a.arm}_s{a.seed}"
+        self.src = f"{a.arm}_s{a.seed}"  # the base and the L2 run (shared by an --x2 line)
+        self.tag = self.src + ("_x2" if a.x2 else "")
         self.c_max = 39 + a.t_l3
         self.grid = M.grid(self.c_max)
-        self.l2 = KO / "runs" / f"{self.tag}_L2"
+        self.l2 = KO / "runs" / f"{self.src}_L2"
         self.l3 = KO / "runs" / f"{self.tag}_L3"
         self.ev = KO / "evals" / self.tag
         self.ev.mkdir(parents=True, exist_ok=True)
@@ -103,7 +104,7 @@ class Line:
         self.training_done = threading.Event()
         self.proc: subprocess.Popen | None = None
         self.lock = threading.Lock()
-        s1 = KO / "bases" / self.tag / "stage1_tokens.json"
+        s1 = KO / "bases" / self.src / "stage1_tokens.json"
         self.s1_tokens = json.loads(s1.read_text())["tokens"]
 
     # ---------------------------------------------------------------- training
@@ -156,7 +157,7 @@ class Line:
             done.rename(self.ev / "line_done.rule1.json")
         n2 = self.n_rows(self.l2)
         if n2 < 39:
-            r = self.rollings(self.l2, f"{self.tag}_L2")
+            r = self.rollings(self.l2, f"{self.src}_L2")
             c_r = r[-1][0] if r else 0
         else:
             r = self.rollings(self.l3, f"{self.tag}_L3")
@@ -196,11 +197,13 @@ class Line:
     def train(self) -> None:
         L2snaps = [c for c in self.grid if c <= 39]
         L3snaps = [c - 39 for c in self.grid if c > 39]
-        it39 = self.l2 / "ckpts" / f"{self.tag}_L2_it39.pt"
+        it39 = self.l2 / "ckpts" / f"{self.src}_L2_it39.pt"
+        if self.a.x2 and not it39.exists():
+            raise SystemExit(f"--x2: {it39} missing (the source line's L2 must be done)")
         if not it39.exists():
             argv2 = l2_argv(self.arm, self.s, L2snaps)
             if self.l2.exists() and self.n_rows(self.l2) > 0:
-                rolls = self.rollings(self.l2, f"{self.tag}_L2")
+                rolls = self.rollings(self.l2, f"{self.src}_L2")
                 if rolls:
                     argv2 += ["--resume", str(rolls[-1][1])]
                     say(f"{self.tag}: resuming L2 from {rolls[-1][1].name}")
@@ -208,7 +211,7 @@ class Line:
                     aside = self.l2.with_name(self.l2.name + f".partial_{int(time.time())}")
                     self.l2.rename(aside)
                     say(f"{self.tag}: partial L2 moved to {aside}")
-            rc = self.run_stage(L2CODE, argv2, KO / "logs" / f"{self.tag}_L2.log")
+            rc = self.run_stage(L2CODE, argv2, KO / "logs" / f"{self.src}_L2.log")
             if rc == 3:
                 say(f"{self.tag}: L2 think-ban stop")
                 return
@@ -233,7 +236,7 @@ class Line:
     # --------------------------------------------------------------- evaluator
     def snap_path(self, c: int) -> Path:
         if c <= 39:
-            return self.l2 / "ckpts" / f"{self.tag}_L2_it{c}_snap.pt"
+            return self.l2 / "ckpts" / f"{self.src}_L2_it{c}_snap.pt"
         return self.l3 / "ckpts" / f"{self.tag}_L3_it{c - 39}_snap.pt"
 
     def last_c(self) -> int:
@@ -301,6 +304,18 @@ class Line:
 
     def evaluator(self) -> None:
         done = {r["c"] for r in self.curve_rows()}
+        if self.a.x2:  # the shared L2 part: the source line's own reads
+            src = KO / "evals" / self.src / "curve.jsonl"
+            have = (
+                [json.loads(x) for x in src.read_text().splitlines() if x.strip()]
+                if src.exists()
+                else []
+            )
+            with open(self.ev / "curve.jsonl", "a") as f:
+                for r in have:
+                    if r["c"] <= 39 and r["c"] not in done:
+                        f.write(json.dumps({**r, "from": self.src}) + "\n")
+                        done.add(r["c"])
         for c in self.grid:
             if c in done:
                 continue
@@ -425,6 +440,7 @@ def main() -> None:
     ap.add_argument("--bar", type=float, default=None)
     ap.add_argument("--eval_batch", type=int, default=512)
     ap.add_argument("--no_eval", action="store_true")
+    ap.add_argument("--x2", action="store_true", help="L3 only, from the source line's L2 it39")
     ap.add_argument(
         "--resume_line", action="store_true", help="continue a line the first rule stopped"
     )

@@ -71,3 +71,10 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
 - **07:53Z** — line2_d1_s0 (resumed from its it5 rolling checkpoint; snapshot c 6 moved aside) and
   line2_d1_s1 launched on serrano. Every other line has a queued line2 job (`--resume_line`,
   depending on its line job).
+- **2026-11-03T07:58:59Z — ko ×2 extension (exploratory, coordinator: "keep it on one seed").** One knockout seed
+  gets a second L3 with twice the budget, as ki78 lengthened L3: `line.py --x2 --t_l3 767` (c_max
+  806 = 2 × 403), L3 from that seed's own L2 it39 with the same args and seed, WSD over 767
+  iterations; its L2 part is the original line's. Its seed is chosen when it launches (the first
+  GPU free after the ko lines' L2 ends): among the ko seeds not yet at the bar, the one with the
+  highest mean E32 over its latest 3 checkpoints, ties to the lower seed, as Dan extended the
+  knockout seed that was making progress. If every ko seed has reached the bar, it is not run.
