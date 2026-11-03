@@ -183,3 +183,8 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   0.5 × peak for 25 iterations; E32 rule once its peak is ≥ 3.0). Proposed by the coordinator to
   Leon; launches 14:35Z unless halted. `line.py --gr` (setup tested on serrano at 14:12Z: the
   kos_s1_gr and kos_s1_dp_gr runs and curves were seeded, nothing launched); `mkjobs_gr.py`.
+- **14:35:32–14:36:07Z — Amendment 4 launched** (no halt by 14:35Z): gr_kos_s1_gr (serrano GPU 1,
+  resumed L3 it 0), gr_kos_s1_dp_gr (serrano GPU 0, it 85), gr_kos_s2_gr (ynez GPU 1, it 75),
+  gr_kos_s2_dp_gr (ynez GPU 2, it 45), gr_kos_s0_dp_gr (temescal GPU 1, it 100); each with
+  `--ban_stop 0.05` (checked in args.json) and a crash-recovery line2gr job. serrano: 2 of ours +
+  1 other user's (GPU 2).
