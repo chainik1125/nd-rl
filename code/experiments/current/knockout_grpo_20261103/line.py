@@ -231,6 +231,7 @@ class Line:
             rc = self.run_stage(L2CODE, argv2, KO / "logs" / f"{self.src}_L2.log")
             if rc == 3:
                 say(f"{self.tag}: L2 think-ban stop")
+                self.think_ban = "L2"
                 return
             if rc not in (0, -15) and not self.stop.is_set():
                 raise SystemExit(f"L2 failed rc {rc}")
@@ -257,6 +258,7 @@ class Line:
         rc = self.run_stage(L3CODE, argv, KO / "logs" / f"{self.tag}_L3.log")
         if rc == 3:
             say(f"{self.tag}: L3 think-ban stop")
+            self.think_ban = "L3"
 
     # --------------------------------------------------------------- evaluator
     def snap_path(self, c: int) -> Path:
@@ -379,6 +381,11 @@ class Line:
                 self.stop.set()
 
     def run(self) -> None:
+        done = self.ev / "line_done.json"
+        if self.a.resume_line and done.exists() and not (self.ev / "STOP_LINE").exists():
+            # PREREG "Stop rule": a think-ban stop (exit 3) or the cap ends a line for good
+            say(f"{self.tag}: resume_line: the line is done ({done.read_text().strip()[:200]})")
+            return
         if self.a.resume_line and (self.ev / "STOP_LINE").exists():
             rows = self.curve_rows()
             if rows and self.stop_rule(rows):  # the amended window already holds: nothing to do
@@ -404,6 +411,7 @@ class Line:
             "bar": self.a.bar,
             "host": HOST,
             "stopped": self.stop.is_set(),
+            "think_ban_stop": getattr(self, "think_ban", None),
             "last_c": self.last_c(),
             "utc": now(),
         }

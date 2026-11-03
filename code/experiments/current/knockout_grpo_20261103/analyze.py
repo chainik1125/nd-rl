@@ -132,6 +132,20 @@ def train_sigma(tag: str) -> dict | None:
             "dn_any_pct_range": [min(dn), max(dn)], "n_iters": len(rows)}  # fmt: skip
 
 
+def line_state(tag: str) -> dict:
+    """Whether the line has ended, and how (line_done.json; think_ban_stop.json for kos_s1)."""
+    ev = OUT / "evals" / tag
+    done = (
+        json.loads((ev / "line_done.json").read_text())
+        if (ev / "line_done.json").exists()
+        else None
+    )
+    tb = done.get("think_ban_stop") if done else None
+    if (ev / "think_ban_stop.json").exists():
+        tb = json.loads((ev / "think_ban_stop.json").read_text())["stage"]
+    return {"line_done": done is not None, "think_ban_stop": tb}
+
+
 def _row(tag: str, x: dict) -> str:
     c, last, ts = x["cross"], x.get("last"), x.get("train_sigma")
     base = f"{x['base_e32']:.2f} ({x['base_e32_pct']:.1f} %)"
@@ -153,6 +167,10 @@ def _row(tag: str, x: dict) -> str:
         cells = [base, r, f"{c['gpu_h']:.2f}", hd, ls, sg]
     elif c["status"] == "not_reached":
         nr = f"not reached by {c['R_max']:.3g} (best {c['best_e32']:.1f})"
+        if x.get("think_ban_stop"):
+            nr += f"; think-ban stop in {x['think_ban_stop']}"
+        elif not x.get("line_done"):
+            nr += "; running"
         cells = [base, nr, f"{c['gpu_h']:.2f}", "", ls, sg]
     else:
         cells = [base, c["status"], "", "", ls, sg]
@@ -195,6 +213,7 @@ def main() -> None:
                     ]
                     x["dan_cumulative"] = dan_cumulative(tag, b, rows, bar_d)
                 x["train_sigma"] = train_sigma(tag)
+                x.update(line_state(tag))
                 res["runs"][tag] = x
     dan = OUT / "dan_axis.json"
     if dan.exists():

@@ -105,3 +105,21 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   → 31 % (L3 it 4); kos_s2 σ share 0 → 10 % by L2 it 33, E32 ≤ 1.0; kos_s1 σ share ≤ 0.1 %, E32
   ≤ 0.5. The three kos_*_dp lines: E32 ≤ 0.94, σ share 0–0.8 %, DN in 4–12 % of accepted proofs.
   Projection: about 27 GPU-h used, about 72 more if all six run to the cap (≈ 100 in all).
+- **10:37Z — σ labels of accepted held-out proofs** (`sigma_proofs.py`, Dan's classifier): every
+  Lean-accepted attempt on the 106 is σ in kos_s0 c 40 (224 attempts, 11 theorems), ko_s1 c 32
+  (1,479, 48), full_s0_dp c 9 (906, 33), kos_s2 c 32 (2, 2) and kos_s1_dp c 32 (2, 1).
+- **10:42:40Z — kos_s1: think-ban stop in L3 iteration 2** (`STOP it 2: think banned mass 0.00649 >
+  0.005`; c 41, last read c 40 at R 0.1089, E32 0.00, best 0.5). Its L2 had raised the think-ban
+  alarm on 34 iterations (mass ≈ 0.002–0.003 from about iteration 30, under the 0.005 stop), and
+  L3's restore point (it 0) was already above the 0.001 alarm level, so the recipe could not roll
+  back. By the pre-registered stop rule the line ends there: "not reached by R 0.109".
+  - My error: the queued `line2_kos_s1` (`--resume_line`, queued for crash recovery) relaunched L3
+    at 10:44:49Z, because line.py's resume guard only skipped hold-window stops. I killed it at
+    10:46Z before its first iteration (no checkpoint, no read), restored `metrics.jsonl`,
+    `args.json` and the Lean dump to the original run (the resume's files kept as
+    `*.resume_killed.*`; its log lines remain at the end of `kos_s1_L3.log`), and wrote
+    `evals/kos_s1/think_ban_stop.json`.
+  - Fix (deployed to all three machines, md5 8594826d): `--resume_line` now returns when
+    `line_done.json` exists without `STOP_LINE` (a think-ban stop or the cap), and line_done
+    records `think_ban_stop`. The other five kos lines' line2 jobs stay queued for crash recovery.
+  - serrano GPU 1 is idle; nothing new is launched without the coordinator.
