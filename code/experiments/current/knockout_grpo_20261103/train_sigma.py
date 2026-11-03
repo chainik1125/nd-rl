@@ -33,8 +33,10 @@ def stage(name: str) -> list[dict]:
     for line in open(log):  # noqa: SIM115
         m = GATE.match(line)
         if m:
-            for _ in range(int(m.group(1))):
-                cur.append(json.loads(next(rows)))
+            got = [json.loads(x) for _, x in zip(range(int(m.group(1))), rows, strict=False)]
+            if len(got) < int(m.group(1)):  # the dump ends here (kos_s1: a killed resume's calls)
+                break
+            cur += got
             continue
         m = IT.match(line)
         if m:

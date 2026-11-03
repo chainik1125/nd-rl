@@ -139,3 +139,18 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   reported as censored at R 0.240. The fixed resume guard let `line2_kos_s2_dp` exit at once.
   ynez GPU 2 idle. analyze.py now reads think-ban stops from the stage logs (`think_ban.json`),
   since this line's line_done.json predates the `think_ban_stop` field.
+- **12:15Z — think-ban guard check** (coordinator's three questions; CPU, logs and dumps only).
+  Rule: `sample.phase_bans` (f35d3daf:112 = fa28f6eb:99) never samples `<eos>`, `<think>`,
+  `<pad>` or the effort tokens inside a think block; `ban_think` is the mean full-vocabulary
+  π_T mass on them at the scored think positions (grpo.py:837), alarm 1e-3, stop 0.005. No think
+  text is stored (no `--dump_batches`; the Lean dump keeps the proof only), so the banned-mass
+  contexts cannot be shown from existing files. Per line (iterations / alarms / max 5-iteration
+  σ share of accepted training proofs): kos_s0 100 / 0 / 42 %, kos_s2 76 / 28 / 42 %, kos_s1
+  41 / 19 + stop / 0.1 %, kos_s2_dp 101 / 29 + stop / 0.3 %, kos_s0_dp 106 / 10 / 0.3 %,
+  kos_s1_dp 90 / 0 / 0.2 %. Within a line ban mass and σ share share a trend (Spearman 0.25–0.90
+  on levels) but not their changes (−0.02 to 0.22 on first differences). Leon's full-base L3 runs
+  with this recipe alarm too (kkl0_s1 2 / 39, vs_mb_s1 6 / 39, vs_s1 12 / 39, kg64_s1 15 / 39
+  with max 5.7e-3, ki78_s0 22 / 78); no L2 run alarmed except kos_s1 (17) and kos_s2 (3). L2
+  iteration-1 mass on our pool is 2.4–3.5 × Dan's pool's on the same kos base. Proposed a CPU
+  scoring / sampling diagnostic for the token and context breakdown; waiting for approval.
+  train_sigma.py now stops where a dump ends (kos_s1's killed resume left gate lines past it).
