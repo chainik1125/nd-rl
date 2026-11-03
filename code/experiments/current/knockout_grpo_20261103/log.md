@@ -188,3 +188,29 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   gr_kos_s2_dp_gr (ynez GPU 2, it 45), gr_kos_s0_dp_gr (temescal GPU 1, it 100); each with
   `--ban_stop 0.05` (checked in args.json) and a crash-recovery line2gr job. serrano: 2 of ours +
   1 other user's (GPU 2).
+- **15:52:01Z — kos_s1_dp_gr: relaxed think-ban stop in L3 iteration 121** (mass 0.0611 > 0.05;
+  c 160; last read c 158 at R 0.362, E32 0.00). Its mass grew 0.0035 (it 84) → 0.0498 (it 120),
+  doubling about every 10 iterations, with the training reward flat at 0.86–0.89. At 15:58Z the
+  other continuations' mass: kos_s2_dp_gr 0.017–0.026 and kos_s0_dp_gr 0.013–0.017 (rising),
+  kos_s2_gr 0.003–0.004, kos_s1_gr 0.002–0.003; kos_s0 (primary) 0.0027–0.0029.
+- **19:06:58Z — kos_s2_dp_gr: relaxed think-ban stop in L3 iteration 180** (mass 0.050 > 0.05;
+  c 219; last read c 210 at R 0.685, E32 0.00, best 0.9 before the continuation). Its mass had
+  peaked at 0.044 (it 115), eased to 0.026 (it 139) and climbed again; reward flat at 0.87–0.90.
+  At 19:09Z: kos_s0 (primary) E32 25.0 at c 251 (R 1.22), just under the bar; kos_s2_gr 13.8 at
+  R 0.99; kos_s1_gr 0.0 at R 0.44; kos_s0_dp_gr 0.0 at R 0.80.
+- **19:15:18Z — kos_s0: think-ban stop in L3 iteration 234** (mass 0.00502 > 0.005; c 273; last
+  read c 251 at R 1.224, E32 25.02, best 25.02, just under the bar 26.31). Its L3 had used all
+  three rollbacks by iteration 89 (lr × 0.125 from then on), and from about iteration 89 nearly
+  every iteration alarmed, so grpo saved alarm checkpoints (with training state) instead of
+  rolling ones: the last rolling checkpoint is iteration 85 (c 124). All six ko_strict lines are
+  now censored under the primary rule. temescal GPU 2 idle.
+- **19:22Z — Amendment 4, kos_s0: wording deviation (this line only; coordinator's Option B).**
+  kos_s0_gr resumes from `kos_s0_L3_it234_alarm.pt`, the checkpoint written at its stop, not from
+  its last rolling checkpoint (iteration 85). Reason: grpo writes an alarm checkpoint instead of a
+  rolling one on alarmed iterations, and kos_s0 alarmed on nearly every iteration after 89, so
+  its last rolling checkpoint is 149 iterations before the stop with another lr history (× 0.25,
+  2 rollbacks); the amendment asks what the line would have done with `--ban_stop 0.05`, and the
+  alarm checkpoint carries the exact training state at the stop. Checked in its `train_state`:
+  iteration 234, LoopState lr_scale 0.125, rollbacks 3 (of 3), n_step 892, last_good it 85;
+  AdamW, curricula and RNGs present; saved args identical to the run's (T 364, lr 1.5e-4, ban_stop
+  0.005, now overridden to 0.05). `line.py --gr_from` (md5 d5ba470d) names the checkpoint.

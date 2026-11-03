@@ -8,6 +8,8 @@ KO = "/scratch/cowifornia/nd-rl/knockout_grpo"
 P = f"{KO}/pools/dan_rl_targets.jsonl"
 arm, s, var, exp_h = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4])
 base = f"python3 {KO}/tools/line.py --arm {arm} --seed {s} --t_l3 364 --bar 26.31 --lean_dump --gr"
+if len(sys.argv) > 5:  # an explicit resume checkpoint (--gr_from)
+    base += f" --gr_from {sys.argv[5]}"
 if var == "dp":
     base += f" --variant dp --pool_l2 {P} --pool_l3 {P} --pool_extra {P}"
 t = f"{arm}_s{s}" + (f"_{var}" if var else "") + "_gr"

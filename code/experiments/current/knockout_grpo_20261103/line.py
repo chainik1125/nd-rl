@@ -398,9 +398,13 @@ class Line:
         if self.rollings(self.l3, name):
             return  # already set up (a resumed continuation)
         rolls = self.rollings(src_l3, f"{self.src}_L3")
-        if not rolls:
+        if self.a.gr_from:  # a named checkpoint with training state (kos_s0: its stop's alarm ckpt)
+            path = Path(self.a.gr_from)
+            k = int(path.name.split("_it")[1].split("_")[0])
+        elif rolls:
+            k, path = rolls[-1]
+        else:
             raise SystemExit(f"--gr: no rolling checkpoint in {src_l3}")
-        k, path = rolls[-1]
         ck.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, ck / f"{name}_it{k}_rolling.pt")
         rows = [x for x in (src_l3 / "metrics.jsonl").read_text().splitlines() if x.strip()]
@@ -563,6 +567,7 @@ def main() -> None:
         action="store_true",
         help="Amendment 4: guard-relaxed continuation of a stopped line",
     )
+    ap.add_argument("--gr_from", default=None, help="--gr: resume from this checkpoint instead")
     ap.add_argument("--pilot_l3", type=int, default=0)
     ap.add_argument("--pilot_eval", action="store_true")
     ap.add_argument("--l3_init", default=None)
