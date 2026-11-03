@@ -43,3 +43,31 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
     L3_3p 34.5 %; Dan's rl_targets 2.7 % (123 / 4,495).
   - health.py: reward, entropy, no-signal / all-fail / all-correct (estimated) every 25
     iterations in KO/STATUS.md, with entropy-collapse and falling-reward alerts.
+- **2026-11-03T07:49:31Z — Amendment 1 (coordinator, after the PREREG hash; the primary crossing is unchanged).**
+  - Hold window: a line keeps running until it has been at or above the bar for ≥ 3 consecutive
+    evaluated checkpoints and the latest is at ≥ 2 × the R of the first of that streak (a
+    checkpoint below the bar resets the streak). The pre-registered stop (≥ bar and ≥ 1.1 × R) is
+    replaced; the primary crossing (the first checkpoint ≥ bar, interpolated in log R) stays.
+    Both the first crossing and the held crossing are reported; a first crossing that does not
+    hold is flagged.
+  - Lines the first rule already stopped continue with `line.py --resume_line`: from the newest
+    rolling checkpoint (exact training state), with the later snapshots, reads and curve rows
+    moved aside (`.rule1`), so each curve is one trajectory. Running controllers keep the first
+    rule in memory, so they are continued this way when they stop.
+  - full_s0 already meets the window (c 1–3 at 26.73 / 28.23 / 29.31, R 0.0029 → 0.0101, 3.5 ×);
+    it is not resumed.
+- **07:46Z — incident.** Four init reads (it0 checkpoints through the snapshot read path, n 64)
+  were started co-located on the lines' GPUs. A third process per GPU ran out of memory (GRPO peaks
+  at 12.4 GB, the line's read at 7.4 GB): the GRPO processes of d1_s0 (c 4) and d1_s1 (c 3) died
+  (lines EXIT rc 1); on ynez ko_s0's c 5 read failed once and was retried; the init reads were
+  killed. No other line was hit. The init reads were rerun alone on serrano's two freed GPUs
+  (`initread2.sh`); d1_s0 and d1_s1 are then resumed with `--resume_line` (from their it0
+  rolling checkpoints, i.e. a restart; their few evaluated checkpoints are moved aside).
+- **07:50–07:55Z — init reads** (it0 rolling checkpoints, the snapshot read command: k 64, batch
+  512, seed 0; alone on serrano GPUs 1 / 4). E32: full_s0 21.12 (base n 256 22.34, c 1 26.73);
+  d1_s0 13.42 (14.39, c 1 18.66); d01_s1 5.94 (6.67, c 1 7.36); ko_s0 1.38 (0.73, c 1 1.25). The
+  inits read near their bases, not near their first checkpoints: the early jumps are not a read
+  artifact. n 64 read noise (subsampling the n 256 base reads): sd 0.8–1.0 (ko 0.5).
+- **07:53Z** — line2_d1_s0 (resumed from its it5 rolling checkpoint; snapshot c 6 moved aside) and
+  line2_d1_s1 launched on serrano. Every other line has a queued line2 job (`--resume_line`,
+  depending on its line job).

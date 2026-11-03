@@ -137,6 +137,58 @@ class Line:
         say(f"{self.tag}: stage exit rc {rc}")
         return rc
 
+    def rollings(self, d: Path, name: str) -> list[tuple[int, Path]]:
+        """(iteration, path) of the stage's rolling checkpoints (with training state), sorted."""
+        out = []
+        for p in (d / "ckpts").glob(f"{name}_it*_rolling.pt"):
+            out.append((int(p.name.split("_it")[1].split("_")[0]), p))
+        return sorted(out)
+
+    def splice(self) -> None:
+        """--resume_line (amendment): a line the first stop rule ended continues from its newest
+        rolling checkpoint (exact training state); the snapshots, reads and curve rows after it
+        are moved aside (suffix .rule1) so the curve stays one trajectory."""
+        stop = self.ev / "STOP_LINE"
+        if stop.exists():
+            stop.rename(self.ev / "STOP_LINE.rule1")
+        done = self.ev / "line_done.json"
+        if done.exists():
+            done.rename(self.ev / "line_done.rule1.json")
+        n2 = self.n_rows(self.l2)
+        if n2 < 39:
+            r = self.rollings(self.l2, f"{self.tag}_L2")
+            c_r = r[-1][0] if r else 0
+        else:
+            r = self.rollings(self.l3, f"{self.tag}_L3")
+            c_r = 39 + (r[-1][0] if r else 0)
+        moved = []
+        for c in self.grid:
+            if c <= c_r:
+                continue
+            sp = self.snap_path(c)
+            if sp.exists():
+                sp.rename(sp.with_name(sp.name + ".rule1"))
+                moved.append(c)
+            ed = self.ev / f"c{c:04d}"
+            if ed.exists():
+                ed.rename(ed.with_name(ed.name + ".rule1"))
+        rows = self.curve_rows()
+        keep = [x for x in rows if x["c"] <= c_r]
+        gone = [x for x in rows if x["c"] > c_r]
+        with open(self.ev / "curve_rule1_discarded.jsonl", "a") as f:
+            for x in gone:
+                f.write(json.dumps(x) + "\n")
+        (self.ev / "curve.jsonl").write_text("".join(json.dumps(x) + "\n" for x in keep))
+        say(
+            f"{self.tag}: resume_line from c {c_r}; snapshots moved aside {moved}; "
+            f"{len(gone)} curve rows discarded"
+        )
+
+    def splice_partial(self) -> None:
+        """--resume_line on a line that crashed (no stop, not done): resume from the newest
+        rolling checkpoint with the same splice."""
+        self.splice()
+
     def n_rows(self, d: Path) -> int:
         m = d / "metrics.jsonl"
         return sum(1 for x in m.read_text().splitlines() if x.strip()) if m.exists() else 0
@@ -146,13 +198,17 @@ class Line:
         L3snaps = [c - 39 for c in self.grid if c > 39]
         it39 = self.l2 / "ckpts" / f"{self.tag}_L2_it39.pt"
         if not it39.exists():
-            if self.l2.exists():
-                aside = self.l2.with_name(self.l2.name + f".partial_{int(time.time())}")
-                self.l2.rename(aside)
-                say(f"{self.tag}: partial L2 moved to {aside}")
-            rc = self.run_stage(
-                L2CODE, l2_argv(self.arm, self.s, L2snaps), KO / "logs" / f"{self.tag}_L2.log"
-            )
+            argv2 = l2_argv(self.arm, self.s, L2snaps)
+            if self.l2.exists() and self.n_rows(self.l2) > 0:
+                rolls = self.rollings(self.l2, f"{self.tag}_L2")
+                if rolls:
+                    argv2 += ["--resume", str(rolls[-1][1])]
+                    say(f"{self.tag}: resuming L2 from {rolls[-1][1].name}")
+                else:
+                    aside = self.l2.with_name(self.l2.name + f".partial_{int(time.time())}")
+                    self.l2.rename(aside)
+                    say(f"{self.tag}: partial L2 moved to {aside}")
+            rc = self.run_stage(L2CODE, argv2, KO / "logs" / f"{self.tag}_L2.log")
             if rc == 3:
                 say(f"{self.tag}: L2 think-ban stop")
                 return
@@ -166,13 +222,10 @@ class Line:
         if done.exists():
             return
         if self.n_rows(self.l3) > 0:
-            rolls = sorted(
-                (self.l3 / "ckpts").glob(f"{name}_it*_rolling.pt"),
-                key=lambda p: int(p.name.split("_it")[1].split("_")[0]),
-            )
+            rolls = self.rollings(self.l3, name)
             if rolls:
-                argv += ["--resume", str(rolls[-1])]
-                say(f"{self.tag}: resuming L3 from {rolls[-1].name}")
+                argv += ["--resume", str(rolls[-1][1])]
+                say(f"{self.tag}: resuming L3 from {rolls[-1][1].name}")
         rc = self.run_stage(L3CODE, argv, KO / "logs" / f"{self.tag}_L3.log")
         if rc == 3:
             say(f"{self.tag}: L3 think-ban stop")
@@ -205,6 +258,8 @@ class Line:
 
     def eval_one(self, c: int) -> dict:
         out = self.ev / f"c{c:04d}"
+        if out.exists() and not (out / "summary.json").exists():
+            out.rename(out.with_name(out.name + f".partial_{int(time.time())}"))
         if not (out / "summary.json").exists():
             cmd = [
                 PY, "-m", "code.thinking.eval", "--ckpt", str(self.snap_path(c)), "--sets", str(SET),  # noqa: E501
@@ -233,18 +288,16 @@ class Line:
         return row
 
     def stop_rule(self, rows: list[dict]) -> bool:
+        """Amendment (log.md, 2026-11-03 ~07:55Z): stop once the line has been at or above the bar
+        for >= 3 consecutive evaluated checkpoints AND the latest is at >= 2 x the R of the first
+        of that streak. A checkpoint below the bar resets the streak."""
         bar = self.a.bar
         if bar is None:
             return False
-        first = None
+        streak: list[dict] = []
         for r in rows:
-            if r["e32"] >= bar:
-                if first is None:
-                    first = r["R"]
-            else:
-                first = None
-        last = rows[-1]
-        return last["e32"] >= bar and first is not None and last["R"] >= 1.1 * first
+            streak = [*streak, r] if r["e32"] >= bar else []
+        return len(streak) >= 3 and streak[-1]["R"] >= 2.0 * streak[0]["R"]
 
     def evaluator(self) -> None:
         done = {r["c"] for r in self.curve_rows()}
@@ -286,6 +339,14 @@ class Line:
                 self.stop.set()
 
     def run(self) -> None:
+        if self.a.resume_line and (self.ev / "STOP_LINE").exists():
+            rows = self.curve_rows()
+            if rows and self.stop_rule(rows):  # the amended window already holds: nothing to do
+                say(f"{self.tag}: resume_line: the hold window already holds at c {rows[-1]['c']}")
+            elif self.a.bar is not None:
+                self.splice()
+        elif self.a.resume_line and not (self.ev / "line_done.json").exists():
+            self.splice_partial()
         if (self.ev / "STOP_LINE").exists():
             self.stop.set()
         th = threading.Thread(target=self.evaluator, daemon=True)
@@ -364,6 +425,9 @@ def main() -> None:
     ap.add_argument("--bar", type=float, default=None)
     ap.add_argument("--eval_batch", type=int, default=512)
     ap.add_argument("--no_eval", action="store_true")
+    ap.add_argument(
+        "--resume_line", action="store_true", help="continue a line the first rule stopped"
+    )
     ap.add_argument("--pilot_l3", type=int, default=0)
     ap.add_argument("--pilot_eval", action="store_true")
     ap.add_argument("--l3_init", default=None)
