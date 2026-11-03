@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-02
 written_by: agent:claude
-status: approved by Dan 2026-11-02, up to $50 (running as `olmo-rlzero-pilot` on agent1)
+status: approved by Dan 2026-11-02, up to $50 (ran as `olmo-rlzero-pilot` on agent1, 2026-11-03; $39.36; reviewed, see the summary linked below)
 ---
 
 # Proposal 34: does RL from the base create reach along Olmo 3.1 7B RL-Zero-Math's trajectory? (pilot for the Olmo 3.1 Think 32B test)
@@ -34,3 +34,5 @@ reach ≤ 2.1 points.
 
 **Budget** $50 / 90 pod-hours, with a stage gate after the throughput measurement. **Run** `olmo-rlzero-pilot` on
 agent1, `--effort max`, 72 h hard stop. **Brief:** [followups/BRIEF_olmo-rlzero-pilot.md](followups/BRIEF_olmo-rlzero-pilot.md).
+
+**Result (reviewed 2026-11-03):** RL raises pass@1 on 83 AIME 2024–26 problems from 0.094 to 0.419, but RL's own verifier credits the base with all 17 RL-only solves within 383 samples. Reach, strong reach and reverse are 0 at K ≤ 512, and the pre-registered verdict is "inconclusive". Read by hand, 10 of the 17 resolving base solutions are sound. [Summary](../../experiment-summaries/2026-11-03-olmo-rlzero-pilot-base-credited-on-all-17-rl-only-solves-within-383-samples-reach-0-at-k512-verdict-inconclusive/README.md); [32B memo](../../experiment-summaries/2026-11-03-olmo-rlzero-pilot-base-credited-on-all-17-rl-only-solves-within-383-samples-reach-0-at-k512-verdict-inconclusive/decision_32b.md).
