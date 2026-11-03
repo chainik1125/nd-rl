@@ -53,12 +53,18 @@ def say(msg: str) -> None:
     print(f"{now()} {msg}", flush=True)
 
 
-def l2_argv(arm: str, s: int, snaps: list[int]) -> list[str]:
+def l2_argv(
+    arm: str,
+    s: int,
+    snaps: list[int],
+    name: str | None = None,
+    pool: Path = POOLS / "L2_pool.jsonl",
+) -> list[str]:
     base = KO / "bases" / f"{arm}_s{s}" / "model.pt"
-    name = f"{arm}_s{s}_L2"
+    name = name or f"{arm}_s{s}_L2"
     return [
         "--init", str(base), "--name", name, "--out", str(KO / "runs" / name),
-        "--targets", str(POOLS / "L2_pool.jsonl"), "--iters", "39", "--prompts", "256",
+        "--targets", str(pool), "--iters", "39", "--prompts", "256",
         "--group", "16", "--batch", "1024", "--lr", "1.5e-4", "--overlong", "fail",
         "--save_every", "39", "--max_steps", "96", "--seed", str(s), "--keep_rolling", "100",
         "--effort", "--budgets", "0,64,256", "--canary", str(POOLS / "canary_long.jsonl"),
@@ -70,10 +76,13 @@ def l2_argv(arm: str, s: int, snaps: list[int]) -> list[str]:
     ]  # fmt: skip
 
 
-def l3_argv(name: str, init: str, s: int, iters: int, snaps: list[int]) -> list[str]:
+def l3_argv(
+    name: str, init: str, s: int, iters: int, snaps: list[int],
+    pool: Path = POOLS / "L3_pool.jsonl", extra: Path = POOLS / "L3_3p.jsonl",
+) -> list[str]:  # fmt: skip
     return [
         "--init", init, "--name", name, "--out", str(KO / "runs" / name),
-        "--targets", str(POOLS / "L3_pool.jsonl"), "--iters", str(iters), "--prompts", "256",
+        "--targets", str(pool), "--iters", str(iters), "--prompts", "256",
         "--group", "16", "--batch", "1024", "--lr", "1.5e-4", "--lr_schedule", "wsd",
         "--decay_frac", "0.2", "--min_lr_frac", "0.3", "--decay_shape", "sqrt",
         "--unlikely_beta", "0.25", "--overlong", "fail", "--save_every", str(iters),
@@ -83,7 +92,7 @@ def l3_argv(name: str, init: str, s: int, iters: int, snaps: list[int]) -> list[
         "--max_rollbacks", "3", "--ban_restore_check", "--ban_stop", "0.005",
         "--kl_anchor_coef", "0", "--kl_anchor_ref", init, "--monitor", "--arm", "logical",
         "--max_rej", "0", "--rej_penalty", "0.1",
-        "--targets_extra", str(POOLS / "L3_3p.jsonl"), "--targets_extra_frac", "0.33",
+        "--targets_extra", str(extra), "--targets_extra_frac", "0.33",
         "--snap_iters", ",".join(map(str, snaps)),
     ]  # fmt: skip
 
@@ -92,7 +101,10 @@ class Line:
     def __init__(self, a: argparse.Namespace) -> None:
         self.a = a
         self.arm, self.s = a.arm, a.seed
-        self.src = f"{a.arm}_s{a.seed}"  # the base and the L2 run (shared by an --x2 line)
+        self.base_tag = f"{a.arm}_s{a.seed}"  # the base
+        self.src = self.base_tag + (
+            f"_{a.variant}" if a.variant else ""
+        )  # the L2 run (shared by --x2)
         self.tag = self.src + ("_x2" if a.x2 else "")
         self.c_max = 39 + a.t_l3
         self.grid = M.grid(self.c_max)
@@ -104,7 +116,7 @@ class Line:
         self.training_done = threading.Event()
         self.proc: subprocess.Popen | None = None
         self.lock = threading.Lock()
-        s1 = KO / "bases" / self.src / "stage1_tokens.json"
+        s1 = KO / "bases" / self.base_tag / "stage1_tokens.json"
         self.s1_tokens = json.loads(s1.read_text())["tokens"]
 
     # ---------------------------------------------------------------- training
@@ -113,12 +125,17 @@ class Line:
             return 0
         say(f"{self.tag}: launch {argv[argv.index('--name') + 1]} ({code.name})")
         with open(log, "a") as f:
+            env = dict(os.environ)
+            if self.a.lean_dump:  # every distinct Lean-checked training sample (lean_gate's dump)
+                nm = argv[argv.index("--name") + 1]
+                env["LEAN_GATE_DUMP"] = str(KO / "runs" / f"{nm}_lean_dump.jsonl")
             p = subprocess.Popen(
                 [PY, "-m", "code.thinking.grpo", *argv],
                 cwd=str(code),
                 stdout=f,
                 stderr=subprocess.STDOUT,
                 start_new_session=True,
+                env=env,
             )
         with self.lock:
             self.proc = p
@@ -201,7 +218,7 @@ class Line:
         if self.a.x2 and not it39.exists():
             raise SystemExit(f"--x2: {it39} missing (the source line's L2 must be done)")
         if not it39.exists():
-            argv2 = l2_argv(self.arm, self.s, L2snaps)
+            argv2 = l2_argv(self.arm, self.s, L2snaps, f"{self.src}_L2", Path(self.a.pool_l2))
             if self.l2.exists() and self.n_rows(self.l2) > 0:
                 rolls = self.rollings(self.l2, f"{self.src}_L2")
                 if rolls:
@@ -220,7 +237,15 @@ class Line:
         if self.stop.is_set():
             return
         name = f"{self.tag}_L3"
-        argv = l3_argv(name, str(it39), self.s, self.a.t_l3, L3snaps)
+        argv = l3_argv(
+            name,
+            str(it39),
+            self.s,
+            self.a.t_l3,
+            L3snaps,
+            Path(self.a.pool_l3),
+            Path(self.a.pool_extra),
+        )
         done = self.l3 / "ckpts" / f"{name}_it{self.a.t_l3}.pt"
         if done.exists():
             return
@@ -441,6 +466,11 @@ def main() -> None:
     ap.add_argument("--eval_batch", type=int, default=512)
     ap.add_argument("--no_eval", action="store_true")
     ap.add_argument("--x2", action="store_true", help="L3 only, from the source line's L2 it39")
+    ap.add_argument("--variant", default="", help="a tag suffix for a pool variant (e.g. dp)")
+    ap.add_argument("--lean_dump", action="store_true", help="LEAN_GATE_DUMP for the GRPO stages")
+    ap.add_argument("--pool_l2", default=str(POOLS / "L2_pool.jsonl"))
+    ap.add_argument("--pool_l3", default=str(POOLS / "L3_pool.jsonl"))
+    ap.add_argument("--pool_extra", default=str(POOLS / "L3_3p.jsonl"))
     ap.add_argument(
         "--resume_line", action="store_true", help="continue a line the first rule stopped"
     )

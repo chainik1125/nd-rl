@@ -20,9 +20,17 @@ import statistics as st
 from pathlib import Path
 
 KO = Path(os.environ.get("KO", "/scratch/cowifornia/nd-rl/knockout_grpo"))
-TAGS = ["full_s0", "d1_s0", "d1_s1", "d01_s0", "d01_s1", "d01_s2", "ko_s0", "ko_s1", "ko_s2"]
-HOST = {"full_s0": "serrano", "d1_s0": "serrano", "d1_s1": "serrano", "d01_s0": "temescal",
-        "d01_s1": "temescal", "d01_s2": "ynez", "ko_s0": "ynez", "ko_s1": "ynez", "ko_s2": "ynez"}  # fmt: skip  # noqa: E501
+
+
+def tags() -> list[str]:
+    """Every line with a read directory (bases and pilots excluded)."""
+    return sorted(
+        d.name
+        for d in (KO / "evals").iterdir()
+        if d.is_dir()
+        and not d.name.startswith(("base_", "pilot_"))
+        and (d / "curve.jsonl").exists()
+    )
 
 
 def rows(tag: str) -> list[dict]:
@@ -82,7 +90,7 @@ def main() -> None:
               "| line | c | stage | reward % | entropy (think / action) | no-signal % | all-fail % | all-correct % (est.) |",  # noqa: E501
               "|---|---|---|---|---|---|---|---|"]  # fmt: skip
     al = []
-    for tag in TAGS:
+    for tag in tags():
         rs = rows(tag)
         cv = KO / "evals" / tag / "curve.jsonl"
         cur = (
@@ -92,10 +100,10 @@ def main() -> None:
         done = (KO / "evals" / tag / "line_done.json").exists()
         last = cur[-1] if cur else None
         lines.append(
-            f"| {tag} | {HOST[tag]} | {len(rs)} | {last['R']:.3f} | {last['e32']:.2f} (c {last['c']}) | "  # noqa: E501
+            f"| {tag} | {last.get('host', '')} | {len(rs)} | {last['R']:.3f} | {last['e32']:.2f} (c {last['c']}) | "  # noqa: E501
             f"{max(x['e32'] for x in cur):.2f} | {'yes' if stop else ''} | {'yes' if done else ''} |"  # noqa: E501
             if last
-            else f"| {tag} | {HOST[tag]} | {len(rs)} | | | | | |"
+            else f"| {tag} | | {len(rs)} | | | | | |"
         )
         for r in rs:
             if r["_c"] % 25 == 0 or r is rs[-1]:

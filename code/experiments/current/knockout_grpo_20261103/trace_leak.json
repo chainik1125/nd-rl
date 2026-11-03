@@ -1,0 +1,242 @@
+{
+ "full": {
+  "records": 154630,
+  "levels": {
+   "64": 61805,
+   "256": 61859,
+   "0": 30966
+  },
+  "trained": {
+   "counts": {
+    "dneg": 75992,
+    "bycontra": 11949,
+    "dneg_goal": 18437,
+    "reductio_plan": 2695
+   },
+   "records_with": {
+    "dneg": 27415,
+    "bycontra": 7635,
+    "dneg_goal": 7279,
+    "reductio_plan": 2089
+   }
+  },
+  "e64_all": {
+   "counts": {
+    "dneg": 56864,
+    "dneg_goal": 14757,
+    "bycontra": 11410,
+    "reductio_plan": 1040
+   },
+   "records_with": {
+    "dneg": 31571,
+    "dneg_goal": 7792,
+    "bycontra": 8610,
+    "reductio_plan": 1029
+   }
+  },
+  "e256_all": {
+   "counts": {
+    "dneg": 132201,
+    "dneg_goal": 31029,
+    "bycontra": 18524,
+    "reductio_plan": 5614
+   },
+   "records_with": {
+    "dneg": 36850,
+    "dneg_goal": 10318,
+    "bycontra": 10549,
+    "reductio_plan": 4117
+   }
+  },
+  "actions": {
+   "counts": {
+    "act_bycontra": 10422,
+    "act_bycontra_derived": 10422
+   },
+   "records_with": {
+    "act_bycontra": 9737,
+    "act_bycontra_derived": 9737
+   }
+  }
+ },
+ "ko": {
+  "records": 154630,
+  "levels": {
+   "64": 61629,
+   "256": 61964,
+   "0": 31037
+  },
+  "trained": {
+   "counts": {
+    "dneg": 76077,
+    "bycontra": 4139,
+    "dneg_goal": 11915,
+    "reductio_plan": 659
+   },
+   "records_with": {
+    "dneg": 27965,
+    "bycontra": 3326,
+    "dneg_goal": 5151,
+    "reductio_plan": 475
+   }
+  },
+  "e64_all": {
+   "counts": {
+    "dneg": 57545,
+    "dneg_goal": 10623,
+    "bycontra": 4004,
+    "reductio_plan": 265
+   },
+   "records_with": {
+    "dneg": 32749,
+    "dneg_goal": 5885,
+    "bycontra": 3765,
+    "reductio_plan": 264
+   }
+  },
+  "e256_all": {
+   "counts": {
+    "dneg": 131704,
+    "dneg_goal": 18948,
+    "bycontra": 6448,
+    "reductio_plan": 1392
+   },
+   "records_with": {
+    "dneg": 37092,
+    "dneg_goal": 6962,
+    "bycontra": 4648,
+    "reductio_plan": 948
+   }
+  },
+  "actions": {
+   "counts": {
+    "act_bycontra": 3696,
+    "act_bycontra_derived": 3696
+   },
+   "records_with": {
+    "act_bycontra": 3683,
+    "act_bycontra_derived": 3683
+   }
+  }
+ },
+ "d01": {
+  "records": 154630,
+  "levels": {
+   "64": 61623,
+   "256": 61963,
+   "0": 31044
+  },
+  "trained": {
+   "counts": {
+    "bycontra": 4370,
+    "dneg": 76313,
+    "dneg_goal": 12146,
+    "reductio_plan": 733
+   },
+   "records_with": {
+    "bycontra": 3427,
+    "dneg": 28018,
+    "dneg_goal": 5234,
+    "reductio_plan": 534
+   }
+  },
+  "e64_all": {
+   "counts": {
+    "dneg": 57678,
+    "dneg_goal": 10776,
+    "bycontra": 4214,
+    "reductio_plan": 289
+   },
+   "records_with": {
+    "dneg": 32799,
+    "dneg_goal": 5966,
+    "bycontra": 3882,
+    "reductio_plan": 288
+   }
+  },
+  "e256_all": {
+   "counts": {
+    "dneg": 132195,
+    "dneg_goal": 19429,
+    "bycontra": 6836,
+    "reductio_plan": 1562
+   },
+   "records_with": {
+    "dneg": 37195,
+    "dneg_goal": 7108,
+    "bycontra": 4797,
+    "reductio_plan": 1080
+   }
+  },
+  "actions": {
+   "counts": {
+    "act_bycontra": 3870,
+    "act_bycontra_derived": 3870
+   },
+   "records_with": {
+    "act_bycontra": 3835,
+    "act_bycontra_derived": 3835
+   }
+  }
+ },
+ "d1": {
+  "records": 154630,
+  "levels": {
+   "64": 61636,
+   "256": 61959,
+   "0": 31035
+  },
+  "trained": {
+   "counts": {
+    "dneg": 78179,
+    "bycontra": 6498,
+    "dneg_goal": 14343,
+    "reductio_plan": 1487
+   },
+   "records_with": {
+    "dneg": 28565,
+    "bycontra": 4349,
+    "dneg_goal": 5988,
+    "reductio_plan": 1139
+   }
+  },
+  "e64_all": {
+   "counts": {
+    "dneg": 58752,
+    "dneg_goal": 12132,
+    "bycontra": 6135,
+    "reductio_plan": 609
+   },
+   "records_with": {
+    "dneg": 33241,
+    "dneg_goal": 6643,
+    "bycontra": 4907,
+    "reductio_plan": 604
+   }
+  },
+  "e256_all": {
+   "counts": {
+    "dneg": 135950,
+    "dneg_goal": 23674,
+    "bycontra": 10317,
+    "reductio_plan": 3161
+   },
+   "records_with": {
+    "dneg": 38126,
+    "dneg_goal": 8340,
+    "bycontra": 6099,
+    "reductio_plan": 2288
+   }
+  },
+  "actions": {
+   "counts": {
+    "act_bycontra": 5424,
+    "act_bycontra_derived": 5424
+   },
+   "records_with": {
+    "act_bycontra": 5183,
+    "act_bycontra_derived": 5183
+   }
+  }
+ }
+}

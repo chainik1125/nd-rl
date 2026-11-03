@@ -2,6 +2,7 @@
 # Every 10 min: collect from ynez / temescal, rewrite STATUS.md, emit ALERT lines and new STOP / done events.
 K=/scratch/cowifornia/nd-rl/knockout_grpo
 declare -A seen
+for d in $K/evals/*/; do t=$(basename $d); for f in STOP_LINE line_done.json; do [ -f $d/$f ] && seen[$t$f]=1; done; done
 while true; do
   bash $K/tools/collect.sh > /dev/null 2>&1
   python3 $K/tools/health.py 2>&1 | grep --line-buffered -E "ALERT|Traceback|Error"

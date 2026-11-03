@@ -78,3 +78,16 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   GPU free after the ko lines' L2 ends): among the ko seeds not yet at the bar, the one with the
   highest mean E32 over its latest 3 checkpoints, ties to the lower seed, as Dan extended the
   knockout seed that was making progress. If every ko seed has reached the bar, it is not run.
+- **2026-11-03T08:34:36Z — Amendment 2 frozen** ([`amendment2.md`](amendment2.md), sha256 `bc7f0c75db5dfa0468f2989b4c391fb0c67a95b991b14048f9a0ea6e445fb898`): the RL-pool control
+  (Dan's 4,495 rl_targets as the pool, 0 hits with the 106; only the pool changes). full_s0_dp
+  launches first; the ko-type bases follow the rule in the amendment.
+- **08:25–08:50Z — trace-leak check** (`trace_leak*.py`; at each record's trained level and over
+  the e64 / e256 files). No ko proof or narration applies DN to a NEGI-built line (narration DN
+  citations in ko: hypotheses 2,022, premises 662, planned-box hypotheses 414, other 1; full
+  2,509 / d1 1,036 / d01 99 on NEGI-built lines). But the classical-detour plan `|- G :=
+  Classical.byContradiction |- ( ~ ( ~ G ) )` is in 637 ko records at their trained level (515 with
+  the NEGI half), 949 in the e64 ∪ e256 files (full 2,881 / d1 1,525 / d01 722 trained-level).
+  Reported to the coordinator, who approved ko_strict (Amendment 3) and the pool control
+  (Amendment 2).
+- **2026-11-03T08:43:21Z — Amendment 3 frozen** ([`amendment3.md`](amendment3.md), sha256 `bda6eb52761d78af4cebf75cb568d4ab26a1fbaf715246130b4c61f03ccb99c1`): ko_strict (949
+  records swapped; verified 0 σ⁺ in proofs, 0 detour plans in either level's narration).
