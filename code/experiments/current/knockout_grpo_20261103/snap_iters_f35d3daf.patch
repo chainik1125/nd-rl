@@ -1,0 +1,26 @@
+--- f35d3daf/code/thinking/grpo.py	2026-10-15 00:55:21.000000000 -0700
++++ f35d3daf_snap/code/thinking/grpo.py	2026-11-02 22:13:28.973558657 -0800
+@@ -2473,6 +2473,10 @@
+             save_ckpt(str(p), model, tok.mode, extra=meta, train_state=snapshot(it))
+             prune_rolling(ckdir, a.name, a.keep_rolling)
+             ls.last_good, ls.last_good_iter = str(p), it
++        if it in {int(x) for x in str(getattr(a, "snap_iters", "")).split(",") if x.strip()}:  # --snap_iters
++            sp = ckdir / f"{a.name}_it{it}_snap.pt"  # after the iteration's own saves; it touches
++            if not sp.exists():  # no training state, RNG or `ls.last_good`
++                save_ckpt(str(sp), model, tok.mode, extra={**meta, "snap": True})
+         if dev == "cuda":
+             torch.cuda.empty_cache()
+     D.record.phase(None)
+@@ -2731,6 +2735,12 @@
+         help="the pass-rate prior: half (default: Beta(1, 1), an unseen pair at 1/2) or mean "
+         "(the budget's mean pass rate over its seen pairs, as Beta(2 m, 2 (1 - m)))",
+     )
++    ap.add_argument(
++        "--snap_iters",
++        default=argparse.SUPPRESS,
++        help="knockout_grpo (opt-in): comma-separated iteration numbers; a model-only checkpoint "
++        "ckpts/<name>_it<i>_snap.pt after each, touching no training state",
++    )
+     return ap
+ 
+ 

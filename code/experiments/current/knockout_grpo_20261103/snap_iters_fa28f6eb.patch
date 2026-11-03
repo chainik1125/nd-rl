@@ -1,0 +1,26 @@
+--- fa28f6eb/code/thinking/grpo.py	2026-10-13 05:05:40.000000000 -0700
++++ fa28f6eb_snap/code/thinking/grpo.py	2026-11-02 22:13:28.844558739 -0800
+@@ -1740,6 +1740,10 @@
+             save_ckpt(str(p), model, tok.mode, extra=meta, train_state=snapshot(it))
+             prune_rolling(ckdir, a.name, a.keep_rolling)
+             ls.last_good, ls.last_good_iter = str(p), it
++        if it in {int(x) for x in str(getattr(a, "snap_iters", "")).split(",") if x.strip()}:  # --snap_iters
++            sp = ckdir / f"{a.name}_it{it}_snap.pt"  # after the iteration's own saves; it touches
++            if not sp.exists():  # no training state, RNG or `ls.last_good`
++                save_ckpt(str(sp), model, tok.mode, extra={**meta, "snap": True})
+         if dev == "cuda":
+             torch.cuda.empty_cache()
+     D.record.phase(None)
+@@ -1916,6 +1920,12 @@
+         default=0.0,
+         help="share of each iteration's groups drawn from --targets_extra",
+     )
++    ap.add_argument(
++        "--snap_iters",
++        default=argparse.SUPPRESS,
++        help="knockout_grpo (opt-in): comma-separated iteration numbers; a model-only checkpoint "
++        "ckpts/<name>_it<i>_snap.pt after each, touching no training state",
++    )
+     return ap
+ 
+ 
