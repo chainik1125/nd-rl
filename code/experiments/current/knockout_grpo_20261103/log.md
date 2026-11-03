@@ -91,3 +91,8 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   (Amendment 2).
 - **2026-11-03T08:43:21Z — Amendment 3 frozen** ([`amendment3.md`](amendment3.md), sha256 `bda6eb52761d78af4cebf75cb568d4ab26a1fbaf715246130b4c61f03ccb99c1`): ko_strict (949
   records swapped; verified 0 σ⁺ in proofs, 0 detour plans in either level's narration).
+- **2026-11-03T09:08:32Z — Amendment 2, ko-type bases:** GPUs freed while ko_strict × our pool was
+  still undecided (kos_s0 / kos_s2 lines just started; kos bases E32 0.00 / 0.33 of 106 at n 256,
+  against ko's 0.73 / 1.04), so by the amendment's rule the Dan's-pool lines run on the ko_strict
+  bases: kos_s2_dp (ynez), kos_s0_dp (temescal), kos_s1_dp once its base is trained.
+- full_s0_dp: crossed the bar and held (stopped at c 7, line done at c 9).
