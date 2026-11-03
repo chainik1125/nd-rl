@@ -16,3 +16,19 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   the candidates at 79749ce (reproduces S1g3's traces byte for byte on 2,990 / 2,990); assemble.py
   plan / write; the S1g3 pickle command reproduces S1g3.pkl (md5 d1f29544); ko / d01 / d1 pickles
   built and σ-verified (0 / 155 / 1,546).
+- **06:26–07:14Z** — 9 bases trained (serrano 2, ynez 5, temescal 2; ynez 16 min, temescal 18 min,
+  serrano 25–29 min each; Stage-1 tokens 441.1M (ko_s0) against S1g3_s0's 440.6M). Base reads (k 256,
+  n 256 per theorem, seed 0), E32 of 106: full 22.34 / 26.31 / 29.33; d1 14.39 / 14.39 / 32.63;
+  d01 12.29 / 6.67 / 5.21; ko 0.73 / 0.36 / 1.04.
+- **Bar** (pre-registered rule): median of the full bases' E32 = **26.31** of 106 (24.8 %);
+  Dan-matched single-draw bar 27.
+- **At the bar before RL** (no line): full_s1 (26.31), full_s2 (29.33), d1_s2 (32.63).
+- **Pilots** (L3 from grpo_think_vs_s0_L2_it39, 10 iterations, mean of it 2–10): ynez clean
+  135.2 s/it, ynez with the online read 173.6, temescal with the read 163.1, serrano with the read
+  199.6 (serrano's clean kkl0 L3 runs: 158–186). R per L3 iteration 0.0040. A co-located k 64 read
+  takes 190–230 s. Iteration 1 is identical in the ynez and temescal pilots (same seed).
+- **T_L3** (pre-registered rule): median clean L3 s/it over the machines = 135.2 (ynez; temescal
+  ≈ 127 and serrano ≈ 156 after removing the read's 1.28× slowdown); L2 = 4,744 s (the full arm's
+  three L2 runs, ynez). T_L3 = round((54,000 − 4,744) / 135.2) = **364**; c_max = 403.
+- **Lines** (9): ynez ko_s0, ko_s1, ko_s2, d01_s2; temescal d01_s0, d01_s1; serrano full_s0, then
+  d1_s0, d1_s1 (max 2 of ours on serrano). Each line: `line.py --t_l3 364 --bar 26.31`.

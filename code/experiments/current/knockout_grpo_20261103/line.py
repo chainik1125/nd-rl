@@ -267,7 +267,16 @@ class Line:
                 time.sleep(15)
             if not self.snap_path(c).exists():
                 continue
-            row = self.eval_one(c)
+            row = None
+            for attempt in range(3):  # a failed read is retried twice, then skipped (logged)
+                try:
+                    row = self.eval_one(c)
+                    break
+                except Exception as e:  # noqa: BLE001
+                    say(f"{self.tag}: EVAL-ERROR c {c} attempt {attempt}: {e!r}")
+                    time.sleep(60)
+            if row is None:
+                continue
             with open(self.ev / "curve.jsonl", "a") as f:
                 f.write(json.dumps(row) + "\n")
             say(f"{self.tag}: c {c} R {row['R']:.4f} E32 {row['e32']:.2f} first32 {row['first32']}")
