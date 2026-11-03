@@ -132,6 +132,31 @@ def train_sigma(tag: str) -> dict | None:
             "dn_any_pct_range": [min(dn), max(dn)], "n_iters": len(rows)}  # fmt: skip
 
 
+def facts(dan_axis: list[dict]) -> dict:
+    """Corpus, pool and accounting numbers the figure caption quotes (from their own files)."""
+    sg = {k: json.loads((OUT / "sigma" / f).read_text())["share_pct"]
+          for k, f in (("full", "s1g3.json"), ("d1", "corpus_d1.json"), ("d01", "corpus_d01.json"),
+                       ("ko", "corpus_ko.json"), ("kos", "corpus_ko_strict.json"),
+                       ("k12", "k12.json"))}  # fmt: skip
+    pool = json.loads((OUT / "pool_sigma.json").read_text())
+    plan = json.loads((OUT / "corpora" / "ko_strict" / "plan.json").read_text())
+    n_ko = json.loads((OUT / "sigma" / "corpus_ko.json").read_text())["counts"]["records"]
+    ratios = []
+    for o in dan_axis:
+        for c in (o["cross"], o["last"]):
+            if c and c.get("x_ours"):
+                ratios.append(c["x_dan"] / c["x_ours"])
+    return {
+        "sigma_plus_share_pct": {k: v["sigma_plus"] for k, v in sg.items()},
+        "pool_strict_pct": {k: pool[k]["strict_pct"] for k in pool},
+        "dan_pool_n": pool["dan_rl_targets"]["n"],
+        "ko_plan_records": len(plan["bad"]),
+        "ko_records": n_ko,
+        "ko_plan_pct": 100.0 * len(plan["bad"]) / n_ko,
+        "dan_x_over_ours": [min(ratios), max(ratios)],
+    }
+
+
 def line_state(tag: str) -> dict:
     """Whether the line has ended, and how (line_done.json; think_ban_stop.json for kos_s1)."""
     ev = OUT / "evals" / tag
@@ -215,6 +240,7 @@ def main() -> None:
                 x["train_sigma"] = train_sigma(tag)
                 x.update(line_state(tag))
                 res["runs"][tag] = x
+    res["facts"] = facts(res.get("dan_axis") or json.loads((OUT / "dan_axis.json").read_text()))
     tb = OUT / "think_ban.json"
     if tb.exists():
         res["think_ban"] = {k: v["total"] for k, v in json.loads(tb.read_text()).items()}

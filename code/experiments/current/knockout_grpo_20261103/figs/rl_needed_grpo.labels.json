@@ -1,0 +1,33 @@
+{
+ "texts": [
+  "at bar\nbefore RL",
+  "Dan's EI: 6 of 6 not\nreached by 3.6–8.6×",
+  "0.0076–0.012×",
+  "0.024–0.03×",
+  "0.037–0.065×",
+  "our pool:\n   2 of 3 running (0.15–0.18×)\n   1 censored (0.11×)\nDan's pool:\n   3 of 3 running (0.12–0.14×)"
+ ],
+ "xticks": [
+  "0 %\nko_strict",
+  "0 %, σ plans\nin narration",
+  "0.1 %",
+  "1.0 %",
+  "2.48 %\n(S1g3)",
+  "10.9 %\n(K12, Dan)"
+ ],
+ "legend": [
+  "S1g3 (2.48 % σ)",
+  "1 % σ dose",
+  "0.1 % σ dose",
+  "knockout, σ plans in narration",
+  "ko_strict (0 %)",
+  "black edge: Dan's pool",
+  "Dan's EI on our rule",
+  "not reached by",
+  "think-ban stop (censored)"
+ ],
+ "ylabel": "RL ÷ pretraining compute (our rule) needed\nto reach the bar, 26.3 of 106 strict σ theorems",
+ "caption": [
+  "PROVISIONAL: 5 lines still running. One marker per seed. Bar: 26.3 of 106 held-out theorems that need classical proof by\ncontradiction (σ, Dan's strict set), as E32 (the expected number a 32-sample draw solves), the median of our three S1g3 bases before\nRL. y: (6 × trained + 2 × sampled tokens) ÷ (6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in\nlog y between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before RL; ▲ on a thin line: not reached\nby that y (open: still running, 5 lines); cross on a dotted line: the recipe's think-ban guard ended the line there (censored,\nuninformative). Colour: GRPO with programmatic thinking traces on our pool (39.5–44.5 % of targets σ-covered); black edge: the same\nGRPO on Dan's 4,495 EI targets (2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read prefill and\nreplay, so it is 1.5–5.2 × these values). Differences from Dan: GRPO, not EI; a thinking model (programmatic search traces); no\npretraining replay; S1g3 bases (σ 2.48 %, not 10.9 %); doses of 0.1 % and 1.0 % of the proofs; ko_strict also removes the σ plans\nthat 0.6 % of ko's records write in their narration."
+ ]
+}

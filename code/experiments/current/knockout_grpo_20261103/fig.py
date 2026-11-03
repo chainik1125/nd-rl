@@ -47,16 +47,28 @@ CAPTION = [
     "the median of our three S1g3 bases before RL. y: (6 × trained + 2 × sampled tokens) ÷",
     "(6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in log y",
     "between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before",
-    "RL; ▲ on a thin line: not reached by that y; cross on a dotted line: the recipe's think-ban",
-    "guard ended the line there (censored, uninformative). Colour: GRPO with programmatic",
-    "thinking traces",
-    "on our pool (40–45 % of targets σ-covered); black edge: the same GRPO on Dan's 4,495 EI",
-    "targets (2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read",
-    "prefill and replay, so it is 1.5–5 × these values). Differences from Dan: GRPO, not EI; a",
-    "thinking model (programmatic search traces); no pretraining replay; S1g3 bases (σ 2.48 %,",
-    "not 10.9 %); doses of 0.1 % and 1 % of the proofs; ko_strict also removes the σ plans that",
-    "0.6 % of ko's records write in their narration.",
+    "RL; ▲ on a thin line: not reached by that y{running}; cross on a dotted line: the recipe's",
+    "think-ban guard ended the line there (censored, uninformative). Colour: GRPO with",
+    "programmatic thinking traces on our pool ({pool_lo:.1f}–{pool_hi:.1f} % of targets",
+    "σ-covered); black edge: the same GRPO on Dan's {dan_n:,} EI targets ({dan_pct:.1f} %); grey:",
+    "Dan's T1 expert-iteration ladders on this y (his own x adds re-read prefill and replay, so it",
+    "is {r_lo:.1f}–{r_hi:.1f} × these values). Differences from Dan: GRPO, not EI; a thinking",
+    "model (programmatic search traces); no pretraining replay; S1g3 bases (σ {full:.2f} %, not",
+    "{k12:.1f} %); doses of {d01:.1f} % and {d1:.1f} % of the proofs; ko_strict also removes the σ",
+    "plans that {ko_plan:.1f} % of ko's records write in their narration.",
 ]
+
+
+def caption(N: dict, running: int) -> str:
+    f = N["facts"]
+    sh, pl = f["sigma_plus_share_pct"], f["pool_strict_pct"]
+    return " ".join(CAPTION).format(
+        bar=N["bar_e32"], pool_lo=min(pl["L2_pool"], pl["L3_pool"]),
+        pool_hi=max(pl["L2_pool"], pl["L3_pool"]), dan_n=f["dan_pool_n"],
+        dan_pct=pl["dan_rl_targets"], r_lo=f["dan_x_over_ours"][0], r_hi=f["dan_x_over_ours"][1],
+        full=sh["full"], k12=sh["k12"], d01=sh["d01"], d1=sh["d1"], ko_plan=f["ko_plan_pct"],
+        running=f" (open: still running, {running} lines)" if running else "",
+    )  # fmt: skip
 
 
 def _spread(n: int, k: int, w: float = 0.16) -> float:
@@ -92,20 +104,27 @@ def _rng(vals: list[float]) -> str:
 
 def _cross(run: dict) -> dict:
     """The run's crossing, marked censored when the think-ban guard ended it."""
-    return {**run["cross"], "censored": run.get("think_ban_stop")}
+    return {
+        **run["cross"],
+        "censored": run.get("think_ban_stop"),
+        "running": not run.get("line_done"),
+    }
 
 
 def _miss_note(ax, x: float, groups: list[tuple[str, list[dict]]]) -> None:
     """One text block above an arm's up-triangles: per group, 'n of m not reached by R'."""
     lines, tops = [], []
     for name, cs in groups:
-        miss = [c["R_max"] for c in cs if c["status"] == "not_reached" and not c.get("censored")]
-        cens = [c["R_max"] for c in cs if c["status"] == "not_reached" and c.get("censored")]
+        nr = [c for c in cs if c["status"] == "not_reached"]
+        miss = [c["R_max"] for c in nr if not c.get("censored") and not c.get("running")]
+        run = [c["R_max"] for c in nr if not c.get("censored") and c.get("running")]
+        cens = [c["R_max"] for c in nr if c.get("censored")]
         parts = [f"{len(miss)} of {len(cs)} not by {_rng(miss)}"] if miss else []
-        parts += [f"{len(cens)} censored at {_rng(cens)}"] if cens else []
+        parts += [f"{len(run)} of {len(cs)} running ({_rng(run)})"] if run else []
+        parts += [f"{len(cens)} censored ({_rng(cens)})"] if cens else []
         if parts:
-            lines.append(f"{name}: " + ",\n    ".join(parts))
-            tops.append(max(miss + cens))
+            lines += [f"{name}:"] + [f"   {p}" for p in parts]
+            tops.append(max(miss + run + cens))
     if lines:
         ax.text(x, max(tops) * 1.25, "\n".join(lines), fontsize=S.FS_SMALL, ha="left",
                 va="bottom", color=S.INK2)  # fmt: skip
@@ -140,6 +159,18 @@ def _dan(ax, N: dict) -> None:
                     ha="left", va="top", color=S.REF)  # fmt: skip
 
 
+def _dump_labels(fig, ax, path: Path) -> None:
+    """Every text the figure draws (for checking against numbers.md before reporting)."""
+    out = {
+        "texts": [t.get_text() for t in ax.texts],
+        "xticks": [t.get_text() for t in ax.get_xticklabels()],
+        "legend": [t.get_text() for t in ax.get_legend().get_texts()],
+        "ylabel": ax.get_ylabel(),
+        "caption": [t.get_text() for t in fig.texts],
+    }
+    path.write_text(json.dumps(out, indent=1, ensure_ascii=False))
+
+
 def headline(N: dict, figdir: Path, provisional: bool) -> None:
     fig = S.new_figure(S.FULL_W, 4.55, layout="none")
     ax = fig.add_axes((0.115, 0.37, 0.86, 0.585))
@@ -147,9 +178,14 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
     ax.set_yscale("log")
     ax.set_xlim(0.0125, 17)
     ax.set_ylim(Y_LO, Y_HI)
-    xt = [0.02, 0.042, 0.1, 1.0, 2.48, 10.9]
-    lab = ["0 %\nko_strict", "0 %, σ plans\nin narration", "0.1 %", "1 %", "2.48 %\n(S1g3)",
-           "10.9 %\n(K12, Dan)"]  # fmt: skip
+    sh = N["facts"]["sigma_plus_share_pct"]
+    X.update(full=sh["full"], d1=sh["d1"], d01=sh["d01"])  # each dose at its corpus's share
+    DAN_X["full"] = sh["k12"]
+    NAME["full"] = f"S1g3 ({sh['full']:.2f} % σ)"
+    xt = [X["kos"], X["ko"], X["d01"], X["d1"], X["full"], DAN_X["full"]]
+    lab = ["0 %\nko_strict", "0 %, σ plans\nin narration", f"{sh['d01']:.1f} %",
+           f"{sh['d1']:.1f} %",
+           f"{sh['full']:.2f} %\n(S1g3)", f"{sh['k12']:.1f} %\n(K12, Dan)"]  # fmt: skip  # noqa: E501
     ax.set_xticks(xt, lab)
     ax.minorticks_off()
     yt = [0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10]
@@ -190,14 +226,16 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
                  ms=5.0)]  # fmt: skip
     ax.legend(handles=h, fontsize=S.FS_SMALL, frameon=False, loc="upper right", ncol=2,
               handletextpad=0.3, columnspacing=0.9, borderaxespad=0.2)  # fmt: skip
-    bar = N["bar_e32"]
-    cap = " ".join(CAPTION).format(bar=bar).replace(" %", "\u00a0%").replace(" ×", "\u00a0×")
-    if provisional:
-        cap = "PROVISIONAL: ko_strict lines still running. " + cap
+    n_run = sum(1 for x in runs.values() if x["cross"]["status"] == "not_reached"
+                and not x.get("line_done"))  # fmt: skip
+    cap = caption(N, n_run).replace(" %", "\u00a0%").replace(" ×", "\u00a0×")
+    if provisional or n_run:
+        cap = f"PROVISIONAL: {n_run} lines still running. " + cap
     cap = "\n".join(textwrap.wrap(cap, 132))
     fig.text(0.015, 0.012, cap, fontsize=S.FS_SMALL, va="bottom", ha="left", color=S.INK,
              linespacing=1.15)  # fmt: skip
     S.save(fig, figdir / "rl_needed_grpo")
+    _dump_labels(fig, ax, figdir / "rl_needed_grpo.labels.json")
     S.close(fig)
 
 
