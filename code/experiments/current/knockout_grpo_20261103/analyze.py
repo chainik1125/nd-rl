@@ -169,11 +169,12 @@ def facts(dan_axis: list[dict]) -> dict:
 def line_state(tag: str) -> dict:
     """Whether the line has ended, and how (line_done.json; think_ban_stop.json for kos_s1)."""
     ev = OUT / "evals" / tag
-    done = (
-        json.loads((ev / "line_done.json").read_text())
-        if (ev / "line_done.json").exists()
-        else None
-    )
+    done = None
+    if (ev / "line_done.json").exists():
+        try:
+            done = json.loads((ev / "line_done.json").read_text())
+        except json.JSONDecodeError:  # cut short by a crash
+            done = {}
     tb = done.get("think_ban_stop") if done else None
     if (ev / "think_ban_stop.json").exists():
         tb = json.loads((ev / "think_ban_stop.json").read_text())["stage"]
@@ -181,7 +182,14 @@ def line_state(tag: str) -> dict:
     if done and not tb and tbj.exists():
         st_ = json.loads(tbj.read_text()).get(tag, {}).get("stages", {})
         tb = next((k for k, v in st_.items() if v.get("stop")), None)
-    return {"line_done": done is not None, "think_ban_stop": tb}
+    c_max = 39 + 364
+    finished = done is not None and bool(
+        done.get("stopped") or tb or done.get("health_stop") or (done.get("last_c") or 0) >= c_max
+    )
+    # a line_done with no stop reason before the cap: a stage killed from outside (temescal's
+    # crash) or stopped for machine availability (AVAILABILITY_STOP), not resumed
+    avail = done is not None and not finished
+    return {"line_done": done is not None, "think_ban_stop": tb, "availability_stop": avail}
 
 
 def _row(tag: str, x: dict) -> str:
@@ -207,6 +215,8 @@ def _row(tag: str, x: dict) -> str:
         nr = f"not reached by {c['R_max']:.3g} (best {c['best_e32']:.1f})"
         if x.get("think_ban_stop"):
             nr += f"; think-ban stop in {x['think_ban_stop']}"
+        elif x.get("availability_stop"):
+            nr += "; stopped for machine availability"
         elif not x.get("line_done"):
             nr += "; running"
         cells = [base, nr, f"{c['gpu_h']:.2f}", "", ls, sg]

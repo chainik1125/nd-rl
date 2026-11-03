@@ -47,7 +47,10 @@ def main() -> None:
             if p.name.startswith("pilot_"):
                 continue
             line, st = p.stem.rsplit("_", 1)
-            found.setdefault(line, {})[st] = stage(p) | {"log": str(p.relative_to(OUT))}
+            new = stage(p) | {"log": str(p.relative_to(OUT))}
+            old = found.setdefault(line, {}).get(st)
+            if old is None or new["its"] > old["its"]:  # the fullest copy (a migrated line's log
+                found[line][st] = new  # continues on serrano; temescal's stops at the crash)
     res = {}
     for line in sorted(found):
         s = found[line]

@@ -127,6 +127,7 @@ def _cross(run: dict) -> dict:
         **run["cross"],
         "censored": run.get("think_ban_stop"),
         "running": not run.get("line_done"),
+        "machine": run.get("availability_stop"),
     }
 
 
@@ -138,14 +139,17 @@ def _miss_note(ax, groups: list[tuple[str, list[dict]]]) -> None:
         n = len(cs)
         nr = [c for c in cs if c["status"] == "not_reached"]
         hit = [c["R"] for c in cs if c["status"] == "reached"]
-        miss = [c["R_max"] for c in nr if not c.get("censored") and not c.get("running")]
+        miss = [c["R_max"] for c in nr
+                if not (c.get("censored") or c.get("running") or c.get("machine"))]  # fmt: skip
         run = [c["R_max"] for c in nr if not c.get("censored") and c.get("running")]
+        mach = [c["R_max"] for c in nr if not c.get("censored") and c.get("machine")]
         cens = [c["R_max"] for c in nr if c.get("censored")]
-        if not (miss or run or cens):
+        if not (miss or run or cens or mach):
             continue
         parts = [f"{len(hit)}/{n} reached ({_rng(hit)})"] if hit else []
         parts += [f"{len(miss)}/{n} not by {_rng(miss)}"] if miss else []
         parts += [f"{len(cens)}/{n} censored ({_rng(cens)})"] if cens else []
+        parts += [f"{len(mach)}/{n} stopped for machines ({_rng(mach)})"] if mach else []
         parts += [f"{len(run)}/{n} running"] if run else []
         lines.append(f"  {name}: " + ", ".join(parts))
     if lines:

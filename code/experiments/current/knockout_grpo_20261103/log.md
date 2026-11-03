@@ -256,3 +256,7 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   - kos_s0_gr and kos_s0_dp_gr staged into serrano's tree and queued (`resume_kos_s0_gr`,
     `resume_kos_s0_dp_gr`, with crash-recovery jobs); dry-checked: they resume from it 283 / it 328.
     They wait for serrano's GPU count to drop below 3.
+- **23:1xZ — serrano PSU guard** (coordinator): `psu_guard.sh` checks every 30 s how many of
+  serrano's GPUs carry any user's process; above 3 it stops kos_s0_dp_gr right after its next
+  checkpoint (availability stop, `AVAILABILITY_STOP`), so kos_s0_gr keeps priority. It counts GPUs
+  in use, not processes: our lines run a GRPO process and a read on the same GPU.
