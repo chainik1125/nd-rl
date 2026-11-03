@@ -214,3 +214,21 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   iteration 234, LoopState lr_scale 0.125, rollbacks 3 (of 3), n_step 892, last_good it 85;
   AdamW, curricula and RNGs present; saved args identical to the run's (T 364, lr 1.5e-4, ban_stop
   0.005, now overridden to 0.05). `line.py --gr_from` (md5 d5ba470d) names the checkpoint.
+- **21:58Z — temescal: kos_s0_gr and kos_s0_dp_gr killed** (both GRPO stages SIGKILL, rc −9, at
+  21:58:03Z and 21:58:17Z); the machine rebooted at about 22:07Z with one GPU (UUID aedfb2a9,
+  kos_s0_dp_gr's) no longer listed, and was unreachable from 22:12Z ("No route to host").
+  Last checkpoints with training state: kos_s0_gr L3 it 283 alarm (c 322; last read c 316, E32
+  29.0 at R 1.70; reads since its crossing 26.8, 27.4, 30.6, 29.0), kos_s0_dp_gr L3 it 328 alarm
+  (c 367; last read c 355, E32 0.00 at R 1.20). Lost work: each stage's partial next iteration
+  (about 2–3 min each, ≈ 0.1 GPU-h together); nothing past the checkpoints. Coordinator: no more
+  GPU work on temescal; probe it at most every 15 min (one ssh, ConnectTimeout 10); when it is up,
+  copy the runs to ynez, verify the checkpoints and resume both under the crash rule on ynez GPUs
+  0 and 2; if still down at 01:00Z, finalize both as "crashed".
+  - My error, fixed: line.py wrote line_done.json for a killed L3 stage, so both crash-recovery
+    jobs exited at once. Now (md5 e7ccb536, serrano and ynez): a non-zero L3 exit other than the
+    guard's raises (no line_done); `--resume_line` treats a line_done with no stop reason and
+    c < 403 as a crash (renamed `line_done.crash_*.json`) and resumes; with `--gr` the resume
+    point is the newest rolling checkpoint or the newest alarm checkpoint once all 3 rollbacks are
+    used (grpo writes no rolling checkpoint on alarmed iterations). Checked for the running
+    continuations' recovery jobs: kos_s1_gr would resume from L3 it 120 (alarm), kos_s2_gr from
+    it 236 (alarm); a guard-less line_done at c 250 is not "finished".

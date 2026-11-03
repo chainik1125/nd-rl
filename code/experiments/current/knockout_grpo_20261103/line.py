@@ -54,6 +54,33 @@ def say(msg: str) -> None:
     print(f"{now()} {msg}", flush=True)
 
 
+MAX_ROLLBACKS = 3  # the recipe's --max_rollbacks
+
+
+def line_finished(summ: dict, c_max: int) -> bool:
+    """A line_done.json that ends the line: a hold-window stop, a think-ban stop, a health stop,
+    or the cap reached. Anything else is a stage killed from outside (a crash)."""
+    return bool(
+        summ.get("stopped")
+        or summ.get("think_ban_stop")
+        or summ.get("health_stop")
+        or (summ.get("last_c") or 0) >= c_max
+    )
+
+
+def _rollbacks_used(p: Path) -> int:
+    """LoopState.rollbacks of a checkpoint's training state (0 when it has none), read with the
+    runs' Python (this script's has no torch)."""
+    code = (
+        "import sys, torch; ck = torch.load(sys.argv[1], map_location='cpu', mmap=True, "
+        "weights_only=False); print(int(((ck.get('train_state') or {}).get('loop') or {})"
+        ".get('rollbacks', 0)))"
+    )
+    env = {**os.environ, "CUDA_VISIBLE_DEVICES": ""}
+    out = subprocess.run([PY, "-c", code, str(p)], capture_output=True, text=True, env=env)
+    return int(out.stdout.strip() or 0)
+
+
 GR_BAN_STOP = 0.05  # Amendment 4: --ban_stop of a guard-relaxed continuation (10 x the recipe's)
 HEALTH_DROP, HEALTH_ITERS, HEALTH_E32_FLOOR = 0.5, 25, 3.0  # Amendment 4's health stop
 
@@ -162,10 +189,20 @@ class Line:
         return rc
 
     def rollings(self, d: Path, name: str) -> list[tuple[int, Path]]:
-        """(iteration, path) of the stage's rolling checkpoints (with training state), sorted."""
+        """(iteration, path) of the stage's rolling checkpoints (with training state), sorted.
+        --gr also counts alarm checkpoints written once all rollbacks are used: no rollback can
+        follow them, so they hold the run's true state (grpo writes no rolling checkpoint on an
+        alarmed iteration, and the continuations alarm on nearly every one)."""
         out = []
         for p in (d / "ckpts").glob(f"{name}_it*_rolling.pt"):
             out.append((int(p.name.split("_it")[1].split("_")[0]), p))
+        if self.a.gr:  # the newest alarm checkpoint, if no rollback could follow it
+            al = sorted(
+                (int(p.name.split("_it")[1].split("_")[0]), p)
+                for p in (d / "ckpts").glob(f"{name}_it*_alarm.pt")
+            )
+            if al and _rollbacks_used(al[-1][1]) >= MAX_ROLLBACKS:
+                out.append(al[-1])
         return sorted(out)
 
     def splice(self) -> None:
@@ -266,6 +303,8 @@ class Line:
         if rc == 3:
             say(f"{self.tag}: L3 think-ban stop")
             self.think_ban = "L3"
+        elif rc != 0 and not self.stop.is_set():  # a crash or a kill: no line_done, resumable
+            raise SystemExit(f"L3 failed rc {rc}")
 
     # --------------------------------------------------------------- evaluator
     def snap_path(self, c: int) -> Path:
@@ -459,9 +498,17 @@ class Line:
     def run(self) -> None:
         done = self.ev / "line_done.json"
         if self.a.resume_line and done.exists() and not (self.ev / "STOP_LINE").exists():
-            # PREREG "Stop rule": a think-ban stop (exit 3) or the cap ends a line for good
-            say(f"{self.tag}: resume_line: the line is done ({done.read_text().strip()[:200]})")
-            return
+            summ = json.loads(done.read_text())
+            if line_finished(summ, self.c_max):
+                # PREREG "Stop rule": a think-ban stop (exit 3), a health stop or the cap ends a
+                # line for good
+                say(f"{self.tag}: resume_line: the line is done ({json.dumps(summ)[:200]})")
+                return
+            # a stage killed from outside (before the 2026-11-03 22:30Z fix, line.py wrote
+            # line_done for it): a crash, resumed by the pre-registered crash rule
+            done.rename(self.ev / f"line_done.crash_{int(time.time())}.json")
+            say(f"{self.tag}: resume_line: line_done without a stop reason at c "
+                f"{summ.get('last_c')} < {self.c_max}: a crash, resuming")  # fmt: skip
         if self.a.resume_line and (self.ev / "STOP_LINE").exists():
             rows = self.curve_rows()
             if rows and self.stop_rule(rows):  # the amended window already holds: nothing to do
