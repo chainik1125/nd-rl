@@ -176,7 +176,7 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   iterations 74–76; last read c 112 at R 0.441, E32 12.96, best 13.4; σ share of accepted training
   proofs 40–46 % in its last L3 iterations). Censored at R 0.441 while rising: unlike the four
   earlier stops, this line was finding σ. ynez GPU 0 idle; only kos_s0 runs (temescal).
-- **2026-11-03T14:20Z — Amendment 4 frozen** ([`amendment4.md`](amendment4.md), sha256
+- **2026-11-03T14:13:50Z — Amendment 4 frozen** ([`amendment4.md`](amendment4.md), sha256
   `7121dcc149038258f6b7d984f889a9b7226a0380f1683999f309348da0444dc5`): guard-relaxed continuation
   (secondary, exploratory) of the five censored ko_strict lines from their last rolling
   checkpoints, `--ban_stop 0.05` and nothing else changed, with a health stop (reward or E32 below
