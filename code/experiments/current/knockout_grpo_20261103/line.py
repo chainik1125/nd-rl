@@ -498,7 +498,10 @@ class Line:
     def run(self) -> None:
         done = self.ev / "line_done.json"
         if self.a.resume_line and done.exists() and not (self.ev / "STOP_LINE").exists():
-            summ = json.loads(done.read_text())
+            try:
+                summ = json.loads(done.read_text())
+            except json.JSONDecodeError:  # cut short by a crash (kos_s0_dp_gr on temescal)
+                summ = {}
             if line_finished(summ, self.c_max):
                 # PREREG "Stop rule": a think-ban stop (exit 3), a health stop or the cap ends a
                 # line for good

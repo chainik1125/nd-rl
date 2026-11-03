@@ -232,3 +232,27 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
     used (grpo writes no rolling checkpoint on alarmed iterations). Checked for the running
     continuations' recovery jobs: kos_s1_gr would resume from L3 it 120 (alarm), kos_s2_gr from
     it 236 (alarm); a guard-less line_done at c 250 is not "finished".
+- **temescal crash cause: inconclusive.** Without sudo, `journalctl -k` returns no kernel lines
+  for the previous boots (no OOM-killer, Xid, fallen-off-bus, MCE or power lines visible), and
+  the crashed boot's journal ends at 13:53:37 PST (21:53:37Z), before our stages died at 21:58Z.
+  It rebooted twice (boots 14:09–14:11 PST and from 14:46 PST). At 22:46Z: `KO/queue/STOP`
+  written there, no crontab, no user systemd units, none of our processes; copied read-only to
+  ynez / serrano (`tools/migrate_kos_s0.sh`). Checkpoints verified (torch.load, full): kos_s0_gr
+  it 283 alarm (lr_scale 0.125, rollbacks 3, n_step 1088, ban_stop 0.05), kos_s0_dp_gr it 328
+  alarm (0.125, 3, 1284); both source L2 it 39 checkpoints; metrics / curves / dumps parse to the
+  end. kos_s0_dp_gr's line_done.json was empty (cut by the crash); line.py now reads an
+  unparsable line_done as a crash (md5 df2e06e2).
+- **22:52:13Z — kos_s1_gr: relaxed think-ban stop in L3 iteration 131** (mass 0.0521; c 170; last
+  read c 158 at R 0.711, E32 0.0, best 1.0). Censored again at R 0.711.
+- **22:45Z on — machine availability.** ynez: other users' processes on all four GPUs (marie on
+  0 / 2 / 3, frankyang on 1 / 3), including kos_s2_gr's GPU 1; serrano: cipeng on GPU 2 and
+  pythondsb on 0 and 3 from about 22:54Z (3 GPU jobs, the PSU limit). Coordinator: stop kos_s2_gr
+  (we never share a GPU), resume kos_s0_gr and kos_s0_dp_gr on serrano, everything gated; lines
+  not finished by 04:00Z are recorded at their last read as "stopped for machine availability".
+  - kos_s2_gr stopped 23:05:33Z (SIGTERM; `evals/kos_s2_gr/AVAILABILITY_STOP`): resume point L3 it
+    245 alarm (22:54:20Z); iteration 246, slowed by the shared GPU, was lost (about 11 min, ≈ 0.2
+    GPU-h); last read c 282 at R 1.476, E32 12.35. Its `line2gr` recovery job (new code: a
+    line_done with no stop reason is a crash) waits for a GPU with no other user's process.
+  - kos_s0_gr and kos_s0_dp_gr staged into serrano's tree and queued (`resume_kos_s0_gr`,
+    `resume_kos_s0_dp_gr`, with crash-recovery jobs); dry-checked: they resume from it 283 / it 328.
+    They wait for serrano's GPU count to drop below 3.
