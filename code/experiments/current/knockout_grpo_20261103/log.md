@@ -134,3 +134,8 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   round 1 (sampling only: his x counts the re-read state prefill, ours does not; his round-1
   crossings are drawn on the floor) and 1.53–1.90 at every later round; the caption's "1.5–5.2"
   had pooled the two. numbers.md lists the ratio per ladder.
+- **11:59:09Z — kos_s2_dp: think-ban stop in L3 iteration 62** (c 101; mass 0.0035–0.0057 over
+  iterations 59–62; last read c 100 at R 0.240, E32 0.00; best 0.9). Final by the stop rule;
+  reported as censored at R 0.240. The fixed resume guard let `line2_kos_s2_dp` exit at once.
+  ynez GPU 2 idle. analyze.py now reads think-ban stops from the stage logs (`think_ban.json`),
+  since this line's line_done.json predates the `think_ban_stop` field.

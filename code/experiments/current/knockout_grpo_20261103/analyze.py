@@ -177,6 +177,10 @@ def line_state(tag: str) -> dict:
     tb = done.get("think_ban_stop") if done else None
     if (ev / "think_ban_stop.json").exists():
         tb = json.loads((ev / "think_ban_stop.json").read_text())["stage"]
+    tbj = OUT / "think_ban.json"  # think_ban.py: a STOP line in the stage logs
+    if done and not tb and tbj.exists():
+        st_ = json.loads(tbj.read_text()).get(tag, {}).get("stages", {})
+        tb = next((k for k, v in st_.items() if v.get("stop")), None)
     return {"line_done": done is not None, "think_ban_stop": tb}
 
 

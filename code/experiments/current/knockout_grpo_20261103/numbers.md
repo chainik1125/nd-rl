@@ -17,12 +17,12 @@ Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matche
 | ko_s0 | 0.73 (0.7 %) | 0.0653 (c 18–c 20) | 0.81 | c 20–c 39, done at R 0.142 | c 40, R 0.146, 36.6 |  |
 | ko_s1 | 0.36 (0.3 %) | 0.0403 (c 14–c 16) | 0.56 | c 16–c 32, done at R 0.097 | c 32, R 0.097, 45.9 |  |
 | ko_s2 | 1.04 (1.0 %) | 0.0368 (c 11–c 13) | 0.51 | c 13–c 25, done at R 0.0923 | c 25, R 0.0923, 40.8 |  |
-| kos_s0 | 0.00 (0.0 %) | not reached by 0.207 (best 21.1); running | 1.84 |  | c 63, R 0.207, 19.6 | 0.3 → 27.4 % at L3 it 6 (max 30.9) |
-| kos_s0_dp | 0.00 (0.0 %) | not reached by 0.156 (best 0.5); running | 1.74 |  | c 63, R 0.156, 0.0 | 0.0 → 0.1 % at L3 it 5 (max 0.8) |
+| kos_s0 | 0.00 (0.0 %) | not reached by 0.301 (best 21.3); running | 2.66 |  | c 89, R 0.301, 21.3 | 0.3 → 27.4 % at L3 it 6 (max 30.9) |
+| kos_s0_dp | 0.00 (0.0 %) | not reached by 0.247 (best 0.5); running | 2.71 |  | c 100, R 0.247, 0.0 | 0.0 → 0.1 % at L3 it 5 (max 0.8) |
 | kos_s1 | 0.00 (0.0 %) | not reached by 0.109 (best 0.5); think-ban stop in L3 | 1.37 |  | c 40, R 0.109, 0.0 | 0.0 → 0.0 % at L2 it 35 (max 0.1) |
-| kos_s1_dp | 0.00 (0.0 %) | not reached by 0.127 (best 0.8); running | 1.63 |  | c 50, R 0.127, 0.0 | 0.0 → 0.0 % at L2 it 38 (max 0.4) |
-| kos_s2 | 0.33 (0.3 %) | not reached by 0.168 (best 7.0); running | 1.83 |  | c 50, R 0.168, 7.0 | 0.0 → 2.1 % at L2 it 36 (max 10.1) |
-| kos_s2_dp | 0.33 (0.3 %) | not reached by 0.153 (best 0.9); running | 1.71 |  | c 63, R 0.153, 0.0 | 0.0 → 0.0 % at L3 it 6 (max 0.8) |
+| kos_s1_dp | 0.00 (0.0 %) | not reached by 0.191 (best 0.8); running | 2.56 |  | c 79, R 0.191, 0.0 | 0.0 → 0.0 % at L2 it 38 (max 0.4) |
+| kos_s2 | 0.33 (0.3 %) | not reached by 0.258 (best 8.5); running | 2.74 |  | c 71, R 0.258, 8.5 | 0.0 → 2.1 % at L2 it 36 (max 10.1) |
+| kos_s2_dp | 0.33 (0.3 %) | not reached by 0.24 (best 0.9); think-ban stop in L3 | 2.77 |  | c 100, R 0.24, 0.0 | 0.0 → 0.0 % at L3 it 6 (max 0.8) |
 
 ## Think-ban guard events (think_ban.py; distinct GRPO iterations)
 
@@ -38,12 +38,12 @@ Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matche
 | ko_s0 | 41 | 0 (0.0 %) | 0 | 0 | 0 |
 | ko_s1 | 33 | 0 (0.0 %) | 0 | 0 | 0 |
 | ko_s2 | 26 | 0 (0.0 %) | 0 | 0 | 0 |
-| kos_s0 | 57 | 0 (0.0 %) | 0 | 0 | 0 |
-| kos_s0_dp | 59 | 0 (0.0 %) | 0 | 0 | 0 |
+| kos_s0 | 97 | 0 (0.0 %) | 0 | 0 | 0 |
+| kos_s0_dp | 105 | 9 (8.6 %) | 0 | 9 | 0 |
 | kos_s1 | 41 | 19 (46.3 %) | 1 | 17 | 1 |
-| kos_s1_dp | 51 | 0 (0.0 %) | 0 | 0 | 0 |
-| kos_s2 | 46 | 5 (10.9 %) | 3 | 2 | 0 |
-| kos_s2_dp | 60 | 4 (6.7 %) | 1 | 3 | 0 |
+| kos_s1_dp | 87 | 0 (0.0 %) | 0 | 0 | 0 |
+| kos_s2 | 73 | 25 (34.2 %) | 3 | 22 | 0 |
+| kos_s2_dp | 101 | 29 (28.7 %) | 2 | 11 | 1 |
 
 ## Dan's EI ladders on our axis (dan_axis.py)
 
