@@ -95,4 +95,13 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   still undecided (kos_s0 / kos_s2 lines just started; kos bases E32 0.00 / 0.33 of 106 at n 256,
   against ko's 0.73 / 1.04), so by the amendment's rule the Dan's-pool lines run on the ko_strict
   bases: kos_s2_dp (ynez), kos_s0_dp (temescal), kos_s1_dp once its base is trained.
-- full_s0_dp: crossed the bar and held (stopped at c 7, line done at c 9).
+- full_s0_dp: crossed the bar and held (stopped at c 7, line done at c 9). First crossing R
+  0.0088 (pre-registered log-R interpolation between c 2, E32 25.02 at R 0.00641, and c 3, 26.48 at
+  R 0.00918); the hold window c 3–c 7 completed at c 7 (R 0.0212; c 6 at R 0.01832 was just short
+  of 2 × 0.00918). Two messages to the coordinator gave R 0.021 (the hold point) and 0.027 (the last
+  checkpoint) as "the crossing"; corrected at 10:40Z.
+- **10:25Z — ko_strict status** (interim message to the coordinator): kos_s0 E32 0 → 10.1 by R
+  0.10, with σ's share of distinct Lean-accepted training proofs 0.3 % (L2 it 1) → 17 % (L2 it 37)
+  → 31 % (L3 it 4); kos_s2 σ share 0 → 10 % by L2 it 33, E32 ≤ 1.0; kos_s1 σ share ≤ 0.1 %, E32
+  ≤ 0.5. The three kos_*_dp lines: E32 ≤ 0.94, σ share 0–0.8 %, DN in 4–12 % of accepted proofs.
+  Projection: about 27 GPU-h used, about 72 more if all six run to the cap (≈ 100 in all).

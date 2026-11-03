@@ -1,12 +1,16 @@
-"""Figures for knockout_grpo (Dan's headline layout, our R axis), from numbers.json.
+"""Figures for knockout_grpo, from numbers.json (Dan's headline layout, our R axis).
 
     code/.venv/bin/python -m code.experiments.current.knockout_grpo_20261103.fig [--figdir DIR]
 
-(a) `rl_needed_grpo`: RL compute / pretraining compute needed to reach the bar, against sigma's
-    share of the pretraining proofs; one marker per seed. Filled: reached; hollow: at the bar
-    before RL; up-triangle on a thin line: not reached by R_max. Grey: Dan's EI ladders, recomputed
-    with our R rule (dan_axis.py), at his doses.
-(b) `e32_vs_r`: E32 on the strict 106 against R, per arm and seed, with the bar.
+(a) `rl_needed_grpo`: RL ÷ pretraining compute needed to reach the bar, against σ's share of the
+    pretraining proofs; one marker per seed. Filled circle: first crossing (interpolated in log R);
+    down-triangle: reached by the first checkpoint (an upper bound); hollow circle on the floor: at
+    the bar before RL; up-triangle on a thin line: not reached by that R. Colour: GRPO with our
+    pool; black-edged squares: GRPO with Dan's pool (Amendment 2); grey: Dan's EI ladders
+    recomputed with our R rule (dan_axis.py). Short ticks: medians where every seed reached.
+(b) `e32_vs_r`: E32 on the strict 106 against R per line, with the bar.
+(c) `sigma_train`: σ's share of the distinct Lean-accepted training proofs (5-iteration pooled
+    window) and E32 on the strict 106, against GRPO iteration, for the lines with a Lean dump.
 """
 
 from __future__ import annotations
@@ -14,162 +18,252 @@ from __future__ import annotations
 import argparse
 import json
 import statistics as st
+import textwrap
 from pathlib import Path
+
+from matplotlib.lines import Line2D
 
 from code.ndbench.figures import style as S
 
+from .common import OUT
+
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[3]
-ARMS = ("full", "d1", "d01", "ko")
-NAME = {"full": "S1g3 (natural)", "d1": "1 %", "d01": "0.1 %", "ko": "0 % (removed)"}
-COLOR = {"full": S.OKABE_ITO["blue"], "d1": S.OKABE_ITO["bluish_green"],
-         "d01": S.OKABE_ITO["orange"], "ko": S.OKABE_ITO["vermillion"]}  # fmt: skip
-OURS_X = {"full": 2.48, "d1": 1.0, "d01": 0.1, "ko": None}
-DAN_X = {"full": 10.9, "dose1": 1.0, "dose01": 0.1, "knockout": None}
-ZERO_X = 0.025
-Y_LO = 0.002
+OI = S.OKABE_ITO
+ARMS = ("full", "d1", "d01", "ko", "kos")
+COLOR = {"full": OI["blue"], "d1": OI["bluish_green"], "d01": OI["orange"],
+         "ko": OI["reddish_purple"], "kos": OI["vermillion"]}  # fmt: skip
+NAME = {"full": "S1g3 (2.48 % σ)", "d1": "1 % σ dose", "d01": "0.1 % σ dose",
+        "ko": "knockout, σ plans in narration", "kos": "ko_strict (0 %)"}  # fmt: skip
+X = {"full": 2.48, "d1": 1.0, "d01": 0.1, "ko": 0.042, "kos": 0.02}  # where each arm sits
+DAN_X = {"full": 10.9, "dose1": 1.0, "dose01": 0.1, "knockout": 0.02}
+Y_LO, Y_HI = 0.0006, 30.0
+FLOOR = 0.00092  # "at the bar before RL" row
+LEFT_LABEL = {"d1"}  # arms whose range label sits left of the cluster
+SURF = S.WHITE
+CAPTION = [
+    "One marker per seed. Bar: {bar:.1f} of 106 held-out theorems that need classical proof by",
+    "contradiction (σ, Dan's strict set), as E32 (the expected number a 32-sample draw solves),",
+    "the median of our three S1g3 bases before RL. y: (6 × trained + 2 × sampled tokens) ÷",
+    "(6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in log y",
+    "between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before",
+    "RL; ▲ on a thin line: not reached by that y. Colour: GRPO with programmatic thinking traces",
+    "on our pool (40–45 % of targets σ-covered); black edge: the same GRPO on Dan's 4,495 EI",
+    "targets (2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read",
+    "prefill and replay, so it is 1.5–5 × these values). Differences from Dan: GRPO, not EI; a",
+    "thinking model (programmatic search traces); no pretraining replay; S1g3 bases (σ 2.48 %,",
+    "not 10.9 %); doses of 0.1 % and 1 % of the proofs; ko_strict also removes the σ plans that",
+    "0.6 % of ko's records write in their narration.",
+]
 
 
-def headline(N: dict, figdir: Path) -> None:
-    fig = S.new_figure(S.FULL_W, 3.3, layout="constrained")
-    ax = fig.add_subplot(1, 1, 1)
+def _spread(n: int, k: int, w: float = 0.16) -> float:
+    """Multiplicative x jitter for seed k of n."""
+    return 1.0 + w * ((k - (n - 1) / 2) / max(1, n - 1)) * 2
+
+
+def _ours(ax, x: float, c: dict, color: str, square: bool = False) -> float | None:
+    ms = 3.6 if square else 4.4
+    mk = "s" if square else "o"
+    mec = S.INK if square else SURF
+    if c["status"] == "at_bar_before_rl":
+        ax.plot([x], [FLOOR], mk, ms=ms, mfc=SURF, mec=color, mew=0.9, zorder=4)
+        return None
+    if c["status"] == "reached":
+        if c.get("R_upper_only") and not square:
+            mk = "v"
+        ax.plot([x], [c["R"]], mk, ms=ms, color=color, mec=mec, mew=0.5, zorder=5)
+        return c["R"]
+    if c["status"] == "not_reached":
+        ax.plot([x, x], [FLOOR, c["R_max"]], color=color, lw=0.6, alpha=0.5, zorder=2)
+        ax.plot([x], [c["R_max"]], "^", ms=ms + 0.5, color=color, mec=mec, mew=0.5, zorder=5)
+    return None
+
+
+def _miss_note(ax, x: float, groups: list[tuple[str, list[dict]]]) -> None:
+    """One text block above an arm's up-triangles: per group, 'n of m not reached by R'."""
+    lines, tops = [], []
+    for name, cs in groups:
+        miss = [c for c in cs if c["status"] == "not_reached"]
+        if not miss:
+            continue
+        lo, hi = min(c["R_max"] for c in miss), max(c["R_max"] for c in miss)
+        rng = f"{lo:.2g}×" if f"{lo:.2g}" == f"{hi:.2g}" else f"{lo:.2g}–{hi:.2g}×"
+        lines.append(f"{name}: {len(miss)} of {len(cs)} not by {rng}")
+        tops.append(hi)
+    if lines:
+        ax.text(x, max(tops) * 1.25, "\n".join(lines), fontsize=S.FS_SMALL, ha="left",
+                va="bottom", color=S.INK2)  # fmt: skip
+
+
+def _dan(ax, N: dict) -> None:
+    for arm, x0 in DAN_X.items():
+        lads = [o for o in N.get("dan_axis", []) if o["arm"] == arm]
+        lads.sort(key=lambda o: o["name"])
+        hits = []
+        for k, o in enumerate(lads):
+            x = x0 / 1.32 * _spread(len(lads), k, 0.12)
+            kw = {"ms": 3.0, "color": S.REF, "mec": SURF, "mew": 0.4, "zorder": 3}
+            c = o["cross"]
+            if c is not None and c["round"] == 1:
+                ax.plot([x], [FLOOR], "o", ms=3.0, mfc=SURF, mec=S.REF, mew=0.7, zorder=3)
+            elif c is not None:
+                ax.plot([x], [c["x_ours"]], "o", **kw)
+                hits.append(c["x_ours"])
+            else:
+                y = o["last"]["x_ours"]
+                ax.plot([x, x], [FLOOR, y], color=S.REF, lw=0.5, alpha=0.35, zorder=1)
+                ax.plot([x], [y], "^", **kw)
+        if hits and len(hits) == len(lads):
+            m = st.median(hits)
+            ax.plot([x0 / 1.32 / 1.16, x0 / 1.32 * 1.16], [m, m], color=S.REF, lw=0.7, zorder=2)
+        miss = [o["last"]["x_ours"] for o in lads if o["cross"] is None]
+        if miss:
+            ax.text(x0 * 1.2, max(miss) * 1.05, f"Dan's EI: {len(miss)} of {len(lads)} not\n"
+                    f"reached by {min(miss):.1f}–{max(miss):.1f}×", fontsize=S.FS_SMALL,
+                    ha="left", va="top", color=S.REF)  # fmt: skip
+
+
+def headline(N: dict, figdir: Path, provisional: bool) -> None:
+    fig = S.new_figure(S.FULL_W, 4.55, layout="none")
+    ax = fig.add_axes((0.115, 0.37, 0.86, 0.585))
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlim(0.016, 22)
-    ax.set_ylim(Y_LO, 30)
-    xt = [ZERO_X, 0.1, 1.0, 2.48, 10.9]
-    ax.set_xticks(xt, ["0 %\n(removed)", "0.1 %", "1 %", "2.48 %\n(S1g3)", "10.9 %\n(K12, Dan)"])
+    ax.set_xlim(0.0125, 17)
+    ax.set_ylim(Y_LO, Y_HI)
+    xt = [0.02, 0.042, 0.1, 1.0, 2.48, 10.9]
+    lab = ["0 %\nko_strict", "0 %, σ plans\nin narration", "0.1 %", "1 %", "2.48 %\n(S1g3)",
+           "10.9 %\n(K12, Dan)"]  # fmt: skip
+    ax.set_xticks(xt, lab)
     ax.minorticks_off()
     yt = [0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10]
     ax.set_yticks(yt, [f"{v:g}×" for v in yt])
     S.light_grid(ax, "y")
-    ax.text(
-        0.05, Y_LO * 0.62, "//", color=S.REF, ha="center", va="center", fontsize=7, clip_on=False
-    )
-    # Dan's EI ladders on our axis (grey, offset left)
-    for arm, x0 in DAN_X.items():
-        lads = [o for o in N.get("dan_axis", []) if o["arm"] == arm]
-        xx = (x0 or ZERO_X) / 1.45
-        for k, o in enumerate(lads):
-            f = 0.85 + 0.3 * k / max(1, len(lads) - 1)
-            if o["cross"] is not None:
-                first = o["cross"]["round"] == 1
-                y = max(o["cross"]["x_ours"], Y_LO * 1.3)
-                ax.plot(
-                    [xx * f],
-                    [y],
-                    "o",
-                    ms=3.2,
-                    color=S.REF,
-                    mfc="white" if first else S.REF,
-                    mec=S.REF,
-                    mew=0.8,
-                    zorder=3,
-                )
-            else:
-                y = o["last"]["x_ours"]
-                ax.plot([xx * f] * 2, [Y_LO, y], color=S.REF, lw=0.6, alpha=0.4)
-                ax.plot([xx * f], [y], "^", ms=3.4, color=S.REF, mec="white", mew=0.5, zorder=3)
-    # ours
+    ax.text(-0.012, FLOOR, "at bar\nbefore RL", ha="right", va="center", fontsize=S.FS_SMALL,
+            color=S.INK2, clip_on=False, transform=ax.get_yaxis_transform())  # fmt: skip
+    ax.axhline(FLOOR * 1.9, color=S.INK2, lw=0.5, ls=(0, (2, 2)), zorder=0)
+    _dan(ax, N)
+    runs = N["runs"]
     for arm in ARMS:
-        x0 = OURS_X[arm] or ZERO_X
-        tags = [f"{arm}_s{s}" for s in range(3) if f"{arm}_s{s}" in N["runs"]]
-        hits, misses, firsts = [], [], 0
-        for k, tag in enumerate(tags):
-            f = 0.9 + 0.2 * k / max(1, len(tags) - 1)
-            c = N["runs"][tag]["cross"]
-            if c["status"] == "at_bar_before_rl":
-                firsts += 1
-                ax.plot(
-                    [x0 * f],
-                    [Y_LO * 1.6],
-                    "o",
-                    ms=5,
-                    mfc="white",
-                    mec=COLOR[arm],
-                    mew=1.1,
-                    zorder=4,
-                )
-            elif c["status"] == "reached":
-                hits.append(c["R"])
-                ax.plot(
-                    [x0 * f], [c["R"]], "o", ms=5, color=COLOR[arm], mec="white", mew=0.6, zorder=4
-                )
-            elif c["status"] == "not_reached":
-                misses.append(c)
-                ax.plot([x0 * f] * 2, [Y_LO, c["R_max"]], color=COLOR[arm], lw=0.7, alpha=0.45)
-                ax.plot(
-                    [x0 * f],
-                    [c["R_max"]],
-                    "^",
-                    ms=5.5,
-                    color=COLOR[arm],
-                    mec="white",
-                    mew=0.6,
-                    zorder=4,
-                )
-        if hits and not misses and not firsts and len(hits) > 1:
+        x0 = X[arm]
+        tags = [f"{arm}_s{s}" for s in range(3) if f"{arm}_s{s}" in runs]
+        vals = [_ours(ax, x0 * _spread(len(tags), k), runs[t]["cross"], COLOR[arm])
+                for k, t in enumerate(tags)]  # fmt: skip
+        hits = [v for v in vals if v is not None]
+        reached = [runs[t]["cross"]["status"] in ("reached", "at_bar_before_rl") for t in tags]
+        if hits and all(reached) and len(hits) > 1:
             m = st.median(hits)
-            ax.plot([x0 * 0.8, x0 * 1.25], [m, m], color=S.INK2, lw=0.8, zorder=3)
-        txt = []
-        if firsts:
-            txt.append(f"{firsts} of {len(tags)} at the bar before RL")
-        if hits:
-            rng = f"{min(hits):.3g}–{max(hits):.3g}×" if len(hits) > 1 else f"{hits[0]:.3g}×"
-            txt.append(f"{rng}" + (f" (median {st.median(hits):.3g}×)" if len(hits) > 2 else ""))
-        if misses:
-            txt.append(
-                f"not reached by {min(m['R_max'] for m in misses):.2g}–"
-                f"{max(m['R_max'] for m in misses):.2g}× ({len(misses)} of {len(tags)})"
-            )
-        ys = hits or [m["R_max"] for m in misses] or [Y_LO * 1.6]
-        ax.text(
-            x0 * 1.35,
-            st.median(ys),
-            "\n".join(txt),
-            va="center",
-            fontsize=S.FS_SMALL,
-            color=COLOR[arm],
-        )
+            ax.plot([x0 / 1.2, x0 * 1.2], [m, m], color=S.INK, lw=0.7, zorder=4)
+            left = arm in LEFT_LABEL
+            ax.text(x0 / 1.27 if left else x0 * 1.27, m, f"{min(hits):.2g}–{max(hits):.2g}×",
+                    fontsize=S.FS_SMALL, va="center", ha="right" if left else "left")  # fmt: skip
+        dps = [f"{arm}_s{s}_dp" for s in range(3) if f"{arm}_s{s}_dp" in runs]
+        for k, t in enumerate(dps):
+            _ours(ax, x0 * 1.3 * _spread(len(dps), k, 0.1), runs[t]["cross"], COLOR[arm], True)
+        _miss_note(ax, x0 / 1.1, [("our pool", [runs[t]["cross"] for t in tags]),
+                                  ("Dan's pool", [runs[t]["cross"] for t in dps])])  # fmt: skip
     ax.set_xlabel("σ's share of the pretraining proofs (log scale)")
-    ax.set_ylabel(f"RL ÷ pretraining compute needed\nto reach the bar ({N['bar_e32']:.1f} of 106)")
+    ax.set_ylabel(f"RL ÷ pretraining compute (our rule) needed\nto reach the bar, "
+                  f"{N['bar_e32']:.1f} of 106 strict σ theorems")  # fmt: skip
+    h = [Line2D([], [], ls="none", marker="o", color=COLOR[a], mec=SURF, label=NAME[a], ms=4.4)
+         for a in ARMS]  # fmt: skip
+    h += [Line2D([], [], ls="none", marker="s", mfc=SURF, mec=S.INK, label="black edge: Dan's pool", ms=3.6),  # noqa: E501
+          Line2D([], [], ls="none", marker="o", color=S.REF, label="Dan's EI on our rule", ms=3.0),
+          Line2D([], [], ls="none", marker="^", color=S.INK2, label="not reached by",
+                 ms=4.4)]  # fmt: skip
+    ax.legend(handles=h, fontsize=S.FS_SMALL, frameon=False, loc="upper right", ncol=2,
+              handletextpad=0.3, columnspacing=0.9, borderaxespad=0.2)  # fmt: skip
+    bar = N["bar_e32"]
+    cap = " ".join(CAPTION).format(bar=bar)
+    if provisional:
+        cap = "PROVISIONAL: ko_strict lines still running. " + cap
+    cap = "\n".join(textwrap.wrap(cap, 132))
+    fig.text(0.015, 0.012, cap, fontsize=S.FS_SMALL, va="bottom", ha="left", color=S.INK,
+             linespacing=1.15)  # fmt: skip
     S.save(fig, figdir / "rl_needed_grpo")
     S.close(fig)
 
 
 def curves(N: dict, figdir: Path) -> None:
-    fig = S.new_figure(S.FULL_W, 2.2, layout="constrained")
-    axs = fig.subplots(1, 4, sharey=True)
+    fig = S.new_figure(S.FULL_W, 1.95, layout="constrained")
+    axs = fig.subplots(1, len(ARMS), sharey=True)
     for ax, arm in zip(axs, ARMS, strict=True):
         ax.set_xscale("log")
         for s in range(3):
-            tag = f"{arm}_s{s}"
-            x = N["runs"].get(tag)
-            if not x or "curve" not in x:
-                continue
-            R = [r["R"] for r in x["curve"]]
-            y = [r["e32"] for r in x["curve"]]
-            ls = ["-", "--", ":"][s]
-            ax.plot(R, y, ls, color=COLOR[arm], lw=0.9, label=f"s{s}")
-            ax.plot([R[0] / 2], [x["base_e32"]], "o", ms=2.5, color=COLOR[arm])
+            for v, ls in (("", "-"), ("_dp", ":")):
+                x = N["runs"].get(f"{arm}_s{s}{v}")
+                if not x or "curve" not in x:
+                    continue
+                R = [r["R"] for r in x["curve"]]
+                y = [r["e32"] for r in x["curve"]]
+                ax.plot(R, y, ls, color=S.shade(COLOR[arm], -0.25 * s), lw=0.8)
         ax.axhline(N["bar_e32"], color=S.REF, lw=0.6, ls="--")
-        S.panel_title(ax, None, NAME[arm])
-        ax.set_xlabel("R")
+        S.panel_title(ax, None, NAME[arm].replace("knockout, σ plans in narration", "ko (σ plans)"),
+                      size=S.FS_SMALL)  # fmt: skip
+        ax.set_xlabel("R", fontsize=S.FS_SMALL)
+        ax.set_xlim(0.002, 1.5)
+        ax.tick_params(labelsize=S.FS_SMALL)
         S.light_grid(ax, "both")
-    axs[0].set_ylabel("E32 on the strict 106")
-    axs[0].legend(fontsize=S.FS_SMALL, frameon=False)
+    axs[0].set_ylabel("E32 on the strict 106", fontsize=S.FS_SMALL)
+    axs[-1].legend(handles=[Line2D([], [], color=S.INK, lw=0.8, label="our pool"),
+                            Line2D([], [], color=S.INK, lw=0.8, ls=":", label="Dan's pool")],
+                   fontsize=S.FS_SMALL, frameon=False, loc="upper left")  # fmt: skip
     S.save(fig, figdir / "e32_vs_r")
+    S.close(fig)
+
+
+def _pooled(rows: list[dict], w: int = 5) -> tuple[list[int], list[float]]:
+    xs, ys = [], []
+    for i in range(len(rows)):
+        win = rows[max(0, i - w + 1) : i + 1]
+        n = sum(r["accepted_distinct"] for r in win)
+        xs.append(rows[i]["c"])
+        ys.append(100.0 * sum(r["sigma"] for r in win) / max(1, n))
+    return xs, ys
+
+
+def sigma_train(N: dict, figdir: Path) -> None:
+    tags = [t for t in ("kos_s0", "kos_s1", "kos_s2", "kos_s0_dp", "kos_s1_dp", "kos_s2_dp",
+                        "full_s0_dp") if (OUT / "train_sigma" / f"{t}.json").exists()]  # fmt: skip
+    if not tags:
+        return
+    fig = S.new_figure(S.FULL_W, 2.1, layout="constrained")
+    a, b = fig.subplots(1, 2)
+    for t in tags:
+        d = json.loads((OUT / "train_sigma" / f"{t}.json").read_text())
+        rows = [{**r, "c": r["iter"]} for r in d["L2"]]
+        rows += [{**r, "c": 39 + r["iter"]} for r in d["L3"]]
+        arm, s = t.split("_")[0], int(t.split("_")[1][1])
+        col = S.shade(COLOR[arm], -0.25 * s)
+        ls = ":" if t.endswith("_dp") else "-"
+        xs, ys = _pooled(rows)
+        a.plot(xs, ys, ls, color=col, lw=0.9, label=t)
+        cur = N["runs"].get(t, {}).get("curve", [])
+        b.plot([r["c"] for r in cur], [r["e32"] for r in cur], ls, color=col, lw=0.9)
+    a.set_ylabel("σ share of accepted\ntraining proofs (%)", fontsize=S.FS_SMALL)
+    b.set_ylabel("E32 on the strict 106", fontsize=S.FS_SMALL)
+    b.axhline(N["bar_e32"], color=S.REF, lw=0.6, ls="--")
+    for ax, (letter, ttl) in zip((a, b), (("a", "training proofs (5-iteration window)"),
+                                          ("b", "held-out σ theorems")), strict=True):  # fmt: skip
+        ax.set_xlabel("GRPO iteration (L2 1–39, then L3)", fontsize=S.FS_SMALL)
+        ax.axvline(39.5, color=S.GRID, lw=0.6)
+        ax.tick_params(labelsize=S.FS_SMALL)
+        S.light_grid(ax, "y")
+        S.panel_title(ax, letter, ttl, size=S.FS_SMALL)
+    a.legend(fontsize=S.FS_SMALL, frameon=False, loc="upper left", ncol=2, handlelength=1.6)
+    S.save(fig, figdir / "sigma_train")
     S.close(fig)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--figdir", default=str(HERE / "figs"))
+    ap.add_argument("--provisional", action="store_true")
     a = ap.parse_args()
     N = json.loads((HERE / "numbers.json").read_text())
     with S.paper_style():
-        headline(N, Path(a.figdir))
+        headline(N, Path(a.figdir), a.provisional)
         curves(N, Path(a.figdir))
+        sigma_train(N, Path(a.figdir))
 
 
 if __name__ == "__main__":

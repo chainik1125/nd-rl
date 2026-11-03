@@ -1,18 +1,48 @@
 # knockout_grpo numbers
 
-Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matched single-draw bar 27.
+Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matched single-draw bar 27. E32 = expected number of the 106 solved by a k 32 draw (unbiased pass@32 from 64 attempts per checkpoint, 256 per base). R = (6 trained + 2 sampled tokens) / (6 Stage-1 tokens). First crossing: the first checkpoint at or above the bar, linear in log10 R from the one before (≤ when it is the first checkpoint). Held: Amendment 1's window (≥ 3 consecutive checkpoints ≥ bar, the last at ≥ 2 × the first's R). σ share: of the distinct Lean-accepted training proofs of an iteration (train_sigma.py), at L2 iteration 1 → the last logged iteration (max).
 
-| run | base E32 (% of 106) | base first-32 | crossing |
-|---|---|---|---|
-| full_s0 | 22.34 (21.1 %) | 24 | R 0.00286 (0.03 GPU-h) |
-| full_s1 | 26.31 (24.8 %) | 27 | at_bar_before_rl |
-| full_s2 | 29.33 (27.7 %) | 28 | at_bar_before_rl |
-| d1_s0 | 14.39 (13.6 %) | 15 | R 0.00758 (0.09 GPU-h) |
-| d1_s1 | 14.39 (13.6 %) | 16 | R 0.0123 (0.16 GPU-h) |
-| d1_s2 | 32.63 (30.8 %) | 32 | at_bar_before_rl |
-| d01_s0 | 12.29 (11.6 %) | 12 | R 0.0298 (0.31 GPU-h) |
-| d01_s1 | 6.67 (6.3 %) | 9 | R 0.0243 (0.20 GPU-h) |
-| d01_s2 | 5.21 (4.9 %) | 5 | R 0.0241 (0.37 GPU-h) |
-| ko_s0 | 0.73 (0.7 %) | 0 | R 0.0653 (0.81 GPU-h) |
-| ko_s1 | 0.36 (0.3 %) | 0 | R 0.0403 (0.56 GPU-h) |
-| ko_s2 | 1.04 (1.0 %) | 2 | R 0.0368 (0.51 GPU-h) |
+| line | base E32 (% of 106) | first crossing R (bracket) | GPU-h to it | held window | last checkpoint (c, R, E32) | σ share of accepted training proofs |
+|---|---|---|---|---|---|---|
+| full_s0 | 22.34 (21.1 %) | ≤ 0.00286 (first checkpoint, c 1) | 0.03 | c 1–c 3, done at R 0.0101 | c 3, R 0.0101, 29.3 |  |
+| full_s0_dp | 22.34 (21.1 %) | 0.00881 (c 2–c 3) | 0.08 | c 3–c 7, done at R 0.0212 | c 9, R 0.0268, 30.6 | 0.6 → 1.3 % at L2 it 9 (max 2.2) |
+| full_s1 | 26.31 (24.8 %) | at_bar_before_rl |  |  | — |  |
+| full_s2 | 29.33 (27.7 %) | at_bar_before_rl |  |  | — |  |
+| d1_s0 | 14.39 (13.6 %) | 0.00758 (c 2–c 3) | 0.09 | c 3–c 6, done at R 0.0207 | c 9, R 0.0327, 39.5 |  |
+| d1_s1 | 14.39 (13.6 %) | 0.0123 (c 4–c 5) | 0.16 | c 5–c 10, done at R 0.0355 | c 18, R 0.066, 47.8 |  |
+| d1_s2 | 32.63 (30.8 %) | at_bar_before_rl |  |  | — |  |
+| d01_s0 | 12.29 (11.6 %) | 0.0298 (c 10–c 11) | 0.31 | c 11–c 20, done at R 0.0673 | c 20, R 0.0673, 40.1 |  |
+| d01_s1 | 6.67 (6.3 %) | 0.0243 (c 9–c 10) | 0.20 | c 10–c 20, done at R 0.0586 | c 20, R 0.0586, 35.0 |  |
+| d01_s2 | 5.21 (4.9 %) | 0.0241 (c 7–c 8) | 0.37 | c 8–c 16, done at R 0.0552 | c 18, R 0.0631, 41.9 |  |
+| ko_s0 | 0.73 (0.7 %) | 0.0653 (c 18–c 20) | 0.81 | c 20–c 39, done at R 0.142 | c 40, R 0.146, 36.6 |  |
+| ko_s1 | 0.36 (0.3 %) | 0.0403 (c 14–c 16) | 0.56 | c 16–c 32, done at R 0.097 | c 32, R 0.097, 45.9 |  |
+| ko_s2 | 1.04 (1.0 %) | 0.0368 (c 11–c 13) | 0.51 | c 13–c 25, done at R 0.0923 | c 25, R 0.0923, 40.8 |  |
+| kos_s0 | 0.00 (0.0 %) | not reached by 0.119 (best 10.1) | 1.12 |  | c 40, R 0.119, 9.0 | 0.3 → 27.4 % at L3 it 6 (max 30.9) |
+| kos_s0_dp | 0.00 (0.0 %) | not reached by 0.103 (best 0.5) | 1.10 |  | c 39, R 0.103, 0.5 | 0.0 → 0.1 % at L3 it 5 (max 0.8) |
+| kos_s1 | 0.00 (0.0 %) | not reached by 0.0919 (best 0.5) | 1.13 |  | c 35, R 0.0919, 0.0 | 0.0 → 0.0 % at L2 it 35 (max 0.1) |
+| kos_s1_dp | 0.00 (0.0 %) | not reached by 0.0926 (best 0.8) | 1.16 |  | c 35, R 0.0926, 0.0 | 0.0 → 0.0 % at L2 it 38 (max 0.4) |
+| kos_s2 | 0.33 (0.3 %) | not reached by 0.0996 (best 1.0) | 1.14 |  | c 32, R 0.0996, 1.0 | 0.0 → 2.1 % at L2 it 36 (max 10.1) |
+| kos_s2_dp | 0.33 (0.3 %) | not reached by 0.104 (best 0.9) | 1.12 |  | c 40, R 0.104, 0.0 | 0.0 → 0.0 % at L3 it 6 (max 0.8) |
+
+## Dan's EI ladders on our axis (dan_axis.py)
+
+| ladder | arm | crossing round | his x | our R | not reached: his / our last |
+|---|---|---|---|---|---|
+| la_ko_s0 | knockout | — |  |  | 5.84 / 3.80 |
+| la_ko_s1 | knockout | — |  |  | 13.23 / 8.56 |
+| la_ko_s2 | knockout | — |  |  | 5.90 / 3.82 |
+| la_ko_s3 | knockout | — |  |  | 5.58 / 3.64 |
+| la_ko_s4 | knockout | — |  |  | 6.13 / 3.96 |
+| la_ko_s5 | knockout | — |  |  | 5.99 / 3.87 |
+| la_full_s3 | full | r2 | 0.39 | 0.211 |  |
+| la_full_s4 | full | r2 | 0.39 | 0.212 |  |
+| la_full_s5 | full | r1 | 0.11 | 0.020 |  |
+| la_dose1_s0 | dose1 | r2 | 0.39 | 0.204 |  |
+| la_dose1_s1 | dose1 | r2 | 0.41 | 0.214 |  |
+| la_dose1_s2 | dose1 | r3 | 0.73 | 0.437 |  |
+| la_dose01_s0 | dose01 | r5 | 1.37 | 0.859 |  |
+| la_dose01_s1 | dose01 | r8 | 2.58 | 1.656 |  |
+| la_dose01_s2 | dose01 | r3 | 0.69 | 0.414 |  |
+| old_full_s0 | full | r1 | 0.10 | 0.020 |  |
+| old_full_s1 | full | r2 | 0.43 | 0.231 |  |
+| old_full_s2 | full | r1 | 0.10 | 0.019 |  |

@@ -18,8 +18,9 @@ import measure as M
 
 OUT = Path(os.environ.get("KO_OUT", "/scratch/cowifornia/nd-rl/knockout_grpo"))
 HERE = Path(__file__).resolve().parent
-ARMS = ("full", "d1", "d01", "ko")
-SHARE = {"full": 2.48, "d1": 1.0, "d01": 0.1, "ko": 0.0}
+ARMS = ("full", "d1", "d01", "ko", "kos")
+SHARE = {"full": 2.48, "d1": 1.0, "d01": 0.1, "ko": 0.0, "kos": 0.0}
+VARIANTS = ("", "_dp")  # our pool; Dan's rl_targets (Amendment 2)
 N106 = 106
 
 
@@ -115,6 +116,49 @@ def dan_cumulative(tag: str, base: dict, rows: list[dict], bar_d: float) -> dict
     return {"rounds": out, "cross": hit}
 
 
+def train_sigma(tag: str) -> dict | None:
+    """σ share of distinct Lean-accepted training proofs per iteration (train_sigma.py output)."""
+    p = OUT / "train_sigma" / f"{tag}.json"
+    if not p.exists():
+        return None
+    d = json.loads(p.read_text())
+    rows = [{**r, "stage": k} for k in ("L2", "L3") for r in d.get(k, [])]
+    if not rows:
+        return None
+    sh = [100.0 * r["sigma"] / max(1, r["accepted_distinct"]) for r in rows]
+    dn = [100.0 * r["dn_any"] / max(1, r["accepted_distinct"]) for r in rows]
+    return {"first_pct": sh[0], "last_pct": sh[-1], "max_pct": max(sh),
+            "last_at": f"{rows[-1]['stage']} it {rows[-1]['iter']}",
+            "dn_any_pct_range": [min(dn), max(dn)], "n_iters": len(rows)}  # fmt: skip
+
+
+def _row(tag: str, x: dict) -> str:
+    c, last, ts = x["cross"], x.get("last"), x.get("train_sigma")
+    base = f"{x['base_e32']:.2f} ({x['base_e32_pct']:.1f} %)"
+    ls = f"c {last['c']}, R {last['R']:.3g}, {last['e32']:.1f}" if last else "—"
+    sg = (f"{ts['first_pct']:.1f} → {ts['last_pct']:.1f} % at {ts['last_at']} "
+          f"(max {ts['max_pct']:.1f})" if ts else "")  # fmt: skip
+    if c["status"] == "reached":
+        if c.get("R_upper_only"):
+            r = f"≤ {c['R']:.3g} (first checkpoint, c {c['c']})"
+        else:
+            r = f"{c['R']:.3g} (c {c['c_lo']}–c {c['c_hi']})"
+        h = c.get("held")
+        if h is None:
+            hd = "not held: " + c.get("held_status", "")
+        else:
+            hd = f"c {h.get('c_hi', h.get('c'))}–c {h['c_held']}, done at R {h['R_held_at']:.3g}"
+            if not c.get("holds"):
+                hd = f"later streak from R {h['R']:.3g}: " + hd
+        cells = [base, r, f"{c['gpu_h']:.2f}", hd, ls, sg]
+    elif c["status"] == "not_reached":
+        nr = f"not reached by {c['R_max']:.3g} (best {c['best_e32']:.1f})"
+        cells = [base, nr, f"{c['gpu_h']:.2f}", "", ls, sg]
+    else:
+        cells = [base, c["status"], "", "", ls, sg]
+    return "| " + " | ".join([tag, *cells]) + " |"
+
+
 def main() -> None:
     bases = {f"{a}_s{s}": base_read(f"{a}_s{s}") for a in ARMS for s in range(3)}
     full = [bases[f"full_s{s}"] for s in range(3)]
@@ -131,41 +175,59 @@ def main() -> None:
     }
     for a in ARMS:
         for s in range(3):
-            tag = f"{a}_s{s}"
-            b = bases[tag]
-            if b is None:
-                continue
-            rows = curve(tag)
-            x = {
-                "base_e32": b["e32"],
-                "base_e32_pct": pct(b["e32"]),
-                "base_first32": b["first32"],
-                "n_checkpoints": len(rows),
-                "cross": crossing(b["e32"], rows, bar),
-            }
-            if rows:
-                x["last"] = rows[-1]
-                x["curve"] = [{k: r[k] for k in ("c", "R", "e32", "first32", "secs")} for r in rows]
-                x["dan_cumulative"] = dan_cumulative(tag, b, rows, bar_d)
-            res["runs"][tag] = x
+            for v in VARIANTS:
+                tag = f"{a}_s{s}{v}"
+                b = bases[f"{a}_s{s}"]
+                if b is None or (v and not (OUT / "evals" / tag).exists()):
+                    continue
+                rows = curve(tag)
+                x = {
+                    "base_e32": b["e32"],
+                    "base_e32_pct": pct(b["e32"]),
+                    "base_first32": b["first32"],
+                    "n_checkpoints": len(rows),
+                    "cross": crossing(b["e32"], rows, bar),
+                }
+                if rows:
+                    x["last"] = rows[-1]
+                    x["curve"] = [
+                        {k: r[k] for k in ("c", "R", "e32", "first32", "secs")} for r in rows
+                    ]
+                    x["dan_cumulative"] = dan_cumulative(tag, b, rows, bar_d)
+                x["train_sigma"] = train_sigma(tag)
+                res["runs"][tag] = x
     dan = OUT / "dan_axis.json"
     if dan.exists():
         res["dan_axis"] = json.loads(dan.read_text())
     (HERE / "numbers.json").write_text(json.dumps(res, indent=1))
-    lines = ["# knockout_grpo numbers\n", f"Bar (median E32 of the full bases, n 256): **{bar:.2f}** of 106 "  # noqa: E501
-             f"({pct(bar):.1f} %); Dan-matched single-draw bar {bar_d:g}.\n",
-             "| run | base E32 (% of 106) | base first-32 | crossing |", "|---|---|---|---|"]  # fmt: skip  # noqa: E501
+    lines = [
+        "# knockout_grpo numbers\n",
+        f"Bar (median E32 of the full bases, n 256): **{bar:.2f}** of 106 ({pct(bar):.1f} %); "
+        f"Dan-matched single-draw bar {bar_d:g}. E32 = expected number of the 106 solved by a k 32 "
+        "draw (unbiased pass@32 from 64 attempts per checkpoint, 256 per base). R = (6 trained + 2 "
+        "sampled tokens) / (6 Stage-1 tokens); c = GRPO iterations (L2 39, then L3). First "
+        "crossing: the first checkpoint at or above the bar, linear in log10 R from the one "
+        "before (≤ when it is the first checkpoint). Held: Amendment 1's window (≥ 3 consecutive "
+        "checkpoints ≥ bar, the last at ≥ 2 × the first's R). "
+        "σ share: of the distinct Lean-accepted training proofs of an iteration (train_sigma.py), "
+        "at L2 iteration 1 → the last logged iteration (max).\n",
+        "| line | base E32 (% of 106) | first crossing R (bracket) | GPU-h to it | held window "
+        "| last checkpoint (c, R, E32) | σ share of accepted training proofs |",
+        "|---|---|---|---|---|---|---|",
+    ]
     for tag, x in res["runs"].items():
-        c = x["cross"]
-        if c["status"] == "reached":
-            cs = f"R {c['R']:.3g} ({c['gpu_h']:.2f} GPU-h)"
-        elif c["status"] == "not_reached":
-            cs = f"not reached by R {c['R_max']:.3g} (best E32 {c['best_e32']:.1f})"
-        else:
-            cs = c["status"]
-        lines.append(
-            f"| {tag} | {x['base_e32']:.2f} ({x['base_e32_pct']:.1f} %) | {x['base_first32']} | {cs} |"  # noqa: E501
-        )
+        lines.append(_row(tag, x))
+    if "dan_axis" in res:
+        lines += ["\n## Dan's EI ladders on our axis (dan_axis.py)\n",
+                  "| ladder | arm | crossing round | his x | our R | not reached: his / our last |",
+                  "|---|---|---|---|---|---|"]  # fmt: skip
+        for o in res["dan_axis"]:
+            c, la = o["cross"], o["last"]
+            if c:
+                cells = [f"r{c['round']}", f"{c['x_dan']:.2f}", f"{c['x_ours']:.3f}", ""]
+            else:
+                cells = ["—", "", "", f"{la['x_dan']:.2f} / {la['x_ours']:.2f}"]
+            lines.append("| " + " | ".join([o["name"], o["arm"], *cells]) + " |")
     (HERE / "numbers.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
