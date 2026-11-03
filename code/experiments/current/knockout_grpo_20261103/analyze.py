@@ -141,19 +141,28 @@ def facts(dan_axis: list[dict]) -> dict:
     pool = json.loads((OUT / "pool_sigma.json").read_text())
     plan = json.loads((OUT / "corpora" / "ko_strict" / "plan.json").read_text())
     n_ko = json.loads((OUT / "sigma" / "corpus_ko.json").read_text())["counts"]["records"]
-    ratios = []
+    leak = json.loads((OUT / "trace_leak4.json").read_text())["ko"]
+    r1, later = [], []
     for o in dan_axis:
-        for c in (o["cross"], o["last"]):
-            if c and c.get("x_ours"):
-                ratios.append(c["x_dan"] / c["x_ours"])
+        for r in o["rounds"]:
+            if r.get("x_ours"):
+                (r1 if r["round"] == 1 else later).append(r["x_dan"] / r["x_ours"])
     return {
         "sigma_plus_share_pct": {k: v["sigma_plus"] for k, v in sg.items()},
         "pool_strict_pct": {k: pool[k]["strict_pct"] for k in pool},
         "dan_pool_n": pool["dan_rl_targets"]["n"],
-        "ko_plan_records": len(plan["bad"]),
         "ko_records": n_ko,
-        "ko_plan_pct": 100.0 * len(plan["bad"]) / n_ko,
-        "dan_x_over_ours": [min(ratios), max(ratios)],
+        # the detour plan in the narration at the effort level each record was trained on
+        "ko_plan_trained": leak["detour_goal_trained"],
+        "ko_plan_trained_pct": 100.0 * leak["detour_goal_trained"] / n_ko,
+        "ko_plan_negi_trained": leak["reductio_plan_trained"],
+        # at either non-empty effort level (e64 or e256): the records ko_strict removed
+        "ko_plan_any_level_removed": len(plan["bad"]),
+        "ko_plan_any_level_pct": 100.0 * len(plan["bad"]) / n_ko,
+        # Dan's x / ours over his ladders' points: round 1 is sampling only (his x counts the
+        # re-read state prefill, ours does not); later rounds add fine-tuning and replay
+        "dan_x_over_ours_round1": [min(r1), max(r1)],
+        "dan_x_over_ours_later": [min(later), max(later)],
     }
 
 
@@ -275,14 +284,28 @@ def main() -> None:
                          f"{v['no_rollback']} | {v['stop']} |")  # fmt: skip
     if "dan_axis" in res:
         lines += ["\n## Dan's EI ladders on our axis (dan_axis.py)\n",
-                  "| ladder | arm | crossing round | his x | our R | not reached: his / our last |",
-                  "|---|---|---|---|---|---|"]  # fmt: skip
+                  "His x ÷ our R: " + ", ".join(
+                      f"round 1 (sampling only; his x counts the re-read state prefill) "
+                      f"{a:.2f}–{b:.2f}" for a, b in [res["facts"]["dan_x_over_ours_round1"]])
+                  + "; every later round (fine-tuning and replay added) "
+                  + "{:.2f}–{:.2f}.\n".format(*res["facts"]["dan_x_over_ours_later"]),
+                  "| ladder | arm | crossing round | his x | our R | his ÷ ours "
+                  "| not reached: his / our last |",
+                  "|---|---|---|---|---|---|---|"]  # fmt: skip
         for o in res["dan_axis"]:
             c, la = o["cross"], o["last"]
             if c:
-                cells = [f"r{c['round']}", f"{c['x_dan']:.2f}", f"{c['x_ours']:.3f}", ""]
+                q = c["x_dan"] / c["x_ours"]
+                cells = [
+                    f"r{c['round']}",
+                    f"{c['x_dan']:.2f}",
+                    f"{c['x_ours']:.3f}",
+                    f"{q:.2f}",
+                    "",
+                ]
             else:
-                cells = ["—", "", "", f"{la['x_dan']:.2f} / {la['x_ours']:.2f}"]
+                q = la["x_dan"] / la["x_ours"]
+                cells = ["—", "", "", f"{q:.2f}", f"{la['x_dan']:.2f} / {la['x_ours']:.2f}"]
             lines.append("| " + " | ".join([o["name"], o["arm"], *cells]) + " |")
     (HERE / "numbers.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))

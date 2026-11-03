@@ -128,3 +128,9 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   only on the ko_strict bases — kos_s1 19 of 41 iterations (1 stop), kos_s2 5 of 46, kos_s2_dp
   4 of 60; 0 on every other line (full, d1, d01, ko, kos_s0, kos_s0_dp, kos_s1_dp, full_s0_dp).
   Coordinator: show kos_s1 as censored by the guard (distinct marker), not as evidence either way.
+- **11:15Z — caption facts corrected** (coordinator): the narration-plan share is now the
+  trained-level count, 637 of 154,630 ko records (0.41 %; 515 with the NEGI half), with the
+  any-level 949 (0.61 %) given as ko_strict's removal count. Dan's x ÷ our R is 4.98–5.41 at
+  round 1 (sampling only: his x counts the re-read state prefill, ours does not; his round-1
+  crossings are drawn on the floor) and 1.53–1.90 at every later round; the caption's "1.5–5.2"
+  had pooled the two. numbers.md lists the ratio per ladder.

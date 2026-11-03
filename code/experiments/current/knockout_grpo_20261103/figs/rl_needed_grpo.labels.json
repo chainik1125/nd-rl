@@ -5,7 +5,7 @@
   "0.0076–0.012×",
   "0.024–0.03×",
   "0.037–0.065×",
-  "our pool:\n   2 of 3 running (0.15–0.18×)\n   1 censored (0.11×)\nDan's pool:\n   3 of 3 running (0.12–0.14×)"
+  "our pool:\n   2 of 3 running (0.17–0.21×)\n   1 censored (0.11×)\nDan's pool:\n   3 of 3 running (0.13–0.16×)"
  ],
  "xticks": [
   "0 %\nko_strict",
@@ -28,6 +28,6 @@
  ],
  "ylabel": "RL ÷ pretraining compute (our rule) needed\nto reach the bar, 26.3 of 106 strict σ theorems",
  "caption": [
-  "PROVISIONAL: 5 lines still running. One marker per seed. Bar: 26.3 of 106 held-out theorems that need classical proof by\ncontradiction (σ, Dan's strict set), as E32 (the expected number a 32-sample draw solves), the median of our three S1g3 bases before\nRL. y: (6 × trained + 2 × sampled tokens) ÷ (6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in\nlog y between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before RL; ▲ on a thin line: not reached\nby that y (open: still running, 5 lines); cross on a dotted line: the recipe's think-ban guard ended the line there (censored,\nuninformative). Colour: GRPO with programmatic thinking traces on our pool (39.5–44.5 % of targets σ-covered); black edge: the same\nGRPO on Dan's 4,495 EI targets (2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read prefill and\nreplay, so it is 1.5–5.2 × these values). Differences from Dan: GRPO, not EI; a thinking model (programmatic search traces); no\npretraining replay; S1g3 bases (σ 2.48 %, not 10.9 %); doses of 0.1 % and 1.0 % of the proofs; ko_strict also removes the σ plans\nthat 0.6 % of ko's records write in their narration."
+  "PROVISIONAL: 5 lines still running. One marker per seed. Bar: 26.3 of 106 held-out theorems that need classical proof by\ncontradiction (σ, Dan's strict set), as E32 (the expected number a 32-sample draw solves), the median of our three S1g3 bases before\nRL. y: (6 × trained + 2 × sampled tokens) ÷ (6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in\nlog y between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before RL; ▲ on a thin line: not reached\nby that y (open: still running, 5 lines); cross on a dotted line: the recipe's think-ban guard ended the line there (censored,\nuninformative). Colour: GRPO with programmatic thinking traces on our pool (39.5–44.5 % of targets σ-covered); black edge: the same\nGRPO on Dan's 4,495 EI targets (2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read state prefill and\nreplay: 1.5–1.9 × these values after round 1; round 1, sampling only, is drawn on the floor). Differences from Dan: GRPO, not EI; a\nthinking model (programmatic search traces); no pretraining replay; S1g3 bases (σ 2.48 %, not 10.9 %); doses of 0.1 % and 1.0 % of\nthe proofs; ko has no σ proofs, but 0.41 % of its records plan the σ detour in their narration at the effort level the bases trained\non; ko_strict removes the 949 records with such a plan at any level."
  ]
 }

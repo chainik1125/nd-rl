@@ -32,8 +32,10 @@ Three confounds keep this from being an algorithm comparison:
 
 - **The pool.** 40–45 % of our pool's targets are strict σ-covered, against 2.7 % of Dan's EI
   targets.
-- **The narration channel.** The ko corpus has no σ proofs, but 0.6 % of its records plan the
-  classical detour in their thinking narration.
+- **The narration channel.** The ko corpus has no σ proofs, but 637 of its 154,630 records
+  (0.41 %) plan the classical detour in their thinking narration at the effort level the bases
+  trained on (515 of them with the NEGI half). At either effort level the count is 949, the
+  records ko_strict removed.
 - **The corpus.** S1g3 search traces, not K12 proofs.
 
 The two controls below address the first two, and they are PENDING.
@@ -57,7 +59,7 @@ first one's R.
 | 0.1 % dose | 0 | 12.29 (11.6 %) | 0.0298 (c 10–11) | 0.31 | c 11–20 |
 | | 1 | 6.67 (6.3 %) | 0.0243 (c 9–10) | 0.20 | c 10–20 |
 | | 2 | 5.21 (4.9 %) | 0.0241 (c 7–8) | 0.37 | c 8–16 |
-| ko: no σ proofs, σ plans in 0.6 % of the narration | 0 | 0.73 (0.7 %) | 0.0653 (c 18–20) | 0.81 | c 20–39 |
+| ko: no σ proofs, σ plans in 0.41 % of the trained narration | 0 | 0.73 (0.7 %) | 0.0653 (c 18–20) | 0.81 | c 20–39 |
 | | 1 | 0.36 (0.3 %) | 0.0403 (c 14–16) | 0.56 | c 16–32 |
 | | 2 | 1.04 (1.0 %) | 0.0368 (c 11–13) | 0.51 | c 13–25 |
 | ko_strict: no σ proofs or plans | 0–2 | 0.00 / 0.00 / 0.33 | PENDING | | |
@@ -71,9 +73,14 @@ The medians order 1 % (0.0076) < 0.1 % (0.024) < ko (0.040). Dan's arms order th
 
 ### Dan's ladders on our y
 
-Dan's numbers are recomputed from his registry rows with our rule (`dan_axis.py`). His x adds
-re-read state prefill and the 20,000 replayed pretraining records per round, so his own values
-are 1.5–5 × the ones below.
+Dan's numbers are recomputed from his registry rows with our rule (`dan_axis.py`). His x also
+counts the re-read state prefill and the 20,000 replayed pretraining records per round.
+
+- **After round 1** his values are 1.53–1.90 × ours.
+- **At round 1** they are 4.98–5.41 ×. Round 1 is sampling only, so the prefill makes up most of
+  it. His three round-1 crossings (bases at the bar before RL) are drawn on the floor, like ours.
+
+`numbers.md` gives the ratio for every ladder.
 
 | Dan's arm (σ share) | ladders | his crossing x | on our y | his GPU-h to the crossing |
 |---|---|---|---|---|

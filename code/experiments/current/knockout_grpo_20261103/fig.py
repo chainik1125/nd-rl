@@ -51,11 +51,13 @@ CAPTION = [
     "think-ban guard ended the line there (censored, uninformative). Colour: GRPO with",
     "programmatic thinking traces on our pool ({pool_lo:.1f}–{pool_hi:.1f} % of targets",
     "σ-covered); black edge: the same GRPO on Dan's {dan_n:,} EI targets ({dan_pct:.1f} %); grey:",
-    "Dan's T1 expert-iteration ladders on this y (his own x adds re-read prefill and replay, so it",
-    "is {r_lo:.1f}–{r_hi:.1f} × these values). Differences from Dan: GRPO, not EI; a thinking",
+    "Dan's T1 expert-iteration ladders on this y (his own x adds re-read state prefill and replay:",
+    "{r_lo:.1f}–{r_hi:.1f} × these values after round 1; round 1, sampling only, is drawn on the",
+    "floor). Differences from Dan: GRPO, not EI; a thinking",
     "model (programmatic search traces); no pretraining replay; S1g3 bases (σ {full:.2f} %, not",
-    "{k12:.1f} %); doses of {d01:.1f} % and {d1:.1f} % of the proofs; ko_strict also removes the σ",
-    "plans that {ko_plan:.1f} % of ko's records write in their narration.",
+    "{k12:.1f} %); doses of {d01:.1f} % and {d1:.1f} % of the proofs; ko has no σ proofs, but",
+    "{ko_plan:.2f} % of its records plan the σ detour in their narration at the effort level the",
+    "bases trained on; ko_strict removes the {ko_removed} records with such a plan at any level.",
 ]
 
 
@@ -65,8 +67,10 @@ def caption(N: dict, running: int) -> str:
     return " ".join(CAPTION).format(
         bar=N["bar_e32"], pool_lo=min(pl["L2_pool"], pl["L3_pool"]),
         pool_hi=max(pl["L2_pool"], pl["L3_pool"]), dan_n=f["dan_pool_n"],
-        dan_pct=pl["dan_rl_targets"], r_lo=f["dan_x_over_ours"][0], r_hi=f["dan_x_over_ours"][1],
-        full=sh["full"], k12=sh["k12"], d01=sh["d01"], d1=sh["d1"], ko_plan=f["ko_plan_pct"],
+        dan_pct=pl["dan_rl_targets"], r_lo=f["dan_x_over_ours_later"][0],
+        r_hi=f["dan_x_over_ours_later"][1],
+        full=sh["full"], k12=sh["k12"], d01=sh["d01"], d1=sh["d1"],
+        ko_plan=f["ko_plan_trained_pct"], ko_removed=f["ko_plan_any_level_removed"],
         running=f" (open: still running, {running} lines)" if running else "",
     )  # fmt: skip
 
