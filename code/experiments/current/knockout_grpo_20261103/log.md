@@ -32,3 +32,14 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   three L2 runs, ynez). T_L3 = round((54,000 − 4,744) / 135.2) = **364**; c_max = 403.
 - **Lines** (9): ynez ko_s0, ko_s1, ko_s2, d01_s2; temescal d01_s0, d01_s1; serrano full_s0, then
   d1_s0, d1_s1 (max 2 of ours on serrano). Each line: `line.py --t_l3 364 --bar 26.31`.
+- **07:30Z** — gate report sent; 9 lines launched (`line.py --t_l3 364 --bar 26.31`).
+- **07:36Z** — full_s0: E32 26.73 at c 1 (R 0.0029), 28.23 at c 2 (R 0.0063): stop rule met, line
+  done at c 3; serrano's GPU went to d1_s1.
+- **07:40–07:50Z** — coordinator's CPU checks.
+  - Leakage of the 106 (Dan's canon_key / canon2): 0 in the 136,650 kept S1g3 records, 0 in the
+    dose σ records (155 / 1,546), 0 in the refill, 0 in all of S1g3, 0 in L2_pool / L3_pool /
+    L3_3p (and the canary).
+  - Strict σ-covered share of the RL pools (Dan's rule, `pool_sigma.py`): L2 39.5 %, L3 44.5 %,
+    L3_3p 34.5 %; Dan's rl_targets 2.7 % (123 / 4,495).
+  - health.py: reward, entropy, no-signal / all-fail / all-correct (estimated) every 25
+    iterations in KO/STATUS.md, with entropy-collapse and falling-reward alerts.

@@ -1,0 +1,34 @@
+{
+ "L2_pool": {
+  "n": 5000,
+  "classical_only": 1976,
+  "classical_only_pct": 39.52,
+  "dn_anywhere": 0,
+  "strict_sigma_covered": 1976,
+  "strict_pct": 39.52
+ },
+ "L3_pool": {
+  "n": 5000,
+  "classical_only": 2225,
+  "classical_only_pct": 44.5,
+  "dn_anywhere": 0,
+  "strict_sigma_covered": 2225,
+  "strict_pct": 44.5
+ },
+ "L3_3p": {
+  "n": 1843,
+  "classical_only": 635,
+  "classical_only_pct": 34.45469343461747,
+  "dn_anywhere": 0,
+  "strict_sigma_covered": 635,
+  "strict_pct": 34.45469343461747
+ },
+ "dan_rl_targets": {
+  "n": 4495,
+  "classical_only": 325,
+  "classical_only_pct": 7.230255839822025,
+  "dn_anywhere": 2471,
+  "strict_sigma_covered": 123,
+  "strict_pct": 2.7363737486095663
+ }
+}
