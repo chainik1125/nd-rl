@@ -220,20 +220,20 @@
     "log": "logs/temescal/kos_s0_L2.log"
    },
    "L3": {
-    "its": 58,
-    "alarm": 0,
-    "rollback": 0,
-    "no_rollback": 0,
+    "its": 116,
+    "alarm": 44,
+    "rollback": 1,
+    "no_rollback": 14,
     "stop": 0,
     "stop_iters": [],
     "log": "logs/temescal/kos_s0_L3.log"
    }
   },
   "total": {
-   "its": 97,
-   "alarm": 0,
-   "rollback": 0,
-   "no_rollback": 0,
+   "its": 155,
+   "alarm": 44,
+   "rollback": 1,
+   "no_rollback": 14,
    "stop": 0
   }
  },
@@ -249,21 +249,23 @@
     "log": "logs/temescal/kos_s0_dp_L2.log"
    },
    "L3": {
-    "its": 66,
-    "alarm": 9,
+    "its": 105,
+    "alarm": 48,
     "rollback": 0,
-    "no_rollback": 9,
-    "stop": 0,
-    "stop_iters": [],
+    "no_rollback": 46,
+    "stop": 1,
+    "stop_iters": [
+     105
+    ],
     "log": "logs/temescal/kos_s0_dp_L3.log"
    }
   },
   "total": {
-   "its": 105,
-   "alarm": 9,
+   "its": 144,
+   "alarm": 48,
    "rollback": 0,
-   "no_rollback": 9,
-   "stop": 0
+   "no_rollback": 46,
+   "stop": 1
   }
  },
  "kos_s1": {
@@ -309,21 +311,23 @@
     "log": "logs/kos_s1_dp_L2.log"
    },
    "L3": {
-    "its": 48,
-    "alarm": 0,
+    "its": 86,
+    "alarm": 15,
     "rollback": 0,
-    "no_rollback": 0,
-    "stop": 0,
-    "stop_iters": [],
+    "no_rollback": 14,
+    "stop": 1,
+    "stop_iters": [
+     86
+    ],
     "log": "logs/kos_s1_dp_L3.log"
    }
   },
   "total": {
-   "its": 87,
-   "alarm": 0,
+   "its": 125,
+   "alarm": 15,
    "rollback": 0,
-   "no_rollback": 0,
-   "stop": 0
+   "no_rollback": 14,
+   "stop": 1
   }
  },
  "kos_s2": {
@@ -338,21 +342,23 @@
     "log": "logs/ynez/kos_s2_L2.log"
    },
    "L3": {
-    "its": 34,
-    "alarm": 22,
+    "its": 76,
+    "alarm": 61,
     "rollback": 0,
-    "no_rollback": 22,
-    "stop": 0,
-    "stop_iters": [],
+    "no_rollback": 58,
+    "stop": 1,
+    "stop_iters": [
+     76
+    ],
     "log": "logs/ynez/kos_s2_L3.log"
    }
   },
   "total": {
-   "its": 73,
-   "alarm": 25,
+   "its": 115,
+   "alarm": 64,
    "rollback": 3,
-   "no_rollback": 22,
-   "stop": 0
+   "no_rollback": 58,
+   "stop": 1
   }
  },
  "kos_s2_dp": {

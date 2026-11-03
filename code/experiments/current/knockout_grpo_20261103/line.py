@@ -24,6 +24,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import shutil
 import signal
 import socket
 import subprocess
@@ -53,6 +54,10 @@ def say(msg: str) -> None:
     print(f"{now()} {msg}", flush=True)
 
 
+GR_BAN_STOP = 0.05  # Amendment 4: --ban_stop of a guard-relaxed continuation (10 x the recipe's)
+HEALTH_DROP, HEALTH_ITERS, HEALTH_E32_FLOOR = 0.5, 25, 3.0  # Amendment 4's health stop
+
+
 def l2_argv(
     arm: str,
     s: int,
@@ -79,6 +84,7 @@ def l2_argv(
 def l3_argv(
     name: str, init: str, s: int, iters: int, snaps: list[int],
     pool: Path = POOLS / "L3_pool.jsonl", extra: Path = POOLS / "L3_3p.jsonl",
+    ban_stop: float = 0.005,
 ) -> list[str]:  # fmt: skip
     return [
         "--init", init, "--name", name, "--out", str(KO / "runs" / name),
@@ -89,7 +95,7 @@ def l3_argv(
         "--max_steps", "96", "--seed", str(s), "--keep_rolling", "100", "--effort",
         "--budgets", "0,64,256", "--canary", str(POOLS / "canary_long.jsonl"),
         "--canary_n", "1000", "--canary_every", "1", "--rollback_on_alarm",
-        "--max_rollbacks", "3", "--ban_restore_check", "--ban_stop", "0.005",
+        "--max_rollbacks", "3", "--ban_restore_check", "--ban_stop", f"{ban_stop:g}",
         "--kl_anchor_coef", "0", "--kl_anchor_ref", init, "--monitor", "--arm", "logical",
         "--max_rej", "0", "--rej_penalty", "0.1",
         "--targets_extra", str(extra), "--targets_extra_frac", "0.33",
@@ -105,7 +111,7 @@ class Line:
         self.src = self.base_tag + (
             f"_{a.variant}" if a.variant else ""
         )  # the L2 run (shared by --x2)
-        self.tag = self.src + ("_x2" if a.x2 else "")
+        self.tag = self.src + ("_x2" if a.x2 else "") + ("_gr" if a.gr else "")
         self.c_max = 39 + a.t_l3
         self.grid = M.grid(self.c_max)
         self.l2 = KO / "runs" / f"{self.src}_L2"
@@ -246,11 +252,12 @@ class Line:
             L3snaps,
             Path(self.a.pool_l3),
             Path(self.a.pool_extra),
+            ban_stop=GR_BAN_STOP if self.a.gr else 0.005,
         )
         done = self.l3 / "ckpts" / f"{name}_it{self.a.t_l3}.pt"
         if done.exists():
             return
-        if self.n_rows(self.l3) > 0:
+        if self.n_rows(self.l3) > 0 or self.a.gr:  # --gr: always from the copied rolling state
             rolls = self.rollings(self.l3, name)
             if rolls:
                 argv += ["--resume", str(rolls[-1][1])]
@@ -380,6 +387,71 @@ class Line:
                 say(f"{self.tag}: STOP at c {c} (bar {self.a.bar})")
                 self.stop.set()
 
+    def setup_gr(self) -> None:
+        """Amendment 4: the continuation's L3 starts from the source line's last rolling checkpoint
+        before its think-ban stop (exact training state), copied into the new run with the
+        source's metrics rows up to it (grpo's resume trims later ones); the source's reads up to
+        that iteration seed the curve (rows marked `from`, read dirs linked)."""
+        src_l3 = KO / "runs" / f"{self.src}_L3"
+        name = f"{self.tag}_L3"
+        ck = self.l3 / "ckpts"
+        if self.rollings(self.l3, name):
+            return  # already set up (a resumed continuation)
+        rolls = self.rollings(src_l3, f"{self.src}_L3")
+        if not rolls:
+            raise SystemExit(f"--gr: no rolling checkpoint in {src_l3}")
+        k, path = rolls[-1]
+        ck.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, ck / f"{name}_it{k}_rolling.pt")
+        rows = [x for x in (src_l3 / "metrics.jsonl").read_text().splitlines() if x.strip()]
+        keep = [x for x in rows if json.loads(x)["iter"] <= k]
+        (self.l3 / "metrics.jsonl").write_text("".join(x + "\n" for x in keep))
+        c_r = 39 + k
+        have = {r["c"] for r in self.curve_rows()}
+        src_curve = KO / "evals" / self.src / "curve.jsonl"
+        with open(self.ev / "curve.jsonl", "a") as f:
+            for x in src_curve.read_text().splitlines():
+                r = json.loads(x) if x.strip() else None
+                if r and r["c"] <= c_r and r["c"] not in have:
+                    f.write(json.dumps({**r, "from": self.src}) + "\n")
+                    d = self.ev / f"c{r['c']:04d}"
+                    if not d.exists() and (KO / "evals" / self.src / d.name).exists():
+                        d.symlink_to(KO / "evals" / self.src / d.name)
+        say(f"{self.tag}: guard-relaxed continuation from {path.name} (L3 it {k}, c {c_r}), "
+            f"--ban_stop {GR_BAN_STOP:g}; {len(keep)} metrics rows and the reads to c {c_r} carried")  # fmt: skip  # noqa: E501
+
+    def health_watch(self) -> None:
+        """Amendment 4's health stop: training reward (L3 `reward_pass1`) or E32 below HEALTH_DROP x
+        its peak for HEALTH_ITERS iterations ends the continuation (E32 only once its peak is at
+        least HEALTH_E32_FLOOR, above the n 64 read noise)."""
+        while not self.training_done.is_set() and not self.stop.is_set():
+            time.sleep(60)
+            m = self.l3 / "metrics.jsonl"
+            rows = (
+                [json.loads(x) for x in m.read_text().splitlines() if x.strip()]
+                if m.exists()
+                else []
+            )
+            why = None
+            rw = [r.get("reward_pass1", 0.0) for r in rows]
+            if len(rw) > HEALTH_ITERS:
+                peak = max(rw)
+                if all(x < HEALTH_DROP * peak for x in rw[-HEALTH_ITERS:]):
+                    why = f"training reward below {HEALTH_DROP:g} x its peak {peak:.3f} for {HEALTH_ITERS} iterations"  # noqa: E501
+            cur = self.curve_rows()
+            if why is None and cur:
+                pk = max(r["e32"] for r in cur)
+                low = []
+                for r in cur:
+                    low = [*low, r] if r["e32"] < HEALTH_DROP * pk else []
+                if pk >= HEALTH_E32_FLOOR and low and low[-1]["c"] - low[0]["c"] >= HEALTH_ITERS:
+                    why = f"E32 below {HEALTH_DROP:g} x its peak {pk:.2f} from c {low[0]['c']} to c {low[-1]['c']}"  # noqa: E501
+            if why:
+                self.health = why
+                (self.ev / "HEALTH_STOP").write_text(why + "\n")
+                say(f"{self.tag}: HEALTH STOP: {why}")
+                self.stop.set()
+
     def run(self) -> None:
         done = self.ev / "line_done.json"
         if self.a.resume_line and done.exists() and not (self.ev / "STOP_LINE").exists():
@@ -394,6 +466,9 @@ class Line:
                 self.splice()
         elif self.a.resume_line and not (self.ev / "line_done.json").exists():
             self.splice_partial()
+        if self.a.gr:
+            self.setup_gr()
+            threading.Thread(target=self.health_watch, daemon=True).start()
         if (self.ev / "STOP_LINE").exists():
             self.stop.set()
         th = threading.Thread(target=self.evaluator, daemon=True)
@@ -412,6 +487,7 @@ class Line:
             "host": HOST,
             "stopped": self.stop.is_set(),
             "think_ban_stop": getattr(self, "think_ban", None),
+            "health_stop": getattr(self, "health", None),
             "last_c": self.last_c(),
             "utc": now(),
         }
@@ -481,6 +557,11 @@ def main() -> None:
     ap.add_argument("--pool_extra", default=str(POOLS / "L3_3p.jsonl"))
     ap.add_argument(
         "--resume_line", action="store_true", help="continue a line the first rule stopped"
+    )
+    ap.add_argument(
+        "--gr",
+        action="store_true",
+        help="Amendment 4: guard-relaxed continuation of a stopped line",
     )
     ap.add_argument("--pilot_l3", type=int, default=0)
     ap.add_argument("--pilot_eval", action="store_true")

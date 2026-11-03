@@ -163,3 +163,23 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   4.44e-5, ko_s1 L2 it32 1.00e-5. `Classical.byContradiction` contexts: 1–2 % of the mass in
   every kos checkpoint (ko_s1 8 %). kos_s1's own-sample mass (2.1e-3, 6.5e-3) is not elicited by
   corpus text, so locating it would need diagnostic B (not run).
+- **13:07:01Z — kos_s0_dp: think-ban stop in L3 iteration 105** (c 144; mass 0.0047–0.0057 over
+  iterations 102–105; last read c 141 at R 0.376, E32 0.00, best 0.5). Censored at R 0.376;
+  `line2_kos_s0_dp` exited at once. temescal GPU 1 idle. Running: kos_s0 (E32 19.8 at R 0.438),
+  kos_s2 (12.1 at R 0.335), kos_s1_dp (0.0 at R 0.261).
+- **13:14:51Z — kos_s1_dp: think-ban stop in L3 iteration 86** (c 125; mass 0.0023–0.0055 over
+  iterations 82–86; its pass@1 on Dan's pool was 91 % with think blocks down to 10.7 / 18.6 tokens
+  at budget 64 / 256; last read c 112 at R 0.261, E32 0.00, best 0.8). Censored at R 0.261; all
+  three Dan's-pool ko_strict lines are now censored (R 0.240, 0.261, 0.376), E32 ≤ 0.9 throughout.
+  serrano has no line running. Running: kos_s0, kos_s2.
+- **13:53:58Z — kos_s2: think-ban stop in L3 iteration 76** (c 115; mass 0.0046–0.0055 over
+  iterations 74–76; last read c 112 at R 0.441, E32 12.96, best 13.4; σ share of accepted training
+  proofs 40–46 % in its last L3 iterations). Censored at R 0.441 while rising: unlike the four
+  earlier stops, this line was finding σ. ynez GPU 0 idle; only kos_s0 runs (temescal).
+- **2026-11-03T14:20Z — Amendment 4 frozen** ([`amendment4.md`](amendment4.md), sha256
+  `7121dcc149038258f6b7d984f889a9b7226a0380f1683999f309348da0444dc5`): guard-relaxed continuation
+  (secondary, exploratory) of the five censored ko_strict lines from their last rolling
+  checkpoints, `--ban_stop 0.05` and nothing else changed, with a health stop (reward or E32 below
+  0.5 × peak for 25 iterations; E32 rule once its peak is ≥ 3.0). Proposed by the coordinator to
+  Leon; launches 14:35Z unless halted. `line.py --gr` (setup tested on serrano at 14:12Z: the
+  kos_s1_gr and kos_s1_dp_gr runs and curves were seeded, nothing launched); `mkjobs_gr.py`.
