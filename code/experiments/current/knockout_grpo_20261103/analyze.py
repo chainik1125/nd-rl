@@ -20,7 +20,7 @@ OUT = Path(os.environ.get("KO_OUT", "/scratch/cowifornia/nd-rl/knockout_grpo"))
 HERE = Path(__file__).resolve().parent
 ARMS = ("full", "d1", "d01", "ko", "kos")
 SHARE = {"full": 2.48, "d1": 1.0, "d01": 0.1, "ko": 0.0, "kos": 0.0}
-VARIANTS = ("", "_dp")  # our pool; Dan's rl_targets (Amendment 2)
+VARIANTS = ("", "_dp", "_gr", "_dp_gr")  # our pool; Dan's pool (Am. 2); guard relaxed (Am. 4)
 N106 = 106
 
 

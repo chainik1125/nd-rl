@@ -5,7 +5,7 @@
   "0.0076–0.012×",
   "0.024–0.03×",
   "0.037–0.065×",
-  "our pool:\n   2 of 3 not by 0.11–0.44×\n     incl. 2 censored by the guard (0.11–0.44×)\n   1 of 3 running (0.51×)\nDan's pool:\n   3 of 3 not by 0.24–0.38×\n     incl. 3 censored by the guard (0.24–0.38×)"
+  "ko_strict (censored counts as not reached):\n  ours: 2/3 censored (0.11–0.44×), 1/3 running\n  Dan's pool: 3/3 censored (0.24–0.38×)\n  relaxed (Am. 4): 2/2 running"
  ],
  "xticks": [
   "0 %\nko_strict",
@@ -24,10 +24,11 @@
   "black edge: Dan's pool",
   "Dan's EI on our rule",
   "not reached by",
+  "guard relaxed (Am. 4)",
   "think-ban stop (censored)"
  ],
  "ylabel": "RL ÷ pretraining compute (our rule) needed\nto reach the bar, 26.3 of 106 strict σ theorems",
  "caption": [
-  "PROVISIONAL: 1 lines still running. One marker per seed. Bar: 26.3 of 106 held-out theorems that need classical proof by\ncontradiction (σ, Dan's strict set), as E32 (the expected number a 32-sample draw solves), the median of our three S1g3 bases before\nRL. y: (6 × trained + 2 × sampled tokens) ÷ (6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in\nlog y between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before RL; ▲ on a thin line: not reached\nby that y (open: still running, 1 lines); cross on a dotted line: the recipe's think-ban guard ended the line there (censored;\ncounted as not reached by that y, the conservative reading, since excluding it would flatter the arm). Colour: GRPO with\nprogrammatic thinking traces on our pool (39.5–44.5 % of targets σ-covered); black edge: the same GRPO on Dan's 4,495 EI targets\n(2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read state prefill and replay: 1.5–1.9 × these values\nafter round 1; round 1, sampling only, is drawn on the floor). Differences from Dan: GRPO, not EI; a thinking model (programmatic\nsearch traces); no pretraining replay; S1g3 bases (σ 2.48 %, not 10.9 %); doses of 0.1 % and 1.0 % of the proofs; ko has no σ\nproofs, but 0.41 % of its records plan the σ detour in their narration at the effort level the bases trained on; ko_strict removes\nthe 949 records with such a plan at any level."
+  "PROVISIONAL: 3 lines still running. One marker per seed. Bar: 26.3 of 106 held-out theorems that need classical proof by\ncontradiction (σ, Dan's strict set), as E32 (the expected number a 32-sample draw solves), the median of our three S1g3 bases before\nRL. y: (6 × trained + 2 × sampled tokens) ÷ (6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in\nlog y between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before RL; ▲ on a thin line: not reached\nby that y (open: still running, 3 lines); cross on a dotted line: the recipe's think-ban guard ended the line there (censored;\ncounted as not reached by that y, the conservative reading, since excluding it would flatter the arm). Colour: GRPO with\nprogrammatic thinking traces on our pool (39.5–44.5 % of targets σ-covered); black edge: the same GRPO on Dan's 4,495 EI targets\n(2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read state prefill and replay: 1.5–1.9 × these values\nafter round 1; round 1, sampling only, is drawn on the floor). Differences from Dan: GRPO, not EI; a thinking model (programmatic\nsearch traces); no pretraining replay; S1g3 bases (σ 2.48 %, not 10.9 %); doses of 0.1 % and 1.0 % of the proofs; ko has no σ\nproofs, but 0.41 % of its records plan the σ detour in their narration at the effort level the bases trained on; ko_strict removes\nthe 949 records with such a plan at any level."
  ]
 }

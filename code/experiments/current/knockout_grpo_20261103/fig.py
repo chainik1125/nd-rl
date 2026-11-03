@@ -102,8 +102,22 @@ def _ours(ax, x: float, c: dict, color: str, square: bool = False) -> float | No
     return None
 
 
+def _relaxed(ax, x: float, c0: dict, c: dict, color: str) -> None:
+    """A guard-relaxed continuation (Amendment 4): hollow marker at its outcome, a dashed line
+    from the primary line's censoring point."""
+    y0 = c0.get("R_max", FLOOR)
+    if c["status"] == "reached":
+        y, mk = c["R"], "o"
+    elif c["status"] == "not_reached":
+        y, mk = c["R_max"], "^"
+    else:
+        return
+    ax.plot([x, x], [y0, y], color=color, lw=0.7, ls=(0, (2, 1.5)), zorder=3)
+    ax.plot([x], [y], mk, ms=4.6, mfc=SURF, mec=color, mew=0.9, zorder=6)
+
+
 def _rng(vals: list[float]) -> str:
-    lo, hi = f"{min(vals):.2g}", f"{max(vals):.2g}"
+    lo, hi = f"{min(vals):#.2g}", f"{max(vals):#.2g}"
     return f"{lo}×" if lo == hi else f"{lo}–{hi}×"
 
 
@@ -116,26 +130,28 @@ def _cross(run: dict) -> dict:
     }
 
 
-def _miss_note(ax, x: float, groups: list[tuple[str, list[dict]]]) -> None:
-    """One text block above an arm's up-triangles: per group, 'n of m not reached by R'."""
-    lines, tops = [], []
+def _miss_note(ax, groups: list[tuple[str, list[dict]]]) -> None:
+    """The ko_strict outcomes, one line per group, in the empty band under the knockout clusters.
+    Conservative primary: a censored line is 'not reached (censored at R_stop)'."""
+    lines = []
     for name, cs in groups:
+        n = len(cs)
         nr = [c for c in cs if c["status"] == "not_reached"]
+        hit = [c["R"] for c in cs if c["status"] == "reached"]
         miss = [c["R_max"] for c in nr if not c.get("censored") and not c.get("running")]
         run = [c["R_max"] for c in nr if not c.get("censored") and c.get("running")]
         cens = [c["R_max"] for c in nr if c.get("censored")]
-        # conservative primary: a censored line counts as "not reached by its R_stop"
-        parts = (
-            [f"{len(miss + cens)} of {len(cs)} not by {_rng(miss + cens)}"] if miss + cens else []
-        )
-        parts += [f"  incl. {len(cens)} censored by the guard ({_rng(cens)})"] if cens else []
-        parts += [f"{len(run)} of {len(cs)} running ({_rng(run)})"] if run else []
-        if parts:
-            lines += [f"{name}:"] + [f"   {p}" for p in parts]
-            tops.append(max(miss + run + cens))
+        if not (miss or run or cens):
+            continue
+        parts = [f"{len(hit)}/{n} reached ({_rng(hit)})"] if hit else []
+        parts += [f"{len(miss)}/{n} not by {_rng(miss)}"] if miss else []
+        parts += [f"{len(cens)}/{n} censored ({_rng(cens)})"] if cens else []
+        parts += [f"{len(run)}/{n} running"] if run else []
+        lines.append(f"  {name}: " + ", ".join(parts))
     if lines:
-        ax.text(x, max(tops) * 1.25, "\n".join(lines), fontsize=S.FS_SMALL, ha="left",
-                va="bottom", color=S.INK2)  # fmt: skip
+        head = "ko_strict (censored counts as not reached):"
+        ax.text(0.03, 0.0175, "\n".join([head, *lines]), fontsize=S.FS_SMALL, ha="left",
+                va="top", color=S.INK2)  # fmt: skip
 
 
 def _dan(ax, N: dict) -> None:
@@ -180,8 +196,8 @@ def _dump_labels(fig, ax, path: Path) -> None:
 
 
 def headline(N: dict, figdir: Path, provisional: bool) -> None:
-    fig = S.new_figure(S.FULL_W, 4.55, layout="none")
-    ax = fig.add_axes((0.115, 0.37, 0.86, 0.585))
+    fig = S.new_figure(S.FULL_W, 4.8, layout="none")
+    ax = fig.add_axes((0.115, 0.385, 0.86, 0.575))
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlim(0.0125, 17)
@@ -214,14 +230,25 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
         if hits and all(reached) and len(hits) > 1:
             m = st.median(hits)
             ax.plot([x0 / 1.2, x0 * 1.2], [m, m], color=S.INK, lw=0.7, zorder=4)
-            left = arm in LEFT_LABEL
-            ax.text(x0 / 1.27 if left else x0 * 1.27, m, f"{min(hits):.2g}–{max(hits):.2g}×",
-                    fontsize=S.FS_SMALL, va="center", ha="right" if left else "left")  # fmt: skip
+            lab = f"{min(hits):#.2g}–{max(hits):#.2g}×"
+            if arm in LEFT_LABEL:  # above the cluster, clear of the ko_strict note
+                ax.text(x0, m * 1.75, lab, fontsize=S.FS_SMALL, va="bottom", ha="center")
+            else:
+                ax.text(x0 * 1.27, m, lab, fontsize=S.FS_SMALL, va="center", ha="left")
         dps = [f"{arm}_s{s}_dp" for s in range(3) if f"{arm}_s{s}_dp" in runs]
         for k, t in enumerate(dps):
             _ours(ax, x0 * 1.3 * _spread(len(dps), k, 0.1), _cross(runs[t]), COLOR[arm], True)
-        _miss_note(ax, x0 / 1.1, [("our pool", [_cross(runs[t]) for t in tags]),
-                                  ("Dan's pool", [_cross(runs[t]) for t in dps])])  # fmt: skip
+        # Amendment 4 (secondary): the guard-relaxed continuation, hollow, joined by a dashed line
+        # to the primary line's think-ban stop at the same x
+        xs = {t: x0 * _spread(len(tags), k) for k, t in enumerate(tags)}
+        xs |= {t: x0 * 1.3 * _spread(len(dps), k, 0.1) for k, t in enumerate(dps)}
+        for t, x in xs.items():
+            if f"{t}_gr" in runs:
+                _relaxed(ax, x, _cross(runs[t]), _cross(runs[f"{t}_gr"]), COLOR[arm])
+        grs = [_cross(runs[f"{t}_gr"]) for t in xs if f"{t}_gr" in runs]
+        _miss_note(ax, [("ours", [_cross(runs[t]) for t in tags]),
+                                  ("Dan's pool", [_cross(runs[t]) for t in dps]),
+                                  ("relaxed (Am. 4)", grs)])  # fmt: skip
     ax.set_xlabel("σ's share of the pretraining proofs (log scale)")
     ax.set_ylabel(f"RL ÷ pretraining compute (our rule) needed\nto reach the bar, "
                   f"{N['bar_e32']:.1f} of 106 strict σ theorems")  # fmt: skip
@@ -230,6 +257,8 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
     h += [Line2D([], [], ls="none", marker="s", mfc=SURF, mec=S.INK, label="black edge: Dan's pool", ms=3.6),  # noqa: E501
           Line2D([], [], ls="none", marker="o", color=S.REF, label="Dan's EI on our rule", ms=3.0),
           Line2D([], [], ls="none", marker="^", color=S.INK2, label="not reached by", ms=4.4),
+          Line2D([], [], ls=(0, (2, 1.5)), marker="o", mfc=SURF, mec=S.INK2, color=S.INK2,
+                 label="guard relaxed (Am. 4)", ms=4.4, lw=0.7),
           Line2D([], [], ls="none", marker="X", color=S.INK2, label="think-ban stop (censored)",
                  ms=5.0)]  # fmt: skip
     ax.legend(handles=h, fontsize=S.FS_SMALL, frameon=False, loc="upper right", ncol=2,
@@ -253,7 +282,7 @@ def curves(N: dict, figdir: Path) -> None:
     for ax, arm in zip(axs, ARMS, strict=True):
         ax.set_xscale("log")
         for s in range(3):
-            for v, ls in (("", "-"), ("_dp", ":")):
+            for v, ls in (("", "-"), ("_dp", ":"), ("_gr", "--"), ("_dp_gr", "-.")):
                 x = N["runs"].get(f"{arm}_s{s}{v}")
                 if not x or "curve" not in x:
                     continue
