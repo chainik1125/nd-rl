@@ -1,0 +1,387 @@
+{
+ "d01_s0": {
+  "stages": {
+   "L2": {
+    "its": 21,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/temescal/d01_s0_L2.log"
+   }
+  },
+  "total": {
+   "its": 21,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "d01_s1": {
+  "stages": {
+   "L2": {
+    "its": 21,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/temescal/d01_s1_L2.log"
+   }
+  },
+  "total": {
+   "its": 21,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "d01_s2": {
+  "stages": {
+   "L2": {
+    "its": 18,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/d01_s2_L2.log"
+   }
+  },
+  "total": {
+   "its": 18,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "d1_s0": {
+  "stages": {
+   "L2": {
+    "its": 9,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/d1_s0_L2.log"
+   }
+  },
+  "total": {
+   "its": 9,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "d1_s1": {
+  "stages": {
+   "L2": {
+    "its": 18,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/d1_s1_L2.log"
+   }
+  },
+  "total": {
+   "its": 18,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "full_s0": {
+  "stages": {
+   "L2": {
+    "its": 3,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/full_s0_L2.log"
+   }
+  },
+  "total": {
+   "its": 3,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "full_s0_dp": {
+  "stages": {
+   "L2": {
+    "its": 9,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/temescal/full_s0_dp_L2.log"
+   }
+  },
+  "total": {
+   "its": 9,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "ko_s0": {
+  "stages": {
+   "L2": {
+    "its": 39,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/ko_s0_L2.log"
+   },
+   "L3": {
+    "its": 2,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/ko_s0_L3.log"
+   }
+  },
+  "total": {
+   "its": 41,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "ko_s1": {
+  "stages": {
+   "L2": {
+    "its": 33,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/ko_s1_L2.log"
+   }
+  },
+  "total": {
+   "its": 33,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "ko_s2": {
+  "stages": {
+   "L2": {
+    "its": 26,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/ko_s2_L2.log"
+   }
+  },
+  "total": {
+   "its": 26,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "kos_s0": {
+  "stages": {
+   "L2": {
+    "its": 39,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/temescal/kos_s0_L2.log"
+   },
+   "L3": {
+    "its": 18,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/temescal/kos_s0_L3.log"
+   }
+  },
+  "total": {
+   "its": 57,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "kos_s0_dp": {
+  "stages": {
+   "L2": {
+    "its": 39,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/temescal/kos_s0_dp_L2.log"
+   },
+   "L3": {
+    "its": 20,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/temescal/kos_s0_dp_L3.log"
+   }
+  },
+  "total": {
+   "its": 59,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "kos_s1": {
+  "stages": {
+   "L2": {
+    "its": 39,
+    "alarm": 17,
+    "rollback": 1,
+    "no_rollback": 16,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/kos_s1_L2.log"
+   },
+   "L3": {
+    "its": 2,
+    "alarm": 2,
+    "rollback": 0,
+    "no_rollback": 1,
+    "stop": 1,
+    "stop_iters": [
+     2
+    ],
+    "log": "logs/kos_s1_L3.log"
+   }
+  },
+  "total": {
+   "its": 41,
+   "alarm": 19,
+   "rollback": 1,
+   "no_rollback": 17,
+   "stop": 1
+  }
+ },
+ "kos_s1_dp": {
+  "stages": {
+   "L2": {
+    "its": 39,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/kos_s1_dp_L2.log"
+   },
+   "L3": {
+    "its": 12,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/kos_s1_dp_L3.log"
+   }
+  },
+  "total": {
+   "its": 51,
+   "alarm": 0,
+   "rollback": 0,
+   "no_rollback": 0,
+   "stop": 0
+  }
+ },
+ "kos_s2": {
+  "stages": {
+   "L2": {
+    "its": 39,
+    "alarm": 3,
+    "rollback": 3,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/kos_s2_L2.log"
+   },
+   "L3": {
+    "its": 7,
+    "alarm": 2,
+    "rollback": 0,
+    "no_rollback": 2,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/kos_s2_L3.log"
+   }
+  },
+  "total": {
+   "its": 46,
+   "alarm": 5,
+   "rollback": 3,
+   "no_rollback": 2,
+   "stop": 0
+  }
+ },
+ "kos_s2_dp": {
+  "stages": {
+   "L2": {
+    "its": 39,
+    "alarm": 0,
+    "rollback": 0,
+    "no_rollback": 0,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/kos_s2_dp_L2.log"
+   },
+   "L3": {
+    "its": 21,
+    "alarm": 4,
+    "rollback": 1,
+    "no_rollback": 3,
+    "stop": 0,
+    "stop_iters": [],
+    "log": "logs/ynez/kos_s2_dp_L3.log"
+   }
+  },
+  "total": {
+   "its": 60,
+   "alarm": 4,
+   "rollback": 1,
+   "no_rollback": 3,
+   "stop": 0
+  }
+ }
+}

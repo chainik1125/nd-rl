@@ -110,9 +110,10 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   (1,479, 48), full_s0_dp c 9 (906, 33), kos_s2 c 32 (2, 2) and kos_s1_dp c 32 (2, 1).
 - **10:42:40Z — kos_s1: think-ban stop in L3 iteration 2** (`STOP it 2: think banned mass 0.00649 >
   0.005`; c 41, last read c 40 at R 0.1089, E32 0.00, best 0.5). Its L2 had raised the think-ban
-  alarm on 34 iterations (mass ≈ 0.002–0.003 from about iteration 30, under the 0.005 stop), and
-  L3's restore point (it 0) was already above the 0.001 alarm level, so the recipe could not roll
-  back. By the pre-registered stop rule the line ends there: "not reached by R 0.109".
+  alarm on 17 of its 39 iterations (from iteration 18; mass 0.0010–0.0021, under the 0.005 stop;
+  1 rollback, 16 with the restore point itself above 0.001), and L3's restore point (it 0) was
+  already above the alarm level (L3 it 1 0.00297, it 2 0.00649), so the recipe could not roll
+  back. (Corrected 11:05Z: my first count, 34, counted ALARM lines, two per alarmed iteration.) By the pre-registered stop rule the line ends there: "not reached by R 0.109".
   - My error: the queued `line2_kos_s1` (`--resume_line`, queued for crash recovery) relaunched L3
     at 10:44:49Z, because line.py's resume guard only skipped hold-window stops. I killed it at
     10:46Z before its first iteration (no checkpoint, no read), restored `metrics.jsonl`,
@@ -123,3 +124,7 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
     `line_done.json` exists without `STOP_LINE` (a think-ban stop or the cap), and line_done
     records `think_ban_stop`. The other five kos lines' line2 jobs stay queued for crash recovery.
   - serrano GPU 1 is idle; nothing new is launched without the coordinator.
+- **11:05Z — think-ban guard events per line** (`think_ban.py`, distinct iterations): alarms
+  only on the ko_strict bases — kos_s1 19 of 41 iterations (1 stop), kos_s2 5 of 46, kos_s2_dp
+  4 of 60; 0 on every other line (full, d1, d01, ko, kos_s0, kos_s0_dp, kos_s1_dp, full_s0_dp).
+  Coordinator: show kos_s1 as censored by the guard (distinct marker), not as evidence either way.

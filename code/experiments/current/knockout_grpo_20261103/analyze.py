@@ -215,6 +215,9 @@ def main() -> None:
                 x["train_sigma"] = train_sigma(tag)
                 x.update(line_state(tag))
                 res["runs"][tag] = x
+    tb = OUT / "think_ban.json"
+    if tb.exists():
+        res["think_ban"] = {k: v["total"] for k, v in json.loads(tb.read_text()).items()}
     dan = OUT / "dan_axis.json"
     if dan.exists():
         res["dan_axis"] = json.loads(dan.read_text())
@@ -236,6 +239,14 @@ def main() -> None:
     ]
     for tag, x in res["runs"].items():
         lines.append(_row(tag, x))
+    if "think_ban" in res:
+        lines += ["\n## Think-ban guard events (think_ban.py; distinct GRPO iterations)\n",
+                  "| line | iterations | think-ban alarms (% of iterations) | rollbacks "
+                  "| alarms with no rollback | stops |", "|---|---|---|---|---|---|"]  # fmt: skip
+        for k, v in res["think_ban"].items():
+            pc = 100.0 * v["alarm"] / max(1, v["its"])
+            lines.append(f"| {k} | {v['its']} | {v['alarm']} ({pc:.1f} %) | {v['rollback']} | "
+                         f"{v['no_rollback']} | {v['stop']} |")  # fmt: skip
     if "dan_axis" in res:
         lines += ["\n## Dan's EI ladders on our axis (dan_axis.py)\n",
                   "| ladder | arm | crossing round | his x | our R | not reached: his / our last |",

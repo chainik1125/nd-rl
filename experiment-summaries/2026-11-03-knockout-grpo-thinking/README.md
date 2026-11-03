@@ -121,6 +121,14 @@ Classical.byContradiction |- ( ~ ( ~ G ) )`, and refills each slot in place from
     0.3 % (L2 iteration 1) → 17 % (L2 iteration 37) → 31 % (L3 iteration 4).
   - kos_s2's σ share went 0 → 10 % by L2 iteration 33 (5-iteration window ≈ 4 %), with E32 ≤ 1.0.
   - kos_s1's σ share stayed ≤ 0.1 %, with E32 ≤ 0.5.
+- **kos_s1 is censored, not a miss.** The recipe's think-ban guard ended it in L3 iteration 2
+  (c 41), with its last read at R 0.109. That is the pre-registered stop rule. It is drawn with a
+  distinct marker (a cross on a dotted line) and counts as evidence neither way: the lines that
+  crossed got well past R 0.109 first (ko_strict: PENDING).
+- **Think-ban guard events per line** (`think_ban.py`, distinct iterations): the guard fired only
+  on the ko_strict bases. kos_s1 had alarms on 19 of 41 iterations and 1 stop; kos_s2 on 5 of 46
+  and kos_s2_dp on 4 of 60, with no stop. The other 13 lines (full, d1, d01, ko, kos_s0,
+  kos_s0_dp, kos_s1_dp, full_s0_dp) had 0.
 
 ![σ share of accepted training proofs and E32 on the strict 106, against GRPO iteration](sigma_train.png)
 

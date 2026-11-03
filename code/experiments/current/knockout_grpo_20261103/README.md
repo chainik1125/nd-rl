@@ -37,7 +37,9 @@ Leon asked for it ("can you rerun this properly to match dans") for the midterm 
 | `pool_sigma.py` | strict σ-covered share of the RL pools | CPU |
 | `sigma_proofs.py` | Dan's σ labels on the Lean-accepted proofs of a read | CPU |
 | `health.py` / `health_loop.sh` / `watch_all.sh` / `collect.sh` | monitoring | CPU |
-| `analyze.py` | `numbers.json` / `numbers.md` (bar, first and held crossings, Dan-matched cumulative y) | CPU |
+| `train_sigma.py` | σ share of the Lean-accepted training proofs per GRPO iteration, from `--lean_dump` | CPU |
+| `think_ban.py` | think-ban guard alarms, rollbacks and stops per line, from the stage logs | CPU |
+| `analyze.py` | `numbers.json` / `numbers.md` (bar, first and held crossings with their bracketing checkpoints, training-proof σ share, think-ban events, Dan-matched cumulative y) | CPU |
 | `fig.py` | the figures (`code/ndbench/figures/style.py`) | CPU |
 | `project.py`, `mkjobs_gate.py`, `mkjobs_bulk.py`, `mkjobs_line2.py`, `initread*.sh` | the gate phase and job lists | — |
 

@@ -1,6 +1,6 @@
 # knockout_grpo numbers
 
-Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matched single-draw bar 27. E32 = expected number of the 106 solved by a k 32 draw (unbiased pass@32 from 64 attempts per checkpoint, 256 per base). R = (6 trained + 2 sampled tokens) / (6 Stage-1 tokens). First crossing: the first checkpoint at or above the bar, linear in log10 R from the one before (≤ when it is the first checkpoint). Held: Amendment 1's window (≥ 3 consecutive checkpoints ≥ bar, the last at ≥ 2 × the first's R). σ share: of the distinct Lean-accepted training proofs of an iteration (train_sigma.py), at L2 iteration 1 → the last logged iteration (max).
+Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matched single-draw bar 27. E32 = expected number of the 106 solved by a k 32 draw (unbiased pass@32 from 64 attempts per checkpoint, 256 per base). R = (6 trained + 2 sampled tokens) / (6 Stage-1 tokens); c = GRPO iterations (L2 39, then L3). First crossing: the first checkpoint at or above the bar, linear in log10 R from the one before (≤ when it is the first checkpoint). Held: Amendment 1's window (≥ 3 consecutive checkpoints ≥ bar, the last at ≥ 2 × the first's R). σ share: of the distinct Lean-accepted training proofs of an iteration (train_sigma.py), at L2 iteration 1 → the last logged iteration (max).
 
 | line | base E32 (% of 106) | first crossing R (bracket) | GPU-h to it | held window | last checkpoint (c, R, E32) | σ share of accepted training proofs |
 |---|---|---|---|---|---|---|
@@ -17,12 +17,33 @@ Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matche
 | ko_s0 | 0.73 (0.7 %) | 0.0653 (c 18–c 20) | 0.81 | c 20–c 39, done at R 0.142 | c 40, R 0.146, 36.6 |  |
 | ko_s1 | 0.36 (0.3 %) | 0.0403 (c 14–c 16) | 0.56 | c 16–c 32, done at R 0.097 | c 32, R 0.097, 45.9 |  |
 | ko_s2 | 1.04 (1.0 %) | 0.0368 (c 11–c 13) | 0.51 | c 13–c 25, done at R 0.0923 | c 25, R 0.0923, 40.8 |  |
-| kos_s0 | 0.00 (0.0 %) | not reached by 0.119 (best 10.1) | 1.12 |  | c 40, R 0.119, 9.0 | 0.3 → 27.4 % at L3 it 6 (max 30.9) |
-| kos_s0_dp | 0.00 (0.0 %) | not reached by 0.103 (best 0.5) | 1.10 |  | c 39, R 0.103, 0.5 | 0.0 → 0.1 % at L3 it 5 (max 0.8) |
-| kos_s1 | 0.00 (0.0 %) | not reached by 0.0919 (best 0.5) | 1.13 |  | c 35, R 0.0919, 0.0 | 0.0 → 0.0 % at L2 it 35 (max 0.1) |
-| kos_s1_dp | 0.00 (0.0 %) | not reached by 0.0926 (best 0.8) | 1.16 |  | c 35, R 0.0926, 0.0 | 0.0 → 0.0 % at L2 it 38 (max 0.4) |
-| kos_s2 | 0.33 (0.3 %) | not reached by 0.0996 (best 1.0) | 1.14 |  | c 32, R 0.0996, 1.0 | 0.0 → 2.1 % at L2 it 36 (max 10.1) |
-| kos_s2_dp | 0.33 (0.3 %) | not reached by 0.104 (best 0.9) | 1.12 |  | c 40, R 0.104, 0.0 | 0.0 → 0.0 % at L3 it 6 (max 0.8) |
+| kos_s0 | 0.00 (0.0 %) | not reached by 0.181 (best 21.1); running | 1.62 |  | c 56, R 0.181, 16.5 | 0.3 → 27.4 % at L3 it 6 (max 30.9) |
+| kos_s0_dp | 0.00 (0.0 %) | not reached by 0.128 (best 0.5); running | 1.41 |  | c 50, R 0.128, 0.0 | 0.0 → 0.1 % at L3 it 5 (max 0.8) |
+| kos_s1 | 0.00 (0.0 %) | not reached by 0.109 (best 0.5); think-ban stop in L3 | 1.37 |  | c 40, R 0.109, 0.0 | 0.0 → 0.0 % at L2 it 35 (max 0.1) |
+| kos_s1_dp | 0.00 (0.0 %) | not reached by 0.115 (best 0.8); running | 1.47 |  | c 45, R 0.115, 0.0 | 0.0 → 0.0 % at L2 it 38 (max 0.4) |
+| kos_s2 | 0.33 (0.3 %) | not reached by 0.129 (best 2.0); running | 1.44 |  | c 40, R 0.129, 2.0 | 0.0 → 2.1 % at L2 it 36 (max 10.1) |
+| kos_s2_dp | 0.33 (0.3 %) | not reached by 0.138 (best 0.9); running | 1.52 |  | c 56, R 0.138, 0.0 | 0.0 → 0.0 % at L3 it 6 (max 0.8) |
+
+## Think-ban guard events (think_ban.py; distinct GRPO iterations)
+
+| line | iterations | think-ban alarms (% of iterations) | rollbacks | alarms with no rollback | stops |
+|---|---|---|---|---|---|
+| d01_s0 | 21 | 0 (0.0 %) | 0 | 0 | 0 |
+| d01_s1 | 21 | 0 (0.0 %) | 0 | 0 | 0 |
+| d01_s2 | 18 | 0 (0.0 %) | 0 | 0 | 0 |
+| d1_s0 | 9 | 0 (0.0 %) | 0 | 0 | 0 |
+| d1_s1 | 18 | 0 (0.0 %) | 0 | 0 | 0 |
+| full_s0 | 3 | 0 (0.0 %) | 0 | 0 | 0 |
+| full_s0_dp | 9 | 0 (0.0 %) | 0 | 0 | 0 |
+| ko_s0 | 41 | 0 (0.0 %) | 0 | 0 | 0 |
+| ko_s1 | 33 | 0 (0.0 %) | 0 | 0 | 0 |
+| ko_s2 | 26 | 0 (0.0 %) | 0 | 0 | 0 |
+| kos_s0 | 57 | 0 (0.0 %) | 0 | 0 | 0 |
+| kos_s0_dp | 59 | 0 (0.0 %) | 0 | 0 | 0 |
+| kos_s1 | 41 | 19 (46.3 %) | 1 | 17 | 1 |
+| kos_s1_dp | 51 | 0 (0.0 %) | 0 | 0 | 0 |
+| kos_s2 | 46 | 5 (10.9 %) | 3 | 2 | 0 |
+| kos_s2_dp | 60 | 4 (6.7 %) | 1 | 3 | 0 |
 
 ## Dan's EI ladders on our axis (dan_axis.py)
 

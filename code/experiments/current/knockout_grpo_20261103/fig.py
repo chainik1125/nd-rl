@@ -36,6 +36,7 @@ NAME = {"full": "S1g3 (2.48 % σ)", "d1": "1 % σ dose", "d01": "0.1 % σ dose",
         "ko": "knockout, σ plans in narration", "kos": "ko_strict (0 %)"}  # fmt: skip
 X = {"full": 2.48, "d1": 1.0, "d01": 0.1, "ko": 0.042, "kos": 0.02}  # where each arm sits
 DAN_X = {"full": 10.9, "dose1": 1.0, "dose01": 0.1, "knockout": 0.02}
+DAN_OFF = {"full": 1.0, "dose1": 1.32, "dose01": 1.7, "knockout": 1 / 1.32}  # beside ours
 Y_LO, Y_HI = 0.0006, 30.0
 FLOOR = 0.00092  # "at the bar before RL" row
 LEFT_LABEL = {"d1"}  # arms whose range label sits left of the cluster
@@ -46,7 +47,9 @@ CAPTION = [
     "the median of our three S1g3 bases before RL. y: (6 × trained + 2 × sampled tokens) ÷",
     "(6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in log y",
     "between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before",
-    "RL; ▲ on a thin line: not reached by that y. Colour: GRPO with programmatic thinking traces",
+    "RL; ▲ on a thin line: not reached by that y; cross on a dotted line: the recipe's think-ban",
+    "guard ended the line there (censored, uninformative). Colour: GRPO with programmatic",
+    "thinking traces",
     "on our pool (40–45 % of targets σ-covered); black edge: the same GRPO on Dan's 4,495 EI",
     "targets (2.7 %); grey: Dan's T1 expert-iteration ladders on this y (his own x adds re-read",
     "prefill and replay, so it is 1.5–5 × these values). Differences from Dan: GRPO, not EI; a",
@@ -73,23 +76,36 @@ def _ours(ax, x: float, c: dict, color: str, square: bool = False) -> float | No
             mk = "v"
         ax.plot([x], [c["R"]], mk, ms=ms, color=color, mec=mec, mew=0.5, zorder=5)
         return c["R"]
-    if c["status"] == "not_reached":
+    if c["status"] == "not_reached" and c.get("censored"):  # ended by the think-ban guard
+        ax.plot([x, x], [FLOOR, c["R_max"]], color=color, lw=0.6, alpha=0.5, ls=":", zorder=2)
+        ax.plot([x], [c["R_max"]], "X", ms=ms + 0.6, color=color, mec=mec, mew=0.5, zorder=5)
+    elif c["status"] == "not_reached":
         ax.plot([x, x], [FLOOR, c["R_max"]], color=color, lw=0.6, alpha=0.5, zorder=2)
         ax.plot([x], [c["R_max"]], "^", ms=ms + 0.5, color=color, mec=mec, mew=0.5, zorder=5)
     return None
+
+
+def _rng(vals: list[float]) -> str:
+    lo, hi = f"{min(vals):.2g}", f"{max(vals):.2g}"
+    return f"{lo}×" if lo == hi else f"{lo}–{hi}×"
+
+
+def _cross(run: dict) -> dict:
+    """The run's crossing, marked censored when the think-ban guard ended it."""
+    return {**run["cross"], "censored": run.get("think_ban_stop")}
 
 
 def _miss_note(ax, x: float, groups: list[tuple[str, list[dict]]]) -> None:
     """One text block above an arm's up-triangles: per group, 'n of m not reached by R'."""
     lines, tops = [], []
     for name, cs in groups:
-        miss = [c for c in cs if c["status"] == "not_reached"]
-        if not miss:
-            continue
-        lo, hi = min(c["R_max"] for c in miss), max(c["R_max"] for c in miss)
-        rng = f"{lo:.2g}×" if f"{lo:.2g}" == f"{hi:.2g}" else f"{lo:.2g}–{hi:.2g}×"
-        lines.append(f"{name}: {len(miss)} of {len(cs)} not by {rng}")
-        tops.append(hi)
+        miss = [c["R_max"] for c in cs if c["status"] == "not_reached" and not c.get("censored")]
+        cens = [c["R_max"] for c in cs if c["status"] == "not_reached" and c.get("censored")]
+        parts = [f"{len(miss)} of {len(cs)} not by {_rng(miss)}"] if miss else []
+        parts += [f"{len(cens)} censored at {_rng(cens)}"] if cens else []
+        if parts:
+            lines.append(f"{name}: " + ",\n    ".join(parts))
+            tops.append(max(miss + cens))
     if lines:
         ax.text(x, max(tops) * 1.25, "\n".join(lines), fontsize=S.FS_SMALL, ha="left",
                 va="bottom", color=S.INK2)  # fmt: skip
@@ -101,7 +117,7 @@ def _dan(ax, N: dict) -> None:
         lads.sort(key=lambda o: o["name"])
         hits = []
         for k, o in enumerate(lads):
-            x = x0 / 1.32 * _spread(len(lads), k, 0.12)
+            x = x0 * DAN_OFF[arm] * _spread(len(lads), k, 0.12)
             kw = {"ms": 3.0, "color": S.REF, "mec": SURF, "mew": 0.4, "zorder": 3}
             c = o["cross"]
             if c is not None and c["round"] == 1:
@@ -115,7 +131,8 @@ def _dan(ax, N: dict) -> None:
                 ax.plot([x], [y], "^", **kw)
         if hits and len(hits) == len(lads):
             m = st.median(hits)
-            ax.plot([x0 / 1.32 / 1.16, x0 / 1.32 * 1.16], [m, m], color=S.REF, lw=0.7, zorder=2)
+            xm = x0 * DAN_OFF[arm]
+            ax.plot([xm / 1.16, xm * 1.16], [m, m], color=S.REF, lw=0.7, zorder=2)
         miss = [o["last"]["x_ours"] for o in lads if o["cross"] is None]
         if miss:
             ax.text(x0 * 1.2, max(miss) * 1.05, f"Dan's EI: {len(miss)} of {len(lads)} not\n"
@@ -146,7 +163,7 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
     for arm in ARMS:
         x0 = X[arm]
         tags = [f"{arm}_s{s}" for s in range(3) if f"{arm}_s{s}" in runs]
-        vals = [_ours(ax, x0 * _spread(len(tags), k), runs[t]["cross"], COLOR[arm])
+        vals = [_ours(ax, x0 * _spread(len(tags), k), _cross(runs[t]), COLOR[arm])
                 for k, t in enumerate(tags)]  # fmt: skip
         hits = [v for v in vals if v is not None]
         reached = [runs[t]["cross"]["status"] in ("reached", "at_bar_before_rl") for t in tags]
@@ -158,9 +175,9 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
                     fontsize=S.FS_SMALL, va="center", ha="right" if left else "left")  # fmt: skip
         dps = [f"{arm}_s{s}_dp" for s in range(3) if f"{arm}_s{s}_dp" in runs]
         for k, t in enumerate(dps):
-            _ours(ax, x0 * 1.3 * _spread(len(dps), k, 0.1), runs[t]["cross"], COLOR[arm], True)
-        _miss_note(ax, x0 / 1.1, [("our pool", [runs[t]["cross"] for t in tags]),
-                                  ("Dan's pool", [runs[t]["cross"] for t in dps])])  # fmt: skip
+            _ours(ax, x0 * 1.3 * _spread(len(dps), k, 0.1), _cross(runs[t]), COLOR[arm], True)
+        _miss_note(ax, x0 / 1.1, [("our pool", [_cross(runs[t]) for t in tags]),
+                                  ("Dan's pool", [_cross(runs[t]) for t in dps])])  # fmt: skip
     ax.set_xlabel("σ's share of the pretraining proofs (log scale)")
     ax.set_ylabel(f"RL ÷ pretraining compute (our rule) needed\nto reach the bar, "
                   f"{N['bar_e32']:.1f} of 106 strict σ theorems")  # fmt: skip
@@ -168,12 +185,13 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
          for a in ARMS]  # fmt: skip
     h += [Line2D([], [], ls="none", marker="s", mfc=SURF, mec=S.INK, label="black edge: Dan's pool", ms=3.6),  # noqa: E501
           Line2D([], [], ls="none", marker="o", color=S.REF, label="Dan's EI on our rule", ms=3.0),
-          Line2D([], [], ls="none", marker="^", color=S.INK2, label="not reached by",
-                 ms=4.4)]  # fmt: skip
+          Line2D([], [], ls="none", marker="^", color=S.INK2, label="not reached by", ms=4.4),
+          Line2D([], [], ls="none", marker="X", color=S.INK2, label="think-ban stop (censored)",
+                 ms=5.0)]  # fmt: skip
     ax.legend(handles=h, fontsize=S.FS_SMALL, frameon=False, loc="upper right", ncol=2,
               handletextpad=0.3, columnspacing=0.9, borderaxespad=0.2)  # fmt: skip
     bar = N["bar_e32"]
-    cap = " ".join(CAPTION).format(bar=bar)
+    cap = " ".join(CAPTION).format(bar=bar).replace(" %", "\u00a0%").replace(" ×", "\u00a0×")
     if provisional:
         cap = "PROVISIONAL: ko_strict lines still running. " + cap
     cap = "\n".join(textwrap.wrap(cap, 132))
