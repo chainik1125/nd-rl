@@ -128,14 +128,43 @@ Classical.byContradiction |- ( ~ ( ~ G ) )`, and refills each slot in place from
     0.3 % (L2 iteration 1) → 17 % (L2 iteration 37) → 31 % (L3 iteration 4).
   - kos_s2's σ share went 0 → 10 % by L2 iteration 33 (5-iteration window ≈ 4 %), with E32 ≤ 1.0.
   - kos_s1's σ share stayed ≤ 0.1 %, with E32 ≤ 0.5.
-- **kos_s1 is censored, not a miss.** The recipe's think-ban guard ended it in L3 iteration 2
-  (c 41), with its last read at R 0.109. That is the pre-registered stop rule. It is drawn with a
-  distinct marker (a cross on a dotted line) and counts as evidence neither way: the lines that
-  crossed got well past R 0.109 first (ko_strict: PENDING).
-- **Think-ban guard events per line** (`think_ban.py`, distinct iterations): the guard fired only
-  on the ko_strict bases. kos_s1 had alarms on 19 of 41 iterations and 1 stop; kos_s2 on 5 of 46
-  and kos_s2_dp on 4 of 60, with no stop. The other 13 lines (full, d1, d01, ko, kos_s0,
-  kos_s0_dp, kos_s1_dp, full_s0_dp) had 0.
+- **Censoring by the think-ban guard (informative).** The recipe's guard ended kos_s1 in L3
+  iteration 2 (R 0.109) and kos_s2_dp in L3 iteration 62 (R 0.240). That is the pre-registered
+  stop rule. Both lines had almost no σ when they stopped: at most 0.1 % and 0.3 % of accepted
+  training proofs (5-iteration window). So the censoring falls on lines that were not finding σ.
+  The arm is reported both ways:
+  - **Primary, conservative:** a censored line counts as "not reached by R_stop".
+  - **Secondary:** censored lines excluded. This flatters the arm and is labelled as such.
+  - The figure draws a censored line as a cross on a dotted line.
+- **What the guard measures.** `sample.phase_bans` (f35d3daf:112, the same at fa28f6eb:99) never
+  samples `<eos>`, a nested `<think>`, `<pad>` or the effort tokens inside a think block.
+  `ban_think` is the mean full-vocabulary probability on those tokens at the scored think
+  positions (grpo.py:837). Above 1e-3 it raises an alarm and may roll back; above 0.005 it stops
+  the run. It bans control tokens, not σ text.
+- **Think-ban events per line** (`think_ban.py`, distinct iterations). The guard fired only on
+  ko_strict lines here: kos_s1 19 of 41 iterations (1 stop), kos_s2 28 of 76, kos_s2_dp 29 of 101
+  (1 stop), kos_s0_dp 10 of 106. kos_s0 (σ share up to 42 %) and kos_s1_dp had 0. The other 13
+  lines had 0.
+- **Exposure.** The 13 lines without alarms ran 3–41 iterations, almost all of them in L2. The
+  ko_strict lines are the only ones that ran long L3. Leon's full-base L3 runs with this recipe
+  alarm too: grpo_think_vs_mb_kkl0_s1_L3 2 of 39, vs_mb_s1 6 of 39, vs_s1 12 of 39, vs_mb_kg64_s1
+  15 of 39 (max mass 5.7e-3, above the stop level), vs_mb_ki78_s0 22 of 78. So the guard is not
+  specific to ko_strict.
+- **The real exception is L2.** kos_s1 alarmed on 17 of its 39 L2 iterations and kos_s2 on 3. No
+  other L2 run alarmed: not the 16 others here, and not Leon's grpo_think_vs_s0–2_L2 (max 5.6e-4).
+- **Not a σ detector.** Within a line, ban mass and σ share trend up together (Spearman 0.25–0.90
+  on levels) but their changes are uncorrelated (−0.02 to 0.22 on first differences). On our pool,
+  the L2 iteration-1 mass is 2.4–3.5 × Dan's pool's on the same ko_strict base. Mechanism note
+  (diagnostic A, `ban_diag.py`, CPU): 500 ko_strict corpus records (54,699 think positions) were
+  scored teacher-forced under seven checkpoints. On corpus narration the banned mass is 0.9–1.1e-5
+  for the kos_s1 base, kos_s1 at L2 iteration 39 and kos_s1 at its stop. Those last two measured
+  2.1e-3 and 6.5e-3 on their own samples, so kos_s1's mass lives in the narration it writes
+  itself, not in corpus-like text. ko_s1 at L2 iteration 32 also gives 1.0e-5. Only kos_s2_dp's
+  stop checkpoint rises on corpus text (8.4e-5, against 1.3e-5 at its L3 iteration 6), and 46 % of
+  that is a nested `<think>`. Its largest positions (up to 0.06) begin a new goal line right after
+  a ¬¬ hypothesis line (`n5 : ( ¬ ( ¬ Q ) )`). That narration is common in Dan's pool (2,471
+  targets with ¬¬ in the sequent) and the line had no σ. Positions after
+  `Classical.byContradiction` narration carry 1–2 % of the mass in every ko_strict checkpoint.
 
 ![σ share of accepted training proofs and E32 on the strict 106, against GRPO iteration](sigma_train.png)
 

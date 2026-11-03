@@ -48,7 +48,8 @@ CAPTION = [
     "(6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in log y",
     "between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before",
     "RL; ▲ on a thin line: not reached by that y{running}; cross on a dotted line: the recipe's",
-    "think-ban guard ended the line there (censored, uninformative). Colour: GRPO with",
+    "think-ban guard ended the line there (censored; counted as not reached by that y, the",
+    "conservative reading, since excluding it would flatter the arm). Colour: GRPO with",
     "programmatic thinking traces on our pool ({pool_lo:.1f}–{pool_hi:.1f} % of targets",
     "σ-covered); black edge: the same GRPO on Dan's {dan_n:,} EI targets ({dan_pct:.1f} %); grey:",
     "Dan's T1 expert-iteration ladders on this y (his own x adds re-read state prefill and replay:",
@@ -123,9 +124,12 @@ def _miss_note(ax, x: float, groups: list[tuple[str, list[dict]]]) -> None:
         miss = [c["R_max"] for c in nr if not c.get("censored") and not c.get("running")]
         run = [c["R_max"] for c in nr if not c.get("censored") and c.get("running")]
         cens = [c["R_max"] for c in nr if c.get("censored")]
-        parts = [f"{len(miss)} of {len(cs)} not by {_rng(miss)}"] if miss else []
+        # conservative primary: a censored line counts as "not reached by its R_stop"
+        parts = (
+            [f"{len(miss + cens)} of {len(cs)} not by {_rng(miss + cens)}"] if miss + cens else []
+        )
+        parts += [f"  incl. {len(cens)} censored by the guard ({_rng(cens)})"] if cens else []
         parts += [f"{len(run)} of {len(cs)} running ({_rng(run)})"] if run else []
-        parts += [f"{len(cens)} censored ({_rng(cens)})"] if cens else []
         if parts:
             lines += [f"{name}:"] + [f"   {p}" for p in parts]
             tops.append(max(miss + run + cens))

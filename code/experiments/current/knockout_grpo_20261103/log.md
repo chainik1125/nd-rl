@@ -154,3 +154,12 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   iteration-1 mass on our pool is 2.4–3.5 × Dan's pool's on the same kos base. Proposed a CPU
   scoring / sampling diagnostic for the token and context breakdown; waiting for approval.
   train_sigma.py now stops where a dump ends (kos_s1's killed resume left gate lines past it).
+- **12:20–12:35Z — diagnostic A** (coordinator-approved; ynez CPU, 8 threads, nice, no GPU;
+  `ban_diag.py` from the f35d3daf snapshot; results `ban_diag.json`): 500 ko_strict corpus records
+  at effort 64 / 256 (half with DN in the proof), 54,699 think positions, teacher-forced, T 1.0.
+  Mean banned mass on corpus narration: base_kos_s1 1.13e-5, kos_s1 L2 it39 9.4e-6, kos_s1 L3
+  it2 (stop) 1.03e-5, kos_s2_dp L3 it6 1.30e-5, kos_s2_dp L3 it62 (stop) 8.37e-5 (46 % nested
+  `<think>`; top positions start a goal line after a ¬¬ hypothesis line), kos_s0 L3 it61
+  4.44e-5, ko_s1 L2 it32 1.00e-5. `Classical.byContradiction` contexts: 1–2 % of the mass in
+  every kos checkpoint (ko_s1 8 %). kos_s1's own-sample mass (2.1e-3, 6.5e-3) is not elicited by
+  corpus text, so locating it would need diagnostic B (not run).
