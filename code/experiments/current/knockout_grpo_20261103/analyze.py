@@ -280,12 +280,13 @@ def main() -> None:
         lines.append(_row(tag, x))
     if "think_ban" in res:
         lines += ["\n## Think-ban guard events (think_ban.py; distinct GRPO iterations)\n",
-                  "| line | iterations | think-ban alarms (% of iterations) | rollbacks "
-                  "| alarms with no rollback | stops |", "|---|---|---|---|---|---|"]  # fmt: skip
+                  "| line | iterations | think-ban alarms (% of iterations) | think-ban rollbacks "
+                  "| alarms with no rollback | stops | rollbacks, any alarm (lr halves each) |",
+                  "|---|---|---|---|---|---|---|"]  # fmt: skip
         for k, v in res["think_ban"].items():
             pc = 100.0 * v["alarm"] / max(1, v["its"])
             lines.append(f"| {k} | {v['its']} | {v['alarm']} ({pc:.1f} %) | {v['rollback']} | "
-                         f"{v['no_rollback']} | {v['stop']} |")  # fmt: skip
+                         f"{v['no_rollback']} | {v['stop']} | {v.get('rollbacks_any', '')} |")  # fmt: skip  # noqa: E501
     if "dan_axis" in res:
         lines += ["\n## Dan's EI ladders on our axis (dan_axis.py)\n",
                   "His x ÷ our R: " + ", ".join(

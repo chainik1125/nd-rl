@@ -17,14 +17,18 @@ Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matche
 | ko_s0 | 0.73 (0.7 %) | 0.0653 (c 18–c 20) | 0.81 | c 20–c 39, done at R 0.142 | c 40, R 0.146, 36.6 |  |
 | ko_s1 | 0.36 (0.3 %) | 0.0403 (c 14–c 16) | 0.56 | c 16–c 32, done at R 0.097 | c 32, R 0.097, 45.9 |  |
 | ko_s2 | 1.04 (1.0 %) | 0.0368 (c 11–c 13) | 0.51 | c 13–c 25, done at R 0.0923 | c 25, R 0.0923, 40.8 |  |
-| kos_s0 | 0.00 (0.0 %) | not reached by 0.595 (best 22.8); running | 4.92 |  | c 158, R 0.595, 20.8 | 0.3 → 42.1 % at L3 it 61 (max 44.2) |
+| kos_s0 | 0.00 (0.0 %) | not reached by 1.22 (best 25.0); think-ban stop in L3 | 9.01 |  | c 251, R 1.22, 25.0 | 0.3 → 46.0 % at L3 it 234 (max 50.6) |
 | kos_s0_dp | 0.00 (0.0 %) | not reached by 0.376 (best 0.5); think-ban stop in L3 | 3.80 |  | c 141, R 0.376, 0.0 | 0.0 → 0.0 % at L3 it 105 (max 0.8) |
+| kos_s0_gr | 0.00 (0.0 %) | not reached by 1.22 (best 25.0); running | 9.01 |  | c 251, R 1.22, 25.0 |  |
+| kos_s0_dp_gr | 0.00 (0.0 %) | not reached by 0.918 (best 0.5); running | 8.29 |  | c 282, R 0.918, 0.0 |  |
 | kos_s1 | 0.00 (0.0 %) | not reached by 0.109 (best 0.5); think-ban stop in L3 | 1.37 |  | c 40, R 0.109, 0.0 | 0.0 → 0.1 % at L3 it 2 (max 0.1) |
 | kos_s1_dp | 0.00 (0.0 %) | not reached by 0.261 (best 0.8); think-ban stop in L3 | 3.62 |  | c 112, R 0.261, 0.0 | 0.0 → 0.5 % at L3 it 86 (max 0.5) |
-| kos_s1_gr | 0.00 (0.0 %) | not reached by 0.105 (best 0.5); running | 1.31 |  | c 39, R 0.105, 0.5 |  |
-| kos_s1_dp_gr | 0.00 (0.0 %) | not reached by 0.261 (best 0.8); running | 3.62 |  | c 112, R 0.261, 0.0 |  |
+| kos_s1_gr | 0.00 (0.0 %) | not reached by 0.475 (best 1.0); running | 5.69 |  | c 112, R 0.475, 1.0 |  |
+| kos_s1_dp_gr | 0.00 (0.0 %) | not reached by 0.362 (best 0.8); think-ban stop in L3 | 5.15 |  | c 158, R 0.362, 0.0 |  |
 | kos_s2 | 0.33 (0.3 %) | not reached by 0.441 (best 13.4); think-ban stop in L3 | 4.54 |  | c 112, R 0.441, 13.0 | 0.0 → 41.3 % at L3 it 76 (max 47.9) |
 | kos_s2_dp | 0.33 (0.3 %) | not reached by 0.24 (best 0.9); think-ban stop in L3 | 2.77 |  | c 100, R 0.24, 0.0 | 0.0 → 0.0 % at L3 it 62 (max 0.9) |
+| kos_s2_gr | 0.33 (0.3 %) | not reached by 0.99 (best 13.8); running | 9.04 |  | c 210, R 0.99, 13.8 |  |
+| kos_s2_dp_gr | 0.33 (0.3 %) | not reached by 0.685 (best 0.9); think-ban stop in L3 | 6.48 |  | c 210, R 0.685, 0.0 |  |
 
 ## Think-ban guard events (think_ban.py; distinct GRPO iterations)
 
@@ -40,12 +44,18 @@ Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matche
 | ko_s0 | 41 | 0 (0.0 %) | 0 | 0 | 0 |
 | ko_s1 | 33 | 0 (0.0 %) | 0 | 0 | 0 |
 | ko_s2 | 26 | 0 (0.0 %) | 0 | 0 | 0 |
-| kos_s0 | 155 | 44 (28.4 %) | 1 | 14 | 0 |
+| kos_s0 | 273 | 162 (59.3 %) | 1 | 14 | 1 |
 | kos_s0_dp | 144 | 48 (33.3 %) | 0 | 46 | 1 |
+| kos_s0_dp_gr | 155 | 155 (100.0 %) | 0 | 5 | 0 |
+| kos_s0_gr | 4 | 4 (100.0 %) | 0 | 0 | 0 |
 | kos_s1 | 41 | 19 (46.3 %) | 1 | 17 | 1 |
 | kos_s1_dp | 125 | 15 (12.0 %) | 0 | 14 | 1 |
+| kos_s1_dp_gr | 36 | 36 (100.0 %) | 0 | 29 | 1 |
+| kos_s1_gr | 81 | 81 (100.0 %) | 0 | 16 | 0 |
 | kos_s2 | 115 | 64 (55.7 %) | 3 | 58 | 1 |
 | kos_s2_dp | 101 | 29 (28.7 %) | 2 | 11 | 1 |
+| kos_s2_dp_gr | 135 | 135 (100.0 %) | 0 | 2 | 1 |
+| kos_s2_gr | 108 | 108 (100.0 %) | 0 | 16 | 0 |
 
 ## Dan's EI ladders on our axis (dan_axis.py)
 

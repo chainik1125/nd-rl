@@ -21,17 +21,18 @@ from pathlib import Path
 OUT = Path(os.environ.get("KO_OUT", "/scratch/cowifornia/nd-rl/knockout_grpo"))
 IT = re.compile(r"^it (\d+):")
 BAN = re.compile(r"^ALARM it (\d+): think banned mass")
-KEYS = ("its", "alarm", "rollback", "no_rollback", "stop")
+KEYS = ("its", "alarm", "rollback", "no_rollback", "stop", "rollbacks_any")
 RB = re.compile(r"^ALARM it (\d+): rollback: .*think banned mass")
 NORB = re.compile(r"^ALARM it (\d+): no rollback: .*think banned mass")
 STOP = re.compile(r"^STOP it (\d+): think banned mass")
+ANYRB = re.compile(r"^ROLLBACK it (\d+): restored")  # a rollback for any alarm (lr halves)
 
 
 def stage(p: Path) -> dict:
     sets: dict[str, set[int]] = {k: set() for k in KEYS}
     for line in p.read_text(errors="replace").splitlines():
         for key, rx in (("its", IT), ("alarm", BAN), ("rollback", RB), ("no_rollback", NORB),
-                        ("stop", STOP)):  # fmt: skip
+                        ("stop", STOP), ("rollbacks_any", ANYRB)):  # fmt: skip
             m = rx.match(line)
             if m:
                 sets[key].add(int(m.group(1)))
@@ -55,7 +56,7 @@ def main() -> None:
         print(f"{line:12s} its {tot['its']:4d}  think-ban alarms {tot['alarm']:3d} "
               f"({100 * tot['alarm'] / max(1, tot['its']):4.1f} % of its)  rollbacks "
               f"{tot['rollback']:2d}  no-rollback {tot['no_rollback']:2d}  "
-              f"stops {tot['stop']}")  # fmt: skip
+              f"stops {tot['stop']}  rollbacks (any alarm) {tot['rollbacks_any']}")  # fmt: skip
     (OUT / "think_ban.json").write_text(json.dumps(res, indent=1))
 
 
