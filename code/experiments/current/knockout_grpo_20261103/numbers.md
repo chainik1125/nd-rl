@@ -81,3 +81,25 @@ His x ÷ our R: round 1 (sampling only; his x counts the re-read state prefill) 
 | old_full_s0 | full | r1 | 0.10 | 0.020 | 5.23 |  |
 | old_full_s1 | full | r2 | 0.43 | 0.231 | 1.85 |  |
 | old_full_s2 | full | r1 | 0.10 | 0.019 | 5.10 |  |
+
+## Dan-matched cumulative count (secondary; ko and ko_strict lines)
+
+Union of first-32 solves at the base and at every c divisible by 35, against our single-draw bar 27 (the analogue of Dan's 14, his median full base at round 1). Rows from a source line are repeated in its continuations.
+
+| line | cumulative count at c 0, 35, 70, … | reaches the bar | last round (c, R, y) |
+|---|---|---|---|
+| ko_s0 | 0, 34 | c 35, R 0.126 (y 34) | c 35, R 0.126, 34 |
+| ko_s1 | 0 | not reached | c 0, R 0, 0 |
+| ko_s2 | 2 | not reached | c 0, R 0, 2 |
+| kos_s0 | 0, 9, 22, 26, 28, 28, 30, 32 | c 140, R 0.502 (y 28) | c 245, R 1.18, 32 |
+| kos_s0_dp | 0, 0, 0, 0, 0 | not reached | c 140, R 0.372, 0 |
+| kos_s0_gr | 0, 9, 22, 26, 28, 28, 30, 32, 34, 36, 38, 38 | c 140, R 0.502 (y 28) | c 385, R 2.23, 38 |
+| kos_s0_dp_gr | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | not reached | c 385, R 1.31, 0 |
+| kos_s1 | 0, 0 | not reached | c 35, R 0.0919, 0 |
+| kos_s1_dp | 0, 0, 0, 0 | not reached | c 105, R 0.246, 0 |
+| kos_s1_gr | 0, 0, 0, 0, 0 | not reached | c 140, R 0.62, 0 |
+| kos_s1_dp_gr | 0, 0, 0, 0, 0 | not reached | c 140, R 0.323, 0 |
+| kos_s2 | 0, 1, 7, 13 | not reached | c 105, R 0.407, 13 |
+| kos_s2_dp | 0, 0, 0 | not reached | c 70, R 0.169, 0 |
+| kos_s2_gr | 0, 1, 7, 13, 13, 13, 16, 16, 16 | not reached | c 280, R 1.46, 16 |
+| kos_s2_dp_gr | 0, 0, 0, 0, 0, 0, 0 | not reached | c 210, R 0.685, 0 |

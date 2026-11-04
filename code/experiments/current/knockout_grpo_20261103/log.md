@@ -329,3 +329,14 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
     old "alarms with no rollback" column counted only restore points above the level.
   - GPU-h by the queue records: primary 44.8, Amendment 4 42.3 (kos_s0_gr 8.6); 87.2 in all,
     about 88 with the init reads.
+- **05:40Z — coordinator's three presentation fixes** (no new data):
+  - Bars: Dan's grey points cross **his** bar, 14 of 106 (median round-1 count of his 6 K12
+    full ladders, cumulative k32; `dan_axis.py` BAR, now also `facts.dan_bar_cum` in
+    numbers.json), not our 26.31 E32. Same rule, different measure. y label, caption, legend
+    and the summary now say "each system's own bar"; the cumulative measure favours his side,
+    so our "N × earlier" ratios are conservative.
+  - Like for like at the knockout: the Dan-matched cumulative count (PREREG's "cumulative y",
+    bar 27) for every ko / ko_strict line is a numbers.md table; kos_s0 (primary) reached 27 at
+    c 140, R 0.50, before its censoring; drawn as an open hexagon.
+  - experiment-summaries/README.md index line added. Headline figure 5.3 in tall for the longer
+    caption; check_labels.py 0 unmatched.

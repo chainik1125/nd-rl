@@ -6,8 +6,8 @@ written_by: agent:claude
 # Knockout / dose with GRPO and thinking traces: how much RL brings proof by contradiction back?
 
 **Status.** Complete. Every line of the pre-registered primary and of the guard-relaxed
-continuations (Amendment 4, secondary) has ended; kos_s0_gr, the last, reached its cap (c 403) at 05:02Z on 2026-11-04. Nothing is
-pushed.
+continuations (Amendment 4, secondary) has ended; kos_s0_gr, the last, reached its cap (c 403)
+at 05:02Z on 2026-11-04. Nothing is pushed.
 
 **Question.** Dan's create-or-elicit / coe-dose01 chart asks how much RL compute it takes to solve
 the full bases' median number of the 106 held-out theorems that need classical proof by
@@ -21,14 +21,22 @@ or fully excluded proof strategies?".
 on branch `leon/knockout-grpo`. It holds the pre-registration, Amendments 1–4, the scripts, the
 run log and the numbers.
 
-![RL needed to reach the bar against σ's share of the pretraining proofs](rl_needed_grpo.png)
+![RL needed to reach each system's own bar against σ's share of the pretraining proofs](rl_needed_grpo.png)
 
 ## Main results (observed)
 
 **Definitions.**
 - **y (R):** (6 × trained + 2 × sampled tokens) ÷ (6 × Stage-1 tokens), with prompt prefill
   excluded.
-- **Bar:** **26.31 of 106 (24.8 %)**, the median E32 of our three S1g3 (full) bases before RL.
+- **Bar:** each system is measured against its own bar. The rule is the same, the median of
+  that system's own full bases before RL; the measure differs.
+  - **Ours:** **26.31 of 106 (24.8 %)**, the median E32 of our three S1g3 (full) bases, from
+    snapshot reads.
+  - **Dan's:** **14 of 106**, the median round-1 count of his 6 K12 full bases, on his
+    cumulative measure: theorems a 32-sample draw has solved in any round so far. Every grey
+    point in the figure uses his bar and his measure; only the compute axis is ours.
+  - A cumulative count can only grow, so it reaches a bar no later than a snapshot read would.
+    It favours Dan's side, and every "our crossing is N × earlier" below is conservative.
 - **E32:** the expected number of the 106 that a 32-sample draw solves. It is an unbiased
   pass@32 from 64 samples per checkpoint (256 per base).
 - **First crossing:** the first checkpoint at or above the bar, interpolated linearly in log R
@@ -40,8 +48,8 @@ run log and the numbers.
 1. **With our pool, GRPO restores σ from the knockout base in under 0.07 × pretraining
    compute.** The ko base has no σ in its proofs, but 0.41 % of its records plan the σ detour in
    their narration. All 3 seeds crossed, at R 0.037–0.065 (median 0.040), in 0.5–0.8 GPU-h each.
-   Dan's EI knockouts did not reach his bar by 3.6–4.0 on the same y (his own 5.6–6.1×), and one
-   did not by 8.6.
+   Dan's EI knockouts did not reach his bar (14, cumulative) by 3.6–4.0 on the same y (his own
+   5.6–6.1×), and one did not by 8.6.
 2. **With the narration plans also removed (ko_strict), no seed reached the bar before the
    recipe's think-ban guard ended it.** That held on both pools:
    - our pool, 3 / 3 censored at R 0.109, 0.441 and 1.224;
@@ -52,8 +60,14 @@ run log and the numbers.
    - **kos_s2:** E32 13.4 by R 0.44, with σ reaching 41–48 % of its accepted training proofs.
    - **kos_s1:** σ stayed at 0.1 % or less.
    - **Dan's pool:** σ stayed at 0.9 % or less on all three seeds, and E32 at 0.9 or less.
-3. **The doses order as Dan's do, about 30 × lower.** The median first crossings are 1 % 0.0076
-   < 0.1 % 0.024 < ko 0.040. Dan's medians on our y are 0.21 and 0.86.
+   - **Secondary, like for like with Dan's knockout point:** on the Dan-matched cumulative count
+     (Dan's measure on our reads, against our bar of 27 on it), the primary kos_s0 reached the bar
+     at c 140 (28 theorems, R 0.50). That is well before its censoring at 1.224 and inside Dan's
+     horizon (his bar not reached by 3.6–4.0). kos_s2 had 13 by R 0.41, kos_s1 0 by R 0.09, and
+     the three Dan's-pool seeds 0 by R 0.17–0.37. The figure marks kos_s0's cumulative crossing
+     with an open hexagon.
+3. **The doses order as Dan's do, about 30 × lower, each against its own bar.** The median first
+   crossings are 1 % 0.0076 < 0.1 % 0.024 < ko 0.040. Dan's medians on our y are 0.21 and 0.86.
 4. **Secondary (Amendment 4): with the guard's stop raised 10 ×, 1 of the 6 ko_strict lines
    reached the bar.** kos_s0 (our pool) crossed at R 1.37 and stayed above the bar at every read
    to its cap at R 2.36 (E32 32.5, best 34.7). Its hold window would need a read at R ≥ 2.87, so
@@ -100,16 +114,22 @@ run log and the numbers.
 
 ![E32 on the strict 106 against R for every line, with the bar](e32_vs_r.png)
 
-E32 against R for every line (the dashed grey line is the bar). Shades are seeds. Dashed and
+E32 against R for every line (the dashed grey line is our bar, 26.31). Shades are seeds. Dashed and
 dash-dot lines are the guard-relaxed continuations, which repeat their source line up to the
 resume point.
 
-**Dan-matched cumulative y** (secondary). This is the union of first-32 solves at the base and
-then every 35 iterations, against his single-draw analogue bar of 27.
-- **kos_s0:** reaches 27 at c 140 (R 0.50). It reads 9, 22, 26, 28, 28, 30 and 32 at c 35–245.
-- **kos_s2:** 13 by c 105 (R 0.41), before its stop.
-- **ko_s0:** 34 at its first round, c 35 (R 0.13).
-- Dan's y is cumulative; our primary is the snapshot E32.
+**Dan-matched cumulative count** (secondary; PREREG's "Dan-matched cumulative y"). This is the
+union of first-32 solves at the base and then every 35 iterations, Dan's measure on our reads.
+Its bar is 27, the median of our three full bases' first-32 counts: our analogue of his 14, by
+the same rule. `numbers.md` has the table.
+- **kos_s0:** reaches 27 at c 140 (R 0.50). It reads 0, 9, 22, 26, 28, 28, 30 and 32 at
+  c 0–245, before its censoring at R 1.224.
+- **kos_s2:** 13 by c 105 (R 0.41), before its censoring at 0.441.
+- **kos_s1:** 0 by c 35 (R 0.09), censored at 0.109.
+- **Dan's pool:** 0 on all three seeds, by R 0.17–0.37.
+- **ko_s0:** 34 at its first round, c 35 (R 0.13). ko_s1 and ko_s2 crossed (snapshot) before
+  c 35, so they have no round past the base.
+- Dan's measure is cumulative; our primary is the snapshot E32.
 
 ### Dan's ladders on our y
 
@@ -121,6 +141,8 @@ counts the re-read state prefill and the 20,000 replayed pretraining records per
 
 `numbers.md` gives the ratio for every ladder.
 
+Every number in this table is against **his** bar, 14 of 106 on his cumulative measure.
+
 | Dan's arm (σ share) | ladders | his crossing x | on our y | his GPU-h to the crossing |
 |---|---|---|---|---|
 | full, K12 (10.9 %) | 6 | 3 at the bar before RL (round 1); 0.39–0.43 | 0.21–0.23 | 1.1–1.3 |
@@ -128,13 +150,19 @@ counts the re-read state prefill and the 20,000 replayed pretraining records per
 | 0.1 % dose | 3 | 0.69, 1.37, 2.58 | 0.41, 0.86, 1.66 | 1.8–5.5 |
 | knockout | 6 | not reached by 5.6–6.1 (s1: 13.2) | not reached by 3.6–4.0 (s1: 8.6) | 9.9–24.2, not reached |
 
+- **Each comparison below is against each system's own bar.** Ours is a snapshot E32 and his is a
+  cumulative count, which favours his side, so these ratios understate the gap.
 - At matched doses, our first crossings are about 28 × (1 %) and 35 × (0.1 %) below Dan's
   medians on the same y. In GPU-hours they are 0.09–0.37 against 1.2–5.5. The hardware differs:
   RTX 3090 here, A40 / A6000 for Dan.
 - At the knockout, ko beats his horizon by about 55–110 ×. ko_strict was censored at 0.11–1.22,
-  before his horizon, so the primary can't be compared at his knockout point. With the guard
-  relaxed (secondary), kos_s0 crossed at 1.37 (10.0 GPU-h), below his 3.6–4.0; the other five
-  ko_strict lines ended at R 0.36–1.48 without reaching.
+  before his horizon, so the primary can't be compared at his knockout point.
+- **Like for like at the knockout:** on the same cumulative measure, each against its own bar,
+  the primary kos_s0 reached 27 at R 0.50, inside its censored run; Dan's knockouts did not reach
+  14 by 3.6–4.0. The other five ko_strict lines did not reach 27 (kos_s2 at 13 by R 0.41; the rest
+  at 0).
+- With the guard relaxed (secondary), kos_s0 crossed the snapshot bar at 1.37 (10.0 GPU-h), below
+  his 3.6–4.0; the other five ko_strict lines ended at R 0.36–1.48 without reaching.
 
 ## Controls
 
@@ -256,8 +284,8 @@ E32 below 0.5 × its peak for 25 iterations) never fired.
     tokens estimated, under 0.5 % effect on R).
 - **Interpretation (not observed).** In 1 of 6 ko_strict lines, kos_s0 with our pool, GRPO took
   the knockout base past the bar once the guard was relaxed, at R 1.37. That is well inside Dan's
-  EI horizon (not reached by 3.6–4.0 on this y). The other our-pool line with σ, kos_s2, was at
-  half the bar when the machines ran out.
+  EI horizon (his bar not reached by 3.6–4.0 on this y). The other our-pool line with σ, kos_s2,
+  was at half the bar when the machines ran out.
 
 ## Pre-registered predictions
 
@@ -287,7 +315,9 @@ These were written before any model was read.
   read since has stayed above it, but the hold window (a read at R ≥ 2.87, twice the first read
   above the bar) lies beyond its cap. kos_s2 was at about half the bar when it was stopped for
   machine availability. So σ can be acquired from a base with no σ in its proofs or narration,
-  on one seed in three, at about a third of Dan's EI horizon on this y.
+  on one seed in three, at about a third of Dan's EI horizon on this y (each against its own
+  bar). On the Dan-matched cumulative count the primary kos_s0 got there by R 0.50, before its
+  censoring.
 - **ko_strict, Dan's pool:** nothing happens on any seed by R 0.24–0.38, consistent with Dan's EI
   knockouts.
 
@@ -316,8 +346,9 @@ These were written before any model was read.
   - Other users' processes arrived on kos_s2_gr's ynez GPU after its gated launch (GPU 1 about
     23:20–00:55Z, GPU 2 about 01:00–01:08Z); it was stopped and recorded at its last read. Its
     seconds per iteration in those windows are inflated. The queue gates a GPU only at launch.
-- **y is read from snapshot checkpoints.** Dan's y is cumulative; the Dan-matched cumulative y is
-  given above.
+- **The two bars differ in measure.** Ours is a snapshot E32 of 26.31; Dan's is a cumulative
+  count of 14. Both use the same rule, the median of the system's own full bases before RL. The
+  cumulative measure favours his side. The Dan-matched cumulative count (bar 27) is given above.
 - **Reads:** k 64, plain decoding, budget 64, T 0.8.
 - **The bar** comes from 3 full bases, and 2 of the 3 were at the bar before RL, so the full arm
   has only one RL crossing.

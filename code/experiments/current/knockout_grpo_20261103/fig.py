@@ -7,7 +7,9 @@
     down-triangle: reached by the first checkpoint (an upper bound); hollow circle on the floor: at
     the bar before RL; up-triangle on a thin line: not reached by that R. Colour: GRPO with our
     pool; black-edged squares: GRPO with Dan's pool (Amendment 2); grey: Dan's EI ladders
-    recomputed with our R rule (dan_axis.py). Short ticks: medians where every seed reached.
+    recomputed with our R rule (dan_axis.py), against his own bar (14, cumulative) as ours are
+    against ours (26.31 E32). Open hexagon: a ko_strict line's crossing on the Dan-matched
+    cumulative count (bar 27). Short ticks: medians where every seed reached.
 (b) `e32_vs_r`: E32 on the strict 106 against R per line, with the bar.
 (c) `sigma_train`: σ's share of the distinct Lean-accepted training proofs (5-iteration pooled
     window) and E32 on the strict 106, against GRPO iteration, for the lines with a Lean dump.
@@ -42,20 +44,27 @@ FLOOR = 0.00092  # "at the bar before RL" row
 LEFT_LABEL = {"d1"}  # arms whose range label sits left of the cluster
 SURF = S.WHITE
 CAPTION = [
-    "One marker per seed. Bar: {bar:.1f} of 106 held-out theorems that need classical proof by",
-    "contradiction (σ, Dan's strict set), as E32 (the expected number a 32-sample draw solves),",
-    "the median of our three S1g3 bases before RL. y: (6 × trained + 2 × sampled tokens) ÷",
+    "One marker per seed. Each system against its own bar on the 106 held-out theorems that need",
+    "classical proof by contradiction (σ, Dan's strict set), set by the same rule (the median of",
+    "its own full bases before RL) on different measures: ours {bar:.1f} as E32 (the expected",
+    "number a 32-sample draw solves) from snapshot reads of our three S1g3 bases; Dan's",
+    "{dan_bar:g} as his cumulative count (theorems a 32-sample draw has solved in any round so",
+    "far) of his {dan_full} K12 full bases at round 1, which favours his points and so",
+    "understates the gap. y: (6 × trained + 2 × sampled tokens) ÷",
     "(6 × Stage-1 tokens), prompt prefill excluded. Filled: first crossing, interpolated in log y",
     "between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before",
     "RL; ▲ on a thin line: not reached by that y{running}; cross on a dotted line: the recipe's",
     "think-ban guard ended the line there (censored; counted as not reached by that y, the",
     "conservative reading, since excluding it would flatter the arm); hollow on a dashed line:",
     "the guard-relaxed continuation (Amendment 4, secondary): circle reached, triangle not by",
-    "the cap, x stopped again by the relaxed guard, diamond stopped for machine availability.",
+    "the cap, x stopped again by the relaxed guard, diamond stopped for machine availability;",
+    "open hexagon: a ko_strict line reaching the Dan-matched cumulative count (our first-32",
+    "solves unioned every 35 iterations, against our bar of {bar_d:g} on that measure).",
     "Colour: GRPO with",
     "programmatic thinking traces on our pool ({pool_lo:.1f}–{pool_hi:.1f} % of targets",
     "σ-covered); black edge: the same GRPO on Dan's {dan_n:,} EI targets ({dan_pct:.1f} %); grey:",
-    "Dan's T1 expert-iteration ladders on this y (his own x adds re-read state prefill and replay:",
+    "Dan's T1 expert-iteration ladders, with his bar and measure, on this y (his own x adds",
+    "re-read state prefill and replay:",
     "{r_lo:.1f}–{r_hi:.1f} × these values after round 1; round 1, sampling only, is drawn on the",
     "floor). Differences from Dan: GRPO, not EI; a thinking",
     "model (programmatic search traces); no pretraining replay; S1g3 bases (σ {full:.2f} %, not",
@@ -69,7 +78,8 @@ def caption(N: dict, running: int) -> str:
     f = N["facts"]
     sh, pl = f["sigma_plus_share_pct"], f["pool_strict_pct"]
     return " ".join(CAPTION).format(
-        bar=N["bar_e32"], pool_lo=min(pl["L2_pool"], pl["L3_pool"]),
+        bar=N["bar_e32"], bar_d=N["bar_dan_first32"], dan_bar=f["dan_bar_cum"],
+        dan_full=f["dan_full_ladders"], pool_lo=min(pl["L2_pool"], pl["L3_pool"]),
         pool_hi=max(pl["L2_pool"], pl["L3_pool"]), dan_n=f["dan_pool_n"],
         dan_pct=pl["dan_rl_targets"], r_lo=f["dan_x_over_ours_later"][0],
         r_hi=f["dan_x_over_ours_later"][1],
@@ -214,8 +224,8 @@ def _dump_labels(fig, ax, path: Path) -> None:
 
 
 def headline(N: dict, figdir: Path, provisional: bool) -> None:
-    fig = S.new_figure(S.FULL_W, 4.8, layout="none")
-    ax = fig.add_axes((0.115, 0.385, 0.86, 0.575))
+    fig = S.new_figure(S.FULL_W, 5.3, layout="none")
+    ax = fig.add_axes((0.115, 0.445, 0.86, 0.521))  # the 4.8 in layout's axes, 0.5 in more caption
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlim(0.0125, 17)
@@ -263,22 +273,31 @@ def headline(N: dict, figdir: Path, provisional: bool) -> None:
         for t, x in xs.items():
             if f"{t}_gr" in runs:
                 _relaxed(ax, x, _cross(runs[t]), _cross(runs[f"{t}_gr"]), COLOR[arm])
+        if arm == "kos":  # secondary: the Dan-matched cumulative count's crossing, primary lines
+            for t, x in xs.items():
+                dc = runs[t].get("dan_cumulative", {}).get("cross")
+                if dc:
+                    ax.plot([x], [dc["R"]], "h", ms=4.6, mfc=SURF, mec=COLOR[arm], mew=0.9,
+                            zorder=6)  # fmt: skip
         grs = [_cross(runs[f"{t}_gr"]) for t in xs if f"{t}_gr" in runs]
         _miss_note(ax, [("ours", [_cross(runs[t]) for t in tags]),
                                   ("Dan's pool", [_cross(runs[t]) for t in dps]),
                                   ("relaxed (Am. 4)", grs)])  # fmt: skip
     ax.set_xlabel("σ's share of the pretraining proofs (log scale)")
-    ax.set_ylabel(f"RL ÷ pretraining compute (our rule) needed\nto reach the bar, "
-                  f"{N['bar_e32']:.1f} of 106 strict σ theorems")  # fmt: skip
+    ax.set_ylabel("RL ÷ pretraining compute (our rule) needed\nto reach each system's bar "
+                  "on the 106 strict σ theorems")  # fmt: skip
     h = [Line2D([], [], ls="none", marker="o", color=COLOR[a], mec=SURF, label=NAME[a], ms=4.4)
-         for a in ARMS]  # fmt: skip
+         for a in ARMS] + [Line2D([], [], ls="none", label=" ")]  # fmt: skip
     h += [Line2D([], [], ls="none", marker="s", mfc=SURF, mec=S.INK, label="black edge: Dan's pool", ms=3.6),  # noqa: E501
-          Line2D([], [], ls="none", marker="o", color=S.REF, label="Dan's EI on our rule", ms=3.0),
+          Line2D([], [], ls="none", marker="o", color=S.REF, label="Dan's EI (his bar), our rule",
+                 ms=3.0),
           Line2D([], [], ls="none", marker="^", color=S.INK2, label="not reached by", ms=4.4),
           Line2D([], [], ls=(0, (2, 1.5)), marker="o", mfc=SURF, mec=S.INK2, color=S.INK2,
                  label="guard relaxed (Am. 4)", ms=4.4, lw=0.7),
           Line2D([], [], ls="none", marker="X", color=S.INK2, label="think-ban stop (censored)",
-                 ms=5.0)]  # fmt: skip
+                 ms=5.0),
+          Line2D([], [], ls="none", marker="h", mfc=SURF, mec=S.INK2, mew=0.9,
+                 label="Dan-matched cumulative", ms=4.6)]  # fmt: skip
     ax.legend(handles=h, fontsize=S.FS_SMALL, frameon=False, loc="upper right", ncol=2,
               handletextpad=0.3, columnspacing=0.9, borderaxespad=0.2)  # fmt: skip
     n_run = sum(1 for x in runs.values() if x["cross"]["status"] == "not_reached"

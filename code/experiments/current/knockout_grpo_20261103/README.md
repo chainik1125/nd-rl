@@ -41,7 +41,7 @@ Leon asked for it ("can you rerun this properly to match dans") for the midterm 
 | `health.py` / `health_loop.sh` / `watch_all.sh` / `collect.sh` | monitoring | CPU |
 | `train_sigma.py` | σ share of the Lean-accepted training proofs per GRPO iteration, from `--lean_dump` | CPU |
 | `think_ban.py` | think-ban guard alarms, rollbacks and stops per line, from the stage logs | CPU |
-| `analyze.py` | `numbers.json` / `numbers.md` (bar, first and held crossings with their bracketing checkpoints, training-proof σ share, think-ban events, Dan-matched cumulative y) | CPU |
+| `analyze.py` | `numbers.json` / `numbers.md` (bar, first and held crossings with their bracketing checkpoints, training-proof σ share, think-ban events, Dan-matched cumulative count, the PREREG's "cumulative y") | CPU |
 | `fig.py` | the figures (`code/ndbench/figures/style.py`); writes every drawn label to `figs/rl_needed_grpo.labels.json` | CPU |
 | `check_labels.py` | every number the headline figure draws, checked against numbers.json | CPU |
 | `trace_leak*.py`, `assemble_strict.py`, `mkjobs_kos.py` | the narration-leak check and ko_strict (Amendment 3) | CPU |

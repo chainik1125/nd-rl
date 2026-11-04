@@ -1,4 +1,4 @@
-"""Numbers for knockout_grpo: bar, per-run crossings, Dan-matched cumulative y, Dan on our axis.
+"""Numbers for knockout_grpo: bar, crossings, Dan-matched cumulative count, Dan on our axis.
 
     python3 analyze.py            # reads OUT (collected from every machine) -> numbers.json / .md
 
@@ -103,7 +103,7 @@ def crossing(base_e32: float, rows: list[dict], bar: float) -> dict:
 
 
 def dan_cumulative(tag: str, base: dict, rows: list[dict], bar_d: float) -> dict:
-    """Dan-matched cumulative y: union of first-32 solves over rounds (base, c = 35, 70, ...)."""
+    """Dan-matched cumulative count: first-32 solves unioned over rounds (base, c = 35, 70, ...)."""
     solved = set(base["solved_first32"])
     out = [{"round": 1, "c": 0, "R": 0.0, "y": len(solved)}]
     for r in rows:
@@ -164,6 +164,10 @@ def facts(dan_axis: list[dict]) -> dict:
         # re-read state prefill, ours does not); later rounds add fine-tuning and replay
         "dan_x_over_ours_round1": [min(r1), max(r1)],
         "dan_x_over_ours_later": [min(later), max(later)],
+        # Dan's bar: the same rule as ours (the median of the system's own full bases before RL),
+        # a different measure: his cumulative held-out count (k 32) at round 1 of his full ladders
+        "dan_bar_cum": st.median(o["rounds"][0]["y"] for o in dan_axis if o["arm"] == "full"),
+        "dan_full_ladders": sum(o["arm"] == "full" for o in dan_axis),
     }
 
 
@@ -348,6 +352,24 @@ def main() -> None:
                 q = la["x_dan"] / la["x_ours"]
                 cells = ["—", "", "", f"{q:.2f}", f"{la['x_dan']:.2f} / {la['x_ours']:.2f}"]
             lines.append("| " + " | ".join([o["name"], o["arm"], *cells]) + " |")
+    runs = res["runs"]
+    cum = [t for t in runs if t.startswith(("ko_", "kos_")) and "dan_cumulative" in runs[t]]
+    if cum:
+        dbar = res["facts"]["dan_bar_cum"]
+        lines += ["\n## Dan-matched cumulative count (secondary; ko and ko_strict lines)\n",
+                  "Union of first-32 solves at the base and at every c divisible by 35, against "
+                  f"our single-draw bar {bar_d:g} (the analogue of Dan's {dbar:g}, his median "
+                  "full base at round 1). Rows from a source line are repeated in its "
+                  "continuations.\n",
+                  "| line | cumulative count at c 0, 35, 70, … | reaches the bar "
+                  "| last round (c, R, y) |",
+                  "|---|---|---|---|"]  # fmt: skip
+        for t in cum:
+            dc = res["runs"][t]["dan_cumulative"]
+            r, c = dc["rounds"], dc["cross"]
+            hit = f"c {c['c']}, R {c['R']:.3g} (y {c['y']})" if c else "not reached"
+            lines.append(f"| {t} | {', '.join(str(q['y']) for q in r)} | {hit} | "
+                         f"c {r[-1]['c']}, R {r[-1]['R']:.3g}, {r[-1]['y']} |")  # fmt: skip
     (HERE / "numbers.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
