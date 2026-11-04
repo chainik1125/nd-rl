@@ -30,6 +30,7 @@ import common as C  # noqa: E402
 import gpu as G  # noqa: E402
 
 HOST = os.uname().nodename.split(".")[0]
+ALLOC = "expandable_segments:True,garbage_collection_threshold:0.6"
 
 
 def now() -> str:
@@ -47,6 +48,7 @@ class Seg:
         self.done = threading.Event()
         self.reading = threading.Lock()
         self.why = "running"
+        self.fails: dict[int, int] = {}
 
     def say(self, msg: str) -> None:
         with open(C.KD / "logs" / f"{self.a.line}.events.log", "a") as f:
@@ -56,7 +58,10 @@ class Seg:
         e = dict(os.environ)
         e.update(ND_OFFLINE="1", PYTHONDONTWRITEBYTECODE="1", LEAN_GATE_WORKERS="8",
                  CUDA_VISIBLE_DEVICES=str(self.a.gpu),
-                 LEAN_GATE_DUMP=str(self.dir / "lean_dump.jsonl"))  # fmt: skip
+                 LEAN_GATE_DUMP=str(self.dir / "lean_dump.jsonl"),
+                 # GRPO and a read share the GPU: the allocator returns cached blocks early
+                 # (dko_s0 seg1 died of an OOM at 20:58Z with a read running)
+                 PYTORCH_CUDA_ALLOC_CONF=ALLOC)  # fmt: skip
         return e
 
     # ------------------------------------------------------------------ reads
@@ -66,11 +71,15 @@ class Seg:
             return
         cmd = [C.PY, str(C.HERE / "danread.py"), "--ckpt", str(ckpt), "--seed",
                str(self.L["seed"]), "--round", str(it), "--out", str(out), "--only106",
-               "--k", "64", "--batch", "256"]  # fmt: skip
+               "--k", "64", "--batch", "128"]  # fmt: skip
+        env = {**self.env(), "DANREAD_MEM_FRAC": "0.3"}  # a read never takes GRPO's memory
         with self.reading, open(self.dir / "reads.log", "a") as f:
-            p = subprocess.run(cmd, env=self.env(), stdout=f, stderr=subprocess.STDOUT,
-                               timeout=3600)  # fmt: skip
+            p = subprocess.run(cmd, env=env, stdout=f, stderr=subprocess.STDOUT, timeout=3600)
         self.say(f"read it {it}: rc {p.returncode}")
+        if p.returncode != 0:
+            self.fails[it] = self.fails.get(it, 0) + 1
+            if self.fails[it] >= 3:  # given up: a gap in the curve, marked
+                (self.dir / "reads" / f"it{it:04d}.failed").write_text(now())
 
     def reader(self) -> None:
         if self.a.seg == 1 and not self.a.resume:  # the base, once per line
@@ -81,7 +90,10 @@ class Seg:
                            key=lambda p: int(p.name.split("_it")[-1].split("_")[0]))  # fmt: skip
             for sp in snaps:
                 it = int(sp.name.split("_it")[-1].split("_")[0])
-                if not (self.dir / "reads" / f"it{it:04d}.json").exists():
+                if (
+                    not (self.dir / "reads" / f"it{it:04d}.json").exists()
+                    and not (self.dir / "reads" / f"it{it:04d}.failed").exists()
+                ):
                     try:
                         self.read(sp, it)
                     except subprocess.TimeoutExpired:

@@ -129,6 +129,51 @@ def copy(src_host: str, src: str, dst_host: str, dst: str) -> bool:
     return ok
 
 
+_LINE_RE = "|".join(re.escape(x) for x in C.LINES)
+_PS = ("ps -u $USER -o pid=,args= | while read -r pid args; do case \"$args\" in "
+       "*dline.py\\ --line*|*code.thinking.grpo*) echo \"$pid|$(readlink /proc/$pid/cwd)|$args\";; "
+       "esac; done; true")  # fmt: skip
+
+
+def procs(host: str) -> list[tuple[int, str, str, int]] | None:
+    """This experiment's segment processes on `host`: (pid, 'dline' | 'grpo', line, seg). Only a
+    python process whose command line is dline.py with one of our line tags (cwd: this folder),
+    or `-m code.thinking.grpo --name <tag> --out KD/runs/<tag>/seg<k>` (cwd: our code tree); ps
+    -u $USER lists only our own processes. Shells and every other process never match."""
+    out = sh(host, _PS)
+    if out is None:
+        return None
+    res = []
+    dl = re.compile(
+        rf"^(?:\S*/)?python3?(?:\.\d+)?\s+(?:\S*/)?dline\.py --line ({_LINE_RE}) --seg (\d+)(?: |$)"
+    )
+    gr = re.compile(rf"^\S*/python3?(?:\.\d+)?\s+-m code\.thinking\.grpo\s.*--name ({_LINE_RE}) "
+                    rf"--out {re.escape(str(C.KD))}/runs/({_LINE_RE})/seg(\d+)(?: |$)")  # fmt: skip
+    for ln in out.splitlines():
+        parts = ln.split("|", 2)
+        if len(parts) != 3 or not parts[0].strip().isdigit():
+            continue
+        pid, cwd, args = int(parts[0]), parts[1], parts[2]
+        m = dl.match(args)
+        if m and cwd == str(C.HERE):
+            res.append((pid, "dline", m.group(1), int(m.group(2))))
+            continue
+        m = gr.match(args)
+        if m and m.group(1) == m.group(2) and cwd == str(C.CODE):
+            res.append((pid, "grpo", m.group(1), int(m.group(3))))
+    return res
+
+
+def kill_seg(host: str, line: str, seg: int, ps: list | None = None) -> list[int]:
+    """TERM this experiment's processes of one segment (dline, and GRPO with its process group)."""
+    ps = procs(host) if ps is None else ps
+    pids = [(pid, kind) for pid, kind, ln, k in ps or [] if ln == line and k == seg]
+    if pids:
+        sh(host, "; ".join(f"kill -TERM -- -{p}" if kind == "grpo" else f"kill -TERM {p}"
+                           for p, kind in pids) + "; true")  # fmt: skip
+    return [p for p, _ in pids]
+
+
 class Sup:
     def __init__(self, state: Path = STATE) -> None:
         SUP.mkdir(parents=True, exist_ok=True)
@@ -184,18 +229,11 @@ class Sup:
                 if not k.startswith("_") and s["segs"] and s["status"] in ("running", "waiting")
                 and not s["segs"][-1].get("dead")}  # fmt: skip
         for h in hosts:
-            out = (
-                sh(h, "pgrep -u $USER -af 'python3 dline.py --line|code.thinking.grpo'; true") or ""
-            )
-            for ln in out.splitlines():
-                m = re.search(r"dline\.py --line (\S+) --seg (\d+) ", ln + " ") or re.search(
-                    r"--name (\S+) --out \S+/runs/\S+/seg(\d+) ", ln + " "
-                )
-                if m and (h, m.group(1), int(m.group(2))) not in live:
-                    sd = self.seg_dir(m.group(1), int(m.group(2)))
-                    sh(h, f"pkill -u $USER -f 'dline.py --line {m.group(1)} --seg {m.group(2)} '; "
-                          f"pkill -u $USER -f -- '--out {sd} '; true")  # fmt: skip
-                    event(f"ended an unknown segment: {m.group(1)} seg{m.group(2)} on {h}")
+            ps = procs(h)
+            for line, k in sorted({(ln, k) for _, _, ln, k in ps or []}):
+                if (h, line, k) not in live:
+                    pids = kill_seg(h, line, k, ps)
+                    event(f"ended an unknown segment: {line} seg{k} on {h} (pids {pids})")
 
     # ---------------------------------------------------------------- hosts
     def poll_hosts(self) -> None:
@@ -285,7 +323,7 @@ class Sup:
         if resume:
             res = f" --resume {shlex.quote(resume)}"
         cmd = (f"mkdir -p {sd} {C.KD}/logs && cd {C.HERE} && "
-               f"(setsid nohup timeout 72h python3 dline.py --line {line} --seg {k} --gpu {gpu}{res} "
+               f"(setsid nohup timeout 72h python3 {C.HERE}/dline.py --line {line} --seg {k} --gpu {gpu}{res} "
                f"> {C.KD}/logs/{line}_seg{k}.dline.log 2>&1 < /dev/null &) && echo started")  # fmt: skip
         out = sh(host, cmd)
         s["segs"].append({"seg": k, "host": host, "gpu": gpu, "resume": resume, "start": now(),
@@ -301,7 +339,7 @@ class Sup:
         seg["dead"] = seg.get("dead") or why  # its GPU no longer counts as ours
         h, k = seg["host"], seg["seg"]
         if self.up(h):  # an orphaned GRPO of the dead segment (dline gone) must not run on
-            sh(h, f"pkill -u $USER -f -- '--out {self.seg_dir(line, k)} '; true")
+            kill_seg(h, line, k)
         src = None
         if self.up(h):
             ck = self.newest_ckpt(line, h, f"{self.seg_dir(line, k)}/ckpts")
@@ -353,11 +391,16 @@ class Sup:
         if not self.up(h):
             return  # not yet 3 passes
         out = sh(h, f"cat {sd}/end.json 2>/dev/null; echo ===; cat {sd}/status.json 2>/dev/null; "
-                    f"echo ===; stat -c %Y {C.KD}/logs/{line}_seg{k}.log 2>/dev/null; echo ===; "
-                    f"pgrep -u $USER -f 'dline.py --line {line} --seg {k} ' >/dev/null && echo alive; true")  # fmt: skip # noqa: E501
-        if out is None:
+                    f"echo ===; stat -c %Y {C.KD}/logs/{line}_seg{k}.log 2>/dev/null; true")  # fmt: skip # noqa: E501
+        ps = procs(h)
+        if out is None or ps is None:
             return
-        end, status, mtime, alive = (x.strip() for x in (out.split("===") + ["", "", ""])[:4])
+        end, status, mtime = (x.strip() for x in (out.split("===") + ["", ""])[:3])
+        alive = (
+            "alive"
+            if any(kind == "dline" and ln == line and kk == k for _, kind, ln, kk in ps)
+            else ""
+        )
         if end:
             how = json.loads(end)["how"]
             if how in ("done", "stopped"):
@@ -370,10 +413,7 @@ class Sup:
             self.respawn(line, "process gone (killed or OOM)")
             return
         if mtime and time.time() - int(mtime) > STALL_S:
-            st = json.loads(status) if status else {}
-            if st.get("pid"):
-                sh(h, f"kill -TERM -- -{int(st['pid'])} 2>/dev/null; pkill -u $USER -f "
-                      f"'dline.py --line {line} --seg {k} '")  # fmt: skip
+            kill_seg(h, line, k, ps)
             self.respawn(line, "no progress for 25 min")
             return
         g = self.g.get(h) or {}

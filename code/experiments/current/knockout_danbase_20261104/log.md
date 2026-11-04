@@ -90,3 +90,19 @@ All times UTC.
 - **ynez** rejoins the GPU pool on its own: every pass polls it, and a free ynez GPU (no process
   of anyone) is used like any other after the code and data are copied there; the never-share
   check runs every pass on every host and every 60 s inside each segment.
+- **20:58:02Z — dko_s0 seg1 OOM** (serrano GPU 0): GRPO and the iteration-10 read shared the GPU
+  and the caching allocators filled it ("Tried to allocate 950 MiB … 924 MiB free"); the
+  supervisor respawned it as seg2 from its iteration-10 rolling checkpoint (20:59Z; 1 logged
+  iteration lost). Fix (21:05Z): segments run GRPO and reads with
+  `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,garbage_collection_threshold:0.6`; a read
+  is capped at 30 % of the GPU (`torch.cuda.set_per_process_memory_fraction`) and uses batch 128
+  (a different but equivalent draw); a read that fails 3 times is marked `it<i>.failed` (a
+  gap). Both running lines were moved onto the new segment code at their next rolling checkpoint
+  (`STOP_AT_CKPT`): dko_s1 seg3 (21:10Z) and dko_s0 seg3 (21:12Z), from iteration 20, 0 lost.
+- **21:05Z — process matcher narrowed** (coordinator: never touch other processes). The
+  supervisor now acts only on processes from `ps -u $USER` whose command line is a python running
+  `dline.py --line <dko_s*|dfull_s3|dkoour_s*> --seg <k>` with cwd this folder, or `-m
+  code.thinking.grpo … --name <tag> --out KD/runs/<tag>/seg<k>` with cwd our code tree; it kills
+  by PID. This also fixes a bug: the old liveness check (`pgrep -f` over ssh) matched its own
+  shell, so a dead segment could look alive (deaths were still caught by `end.json` and the
+  25-min stall rule).

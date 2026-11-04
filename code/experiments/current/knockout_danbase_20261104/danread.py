@@ -40,7 +40,7 @@ def main() -> None:
     os.chdir(DAN)
     sys.path.insert(0, str(DAN))
     sys.path.insert(0, str(DAN / "coe"))
-    import torch  # noqa: F401
+    import torch
     from coe_sigma import flags  # type: ignore[import-not-found]
     from eval_set import judge  # type: ignore[import-not-found]
     from model import load_ckpt  # type: ignore[import-not-found]
@@ -53,6 +53,8 @@ def main() -> None:
         transfer = [t for t in transfer if t["name"] in s]
     ENV["max_action"], ENV["max_steps"], ENV["stats"] = 256, 48, {}
     t0 = time.time()
+    if os.environ.get("DANREAD_MEM_FRAC"):  # beside a training process: a hard cap
+        torch.cuda.set_per_process_memory_fraction(float(os.environ["DANREAD_MEM_FRAC"]))
     model, tok, _ = load_ckpt(a.ckpt, "cuda")
     seed = a.seed * 1000 + a.round
     prompts = [t["prompt"] for t in transfer for _ in range(a.k)]
