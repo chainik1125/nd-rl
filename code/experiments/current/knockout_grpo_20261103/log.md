@@ -277,3 +277,12 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   queued as a read-only completion (`reads_kos_s0_dp_gr`: line.py finds the cap checkpoint and
   only reads). The effect on R of the estimated trained tokens is under 0.5 % (54 of the lines'
   ~700 iterations, 3–7 % error each). train_sigma is not reported for the continuations.
+- **00:56–01:08Z — kos_s2_gr, final.** Its gated resume launched 00:56:21Z on ynez GPU 2 (free
+  then); by 01:04Z another user's process was on GPU 2 too, and frankyang's on GPUs 0, 1 and 3.
+  Coordinator: stop it, record it now, no further launches on ynez. Stopped 01:07:38Z right after
+  its L3 it 260 checkpoint (`AVAILABILITY_STOP`; `KO/queue/STOP` on ynez). Recorded as "stopped
+  for machine availability" at its last read, c 282 (R 1.476, E32 12.35; best 14.4).
+  - **GPU sharing, two periods:** ynez GPU 1 from about 23:20Z to 00:55Z (iterations 246–257,
+    after the 23:15:45Z resume launched onto a then-free GPU), and GPU 2 from about 01:00Z to
+    01:08Z. The queue gates a GPU only at launch, so later arrivals of other users are not caught;
+    a running-job check belongs in the queue design (not changed now).

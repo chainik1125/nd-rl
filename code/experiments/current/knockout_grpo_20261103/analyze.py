@@ -199,8 +199,12 @@ def line_state(tag: str) -> dict:
     )
     # a line_done with no stop reason before the cap: a stage killed from outside (temescal's
     # crash) or stopped for machine availability (AVAILABILITY_STOP), not resumed
-    avail = done is not None and not finished
-    return {"line_done": done is not None, "think_ban_stop": tb, "availability_stop": avail}
+    avail = (done is not None or (ev / "AVAILABILITY_STOP").exists()) and not finished
+    return {
+        "line_done": done is not None or avail,
+        "think_ban_stop": tb,
+        "availability_stop": avail,
+    }
 
 
 def _row(tag: str, x: dict) -> str:
