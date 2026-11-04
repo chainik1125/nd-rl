@@ -64,3 +64,29 @@ All times UTC.
   overlaps the 106 or transfer_track832 by key.
 - **PREREG.md frozen:** sha256 `dac8e2df131008116990730917170c2915e46c7f81b41bd24a21939662dcdb31`. Projection: about 720 iterations per full-length
   line (one ladder, x_dan 5.8–5.9), 9–10 GPU-h each; about 60 GPU-h for the seven lines.
+- **20:46Z — supervisor started** (`sup.py` on serrano, under `timeout 96h`, every 90 s;
+  `KD/sup/`). dko_s0 → serrano GPU 0, dko_s1 → temescal GPU 2. My error, fixed at 20:53Z: the
+  launch command backgrounded a whole `&&` list, so each launch waited for its 60 s timeout (the
+  jobs started all the same); now the job alone is backgrounded.
+- **20:50:45Z — respawn test** (coordinator asked for respawns; done once on a live line, which
+  the coordinator has since ruled out: later tests use dummy jobs). I SIGKILLed dko_s1's GRPO
+  process at iteration 6 (as an OOM kill would). dline wrote `end.json` failed (rc −9). It exposed
+  a bug, fixed: the dead segment's GPU still counted as ours, so the respawn waited while the
+  pending dko_s2 took temescal GPU 2 (20:51Z). I stopped dko_s2 at iteration 8 (20:57Z, `STOP`;
+  it restarts from its base as seg2, merge.py drops seg1) and the supervisor respawned dko_s1 as
+  seg2 on temescal GPU 2 from its iteration-5 rolling checkpoint (20:58Z); it resumed at iteration
+  6, no logged iteration lost. Also fixed: an orphaned GRPO of a dead segment (dline gone) is
+  killed before a respawn.
+- **21:02Z — standby supervisor and lease** (coordinator: the supervisor must not be a single
+  point of failure). `sup.py --standby` on temescal (under `timeout 96h`) writes a heartbeat every
+  90 s and takes over only when serrano has not answered ssh for 10 min **and** serrano's lease
+  (its heartbeat, renewed every pass on both machines) is older than 10 min; it then acts with
+  epoch + 1 from serrano's last copied state. Every action on a line (launch, respawn, move,
+  stop) checks the lease first; a supervisor that sees a higher epoch on its peer yields and
+  exits; a supervisor that starts acting, or sees a host answer again, ends our segments its
+  state does not know. Tested on a dummy tree (simulated hosts): passive while serrano answers,
+  passive while the lease is fresh, takes over when both fail, and serrano's old supervisor
+  yields to the higher epoch. Host locality now follows the running machine (gpu.py, merge.py).
+- **ynez** rejoins the GPU pool on its own: every pass polls it, and a free ynez GPU (no process
+  of anyone) is used like any other after the code and data are copied there; the never-share
+  check runs every pass on every host and every 60 s inside each segment.

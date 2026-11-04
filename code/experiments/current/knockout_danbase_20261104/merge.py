@@ -27,11 +27,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common as C  # noqa: E402
 
 GPUH_CAP = 15.0
+HOST = __import__("socket").gethostname().split(".")[0]
 
 
 def seg_root(line: str, seg: dict) -> Path | None:
     k = seg["seg"]
-    for p in (C.KD / "runs" / line / f"seg{k}" if seg["host"] == "serrano" else None,
+    for p in (C.KD / "runs" / line / f"seg{k}" if seg["host"] == HOST else None,
               C.KD / "collected" / seg["host"] / line / f"seg{k}",
               C.KD / "backup" / line / f"seg{k}"):  # fmt: skip
         if p is not None and (p / "metrics.jsonl").exists():

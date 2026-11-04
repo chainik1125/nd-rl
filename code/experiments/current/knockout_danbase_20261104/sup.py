@@ -1,8 +1,21 @@
 """The supervisor: runs on serrano until every line has ended (Leon: "monitor the gpus and respawn
 dead processes on new gpus").
 
-    python3 sup.py            # loop (every 90 s); state in KD/sup/state.json, events in KD/sup/sup.log
-    python3 sup.py --once     # one pass (testing)
+    python3 sup.py                  # serrano, the acting supervisor (loop every 90 s)
+    python3 sup.py --standby        # temescal: passive; takes over only if serrano is gone
+    python3 sup.py --once           # one pass (testing)
+
+State in KD/sup/state.json, events in KD/sup/events.md, the log in KD/sup/sup.log.
+
+**Lease** (`KD/sup/lease.json` {host, utc, epoch} on both machines). The acting supervisor renews
+it every pass, locally and on its peer, and copies its state to the peer
+(`state.from_<host>.json`). Before every action on a line (launch, respawn, move, stop) it checks
+that it still holds the lease: its own host and epoch locally, and no higher epoch on the peer
+(a higher epoch there means the peer took over: it yields and exits). The standby on temescal
+writes `standby_heartbeat.json` every 90 s and takes over (epoch + 1, the copied state) only when
+serrano has not answered ssh for 10 min **and** its lease (serrano's heartbeat) is older than
+10 min. A supervisor that starts acting first ends our segments that its state does not know
+(`reap_unknown`); so does any pass where a host answers again.
 
 Each pass, for each host: reachable? (ssh, ConnectTimeout 10) and who is on which GPU. For each
 line (common.LINES):
@@ -70,7 +83,29 @@ def sh(host: str, cmd: str, timeout: int = 60) -> str | None:
 
 
 def local(host: str) -> bool:
-    return host == "serrano"
+    return host == G.HOST
+
+
+LEASE = SUP / "lease.json"
+PEER = "temescal" if G.HOST == "serrano" else "serrano"
+TAKEOVER_S = 600
+
+
+def read_json(host: str, path: Path) -> dict | None:
+    out = sh(host, f"cat {path} 2>/dev/null; true")
+    try:
+        return json.loads(out) if out else None
+    except json.JSONDecodeError:
+        return None
+
+
+def age(d: dict | None) -> float:
+    return (
+        float("inf")
+        if not d
+        else time.time()
+        - (time.mktime(time.strptime(d["utc"], "%Y-%m-%dT%H:%M:%SZ")) - time.timezone)
+    )
 
 
 def copy(src_host: str, src: str, dst_host: str, dst: str) -> bool:
@@ -95,16 +130,72 @@ def copy(src_host: str, src: str, dst_host: str, dst: str) -> bool:
 
 
 class Sup:
-    def __init__(self) -> None:
+    def __init__(self, state: Path = STATE) -> None:
         SUP.mkdir(parents=True, exist_ok=True)
-        self.st = json.loads(STATE.read_text()) if STATE.exists() else {}
+        self.st = json.loads(state.read_text()) if state.exists() else {}
         for line in C.LINES:
             self.st.setdefault(line, {"status": "pending", "segs": []})
         self.st.setdefault("_hosts", {h: {"fails": 0} for h in C.HOSTS})
         self.g: dict[str, dict[int, set[str]] | None] = {}
+        lease = read_json(G.HOST, LEASE) or {}
+        self.epoch = int(lease.get("epoch", 0)) + (0 if lease.get("host") == G.HOST else 1)
+        self.yielded = False
+        self.standby_warned = False
 
     def save(self) -> None:
         STATE.write_text(json.dumps(self.st, indent=1))
+
+    # ---------------------------------------------------------------- the lease
+    def renew(self) -> None:
+        peer = read_json(PEER, LEASE) if self.up(PEER) else None
+        if peer and int(peer.get("epoch", 0)) > self.epoch:
+            self.yielded = True
+            event(
+                f"supervisor on {G.HOST} yields: {peer['host']} holds the lease (epoch "
+                f"{peer['epoch']} > {self.epoch}); exiting"
+            )
+            return
+        d = json.dumps({"host": G.HOST, "utc": now(), "epoch": self.epoch})
+        LEASE.write_text(d)
+        if self.up(PEER):
+            sh(PEER, f"mkdir -p {SUP} && echo {shlex.quote(d)} > {LEASE}")
+            copy(G.HOST, str(STATE), PEER, str(SUP / f"state.from_{G.HOST}.json"))
+            hb = read_json(PEER, SUP / "standby_heartbeat.json")
+            if age(hb) > TAKEOVER_S and not self.standby_warned:
+                self.standby_warned = True
+                event(f"the standby on {PEER} has no heartbeat for over 10 min")
+            elif age(hb) <= TAKEOVER_S:
+                self.standby_warned = False
+
+    def holds(self) -> bool:
+        """Checked before every action on a line."""
+        if self.yielded:
+            return False
+        mine = read_json(G.HOST, LEASE) or {}
+        if mine.get("host") != G.HOST or int(mine.get("epoch", -1)) != self.epoch:
+            self.yielded = True
+            event(f"supervisor on {G.HOST} lost its lease ({mine}); exiting")
+            return False
+        return True
+
+    def reap_unknown(self, hosts: list[str]) -> None:
+        """End our dline segments that this state does not know as a line's live segment."""
+        live = {(s["segs"][-1]["host"], k, s["segs"][-1]["seg"]) for k, s in self.st.items()
+                if not k.startswith("_") and s["segs"] and s["status"] in ("running", "waiting")
+                and not s["segs"][-1].get("dead")}  # fmt: skip
+        for h in hosts:
+            out = (
+                sh(h, "pgrep -u $USER -af 'python3 dline.py --line|code.thinking.grpo'; true") or ""
+            )
+            for ln in out.splitlines():
+                m = re.search(r"dline\.py --line (\S+) --seg (\d+) ", ln + " ") or re.search(
+                    r"--name (\S+) --out \S+/runs/\S+/seg(\d+) ", ln + " "
+                )
+                if m and (h, m.group(1), int(m.group(2))) not in live:
+                    sd = self.seg_dir(m.group(1), int(m.group(2)))
+                    sh(h, f"pkill -u $USER -f 'dline.py --line {m.group(1)} --seg {m.group(2)} '; "
+                          f"pkill -u $USER -f -- '--out {sd} '; true")  # fmt: skip
+                    event(f"ended an unknown segment: {m.group(1)} seg{m.group(2)} on {h}")
 
     # ---------------------------------------------------------------- hosts
     def poll_hosts(self) -> None:
@@ -118,21 +209,9 @@ class Sup:
             else:
                 if hs["fails"] >= DOWN_PASSES:
                     event(f"host {h} answers again")
-                    self.reap(h)
+                    if self.holds():
+                        self.reap_unknown([h])
                 hs["fails"] = 0
-
-    def reap(self, h: str) -> None:
-        """A host is back: end our processes of segments that were respawned elsewhere (their
-        later rows and reads are superseded by the respawn, merge.py)."""
-        for line, s in self.st.items():
-            if line.startswith("_"):
-                continue
-            for seg in s["segs"][:-1]:
-                if seg["host"] == h:
-                    sd = self.seg_dir(line, seg["seg"])
-                    sh(h, f"pkill -u $USER -f 'dline.py --line {line} --seg {seg['seg']} '; "
-                          f"pkill -u $USER -f -- '--out {sd} '; true")  # fmt: skip
-                    log(f"reaped {line} seg{seg['seg']} on {h}")
 
     def up(self, h: str) -> bool:
         return self.g.get(h) is not None
@@ -142,7 +221,8 @@ class Sup:
 
     def ours_on(self, h: str) -> list[int]:
         return [s["segs"][-1]["gpu"] for k, s in self.st.items()
-                if not k.startswith("_") and s["status"] == "running" and s["segs"][-1]["host"] == h]  # fmt: skip # noqa: E501
+                if not k.startswith("_") and s["status"] == "running" and s["segs"][-1]["host"] == h
+                and not s["segs"][-1].get("dead")]  # fmt: skip # noqa: E501
 
     def free_gpu(self) -> tuple[str, int] | None:
         for h in ("serrano", "temescal", "ynez"):
@@ -193,6 +273,8 @@ class Sup:
         return ok
 
     def launch(self, line: str, host: str, gpu: int, resume: str | None) -> None:
+        if not self.holds():
+            return
         if not self.deploy(host):
             event(f"{line}: deploy to {host} failed; not launching")
             return
@@ -203,8 +285,8 @@ class Sup:
         if resume:
             res = f" --resume {shlex.quote(resume)}"
         cmd = (f"mkdir -p {sd} {C.KD}/logs && cd {C.HERE} && "
-               f"setsid nohup timeout 72h python3 dline.py --line {line} --seg {k} --gpu {gpu}{res} "
-               f"> {C.KD}/logs/{line}_seg{k}.dline.log 2>&1 < /dev/null & echo started")  # fmt: skip
+               f"(setsid nohup timeout 72h python3 dline.py --line {line} --seg {k} --gpu {gpu}{res} "
+               f"> {C.KD}/logs/{line}_seg{k}.dline.log 2>&1 < /dev/null &) && echo started")  # fmt: skip
         out = sh(host, cmd)
         s["segs"].append({"seg": k, "host": host, "gpu": gpu, "resume": resume, "start": now(),
                           "ok": bool(out)})  # fmt: skip
@@ -212,9 +294,14 @@ class Sup:
         log(f"launch {line} seg{k} on {host} GPU {gpu} resume {resume}: {out!r}")
 
     def respawn(self, line: str, why: str) -> None:
+        if not self.holds():
+            return
         s = self.st[line]
         seg = s["segs"][-1]
+        seg["dead"] = seg.get("dead") or why  # its GPU no longer counts as ours
         h, k = seg["host"], seg["seg"]
+        if self.up(h):  # an orphaned GRPO of the dead segment (dline gone) must not run on
+            sh(h, f"pkill -u $USER -f -- '--out {self.seg_dir(line, k)} '; true")
         src = None
         if self.up(h):
             ck = self.newest_ckpt(line, h, f"{self.seg_dir(line, k)}/ckpts")
@@ -291,7 +378,7 @@ class Sup:
             return
         g = self.g.get(h) or {}
         if g.get(seg["gpu"], set()) - {G.ME}:
-            if not seg.get("moving"):
+            if not seg.get("moving") and self.holds():
                 sh(h, f"touch {sd}/STOP_AT_CKPT")
                 seg["moving"] = now()
                 event(f"{line}: another user's process on {h} GPU {seg['gpu']} "
@@ -334,7 +421,7 @@ class Sup:
     def stop_rule(self, line: str) -> None:
         r = M.line_view(line, self.st[line]["segs"])
         why = M.stop_reason(line, r)
-        if why:
+        if why and self.holds():
             seg = self.st[line]["segs"][-1]
             sh(seg["host"], f"touch {self.seg_dir(line, seg['seg'])}/STOP")
             self.st[line]["stop_reason"] = why
@@ -342,6 +429,9 @@ class Sup:
 
     def one_pass(self) -> None:
         self.poll_hosts()
+        self.renew()
+        if self.yielded:
+            return
         for line in sorted(C.LINES, key=lambda x: C.LINES[x]["prio"]):
             s = self.st[line]
             try:
@@ -368,17 +458,48 @@ class Sup:
         log(f"pass: hosts {[h for h in C.HOSTS if self.up(h)]}; not done: {live}")
 
     def loop(self) -> None:
+        self.poll_hosts()
+        self.renew()
+        if not self.yielded and self.holds():
+            self.reap_unknown([h for h in C.HOSTS if self.up(h)])
         while any(v["status"] != "done" for k, v in self.st.items() if not k.startswith("_")):
+            if self.yielded:
+                return
             t = time.time()
             self.one_pass()
             time.sleep(max(5.0, PASS_S - (time.time() - t)))
         event("every line has ended; supervisor exits")
 
 
+def standby() -> None:
+    """Passive on temescal: a heartbeat every 90 s; takes over only if serrano is gone."""
+    since = None
+    while True:
+        (SUP / "standby_heartbeat.json").write_text(json.dumps({"utc": now(), "host": G.HOST}))
+        ok = sh("serrano", "echo ok", timeout=30)
+        since = None if ok else (since or time.time())
+        lease = read_json(G.HOST, LEASE)
+        if lease and lease.get("host") == G.HOST:
+            return  # this host already holds the lease (an earlier takeover): act
+        if since is not None and time.time() - since >= TAKEOVER_S and age(lease) >= TAKEOVER_S:
+            src = SUP / "state.from_serrano.json"
+            if src.exists():
+                STATE.write_text(src.read_text())
+            event(
+                f"standby on {G.HOST} takes over: serrano unreachable for "
+                f"{(time.time() - since) / 60:.0f} min, its lease {age(lease) / 60:.0f} min old"
+            )
+            return
+        time.sleep(PASS_S)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--once", action="store_true")
+    ap.add_argument("--standby", action="store_true")
     a = ap.parse_args()
+    if a.standby:
+        standby()  # returns when this host is to act
     s = Sup()
     if a.once:
         s.one_pass()

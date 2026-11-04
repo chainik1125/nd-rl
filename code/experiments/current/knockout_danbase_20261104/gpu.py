@@ -16,6 +16,7 @@ import subprocess
 import sys
 
 ME = getpass.getuser()
+HOST = socket.gethostname().split(".")[0]
 SSH = ["ssh", "-i", os.path.expanduser("~/.ssh/id_ynez"), "-o", "IdentitiesOnly=yes",
        "-o", "BatchMode=yes", "-o", "ConnectTimeout=10"]  # fmt: skip
 Q = ("nvidia-smi --query-gpu=index,pci.bus_id --format=csv,noheader; echo ===; "
@@ -24,7 +25,7 @@ Q = ("nvidia-smi --query-gpu=index,pci.bus_id --format=csv,noheader; echo ===; "
 
 
 def run(host: str, cmd: str, timeout: int = 40) -> subprocess.CompletedProcess | None:
-    local = host in (socket.gethostname(), "localhost", "serrano")
+    local = host in (HOST, "localhost")
     argv = ["bash", "-c", cmd] if local else [*SSH, host, cmd]
     env = {**os.environ, "SSH_AUTH_SOCK": ""}
     try:
