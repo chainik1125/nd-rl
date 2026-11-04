@@ -1,3 +1,22 @@
+---
+written_on: 2026-11-04
+written_by: agent:claude (executor, run olmo-think32b; reviewed 2026-11-04, corrections marked by the librarian)
+---
+
+> **Reading copy (librarian, 2026-11-04).** This is the scale-up memo of run `olmo-think32b`, written by the executor.
+> The source is fork `dan-pandori/nd-takehome`, branch `dan_olmo-think32b`, file `olmo32/scaleup_memo.md` at
+> [`88525f75`](https://github.com/dan-pandori/nd-takehome/blob/88525f75/olmo32/scaleup_memo.md). The review
+> ([`review_olmo-think32b.md`](https://github.com/dan-pandori/nd-takehome/blob/08da2e82/review_olmo-think32b.md), C1
+> and C3) reproduces the memo's per-sample price ($0.052) and its ≈ $40 for 768 more `dpo` samples ($39.7 by the
+> review's arithmetic) at the run's measured prices.
+> Its corrections are applied and marked *[review]*:
+> - "under a strict proof standard it never does" becomes "in none of its 256 samples" (C3);
+> - the $27 assumes a $3.59/h community H200, which was not available during the run (C1);
+> - the review's three next measurements are added after the recommendation (§Verdict, "Next measurements").
+>
+> The costs below are projections from this run's measured prices. See the [summary](README.md) for the reviewed
+> numbers.
+
 # Scale-up memo — olmo-think32b (2026-11-04, executor)
 
 Models: `allenai/Olmo-3-32B-Think-DPO` `main` (the RL start) and `allenai/Olmo-3.1-32B-Think` `step_0100` / `step_0750` /
@@ -19,7 +38,8 @@ One reach candidate survived the fixed phase: **aime2025_28** (answer 248). Its 
 `step_0100` stays close to `dpo` here (256 draws: 9 credited by RL's verifier, 5 with the answer stated; 208 is its
 commonest stated answer) and `step_0750` sits between (256 draws: 21 and 15). So aime2025_28 is the one problem where the 21-day extension's checkpoint is far more reliable than its start.
 Whether the start "can" solve it depends on the grade: under RL's verifier it does (7 times); with the answer stated
-it does once in 256; under a strict proof standard it never does (every credited `dpo` solution leaves the crux —
+it does once in 256; under a strict proof standard it does in none of its 256 samples *[review]* (every credited
+`dpo` solution leaves the crux —
 that the reduced numerator is divisible by 3 at every step — unproved or argues it from residue representatives).
 
 No other problem is a candidate: the 7 problems no model solved in the fixed phase (aime2025_13, 14, 15, 30;
@@ -44,7 +64,18 @@ Hand checks are not in these costs (sub-agent reading; ≈ 1 reader per 2–3 so
 
 The screening found one problem, not several, so the brief's "several problems stay out of reach at 256" condition for
 a larger extension is not met. The cheapest informative next step is **aime2025_28 to 1,024 under the final-answer
-grade (≈ $27–40)**: it is the only place where the DPO model's capability is genuinely in question, and the answer
+grade (≈ $27–40; ≈ $40 at the secure rate this run paid, since the $27 assumes a $3.59/h community H200
+that was not available during the run *[review]*)**: it is the only place where the DPO model's capability is genuinely in question, and the answer
 (rare-but-present vs absent under a strict proof standard) is the elicit-versus-create distinction in miniature. A
 broader search for candidates (`step_2300` at 64 on the 7 problems nobody solved) would cost about as much and is
 the better use of money if Dan wants more candidates rather than a sharper answer on this one.
+
+*[review]* **The review's next measurements** (§Verdict), for comparison with the recommendation above:
+1. **aime2025_28, `dpo` to 1,024 samples** (the memo's ≈ $40 at the secure H200 rate), with the hand standard fixed
+   *before* reading. Pre-register the strict reading as the label and the representative rule as a sensitivity check,
+   so that "`dpo` has a sound solution" is decided by a pre-set rule.
+2. **A longer cap on the same problem,** e.g. 256 `dpo` samples with responses up to ≈ 64k tokens (the 65,536-position
+   YaRN context includes the prompt). 43 % of `dpo`'s samples there are cut at 32,768, and 70 of 240 state 208. This
+   separates "cannot" from "runs out of room". The cost scales with the longer samples and was not measured here.
+3. **For more candidates,** the memo's `step_2300` × 64 on the 7 problems no model solved (≈ $25 secure) before any
+   `dpo` extension.
