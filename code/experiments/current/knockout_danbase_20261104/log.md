@@ -121,3 +121,13 @@ All times UTC.
   readers retry the snapshots (kept), and the four base reads run once with the segments'
   settings (`baseread.sh`, on each line's own GPU; 21:4xZ). The reader now also retries a
   missing base read. No training was affected.
+- **21:39Z — dfull_s3 (reference) at the bar at round 1:** its base read (k 64 on the 106, first
+  32) solved 15 ≥ 14; the snapshot first-32 counts were 28 / ~31 / 34 at iterations 10 / 20 / 30
+  (x_dan 0.08–0.23), so the hold rule was met and the supervisor stopped it (21:58Z, 33
+  iterations, 0.54 GPU-h). P5 (reach at round 2) misses: it was at the bar before RL.
+- **22:17Z — dkoour_s2 moved** (temescal GPU 1): its segment saw another user's process
+  (BenPham) on its GPU, ended at the next rolling checkpoint (it 60) and was respawned as seg2;
+  by then BenPham's process was on GPU 0 only and GPU 1 had no other process, so seg2 went back
+  to GPU 1 (22:23Z; 0 iterations lost).
+- **22:3xZ — GPU-h of an ended segment** now uses its end time (recorded by the supervisor, and
+  the segment's last files are collected when it ends); dfull_s3's had kept counting.

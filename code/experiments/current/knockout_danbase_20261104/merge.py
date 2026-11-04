@@ -93,6 +93,8 @@ def line_view(line: str, segs: list[dict], final: bool = False) -> dict:
             t1 = time.time() if nxt is None else _utc(nxt["start"])
         if nxt is not None:
             t1 = min(t1, _utc(nxt["start"]))
+        if seg.get("end"):
+            t1 = min(t1, _utc(seg["end"]))
         gpuh += max(0.0, t1 - _utc(seg["start"])) / 3600
     xd = xo = 0.0
     x_by_it: dict[int, tuple[float, float]] = {0: (0.0, 0.0)}

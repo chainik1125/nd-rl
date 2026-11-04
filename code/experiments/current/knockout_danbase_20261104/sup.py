@@ -404,6 +404,8 @@ class Sup:
         )
         if end:
             how = json.loads(end)["how"]
+            seg["end"] = json.loads(end)["utc"]
+            self.collect(line)  # the segment's last files (end.json, last reads) to serrano
             if how in ("done", "stopped"):
                 s["status"] = "done"
                 event(f"{line}: ended ({how}) on {h} seg{k}")
