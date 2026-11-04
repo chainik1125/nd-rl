@@ -19,7 +19,7 @@ Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matche
 | ko_s2 | 1.04 (1.0 %) | 0.0368 (c 11–c 13) | 0.51 | c 13–c 25, done at R 0.0923 | c 25, R 0.0923, 40.8 |  |
 | kos_s0 | 0.00 (0.0 %) | not reached by 1.22 (best 25.0); think-ban stop in L3 | 9.01 |  | c 251, R 1.22, 25.0 | 0.3 → 46.0 % at L3 it 234 (max 50.6) |
 | kos_s0_dp | 0.00 (0.0 %) | not reached by 0.376 (best 0.5); think-ban stop in L3 | 3.80 |  | c 141, R 0.376, 0.0 | 0.0 → 0.0 % at L3 it 105 (max 0.8) |
-| kos_s0_gr | 0.00 (0.0 %) | 1.37 (c 251–c 280) | 10.03 | not held: not held by R 1.7 (c 316) | c 316, R 1.7, 29.0 (R uses 20 rebuilt metrics rows, L3 it 284–303) | 50.2 → 42.3 % at L3 it 309 (max 51.0); no dump for L3 it 284–304 |
+| kos_s0_gr | 0.00 (0.0 %) | 1.37 (c 251–c 280) | 10.03 | not held: not held by R 1.99 (c 355) | c 355, R 1.99, 33.2 (R uses 20 rebuilt metrics rows, L3 it 284–303) | 50.2 → 42.3 % at L3 it 309 (max 51.0); no dump for L3 it 284–304 |
 | kos_s0_dp_gr | 0.00 (0.0 %) | not reached by 1.37 (best 0.5) | 12.51 |  | c 403, R 1.37, 0.0 (R uses 34 rebuilt metrics rows, L3 it 329–362) | 0.1 → 0.0 % at L3 it 364 (max 1.3); no dump for L3 it 329–363 |
 | kos_s1 | 0.00 (0.0 %) | not reached by 0.109 (best 0.5); think-ban stop in L3 | 1.37 |  | c 40, R 0.109, 0.0 | 0.0 → 0.1 % at L3 it 2 (max 0.1) |
 | kos_s1_dp | 0.00 (0.0 %) | not reached by 0.261 (best 0.8); think-ban stop in L3 | 3.62 |  | c 112, R 0.261, 0.0 | 0.0 → 0.5 % at L3 it 86 (max 0.5) |
