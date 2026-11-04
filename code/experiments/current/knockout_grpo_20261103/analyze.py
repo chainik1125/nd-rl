@@ -127,7 +127,8 @@ def train_sigma(tag: str) -> dict | None:
         return None
     sh = [100.0 * r["sigma"] / max(1, r["accepted_distinct"]) for r in rows]
     dn = [100.0 * r["dn_any"] / max(1, r["accepted_distinct"]) for r in rows]
-    return {"first_pct": sh[0], "last_pct": sh[-1], "max_pct": max(sh),
+    gaps = d.get("gaps") or []
+    return {"gaps": gaps, "first_pct": sh[0], "last_pct": sh[-1], "max_pct": max(sh),
             "last_at": f"{rows[-1]['stage']} it {rows[-1]['iter']}",
             "dn_any_pct_range": [min(dn), max(dn)], "n_iters": len(rows)}  # fmt: skip
 
@@ -166,6 +167,16 @@ def facts(dan_axis: list[dict]) -> dict:
     }
 
 
+def reconstructed(tag: str) -> list[int]:
+    """L3 iterations whose metrics row was rebuilt (rebuild_metrics.py, log.md 2026-11-04)."""
+    m = OUT / "runs" / f"{tag}_L3" / "metrics.jsonl"
+    if not m.exists():
+        return []
+    return [
+        json.loads(x)["iter"] for x in m.read_text().splitlines() if '"reconstructed": true' in x
+    ]
+
+
 def line_state(tag: str) -> dict:
     """Whether the line has ended, and how (line_done.json; think_ban_stop.json for kos_s1)."""
     ev = OUT / "evals" / tag
@@ -196,8 +207,15 @@ def _row(tag: str, x: dict) -> str:
     c, last, ts = x["cross"], x.get("last"), x.get("train_sigma")
     base = f"{x['base_e32']:.2f} ({x['base_e32_pct']:.1f} %)"
     ls = f"c {last['c']}, R {last['R']:.3g}, {last['e32']:.1f}" if last else "—"
-    sg = (f"{ts['first_pct']:.1f} → {ts['last_pct']:.1f} % at {ts['last_at']} "
-          f"(max {ts['max_pct']:.1f})" if ts else "")  # fmt: skip
+    rec = x.get("reconstructed_iters") or []
+    if rec:
+        ls += f" (R uses {len(rec)} rebuilt metrics rows, L3 it {rec[0]}–{rec[-1]})"
+    sg = ""
+    if ts:
+        sg = (f"{ts['first_pct']:.1f} → {ts['last_pct']:.1f} % at {ts['last_at']} "
+              f"(max {ts['max_pct']:.1f})")  # fmt: skip
+        if ts.get("gaps"):
+            sg += "; no dump for L3 it " + ", ".join(f"{a}–{b}" for a, b in ts["gaps"])
     if c["status"] == "reached":
         if c.get("R_upper_only"):
             r = f"≤ {c['R']:.3g} (first checkpoint, c {c['c']})"
@@ -261,6 +279,7 @@ def main() -> None:
                     ]
                     x["dan_cumulative"] = dan_cumulative(tag, b, rows, bar_d)
                 x["train_sigma"] = train_sigma(tag)
+                x["reconstructed_iters"] = reconstructed(tag)
                 x.update(line_state(tag))
                 res["runs"][tag] = x
     res["facts"] = facts(res.get("dan_axis") or json.loads((OUT / "dan_axis.json").read_text()))

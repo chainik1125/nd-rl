@@ -19,43 +19,43 @@ Bar (median E32 of the full bases, n 256): **26.31** of 106 (24.8 %); Dan-matche
 | ko_s2 | 1.04 (1.0 %) | 0.0368 (c 11–c 13) | 0.51 | c 13–c 25, done at R 0.0923 | c 25, R 0.0923, 40.8 |  |
 | kos_s0 | 0.00 (0.0 %) | not reached by 1.22 (best 25.0); think-ban stop in L3 | 9.01 |  | c 251, R 1.22, 25.0 | 0.3 → 46.0 % at L3 it 234 (max 50.6) |
 | kos_s0_dp | 0.00 (0.0 %) | not reached by 0.376 (best 0.5); think-ban stop in L3 | 3.80 |  | c 141, R 0.376, 0.0 | 0.0 → 0.0 % at L3 it 105 (max 0.8) |
-| kos_s0_gr | 0.00 (0.0 %) | not reached by 1.22 (best 25.0); running | 9.01 |  | c 251, R 1.22, 25.0 |  |
-| kos_s0_dp_gr | 0.00 (0.0 %) | not reached by 0.918 (best 0.5); running | 8.29 |  | c 282, R 0.918, 0.0 |  |
+| kos_s0_gr | 0.00 (0.0 %) | 1.37 (c 251–c 280) | 10.03 | not held: not held by R 1.7 (c 316) | c 316, R 1.7, 29.0 (R uses 20 rebuilt metrics rows, L3 it 284–303) | 50.2 → 42.3 % at L3 it 309 (max 51.0); no dump for L3 it 284–304 |
+| kos_s0_dp_gr | 0.00 (0.0 %) | not reached by 1.35 (best 0.5); running | 12.31 |  | c 398, R 1.35, 0.0 (R uses 34 rebuilt metrics rows, L3 it 329–362) | 0.1 → 0.0 % at L3 it 364 (max 1.3); no dump for L3 it 329–363 |
 | kos_s1 | 0.00 (0.0 %) | not reached by 0.109 (best 0.5); think-ban stop in L3 | 1.37 |  | c 40, R 0.109, 0.0 | 0.0 → 0.1 % at L3 it 2 (max 0.1) |
 | kos_s1_dp | 0.00 (0.0 %) | not reached by 0.261 (best 0.8); think-ban stop in L3 | 3.62 |  | c 112, R 0.261, 0.0 | 0.0 → 0.5 % at L3 it 86 (max 0.5) |
-| kos_s1_gr | 0.00 (0.0 %) | not reached by 0.475 (best 1.0); running | 5.69 |  | c 112, R 0.475, 1.0 |  |
-| kos_s1_dp_gr | 0.00 (0.0 %) | not reached by 0.362 (best 0.8); think-ban stop in L3 | 5.15 |  | c 158, R 0.362, 0.0 |  |
+| kos_s1_gr | 0.00 (0.0 %) | not reached by 0.711 (best 1.0); think-ban stop in L3 | 8.76 |  | c 158, R 0.711, 0.0 | 0.0 → 0.1 % at L3 it 131 (max 0.2) |
+| kos_s1_dp_gr | 0.00 (0.0 %) | not reached by 0.362 (best 0.8); think-ban stop in L3 | 5.15 |  | c 158, R 0.362, 0.0 | 0.5 → 0.0 % at L3 it 121 (max 0.5) |
 | kos_s2 | 0.33 (0.3 %) | not reached by 0.441 (best 13.4); think-ban stop in L3 | 4.54 |  | c 112, R 0.441, 13.0 | 0.0 → 41.3 % at L3 it 76 (max 47.9) |
 | kos_s2_dp | 0.33 (0.3 %) | not reached by 0.24 (best 0.9); think-ban stop in L3 | 2.77 |  | c 100, R 0.24, 0.0 | 0.0 → 0.0 % at L3 it 62 (max 0.9) |
-| kos_s2_gr | 0.33 (0.3 %) | not reached by 0.99 (best 13.8); running | 9.04 |  | c 210, R 0.99, 13.8 |  |
-| kos_s2_dp_gr | 0.33 (0.3 %) | not reached by 0.685 (best 0.9); think-ban stop in L3 | 6.48 |  | c 210, R 0.685, 0.0 |  |
+| kos_s2_gr | 0.33 (0.3 %) | not reached by 1.48 (best 14.4); stopped for machine availability | 12.63 |  | c 282, R 1.48, 12.3 |  |
+| kos_s2_dp_gr | 0.33 (0.3 %) | not reached by 0.685 (best 0.9); think-ban stop in L3 | 6.48 |  | c 210, R 0.685, 0.0 | 0.0 → 0.0 % at L3 it 180 (max 1.1) |
 
 ## Think-ban guard events (think_ban.py; distinct GRPO iterations)
 
-| line | iterations | think-ban alarms (% of iterations) | rollbacks | alarms with no rollback | stops |
-|---|---|---|---|---|---|
-| d01_s0 | 21 | 0 (0.0 %) | 0 | 0 | 0 |
-| d01_s1 | 21 | 0 (0.0 %) | 0 | 0 | 0 |
-| d01_s2 | 18 | 0 (0.0 %) | 0 | 0 | 0 |
-| d1_s0 | 9 | 0 (0.0 %) | 0 | 0 | 0 |
-| d1_s1 | 18 | 0 (0.0 %) | 0 | 0 | 0 |
-| full_s0 | 3 | 0 (0.0 %) | 0 | 0 | 0 |
-| full_s0_dp | 9 | 0 (0.0 %) | 0 | 0 | 0 |
-| ko_s0 | 41 | 0 (0.0 %) | 0 | 0 | 0 |
-| ko_s1 | 33 | 0 (0.0 %) | 0 | 0 | 0 |
-| ko_s2 | 26 | 0 (0.0 %) | 0 | 0 | 0 |
-| kos_s0 | 273 | 162 (59.3 %) | 1 | 14 | 1 |
-| kos_s0_dp | 144 | 48 (33.3 %) | 0 | 46 | 1 |
-| kos_s0_dp_gr | 155 | 155 (100.0 %) | 0 | 5 | 0 |
-| kos_s0_gr | 4 | 4 (100.0 %) | 0 | 0 | 0 |
-| kos_s1 | 41 | 19 (46.3 %) | 1 | 17 | 1 |
-| kos_s1_dp | 125 | 15 (12.0 %) | 0 | 14 | 1 |
-| kos_s1_dp_gr | 36 | 36 (100.0 %) | 0 | 29 | 1 |
-| kos_s1_gr | 81 | 81 (100.0 %) | 0 | 16 | 0 |
-| kos_s2 | 115 | 64 (55.7 %) | 3 | 58 | 1 |
-| kos_s2_dp | 101 | 29 (28.7 %) | 2 | 11 | 1 |
-| kos_s2_dp_gr | 135 | 135 (100.0 %) | 0 | 2 | 1 |
-| kos_s2_gr | 108 | 108 (100.0 %) | 0 | 16 | 0 |
+| line | iterations | think-ban alarms (% of iterations) | think-ban rollbacks | alarms with no rollback | stops | rollbacks, any alarm (lr halves each) |
+|---|---|---|---|---|---|---|
+| d01_s0 | 21 | 0 (0.0 %) | 0 | 0 | 0 | 1 |
+| d01_s1 | 21 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| d01_s2 | 18 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| d1_s0 | 9 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| d1_s1 | 18 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| full_s0 | 3 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| full_s0_dp | 9 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| ko_s0 | 41 | 0 (0.0 %) | 0 | 0 | 0 | 1 |
+| ko_s1 | 33 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| ko_s2 | 26 | 0 (0.0 %) | 0 | 0 | 0 | 0 |
+| kos_s0 | 273 | 162 (59.3 %) | 1 | 14 | 1 | 3 |
+| kos_s0_dp | 144 | 48 (33.3 %) | 0 | 46 | 1 | 2 |
+| kos_s0_dp_gr | 155 | 155 (100.0 %) | 0 | 5 | 0 | 2 |
+| kos_s0_gr | 4 | 4 (100.0 %) | 0 | 0 | 0 | 0 |
+| kos_s1 | 41 | 19 (46.3 %) | 1 | 17 | 1 | 1 |
+| kos_s1_dp | 125 | 15 (12.0 %) | 0 | 14 | 1 | 2 |
+| kos_s1_dp_gr | 36 | 36 (100.0 %) | 0 | 29 | 1 | 2 |
+| kos_s1_gr | 81 | 81 (100.0 %) | 0 | 16 | 0 | 3 |
+| kos_s2 | 115 | 64 (55.7 %) | 3 | 58 | 1 | 5 |
+| kos_s2_dp | 101 | 29 (28.7 %) | 2 | 11 | 1 | 3 |
+| kos_s2_dp_gr | 135 | 135 (100.0 %) | 0 | 2 | 1 | 1 |
+| kos_s2_gr | 108 | 108 (100.0 %) | 0 | 16 | 0 | 1 |
 
 ## Dan's EI ladders on our axis (dan_axis.py)
 

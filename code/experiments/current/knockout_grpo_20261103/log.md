@@ -260,3 +260,20 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   serrano's GPUs carry any user's process; above 3 it stops kos_s0_dp_gr right after its next
   checkpoint (availability stop, `AVAILABILITY_STOP`), so kos_s0_gr keeps priority. It counts GPUs
   in use, not processes: our lines run a GRPO process and a read on the same GPU.
+- **00:36Z — my error: a stale-copy rsync overwrote serrano's files of the two resumed
+  continuations.** The watcher's `collect_ynez.sh` (every 5 min since 22:15Z) pulled ynez's
+  `runs/` and `evals/` over serrano's; ynez held the 22:46Z migration copies of kos_s0_gr and
+  kos_s0_dp_gr, so serrano's `metrics.jsonl`, Lean dumps and curve / line_done files for those two
+  were reset to the copies each time. Training was unaffected (grpo keeps its state in memory);
+  lost: metrics rows kos_s0_gr L3 it 284–303 and kos_s0_dp_gr it 329–362, and the Lean-dump rows
+  of those periods. Because the evaluator counts iterations from metrics rows, kos_s0_dp_gr's
+  final reads (c 385, 398, 403) were skipped as "after training ended". A stale line_done.json
+  also reappeared in evals/kos_s0_gr. Fixes: watcher stopped; stale line_done moved aside;
+  `rebuild_metrics.py` restored the 54 rows (sampled tokens and phase seconds exact from the
+  runs' registries; skip, pass@1 and ban mass from the stage logs; trained tokens estimated as
+  ratio × sampled × (1 − skip), ratio fitted on each run's intact rows: 0.994 (cv 3.3 %) and
+  1.018 (cv 7.4 %); rows marked `reconstructed`; backups kept); kos_s0_gr's file was rewritten
+  right after its next append (rows 1–305 contiguous). kos_s0_dp_gr's three skipped reads are
+  queued as a read-only completion (`reads_kos_s0_dp_gr`: line.py finds the cap checkpoint and
+  only reads). The effect on R of the estimated trained tokens is under 0.5 % (54 of the lines'
+  ~700 iterations, 3–7 % error each). train_sigma is not reported for the continuations.
