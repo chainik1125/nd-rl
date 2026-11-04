@@ -106,3 +106,9 @@ All times UTC.
   by PID. This also fixes a bug: the old liveness check (`pgrep -f` over ssh) matched its own
   shell, so a dead segment could look alive (deaths were still caught by `end.json` and the
   25-min stall rule).
+- **21:17:39–21:18:0xZ — my error: two supervisors on serrano for about 20 s.** A failed lint
+  check skipped the `pkill` of a `&&` chain but not the restart after it. The older one was
+  stopped; neither acted in that window (no events, state unchanged). Fix: a supervisor takes an
+  exclusive lock (`KD/sup/sup.lock`) and a second one exits at once (tested), and restarts go
+  through `KD/sup/restart_sup.sh` (stop, wait until gone, start). First crossings of Dan's bar are
+  now supervisor events.

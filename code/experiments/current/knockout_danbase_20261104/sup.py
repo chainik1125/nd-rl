@@ -40,6 +40,7 @@ Lean dump. Collection: live remote segments are copied one way to serrano's
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import re
 import shlex
@@ -464,6 +465,13 @@ class Sup:
     # ---------------------------------------------------------------- the loop
     def stop_rule(self, line: str) -> None:
         r = M.line_view(line, self.st[line]["segs"])
+        c = r["cross_dan"]
+        if c is not None and not self.st[line].get("crossed"):
+            self.st[line]["crossed"] = c
+            event(
+                f"{line}: FIRST CROSSING of Dan's bar: round {c['round']} (it {c['it']}), "
+                f"x_dan {c['x_dan']:.3f}, x_ours {c['x_ours']:.4f}, cumulative {c['cum']}"
+            )
         why = M.stop_reason(line, r)
         if why and self.holds():
             seg = self.st[line]["segs"][-1]
@@ -542,6 +550,12 @@ def main() -> None:
     ap.add_argument("--once", action="store_true")
     ap.add_argument("--standby", action="store_true")
     a = ap.parse_args()
+    SUP.mkdir(parents=True, exist_ok=True)
+    lock = open(SUP / "sup.lock", "w")  # noqa: SIM115 (held for the process's life)
+    try:  # one supervisor per machine: a second one exits at once
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise SystemExit("another sup.py holds KD/sup/sup.lock on this machine") from None
     if a.standby:
         standby()  # returns when this host is to act
     s = Sup()
