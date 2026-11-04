@@ -131,3 +131,12 @@ All times UTC.
   to GPU 1 (22:23Z; 0 iterations lost).
 - **22:3xZ — GPU-h of an ended segment** now uses its end time (recorded by the supervisor, and
   the segment's last files are collected when it ends); dfull_s3's had kept counting.
+- **23:5xZ — merge.py clarification** (no effect on any stop decision; the supervisor uses the
+  running-line rule): a matched draw for round r exists only if the line ran to his x_r. For an
+  ended line the code had re-used its last read for every later round (dfull_s3 showed 16 draws
+  though it ended at x_dan 0.26); now an ended line has draws up to the last x_r it reached.
+- **23:50Z — status:** x_dan 1.0–1.35 on the six knockout lines (3 h of training); his measure
+  0–1 on every line; σ in 0.04–0.06 % of the accepted training proofs on Dan's targets and 0.00 %
+  on our σ-rich pool. dkoour_s1 moves off ynez GPU 3 (frankyang's process appeared).
+  Projection: dko_s0 (serrano, the slowest) reaches 15 GPU-h near x_dan 4.9 (the GPU-h cap ends
+  it before his round-16 x); the others reach his x_16 at 13–15 GPU-h; about 85 GPU-h in all.

@@ -118,8 +118,8 @@ def line_view(line: str, segs: list[dict], final: bool = False) -> dict:
         else:  # drawn once a later read exists (reads are made in order) or the line ended
             ok = [c for c in curve if c["x_dan"] <= xr]
             pick = ok[-1] if ok and ok[-1]["it"] > 0 else None
-            if not (final or any(c["x_dan"] > xr for c in curve)):
-                pick = None
+            if not (any(c["x_dan"] > xr for c in curve) or (final and xd >= xr)):
+                pick = None  # the line has not run to his x_r (yet, or at all)
         if pick is None:
             break
         union |= set(pick["first32_solved"])
