@@ -140,3 +140,8 @@ All times UTC.
   on our σ-rich pool. dkoour_s1 moves off ynez GPU 3 (frankyang's process appeared).
   Projection: dko_s0 (serrano, the slowest) reaches 15 GPU-h near x_dan 4.9 (the GPU-h cap ends
   it before his round-16 x); the others reach his x_16 at 13–15 GPU-h; about 85 GPU-h in all.
+- **23:55Z — dkoour_s1 waiting.** It ended at its iteration-145 rolling checkpoint after
+  frankyang's process appeared on ynez GPU 3; no GPU qualified (serrano 1–4 marie / cipeng,
+  ynez 1 and 3 frankyang, temescal at its cap of 2 of ours). Coordinator: keep the temescal cap
+  at 2 (a third job there put the primary dko_s1 at risk in the past); dkoour_s1 waits for the
+  first qualifying GPU on any host.

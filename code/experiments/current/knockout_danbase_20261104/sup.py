@@ -364,7 +364,12 @@ class Sup:
         tgt = self.free_gpu()
         if tgt is None:
             s["status"], s["wait_resume"] = "waiting", {"why": why, "src": src, "last": last}
-            event(f"{line}: {why}; no free GPU, waiting (resume point {src})")
+            msg = f"{line}: {why}; no free GPU, waiting (resume point {src})"
+            if seg.get("waiting_since"):
+                log(msg)  # reported once, as an event, when the wait began
+            else:
+                seg["waiting_since"] = now()
+                event(msg)
             return
         th, tg = tgt
         resume = None
