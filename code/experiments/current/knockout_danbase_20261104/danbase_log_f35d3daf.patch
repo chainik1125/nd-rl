@@ -1,0 +1,15 @@
+--- /scratch/cowifornia/nd-rl/knockout_grpo/snap/f35d3daf_snap/code/thinking/grpo.py	2026-11-02 22:13:28.973558657 -0800
++++ code/thinking/grpo.py	2026-11-04 12:28:10.385656847 -0800
+@@ -2173,6 +2173,12 @@
+             "solved_frac": sum(any(x.get("ok") for x in att) for att in per) / len(per),
+             "groups_skipped": n_skip / len(per),
+             "tokens_per_attempt": sum(x["tokens"] for x in flat) / max(1, len(flat)),
++            # knockout_danbase: compute on Dan's rule (the state is re-prefilled every env step)
++            "sampled_gen_tokens": sum(x["tokens"] for x in flat),
++            "sampled_prefill_tokens": sum(x.get("prefill", 0) for x in flat),
++            "item_prompt_tokens": sum(len(p) for p, _, _, _ in items),
++            "item_gen_tokens": sum(len(g) for _, g, _, _ in items),
++            "peak_alloc_gb": torch.cuda.max_memory_allocated() / 2**30 if torch.cuda.is_available() else 0.0,
+             "think_per_attempt": sum(x["think"] for x in flat) / max(1, len(flat)),
+             "think_by_budget": {str(b): sum(v) / len(v) for b, v in sorted(think_b.items())},
+             **length_metrics(
