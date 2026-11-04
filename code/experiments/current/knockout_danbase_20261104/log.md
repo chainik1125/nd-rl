@@ -112,3 +112,12 @@ All times UTC.
   exclusive lock (`KD/sup/sup.lock`) and a second one exits at once (tested), and restarts go
   through `KD/sup/restart_sup.sh` (stop, wait until gone, start). First crossings of Dan's bar are
   now supervisor events.
+- **21:14–21:40Z — my error: reads failed.** `numbers.py` (then the analysis script, created in
+  this folder at about 21:14Z) shadowed Python's `numbers` module for `danread.py`, which runs
+  from this folder, so torch failed to import and every read failed: dko_s0 it 30 / 40, dko_s1
+  it 30 / 40 / 50, the first snapshot (it 10) of dfull_s3, dko_s2 seg2, dkoour_s0 and dkoour_s1,
+  and the base reads (it 0) of dfull_s3, dkoour_s0, dkoour_s1 (21:26Z) and dkoour_s2 (21:35Z).
+  Fix (21:40Z): renamed to `tables.py` on every machine, the `.failed` markers removed so the
+  readers retry the snapshots (kept), and the four base reads run once with the segments'
+  settings (`baseread.sh`, on each line's own GPU; 21:4xZ). The reader now also retries a
+  missing base read. No training was affected.

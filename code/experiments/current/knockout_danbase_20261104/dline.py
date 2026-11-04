@@ -82,10 +82,15 @@ class Seg:
                 (self.dir / "reads" / f"it{it:04d}.failed").write_text(now())
 
     def reader(self) -> None:
-        if self.a.seg == 1 and not self.a.resume:  # the base, once per line
-            self.read(C.KD / "bases" / self.L["base"], 0)
+        base = self.a.seg == 1 and not self.a.resume  # the base, once per line (retried)
         while True:
             fin = self.done.is_set()
+            if (
+                base
+                and not (self.dir / "reads" / "it0000.json").exists()
+                and not (self.dir / "reads" / "it0000.failed").exists()
+            ):
+                self.read(C.KD / "bases" / self.L["base"], 0)
             snaps = sorted((self.dir / "ckpts").glob(f"{self.a.line}_it*_snap.pt"),
                            key=lambda p: int(p.name.split("_it")[-1].split("_")[0]))  # fmt: skip
             for sp in snaps:

@@ -1,6 +1,6 @@
 """numbers.json / numbers.md for knockout_danbase, from the supervisor's state and the segments.
 
-    python3 numbers.py          # serrano; reads KD/sup/state.json, KD/runs, KD/collected, KD/backup
+    python3 tables.py          # serrano; reads KD/sup/state.json, KD/runs, KD/collected, KD/backup
 
 Per line (merge.line_view): the matched draws on Dan's measure and its first crossing, the
 snapshot curve (first-32 count, E32), compute on both rules, GPU-h, lost iterations, the stop
