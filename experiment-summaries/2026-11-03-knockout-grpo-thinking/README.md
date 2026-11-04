@@ -132,7 +132,9 @@ counts the re-read state prefill and the 20,000 replayed pretraining records per
   medians on the same y. In GPU-hours they are 0.09–0.37 against 1.2–5.5. The hardware differs:
   RTX 3090 here, A40 / A6000 for Dan.
 - At the knockout, ko beats his horizon by about 55–110 ×. ko_strict was censored at 0.11–1.22,
-  before his horizon, so it can't be compared at his knockout point.
+  before his horizon, so the primary can't be compared at his knockout point. With the guard
+  relaxed (secondary), kos_s0 crossed at 1.37 (10.0 GPU-h), below his 3.6–4.0; the other five
+  ko_strict lines ended at R 0.36–1.48 without reaching.
 
 ## Controls
 
