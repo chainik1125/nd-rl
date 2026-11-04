@@ -6,7 +6,7 @@ written_by: agent:claude
 # Knockout / dose with GRPO and thinking traces: how much RL brings proof by contradiction back?
 
 **Status.** Complete. Every line of the pre-registered primary and of the guard-relaxed
-continuations (Amendment 4, secondary) has ended; kos_s0_gr, the last, KOS_S0_GR_END. Nothing is
+continuations (Amendment 4, secondary) has ended; kos_s0_gr, the last, reached its cap (c 403) at 05:02Z on 2026-11-04. Nothing is
 pushed.
 
 **Question.** Dan's create-or-elicit / coe-dose01 chart asks how much RL compute it takes to solve
@@ -54,6 +54,13 @@ run log and the numbers.
    - **Dan's pool:** σ stayed at 0.9 % or less on all three seeds, and E32 at 0.9 or less.
 3. **The doses order as Dan's do, about 30 × lower.** The median first crossings are 1 % 0.0076
    < 0.1 % 0.024 < ko 0.040. Dan's medians on our y are 0.21 and 0.86.
+4. **Secondary (Amendment 4): with the guard's stop raised 10 ×, 1 of the 6 ko_strict lines
+   reached the bar.** kos_s0 (our pool) crossed at R 1.37 and stayed above the bar at every read
+   to its cap at R 2.36 (E32 32.5, best 34.7). Its hold window would need a read at R ≥ 2.87, so
+   it is not held. Of the other five:
+   - kos_s2 was at E32 12.3 when it was stopped for machine availability at R 1.48;
+   - the relaxed guard stopped three again, at R 0.36–0.71, all at E32 0.0;
+   - kos_s0_dp reached its cap at R 1.37 with E32 0.00.
 
 **Three confounds against Dan stay open:**
 - **The pool.** 40–45 % of our pool's targets are strict σ-covered, against 2.7 % of Dan's EI
@@ -90,6 +97,12 @@ run log and the numbers.
 - Every first crossing held, and each held window starts at the first-crossing checkpoint.
 - d1_s0 and d1_s1 have different weights and different per-theorem results; their nearly equal
   base E32 (14.3876 and 14.3877) is a coincidence.
+
+![E32 on the strict 106 against R for every line, with the bar](e32_vs_r.png)
+
+E32 against R for every line (the dashed grey line is the bar). Shades are seeds. Dashed and
+dash-dot lines are the guard-relaxed continuations, which repeat their source line up to the
+resume point.
 
 **Dan-matched cumulative y** (secondary). This is the union of first-32 solves at the base and
 then every 35 iterations, against his single-draw analogue bar of 27.
@@ -219,7 +232,7 @@ E32 below 0.5 × its peak for 25 iterations) never fired.
 
 | line | outcome (guard relaxed) | last read (c, R, E32) | σ share of accepted training proofs |
 |---|---|---|---|
-| kos_s0_gr | **first crossing R 1.37** (c 251–280); reads since: 26.8, 27.4, 30.6, 29.0, 33.9, 33.2, KOS_S0_GR_TAIL | KOS_S0_GR_LAST | 42.6 % (L3 it 235–283), 43.1 % (it 305–309; no dump for it 284–304) |
+| kos_s0_gr | **first crossing R 1.37** (c 251–280), not held by the cap (the window needs a read at R ≥ 2.87); reads since: 26.8, 27.4, 30.6, 29.0, 33.9, 33.2, 34.0, 34.7, 32.5 | c 403, 2.359, 32.5 (best 34.7) | 42.6 % (L3 it 235–283), 44.1 % (it 305–364; no dump for it 284–304) |
 | kos_s2_gr | not reached; **stopped for machine availability** at R 1.476 | c 282, 1.476, 12.3 (best 14.4) | 47.0 % (L3 it 76–260) |
 | kos_s1_gr | not reached; relaxed guard stopped it at R 0.711 | c 158, 0.711, 0.0 (best 1.0) | 0.0 % (it 1–131) |
 | kos_s0_dp_gr | **not reached by the cap**, R 1.371 | c 403, 1.371, 0.00 (best 0.5) | 0.1 % (it 101–328; no dump for it 329–363) |
@@ -227,8 +240,12 @@ E32 below 0.5 × its peak for 25 iterations) never fired.
 | kos_s1_dp_gr | not reached; relaxed guard stopped it at R 0.362 | c 158, 0.362, 0.0 (best 0.8) | 0.0 % (it 86–121) |
 
 - **Dan's pool.** On the Dan's-pool lines the ban mass grew geometrically: kos_s1_dp_gr went from
-  0.0035 to 0.05 in 36 iterations while its reward stayed flat at 0.86–0.89. So relaxing the stop
-  bought 35–120 iterations, and two of the three lines hit 0.05.
+  0.0035 to 0.05 in 36 iterations while its reward stayed flat at 0.86–0.89. Relaxing the stop
+  bought 35 and 118 iterations past the original stops on the two lines that hit 0.05;
+  kos_s0_dp_gr ran 259 more, to its cap.
+- **Our pool.** kos_s0_gr alarmed on every iteration (its 3 rollbacks were used before the
+  resume). Its mass stayed at 0.005–0.007 to about L3 it 340, then rose to 0.017 at its cap.
+  kos_s1_gr hit 0.05 at L3 it 131.
 - **Machine events** (`log.md`):
   - temescal crashed at 21:58Z and was migrated;
   - another user's processes arrived on kos_s2_gr's GPU twice, so it was stopped for machine
@@ -312,10 +329,10 @@ These were written before any model was read.
 
 - Primary (all lines, bases, reads): 44.8 GPU-h from the queue records, plus about 1 GPU-h of
   init reads run outside the queue.
-- Amendment 4 (guard-relaxed): AM4_GPUH GPU-h from the queue records on all three machines,
-  kos_s0_gr KOS_S0_GR_GPUH of it. About 0.3 GPU-h of training was lost to the machine events
+- Amendment 4 (guard-relaxed): 42.3 GPU-h from the queue records on all three machines,
+  kos_s0_gr 8.6 of it. About 0.3 GPU-h of training was lost to the machine events
   (iterations in progress at the temescal crash and at kos_s2_gr's stops).
-- Total: TOTAL_GPUH GPU-h.
+- Total: 87.2 GPU-h from the queue records, about 88 with the init reads.
 - The limit agreed with the coordinator is 180 GPU-h.
 
 ## Configuration

@@ -313,3 +313,19 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
   queue); Amendment 4 33.8 for the five ended continuations and kos_s0_dp_gr's reads, plus
   kos_s0_gr (2.6 on temescal, running on serrano since 23:04Z). About 0.3 GPU-h lost to the
   machine events.
+- **03:29Z — watchdog OVERRUN on resume_kos_s0_gr** (4.4 h > 1.5 × 2.9 h expected): an alert
+  only. L3 iterations ran at 200–315 s (sampling 170–275 s) against the 125 s planned; the GPU
+  was ours alone and progress was steady, so it ran on under the queue's 7.8 h timeout and the
+  05:30Z deadline.
+- **05:02:23Z — kos_s0_gr, final: reached its cap.** Reads c 385 at R 2.226, E32 33.99; c 398 at
+  2.321, 34.68; c 403 at 2.359, 32.48. line_done: last_c 403, no stop. First crossing R 1.37
+  (c 251–280); every later read is above the bar; the hold window is not established by the cap
+  (it needs R ≥ 2.87). σ share 42.6 % (L3 it 235–283) and 44.1 % (it 305–364); no dump for
+  it 284–304. Think-ban: an alarm on all 130 of its L3 iterations, none rolled back (all 3
+  rollbacks used before the resume). Its mass stayed at 0.005–0.007 to about it 340, then rose
+  to 0.0173 at it 364 (the relaxed stop is 0.05).
+  - `KO/queue/STOP` written on serrano at 05:03Z (no pending jobs); all workers exited.
+  - think_ban.py now counts the "no rollback (--max_rollbacks 3 reached)" alarms separately; the
+    old "alarms with no rollback" column counted only restore points above the level.
+  - GPU-h by the queue records: primary 44.8, Amendment 4 42.3 (kos_s0_gr 8.6); 87.2 in all,
+    about 88 with the init reads.

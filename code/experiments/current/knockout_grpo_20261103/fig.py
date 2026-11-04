@@ -311,13 +311,16 @@ def curves(N: dict, figdir: Path) -> None:
         S.panel_title(ax, None, NAME[arm].replace("knockout, σ plans in narration", "ko (σ plans)"),
                       size=S.FS_SMALL)  # fmt: skip
         ax.set_xlabel("R", fontsize=S.FS_SMALL)
-        ax.set_xlim(0.002, 1.5)
+        ax.set_xlim(0.002, 3.0)
         ax.tick_params(labelsize=S.FS_SMALL)
         S.light_grid(ax, "both")
     axs[0].set_ylabel("E32 on the strict 106", fontsize=S.FS_SMALL)
-    axs[-1].legend(handles=[Line2D([], [], color=S.INK, lw=0.8, label="our pool"),
-                            Line2D([], [], color=S.INK, lw=0.8, ls=":", label="Dan's pool")],
-                   fontsize=S.FS_SMALL, frameon=False, loc="upper left")  # fmt: skip
+    axs[0].legend(handles=[Line2D([], [], color=S.INK, lw=0.8, label="our pool"),
+                           Line2D([], [], color=S.INK, lw=0.8, ls=":", label="Dan's pool"),
+                           Line2D([], [], color=S.INK, lw=0.8, ls="--", label="relaxed (Am. 4)"),
+                           Line2D([], [], color=S.INK, lw=0.8, ls="-.", label="Dan's, relaxed")],
+                  fontsize=S.FS_SMALL, frameon=False, loc="upper right",
+                  handlelength=1.6)  # fmt: skip
     S.save(fig, figdir / "e32_vs_r")
     S.close(fig)
 
@@ -360,7 +363,8 @@ def sigma_train(N: dict, figdir: Path) -> None:
         ax.tick_params(labelsize=S.FS_SMALL)
         S.light_grid(ax, "y")
         S.panel_title(ax, letter, ttl, size=S.FS_SMALL)
-    a.legend(fontsize=S.FS_SMALL, frameon=False, loc="upper left", ncol=2, handlelength=1.6)
+    a.legend(fontsize=S.FS_SMALL, frameon=False, loc="lower right", bbox_to_anchor=(1.0, 0.06),
+             ncol=2, handlelength=1.6)  # fmt: skip
     S.save(fig, figdir / "sigma_train")
     S.close(fig)
 

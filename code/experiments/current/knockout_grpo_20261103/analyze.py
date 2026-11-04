@@ -227,7 +227,8 @@ def _row(tag: str, x: dict) -> str:
             r = f"{c['R']:.3g} (c {c['c_lo']}–c {c['c_hi']})"
         h = c.get("held")
         if h is None:
-            hd = "not held: " + c.get("held_status", "")
+            hs = c.get("held_status", "")
+            hd = hs if hs.startswith("not held") else "not held: " + hs
         else:
             hd = f"c {h.get('c_hi', h.get('c'))}–c {h['c_held']}, done at R {h['R_held_at']:.3g}"
             if not c.get("holds"):
@@ -314,12 +315,14 @@ def main() -> None:
     if "think_ban" in res:
         lines += ["\n## Think-ban guard events (think_ban.py; distinct GRPO iterations)\n",
                   "| line | iterations | think-ban alarms (% of iterations) | think-ban rollbacks "
-                  "| alarms with no rollback | stops | rollbacks, any alarm (lr halves each) |",
-                  "|---|---|---|---|---|---|---|"]  # fmt: skip
+                  "| no rollback: restore point above the level | no rollback: rollbacks used up "
+                  "| stops | rollbacks, any alarm (lr halves each) |",
+                  "|---|---|---|---|---|---|---|---|"]  # fmt: skip
         for k, v in res["think_ban"].items():
             pc = 100.0 * v["alarm"] / max(1, v["its"])
             lines.append(f"| {k} | {v['its']} | {v['alarm']} ({pc:.1f} %) | {v['rollback']} | "
-                         f"{v['no_rollback']} | {v['stop']} | {v.get('rollbacks_any', '')} |")  # fmt: skip  # noqa: E501
+                         f"{v['no_rollback']} | {v.get('no_rollback_max', '')} | {v['stop']} | "
+                         f"{v.get('rollbacks_any', '')} |")  # fmt: skip  # noqa: E501
     if "dan_axis" in res:
         lines += ["\n## Dan's EI ladders on our axis (dan_axis.py)\n",
                   "His x ÷ our R: " + ", ".join(
