@@ -453,9 +453,13 @@ class Sup:
             src = f"{h}:{self.seg_dir(line, k)}/"
             dst = C.KD / "collected" / h / line / f"seg{k}"
             dst.mkdir(parents=True, exist_ok=True)
-            subprocess.run(["rsync", "-a", "--exclude", "ckpts/", "-e", RSYNC_SSH, src, str(dst)],
-                           capture_output=True, timeout=1800,
-                           env={"SSH_AUTH_SOCK": "", "PATH": "/usr/bin:/bin"})  # fmt: skip
+            env = {"SSH_AUTH_SOCK": "", "PATH": "/usr/bin:/bin"}
+            subprocess.run(["rsync", "-a", "--exclude", "ckpts/", "--exclude", "*.pt", "-e",
+                            RSYNC_SSH, src, str(dst)], capture_output=True, timeout=1800, env=env)  # fmt: skip
+            (C.KD / "collected" / h / "logs").mkdir(parents=True, exist_ok=True)
+            subprocess.run(["rsync", "-a", "-e", RSYNC_SSH, f"{h}:{C.KD}/logs/{line}_seg{k}.log",
+                            str(C.KD / "collected" / h / "logs") + "/"], capture_output=True,
+                           timeout=1800, env=env)  # fmt: skip
 
     # ---------------------------------------------------------------- the loop
     def stop_rule(self, line: str) -> None:
