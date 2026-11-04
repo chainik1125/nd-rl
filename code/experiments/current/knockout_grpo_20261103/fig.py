@@ -49,7 +49,10 @@ CAPTION = [
     "between checkpoints; ▼: at the first checkpoint (an upper bound); hollow: at the bar before",
     "RL; ▲ on a thin line: not reached by that y{running}; cross on a dotted line: the recipe's",
     "think-ban guard ended the line there (censored; counted as not reached by that y, the",
-    "conservative reading, since excluding it would flatter the arm). Colour: GRPO with",
+    "conservative reading, since excluding it would flatter the arm); hollow on a dashed line:",
+    "the guard-relaxed continuation (Amendment 4, secondary): circle reached, triangle not by",
+    "the cap, x stopped again by the relaxed guard, diamond stopped for machine availability.",
+    "Colour: GRPO with",
     "programmatic thinking traces on our pool ({pool_lo:.1f}–{pool_hi:.1f} % of targets",
     "σ-covered); black edge: the same GRPO on Dan's {dan_n:,} EI targets ({dan_pct:.1f} %); grey:",
     "Dan's T1 expert-iteration ladders on this y (his own x adds re-read state prefill and replay:",
@@ -108,12 +111,16 @@ def _relaxed(ax, x: float, c0: dict, c: dict, color: str) -> None:
     y0 = c0.get("R_max", FLOOR)
     if c["status"] == "reached":
         y, mk = c["R"], "o"
-    elif c["status"] == "not_reached":
-        y, mk = c["R_max"], "^"
+    elif c["status"] == "not_reached":  # x: the relaxed guard again; diamond: machine stop
+        y = c["R_max"]
+        mk = "x" if c.get("censored") else "D" if c.get("machine") else "^"
     else:
         return
     ax.plot([x, x], [y0, y], color=color, lw=0.7, ls=(0, (2, 1.5)), zorder=3)
-    ax.plot([x], [y], mk, ms=4.6, mfc=SURF, mec=color, mew=0.9, zorder=6)
+    if mk == "x":
+        ax.plot([x], [y], mk, ms=4.6, color=color, mew=1.1, zorder=6)
+    else:
+        ax.plot([x], [y], mk, ms=4.2 if mk == "D" else 4.6, mfc=SURF, mec=color, mew=0.9, zorder=6)
 
 
 def _rng(vals: list[float]) -> str:
@@ -149,9 +156,16 @@ def _miss_note(ax, groups: list[tuple[str, list[dict]]]) -> None:
         parts = [f"{len(hit)}/{n} reached ({_rng(hit)})"] if hit else []
         parts += [f"{len(miss)}/{n} not by {_rng(miss)}"] if miss else []
         parts += [f"{len(cens)}/{n} censored ({_rng(cens)})"] if cens else []
-        parts += [f"{len(mach)}/{n} stopped for machines ({_rng(mach)})"] if mach else []
+        parts += [f"{len(mach)}/{n} machine stop ({_rng(mach)})"] if mach else []
         parts += [f"{len(run)}/{n} running"] if run else []
-        lines.append(f"  {name}: " + ", ".join(parts))
+        head, cur = f"  {name}: ", []
+        for p in parts:  # at most two parts per line
+            cur.append(p)
+            if len(cur) == 2:
+                lines.append(head + ", ".join(cur))
+                head, cur = "      ", []
+        if cur:
+            lines.append(head + ", ".join(cur))
     if lines:
         head = "ko_strict (censored counts as not reached):"
         ax.text(0.03, 0.0175, "\n".join([head, *lines]), fontsize=S.FS_SMALL, ha="left",

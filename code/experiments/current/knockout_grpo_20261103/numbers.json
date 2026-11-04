@@ -3150,25 +3150,25 @@
    "base_e32": 0.0,
    "base_e32_pct": 0.0,
    "base_first32": 0,
-   "n_checkpoints": 53,
+   "n_checkpoints": 54,
    "cross": {
     "status": "not_reached",
-    "R_max": 1.3523949182751605,
-    "c_max": 398,
+    "R_max": 1.3706813806220344,
+    "c_max": 403,
     "best_e32": 0.5,
-    "gpu_h": 12.306266610556179
+    "gpu_h": 12.514454768035147
    },
    "last": {
-    "c": 398,
-    "R": 1.3523949182751605,
-    "secs": 44302.55979800224,
-    "sampled": 838509751.0,
-    "trained": 316661399.8971038,
+    "c": 403,
+    "R": 1.3706813806220344,
+    "secs": 45052.03716492653,
+    "sampled": 851033691.0,
+    "trained": 320547817.5554053,
     "e32": 0.0,
     "first32": 0,
     "solved_any64": 0,
     "host": "serrano",
-    "utc": "2026-11-04T00:57:31Z"
+    "utc": "2026-11-04T01:06:14Z"
    },
    "curve": [
     {
@@ -3541,6 +3541,13 @@
      "e32": 0.0,
      "first32": 0,
      "secs": 44302.55979800224
+    },
+    {
+     "c": 403,
+     "R": 1.3706813806220344,
+     "e32": 0.0,
+     "first32": 0,
+     "secs": 45052.03716492653
     }
    ],
    "dan_cumulative": {
@@ -3673,7 +3680,7 @@
     361,
     362
    ],
-   "line_done": false,
+   "line_done": true,
    "think_ban_stop": null,
    "availability_stop": false
   },
@@ -5910,7 +5917,18 @@
     ],
     "cross": null
    },
-   "train_sigma": null,
+   "train_sigma": {
+    "gaps": [],
+    "first_pct": 41.338582677165356,
+    "last_pct": 43.240137878207584,
+    "max_pct": 55.239711497666526,
+    "last_at": "L3 it 260",
+    "dn_any_pct_range": [
+     36.96996466431096,
+     55.239711497666526
+    ],
+    "n_iters": 185
+   },
    "reconstructed_iters": [],
    "line_done": true,
    "think_ban_stop": null,
@@ -6430,16 +6448,16 @@
    "rollbacks_any": 2
   },
   "kos_s0_dp_gr": {
-   "its": 155,
-   "alarm": 155,
+   "its": 264,
+   "alarm": 264,
    "rollback": 0,
    "no_rollback": 5,
    "stop": 0,
    "rollbacks_any": 2
   },
   "kos_s0_gr": {
-   "its": 4,
-   "alarm": 4,
+   "its": 78,
+   "alarm": 78,
    "rollback": 0,
    "no_rollback": 0,
    "stop": 0,
@@ -6470,11 +6488,11 @@
    "rollbacks_any": 2
   },
   "kos_s1_gr": {
-   "its": 81,
-   "alarm": 81,
+   "its": 131,
+   "alarm": 131,
    "rollback": 0,
    "no_rollback": 16,
-   "stop": 0,
+   "stop": 1,
    "rollbacks_any": 3
   },
   "kos_s2": {
@@ -6502,8 +6520,8 @@
    "rollbacks_any": 1
   },
   "kos_s2_gr": {
-   "its": 108,
-   "alarm": 108,
+   "its": 185,
+   "alarm": 185,
    "rollback": 0,
    "no_rollback": 16,
    "stop": 0,

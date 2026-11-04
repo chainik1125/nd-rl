@@ -300,19 +300,19 @@
  "kos_s0_dp_gr": {
   "stages": {
    "L3": {
-    "its": 155,
-    "alarm": 155,
+    "its": 264,
+    "alarm": 264,
     "rollback": 0,
     "no_rollback": 5,
     "stop": 0,
     "rollbacks_any": 2,
     "stop_iters": [],
-    "log": "logs/temescal/kos_s0_dp_gr_L3.log"
+    "log": "logs/kos_s0_dp_gr_L3.log"
    }
   },
   "total": {
-   "its": 155,
-   "alarm": 155,
+   "its": 264,
+   "alarm": 264,
    "rollback": 0,
    "no_rollback": 5,
    "stop": 0,
@@ -322,19 +322,19 @@
  "kos_s0_gr": {
   "stages": {
    "L3": {
-    "its": 4,
-    "alarm": 4,
+    "its": 78,
+    "alarm": 78,
     "rollback": 0,
     "no_rollback": 0,
     "stop": 0,
     "rollbacks_any": 0,
     "stop_iters": [],
-    "log": "logs/temescal/kos_s0_gr_L3.log"
+    "log": "logs/kos_s0_gr_L3.log"
    }
   },
   "total": {
-   "its": 4,
-   "alarm": 4,
+   "its": 78,
+   "alarm": 78,
    "rollback": 0,
    "no_rollback": 0,
    "stop": 0,
@@ -436,22 +436,24 @@
  "kos_s1_gr": {
   "stages": {
    "L3": {
-    "its": 81,
-    "alarm": 81,
+    "its": 131,
+    "alarm": 131,
     "rollback": 0,
     "no_rollback": 16,
-    "stop": 0,
+    "stop": 1,
     "rollbacks_any": 3,
-    "stop_iters": [],
+    "stop_iters": [
+     131
+    ],
     "log": "logs/kos_s1_gr_L3.log"
    }
   },
   "total": {
-   "its": 81,
-   "alarm": 81,
+   "its": 131,
+   "alarm": 131,
    "rollback": 0,
    "no_rollback": 16,
-   "stop": 0,
+   "stop": 1,
    "rollbacks_any": 3
   }
  },
@@ -535,7 +537,7 @@
     "stop_iters": [
      180
     ],
-    "log": "logs/ynez/kos_s2_dp_gr_L3.log"
+    "log": "logs/kos_s2_dp_gr_L3.log"
    }
   },
   "total": {
@@ -550,19 +552,19 @@
  "kos_s2_gr": {
   "stages": {
    "L3": {
-    "its": 108,
-    "alarm": 108,
+    "its": 185,
+    "alarm": 185,
     "rollback": 0,
     "no_rollback": 16,
     "stop": 0,
     "rollbacks_any": 1,
     "stop_iters": [],
-    "log": "logs/ynez/kos_s2_gr_L3.log"
+    "log": "logs/kos_s2_gr_L3.log"
    }
   },
   "total": {
-   "its": 108,
-   "alarm": 108,
+   "its": 185,
+   "alarm": 185,
    "rollback": 0,
    "no_rollback": 16,
    "stop": 0,
