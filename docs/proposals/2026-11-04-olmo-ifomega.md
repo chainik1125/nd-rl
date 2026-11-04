@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-04
 written_by: agent:claude
-status: drafted 2026-11-04 at Dan's request; launch on Dan's go-ahead, up to $150
+status: approved by Dan 2026-11-04, up to $150 (running as `olmo-ifomega` on agent1)
 ---
 
 # Proposal 36: does Olmo 3.1 Think 32B's RL create reach where RL actually moved it, on IFBench and OMEGA?

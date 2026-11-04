@@ -2,7 +2,7 @@
 
 Run id `olmo-ifomega`. Repository `~/work/olmo-ifomega` (branch `dan_olmo-ifomega` from the fork's
 `origin/dan_olmo-think32b`, made by `newrun`, so that run's pipeline is here). Role: executor. `AGENT_POLICY.md`
-governs. Proposal 36, up to $150.
+governs. Authorised by Dan 2026-11-04 (proposal 36), up to $150.
 
 - **Budget:** **$150 / 120 pod-hours.** Dollars are binding.
 - **Stage gate:** stage 0 (≤ $8) measures response lengths and throughput on each task family. Then re-cost the
