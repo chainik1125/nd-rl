@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-04
 written_by: agent:claude
-status: approved by Dan 2026-11-04, up to $150 (running as `olmo-ifomega` on agent1)
+status: approved by Dan 2026-11-04, up to $150; raised by Dan the same day to $225 total, after the executor's 20:41 UTC question (OMEGA test_out responses ≈ 24–27k tokens; the design re-costed at ≈ $175–300). Running as `olmo-ifomega` on agent1; the $35 balance floor caps total spend at ≈ $219 at the 21:21 UTC balance
 ---
 
 # Proposal 36: does Olmo 3.1 Think 32B's RL create reach where RL actually moved it, on IFBench and OMEGA?
