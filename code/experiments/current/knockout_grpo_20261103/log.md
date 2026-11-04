@@ -286,3 +286,30 @@ Times are UTC (PT = UTC − 8 after 2026-11-01).
     after the 23:15:45Z resume launched onto a then-free GPU), and GPU 2 from about 01:00Z to
     01:08Z. The queue gates a GPU only at launch, so later arrivals of other users are not caught;
     a running-job check belongs in the queue design (not changed now).
+- **01:06Z — kos_s0_dp_gr, final: not reached by the cap.** The read-only completion
+  (`reads_kos_s0_dp_gr`, 00:39–01:06Z, GPU 0) read the three skipped snapshots: c 385, 398, 403
+  at R 1.305, 1.352, 1.371, E32 0.00 each (best 0.5 over the line). line_done: last_c 403, no stop.
+- **01:1xZ — repair checks** (coordinator's three):
+  - Snapshots and checkpoints untouched: the pull was `rsync -a --exclude 'ckpts/' --exclude
+    'registry/' --exclude 'lean_gate*.jsonl'` with no `--delete`, and every .pt lives under
+    `ckpts/`; the migration excluded `*_snap.pt`. kos_s0_gr: only alarm checkpoints it 284–306
+    since 23:04Z, in sequence. kos_s0_dp_gr: alarm checkpoints it 329–364, `it364.pt` and
+    snapshots it 346 / 359 / 364, whose weights equal the same-iteration alarm checkpoints
+    (`torch.equal` on every tensor) and which record `args.resume = …_it328_alarm.pt`.
+  - Other lines untouched: every line's L2 / L3 metrics are contiguous from iteration 1 and match
+    its log's `it N:` lines (and registry rounds where present); each continuation's row count is
+    the copied source rows plus its own logged iterations. All 415 own curve rows of 22 lines match
+    their logged reads; the 3 exceptions are the documented 07:50–08:30Z resume splices
+    (`curve_rule1_discarded.jsonl`). numbers.json is in the worktree and was never synced.
+  - σ share for the continuations is now reported over intact dump ranges only
+    (`train_sigma_gr.py`; an iteration counts only if all its gate rows lie in one intact segment),
+    superseding "train_sigma is not reported for the continuations" above.
+- **Deadline** (coordinator): lines not finished by 04:00Z are recorded at their last read; every
+  line but kos_s0_gr had ended by 01:08Z. kos_s0_gr's deadline is 05:30Z: if its c 403 read is not
+  in by then it is recorded at c 398. Its post-migration reads: c 350 at R 1.958, E32 33.91; c 355
+  at R 1.994, E32 33.21 (first crossing R 1.37 at c 251–280; the hold window needs a read at
+  R ≥ 2.87, beyond its cap).
+- **GPU-h by the queue records** (02:40Z): primary 44.8 (+ about 1 for init reads outside the
+  queue); Amendment 4 33.8 for the five ended continuations and kos_s0_dp_gr's reads, plus
+  kos_s0_gr (2.6 on temescal, running on serrano since 23:04Z). About 0.3 GPU-h lost to the
+  machine events.

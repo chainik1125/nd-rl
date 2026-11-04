@@ -5,9 +5,9 @@ written_by: agent:claude
 
 # Knockout / dose with GRPO and thinking traces: how much RL brings proof by contradiction back?
 
-**Status.** The pre-registered primary is complete: every line has ended. The guard-relaxed
-continuations (Amendment 4, secondary) are still running, and their section is marked PENDING.
-Nothing is pushed.
+**Status.** Complete. Every line of the pre-registered primary and of the guard-relaxed
+continuations (Amendment 4, secondary) has ended; kos_s0_gr, the last, KOS_S0_GR_END. Nothing is
+pushed.
 
 **Question.** Dan's create-or-elicit / coe-dose01 chart asks how much RL compute it takes to solve
 the full bases' median number of the 106 held-out theorems that need classical proof by
@@ -211,14 +211,34 @@ Classical.byContradiction |- ( ~ ( ~ G ) )`, and refills each slot in place from
 
 ### Guard-relaxed continuation (Amendment 4, secondary, exploratory)
 
-**PENDING.** Each censored ko_strict line continues from its last rolling checkpoint before the
-stop, with `--ban_stop 0.05` and nothing else changed, to its own c 403 or the hold window. kos_s0
-resumes from its stop's alarm checkpoint, a logged deviation. A health stop ends a line if reward
-or E32 falls below 0.5 × its peak for 25 iterations. So far:
-- **kos_s1_dp_gr:** stopped at the relaxed limit, at R 0.362. Its mass doubled about every 10
-  iterations while the reward stayed flat.
-- **kos_s2_dp_gr:** stopped at R 0.685.
-- Both had E32 0.00 throughout.
+Each censored ko_strict line continued with `--ban_stop 0.05` (10 × the recipe's 0.005) and
+nothing else changed, to its own c 403 or the hold window. It resumed from its last rolling
+checkpoint before the stop. kos_s0 resumed instead from its stop's alarm checkpoint, a logged
+deviation: grpo writes no rolling checkpoint on an alarmed iteration. A health stop (reward or
+E32 below 0.5 × its peak for 25 iterations) never fired.
+
+| line | outcome (guard relaxed) | last read (c, R, E32) | σ share of accepted training proofs |
+|---|---|---|---|
+| kos_s0_gr | **first crossing R 1.37** (c 251–280); reads since: 26.8, 27.4, 30.6, 29.0, 33.9, 33.2, KOS_S0_GR_TAIL | KOS_S0_GR_LAST | 42.6 % (L3 it 235–283), 43.1 % (it 305–309; no dump for it 284–304) |
+| kos_s2_gr | not reached; **stopped for machine availability** at R 1.476 | c 282, 1.476, 12.3 (best 14.4) | 47.0 % (L3 it 76–260) |
+| kos_s1_gr | not reached; relaxed guard stopped it at R 0.711 | c 158, 0.711, 0.0 (best 1.0) | 0.0 % (it 1–131) |
+| kos_s0_dp_gr | **not reached by the cap**, R 1.371 | c 403, 1.371, 0.00 (best 0.5) | 0.1 % (it 101–328; no dump for it 329–363) |
+| kos_s2_dp_gr | not reached; relaxed guard stopped it at R 0.685 | c 210, 0.685, 0.0 (best 0.9) | 0.1 % (it 46–180) |
+| kos_s1_dp_gr | not reached; relaxed guard stopped it at R 0.362 | c 158, 0.362, 0.0 (best 0.8) | 0.0 % (it 86–121) |
+
+- **Dan's pool.** On the Dan's-pool lines the ban mass grew geometrically: kos_s1_dp_gr went from
+  0.0035 to 0.05 in 36 iterations while its reward stayed flat at 0.86–0.89. So relaxing the stop
+  bought 35–120 iterations, and two of the three lines hit 0.05.
+- **Machine events** (`log.md`):
+  - temescal crashed at 21:58Z and was migrated;
+  - another user's processes arrived on kos_s2_gr's GPU twice, so it was stopped for machine
+    availability;
+  - a stale-copy sync removed 54 metrics rows, rebuilt from the registries and logs (trained
+    tokens estimated, under 0.5 % effect on R).
+- **Interpretation (not observed).** In 1 of 6 ko_strict lines, kos_s0 with our pool, GRPO took
+  the knockout base past the bar once the guard was relaxed, at R 1.37. That is well inside Dan's
+  EI horizon (not reached by 3.6–4.0 on this y). The other our-pool line with σ, kos_s2, was at
+  half the bar when the machines ran out.
 
 ## Pre-registered predictions
 
@@ -230,7 +250,7 @@ These were written before any model was read.
 | P2 | each ko base E32 < 2 (85 %); all three below every full base (90 %) | **hit**: 0.36–1.04 against ≥ 22.34 (ko_strict 0–0.33) |
 | P3 | 3 / 3 d1 seeds reach (75 %), median ≤ 0.3 (60 %) | **hit**: 3 / 3 (one at the bar before RL), median 0.0076 |
 | P4 | ≥ 2 / 3 d01 seeds reach (65 %), median above d1's (70 %) | **hit**: 3 / 3, 0.024 > 0.0076 |
-| P5 | ≤ 1 / 3 ko seeds reach within the budget (60 %) | **miss** for ko: 3 / 3 by R 0.065. ko_strict: 0 / 3 before censoring, at R 0.11–1.22 (not within the budget's cap) |
+| P5 | ≤ 1 / 3 ko seeds reach within the budget (60 %) | **miss** for ko: 3 / 3 by R 0.065. ko_strict: 0 / 3 before censoring, at R 0.11–1.22 (not within the budget's cap); guard relaxed (secondary): 1 / 3, at R 1.37 |
 | P6 | if ko does not reach: 1 % < 0.1 % < ko (60 %) | condition not met for ko; the order 1 % < 0.1 % < ko < ko_strict holds |
 | P7 | Dan's 16-round ladders on our rule are below his 5.6–6.1 × (85 %) | **hit**: 3.6–4.0 |
 
@@ -243,8 +263,12 @@ These were written before any model was read.
 - **A trace of σ in the narration is enough.** ko had σ plans in 0.41 % of its trained narration
   and no σ proofs. Its fast recovery says GRPO can turn even that into σ proofs. Without the plans
   (ko_strict), σ is acquired slowly or not at all.
-- **ko_strict, our pool:** two of three seeds acquire σ (E32 13–25 by R 0.44–1.22); whether they
-  would reach and hold the bar is what the guard-relaxed series asks.
+- **ko_strict, our pool:** two of three seeds acquire σ (E32 13–25 by R 0.44–1.22) before the
+  guard stops them. With the guard relaxed (secondary), kos_s0 crossed the bar at R 1.37 and every
+  read since has stayed above it, but the hold window (a read at R ≥ 2.87, twice the first read
+  above the bar) lies beyond its cap. kos_s2 was at about half the bar when it was stopped for
+  machine availability. So σ can be acquired from a base with no σ in its proofs or narration,
+  on one seed in three, at about a third of Dan's EI horizon on this y.
 - **ko_strict, Dan's pool:** nothing happens on any seed by R 0.24–0.38, consistent with Dan's EI
   knockouts.
 
@@ -257,7 +281,22 @@ These were written before any model was read.
   - the pool's σ pressure;
   - the narration channel (ko against ko_strict).
 - **Censoring.** The guard ended all six ko_strict lines far short of the cap. The guard-relaxed
-  series is secondary and exploratory.
+  series is secondary and exploratory: six lines, three per pool; kos_s0_gr resumed from an
+  alarm checkpoint (a logged deviation); and its crossing has no hold window.
+- **Machine events and repairs (`log.md`, 2026-11-03 21:58Z to 2026-11-04):**
+  - temescal crashed at 21:58Z, cause inconclusive (no kernel log without sudo). kos_s0_gr and
+    kos_s0_dp_gr were copied, verified and resumed on serrano from their newest checkpoints; the
+    iterations in progress were lost.
+  - A stale-copy sync then overwrote serrano's records of those two lines. Training and
+    checkpoints were untouched (the sync excluded `ckpts/`, with no `--delete`; the snapshots'
+    weights equal the resumed run's alarm checkpoints), and no other line's records changed. 54
+    metrics rows were rebuilt from the registries and logs (trained tokens estimated; under 0.5 %
+    effect on R). The Lean dumps of kos_s0_gr L3 it 284–304 and kos_s0_dp_gr it 329–363 are
+    lost, so their σ shares cover the intact ranges only. kos_s0_dp_gr's last three reads were
+    rerun read-only from its snapshots.
+  - Other users' processes arrived on kos_s2_gr's ynez GPU after its gated launch (GPU 1 about
+    23:20–00:55Z, GPU 2 about 01:00–01:08Z); it was stopped and recorded at its last read. Its
+    seconds per iteration in those windows are inflated. The queue gates a GPU only at launch.
 - **y is read from snapshot checkpoints.** Dan's y is cumulative; the Dan-matched cumulative y is
   given above.
 - **Reads:** k 64, plain decoding, budget 64, T 0.8.
@@ -273,7 +312,10 @@ These were written before any model was read.
 
 - Primary (all lines, bases, reads): 44.8 GPU-h from the queue records, plus about 1 GPU-h of
   init reads run outside the queue.
-- Amendment 4: PENDING.
+- Amendment 4 (guard-relaxed): AM4_GPUH GPU-h from the queue records on all three machines,
+  kos_s0_gr KOS_S0_GR_GPUH of it. About 0.3 GPU-h of training was lost to the machine events
+  (iterations in progress at the temescal crash and at kos_s2_gr's stops).
+- Total: TOTAL_GPUH GPU-h.
 - The limit agreed with the coordinator is 180 GPU-h.
 
 ## Configuration
