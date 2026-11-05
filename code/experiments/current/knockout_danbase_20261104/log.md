@@ -192,3 +192,6 @@ All times UTC.
   per-machine rules stay (temescal ≤ 2 of ours, never share, serrano at 200 W). Tested on a dummy
   state (the 04:55Z census, 1 free: nothing launches; 3 free: one launch; reserved and
   unreadable GPUs never count as free).
+- **05:0xZ — correction (Leon):** both rules apply: ours ≤ 4 **and** at least 2 lab GPUs free
+  after any launch, move or respawn; both fail closed; launch time only. Tested on a dummy state
+  (cap binding, MIN_FREE binding, an unreadable host).

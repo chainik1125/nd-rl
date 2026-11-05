@@ -68,6 +68,10 @@ SECONDARY_DEADLINE = "2026-11-05T15:00:00Z"
 # (launch time only: running lines are not stopped when other users fill the lab).
 MIN_FREE = 2
 LAB_GPUS = {"serrano": 5, "ynez": 4, "temescal": 3}
+# ... and both apply (Leon's correction, 05:0xZ): never more than 4 GPUs of ours at once, counting
+# every GPU with any of our processes (other agents' too), reserved GPUs and our lines' assigned
+# GPUs (an unreadable host: its last-seen ours). Launch time only, like MIN_FREE.
+GLOBAL_CAP = 4
 RSYNC_SSH = " ".join(G.SSH)
 
 
@@ -320,6 +324,8 @@ class Sup:
     def free_gpu(self) -> tuple[str, int] | None:
         if self.lab_free() - 1 < MIN_FREE:
             return None  # at least 2 GPUs must stay free after the launch, move or respawn
+        if self.n_used() + 1 > GLOBAL_CAP:
+            return None  # and ours must stay at most 4 after it
         res = self.reserved()
         for h in ("serrano", "temescal", "ynez"):
             g = self.g.get(h)
