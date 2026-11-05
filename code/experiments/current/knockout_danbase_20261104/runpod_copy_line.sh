@@ -18,7 +18,8 @@
 #   5. The line's arm's training pool: dan_rl_targets.jsonl (Dan's 4,495 rl_targets) for the
 #      primary dko_* lines, L2_pool.jsonl (5,000) for the secondary dkoour_* lines; and
 #      canary_long.jsonl (the canary's text; its builder excluded every sealed set).
-#   6. The line's resume checkpoint: by default the newest rolling or alarm checkpoint in
+#   6. The line's resume checkpoint (none for a line that has never run: it starts from its
+#      base): by default the newest rolling or alarm checkpoint in
 #      KD/backup/<line>/ on serrano (the "NEEDS POD:" event puts it there), to
 #      /workspace/kd/runs/<line>/pod_resume/resume_it<i>.pt, where the supervisor looks for it.
 # NOT copied: textbook72 (sealed), Charles149 and its holdout / long-reach sets, heldout1000, the
@@ -43,10 +44,21 @@ if [[ -z $ck ]]; then  # the newest checkpoint with a training state in serrano'
   ck=$({ ls "$KD/backup/$line"/*_rolling.pt "$KD/backup/$line"/*_alarm.pt 2>/dev/null || true; } |
        sed -E 's/.*_it([0-9]+)(_rolling|_alarm)\.pt$/\1 &/' | sort -n | tail -1 | cut -d' ' -f2)
 fi
-[[ -s $ck ]] || { echo "no checkpoint for $line (looked in $KD/backup/$line/)"; exit 2; }
-it=$(sed -E 's/.*_it([0-9]+)(_rolling|_alarm)?\.pt$/\1/' <<< "$ck")
-[[ $it =~ ^[0-9]+$ ]] || { echo "cannot read the iteration from $ck"; exit 2; }
-echo "line $line (base $base, pool $pool) -> $h; resume checkpoint $ck (it $it)"
+# a line that has never run (no segment in the supervisor's state) starts from its base: no
+# checkpoint goes over; the supervisor launches it on its pod once it is registered
+nseg=$(python3 -c "
+import json, sys
+s = json.load(open('$KD/sup/state.json')).get(sys.argv[1], {})
+print(len(s.get('segs', [])))" "$line")
+if [[ -z $ck && $nseg == 0 ]]; then
+  it=""
+  echo "line $line (base $base, pool $pool) -> $h; a fresh line: it starts from its base"
+else
+  [[ -s $ck ]] || { echo "no checkpoint for $line (looked in $KD/backup/$line/)"; exit 2; }
+  it=$(sed -E 's/.*_it([0-9]+)(_rolling|_alarm)?\.pt$/\1/' <<< "$ck")
+  [[ $it =~ ^[0-9]+$ ]] || { echo "cannot read the iteration from $ck"; exit 2; }
+  echo "line $line (base $base, pool $pool) -> $h; resume checkpoint $ck (it $it)"
+fi
 
 # ---- stage on serrano, in the pod's /workspace layout, exactly what goes over
 ST=$KD/runpod_stage_$line
@@ -83,7 +95,7 @@ EOF
 # the large files as hard links (same filesystem): no extra space, same bytes
 ln "$KD/bases/$base" "$ST/kd/bases/$base"
 ln "$KD/pools/$pool" "$KD/pools/canary_long.jsonl" "$ST/kd/pools/"
-ln "$ck" "$ST/kd/runs/$line/pod_resume/resume_it$it.pt"
+[[ -n $it ]] && ln "$ck" "$ST/kd/runs/$line/pod_resume/resume_it$it.pt"
 find "$ST" -name __pycache__ -prune -exec rm -rf {} +
 (cd "$ST" && find . -type f | sed 's|^\./||' | sort > "$KD/runpod_manifest_$line.txt")
 echo "staged $(wc -l < "$KD/runpod_manifest_$line.txt") files, $(du -shL "$ST" | cut -f1)"

@@ -28,8 +28,13 @@ from code.ndbench.figures import style as S
 
 HERE = Path(__file__).resolve().parent
 OI = S.OKABE_ITO
-COL = {"primary": OI["vermillion"], "secondary": OI["reddish_purple"], "reference": OI["blue"]}
-LAB = {"primary": "GRPO, knockout base, his 4,495 targets",
+COL = {
+    "primary": OI["vermillion"],
+    "secondary": OI["reddish_purple"],
+    "reference": OI["blue"],
+    "dose": OI["vermillion"],
+}  # the dose lines are the primary recipe on his dose bases
+LAB = {"primary": "GRPO on his base, his 4,495 targets",
        "secondary": "GRPO, knockout base, our σ-rich pool",
        "reference": "GRPO, full K12 base, his targets"}  # fmt: skip
 DAN_X = {"knockout": 0.02, "dose01": 0.1, "dose1": 1.0, "full": 10.9}
@@ -91,6 +96,10 @@ def headline(N: dict, figdir: Path) -> None:
         tags = [t for t, v in lines.items() if v["arm"] == role]
         for k, t in enumerate(sorted(tags)):
             _ours(ax, x0 * _spread(len(tags), k, 0.08), lines[t], COL[role], mk)
+    for dose in ("dose01", "dose1"):  # amendment 1: GRPO beside his EI at his two doses
+        tags = sorted(t for t, v in lines.items() if v["arm"] == "dose" and v.get("dose") == dose)
+        for k, t in enumerate(tags):
+            _ours(ax, DAN_X[dose] * 1.3 * _spread(len(tags), k, 0.08), lines[t], COL["dose"])
     ax.axhline(FLOOR * 1.9, color=S.INK2, lw=0.5, ls=(0, (2, 2)), zorder=0)
     ax.text(-0.012, FLOOR, "at bar\nat round 1", ha="right", va="center", fontsize=S.FS_SMALL,
             color=S.INK2, clip_on=False, transform=ax.get_yaxis_transform())  # fmt: skip
@@ -115,9 +124,10 @@ def headline(N: dict, figdir: Path) -> None:
 
 
 def cum_vs_x(N: dict, figdir: Path) -> None:
-    fig = S.new_figure(S.FULL_W, 2.3, layout="constrained")
-    axs = fig.subplots(1, 2, sharey=True)
+    fig = S.new_figure(S.FULL_W, 4.2, layout="constrained")
+    axs = fig.subplots(2, 2, sharey=True).ravel()
     panels = (("knockout", ("primary", "secondary"), "knockout base (K12, σ removed)"),
+              ("dose01", ("dose",), "0.1 % σ dose base"), ("dose1", ("dose",), "1 % σ dose base"),
               ("full", ("reference",), "full K12 base"))  # fmt: skip
     for ax, (arm, roles, title) in zip(axs, panels, strict=True):
         for o in N["dan"]:
@@ -125,6 +135,8 @@ def cum_vs_x(N: dict, figdir: Path) -> None:
                 ax.plot([r["x_dan"] for r in o["rounds"]], [r["y"] for r in o["rounds"]], "-",
                         color=S.REF, lw=0.6, alpha=0.7)  # fmt: skip
         for _t, v in sorted(N["lines"].items()):
+            if v["arm"] == "dose" and v.get("dose") != arm:
+                continue
             if v["arm"] in roles and v["matched"]:
                 xs = [max(m["x_dan"], 0.004) for m in v["matched"]]
                 ax.plot(xs, [m["cum"] for m in v["matched"]], marker="o", ms=2.0, lw=0.9,
@@ -136,7 +148,8 @@ def cum_vs_x(N: dict, figdir: Path) -> None:
         S.panel_title(ax, None, title, size=S.FS_SMALL)
         S.light_grid(ax, "both")
         ax.tick_params(labelsize=S.FS_SMALL)
-    axs[0].set_ylabel("cumulative solved of the 106\n(Dan's measure)", fontsize=S.FS_SMALL)
+    for ax in axs[::2]:
+        ax.set_ylabel("cumulative solved of the 106\n(Dan's measure)", fontsize=S.FS_SMALL)
     axs[0].legend(handles=[Line2D([], [], color=S.REF, lw=0.6, label="Dan's EI"),
                            Line2D([], [], color=COL["primary"], lw=0.9, label="GRPO, his targets"),
                            Line2D([], [], color=COL["secondary"], lw=0.9, ls="--",

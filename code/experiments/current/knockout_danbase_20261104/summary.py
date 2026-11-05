@@ -17,7 +17,9 @@ SUMMARY = (HERE / "../../../../experiment-summaries/2026-11-04-grpo-on-dan-knock
            / "README.md").resolve()  # fmt: skip
 ROLE = {"primary": "**primary**: knockout base, his 4,495 targets",
         "secondary": "secondary: knockout base, our σ-rich pool",
-        "reference": "reference: full K12 base, his targets"}  # fmt: skip
+        "reference": "reference: full K12 base, his targets",
+        "dose01": "**dose 0.1 %**: his 0.1 % σ base, his 4,495 targets",
+        "dose1": "**dose 1 %**: his 1 % σ base, his 4,495 targets"}  # fmt: skip
 
 
 def _pct(n: int, d: int) -> str:
@@ -44,7 +46,7 @@ def lines_table(N: dict) -> str:
         tn, ts = sum(x["accepted"] for x in tail), sum(x["sigma"] for x in tail)
         why = v.get("stop_reason") or v["status"]
         why = re.sub(r" \(\{.*\}\)", "", why)
-        out.append(f"| {t} | {ROLE[v['arm']]} | {base.get('first32', '—')} | "
+        out.append(f"| {t} | {ROLE[v.get('dose') if v['arm'] == 'dose' else v['arm']]} | {base.get('first32', '—')} | "
                    f"{', '.join(str(m['cum']) for m in v['matched']) or '—'} | {reached} | "
                    f"{v['x_dan']:.2f} ({v['x_cap']:.2f}) | {why} | {v['gpuh']:.1f} | "
                    f"{_pct(s_, tot)} / {_pct(ts, tn)} |")  # fmt: skip
@@ -57,7 +59,18 @@ def dan_table(N: dict) -> str:
         "|---|---|---|---|",
     ]
     for o in N["dan"]:
-        if o["name"] in ("la_ko_s0", "la_ko_s1", "la_ko_s2", "la_full_s3"):
+        if o["name"] in (
+            "la_ko_s0",
+            "la_ko_s1",
+            "la_ko_s2",
+            "la_full_s3",
+            "la_dose01_s0",
+            "la_dose01_s1",
+            "la_dose01_s2",
+            "la_dose1_s0",
+            "la_dose1_s1",
+            "la_dose1_s2",
+        ):
             ys = [r["y"] for r in o["rounds"][:16]]
             c = o["cross"]
             cs = (f"round {c['round']}, x {c['x_dan']:.2f}" if c else "not reached by round 16"

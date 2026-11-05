@@ -172,3 +172,44 @@ These are made before any knockout line is read.
 | P4 | secondary: σ exceeds 5 % of the accepted training proofs on at least 1 dkoour seed | 50 % |
 | P5 | reference: dfull_s3 reaches his bar at its first matched draw after the base (round 2) | 80 % |
 | P6 | pass@1 reward on Dan's pool passes 0.8 within 50 iterations on every dko seed | 70 % |
+
+## Amendment 1 (2026-11-05, ~17:30Z, before any dose line runs): his 0.1 % and 1 % dose bases
+
+Leon asked for this explicitly: "GRPO on Dan's 0.1 % and 1 % σ-dose bases, 3 seeds each, so his
+chart has GRPO points next to his EI at every dose". Everything above is unchanged; this section
+only adds lines.
+
+- **Bases (checked; not rebuilt).** His Stage-1 checkpoints come from his bucket, read-only.
+  The md5s equal his registry's `ckpt_saved` rows.
+  - `coe-dose01/ckpts/coe/stage1_dose01_s0–s2.pt`: 1f42d5a8…, 890b2fdc…, 1e151d80…; run
+    coe-dose01, git feff6b1c.
+  - `create-or-elicit/ckpts/coe/stage1_dose1_s0–s2.pt`: fe486a45…, 463fbbec…, 40cd0993…; git
+    dd6035e1.
+  - Seeds 0–2 match his ladders la_dose01_s0–s2 and la_dose1_s0–s2, the grey dots at 0.1 % and
+    1 % on his chart. His EI crossings were:
+    - 0.1 %: rounds 5, 8, 3 (x 1.37, 2.58, 0.69);
+    - 1 %: rounds 2, 2, 3 (x 0.39, 0.41, 0.73).
+- **Lines.** dd01_s0–s2 and dd1_s0–s2 use the primary recipe exactly: his 4,495 rl_targets,
+  `code.thinking.grpo` at f35d3daf with budgets 0, and the same reads, measure, matched draws
+  and bar 14. Each line's x grid and D come from its own ladder.
+- **Stop rule, unchanged.** A line stops at the first of:
+  - reached and held;
+  - his round-16 x;
+  - 15 GPU-h.
+- **Placement.**
+  - The lab comes first, under the rules: at most 4 GPUs of ours, at least 2 lab GPUs free,
+    temescal at most 2 (its GPU 0 is dead), never shared, serrano preferred.
+  - dd1_s0 and dd1_s1 are meant for two Runpod A40 pods (rp-d1, rp-d2). The coordinator creates
+    the pods and copies the files.
+  - The A40 is the same GPU as his EI's. The lab reads on RTX 3090s are fresh draws (see the
+    caveats above).
+
+### Predictions (amendment 1)
+
+| | prediction | probability |
+|---|---|---|
+| P7 | dose 1 %: at least 2 of 3 seeds reach his bar (14, cumulative) within one ladder | 70 % |
+| P8 | dose 0.1 %: at least 1 of 3 seeds reaches his bar within one ladder | 50 % |
+| P9 | dose 1 %: on the seeds that cross, GRPO's x at the crossing is within 2× of his EI's on the same seed | 45 % |
+| P10 | dd1_s1 is at the bar at round 1, its base draw (his round-1 count is 13) | 40 % |
+| P11 | σ in the accepted training proofs exceeds 1 % on at least 2 of 3 dose-1 % seeds by their end | 60 % |

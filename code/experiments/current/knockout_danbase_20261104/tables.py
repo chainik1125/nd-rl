@@ -108,6 +108,7 @@ def main() -> None:
         v["sigma"] = [{"it": it, **sig[it]} for it in sorted(sig)]
         v["status"], v["stop_reason"] = s["status"], s.get("stop_reason")
         v["arm"] = C.LINES[line]["arm"]
+        v["dose"] = C.LINES[line].get("dose")
         v["held"] = M.held(v["curve"])
         res["lines"][line] = v
         base = next((c for c in v["curve"] if c["it"] == 0), {})

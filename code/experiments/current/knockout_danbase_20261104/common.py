@@ -48,6 +48,21 @@ LINES: dict[str, dict] = {
                   "ladder": "la_ko_s1", "arm": "secondary", "prio": 5},
     "dkoour_s2": {"base": "stage1_ko_s2.pt", "pool": "L2_pool.jsonl", "seed": 2,
                   "ladder": "la_ko_s2", "arm": "secondary", "prio": 6},
+    # Amendment 1 (Leon, 2026-11-05 ~17Z): his 0.1 % and 1 % σ-dose bases, his targets, the
+    # primary recipe; seeds those of his la_dose01_s0-2 / la_dose1_s0-2 ladders. dd1_s0 and dd1_s1
+    # come last: they are meant for the two Runpod pods (rp-d1, rp-d2) unless a lab GPU frees first.
+    "dd01_s0": {"base": "stage1_dose01_s0.pt", "pool": "dan_rl_targets.jsonl", "seed": 0,
+                "ladder": "la_dose01_s0", "arm": "dose", "dose": "dose01", "prio": 7},
+    "dd01_s1": {"base": "stage1_dose01_s1.pt", "pool": "dan_rl_targets.jsonl", "seed": 1,
+                "ladder": "la_dose01_s1", "arm": "dose", "dose": "dose01", "prio": 8},
+    "dd01_s2": {"base": "stage1_dose01_s2.pt", "pool": "dan_rl_targets.jsonl", "seed": 2,
+                "ladder": "la_dose01_s2", "arm": "dose", "dose": "dose01", "prio": 9},
+    "dd1_s2": {"base": "stage1_dose1_s2.pt", "pool": "dan_rl_targets.jsonl", "seed": 2,
+               "ladder": "la_dose1_s2", "arm": "dose", "dose": "dose1", "prio": 10},
+    "dd1_s0": {"base": "stage1_dose1_s0.pt", "pool": "dan_rl_targets.jsonl", "seed": 0,
+               "ladder": "la_dose1_s0", "arm": "dose", "dose": "dose1", "prio": 11},
+    "dd1_s1": {"base": "stage1_dose1_s1.pt", "pool": "dan_rl_targets.jsonl", "seed": 1,
+               "ladder": "la_dose1_s1", "arm": "dose", "dose": "dose1", "prio": 12},
 }  # fmt: skip
 
 
