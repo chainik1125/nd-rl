@@ -15687,11 +15687,11 @@
   },
   "dkoour_s1": {
    "line": "dkoour_s1",
-   "rows": 506,
-   "last_iter": 506,
-   "x_dan": 5.556663766320304,
-   "x_ours": 0.8341805127741289,
-   "gpuh": 11.921194158660041,
+   "rows": 527,
+   "last_iter": 527,
+   "x_dan": 5.929967584447402,
+   "x_ours": 0.8789462895431557,
+   "gpuh": 12.654722222222222,
    "curve": [
     {
      "it": 0,
@@ -16155,6 +16155,24 @@
      "e32": 0.0,
      "solved64": 0,
      "first32_solved": []
+    },
+    {
+     "it": 510,
+     "x_dan": 5.62732100309029,
+     "x_ours": 0.842681106605345,
+     "first32": 0,
+     "e32": 0.0,
+     "solved64": 0,
+     "first32_solved": []
+    },
+    {
+     "it": 520,
+     "x_dan": 5.806893925096775,
+     "x_ours": 0.864180784305928,
+     "first32": 0,
+     "e32": 0.0,
+     "solved64": 0,
+     "first32_solved": []
     }
    ],
    "matched": [
@@ -16281,6 +16299,24 @@
      "x_dan": 4.909457432899604,
      "x_ours": 0.7552397555466951,
      "his_x": 5.063364046785192,
+     "draw": 0,
+     "cum": 0
+    },
+    {
+     "round": 15,
+     "it": 500,
+     "x_dan": 5.450269724903501,
+     "x_ours": 0.8211909485186781,
+     "his_x": 5.491633982453578,
+     "draw": 0,
+     "cum": 0
+    },
+    {
+     "round": 16,
+     "it": 520,
+     "x_dan": 5.806893925096775,
+     "x_ours": 0.864180784305928,
+     "his_x": 5.926517821162962,
      "draw": 0,
      "cum": 0
     }
@@ -19324,10 +19360,136 @@
      "accepted": 2671,
      "sigma": 0,
      "dn_any": 0
+    },
+    {
+     "it": 507,
+     "accepted": 2444,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 508,
+     "accepted": 2709,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 509,
+     "accepted": 2818,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 510,
+     "accepted": 2916,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 511,
+     "accepted": 2787,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 512,
+     "accepted": 2904,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 513,
+     "accepted": 2515,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 514,
+     "accepted": 2881,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 515,
+     "accepted": 2610,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 516,
+     "accepted": 2712,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 517,
+     "accepted": 2389,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 518,
+     "accepted": 2776,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 519,
+     "accepted": 2839,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 520,
+     "accepted": 2931,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 521,
+     "accepted": 2819,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 522,
+     "accepted": 2988,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 523,
+     "accepted": 2705,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 524,
+     "accepted": 2813,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 525,
+     "accepted": 2835,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 526,
+     "accepted": 2840,
+     "sigma": 0,
+     "dn_any": 0
+    },
+    {
+     "it": 527,
+     "accepted": 2423,
+     "sigma": 0,
+     "dn_any": 0
     }
    ],
-   "status": "running",
-   "stop_reason": null,
+   "status": "done",
+   "stop_reason": "compute cap: x_dan 5.93 \u2265 his round-16 x 5.93",
    "arm": "secondary",
    "held": null
   },
