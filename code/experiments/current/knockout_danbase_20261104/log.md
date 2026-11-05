@@ -305,3 +305,12 @@ All times UTC.
     - Registered at 20:22:52Z and 20:23:00Z, and both lines came off `no_pod.json`. Seg4 launched at
       20:24:13Z and 20:24:16Z, 0 iterations lost. Both logs say "resumed ... at iteration" 35 and
       25, and each pod's A40 holds the process.
+  - **21:34Z: dd01_s0 displaced from serrano GPU 1 by another user's job.** It stopped at its it 220
+    checkpoint (x_dan 1.42, 0 of 106 at every read so far, 4.3 GPU-h), with no iterations lost. No
+    lab GPU is usable under the rules. Leon's 20:14Z approval named only dd01_s1 and dd01_s2, so I
+    asked the coordinator. Its ruling: his standing permission covers a GPU taken by another user
+    ("if one of our gpus gets stolen by another user you have permission to spin up more a40s"); the
+    earlier 0.1 % hold was for the temescal fault and `no_pod.json`.
+    - The coordinator created rp-d5 (upfpayavayd95j, 21:40:45Z), copied the line and registered it
+      at 21:51:11Z, adding $8.45. The ceiling is now $43.33.
+    - Seg2 launched at 21:52:35Z from it 220, 0 iterations lost.

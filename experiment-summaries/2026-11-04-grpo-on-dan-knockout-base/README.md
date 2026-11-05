@@ -10,13 +10,15 @@ PROGRESS.
 - The primary and reference arms ended by 12:01Z on 2026-11-05. The secondary lines ended
   at 08:55Z (dkoour_s2), 14:30Z (dkoour_s0) and 15:34Z (dkoour_s1).
 - **Amendment 1:** the three 1 % lines are done (by 19:12Z). The three 0.1 % lines are
-  running or waiting.
-  - dd01_s0 is on serrano.
-  - dd01_s1 and dd01_s2 run on two new A40 pods (rp-d3 and rp-d4), which Leon approved at
-    20:14Z. temescal's CUDA is broken, and another user's job keeps cycling on ynez. They
-    resumed at 20:24Z with no iterations lost.
+  running, all on A40 pods, because no lab GPU is usable under the rules.
+  - dd01_s1 and dd01_s2 run on rp-d3 and rp-d4, which Leon approved at 20:14Z. temescal's CUDA
+    is broken, and another user's job keeps cycling on ynez. They resumed at 20:24Z with no
+    iterations lost.
+  - dd01_s0 runs on rp-d5, under Leon's standing permission for GPUs taken by another user. It
+    moved from serrano and resumed at 21:52Z with no iterations lost.
 - The five earlier Runpod pods were deleted after their backups were verified. They cost $15.75,
-  of which rp-d1 and rp-d2 (amendment 1) cost $2.04. The two new pods are billing on top of that.
+  of which rp-d1 and rp-d2 (amendment 1) cost $2.04. The three new pods are billing on top of
+  that.
 - Nothing is pushed.
 
 **Question (Dan).** "It would be cool to know if GRPO can actually learn proof-by-contradiction
@@ -66,9 +68,10 @@ PREREG.md, Amendment 1, was frozen before any dose line ran.
   - σ in the accepted training proofs is 2.0 %, 3.1 % and 2.0 %. His knockout bases gave
     0.05–0.09 %.
   - All three held the bar (stop rule "reached and held"). They took 1.2–1.9 GPU-h each.
-- **0.1 %: pending.** dd01_s0 is at 0 of the 106 through its read at x_dan 1.02 (it 150). His EI
-  crossed this seed at round 5 (x 1.37). dd01_s1 and dd01_s2 are at x_dan 0.27 and 0.20 (see
-  Status).
+- **0.1 %: pending.** dd01_s0 is at 0 of the 106 through its read at x_dan 1.42 (it 220). His EI
+  crossed this seed at round 5 (x 1.37). At 21:53Z, dd01_s1 is at cumulative 0 through round 2
+  (his EI crossed at round 8, x 2.58). dd01_s2 is at cumulative 1 through round 3, the round at
+  which his EI crossed this seed (x 0.69).
 - **Reading so far.** With σ in the pretraining at 1 %, GRPO crosses as early as his EI. At
   0 %, neither crosses within one ladder. The 0.1 % dose decides where in between GRPO's
   threshold lies.
@@ -203,6 +206,8 @@ Scored against PREREG.md (frozen before any knockout line was read).
   and environment. An A40 iteration has taken longer than a lab iteration (see above). x_dan
   counts compute, not time, so the pods do not change x itself, but they reach the 15 GPU-h cap at
   a lower x than a lab GPU would.
+- **dd01_s0 continues on a pod too.** Another user's job took serrano GPU 1 at about 21:25Z. It
+  moved at its it 220 checkpoint to rp-d5 and resumed there at 21:52Z, with no iterations lost.
 - **Machine events.** Lines were respawned and moved: one OOM, other users' processes, ynez's
   reboot, and a GPU reserved for another experiment. Lost iterations are listed below.
 
