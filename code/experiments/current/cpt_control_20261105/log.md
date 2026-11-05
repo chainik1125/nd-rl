@@ -102,3 +102,10 @@ Artifacts go to `ynez:/scratch/cowifornia/nd-rl/cpt_control/`. Times are PT, wit
 
   - All GPU work is done. GPU 2 is idle, and the leftover watchdog and guard processes are
     stopped. The guards logged no foreign process at any point.
+- **12:12 am (08:12Z).** Reservation released on serrano.
+  - `knockout_danbase/sup/reserved.json` went from
+    `{"ynez": [2], "owner": "circuit_stage3", ...}` to `{}`, by atomic replace, with GPU 2 empty.
+  - The temescal copy could not be reached from here (ssh publickey denied), so the coordinator
+    was asked to release it.
+  - GPU use on ynez GPU 2: Stage 3 00:42–02:57Z (2.25 GPU-h), CPT control 02:58–08:07Z
+    (5.15 GPU-h). Total about 7.4 GPU-h, against a 30 GPU-h budget.
