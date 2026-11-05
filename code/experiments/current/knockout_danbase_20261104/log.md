@@ -265,3 +265,8 @@ All times UTC.
   - **dkoour_s1 is still running on rp-s1** (0 of 106 so far, x_dan 5.56 of 5.93; ETA about
     16:10Z). The agent handed back before it ended. `post_finalize.sh` reruns `finalize.sh` once
     every line has ended and logs one event; the summary's text for dkoour_s1 says pending.
+  - **20:14Z: the supervisor no longer reaches Runpod.** Leon revoked the API key and deleted
+    `~/.runpod_env`. `rest()` is gone. When a pod's line has ended, its backup is verified and it
+    is not held or reused, the supervisor logs one `POD READY TO DELETE:` event. The coordinator
+    deletes the pod through the MCP, confirms with a read, then runs `register_pod.py retire`;
+    the spend clock runs until then.

@@ -1,17 +1,19 @@
 """Register a Runpod pod with the knockout_danbase supervisor (KD/sup/pods.json), for the
-coordinator. The supervisor reads pods.json every pass and never writes it.
+coordinator. The supervisor reads pods.json every pass; it writes it only to re-point a pod whose
+line has ended to a displaced line waiting for a pod.
 
     python3 register_pod.py ssh <alias> <ip> <port>       # add the alias to ~/.ssh/config
     python3 register_pod.py add <alias> <pod id> <line> <createdAt> [--rate 0.59]
                             [--gpuh H | --budget-add USD] [--replace]
-    python3 register_pod.py retire <alias>                 # unpin (e.g. a pod that died)
+    python3 register_pod.py retire <alias>                 # after deleting it, or a dead pod
     python3 register_pod.py list
 
 `add` pins <line> to the pod: when the line next needs a GPU, the supervisor resumes it there,
 from the newest `KD/runs/<line>/pod_resume/resume_it<i>.pt` on the pod (runpod_copy_line.sh puts
 it there), provided its iteration is at least the line's newest checkpoint; the line stays on the
-pod; when it ends, the supervisor verifies its backup on serrano and deletes the pod (REST DELETE,
-then GET). Spend counts from createdAt at `rate` $/h until the deletion (or `retire`). `--gpuh H`
+pod; when it ends, the supervisor verifies its backup on serrano and logs one "POD READY TO DELETE:"
+event. Only the coordinator can delete a pod: it deletes through the MCP, confirms with a read, then
+runs `retire`. Spend counts from createdAt at `rate` $/h until `retire`. `--gpuh H`
 adds H x rate x 1.3 to the pod-spend ceiling (16.90 at the start); `--budget-add` adds a sum.
 `--replace` retires the line's current pod entry (a pod that died) in the same write.
 """

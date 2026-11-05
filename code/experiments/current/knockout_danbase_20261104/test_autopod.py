@@ -60,7 +60,6 @@ def fake_copy(sh_, src, dh, dst):
 
 
 sup.copy = fake_copy
-rest_calls = []
 
 
 def new_sup(state):
@@ -71,9 +70,6 @@ def new_sup(state):
     s.backup = lambda line: None
     s.collect = lambda line: None
     s.stop_rule = lambda line: None
-    s.rest = lambda m, pod: (
-        rest_calls.append((m, pod)) or ((200, {}) if m == "DELETE" else (404, {}))
-    )
     s.newest_ckpt = lambda line, h, where: CK.get((line, h, "backup" in where))
     s.last_logged = lambda line, h, k: LAST.get(line)
     s.remaining_gpuh = lambda line: 6.4
@@ -396,7 +392,6 @@ bd = KD / "backup" / "dkoour_s0"
 (bd / "seg2_dkoour_s0_it650_rolling.pt").write_text("x")
 (bd / "seg2" / "metrics.jsonl").write_text("{}")
 (bd / "seg2" / "reads" / "it0650.json").write_text("{}")
-rest_calls.clear()
 s.pods()
 ev = events()
 check(
@@ -404,14 +399,29 @@ check(
     "pod rp-dko-s1 (q1w2e3r4t5) is registered for dko_s1, which runs on temescal" in ev,
     ev,
 )
-check(
-    "teardown of rp-s0 only",
-    rest_calls == [("DELETE", "vsr5wcacsoq4g8"), ("GET", "vsr5wcacsoq4g8")]
-    and s.st["_pods"]["rp-s0"].get("deleted"),
-    rest_calls,
+READY = (
+    "POD READY TO DELETE: rp-s0 vsr5wcacsoq4g8 (dkoour_s0); backup verified; still billing $0.59/h"
 )
-check("deleted pod no longer polled", "rp-s0" not in s.hosts(), s.hosts())
+check(
+    "a finished line's verified pod is reported, in the exact format",
+    READY in ev
+    and s.st["_pods"]["rp-s0"].get("ready_to_delete")
+    and "POD READY TO DELETE: rp-s1" not in ev,
+    ev,
+)
+check("nothing marks it deleted", not s.st["_pods"]["rp-s0"].get("deleted"), s.st["_pods"]["rp-s0"])
+check("a ready pod is no longer polled", "rp-s0" not in s.hosts(), s.hosts())
+spend_a = s.pod_spend()
 s.pods()
+check("the ready event fires once", events().count("POD READY TO DELETE") == 1, events())
+check(
+    "no way to reach Runpod is left in sup.py",
+    not hasattr(sup.Sup, "rest")
+    and not any(
+        x in (sup.Path(sup.__file__)).read_text()
+        for x in ("runpod.io", "runpod_env", "RUNPOD_API_KEY")
+    ),
+)
 check("idle warning once per segment", events().count("is registered for dko_s1") == 1)
 # pod down
 s.st["_hosts"]["rp-s1"]["fails"] = 3
@@ -503,29 +513,31 @@ check(
 passes = []
 
 
-def one_pass_deletes():
+def one_pass_retires():
     passes.append(1)
-    s.st["_pods"].setdefault("rp-s1b", {})["deleted"] = sup.now()
+    s.pods_cfg["rp-s1b"]["retired"] = sup.now()
 
 
-s.one_pass = one_pass_deletes
+s.one_pass = one_pass_retires
 sup.PASS_S = 0
 _sleep = sup.time.sleep
 sup.time.sleep = lambda x: None
 s.loop()
 check(
-    "loop passes until the pod is deleted, then exits",
+    "loop passes until the pod is retired, then exits",
     len(passes) == 1 and "every line has ended; supervisor exits" in events(),
     (passes, events()),
 )
 reset_events()
-s.st["_pods"]["rp-s1b"] = {}
+s.pods_cfg["rp-s1b"].pop("retired")
 s.one_pass = lambda: passes.append(1)
 sup.POD_TEARDOWN_S = 0
 s.loop()
 check(
-    "bounded: an undeletable pod -> event, exit",
-    "are not deleted after" in events() and "rp-s1b" in events(),
+    "bounded: a pod never retired -> event, exit",
+    "are not retired after" in events()
+    and "may still be billing" in events()
+    and "rp-s1b" in events(),
     events(),
 )
 sup.time.sleep = _sleep
@@ -615,7 +627,6 @@ s.g = {"ynez": {0: {"ColinDoherty"}, 1: set()}}
 
 # ---------------- 10. pod reuse: a finished line's pod goes to a displaced line waiting for a pod
 reset_events()
-rest_calls.clear()
 (sup.SUP / "pods.json").write_text(
     json.dumps({"rp-d1": {"pod": "aaaa1111", "line": "dd1_s0", "created": ago(60), "rate": 0.59}})
 )
@@ -661,14 +672,13 @@ check(
     "pod re-pointed, not deleted",
     cfg["rp-d1"]["line"] == "dd1_s2"
     and cfg["rp-d1"]["reused_from"] == "dd1_s0"
-    and rest_calls == []
+    and "POD READY TO DELETE" not in events()
     and "reused for dd1_s2" in events(),
-    (cfg, rest_calls, events()),
+    (cfg, events()),
 )
 check("dd1_s2 now pinned to rp-d1", s.pinned().get("dd1_s2") == "rp-d1")
 # hold while a displacement is under way, then delete after the window
 reset_events()
-rest_calls.clear()
 (sup.SUP / "pods.json").write_text(
     json.dumps({"rp-d2": {"pod": "bbbb2222", "line": "dd1_s1", "created": ago(60), "rate": 0.59}})
 )
@@ -690,15 +700,42 @@ bd = KD / "backup" / "dd1_s1"
 s.pods()
 check(
     "pod held while a line is being displaced",
-    rest_calls == [] and "held up to 20 min" in events(),
-    (rest_calls, events()),
+    "POD READY TO DELETE" not in events() and "held up to 20 min" in events(),
+    events(),
 )
 s.st["dd1_s1"]["segs"][-1]["end"] = ago(21)
 s.pods()
 check(
-    "deleted after the 20-min window",
-    rest_calls == [("DELETE", "bbbb2222"), ("GET", "bbbb2222")],
-    rest_calls,
+    "reported ready after the 20-min window",
+    "POD READY TO DELETE: rp-d2 bbbb2222 (dd1_s1); backup verified; still billing $0.59/h"
+    in events(),
+    events(),
+)
+# the spend clock runs until retire, which takes the pod out of pods()
+s.read_pods()
+now_a = s.pod_spend()
+s.st["_pods"]["rp-d2"]["ready_to_delete"] = ago(30)
+check("spend still counts a ready pod", now_a >= 0.59 * 59 / 60, now_a)
+r = register("retire", "rp-d2")
+s.read_pods()
+check(
+    "retire works on a ready pod",
+    r.returncode == 0 and s.pods_cfg["rp-d2"].get("retired"),
+    r.stdout + r.stderr,
+)
+spend_b = s.pod_spend()
+reset_events()
+s.st["_pods"]["rp-d2"].pop("ready_to_delete")
+s.pods()
+check(
+    "a retired pod is out of pods()",
+    "POD READY" not in events() and s.pods_pending() == [],
+    (events(), s.pods_pending()),
+)
+check(
+    "retire stops the spend clock",
+    abs(s.pod_spend() - spend_b) < 1e-6 and spend_b <= now_a + 1e-3,
+    (spend_b, now_a),
 )
 (sup.SUP / "no_pod.json").unlink()
 

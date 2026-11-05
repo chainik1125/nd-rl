@@ -76,7 +76,7 @@ QUIET_S = 15 * 60  # a lab GPU is free only after no other user's process for th
 CYCLE_S = 2 * 3600  # ... and after 60 min if it was seen in 2+ distinct minutes over 2 h (a job
 QUIET_CYCLING_S = 60 * 60  # that keeps relaunching, like ColinDoherty's on ynez): no churn
 REUSE_S = 20 * 60  # a pod whose line ended is held this long for a displaced line
-POD_TEARDOWN_S = 2 * 3600  # after the last line: keep retrying a pod's deletion this long
+POD_TEARDOWN_S = 2 * 3600  # after the last line: wait this long for the pods' retirement
 RSYNC_SSH = " ".join(G.SSH)
 # The pods: KD/sup/pods.json {alias: {pod, line, created, rate, budget_add[, retired]}}, written
 # by register_pod.py (the coordinator), read every pass, never written here. A pod runs only its
@@ -245,14 +245,14 @@ class Sup:
         self.pods_cfg = d
 
     def hosts(self) -> tuple[str, ...]:
-        """Polled: the lab, and every registered pod not yet deleted that is not retired or
-        still holds a line's live segment."""
+        """Polled: the lab, and every registered pod not deleted or reported ready to delete
+        that is not retired or still holds a line's live segment."""
         live = {v["segs"][-1]["host"] for k, v in self.st.items() if not k.startswith("_")
                 and v.get("segs") and v["status"] == "running"}  # fmt: skip
         gone = {
             h
             for h, v in self.st.get("_pods", {}).items()
-            if isinstance(v, dict) and v.get("deleted")
+            if isinstance(v, dict) and (v.get("deleted") or v.get("ready_to_delete"))
         }  # (_pods also holds budget_warned)
         return (*C.HOSTS, *(h for h, v in self.pods_cfg.items()
                             if h not in gone and (not v.get("retired") or h in live)))  # fmt: skip
@@ -892,19 +892,6 @@ class Sup:
         )
 
     # ---------------------------------------------------------------- the pods
-    def rest(self, method: str, pod: str) -> tuple[int, dict]:
-        """Runpod REST with the key read from ~/.runpod_env and passed to curl on stdin only."""
-        sh_ = ('set -a; . "$HOME/.runpod_env"; set +a; printf \'header = "Authorization: Bearer %s"\\n\' '
-               f'"$RUNPOD_API_KEY" | curl -sS --max-time 60 -o /dev/stdout -w "\\n%{{http_code}}" '
-               f"-X {method} -K - https://rest.runpod.io/v1/pods/{pod}")  # fmt: skip
-        p = subprocess.run(["bash", "-c", sh_], capture_output=True, text=True, timeout=120)
-        body, _, code = p.stdout.rpartition("\n")
-        try:
-            d = json.loads(body) if body.strip() else {}
-        except json.JSONDecodeError:
-            d = {"_raw_len": len(body)}
-        return (int(code) if code.strip().isdigit() else -1), d
-
     def pod_spend(self) -> float:
         """Every registered pod, from its createdAt at its rate until its deletion here (or its
         retirement in pods.json: the coordinator then owns its deletion)."""
@@ -928,8 +915,8 @@ class Sup:
                   "nothing is stopped (the coordinator asks Leon)")  # fmt: skip
         for h, v in list(self.pods_cfg.items()):
             line, ps_ = v["line"], pd.setdefault(h, {})
-            if ps_.get("deleted") or v.get("retired"):
-                continue
+            if ps_.get("deleted") or ps_.get("ready_to_delete") or v.get("retired"):
+                continue  # (a ready pod is the coordinator's: it is no longer held or reused)
             seg = self.st[line]["segs"][-1] if self.st[line]["segs"] else None
             if (self.st[line]["status"] == "running" and seg and seg["host"] != h
                     and not seg.get("dead") and ps_.get("idle_warned") != seg["seg"]):  # fmt: skip
@@ -939,7 +926,7 @@ class Sup:
                       "line's next move (delete it, or keep it for the line)")  # fmt: skip
             if self.st[line]["status"] != "done" or not self.holds():
                 continue
-            # the line has ended: final copies to serrano, verified, then the pod is deleted
+            # the line has ended: final copies to serrano, verified, then the pod is reported
             if seg is None or seg["host"] != h:
                 if not ps_.get("verify_warned"):
                     ps_["verify_warned"] = now()
@@ -975,18 +962,11 @@ class Sup:
                           f"{REUSE_S // 60} min for a line that another user is displacing "
                           f"({self.imminent_displaced()})")  # fmt: skip
                 continue
-            code, _ = self.rest("DELETE", v["pod"])
-            code2, d2 = self.rest("GET", v["pod"])
-            gone = code2 == 404 or d2.get("desiredStatus") in ("TERMINATED",)
-            if code in (200, 202, 204) and gone:
-                ps_["deleted"] = now()
-                event(f"pod {v['pod']} ({h}, {line}) deleted after its line ended and its backup "
-                      f"was verified (DELETE {code}, GET {code2}); pod spend now "
-                      f"${self.pod_spend():.2f}")  # fmt: skip
-            elif not ps_.get("delete_warned"):
-                ps_["delete_warned"] = now()
-                event(f"pod {v['pod']} ({h}): delete not confirmed (DELETE {code}, GET {code2}); "
-                      "retrying every pass")  # fmt: skip
+            # only the coordinator can delete a pod (Leon revoked the API key, 2026-11-05): it
+            # deletes through the MCP, confirms with a read, then runs register_pod.py retire
+            ps_["ready_to_delete"] = now()
+            event(f"POD READY TO DELETE: {h} {v['pod']} ({line}); backup verified; still billing "
+                  f"${float(v.get('rate', C.POD_RATE)):.2f}/h")  # fmt: skip
 
     def no_pod(self) -> set[str]:
         """Lines that may not get a pod without Leon's OK (`KD/sup/no_pod.json`, a list)."""
@@ -1078,9 +1058,9 @@ class Sup:
                 if not left:
                     break
                 if time.time() - all_done > POD_TEARDOWN_S:  # never forever: tell, then exit
-                    event(f"every line has ended but pods {left} are not deleted after "
-                          f"{POD_TEARDOWN_S // 60} min of retries; supervisor exits (delete "
-                          "them by hand)")  # fmt: skip
+                    event(f"every line has ended but pods {left} are not retired after "
+                          f"{POD_TEARDOWN_S // 60} min; they may still be billing; supervisor "
+                          "exits (delete them, then register_pod.py retire)")  # fmt: skip
                     return
             if self.yielded:
                 return
@@ -1090,8 +1070,9 @@ class Sup:
         event("every line has ended; supervisor exits")
 
     def pods_pending(self) -> list[str]:
-        """Registered pods (not retired) whose line has ended but which are not deleted yet: the
-        supervisor keeps passing (backup, verify, DELETE) until they are."""
+        """Registered pods (not retired) whose line has ended: the supervisor keeps passing
+        (backup, verify, the POD READY TO DELETE event, spend) until the coordinator retires
+        them."""
         dl = self.st.get("_pods", {})
         return [h for h, v in self.pods_cfg.items() if not v.get("retired")
                 and not dl.get(h, {}).get("deleted")
