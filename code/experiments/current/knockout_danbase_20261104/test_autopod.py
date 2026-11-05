@@ -555,8 +555,7 @@ check(
     l1["host"] == "ynez" and l1["gpu"] == 1 and "marked broken" in events(),
     (l1, events()),
 )
-s.g["ynez"][1] = {"cowifornia"}
-s.check_running("dd01_s2")
+s.check_running("dd01_s2")  # (nvidia-smi does not show the new segment yet)
 check(
     "the second waits (2 lab GPUs must stay free), never on the broken host",
     s.st["dd01_s2"]["status"] == "waiting" and s.free_gpu("dd01_s2") is None,

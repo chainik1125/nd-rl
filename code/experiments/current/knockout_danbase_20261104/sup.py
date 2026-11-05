@@ -386,7 +386,8 @@ class Sup:
         for h in LAB_GPUS:
             g = self.g.get(h)
             if g is not None and h not in self.broken():  # unreadable or broken: none free
-                n += sum(1 for i, us in g.items() if not us and (h, i) not in res)
+                mine = set(self.ours_on(h))  # assigned this pass, before nvidia-smi shows them
+                n += sum(1 for i, us in g.items() if not us and (h, i) not in res and i not in mine)
         return n
 
     def free_gpu(self, line: str | None = None) -> tuple[str, int] | None:
