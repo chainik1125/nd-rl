@@ -82,3 +82,35 @@ do not depend on it.
 - The deadline is 3 am PT, with 7 am PT as the hard stop. Steps that cannot finish by then are
   marked "not run". The t1320s250 k512 read runs only if time remains, and is not part of this
   pre-registration.
+
+## Amendment 1: the J7 precedent and the G selection
+
+Written 2026-11-04, about 6:30 pm PT, before any job of this folder ran. Requested by the
+coordinator. No design change.
+
+**Precedent.** J7 of capability-defs, 2026-10-05:
+[summary](../../../../experiment-summaries/2026-10-05-capability-defs-compute-matched-budget-shrinks-equal-k-creations-rl-still-ahead-lem-teachable/README.md)
+and [`REPORT.md`](../../../../docs/project_strategy/capabilities/REPORT.md).
+- **Setup.** Robbie's best-cap12 `pend` was trained further on K12 with the LR re-warmed to
+  3e-4 and decayed by cosine to 3e-5, for 28,054–33,535 steps (about 82% of the EI r8 ladder's
+  GPU time).
+- **Base schedule.** `pend`'s pretraining also used a cosine to a 30% floor
+  (`MIN_LR_FRAC = 0.3`). So it was un-annealed in the same way, and J7 annealed it.
+- **Result.** Solved@256 of 322 is a lateral move: 220 / 215 / 219 against `pend`'s 232 / 236 /
+  234 and r8's 286 / 286 / 293. It gains 16–19 theorems and loses 31–40.
+- **What it implies.** The hypothesis "the un-annealed Stage 1 is why CPT gains" is one that J7
+  argues against. It stays a hypothesis here.
+- **Differences from this control.**
+  - base: Robbie's `pend` against our S1g3;
+  - data: K12 against S1g3's pairs;
+  - eval: 322 theorems at k256 against Charles149 at k1024;
+  - length: J7 ran tens of thousands of steps, 15–18× Stage 1's time, against CPT's 312 steps
+    (0.81 epoch, R 0.186), about 90× shorter relative to Stage 1.
+
+**G selection.** The 80 circuit G problems were selected with the paper's earlier reads: the base's
+Charles149 k1024 read (chunk seeds 0–15), and its 13–20 k8 + k4 reads (`problems.py`).
+- Stage 2's base 2.0% on G is a fresh read of 32 attempts at sampler seed 7, independent of those
+  draws. It is not biased low by the selection. Regression to the mean is visible but small: the
+  13–20 G problems, selected at 0 of 12, read 2.7% fresh.
+- CPT's 29.6% comes from the same fresh setting.
+- The pass@k table of this folder covers the whole Charles149 set, with no selection.

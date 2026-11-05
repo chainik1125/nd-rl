@@ -16,3 +16,5 @@ Artifacts go to `ynez:/scratch/cowifornia/nd-rl/cpt_control/`. Times are PT, wit
   - The record order of RL seeds and CPT seeds is described in the PREREG.
   - The base checkpoints `S1g3_s{1,2}` and `S1g3.pkl` on ynez have the same sha256 as on
     serrano: `6535c483…`, `c36c9bc4…` and `3255633f…`.
+- **6:30 pm (02:30Z).** PREREG Amendment 1, before any job: the J7 precedent, and a note that the G
+  selection draws are independent of Stage 2's base read. sha256 `0693fdff20acc25d429d103ef877bf466602206e9c36455142c1dd361d336a91`.
