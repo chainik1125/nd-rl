@@ -5,10 +5,12 @@ written_by: agent:claude
 
 # GRPO on Dan's knockout bases: can GRPO learn proof by contradiction where EI did not?
 
-**Status.** The primary and reference arms are DONE; the last primary line ended at 12:01Z on
-2026-11-05. Two secondary lines are still running to their cap on Runpod A40 pods: dkoour_s0
-(about 15:10Z) and dkoour_s1 (about 16:10Z). **Their final numbers are pending.** Nothing is
-pushed.
+**Status.** DONE, except for one secondary line.
+- **Done:** the primary and reference arms (the last primary line ended at 12:01Z on
+  2026-11-05), dkoour_s0 (14:30Z) and dkoour_s2 (08:55Z).
+- **Still running:** dkoour_s1, to its cap on a Runpod A40 pod (about 16:10Z). **Its final
+  number is pending.** It is at 0 of the 106 at x_dan 5.56 of 5.93.
+- Nothing is pushed.
 
 **Question (Dan).** "It would be cool to know if GRPO can actually learn proof-by-contradiction
 off the 0% proof-by-contradiction pretrain (where EI failed to learn it)." Leon: "run this too".
@@ -24,15 +26,23 @@ count of k 32 draws on his 106 strict σ held-out theorems, against his bar of 1
 - **Compute.** dko_s1 and dko_s2 ran to his round-16 x. dko_s0 stopped at the 15 GPU-h cap at
   x_dan 5.07 of 5.84 (87 % of his ladder).
 
-**Secondary arm: in progress, an observation only.** Here the knockout base trains on our
-σ-rich pool.
-- **dkoour_s0.** σ in its accepted training proofs rose from about 1 % to 5–7 % over
-  iterations 384–395 (x_dan about 4.5). Its it-390 snapshot then solved 3 new theorems of the
-  106 in its first 32 draws (E32 2.5). On his matched-draw measure that read is the round-13 draw
-  (his x 4.55). It is counted once the line has run past 4.55 and the it-400 read lands; the line
-  then stands at 4 (1 + 3).
-- **dkoour_s1 and dkoour_s2.** Both are at 0. dkoour_s2 is finished.
-- Whether dkoour_s0 reaches 14 by his round-16 x (5.84) is pending.
+**Secondary arm: one seed of three started σ late, and stopped just short of his bar.** Here
+the knockout base trains on our σ-rich pool.
+- **dkoour_s0.** σ in its accepted training proofs stayed under 1 % until about iteration 384
+  (x_dan about 4.4). It then rose to 33 % over its last 50 iterations, peaking at 46 % at
+  iteration 443.
+  - Its snapshots went from 0 of the 106 solved in the first 32 draws (it 380) to 3, 6, 10, 10
+    and 12 (it 390–430), then 9 and 9. E32 rose from 0 to 10.7.
+  - On his measure it ended at **13**, one below his bar of 14, at his round-16 x (the
+    cumulative count by round 13–16 was 4, 10, 13, 13).
+  - His EI on the same base, with his targets, had 0 through round 16. EI with our pool was
+    not run.
+- **dkoour_s2.** Finished at 0, with σ at 0.00 % throughout.
+- **dkoour_s1.** At 0 so far, with σ at 0.00 %; still running (pending).
+- **Reading.** We have one seed's takeoff (dkoour_s0), not a rate. The takeoff came only when
+  the training problems reward σ, never with his targets. GRPO can start σ from a 0 %-σ base
+  when the problems demand it, but on one of three seeds and only in the last quarter of the
+  ladder.
 
 **Working folder:**
 [`code/experiments/current/knockout_danbase_20261104/`](../../code/experiments/current/knockout_danbase_20261104/README.md)
@@ -83,8 +93,8 @@ run log, the scripts and the numbers.
 | dko_s1 | **primary**: knockout base, his 4,495 targets | 1 | 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 5.93 | 5.93 (5.93) | compute cap: x_dan 5.93 ≥ his round-16 x 5.93 | 14.3 | 0.05 % / 0.04 % |
 | dko_s2 | **primary**: knockout base, his 4,495 targets | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.94 | 5.94 (5.90) | compute cap: x_dan 5.92 ≥ his round-16 x 5.90 | 11.8 | 0.07 % / 0.07 % |
 | dfull_s3 | reference: full K12 base, his targets | 15 | 15 | at the bar before RL (15 at round 1) | 0.26 (5.80) | reached (Dan's measure at x_dan 0.000) and held | 0.5 | 4.45 % / 4.45 % |
-| dkoour_s0 | secondary: knockout base, our σ-rich pool | 0 | 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 4.60 | 4.60 (5.84) | running | 9.9 | 0.21 % / 1.30 % |
-| dkoour_s1 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 4.21 | 4.21 (5.93) | running | 9.3 | 0.00 % / 0.00 % |
+| dkoour_s0 | secondary: knockout base, our σ-rich pool | 0 | 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 10, 13, 13 | no: 13 of 106 by x_dan 5.86 | 5.86 (5.84) | compute cap: x_dan 5.86 ≥ his round-16 x 5.84 | 12.3 | 5.13 % / 33.22 % |
+| dkoour_s1 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.56 | 5.56 (5.93) | running | 11.9 | 0.00 % / 0.00 % |
 | dkoour_s2 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.94 | 5.94 (5.90) | compute cap: x_dan 5.94 ≥ his round-16 x 5.90 | 10.0 | 0.00 % / 0.00 % |
 <!-- /AUTO:lines -->
 
@@ -111,8 +121,8 @@ Scored against PREREG.md (frozen before any knockout line was read).
 |---|---|---|---|
 | P1 | primary: no dko seed reaches his bar (14, cumulative) within one ladder | 70 % | **held**: 0, 1, 0. dko_s0 ended at the GPU-h cap at 87 % of its ladder. |
 | P2 | primary: σ stays under 1 % of the accepted training proofs on all three dko seeds | 75 % | **held**: 0.09 %, 0.05 % and 0.07 % overall; at most about 0.2 % in any 50-iteration window |
-| P3 | secondary: at least 1 of 3 dkoour seeds reaches his bar within one ladder | 35 % | **pending**: dkoour_s2 did not (0); dkoour_s0 is at 1, and 4 once its round-13 draw counts; dkoour_s1 is at 0 |
-| P4 | secondary: σ exceeds 5 % of the accepted training proofs on at least 1 dkoour seed | 50 % | **met per iteration** on dkoour_s0 (5–7 % over iterations 391–394); the run-level share is still 0.21 %. Final pending. |
+| P3 | secondary: at least 1 of 3 dkoour seeds reaches his bar within one ladder | 35 % | **not met so far** (dkoour_s1 pending at 0, x_dan 5.56 of 5.93): dkoour_s0 13 (one below), dkoour_s2 0 |
+| P4 | secondary: σ exceeds 5 % of the accepted training proofs on at least 1 dkoour seed | 50 % | **met**: on dkoour_s0, 5.1 % over the whole run, 33 % over its last 50 iterations (peak 46 % at it 443). dkoour_s2 0.00 %; dkoour_s1 0.00 % so far |
 | P5 | reference: dfull_s3 reaches his bar at its first matched draw after the base (round 2) | 80 % | **not met as registered**: it was already at the bar at round 1 (base draw 15, his 13), so the line ended "reached and held" before his round-2 x and has no round-2 draw |
 | P6 | pass@1 reward on Dan's pool passes 0.8 within 50 iterations on every dko seed | 70 % | **held**: it passed at iterations 12, 16 and 13 |
 
@@ -141,7 +151,7 @@ Scored against PREREG.md (frozen before any knockout line was read).
 ## Compute
 
 <!-- AUTO:compute -->
-- Lines: 71.0 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
+- Lines: 76.1 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
 - Iterations lost to deaths and moves (superseded rows): {'dko_s0': [[11, 11], [501, 501]], 'dko_s2': [[1, 8]]}.
 <!-- /AUTO:compute -->
 

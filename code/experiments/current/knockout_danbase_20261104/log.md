@@ -249,3 +249,19 @@ All times UTC.
     - A first test run, before `deploy` was mocked, rsynced the working folder to temescal. That
       is the same lab-to-lab code sync every launch does.
     - The temescal standby was restarted on the new code and receives `pods.json` with the state.
+  - **12:01Z: the primary arm is done.** On Dan's measure the three seeds reached 0, 1 and 0;
+    dko_s1's 1 was already its base's. dko_s0 stopped at the 15 GPU-h cap at x_dan 5.07 of 5.84.
+    The 09:29Z GPU fault on temescal (GPU 0 dropped out of nvidia-smi) moved dko_s0 and dko_s1 to
+    serrano; 1 iteration was lost. The primary report went to the coordinator at 12:13Z (0ad304f).
+  - **14:30Z: dkoour_s0 ended at 13 of 106, one below the bar.**
+    - σ in its accepted training proofs rose from under 1 % (to it ~384) to 33 % over its last
+      50 iterations, peaking at 46 % at it 443.
+    - Its snapshot first-32 counts went 0 → 12 (it 380–430), then 9.
+    - rp-s0 was deleted at 14:31Z after its backup was verified.
+    - 13:21Z: ynez stopped answering ssh, though it still answers ping. No line of ours was on
+      it.
+    - 13:28Z: the supervisor now stays up until every finished line's pod is deleted (bounded
+      at 2 h; 14c40a5).
+  - **dkoour_s1 is still running on rp-s1** (0 of 106 so far, x_dan 5.56 of 5.93; ETA about
+    16:10Z). The agent handed back before it ended. `post_finalize.sh` reruns `finalize.sh` once
+    every line has ended and logs one event; the summary's text for dkoour_s1 says pending.
