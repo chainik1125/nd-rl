@@ -145,3 +145,23 @@ All times UTC.
   ynez 1 and 3 frankyang, temescal at its cap of 2 of ours). Coordinator: keep the temescal cap
   at 2 (a third job there put the primary dko_s1 at risk in the past); dkoour_s1 waits for the
   first qualifying GPU on any host.
+- **00:17Z — dko_s2: a move requested** (agentexperts' process on ynez GPU 0). It hung: the
+  segment (started before 00:3xZ) waits for a *rolling* checkpoint, and iteration 160 alarmed
+  (an alarm checkpoint instead). By 00:29Z the other process had gone; the coordinator asked to
+  cancel moves no longer needed, so the move was cancelled (00:30Z; no iteration lost; dko_s2
+  stays on ynez GPU 0). The supervisor now cancels such moves itself, completes a move from an
+  alarm checkpoint after 8 min, and dline's moves count alarm checkpoints.
+- **00:30Z — coordinator's rules added to the supervisor** (tested on a dummy state first):
+  primary lines (dko_*) get GPUs before secondary ones (dkoour_*); a waiting primary line
+  preempts the lowest-priority running secondary line at its next checkpoint; GPUs listed in
+  `KD/sup/reserved.json` are never launched onto, moved onto or reclaimed, and do not count in a
+  cap (an unreadable file reserves everything).
+- **00:30:44Z — ynez GPU 2 reserved for circuit_stage3** (Leon approved a circuit-diffing stage-3
+  run; coordinator): `reserved.json` {"ynez": [2]} (copy: `reserved_ynez2.json`). dkoour_s0 got an
+  availability stop and ended at its iteration-170 rolling checkpoint (00:37:07Z, 0 lost); GPU 2
+  (GPU-d6327ec5-dcea-859e-51cf-875c92cbc0a8) had no process of ours at 00:37:23Z. dkoour_s0
+  waits behind the primary lines with dkoour_s1.
+- **Deadline (Leon, via the coordinator):** done by 11:00Z, no later than 16:00Z; a dkoour line
+  not at its cap by 15:00Z is recorded at its last read as "stopped at the deadline". Primary ETAs
+  (00:31Z rates): dko_s1 about 10:30Z (his x_16), dko_s0 about 11:50Z (15 GPU-h at x_dan about
+  4.7), dko_s2 about 12:20Z (15 GPU-h at x_dan about 5.8).

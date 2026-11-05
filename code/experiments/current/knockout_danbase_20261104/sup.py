@@ -263,15 +263,35 @@ class Sup:
                 if not k.startswith("_") and s["status"] == "running" and s["segs"][-1]["host"] == h
                 and not s["segs"][-1].get("dead")]  # fmt: skip # noqa: E501
 
+    def reserved(self) -> set[tuple[str, int]]:
+        """GPUs reserved for another experiment (`KD/sup/reserved.json`, {host: [gpu, ...],
+        owner, since}): never launched onto, moved onto or reclaimed, and not counted in a cap."""
+        p = SUP / "reserved.json"
+        try:
+            d = json.loads(p.read_text()) if p.exists() else {}
+        except json.JSONDecodeError:
+            d = {"_bad": True}
+        if d.get("_bad"):  # unreadable: reserve everything rather than risk a reserved GPU
+            return {(h, i) for h in C.HOSTS for i in range(8)}
+        return {(h, int(i)) for h in C.HOSTS for i in d.get(h, [])}
+
     def free_gpu(self) -> tuple[str, int] | None:
+        res = self.reserved()
         for h in ("serrano", "temescal", "ynez"):
             g = self.g.get(h)
-            if g is None or len(self.ours_on(h)) >= C.MAX_OURS[h]:
+            ours = [i for i in self.ours_on(h) if (h, i) not in res]
+            if g is None or len(ours) >= C.MAX_OURS[h]:
                 continue
             for i in sorted(g):
-                if not g[i] and i not in self.ours_on(h):  # nobody's process at all
+                if not g[i] and i not in self.ours_on(h) and (h, i) not in res:
                     return h, i
         return None
+
+    def waiting_ahead(self, line: str) -> list[str]:
+        """Lines waiting for a GPU that come before `line` (primary before secondary)."""
+        p = C.LINES[line]["prio"]
+        return [k for k, v in self.st.items() if not k.startswith("_") and k != line
+                and v["status"] == "waiting" and C.LINES[k]["prio"] < p]  # fmt: skip
 
     # ---------------------------------------------------------------- segments
     def seg_dir(self, line: str, k: int) -> str:
@@ -361,8 +381,11 @@ class Sup:
                     ck = self.newest_ckpt(line, b, f"{C.KD}/backup/{line}")
                     if ck is not None and (src is None or ck[0] > src[1]):
                         src = (b, *ck)
-        tgt = self.free_gpu()
+        ahead = self.waiting_ahead(line)
+        tgt = None if ahead else self.free_gpu()
         if tgt is None:
+            if ahead:
+                why = f"{why}; behind {ahead}"
             s["status"], s["wait_resume"] = "waiting", {"why": why, "src": src, "last": last}
             msg = f"{line}: {why}; no free GPU, waiting (resume point {src})"
             if seg.get("waiting_since"):
@@ -397,11 +420,14 @@ class Sup:
         if not self.up(h):
             return  # not yet 3 passes
         out = sh(h, f"cat {sd}/end.json 2>/dev/null; echo ===; cat {sd}/status.json 2>/dev/null; "
-                    f"echo ===; stat -c %Y {C.KD}/logs/{line}_seg{k}.log 2>/dev/null; true")  # fmt: skip # noqa: E501
+                    f"echo ===; stat -c %Y {C.KD}/logs/{line}_seg{k}.log 2>/dev/null; echo ===; "
+                    f"test -f {sd}/STOP_AT_CKPT && stat -c %Y {sd}/STOP_AT_CKPT; true")  # fmt: skip # noqa: E501
         ps = procs(h)
         if out is None or ps is None:
             return
-        end, status, mtime = (x.strip() for x in (out.split("===") + ["", ""])[:3])
+        end, status, mtime, sac = (x.strip() for x in (out.split("===") + ["", "", ""])[:4])
+        if sac and not seg.get("moving"):  # the segment's own GPU check asked for a move
+            seg["moving"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(sac)))
         alive = (
             "alive"
             if any(kind == "dline" and ln == line and kk == k for _, kind, ln, kk in ps)
@@ -424,6 +450,29 @@ class Sup:
             kill_seg(h, line, k, ps)
             self.respawn(line, "no progress for 25 min")
             return
+        if (h, seg["gpu"]) in self.reserved() and not seg.get("moving") and self.holds():
+            sh(h, f"touch {sd}/STOP_AT_CKPT")
+            seg["moving"] = now()
+            event(f"{line}: its GPU ({h} GPU {seg['gpu']}) is reserved for another experiment; "
+                  "availability stop at the next checkpoint")  # fmt: skip
+            return
+        g0 = (self.g.get(h) or {}).get(seg["gpu"], set())
+        if (seg.get("moving") and not seg.get("preempted_for")
+                and (h, seg["gpu"]) not in self.reserved() and not (g0 - {G.ME})):  # fmt: skip
+            # the other user's process has gone: a move that is no longer needed is cancelled
+            sh(h, f"rm -f {sd}/STOP_AT_CKPT")
+            event(f"{line}: move cancelled; {h} GPU {seg['gpu']} has no other user's process now")
+            seg.pop("moving")
+            return
+        if seg.get("moving") and time.time() - M._utc(seg["moving"]) > 8 * 60:
+            # a segment started before 00:3xZ waits for a *rolling* checkpoint only; an alarmed
+            # iteration writes an alarm checkpoint instead: end it once a newer one exists
+            ck = self.newest_ckpt(line, h, f"{sd}/ckpts")
+            t_ck = sh(h, f"stat -c %Y {ck[1]} 2>/dev/null; true") if ck else None
+            if t_ck and t_ck.strip() and int(t_ck.strip()) > M._utc(seg["moving"]) and self.holds():
+                kill_seg(h, line, k, ps)
+                self.respawn(line, f"moved at its it {ck[0]} checkpoint")
+                return
         g = self.g.get(h) or {}
         if g.get(seg["gpu"], set()) - {G.ME}:
             if not seg.get("moving") and self.holds():
@@ -506,15 +555,47 @@ class Sup:
                     s["status"] = "running"
                     self.respawn(line, w["why"])
                 elif s["status"] == "pending":
-                    tgt = self.free_gpu()
+                    tgt = None if self.waiting_ahead(line) else self.free_gpu()
                     if tgt is not None:
                         self.launch(line, *tgt, None)
                         event(f"{line}: launched on {tgt[0]} GPU {tgt[1]}")
             except Exception as e:  # one line's trouble must not stop the others
                 log(f"ERROR {line}: {type(e).__name__}: {e}")
             self.save()
+        try:
+            self.preempt()
+        except Exception as e:
+            log(f"ERROR preempt: {type(e).__name__}: {e}")
+        self.save()
         live = [k for k, v in self.st.items() if not k.startswith("_") and v["status"] != "done"]
         log(f"pass: hosts {[h for h in C.HOSTS if self.up(h)]}; not done: {live}")
+
+    def preempt(self) -> None:
+        """A primary line waits and no GPU is free: the lowest-priority running secondary line
+        (not on a reserved GPU) ends at its next checkpoint and waits behind it (coordinator,
+        2026-11-05)."""
+        waiting = [k for k, v in self.st.items() if not k.startswith("_")
+                   and v["status"] == "waiting" and C.LINES[k]["arm"] == "primary"]  # fmt: skip
+        if not waiting or self.free_gpu() is not None:
+            return
+        if any(v["segs"] and v["segs"][-1].get("preempted_for") for k, v in self.st.items()
+               if not k.startswith("_") and v["status"] == "running"):  # fmt: skip
+            return  # one preemption in flight
+        res = self.reserved()
+        cand = [k for k, v in self.st.items() if not k.startswith("_") and v["status"] == "running"
+                and C.LINES[k]["arm"] == "secondary" and not v["segs"][-1].get("moving")
+                and (v["segs"][-1]["host"], v["segs"][-1]["gpu"]) not in res
+                and self.up(v["segs"][-1]["host"])]  # fmt: skip
+        if not cand or not self.holds():
+            return
+        k = max(cand, key=lambda x: C.LINES[x]["prio"])
+        seg = self.st[k]["segs"][-1]
+        sh(seg["host"], f"touch {self.seg_dir(k, seg['seg'])}/STOP_AT_CKPT")
+        seg["moving"], seg["preempted_for"] = now(), waiting[0]
+        event(
+            f"{k}: preempted for the primary {waiting[0]} (no free GPU); ends at its next "
+            f"checkpoint on {seg['host']} GPU {seg['gpu']} and waits behind the primary lines"
+        )
 
     def loop(self) -> None:
         self.poll_hosts()

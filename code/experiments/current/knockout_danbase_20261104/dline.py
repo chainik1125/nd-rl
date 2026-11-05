@@ -109,7 +109,10 @@ class Seg:
 
     # ------------------------------------------------------------------ watch
     def newest_rolling(self) -> float:
-        ps = list((self.dir / "ckpts").glob(f"{self.a.line}_it*_rolling.pt"))
+        ps = [
+            *(self.dir / "ckpts").glob(f"{self.a.line}_it*_rolling.pt"),
+            *(self.dir / "ckpts").glob(f"{self.a.line}_it*_alarm.pt"),
+        ]  # both hold the state
         return max((p.stat().st_mtime for p in ps), default=0.0)
 
     def watch(self) -> None:
