@@ -79,6 +79,26 @@ Charles149 does it reach?
   longer, and the result was lateral. Contamination is ruled out: no G or S problem shares a
   renaming class with any Stage-1 record.
 
+**Is the base underfit?** This is a CPU check (`valloss.py`, numbers in `valloss.md`): teacher-forced
+loss on Stage 1's own held-out val split, which reproduces the logged Stage-1 val exactly.
+
+| seed | val loss: base / CPT / RL | Charles149 reference proofs: base / CPT / RL |
+|---|---|---|
+| 0 | 0.0692 / 0.0648 / 0.0847 | 0.0898 / 0.0655 / 0.1168 |
+| 1 | 0.0738 / 0.0646 / 0.0935 | 0.1036 / 0.0691 / 0.1220 |
+| 2 | 0.0750 / 0.0650 / 0.0945 | 0.1087 / 0.0718 / 0.1325 |
+
+- CPT lowers held-out val loss in every seed, by 6–13%.
+- The three CPTs land at the same value (0.0646–0.0650), although their bases differ
+  (0.069–0.075).
+- CPT lowers the loss on Charles149's reference proofs by 27–34%.
+- RL raises both.
+
+So the Stage-1 bases were not converged on their own distribution. More training on it, with no
+RL, raises Charles149 coverage to RL's level. RL instead moves away from that distribution towards
+its own proofs (NLL on its own accepted actions: 0.049 against the base's 0.126). This supports
+"base underfit" over "anneal only" (interpretation).
+
 ## Caveats
 
 - One evaluation set (Charles149) for the three-seed result.
