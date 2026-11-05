@@ -44,6 +44,53 @@ def ok_lists(path: Path) -> dict[str, list[int]]:
     return out
 
 
+#: PREREG amendment 2: the optional 13-20 read lives outside eval/v2 (lowrl_1320 globs it)
+CPT_T1320 = Path("/scratch/cowifornia/nd-rl/think/runs/eval/cpt_control")
+
+
+def t1320() -> dict[str, object] | None:
+    """Base s0 vs CPT s0 vs the L3 end s0 on t1320s250 at k512 (lowrl_1320's reads)."""
+    k_max = 512
+    c = CPT_T1320 / f"t1320s250_{ARMS['cpt']}_s0_plain_k{k_max}" / "rows_plain_B64.jsonl"
+    if not c.exists():
+        return None
+
+    def load(path: Path, label: str) -> stats.Arm:
+        a = stats.load_arm(label, [path])
+        assert len(a.names) == 250 and a.kmax >= k_max, (label, len(a.names), a.kmax)
+        return a
+
+    b = load(V2 / f"t1320s250_{ARMS['base']}_s0_plain_k{k_max}" / "rows_plain_B64.jsonl", "base")
+    r = load(V2 / f"t1320s250_{ARMS['rl']}_s0_plain_k{k_max}" / "rows_plain_B64.jsonl", "rl")
+    cp = load(c, "cpt")
+    assert b.names == r.names == cp.names
+    lines = [
+        "13–20-line sample (t1320s250, 250 problems, seed 0, k512; PREREG amendment 2, "
+        "descriptive):",
+        "",
+        "| k | base | CPT | RL | CPT − base | RL − CPT | RL − base | share |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    rows = {}
+    for k in (1, 5, 64, k_max):
+        vals = {x: 100 * a.values(k).mean() for x, a in (("base", b), ("cpt", cp), ("rl", r))}
+        d = {}
+        for name, (x, y) in {"cpt-base": (cp, b), "rl-cpt": (r, cp), "rl-base": (r, b)}.items():
+            e = stats.paired_diff(x, y, k, draws=4000)
+            d[name] = [100 * e.est, 100 * e.lo, 100 * e.hi]
+        share = d["cpt-base"][0] / d["rl-base"][0] if d["rl-base"][0] else float("nan")
+        rows[k] = {**vals, **d, "share": share}
+
+        def f(v: list[float]) -> str:
+            return f"{v[0]:+.1f} [{v[1]:+.1f}, {v[2]:+.1f}]"
+
+        lines.append(
+            f"| {k} | {vals['base']:.1f} | {vals['cpt']:.1f} | {vals['rl']:.1f} "
+            f"| {f(d['cpt-base'])} | {f(d['rl-cpt'])} | {f(d['rl-base'])} | {100 * share:.0f}% |"
+        )
+    return {"rows": rows, "lines": lines}
+
+
 def main() -> int:
     seeds_have = [s for s in range(3) if p(ARMS["cpt"], s).exists()]
     out: dict[str, object] = {"seeds_with_cpt": seeds_have}
@@ -105,6 +152,10 @@ def main() -> int:
         lines.append(
             f"| {'+'.join(map(str, seeds))} | " + " | ".join(str(v) for v in cnt.values()) + " |"
         )
+    t13 = t1320()
+    if t13:
+        out["t1320s250"] = t13["rows"]
+        lines += ["", *t13["lines"]]
     (HERE / "table.json").write_text(json.dumps(out, indent=1))
     (HERE / "table.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
