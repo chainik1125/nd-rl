@@ -90,3 +90,15 @@ Artifacts go to `ynez:/scratch/cowifornia/nd-rl/cpt_control/`. Times are PT, wit
     0.065, whatever its base's loss. RL moves away from that distribution.
   - The run ended with a NameError (a leftover `del os`) after writing its outputs; fixed in the
     source.
+- **12:07 am Nov 5 (08:07Z).** Optional t1320s250 k512 read of CPT_s0 merged: pass@1 34.2%,
+  pass@512 93.6%, at 655–697 s per chunk. Copied to serrano's
+  `/scratch/cowifornia/nd-rl/think/runs/eval/cpt_control/` (outside `eval/v2`; amendment 2).
+  Seed 0, descriptive:
+
+  | k | base | CPT | RL | RL − CPT | share of RL's gain |
+  |---|---|---|---|---|---|
+  | 1 | 11.2 | 34.2 | 38.7 | +4.5 [+0.9, +8.0] | 84% |
+  | 512 | 77.2 | 93.6 | 94.0 | +0.4 [−2.8, +3.6] | 98% |
+
+  - All GPU work is done. GPU 2 is idle, and the leftover watchdog and guard processes are
+    stopped. The guards logged no foreign process at any point.

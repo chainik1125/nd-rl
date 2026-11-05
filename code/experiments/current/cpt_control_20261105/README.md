@@ -43,6 +43,18 @@ intervals (`stats.paired_diff`).
     not coverage at large k.
   - Why CPT gains is untested. One hypothesis is that Stage 1 ended un-annealed; capability-defs
     J7 (PREREG amendment 1) argues against it.
+**13–20-line sample** (t1320s250, 250 problems, seed 0 only, k512; PREREG amendment 2,
+descriptive):
+
+| k | base | CPT | RL | RL − CPT | share of RL's gain reached by CPT |
+|---|---|---|---|---|---|
+| 1 | 11.2 | 34.2 | 38.7 | +4.5 [+0.9, +8.0] | 84% |
+| 5 | 28.4 | 60.9 | 66.4 | +5.5 [+1.3, +9.8] | 86% |
+| 64 | 59.3 | 84.5 | 87.4 | +3.0 [−0.7, +6.6] | 90% |
+| 512 | 77.2 | 93.6 | 94.0 | +0.4 [−2.8, +3.6] | 98% |
+
+On the longer proofs, CPT reaches most of RL's gain even at pass@1.
+
 **Is the base underfit?** This is a CPU check (`valloss.py`, numbers in `valloss.md`): teacher-forced
 loss on Stage 1's own held-out val split, which reproduces the logged Stage-1 val exactly.
 
@@ -67,7 +79,7 @@ its own proofs (NLL on its own accepted actions: 0.049 against the base's 0.126)
   - CPT matches RL's trained tokens and AdamW steps, but has 0.64× RL's full FLOP ratio, which
     includes sampling.
   - The CPT seeds vary only the base. Their record order is fixed.
-  - One eval set so far. The t1320s250 read is below if it ran.
+  - Three seeds on Charles149; seed 0 only on the 13–20 sample.
 
 | file | what |
 |---|---|

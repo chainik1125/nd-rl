@@ -6,7 +6,7 @@ written_by: agent:claude
 # CPT control: continued pretraining reaches RL at large k on Charles149, not at small k
 
 Status (2026-11-04, written by agent:claude for Leon; not reviewed): Charles149, three seeds, done.
-The optional 13–20 read is reported below if it finished.
+The 13–20 sample read (seed 0) is done too.
 
 Working folder:
 [`code/experiments/current/cpt_control_20261105/`](../../code/experiments/current/cpt_control_20261105/README.md)
@@ -79,6 +79,18 @@ Charles149 does it reach?
   longer, and the result was lateral. Contamination is ruled out: no G or S problem shares a
   renaming class with any Stage-1 record.
 
+**13–20-line sample** (t1320s250, 250 problems, seed 0 only, k512; PREREG amendment 2,
+descriptive):
+
+| k | base | CPT | RL | RL − CPT | share of RL's gain reached by CPT |
+|---|---|---|---|---|---|
+| 1 | 11.2 | 34.2 | 38.7 | +4.5 [+0.9, +8.0] | 84% |
+| 5 | 28.4 | 60.9 | 66.4 | +5.5 [+1.3, +9.8] | 86% |
+| 64 | 59.3 | 84.5 | 87.4 | +3.0 [−0.7, +6.6] | 90% |
+| 512 | 77.2 | 93.6 | 94.0 | +0.4 [−2.8, +3.6] | 98% |
+
+On the longer proofs, CPT reaches most of RL's gain even at pass@1.
+
 **Is the base underfit?** This is a CPU check (`valloss.py`, numbers in `valloss.md`): teacher-forced
 loss on Stage 1's own held-out val split, which reproduces the logged Stage-1 val exactly.
 
@@ -101,6 +113,6 @@ its own proofs (NLL on its own accepted actions: 0.049 against the base's 0.126)
 
 ## Caveats
 
-- One evaluation set (Charles149) for the three-seed result.
+- Three seeds on Charles149; seed 0 only on the 13–20 sample.
 - CPT uses 0.64× RL's full FLOPs. A CPT run at matched full FLOPs would be about 1.6× longer.
 - `LEAN_GATE_WORKERS` was 8, not the paper's 16. Lean verdicts do not depend on it.
