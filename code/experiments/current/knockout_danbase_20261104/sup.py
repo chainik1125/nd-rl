@@ -358,10 +358,18 @@ class Sup:
         return None
 
     def waiting_ahead(self, line: str) -> list[str]:
-        """Lines waiting for a GPU that come before `line` (primary before secondary)."""
+        """Lines waiting for a lab GPU that come before `line` (primary before secondary); a
+        line pinned to a pod never waits for a lab GPU."""
         p = C.LINES[line]["prio"]
         return [k for k, v in self.st.items() if not k.startswith("_") and k != line
-                and v["status"] == "waiting" and C.LINES[k]["prio"] < p]  # fmt: skip
+                and v["status"] == "waiting" and C.LINES[k]["prio"] < p
+                and k not in self.pinned()]  # fmt: skip
+
+    def pinned(self) -> dict[str, str]:
+        """line -> pod: the two pods of 05:00Z and every auto-spawned pod (a line that moved to a
+        pod stays there)."""
+        return {**C.PIN, **{v["line"]: h for h, v in self.st.get("_spawned", {}).items()
+                            if not v.get("deleted") and not v.get("failed")}}  # fmt: skip
 
     # ---------------------------------------------------------------- segments
     def seg_dir(self, line: str, k: int) -> str:
@@ -415,7 +423,8 @@ class Sup:
         res = ""
         if resume:
             res = f" --resume {shlex.quote(resume)}"
-        envp = "DANBASE_PY=/workspace/venv/bin/python " if host in C.RP_HOSTS else ""
+        # (an assignment before the subshell is a bash syntax error: export it first)
+        envp = "export DANBASE_PY=/workspace/venv/bin/python && " if host in C.RP_HOSTS else ""
         cmd = (f"mkdir -p {sd} {C.KD}/logs && cd {C.HERE} && {envp}"
                f"(setsid nohup timeout 72h python3 {C.HERE}/dline.py --line {line} --seg {k} --gpu {gpu}{res} "
                f"> {C.KD}/logs/{line}_seg{k}.dline.log 2>&1 < /dev/null &) && echo started")  # fmt: skip
@@ -428,6 +437,7 @@ class Sup:
     def respawn(self, line: str, why: str) -> None:
         if not self.holds():
             return
+        why = why.split("; behind ")[0]  # a waiting line's reason does not grow every pass
         s = self.st[line]
         seg = s["segs"][-1]
         seg["dead"] = seg.get("dead") or why  # its GPU no longer counts as ours
@@ -455,7 +465,7 @@ class Sup:
                     if ck is not None and (src is None or ck[0] > src[1]):
                         src = (b, *ck)
         ahead = self.waiting_ahead(line)
-        if line in C.PIN:
+        if line in self.pinned():
             ahead = []  # its own pod: waits for no lab line
         tgt = None if ahead else self.free_gpu(line)
         if tgt is None:

@@ -209,3 +209,19 @@ All times UTC.
     the code, Dan's code and data, the bases and the pools to the pods ("data exfiltration").
     Not worked around; the coordinator was told at 05:07Z. Unless unblocked, both pods are
     stopped at 06:30Z.
+  - **05:13Z: the copy.** The coordinator (agent:claude) ran `runpod_copy.sh` at 05:13:20Z on
+    Leon's explicit approval ("this is not data exfil this is how run pod is supposed to be
+    used"); all four md5s matched (ko_s0 9ee0c620, it170 ada0b5aa on rp-s0; ko_s1 3b0f4ba9, it145
+    74af31c6 on rp-s1). Pod setup had finished at 05:08Z (rp-s0) and 05:15Z (rp-s1).
+    `podcheck.sh` passed on both (A40, torch 2.14.0+cu130 with CUDA, Lean 4.34.0 accepts one proof
+    and rejects one, a k-2 Dan read of the base runs end to end); the pods' four segment scripts
+    have the lab's md5s. `sup/pods_enabled` created and the supervisor restarted (05:21Z):
+    dkoour_s0 resumed as seg2 on rp-s0 from it 170, dkoour_s1 as seg2 on rp-s1 from it 145, both
+    with 0 lost iterations. Fixed before the restart: the pod launch's environment prefix (an
+    assignment before a subshell is a bash syntax error; dummy-tested with `bash -n`), a waiting
+    line's reason no longer grows every pass, and a pod-pinned line no longer holds lab lines
+    behind it.
+  - The supervisor still copies nothing to a pod: my edit that would let it (deploy and
+    md5-checked copies to pods, for the auto-spawn pods) was refused by the permission system
+    ("data exfiltration") at 05:19Z even after Leon's approval was relayed. Not worked around;
+    reported to the coordinator. The two pods run on the files the coordinator copied.
