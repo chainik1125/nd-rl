@@ -365,3 +365,9 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
 - **6:40 pm.** Wrote `stage3.json`, `stage3.md` and `figs/stage3_{drift,edges,patch}`, and
   rewrote the summary README (Stage 3 sections, Bottom line, corrected CPT statements). The
   `cpt_recon` rerun is running.
+- **6:57 pm (02:57Z).** **`cpt_recon`** (rerun at batch 64, 25 min): G 27.9% [22.5, 33.9],
+  S 86.1% [82.6, 89.3]. That is 94% and 99% of CPT's clean rates, so the base-vs-CPT crosscoder is
+  faithful inside the sampler.
+  - Queue B is done. The CPT-control runner started at 02:58Z on GPU 2, with its own guard and
+    watchdog.
+  - GPU use for Stage 3 (00:42–02:57Z on one GPU): about 2.25 GPU-h.

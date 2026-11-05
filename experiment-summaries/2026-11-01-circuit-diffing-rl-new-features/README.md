@@ -341,6 +341,7 @@ crosscoder.
 |---|---|---|---|---|---|
 | base | — | 2.0 [1.2, 2.9] | 70.9 [67.0, 74.7] | | |
 | CPT (no RL) | — | 29.6 [24.1, 35.7] | 87.1 [84.0, 90.1] | | |
+| CPT, layer 3 → its reconstruction (fidelity) | 0.27 | 27.9 [22.5, 33.9] | 86.1 [82.6, 89.3] | 1.2% [−0.5, 2.9] | 6.2% [−1.6, 13.5] |
 | CPT, every latent → base version | 0.30 | 16.9 [13.2, 20.9] | 85.0 [81.7, 88.1] | 2.5% [−0.1, 5.1] | 46.0% [36.0, 55.1] |
 | CPT, the same edits permuted | 0.41 | 6.1 [3.8, 8.8] | 60.4 [54.5, 66.2] | 30.7% [24.7, 36.8] | 85.1% [76.2, 93.5] |
 | RL (L3 end) | — | 67.1 [62.0, 72.3] | 93.0 [90.6, 95.2] | | |
@@ -523,7 +524,8 @@ What the paper can use:
     conditions carry the retuned reading instead.
   - `swap13` and `swap6h` were added after the L3 and CPT edge scores were seen, and before
     patching. They are exploratory.
-  - `cpt_recon` ran out of memory at batch 256 and was rerun at batch 64. See the log.
+  - `cpt_recon` ran out of memory at batch 256 and was rerun at batch 64: G 27.9%, S 86.1%,
+    94% and 99% of CPT's clean rates. The base-vs-CPT crosscoder is faithful inside the sampler.
 - **CPT caveats.** CPT's rollouts, crosscoders and solve rates are now measured.
   - Its record order is fixed (`train.finetune` seed 0).
   - "The base is un-annealed" is a hypothesis. capability-defs J7 is a precedent against it.
