@@ -31,3 +31,42 @@ Artifacts go to `ynez:/scratch/cowifornia/nd-rl/cpt_control/`. Times are PT, wit
 
   - Only-one-arm problems at k1024: RL not CPT 6, CPT not RL 4. Messaged the coordinator.
   - CPT_s1 training started.
+- **8:09 pm (04:09Z).** CPT_s1 trained: 312 steps in about 16 min, median relative ΔW 5.74%
+  (CPT_s0 5.65%), last loss 0.0278, sha256 `8b6d8f76…`. Its Charles149 read started.
+- **8:36 pm and 8:47 pm.** Claude restarted twice. The detached runners on ynez were unaffected.
+  Checked: our only GPU process is on ynez GPU 2 (Leon's new cap: 4 GPUs in total, 3 of them
+  the knockout supervisor's). `run_cptc2.sh` waits for `run_cptc.sh` to exit, and `reads.py`
+  refuses to start a chunk on a busy GPU, so they cannot overlap.
+- **9:03 pm (05:03Z).** CPT_s1 merged: pass@1 54.4%, pass@1024 88.6%. Copied to serrano's
+  `eval/v2`. Two-seed table:
+
+  | seeds | k | base | CPT | RL | RL − CPT | share of RL's gain |
+  |---|---|---|---|---|---|---|
+  | 1 | 1 | 33.0 | 54.4 | 70.9 | +16.5 [+10.9, +22.2] | 56% |
+  | 1 | 1024 | 74.5 | 88.6 | 85.2 | −3.4 [−7.4, +0.7] | 131% |
+  | 0+1 | 1 | 36.1 | 54.3 | 70.6 | +16.3 [+10.9, +21.9] | 53% |
+  | 0+1 | 1024 | 76.5 | 88.3 | 87.2 | −1.0 [−6.0, +4.0] | 109% |
+
+  CPT_s2 training started.
+- **9:19 pm (05:19Z).** CPT_s2 trained (sha256 `a9adde3b…`). Its Charles149 read started; it should finish at about 10:15 pm.
+- **9:24–10:37 pm.** The CPT_s2 read ran at 280–320 s per chunk, against about 200 s earlier.
+  GPU 2 held only our process, so the likely cause is CPU contention on ynez during Lean judging.
+- **10:37 pm (06:37Z).** CPT_s2 merged: pass@1 54.0%, pass@1024 89.3%. `run_cptc.sh` is done, and
+  `run_cptc2.sh` started the optional t1320s250 read on GPU 2.
+- **10:40 pm.** **Pooled table** (`table.md`, seeds 0–2 paired):
+
+  | k | base | CPT | RL | RL − CPT | share of RL's gain |
+  |---|---|---|---|---|---|
+  | 1 | 32.6 | 54.2 | 70.5 | +16.4 [+11.2, +21.6] | 57% |
+  | 5 | 49.7 | 69.1 | 79.0 | +9.9 [+4.5, +15.4] | 66% |
+  | 64 | 65.1 | 81.8 | 83.6 | +1.8 [−2.8, +6.7] | 90% |
+  | 1024 | 74.5 | 88.6 | 86.6 | −2.0 [−6.5, +2.2] | 117% |
+
+  - **One-arm-only problems at k1024**, pooled over 3 × 1,024: RL not CPT 0, CPT not RL 4, RL
+    not base 9, CPT not base 13.
+  - **Pre-registered readings:**
+    - "RL's gain survives" fails at pass@1024; RL is ahead at pass@1.
+    - "Large part matched by CPT" holds at every k. The PREREG named it an anneal effect; the
+      mechanism is untested.
+    - "Explains little" fails.
+  - Messaged the coordinator.

@@ -14,8 +14,10 @@ Status (2026-11-04, written by agent:claude for Leon):
   - **Part B, reduced:** edge attribution for layer 3 → 5 and layer 5 → output, on the L3 end
     against a drift null (CPT) and a 1-step null, with path patching in the L3 end.
 - Not run: the layer 1 → 3 hop, the L2 end, and the seeds 1–2 replicates (queue H).
-- **Follow-up:** CPT gains a lot on its own, so a CPT control on the paper's Charles149 reads runs
-  in [`cpt_control_20261105`](../../code/experiments/current/cpt_control_20261105/).
+- **Follow-up, done 2026-11-04:** CPT gains a lot on its own, so a CPT control was run on the
+  paper's Charles149 reads, in
+  [`cpt_control_20261105`](../../code/experiments/current/cpt_control_20261105/README.md). CPT
+  reaches RL at pass@1024; RL leads at pass@1.
 
 Working folder: [`code/experiments/current/circuit_diffing_20261101/`](../../code/experiments/current/circuit_diffing_20261101/)
 (branch `leon/circuit-diffing`). Pre-registration, with the sha256 of each version in the log:
@@ -57,8 +59,11 @@ The pre-registered rule for Part B returns **"mixed / inconclusive"**:
   teacher-forced gap, against a 10% threshold. All 138k scored edges together carry 10.5%.
 
 **A second finding that matters for the paper.** Continued pretraining of the base on its own
-data, with no RL, at RL's AdamW steps and trained tokens, already solves 29.6% of the
-RL-gained problems.
+data ("CPT"), with no RL, at RL's AdamW steps and trained tokens:
+- succeeds in 29.6% of attempts on the RL-gained problems, against the base's 2.0% and RL's 67.1%;
+- on the paper's full Charles149 read (seeds 0–2, k1024), reaches RL at large k (RL − CPT
+  −2.0 [−6.5, +2.2] points at pass@1024), but not at small k (+16.4 [+11.2, +21.6] at pass@1).
+  See [`cpt_control_20261105`](../../code/experiments/current/cpt_control_20261105/README.md).
 
 **Observed, Stages 0–2** (2026-11-01).
 1. **No RL-only features.** BatchTopK crosscoders (8,192 latents, k 32) find 0 RL-only and 0
@@ -490,10 +495,15 @@ What the paper can use:
 - **A negative mechanistic result.** At this scale, GRPO's gain is not carried by new features
   or new feature-to-feature edges, and it is not magnitude reweighting either. RL reuses the
   base's features and wiring, and changes are spread thinly across the network.
-- **A caution for the main comparison.** Continued pretraining at RL's step count reaches
-  29.6% on the RL-gained problems, against the base's 2.0% and RL's 67.1%. The paper's base-vs-RL
-  gap should be shown next to a CPT baseline. That control is running in
-  [`cpt_control_20261105`](../../code/experiments/current/cpt_control_20261105/).
+- **A caution for the main comparison.** Continued pretraining at RL's step count reaches a
+  29.6% success rate on the RL-gained problems, against the base's 2.0% and RL's 67.1%. On the
+  paper's Charles149 read, pooled over seeds 0–2 (CPT control):
+  - pass@1024: CPT 88.6% against RL's 86.6% and the base's 74.5%. All 9 problems RL solves and
+    the base does not are also solved by CPT.
+  - pass@1: CPT 54.2% against RL's 70.5% and the base's 32.6%.
+
+  So the base-vs-RL comparison should use CPT as the baseline. Against that baseline, RL's edge
+  is in sampling efficiency, not in large-k coverage.
 
 ## Limitations and next steps
 
@@ -530,7 +540,8 @@ What the paper can use:
   - Its record order is fixed (`train.finetune` seed 0).
   - "The base is un-annealed" is a hypothesis. capability-defs J7 is a precedent against it.
 - **Next.**
-  1. The CPT control on the paper's Charles149 reads (`cpt_control_20261105`, running).
+  1. The CPT control on the paper's Charles149 reads (`cpt_control_20261105`). Done
+     2026-11-04: CPT matches RL at pass@1024; RL leads at pass@1.
   2. Edges on CPT's own accepted proofs, to test whether RL's attribution flip is an
      operating-point effect.
   3. Seeds 1 and 2 (queue H), and an acausal multi-layer crosscoder.
