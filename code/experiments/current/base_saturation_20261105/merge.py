@@ -65,9 +65,10 @@ def main(argv: list[str] | None = None) -> int:
     dst = mod.merge_group(read, members)
     s = json.loads((dst / "summary.json").read_text())["cells"]["plain_B64"]["all"]
     pk = s["pass_at_k_pct"]
+    # summary.json holds pass@k at powers of 2 only; table.py gives pass@5
     print(
-        f"merged {dst}: n {s['n']}, pass@1 {pk['1']:.1f}, pass@5 {pk['5']:.1f}, "
-        f"pass@64 {pk['64']:.1f}, pass@1024 {pk['1024']:.1f}"
+        f"merged {dst}: n {s['n']}, pass@1 {pk['1']:.1f}, pass@64 {pk['64']:.1f}, "
+        f"pass@1024 {pk['1024']:.1f}"
     )
     return 0
 

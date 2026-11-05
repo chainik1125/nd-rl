@@ -2,12 +2,12 @@
 
 pass@k in % of the 149 problems (unbiased estimator, k1024 reads). Arms not read yet are left out.
 
-| k | base | CPT | RL |
-|---|---|---|---|
-| 1 | 39.2 | 54.2 | 70.3 |
-| 5 | 56.5 | 66.9 | 78.9 |
-| 64 | 70.5 | 80.3 | 85.1 |
-| 1024 | 78.5 | 87.9 | 89.3 |
+| k | base | B0.25 | CPT | A | RL |
+|---|---|---|---|---|---|
+| 1 | 39.2 | 50.9 | 54.2 | 51.6 | 70.3 |
+| 5 | 56.5 | 65.3 | 66.9 | 67.4 | 78.9 |
+| 64 | 70.5 | 77.3 | 80.3 | 81.7 | 85.1 |
+| 1024 | 78.5 | 85.9 | 87.9 | 89.9 | 89.3 |
 
 Paired gaps x − y in points, 95% problem-bootstrap intervals (stats.paired_diff, one seed, 4,000 draws). Single-seed: in cpt_control, RL − CPT at pass@1024 ranged +1.3 to −4.0 across 3 seeds.
 
@@ -15,8 +15,25 @@ Paired gaps x − y in points, 95% problem-bootstrap intervals (stats.paired_dif
 |---|---|---|---|---|
 | CPT − base | +15.0 [+11.2, +18.9] | +10.5 [+6.9, +14.1] | +9.8 [+5.8, +14.1] | +9.4 [+4.7, +14.8] |
 | RL − base | +31.1 [+26.0, +36.6] | +22.5 [+16.9, +28.2] | +14.6 [+9.5, +20.0] | +10.7 [+6.0, +16.1] |
+| A − base | +12.4 [+8.8, +16.1] | +10.9 [+7.0, +15.0] | +11.2 [+6.7, +16.1] | +11.4 [+6.0, +17.4] |
+| A − CPT | -2.6 [-5.7, +0.2] | +0.4 [-2.0, +2.8] | +1.4 [-1.7, +4.5] | +2.0 [-1.3, +5.4] |
+| B0.25 − base | +11.7 [+8.5, +15.1] | +8.9 [+5.7, +12.2] | +6.8 [+2.9, +11.0] | +7.4 [+3.4, +12.1] |
+| CPT − B0.25 | +3.3 [+1.4, +5.1] | +1.6 [+0.3, +2.9] | +3.0 [+0.9, +5.2] | +2.0 [-1.3, +5.4] |
+| RL − A† | +18.7 [+13.4, +24.2] | +11.6 [+6.3, +17.4] | +3.4 [-1.5, +8.3] | -0.7 [-4.7, +3.4] |
 
 Problems solved at k1024 (any of 1,024 attempts) by x and never by y:
 
 | x | y | x not y | y not x | x solved | y solved |
 |---|---|---|---|---|---|
+| A | base | 18 | 1 | 134 | 117 |
+| A | CPT | 5 | 2 | 134 | 131 |
+| RL† | A | 4 | 5 | 133 | 134 |
+| B0.25† | base | 11 | 0 | 128 | 117 |
+| B0.25† | CPT | 2 | 5 | 128 | 131 |
+
+† added after the PREREG (descriptive): each arm against base and CPT, and RL against A.
+
+Held-out val loss (Stage 1's 7,000 pairs; S1g3_s0 ended at 0.0692):
+
+- A: final val 0.0658 (action 0.0733); its start (the base) 0.0692
+- C: final val 0.0672 (action 0.0749)

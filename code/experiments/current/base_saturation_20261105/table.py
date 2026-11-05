@@ -40,6 +40,12 @@ GAPS = [("CPT", "base"), ("RL", "base"), ("A", "base"), ("A", "CPT"), ("B0.25", 
         ("CPT", "B0.25"), ("B4", "CPT"), ("C", "base"), ("C", "CPT"), ("D1", "CPT"),
         ("RL", "D1"), ("D2", "C"), ("D2", "RL")]  # fmt: skip
 ONLY = [("RL", "D1"), ("D1", "CPT"), ("D2", "C"), ("C", "base"), ("A", "base"), ("A", "CPT")]
+#: added after the PREREG (descriptive; marked † in table.md): every arm against base and CPT,
+#: and RL against A (the anneal-only arm)
+EXTRA_GAPS = [("RL", "A"), ("B4", "base"), ("C", "A"), ("D1", "base"), ("D2", "base"),
+              ("D2", "CPT")]  # fmt: skip
+EXTRA_ONLY = [("RL", "A"), ("B0.25", "base"), ("B0.25", "CPT"), ("B4", "CPT"), ("C", "CPT"),
+              ("D2", "RL")]  # fmt: skip
 VAL = {
     "A": S / "pods/rp-sat-a/out/A_s0/train.json",
     "C": S / "pods/rp-sat-c/out/C_s0/train.json",
@@ -103,15 +109,16 @@ def main() -> int:
         "|---|---|---|---|---|",
     ]
     gaps: dict[str, dict[int, list[float]]] = {}
-    for x, y in GAPS:
+    for x, y in GAPS + EXTRA_GAPS:
         if x not in A or y not in A:
             continue
+        mark = "†" if (x, y) in EXTRA_GAPS else ""
         g = {}
         for k in KS:
             e = stats.paired_diff(A[x], A[y], k, draws=4000)
             g[k] = [100 * e.est, 100 * e.lo, 100 * e.hi]
         gaps[f"{x}-{y}"] = g
-        lines.append(f"| {x} − {y} | " + " | ".join(f(g[k]) for k in KS) + " |")
+        lines.append(f"| {x} − {y}{mark} | " + " | ".join(f(g[k]) for k in KS) + " |")
     out["gaps"] = gaps
     lines += [
         "",
@@ -121,9 +128,10 @@ def main() -> int:
         "|---|---|---|---|---|---|",
     ]
     only = {}
-    for x, y in ONLY:
+    for x, y in ONLY + EXTRA_ONLY:
         if x not in A or y not in A:
             continue
+        mark = "†" if (x, y) in EXTRA_ONLY else ""
         sx, sy = solved(x), solved(y)
         only[f"{x}|{y}"] = {
             "x_not_y": sorted(sx - sy),
@@ -131,8 +139,14 @@ def main() -> int:
             "x_solved": len(sx),
             "y_solved": len(sy),
         }
-        lines.append(f"| {x} | {y} | {len(sx - sy)} | {len(sy - sx)} | {len(sx)} | {len(sy)} |")
+        lines.append(
+            f"| {x}{mark} | {y} | {len(sx - sy)} | {len(sy - sx)} | {len(sx)} | {len(sy)} |"
+        )
     out["only"] = only
+    lines += [
+        "",
+        "† added after the PREREG (descriptive): each arm against base and CPT, and RL against A.",
+    ]
     vl = {}
     for x, p in VAL.items():
         if p.exists():

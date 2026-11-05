@@ -1,0 +1,54 @@
+{
+ "loss": {
+  "base_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/think/runs/stage1/S1g3_s0/model.pt",
+   "val_w1": 0.0692190493301808,
+   "val_w0": 0.07719713007656806,
+   "charles_ref_w1": 0.08976288493669403,
+   "charles_ref_w0": 0.10359787236612553
+  },
+  "cpt_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/circuits/ckpts/cpt/cpt_lr0.00015.pt",
+   "val_w1": 0.06483699197628877,
+   "val_w0": 0.0723118240939948,
+   "charles_ref_w1": 0.06554097567515786,
+   "charles_ref_w0": 0.07564492520743639
+  },
+  "rl_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/think/runs/grpo_v2/grpo_think_vs_mb_kkl0_s0_L3/ckpts/grpo_think_vs_mb_kkl0_s0_L3_it39.pt",
+   "val_w1": 0.08467548023247991,
+   "val_w0": 0.09443311156542898,
+   "charles_ref_w1": 0.1167668532869437,
+   "charles_ref_w0": 0.13476236295642288
+  },
+  "A_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/base_saturation/pods/rp-sat-a/out/A_s0/model.pt",
+   "val_w1": 0.0658236241646284,
+   "val_w0": 0.07341222238531224,
+   "charles_ref_w1": 0.06945794290146438,
+   "charles_ref_w0": 0.08016574077423684
+  },
+  "B78_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/base_saturation/pods/rp-sat-b025/out/B78/cpt_lr0.00015.pt",
+   "val_w1": 0.06569670267421172,
+   "val_w0": 0.07326941758957808,
+   "charles_ref_w1": 0.06944615726713328,
+   "charles_ref_w0": 0.080149880075648
+  },
+  "C_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/base_saturation/pods/rp-sat-c/out/C_s0/model.pt",
+   "val_w1": 0.06717978542438534,
+   "val_w0": 0.07492508525833308,
+   "charles_ref_w1": 0.07087547424057868,
+   "charles_ref_w0": 0.08180232353094084
+  }
+ },
+ "scorer": {
+  "file": "/scratch/cowifornia/nd-rl/worktrees/circuit-diffing/code/experiments/current/cpt_control_20261105/valloss.py",
+  "md5": "9d8519524c80f2d61c0c415b4bc23399"
+ },
+ "n": {
+  "val_pairs": 7000,
+  "charles_records": 149
+ }
+}
