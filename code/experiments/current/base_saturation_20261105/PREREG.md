@@ -194,3 +194,31 @@ unchanged.
   against seed 0's own CPT − base, because every arm here is seed 0.
 - The header first gave the writing time as 11:35 pm. The file was committed at 11:18 pm
   (`994790c`); the jobs launched at 11:18–11:19 pm.
+
+## Amendment 1: val-loss context (11:50 pm PT, 07:50Z)
+
+Requested by the coordinator. It adds context only: no reading changes, and no reading is added.
+
+What was known when this was written:
+- A's training log: val 0.0692 → 0.0658.
+- B0.25's training loss.
+- One chunk of A's read (seed 0). I opened its `summary.json` to check the file format, so I have
+  seen its numbers. They do not enter any reading; the readings use the merged 16 chunks.
+
+The circuit agent's CPU check, `cpt_control_20261105/valloss.py`:
+- **Scorer.** Stage 1's own validation split (first 2,000 records of `heldout.jsonl`, 7,000
+  pairs). It reproduces the logged 0.06924.
+- **Val w1, base / CPT / RL:**
+  - s0: 0.0692 / 0.0648 / 0.0847;
+  - s1: 0.0738 / 0.0646 / 0.0935;
+  - s2: 0.0750 / 0.0650 / 0.0945.
+- So CPT lowers val by 6–13%, and every seed lands near 0.0647. RL raises val by 22–28%.
+- **Charles149 reference proofs (w1), s0:** 0.0898 / 0.0655 / 0.1168. CPT is 27–34% lower than base,
+  RL 12–30% higher.
+- **On L3's own accepted proofs (s0, G):** base 0.126, CPT 0.145, RL 0.049.
+
+This folder's `valloss.py` scores every new model the same way (A, B0.25, B4, C, D1, D2), with
+that scorer's `score` function and sets. It is descriptive and reported next to pass@k.
+
+A question this context raises, not a reading: does lower val loss on Stage-1 pairs track pass@1024
+on Charles149 across the arms?
