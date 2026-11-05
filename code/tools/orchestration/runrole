@@ -7,6 +7,9 @@
 # Messages to a running session: `runmsg` appends to ~/runs/<run-id>/<role>.inbox; the next invocation
 # puts them at the top of its prompt. The driver wakes early from its gap when one arrives, and an
 # invocation that `runmsg --now` stopped does not count as a failure.
+# Relaunch: if ~/runs/<run-id>/<role>.claude_<n>.jsonl already exist, numbering continues after the last one and the
+# first invocation resumes the same conversation (`--continue`); no earlier transcript is overwritten. The loop runs
+# at most MAX_INVOCATIONS (default 400) invocations per launch, and running out of them notifies, like every other stop.
 set -u
 ROLE=$1; RUN=$2; shift 2
 REPO=~/nd-takehome; BRIEF=""; STOP=""; MODEL=""; DONE=""; DONEGREP=""
@@ -17,7 +20,7 @@ export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; . ~/.config/nd-rl/env
 BRIEFS=${ORCH_BRIEFS:-$HOME/nd-rl/docs/proposals/orchestration}
 D=~/runs/$RUN; mkdir -p "$D"; LOG=$D/$ROLE.driver.log
 [ -n "$DONE" ] || DONE=$D/$ROLE.done
-date -u +%FT%TZ > "$D/$ROLE.started"
+[ -f "$D/$ROLE.started" ] || date -u +%FT%TZ > "$D/$ROLE.started"   # a relaunch keeps the first start time
 STOPTS=$(date -u -d "${STOP:-+30 hours}" +%s)
 export ND_RUN_ID="$RUN"
 export GIT_AUTHOR_NAME="agent:claude ($ROLE)" GIT_AUTHOR_EMAIL="dantweinand@gmail.com" GIT_COMMITTER_NAME="Dan Pandori" GIT_COMMITTER_EMAIL="dantweinand@gmail.com"
@@ -95,7 +98,11 @@ Phase-1 workspace (executor write-ups removed): ~/review/$RUN"
 cd "$REPO" || exit 1
 # One canonical policy for every run (nd-rl); a fork branch's own copy is only a fallback.
 POLICY=$BRIEFS/AGENT_POLICY.md; [ -f "$POLICY" ] || POLICY=$REPO/AGENT_POLICY.md
-for i in $(seq 1 ${MAX_INVOCATIONS:-120}); do
+# Continue the numbering after any earlier launch of this role, and resume its conversation.
+LAST=$(ls "$D"/$ROLE.claude_*.jsonl 2>/dev/null | sed -E 's/.*\.claude_([0-9]+)\.jsonl$/\1/' | sort -n | tail -1)
+START=$(( ${LAST:-0} + 1 )); MAXI=${MAX_INVOCATIONS:-400}; END=$(( START + MAXI - 1 ))
+RELAUNCH=0; [ "$START" -gt 1 ] && { RELAUNCH=1; echo "[driver] $(date -u +%FT%TZ) relaunch: $((START - 1)) earlier invocation(s); resuming the conversation at invocation $START" >> "$LOG"; }
+for i in $(seq "$START" "$END"); do
   [ "$(date -u +%s)" -ge "$STOPTS" ] && { echo "[driver] $(date -u +%FT%TZ) past hard stop" >> "$LOG"; notify "$RUN: $ROLE hit its hard stop" "Session ended by time limit; check STATUS.md." high; break; }
   [ -f "$DONE" ] && { echo "[driver] $(date -u +%FT%TZ) $ROLE done" >> "$LOG"; notify_done; break; }
   [ -n "$DONEGREP" ] && grep -qE "$DONEGREP" "$REPO/STATUS.md" 2>/dev/null && { echo "[driver] $(date -u +%FT%TZ) done-grep matched" >> "$LOG"; notify_done; break; }
@@ -114,7 +121,7 @@ $( [ -n "$BRIEF" ] && cat "$BRIEF" )
 $CTX
 Begin." "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
   else
-    if [ "$fails" = 0 ] && [ "$quiet" -lt 2 ]; then
+    if [ "$fails" = 0 ] && [ "$quiet" -lt 2 ] && [ "$RELAUNCH" = 0 ]; then
       RESUME="Continuing. $CTX Check what is running and carry on. If there is nothing to do until a job finishes, say so in one line and stop — the driver will wait longer before waking you again."
     else
       RESUME="Resuming after an interruption. $CTX Re-read your role brief and STATUS.md, check what is running, and continue. If you were paused by a usage limit, add 'LIMIT_HIT $(date -u +%FT%TZ)' to STATUS.md."
@@ -122,7 +129,7 @@ Begin." "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
     claude -p --continue "$MSG$RESUME" "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
   fi
   # Run claude as a child and wait, so `runmsg --now` can find it (PIDFILE) and stop it.
-  echo $! > "$PIDFILE"; wait $!; rc=$?; rm -f "$PIDFILE"
+  echo $! > "$PIDFILE"; wait $!; rc=$?; rm -f "$PIDFILE"; RELAUNCH=0
   echo "[driver] $(date -u +%FT%TZ) invocation $i exited rc=$rc" >> "$LOG"
   if [ -f "$INTERRUPT" ]; then
     # Stopped on purpose by `runmsg --now`: not a failure; resume the same conversation right away.
@@ -149,3 +156,9 @@ Begin." "${ARGS[@]}" > "$OUT" 2>> "$LOG" < /dev/null &
   else nap "$SLEEP"; fi
 done
 echo "[driver] $(date -u +%FT%TZ) loop finished" >> "$LOG"
+# Ran out of invocations without finishing (2026-11-05: olmo-ifomega stopped silently at the old cap of 120, and the
+# pod watchdog then deleted its pods). Every other stop notifies; so does this one.
+if [ "${i:-0}" -ge "$END" ] && [ ! -f "$DONE" ]; then
+  echo "[driver] $(date -u +%FT%TZ) used all $MAXI invocations without finishing — stopping" >> "$LOG"
+  notify "$RUN: $ROLE stopped — used all $MAXI invocations" "The driver loop ended without the done file. Relaunch the same runrole command to resume the conversation (numbering continues). Check podls for pods this run created." high
+fi
