@@ -59,6 +59,9 @@ STATE = SUP / "state.json"
 DOWN_PASSES = 3
 STALL_S = 25 * 60
 PASS_S = 90
+# Leon's deadline (coordinator, 2026-11-05): a secondary line not at its cap by 15:00Z ends at its
+# last read, recorded as "stopped at the deadline"
+SECONDARY_DEADLINE = "2026-11-05T15:00:00Z"
 RSYNC_SSH = " ".join(G.SSH)
 
 
@@ -540,9 +543,20 @@ class Sup:
         self.renew()
         if self.yielded:
             return
+        late = time.time() >= M._utc(SECONDARY_DEADLINE)
         for line in sorted(C.LINES, key=lambda x: C.LINES[x]["prio"]):
             s = self.st[line]
             try:
+                if late and C.LINES[line]["arm"] == "secondary" and s["status"] != "done":
+                    if s["status"] == "running" and s["segs"] and self.holds():
+                        seg = s["segs"][-1]
+                        sh(seg["host"], f"touch {self.seg_dir(line, seg['seg'])}/STOP")
+                        seg["end"] = now()
+                        self.collect(line)
+                    s["status"], s["stop_reason"] = "done", "stopped at the deadline (15:00Z)"
+                    event(f"{line}: stopped at the deadline (15:00Z)")
+                    self.save()
+                    continue
                 if s["status"] == "running":
                     self.check_running(line)
                     if s["status"] == "running":
