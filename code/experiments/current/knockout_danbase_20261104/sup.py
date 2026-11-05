@@ -459,6 +459,14 @@ class Sup:
             event(f"{line}: its GPU ({h} GPU {seg['gpu']}) is reserved for another experiment; "
                   "availability stop at the next checkpoint")  # fmt: skip
             return
+        pf = seg.get("preempted_for")
+        if pf and self.st.get(pf, {}).get("status") != "waiting" and self.holds():
+            # the primary it made room for no longer waits: the preemption is cancelled
+            sh(h, f"rm -f {sd}/STOP_AT_CKPT")
+            seg.pop("moving", None)
+            seg.pop("preempted_for")
+            event(f"{line}: preemption cancelled ({pf} no longer waits)")
+            return
         g0 = (self.g.get(h) or {}).get(seg["gpu"], set())
         if (seg.get("moving") and not seg.get("preempted_for")
                 and (h, seg["gpu"]) not in self.reserved() and not (g0 - {G.ME})):  # fmt: skip

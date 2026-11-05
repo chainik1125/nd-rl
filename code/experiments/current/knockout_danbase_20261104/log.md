@@ -165,3 +165,9 @@ All times UTC.
   not at its cap by 15:00Z is recorded at its last read as "stopped at the deadline". Primary ETAs
   (00:31Z rates): dko_s1 about 10:30Z (his x_16), dko_s0 about 11:50Z (15 GPU-h at x_dan about
   4.7), dko_s2 about 12:20Z (15 GPU-h at x_dan about 5.8).
+- **04:20Z — dko_s0 moved and came back** (sudarsankg's process on serrano GPU 0): it ended at
+  its iteration-340 rolling checkpoint (04:28Z) and waited; the supervisor preempted dkoour_s2
+  (temescal GPU 1) for it (04:28:52Z); by 04:31Z serrano GPU 0 was free again and dko_s0
+  resumed there as seg4 (0 iterations lost). The preemption was then no longer needed: its
+  `STOP_AT_CKPT` was removed before dkoour_s2 reached a checkpoint, and the supervisor now
+  cancels a preemption whose primary no longer waits (04:3xZ).
