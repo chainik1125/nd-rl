@@ -458,6 +458,7 @@ exp = sum(
 )
 check("spend over every pod (deleted / retired stop the clock)", abs(sp - exp) < 0.01, (sp, exp))
 s.pod_spend = lambda: 30.0  # over the 21.81 ceiling
+s.st["_pods"].pop("budget_warned_at", None)  # (real time may have crossed it already)
 reset_events()
 s.pods()
 s.pods()
@@ -528,4 +529,38 @@ check(
     events(),
 )
 sup.time.sleep = _sleep
+
+# ---------------- 8. a broken host: lines there are ended and respawned elsewhere, never placed there
+reset_events()
+(sup.SUP / "broken_hosts.json").write_text(json.dumps({"temescal": "CUDA unknown error"}))
+(sup.SUP / "pods.json").write_text("{}")
+st = {
+    "dd01_s1": {"status": "running", "segs": [seg("temescal", 1, 1)]},
+    "dd01_s2": {"status": "running", "segs": [seg("temescal", 2, 1)]},
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+}
+ALIVE |= {("temescal", "dd01_s1", 1), ("temescal", "dd01_s2", 1)}
+s = new_sup(st)
+g8 = {
+    "serrano": {0: {"x"}, 1: {"cowifornia"}, 2: {"x"}, 3: {"x"}, 4: {"x"}},
+    "temescal": {1: set(), 2: set()},
+    "ynez": {0: {"cowifornia"}, 1: set(), 2: set(), 3: set()},
+}
+poll(s, g8)
+check("broken host: no GPU counts as free there", s.lab_free() == 3, s.lab_free())
+s.check_running("dd01_s1")
+l1 = s.st["dd01_s1"]["segs"][-1]
+check(
+    "line on a broken host respawned off it",
+    l1["host"] == "ynez" and l1["gpu"] == 1 and "marked broken" in events(),
+    (l1, events()),
+)
+s.g["ynez"][1] = {"cowifornia"}
+s.check_running("dd01_s2")
+check(
+    "the second waits (2 lab GPUs must stay free), never on the broken host",
+    s.st["dd01_s2"]["status"] == "waiting" and s.free_gpu("dd01_s2") is None,
+    s.st["dd01_s2"],
+)
+(sup.SUP / "broken_hosts.json").unlink()
 print("\nFAILED:", FAILS if FAILS else "none")

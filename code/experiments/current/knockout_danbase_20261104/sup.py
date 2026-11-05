@@ -245,7 +245,11 @@ class Sup:
         still holds a line's live segment."""
         live = {v["segs"][-1]["host"] for k, v in self.st.items() if not k.startswith("_")
                 and v.get("segs") and v["status"] == "running"}  # fmt: skip
-        gone = {h for h, v in self.st.get("_pods", {}).items() if v.get("deleted")}
+        gone = {
+            h
+            for h, v in self.st.get("_pods", {}).items()
+            if isinstance(v, dict) and v.get("deleted")
+        }  # (_pods also holds budget_warned)
         return (*C.HOSTS, *(h for h, v in self.pods_cfg.items()
                             if h not in gone and (not v.get("retired") or h in live)))  # fmt: skip
 
@@ -330,6 +334,18 @@ class Sup:
                 if not k.startswith("_") and s["status"] == "running" and s["segs"][-1]["host"] == h
                 and not s["segs"][-1].get("dead")]  # fmt: skip # noqa: E501
 
+    def broken(self) -> dict[str, str]:
+        """Lab hosts whose GPUs answer nvidia-smi but cannot run CUDA (`KD/sup/broken_hosts.json`,
+        {host: reason}): never launched onto, none of their GPUs counts as free, and a line
+        running there is ended and respawned at once (temescal, 2026-11-05: after its GPU 0
+        fault, torch fell back to the CPU on GPUs 1 and 2)."""
+        p = SUP / "broken_hosts.json"
+        try:
+            d = json.loads(p.read_text()) if p.exists() else {}
+        except json.JSONDecodeError:
+            d = {}
+        return {h: str(r) for h, r in d.items() if h in C.HOSTS}
+
     def reserved(self) -> set[tuple[str, int]]:
         """GPUs reserved for another experiment (`KD/sup/reserved.json`, {host: [gpu, ...],
         owner, since}): never launched onto, moved onto or reclaimed, and not counted in a cap."""
@@ -369,7 +385,7 @@ class Sup:
         n = 0
         for h in LAB_GPUS:
             g = self.g.get(h)
-            if g is not None:  # an unreadable host: none of its GPUs counts as free
+            if g is not None and h not in self.broken():  # unreadable or broken: none free
                 n += sum(1 for i, us in g.items() if not us and (h, i) not in res)
         return n
 
@@ -389,6 +405,8 @@ class Sup:
             return None  # and ours must stay at most 4 after it
         res = self.reserved()
         for h in ("serrano", "temescal", "ynez"):
+            if h in self.broken():
+                continue
             g = self.g.get(h)
             ours = [i for i in self.ours_on(h) if (h, i) not in res]
             if g is None or len(ours) >= C.MAX_OURS[h]:
@@ -636,6 +654,10 @@ class Sup:
         h, k, sd = seg["host"], seg["seg"], self.seg_dir(line, seg["seg"])
         if self.down(h):
             self.respawn(line, f"host {h} down")
+            return
+        if h in self.broken() and self.up(h) and self.holds():
+            kill_seg(h, line, k)
+            self.respawn(line, f"host {h} marked broken ({self.broken()[h]})")
             return
         if not self.up(h):
             return  # not yet 3 passes
