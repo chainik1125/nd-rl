@@ -161,9 +161,18 @@ def rank(x: np.ndarray) -> np.ndarray:
 def agreement(eb: np.ndarray, ex: np.ndarray, K: int) -> dict[str, float]:
     rho = float(np.corrcoef(rank(eb), rank(ex))[0, 1])
     k = min(K, ex.size)
+    itx = np.argpartition(-np.abs(ex), k - 1)[:k]
     tb = set(np.argpartition(-np.abs(eb), k - 1)[:k].tolist())
-    tx = set(np.argpartition(-np.abs(ex), k - 1)[:k].tolist())
-    return {"spearman": rho, "jaccard_top": len(tb & tx) / len(tb | tx)}
+    tx = set(itx.tolist())
+    return {
+        "spearman": rho,
+        "jaccard_top": len(tb & tx) / len(tb | tx),
+        # descriptive additions (Stage 3 log, 5:50 pm): linear agreement and sign agreement on X's
+        # top set, and the median base / X magnitude ratio there
+        "pearson": float(np.corrcoef(eb, ex)[0, 1]),
+        "sign_agree_top": float(np.mean(np.sign(eb[itx]) == np.sign(ex[itx]))),
+        "median_ratio_top": float(np.median(np.abs(eb[itx]) / np.abs(ex[itx]))),
+    }
 
 
 def part_b() -> dict[str, Any]:
@@ -190,6 +199,8 @@ def part_b() -> dict[str, Any]:
         A5 = d["A5"].double().numpy()
         a5b, a5x = A5[0][G].sum(0), A5[1][G].sum(0)
         live5 = np.flatnonzero((np.abs(A5[0]).sum(0) + np.abs(A5[1]).sum(0)) > 0)
+        A3 = d["A3"].double().numpy()
+        live3 = np.flatnonzero((np.abs(A3[0]).sum(0) + np.abs(A3[1]).sum(0)) > 0)
         r: dict[str, Any] = {
             "u3": int(len(d["U3"])),
             "u5": int(len(d["U5"])),
@@ -213,6 +224,19 @@ def part_b() -> dict[str, Any]:
                 1000,
                 0.2,
             ),
+            "hop35_unweighted_agree": agreement(
+                d["Eu"][0].double().numpy()[G].sum(0).ravel(),
+                d["Eu"][1].double().numpy()[G].sum(0).ravel(),
+                1000,
+            ),
+            "nodes_agree": {
+                f"A{lay}": agreement(
+                    d[f"A{lay}"][0].double().numpy()[G].sum(0)[live],
+                    d[f"A{lay}"][1].double().numpy()[G].sum(0)[live],
+                    100,
+                )
+                for lay, live in ((3, live3), (5, live5))
+            },
             "hop35_S": edge_stats(E[0][S].sum(0).ravel(), E[1][S].sum(0).ravel(), 1000, 0.2),
             "metric_G": {
                 "base": float(d["M"][0].double().numpy().sum()),
@@ -423,6 +447,32 @@ def write_md(out: dict[str, Any], md: Path) -> None:
                 f"| {o['N_new']} | {fmt_ci(o['m_new'], o['m_new_ci'])}% "
                 f"| {r['hop5out_agree']['spearman']:.3f} |"
             )
+        L += [
+            "",
+            "Agreement between base and X (descriptive): EAP edges, unweighted edges "
+            "(Σ dpre over the receiver's active positions: the wiring without the metric "
+            "gradient), and node attributions. Pearson r / Spearman ρ; sign agreement and median "
+            "|base| / |X| on X's top set (1,000 edges, 100 nodes).",
+            "",
+            "| pair | EAP 3→5 r / ρ / sign / ratio | unweighted 3→5 r / ρ / sign / ratio "
+            "| nodes L3 r / sign | nodes L5 r / sign |",
+            "|---|---|---|---|---|",
+        ]
+        for x, r in B["pairs"].items():
+
+            def ag(a: dict[str, float]) -> str:
+                return (
+                    f"{a['pearson']:.2f} / {a['spearman']:.2f} / {100 * a['sign_agree_top']:.0f}% "
+                    f"/ {a['median_ratio_top']:.2f}"
+                )
+
+            n3, n5 = r["nodes_agree"]["A3"], r["nodes_agree"]["A5"]
+            L.append(
+                f"| {PAIR_LABEL[x]} | {ag(r['hop35_agree'])} | {ag(r['hop35_unweighted_agree'])} "
+                f"| {n3['pearson']:.2f} / {100 * n3['sign_agree_top']:.0f}% "
+                f"| {n5['pearson']:.2f} / {100 * n5['sign_agree_top']:.0f}% |"
+            )
+        L.append("")
         for key in [k for k in B if k.startswith("hop") and "_minus_" in k]:
             v = B[key]
             L.append(f"- {key}: {fmt_ci(v['point'], v['ci'], signed=True)} points of m_new.")
@@ -569,7 +619,9 @@ def figures(out: dict[str, Any]) -> None:
             S.close(fig)
         if "patch" in B:
             rows = [
+                ("swap13", "L3 with embedding + blocks 1–3 from the base"),
                 ("swap45", "L3 with blocks 4–5 from the base"),
+                ("swap6h", "L3 with block 6 + head from the base"),
                 ("revert3", "layer-3 revert (Stage 2 edit)"),
                 ("allU", "all selected 3 → 5 edges"),
                 ("top", "top-1,000 edges"),

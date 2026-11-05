@@ -272,3 +272,66 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
 
     Reverting the layer-3 rotations removes about the same share of whatever either kind of
     further training gained. Messaged the coordinator.
+- **5:16 pm.** **`cpt_revertperm`:** G 6.1%, S 60.4%, edit / ‖h‖ 0.41. The permuted edit
+  damages CPT, as it did RL (`rl_revertperm`: G 10.4%, S 38.4%).
+- **5:20 pm.** `cpt_recon` ran out of GPU memory: a 6.4 GiB allocation in `PairPatched.edit`
+  during the prefill at batch 256. The other conditions were already written.
+  - It is rerun at the end of queue B with `--batch 64`. A different batch changes the sampling
+    stream but not the setting.
+- **5:20–5:30 pm.** Layer-5 crosscoder for CPT training. Queue B (`logs/jobs_s3B.txt` on ynez)
+  waits for queue A to finish. Its order: `traces`, `edges score` for L3, CPT and `kp16`,
+  `edges patch`, then the `cpt_recon` rerun.
+- **5:25 pm.** The coordinator asked for a CPT control on the paper's evals, in a new folder
+  [`cpt_control_20261105`](../cpt_control_20261105/). Its PREREG was hashed in its own log, and
+  its runner (`ynez:/scratch/cowifornia/nd-rl/cpt_control/logs/run_cptc.sh`) waits for queue B.
+- **5:26 pm and 5:31 pm.** Layer-5 crosscoders done for CPT (FVU 0.020 / 0.020) and `kp16_st1`
+  (0.019 / 0.019). Queue A ended at 5:31 pm, and queue B started `traces`.
+- **5:35 pm.** `stage1_analyze.py` rerun with the three new full-size crosscoders (Stage 1
+  recipe; `stage1.md` regenerated).
+  - **Base vs CPT, layer 3, full size (A1):**
+    - FVU 0.008 / 0.008, loss recovered 100%, 7,317 live latents;
+    - 0 CPT-only and 0 base-only latents;
+    - energy-weighted decoder cosine **0.948**, against 0.945 for the L3 end;
+    - 5% quantile of the cosine 0.51 (L3 end 0.51);
+    - rotated-latent energy 0.12% (L3 end 0.24%); reweighted > 2×, 0.06% (L3 end 0.03%).
+
+    The reduced CPU version had suggested that RL's tail is heavier (5% quantile 0.55 against
+    0.66). At full size and with CPT's own rollouts, that difference is gone at layer 3.
+  - **Layer 5:** CPT 0 / 0 latents, cosine 0.938 (5% quantile 0.60), against the L3 end's 0.925
+    (0.50). `kp16_st1` is at 1.000.
+- **5:33 pm.** `traces`: L3 G solve 66.9% (Stage 2: 67.1%), S 93.8%.
+  - Every G problem has a kept attempt: 156 G and 159 S attempts, 6,951 sequences, 998k tokens.
+  - 0 actions mismatch their sampled tails.
+- **5:48 pm.** `edges score --x L3` took 15.6 min.
+  - U3 = 369 and U5 = 374 latents, covering about 80% of |A| in both models.
+  - First look at the L3 pair alone, before the nulls:
+    - EAP 3 → 5: N_new 57, m_new 6.2% [4.4, 10.4].
+    - Agreement between base and L3 on EAP edges is near zero: Spearman 0.01, Pearson −0.37,
+      and 590 of the top 1,000 flip sign.
+    - The **unweighted** edges agree almost perfectly: Pearson 0.99, sign agreement 98% in
+      L3's top 1,000, median base/L3 magnitude ratio 0.97. These measure how much latent i at
+      layer 3 drives latent j's pre-activation at layer 5 through each model's own blocks 4–5.
+    - Node attributions are anti-correlated: Pearson −0.58 at layer 3, −0.39 at layer 5.
+    - Split-half reliability over G problems is 0.87 (L3) and 0.92 (base), so the EAP disagreement
+      is not noise.
+  - **Reading (interpretation):** the latent-to-latent wiring through blocks 4–5 is essentially
+    unchanged. What differs is the downstream gradient dM/df5, that is, how layer-5 features are
+    read out into L3's chosen actions. On L3's own proof tokens, the two models use the same
+    features towards different actions.
+  - Added to `stage3_analyze.py`, as descriptive output: Pearson r, sign agreement and the
+    base/X magnitude ratio for EAP edges, unweighted edges and node attributions. The decision
+    rule is unchanged.
+- **6:03 pm.** `edges score --x cpt` took 14.2 min.
+  - CPT's m_new is 5.4% [3.7, 7.0], against L3's 6.2% [4.4, 10.4]. L3 − CPT = +0.8 [−1.3, +5.6]
+    points, so criterion 1 of the decision rule (≥ 2× the drift null) fails.
+  - Unlike L3, CPT's EAP edges agree with the base's: Pearson 0.88, 94% sign agreement. Its node
+    attributions do too: 0.90 and 0.91.
+  - Unweighted wiring agreement with the base is 0.99 for both.
+- **6:05 pm.** Added two **exploratory** reference conditions to `edges.py patch`, before the patch
+  job started. Both are cheap teacher-forced forwards, labelled exploratory, and outside the
+  decision rule.
+  - `swap13`: L3 with the base's embedding and blocks 1–3.
+  - `swap6h`: L3 with the base's block 6, `ln_f` and head.
+
+  Reason: the L3-specific disagreement sits in the downstream gradient, not in the 3 → 5 wiring,
+  so these locate where the teacher-forced gap lives. Smoke-tested on CPU and synced to ynez.

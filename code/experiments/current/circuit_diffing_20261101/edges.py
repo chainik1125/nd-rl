@@ -386,7 +386,9 @@ def patch(a: argparse.Namespace) -> None:
     for i in range(len(lens)):
         p = int(data["prob"][i])
         seq_group.append("S" if pcat[p] == 1 else f"G{fold[p]}")
-    names = ["base", "L3", "swap45", "revert3", *rl_conds, *base_conds]
+    # swap13 / swap6h: exploratory references added after the L3 and CPT edge scores were seen
+    # (log, 6:05 pm): L3 with the base's embedding and blocks 1-3, or its block 6, ln_f and head
+    names = ["base", "L3", "swap45", "swap13", "swap6h", "revert3", *rl_conds, *base_conds]
     Mout = {c: np.full(len(lens), np.nan) for c in names}
     t0 = time.time()
     n_done = 0
@@ -403,6 +405,11 @@ def patch(a: argparse.Namespace) -> None:
                 Mout["L3"][batch] = metric_from5(pair.models[1], cl["a5"][1], bias, ids, met).cpu()
                 h = run_blocks(pair.models[0], cl["a3"][1], 3, 5, bias)
                 Mout["swap45"][batch] = metric_from5(pair.models[1], h, bias, ids, met).cpu()
+                h = run_blocks(pair.models[1], cl["a3"][0], 3, 5, bias)
+                Mout["swap13"][batch] = metric_from5(pair.models[1], h, bias, ids, met).cpu()
+                Mout["swap6h"][batch] = metric_from5(
+                    pair.models[0], cl["a5"][1], bias, ids, met
+                ).cpu()
                 d3 = pair.dec(3, 1)[live] - pair.dec(3, 0)[live]
                 a3r = cl["a3"][1] - cl["f3"][..., live] @ d3
                 h = run_blocks(pair.models[1], a3r, 3, 5, bias)
