@@ -72,6 +72,8 @@ LAB_GPUS = {"serrano": 5, "ynez": 4, "temescal": 3}
 # every GPU with any of our processes (other agents' too), reserved GPUs and our lines' assigned
 # GPUs (an unreadable host: its last-seen ours). Launch time only, like MIN_FREE.
 GLOBAL_CAP = 4
+QUIET_S = 15 * 60  # a lab GPU is free only after no other user's process for this long
+REUSE_S = 20 * 60  # a pod whose line ended is held this long for a displaced line
 POD_TEARDOWN_S = 2 * 3600  # after the last line: keep retrying a pod's deletion this long
 RSYNC_SSH = " ".join(G.SSH)
 # The pods: KD/sup/pods.json {alias: {pod, line, created, rate, budget_add[, retired]}}, written
@@ -322,6 +324,11 @@ class Sup:
                     if self.holds():
                         self.reap_unknown([h])
                 hs["fails"] = 0
+                if h in C.HOSTS:  # when another user's process was last seen on each GPU
+                    seen = self.st.setdefault("_gpu_seen", {}).setdefault(h, {})
+                    for i, us in self.g[h].items():
+                        if us - G.ours(h):
+                            seen[str(i)] = now()
 
     def up(self, h: str) -> bool:
         return self.g.get(h) is not None
@@ -333,6 +340,15 @@ class Sup:
         return [s["segs"][-1]["gpu"] for k, s in self.st.items()
                 if not k.startswith("_") and s["status"] == "running" and s["segs"][-1]["host"] == h
                 and not s["segs"][-1].get("dead")]  # fmt: skip # noqa: E501
+
+    def quiet(self, h: str, i: int) -> bool:
+        """No other user's process on lab GPU (h, i) now or in the last 15 min (coordinator,
+        18:3xZ: ColinDoherty's 4-GPU job on ynez relaunches every few minutes, and its gaps made
+        GPUs look free). A GPU counts as free, and a move is cancelled, only when quiet."""
+        if (self.g.get(h) or {}).get(i, set()) - G.ours(h):
+            return False
+        t = self.st.get("_gpu_seen", {}).get(h, {}).get(str(i))
+        return t is None or time.time() - M._utc(t) >= QUIET_S
 
     def broken(self) -> dict[str, str]:
         """Lab hosts whose GPUs answer nvidia-smi but cannot run CUDA (`KD/sup/broken_hosts.json`,
@@ -387,7 +403,8 @@ class Sup:
             g = self.g.get(h)
             if g is not None and h not in self.broken():  # unreadable or broken: none free
                 mine = set(self.ours_on(h))  # assigned this pass, before nvidia-smi shows them
-                n += sum(1 for i, us in g.items() if not us and (h, i) not in res and i not in mine)
+                n += sum(1 for i, us in g.items() if not us and (h, i) not in res and i not in mine
+                         and self.quiet(h, i))  # fmt: skip
         return n
 
     def free_gpu(self, line: str | None = None) -> tuple[str, int] | None:
@@ -413,7 +430,7 @@ class Sup:
             if g is None or len(ours) >= C.MAX_OURS[h]:
                 continue
             for i in sorted(g):
-                if not g[i] and i not in self.ours_on(h) and (h, i) not in res:
+                if not g[i] and i not in self.ours_on(h) and (h, i) not in res and self.quiet(h, i):
                     return h, i
         return None
 
@@ -471,8 +488,10 @@ class Sup:
                 return
         seg["needs_pod"] = now()
         rem = self.remaining_gpuh(line)
+        hold = (" ON HOLD, awaiting Leon (no_pod.json): no pod for this line without his OK."
+                if line in self.no_pod() else "")  # fmt: skip
         event(
-            f"NEEDS POD: {line} ({C.LINES[line]['arm']}): {why}; no lab GPU under the rules. "
+            f"NEEDS POD: {line} ({C.LINES[line]['arm']}): {why}; no lab GPU under the rules.{hold} "
             f"Resume checkpoint on serrano: {path} (it {src[1] if src else 0}); remaining about "
             f"{'unknown' if rem is None else f'{rem:.1f}'} GPU-h at its lab pace. It waits for a "
             f"lab GPU or a pod: runpod_copy_line.sh {line} <alias>, podsetup.sh <alias> {line}, "
@@ -709,12 +728,12 @@ class Sup:
             seg.pop("preempted_for")
             event(f"{line}: preemption cancelled ({pf} no longer waits)")
             return
-        g0 = (self.g.get(h) or {}).get(seg["gpu"], set())
         if (seg.get("moving") and not seg.get("preempted_for") and not seg.get("cap_stop")
-                and (h, seg["gpu"]) not in self.reserved() and not (g0 - G.ours(h))):  # fmt: skip
+                and (h, seg["gpu"]) not in self.reserved() and self.quiet(h, seg["gpu"])):  # fmt: skip
             # the other user's process has gone: a move that is no longer needed is cancelled
             sh(h, f"rm -f {sd}/STOP_AT_CKPT")
-            event(f"{line}: move cancelled; {h} GPU {seg['gpu']} has no other user's process now")
+            event(f"{line}: move cancelled; {h} GPU {seg['gpu']} has had no other user's process "
+                  f"for {QUIET_S // 60} min")  # fmt: skip
             seg.pop("moving")
             seg.pop("displaced", None)
             return
@@ -882,7 +901,7 @@ class Sup:
             pd["budget_warned"], pd["budget_warned_at"] = now(), ceil
             event(f"pod spend ${spend:.2f} has reached the ceiling ${ceil:.2f}; "
                   "nothing is stopped (the coordinator asks Leon)")  # fmt: skip
-        for h, v in self.pods_cfg.items():
+        for h, v in list(self.pods_cfg.items()):
             line, ps_ = v["line"], pd.setdefault(h, {})
             if ps_.get("deleted") or v.get("retired"):
                 continue
@@ -914,6 +933,23 @@ class Sup:
                     ps_["verify_warned"] = now()
                     event(f"{line} ended but its backup on serrano is incomplete; {h} is kept")
                 continue
+            # reuse (coordinator, 18:3xZ): a line waiting for a pod after another user displaced
+            # it gets this pod instead of a new one; with such a move under way, the pod is held
+            # up to 20 min after its line ended
+            cand = self.reuse_candidates()
+            if cand:
+                self.repoint(h, v, cand[0], seg)
+                continue
+            if (
+                self.imminent_displaced()
+                and time.time() - M._utc(seg.get("end") or now()) < REUSE_S
+            ):
+                if not ps_.get("held_for_reuse"):
+                    ps_["held_for_reuse"] = now()
+                    event(f"pod {h} ({v['pod']}): its line {line} ended; the pod is held up to "
+                          f"{REUSE_S // 60} min for a line that another user is displacing "
+                          f"({self.imminent_displaced()})")  # fmt: skip
+                continue
             code, _ = self.rest("DELETE", v["pod"])
             code2, d2 = self.rest("GET", v["pod"])
             gone = code2 == 404 or d2.get("desiredStatus") in ("TERMINATED",)
@@ -926,6 +962,51 @@ class Sup:
                 ps_["delete_warned"] = now()
                 event(f"pod {v['pod']} ({h}): delete not confirmed (DELETE {code}, GET {code2}); "
                       "retrying every pass")  # fmt: skip
+
+    def no_pod(self) -> set[str]:
+        """Lines that may not get a pod without Leon's OK (`KD/sup/no_pod.json`, a list)."""
+        p = SUP / "no_pod.json"
+        try:
+            return set(json.loads(p.read_text())) if p.exists() else set()
+        except json.JSONDecodeError:
+            return set(C.LINES)  # unreadable: no line gets a pod by reuse
+
+    def reuse_candidates(self) -> list[str]:
+        """Lines waiting for a pod after another user displaced them (NEEDS POD sent), not
+        pinned and not held back, oldest NEEDS POD first."""
+        out = []
+        for k, v in self.st.items():
+            if (k.startswith("_") or v.get("status") != "waiting" or not v.get("segs")
+                    or k in self.pinned() or k in self.no_pod()):  # fmt: skip
+                continue
+            seg = v["segs"][-1]
+            if seg.get("needs_pod") and seg.get("displaced"):
+                out.append((seg["needs_pod"], k))
+        return [k for _, k in sorted(out)]
+
+    def imminent_displaced(self) -> list[str]:
+        """Lab lines moving off a GPU that another user took (a NEEDS POD may follow)."""
+        return [k for k, v in self.st.items() if not k.startswith("_") and v["status"] == "running"
+                and v["segs"] and v["segs"][-1].get("moving") and v["segs"][-1].get("displaced")
+                and v["segs"][-1]["host"] in C.HOSTS and k not in self.no_pod()]  # fmt: skip
+
+    def repoint(self, h: str, v: dict, line: str, old_seg: dict) -> None:
+        """Re-point pod `h` from its ended line to `line` in pods.json (the only write the
+        supervisor makes there); the coordinator then copies the line's files
+        (runpod_copy_line.sh) and the line resumes there from pod_resume/."""
+        import os
+
+        d = json.loads(PODS.read_text())
+        d[h] = {**d[h], "line": line, "reused_from": v["line"], "registered": now()}
+        tmp = PODS.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, indent=1) + "\n")
+        os.replace(tmp, PODS)
+        self.pods_cfg = d
+        self.st["_pods"][h] = {"reused": now(), "from": v["line"]}
+        event(f"pod {h} ({v['pod']}) reused for {line}: its line {v['line']} ended at "
+              f"{old_seg.get('end')} and its backup is verified; the pod is not deleted. "
+              f"Copy the line's files: runpod_copy_line.sh {line} {h} (it resumes there from "
+              "pod_resume/ within a pass)")  # fmt: skip
 
     def preempt(self) -> None:
         """A primary line waits and no GPU is free: the lowest-priority running secondary line

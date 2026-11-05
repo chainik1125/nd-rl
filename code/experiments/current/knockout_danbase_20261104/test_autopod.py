@@ -562,4 +562,143 @@ check(
     s.st["dd01_s2"],
 )
 (sup.SUP / "broken_hosts.json").unlink()
+
+# ---------------- 9. hysteresis: a GPU another user used in the last 15 min is not free
+reset_events()
+ago = lambda m: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 60 * m))
+st = {
+    "dd01_s1": {
+        "status": "running",
+        "segs": [
+            seg(
+                "ynez",
+                1,
+                2,
+                moving=ago(3),
+                displaced="displaced by another user's process on ynez GPU 1",
+            )
+        ],
+    },
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+    "_gpu_seen": {"ynez": {"0": ago(5), "1": ago(2), "2": ago(5), "3": ago(20)}},
+}
+ALIVE |= {("ynez", "dd01_s1", 2)}
+s = new_sup(st)
+g9 = {
+    "serrano": {i: {"x"} for i in range(5)},
+    "temescal": {1: set(), 2: set()},
+    "ynez": {0: set(), 1: {"cowifornia"}, 2: set(), 3: set()},
+}
+poll(s, g9)
+check(
+    "recently used GPUs are not free; a quiet one is",
+    not s.quiet("ynez", 0) and s.quiet("ynez", 3),
+    s.st["_gpu_seen"],
+)
+check("lab_free counts only quiet GPUs (temescal 1-2 + ynez 3)", s.lab_free() == 3, s.lab_free())
+s.check_running("dd01_s1")
+check(
+    "move not cancelled during a gap",
+    s.st["dd01_s1"]["segs"][-1].get("moving") and "move cancelled" not in events(),
+    events(),
+)
+s.st["_gpu_seen"]["ynez"]["1"] = ago(16)
+s.check_running("dd01_s1")
+check(
+    "move cancelled after 15 quiet min",
+    "move cancelled" in events() and not s.st["dd01_s1"]["segs"][-1].get("moving"),
+    events(),
+)
+pg = sup.G.gpus
+poll_calls = []
+s.g = {"ynez": {0: {"ColinDoherty"}, 1: set()}}
+
+# ---------------- 10. pod reuse: a finished line's pod goes to a displaced line waiting for a pod
+reset_events()
+rest_calls.clear()
+(sup.SUP / "pods.json").write_text(
+    json.dumps({"rp-d1": {"pod": "aaaa1111", "line": "dd1_s0", "created": ago(60), "rate": 0.59}})
+)
+(sup.SUP / "no_pod.json").write_text(json.dumps(["dd01_s1"]))
+st = {
+    "dd1_s0": {"status": "done", "segs": [seg("rp-d1", 0, 1, end=ago(1))]},
+    "dd1_s2": {
+        "status": "waiting",
+        "segs": [
+            seg(
+                "ynez",
+                0,
+                1,
+                dead="moved",
+                needs_pod=ago(2),
+                displaced="displaced by another user's process on ynez GPU 0",
+            )
+        ],
+    },
+    "dd01_s1": {
+        "status": "waiting",
+        "segs": [
+            seg("ynez", 1, 2, dead="moved", needs_pod=ago(3), displaced="displaced by another user")
+        ],
+    },
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+}
+s = new_sup(st)
+poll(s, {**g9, "rp-d1": {0: set()}})
+bd = KD / "backup" / "dd1_s0"
+(bd / "seg1" / "reads").mkdir(parents=True, exist_ok=True)
+(bd / "seg1_dd1_s0_it80_rolling.pt").write_text("x")
+(bd / "seg1" / "metrics.jsonl").write_text("{}")
+(bd / "seg1" / "reads" / "it0080.json").write_text("{}")
+check(
+    "reuse candidates skip held-back lines",
+    s.reuse_candidates() == ["dd1_s2"],
+    s.reuse_candidates(),
+)
+s.pods()
+cfg = json.loads((sup.SUP / "pods.json").read_text())
+check(
+    "pod re-pointed, not deleted",
+    cfg["rp-d1"]["line"] == "dd1_s2"
+    and cfg["rp-d1"]["reused_from"] == "dd1_s0"
+    and rest_calls == []
+    and "reused for dd1_s2" in events(),
+    (cfg, rest_calls, events()),
+)
+check("dd1_s2 now pinned to rp-d1", s.pinned().get("dd1_s2") == "rp-d1")
+# hold while a displacement is under way, then delete after the window
+reset_events()
+rest_calls.clear()
+(sup.SUP / "pods.json").write_text(
+    json.dumps({"rp-d2": {"pod": "bbbb2222", "line": "dd1_s1", "created": ago(60), "rate": 0.59}})
+)
+st = {
+    "dd1_s1": {"status": "done", "segs": [seg("rp-d2", 0, 1, end=ago(1))]},
+    "dd1_s2": {
+        "status": "running",
+        "segs": [seg("ynez", 0, 1, moving=ago(1), displaced="displaced by another user")],
+    },
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+}
+s = new_sup(st)
+poll(s, {**g9, "rp-d2": {0: set()}})
+bd = KD / "backup" / "dd1_s1"
+(bd / "seg1" / "reads").mkdir(parents=True, exist_ok=True)
+(bd / "seg1_dd1_s1_it70_rolling.pt").write_text("x")
+(bd / "seg1" / "metrics.jsonl").write_text("{}")
+(bd / "seg1" / "reads" / "it0070.json").write_text("{}")
+s.pods()
+check(
+    "pod held while a line is being displaced",
+    rest_calls == [] and "held up to 20 min" in events(),
+    (rest_calls, events()),
+)
+s.st["dd1_s1"]["segs"][-1]["end"] = ago(21)
+s.pods()
+check(
+    "deleted after the 20-min window",
+    rest_calls == [("DELETE", "bbbb2222"), ("GET", "bbbb2222")],
+    rest_calls,
+)
+(sup.SUP / "no_pod.json").unlink()
 print("\nFAILED:", FAILS if FAILS else "none")
