@@ -86,7 +86,23 @@ def part_a() -> dict[str, Any]:
             r["drop_pts_ci"] = {
                 k: [100 * x for x in ci(boot[ref][k] - boot[c][k])] for k in ("G", "S")
             }
+            # exploratory (added after CPT's clean rates were seen): share of the model's own
+            # gap over the base removed, (clean - cond) / (clean - base_clean)
+            gb = {k: boot[ref][k] - boot["base_clean"][k] for k in ("G", "S")}
+            r["gap_removed"] = {
+                k: (pt[ref][k] - pt[c][k]) / (pt[ref][k] - pt["base_clean"][k]) for k in ("G", "S")
+            }
+            r["gap_removed_ci"] = {k: ci((boot[ref][k] - boot[c][k]) / gb[k]) for k in ("G", "S")}
+            r["_gap_boot_G"] = (boot[ref]["G"] - boot[c]["G"]) / gb["G"]
         res["conditions"][c] = r
+    if {"cpt_revert", "rl_revert"} <= set(res["conditions"]):
+        rc, rr = res["conditions"]["cpt_revert"], res["conditions"]["rl_revert"]
+        res["exploratory_gapG_cpt_minus_rl"] = {
+            "point": rc["gap_removed"]["G"] - rr["gap_removed"]["G"],
+            "ci": ci(rc["_gap_boot_G"] - rr["_gap_boot_G"]),
+        }
+    for r in res["conditions"].values():
+        r.pop("_gap_boot_G", None)
     if "cpt_revert" in conds:
         dS_c = 1 - boot["cpt_revert"]["S"] / boot["cpt_clean"]["S"]
         dS_r = 1 - boot["rl_revert"]["S"] / boot["rl_clean"]["S"]
@@ -343,20 +359,21 @@ def write_md(out: dict[str, Any], md: Path) -> None:
             "bootstrap]. `cpt_*` conditions are driven by CPT with the base-vs-CPT crosscoder.",
             "",
             "| condition | edit / ‖h‖ | G solve % | S solve % | relative drop G | relative drop S "
-            "| drop S (points) |",
-            "|---|---|---|---|---|---|---|",
+            "| drop S (points) | own G gap removed (exploratory) |",
+            "|---|---|---|---|---|---|---|---|",
         ]
         for c, r in A["conditions"].items():
             sg, ss = r["solve_pct"]["G"], r["solve_pct"]["S"]
             cg, cs = r["solve_ci"]["G"], r["solve_ci"]["S"]
-            dg = ds = dp = ""
+            dg = ds = dp = gr = ""
             if "drop" in r:
                 dg = fmt_ci(r["drop"]["G"], r["drop_ci"]["G"])
                 ds = fmt_ci(r["drop"]["S"], r["drop_ci"]["S"])
                 dp = fmt_ci(r["drop_pts"]["S"], r["drop_pts_ci"]["S"], pct=False)
+                gr = fmt_ci(r["gap_removed"]["G"], r["gap_removed_ci"]["G"])
             L.append(
                 f"| {c} | {r['edit_over_h']:.3f} | {sg:.1f} [{cg[0]:.1f}, {cg[1]:.1f}] "
-                f"| {ss:.1f} [{cs[0]:.1f}, {cs[1]:.1f}] | {dg} | {ds} | {dp} |"
+                f"| {ss:.1f} [{cs[0]:.1f}, {cs[1]:.1f}] | {dg} | {ds} | {dp} | {gr} |"
             )
         if "compare" in A:
             cmp_ = A["compare"]
@@ -374,6 +391,13 @@ def write_md(out: dict[str, Any], md: Path) -> None:
                 f"- cpt_clean − base_clean: G {pts(cb['G'], cbc['G'])}, "
                 f"S {pts(cb['S'], cbc['S'])} points.",
                 f"- Pre-registered reading: **{A['reading']}**.",
+            ]
+        if "exploratory_gapG_cpt_minus_rl" in A:
+            v = A["exploratory_gapG_cpt_minus_rl"]
+            L += [
+                "- Exploratory (added after CPT's own G rate was seen to be far above the "
+                "base's): share of the model's own G gap over the base removed by its revert, "
+                f"CPT − RL: {fmt_ci(v['point'], v['ci'], signed=True)} points.",
             ]
         L.append("")
     B = out.get("B")

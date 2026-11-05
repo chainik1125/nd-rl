@@ -213,3 +213,62 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
     - an `allU` patching reference, which patches every U3 × U5 edge;
     - 3 → 5 counts with unweighted edges (Σ dpre over the receiver's active positions);
     - counts on the S set.
+- **4:58 pm.** **CPT's own solve rates (A2):** G 29.6%, S 87.1%. For reference, the base is at
+  G 2.0%, S 70.9% and the L3 end at G 67.1%, S 93.0%.
+  - By set (base / CPT / RL):
+    - Charles149 G: 0.0 / 10.0 / 73.4%. CPT still solves 0 of 32 on 10 of the 20 problems.
+    - 13–20 G: 2.7 / 36.1 / 65.1%.
+  - Continued pretraining on the base's own data, with no RL, is therefore not base-like. It
+    recovers about 43% of RL's G gain on these problems. The Stage 1 and 2 write-up had *assumed*
+    CPT was base-like; that assumption is wrong.
+  - CPT is still the matched drift control (same optimizer, steps and weight change), but it is
+    not capability-free.
+  - Messaged the coordinator. Added one **exploratory** Part A statistic to
+    `stage3_analyze.py`: the share of each model's own G gap over the base that its revert
+    removes, CPT against RL. The pre-registered reading (relative drop on S) is unchanged.
+- **5:00 pm.** Three CPU checks on the CPT gain, requested by the coordinator.
+  1. **Compute.**
+     - CPT trained on 124,800 distinct S1g3 records, 0.81 of an epoch: 82.1M tokens, 263k per
+       step. `train.finetune` with seed 0 draws them deterministically from one shuffle.
+     - So R_CPT = 6 × trained / (6 × Stage-1 tokens) = **0.186**, with no sampling.
+     - The L3 chain trained on 84.0M tokens (L2 44.0M + L3 40.0M), so its trained-only R is
+       0.191. With sampling (129.8M sampled tokens, 34% of its R), its full R is 0.289.
+     - CPT therefore matches RL in trained tokens (0.98×) and in AdamW steps (312), and has
+       0.64× RL's full R.
+  2. **Learning-rate history.**
+     - Stage 1 (`train.py`, recipe "best", 24,000 steps, 4.33 epochs, 440.6M tokens) uses Muon
+       for the block matrices (peak 0.01) and AdamW for the rest (peak 1e-3, weight decay 0.1).
+       The schedule is a 200-step warmup, then a step cosine to a floor of 30% of peak
+       (`MIN_LR_FRAC` 0.3).
+     - It ran its schedule to the end; it was not cut off. But it ended at 30% of peak (AdamW
+       3e-4, Muon 3e-3), not annealed towards 0, and it is not a WSD schedule. Validation loss over
+       the last 4,000 steps is flat and noisy (0.058–0.071).
+     - CPT re-warms with AdamW on every parameter (10 steps to 1.5e-4) and decays by cosine to
+       4.5e-5 over 312 steps, with weight decay 0. Its final LR is below Stage 1's AdamW floor.
+     - GRPO does the same: AdamW at 1.5e-4 with a 10-step warmup; L2 constant, L3 WSD down to
+       30% (4.5e-5).
+     - So both CPT and RL add a low-LR AdamW phase that ends below where Stage 1 stopped.
+     - Likely story: **the base is un-annealed, so it is effectively undertrained.** A short,
+       lower-LR continuation on the same data recovers part of what RL gains. This is an
+       interpretation; no annealing ablation was run.
+  3. **Contamination.** Checked by atom-renaming class (`canon_key`) and the premise-order
+     invariant `pkey` (ndbench `core.keys`), against all 154,630 S1g3 records:
+     - 0 of the 80 G problems and 0 of the 121 S problems share a class with any record, so none
+       is in CPT's trained subset either;
+     - S1g3's exclusion list holds the OOD sets, textbook72 and the K12 held-out set.
+- **5:06 pm.** **`cpt_revert` (A3):** G 16.9% [13.2, 20.9], S 85.0% [81.7, 88.1]; edit / ‖h‖
+  0.30 (`rl_revert`: 0.34).
+  - Relative drop on S: 2.5% [−0.1, 5.1]. That is 3.6 [0.3, 7.1] points smaller than
+    `rl_revert`'s 6.1%.
+  - cpt_revert's S stays 14.1 [10.9, 17.3] points above the base.
+  - **Pre-registered reading: "benign".** The revert edit does not damage a drifted model in
+    general, so the Stage 2 `rl_revert` result is not fragility. But the rule's conclusion,
+    "RL's rotations are special", rested on the premise that CPT gained nothing, and that premise
+    failed (4:58 pm).
+  - **Exploratory:** the share of the model's own G gap over the base that its revert removes:
+    - CPT 46.0% [36.0, 55.1];
+    - RL 40.9% [34.4, 47.4];
+    - difference +5.1 [−6.0, +15.7] points.
+
+    Reverting the layer-3 rotations removes about the same share of whatever either kind of
+    further training gained. Messaged the coordinator.

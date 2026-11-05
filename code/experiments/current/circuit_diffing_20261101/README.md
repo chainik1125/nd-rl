@@ -42,5 +42,9 @@ Under elicitation, no new circuits are made and existing ones are only upweighte
 | `stage2_analyze.py` | Stage 2 solve rates with paired bootstrap → `stage2.json`, `stage2.md` |
 | `figures.py` | Figures in `figs/` |
 | `queue.sh`, `queue2.sh`, `gpu_gate.sh` | Sequential GPU job queues; `queue2.sh` waits for a slot (fewer than 3 GPU jobs on serrano) |
+| `traces.py` | Stage 3: the L3 end's own Lean-accepted G and S attempts with traces → `stage3/seqs_L3.npz` |
+| `edges.py` | Stage 3: node attribution, layer 3 → 5 EAP edges (forward-mode JVP through each model's blocks), teacher-forced path patching in L3 |
+| `stage3_analyze.py` | Stage 3: drift-control revert (part A), edge counts against nulls and patching (part B) → `stage3.json`, `stage3.md`, `figs/stage3_*` |
+| `queue3.sh`, `gpu_guard.sh` | Stage 3 job queue on ynez (one reserved GPU, `CIRCUITS_RUNS` mirror) and a guard that reports foreign processes on that GPU |
 
 Artifacts (sequences, crosscoders, checkpoint copies) are in `/scratch/cowifornia/nd-rl/circuits/`.
