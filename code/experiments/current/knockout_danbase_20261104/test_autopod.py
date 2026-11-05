@@ -480,4 +480,52 @@ good = dict(s.pods_cfg)
 (sup.SUP / "pods.json").write_text("{not json")
 s.read_pods()
 check("invalid pods.json -> last good read kept", s.pods_cfg == good)
+
+# ---------------- 7. the loop keeps passing until a finished line's pod is deleted (bounded)
+reset_events()
+st = {
+    k: {"status": "done", "segs": [seg("rp-s1b", 0, 3)] if k == "dkoour_s1" else []}
+    for k in sup.C.LINES
+}
+st["_hosts"] = {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")}
+st["_pods"] = {
+    "rp-s0": {"deleted": "2026-11-05T09:00:00Z"},
+    "rp-dko-s1": {"deleted": "2026-11-05T09:00:00Z"},
+}
+(sup.SUP / "pods.json").write_text(json.dumps(good))
+s = new_sup(st)
+s.poll_hosts = lambda: None
+s.reap_unknown = lambda hosts: None
+check(
+    "pods_pending lists the finished line's pod", s.pods_pending() == ["rp-s1b"], s.pods_pending()
+)
+passes = []
+
+
+def one_pass_deletes():
+    passes.append(1)
+    s.st["_pods"].setdefault("rp-s1b", {})["deleted"] = sup.now()
+
+
+s.one_pass = one_pass_deletes
+sup.PASS_S = 0
+_sleep = sup.time.sleep
+sup.time.sleep = lambda x: None
+s.loop()
+check(
+    "loop passes until the pod is deleted, then exits",
+    len(passes) == 1 and "every line has ended; supervisor exits" in events(),
+    (passes, events()),
+)
+reset_events()
+s.st["_pods"]["rp-s1b"] = {}
+s.one_pass = lambda: passes.append(1)
+sup.POD_TEARDOWN_S = 0
+s.loop()
+check(
+    "bounded: an undeletable pod -> event, exit",
+    "are not deleted after" in events() and "rp-s1b" in events(),
+    events(),
+)
+sup.time.sleep = _sleep
 print("\nFAILED:", FAILS if FAILS else "none")

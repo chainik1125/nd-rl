@@ -72,6 +72,7 @@ LAB_GPUS = {"serrano": 5, "ynez": 4, "temescal": 3}
 # every GPU with any of our processes (other agents' too), reserved GPUs and our lines' assigned
 # GPUs (an unreadable host: its last-seen ours). Launch time only, like MIN_FREE.
 GLOBAL_CAP = 4
+POD_TEARDOWN_S = 2 * 3600  # after the last line: keep retrying a pod's deletion this long
 RSYNC_SSH = " ".join(G.SSH)
 # The pods: KD/sup/pods.json {alias: {pod, line, created, rate, budget_add[, retired]}}, written
 # by register_pod.py (the coordinator), read every pass, never written here. A pod runs only its
@@ -939,13 +940,33 @@ class Sup:
         self.renew()
         if not self.yielded and self.holds():
             self.reap_unknown([h for h in self.hosts() if self.up(h)])
-        while any(v["status"] != "done" for k, v in self.st.items() if not k.startswith("_")):
+        all_done = None
+        while True:
+            live = any(v["status"] != "done" for k, v in self.st.items() if not k.startswith("_"))
+            if not live:
+                all_done = all_done or time.time()
+                left = self.pods_pending()
+                if not left:
+                    break
+                if time.time() - all_done > POD_TEARDOWN_S:  # never forever: tell, then exit
+                    event(f"every line has ended but pods {left} are not deleted after "
+                          f"{POD_TEARDOWN_S // 60} min of retries; supervisor exits (delete "
+                          "them by hand)")  # fmt: skip
+                    return
             if self.yielded:
                 return
             t = time.time()
             self.one_pass()
             time.sleep(max(5.0, PASS_S - (time.time() - t)))
         event("every line has ended; supervisor exits")
+
+    def pods_pending(self) -> list[str]:
+        """Registered pods (not retired) whose line has ended but which are not deleted yet: the
+        supervisor keeps passing (backup, verify, DELETE) until they are."""
+        dl = self.st.get("_pods", {})
+        return [h for h, v in self.pods_cfg.items() if not v.get("retired")
+                and not dl.get(h, {}).get("deleted")
+                and self.st.get(v["line"], {}).get("status") == "done"]  # fmt: skip
 
 
 def standby() -> None:
