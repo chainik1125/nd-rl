@@ -12,10 +12,10 @@ PROGRESS.
 - **Amendment 1:** the three 1 % lines are done (by 19:12Z). The three 0.1 % lines are
   running or waiting.
   - dd01_s0 is on serrano.
-  - dd01_s1 and dd01_s2 wait for a lab GPU. temescal's CUDA is broken, and another user's
-    job keeps cycling on ynez. A pod needs Leon's OK.
-- Every Runpod pod was deleted after its backup was verified. Pod spend is $15.75, of which
-  rp-d1 and rp-d2 (amendment 1) cost $2.04.
+  - dd01_s1 and dd01_s2 are moving to two new A40 pods (rp-d3 and rp-d4), which Leon approved
+    at 20:14Z. temescal's CUDA is broken, and another user's job keeps cycling on ynez.
+- The five earlier Runpod pods were deleted after their backups were verified. They cost $15.75,
+  of which rp-d1 and rp-d2 (amendment 1) cost $2.04. The two new pods are billing on top of that.
 - Nothing is pushed.
 
 **Question (Dan).** "It would be cool to know if GRPO can actually learn proof-by-contradiction
@@ -65,8 +65,9 @@ PREREG.md, Amendment 1, was frozen before any dose line ran.
   - σ in the accepted training proofs is 2.0 %, 3.1 % and 2.0 %. His knockout bases gave
     0.05–0.09 %.
   - All three held the bar (stop rule "reached and held"). They took 1.2–1.9 GPU-h each.
-- **0.1 %: pending.** dd01_s0 is at 0 of the 106 at x_dan 0.81. His EI crossed this seed at
-  round 5 (x 1.37). dd01_s1 and dd01_s2 have barely started (see Status).
+- **0.1 %: pending.** dd01_s0 is at 0 of the 106 through its read at x_dan 1.02 (it 150). His EI
+  crossed this seed at round 5 (x 1.37). dd01_s1 and dd01_s2 are at x_dan 0.27 and 0.20 (see
+  Status).
 - **Reading so far.** With σ in the pretraining at 1 %, GRPO crosses as early as his EI. At
   0 %, neither crosses within one ladder. The 0.1 % dose decides where in between GRPO's
   threshold lies.
@@ -195,6 +196,12 @@ Scored against PREREG.md (frozen before any knockout line was read).
   elsewhere. Their base reads (round 1 of his measure) were then made separately on serrano
   GPU 1, with the same code and arguments (`baseread_dd01.sh`). dd1_s2 finished its hold on a
   pod (rp-d1, reused from dd1_s0) after another user's job took its ynez GPU.
+- **dd01_s1 and dd01_s2 continue on pods.** The same job displaced them from ynez at about 19:12Z,
+  and the temescal fault left no other lab GPU under the rules. On Leon's approval they move to
+  A40 pods (rp-d3 and rp-d4), resuming from it 35 and it 25 of serrano's backup, with the same code
+  and environment. An A40 iteration has taken longer than a lab iteration (see above). x_dan
+  counts compute, not time, so the pods do not change x itself, but they reach the 15 GPU-h cap at
+  a lower x than a lab GPU would.
 - **Machine events.** Lines were respawned and moved: one OOM, other users' processes, ynez's
   reboot, and a GPU reserved for another experiment. Lost iterations are listed below.
 

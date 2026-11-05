@@ -265,8 +265,39 @@ All times UTC.
   - **dkoour_s1 is still running on rp-s1** (0 of 106 so far, x_dan 5.56 of 5.93; ETA about
     16:10Z). The agent handed back before it ended. `post_finalize.sh` reruns `finalize.sh` once
     every line has ended and logs one event; the summary's text for dkoour_s1 says pending.
+- **Amendment 1, the dose lines (2026-11-05; all times Z; events in `KD/sup/events.md`).**
+  - **17:17Z: launched.** dd01_s0 on serrano GPU 1; dd01_s1 and dd01_s2 on temescal GPUs 1 and 2.
+  - **18:25Z: temescal marked broken.** Its CUDA has given "unknown error" on GPUs 1–2 since the
+    GPU 0 fault of 09:29Z, though nvidia-smi still answers. torch fell back to the CPU, so
+    dd01_s1 and dd01_s2 ran GRPO on the CPU for about an hour (3 iterations) and their base reads
+    failed. Both restarted from the base on ynez at 18:27Z; `broken_hosts.json` now keeps lines
+    off temescal (04338cf).
+  - **18:27Z: a launch broke the lab rule.** dd01_s2 on ynez GPU 2 left only 1 usable lab GPU
+    free, because `lab_free` counted a GPU assigned in the same pass as free. I ended that segment
+    at 18:29Z and fixed the count (5b3a129).
+  - **18:29–19:14Z: another user's 4-GPU job kept relaunching on ynez.** Its gaps made GPUs look
+    free, so moves were started and then cancelled, and the 19:07–19:10Z cancels were wrong.
+    - 15 quiet minutes needed, pod reuse and `no_pod.json` (18:32Z, 08eebc3).
+    - A segment's own sighting of another user counts (19:11Z, f83847f).
+    - 60 quiet minutes on GPUs where that job keeps coming back (19:14Z, 2dae7a1).
+  - **18:34–19:12Z: the 1 % lines ended, each crossing at its round-2 draw and holding (a8397ea).**
+    dd1_s2 was displaced from ynez and finished on rp-d1, reused from dd1_s0 at 18:36Z (seg2 from
+    it 70, 0 iterations lost). rp-d1 and rp-d2 were deleted at 19:12Z and 18:39Z.
+  - **19:11–19:13Z: dd01_s2 (it 25) and dd01_s1 (it 35) displaced from ynez.** No lab GPU was
+    usable under the rules, and both NEEDS POD events were held for Leon's answer. dd01_s0 stayed
+    on serrano.
+  - **19:30Z and 19:33Z: the missing base reads made** on serrano GPU 1 with the same code and
+    arguments (`baseread_dd01.sh`): dd01_s1 0 first-32 (his base read 0), dd01_s2 1 (his 3). The
+    merged measure has them as round 1 (checked with `merge.line_view` at 20:16Z).
   - **20:14Z: the supervisor no longer reaches Runpod.** Leon revoked the API key and deleted
-    `~/.runpod_env`. `rest()` is gone. When a pod's line has ended, its backup is verified and it
-    is not held or reused, the supervisor logs one `POD READY TO DELETE:` event. The coordinator
-    deletes the pod through the MCP, confirms with a read, then runs `register_pod.py retire`;
-    the spend clock runs until then.
+    `~/.runpod_env`. `rest()` is gone (3b69a19). When a pod's line has ended, its backup is
+    verified and it is not held or reused, the supervisor logs one `POD READY TO DELETE:` event.
+    The coordinator deletes the pod through the MCP, confirms with a read, then runs
+    `register_pod.py retire`; the spend clock runs until then.
+  - **20:14Z: pods for dd01_s1 and dd01_s2, on Leon's approval.** The reason is the temescal fault
+    and the contention on ynez, with serrano's other GPUs held by other users. The coordinator
+    created the pods and does the copy, install and registration.
+    - dd01_s1 → rp-d3 (48pxqqf95kb23x, created 20:14:01Z), resuming from it 35 of serrano's backup.
+    - dd01_s2 → rp-d4 (2w3qebaxx02cy3, created 20:14:03Z), resuming from it 25 of serrano's backup.
+    - Each registration adds $7.80 to the pod ceiling: $15.60, which is the $12 Leon approved plus
+      30 %. The coordinator estimates about 13 GPU-h per pod, $16 in total, if a line never crosses.
