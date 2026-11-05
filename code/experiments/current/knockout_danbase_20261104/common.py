@@ -14,11 +14,22 @@ import os
 from pathlib import Path
 
 KD = Path(os.environ.get("KD", "/scratch/cowifornia/nd-rl/knockout_danbase"))
-PY = "/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python"
+PY = os.environ.get("DANBASE_PY", "/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python")
 CODE = KD / "snap" / "f35d3daf_danbase"  # f35d3daf + snap_iters + danbase_log patches
 HERE = Path(__file__).resolve().parent
 HOSTS = ("serrano", "temescal", "ynez")
-MAX_OURS = {"serrano": 5, "temescal": 2, "ynez": 4}  # lines per host (one per GPU)
+MAX_OURS = {"serrano": 5, "temescal": 2, "ynez": 4, "rp-s0": 1, "rp-s1": 1}  # lines per host
+# Two Runpod A40 pods (Leon, 2026-11-05), one pinned line each; outside the lab and its rules.
+# ssh aliases in ~/.ssh/config; the pod's /workspace holds the same tree under the lab's paths
+# (symlinks); deleted when its line ends.
+RP_HOSTS = {
+    "rp-s0": {"line": "dkoour_s0", "pod": "vsr5wcacsoq4g8", "created": "2026-11-05T04:59:57Z"},
+    "rp-s1": {"line": "dkoour_s1", "pod": "in1myc2jl5fz75", "created": "2026-11-05T04:59:58Z"},
+}
+PIN = {v["line"]: h for h, v in RP_HOSTS.items()}
+POD_RATE = 0.59  # $ per pod-hour
+POD_BUDGET = 16.90  # the coordinator's ceiling: an event and a message, nothing stops
+POD_ROOTS = {"/workspace/exp", "/workspace/kd/snap/f35d3daf_danbase"}  # resolved cwd on a pod
 BAR = 14  # Dan's bar: median round-1 heldout_cum of his 6 full bases
 SNAP_EVERY = 10  # model-only snapshot (and read) every 10 iterations
 ROLL_EVERY = 5  # rolling checkpoint with the training state every 5 iterations

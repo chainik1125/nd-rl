@@ -195,3 +195,17 @@ All times UTC.
 - **05:0xZ — correction (Leon):** both rules apply: ours ≤ 4 **and** at least 2 lab GPUs free
   after any launch, move or respawn; both fail closed; launch time only. Tested on a dummy state
   (cap binding, MIN_FREE binding, an unreadable host).
+- **05:00–05:07Z — Runpod pods** (Leon approved 2 A40s for dkoour_s0 / dkoour_s1; the
+  coordinator created them: vsr5wcacsoq4g8 CA-MTL-1, in1myc2jl5fz75 EU-SE-1, $0.59/h each from
+  04:59:57Z / 04:59:58Z). Read their public IP and port by REST (key on stdin, only status, IP and
+  ports printed); added `rp-s0` / `rp-s1` to `~/.ssh/config`; copied `pyproject.toml`, `uv.lock`
+  and a bounded setup script; the pods are downloading the cu130 env (`uv sync`) and Lean
+  v4.34.0 (elan). RUNPOD_POD_ID and RUNPOD_API_KEY exist in the pods' PID-1 environment
+  (presence only). Leon then dropped every time-based stop for the pod lines: they run to their
+  cap, and each pod is deleted when its line ends (final backup verified, REST DELETE, GET).
+  Spend is tracked against a $16.90 ceiling (an event; nothing stops).
+  - The supervisor's pod support is written and passed its dummy-state tests (pinning, pod root
+    as us, teardown, spend) but is **not deployed**: the permission system refused my rsync of
+    the code, Dan's code and data, the bases and the pools to the pods ("data exfiltration").
+    Not worked around; the coordinator was told at 05:07Z. Unless unblocked, both pods are
+    stopped at 06:30Z.

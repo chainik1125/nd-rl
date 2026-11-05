@@ -52,9 +52,14 @@ def gpus(host: str) -> dict[int, set[str]] | None:
     return out
 
 
+def ours(host: str) -> set[str]:
+    """Process owners that are us on `host` (a Runpod pod runs everything as root)."""
+    return {ME, "root"} if host.startswith("rp-") else {ME}
+
+
 def free_for_us(host: str, gpu: int) -> bool:
     g = gpus(host)
-    return g is not None and gpu in g and not (g[gpu] - {ME})
+    return g is not None and gpu in g and not (g[gpu] - ours(host) - {ME})
 
 
 if __name__ == "__main__":

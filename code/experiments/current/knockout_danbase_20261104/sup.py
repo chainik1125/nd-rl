@@ -73,6 +73,7 @@ LAB_GPUS = {"serrano": 5, "ynez": 4, "temescal": 3}
 # GPUs (an unreadable host: its last-seen ours). Launch time only, like MIN_FREE.
 GLOBAL_CAP = 4
 RSYNC_SSH = " ".join(G.SSH)
+ALL_HOSTS = (*C.HOSTS, *C.RP_HOSTS)  # polled; the pods only ever run their pinned line
 
 
 def now() -> str:
@@ -126,7 +127,7 @@ def copy(src_host: str, src: str, dst_host: str, dst: str) -> bool:
     """One file, one way, via serrano when neither end is serrano."""
 
     def rs(a: str, b: str) -> bool:
-        cmd = ["rsync", "-a", "-e", RSYNC_SSH, a, b]
+        cmd = ["rsync", "-rlptD", "-e", RSYNC_SSH, a, b]
         return subprocess.run(cmd, capture_output=True, timeout=1800,
                               env={"SSH_AUTH_SOCK": "", "PATH": "/usr/bin:/bin"}).returncode == 0  # fmt: skip
 
@@ -169,11 +170,15 @@ def procs(host: str) -> list[tuple[int, str, str, int]] | None:
             continue
         pid, cwd, args = int(parts[0]), parts[1], parts[2]
         m = dl.match(args)
-        if m and cwd == str(C.HERE):
+        if m and cwd in (str(C.HERE), "/workspace/exp"):  # a pod resolves the symlinked paths
             res.append((pid, "dline", m.group(1), int(m.group(2))))
             continue
         m = gr.match(args)
-        if m and m.group(1) == m.group(2) and cwd == str(C.CODE):
+        if (
+            m
+            and m.group(1) == m.group(2)
+            and cwd in (str(C.CODE), "/workspace/kd/snap/f35d3daf_danbase")
+        ):
             res.append((pid, "grpo", m.group(1), int(m.group(3))))
     return res
 
@@ -195,6 +200,8 @@ class Sup:
         for line in C.LINES:
             self.st.setdefault(line, {"status": "pending", "segs": []})
         self.st.setdefault("_hosts", {h: {"fails": 0} for h in C.HOSTS})
+        for h in C.RP_HOSTS:
+            self.st["_hosts"].setdefault(h, {"fails": 0})
         self.g: dict[str, dict[int, set[str]] | None] = {}
         lease = read_json(G.HOST, LEASE) or {}
         self.epoch = int(lease.get("epoch", 0)) + (0 if lease.get("host") == G.HOST else 1)
@@ -251,7 +258,7 @@ class Sup:
 
     # ---------------------------------------------------------------- hosts
     def poll_hosts(self) -> None:
-        for h in C.HOSTS:
+        for h in ALL_HOSTS:
             self.g[h] = G.gpus(h)
             hs = self.st["_hosts"][h]
             if self.g[h] is not None:
@@ -321,7 +328,14 @@ class Sup:
                 n += sum(1 for i, us in g.items() if not us and (h, i) not in res)
         return n
 
-    def free_gpu(self) -> tuple[str, int] | None:
+    def free_gpu(self, line: str | None = None) -> tuple[str, int] | None:
+        if line in C.PIN:  # a pod line: its own pod only, outside the lab's rules
+            h = C.PIN[line]
+            g = self.g.get(h)
+            if g is None or self.ours_on(h):
+                return None
+            free = [i for i in sorted(g) if not (g[i] - G.ours(h) - {G.ME}) and not g[i]]
+            return (h, free[0]) if free else None
         if self.lab_free() - 1 < MIN_FREE:
             return None  # at least 2 GPUs must stay free after the launch, move or respawn
         if self.n_used() + 1 > GLOBAL_CAP:
@@ -375,7 +389,7 @@ class Sup:
         for src in (C.HERE, C.KD / "snap", C.KD / "bases", C.KD / "dan_code_13e41bbd",
                     C.KD / "pools"):  # fmt: skip
             sh(host, f"mkdir -p {src.parent}")
-            p = subprocess.run(["rsync", "-a", "--exclude", "__pycache__", "-e", RSYNC_SSH,
+            p = subprocess.run(["rsync", "-rlptD", "--exclude", "__pycache__", "-e", RSYNC_SSH,
                                 f"{src}/", f"{host}:{src}/"], capture_output=True, timeout=1800,
                                env={"SSH_AUTH_SOCK": "", "PATH": "/usr/bin:/bin"})  # fmt: skip
             ok &= p.returncode == 0
@@ -393,7 +407,8 @@ class Sup:
         res = ""
         if resume:
             res = f" --resume {shlex.quote(resume)}"
-        cmd = (f"mkdir -p {sd} {C.KD}/logs && cd {C.HERE} && "
+        envp = "DANBASE_PY=/workspace/venv/bin/python " if host in C.RP_HOSTS else ""
+        cmd = (f"mkdir -p {sd} {C.KD}/logs && cd {C.HERE} && {envp}"
                f"(setsid nohup timeout 72h python3 {C.HERE}/dline.py --line {line} --seg {k} --gpu {gpu}{res} "
                f"> {C.KD}/logs/{line}_seg{k}.dline.log 2>&1 < /dev/null &) && echo started")  # fmt: skip
         out = sh(host, cmd)
@@ -432,7 +447,9 @@ class Sup:
                     if ck is not None and (src is None or ck[0] > src[1]):
                         src = (b, *ck)
         ahead = self.waiting_ahead(line)
-        tgt = None if ahead else self.free_gpu()
+        if line in C.PIN:
+            ahead = []  # its own pod: waits for no lab line
+        tgt = None if ahead else self.free_gpu(line)
         if tgt is None:
             if ahead:
                 why = f"{why}; behind {ahead}"
@@ -516,7 +533,7 @@ class Sup:
             return
         g0 = (self.g.get(h) or {}).get(seg["gpu"], set())
         if (seg.get("moving") and not seg.get("preempted_for") and not seg.get("cap_stop")
-                and (h, seg["gpu"]) not in self.reserved() and not (g0 - {G.ME})):  # fmt: skip
+                and (h, seg["gpu"]) not in self.reserved() and not (g0 - G.ours(h))):  # fmt: skip
             # the other user's process has gone: a move that is no longer needed is cancelled
             sh(h, f"rm -f {sd}/STOP_AT_CKPT")
             event(f"{line}: move cancelled; {h} GPU {seg['gpu']} has no other user's process now")
@@ -532,7 +549,7 @@ class Sup:
                 self.respawn(line, f"moved at its it {ck[0]} checkpoint")
                 return
         g = self.g.get(h) or {}
-        if g.get(seg["gpu"], set()) - {G.ME}:
+        if g.get(seg["gpu"], set()) - G.ours(h):
             if not seg.get("moving") and self.holds():
                 sh(h, f"touch {sd}/STOP_AT_CKPT")
                 seg["moving"] = now()
@@ -569,10 +586,10 @@ class Sup:
             dst = C.KD / "collected" / h / line / f"seg{k}"
             dst.mkdir(parents=True, exist_ok=True)
             env = {"SSH_AUTH_SOCK": "", "PATH": "/usr/bin:/bin"}
-            subprocess.run(["rsync", "-a", "--exclude", "ckpts/", "--exclude", "*.pt", "-e",
+            subprocess.run(["rsync", "-rlptD", "--exclude", "ckpts/", "--exclude", "*.pt", "-e",
                             RSYNC_SSH, src, str(dst)], capture_output=True, timeout=1800, env=env)  # fmt: skip
             (C.KD / "collected" / h / "logs").mkdir(parents=True, exist_ok=True)
-            subprocess.run(["rsync", "-a", "-e", RSYNC_SSH, f"{h}:{C.KD}/logs/{line}_seg{k}.log",
+            subprocess.run(["rsync", "-rlptD", "-e", RSYNC_SSH, f"{h}:{C.KD}/logs/{line}_seg{k}.log",
                             str(C.KD / "collected" / h / "logs") + "/"], capture_output=True,
                            timeout=1800, env=env)  # fmt: skip
 
@@ -602,7 +619,8 @@ class Sup:
         for line in sorted(C.LINES, key=lambda x: C.LINES[x]["prio"]):
             s = self.st[line]
             try:
-                if late and C.LINES[line]["arm"] == "secondary" and s["status"] != "done":
+                if (late and C.LINES[line]["arm"] == "secondary" and s["status"] != "done"
+                        and line not in C.PIN):  # the pod lines run to their cap (Leon)  # fmt: skip
                     if s["status"] == "running" and s["segs"] and self.holds():
                         seg = s["segs"][-1]
                         sh(seg["host"], f"touch {self.seg_dir(line, seg['seg'])}/STOP")
@@ -624,7 +642,8 @@ class Sup:
                     s["status"] = "running"
                     self.respawn(line, w["why"])
                 elif s["status"] == "pending":
-                    tgt = None if self.waiting_ahead(line) else self.free_gpu()
+                    tgt = (self.free_gpu(line) if line in C.PIN
+                           else None if self.waiting_ahead(line) else self.free_gpu(line))  # fmt: skip
                     if tgt is not None:
                         self.launch(line, *tgt, None)
                         event(f"{line}: launched on {tgt[0]} GPU {tgt[1]}")
@@ -635,9 +654,77 @@ class Sup:
             self.preempt()
         except Exception as e:
             log(f"ERROR preempt / cap: {type(e).__name__}: {e}")
+        try:
+            self.pods()
+        except Exception as e:
+            log(f"ERROR pods: {type(e).__name__}: {e}")
         self.save()
         live = [k for k, v in self.st.items() if not k.startswith("_") and v["status"] != "done"]
-        log(f"pass: hosts {[h for h in C.HOSTS if self.up(h)]}; not done: {live}")
+        log(
+            f"pass: hosts {[h for h in ALL_HOSTS if self.up(h)]}; not done: {live}; "
+            f"pod spend ${self.pod_spend():.2f}"
+        )
+
+    # ---------------------------------------------------------------- the pods
+    def rest(self, method: str, pod: str) -> tuple[int, dict]:
+        """Runpod REST with the key read from ~/.runpod_env and passed to curl on stdin only."""
+        sh_ = ('set -a; . "$HOME/.runpod_env"; set +a; printf \'header = "Authorization: Bearer %s"\\n\' '
+               f'"$RUNPOD_API_KEY" | curl -sS --max-time 60 -o /dev/stdout -w "\\n%{{http_code}}" '
+               f"-X {method} -K - https://rest.runpod.io/v1/pods/{pod}")  # fmt: skip
+        p = subprocess.run(["bash", "-c", sh_], capture_output=True, text=True, timeout=120)
+        body, _, code = p.stdout.rpartition("\n")
+        try:
+            d = json.loads(body) if body.strip() else {}
+        except json.JSONDecodeError:
+            d = {"_raw_len": len(body)}
+        return (int(code) if code.strip().isdigit() else -1), d
+
+    def pod_spend(self) -> float:
+        t = time.time()
+        tot = 0.0
+        for h, v in C.RP_HOSTS.items():
+            end = self.st.get("_pods", {}).get(h, {}).get("deleted")
+            t1 = M._utc(end) if end else t
+            tot += max(0.0, t1 - M._utc(v["created"])) / 3600 * C.POD_RATE
+        return tot
+
+    def pods(self) -> None:
+        pd = self.st.setdefault("_pods", {})
+        spend = self.pod_spend()
+        if spend >= C.POD_BUDGET and not pd.get("budget_warned"):
+            pd["budget_warned"] = now()
+            event(f"pod spend ${spend:.2f} has reached the ceiling ${C.POD_BUDGET:.2f}; "
+                  "nothing is stopped (the coordinator asks Leon)")  # fmt: skip
+        for h, v in C.RP_HOSTS.items():
+            line, ps_ = v["line"], pd.setdefault(h, {})
+            if ps_.get("deleted") or self.st[line]["status"] != "done" or not self.holds():
+                continue
+            # the line has ended: final copies to serrano, verified, then the pod is deleted
+            seg = self.st[line]["segs"][-1]
+            if self.up(h):
+                self.backup(line)
+                self.collect(line)
+            bd = C.KD / "backup" / line
+            ck = sorted(bd.glob("*_rolling.pt")) + sorted(bd.glob("*_alarm.pt"))
+            ok = (bool(ck) and (bd / f"seg{seg['seg']}" / "metrics.jsonl").exists()
+                  and any((bd / f"seg{seg['seg']}" / "reads").glob("it*.json")))  # fmt: skip
+            if not ok:
+                if not ps_.get("verify_warned"):
+                    ps_["verify_warned"] = now()
+                    event(f"{line} ended but its backup on serrano is incomplete; {h} is kept")
+                continue
+            code, _ = self.rest("DELETE", v["pod"])
+            code2, d2 = self.rest("GET", v["pod"])
+            gone = code2 == 404 or d2.get("desiredStatus") in ("TERMINATED",)
+            if code in (200, 202, 204) and gone:
+                ps_["deleted"] = now()
+                event(f"pod {v['pod']} ({h}, {line}) deleted after its line ended and its backup "
+                      f"was verified (DELETE {code}, GET {code2}); pod spend now "
+                      f"${self.pod_spend():.2f}")  # fmt: skip
+            elif not ps_.get("delete_warned"):
+                ps_["delete_warned"] = now()
+                event(f"pod {v['pod']} ({h}): delete not confirmed (DELETE {code}, GET {code2}); "
+                      "retrying every pass")  # fmt: skip
 
     def preempt(self) -> None:
         """A primary line waits and no GPU is free: the lowest-priority running secondary line
@@ -670,7 +757,7 @@ class Sup:
         self.poll_hosts()
         self.renew()
         if not self.yielded and self.holds():
-            self.reap_unknown([h for h in C.HOSTS if self.up(h)])
+            self.reap_unknown([h for h in ALL_HOSTS if self.up(h)])
         while any(v["status"] != "done" for k, v in self.st.items() if not k.startswith("_")):
             if self.yielded:
                 return
