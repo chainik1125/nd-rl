@@ -171,3 +171,12 @@ All times UTC.
   resumed there as seg4 (0 iterations lost). The preemption was then no longer needed: its
   `STOP_AT_CKPT` was removed before dkoour_s2 reached a checkpoint, and the supervisor now
   cancels a preemption whose primary no longer waits (04:3xZ).
+- **04:36:56Z — global cap of 4 GPUs** (Leon, via the coordinator: never more than 4 of our GPUs
+  at once across serrano, ynez and temescal, counting every GPU with any of our processes,
+  other agents' included, and reserved GPUs). `sup.py` counts it live every pass (our GPU
+  processes on the three hosts, reserved GPUs, our lines' assigned GPUs; an unreadable host
+  counts its last-seen ours), refuses any launch, move or respawn at 4, and when over 4 ends the
+  lowest-priority running line (secondary first) at its next checkpoint. Tested on a dummy state
+  (5 in use → dkoour_s2 stopped; at 4 no launch; a released reservation frees a slot; an
+  unreadable host fails closed). Applied at once: 5 in use (serrano 0; temescal 1, 2; ynez 0, 2),
+  so dkoour_s2 ends at its next checkpoint and waits.

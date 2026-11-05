@@ -62,6 +62,9 @@ PASS_S = 90
 # Leon's deadline (coordinator, 2026-11-05): a secondary line not at its cap by 15:00Z ends at its
 # last read, recorded as "stopped at the deadline"
 SECONDARY_DEADLINE = "2026-11-05T15:00:00Z"
+# Leon (coordinator, 2026-11-05 04:3xZ): never more than 4 GPUs of ours at once across the three
+# machines, counting every GPU with any of our processes (other agents' too) and reserved GPUs
+GLOBAL_CAP = 4
 RSYNC_SSH = " ".join(G.SSH)
 
 
@@ -244,6 +247,8 @@ class Sup:
         for h in C.HOSTS:
             self.g[h] = G.gpus(h)
             hs = self.st["_hosts"][h]
+            if self.g[h] is not None:
+                hs["ours"] = sorted(i for i, u in self.g[h].items() if G.ME in u)
             if self.g[h] is None:
                 hs["fails"] += 1
                 if hs["fails"] == DOWN_PASSES:
@@ -278,7 +283,31 @@ class Sup:
             return {(h, i) for h in C.HOSTS for i in range(8)}
         return {(h, int(i)) for h in C.HOSTS for i in d.get(h, [])}
 
+    def ours_used(self) -> dict[str, set[int]]:
+        """Per host, the GPUs counted against the global cap: any GPU with a process of ours
+        (this experiment's or another agent's), every reserved GPU, and our lines' assigned GPUs.
+        An unreadable host fails closed: its last-seen ours, its reserved and assigned GPUs."""
+        res = self.reserved()
+        used: dict[str, set[int]] = {}
+        for h in C.HOSTS:
+            u = {i for hh, i in res if hh == h}
+            u |= {v["segs"][-1]["gpu"] for k, v in self.st.items() if not k.startswith("_")
+                  and v["status"] == "running" and v["segs"] and v["segs"][-1]["host"] == h
+                  and not v["segs"][-1].get("dead")}  # fmt: skip
+            g = self.g.get(h)
+            if g is None:
+                u |= set(self.st["_hosts"][h].get("ours", []))
+            else:
+                u |= {i for i, us in g.items() if G.ME in us}
+            used[h] = u
+        return used
+
+    def n_used(self) -> int:
+        return sum(len(v) for v in self.ours_used().values())
+
     def free_gpu(self) -> tuple[str, int] | None:
+        if self.n_used() >= GLOBAL_CAP:
+            return None  # the global cap (checked before every launch, move or respawn)
         res = self.reserved()
         for h in ("serrano", "temescal", "ynez"):
             g = self.g.get(h)
@@ -468,7 +497,7 @@ class Sup:
             event(f"{line}: preemption cancelled ({pf} no longer waits)")
             return
         g0 = (self.g.get(h) or {}).get(seg["gpu"], set())
-        if (seg.get("moving") and not seg.get("preempted_for")
+        if (seg.get("moving") and not seg.get("preempted_for") and not seg.get("cap_stop")
                 and (h, seg["gpu"]) not in self.reserved() and not (g0 - {G.ME})):  # fmt: skip
             # the other user's process has gone: a move that is no longer needed is cancelled
             sh(h, f"rm -f {sd}/STOP_AT_CKPT")
@@ -585,12 +614,33 @@ class Sup:
                 log(f"ERROR {line}: {type(e).__name__}: {e}")
             self.save()
         try:
+            self.enforce_cap()
             self.preempt()
         except Exception as e:
-            log(f"ERROR preempt: {type(e).__name__}: {e}")
+            log(f"ERROR preempt / cap: {type(e).__name__}: {e}")
         self.save()
         live = [k for k, v in self.st.items() if not k.startswith("_") and v["status"] != "done"]
         log(f"pass: hosts {[h for h in C.HOSTS if self.up(h)]}; not done: {live}")
+
+    def enforce_cap(self) -> None:
+        n = self.n_used()
+        if n <= GLOBAL_CAP:
+            return
+        if any(v["segs"] and v["segs"][-1].get("cap_stop") for k, v in self.st.items()
+               if not k.startswith("_") and v["status"] == "running"):  # fmt: skip
+            return  # one stop in flight
+        cand = [k for k, v in self.st.items() if not k.startswith("_") and v["status"] == "running"
+                and v["segs"] and not v["segs"][-1].get("moving")
+                and self.up(v["segs"][-1]["host"])]  # fmt: skip
+        sec = [k for k in cand if C.LINES[k]["arm"] != "primary"]
+        if not (sec or cand) or not self.holds():
+            return
+        k = max(sec or cand, key=lambda x: C.LINES[x]["prio"])
+        seg = self.st[k]["segs"][-1]
+        sh(seg["host"], f"touch {self.seg_dir(k, seg['seg'])}/STOP_AT_CKPT")
+        seg["moving"], seg["cap_stop"] = now(), n
+        event(f"global cap of {GLOBAL_CAP} GPUs applied: {n} in use {self.ours_used()}; {k} ends "
+              f"at its next checkpoint on {seg['host']} GPU {seg['gpu']} and waits")  # fmt: skip
 
     def preempt(self) -> None:
         """A primary line waits and no GPU is free: the lowest-priority running secondary line
