@@ -73,7 +73,12 @@ LAB_GPUS = {"serrano": 5, "ynez": 4, "temescal": 3}
 # GPUs (an unreadable host: its last-seen ours). Launch time only, like MIN_FREE.
 GLOBAL_CAP = 4
 RSYNC_SSH = " ".join(G.SSH)
-ALL_HOSTS = (*C.HOSTS, *C.RP_HOSTS)  # polled; the pods only ever run their pinned line
+# The pods: KD/sup/pods.json {alias: {pod, line, created, rate, budget_add[, retired]}}, written
+# by register_pod.py (the coordinator), read every pass, never written here. A pod runs only its
+# pinned line; the supervisor never copies anything to a pod (the coordinator's
+# runpod_copy_line.sh does, on Leon's approval). A line displaced by another user's process, with
+# no lab GPU under the rules, gets one "NEEDS POD:" event and waits for a lab GPU or a pod.
+PODS = SUP / "pods.json"
 
 
 def now() -> str:
@@ -204,8 +209,8 @@ class Sup:
         for line in C.LINES:
             self.st.setdefault(line, {"status": "pending", "segs": []})
         self.st.setdefault("_hosts", {h: {"fails": 0} for h in C.HOSTS})
-        for h in C.RP_HOSTS:
-            self.st["_hosts"].setdefault(h, {"fails": 0})
+        self.pods_cfg: dict[str, dict] = {}
+        self.read_pods()
         self.g: dict[str, dict[int, set[str]] | None] = {}
         lease = read_json(G.HOST, LEASE) or {}
         self.epoch = int(lease.get("epoch", 0)) + (0 if lease.get("host") == G.HOST else 1)
@@ -214,6 +219,38 @@ class Sup:
 
     def save(self) -> None:
         STATE.write_text(json.dumps(self.st, indent=1))
+
+    # ---------------------------------------------------------------- the pods' registry
+    def read_pods(self) -> None:
+        """KD/sup/pods.json, every pass; an unreadable or invalid file keeps the last good read."""
+        try:
+            d = json.loads(PODS.read_text()) if PODS.exists() else {}
+            ok = isinstance(d, dict) and all(
+                re.fullmatch(r"rp-[a-z0-9-]+", k) and v.get("line") in C.LINES
+                and v.get("pod") and v.get("created") for k, v in d.items())  # fmt: skip
+        except (json.JSONDecodeError, OSError, AttributeError):
+            d, ok = None, False
+        if not ok:
+            log(
+                f"pods.json unreadable or invalid; keeping the last good read {sorted(self.pods_cfg)}"
+            )
+            return
+        for h in d:
+            self.st["_hosts"].setdefault(h, {"fails": 0})
+        self.pods_cfg = d
+
+    def hosts(self) -> tuple[str, ...]:
+        """Polled: the lab, and every registered pod not yet deleted that is not retired or
+        still holds a line's live segment."""
+        live = {v["segs"][-1]["host"] for k, v in self.st.items() if not k.startswith("_")
+                and v.get("segs") and v["status"] == "running"}  # fmt: skip
+        gone = {h for h, v in self.st.get("_pods", {}).items() if v.get("deleted")}
+        return (*C.HOSTS, *(h for h, v in self.pods_cfg.items()
+                            if h not in gone and (not v.get("retired") or h in live)))  # fmt: skip
+
+    def pinned(self) -> dict[str, str]:
+        """line -> pod alias (a line that moved to a pod stays there)."""
+        return {v["line"]: h for h, v in self.pods_cfg.items() if not v.get("retired")}
 
     # ---------------------------------------------------------------- the lease
     def renew(self) -> None:
@@ -230,6 +267,8 @@ class Sup:
         if self.up(PEER):
             sh(PEER, f"mkdir -p {SUP} && echo {shlex.quote(d)} > {LEASE}")
             copy(G.HOST, str(STATE), PEER, str(SUP / f"state.from_{G.HOST}.json"))
+            if PODS.exists():  # the standby needs the pods' registry to act on a takeover
+                copy(G.HOST, str(PODS), PEER, str(PODS))
             hb = read_json(PEER, SUP / "standby_heartbeat.json")
             if age(hb) > TAKEOVER_S and not self.standby_warned:
                 self.standby_warned = True
@@ -262,7 +301,8 @@ class Sup:
 
     # ---------------------------------------------------------------- hosts
     def poll_hosts(self) -> None:
-        for h in ALL_HOSTS:
+        self.read_pods()
+        for h in self.hosts():
             self.g[h] = G.gpus(h)
             hs = self.st["_hosts"][h]
             if self.g[h] is not None:
@@ -333,10 +373,10 @@ class Sup:
         return n
 
     def free_gpu(self, line: str | None = None) -> tuple[str, int] | None:
-        if line in C.PIN:  # a pod line: its own pod only, outside the lab's rules
+        if line in self.pinned():  # a pod line: its own pod only, outside the lab's rules
             if not (SUP / "pods_enabled").exists():
-                return None  # copying to the pods awaits the user's permission (05:07Z)
-            h = C.PIN[line]
+                return None  # the master switch for every pod (created 05:21Z)
+            h = self.pinned()[line]
             g = self.g.get(h)
             if g is None or self.ours_on(h):
                 return None
@@ -365,11 +405,59 @@ class Sup:
                 and v["status"] == "waiting" and C.LINES[k]["prio"] < p
                 and k not in self.pinned()]  # fmt: skip
 
-    def pinned(self) -> dict[str, str]:
-        """line -> pod: the two pods of 05:00Z and every auto-spawned pod (a line that moved to a
-        pod stays there)."""
-        return {**C.PIN, **{v["line"]: h for h, v in self.st.get("_spawned", {}).items()
-                            if not v.get("deleted") and not v.get("failed")}}  # fmt: skip
+    def preempt_candidates(self) -> list[str]:
+        """Running secondary lines on a lab GPU (not reserved, host answering, not already
+        moving): a waiting primary can take one's GPU. A pod line frees no lab GPU."""
+        res = self.reserved()
+        return [k for k, v in self.st.items() if not k.startswith("_") and v["status"] == "running"
+                and C.LINES[k]["arm"] == "secondary" and v["segs"]
+                and not v["segs"][-1].get("moving") and not v["segs"][-1].get("dead")
+                and v["segs"][-1]["host"] in C.HOSTS
+                and (v["segs"][-1]["host"], v["segs"][-1]["gpu"]) not in res
+                and self.up(v["segs"][-1]["host"])]  # fmt: skip
+
+    def preempt_helps(self) -> bool:
+        """A preemption gives a waiting primary a GPU only when the lab keeps 2 free GPUs after
+        the primary takes the freed one, i.e. at least MIN_FREE are free now (the cap of 4 is
+        unchanged by the swap). In a lab with fewer free GPUs it would only idle the secondary."""
+        return bool(self.preempt_candidates()) and self.lab_free() >= MIN_FREE
+
+    def remaining_gpuh(self, line: str) -> float | None:
+        """GPU-h left to the line's cap at its pace so far (lab GPUs): the smaller of the 15 GPU-h
+        cap and the x left to Dan's round-16 x at the GPU-h per x so far."""
+        try:
+            v = M.line_view(line, self.st[line]["segs"])
+        except Exception as e:  # an estimate only; never blocks the event
+            log(f"remaining_gpuh {line}: {type(e).__name__}: {e}")
+            return None
+        if v["x_dan"] <= 0 or v["gpuh"] <= 0:
+            return None
+        return max(0.0, min(M.GPUH_CAP - v["gpuh"],
+                            (v["x_cap"] - v["x_dan"]) * v["gpuh"] / v["x_dan"]))  # fmt: skip
+
+    def needs_pod(self, line: str, seg: dict, src: tuple | None, why: str) -> None:
+        """One "NEEDS POD:" event per displacement (never with the plain waiting text, which the
+        coordinator's watcher filters out). The resume checkpoint is first put on serrano
+        (KD/backup/<line>/seg<k>_<name>) so that runpod_copy_line.sh finds it there."""
+        path = None
+        if src is not None:
+            sh_, it, p = src
+            bd = C.KD / "backup" / line
+            path = p if (sh_ == "serrano" and p.startswith(str(bd) + "/")) else \
+                str(bd / f"seg{seg['seg']}_{Path(p).name}")  # fmt: skip
+            if path != p and not Path(path).exists() and not copy(sh_, p, "serrano", path):
+                log(f"{line}: NEEDS POD held back: the copy of {p} from {sh_} to serrano failed; "
+                    "retrying next pass")  # fmt: skip
+                return
+        seg["needs_pod"] = now()
+        rem = self.remaining_gpuh(line)
+        event(
+            f"NEEDS POD: {line} ({C.LINES[line]['arm']}): {why}; no lab GPU under the rules. "
+            f"Resume checkpoint on serrano: {path} (it {src[1] if src else 0}); remaining about "
+            f"{'unknown' if rem is None else f'{rem:.1f}'} GPU-h at its lab pace. It waits for a "
+            f"lab GPU or a pod: runpod_copy_line.sh {line} <alias>, podsetup.sh <alias> {line}, "
+            f"register_pod.py add <alias> <pod id> {line} <createdAt> --gpuh <remaining>"
+        )
 
     # ---------------------------------------------------------------- segments
     def seg_dir(self, line: str, k: int) -> str:
@@ -399,7 +487,7 @@ class Sup:
         """The code, Dan's code, the bases and the pools, one way to a remote host (rsync)."""
         if local(host):
             return True
-        if host in C.RP_HOSTS:  # the pods get their files from Leon's runpod_copy.sh only
+        if host.startswith("rp-"):  # a pod gets its files from the coordinator's copy only
             return (SUP / "pods_enabled").exists()
         ok = True
         for src in (C.HERE, C.KD / "snap", C.KD / "bases", C.KD / "dan_code_13e41bbd",
@@ -424,7 +512,7 @@ class Sup:
         if resume:
             res = f" --resume {shlex.quote(resume)}"
         # (an assignment before the subshell is a bash syntax error: export it first)
-        envp = "export DANBASE_PY=/workspace/venv/bin/python && " if host in C.RP_HOSTS else ""
+        envp = "export DANBASE_PY=/workspace/venv/bin/python && " if host.startswith("rp-") else ""
         cmd = (f"mkdir -p {sd} {C.KD}/logs && cd {C.HERE} && {envp}"
                f"(setsid nohup timeout 72h python3 {C.HERE}/dline.py --line {line} --seg {k} --gpu {gpu}{res} "
                f"> {C.KD}/logs/{line}_seg{k}.dline.log 2>&1 < /dev/null &) && echo started")  # fmt: skip
@@ -464,14 +552,23 @@ class Sup:
                     ck = self.newest_ckpt(line, b, f"{C.KD}/backup/{line}")
                     if ck is not None and (src is None or ck[0] > src[1]):
                         src = (b, *ck)
-        ahead = self.waiting_ahead(line)
-        if line in self.pinned():
-            ahead = []  # its own pod: waits for no lab line
+        pod = self.pinned().get(line)
+        ahead = [] if pod else self.waiting_ahead(line)  # a pod line waits for no lab line
         tgt = None if ahead else self.free_gpu(line)
         if tgt is None:
             if ahead:
                 why = f"{why}; behind {ahead}"
             s["status"], s["wait_resume"] = "waiting", {"why": why, "src": src, "last": last}
+            displaced = seg.get("displaced") and not pod
+            pod_down = pod is not None and self.down(pod)
+            if (displaced or pod_down) and not seg.get("needs_pod") and not (
+                    C.LINES[line]["arm"] == "primary" and self.preempt_helps()):  # fmt: skip
+                # (a primary that can preempt a lab secondary gets its GPU that way instead)
+                self.needs_pod(line, seg, src, seg["displaced"] if displaced else
+                               f"its pod {pod} is down (a new pod: register_pod.py add ... "
+                               f"--replace)")  # fmt: skip
+                seg.setdefault("waiting_since", now())
+                return
             msg = f"{line}: {why}; no free GPU, waiting (resume point {src})"
             if seg.get("waiting_since"):
                 log(msg)  # reported once, as an event, when the wait began
@@ -482,18 +579,55 @@ class Sup:
         th, tg = tgt
         resume = None
         it0 = 0
-        if src is not None:
+        if th.startswith("rp-") and src is not None and src[0] != th:
+            # the pod has the line's checkpoint only from the coordinator's runpod_copy_line.sh
+            pr = self.pod_resume(line, th)
+            if pr is None or pr[0] < src[1]:
+                s["status"], s["wait_resume"] = "waiting", {"why": why, "src": src, "last": last}
+                msg = (f"{line}: pinned to {th}; waiting for its resume checkpoint there "
+                       f"({C.KD}/runs/{line}/pod_resume/resume_it<i>.pt with i ≥ {src[1]}; "
+                       f"found {pr}): runpod_copy_line.sh {line} {th}")  # fmt: skip
+                if seg.get("pod_wait") == th:
+                    log(msg)
+                else:
+                    seg["pod_wait"] = th
+                    event(msg)
+                return
+            it0, resume = pr
+        elif src is not None:
             sh_, it0, path = src
             dst = f"{self.seg_dir(line, k + 1)}/resume_it{it0}.pt"
-            if not copy(sh_, path, th, dst):
+            if not copy(sh_, path, th, dst):  # to a pod: only its own checkpoint, on the pod
                 event(f"{line}: copy of {path} from {sh_} to {th} failed; retrying next pass")
                 return
             resume = dst
         lost = None if last is None else last - it0
+        if resume and "/pod_resume/" in resume:
+            origin = "the coordinator's copy on the pod"
+        elif src and src[0] != h:
+            origin = f"backup on {src[0]}"
+        else:
+            origin = "its own host"
         self.launch(line, th, tg, resume)
         event(f"{line}: {why} (seg{k} on {h}); respawned as seg{k + 1} on {th} GPU {tg} from "
-              f"it {it0} ({'backup on ' + src[0] if src and src[0] != h else 'its own host'}); "
+              f"it {it0} ({origin}); "
               f"lost iterations: {lost if lost is not None else 'unknown (host down)'}")  # fmt: skip
+        if seg.get("needs_pod") and not th.startswith("rp-"):
+            event(f"POD NOT NEEDED: {line} resumed on {th} GPU {tg} (its NEEDS POD of "
+                  f"{seg['needs_pod']} is void)")  # fmt: skip
+
+    def pod_resume(self, line: str, pod: str) -> tuple[int, str] | None:
+        """(iteration, path) of the newest non-empty resume_it<i>.pt in the line's pod_resume/
+        folder on its pod (runpod_copy_line.sh writes it there; rsync renames it into place
+        only when complete)."""
+        d = f"{C.KD}/runs/{line}/pod_resume"
+        out = sh(pod, f'for f in {d}/resume_it*.pt; do test -s "$f" && echo "$f"; done; true')
+        best = None
+        for p in (out or "").split():
+            m = re.search(r"/resume_it(\d+)\.pt$", p)
+            if m and (best is None or int(m.group(1)) > best[0]):
+                best = (int(m.group(1)), p)
+        return best
 
     def check_running(self, line: str) -> None:
         s = self.st[line]
@@ -513,6 +647,8 @@ class Sup:
         end, status, mtime, sac = (x.strip() for x in (out.split("===") + ["", "", ""])[:4])
         if sac and not seg.get("moving"):  # the segment's own GPU check asked for a move
             seg["moving"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(sac)))
+            seg["displaced"] = (f"displaced by another user's process on {h} GPU {seg['gpu']} "
+                                "(the segment's own check)")  # fmt: skip
         alive = (
             "alive"
             if any(kind == "dline" and ln == line and kk == k for _, kind, ln, kk in ps)
@@ -556,6 +692,7 @@ class Sup:
             sh(h, f"rm -f {sd}/STOP_AT_CKPT")
             event(f"{line}: move cancelled; {h} GPU {seg['gpu']} has no other user's process now")
             seg.pop("moving")
+            seg.pop("displaced", None)
             return
         if seg.get("moving") and time.time() - M._utc(seg["moving"]) > 8 * 60:
             # a segment started before 00:3xZ waits for a *rolling* checkpoint only; an alarmed
@@ -571,8 +708,11 @@ class Sup:
             if not seg.get("moving") and self.holds():
                 sh(h, f"touch {sd}/STOP_AT_CKPT")
                 seg["moving"] = now()
+                users = sorted(g[seg["gpu"]] - G.ours(h))
+                seg["displaced"] = (f"displaced by another user's process on {h} GPU "
+                                    f"{seg['gpu']} ({users})")  # fmt: skip
                 event(f"{line}: another user's process on {h} GPU {seg['gpu']} "
-                      f"({sorted(g[seg['gpu']] - {G.ME})}); moving at the next checkpoint")  # fmt: skip
+                      f"({users}); moving at the next checkpoint")  # fmt: skip
 
     # ---------------------------------------------------------------- copies
     def backup(self, line: str) -> None:
@@ -638,7 +778,7 @@ class Sup:
             s = self.st[line]
             try:
                 if (late and C.LINES[line]["arm"] == "secondary" and s["status"] != "done"
-                        and line not in C.PIN):  # the pod lines run to their cap (Leon)  # fmt: skip
+                        and line not in self.pinned()):  # pod lines run to their cap (Leon)  # fmt: skip
                     if s["status"] == "running" and s["segs"] and self.holds():
                         seg = s["segs"][-1]
                         sh(seg["host"], f"touch {self.seg_dir(line, seg['seg'])}/STOP")
@@ -660,7 +800,7 @@ class Sup:
                     s["status"] = "running"
                     self.respawn(line, w["why"])
                 elif s["status"] == "pending":
-                    tgt = (self.free_gpu(line) if line in C.PIN
+                    tgt = (self.free_gpu(line) if line in self.pinned()
                            else None if self.waiting_ahead(line) else self.free_gpu(line))  # fmt: skip
                     if tgt is not None:
                         self.launch(line, *tgt, None)
@@ -679,7 +819,7 @@ class Sup:
         self.save()
         live = [k for k, v in self.st.items() if not k.startswith("_") and v["status"] != "done"]
         log(
-            f"pass: hosts {[h for h in ALL_HOSTS if self.up(h)]}; not done: {live}; "
+            f"pass: hosts {[h for h in self.hosts() if self.up(h)]}; not done: {live}; "
             f"pod spend ${self.pod_spend():.2f}"
         )
 
@@ -698,27 +838,46 @@ class Sup:
         return (int(code) if code.strip().isdigit() else -1), d
 
     def pod_spend(self) -> float:
+        """Every registered pod, from its createdAt at its rate until its deletion here (or its
+        retirement in pods.json: the coordinator then owns its deletion)."""
         t = time.time()
         tot = 0.0
-        for h, v in C.RP_HOSTS.items():
-            end = self.st.get("_pods", {}).get(h, {}).get("deleted")
+        for h, v in self.pods_cfg.items():
+            end = self.st.get("_pods", {}).get(h, {}).get("deleted") or v.get("retired")
             t1 = M._utc(end) if end else t
-            tot += max(0.0, t1 - M._utc(v["created"])) / 3600 * C.POD_RATE
+            tot += max(0.0, t1 - M._utc(v["created"])) / 3600 * float(v.get("rate", C.POD_RATE))
         return tot
+
+    def ceiling(self) -> float:
+        return C.POD_BUDGET + sum(float(v.get("budget_add", 0)) for v in self.pods_cfg.values())
 
     def pods(self) -> None:
         pd = self.st.setdefault("_pods", {})
-        spend = self.pod_spend()
-        if spend >= C.POD_BUDGET and not pd.get("budget_warned"):
-            pd["budget_warned"] = now()
-            event(f"pod spend ${spend:.2f} has reached the ceiling ${C.POD_BUDGET:.2f}; "
+        spend, ceil = self.pod_spend(), self.ceiling()
+        if spend >= ceil and float(pd.get("budget_warned_at", 0)) < ceil:
+            pd["budget_warned"], pd["budget_warned_at"] = now(), ceil
+            event(f"pod spend ${spend:.2f} has reached the ceiling ${ceil:.2f}; "
                   "nothing is stopped (the coordinator asks Leon)")  # fmt: skip
-        for h, v in C.RP_HOSTS.items():
+        for h, v in self.pods_cfg.items():
             line, ps_ = v["line"], pd.setdefault(h, {})
-            if ps_.get("deleted") or self.st[line]["status"] != "done" or not self.holds():
+            if ps_.get("deleted") or v.get("retired"):
+                continue
+            seg = self.st[line]["segs"][-1] if self.st[line]["segs"] else None
+            if (self.st[line]["status"] == "running" and seg and seg["host"] != h
+                    and not seg.get("dead") and ps_.get("idle_warned") != seg["seg"]):  # fmt: skip
+                ps_["idle_warned"] = seg["seg"]
+                event(f"pod {h} ({v['pod']}) is registered for {line}, which runs on "
+                      f"{seg['host']} GPU {seg['gpu']} (seg{seg['seg']}); the pod idles until the "
+                      "line's next move (delete it, or keep it for the line)")  # fmt: skip
+            if self.st[line]["status"] != "done" or not self.holds():
                 continue
             # the line has ended: final copies to serrano, verified, then the pod is deleted
-            seg = self.st[line]["segs"][-1]
+            if seg is None or seg["host"] != h:
+                if not ps_.get("verify_warned"):
+                    ps_["verify_warned"] = now()
+                    event(f"{line} ended on {seg and seg['host']}, not on its pod {h} "
+                          f"({v['pod']}); the pod is not deleted here (the coordinator decides)")  # fmt: skip
+                continue
             if self.up(h):
                 self.backup(line)
                 self.collect(line)
@@ -749,23 +908,27 @@ class Sup:
         (not on a reserved GPU) ends at its next checkpoint and waits behind it (coordinator,
         2026-11-05)."""
         waiting = [k for k, v in self.st.items() if not k.startswith("_")
-                   and v["status"] == "waiting" and C.LINES[k]["arm"] == "primary"]  # fmt: skip
-        if not waiting or self.free_gpu() is not None:
+                   and v["status"] == "waiting" and C.LINES[k]["arm"] == "primary"
+                   and k not in self.pinned()]  # fmt: skip
+        if not waiting or self.free_gpu() is not None or not self.preempt_helps():
             return
         if any(v["segs"] and v["segs"][-1].get("preempted_for") for k, v in self.st.items()
                if not k.startswith("_") and v["status"] == "running"):  # fmt: skip
             return  # one preemption in flight
-        res = self.reserved()
-        cand = [k for k, v in self.st.items() if not k.startswith("_") and v["status"] == "running"
-                and C.LINES[k]["arm"] == "secondary" and not v["segs"][-1].get("moving")
-                and (v["segs"][-1]["host"], v["segs"][-1]["gpu"]) not in res
-                and self.up(v["segs"][-1]["host"])]  # fmt: skip
+        cand = self.preempt_candidates()  # lab GPUs only: a pod line frees none
         if not cand or not self.holds():
             return
         k = max(cand, key=lambda x: C.LINES[x]["prio"])
         seg = self.st[k]["segs"][-1]
         sh(seg["host"], f"touch {self.seg_dir(k, seg['seg'])}/STOP_AT_CKPT")
         seg["moving"], seg["preempted_for"] = now(), waiting[0]
+        pd = (
+            self.st[waiting[0]]["segs"][-1].get("displaced")
+            if self.st[waiting[0]]["segs"]
+            else None
+        )
+        if pd:  # the chain started with another user's process: this line may need a pod
+            seg["displaced"] = f"preempted for {waiting[0]}, which was {pd}"
         event(
             f"{k}: preempted for the primary {waiting[0]} (no free GPU); ends at its next "
             f"checkpoint on {seg['host']} GPU {seg['gpu']} and waits behind the primary lines"
@@ -775,7 +938,7 @@ class Sup:
         self.poll_hosts()
         self.renew()
         if not self.yielded and self.holds():
-            self.reap_unknown([h for h in ALL_HOSTS if self.up(h)])
+            self.reap_unknown([h for h in self.hosts() if self.up(h)])
         while any(v["status"] != "done" for k, v in self.st.items() if not k.startswith("_")):
             if self.yielded:
                 return
