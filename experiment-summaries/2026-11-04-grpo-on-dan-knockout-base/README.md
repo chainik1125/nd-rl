@@ -5,12 +5,34 @@ written_by: agent:claude
 
 # GRPO on Dan's knockout bases: can GRPO learn proof by contradiction where EI did not?
 
-**Status.** RUNNING. The primary lines end around 10:30–12:20Z on 2026-11-05. Nothing is pushed.
+**Status.** The primary and reference arms are DONE; the last primary line ended at 12:01Z on
+2026-11-05. Two secondary lines are still running to their cap on Runpod A40 pods: dkoour_s0
+(about 15:10Z) and dkoour_s1 (about 16:10Z). **Their final numbers are pending.** Nothing is
+pushed.
 
 **Question (Dan).** "It would be cool to know if GRPO can actually learn proof-by-contradiction
 off the 0% proof-by-contradiction pretrain (where EI failed to learn it)." Leon: "run this too".
 
-**Answer.** PENDING.
+**Answer (primary arm).** No. GRPO did not learn proof by contradiction from his 0 %-σ
+knockout bases within one ladder of his compute. We read it on his own measure: his cumulative
+count of k 32 draws on his 106 strict σ held-out theorems, against his bar of 14.
+- **Counts.** His three bases with his 4,495 targets reached 0, 1 and 0 of the 106. That
+  matches his EI on the same bases (0, 3 and 0 by his round 16).
+- **The one solve.** dko_s1's single theorem was already solved by its base before any RL. No
+  GRPO checkpoint solved any of the 106 in its first 32 draws at its last read.
+- **σ in training.** σ stayed at 0.05–0.09 % of the accepted training proofs throughout.
+- **Compute.** dko_s1 and dko_s2 ran to his round-16 x. dko_s0 stopped at the 15 GPU-h cap at
+  x_dan 5.07 of 5.84 (87 % of his ladder).
+
+**Secondary arm: in progress, an observation only.** Here the knockout base trains on our
+σ-rich pool.
+- **dkoour_s0.** σ in its accepted training proofs rose from about 1 % to 5–7 % over
+  iterations 384–395 (x_dan about 4.5). Its it-390 snapshot then solved 3 new theorems of the
+  106 in its first 32 draws (E32 2.5). On his matched-draw measure that read is the round-13 draw
+  (his x 4.55). It is counted once the line has run past 4.55 and the it-400 read lands; the line
+  then stands at 4 (1 + 3).
+- **dkoour_s1 and dkoour_s2.** Both are at 0. dkoour_s2 is finished.
+- Whether dkoour_s0 reaches 14 by his round-16 x (5.84) is pending.
 
 **Working folder:**
 [`code/experiments/current/knockout_danbase_20261104/`](../../code/experiments/current/knockout_danbase_20261104/README.md)
@@ -57,13 +79,13 @@ run log, the scripts and the numbers.
 <!-- AUTO:lines -->
 | line | arm | base (first 32 of the 106) | his measure, by matched round | reached his bar (14)? | x_dan at the end (his round-16 x) | ended | GPU-h | σ in accepted training proofs: all / last 50 iterations |
 |---|---|---|---|---|---|---|---|---|
-| dko_s0 | **primary**: knockout base, his 4,495 targets | 0 | 0, 0, 0, 0 | no: 0 of 106 by x_dan 1.21 | 1.21 (5.84) | running | 3.9 | 0.07 % / 0.10 % |
-| dko_s1 | **primary**: knockout base, his 4,495 targets | 1 | 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 1.64 | 1.64 (5.93) | running | 3.8 | 0.05 % / 0.05 % |
-| dko_s2 | **primary**: knockout base, his 4,495 targets | 0 | 0, 0, 0, 0 | no: 0 of 106 by x_dan 1.32 | 1.32 (5.90) | running | 3.4 | 0.03 % / 0.01 % |
+| dko_s0 | **primary**: knockout base, his 4,495 targets | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.07 | 5.07 (5.84) | GPU-h cap: 15.0 ≥ 15 | 15.1 | 0.09 % / 0.14 % |
+| dko_s1 | **primary**: knockout base, his 4,495 targets | 1 | 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 5.93 | 5.93 (5.93) | compute cap: x_dan 5.93 ≥ his round-16 x 5.93 | 14.3 | 0.05 % / 0.04 % |
+| dko_s2 | **primary**: knockout base, his 4,495 targets | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.94 | 5.94 (5.90) | compute cap: x_dan 5.92 ≥ his round-16 x 5.90 | 11.8 | 0.07 % / 0.07 % |
 | dfull_s3 | reference: full K12 base, his targets | 15 | 15 | at the bar before RL (15 at round 1) | 0.26 (5.80) | reached (Dan's measure at x_dan 0.000) and held | 0.5 | 4.45 % / 4.45 % |
-| dkoour_s0 | secondary: knockout base, our σ-rich pool | 0 | 0, 1, 1, 1, 1 | no: 1 of 106 by x_dan 1.48 | 1.48 (5.84) | waiting | 3.2 | 0.00 % / 0.00 % |
-| dkoour_s1 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0 | no: 0 of 106 by x_dan 1.24 | 1.24 (5.93) | waiting | 2.5 | 0.00 % / 0.00 % |
-| dkoour_s2 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 1.83 | 1.83 (5.90) | running | 3.1 | 0.00 % / 0.00 % |
+| dkoour_s0 | secondary: knockout base, our σ-rich pool | 0 | 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 4.60 | 4.60 (5.84) | running | 9.9 | 0.21 % / 1.30 % |
+| dkoour_s1 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 4.21 | 4.21 (5.93) | running | 9.3 | 0.00 % / 0.00 % |
+| dkoour_s2 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.94 | 5.94 (5.90) | compute cap: x_dan 5.94 ≥ his round-16 x 5.90 | 10.0 | 0.00 % / 0.00 % |
 <!-- /AUTO:lines -->
 
 His EI on the same bases, from his registry rows:
@@ -83,7 +105,16 @@ His EI on the same bases, from his registry rows:
 
 ## Pre-registered predictions
 
-PENDING.
+Scored against PREREG.md (frozen before any knockout line was read).
+
+| | prediction | probability | outcome |
+|---|---|---|---|
+| P1 | primary: no dko seed reaches his bar (14, cumulative) within one ladder | 70 % | **held**: 0, 1, 0. dko_s0 ended at the GPU-h cap at 87 % of its ladder. |
+| P2 | primary: σ stays under 1 % of the accepted training proofs on all three dko seeds | 75 % | **held**: 0.09 %, 0.05 % and 0.07 % overall; at most about 0.2 % in any 50-iteration window |
+| P3 | secondary: at least 1 of 3 dkoour seeds reaches his bar within one ladder | 35 % | **pending**: dkoour_s2 did not (0); dkoour_s0 is at 1, and 4 once its round-13 draw counts; dkoour_s1 is at 0 |
+| P4 | secondary: σ exceeds 5 % of the accepted training proofs on at least 1 dkoour seed | 50 % | **met per iteration** on dkoour_s0 (5–7 % over iterations 391–394); the run-level share is still 0.21 %. Final pending. |
+| P5 | reference: dfull_s3 reaches his bar at its first matched draw after the base (round 2) | 80 % | **not met as registered**: it was already at the bar at round 1 (base draw 15, his 13), so the line ended "reached and held" before his round-2 x and has no round-2 draw |
+| P6 | pass@1 reward on Dan's pool passes 0.8 within 50 iterations on every dko seed | 70 % | **held**: it passed at iterations 12, 16 and 13 |
 
 ## Caveats
 
@@ -96,14 +127,22 @@ PENDING.
 - **Matched draws.** Each of our 16 draws comes from the latest checkpoint at or below his
   round's x. Our model at that point has trained on all the compute spent so far, while his
   round-r draw comes before round r's fine-tune.
+- **dko_s0 ran out of GPU-h before his compute.** It stopped at the pre-registered 15 GPU-h
+  cap at x_dan 5.07 of his round-16 x 5.84. His EI on the same base had 0 through round 16.
+- **dko_s1's 1 is the base's.** Its round-1 draw (the base) solved that one theorem. No
+  GRPO checkpoint solved any of the 106 in its first 32 draws at its last read; the cumulative
+  count keeps the base's solve.
+- **Three secondary lines ran partly on Runpod A40 pods** (rp-s0, rp-s1 and rp-s2), with the
+  same code and environment; the files were copied by the coordinator on Leon's approval. An
+  A40 iteration took 65–135 s, against 60–90 s on the lab's GPUs.
 - **Machine events.** Lines were respawned and moved: one OOM, other users' processes, ynez's
   reboot, and a GPU reserved for another experiment. Lost iterations are listed below.
 
 ## Compute
 
 <!-- AUTO:compute -->
-- Lines: 20.2 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
-- Iterations lost to deaths and moves (superseded rows): {'dko_s0': [[11, 11]], 'dko_s2': [[1, 8]]}.
+- Lines: 71.0 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
+- Iterations lost to deaths and moves (superseded rows): {'dko_s0': [[11, 11], [501, 501]], 'dko_s2': [[1, 8]]}.
 <!-- /AUTO:compute -->
 
 ## Configuration
