@@ -5,7 +5,7 @@ written_by: agent:claude
 
 # Pre-registration: is the base saturated? Anneal, pretraining dose, a longer Stage 1, and RL from a better base
 
-Written 2026-11-04, about 11:35 pm PT (07:35Z Nov 5), before any job of this folder ran. Leon
+Written 2026-11-04, about 11:15 pm PT (07:15Z Nov 5), before any job of this folder ran. Leon
 approved the experiment at about 11 pm PT, with C and D run in parallel on Runpod A40 pods.
 
 ## Why
@@ -125,8 +125,8 @@ that scripts that glob `eval/v2` do not pick them up.
 
 ## Pre-registered readings (pass@1024 unless stated; single seed)
 
-- **Unfinished anneal (H-anneal):** A − base is at least half of CPT − base (+14.1 pooled, +13.5
-  for s0), and the A − CPT interval includes 0.
+- **Unfinished anneal (H-anneal):** A − base is at least half of CPT − base, and the A − CPT
+  interval includes 0. (Seed 0's CPT − base is +9.4 [+4.7, +14.8]; see the correction below.)
 - **Anneal is not the story:** the A − base interval includes 0.
 - **Undertrained (H-undertrained):** the B4 − CPT interval lies above 0, or C − base lies above 0
   with C at least CPT's pass@1024.
@@ -184,3 +184,13 @@ dose curve flattens by 1–4×, and D1 − CPT at pass@1024 is within ±3 points
   - GRPO L3 `f35d3daf`;
   - reads `cce4dfc`.
 - This folder's `anneal.py` and `stage1_to0.py` are copied into the `cd089700` snapshot.
+
+## Correction (11:40 pm PT, 07:40Z, before any read of a new model)
+
+Two factual fixes to the text above, made before any result. The design and the readings are
+unchanged.
+- The H-anneal reading first quoted CPT − base as "+13.5 for s0". `table.py` on the existing seed-0
+  reads gives +9.4 [+4.7, +14.8] at pass@1024: base 78.5%, CPT 87.9%, RL 89.3%. The reading compares
+  against seed 0's own CPT − base, because every arm here is seed 0.
+- The header first gave the writing time as 11:35 pm. The file was committed at 11:18 pm
+  (`994790c`); the jobs launched at 11:18–11:19 pm.
