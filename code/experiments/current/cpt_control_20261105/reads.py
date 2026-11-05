@@ -1,4 +1,5 @@
-"""CPT control reads (PREREG): Charles149 at k1024 as 16 k64 chunks with the paper's exact read
+"""CPT control reads (PREREG): Charles149 at k1024 as 16 k64 chunks (`--set t1320s250`: the
+13-20 sample at k512, 8 chunks, batch 512, as lowrl_1320's reads) with the paper's exact read
 command (think_hirl's `hirl_queue`), merged per theorem in seed order by its `merge_group`. Runs
 on ynez.
 
@@ -23,10 +24,14 @@ from pathlib import Path
 H = Path("/scratch/cowifornia/nd-rl/think_hirl")
 WT = H / "nd-rl-hirl"  # the paper's read code (branch leon/high-rl-reads), used read-only
 PY = "/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python"
-SETS = H / "sets/charles149/charles_clean.jsonl"
+#: set -> (sets file, chunks of k64, --batch, chunk timeout s), as think_hirl's reads of that set
+SETS = {
+    "charles149": (H / "sets/charles149/charles_clean.jsonl", 16, 1024, 1800),
+    "t1320s250": (H / "sets/t1320s250/t1320_n1000.jsonl", 8, 512, 3600),
+}
 HQ = WT / "code/experiments/current/thinking_traces_20261005/grpo_v2/launch/hirl/hirl_queue.py"
 OUT = Path("/scratch/cowifornia/nd-rl/cpt_control")
-N_CHUNKS, K = 16, 64
+K = 64
 
 
 def hq():
@@ -48,9 +53,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ckpt", required=True)
     ap.add_argument("--seed", type=int, required=True, help="the base seed (names the read)")
     ap.add_argument("--stem", default="cpt_s1g3")
+    ap.add_argument("--set", default="charles149", choices=tuple(SETS))
     a = ap.parse_args(argv)
     mod = hq()
-    read = f"charles149_{a.stem}_s{a.seed}_plain_k1024"
+    sets, n_chunks, batch, tmo = SETS[a.set]
+    read = f"{a.set}_{a.stem}_s{a.seed}_plain_k{K * n_chunks}"
     env = dict(os.environ)
     env.update(mod.ENV)
     env.update(
@@ -61,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     (OUT / "tmp").mkdir(parents=True, exist_ok=True)
     members = []
-    for i in range(N_CHUNKS):
+    for i in range(n_chunks):
         d = OUT / "chunks" / read / f"seed{i}"
         members.append(
             dict(
@@ -69,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
                 seed=i,
                 k=K,
                 out=str(d),
-                sets=str(SETS),
+                sets=str(sets),
                 keep=None,
                 ckpt=a.ckpt,
                 id=f"{read}.c{i}",
@@ -86,20 +93,20 @@ def main(argv: list[str] | None = None) -> int:
         cmd = [
             "timeout",
             "--kill-after=120",
-            "1800",
+            str(tmo),
             PY,
             "-m",
             "code.thinking.eval",
             "--ckpt",
             a.ckpt,
             "--sets",
-            str(SETS),
+            str(sets),
             "--out",
             str(d),
             "--k",
             str(K),
             "--batch",
-            "1024",
+            str(batch),
             *mod.READ_FLAGS,
             "--seed",
             str(i),
@@ -121,9 +128,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     dst = mod.merge_group(read, members)
     s = json.loads((dst / "summary.json").read_text())["cells"]["plain_B64"]["all"]
+    pk = s["pass_at_k_pct"]
     print(
         f"{time.strftime('%H:%MZ', time.gmtime())} merged {dst}: n {s['n']}, pass@1 "
-        f"{s['pass_at_k_pct']['1']:.1f}, pass@1024 {s['pass_at_k_pct']['1024']:.1f}",
+        f"{pk['1']:.1f}, pass@{K * n_chunks} {pk[str(K * n_chunks)]:.1f}",
         flush=True,
     )
     return 0

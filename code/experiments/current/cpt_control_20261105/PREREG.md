@@ -114,3 +114,19 @@ Charles149 k1024 read (chunk seeds 0–15), and its 13–20 k8 + k4 reads (`prob
   13–20 G problems, selected at 0 of 12, read 2.7% fresh.
 - CPT's 29.6% comes from the same fresh setting.
 - The pass@k table of this folder covers the whole Charles149 set, with no selection.
+
+## Amendment 2: the optional 13–20 read
+
+Written 2026-11-04, about 7:15 pm PT, before it ran.
+
+- **When it runs.** After the three Charles149 reads, time allowing. Its expected end is about
+  midnight PT.
+- **What it is.** CPT_s0 is read on the 250-problem 13–20-line sample at k512 with
+  `reads.py --set t1320s250`, using the paper's `lowrl_1320` read: 8 chunks of k64 with
+  seeds 0–7, the set file `t1320_n1000.jsonl`, `--batch 512`, and otherwise the same flags.
+- **Where the output goes.** To serrano's `/scratch/cowifornia/nd-rl/think/runs/eval/cpt_control/`,
+  *not* to `eval/v2/`. `lowrl_1320.py` globs every `t1320s250_*` read in `eval/v2` and needs an R
+  for each one, so a CPT read there would break it.
+- **Analysis.** `table.py` adds base s0 against CPT s0 against the L3 end s0 at pass@1, @5, @64
+  and @512, with `stats.paired_diff` problem-bootstrap intervals (one seed).
+- **Status.** Descriptive only. No reading is pre-registered for it.

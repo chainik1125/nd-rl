@@ -18,3 +18,4 @@ Artifacts go to `ynez:/scratch/cowifornia/nd-rl/cpt_control/`. Times are PT, wit
     serrano: `6535c483…`, `c36c9bc4…` and `3255633f…`.
 - **6:30 pm (02:30Z).** PREREG Amendment 1, before any job: the J7 precedent, and a note that the G
   selection draws are independent of Stage 2's base read. sha256 `0693fdff20acc25d429d103ef877bf466602206e9c36455142c1dd361d336a91`.
+- **7:15 pm.** PREREG Amendment 2 (the optional t1320s250 k512 read of CPT_s0, output outside `eval/v2`), before it ran: sha256 `fc2e1ada52209b123cb5278191e13687f4e9b7b53f0b67369e4e8be3471ab74a`. `reads.py` gained `--set`; the Charles149 defaults are unchanged.
