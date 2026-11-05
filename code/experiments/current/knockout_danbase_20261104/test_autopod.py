@@ -701,4 +701,46 @@ check(
     rest_calls,
 )
 (sup.SUP / "no_pod.json").unlink()
+
+# ---------------- 11. the segment's own sighting counts: no cancel on a poll that fell in a gap
+reset_events()
+SAC_T = int(time.time()) - 30
+_fake_sh = sup.sh
+
+
+def sh_with_sac(h, c, timeout=60):
+    if c.startswith("cat ") and "end.json" in c and "/runs/dd01_s1/seg3/" in c:
+        return "\n===\n{}\n===\n" + str(int(time.time())) + "\n===\n" + str(SAC_T) + "\n"
+    return _fake_sh(h, c, timeout)
+
+
+sup.sh = sh_with_sac
+st = {
+    "dd01_s1": {
+        "status": "running",
+        "segs": [
+            seg(
+                "ynez",
+                0,
+                3,
+                moving=ago(1),
+                displaced="displaced by another user's process on ynez GPU 0 (the segment's own check)",
+            )
+        ],
+    },
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+    "_gpu_seen": {"ynez": {"0": ago(35)}},
+}
+ALIVE |= {("ynez", "dd01_s1", 3)}
+s = new_sup(st)
+poll(s, {**g9, "ynez": {0: {"cowifornia"}, 1: set(), 2: set(), 3: set()}})
+s.check_running("dd01_s1")
+check(
+    "own sighting recorded; move kept",
+    "move cancelled" not in events()
+    and s.st["dd01_s1"]["segs"][-1].get("moving")
+    and not s.quiet("ynez", 0),
+    (events(), s.st["_gpu_seen"]),
+)
+sup.sh = _fake_sh
 print("\nFAILED:", FAILS if FAILS else "none")

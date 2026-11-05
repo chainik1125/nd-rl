@@ -692,6 +692,14 @@ class Sup:
             seg["moving"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(sac)))
             seg["displaced"] = (f"displaced by another user's process on {h} GPU {seg['gpu']} "
                                 "(the segment's own check)")  # fmt: skip
+        if (sac and h in C.HOSTS and not seg.get("preempted_for") and not seg.get("cap_stop")
+                and (h, seg["gpu"]) not in self.reserved()):  # fmt: skip
+            # the segment's own check (every 60 s) saw another user's process: that counts as a
+            # sighting, so a cancel never undoes it on the strength of a poll that fell in a gap
+            # of a job that relaunches every few minutes (ynez, 19:06Z)
+            seen = self.st.setdefault("_gpu_seen", {}).setdefault(h, {})
+            ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(sac)))
+            seen[str(seg["gpu"])] = max(seen.get(str(seg["gpu"]), ts), ts)
         alive = (
             "alive"
             if any(kind == "dline" and ln == line and kk == k for _, kind, ln, kk in ps)
