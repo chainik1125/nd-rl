@@ -70,3 +70,23 @@ Artifacts go to `ynez:/scratch/cowifornia/nd-rl/cpt_control/`. Times are PT, wit
       mechanism is untested.
     - "Explains little" fails.
   - Messaged the coordinator.
+- **11:00–11:40 pm.** CPU check requested by the coordinator (Leon's hypothesis that Stage 1 is
+  underfit): `valloss.py`, 4 torch threads on serrano, no GPU.
+  - The first version scored each metric in its own pass and would have exceeded its 30-min
+    timeout. I stopped it and rewrote it to score w1 and w0 from one sorted forward per batch.
+  - **The scorer reproduces base s0's logged Stage-1 val exactly:** 0.0692 and 0.0772, against
+    0.06924 and 0.07722.
+  - **Val loss (Stage 1's split, w1):**
+
+    | seed | base | CPT | RL |
+    |---|---|---|---|
+    | 0 | 0.0692 | 0.0648 | 0.0847 |
+    | 1 | 0.0738 | 0.0646 | 0.0935 |
+    | 2 | 0.0750 | 0.0650 | 0.0945 |
+
+  - **Charles149 reference-proof loss:** base 0.090–0.109, CPT 0.066–0.072, RL 0.117–0.133.
+  - **On L3's own accepted actions** (Stage 3, seed 0, G): base 0.126, CPT 0.145, RL 0.049.
+  - **Reading:** CPT converges the base on its own distribution. Every CPT seed lands at about
+    0.065, whatever its base's loss. RL moves away from that distribution.
+  - The run ended with a NameError (a leftover `del os`) after writing its outputs; fixed in the
+    source.
