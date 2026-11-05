@@ -34,7 +34,9 @@ os.environ.setdefault("ND_OFFLINE", "1")
 os.environ.setdefault("ND_REGISTRY_SYNC", "0")
 
 HERE = Path(__file__).resolve().parent
-RUNS = Path("/scratch/cowifornia/nd-rl/think/runs")
+#: `CIRCUITS_RUNS` points at a mirror of the files this experiment reads (Stage 3 on ynez, whose
+#: own think/ tree is an older copy): base and GRPO checkpoints, their args and metrics, the pools.
+RUNS = Path(os.environ.get("CIRCUITS_RUNS", "/scratch/cowifornia/nd-rl/think/runs"))
 G2 = RUNS / "grpo_v2"
 ART = Path("/scratch/cowifornia/nd-rl/circuits")
 LOWRL = ART / "ckpts/lowrl/scratch/cowifornia/nd-rl/think_hirl/lowrl"
@@ -227,6 +229,22 @@ def free_gpus(max_jobs_total: int = 3) -> list[int]:
 
 
 def assert_gpu_free(gpu: int) -> None:
-    """Refuse to start on a GPU that has any compute process, or when 3 GPUs are already busy."""
+    """Refuse to start on a GPU that has any compute process, or when 3 GPUs are already busy.
+
+    With `CIRCUITS_ALLOWED_GPUS` set (Stage 3 on ynez: one reserved GPU), the GPU must be in that
+    list and have no compute process; serrano's 3-job power limit does not apply. Indices are
+    nvidia-smi's, so `CUDA_DEVICE_ORDER=PCI_BUS_ID` is required for CUDA to agree."""
+    allowed = os.environ.get("CIRCUITS_ALLOWED_GPUS")
+    if allowed is not None:
+        import subprocess
+
+        order = os.environ.get("CUDA_DEVICE_ORDER")
+        assert order == "PCI_BUS_ID", "set CUDA_DEVICE_ORDER=PCI_BUS_ID"
+        if gpu not in {int(x) for x in allowed.split(",") if x}:
+            raise SystemExit(f"GPU {gpu} is not in CIRCUITS_ALLOWED_GPUS={allowed}: not starting")
+        q = ["nvidia-smi", "-i", str(gpu), "--query-compute-apps=pid", "--format=csv,noheader"]
+        if subprocess.check_output(q, text=True).strip():
+            raise SystemExit(f"GPU {gpu} has a compute process: not starting")
+        return
     if gpu not in free_gpus():
         raise SystemExit(f"GPU {gpu} is busy (or serrano already has 3 GPU jobs): not starting")

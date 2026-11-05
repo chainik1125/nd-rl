@@ -168,3 +168,22 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
   because no GPU slot opened between 3:43 pm and 5:25 pm. Its job list
   (`/scratch/cowifornia/nd-rl/circuits/logs/jobs_gpuH.txt`) holds the remaining replicates.
   No job of this experiment is running.
+
+## 2026-11-04 (Stage 3; times PT, Z in brackets)
+
+- **4:28 pm (00:28Z).** Stage 3 brief from Leon, via the coordinator.
+  - Part A: a drift control for `rl_revert`.
+  - Part B: edge-level attribution.
+  - One GPU, ynez GPU 2 (`GPU-d6327ec5…`), reserved for `circuit_stage3` in
+    `knockout_danbase/sup/reserved.json` since 00:30Z. At most 12 CPU cores.
+  - Deadline 3 am PT (11:00Z), hard limit 8 am PT (16:00Z). Part B is reduced to fit, and
+    pre-registered that way.
+- **4:38 pm (00:38Z).** nvidia-smi on ynez shows no process on GPU 2 (4 MiB used).
+  - Copied to ynez `/scratch/cowifornia/nd-rl/circuits/`: the base, L3 end, `kp16_st1` and CPT
+    checkpoints, the L3-end crosscoders at layers 3 and 5, the `kp16_st1` layer-3 crosscoder,
+    the `base_s0`, `kp16_st1_s0` and `pretrain` sequences, and the curriculum pools.
+  - Everything goes under `runs/`, a mirror read through `CIRCUITS_RUNS`. ynez's own `think/`
+    tree is an older copy.
+  - sha256 matches serrano for every checkpoint and crosscoder: base `8012222f…`, L3 end
+    `ca264766…`, CPT `6f418716…`, `kp16_st1` `e756b72d…`.
+- **4:40 pm (00:40Z).** PREREG.md with the Stage 3 section added, before any Stage 3 job: sha256 `d123304a5db57cd2f56087e903deb2bbbc17ed6fff80b8fb6e8ffb6e9c867c3b`.

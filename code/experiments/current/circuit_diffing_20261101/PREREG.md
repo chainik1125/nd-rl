@@ -263,3 +263,197 @@ layer 3, and at layer 5 with the layer-5 conditions.
   perturbation effect. It is then not evidence that RL's gains run through those particular
   feature rotations.
 - If `rl_revertperm` hurts less, the specific directions matter.
+
+## Stage 3: drift control for the revert, and edge-level wiring (GPU, ynez)
+
+Written 2026-11-04, about 4:45 pm PT (2026-11-05 00:45Z), after all Stage 0–2 results above were
+seen and before any Stage 3 job ran. Leon's question: "how is that not new circuits?" Stages 1–2
+found no new features (nodes). The gain could still use new feature-to-feature wiring (edges)
+that the base lacks, beyond what weight drift alone produces. Seed 0 only. The seeds 1–2
+replicates in queue H stay unrun.
+
+Compute: one GPU (ynez GPU 2, reserved), at most 12 CPU cores. Deadline: everything done by
+2026-11-05 11:00Z (3 am PT), with 16:00Z (8 am PT) as the hard limit. Part B is reduced to fit
+(below). It is pre-registered in that reduced form; it is not a full run cut short.
+
+### Part A: drift control for `rl_revert` (priority)
+
+**A1. Crosscoder, base vs CPT, layer 3.** `crosscoder --b cpt_lr0.00015:0 --layer 3`. This is
+exactly the L3-end recipe: 8,192 latents, k 32, 40M tokens, lr 3e-4, crosscoder seed 0.
+- Data: CPT's own rollouts (`rollouts.py`, the same 1,200 L2 and L3 pool problems, 4
+  attempts, budgets 0 / 64 / 256, temperature 1.0, seed 1000), the base's rollouts
+  (`base_s0.npz`) and the same 60,000 pretraining pairs.
+- How it differs from the CPU version (`crosscoders_cpu/cpt_lr0.00015_0_L3_n4096_k32_cpu_baseroll`):
+  - full size (8,192 latents, 40M tokens, against 4,096 and 6M);
+  - CPT's own rollouts instead of the base's standing in for them;
+  - trained on GPU.
+- It is not checkpointed mid-run: it takes about 8 minutes, so a crash costs one rerun.
+- Quality bar as in Stage 1: FVU ≤ 0.15 and loss recovered ≥ 80%.
+
+**A2. CPT's own solve rates.** `stage2 --b cpt_lr0.00015` with condition `rl_clean` (the driver
+is model B, here CPT; reported as `cpt_clean`). Same 80 G and 121 S problems, 32 attempts,
+plain arm, B64, temperature 0.8, Lean-judged, seed 7. `base_clean` is copied from the L3 run,
+because it does not depend on the crosscoder.
+
+**A3. Conditions, in this order** (driver CPT, crosscoder from A1):
+1. `cpt_revert`: every live latent switched to its base version. This is `rl_revert`'s edit.
+2. `cpt_revertperm`: the same edit with the difference vectors permuted among live latents,
+   seed 0.
+3. `cpt_recon`: a fidelity check.
+
+**A4. Comparison with `rl_revert`.** The reference is `rl_revert` at layer 3:
+- RL G 67.1% → 40.5%: relative drop 39.7% [33.6, 45.9];
+- RL S 93.0% → 87.3%: relative drop 6.1% [3.6, 8.7];
+- edit / ‖h‖ = 0.34.
+
+CPT should be about as weak as the base on G, so its drop is measured mainly on S. The primary
+statistic is the relative drop on S, 1 − cpt_revert / cpt_clean, with a 95% paired problem
+bootstrap. Secondary: the drop in points on S and on G; cpt_revert − base_clean on S; and
+edit / ‖h‖.
+
+**Pre-registered reading for A.**
+- **The revert is benign in a drifted model**, so RL's rotations are special. This needs both:
+  - the relative drop on S is ≤ 8%, about rl_revert's 6.1%;
+  - cpt_revert's S is within 5 points of base_clean's S, or above it.
+
+  Then reverting an equally drifted model that learned nothing costs little where it has skill.
+  The 41% G-gap removal in RL is then the loss of something RL learned.
+- **Generic damage**, so drift could explain the revert effect: the relative drop on S is ≥ 20%.
+  Then reverting any drifted model is destructive, and the G effect in RL cannot be separated
+  from fragility.
+- **Partial**: a relative drop on S between 8% and 20%. The ratio to rl_revert's 6.1% is
+  reported.
+- If CPT's edit / ‖h‖ is below 0.25, the control is weaker than RL's edit, and this is said
+  with the result.
+- `cpt_revertperm` is reported next to `rl_revertperm`, which cut S 93.0% → 38.4%, as a
+  calibration of edit size.
+
+### Part B: edge-level attribution (reduced scope)
+
+**Scope, reduced to fit the deadline.**
+- One latent-to-latent hop: layer 3 → layer 5. Plus layer 5 → output.
+- Layer 1 → 3 is not run.
+- Pairs:
+  - base vs L3 end: the existing crosscoders `L3_s0_L3_*` and `L3_s0_L5_*`;
+  - base vs CPT: the drift null, using A1 at layer 3 plus a new layer-5 crosscoder;
+  - base vs `kp16_st1`: the 1-step null, using the existing layer-3 crosscoder plus a new
+    layer-5 crosscoder.
+- The L2 end is not run.
+- New crosscoders use the Stage 1 recipe with each model's own rollouts.
+
+**Sequences.** The same tokens are used in every model:
+- the L3 end's own Lean-accepted attempts, sampled anew with traces (`traces.py`: plain arm, B64,
+  temperature 0.8, seed 11);
+- G: 8 attempts on each of the 80 G problems;
+- S: 4 attempts on each of 80 S problems, a fixed random subset (seed 0) of the 121.
+
+Per problem, up to 2 accepted attempts are kept, the first by attempt index. A G problem with
+none is dropped, and the count is reported. Each accepted step is one sequence: the step's
+decoder input plus every sampled token.
+
+The metric M is the summed log-prob of the accepted action tokens: the action plus its
+terminating token, not the think tokens. It is summed over the steps of an attempt and averaged
+over attempts and then problems.
+
+**Nodes.** These are the latents of the pair's own crosscoders. The joint encoding f uses both
+models' activations, so it is the same in both models on the same tokens. Only the wiring
+between nodes differs.
+
+Each model m is spliced as a_m = (Σ_j f_j d_j^m + b_dec^m) / s_m + err_m, keeping its own
+decoders and error term.
+
+Node attribution (gradient × activation, each model's own forward):
+A^m_j = Σ_tokens f_j ⟨∂M_m/∂a_m, d_j^m / s_m⟩.
+
+Selected nodes: U3 and U5 are the union, over the two models of a pair, of the top 256 latents
+by |A^m_j| summed over the G set. Coverage, Σ_{U}|A| / Σ_all|A|, is reported.
+
+**Edges, layer 3 → 5** (EAP, gradient × activation, each model's own forward pass):
+e^m_ij = Σ_{t'} [∂M_m/∂f5_j(t') · 1(j active at t')] · Δpre5_j(t'; i, m).
+- Δpre5_j(t'; i, m) = ⟨w5_j, s5_m · J^m_{4–5}[f3_i d3_i^m / s3_m](t')⟩: the forward-mode
+  (JVP) change of layer 5 when latent i's write at layer 3 is perturbed by its own activation
+  at every position, through model m's blocks 4–5.
+- The reader w5_j = W_enc[base]_j + W_enc[X]_j is common to both models. The crosscoder's
+  split of a latent's encoder between the two models is arbitrary for shared features. Reading
+  each model with its own half would make identical models' edges differ.
+- The downstream gate is fixed at its clean state.
+
+**Edges, layer 5 → output:** e^m_j,out = A5^m_j.
+
+**Pre-registered definitions** (per hop and per pair, on the G set):
+- **Top set** T_X: the top 1,000 edges by |e^X| (3 → 5), or the top 100 (5 → out).
+  Sensitivity: 300 and 3,000.
+- **New edge:** in T_X and |e^base| < ε |e^X|, with ε = 0.2. Sensitivity: 0.1 and 0.3.
+  - "Flipped": in T_X, sign(e^base) ≠ sign(e^X) and |e^base| ≥ ε |e^X|. Reported separately.
+  - "Retuned": the other edges of T_X.
+- **N_new**, and the new-edge mass share m_new = Σ_new |e^X| / Σ_{T_X} |e^X|.
+- **Rank agreement:**
+  - Spearman ρ between e^base and e^X over U3 × U5;
+  - Jaccard overlap of the top-1,000 sets of base and X.
+- **Uncertainty:** 95% intervals from 1,000 bootstrap draws over problems. Each draw recomputes
+  the sums, top sets and new sets.
+
+**Causal check: path patching, teacher-forced, base vs L3 end only.** The check runs on the same
+sequences.
+- In L3's forward, the edges of a set E (3 → 5) get base's contribution in place of L3's. Each
+  receiver j at layer 5 gets
+  pre5_j += Σ_{i:(i,j)∈E} [Δpre5_j(t'; i, base) − Δpre5_j(t'; i, L3)].
+- The latent is then re-gated with the crosscoder's inference rule. L3's layer-5 residual moves
+  by Σ_j (f5'_j − f5_j) d5_j^L3 / s5, and blocks 6 and the head run as usual.
+- **Gap removed on G** = (M_L3 − M_cond) / (M_L3 − M_base), with a 95% paired problem bootstrap
+  (4,000 draws). The same is reported on S.
+- **Cross-fitting.** G problems are split into 2 folds (seed 0). Each fold is patched with the
+  edge sets defined on the other fold. S is patched with the sets defined on all of G.
+
+Conditions:
+- `new`: L3's new 3 → 5 edges.
+- `rand0..2`: random non-new edges from T_L3, drawn until their Σ|e^L3| matches `new`'s (matched
+  mass); seeds 0–2.
+- `retuned`: non-new edges of T_L3 in decreasing |e^L3 − e^base|, until their
+  Σ|e^L3 − e^base| matches `new`'s (matched change).
+- `top`: all of T_L3.
+- References:
+  - `base` and `L3` (clean);
+  - `swap45`: L3 with blocks 4–5 taken from the base, which bounds what this hop can carry;
+  - `revert3`: Stage 2's `rl_revert` edit at layer 3, teacher-forced, which calibrates the
+    teacher-forced gap against the solve-rate gap.
+- Converse in the base (cheap): `base_new` and `base_rand0`, with base's contributions replaced
+  by L3's. Reported as gap recovered.
+
+**Pre-registered decision rule for B** (on the 3 → 5 hop, primary settings):
+- **New wiring** is supported only if all three hold:
+  1. m_new(L3) ≥ 2 × m_new(CPT) and ≥ 2 × m_new(kp16_st1). The bootstrap 95% interval of
+     m_new(L3) − m_new(CPT) must lie above 0.
+  2. `new` removes ≥ 20% of the teacher-forced G gap.
+  3. The mean of `rand0..2` removes ≤ 5%.
+- **Retuned existing wiring** is supported if (a) and (b) hold:
+  - (a) either m_new(L3) < 2 × m_new(CPT), or `new` removes < 10% of the G gap;
+  - (b) `retuned` or `top` removes ≥ 10%.
+- **Otherwise**, mixed or inconclusive. Report which criteria hold. Whether `new` or `retuned`
+  removes more is reported either way.
+- **Moot:** if `swap45` removes < 10% of the G gap, this hop does not carry the gain, and no
+  conclusion is drawn from it.
+- The 5 → output hop is descriptive only, with the same counts against the nulls. It has no
+  causal check.
+
+**Caveats fixed in advance.**
+- The teacher-forced log-prob gap on L3's own successful proofs is not the solve-rate gap.
+  `revert3` calibrates the two.
+- The edges are linear (gradient × activation) and confined to the selected nodes. Paths
+  through error terms and unselected latents are not scored.
+- One seed, one hop.
+
+### Time plan (Z; PT = Z − 8 h)
+
+| step | GPU | start by | est. |
+|---|---|---|---|
+| A: CPT rollouts, A1 crosscoder, A2–A3 sampling (clean, revert, revertperm, recon) | yes | now (~01:00Z) | ~1.2 h |
+| B prep: `traces.py` for L3 on G / S, layer-5 crosscoders for CPT and `kp16_st1` | yes | after A | ~0.5 h |
+| B edges: L3, then CPT, then `kp16_st1` | yes | 08:30Z at the latest; a pair not started by 09:30Z is "not run" | ~1 h |
+| B causal check | yes | 09:30Z at the latest | ~0.5 h |
+| analysis, figures, write-up | no | — | ~1.5 h |
+
+- **Total.** About 3.5 GPU-h, inside the 30 GPU-h budget.
+- **Report.** Results are reported by 11:00Z if possible. Whatever is done by 15:00Z is
+  reported then, and the rest is marked "not run".
+- **Late starts.** No job starts unless it can finish by 16:00Z.
