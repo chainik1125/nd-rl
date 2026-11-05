@@ -225,3 +225,27 @@ All times UTC.
     md5-checked copies to pods, for the auto-spawn pods) was refused by the permission system
     ("data exfiltration") at 05:19Z even after Leon's approval was relayed. Not worked around;
     reported to the coordinator. The two pods run on the files the coordinator copied.
+  - **05:2xZ: pace on the A40.** About the same pace as on ynez. dkoour_s0 took 69, 68 and 72 s per
+    iteration (ynez median 64 s); dkoour_s1 took 63, 64 and 68 s (ynez 61 s). Projected: the compute
+    cap binds first, at about 14:45Z (s0) and 14:40Z (s1). Pod spend is projected at about $11.6 of
+    $16.90. The 06:30Z stop is dropped.
+  - **05:38Z: more pods, with every copy done by the coordinator** (dd9c4cc). The supervisor reads
+    the pods from `KD/sup/pods.json` every pass. That file is written by `register_pod.py`, and
+    rp-s0 and rp-s1 moved there.
+    - A line displaced by another user's process, with no lab GPU under the rules, gets one
+      `NEEDS POD:` event. The event gives the checkpoint (first put on serrano) and the GPU-h
+      remaining at its lab pace. The line then waits for a lab GPU or a pod.
+    - A pinned line resumes on its pod from the coordinator's `pod_resume/resume_it<i>.pt`. The
+      file must be non-empty and no older than the line's newest checkpoint.
+    - Other events: `POD NOT NEEDED` when a lab GPU frees first, an idle-pod warning, and
+      `NEEDS POD` again when a pinned pod is down.
+    - Teardown, spend and the ceiling (+`budget_add`) cover every registered pod.
+    - Two preemption fixes, found while testing. Preemption now happens only when it can yield a
+      GPU under MIN_FREE; in a full lab it only idled the secondary. A pod line is never preempted;
+      before, it was a candidate and would have freed no lab GPU.
+    - The coordinator runs `runpod_copy_line.sh` (any line; md5-checked; `DRY_RUN=1` previews the
+      99 files, about 160 to 180 MB) and `podsetup.sh`.
+    - `test_autopod.py`: 48 mocked dummy-state checks, all pass.
+    - A first test run, before `deploy` was mocked, rsynced the working folder to temescal. That
+      is the same lab-to-lab code sync every launch does.
+    - The temescal standby was restarted on the new code and receives `pods.json` with the state.
