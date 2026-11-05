@@ -73,6 +73,8 @@ LAB_GPUS = {"serrano": 5, "ynez": 4, "temescal": 3}
 # GPUs (an unreadable host: its last-seen ours). Launch time only, like MIN_FREE.
 GLOBAL_CAP = 4
 QUIET_S = 15 * 60  # a lab GPU is free only after no other user's process for this long
+CYCLE_S = 2 * 3600  # ... and after 60 min if it was seen in 2+ distinct minutes over 2 h (a job
+QUIET_CYCLING_S = 60 * 60  # that keeps relaunching, like ColinDoherty's on ynez): no churn
 REUSE_S = 20 * 60  # a pod whose line ended is held this long for a displaced line
 POD_TEARDOWN_S = 2 * 3600  # after the last line: keep retrying a pod's deletion this long
 RSYNC_SSH = " ".join(G.SSH)
@@ -325,10 +327,9 @@ class Sup:
                         self.reap_unknown([h])
                 hs["fails"] = 0
                 if h in C.HOSTS:  # when another user's process was last seen on each GPU
-                    seen = self.st.setdefault("_gpu_seen", {}).setdefault(h, {})
                     for i, us in self.g[h].items():
                         if us - G.ours(h):
-                            seen[str(i)] = now()
+                            self.sighting(h, i, now())
 
     def up(self, h: str) -> bool:
         return self.g.get(h) is not None
@@ -342,13 +343,31 @@ class Sup:
                 and not s["segs"][-1].get("dead")]  # fmt: skip # noqa: E501
 
     def quiet(self, h: str, i: int) -> bool:
-        """No other user's process on lab GPU (h, i) now or in the last 15 min (coordinator,
-        18:3xZ: ColinDoherty's 4-GPU job on ynez relaunches every few minutes, and its gaps made
-        GPUs look free). A GPU counts as free, and a move is cancelled, only when quiet."""
+        """No other user's process on lab GPU (h, i) now or in the last 15 min, or 60 min when
+        sightings came in 2+ distinct minutes over the last 2 h (coordinator, 18:3xZ and 19:1xZ:
+        ColinDoherty's 4-GPU job on ynez relaunches every few minutes and its gaps made GPUs look
+        free). Sightings come from the census and from the segments' own checks. A GPU counts
+        as free, and a move is cancelled, only when quiet."""
         if (self.g.get(h) or {}).get(i, set()) - G.ours(h):
             return False
         t = self.st.get("_gpu_seen", {}).get(h, {}).get(str(i))
-        return t is None or time.time() - M._utc(t) >= QUIET_S
+        if t is None:
+            return True
+        hits = self.st.get("_gpu_hits", {}).get(h, {}).get(str(i), [])
+        recent = {x[:16] for x in hits if time.time() - M._utc(x) < CYCLE_S}  # distinct minutes
+        need = QUIET_CYCLING_S if len(recent) >= 2 else QUIET_S
+        return time.time() - M._utc(t) >= need
+
+    def sighting(self, h: str, i: int, ts: str) -> None:
+        """Another user's process on lab GPU (h, i) at `ts`, from the supervisor's census or a
+        segment's own check: resets the GPU's quiet clock and is kept (last 30) to tell a job
+        that keeps relaunching."""
+        seen = self.st.setdefault("_gpu_seen", {}).setdefault(h, {})
+        seen[str(i)] = max(seen.get(str(i), ts), ts)
+        hits = self.st.setdefault("_gpu_hits", {}).setdefault(h, {}).setdefault(str(i), [])
+        if ts not in hits:
+            hits.append(ts)
+            del hits[:-30]
 
     def broken(self) -> dict[str, str]:
         """Lab hosts whose GPUs answer nvidia-smi but cannot run CUDA (`KD/sup/broken_hosts.json`,
@@ -697,9 +716,7 @@ class Sup:
             # the segment's own check (every 60 s) saw another user's process: that counts as a
             # sighting, so a cancel never undoes it on the strength of a poll that fell in a gap
             # of a job that relaunches every few minutes (ynez, 19:06Z)
-            seen = self.st.setdefault("_gpu_seen", {}).setdefault(h, {})
-            ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(sac)))
-            seen[str(seg["gpu"])] = max(seen.get(str(seg["gpu"]), ts), ts)
+            self.sighting(h, seg["gpu"], time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(int(sac))))
         alive = (
             "alive"
             if any(kind == "dline" and ln == line and kk == k for _, kind, ln, kk in ps)

@@ -743,4 +743,20 @@ check(
     (events(), s.st["_gpu_seen"]),
 )
 sup.sh = _fake_sh
+
+# ---------------- 12. a relaunching job: 2+ sightings in 2 h -> 60 quiet min needed
+st = {
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+    "_gpu_seen": {"ynez": {"2": ago(25), "3": ago(25)}},
+    "_gpu_hits": {"ynez": {"2": [ago(40), ago(25)], "3": [ago(25)]}},
+}
+s = new_sup(st)
+poll(s, {**g9, "ynez": {0: set(), 1: set(), 2: set(), 3: set()}})
+check(
+    "cycling GPU needs 60 quiet min; a single sighting 15",
+    not s.quiet("ynez", 2) and s.quiet("ynez", 3),
+    s.st["_gpu_hits"],
+)
+s.sighting("ynez", 3, ago(1))
+check("a new sighting resets the clock", not s.quiet("ynez", 3))
 print("\nFAILED:", FAILS if FAILS else "none")
