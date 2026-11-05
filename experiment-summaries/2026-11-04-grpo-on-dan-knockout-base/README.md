@@ -12,8 +12,9 @@ PROGRESS.
 - **Amendment 1:** the three 1 % lines are done (by 19:12Z). The three 0.1 % lines are
   running or waiting.
   - dd01_s0 is on serrano.
-  - dd01_s1 and dd01_s2 are moving to two new A40 pods (rp-d3 and rp-d4), which Leon approved
-    at 20:14Z. temescal's CUDA is broken, and another user's job keeps cycling on ynez.
+  - dd01_s1 and dd01_s2 run on two new A40 pods (rp-d3 and rp-d4), which Leon approved at
+    20:14Z. temescal's CUDA is broken, and another user's job keeps cycling on ynez. They
+    resumed at 20:24Z with no iterations lost.
 - The five earlier Runpod pods were deleted after their backups were verified. They cost $15.75,
   of which rp-d1 and rp-d2 (amendment 1) cost $2.04. The two new pods are billing on top of that.
 - Nothing is pushed.
@@ -197,7 +198,7 @@ Scored against PREREG.md (frozen before any knockout line was read).
   GPU 1, with the same code and arguments (`baseread_dd01.sh`). dd1_s2 finished its hold on a
   pod (rp-d1, reused from dd1_s0) after another user's job took its ynez GPU.
 - **dd01_s1 and dd01_s2 continue on pods.** The same job displaced them from ynez at about 19:12Z,
-  and the temescal fault left no other lab GPU under the rules. On Leon's approval they move to
+  and the temescal fault left no other lab GPU under the rules. On Leon's approval they moved to
   A40 pods (rp-d3 and rp-d4), resuming from it 35 and it 25 of serrano's backup, with the same code
   and environment. An A40 iteration has taken longer than a lab iteration (see above). x_dan
   counts compute, not time, so the pods do not change x itself, but they reach the 15 GPU-h cap at

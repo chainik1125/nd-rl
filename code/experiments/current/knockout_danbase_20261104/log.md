@@ -300,4 +300,8 @@ All times UTC.
     - dd01_s1 → rp-d3 (48pxqqf95kb23x, created 20:14:01Z), resuming from it 35 of serrano's backup.
     - dd01_s2 → rp-d4 (2w3qebaxx02cy3, created 20:14:03Z), resuming from it 25 of serrano's backup.
     - Each registration adds $7.80 to the pod ceiling: $15.60, which is the $12 Leon approved plus
-      30 %. The coordinator estimates about 13 GPU-h per pod, $16 in total, if a line never crosses.
+      30 %. The ceiling is now $34.88. The coordinator estimates about 13 GPU-h per pod, $16 in
+      total, if a line never crosses.
+    - Registered at 20:22:52Z and 20:23:00Z, and both lines came off `no_pod.json`. Seg4 launched at
+      20:24:13Z and 20:24:16Z, 0 iterations lost. Both logs say "resumed ... at iteration" 35 and
+      25, and each pod's A40 holds the process.
