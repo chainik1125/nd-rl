@@ -330,6 +330,8 @@ class Sup:
 
     def free_gpu(self, line: str | None = None) -> tuple[str, int] | None:
         if line in C.PIN:  # a pod line: its own pod only, outside the lab's rules
+            if not (SUP / "pods_enabled").exists():
+                return None  # copying to the pods awaits the user's permission (05:07Z)
             h = C.PIN[line]
             g = self.g.get(h)
             if g is None or self.ours_on(h):
@@ -385,6 +387,8 @@ class Sup:
         """The code, Dan's code, the bases and the pools, one way to a remote host (rsync)."""
         if local(host):
             return True
+        if host in C.RP_HOSTS and not (SUP / "pods_enabled").exists():
+            return False
         ok = True
         for src in (C.HERE, C.KD / "snap", C.KD / "bases", C.KD / "dan_code_13e41bbd",
                     C.KD / "pools"):  # fmt: skip
