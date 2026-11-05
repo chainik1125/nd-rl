@@ -135,6 +135,10 @@ def copy(src_host: str, src: str, dst_host: str, dst: str) -> bool:
         return p if local(h) else f"{h}:{p}"
 
     sh(dst_host, f"mkdir -p {shlex.quote(str(Path(dst).parent))}")
+    if src_host == dst_host:  # e.g. a pod's own checkpoint for its next segment
+        return sh(dst_host, f"cp {shlex.quote(src)} {shlex.quote(dst)} && echo ok") is not None
+    if dst_host.startswith("rp-"):  # nothing goes to a pod but runpod_copy.sh (Leon)
+        return (sh(dst_host, f"test -s {shlex.quote(dst)} && echo ok") or "").strip() == "ok"
     if local(src_host) or local(dst_host):
         return rs(loc(src_host, src), loc(dst_host, dst))
     tmp = str(SUP / "relay" / Path(src).name)
@@ -387,8 +391,8 @@ class Sup:
         """The code, Dan's code, the bases and the pools, one way to a remote host (rsync)."""
         if local(host):
             return True
-        if host in C.RP_HOSTS and not (SUP / "pods_enabled").exists():
-            return False
+        if host in C.RP_HOSTS:  # the pods get their files from Leon's runpod_copy.sh only
+            return (SUP / "pods_enabled").exists()
         ok = True
         for src in (C.HERE, C.KD / "snap", C.KD / "bases", C.KD / "dan_code_13e41bbd",
                     C.KD / "pools"):  # fmt: skip
