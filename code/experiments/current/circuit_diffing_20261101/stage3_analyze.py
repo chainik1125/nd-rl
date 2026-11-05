@@ -415,6 +415,9 @@ def write_md(out: dict[str, Any], md: Path) -> None:
                 f"- cpt_clean − base_clean: G {pts(cb['G'], cbc['G'])}, "
                 f"S {pts(cb['S'], cbc['S'])} points.",
                 f"- Pre-registered reading: **{A['reading']}**.",
+                "- Caveat: the rule's conclusion assumed CPT gained nothing over the base; "
+                "cpt_clean − base_clean on G (above) says otherwise, so the exploratory own-gap "
+                "comparison below is the informative one.",
             ]
         if "exploratory_gapG_cpt_minus_rl" in A:
             v = A["exploratory_gapG_cpt_minus_rl"]
@@ -593,11 +596,11 @@ def figures(out: dict[str, Any]) -> None:
         col = {"L3": C["vermillion"], "cpt": C["bluish_green"], "kp16": C["blue"]}
         mk = {"L3": "o", "cpt": "D", "kp16": "s"}
         with S.paper_style():
-            fig = S.new_figure(S.FULL_W, 2.0, layout="constrained")
-            axs = fig.subplots(1, 2, sharey=False)
+            fig = S.new_figure(S.FULL_W, 2.1, layout="constrained")
+            axs = fig.subplots(1, 3, sharey=False, width_ratios=[1, 1, 1.1])
             for ax, hop, title in (
-                (axs[0], "hop35", "(a) layer 3 → 5 edges (top 1,000)"),
-                (axs[1], "hop5out", "(b) layer 5 → output (top 100)"),
+                (axs[0], "hop35", "(a) new edges, 3 → 5"),
+                (axs[1], "hop5out", "(b) new edges, 5 → output"),
             ):
                 xs = list(B["pairs"])
                 for i, x in enumerate(xs):
@@ -605,16 +608,46 @@ def figures(out: dict[str, Any]) -> None:
                     v, (lo, hi) = 100 * h["m_new"], [100 * c for c in h["m_new_ci"]]
                     ax.bar(i, v, color=col[x], width=0.6, edgecolor="white", linewidth=0.8)
                     ax.errorbar(i, v, yerr=[[v - lo], [hi - v]], color=S.INK2, lw=0.8, capsize=1.5)
+                    if hi == 0:
+                        ax.text(i, 0.2, "0", ha="center", va="bottom", fontsize=S.FS_TICK)
                 ax.set_xticks(range(len(xs)))
                 ax.set_xticklabels(
-                    [
-                        {"L3": "L3 end (RL)", "cpt": "CPT (drift)", "kp16": "1 RL step"}[x]
-                        for x in xs
-                    ]
+                    [{"L3": "L3 end", "cpt": "CPT", "kp16": "1 step"}[x] for x in xs]
                 )
                 S.light_grid(ax, "y")
                 S.panel_title(ax, None, title)
             axs[0].set_ylabel("new edges' share of\ntop-edge mass (%)")
+            ax = axs[2]
+            xs = list(B["pairs"])
+            for i, x in enumerate(xs):
+                r = B["pairs"][x]
+                for dx, key, mk_, fill, lab in (
+                    (-0.12, "hop35_agree", "o", True, "EAP edges (wiring × use)"),
+                    (0.12, "hop35_unweighted_agree", "s", False, "wiring only (unweighted)"),
+                ):
+                    v = r[key]["pearson"]
+                    ax.plot(
+                        i + dx,
+                        v,
+                        mk_,
+                        color=col[x],
+                        ms=4.5,
+                        mfc=col[x] if fill else "white",
+                        mew=1.0,
+                        label=lab if i == 0 else None,
+                    )
+            ax.axhline(0, color=S.REF, lw=0.6)
+            ax.set_ylim(-1.05, 1.1)
+            ax.set_xlim(-0.5, len(xs) - 0.5)
+            ax.set_xticks(range(len(xs)))
+            ax.set_xticklabels([{"L3": "L3 end", "cpt": "CPT", "kp16": "1 step"}[x] for x in xs])
+            ax.set_ylabel("Pearson r with the base")
+            S.light_grid(ax, "y")
+            S.panel_title(ax, None, "(c) agreement with the base, 3 → 5")
+            leg = ax.legend(loc="lower right", fontsize=S.FS_TICK - 1, frameon=True, framealpha=0.9)
+            for h in leg.legend_handles:
+                h.set_color(S.INK2)
+                h.set_markerfacecolor("white" if h.get_marker() == "s" else S.INK2)
             S.save(fig, FIG / "stage3_edges")
             S.close(fig)
         if "patch" in B:

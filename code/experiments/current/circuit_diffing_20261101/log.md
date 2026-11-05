@@ -335,3 +335,33 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
 
   Reason: the L3-specific disagreement sits in the downstream gradient, not in the 3 → 5 wiring,
   so these locate where the teacher-forced gap lives. Smoke-tested on CPU and synced to ynez.
+- **6:14 pm.** `edges score --x kp16` took 11 min.
+  - The 1-step null gives 0 new edges, and Pearson / Spearman 1.00 on every agreement statistic.
+    So the method raises no false alarm on an unchanged model.
+  - L3 − kp16 m_new: +6.2 [+4.4, +10.4] points.
+- **6:15 pm.** `edges patch` started. Pre-registered edge sets, per fold:
+  - `new`: 63 / 75 edges;
+  - `rand0..2`: 46–71 edges at matched Σ|e^L3|.
+  - **Artifact:** the matched-change `retuned` set is a single edge in every group. The
+    sign-flipped edges' individual |e^L3 − e^base| (about 170–370) exceeds the whole `new` set's
+    (about 87–186), so the closest prefix is one edge with about 2.3× the target change.
+- **6:30 pm.** Coordinator's notes, recorded here for the write-up:
+  - J7 (capability-defs, 2026-10-05) is a precedent against "the un-annealed Stage 1 explains
+    CPT's gain". It annealed a similarly un-annealed base on its data for 15–18× Stage 1's time,
+    and the result was lateral.
+  - The G problems were selected with the paper's earlier base reads. Stage 2's base 2.0% is a
+    fresh, independent read, so it is not biased low by the selection.
+- **6:32 pm.** `edges patch` took 17 min. Teacher-forced gap removed on G (S in the md):
+  - **pre-registered conditions:** `new` 0.4% [0.2, 0.6]; `rand` mean 0.1%; `retuned` (1 edge)
+    −0.5%; `top` 3.5% [2.4, 4.6];
+  - **references:** `allU` 10.5% [9.1, 11.9]; `swap45` 23.1% [20.7, 25.5]; `revert3` 28.7%;
+    `base_new` recovers 1.1%;
+  - **exploratory:** `swap13` 34.2% [30.7, 37.9]; `swap6h` 3.3% [2.2, 4.3].
+  - **Pre-registered decision: "mixed / inconclusive".** Criteria 1 and 2 fail and criterion 3
+    holds, so "new wiring" is not supported. "Retuned" fails its bar (b), because `top` removes
+    under 10%. The hop is not moot.
+  - **Interpretation:** no new wiring, and the hop's retuning is diffuse. All scored edges
+    together carry about half of what swapping blocks 4–5 carries.
+- **6:40 pm.** Wrote `stage3.json`, `stage3.md` and `figs/stage3_{drift,edges,patch}`, and
+  rewrote the summary README (Stage 3 sections, Bottom line, corrected CPT statements). The
+  `cpt_recon` rerun is running.
