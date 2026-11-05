@@ -3,9 +3,9 @@
     python -m code.experiments.current.base_saturation_20261105.figure
 
 Panel (a): the pretraining-only arms (base, A, the CPT dose B0.25 / CPT / B4, C). Panel (b): RL
-from each start (base -> RL, CPT -> D1, C -> D2); an RL model shares its start's hue, dashed with
-square markers. Writes passk.{pdf,svg,png} next to this file, in `code/ndbench/figures/style.py`'s
-style.
+from each start (base -> RL, CPT -> D1, C -> D2). D1 and D2 share their start's hue, dashed with
+open square markers; the paper's RL keeps its usual vermillion. Writes passk.{pdf,svg,png} next
+to this file, in `code/ndbench/figures/style.py`'s style.
 """
 
 from __future__ import annotations

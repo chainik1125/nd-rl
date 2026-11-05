@@ -41,11 +41,13 @@ GAPS = [("CPT", "base"), ("RL", "base"), ("A", "base"), ("A", "CPT"), ("B0.25", 
         ("RL", "D1"), ("D2", "C"), ("D2", "RL")]  # fmt: skip
 ONLY = [("RL", "D1"), ("D1", "CPT"), ("D2", "C"), ("C", "base"), ("A", "base"), ("A", "CPT")]
 #: added after the PREREG (descriptive; marked † in table.md): every arm against base and CPT,
-#: and RL against A (the anneal-only arm)
+#: and RL against A (the anneal-only arm). Write-up (2026-11-05, after all reads): RL against
+#: every pretraining-only arm, so "how close does each arm get to RL at large k" has intervals.
 EXTRA_GAPS = [("RL", "A"), ("B4", "base"), ("C", "A"), ("D1", "base"), ("D2", "base"),
-              ("D2", "CPT")]  # fmt: skip
+              ("D2", "CPT"), ("RL", "CPT"), ("RL", "B0.25"), ("RL", "B4"),
+              ("RL", "C")]  # fmt: skip
 EXTRA_ONLY = [("RL", "A"), ("B0.25", "base"), ("B0.25", "CPT"), ("B4", "CPT"), ("C", "CPT"),
-              ("D2", "RL")]  # fmt: skip
+              ("D2", "RL"), ("RL", "C")]  # fmt: skip
 VAL = {
     "A": S / "pods/rp-sat-a/out/A_s0/train.json",
     "C": S / "pods/rp-sat-c/out/C_s0/train.json",
@@ -145,7 +147,8 @@ def main() -> int:
     out["only"] = only
     lines += [
         "",
-        "† added after the PREREG (descriptive): each arm against base and CPT, and RL against A.",
+        "† added after the PREREG (descriptive): each arm against base and CPT, and RL against "
+        "every pretraining-only arm.",
     ]
     vl = {}
     for x, p in VAL.items():

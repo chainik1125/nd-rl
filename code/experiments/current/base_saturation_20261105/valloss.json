@@ -41,6 +41,27 @@
    "val_w0": 0.07492508525833308,
    "charles_ref_w1": 0.07087547424057868,
    "charles_ref_w0": 0.08180232353094084
+  },
+  "B1248_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/base_saturation/pods/rp-sat-b4/out/B1248/cpt_lr0.00015.pt",
+   "val_w1": 0.06612465409369972,
+   "val_w0": 0.07374882233066662,
+   "charles_ref_w1": 0.06870369379303154,
+   "charles_ref_w0": 0.07929667491609177
+  },
+  "D1_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/base_saturation/pods/rp-sat-d1/out/grpo/grpo_think_vs_mb_kkl0_fromcpt_s0_L3/ckpts/grpo_think_vs_mb_kkl0_fromcpt_s0_L3_it39.pt",
+   "val_w1": 0.07189143813916316,
+   "val_w0": 0.08017878118629251,
+   "charles_ref_w1": 0.09486904912861392,
+   "charles_ref_w0": 0.10949342410526863
+  },
+  "D2_s0": {
+   "ckpt": "/scratch/cowifornia/nd-rl/base_saturation/pods/rp-sat-c/out/grpo/grpo_think_vs_mb_kkl0_fromC2x_s0_L3/ckpts/grpo_think_vs_mb_kkl0_fromC2x_s0_L3_it39.pt",
+   "val_w1": 0.0706608542704699,
+   "val_w0": 0.07880679471004054,
+   "charles_ref_w1": 0.0698669970559934,
+   "charles_ref_w0": 0.0806360390207132
   }
  },
  "scorer": {
