@@ -5,10 +5,17 @@ written_by: agent:claude
 
 # GRPO on Dan's knockout bases: can GRPO learn proof by contradiction where EI did not?
 
-**Status.** DONE.
+**Status.** The original arms are DONE. Amendment 1, his 0.1 % and 1 % dose bases, is IN
+PROGRESS.
 - The primary and reference arms ended by 12:01Z on 2026-11-05. The secondary lines ended
   at 08:55Z (dkoour_s2), 14:30Z (dkoour_s0) and 15:34Z (dkoour_s1).
-- Every Runpod pod was deleted after its backup was verified; pod spend $13.71.
+- **Amendment 1:** the three 1 % lines are done (by 19:12Z). The three 0.1 % lines are
+  running or waiting.
+  - dd01_s0 is on serrano.
+  - dd01_s1 and dd01_s2 wait for a lab GPU. temescal's CUDA is broken, and another user's
+    job keeps cycling on ynez. A pod needs Leon's OK.
+- Every Runpod pod was deleted after its backup was verified. Pod spend is $15.75, of which
+  rp-d1 and rp-d2 (amendment 1) cost $2.04.
 - Nothing is pushed.
 
 **Question (Dan).** "It would be cool to know if GRPO can actually learn proof-by-contradiction
@@ -42,6 +49,27 @@ the knockout base trains on our σ-rich pool.
   the training problems reward σ, never with his targets. GRPO can start σ from a 0 %-σ base
   when the problems demand it, but on one of three seeds and only in the last quarter of the
   ladder.
+
+**Amendment 1: his σ-dose bases.** These are the primary recipe on his 0.1 % and 1 % σ-dose
+Stage-1 bases, 3 seeds each. Leon asked for GRPO points beside his EI at every dose;
+PREREG.md, Amendment 1, was frozen before any dose line ran.
+- **1 %: every seed reaches his bar at its round-2 draw, at the same compute as his EI or
+  less.**
+
+  | seed | GRPO: round, x at crossing | his EI: round, x at crossing | GRPO ÷ EI |
+  |---|---|---|---|
+  | s0 | 2, 0.35 | 2, 0.39 | 0.89 |
+  | s1 | 2, 0.38 | 2, 0.41 | 0.93 |
+  | s2 | 2, 0.39 | 3, 0.73 | 0.53 |
+
+  - σ in the accepted training proofs is 2.0 %, 3.1 % and 2.0 %. His knockout bases gave
+    0.05–0.09 %.
+  - All three held the bar (stop rule "reached and held"). They took 1.2–1.9 GPU-h each.
+- **0.1 %: pending.** dd01_s0 is at 0 of the 106 at x_dan 0.81. His EI crossed this seed at
+  round 5 (x 1.37). dd01_s1 and dd01_s2 have barely started (see Status).
+- **Reading so far.** With σ in the pretraining at 1 %, GRPO crosses as early as his EI. At
+  0 %, neither crosses within one ladder. The 0.1 % dose decides where in between GRPO's
+  threshold lies.
 
 **Working folder:**
 [`code/experiments/current/knockout_danbase_20261104/`](../../code/experiments/current/knockout_danbase_20261104/README.md)
@@ -95,6 +123,12 @@ run log, the scripts and the numbers.
 | dkoour_s0 | secondary: knockout base, our σ-rich pool | 0 | 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 10, 13, 13 | no: 13 of 106 by x_dan 5.86 | 5.86 (5.84) | compute cap: x_dan 5.86 ≥ his round-16 x 5.84 | 12.3 | 5.13 % / 33.22 % |
 | dkoour_s1 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.93 | 5.93 (5.93) | compute cap: x_dan 5.93 ≥ his round-16 x 5.93 | 12.7 | 0.00 % / 0.00 % |
 | dkoour_s2 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.94 | 5.94 (5.90) | compute cap: x_dan 5.94 ≥ his round-16 x 5.90 | 10.0 | 0.00 % / 0.00 % |
+| dd01_s0 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | 0 | 0, 0, 0 | no: 0 of 106 by x_dan 0.81 | 0.81 (5.67) | running | 2.2 | 0.02 % / 0.01 % |
+| dd01_s1 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | — | — | no: 0 of 106 by x_dan 0.27 | 0.27 (5.94) | waiting | 1.8 | 0.09 % / 0.09 % |
+| dd01_s2 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | — | — | no: 0 of 106 by x_dan 0.20 | 0.20 (5.71) | waiting | 1.9 | 0.05 % / 0.05 % |
+| dd1_s2 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 1 | 1, 18 | **yes**: round 2, x_dan 0.39 (x_ours 0.074) | 0.72 (5.93) | reached (Dan's measure at x_dan 0.386) and held | 1.9 | 1.95 % / 2.70 % |
+| dd1_s0 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 1 | 1, 23 | **yes**: round 2, x_dan 0.35 (x_ours 0.066) | 0.44 (5.73) | reached (Dan's measure at x_dan 0.346) and held | 1.2 | 2.02 % / 2.22 % |
+| dd1_s1 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 13 | 13, 19 | **yes**: round 2, x_dan 0.38 (x_ours 0.072) | 0.48 (5.95) | reached (Dan's measure at x_dan 0.377) and held | 1.3 | 3.05 % / 3.30 % |
 <!-- /AUTO:lines -->
 
 His EI on the same bases, from his registry rows:
@@ -106,6 +140,12 @@ His EI on the same bases, from his registry rows:
 | la_ko_s1 | 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3 | 5.93 | not reached by round 16 |
 | la_ko_s2 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | 5.90 | not reached by round 16 |
 | la_full_s3 | 13, 40, 51, 55, 58, 58, 60, 62, 63, 64, 64, 64, 65, 65, 65, 65 | 5.80 | round 2, x 0.39 |
+| la_dose1_s0 | 3, 15, 22, 26, 30, 40, 44, 44, 47, 50, 52, 54, 55, 56, 57, 58 | 5.73 | round 2, x 0.39 |
+| la_dose1_s1 | 13, 19, 19, 21, 23, 24, 25, 30, 33, 34, 34, 34, 34, 34, 34, 34 | 5.95 | round 2, x 0.41 |
+| la_dose1_s2 | 2, 12, 16, 17, 20, 21, 23, 26, 29, 29, 29, 29, 29, 30, 30, 30 | 5.93 | round 3, x 0.73 |
+| la_dose01_s0 | 0, 0, 3, 5, 14, 17, 21, 23, 26, 27, 28, 28, 29, 29, 29, 30 | 5.67 | round 5, x 1.37 |
+| la_dose01_s1 | 0, 0, 0, 0, 0, 6, 13, 14, 14, 14, 17, 25, 26, 27, 28, 28 | 5.94 | round 8, x 2.58 |
+| la_dose01_s2 | 3, 12, 15, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19 | 5.71 | round 3, x 0.69 |
 <!-- /AUTO:dan -->
 
 ![His measure against compute on his rule: GRPO on his bases beside his EI ladders](cum_vs_x.png)
@@ -124,6 +164,11 @@ Scored against PREREG.md (frozen before any knockout line was read).
 | P4 | secondary: σ exceeds 5 % of the accepted training proofs on at least 1 dkoour seed | 50 % | **met**: on dkoour_s0, 5.1 % over the whole run, 33 % over its last 50 iterations (peak 46 % at it 443). dkoour_s2 0.00 %; dkoour_s1 0.00 % so far |
 | P5 | reference: dfull_s3 reaches his bar at its first matched draw after the base (round 2) | 80 % | **not met as registered**: it was already at the bar at round 1 (base draw 15, his 13), so the line ended "reached and held" before his round-2 x and has no round-2 draw |
 | P6 | pass@1 reward on Dan's pool passes 0.8 within 50 iterations on every dko seed | 70 % | **held**: it passed at iterations 12, 16 and 13 |
+| P7 | amendment 1, dose 1 %: at least 2 of 3 seeds reach his bar within one ladder | 70 % | **held**: 3 of 3, all at round 2 |
+| P8 | amendment 1, dose 0.1 %: at least 1 of 3 seeds reaches his bar within one ladder | 50 % | **pending** |
+| P9 | amendment 1, dose 1 %: on the seeds that cross, GRPO's x at the crossing is within 2× of his EI's on the same seed | 45 % | **held**: 0.89×, 0.93×, 0.53× |
+| P10 | amendment 1: dd1_s1 is at the bar at round 1, its base draw (his round-1 count is 13) | 40 % | **not met**: base draw 13, one below; it crossed at round 2 (19) |
+| P11 | amendment 1, dose 1 %: σ in the accepted training proofs exceeds 1 % on at least 2 of 3 seeds | 60 % | **held**: 2.0 %, 3.1 %, 2.0 % |
 
 ## Caveats
 
@@ -144,14 +189,20 @@ Scored against PREREG.md (frozen before any knockout line was read).
 - **Three secondary lines ran partly on Runpod A40 pods** (rp-s0, rp-s1 and rp-s2), with the
   same code and environment; the files were copied by the coordinator on Leon's approval. An
   A40 iteration took 65–135 s, against 60–90 s on the lab's GPUs.
+- **Amendment 1 machine events.** temescal's CUDA broke with its GPU 0 fault at 09:29Z, though
+  nvidia-smi still answered. dd01_s1 and dd01_s2 therefore ran GRPO on the CPU for an hour
+  (3 iterations) and their base reads failed. Both were ended and restarted from the base
+  elsewhere. Their base reads (round 1 of his measure) were then made separately on serrano
+  GPU 1, with the same code and arguments (`baseread_dd01.sh`). dd1_s2 finished its hold on a
+  pod (rp-d1, reused from dd1_s0) after another user's job took its ynez GPU.
 - **Machine events.** Lines were respawned and moved: one OOM, other users' processes, ynez's
   reboot, and a GPU reserved for another experiment. Lost iterations are listed below.
 
 ## Compute
 
 <!-- AUTO:compute -->
-- Lines: 76.8 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
-- Iterations lost to deaths and moves (superseded rows): {'dko_s0': [[11, 11], [501, 501]], 'dko_s2': [[1, 8]]}.
+- Lines: 87.0 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
+- Iterations lost to deaths and moves (superseded rows): {'dko_s0': [[11, 11], [501, 501]], 'dko_s2': [[1, 8]], 'dd01_s1': [[1, 3]], 'dd01_s2': [[1, 3], [1, 2]]}.
 <!-- /AUTO:compute -->
 
 ## Configuration
