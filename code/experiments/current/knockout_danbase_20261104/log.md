@@ -185,3 +185,10 @@ All times UTC.
   its iteration-345 checkpoint (04:42:27Z) and resumed as seg5 on temescal GPU 0 (04:44:01Z, 0
   lost). In use at 04:44Z: temescal 0 (dko_s0) and 2 (dko_s1), ynez 0 (dko_s2) and 2 (the
   reserved circuit reads): 4 of 4. The three secondary lines wait.
+- **05:0xZ — GPU rule changed** (Leon, via the coordinator): the cap of 4 is dropped; at least 2
+  of the lab's 12 GPUs (serrano 5, ynez 4, temescal 3) must stay free after any launch, move or
+  respawn. Free: no process of anyone and not reserved; an unreadable host has none free.
+  Launch time only (running lines are not stopped when other users fill the lab). The
+  per-machine rules stay (temescal ≤ 2 of ours, never share, serrano at 200 W). Tested on a dummy
+  state (the 04:55Z census, 1 free: nothing launches; 3 free: one launch; reserved and
+  unreadable GPUs never count as free).
