@@ -180,3 +180,8 @@ All times UTC.
   (5 in use → dkoour_s2 stopped; at 4 no launch; a released reservation frees a slot; an
   unreadable host fails closed). Applied at once: 5 in use (serrano 0; temescal 1, 2; ynez 0, 2),
   so dkoour_s2 ends at its next checkpoint and waits.
+- **04:42–04:44Z — at the cap.** dkoour_s2 ended at its iteration-350 rolling checkpoint
+  (04:42:57Z, 0 lost) and waits; dko_s0 (sudarsankg back on serrano GPU 0 since 04:33Z) ended at
+  its iteration-345 checkpoint (04:42:27Z) and resumed as seg5 on temescal GPU 0 (04:44:01Z, 0
+  lost). In use at 04:44Z: temescal 0 (dko_s0) and 2 (dko_s1), ynez 0 (dko_s2) and 2 (the
+  reserved circuit reads): 4 of 4. The three secondary lines wait.
