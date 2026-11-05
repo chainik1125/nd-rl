@@ -187,3 +187,29 @@ Branch `leon/circuit-diffing` (from `leon/high-rl-paper` at `1abc0ee`), worktree
   - sha256 matches serrano for every checkpoint and crosscoder: base `8012222f…`, L3 end
     `ca264766…`, CPT `6f418716…`, `kp16_st1` `e756b72d…`.
 - **4:40 pm (00:40Z).** PREREG.md with the Stage 3 section added, before any Stage 3 job: sha256 `d123304a5db57cd2f56087e903deb2bbbc17ed6fff80b8fb6e8ffb6e9c867c3b`.
+- **4:42 pm (00:42Z).** Queue A started on ynez GPU 2 (`queue3.sh`, job list
+  `logs/jobs_s3A.txt` on ynez). Order:
+  1. CPT rollouts;
+  2. the base-vs-CPT crosscoder at layer 3;
+  3. Stage-2 sampling on CPT: `rl_clean`, `rl_revert`, `rl_revertperm` and `rl_recon`, all
+     driven by CPT;
+  4. layer-5 crosscoders for CPT and `kp16_st1`.
+
+  `gpu_guard.sh` checks GPU 2 every 2 min for processes outside the queue. The watchdog covers
+  STALL, EXIT and OVERRUN.
+- **4:47 pm.** CPT rollouts done: 4,800 attempts, 54.0% done, 71,504 sequences, 7.72M tokens.
+- **4:52 pm.** Base-vs-CPT crosscoder at layer 3 trained. Final training FVU 0.008, the same as the
+  L3-end crosscoder; L0 32.
+- **4:50–5:05 pm.** Part B code written: `traces.py`, `edges.py` and `stage3_analyze.py`.
+  - **CPU smoke test** on serrano, on synthetic sequences cut from the L3 pool rollouts (no
+    Stage 3 data):
+    - the functional blocks used for forward-mode AD match the model's own blocks to 2e-6;
+    - the metric matches a full forward;
+    - the joint latent code matches `Crosscoder.encode` exactly;
+    - the JVP matches central finite differences to 0.4% of its scale;
+    - the clean references reproduce exactly.
+  - **Additions to the pre-registered design.** These are descriptive and not part of the
+    decision rule:
+    - an `allU` patching reference, which patches every U3 × U5 edge;
+    - 3 → 5 counts with unweighted edges (Σ dpre over the receiver's active positions);
+    - counts on the S set.
