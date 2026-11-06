@@ -1,0 +1,21 @@
+{"name": "textbook_9dce54aa7519dfd38167", "prompt": "THM SEQ ( ( ~ ( P > Q ) ) > ( Q > P ) ) PRF", "n_lines": 9}
+{"name": "textbook_fd057a138ffd9a9c188a", "prompt": "THM SEQ ( ( ( ( ~ P ) > Q ) > ( ( ~ Q ) > P ) ) & ( ( ( ~ Q ) > P ) > ( ( ~ P ) > Q ) ) ) PRF", "n_lines": 19}
+{"name": "textbook_e962e4d3fc1dbfb86e79", "prompt": "THM SEQ ( ( ( P v Q ) > ( P v R ) ) > ( P v ( Q > R ) ) ) PRF", "n_lines": 17}
+{"name": "textbook_05d366482a3b2495a3ec", "prompt": "THM SEQ ( P v ( ~ ( ~ ( ~ P ) ) ) ) PRF", "n_lines": 10}
+{"name": "textbook_7efe88ff3250f22c3861", "prompt": "THM SEQ ( ( ( ( P v Q ) & ( ( ~ P ) v Q ) ) & ( P v ( ~ Q ) ) ) > ( ~ ( ( ~ P ) v ( ~ Q ) ) ) ) PRF", "n_lines": null}
+{"name": "textbook_8d12d86c4a1d9843debc", "prompt": "THM ( P > Q ) , ( Q > ( R & P ) ) , ( R > ( P v Q ) ) SEQ ( ( R > P ) & ( P > R ) ) PRF", "n_lines": 17}
+{"name": "textbook_828cd5b839153ec11fd4", "prompt": "THM SEQ ( ( ( ( ( ( P > Q ) & ( Q > P ) ) > R ) & ( R > ( ( P > Q ) & ( Q > P ) ) ) ) > ( ( P > ( ( Q > R ) & ( R > Q ) ) ) & ( ( ( Q > R ) & ( R > Q ) ) > P ) ) ) & ( ( ( P > ( ( Q > R ) & ( R > Q ) ) ) & ( ( ( Q > R ) & ( R > Q ) ) > P ) ) > ( ( ( ( P > Q ) & ( Q > P ) ) > R ) & ( R > ( ( P > Q ) & ( Q > P ) ) ) ) ) ) PRF", "n_lines": null}
+{"name": "textbook_e0b988b2c8c5a34a58b2", "prompt": "THM SEQ ( ( ( ( P > Q ) & ( Q > P ) ) > ( ( Q v ( ~ P ) ) & ( ( ~ Q ) v P ) ) ) & ( ( ( Q v ( ~ P ) ) & ( ( ~ Q ) v P ) ) > ( ( P > Q ) & ( Q > P ) ) ) ) PRF", "n_lines": null}
+{"name": "textbook_124af4e361d5d46467af", "prompt": "THM SEQ ( ( ( ( P & ( Q > R ) ) > S ) > ( ( ( ( ~ P ) v Q ) v S ) & ( ( ( ~ P ) v ( ~ R ) ) v S ) ) ) & ( ( ( ( ( ~ P ) v Q ) v S ) & ( ( ( ~ P ) v ( ~ R ) ) v S ) ) > ( ( P & ( Q > R ) ) > S ) ) ) PRF", "n_lines": null}
+{"name": "textbook_83b62a17c8dcecce89b3", "prompt": "THM SEQ ( ( P > ( ~ P ) ) > ( ~ P ) ) PRF", "n_lines": 6}
+{"name": "textbook_99f1eb6743d83db9b248", "prompt": "THM ( ~ ( ( P > ( ~ Q ) ) v ( ~ R ) ) ) SEQ Q PRF", "n_lines": 9}
+{"name": "textbook_0e262e8e0d687eaeed5f", "prompt": "THM ( ( P v ( ~ Q ) ) > R ) SEQ ( ( ~ R ) > ( ( ~ P ) & Q ) ) PRF", "n_lines": 15}
+{"name": "textbook_6f2750009ee529705056", "prompt": "THM ( P > ( Q > R ) ) , ( P & Q ) SEQ R PRF", "n_lines": 6}
+{"name": "textbook_9fc6c4ccff942858d7b3", "prompt": "THM ( P & Q ) , ( P > R ) , ( Q > S ) SEQ ( R & S ) PRF", "n_lines": 8}
+{"name": "textbook_27bbad163b491d468407", "prompt": "THM ( ( P v Q ) v R ) , ( ~ R ) , ( ~ Q ) SEQ ( P v S ) PRF", "n_lines": 14}
+{"name": "textbook_2db1a03407fe63d072d5", "prompt": "THM ( ( ~ P ) > Q ) , ( ( ~ P ) v R ) , ( ~ R ) SEQ Q PRF", "n_lines": 9}
+{"name": "textbook_6f2140ac492f40fc582a", "prompt": "THM ( P & ( ( ~ P ) v Q ) ) , ( Q > R ) SEQ R PRF", "n_lines": 10}
+{"name": "textbook_3f60b3f9f2c6ee461226", "prompt": "THM ( P > Q ) , ( ( ~ Q ) v R ) , ( ~ R ) SEQ ( ~ P ) PRF", "n_lines": 11}
+{"name": "textbook_a67af6b24dccabdf9e78", "prompt": "THM ( ( P & Q ) v R ) , ( ~ R ) , ( ( ~ ( ( ~ P ) v ( ~ Q ) ) ) > S ) SEQ S PRF", "n_lines": 17}
+{"name": "textbook_a09d53a197d8697f9da5", "prompt": "THM ( ( ~ P ) v Q ) , ( P > R ) , P SEQ ( Q & R ) PRF", "n_lines": 10}
+{"name": "textbook_5d8d72fcae79efa3d780", "prompt": "THM ( P > Q ) , ( P v R ) , ( R > S ) , ( ( Q v S ) > ( ~ R ) ) SEQ P PRF", "n_lines": 12}

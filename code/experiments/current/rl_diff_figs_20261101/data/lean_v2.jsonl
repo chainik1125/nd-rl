@@ -1,0 +1,50 @@
+{"name": "lean_c89c57142d9d98dd99b7", "prompt": "THM ( ( P & Q ) v ( ( ~ P ) & ( ~ Q ) ) ) SEQ ( ( P > Q ) & ( Q > P ) ) PRF", "n_lines": 20}
+{"name": "lean_390217c7a65cce523881", "prompt": "THM P , Q , R , S SEQ ( ( P & Q ) & ( R & S ) ) PRF", "n_lines": 7}
+{"name": "lean_cc03f024e18d34940e72", "prompt": "THM ( P & Q ) , ( R & S ) SEQ ( P & S ) PRF", "n_lines": 5}
+{"name": "lean_c3ed4cbbc6ba40067edb", "prompt": "THM ( ( P & ( ( ( P & Q ) & P ) & ( P & ( P & P ) ) ) ) & ( ( P & P ) & P ) ) SEQ Q PRF", "n_lines": 6}
+{"name": "lean_8b68e975bfa747f32a42", "prompt": "THM SEQ ( ~ ( ~ ( P v ( ~ P ) ) ) ) PRF", "n_lines": 8}
+{"name": "lean_93d01c1b9d6b304d4090", "prompt": "THM ( P > Q ) , ( Q > P ) SEQ ( ( P > Q ) & ( Q > P ) ) PRF", "n_lines": 3}
+{"name": "lean_6771293e6a7d6c908cf3", "prompt": "THM ( ( P > Q ) & ( Q > P ) ) , ( R > P ) SEQ ( R > Q ) PRF", "n_lines": 7}
+{"name": "lean_faeabed36dfa0a9ba2b3", "prompt": "THM ( ( P > Q ) & ( Q > P ) ) , ( P > R ) SEQ ( Q > R ) PRF", "n_lines": 7}
+{"name": "lean_782043544dcdbfb5c00d", "prompt": "THM ( ( P v ( Q v R ) ) > ( ~ ( P & ( Q & R ) ) ) ) SEQ ( ( ( P v Q ) v R ) > ( ~ ( ( P & Q ) & R ) ) ) PRF", "n_lines": 14}
+{"name": "lean_67289775d5eef718994c", "prompt": "THM SEQ ( P > ( ( Q > P ) & ( ( ~ Q ) > P ) ) ) PRF", "n_lines": 9}
+{"name": "lean_9473ee7a1a156d0842aa", "prompt": "THM P SEQ ( ~ ( ( ~ P ) & Q ) ) PRF", "n_lines": 5}
+{"name": "lean_264749d62426703a4e0b", "prompt": "THM ( P > ( ~ Q ) ) SEQ ( ~ ( P & Q ) ) PRF", "n_lines": 7}
+{"name": "lean_3fd5f02276c148dc2c04", "prompt": "THM ( ~ ( P > Q ) ) SEQ ( ~ ( ~ P ) ) PRF", "n_lines": 8}
+{"name": "lean_e432ccf44451027ebb12", "prompt": "THM ( P > Q ) , ( R > Q ) , ( P v R ) SEQ Q PRF", "n_lines": 8}
+{"name": "lean_2ce2164c7406186a1b53", "prompt": "THM ( P > Q ) , ( P v R ) SEQ ( Q v R ) PRF", "n_lines": 8}
+{"name": "lean_2b33969b604b4326407a", "prompt": "THM ( P > Q ) SEQ ( ( P v R ) > ( R v Q ) ) PRF", "n_lines": 9}
+{"name": "lean_2889287727091c944aef", "prompt": "THM SEQ ( ( ( P > Q ) > R ) > ( ( ( Q > R ) > P ) > ( ( ( R > P ) > Q ) > P ) ) ) PRF", "n_lines": 13}
+{"name": "lean_9261bf38cfdbcced0718", "prompt": "THM SEQ ( ( ( P > Q ) > Q ) > ( ( P > R ) > ( ( R > Q ) > Q ) ) ) PRF", "n_lines": 11}
+{"name": "lean_1a99d69f02663f3ded0b", "prompt": "THM SEQ ( ( ( ( P > Q ) > Q ) > Q ) > ( P > Q ) ) PRF", "n_lines": 8}
+{"name": "lean_1cd5f32f8e17f01e39e2", "prompt": "THM SEQ ( F > ( P & F ) ) PRF", "n_lines": 3}
+{"name": "lean_b9285d0e644998c2d705", "prompt": "THM SEQ ( ( P & Q ) > ( ( Q & R ) > ( P & R ) ) ) PRF", "n_lines": 7}
+{"name": "lean_d70efde43d78006bcc7a", "prompt": "THM SEQ ( ( ( ( P & Q ) & R ) > ( P & ( Q & R ) ) ) & ( ( P & ( Q & R ) ) > ( ( P & Q ) & R ) ) ) PRF", "n_lines": 17}
+{"name": "lean_cd14ddc750aa797fc2d8", "prompt": "THM SEQ ( ( F > ( P & F ) ) & ( ( P & F ) > F ) ) PRF", "n_lines": 7}
+{"name": "lean_976e290c796b17dba993", "prompt": "THM SEQ ( ( ( ( P v Q ) v R ) > ( P v ( Q v R ) ) ) & ( ( P v ( Q v R ) ) > ( ( P v Q ) v R ) ) ) PRF", "n_lines": 27}
+{"name": "lean_02166120549c3216b9ba", "prompt": "THM ( P & Q ) SEQ ( Q & ( P & Q ) ) PRF", "n_lines": 3}
+{"name": "lean_11fd9b9661c3e00715c3", "prompt": "THM SEQ ( ( ( ( P v Q ) > R ) > ( ( P > R ) & ( Q > R ) ) ) & ( ( ( P > R ) & ( Q > R ) ) > ( ( P v Q ) > R ) ) ) PRF", "n_lines": 23}
+{"name": "lean_33133839d574761a6c29", "prompt": "THM SEQ ( ( ( P v F ) > P ) & ( P > ( P v F ) ) ) PRF", "n_lines": 10}
+{"name": "lean_21ca0bd399376eee8b4d", "prompt": "THM SEQ ( ( ( P & F ) > F ) & ( F > ( P & F ) ) ) PRF", "n_lines": 7}
+{"name": "lean_ba7053930e1a00013a41", "prompt": "THM P , Q , R SEQ ( P & ( ( ( P & Q ) & R ) & ( Q & ( R & P ) ) ) ) PRF", "n_lines": 9}
+{"name": "lean_3a98ba645a0d895d471c", "prompt": "THM P SEQ ( ( ( P & Q ) > Q ) & ( Q > ( P & Q ) ) ) PRF", "n_lines": 8}
+{"name": "lean_17337660067402871207", "prompt": "THM P SEQ ( ( P v ( Q v R ) ) & ( ( Q v ( P v R ) ) & ( Q v ( R v P ) ) ) ) PRF", "n_lines": 8}
+{"name": "lean_ae4da2c84472060f2555", "prompt": "THM ( ~ ( P & Q ) ) , P SEQ ( ( ~ P ) v ( ~ Q ) ) PRF", "n_lines": 7}
+{"name": "lean_c0dd4ee16bb1af0779dc", "prompt": "THM SEQ ( ( P & ( ~ Q ) ) > ( ( ~ Q ) & P ) ) PRF", "n_lines": 5}
+{"name": "lean_c84dba7d82d6b5d1b1dd", "prompt": "THM SEQ ( ( P & ( ( Q > P ) & ( P > Q ) ) ) > Q ) PRF", "n_lines": 6}
+{"name": "lean_f8092f96cc1e72c44fd8", "prompt": "THM SEQ ( ( ( ( P & ( ~ Q ) ) v Q ) > ( P v Q ) ) & ( ( P v Q ) > ( ( P & ( ~ Q ) ) v Q ) ) ) PRF", "n_lines": 25}
+{"name": "lean_5d731d66f8762e959781", "prompt": "THM P , Q , ( P > Q ) , ( Q > R ) SEQ R PRF", "n_lines": 5}
+{"name": "lean_a09473aefc31f0fd3b74", "prompt": "THM SEQ ( ( ( P > Q ) > ( R > S ) ) > ( R > ( Q > S ) ) ) PRF", "n_lines": 11}
+{"name": "lean_4f4ecfca77b9f2e6fa9c", "prompt": "THM SEQ ( ( P > Q ) > ( ( P > R ) > ( P > ( Q > R ) ) ) ) PRF", "n_lines": 9}
+{"name": "lean_90d2f9a659478a9d0e74", "prompt": "THM SEQ ( ( ( ( ( P > Q ) > P ) > P ) > Q ) > Q ) PRF", "n_lines": 12}
+{"name": "lean_0901535575f84ad55110", "prompt": "THM SEQ ( ~ ( ~ ( ( ~ ( ~ P ) ) > P ) ) ) PRF", "n_lines": 6}
+{"name": "lean_06890c6c3454fd932934", "prompt": "THM ( P & ( Q & R ) ) SEQ ( P & R ) PRF", "n_lines": 5}
+{"name": "lean_ce715ad7243966bb5b3b", "prompt": "THM ( P & ( ( Q & R ) & S ) ) SEQ ( Q & S ) PRF", "n_lines": 6}
+{"name": "lean_0307adb4fa484b07566b", "prompt": "THM ( P & ( ( Q & R ) & S ) ) SEQ ( Q & ( P & ( R & Q ) ) ) PRF", "n_lines": 9}
+{"name": "lean_2d6aa37bd78d5588f8f2", "prompt": "THM ( P > Q ) , ( ( ~ P ) > ( ~ R ) ) SEQ ( R > Q ) PRF", "n_lines": 10}
+{"name": "lean_f0f771fe0532796a08d2", "prompt": "THM ( ~ P ) SEQ ( ( P > F ) & ( F > P ) ) PRF", "n_lines": 8}
+{"name": "lean_afde7b5a601b894dc1fe", "prompt": "THM SEQ ( ( ( P v ( Q v R ) ) > ( Q v ( P v R ) ) ) & ( ( Q v ( P v R ) ) > ( P v ( Q v R ) ) ) ) PRF", "n_lines": 27}
+{"name": "lean_2c73512a6746d1df91d2", "prompt": "THM SEQ ( ( ( ( F > F ) > F ) > F ) & ( F > ( ( F > F ) > F ) ) ) PRF", "n_lines": 9}
+{"name": "lean_a8a8f150828b60b949d6", "prompt": "THM ( ( P > Q ) & ( Q > P ) ) , ( ( ( ~ ( ( ( R > ( S v ( ~ Q ) ) ) & ( ( Q v R ) > ( ~ S ) ) ) > ( Q > S ) ) ) > ( R & ( S & ( ~ Q ) ) ) ) & ( ( R & ( S & ( ~ Q ) ) ) > ( ~ ( ( ( R > ( S v ( ~ Q ) ) ) & ( ( Q v R ) > ( ~ S ) ) ) > ( Q > S ) ) ) ) ) SEQ ( ( ( ~ ( ( ( R > ( S v ( ~ P ) ) ) & ( ( P v R ) > ( ~ S ) ) ) > ( P > S ) ) ) > ( R & ( S & ( ~ P ) ) ) ) & ( ( R & ( S & ( ~ P ) ) ) > ( ~ ( ( ( R > ( S v ( ~ P ) ) ) & ( ( P v R ) > ( ~ S ) ) ) > ( P > S ) ) ) ) ) PRF", "n_lines": null}
+{"name": "lean_49eee5230f44aa220f94", "prompt": "THM SEQ ( ( ( ( ( P & Q ) > ( R & Q ) ) & ( ( R & Q ) > ( P & Q ) ) ) > ( Q > ( ( P > R ) & ( R > P ) ) ) ) & ( ( Q > ( ( P > R ) & ( R > P ) ) ) > ( ( ( P & Q ) > ( R & Q ) ) & ( ( R & Q ) > ( P & Q ) ) ) ) ) PRF", "n_lines": null}
+{"name": "lean_7b3a626d7752fdefbd27", "prompt": "THM SEQ ( ( ( ( P > ( Q > Q ) ) > ( ( P > Q ) > Q ) ) > R ) > ( ( ( ( ( P > P ) > Q ) > ( P > ( P > Q ) ) ) > R ) > ( ( ( ( P > ( P > Q ) ) > ( ( P > P ) > Q ) ) > R ) > R ) ) ) PRF", "n_lines": null}
