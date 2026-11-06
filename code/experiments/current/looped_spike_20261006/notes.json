@@ -1,0 +1,24 @@
+{
+ "status": "Complete. All runs and sweeps have finished, every pod is shut down, and every checkpoint is on Hugging Face under runs/looped-spike-20261006_*. One seed per arm throughout.",
+ "headline": "A looped trunk with two-thirds of the parameters gets close to run 198 and does not pass it. Extra test-time loops raise long-proof success after 4 RL rounds, up to about 4 loops and no further, whatever loop range the model was trained on. After 12 RL rounds most of that benefit is gone: the looped model solves 118 long dev problems at 1 loop (two-thirds of run 198's compute per sample) and 114 to 116 at 2 to 12 loops, against run 198's 121.",
+ "findings": [
+  "Harness score after 4 RL rounds, sampling at 2 loops: 680 run 198 (seeds 670, 680, 694), 666 looped fixed 2, 644 looped 1 to 4, 602 looped 1 to 8, 593 looped 1 to 16. The wider the training range, the lower the score at 2 loops. The loss is on the shorter dev theorems (length 7 to 9); at length 10 and above the arms are within a few problems of each other.",
+  "Long dev after 4 RL rounds, per-sample success (the low-noise measure, about 21,000 samples per row). Run 198: 19.0%. Looped 1 to 4: 13.4, 15.5, 16.3, 16.8, 16.6, 16.5, 16.5% at 1, 2, 3, 4, 6, 8, 12 loops. Looped 1 to 8: 9.5, 13.9, 16.6, 16.9, 16.8, 16.9, 16.7% at 1, 2, 4, 6, 8, 12, 16. Looped 1 to 16: 9.0, 12.3, 13.8, 13.7, 13.8, 13.8% at 1, 2, 4, 8, 16, 24. Fixed 2: 2.1, 16.8, 14.4, 9.5, 4.4, 4.1, 3.9% at 1, 2, 3, 4, 6, 8, 12.",
+  "Every random-loop model climbs to about 4 loops and is then exactly flat, out to 12, 16 or 24 loops, including loop counts it was trained on and counts far beyond them. The 1 to 4 and 1 to 8 models reach the same ceiling (16.8%), which is also what the fixed-2 model gets at its 2 loops. Training on a wider range does not raise or extend the ceiling; 1 to 16 lowers it. None reaches run 198's 19.0%.",
+  "Problems solved with all 64 samples tell the same story with more noise: run 198 110 of 329; looped 1 to 4 peaks at 101 (4 loops), 1 to 8 at 107 (6 loops), 1 to 16 at 91 (16 loops), fixed 2 at 109 (3 loops). The fixed-2 model's 109 at 3 loops comes with lower per-sample success than at 2 loops (14.4% against 16.8%), so that peak reflects more varied samples, not better ones.",
+  "After 12 RL rounds: run 198 scores 716 on dev and solves 121 long dev problems at 24.8% per sample. The looped 1 to 4 model scores 690 on dev and solves 118, 116, 115, 114, 115, 115, 115 at 1, 2, 3, 4, 6, 8, 12 loops, at 21.0, 22.9, 23.1, 23.3, 23.1, 23.0, 23.1% per sample. One extra loop is still worth about 2 points of per-sample success; nothing beyond 2 loops helps.",
+  "More RL helps the looped model more than run 198: dev score +46 against +36, long dev at 1 loop +33 (85 to 118) against +11 (110 to 121). The gap in per-sample success on long dev narrows from 2.2 points (16.8 against 19.0) to 1.5 (23.3 against 24.8).",
+  "Hardest targets: after 12 rounds, 128 fresh samples crack 8 of run 198's 244 still-unsolved RL targets, and 11, 11, 8, 12, 12, 11, 12 of the looped model's 280 at 1 to 12 loops. Loops do not crack targets that long RL could not. After 4 rounds the same test rose with loops (42 to 64 of 381 from 1 to 4 loops), partly a selection effect because those targets were chosen by failing under 2-loop sampling.",
+  "Loops against samples, after 4 rounds: for the 1 to 4 model at run 198's compute per problem, 4 loops (38 samples) is expected to solve 96.5 on long dev against 92 for 2 loops (64 samples). Past 4 loops extra compute buys nothing; at 12 loops sampling runs at about a third of the 2-loop speed.",
+  "Before RL, loop count has no effect: the 1 to 4 model solves 14 of 72 textbook problems at every loop count from 1 to 12, and validation loss is flat across loops for all random-loop arms. Validation loss did not predict the ranking after RL.",
+  "Withdrawn during the night: (1) that the looped model was far ahead before RL, from RL round-1 counts, which range from about 260 to 760 across near-identical untied runs; (2) that training on 1 to 8 loops moved the plateau out or raised it, which per-sample success does not support.",
+  "textbook72 sits at 16 to 21 solved for every checkpoint that has had RL, at any loop count. It is too small to separate these models."
+ ],
+ "caveats": [
+  "One seed per arm. Run 198's three seeds span 24 points on the harness score, so differences of that size between single looped runs are not established.",
+  "Run 198 is the product of about 200 autoresearch runs scored on the same dev pool; the looped trunk had no tuning at all. The comparison favours run 198.",
+  "The 12-round numbers are outside the frozen 4-round autoresearch protocol and are not comparable with autoresearch scores.",
+  "The never-solved-targets pool differs between runs, so it compares loop counts within a run only.",
+  "All looped models were sampled at 2 loops during RL. Sampling at more loops during RL was not tried."
+ ]
+}

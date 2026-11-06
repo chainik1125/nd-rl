@@ -1,0 +1,209 @@
+<title>Pass@k by Loop Budget</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a short reading column on top, then two galleries of small multiples (one panel per
+   model, same axes in every panel) so the eye compares line spread across models. */
+:root {
+  --bg: #f5f6f9; --surface: #ffffff; --ink: #141920; --muted: #5a6473; --rule: #dde2ea;
+  --grid: #e9edf3; --ref: #7c8594;
+  --b1: #86b6ef; --b2: #5598e7; --b3: #2a78d6; --b4: #1c5cab; --b5: #0d366b;
+  --o1: #ef9f7e; --o2: #ea7645; --o3: #cf531f; --o4: #9c3a12; --o5: #63240a;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --ref: #8d96a5;
+  --b1: #184f95; --b2: #256abf; --b3: #3987e5; --b4: #6da7ec; --b5: #b7d3f6;
+  --o1: #8a3414; --o2: #b9471b; --o3: #e0612c; --o4: #f09a75; --o5: #fad2c0; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11141a; --surface: #191d25; --ink: #eef1f6; --muted: #a2abb9; --rule: #2b323d;
+  --grid: #242a34; --ref: #8d96a5;
+  --b1: #184f95; --b2: #256abf; --b3: #3987e5; --b4: #6da7ec; --b5: #b7d3f6;
+  --o1: #8a3414; --o2: #b9471b; --o3: #e0612c; --o4: #f09a75; --o5: #fad2c0; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px;
+  display: flex; flex-direction: column; gap: 34px; }
+h1 { font-size: 30px; line-height: 1.15; font-weight: 600; margin: 0; text-wrap: balance; }
+h2 { font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
+h3 { font-size: 15px; font-weight: 600; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 70ch; }
+section { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 18px; line-height: 1.45; max-width: 62ch; }
+.muted { color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 13px;
+  position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding-block: 8px; z-index: 3; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: 500 13px var(--sans); color: var(--muted); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg button:focus-visible { outline: 2px solid var(--b3); outline-offset: -2px; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 12px;
+  display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.panel .sub { font-size: 13px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 12px; font: 12px var(--mono); color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { display: inline-block; width: 16px; height: 0; border-top: 2.5px solid; }
+.legend i.dash { border-top-style: dashed; }
+.chart { width: 100%; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font: 11px var(--mono); fill: var(--muted); }
+.empty { font-size: 13px; color: var(--muted); padding: 48px 0; text-align: center; max-width: none; }
+.strip { font: 12px/1.6 var(--mono); color: var(--muted); border-top: 1px solid var(--rule); padding-top: 8px; }
+.strip b { font-weight: 500; color: var(--ink); }
+#tip { position: fixed; pointer-events: none; z-index: 5; background: var(--ink); color: var(--bg);
+  font: 12px/1.5 var(--mono); padding: 6px 9px; border-radius: 5px; white-space: nowrap; }
+#tip b { font-weight: 500; }
+details { border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); }
+summary { cursor: pointer; padding: 10px 14px; font-weight: 500; }
+.tablebox { overflow-x: auto; border-top: 1px solid var(--rule); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 6px 12px; text-align: right; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font: 500 12px var(--mono); color: var(--muted); }
+td.num { font-family: var(--mono); }
+tr.model td { font-weight: 600; background: var(--bg); text-align: left; }
+ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 74ch; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <div class="eyebrow">nd-rl · test-time compute · <span id="gen"></span></div>
+    <h1>Pass@k at different loop budgets</h1>
+    <p class="lede">One panel per model, one line per test-time loop count. If loops bought proofs, the lines for more loops would sit clearly above the lines for fewer. Mostly they don't: beyond about 4 loops, or any number of thoughts, the lines lie on top of each other, and moving right along a line (more samples) gains far more than moving between lines.</p>
+  </header>
+
+  <div class="controls">
+    <span>Problems</span><div class="seg" id="poolSeg"></div>
+    <span>X-axis for looped models</span><div class="seg" id="xSeg"></div>
+  </div>
+
+  <section>
+    <h2>Looped transformers</h2>
+    <p>The shared core is applied n times; n is set at test time. Lines run from faint (fewest loops) to bold (most). The grey dashed line is run 198, the ordinary untied model with the same RL, which applies 6 blocks per token; a looped model applies 2 + 2n.</p>
+    <div class="gallery" id="g-looped"></div>
+  </section>
+
+  <section>
+    <h2>Continuous thoughts (recurrence)</h2>
+    <p>Run 198 plus T latent thoughts between the theorem and the proof, each fed back from the model's own previous output; T is set at test time. Lines run from faint (no thoughts) to bold (most). All were trained with 0 to 8 thoughts and had 4 RL rounds sampled at 8.</p>
+    <div class="gallery" id="g-thoughts"></div>
+  </section>
+
+  <section>
+    <h2>Every number</h2>
+    <details id="tableWrap"><summary>Table: expected problems solved at k = 1, 8 and all samples, every model and budget</summary><div class="tablebox"><table id="tbl"></table></div></details>
+  </section>
+
+  <section>
+    <h2>Read with care</h2>
+    <ul>
+      <li>One seed per model. Curves are exact expectations over subsets of the samples drawn (64 per problem on long dev, 256 on textbook72, 128 on RL unsolved), so they are smooth, but a different seed would move a whole panel by a few problems.</li>
+      <li>Each chart draws five budgets; the strip under it gives the solved count for every budget measured.</li>
+      <li>"RL unsolved" is each model's own set of RL targets that none of its rounds solved, so its size differs by model and it is plotted as a share. It was chosen by failing at the budget RL sampled with (2 loops, or 8 thoughts), which favours other budgets a little.</li>
+      <li>These are Tuesday night's models, trained with the old 4-round RL. The autoresearch loop's later models were scored only at 2 and 8 loops (best: 766 against 739 of 1,108 dev theorems), so they have no curves here. Run 198 with the improved RL scores 792.</li>
+      <li>With the x-axis on compute, each looped line is stretched by its cost per sample (2 + 2n blocks against run 198's 6), so lines at the same x have spent the same compute. Thoughts add a few positions per sample and are not rescaled.</li>
+    </ul>
+  </section>
+
+  <footer>Pools: long dev = the 329 dev theorems whose reference proof has 10 or more lines; textbook72 = 72 textbook problems. Sampling temperature 0.8, as in the harness. Built from <span style="font-family:var(--mono)">loop_sweep_*.json</span> and <span style="font-family:var(--mono)">thought_sweep_final.json</span>; code in <span style="font-family:var(--mono)">code/experiments/current/looped_spike_20261006/passk_page.py</span>.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const DATA = /*DATA*/;
+const $ = id => document.getElementById(id);
+const POOLS = {dev_long: "Long dev (329)", textbook72: "textbook72 (72)", rl_unsolved: "RL unsolved (own set)"};
+const RAMP = {looped: ["--b1", "--b2", "--b3", "--b4", "--b5"], thoughts: ["--o1", "--o2", "--o3", "--o4", "--o5"]};
+const state = {pool: "dev_long", x: "samples"};
+const fmt = (v, d = 0) => Number(v).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const unit = (m, n) => m.knob === "loops" ? (n === 1 ? "1 loop" : n + " loops") : (n === 1 ? "1 thought" : n + " thoughts");
+
+// exact expected number solved with m of the k samples
+const LF = [0]; for (let i = 1; i <= 600; i++) LF[i] = LF[i - 1] + Math.log(i);
+const lc = (n, r) => (r < 0 || r > n) ? -Infinity : LF[n] - LF[r] - LF[n - r];
+const expSolved = (counts, k, m) => counts.reduce((a, c) => a + 1 - Math.exp(lc(k - c, m) - lc(k, m)), 0);
+const share = () => state.pool === "rl_unsolved";  // sets differ in size: plot a share
+const val = (pool, line, m) => expSolved(line.counts, pool.k, m) / (share() ? pool.n / 100 : 1);
+const ks = K => { const out = []; for (let m = 1; m <= K; m *= 2) out.push(m); return out; };
+
+function yMax() {  // one y-axis for every panel of the current pool
+  let top = 0;
+  for (const m of DATA.models) for (const src of [m.pools, share() ? {} : m.ref]) {
+    const p = src[state.pool]; if (p) for (const l of p.lines) top = Math.max(top, val(p, l, p.k));
+  }
+  const step = top > 60 ? 20 : top > 24 ? 10 : 5; return {max: Math.ceil(top * 1.04 / step) * step, step};
+}
+
+const tip = $("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false;
+  const x = Math.min(window.innerWidth - tip.offsetWidth - 8, e.clientX + 14);
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 12) + "px"; }
+
+function draw(m, el) {
+  const pool = m.pools[state.pool];
+  if (!pool) { el.chart.innerHTML = '<p class="empty">Not measured for this checkpoint.</p>'; el.legend.innerHTML = ""; el.strip.innerHTML = ""; return; }
+  const compute = state.x === "compute" && m.family === "looped";
+  const xOf = (l, k) => compute ? k * l.depth / 6 : k;
+  const lines = m.show.map(n => pool.lines.find(l => l.level === n)).filter(Boolean);
+  const series = lines.map((l, i) => ({name: unit(m, l.level), color: `var(${RAMP[m.family][i + (5 - lines.length)]})`,
+    pts: ks(pool.k).map(k => [xOf(l, k), val(pool, l, k), k])}));
+  const ref = share() ? null : (m.ref[state.pool] || {lines: []}).lines[0];
+  if (ref) series.push({name: "Run 198 (untied)", color: "var(--ref)", dash: 1, pts: ks(pool.k).map(k => [k, val(m.ref[state.pool], ref, k), k])});
+  el.legend.innerHTML = series.map(s => `<span><i class="${s.dash ? "dash" : ""}" style="border-color:${s.color}"></i>${esc(s.name)}</span>`).join("");
+  const all = pool.lines.map(l => `${l.level} <b>${share() ? fmt(l.solved / pool.n * 100, 1) + "%" : l.solved}</b>`).join(" · ");
+  el.strip.innerHTML = `All ${pool.k} samples, by ${m.knob}: ${all}` + (share() ? ` <span>(of ${pool.n})</span>` : "");
+
+  const W = Math.max(280, el.chart.clientWidth), H = 240, mg = {l: 40, r: 12, t: 8, b: 40};
+  const xs = series.flatMap(s => s.pts.map(p => p[0])), x0 = Math.min(0, Math.log2(Math.min(...xs))), x1 = Math.log2(Math.max(...xs));
+  const {max: y1, step} = yMax();
+  const X = v => mg.l + (Math.log2(v) - x0) / (x1 - x0) * (W - mg.l - mg.r), Y = v => H - mg.b - v / y1 * (H - mg.t - mg.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.title)}: pass@k by ${m.knob}">`;
+  for (let v = 0; v <= y1 + 1e-9; v += step) s += `<line x1="${mg.l}" x2="${W - mg.r}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--grid)"/><text x="${mg.l - 7}" y="${Y(v) + 4}" text-anchor="end">${v}${share() ? "%" : ""}</text>`;
+  for (let t = 1; Math.log2(t) <= x1 + 1e-9; t *= 2) if (W > 420 || Math.log2(t) % 2 === 0) s += `<text x="${X(t)}" y="${H - mg.b + 15}" text-anchor="middle">${t}</text>`;
+  s += `<text x="${(mg.l + W - mg.r) / 2}" y="${H - 6}" text-anchor="middle">${compute ? "compute per problem, in run-198 samples" : "samples per problem (k)"}</text>`;
+  for (const se of series) {
+    const d = se.pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join("");
+    s += `<path d="${d}" fill="none" style="stroke:${se.color};stroke-width:2;stroke-linejoin:round;${se.dash ? "stroke-dasharray:5 4" : ""}"/>`;
+  }
+  s += `<line class="xh" y1="${mg.t}" y2="${H - mg.b}" style="stroke:var(--muted);stroke-width:1" visibility="hidden"/><rect x="${mg.l}" y="${mg.t}" width="${W - mg.l - mg.r}" height="${H - mg.t - mg.b}" fill="transparent"/></svg>`;
+  el.chart.innerHTML = s;
+  const svg = el.chart.firstChild, xh = svg.querySelector(".xh");
+  svg.onmousemove = e => { const b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * W / b.width;
+    xh.setAttribute("x1", px); xh.setAttribute("x2", px); xh.setAttribute("visibility", "visible");
+    const rows = series.map(se => { const p = se.pts.reduce((a, q) => Math.abs(X(q[0]) - px) < Math.abs(X(a[0]) - px) ? q : a, se.pts[0]);
+      return `${esc(se.name)}: ${fmt(p[1], 1)}${share() ? "%" : ""} <span style="opacity:.7">k=${p[2]}</span>`; });
+    showTip(e, `<b>${esc(m.title)}</b><br>` + rows.join("<br>")); };
+  svg.onmouseleave = () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); };
+}
+
+const panels = DATA.models.map(m => {
+  const p = document.createElement("div"); p.className = "panel";
+  p.innerHTML = `<h3>${esc(m.title)}</h3><div class="sub">${esc(m.sub)}</div><div class="legend"></div><div class="chart"></div><div class="strip"></div>`;
+  $("g-" + m.family).appendChild(p);
+  return {m, el: {legend: p.querySelector(".legend"), chart: p.querySelector(".chart"), strip: p.querySelector(".strip")}};
+});
+const redraw = () => panels.forEach(({m, el}) => draw(m, el));
+
+function table() {
+  let h = `<thead><tr><th>Model and budget</th><th>k = 1</th><th>k = 8</th><th>all samples</th><th>per-sample success</th></tr></thead><tbody>`;
+  for (const m of DATA.models) { const p = m.pools[state.pool]; if (!p) continue;
+    h += `<tr class="model"><td colspan="5">${esc(m.title)} <span class="muted" style="font-weight:400">· ${esc(m.sub)}${share() ? " · " + p.n + " targets" : ""}</span></td></tr>`;
+    for (const l of p.lines) h += `<tr><td>${unit(m, l.level)}</td><td class="num">${fmt(val(p, l, 1), 1)}</td><td class="num">${fmt(val(p, l, 8), 1)}</td><td class="num">${fmt(val(p, l, p.k), share() ? 1 : 0)}</td><td class="num">${fmt(l.counts.reduce((a, c) => a + c, 0) / (p.k * p.n) * 100, 1)}%</td></tr>`; }
+  $("tbl").innerHTML = h + "</tbody>";
+}
+
+function seg(id, opts, key) { const el = $(id);
+  el.innerHTML = opts.map(([v, lab]) => `<button id="${id}-${v}" data-v="${v}" aria-pressed="${state[key] === v}">${esc(lab)}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("button"); if (!b) return; state[key] = b.dataset.v;
+    el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); redraw(); table(); }; }
+seg("poolSeg", Object.entries(POOLS), "pool");
+seg("xSeg", [["samples", "Samples"], ["compute", "Compute"]], "x");
+$("gen").textContent = "built " + DATA.generated;
+new ResizeObserver(redraw).observe(document.querySelector(".wrap"));
+redraw(); table();
+</script>

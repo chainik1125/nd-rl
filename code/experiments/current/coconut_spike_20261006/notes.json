@@ -1,0 +1,20 @@
+{
+ "status": "Complete. All six arms have a harness score and a full thought-count sweep; every pod is terminated.",
+ "headline": "Continuous thoughts do not buy proofs here. Feedback thoughts raise what the pretrained model can prove before RL, the gain is gone after four rounds of RL, and after RL no arm solves more problems with more thoughts at test time.",
+ "findings": [
+  "Before RL, feedback beats the control. Share of round-1 samples that are valid proofs of 7 to 14 line targets: 7.6% for pause tokens, 12.9% for unsupervised feedback, 18.3% for the rule probe, 19.9% for the Coconut curriculum. Run 198 without thoughts is at 8.1%, level with the control.",
+  "After RL, the three best arms are level: 617 (unsupervised feedback), 610 (pause control), 601 (Coconut curriculum). These gaps are inside seed noise, so feedback and the curriculum buy nothing in the final score.",
+  "The other plan- and state-supervised arms end lower: rule probe 516, future states 519, self-distillation 447. The curriculum is the one supervised recipe that does not lose ground through RL; it is also the only one whose supervision has been switched off by the end of pretraining.",
+  "Test-time thought count does nothing after RL. In every arm and on all three pools, problems solved are flat from 0 to 8 thoughts and flat or slightly lower at 16 and 32. For example unsupervised feedback on long dev: 85, 86, 84, 86, 84, 85, 80 of 329 at 0, 1, 2, 4, 8, 16, 32 thoughts.",
+  "The pause control is as flat as the feedback arms, so after RL the models are not using their thoughts: sampling with none is as good as sampling with eight.",
+  "On never-solved RL targets, fresh samples alone crack 12% to 16% of them at every thought count; no arm cracks more with more thoughts.",
+  "Self-distillation ran two passes per batch and got 1,550 pretraining steps where the others got about 2,400 to 2,800, so its deficit is not attributable to the method alone."
+ ],
+ "caveats": [
+  "Every arm trains at about half of run 198's steps per second, so each gets 1,550 to 2,765 pretraining steps where 198 got 5,363. Run 198's own code at about 2,400 steps scored 612 in an earlier autoresearch run, so the arms' 65-point gap to 198 is this implementation's speed, not thoughts. Compare arms with each other and with the pause control, not with 198.",
+  "The Coconut curriculum run hit the harness's 2,400 s limit during its dev eval: this arm samples slowly (about 150 samples/s against 250 to 280), on two different pods. Its score of 601 comes from the harness's own eval run afterwards on the saved round-4 weights, with the same pool, sample count and seed. Its status stays timeout.",
+  "One seed per arm. Run 198's three seeds scored 670, 680 and 694, so differences of about 15 on the harness score are within seed noise.",
+  "The pause control also beats run 198 on round-1 targets solved (401 against 258) at the same sample accuracy, so something shared by all arms, fewer steps or random thought counts, spreads correct samples over more targets. That part of the pre-RL gain is not about feedback.",
+  "RL-unsolved pools differ between runs, so read that pool across thought counts within an arm, not across arms."
+ ]
+}
