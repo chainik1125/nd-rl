@@ -7,8 +7,8 @@
     pretraining proofs; one marker per seed. Grey: his EI ladders (dan_axis.json). Colour: GRPO on
     his own bases: the knockout with his 4,495 targets (primary), the knockout with our σ-rich pool
     (secondary), the full base with his targets (reference). Filled circle: first crossing;
-    up-triangle on a thin line: not reached by that x; hollow circle on the floor: at the bar at
-    round 1 (the base).
+    up-triangle on a thin line: not reached by that x (hollow: stopped there by the 15 GPU-h cap,
+    short of his round-16 x); hollow circle on the floor: at the bar at round 1 (the base).
 (b) `cum_vs_x`: his measure (the cumulative count over the matched draws) against x on his rule,
     our GRPO lines beside his EI ladders on the same bases, with the bar.
 (c) `sigma_danbase`: σ's share of the distinct Lean-accepted training proofs (Dan's coe_sigma, a
@@ -79,7 +79,10 @@ def _ours(ax, x: float, v: dict, color: str, mk: str = "o") -> None:
         y = max(v["x_dan"], FLOOR * 1.5)
         ls = "-" if v["status"] == "done" else ":"  # dotted: still running
         ax.plot([x, x], [FLOOR, y], color=color, lw=0.6, alpha=0.6, ls=ls, zorder=2)
-        ax.plot([x], [y], "^", ms=4.9, color=color, mec=SURF, mew=0.5, zorder=5)
+        if (v.get("stop_reason") or "").startswith("GPU-h cap"):  # short of his ladder's end
+            ax.plot([x], [y], "^", ms=4.9, mfc=SURF, mec=color, mew=0.9, zorder=5)
+        else:
+            ax.plot([x], [y], "^", ms=4.9, color=color, mec=SURF, mew=0.5, zorder=5)
 
 
 def headline(N: dict, figdir: Path) -> None:
@@ -117,7 +120,9 @@ def headline(N: dict, figdir: Path) -> None:
          Line2D([], [], ls="none", marker="o", color=COL["reference"], ms=4.4,
                 label=LAB["reference"]),
          Line2D([], [], ls="none", marker="^", color=S.INK2, ms=4.4,
-                label="not reached by that x (dotted: running)")]  # fmt: skip
+                label="not reached by that x, at his round-16 x"),
+         Line2D([], [], ls="none", marker="^", mfc=SURF, mec=S.INK2, mew=0.9, ms=4.4,
+                label="not reached: stopped by the 15 GPU-h cap, short of his ladder")]  # fmt: skip
     ax.legend(handles=h, fontsize=S.FS_SMALL, frameon=False, loc="upper right")
     S.save(fig, figdir / "rl_needed_danbase")
     S.close(fig)

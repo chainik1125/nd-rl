@@ -336,3 +336,17 @@ All times UTC.
     no atomic rename. The pod's newest checkpoint must now be in serrano's backup, the same size, and
     pass a zip test. The ready event names that iteration and the last logged one. A resume can be up
     to 4 iterations behind the last logged one, since a stop does not write a checkpoint.
+  - **08:18–09:44Z (2026-11-06): the 0.1 % lines ended at the 15 GPU-h cap, none crossing.** Leon was
+    asked whether to lift the cap and had not answered, so it stood.
+
+    | line | stop x | his round-16 x | his measure, of 106 | best first-32 | lr 1/8 from x | resume point in the backup |
+    |---|---|---|---|---|---|---|
+    | dd01_s0 | 4.49 | 5.67 | 0 | 0 | 1.44 | it 695 (last logged 696) |
+    | dd01_s1 | 5.43 | 5.94 | 0 | 0 | 1.43 | it 400 |
+    | dd01_s2 | 5.63 | 5.71 | 1 | 3 | 1.51 | it 432 |
+
+    - The coordinator deleted rp-d5, rp-d4 and rp-d3 through the MCP and retired them; its list of
+      pods is empty. Pod spend by the supervisor's count is $37.95, under the $43.33 ceiling.
+    - Serrano's supervisor exited by itself at 09:47:17Z. I stopped temescal's standby at 09:47Z,
+      since it exits only after a takeover. No line or supervisor process is left on any lab host.
+    - P8 is not met as run. No line was resumed and nothing new was started.

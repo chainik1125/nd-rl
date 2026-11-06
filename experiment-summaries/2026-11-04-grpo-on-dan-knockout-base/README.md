@@ -5,20 +5,19 @@ written_by: agent:claude
 
 # GRPO on Dan's knockout bases: can GRPO learn proof by contradiction where EI did not?
 
-**Status.** The original arms are DONE. Amendment 1, his 0.1 % and 1 % dose bases, is IN
-PROGRESS.
+**Status.** DONE. Every line has ended and nothing is running.
 - The primary and reference arms ended by 12:01Z on 2026-11-05. The secondary lines ended
   at 08:55Z (dkoour_s2), 14:30Z (dkoour_s0) and 15:34Z (dkoour_s1).
-- **Amendment 1:** the three 1 % lines are done (by 19:12Z). The three 0.1 % lines are
-  running, all on A40 pods, because no lab GPU is usable under the rules.
-  - dd01_s1 and dd01_s2 run on rp-d3 and rp-d4, which Leon approved at 20:14Z. temescal's CUDA
-    is broken, and another user's job keeps cycling on ynez. They resumed at 20:24Z with no
-    iterations lost.
-  - dd01_s0 runs on rp-d5, under Leon's standing permission for GPUs taken by another user. It
-    moved from serrano and resumed at 21:52Z with no iterations lost.
-- The five earlier Runpod pods were deleted after their backups were verified. They cost $15.75,
-  of which rp-d1 and rp-d2 (amendment 1) cost $2.04. The three new pods are billing on top of
-  that.
+- **Amendment 1:** the three 1 % lines ended by 19:12Z on 2026-11-05. The three 0.1 % lines all
+  ended at the pre-registered 15 GPU-h cap on 2026-11-06, short of the end of his ladder: at
+  08:18Z (dd01_s0), 09:33Z (dd01_s2) and 09:44Z (dd01_s1). Leon was asked whether to lift the cap
+  and had not answered when they stopped, so it stood.
+  - dd01_s1 and dd01_s2 ran on rp-d3 and rp-d4 from 20:24Z, on Leon's approval. temescal's CUDA was
+    broken, and another user's job kept cycling on ynez.
+  - dd01_s0 ran on rp-d5 from 21:52Z, under Leon's standing permission for GPUs taken by another
+    user.
+- All eight Runpod pods were deleted after their backups were verified. By the supervisor's count
+  (rate × time) they cost $37.95, of which amendment 1's five cost $24.24.
 - Nothing is pushed.
 
 **Question (Dan).** "It would be cool to know if GRPO can actually learn proof-by-contradiction
@@ -71,19 +70,28 @@ PREREG.md, Amendment 1, was frozen before any dose line ran.
   - σ in the accepted training proofs is 2.0 %, 3.1 % and 2.0 %. His knockout bases gave
     0.05–0.09 %.
   - All three held the bar (stop rule "reached and held"). They took 1.2–1.9 GPU-h each.
-- **0.1 %: pending.** At 04:34Z no seed has crossed, and each is past the x at which his EI crossed
-  it.
+- **0.1 %: no seed reached his bar, but this does not show that GRPO cannot learn σ at this dose.**
+  The 15 GPU-h cap stopped all three lines short of his round-16 x, and most of each line ran at
+  1/8 of the lr.
 
-  | seed | GRPO: x so far | GRPO: his measure so far | his EI: round, x at crossing |
-  |---|---|---|---|
-  | s0 | 3.17 | 0 | 5, 1.37 |
-  | s1 | 3.23 | 0 | 8, 2.58 |
-  | s2 | 3.42 | 1 | 3, 0.69 |
+  | seed | GRPO: stop x (his round-16 x; share of his ladder) | GRPO: his measure, of 106 | best first-32 count at any read | lr 1/8 from x (share of the line's x) | his EI: round, x at crossing |
+  |---|---|---|---|---|---|
+  | s0 | 4.49 (5.67; 79 %) | 0 (0 %) | 0 | 1.44 (68 %) | 5, 1.37 |
+  | s1 | 5.43 (5.94; 91 %) | 0 (0 %) | 0 | 1.43 (74 %) | 8, 2.58 |
+  | s2 | 5.63 (5.71; 99 %) | 1 (0.9 %) | 3 | 1.51 (73 %) | 3, 0.69 |
 
-  All three have run at 1/8 of the lr since x 1.43–1.51 (see Caveats).
-- **Reading so far.** With σ in the pretraining at 1 %, GRPO crosses as early as his EI, at the full
-  lr. At 0 %, neither crosses within one ladder, but GRPO's lr was cut to 1/8 for most of it. The
-  0.1 % dose is still running, with the same cut, so it may not locate GRPO's threshold.
+  - **The solves.** dd01_s2's 1 is its base's, from round 1. Its best first-32 count of 3 came at
+    it 30 (x 0.24), a read between his rounds, so it is not one of the matched draws.
+  - **The lr at his EI's crossing x.** GRPO was already below the full lr there: 1/2 on s0, 1/8 on
+    s1 and 1/4 on s2.
+  - **σ in training.** σ was 0.07 %, 0.12 % and 0.04 % of the accepted training proofs over each
+    line. That is near his knockout bases' 0.05–0.09 %, against 2.0–3.1 % on the 1 % lines.
+- **Reading (interpretation).** With σ in the pretraining at 1 %, GRPO crosses as early as his EI,
+  at the full lr. His EI also crossed at 0.1 % on all three seeds, and this GRPO recipe, as run, did
+  not. That is a result about this recipe with its guard and this cap. The run cannot say whether
+  GRPO can learn σ at 0.1 %: it cannot separate "too little σ" from "lr cut to 1/8 for most of the
+  line", and it does not cover the end of his ladder on these seeds. The 0 % lines carry the same
+  lr limit.
 
 **Working folder:**
 [`code/experiments/current/knockout_danbase_20261104/`](../../code/experiments/current/knockout_danbase_20261104/README.md)
@@ -137,9 +145,9 @@ run log, the scripts and the numbers.
 | dkoour_s0 | secondary: knockout base, our σ-rich pool | 0 | 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 10, 13, 13 | no: 13 of 106 by x_dan 5.86 | 5.86 (5.84) | compute cap: x_dan 5.86 ≥ his round-16 x 5.84 | 12.3 | 5.13 % / 33.22 % |
 | dkoour_s1 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.93 | 5.93 (5.93) | compute cap: x_dan 5.93 ≥ his round-16 x 5.93 | 12.7 | 0.00 % / 0.00 % |
 | dkoour_s2 | secondary: knockout base, our σ-rich pool | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.94 | 5.94 (5.90) | compute cap: x_dan 5.94 ≥ his round-16 x 5.90 | 10.0 | 0.00 % / 0.00 % |
-| dd01_s0 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 3.17 | 3.17 (5.67) | running | 11.2 | 0.07 % / 0.04 % |
-| dd01_s1 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 3.23 | 3.23 (5.94) | running | 9.9 | 0.12 % / 0.15 % |
-| dd01_s2 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | 1 | 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 3.40 | 3.40 (5.71) | running | 10.1 | 0.03 % / 0.01 % |
+| dd01_s0 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 4.49 | 4.49 (5.67) | GPU-h cap: 15.0 ≥ 15 | 15.0 | 0.07 % / 0.04 % |
+| dd01_s1 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | 0 | 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 | no: 0 of 106 by x_dan 5.43 | 5.43 (5.94) | GPU-h cap: 15.0 ≥ 15 | 15.1 | 0.12 % / 0.08 % |
+| dd01_s2 | **dose 0.1 %**: his 0.1 % σ base, his 4,495 targets | 1 | 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 5.63 | 5.63 (5.71) | GPU-h cap: 15.0 ≥ 15 | 15.0 | 0.04 % / 0.10 % |
 | dd1_s2 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 1 | 1, 18 | **yes**: round 2, x_dan 0.39 (x_ours 0.074) | 0.72 (5.93) | reached (Dan's measure at x_dan 0.386) and held | 1.9 | 1.95 % / 2.70 % |
 | dd1_s0 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 1 | 1, 23 | **yes**: round 2, x_dan 0.35 (x_ours 0.066) | 0.44 (5.73) | reached (Dan's measure at x_dan 0.346) and held | 1.2 | 2.02 % / 2.22 % |
 | dd1_s1 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 13 | 13, 19 | **yes**: round 2, x_dan 0.38 (x_ours 0.072) | 0.48 (5.95) | reached (Dan's measure at x_dan 0.377) and held | 1.3 | 3.05 % / 3.30 % |
@@ -179,7 +187,7 @@ Scored against PREREG.md (frozen before any knockout line was read).
 | P5 | reference: dfull_s3 reaches his bar at its first matched draw after the base (round 2) | 80 % | **not met as registered**: it was already at the bar at round 1 (base draw 15, his 13), so the line ended "reached and held" before his round-2 x and has no round-2 draw |
 | P6 | pass@1 reward on Dan's pool passes 0.8 within 50 iterations on every dko seed | 70 % | **held**: it passed at iterations 12, 16 and 13 |
 | P7 | amendment 1, dose 1 %: at least 2 of 3 seeds reach his bar within one ladder | 70 % | **held**: 3 of 3, all at round 2 |
-| P8 | amendment 1, dose 0.1 %: at least 1 of 3 seeds reaches his bar within one ladder | 50 % | **pending** |
+| P8 | amendment 1, dose 0.1 %: at least 1 of 3 seeds reaches his bar within one ladder | 50 % | **not met as run**: 0 of 3 reached it, but the 15 GPU-h cap stopped them at 79 %, 91 % and 99 % of his ladder, so one ladder was not completed |
 | P9 | amendment 1, dose 1 %: on the seeds that cross, GRPO's x at the crossing is within 2× of his EI's on the same seed | 45 % | **held**: 0.89×, 0.93×, 0.53× |
 | P10 | amendment 1: dd1_s1 is at the bar at round 1, its base draw (his round-1 count is 13) | 40 % | **not met**: base draw 13, one below; it crossed at round 2 (19) |
 | P11 | amendment 1, dose 1 %: σ in the accepted training proofs exceeds 1 % on at least 2 of 3 seeds | 60 % | **held**: 2.0 %, 3.1 %, 2.0 % |
@@ -193,8 +201,9 @@ Scored against PREREG.md (frozen before any knockout line was read).
   - **0 %, his targets.** The lines reached 1/8 at x 1.16, 2.59 and 0.99, with 80 %, 56 % and 83 %
     of his ladder still to run.
   - **0.1 %.** The lines reached 1/8 at x 1.44, 1.43 and 1.51, with about three quarters of his
-    ladder still to run. dd01_s1 has alarmed on the canary at every iteration since it 166 and
-    dd01_s2 since it 205; dd01_s0 has not alarmed on the canary at all.
+    ladder still to run, and 68 %, 74 % and 73 % of each line's own x ran at 1/8. dd01_s1 alarmed on
+    the canary at every iteration from it 166 to its end, and dd01_s2 from it 205. dd01_s0 never
+    alarmed on the canary.
   - **1 %.** Every seed crossed at the full lr. dd1_s0 and dd1_s2 had no rollback; dd1_s1's only
     one came at x 0.45, after its crossing at x 0.38.
   - **0 %, our pool.** dkoour_s1 and dkoour_s2 reached 1/8 at x 0.01, within their first 6
@@ -204,14 +213,16 @@ Scored against PREREG.md (frozen before any knockout line was read).
     our pool were clip-low. At 0.1 %, dd01_s0 had clip-low, clip-low, grad-norm; dd01_s1 had canary
     three times; dd01_s2 had canary, clip-low, clip-low. dd1_s1's one rollback at 1 % was grad-norm.
   - **What this means (interpretation).** This run cannot separate "too little σ" from "lr cut to
-    1/8 for most of the ladder" for the 0 % lines, nor for any 0.1 % seed that does not cross.
+    1/8 for most of the ladder" for the 0 % lines or for the three 0.1 % seeds.
     dkoour_s0 shows a takeoff can happen at 1/8, but on one seed with a different pool, so it does
     not settle the question. The cuts do not all come from one alarm type, so a later guard-off run
     would need to state which alarms it removes.
-- **Where the 0.1 % lines stop (pending the final logs).** At the pace of the last few hours, the
-  15 GPU-h cap lands at about x 4.2 (dd01_s0), 5.1 (dd01_s1) and 5.5 (dd01_s2), against his
-  round-16 x of 5.67, 5.94 and 5.71. Leon is deciding whether to lift the cap; until then the
-  pre-registered cap stands. The table after this list gives each line's x at its end.
+- **The 15 GPU-h cap stopped all three 0.1 % lines short of his ladder (observed).** They stopped at
+  x 4.49, 5.43 and 5.63 against his round-16 x of 5.67, 5.94 and 5.71, with 13, 14 and 15 of his 16
+  rounds drawn. The cap was pre-registered, and it counts wall time, so the slower A40 pods reached
+  it at a lower x than a lab GPU would have. Leon was asked whether to lift it and had not answered
+  when the lines stopped. Serrano's backups can resume them from it 695, 400 and 432, each within
+  one iteration of the last logged. No line was resumed.
 - **The algorithms differ in more than the update rule.** Training temperature is 1.0 for
   GRPO and 0.8 for his EI. GRPO has no pretraining replay. A GRPO iteration samples 4,096
   attempts; an EI round samples 143,840.
@@ -263,9 +274,9 @@ Scored against PREREG.md (frozen before any knockout line was read).
 | dkoour_s0 | 0 %, our pool | 0.00 (1, clip-low), 0.01 (3, clip-low), 1.55 (177, clip-low) | x0.125 | 1.55 (74 %) | — | clip-low 18 | 5.86 (5.84; 100 %) |
 | dkoour_s1 | 0 %, our pool | 0.00 (1, clip-low), 0.01 (3, clip-low), 0.01 (6, clip-low) | x0.125 | 0.01 (100 %) | — | clip-low 38 | 5.93 (5.93; 100 %) |
 | dkoour_s2 | 0 %, our pool | 0.00 (1, clip-low), 0.01 (3, clip-low), 0.01 (5, clip-low) | x0.125 | 0.01 (100 %) | — | clip-low 18 | 5.94 (5.90; 101 %) |
-| dd01_s0 | 0.1 % | 0.33 (45, clip-low), 1.39 (216, clip-low), 1.44 (225, grad-norm) | x0.125 | 1.44 (75 %) | — | clip-low 23, grad-norm 2 | 3.17 (5.67; 56 %) |
-| dd01_s1 | 0.1 % | 1.31 (156, canary), 1.37 (161, canary), 1.43 (166, canary) | x0.125 | 1.43 (76 %) | it 166, x 1.43 | canary 122, clip-low 3 | 3.23 (5.94; 54 %) |
-| dd01_s2 | 0.1 % | 0.02 (3, canary), 0.32 (41, clip-low), 1.51 (188, clip-low) | x0.125 | 1.51 (74 %) | it 205, x 1.69 | canary 114, clip-low 17 | 3.42 (5.71; 60 %) |
+| dd01_s0 | 0.1 % | 0.33 (45, clip-low), 1.39 (216, clip-low), 1.44 (225, grad-norm) | x0.125 | 1.44 (75 %) | — | clip-low 40, grad-norm 2 | 4.49 (5.67; 79 %) |
+| dd01_s1 | 0.1 % | 1.31 (156, canary), 1.37 (161, canary), 1.43 (166, canary) | x0.125 | 1.43 (76 %) | it 166, x 1.43 | canary 237, clip-low 18 | 5.43 (5.94; 91 %) |
+| dd01_s2 | 0.1 % | 0.02 (3, canary), 0.32 (41, clip-low), 1.51 (188, clip-low) | x0.125 | 1.51 (74 %) | it 205, x 1.69 | canary 231, clip-low 35 | 5.63 (5.71; 99 %) |
 | dd1_s2 | 1 % | none | x1 | never | — | none | 0.72 (5.93; 12 %) |
 | dd1_s0 | 1 % | none | x1 | never | — | none | 0.44 (5.73; 8 %) |
 | dd1_s1 | 1 % | 0.45 (59, grad-norm) | x0.5 | never | — | grad-norm 1 | 0.48 (5.95; 8 %) |
@@ -274,7 +285,7 @@ Scored against PREREG.md (frozen before any knockout line was read).
 ## Compute
 
 <!-- AUTO:compute -->
-- Lines: 112.3 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
+- Lines: 126.3 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
 - Iterations lost to deaths and moves (superseded rows): {'dko_s0': [[11, 11], [501, 501]], 'dko_s2': [[1, 8]], 'dd01_s1': [[1, 3]], 'dd01_s2': [[1, 3], [1, 2]]}.
 <!-- /AUTO:compute -->
 
