@@ -1,0 +1,23 @@
+models ['g0_pre', 'g0_fin'] layer 3 m 4096 k 16 | corpus records 42524 tokens 13,618,525
+scales [2.052259683609009]
+step 0/7324 loss 368.31 fvu [0.9911] dead 0 L0 16.0 thr 0.0279 5s
+step 500/7324 loss 90.22 fvu [0.238] dead 0 L0 16.0 thr 0.4450 52s
+step 1000/7324 loss 57.84 fvu [0.1563] dead 0 L0 16.0 thr 0.8485 100s
+step 1500/7324 loss 44.77 fvu [0.1149] dead 3333 L0 16.0 thr 1.0493 155s
+step 2000/7324 loss 38.42 fvu [0.0962] dead 3040 L0 16.0 thr 1.1351 219s
+step 2500/7324 loss 35.16 fvu [0.089] dead 2675 L0 16.0 thr 1.1538 294s
+step 3000/7324 loss 32.53 fvu [0.0825] dead 2418 L0 16.0 thr 1.1472 374s
+step 3500/7324 loss 28.85 fvu [0.0765] dead 2057 L0 16.0 thr 1.1356 453s
+step 4000/7324 loss 30.24 fvu [0.075] dead 1558 L0 16.0 thr 1.1199 528s
+step 4500/7324 loss 28.17 fvu [0.0724] dead 918 L0 16.0 thr 1.1009 608s
+step 5000/7324 loss 27.27 fvu [0.0687] dead 382 L0 16.0 thr 1.0845 685s
+step 5500/7324 loss 27.08 fvu [0.0696] dead 228 L0 16.0 thr 1.0744 763s
+step 6000/7324 loss 27.06 fvu [0.0684] dead 144 L0 16.0 thr 1.0648 836s
+step 6500/7324 loss 26.06 fvu [0.067] dead 125 L0 16.0 thr 1.0530 913s
+step 7000/7324 loss 25.22 fvu [0.0643] dead 396 L0 16.0 thr 1.0468 989s
+step 7323/7324 loss 24.70 fvu [0.0655] dead 662 L0 16.0 thr 1.0415 1040s
+saved weights
+thr EMA 1.0415 -> calibrated 0.9958
+eval FVU per model [0.08697561919689178]
+splice {"pre": 0.4793608521970706, "full": 0.665335108743897, "sparse": 0.6533510874389703, "n_pop": 2253}
+saved runs/diff_g0_L3/cc.pt 1611s

@@ -1,0 +1,29 @@
+models ['g0_pre', 'g1_pre'] layer 3 m 8192 k 32 | corpus records 42524 tokens 13,618,525
+scales [0.6926127672195435, 0.7275294065475464]
+step 0/9765 loss 759.49 fvu [0.9841, 0.9843] dead 0 L0 32.0 thr 0.0771 3s
+step 500/9765 loss 75.52 fvu [0.0946, 0.1025] dead 0 L0 32.0 thr 0.6129 45s
+step 1000/9765 loss 36.37 fvu [0.0468, 0.0478] dead 0 L0 32.0 thr 0.8582 88s
+step 1500/9765 loss 22.41 fvu [0.0287, 0.0282] dead 6283 L0 32.0 thr 0.9683 142s
+step 2000/9765 loss 16.67 fvu [0.0213, 0.0211] dead 4802 L0 32.0 thr 0.9818 228s
+step 2500/9765 loss 15.52 fvu [0.0199, 0.0192] dead 4005 L0 32.0 thr 0.9473 313s
+step 3000/9765 loss 13.91 fvu [0.0176, 0.0174] dead 3377 L0 32.0 thr 0.9031 409s
+step 3500/9765 loss 12.52 fvu [0.0156, 0.0157] dead 3027 L0 32.0 thr 0.8607 518s
+step 4000/9765 loss 12.45 fvu [0.0162, 0.0156] dead 2818 L0 32.0 thr 0.8233 623s
+step 4500/9765 loss 11.90 fvu [0.015, 0.0147] dead 2383 L0 32.0 thr 0.7920 730s
+step 5000/9765 loss 11.49 fvu [0.0149, 0.0143] dead 2028 L0 32.0 thr 0.7665 836s
+step 5500/9765 loss 11.40 fvu [0.0146, 0.0143] dead 1723 L0 32.0 thr 0.7498 941s
+step 6000/9765 loss 11.21 fvu [0.0145, 0.0139] dead 1294 L0 32.0 thr 0.7334 1044s
+step 6500/9765 loss 10.72 fvu [0.0137, 0.0133] dead 827 L0 32.0 thr 0.7177 1149s
+step 7000/9765 loss 10.44 fvu [0.0133, 0.0129] dead 554 L0 32.0 thr 0.7069 1246s
+step 7500/9765 loss 10.33 fvu [0.0134, 0.0129] dead 520 L0 32.0 thr 0.6958 1340s
+step 8000/9765 loss 10.31 fvu [0.0133, 0.0128] dead 492 L0 32.0 thr 0.6847 1434s
+step 8500/9765 loss 10.16 fvu [0.013, 0.0127] dead 491 L0 32.0 thr 0.6767 1530s
+step 9000/9765 loss 9.92 fvu [0.0125, 0.0124] dead 513 L0 32.0 thr 0.6720 1625s
+step 9500/9765 loss 10.36 fvu [0.0133, 0.0128] dead 571 L0 32.0 thr 0.6711 1720s
+step 9764/9765 loss 10.33 fvu [0.0134, 0.0129] dead 668 L0 32.0 thr 0.6713 1776s
+saved weights
+thr EMA 0.6713 -> calibrated 0.6692
+eval FVU per model [0.01606334187090397, 0.015039264224469662]
+splice {"g0_pre": {"ce_clean": 0.4791251597113987, "ce_splice": 0.48588013109807116, "pop_acc_clean": 0.4793608521970706, "pop_acc_splice": 0.474034620505992, "n_pop": 2253}, "g1_pre": {"ce_clean": 0.5266010589684651, "ce_splice": 0.5326719715799426, "pop_acc_clean": 0.4682645361739902, "pop_acc_splice": 0.47181535730137597, "n_pop": 2253}}
+rel-norm histogram (0=only A, 1=only B): [4, 24, 19, 42, 50, 68, 134, 410, 1165, 2502, 2327, 950, 298, 115, 52, 21, 11, 0, 0, 0]
+saved runs/x01pre_L3/cc.pt 2416s

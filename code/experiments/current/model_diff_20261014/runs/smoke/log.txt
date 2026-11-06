@@ -1,0 +1,10 @@
+models ['g0_pre', 'g0_fin'] layer 4 m 8192 k 32 | corpus records 42524 tokens 13,618,525
+scales [0.6134475469589233, 0.6421409845352173]
+step 0/976 loss 759.47 fvu [0.9836, 0.9836] dead 0 L0 32.0 thr 0.0771 1s
+step 500/976 loss 61.57 fvu [0.0736, 0.0813] dead 7128 L0 32.0 thr 0.6447 23s
+step 975/976 loss 31.60 fvu [0.0384, 0.0409] dead 6731 L0 32.0 thr 0.9332 45s
+thr EMA 0.9332 -> calibrated 1.2917
+eval FVU per model [0.051030661910772324, 0.05411529168486595]
+splice {"g0_pre": {"ce_clean": 0.5436007990372942, "ce_splice": 0.5230044164975612, "pop_acc_clean": 0.44565217391304346, "pop_acc_splice": 0.44565217391304346, "n_pop": 92}, "g0_fin": {"ce_clean": 0.28421711294020463, "ce_splice": 0.32592626314535306, "pop_acc_clean": 0.75, "pop_acc_splice": 0.6739130434782609, "n_pop": 92}}
+rel-norm histogram (0=only A, 1=only B): [0, 0, 0, 0, 0, 0, 3, 3, 20, 3445, 4628, 88, 4, 1, 0, 0, 0, 0, 0, 0]
+saved runs/smoke/cc.pt 56s

@@ -1,0 +1,35 @@
+models ['e1_pre', 'e1_fin'] layer 5 m 8192 k 32 | corpus records 42524 tokens 13,618,525
+scales [0.5562650561332703, 0.8817003965377808]
+step 0/9765 loss 753.82 fvu [0.982, 0.9835] dead 0 L0 32.0 thr 0.0774 4s
+step 500/9765 loss 128.62 fvu [0.1498, 0.1852] dead 0 L0 32.0 thr 0.5805 44s
+step 1000/9765 loss 71.22 fvu [0.0865, 0.1002] dead 0 L0 32.0 thr 1.0339 85s
+step 1500/9765 loss 56.48 fvu [0.0655, 0.0755] dead 6108 L0 32.0 thr 1.2093 131s
+step 2000/9765 loss 43.01 fvu [0.0509, 0.0579] dead 5106 L0 32.0 thr 1.2892 184s
+step 2500/9765 loss 40.32 fvu [0.0466, 0.0531] dead 4524 L0 32.0 thr 1.2968 237s
+step 3000/9765 loss 35.89 fvu [0.0425, 0.0478] dead 4672 L0 32.0 thr 1.2754 291s
+step 3500/9765 loss 33.46 fvu [0.0402, 0.045] dead 4280 L0 32.0 thr 1.2452 343s
+step 4000/9765 loss 32.43 fvu [0.0386, 0.0429] dead 3972 L0 32.0 thr 1.2117 395s
+step 4500/9765 loss 30.85 fvu [0.0367, 0.0413] dead 3556 L0 32.0 thr 1.1886 447s
+step 5000/9765 loss 28.91 fvu [0.0349, 0.0383] dead 3011 L0 32.0 thr 1.1594 502s
+step 5500/9765 loss 29.54 fvu [0.0356, 0.0395] dead 2384 L0 32.0 thr 1.1387 553s
+step 6000/9765 loss 29.83 fvu [0.0354, 0.0398] dead 1760 L0 32.0 thr 1.1212 607s
+step 6500/9765 loss 28.55 fvu [0.0341, 0.0379] dead 1128 L0 32.0 thr 1.1072 659s
+step 7000/9765 loss 28.70 fvu [0.0336, 0.0376] dead 530 L0 32.0 thr 1.0878 712s
+step 7500/9765 loss 27.78 fvu [0.0325, 0.0365] dead 126 L0 32.0 thr 1.0774 764s
+step 8000/9765 loss 27.29 fvu [0.0325, 0.0365] dead 38 L0 32.0 thr 1.0655 817s
+step 8500/9765 loss 27.78 fvu [0.0329, 0.0366] dead 31 L0 32.0 thr 1.0560 870s
+step 9000/9765 loss 25.51 fvu [0.0309, 0.034] dead 40 L0 32.0 thr 1.0503 922s
+step 9500/9765 loss 25.41 fvu [0.0311, 0.0337] dead 57 L0 32.0 thr 1.0451 975s
+step 9764/9765 loss 26.40 fvu [0.0317, 0.035] dead 89 L0 32.0 thr 1.0429 1002s
+saved weights
+thr EMA 1.0429 -> calibrated 1.0281
+models ['e1_pre', 'e1_fin'] layer 5 m 8192 k 32 | corpus records 42524 tokens 13,618,525
+scales [0.5565290451049805, 0.8825089335441589]
+thr EMA 0.0000 -> calibrated 1.0435
+models ['e1_pre', 'e1_fin'] layer 5 m 8192 k 32 | corpus records 42524 tokens 13,618,525
+scales [0.5565290451049805, 0.8825089335441589]
+thr EMA 0.0000 -> calibrated 1.0435
+eval FVU per model [0.034796055406332016, 0.037189651280641556]
+splice {"e1_pre": {"ce_clean": 0.4824214354049338, "ce_splice": 0.4710678983185236, "pop_acc_clean": 0.486462494451842, "pop_acc_splice": 0.5002219263204616, "n_pop": 2253}, "e1_fin": {"ce_clean": 0.1181523546755146, "ce_splice": 0.12205649294083842, "pop_acc_clean": 0.9245450510430537, "pop_acc_splice": 0.9192188193519751, "n_pop": 2253}}
+rel-norm histogram (0=only A, 1=only B): [0, 0, 0, 17, 23, 30, 64, 174, 661, 1998, 2951, 1473, 470, 183, 78, 33, 16, 19, 2, 0]
+saved runs/e1_L5/cc.pt 685s
