@@ -1,0 +1,6 @@
+THM ( ( P > Q ) > P ) SEQ P PRF                              body_bound  8 exhausted        0.0s memo 3079
+THM ( ( P > Q ) > P ) SEQ P PRF                              body_bound 10 found 9          0.0s memo 8280
+THM ( ( P > Q ) > P ) SEQ P PRF                              body_bound 12 found 9          0.1s memo 35274
+THM ( ( P > Q ) > P ) SEQ P PRF                              body_bound 14 found 9          0.4s memo 127835
+THM ( ( P > Q ) > P ) SEQ P PRF                              body_bound 16 found 9          1.5s memo 425514
+THM ( ( P > Q ) > P ) SEQ P PRF                              body_bound 18 found 9          5.5s memo 1305042

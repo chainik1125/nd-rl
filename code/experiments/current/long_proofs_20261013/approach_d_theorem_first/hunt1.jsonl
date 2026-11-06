@@ -1,0 +1,400 @@
+{"prompt": "THM ( ~ Q ) SEQ ( ( ( ~ Q ) v Q ) > ( Q > ( ~ Q ) ) ) PRF", "n_prem": 1, "S": 14, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 242}
+{"prompt": "THM ( ~ Q ) SEQ ( P v ( ~ Q ) ) PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ~ Q ) & ( ~ Q ) ) SEQ ( ( ~ Q ) v P ) PRF", "n_prem": 1, "S": 14, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( R v R ) SEQ ( R & R ) PRF", "n_prem": 1, "S": 10, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 43}
+{"prompt": "THM Q SEQ ( ( Q & P ) v Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM P SEQ ( P v P ) PRF", "n_prem": 1, "S": 7, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & P ) SEQ P PRF", "n_prem": 1, "S": 7, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ~ Q ) & ( P & ( ~ Q ) ) ) SEQ ( P v ( ~ Q ) ) PRF", "n_prem": 1, "S": 17, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 19}
+{"prompt": "THM ( ( P v Q ) v Q ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 51}
+{"prompt": "THM ( ( P v Q ) & ( ~ P ) ) SEQ ( ~ P ) PRF", "n_prem": 1, "S": 14, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( R & P ) & P ) SEQ ( ( R & P ) & R ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 69}
+{"prompt": "THM ( ~ P ) SEQ ( P > ( ~ P ) ) PRF", "n_prem": 1, "S": 8, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q v ( Q v Q ) ) SEQ ( ( Q v Q ) v ( Q v Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 158}
+{"prompt": "THM ( ~ P ) SEQ ( ( ( ~ P ) > R ) > ( ~ P ) ) PRF", "n_prem": 1, "S": 14, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 30}
+{"prompt": "THM ( ( R v P ) v ( R v P ) ) SEQ ( R v P ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 27}
+{"prompt": "THM ( ( ~ Q ) > Q ) SEQ Q PRF", "n_prem": 1, "S": 8, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 64}
+{"prompt": "THM P SEQ ( ( ~ ( ~ P ) ) & P ) PRF", "n_prem": 1, "S": 9, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 35}
+{"prompt": "THM ( R v R ) SEQ ( Q v R ) PRF", "n_prem": 1, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 52}
+{"prompt": "THM ( ~ ( ( Q v P ) & ( Q v P ) ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 15, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 205}
+{"prompt": "THM ( ( Q & P ) & Q ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q > Q ) > P ) SEQ ( ~ ( ~ P ) ) PRF", "n_prem": 1, "S": 15, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 504}
+{"prompt": "THM P SEQ ( P & ( ( Q v P ) v P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM Q SEQ ( P v ( P v Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM R SEQ ( P > R ) PRF", "n_prem": 1, "S": 10, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 22}
+{"prompt": "THM ( Q & ( P & Q ) ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ( ~ R ) > ( ~ P ) ) & ( ~ R ) ) SEQ ( ~ R ) PRF", "n_prem": 1, "S": 15, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q & P ) & ( Q v Q ) ) SEQ ( ( Q v Q ) > P ) PRF", "n_prem": 1, "S": 19, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 273}
+{"prompt": "THM ( ( P > Q ) & P ) SEQ ( P > Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & Q ) SEQ ( P & P ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( Q & Q ) SEQ ( ( Q v P ) & ( P > Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 925}
+{"prompt": "THM ( P & P ) SEQ ( P v P ) PRF", "n_prem": 1, "S": 10, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 11}
+{"prompt": "THM Q SEQ ( ( R v Q ) v ( R v Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM Q SEQ ( ~ ( ~ Q ) ) PRF", "n_prem": 1, "S": 6, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 13}
+{"prompt": "THM ( ~ P ) SEQ ( ( ~ P ) v R ) PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ P ) SEQ ( ( ~ P ) v ( ~ P ) ) PRF", "n_prem": 1, "S": 8, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ( P > Q ) > P ) & ( ( P > Q ) v P ) ) SEQ P PRF", "n_prem": 1, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 858}
+{"prompt": "THM ( P & ( ~ Q ) ) SEQ ( P v P ) PRF", "n_prem": 1, "S": 14, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 16}
+{"prompt": "THM Q SEQ ( ( ~ P ) > Q ) PRF", "n_prem": 1, "S": 11, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 24}
+{"prompt": "THM R SEQ ( R v P ) PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ ( Q v P ) ) SEQ ( ( Q v Q ) > P ) PRF", "n_prem": 1, "S": 17, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.01, "memo": 2735}
+{"prompt": "THM P SEQ ( P v ( Q & P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM Q SEQ ( P v Q ) PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & Q ) SEQ P PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ ( P > Q ) ) SEQ P PRF", "n_prem": 1, "S": 11, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.0, "memo": 816}
+{"prompt": "THM ( R v Q ) SEQ ( ( ~ R ) > ( P v ( R v Q ) ) ) PRF", "n_prem": 1, "S": 20, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 62}
+{"prompt": "THM P SEQ ( Q > ( ( P & Q ) & P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 71}
+{"prompt": "THM ( ( Q v Q ) v Q ) SEQ ( ( ( Q v Q ) & ( Q v Q ) ) v ( ( Q v Q ) v ( Q v Q ) ) ) PRF", "n_prem": 1, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 694}
+{"prompt": "THM ( ( ( P & R ) & Q ) & P ) SEQ P PRF", "n_prem": 1, "S": 19, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P v ( P v P ) ) SEQ P PRF", "n_prem": 1, "S": 10, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 260}
+{"prompt": "THM ( ~ P ) SEQ ( ( P & P ) > ( Q & Q ) ) PRF", "n_prem": 1, "S": 17, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 184}
+{"prompt": "THM ( ~ Q ) SEQ ( P > ( Q > R ) ) PRF", "n_prem": 1, "S": 17, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 435}
+{"prompt": "THM ( ( P & Q ) & P ) SEQ ( ( Q v ( P & Q ) ) v Q ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 84}
+{"prompt": "THM ( P v P ) SEQ ( ( ( ~ P ) & P ) v P ) PRF", "n_prem": 1, "S": 14, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 59}
+{"prompt": "THM ( P & ( ~ Q ) ) SEQ P PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & P ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 41}
+{"prompt": "THM P SEQ ( ( P > P ) & ( R > P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 468}
+{"prompt": "THM ( ( ( Q > P ) v ( Q > P ) ) & Q ) SEQ ( ( Q > P ) & ( Q > P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 450}
+{"prompt": "THM ( P > Q ) , ( ~ Q ) SEQ ( ~ P ) PRF", "n_prem": 2, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 57}
+{"prompt": "THM ( ~ P ) SEQ ( ~ ( P v P ) ) PRF", "n_prem": 1, "S": 9, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 194}
+{"prompt": "THM ( R & Q ) SEQ ( Q > ( P > R ) ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 476}
+{"prompt": "THM ( R & R ) SEQ ( P v R ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM P SEQ ( ( ~ P ) > ( P & P ) ) PRF", "n_prem": 1, "S": 11, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 35}
+{"prompt": "THM P SEQ ( ~ ( ~ ( P & P ) ) ) PRF", "n_prem": 1, "S": 9, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 61}
+{"prompt": "THM ( ~ ( P > Q ) ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 14, "min_body": 9, "status": "found", "last_body": 9, "secs": 0.01, "memo": 2811}
+{"prompt": "THM Q SEQ ( ( ~ Q ) > P ) PRF", "n_prem": 1, "S": 11, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 50}
+{"prompt": "THM ( Q & Q ) , ( P v P ) SEQ ( ( Q & P ) & ( P v P ) ) PRF", "n_prem": 2, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 924}
+{"prompt": "THM ( ( ~ ( ~ P ) ) > ( ~ P ) ) SEQ ( ~ ( ~ ( ~ P ) ) ) PRF", "n_prem": 1, "S": 10, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 50}
+{"prompt": "THM ( ~ ( ( Q > Q ) & Q ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 12, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 367}
+{"prompt": "THM ( ~ Q ) SEQ ( ( ~ Q ) & ( ~ Q ) ) PRF", "n_prem": 1, "S": 8, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ Q ) SEQ ( ( Q > R ) & ( Q > R ) ) PRF", "n_prem": 1, "S": 14, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 133}
+{"prompt": "THM ( ( P & P ) & ( P & P ) ) , ( P > Q ) SEQ Q PRF", "n_prem": 2, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 50}
+{"prompt": "THM R SEQ ( R & ( Q > R ) ) PRF", "n_prem": 1, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 52}
+{"prompt": "THM ( P & Q ) SEQ ( P v P ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( Q & ( P & Q ) ) SEQ ( ( Q & Q ) v ( Q & ( P & Q ) ) ) PRF", "n_prem": 1, "S": 19, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ ( ~ ( Q v Q ) ) ) SEQ ( Q & ( Q v ( Q v Q ) ) ) PRF", "n_prem": 1, "S": 15, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 648}
+{"prompt": "THM ( P & Q ) SEQ Q PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P & P ) v ( P & P ) ) SEQ ( ( ~ ( P & P ) ) > ( ~ Q ) ) PRF", "n_prem": 1, "S": 18, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 1350}
+{"prompt": "THM ( Q & P ) , ( Q > R ) SEQ ( R & R ) PRF", "n_prem": 2, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 78}
+{"prompt": "THM ( R & P ) SEQ ( ( ~ ( R & P ) ) > R ) PRF", "n_prem": 1, "S": 14, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 59}
+{"prompt": "THM ( Q & ( Q & P ) ) SEQ P PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( ( ( ~ P ) > Q ) > ( ~ Q ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 15, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 688}
+{"prompt": "THM ( R & Q ) SEQ ( ( R & Q ) v ( R & Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q v Q ) SEQ ( ( ~ Q ) > ( R & P ) ) PRF", "n_prem": 1, "S": 20, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 1140}
+{"prompt": "THM ( ( ~ P ) > P ) , ( P > Q ) SEQ Q PRF", "n_prem": 2, "S": 14, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 324}
+{"prompt": "THM ( ~ ( ~ P ) ) SEQ ( P & P ) PRF", "n_prem": 1, "S": 9, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 10}
+{"prompt": "THM ( ( ~ R ) & P ) SEQ ( ~ R ) PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q > P ) , Q SEQ P PRF", "n_prem": 2, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & Q ) SEQ ( ~ ( ~ Q ) ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 119}
+{"prompt": "THM ( ~ ( P v Q ) ) SEQ ( ~ P ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 60}
+{"prompt": "THM ( ( ~ ( P > P ) ) v P ) SEQ ( P v P ) PRF", "n_prem": 1, "S": 14, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.01, "memo": 1845}
+{"prompt": "THM ( ( P & Q ) & Q ) SEQ ( Q & Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( P > Q ) SEQ ( ( P > Q ) v ( R > ( P > Q ) ) ) PRF", "n_prem": 1, "S": 19, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & P ) SEQ ( ( R v R ) v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 17}
+{"prompt": "THM ( ( P > Q ) > ( ( P > P ) > P ) ) SEQ P PRF", "n_prem": 1, "S": 19, "min_body": 12, "status": "found", "last_body": 12, "secs": 0.27, "memo": 63915}
+{"prompt": "THM ( P & Q ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 55}
+{"prompt": "THM ( ~ Q ) SEQ ( ( Q > P ) & ( ~ Q ) ) PRF", "n_prem": 1, "S": 14, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 133}
+{"prompt": "THM ( Q & P ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 55}
+{"prompt": "THM ( ( ~ Q ) > ( ( ~ P ) & Q ) ) SEQ Q PRF", "n_prem": 1, "S": 15, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 234}
+{"prompt": "THM Q SEQ ( Q & ( P v Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM P SEQ ( ( P v Q ) > P ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 41}
+{"prompt": "THM ( P > ( ~ Q ) ) , P SEQ ( ~ Q ) PRF", "n_prem": 2, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM R SEQ ( R & ( P > P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 29}
+{"prompt": "THM ( ( P > P ) > ( Q & Q ) ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 285}
+{"prompt": "THM ( ~ ( P v P ) ) SEQ ( ~ P ) PRF", "n_prem": 1, "S": 9, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 44}
+{"prompt": "THM ( ( P & Q ) & ( P & Q ) ) SEQ ( P v R ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 64}
+{"prompt": "THM ( ~ R ) SEQ ( R > Q ) PRF", "n_prem": 1, "S": 11, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 51}
+{"prompt": "THM ( ~ Q ) , ( ( ~ ( ~ R ) ) & P ) SEQ ( ~ ( R > Q ) ) PRF", "n_prem": 2, "S": 20, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 1501}
+{"prompt": "THM ( P v P ) , ( P > Q ) SEQ Q PRF", "n_prem": 2, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 54}
+{"prompt": "THM Q SEQ ( Q & Q ) PRF", "n_prem": 1, "S": 7, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ ( P v P ) ) SEQ ( ( ~ P ) v ( ~ Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 152}
+{"prompt": "THM ( Q & ( ~ R ) ) SEQ ( Q v ( ~ R ) ) PRF", "n_prem": 1, "S": 14, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 16}
+{"prompt": "THM ( P & ( Q v P ) ) SEQ ( P v ( Q v P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q & P ) SEQ ( P v ( Q v P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q & ( P & Q ) ) SEQ ( P & Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ ( ~ Q ) ) SEQ Q PRF", "n_prem": 1, "S": 6, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ~ ( ~ Q ) ) & Q ) SEQ ( ( ~ Q ) > ( P & P ) ) PRF", "n_prem": 1, "S": 18, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 387}
+{"prompt": "THM ( Q v ( Q & Q ) ) SEQ ( ~ ( ~ ( Q & Q ) ) ) PRF", "n_prem": 1, "S": 12, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 772}
+{"prompt": "THM ( ~ Q ) SEQ ( ( Q v ( P & Q ) ) > ( ( ~ Q ) & Q ) ) PRF", "n_prem": 1, "S": 20, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 1539}
+{"prompt": "THM ( ( P > Q ) v ( P > Q ) ) , ( P v P ) SEQ Q PRF", "n_prem": 2, "S": 16, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 1123}
+{"prompt": "THM ( ~ Q ) SEQ ( ( P & Q ) > R ) PRF", "n_prem": 1, "S": 17, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 198}
+{"prompt": "THM ( ( P v P ) v P ) SEQ ( P v P ) PRF", "n_prem": 1, "S": 10, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 45}
+{"prompt": "THM ( Q & ( Q v P ) ) SEQ ( ( ~ Q ) > Q ) PRF", "n_prem": 1, "S": 17, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 71}
+{"prompt": "THM ( ( ( P > P ) v Q ) & ( ~ P ) ) SEQ ( ~ P ) PRF", "n_prem": 1, "S": 17, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q & Q ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( ( P & Q ) & ( P & Q ) ) SEQ ( ( P & Q ) v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 17}
+{"prompt": "THM ( ( Q > P ) & ( ( ~ Q ) > Q ) ) SEQ ( ( ~ Q ) > Q ) PRF", "n_prem": 1, "S": 17, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P & Q ) & Q ) SEQ P PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( ~ ( P v Q ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 60}
+{"prompt": "THM ( Q & ( R & R ) ) SEQ ( ( ~ R ) > P ) PRF", "n_prem": 1, "S": 20, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 1416}
+{"prompt": "THM ( ~ ( P > ( Q & P ) ) ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 17, "min_body": 9, "status": "found", "last_body": 9, "secs": 0.02, "memo": 5389}
+{"prompt": "THM ( ( Q v Q ) v Q ) SEQ ( P > ( Q v Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 513}
+{"prompt": "THM ( ( Q & P ) & Q ) SEQ ( R > Q ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 82}
+{"prompt": "THM ( P > ( ~ P ) ) SEQ ( ( ~ P ) v ( ~ P ) ) PRF", "n_prem": 1, "S": 11, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 111}
+{"prompt": "THM ( Q & R ) SEQ ( P > Q ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 67}
+{"prompt": "THM ( Q v Q ) SEQ Q PRF", "n_prem": 1, "S": 7, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( Q & ( ( ~ P ) > P ) ) SEQ ( ( ~ P ) > P ) PRF", "n_prem": 1, "S": 14, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & ( P > P ) ) SEQ P PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ~ P ) & R ) SEQ R PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM P SEQ ( ( Q > P ) & ( Q > P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 52}
+{"prompt": "THM ( Q & ( P v P ) ) SEQ ( P v P ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P v Q ) SEQ ( P v ( P v Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P v Q ) & ( Q > P ) ) SEQ ( ( P v Q ) v ( P v Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 21}
+{"prompt": "THM ( ( ~ ( P & P ) ) > P ) SEQ ( ~ ( ~ P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.0, "memo": 1663}
+{"prompt": "THM ( ( ~ ( ( ~ P ) > P ) ) > ( Q & P ) ) SEQ P PRF", "n_prem": 1, "S": 18, "min_body": 10, "status": "found", "last_body": 10, "secs": 0.03, "memo": 9280}
+{"prompt": "THM ( P & Q ) SEQ ( ( P v P ) & P ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 69}
+{"prompt": "THM Q SEQ ( ( Q v Q ) & Q ) PRF", "n_prem": 1, "S": 10, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 11}
+{"prompt": "THM ( ( ~ R ) > Q ) , ( ~ R ) SEQ Q PRF", "n_prem": 2, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P > Q ) & P ) SEQ ( ( ~ Q ) > ( P > Q ) ) PRF", "n_prem": 1, "S": 17, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 72}
+{"prompt": "THM ( ( P & Q ) & Q ) SEQ ( ( P & Q ) & ( P & Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q & P ) SEQ ( ( ~ P ) v ( Q & P ) ) PRF", "n_prem": 1, "S": 14, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM Q SEQ ( ( Q v P ) & ( Q v P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( P v Q ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 13, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 100}
+{"prompt": "THM R SEQ ( ( Q & Q ) v R ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P > Q ) > P ) SEQ ( ( P v Q ) & ( P v Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 11, "status": "found", "last_body": 11, "secs": 0.12, "memo": 30239}
+{"prompt": "THM ( ( ( P > Q ) > Q ) > ( P > Q ) ) SEQ ( P > Q ) PRF", "n_prem": 1, "S": 16, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 605}
+{"prompt": "THM ( R & Q ) SEQ ( ( ~ P ) > Q ) PRF", "n_prem": 1, "S": 17, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 71}
+{"prompt": "THM Q SEQ ( Q v ( Q & ( ~ Q ) ) ) PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & ( Q & P ) ) SEQ ( Q v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 69}
+{"prompt": "THM P SEQ ( ( P > ( P v Q ) ) > ( Q v P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 80}
+{"prompt": "THM P SEQ ( ( ( P > P ) > ( P > P ) ) > P ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 32}
+{"prompt": "THM ( P v P ) SEQ ( ~ ( P > ( ~ P ) ) ) PRF", "n_prem": 1, "S": 12, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 753}
+{"prompt": "THM ( P v P ) , Q SEQ ( Q & P ) PRF", "n_prem": 2, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 54}
+{"prompt": "THM ( Q & ( P > Q ) ) SEQ ( Q v ( ( P > Q ) & Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 21}
+{"prompt": "THM ( ~ Q ) SEQ ( ~ ( Q & P ) ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 57}
+{"prompt": "THM ( R v ( R & R ) ) SEQ ( ( R & R ) v ( R & R ) ) PRF", "n_prem": 1, "S": 13, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 149}
+{"prompt": "THM ( Q & ( ~ P ) ) SEQ ( ~ P ) PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ Q ) SEQ ( P v ( Q > P ) ) PRF", "n_prem": 1, "S": 14, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 133}
+{"prompt": "THM Q SEQ ( ( ~ Q ) > ( Q & ( R v Q ) ) ) PRF", "n_prem": 1, "S": 17, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 149}
+{"prompt": "THM ( ~ Q ) SEQ ( ( Q v Q ) > P ) PRF", "n_prem": 1, "S": 14, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 660}
+{"prompt": "THM ( ( ( R & P ) & ( R & P ) ) & ( R & P ) ) SEQ ( ( R & P ) & ( R & P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q > ( ~ Q ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 8, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 40}
+{"prompt": "THM ( Q v ( Q & P ) ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 48}
+{"prompt": "THM ( ( P v Q ) v ( P v Q ) ) SEQ ( ( ( ( P v Q ) v ( P v Q ) ) & ( ( P v Q ) v ( P v Q ) ) ) & ( ( ( P v Q ) v ( P v Q ) ) & ( ( P v Q ) v ( P v Q ) ) ) ) PRF", "n_prem": 1, "S": 19, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 20}
+{"prompt": "THM ( ( Q v P ) & ( Q v P ) ) SEQ ( ( ( Q v P ) & ( Q v P ) ) v P ) PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P & Q ) & ( P & P ) ) SEQ P PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( ( Q > Q ) > P ) SEQ ( ( Q > ( Q > Q ) ) > P ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 340}
+{"prompt": "THM Q SEQ ( Q & ( Q v P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( ( Q v P ) & Q ) SEQ ( Q v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM Q SEQ ( ( ~ R ) v Q ) PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( R v ( R & R ) ) SEQ ( R & R ) PRF", "n_prem": 1, "S": 10, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 43}
+{"prompt": "THM ( ( Q & P ) & ( Q & P ) ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( Q v R ) SEQ ( ( ( Q > R ) > ( Q > R ) ) & ( Q v R ) ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 41}
+{"prompt": "THM ( ( P v Q ) & P ) SEQ P PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ( ~ P ) & ( ~ P ) ) & ( ( P > ( ~ P ) ) v ( P > ( ~ P ) ) ) ) SEQ ( P > ( ~ P ) ) PRF", "n_prem": 1, "S": 17, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 208}
+{"prompt": "THM ( Q & ( R & Q ) ) SEQ ( R v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q > ( Q > P ) ) SEQ ( Q > ( Q > ( Q > P ) ) ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 35}
+{"prompt": "THM ( Q v ( P v Q ) ) , ( ~ P ) SEQ ( Q & ( P v Q ) ) PRF", "n_prem": 2, "S": 17, "min_body": 10, "status": "found", "last_body": 10, "secs": 0.04, "memo": 11729}
+{"prompt": "THM ( ~ R ) , ( P & ( Q v R ) ) SEQ ( ( Q v R ) & Q ) PRF", "n_prem": 2, "S": 20, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.01, "memo": 2793}
+{"prompt": "THM ( P & Q ) SEQ ( ~ ( ( ~ Q ) v ( ~ Q ) ) ) PRF", "n_prem": 1, "S": 15, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.01, "memo": 2068}
+{"prompt": "THM ( R & P ) SEQ ( ~ ( ~ R ) ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 119}
+{"prompt": "THM ( ( ( Q & Q ) & ( Q > P ) ) & Q ) SEQ ( ( Q & Q ) & ( Q > P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P > Q ) & Q ) SEQ ( ( ~ P ) v ( Q & Q ) ) PRF", "n_prem": 1, "S": 20, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 85}
+{"prompt": "THM Q , P SEQ ( Q & ( P v P ) ) PRF", "n_prem": 2, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 13}
+{"prompt": "THM ( ~ Q ) SEQ ( P > ( ~ Q ) ) PRF", "n_prem": 1, "S": 11, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 24}
+{"prompt": "THM ( P & Q ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( ( ~ P ) & Q ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 14, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 16}
+{"prompt": "THM ( P v ( Q & P ) ) , ( P > ( Q & P ) ) SEQ Q PRF", "n_prem": 2, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 193}
+{"prompt": "THM P , ( Q v Q ) SEQ ( P & ( Q & P ) ) PRF", "n_prem": 2, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 204}
+{"prompt": "THM ( Q > ( Q > P ) ) SEQ ( ( Q > P ) v ( Q > ( Q > P ) ) ) PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ~ Q ) > ( Q v P ) ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 17, "min_body": 14, "status": "found", "last_body": 14, "secs": 0.52, "memo": 128351}
+{"prompt": "THM ( ~ ( P > ( ~ R ) ) ) SEQ ( ( P & R ) v R ) PRF", "n_prem": 1, "S": 18, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.01, "memo": 2466}
+{"prompt": "THM ( R v R ) SEQ ( ( R v P ) & R ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 188}
+{"prompt": "THM ( P v R ) , ( P > R ) SEQ ( Q v R ) PRF", "n_prem": 2, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 194}
+{"prompt": "THM ( Q & P ) SEQ ( ( ~ ( Q & P ) ) > ( ~ Q ) ) PRF", "n_prem": 1, "S": 15, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 151}
+{"prompt": "THM ( ( P v P ) & P ) SEQ P PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & Q ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( ~ Q ) SEQ ( ( Q & Q ) > P ) PRF", "n_prem": 1, "S": 14, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 153}
+{"prompt": "THM ( ~ Q ) , ( Q v P ) SEQ P PRF", "n_prem": 2, "S": 11, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 105}
+{"prompt": "THM ( Q v Q ) SEQ ( Q v ( Q v Q ) ) PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q > Q ) & R ) SEQ ( R v P ) PRF", "n_prem": 1, "S": 19, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 21}
+{"prompt": "THM P SEQ ( ( Q v P ) > P ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 41}
+{"prompt": "THM ( ( Q > Q ) & Q ) SEQ Q PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q > P ) & Q ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q & ( Q v Q ) ) SEQ ( P v ( Q v Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q & ( ~ P ) ) SEQ ( Q > ( ~ P ) ) PRF", "n_prem": 1, "S": 14, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 59}
+{"prompt": "THM ( ( ( R & R ) > R ) > Q ) SEQ Q PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 61}
+{"prompt": "THM ( ( ~ Q ) & ( ~ Q ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 8, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q & P ) & ( P & P ) ) SEQ ( ( P & P ) v P ) PRF", "n_prem": 1, "S": 19, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 21}
+{"prompt": "THM ( ( P > P ) > P ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 80}
+{"prompt": "THM ( ( R & ( P > ( ~ P ) ) ) & ( R & ( P > ( ~ P ) ) ) ) SEQ ( ( R & ( P > ( ~ P ) ) ) & R ) PRF", "n_prem": 1, "S": 20, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 68}
+{"prompt": "THM ( ~ ( ~ P ) ) SEQ ( ( P & Q ) v P ) PRF", "n_prem": 1, "S": 15, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 16}
+{"prompt": "THM ( R & R ) SEQ ( ( ~ R ) > R ) PRF", "n_prem": 1, "S": 11, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 35}
+{"prompt": "THM ( Q & Q ) SEQ ( ( P v Q ) v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 17}
+{"prompt": "THM ( ~ P ) SEQ ( ( Q > P ) > ( ( ~ P ) & ( ~ P ) ) ) PRF", "n_prem": 1, "S": 17, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 53}
+{"prompt": "THM ( ( R > R ) > Q ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 29}
+{"prompt": "THM ( P & ( P > Q ) ) SEQ ( ( P > Q ) > P ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 68}
+{"prompt": "THM ( P & R ) SEQ ( ( P v Q ) > R ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 82}
+{"prompt": "THM ( P v P ) SEQ ( ( P > P ) & ( P v P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 30}
+{"prompt": "THM ( ( P v Q ) & ( P v Q ) ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM Q SEQ ( P > ( Q & P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 28}
+{"prompt": "THM ( R & ( ~ ( Q & Q ) ) ) SEQ ( ~ ( Q & Q ) ) PRF", "n_prem": 1, "S": 14, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ Q ) SEQ ( ~ ( Q & ( Q & Q ) ) ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 61}
+{"prompt": "THM ( ~ ( Q > P ) ) SEQ ( P > ( Q & Q ) ) PRF", "n_prem": 1, "S": 17, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 1190}
+{"prompt": "THM ( ( ( ~ Q ) & Q ) v ( ~ Q ) ) SEQ ( ( Q v ( ~ Q ) ) > ( ( ~ Q ) v ( ~ Q ) ) ) PRF", "n_prem": 1, "S": 20, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.01, "memo": 2243}
+{"prompt": "THM ( ( ~ ( Q v Q ) ) > P ) SEQ ( ( ( Q v Q ) & Q ) v P ) PRF", "n_prem": 1, "S": 20, "min_body": 14, "status": "found", "last_body": 14, "secs": 0.71, "memo": 151259}
+{"prompt": "THM P , ( P > ( Q & Q ) ) SEQ ( Q & Q ) PRF", "n_prem": 2, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM P SEQ ( ( ~ P ) > ( Q > P ) ) PRF", "n_prem": 1, "S": 14, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 68}
+{"prompt": "THM ( ( P & Q ) & Q ) SEQ ( P & Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ ( ( ~ Q ) v ( ~ Q ) ) ) SEQ Q PRF", "n_prem": 1, "S": 9, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 70}
+{"prompt": "THM ( ( Q v P ) & ( Q v Q ) ) SEQ Q PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 144}
+{"prompt": "THM R SEQ ( P > ( Q v R ) ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 50}
+{"prompt": "THM ( ( P v Q ) v ( P v Q ) ) SEQ ( ( ~ P ) > ( ( P v Q ) v ( P v Q ) ) ) PRF", "n_prem": 1, "S": 17, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 37}
+{"prompt": "THM ( P v ( ~ Q ) ) SEQ ( ( ~ Q ) v P ) PRF", "n_prem": 1, "S": 14, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 106}
+{"prompt": "THM ( ~ ( P > Q ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 12, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 307}
+{"prompt": "THM ( P & P ) SEQ ( ( Q & P ) v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 17}
+{"prompt": "THM ( Q v Q ) SEQ ( ( Q & ( Q & Q ) ) & ( Q & ( Q & Q ) ) ) PRF", "n_prem": 1, "S": 16, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 558}
+{"prompt": "THM ( P v P ) SEQ ( ( ( P & R ) > P ) > P ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 275}
+{"prompt": "THM ( ( Q > Q ) & ( ~ Q ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ( ~ P ) v Q ) > ( P & ( ~ P ) ) ) SEQ ( ~ ( ~ P ) ) PRF", "n_prem": 1, "S": 18, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 734}
+{"prompt": "THM ( Q v Q ) SEQ ( P v ( Q & Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 189}
+{"prompt": "THM ( P & R ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( ~ ( ( ( P > Q ) v ( P > Q ) ) & ( P > Q ) ) ) SEQ ( ~ Q ) PRF", "n_prem": 1, "S": 18, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.01, "memo": 3715}
+{"prompt": "THM ( ~ ( ~ ( Q & P ) ) ) SEQ Q PRF", "n_prem": 1, "S": 12, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 13}
+{"prompt": "THM ( P & ( P > R ) ) SEQ ( R v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( ( R > P ) > R ) , ( R > P ) SEQ P PRF", "n_prem": 2, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 13}
+{"prompt": "THM ( ~ P ) SEQ ( ( R > Q ) > ( ~ P ) ) PRF", "n_prem": 1, "S": 17, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 36}
+{"prompt": "THM ( ( Q > Q ) & Q ) SEQ ( ~ ( ~ ( ( Q > Q ) & Q ) ) ) PRF", "n_prem": 1, "S": 12, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 50}
+{"prompt": "THM ( ~ ( Q v Q ) ) SEQ ( ~ ( P & ( Q v Q ) ) ) PRF", "n_prem": 1, "S": 15, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 73}
+{"prompt": "THM ( P v P ) SEQ ( ( Q & Q ) > P ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 211}
+{"prompt": "THM ( ( P & P ) & ( P > P ) ) SEQ P PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( P & Q ) SEQ ( ( Q > Q ) & P ) PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 166}
+{"prompt": "THM ( ( ~ Q ) > ( Q & Q ) ) SEQ ( Q & Q ) PRF", "n_prem": 1, "S": 11, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 431}
+{"prompt": "THM ( ( P v P ) v P ) SEQ ( ( P & P ) v ( P v P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 207}
+{"prompt": "THM ( Q & ( P v Q ) ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ( Q v R ) v Q ) & ( ( Q v R ) > Q ) ) SEQ Q PRF", "n_prem": 1, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 999}
+{"prompt": "THM P SEQ ( P v ( ( ~ Q ) & ( ~ Q ) ) ) PRF", "n_prem": 1, "S": 14, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P > Q ) SEQ ( ( ( Q > P ) > ( P > Q ) ) v ( P > Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ( P v Q ) & P ) & Q ) SEQ Q PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( R > P ) , R SEQ ( P v Q ) PRF", "n_prem": 2, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 16}
+{"prompt": "THM ( ( P & P ) & ( ( P & P ) v ( P & P ) ) ) SEQ ( Q > ( P & P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 82}
+{"prompt": "THM ( ~ Q ) SEQ ( ( P > Q ) > ( ~ Q ) ) PRF", "n_prem": 1, "S": 14, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 30}
+{"prompt": "THM ( ( ( P v P ) > ( P v P ) ) & P ) SEQ ( R > P ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 82}
+{"prompt": "THM ( ( P v R ) & ( P v P ) ) SEQ ( P & P ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 400}
+{"prompt": "THM P , Q SEQ ( P & Q ) PRF", "n_prem": 2, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ~ R ) & P ) SEQ ( ~ ( R & P ) ) PRF", "n_prem": 1, "S": 15, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 379}
+{"prompt": "THM Q SEQ ( ( ( ~ P ) & ( ~ P ) ) > Q ) PRF", "n_prem": 1, "S": 14, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 30}
+{"prompt": "THM ( P & ( P v Q ) ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( P & Q ) SEQ ( ( ~ ( Q > P ) ) > ( ( Q > P ) & P ) ) PRF", "n_prem": 1, "S": 20, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.01, "memo": 3479}
+{"prompt": "THM ( ( ( Q & P ) & P ) & Q ) SEQ ( Q & P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( R & ( R v ( P & R ) ) ) SEQ R PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q > ( Q & P ) ) SEQ ( Q > ( P & Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 188}
+{"prompt": "THM P SEQ ( ( P > ( Q > P ) ) > ( P & ( Q > P ) ) ) PRF", "n_prem": 1, "S": 19, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 98}
+{"prompt": "THM ( ( Q & Q ) & P ) SEQ ( Q & Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q & Q ) v Q ) SEQ ( Q v Q ) PRF", "n_prem": 1, "S": 13, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 152}
+{"prompt": "THM ( P & Q ) SEQ ( Q & Q ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( ~ Q ) , ( Q v P ) SEQ ( P v R ) PRF", "n_prem": 2, "S": 17, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 424}
+{"prompt": "THM ( ( Q > Q ) & P ) SEQ ( ( Q > Q ) > P ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 67}
+{"prompt": "THM ( Q v ( Q & Q ) ) SEQ ( ( ( Q & Q ) > Q ) & ( Q & Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.01, "memo": 2748}
+{"prompt": "THM ( ( P & Q ) v ( P & Q ) ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 56}
+{"prompt": "THM ( ~ ( Q v P ) ) SEQ ( ( Q v P ) > Q ) PRF", "n_prem": 1, "S": 14, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 71}
+{"prompt": "THM ( ~ ( ( ~ Q ) v R ) ) SEQ Q PRF", "n_prem": 1, "S": 12, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 109}
+{"prompt": "THM P SEQ ( ( P v P ) v ( ~ Q ) ) PRF", "n_prem": 1, "S": 14, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( ( Q & P ) & P ) SEQ P PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( ~ P ) & ( Q & R ) ) SEQ Q PRF", "n_prem": 1, "S": 17, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 19}
+{"prompt": "THM ( ( Q v P ) & ( ~ P ) ) SEQ ( ~ P ) PRF", "n_prem": 1, "S": 14, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( R & ( P > P ) ) SEQ R PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM Q , ( ( ~ Q ) v P ) SEQ P PRF", "n_prem": 2, "S": 11, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 103}
+{"prompt": "THM ( P & ( Q v P ) ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 67}
+{"prompt": "THM ( P & ( Q v P ) ) SEQ ( ( Q v P ) v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM Q SEQ ( ( P & R ) v ( R > Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 70}
+{"prompt": "THM ( R > Q ) , ( P & ( R & P ) ) SEQ Q PRF", "n_prem": 2, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 78}
+{"prompt": "THM ( R & Q ) , ( R > P ) SEQ ( P v P ) PRF", "n_prem": 2, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 78}
+{"prompt": "THM ( Q & Q ) SEQ ( ( ~ Q ) > ( Q v P ) ) PRF", "n_prem": 1, "S": 17, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 148}
+{"prompt": "THM ( ~ ( ~ ( P & P ) ) ) SEQ ( P & P ) PRF", "n_prem": 1, "S": 9, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q & ( P > P ) ) > ( ~ ( P > P ) ) ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 20, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.02, "memo": 4397}
+{"prompt": "THM Q SEQ ( ( P > P ) & Q ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 29}
+{"prompt": "THM ( ~ ( ( ( ~ P ) > Q ) v P ) ) SEQ ( ~ P ) PRF", "n_prem": 1, "S": 15, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 76}
+{"prompt": "THM Q , ( Q > R ) SEQ ( Q & R ) PRF", "n_prem": 2, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 13}
+{"prompt": "THM ( Q v Q ) SEQ ( Q & ( Q > Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 420}
+{"prompt": "THM ( ( Q & P ) & ( P > Q ) ) SEQ Q PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM P SEQ ( P v ( Q & Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q & ( P & P ) ) SEQ ( Q v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q & P ) SEQ ( Q v ( P & Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( ~ Q ) , ( ( R > ( ~ R ) ) > Q ) SEQ R PRF", "n_prem": 2, "S": 15, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.0, "memo": 1353}
+{"prompt": "THM ( ~ ( Q > ( Q & P ) ) ) SEQ Q PRF", "n_prem": 1, "S": 14, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.0, "memo": 1598}
+{"prompt": "THM ( ( P & Q ) & P ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( ( R & R ) v ( R & R ) ) SEQ ( Q v R ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 189}
+{"prompt": "THM ( P > ( ~ P ) ) SEQ ( ( ~ ( P & P ) ) v ( ~ ( P & P ) ) ) PRF", "n_prem": 1, "S": 15, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 469}
+{"prompt": "THM ( Q & Q ) SEQ ( ( Q v P ) v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 17}
+{"prompt": "THM ( P v ( ~ R ) ) , ( R v R ) SEQ P PRF", "n_prem": 2, "S": 14, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.0, "memo": 1756}
+{"prompt": "THM ( ( ~ P ) & ( ~ P ) ) SEQ ( ( Q v ( ~ P ) ) > ( Q > ( ~ P ) ) ) PRF", "n_prem": 1, "S": 20, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 460}
+{"prompt": "THM ( P & Q ) SEQ ( P > ( P > Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 409}
+{"prompt": "THM P SEQ ( Q > ( Q & P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 28}
+{"prompt": "THM ( ( Q & Q ) & ( P > Q ) ) SEQ ( Q & Q ) PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( R v ( Q > R ) ) , Q SEQ ( R v P ) PRF", "n_prem": 2, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 245}
+{"prompt": "THM P SEQ ( Q v ( P & P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( ( Q v Q ) & P ) SEQ Q PRF", "n_prem": 1, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 119}
+{"prompt": "THM ( ( P > Q ) & Q ) SEQ ( P > Q ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM Q SEQ ( Q v ( ~ ( P v Q ) ) ) PRF", "n_prem": 1, "S": 14, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q > Q ) > ( P & Q ) ) SEQ P PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 84}
+{"prompt": "THM ( ~ ( P > Q ) ) SEQ ( ~ ( ( P > Q ) & P ) ) PRF", "n_prem": 1, "S": 15, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 77}
+{"prompt": "THM Q SEQ ( P > ( R > Q ) ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 184}
+{"prompt": "THM ( Q v P ) SEQ ( P v ( Q v P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ~ ( R v Q ) ) SEQ ( Q v ( ~ R ) ) PRF", "n_prem": 1, "S": 15, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 169}
+{"prompt": "THM ( ( Q > P ) v ( Q > P ) ) SEQ ( Q > ( Q & P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 1090}
+{"prompt": "THM Q SEQ ( ( Q v P ) & Q ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( ~ Q ) SEQ ( ( Q v ( ~ P ) ) > ( ~ P ) ) PRF", "n_prem": 1, "S": 15, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 576}
+{"prompt": "THM Q SEQ ( Q v ( P > R ) ) PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q v Q ) SEQ ( ( P & Q ) v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 61}
+{"prompt": "THM ( P v Q ) , ( ( Q > P ) v ( P v P ) ) SEQ P PRF", "n_prem": 2, "S": 19, "min_body": 10, "status": "found", "last_body": 10, "secs": 0.06, "memo": 17339}
+{"prompt": "THM ( P v P ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 13, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 163}
+{"prompt": "THM ( P & ( ( ~ P ) v Q ) ) SEQ ( ~ ( ~ P ) ) PRF", "n_prem": 1, "S": 15, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 152}
+{"prompt": "THM ( ( Q & Q ) & Q ) SEQ ( ~ ( ~ Q ) ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 119}
+{"prompt": "THM P SEQ ( ( P v R ) v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 17}
+{"prompt": "THM ( ( ( P & Q ) & ( P & Q ) ) v Q ) SEQ ( P > ( P & Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 7, "status": "found", "last_body": 7, "secs": 0.0, "memo": 1062}
+{"prompt": "THM ( P & Q ) SEQ ( ( Q v P ) v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM P SEQ ( ( P v R ) v ( ~ Q ) ) PRF", "n_prem": 1, "S": 17, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( ~ ( P v P ) ) SEQ ( ~ ( ( P v P ) & ( P v P ) ) ) PRF", "n_prem": 1, "S": 12, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 60}
+{"prompt": "THM P SEQ ( ( P & P ) v R ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( Q & P ) SEQ ( ( ( Q & P ) > P ) & ( P & P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 1437}
+{"prompt": "THM ( ( Q v Q ) & ( Q v Q ) ) SEQ ( Q v ( ( Q v Q ) & ( Q v Q ) ) ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( Q v Q ) & P ) SEQ ( Q & ( P v ( Q v Q ) ) ) PRF", "n_prem": 1, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 1439}
+{"prompt": "THM ( Q & ( P > Q ) ) SEQ ( ( ( P > Q ) v Q ) & Q ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 82}
+{"prompt": "THM ( ~ ( ~ ( Q v P ) ) ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 12, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM R SEQ ( ( ( R & Q ) & R ) v R ) PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM P SEQ ( ( P & P ) v P ) PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q & ( P v Q ) ) SEQ ( Q v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( ( P & ( Q & P ) ) & Q ) SEQ ( ( Q & P ) v ( Q & P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 84}
+{"prompt": "THM P SEQ ( ( P v R ) v R ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 14}
+{"prompt": "THM ( ( ~ ( Q & P ) ) > P ) , ( Q v ( P > Q ) ) SEQ ( Q & P ) PRF", "n_prem": 2, "S": 20, "min_body": 10, "status": "found", "last_body": 10, "secs": 0.08, "memo": 21097}
+{"prompt": "THM ( P & ( ( Q v Q ) > Q ) ) SEQ P PRF", "n_prem": 1, "S": 16, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( ( P v Q ) & ( ~ P ) ) SEQ ( Q & ( ~ P ) ) PRF", "n_prem": 1, "S": 17, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.01, "memo": 4409}
+{"prompt": "THM ( ~ ( ~ ( Q v Q ) ) ) SEQ ( P > Q ) PRF", "n_prem": 1, "S": 15, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 528}
+{"prompt": "THM Q , P SEQ ( ( ( P & Q ) > ( P & Q ) ) > ( P & Q ) ) PRF", "n_prem": 2, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 50}
+{"prompt": "THM ( Q > P ) SEQ ( ( Q > P ) & ( Q > P ) ) PRF", "n_prem": 1, "S": 13, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( Q v Q ) SEQ ( Q v ( ~ P ) ) PRF", "n_prem": 1, "S": 14, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 55}
+{"prompt": "THM ( R & P ) SEQ ( Q v P ) PRF", "n_prem": 1, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 18}
+{"prompt": "THM ( Q & P ) SEQ ( ( P v Q ) > P ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 71}
+{"prompt": "THM ( Q & R ) SEQ ( R & ( R & R ) ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 69}
+{"prompt": "THM ( P & ( Q & P ) ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 70}
+{"prompt": "THM ( R & P ) SEQ ( P v P ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM ( ~ ( ( P v Q ) v ( P v P ) ) ) SEQ ( ~ ( P v P ) ) PRF", "n_prem": 1, "S": 18, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 92}
+{"prompt": "THM ( Q & Q ) SEQ ( ( Q & ( Q v P ) ) & Q ) PRF", "n_prem": 1, "S": 19, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 154}
+{"prompt": "THM ( ( ~ ( Q & P ) ) > P ) SEQ ( ( Q > ( Q & P ) ) & ( ( ~ ( Q & P ) ) > P ) ) PRF", "n_prem": 1, "S": 20, "min_body": 9, "status": "found", "last_body": 9, "secs": 0.02, "memo": 6460}
+{"prompt": "THM ( Q & ( Q v Q ) ) SEQ ( Q v Q ) PRF", "n_prem": 1, "S": 10, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM ( R & ( R & ( ~ P ) ) ) SEQ ( Q > R ) PRF", "n_prem": 1, "S": 20, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 86}
+{"prompt": "THM ( P & Q ) SEQ ( ( P & Q ) & Q ) PRF", "n_prem": 1, "S": 13, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 15}
+{"prompt": "THM R , ( P v P ) SEQ ( P & R ) PRF", "n_prem": 2, "S": 13, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 54}
+{"prompt": "THM ( ( P v ( P & P ) ) & ( ~ Q ) ) SEQ ( P v Q ) PRF", "n_prem": 1, "S": 20, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 1195}
+{"prompt": "THM ( P v Q ) SEQ ( ( P & Q ) v ( Q v P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 397}
+{"prompt": "THM ( Q & P ) SEQ ( P v ( ~ Q ) ) PRF", "n_prem": 1, "S": 14, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 16}
+{"prompt": "THM ( P & Q ) SEQ ( P > ( Q v ( P & Q ) ) ) PRF", "n_prem": 1, "S": 16, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 85}
+{"prompt": "THM ( Q & Q ) SEQ ( ( Q v Q ) & ( Q v P ) ) PRF", "n_prem": 1, "S": 19, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 187}
+{"prompt": "THM ( ~ P ) , ( ( P v Q ) > P ) SEQ ( ~ Q ) PRF", "n_prem": 2, "S": 15, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 199}
+{"prompt": "THM ( Q & R ) SEQ ( ( ( Q & R ) & R ) v ( R & Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 82}
+{"prompt": "THM ( ~ ( P > Q ) ) , ( ( P > Q ) v ( R & R ) ) SEQ R PRF", "n_prem": 2, "S": 20, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 664}
+{"prompt": "THM P , ( ~ Q ) SEQ ( P & ( ~ Q ) ) PRF", "n_prem": 2, "S": 11, "min_body": 1, "status": "found", "last_body": 1, "secs": 0.0, "memo": 1}
+{"prompt": "THM P , ( Q & ( P > P ) ) SEQ ( Q & P ) PRF", "n_prem": 2, "S": 16, "min_body": 2, "status": "found", "last_body": 2, "secs": 0.0, "memo": 17}
+{"prompt": "THM ( ( Q & Q ) & Q ) SEQ ( Q & ( Q & Q ) ) PRF", "n_prem": 1, "S": 13, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 54}
+{"prompt": "THM ( ( Q > P ) v P ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 13, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 293}
+{"prompt": "THM ( Q & Q ) SEQ ( ~ ( ~ Q ) ) PRF", "n_prem": 1, "S": 9, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 61}
+{"prompt": "THM ( P v Q ) , ( ~ P ) SEQ ( ( Q > P ) > ( Q & Q ) ) PRF", "n_prem": 2, "S": 20, "min_body": 8, "status": "found", "last_body": 8, "secs": 0.02, "memo": 4177}
+{"prompt": "THM Q SEQ ( ( ( P v Q ) > P ) > ( P & Q ) ) PRF", "n_prem": 1, "S": 19, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 282}
+{"prompt": "THM ( ~ R ) SEQ ( ( R > P ) > ( R > Q ) ) PRF", "n_prem": 1, "S": 20, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 615}
+{"prompt": "THM ( Q v Q ) SEQ ( ( P > Q ) v Q ) PRF", "n_prem": 1, "S": 16, "min_body": 4, "status": "found", "last_body": 4, "secs": 0.0, "memo": 66}
+{"prompt": "THM ( P v ( Q > P ) ) SEQ ( Q > P ) PRF", "n_prem": 1, "S": 13, "min_body": 6, "status": "found", "last_body": 6, "secs": 0.0, "memo": 273}
+{"prompt": "THM ( ~ P ) SEQ ( ( Q & P ) > ( ~ Q ) ) PRF", "n_prem": 1, "S": 15, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 179}
+{"prompt": "THM ( Q & P ) SEQ ( ( P v P ) > ( ( Q & P ) v ( Q & P ) ) ) PRF", "n_prem": 1, "S": 19, "min_body": 3, "status": "found", "last_body": 3, "secs": 0.0, "memo": 103}
+{"prompt": "THM ( Q & P ) SEQ ( Q & ( Q > P ) ) PRF", "n_prem": 1, "S": 16, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 362}
+{"prompt": "THM ( ( ~ P ) & ( P > ( P & P ) ) ) SEQ ( P > Q ) PRF", "n_prem": 1, "S": 20, "min_body": 5, "status": "found", "last_body": 5, "secs": 0.0, "memo": 520}

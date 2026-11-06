@@ -1,0 +1,10 @@
+{"prompt": "THM ( ~ ( Q & ( ~ P ) ) ) , ( S v ( ~ T ) ) , ( ~ ( R & ( ~ Q ) ) ) , ( S > P ) , ( ~ ( ( ~ T ) & ( ~ R ) ) ) SEQ P PRF", "floor": 16, "got": ["exhausted", null], "S": 38, "minlen_secs": 60.46}
+{"prompt": "THM ( P > ( ~ Q ) ) , ( S > ( ~ S ) ) , ( ( ~ Q ) > ( ~ R ) ) , ( S v R ) SEQ ( Q & ( ~ P ) ) PRF", "floor": 20, "got": ["found", 15], "S": 32, "minlen_secs": 51.22}
+{"prompt": "THM ( ( ~ R ) > Q ) , ( S > ( ~ P ) ) , ( P > ( ~ Q ) ) , ( ~ ( R & ( ~ S ) ) ) SEQ ( ~ ( T & P ) ) PRF", "floor": 20, "got": ["found", 14], "S": 37, "minlen_secs": 51.66}
+{"prompt": "THM ( T v ( ~ S ) ) , ( ( ~ Q ) v S ) , ( ~ ( ( ~ U ) & ( ~ P ) ) ) , ( P v ( ~ T ) ) , ( Q v ( ~ U ) ) SEQ P PRF", "floor": 16, "got": ["exhausted", null], "S": 37, "minlen_secs": 60.38}
+{"prompt": "THM ( ~ ( U & Q ) ) , ( ( ~ T ) v U ) , ( P v Q ) , ( R > ( ~ T ) ) , ( S > R ) , ( ( ~ P ) v S ) SEQ ( ~ T ) PRF", "floor": 20, "got": ["found", 15], "S": 40, "minlen_secs": 60.34}
+{"prompt": "THM ( ~ ( Q & ( ~ P ) ) ) , ( ~ ( ( ~ T ) & R ) ) , ( ~ ( ( ~ S ) & ( ~ Q ) ) ) , ( ( ~ R ) v ( ~ P ) ) , ( ( ~ T ) v ( ~ S ) ) SEQ ( ~ R ) PRF", "floor": 16, "got": ["exhausted", null], "S": 39, "minlen_secs": 60.33}
+{"prompt": "THM ( ( ~ T ) v ( ~ Q ) ) , ( ( ~ S ) v ( ~ P ) ) , ( P v ( ~ Q ) ) , ( T v S ) SEQ ( ~ Q ) PRF", "floor": 20, "got": ["found", 16], "S": 29, "minlen_secs": 60.41}
+{"prompt": "THM ( S > ( ~ P ) ) , ( R v U ) , ( P v ( ~ U ) ) , ( S & Q ) SEQ ( ~ ( Q & ( ~ R ) ) ) PRF", "floor": 20, "got": ["found", 14], "S": 35, "minlen_secs": 60.39}
+{"prompt": "THM ( ( ~ P ) > Q ) , ( ( ~ P ) v U ) , ( S v T ) , ( ( ~ T ) v ( ~ U ) ) , ( ( ~ S ) v Q ) SEQ Q PRF", "floor": 20, "got": ["found", 17], "S": 35, "minlen_secs": 60.81}
+{"prompt": "THM ( S v ( ~ R ) ) , ( T > ( ~ S ) ) , ( ( ~ Q ) > ( ~ P ) ) , ( P & R ) SEQ ( Q & ( ~ T ) ) PRF", "floor": 20, "got": ["found", 16], "S": 36, "minlen_secs": 60.35}

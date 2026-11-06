@@ -1,0 +1,30 @@
+THM ( T v ( ~ S ) ) , ( S v P ) , ( R v ( ~ T ) ) , ( ( ~ P ) v ( ~ Q ) ) , ( ~ ( ( ~ U ) & ( ~ R ) ) ) , ( ( ~ U ) v Q ) SEQ R PRF
+THM ( R v U ) , ( S v ( ~ P ) ) , ( R > S ) , ( ~ ( U & ( ~ Q ) ) ) , ( ( ~ T ) > P ) , ( Q > ( ~ T ) ) SEQ S PRF
+THM ( P v R ) , ( ( ~ Q ) v S ) , ( P > Q ) , ( T v ( ~ U ) ) , ( ~ ( T & R ) ) , ( U v S ) SEQ S PRF
+THM ( ( ~ R ) v P ) , ( ( ~ S ) v ( ~ U ) ) , ( ( ~ T ) > P ) , ( Q > ( ~ T ) ) , ( S v Q ) , ( ( ~ U ) > R ) SEQ P PRF
+THM ( ~ ( R & ( ~ T ) ) ) , ( U v ( ~ P ) ) , ( ~ ( Q & ( ~ U ) ) ) , ( S > R ) , ( Q v S ) , ( T > P ) SEQ U PRF
+THM ( ~ ( S & R ) ) , ( ( ~ T ) v U ) , ( ( ~ R ) > ( ~ Q ) ) , ( P > T ) , ( ( ~ Q ) > U ) , ( P v S ) SEQ U PRF
+THM ( ( ~ U ) > S ) , ( P v R ) , ( T > P ) , ( ( ~ S ) v Q ) , ( Q > T ) , ( ( ~ U ) v ( ~ R ) ) SEQ P PRF
+THM ( P v Q ) , ( R > ( ~ U ) ) , ( T v ( ~ U ) ) , ( ~ ( Q & ( ~ S ) ) ) , ( S > ( ~ T ) ) , ( R v ( ~ P ) ) SEQ ( ~ U ) PRF
+THM ( P v ( ~ R ) ) , ( ~ ( U & ( ~ T ) ) ) , ( S v R ) , ( ( ~ Q ) > T ) , ( S > U ) , ( P > ( ~ Q ) ) SEQ T PRF
+THM ( S v ( ~ U ) ) , ( ( ~ U ) v T ) , ( ( ~ T ) v ( ~ P ) ) , ( ( ~ R ) > ( ~ S ) ) , ( Q > ( ~ R ) ) , ( ( ~ P ) > Q ) SEQ ( ~ U ) PRF
+THM ( T > S ) , ( ~ ( ( ~ P ) & U ) ) , ( Q v R ) , ( ( ~ S ) v ( ~ P ) ) , ( ~ ( R & U ) ) , ( ( ~ Q ) v T ) SEQ ( ~ U ) PRF
+THM ( ( ~ T ) > ( ~ R ) ) , ( U v Q ) , ( P > ( ~ T ) ) , ( ( ~ S ) > ( ~ R ) ) , ( Q > P ) , ( U > ( ~ S ) ) SEQ ( ~ R ) PRF
+THM ( S > ( ~ T ) ) , ( ~ ( ( ~ U ) & ( ~ Q ) ) ) , ( P > S ) , ( ( ~ T ) > Q ) , ( P v ( ~ R ) ) , ( R v ( ~ U ) ) SEQ Q PRF
+THM ( ~ ( R & ( ~ Q ) ) ) , ( T > Q ) , ( S > P ) , ( R v U ) , ( T v ( ~ P ) ) , ( S v ( ~ U ) ) SEQ Q PRF
+THM ( ( ~ T ) v P ) , ( ( ~ U ) > ( ~ S ) ) , ( ( ~ T ) v Q ) , ( ~ ( ( ~ S ) & P ) ) , ( ( ~ R ) v ( ~ Q ) ) , ( R v ( ~ U ) ) SEQ ( ~ T ) PRF
+THM ( P > R ) , ( T v P ) , ( ~ ( ( ~ U ) & ( ~ R ) ) ) , ( ( ~ T ) v ( ~ S ) ) , ( ~ ( ( ~ Q ) & U ) ) , ( ( ~ S ) > ( ~ Q ) ) SEQ R PRF
+THM ( P > R ) , ( ( ~ T ) v ( ~ U ) ) , ( ( ~ S ) > ( ~ Q ) ) , ( P v T ) , ( R > ( ~ Q ) ) , ( ( ~ S ) v U ) SEQ ( ~ Q ) PRF
+THM ( ( ~ P ) v T ) , ( R v P ) , ( R v ( ~ S ) ) , ( ( ~ U ) v ( ~ T ) ) , ( ( ~ U ) > Q ) , ( S v ( ~ Q ) ) SEQ R PRF
+THM ( P v T ) , ( ~ ( R & ( ~ S ) ) ) , ( ( ~ U ) > R ) , ( Q v ( ~ T ) ) , ( Q > ( ~ U ) ) , ( ~ ( P & ( ~ S ) ) ) SEQ S PRF
+THM ( ( ~ U ) v S ) , ( U v R ) , ( S > ( ~ T ) ) , ( T v P ) , ( P > ( ~ Q ) ) , ( ( ~ Q ) v ( ~ R ) ) SEQ ( ~ Q ) PRF
+THM ( ~ ( R & ( ~ Q ) ) ) , ( U v T ) , ( ( ~ P ) v ( ~ S ) ) , ( Q > ( ~ U ) ) , ( T v P ) , ( ~ ( ( ~ S ) & ( ~ R ) ) ) SEQ T PRF
+THM ( T v ( ~ U ) ) , ( ( ~ U ) > ( ~ Q ) ) , ( ~ ( P & ( ~ R ) ) ) , ( T > P ) , ( R > S ) , ( ( ~ S ) v ( ~ Q ) ) SEQ ( ~ Q ) PRF
+THM ( ( ~ Q ) v U ) , ( S v ( ~ P ) ) , ( ( ~ T ) > ( ~ U ) ) , ( ~ ( S & Q ) ) , ( ( ~ R ) v ( ~ T ) ) , ( R v P ) SEQ ( ~ Q ) PRF
+THM ( Q v S ) , ( R > ( ~ T ) ) , ( P v U ) , ( Q > R ) , ( ~ ( U & T ) ) , ( S > ( ~ P ) ) SEQ ( ~ T ) PRF
+THM ( ( ~ U ) v T ) , ( ( ~ S ) v ( ~ Q ) ) , ( P v ( ~ R ) ) , ( ( ~ S ) > ( ~ U ) ) , ( R v Q ) , ( P > ( ~ T ) ) SEQ ( ~ U ) PRF
+THM ( U > S ) , ( T v ( ~ Q ) ) , ( ( ~ Q ) > ( ~ R ) ) , ( S v P ) , ( T > U ) , ( ( ~ R ) > ( ~ P ) ) SEQ S PRF
+THM ( T > S ) , ( Q > R ) , ( ~ ( ( ~ U ) & ( ~ Q ) ) ) , ( T v ( ~ U ) ) , ( P v ( ~ R ) ) , ( ( ~ S ) v P ) SEQ P PRF
+THM ( ( ~ Q ) v ( ~ R ) ) , ( S > R ) , ( ( ~ P ) v S ) , ( U > ( ~ Q ) ) , ( T > U ) , ( T v P ) SEQ ( ~ Q ) PRF
+THM ( ~ ( Q & P ) ) , ( ( ~ T ) v ( ~ R ) ) , ( Q v ( ~ S ) ) , ( P v ( ~ U ) ) , ( ( ~ S ) > ( ~ R ) ) , ( U v T ) SEQ ( ~ R ) PRF
+THM ( ( ~ Q ) v S ) , ( ~ ( S & R ) ) , ( Q v ( ~ P ) ) , ( R v ( ~ T ) ) , ( U > ( ~ T ) ) , ( ( ~ P ) > U ) SEQ ( ~ T ) PRF

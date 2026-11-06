@@ -1,0 +1,152 @@
+<title>Textbook72 pass@10k</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; the chart is the page, the table and notes sit under it. */
+:root {
+  --bg: #fbfbf9; --panel: #f3f3ef; --fg: #161614; --fg-2: #55544f; --fg-3: #8a8983; --rule: #e2e1dc;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.55; }
+main { max-width: 860px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.lede { color: var(--fg-2); margin: 6px 0 0; max-width: 65ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--fg-2); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 18px; height: 2px; border-radius: 1px; display: inline-block; }
+.chart { position: relative; min-width: 0; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grid line { stroke: var(--rule); stroke-width: 1; }
+.axis text { fill: var(--fg-3); font-family: var(--mono); font-size: 11px; }
+.axis-label { fill: var(--fg-2); font-size: 12px; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 8px 10px; font-size: 12px; line-height: 1.5; min-width: 170px; box-shadow: 0 4px 16px rgb(0 0 0 / 0.08); }
+.tip b { font-family: var(--mono); font-weight: 500; }
+.tip .row { display: flex; justify-content: space-between; gap: 14px; color: var(--fg-2); }
+.tip .row .v { font-family: var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--fg-3); font-size: 12px; }
+td { font-family: var(--mono); }
+td:first-child { font-family: var(--sans); }
+.notes { color: var(--fg-2); font-size: 14px; max-width: 65ch; display: flex; flex-direction: column; gap: 8px; }
+.notes p { margin: 0; }
+code { font-family: var(--mono); font-size: 0.92em; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">nd-rl · long_rl_20261014 · untied-ei seed 1</div>
+    <h1>Textbook72 pass@k out to 10,240 attempts</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div class="legend" id="legend"></div>
+    <div class="chart" id="chart"><div class="tip" id="tip" hidden></div></div>
+  </section>
+
+  <section class="tablewrap">
+    <table id="table"></table>
+  </section>
+
+  <section class="notes" id="notes"></section>
+</main>
+
+<script>
+const DATA = /*DATA*/;
+const META = /*META*/;
+const LABEL = {pretrain: "Pretrain (no RL)", v2_final: "3 h RL (v2 final)", v5_round025: "~5.4 h RL (v5 round 25)"};
+const COLOR = {pretrain: "--s1", v2_final: "--s2", v5_round025: "--s3"};
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+document.getElementById("lede").textContent = META.lede;
+document.getElementById("notes").innerHTML = META.notes.map(n => `<p>${n}</p>`).join("");
+document.getElementById("legend").innerHTML = DATA.map(m =>
+  `<span><i style="background:var(${COLOR[m.tag]})"></i>${LABEL[m.tag]}</span>`).join("");
+
+const SHOW = [1, 10, 100, 1000, DATA[0].n];
+const at = (m, k) => m.mean[m.ks.indexOf(k)];
+document.getElementById("table").innerHTML =
+  `<tr><th>model</th>${SHOW.map(k => `<th>pass@${k.toLocaleString()}</th>`).join("")}<th>solved (dev58 / train14)</th></tr>` +
+  DATA.map(m => `<tr><td>${LABEL[m.tag]}</td>${SHOW.map(k => `<td>${at(m, k).toFixed(3)}</td>`).join("")}` +
+    `<td>${m.solved}/72 (${m.solved_dev} / ${m.solved_train})</td></tr>`).join("");
+
+const W = 820, H = 440, M = {l: 52, r: 16, t: 12, b: 46};
+const kmax = DATA[0].n;
+const x = k => M.l + Math.log10(k) / Math.log10(kmax) * (W - M.l - M.r);
+const y = v => M.t + (1 - v) * (H - M.t - M.b);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+
+function draw() {
+  const host = document.getElementById("chart");
+  host.querySelector("svg")?.remove();
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "pass@k against k on textbook72"});
+  host.prepend(svg);
+  const grid = el("g", {class: "grid"}, svg), axis = el("g", {class: "axis"}, svg);
+  for (let v = 0; v <= 1.0001; v += 0.2) {
+    el("line", {x1: M.l, x2: W - M.r, y1: y(v), y2: y(v)}, grid);
+    el("text", {x: M.l - 8, y: y(v) + 4, "text-anchor": "end"}, axis).textContent = v.toFixed(1);
+  }
+  for (const k of [1, 10, 100, 1000, 10000]) {
+    if (k > kmax) continue;
+    el("line", {x1: x(k), x2: x(k), y1: M.t, y2: H - M.b}, grid);
+    el("text", {x: x(k), y: H - M.b + 18, "text-anchor": "middle"}, axis).textContent = k.toLocaleString();
+  }
+  el("text", {x: (M.l + W - M.r) / 2, y: H - 6, "text-anchor": "middle", class: "axis-label"}, svg).textContent =
+    `k, attempts per theorem (T = ${DATA[0].temp})`;
+  el("text", {x: 14, y: (M.t + H - M.b) / 2, "text-anchor": "middle", class: "axis-label",
+    transform: `rotate(-90 14 ${(M.t + H - M.b) / 2})`}, svg).textContent = "pass@k, Lean-checked";
+  for (const m of DATA) {
+    const c = css(COLOR[m.tag]);
+    const band = m.ks.map((k, i) => `${x(k)},${y(m.hi[i])}`).concat(m.ks.map((k, i) => `${x(k)},${y(m.lo[i])}`).reverse());
+    el("polygon", {points: band.join(" "), fill: c, "fill-opacity": 0.13, stroke: "none"}, svg);
+    el("polyline", {points: m.ks.map((k, i) => `${x(k)},${y(m.mean[i])}`).join(" "), fill: "none", stroke: c,
+      "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round"}, svg);
+    const last = m.ks.length - 1;
+    el("circle", {cx: x(m.ks[last]), cy: y(m.mean[last]), r: 4, fill: c, stroke: css("--bg"), "stroke-width": 2}, svg);
+  }
+  const cross = el("line", {y1: M.t, y2: H - M.b, stroke: css("--fg-3"), "stroke-dasharray": "3 3", visibility: "hidden"}, svg);
+  const dots = DATA.map(m => el("circle", {r: 4, fill: css(COLOR[m.tag]), stroke: css("--bg"), "stroke-width": 2, visibility: "hidden"}, svg));
+  const hit = el("rect", {x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent"}, svg);
+  const tip = document.getElementById("tip");
+  const move = ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const ks = DATA[0].ks;
+    let i = 0, best = Infinity;
+    ks.forEach((k, j) => { const d = Math.abs(x(k) - p.x); if (d < best) { best = d; i = j; } });
+    const k = ks[i];
+    cross.setAttribute("x1", x(k)); cross.setAttribute("x2", x(k)); cross.setAttribute("visibility", "visible");
+    DATA.forEach((m, j) => { dots[j].setAttribute("cx", x(k)); dots[j].setAttribute("cy", y(m.mean[i])); dots[j].setAttribute("visibility", "visible"); });
+    tip.innerHTML = `<b>pass@${k.toLocaleString()}</b>` + DATA.map(m =>
+      `<div class="row"><span><span class="sw" style="background:var(${COLOR[m.tag]})"></span>${LABEL[m.tag]}</span>` +
+      `<span class="v">${m.mean[i].toFixed(3)} <span style="color:var(--fg-3)">[${m.lo[i].toFixed(2)}–${m.hi[i].toFixed(2)}]</span></span></div>`).join("");
+    tip.hidden = false;
+    const r = host.getBoundingClientRect(), sx = r.width / W;
+    let left = x(k) * sx + 14;
+    if (left + tip.offsetWidth > r.width) left = x(k) * sx - tip.offsetWidth - 14;
+    tip.style.left = `${Math.max(0, left)}px`; tip.style.top = `${M.t * sx + 8}px`;
+  };
+  const leave = () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); };
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move); hit.addEventListener("pointerleave", leave);
+}
+draw();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+</script>

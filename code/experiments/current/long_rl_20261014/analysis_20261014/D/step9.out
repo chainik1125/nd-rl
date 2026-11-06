@@ -1,0 +1,54 @@
+### taxonomy over 13,946 gold RL targets (first matching class)
+A box in 1st ORE branch      n= 1043 never=  931 (89%) some= 111 all4=    1  never by family: {'s': 166, 'd': 481, 'c': 51, 's2': 232, 'b': 1}
+B intermediate ~lemma        n=  535 never=  526 (98%) some=   8 all4=    1  never by family: {'c': 499, 'd': 27}
+C classical (DN)             n=  111 never=  102 (92%) some=   9 all4=    0  never by family: {'d': 102}
+D other                      n= 4344 never= 1132 (26%) some=1527 all4= 1685  never by family: {'s': 58, 's2': 100, 'c': 893, 'd': 81}
+E long (>=20)                n= 7913 never= 7647 (97%) some= 266 all4=    0  never by family: {'b2': 2022, 'e_raw_sig': 2743, 'c': 666, 'b': 1195, 'b3': 832, 'd': 43, 'e_lowS': 146}
+
+### same, restricted to body 7-14 (where length alone is not the story)
+A box in 1st ORE branch      n=  607 never=  498 (82%) all4=    1 (0%)
+B intermediate ~lemma        n=   36 never=   28 (78%) all4=    1 (3%)
+C classical (DN)             n=   88 never=   79 (90%) all4=    0 (0%)
+D other                      n= 2606 never=   90 (3%) all4= 1475 (57%)
+
+### 'D other' never-solved, body 7-14: by family and body
+[(('c', 13), 1), (('c', 14), 13), (('d', 10), 7), (('d', 11), 3), (('d', 12), 15), (('d', 13), 29), (('d', 14), 12), (('s', 14), 4), (('s2', 13), 2), (('s2', 14), 4)]
+
+### dev.jsonl (k=64 eval) same taxonomy
+A box in 1st ORE branch      n=  61 never=  57 (93%) all4=   0
+B intermediate ~lemma        n=  34 never=  30 (88%) all4=   0
+C classical (DN)             n=   2 never=   1 (50%) all4=   0
+D other                      n= 275 never=  58 (21%) all4= 201
+E long (>=20)                n= 471 never= 429 (91%) all4=  17
+
+### d-family swap items: inter?, untied orig/swap n_ok
+rl_7712 first->second direct 0 7
+rl_12258 first->second inter 0 0
+rl_2494 first->second inter 0 0
+rl_5790 first->second inter 0 0
+rl_11395 first->second direct 0 5
+rl_10387 first->second inter 0 1
+rl_9391 second->first direct 6 0
+rl_9126 second->first direct 4 0
+rl_12846 second->first direct 6 0
+rl_7731 second->first direct 7 0
+rl_13129 second->first direct 8 0
+rl_10714 second->first direct 3 7
+
+ negi_inter/0 THM ( W v U ) , ( ~ ( U & Q ) ) , ( W > ( ~ Z ) ) , ( ( ~ Q ) > ( ~ Z ) ) SEQ ( ~ Z ) PRF Counter({'LEANREJ N1 ( W v U ) : PR': 8})
+  RAW: ( ¬ Z ) := Or.elim n104 ( fun ( n109 : W ) => by have n110 : ( ¬ Z ) := n106 n109 ; exact n110 ) ( fun ( n111 : U ) => by have n112 : ( ¬ Z ) := Or.elim n104 ( fun ( n113 : W ) => by have n114 : ( ¬ Z ) := n106 n113 ; exact n114 ) ( fun ( n115 : U ) => by have n116 : ( U ∧ Q ) := ⟨ n115 , n115 ⟩ ; have n117 : False := n105 n116 ; have n118 : ( ¬ Z ) := False .elim n117 ; exact n118 ) ; exact n112 ) ; exact n108 <eos>
+
+ negi_inter/1 THM ( ~ ( R & Y ) ) , ( Q > ( ~ Z ) ) , ( ( ~ Y ) > ( ~ Z ) ) , ( Q v R ) SEQ ( ~ Z ) PRF Counter({'LEANREJ N1 ( ~ ( R & Y ) ': 8})
+  RAW:  ∨ R ) := h4 ; have n17 : ( ¬ Z ) := Or.elim n16 ( fun ( n18 : Q ) => by have n19 : ( ¬ Z ) := n14 n18 ; exact n19 ) ( fun ( n20 : R ) => by have n21 : ( ¬ Z ) := Or.elim n16 ( fun ( n22 : Q ) => by have n23 : ( ¬ Z ) := n14 n22 ; exact n23 ) ( fun ( n24 : R ) => by have n25 : ( R ∧ Y ) := ⟨ n24 , n24 ⟩ ; have n26 : False := n13 n25 ; have n27 : ( ¬ Z ) := False .elim n26 ; exact n27 ) ; exact n21 ) ; exact n17 <eos>
+
+ excluded_middle/0 THM SEQ ( S v ( ~ S ) ) PRF Counter({'LEANPARSE unbound': 8})
+  RAW: have n117 : ( S ∨ ( ¬ S ) ) := Or.inl n74 ; have n118 : ( S ∨ ( ¬ S ) ) := n117 ; have n119 : ( S ∨ ( ¬ S ) ) := n118 ; have n120 : ( S ∨ ( ¬ S ) ) := n119 ; have n121 : ( S ∨ ( ¬ S ) ) := n120 ; have n122 : ( S ∨ ( ¬ S ) ) := n121 ; have n123 : ( S ∨ ( ¬ S ) ) := n122 ; exact n123 <eos>
+
+ peirce/0 THM ( ( X > U ) > X ) SEQ X PRF Counter({'LEANPARSE unbound': 7, 'LEANREJ N1 ( ( X > U ) > ': 1})
+  RAW: have n98 : ( ( X → U ) → X ) := h1 ; have n99 : ( ( X → U ) → X ) := n98 ; have n100 : ( X → U ) := ( fun ( n101 : X ) => by have n102 : U := n101 n101 ; exact n102 ) ; have n103 : X := n98 n100 ; exact n103 <eos>
+
+ impi_first/0 THM ( P > Z ) , ( ( W > Z ) > X ) , ( U > ( W > P ) ) , ( U v R ) , ( R > X ) SEQ X PRF Counter({'LEANREJ N1 ( P > Z ) : PR': 3, 'LEANPARSE exact not last': 2, 'LEANPARSE expected ;': 2, 'LEANPARSE no-eos': 1})
+  RAW: ) := h2 ; have n100 : ( U → ( W → P ) ) := h3 ; have n101 : ( U ∨ R ) := h4 ; have n102 : ( R → X ) := h5 ; have n103 : ( W → Z ) := ( fun ( n104 : W ) => by have n105 : Z := Or.elim n101 ( fun ( n106 : U ) => by have n107 : ( W → P ) := n100 n106 ; have n108 : P := n107 n104 ; have n109 : Z := n98 n108 ; exact n109 ) ( fun ( n110 : R ) => by have n111 : X := n102 n110 ; exact n111 ) ; exact n105 ) ; exact n100 <eos>
+
+ impi_second/1 THM ( Q v Z ) , ( Y > P ) , ( ( X > P ) > R ) , ( Q > R ) , ( Z > ( X > Y ) ) SEQ R PRF Counter({'LEANREJ N1 ( Q v Z ) : PR': 8})
+  RAW: 6 : ( Q → R ) := h4 ; have n17 : ( Z → ( X → Y ) ) := h5 ; have n18 : R := Or.elim n13 ( fun ( n19 : Q ) => by have n20 : R := n16 n19 ; exact n20 ) ( fun ( n21 : Z ) => by have n22 : ( X → Y ) := n17 n21 ; have n23 : ( Q ∨ Z ) := n13 ; have n24 : R := Or.elim n23 ( fun ( n25 : Q ) => by have n26 : R := n16 n25 ; exact n26 ) ( fun ( n27 : Z ) => by have n28 : R := n15 n27 ; exact n28 ) ; exact n24 ) ; exact n18 <eos>

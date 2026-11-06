@@ -1,0 +1,212 @@
+<title>Textbook72 proof lengths</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column, same system as report_10k.html; the chart is the page, table and notes under it. */
+:root {
+  --bg: #fbfbf9; --panel: #f3f3ef; --fg: #161614; --fg-2: #55544f; --fg-3: #8a8983; --rule: #e2e1dc;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.55; }
+main { max-width: 860px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.lede { color: var(--fg-2); margin: 6px 0 0; max-width: 65ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--fg-2); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 14px; height: 10px; border-radius: 2px; display: inline-block; border: 2px solid; box-sizing: border-box; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.seg button { font: 500 12px var(--mono); color: var(--fg-2); background: transparent; border: 0; padding: 6px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--fg); }
+.seg button:focus-visible { outline: 2px solid var(--s1); outline-offset: -2px; }
+.chart { position: relative; min-width: 0; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grid line { stroke: var(--rule); stroke-width: 1; }
+.axis text { fill: var(--fg-3); font-family: var(--mono); font-size: 11px; }
+.axis-label { fill: var(--fg-2); font-size: 12px; }
+.cap-label { font-family: var(--mono); font-size: 11px; fill: var(--fg-3); }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 8px 10px; font-size: 12px; line-height: 1.5; min-width: 210px; box-shadow: 0 4px 16px rgb(0 0 0 / 0.08); }
+.tip b { font-family: var(--mono); font-weight: 500; }
+.tip .row { display: flex; justify-content: space-between; gap: 14px; color: var(--fg-2); }
+.tip .row .v { font-family: var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--fg-3); font-size: 12px; }
+td { font-family: var(--mono); }
+td:first-child { font-family: var(--sans); }
+.notes { color: var(--fg-2); font-size: 14px; max-width: 65ch; display: flex; flex-direction: column; gap: 8px; }
+.notes p { margin: 0; }
+code { font-family: var(--mono); font-size: 0.92em; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">nd-rl · long_rl_20261014 · untied-ei seed 1</div>
+    <h1>How long are the proofs each checkpoint finds?</h1>
+    <p class="lede">Every distinct Lean-checked proof from the 10,240-attempt textbook72 run, binned by body lines
+      (lines after the premise block). Bars count proofs: pretrain found 403 in total, the 3 h checkpoint 14,117 and the
+      5.4 h checkpoint 27,410.</p>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div class="controls">
+      <div class="legend" id="legend"></div>
+      <div class="seg" role="group" aria-label="Length measure">
+        <button id="m-written" data-m="written" aria-pressed="true">as written</button>
+        <button id="m-pruned" data-m="pruned" aria-pressed="false">pruned to used lines</button>
+      </div>
+    </div>
+    <div class="chart" id="chart"><div class="tip" id="tip" hidden></div></div>
+  </section>
+
+  <section class="tablewrap">
+    <table id="table"></table>
+  </section>
+
+  <section class="notes">
+    <p><b>Pretrain stays inside its training cap.</b> It was pretrained only on proofs of ≤ 6 body lines, and 99.5% of
+      its proofs are ≤ 6 lines; the longest is 7. After RL, 80% (3 h) and 89% (5.4 h) of written proofs run past 6
+      lines.</p>
+    <p><b>Part of the length is padding.</b> 81% (3 h) and 87% (5.4 h) of RL proofs contain lines the conclusion never
+      depends on, against 31% for pretrain. Pruning those lines pulls the RL medians from 9 and 10 down to 7 and 8,
+      and the longest proof from 41 lines to 23.</p>
+    <p><b>More RL mostly moves the tail.</b> The two RL shapes peak at the same length. The 5.4 h checkpoint puts more
+      mass beyond 14 written lines: p90 goes from 12 to 17.</p>
+    <p><b>How to read it.</b> Proofs are pooled across problems, and the models solve different problems (15, 42 and
+      43 of 72), so part of the RL shift is harder problems being solved at all. Problems with many distinct proofs
+      dominate: the busiest single problem contributes about 2,400 proofs to each RL histogram. Distinct means distinct
+      within each 1,024-sample chunk, so a proof found in several of the 10 chunks counts once per chunk.
+      <i>Pruned</i> keeps the last line and every line it reaches through citations (a needed box keeps its hypothesis
+      and conclusion), as in <code>harness.body_lines</code>.</p>
+    <p><b>Source.</b> <code>passk/results_10k/{pretrain,v2_final,v5_round025}.json</code>, the same runs as the
+      pass@10k page. Built by <code>passk/export_lengths.py</code>.</p>
+  </section>
+</main>
+
+<script>
+const DATA = /*DATA*/;
+const LABEL = {pretrain: "Pretrain (no RL)", v2_final: "3 h RL (v2 final)", v5_round025: "~5.4 h RL (v5 round 25)"};
+const SHORT = {pretrain: "Pretrain", v2_final: "3 h RL", v5_round025: "5.4 h RL"};
+const COLOR = {pretrain: "--s1", v2_final: "--s2", v5_round025: "--s3"};
+const CAP = 6;  // pretraining cap, body lines
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let measure = "written";
+
+document.getElementById("legend").innerHTML = DATA.map(m =>
+  `<span><i style="border-color:var(${COLOR[m.tag]});background:color-mix(in srgb, var(${COLOR[m.tag]}) 22%, transparent)"></i>${LABEL[m.tag]}</span>`).join("");
+
+// Histogram helpers over {length: count} maps.
+const count = (m, len) => m[measure][len] || 0;
+const quantile = (hist, n, q) => {
+  let seen = 0;
+  for (const len of Object.keys(hist).map(Number).sort((a, b) => a - b)) { seen += hist[len]; if (seen >= q * n) return len; }
+};
+const maxLen = (hist) => Math.max(...Object.keys(hist).map(Number));
+const over = (hist, n, t) => Object.entries(hist).reduce((s, [len, c]) => s + (+len > t ? c : 0), 0) / n;
+const pct = v => `${(100 * v).toFixed(1)}%`;
+
+function table() {
+  document.getElementById("table").innerHTML =
+    `<tr><th>model</th><th>proofs</th><th>problems</th><th>median</th><th>p90</th><th>max</th>` +
+    `<th>&gt; ${CAP} lines</th><th>with unused lines</th></tr>` +
+    DATA.map(m => { const h = m[measure];
+      return `<tr><td>${LABEL[m.tag]}</td><td>${m.n.toLocaleString()}</td><td>${m.problems}/72</td>` +
+        `<td>${quantile(h, m.n, 0.5)}</td><td>${quantile(h, m.n, 0.9)}</td><td>${maxLen(h)}</td>` +
+        `<td>${pct(over(h, m.n, CAP))}</td><td>${pct(m.padded / m.n)}</td></tr>`; }).join("");
+}
+
+const W = 820, H = 440, M = {l: 52, r: 16, t: 24, b: 46};
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+
+function draw() {
+  const host = document.getElementById("chart");
+  host.querySelector("svg")?.remove();
+  const lo = Math.min(...DATA.map(m => Math.min(...Object.keys(m[measure]).map(Number))));
+  const hi = Math.max(...DATA.map(m => maxLen(m[measure])));
+  const bins = Array.from({length: hi - lo + 1}, (_, i) => lo + i);
+  const peak = Math.max(...DATA.flatMap(m => bins.map(b => count(m, b))));
+  const p10 = 10 ** Math.floor(Math.log10(peak / 5));
+  const step = [1, 2, 5, 10].map(f => f * p10).find(s => s >= peak / 5), top = Math.ceil(peak / step) * step;
+  const x = v => M.l + (v - lo + 0.5) / (hi - lo + 1) * (W - M.l - M.r);  // bin centre
+  const bw = (W - M.l - M.r) / (hi - lo + 1);
+  const y = v => M.t + (1 - v / top) * (H - M.t - M.b);
+
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `number of proofs by ${measure} body lines`});
+  host.prepend(svg);
+  const grid = el("g", {class: "grid"}, svg), axis = el("g", {class: "axis"}, svg);
+  for (let v = 0; v <= top; v += step) {
+    el("line", {x1: M.l, x2: W - M.r, y1: y(v), y2: y(v)}, grid);
+    el("text", {x: M.l - 8, y: y(v) + 4, "text-anchor": "end"}, axis).textContent = v.toLocaleString();
+  }
+  const tickEvery = hi - lo > 25 ? 5 : 2;
+  for (const b of bins) if (b % tickEvery === 0)
+    el("text", {x: x(b), y: H - M.b + 18, "text-anchor": "middle"}, axis).textContent = b;
+  el("text", {x: (M.l + W - M.r) / 2, y: H - 6, "text-anchor": "middle", class: "axis-label"}, svg).textContent =
+    `body lines, ${measure === "written" ? "as written" : "pruned to lines the conclusion uses"}`;
+  el("text", {x: 14, y: (M.t + H - M.b) / 2, "text-anchor": "middle", class: "axis-label",
+    transform: `rotate(-90 14 ${(M.t + H - M.b) / 2})`}, svg).textContent = "distinct proofs found";
+
+  // Pretraining cap, between bins 6 and 7.
+  const capX = x(CAP) + bw / 2;
+  el("line", {x1: capX, x2: capX, y1: M.t - 6, y2: H - M.b, stroke: css("--fg-3"), "stroke-dasharray": "3 3"}, svg);
+  el("text", {x: capX + 6, y: M.t - 10, class: "cap-label"}, svg).textContent = `pretraining cap: ≤ ${CAP} lines`;
+
+  // Overlaid step histograms: a light fill under a 2px outline, widest distribution drawn first.
+  const order = [...DATA].sort((a, b) => maxLen(b[measure]) - maxLen(a[measure]));
+  for (const m of order) {
+    const c = css(COLOR[m.tag]);
+    let d = `M${x(lo) - bw / 2},${y(0)}`;
+    for (const b of bins) d += ` V${y(count(m, b))} H${x(b) + bw / 2}`;
+    d += ` V${y(0)}`;
+    el("path", {d: d + " Z", fill: c, "fill-opacity": 0.14, stroke: "none"}, svg);
+    el("path", {d, fill: "none", stroke: c, "stroke-width": 2, "stroke-linejoin": "round"}, svg);
+  }
+
+  const band = el("rect", {y: M.t, height: H - M.t - M.b, width: bw, fill: css("--fg-3"), "fill-opacity": 0.1, visibility: "hidden"}, svg);
+  const hit = el("rect", {x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent"}, svg);
+  const tip = document.getElementById("tip");
+  const move = ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const b = Math.min(hi, Math.max(lo, Math.round(lo - 0.5 + (p.x - M.l) / bw)));
+    band.setAttribute("x", x(b) - bw / 2); band.setAttribute("visibility", "visible");
+    tip.innerHTML = `<b>${b} body line${b === 1 ? "" : "s"}</b>` + DATA.map(m =>
+      `<div class="row"><span><span class="sw" style="background:var(${COLOR[m.tag]})"></span>${SHORT[m.tag]}</span>` +
+      `<span class="v">${count(m, b).toLocaleString()} <span style="color:var(--fg-3)">(${pct(count(m, b) / m.n)})</span></span></div>`).join("");
+    tip.hidden = false;
+    const r = host.getBoundingClientRect(), sx = r.width / W;
+    let left = (x(b) + bw / 2) * sx + 10;
+    if (left + tip.offsetWidth > r.width) left = (x(b) - bw / 2) * sx - tip.offsetWidth - 10;
+    tip.style.left = `${Math.max(0, left)}px`; tip.style.top = `${M.t * sx + 8}px`;
+  };
+  const leave = () => { tip.hidden = true; band.setAttribute("visibility", "hidden"); };
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move); hit.addEventListener("pointerleave", leave);
+}
+
+function render() { table(); draw(); }
+document.querySelectorAll(".seg button").forEach(btn => btn.addEventListener("click", () => {
+  measure = btn.dataset.m;
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+  render();
+}));
+render();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+</script>

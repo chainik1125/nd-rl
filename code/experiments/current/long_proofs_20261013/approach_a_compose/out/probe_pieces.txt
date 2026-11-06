@@ -1,0 +1,20 @@
+['contra']             written body  6 minlen exact 6 cert_ge None timeout False 0.0s
+['merge', 'contra']    written body 12 minlen exact 12 cert_ge None timeout False 7.03s
+['dist']               written body  9 minlen exact 9 cert_ge None timeout False 0.22s
+['merge', 'dist']      written body 15 minlen exact None cert_ge None timeout True 60.37s
+['ds']                 written body  5 minlen exact 5 cert_ge None timeout False 0.0s
+['merge', 'ds']        written body 11 minlen exact 11 cert_ge None timeout False 1.33s
+['export']             written body  6 minlen exact 6 cert_ge None timeout False 0.0s
+['merge', 'export']    written body 12 minlen exact 12 cert_ge None timeout False 14.95s
+['merge']              written body  5 minlen exact 5 cert_ge None timeout False 0.0s
+['merge', 'merge']     written body 11 minlen exact 11 cert_ge None timeout False 3.28s
+['mt']                 written body  4 minlen exact 4 cert_ge None timeout False 0.0s
+['merge', 'mt']        written body 10 minlen exact 10 cert_ge None timeout False 0.63s
+['negdisj']            written body  9 minlen exact 9 cert_ge None timeout False 0.03s
+['merge', 'negdisj']   written body 15 minlen exact None cert_ge None timeout True 60.36s
+['negimp']             written body  5 minlen exact 5 cert_ge None timeout False 0.0s
+['merge', 'negimp']    written body 11 minlen exact 11 cert_ge None timeout False 1.46s
+['peirce']             written body  9 minlen exact 9 cert_ge None timeout False 0.02s
+['merge', 'peirce']    written body 15 minlen exact None cert_ge None timeout True 60.37s
+['split']              written body  7 minlen exact 7 cert_ge None timeout False 0.01s
+['merge', 'split']     written body 13 minlen exact 13 cert_ge None timeout False 46.95s

@@ -1,0 +1,11 @@
+THM P , ( P > Q ) , ( Q > R ) , ( R > S ) , ( S > T ) , ( T > U ) , ( U > W ) , ( W > X ) , ( X > Y ) , ( Y > Z ) SEQ Z PRF | n_prem 10
+  |S| = 58
+  body<=1: none cum 0.0s calls 1 memo 1
+  body<=2: none cum 0.0s calls 50 memo 50
+  body<=3: none cum 0.0s calls 186 memo 186
+  body<=4: none cum 0.0s calls 534 memo 534
+  body<=5: none cum 0.0s calls 2724 memo 2724
+  body<=6: none cum 0.1s calls 10899 memo 10899
+  body<=7: none cum 0.2s calls 32376 memo 32376
+  body<=8: none cum 0.6s calls 105217 memo 105217
+  body<=9: FOUND 9 cum 2.2s calls 342803 memo 342803

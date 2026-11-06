@@ -1,0 +1,40 @@
+{"prompt": "THM ( P v R ) , ( Q v ( ~ R ) ) , ( ( ~ Q ) v P ) SEQ P PRF", "n_prem": 3}
+{"prompt": "THM ( T > ( ~ W ) ) , ( ~ ( R & P ) ) , ( ( ~ W ) v P ) , ( ~ ( ( ~ T ) & U ) ) , ( ( ~ U ) > R ) SEQ ( ~ W ) PRF", "n_prem": 5}
+{"prompt": "THM ( ~ ( P & R ) ) , ( ( ~ P ) > Q ) , ( ~ Q ) SEQ ( ( ~ Q ) & ( ~ R ) ) PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ R ) > ( ~ Q ) ) , ( ~ ( ( ~ Q ) & R ) ) , ( ( ~ P ) v R ) , ( ( ~ Q ) > P ) SEQ ( Q & R ) PRF", "n_prem": 4}
+{"prompt": "THM ( Q > S ) , ( ( ~ R ) v S ) , ( Q v R ) SEQ S PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ Q ) v P ) , ( ( ~ P ) v ( ~ S ) ) , ( Q > S ) SEQ ( ~ Q ) PRF", "n_prem": 3}
+{"prompt": "THM P , ( Q > R ) , ( Q v ( ~ P ) ) SEQ R PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ T ) > P ) , ( ( ~ P ) v S ) , ( ~ T ) SEQ ( S v ( ~ Q ) ) PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ P ) v R ) , ( ~ ( ( ~ P ) & S ) ) , ( Q > ( ~ R ) ) , ( R > Q ) SEQ ( ~ S ) PRF", "n_prem": 4}
+{"prompt": "THM ( R v P ) , ( ~ ( T & ( ~ P ) ) ) , ( ~ ( U & ( ~ T ) ) ) , ( ~ ( ( ~ U ) & R ) ) SEQ P PRF", "n_prem": 4}
+{"prompt": "THM ( ~ ( T & Q ) ) , P , ( P > Q ) SEQ ( ~ T ) PRF", "n_prem": 3}
+{"prompt": "THM ( ~ ( Q & S ) ) , ( ( ~ S ) > P ) , Q SEQ P PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ R ) > S ) , ( ~ ( Q & S ) ) , ( Q v ( ~ S ) ) SEQ R PRF", "n_prem": 3}
+{"prompt": "THM ( ~ ( ( ~ R ) & ( ~ P ) ) ) , ( ~ ( P & ( ~ Q ) ) ) , ( ( ~ P ) > ( ~ R ) ) SEQ Q PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ T ) > ( ~ R ) ) , ( P & ( ~ T ) ) , ( Q v T ) SEQ ( ( ~ R ) & Q ) PRF", "n_prem": 3}
+{"prompt": "THM P , ( ~ ( Q & S ) ) , ( ( ~ P ) v S ) SEQ ( ~ Q ) PRF", "n_prem": 3}
+{"prompt": "THM ( R > ( ~ Q ) ) , ( ( ~ R ) > ( ~ S ) ) , ( P & Q ) SEQ ( ~ S ) PRF", "n_prem": 3}
+{"prompt": "THM ( R v Q ) , ( Q > ( ~ P ) ) , ( P v R ) SEQ R PRF", "n_prem": 3}
+{"prompt": "THM P , ( ( ~ S ) > Q ) , ( ~ ( S & P ) ) SEQ ( Q v ( ~ R ) ) PRF", "n_prem": 3}
+{"prompt": "THM Q , ( ~ ( P & ( ~ R ) ) ) , ( Q > P ) SEQ R PRF", "n_prem": 3}
+{"prompt": "THM ( P > ( ~ Q ) ) , ( ( ~ P ) > ( ~ R ) ) , ( ( ~ S ) & R ) SEQ ( ~ Q ) PRF", "n_prem": 3}
+{"prompt": "THM ( T v U ) , ( ~ ( R & T ) ) , ( ~ U ) SEQ ( ( ~ R ) v ( ~ S ) ) PRF", "n_prem": 3}
+{"prompt": "THM ( U > ( ~ R ) ) , ( P v R ) , ( R > U ) SEQ P PRF", "n_prem": 3}
+{"prompt": "THM ( Q > ( ~ R ) ) , ( ( ~ P ) > Q ) , ( ~ ( P & ( ~ Q ) ) ) SEQ ( ~ R ) PRF", "n_prem": 3}
+{"prompt": "THM ( Q v P ) , ( ~ ( ( ~ T ) & ( ~ P ) ) ) , ( T > ( ~ Q ) ) SEQ P PRF", "n_prem": 3}
+{"prompt": "THM ( Q v ( ~ P ) ) , ( ( ~ R ) v ( ~ Q ) ) , ( ~ ( ( ~ Q ) & ( ~ P ) ) ) SEQ ( ~ R ) PRF", "n_prem": 3}
+{"prompt": "THM ( P > T ) , U , ( ( ~ T ) v ( ~ U ) ) SEQ ( ~ P ) PRF", "n_prem": 3}
+{"prompt": "THM ( ~ ( Q & R ) ) , ( R & T ) , ( Q v U ) SEQ U PRF", "n_prem": 3}
+{"prompt": "THM ( R > P ) , ( ( ~ P ) v Q ) , ( ( ~ R ) > R ) SEQ Q PRF", "n_prem": 3}
+{"prompt": "THM ( P v ( ~ Q ) ) , ( R > ( ~ P ) ) , ( ~ ( ( ~ Q ) & R ) ) SEQ ( ~ R ) PRF", "n_prem": 3}
+{"prompt": "THM ( T > R ) , ( ~ ( P & R ) ) , ( P v ( ~ T ) ) , ( S v T ) SEQ S PRF", "n_prem": 4}
+{"prompt": "THM ( ( ~ P ) > ( ~ R ) ) , ( ( ~ T ) > T ) , ( T > ( ~ P ) ) SEQ ( ~ R ) PRF", "n_prem": 3}
+{"prompt": "THM ( ~ ( P & T ) ) , T , ( ( ~ P ) > ( ~ Q ) ) SEQ ( R > ( ~ Q ) ) PRF", "n_prem": 3}
+{"prompt": "THM ( Q > ( ~ R ) ) , ( P v R ) , ( P v Q ) SEQ P PRF", "n_prem": 3}
+{"prompt": "THM ( U > ( ~ S ) ) , Q , ( S v ( ~ Q ) ) SEQ ( P > ( ~ U ) ) PRF", "n_prem": 3}
+{"prompt": "THM T , ( P v R ) , ( ( ~ R ) & ( ~ S ) ) SEQ ( P & T ) PRF", "n_prem": 3}
+{"prompt": "THM ( Q v ( ~ R ) ) , ( Q > T ) , ( S > R ) , ( S v Q ) SEQ T PRF", "n_prem": 4}
+{"prompt": "THM ( ( ~ R ) v P ) , ( ~ ( ( ~ Q ) & ( ~ R ) ) ) , ( ~ ( Q & ( ~ P ) ) ) SEQ P PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ P ) > S ) , ( Q v ( ~ S ) ) , ( ~ ( P & ( ~ S ) ) ) SEQ Q PRF", "n_prem": 3}
+{"prompt": "THM ( ( ~ Q ) v P ) , ( ~ ( ( ~ Q ) & R ) ) , ( R v P ) , ( ~ ( P & T ) ) SEQ ( T > U ) PRF", "n_prem": 4}

@@ -1,0 +1,40 @@
+
+### s+s2: top-level ORE; where is the nested box rule (ORE/NEGI)? solve-by-all / never, by body
+  body  7: none   n=  31 all=1.00 none=0.00
+  body  8: none   n= 120 all=1.00 none=0.00
+  body  9: none   n= 251 all=1.00 none=0.00
+  body 10: none   n= 178 all=0.50 none=0.00
+  body 11: first  n=   6 all=0.00 none=1.00 | none   n= 204 all=0.47 none=0.00 | second n=   6 all=0.33 none=0.00
+  body 12: first  n=  24 all=0.00 none=0.92 | none   n= 218 all=0.43 none=0.00 | second n=  17 all=0.41 none=0.00
+  body 13: first  n=  55 all=0.00 none=0.93 | none   n= 217 all=0.43 none=0.01 | second n=  55 all=0.38 none=0.00
+  body 14: first  n=  61 all=0.00 none=0.95 | none   n= 161 all=0.41 none=0.05 | second n=  68 all=0.34 none=0.00
+  body 15: first  n=  46 all=0.00 none=0.96 | none   n=  92 all=0.03 none=0.17 | second n=  45 all=0.02 none=0.04
+  body 16: first  n=  45 all=0.00 none=0.98 | none   n=  74 all=0.09 none=0.19 | second n=  27 all=0.00 none=0.07
+  also: longer first branch (l1>l2) vs shorter, among 'none'-class
+  body  7: b1 longer  n=  11 all=1.00 none=0.00 | b1 shorter n=  11 all=1.00 none=0.00 | equal      n=   9 all=1.00 none=0.00
+  body  8: b1 longer  n=  48 all=1.00 none=0.00 | b1 shorter n=  45 all=1.00 none=0.00 | equal      n=  27 all=1.00 none=0.00
+  body  9: b1 longer  n=  98 all=1.00 none=0.00 | b1 shorter n=  98 all=1.00 none=0.00 | equal      n=  55 all=1.00 none=0.00
+  body 10: b1 longer  n=  82 all=0.56 none=0.00 | b1 shorter n=  60 all=0.40 none=0.00 | equal      n=  36 all=0.53 none=0.00
+  body 11: b1 longer  n=  87 all=0.52 none=0.00 | b1 shorter n=  86 all=0.40 none=0.00 | equal      n=  31 all=0.55 none=0.00
+  body 12: b1 longer  n=  95 all=0.44 none=0.00 | b1 shorter n=  92 all=0.41 none=0.00 | equal      n=  31 all=0.45 none=0.00
+  body 13: b1 longer  n= 109 all=0.44 none=0.00 | b1 shorter n=  84 all=0.43 none=0.01 | equal      n=  24 all=0.38 none=0.04
+  body 14: b1 longer  n=  79 all=0.43 none=0.01 | b1 shorter n=  62 all=0.45 none=0.05 | equal      n=  20 all=0.20 none=0.20
+  body 15: b1 longer  n=  51 all=0.02 none=0.16 | b1 shorter n=  32 all=0.06 none=0.12 | equal      n=   9 all=0.00 none=0.44
+  body 16: b1 longer  n=  35 all=0.11 none=0.29 | b1 shorter n=  30 all=0.07 none=0.07 | equal      n=   9 all=0.11 none=0.22
+
+### d: top-level ORE; where is the nested box rule (ORE/NEGI)? solve-by-all / never, by body
+  body  6: none   n=  39 all=1.00 none=0.00
+  body  7: none   n=  23 all=1.00 none=0.00
+  body  8: none   n=   1 all=1.00 none=0.00
+  body  9: first  n=  22 all=0.00 none=0.14 | second n=  23 all=0.65 none=0.13
+  body 10: first  n=  79 all=0.01 none=0.57 | second n=  71 all=0.01 none=0.23
+  body 11: first  n=  43 all=0.00 none=0.67 | second n=  36 all=0.00 none=0.14
+  body 12: both   n=   1 all=0.00 none=1.00 | first  n=  31 all=0.00 none=0.94 | second n=  26 all=0.00 none=0.81
+  body 13: both   n=   4 all=0.00 none=1.00 | first  n= 114 all=0.00 none=0.92 | second n= 110 all=0.00 none=0.75
+  body 14: both   n=   1 all=0.00 none=1.00 | first  n=  69 all=0.00 none=0.94 | second n=  90 all=0.00 none=0.72
+  body 15: first  n=  13 all=0.00 none=1.00 | second n=  13 all=0.00 none=1.00
+  body 16: both   n=   1 all=0.00 none=1.00 | first  n=  33 all=0.00 none=1.00 | second n=  26 all=0.00 none=1.00
+  also: longer first branch (l1>l2) vs shorter, among 'none'-class
+  body  6: b1 longer  n=  21 all=1.00 none=0.00 | b1 shorter n=  17 all=1.00 none=0.00 | equal      n=   1 all=1.00 none=0.00
+  body  7: b1 longer  n=   6 all=1.00 none=0.00 | b1 shorter n=   5 all=1.00 none=0.00 | equal      n=  12 all=1.00 none=0.00
+  body  8: b1 longer  n=   1 all=1.00 none=0.00

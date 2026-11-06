@@ -1,0 +1,624 @@
+<title>Long RL, 2026-10-14</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~70ch) with a wide band for the chart grid; a lab-notebook page, summary first. */
+:root {
+  --bg: #f6f7f8; --surface: #ffffff; --fg: #1b2328; --muted: #5c6970; --rule: #d9dee1;
+  --accent: #0f6d78;
+  --untied-ei: #2563b5; --looped-ei: #2f8a4a; --untied-grpo: #c23a32; --grpo-v2: #b3a3a1;
+  --good: #2f8a4a; --warn: #a86a00; --bad: #c23a32;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12171a; --surface: #192024; --fg: #e3e8ea; --muted: #94a2a8; --rule: #2c363b;
+  --accent: #4fb3bf; --untied-ei: #6aa3ef; --looped-ei: #5cc27a; --untied-grpo: #f07068; --grpo-v2: #6b5a58;
+  --good: #5cc27a; --warn: #e0a940; --bad: #f07068; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #192024; --fg: #e3e8ea; --muted: #94a2a8; --rule: #2c363b;
+  --accent: #4fb3bf; --untied-ei: #6aa3ef; --looped-ei: #5cc27a; --untied-grpo: #f07068; --grpo-v2: #6b5a58;
+  --good: #5cc27a; --warn: #e0a940; --bad: #f07068; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font: 17px/1.55 var(--font-body); }
+.page { max-width: 1180px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 44px; }
+.col { max-width: 72ch; display: grid; gap: 14px; min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 2.3rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.35rem; font-weight: 700; }
+h3 { font-size: 1.02rem; font-weight: 500; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.2em; display: grid; gap: 6px; }
+code, .mono { font-family: var(--font-data); font-size: 0.86em; }
+a { color: var(--accent); }
+.eyebrow { font: 500 0.78rem var(--font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.12rem; color: var(--muted); }
+header { display: grid; gap: 12px; }
+.status { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font: 0.86rem var(--font-data); color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px;
+  border: 1px solid currentColor; font: 500 0.78rem var(--font-data); }
+.pill.run { color: var(--warn); } .pill.done { color: var(--good); } .pill.bad { color: var(--bad); }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child, th.l, td.l { text-align: left; }
+thead th { font: 500 0.74rem var(--font-data); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted);
+  white-space: normal; vertical-align: bottom; }  /* headers wrap so narrow screens keep every column in view */
+.prose td { white-space: normal; }
+#now.idle :is(th, td):nth-child(4) { display: none; }  /* "RL left" is all dashes once every run has stopped */
+tbody tr:last-child td { border-bottom: 0; }
+td { font-variant-numeric: tabular-nums; }
+.swatch { display: inline-block; width: 18px; height: 0; border-top: 3px solid var(--c); vertical-align: middle; margin-right: 8px; }
+.swatch.dash { border-top-style: dashed; }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+figure { margin: 0; padding: 14px 14px 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; min-width: 0; display: grid; gap: 6px; }
+figcaption { display: grid; gap: 2px; }
+figcaption .note { font-size: 0.82rem; color: var(--muted); }
+.plot { position: relative; height: 230px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 0.82rem var(--font-data); color: var(--muted); }
+
+.finding { border-left: 3px solid var(--c, var(--rule)); padding-left: 14px; display: grid; gap: 8px; }
+.finding.bad { --c: var(--bad); } .finding.good { --c: var(--good); } .finding.open { --c: var(--warn); }
+.small { font-size: 0.88rem; color: var(--muted); }
+#finals:empty::before { content: "Not in yet. Each pod scores dev (64 samples), old dev (16) and, for looped, dev at 2 loops after its RL budget ends."; color: var(--muted); }
+</style>
+
+<div class="page">
+  <header class="col">
+    <span class="eyebrow">nd-rl · Robbie · experiment long_rl_20261014 · runs v2 to v5</span>
+    <h1>Long RL</h1>
+    <p class="lede">Pretrain on proofs of at most 6 body lines, then use RL alone to reach theorems that need 7 to 80. Three arms, two seeds each, every proof judged by Lean.</p>
+    <div class="status">
+      <span id="state" class="pill run">running</span>
+      <span>data as of <span id="asof">…</span> PDT</span>
+      <span>v3 and v4 done (17:30–19:08) · v5 (v2's four EI runs resumed for 4 more RL hours) done 20:20–21:12 PDT</span>
+    </div>
+  </header>
+
+  <section class="col">
+    <h2>Where the runs are</h2>
+    <p class="small">Latest RL round per run. Rollout accuracy is the fraction of the round's 8 samples per target that Lean accepts (1 loop). L* is the longest body length at which at least 5 RL targets are solved.</p>
+  </section>
+  <div class="tablewrap"><table id="now">
+    <thead><tr><th class="l">run</th><th class="l">status</th><th>rounds</th><th>RL left</th><th>rollout acc.</th><th>no-parse</th><th>targets solved</th><th>L*</th><th>entropy</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <section style="display:grid; gap:14px">
+    <div class="col">
+      <h2>Per-round curves</h2>
+      <p class="small">x axis: RL clock in hours, GPU time with Lean-gate time excluded (the budget is 3 h; v5 continues v2's untied EI from 2.9 h to about 7 h). Solid lines are seed 0, dashed seed 1. Grey is v2 GRPO, stopped after it collapsed (hidden by default; tick it to compare); red is v3 GRPO with the fixes. Untick a run to hide it.</p>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="charts" id="charts"></div>
+  </section>
+
+  <section style="display:grid; gap:14px">
+    <div class="col">
+      <h2>How far RL moves the policy</h2>
+      <p class="small">Run v4 only (launched 14:05 PDT): untied EI and GRPO, two seeds each, with per-round probes. All KLs are exact over the vocabulary at temperature 1, in nats per proof token. <em>Previous round</em> compares the policy before and after one round's update, on that round's rollouts: the step size. <em>Pretrained</em> compares with the frozen pretrained model, on a sample of 2,048 of the round's rollouts and on 512 held-out pretraining records: total drift. Weights are saved every 5 rounds for any other comparison later.</p>
+      <label class="small" for="kl-dir">direction
+        <select id="kl-dir"><option value="">KL(policy ‖ reference)</option><option value="_rev">KL(reference ‖ policy)</option></select></label>
+    </div>
+    <div class="charts" id="kl-charts"></div>
+    <p id="kl-empty" class="small" hidden>No v4 round has finished yet. The first rounds land around 14:25 PDT.</p>
+  </section>
+
+  <section style="display:grid; gap:14px">
+    <div class="col">
+      <h2>Atoms in solved theorems</h2>
+      <p class="small">Pretraining proofs use at most 4 atoms (distinct propositional letters, out of 10). Its prompts show up to 10, but only through distractor premises that no proof uses. The left chart counts the atoms a solved proof actually works with: the goal's plus those in its non-premise lines. The right chart is the share of the RL pool solved, grouped by the atom count of the theorem's sequent; in this pool atoms rise with proof length. A run appears once its RL stage ends, about 45 minutes before its evals finish.</p>
+    </div>
+    <div class="charts">
+      <figure><figcaption><h3>Most atoms used in a solved proof</h3><span class="note">running maximum; pretraining's ceiling is 4</span></figcaption><div class="plot"><canvas id="c-max-atoms"></canvas></div></figure>
+      <figure><figcaption><h3>Share solved by atom count</h3>
+        <label class="note" for="atoms-run">run <select id="atoms-run"></select></label></figcaption>
+        <div class="plot"><canvas id="c-atom-share"></canvas></div></figure>
+    </div>
+    <p id="atoms-empty" class="small" hidden>No run has finished its RL stage yet. Expert iteration: around 14:00–14:20 PDT. GRPO v3: around 16:30.</p>
+  </section>
+
+  <section class="col">
+    <h2>What the curves say so far</h2>
+    <div class="finding good">
+      <h3>Expert iteration works, and the bridge from short to long proofs holds</h3>
+      <p>Both EI arms climb steadily. Untied EI went from about 0.10 to 0.55–0.60 rollout accuracy and pushed L* from 7 to 20–21 body lines in about 1.6 h of RL. The pretrained model has never seen a proof longer than 6 body lines. Run v1 had no short-to-long bridge in its pool and solved nothing.</p>
+    </div>
+    <div class="finding open">
+      <h3>Looped trails untied</h3>
+      <p>Looped EI starts at about half the untied accuracy (0.05 vs 0.10) and stays behind, about 0.45 vs 0.58, with L* at 17 against 20–21. Its retries at 2, 4 and 8 loops add a few targets per round; the final dev scores will show whether that buys anything at test time.</p>
+    </div>
+    <div class="finding bad">
+      <h3>GRPO is unstable and does not learn</h3>
+      <ul>
+        <li>Rollout accuracy saw-tooths between 0 and 0.15 and never climbs. Targets solved flatten at about 1,150 after 10 minutes and creep to about 1,400; EI is past 3,200.</li>
+        <li>In the worst rounds 80–100% of samples don't parse, and entropy spikes to 0.3–0.9 nats per token.</li>
+        <li>One round of updates can wipe out the policy. Seed 1, round 8 sampled at 0.099 accuracy; after that round's 27 gradient steps, round 9 sampled at 0.016, and two rounds later at 0.0008.</li>
+        <li>It recovers only partly each time, pulled back by the retained pretraining loss and the injected found proofs. That is the saw-tooth.</li>
+      </ul>
+    </div>
+    <div class="finding open">
+      <h3>Likely cause: steps that are too large, with nothing holding the policy near where the rollouts came from</h3>
+      <ul>
+        <li><strong>Optimizer.</strong> The GRPO update uses AdamW at lr 1e-4 on every parameter. EI's fine-tune uses Muon on the matrices and AdamW only on embeddings, norms and biases, as in pretraining. Adam rescales every step to about the same size, so small advantages (±1/8 to 7/8) don't make steps smaller.</li>
+        <li><strong>No trust region.</strong> No PPO ratio clipping, one pass per round, no KL term to the pretrained model.</li>
+        <li><strong>Mostly negative signal once it collapses.</strong> In collapsed rounds every usable group is an injected one: 1 found proof and 7 failing samples pushed down.</li>
+      </ul>
+    </div>
+    <div class="finding open">
+      <h3>v3: GRPO relaunched with the fixes at 12:50 PDT</h3>
+      <p>v2’s GRPO pods were stopped at 12:42 on Robbie’s call and chose the fixes. Same data, pretraining, target picking and budget; only the update changed.</p>
+      <ul>
+        <li><strong>Optimizer:</strong> EI's split, Muon on the matrices and AdamW on the rest, at a tenth of EI's fine-tune rates: Muon 3e-4, AdamW 3e-5.</li>
+        <li><strong>Trust region:</strong> PPO clipped ratio against the sampling policy with Leon's asymmetric range [0.8, 1.28], and a dual clip at 3× for negative advantages. Old log-probs are scored once before each round's first step.</li>
+        <li><strong>Temperature:</strong> the loss and the ratio use logits / 0.8, the distribution the rollouts were sampled from.</li>
+        <li><strong>New diagnostics:</strong> clip fraction and mean ratio per round, and entropy and −log p at T = 0.8. At the sampling temperature these two are equal in expectation, so a gap means the sampler and trainer disagree. v2's collapsed rounds had −log p above entropy even at T = 1, which should not happen.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="col">
+    <h2>Reading the entropy numbers</h2>
+    <ul>
+      <li>Entropy is the policy's own next-token entropy at temperature 1, averaged over every proof token of the round's rollouts, before the update. Sampling runs at temperature 0.8, so the sampled distribution is sharper than the one measured.</li>
+      <li>Most tokens in a Fitch proof are forced: line numbers, separators, brackets, the formula an elimination rule must produce. The uncertainty sits in a few choices per line: which rule, which lines to cite, what to assume. A per-token mean of 0.07–0.09 nats is an average over a few uncertain tokens and many near-zero ones.</li>
+      <li>EI barely moves entropy because it fine-tunes on its own accepted samples. Those already have low loss under the policy (fine-tune loss 0.02–0.07), so each round sharpens slightly and adds new targets without reshaping the distribution.</li>
+    </ul>
+  </section>
+
+  <section class="col">
+    <h2>Final scores</h2>
+    <div id="finals" class="mono small" style="display:grid; gap:4px; white-space:pre-wrap"></div>
+  </section>
+
+  <section style="display:grid; gap:14px">
+    <div class="col">
+      <h2>Textbook72</h2>
+      <p class="small">72 textbook problems (58 dev + 14 train), never trained on, scored offline at 256 samples per problem, T = 0.8, Lean-only gate, looped models at 8 loops. Every checkpoint saved to Hugging Face is scored: each run's pretrained and final weights, v4's every-5-rounds snapshots, and v5 round 20. Runs v4 and v5 still in flight are added as they upload. pass@k is the unbiased estimator averaged over problems; bands are 95% problem-bootstrap intervals; pass@256 is the share solved.</p>
+    </div>
+    <p id="tb-empty" class="small" hidden>Not in yet. Scoring pods launched at 17:58 and 18:07 PDT (<code>passk/launch.py</code>, <code>passk/backfill.py</code>); results land in <code>passk/results/</code>.</p>
+    <div class="charts" id="tb">
+      <figure><figcaption><h3>Solved before and after RL</h3><span class="note">of 72; grey is the run's pretrained model, colour its final weights</span></figcaption><div class="plot"><canvas id="c-tb-bars"></canvas></div></figure>
+      <figure><figcaption><h3>pass@k by checkpoint</h3>
+        <label class="note" for="tb-run">run <select id="tb-run"></select> · k = attempts per problem, log scale</label></figcaption>
+        <div class="plot"><canvas id="c-tb"></canvas></div></figure>
+    </div>
+    <div class="tablewrap" id="tb-tablewrap"><table id="tb-table">
+      <thead><tr><th class="l">run</th><th class="l">checkpoint</th><th>dev /58</th><th>train /14</th><th>all /72</th><th>pass@1</th><th>pass@16</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section style="display:grid; gap:14px">
+    <div class="col">
+      <h2>Excess description length</h2>
+      <p>How much does a checkpoint still have to <em>learn</em> to write a band's gold proofs, as opposed to having it already? Excess description length (EDL; Donoway, Joren, Roger &amp; Leike 2026, <a href="https://arxiv.org/abs/2601.04728">arXiv 2601.04728</a>) measures this in nats.</p>
+      <ul>
+        <li><strong>The game.</strong> Take a copy of the checkpoint and show it the band's n training proofs one at a time. Score each proof (−log p of its tokens, in nats) just <em>before</em> taking a gradient step on it. The sum of those scores is the prequential code length: what it costs to transmit the proofs to someone who holds the same checkpoint and learns along the way.</li>
+        <li><strong>The excess.</strong> Subtract n × the final model's mean loss on n <em>held-out</em> proofs. What remains is the area between the online loss curve and the final loss line (left chart). It counts the nats that had to go into the weights, and that generalise.</li>
+        <li><strong>Reading it.</strong> Small means the model already had the capability and a few examples brought it out: elicitation. Large means it had to learn. Memorising training proofs doesn't count, because the floor is measured on held-out proofs. Ambiguity that never resolves, such as several valid proofs of one theorem, sits in both terms and cancels.</li>
+        <li><strong>In quant terms.</strong> It is the cumulative regret of the online learner against its own final predictor, with the final predictor scored out of sample.</li>
+      </ul>
+      <p class="small">Setup: <code>edl/edl.py</code>. For each body-line band, holdout gold proofs are split by key hash into n train and n test (n = 64; 22 for 7–9, 32 for 35–49, 48 for 50+). The learner is the RL fine-tune's: Muon plus AdamW, one proof per step, constant rate, at 0.1, 0.3, 1 or 3 × the fine-tune's rates, with two data orders. Each band uses the multiple with the smallest online code length and adds ln 4 nats for having tried four (Leon's convention). Rates whose held-out loss rose more than 5% over the second half are excluded: at 1× and 3× the last steps sometimes destabilise the model, and subtracting a worse final loss made EDL negative. Scoring is unaugmented, at 8 loops for looped. Values are nats per training proof (EDL / n), so bands with different n compare.</p>
+      <p class="small"><strong>Caveats.</strong> These are gold proofs from the long-proofs generator, and RL never trains on them. Part of each value is learning that generator's style rather than the ability to prove, which shifts every checkpoint by a similar amount: differences between checkpoints mean more than absolute values. The learner is our choice, so the values don't compare with the paper's.</p>
+    </div>
+    <p id="edl-empty" class="small" hidden>Not in yet. Scoring pods launched 18:25 PDT (<code>edl/launch.py</code>); results land in <code>edl/results/</code>.</p>
+    <div class="col">
+      <div class="finding open">
+        <h3>What it shows (29 checkpoints, scored 18:25–18:55 PDT; v5 not yet)</h3>
+        <ul>
+          <li><strong>Pretrained EDL grows with proof length:</strong> about 11–21 nats per proof at 7–9 body lines, 35–74 at 20–24 and 136–228 at 50+.</li>
+          <li><strong>RL removes most of it on bands it solves.</strong> Final EI checkpoints are at 1–3 nats per proof at 7–9 and 9–19 at 20–24, five to ten times less.</li>
+          <li><strong>It also drops where RL solves nothing.</strong> At 35–49, which RL never solves on dev, EI goes from 55–124 to 19–41, so RL put in information that carries to lengths it can't yet prove. Part of this could be the generator's style, which the caveat above covers.</li>
+          <li><strong>Arms differ.</strong> At 35–49 and 50+, GRPO ends higher than EI: 58–70 against 19–41, and 135–150 against 63–115. Looped EI ends lowest at 50+ (63–65 against untied's 85–115), though it ties untied on dev.</li>
+          <li><strong>Over RL (v4):</strong> 7–9 collapses within the first 5 rounds (21 to 2 in seed 0, 13 to 2 in seed 1). 35–49 falls steadily, from 113 to 81, 57, 43, 41, 36, 34 and then 19 at final in seed 0.</li>
+          <li><strong>Noise:</strong> one fixed split and two data orders. Differences under about 5–10 nats per proof at 34 lines and below are within noise, e.g. v4 seed 1 at 25–34 jumps between 4 and 33 across rounds.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="charts" id="edl">
+      <figure><figcaption><h3>The area that EDL measures</h3>
+        <label class="note">checkpoint <select id="edl-ckpt"></select> band <select id="edl-band"></select></label></figcaption>
+        <div class="plot"><canvas id="c-edl-area"></canvas></div>
+        <span class="small" id="edl-area-note"></span></figure>
+      <figure><figcaption><h3>EDL by band, before and after RL</h3>
+        <label class="note" for="edl-run">run <select id="edl-run"></select> · grey pretrained, colour final</label></figcaption>
+        <div class="plot"><canvas id="c-edl-bars"></canvas></div></figure>
+      <figure><figcaption><h3>EDL across RL</h3>
+        <label class="note" for="edl-traj">run <select id="edl-traj"></select> · checkpoints every 5 rounds</label></figcaption>
+        <div class="plot"><canvas id="c-edl-traj"></canvas></div></figure>
+    </div>
+    <div class="tablewrap" id="edl-tablewrap"><table id="edl-table">
+      <thead></thead><tbody></tbody>
+    </table></div>
+  </section>
+
+  <section class="col">
+    <h2>Design</h2>
+    <p>Length is body lines, premises excluded. Lean is the only checker; nd_verify is not used anywhere in judging.</p>
+  </section>
+  <div class="tablewrap"><table class="prose">
+    <thead><tr><th class="l">arm</th><th class="l">model</th><th class="l">RL</th></tr></thead>
+    <tbody>
+      <tr><td><span class="swatch" style="--c:var(--untied-ei)"></span>untied-ei</td><td class="l">run 198's six untied blocks</td><td class="l">expert iteration, the autoresearch-loops final recipe</td></tr>
+      <tr><td><span class="swatch" style="--c:var(--looped-ei)"></span>looped-ei</td><td class="l">run 512's looped trunk, two shared core pairs</td><td class="l">same EI recipe, retries at 2, 4 and 8 loops</td></tr>
+      <tr><td><span class="swatch" style="--c:var(--untied-grpo)"></span>untied-grpo</td><td class="l">run 198's six untied blocks</td><td class="l">Dr. GRPO, 8 rollouts per target, DAPO group dropping, found-proof injection</td></tr>
+    </tbody>
+  </table></div>
+  <section class="col">
+    <ul>
+      <li><strong>Pretraining:</strong> Dan's 155k cap-6 file, with distractor premises drawn so each record has between its own count and 10 premises, and atom relabelling across 10 atoms. 600 s on one A40.</li>
+      <li><strong>RL pool:</strong> 18,439 Lean-checked theorems of 7 to 80 body lines, 3–10 premises: the long-proofs set (certified ≥ 20 by exhaustive search or the signature bound), Dan's ladder targets, and the 35–80-line generator output. Dev 843, holdout 823, split by canonical key.</li>
+      <li><strong>Budgets:</strong> 3 h of RL GPU time, Lean time not charged; 6.5 h hard stop per pod.</li>
+      <li><strong>Cost:</strong> 6 A40 pods at $0.59/h, about $3 each, about $18 total.</li>
+    </ul>
+  </section>
+
+  <section class="col">
+    <h2>Run v1: nothing solved</h2>
+    <p>The first launch at 09:05 PDT used only the long theorems as RL targets. The pretrained model solved 0 of 677 dev theorems at 64 samples, and every RL round was all-fail, so nothing could learn. Greedy decoding still solved 39 of 40 training records, so pretraining itself was fine. The gap from 6 to 7+ body lines with 3–10 premises was too big a jump. v2 added Dan's ladder targets and a short new-family bridge, and every arm solved targets in its first round.</p>
+  </section>
+
+  <section class="col">
+    <h2>Where things are</h2>
+    <ul class="small">
+      <li>Code: <code>code/experiments/current/long_rl_20261014/</code> (harness.py, pretrain.py, plot_rl.py, report/)</li>
+      <li>Logs: <code>artifacts/long_rl_20261014/v2/driver_&lt;arm&gt;_s&lt;seed&gt;.log</code></li>
+      <li>Checkpoints: Hugging Face <code>robbiethompson2018/nd-rl-checkpoints</code>, <code>runs/long-rl-20261014-v2_&lt;arm&gt;_s&lt;seed&gt;</code>, uploaded when each pod finishes</li>
+    </ul>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script>
+const ARM_ORDER = ["untied-ei", "looped-ei", "untied-grpo"];
+const PANELS = [
+  ["entropy", "Rollout entropy", "nats per token at T = 1, before the round's update"],
+  ["acc", "Rollout accuracy", "fraction of samples Lean accepts, 1 loop"],
+  ["parse_fail", "Samples that don't parse", "fraction of the round's samples"],
+  ["tokens", "Mean rollout length", "tokens per sample"],
+  ["solved", "RL targets solved", "cumulative, out of 18,439"],
+  ["lstar", "L*", "longest body length with ≥ 5 targets solved"],
+  ["clip_frac", "PPO clip fraction", "v3 GRPO: share of tokens outside the ratio range [0.8, 1.28]"],
+  ["offpolicy", "On-policy check", "v3: −log p minus entropy at T = 0.8; zero in expectation when the sampler and trainer agree"],
+];
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const pdt = iso => new Date(iso).toLocaleString("en-US", { timeZone: "America/Los_Angeles", hour: "2-digit", minute: "2-digit", hour12: false, month: "short", day: "numeric" });
+const fmt = (v, d) => v == null ? "–" : v.toFixed(d);
+
+function runsSorted(data) {
+  return Object.entries(data.runs).map(([key, run]) => ({
+    key, ...run,
+    token: run.run === "v2" && run.arm === "untied-grpo" ? "--grpo-v2" : `--${run.arm}`,
+    hidden: run.status === "stopped",  // v2 GRPO: shown only on request
+    rounds: run.rounds.map(p => ({ ...p, offpolicy: p.nll_t == null ? null : p.nll_t - p.entropy_t })),
+  })).sort((a, b) => ARM_ORDER.indexOf(a.arm) - ARM_ORDER.indexOf(b.arm) || a.run.localeCompare(b.run) || a.seed - b.seed);
+}
+
+function swatch(r) {
+  return `<span class="swatch${r.seed === "1" ? " dash" : ""}" style="--c:var(${r.token})"></span>`;
+}
+
+function renderTable(runs) {
+  document.getElementById("now").classList.toggle("idle", !runs.some(r => r.status === "running"));
+  document.querySelector("#now tbody").innerHTML = runs.map(r => {
+    const last = r.rounds[r.rounds.length - 1] || {};
+    const left = r.status === "running" ? `${Math.round((last.left ?? 10800) / 60)} min` : "–";
+    const pill = { running: "run", finished: "done", stopped: "bad" }[r.status];
+    return `<tr><td>${swatch(r)}${r.key}</td><td class="l"><span class="pill ${pill}">${r.status}</span></td><td>${r.rounds.length}</td><td>${left}</td>
+      <td>${fmt(last.acc, 3)}</td><td>${fmt(last.parse_fail, 2)}</td><td>${(last.solved ?? 0).toLocaleString()}</td>
+      <td>${last.lstar ?? "–"}</td><td>${fmt(last.entropy, 3)}</td></tr>`;
+  }).join("");
+}
+
+function renderCharts(runs) {
+  const grid = css("--rule"), muted = css("--muted");
+  const charts = [];
+  document.getElementById("charts").innerHTML = PANELS.map(([key, title, note]) =>
+    `<figure><figcaption><h3>${title}</h3><span class="note">${note}</span></figcaption><div class="plot"><canvas id="c-${key}"></canvas></div></figure>`
+  ).join("");
+  for (const [key] of PANELS) {
+    const datasets = runs.map(r => ({
+      label: r.key,
+      data: r.rounds.filter(p => p[key] != null).map(p => ({ x: p.clock, y: p[key] })),
+      borderColor: css(r.token), backgroundColor: css(r.token),
+      borderDash: r.seed === "1" ? [5, 4] : [], borderWidth: 1.6, pointRadius: 1.8, tension: 0, hidden: r.hidden,
+    }));
+    charts.push(new Chart(document.getElementById(`c-${key}`), {
+      type: "line", data: { datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+        interaction: { mode: "nearest", intersect: false },
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { title: items => `RL clock ${items[0].parsed.x.toFixed(2)} h` } } },
+        scales: {
+          x: { type: "linear", min: 0, title: { display: true, text: "RL clock (h)", color: muted },
+               ticks: { color: muted, stepSize: 0.5 }, grid: { color: grid } },
+          y: { beginAtZero: key !== "offpolicy", ticks: { color: muted }, grid: { color: grid } },
+        },
+      },
+    }));
+  }
+  const legend = document.getElementById("legend");
+  legend.innerHTML = runs.map((r, i) => `<label style="cursor:pointer"><input type="checkbox" id="show-${r.key}" ${r.hidden ? "" : "checked"} data-i="${i}"> ${swatch(r)}${r.key}</label>`).join("");
+  legend.addEventListener("change", e => {
+    const i = +e.target.dataset.i;
+    for (const ch of charts) { ch.setDatasetVisibility(i, e.target.checked); ch.update(); }
+  });
+}
+
+function renderFinals(runs) {
+  const lines = runs.filter(r => r.summary.length).map(r => `${r.key}\n  ` + r.summary.map(s => s.replace(/^\[[\d:]+\] /, "")).join("\n  "));
+  document.getElementById("finals").textContent = lines.join("\n");
+}
+
+const KL_PANELS = [
+  ["kl_step", "KL to the previous round", "this round's update, on its rollouts", true],
+  ["kl_pre_roll", "KL to pretrained, on rollouts", "2,048 of the round's rollouts", true],
+  ["kl_pre_pt", "KL to pretrained, on pretraining records", "512 held-out pretraining records", true],
+  ["nll_pt", "−log p of pretraining records", "per token; forgetting shows as a rise", false],
+  ["nll_gold", "−log p of dev gold proofs", "200 held-out long proofs, per token", false],
+];
+
+function renderKL(runs) {
+  const probed = runs.filter(r => r.rounds.some(p => p.kl_step != null));
+  document.getElementById("kl-empty").hidden = probed.length > 0;
+  const grid = css("--rule"), muted = css("--muted");
+  document.getElementById("kl-charts").innerHTML = KL_PANELS.map(([key, title, note]) =>
+    `<figure><figcaption><h3>${title}</h3><span class="note">${note}</span></figcaption><div class="plot"><canvas id="k-${key}"></canvas></div></figure>`
+  ).join("");
+  const charts = KL_PANELS.map(([key, , , directional]) => {
+    const chart = new Chart(document.getElementById(`k-${key}`), {
+      type: "line", data: { datasets: [] },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+        interaction: { mode: "nearest", intersect: false }, plugins: { legend: { display: false } },
+        scales: {
+          x: { type: "linear", min: 0, title: { display: true, text: "RL clock (h)", color: muted }, ticks: { color: muted, stepSize: 0.5 }, grid: { color: grid } },
+          y: { beginAtZero: true, ticks: { color: muted }, grid: { color: grid } },
+        } },
+    });
+    return { key, directional, chart };
+  });
+  const draw = suffix => {
+    for (const { key, directional, chart } of charts) {
+      const field = directional ? key + suffix : key;
+      chart.data.datasets = probed.map(r => ({
+        label: r.key, data: r.rounds.filter(p => p[field] != null).map(p => ({ x: p.clock, y: p[field] })),
+        borderColor: css(r.token), backgroundColor: css(r.token), borderDash: r.seed === "1" ? [5, 4] : [],
+        borderWidth: 1.6, pointRadius: 1.8,
+      }));
+      chart.update();
+    }
+  };
+  document.getElementById("kl-dir").addEventListener("change", e => draw(e.target.value));
+  draw("");
+}
+
+function renderAtoms(runs, data) {
+  const done = runs.filter(r => r.atoms && r.atoms.length);
+  document.getElementById("atoms-empty").hidden = done.length > 0;
+  const grid = css("--rule"), muted = css("--muted");
+  const scales = (ytitle, max) => ({
+    x: { type: "linear", min: 0, title: { display: true, text: "RL clock (h)", color: muted }, ticks: { color: muted, stepSize: 0.5 }, grid: { color: grid } },
+    y: { beginAtZero: true, max, title: { display: true, text: ytitle, color: muted }, ticks: { color: muted }, grid: { color: grid } },
+  });
+  new Chart(document.getElementById("c-max-atoms"), {
+    type: "line",
+    data: { datasets: done.map(r => ({
+      label: r.key, data: r.atoms.map(p => ({ x: p.clock, y: p.max_atoms })), stepped: true,
+      borderColor: css(r.token), backgroundColor: css(r.token), borderDash: r.seed === "1" ? [5, 4] : [], borderWidth: 1.6, pointRadius: 0,
+    })) },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+      plugins: { legend: { display: false } }, scales: scales("atoms", 10) },
+  });
+  const select = document.getElementById("atoms-run");
+  select.innerHTML = done.map(r => `<option value="${r.key}">${r.key}</option>`).join("");
+  const ks = Object.keys(data.pool_by_atoms).map(Number).sort((a, b) => a - b);
+  const share = new Chart(document.getElementById("c-atom-share"), {
+    type: "line", data: { datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+      plugins: { legend: { position: "right", labels: { color: muted, boxWidth: 10, font: { size: 10 } } } },
+      scales: scales("share of pool solved", 1) },
+  });
+  const draw = key => {
+    const r = done.find(x => x.key === key);
+    share.data.datasets = r ? ks.map((k, i) => {
+      const colour = `hsl(${210 - i * 21} 65% 52%)`;  // cool (few atoms) to warm (10)
+      return { label: `${k} atoms (${data.pool_by_atoms[k].toLocaleString()})`, data: r.atoms.map(p => ({ x: p.clock, y: p.share[k] })),
+               borderColor: colour, backgroundColor: colour, borderWidth: 1.6, pointRadius: 0 };
+    }) : [];
+    share.update();
+  };
+  select.addEventListener("change", e => draw(e.target.value));
+  draw(done[0]?.key);
+}
+
+// Checkpoint order within a run: pretrained, RL snapshots by round, final.
+const stageRank = s => s === "pretrain" ? -1 : s === "final" ? 1e9 : +s.replace("round", "");
+const stageLabel = s => s === "pretrain" ? "pretrained" : s === "final" ? "final" : `round ${+s.replace("round", "")}`;
+const runLabel = run => run.replaceAll("_", " ");
+
+function renderTextbook(data) {
+  const books = (data.textbook || []).slice().sort((a, b) =>
+    a.version.localeCompare(b.version) || ARM_ORDER.indexOf(a.arm) - ARM_ORDER.indexOf(b.arm) || a.seed - b.seed || stageRank(a.stage) - stageRank(b.stage));
+  for (const id of ["tb", "tb-tablewrap"]) document.getElementById(id).hidden = books.length === 0;
+  document.getElementById("tb-empty").hidden = books.length > 0;
+  if (!books.length) return;
+  const grid = css("--rule"), muted = css("--muted");
+  const all = b => b.solved.dev + b.solved.train;
+  const at = (b, k) => b.mean[b.ks.indexOf(k)];
+  const runs = [...new Set(books.map(b => b.run))];
+  const byRun = run => books.filter(b => b.run === run);
+
+  document.querySelector("#tb-table tbody").innerHTML = books.map(b =>
+    `<tr><td><span class="swatch${b.seed === "1" ? " dash" : ""}" style="--c:var(--${b.arm})"></span>${runLabel(b.run)}</td><td class="l">${stageLabel(b.stage)}</td>
+     <td>${b.solved.dev}</td><td>${b.solved.train}</td><td>${all(b)}</td><td>${fmt(at(b, 1), 3)}</td><td>${fmt(at(b, 16), 3)}</td></tr>`).join("");
+
+  const find = (run, stage) => byRun(run).find(b => b.stage === stage);
+  const barRuns = runs.filter(r => find(r, "pretrain") || find(r, "final"));
+  new Chart(document.getElementById("c-tb-bars"), {
+    type: "bar",
+    data: { labels: barRuns.map(runLabel), datasets: [
+      { label: "pretrained", data: barRuns.map(r => find(r, "pretrain") ? all(find(r, "pretrain")) : null), backgroundColor: muted },
+      { label: "final", data: barRuns.map(r => find(r, "final") ? all(find(r, "final")) : null), backgroundColor: barRuns.map(r => css(`--${byRun(r)[0].arm}`)) },
+    ] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color: muted, autoSkip: false, maxRotation: 60, minRotation: 45, font: { size: 10 } }, grid: { display: false } },
+                y: { min: 0, max: 72, title: { display: true, text: "problems solved", color: muted }, ticks: { color: muted }, grid: { color: grid } } } },
+  });
+
+  const chart = new Chart(document.getElementById("c-tb"), {
+    type: "line", data: { labels: books[0].ks.map(String), datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "right", labels: { color: muted, boxWidth: 10, font: { size: 10 }, filter: item => !/ (lo|hi)$/.test(item.text) } },
+        tooltip: { filter: item => !/ (lo|hi)$/.test(item.dataset.label),
+                   callbacks: { title: items => `k = ${items[0].label}`, label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(3)}` } } },
+      scales: {
+        x: { title: { display: true, text: "k", color: muted }, ticks: { color: muted }, grid: { color: grid } },
+        y: { min: 0, max: 1, title: { display: true, text: "pass@k (Lean-checked)", color: muted }, ticks: { color: muted }, grid: { color: grid } },
+      } },
+  });
+  const draw = run => {
+    const pts = byRun(run), arm = css(`--${pts[0].arm}`);
+    // Pretrained in grey, then the arm's colour from faint (early rounds) to solid (final); bands on the two ends only.
+    chart.data.datasets = pts.flatMap((b, i) => {
+      const color = b.stage === "pretrain" ? muted : arm + Math.round(255 * (0.35 + 0.65 * i / Math.max(1, pts.length - 1))).toString(16).padStart(2, "0");
+      const line = { label: stageLabel(b.stage), data: b.mean, borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 2.5 };
+      if (b.stage !== "pretrain" && b.stage !== "final") return [line];
+      return [{ label: `${line.label} lo`, data: b.lo, borderWidth: 0, pointRadius: 0, fill: false },
+              { label: `${line.label} hi`, data: b.hi, borderWidth: 0, pointRadius: 0, fill: "-1", backgroundColor: (b.stage === "pretrain" ? muted : arm) + "22" },
+              line];
+    });
+    chart.update();
+  };
+  const select = document.getElementById("tb-run");
+  select.innerHTML = runs.map(r => `<option value="${r}">${runLabel(r)}</option>`).join("");
+  const start = runs.reduce((a, r) => byRun(r).length > byRun(a).length ? r : a);  // the run with the most snapshots
+  select.value = start;
+  select.addEventListener("change", e => draw(e.target.value));
+  draw(start);
+}
+
+const EDL_BANDS = ["7-9", "10-14", "15-19", "20-24", "25-34", "35-49", "50+"];
+const bandColour = i => `hsl(${210 - i * 30} 65% 52%)`;  // cool (short) to warm (long), as the atom chart
+
+function renderEDL(data) {
+  const pts = (data.edl || []).slice().sort((a, b) =>
+    a.version.localeCompare(b.version) || ARM_ORDER.indexOf(a.arm) - ARM_ORDER.indexOf(b.arm) || a.seed - b.seed || stageRank(a.stage) - stageRank(b.stage));
+  // style.display, not hidden: .charts and figure set display: grid, which overrides the hidden attribute
+  for (const id of ["edl", "edl-tablewrap"]) document.getElementById(id).style.display = pts.length ? "" : "none";
+  document.getElementById("edl-empty").hidden = pts.length > 0;
+  if (!pts.length) return;
+  const grid = css("--rule"), muted = css("--muted"), fg = css("--fg");
+  const perProof = (p, band) => p.bands[band] ? p.bands[band].edl / p.bands[band].n : null;
+  const label = p => `${runLabel(p.run)} · ${stageLabel(p.stage)}`;
+  const bands = EDL_BANDS.filter(b => pts.some(p => p.bands[b]));
+  const runs = [...new Set(pts.map(p => p.run))];
+  const find = (run, stage) => pts.find(p => p.run === run && p.stage === stage);
+
+  document.querySelector("#edl-table thead").innerHTML =
+    `<tr><th class="l">run</th><th class="l">checkpoint</th>${bands.map(b => `<th>${b}</th>`).join("")}</tr>`;
+  document.querySelector("#edl-table tbody").innerHTML = pts.map(p =>
+    `<tr><td><span class="swatch${p.seed === "1" ? " dash" : ""}" style="--c:var(--${p.arm})"></span>${runLabel(p.run)}</td><td class="l">${stageLabel(p.stage)}</td>
+     ${bands.map(b => `<td title="${p.bands[b] ? `held-out loss ${p.bands[b].l_test_0.toFixed(0)} → ${p.bands[b].l_test.at(-1)[1].toFixed(0)} nats per proof; orders ${p.bands[b].edl_orders.map(e => (e / p.bands[b].n).toFixed(1)).join(", ")}; rate ×${p.bands[b].lr_mult}` : ""}">${fmt(perProof(p, b), 1)}</td>`).join("")}</tr>`).join("");
+
+  // Area picture: online loss per step (mean over orders, 8-step moving average) against the final held-out loss.
+  const area = new Chart(document.getElementById("c-edl-area"), {
+    type: "line", data: { datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+      plugins: { legend: { position: "bottom", labels: { color: muted, boxWidth: 10, font: { size: 10 } } } },
+      scales: { x: { type: "linear", min: 1, title: { display: true, text: "training proof i", color: muted }, ticks: { color: muted }, grid: { color: grid } },
+                y: { beginAtZero: true, title: { display: true, text: "nats per proof", color: muted }, ticks: { color: muted }, grid: { color: grid } } } },
+  });
+  const ckSel = document.getElementById("edl-ckpt"), bandSel = document.getElementById("edl-band");
+  ckSel.innerHTML = pts.map((p, i) => `<option value="${i}">${label(p)}</option>`).join("");
+  bandSel.innerHTML = bands.map(b => `<option>${b}</option>`).join("");
+  const drawArea = () => {
+    const p = pts[+ckSel.value], b = p.bands[bandSel.value];
+    if (!b) {
+      area.data.datasets = []; area.update();
+      document.getElementById("edl-area-note").textContent = "This band isn't scored for this checkpoint yet.";
+      return;
+    }
+    const smooth = b.online.map((_, i) => { const w = b.online.slice(Math.max(0, i - 4), i + 4); return w.reduce((s, v) => s + v, 0) / w.length; });
+    const final = b.l_test.at(-1)[1], colour = css(`--${p.arm}`);
+    area.data.datasets = [
+      { label: "online loss, before each step", data: smooth.map((y, i) => ({ x: i + 1, y })), borderColor: colour, backgroundColor: colour + "44",
+        fill: { value: final }, borderWidth: 1.8, pointRadius: 0 },
+      { label: "held-out loss, final", data: [{ x: 1, y: final }, { x: b.n, y: final }], borderColor: fg, borderWidth: 1.4, borderDash: [5, 4], pointRadius: 0 },
+      { label: "held-out loss, start", data: [{ x: 1, y: b.l_test_0 }, { x: b.n, y: b.l_test_0 }], borderColor: muted, borderWidth: 1, borderDash: [2, 3], pointRadius: 0 },
+    ];
+    area.update();
+    document.getElementById("edl-area-note").textContent =
+      `EDL ${b.edl.toFixed(0)} nats over ${b.n} proofs = ${(b.edl / b.n).toFixed(1)} per proof (${(b.edl / b.n / b.proof_tokens).toFixed(3)} per token, ${b.proof_tokens.toFixed(0)} tokens per proof); rate ×${b.lr_mult}`;
+  };
+  ckSel.addEventListener("change", drawArea);
+  bandSel.addEventListener("change", drawArea);
+  const start = Math.max(0, pts.findIndex(p => p.stage === "pretrain"));
+  ckSel.value = String(start);
+  bandSel.value = pts[start].bands["15-19"] ? "15-19" : Object.keys(pts[start].bands)[0];
+  drawArea();
+
+  const barRuns = runs.filter(r => find(r, "pretrain") || find(r, "final"));
+  const bars = new Chart(document.getElementById("c-edl-bars"), {
+    type: "bar", data: { labels: bands, datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } },
+      scales: { x: { title: { display: true, text: "body lines", color: muted }, ticks: { color: muted }, grid: { display: false } },
+                y: { beginAtZero: true, title: { display: true, text: "EDL, nats per proof", color: muted }, ticks: { color: muted }, grid: { color: grid } } } },
+  });
+  const runSel = document.getElementById("edl-run");
+  runSel.innerHTML = barRuns.map(r => `<option value="${r}">${runLabel(r)}</option>`).join("");
+  const drawBars = run => {
+    const pre = find(run, "pretrain"), fin = find(run, "final");
+    bars.data.datasets = [
+      { label: "pretrained", data: bands.map(b => pre ? perProof(pre, b) : null), backgroundColor: muted },
+      { label: "final", data: bands.map(b => fin ? perProof(fin, b) : null), backgroundColor: css(`--${(pre || fin).arm}`) },
+    ];
+    bars.update();
+  };
+  runSel.addEventListener("change", e => drawBars(e.target.value));
+  drawBars(barRuns[0]);
+
+  const trajRuns = runs.filter(r => pts.filter(p => p.run === r).length > 2);
+  const traj = new Chart(document.getElementById("c-edl-traj"), {
+    type: "line", data: { labels: [], datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { position: "right", labels: { color: muted, boxWidth: 10, font: { size: 10 } } } },
+      scales: { x: { ticks: { color: muted }, grid: { color: grid } },
+                y: { beginAtZero: true, title: { display: true, text: "EDL, nats per proof", color: muted }, ticks: { color: muted }, grid: { color: grid } } } },
+  });
+  const trajSel = document.getElementById("edl-traj");
+  trajSel.innerHTML = trajRuns.map(r => `<option value="${r}">${runLabel(r)}</option>`).join("");
+  trajSel.closest("figure").style.display = trajRuns.length ? "" : "none";
+  const drawTraj = run => {
+    const seq = pts.filter(p => p.run === run);
+    traj.data.labels = seq.map(p => stageLabel(p.stage));
+    traj.data.datasets = bands.map((b, i) => ({ label: b, data: seq.map(p => perProof(p, b)), borderColor: bandColour(i), backgroundColor: bandColour(i), borderWidth: 1.6, pointRadius: 2 }));
+    traj.update();
+  };
+  trajSel.addEventListener("change", e => drawTraj(e.target.value));
+  if (trajRuns.length) drawTraj(trajRuns[0]);
+}
+
+fetch("data.json").then(r => r.json()).then(data => {
+  const runs = runsSorted(data);
+  document.getElementById("asof").textContent = pdt(data.exported_utc);
+  if (runs.every(r => r.status !== "running")) { const s = document.getElementById("state"); s.textContent = "finished"; s.className = "pill done"; }
+  renderTable(runs);
+  renderCharts(runs);
+  renderFinals(runs);
+  renderAtoms(runs, data);
+  renderKL(runs);
+  renderTextbook(data);
+  renderEDL(data);
+});
+</script>

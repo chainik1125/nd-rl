@@ -1,0 +1,87 @@
+##### CLASS ill-typed:DN | la_transfer_1842 pool=old_unsolved_short body=6 src=None loops=1
+PROMPT: THM P , ( ( ( ~ P ) & ( P & R ) ) v ( ~ P ) ) SEQ ( ( ~ ( ~ R ) ) > Q ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n16 : P := h1 ; have n17 : ( ( ( ¬ P ) ∧ ( P ∧ R ) ) ∨ ( ¬ P ) ) := h2 ; have n18 : ( ( ¬ ( ¬ R ) ) → Q ) := ( fun ( n19 : ( ¬ ( ¬ R ) ) ) => by have n20 : ( P ∧ R ) := Classical.byContradiction ( fun hh => n19 hh ) ; have n21 : ( ( ¬ P ) ∧ ( P ∧ R ) ) := Or.elim n17 ( fun ( n22 : ( ( ¬ P ) ∧ ( P ∧ R ) ) ) => by exact n22 ) ( fun ( n23 : ( ¬ P ) ) => by have n24 : False := n23 n16 ; have n25 : Q := False.elim n24 ; exact n25 ) ; exact n21 ) ; exact n18
+LEAN  : Application type mismatch: The argument   hh has type   ¬(P ∧ R) but is expected to have type   ¬R in the application   n19 hh | at have 3 of 7
+
+##### CLASS ramble | la_transfer_1842 pool=old_unsolved_short body=6 src=None loops=1
+PROMPT: THM P , ( ( ( ~ P ) & ( P & R ) ) v ( ~ P ) ) SEQ ( ( ~ ( ~ R ) ) > Q ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n22 : P := h1 ; have n23 : ( ( ( ¬ P ) ∧ ( P ∧ R ) ) ∨ ( ¬ P ) ) := h2 ; have n24 : ( ( ¬ ( ¬ R ) ) → Q ) := ( fun ( n25 : ( ¬ ( ¬ R ) ) ) => by have n26 : ( P ∧ R ) := Classical.byContradiction ( fun hh => n25 hh ) ; have n27 : ( ( ¬ P ) ∧ ( P ∧ R ) ) := ⟨ n22 , n26 ⟩ ; have n28 : ( ( ¬ P ) ∧ ( P ∧ R ) ) := ⟨ n22 , n26 ⟩ ; have n29 : ( ( ¬ P ) ∧ ( P ∧ R ) ) := ⟨ n22 , n26 ⟩ ; have n30 : Q := Or.elim n23 ( fun ( n31 : ( ( ¬ P ) ∧ ( P ∧ R ) ) ) => by have n32 : ( ( ¬ P ) ∧ ( P ∧ R ) ) := ⟨ n27 , n26 ⟩ ; have n33 : Q := Or.elim n23 ( fun ( n34 : ( ( ¬ P ) ∧ ( P ∧ R ) ) ) => by have n35 : ( ( ¬ P ) ∧ ( P ∧ R ) ) := n34 ; have n36 : ( ¬ P ) := n35.1 ; have n37 : ( P
+
+##### CLASS scope-leak | la_transfer_1842 pool=old_unsolved_short body=6 src=None loops=1
+PROMPT: THM P , ( ( ( ~ P ) & ( P & R ) ) v ( ~ P ) ) SEQ ( ( ~ ( ~ R ) ) > Q ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n4 : P := h1 ; have n5 : ( ( ( ¬ P ) ∧ ( P ∧ R ) ) ∨ ( ¬ P ) ) := h2 ; have n6 : ( P ∧ R ) := Or.elim n5 ( fun ( n7 : ( ( ¬ P ) ∧ ( P ∧ R ) ) ) => by have n8 : ( P ∧ R ) := n7.2 ; exact n8 ) ( fun ( n9 : ( ¬ P ) ) => by have n10 : False := n9 n4 ; have n11 : ( P ∧ R ) := False.elim n10 ; exact n11 ) ; have n12 : ( ( ¬ ( ¬ R ) ) → Q ) := ( fun ( n13 : ( ¬ ( ¬ R ) ) ) => by have n14 : Q := False.elim n10 ; exact n14 ) ; exact n12
+UNBOUND: leak-sibling-box name n10 box_kind None need None derived-in-box None box lines None
+
+##### CLASS ill-typed:IMPE/NEGE | la_transfer_2264 pool=old_unsolved_short body=6 src=None loops=1
+PROMPT: THM ( ~ ( ( ~ ( ~ ( S v S ) ) ) v Q ) ) , ( ( ~ R ) v ( ~ ( ~ S ) ) ) SEQ ( ( ~ ( ~ ( ~ ( ~ ( S v S ) ) ) ) ) > ( ( ( Q v R ) > ( Q & P ) ) > ( ~ ( S v S ) ) ) ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n28 : ( ¬ ( ( ¬ ( ¬ ( S ∨ S ) ) ) ∨ Q ) ) := h1 ; have n29 : ( ( ¬ R ) ∨ ( ¬ ( ¬ S ) ) ) := h2 ; have n30 : ( ( ¬ ( ¬ ( ¬ ( ¬ ( S ∨ S ) ) ) ) ) → ( ( ( Q ∨ R ) → ( Q ∧ P ) ) → ( ¬ ( S ∨ S ) ) ) ) := ( fun ( n31 : ( ¬ ( ¬ ( ¬ ( ¬ ( S ∨ S ) ) ) ) ) ) => by have n32 : False := n31 n28 ; have n33 : ( ( ( Q ∨ R ) → ( Q ∧ P ) ) → ( ¬ ( S ∨ S ) ) ) := False.elim n32 ; exact n33 ) ; exact n30
+LEAN  : Application type mismatch: The argument   n28 has type   ¬(¬¬(S ∨ S) ∨ Q) but is expected to have type   ¬¬¬(S ∨ S) in the application   n31 n28 | at have 3 of 5
+
+##### CLASS ill-typed:IMPE/NEGE | la_transfer_1101 pool=old_unsolved_short body=6 src=None loops=1
+PROMPT: THM ( ( P & P ) v ( S & S ) ) , ( ~ R ) , ( ~ ( S & S ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( R > Q ) > Q ) ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n124 : ( ( P ∧ P ) ∨ ( S ∧ S ) ) := h1 ; have n125 : ( ¬ R ) := h2 ; have n126 : ( ¬ ( S ∧ S ) ) := h3 ; have n127 : ( ( ¬ ( ¬ ( R ∧ S ) ) ) → ( ( R → Q ) → Q ) ) := ( fun ( n128 : ( ¬ ( ¬ ( R ∧ S ) ) ) ) => by have n129 : ( ( R → Q ) → Q ) := ( fun ( n130 : ( R → Q ) ) => by have n131 : ( R → Q ) := n130 ; have n132 : ( R → Q ) := n131 ; have n133 : Q := n130 n125 ; exact n133 ) ; exact n129 ) ; exact n127
+LEAN  : Application type mismatch: The argument   n125 has type   ¬R but is expected to have type   R in the application   n130 n125 | at have 7 of 8
+
+##### CLASS circular | la_transfer_1101 pool=old_unsolved_short body=6 src=None loops=1
+PROMPT: THM ( ( P & P ) v ( S & S ) ) , ( ~ R ) , ( ~ ( S & S ) ) SEQ ( ( ~ ( ~ ( R & S ) ) ) > ( ( R > Q ) > Q ) ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n126 : ( ( P ∧ P ) ∨ ( S ∧ S ) ) := h1 ; have n127 : ( ¬ R ) := h2 ; have n128 : ( ¬ ( S ∧ S ) ) := h3 ; have n129 : ( ( ¬ ( ¬ ( R ∧ S ) ) ) → ( ( R → Q ) → Q ) ) := ( fun ( n130 : ( ¬ ( ¬ ( R ∧ S ) ) ) ) => by have n131 : ( ( R → Q ) → Q ) := ( fun ( n132 : ( R → Q ) ) => by have n133 : ( R → Q ) := n132 ; have n134 : ( R → Q ) := n133 ; have n135 : Q := Or.elim n126 ( fun ( n136 : ( P ∧ P ) ) => by have n137 : False := n130 n135 ; have n138 : Q := False.elim n137 ; exact n138 ) ( fun ( n139 : ( S ∧ S ) ) => by have n140 : False := n128 n139 ; have n141 : Q := False.elim n140 ; exact n141 ) ; exact n135 ) ; exact n131 ) ; exact n129
+UNBOUND: cites-enclosing-have name n135 box_kind ORE/other need Q derived-in-box False box lines 0
+
+##### CLASS circular | la_transfer_86 pool=old_unsolved_short body=7 src=dist_and_over_or loops=1
+PROMPT: THM ( ( ~ P ) & ( ( ~ ( ~ Q ) ) v ( ~ ( R & P ) ) ) ) SEQ ( ( ( ~ P ) & ( ~ ( ~ Q ) ) ) v ( ( ~ P ) & ( ~ ( R & P ) ) ) ) PRF
+GOLD  : (no gold; old-dev schema=dist_and_over_or)
+SAMPLE: have n119 : ( ( ¬ P ) ∧ ( ( ¬ ( ¬ Q ) ) ∨ ( ¬ ( R ∧ P ) ) ) ) := h1 ; have n120 : ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) := Or.elim n119 ( fun ( n121 : ( ¬ P ) ) => by have n122 : ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) := Or.elim n119 ( fun ( n123 : ( ¬ P ) ) => by have n124 : ( ¬ P ) := n123 ; have n125 : ( ¬ P ) := n124 ; have n126 : ( ( ¬ ( ¬ Q ) ) ∨ ( ¬ ( R ∧ P ) ) ) := Or.inr n119 ; exact n126 ) ( fun ( n127 : ( ¬ ( R ∧ P ) ) ) => by have n128 : ( ( ¬ ( ¬ Q ) ) ∨ ( ¬ ( R ∧ P ) ) ) := Or.inr n127 ; exact n128 ) ; have n129 : ( ( ( ¬ P ) ∧ ( ¬ ( ¬ Q ) ) ) ∨ ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) ) := Or.inr n120 ; exact n129 ) ; exact n120
+UNBOUND: cites-enclosing-have name n120 box_kind ORE/other need ( ( ~ P ) & ( ~ ( R & P ) ) ) derived-in-box True box lines 7
+
+##### CLASS ill-typed:ORI | la_transfer_86 pool=old_unsolved_short body=7 src=dist_and_over_or loops=1
+PROMPT: THM ( ( ~ P ) & ( ( ~ ( ~ Q ) ) v ( ~ ( R & P ) ) ) ) SEQ ( ( ( ~ P ) & ( ~ ( ~ Q ) ) ) v ( ( ~ P ) & ( ~ ( R & P ) ) ) ) PRF
+GOLD  : (no gold; old-dev schema=dist_and_over_or)
+SAMPLE: have n23 : ( ( ¬ P ) ∧ ( ( ¬ ( ¬ Q ) ) ∨ ( ¬ ( R ∧ P ) ) ) ) := h1 ; have n24 : ( ( ( ¬ P ) ∧ ( ¬ ( ¬ Q ) ) ) ∨ ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) ) := Or.inr n23 ; exact n24
+LEAN  : Application type mismatch: The argument   n23 has type   ¬P ∧ (¬¬Q ∨ ¬(R ∧ P)) but is expected to have type   ¬P ∧ ¬(R ∧ P) in the application   Or.inr n23 | at have 1 of 2
+
+##### CLASS one-armed-ORE | la_transfer_86 pool=old_unsolved_short body=7 src=dist_and_over_or loops=1
+PROMPT: THM ( ( ~ P ) & ( ( ~ ( ~ Q ) ) v ( ~ ( R & P ) ) ) ) SEQ ( ( ( ~ P ) & ( ~ ( ~ Q ) ) ) v ( ( ~ P ) & ( ~ ( R & P ) ) ) ) PRF
+GOLD  : (no gold; old-dev schema=dist_and_over_or)
+SAMPLE: have n20 : ( ( ¬ P ) ∧ ( ( ¬ ( ¬ Q ) ) ∨ ( ¬ ( R ∧ P ) ) ) ) := h1 ; have n21 : ( ¬ P ) := n20.1 ; have n22 : ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) := Or.elim n20 ( fun ( n23 : ( ¬ P ) ) => by have n24 : ( ¬ P ) := n23 ; have n25 : ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) := Or.elim n20 ( fun ( n26 : ( ¬ P ) ) => by have n27 : P := n21 ; have n28 : False := n24 n27 ; have n29 : ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) := False.elim n28 ; exact n29 ) ( fun ( n30 : ( ¬ ( R ∧ P ) ) ) => by exact n30 ) ; exact n25 ) ; have n31 : ( ( ( ¬ P ) ∧ ( ¬ ( ¬ Q ) ) ) ∨ ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) ) := Or.inr n22 ; exact n31
+
+##### CLASS scope-leak | la_transfer_86 pool=old_unsolved_short body=7 src=dist_and_over_or loops=1
+PROMPT: THM ( ( ~ P ) & ( ( ~ ( ~ Q ) ) v ( ~ ( R & P ) ) ) ) SEQ ( ( ( ~ P ) & ( ~ ( ~ Q ) ) ) v ( ( ~ P ) & ( ~ ( R & P ) ) ) ) PRF
+GOLD  : (no gold; old-dev schema=dist_and_over_or)
+SAMPLE: have n70 : ( ( ¬ P ) ∧ ( ( ¬ ( ¬ Q ) ) ∨ ( ¬ ( R ∧ P ) ) ) ) := h1 ; have n71 : ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) := n70.2 ; have n72 : ( ¬ ( ¬ P ) ) := ( fun ( n73 : ( ¬ P ) ) => by have n74 : ( ¬ P ) := n71.1 ; have n75 : ( ( ¬ ( ¬ Q ) ) ∨ ( ¬ ( R ∧ P ) ) ) := n70.2 ; have n76 : ( ¬ P ) := n71.1 ; have n77 : P := Classical.byContradiction ( fun hh => n74 hh ) ; have n78 : False := n75 n71 ; exact ( n78 : False ) ) ; have n79 : ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) := Classical.byContradiction ( fun hh => n77 hh ) ; have n80 : ( ( ( ¬ P ) ∧ ( ¬ ( ¬ Q ) ) ) ∨ ( ( ¬ P ) ∧ ( ¬ ( R ∧ P ) ) ) ) := Or.inr n79 ; exact n80
+UNBOUND: leak-after-box name n77 box_kind None need None derived-in-box None box lines None
+
+##### CLASS circular | la_transfer_678 pool=old_solved_ctl body=7 src=None loops=1
+PROMPT: THM SEQ ( ( ~ ( ~ S ) ) > ( ( ( ~ S ) > ( ( S v S ) & ( ~ Q ) ) ) & ( ~ ( ~ S ) ) ) ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n106 : ( ( ¬ ( ¬ S ) ) → ( ( ( ¬ S ) → ( ( S ∨ S ) ∧ ( ¬ Q ) ) ) ∧ ( ¬ ( ¬ S ) ) ) ) := ( fun ( n107 : ( ¬ ( ¬ S ) ) ) => by have n108 : ( ¬ S ) := Classical.byContradiction ( fun hh => n107 hh ) ; have n109 : ( ( ¬ S ) → ( ( S ∨ S ) ∧ ( ¬ Q ) ) ) := ( fun ( n110 : ( ¬ S ) ) => by have n111 : ( ( S ∨ S ) ∧ ( ¬ Q ) ) := ( fun ( n112 : ( S ∨ S ) ) => by have n113 : ( ¬ Q ) := ( fun ( n114 : Q ) => by have n115 : False := n107 n110 ; exact ( n115 : False ) ) ; have n116 : ( ( S ∨ S ) ∧ ( ¬ Q ) ) := ⟨ n112 , n113 ⟩ ; exact n116 ) ; have n117 : ( ( ( ¬ S ) → ( ( S ∨ S ) ∧ ( ¬ Q ) ) ) ∧ ( ¬ ( ¬ S ) ) ) := ⟨ n109 , n107 ⟩ ; exact n117 ) ; exact n106
+UNBOUND: cites-enclosing-have name n109 box_kind IMPI need ( ( S v S ) & ( ~ Q ) ) derived-in-box True box lines 6
+
+##### CLASS ill-typed:ORE | la_transfer_1366 pool=old_unsolved_short body=8 src=dist_and_over_or_conv loops=1
+PROMPT: THM ( ( ( R & Q ) & Q ) v ( ( R & Q ) & P ) ) SEQ ( ( R & Q ) & ( Q v P ) ) PRF
+GOLD  : (no gold; old-dev schema=dist_and_over_or_conv)
+SAMPLE: have n56 : ( ( ( R ∧ Q ) ∧ Q ) ∨ ( ( R ∧ Q ) ∧ P ) ) := h1 ; have n57 : ( ( R ∧ Q ) ∧ Q ) := Or.elim n56 ( fun ( n58 : ( ( R ∧ Q ) ∧ Q ) ) => by exact n58 ) ( fun ( n59 : ( ( R ∧ Q ) ∧ Q ) ) => by exact n59 ) ; have n60 : ( Q ∨ P ) := Or.inl n57 ; have n61 : ( ( R ∧ Q ) ∧ Q ) := n57.1 ; have n62 : ( ( R ∧ Q ) ∧ ( Q ∨ P ) ) := ⟨ n57 , n60 ⟩ ; exact n62
+LEAN  : Application type mismatch: The argument   fun n59 => ?m.9 has type   (R ∧ Q) ∧ Q → (R ∧ Q) ∧ Q but is expected to have type   (R ∧ Q) ∧ P → (R ∧ Q) ∧ Q in the application   Or.elim n56 (fun n58 => ?m.7) fun n59 => ?m.9 | at have 1 of 5
+
+##### CLASS ill-typed:IMPE/NEGE | la_transfer_1119 pool=old_solved_ctl body=8 src=None loops=1
+PROMPT: THM R , ( S v ( R > S ) ) SEQ ( R > ( ( ~ ( ~ P ) ) > S ) ) PRF
+GOLD  : (no gold; old-dev schema=None)
+SAMPLE: have n114 : R := h1 ; have n115 : ( S ∨ ( R → S ) ) := h2 ; have n116 : ( R → ( ( ¬ ( ¬ P ) ) → S ) ) := ( fun ( n117 : R ) => by have n118 : ( R → S ) := ( fun ( n119 : R ) => by have n120 : S := Or.elim n115 ( fun ( n121 : S ) => by exact n121 ) ( fun ( n122 : ( R → S ) ) => by have n123 : S := n122 n114 ; exact n123 ) ; exact n120 ) ; exact n118 ) ; exact n116
+LEAN  : Type mismatch   n118 has type   R → S but is expected to have type   ¬¬P → S | at have 5 of 6
+
+##### CLASS one-armed-ORE | la_transfer_1201 pool=old_unsolved_short body=9 src=dist_and_over_or loops=1
+PROMPT: THM ( ( Q v R ) & ( ( P > R ) v ( ~ R ) ) ) SEQ ( ( ( Q v R ) & ( P > R ) ) v ( ( Q v R ) & ( ~ R ) ) ) PRF
+GOLD  : (no gold; old-dev schema=dist_and_over_or)
+SAMPLE: have n32 : ( ( Q ∨ R ) ∧ ( ( P → R ) ∨ ( ¬ R ) ) ) := h1 ; have n33 : ( ( ( Q ∨ R ) ∧ ( P → R ) ) ∨ ( ( Q ∨ R ) ∧ ( ¬ R ) ) ) := Or.elim n32 ( fun ( n34 : ( Q ∨ R ) ) => by have n35 : ( Q ∨ R ) := n34 ; have n36 : ( ( Q ∨ R ) ∧ ( ¬ R ) ) := Or.elim n35 ( fun ( n37 : ( Q ∨ R ) ) => by have n38 : ( ( Q ∨ R ) ∧ ( ¬ R ) ) := ⟨ n35 , n35 ⟩ ; exact n38 ) ( fun ( n39 : ( ( Q ∨ R ) ∧ ( ¬ R ) ) ) => by exact n39 ) ; exact n36 ) ; exact n33
+
+##### CLASS ill-typed:ORE | la_transfer_1201 pool=old_unsolved_short body=9 src=dist_and_over_or loops=1
+PROMPT: THM ( ( Q v R ) & ( ( P > R ) v ( ~ R ) ) ) SEQ ( ( ( Q v R ) & ( P > R ) ) v ( ( Q v R ) & ( ~ R ) ) ) PRF
+GOLD  : (no gold; old-dev schema=dist_and_over_or)
+SAMPLE: have n145 : ( ( Q ∨ R ) ∧ ( ( P → R ) ∨ ( ¬ R ) ) ) := h1 ; have n146 : ( ( ( Q ∨ R ) ∧ ( P → R ) ) ∨ ( ( Q ∨ R ) ∧ ( ¬ R ) ) ) := Or.elim n145 ( fun ( n147 : ( Q ∨ R ) ) => by have n148 : ( Q ∨ R ) := n147 ; have n149 : ( ( Q ∨ R ) ∧ ( ¬ R ) ) := n145 n147 ; have n150 : ( ( Q ∨ R ) ∧ ( ¬ R ) ) := ⟨ n148 , n149 ⟩ ; have n151 : ( ( ( Q ∨ R ) ∧ ( P → R ) ) ∨ ( ( Q ∨ R ) ∧ ( ¬ R ) ) ) := Or.inr n149 ; exact n151 ) ( fun ( n152 : ( ( Q ∨ R ) ∧ ( ¬ R ) ) ) => by have n153 : ( ( ( Q ∨ R ) ∧ ( P → R ) ) ∨ ( ( Q ∨ R ) ∧ ( ¬ R ) ) ) := Or.inr n152 ; exact n153 ) ; exact n146
+LEAN  : Application type mismatch: The argument   n145 has type   (Q ∨ R) ∧ ((P → R) ∨ ¬R) but is expected to have type   ?m.4 ∨ ?m.5 in the application   Or.elim n145 | at have 1 of 7
+

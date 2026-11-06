@@ -1,0 +1,14 @@
+THM P , ( P > ( Q & ( Q > ( R & ( R > ( S & ( S > ( T & ( T > ( U & ( U > W ) ) ) ) ) ) ) ) ) ) ) SEQ W PRF | n_prem 2
+  |S| = 55
+  body<=1: none cum 0.0s calls 1 memo 1
+  body<=2: none cum 0.0s calls 55 memo 55
+  body<=3: none cum 0.0s calls 201 memo 201
+  body<=4: none cum 0.0s calls 665 memo 665
+  body<=5: none cum 0.0s calls 3310 memo 3310
+  body<=6: none cum 0.1s calls 12200 memo 12200
+  body<=7: none cum 0.3s calls 40219 memo 40219
+  body<=8: none cum 1.0s calls 137137 memo 137137
+  body<=9: none cum 3.4s calls 437407 memo 437407
+  body<=10: none cum 11.0s calls 1341243 memo 1341243
+  body<=11: none cum 34.7s calls 3997615 memo 3997615
+  TIMEOUT at 12 calls 11084800 memo 11084792

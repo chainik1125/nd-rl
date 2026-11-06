@@ -1,0 +1,10 @@
+THM ( ( ( P v Q ) v R ) v S ) SEQ ( P v ( Q v ( R v S ) ) ) PRF
+THM ( P v Q ) , ( ( ~ P ) v R ) , ( ( ~ Q ) v R ) , ( ( ~ R ) v S ) SEQ S PRF
+THM ( P v Q ) , ( ( ~ P ) v R ) , ( ( ~ Q ) v R ) , ( ( ~ R ) v S ) , ( ( ~ R ) v T ) SEQ ( S & T ) PRF
+THM ( ( P > Q ) > P ) SEQ P PRF
+THM SEQ ( ( ( P > Q ) > P ) > P ) PRF
+THM ( P v Q ) , ( P v R ) , ( ( ~ P ) v S ) , ( ( ~ Q ) v ( ~ R ) ) SEQ S PRF
+THM ( P v Q ) , ( ( ~ P ) v Q ) , ( P v ( ~ Q ) ) SEQ ( P & Q ) PRF
+THM ( P v Q ) , ( R v S ) SEQ ( ( P & R ) v ( ( P & S ) v ( ( Q & R ) v ( Q & S ) ) ) ) PRF
+THM ( P v Q ) , ( P > R ) , ( Q > R ) , ( R > ( S v T ) ) , ( S > U ) , ( T > U ) SEQ U PRF
+THM ( P v ( Q v R ) ) , ( ( ~ P ) v S ) , ( ( ~ Q ) v S ) , ( ( ~ R ) v S ) SEQ S PRF

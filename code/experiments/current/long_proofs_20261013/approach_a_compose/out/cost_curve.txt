@@ -1,0 +1,15 @@
+THM ( P > Q ) SEQ ( Q > P ) PRF                              body_bound 13 exhausted        0.4s memo 118814
+THM ( P > Q ) SEQ ( Q > P ) PRF                              body_bound 15 exhausted        1.5s memo 405896
+THM ( P > Q ) SEQ ( Q > P ) PRF                              body_bound 17 exhausted        5.2s memo 1266530
+THM ( P > Q ) SEQ ( Q > P ) PRF                              body_bound 19 exhausted       16.5s memo 3666999
+          1362132992  maximum resident set size
+THM ( P > Q ) , ( Q v R ) SEQ ( P & R ) PRF                  body_bound 13 exhausted        1.5s memo 358991
+THM ( P > Q ) , ( Q v R ) SEQ ( P & R ) PRF                  body_bound 15 exhausted        7.1s memo 1436043
+THM ( P > Q ) , ( Q v R ) SEQ ( P & R ) PRF                  body_bound 17 exhausted       27.7s memo 5227507
+THM ( P > Q ) , ( Q v R ) SEQ ( P & R ) PRF                  body_bound 19 exhausted      104.3s memo 17595013
+          6009503744  maximum resident set size
+THM ( P > Q ) , ( Q v R ) SEQ ( P & ( R > Q ) ) PRF          body_bound 13 exhausted        2.8s memo 603713
+THM ( P > Q ) , ( Q v R ) SEQ ( P & ( R > Q ) ) PRF          body_bound 15 exhausted       13.7s memo 2619751
+THM ( P > Q ) , ( Q v R ) SEQ ( P & ( R > Q ) ) PRF          body_bound 17 exhausted       59.3s memo 10359774
+          9559277568  maximum resident set size
+THM ( P > Q ) , ( Q v R ) , ( R > P ) SEQ ( P & ( R > Q ) )  body_bound 13 exhausted        4.2s memo 847149

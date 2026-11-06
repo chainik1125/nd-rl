@@ -1,0 +1,53 @@
+LEAN TEXT rl_11321 (solved by 0):
+  have n1 : ( R → ( R → Q ) ) := h1 ; have n2 : ( Z ∨ Y ) := h2 ; have n3 : ( Z → ( R ∨ P ) ) := h3 ; have n4 : ( P → S ) := h4 ; have n5 : ( S → Q ) := h5 ; have n6 : ( Y → ( Y → Q ) ) := h6 ; have n7 : Q := Or.elim n2 ( fun ( n8 : Z ) => by have n9 : ( R ∨ P ) := n3 n8 ; have n10 : Q := Or.elim n9 ( fun ( n11 : R ) => by have n12 : ( R → Q ) := n1 n11 ; have n13 : Q := n12 n11 ; exact n13 ) ( fun ( n14 : P ) => by have n15 : S := n4 n14 ; have n16 : Q := n5 n15 ; exact n16 ) ; exact n10 ) ( fun ( n17 : Y ) => by have n18 : ( Y → Q ) := n6 n17 ; have n19 : Q := n18 n17 ; exact n19 ) ; exact n7 
+
+LEAN TEXT rl_10517 (solved by 4):
+  have n1 : ( Z → ( Z → R ) ) := h1 ; have n2 : ( W ∨ P ) := h2 ; have n3 : ( X → Y ) := h3 ; have n4 : ( Y → R ) := h4 ; have n5 : ( P → ( Z ∨ X ) ) := h5 ; have n6 : ( W → ( W → R ) ) := h6 ; have n7 : R := Or.elim n2 ( fun ( n8 : W ) => by have n9 : ( W → R ) := n6 n8 ; have n10 : R := n9 n8 ; exact n10 ) ( fun ( n11 : P ) => by have n12 : ( Z ∨ X ) := n5 n11 ; have n13 : R := Or.elim n12 ( fun ( n14 : Z ) => by have n15 : ( Z → R ) := n1 n14 ; have n16 : R := n15 n14 ; exact n16 ) ( fun ( n17 : X ) => by have n18 : Y := n3 n17 ; have n19 : R := n4 n18 ; exact n19 ) ; exact n13 ) ; exact n7 
+
+LEAN TEXT rl_5198 (solved by 0):
+  have n1 : ( U ∨ T ) := h1 ; have n2 : ( ( ¬ Q ) → ( ¬ W ) ) := h2 ; have n3 : ( ¬ ( T ∧ Q ) ) := h3 ; have n4 : ( U → ( ¬ W ) ) := h4 ; have n5 : ( ¬ W ) := Or.elim n1 ( fun ( n6 : U ) => by have n7 : ( ¬ W ) := n4 n6 ; exact n7 ) ( fun ( n8 : T ) => by have n9 : ( ¬ Q ) := ( fun ( n10 : Q ) => by have n11 : ( T ∧ Q ) := ⟨ n8 , n10 ⟩ ; have n12 : False := n3 n11 ; exact ( n12 : False ) ) ; have n13 : ( ¬ W ) := n2 n9 ; exact n13 ) ; exact n5 
+
+LEAN TEXT rl_13846 (solved by 4):
+  have n1 : ( ( ¬ R ) → ( ¬ S ) ) := h1 ; have n2 : ( T ∨ P ) := h2 ; have n3 : ( T → ( ¬ R ) ) := h3 ; have n4 : ( ¬ ( P ∧ S ) ) := h4 ; have n5 : ( ¬ S ) := Or.elim n2 ( fun ( n6 : T ) => by have n7 : ( ¬ R ) := n3 n6 ; have n8 : ( ¬ S ) := n1 n7 ; exact n8 ) ( fun ( n9 : P ) => by have n10 : ( ¬ S ) := ( fun ( n11 : S ) => by have n12 : ( P ∧ S ) := ⟨ n9 , n11 ⟩ ; have n13 : False := n4 n12 ; exact ( n13 : False ) ) ; exact n10 ) ; exact n5 
+
+### d family body 9-11, class -> n, mean total logp, mean min logp, solve-by-all, never
+first          n=113 tot= -42.1 min= -11.6 all=0.01 none=0.44 [(('(', ';'), 99), (('(', 'W'), 2), (('P', 'U'), 2), (('Q', 'R'), 1)]
+      rl_103 ; exact n12 ) ; exact n7 ) [[( lp=-12.1 argmax=;]]
+      rl_115 ) := n1 n12 ; exact n13 ) [[( lp=-11.5 argmax=;]]
+first+inter    n= 31 tot= -29.9 min=  -8.0 all=0.00 none=0.87 [(('(', ';'), 8), (('have', 'exact'), 3), (('n1', 'n81'), 2), (('(', 'Q'), 2)]
+      rl_66 : P ) => by have n7 : [[( lp=-9.7 argmax=S]]
+      rl_222 => n8 hh ) ; exact n12 ) [[( lp=-7.5 argmax=;]]
+second         n=100 tot= -24.1 min=  -8.1 all=0.15 none=0.07 [(('n1', 'n81'), 11), (('R', '('), 9), (('U', '('), 7), (('Q', '('), 7)]
+      rl_253 have [[n1 lp=-5.1 argmax=n81]]
+      rl_602 : S ) => by have n9 : [[R lp=-9.4 argmax=(]]
+second+inter   n= 30 tot= -19.3 min=  -7.7 all=0.03 none=0.57 [(('n1', 'n81'), 6), (('(', 'P'), 3), (('Q', '('), 3), (('(', 'S'), 3)]
+      rl_843 have [[n1 lp=-5.1 argmax=n9]]
+      rl_867 by have n8 : ( ¬ ( ¬ [[R lp=-8.0 argmax=Q]]
+
+### old dev: body 9 by #arms, rules field
+(8, 'all') [("['ANDI', 'AS', 'IMPI']", 18), ("['ANDI', 'AS', 'IMPE', 'IMPI']", 13), ("['ANDI', 'AS', 'DN', 'IMPI']", 13), ("['AS', 'BOTE', 'IMPI', 'NEGE']", 12), ("['ANDI', 'AS', 'IMPI', 'ORI1']", 11)]
+(8, 'none') [('None', 3), ("['AS', 'IMPI', 'ORE', 'ORI1', 'ORI2', 'R']", 1)]
+(8, 'some') [('None', 26), ("['ANDE1', 'ANDI', 'AS', 'IMPI']", 2), ("['AS', 'IMPE', 'IMPI']", 2), ("['ANDI', 'AS', 'IMPI', 'ORI1']", 2), ("['ANDE1', 'AS', 'IMPE', 'IMPI']", 2)]
+(9, 'all') [("['ANDI', 'AS', 'IMPI']", 20), ('None', 5), ("['ANDI', 'AS', 'DN', 'IMPI']", 5), ("['AS', 'IMPI', 'ORI1']", 3), ("['AS', 'IMPI', 'ORI2']", 3)]
+(9, 'none') [('None', 47), ("['ANDE2', 'ANDI', 'AS', 'IMPE', 'IMPI', 'ORE']", 1), ("['ANDI', 'AS', 'DN', 'IMPE', 'IMPI']", 1), ("['ANDI', 'AS', 'DN', 'IMPI', 'ORE', 'R']", 1), ("['ANDE2', 'ANDI', 'AS', 'IMPI', 'ORE', 'R']", 1)]
+(9, 'some') [('None', 51), ("['ANDI', 'AS', 'IMPI', 'ORI2']", 1), ("['ANDI', 'AS', 'DN', 'IMPI', 'ORE', 'ORI2', 'R']", 1), ("['ANDE2', 'AS', 'IMPI', 'ORE']", 1), ("['ANDI', 'AS', 'IMPI', 'NEGE', 'NEGI', 'ORI1']", 1)]
+(10, 'all') [("['ANDI', 'AS', 'IMPI', 'ORE', 'R']", 3), ("['ANDI', 'AS', 'DN', 'IMPI']", 2), ("['ANDI', 'AS', 'IMPI', 'ORI2']", 2), ("['AS', 'IMPI', 'ORE', 'ORI1', 'R']", 1), ("['ANDE2', 'ANDI', 'AS', 'IMPI']", 1)]
+(10, 'none') [('None', 5), ("['AS', 'IMPI', 'NEGE', 'NEGI', 'ORE', 'ORI1', 'ORI2']", 1), ("['ANDE2', 'AS', 'IMPI', 'ORE', 'ORI1', 'ORI2']", 1)]
+(10, 'some') [('None', 10), ("['ANDI', 'AS', 'DN', 'IMPE', 'IMPI', 'ORE']", 2), ("['ANDI', 'AS', 'DN', 'IMPE', 'IMPI']", 1), ("['ANDI', 'AS', 'IMPI', 'ORE', 'ORI2', 'R']", 1), ("['ANDE1', 'AS', 'DN', 'IMPE', 'IMPI']", 1)]
+(11, 'all') [("['ANDI', 'AS', 'DN', 'IMPE', 'IMPI']", 1), ("['ANDI', 'AS', 'DN', 'IMPI', 'NEGE', 'NEGI', 'ORE', 'ORI1']", 1), ("['AS', 'IMPI', 'ORI1']", 1)]
+(11, 'none') [('None', 18), ("['ANDE2', 'AS', 'IMPE', 'IMPI', 'ORE', 'ORI1', 'ORI2']", 1)]
+(11, 'some') [('None', 30), ("['ANDI', 'AS', 'DN', 'IMPI', 'NEGE', 'NEGI', 'ORE', 'ORI1', ", 1), ("['ANDI', 'AS', 'IMPI', 'ORE', 'R']", 1), ("['ANDI', 'AS', 'DN', 'IMPI', 'ORE']", 1), ("['ANDE1', 'ANDI', 'AS', 'IMPI', 'ORE', 'R']", 1)]
+examples never-solved body 9:
+   THM SEQ ( ( ( ~ S ) v Q ) v ( ~ ( ( ~ S ) v Q ) ) ) PRF None textbook excluded_middle
+   THM ( ( R & P ) v ( P & R ) ) , ( ( ( R & P ) v ( P & R ) ) > P ) SEQ ( ( ( R > R ) & ( ~ Q ) ) > ( ( ( R & P ) v ( P & R ) ) & ( R & P ) ) ) PRF ['ANDE2', 'ANDI', 'AS', 'IMPE', 'IMPI', 'ORE'] gen None
+   THM ( ( ( ( ~ Q ) > ( ~ S ) ) > ( ~ ( ~ S ) ) ) > ( ( ~ Q ) > ( ~ S ) ) ) SEQ ( ( ~ Q ) > ( ~ S ) ) PRF None textbook peirce_sequent
+   THM ( ( ( ( ~ S ) > ( ~ R ) ) > ( ( ~ S ) & ( P & S ) ) ) > ( ( ~ S ) > ( ~ R ) ) ) SEQ ( ( ~ S ) > ( ~ R ) ) PRF None textbook peirce_sequent
+   THM SEQ ( ( ( ~ Q ) & ( ~ S ) ) v ( ~ ( ( ~ Q ) & ( ~ S ) ) ) ) PRF None textbook excluded_middle
+   THM ( ( ~ R ) v ( ~ ( R & Q ) ) ) SEQ ( ~ ( R & ( R & Q ) ) ) PRF None textbook demorgan_or_to_nand
+   THM ( ( S > ( R v ( P & Q ) ) ) > S ) SEQ S PRF None textbook peirce_sequent
+   THM SEQ ( ( ( P & Q ) v ( S > P ) ) v ( ~ ( ( P & Q ) v ( S > P ) ) ) ) PRF None textbook excluded_middle
+examples solved-by-all body 9:
+   THM ( ( ~ S ) & ( ~ ( R & ( ~ S ) ) ) ) SEQ ( ~ ( S v ( R & ( ~ S ) ) ) ) PRF None textbook demorgan_and_to_nor
+   THM ( ~ ( ( ( ~ ( ~ R ) ) v ( R v ( S v P ) ) ) & R ) ) SEQ ( S > ( ( ~ ( ~ R ) ) > ( ~ R ) ) ) PRF ['ANDI', 'AS', 'IMPI', 'NEGE', 'NEGI', 'ORI1'] gen None
+   THM SEQ ( R > ( Q > ( ( ~ ( ~ R ) ) > ( ( ( ~ R ) > ( ~ R ) ) & Q ) ) ) ) PRF ['ANDI', 'AS', 'IMPI'] gen None
+   THM ( S v P ) SEQ ( ( P & ( R v S ) ) > ( Q > ( ( ~ ( ~ ( ~ Q ) ) ) > ( ( ( ~ ( ~ ( ~ Q ) ) ) > ( ~ ( ~ ( ~ Q ) ) ) ) & ( S v P ) ) ) ) ) PRF ['ANDI', 'AS', 'IMPI'] gen None

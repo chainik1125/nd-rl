@@ -1,0 +1,26 @@
+### family d body 7-16, n=871: solve-by-all rate (and never-solved rate) with / without feature, matched by body
+  negi_intermediate    b9: with n=16 all=0.06 none=0.38 / without n=29 all=0.48 none=0.00 | b10: with n=31 all=0.00 none=0.94 / without n=121 all=0.02 none=0.28 | b11: with n=20 all=0.00 none=0.75 / without n=66 all=0.00 none=0.39 | b12: with n=23 all=0.00 none=1.00 / without n=40 all=0.00 none=0.82 | b13: with n=92 all=0.00 none=0.98 / without n=146 all=0.00 none=0.77 | b14: with n=60 all=0.00 none=0.98 / without n=113 all=0.00 none=0.75 | b15: with n=18 all=0.00 none=1.00 / without n=11 all=0.00 none=1.00 | b16: with n=22 all=0.00 none=1.00 / without n=39 all=0.00 none=1.00
+  bote                 b10: with n=112 all=0.02 none=0.27 / without n=40 all=0.00 none=0.82 | b11: with n=65 all=0.00 none=0.38 / without n=21 all=0.00 none=0.76 | b12: with n=6 all=0.00 none=0.33 / without n=57 all=0.00 none=0.95 | b13: with n=132 all=0.00 none=0.74 / without n=106 all=0.00 none=0.98 | b14: with n=115 all=0.00 none=0.76 / without n=58 all=0.00 none=0.98 | b15: with n=6 all=0.00 none=1.00 / without n=23 all=0.00 none=1.00 | b16: with n=29 all=0.00 none=1.00 / without n=32 all=0.00 none=1.00
+  nested_ore           b10: with n=114 all=0.02 none=0.28 / without n=38 all=0.00 none=0.82 | b11: with n=72 all=0.00 none=0.44 / without n=14 all=0.00 none=0.64 | b12: with n=56 all=0.00 none=0.88 / without n=7 all=0.00 none=1.00 | b13: with n=227 all=0.00 none=0.84 / without n=11 all=0.00 none=1.00 | b14: with n=166 all=0.00 none=0.83 / without n=7 all=0.00 none=1.00
+  goal_neg             b7: with n=15 all=1.00 none=0.00 / without n=8 all=1.00 none=0.00 | b9: with n=36 all=0.39 none=0.17 / without n=9 all=0.11 none=0.00 | b10: with n=63 all=0.02 none=0.41 / without n=89 all=0.01 none=0.42 | b11: with n=27 all=0.00 none=0.56 / without n=59 all=0.00 none=0.44 | b12: with n=46 all=0.00 none=0.89 / without n=17 all=0.00 none=0.88 | b13: with n=98 all=0.00 none=0.90 / without n=140 all=0.00 none=0.81 | b14: with n=44 all=0.00 none=0.89 / without n=129 all=0.00 none=0.81 | b15: with n=15 all=0.00 none=1.00 / without n=14 all=0.00 none=1.00 | b16: with n=27 all=0.00 none=1.00 / without n=34 all=0.00 none=1.00
+  neg_as               b7: with n=13 all=1.00 none=0.00 / without n=10 all=1.00 none=0.00 | b9: with n=34 all=0.32 none=0.15 / without n=11 all=0.36 none=0.09 | b10: with n=140 all=0.01 none=0.39 / without n=12 all=0.00 none=0.67
+  depth3               b12: with n=50 all=0.00 none=0.94 / without n=13 all=0.00 none=0.69
+  reuse                no matched rows (with=0)
+  dn                   b10: with n=22 all=0.00 none=0.95 / without n=130 all=0.02 none=0.32 | b11: with n=20 all=0.00 none=0.75 / without n=66 all=0.00 none=0.39 | b12: with n=6 all=0.00 none=1.00 / without n=57 all=0.00 none=0.88 | b13: with n=72 all=0.00 none=0.97 / without n=166 all=0.00 none=0.80 | b14: with n=55 all=0.00 none=0.98 / without n=118 all=0.00 none=0.76 | b15: with n=13 all=0.00 none=1.00 / without n=16 all=0.00 none=1.00 | b16: with n=16 all=0.00 none=1.00 / without n=45 all=0.00 none=1.00
+  nege_on_neg          no matched rows (with=0)
+  impe_minor_is_neg    b9: with n=38 all=0.29 none=0.16 / without n=7 all=0.57 none=0.00 | b10: with n=106 all=0.01 none=0.43 / without n=46 all=0.02 none=0.37 | b11: with n=63 all=0.00 none=0.44 / without n=23 all=0.00 none=0.57 | b12: with n=39 all=0.00 none=0.87 / without n=24 all=0.00 none=0.92 | b13: with n=90 all=0.00 none=0.80 / without n=148 all=0.00 none=0.88 | b14: with n=97 all=0.00 none=0.85 / without n=76 all=0.00 none=0.82 | b15: with n=11 all=0.00 none=1.00 / without n=18 all=0.00 none=1.00 | b16: with n=9 all=0.00 none=1.00 / without n=52 all=0.00 none=1.00
+
+### family c body 7-16, n=695: solve-by-all rate (and never-solved rate) with / without feature, matched by body
+  negi_intermediate    b14: with n=15 all=0.00 none=0.73 / without n=16 all=0.00 none=1.00 | b15: with n=109 all=0.00 none=1.00 / without n=218 all=0.00 none=0.95 | b16: with n=115 all=0.00 none=1.00 / without n=215 all=0.00 none=1.00
+  bote                 b15: with n=32 all=0.00 none=0.78 / without n=295 all=0.00 none=0.99 | b16: with n=40 all=0.00 none=1.00 / without n=290 all=0.00 none=1.00
+  nested_ore           b15: with n=119 all=0.00 none=0.92 / without n=208 all=0.00 none=1.00 | b16: with n=156 all=0.00 none=1.00 / without n=174 all=0.00 none=1.00
+  goal_neg             b14: with n=7 all=0.00 none=1.00 / without n=24 all=0.00 none=0.83 | b15: with n=20 all=0.00 none=1.00 / without n=307 all=0.00 none=0.97 | b16: with n=17 all=0.00 none=1.00 / without n=313 all=0.00 none=1.00
+  neg_as               no matched rows (with=0)
+  depth3               b14: with n=21 all=0.00 none=0.81 / without n=10 all=0.00 none=1.00 | b15: with n=190 all=0.00 none=0.97 / without n=137 all=0.00 none=0.97 | b16: with n=205 all=0.00 none=1.00 / without n=125 all=0.00 none=1.00
+  reuse                b15: with n=27 all=0.00 none=0.96 / without n=300 all=0.00 none=0.97 | b16: with n=28 all=0.00 none=1.00 / without n=302 all=0.00 none=1.00
+  dn                   no matched rows (with=0)
+  nege_on_neg          no matched rows (with=0)
+  impe_minor_is_neg    no matched rows (with=0)
+
+### minimal pairs (same family+body+skeleton; one solved by all, other by none)
+mixed skeleton groups: 0 pairs: 0

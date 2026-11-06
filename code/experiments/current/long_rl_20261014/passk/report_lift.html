@@ -1,0 +1,215 @@
+<title>Textbook72 RL lift</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column, same system as report_10k.html; two stacked panels share one x scale. */
+:root {
+  --bg: #fbfbf9; --panel: #f3f3ef; --fg: #161614; --fg-2: #55544f; --fg-3: #8a8983; --rule: #e2e1dc;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.55; }
+main { max-width: 860px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 15px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+h2 .sub { font-weight: 400; color: var(--fg-3); font-size: 13px; }
+.lede { color: var(--fg-2); margin: 6px 0 0; max-width: 65ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--fg-2); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend svg { width: 14px; height: 14px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.panels { display: flex; flex-direction: column; gap: 24px; }
+.panel { display: flex; flex-direction: column; gap: 6px; }
+.chart { position: relative; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grid line { stroke: var(--rule); stroke-width: 1; }
+.axis text { fill: var(--fg-3); font-family: var(--mono); font-size: 11px; }
+.axis-label { fill: var(--fg-2); font-size: 12px; }
+.ref-label { font-family: var(--mono); font-size: 11px; fill: var(--fg-3); }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 8px 10px; font-size: 12px; line-height: 1.5; min-width: 230px; box-shadow: 0 4px 16px rgb(0 0 0 / 0.08); z-index: 1; }
+.tip b { font-family: var(--mono); font-weight: 500; }
+.tip .row { display: flex; justify-content: space-between; gap: 14px; color: var(--fg-2); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tip .row .v { color: var(--fg); }
+.tip .lb { color: var(--fg-3); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+caption { text-align: left; color: var(--fg-2); font-size: 13px; padding-bottom: 8px; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--fg-3); font-size: 12px; }
+td { font-family: var(--mono); }
+td.down { color: var(--s2); font-weight: 500; }
+.notes { color: var(--fg-2); font-size: 14px; max-width: 65ch; display: flex; flex-direction: column; gap: 8px; }
+.notes p { margin: 0; }
+code { font-family: var(--mono); font-size: 0.92em; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">nd-rl · long_rl_20261014 · untied-ei seed 1</div>
+    <h1>How much does RL raise each problem's solve rate?</h1>
+    <p class="lede">One textbook72 problem per unit of height. The x axis is the change in log-odds of a Lean-checked
+      proof per attempt, RL checkpoint against pretrain, both at 10,240 attempts and temperature 1. Right of the line,
+      RL solves the problem more often.</p>
+  </header>
+
+  <div class="legend">
+    <span><span class="sw" style="background:var(--fg-3)"></span>pretrain solved it at least once (exact)</span>
+    <span><svg viewBox="0 0 14 14" aria-hidden="true"><rect width="14" height="14" rx="2" fill="var(--fg-3)" fill-opacity="0.2"/>
+      <path d="M-2,6 L6,-2 M-2,14 L14,-2 M6,16 L16,6" stroke="var(--fg-3)" stroke-width="2"/></svg>pretrain never solved it (lower bound)</span>
+  </div>
+
+  <section class="panels" id="panels"></section>
+
+  <section class="tablewrap">
+    <table id="table"></table>
+  </section>
+
+  <section class="notes">
+    <p><b>RL loses no problem, and only the 3 h checkpoint lowers a rate.</b> At 3 h, two of the 15 problems pretrain
+      solves get worse: <code>db298f46</code> falls from 23 to 7 successes (odds ×0.32) and <code>a388b9fc</code> from
+      9,468 to 9,280 (×0.79). At 5.4 h all 15 improve; the smallest gain is ×1.8.</p>
+    <p><b>The typical gain is large.</b> On the problems pretrain solves, the median odds gain is ×15 at 3 h and ×18 at
+      5.4 h. The largest are on <code>8e48b958</code>, 48 successes to 9,726 (×3,973) and 9,546, and <code>8f1e47f4</code>, 1 success to 2,071 and 2,775.</p>
+    <p><b>Why log-odds and not a rate ratio.</b> A ratio of rates hides gains near the ceiling. On <code>76875ce1</code>
+      the rate goes from 0.835 to 0.970, a ratio of 1.16, while failures fall from 1,688 to 310 and the odds rise ×6.3.
+      Log-odds treats the bottom and the top of the scale alike, and a problem's position does not depend on which side
+      of 50% it starts.</p>
+    <p><b>How the zeros are handled.</b> Each rate is smoothed as (successes + ½) / (attempts + 1), so a problem
+      pretrain never solved sits as if pretrain had half a success. Its true gain is larger, which makes the hatched
+      bars lower bounds. Problems neither model solves (30 at 3 h, 29 at 5.4 h) are left out; their smoothed change is
+      zero by construction.</p>
+    <p><b>Source.</b> <code>passk/results_10k/{pretrain,v2_final,v5_round025}.json</code>, the same runs as the
+      pass@10k page. Built by <code>passk/export_lift.py</code>.</p>
+  </section>
+</main>
+
+<script>
+const DATA = [{"name": "textbook_c18068b3bc4dc6b6894a", "split": "dev", "ref": 7, "pretrain": [0, 10240], "v2_final": [6326, 10240], "v5_round025": [5140, 10240]}, {"name": "textbook_0713eb0885a366161011", "split": "dev", "ref": 11, "pretrain": [0, 10240], "v2_final": [4660, 10240], "v5_round025": [7667, 10240]}, {"name": "textbook_5758428c8c74f96345ad", "split": "dev", "ref": 10, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_287ceb6c7a54a42f3829", "split": "dev", "ref": 5, "pretrain": [5491, 10240], "v2_final": [9438, 10240], "v5_round025": [9690, 10240]}, {"name": "textbook_b3af45532093373816b1", "split": "dev", "ref": 6, "pretrain": [791, 10240], "v2_final": [5725, 10240], "v5_round025": [7677, 10240]}, {"name": "textbook_0b9b989cc2f245db9021", "split": "dev", "ref": 10, "pretrain": [0, 10240], "v2_final": [8745, 10240], "v5_round025": [8360, 10240]}, {"name": "textbook_79e3c381d248c69d315c", "split": "dev", "ref": 15, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_dd80d9db9d060cdb3f53", "split": "dev", "ref": 2, "pretrain": [8932, 10240], "v2_final": [9826, 10240], "v5_round025": [9983, 10240]}, {"name": "textbook_b98931f273313e2c32e7", "split": "dev", "ref": 18, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_03549baa1134033548d6", "split": "dev", "ref": 11, "pretrain": [0, 10240], "v2_final": [1, 10240], "v5_round025": [2143, 10240]}, {"name": "textbook_757636e8f5ff1662c1c8", "split": "dev", "ref": 10, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_34f93da8bd82c5f421bc", "split": "dev", "ref": 1, "pretrain": [370, 10240], "v2_final": [9897, 10240], "v5_round025": [9864, 10240]}, {"name": "textbook_418e4b67e7e59d93fa6b", "split": "dev", "ref": 16, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [1, 10240]}, {"name": "textbook_3af838bf624ac899a441", "split": "dev", "ref": 14, "pretrain": [0, 10240], "v2_final": [18, 10240], "v5_round025": [14, 10240]}, {"name": "textbook_9f83d4425b7684ef58e7", "split": "dev", "ref": 18, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_902dbc2045265febcddf", "split": "dev", "ref": 6, "pretrain": [0, 10240], "v2_final": [6386, 10240], "v5_round025": [7702, 10240]}, {"name": "textbook_a2cda4772846af3ccedb", "split": "dev", "ref": 14, "pretrain": [0, 10240], "v2_final": [2161, 10240], "v5_round025": [1756, 10240]}, {"name": "textbook_8244c4b1090af406e68f", "split": "dev", "ref": 12, "pretrain": [0, 10240], "v2_final": [21, 10240], "v5_round025": [657, 10240]}, {"name": "textbook_35e75d37fcd6e6fc7dfe", "split": "dev", "ref": 33, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_c070bcc0c3bc8e3b8386", "split": "dev", "ref": 22, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_dd8d30b16bfb0b99a5d7", "split": "dev", "ref": 6, "pretrain": [0, 10240], "v2_final": [402, 10240], "v5_round025": [33, 10240]}, {"name": "textbook_3d573ac42c0db3988c20", "split": "dev", "ref": 11, "pretrain": [0, 10240], "v2_final": [3798, 10240], "v5_round025": [8795, 10240]}, {"name": "textbook_eec1f557a49c79cc7081", "split": "dev", "ref": 6, "pretrain": [0, 10240], "v2_final": [7981, 10240], "v5_round025": [7319, 10240]}, {"name": "textbook_245a0349bb058006b821", "split": "dev", "ref": 8, "pretrain": [0, 10240], "v2_final": [37, 10240], "v5_round025": [1868, 10240]}, {"name": "textbook_b6439372a23eedd8d70e", "split": "dev", "ref": 6, "pretrain": [242, 10240], "v2_final": [8239, 10240], "v5_round025": [8870, 10240]}, {"name": "textbook_9ad08632649f4911b2cd", "split": "dev", "ref": 7, "pretrain": [0, 10240], "v2_final": [8228, 10240], "v5_round025": [5268, 10240]}, {"name": "textbook_94b2fb662310a6f7ac8d", "split": "dev", "ref": 8, "pretrain": [0, 10240], "v2_final": [924, 10240], "v5_round025": [5966, 10240]}, {"name": "textbook_8270cf21f3f79e6a1281", "split": "dev", "ref": 7, "pretrain": [0, 10240], "v2_final": [7870, 10240], "v5_round025": [7693, 10240]}, {"name": "textbook_98cdc8d06ea0d36428a2", "split": "dev", "ref": 6, "pretrain": [0, 10240], "v2_final": [136, 10240], "v5_round025": [15, 10240]}, {"name": "textbook_7ea17063b2c61d0c16d9", "split": "dev", "ref": 20, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_920bfc2896e73d80d8cd", "split": "dev", "ref": 15, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_ea2a86a786bde0e260cc", "split": "dev", "ref": 10, "pretrain": [0, 10240], "v2_final": [3, 10240], "v5_round025": [2543, 10240]}, {"name": "textbook_078f26deb57f268c2fae", "split": "dev", "ref": 15, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_a104fab36312807439b0", "split": "dev", "ref": 9, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_72338b1cd817d75fdda2", "split": "dev", "ref": 9, "pretrain": [0, 10240], "v2_final": [4948, 10240], "v5_round025": [9859, 10240]}, {"name": "textbook_970fbf60225a4d6e78b3", "split": "dev", "ref": 20, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_4f666c992cac7dcfd117", "split": "dev", "ref": 2, "pretrain": [8062, 10240], "v2_final": [9910, 10240], "v5_round025": [9843, 10240]}, {"name": "textbook_201dc6c52fcdedeac240", "split": "dev", "ref": 12, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_f15b4e7e289f788cc70d", "split": "dev", "ref": 10, "pretrain": [0, 10240], "v2_final": [526, 10240], "v5_round025": [3203, 10240]}, {"name": "textbook_fef8f88a0e6c1c196603", "split": "dev", "ref": 13, "pretrain": [0, 10240], "v2_final": [208, 10240], "v5_round025": [6, 10240]}, {"name": "textbook_3d2b05bca4cbb83ed73b", "split": "dev", "ref": 29, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_3f4b5ba98e9f3445b303", "split": "dev", "ref": 14, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_3ed45280e6c686e76ac6", "split": "dev", "ref": 7, "pretrain": [311, 10240], "v2_final": [9227, 10240], "v5_round025": [9458, 10240]}, {"name": "textbook_33a5b9f5c6c6ad7582e7", "split": "dev", "ref": 13, "pretrain": [0, 10240], "v2_final": [448, 10240], "v5_round025": [802, 10240]}, {"name": "textbook_1e1d3b9a628f0b73c258", "split": "dev", "ref": 18, "pretrain": [0, 10240], "v2_final": [2, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_33e465a968d29efbb443", "split": "dev", "ref": 15, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_b5920d6d8c128e48b958", "split": "dev", "ref": 6, "pretrain": [48, 10240], "v2_final": [9726, 10240], "v5_round025": [9546, 10240]}, {"name": "textbook_dd75f8b41bdf4097bd34", "split": "dev", "ref": 11, "pretrain": [0, 10240], "v2_final": [8337, 10240], "v5_round025": [8348, 10240]}, {"name": "textbook_ab0622acfa2bdb298f46", "split": "dev", "ref": 6, "pretrain": [23, 10240], "v2_final": [7, 10240], "v5_round025": [167, 10240]}, {"name": "textbook_49c48adca28f05789420", "split": "dev", "ref": 13, "pretrain": [0, 10240], "v2_final": [2, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_68c64ac26ce426bfc04e", "split": "dev", "ref": 25, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_0824150e3d98b3ab201f", "split": "dev", "ref": 6, "pretrain": [0, 10240], "v2_final": [2099, 10240], "v5_round025": [4607, 10240]}, {"name": "textbook_48e30865966e132d65ad", "split": "dev", "ref": 16, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [3, 10240]}, {"name": "textbook_330042a43256968ac526", "split": "dev", "ref": 9, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_7020fd7d40d48f1e47f4", "split": "dev", "ref": 6, "pretrain": [1, 10240], "v2_final": [2071, 10240], "v5_round025": [2775, 10240]}, {"name": "textbook_44157a16ce8876875ce1", "split": "dev", "ref": 3, "pretrain": [8552, 10240], "v2_final": [9930, 10240], "v5_round025": [9753, 10240]}, {"name": "textbook_f900b1d7c659ef00e06b", "split": "dev", "ref": 20, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_55c0251debc570e4f3e3", "split": "dev", "ref": 18, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_0c463f021f70dc4f6b35", "split": "train", "ref": null, "pretrain": [3784, 10240], "v2_final": [9614, 10240], "v5_round025": [10072, 10240]}, {"name": "textbook_0dd5ea3d0aa761fea3d9", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [3732, 10240], "v5_round025": [9070, 10240]}, {"name": "textbook_0ed8057166e48df4ff93", "split": "train", "ref": null, "pretrain": [8488, 10240], "v2_final": [9900, 10240], "v5_round025": [9916, 10240]}, {"name": "textbook_54e1d81ad54a80f1f835", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_58b532c9c8cc1819378b", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_6997656e16fb567550a6", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_92b4192856ec54a3e1ee", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [1, 10240]}, {"name": "textbook_936ceade34df08c26377", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_9fa52f90369a7b6286f7", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_bcb4f30a22574210fc12", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}, {"name": "textbook_cea8801c51d3f9d213d6", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [8301, 10240], "v5_round025": [8793, 10240]}, {"name": "textbook_da42d4814cf3a388b9fc", "split": "train", "ref": null, "pretrain": [9468, 10240], "v2_final": [9280, 10240], "v5_round025": [9798, 10240]}, {"name": "textbook_f8e226f6c5b45234819d", "split": "train", "ref": null, "pretrain": [1106, 10240], "v2_final": [7918, 10240], "v5_round025": [7042, 10240]}, {"name": "textbook_f918caefa752f2beda53", "split": "train", "ref": null, "pretrain": [0, 10240], "v2_final": [0, 10240], "v5_round025": [0, 10240]}];
+const RL = [{tag: "v2_final", label: "3 h RL (v2 final)", color: "--s2"},
+            {tag: "v5_round025", label: "~5.4 h RL (v5 round 25)", color: "--s3"}];
+const BIN = 0.5;  // log10 odds per bar
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const short = name => name.slice(-8);
+const log10odds = ([c, n]) => Math.log10((c + 0.5) / (n - c + 0.5));
+const times = l => { const r = 10 ** l; return "×" + (r < 1 ? r.toFixed(2) : r < 10 ? r.toFixed(1) : Math.round(r).toLocaleString()); };
+const tickName = e => e < 0 ? `×${10 ** e}` : e < 3 ? `×${(10 ** e).toLocaleString()}` : `×10${"⁰¹²³⁴⁵⁶⁷⁸⁹"[e]}`;
+
+// Per checkpoint: problems either model solves, with the lift in log10 odds.
+const lifts = Object.fromEntries(RL.map(({tag}) => [tag, DATA
+  .filter(p => p.pretrain[0] || p[tag][0])
+  .map(p => ({p, lift: log10odds(p[tag]) - log10odds(p.pretrain), exact: p.pretrain[0] > 0}))]));
+const all = Object.values(lifts).flat().map(d => d.lift);
+const lo = Math.floor(Math.min(...all) / BIN) * BIN, hi = Math.ceil(Math.max(...all) / BIN) * BIN;
+const nb = Math.round((hi - lo) / BIN);
+const binOf = l => Math.min(nb - 1, Math.floor((l - lo) / BIN));
+const binned = Object.fromEntries(RL.map(({tag}) => {
+  const bins = Array.from({length: nb}, () => ({exact: [], bound: []}));
+  for (const d of lifts[tag]) bins[binOf(d.lift)][d.exact ? "exact" : "bound"].push(d);
+  return [tag, bins];
+}));
+const ymax = Math.max(...Object.values(binned).flat().map(b => b.exact.length + b.bound.length));
+
+const W = 820, H = 250, M = {l: 40, r: 16, t: 22, b: 46};
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+const x = v => M.l + (v - lo) / (hi - lo) * (W - M.l - M.r);
+const y = v => M.t + (1 - v / ymax) * (H - M.t - M.b);
+
+function panel(host, {tag, label, color}) {
+  host.querySelector("svg")?.remove();
+  const c = css(color), surface = css("--bg");
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `histogram of log-odds gain, ${label} vs pretrain`});
+  host.prepend(svg);
+  const pat = el("pattern", {id: `hatch-${tag}`, width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)"},
+    el("defs", {}, svg));
+  el("rect", {width: 6, height: 6, fill: c, "fill-opacity": 0.2}, pat);
+  el("line", {x1: 0, y1: 0, x2: 0, y2: 6, stroke: c, "stroke-width": 2.5}, pat);
+
+  const grid = el("g", {class: "grid"}, svg), axis = el("g", {class: "axis"}, svg);
+  const ystep = ymax > 8 ? 2 : 1;
+  for (let v = 0; v <= ymax; v += ystep) {
+    el("line", {x1: M.l, x2: W - M.r, y1: y(v), y2: y(v)}, grid);
+    el("text", {x: M.l - 8, y: y(v) + 4, "text-anchor": "end"}, axis).textContent = v;
+  }
+  for (let e = Math.ceil(lo); e <= hi; e++)
+    el("text", {x: x(e), y: H - M.b + 18, "text-anchor": "middle"}, axis).textContent = tickName(e);
+  el("text", {x: (M.l + W - M.r) / 2, y: H - 6, "text-anchor": "middle", class: "axis-label"}, svg).textContent =
+    "odds of a proof per attempt, RL ÷ pretrain (log scale)";
+  el("text", {x: 12, y: (M.t + H - M.b) / 2, "text-anchor": "middle", class: "axis-label",
+    transform: `rotate(-90 12 ${(M.t + H - M.b) / 2})`}, svg).textContent = "problems";
+
+  // No-change line.
+  el("line", {x1: x(0), x2: x(0), y1: M.t - 8, y2: H - M.b, stroke: css("--fg-3"), "stroke-dasharray": "3 3"}, svg);
+  el("text", {x: x(0) - 6, y: M.t - 10, "text-anchor": "end", class: "ref-label"}, svg).textContent = "worse";
+  el("text", {x: x(0) + 6, y: M.t - 10, class: "ref-label"}, svg).textContent = "better";
+
+  // Stacked bars: exact at the base, lower bounds on top, a 2px surface gap between bars and segments.
+  const bw = x(lo + BIN) - x(lo);
+  binned[tag].forEach((b, i) => {
+    const x0 = x(lo + i * BIN) + 1, w = bw - 2;
+    const ne = b.exact.length, nl = b.bound.length;
+    if (ne) el("rect", {x: x0, y: y(ne), width: w, height: y(0) - y(ne), fill: c, rx: 2}, svg);
+    if (nl) el("rect", {x: x0, y: y(ne + nl), width: w, height: y(ne) - y(ne + nl) - (ne ? 2 : 0),
+      fill: `url(#hatch-${tag})`, stroke: c, "stroke-width": 1, rx: 2}, svg);
+  });
+  el("line", {x1: M.l, x2: W - M.r, y1: y(0), y2: y(0), stroke: css("--fg-3"), "stroke-width": 1}, svg);
+
+  const band = el("rect", {y: M.t, height: H - M.t - M.b, width: bw, fill: css("--fg-3"), "fill-opacity": 0.1, visibility: "hidden"}, svg);
+  const hit = el("rect", {x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent"}, svg);
+  const tip = host.querySelector(".tip");
+  const move = ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const i = Math.min(nb - 1, Math.max(0, Math.floor((p.x - M.l) / bw)));
+    band.setAttribute("x", x(lo + i * BIN)); band.setAttribute("visibility", "visible");
+    const ds = [...binned[tag][i].exact, ...binned[tag][i].bound].sort((a, b) => a.lift - b.lift);
+    tip.innerHTML = `<b>${times(lo + i * BIN)} to ${times(lo + (i + 1) * BIN)}</b>` +
+      (ds.length ? `<div class="row lb"><span>problem</span><span>pretrain → RL, of 10,240</span></div>` + ds.map(d =>
+        `<div class="row"><span>${short(d.p.name)}</span><span class="v">${d.p.pretrain[0].toLocaleString()} → ` +
+        `${d.p[tag][0].toLocaleString()} <span class="lb">${d.exact ? times(d.lift) : "≥ " + times(d.lift)}</span></span></div>`).join("")
+        : `<div class="row lb">no problems</div>`);
+    tip.hidden = false;
+    const r = host.getBoundingClientRect(), sx = r.width / W;
+    let left = x(lo + (i + 1) * BIN) * sx + 10;
+    if (left + tip.offsetWidth > r.width) left = x(lo + i * BIN) * sx - tip.offsetWidth - 10;
+    tip.style.left = `${Math.max(0, left)}px`; tip.style.top = `${M.t * sx}px`;
+  };
+  const leave = () => { tip.hidden = true; band.setAttribute("visibility", "hidden"); };
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move); hit.addEventListener("pointerleave", leave);
+}
+
+const panels = document.getElementById("panels");
+panels.innerHTML = RL.map(({tag, label, color}) => {
+  const ls = lifts[tag], ne = ls.filter(d => d.exact).length;
+  return `<div class="panel"><h2><span class="sw" style="background:var(${color})"></span>${label} vs pretrain` +
+    `<span class="sub">${ls.length} problems: ${ne} exact, ${ls.length - ne} lower bounds</span></h2>` +
+    `<div class="chart" id="chart-${tag}"><div class="tip" hidden></div></div></div>`;
+}).join("");
+const drawAll = () => RL.forEach(r => panel(document.getElementById(`chart-${r.tag}`), r));
+drawAll();
+
+// Table: the problems pretrain solves, where every lift is exact.
+const solved = DATA.filter(p => p.pretrain[0]).sort((a, b) => b.pretrain[0] - a.pretrain[0]);
+document.getElementById("table").innerHTML =
+  `<caption>The ${solved.length} problems pretrain solves: successes out of 10,240 and the odds gain.</caption>` +
+  `<tr><th>problem</th><th>split</th><th>reference lines</th><th>pretrain</th>` +
+  RL.map(r => `<th>${r.label.split(" (")[0]}</th><th>odds gain</th>`).join("") + `</tr>` +
+  solved.map(p => `<tr><td>${short(p.name)}</td><td>${p.split}</td><td>${p.ref ?? "–"}</td><td>${p.pretrain[0].toLocaleString()}</td>` +
+    RL.map(({tag}) => { const l = log10odds(p[tag]) - log10odds(p.pretrain);
+      return `<td>${p[tag][0].toLocaleString()}</td><td class="${l < 0 ? "down" : ""}">${times(l)}</td>`; }).join("") + `</tr>`).join("");
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+new MutationObserver(drawAll).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+</script>

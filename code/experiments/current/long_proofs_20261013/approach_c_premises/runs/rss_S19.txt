@@ -1,0 +1,37 @@
+  body  1    0.00s calls         1 memo         1 |S| 19  
+  body  2    0.00s calls        17 memo        18 |S| 19  
+  body  3    0.00s calls        31 memo        49 |S| 19  
+  body  4    0.00s calls        71 memo       120 |S| 19  
+  body  5    0.00s calls       275 memo       395 |S| 19  
+  body  6    0.00s calls       747 memo      1142 |S| 19  
+  body  7    0.00s calls      1616 memo      2758 |S| 19  
+  body  8    0.01s calls      4135 memo      6893 |S| 19  
+  body  9    0.03s calls      9664 memo     16557 |S| 19  
+  body 10    0.08s calls     21095 memo     37652 |S| 19  
+  body 11    0.20s calls     45571 memo     83223 |S| 19  
+  body 12    0.35s calls     94871 memo    178094 |S| 19  
+  body 13    0.83s calls    192155 memo    370249 |S| 19  
+  body 14    1.78s calls    377180 memo    747429 |S| 19  
+  body 15    3.55s calls    728088 memo   1475517 |S| 19  
+  body 16    6.70s calls   1364331 memo   2839848 |S| 19  
+  body 17   13.17s calls   2517825 memo   5357673 |S| 19  
+  body 18   24.00s calls   4550292 memo   9907965 |S| 19  
+  body 19   48.75s calls   8084851 memo  17992816 |S| 19  
+      100.38 real        95.06 user         3.13 sys
+          6400245760  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1293499  page reclaims
+                   0  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+               46182  involuntary context switches
+       1425216338870  instructions retired
+        380727461401  cycles elapsed
+          7171036656  peak memory footprint

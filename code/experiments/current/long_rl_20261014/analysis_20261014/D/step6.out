@@ -1,0 +1,19 @@
+LEAN TEXT (first-class, rl_11321):
+ None 
+
+LEAN TEXT (second-class, rl_10517):
+ None 
+
+first rl_294 0 total=-44.1 n=224 min=-12.1 n4 n16 ; exact n17 ) [[( lp=-12.1 argmax=;]]
+first rl_442 0 total=-57.3 n=218 min=-13.5 n16 ) ; exact n9 ) [[( lp=-13.5 argmax=;]]
+second rl_459 4 total=-30.8 n=213 min=-10.6 n4 n11 ; have n13 : [[W lp=-10.6 argmax=P]]
+first rl_520 0 total=-44.2 n=217 min=-12.7 n8 n10 ; exact n16 ) [[( lp=-12.7 argmax=;]]
+first rl_676 0 total=-45.8 n=190 min=-11.8 n2 n8 ; exact n14 ) [[( lp=-11.8 argmax=;]]
+second rl_956 3 total=-29.2 n=220 min=-9.0 => by have n12 : ( [[P lp=-9.0 argmax=¬]]
+second rl_1342 3 total=-37.5 n=235 min=-9.5 ) => by have n18 : [[( lp=-9.5 argmax=P]]
+second rl_1544 4 total=-20.7 n=229 min=-9.8 => by have n15 : ( [[S lp=-9.8 argmax=U]]
+time 5.853628158569336
+first n 146 mean total logp -39.92454649290338 mean per-token -0.1875839540440205 mean min -12.94793848142232
+   worst-token (gold tok, argmax): [(('(', ';'), 143), (('exact', 'have'), 2), (('Y', 'R'), 1)]
+second n 146 mean total logp -20.71184050626874 mean per-token -0.09624216148679937 mean min -8.07933077093673
+   worst-token (gold tok, argmax): [(('n1', 'n81'), 38), (('S', 'R'), 5), (('n1', 'n56'), 5), (('P', '('), 4), (('S', 'U'), 3), (('T', 'W'), 3)]

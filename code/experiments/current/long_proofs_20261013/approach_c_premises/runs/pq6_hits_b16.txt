@@ -1,0 +1,41 @@
+64 hits so far
+min_body 15 timeout False secs   8.6 rss 582MB  THM ( ( P > Q ) > P ) SEQ ( P & ( Q > ( P > Q ) ) ) PRF
+min_body 14 timeout False secs   5.4 rss 582MB  THM SEQ ( Q v ( ( ( Q & Q ) v Q ) > P ) ) PRF
+min_body None timeout False secs  27.2 rss 1476MB  THM SEQ ( ( ( ( P v Q ) v Q ) > P ) v Q ) PRF
+min_body 14 timeout False secs   3.5 rss 1476MB  THM SEQ ( P > ( ( ~ ( Q v Q ) ) v Q ) ) PRF
+min_body 14 timeout False secs   6.3 rss 1476MB  THM SEQ ( ( P v ( ( P v Q ) > Q ) ) v ( ( P v Q ) > Q ) ) PRF
+min_body 16 timeout False secs  27.2 rss 1476MB  THM SEQ ( Q v ( ( ( P v Q ) v ( P v Q ) ) > P ) ) PRF
+min_body 16 timeout False secs  24.3 rss 1476MB  THM SEQ ( ( Q & ( P > ( Q > P ) ) ) v ( Q > P ) ) PRF
+min_body 16 timeout False secs  21.9 rss 1476MB  THM ( ( ( ( Q v P ) v P ) > Q ) > P ) SEQ P PRF
+min_body 14 timeout False secs   4.8 rss 1476MB  THM ( ( ( ( Q v P ) v P ) > Q ) > P ) SEQ ( Q v P ) PRF
+min_body 14 timeout False secs   2.6 rss 1476MB  THM ( Q v ( ( ~ ( Q > P ) ) v Q ) ) SEQ Q PRF
+min_body 14 timeout False secs   5.5 rss 1476MB  THM SEQ ( ( P v ( ( P v P ) > Q ) ) v P ) PRF
+min_body 14 timeout False secs   6.0 rss 1476MB  THM SEQ ( ( Q v ( ( P v Q ) > Q ) ) v P ) PRF
+min_body 14 timeout False secs   4.4 rss 1476MB  THM ( ( ( P v P ) > Q ) > Q ) SEQ ( Q v P ) PRF
+min_body 14 timeout False secs   5.4 rss 1476MB  THM SEQ ( ( ( Q v P ) > P ) v ( Q & Q ) ) PRF
+min_body 14 timeout False secs   5.7 rss 1476MB  THM SEQ ( ( ( Q v P ) > P ) v ( Q & ( Q v P ) ) ) PRF
+min_body 14 timeout False secs   4.3 rss 1476MB  THM ( ( ( P > Q ) > Q ) v ( ( P > Q ) > Q ) ) SEQ ( Q v P ) PRF
+min_body 16 timeout False secs  26.3 rss 1483MB  THM SEQ ( ( ( P v ( P v Q ) ) > P ) v Q ) PRF
+min_body 14 timeout False secs   5.3 rss 1483MB  THM SEQ ( P v ( ( P > Q ) & ( Q > ( P > Q ) ) ) ) PRF
+min_body 14 timeout False secs   3.3 rss 1483MB  THM SEQ ( ( P > Q ) v ( P & ( ~ ( P > Q ) ) ) ) PRF
+min_body 14 timeout False secs   5.0 rss 1483MB  THM SEQ ( ( ( ( Q v Q ) > P ) > ( Q v Q ) ) > Q ) PRF
+min_body 15 timeout False secs   6.6 rss 1483MB  THM SEQ ( ( Q > P ) v ( ~ ( ( Q > P ) v P ) ) ) PRF
+min_body 14 timeout False secs   5.8 rss 1483MB  THM SEQ ( ( Q v ( ( P v Q ) > P ) ) & ( Q v ( ( P v Q ) > P ) ) ) PRF
+min_body 14 timeout False secs   2.3 rss 1483MB  THM ( ( ( ~ ( Q > P ) ) v ( ~ ( Q > P ) ) ) v ( ~ ( Q > P ) ) ) SEQ Q PRF
+min_body 14 timeout False secs   5.4 rss 1483MB  THM SEQ ( ( ( P v Q ) > ( Q & Q ) ) v P ) PRF
+min_body 15 timeout False secs  11.5 rss 1483MB  THM SEQ ( P v ( ( Q v P ) > ( ( Q v P ) > Q ) ) ) PRF
+min_body 14 timeout False secs   5.4 rss 1483MB  THM SEQ ( ( ( P > Q ) v ( Q > P ) ) & ( ( P > Q ) v ( Q > P ) ) ) PRF
+min_body 14 timeout False secs   5.5 rss 1483MB  THM SEQ ( ( ( ( P v P ) > Q ) v P ) & ( ( ( P v P ) > Q ) v P ) ) PRF
+min_body 14 timeout False secs   2.0 rss 1483MB  THM ( ~ ( ( ( P v P ) v ( P v P ) ) > Q ) ) SEQ P PRF
+min_body 15 timeout False secs   9.1 rss 1483MB  THM ( ( ( ( Q > P ) > Q ) v ( ( Q > P ) > Q ) ) v ( ( ( Q > P ) > Q ) v ( ( Q > P ) > Q ) ) ) SEQ Q PRF
+min_body 14 timeout False secs   5.2 rss 1483MB  THM SEQ ( ( Q & ( P > Q ) ) v ( Q > P ) ) PRF
+min_body 14 timeout False secs   5.5 rss 1483MB  THM SEQ ( ( ( P v Q ) > P ) v ( Q v Q ) ) PRF
+min_body 14 timeout False secs   6.2 rss 1483MB  THM SEQ ( ( ( ( Q v P ) v Q ) > P ) v ( Q v P ) ) PRF
+min_body 15 timeout False secs  10.1 rss 1483MB  THM ( ( ( P v ( Q v Q ) ) > P ) > ( Q v Q ) ) SEQ Q PRF
+min_body 14 timeout False secs   5.7 rss 1483MB  THM SEQ ( P v ( ( ( P v P ) > Q ) v P ) ) PRF
+min_body 15 timeout False secs   4.0 rss 1483MB  THM ( ~ ( ( ( Q v P ) v Q ) > P ) ) SEQ Q PRF
+min_body 16 timeout False secs  25.0 rss 1483MB  THM SEQ ( ( ( Q v ( P v P ) ) > P ) v Q ) PRF
+min_body 15 timeout False secs   8.8 rss 1483MB  THM ( ( Q > P ) > ( ( Q v Q ) v Q ) ) SEQ Q PRF
+min_body 14 timeout False secs   4.3 rss 1483MB  THM ( ( Q > P ) > ( ( Q v Q ) v Q ) ) SEQ ( Q v Q ) PRF
+min_body None timeout False secs  26.5 rss 1554MB  THM SEQ ( ( ( Q v ( Q v P ) ) > P ) v Q ) PRF
+min_body 14 timeout False secs   5.4 rss 1554MB  THM SEQ ( ( ( ( P v P ) > Q ) & ( ( P v P ) > Q ) ) v P ) PRF

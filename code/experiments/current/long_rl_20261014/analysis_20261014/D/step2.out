@@ -1,0 +1,215 @@
+### d family never-solved 9-liners
+== rl_5198 body=9 fam=d solved_by=[]
+THM ( U v T ) , ( ( ~ Q ) > ( ~ W ) ) , ( ~ ( T & Q ) ) , ( U > ( ~ W ) ) SEQ ( ~ W ) PRF
+    N1 ( U v T ) : PR
+    N2 ( ( ~ Q ) > ( ~ W ) ) : PR
+    N3 ( ~ ( T & Q ) ) : PR
+    N4 ( U > ( ~ W ) ) : PR
+    N5 | U : AS
+    N6 | ( ~ W ) : IMPE N4 N5
+    N7 | T : AS
+    N8 | | Q : AS
+    N9 | | ( T & Q ) : ANDI N7 N8
+    N10 | | F : NEGE N9 N3
+    N11 | ( ~ Q ) : NEGI N8 N10
+    N12 | ( ~ W ) : IMPE N2 N11
+    N13 ( ~ W ) : ORE N1 N5 N6 N7 N12
+    QED
+== rl_11224 body=9 fam=d solved_by=[]
+THM ( ( ~ P ) > ( ~ T ) ) , ( ~ ( ( ~ R ) & P ) ) , ( S v ( ~ R ) ) , ( S > ( ~ T ) ) SEQ ( ~ T ) PRF
+    N1 ( ( ~ P ) > ( ~ T ) ) : PR
+    N2 ( ~ ( ( ~ R ) & P ) ) : PR
+    N3 ( S v ( ~ R ) ) : PR
+    N4 ( S > ( ~ T ) ) : PR
+    N5 | S : AS
+    N6 | ( ~ T ) : IMPE N4 N5
+    N7 | ( ~ R ) : AS
+    N8 | | P : AS
+    N9 | | ( ( ~ R ) & P ) : ANDI N7 N8
+    N10 | | F : NEGE N9 N2
+    N11 | ( ~ P ) : NEGI N8 N10
+    N12 | ( ~ T ) : IMPE N1 N11
+    N13 ( ~ T ) : ORE N3 N5 N6 N7 N12
+    QED
+### d family solved-by-all, body>=9
+== rl_705 body=9 fam=d solved_by=['untied-ei_s0', 'untied-ei_s1', 'looped-ei_s0', 'looped-ei_s1']
+THM ( U > W ) , ( ( ~ T ) > ( ~ S ) ) , ( ~ ( W & S ) ) , ( ( ~ T ) v U ) SEQ ( ~ S ) PRF
+    N1 ( U > W ) : PR
+    N2 ( ( ~ T ) > ( ~ S ) ) : PR
+    N3 ( ~ ( W & S ) ) : PR
+    N4 ( ( ~ T ) v U ) : PR
+    N5 | ( ~ T ) : AS
+    N6 | ( ~ S ) : IMPE N2 N5
+    N7 | U : AS
+    N8 | | S : AS
+    N9 | | W : IMPE N1 N7
+    N10 | | ( W & S ) : ANDI N9 N8
+    N11 | | F : NEGE N10 N3
+    N12 | ( ~ S ) : NEGI N8 N11
+    N13 ( ~ S ) : ORE N4 N5 N6 N7 N12
+    QED
+== rl_1790 body=9 fam=d solved_by=['untied-ei_s0', 'untied-ei_s1', 'looped-ei_s0', 'looped-ei_s1']
+THM ( ( ~ T ) > ( ~ S ) ) , ( ~ ( U & S ) ) , ( ( ~ P ) v U ) , ( ( ~ P ) > ( ~ T ) ) SEQ ( ~ S ) PRF
+    N1 ( ( ~ T ) > ( ~ S ) ) : PR
+    N2 ( ~ ( U & S ) ) : PR
+    N3 ( ( ~ P ) v U ) : PR
+    N4 ( ( ~ P ) > ( ~ T ) ) : PR
+    N5 | ( ~ P ) : AS
+    N6 | ( ~ T ) : IMPE N4 N5
+    N7 | ( ~ S ) : IMPE N1 N6
+    N8 | U : AS
+    N9 | | S : AS
+    N10 | | ( U & S ) : ANDI N8 N9
+    N11 | | F : NEGE N10 N2
+    N12 | ( ~ S ) : NEGI N9 N11
+    N13 ( ~ S ) : ORE N3 N5 N7 N8 N12
+    QED
+### c family never solved, shortest
+== rl_3314 body=13 fam=c solved_by=[]
+THM ( S > ( W > ( U > R ) ) ) , ( Q > ( ~ T ) ) , ( W > ( S v Q ) ) SEQ ( W > ( T > ( U > R ) ) ) PRF
+    N1 ( S > ( W > ( U > R ) ) ) : PR
+    N2 ( Q > ( ~ T ) ) : PR
+    N3 ( W > ( S v Q ) ) : PR
+    N4 | W : AS
+    N5 | | T : AS
+    N6 | | ( S v Q ) : IMPE N3 N4
+    N7 | | | S : AS
+    N8 | | | Q : AS
+    N9 | | | ( ~ T ) : IMPE N2 N8
+    N10 | | | F : NEGE N5 N9
+    N11 | | | S : BOTE N10
+    N12 | | S : ORE N6 N7 N7 N8 N11
+    N13 | | ( W > ( U > R ) ) : IMPE N1 N12
+    N14 | | ( U > R ) : IMPE N13 N4
+    N15 | ( T > ( U > R ) ) : IMPI N5 N14
+    N16 ( W > ( T > ( U > R ) ) ) : IMPI N4 N15
+    QED
+== rl_9299 body=13 fam=c solved_by=[]
+THM ( S v U ) , ( ( Q & S ) > R ) , T , ( ( T & R ) > ( Q > P ) ) , ( U > ( ~ Q ) ) , ( Q > ( ~ P ) ) SEQ ( ~ Q ) PRF
+    N1 ( S v U ) : PR
+    N2 ( ( Q & S ) > R ) : PR
+    N3 T : PR
+    N4 ( ( T & R ) > ( Q > P ) ) : PR
+    N5 ( U > ( ~ Q ) ) : PR
+    N6 ( Q > ( ~ P ) ) : PR
+    N7 | S : AS
+    N8 | | Q : AS
+    N9 | | ( Q & S ) : ANDI N8 N7
+    N10 | | R : IMPE N2 N9
+    N11 | | ( T & R ) : ANDI N3 N10
+    N12 | | ( Q > P ) : IMPE N4 N11
+    N13 | | P : IMPE N12 N8
+    N14 | | ( ~ P ) : IMPE N6 N8
+    N15 | | F : NEGE N13 N14
+    N16 | ( ~ Q ) : NEGI N8 N15
+    N17 | U : AS
+    N18 | ( ~ Q ) : IMPE N5 N17
+    N19 ( ~ Q ) : ORE N1 N7 N16 N17 N18
+    QED
+### c family solved
+== rl_11626 body=13 fam=c solved_by=['looped-ei_s0', 'looped-ei_s1']
+THM ( R > T ) , ( S > ( ~ P ) ) , ( Q > ( R v S ) ) , ( ( P & P ) > ( ~ T ) ) SEQ ( Q > ( ~ P ) ) PRF
+    N1 ( R > T ) : PR
+    N2 ( S > ( ~ P ) ) : PR
+    N3 ( Q > ( R v S ) ) : PR
+    N4 ( ( P & P ) > ( ~ T ) ) : PR
+    N5 | Q : AS
+    N6 | ( R v S ) : IMPE N3 N5
+    N7 | | R : AS
+    N8 | | | P : AS
+    N9 | | | T : IMPE N1 N7
+    N10 | | | ( P & P ) : ANDI N8 N8
+    N11 | | | ( ~ T ) : IMPE N4 N10
+    N12 | | | F : NEGE N9 N11
+    N13 | | ( ~ P ) : NEGI N8 N12
+    N14 | | S : AS
+    N15 | | ( ~ P ) : IMPE N2 N14
+    N16 | ( ~ P ) : ORE N6 N7 N13 N14 N15
+    N17 ( Q > ( ~ P ) ) : IMPI N5 N16
+    QED
+== rl_11431 body=14 fam=c solved_by=['looped-ei_s0', 'looped-ei_s1']
+THM ( P > ( ~ S ) ) , ( S > ( ~ T ) ) , ( ( S & R ) > ( Q > T ) ) , ( Q > ( R v P ) ) SEQ ( Q > ( ~ S ) ) PRF
+    N1 ( P > ( ~ S ) ) : PR
+    N2 ( S > ( ~ T ) ) : PR
+    N3 ( ( S & R ) > ( Q > T ) ) : PR
+    N4 ( Q > ( R v P ) ) : PR
+    N5 | Q : AS
+    N6 | ( R v P ) : IMPE N4 N5
+    N7 | | R : AS
+    N8 | | | S : AS
+    N9 | | | ( S & R ) : ANDI N8 N7
+    N10 | | | ( Q > T ) : IMPE N3 N9
+    N11 | | | T : IMPE N10 N5
+    N12 | | | ( ~ T ) : IMPE N2 N8
+    N13 | | | F : NEGE N11 N12
+    N14 | | ( ~ S ) : NEGI N8 N13
+    N15 | | P : AS
+    N16 | | ( ~ S ) : IMPE N1 N15
+    N17 | ( ~ S ) : ORE N6 N7 N14 N15 N16
+    N18 ( Q > ( ~ S ) ) : IMPI N5 N17
+    QED
+### s family never-solved shortest
+== rl_823 body=11 fam=s solved_by=[]
+THM ( P > W ) , ( ~ Y ) , ( S > W ) , ( U v P ) , ( U > ( S v Y ) ) SEQ W PRF
+    N1 ( P > W ) : PR
+    N2 ( ~ Y ) : PR
+    N3 ( S > W ) : PR
+    N4 ( U v P ) : PR
+    N5 ( U > ( S v Y ) ) : PR
+    N6 | U : AS
+    N7 | ( S v Y ) : IMPE N5 N6
+    N8 | | S : AS
+    N9 | | Y : AS
+    N10 | | F : NEGE N9 N2
+    N11 | | S : BOTE N10
+    N12 | S : ORE N7 N8 N8 N9 N11
+    N13 | W : IMPE N3 N12
+    N14 | P : AS
+    N15 | W : IMPE N1 N14
+    N16 W : ORE N4 N6 N13 N14 N15
+    QED
+== rl_2241 body=11 fam=s solved_by=[]
+THM ( S v R ) , ( R > Z ) , ( T > Z ) , ( S > ( X v T ) ) , ( ~ X ) SEQ Z PRF
+    N1 ( S v R ) : PR
+    N2 ( R > Z ) : PR
+    N3 ( T > Z ) : PR
+    N4 ( S > ( X v T ) ) : PR
+    N5 ( ~ X ) : PR
+    N6 | S : AS
+    N7 | ( X v T ) : IMPE N4 N6
+    N8 | | X : AS
+    N9 | | F : NEGE N8 N5
+    N10 | | T : BOTE N9
+    N11 | | T : AS
+    N12 | T : ORE N7 N8 N10 N11 N11
+    N13 | Z : IMPE N3 N12
+    N14 | R : AS
+    N15 | Z : IMPE N2 N14
+    N16 Z : ORE N1 N6 N13 N14 N15
+    QED
+== rl_4516 body=11 fam=s2 solved_by=[]
+THM ( T > ( R v Y ) ) , ( T v X ) , ( S > Z ) , ( R > S ) , ( X > Z ) , ( Y > S ) SEQ Z PRF
+    N1 ( T > ( R v Y ) ) : PR
+    N2 ( T v X ) : PR
+    N3 ( S > Z ) : PR
+    N4 ( R > S ) : PR
+    N5 ( X > Z ) : PR
+    N6 ( Y > S ) : PR
+    N7 | T : AS
+    N8 | ( R v Y ) : IMPE N1 N7
+    N9 | | R : AS
+    N10 | | S : IMPE N4 N9
+    N11 | | Y : AS
+    N12 | | S : IMPE N6 N11
+    N13 | S : ORE N8 N9 N10 N11 N12
+    N14 | Z : IMPE N3 N13
+    N15 | X : AS
+    N16 | Z : IMPE N5 N15
+    N17 Z : ORE N2 N7 N14 N15 N16
+    QED
+### pretraining rule / structure stats
+n 154990 rules per proof {'ore': 0.015, 'negi': 0.104, 'nege': 0.119, 'impi': 0.547, 'ori': 0.386, 'andi': 0.229, 'ande': 0.042, 'bote': 0.019, 'dn': 0.084, 'impe': 0.406} as_neg/proof 0.359
+depth [(0, 80077), (1, 52821), (2, 16428), (3, 5664)]
+nprem [(0, 2339), (1, 11075), (2, 32281), (3, 16206), (4, 13222), (5, 13275), (6, 13439), (7, 13216), (8, 13278), (9, 13473), (10, 13186)]
+body [(1, 51378), (2, 23336), (3, 30933), (4, 30987), (5, 11876), (6, 6480)]
+pretrain keys: ['name', 'src_n_prem', 'body', 'tries', 'prompt', 'proof', 'n_prem', 'n_distract', 'key']

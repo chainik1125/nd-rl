@@ -1,0 +1,38 @@
+### s/s2 'first' class, body 11-14: total logp, logp without worst token, 2nd/3rd worst tokens
+mean total -39.92781334774578 without worst -27.021662180194106 without 2 worst -18.77056784686332
+2nd/3rd worst (gold, argmax, lp): [(('n1', 'n81', '-5'), 26), (('n9', 'n15', '-11'), 4), (('exact', 'have', '-7'), 3), (('(', 'Q', '-10'), 2), (('W', '(', '-11'), 2), (('Y', 'P', '-11'), 2), (('(', 'Z', '-10'), 2), (('exact', 'have', '-6'), 2)]
+
+### c family body 13-15 (all unsolved): class counts and worst tokens
+classes Counter({'no-top-ORE': 75, 'none': 5}) mean total logp -49.746805336094916
+worst [(('(', 'n9'), 6), (('(', 'P'), 4), ((')', '<eos>'), 3), (('∧', '→'), 3), (('Or.elim', 'n3'), 3), (('(', 'S'), 2), (('T', 'R'), 2), (('T', '('), 2)]
+rl_28 no-top-ORE tot=-53 ...P ) => by have n12 : ( [[Q lp=-10.7 argmax=P]]
+rl_38 none tot=-65 ...P ) => by have n14 : ( [[R lp=-12.6 argmax=P]]
+rl_41 no-top-ORE tot=-63 ..., n10 ⟩ ; have n17 : ( [[( lp=-11.6 argmax=S]]
+rl_140 none tot=-46 ..., n12 ⟩ ; have n14 : ( [[W lp=-7.2 argmax=S]]
+rl_204 no-top-ORE tot=-33 ...) => by have n10 : Q := [[Or.elim lp=-8.3 argmax=n1]]
+rl_301 no-top-ORE tot=-42 ...: P ) => by have n13 : [[Q lp=-9.4 argmax=(]]
+
+### s none-class body 13 solved-by-all: mean total logp
+-37.8205626705466
+
+### old dev: by (source, schema) -> n, never, all
+('textbook', 'excluded_middle') n 19 never 19 all 0
+('textbook', 'peirce_sequent') n 20 never 15 all 0
+('gen', None) n 742 never 14 all 625
+('textbook', 'negated_conditional') n 18 never 11 all 3
+('textbook', 'demorgan_or_to_nand') n 18 never 10 all 0
+('textbook', 'demorgan_nand_to_or') n 19 never 8 all 3
+('textbook', 'dist_or_over_and_conv') n 16 never 7 all 1
+('textbook', 'peirce') n 18 never 5 all 0
+('textbook', 'dist_or_over_and') n 20 never 2 all 3
+('textbook', 'dist_and_over_or_conv') n 26 never 1 all 0
+('textbook', 'constructive_dilemma') n 21 never 0 all 19
+('textbook', 'contraposition_conv') n 19 never 0 all 16
+('textbook', 'demorgan_and_to_nor') n 15 never 0 all 5
+('textbook', 'demorgan_nor_to_and') n 19 never 0 all 1
+('textbook', 'negated_conditional_conv') n 23 never 0 all 23
+('textbook', 'export') n 21 never 0 all 21
+('textbook', 'dist_and_over_or') n 18 never 0 all 1
+('textbook', 'contraposition') n 17 never 0 all 16
+('textbook', 'import') n 19 never 0 all 17
+('textbook', 'disjunctive_syllogism') n 20 never 0 all 20

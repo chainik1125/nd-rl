@@ -1,0 +1,152 @@
+<title>Textbook72 pass@10k</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; the chart is the page, the table and notes sit under it. */
+:root {
+  --bg: #fbfbf9; --panel: #f3f3ef; --fg: #161614; --fg-2: #55544f; --fg-3: #8a8983; --rule: #e2e1dc;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1a1a19; --panel: #232321; --fg: #f0efec; --fg-2: #c3c2b7; --fg-3: #8d8c86; --rule: #34342f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.55; }
+main { max-width: 860px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.lede { color: var(--fg-2); margin: 6px 0 0; max-width: 65ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--fg-2); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 18px; height: 2px; border-radius: 1px; display: inline-block; }
+.chart { position: relative; min-width: 0; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grid line { stroke: var(--rule); stroke-width: 1; }
+.axis text { fill: var(--fg-3); font-family: var(--mono); font-size: 11px; }
+.axis-label { fill: var(--fg-2); font-size: 12px; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 8px 10px; font-size: 12px; line-height: 1.5; min-width: 170px; box-shadow: 0 4px 16px rgb(0 0 0 / 0.08); }
+.tip b { font-family: var(--mono); font-weight: 500; }
+.tip .row { display: flex; justify-content: space-between; gap: 14px; color: var(--fg-2); }
+.tip .row .v { font-family: var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--fg-3); font-size: 12px; }
+td { font-family: var(--mono); }
+td:first-child { font-family: var(--sans); }
+.notes { color: var(--fg-2); font-size: 14px; max-width: 65ch; display: flex; flex-direction: column; gap: 8px; }
+.notes p { margin: 0; }
+code { font-family: var(--mono); font-size: 0.92em; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">nd-rl · long_rl_20261014 · untied-ei seed 1</div>
+    <h1>Textbook72 pass@k out to 10,240 attempts</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div class="legend" id="legend"></div>
+    <div class="chart" id="chart"><div class="tip" id="tip" hidden></div></div>
+  </section>
+
+  <section class="tablewrap">
+    <table id="table"></table>
+  </section>
+
+  <section class="notes" id="notes"></section>
+</main>
+
+<script>
+const DATA = [{"tag": "pretrain", "sha256": "5d53e9dd9240", "temp": 1.0, "n": 10240, "ks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 17, 20, 23, 27, 31, 37, 43, 50, 59, 68, 80, 94, 100, 109, 128, 150, 175, 205, 239, 280, 327, 383, 448, 523, 612, 716, 837, 979, 1000, 1145, 1339, 1565, 1831, 2141, 2504, 2928, 3424, 4004, 4682, 5475, 6403, 7488, 8756, 10240], "mean": [0.0755, 0.0946, 0.103, 0.1084, 0.1125, 0.116, 0.1189, 0.1215, 0.1239, 0.1261, 0.13, 0.1334, 0.1379, 0.1416, 0.1449, 0.1485, 0.1516, 0.1554, 0.1585, 0.1615, 0.1645, 0.1669, 0.1695, 0.1718, 0.1726, 0.1737, 0.1756, 0.1774, 0.179, 0.1806, 0.1822, 0.1838, 0.1854, 0.187, 0.1885, 0.1899, 0.1912, 0.1924, 0.1934, 0.1943, 0.1944, 0.195, 0.1957, 0.1963, 0.1968, 0.1973, 0.1978, 0.1984, 0.1991, 0.1999, 0.2008, 0.2019, 0.2031, 0.2046, 0.2063, 0.2083], "lo": [0.03, 0.0397, 0.0446, 0.0471, 0.0502, 0.052, 0.0542, 0.0558, 0.0575, 0.0593, 0.0612, 0.0635, 0.0664, 0.0693, 0.0719, 0.0739, 0.0763, 0.0795, 0.0822, 0.0843, 0.0865, 0.0873, 0.0879, 0.0902, 0.0907, 0.0915, 0.0929, 0.0944, 0.0959, 0.0971, 0.0975, 0.0993, 0.1016, 0.1031, 0.1045, 0.1058, 0.1071, 0.1085, 0.1092, 0.1097, 0.1098, 0.1102, 0.1106, 0.1108, 0.111, 0.111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111, 0.1111], "hi": [0.1333, 0.1617, 0.1733, 0.1817, 0.1879, 0.1922, 0.1962, 0.1996, 0.2025, 0.2051, 0.2102, 0.2137, 0.2182, 0.2221, 0.2273, 0.2316, 0.2347, 0.241, 0.2456, 0.2492, 0.2535, 0.2572, 0.261, 0.2641, 0.2651, 0.2667, 0.269, 0.2715, 0.2743, 0.2778, 0.2797, 0.2815, 0.2834, 0.2859, 0.2875, 0.289, 0.291, 0.2913, 0.292, 0.2928, 0.2929, 0.2932, 0.2941, 0.2953, 0.2963, 0.2973, 0.2984, 0.2996, 0.301, 0.3025, 0.3044, 0.3056, 0.3056, 0.3056, 0.3056, 0.3056], "solved": 15, "solved_dev": 11, "solved_train": 4}, {"tag": "v2_final", "sha256": "cdfe421671d2", "temp": 1.0, "n": 10240, "ks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 17, 20, 23, 27, 31, 37, 43, 50, 59, 68, 80, 94, 100, 109, 128, 150, 175, 205, 239, 280, 327, 383, 448, 523, 612, 716, 837, 979, 1000, 1145, 1339, 1565, 1831, 2141, 2504, 2928, 3424, 4004, 4682, 5475, 6403, 7488, 8756, 10240], "mean": [0.2808, 0.3392, 0.3637, 0.378, 0.3879, 0.3953, 0.4012, 0.406, 0.4102, 0.4137, 0.4197, 0.4246, 0.4306, 0.4356, 0.4397, 0.4445, 0.4485, 0.4535, 0.4576, 0.4615, 0.4657, 0.4691, 0.4727, 0.4762, 0.4774, 0.4792, 0.4824, 0.4855, 0.4885, 0.4916, 0.4946, 0.4978, 0.5011, 0.5045, 0.508, 0.5116, 0.5154, 0.5191, 0.5229, 0.5266, 0.5271, 0.5303, 0.534, 0.5377, 0.5414, 0.5451, 0.5489, 0.5528, 0.5569, 0.561, 0.5652, 0.5694, 0.5735, 0.5773, 0.5807, 0.5833], "lo": [0.1957, 0.24, 0.2613, 0.2744, 0.2828, 0.2897, 0.2948, 0.2982, 0.3014, 0.3056, 0.3112, 0.3167, 0.3224, 0.3283, 0.3332, 0.3377, 0.34, 0.344, 0.3472, 0.3511, 0.3557, 0.3598, 0.3624, 0.3652, 0.3666, 0.3685, 0.3721, 0.3748, 0.378, 0.3816, 0.385, 0.3889, 0.3941, 0.3979, 0.4011, 0.4042, 0.4086, 0.4116, 0.4159, 0.4203, 0.421, 0.4246, 0.4276, 0.4302, 0.4338, 0.4364, 0.4403, 0.4442, 0.4481, 0.4524, 0.4565, 0.4597, 0.4643, 0.4677, 0.4701, 0.4722], "hi": [0.3715, 0.4413, 0.4682, 0.4841, 0.4948, 0.5051, 0.5114, 0.5168, 0.5224, 0.526, 0.5315, 0.5362, 0.5431, 0.5493, 0.5541, 0.5595, 0.5634, 0.5679, 0.5728, 0.5779, 0.5815, 0.5855, 0.5888, 0.5921, 0.5933, 0.5951, 0.5993, 0.602, 0.6035, 0.6068, 0.6099, 0.6132, 0.6158, 0.6181, 0.6208, 0.6231, 0.626, 0.6301, 0.6335, 0.6369, 0.6377, 0.6406, 0.6442, 0.6472, 0.6518, 0.6556, 0.6593, 0.6631, 0.6675, 0.6714, 0.6755, 0.6806, 0.6854, 0.6895, 0.6921, 0.6944], "solved": 42, "solved_dev": 36, "solved_train": 6}, {"tag": "v5_round025", "sha256": "9a7fc90a2423", "temp": 1.0, "n": 10240, "ks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 17, 20, 23, 27, 31, 37, 43, 50, 59, 68, 80, 94, 100, 109, 128, 150, 175, 205, 239, 280, 327, 383, 448, 523, 612, 716, 837, 979, 1000, 1145, 1339, 1565, 1831, 2141, 2504, 2928, 3424, 4004, 4682, 5475, 6403, 7488, 8756, 10240], "mean": [0.3284, 0.392, 0.4181, 0.4333, 0.4436, 0.4512, 0.4571, 0.4618, 0.4656, 0.4688, 0.4738, 0.4776, 0.4817, 0.4848, 0.4872, 0.4897, 0.4917, 0.4941, 0.496, 0.4979, 0.4999, 0.5016, 0.5035, 0.5055, 0.5063, 0.5074, 0.5096, 0.5117, 0.514, 0.5163, 0.5188, 0.5214, 0.5241, 0.5271, 0.5302, 0.5334, 0.5368, 0.5402, 0.5437, 0.5473, 0.5477, 0.5507, 0.5542, 0.5575, 0.5608, 0.564, 0.5672, 0.5703, 0.5734, 0.5764, 0.5796, 0.5828, 0.586, 0.5895, 0.5932, 0.5972], "lo": [0.2391, 0.2928, 0.3156, 0.3292, 0.3373, 0.3446, 0.3491, 0.3535, 0.3569, 0.361, 0.364, 0.367, 0.3719, 0.3758, 0.3778, 0.3794, 0.3808, 0.3826, 0.385, 0.3885, 0.3911, 0.3919, 0.3942, 0.3958, 0.3969, 0.3987, 0.4004, 0.4027, 0.405, 0.4063, 0.4085, 0.4106, 0.4135, 0.4168, 0.42, 0.4233, 0.4258, 0.4281, 0.4306, 0.4341, 0.4346, 0.4375, 0.4415, 0.4451, 0.4484, 0.4526, 0.4561, 0.4597, 0.4629, 0.4668, 0.47, 0.4727, 0.4756, 0.4786, 0.4821, 0.4861], "hi": [0.4222, 0.4954, 0.5229, 0.5396, 0.5516, 0.5608, 0.5682, 0.5747, 0.5793, 0.582, 0.5878, 0.5912, 0.595, 0.5969, 0.5989, 0.6022, 0.6038, 0.6062, 0.609, 0.6113, 0.6138, 0.6151, 0.6166, 0.6189, 0.6201, 0.6215, 0.6236, 0.6258, 0.6284, 0.6299, 0.6321, 0.6345, 0.6369, 0.6405, 0.644, 0.6461, 0.6483, 0.6523, 0.6566, 0.6603, 0.6609, 0.6637, 0.6671, 0.6696, 0.6722, 0.6758, 0.6781, 0.6813, 0.684, 0.687, 0.69, 0.6928, 0.6937, 0.6969, 0.7023, 0.7083], "solved": 43, "solved_dev": 36, "solved_train": 7}];
+const META = {"lede": "Three checkpoints from one long-RL run, each given 10,240 attempts per textbook problem at temperature 1. Every proof is checked by Lean. RL lifts the whole curve; the pretrained model never catches up, even at ten thousand tries.", "notes": ["<b>RL loses nothing.</b> All 15 problems the pretrained model solves are also solved by both RL checkpoints. Across all three models, 45 of 72 problems are solved at least once; 27 are never solved.", "<b>Still climbing at 10k.</b> From k = 5,475 to 10,240 the RL curves gain about 0.014 (one more problem per doubling, roughly). The pretrained curve gains 0.006.", "<b>3 h vs 5.4 h of RL.</b> The extra RL shows at small k (pass@1 0.281 vs 0.328). At 10,240 attempts it is 42 vs 43 solved, well inside the band.", "<b>Long problems are the wall.</b> Of the 13 dev problems whose reference proof runs 16+ lines, the RL models solve 1 (3 h) and 2 (5.4 h). All 15 with references of 6 lines or fewer are solved by both. Reference lengths are total lines including premises and are upper bounds.", "<b>Setup.</b> Pretrain = <code>runs/long-rl-20261014-v2_untied-ei_s1/pretrain.pt</code> (sha256 <code>5d53e9dd9240</code>), pretrained only on proofs of \u2264 6 body lines. 3 h RL = that run's <code>final.pt</code> (<code>cdfe421671d2</code>). 5.4 h RL = the resumed v5 run's <code>rl_round_025.pt</code> (<code>9a7fc90a2423</code>), taken mid-run at 18:25 PDT. pass@k is the unbiased estimator 1 \u2212 C(n\u2212c, k)/C(n, k) per problem, averaged over the 72; bands are 95% bootstrap intervals over problems. Code: <code>code/experiments/current/long_rl_20261014/passk/</code> (<code>long_k.py</code>, <code>passk.py</code>, <code>export_10k.py</code>)."]};
+const LABEL = {pretrain: "Pretrain (no RL)", v2_final: "3 h RL (v2 final)", v5_round025: "~5.4 h RL (v5 round 25)"};
+const COLOR = {pretrain: "--s1", v2_final: "--s2", v5_round025: "--s3"};
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+document.getElementById("lede").textContent = META.lede;
+document.getElementById("notes").innerHTML = META.notes.map(n => `<p>${n}</p>`).join("");
+document.getElementById("legend").innerHTML = DATA.map(m =>
+  `<span><i style="background:var(${COLOR[m.tag]})"></i>${LABEL[m.tag]}</span>`).join("");
+
+const SHOW = [1, 10, 100, 1000, DATA[0].n];
+const at = (m, k) => m.mean[m.ks.indexOf(k)];
+document.getElementById("table").innerHTML =
+  `<tr><th>model</th>${SHOW.map(k => `<th>pass@${k.toLocaleString()}</th>`).join("")}<th>solved (dev58 / train14)</th></tr>` +
+  DATA.map(m => `<tr><td>${LABEL[m.tag]}</td>${SHOW.map(k => `<td>${at(m, k).toFixed(3)}</td>`).join("")}` +
+    `<td>${m.solved}/72 (${m.solved_dev} / ${m.solved_train})</td></tr>`).join("");
+
+const W = 820, H = 440, M = {l: 52, r: 16, t: 12, b: 46};
+const kmax = DATA[0].n;
+const x = k => M.l + Math.log10(k) / Math.log10(kmax) * (W - M.l - M.r);
+const y = v => M.t + (1 - v) * (H - M.t - M.b);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+
+function draw() {
+  const host = document.getElementById("chart");
+  host.querySelector("svg")?.remove();
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "pass@k against k on textbook72"});
+  host.prepend(svg);
+  const grid = el("g", {class: "grid"}, svg), axis = el("g", {class: "axis"}, svg);
+  for (let v = 0; v <= 1.0001; v += 0.2) {
+    el("line", {x1: M.l, x2: W - M.r, y1: y(v), y2: y(v)}, grid);
+    el("text", {x: M.l - 8, y: y(v) + 4, "text-anchor": "end"}, axis).textContent = v.toFixed(1);
+  }
+  for (const k of [1, 10, 100, 1000, 10000]) {
+    if (k > kmax) continue;
+    el("line", {x1: x(k), x2: x(k), y1: M.t, y2: H - M.b}, grid);
+    el("text", {x: x(k), y: H - M.b + 18, "text-anchor": "middle"}, axis).textContent = k.toLocaleString();
+  }
+  el("text", {x: (M.l + W - M.r) / 2, y: H - 6, "text-anchor": "middle", class: "axis-label"}, svg).textContent =
+    `k, attempts per theorem (T = ${DATA[0].temp})`;
+  el("text", {x: 14, y: (M.t + H - M.b) / 2, "text-anchor": "middle", class: "axis-label",
+    transform: `rotate(-90 14 ${(M.t + H - M.b) / 2})`}, svg).textContent = "pass@k, Lean-checked";
+  for (const m of DATA) {
+    const c = css(COLOR[m.tag]);
+    const band = m.ks.map((k, i) => `${x(k)},${y(m.hi[i])}`).concat(m.ks.map((k, i) => `${x(k)},${y(m.lo[i])}`).reverse());
+    el("polygon", {points: band.join(" "), fill: c, "fill-opacity": 0.13, stroke: "none"}, svg);
+    el("polyline", {points: m.ks.map((k, i) => `${x(k)},${y(m.mean[i])}`).join(" "), fill: "none", stroke: c,
+      "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round"}, svg);
+    const last = m.ks.length - 1;
+    el("circle", {cx: x(m.ks[last]), cy: y(m.mean[last]), r: 4, fill: c, stroke: css("--bg"), "stroke-width": 2}, svg);
+  }
+  const cross = el("line", {y1: M.t, y2: H - M.b, stroke: css("--fg-3"), "stroke-dasharray": "3 3", visibility: "hidden"}, svg);
+  const dots = DATA.map(m => el("circle", {r: 4, fill: css(COLOR[m.tag]), stroke: css("--bg"), "stroke-width": 2, visibility: "hidden"}, svg));
+  const hit = el("rect", {x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent"}, svg);
+  const tip = document.getElementById("tip");
+  const move = ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const ks = DATA[0].ks;
+    let i = 0, best = Infinity;
+    ks.forEach((k, j) => { const d = Math.abs(x(k) - p.x); if (d < best) { best = d; i = j; } });
+    const k = ks[i];
+    cross.setAttribute("x1", x(k)); cross.setAttribute("x2", x(k)); cross.setAttribute("visibility", "visible");
+    DATA.forEach((m, j) => { dots[j].setAttribute("cx", x(k)); dots[j].setAttribute("cy", y(m.mean[i])); dots[j].setAttribute("visibility", "visible"); });
+    tip.innerHTML = `<b>pass@${k.toLocaleString()}</b>` + DATA.map(m =>
+      `<div class="row"><span><span class="sw" style="background:var(${COLOR[m.tag]})"></span>${LABEL[m.tag]}</span>` +
+      `<span class="v">${m.mean[i].toFixed(3)} <span style="color:var(--fg-3)">[${m.lo[i].toFixed(2)}–${m.hi[i].toFixed(2)}]</span></span></div>`).join("");
+    tip.hidden = false;
+    const r = host.getBoundingClientRect(), sx = r.width / W;
+    let left = x(k) * sx + 14;
+    if (left + tip.offsetWidth > r.width) left = x(k) * sx - tip.offsetWidth - 14;
+    tip.style.left = `${Math.max(0, left)}px`; tip.style.top = `${M.t * sx + 8}px`;
+  };
+  const leave = () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); };
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move); hit.addEventListener("pointerleave", leave);
+}
+draw();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+</script>

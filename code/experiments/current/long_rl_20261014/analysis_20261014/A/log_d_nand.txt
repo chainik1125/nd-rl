@@ -1,0 +1,33 @@
+[lean_gate] 240 samples, parse-fail 59, distinct checked 179: lean ok 145; lean 2.3s wall (2.3s proc, 2 workers)
+[lean_gate] 240 samples, parse-fail 57, distinct checked 181: lean ok 140; lean 0.9s wall (0.9s proc, 2 workers)
+14 / 16 THM ( ( ~ P ) v Q ) , ( Q > ( ~ S ) ) , ( S v ( ~ R ) ) , ( ( ~ P ) > ( ~ R ) ) SEQ ( ~ R ) PRF
+11 / 16 THM ( R > T ) , ( R v P ) , ( S v ( ~ P ) ) , ( S > ( ~ ( ~ T ) ) ) SEQ T PRF
+0 / 16 THM ( ( ~ P ) > S ) , ( U > ( ~ Q ) ) , ( ( ~ Q ) > S ) , ( T v U ) , ( ( ~ T ) v ( ~ P ) ) SEQ S PRF
+0 / 16 THM ( ( ~ S ) v T ) , ( ( ~ S ) > ( ~ Q ) ) , ( Q v U ) , ( U > ( ~ ( ~ T ) ) ) SEQ T PRF
+15 / 16 THM ( ( ~ T ) > ( ~ S ) ) , ( ( ~ S ) > ( ~ R ) ) , ( ( ~ W ) > ( ~ R ) ) , ( ( ~ T ) v ( ~ W ) ) SEQ ( ~ R ) PRF
+14 / 16 THM ( Q > P ) , ( Q v ( ~ S ) ) , ( S v T ) , ( P > ( ~ ( ~ T ) ) ) SEQ T PRF
+11 / 16 THM ( Q > S ) , ( P v ( ~ R ) ) , ( P > ( ~ ( ~ Q ) ) ) , ( ( ~ R ) > S ) SEQ S PRF
+15 / 16 THM ( S > ( ~ ( ~ P ) ) ) , ( T > ( ~ Q ) ) , ( P > ( ~ Q ) ) , ( S v T ) SEQ ( ~ Q ) PRF
+14 / 16 THM ( ( ~ T ) > ( ~ S ) ) , ( Q v ( ~ T ) ) , ( P v ( ~ Q ) ) , ( P > ( ~ S ) ) SEQ ( ~ S ) PRF
+10 / 16 THM ( R v ( ~ T ) ) , ( R > ( ~ ( ~ S ) ) ) , ( S > ( ~ P ) ) , ( ( ~ T ) > ( ~ P ) ) SEQ ( ~ P ) PRF
+16 / 16 THM ( W > ( ~ Q ) ) , ( ( ~ T ) v W ) , ( ( ~ T ) > ( ~ S ) ) , ( ( ~ Q ) v S ) SEQ ( ~ Q ) PRF
+11 / 16 THM ( R > Q ) , ( R v ( ~ S ) ) , ( T > ( ~ ( ~ Q ) ) ) , ( S v T ) SEQ Q PRF
+2 / 16 THM ( Q > ( ~ X ) ) , ( ( ~ R ) v S ) , ( W v R ) , ( S > Q ) , ( W > ( ~ X ) ) SEQ ( ~ X ) PRF
+9 / 16 THM ( ( ~ R ) > ( ~ S ) ) , ( ( ~ W ) > Q ) , ( ( ~ U ) > ( ~ W ) ) , ( ( ~ U ) v ( ~ R ) ) , ( ( ~ S ) > ( ~ ( ~ Q ) ) ) SEQ Q PRF
+5 / 16 THM ( T v P ) , ( T > ( ~ R ) ) , ( S > ( ~ R ) ) , ( ( ~ P ) v S ) SEQ ( ~ R ) PRF
+0 / 16 THM ( ( ~ W ) > ( ~ ( ~ R ) ) ) , ( ( ~ P ) v ( ~ U ) ) , ( U v ( ~ W ) ) , ( ( ~ R ) v ( ~ P ) ) SEQ ( ~ P ) PRF
+11 / 16 THM ( R > ( ~ U ) ) , ( ( ~ T ) > ( ~ ( ~ R ) ) ) , ( Q v ( ~ T ) ) , ( Q > R ) SEQ ( ~ U ) PRF
+1 / 16 THM ( ( ~ Q ) > ( ~ R ) ) , ( ( ~ S ) v ( ~ P ) ) , ( ( ~ P ) > ( ~ Q ) ) , ( ( ~ S ) v R ) SEQ ( ~ S ) PRF
+16 / 16 THM ( ( ~ S ) > R ) , ( ( ~ S ) v ( ~ W ) ) , ( ( ~ Q ) > ( ~ ( ~ R ) ) ) , ( W v ( ~ Q ) ) SEQ R PRF
+16 / 16 THM ( ( ~ Q ) > ( ~ R ) ) , ( ( ~ T ) > ( ~ P ) ) , ( ( ~ T ) v ( ~ Q ) ) , ( ( ~ P ) > ( ~ R ) ) SEQ ( ~ R ) PRF
+13 / 16 THM ( W v R ) , ( U > W ) , ( ( ~ P ) v U ) , ( ( ~ P ) > ( ~ R ) ) SEQ W PRF
+16 / 16 THM ( Q v T ) , ( ( ~ S ) > ( ~ P ) ) , ( T > ( ~ S ) ) , ( Q > ( ~ P ) ) SEQ ( ~ P ) PRF
+0 / 16 THM ( T > ( ~ ( ~ R ) ) ) , ( X > Q ) , ( Q > ( ~ ( ~ R ) ) ) , ( U > T ) , ( U v X ) SEQ R PRF
+2 / 16 THM ( ( ~ P ) v S ) , ( ( ~ P ) > ( ~ R ) ) , ( Q v R ) , ( S v ( ~ Q ) ) SEQ S PRF
+12 / 16 THM ( S > ( ~ Q ) ) , ( P v Q ) , ( ( ~ R ) > ( ~ ( ~ P ) ) ) , ( ( ~ R ) v S ) SEQ P PRF
+0 / 16 THM ( ( ~ P ) v ( ~ W ) ) , ( S v T ) , ( ( ~ P ) > ( ~ S ) ) , ( ( ~ W ) > ( ~ ( ~ T ) ) ) SEQ T PRF
+7 / 16 THM ( Q v P ) , ( Q > U ) , ( ( ~ P ) v ( ~ R ) ) , ( U > ( ~ R ) ) SEQ ( ~ R ) PRF
+16 / 16 THM ( ( ~ W ) > S ) , ( S > ( ~ Q ) ) , ( ( ~ Q ) > ( ~ T ) ) , ( ( ~ W ) v ( ~ R ) ) , ( ( ~ R ) > ( ~ T ) ) SEQ ( ~ T ) PRF
+16 / 16 THM ( ( ~ P ) > ( ~ R ) ) , ( Q > ( ~ T ) ) , ( ( ~ T ) > ( ~ R ) ) , ( ( ~ P ) v Q ) SEQ ( ~ R ) PRF
+16 / 16 THM ( S > T ) , ( ( ~ Q ) > S ) , ( P > ( ~ Q ) ) , ( R v P ) , ( R > T ) SEQ T PRF
+secs 81.6211850643158

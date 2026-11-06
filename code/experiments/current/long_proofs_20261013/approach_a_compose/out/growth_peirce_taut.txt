@@ -1,0 +1,6 @@
+THM SEQ ( ( ( P > Q ) > P ) > P ) PRF                        body_bound  9 exhausted        0.0s memo 12902
+THM SEQ ( ( ( P > Q ) > P ) > P ) PRF                        body_bound 11 found 11         0.2s memo 63634
+THM SEQ ( ( ( P > Q ) > P ) > P ) PRF                        body_bound 13 found 11         0.6s memo 163758
+THM SEQ ( ( ( P > Q ) > P ) > P ) PRF                        body_bound 15 found 11         1.5s memo 397958
+THM SEQ ( ( ( P > Q ) > P ) > P ) PRF                        body_bound 17 found 11         3.8s memo 911187
+THM SEQ ( ( ( P > Q ) > P ) > P ) PRF                        body_bound 19 found 11         8.4s memo 1938958

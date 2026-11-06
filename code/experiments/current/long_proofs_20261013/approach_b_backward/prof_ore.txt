@@ -1,0 +1,17 @@
+THM ( ( P v Q ) v ( R v S ) ) SEQ ( ( S v R ) v ( Q v P ) ) PRF | n_prem 1
+  |S| = 31
+  body<=1: none cum 0.0s calls 1 memo 1
+  body<=2: none cum 0.0s calls 31 memo 31
+  body<=3: none cum 0.0s calls 82 memo 82
+  body<=4: none cum 0.0s calls 177 memo 177
+  body<=5: none cum 0.0s calls 903 memo 903
+  body<=6: none cum 0.0s calls 3044 memo 3044
+  body<=7: none cum 0.0s calls 7979 memo 7979
+  body<=8: none cum 0.1s calls 23232 memo 23232
+  body<=9: none cum 0.3s calls 66764 memo 66764
+  body<=10: none cum 0.8s calls 175892 memo 175892
+  body<=11: none cum 2.2s calls 447287 memo 447287
+  body<=12: none cum 5.9s calls 1120680 memo 1120680
+  body<=13: none cum 15.5s calls 2718975 memo 2718975
+  body<=14: none cum 38.3s calls 6419952 memo 6419952
+  body<=15: FOUND 15 cum 98.6s calls 14806727 memo 14806727

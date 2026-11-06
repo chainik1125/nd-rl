@@ -1,0 +1,84 @@
+targets by #arms solving: [(0, 10550), (1, 686), (2, 635), (3, 946), (4, 5622)]
+
+by band x #arms
+0-6    n= 1790 0:    8 1:    3 2:    6 3:    8 4: 1765
+7-9    n= 3537 0:  120 1:   47 2:   79 3:  128 4: 3163
+10-14  n= 2699 0:  779 1:  215 2:  289 3:  736 4:  680
+15-19  n= 2500 0: 1996 1:  227 2:  198 3:   65 4:   14
+20-24  n= 2500 0: 2269 1:  163 2:   59 3:    9 4:    0
+25-34  n= 2500 0: 2465 1:   31 2:    4 3:    0 4:    0
+35-49  n=  963 0:  963 1:    0 2:    0 3:    0 4:    0
+50+    n= 1950 0: 1950 1:    0 2:    0 3:    0 4:    0
+
+by family x #arms (all bands)
+b        n= 1258 body med= 25 0: 1196 1:   40 2:   19 3:    3 4:    0
+b2       n= 2175 body med= 25 0: 2022 1:  115 2:   32 3:    6 4:    0
+b3       n=  883 body med= 25 0:  832 1:   39 2:   12 3:    0 4:    0
+bridge   n=  156 body med=  6 0:    0 1:    0 2:    0 3:    0 4:  156
+c        n= 2127 body med= 18 0: 2109 1:   15 2:    3 3:    0 4:    0
+d        n= 1042 body med= 13 0:  734 1:  130 2:   91 3:    7 4:   80
+e_lowS   n=  146 body med= 38 0:  146 1:    0 2:    0 3:    0 4:    0
+e_raw_sig n= 2743 body med= 59 0: 2743 1:    0 2:    0 3:    0 4:    0
+ladder   n= 4493 body med=  7 0:  212 1:  111 2:   84 3:  151 4: 3935
+s        n= 1390 body med= 13 0:  224 1:   98 2:  144 3:  306 4:  618
+s2       n= 2026 body med= 13 0:  332 1:  138 2:  250 3:  473 4:  833
+
+Feature means by #arms solving, gold targets, body 7-19, per family
+
+s: n=1390  0:224 1:98 2:144 3:306 4:618
+        body n_prem distractors max_depth  n_box    ore   negi   nege   impi    ori   andi   ande   bote     dn   impe  reuse as_neg
+  0:  15.86   5.88   0.00   1.99   3.96   1.90   0.00   0.24   0.15   0.00   0.13   1.78   0.23   0.00   7.47   0.39   0.00
+  1:  16.38   5.52   0.00   1.68   3.12   1.44   0.00   0.27   0.24   0.00   0.14   2.96   0.27   0.00   7.94   0.48   0.00
+  2:  14.72   5.25   0.00   1.40   2.58   1.17   0.00   0.15   0.24   0.00   0.19   2.61   0.15   0.00   7.64   0.41   0.00
+  3:  12.62   5.11   0.00   1.25   2.24   0.99   0.00   0.16   0.27   0.00   0.26   1.88   0.16   0.00   6.67   0.18   0.00
+  4:  10.00   4.58   0.00   0.93   1.70   0.77   0.00   0.13   0.16   0.00   0.36   1.57   0.13   0.00   5.18   0.08   0.00
+
+s2: n=2025  0:332 1:138 2:250 3:473 4:832
+        body n_prem distractors max_depth  n_box    ore   negi   nege   impi    ori   andi   ande   bote     dn   impe  reuse as_neg
+  0:  16.00   5.85   0.00   2.02   3.97   1.88   0.00   0.19   0.20   0.00   0.11   1.84   0.19   0.00   7.62   0.38   0.00
+  1:  16.49   5.17   0.00   1.59   3.06   1.42   0.00   0.22   0.22   0.00   0.14   3.46   0.22   0.00   7.75   0.74   0.00
+  2:  14.26   5.47   0.00   1.37   2.52   1.14   0.00   0.10   0.23   0.00   0.23   2.40   0.10   0.00   7.53   0.42   0.00
+  3:  12.51   5.29   0.00   1.24   2.25   1.01   0.00   0.10   0.23   0.00   0.26   1.73   0.10   0.00   6.83   0.19   0.00
+  4:  10.26   5.10   0.00   0.87   1.62   0.75   0.00   0.09   0.13   0.00   0.41   1.56   0.08   0.00   5.62   0.09   0.00
+
+d: n=960  0:691 1:130 2:91 3:7 4:41
+        body n_prem distractors max_depth  n_box    ore   negi   nege   impi    ori   andi   ande   bote     dn   impe  reuse as_neg
+  0:  13.60   4.53   0.00   3.05   5.46   2.39   0.67   2.13   0.00   0.00   0.90   0.00   0.46   0.35   1.23   0.00   2.66
+  1:  11.92   4.43   0.00   2.52   4.88   2.37   0.15   1.53   0.00   0.00   0.37   0.00   0.85   0.07   1.69   0.00   2.15
+  2:  10.07   4.26   0.00   2.01   3.78   1.77   0.24   1.02   0.00   0.00   0.34   0.00   0.76   0.00   2.15   0.00   1.66
+  3:  10.57   4.71   0.00   2.00   3.86   1.86   0.14   1.00   0.00   0.00   0.14   0.00   0.86   0.00   2.71   0.00   2.00
+  4:   7.90   4.61   0.00   1.41   2.46   1.05   0.37   0.41   0.00   0.00   0.37   0.00   0.05   0.00   3.20   0.00   0.80
+
+c: n=1461  0:1443 1:15 2:3
+        body n_prem distractors max_depth  n_box    ore   negi   nege   impi    ori   andi   ande   bote     dn   impe  reuse as_neg
+  0:  16.75   5.23   0.00   2.84   3.40   0.55   0.42   0.59   1.86   0.00   2.78   0.00   0.11   0.00   7.03   0.08   0.00
+  1:  14.67   4.53   0.00   3.00   3.93   0.93   0.40   0.87   1.67   0.00   0.93   0.00   0.40   0.00   5.53   0.07   0.00
+  2:  14.00   4.00   0.00   3.00   4.00   1.00   0.67   1.00   1.33   0.00   1.33   0.00   0.33   0.00   4.33   0.00   0.00
+
+Never solved, gold, body<=12:
+194
+rl_5198 9 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( U v T ) , ( ( ~ Q ) > ( ~ W ) ) , ( ~ ( T & Q ) ) , ( U > ( ~ W ) ) SEQ ( ~ W ) PRF
+rl_11224 9 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ P ) > ( ~ T ) ) , ( ~ ( ( ~ R ) & P ) ) , ( S v ( ~ R ) ) , ( S > ( ~ T ) ) SEQ ( ~ T ) PRF
+rl_12258 9 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ S ) > T ) , ( ~ ( ( ~ R ) & S ) ) , ( ( ~ R ) v ( ~ P ) ) , ( T > ( ~ P ) ) SEQ ( ~ P ) PRF
+rl_12395 9 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ~ ( ( ~ T ) & S ) ) , ( ( ~ S ) > ( ~ R ) ) , ( ( ~ W ) > ( ~ R ) ) , ( ( ~ T ) v ( ~ W ) ) SEQ ( ~ R ) PRF
+rl_12442 9 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ P ) v R ) , ( ( ~ Q ) > ( ~ T ) ) , ( R > ( ~ T ) ) , ( ~ ( ( ~ P ) & Q ) ) SEQ ( ~ T ) PRF
+rl_13332 9 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ T ) > ( ~ U ) ) , ( ( ~ T ) v Q ) , ( ~ ( Q & P ) ) , ( ( ~ P ) > ( ~ U ) ) SEQ ( ~ U ) PRF
+rl_156 10 d 4 dist 0 ore 2 negi 0 depth 2 | THM ( ( ~ P ) > ( ~ R ) ) , ( ( ~ S ) v ( ~ P ) ) , ( S v ( ~ Q ) ) , ( ( ~ R ) > ( ~ Q ) ) SEQ ( ~ Q ) PRF
+rl_566 10 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ U ) > R ) , ( ( ~ Q ) v ( ~ T ) ) , ( ~ ( ( ~ Q ) & ( ~ R ) ) ) , ( ( ~ T ) > ( ~ U ) ) SEQ R PRF
+rl_867 10 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( S > ( ~ Q ) ) , ( ( ~ Q ) v ( ~ P ) ) , ( ~ ( ( ~ P ) & ( ~ R ) ) ) , ( R > S ) SEQ ( ~ Q ) PRF
+rl_926 10 d 4 dist 0 ore 2 negi 0 depth 2 | THM ( ( ~ S ) v ( ~ Q ) ) , ( ( ~ R ) v ( ~ P ) ) , ( ( ~ Q ) > ( ~ P ) ) , ( ~ ( ( ~ S ) & ( ~ R ) ) ) SEQ ( ~ P ) PRF
+rl_1437 10 d 4 dist 0 ore 2 negi 0 depth 2 | THM ( ~ ( P & T ) ) , ( ( ~ R ) > ( ~ S ) ) , ( T v ( ~ S ) ) , ( P v ( ~ R ) ) SEQ ( ~ S ) PRF
+rl_2069 10 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ~ ( ( ~ W ) & ( ~ T ) ) ) , ( ( ~ S ) v ( ~ W ) ) , ( U > T ) , ( ( ~ S ) > U ) SEQ T PRF
+rl_2083 10 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ P ) > Q ) , ( S v R ) , ( R > ( ~ P ) ) , ( ~ ( Q & ( ~ S ) ) ) SEQ S PRF
+rl_2227 10 d 5 dist 0 ore 1 negi 1 depth 2 | THM ( T > ( ~ R ) ) , ( ~ ( ( ~ Q ) & P ) ) , ( T v ( ~ Q ) ) , ( ( ~ R ) > ( ~ U ) ) , ( ( ~ P ) > ( ~ U ) ) SEQ ( ~ U ) PRF
+rl_2494 10 d 5 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ S ) > W ) , ( W > R ) , ( U > R ) , ( ~ ( P & S ) ) , ( P v U ) SEQ R PRF
+rl_3160 10 d 5 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ W ) > S ) , ( ~ ( S & Q ) ) , ( ( ~ Q ) > ( ~ T ) ) , ( ( ~ W ) v ( ~ R ) ) , ( ( ~ R ) > ( ~ T ) ) SEQ ( ~ T ) PRF
+rl_3342 10 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ S ) > P ) , ( ~ ( R & ( ~ P ) ) ) , ( ( ~ Q ) v ( ~ S ) ) , ( ( ~ Q ) > R ) SEQ P PRF
+rl_3539 10 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( W > ( ~ T ) ) , ( ~ ( U & ( ~ W ) ) ) , ( ( ~ T ) > P ) , ( U v P ) SEQ P PRF
+rl_3630 10 d 5 dist 0 ore 1 negi 1 depth 2 | THM ( S > T ) , ( ( ~ Q ) > S ) , ( ~ ( P & Q ) ) , ( R v P ) , ( R > T ) SEQ T PRF
+rl_4367 10 d 4 dist 0 ore 2 negi 0 depth 2 | THM ( ( ~ W ) > P ) , ( ~ ( ( ~ R ) & T ) ) , ( ( ~ R ) v ( ~ W ) ) , ( T v P ) SEQ P PRF
+rl_4521 10 d 4 dist 0 ore 2 negi 0 depth 2 | THM ( ( ~ Q ) v S ) , ( U > S ) , ( Q v ( ~ T ) ) , ( ( ~ T ) > U ) SEQ S PRF
+rl_4568 10 d 4 dist 0 ore 2 negi 0 depth 2 | THM ( ( ~ Q ) > P ) , ( S > R ) , ( ( ~ P ) v R ) , ( ( ~ Q ) v S ) SEQ R PRF
+rl_4600 10 d 4 dist 0 ore 2 negi 0 depth 2 | THM ( ( ~ T ) > S ) , ( ( ~ W ) v ( ~ T ) ) , ( Q > S ) , ( W v Q ) SEQ S PRF
+rl_4683 10 d 5 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ S ) v ( ~ R ) ) , ( ( ~ T ) > ( ~ Q ) ) , ( ( ~ R ) > ( ~ T ) ) , ( ( ~ Q ) > ( ~ P ) ) , ( ~ ( ( ~ S ) & P ) ) SEQ ( ~ P ) PRF
+rl_4791 10 d 4 dist 0 ore 1 negi 1 depth 2 | THM ( ( ~ W ) > T ) , ( ( ~ R ) > ( ~ P ) ) , ( ~ ( ( ~ P ) & ( ~ T ) ) ) , ( ( ~ W ) v ( ~ R ) ) SEQ T PRF

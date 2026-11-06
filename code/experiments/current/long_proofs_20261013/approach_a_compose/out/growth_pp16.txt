@@ -1,0 +1,19 @@
+THM ( ( P > Q ) > P ) , ( P > ( ( R > S ) > R ) ) SEQ R PRF  body_bound 16 exhausted       84.1s memo 14136812
+       85.98 real        83.72 user         0.99 sys
+          4760797184  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              355853  page reclaims
+                   2  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  47  voluntary context switches
+               25854  involuntary context switches
+       1325222779530  instructions retired
+        328097612370  cycles elapsed
+          4920840128  peak memory footprint

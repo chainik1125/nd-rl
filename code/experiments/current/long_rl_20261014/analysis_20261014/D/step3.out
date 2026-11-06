@@ -1,0 +1,33 @@
+
+### family s+s2 body 7-16, n=2940: solve-by-all rate (and never-solved rate) with / without feature, matched by body
+  negi_intermediate    no matched rows (with=0)
+  bote                 b7: with n=7 all=1.00 none=0.00 / without n=92 all=1.00 none=0.00 | b8: with n=20 all=1.00 none=0.00 / without n=266 all=1.00 none=0.00 | b9: with n=41 all=1.00 none=0.00 / without n=342 all=1.00 none=0.00 | b10: with n=30 all=0.53 none=0.00 / without n=197 all=0.47 none=0.00 | b11: with n=45 all=0.51 none=0.04 / without n=265 all=0.43 none=0.02 | b12: with n=50 all=0.32 none=0.08 / without n=330 all=0.40 none=0.05 | b13: with n=61 all=0.18 none=0.18 / without n=366 all=0.37 none=0.12 | b14: with n=53 all=0.30 none=0.21 / without n=353 all=0.32 none=0.17 | b15: with n=33 all=0.00 none=0.39 / without n=197 all=0.03 none=0.33 | b16: with n=36 all=0.00 none=0.56 / without n=156 all=0.04 none=0.38
+  nested_ore           b9: with n=9 all=1.00 none=0.00 / without n=374 all=1.00 none=0.00 | b10: with n=17 all=0.29 none=0.00 / without n=210 all=0.49 none=0.00 | b11: with n=57 all=0.40 none=0.11 / without n=253 all=0.45 none=0.00 | b12: with n=132 all=0.34 none=0.17 / without n=248 all=0.42 none=0.00 | b13: with n=196 all=0.24 none=0.27 / without n=231 all=0.42 none=0.01 | b14: with n=222 all=0.27 none=0.28 / without n=184 all=0.38 none=0.04 | b15: with n=134 all=0.01 none=0.46 / without n=96 all=0.04 none=0.17 | b16: with n=116 all=0.00 none=0.57 / without n=76 all=0.09 none=0.18
+  goal_neg             no matched rows (with=0)
+  neg_as               no matched rows (with=0)
+  depth3               b14: with n=6 all=0.00 none=0.67 / without n=400 all=0.32 none=0.17 | b15: with n=15 all=0.00 none=0.80 / without n=215 all=0.02 none=0.31 | b16: with n=21 all=0.00 none=0.81 / without n=171 all=0.04 none=0.37
+  reuse                b9: with n=10 all=1.00 none=0.00 / without n=373 all=1.00 none=0.00 | b10: with n=7 all=0.29 none=0.00 / without n=220 all=0.48 none=0.00 | b11: with n=15 all=0.80 none=0.00 / without n=295 all=0.43 none=0.02 | b12: with n=48 all=0.33 none=0.02 / without n=332 all=0.40 none=0.06 | b13: with n=88 all=0.45 none=0.01 / without n=339 all=0.31 none=0.16 | b14: with n=72 all=0.32 none=0.04 / without n=334 all=0.32 none=0.20 | b15: with n=63 all=0.03 none=0.27 / without n=167 all=0.02 none=0.37 | b16: with n=55 all=0.04 none=0.29 / without n=137 all=0.04 none=0.47
+  dn                   no matched rows (with=0)
+  nege_on_neg          no matched rows (with=0)
+  impe_minor_is_neg    no matched rows (with=0)
+
+### family d body 7-16, n=871: solve-by-all rate (and never-solved rate) with / without feature, matched by body
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-robbie-repos-nd-rl/a1d02fb4-ba43-48c4-838b-e227293b6c2a/scratchpad/probe/D/step3.py", line 46, in <module>
+    for r in recs: bybody[r["body"]][bool(h(r))].append(nsolv(r["name"]))
+                                          ~^^^
+  File "/private/tmp/claude-501/-Users-robbie-repos-nd-rl/a1d02fb4-ba43-48c4-838b-e227293b6c2a/scratchpad/probe/D/step3.py", line 23, in h_negi_intermediate
+    return any(ln["rule"]=="NEGI" and fmt_formula(ln["formula"]) != goal for ln in parse_lines(r))
+  File "/private/tmp/claude-501/-Users-robbie-repos-nd-rl/a1d02fb4-ba43-48c4-838b-e227293b6c2a/scratchpad/probe/D/step3.py", line 23, in <genexpr>
+    return any(ln["rule"]=="NEGI" and fmt_formula(ln["formula"]) != goal for ln in parse_lines(r))
+                                      ~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-robbie-repos-nd-rl/a1d02fb4-ba43-48c4-838b-e227293b6c2a/scratchpad/probe/D/common.py", line 107, in fmt_formula
+    return f"( ~ {fmt_formula(f[1])} )"
+                  ~~~~~~~~~~~^^^^^^
+  File "/private/tmp/claude-501/-Users-robbie-repos-nd-rl/a1d02fb4-ba43-48c4-838b-e227293b6c2a/scratchpad/probe/D/common.py", line 107, in fmt_formula
+    return f"( ~ {fmt_formula(f[1])} )"
+                  ~~~~~~~~~~~^^^^^^
+  File "/private/tmp/claude-501/-Users-robbie-repos-nd-rl/a1d02fb4-ba43-48c4-838b-e227293b6c2a/scratchpad/probe/D/common.py", line 109, in fmt_formula
+    return f"( {fmt_formula(f[1])} {op} {fmt_formula(f[2])} )"
+                                                     ~^^^
+IndexError: tuple index out of range

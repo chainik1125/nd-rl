@@ -1,0 +1,8 @@
+THM P , ( P > Q ) , ( Q > R ) , ( R > S ) , ( S > T ) , ( T > U ) , ( U > W ) SEQ W PRF | n_prem 7
+  |S| = 40
+  body<=1: none cum 0.0s calls 1 memo 1
+  body<=2: none cum 0.0s calls 35 memo 35
+  body<=3: none cum 0.0s calls 129 memo 129
+  body<=4: none cum 0.0s calls 369 memo 369
+  body<=5: none cum 0.0s calls 1569 memo 1569
+  body<=6: FOUND 6 cum 0.0s calls 5740 memo 5740

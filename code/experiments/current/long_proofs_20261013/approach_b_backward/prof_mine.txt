@@ -1,0 +1,14 @@
+THM ( ( T v P ) & ( Z > X ) ) , ( T > ( ( Q > Z ) & ( ( Y v Q ) & ( T > Z ) ) ) ) , ( ( P > Z ) & ( X > U ) ) SEQ U PRF | n_prem 3
+  |S| = 58
+  body<=1: none cum 0.0s calls 1 memo 1
+  body<=2: none cum 0.0s calls 60 memo 60
+  body<=3: none cum 0.0s calls 376 memo 376
+  body<=4: none cum 0.0s calls 1244 memo 1244
+  body<=5: none cum 0.0s calls 4901 memo 4901
+  body<=6: none cum 0.1s calls 20555 memo 20555
+  body<=7: none cum 0.4s calls 71356 memo 71356
+  body<=8: none cum 1.6s calls 229925 memo 229925
+  body<=9: none cum 5.3s calls 741901 memo 741901
+  body<=10: none cum 17.4s calls 2315711 memo 2315711
+  body<=11: none cum 55.4s calls 6874797 memo 6874797
+  body<=12: none cum 163.3s calls 19730615 memo 19730615

@@ -1,0 +1,53 @@
+== THM ( P > Q ) , ( ( Q & R ) > S ) SEQ ( S > P ) PRF
+  body  1    0.00s calls         1 memo         1 |S| 25  
+  body  2    0.00s calls        23 memo        24 |S| 25  
+  body  3    0.00s calls        41 memo        65 |S| 25  
+  body  4    0.00s calls        95 memo       160 |S| 25  
+  body  5    0.00s calls       460 memo       620 |S| 25  
+  body  6    0.00s calls      1292 memo      1912 |S| 25  
+  body  7    0.01s calls      2954 memo      4866 |S| 25  
+  body  8    0.03s calls      8219 memo     13085 |S| 25  
+  body  9    0.07s calls     20979 memo     34064 |S| 25  
+  body 10    0.19s calls     49037 memo     83101 |S| 25  
+  body 11    0.48s calls    113913 memo    197014 |S| 25  
+  body 12    1.24s calls    258190 memo    455204 |S| 25  
+  body 13    2.80s calls    562817 memo   1018021 |S| 25  
+  body 14    6.20s calls   1205445 memo   2223466 |S| 25  
+  body 15   13.57s calls   2508851 memo   4732317 |S| 25  
+  body 16   28.33s calls   5117210 memo   9849527 |S| 25  
+  body 17 TIMEOUT after 37.1s  (total 90.0s)  memo 16498675  rss 5615 MB
+== THM ( P > ( Q > R ) ) , ( ( R & S ) > T ) , ( T v U ) SEQ ( U > P ) PRF
+  body  1    0.00s calls         1 memo         1 |S| 37  
+  body  2    0.00s calls        34 memo        35 |S| 37  
+  body  3    0.00s calls        60 memo        95 |S| 37  
+  body  4    0.00s calls       143 memo       238 |S| 37  
+  body  5    0.00s calls       918 memo      1156 |S| 37  
+  body  6    0.01s calls      2634 memo      3790 |S| 37  
+  body  7    0.03s calls      6192 memo      9982 |S| 37  
+  body  8    0.08s calls     20093 memo     30075 |S| 37  
+  body  9    0.25s calls     56847 memo     86922 |S| 37  
+  body 10    0.71s calls    140512 memo    227434 |S| 37  
+  body 11    1.90s calls    362740 memo    590174 |S| 37  
+  body 12    5.40s calls    913373 memo   1503547 |S| 37  
+  body 13   13.44s calls   2186354 memo   3689901 |S| 37  
+  body 14   34.38s calls   5151482 memo   8841383 |S| 37  
+  body 15 TIMEOUT after 33.8s  (total 90.0s)  memo 13930485  rss 5615 MB
+== THM ( P > ( Q > R ) ) , ( ( R & S ) > T ) SEQ ( T > P ) PRF
+  body  1    0.00s calls         1 memo         1 |S| 31  
+  body  2    0.00s calls        29 memo        30 |S| 31  
+  body  3    0.00s calls        51 memo        81 |S| 31  
+  body  4    0.00s calls       120 memo       201 |S| 31  
+  body  5    0.00s calls       692 memo       893 |S| 31  
+  body  6    0.01s calls      1935 memo      2828 |S| 31  
+  body  7    0.02s calls      4573 memo      7401 |S| 31  
+  body  8    0.05s calls     13850 memo     21251 |S| 31  
+  body  9    0.16s calls     37482 memo     58733 |S| 31  
+  body 10    0.43s calls     91059 memo    149792 |S| 31  
+  body 11    1.08s calls    224908 memo    374700 |S| 31  
+  body 12    2.74s calls    542996 memo    917696 |S| 31  
+  body 13    7.36s calls   1254959 memo   2172655 |S| 31  
+  body 14   19.46s calls   2847138 memo   5019793 |S| 31  
+  body 15   43.95s calls   6319461 memo  11339254 |S| 31  
+  body 16 TIMEOUT after 14.7s  (total 90.0s)  memo 13464566  rss 5615 MB
+bound17 THM SEQ ( ( ( ( P v Q ) v Q ) > P ) v Q ) PRF min_body 17 timeout False secs 61.2 rss 5615 MB
+bound17 THM SEQ ( ( ( Q v ( Q v P ) ) > P ) v Q ) PRF min_body 17 timeout False secs 61.7 rss 5615 MB
