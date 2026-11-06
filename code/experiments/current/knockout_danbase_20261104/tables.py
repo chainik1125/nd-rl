@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common as C  # noqa: E402
+import guard as GD  # noqa: E402
 import merge as M  # noqa: E402
 
 GATE = re.compile(r"^\[lean_gate\] \d+ samples.*distinct (\d+):")
@@ -110,6 +111,7 @@ def main() -> None:
         v["arm"] = C.LINES[line]["arm"]
         v["dose"] = C.LINES[line].get("dose")
         v["held"] = M.held(v["curve"])
+        v["guard"] = GD.timeline(line, s["segs"])
         res["lines"][line] = v
         base = next((c for c in v["curve"] if c["it"] == 0), {})
         cr = v["cross_dan"]

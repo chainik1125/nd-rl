@@ -325,3 +325,9 @@ All times UTC.
     - dd01_s1 respawned as seg5 from it 273 at 03:59Z, 0 iterations lost; seg4's metrics end at it
       273 with no damaged rows.
     - `prune_pod` now does this on every pass for pod lines; lab lines are untouched.
+  - **04:20Z (2026-11-06): the guard's timeline added (`guard.py`, read-only; in the summary's Caveats).** All
+    lines that did not cross reached lr x0.125 early: 0 % at x 1.16, 2.59, 0.99; 0.1 % at x 1.44,
+    1.43, 1.51. The 1 % lines crossed at the full lr. The coordinator's first read of dd01_s2's
+    first rollback (x 0.21) was the first sighting in seg4's log; the metrics rows give it 3, x 0.02.
+    The coordinator is proposing a guard-off pilot to Leon; nothing starts without his yes, and the
+    15 GPU-h cap stands until he answers.

@@ -2,7 +2,8 @@
 
     python3 summary.py      # rewrites the text between <!-- AUTO:name --> and <!-- /AUTO:name -->
 
-Sections: `lines` (one row per line), `dan` (his EI ladders on the same bases), `compute`.
+Sections: `lines` (one row per line), `dan` (his EI ladders on the same bases), `guard` (the
+learning-rate cuts in x, from guard.py), `compute`.
 """
 
 # ruff: noqa: E501
@@ -80,6 +81,32 @@ def dan_table(N: dict) -> str:
     return "\n".join(out)
 
 
+def guard_table(N: dict) -> str:
+    out = ["| line | his σ dose | rollbacks: x (it, alarm type that triggered it) | lr at the end | lr 1/8 from x (his ladder left then) "
+           "| alarming at every iteration since | iterations with an alarm, by kind | x at the end (his round-16 x; share) |",
+           "|---|---|---|---|---|---|---|---|"]  # fmt: skip
+    dose = {"primary": "0 %", "secondary": "0 %, our pool", "reference": "full K12"}
+    for t, v in N["lines"].items():
+        g = v["guard"]
+        rb = (
+            ", ".join(
+                f"{b['x_dan']:.2f} ({b['it']}, {'+'.join(b['kinds']) or '?'})"
+                for b in g["rollbacks"]
+            )
+            or "none"
+        )
+        eighth = (f"{g['x_at_final_scale']:.2f} ({100 * g['share_of_ladder_at_final_scale']:.0f} %)"
+                  if g["lr_scale_end"] == 0.125 else "never")  # fmt: skip
+        since = "—"
+        if g["alarming_since_it"] is not None and g["alarming_run"] >= 10:
+            since = f"it {g['alarming_since_it']}, x {g['alarming_since_x']:.2f}"
+        kinds = ", ".join(f"{k} {n}" for k, n in sorted(g["alarm_kinds"].items())) or "none"
+        d = {"dose01": "0.1 %", "dose1": "1 %"}.get(v.get("dose") or "", dose.get(v["arm"], "—"))
+        out.append(f"| {t} | {d} | {rb} | x{g['lr_scale_end']:g} | {eighth} | {since} | {kinds} | "
+                   f"{g['x_end']:.2f} ({g['x_cap']:.2f}; {100 * g['end_of_ladder']:.0f} %) |")  # fmt: skip
+    return "\n".join(out)
+
+
 def compute(N: dict) -> str:
     g = sum(v["gpuh"] for v in N["lines"].values())
     lost = {t: v["lost"] for t, v in N["lines"].items() if v["lost"]}
@@ -93,7 +120,8 @@ def compute(N: dict) -> str:
 def main() -> None:
     N = json.loads((HERE / "numbers.json").read_text())
     s = SUMMARY.read_text()
-    for name, text in (("lines", lines_table(N)), ("dan", dan_table(N)), ("compute", compute(N))):
+    for name, text in (("lines", lines_table(N)), ("dan", dan_table(N)), ("guard", guard_table(N)),
+                       ("compute", compute(N))):  # fmt: skip
         pat = re.compile(rf"(<!-- AUTO:{name} -->\n)(?:.*?\n)?(<!-- /AUTO:{name} -->)", re.S)
         assert pat.search(s), name
         s = pat.sub(lambda m, t=text: m.group(1) + t + "\n" + m.group(2), s)
