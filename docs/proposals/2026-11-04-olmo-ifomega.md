@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-04
 written_by: agent:claude
-status: approved by Dan 2026-11-04, up to $150; raised by Dan the same day to $225 total, after the executor's 20:41 UTC question (OMEGA test_out responses ≈ 24–27k tokens; the design re-costed at ≈ $175–300). Running as `olmo-ifomega` on agent1; the $35 balance floor caps total spend at ≈ $219 at the 21:21 UTC balance; raised again by Dan on 2026-11-05 by up to $100, to $325 total, after the executor's 10:10 UTC question (OMEGA test_out: ≈ 14 reach candidates, DPO pass@1 0.21 vs step 2,300 0.62, each ≈ $8 to extend; balance topped up to $254.44)
+status: approved by Dan 2026-11-04, up to $150; raised by Dan the same day to $225 total, after the executor's 20:41 UTC question (OMEGA test_out responses ≈ 24–27k tokens; the design re-costed at ≈ $175–300). Running as `olmo-ifomega` on agent1; the $35 balance floor caps total spend at ≈ $219 at the 21:21 UTC balance; raised again by Dan on 2026-11-05 by up to $100, to $325 total, after the executor's 10:10 UTC question (OMEGA test_out: ≈ 14 reach candidates, DPO pass@1 0.21 vs step 2,300 0.62, each ≈ $8 to extend; balance topped up to $254.44); ran as `olmo-ifomega` on agent1, 2026-11-04/06 ($303.48 at the GPU rate, $306.39 billed); reviewed 2026-11-06, see the summary linked below
 ---
 
 # Proposal 36: does Olmo 3.1 Think 32B's RL create reach where RL actually moved it, on IFBench and OMEGA?
@@ -24,3 +24,5 @@ installed. Test where RL moved the model most, which is also what it trained on 
 **Budget** $150 / 120 pod-hours, with a stage gate after measuring response lengths. Cut in this order if needed:
 IFEval, then OMEGA `test_in`, then step 100. **Run** `olmo-ifomega`, `--effort max`, 72 h hard stop. **Brief:**
 [followups/BRIEF_olmo-ifomega.md](followups/BRIEF_olmo-ifomega.md).
+
+**Result (reviewed 2026-11-06):** on IFBench (218 headline prompts) strict pass@1 goes from 0.290 (DPO) to 0.683 (step 2,300), and on 49 prompts step 2,300 is confirmed while the DPO model has no checker success in 256 samples (43 by the review's blind hand check): Reach. About a third of step 2,300's first-read IFBench successes are gamed. IFEval, the in-distribution control, is Reach too (6 of 150 prompts). On OMEGA `test_out` the hand verdict is Inconclusive: the 1–2 reach prompts are geometry problems on which the DPO model is cut at RL's 32,768-token cap in 255 of 256 samples each (on perp_069 the one uncut sample is a sound derivation that RL's verifier credits but that states no final answer), and exact match's "Reach" rests on a wrong official label. [Summary](../../experiment-summaries/2026-11-04-olmo-ifomega-reach-on-ifbench-49-strict-43-hand-and-ifeval-6-omega-test-out-inconclusive/README.md); [scale-up memo](../../experiment-summaries/2026-11-04-olmo-ifomega-reach-on-ifbench-49-strict-43-hand-and-ifeval-6-omega-test-out-inconclusive/scaleup_memo.md).
