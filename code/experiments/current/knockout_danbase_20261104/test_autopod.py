@@ -21,11 +21,21 @@ def check(name, cond, extra=""):
         FAILS.append(name)
 
 
+def whole_ckpt(path, host):
+    """A small real zip, as torch.save writes, and the pod reporting the same size."""
+    import zipfile
+
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("data.pkl", "x" * 100)
+    STAT[host] = str(path.stat().st_size)
+
+
 # ---------------- mocks
 cmds = []
 POD_RESUME = {}  # alias -> list of paths the pod "has"
 END = {}  # (host, line, seg) -> end.json text
 ALIVE = set()  # (host, line, seg) with a live dline
+STAT = {}  # host -> the size stat reports for its newest checkpoint
 
 
 def fake_sh(h, c, timeout=60):
@@ -39,6 +49,8 @@ def fake_sh(h, c, timeout=60):
         return "\n===\n{}\n===\n" + str(int(time.time())) + "\n===\n"
     if "dline.py --line" in c and "setsid" in c:
         return "started\n"
+    if c.startswith("stat -c %s "):
+        return STAT.get(h, "") + "\n"
     return ""
 
 
@@ -389,7 +401,11 @@ s = new_sup(st)
 poll(s, {**FULL, "rp-s0": {0: set()}, "rp-s1": None, "rp-dko-s1": {0: set()}})
 bd = KD / "backup" / "dkoour_s0"
 (bd / "seg2" / "reads").mkdir(parents=True, exist_ok=True)
-(bd / "seg2_dkoour_s0_it650_rolling.pt").write_text("x")
+whole_ckpt(bd / "seg2_dkoour_s0_it650_rolling.pt", "rp-s0")
+CK[("dkoour_s0", "rp-s0", False)] = (
+    650,
+    f"{KD}/runs/dkoour_s0/seg2/ckpts/dkoour_s0_it650_rolling.pt",
+)
 (bd / "seg2" / "metrics.jsonl").write_text("{}")
 (bd / "seg2" / "reads" / "it0650.json").write_text("{}")
 s.pods()
@@ -658,7 +674,8 @@ s = new_sup(st)
 poll(s, {**g9, "rp-d1": {0: set()}})
 bd = KD / "backup" / "dd1_s0"
 (bd / "seg1" / "reads").mkdir(parents=True, exist_ok=True)
-(bd / "seg1_dd1_s0_it80_rolling.pt").write_text("x")
+whole_ckpt(bd / "seg1_dd1_s0_it80_rolling.pt", "rp-d1")
+CK[("dd1_s0", "rp-d1", False)] = (80, f"{KD}/runs/dd1_s0/seg1/ckpts/dd1_s0_it80_rolling.pt")
 (bd / "seg1" / "metrics.jsonl").write_text("{}")
 (bd / "seg1" / "reads" / "it0080.json").write_text("{}")
 check(
@@ -694,7 +711,8 @@ s = new_sup(st)
 poll(s, {**g9, "rp-d2": {0: set()}})
 bd = KD / "backup" / "dd1_s1"
 (bd / "seg1" / "reads").mkdir(parents=True, exist_ok=True)
-(bd / "seg1_dd1_s1_it70_rolling.pt").write_text("x")
+whole_ckpt(bd / "seg1_dd1_s1_it70_rolling.pt", "rp-d2")
+CK[("dd1_s1", "rp-d2", False)] = (70, f"{KD}/runs/dd1_s1/seg1/ckpts/dd1_s1_it70_rolling.pt")
 (bd / "seg1" / "metrics.jsonl").write_text("{}")
 (bd / "seg1" / "reads" / "it0070.json").write_text("{}")
 s.pods()
@@ -738,6 +756,66 @@ check(
     (spend_b, now_a),
 )
 (sup.SUP / "no_pod.json").unlink()
+
+# ---------------- 10b. "backup verified" means the pod's newest checkpoint, whole, in the backup
+reset_events()
+(sup.SUP / "pods.json").write_text(
+    json.dumps({"rp-d5": {"pod": "cccc3333", "line": "dd01_s0", "created": ago(60), "rate": 0.59}})
+)
+st = {
+    "dd01_s0": {"status": "done", "segs": [seg("rp-d5", 0, 2, end=ago(1))]},
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+}
+s = new_sup(st)
+s.last_logged = lambda line, host, k: 692
+poll(s, {**g9, "rp-d5": {0: set()}})
+bd = KD / "backup" / "dd01_s0"
+(bd / "seg2" / "reads").mkdir(parents=True, exist_ok=True)
+whole_ckpt(bd / "seg2_dd01_s0_it685_alarm.pt", "rp-d5")
+(bd / "seg2" / "metrics.jsonl").write_text("{}")
+(bd / "seg2" / "reads" / "it0690.json").write_text("{}")
+CK[("dd01_s0", "rp-d5", False)] = (690, f"{KD}/runs/dd01_s0/seg2/ckpts/dd01_s0_it690_rolling.pt")
+s.pods()
+check(
+    "an older checkpoint in the backup is not enough: the pod is kept",
+    "POD READY" not in events()
+    and "backup on serrano is incomplete (seg2_dd01_s0_it690_rolling.pt is not in the backup)"
+    in events(),
+    events(),
+)
+good = bd / "seg2_dd01_s0_it690_rolling.pt"
+whole_ckpt(good, "rp-d5")
+whole = good.read_bytes()
+good.write_bytes(whole[: len(whole) // 2])
+STAT["rp-d5"] = str(good.stat().st_size)  # the kill cut the pod's file too: the sizes agree
+s.st["_pods"]["rp-d5"].pop("verify_warned", None)
+reset_events()
+s.pods()
+check(
+    "a checkpoint cut short by the kill is not enough: the pod is kept",
+    "POD READY" not in events() and "is not a whole file" in events(),
+    events(),
+)
+good.write_bytes(whole)
+STAT["rp-d5"] = "1"
+s.st["_pods"]["rp-d5"].pop("verify_warned", None)
+reset_events()
+s.pods()
+check(
+    "a size that differs from the pod's is not enough: the pod is kept",
+    "POD READY" not in events() and "1 on rp-d5" in events(),
+    events(),
+)
+STAT["rp-d5"] = str(good.stat().st_size)
+reset_events()
+s.pods()
+check(
+    "the ready event names the resume checkpoint and the last logged iteration",
+    "POD READY TO DELETE: rp-d5 cccc3333 (dd01_s0); backup verified; still billing $0.59/h; "
+    "resume checkpoint in the backup: it 690, last logged it 692" in events(),
+    events(),
+)
+(sup.SUP / "pods.json").write_text("{}")
 
 # ---------------- 11. the segment's own sighting counts: no cancel on a poll that fell in a gap
 reset_events()

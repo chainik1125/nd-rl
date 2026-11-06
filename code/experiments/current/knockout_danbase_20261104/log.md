@@ -331,3 +331,8 @@ All times UTC.
     first rollback (x 0.21) was the first sighting in seg4's log; the metrics rows give it 3, x 0.02.
     The coordinator is proposing a guard-off pilot to Leon; nothing starts without his yes, and the
     15 GPU-h cap stands until he answers.
+  - **08:10Z (2026-11-06): "backup verified" tightened before dd01_s0's stop.** The check accepted any
+    older checkpoint in the backup folder, and a stopped line ends by SIGTERM while `torch.save` has
+    no atomic rename. The pod's newest checkpoint must now be in serrano's backup, the same size, and
+    pass a zip test. The ready event names that iteration and the last logged one. A resume can be up
+    to 4 iterations behind the last logged one, since a stop does not write a checkpoint.

@@ -47,6 +47,7 @@ import shlex
 import subprocess
 import sys
 import time
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -798,6 +799,26 @@ class Sup:
         sh(h, f'cd {sd}/ckpts && ls -t {line}_it*_alarm.pt 2>/dev/null | tail -n +{KEEP_ALARM + 1} '
               f'| while read -r f; do rm -f -- "$f" "$f.upload.json"; done; true')  # fmt: skip
 
+    def final_backup(self, line: str, h: str, seg: dict) -> tuple[int | None, str]:
+        """(iteration, "") if the pod's newest checkpoint is in serrano's backup, the same size and
+        a whole file, else (None, why). torch.save writes a zip without a rename and dline ends a
+        stopped line by SIGTERM, so the newest file can be cut short; the zip test needs no torch."""
+        ck = self.newest_ckpt(line, h, f"{self.seg_dir(line, seg['seg'])}/ckpts")
+        if ck is None:
+            return None, f"no checkpoint readable on {h}"
+        p = C.KD / "backup" / line / f"seg{seg['seg']}_{Path(ck[1]).name}"
+        if not p.exists():
+            return None, f"{p.name} is not in the backup"
+        size = (sh(h, f"stat -c %s {shlex.quote(ck[1])}") or "").strip()
+        if size != str(p.stat().st_size):
+            return None, f"{p.name}: {p.stat().st_size} bytes, {size or 'unknown'} on {h}"
+        try:
+            with zipfile.ZipFile(p) as z:
+                bad = z.testzip()
+        except (zipfile.BadZipFile, OSError) as e:
+            return None, f"{p.name} is not a whole file ({type(e).__name__}); use the older copy"
+        return (None, f"{p.name}: bad entry {bad}") if bad else (ck[0], "")
+
     def backup(self, line: str) -> None:
         seg = self.st[line]["segs"][-1]
         h, k = seg["host"], seg["seg"]
@@ -953,13 +974,14 @@ class Sup:
                 self.backup(line)
                 self.collect(line)
             bd = C.KD / "backup" / line
-            ck = sorted(bd.glob("*_rolling.pt")) + sorted(bd.glob("*_alarm.pt"))
-            ok = (bool(ck) and (bd / f"seg{seg['seg']}" / "metrics.jsonl").exists()
+            final, why_not = self.final_backup(line, h, seg)
+            ok = (final is not None and (bd / f"seg{seg['seg']}" / "metrics.jsonl").exists()
                   and any((bd / f"seg{seg['seg']}" / "reads").glob("it*.json")))  # fmt: skip
             if not ok:
                 if not ps_.get("verify_warned"):
                     ps_["verify_warned"] = now()
-                    event(f"{line} ended but its backup on serrano is incomplete; {h} is kept")
+                    event(f"{line} ended but its backup on serrano is incomplete "
+                          f"({why_not or 'metrics or reads missing'}); {h} is kept")  # fmt: skip
                 continue
             # reuse (coordinator, 18:3xZ): a line waiting for a pod after another user displaced
             # it gets this pod instead of a new one; with such a move under way, the pod is held
@@ -981,8 +1003,10 @@ class Sup:
             # only the coordinator can delete a pod (Leon revoked the API key, 2026-11-05): it
             # deletes through the MCP, confirms with a read, then runs register_pod.py retire
             ps_["ready_to_delete"] = now()
+            last = self.last_logged(line, h, seg["seg"])
             event(f"POD READY TO DELETE: {h} {v['pod']} ({line}); backup verified; still billing "
-                  f"${float(v.get('rate', C.POD_RATE)):.2f}/h")  # fmt: skip
+                  f"${float(v.get('rate', C.POD_RATE)):.2f}/h; resume checkpoint in the backup: "
+                  f"it {final}, last logged it {last}")  # fmt: skip
 
     def no_pod(self) -> set[str]:
         """Lines that may not get a pod without Leon's OK (`KD/sup/no_pod.json`, a list)."""
