@@ -314,3 +314,14 @@ All times UTC.
     - The coordinator created rp-d5 (upfpayavayd95j, 21:40:45Z), copied the line and registered it
       at 21:51:11Z, adding $8.45. The ceiling is now $43.33.
     - Seg2 launched at 21:52:35Z from it 220, 0 iterations lost.
+  - **03:56Z (2026-11-06): dd01_s1 died on rp-d3 with its disk full.** Past `--max_rollbacks` a line
+    writes a 115 MB alarm checkpoint at every iteration, and the 28 GB volume reached 100 %. rp-d4
+    was at 849 MB free. No traceback was recorded, since the log could not be written, so disk
+    full is the inferred cause; it is the only fault found.
+    - I deleted the old alarm checkpoints on both pods, keeping the newest 4 of each (106 on rp-d3,
+      97 on rp-d4; each pod now has 12 GB free). Rolling and snapshot checkpoints stay. Nothing read
+      the deleted files: a resume takes the newest, a rollback a rolling or permanent one, and reads
+      use the snapshots.
+    - dd01_s1 respawned as seg5 from it 273 at 03:59Z, 0 iterations lost; seg4's metrics end at it
+      273 with no damaged rows.
+    - `prune_pod` now does this on every pass for pod lines; lab lines are untouched.

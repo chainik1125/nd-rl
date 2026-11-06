@@ -781,6 +781,31 @@ check(
 )
 sup.sh = _fake_sh
 
+# ---------------- 11b. a pod's old alarm checkpoints are pruned; a lab line's are not touched
+st = {
+    "dd01_s0": {"status": "running", "segs": [seg("rp-d5", 0, 2)]},
+    "dd01_s1": {"status": "running", "segs": [seg("serrano", 1, 3)]},
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+}
+s = new_sup(st)
+s.up = lambda h: True
+cmds.clear()
+s.prune_pod("dd01_s0")
+pruned = [c for h, c in cmds if h == "rp-d5" and "_alarm.pt" in c]
+check(
+    "pod line: old alarm checkpoints pruned, the newest 4 kept",
+    len(pruned) == 1
+    and "/runs/dd01_s0/seg2/ckpts" in pruned[0]
+    and "tail -n +5" in pruned[0]
+    and "dd01_s0_it*_alarm.pt" in pruned[0]
+    and "_rolling" not in pruned[0]
+    and "_snap" not in pruned[0],
+    cmds,
+)
+cmds.clear()
+s.prune_pod("dd01_s1")
+check("lab line: nothing pruned", not [c for _, c in cmds if "rm -f" in c], cmds)
+
 # ---------------- 12. a relaunching job: 2+ sightings in 2 h -> 60 quiet min needed
 st = {
     "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},

@@ -76,6 +76,7 @@ QUIET_S = 15 * 60  # a lab GPU is free only after no other user's process for th
 CYCLE_S = 2 * 3600  # ... and after 60 min if it was seen in 2+ distinct minutes over 2 h (a job
 QUIET_CYCLING_S = 60 * 60  # that keeps relaunching, like ColinDoherty's on ynez): no churn
 REUSE_S = 20 * 60  # a pod whose line ended is held this long for a displaced line
+KEEP_ALARM = 4  # alarm checkpoints kept on a pod, per live segment (see prune_pod)
 POD_TEARDOWN_S = 2 * 3600  # after the last line: wait this long for the pods' retirement
 RSYNC_SSH = " ".join(G.SSH)
 # The pods: KD/sup/pods.json {alias: {pod, line, created, rate, budget_add[, retired]}}, written
@@ -783,6 +784,20 @@ class Sup:
                       f"({users}); moving at the next checkpoint")  # fmt: skip
 
     # ---------------------------------------------------------------- copies
+    def prune_pod(self, line: str) -> None:
+        """Keep a pod line's newest KEEP_ALARM alarm checkpoints of its live segment. Past
+        --max_rollbacks a line writes a 115 MB one every iteration, and a pod's disk is small:
+        rp-d3's 28 GB filled and dd01_s1's process died at 03:56Z on 2026-11-06. Nothing reads
+        the older ones: a resume takes the newest, a rollback a rolling or permanent one, and
+        reads use the snapshots."""
+        seg = self.st[line]["segs"][-1]
+        h = seg["host"]
+        if not h.startswith("rp-") or not self.up(h):
+            return
+        sd = self.seg_dir(line, seg["seg"])
+        sh(h, f'cd {sd}/ckpts && ls -t {line}_it*_alarm.pt 2>/dev/null | tail -n +{KEEP_ALARM + 1} '
+              f'| while read -r f; do rm -f -- "$f" "$f.upload.json"; done; true')  # fmt: skip
+
     def backup(self, line: str) -> None:
         seg = self.st[line]["segs"][-1]
         h, k = seg["host"], seg["seg"]
@@ -860,6 +875,7 @@ class Sup:
                     self.check_running(line)
                     if s["status"] == "running":
                         self.backup(line)
+                        self.prune_pod(line)
                         self.collect(line)
                         if "stop_reason" not in s:
                             self.stop_rule(line)
