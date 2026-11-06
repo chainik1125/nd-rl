@@ -352,3 +352,7 @@ All times UTC.
     - P8 is not met as run. No line was resumed and nothing new was started.
 - **Amendment 2, the guard-off pilot (2026-11-06; times Z).**
   - **21:08Z: PREREG.md frozen again before the line runs:** sha256 `a829342adb0f5d6775c98a4453559952fba7a9b94b460d4ce7f73bee4d11da50`. `guardoff_grpo.patch`: sha256 `30e4833fe954f9216b3fee226baeae1fd3a45db4455916656466ad2401eb5ecf`; the snapshot's `grpo.py` goes from d3ff0add… to 6d88250b…, with both flags off for every other line. The earlier copy is `KD/snap_orig_grpo_f35d3daf_danbase.py`.
+  - **21:14Z: `dd01g0_s2` launched on ynez GPU 0,** under serrano's supervisor, after 15 one-minute reads showed ynez clear of other users (`KD/sup/ynez_prelaunch.log`). The GRPO process is on the GPU (100 %, 8.9 GB), and `args.json` has `rollback_on_alarm` false.
+    - Its first iteration matches dd01_s2's seg3 exactly (554,932 tokens, 22,123 items, pass@1 31.91 %). From it 2 they differ, as same-seed runs do.
+    - **No standby:** temescal did not answer at launch (no route to host), so nothing watches serrano.
+    - **A separate bound:** a process on ynez writes the segment's STOP 11 h after launch, in case serrano and the supervisor go down.
