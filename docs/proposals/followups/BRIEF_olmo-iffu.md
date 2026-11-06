@@ -2,7 +2,7 @@
 
 Run id `olmo-iffu`. Repository `~/work/olmo-iffu` (branch `dan_olmo-iffu` from the fork's `origin/dan_olmo-ifomega`,
 made by `newrun`, so that run's pipeline, manifests, hand-check rules and stored results are here). Role: executor.
-`AGENT_POLICY.md` governs. Proposal 37, up to $60.
+`AGENT_POLICY.md` governs. Authorised by Dan 2026-11-06 (proposal 37), up to $60.
 
 - **Budget:** **$60 / 40 pod-hours.** Dollars are binding.
 - **Stage gate:** re-cost after the first job's measured throughput, and **pause and ask in `QUESTIONS.md`** if the
