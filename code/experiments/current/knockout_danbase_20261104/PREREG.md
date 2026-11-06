@@ -213,3 +213,82 @@ only adds lines.
 | P9 | dose 1 %: on the seeds that cross, GRPO's x at the crossing is within 2× of his EI's on the same seed | 45 % |
 | P10 | dd1_s1 is at the bar at round 1, its base draw (his round-1 count is 13) | 40 % |
 | P11 | σ in the accepted training proofs exceeds 1 % on at least 2 of 3 dose-1 % seeds by their end | 60 % |
+
+## Amendment 2 (2026-11-06, ~21:05Z, before the line runs): the guard-off pilot
+
+Leon approved it, relayed by the coordinator: "do the guard off pilot". **This is a one-seed
+pilot.** It can implicate the guard for this seed at this dose. It cannot give a rate, and it
+says nothing directly about other seeds or doses. Everything above is unchanged, including the
+three dd01 lines, which stay stopped at their cap.
+
+**Why.** Every line that did not cross reached lr x0.125 early, so the run so far cannot separate
+"too little σ" from "lr cut to 1/8 for most of the line". dd01_s2's lr went to x0.5 at x 0.02 (it 3,
+canary), x0.25 at x 0.32 (it 41, clip-low) and x0.125 at x 1.51 (it 188, clip-low). His EI crossed
+this seed at round 3, x 0.69.
+
+- **Line.** `dd01g0_s2`: dd01_s2's base (`stage1_dose01_s2.pt`), seed 2, pool
+  (`dan_rl_targets.jsonl`), environment, reads, D, matched draws and bar 14. It starts fresh from
+  iteration 0, not from a checkpoint.
+- **The one change.** No `--rollback_on_alarm` and no `--max_rollbacks`, so no alarm restores weights
+  or cuts the lr. Alarms stay on and are logged by type in each row, so we see what the guard would
+  have reacted to.
+- **Two opt-in flags, neither changing training** (`guardoff_grpo.patch`, on the snapshot's
+  `grpo.py`; sha256 before d3ff0add…, after 6d88250b…; both off for every other line).
+  - `--no_alarm_ckpt`: an alarming iteration writes no 115 MB alarm checkpoint. Saving draws no
+    random numbers and changes no state. Rolling checkpoints then appear every 5 iterations, which
+    alarm checkpoints replace otherwise.
+  - `--stop_nonfinite`: non-finite loss, grad norm or weights end the run, as a result rather than a
+    rollback, with no checkpoint of those weights (exit code 4, `row['nonfinite_stop']`). The
+    supervisor records the line as ended and does not respawn it.
+- **Stop rule.** The first of: x_dan ≥ 3.0; 10 GPU-h; reached and held (as above); non-finite state.
+  x 3.0 is about 53 % of his ladder on this seed (5.71) and covers his rounds 1–9. A crossing after
+  x 3.0 is not covered.
+- **Placement.** A lab GPU on ynez under the usual rules (at most 4 of ours, at least 2 lab GPUs
+  free, never shared, quiet minutes), under the supervisor. If displaced with no lab GPU free, it
+  raises NEEDS POD and waits; only the coordinator creates pods.
+- **No other change.** The three dd01 lines are not resumed, the cap is not lifted, and no other line
+  starts. Dan's chart keeps its dd01_s2 point: this pilot is reported beside it, not on it.
+
+### What each outcome would mean (decided before the line runs)
+
+| outcome | definition | meaning |
+|---|---|---|
+| Crosses | his measure ≥ 14 at a matched round, by x 3.0 | The guard is implicated at this dose for this seed. One seed does not settle it. |
+| No crossing, σ near 0 | under 14 at the end, and σ ≤ 0.5 % of the accepted training proofs over the last 50 iterations | The guard is not the explanation for this seed. |
+| Collapse | after x 0.5, for 20 consecutive iterations: pass@1's 10-iteration mean under 70 %, or canary action NLL above 2.0; or a non-finite stop | The guard was protecting something. |
+| σ rises, no crossing | under 14 at the end, and σ above 0.5 % over the last 50 iterations, no collapse | Inconclusive: the guard may matter, and x 3.0 may be too short to see it. |
+
+The thresholds come from dd01_s2 under the guard. Its pass@1 10-iteration mean stayed at or above
+88 % after x 0.5, its canary action NLL peaked at 0.50, and its σ over the last 50 iterations was
+0.10 %; the 1 % lines reached 2.0–3.1 %. A canary alarm alone is not a collapse: dd01_s2 alarmed on
+the canary at every iteration from it 205 with pass@1 near 90 %. A collapse does not stop the line;
+the stop rule above does.
+
+**Comparison.** `dd01g0_s2` against `dd01_s2` at the same x_dan, on his round grid up to x 3.0:
+his measure, first-32 count, σ share, pass@1, lr, and alarms by type (`pilot.py`). dd01_s2's first
+iterations ran on the same GPU model, and its later ones on an A40, which is a difference in machine
+but not in x.
+
+**A same-seed line is not a replay, so one difference is not all the guard's.** In short runs before
+this freeze (`smoke_guardoff.sh`, 2026-11-06), three runs with the same seed drew the same first
+iteration (32,677 tokens, 1,323 items), and their updates differed in the 6th digit. From the second
+iteration their samples differed even with identical flags. So part of any gap between this line and
+dd01_s2 is run-to-run variation, and this design has no replicate to measure how much.
+
+**Tests of the flags (same short runs).**
+- Dropping alarm checkpoints: the rows differ from those with them, but no more than two runs with
+  identical flags differ, so the runs cannot show equality; that it is storage only rests on reading
+  the code (saving draws no random numbers and changes no state).
+- `--stop_nonfinite` on a run with lr 1e37: exit code 4 at iteration 1, `row['nonfinite_stop']`, and
+  no checkpoint, with rolling checkpoints due every iteration.
+- With no rollback and alarms firing at every iteration (`--canary_mult 0.5`), alarms are logged and
+  the lr follows the ramp to 1.5e-4 unchanged.
+
+### Predictions (amendment 2)
+
+| | prediction | probability |
+|---|---|---|
+| P12 | dd01g0_s2 crosses his bar by x 3.0 | 35 % |
+| P13 | it does not cross and σ stays near 0 (≤ 0.5 %) | 40 % |
+| P14 | it collapses as defined above | 10 % |
+| P15 | it does not cross, σ rises above 0.5 %, no collapse | 15 % |

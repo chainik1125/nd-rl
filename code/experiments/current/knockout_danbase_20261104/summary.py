@@ -20,7 +20,8 @@ ROLE = {"primary": "**primary**: knockout base, his 4,495 targets",
         "secondary": "secondary: knockout base, our σ-rich pool",
         "reference": "reference: full K12 base, his targets",
         "dose01": "**dose 0.1 %**: his 0.1 % σ base, his 4,495 targets",
-        "dose1": "**dose 1 %**: his 1 % σ base, his 4,495 targets"}  # fmt: skip
+        "dose1": "**dose 1 %**: his 1 % σ base, his 4,495 targets",
+        "guardoff": "pilot, guard off: dd01_s2's base, seed and targets"}  # fmt: skip
 
 
 def _pct(n: int, d: int) -> str:

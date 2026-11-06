@@ -490,8 +490,10 @@ class Sup:
             return None
         if v["x_dan"] <= 0 or v["gpuh"] <= 0:
             return None
-        return max(0.0, min(M.GPUH_CAP - v["gpuh"],
-                            (v["x_cap"] - v["x_dan"]) * v["gpuh"] / v["x_dan"]))  # fmt: skip
+        L = C.LINES[line]
+        x_end = min(v["x_cap"], L.get("x_stop", v["x_cap"]))
+        return max(0.0, min(L.get("gpuh_cap", M.GPUH_CAP) - v["gpuh"],
+                            (x_end - v["x_dan"]) * v["gpuh"] / v["x_dan"]))  # fmt: skip
 
     def needs_pod(self, line: str, seg: dict, src: tuple | None, why: str) -> None:
         """One "NEEDS POD:" event per displacement (never with the plain waiting text, which the
@@ -728,8 +730,10 @@ class Sup:
             how = json.loads(end)["how"]
             seg["end"] = json.loads(end)["utc"]
             self.collect(line)  # the segment's last files (end.json, last reads) to serrano
-            if how in ("done", "stopped"):
+            if how in ("done", "stopped", "nonfinite"):
                 s["status"] = "done"
+                if how == "nonfinite":  # a result of the guard-off pilot (Amendment 2)
+                    s["stop_reason"] = "non-finite loss, grad norm or weights"
                 event(f"{line}: ended ({how}) on {h} seg{k}")
             else:  # moved / failed
                 self.respawn(line, f"segment ended: {how}")

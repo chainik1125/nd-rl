@@ -168,6 +168,8 @@ def sigma_fig(N: dict, figdir: Path) -> None:
     fig = S.new_figure(S.FULL_W, 2.3, layout="constrained")
     a, b = fig.subplots(1, 2)
     for _t, v in sorted(N["lines"].items()):
+        if v["arm"] == "guardoff":  # Amendment 2's pilot: its own comparison, pilot.py
+            continue
         col = COL[v["arm"]]
         ls = "--" if v["arm"] == "secondary" else "-"
         xs = {c["it"]: c["x_dan"] for c in v["curve"]}

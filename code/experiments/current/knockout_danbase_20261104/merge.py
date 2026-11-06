@@ -148,10 +148,14 @@ def held(curve: list[dict]) -> dict | None:
 
 
 def stop_reason(line: str, v: dict) -> str | None:
+    L = C.LINES[line]
+    if "x_stop" in L and v["x_dan"] >= L["x_stop"]:  # a pilot's own stop (Amendment 2)
+        return f"compute cap: x_dan {v['x_dan']:.2f} ≥ the pilot's {L['x_stop']:g}"
     if v["x_dan"] >= v["x_cap"]:
         return f"compute cap: x_dan {v['x_dan']:.2f} ≥ his round-16 x {v['x_cap']:.2f}"
-    if v["gpuh"] >= GPUH_CAP:
-        return f"GPU-h cap: {v['gpuh']:.1f} ≥ {GPUH_CAP:g}"
+    cap = L.get("gpuh_cap", GPUH_CAP)
+    if v["gpuh"] >= cap:
+        return f"GPU-h cap: {v['gpuh']:.1f} ≥ {cap:g}"
     h = held(v["curve"])
     if v["cross_dan"] is not None and h is not None:
         return f"reached (Dan's measure at x_dan {v['cross_dan']['x_dan']:.3f}) and held ({h})"

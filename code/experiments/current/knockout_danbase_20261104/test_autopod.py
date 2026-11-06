@@ -884,6 +884,52 @@ cmds.clear()
 s.prune_pod("dd01_s1")
 check("lab line: nothing pruned", not [c for _, c in cmds if "rm -f" in c], cmds)
 
+# ---------------- 11c. the guard-off pilot (PREREG.md, Amendment 2)
+C_ = sup.C
+a_ref = C_.grpo_argv("dd01_s2", KD / "x", 1200, None)
+a_pil = C_.grpo_argv("dd01g0_s2", KD / "x", 1200, None)
+strip = lambda v, name: [q.replace(name, "LINE") for q in v]
+ref_only = [q for q in strip(a_ref, "dd01_s2") if q not in strip(a_pil, "dd01g0_s2")]
+pil_only = [q for q in strip(a_pil, "dd01g0_s2") if q not in strip(a_ref, "dd01_s2")]
+check(
+    "the pilot's flags differ from dd01_s2's only in the guard and the two storage/stop flags",
+    set(ref_only) == {"--rollback_on_alarm", "--max_rollbacks", "3"}
+    and set(pil_only) == {"--no_alarm_ckpt", "--stop_nonfinite"}
+    and a_pil[a_pil.index("--init") + 1] == a_ref[a_ref.index("--init") + 1]
+    and a_pil[a_pil.index("--seed") + 1] == "2",
+    (ref_only, pil_only),
+)
+sr = sup.M.stop_reason
+v0 = {"x_dan": 2.9, "x_cap": 5.71, "gpuh": 9.9, "cross_dan": None, "curve": []}
+check("the pilot runs on below its limits", sr("dd01g0_s2", v0) is None, sr("dd01g0_s2", v0))
+check("the pilot stops at x 3.0", "the pilot's 3" in (sr("dd01g0_s2", {**v0, "x_dan": 3.0}) or ""))
+check("the pilot stops at 10 GPU-h", "≥ 10" in (sr("dd01g0_s2", {**v0, "gpuh": 10.0}) or ""))
+check("dd01_s2 keeps its 15 GPU-h", sr("dd01_s2", {**v0, "gpuh": 10.0}) is None)
+check("dd01_s2 keeps his round-16 x", sr("dd01_s2", {**v0, "x_dan": 3.0}) is None)
+reset_events()
+(sup.SUP / "pods.json").write_text("{}")
+st = {
+    "dd01g0_s2": {"status": "running", "segs": [seg("ynez", 3, 1)]},
+    "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},
+}
+ALIVE |= {("ynez", "dd01g0_s2", 1)}
+END[("ynez", "dd01g0_s2", 1)] = json.dumps(
+    {"how": "nonfinite", "rc": 4, "utc": ago(0), "host": "ynez"}
+)
+s = new_sup(st)
+poll(s, {**g9, "ynez": {0: set(), 1: set(), 2: set(), 3: set()}})
+s.check_running("dd01g0_s2")
+check(
+    "a non-finite stop ends the line as a result, with no respawn",
+    s.st["dd01g0_s2"]["status"] == "done"
+    and s.st["dd01g0_s2"].get("stop_reason") == "non-finite loss, grad norm or weights"
+    and len(s.st["dd01g0_s2"]["segs"]) == 1
+    and "ended (nonfinite)" in events(),
+    (s.st["dd01g0_s2"], events()),
+)
+END.pop(("ynez", "dd01g0_s2", 1))
+ALIVE.discard(("ynez", "dd01g0_s2", 1))
+
 # ---------------- 12. a relaunching job: 2+ sightings in 2 h -> 60 quiet min needed
 st = {
     "_hosts": {h: {"fails": 0} for h in ("serrano", "temescal", "ynez")},

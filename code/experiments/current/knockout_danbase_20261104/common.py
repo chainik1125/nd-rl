@@ -57,6 +57,11 @@ LINES: dict[str, dict] = {
                 "ladder": "la_dose01_s1", "arm": "dose", "dose": "dose01", "prio": 8},
     "dd01_s2": {"base": "stage1_dose01_s2.pt", "pool": "dan_rl_targets.jsonl", "seed": 2,
                 "ladder": "la_dose01_s2", "arm": "dose", "dose": "dose01", "prio": 9},
+    # Amendment 2 (Leon, 2026-11-06): dd01_s2 without the guard, from iteration 0 (one-seed pilot).
+    # It stops at x_dan 3.0, 10 GPU-h, or reached and held. Kept off Dan's chart (arm "guardoff").
+    "dd01g0_s2": {"base": "stage1_dose01_s2.pt", "pool": "dan_rl_targets.jsonl", "seed": 2,
+                  "ladder": "la_dose01_s2", "arm": "guardoff", "dose": "dose01", "prio": 13,
+                  "guard_off": True, "x_stop": 3.0, "gpuh_cap": 10.0},
     "dd1_s2": {"base": "stage1_dose1_s2.pt", "pool": "dan_rl_targets.jsonl", "seed": 2,
                "ladder": "la_dose1_s2", "arm": "dose", "dose": "dose1", "prio": 10},
     "dd1_s0": {"base": "stage1_dose1_s0.pt", "pool": "dan_rl_targets.jsonl", "seed": 0,
@@ -106,10 +111,15 @@ def grpo_argv(line: str, seg_dir: Path, iters: int, resume: str | None) -> list[
         "--save_rolling", str(ROLL_EVERY), "--keep_rolling", "4",
         "--max_steps", "48", "--max_action", "256", "--seed", str(L["seed"]), "--budgets", "0",
         "--canary", str(KD / "pools" / "canary_long.jsonl"), "--canary_n", "1000",
-        "--canary_every", "1", "--rollback_on_alarm", "--max_rollbacks", "3",
+        "--canary_every", "1",
         "--kl_anchor_coef", "0", "--kl_anchor_ref", base, "--monitor", "--arm", "logical",
         "--max_rej", "0", "--rej_penalty", "0.1", "--snap_iters", snaps,
     ]  # fmt: skip
+    # Amendment 2: the guard-off pilot has no rollback or lr cut; its alarms stay on and logged
+    if L.get("guard_off"):
+        argv += ["--no_alarm_ckpt", "--stop_nonfinite"]
+    else:
+        argv += ["--rollback_on_alarm", "--max_rollbacks", "3"]
     if resume:
         argv += ["--resume", resume]
     return argv

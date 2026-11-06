@@ -1,0 +1,86 @@
+--- /scratch/cowifornia/nd-rl/knockout_danbase/snap_orig_grpo_f35d3daf_danbase.py	2026-11-04 12:28:10.385656847 -0800
++++ /scratch/cowifornia/nd-rl/knockout_danbase/snap/f35d3daf_danbase/code/thinking/grpo.py	2026-11-06 13:01:20.802440314 -0800
+@@ -315,6 +315,7 @@
+ # x the restore point's on the same tokens, a spike (restoring does help then)
+ BAN_SPIKE = 2.0
+ STOP_EXIT = 3  # --ban_stop: the exit code of a run it ends
++NONFINITE_EXIT = 4  # --stop_nonfinite: the exit code of a run it ends
+ ALARM_GN = 5.0  # grad-norm max vs the median of the earlier iterations' grad-norm max ...
+ ALARM_GN_AFTER = 5  # ... once this many iterations are in
+ ALARM_CLIP_LOW = 0.01
+@@ -1463,6 +1464,20 @@
+     return out
+ 
+ 
++def nonfinite_state(model: Any, row: dict[str, Any]) -> dict[str, Any] | None:
++    """--stop_nonfinite: what is non-finite after an iteration's update (the row's loss and grad
++    norms, the weights), None when nothing is."""
++    bad: dict[str, Any] = {
++        k: str(row[k])
++        for k in ("loss", "grad_norm", "grad_norm_max")
++        if k in row and not math.isfinite(row[k])
++    }
++    n = sum(1 for p in model.parameters() if not torch.isfinite(p).all())
++    if n:
++        bad["params_nonfinite"] = n
++    return bad or None
++
++
+ def ban_alarm(row: dict[str, Any]) -> str | None:
+     """The think ban alarm's message, None when the row's mass is not over ALARM_BAN."""
+     if row["ban_think"] > ALARM_BAN:
+@@ -2309,6 +2324,14 @@
+             }
+             if "extra" in pstats:
+                 row["prior"]["extra"] = pstats["extra"]
++        nf = nonfinite_state(model, row) if getattr(a, "stop_nonfinite", False) else None
++        if nf is not None:  # a result, not a rollback; no checkpoint holds these weights
++            row["nonfinite_stop"] = nf
++            with open(out / "metrics.jsonl", "a") as f:
++                f.write(json.dumps(row) + "\n")
++            history.append(row)
++            print(f"NONFINITE it {it}: {nf}: ending the run", flush=True)
++            break
+         if can is not None and it % a.canary_every == 0:  # the policy this iteration leaves
+             t1 = time.time()
+             model.eval()
+@@ -2440,7 +2463,10 @@
+         # and a later rollback restores them rather than older ones. A stop saves the alarm
+         # checkpoint (its weights and training state) and nothing else.
+         alarmed = (bool(row["alarms"]) and not passed) or stop
+-        if alarmed:
++        # --no_alarm_ckpt: storage only (saving draws no random numbers and changes no state); the
++        # iteration then writes its rolling checkpoint on schedule, which an alarm checkpoint
++        # replaces otherwise. A stop still saves one.
++        if alarmed and (stop or not getattr(a, "no_alarm_ckpt", False)):
+             save_ckpt(
+                 str(ckdir / f"{a.name}_it{it}_alarm.pt"),
+                 model,
+@@ -2747,11 +2773,27 @@
+         help="knockout_grpo (opt-in): comma-separated iteration numbers; a model-only checkpoint "
+         "ckpts/<name>_it<i>_snap.pt after each, touching no training state",
+     )
++    ap.add_argument(
++        "--no_alarm_ckpt",
++        action="store_true",
++        default=argparse.SUPPRESS,
++        help="knockout_danbase guard-off pilot (opt-in): an alarming iteration writes no alarm "
++        "checkpoint (storage only; alarms stay on and logged)",
++    )
++    ap.add_argument(
++        "--stop_nonfinite",
++        action="store_true",
++        default=argparse.SUPPRESS,
++        help="knockout_danbase guard-off pilot (opt-in): non-finite loss, grad norm or weights end "
++        "the run with exit code NONFINITE_EXIT, row['nonfinite_stop'], and no checkpoint of them",
++    )
+     return ap
+ 
+ 
+ def main(argv: list[str] | None = None) -> int:
+     hist = run(parser().parse_args(argv))
++    if hist and "nonfinite_stop" in hist[-1]:
++        return NONFINITE_EXIT
+     return STOP_EXIT if hist and "stop" in hist[-1] else 0  # --ban_stop ended the run
+ 
+ 

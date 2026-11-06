@@ -162,7 +162,8 @@ class Seg:
         self.watch()
         rc = self.proc.wait()
         if self.why == "running":
-            self.why = "done" if rc == 0 else "failed"
+            # 4: grpo.py's NONFINITE_EXIT (--stop_nonfinite), a result, not a failure to respawn
+            self.why = "done" if rc == 0 else "nonfinite" if rc == 4 else "failed"
         self.done.set()
         rt.join(timeout=3 * 3600)  # the last snapshots' reads
         (self.dir / "end.json").write_text(json.dumps({"how": self.why, "rc": rc, "utc": now(),
