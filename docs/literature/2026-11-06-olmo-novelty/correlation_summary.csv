@@ -1,0 +1,31 @@
+analysis,task,grade,model,k,unit,n_units,rho,lo95,hi95,naive_rho,naive_pearson,null_mean,null_lo95,null_hi95,rho_x_rl,note
+S,ifbench,strict,s0100,1,prompt,218,0.014,-0.103,0.136,-0.033,-0.065,-0.63,-0.7,-0.551,0.88,split-half
+S,ifbench,strict,s0100,8,prompt,218,-0.113,-0.24,0.023,-0.033,-0.253,-0.569,-0.639,-0.493,0.723,split-half; pass@8 binary
+S,ifbench,strict,s0750,1,prompt,218,-0.255,-0.37,-0.131,-0.266,-0.368,-0.624,-0.685,-0.56,0.741,split-half
+S,ifbench,strict,s0750,8,prompt,218,-0.494,-0.598,-0.381,-0.543,-0.629,-0.646,-0.711,-0.581,0.398,split-half; pass@8 binary
+P1,ifbench,strict,s2300,1,prompt,218,-0.504,-0.599,-0.397,-0.537,-0.571,-0.655,-0.707,-0.599,0.5,split-half
+S,ifbench,strict,s2300,8,prompt,218,-0.667,-0.757,-0.566,-0.771,-0.796,-0.706,-0.761,-0.649,0.164,split-half; pass@8 binary
+S-supported,ifbench,strict,s2300,1,prompt,111,-0.519,-0.682,-0.337,-0.58,-0.632,-0.712,-0.791,-0.622,0.535,only prompts with dpo >= 1 of 16
+S-type,ifbench,strict,s2300,8,constraint type,47,-0.803,-0.902,-0.62,,,,,,,split-half
+S-type,ifbench,strict,s2300,8,constraint type,47,-0.884,-0.944,-0.784,,,,,,,naive (shared draws)
+S-bin,ifbench,strict,s2300,1,prompt,117.4,,,,,,,,,,dpo half-sample pass@1 bin 0: mean gain 0.539
+S-bin,ifbench,strict,s2300,1,prompt,31.4,,,,,,,,,,"dpo half-sample pass@1 bin (0,0.25]: mean gain 0.453"
+S-bin,ifbench,strict,s2300,1,prompt,12.9,,,,,,,,,,"dpo half-sample pass@1 bin (0.25,0.5]: mean gain 0.444"
+S-bin,ifbench,strict,s2300,1,prompt,10.6,,,,,,,,,,"dpo half-sample pass@1 bin (0.5,0.75]: mean gain 0.254"
+S-bin,ifbench,strict,s2300,1,prompt,45.8,,,,,,,,,,"dpo half-sample pass@1 bin (0.75,1]: mean gain -0.000"
+S-share,ifbench,strict,s2300,1,prompt,107,,,,,,,,,,total pass@1 gain 85.81 over 218 prompts; 59.62 (69%) on the 107 with dpo 0/16; 29.50 on the 49 strict-reach prompts
+S,ifbench,loose,s2300,1,prompt,218,-0.559,-0.647,-0.466,-0.595,-0.609,-0.689,-0.74,-0.634,0.5,split-half
+S,ifeval,strict,s0750,1,prompt,150,-0.514,-0.667,-0.353,-0.675,-0.614,-0.699,-0.781,-0.606,0.686,split-half
+S,ifeval,strict,s0750,8,prompt,150,-0.363,-0.612,-0.057,-0.758,-0.58,-0.626,-0.693,-0.535,0.65,split-half; pass@8 binary
+S,ifeval,strict,s2300,1,prompt,150,-0.654,-0.777,-0.504,-0.794,-0.803,-0.754,-0.82,-0.673,0.396,split-half
+S,ifeval,strict,s2300,8,prompt,150,-0.61,-0.819,-0.326,-0.866,-0.813,-0.694,-0.759,-0.616,0.384,split-half; pass@8 binary
+S-supported,ifeval,strict,s2300,1,prompt,139,-0.637,-0.772,-0.452,-0.822,-0.832,-0.726,-0.8,-0.638,0.326,only prompts with dpo >= 1 of 16
+S-type,ifeval,strict,s2300,8,constraint type,25,-0.516,-0.812,-0.082,,,,,,,split-half
+S-type,ifeval,strict,s2300,8,constraint type,25,-0.729,-0.97,-0.378,,,,,,,naive (shared draws)
+S-bin,ifeval,strict,s2300,1,prompt,13.8,,,,,,,,,,dpo half-sample pass@1 bin 0: mean gain 0.678
+S-bin,ifeval,strict,s2300,1,prompt,8.8,,,,,,,,,,"dpo half-sample pass@1 bin (0,0.25]: mean gain 0.595"
+S-bin,ifeval,strict,s2300,1,prompt,12.0,,,,,,,,,,"dpo half-sample pass@1 bin (0.25,0.5]: mean gain 0.387"
+S-bin,ifeval,strict,s2300,1,prompt,16.5,,,,,,,,,,"dpo half-sample pass@1 bin (0.5,0.75]: mean gain 0.202"
+S-bin,ifeval,strict,s2300,1,prompt,98.9,,,,,,,,,,"dpo half-sample pass@1 bin (0.75,1]: mean gain 0.019"
+S-share,ifeval,strict,s2300,1,prompt,11,,,,,,,,,,total pass@1 gain 24.50 over 150 prompts; 7.12 (29%) on the 11 with dpo 0/16; 5.25 on the 6 strict-reach prompts
+S,ifeval,loose,s2300,1,prompt,150,-0.666,-0.804,-0.505,-0.807,-0.82,-0.751,-0.823,-0.665,0.309,split-half
