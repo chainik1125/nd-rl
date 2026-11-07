@@ -28,7 +28,7 @@ import time
 from pathlib import Path
 
 import gpu as G
-from factor_lib import DAN, ref_from_json, ref_rows, run_env, score_rows
+from factor_lib import DAN, name_positions, ref_from_json, ref_rows, run_env, score_rows
 
 HOST_GPU = 0
 STAGE_SEED = {"A": 0, "pick": 10000, "reach": 20000, "negi": 30000, "dn": 40000}
@@ -204,19 +204,24 @@ def main() -> None:
             st: dict = {}
             if s == "C":
                 bases = list(range(33))
-                rows, idx = [], []
+                rows, idx, name_pos = [], [], []
                 for ri, r in enumerate(refs):
+                    nm = [name_positions(x) for x in r.actions]
                     for b in bases:
                         rr = ref_rows(tok, r, b)
                         rows += rr
                         idx += [(ri, b, ai) for ai in range(len(rr))]
-                lp = score_rows(model, tok, rows, 0.8, max_elems=2**30)
+                        name_pos += nm
+                lp, lp_name = score_rows(model, tok, rows, 0.8, max_elems=2**30, name_pos=name_pos)
                 res: dict = {r.name: [[0.0] * len(r.actions) for _ in bases] for r in refs}
-                for (ri, b, ai), v in zip(idx, lp):
+                res_name: dict = {r.name: [[0.0] * len(r.actions) for _ in bases] for r in refs}
+                for (ri, b, ai), v, w in zip(idx, lp, lp_name):
                     res[refs[ri].name][b][ai] = round(v, 5)
+                    res_name[refs[ri].name][b][ai] = round(w, 5)
                 tmp = d / "c.json.gz.tmp"
                 with gzip.open(tmp, "wt") as f:
-                    json.dump({"tag": tag, "temperature": 0.8, "bases": bases, "logp_nats": res}, f)
+                    json.dump({"tag": tag, "temperature": 0.8, "bases": bases, "logp_nats": res,
+                               "logp_name_nats": res_name}, f)  # fmt: skip
                 os.replace(tmp, d / "c.json.gz")
                 st = {"rows": len(rows), "tokens": sum(len(x[0]) + len(x[1]) for x in rows)}
             else:

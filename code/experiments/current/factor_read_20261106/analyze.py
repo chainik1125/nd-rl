@@ -35,12 +35,22 @@ def mean(x) -> float:
     return sum(x) / len(x) if x else float("nan")
 
 
-def group_logs(sc: dict) -> dict[str, float]:
-    """log10 P per group for one theorem: the 33-base mean of the per-action log P, summed."""
+def group_logs(sc: dict, key: str = "logp_core_nats") -> dict[str, float]:
+    """log10 P per group for one theorem: the 33-base mean of the per-action log P, summed.
+    `logp_core_nats` (primary, Amendment 1) leaves out the tokens the env overrides; `logp_mean_nats` is every token;
+    `logp_name_mean_nats` is the left-out part."""
     out = dict.fromkeys(GROUPS, 0.0)
-    for v, g in zip(sc["logp_mean_nats"], sc["groups"]):
+    for v, g in zip(sc[key], sc["groups"]):
         out[g] += v / LN10
     return out
+
+
+def add_core(sm: dict) -> None:
+    for s in sm.values():
+        for x in s["stages"].get("C", {}).values():
+            x["logp_core_nats"] = [
+                a - b for a, b in zip(x["logp_mean_nats"], x["logp_name_mean_nats"])
+            ]
 
 
 def dlog(x: int, n: int) -> float:
@@ -51,11 +61,11 @@ def schema_of(r) -> str:
     return r.schema or "other"
 
 
-def c_table(end: dict, base: dict, names: list[str]) -> dict:
+def c_table(end: dict, base: dict, names: list[str], key: str = "logp_core_nats") -> dict:
     """Δlog10 per group over `names`: means per theorem, shares of the total, shares of the positive part."""
     rows = {}
     for n in names:
-        a, b = group_logs(end["stages"]["C"][n]), group_logs(base["stages"]["C"][n])
+        a, b = group_logs(end["stages"]["C"][n], key), group_logs(base["stages"]["C"][n], key)
         rows[n] = {g: a[g] - b[g] for g in GROUPS}
     d = {g: mean(rows[n][g] for n in names) for g in GROUPS}
     tot = sum(d.values())
@@ -200,7 +210,7 @@ def setup_split(end: dict, base: dict, refs: dict, names: list[str]) -> dict:
     pr, other = [], []
     for n in names:
         r = refs[n]
-        e, b = end["stages"]["C"][n]["logp_mean_nats"], base["stages"]["C"][n]["logp_mean_nats"]
+        e, b = end["stages"]["C"][n]["logp_core_nats"], base["stages"]["C"][n]["logp_core_nats"]
         pr.append(sum(e[i] - b[i] for i in range(r.pick) if i < r.n_pr) / LN10)
         other.append(sum(e[i] - b[i] for i in range(r.pick) if i >= r.n_pr) / LN10)
     return {"premise_lines": mean(pr), "other_setup": mean(other)}
@@ -208,6 +218,7 @@ def setup_split(end: dict, base: dict, refs: dict, names: list[str]) -> dict:
 
 def analyse(refs: dict, sdir: Path) -> dict:
     sm = {p.stem: json.loads(p.read_text()) for p in sdir.glob("*.json")}
+    add_core(sm)
     all_names = sorted(refs)
     schemas = sorted({schema_of(r) for r in refs.values()})
     res: dict = {"n_theorems": len(all_names), "lines": {}, "bases": {}, "doses": {}}
@@ -233,6 +244,8 @@ def analyse(refs: dict, sdir: Path) -> dict:
             "ckpt": {k: e.get("ckpt", {}).get(k) for k in ("kind", "it", "x_dan", "x_exact", "x_read_it", "last_iter",
                                                            "x_dan_last", "file", "md5", "dose", "seed")},
             "C": c,
+            "C_all_tokens": c_table(e, b, all_names, "logp_mean_nats"),
+            "C_name_tokens": c_table(e, b, all_names, "logp_name_mean_nats"),
             "C_setup_split": setup_split(e, b, refs, all_names),
             "C_by_schema": {s: c_table(e, b, [n for n in all_names if schema_of(refs[n]) == s]) for s in schemas},
             "B": bt_tab,
@@ -250,8 +263,8 @@ def analyse(refs: dict, sdir: Path) -> dict:
             d_in, d_rest = [], []
             for n in names:
                 ee, bb = (
-                    e["stages"]["C"][n]["logp_mean_nats"],
-                    b["stages"]["C"][n]["logp_mean_nats"],
+                    e["stages"]["C"][n]["logp_core_nats"],
+                    b["stages"]["C"][n]["logp_core_nats"],
                 )
                 reach = [i for i, g in enumerate(refs[n].groups) if g == "reach"]
                 d_in.append(sum(ee[i] - bb[i] for i in inner[n]) / LN10)
@@ -271,6 +284,10 @@ def analyse(refs: dict, sdir: Path) -> dict:
             res["bases"][bt] = {
                 "dose": dose,
                 "group_log10": g,
+                "group_log10_all_tokens": {
+                    x: mean(group_logs(b["stages"]["C"][n], "logp_mean_nats")[x] for n in all_names)
+                    for x in GROUPS
+                },
                 "path_log10": sum(g.values()),
                 "bottleneck": bottleneck(b, all_names, refs),
                 "B_rates": {s: {"x": sum(b["stages"][s][n][k] for n in all_names),
@@ -305,19 +322,30 @@ def analyse(refs: dict, sdir: Path) -> dict:
 
 
 def control(refs: dict, sdir: Path) -> dict:
-    """Check 6: the DN group's log10 P at base, 0 % vs 1 %. Frozen: passes iff the 0 % dose mean is lower."""
+    """Check 6: the DN group's log10 P at base, 0 % vs 1 %. Frozen: passes iff the 0 % dose mean is lower.
+    The frozen definition counts every token; the DN action's name token is given beside it as `dn_log10_core`."""
     names = sorted(refs)
     out: dict = {"per_base": {}}
     for dose in ("0%", "1%"):
-        vals = []
+        vals, core = [], []
         for bt in BASES[dose]:
-            sm = json.loads((sdir / f"{bt}.json").read_text())
-            v = mean(group_logs(sm["stages"]["C"][n])["dn"] for n in names)
-            out["per_base"][bt] = {"dose": dose, "dn_log10": v, "dn_prob_geomean": 10**v,
-                                   "negi_log10": mean(group_logs(sm["stages"]["C"][n])["negi"] for n in names),
-                                   "pick_log10": mean(group_logs(sm["stages"]["C"][n])["pick"] for n in names)}  # fmt: skip
+            sm = {bt: json.loads((sdir / f"{bt}.json").read_text())}
+            add_core(sm)
+            C = sm[bt]["stages"]["C"]
+            v = mean(group_logs(C[n], "logp_mean_nats")["dn"] for n in names)
+            w = mean(group_logs(C[n])["dn"] for n in names)
+            out["per_base"][bt] = {
+                "dose": dose,
+                "dn_log10": v,
+                "dn_log10_core": w,
+                "dn_prob_geomean": 10**v,
+                "negi_log10": mean(group_logs(C[n], "logp_mean_nats")["negi"] for n in names),
+                "pick_log10": mean(group_logs(C[n], "logp_mean_nats")["pick"] for n in names),
+            }
             vals.append(v)
+            core.append(w)
         out[dose] = mean(vals)
+        out[f"{dose}_core"] = mean(core)
     out["pass"] = out["0%"] < out["1%"]
     return out
 
@@ -373,6 +401,24 @@ def tables(res: dict) -> str:
     for ln in order:
         s = L[ln]["C"]["share_of_positive"]
         o.append(f"| {ln} | " + " | ".join(f"{100 * s[g]:.0f} %" for g in GROUPS) + " |")
+    o += ["", "### The same with every token (the all-token path, as first frozen; Amendment 1)", "",
+          "| line | setup | pick | reach ⊥ | NEGI | DN | finish | total | dominant |", "|---|---|---|---|---|---|---|---|---|"]  # fmt: skip
+    for ln in order:
+        c = L[ln]["C_all_tokens"]
+        o.append(
+            f"| {ln} | "
+            + " | ".join(fmt(c["delta"][g]) for g in GROUPS)
+            + f" | {fmt(c['total'])} | {c['dominant']} |"
+        )
+    o += ["", "### The difference: the tokens the env overrides", "",
+          "| line | setup | pick | reach ⊥ | NEGI | DN | finish | total |", "|---|---|---|---|---|---|---|---|"]  # fmt: skip
+    for ln in order:
+        c = L[ln]["C_name_tokens"]
+        o.append(
+            f"| {ln} | "
+            + " | ".join(fmt(c["delta"][g]) for g in GROUPS)
+            + f" | {fmt(c['total'])} |"
+        )
     o += ["", "### Setup split, and the inner reductio on the theorems with two σ DN lines", "",
           "| line | setup: premise lines | setup: other | inner reductio actions (in reach; n theorems) | rest of reach on those theorems |",
           "|---|---|---|---|---|"]  # fmt: skip

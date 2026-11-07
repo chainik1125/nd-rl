@@ -18,6 +18,7 @@ from factor_lib import (
     classify_pick,
     classify_reach,
     flags,
+    name_positions,
     ref_from_json,
     replay,
     shift_action,
@@ -246,6 +247,29 @@ def test_draw() -> None:
     # the inner reductio of a proof counts at its own depth
     q = R(PROMPT_ORE, ND_ORE)
     assert classify_draw(PROMPT_ORE, 0, q.actions, q.T)["stage"] == 4
+
+
+def test_name_positions() -> None:
+    """Exactly the tokens the env overrides: changing them changes nothing; changing a citation does."""
+    from state_env import Env  # type: ignore[import-not-found]
+
+    for prompt, nd in ((PROMPT, ND), (PROMPT_SUB, ND_SUB), (PROMPT_ORE, ND_ORE)):
+        r = R(prompt, nd)
+        for base in (0, 9):
+            e = Env(prompt, canon=True, base=base, assign=True)
+            for a0 in r.actions:
+                a = shift_action(a0, base)
+                pos = name_positions(a)
+                for p in pos:
+                    assert a[p].startswith("n"), a
+                scrambled = list(a)
+                for p in pos:
+                    scrambled[p] = "n63"
+                # the same state, the scrambled action: the env must give back the canonical action
+                ok, why = e.apply(scrambled)
+                assert ok, (why, scrambled)
+                assert list(e._eff) == a, (e._eff, a)
+            assert e.done
 
 
 def test_flags_agree_with_trace() -> None:

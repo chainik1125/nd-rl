@@ -175,3 +175,22 @@ One checkpoint runs first (`stage1_dose01_s2`, which also serves check 4); the t
   coordinator rather than cut the design.
 - **Another user on ynez GPU 0,** or any failed check: stop and message.
 - **Machines:** ynez GPU 0 only, claimed by `mkdir`, gated in code before launch and before each stage. No other GPU, no temescal, no pods.
+
+## Amendment 1 (2026-11-06, about 9:50 pm PT: after the first checkpoint, a base, and before any RL end is read)
+
+**What the first read showed.** Timing and check runs on `stage1_dose01_s2` found that names are not all alike. Of the names the model
+wrote, the env changed 9,311 of 50,557 in A, but 25 of 67,555 from the reach boundary and 0 from the NEGI and DN boundaries. Almost all are at
+the attempt's first action (8,298 of 8,320 among the attempts that got that far). At that action the state shows no `n` name, so the model cannot know the
+base the env drew. The name it writes there is spread over all 64 name tokens.
+
+**Why it matters.** The env discards those tokens, so they belong to no route. C as frozen above still counts them, at about −1.8 in log10 for a uniform guess over 64 names. It falls on the first action: the pick on excluded_middle (37 of 106), setup elsewhere. RL could shift this guess in any
+direction with no effect on proofs, and a group's Δ would then carry it.
+
+**The change.**
+- C also records, per action, the log P of the tokens that name what the step introduces (`factor_lib.name_positions`, tested against the env).
+- **Primary C leaves those tokens out.** The other tokens are still conditional on the canonical names having been written.
+- **The all-token path, as first frozen and as the brief words it, is reported beside it** in the same detail, with the difference shown per group. Both
+  add up exactly per group.
+- Check 6 keeps its frozen, all-token definition, with the other value beside it.
+- Nothing else changes. Only `stage1_dose01_s2`'s C is rerun (about 10 s). No RL end had been read. The coordinator is told, and can pick the other
+  table as the lead without another read.

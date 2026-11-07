@@ -190,9 +190,12 @@ def classify_tag(a: tuple) -> str:
         out_c = {}
         for name, m in c["logp_nats"].items():
             ref = REFS[name]
+            mn = c["logp_name_nats"][name]
             means = [sum(row[i] for row in m) / len(m) for i in range(len(ref.actions))]
+            means_name = [sum(row[i] for row in mn) / len(mn) for i in range(len(ref.actions))]
             tot = [sum(row) for row in m]
-            out_c[name] = {"logp_mean_nats": means, "total_nats_min": min(tot), "total_nats_max": max(tot),
+            out_c[name] = {"logp_mean_nats": means, "logp_name_mean_nats": means_name,
+                           "total_nats_min": min(tot), "total_nats_max": max(tot),
                            "groups": ref.groups}  # fmt: skip
         s["stages"]["C"] = out_c
     s["stats"] = {}

@@ -645,9 +645,25 @@ def run_env(model, tok, items: list[dict], temperature: float = 0.8, max_action:
 
 
 # --------------------------------------------------------------------------------- path scores
+def name_positions(action: list[str]) -> list[int]:
+    """Positions in an action of the tokens that name what the step introduces. The env overrides
+    them (state_env._assign_names), so they are not part of any route; at an attempt's first action the
+    state shows no name at all, so the model cannot know the base (Amendment 1)."""
+    if action[0] != "have":
+        return []
+    _, used = parse_ftoks(action, 3)
+    i = 3 + used + 1  # past ':='
+    if action[i] == "(":
+        return [1, i + 3]
+    if action[i] == "Or.elim":
+        return [1, i + 5]
+    return [1]
+
+
 def score_rows(model, tok, rows: list[tuple[list[int], list[int]]], temperature: float = 0.8,
-               max_elems: int = 2**29) -> list[float]:  # fmt: skip
+               max_elems: int = 2**29, name_pos: list[list[int]] | None = None):  # fmt: skip
     """rows: (state ids, action ids including <eos>) -> log P(action | state) at temperature, in nats.
+    With `name_pos` (positions per row in the action): -> (those totals, the part of each from those positions).
 
     Right-padded full forward with positions from 0, causal by the ALiBi bias, bf16 autocast as in the
     sampler. Rows are grouped by length so the (B, H, T, T) score tensor stays near 1 GB (max_elems)."""
@@ -657,6 +673,7 @@ def score_rows(model, tok, rows: list[tuple[list[int], list[int]]], temperature:
     dev = next(model.parameters()).device
     order = sorted(range(len(rows)), key=lambda i: len(rows[i][0]) + len(rows[i][1]))
     out = [0.0] * len(rows)
+    out_name = [0.0] * len(rows)
     H = model.cfg["n_head"]
     at = 0
     with torch.no_grad():
@@ -686,8 +703,11 @@ def score_rows(model, tok, rows: list[tuple[list[int], list[int]]], temperature:
                 ns, na = len(rows[i][0]), len(rows[i][1])
                 pos = torch.arange(ns - 1, ns + na - 1, device=dev)
                 tg = torch.tensor(rows[i][1], device=dev)
-                out[i] = float(lp[r, pos, tg].sum())
-    return out
+                per = lp[r, pos, tg]
+                out[i] = float(per.sum())
+                if name_pos is not None and name_pos[i]:
+                    out_name[i] = float(per[name_pos[i]].sum())
+    return out if name_pos is None else (out, out_name)
 
 
 def ref_rows(tok, ref: Ref, base: int) -> list[tuple[list[int], list[int]]]:
@@ -717,6 +737,6 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 
 __all__ = ["BOT", "GROUPS", "Attempt", "Ref", "Trace", "build_ref", "classify_dn", "classify_draw",
-           "classify_negi", "classify_pick", "classify_reach", "flags", "ftoks", "has_sigma", "neg",
+           "classify_negi", "classify_pick", "classify_reach", "flags", "ftoks", "name_positions", "has_sigma", "neg",
            "ref_from_json", "ref_rows", "ref_to_json", "replay", "run_env", "score_rows", "shift_action",
            "wilson"]  # fmt: skip
