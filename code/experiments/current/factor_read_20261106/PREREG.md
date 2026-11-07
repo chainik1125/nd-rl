@@ -223,3 +223,30 @@ choosing the whole reductio on T, and "close box" carries only the box closing. 
 as a gain on closing the box only; DN and reach ⊥ as before.
 
 **Name tokens.** The coordinator agreed with Amendment 1: the primary table leaves them out, with the all-token table beside it.
+
+## Amendment 3 (2026-11-07, about 12:15 am PT, by the coordinator, after seeing the results: a matched-compute control; post-hoc)
+
+**Who and why.** The coordinator asked for this after reading the results, under Leon's standing rule for fairness controls. The 1 % lines ended at x 0.41–0.69 and the 0 % and 0.1 % ends at x 4.42–5.94, so the dose comparison is unmatched. Everything here is post-hoc: **no frozen reading is applied to it**, and the frozen tables and code (`analyze.py`, `results/tables.md`, `results/results.json`, `fr_run.py`, `fr_classify.py`, `factor_lib.py`) are not changed. The 21 frozen reads are not touched.
+
+**Checkpoints, 7 (`ckpts_matched.json`).** Same read as the rest: A, B, C at the same settings, noise seed by the frozen rule `seed*1000 + it + 500`. Seed-matched to the 1 % ends: dd1_s0 it 60 x 0.414, dd1_s1 it 60 x 0.454, dd1_s2 it 90 x 0.687.
+
+| tag | file | where | x | against | lr scale at it | group |
+|---|---|---|---|---|---|---|
+| `m_dko_s0_it60` | `dko_s0_it60_snap.pt` | serrano | 0.417 | dd1_s0 | 0.5 | matched |
+| `m_dko_s1_it70` | `dko_s1_it70_snap.pt` | temescal | 0.479 | dd1_s1 | 0.5 | matched |
+| `m_dko_s2_it100` | `dko_s2_it100_snap.pt` | ynez | 0.712 | dd1_s2 | 0.5 | matched |
+| `m_dd01_s0_it60` | `dd01_s0_it60_snap.pt` | serrano | 0.440 | dd1_s0 | 0.5 | matched |
+| `m_dd01g0_s2_it90` | `dd01g0_s2_it90_snap.pt` | ynez | 0.663 | dd1_s2 | 1.0 | **guard off, one run** |
+| `e_dd01_s1_it35` | `dd01_s1_it35_rolling.pt` | ynez | 0.268 | dd1_s1 | 1.0 | **earliest available, x well below match** |
+| `e_dd01_s2_it25` | `dd01_s2_it25_rolling.pt` | ynez | 0.199 | dd1_s2 | 0.5 | **earliest available, x well below match** |
+
+- **x.** From `numbers.json`'s curve, except it 35 and it 25, which have no read there: those are the same sum over the line's merged metrics rows, between the curve's neighbours (0.233–0.304 and 0.158–0.239). `make_matched.py` recomputes all seven from metrics rows and asserts they equal the curve.
+- **The pilot's x comes from the pilot's data.** It 90 is the nearest snapshot to x 0.687 (0.663; it 100 is 0.735), and 0.663 is recomputed from `collected/ynez/dd01g0_s2/seg1/metrics.jsonl`, its own rows.
+- **Not matchable.** dd01_s1's and dd01_s2's later snapshots were on the deleted pods; on serrano only their alarm ends are backed up. Both reads are kept out of every matched mean. The pilot is one run, guard off, also out of the means.
+- **Matched x is not matched lr.** At the snapshot the guard had already halved the lr on all four guarded matched lines: from x 0.417 on dko_s0, 0.466 on dko_s1, 0.380 on dko_s2 (47 % of its x), 0.328 on dd01_s0 (26 % of its x). `dko_s0_it60_snap.pt` is the state just after that line's first rollback, restored to it 55, and x 0.417 counts the iterations rolled back. On the 1 % side, dd1_s1 had one rollback at it 59. Noted, not corrected.
+
+**Machines.** ynez GPU 0 only, same gates and lock (`fr_run.py`). This overrides "no temescal" for one thing: copying `dko_s1_it70_snap.pt` read-only with an md5 check. Nothing else is done on temescal.
+
+**Bounds.** Its own ledger (`matched/gpu_ledger.jsonl`), hard cap 3,600 s of GPU time, `timeout` and the watchdog. One checkpoint first, then the projection; if it passes the cap, message the coordinator before going on.
+
+**What is reported (`matched.py`, descriptive only).** Matched 0 % and 0.1 % beside the 1 % ends: first-32 solved, pick on T, any-formula reductio at the pick step, reach ⊥, DN, forced-pick solves, names per attempt, `done` endings, and C's pick by schema. The claim "0 % ends solve from a forced pick about as often as 1 % ends" is judged at matched x, and reported as it falls. New tables from existing data go in `posthoc.py`: (k) C's name-free pick by schema, (l) σ among accepted training proofs by iteration window, (m) the any-formula reductio at the pick step.
