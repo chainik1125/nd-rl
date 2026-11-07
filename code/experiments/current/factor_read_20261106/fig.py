@@ -2,9 +2,10 @@
 
     code/.venv/bin/python -m code.experiments.current.factor_read_20261106.fig --results R.json --out BASE
 
-Primary C (Amendment 1: without the name tokens the env overrides), mean per theorem over the 106. One marker per
-seed; a tick at the mean of the dose's three seeds. The guard-off pilot is one run: hollow, beside the 0.1 % seeds, not in
-their mean.
+Top row: C (Amendment 1: name-free), mean per theorem over the 106, adds to the path total. Bottom row: B, sampled from each
+boundary, pooled over the 106. One marker per seed; a tick at the mean of the dose's three seeds. Hollow in the bottom row: 0 of
+6,784 at base or at the end, so that value is bounded by the floor, not measured. The guard-off pilot is one run: a diamond beside
+the 0.1 % seeds, not in their mean. dko_s1, dd01_s1 and dd01_s2 are alarm checkpoints.
 """
 
 # ruff: noqa: E501
@@ -19,7 +20,7 @@ from matplotlib.lines import Line2D
 from code.ndbench.figures import style as S
 
 GROUPS = ("setup", "pick", "reach", "negi", "dn", "finish")
-GLAB = ("setup", "pick, writes ¬¬T", "reach ⊥", "close box", "DN", "finish")
+GLAB = ("setup", "pick + ¬¬T", "reach ⊥", "close box", "DN", "finish")
 LINES = {
     "0%": ["dko_s0", "dko_s1", "dko_s2"],
     "0.1%": ["dd01_s0", "dd01_s1", "dd01_s2"],
@@ -29,6 +30,8 @@ PILOT = "dd01g0_s2"
 OI = S.OKABE_ITO
 SEED = [(OI["blue"], "o"), (OI["vermillion"], "s"), (OI["bluish_green"], "^")]
 OFF = (-0.2, 0.0, 0.2)
+STAGES = ("pick", "reach", "negi", "dn")
+SLAB = ("pick + ¬¬T", "reach ⊥", "close box", "DN")
 
 
 def main() -> None:
@@ -38,9 +41,9 @@ def main() -> None:
     a = ap.parse_args()
     res = json.loads(Path(a.results).read_text())["lines"]
     with S.paper_style():
-        fig = S.new_figure(S.FULL_W, 2.3)
-        axes = fig.subplots(1, 3, sharey=True)
-        for ax, (dose, lines), letter in zip(axes, LINES.items(), "abc", strict=True):
+        fig = S.new_figure(S.FULL_W, 4.0)
+        axes = fig.subplots(2, 3, sharey="row", sharex="row")
+        for ax, (dose, lines), letter in zip(axes[0], LINES.items(), "abc", strict=True):
             ax.axhline(0, color=S.REF, lw=0.6, zorder=1)
             for x, g in enumerate(GROUPS):
                 vals = []
@@ -65,9 +68,41 @@ def main() -> None:
             ax.set_xticklabels(GLAB, rotation=40, ha="right")
             ax.set_xlim(-0.6, len(GROUPS) - 0.4)
             S.light_grid(ax, "y")
-            tot = sum(res[ln]["C"]["total"] for ln in lines) / 3
-            S.panel_title(ax, letter, f"{dose} dose (mean total {tot:+.1f})")
-        axes[0].set_ylabel("Δlog10 P, base to RL end\n(mean per theorem)")
+            S.panel_title(ax, letter, f"C, one path: {dose} dose")
+        axes[0][0].set_ylabel("Δlog10 P, base to RL end\n(mean per theorem)")
+        for ax, (dose, lines), letter in zip(axes[1], LINES.items(), "def", strict=True):
+            ax.axhline(0, color=S.REF, lw=0.6, zorder=1)
+            for x, st in enumerate(STAGES):
+                vals = []
+                for k, ln in enumerate(lines):
+                    b = res[ln]["B"][st]
+                    v = b["delta_pooled"]
+                    vals.append(v)
+                    col, mk = SEED[k]
+                    if b["pooled_at_floor"]:
+                        ax.plot(x + OFF[k], v, mk, mfc="none", mec=col, mew=0.7, ms=3.4, zorder=3)
+                    else:
+                        ax.plot(
+                            x + OFF[k], v, mk, color=col, ms=3.6, mec=S.WHITE, mew=0.3, zorder=3
+                        )
+                ax.plot([x - 0.3, x + 0.3], [sum(vals) / 3] * 2, color=S.INK, lw=0.9, zorder=2)
+                if dose == "0.1%" and PILOT in res:
+                    ax.plot(
+                        x + 0.38,
+                        res[PILOT]["B"][st]["delta_pooled"],
+                        "D",
+                        mfc="none",
+                        mec=S.INK,
+                        mew=0.6,
+                        ms=3.2,
+                        zorder=3,
+                    )
+            ax.set_xticks(range(len(STAGES)))
+            ax.set_xticklabels(SLAB, rotation=40, ha="right")
+            ax.set_xlim(-0.6, len(STAGES) - 0.4)
+            S.light_grid(ax, "y")
+            S.panel_title(ax, letter, f"B, all paths: {dose} dose")
+        axes[1][0].set_ylabel("Δlog10 rate, base to RL end\n(pooled over the 106)")
         hs = [
             Line2D(
                 [],
@@ -82,7 +117,7 @@ def main() -> None:
             )
             for i, (c, m) in enumerate(SEED)
         ]
-        hs.append(Line2D([], [], color=S.INK, lw=0.9, label="mean of the 3 seeds"))
+        hs.append(Line2D([], [], color=S.INK, lw=0.9, label="mean of 3 seeds"))
         if PILOT in res:
             hs.append(
                 Line2D(
@@ -94,13 +129,23 @@ def main() -> None:
                     mec=S.INK,
                     mew=0.6,
                     ms=3.2,
-                    label="guard-off pilot (one run, seed 2)",
+                    label="guard-off pilot (one run)",
                 )
             )
-        fig.legend(
-            handles=hs, loc="lower center", ncol=len(hs), frameon=False, bbox_to_anchor=(0.5, -0.02)
+        hs.append(
+            Line2D(
+                [],
+                [],
+                ls="none",
+                marker="o",
+                mfc="none",
+                mec=S.REF,
+                mew=0.7,
+                ms=3.4,
+                label="at the floor",
+            )
         )
-        fig.subplots_adjust(bottom=0.33)
+        fig.legend(handles=hs, loc="outside lower center", ncol=len(hs), frameon=False)
         S.save(fig, Path(a.out))
         S.close(fig)
 

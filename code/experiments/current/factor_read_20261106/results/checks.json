@@ -1,0 +1,126 @@
+{
+ "check1": {
+  "batch16_seed7": {
+   "n": 64,
+   "byte_identical": true,
+   "n_differ": 0,
+   "env_end_equal": true,
+   "env_end": {
+    "syntax": 44,
+    "done": 20
+   },
+   "prompt_tokens_equal": true,
+   "waves_equal": true,
+   "n_finished_proofs": 20
+  },
+  "batch64_seed2500": {
+   "n": 96,
+   "byte_identical": true,
+   "n_differ": 0,
+   "env_end_equal": true,
+   "env_end": {
+    "syntax": 78,
+    "done": 18
+   },
+   "prompt_tokens_equal": true,
+   "waves_equal": true,
+   "n_finished_proofs": 18
+  }
+ },
+ "check2": {
+  "n_boundaries": 424,
+  "n_bases_seen": 33,
+  "differ_from_decompose": 0,
+  "differ_from_ref_rows": 0,
+  "n_sampled_replays": 70,
+  "differ_sampled_replay": 0
+ },
+ "check3": {
+  "forward_vs_cached": {
+   "n": 256,
+   "max_abs_nats": 0.2622364301230533,
+   "mean_abs_nats": 0.017782343414155327,
+   "max_abs_prob": 0.020350111002008453
+  },
+  "steps": [
+   {
+    "theorem": "la_transfer_1419",
+    "action_index": 8,
+    "group": "dn",
+    "k": 4000,
+    "hits": 312,
+    "freq": 0.078,
+    "p": 0.07989428369707217,
+    "se": 0.004286933260782232,
+    "z": -0.441873848235866
+   },
+   {
+    "theorem": "la_transfer_1600",
+    "action_index": 6,
+    "group": "dn",
+    "k": 4000,
+    "hits": 848,
+    "freq": 0.212,
+    "p": 0.20115204773162274,
+    "se": 0.00633817602755315,
+    "z": 1.711525874513319
+   },
+   {
+    "theorem": "la_transfer_1086",
+    "action_index": 7,
+    "group": "reach",
+    "k": 4000,
+    "hits": 2029,
+    "freq": 0.50725,
+    "p": 0.5068005274822228,
+    "se": 0.007904962884573898,
+    "z": 0.05685953550196697
+   }
+  ]
+ },
+ "gpu_secs_1_2_3": 42.17933797836304,
+ "host": "ynez",
+ "check4": {
+  "known": "/scratch/cowifornia/nd-rl/knockout_danbase/collected/ynez/dd01g0_s2/seg1/reads/it0000.json",
+  "noise_seed_known": 2500,
+  "noise_seed_here": 2500,
+  "batch_known": 128,
+  "batch_here": 128,
+  "host_known": "ynez",
+  "host_here": "ynez",
+  "strict_solved_known": [
+   "la_transfer_10",
+   "la_transfer_2256"
+  ],
+  "strict_solved_here": [
+   "la_transfer_10",
+   "la_transfer_2256"
+  ],
+  "first32_known": [
+   "la_transfer_10"
+  ],
+  "first32_here": [
+   "la_transfer_10"
+  ],
+  "n_ok_equal": {
+   "la_transfer_10": true,
+   "la_transfer_2256": true
+  },
+  "proofs_byte_identical": true,
+  "env_end_known": {
+   "syntax": 4131,
+   "done": 2652,
+   "step_cap": 1
+  },
+  "env_end_here": {
+   "syntax": 4131,
+   "done": 2652,
+   "step_cap": 1
+  },
+  "prompt_tokens_known": 3371032,
+  "prompt_tokens_here": 3371032,
+  "waves_known": 407,
+  "waves_here": 407,
+  "pass": true
+ }
+}
