@@ -36,6 +36,28 @@ papers:
 
 # How novel are our Olmo create-vs-elicit results? (run `olmo-novelty`, 2026-11-07)
 
+> **Reading copy (librarian, 2026-11-07).** This is the fork's `olmo_novelty/REVIEW.md` (`dan-pandori/nd-takehome`,
+> branch `dan_olmo-novelty`, DONE `60f33d7d`) with the review's corrections applied, each marked *[review]*; notes of
+> the librarian's own are marked *[librarian]*, including two ledger ids the librarian looked up. The review
+> ([`review_olmo-novelty.md`](https://github.com/dan-pandori/nd-takehome/blob/d2d44fd4/review_olmo-novelty.md))
+> recomputed the correlation with its own code, re-checked all 748 ledger quotes with its own normaliser, re-fetched
+> 14 key sources from arXiv (464 of the 465 quotes citing them are in the fresh copies) and ran its own blind novelty
+> search (three agents, 31 papers). No hard-constraint violation, nothing quarantined. In the review's verdict the
+> correlation, the loose-credit, gain-share and compute figures, the ledger, the screening counts, §7's scoring of
+> every pre-registered expectation and the main novelty conclusions **stand**, and nothing this REVIEW states as a
+> finding is unsupported. The weakest claim is C4's "novel", which rests on a narrow definition of the measurement.
+> The corrections:
+> - C4's closest IF neighbour, Wei's 73.5 % shortcut audit, is named in bottom line 1;
+> - C2 gets the Olmo 3 report's Table 14 for the same model pair, with the grade split (Matrix B);
+> - C5's ranking is split: its token-cap half replicates, its brevity half extends (Matrix B, §4, §7);
+> - DT-16 is relabelled as the same RL run's pass@1 gains (Matrix B, §3 Q4);
+> - the three hand-reach prompt sets are named (§2);
+> - minor: "within 512" becomes "within 383" (§6); "without KL" is cited (§2); §3's parenthesis is closed; one
+>   sentence says that ProRL's own R² carries the same bounded-difference artefact (§2).
+>
+> The REVIEW was 3,000 words before the marks. The [README](README.md) lists every change and the corrections to
+> files that carry no marks.
+
 Models (`claims_C1-C8.md`): `dpo` = Olmo-3-32B-Think-DPO (32 B; base → Think SFT → DPO); `s0100` / `s0750` /
 `s2300` = Olmo-3.1-32B-Think RL steps; C1 = Olmo-3-1025-7B base vs Olmo-3.1-7B-RL-Zero-Math. No proofs are judged.
 200 sources screened (176 new to the earlier reviews), 23 in depth, then a fresh search against every "novel" label.
@@ -47,7 +69,10 @@ Claude subagent readers plus the executor's confirmation (C1: the reviewer's six
 1. **Novel as far as we found, on instruction following (IF) only:** C3's per-prompt IFBench reach at k = 256 (≈ 20 %
    of 218 prompts, RL side confirmed on fresh draws, hand-gated) and C4's gaming audit of the successes that decide
    it. Neighbours: aggregate IFBench pass@k to 1,024 [IF-36], per-prompt IF coverage at k = 32 [IF-47], lone-win
-   audits in physics [IL-99], a Fail→Pass quality drop at k ≈ 1 [IF-60].
+   audits in physics [IL-99], a Fail→Pass quality drop at k ≈ 1 [IF-60]. *[review]* C4's closest IF neighbour is Wei
+   et al.'s audit (2608.00220, App. C.2): an LLM judge finds that 73.5 % of an IF-RLVR checkpoint's verifier-passed
+   rollouts "rely on superficial shortcuts" [IF-55], and shortcut responses rise from 4.5 % under the base policy to
+   40.1 % at the final checkpoint (*[librarian]* [IF-54]). That is base against RL, though not at reach.
 2. **C1 replicates Yue et al.'s reach result under RL's checker** (10 of 17 resolutions sound by hand) and disputes
    the Olmo 3 report's pass@32 reading [EX-1] on the 3.1 successor run. "Nothing lost" is weak: a locked 1–3 % minority
    [EX-15, EX-16] predicts ≈ 1–3 reverse problems among 83 (our arithmetic), though its 7B pairs show no supported loss
@@ -88,10 +113,10 @@ GPU-hours; 2,300 steps); start budget k 256–512 (1,024 on 10 prompts); RL's ch
 | claim | closest prior: relation | ours alone |
 |---|---|---|
 | C1 RL-Zero AIME | Yue: **replicates** reach (on most problems "the base model can produce at least one correct CoT" [EX-12]), **contradicts** on narrowing, other model and data (their pass@256 falls with steps [DT-108]). What Outcome RL Buys: replicates (87 of 121 lone wins recovered [IL-101]). Olmo 3 report: ours **contradicts** its pass@32 inference (3.1 successor, RL's checker; the small-k gain reproduces) [EX-1, EX-2]. Wang: extends (same 7B base vs the Olmo 3 RL-Zero release; a two-token cue lifts MATH-500 pass@1 42 → 78 %, RL 75 % [GG-56]) | hand-read large-k resolutions; reverse 0 at k ≤ 512 |
-| C2 32B Think AIME | ProRL's maths "Diminish" [PR-55], What Outcome RL Buys (reach ≤ 2.1 pp [IL-98]): replicate; truncation "can create, mask, or reverse" a crossover [IL-154] (our candidate: 43 % of `dpo` tries capped) | the 32B SFT + DPO start; three grades |
-| C3 IFBench reach | HiR: replicates direction (aggregate [IF-34]; values figure only); ProRL IFEval: extends (continuous score; ≈ +0.03 at k 128, figure); Wei: extends (maths-only RL *lowers* per-prompt IF best@32 [IF-45]); Leash: contradicts in kind, outside IF (ProRL v2 +48 / −175 [IL-17]); Guru [DT-40, DT-41], Olmo 3 (+4 AIME, +20 IFBench [DT-16]): domain dependence replicates | per-prompt reach at k 256, confirmed, hand-gated; ≈ 20 % RL-only |
+| C2 32B Think AIME | *[review]* Closest prior result: the Olmo 3 report's own Table 14 for the same pair, AIME 2025 pass@1 DPO 70.7 → Olmo 3.1 Think 78.1 (+7.4; AIME 2024 76.0 → 80.6; its grade "EM Flex" with Minerva extraction, T 0.6, top-p 0.95, 32 samples; ours T 1, top-p 1). By the final stated answer our fixed phase gives `dpo` 0.667 → `s2300` 0.738 on AIME 2025 (+7.1), which reproduces the lab's gain. C2's +3.0 (0.716 → 0.746) is RL's verifier on AIME 2025–26: that verifier's leniency (`dpo` 0.696 against 0.667 by final answer on AIME 2025) and the 2026 problems (+1.3 by RL's verifier, +3.4 by final answer) make it small. The reach claim is unaffected. Also: ProRL's maths "Diminish" [PR-55], What Outcome RL Buys (reach ≤ 2.1 pp [IL-98]): replicate; truncation "can create, mask, or reverse" a crossover [IL-154] (our candidate: 43 % of `dpo` tries capped) | the 32B SFT + DPO start; three grades |
+| C3 IFBench reach | HiR: replicates direction (aggregate [IF-34]; values figure only); ProRL IFEval: extends (continuous score; ≈ +0.03 at k 128, figure); Wei: extends (maths-only RL *lowers* per-prompt IF best@32 [IF-45]); Leash: contradicts in kind, outside IF (ProRL v2 +48 / −175 [IL-17]); Guru [DT-40, DT-41]~~, Olmo 3 (+4 AIME, +20 IFBench [DT-16])~~: domain dependence replicates; *[review]* Olmo 3's +4 on AIME and +20 on IFBench [DT-16] are the same RL run's 750 → 2,300 extension (Olmo 3 → 3.1), measured as benchmark pass@1: a domain contrast in RL's pass@1 gains on our own run, not reach and not an independent replication | per-prompt reach at k 256, confirmed, hand-gated; ≈ 20 % RL-only |
 | C4 gaming | lone-win audits in physics (3.5 % hold up [IL-99]; robust cells "about three fifths are answer form" [IL-105]); human-ruled audit of code-RL false positives, 47.57 % wrong [EX-11]; Wei 73.5 % shortcuts [IF-55]; Yoon: Fail→Pass prompts lose judged quality (k ≈ 1, own runs) [IF-60]; IFBench over-optimisation [IF-18]: phenomenon replicated in IF, audit design outside it | gaming among reach-deciding IF successes; reach re-counted |
-| C5 brevity, token cap | What Outcome RL Buys [IL-95, IL-96], crossovers [IL-154], IF-RLVR answers of 210 tokens [IF-22], SciIF (RL "reduces preambles and meta-commentary" [NV-13]): **replicate** | the IF-reach version |
+| C5 brevity, token cap | What Outcome RL Buys [IL-95, IL-96], crossovers [IL-154], IF-RLVR answers of 210 tokens [IF-22], SciIF (RL "reduces preambles and meta-commentary" [NV-13]): ~~**replicate**~~ *[review]* the token-cap half **replicates** (finishing [IL-95, IL-96], truncation [IL-154]); the brevity half **extends**: the IF sources show that RL answers are short [IF-22] and drop preambles [NV-13], but neither ties brevity to the RL-only prompts | the IF-reach version |
 | C6 failures substantive | ProRL's base writes \boxed{} not the tags [PR-66]; after Leash's fixes it recovers dice [IL-32], partly boxnet [IL-25]: those zeros were partly format. SciIF's pre-RL IFEval failures are "conversational packaging and elaboration" [NV-12], like our IFEval (C5): no IFBench precedent | blind failure reading on IFBench reach prompts (93 %; unreviewed) |
 | C7 methods | resampling nulls (a frozen model "expands" 7 of 25 AIME problems [GG-71]); guessing filters [GG-47]; Cover@τ, no reasoning check [GG-10]; public-checkpoint pass@256 [DT-88]; Olmo 3.1 checkpoints for behaviour [DT-97]: **extends** | the combination; reach at three public steps of a 32B run |
 | C8 olmo-iffu | test 1 replicates finishing [IL-96]; test 2 extends cue elicitation [GG-56] and GEPA's IFBench prompts (38.61; GRPO 35.88, start 36.90 [NV-7, NV-8]); test 3: first per-prompt larger-k test on IF (HiR's aggregate reaches 1,024) | tests 2–4 on reach prompts |
@@ -100,7 +125,7 @@ GPU-hours; 2,300 steps); start budget k 256–512 (1,024 on 10 prompts); RL's ch
 
 | | ProRL v1 (+ v2 blog, BroRL) | ours |
 |---|---|---|
-| RL | R1-Distill-Qwen-1.5B [PR-27]; > 2k steps; KL + resets; 10k IF prompts, continuous reward [PR-11]; BroRL reports pass@1 only [PR-105] | 32B SFT + DPO; 2,300 steps of OlmoRL without KL; maths, code, IF, chat |
+| RL | R1-Distill-Qwen-1.5B [PR-27]; > 2k steps; KL + resets; 10k IF prompts, continuous reward [PR-11]; BroRL reports pass@1 only [PR-105] | 32B SFT + DPO; 2,300 steps of OlmoRL without KL *[review]* (*[librarian]* [PR-137]); maths, code, IF, chat |
 | largest k | 256 samples; claims at 128 [EX-8, PR-31] | 256 / 512 / 1,024 for the start |
 | "base fails entirely" | some Reasoning Gym tasks at k ≤ 256 [PR-44] | 49 strict / 42 hand IFBench prompts at 256 |
 | "largest where weakest" | "significant negative correlation" [PR-32]; no coefficient in the text (the legend's R² = 0.879 is image-only) | ρ = −0.50, weaker than the null below |
@@ -119,7 +144,9 @@ x = `dpo` pass@1 on half its draws; gain = RL pass@1 minus `dpo` on the other ha
 gain is on the 107 prompts where `dpo` has 0 of 16. *Our reading:* shuffling RL's rates across prompts (RL unrelated to
 the start) gives a stronger negative ρ, because a difference of bounded rates falls with the start unless RL tracks it
 closely (`s0100`: ρ(x, RL) = +0.88, ρ = +0.01). At `s2300` RL's rate rises with the start's (+0.50), so the observed ρ
-is weaker than the null. A maths re-analysis of ProRL fits a log-odds slope instead (0.84 [PR-118]).
+is weaker than the null. A maths re-analysis of ProRL fits a log-odds slope instead (0.84 [PR-118]). *[review]* ProRL's own Fig. 3 regresses a
+pass@128 *difference* on its base value (legend: "Linear regression (R² = 0.879)"), so the same bounded-difference
+artefact applies to its R².
 
 **Does IFBench reach survive an Invisible-Leash-style objection?** That objection re-grades the base format-tolerantly
 and raises k: Leash samples 4,096–8,192 on maths, 1,024–2,048 on other non-maths sets, and up to 16,384 on Reasoning
@@ -132,15 +159,27 @@ set is typos [IL-66]); nor does RL Squeezes, which reads RL on maths and code as
   the 10 are hint-elicitable, 33 of the 43 hand-reach prompts are untested, and k > 1,024 is untried.
 - **Prompt format**, the analogue of Leash's clarified prompts: the 60-word hint elicits 12 of 42 IFBench reach
   prompts; 2 survive both the hint and 1,024 draws.
+- *[review]* **Which hand-reach set.** Three are in use. "42 hand" (the table above) is olmo-ifomega's executor's set
+  (`verdict.csv`). "33 of the 43" and §6's "26 of 43" use olmo-ifomega's reviewer's 43 (40 shared with the
+  executor's), and "33" is 43 minus test 3's 10. "12 of 42" uses olmo-iffu's hint set: the reviewer's 43 minus
+  `ifbench_281` (39 shared with `verdict.csv`). On the executor's 42, 34 are untested at 1,024, not 33, because test 3
+  included `ifbench_166` and `ifbench_252`. Objection 3's "within ± 2" covers the spread. *[librarian]* §5's "20 of 42"
+  is the executor's set too (the fork's `numbers.md`, § olmo-ifomega, "Per-constraint analysis": "The 42 hand-reach
+  prompts' binding constraints").
 
 ## 3. The other questions
 
 - **Q3, an IF boundary at large k:** refuted in the aggregate (HiR, IFBench to 1,024 [IF-36]; ProRL, IFEval to 256
-  [IF-76]; confirmed per prompt at k ≥ 256 (the closest per-prompt study stops at k = 32
+  [IF-76])*[review]*; confirmed per prompt at k ≥ 256 (the closest per-prompt study stops at k = 32
   [IF-47]).
 - **Q4, domains within one run:** precedented: Guru's 7B AIME curve crosses its base while Zebra expands [DT-40,
-  DT-41]; Zhai's agent RL gains +4 on trained tasks, none on MATH-500 [DT-26–DT-28]; Olmo 3's scores move +4 on AIME,
-  +20 on IFBench [DT-16].
+  DT-41]; Zhai's agent RL gains +4 on trained tasks, none on MATH-500 [DT-26–DT-28]; ~~Olmo 3's scores move +4 on AIME,
+  +20 on IFBench [DT-16]~~. *[review]* On our own run, the 750 → 2,300 extension (Olmo 3 → 3.1) moves benchmark pass@1
+  by +4 on AIME and +20 on IFBench [DT-16]: a domain contrast in RL's pass@1 gains, not in reach, and not independent
+  evidence. Further independent within-run evidence, from the review's fresh search (not screened by the run):
+  AceReason-Nemotron 1.1 (arXiv 2506.13284), one SFT-start run whose AIME gain falls from 8.3 % at K = 8 to 1.2 % at
+  K = 128 while code keeps +5 % at K = 128 (*[librarian]* from the review's `review_onv/fresh/RC.tsv` and the paper's
+  §4.5.7: a 7B SFT start trained from Qwen2.5-Math-7B; the AIME figures are AIME 2025, the code figure LiveCodeBench v6).
 - **Q5, gaming and grading:** no audit of gaming among reach-deciding successes on an IF task; Cover@τ makes "models that rely on random guessing degrade rapidly"
   [GG-2] but checks no reasoning [GG-10]. CoT-pass@k uses an LLM judge [GG-12], which in an audit left 71 % of wrong
   answers accepted [GG-26].
@@ -153,8 +192,9 @@ set is typos [IL-66]); nor does RL Squeezes, which reads RL on maths and code as
 
 1. **Novel** (as far as found; on IF only): C3, per-prompt confirmed reach at k = 256; C4, gaming among the
    reach-deciding successes; C6, the failure reading (unreviewed).
-2. **Extends:** C8 tests 2–4; C7, including reach tests at three public steps of a 32B run (a 1B precedent [DT-88]).
-3. **Replicates:** C1's reach result; C2 (no maths reach); C5 and C8 test 1.
+2. **Extends:** C8 tests 2–4; C7, including reach tests at three public steps of a 32B run (a 1B precedent [DT-88]);
+   *[review]* C5's brevity half.
+3. **Replicates:** C1's reach result; C2 (no maths reach); ~~C5~~ *[review]* C5's token-cap half; and C8 test 1.
 4. **Contradicted, weakly:** C1's "nothing lost", by narrowing on other starts and data (83 problems; the 7B pairs show
    no supported loss [EX-14]). C1 in turn contradicts the Olmo 3 report's inference [EX-1].
 
@@ -181,7 +221,7 @@ set is typos [IL-66]); nor does RL Squeezes, which reads RL on maths and code as
 > questions and loses 175 [@wuInvisibleLeashWhy2025]; losses outnumber entries along training
 > [@yuanUnderstandingDiversityCollapse2026; @zhouWhenRLVRShrinks2026]. Across 20 released pairs, where a base often runs out of tokens, most of RL's gain is
 > finishing within the budget, and reach adds at most 2.1 points [@yangWhatOutcomeRL2026]. Our Olmo 3.1 7B RL-Zero result
-> agrees under RL's checker: within 512 samples the base is credited on every RL-only AIME solve, and 10 of 17
+> agrees under RL's checker: within ~~512~~ *[review]* 383 samples the base is credited on every RL-only AIME solve, and 10 of 17
 > resolutions read as sound, which disputes the Olmo 3 report's reading of a pass@32 gain as going "beyond its
 > initial capabilities" [@olmoOlmo32025].
 >
@@ -226,5 +266,5 @@ Scored against `preregistration/olmo-novelty.md` (664aaa93). **Correlation.** C-
 **Literature.** L-1 **failed** by its own falsifier (HiR's aggregate pass@k at k ≥ 256); its per-prompt clause held.
 L-2 held (no coefficient in the text; the base recovers fully on dice, partly on boxnet). L-3 and L-4 held (IF gaming audits
 exist, none at reach; physics has lone-win audits). L-5 partly held ("extends"); its 0.6 clause failed
-(OLMo-2-1B, pass@256). L-6 partly held: C3 and C4 are novel only on IF and per prompt; C5 ranks "replicates", not "extends". The
+(OLMo-2-1B, pass@256). L-6 partly held: C3 and C4 are novel only on IF and per prompt; ~~C5 ranks "replicates", not "extends".~~ *[review]* C5's token-cap half ranks "replicates" and its brevity half "extends"; L-6's "partly held" stands either way. The
 fresh search (25 sources, 24 new) knocked down no further label.
