@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # The full read on ynez GPU 0, detached, under `timeout` and the watchdog (STALL / EXIT / OVERRUN).
 # fr_run.py gates on gpu.py before each stage, holds the mkdir lock, and stops at the GPU budget by its ledger.
-# Usage (on ynez): launch_full.sh EXPECTED_HOURS
+# Usage (on ynez): launch_full.sh EXPECTED_HOURS [TAGS]
 set -u
 source /scratch/cowifornia/nd-rl/factor_read/code/env.sh
 cd "$FR/code" || exit 1
 EXPECTED=${1:-2}
-TAGS=ko_s0,ko_s1,ko_s2,dose01_s0,dose01_s1,dose01_s2,dose1_s0,dose1_s1,dose1_s2,dko_s0,dko_s1,dko_s2,dd01_s0,dd01_s1,dd01_s2,dd1_s0,dd1_s1,dd1_s2,dd01g0_s2
+TAGS=${2:-ko_s0,ko_s1,ko_s2,dose01_s0,dose01_s1,dose01_s2,dose1_s0,dose1_s1,dose1_s2,dko_s0,dko_s1,dko_s2,dd01_s0,dd01_s1,dd01_s2,dd1_s0,dd1_s1,dd1_s2,dd01g0_s2}
 USED=$("$PY" -c "
 import json,os
 p='$FR/gpu_ledger.jsonl'

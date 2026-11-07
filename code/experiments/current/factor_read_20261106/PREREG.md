@@ -194,3 +194,32 @@ direction with no effect on proofs, and a group's Δ would then carry it.
 - Check 6 keeps its frozen, all-token definition, with the other value beside it.
 - Nothing else changes. Only `stage1_dose01_s2`'s C is rerun (about 10 s). No RL end had been read. The coordinator is told, and can pick the other
   table as the lead without another read.
+
+## Amendment 2 (2026-11-06, about 9:50 pm PT, by the coordinator: the checkpoint list was wrong; no RL-end result had been read or seen)
+
+**Who and why.** The coordinator corrected the brief: the list came from `$KD/backup`, which is stale for dko_s0 and dko_s1. This is a correction of the list, not a
+response to any result. When it arrived the full read was on the first base, so no RL end had been read, and the coordinator has seen no RL-end results.
+
+**Primary RL ends for these two lines.**
+- dko_s0: `$KD/runs/dko_s0/seg6/ckpts/dko_s0_it580_snap.pt`, it 580 of 580, x_dan 5.07, md5 934e2d27… (a model-only snapshot).
+- dko_s1: `$KD/runs/dko_s1/seg4/ckpts/dko_s1_it676_alarm.pt`, it 676 of 676, x_dan 5.93, md5 063b8dea…, **an alarm checkpoint**.
+
+Same read, same settings, same gates, within the same 3 GPU-h cap. Noise seeds follow the frozen rule: `n` = 1080 and 2176.
+
+**Secondary.** The it 500 and it 630 reads are kept, labelled `dko_s0_it500` and `dko_s1_it630`. They are never in a dose mean. Their reads are written under the old tags and
+renamed when that process ends. So 21 checkpoints in all: 9 bases and 12 RL ends, of which 9 are primary, 1 the pilot and 2 secondary.
+
+**x_dan.** Where a checkpoint is at its line's last iteration, x_dan now comes from the line's last row rather than the latest read, which changes dd01_s2 from 5.60 to 5.63.
+
+**The other eight RL ends against `last_iter`.** dko_s2, dd01_s1 and dd01_s2 are at the last iteration. Short: dd01_s0 695 of 696, dd1_s0 60 of 64, dd1_s1 60 of 63, dd1_s2 90 of 94, the pilot
+290 of 293. None has a later checkpoint on serrano or ynez, so they stay, and the coordinator is told.
+
+**Group labels (the coordinator's instruction).** Groups are named by what their tokens are. The JSON keys stay as they were.
+- `pick` is **"pick (opens box, writes ¬¬T)"**: `have x : ( ¬ ( ¬ T ) ) := ( fun ( y : ( ¬ T ) ) => by`.
+- `negi` is **"close box"**: `exact e` alone, naming the box's last line. It writes no formula, and the env renders the rest.
+
+**What this does to the reading.** Assuming ¬T and stating ¬¬T are one decision in this env, inside the pick action. So pick and NEGI cannot be read as separate decisions. A rise in "pick" is a rise in
+choosing the whole reductio on T, and "close box" carries only the box closing. The frozen reading is worded accordingly: pick ≥ 50 % reads as selecting the reductio on T; close box ≥ 50 % reads
+as a gain on closing the box only; DN and reach ⊥ as before.
+
+**Name tokens.** The coordinator agreed with Amendment 1: the primary table leaves them out, with the all-token table beside it.
