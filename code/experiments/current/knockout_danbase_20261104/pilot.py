@@ -52,7 +52,8 @@ def sigma_rows(line: str, segs: list[dict]) -> dict[int, dict]:
 
 
 def at_round(rows: list[dict], v: dict, r: int, xr: float, xp: float, sig: dict | None) -> dict:
-    upto = [q for q in rows if q["x"] <= xr]
+    # a line that has not run to his x_r has no value there
+    upto = [q for q in rows if q["x"] <= xr] if rows and rows[-1]["x"] >= xr else []
     m = next((q for q in v["matched"] if q.get("his_x") == xr), None)
     alarms: dict[str, int] = {}
     for q in upto:

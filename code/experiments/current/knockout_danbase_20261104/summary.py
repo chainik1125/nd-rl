@@ -3,7 +3,7 @@
     python3 summary.py      # rewrites the text between <!-- AUTO:name --> and <!-- /AUTO:name -->
 
 Sections: `lines` (one row per line), `dan` (his EI ladders on the same bases), `guard` (the
-learning-rate cuts in x, from guard.py), `compute`.
+learning-rate cuts in x, from guard.py), `pilot` (Amendment 2, from pilot.py), `compute`.
 """
 
 # ruff: noqa: E501
@@ -108,6 +108,11 @@ def guard_table(N: dict) -> str:
     return "\n".join(out)
 
 
+def pilot_table() -> str:
+    """Amendment 2's table, from pilot.py's pilot.md (the table and the two lines after it)."""
+    return (HERE / "pilot.md").read_text().split("\n", 2)[2].strip()
+
+
 def compute(N: dict) -> str:
     g = sum(v["gpuh"] for v in N["lines"].values())
     lost = {t: v["lost"] for t, v in N["lines"].items() if v["lost"]}
@@ -122,6 +127,7 @@ def main() -> None:
     N = json.loads((HERE / "numbers.json").read_text())
     s = SUMMARY.read_text()
     for name, text in (("lines", lines_table(N)), ("dan", dan_table(N)), ("guard", guard_table(N)),
+                       ("pilot", pilot_table()),
                        ("compute", compute(N))):  # fmt: skip
         pat = re.compile(rf"(<!-- AUTO:{name} -->\n)(?:.*?\n)?(<!-- /AUTO:{name} -->)", re.S)
         assert pat.search(s), name

@@ -16,9 +16,11 @@ written_by: agent:claude
     broken, and another user's job kept cycling on ynez.
   - dd01_s0 ran on rp-d5 from 21:52Z, under Leon's standing permission for GPUs taken by another
     user.
+- **Amendment 2:** the guard-off pilot `dd01g0_s2` ran on ynez GPU 0, at no pod cost, from 21:14Z on
+  2026-11-06. It ended at its x 3.0 stop at 04:29Z on 2026-11-07.
 - All eight Runpod pods were deleted after their backups were verified. By the supervisor's count
   (rate × time) they cost $37.95, of which amendment 1's five cost $24.24.
-- Nothing is pushed.
+- The coordinator handles pushes of `leon/knockout-grpo`.
 
 **Question (Dan).** "It would be cool to know if GRPO can actually learn proof-by-contradiction
 off the 0% proof-by-contradiction pretrain (where EI failed to learn it)." Leon: "run this too".
@@ -88,10 +90,42 @@ PREREG.md, Amendment 1, was frozen before any dose line ran.
     line. That is near his knockout bases' 0.05–0.09 %, against 2.0–3.1 % on the 1 % lines.
 - **Reading (interpretation).** With σ in the pretraining at 1 %, GRPO crosses as early as his EI,
   at the full lr. His EI also crossed at 0.1 % on all three seeds, and this GRPO recipe, as run, did
-  not. That is a result about this recipe with its guard and this cap. The run cannot say whether
-  GRPO can learn σ at 0.1 %: it cannot separate "too little σ" from "lr cut to 1/8 for most of the
-  line", and it does not cover the end of his ladder on these seeds. The 0 % lines carry the same
-  lr limit.
+  not. That is a result about this recipe with its guard and this cap. Amendment 1 alone cannot say
+  whether GRPO can learn σ at 0.1 %: it cannot separate "too little σ" from "lr cut to 1/8 for most
+  of the line", and it does not cover the end of his ladder on these seeds. The 0 % lines carry the
+  same lr limit. Amendment 2 tests the lr cut on one of these seeds.
+
+**Amendment 2: the guard-off pilot, on one seed.** Is the guard's lr cut why seed 2 at 0.1 % did not
+cross? `dd01g0_s2` is `dd01_s2` from iteration 0 with no rollback and no lr cut from any alarm;
+alarms stay on and are logged. PREREG.md, Amendment 2, set out what each outcome would mean before
+the line ran.
+- **Result: no crossing, with σ near 0.** It ended at x 3.02 with his measure at 1 of 106 (0.9 %),
+  the base's solve, the same as `dd01_s2` at that x. Its first-32 count never passed 1, its lr was
+  full throughout, and it did not collapse.
+- **Reading, as pre-registered: the guard is not the explanation for this seed, up to x 3.0.** That
+  is more than 4× the x 0.69 at which his EI crossed this seed.
+- **What it does not settle (interpretation).** It is one seed and one run. It says nothing directly
+  about the other seeds, the 0 % lines, or anything past x 3.0 (53 % of his ladder here). Same-seed
+  runs diverge from iteration 2 even with identical flags, so with one run per arm the gaps below
+  may be run-to-run variation. That includes σ, which is higher than on `dd01_s2` at the same x but
+  stays far below the 1 % lines' 2.0–3.1 %.
+
+<!-- AUTO:pilot -->
+| round (his x) | his measure, pilot / dd01_s2 | draw (first 32) | σ %, pilot / dd01_s2 | pass@1 %, pilot / dd01_s2 | lr ×, pilot / dd01_s2 | iterations with an alarm by type, pilot / dd01_s2 |
+|---|---|---|---|---|---|---|
+| 1 (0.09) | 1 / 1 | 1 / 1 | 0.07 / 0.01 | 64 / 53 | 1 / 0.5 | grad-norm 1 / canary 1 |
+| 2 (0.37) | 1 / 1 | 0 / 0 | 0.04 / 0.05 | 91 / 88 | 1 / 0.25 | grad-norm 1 / canary 1, clip-low 1 |
+| 3 (0.69) | 1 / 1 | 0 / 0 | 0.06 / 0.06 | 91 / 88 | 1 / 0.25 | grad-norm 1 / canary 1, clip-low 1 |
+| 4 (1.03) | 1 / 1 | 0 / 0 | 0.07 / 0.01 | 91 / 91 | 1 / 0.25 | canary 3, grad-norm 2 / canary 1, clip-low 1 |
+| 5 (1.38) | 1 / 1 | 0 / 0 | 0.11 / 0.04 | 91 / 92 | 1 / 0.25 | canary 3, grad-norm 2 / canary 1, clip-low 1 |
+| 6 (1.75) | 1 / 1 | 0 / 0 | 0.09 / 0.02 | 93 / 92 | 1 / 0.125 | canary 3, grad-norm 2 / canary 8, clip-low 2 |
+| 7 (2.12) | 1 / 1 | 0 / 0 | 0.14 / 0.02 | 93 / 90 | 1 / 0.125 | canary 18, grad-norm 2 / canary 35, clip-low 5 |
+| 8 (2.50) | 1 / 1 | 0 / 0 | 0.20 / 0.00 | 91 / 90 | 1 / 0.125 | canary 42, clip-low 1, grad-norm 2 / canary 60, clip-low 10 |
+| 9 (2.89) | 1 / 1 | 0 / 0 | 0.10 / 0.01 | 90 / 90 | 1 / 0.125 | canary 60, clip-low 1, grad-norm 2 / canary 83, clip-low 11 |
+
+σ over the pilot's last 50 iterations: 0.16 %.
+Collapse (as pre-registered): no.
+<!-- /AUTO:pilot -->
 
 **Working folder:**
 [`code/experiments/current/knockout_danbase_20261104/`](../../code/experiments/current/knockout_danbase_20261104/README.md)
@@ -151,6 +185,7 @@ run log, the scripts and the numbers.
 | dd1_s2 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 1 | 1, 18 | **yes**: round 2, x_dan 0.39 (x_ours 0.074) | 0.72 (5.93) | reached (Dan's measure at x_dan 0.386) and held | 1.9 | 1.95 % / 2.70 % |
 | dd1_s0 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 1 | 1, 23 | **yes**: round 2, x_dan 0.35 (x_ours 0.066) | 0.44 (5.73) | reached (Dan's measure at x_dan 0.346) and held | 1.2 | 2.02 % / 2.22 % |
 | dd1_s1 | **dose 1 %**: his 1 % σ base, his 4,495 targets | 13 | 13, 19 | **yes**: round 2, x_dan 0.38 (x_ours 0.072) | 0.48 (5.95) | reached (Dan's measure at x_dan 0.377) and held | 1.3 | 3.05 % / 3.30 % |
+| dd01g0_s2 | pilot, guard off: dd01_s2's base, seed and targets | 1 | 1, 1, 1, 1, 1, 1, 1, 1, 1 | no: 1 of 106 by x_dan 3.02 | 3.02 (5.71) | compute cap: x_dan 3.02 ≥ the pilot's 3 | 7.2 | 0.10 % / 0.16 % |
 <!-- /AUTO:lines -->
 
 His EI on the same bases, from his registry rows:
@@ -191,6 +226,10 @@ Scored against PREREG.md (frozen before any knockout line was read).
 | P9 | amendment 1, dose 1 %: on the seeds that cross, GRPO's x at the crossing is within 2× of his EI's on the same seed | 45 % | **held**: 0.89×, 0.93×, 0.53× |
 | P10 | amendment 1: dd1_s1 is at the bar at round 1, its base draw (his round-1 count is 13) | 40 % | **not met**: base draw 13, one below; it crossed at round 2 (19) |
 | P11 | amendment 1, dose 1 %: σ in the accepted training proofs exceeds 1 % on at least 2 of 3 seeds | 60 % | **held**: 2.0 %, 3.1 %, 2.0 % |
+| P12 | amendment 2: dd01g0_s2 crosses his bar by x 3.0 | 35 % | **not met**: 1 of 106 at x 3.02 |
+| P13 | amendment 2: it does not cross and σ stays near 0 (≤ 0.5 % over its last 50 iterations) | 40 % | **held**: 0.16 % |
+| P14 | amendment 2: it collapses as pre-registered | 10 % | **not met**: pass@1's 10-iteration mean stayed at or above 87.7 % after x 0.5; canary action NLL peaked at 0.55 |
+| P15 | amendment 2: it does not cross, σ rises above 0.5 %, no collapse | 15 % | **not met** |
 
 ## Caveats
 
@@ -212,11 +251,12 @@ Scored against PREREG.md (frozen before any knockout line was read).
   - **Which alarm triggered each rollback (observed).** All nine on his 0 % lines and all nine on
     our pool were clip-low. At 0.1 %, dd01_s0 had clip-low, clip-low, grad-norm; dd01_s1 had canary
     three times; dd01_s2 had canary, clip-low, clip-low. dd1_s1's one rollback at 1 % was grad-norm.
-  - **What this means (interpretation).** This run cannot separate "too little σ" from "lr cut to
-    1/8 for most of the ladder" for the 0 % lines or for the three 0.1 % seeds.
-    dkoour_s0 shows a takeoff can happen at 1/8, but on one seed with a different pool, so it does
-    not settle the question. The cuts do not all come from one alarm type, so a later guard-off run
-    would need to state which alarms it removes.
+  - **What this means (interpretation).** Amendment 1's lines cannot separate "too little σ" from
+    "lr cut to 1/8 for most of the ladder" for the 0 % lines or for the three 0.1 % seeds.
+    dkoour_s0 shows a takeoff can happen at 1/8, but on one seed with a different pool. Amendment 2's
+    pilot removed every cut on 0.1 % seed 2 and did not cross by x 3.0, so for that seed the cut is
+    not the explanation. For the other lines the question stays open. The pilot turned off rollback
+    and the lr cut for all alarm types, since the cuts do not all come from one type.
 - **The 15 GPU-h cap stopped all three 0.1 % lines short of his ladder (observed).** They stopped at
   x 4.49, 5.43 and 5.63 against his round-16 x of 5.67, 5.94 and 5.71, with 13, 14 and 15 of his 16
   rounds drawn. The cap was pre-registered, and it counts wall time, so the slower A40 pods reached
@@ -280,12 +320,13 @@ Scored against PREREG.md (frozen before any knockout line was read).
 | dd1_s2 | 1 % | none | x1 | never | — | none | 0.72 (5.93; 12 %) |
 | dd1_s0 | 1 % | none | x1 | never | — | none | 0.44 (5.73; 8 %) |
 | dd1_s1 | 1 % | 0.45 (59, grad-norm) | x0.5 | never | — | grad-norm 1 | 0.48 (5.95; 8 %) |
+| dd01g0_s2 | 0.1 % | none | x1 | never | it 236, x 1.99 | canary 66, capped 1, clip-low 1, grad-norm 2 | 3.02 (5.71; 53 %) |
 <!-- /AUTO:guard -->
 
 ## Compute
 
 <!-- AUTO:compute -->
-- Lines: 126.3 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
+- Lines: 133.5 GPU-h in all (segment wall time, reads included), plus about 0.4 GPU-h for the base check and 0.2 for the pilot.
 - Iterations lost to deaths and moves (superseded rows): {'dko_s0': [[11, 11], [501, 501]], 'dko_s2': [[1, 8]], 'dd01_s1': [[1, 3]], 'dd01_s2': [[1, 3], [1, 2]]}.
 <!-- /AUTO:compute -->
 

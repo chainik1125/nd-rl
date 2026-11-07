@@ -356,3 +356,6 @@ All times UTC.
     - Its first iteration matches dd01_s2's seg3 exactly (554,932 tokens, 22,123 items, pass@1 31.91 %). From it 2 they differ, as same-seed runs do.
     - **No standby:** temescal did not answer at launch (no route to host), so nothing watches serrano.
     - **A separate bound:** a process on ynez writes the segment's STOP 11 h after launch, in case serrano and the supervisor go down.
+  - **04:29Z (2026-11-07): `dd01g0_s2` ended at x 3.02 without crossing.** His measure is 1 of 106, the base's, as on `dd01_s2`; σ is 0.16 % over the last 50 iterations; there was no collapse and the lr stayed full. The outcome is "no crossing, σ near 0", so the guard is not the explanation for this seed up to x 3.0 (one seed; `pilot.md` has the comparison).
+    - It ran 293 iterations and 7.2 GPU-h, with no iterations lost, no deaths and no moves. Alarms by iteration: canary 66 (every iteration from it 236, x 1.99), grad-norm 2, clip-low 1, capped 1.
+    - The supervisor exited by itself at 04:30:25Z. I stopped temescal's standby and ended the 11 h stop process on ynez. Nothing of ours is left running. The short test runs' output stays in `KD/smoke_guardoff` on ynez, about 3 GB.
