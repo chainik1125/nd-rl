@@ -1,0 +1,2306 @@
+{
+ "sha256_refs": "7074e5ea166ceb1e9f0cb76db4fb290fc4a65a971cdef4aad91f25bf599d1c77",
+ "n_theorems": 106,
+ "n_refs": 106,
+ "dropped": {},
+ "by_schema": {
+  "contraposition_conv": {
+   "n": 18,
+   "n_ref": 18,
+   "t_is_goal": 0,
+   "minlen": 18,
+   "mean_actions": 9.0,
+   "group_actions": {
+    "setup": 2.0,
+    "pick": 1.0,
+    "reach": 2.0,
+    "negi": 1.0,
+    "dn": 1.0,
+    "finish": 2.0
+   },
+   "group_empty": {
+    "setup": 0,
+    "pick": 0,
+    "reach": 0,
+    "negi": 0,
+    "dn": 0,
+    "finish": 0
+   },
+   "setup_all_premises": 0
+  },
+  "demorgan_nand_to_or": {
+   "n": 4,
+   "n_ref": 4,
+   "t_is_goal": 4,
+   "minlen": 4,
+   "mean_actions": 14.25,
+   "group_actions": {
+    "setup": 1.0,
+    "pick": 1.0,
+    "reach": 9.25,
+    "negi": 1.0,
+    "dn": 1.0,
+    "finish": 1.0
+   },
+   "group_empty": {
+    "setup": 0,
+    "pick": 0,
+    "reach": 0,
+    "negi": 0,
+    "dn": 0,
+    "finish": 0
+   },
+   "setup_all_premises": 4
+  },
+  "excluded_middle": {
+   "n": 37,
+   "n_ref": 37,
+   "t_is_goal": 37,
+   "minlen": 37,
+   "mean_actions": 10.0,
+   "group_actions": {
+    "setup": 0.0,
+    "pick": 1.0,
+    "reach": 6.0,
+    "negi": 1.0,
+    "dn": 1.0,
+    "finish": 1.0
+   },
+   "group_empty": {
+    "setup": 37,
+    "pick": 0,
+    "reach": 0,
+    "negi": 0,
+    "dn": 0,
+    "finish": 0
+   },
+   "setup_all_premises": 37
+  },
+  "negated_conditional": {
+   "n": 15,
+   "n_ref": 15,
+   "t_is_goal": 15,
+   "minlen": 15,
+   "mean_actions": 13.0,
+   "group_actions": {
+    "setup": 1.0,
+    "pick": 1.0,
+    "reach": 8.0,
+    "negi": 1.0,
+    "dn": 1.0,
+    "finish": 1.0
+   },
+   "group_empty": {
+    "setup": 0,
+    "pick": 0,
+    "reach": 0,
+    "negi": 0,
+    "dn": 0,
+    "finish": 0
+   },
+   "setup_all_premises": 15
+  },
+  "peirce": {
+   "n": 12,
+   "n_ref": 12,
+   "t_is_goal": 0,
+   "minlen": 12,
+   "mean_actions": 12.0,
+   "group_actions": {
+    "setup": 1.0,
+    "pick": 1.0,
+    "reach": 6.0,
+    "negi": 1.0,
+    "dn": 1.0,
+    "finish": 2.0
+   },
+   "group_empty": {
+    "setup": 0,
+    "pick": 0,
+    "reach": 0,
+    "negi": 0,
+    "dn": 0,
+    "finish": 0
+   },
+   "setup_all_premises": 0
+  },
+  "peirce_sequent": {
+   "n": 19,
+   "n_ref": 19,
+   "t_is_goal": 19,
+   "minlen": 19,
+   "mean_actions": 10.947368421052632,
+   "group_actions": {
+    "setup": 1.0,
+    "pick": 1.0,
+    "reach": 5.947368421052632,
+    "negi": 1.0,
+    "dn": 1.0,
+    "finish": 1.0
+   },
+   "group_empty": {
+    "setup": 0,
+    "pick": 0,
+    "reach": 0,
+    "negi": 0,
+    "dn": 0,
+    "finish": 0
+   },
+   "setup_all_premises": 19
+  },
+  "None": {
+   "n": 1,
+   "n_ref": 1,
+   "t_is_goal": 0,
+   "minlen": 1,
+   "mean_actions": 10.0,
+   "group_actions": {
+    "setup": 3.0,
+    "pick": 1.0,
+    "reach": 2.0,
+    "negi": 1.0,
+    "dn": 1.0,
+    "finish": 2.0
+   },
+   "group_empty": {
+    "setup": 0,
+    "pick": 0,
+    "reach": 0,
+    "negi": 0,
+    "dn": 0,
+    "finish": 0
+   },
+   "setup_all_premises": 0
+  }
+ },
+ "source": {
+  "minlen": 106
+ },
+ "fallback_why": {},
+ "n_multi_sigma_dn": 15,
+ "n_multi_dn": 15,
+ "n_between_negi_dn": 0,
+ "n_chain_not_strict": 0,
+ "per_theorem": {
+  "la_transfer_10": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_55": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_400": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_405": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_528": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_544": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_552": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1019": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1096": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1246": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1282": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1398": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1460": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1600": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1606": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1811": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1963": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_2256": {
+   "schema": "contraposition_conv",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 9,
+   "n_lines": 8,
+   "L_true": 8,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 2,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_401": {
+   "schema": "demorgan_nand_to_or",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 15,
+   "n_lines": 14,
+   "L_true": 14,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 10,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_945": {
+   "schema": "demorgan_nand_to_or",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 7,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1686": {
+   "schema": "demorgan_nand_to_or",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 15,
+   "n_lines": 14,
+   "L_true": 14,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 10,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1716": {
+   "schema": "demorgan_nand_to_or",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 15,
+   "n_lines": 14,
+   "L_true": 14,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 10,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_146": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_156": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_369": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_442": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_478": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_585": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_736": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_775": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_795": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_846": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_868": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_924": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_935": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_956": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1105": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1151": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1167": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1216": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1220": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1306": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1381": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1419": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1424": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1453": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1526": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1572": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1599": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1639": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1698": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1707": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1770": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1872": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1907": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1929": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1970": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1983": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1986": {
+   "schema": "excluded_middle",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 0,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_57": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_203": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_356": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_517": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_653": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1233": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1274": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1297": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1368": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1457": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1778": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1829": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1975": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_2027": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_2094": {
+   "schema": "negated_conditional",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 13,
+   "n_lines": 12,
+   "L_true": 12,
+   "n_pr": 1,
+   "n_dn": 2,
+   "n_sigma_dn": 2,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 8,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_33": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_220": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_318": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1031": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1086": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1442": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1576": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1833": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1964": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_1978": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_2097": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_2192": {
+   "schema": "peirce",
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 12,
+   "n_lines": 11,
+   "L_true": 11,
+   "n_pr": 0,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  },
+  "la_transfer_406": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_416": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_432": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_733": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_870": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_975": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1007": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1056": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1142": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 5,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1156": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1158": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1263": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1290": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1386": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1402": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1491": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1869": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_1962": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_2124": {
+   "schema": "peirce_sequent",
+   "source": "minlen",
+   "t_is_goal": true,
+   "n_actions": 11,
+   "n_lines": 10,
+   "L_true": 10,
+   "n_pr": 1,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 1,
+    "pick": 1,
+    "reach": 6,
+    "negi": 1,
+    "dn": 1,
+    "finish": 1
+   }
+  },
+  "la_transfer_916": {
+   "schema": null,
+   "source": "minlen",
+   "t_is_goal": false,
+   "n_actions": 10,
+   "n_lines": 9,
+   "L_true": 9,
+   "n_pr": 2,
+   "n_dn": 1,
+   "n_sigma_dn": 1,
+   "n_between": 0,
+   "groups": {
+    "setup": 3,
+    "pick": 1,
+    "reach": 2,
+    "negi": 1,
+    "dn": 1,
+    "finish": 2
+   }
+  }
+ }
+}
