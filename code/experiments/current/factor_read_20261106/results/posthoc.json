@@ -3443,5 +3443,1702 @@
    "both0": 64,
    "both_up": 0
   }
+ },
+ "c_pick_by_schema": {
+  "dko_s0": {
+   "base": "ko_s0",
+   "contraposition_conv": [
+    -5.905251770430384,
+    -10.640181254821968
+   ],
+   "peirce_sequent": [
+    -7.59469102692694,
+    -15.81232045495806
+   ],
+   "peirce": [
+    -8.480882814212174,
+    -18.18594122715683
+   ],
+   "negated_conditional": [
+    -16.198825096804203,
+    -33.02472575875391
+   ],
+   "excluded_middle": [
+    -13.77553725536464,
+    -22.613334876146716
+   ],
+   "demorgan_nand_to_or": [
+    -13.24809032936321,
+    -30.284975358871836
+   ],
+   "other": [
+    -6.63099121140319,
+    -10.352721466730076
+   ],
+   "all": [
+    -10.987404363955806,
+    -20.50703344960222
+   ]
+  },
+  "dko_s1": {
+   "base": "ko_s1",
+   "contraposition_conv": [
+    -4.7816180348371065,
+    -9.762324176251518
+   ],
+   "peirce_sequent": [
+    -7.380584997155396,
+    -17.3635815833608
+   ],
+   "peirce": [
+    -8.637650795234864,
+    -17.82347229686844
+   ],
+   "negated_conditional": [
+    -10.061905923195557,
+    -29.358460401055886
+   ],
+   "excluded_middle": [
+    -14.431389510784213,
+    -28.08905559084931
+   ],
+   "demorgan_nand_to_or": [
+    -10.947763734099167,
+    -31.30944945759514
+   ],
+   "other": [
+    -2.8842629656979555,
+    -7.713426778098857
+   ],
+   "all": [
+    -10.014314790234742,
+    -22.001271134948542
+   ]
+  },
+  "dko_s2": {
+   "base": "ko_s2",
+   "contraposition_conv": [
+    -6.149097030693654,
+    -7.674499150469846
+   ],
+   "peirce_sequent": [
+    -9.258159788563555,
+    -14.117950581172373
+   ],
+   "peirce": [
+    -8.744090987936454,
+    -18.566229424543202
+   ],
+   "negated_conditional": [
+    -14.663266434669833,
+    -30.685161170307023
+   ],
+   "excluded_middle": [
+    -12.761299470466046,
+    -29.266973929441715
+   ],
+   "demorgan_nand_to_or": [
+    -16.071481560543592,
+    -31.1632134906377
+   ],
+   "other": [
+    -4.833209594510798,
+    -7.2477004304744375
+   ],
+   "all": [
+    -10.87503855806045,
+    -21.73804534134175
+   ]
+  },
+  "dd01_s0": {
+   "base": "dose01_s0",
+   "contraposition_conv": [
+    -5.570977588852183,
+    -10.152708671162705
+   ],
+   "peirce_sequent": [
+    -6.821284666935571,
+    -11.040688082800425
+   ],
+   "peirce": [
+    -7.495750575241897,
+    -12.027020561297176
+   ],
+   "negated_conditional": [
+    -13.505314111566411,
+    -25.490437066853794
+   ],
+   "excluded_middle": [
+    -13.727673539580321,
+    -24.372456017971373
+   ],
+   "demorgan_nand_to_or": [
+    -9.46813575919912,
+    -23.182732389594925
+   ],
+   "other": [
+    -4.110088751857285,
+    -5.1814436238581605
+   ],
+   "all": [
+    -10.116200722647548,
+    -18.102791304147996
+   ]
+  },
+  "dd01_s1": {
+   "base": "dose01_s1",
+   "contraposition_conv": [
+    -5.762956506790022,
+    -8.91947325816778
+   ],
+   "peirce_sequent": [
+    -7.2337133498322626,
+    -9.196702727943597
+   ],
+   "peirce": [
+    -4.9635512059580025,
+    -11.331898793562289
+   ],
+   "negated_conditional": [
+    -10.561077367833978,
+    -23.578111140174748
+   ],
+   "excluded_middle": [
+    -11.184338937735276,
+    -21.85554628618245
+   ],
+   "demorgan_nand_to_or": [
+    -6.896720212353176,
+    -23.153201944078166
+   ],
+   "other": [
+    -4.208793227638431,
+    -12.36959964877589
+   ],
+   "all": [
+    -8.535554344634862,
+    -16.401697576576947
+   ]
+  },
+  "dd01_s2": {
+   "base": "dose01_s2",
+   "contraposition_conv": [
+    -2.24712440259359,
+    -5.788713905669246
+   ],
+   "peirce_sequent": [
+    -5.665156523343012,
+    -7.864437681280425
+   ],
+   "peirce": [
+    -3.686369998610321,
+    -8.343019661019701
+   ],
+   "negated_conditional": [
+    -14.578892869617912,
+    -22.5674249173794
+   ],
+   "excluded_middle": [
+    -15.592182991945114,
+    -18.1657549896267
+   ],
+   "demorgan_nand_to_or": [
+    -11.641201437244218,
+    -18.991572472053583
+   ],
+   "other": [
+    -3.5158032097218097,
+    -6.902646752778491
+   ],
+   "all": [
+    -9.79242854602323,
+    -13.653307992419656
+   ]
+  },
+  "dd1_s0": {
+   "base": "dose1_s0",
+   "contraposition_conv": [
+    -4.077407865442065,
+    -1.492526334573024
+   ],
+   "peirce_sequent": [
+    -4.833371904281044,
+    -4.2825581453896975
+   ],
+   "peirce": [
+    -4.521201745854942,
+    -5.768020888588179
+   ],
+   "negated_conditional": [
+    -6.98544505716873,
+    -3.6289875285317827
+   ],
+   "excluded_middle": [
+    -8.887316880647539,
+    -10.832991550483976
+   ],
+   "demorgan_nand_to_or": [
+    -3.9235797034611473,
+    -6.262807503117533
+   ],
+   "other": [
+    -1.5625154785513724,
+    -2.7990031942414273
+   ],
+   "all": [
+    -6.3240666362588875,
+    -6.231660971229928
+   ]
+  },
+  "dd1_s1": {
+   "base": "dose1_s1",
+   "contraposition_conv": [
+    -1.0986472605989142,
+    -0.1744831234596539
+   ],
+   "peirce_sequent": [
+    -4.279826904103706,
+    -3.7865162697324637
+   ],
+   "peirce": [
+    -4.508159180673315,
+    -5.597263657182542
+   ],
+   "negated_conditional": [
+    -3.5295758897297103,
+    -3.973546750993049
+   ],
+   "excluded_middle": [
+    -6.0880184159546715,
+    -10.736554440472148
+   ],
+   "demorgan_nand_to_or": [
+    -4.557120301288429,
+    -5.263333763651575
+   ],
+   "other": [
+    -2.072837684060996,
+    -0.07526033841728759
+   ],
+   "all": [
+    -4.280112364738809,
+    -5.851282831969529
+   ]
+  },
+  "dd1_s2": {
+   "base": "dose1_s2",
+   "contraposition_conv": [
+    -2.8571827014400406,
+    -0.4116483350601502
+   ],
+   "peirce_sequent": [
+    -4.958174707805872,
+    -5.906037465945828
+   ],
+   "peirce": [
+    -4.5503463711728775,
+    -6.43739160369991
+   ],
+   "negated_conditional": [
+    -8.808908954617685,
+    -9.156854866864212
+   ],
+   "excluded_middle": [
+    -8.305386557685289,
+    -14.495651428590742
+   ],
+   "demorgan_nand_to_or": [
+    -4.557310864442913,
+    -9.733390194724333
+   ],
+   "other": [
+    -1.8374270441014544,
+    -0.025563362831155144
+   ],
+   "all": [
+    -6.223946905507553,
+    -8.580416331424543
+   ]
+  },
+  "dd01g0_s2": {
+   "base": "dose01_s2",
+   "contraposition_conv": [
+    -2.24712440259359,
+    -7.351981269337285
+   ],
+   "peirce_sequent": [
+    -5.665156523343012,
+    -10.475323602450786
+   ],
+   "peirce": [
+    -3.686369998610321,
+    -10.245136677760986
+   ],
+   "negated_conditional": [
+    -14.578892869617912,
+    -21.831221668509063
+   ],
+   "excluded_middle": [
+    -15.592182991945114,
+    -23.432752414043318
+   ],
+   "demorgan_nand_to_or": [
+    -11.641201437244218,
+    -28.046147296926485
+   ],
+   "other": [
+    -3.5158032097218097,
+    -12.440779593129115
+   ],
+   "all": [
+    -9.79242854602323,
+    -16.730320609017376
+   ]
+  },
+  "dko_s0_it500": {
+   "base": "ko_s0",
+   "contraposition_conv": [
+    -5.905251770430384,
+    -10.350026515931411
+   ],
+   "peirce_sequent": [
+    -7.59469102692694,
+    -15.722787530567665
+   ],
+   "peirce": [
+    -8.480882814212174,
+    -17.980844561374788
+   ],
+   "negated_conditional": [
+    -16.198825096804203,
+    -32.02117845110483
+   ],
+   "excluded_middle": [
+    -13.77553725536464,
+    -24.155581094954464
+   ],
+   "demorgan_nand_to_or": [
+    -13.24809032936321,
+    -29.966113224654247
+   ],
+   "other": [
+    -6.63099121140319,
+    -10.376028340716772
+   ],
+   "all": [
+    -10.987404363955806,
+    -20.80300220399311
+   ]
+  },
+  "dko_s1_it630": {
+   "base": "ko_s1",
+   "contraposition_conv": [
+    -4.7816180348371065,
+    -9.96437927452113
+   ],
+   "peirce_sequent": [
+    -7.380584997155396,
+    -16.69494535926759
+   ],
+   "peirce": [
+    -8.637650795234864,
+    -17.76975254800632
+   ],
+   "negated_conditional": [
+    -10.061905923195557,
+    -31.00373135992949
+   ],
+   "excluded_middle": [
+    -14.431389510784213,
+    -29.819291326504402
+   ],
+   "demorgan_nand_to_or": [
+    -10.947763734099167,
+    -33.57397656649615
+   ],
+   "other": [
+    -2.8842629656979555,
+    -7.621349636111553
+   ],
+   "all": [
+    -10.014314790234742,
+    -22.831007780426813
+   ]
+  }
+ },
+ "sigma_windows": {
+  "dko_s0": {
+   "it 1\u201310": {
+    "accepted": 20283,
+    "sigma": 12,
+    "iterations": 10,
+    "iterations_with_none_accepted": 1
+   },
+   "it 11\u201330": {
+    "accepted": 60077,
+    "sigma": 8,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 91942,
+    "sigma": 42,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dko_s1": {
+   "it 1\u201310": {
+    "accepted": 20222,
+    "sigma": 9,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 56319,
+    "sigma": 31,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 91418,
+    "sigma": 20,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dko_s2": {
+   "it 1\u201310": {
+    "accepted": 23181,
+    "sigma": 11,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 57562,
+    "sigma": 36,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 94050,
+    "sigma": 51,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dd01_s0": {
+   "it 1\u201310": {
+    "accepted": 19509,
+    "sigma": 10,
+    "iterations": 10,
+    "iterations_with_none_accepted": 1
+   },
+   "it 11\u201330": {
+    "accepted": 55241,
+    "sigma": 0,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 90581,
+    "sigma": 22,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dd01_s1": {
+   "it 1\u201310": {
+    "accepted": 23774,
+    "sigma": 13,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 60005,
+    "sigma": 49,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 94230,
+    "sigma": 44,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dd01_s2": {
+   "it 1\u201310": {
+    "accepted": 19653,
+    "sigma": 2,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 52761,
+    "sigma": 38,
+    "iterations": 20,
+    "iterations_with_none_accepted": 1
+   },
+   "it 31\u201360": {
+    "accepted": 91493,
+    "sigma": 18,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dd1_s0": {
+   "it 1\u201310": {
+    "accepted": 20918,
+    "sigma": 210,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 57667,
+    "sigma": 675,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 93137,
+    "sigma": 2495,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dd1_s1": {
+   "it 1\u201310": {
+    "accepted": 20964,
+    "sigma": 353,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 57568,
+    "sigma": 1723,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 93108,
+    "sigma": 3335,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dd1_s2": {
+   "it 1\u201310": {
+    "accepted": 20913,
+    "sigma": 182,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 56876,
+    "sigma": 491,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 93288,
+    "sigma": 1570,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  },
+  "dd01g0_s2": {
+   "it 1\u201310": {
+    "accepted": 20916,
+    "sigma": 15,
+    "iterations": 10,
+    "iterations_with_none_accepted": 0
+   },
+   "it 11\u201330": {
+    "accepted": 56462,
+    "sigma": 30,
+    "iterations": 20,
+    "iterations_with_none_accepted": 0
+   },
+   "it 31\u201360": {
+    "accepted": 94152,
+    "sigma": 57,
+    "iterations": 30,
+    "iterations_with_none_accepted": 0
+   }
+  }
+ },
+ "reductio_any": {
+  "ko_s0": {
+   "n": 6784,
+   "any": 1,
+   "valid": 1,
+   "x_t": 0,
+   "x_other": 1,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 1,
+     "x_t": 0,
+     "x_other": 1
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "ko_s1": {
+   "n": 6784,
+   "any": 48,
+   "valid": 48,
+   "x_t": 0,
+   "x_other": 48,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 29,
+     "x_t": 0,
+     "x_other": 29
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 6,
+     "x_t": 0,
+     "x_other": 6
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 13,
+     "x_t": 0,
+     "x_other": 13
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "ko_s2": {
+   "n": 6784,
+   "any": 3,
+   "valid": 3,
+   "x_t": 0,
+   "x_other": 3,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 2,
+     "x_t": 0,
+     "x_other": 2
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 1,
+     "x_t": 0,
+     "x_other": 1
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dose01_s0": {
+   "n": 6784,
+   "any": 1,
+   "valid": 1,
+   "x_t": 0,
+   "x_other": 1,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 1,
+     "x_t": 0,
+     "x_other": 1
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dose01_s1": {
+   "n": 6784,
+   "any": 34,
+   "valid": 34,
+   "x_t": 0,
+   "x_other": 34,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 1,
+     "x_t": 0,
+     "x_other": 1
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 33,
+     "x_t": 0,
+     "x_other": 33
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dose01_s2": {
+   "n": 6784,
+   "any": 94,
+   "valid": 94,
+   "x_t": 16,
+   "x_other": 78,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 20,
+     "x_t": 15,
+     "x_other": 5
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 28,
+     "x_t": 0,
+     "x_other": 28
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 39,
+     "x_t": 0,
+     "x_other": 39
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 5,
+     "x_t": 0,
+     "x_other": 5
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 2,
+     "x_t": 1,
+     "x_other": 1
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dose1_s0": {
+   "n": 6784,
+   "any": 13,
+   "valid": 13,
+   "x_t": 10,
+   "x_other": 3,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 3,
+     "x_t": 2,
+     "x_other": 1
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 2,
+     "x_t": 1,
+     "x_other": 1
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 5,
+     "x_t": 4,
+     "x_other": 1
+    },
+    "other": {
+     "n": 64,
+     "valid": 3,
+     "x_t": 3,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dose1_s1": {
+   "n": 6784,
+   "any": 538,
+   "valid": 538,
+   "x_t": 207,
+   "x_other": 331,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 274,
+     "x_t": 205,
+     "x_other": 69
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 18,
+     "x_t": 0,
+     "x_other": 18
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 207,
+     "x_t": 0,
+     "x_other": 207
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 38,
+     "x_t": 1,
+     "x_other": 37
+    },
+    "other": {
+     "n": 64,
+     "valid": 1,
+     "x_t": 1,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dose1_s2": {
+   "n": 6784,
+   "any": 23,
+   "valid": 23,
+   "x_t": 6,
+   "x_other": 17,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 10,
+     "x_t": 6,
+     "x_other": 4
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 13,
+     "x_t": 0,
+     "x_other": 13
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dko_s0": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dko_s1": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dko_s2": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dd01_s0": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dd01_s1": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dd01_s2": {
+   "n": 6784,
+   "any": 8,
+   "valid": 8,
+   "x_t": 0,
+   "x_other": 8,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 1,
+     "x_t": 0,
+     "x_other": 1
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 7,
+     "x_t": 0,
+     "x_other": 7
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dd1_s0": {
+   "n": 6784,
+   "any": 1535,
+   "valid": 1535,
+   "x_t": 747,
+   "x_other": 788,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 702,
+     "x_t": 700,
+     "x_other": 2
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 3,
+     "x_t": 0,
+     "x_other": 3
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 1,
+     "x_t": 0,
+     "x_other": 1
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 826,
+     "x_t": 44,
+     "x_other": 782
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 3,
+     "x_t": 3,
+     "x_other": 0
+    }
+   }
+  },
+  "dd1_s1": {
+   "n": 6784,
+   "any": 1287,
+   "valid": 1287,
+   "x_t": 1039,
+   "x_other": 248,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 947,
+     "x_t": 947,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 6,
+     "x_t": 6,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 281,
+     "x_t": 33,
+     "x_other": 248
+    },
+    "other": {
+     "n": 64,
+     "valid": 52,
+     "x_t": 52,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 1,
+     "x_t": 1,
+     "x_other": 0
+    }
+   }
+  },
+  "dd1_s2": {
+   "n": 6784,
+   "any": 1798,
+   "valid": 1798,
+   "x_t": 1027,
+   "x_other": 771,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 966,
+     "x_t": 966,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 4,
+     "x_t": 0,
+     "x_other": 4
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 767,
+     "x_t": 0,
+     "x_other": 767
+    },
+    "other": {
+     "n": 64,
+     "valid": 61,
+     "x_t": 61,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dd01g0_s2": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dko_s0_it500": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  },
+  "dko_s1_it630": {
+   "n": 6784,
+   "any": 0,
+   "valid": 0,
+   "x_t": 0,
+   "x_other": 0,
+   "by_schema": {
+    "contraposition_conv": {
+     "n": 1152,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "demorgan_nand_to_or": {
+     "n": 256,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "excluded_middle": {
+     "n": 2368,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "negated_conditional": {
+     "n": 960,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "other": {
+     "n": 64,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce": {
+     "n": 768,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    },
+    "peirce_sequent": {
+     "n": 1216,
+     "valid": 0,
+     "x_t": 0,
+     "x_other": 0
+    }
+   }
+  }
  }
 }

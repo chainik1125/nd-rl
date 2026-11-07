@@ -12,6 +12,10 @@ Why it exists. The frozen tables raised questions they cannot answer alone:
 (g) why attempts fail, and how many names they use.
 (h) the pick boundary's next action, and A's stage 4 by schema at the 1 % dose.
 (i) given the pick: solves from the forced pick boundary against the unforced read.
+(j) B's bottleneck with ties shown.
+(k) C's name-free log10 P(pick + ¬¬T) by schema, base and RL end (Amendment 3).
+(l) σ among accepted training proofs by iteration window, from numbers.json (Amendment 3).
+(m) the next action at the pick boundary opening a reductio on any formula (Amendment 3).
 Counts only; no proof text.
 """
 
@@ -25,8 +29,31 @@ import json
 import math
 from pathlib import Path
 
-from factor_lib import ref_from_json, replay, shift_action
+from factor_lib import neg, ref_from_json, replay, shift_action
 
+NUMBERS = Path(__file__).resolve().parent.parent / "knockout_danbase_20261104" / "numbers.json"
+SCHEMA_ORDER = [
+    "contraposition_conv",
+    "peirce_sequent",
+    "peirce",
+    "negated_conditional",
+    "excluded_middle",
+    "demorgan_nand_to_or",
+    "other",
+]
+SIGMA_WINDOWS = ((1, 10), (11, 30), (31, 60))
+TRAIN_LINES = [
+    "dko_s0",
+    "dko_s1",
+    "dko_s2",
+    "dd01_s0",
+    "dd01_s1",
+    "dd01_s2",
+    "dd1_s0",
+    "dd1_s1",
+    "dd1_s2",
+    "dd01g0_s2",
+]
 ORDER = [
     "dko_s0",
     "dko_s1",
@@ -82,6 +109,44 @@ def close_classes(rows: list[dict], refs: dict) -> dict:
         else:
             c["other line"] += 1
     return dict(c)
+
+
+def c_group_log10(sc: dict, group: str = "pick") -> float:
+    """C's name-free log10 P of one group on one theorem: the mean over name bases, name tokens left out."""
+    return (
+        sum(
+            a - b
+            for a, b, g in zip(sc["logp_mean_nats"], sc["logp_name_mean_nats"], sc["groups"])
+            if g == group
+        )
+        / LN10
+    )
+
+
+def reductio_any(rows: list[dict], refs: dict) -> dict:
+    """The next action at the pick boundary: does it open a NEGI box on ¬X with line ¬¬X, for any formula X?
+    `valid` also needs the verifier to pass, as the pick on T does. So `x_t` must equal the summary's `pick`."""
+    out: dict = {}
+    for r in rows:
+        ref = refs[r["name"]]
+        c = out.setdefault(r["name"], {"n": 0, "any": 0, "valid": 0, "x_t": 0, "x_other": 0})
+        c["n"] += 1
+        if not (r["ended"] and r["ended"][0] and r["raw"] and r["raw"][0]):
+            continue
+        base = r["base"]
+        tr = replay(ref.prompt, [shift_action(a, base) for a in ref.actions[: ref.pick]], base)
+        d = tr.depth
+        if not tr.apply(r["raw"][0].split()) or tr.depth != d + 1:
+            continue
+        fr = tr.env.frames[-1]
+        binder = fr.names[fr.last]
+        if fr.kind != "neg" or binder[0] != "not" or fr.pending[1] != neg(binder):
+            continue
+        c["any"] += 1
+        if tr.valid_through():
+            c["valid"] += 1
+            c["x_t" if binder == neg(ref.T) else "x_other"] += 1
+    return out
 
 
 def spearman(x: list[float], y: list[float]) -> float | None:
@@ -152,6 +217,7 @@ def main() -> None:
     ap.add_argument("--results", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--out_json", required=True)
+    ap.add_argument("--numbers", default=str(NUMBERS))
     a = ap.parse_args()
     refs = {r.name: r for r in (ref_from_json(json.loads(x)) for x in open(a.refs))}
     res = json.loads(Path(a.results).read_text())
@@ -436,6 +502,66 @@ def main() -> None:
         out["bottleneck_ties"][t] = c
         o.append(
             f"| {t} | {c['alone']} | {c['tied']} | {c['other']} | {c['pick0']} | {c['reach0']} | {c['both0']} | {c['both_up']} |"
+        )
+    out["c_pick_by_schema"] = {}
+    cols = [x for x in SCHEMA_ORDER if x in sch]
+    o += ["", "## (k) C's mean log10 P(pick + ¬¬T), name-free, by schema, base → RL end (Amendment 3)", "",
+          "Mean per theorem of the pick action's log10 P, name tokens left out, over all 33 name bases. No frozen reading applies.", "",
+          "| line | base | " + " | ".join(f"{x} (n {len(sch[x])})" for x in cols) + " | all 106 | Δ, all 106 |", "|---|---|" + "---|" * (len(cols) + 2)]  # fmt: skip
+    for ln, bt in pairs:
+        ce, cb = sm[ln]["stages"]["C"], sm[bt]["stages"]["C"]
+        row = {}
+        for x in [*cols, "all"]:
+            names = list(refs) if x == "all" else sch[x]
+            row[x] = [
+                sum(c_group_log10(cb[n]) for n in names) / len(names),
+                sum(c_group_log10(ce[n]) for n in names) / len(names),
+            ]
+        out["c_pick_by_schema"][ln] = {"base": bt, **row}
+        o.append(f"| {ln} | {bt} | " + " | ".join(f"{row[x][0]:.2f} → {row[x][1]:.2f}" for x in [*cols, "all"]) + f" | {row['all'][1] - row['all'][0]:+.2f} |")  # fmt: skip
+    num = json.loads(Path(a.numbers).read_text())["lines"]
+    out["sigma_windows"] = {}
+    hdr = [f"it {lo}–{hi}" for lo, hi in SIGMA_WINDOWS]
+    o += ["", "## (l) σ among accepted proofs on the training pool, by iteration window (Amendment 3)", "",
+          "From `numbers.json` `lines[line][\"sigma\"]`: the distinct Lean-accepted proofs of each iteration, σ = `sigma_chain` or `sigma_strict`. Rolled-back iterations count, as they do toward x. No frozen reading applies.", "",
+          "| line | dose | " + " | ".join(hdr) + " |", "|---|---|" + "---|" * len(hdr)]  # fmt: skip
+    for ln in TRAIN_LINES:
+        rows = num[ln]["sigma"]
+        cells, w = [], {}
+        for (lo, hi), h in zip(SIGMA_WINDOWS, hdr):
+            rs = [x for x in rows if lo <= x["it"] <= hi]
+            acc, sg = sum(x["accepted"] for x in rs), sum(x["sigma"] for x in rs)
+            w[h] = {
+                "accepted": acc,
+                "sigma": sg,
+                "iterations": len(rs),
+                "iterations_with_none_accepted": sum(x["accepted"] == 0 for x in rs),
+            }
+            cells.append(f"{100 * sg / acc:.2f} % ({sg:,} of {acc:,})" if acc else "n/a")
+        out["sigma_windows"][ln] = w
+        dose = (
+            "1 %"
+            if ln.startswith("dd1_")
+            else "0 %"
+            if ln.startswith("dko_")
+            else "0.1 %" + (", guard off" if ln == "dd01g0_s2" else "")
+        )
+        o.append(f"| {ln} | {dose} | " + " | ".join(cells) + " |")
+    out["reductio_any"] = {}
+    o += ["", "## (m) The next action at the pick boundary: a reductio on any formula (Amendment 3)", "",
+          "From the reference's prefix through setup, the next action opens a NEGI box on ¬X with line ¬¬X. X = T is the pick (it must equal table (h)'s count).", "",
+          "| checkpoint | reductio, any X | X = T | X another formula | env accepted, not valid |", "|---|---|---|---|---|"]  # fmt: skip
+    for t in tags:
+        per = reductio_any(load(Path(a.reads) / t / "pick.jsonl.gz"), refs)
+        c = {k: sum(x[k] for x in per.values()) for k in ("n", "any", "valid", "x_t", "x_other")}
+        assert c["x_t"] == out["pick_any"][t]["pick"], (t, c, out["pick_any"][t])
+        c["by_schema"] = {
+            x: {k: sum(per[n][k] for n in sch[x]) for k in ("n", "valid", "x_t", "x_other")}
+            for x in schemas
+        }
+        out["reductio_any"][t] = c
+        o.append(
+            f"| {t} | {pc(c['valid'], c['n'])} | {pc(c['x_t'], c['n'])} | {pc(c['x_other'], c['n'])} | {pc(c['any'] - c['valid'], c['n'])} |"
         )
     Path(a.out).write_text("\n".join(o) + "\n")
     Path(a.out_json).write_text(json.dumps(out, indent=1))

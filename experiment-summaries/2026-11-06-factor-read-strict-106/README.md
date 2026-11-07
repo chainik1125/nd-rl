@@ -5,8 +5,11 @@ written_by: agent:claude
 
 # factor-read: where RL's change on Dan's strict 106 sits along the σ route
 
-**Status.** Completed 2026-11-06, not yet reviewed. Diagnostic read only, no training. All 21 checkpoints read
-on ynez GPU 0, 9:42 pm to 11:46 pm PT, 2.11 GPU-h of the 3 GPU-h cap. All six required checks pass.
+**Status.** Completed 2026-11-07, not yet reviewed. Diagnostic read only, no training.
+- **Main read:** all 21 checkpoints on ynez GPU 0, 9:42 pm to 11:46 pm PT on 2026-11-06, 2.11 GPU-h of the 3 GPU-h cap.
+  All six required checks pass.
+- **Matched-compute control (Amendment 3, post-hoc):** asked for by the coordinator after the results. 7 more checkpoints,
+  12:16 am to 12:59 am PT on 2026-11-07, 0.70 GPU-h of its own 1 GPU-h cap.
 
 **Question.** On Dan's 106 strict σ held-out theorems, attribute the change from a base checkpoint to its RL end
 to factors along the σ route (σ = a DN line citing a NEGI line). How much is selecting a route the model could
@@ -20,10 +23,21 @@ already use (elicitation), and how much is executing a link it could not (candid
 - **1 %: unforced gains are mostly selection.** Pick rises 0.1 / 3.1 / 0.1 % → 11.0 / 15.3 / 15.1 %, 71–84 % of B's
   positive part. Solved rises 0.9 / 11.3 / 0.9 % → 26.4 / 18.9 / 17.9 %, mainly on contraposition_conv (14 / 18 / 18 of 18 solved in
   64), whose links were already high at base. dd1_s0 adds 15 negated_conditional, by a reductio on another formula.
-- **0 % and 0.1 %: execution rises, selection does not.** Reach ⊥ rises about 2–4×, and the theorems with no draw reaching ⊥
-  fall on five of six lines (0 %: 71 → 30, 65 → 65, 64 → 49; 0.1 %: 63 → 22, 78 → 64, 74 → 35). The pick on T is 0 of 6,784 at every RL end, and
-  unforced solves stay at or near 0. This reach gain is the candidate capability gain, and it does not become
-  unforced solves.
+- **0 % and 0.1 %, at their own ends (x 4.4–5.9): execution rises, selection does not.** Reach ⊥ rises about 2–4×, and the
+  theorems with no draw reaching ⊥ fall on five of six lines (0 %: 71 → 30, 65 → 65, 64 → 49; 0.1 %: 63 → 22, 78 → 64,
+  74 → 35). The pick on T is 0 of 6,784 at every RL end, and unforced solves stay at or near 0.
+- **At matched compute, the 0 % lines lag on two steps, not one (Amendment 3, post-hoc).** At x 0.42–0.71, against the
+  1 % ends at x 0.41–0.69:
+  - **Reach ⊥ rises the same:** 18.1 → 41.6 % against 17.2 → 40.9 %, means over three seeds.
+  - **The reductio is never chosen:** pick on T is 0 of 6,784 on all three 0 % seeds, and a reductio on any formula at
+    the pick step 0.0 %. At 1 % these are 13.8 % and 22.7 %. Unforced solves: 0 against 18.0 % of draws.
+  - **Given the pick, the 0 % lines finish less often:** 24.9 / 10.2 / 19.7 % of forced draws against 25.9 / 30.2 / 36.6 %.
+    Seed 0 is about equal; seeds 1 and 2 are not. The gap is at DN, once the box has closed: DN follows in
+    64.7 / 32.5 / 38.0 % against 59.7 / 85.7 / 83.7 %.
+  - **The 0 % lines catch up on the given-pick rate only by their own ends,** at 8–13× the compute (31.0 / 29.0 / 28.6 %).
+    So the earlier "0 % ends finish from a forced pick about as often as 1 % ends" holds only at unmatched compute.
+- **The 1 % lines train on σ from the first iteration.** σ is 0.87–1.68 % of accepted training proofs in iterations 1–10,
+  and 1.68–3.58 % in 31–60. At 0 % and 0.1 % it is 0.00–0.08 % in every window.
 - **The frozen reading on C does not back this at set level.** On the 106, C reads no line as selection or a link gain,
   and two of the three 1 % lines have C's pick falling while B's rises. The schema split below explains why, but
   that split and the forced-pick solves are post-hoc.
@@ -45,7 +59,8 @@ already use (elicitation), and how much is executing a link it could not (candid
   ([PREREG](../../code/experiments/current/factor_read_20261106/PREREG.md) with Amendments 1–2,
   [log](../../code/experiments/current/factor_read_20261106/log.md),
   [frozen tables](../../code/experiments/current/factor_read_20261106/results/tables.md),
-  [post-hoc tables](../../code/experiments/current/factor_read_20261106/results/posthoc.md)).
+  [post-hoc tables](../../code/experiments/current/factor_read_20261106/results/posthoc.md),
+  [matched-compute tables](../../code/experiments/current/factor_read_20261106/results/matched.md)).
 - **Outputs (hold proof text, not committed):** `/scratch/cowifornia/nd-rl/factor_read/` on serrano.
 - **Set:** 106 of 106 strict σ theorems, 0 dropped. Reference proofs: all 106 found by minlen search, 0 fallback,
   each replays in the env and passes the verifier, Dan's σ flag and Lean.
@@ -60,11 +75,13 @@ already use (elicitation), and how much is executing a link it could not (candid
     The primary table leaves out the tokens the env overrides (Amendment 1), with the all-token table beside it.
 - **Amendments.** Amendment 1, mine, after one base read and before any RL end: the name tokens. Amendment 2, made
   by the coordinator because its checkpoint list was wrong, not because of any result: the true RL ends of dko_s0 and
-  dko_s1 are primary, and the groups are named by their tokens.
+  dko_s1 are primary, and the groups are named by their tokens. Amendment 3, by the coordinator after seeing the
+  results: the matched-compute control. It is post-hoc, no frozen reading applies, and the frozen tables and code are unchanged.
 - **RL ends slightly short of the line's end,** as no later checkpoint exists: dd01_s0 695 of 696, dd1_s0 60 of 64,
   dd1_s1 60 of 63, dd1_s2 90 of 94, the pilot 290 of 293. **Alarm checkpoints:** dko_s1, dd01_s1, dd01_s2.
 - **Pooled B Δlog10** uses (x + 0.5) / (n + 1). PREREG sha256 after Amendment 2:
-  690439678dae5fa2b1a73265e275bb6cc445ad1544b8e0c839d4c796553f0f50.
+  690439678dae5fa2b1a73265e275bb6cc445ad1544b8e0c839d4c796553f0f50; after Amendment 3:
+  f56da4c983c955da5e14ec1569e7ca600bd7bb38f6461f3c2e9916df298220c9.
 
 ## Observations
 
@@ -189,6 +206,63 @@ with no σ proof completes σ on some theorems once handed the pick. Dan's knock
 does keep DN (5,102 records of 155,000, written DN cites only on AS and PR lines) and NEGI (5.19 % of records); it has
 0 records joining the two.
 
+### Matched compute (Amendment 3, post-hoc)
+
+**Why.** The coordinator added this after the results, because the doses were read at unmatched compute. No frozen reading
+applies. The read used the same code, settings and gates, on 7 checkpoints seed-matched to the 1 % ends. Every file was
+md5-checked and loads, and every x is recomputed from the line's own metrics rows; the pilot's 0.663 comes from its own rows.
+
+| seed | 1 % end | 0 % | 0.1 % |
+|---|---|---|---|
+| 0 | dd1_s0 it 60, x 0.414 | dko_s0 it 60, x 0.417 | dd01_s0 it 60, x 0.440 |
+| 1 | dd1_s1 it 60, x 0.454 | dko_s1 it 70, x 0.479 | dd01_s1 it 35, x 0.268: earliest available, x well below match |
+| 2 | dd1_s2 it 90, x 0.687 | dko_s2 it 100, x 0.712 | dd01g0_s2 it 90, x 0.663: guard off, one run; dd01_s2 it 25, x 0.199: earliest available, x well below match |
+
+**Base → checkpoint, % of 6,784 draws (raw counts in [matched.md](../../code/experiments/current/factor_read_20261106/results/matched.md))**
+
+| checkpoint | first-32 solved, of 106 | pick on T | reductio on any X at the pick step | reach ⊥ | DN | solved from a forced pick (theorems) | names per attempt | `done` endings |
+|---|---|---|---|---|---|---|---|---|
+| 1 %, s0 | 1 → 28 | 0.1 → 11.0 | 0.2 → 22.6 | 15.9 → 44.4 | 74.0 → 49.2 | 13.3 → 25.9 (24 → 40) | 7.5 → 23.7 | 51.4 → 27.9 |
+| 0 %, s0 | 0 → 0 | 0.0 → 0.0 | 0.0 → 0.0 | 11.9 → 39.6 | 38.0 → 24.5 | 8.5 → 24.9 (31 → 37) | 8.4 → 29.2 | 54.8 → 5.3 |
+| 0.1 %, s0 | 0 → 0 | 0.0 → 0.0 | 0.0 → 0.0 | 20.0 → 52.4 | 32.3 → 19.1 | 9.7 → 18.2 (34 → 40) | 7.9 → 28.5 | 60.6 → 3.4 |
+| 1 %, s1 | 12 → 20 | 3.1 → 15.3 | 7.9 → 19.0 | 17.6 → 34.6 | 79.7 → 69.8 | 13.0 → 30.2 (32 → 52) | 6.3 → 20.5 | 42.2 → 27.7 |
+| 0 %, s1 | 0 → 0 | 0.0 → 0.0 | 0.7 → 0.0 | 19.5 → 33.3 | 18.9 → 17.2 | 9.3 → 10.2 (34 → 28) | 8.1 → 24.6 | 39.4 → 15.4 |
+| 0.1 %, s1 (earliest, x 0.27) | 0 → 0 | 0.0 → 0.0 | 0.5 → 0.0 | 15.4 → 38.1 | 22.3 → 18.6 | 9.4 → 16.6 (19 → 37) | 6.4 → 22.3 | 42.4 → 9.5 |
+| 1 %, s2 | 1 → 19 | 0.1 → 15.1 | 0.3 → 26.5 | 18.1 → 43.8 | 40.4 → 42.3 | 14.8 → 36.6 (24 → 44) | 6.9 → 30.0 | 40.3 → 23.7 |
+| 0 %, s2 | 0 → 0 | 0.0 → 0.0 | 0.0 → 0.0 | 23.0 → 51.9 | 35.3 → 21.5 | 15.0 → 19.7 (26 → 39) | 6.4 → 33.9 | 59.9 → 4.1 |
+| 0.1 %, s2 pilot (guard off) | 1 → 0 | 0.2 → 0.0 | 1.4 → 0.0 | 17.3 → 44.4 | 21.6 → 12.6 | 9.1 → 15.5 (23 → 30) | 7.5 → 34.1 | 39.1 → 5.5 |
+| 0.1 %, s2 (earliest, x 0.20) | 1 → 0 | 0.2 → 0.1 | 1.4 → 0.2 | 17.3 → 31.6 | 21.6 → 21.2 | 9.1 → 17.2 (23 → 37) | 7.5 → 20.0 | 39.1 → 16.4 |
+
+- **Means over three seeds, 1 % against matched 0 %:**
+  - Unforced draws solved: 0.8 → 18.0 % against 0.0 → 0.0 %.
+  - Pick on T: 1.1 → 13.8 % against 0.0 → 0.0 %. Reductio on any X at the pick step: 2.8 → 22.7 % against 0.3 → 0.0 %.
+  - Reach ⊥: 17.2 → 40.9 % against 18.1 → 41.6 %.
+  - Solved from a forced pick: 13.7 → 30.9 % against 10.9 → 18.3 %. That is a gain of +17.2 points against +7.3.
+  - The 0.1 % dose has one matched seed and gets no mean.
+- **Where the forced-pick gap sits.** Within the forced continuation, the box closes after a valid ⊥ in about 100 % of
+  draws on both doses. DN then follows in 59.7 / 85.7 / 83.7 % at 1 % and 64.7 / 32.5 / 38.0 % at matched 0 %. At the 0 %
+  ends it is 60.9 / 85.1 / 63.5 %.
+- **C's pick has mostly fallen by matched x.** Name-free Δlog10 P(pick + ¬¬T) at matched 0 % is −6.05 / −8.82 / −10.12,
+  against −9.52 / −11.99 / −10.86 at the ends. At 1 % it is +0.09 / −1.57 / −2.36.
+  - On contraposition_conv, 0 % goes −5.91 → −9.95, −4.78 → −7.94 and −6.15 → −7.41, while 1 % goes −4.08 → −1.49,
+    −1.10 → −0.17 and −2.86 → −0.41. Every schema is in `matched.md`.
+- **Long attempts start early at 0 %.** Names per attempt at matched 0 % are 29.2 / 24.6 / 33.9, against 23.7 / 20.5 / 30.0
+  at 1 %. `done` endings are 5.3 / 15.4 / 4.1 % against 27.9 / 27.7 / 23.7 %. The box still closes about 100 % at every
+  matched checkpoint, so the R-copy padding comes later.
+- **0.1 %, seed 0 at matched x.** It looks like 0 %: pick 0, forced-pick solves 18.2 %, unforced solves 0. It does open
+  reductios on other formulas unforced (23.1 % of draws; on T, 0.1 %).
+
+**σ among accepted training proofs, by iteration window** (post-hoc table (l), from `numbers.json`)
+
+| line | it 1–10 | it 11–30 | it 31–60 |
+|---|---|---|---|
+| dko_s0 / s1 / s2 (0 %) | 0.06 / 0.04 / 0.05 % | 0.01 / 0.06 / 0.06 % | 0.05 / 0.02 / 0.05 % |
+| dd01_s0 / s1 / s2 (0.1 %) | 0.05 / 0.05 / 0.01 % | 0.00 / 0.08 / 0.07 % | 0.02 / 0.05 / 0.02 % |
+| dd01g0_s2 (0.1 %, guard off) | 0.07 % | 0.05 % | 0.06 % |
+| dd1_s0 / s1 / s2 (1 %) | 1.00 / 1.68 / 0.87 % | 1.17 / 2.99 / 0.86 % | 2.68 / 3.58 / 1.68 % |
+
+Each window has about 20,000, 55,000 and 92,000 accepted proofs per line; raw counts are in table (l).
+
 ### What else changed in the attempts (post-hoc)
 
 - **Close box's collapse is padding, not lost ability.** At the alarm checkpoints and the pilot, the next action after
@@ -223,11 +297,18 @@ These are readings, not observed results.
 
 - **At 1 %, the unforced gains favour selection.** On contraposition_conv the base could already carry out the links, and
   what moved is the pick. There is also a gain from a forced pick (about 2×), so it is not selection alone.
-- **Reach ⊥ is the candidate capability gain, at every dose.** Many theorems go from no draw reaching ⊥ to some, with the
-  Peirce family the clearest. This is a rise in executing the inside of the box, on the theorems where it rises.
-- **At 0 % and 0.1 %, RL raises execution without choosing the route.** On the theorems a forced pick can finish, selection
-  is what remains missing: 0 % ends solve from a forced pick about as often as 1 % ends do (28.6–31.0 against 25.9–36.6 %),
-  though at about ten times the compute.
+- **Reach ⊥ is the candidate capability gain, at every dose, and it does not depend on the dose.** Many theorems go from
+  no draw reaching ⊥ to some, with the Peirce family the clearest. At matched compute it rises by the same amount at
+  0 % and at 1 %.
+- **The earlier "selection is all that 0 % lacks" does not survive matched compute.** That reading rested on the 0 % ends
+  finishing from a forced pick about as often as the 1 % ends. They did, but at 8–13× the compute.
+  - At matched x the 0 % lines lack the DN step after the box as well as the pick, on two of three seeds. Seed 0 is the
+    exception: 24.9 against 25.9 %.
+  - Selection is still the larger difference: unforced 0 against 18.0 % of draws, and no reductio chosen at all at the
+    pick step. But it is not the only one.
+  - This fits the dose acting through DN after NEGI. The 1 % bases start with DN at 64.7 % against 30.7 %, and the 1 %
+    lines see σ in about 1–3.6 % of their training proofs from the start. This read cannot separate the base from the RL
+    signal.
 - **On the rest of the set, selection alone would not be enough.** Reach ⊥ stays at 0 of 64 on 22–65 of 106 at the RL ends,
   mostly excluded_middle, negated_conditional and demorgan_nand_to_or.
 - **DN shows no dose-wide gain.** B's DN rises on dko_s1 and dd01_s1, both alarm checkpoints, and is flat or falling
@@ -248,12 +329,22 @@ These are readings, not observed results.
   it measures one exact path and its mean of logs is dominated by excluded_middle and negated_conditional.
 - **B's pooled factors do not multiply to A.** Pick and the later links are concentrated on the same theorems, and unforced
   draws take other routes.
-- **Doses are not at matched compute.** 1 % lines end at x 0.41–0.69, the others at x 4.42–5.94, under a guard that cut the lr for most of those lines.
+- **The main read's doses are not at matched compute.** 1 % lines end at x 0.41–0.69, the others at x 4.42–5.94, under a
+  guard that cut the lr for most of those lines. Amendment 3 adds matched checkpoints, with its own limits:
+  - **Matched x is not matched lr.** The guard had already halved the lr on all four guarded matched lines: from x 0.38 on
+    dko_s2 (47 % of its x) and x 0.33 on dd01_s0 (26 %), and only just before the snapshot on dko_s0 and dko_s1. The 1 %
+    lines ran at full lr, except dd1_s1, which was halved one iteration before its read.
+  - **dko_s0's it 60 snapshot is a rollback state.** It was restored to it 55 and still counted at x 0.417.
+  - **0.1 % has one matched seed.** The other two are well below the match (x 0.27, 0.20), and the pilot is one guard-off
+    run. None of them is in a mean.
+  - **The bases differ, not only the RL.** The 1 % bases start higher on DN and on solving from a forced pick, and the 1 %
+    lines' training pools hold σ from the first iteration.
 - **Replication.** Three seeds per dose, one pilot run. Alarm checkpoints are flagged, and four primary RL ends and the pilot are a few
   iterations short. The secondary reads at it 500 and it 630 agree closely with the true ends.
 - **Precision.** C's bf16 rounding is about 0.01 log10 per action.
-- **Post-hoc material.** B's shares, the tie counts, the schema solve counts, the forced-pick solves and the attempt tables
-  were not pre-registered. Nothing here touched a model or the proofs. `textbook72` was not opened.
+- **Post-hoc material.** B's shares, the tie counts, the schema solve counts, the forced-pick solves, the attempt tables
+  and all of Amendment 3 (the matched read, C's pick by schema, σ by window, the any-formula reductio) were not
+  pre-registered. Nothing here touched a model or the proofs. `textbook72` was not opened.
 
 **Next step.** Leon and the coordinator decide. A token split inside pick and a look at the padding would need a new, separately
 approved read.
