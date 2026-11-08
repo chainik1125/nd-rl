@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-07
 written_by: agent:claude
-status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 is running as `olmo-rlzero-if` on agent1; 40 is queued as `olmo-transplant` on agent2 and starts once the RunPod balance reaches $95 (the $35 floor plus its budget; the balance was $93.38). 41 and 44 are strong next candidates; 42 and 43 are medium.
+status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 is running as `olmo-rlzero-if` on agent1; 40 was queued as `olmo-transplant` on agent2 until the RunPod balance reached $95 (the $35 floor plus its budget; the balance was $93.38), and ran on 2026-11-08 after a top-up ($17.82 at the GPU rate, $17.95 billed; reviewed 2026-11-08, see the result under proposal 40). 41 and 44 are strong next candidates; 42 and 43 are medium.
 papers:
   - yueDoesReinforcementLearning2025
   - liuProRLProlongedReinforcement2025
@@ -113,6 +113,13 @@ SFT didn't saturate IF. The 2×2 grid shows the gap:
 
 **Cost:** ≈ $30–60. Most of the compute is prefill of long traces; decodes are short.
 **Run brief:** [followups/BRIEF_olmo-transplant.md](followups/BRIEF_olmo-transplant.md).
+
+**Result (reviewed 2026-11-08):** handed the RL model's own successful thinking on 41 IFBench reach prompts, the DPO
+start writes a genuine answer 0.14 of the time against the RL model's 0.92 (R1 = 0.15). Without that thinking the RL
+model scores 0.06–0.09 and the DPO start 0.00, so the thinking carries most of RL's gain, not all of it, and it is not
+sufficient. Pre-registered readings: "partly" (only through its "neither" clause) and "graded"; "in the thinking",
+"answer writing" (T3 0.06), "needs long search" and "flat" fail. The forced `</think>` does not cap the RL model's thinking. Summary:
+[olmo-transplant](../../experiment-summaries/2026-11-08-olmo-transplant-dpo-given-rl-thinking-0p14-vs-rl-0p92-genuine-on-41-ifbench-reach-prompts-readings-partly-and-graded/README.md).
 
 ## Proposal 41: disposition or skill? An elicitation ladder, then teachability (`olmo-ifladder`)
 
