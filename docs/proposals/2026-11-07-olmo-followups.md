@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-07
 written_by: agent:claude
-status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 is running as `olmo-rlzero-if` on agent1; 40 was queued as `olmo-transplant` on agent2 until the RunPod balance reached $95 (the $35 floor plus its budget; the balance was $93.38), and ran on 2026-11-08 after a top-up ($17.82 at the GPU rate, $17.95 billed; reviewed 2026-11-08, see the result under proposal 40). 41 and 44 are strong next candidates; 42 and 43 are medium.
+status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 ran as `olmo-rlzero-if` on agent1 on 2026-11-08 ($28.74 at the GPU rate, $29.34 billed; reviewed 2026-11-08, see the result under proposal 39); 40 was queued as `olmo-transplant` on agent2 until the RunPod balance reached $95 (the $35 floor plus its budget; the balance was $93.38), and ran on 2026-11-08 after a top-up ($17.82 at the GPU rate, $17.95 billed; reviewed 2026-11-08, see the result under proposal 40). 41 and 44 are strong next candidates; 42 and 43 are medium.
 papers:
   - yueDoesReinforcementLearning2025
   - liuProRLProlongedReinforcement2025
@@ -78,6 +78,14 @@ SFT didn't saturate IF. The 2×2 grid shows the gap:
 
 **Cost and risk:** ≈ $25–40, re-costed at stage 0. The risk is the format confound, handled by the required check.
 **Run brief:** [followups/BRIEF_olmo-rlzero-if.md](followups/BRIEF_olmo-rlzero-if.md).
+
+**Result (reviewed 2026-11-08):** RL straight from the 7B base mostly learned to game the IF checkers: 94 % of
+`main`'s first-read passes on reach candidates are gamed, and `main` is hand-confirmed on 10 of 164 candidates. The
+pre-registered verdicts stand (by hand IFBench Reach on 5 prompts, IFEval inconclusive; under strict Reach on both), but
+every hand-reach prompt is an exact-format prompt, the base answers 3 of the 6 genuinely when it reads `<think>` as
+text, and by the pre-registered format rule 5 of 6 are reach a format repair would remove. "Robust" reach is not
+supported, and SFT as the cause of the IF/math split only as "consistent with". Summary:
+[olmo-rlzero-if](../../experiment-summaries/2026-11-08-olmo-rlzero-if-rl-zero-games-if-checkers-94pct-ifbench-hand-reach-5-format-prompts-ifeval-inconclusive/README.md).
 
 ## Proposal 40: is RL's new IF capability in its thinking? (`olmo-transplant`)
 
