@@ -3,7 +3,7 @@
 Run id `olmo-rlzero-if`. Repository `~/work/olmo-rlzero-if` (branch `dan_olmo-rlzero-if` from the fork's
 `origin/dan_olmo-iffu`, made by `newrun`; the pilot's RL-Zero pipeline and `olmo-ifomega`'s IF checkers, hand-gate rules
 and extension code are all on it). Role: executor. `AGENT_POLICY.md` governs. Proposal 39 (nd-rl
-`docs/proposals/2026-11-07-olmo-followups.md`); launch only on Dan's go-ahead.
+`docs/proposals/2026-11-07-olmo-followups.md`). Authorised by Dan 2026-11-07, up to $40.
 
 - **Budget:** **$40 / 40 pod-hours.** Dollars are binding.
 - **Stage gate:** stage 0 (≤ $3) measures response lengths and throughput. Re-cost, and pause and ask in

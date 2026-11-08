@@ -2,8 +2,8 @@
 
 Run id `olmo-transplant`. Repository `~/work/olmo-transplant` (branch `dan_olmo-transplant` from the fork's
 `origin/dan_olmo-iffu`, made by `newrun`; `olmo-ifomega`'s pipeline, hand-gate rules and `olmo-iffu`'s results are on it).
-Role: executor. `AGENT_POLICY.md` governs. Proposal 40 (nd-rl `docs/proposals/2026-11-07-olmo-followups.md`); launch
-only on Dan's go-ahead.
+Role: executor. `AGENT_POLICY.md` governs. Proposal 40 (nd-rl `docs/proposals/2026-11-07-olmo-followups.md`).
+Authorised by Dan 2026-11-07, up to $60.
 
 - **Budget:** **$60 / 40 pod-hours.** Dollars are binding.
 - **Stage gate:** stage 0 (≤ $5) measures prefill-heavy throughput. Re-cost, and pause and ask in `QUESTIONS.md` if the

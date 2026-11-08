@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-07
 written_by: agent:claude
-status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. 39 and 40 are to start first (run briefs ready, launch on Dan's go-ahead); 41 and 44 are strong next candidates; 42 and 43 are medium.
+status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 is running as `olmo-rlzero-if` on agent1; 40 is queued as `olmo-transplant` on agent2 and starts once the RunPod balance reaches $95 (the $35 floor plus its budget; the balance was $93.38). 41 and 44 are strong next candidates; 42 and 43 are medium.
 papers:
   - yueDoesReinforcementLearning2025
   - liuProRLProlongedReinforcement2025
