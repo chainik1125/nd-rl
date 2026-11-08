@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-07
 written_by: agent:claude
-status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 ran as `olmo-rlzero-if` on agent1 on 2026-11-08 ($28.74 at the GPU rate, $29.34 billed; reviewed 2026-11-08, see the result under proposal 39); 40 was queued as `olmo-transplant` on agent2 until the RunPod balance reached $95 (the $35 floor plus its budget; the balance was $93.38), and ran on 2026-11-08 after a top-up ($17.82 at the GPU rate, $17.95 billed; reviewed 2026-11-08, see the result under proposal 40). 41 and 44 are strong next candidates; 42 and 43 are medium.
+status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 ran as `olmo-rlzero-if` on agent1 on 2026-11-08 ($28.74 at the GPU rate, $29.34 billed; reviewed 2026-11-08, see the result under proposal 39); 40 was queued as `olmo-transplant` on agent2 until the RunPod balance reached $95 (the $35 floor plus its budget; the balance was $93.38), and ran on 2026-11-08 after a top-up ($17.82 at the GPU rate, $17.95 billed; reviewed 2026-11-08, see the result under proposal 40). Dan approved 41 on 2026-11-08 (launched as `olmo-ifladder` on agent2 at $80, brief `followups/BRIEF_olmo-ifladder.md`; it reuses `olmo-iffu`'s brevity-hint draws as rung 1 and adds a control LoRA). 44 remains a strong next candidate; 42 and 43 are medium.
 papers:
   - yueDoesReinforcementLearning2025
   - liuProRLProlongedReinforcement2025
