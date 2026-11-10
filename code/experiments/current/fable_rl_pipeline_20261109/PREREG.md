@@ -150,3 +150,15 @@ Changes to the plan:
   seed 0 and frozen for all seeds. Headline mode stays `SOLVER_MODE=full`.
 - **Ablation** as in amendment 1 (`--gate none` from the seed-0 base, same budget).
 - Expectations after RL are unchanged, except that plain mode should now rise, not fall.
+
+## Amendment 3 (2026-11-10, 12:00 am PT; applies to the kept runs from their round 4 or 5 on)
+
+Observed in the kept runs after 3 to 4 rounds: the training theorems still without a proof sit in
+a few textbook families (in seed 1 after round 4: `excluded_middle` 1 of 36 solved,
+`demorgan_nand_to_or` at 14 lines 0 of 10, `peirce_sequent` 7 of 17, `peirce` 7 of 12), about 80 to
+140 theorems per seed. The schema names are read here only to describe what is unsolved; training
+still uses nothing but "has a kept proof or not".
+
+Change: theorems without a proof get 128 attempts per round instead of 48 (`--k_hard 128`), in all
+three seed runs and in the ablation, applied by restarting each run with `--resume` (the round in
+flight at the restart is redone). Nothing else changes.
