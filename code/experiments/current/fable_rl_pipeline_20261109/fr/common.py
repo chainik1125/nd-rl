@@ -128,10 +128,11 @@ def try_step(env: Env, act, check: bool = True) -> str:
         if not type_ok(env, act):
             return "invalid"
     steps = env.steps
-    ok, _ = env.apply(list(act))
+    ok, why = env.apply(list(act))
     if not ok:
         env.failed = None
         env.steps = steps
+        env.last_why = why
         return "syntax"
     return "ok"
 

@@ -31,94 +31,12 @@ import time
 
 import torch
 
-from .common import (
-    TOK,
-    Trace,
-    enc,
-    lean_check,
-    n_lines,
-    nd_pairs,
-    pruned_nd,
-    step_kind,
-    thm_to_prompt,
-)
+from .collect import Collector
+from .common import lean_check, thm_to_prompt
 from .data import Mixer, Store, load_x
 from .model import load_ckpt, save_ckpt
-from .sampler import Attempt, rollouts
 from .solvelib import fmt_table, judge, solve, table
 from .train import fit, make_opt
-
-
-def trace_examples(tr: Trace, useful, val=-1):
-    """Examples from a replayed attempt: steps in `useful` are policy targets (None: none are);
-    atomic steps are verifier positives; `val` labels every state."""
-    out = []
-    for i, s in enumerate(tr.steps):
-        k = s["kind"]
-        pol = 1 if (useful is not None and i in useful) else 0
-        out.append((enc(s["state"]), enc(s["act"]), pol, 1 if k in ("atom", "pr") else -1, val))
-    return out
-
-
-def pruned_examples(prompt, nd):
-    pairs, text = nd_pairs(prompt, nd)
-    ex = [(enc(s), enc(a), 1, 1 if step_kind(a) in ("atom", "pr") else -1, -1) for s, a in pairs]
-    return ex, text
-
-
-def process_done(att):
-    """A finished attempt -> candidate dict (no Lean yet) or None."""
-    tr = Trace(att.prompt, att.acts, att.base)
-    if not tr.done:
-        return None
-    nd = tr.env.nd()
-    if nd.startswith("LEANPARSE"):
-        return None
-    pn = pruned_nd(nd)
-    if pn is None:
-        return None
-    try:
-        exA, textA = pruned_examples(att.prompt, pn)
-    except Exception:
-        return None
-    useful = tr.useful_for_proof()
-    return {"prompt": att.prompt, "nd": pn, "len": n_lines(pn), "textA": textA, "textB": tr.text(),
-            "exA": exA, "exB": trace_examples(tr, useful) if len(useful) < len(tr.steps) else [],
-            "steps": len(tr.steps)}  # fmt: skip
-
-
-def process_her(att, min_haves=4):
-    """A failed attempt -> its hindsight lemma candidate (largest closure) or None."""
-    tr = Trace(att.prompt, att.acts, att.base)
-    if not tr.ok or not tr.top_haves:
-        return None
-    prem = set(tr.env.prem)
-    best = None
-    for k, (end, uid, f) in enumerate(tr.top_haves):
-        if f in prem or f == tr.env.concl:
-            continue
-        c = tr.closure(uid)
-        nh = sum(1 for i in c if tr.steps[i]["kind"] in ("atom", "box", "ore"))
-        if nh >= min_haves and (best is None or nh > best[0]):
-            best = (nh, k)
-    if best is None:
-        return None
-    p2, acts2, useful, end = tr.lemma(best[1])
-    t2 = Trace(p2, acts2, att.base)
-    if not t2.done:
-        return None
-    nd = t2.env.nd()
-    if nd.startswith("LEANPARSE"):
-        return None
-    pn = pruned_nd(nd)
-    try:
-        exA, textA = pruned_examples(p2, pn)
-    except Exception:
-        return None
-    u2 = set(useful) | {len(t2.steps) - 1}
-    return {"prompt": p2, "nd": pn, "len": n_lines(pn), "textA": textA, "textB": t2.text(),
-            "exA": exA, "exB": trace_examples(t2, u2) if len(u2) < len(t2.steps) else [],
-            "haves": best[0]}  # fmt: skip
 
 
 def lean_filter(cands):
@@ -157,9 +75,10 @@ def main():
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--gate", default="checker", choices=["checker", "none"],
                     help="none: ablation, plain expert iteration (no step check while sampling)")
-    ap.add_argument("--temp_bump", type=float, default=0.3, help="temperature rise per refused sample of a step")
+    ap.add_argument("--temp_bump", type=float, default=0.15, help="temperature rise per refused sample of a step")
     ap.add_argument("--backtrack", type=int, default=2, help="boxes a stuck attempt may abandon")
     ap.add_argument("--max_steps", type=int, default=96)
+    ap.add_argument("--max_calls", type=int, default=400, help="actions sampled per attempt at most")
     ap.add_argument("--max_action", type=int, default=384)
     ap.add_argument("--steps", type=int, default=600, help="optimiser steps per round")
     ap.add_argument("--lr", type=float, default=2e-4)
@@ -185,6 +104,7 @@ def main():
         "--limit", type=int, default=0, help="smoke test: use only this many training theorems"
     )
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--procs", type=int, default=4, help="worker processes sampling attempts on the one GPU")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     logf = open(os.path.join(a.out, "rl.log"), "a")
@@ -231,6 +151,7 @@ def main():
     gen = torch.Generator(device=dev_)
     gen.manual_seed(a.seed + 1000 * S["round"])
     t_run = time.time()
+    collector = Collector(a.procs)
 
     def do_dev(rnd):
         res = {}
@@ -246,48 +167,43 @@ def main():
         rnd = S["round"]
         t0 = time.time()
         best = S["best"]
-        # ---- 1. attempts
-        atts = []
+        # ---- 1. attempts (and their processing into candidates, in the collector)
+        specs = []
         for ti, r in enumerate(train):
-            k = a.k_solved if r["name"] in best else a.k_unsolved
-            atts += [Attempt(r["prompt"], tag=ti) for _ in range(k)]
-        neg = []
-        rollouts(model, atts, gate=a.gate, temperature=a.temperature, resample=a.resample,
-                 tries=1, max_steps=a.max_steps, max_action=a.max_action,
-                 seed=a.seed * 100_003 + rnd, collect=neg,
-            temp_bump=a.temp_bump, backtrack=a.backtrack)  # fmt: skip
+            has = r["name"] in best
+            specs.append((ti, r["prompt"], a.k_solved if has else a.k_unsolved, not has))
+        n_att = sum(sp[2] for sp in specs)
+        cfg = {"gate": a.gate, "temperature": a.temperature, "resample": a.resample,
+               "max_steps": a.max_steps, "max_action": a.max_action, "temp_bump": a.temp_bump,
+               "backtrack": a.backtrack, "max_calls": a.max_calls,
+               "tok_budget": 700_000 if a.procs <= 1 else 1_100_000 // a.procs, "seed": a.seed * 100_003 + rnd,
+               "aux_p": min(1.0, a.aux_attempts / max(1, n_att)), "keep": a.keep_per_thm,
+               "her_keep": a.her_per_thm, "her": not a.no_her}  # fmt: skip
+        cur_fn = os.path.join(a.out, "cur.pt")
+        if collector.procs > 1:
+            save_ckpt(cur_fn, model, {"stage": "rl", "round": rnd})
+        if dev_.type == "cuda":
+            torch.cuda.empty_cache()  # the workers share this GPU
+        R = collector.run(model, cur_fn, specs, cfg)
         t_roll = time.time() - t0
-        ntok = sum(x.n_tok for x in atts)
+        ntok = R["ntok"]
+        n_done = R["n_done"]
+        neg = R["neg"]
+        aux = R["aux"]
         S["tokens_sampled"] += ntok
-        # ---- 2. finished attempts -> candidates, Lean
+        # ---- 2. finished attempts: Lean, shortest proof per theorem
         t1 = time.time()
-        per = collections.defaultdict(dict)  # theorem -> pruned nd -> candidate
-        n_done = 0
-        solved_now = set()
-        for x in atts:
-            if not x.done:
-                continue
-            n_done += 1
-            c = process_done(x)
-            if c is None:
-                continue
-            solved_now.add(x.tag)
-            d = per[x.tag]
-            if c["nd"] not in d:
-                d[c["nd"]] = c
+        per = R["done"]
         if a.gate == "none":  # nothing was checked while sampling: Lean on every finished proof
-            allc = [c for d in per.values() for c in d.values()]
+            allc = [c for d in per.values() for c in d]
             oks = lean_check([(c["prompt"], c["textB"]) for c in allc])
             good = {id(c) for c, o in zip(allc, oks) if o}
-            per = {ti: {k: c for k, c in d.items() if id(c) in good} for ti, d in per.items()}
-            per = {ti: d for ti, d in per.items() if d}
-            solved_now = set(per)
+            per = {ti: [c for c in d if id(c) in good][: a.keep_per_thm] for ti, d in per.items()}
         cands = []
         for ti, d in per.items():
-            cs = sorted(d.values(), key=lambda c: (c["len"], c["steps"]))[: a.keep_per_thm]
-            for c in cs:
+            for c in d:
                 c["ti"] = ti
-            cands += cs
+            cands += d
         kept, rej = lean_filter(cands)
         solved_now = {c["ti"] for c in kept}
         new_best = improved = 0
@@ -302,30 +218,9 @@ def main():
                               "round": rnd}  # fmt: skip
             else:
                 fresh.append(c)
-        # ---- 3. hindsight on failed attempts of unsolved theorems
-        her = []
-        her_rej = 0
-        if not a.no_her:
-            hper = collections.defaultdict(dict)
-            for x in atts:
-                if x.done or train[x.tag]["name"] in best or len(x.acts) < 5:
-                    continue
-                c = process_her(x)
-                if c is None:
-                    continue
-                d = hper[x.tag]
-                if c["prompt"] not in d or c["len"] < d[c["prompt"]]["len"]:
-                    d[c["prompt"]] = c
-            hc = []
-            for ti, d in hper.items():
-                hc += sorted(d.values(), key=lambda c: -c["haves"])[: a.her_per_thm]
-            her, her_rej = lean_filter(hc)
-        # ---- aux examples: value labels and verifier positives from a sample of attempts
-        aux = []
-        for x in rng.sample(atts, min(a.aux_attempts, len(atts))):
-            tr = Trace(x.prompt, x.acts, x.base)
-            if tr.ok:
-                aux += trace_examples(tr, None, val=1 if x.done else 0)
+        # ---- 3. hindsight lemmas of theorems that are still unsolved
+        hc = [c for ti, d in R["her"].items() if train[ti]["name"] not in best for c in d]
+        her, her_rej = lean_filter(hc) if hc else ([], 0)
         if len(neg) > a.neg_cap:
             neg = rng.sample(neg, a.neg_cap)
         aux += [(s, act, 2 if a.w_unl > 0 else 0, 0, -1) for s, act in neg]
@@ -363,13 +258,14 @@ def main():
             tot_len[r["n_lines"]] += 1
             by_len[r["n_lines"]] += r["name"] in best
         rec = {
-            "round": rnd, "attempts": len(atts), "done": n_done, "tokens": ntok,
+            "round": rnd, "attempts": n_att, "done": n_done, "tokens": ntok, "fail": R["fail"], "samples": R["samples"],
             "solved_this_round": len(solved_now), "solved_total": len(best), "new": new_best,
             "shorter": improved, "lean_rej": rej, "fresh": len(fresh), "her": len(her),
             "her_rej": her_rej, "neg": len(neg), "aux": len(aux),
             "pairs": {"best": len(st_best), "recent": len(st_recent), "her": len(st_her), "aux": len(st_aux)},
             "solved_by_len": {str(k): f"{by_len[k]}/{tot_len[k]}" for k in sorted(tot_len)},
             "mean_best_len": sum(b["len"] for b in best.values()) / max(1, len(best)),
+            "solved_by_source": {src: f"{sum(1 for r in train if r['source'] == src and r['name'] in best)}/{sum(1 for r in train if r['source'] == src)}" for src in ("gen", "textbook")},
             "secs": {"roll": round(t_roll), "proc": round(t_proc), "fit": round(t_fit)},
             "loss": {k: (last[k] / max(1, last["n"]) if k in ("pol", "ver", "val", "unl") else last[k]) for k in last},
         }  # fmt: skip
@@ -411,6 +307,7 @@ def main():
             if b:
                 f.write(json.dumps({"name": r["name"], "n_lines": r["n_lines"], "found_len": b["len"],
                                     "round": b["round"], "proof": b["nd"]}) + "\n")  # fmt: skip
+    collector.close()
     log("RL_DONE")
 
 

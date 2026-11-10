@@ -145,7 +145,7 @@ class Attempt:
 
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
-             log=None, temp_bump=0.0, backtrack=0, max_calls=1200,
+             log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None,
 ):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
     for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
@@ -179,7 +179,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         pids = [enc(s) for s in states]
         tl = None
         if temp_bump > 0:
-            tl = [temperature * (1.0 + temp_bump * a.step_tries) for a in live]
+            tl = [temperature * min(1.6, 1.0 + temp_bump * a.step_tries) for a in live]
         outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget, temps=tl)
         keep = []
         for a, st, pid, ids, end, vl, v0 in zip(live, states, pids, outs, ended, ver, val):
@@ -204,6 +204,14 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                         collect.append((pid, enc(eff)))
                     except Exception:
                         pass
+            if stats is not None:
+                if not end:
+                    key = "truncated"
+                elif out == "syntax":
+                    key = "syntax:" + str(getattr(a.env, "last_why", "?") if step_kind(act) != "bad" else "bad action")
+                else:
+                    key = out
+                stats[key] = stats.get(key, 0) + 1
             if out == "ok":
                 nf1 = len(a.env.frames)
                 if nf1 > nf0:
