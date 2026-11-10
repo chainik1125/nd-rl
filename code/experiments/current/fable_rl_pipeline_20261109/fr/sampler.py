@@ -157,13 +157,15 @@ class Attempt:
     pops: int = 0  # boxes abandoned in the current try
     n_scaffold: int = 0  # premise lines written by the solver (final try)
     pvs: list = field(default_factory=list)  # verifier probability of each applied step
+    fb: bool = False  # the current try is the unscreened fallback try
+    fb_calls: int = 0
     val0: float = 0.0  # value probability at the first state
 
 
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
              log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None, scaffold=False,
-             verifier=None,
+             verifier=None, fallback=False,
 ):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
     for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
@@ -171,7 +173,9 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
     of ending the try, up to this many times per try. `max_calls` bounds the actions sampled in
     one attempt over all tries. `scaffold`: the premise-restating lines (line k restates premise
     k; a function of the statement alone, the format's fixed preamble) are written by the solver
-    instead of sampled; they cost no generated tokens and are counted in `Attempt.n_scaffold`."""
+    instead of sampled; they cost no generated tokens and are counted in `Attempt.n_scaffold`.
+    `fallback` (gate="verifier"): when every screened try has failed, one last try runs without
+    the verifier, so the attempt still hands in a proof; `Attempt.fb` marks it."""
     assert gate in ("none", "checker", "verifier")
     dev = next(model.parameters()).device
     g = torch.Generator(device=dev)
@@ -219,7 +223,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
 
             vi, vs = [], []
             for r, (a, st, ids, end) in enumerate(zip(live, states, outs, ended)):
-                if not end:
+                if not end or a.fb:
                     continue
                 act = [ITOS[i] for i in ids]
                 if step_kind(act) not in ("atom", "pr"):
@@ -235,6 +239,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         for r, (a, st, pid, ids, end, vl, v0) in enumerate(zip(live, states, pids, outs, ended, ver, val)):
             a.n_tok += len(ids) + (1 if end else 0)
             a.n_calls += 1
+            a.fb_calls += a.fb
             if not a.acts and a.step_tries == 0:
                 a.val0 = _sig(v0)
             out = "syntax"
@@ -243,7 +248,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
             if end:
                 act = [ITOS[i] for i in ids]
                 kind = step_kind(act)
-                if gate == "verifier" and kind in ("atom", "pr"):
+                if gate == "verifier" and kind in ("atom", "pr") and not a.fb:
                     pv = _sig(vl) if verifier is None else pv_sep.get(r, 1.0)
                     out = "invalid" if pv < tau else try_step(a.env, act, check=False)
                 else:
@@ -281,14 +286,12 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 a.why = "step cap"
             else:
                 a.step_tries += 1
-                if a.n_calls >= max_calls:
-                    a.why = "call cap"
-                    continue
-                if a.step_tries <= resample:
+                capped = a.fb_calls >= 2 * max_steps if a.fb else a.n_calls >= max_calls
+                if not capped and a.step_tries <= resample:
                     keep.append(a)
                     continue
-                a.why = out if end else "truncated"
-                if a.open_stack and a.pops < backtrack:
+                a.why = "call cap" if capped else (out if end else "truncated")
+                if not capped and a.open_stack and a.pops < backtrack:
                     k = a.open_stack.pop()
                     env = Env(a.prompt, canon=True, base=a.base, assign=True)
                     good = all(env.apply(list(x))[0] for x in a.acts[:k])
@@ -300,10 +303,12 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                         a.step_tries = 1  # the next sample at this state is drawn warmer
                         keep.append(a)
                         continue
-            if a.n_calls >= max_calls:
-                a.why = a.why or "call cap"
-                continue
-            if a.tries < tries:
+            if not a.fb and a.n_calls < max_calls and a.tries < tries:
+                start(a)
+                keep.append(a)
+            elif fallback and gate == "verifier" and not a.fb:
+                a.fb = True
+                a.fb_calls = 0
                 start(a)
                 keep.append(a)
         live = keep

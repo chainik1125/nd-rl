@@ -136,6 +136,24 @@ def load_examples(run_dir, max_per_round=10**9, seed=0):
     return ex, counts
 
 
+def x_positives(x_path, n, seed=0):
+    """n accepted steps from the pretraining corpus (every step of an x proof is well typed)."""
+    from .data import load_x
+
+    tr, _, _ = load_x(x_path, os.path.join(os.path.dirname(x_path), "x_cache.pkl"))
+    idx = np.flatnonzero(tr.lab[:, 1] == 1)
+    rng = np.random.default_rng(seed)
+    sel = rng.choice(idx, size=min(n, len(idx)), replace=False)
+    out = []
+    for i in sel:
+        seq = tr.flat[tr.off[i] : tr.off[i + 1]]
+        k = int(tr.nst[i])
+        c = compact_bytes(bytes(seq[:k]), bytes(seq[k:-1]))
+        if c is not None:
+            out.append((c, 1))
+    return out
+
+
 def _batch(ex, idx, dev):
     T = max(len(ex[i][0]) for i in idx)
     arr = np.full((len(idx), T), PAD, np.uint8)
@@ -166,10 +184,21 @@ def train_verifier(ex, steps=4000, bs=1024, lr=6e-4, seed=0, log=print, init=Non
     model.train()
     t0 = time.time()
     acc_loss = 0.0
+    queue = []
     for s in range(steps):
         for gp in opt.param_groups:
             gp["lr"] = lr * min(1.0, (s + 1) / 200) * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * s / steps)))
-        b = [tr[rng.randrange(len(tr))] for _ in range(bs)]
+        if not queue:  # length-bucketed batches: a pool of examples sorted by length, cut by tokens
+            pool = sorted((tr[rng.randrange(len(tr))] for _ in range(64 * bs)), key=lambda i: len(ex[i][0]))
+            i0 = 0
+            while i0 < len(pool):
+                i1 = i0 + 1
+                while i1 < len(pool) and (i1 - i0 + 1) * len(ex[pool[i1]][0]) <= bs * 48:
+                    i1 += 1
+                queue.append(pool[i0:i1])
+                i0 = i1
+            rng.shuffle(queue)
+        b = queue.pop()
         x, last, y = _batch(ex, b, dev)
         x = shift_names(x, gen)
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
@@ -206,9 +235,15 @@ def main():
     ap.add_argument("--lr", type=float, default=6e-4)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--max_per_round", type=int, default=10**9)
+    ap.add_argument("--x", default=None, help="pretraining corpus: add --x_pos accepted steps from it as positives")
+    ap.add_argument("--x_pos", type=int, default=300_000)
     a = ap.parse_args()
     t0 = time.time()
     ex, counts = load_examples(a.run, a.max_per_round, a.seed)
+    if a.x:
+        xp = x_positives(a.x, a.x_pos, a.seed)
+        counts["x_positives"] = len(xp)
+        ex += xp
     print(f"examples {len(ex)} from {len(counts)} rounds ({time.time() - t0:.0f}s): {json.dumps(counts)}", flush=True)
     model, m = train_verifier(ex, a.steps, a.bs, a.lr, a.seed, log=lambda s: print(s, flush=True))
     print("holdout " + json.dumps(m), flush=True)

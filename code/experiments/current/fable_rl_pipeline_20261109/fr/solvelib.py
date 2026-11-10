@@ -22,7 +22,7 @@ from .verifier import build_verifier
 DEFAULTS = {
     "plain": dict(gate="none", resample=0, tries=1, temperature=1.0),
     "search": dict(gate="verifier", resample=4, tries=4, tau=0.5, temperature=1.0, temp_bump=0.15,
-                   backtrack=2, max_calls=300, scaffold=True),
+                   backtrack=2, max_calls=300, scaffold=True, fallback=True),
 }  # fmt: skip
 
 
@@ -37,7 +37,7 @@ def _rows(atts):
             "name": a.tag[0],
             "draw": a.tag[1],
             "proof": nd if complete else "LEANPARSE incomplete: " + (a.why or "?"),
-            "verdict": bool(complete),
+            "verdict": bool(complete and not a.fb),
             "tokens_generated": a.n_tok,
             "prompt": a.prompt,
             "lean_text": TOK.text(a.env.text) if complete else "",
@@ -45,6 +45,7 @@ def _rows(atts):
             "tries": a.tries,
             "steps": len(a.acts),
             "scaffold_lines": a.n_scaffold,
+            "fallback": bool(a.fb),
         })  # fmt: skip
     return out
 

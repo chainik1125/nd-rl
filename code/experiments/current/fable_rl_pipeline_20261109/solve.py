@@ -8,7 +8,8 @@ Input rows: `name` and `thm` ("p1 , p2 |- c", the format of y). Output: one row 
 - `proof`: the ND proof body in Dan's format ("N1 ... ; ... QED", what `lean_judge.judge_many`
   takes), or "LEANPARSE incomplete: <why>" when the attempt produced no complete proof;
 - `verdict`: the solver's own yes/no (the environment says the proof is complete and, in full
-  mode, the verifier passed every step); it never comes from Lean;
+  mode, the verifier passed every step); it never comes from Lean. A full-mode attempt whose
+  screened tries all fail hands in one unscreened rollout (`fallback` true, `verdict` false);
 - `tokens_generated`: every token the model generated inside the attempt, with refused samples,
   abandoned boxes and restarted tries included;
 - extras: `lean_text` (the same proof as the tactic text), `confidence` (lowest verifier
@@ -56,6 +57,7 @@ def main():
     ap.add_argument("--backtrack", type=int, default=None)
     ap.add_argument("--max_calls", type=int, default=None)
     ap.add_argument("--scaffold", type=int, default=None, choices=[0, 1])
+    ap.add_argument("--fallback", type=int, default=None, choices=[0, 1])
     ap.add_argument("--max_steps", type=int, default=128)
     ap.add_argument("--max_action", type=int, default=512)
     ap.add_argument("--tok_budget", type=int, default=0, help="padded tokens per decode chunk per worker")
@@ -91,6 +93,8 @@ def main():
             kw[key] = getattr(a, key)
     if a.scaffold is not None:
         kw["scaffold"] = bool(a.scaffold)
+    if a.fallback is not None:
+        kw["fallback"] = bool(a.fallback)
     if mode == "plain":
         kw = {key: v for key, v in kw.items() if key == "temperature"}
     rows = [json.loads(line) for line in open(inp) if line.strip()]
@@ -118,7 +122,7 @@ def main():
         os.remove(out_fn + ".ckpt.tmp")
     n = len(out)
     print(json.dumps({
-        "theorems": len(rows), "attempts": n, "complete": sum(r["verdict"] for r in out),
+        "theorems": len(rows), "attempts": n, "complete": sum(r["verdict"] for r in out), "fallback_proofs": sum(r["fallback"] and not r["proof"].startswith("LEANPARSE") for r in out),
         "tokens_per_attempt": round(sum(r["tokens_generated"] for r in out) / max(1, n), 1),
         "scaffold_lines": sum(r["scaffold_lines"] for r in out),
         "secs": round(time.time() - t0, 1), "config": cfg,
