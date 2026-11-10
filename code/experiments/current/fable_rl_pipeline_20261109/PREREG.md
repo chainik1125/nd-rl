@@ -261,7 +261,7 @@ Two things read after amendment 5 was committed, both on seed 1's 18-round polic
 Added to the settings to be chosen on seed 0 under the same rule: 1, 2 or 3 tries per attempt
 (next to 4 and 8). Worker processes: 1 (fixed now).
 
-### Amendment 5c (2026-11-10, 8:35 am PT): solver settings frozen
+### Amendment 5c (2026-11-10, 7:35 am PT): solver settings frozen
 
 Chosen as amendments 5 and 5b say, on dev with seed 0's round-30 policy and seed 0's own two
 verifier networks (trained on its rounds 0 to 35), 5 attempts per theorem; times are for the 473
