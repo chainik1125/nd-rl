@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-09
 written_by: agent:claude
-status: proposal 45, written at Dan's request 2026-11-09. Not approved, not run. It reuses `olmo-transplant`'s stored traces and pipeline.
+status: proposal 45, written at Dan's request 2026-11-09. Dan approved it on 2026-11-09, up to $30; launched as `olmo-answeronly` on agent2 (brief `followups/BRIEF_olmo-answeronly.md`). No result yet. It reuses `olmo-transplant`'s stored traces and pipeline.
 ---
 
 # Proposal 45: when the pre-RL model fails on RL's thinking, is it only how it writes the answer? (`olmo-answeronly`)
