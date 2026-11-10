@@ -4,8 +4,8 @@
     python figures.py --runs /scratch/cowifornia/nd-rl/fable_rl/runs \
         --final /scratch/cowifornia/nd-rl/fable_rl/final --out ../../../../experiment-summaries/<folder>
 
-Figure `dev_by_round`: dev pass@1 and pass@5 in plain mode after each scored RL round, three seeds
-and the plain expert-iteration ablation. Figure `dev_by_length`: pass@1 by reference proof length
+Figure `dev_by_round`: dev pass@1 and pass@5 in plain mode (temperature 1.0) after each scored RL
+round, three seeds and the plain expert-iteration ablation. Figure `dev_by_length`: pass@1 by reference proof length
 for the pretrained base, the final policy in plain mode and the final model in full mode (mean of
 the seeds, with each seed as a dot). Reads only `rounds.jsonl` files and the final dev tables.
 """
@@ -87,9 +87,10 @@ def fig_by_length(summary, out):
         ax.set_xticks(range(len(lens)), [f"{n}\n(n={k})" for n, k in zip(lens, summary["n"])])
         ax.set_xlabel("lines in the reference proof (n = dev theorems)")
         ax.set_ylabel("pass@1, % of dev theorems")
-        ax.set_ylim(0, 100)
+        ax.set_ylim(0, 124)  # headroom for the legend, above every bar and dot
+        ax.set_yticks([0, 20, 40, 60, 80, 100])
         S.light_grid(ax)
-        ax.legend(fontsize=S.FS_TICK, frameon=False, ncols=2, loc="lower left")
+        ax.legend(fontsize=S.FS_TICK, frameon=False, ncols=2, loc="upper right")
         S.save(fig, Path(out) / "dev_by_length")
         S.close(fig)
 
@@ -104,7 +105,19 @@ def main():
     fn = os.path.join(a.final, "summary.json")
     if os.path.exists(fn):
         summary = json.load(open(fn))
-        bases = summary.get("bases", {})
+    # round 0 of the by-round figure: the bases as scored at pretraining time, at temperature 1.0
+    # like every later point of those curves (the final tables rescore them at 0.8)
+    for pod, k, runs in (("fr1", 0, ("rl_s0", "abl_plainei_s0")), ("fr2", 1, ("rl_s1",)), ("fr3", 2, ("rl_s2",))):
+        fn = os.path.join(a.runs, pod, f"pre_s{k}", "dev_plain_k5.jsonl")
+        if os.path.exists(fn):
+            by = {}
+            for line in open(fn):
+                r = json.loads(line)
+                by.setdefault(r["name"], {})[r["draw"]] = bool(r["lean_ok"])
+            b = {"pass@1": 100 * sum(sum(d.values()) / len(d) for d in by.values()) / len(by),
+                 "pass@5": 100 * sum(any(d.values()) for d in by.values()) / len(by)}  # fmt: skip
+            for run in runs:
+                bases[run] = b
     fig_by_round(a.runs, bases, a.out)
     if summary and "by_length" in summary:
         fig_by_length(summary["by_length"], a.out)
