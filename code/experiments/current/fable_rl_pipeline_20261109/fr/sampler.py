@@ -155,6 +155,8 @@ class Attempt:
     done: bool = False
     why: str = ""
     min_ver: float = 1.0  # lowest verifier probability among the applied atomic steps
+    n_ver: int = 0  # steps handed to the verifier (kept or refused), all tries
+    ver_tok: int = 0  # tokens of those steps' verifier inputs (the networks read them; nothing is generated)
     open_stack: list = field(default_factory=list)  # indices in `acts` of the open boxes' openers
     pops: int = 0  # boxes abandoned in the current try
     n_scaffold: int = 0  # premise lines written by the solver (final try)
@@ -253,6 +255,8 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 if c is not None:
                     vi.append(r)
                     vs.append(enc(c))
+                    a.n_ver += 1
+                    a.ver_tok += len(c)
             pv_sep = dict(zip(vi, ver_probs(verifier, vs)))
         for r, (a, st, pid, ids, end, vl, v0) in enumerate(zip(live, states, pids, outs, ended, ver, val)):
             a.n_tok += len(ids) + (1 if end else 0)

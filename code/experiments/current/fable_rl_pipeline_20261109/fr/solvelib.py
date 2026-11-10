@@ -45,6 +45,8 @@ def _rows(atts):
             "tries": a.tries,
             "steps": len(a.acts),
             "scaffold_lines": a.n_scaffold,
+            "verifier_steps": a.n_ver,
+            "verifier_step_tokens": a.ver_tok,
             "fallback": bool(a.fb),
             "lemmas": a.n_lemmas,
         })  # fmt: skip

@@ -245,3 +245,18 @@ with seed 1's 18-round policy, and the dev theorems that stay unsolved are, with
 found, ones the policy cannot prove, not ones the verifier blocks. Guess:
 25 to 55% pass@1 at 13 to 20 lines and 2 to 20% at 21 to 30 lines, with seed 0 ahead of the
 others there (it is the only seed whose training set's 14-line family opened).
+
+### Amendment 5b (2026-11-10, 5:15 am PT; before any tuning run on seed 0 has finished)
+
+Two things read after amendment 5 was committed, both on seed 1's 18-round policy:
+- With E at threshold 0.001 and A at 0.05 (the final verifier), dev full mode is 96.1 / 97.3 at 419
+  tokens per attempt, no verified attempt wrong.
+- With 8 tries, the tries that produced the accepted proof were: first 2,123 of 2,365 attempts,
+  second 60, third 24, fourth 13, fifth to eighth 14 together, and the unscreened last try 35 (of
+  113 that reached it). Later tries add little, and they set the solver's running time: a profile
+  shows the time goes to decoding rounds, whose number is set by the longest-running attempts.
+  Measured on one A40 under a 22 GB memory cap, 473 theorems at 32 attempts: full mode with 4 tries
+  469 s, plain mode 87 s; three worker processes did not help (459 s), so one process is used.
+
+Added to the settings to be chosen on seed 0 under the same rule: 1, 2 or 3 tries per attempt
+(next to 4 and 8). Worker processes: 1 (fixed now).
