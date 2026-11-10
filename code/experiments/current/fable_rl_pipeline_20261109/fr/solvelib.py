@@ -116,6 +116,7 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None,
     its own, down to single theorems, which then count as failed.
     `max_seconds`: a wall-clock budget for the whole call. After 80% of it no attempt starts a
     new screened try; at 100% the attempts still running end without a proof."""
+    import gc
     import sys
 
     import torch
@@ -138,6 +139,7 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None,
         nonlocal cfg
         if not part:
             return []
+        err = None
         try:
             kw2 = dict(kw)
             if depth and kw2.get("tok_budget"):  # after an error, smaller decode batches as well
@@ -147,18 +149,21 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None,
                              progress=prog, deadline=deadline, **kw2)  # fmt: skip
             return res
         except Exception as e:  # noqa: BLE001
-            print(f"solve: error on {len(part)} theorems at depth {depth} ({type(e).__name__}: {str(e)[:200]})",
-                  file=sys.stderr, flush=True)  # fmt: skip
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            if len(part) == 1:
-                return _failed_rows(part[0], k, "solver error")
-            h = len(part) // 2
-            first = run(part[:h], depth + 1)
-            out.extend(first)  # so that partial results written during the second half include it
-            second = run(part[h:], depth + 1)
-            del out[len(out) - len(first):]
-            return first + second
+            err = f"{type(e).__name__}: {str(e)[:200]}"
+        # Out of the except block before retrying: while the exception is alive its traceback
+        # holds the loop's tensors, and every retry would run out of memory again.
+        print(f"solve: error on {len(part)} theorems at depth {depth} ({err})", file=sys.stderr, flush=True)
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        if len(part) == 1:
+            return _failed_rows(part[0], k, "solver error")
+        h = len(part) // 2
+        first = run(part[:h], depth + 1)
+        out.extend(first)  # so that partial results written during the second half include it
+        second = run(part[h:], depth + 1)
+        del out[len(out) - len(first):]
+        return first + second
 
     t0 = time.time()
     out += run(good, 0)
