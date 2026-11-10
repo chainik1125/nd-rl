@@ -19,9 +19,10 @@ from .data import Mixer, load_x, make_batch, shift_names
 from .model import GPT, save_ckpt
 
 
-def losses(model, b, gen=None, shift=True):
+def losses(model, b, gen=None, shift=True, w_unl=0.25):
     """-> (policy loss, verifier loss, value loss, counts). Each is a mean over its own targets
-    (0 when a batch has none)."""
+    (0 when a batch has none). Rows labelled pol == 2 are actions the checker refused: the policy
+    loss adds `w_unl` times their mean unlikelihood, -log(1 - 0.9 p(action | state))."""
     x = shift_names(b["x"], gen) if shift else b["x"]
     ln, nst, lab = b["len"], b["nst"], b["lab"]
     logits, aux = model(x[:, :-1])
@@ -32,6 +33,13 @@ def losses(model, b, gen=None, shift=True):
                          reduction="none").view_as(pm)  # fmt: skip
     npol = pm.sum()
     lpol = (ce * pm).sum() / npol.clamp(min=1)
+    um = lab[:, 0] == 2
+    lunl = ce.new_zeros(())
+    if w_unl > 0 and bool(um.any()):
+        am = (t + 1 >= nst[:, None]) & (t + 1 < ln[:, None]) & um[:, None]
+        p_act = (-(ce * am).sum(1)).exp()
+        lunl = (-torch.log1p(-0.9 * p_act) * um).sum() / um.sum()  # gradient weight <= 9
+        lpol = lpol + w_unl * lunl
     aux = aux.float()
     rows = torch.arange(x.shape[0], device=x.device)
     vlogit = aux[rows, (ln - 2).clamp(min=0), 0]
@@ -46,7 +54,7 @@ def losses(model, b, gen=None, shift=True):
         vacc = (((vlogit > 0) == (lab[:, 1] == 1)) & vm).sum()
         vneg = (vm & (lab[:, 1] == 0)).sum()
         vneg_ok = ((vlogit <= 0) & vm & (lab[:, 1] == 0)).sum()
-    stats = {"npol": int(npol), "nver": int(vm.sum()), "nval": int(qm.sum()), "vacc": int(vacc),
+    stats = {"unl": float(lunl.detach()), "npol": int(npol), "nver": int(vm.sum()), "nval": int(qm.sum()), "vacc": int(vacc),
              "vneg": int(vneg), "vneg_ok": int(vneg_ok)}  # fmt: skip
     return lpol, lver, lval, stats
 
@@ -60,29 +68,30 @@ def make_opt(model, lr, wd=0.1):
     )  # fmt: skip
 
 
-def fit(model, opt, mixer, steps, lr_fn, *, w_ver=0.5, w_val=0.25, log=print, log_every=100,
-        gen=None, tag=""):  # fmt: skip
+def fit(model, opt, mixer, steps, lr_fn, *, w_ver=0.5, w_val=0.25, w_unl=0.25, log=print,
+        log_every=100, gen=None, tag=""):  # fmt: skip
     """`steps` optimiser steps on batches from `mixer`; lr_fn(step index from 0) -> lr."""
     dev = next(model.parameters()).device
     cuda = dev.type == "cuda"
     model.train()
     t0 = time.time()
-    acc = {"pol": 0.0, "ver": 0.0, "val": 0.0, "n": 0, "tok": 0, "vacc": 0, "nver": 0,
+    acc = {"pol": 0.0, "ver": 0.0, "val": 0.0, "unl": 0.0, "n": 0, "tok": 0, "vacc": 0, "nver": 0,
            "vneg": 0, "vneg_ok": 0}  # fmt: skip
     for s in range(steps):
         b = mixer.next(dev)
         for gp in opt.param_groups:
             gp["lr"] = lr_fn(s)
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
-            lp, lv, lq, st = losses(model, b, gen)
+            lp, lv, lq, st = losses(model, b, gen, w_unl=w_unl)
         loss = lp + w_ver * lv + w_val * lq
         opt.zero_grad(set_to_none=True)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        acc["pol"] += float(lp)
-        acc["ver"] += float(lv)
-        acc["val"] += float(lq)
+        acc["pol"] += float(lp.detach())
+        acc["ver"] += float(lv.detach())
+        acc["val"] += float(lq.detach())
+        acc["unl"] += st["unl"]
         acc["n"] += 1
         acc["tok"] += int(b["len"].sum())
         for k in ("vacc", "nver", "vneg", "vneg_ok"):
@@ -90,14 +99,14 @@ def fit(model, opt, mixer, steps, lr_fn, *, w_ver=0.5, w_val=0.25, log=print, lo
         if (s + 1) % log_every == 0 or s + 1 == steps:
             n = acc["n"]
             msg = (f"{tag}step {s + 1}/{steps} pol {acc['pol'] / n:.4f} ver {acc['ver'] / n:.4f} "
-                   f"val {acc['val'] / n:.4f} lr {lr_fn(s):.2e} tok/s {acc['tok'] / (time.time() - t0):.0f}")  # fmt: skip
+                   f"val {acc['val'] / n:.4f} unl {acc['unl'] / n:.4f} lr {lr_fn(s):.2e} tok/s {acc['tok'] / (time.time() - t0):.0f}")  # fmt: skip
             if acc["nver"]:
                 msg += (f" ver_acc {acc['vacc'] / acc['nver']:.4f} "
                         f"neg_recall {acc['vneg_ok'] / max(1, acc['vneg']):.4f}")  # fmt: skip
             log(msg)
             last = dict(acc)
             acc = dict.fromkeys(acc, 0)
-            acc["pol"] = acc["ver"] = acc["val"] = 0.0
+            acc["pol"] = acc["ver"] = acc["val"] = acc["unl"] = 0.0
             t0 = time.time()
     model.eval()
     return last

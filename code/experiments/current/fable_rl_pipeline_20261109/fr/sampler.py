@@ -20,6 +20,7 @@ import math
 import random
 from dataclasses import dataclass, field
 
+import numpy as np
 import torch
 
 from .common import EOS, PAD, TOK, Env, enc, step_kind, try_step
@@ -33,7 +34,8 @@ def _sig(x: float) -> float:
 
 @torch.no_grad()
 def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=700_000,
-                max_rows=4096):  # fmt: skip
+                max_rows=4096, temps=None,
+):  # fmt: skip
     """pids: list of state id lists -> (list of action id lists without <eos>, ended flags,
     verifier logits, value logits), in input order."""
     dev = next(model.parameters()).device
@@ -54,11 +56,12 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
         i0 = i1
         B = len(chunk)
         lens = torch.tensor([len(pids[i]) for i in chunk], device=dev)
+        temps_c = None if temps is None else torch.tensor([temps[i] for i in chunk], device=dev)
         T = int(lens.max())
-        idx = torch.full((B, T), PAD, dtype=torch.long)
+        arr = np.full((B, T), PAD, np.uint8)
         for r, i in enumerate(chunk):
-            idx[r, T - len(pids[i]) :] = torch.tensor(list(pids[i]), dtype=torch.long)
-        idx = idx.to(dev)
+            arr[r, T - len(pids[i]) :] = np.frombuffer(bytes(pids[i]), np.uint8)
+        idx = torch.from_numpy(arr).to(dev).long()
         ar = torch.arange(T, device=dev)
         off = (T - lens)[:, None]
         pos = (ar[None] - off).clamp_(min=0)
@@ -79,11 +82,12 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
             val_c = model.aux(h)[:, 1].float()
             for t in range(max_new):
                 logits = model.head(h).float()
-                if temperature <= 0:
+                if temps is None and temperature <= 0:
                     nxt = logits.argmax(-1)
                 else:
                     u = torch.rand(logits.shape, generator=g, device=dev).clamp_(1e-9, 1 - 1e-9)
-                    nxt = (logits / temperature - torch.log(-torch.log(u))).argmax(-1)
+                    tt = temperature if temps is None else temps_c[rows][:, None]
+                    nxt = (logits / tt - torch.log(-torch.log(u))).argmax(-1)
                 v_now = model.aux(h)[:, 0].float()
                 live = ~fin
                 toks[rows[live], t] = nxt[live]
@@ -133,14 +137,20 @@ class Attempt:
     done: bool = False
     why: str = ""
     min_ver: float = 1.0  # lowest verifier probability among the applied atomic steps
+    open_stack: list = field(default_factory=list)  # indices in `acts` of the open boxes' openers
+    pops: int = 0  # boxes abandoned in the current try
     val0: float = 0.0  # value probability at the first state
 
 
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
-             log=None):  # fmt: skip
+             log=None, temp_bump=0.0, backtrack=0, max_calls=1200,
+):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
-    for each step the checker refused (gate="checker")."""
+    for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
+    a box, abandon the innermost open box (return to the state before its opening step) instead
+    of ending the try, up to this many times per try. `max_calls` bounds the actions sampled in
+    one attempt over all tries."""
     assert gate in ("none", "checker", "verifier")
     dev = next(model.parameters()).device
     g = torch.Generator(device=dev)
@@ -153,6 +163,8 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         a.acts = []
         a.step_tries = 0
         a.min_ver = 1.0
+        a.open_stack = []
+        a.pops = 0
         a.tries += 1
 
     for a in attempts:
@@ -162,7 +174,10 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
     while live:
         states = [a.env.state_tokens() for a in live]
         pids = [enc(s) for s in states]
-        outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget)
+        tl = None
+        if temp_bump > 0:
+            tl = [temperature * (1.0 + temp_bump * a.step_tries) for a in live]
+        outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget, temps=tl)
         keep = []
         for a, st, pid, ids, end, vl, v0 in zip(live, states, pids, outs, ended, ver, val):
             a.n_tok += len(ids) + (1 if end else 0)
@@ -171,6 +186,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 a.val0 = _sig(v0)
             out = "syntax"
             pv = 1.0
+            nf0 = len(a.env.frames)
             if end:
                 act = [ITOS[i] for i in ids]
                 kind = step_kind(act)
@@ -186,6 +202,11 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                     except Exception:
                         pass
             if out == "ok":
+                nf1 = len(a.env.frames)
+                if nf1 > nf0:
+                    a.open_stack.append(len(a.acts))
+                elif nf1 < nf0:
+                    a.open_stack.pop()
                 a.acts.append(list(a.env._eff))
                 a.step_tries = 0
                 a.min_ver = min(a.min_ver, pv)
@@ -198,10 +219,26 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 a.why = "step cap"
             else:
                 a.step_tries += 1
+                if a.n_calls >= max_calls:
+                    a.why = "call cap"
+                    continue
                 if a.step_tries <= resample:
                     keep.append(a)
                     continue
                 a.why = out if end else "truncated"
+                if a.open_stack and a.pops < backtrack:
+                    k = a.open_stack.pop()
+                    env = Env(a.prompt, canon=True, base=a.base, assign=True)
+                    good = all(env.apply(list(x))[0] for x in a.acts[:k])
+                    if good:
+                        a.env, a.acts = env, a.acts[:k]
+                        a.pops += 1
+                        a.step_tries = 1  # the next sample at this state is drawn warmer
+                        keep.append(a)
+                        continue
+            if a.n_calls >= max_calls:
+                a.why = a.why or "call cap"
+                continue
             if a.tries < tries:
                 start(a)
                 keep.append(a)

@@ -36,6 +36,8 @@ def main():
     ap.add_argument("--tau", type=float, default=None)
     ap.add_argument("--resample", type=int, default=None)
     ap.add_argument("--tries", type=int, default=None)
+    ap.add_argument("--temp_bump", type=float, default=None)
+    ap.add_argument("--backtrack", type=int, default=None)
     ap.add_argument("--max_steps", type=int, default=128)
     ap.add_argument("--max_action", type=int, default=384)
     ap.add_argument(
@@ -50,14 +52,16 @@ def main():
         sys.exit("this checkpoint has no verifier head: use --mode plain")
     kw = {
         k: solver_cfg.get(k)
-        for k in ("temperature", "tau", "resample", "tries")
+        for k in ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack")
         if mode == solver_cfg.get("mode")
     }
-    for k in ("temperature", "tau", "resample", "tries"):
+    for k in ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack"):
         if getattr(a, k) is not None:
             kw[k] = getattr(a, k)
     if mode == "plain":
         kw.pop("tau", None)
+        kw.pop("temp_bump", None)
+        kw.pop("backtrack", None)
     rows = [json.loads(l) for l in open(a.inp) if l.strip()]
     t0 = time.time()
     out, cfg = solve(

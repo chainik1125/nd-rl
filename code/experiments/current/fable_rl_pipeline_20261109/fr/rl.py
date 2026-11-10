@@ -153,12 +153,15 @@ def main():
     ap.add_argument("--hours", type=float, default=6.0, help="no new round starts after this")
     ap.add_argument("--k_unsolved", type=int, default=24)
     ap.add_argument("--k_solved", type=int, default=8)
-    ap.add_argument("--resample", type=int, default=3)
+    ap.add_argument("--resample", type=int, default=5)
     ap.add_argument("--temperature", type=float, default=1.0)
+    ap.add_argument("--temp_bump", type=float, default=0.3, help="temperature rise per refused sample of a step")
+    ap.add_argument("--backtrack", type=int, default=2, help="boxes a stuck attempt may abandon")
     ap.add_argument("--max_steps", type=int, default=96)
-    ap.add_argument("--max_action", type=int, default=320)
+    ap.add_argument("--max_action", type=int, default=384)
     ap.add_argument("--steps", type=int, default=600, help="optimiser steps per round")
     ap.add_argument("--lr", type=float, default=2e-4)
+    ap.add_argument("--w_unl", type=float, default=0.25, help="weight of the unlikelihood of refused steps")
     ap.add_argument("--tok_budget", type=int, default=120_000)
     ap.add_argument("--mix", default="x=0.35,best=0.30,recent=0.10,her=0.10,aux=0.15")
     ap.add_argument(
@@ -248,7 +251,8 @@ def main():
         neg = []
         rollouts(model, atts, gate="checker", temperature=a.temperature, resample=a.resample,
                  tries=1, max_steps=a.max_steps, max_action=a.max_action,
-                 seed=a.seed * 100_003 + rnd, collect=neg)  # fmt: skip
+                 seed=a.seed * 100_003 + rnd, collect=neg,
+            temp_bump=a.temp_bump, backtrack=a.backtrack)  # fmt: skip
         t_roll = time.time() - t0
         ntok = sum(x.n_tok for x in atts)
         S["tokens_sampled"] += ntok
@@ -313,7 +317,7 @@ def main():
                 aux += trace_examples(tr, None, val=1 if x.done else 0)
         if len(neg) > a.neg_cap:
             neg = rng.sample(neg, a.neg_cap)
-        aux += [(s, act, 0, 0, -1) for s, act in neg]
+        aux += [(s, act, 2 if a.w_unl > 0 else 0, 0, -1) for s, act in neg]
         t_proc = time.time() - t1
         # ---- pools
         S["recent"] = (S["recent"] + [fresh])[-2:]
@@ -339,7 +343,7 @@ def main():
                       tok_budget=a.tok_budget, seed=a.seed * 7919 + rnd)  # fmt: skip
         warm = 100 if rnd == 0 else 0
         last = fit(model, opt, mixer, a.steps, lambda s: a.lr * min(1.0, (s + 1) / warm) if warm else a.lr,
-                   log=log, log_every=200, gen=gen, tag=f"[r{rnd}] ")  # fmt: skip
+                   log=log, log_every=200, w_unl=a.w_unl, gen=gen, tag=f"[r{rnd}] ")  # fmt: skip
         t_fit = time.time() - t2
         # ---- log
         by_len = collections.Counter()
@@ -356,7 +360,7 @@ def main():
             "solved_by_len": {str(k): f"{by_len[k]}/{tot_len[k]}" for k in sorted(tot_len)},
             "mean_best_len": sum(b["len"] for b in best.values()) / max(1, len(best)),
             "secs": {"roll": round(t_roll), "proc": round(t_proc), "fit": round(t_fit)},
-            "loss": {k: (last[k] / max(1, last["n"]) if k in ("pol", "ver", "val") else last[k]) for k in last},
+            "loss": {k: (last[k] / max(1, last["n"]) if k in ("pol", "ver", "val", "unl") else last[k]) for k in last},
         }  # fmt: skip
         S["round"] = rnd + 1
         if (rnd + 1) % a.dev_every == 0 or rnd == 0:
