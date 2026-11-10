@@ -454,5 +454,5 @@ def n_lines(nd: str) -> int:
 __all__ = [
     "TOK", "VOCAB", "PAD", "EOS", "REF0", "ACT_ID", "MAXN", "Env", "ParseFail", "Trace",
     "make_prompt", "thm_to_prompt", "parse_prompt", "step_kind", "type_ok", "try_step",
-    "lean_check", "lean_check_nd", "subgoal_variant", "ftoks", "swap_goal", "pruned_nd", "nd_pairs", "enc", "n_lines", "decompose", "time",
+    "LP", "is_name", "parse_ftoks", "lean_check", "lean_check_nd", "subgoal_variant", "ftoks", "swap_goal", "pruned_nd", "nd_pairs", "enc", "n_lines", "decompose", "time",
 ]  # fmt: skip

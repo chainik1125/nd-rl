@@ -163,6 +163,100 @@ def x_positives(x_path, n, seed=0):
     return out
 
 
+_ATOMS = ("P", "Q", "R", "S")
+_CONN = ("∧", "∨", "→")
+_SWAP = {".1": ".2", ".2": ".1", "Or.inl": "Or.inr", "Or.inr": "Or.inl"}
+
+
+def _label(lines, act):
+    """The training-time checker's verdict on a compact step (1 well typed, 0 not, None unknown)."""
+    from .common import LP, parse_ftoks
+
+    try:
+        scope, prem = {}, []
+        for ln in lines:
+            f, used = parse_ftoks(ln, 2)
+            if used != len(ln) - 2:
+                return None
+            if ln[0][0] == "h":
+                k = int(ln[0][1:])
+                prem = [("atom", "P")] * (k - 1) + [f]
+            else:
+                scope[ln[0]] = f
+        j = act.index(":=")
+        f, used = parse_ftoks(act, 3)
+        if 3 + used != j:
+            return None
+        pp = LP._P(list(act[j + 1 :]))
+        LP._term(pp, scope, f, prem)
+        return 1 if pp.peek() == ";" else None
+    except LP._Reject:
+        return 0
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def near_misses(comp_b, rng, n=2):
+    """Small edits of one step (an atom or connective changed in the stated formula or in a cited
+    line, `.1`/`.2` or `Or.inl`/`Or.inr` swapped, two cited names swapped), each labelled by the
+    training-time checker. Most come out ill typed and differ from a well-typed step in one token:
+    the cases a verifier trained only on the policy's own refused steps kept passing."""
+    toks = [ITOS[i] for i in comp_b]
+    ia = toks.index("<act>")
+    lines, cur = [], []
+    for t in toks[1:ia]:
+        if t == "<nl>":
+            lines.append(cur)
+            cur = []
+        else:
+            cur.append(t)
+    act = toks[ia + 1 :]
+    if ":=" not in act:
+        return []
+    j = act.index(":=")
+    out = []
+    for _ in range(n * 3):
+        if len(out) >= n:
+            break
+        L = [list(x) for x in lines]
+        A = list(act)
+        op = rng.random()
+        if op < 0.45:  # one symbol of the stated formula
+            pos = [i for i in range(3, j) if A[i] in _ATOMS or A[i] in _CONN]
+            if not pos:
+                continue
+            i = rng.choice(pos)
+            A[i] = rng.choice([x for x in (_ATOMS if A[i] in _ATOMS else _CONN) if x != A[i]])
+        elif op < 0.75 and L:  # one symbol of a cited line
+            ln = rng.choice(L)
+            pos = [i for i in range(2, len(ln)) if ln[i] in _ATOMS or ln[i] in _CONN]
+            if not pos:
+                continue
+            i = rng.choice(pos)
+            ln[i] = rng.choice([x for x in (_ATOMS if ln[i] in _ATOMS else _CONN) if x != ln[i]])
+        else:  # the term
+            term = A[j + 1 : -1]
+            sw = [i for i, t in enumerate(term) if t in _SWAP]
+            names = [i for i, t in enumerate(term) if is_name(t)]
+            if sw:
+                i = rng.choice(sw)
+                term[i] = _SWAP[term[i]]
+            elif len(names) >= 2 and term[names[0]] != term[names[1]]:
+                a, b = names[0], names[1]
+                term[a], term[b] = term[b], term[a]
+            else:
+                continue
+            A = A[: j + 1] + term + [";"]
+        lab = _label(L, A)
+        if lab is None:
+            continue
+        seq = ["<st>"]
+        for ln in L:
+            seq += ln + ["<nl>"]
+        out.append((enc(seq + ["<act>"] + A), lab))
+    return out
+
+
 def _batch(ex, idx, dev):
     T = max(len(ex[i][0]) for i in idx)
     arr = np.full((len(idx), T), PAD, np.uint8)
@@ -276,6 +370,7 @@ def main():
     ap.add_argument("--lr", type=float, default=6e-4)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--max_per_round", type=int, default=10**9)
+    ap.add_argument("--near", type=int, default=0, help="near-miss edits per accepted step (checker-labelled)")
     ap.add_argument("--mine_rounds", type=int, default=0)
     ap.add_argument("--mine_steps", type=int, default=3000)
     ap.add_argument("--test_run", default=None, help="a directory of ver_r*.pkl files never trained on, for a test read")
@@ -290,6 +385,12 @@ def main():
         xp = x_positives(a.x, a.x_pos, a.seed)
         counts["x_positives"] = len(xp)
         ex += xp
+    if a.near:
+        rng = random.Random(a.seed + 5)
+        nm = [e for c, lab in ex if lab == 1 for e in near_misses(c, rng, a.near)]
+        counts["near_misses"] = len(nm)
+        counts["near_misses_ill_typed"] = sum(1 for _, lab in nm if lab == 0)
+        ex += nm
     print(f"examples {len(ex)} from {len(counts)} rounds ({time.time() - t0:.0f}s): {json.dumps(counts)}", flush=True)
     cfg = dict(n_layer=a.n_layer, d=a.d, n_head=8)
     test = None

@@ -24,14 +24,14 @@ def dev_of(r):
 
 
 def pick(rows):
-    """The checkpoint rule: highest dev pass@1 in search mode, ties to the later round."""
+    """The checkpoint rule (PREREG amendment 2): highest dev pass@1 in plain mode, ties to the later round."""
     best = None
     for r in rows:
         d = dev_of(r)
-        if not d or "search" not in d:
+        if not d or "plain" not in d:
             continue
         rnd = r["round"] + 1 if "dev" in r else r["round"]
-        key = (d["search"]["all"]["pass@1"], rnd)
+        key = (d["plain"]["all"]["pass@1"], rnd)
         if best is None or key > best[0]:
             best = (key, rnd, d)
     return best
@@ -49,7 +49,7 @@ def main():
         if a.best:
             b = pick(rows)
             if b:
-                print(f"picked round {b[1]}: search pass@1 {b[0][0]:.2f}")
+                print(f"picked round {b[1]} (checkpoint r{b[1]}.pt): plain pass@1 {b[0][0]:.2f}")
                 a.dev = b[1]
         if a.dev is not None:
             for r in rows:
