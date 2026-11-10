@@ -1,9 +1,13 @@
-# Standing policy for agent runs (from Dan; canonical copy, updated 2026-09-27)
+# Standing policy for agent runs (from Dan; canonical copy)
 
 This file lives in `nd-rl` at `docs/proposals/orchestration/AGENT_POLICY.md` and `runrole` reads it
 from there for every role, so there is one copy. Copies of `AGENT_POLICY.md` inside fork branches
 are historical; where they disagree with this one, this one wins. Every brief is read together with
-this file, and where a brief and this file disagree, this file wins.
+this file, and where a brief and this file disagree, this file wins. Each rule carries its own date; the file's
+history is in Git.
+
+The standards come in three groups: for every run, for prover runs (the small natural-deduction models, judged by
+Lean), and for language-model runs (Olmo and other pretrained LLMs). A brief does not need to repeat any of them.
 
 ## A firm default: no outside contact
 
@@ -12,52 +16,8 @@ Dmitry or anyone else. Draft PRs with no reviewers are fine. Dan reads and share
 notify only Dan. This is a firm default, not an absolute (Dan, 2026-10-13): in a genuinely extreme situation, use
 your judgment, and tell Dan at once what you did and why.
 
-## Standards with reasons (keep them; say when and why you deviate)
+## Standards for every run (keep them; say when and why you deviate)
 
-- **Lean alone decides (Dan, 2026-09-27).** A proof counts iff Lean 4 core accepts it: for
-  `lean_seq` models, the literal sampled text parses in the strict grammar and Lean accepts it;
-  for free-form Lean, `lean_check` accepts it (elaborated-term allowlist, including `Not.elim`).
-  **Do not use `nd_verify` to judge anything** — not reward, not evaluation, not counting. It stays
-  in the repository unmodified only so old numbers can be reproduced. Proofs in write-ups are shown
-  in Lean. *Why:* Lean is sound, readable, and what a pretrained model already knows; the proofs
-  `nd_verify` rejects and Lean accepts are valid proofs that skip a step ND's rule format demands
-  (e.g. `n.elim` on `n : ¬A`). Numbers from before 2026-09-27 were measured under Lean ∧ `nd_verify`
-  — label which checker a number is under whenever you compare across that date. Decision note:
-  `docs/project_strategy/2026-09-20-lean-default.md`.
-- **Report proof length in term size as well as lines.** Under Lean a proof may be shorter than the
-  shortest ND proof and may omit premise re-statements, so line counts and the ladder's ND-derived
-  `L_true` labels (upper bounds under Lean) are no longer the whole story. Term size is invariant
-  to both.
-- **Training format: Lean `lean_seq`** (Dan, 2026-09-22). Token-format arms are labelled as such.
-- **Sampling settings (Dan, 2026-09-28): use the fast settings by default.** The fast decode path is
-  already `sample.py`'s default (`ND_SAMPLE_PATH=fast`, finished rows dropped, per-row seeding) — keep
-  it. Then:
-  - **Batch:** the largest that fits. On the 3.2 M `lean_seq` model, batch 4,096 at `max_new` 288
-    peaks at ≈ 11 GB (run `efficiency`), so at most two such jobs per 24 GB card. Record peak memory
-    (`torch.cuda.max_memory_allocated`) in your first job and report it with the batch.
-  - **`max_new`:** set it from the pool — the longest proof you intend to count, in tokens, with a
-    margin — and report the fraction of samples that hit it. If more than ≈ 0.1 % of any stratum you
-    report are cut off, raise it: a length cap that truncates silently biases exactly the length
-    results this project is about.
-  - **Comparisons:** hold batch, `max_new` and decode flags fixed across every arm of one experiment.
-    Comparing with an on-file number measured at other settings is fine: a settings change is a
-    sampling re-draw (bf16 reduction order changes; ≈ 1 row in 128 decodes differently), never a
-    correctness change — Lean still checks every sample. Say so, and quote `NOISE_FLOOR.md`. The one
-    exception is a test that needs a byte-identical sample stream against an old one: then run
-    `ND_SAMPLE_COMPACT=0` at the old batch, as `ds-generator` did.
-  - *Why:* ≈ 2× on RL sampling (2.16× end to end, 2.35× on the sampler, measured on one RTX 3090),
-    nearly all of it from the batch. Until 2026-09-28 runs held batch 512 to match earlier results
-    and got only ≈ 1.1×. Budget estimates made before then assume the old throughput; re-measure.
-- **Guided read-out by default (Dan, 2026-10-04).** Every evaluation of a proof-state model reports **two** numbers:
-  - **plain:** independent attempts, comparable with every earlier result;
-  - **guided:** `guided_sample.py` / `guided_eval.py` on the fork's `dan`. Each step is checked by `step_check.py`,
-    which agrees with Lean (0 false rejects on 314,541 steps against Lean). A failing step is redrawn from the same
-    state without replacement, up to 10 rejections per attempt.
-
-  Label which number is which, and compare across runs only plain with plain or guided with guided. Guided is the
-  best-system number. RL rollouts stay plain unless a brief says otherwise. *Why:* in `guided-tts`, guided beat
-  plain by 5–9 pp at matched sampled tokens on textbook problems in 6 / 6 models, and the gain came entirely from
-  the logical check.
 - **Every number names the model it was measured on** (Dan, 2026-09-23): checkpoint, parameter
   count, format, from-scratch or pretrained, training set. An inherited number carries its label;
   a reviewer treats an unlabelled number as a finding. *Why:* an efficiency run applied a premise
@@ -83,14 +43,82 @@ your judgment, and tell Dan at once what you did and why.
   values plus the interquartile mean with a stratified-bootstrap 95 % interval (Agarwal et al., NeurIPS
   2021). Once fast Stage-1 training is merged (`FAST_STAGE1.md`), default to 5–10 Stage-1 seeds. *Why:*
   at n = 2, 18 of 20 standing findings sat inside the floor. A difference inside it is not a finding.
-- Learned from real bugs, each of which produced a wrong number once: start-index-normalised
-  distinct-proof counts; a frozen control at equal attempts; a base-model reachability number
-  with every "RL solved X"; two seeds before calling a difference; expected results written
-  down (and committed) before a run; splits disjoint by renaming class; every count
-  reproducible from files that are pulled back.
-- The take-home's cap 6 is the take-home's rule, not the SPAR project's: arms above it are allowed
-  and are labelled "cap N" in every row. No hand-written or LLM-written training proofs. At most
-  one test-file run per take-home submission.
+- **Expected results are written down and committed before the first pod** (the pre-registration; gate 0 checks it),
+  and a miss is reported as a miss.
+- **Every count is reproducible from files that are pulled back or in the bucket.** A separate reviewer re-derives
+  them with their own code.
+- **Every "RL does X that the start cannot" comes with what the start was given:** the number of attempts, the token
+  budget and any hints, and a control arm at equal attempts. *Why:* "cannot" always means "did not within some
+  budget", and the conclusion has flipped more than once when the budget changed.
+- **Hard stop: 48 hours from the run's start** unless the brief names another time.
+- **Wait for a job with one long poll,** not many short check-ins. *Why:* every check-in is a turn billed against the
+  whole conversation.
+- **Downloaded pretrained weights stay on pods.** Samples, adapters, logs and results go to the bucket, and so do
+  checkpoints this project trained itself (see Artifacts); a released model's full weights do not.
+
+## Standards for prover runs
+
+- **Lean alone decides (Dan, 2026-09-27).** A proof counts iff Lean 4 core accepts it: for
+  `lean_seq` models, the literal sampled text parses in the strict grammar and Lean accepts it;
+  for free-form Lean, `lean_check` accepts it (elaborated-term allowlist, including `Not.elim`).
+  **Do not use `nd_verify` to judge anything** — not reward, not evaluation, not counting. It stays
+  in the repository unmodified only so old numbers can be reproduced. Proofs in write-ups are shown
+  in Lean. *Why:* Lean is sound, readable, and what a pretrained model already knows; the proofs
+  `nd_verify` rejects and Lean accepts are valid proofs that skip a step ND's rule format demands
+  (e.g. `n.elim` on `n : ¬A`). Numbers from before 2026-09-27 were measured under Lean ∧ `nd_verify`
+  — label which checker a number is under whenever you compare across that date. Decision note:
+  `docs/project_strategy/2026-09-20-lean-default.md`.
+- **Report proof length in term size as well as lines.** Under Lean a proof may be shorter than the
+  shortest ND proof and may omit premise re-statements, so line counts and the ladder's ND-derived
+  `L_true` labels (upper bounds under Lean) are no longer the whole story. Term size is invariant
+  to both.
+- **Training format: Lean `lean_seq`** (Dan, 2026-09-22). Token-format arms are labelled as such.
+- **Sampling settings (Dan, 2026-09-28): use the fast settings.** `sample.py`'s default decode path is the fast one;
+  keep it.
+  - **Batch:** the largest that fits. Record peak memory in your first job and report it with the batch (on the 3.2 M
+    `lean_seq` model, batch 4,096 at `max_new` 288 peaked at ≈ 11 GB).
+  - **`max_new`:** set it from the longest proof you intend to count, with a margin, and report the fraction of
+    samples that hit it. If more than ≈ 0.1 % of any stratum you report are cut off, raise it: a length cap that
+    truncates silently biases exactly the length results this project is about.
+  - **Comparisons:** hold batch, `max_new` and decode flags fixed across every arm of one experiment. Comparing with
+    an on-file number measured at other settings is fine if you say so and quote `NOISE_FLOOR.md`: a settings change
+    is a sampling re-draw, never a correctness change, because Lean still checks every sample. A test that needs a
+    byte-identical sample stream runs `ND_SAMPLE_COMPACT=0` at the old batch.
+  - *Why:* ≈ 2× on RL sampling, nearly all of it from the batch.
+- **Guided read-out by default (Dan, 2026-10-04).** Every evaluation of a proof-state model reports **two** numbers:
+  - **plain:** independent attempts, comparable with every earlier result;
+  - **guided:** `guided_sample.py` / `guided_eval.py` on the fork's `dan`. Each step is checked by `step_check.py`,
+    which agrees with Lean (0 false rejects on 314,541 steps against Lean). A failing step is redrawn from the same
+    state without replacement, up to 10 rejections per attempt.
+
+  Label which number is which, and compare across runs only plain with plain or guided with guided. Guided is the
+  best-system number. RL rollouts stay plain unless a brief says otherwise. *Why:* in `guided-tts`, guided beat
+  plain by 5–9 pp at matched sampled tokens on textbook problems in 6 / 6 models, and the gain came entirely from
+  the logical check.
+- **Distinct-proof counts are normalised by start index, and splits are disjoint by renaming class.** Each produced
+  a wrong number once.
+- **Arms above cap 6 are labelled "cap N" in every row.** No hand-written or LLM-written training proofs.
+
+## Standards for language-model runs
+
+- **A checker pass is not a success until it is read.** Every success that a conclusion rests on goes through the
+  hand gate: blinded readers who see the prompt, the constraints and the answer, but not the model, the condition or
+  the thinking, label it *genuine* or *gamed* under the fork's `olmo_ifomega/handcheck_rule_if.md` and its addenda.
+  Report the strict (checker-only) and the genuine number side by side, and say how many of the successes were
+  actually read and how the others got their label. *Why:* about a third of Olmo 3.1 Think 32B's first-read IFBench
+  wins satisfied the checker while dropping the request, and 94 % of the 7B RL-Zero model's on the prompts where only
+  it passed.
+- **Compared models get the same chat template, tokenizer, decoding and token budget.** Record every difference you
+  could not remove. When text from one model is given to another, insert the stored token ids, not re-tokenised text,
+  and check the template boundary by hand on a few items.
+- **Report the token budget and the share of samples that hit it,** per model. *Why:* the start model ran out of
+  budget on 255 of 256 tries on problems first counted as beyond its reach.
+- **The same confirmation rule runs in both directions.** If the start gets extra tries on prompts where only the RL
+  model passed, the RL model gets them where only the start passed. *Why:* one-sided confirmation manufactures the
+  result it looks for.
+- **"Never" states its number of tries and the bound that follows** (0 in 1,024 is a rate below 0.3 % at 95 %), and is
+  not read as "absent": prompts unsolved in 1,024 tries became easy with a one-line hint.
+- **Scan the evaluation prompts against the RL training data** when that data is public, and report the overlap.
 
 ## Everything else is a suggestion
 
@@ -121,7 +149,8 @@ useful" are all fair questions.
   rate — `podbudget`'s dollar column falls back to $0.50/h for classes it does not know. Delete
   pods when their work is pulled. Upload to the bucket as you go, not only at the end.
 - **Claude usage:** roles share Dan's Max 20x subscription; there will be no API keys (Dan,
-  2026-09-23, cost). Keep the working context small (see the executor brief). If a usage limit is
+  2026-09-23, cost). The model and effort level are set per run, by the brief or the host's role settings. Whatever
+  they are, keep the working context small (see the executor brief). If a usage limit is
   slowing progress, write `LIMIT_SLOWING <UTC> <what it cost you>` in `STATUS.md`.
 - **Disk.** Run worktrees are made by `newrun` as sparse checkouts: earlier runs' `artifacts/<dir>/`
   trees are not checked out (≈ 4 GB saved per run). Read an old artifact with

@@ -1,15 +1,12 @@
 ---
 written_on: YYYY-MM-DD
 written_by: "" # Replace with human:Name, agent:claude, or agent:codex.
-last_updated: YYYY-MM-DD
-
-
 ---
 
 # Note title
 
 <!-- Replace written_on with the original writing date and preserve it on later edits.
-Revision history and editor attribution are stored in Git; see workflow.md#research-note-history.
+Revision history and editor attribution are stored in Git; see AGENTS.md, "Research note dates and history".
 Do not maintain an update-history table in this document. -->
 
 ## Summary

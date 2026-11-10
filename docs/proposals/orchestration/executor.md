@@ -24,16 +24,18 @@ another run, carry its model label with it. (Dan, 2026-09-23, after an efficienc
 turned out to have been measured on a different model than the one it was applied to.)
 
 **Keep the working context small.** Claude usage is billed each turn against the whole
-conversation so far, so a session costs roughly turns × context size. Measured over
-2026-09-15..23: executor sessions ran 100–290 turns carrying 120–310k tokens per turn, and the
-fifteen largest sessions accounted for ~$400 of the ~$650 total — context size is the lever, not
-session count. In practice: read the part of a file you need (a `grep`, a line range) rather than
+conversation so far, so a session costs roughly turns × context size; context size is the lever, not
+session count (measured 2026-09-15..23: the fifteen largest sessions were ~$400 of ~$650). In practice: read the part of a file you need (a `grep`, a line range) rather than
 the whole file; send long output to a file and read back a summary, not the dump; count in a
 script whose stdout is a table rather than reading raw `.jsonl` into the conversation; don't
 re-read a file you already read this session. A standard with a reason, not a rule: a genuinely
 necessary full read is fine — say so when you do it.
 
-**Lean alone decides** (Dan, 2026-09-27; `AGENT_POLICY.md`): reward, evaluation and counting all use Lean — the fork's `dan` branch judge (`lean_judge.py`: strict `lean_seq` grammar + Lean for model text, `lean_check` for free-form Lean). Do not call `nd_verify` to judge anything. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form; from-scratch training and RL use `lean_seq`. Report proof length in lines **and** term size; say that the ladder's `L_true` labels are ND-derived upper bounds; label every number that is compared with pre-2026-09-27 results (measured under Lean ∧ `nd_verify`) with the checker it was measured under.
+**Language-model runs** follow the policy's "Standards for language-model runs": the hand gate on every deciding
+success, strict and genuine numbers side by side, the same template, decoding and token budget for the compared
+models, and the same confirmation rule in both directions.
+
+**Prover runs: Lean alone decides** (Dan, 2026-09-27; `AGENT_POLICY.md`): reward, evaluation and counting all use Lean — the fork's `dan` branch judge (`lean_judge.py`: strict `lean_seq` grammar + Lean for model text, `lean_check` for free-form Lean). Do not call `nd_verify` to judge anything. Show proofs in write-ups in Lean. Experiments that involve a pretrained model use Lean as the surface form; from-scratch training and RL use `lean_seq`. Report proof length in lines **and** term size; say that the ladder's `L_true` labels are ND-derived upper bounds; label every number that is compared with pre-2026-09-27 results (measured under Lean ∧ `nd_verify`) with the checker it was measured under.
 
 At the end: `run<id>.md` (≤ 400 words + figures, expectations vs outcomes stated plainly);
 `STATUS.md` line `RUN<id> DONE <UTC>` (or `DONE <UTC>` for a single-run session); push; then
