@@ -64,6 +64,9 @@ def main():
     ap.add_argument("--max_action", type=int, default=512)
     ap.add_argument("--tok_budget", type=int, default=0, help="padded tokens per decode chunk per worker")
     ap.add_argument("--verifier", default=None, help="verifier to use instead of the one in the checkpoint: FILE, or FILE:THR,FILE:THR for a combination")
+    ap.add_argument("--max_seconds", type=float, default=None,
+                    help="wall-clock budget of this call (also SOLVER_MAX_SECONDS; 0 = none); "
+                         "default max(900, 0.06 x attempts)")  # fmt: skip
     ap.add_argument("--judge", action="store_true", help="afterwards, run Lean on the output and print pass rates")
     a = ap.parse_args()
 
@@ -122,9 +125,16 @@ def main():
                     f.write(json.dumps(r, ensure_ascii=False) + "\n")
             os.replace(out_fn + ".tmp", out_fn)
 
+        # wall-clock budget for this call: SOLVER_MAX_SECONDS, or 0.06 s per attempt and at least
+        # 15 minutes (832 theorems at 32 attempts: 27 minutes; the solver needs about 11 there)
+        ms = os.environ.get("SOLVER_MAX_SECONDS")
+        ms = float(ms) if ms not in (None, "") else a.max_seconds
+        if ms is None:
+            ms = max(900.0, 0.06 * len(rows) * a.k)
         out, cfg = solve_safe(model, rows, k=a.k, seed=a.seed, mode=mode, max_steps=a.max_steps,
                               max_action=a.max_action, tok_budget=a.tok_budget or 500_000,
-                              verifier=build_verifier(extra, dev), progress=write_partial, **kw)  # fmt: skip
+                              verifier=build_verifier(extra, dev), progress=write_partial,
+                              max_seconds=ms if ms > 0 else None, **kw)  # fmt: skip
     if a.judge:
         judge(out)
     tmp = out_fn + ".tmp"

@@ -57,7 +57,7 @@ def _rows(atts):
 
 
 def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512, log=None,
-          tok_budget=700_000, verifier=None, progress=None, **kw):  # fmt: skip
+          tok_budget=700_000, verifier=None, progress=None, deadline=None, **kw):  # fmt: skip
     """rows: dicts with `name` and `thm` -> (one output row per attempt, config used).
     `progress`: called about once a minute with the output rows of the attempts that already hold
     a complete proof, so a caller can keep a partial result on disk while the loop runs."""
@@ -94,7 +94,7 @@ def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512
             last[0] = time.time()
 
     rollouts(model, atts, seed=seed, max_steps=max_steps, max_action=max_action,
-             log=_log if (log or progress) else None,
+             log=_log if (log or progress) else None, deadline=deadline,
              tok_budget=tok_budget, verifier=verifier if mode == "search" else None, **cfg)  # fmt: skip
     if mode == "search":
         cfg["ver_views"] = ver_views
@@ -109,11 +109,13 @@ def _failed_rows(row, k, why):
              "lemmas": 0} for d in range(k)]  # fmt: skip
 
 
-def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None, **kw):
+def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None, max_seconds=None, **kw):
     """`solve`, but a statement that cannot be read or an error inside the attempt loop cannot
     lose the whole set: statements are checked first (a bad one gets k failed attempts), and if
     the loop raises (out of memory included) the set is split in two and each half is solved on
-    its own, down to single theorems, which then count as failed."""
+    its own, down to single theorems, which then count as failed.
+    `max_seconds`: a wall-clock budget for the whole call. After 80% of it no attempt starts a
+    new screened try; at 100% the attempts still running end without a proof."""
     import sys
 
     import torch
@@ -129,6 +131,8 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None,
             print(f"solve: statement of {r.get('name')!r} not read ({type(e).__name__}: {e})", file=sys.stderr, flush=True)
             out += _failed_rows(r, k, "statement not read")
     cfg = {"mode": mode}
+    t_start = time.time()
+    deadline = (t_start + 0.8 * max_seconds, t_start + max_seconds) if max_seconds else None
 
     def run(part, depth):
         nonlocal cfg
@@ -140,7 +144,7 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None,
                 kw2["tok_budget"] = max(50_000, kw2["tok_budget"] >> depth)
             prog = (lambda rows_now: progress(out + rows_now)) if progress else None
             res, cfg = solve(model, part, k=k, seed=seed + 7919 * depth, mode=mode, log=log,
-                             progress=prog, **kw2)  # fmt: skip
+                             progress=prog, deadline=deadline, **kw2)  # fmt: skip
             return res
         except Exception as e:  # noqa: BLE001
             print(f"solve: error on {len(part)} theorems at depth {depth} ({type(e).__name__}: {str(e)[:200]})",
@@ -163,6 +167,8 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None,
     cfg = dict(cfg)
     cfg["secs"] = time.time() - t0
     cfg["statements_not_read"] = len(rows) - len(good)
+    cfg["max_seconds"] = max_seconds
+    cfg["attempts_cut_by_time"] = sum(r["proof"] == "LEANPARSE incomplete: time" for r in out)
     return out, cfg
 
 

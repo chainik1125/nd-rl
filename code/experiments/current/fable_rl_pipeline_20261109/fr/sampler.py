@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import math
 import random
+import time
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -172,7 +173,7 @@ class Attempt:
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
              log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None, scaffold=False,
-             verifier=None, fallback=False, subgoals=0,
+             verifier=None, fallback=False, subgoals=0, deadline=None,
 ):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
     for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
@@ -187,7 +188,10 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
     has asked for F without having it. Up to `subgoals` times per try, F then becomes a subgoal:
     the policy is shown the same hypotheses with F as the goal until it derives F (its `exact`
     there only ends the subgoal), and then goes on with the original goal and F in scope. The
-    lines it wrote for F stay in the proof; a subgoal it cannot reach is dropped."""
+    lines it wrote for F stay in the proof; a subgoal it cannot reach is dropped.
+    `deadline`: (soft, hard) wall-clock times. After the soft one no new screened try starts (a
+    try that fails goes straight to the unscreened last try, if that is on); at the hard one
+    every attempt still running ends without a proof (`why` = "time")."""
     assert gate in ("none", "checker", "verifier")
     dev = next(model.parameters()).device
     g = torch.Generator(device=dev)
@@ -223,6 +227,12 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
     live = list(attempts)
     wave = 0
     while live:
+        now = time.time()
+        if deadline is not None and now >= deadline[1]:
+            for a in live:
+                a.why = "time"
+            break
+        late = deadline is not None and now >= deadline[0]
         states = []
         for a in live:
             st = a.env.state_tokens()
@@ -368,7 +378,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                         a.step_tries = 1  # the next sample at this state is drawn warmer
                         keep.append(a)
                         continue
-            if not a.fb and a.n_calls < max_calls and a.tries < tries:
+            if not a.fb and a.n_calls < max_calls and a.tries < tries and not late:
                 start(a)
                 keep.append(a)
             elif fallback and gate == "verifier" and not a.fb:
