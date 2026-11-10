@@ -104,7 +104,8 @@ def shard_work(model, specs, cfg):
     rollouts(model, atts, gate=cfg["gate"], temperature=cfg["temperature"], resample=cfg["resample"],
              tries=1, max_steps=cfg["max_steps"], max_action=cfg["max_action"], seed=cfg["seed"],
              collect=neg, temp_bump=cfg["temp_bump"], backtrack=cfg["backtrack"], stats=samp,
-             max_calls=cfg["max_calls"], tok_budget=cfg.get("tok_budget", 700_000))  # fmt: skip
+             max_calls=cfg["max_calls"], tok_budget=cfg.get("tok_budget", 700_000),
+             subgoals=cfg.get("subgoals", 0))  # fmt: skip
     rng = random.Random(cfg["seed"] + 17)
     her_ok = {ti for ti, _, _, h in specs if h}
     done, her, aux = {}, {}, []

@@ -75,9 +75,15 @@ def compact_bytes(state_b, act_b):
     return None if c is None else enc(c)
 
 
+VIEWS = 1  # verifier passes per step at test time; views beyond the first shift the names
+
+
 @torch.no_grad()
-def ver_probs(model, seqs, tok_budget=400_000):
-    """seqs: list of id sequences (bytes) -> probability that each step is well typed."""
+def ver_probs(model, seqs, tok_budget=400_000, views=None):
+    """seqs: list of id sequences (bytes) -> probability that each step is well typed. With
+    `views` > 1 the step is judged again under random name offsets (the same statement to the
+    network, different name tokens) and the lowest probability is returned."""
+    views = VIEWS if views is None else views
     if not seqs:
         return []
     dev = next(model.parameters()).device
@@ -96,9 +102,12 @@ def ver_probs(model, seqs, tok_budget=400_000):
             arr[r, : len(seqs[i])] = np.frombuffer(bytes(seqs[i]), np.uint8)
         x = torch.from_numpy(arr).to(dev).long()
         last = torch.tensor([len(seqs[i]) - 1 for i in chunk], device=dev)
+        rows = torch.arange(len(chunk), device=dev)
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
-            h = model.trunk(x)
-            logit = model.aux(h[torch.arange(len(chunk), device=dev), last])[:, 0].float()
+            logit = model.aux(model.trunk(x)[rows, last])[:, 0].float()
+            for _ in range(views - 1):
+                lg = model.aux(model.trunk(shift_names(x, low_bias=0.0))[rows, last])[:, 0].float()
+                logit = torch.minimum(logit, lg)
         for i, p in zip(chunk, torch.sigmoid(logit).tolist()):
             out[i] = p
     return out
@@ -165,8 +174,26 @@ def _batch(ex, idx, dev):
     return x, last, y
 
 
-def train_verifier(ex, steps=4000, bs=1024, lr=6e-4, seed=0, log=print, init=None, holdout=0.02):
-    """-> (model, metrics on a held-out share of the examples)."""
+def _metrics(model, ex, idx, tag):
+    probs = ver_probs(model, [ex[i][0] for i in idx], views=1)
+    labs = [ex[i][1] for i in idx]
+    neg = [p for p, lab in zip(probs, labs) if lab == 0]
+    pos = [p for p, lab in zip(probs, labs) if lab == 1]
+    m = {f"{tag}_n": len(idx)}
+    for tau in (0.5, 0.9):
+        m[f"{tag}_neg_caught@{tau}"] = round(sum(p < tau for p in neg) / max(1, len(neg)), 5)
+        m[f"{tag}_pos_kept@{tau}"] = round(sum(p >= tau for p in pos) / max(1, len(pos)), 5)
+    return m
+
+
+def train_verifier(ex, steps=4000, bs=1024, lr=6e-4, seed=0, log=print, init=None, holdout=0.02,
+                   cfg=None, mine_rounds=0, mine_steps=3000, test=None):  # fmt: skip
+    """-> (model, metrics on a held-out share of the examples, and on `test` if given).
+
+    `mine_rounds`: after the main run, score every training example, collect the ones the network
+    gets wrong (a refused step it would pass, an accepted step it would refuse) and train on
+    batches that are half such hard examples; repeated. The policy's proposals at test time are
+    filtered by this network, so the rare steps it wrongly passes are exactly what gets through."""
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     cuda = dev.type == "cuda"
     rng = random.Random(seed)
@@ -175,54 +202,68 @@ def train_verifier(ex, steps=4000, bs=1024, lr=6e-4, seed=0, log=print, init=Non
     rng.shuffle(idx)
     n_ho = max(1, int(len(idx) * holdout))
     ho, tr = idx[:n_ho], idx[n_ho:]
-    model = GPT(VOCAB, **VER_CFG).to(dev)
+    model = GPT(VOCAB, **(cfg or VER_CFG)).to(dev)
     if init is not None:
         model.load_state_dict(init)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, betas=(0.9, 0.95), weight_decay=0.05)
     gen = torch.Generator(device=dev)
     gen.manual_seed(seed)
-    model.train()
     t0 = time.time()
-    acc_loss = 0.0
-    queue = []
-    for s in range(steps):
-        for gp in opt.param_groups:
-            gp["lr"] = lr * min(1.0, (s + 1) / 200) * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * s / steps)))
-        if not queue:  # length-bucketed batches: a pool of examples sorted by length, cut by tokens
-            pool = sorted((tr[rng.randrange(len(tr))] for _ in range(64 * bs)), key=lambda i: len(ex[i][0]))
-            i0 = 0
-            while i0 < len(pool):
-                i1 = i0 + 1
-                while i1 < len(pool) and (i1 - i0 + 1) * len(ex[pool[i1]][0]) <= bs * 48:
-                    i1 += 1
-                queue.append(pool[i0:i1])
-                i0 = i1
-            rng.shuffle(queue)
-        b = queue.pop()
-        x, last, y = _batch(ex, b, dev)
-        x = shift_names(x, gen)
-        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
-            h = model.trunk(x)
-            logit = model.aux(h[torch.arange(len(b), device=dev), last])[:, 0].float()
-        loss = F.binary_cross_entropy_with_logits(logit, y)
-        opt.zero_grad(set_to_none=True)
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        opt.step()
-        acc_loss += float(loss.detach())
-        if (s + 1) % 500 == 0 or s + 1 == steps:
-            log(f"verifier step {s + 1}/{steps} loss {acc_loss / (500 if (s + 1) % 500 == 0 else (steps % 500 or 500)):.4f} "
-                f"{time.time() - t0:.0f}s")  # fmt: skip
-            acc_loss = 0.0
-    model.eval()
-    probs = ver_probs(model, [ex[i][0] for i in ho])
-    labs = [ex[i][1] for i in ho]
-    m = {"holdout": len(ho), "train": len(tr), "pos_share": sum(labs) / len(labs)}
-    for tau in (0.3, 0.5, 0.7, 0.9):
-        neg = [p for p, lab in zip(probs, labs) if lab == 0]
-        pos = [p for p, lab in zip(probs, labs) if lab == 1]
-        m[f"neg_caught@{tau}"] = sum(p < tau for p in neg) / max(1, len(neg))
-        m[f"pos_kept@{tau}"] = sum(p >= tau for p in pos) / max(1, len(pos))
+
+    def run(n_steps, peak, hard, tag):
+        model.train()
+        acc_loss, queue = 0.0, []
+        for s in range(n_steps):
+            for gp in opt.param_groups:
+                gp["lr"] = peak * min(1.0, (s + 1) / 200) * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * s / n_steps)))
+            if not queue:  # length-bucketed batches: a pool sorted by length, cut by tokens
+                pool = [tr[rng.randrange(len(tr))] for _ in range(64 * bs)]
+                if hard:
+                    pool = pool[: 32 * bs] + [hard[rng.randrange(len(hard))] for _ in range(32 * bs)]
+                pool.sort(key=lambda i: len(ex[i][0]))
+                i0 = 0
+                while i0 < len(pool):
+                    i1 = i0 + 1
+                    while i1 < len(pool) and (i1 - i0 + 1) * len(ex[pool[i1]][0]) <= bs * 48:
+                        i1 += 1
+                    queue.append(pool[i0:i1])
+                    i0 = i1
+                rng.shuffle(queue)
+            b = queue.pop()
+            x, last, y = _batch(ex, b, dev)
+            x = shift_names(x, gen)
+            with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
+                h = model.trunk(x)
+                logit = model.aux(h[torch.arange(len(b), device=dev), last])[:, 0].float()
+            loss = F.binary_cross_entropy_with_logits(logit, y)
+            opt.zero_grad(set_to_none=True)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            opt.step()
+            acc_loss += float(loss.detach())
+            if (s + 1) % 1000 == 0 or s + 1 == n_steps:
+                log(f"verifier {tag} step {s + 1}/{n_steps} loss {acc_loss / ((s % 1000) + 1):.4f} {time.time() - t0:.0f}s")
+                acc_loss = 0.0
+        model.eval()
+
+    run(steps, lr, None, "main")
+    m = _metrics(model, ex, ho, "holdout")
+    if test:
+        m.update(_metrics(model, test, list(range(len(test))), "test"))
+    log("after main: " + json.dumps(m))
+    for r in range(mine_rounds):
+        probs = ver_probs(model, [ex[i][0] for i in tr])
+        hard = [i for i, p in zip(tr, probs) if (p >= 0.2) != (ex[i][1] == 1) or (0.2 <= p < 0.8)]
+        n_fa = sum(1 for i in hard if ex[i][1] == 0)
+        log(f"mining round {r + 1}: {len(hard)} hard examples ({n_fa} refused steps passed, {len(hard) - n_fa} accepted steps doubted)")
+        if not hard:
+            break
+        run(mine_steps, lr / 3, hard, f"mine{r + 1}")
+        m = _metrics(model, ex, ho, "holdout")
+        if test:
+            m.update(_metrics(model, test, list(range(len(test))), "test"))
+        log(f"after mining round {r + 1}: " + json.dumps(m))
+    m["train"] = len(tr)
     return model, m
 
 
@@ -235,6 +276,11 @@ def main():
     ap.add_argument("--lr", type=float, default=6e-4)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--max_per_round", type=int, default=10**9)
+    ap.add_argument("--mine_rounds", type=int, default=0)
+    ap.add_argument("--mine_steps", type=int, default=3000)
+    ap.add_argument("--test_run", default=None, help="a directory of ver_r*.pkl files never trained on, for a test read")
+    ap.add_argument("--n_layer", type=int, default=VER_CFG["n_layer"])
+    ap.add_argument("--d", type=int, default=VER_CFG["d"])
     ap.add_argument("--x", default=None, help="pretraining corpus: add --x_pos accepted steps from it as positives")
     ap.add_argument("--x_pos", type=int, default=300_000)
     a = ap.parse_args()
@@ -245,9 +291,15 @@ def main():
         counts["x_positives"] = len(xp)
         ex += xp
     print(f"examples {len(ex)} from {len(counts)} rounds ({time.time() - t0:.0f}s): {json.dumps(counts)}", flush=True)
-    model, m = train_verifier(ex, a.steps, a.bs, a.lr, a.seed, log=lambda s: print(s, flush=True))
+    cfg = dict(n_layer=a.n_layer, d=a.d, n_head=8)
+    test = None
+    if a.test_run:
+        test, tc = load_examples(a.test_run, a.max_per_round, a.seed)
+        print(f"test examples {len(test)}: {json.dumps(tc)}", flush=True)
+    model, m = train_verifier(ex, a.steps, a.bs, a.lr, a.seed, log=lambda s: print(s, flush=True), cfg=cfg,
+                              mine_rounds=a.mine_rounds, mine_steps=a.mine_steps, test=test)
     print("holdout " + json.dumps(m), flush=True)
-    torch.save({"cfg": VER_CFG, "state": model.state_dict(), "metrics": m, "rounds": counts,
+    torch.save({"cfg": cfg, "state": model.state_dict(), "metrics": m, "rounds": counts,
                 "args": vars(a)}, a.out)  # fmt: skip
     print("VERIFIER_DONE", flush=True)
 

@@ -162,3 +162,16 @@ still uses nothing but "has a kept proof or not".
 Change: theorems without a proof get 128 attempts per round instead of 48 (`--k_hard 128`), in all
 three seed runs and in the ablation, applied by restarting each run with `--resume` (the round in
 flight at the restart is redone). Nothing else changes.
+
+## Amendment 4 (2026-11-10, 1:40 am PT; applies to the kept runs from about round 14 on)
+
+Observed after 12 to 13 rounds: every seed has a kept proof for all but 14 to 53 of the 4,022
+training theorems, and in all three the 14-line family is where they stop (1 of 11 solved).
+Dev in plain mode is still rising (seed 0: 79.1 / 91.1, seed 1: 81.1 / 92.6, seed 2: 76.2 / 89.6).
+
+Change, by restarting each run with `--resume` on the current code (commit of this amendment):
+- theorems without a proof get 512 attempts per round (`--k_hard 512`; they are few, so this is cheap);
+- in the three seed runs a refused step may become a subgoal for the same policy, up to 4 times per
+  attempt (`--subgoals 4`, the procedure described in `fr/sampler.py`); the ablation has no step
+  check and so no subgoals, but gets the same 512 attempts.
+The current code also caps a sampled action's length by its state, which only shortens runaway samples.

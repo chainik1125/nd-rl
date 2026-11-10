@@ -80,6 +80,7 @@ def main():
     ap.add_argument("--temp_bump", type=float, default=0.15, help="temperature rise per refused sample of a step")
     ap.add_argument("--backtrack", type=int, default=2, help="boxes a stuck attempt may abandon")
     ap.add_argument("--max_steps", type=int, default=96)
+    ap.add_argument("--subgoals", type=int, default=0, help="refused steps per attempt that may become subgoals")
     ap.add_argument("--max_calls", type=int, default=300, help="actions sampled per attempt at most")
     ap.add_argument("--max_action", type=int, default=384)
     ap.add_argument("--steps", type=int, default=600, help="optimiser steps per round")
@@ -200,7 +201,7 @@ def main():
         n_att = sum(sp[2] for sp in specs)
         cfg = {"gate": a.gate, "temperature": a.temperature, "resample": a.resample,
                "max_steps": a.max_steps, "max_action": a.max_action, "temp_bump": a.temp_bump,
-               "backtrack": a.backtrack, "max_calls": a.max_calls,
+               "backtrack": a.backtrack, "max_calls": a.max_calls, "subgoals": a.subgoals,
                "tok_budget": 700_000 if a.procs <= 1 else 800_000 // a.procs, "seed": a.seed * 100_003 + rnd,
                "aux_p": min(1.0, a.aux_attempts / max(1, n_att)), "keep": a.keep_per_thm,
                "her_keep": a.her_per_thm, "her": not a.no_her}  # fmt: skip

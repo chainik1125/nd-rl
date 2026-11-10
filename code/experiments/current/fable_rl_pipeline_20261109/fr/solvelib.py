@@ -56,6 +56,14 @@ def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512
     """rows: dicts with `name` and `thm` -> (one output row per attempt, config used)."""
     cfg = dict(DEFAULTS[mode])
     cfg.update({key: v for key, v in kw.items() if v is not None})
+    ver_views = cfg.pop("ver_views", 1)
+    if mode == "search":
+        import torch
+
+        from . import verifier as _v
+
+        _v.VIEWS = int(ver_views)
+        torch.manual_seed(seed)  # the extra verifier views draw name offsets
     atts = []
     for r in rows:
         p = thm_to_prompt(r["thm"])
@@ -64,6 +72,8 @@ def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512
     t0 = time.time()
     rollouts(model, atts, seed=seed, max_steps=max_steps, max_action=max_action, log=log,
              tok_budget=tok_budget, verifier=verifier if mode == "search" else None, **cfg)  # fmt: skip
+    if mode == "search":
+        cfg["ver_views"] = ver_views
     return _rows(atts), {"secs": time.time() - t0, "mode": mode, "max_steps": max_steps,
                          "max_action": max_action, **cfg}  # fmt: skip
 
