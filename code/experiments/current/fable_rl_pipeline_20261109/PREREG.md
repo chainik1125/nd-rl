@@ -260,3 +260,36 @@ Two things read after amendment 5 was committed, both on seed 1's 18-round polic
 
 Added to the settings to be chosen on seed 0 under the same rule: 1, 2 or 3 tries per attempt
 (next to 4 and 8). Worker processes: 1 (fixed now).
+
+### Amendment 5c (2026-11-10, 8:35 am PT): solver settings frozen
+
+Chosen as amendments 5 and 5b say, on dev with seed 0's round-30 policy and seed 0's own two
+verifier networks (trained on its rounds 0 to 35), 5 attempts per theorem; times are for the 473
+dev theorems at 32 attempts on one A40 under a 22 GB memory cap.
+
+| setting | pass@1 | pass@5 | tokens per attempt | time at 32 attempts |
+|---|---|---|---|---|
+| full, 1 try | 91.0 | 95.3 | 285 | |
+| full, 2 tries | 93.4 | 96.6 | 343 | 287 s |
+| full, 3 tries | 93.4 | 96.2 | 391 | |
+| **full, 4 tries** | **93.9** | **96.8** | **444** | **409 s** |
+| full, 4 tries + subgoals | 94.5 | 97.5 | 590 | 552 s |
+| full, 8 tries | 94.8 | 97.0 | 564 | 573 s |
+| full, 8 tries + subgoals | 94.7 | 97.5 | 701 | |
+| plain, temperature 1.0 | 81.8 | 93.7 | 186 | |
+| **plain, temperature 0.8** | **83.3** | **92.4** | **186** | **62 s** |
+
+- 8 tries and 4 tries with subgoals have the higher pass@1 but need 552 to 573 s on 473 theorems,
+  which is about 16 to 17 minutes on 832 if time grows in proportion; the rule excludes what
+  cannot do 832 theorems in about 15 minutes. Of the rest, 4 tries is 0.5 points above 2 and 3
+  tries, so 4 tries it is (about 12 minutes on 832 by the same proportion).
+- Plain mode: temperature 0.8 (1.5 points more pass@1, 1.3 fewer pass@5).
+- Frozen for all seeds (`solver.json` in this folder, packed into every final checkpoint):
+  full mode = both verifier networks must pass (masked slot model 0.001, one-logit judge 0.05),
+  4 resamples per step, 4 tries, temperature 1.0 rising by 0.15 per resample, 2 box abandonments
+  per try, at most 300 sampled actions per attempt, premise lines written by the solver, one
+  unscreened last try, no subgoal procedure; plain mode = temperature 0.8, nothing else.
+- Added to the solver after amendment 5 and not part of any choice above: a wall-clock budget per
+  call (default 0.06 s per attempt, at least 900 s), periodic writing of finished proofs to the
+  output file, failed attempts for unreadable statements, and a retry on smaller parts after an
+  error. Tried and left off: resampling from the state's cached encoding (same dev result, slower).

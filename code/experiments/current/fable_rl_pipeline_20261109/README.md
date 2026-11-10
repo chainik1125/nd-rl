@@ -85,6 +85,15 @@ $PY solve.py --ckpt final.pt --in theorems.jsonl --out rows.jsonl --k 32 --seed 
 SOLVER_MODE=plain $PY solve.py --ckpt final.pt --in theorems.jsonl --out rows.jsonl --k 32 --seed 0
 ```
 
+Solver switches (environment): `SOLVER_MODE=full|plain`; `SOLVER_MAX_SECONDS=<s>` sets the
+wall-clock budget of one call (default: 0.06 s per attempt and at least 900 s; `0` for none). After
+80% of the budget no attempt starts a new screened try; at 100% the attempts still running end
+without a proof, and the summary line printed at the end counts them (`attempts_cut_by_time`).
+While it runs the solver rewrites the output file every 90 s with the proofs finished so far, so a
+run stopped from outside keeps them. A statement it cannot read gets failed attempts
+(`statements_not_read`); an error inside the loop (out of memory included) halves the set and
+retries. Measured on one A40 under a 22 GB memory cap: about 10 GB allocated at 32 attempts.
+
 Output rows: `name`, `draw`, `proof` (ND text in Dan's format, the body after `PRF`), `verdict`
 (the solver's own yes/no), `tokens_generated` (every token the policy generated in the attempt,
 refused samples and restarts included), and extras: `tries`, `steps`, `scaffold_lines` (premise
