@@ -19,7 +19,13 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 SSH=(ssh -n -F $F/ssh_config)
 mkdir -p $F/final/$tag
 timeout 60 "${SSH[@]}" "$h" "grep -q RL_DONE /workspace/runs/$run.log" || { echo "no RL_DONE in $run.log on $h"; exit 1; }
-bash "$HERE/pull.sh" "$h" | tail -1
+ok=""
+for i in 1 2 3 4; do  # the checkpoint rule must read the run's complete record: no stale copy
+  bash "$HERE/pull.sh" "$h" 2>&1 | tail -2 | grep -q PULL_OK && { ok=1; break; }
+  sleep 30
+done
+[[ -n $ok ]] || { echo "pull of $h failed 4 times"; exit 1; }
+echo "PULL_OK $h"
 D=$F/runs/$h/$run
 python3 "$HERE/../report.py" --best "$D" > $F/final/$tag/checkpoint_rule.txt
 rnd=$(grep -o 'picked round [0-9]*' $F/final/$tag/checkpoint_rule.txt | grep -o '[0-9]*')
@@ -61,6 +67,14 @@ until timeout 30 "${SSH[@]}" "$h" "test -f /workspace/final/done_$tag" 2>/dev/nu
   if (( $(date +%s) - t0 > ${FINALIZE_TIMEOUT:-9000} )); then echo "FINALIZE_TIMEOUT $tag"; exit 2; fi
 done
 timeout 60 "${SSH[@]}" "$h" "grep -h 'examples\|^holdout' /workspace/final/verifier_*_$tag.log 2>/dev/null | cut -c1-400; cat /workspace/final/pack_$tag.log | grep -v Warn | cut -c1-300; for f in /workspace/final/dev_*${tag}_*.log; do echo \"== \$f\"; grep '^all\|^src' \$f; done"
-for i in 1 2 3; do timeout 1500 rsync -rlpt -e "ssh -F $F/ssh_config" "$h:/workspace/final/" $F/final/$tag/ && break; sleep 20; done
-(cd $F/final/$tag && md5sum -c md5_$tag.txt | tr '\n' ' ')
+copied=""
+for i in 1 2 3 4 5; do
+  timeout 1500 rsync -rlpt -e "ssh -F $F/ssh_config" "$h:/workspace/final/" $F/final/$tag/ && (cd $F/final/$tag && md5sum -c md5_$tag.txt > md5_check_$tag.txt 2>&1) && { copied=1; break; }
+  sleep 30
+done
+tr '\n' ' ' < $F/final/$tag/md5_check_$tag.txt; echo
+[[ -n $copied ]] || { echo "FINALIZE_COPY_FAILED $tag: files stay on $h, do not delete the pod"; exit 3; }
+# the policy checkpoint the rule picked and the run's record, checked against the pod as well
+timeout 120 "${SSH[@]}" "$h" "cd $R && sha256sum r$rnd.pt rounds.jsonl" > $F/final/$tag/sha256_pod_$tag.txt
+(cd $D && sha256sum -c $F/final/$tag/sha256_pod_$tag.txt | tr '\n' ' '); echo
 echo "FINALIZE_OK $tag r$rnd $(date -u +%FT%TZ)"
