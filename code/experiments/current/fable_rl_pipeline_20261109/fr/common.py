@@ -26,8 +26,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(HERE), "vendor_dan"))
 
 import lean_prefilter as LP  # noqa: E402
 import patterns  # noqa: E402
-from lean_tok import MAXN, LeanTokenizer, ParseFail, fnd  # noqa: E402
-from nd2lean import parse_prompt  # noqa: E402
+from lean_tok import MAXN, LeanTokenizer, ParseFail, fnd, ftoks  # noqa: E402
+from nd2lean import parse_prompt, translate  # noqa: E402
 from state_env import Env, decompose, is_name, parse_ftoks  # noqa: E402
 
 TOK = LeanTokenizer("lean_staten")
@@ -231,6 +231,34 @@ def lean_check(items) -> list[bool]:
     return [flat[uniq[it]] for it in items]
 
 
+def lean_check_nd(items) -> list[bool]:
+    """items: (prompt, ND proof body) -> Lean's verdict by the route Dan's `lean_judge.judge_many`
+    takes: `nd2lean.translate(prompt, nd, require_all_pr=False)`, then Lean 4 core."""
+    idx, srcs = [], []
+    for i, (p, nd) in enumerate(items):
+        if not nd or nd.startswith("LEAN"):
+            continue
+        try:
+            srcs.append(translate(p, nd, require_all_pr=False))
+            idx.append(i)
+        except Exception:
+            continue
+    out = [False] * len(items)
+    if srcs:
+        n = max(1, min(LEAN_WORKERS, len(srcs) // 50))
+        size = max(1, min(LEAN_CHUNK, -(-len(srcs) // n)))
+        chunks = [(srcs[i : i + size], i) for i in range(0, len(srcs), size)]
+        wd = tempfile.mkdtemp(prefix="frlean_")
+        try:
+            with ThreadPoolExecutor(LEAN_WORKERS) as ex:
+                res = list(ex.map(lambda c: _lean_run(c[0], wd, str(c[1])), chunks))
+        finally:
+            shutil.rmtree(wd, ignore_errors=True)
+        for i, ok in zip(idx, [x for r in res for x in r]):
+            out[i] = bool(ok)
+    return out
+
+
 # ----------------------------------------------------------------------------- traces
 class Trace:
     """A replay of one attempt's applied actions, with what each step saw and cited.
@@ -376,6 +404,45 @@ def nd_pairs(prompt: str, nd: str):
     return [(s, a) for s, a, _ in steps], TOK.text(toks)
 
 
+def subgoal_variant(prompt: str, nd: str, max_prem: int = 6):
+    """A proof whose last line closes an implication or negation box, read as a proof of that
+    box's subgoal: 'premises , assumption |- body goal' (for a negation box the goal is falsum).
+    The box's assumption line becomes a premise line; nothing else changes.
+    -> (new prompt, new ND proof) or None when the proof does not end that way."""
+    lines = patterns.parse(nd)
+    if not lines or len(lines) < 2:
+        return None
+    last = lines[-1]
+    if last["rule"] not in ("IMPI", "NEGI") or last["depth"] != 0 or len(last["refs"]) != 2:
+        return None
+    s, e = last["refs"]
+    if lines[-2]["idx"] != e:
+        return None
+    prem, _ = parse_prompt(prompt)
+    if len(prem) + 1 > max_prem:
+        return None
+    pos = {ln["idx"]: i for i, ln in enumerate(lines)}
+    if s not in pos or lines[pos[s]]["rule"] != "AS" or lines[pos[s]]["depth"] != 1:
+        return None
+    body = lines[pos[s] : -1]
+    if any(ln["depth"] < 1 for ln in body):
+        return None
+    hyp = dict(lines[pos[s]])
+    hyp.update(depth=0, rule="PR", refs=[])
+    n_pr = sum(1 for ln in lines if ln["rule"] == "PR")
+    if any(ln["rule"] == "PR" for ln in lines[n_pr:]):
+        return None
+    out = [dict(ln) for ln in lines[:n_pr]] + [hyp] + [dict(ln) for ln in lines[n_pr : pos[s]]]
+    for ln in body[1:]:
+        d = dict(ln)
+        d["depth"] = ln["depth"] - 1
+        out.append(d)
+    goal = last["formula"][2] if last["rule"] == "IMPI" else ("bot",)
+    if out[-1]["formula"] != goal or out[-1]["depth"] != 0:
+        return None
+    return make_prompt(list(prem) + [hyp["formula"]], goal), patterns.lines_to_text(out)
+
+
 def enc(toks) -> bytes:
     return bytes(TOK.stoi[t] for t in toks)
 
@@ -387,5 +454,5 @@ def n_lines(nd: str) -> int:
 __all__ = [
     "TOK", "VOCAB", "PAD", "EOS", "REF0", "ACT_ID", "MAXN", "Env", "ParseFail", "Trace",
     "make_prompt", "thm_to_prompt", "parse_prompt", "step_kind", "type_ok", "try_step",
-    "lean_check", "swap_goal", "pruned_nd", "nd_pairs", "enc", "n_lines", "decompose", "time",
+    "lean_check", "lean_check_nd", "subgoal_variant", "ftoks", "swap_goal", "pruned_nd", "nd_pairs", "enc", "n_lines", "decompose", "time",
 ]  # fmt: skip

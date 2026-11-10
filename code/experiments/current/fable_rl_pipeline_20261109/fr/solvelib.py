@@ -15,27 +15,17 @@ from __future__ import annotations
 import collections
 import time
 
-from .common import TOK, lean_check, thm_to_prompt
+from .common import TOK, lean_check_nd, thm_to_prompt
 from .sampler import Attempt, rollouts
 
 DEFAULTS = {
     "plain": dict(gate="none", resample=0, tries=1, temperature=1.0),
-    "search": dict(gate="verifier", resample=4, tries=4, tau=0.5, temperature=1.0, temp_bump=0.15, backtrack=2,
-                   max_calls=1200),
-}
+    "search": dict(gate="verifier", resample=4, tries=4, tau=0.5, temperature=1.0, temp_bump=0.15,
+                   backtrack=2, max_calls=600, scaffold=True),
+}  # fmt: skip
 
 
-def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=384, log=None, **kw):
-    """rows: dicts with `name` and `thm` -> one output row per attempt."""
-    cfg = dict(DEFAULTS[mode])
-    cfg.update({key: v for key, v in kw.items() if v is not None})
-    atts = []
-    for r in rows:
-        p = thm_to_prompt(r["thm"])
-        for d in range(k):
-            atts.append(Attempt(p, tag=(r["name"], d)))
-    t0 = time.time()
-    rollouts(model, atts, seed=seed, max_steps=max_steps, max_action=max_action, log=log, **cfg)
+def _rows(atts):
     out = []
     for a in atts:
         complete = a.done
@@ -45,24 +35,75 @@ def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=384
         out.append({
             "name": a.tag[0],
             "draw": a.tag[1],
+            "proof": nd if complete else "LEANPARSE incomplete: " + (a.why or "?"),
+            "verdict": bool(complete),
+            "tokens_generated": a.n_tok,
             "prompt": a.prompt,
-            "proof": TOK.text(a.env.text) if complete else "",
-            "nd": nd if complete else "",
-            "verdict": "complete" if complete else "incomplete:" + (a.why or "?"),
+            "lean_text": TOK.text(a.env.text) if complete else "",
             "confidence": round(a.min_ver, 4) if complete else 0.0,
-            "tokens": a.n_tok,
             "tries": a.tries,
             "steps": len(a.acts),
+            "scaffold_lines": a.n_scaffold,
         })  # fmt: skip
-    return out, {"secs": time.time() - t0, "mode": mode, **cfg}
+    return out
+
+
+def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512, log=None,
+          tok_budget=700_000, **kw):  # fmt: skip
+    """rows: dicts with `name` and `thm` -> (one output row per attempt, config used)."""
+    cfg = dict(DEFAULTS[mode])
+    cfg.update({key: v for key, v in kw.items() if v is not None})
+    atts = []
+    for r in rows:
+        p = thm_to_prompt(r["thm"])
+        for d in range(k):
+            atts.append(Attempt(p, tag=(r["name"], d)))
+    t0 = time.time()
+    rollouts(model, atts, seed=seed, max_steps=max_steps, max_action=max_action, log=log,
+             tok_budget=tok_budget, **cfg)  # fmt: skip
+    return _rows(atts), {"secs": time.time() - t0, "mode": mode, "max_steps": max_steps,
+                         "max_action": max_action, **cfg}  # fmt: skip
+
+
+def _solve_worker(ckpt, rows, k, seed, mode, max_steps, max_action, tok_budget, kw):
+    import torch
+
+    from .model import load_ckpt
+
+    torch.set_num_threads(1)
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model, _ = load_ckpt(ckpt, dev)
+    return solve(model, rows, k=k, seed=seed, mode=mode, max_steps=max_steps, max_action=max_action,
+                 tok_budget=tok_budget, **kw)  # fmt: skip
+
+
+def solve_parallel(ckpt, rows, k=1, seed=0, mode="search", procs=3, max_steps=128, max_action=512,
+                   tok_budget=220_000, **kw):  # fmt: skip
+    """`solve` over `procs` worker processes that share the GPU (the attempt loop is half Python).
+    Theorems are dealt to the workers round-robin; each worker's seed is derived from `seed`."""
+    import multiprocessing as mp
+
+    shards = [rows[p::procs] for p in range(procs)]
+    jobs = [(ckpt, sh, k, seed * 131 + p, mode, max_steps, max_action, tok_budget, kw)
+            for p, sh in enumerate(shards) if sh]  # fmt: skip
+    t0 = time.time()
+    with mp.get_context("spawn").Pool(len(jobs)) as pool:
+        res = pool.starmap(_solve_worker, jobs)
+    out = [r for rs, _ in res for r in rs]
+    order = {r["name"]: i for i, r in enumerate(rows)}
+    out.sort(key=lambda r: (order[r["name"]], r["draw"]))
+    cfg = dict(res[0][1])
+    cfg["secs"] = time.time() - t0
+    cfg["procs"] = len(jobs)
+    return out, cfg
 
 
 def judge(out_rows):
-    """Adds `lean_ok` to each row (Lean 4 core on the statement and the literal proof text)."""
-    items = [(r["prompt"], r["proof"]) for r in out_rows if r["proof"]]
-    ok = iter(lean_check(items))
-    for r in out_rows:
-        r["lean_ok"] = bool(next(ok)) if r["proof"] else False
+    """Adds `lean_ok` to each row: Lean 4 core on the ND proof, by the route of Dan's
+    `lean_judge.judge_many` (nd2lean.translate with require_all_pr=False)."""
+    ok = lean_check_nd([(r["prompt"], r["proof"]) for r in out_rows])
+    for r, o in zip(out_rows, ok):
+        r["lean_ok"] = bool(o)
     return out_rows
 
 
@@ -94,9 +135,9 @@ def table(out_rows, meta, k_list=(1, 5)):
                 row[f"pass@{kk}"] = 100.0 * sum(
                     any(d[i]["lean_ok"] for i in range(kk) if i in d) for d in ds) / n  # fmt: skip
         row["complete%"] = (
-            100.0 * sum(sum(bool(x["proof"]) for x in d.values()) / len(d) for d in ds) / n
+            100.0 * sum(sum(bool(x["verdict"]) for x in d.values()) / len(d) for d in ds) / n
         )
-        row["tok/attempt"] = sum(x["tokens"] for d in ds for x in d.values()) / sum(
+        row["tok/attempt"] = sum(x["tokens_generated"] for d in ds for x in d.values()) / sum(
             len(d) for d in ds
         )
         res[g] = row

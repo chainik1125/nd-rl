@@ -31,8 +31,8 @@ import time
 
 import torch
 
-from .collect import Collector
-from .common import lean_check, thm_to_prompt
+from .collect import Collector, pruned_examples
+from .common import lean_check, subgoal_variant, thm_to_prompt
 from .data import Mixer, Store, load_x
 from .model import load_ckpt, save_ckpt
 from .solvelib import fmt_table, judge, solve, table
@@ -84,12 +84,13 @@ def main():
     ap.add_argument("--lr", type=float, default=2e-4)
     ap.add_argument("--w_unl", type=float, default=0.25, help="weight of the unlikelihood of refused steps")
     ap.add_argument("--tok_budget", type=int, default=120_000)
-    ap.add_argument("--mix", default="x=0.35,best=0.30,recent=0.10,her=0.10,aux=0.15")
+    ap.add_argument("--mix", default="x=0.32,best=0.28,recent=0.10,her=0.08,sub=0.07,aux=0.15")
     ap.add_argument(
         "--keep_per_thm", type=int, default=3, help="fresh proofs kept per theorem per round"
     )
     ap.add_argument("--her_per_thm", type=int, default=6)
     ap.add_argument("--no_her", action="store_true")
+    ap.add_argument("--no_sub", action="store_true", help="no subgoal variants of the best proofs")
     ap.add_argument("--no_asproduced", action="store_true", help="ablation: pruned proofs only")
     ap.add_argument(
         "--aux_attempts",
@@ -218,6 +219,34 @@ def main():
                               "round": rnd}  # fmt: skip
             else:
                 fresh.append(c)
+        # ---- subgoal variants of the best proofs: a proof that ends by closing an implication or
+        # negation box is also a proof of 'premises , assumption |- body goal' (Lean-checked)
+        sub = S.setdefault("sub", {})
+        if not a.no_sub:
+            todo = []
+            for r in train:
+                b = best.get(r["name"])
+                if b is None or sub.get(r["name"], {}).get("nd") == b["nd"]:
+                    continue
+                chain = []
+                p2, nd2 = r["prompt"], b["nd"]
+                while True:
+                    v = subgoal_variant(p2, nd2)
+                    if v is None:
+                        break
+                    p2, nd2 = v
+                    try:
+                        ex, text = pruned_examples(p2, nd2)
+                    except Exception:
+                        break
+                    chain.append((p2, text, ex))
+                sub[r["name"]] = {"nd": b["nd"], "chain": chain}
+                todo.append(r["name"])
+            oks = iter(lean_check([(p2, text) for nm in todo for p2, text, _ in sub[nm]["chain"]]))
+            for nm in todo:
+                sub[nm]["ex"] = [e for _, _, ex in sub[nm]["chain"] if next(oks) for e in ex]
+                sub[nm]["n"] = len(sub[nm]["chain"])
+                del sub[nm]["chain"]
         # ---- 3. hindsight lemmas of theorems that are still unsolved
         hc = [c for ti, d in R["her"].items() if train[ti]["name"] not in best for c in d]
         her, her_rej = lean_filter(hc) if hc else ([], 0)
@@ -241,11 +270,12 @@ def main():
         st_best = proof_store(best.values())
         st_recent = proof_store([c for grp in S["recent"] for c in grp])
         st_her = proof_store([c for grp in S["her"] for c in grp])
+        st_sub = Store([e for v in sub.values() for e in v.get("ex", ())])
         st_aux = Store([e for grp in S["aux"] for e in grp])
         # ---- 4. update
         t2 = time.time()
         mixer = Mixer([(xtr, mixw["x"]), (st_best, mixw["best"]), (st_recent, mixw["recent"]),
-                       (st_her, mixw["her"]), (st_aux, mixw["aux"])],
+                       (st_her, mixw["her"]), (st_sub, mixw.get("sub", 0.0)), (st_aux, mixw["aux"])],
                       tok_budget=a.tok_budget, seed=a.seed * 7919 + rnd)  # fmt: skip
         warm = 100 if rnd == 0 else 0
         last = fit(model, opt, mixer, a.steps, lambda s: a.lr * min(1.0, (s + 1) / warm) if warm else a.lr,
@@ -262,7 +292,7 @@ def main():
             "solved_this_round": len(solved_now), "solved_total": len(best), "new": new_best,
             "shorter": improved, "lean_rej": rej, "fresh": len(fresh), "her": len(her),
             "her_rej": her_rej, "neg": len(neg), "aux": len(aux),
-            "pairs": {"best": len(st_best), "recent": len(st_recent), "her": len(st_her), "aux": len(st_aux)},
+            "pairs": {"best": len(st_best), "recent": len(st_recent), "her": len(st_her), "sub": len(st_sub), "aux": len(st_aux)},
             "solved_by_len": {str(k): f"{by_len[k]}/{tot_len[k]}" for k in sorted(tot_len)},
             "mean_best_len": sum(b["len"] for b in best.values()) / max(1, len(best)),
             "solved_by_source": {src: f"{sum(1 for r in train if r['source'] == src and r['name'] in best)}/{sum(1 for r in train if r['source'] == src)}" for src in ("gen", "textbook")},

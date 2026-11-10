@@ -137,7 +137,7 @@ def shard_work(model, specs, cfg):
             aux += trace_examples(tr, None, val=1 if a.done else 0)
     keep = cfg["keep"]
     if cfg["gate"] == "none":
-        keep = 10**9  # nothing was checked while sampling: the parent sends every proof to Lean
+        keep = 12  # nothing was checked while sampling: the parent sends up to 12 proofs per theorem to Lean
     done = {ti: sorted(d.values(), key=lambda c: (c["len"], c["steps"]))[:keep] for ti, d in done.items()}
     her = {ti: sorted(d.values(), key=lambda c: -c["haves"])[: cfg["her_keep"]] for ti, d in her.items()}
     return {"done": done, "her": her, "aux": aux, "neg": neg, "n_att": len(atts), "n_done": n_done,

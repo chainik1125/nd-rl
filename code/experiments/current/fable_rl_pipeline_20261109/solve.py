@@ -1,27 +1,41 @@
 #!/usr/bin/env python3
 """Solve theorems with a fable_rl checkpoint.
 
-    python solve.py --ckpt C --in theorems.jsonl --out rows.jsonl --k K --seed S [--mode search|plain]
+    python solve.py --ckpt C --in theorems.jsonl --out rows.jsonl --k K --seed S
 
 Input rows: `name` and `thm` ("p1 , p2 |- c", the format of y). Output: one row per attempt with
-`name`, `draw`, `proof` (the complete proof as the `lean_seq` tactic text that Dan's Lean check
-takes after the theorem statement; empty if the attempt produced no complete proof), `nd` (the
-same proof in ND form), `verdict` (the solver's own: "complete" or "incomplete:<why>"),
-`confidence` (lowest verifier probability over the proof's steps), `tokens` (every token the model
-generated inside the attempt, refused and restarted samples included), `tries`, `steps`.
+- `name`, `draw` (0..K-1);
+- `proof`: the ND proof body in Dan's format ("N1 ... ; ... QED", what `lean_judge.judge_many`
+  takes), or "LEANPARSE incomplete: <why>" when the attempt produced no complete proof;
+- `verdict`: the solver's own yes/no (the environment says the proof is complete and, in full
+  mode, the verifier passed every step); it never comes from Lean;
+- `tokens_generated`: every token the model generated inside the attempt, with refused samples,
+  abandoned boxes and restarted tries included;
+- extras: `lean_text` (the same proof as the tactic text), `confidence` (lowest verifier
+  probability over the proof's steps), `tries`, `steps`, `scaffold_lines`.
 
-The solver never calls Lean or any type checker. `--mode search` (the default for checkpoints with
-a verifier head) screens steps with the model's own verifier; `--mode plain` is one rollout with
-no resampling. `--judge` additionally runs Lean 4 on the output and adds `lean_ok` (for scoring).
+Mode: environment variable `SOLVER_MODE` = `full` (default) or `plain`; `--mode` overrides it.
+- full: inside one attempt the model's verifier head screens each step it writes; a doubted step
+  or one the environment refuses is resampled, a stuck box is abandoned, a failed try restarts.
+  The premise-restating lines (line k restates premise k, the format's fixed preamble, a function
+  of the statement alone) are written by the solver and cost no tokens; `scaffold_lines` counts them.
+- plain: one model rollout, no resampling, no scaffold; an action the environment refuses ends it.
+Neither mode calls Lean or any type checker. `--judge` runs Lean on the finished output afterwards
+and prints pass rates (for scoring dev sets; not part of solving).
+
+Everything imported is in this folder (`fr/`, `vendor_dan/`) or in the lab environment.
+`SOLVER_PROCS` (default 3) worker processes share the one GPU.
 """
 
-import argparse, json, os, sys, time
+import argparse
+import json
+import os
+import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import torch
 
-from fr.model import load_ckpt
-from fr.solvelib import fmt_table, judge, solve, table
+MODES = {"full": "search", "search": "search", "plain": "plain"}
 
 
 def main():
@@ -31,69 +45,73 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--k", type=int, default=1)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--mode", default=None, choices=["search", "plain"])
+    ap.add_argument("--mode", default=None, choices=sorted(MODES))
+    ap.add_argument("--procs", type=int, default=int(os.environ.get("SOLVER_PROCS", "3")))
     ap.add_argument("--temperature", type=float, default=None)
     ap.add_argument("--tau", type=float, default=None)
     ap.add_argument("--resample", type=int, default=None)
     ap.add_argument("--tries", type=int, default=None)
     ap.add_argument("--temp_bump", type=float, default=None)
     ap.add_argument("--backtrack", type=int, default=None)
+    ap.add_argument("--max_calls", type=int, default=None)
+    ap.add_argument("--scaffold", type=int, default=None, choices=[0, 1])
     ap.add_argument("--max_steps", type=int, default=128)
-    ap.add_argument("--max_action", type=int, default=384)
-    ap.add_argument(
-        "--judge", action="store_true", help="also run Lean on the output and print pass rates"
-    )
+    ap.add_argument("--max_action", type=int, default=512)
+    ap.add_argument("--tok_budget", type=int, default=0, help="padded tokens per decode chunk per worker")
+    ap.add_argument("--judge", action="store_true", help="afterwards, run Lean on the output and print pass rates")
     a = ap.parse_args()
-    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model, extra = load_ckpt(a.ckpt, dev)
-    solver_cfg = extra.get("solver", {})
-    mode = a.mode or solver_cfg.get("mode") or ("search" if extra.get("has_aux") else "plain")
+
+    import torch
+
+    from fr.model import load_ckpt
+    from fr.solvelib import fmt_table, judge, solve, solve_parallel, table
+
+    inp, out_fn, ckpt = os.path.abspath(a.inp), os.path.abspath(a.out), os.path.abspath(a.ckpt)
+    cuda = torch.cuda.is_available()
+    model, extra = load_ckpt(ckpt, "cpu")
+    solver_cfg = extra.get("solver") or {}
+    mode = MODES[a.mode or os.environ.get("SOLVER_MODE") or "full"]
     if mode == "search" and not extra.get("has_aux"):
-        sys.exit("this checkpoint has no verifier head: use --mode plain")
-    kw = {
-        k: solver_cfg.get(k)
-        for k in ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack")
-        if mode == solver_cfg.get("mode")
-    }
-    for k in ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack"):
-        if getattr(a, k) is not None:
-            kw[k] = getattr(a, k)
+        sys.exit("this checkpoint has no verifier head: use SOLVER_MODE=plain")
+    # settings frozen into the checkpoint for its mode, then command-line overrides
+    kw = dict(solver_cfg.get(mode) or {})
+    keys = ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack", "max_calls")
+    for key in keys:
+        if getattr(a, key) is not None:
+            kw[key] = getattr(a, key)
+    if a.scaffold is not None:
+        kw["scaffold"] = bool(a.scaffold)
     if mode == "plain":
-        kw.pop("tau", None)
-        kw.pop("temp_bump", None)
-        kw.pop("backtrack", None)
-    rows = [json.loads(l) for l in open(a.inp) if l.strip()]
+        kw = {key: v for key, v in kw.items() if key == "temperature"}
+    rows = [json.loads(line) for line in open(inp) if line.strip()]
     t0 = time.time()
-    out, cfg = solve(
-        model,
-        rows,
-        k=a.k,
-        seed=a.seed,
-        mode=mode,
-        max_steps=a.max_steps,
-        max_action=a.max_action,
-        **kw,
-    )
+    procs = a.procs if cuda else 1
+    if procs > 1:
+        del model
+        tb = a.tok_budget or 660_000 // procs
+        out, cfg = solve_parallel(ckpt, rows, k=a.k, seed=a.seed, mode=mode, procs=procs,
+                                  max_steps=a.max_steps, max_action=a.max_action, tok_budget=tb, **kw)  # fmt: skip
+    else:
+        model = model.to("cuda" if cuda else "cpu")
+        out, cfg = solve(model, rows, k=a.k, seed=a.seed, mode=mode, max_steps=a.max_steps,
+                         max_action=a.max_action, tok_budget=a.tok_budget or 500_000, **kw)  # fmt: skip
     if a.judge:
         judge(out)
-    with open(a.out, "w") as f:
+    tmp = out_fn + ".tmp"
+    with open(tmp, "w") as f:
         for r in out:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    os.replace(tmp, out_fn)
     n = len(out)
-    print(
-        json.dumps(
-            {
-                "attempts": n,
-                "complete": sum(bool(r["proof"]) for r in out),
-                "mean_tokens_per_attempt": sum(r["tokens"] for r in out) / max(1, n),
-                "secs": round(time.time() - t0, 1),
-                "config": cfg,
-            }
-        )
-    )
+    print(json.dumps({
+        "theorems": len(rows), "attempts": n, "complete": sum(r["verdict"] for r in out),
+        "tokens_per_attempt": round(sum(r["tokens_generated"] for r in out) / max(1, n), 1),
+        "scaffold_lines": sum(r["scaffold_lines"] for r in out),
+        "secs": round(time.time() - t0, 1), "config": cfg,
+    }), flush=True)  # fmt: skip
     if a.judge:
         meta = {r["name"]: r for r in rows}
-        print(fmt_table(table(out, meta)))
+        print(fmt_table(table(out, meta)), flush=True)
 
 
 if __name__ == "__main__":

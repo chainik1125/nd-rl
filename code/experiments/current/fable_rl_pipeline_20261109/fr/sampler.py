@@ -23,9 +23,11 @@ from dataclasses import dataclass, field
 import numpy as np
 import torch
 
-from .common import EOS, PAD, TOK, Env, enc, step_kind, try_step
+from .common import EOS, PAD, TOK, Env, enc, ftoks, step_kind, try_step
 
 ITOS = TOK.itos
+GEN_INIT = 48  # KV-cache slots preallocated for the action; the cache grows if an action is longer
+GEN_RESERVE = 96  # tokens per row assumed for the action when sizing a decode chunk
 
 
 def _sig(x: float) -> float:
@@ -50,7 +52,7 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
     while i0 < n:
         i1 = i0 + 1
         while (i1 < n and i1 - i0 < max_rows
-               and (i1 - i0 + 1) * (len(pids[order[i1]]) + max_new) <= tok_budget):  # fmt: skip
+               and (i1 - i0 + 1) * (len(pids[order[i1]]) + min(max_new, GEN_RESERVE)) <= tok_budget):  # fmt: skip
             i1 += 1
         chunk = order[i0:i1]
         i0 = i1
@@ -69,7 +71,7 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
         mask = torch.tril(torch.ones(T, T, dtype=torch.bool, device=dev))[None] & valid[:, None, :]
         mask = (mask | torch.eye(T, dtype=torch.bool, device=dev)[None])[:, None]
         dt = torch.bfloat16 if cuda else torch.float32
-        caches = model.new_caches(B, T + max_new, dt)
+        caches = model.new_caches(B, T + min(max_new, GEN_INIT), dt)
         keyvalid = torch.cat([valid, torch.ones(B, max_new, dtype=torch.bool, device=dev)], 1)
         toks = torch.full((B, max_new), PAD, dtype=torch.long, device=dev)
         ver_c = torch.zeros(B, device=dev)
@@ -139,19 +141,22 @@ class Attempt:
     min_ver: float = 1.0  # lowest verifier probability among the applied atomic steps
     open_stack: list = field(default_factory=list)  # indices in `acts` of the open boxes' openers
     pops: int = 0  # boxes abandoned in the current try
+    n_scaffold: int = 0  # premise lines written by the solver (final try)
     pvs: list = field(default_factory=list)  # verifier probability of each applied step
     val0: float = 0.0  # value probability at the first state
 
 
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
-             log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None,
+             log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None, scaffold=False,
 ):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
     for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
     a box, abandon the innermost open box (return to the state before its opening step) instead
     of ending the try, up to this many times per try. `max_calls` bounds the actions sampled in
-    one attempt over all tries."""
+    one attempt over all tries. `scaffold`: the premise-restating lines (line k restates premise
+    k; a function of the statement alone, the format's fixed preamble) are written by the solver
+    instead of sampled; they cost no generated tokens and are counted in `Attempt.n_scaffold`."""
     assert gate in ("none", "checker", "verifier")
     dev = next(model.parameters()).device
     g = torch.Generator(device=dev)
@@ -169,6 +174,15 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         a.pvs = []
         a.why = ""
         a.tries += 1
+        if scaffold:
+            a.n_scaffold = 0
+            for k, f in enumerate(a.env.prem):
+                ok, _ = a.env.apply(["have", "n1", ":"] + ftoks(f) + [":=", f"h{k + 1}", ";"])
+                if not ok:
+                    break
+                a.acts.append(list(a.env._eff))
+                a.pvs.append(1.0)
+                a.n_scaffold += 1
 
     for a in attempts:
         start(a)

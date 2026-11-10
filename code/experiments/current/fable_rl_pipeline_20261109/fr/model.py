@@ -56,6 +56,11 @@ class Block(nn.Module):
         q, k = apply_rope(q, cos, sin), apply_rope(k, cos, sin)
         if cache is not None:
             n0 = cache["n"]
+            if n0 + T > cache["k"].shape[2]:  # grow the preallocated cache
+                extra = max(T, 128)
+                for key in ("k", "v"):
+                    c = cache[key]
+                    cache[key] = torch.cat([c, c.new_empty(B, c.shape[1], extra, c.shape[3])], 2)
             cache["k"][:, :, n0 : n0 + T] = k
             cache["v"][:, :, n0 : n0 + T] = v
             cache["n"] = n0 + T

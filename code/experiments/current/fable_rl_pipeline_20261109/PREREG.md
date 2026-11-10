@@ -77,3 +77,38 @@ dated at the end of this file and made before the run they apply to.
 
 A pilot result that shows a bug or a recipe that does not learn. Any such change is written below
 with its time before the affected runs start.
+
+## Amendment 1 (2026-11-09, about 10:00 pm PT; before any RL run that is kept)
+
+Made after the first base was scored on dev and after the orchestrator's interface note
+(`/scratch/cowifornia/nd-rl/fable_rl/solver_interface/INTERFACE.md`) and its ruling on premise
+lines. No RL result existed yet: the seed-0 RL run started at 05:45Z had not finished its first
+round and is discarded, as are the seed-1 start of 05:55Z and an earlier single-process start.
+
+- **My guess about the base was wrong.** The seed-0 base in plain mode solves 57.4% of dev at
+  pass@1 and 76.5% at pass@5 (seed 1: 57.9 / 74.8), not under 10%. It is weak where I should have
+  looked: textbook 10.1% pass@1 against generated 68.3%, 12 lines 4.8%, 13 and 14 lines 0 of 6.
+  Expectations after RL are unchanged.
+- **Final mode.** The headline mode is `SOLVER_MODE=full` (the "search" mode above). `plain` is
+  one pure model rollout with no resampling and no scaffold, reported beside it.
+- **Premise scaffold in full mode (a proof-format choice).** Dan's format starts every proof by
+  restating premise k as line k. In full mode the solver writes those lines itself: they are a
+  function of the statement alone, with no choice, nothing learned or searched. They cost 0
+  generated tokens and the solver reports how many it wrote (`scaffold_lines`). Reason: x and y
+  have at most 3 premises, so a model trained on them never emits `h4`, and a test theorem with 4
+  premises would fail on the format, not on proving. Plain mode has no scaffold.
+- **Subgoal variants (new training statements from the model's own proofs).** When the kept proof
+  of a y theorem ends by closing an implication or negation box, the same lines are a proof of the
+  subgoal 'premises , assumption |- body goal' (falsum for a negation box). Lean checks each
+  variant; they are trained on as a sixth pool. This yields 4-premise statements from 3-premise y
+  theorems, so the model can learn `h4` itself and plain mode is covered too.
+- **Mixture** is now, by example: x 32%, best proofs 28%, fresh proofs 10%, hindsight 8%, subgoal
+  variants 7%, verifier and value examples 15%.
+- **Collection** runs in 4 worker processes on the one GPU; retry temperature rises 15% per refused
+  sample, capped at 1.6 times; an attempt samples at most 400 actions in training. Solver defaults
+  before tuning: threshold 0.5, 4 resamples, 2 abandoned boxes, 4 tries, at most 600 sampled
+  actions per attempt, at most 128 steps per try and 512 tokens per action.
+- **Scoring on dev** uses the route the orchestrator's judge takes (`nd2lean.translate` with
+  `require_all_pr=False`, then Lean 4), on the ND proof the solver outputs.
+- **Ablation** (one run, seed-0 base, same budget): `--gate none`, that is, no step check while
+  sampling and therefore no verifier; everything else equal; scored in plain mode.
