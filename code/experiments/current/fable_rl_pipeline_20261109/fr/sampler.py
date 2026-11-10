@@ -23,10 +23,11 @@ from dataclasses import dataclass, field
 import numpy as np
 import torch
 
-from .common import EOS, PAD, TOK, Env, enc, ftoks, step_kind, try_step
+from .common import EOS, PAD, TOK, Env, enc, ftoks, parse_ftoks, step_kind, swap_goal, try_step
 
 ITOS = TOK.itos
 GEN_INIT = 48  # KV-cache slots preallocated for the action; the cache grows if an action is longer
+ATTN_BUDGET = 300_000_000  # rows x state length squared per decode chunk (prefill attention memory)
 GEN_RESERVE = 96  # tokens per row assumed for the action when sizing a decode chunk
 
 
@@ -66,7 +67,8 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
     while i0 < n:
         i1 = i0 + 1
         while (i1 < n and i1 - i0 < max_rows
-               and (i1 - i0 + 1) * (len(pids[order[i1]]) + min(max_new, GEN_RESERVE)) <= tok_budget):  # fmt: skip
+               and (i1 - i0 + 1) * (len(pids[order[i1]]) + min(max_new, GEN_RESERVE)) <= tok_budget
+               and (i1 - i0 + 1) * len(pids[order[i1]]) ** 2 <= ATTN_BUDGET):  # fmt: skip
             i1 += 1
         chunk = order[i0:i1]
         i0 = i1
@@ -158,6 +160,9 @@ class Attempt:
     n_scaffold: int = 0  # premise lines written by the solver (final try)
     pvs: list = field(default_factory=list)  # verifier probability of each applied step
     fb: bool = False  # the current try is the unscreened fallback try
+    focus: list = field(default_factory=list)  # open subgoals: (frame depth, formula)
+    n_focus: int = 0  # subgoals opened in the current try
+    n_lemmas: int = 0  # subgoals proved in the current try
     fb_calls: int = 0
     val0: float = 0.0  # value probability at the first state
 
@@ -165,7 +170,7 @@ class Attempt:
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
              log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None, scaffold=False,
-             verifier=None, fallback=False,
+             verifier=None, fallback=False, subgoals=0,
 ):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
     for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
@@ -175,7 +180,12 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
     k; a function of the statement alone, the format's fixed preamble) are written by the solver
     instead of sampled; they cost no generated tokens and are counted in `Attempt.n_scaffold`.
     `fallback` (gate="verifier"): when every screened try has failed, one last try runs without
-    the verifier, so the attempt still hands in a proof; `Attempt.fb` marks it."""
+    the verifier, so the attempt still hands in a proof; `Attempt.fb` marks it.
+    `subgoals` (with a gate): when the gate refuses an atomic step `have n : F := ...`, the policy
+    has asked for F without having it. Up to `subgoals` times per try, F then becomes a subgoal:
+    the policy is shown the same hypotheses with F as the goal until it derives F (its `exact`
+    there only ends the subgoal), and then goes on with the original goal and F in scope. The
+    lines it wrote for F stay in the proof; a subgoal it cannot reach is dropped."""
     assert gate in ("none", "checker", "verifier")
     dev = next(model.parameters()).device
     g = torch.Generator(device=dev)
@@ -192,6 +202,9 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         a.pops = 0
         a.pvs = []
         a.why = ""
+        a.focus = []
+        a.n_focus = 0
+        a.n_lemmas = 0
         a.tries += 1
         if scaffold:
             a.n_scaffold = 0
@@ -208,7 +221,12 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
     live = list(attempts)
     wave = 0
     while live:
-        states = [a.env.state_tokens() for a in live]
+        states = []
+        for a in live:
+            st = a.env.state_tokens()
+            if a.focus and a.focus[-1][0] == len(a.env.frames) - 1:
+                st = swap_goal(st, ftoks(a.focus[-1][1]))
+            states.append(st)
         pids = [enc(s) for s in states]
         tl = None
         if temp_bump > 0:
@@ -245,10 +263,16 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
             out = "syntax"
             pv = 1.0
             nf0 = len(a.env.frames)
+            in_focus = bool(a.focus) and a.focus[-1][0] == nf0 - 1
             if end:
                 act = [ITOS[i] for i in ids]
                 kind = step_kind(act)
-                if gate == "verifier" and kind in ("atom", "pr") and not a.fb:
+                if in_focus and kind == "exact":
+                    # inside a subgoal `exact n` only says "n is the subgoal": no environment step
+                    f = a.env.lookup(act[1]) if len(act) == 2 else None
+                    out = "lemma" if f is not None and f == a.focus[-1][1] else "syntax"
+                    a.env.last_why = "exact goal mismatch"
+                elif gate == "verifier" and kind in ("atom", "pr") and not a.fb:
                     pv = _sig(vl) if verifier is None else pv_sep.get(r, 1.0)
                     out = "invalid" if pv < tau else try_step(a.env, act, check=False)
                 else:
@@ -267,6 +291,26 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 else:
                     key = out
                 stats[key] = stats.get(key, 0) + 1
+            if out == "lemma":
+                a.focus.pop()
+                a.n_lemmas += 1
+                a.step_tries = 0
+                keep.append(a)
+                continue
+            if (out == "invalid" and subgoals and kind == "atom" and not a.fb
+                    and a.n_focus < subgoals and len(a.focus) < 3):  # fmt: skip
+                try:
+                    want, _ = parse_ftoks(act, 3)
+                except Exception:  # noqa: BLE001
+                    want = None
+                cur_goal = a.focus[-1][1] if in_focus else a.env.frames[-1].goal
+                have = any(want == f for fr in a.env.frames for f in fr.names.values())
+                if want is not None and want != cur_goal and not have:
+                    a.focus.append((nf0 - 1, want))
+                    a.n_focus += 1
+                    a.step_tries = 0
+                    keep.append(a)
+                    continue
             if out == "ok":
                 nf1 = len(a.env.frames)
                 if nf1 > nf0:
@@ -291,12 +335,29 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                     keep.append(a)
                     continue
                 a.why = "call cap" if capped else (out if end else "truncated")
+                if not capped and a.focus:  # give the innermost subgoal up (and any box opened for it)
+                    d = a.focus.pop()[0]
+                    good = True
+                    if len(a.open_stack) > d:
+                        k = a.open_stack[d]
+                        env = Env(a.prompt, canon=True, base=a.base, assign=True)
+                        good = all(env.apply(list(x))[0] for x in a.acts[:k])
+                        if good:
+                            a.env, a.acts, a.pvs = env, a.acts[:k], a.pvs[:k]
+                            a.open_stack = a.open_stack[:d]
+                            a.min_ver = min(a.pvs, default=1.0)
+                    if good:
+                        a.why = ""
+                        a.step_tries = 1
+                        keep.append(a)
+                        continue
                 if not capped and a.open_stack and a.pops < backtrack:
                     k = a.open_stack.pop()
                     env = Env(a.prompt, canon=True, base=a.base, assign=True)
                     good = all(env.apply(list(x))[0] for x in a.acts[:k])
                     if good:
                         a.env, a.acts, a.pvs = env, a.acts[:k], a.pvs[:k]
+                        a.focus = [f for f in a.focus if f[0] <= len(env.frames) - 1]
                         a.min_ver = min(a.pvs, default=1.0)
                         a.why = ""
                         a.pops += 1

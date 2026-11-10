@@ -46,6 +46,7 @@ def _rows(atts):
             "steps": len(a.acts),
             "scaffold_lines": a.n_scaffold,
             "fallback": bool(a.fb),
+            "lemmas": a.n_lemmas,
         })  # fmt: skip
     return out
 

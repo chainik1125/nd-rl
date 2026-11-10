@@ -56,6 +56,7 @@ def main():
     ap.add_argument("--temp_bump", type=float, default=None)
     ap.add_argument("--backtrack", type=int, default=None)
     ap.add_argument("--max_calls", type=int, default=None)
+    ap.add_argument("--subgoals", type=int, default=None)
     ap.add_argument("--scaffold", type=int, default=None, choices=[0, 1])
     ap.add_argument("--fallback", type=int, default=None, choices=[0, 1])
     ap.add_argument("--max_steps", type=int, default=128)
@@ -87,7 +88,7 @@ def main():
         sys.exit("this checkpoint has no verifier: use SOLVER_MODE=plain")
     # settings frozen into the checkpoint for its mode, then command-line overrides
     kw = dict(solver_cfg.get(mode) or {})
-    keys = ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack", "max_calls")
+    keys = ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack", "max_calls", "subgoals")
     for key in keys:
         if getattr(a, key) is not None:
             kw[key] = getattr(a, key)
