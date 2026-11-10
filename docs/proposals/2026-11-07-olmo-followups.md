@@ -205,3 +205,7 @@ best-value item for the paper's toy story.
 unforgeable grading, behaves like math or like IF.
 
 **Cost:** ≈ $150–250. Code responses are long; re-cost after a stage-0 length measurement. **Interest:** high.
+
+## Later proposals
+
+- Proposal 45 (`olmo-answeronly`), written 2026-11-09: [the transplant with the answer-writing habit removed](2026-11-09-olmo-transplant-answer-only.md).
