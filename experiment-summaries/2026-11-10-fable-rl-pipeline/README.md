@@ -5,8 +5,8 @@ written_by: agent:claude
 
 # fable_rl pipeline: one day, one agent, pretraining to solver
 
-Status: handed back 2026-11-10; dev results only. The held-out tests (832 transfer theorems, the
-sealed textbook set, two long sets) are run by the orchestrator and are not in this note.
+Status: handed back 2026-11-10; this note has dev results only. The held-out tests (832 transfer theorems, the
+sealed textbook set, two long sets) were run by the orchestrator afterwards: see [TEST_RESULTS.md](TEST_RESULTS.md).
 
 Question: with free design, proofs only from x or the model's own checker-accepted output,
 statements only from y, and $60 of A40 time, how good a natural-deduction prover can one agent
