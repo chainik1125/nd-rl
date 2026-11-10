@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-07
 written_by: agent:claude
-status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 ran as `olmo-rlzero-if` on agent1 on 2026-11-08 ($28.74 at the GPU rate, $29.34 billed; reviewed 2026-11-08, see the result under proposal 39); 40 was queued as `olmo-transplant` on agent2 until the RunPod balance reached $95 (the $35 floor plus its budget; the balance was $93.38), and ran on 2026-11-08 after a top-up ($17.82 at the GPU rate, $17.95 billed; reviewed 2026-11-08, see the result under proposal 40). Dan approved 41 on 2026-11-08 (launched as `olmo-ifladder` on agent2 at $80, brief `followups/BRIEF_olmo-ifladder.md`; it reuses `olmo-iffu`'s brevity-hint draws as rung 1 and adds a control LoRA). 44 remains a strong next candidate; 42 and 43 are medium.
+status: proposals 39–44, written at Dan's request 2026-11-07. Dan rates 39, 40, 41 and 44 high interest. Dan approved 39 ($40) and 40 ($60) on 2026-11-07: 39 ran as `olmo-rlzero-if` on agent1 on 2026-11-08 ($28.74 at the GPU rate, $29.34 billed; reviewed 2026-11-08, see the result under proposal 39); 40 was queued as `olmo-transplant` on agent2 until the RunPod balance reached $95 (the $35 floor plus its budget; the balance was $93.38), and ran on 2026-11-08 after a top-up ($17.82 at the GPU rate, $17.95 billed; reviewed 2026-11-08, see the result under proposal 40). Dan approved 41 on 2026-11-08 (launched as `olmo-ifladder` on agent2 at $80, brief `followups/BRIEF_olmo-ifladder.md`; it reuses `olmo-iffu`'s brevity-hint draws as rung 1 and adds a control LoRA); it ran on 2026-11-09 ($61.85 at the GPU rate, $62.77 billed; reviewed 2026-11-09/10, see the result under proposal 41). 44 remains a strong next candidate; 42 and 43 are medium.
 papers:
   - yueDoesReinforcementLearning2025
   - liuProRLProlongedReinforcement2025
@@ -152,6 +152,16 @@ sufficient. Pre-registered readings: "partly" (only through its "neither" clause
 
 **Cost:** ≈ $50–80, with the LoRA on one H200. **Interest:** high. It turns claim 3 from shares into a
 per-prompt taxonomy.
+
+**Result (reviewed 2026-11-09/10):** on the 48 IF reach prompts, a LoRA of the DPO start on 16 genuine RL trajectories
+of other IFBench prompts (thinking included) elicits 40–41 with no hint (≥ 2 genuine of 64), a control LoRA on the DPO
+start's own successes 0, and the prompt ladder 25–26: 16 by the 60-word line, then 1, 5 and 3–4 more, within or just
+outside the pre-registered detection limit. So 15–16 prompts are "teachable from RL's trajectories", none is
+teachable by any light fine-tune, and 7 are reached by neither (`ifeval_3478`, IFBench 3, 67, 166, 188, 268, 284);
+they feed 42. Each LoRA is one training run. Each range is one item: 41 with the literal pre-registered one-sentence
+screen, 40 with the executor's; 26 / 4 / 15 with rule 3 on one rung-4 answer (`ifbench_154`), 25 / 3 / 16 with the
+executor's rule 7. Summary:
+[olmo-ifladder](../../experiment-summaries/2026-11-09-olmo-ifladder-lora-on-16-rl-trajectories-elicits-40-41-of-48-if-reach-prompts-control-0-prompting-25-26-neither-7/README.md).
 
 ## Proposal 42: probing the DPO start's support on surviving reach prompts (`olmo-support`)
 
