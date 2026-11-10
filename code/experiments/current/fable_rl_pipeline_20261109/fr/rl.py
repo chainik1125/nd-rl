@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+import math
 import os
 import pickle
 import random
@@ -35,7 +36,7 @@ from .collect import Collector, pruned_examples
 from .common import lean_check, subgoal_variant, thm_to_prompt
 from .data import Mixer, Store, load_x
 from .model import load_ckpt, save_ckpt
-from .solvelib import fmt_table, judge, solve, table
+from .solvelib import fmt_table, judge, solve, solve_parallel, table
 from .train import fit, make_opt
 
 
@@ -70,7 +71,8 @@ def main():
     ap.add_argument("--rounds", type=int, default=100)
     ap.add_argument("--hours", type=float, default=6.0, help="no new round starts after this")
     ap.add_argument("--k_unsolved", type=int, default=16)
-    ap.add_argument("--k_solved", type=int, default=8)
+    ap.add_argument("--k_solved", type=int, default=6)
+    ap.add_argument("--k_hard", type=int, default=48, help="attempts per still-unsolved theorem after round 0")
     ap.add_argument("--resample", type=int, default=5)
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--gate", default="checker", choices=["checker", "none"],
@@ -78,13 +80,17 @@ def main():
     ap.add_argument("--temp_bump", type=float, default=0.15, help="temperature rise per refused sample of a step")
     ap.add_argument("--backtrack", type=int, default=2, help="boxes a stuck attempt may abandon")
     ap.add_argument("--max_steps", type=int, default=96)
-    ap.add_argument("--max_calls", type=int, default=400, help="actions sampled per attempt at most")
+    ap.add_argument("--max_calls", type=int, default=300, help="actions sampled per attempt at most")
     ap.add_argument("--max_action", type=int, default=384)
     ap.add_argument("--steps", type=int, default=600, help="optimiser steps per round")
     ap.add_argument("--lr", type=float, default=2e-4)
-    ap.add_argument("--w_unl", type=float, default=0.25, help="weight of the unlikelihood of refused steps")
+    ap.add_argument("--lr_min", type=float, default=None, help="each round's lr falls on a cosine from --lr to this (default: constant)")
+    ap.add_argument("--w_unl", type=float, default=0.0, help="weight of the unlikelihood of refused steps")
+    ap.add_argument("--w_ver", type=float, default=0.0, help="weight of the verifier loss")
+    ap.add_argument("--w_val", type=float, default=0.0, help="weight of the value loss")
+    ap.add_argument("--aux_trunk", type=float, default=1.0, help="scale of the gradient the verifier/value losses send into the trunk")
     ap.add_argument("--tok_budget", type=int, default=120_000)
-    ap.add_argument("--mix", default="x=0.32,best=0.28,recent=0.10,her=0.08,sub=0.07,aux=0.15")
+    ap.add_argument("--mix", default="x=0.37,best=0.33,recent=0.12,her=0.09,sub=0.09,aux=0.0")
     ap.add_argument(
         "--keep_per_thm", type=int, default=3, help="fresh proofs kept per theorem per round"
     )
@@ -101,12 +107,15 @@ def main():
     ap.add_argument("--neg_cap", type=int, default=250_000)
     ap.add_argument("--dev_every", type=int, default=3)
     ap.add_argument("--dev_k", type=int, default=5)
+    ap.add_argument("--dev_search", action="store_true", help="also score dev in search mode with the shared verifier head")
     ap.add_argument(
         "--limit", type=int, default=0, help="smoke test: use only this many training theorems"
     )
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--procs", type=int, default=4, help="worker processes sampling attempts on the one GPU")
     a = ap.parse_args()
+    if a.lr_min is None:
+        a.lr_min = a.lr
     os.makedirs(a.out, exist_ok=True)
     logf = open(os.path.join(a.out, "rl.log"), "a")
 
@@ -146,6 +155,7 @@ def main():
         S = {"round": 0, "best": {}, "recent": [], "her": [], "aux": [], "elapsed": 0.0,
              "tokens_sampled": 0, "history": []}  # fmt: skip
         model, _ = load_ckpt(a.init, dev_)
+    model.aux_trunk = a.aux_trunk
     opt = make_opt(model, a.lr)
     if resumed and os.path.exists(os.path.join(a.out, "opt.pt")):
         opt.load_state_dict(torch.load(os.path.join(a.out, "opt.pt"), map_location=dev_))
@@ -156,8 +166,21 @@ def main():
 
     def do_dev(rnd):
         res = {}
-        for mode in ("plain", "search") if a.gate == "checker" else ("plain",):
-            out, cfg = solve(model, devrows, k=a.dev_k, seed=10_000 + rnd, mode=mode)
+        for mode in ("plain", "search") if a.dev_search else ("plain",):
+            out = None
+            if a.procs > 1 and dev_.type == "cuda":
+                fn = os.path.join(a.out, "cur.pt")
+                save_ckpt(fn, model, {"stage": "rl", "round": rnd})
+                torch.cuda.empty_cache()
+                try:
+                    out, cfg = solve_parallel(fn, devrows, k=a.dev_k, seed=10_000 + rnd, mode=mode,
+                                              procs=a.procs, tok_budget=800_000 // a.procs)  # fmt: skip
+                except Exception as e:  # noqa: BLE001
+                    log(f"parallel dev solve failed ({type(e).__name__}); falling back to one process")
+                    torch.cuda.empty_cache()
+            if out is None:
+                out, cfg = solve(model, devrows, k=a.dev_k, seed=10_000 + rnd, mode=mode,
+                                 tok_budget=300_000)  # fmt: skip
             judge(out)
             tb = table(out, devmeta)
             res[mode] = tb
@@ -172,12 +195,13 @@ def main():
         specs = []
         for ti, r in enumerate(train):
             has = r["name"] in best
-            specs.append((ti, r["prompt"], a.k_solved if has else a.k_unsolved, not has))
+            k = a.k_solved if has else (a.k_unsolved if rnd == 0 else a.k_hard)
+            specs.append((ti, r["prompt"], k, not has))
         n_att = sum(sp[2] for sp in specs)
         cfg = {"gate": a.gate, "temperature": a.temperature, "resample": a.resample,
                "max_steps": a.max_steps, "max_action": a.max_action, "temp_bump": a.temp_bump,
                "backtrack": a.backtrack, "max_calls": a.max_calls,
-               "tok_budget": 700_000 if a.procs <= 1 else 1_100_000 // a.procs, "seed": a.seed * 100_003 + rnd,
+               "tok_budget": 700_000 if a.procs <= 1 else 800_000 // a.procs, "seed": a.seed * 100_003 + rnd,
                "aux_p": min(1.0, a.aux_attempts / max(1, n_att)), "keep": a.keep_per_thm,
                "her_keep": a.her_per_thm, "her": not a.no_her}  # fmt: skip
         cur_fn = os.path.join(a.out, "cur.pt")
@@ -252,7 +276,14 @@ def main():
         her, her_rej = lean_filter(hc) if hc else ([], 0)
         if len(neg) > a.neg_cap:
             neg = rng.sample(neg, a.neg_cap)
-        aux += [(s, act, 2 if a.w_unl > 0 else 0, 0, -1) for s, act in neg]
+        # every round's refused steps (negatives) and a sample of accepted atomic steps (positives)
+        # go to disk: the verifier is a separate network trained from these files (fr/verifier.py)
+        with open(os.path.join(a.out, f"ver_r{rnd}.pkl"), "wb") as f:
+            pickle.dump({"neg": neg, "pos": [(e[0], e[1]) for e in aux if e[3] == 1]}, f, protocol=4)
+        if mixw.get("aux", 0.0) > 0:
+            aux += [(s, act, 2 if a.w_unl > 0 else 0, 0, -1) for s, act in neg]
+        else:
+            aux = []
         t_proc = time.time() - t1
         # ---- pools
         S["recent"] = (S["recent"] + [fresh])[-2:]
@@ -275,11 +306,16 @@ def main():
         # ---- 4. update
         t2 = time.time()
         mixer = Mixer([(xtr, mixw["x"]), (st_best, mixw["best"]), (st_recent, mixw["recent"]),
-                       (st_her, mixw["her"]), (st_sub, mixw.get("sub", 0.0)), (st_aux, mixw["aux"])],
+                       (st_her, mixw["her"]), (st_sub, mixw.get("sub", 0.0)), (st_aux, mixw.get("aux", 0.0))],
                       tok_budget=a.tok_budget, seed=a.seed * 7919 + rnd)  # fmt: skip
         warm = 100 if rnd == 0 else 0
-        last = fit(model, opt, mixer, a.steps, lambda s: a.lr * min(1.0, (s + 1) / warm) if warm else a.lr,
-                   log=log, log_every=200, w_unl=a.w_unl, gen=gen, tag=f"[r{rnd}] ")  # fmt: skip
+
+        def lr_fn(s):
+            lr = a.lr_min + 0.5 * (a.lr - a.lr_min) * (1 + math.cos(math.pi * s / a.steps))
+            return lr * min(1.0, (s + 1) / warm) if warm else lr
+
+        last = fit(model, opt, mixer, a.steps, lr_fn, log=log, log_every=200, w_unl=a.w_unl,
+                   w_ver=a.w_ver, w_val=a.w_val, gen=gen, tag=f"[r{rnd}] ")  # fmt: skip
         t_fit = time.time() - t2
         # ---- log
         by_len = collections.Counter()

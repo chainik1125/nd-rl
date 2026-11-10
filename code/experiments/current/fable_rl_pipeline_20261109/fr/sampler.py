@@ -30,13 +30,27 @@ GEN_INIT = 48  # KV-cache slots preallocated for the action; the cache grows if 
 GEN_RESERVE = 96  # tokens per row assumed for the action when sizing a decode chunk
 
 
+def _longest_line(state) -> int:
+    """Tokens in the longest hypothesis line or goal of a state. An action restates at most two
+    such formulas (plus a short term), so `3 * longest + 40` tokens bound any sensible action;
+    a sample that runs past that is cut off there (and counted) instead of at the global cap."""
+    best = cur = 0
+    for t in state:
+        if t == "<nl>" or t == "⊢":
+            best = max(best, cur)
+            cur = 0
+        else:
+            cur += 1
+    return max(best, cur)
+
+
 def _sig(x: float) -> float:
     return 1.0 / (1.0 + math.exp(-max(-60.0, min(60.0, x))))
 
 
 @torch.no_grad()
 def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=700_000,
-                max_rows=4096, temps=None,
+                max_rows=4096, temps=None, caps=None,
 ):  # fmt: skip
     """pids: list of state id lists -> (list of action id lists without <eos>, ended flags,
     verifier logits, value logits), in input order."""
@@ -59,6 +73,8 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
         B = len(chunk)
         lens = torch.tensor([len(pids[i]) for i in chunk], device=dev)
         temps_c = None if temps is None else torch.tensor([temps[i] for i in chunk], device=dev)
+        cap_c = torch.tensor([max_new if caps is None else min(max_new, caps[i]) for i in chunk], device=dev)
+        W = int(cap_c.max())
         T = int(lens.max())
         arr = np.full((B, T), PAD, np.uint8)
         for r, i in enumerate(chunk):
@@ -72,8 +88,8 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
         mask = (mask | torch.eye(T, dtype=torch.bool, device=dev)[None])[:, None]
         dt = torch.bfloat16 if cuda else torch.float32
         caches = model.new_caches(B, T + min(max_new, GEN_INIT), dt)
-        keyvalid = torch.cat([valid, torch.ones(B, max_new, dtype=torch.bool, device=dev)], 1)
-        toks = torch.full((B, max_new), PAD, dtype=torch.long, device=dev)
+        keyvalid = torch.cat([valid, torch.ones(B, W, dtype=torch.bool, device=dev)], 1)
+        toks = torch.full((B, W), PAD, dtype=torch.long, device=dev)
         ver_c = torch.zeros(B, device=dev)
         end_c = torch.zeros(B, dtype=torch.bool, device=dev)
         rows = torch.arange(B, device=dev)
@@ -82,7 +98,7 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
             h = model.trunk(idx, pos, mask, caches)[:, -1]
             val_c = model.aux(h)[:, 1].float()
-            for t in range(max_new):
+            for t in range(W):
                 logits = model.head(h).float()
                 if temps is None and temperature <= 0:
                     nxt = logits.argmax(-1)
@@ -91,14 +107,13 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
                     tt = temperature if temps is None else temps_c[rows][:, None]
                     nxt = (logits / tt - torch.log(-torch.log(u))).argmax(-1)
                 v_now = model.aux(h)[:, 0].float()
-                live = ~fin
-                toks[rows[live], t] = nxt[live]
-                is_eos = live & (nxt == EOS)
-                ver_c[rows[is_eos]] = v_now[is_eos]
-                end_c[rows[is_eos]] = True
-                fin = fin | is_eos
+                is_eos = ~fin & (nxt == EOS)
+                toks[rows, t] = torch.where(fin, toks[rows, t], nxt)
+                ver_c[rows] = torch.where(is_eos, v_now, ver_c[rows])
+                end_c[rows] = end_c[rows] | is_eos
+                fin = fin | is_eos | (t + 1 >= cap_c[rows])  # a row at its cap stops, not ended
                 n_live = int((~fin).sum())
-                if n_live == 0 or t == max_new - 1:
+                if n_live == 0 or t == W - 1:
                     break
                 if n_live <= 0.7 * fin.numel() and (t % 4 == 3 or n_live <= 0.3 * fin.numel()):
                     keep = ~fin
@@ -112,11 +127,10 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
                 m = keyvalid[:, None, None, : T + t + 1]
                 h = model.trunk(nxt[:, None], p, m, caches)[:, 0]
         toks = toks.tolist()
-        ver_l, val_l, end_l = ver_c.tolist(), val_c.tolist(), end_c.tolist()
+        ver_l, val_l, end_l, cap_l = ver_c.tolist(), val_c.tolist(), end_c.tolist(), cap_c.tolist()
         for r, i in enumerate(chunk):
             row = toks[r]
-            if end_l[r]:
-                row = row[: row.index(EOS)]
+            row = row[: row.index(EOS)] if end_l[r] else row[: cap_l[r]]
             acts[i] = row
             ended[i] = end_l[r]
             ver[i] = ver_l[r]
@@ -194,7 +208,9 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         tl = None
         if temp_bump > 0:
             tl = [temperature * min(1.6, 1.0 + temp_bump * a.step_tries) for a in live]
-        outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget, temps=tl)
+        caps = [min(max_action, 3 * _longest_line(s) + 40) for s in states]
+        outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget, temps=tl,
+                                            caps=caps)  # fmt: skip
         keep = []
         for a, st, pid, ids, end, vl, v0 in zip(live, states, pids, outs, ended, ver, val):
             a.n_tok += len(ids) + (1 if end else 0)

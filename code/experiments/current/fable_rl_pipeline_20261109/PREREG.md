@@ -112,3 +112,41 @@ round and is discarded, as are the seed-1 start of 05:55Z and an earlier single-
   `require_all_pr=False`, then Lean 4), on the ND proof the solver outputs.
 - **Ablation** (one run, seed-0 base, same budget): `--gate none`, that is, no step check while
   sampling and therefore no verifier; everything else equal; scored in plain mode.
+
+## Amendment 2 (2026-11-09, about 11:10 pm PT; before any RL run that is kept)
+
+Made from one-round A/B runs on the seed-0 base (dev, plain mode, pass@1 / pass@5, share of
+attempts that end in a complete proof). The base itself: 57.4 / 76.5, 87.6% complete. All RL runs
+so far were pilots and are discarded.
+
+| one RL round with | pass@1 / pass@5 | complete |
+|---|---|---|
+| unlikelihood loss on refused steps, lr 2e-4 | 42.0 / 68.3 | 51.9% |
+| no unlikelihood, lr 2e-4 | 49.3 / 73.8 | 72.8% |
+| no unlikelihood, no as-produced examples, lr 2e-4 | 50.2 / 73.8 | 77.1% |
+| no unlikelihood, lr 1e-4 | 55.5 / 77.8 | 76.0% |
+| no unlikelihood, verifier and value losses off, lr 2e-4 | 60.2 / 80.8 | 88.6% |
+
+Changes to the plan:
+
+- **No unlikelihood loss.** It taught the policy to drop the closing `;` (328 of 670 failed plain
+  rollouts after one round ended that way).
+- **No verifier or value loss on the policy network.** They cost the policy 11 points of pass@1 in
+  one round (49.3 against 60.2). The policy network is trained on policy targets only; its two
+  scalar outputs are unused.
+- **The verifier is a separate small network** (`fr/verifier.py`), trained from each run's own
+  saved data: the steps the checker refused while sampling (negatives) and steps it accepted
+  (positives). Its input is the step and the hypothesis lines the step cites, copied from the
+  proof state (which lines a step cites is read off the step's text; the judgement is the
+  network's). It does not see Lean or the type checker at test time. Full mode uses it exactly as
+  the shared head was to be used.
+- **Attempts per round:** 16 per theorem in round 0; afterwards 6 per theorem that has a proof and
+  48 per theorem that has none; at most 300 sampled actions per attempt. Mixture by example:
+  x 37%, best proofs 33%, fresh 12%, hindsight 9%, subgoal variants 9%. Budget 11 hours per seed.
+- **Checkpoint rule (replaces the earlier one):** dev is scored in plain mode after round 1 and
+  then every 3 rounds; for each seed the final policy checkpoint is the scored one with the highest
+  dev pass@1 in plain mode, ties to the later round. The seed's verifier is trained on the data of
+  all its rounds. Solver settings (threshold, resamples, tries, temperature) are tuned on dev with
+  seed 0 and frozen for all seeds. Headline mode stays `SOLVER_MODE=full`.
+- **Ablation** as in amendment 1 (`--gate none` from the seed-0 base, same budget).
+- Expectations after RL are unchanged, except that plain mode should now rise, not fall.

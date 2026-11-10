@@ -21,7 +21,7 @@ from .sampler import Attempt, rollouts
 DEFAULTS = {
     "plain": dict(gate="none", resample=0, tries=1, temperature=1.0),
     "search": dict(gate="verifier", resample=4, tries=4, tau=0.5, temperature=1.0, temp_bump=0.15,
-                   backtrack=2, max_calls=600, scaffold=True),
+                   backtrack=2, max_calls=300, scaffold=True),
 }  # fmt: skip
 
 

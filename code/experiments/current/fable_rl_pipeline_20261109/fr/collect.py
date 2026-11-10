@@ -171,8 +171,20 @@ class Collector:
             return shard_work(model, specs, cfg)
         order = sorted(range(len(specs)), key=lambda i: -specs[i][2])
         shards = [[specs[i] for i in order[p :: self.procs]] for p in range(self.procs)]
-        jobs = [(ckpt_path, sh, {**cfg, "seed": cfg["seed"] * 31 + p}) for p, sh in enumerate(shards) if sh]
-        res = self.pool.starmap(_work, jobs)
+        res = None
+        for attempt in range(3):  # a worker that runs out of GPU memory fails the round: retry smaller
+            c = dict(cfg)
+            c["tok_budget"] = int(cfg.get("tok_budget", 700_000) / (2**attempt))
+            jobs = [(ckpt_path, sh, {**c, "seed": cfg["seed"] * 31 + p}) for p, sh in enumerate(shards) if sh]
+            try:
+                res = self.pool.starmap(_work, jobs)
+                break
+            except Exception as e:  # noqa: BLE001
+                print(f"[collector] round failed ({type(e).__name__}: {str(e)[:200]}); restarting workers", flush=True)
+                self.pool.terminate()
+                self.pool = mp.get_context("spawn").Pool(self.procs)
+        if res is None:
+            raise RuntimeError("collection failed three times")
         out = {"done": {}, "her": {}, "aux": [], "neg": [], "n_att": 0, "n_done": 0, "ntok": 0, "fail": {},
                "samples": {}}  # fmt: skip
         for r in res:

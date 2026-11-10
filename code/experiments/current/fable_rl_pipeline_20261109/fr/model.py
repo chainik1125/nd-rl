@@ -19,24 +19,30 @@ _ROPE = {}
 
 
 def rope_table(hd: int, device, n: int = 8192, base: float = 10000.0):
+    """-> (cos2, sin2s), each (n, hd): the pair-wise rotation of RoPE written for one fused update,
+    y = x * cos2 + swap_pairs(x) * sin2s, where sin2s carries the sign (-sin, +sin) per pair."""
     key = (hd, str(device), n)
     c = _ROPE.get(key)
     if c is None:
         pos = torch.arange(n, device=device, dtype=torch.float32)
         inv = 1.0 / (base ** (torch.arange(0, hd, 2, device=device, dtype=torch.float32) / hd))
         ang = pos[:, None] * inv[None, :]
-        c = _ROPE[key] = (torch.cos(ang), torch.sin(ang))
+        cos, sin = torch.cos(ang), torch.sin(ang)
+        cos2 = torch.stack([cos, cos], -1).flatten(-2)
+        sin2s = torch.stack([-sin, sin], -1).flatten(-2)
+        c = _ROPE[key] = (cos2, sin2s)
     return c
 
 
-def apply_rope(x, cos, sin):
-    # x: (B, H, T, hd); cos/sin: (T, hd/2) or (B, T, hd/2)
-    x1, x2 = x[..., ::2], x[..., 1::2]
-    if cos.dim() == 2:
-        cos, sin = cos[None, None], sin[None, None]
+def apply_rope(x, cos2, sin2s):
+    # x: (B, H, T, hd); cos2/sin2s: (T, hd) or (B, T, hd).
+    # (x1, x2) -> (x1 cos - x2 sin, x2 cos + x1 sin), per pair of channels.
+    if cos2.dim() == 2:
+        cos2, sin2s = cos2[None, None], sin2s[None, None]
     else:
-        cos, sin = cos[:, None], sin[:, None]
-    return torch.stack([x1 * cos - x2 * sin, x1 * sin + x2 * cos], -1).flatten(-2)
+        cos2, sin2s = cos2[:, None], sin2s[:, None]
+    swapped = x.unflatten(-1, (-1, 2)).flip(-1).flatten(-2)
+    return torch.addcmul(x * cos2, swapped, sin2s)
 
 
 class Block(nn.Module):
@@ -82,6 +88,7 @@ class GPT(nn.Module):
         self.head = nn.Linear(d, vocab, bias=False)
         self.aux = nn.Linear(d, 2)
         self.hd = d // n_head
+        self.aux_trunk = 1.0
         self.apply(self._init)
 
     @staticmethod
@@ -108,7 +115,11 @@ class GPT(nn.Module):
 
     def forward(self, idx):
         h = self.trunk(idx)
-        return self.head(h), self.aux(h)
+        ha = h
+        if self.aux_trunk != 1.0:  # scale the gradient the verifier/value losses send into the trunk
+            hd = h.detach()
+            ha = hd + self.aux_trunk * (h - hd)
+        return self.head(h), self.aux(ha)
 
     def new_caches(self, B: int, T: int, dtype):
         dev = self.emb.weight.device

@@ -24,7 +24,8 @@ Neither mode calls Lean or any type checker. `--judge` runs Lean on the finished
 and prints pass rates (for scoring dev sets; not part of solving).
 
 Everything imported is in this folder (`fr/`, `vendor_dan/`) or in the lab environment.
-`SOLVER_PROCS` (default 3) worker processes share the one GPU.
+`SOLVER_PROCS` (default 1) worker processes use the one GPU; one process with large decode
+chunks was the fastest setting measured on an A40.
 """
 
 import argparse
@@ -46,7 +47,7 @@ def main():
     ap.add_argument("--k", type=int, default=1)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--mode", default=None, choices=sorted(MODES))
-    ap.add_argument("--procs", type=int, default=int(os.environ.get("SOLVER_PROCS", "3")))
+    ap.add_argument("--procs", type=int, default=int(os.environ.get("SOLVER_PROCS", "1")))
     ap.add_argument("--temperature", type=float, default=None)
     ap.add_argument("--tau", type=float, default=None)
     ap.add_argument("--resample", type=int, default=None)
