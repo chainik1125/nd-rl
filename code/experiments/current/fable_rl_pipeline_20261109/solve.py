@@ -64,6 +64,9 @@ def main():
     ap.add_argument("--max_action", type=int, default=512)
     ap.add_argument("--tok_budget", type=int, default=0, help="padded tokens per decode chunk per worker")
     ap.add_argument("--verifier", default=None, help="verifier to use instead of the one in the checkpoint: FILE, or FILE:THR,FILE:THR for a combination")
+    ap.add_argument("--inner", type=int, default=None,
+                    help="full mode: 1 (default) resamples a refused step from the state's cached encoding, "
+                         "0 encodes the state again (the same procedure, slower)")  # fmt: skip
     ap.add_argument("--max_seconds", type=float, default=None,
                     help="wall-clock budget of this call (also SOLVER_MAX_SECONDS; 0 = none); "
                          "default max(900, 0.06 x attempts)")  # fmt: skip
@@ -96,7 +99,8 @@ def main():
         sys.exit("this checkpoint has no verifier: use SOLVER_MODE=plain")
     # settings frozen into the checkpoint for its mode, then command-line overrides
     kw = dict(solver_cfg.get(mode) or {})
-    keys = ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack", "max_calls", "subgoals", "ver_views")
+    keys = ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack", "max_calls", "subgoals", "ver_views",
+            "inner")  # fmt: skip
     for key in keys:
         if getattr(a, key) is not None:
             kw[key] = getattr(a, key)
@@ -150,7 +154,8 @@ def main():
         "tokens_per_attempt": round(sum(r["tokens_generated"] for r in out) / max(1, n), 1),
         "scaffold_lines": sum(r["scaffold_lines"] for r in out),
         "secs": round(time.time() - t0, 1),
-        "peak_gpu_gb": round(torch.cuda.max_memory_reserved() / 2**30, 2) if cuda else 0.0, "config": cfg,
+        "peak_gpu_gb": round(torch.cuda.max_memory_reserved() / 2**30, 2) if cuda else 0.0,
+        "peak_gpu_allocated_gb": round(torch.cuda.max_memory_allocated() / 2**30, 2) if cuda else 0.0, "config": cfg,
     }), flush=True)  # fmt: skip
     if a.judge:
         meta = {r["name"]: r for r in rows}

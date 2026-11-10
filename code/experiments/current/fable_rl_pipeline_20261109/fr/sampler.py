@@ -30,6 +30,7 @@ ITOS = TOK.itos
 GEN_INIT = 48  # KV-cache slots preallocated for the action; the cache grows if an action is longer
 ATTN_BUDGET = 300_000_000  # rows x state length squared per decode chunk (prefill attention memory)
 GEN_RESERVE = 96  # tokens per row assumed for the action when sizing a decode chunk
+MIN_REDO = 150_000  # `gen_rounds`: fewest state tokens (rows x length) worth another decoding round
 
 
 def _longest_line(state) -> int:
@@ -142,6 +143,138 @@ def gen_actions(model, pids, temperature=1.0, max_new=256, g=None, tok_budget=70
     return acts, ended, ver, val
 
 
+def _decode(model, caches, inplace, h, keyvalid_t, cur_len, temps_c, cap_c, T, g, cuda):
+    """Sample one action per row from prefilled caches (`n` == T in each). `inplace`: `caches`
+    are the base caches of the whole chunk and must keep every row's first T positions, so rows
+    are not dropped from them; once few rows are left the live rows are copied out and the loop
+    goes on with the copy. Otherwise `caches` are a working copy and rows are dropped freely.
+    -> (token id lists without <eos>, ended flags), in row order."""
+    dev = h.device
+    B = h.shape[0]
+    W = int(cap_c.max())
+    keyvalid = torch.cat([keyvalid_t, torch.ones(B, W, dtype=torch.bool, device=dev)], 1)
+    toks = torch.full((B, W), PAD, dtype=torch.long, device=dev)
+    end_c = torch.zeros(B, dtype=torch.bool, device=dev)
+    rows = torch.arange(B, device=dev)
+    fin = torch.zeros(B, dtype=torch.bool, device=dev)
+    cur_len = cur_len.clone()
+    with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
+        for t in range(W):
+            logits = model.head(h).float()
+            u = torch.rand(logits.shape, generator=g, device=dev).clamp_(1e-9, 1 - 1e-9)
+            nxt = (logits / temps_c[rows][:, None] - torch.log(-torch.log(u))).argmax(-1)
+            is_eos = ~fin & (nxt == EOS)
+            toks[rows, t] = torch.where(fin, toks[rows, t], nxt)
+            end_c[rows] = end_c[rows] | is_eos
+            fin = fin | is_eos | (t + 1 >= cap_c[rows])  # a row at its cap stops, not ended
+            n_live = int((~fin).sum())
+            if n_live == 0 or t == W - 1:
+                break
+            if inplace:
+                if n_live <= 0.35 * B:  # leave the base caches: go on with a copy of the live rows
+                    keep = ~fin
+                    rows, nxt, cur_len = rows[keep], nxt[keep], cur_len[keep]
+                    keyvalid = keyvalid[keep]
+                    caches = [{"k": c["k"][keep], "v": c["v"][keep], "n": c["n"]} for c in caches]
+                    fin = fin[keep]
+                    inplace = False
+            elif n_live <= 0.7 * fin.numel() and (t % 4 == 3 or n_live <= 0.3 * fin.numel()):
+                keep = ~fin
+                rows, nxt, cur_len = rows[keep], nxt[keep], cur_len[keep]
+                keyvalid = keyvalid[keep]
+                for c in caches:
+                    c["k"] = c["k"][keep]
+                    c["v"] = c["v"][keep]
+                fin = fin[keep]
+            p = (cur_len + t)[:, None]
+            m = keyvalid[:, None, None, : T + t + 1]
+            h = model.trunk(nxt[:, None], p, m, caches)[:, 0]
+    toks = toks.tolist()
+    end_l, cap_l = end_c.tolist(), cap_c.tolist()
+    acts = [row[: row.index(EOS)] if end_l[r] else row[: cap_l[r]] for r, row in enumerate(toks)]
+    return acts, end_l
+
+
+@torch.no_grad()
+def gen_rounds(model, pids, handle, temps, caps, max_new=256, g=None, tok_budget=700_000, max_rows=4096,
+               min_redo=MIN_REDO):  # fmt: skip
+    """Decode one action per state, as `gen_actions` does, and let the caller ask for more samples
+    at the same states while their caches are still in memory. After each decoding round
+    `handle(indices, actions, ended)` is called with the input indices just decoded; it returns,
+    per index, None (finished with this state) or a temperature: that state is sampled again.
+    A state is encoded once however many samples are drawn from it here. A further round is only
+    run when it saves enough encoding to pay for its own decoding loop (rows x state length >=
+    `min_redo`); otherwise the indices still waiting are returned and the caller samples them in
+    its next call, batched with everything else. -> list of such indices."""
+    deferred = []
+    dev = next(model.parameters()).device
+    cuda = dev.type == "cuda"
+    n = len(pids)
+    order = sorted(range(n), key=lambda i: len(pids[i]))
+    i0 = 0
+    while i0 < n:
+        i1 = i0 + 1
+        while (i1 < n and i1 - i0 < max_rows
+               and (i1 - i0 + 1) * (len(pids[order[i1]]) + min(max_new, GEN_RESERVE)) <= tok_budget
+               and (i1 - i0 + 1) * len(pids[order[i1]]) ** 2 <= ATTN_BUDGET):  # fmt: skip
+            i1 += 1
+        chunk = order[i0:i1]
+        i0 = i1
+        B = len(chunk)
+        lens = torch.tensor([len(pids[i]) for i in chunk], device=dev)
+        temps_c = torch.tensor([float(temps[i]) for i in chunk], device=dev)
+        cap_c = torch.tensor([min(max_new, caps[i]) for i in chunk], device=dev)
+        T = int(lens.max())
+        arr = np.full((B, T), PAD, np.uint8)
+        for r, i in enumerate(chunk):
+            arr[r, T - len(pids[i]) :] = np.frombuffer(bytes(pids[i]), np.uint8)
+        idx = torch.from_numpy(arr).to(dev).long()
+        ar = torch.arange(T, device=dev)
+        off = (T - lens)[:, None]
+        pos = (ar[None] - off).clamp_(min=0)
+        valid = ar[None] >= off
+        mask = torch.tril(torch.ones(T, T, dtype=torch.bool, device=dev))[None] & valid[:, None, :]
+        mask = (mask | torch.eye(T, dtype=torch.bool, device=dev)[None])[:, None]
+        dt = torch.bfloat16 if cuda else torch.float32
+        base = model.new_caches(B, T + min(int(cap_c.max()), GEN_INIT), dt)
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=cuda):
+            h0 = model.trunk(idx, pos, mask, base)[:, -1]
+        del idx, mask, pos
+        sel = list(range(B))  # chunk rows to sample in this round
+        first = True
+        while sel:
+            if first:
+                acts, ended = _decode(model, base, True, h0, valid, lens, temps_c, cap_c, T, g, cuda)
+                for c in base:
+                    c["n"] = T  # the action tokens written after the state are dropped
+            else:
+                st = torch.tensor(sel, device=dev)
+                gcap = min(int(cap_c[st].max()), GEN_INIT)
+                work = []
+                for c in base:
+                    k = c["k"].new_empty(len(sel), c["k"].shape[1], T + gcap, c["k"].shape[3])
+                    v = c["v"].new_empty(len(sel), c["v"].shape[1], T + gcap, c["v"].shape[3])
+                    k[:, :, :T] = c["k"][st, :, :T]
+                    v[:, :, :T] = c["v"][st, :, :T]
+                    work.append({"k": k, "v": v, "n": T})
+                acts, ended = _decode(model, work, False, h0[st], valid[st], lens[st], temps_c[st], cap_c[st],
+                                      T, g, cuda)  # fmt: skip
+                del work
+            first = False
+            res = handle([chunk[r] for r in sel], acts, ended)
+            nxt_sel = []
+            for r, t in zip(sel, res):
+                if t is not None:
+                    temps_c[r] = float(t)
+                    nxt_sel.append(r)
+            sel = nxt_sel
+            if sel and len(sel) * T < min_redo:
+                deferred.extend(chunk[r] for r in sel)
+                break
+        del base, h0
+    return deferred
+
+
 @dataclass
 class Attempt:
     prompt: str
@@ -173,7 +306,7 @@ class Attempt:
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
              log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None, scaffold=False,
-             verifier=None, fallback=False, subgoals=0, deadline=None,
+             verifier=None, fallback=False, subgoals=0, deadline=None, inner=False,
 ):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
     for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
@@ -191,7 +324,12 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
     lines it wrote for F stay in the proof; a subgoal it cannot reach is dropped.
     `deadline`: (soft, hard) wall-clock times. After the soft one no new screened try starts (a
     try that fails goes straight to the unscreened last try, if that is on); at the hard one
-    every attempt still running ends without a proof (`why` = "time")."""
+    every attempt still running ends without a proof (`why` = "time").
+    `inner` (gate="verifier" with a verifier network; off by default): a refused step is sampled
+    again inside the decoding of the same wave, from the state's cached keys and values
+    (`gen_rounds`), instead of in the next wave after encoding the state again. Same procedure and
+    the same dev result, fewer state encodings, but measured slower (the extra decoding loops cost
+    more than the encodings they save: 531 s against 327 s on 512 long attempts), so it is not used."""
     assert gate in ("none", "checker", "verifier")
     dev = next(model.parameters()).device
     g = torch.Generator(device=dev)
@@ -244,31 +382,12 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         if temp_bump > 0:
             tl = [temperature * min(1.6, 1.0 + temp_bump * a.step_tries) for a in live]
         caps = [min(max_action, 3 * _longest_line(s) + 40) for s in states]
-        outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget, temps=tl,
-                                            caps=caps)  # fmt: skip
         keep = []
-        pv_sep = {}
-        if gate == "verifier" and verifier is not None:  # the separate verifier network
-            from .verifier import compact, ver_probs
 
-            vi, vs = [], []
-            for r, (a, st, ids, end) in enumerate(zip(live, states, outs, ended)):
-                if not end or a.fb:
-                    continue
-                act = [ITOS[i] for i in ids]
-                if step_kind(act) not in ("atom", "pr"):
-                    continue
-                try:  # judged with the name the environment will give the line, as in training
-                    c = compact(st, a.env._assign_names(list(act), act.index(":=") + 1))
-                except Exception:  # noqa: BLE001
-                    c = None
-                if c is not None:
-                    vi.append(r)
-                    vs.append(enc(c))
-                    a.n_ver += 1
-                    a.ver_tok += len(c)
-            pv_sep = dict(zip(vi, ver_probs(verifier, vs)))
-        for r, (a, st, pid, ids, end, vl, v0) in enumerate(zip(live, states, pids, outs, ended, ver, val)):
+        def process(a, pid, ids, end, vl, v0, pv_r):
+            """One sampled action of one attempt. -> True if the attempt wants another sample at
+            the same state (the action was refused and resamples are left); otherwise the attempt
+            has moved on (it is in `keep` with a new state) or has ended."""
             a.n_tok += len(ids) + (1 if end else 0)
             a.n_calls += 1
             a.fb_calls += a.fb
@@ -287,7 +406,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                     out = "lemma" if f is not None and f == a.focus[-1][1] else "syntax"
                     a.env.last_why = "exact goal mismatch"
                 elif gate == "verifier" and kind in ("atom", "pr") and not a.fb:
-                    pv = _sig(vl) if verifier is None else pv_sep.get(r, 1.0)
+                    pv = _sig(vl) if verifier is None else pv_r
                     out = "invalid" if pv < tau else try_step(a.env, act, check=False)
                 else:
                     out = try_step(a.env, act, check=(gate == "checker"))
@@ -310,7 +429,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 a.n_lemmas += 1
                 a.step_tries = 0
                 keep.append(a)
-                continue
+                return False
             if (out == "invalid" and subgoals and kind == "atom" and not a.fb
                     and a.n_focus < subgoals and len(a.focus) < 3):  # fmt: skip
                 try:
@@ -324,7 +443,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                     a.n_focus += 1
                     a.step_tries = 0
                     keep.append(a)
-                    continue
+                    return False
             if out == "ok":
                 nf1 = len(a.env.frames)
                 if nf1 > nf0:
@@ -337,17 +456,16 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 a.min_ver = min(a.min_ver, pv)
                 if a.env.done:
                     a.done = True
-                    continue
+                    return False
                 if a.env.steps < max_steps:
                     keep.append(a)
-                    continue
+                    return False
                 a.why = "step cap"
             else:
                 a.step_tries += 1
                 capped = a.fb_calls >= 2 * max_steps if a.fb else a.n_calls >= max_calls
                 if not capped and a.step_tries <= resample:
-                    keep.append(a)
-                    continue
+                    return True  # sample again at the same state
                 a.why = "call cap" if capped else (out if end else "truncated")
                 if not capped and a.focus:  # give the innermost subgoal up (and any box opened for it)
                     d = a.focus.pop()[0]
@@ -364,7 +482,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                         a.why = ""
                         a.step_tries = 1
                         keep.append(a)
-                        continue
+                        return False
                 if not capped and a.open_stack and a.pops < backtrack:
                     k = a.open_stack.pop()
                     env = Env(a.prompt, canon=True, base=a.base, assign=True)
@@ -377,7 +495,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                         a.pops += 1
                         a.step_tries = 1  # the next sample at this state is drawn warmer
                         keep.append(a)
-                        continue
+                        return False
             if not a.fb and a.n_calls < max_calls and a.tries < tries and not late:
                 start(a)
                 keep.append(a)
@@ -386,6 +504,69 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 a.fb_calls = 0
                 start(a)
                 keep.append(a)
+            return False
+
+        if gate == "verifier" and verifier is not None and inner:
+            # full mode: a refused step is sampled again from the same state's cache, inside the
+            # decoding of the wave, so a wave ends with every attempt at a new state or finished
+            from .verifier import compact, ver_probs
+
+            def handle(idxs, acts_ids, ends):
+                vi, vs = [], []
+                for j, (r, ids, end) in enumerate(zip(idxs, acts_ids, ends)):
+                    a = live[r]
+                    if not end or a.fb:
+                        continue
+                    act = [ITOS[i] for i in ids]
+                    if step_kind(act) not in ("atom", "pr"):
+                        continue
+                    try:  # judged with the name the environment will give the line, as in training
+                        c = compact(states[r], a.env._assign_names(list(act), act.index(":=") + 1))
+                    except Exception:  # noqa: BLE001
+                        c = None
+                    if c is not None:
+                        vi.append(j)
+                        vs.append(enc(c))
+                        a.n_ver += 1
+                        a.ver_tok += len(c)
+                pvs = dict(zip(vi, ver_probs(verifier, vs))) if vs else {}
+                res = []
+                for j, (r, ids, end) in enumerate(zip(idxs, acts_ids, ends)):
+                    a = live[r]
+                    again = process(a, pids[r], ids, end, 0.0, 0.0, pvs.get(j, 1.0))
+                    res.append(temperature * min(1.6, 1.0 + temp_bump * a.step_tries) if again else None)
+                return res
+
+            again = gen_rounds(model, pids, handle, tl if tl is not None else [temperature] * len(live),
+                               caps, max_new=max_action, g=g, tok_budget=tok_budget)  # fmt: skip
+            keep.extend(live[r] for r in again)  # same state, sampled again in the next wave
+        else:
+            outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget, temps=tl,
+                                                caps=caps)  # fmt: skip
+            pv_sep = {}
+            if gate == "verifier" and verifier is not None:  # the separate verifier network
+                from .verifier import compact, ver_probs
+
+                vi, vs = [], []
+                for r, (a, st, ids, end) in enumerate(zip(live, states, outs, ended)):
+                    if not end or a.fb:
+                        continue
+                    act = [ITOS[i] for i in ids]
+                    if step_kind(act) not in ("atom", "pr"):
+                        continue
+                    try:  # judged with the name the environment will give the line, as in training
+                        c = compact(st, a.env._assign_names(list(act), act.index(":=") + 1))
+                    except Exception:  # noqa: BLE001
+                        c = None
+                    if c is not None:
+                        vi.append(r)
+                        vs.append(enc(c))
+                        a.n_ver += 1
+                        a.ver_tok += len(c)
+                pv_sep = dict(zip(vi, ver_probs(verifier, vs)))
+            for r, (a, st, pid, ids, end, vl, v0) in enumerate(zip(live, states, pids, outs, ended, ver, val)):
+                if process(a, pid, ids, end, vl, v0, pv_sep.get(r, 1.0)):
+                    keep.append(a)
         live = keep
         wave += 1
         if log is not None and wave % 10 == 0:
