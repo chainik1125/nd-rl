@@ -114,9 +114,17 @@ def main():
     else:
         dev = "cuda" if cuda else "cpu"
         model = model.to(dev)
+        def write_partial(rows_now):
+            # proofs completed so far, in the output file itself: if the run is cut off from
+            # outside, what was finished is kept (missing attempts count as failures anyway)
+            with open(out_fn + ".tmp", "w") as f:
+                for r in rows_now:
+                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            os.replace(out_fn + ".tmp", out_fn)
+
         out, cfg = solve_safe(model, rows, k=a.k, seed=a.seed, mode=mode, max_steps=a.max_steps,
                               max_action=a.max_action, tok_budget=a.tok_budget or 500_000,
-                              verifier=build_verifier(extra, dev), **kw)  # fmt: skip
+                              verifier=build_verifier(extra, dev), progress=write_partial, **kw)  # fmt: skip
     if a.judge:
         judge(out)
     tmp = out_fn + ".tmp"

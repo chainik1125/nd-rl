@@ -26,6 +26,9 @@ DEFAULTS = {
 }  # fmt: skip
 
 
+PROGRESS_SECS = 90  # how often a caller's `progress` function gets the proofs completed so far
+
+
 def _rows(atts):
     out = []
     for a in atts:
@@ -54,8 +57,10 @@ def _rows(atts):
 
 
 def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512, log=None,
-          tok_budget=700_000, verifier=None, **kw):  # fmt: skip
-    """rows: dicts with `name` and `thm` -> (one output row per attempt, config used)."""
+          tok_budget=700_000, verifier=None, progress=None, **kw):  # fmt: skip
+    """rows: dicts with `name` and `thm` -> (one output row per attempt, config used).
+    `progress`: called about once a minute with the output rows of the attempts that already hold
+    a complete proof, so a caller can keep a partial result on disk while the loop runs."""
     cfg = dict(DEFAULTS[mode])
     cfg.update({key: v for key, v in kw.items() if v is not None})
     ver_views = cfg.pop("ver_views", 1)
@@ -72,7 +77,24 @@ def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512
         for d in range(k):
             atts.append(Attempt(p, tag=(r["name"], d)))
     t0 = time.time()
-    rollouts(model, atts, seed=seed, max_steps=max_steps, max_action=max_action, log=log,
+    last = [t0]
+    ready = {}  # id(attempt) -> its output row, once it holds a complete proof (it no longer changes)
+
+    def _log(msg):
+        if log:
+            log(msg)
+        if progress and time.time() - last[0] >= PROGRESS_SECS:
+            try:
+                new = [a for a in atts if a.done and id(a) not in ready]
+                for a, row in zip(new, _rows(new)):
+                    ready[id(a)] = row
+                progress(list(ready.values()))
+            except Exception:  # noqa: BLE001  (a failed partial write must not stop the run)
+                pass
+            last[0] = time.time()
+
+    rollouts(model, atts, seed=seed, max_steps=max_steps, max_action=max_action,
+             log=_log if (log or progress) else None,
              tok_budget=tok_budget, verifier=verifier if mode == "search" else None, **cfg)  # fmt: skip
     if mode == "search":
         cfg["ver_views"] = ver_views
@@ -87,7 +109,7 @@ def _failed_rows(row, k, why):
              "lemmas": 0} for d in range(k)]  # fmt: skip
 
 
-def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, **kw):
+def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, progress=None, **kw):
     """`solve`, but a statement that cannot be read or an error inside the attempt loop cannot
     lose the whole set: statements are checked first (a bad one gets k failed attempts), and if
     the loop raises (out of memory included) the set is split in two and each half is solved on
@@ -116,7 +138,9 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, **kw):
             kw2 = dict(kw)
             if depth and kw2.get("tok_budget"):  # after an error, smaller decode batches as well
                 kw2["tok_budget"] = max(50_000, kw2["tok_budget"] >> depth)
-            res, cfg = solve(model, part, k=k, seed=seed + 7919 * depth, mode=mode, log=log, **kw2)
+            prog = (lambda rows_now: progress(out + rows_now)) if progress else None
+            res, cfg = solve(model, part, k=k, seed=seed + 7919 * depth, mode=mode, log=log,
+                             progress=prog, **kw2)  # fmt: skip
             return res
         except Exception as e:  # noqa: BLE001
             print(f"solve: error on {len(part)} theorems at depth {depth} ({type(e).__name__}: {str(e)[:200]})",
@@ -126,7 +150,11 @@ def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, **kw):
             if len(part) == 1:
                 return _failed_rows(part[0], k, "solver error")
             h = len(part) // 2
-            return run(part[:h], depth + 1) + run(part[h:], depth + 1)
+            first = run(part[:h], depth + 1)
+            out.extend(first)  # so that partial results written during the second half include it
+            second = run(part[h:], depth + 1)
+            del out[len(out) - len(first):]
+            return first + second
 
     t0 = time.time()
     out += run(good, 0)
