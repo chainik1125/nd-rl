@@ -4,4 +4,4 @@
 set -euo pipefail
 h=$1; name=$2; to=$3; shift 3
 F=/scratch/cowifornia/nd-rl/fable_rl
-timeout 25 ssh -F $F/ssh_config "$h" "mkdir -p /workspace/runs; if [ -f /workspace/runs/$name.pid ] && kill -0 \$(cat /workspace/runs/$name.pid) 2>/dev/null; then echo ALREADY_RUNNING; exit 3; fi; cd /workspace/fr && PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True LEAN_GATE_WORKERS=7 setsid nohup timeout $to /workspace/venv/bin/python $* > /workspace/runs/$name.log 2>&1 < /dev/null & echo \$! > /workspace/runs/$name.pid; echo STARTED $name pid \$(cat /workspace/runs/$name.pid)" || true
+timeout 25 ssh -n -F $F/ssh_config "$h" "mkdir -p /workspace/runs; if [ -f /workspace/runs/$name.pid ] && kill -0 \$(cat /workspace/runs/$name.pid) 2>/dev/null; then echo ALREADY_RUNNING; exit 3; fi; cd /workspace/fr && PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True LEAN_GATE_WORKERS=7 setsid nohup timeout $to /workspace/venv/bin/python $* > /workspace/runs/$name.log 2>&1 < /dev/null & echo \$! > /workspace/runs/$name.pid; echo STARTED $name pid \$(cat /workspace/runs/$name.pid)" || true

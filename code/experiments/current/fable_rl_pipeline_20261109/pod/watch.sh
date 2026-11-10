@@ -13,13 +13,13 @@ i=0
 while true; do
   while IFS=$'\t' read -r h name to args; do
     [[ -z ${h:-} || $h == \#* ]] && continue
-    st=$("${SSH[@]}" "$h" "if pgrep -f '[f]r\.rl.*--out /workspace/runs/$name( |\$)' >/dev/null; then echo RUNNING; elif grep -q RL_DONE /workspace/runs/$name.log 2>/dev/null; then echo DONE; else echo DEAD; fi" 2>/dev/null || echo UNREACHABLE)
+    st=$("${SSH[@]}" -n "$h" "if pgrep -f '[f]r\.rl.*--out /workspace/runs/$name( |\$)' >/dev/null; then echo RUNNING; elif grep -q RL_DONE /workspace/runs/$name.log 2>/dev/null; then echo DONE; else echo DEAD; fi" 2>/dev/null || echo UNREACHABLE)
     if [[ $st == DEAD ]]; then
       n=${restarts[$name]:-0}
       if (( n < 6 )); then
         restarts[$name]=$((n + 1))
-        log "RESTART $h $name (restart $((n + 1))): $("${SSH[@]}" "$h" "tail -c 300 /workspace/runs/$name.log | tr '\n' ' '" 2>/dev/null)"
-        "${SSH[@]}" "$h" "cp /workspace/runs/$name.log /workspace/runs/$name.log.$n 2>/dev/null"
+        log "RESTART $h $name (restart $((n + 1))): $("${SSH[@]}" -n "$h" "tail -c 300 /workspace/runs/$name.log | tr '\n' ' '" 2>/dev/null)"
+        "${SSH[@]}" -n "$h" "cp /workspace/runs/$name.log /workspace/runs/$name.log.$n 2>/dev/null"
         bash "$HERE/run.sh" "$h" "$name" "$to" $args --resume >> $F/logs/watch.log 2>&1
       else
         log "GIVING UP on $h $name after 6 restarts"

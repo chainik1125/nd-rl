@@ -59,6 +59,7 @@ def main():
     ap.add_argument("--max_steps", type=int, default=128)
     ap.add_argument("--max_action", type=int, default=512)
     ap.add_argument("--tok_budget", type=int, default=0, help="padded tokens per decode chunk per worker")
+    ap.add_argument("--verifier", default=None, help="verifier file to use instead of the one in the checkpoint")
     ap.add_argument("--judge", action="store_true", help="afterwards, run Lean on the output and print pass rates")
     a = ap.parse_args()
 
@@ -66,14 +67,22 @@ def main():
 
     from fr.model import load_ckpt
     from fr.solvelib import fmt_table, judge, solve, solve_parallel, table
+    from fr.verifier import build_verifier
 
     inp, out_fn, ckpt = os.path.abspath(a.inp), os.path.abspath(a.out), os.path.abspath(a.ckpt)
     cuda = torch.cuda.is_available()
     model, extra = load_ckpt(ckpt, "cpu")
     solver_cfg = extra.get("solver") or {}
     mode = MODES[a.mode or os.environ.get("SOLVER_MODE") or "full"]
-    if mode == "search" and not extra.get("has_aux"):
-        sys.exit("this checkpoint has no verifier head: use SOLVER_MODE=plain")
+    if a.verifier:  # a verifier file given separately (dev tuning): pack it with the policy
+        v = torch.load(os.path.abspath(a.verifier), map_location="cpu", weights_only=False)
+        ck = torch.load(ckpt, map_location="cpu", weights_only=False)
+        ck.setdefault("extra", {})["verifier"] = {"cfg": v["cfg"], "state": v["state"]}
+        ckpt = out_fn + ".ckpt.tmp"
+        torch.save(ck, ckpt)
+        extra = ck["extra"]
+    if mode == "search" and not extra.get("verifier"):
+        sys.exit("this checkpoint has no verifier: use SOLVER_MODE=plain")
     # settings frozen into the checkpoint for its mode, then command-line overrides
     kw = dict(solver_cfg.get(mode) or {})
     keys = ("temperature", "tau", "resample", "tries", "temp_bump", "backtrack", "max_calls")
@@ -93,9 +102,11 @@ def main():
         out, cfg = solve_parallel(ckpt, rows, k=a.k, seed=a.seed, mode=mode, procs=procs,
                                   max_steps=a.max_steps, max_action=a.max_action, tok_budget=tb, **kw)  # fmt: skip
     else:
-        model = model.to("cuda" if cuda else "cpu")
+        dev = "cuda" if cuda else "cpu"
+        model = model.to(dev)
         out, cfg = solve(model, rows, k=a.k, seed=a.seed, mode=mode, max_steps=a.max_steps,
-                         max_action=a.max_action, tok_budget=a.tok_budget or 500_000, **kw)  # fmt: skip
+                         max_action=a.max_action, tok_budget=a.tok_budget or 500_000,
+                         verifier=build_verifier(extra, dev), **kw)  # fmt: skip
     if a.judge:
         judge(out)
     tmp = out_fn + ".tmp"
@@ -103,6 +114,8 @@ def main():
         for r in out:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     os.replace(tmp, out_fn)
+    if a.verifier and os.path.exists(out_fn + ".ckpt.tmp"):
+        os.remove(out_fn + ".ckpt.tmp")
     n = len(out)
     print(json.dumps({
         "theorems": len(rows), "attempts": n, "complete": sum(r["verdict"] for r in out),

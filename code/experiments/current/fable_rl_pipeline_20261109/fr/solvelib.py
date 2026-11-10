@@ -17,6 +17,7 @@ import time
 
 from .common import TOK, lean_check_nd, thm_to_prompt
 from .sampler import Attempt, rollouts
+from .verifier import build_verifier
 
 DEFAULTS = {
     "plain": dict(gate="none", resample=0, tries=1, temperature=1.0),
@@ -49,7 +50,7 @@ def _rows(atts):
 
 
 def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512, log=None,
-          tok_budget=700_000, **kw):  # fmt: skip
+          tok_budget=700_000, verifier=None, **kw):  # fmt: skip
     """rows: dicts with `name` and `thm` -> (one output row per attempt, config used)."""
     cfg = dict(DEFAULTS[mode])
     cfg.update({key: v for key, v in kw.items() if v is not None})
@@ -60,7 +61,7 @@ def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512
             atts.append(Attempt(p, tag=(r["name"], d)))
     t0 = time.time()
     rollouts(model, atts, seed=seed, max_steps=max_steps, max_action=max_action, log=log,
-             tok_budget=tok_budget, **cfg)  # fmt: skip
+             tok_budget=tok_budget, verifier=verifier if mode == "search" else None, **cfg)  # fmt: skip
     return _rows(atts), {"secs": time.time() - t0, "mode": mode, "max_steps": max_steps,
                          "max_action": max_action, **cfg}  # fmt: skip
 
@@ -72,9 +73,9 @@ def _solve_worker(ckpt, rows, k, seed, mode, max_steps, max_action, tok_budget, 
 
     torch.set_num_threads(1)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model, _ = load_ckpt(ckpt, dev)
+    model, extra = load_ckpt(ckpt, dev)
     return solve(model, rows, k=k, seed=seed, mode=mode, max_steps=max_steps, max_action=max_action,
-                 tok_budget=tok_budget, **kw)  # fmt: skip
+                 tok_budget=tok_budget, verifier=build_verifier(extra, dev), **kw)  # fmt: skip
 
 
 def solve_parallel(ckpt, rows, k=1, seed=0, mode="search", procs=3, max_steps=128, max_action=512,

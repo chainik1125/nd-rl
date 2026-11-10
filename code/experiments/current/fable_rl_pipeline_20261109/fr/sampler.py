@@ -163,6 +163,7 @@ class Attempt:
 def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries=1, tau=0.5,
              max_steps=96, max_action=256, seed=0, base_max=8, collect=None, tok_budget=700_000,
              log=None, temp_bump=0.0, backtrack=0, max_calls=1200, stats=None, scaffold=False,
+             verifier=None,
 ):  # fmt: skip
     """Run every Attempt to its end. `collect`, if a list, receives (state bytes, action bytes)
     for each step the checker refused (gate="checker"). `backtrack`: when a try gets stuck inside
@@ -212,7 +213,26 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         outs, ended, ver, val = gen_actions(model, pids, temperature, max_action, g, tok_budget, temps=tl,
                                             caps=caps)  # fmt: skip
         keep = []
-        for a, st, pid, ids, end, vl, v0 in zip(live, states, pids, outs, ended, ver, val):
+        pv_sep = {}
+        if gate == "verifier" and verifier is not None:  # the separate verifier network
+            from .verifier import compact, ver_probs
+
+            vi, vs = [], []
+            for r, (a, st, ids, end) in enumerate(zip(live, states, outs, ended)):
+                if not end:
+                    continue
+                act = [ITOS[i] for i in ids]
+                if step_kind(act) not in ("atom", "pr"):
+                    continue
+                try:  # judged with the name the environment will give the line, as in training
+                    c = compact(st, a.env._assign_names(list(act), act.index(":=") + 1))
+                except Exception:  # noqa: BLE001
+                    c = None
+                if c is not None:
+                    vi.append(r)
+                    vs.append(enc(c))
+            pv_sep = dict(zip(vi, ver_probs(verifier, vs)))
+        for r, (a, st, pid, ids, end, vl, v0) in enumerate(zip(live, states, pids, outs, ended, ver, val)):
             a.n_tok += len(ids) + (1 if end else 0)
             a.n_calls += 1
             if not a.acts and a.step_tries == 0:
@@ -224,7 +244,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 act = [ITOS[i] for i in ids]
                 kind = step_kind(act)
                 if gate == "verifier" and kind in ("atom", "pr"):
-                    pv = _sig(vl)
+                    pv = _sig(vl) if verifier is None else pv_sep.get(r, 1.0)
                     out = "invalid" if pv < tau else try_step(a.env, act, check=False)
                 else:
                     out = try_step(a.env, act, check=(gate == "checker"))
