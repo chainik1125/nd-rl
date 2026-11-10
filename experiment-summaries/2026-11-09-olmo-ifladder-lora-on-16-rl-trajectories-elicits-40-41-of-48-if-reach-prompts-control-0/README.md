@@ -678,7 +678,9 @@ The fork's files are uncorrected; the copy of the plain summary here applies its
 *[librarian]* Measurement 4 needs no pods. Dan's blind hand-labelling set
 ([`ifbench-hand-label-calibration`](../../docs/writeups/2026-11-09-ifbench-hand-label-calibration/README.md), 50 contested
 answers from olmo-ifomega, olmo-iffu, olmo-transplant and olmo-rlzero-if) has no olmo-ifladder item; this run's 101
-disputed draws are the same kind of item. The review gives no cost for measurements 2 and 3.
+disputed draws are the same kind of item. The review gives no cost for measurements 2 and 3. olmo-answeronly's optional
+arm (`lora_main` as the answer writer on RL's thinking, and the DPO start writing after `lora_main`'s own thinking)
+touches measurement 3's question.
 
 ## For the runs that build on this one
 

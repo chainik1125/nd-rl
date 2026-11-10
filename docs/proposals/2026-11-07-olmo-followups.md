@@ -161,7 +161,7 @@ teachable by any light fine-tune, and 7 are reached by neither (`ifeval_3478`, I
 they feed 42. Each LoRA is one training run. Each range is one item: 41 with the literal pre-registered one-sentence
 screen, 40 with the executor's; 26 / 4 / 15 with rule 3 on one rung-4 answer (`ifbench_154`), 25 / 3 / 16 with the
 executor's rule 7. Summary:
-[olmo-ifladder](../../experiment-summaries/2026-11-09-olmo-ifladder-lora-on-16-rl-trajectories-elicits-40-41-of-48-if-reach-prompts-control-0-prompting-25-26-neither-7/README.md).
+[olmo-ifladder](../../experiment-summaries/2026-11-09-olmo-ifladder-lora-on-16-rl-trajectories-elicits-40-41-of-48-if-reach-prompts-control-0/README.md).
 
 ## Proposal 42: probing the DPO start's support on surviving reach prompts (`olmo-support`)
 
