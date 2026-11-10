@@ -80,6 +80,64 @@ def solve(model, rows, k=1, seed=0, mode="search", max_steps=128, max_action=512
                          "max_action": max_action, **cfg}  # fmt: skip
 
 
+def _failed_rows(row, k, why):
+    return [{"name": row.get("name"), "draw": d, "proof": "LEANPARSE incomplete: " + why, "verdict": False,
+             "tokens_generated": 0, "prompt": "", "lean_text": "", "confidence": 0.0, "tries": 0, "steps": 0,
+             "scaffold_lines": 0, "verifier_steps": 0, "verifier_step_tokens": 0, "fallback": False,
+             "lemmas": 0} for d in range(k)]  # fmt: skip
+
+
+def solve_safe(model, rows, k=1, seed=0, mode="search", log=None, **kw):
+    """`solve`, but a statement that cannot be read or an error inside the attempt loop cannot
+    lose the whole set: statements are checked first (a bad one gets k failed attempts), and if
+    the loop raises (out of memory included) the set is split in two and each half is solved on
+    its own, down to single theorems, which then count as failed."""
+    import sys
+
+    import torch
+
+    from .common import Env
+
+    good, out = [], []
+    for r in rows:
+        try:
+            Env(thm_to_prompt(r["thm"]), canon=True, base=0, assign=True).state_tokens()
+            good.append(r)
+        except Exception as e:  # noqa: BLE001
+            print(f"solve: statement of {r.get('name')!r} not read ({type(e).__name__}: {e})", file=sys.stderr, flush=True)
+            out += _failed_rows(r, k, "statement not read")
+    cfg = {"mode": mode}
+
+    def run(part, depth):
+        nonlocal cfg
+        if not part:
+            return []
+        try:
+            kw2 = dict(kw)
+            if depth and kw2.get("tok_budget"):  # after an error, smaller decode batches as well
+                kw2["tok_budget"] = max(50_000, kw2["tok_budget"] >> depth)
+            res, cfg = solve(model, part, k=k, seed=seed + 7919 * depth, mode=mode, log=log, **kw2)
+            return res
+        except Exception as e:  # noqa: BLE001
+            print(f"solve: error on {len(part)} theorems at depth {depth} ({type(e).__name__}: {str(e)[:200]})",
+                  file=sys.stderr, flush=True)  # fmt: skip
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            if len(part) == 1:
+                return _failed_rows(part[0], k, "solver error")
+            h = len(part) // 2
+            return run(part[:h], depth + 1) + run(part[h:], depth + 1)
+
+    t0 = time.time()
+    out += run(good, 0)
+    order = {r["name"]: i for i, r in enumerate(rows)}
+    out.sort(key=lambda r: (order.get(r["name"], 0), r["draw"]))
+    cfg = dict(cfg)
+    cfg["secs"] = time.time() - t0
+    cfg["statements_not_read"] = len(rows) - len(good)
+    return out, cfg
+
+
 def _solve_worker(ckpt, rows, k, seed, mode, max_steps, max_action, tok_budget, kw):
     import torch
 

@@ -70,7 +70,7 @@ def main():
     import torch
 
     from fr.model import load_ckpt
-    from fr.solvelib import fmt_table, judge, solve, solve_parallel, table
+    from fr.solvelib import fmt_table, judge, solve_parallel, solve_safe, table
     from fr.verifier import build_verifier
 
     inp, out_fn, ckpt = os.path.abspath(a.inp), os.path.abspath(a.out), os.path.abspath(a.ckpt)
@@ -114,9 +114,9 @@ def main():
     else:
         dev = "cuda" if cuda else "cpu"
         model = model.to(dev)
-        out, cfg = solve(model, rows, k=a.k, seed=a.seed, mode=mode, max_steps=a.max_steps,
-                         max_action=a.max_action, tok_budget=a.tok_budget or 500_000,
-                         verifier=build_verifier(extra, dev), **kw)  # fmt: skip
+        out, cfg = solve_safe(model, rows, k=a.k, seed=a.seed, mode=mode, max_steps=a.max_steps,
+                              max_action=a.max_action, tok_budget=a.tok_budget or 500_000,
+                              verifier=build_verifier(extra, dev), **kw)  # fmt: skip
     if a.judge:
         judge(out)
     tmp = out_fn + ".tmp"
