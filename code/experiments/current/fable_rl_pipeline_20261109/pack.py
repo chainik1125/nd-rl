@@ -29,15 +29,16 @@ def main():
     extra = dict(ck.get("extra") or {})
     extra["policy_file"] = os.path.abspath(a.policy)
     if a.verifier:
-        v = torch.load(a.verifier, map_location="cpu", weights_only=False)
-        extra["verifier"] = {"cfg": v["cfg"], "state": v["state"], "metrics": v.get("metrics"),
-                             "rounds": v.get("rounds"), "file": os.path.abspath(a.verifier)}  # fmt: skip
+        from fr.verifier import load_verifier_spec
+
+        extra["verifier"] = load_verifier_spec(a.verifier)
     extra["solver"] = json.loads(a.solver)
     extra["note"] = a.note
     ck["extra"] = extra
     torch.save(ck, a.out)
     n_pol = sum(t.numel() for t in ck["state"].values())
-    n_ver = sum(t.numel() for t in extra["verifier"]["state"].values()) if a.verifier else 0
+    vs = extra.get("verifier") or {}
+    n_ver = sum(t.numel() for p in vs.get("parts", [vs]) for t in p.get("state", {}).values())
     print(json.dumps({"out": a.out, "policy_params": n_pol, "verifier_params": n_ver,
                       "solver": extra["solver"], "round": extra.get("round")}))  # fmt: skip
 

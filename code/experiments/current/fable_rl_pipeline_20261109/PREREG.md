@@ -175,3 +175,73 @@ Change, by restarting each run with `--resume` on the current code (commit of th
   attempt (`--subgoals 4`, the procedure described in `fr/sampler.py`); the ablation has no step
   check and so no subgoals, but gets the same 512 attempts.
 The current code also caps a sampled action's length by its state, which only shortens runaway samples.
+
+## Amendment 5 (2026-11-10, 5:00 am PT; before any final checkpoint is packed or scored)
+
+This amendment fixes the final verifier and how the solver settings will be frozen. It was made
+from mid-run checkpoints of seed 1 (policy after 6 and after 18 rounds; verifiers trained on
+seed 1's rounds 0 to 7 and read on its rounds 10 to 12, which they did not see). The kept RL runs
+are not touched by it.
+
+**Observed.** The one-logit verifier of amendment 2 lets near misses through: in full mode on dev,
+112 of 2,207 attempts it called verified were wrong (seed 1, 6 rounds, 89.6 / 95.3 pass@1 / pass@5).
+Tried, on the same policy:
+
+| verifier | refused steps of unseen rounds it would pass | accepted steps kept | valid dev steps kept | dev full mode |
+|---|---|---|---|---|
+| A. one logit per step, 4 layers d 256 (amendment 2), threshold 0.2 | 3.9% | 99.9% | 99.2% | 89.6 / 95.3 (at 0.5) |
+| B. A at 6 layers d 384 with three rounds of mining its own mistakes | 2.2 to 2.8% | 97.0 to 99.7% | not read | not run |
+| C. B's size, plus one-symbol edits of accepted steps labelled by the training-time checker, threshold 0.2 | 2.1% | 99.9% | 99.4% | 92.5 / 96.0 (at 0.15) |
+| D. slot model: writes each formula of a step from the rest of the step | 0.03% (at 0.01) | 99.9% | 97.9% | 92.6 / 95.1 |
+| E. masked slot model: the same, seeing the formula with part of it hidden | 3.2% (at 0.01) | 99.9% | 98.9% | not run alone |
+| **E at 0.001 and A at 0.05, both must pass** | **0.01%** | **99.9%** | **99.1%** | see below |
+
+With the 18-round policy: C 95.3 / 97.3 (20 of 2,239 verified attempts wrong), D 94.9 / 96.8 (0 of
+2,166 wrong), E and A together at thresholds 0.003 and 0.05: 95.4 / 96.8 (0 of 2,217 wrong); plain
+mode for that policy is 81.8 / 92.6. D's failure is over-refusal: where a rule leaves part of a
+formula free it has habits about that part, and on unseen theorems it refuses valid steps (it
+blocked whole theorem families on dev). E's failure is the opposite: with part of the formula in
+view it explains away gross mismatches. A catches exactly those and misses near misses, which E
+catches, so the two together pass 8 of 79,298 refused steps.
+
+**Final verifier (all seeds):** two networks, and a step passes only if both pass.
+- E, the masked slot model (`fr/verifier.py`, `--kind mslot`): 6 layers, d 384; 8,000 steps;
+  trained only on steps the training-time checker accepted in that seed's own RL rounds (all
+  rounds) and on the steps of x proofs. Threshold 0.001 on the lowest probability it gives to any
+  hidden symbol.
+- A, the one-logit judge (`--kind disc`): 4 layers, d 256; 6,000 steps; that seed's refused and
+  accepted steps (at most 150,000 per round) and 400,000 steps of x proofs as positives.
+  Threshold 0.05.
+- Not used: checker-labelled edits (C), mining (B), the unmasked slot model (D), several name
+  views. No refused step, edited step or checker output enters E. At test time nothing but the two
+  networks screens a step: no Lean, no type check. The slot construction itself is mine: which
+  lines a step cites is read off its text, and one formula at a time is hidden; what the hidden
+  symbols must be is the network's judgement.
+
+**Solver settings.** Fixed now: threshold as above, 4 resamples per step, retry temperature rising
+by 0.15 per retry, 2 box abandonments per try, premise lines written by the solver in full mode
+(orchestrator's ruling: zero-choice, a function of the statement alone, counted separately, zero
+generated tokens), one unscreened last try whose proof is handed in with verdict "no".
+Still to be chosen, on dev with seed 0's policy and seed 0's own two verifier networks (the first
+scored checkpoint available when the tuning runs, about round 30), then frozen for all seeds and
+written into `/scratch/cowifornia/nd-rl/fable_rl/final/solver.json` before any final checkpoint
+is packed:
+- tries per attempt, 4 or 8 (on seed 1: 95.4 / 96.8 at 425 tokens against 95.9 / 97.0 at 558);
+- the subgoal procedure in the solver, off or on (4 per attempt);
+- plain-mode temperature, 1.0 or 0.8;
+- worker processes sharing the GPU, 1 or 3 (speed only).
+Rule: the setting with the higher dev pass@1; a difference under 0.5 points goes to the cheaper
+setting (fewer generated tokens); a setting that cannot do 832 theorems at 32 attempts in about
+15 minutes on one GPU is not taken. Full mode stays the headline; plain mode is reported next to it.
+
+**Unchanged:** RL budget (11 h per run), the checkpoint rule (highest dev plain pass@1 among the
+scored rounds, ties to the later), one final test per seed by the orchestrator.
+
+**What I now expect** (replacing the original guesses where they differ): dev full mode 94 to 97%
+pass@1 and 96 to 98% pass@5 for every seed; tokens per attempt 400 to 600 in full mode and about
+190 in plain mode. On the sealed textbook set, full mode 75 to 90% pass@1. On the long sets I still
+have no measurement: dev at 13 and 14 lines (3 theorems each) is 47% and 33% pass@1 in full mode
+with seed 1's 18-round policy, and the dev theorems that stay unsolved are, with one exception I
+found, ones the policy cannot prove, not ones the verifier blocks. Guess:
+25 to 55% pass@1 at 13 to 20 lines and 2 to 20% at 21 to 30 lines, with seed 0 ahead of the
+others there (it is the only seed whose training set's 14-line family opened).

@@ -63,7 +63,7 @@ def main():
     ap.add_argument("--max_steps", type=int, default=128)
     ap.add_argument("--max_action", type=int, default=512)
     ap.add_argument("--tok_budget", type=int, default=0, help="padded tokens per decode chunk per worker")
-    ap.add_argument("--verifier", default=None, help="verifier file to use instead of the one in the checkpoint")
+    ap.add_argument("--verifier", default=None, help="verifier to use instead of the one in the checkpoint: FILE, or FILE:THR,FILE:THR for a combination")
     ap.add_argument("--judge", action="store_true", help="afterwards, run Lean on the output and print pass rates")
     a = ap.parse_args()
 
@@ -75,13 +75,17 @@ def main():
 
     inp, out_fn, ckpt = os.path.abspath(a.inp), os.path.abspath(a.out), os.path.abspath(a.ckpt)
     cuda = torch.cuda.is_available()
+    if cuda and os.environ.get("SOLVER_GPU_GB"):  # testing: cap this process to the memory of a smaller card
+        tot = torch.cuda.get_device_properties(0).total_memory
+        torch.cuda.set_per_process_memory_fraction(min(1.0, float(os.environ["SOLVER_GPU_GB"]) * 2**30 / tot))
     model, extra = load_ckpt(ckpt, "cpu")
     solver_cfg = extra.get("solver") or {}
     mode = MODES[a.mode or os.environ.get("SOLVER_MODE") or "full"]
     if a.verifier:  # a verifier file given separately (dev tuning): pack it with the policy
-        v = torch.load(os.path.abspath(a.verifier), map_location="cpu", weights_only=False)
+        from fr.verifier import load_verifier_spec
+
         ck = torch.load(ckpt, map_location="cpu", weights_only=False)
-        ck.setdefault("extra", {})["verifier"] = {"cfg": v["cfg"], "state": v["state"]}
+        ck.setdefault("extra", {})["verifier"] = load_verifier_spec(a.verifier)
         ckpt = out_fn + ".ckpt.tmp"
         torch.save(ck, ckpt)
         extra = ck["extra"]
@@ -127,7 +131,8 @@ def main():
         "theorems": len(rows), "attempts": n, "complete": sum(r["verdict"] for r in out), "fallback_proofs": sum(r["fallback"] and not r["proof"].startswith("LEANPARSE") for r in out),
         "tokens_per_attempt": round(sum(r["tokens_generated"] for r in out) / max(1, n), 1),
         "scaffold_lines": sum(r["scaffold_lines"] for r in out),
-        "secs": round(time.time() - t0, 1), "config": cfg,
+        "secs": round(time.time() - t0, 1),
+        "peak_gpu_gb": round(torch.cuda.max_memory_reserved() / 2**30, 2) if cuda else 0.0, "config": cfg,
     }), flush=True)  # fmt: skip
     if a.judge:
         meta = {r["name"]: r for r in rows}
