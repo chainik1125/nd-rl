@@ -139,6 +139,7 @@ class Attempt:
     min_ver: float = 1.0  # lowest verifier probability among the applied atomic steps
     open_stack: list = field(default_factory=list)  # indices in `acts` of the open boxes' openers
     pops: int = 0  # boxes abandoned in the current try
+    pvs: list = field(default_factory=list)  # verifier probability of each applied step
     val0: float = 0.0  # value probability at the first state
 
 
@@ -165,6 +166,8 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
         a.min_ver = 1.0
         a.open_stack = []
         a.pops = 0
+        a.pvs = []
+        a.why = ""
         a.tries += 1
 
     for a in attempts:
@@ -208,6 +211,7 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                 elif nf1 < nf0:
                     a.open_stack.pop()
                 a.acts.append(list(a.env._eff))
+                a.pvs.append(pv)
                 a.step_tries = 0
                 a.min_ver = min(a.min_ver, pv)
                 if a.env.done:
@@ -231,7 +235,9 @@ def rollouts(model, attempts, *, gate="none", temperature=1.0, resample=0, tries
                     env = Env(a.prompt, canon=True, base=a.base, assign=True)
                     good = all(env.apply(list(x))[0] for x in a.acts[:k])
                     if good:
-                        a.env, a.acts = env, a.acts[:k]
+                        a.env, a.acts, a.pvs = env, a.acts[:k], a.pvs[:k]
+                        a.min_ver = min(a.pvs, default=1.0)
+                        a.why = ""
                         a.pops += 1
                         a.step_tries = 1  # the next sample at this state is drawn warmer
                         keep.append(a)

@@ -98,7 +98,7 @@ def process_her(att, min_haves=4):
         if f in prem or f == tr.env.concl:
             continue
         c = tr.closure(uid)
-        nh = sum(1 for i in c if tr.steps[i]["kind"] != "exact")
+        nh = sum(1 for i in c if tr.steps[i]["kind"] in ("atom", "box", "ore"))
         if nh >= min_haves and (best is None or nh > best[0]):
             best = (nh, k)
     if best is None:
@@ -151,10 +151,12 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--rounds", type=int, default=100)
     ap.add_argument("--hours", type=float, default=6.0, help="no new round starts after this")
-    ap.add_argument("--k_unsolved", type=int, default=24)
+    ap.add_argument("--k_unsolved", type=int, default=16)
     ap.add_argument("--k_solved", type=int, default=8)
     ap.add_argument("--resample", type=int, default=5)
     ap.add_argument("--temperature", type=float, default=1.0)
+    ap.add_argument("--gate", default="checker", choices=["checker", "none"],
+                    help="none: ablation, plain expert iteration (no step check while sampling)")
     ap.add_argument("--temp_bump", type=float, default=0.3, help="temperature rise per refused sample of a step")
     ap.add_argument("--backtrack", type=int, default=2, help="boxes a stuck attempt may abandon")
     ap.add_argument("--max_steps", type=int, default=96)
@@ -213,7 +215,8 @@ def main():
     log(f"train theorems {len(train)}, dev {len(devrows)}, x pairs {len(xtr)}")
 
     state_fn = os.path.join(a.out, "state.pkl")
-    if a.resume and os.path.exists(state_fn):
+    resumed = a.resume and os.path.exists(state_fn)
+    if resumed:
         with open(state_fn, "rb") as f:
             S = pickle.load(f)
         model, _ = load_ckpt(os.path.join(a.out, "last.pt"), dev_)
@@ -223,7 +226,7 @@ def main():
              "tokens_sampled": 0, "history": []}  # fmt: skip
         model, _ = load_ckpt(a.init, dev_)
     opt = make_opt(model, a.lr)
-    if a.resume and os.path.exists(os.path.join(a.out, "opt.pt")):
+    if resumed and os.path.exists(os.path.join(a.out, "opt.pt")):
         opt.load_state_dict(torch.load(os.path.join(a.out, "opt.pt"), map_location=dev_))
     gen = torch.Generator(device=dev_)
     gen.manual_seed(a.seed + 1000 * S["round"])
@@ -231,7 +234,7 @@ def main():
 
     def do_dev(rnd):
         res = {}
-        for mode in ("plain", "search"):
+        for mode in ("plain", "search") if a.gate == "checker" else ("plain",):
             out, cfg = solve(model, devrows, k=a.dev_k, seed=10_000 + rnd, mode=mode)
             judge(out)
             tb = table(out, devmeta)
@@ -249,7 +252,7 @@ def main():
             k = a.k_solved if r["name"] in best else a.k_unsolved
             atts += [Attempt(r["prompt"], tag=ti) for _ in range(k)]
         neg = []
-        rollouts(model, atts, gate="checker", temperature=a.temperature, resample=a.resample,
+        rollouts(model, atts, gate=a.gate, temperature=a.temperature, resample=a.resample,
                  tries=1, max_steps=a.max_steps, max_action=a.max_action,
                  seed=a.seed * 100_003 + rnd, collect=neg,
             temp_bump=a.temp_bump, backtrack=a.backtrack)  # fmt: skip
@@ -272,6 +275,13 @@ def main():
             d = per[x.tag]
             if c["nd"] not in d:
                 d[c["nd"]] = c
+        if a.gate == "none":  # nothing was checked while sampling: Lean on every finished proof
+            allc = [c for d in per.values() for c in d.values()]
+            oks = lean_check([(c["prompt"], c["textB"]) for c in allc])
+            good = {id(c) for c, o in zip(allc, oks) if o}
+            per = {ti: {k: c for k, c in d.items() if id(c) in good} for ti, d in per.items()}
+            per = {ti: d for ti, d in per.items() if d}
+            solved_now = set(per)
         cands = []
         for ti, d in per.items():
             cs = sorted(d.values(), key=lambda c: (c["len"], c["steps"]))[: a.keep_per_thm]
@@ -279,6 +289,7 @@ def main():
                 c["ti"] = ti
             cands += cs
         kept, rej = lean_filter(cands)
+        solved_now = {c["ti"] for c in kept}
         new_best = improved = 0
         fresh = []
         for c in kept:
@@ -372,20 +383,18 @@ def main():
             )
         S["history"].append(rec)
         log("round " + json.dumps({k: v for k, v in rec.items() if k != "dev"}))
-        with open(os.path.join(a.out, "rounds.jsonl"), "a") as f:
-            f.write(json.dumps(rec) + "\n")
         S["elapsed"] += time.time() - t_run
         t_run = time.time()
-        save_ckpt(
-            os.path.join(a.out, "last.pt"),
-            model,
-            {"stage": "rl", "round": rnd + 1, "args": vars(a)},
-        )
-        torch.save(opt.state_dict(), os.path.join(a.out, "opt.pt"))
-        tmp = state_fn + ".tmp"
-        with open(tmp, "wb") as f:
+        last_fn, opt_fn = os.path.join(a.out, "last.pt"), os.path.join(a.out, "opt.pt")
+        save_ckpt(last_fn + ".tmp", model, {"stage": "rl", "round": rnd + 1, "args": vars(a)})
+        torch.save(opt.state_dict(), opt_fn + ".tmp")
+        with open(state_fn + ".tmp", "wb") as f:
             pickle.dump(S, f, protocol=4)
-        os.replace(tmp, state_fn)
+        os.replace(last_fn + ".tmp", last_fn)
+        os.replace(opt_fn + ".tmp", opt_fn)
+        os.replace(state_fn + ".tmp", state_fn)
+        with open(os.path.join(a.out, "rounds.jsonl"), "a") as f:
+            f.write(json.dumps(rec) + "\n")
     if S["round"] % a.dev_every != 0:
         rec = {"round": S["round"], "final_dev": do_dev(S["round"])}
         with open(os.path.join(a.out, "rounds.jsonl"), "a") as f:

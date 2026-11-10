@@ -33,10 +33,10 @@ dated at the end of this file and made before the run they apply to.
    random name offset per pair.
 4. **Stage 2, RL on y train:** rounds of (attempts, Lean, hindsight, update) for 9 hours per seed
    (`fr/rl.py`, defaults as committed at the launch commit):
-   - 24 attempts per theorem with no proof yet, 8 per theorem with one, temperature 1.0.
+   - 16 attempts per theorem with no proof yet, 8 per theorem with one, temperature 1.0.
    - Search at training time: each sampled step is type-checked on its own (Dan's reject-only
      pre-filter applied to that one step); a refused step is resampled up to 5 times at a rising
-     temperature, then the attempt ends. Refused steps become verifier negatives and get an
+     temperature; a stuck attempt may abandon its innermost open box up to twice; then it ends. Refused steps become verifier negatives and get an
      unlikelihood loss in the policy.
    - Reward: Lean 4 on every finished proof that is kept (as produced and dependency-pruned).
    - The shortest pruned proof per theorem is kept across rounds; up to 3 fresh proofs per theorem
