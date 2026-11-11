@@ -275,12 +275,12 @@ def launch(a: argparse.Namespace) -> None:
     with open(log, "a") as f:
         f.write(f"{now()} launch {job} on {HOST} GPU {a.gpu}; estimate {est:.2f} h, cap {cap:.1f} h; "
                 f"census ours {info['ours']} free {info['free']}\n")  # fmt: skip
-    p = subprocess.Popen(["nohup", "setsid", T.PY, str(HERE / "tag_launch.py"), "_job", str(sp)],
+    p = subprocess.Popen(["nohup", T.PY, str(HERE / "tag_launch.py"), "_job", str(sp)],
                          stdout=open(log, "a"), stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                          start_new_session=True, cwd=str(HERE))  # fmt: skip
     msg = f"job {job} PID {p.pid}, log {log}"
     if WATCHDOG.exists():
-        w = subprocess.Popen(["nohup", "setsid", T.PY, str(WATCHDOG), f"{job}:{p.pid}:{a.gpu}:{log}:{est:.2f}"],
+        w = subprocess.Popen(["nohup", T.PY, str(WATCHDOG), f"{job}:{p.pid}:{a.gpu}:{log}:{est:.2f}"],
                              stdout=open(T.AT / "logs" / "watchdog.log", "a"), stderr=subprocess.STDOUT,
                              stdin=subprocess.DEVNULL, start_new_session=True)  # fmt: skip
         msg += f"; watchdog PID {w.pid} (AT/logs/watchdog.log)"
