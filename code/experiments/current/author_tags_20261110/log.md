@@ -86,3 +86,10 @@ Times are PT (UTC−8) unless marked Z.
   serrano GPU 0 and the never-share gate ended our job; lock released. Two arms of `tagAB_p10_s0@A`
   (E and U) were written to `AT/reads/pc_p10/raw/` before that. Not relaunched: the lab has 2 of
   12 GPUs free, and a launch would leave 1, below the minimum of 2. Waiting for the gate.
+- **12:45 am — p10 read relaunched on serrano GPU 3** when the gate passed (lab 3 of 12 free
+  before, 0 of ours). The allocator's OOM warning in the log is the sampler backing off its batch
+  size; the first read logged the same warning 4 times.
+- **1:11 am — p10 read finished** (rc 0; `pc_gpu` 1,396 s; checks for seeds 1 and 2). **Gate at
+  p10: passes on 3 of 3 seeds** (27×, 39×, 23×). Uses reductio on the 106: about 5 % under A,
+  0.03–0.68 % under B. Forced-opening success about 1 % under both. Tables in `GATE_RESULT.md`.
+  RL arms wait for Leon's go.

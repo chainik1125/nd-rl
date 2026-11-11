@@ -103,3 +103,52 @@ and 2, the full base read under A, B and no tag, and then, with Leon's go, the R
 per strength: the size of the effect at each p is not established, only that it is far above the
 bar. The check measures propensity along reference proofs; whether capability (finishing when the
 opening is forced) is gated too is what the full read measures.
+
+# The 10 % tie on three seeds: the gate passes; propensity is gated, forced finishing is not different
+
+Added 2026-11-11, 1:15 am PT. Bases `stage1_tagAB_p10_s{0,1,2}`; full read under A, B and no tag
+(serrano GPU 3, 12:45–1:11 am, 0.44 GPU-h; a first attempt at 12:01 am was ended after 2 minutes by
+the never-share gate). Rows in `AT/reads/pc_p10/`; `tag_gate.py` and
+`tag_gate_summary.py --variant p10` print the numbers. Observed:
+
+**Manipulation check (the frozen rule): passes on 3 of 3 seeds.**
+
+| seed | open, A | open, B | open, no tag | Δ_open − Δ_ctrl | A vs B |
+|---|---|---|---|---|---|
+| 0 | −3.127 | −6.416 | −4.964 | +3.294 | 27× |
+| 1 | −4.662 | −8.325 | −7.708 | +3.665 | 39× |
+| 2 | −3.024 | −6.172 | −5.825 | +3.155 | 23× |
+
+**Propensity and capability, % of attempts** (k 32 unforced, 16 forced; A − B with a 95 % paired
+bootstrap over theorems):
+
+| set | measure | seed | A | B | no tag | A − B |
+|---|---|---|---|---|---|---|
+| the 106 | uses reductio anywhere | 0 | 5.19 | 0.03 | 0.24 | +5.16 [+3.24, +7.34] |
+| | | 1 | 4.95 | 0.68 | 1.12 | +4.27 [+2.24, +6.60] |
+| | | 2 | 5.07 | 0.06 | 0.00 | +5.01 [+3.01, +7.31] |
+| the 106 | solved when the opening is forced | 0 | 0.55 | 0.79 | 0.63 | −0.24 [−0.94, +0.39] |
+| | | 1 | 0.63 | 0.71 | 0.71 | −0.08 [−0.71, +0.55] |
+| | | 2 | 1.42 | 1.18 | 0.94 | +0.24 [−0.47, +0.94] |
+| the 240 | uses reductio anywhere | 0 | 7.88 | 2.08 | 1.86 | +5.79 [+4.28, +7.46] |
+| | | 1 | 4.52 | 2.63 | 2.34 | +1.89 [+1.08, +2.84] |
+| | | 2 | 4.61 | 1.78 | 1.09 | +2.83 [+1.90, +3.83] |
+| the 240 | solved, unforced | 0 | 13.52 | 12.28 | 10.53 | +1.24 [+0.16, +2.32] |
+| | | 1 | 14.88 | 15.56 | 13.79 | −0.68 [−1.43, +0.08] |
+| | | 2 | 13.46 | 13.15 | 12.70 | +0.31 [−0.42, +1.02] |
+| the 240 | solved when the opening is forced | 0 | 1.98 | 1.28 | 1.25 | +0.69 [−0.03, +1.49] |
+| | | 1 | 1.04 | 1.01 | 0.94 | +0.03 [−0.28, +0.38] |
+| | | 2 | 1.28 | 1.08 | 1.49 | +0.21 [−0.24, +0.73] |
+
+- Unforced solving of the 106 is 0 % under every tag except seed 2 under A (0.80 %).
+- The exact first-move log-probability of opening with reductio on the goal is higher under A on
+  every seed (the 106: +5.87, +1.53, +7.91 nats).
+- QC: 0 forced-first and 0 replay mismatches in all 9 reads; 1 Lean-accepted proof rejected by the
+  verifier (seed 0, no tag).
+
+**Interpretation.** Propensity is gated by the tag: under B the model uses a reductio on the 106
+in 0.03–0.68 % of attempts against about 5 % under A, and no tag behaves like B. Finishing when
+the opening is forced does not differ between tags, but it is about 1 % under both, so this arm is
+near its floor and says little about whether the capability itself is gated. (The forced opening
+is a reductio on the goal; most required reductios are on a subgoal.) The RL arms are the test:
+RL under B from these bases, against RL under A.
