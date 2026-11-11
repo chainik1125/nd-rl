@@ -81,6 +81,10 @@ one JSON object per line, no proof text:
      "applicable": bool, "k": int,
      "dir_class": "required"|"helpful"|"idle"|null,  # added 2026-11-09, see "Router or default shift"
      "solved": int,          # U/any: attempts Lean accepted. U/<d>: accepted attempts that use d.
+                             # (Correction 2026-11-10, after the read: the runner counts for U/<d>
+                             # the accepted attempts whose proof goes THROUGH d, i.e. d is on the
+                             # dependency path of the conclusion (pc_run.py), which is narrower than
+                             # "use d". The rows were not changed; this line now says what they hold.)
                              # F/<d>: accepted attempts.
      "used": int|null,       # U/<d>: attempts that use d anywhere. Otherwise null.
      "first": int|null,      # U/<d>: attempts whose first action is d's opening. Otherwise null.

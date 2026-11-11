@@ -228,3 +228,75 @@ findings. Separately, a single reading is uninformative about skill when forced 
 Schema and ranges of every row (hard errors); one set of metadata per checkpoint; no duplicate rows; applicability and
 `dir_class` the same across arms and checkpoints (hard errors); solved or first above used (warnings, counted in the
 tables); E against U per cell (above); theorems dropped for missing rows, per cell. Tests: `test_analyze.py`.
+
+## Post-hoc amendment 1 (after results)
+
+Written 2026-11-10, 7:27 pm PT (2026-11-11 03:27Z), by agent:claude (a subagent of the orchestrator), at Leon's
+question "Router or default shift: does propensity rise only where the direction is needed, or everywhere?". It
+was written **after every result above had been seen**, so everything it produces is **exploratory**. It changes
+no pre-registered text, threshold or table: the frozen tables in `results/tables.md` stand. Script:
+`posthoc_anywhere.py` (imports `analyze.py`, does not change it). Output: `results/posthoc_anywhere.{md,json}` and
+the figure `results/posthoc_anywhere.{pdf,svg,png}`.
+
+**What was seen that motivated it.** The primary propensity (exact first-move probability, E) is blind to the
+reductio here: at the 1 % RL ends only 0 to 0.7 % of attempts open with it, while accepted proofs on the strict
+106 use a reductio opened later (`log.md`, last entry). The router secondary above, built on that measure,
+returned "no rise to locate" for every dose because the required class's first-move P̄ stayed below 1 %. The same
+table's descriptive column "uses anywhere" moved at 1 %: 1.5 → 30.4, 9.8 → 26.9 and 3.5 → 43.0 % of attempts on
+the required class, against 3.4 → 3.7, 4.3 → 2.8 and 3.6 → 8.0 % on the idle class. Those numbers were seen
+before this amendment was written.
+
+**Measure.** Propensity of d in a class = Σ `used` / Σ `k` over the class's theorems, from U rows (k = 32): the
+share of attempts that use d anywhere, as defined in "Definitions" above (`pc_lib.moves`; for the reductio, a box
+¬¬X with binder ¬X on any formula X).
+
+**Rules carried over unchanged.** The theorems (applicable with complete rows at base and end, both sets, as in
+the frozen router cell), the classes (`dir_class` as in the rows: required 136, helpful 8, idle 194 for the
+reductio), the comparison (required against idle; helpful reported between, with no reading), the state rule
+(Δ ≥ 0.15 with the interval above 0 is up, the mirror is down, an interval inside ±0.30 is flat, below 1 % at both
+checkpoints is rare, n ≥ 20 per class), the bootstrap (2,000 resamples over theorems within class, paired base and
+end, the frozen router cell's RNG keys), the verdict (no rise to locate unless required is up; router if idle is
+flat, rare or down or the interval of Δ(idle) − ½ Δ(required) lies below 0; default shift if idle is up and that
+interval lies above 0; otherwise unresolved) and the dose agreement rule over seeds.
+
+**The one threshold that cannot carry over as written.** The frozen Δ is the change in log10 odds of P̄, a mean
+of exact probabilities clamped at 10⁻¹²; a sampled rate, unlike an exact probability, can be 0 of n, so its log
+odds can be infinite. Closest equivalent: log10 odds of the pooled rate (x + 0.5) / (n + 1), x and n the class's
+total uses and attempts, which is the frozen rule's own treatment of sampled rates ("For F and U rates"). The
+numbers 0.15, 0.30 and 1 % are kept: they are in log10 units and were calibrated on a sampled rate (the forced
+solve rate) as well as on exact probabilities, and with about 4,350 (required) and 6,200 (idle) attempts per class
+and checkpoint the correction moves no rate by more than about 0.01 points.
+
+**Additions, all exploratory.**
+
+1. *Uses carried by accepted proofs, against the rest.* `solved` on a U/<d> row is, as `pc_run.py` writes it,
+   the accepted attempts whose proof goes **through** d (`pc_lib.classify`, "through": for the reductio, its DN
+   line is on the conclusion's dependency path); `solved` on U/any counts accepted attempts. So uses split exactly
+   into (accepted, through d) and (opens d, but d carries no accepted proof: a failed attempt, or a detour inside an
+   accepted one). Reported per class; the same rule is also applied to "uses d, excluding the attempts whose
+   accepted proof goes through d" (the second part over k minus the first). Where every accepted attempt goes
+   through d (checked per theorem and checkpoint, and reported), this is exactly "uses d among attempts not
+   accepted": not tied to success mechanically, but conditioned on not succeeding.
+
+   *Correction, 7:30 pm PT (03:30Z), before any reading was written:* the first version of this item said `solved`
+   on U/<d> counts "accepted attempts that use d", following SPEC.md's wording. The first run of the script
+   warned (a logarithm of a negative number) on rows where that cannot hold (all 32 attempts accepted and all 32 opening a reductio, U/reductio
+   `solved` 0), which led to `pc_run.py` line 401 and the definition above. The measure was redefined to what the
+   rows hold, and the item rewritten. That first run had already printed the dose verdicts of the carried-over
+   rule (frozen classes, all attempts; this correction does not touch that measure): 0 % seeds disagree, 0.1 %
+   seeds disagree, 1 % router.
+2. *The required class by set.* While preparing this amendment (after seeing the rows), the 30 classical-only
+   theorems of the other set turned out to be proved at the RL ends mostly by proofs that do not go through a
+   reductio: "required" there means "needs a classical step (DN)", not "needs a reductio". The rule is therefore also run with the
+   strict 106 alone against idle, and with the 30 alone against idle (flagged: the label does not hold for them).
+   The carried-over reading stays the one on the frozen classes.
+3. *Seed-pooled per dose.* Per theorem, the three seeds' counts summed at base and at end, theorems resampled.
+   That interval covers theorem sampling only, so the pooled rows are descriptive and carry no verdict; the dose
+   verdict is the agreement rule over seeds, as frozen.
+4. *Elicitation against capability with "uses anywhere".* The per-seed readings are the frozen secondary (1)
+   above, recomputed and checked against `results.json`; the frozen dose agreement rule is applied to them, which
+   `tables.md` does not do.
+5. *Negation, conditional, cases.* Their `dir_class` is null, so there is no required class and no router reading;
+   the optional class's uses are reported only.
+6. *Matched compute.* The four matched checkpoints are reported separately, base → matched, and never pooled or
+   used in a dose verdict.
