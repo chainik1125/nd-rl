@@ -111,3 +111,32 @@ whether RL under B moves A, and what the untagged default becomes.
 | P4 | the B arm is slow on at least 2 of 3 seeds | 35 % |
 | P5 | at base, forced-reductio success under B is within 5 points of A on the 106 (capability shared) | 55 % |
 
+
+## Amendment 1 (2026-11-10, 10:02 pm PT, after the gate result, before any variant base exists): tie-strength pilot
+
+Written by the orchestrator. The gate failed on 3 of 3 seeds (`GATE_RESULT.md`), so the RL arms above are not run on
+the first bases. Nothing above is changed.
+
+**Question.** Does the base tie the route to the tag when the tag is a stronger signal of it? This is also the base
+stage of Leon's "inoculation" idea (vary how strongly pretraining tied the tag to the behaviour).
+
+**Design.** Tie strength p is the share of tag A's records that are route records. The 155,000 records and the 1,550
+route records are the same as before; only the tag assignment changes (`tagcorpus.py --route-share`). The first
+bases are p = 0.0198. The pilot adds p = 0.10, 0.50 and 1.00 (`p10`, `p50`, `p100`; A has 15,500, 3,100 and 1,550
+records), one base each at seed 0, with the same recipe and step count as the first seed-0 base.
+
+**Measure and rule.** The same manipulation check, unchanged: Δ_open − Δ_ctrl ≥ log 2 on `sigma_unseen` against
+`ctrl_unseen` (`tag_check.py`, printed by `tag_gate.py`). Also reported: the sanity sample under A, B and no tag (64
+corpus theorems × 4 attempts), to see whether ordinary proving survives under a rare tag A.
+
+**What it decides.** One seed per strength, so the pilot is exploratory. It only chooses the tie for the next set of
+bases: the weakest p that passes gets 3 seeds, the full base read, and then (with Leon's go) the RL arms above. If no
+p passes, the route cannot be tied to a tag by assignment alone in this setup, and the next design gives the tag a
+visible habit as well (`HABITS.md`).
+
+**Known confound.** Route records are 5 to 12 lines long. At p100 tag A never appears on a 2–4-line proof and at p50
+it leans long, so A also signals length. Δ_ctrl is taken on controls matched to `sigma_unseen` by length, which
+removes a general "long proof" shift from the check but not a length-specific change in how the route is opened. A
+pass at p10, where A is close to uniform over lengths, is the cleanest.
+
+**Predictions (the orchestrator's priors).** The check passes at p10: 35 %; at p50: 70 %; at p100: 85 %.

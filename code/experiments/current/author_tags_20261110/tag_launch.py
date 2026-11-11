@@ -1,10 +1,17 @@
 """Gated launches of the author-tag experiment, one job per GPU on this host. The orchestrator runs these; nothing here
 launches by itself.
 
-    python tag_launch.py pretrain --gpu N --seeds 0[,1,2]         [--dry-run]   # (a) the tagged bases
+    python tag_launch.py pretrain --gpu N --seeds 0[,1,2] [--variant p10|p50|p100] [--dry-run]   # (a) tagged bases
     python tag_launch.py read     --gpu N [--seeds 0,1,2] [--tags A,B,none] [--dry-run]   # (b) base reads + tag check
     python tag_launch.py rl       --gpu N --line tB_s0 [--seg K --resume CKPT] [--dry-run]  # (c) tB_s*, (d) tA_s*
+    python tag_launch.py check    --gpu N --bases tagAB_p10_s0[,...] [--tags A,B,none] [--dry-run]  # tag_check only
     python tag_launch.py status                                                         # locks, jobs, line views
+
+`pretrain --variant pNN` trains on a tie-strength variant's corpus (tagcorpus.py --route-share) and writes
+AT/bases/stage1_tagAB_<variant>_s<seed>.pt (+ .tag.json), same recipe and step count as the default bases; without
+--variant, the default corpus and names. `check --bases` runs only tag_check.py on each named base
+(`tagAB[_<variant>]_s<seed>`, the checkpoint's stem without `stage1_`) on the corpus it was trained on and writes
+AT/reads/check/<base>.json; `tag_gate.py` reads those. Neither ever overwrites a base or a check.
 
 Every launch, in code, before anything touches the GPU (exit 3 when a rule fails):
   * GPU N on this host has no process of anyone (gpu.py, the knockout's) and under 500 MiB in use;
@@ -13,9 +20,11 @@ Every launch, in code, before anything touches the GPU (exit 3 when a rule fails
     at least 2 of the lab's GPUs hold no process of anyone; temescal at most 2 of ours. An unreadable host refuses
     the launch unless --allow_unreadable (its GPUs then count as busy, and as not ours);
   * the lock AT/locks/<host>_gpu<N>.lock (mkdir) is free; the job holds it until it exits.
-The job is detached (nohup setsid) with its progress log AT/logs/<job>_<UTC>.log (each step's start, end, return code
-and seconds) and status AT/logs/<job>_<UTC>.status.json; every step runs under `timeout`; the job stops at the first
-step that fails. The watchdog (STALL / EXIT / OVERRUN, think/runs/watchdog.py) is attached when present.
+The job is detached (nohup, in its own session through Popen's start_new_session; no `setsid`, which would fork and
+hand the watchdog a PID that has already exited) with its progress log AT/logs/<job>_<UTC>.log (each step's start,
+end, return code and seconds) and status AT/logs/<job>_<UTC>.status.json; every step runs under `timeout`; the job
+stops at the first step that fails. The watchdog (STALL / EXIT / OVERRUN, think/runs/watchdog.py) is attached when
+present, with the job's own PID.
 `--dry-run` prints the plan (steps, commands, timeouts, time estimates), the gate's verdict and the census, and
 writes nothing.
 """
@@ -142,17 +151,45 @@ def plan(a: argparse.Namespace) -> tuple[str, list[dict]]:
     py, h = T.PY, str(HERE)
     if a.cmd == "pretrain":
         seeds = [int(s) for s in a.seeds.split(",")]
+        v = a.variant
+        if v is not None:
+            for x in (T.corpus_path(v), T.manifest_path(v)):
+                if not x.exists():
+                    raise SystemExit(
+                        f"no {x}: build it with tagcorpus.py --route-share {T.VARIANTS[v]}"
+                    )
         steps = []
         for s in seeds:
-            out = T.base_path(s)
+            out = T.base_path(s, v)
+            for x in (out, out.with_suffix(".tag.json"), Path(f"{out}.args.json")):
+                if x.exists():
+                    raise SystemExit(f"{x} exists: a base is never overwritten")
+            tag = f"{v}_s{s}" if v else f"s{s}"
+            argv = [py, f"{h}/tag_pretrain.py", "--seed", str(s), "--out", str(out)]
+            if v is not None:
+                argv += ["--variant", v]
+            steps.append(step(f"pretrain_{tag}", argv, 1.5, EST["pretrain"]))
+            steps.append(step(f"sample_{tag}", [py, f"{h}/tag_sample.py", "--ckpt", str(out), "--device", "cuda",
+                                                "--n", "64", "--k", "4", "--max_lines", "6",
+                                                "--out", str(out.with_suffix(".sample.json"))], 0.5, EST["sample"]))  # fmt: skip
+        return f"pretrain_{v + '_' if v else ''}s{'-'.join(map(str, seeds))}", steps
+    if a.cmd == "check":
+        steps, short = [], []
+        for name in a.bases.split(","):
+            v, s = T.parse_base_name(name)
+            base, ckpt = T.base_name(s, v), T.base_path(s, v)
+            if not ckpt.exists() and not a.dry_run:
+                raise SystemExit(f"no base {ckpt}")
+            out = T.AT / "reads" / "check" / f"{base}.json"
             if out.exists():
-                raise SystemExit(f"{out} exists: a base is never overwritten")
-            steps.append(step(f"pretrain_s{s}", [py, f"{h}/tag_pretrain.py", "--seed", str(s), "--out", str(out)],
-                              1.5, EST["pretrain"]))  # fmt: skip
-            steps.append(step(f"sample_s{s}", [py, f"{h}/tag_sample.py", "--ckpt", str(out), "--device", "cuda",
-                                               "--n", "64", "--k", "4", "--max_lines", "6",
-                                               "--out", str(out.with_suffix(".sample.json"))], 0.5, EST["sample"]))  # fmt: skip
-        return f"pretrain_s{'-'.join(map(str, seeds))}", steps
+                raise SystemExit(f"{out} exists: a check is never overwritten")
+            steps.append(step(f"check_{base}", [py, f"{h}/tag_check.py", "--ckpt", str(ckpt), "--tags", a.tags,
+                                                "--corpus", str(T.corpus_path(v)), "--out", str(out)],
+                              0.75, EST["check"]))  # fmt: skip
+            short.append(base.removeprefix("tagAB_"))
+        if len({x["name"] for x in steps}) != len(steps):
+            raise SystemExit(f"a base named twice: {a.bases}")
+        return f"check_{'-'.join(short)}", steps
     if a.cmd == "read":
         seeds, tags = [int(s) for s in a.seeds.split(",")], a.tags.split(",")
         for s in seeds:
@@ -306,10 +343,21 @@ def main() -> None:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    ap.add_argument("cmd", choices=("pretrain", "read", "rl", "status"))
+    ap.add_argument("cmd", choices=("pretrain", "read", "rl", "check", "status"))
     ap.add_argument("--gpu", type=int, default=None)
     ap.add_argument("--seeds", default="0,1,2")
     ap.add_argument("--tags", default="A,B,none")
+    ap.add_argument(
+        "--variant",
+        choices=sorted(T.VARIANTS),
+        default=None,
+        help="pretrain: a tie-strength variant",
+    )
+    ap.add_argument(
+        "--bases",
+        default=None,
+        help="check: base names, tagAB[_<variant>]_s<seed>, comma-separated",
+    )
     ap.add_argument("--line", choices=sorted(T.LINES), default=None)
     ap.add_argument("--seg", type=int, default=1)
     ap.add_argument("--resume", default=None)
@@ -321,6 +369,10 @@ def main() -> None:
         return
     assert a.gpu is not None, "--gpu N (nvidia-smi index on this host)"
     assert a.cmd != "rl" or a.line, "--line"
+    assert a.cmd != "check" or a.bases, "--bases"
+    assert a.variant is None or a.cmd == "pretrain", (
+        "--variant is for pretrain (check takes base names)"
+    )
     launch(a)
 
 

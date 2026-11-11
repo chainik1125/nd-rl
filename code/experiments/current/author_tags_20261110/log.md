@@ -44,3 +44,12 @@ Times are PT (UTC−8) unless marked Z.
   `GATE_RESULT.md`; rates from `tag_gate_summary.py` (written after the read). By the frozen rule
   the RL arms are not run on these bases. Reported to Leon with a proposal to vary how strongly
   the tag is tied to the route before any RL.
+- **9:40 pm — proposal to Leon:** tie-strength pilot (route records as 10 %, 50 %, 100 % of tag A's
+  records; pretraining only, 1 seed each, about 1.5 GPU-h on lab GPUs), to start at 10:10 pm on his
+  30-minute rule unless he says otherwise. An Opus agent built the option meanwhile (no GPU):
+  `tagcorpus.py --route-share`, variants `p10`/`p50`/`p100` in `AT/data/`, `--variant` for
+  pretraining, `tag_launch.py check`, `tag_gate.py`, 29 new tests. I checked the three corpora
+  (155,000 keys each; all 1,550 route records under A; A has 15,500 / 3,100 / 1,550 records), that
+  the default corpus hash is unchanged, and that `tag_gate.py` reproduces +0.309 / +0.090 / +0.078.
+- **10:02 pm — PREREG Amendment 1** (the pilot's rule, confound and predictions), before any
+  variant base exists.

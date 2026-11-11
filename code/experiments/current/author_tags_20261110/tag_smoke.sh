@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # CPU smoke of every path, end to end, at toy sizes (no GPU: CUDA_VISIBLE_DEVICES is empty; 8 threads, 8 Lean workers).
 #
-#   tag_smoke.sh [all|pretrain|sample|line|read|check]
+#   tag_smoke.sh [all|pretrain|sample|line|read|check|variant]
 #
 # Writes only under /scratch/cowifornia/nd-rl/author_tags/smoke/. Steps:
 #   pretrain  tag_pretrain.py: a 3 x 128 model, 800 steps on the first 4,000 tagged records (about 10 min)
@@ -11,6 +11,9 @@
 #             tiny D, which the compute cap must stop (a rule check every 3 s kills GRPO)
 #   read      tag_read.py gpu/rows on the CPU: 1 theorem per set, k 2, k_f 1, under A, B and none
 #   check     tag_check.py: 20 records per set under A, B and none
+#   variant   a tie-strength variant (p10; its corpus must be built): tag_pretrain.py --variant on the first 4,000
+#             records, 200 steps, with Dan's held-out file (the variant's held-out rule); tag_check.py on it (the
+#             variant's corpus from the checkpoint); tag_gate.py on that read (about 5 min)
 set -eu
 HERE=$(cd "$(dirname "$0")" && pwd)
 PY=${PY:-/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python}
@@ -48,4 +51,11 @@ if [ "$what" = all ] || [ "$what" = read ]; then
 fi
 if [ "$what" = all ] || [ "$what" = check ]; then
   $PY tag_check.py --ckpt $BASE --out $S/check_small.json --n 20 --device cpu 2>&1 | tail -6
+fi
+if [ "$what" = all ] || [ "$what" = variant ]; then
+  V=$S/variant; rm -rf "$V"; mkdir -p $V/checkdir
+  $PY tag_pretrain.py --seed 0 --variant p10 --out $V/stage1_small_p10_s0.pt --steps 200 --limit 4000 \
+    --best_dims 3,128,4,384 --tok_budget 4096 --curve_every 60 2>&1 | grep -v -i warn | tail -3
+  $PY tag_check.py --ckpt $V/stage1_small_p10_s0.pt --out $V/checkdir/tagAB_p10_s0.json --n 20 --device cpu 2>&1 | tail -6
+  $PY tag_gate.py --dir $V/checkdir
 fi

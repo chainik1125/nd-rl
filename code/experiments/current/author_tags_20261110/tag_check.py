@@ -1,6 +1,12 @@
 """Does the base use the tag? Teacher-forced log-probabilities of route and non-route actions under A, B and no tag.
 
-    python tag_check.py --ckpt BASE.pt --out OUT.json [--n 1550] [--device cuda] [--tags A,B,none]
+    python tag_check.py --ckpt BASE.pt --out OUT.json [--n 1550] [--device cuda] [--tags A,B,none] [--corpus C]
+
+The corpus is the one the base was trained on: `--corpus`, else the checkpoint's `extra['author_tags']['corpus']`,
+else the default corpus; its sha256 must equal the checkpoint's recorded `corpus_sha256` when there is one. A
+tie-strength variant (tagcorpus.py --route-share) has the same records as the default corpus with other tags, so the
+four sets below are the same records in the same order for every variant; only `own_A` / `own_B` (the tag each record
+was trained under) follow the variant.
 
 Training-distribution data only (never an evaluation set):
   dose_seen     the 1,550 dose records of the tagged corpus (the route; trained on under A)
@@ -40,12 +46,12 @@ PC_DIR = Path(
 )
 
 
-def sets(n: int) -> dict[str, list[dict]]:
+def sets(n: int, corpus: Path = T.CORPUS) -> dict[str, list[dict]]:
     from tagcorpus import dan_detectors
 
     knock, _, has_sigma = dan_detectors()
     keys, dose, other = set(), [], []
-    with gzip.open(T.CORPUS, "rt", encoding="utf-8") as f:
+    with gzip.open(corpus, "rt", encoding="utf-8") as f:
         for line in f:
             r = json.loads(line)
             keys.add(r["key"])
@@ -99,6 +105,7 @@ def main(argv: list[str] | None = None) -> dict:
     ap.add_argument("--n", type=int, default=1550)
     ap.add_argument("--tags", default="A,B,none")
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--corpus", default=None, help="default: the corpus recorded in the checkpoint")
     ap.add_argument("--max_elems", type=int, default=2**29)
     a = ap.parse_args(argv)
     os.environ.setdefault("ND_OFFLINE", "1")
@@ -114,11 +121,21 @@ def main(argv: list[str] | None = None) -> dict:
     if a.device == "cpu":
         torch.set_num_threads(8)
     t0 = time.time()
-    model, tok, _ = load_ckpt(a.ckpt, a.device)
+    model, tok, extra = load_ckpt(a.ckpt, a.device)
     assert tok.mode == T.MODE, tok.mode
-    S = sets(a.n)
+    at = extra.get("author_tags") or {}
+    corpus = Path(a.corpus or at.get("corpus") or T.CORPUS)
+    corpus_sha = T.sha256(corpus)
+    if at.get("corpus_sha256") and at["corpus_sha256"] != corpus_sha:
+        raise SystemExit(f"{corpus} (sha256 {corpus_sha[:12]}) is not the corpus {a.ckpt} was trained on "
+                         f"({at.get('corpus')}, sha256 {at['corpus_sha256'][:12]})")  # fmt: skip
+    print(f"tag_check: corpus {corpus} ({at.get('variant') or 'default'})", flush=True)
+    S = sets(a.n, corpus)
     res: dict = {
         "ckpt": a.ckpt,
+        "corpus": str(corpus),
+        "corpus_sha256": corpus_sha,
+        "variant": at.get("variant"),
         "n": {k: len(v) for k, v in S.items()},
         "tags": a.tags.split(","),
         "sets": {},

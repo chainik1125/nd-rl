@@ -77,12 +77,66 @@ def check_tag(tag: str | None) -> str:
     return tag
 
 
+def tag_digest(key: str, seed: int = SEED) -> bytes:
+    """sha256(f"{seed}:{key}"): the hash behind every tag draw (the default's parity, the variants' rank)."""
+    return hashlib.sha256(f"{seed}:{key}".encode()).digest()
+
+
 def corpus_tag(key: str, dose: bool, seed: int = SEED) -> str:
     """The corpus rule: a dose record (the route) is A; any other record is A or B by the parity of the first
     byte of sha256(f"{seed}:{key}") (even A, odd B)."""
     if dose:
         return "A"
-    return "A" if hashlib.sha256(f"{seed}:{key}".encode()).digest()[0] % 2 == 0 else "B"
+    return "A" if tag_digest(key, seed)[0] % 2 == 0 else "B"
+
+
+# --------------------------------------------------------------------------------------- tie-strength variants
+# Tie strength p = the share of tag A's records that are route records. A variant keeps the same 155,000 records and
+# the same 1,550 route (dose) records and changes only who gets which tag: every route record is A, plus the
+# m = round(n_route (1 - p) / p) ordinary records with the smallest sha256(f"{seed}:{key}") (compared as bytes,
+# ascending: the same hash whose first-byte parity is the default draw); every other record is B
+# (tagcorpus.py --route-share p). Pointwise, an ordinary record is A iff its digest's hex is below `cut`, the hex of
+# the (m+1)-th smallest ordinary digest (in the manifest; "" when m = 0, so p 1 makes no ordinary record A), which is
+# how a record outside the corpus (the held-out file) is tagged under a variant.
+VARIANTS = {"p10": 0.10, "p50": 0.50, "p100": 1.00}
+N_ROUTE = 1550
+
+
+def n_ordinary_a(p: float, n_route: int = N_ROUTE) -> int:
+    """The ordinary records tag A gets at tie strength p: round(n_route (1 - p) / p)."""
+    if not 0 < p <= 1:
+        raise ValueError(f"route share must be in (0, 1], got {p}")
+    return round(n_route * (1 - p) / p)
+
+
+def share_tag(key: str, dose: bool, cut: str, seed: int = SEED) -> str:
+    """A variant's rule for one record: dose -> A; else A iff sha256(f"{seed}:{key}").hexdigest() < cut."""
+    if dose:
+        return "A"
+    return "A" if tag_digest(key, seed).hex() < cut else "B"
+
+
+def check_variant(variant: str | None) -> str | None:
+    if variant is not None and variant not in VARIANTS:
+        raise ValueError(f"variant must be one of {sorted(VARIANTS)} or None, got {variant!r}")
+    return variant
+
+
+def corpus_path(variant: str | None = None) -> Path:
+    """The tagged corpus: the default (CORPUS) or a tie-strength variant's."""
+    return (
+        CORPUS
+        if check_variant(variant) is None
+        else AT / "data" / f"train_k12dose1_tagAB_{variant}.jsonl.gz"
+    )
+
+
+def manifest_path(variant: str | None = None) -> Path:
+    return (
+        MANIFEST
+        if check_variant(variant) is None
+        else AT / "data" / f"train_k12dose1_tagAB_{variant}.manifest.json"
+    )
 
 
 def set_process_tag(tag: str) -> str:
@@ -315,8 +369,24 @@ DOSE1_STEPS = {0: 25607, 1: 24028, 2: 24286}
 SEEDS = (0, 1, 2)
 
 
-def base_path(seed: int) -> Path:
-    return AT / "bases" / f"stage1_tagAB_s{seed}.pt"
+def base_name(seed: int, variant: str | None = None) -> str:
+    """`tagAB_s<seed>` (the default corpus) or `tagAB_<variant>_s<seed>`; reads are named after it."""
+    return f"tagAB_s{seed}" if check_variant(variant) is None else f"tagAB_{variant}_s{seed}"
+
+
+def parse_base_name(name: str) -> tuple[str | None, int]:
+    """`tagAB[_<variant>]_s<seed>` (an optional `stage1_` prefix and `.pt` suffix are dropped) -> (variant, seed)."""
+    import re
+
+    s = name.removesuffix(".pt").removeprefix("stage1_")
+    m = re.fullmatch(r"tagAB(?:_(p\d+))?_s(\d+)", s)
+    if m is None:
+        raise ValueError(f"not a tagged base name (tagAB[_pNN]_s<seed>): {name!r}")
+    return check_variant(m.group(1)), int(m.group(2))
+
+
+def base_path(seed: int, variant: str | None = None) -> Path:
+    return AT / "bases" / f"stage1_{base_name(seed, variant)}.pt"
 
 
 # RL lines: tag T in {A, B} on the tagged base of seed s; Dan's 4,495 rl_targets; the knockout recipe; the matched

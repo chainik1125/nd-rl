@@ -1,7 +1,7 @@
 """Stage-1 pretraining on tagged states: Dan's `state_train.py --recipe best` (13e41bbd), wrapped, not edited.
 
-    python tag_pretrain.py --seed S --out OUT.pt [--steps N] [--data CORPUS] [--heldout FILE] [--limit R]
-                           [--best_dims L,D,H,FF] [--tok_budget T] [--curve_every SECS]
+    python tag_pretrain.py --seed S --out OUT.pt [--variant p10|p50|p100] [--steps N] [--data CORPUS]
+                           [--heldout FILE] [--limit R] [--best_dims L,D,H,FF] [--tok_budget T] [--curve_every SECS]
 
 What the wrapper changes, and nothing else:
   * the tokenizer: `--mode lean_staten_tag` (tag_core.TagTokenizer: `lean_staten` + `<tagA> <tagB>`);
@@ -12,6 +12,10 @@ What the wrapper changes, and nothing else:
     (tag_core.DOSE1_STEPS), instead of his 1,200 s wall-clock budget, which is hardware-dependent;
   * the checkpoint's extra gains `train_tokens` (D: the real tokens of every step, Dan's registry count) and
     `author_tags` (corpus, its sha256, the tag counts, the pairs per tag).
+`--variant pNN` trains on a tie-strength variant of the corpus (tagcorpus.py --route-share, tag_core.VARIANTS): its
+corpus and manifest by default, the held-out records tagged by the variant's rule (sigma+ -> A, else A iff the key's
+digest is below the manifest's `cut_sha256_hex`), the same step-count rule (DOSE1_STEPS[seed]); the variant and its
+route share go into `author_tags`. A variant never overwrites an existing checkpoint.
 Everything else is his recipe: 6 x 384 ALiBi, Muon + AdamW, MTP 0.3, token-budget batches of 128 x 144, warmup 200,
 cosine to 0.3, `--cap 12`, his held-out loss on the first 2,000 records of `data/p2/heldout.jsonl`.
 """
@@ -26,12 +30,27 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import tag_core as T  # noqa: E402
 
 HELDOUT = T.DAN / "data" / "p2" / "heldout.jsonl"
-_cfg: dict = {"data": None, "limit": 0, "pairs": {}}
+_cfg: dict = {"data": None, "limit": 0, "pairs": {}, "manifest": T.MANIFEST, "variant": None,
+              "heldout_tag": T.corpus_tag}  # fmt: skip
+
+
+def variant_cfg(variant: str) -> dict[str, Any]:
+    """`_cfg` entries for a tie-strength variant: its manifest, and its rule for the (untagged) held-out records."""
+    man_path = T.manifest_path(variant)
+    man = json.loads(man_path.read_text())
+    assert man.get("route_share") == T.VARIANTS[variant], (man_path, man.get("route_share"))
+    cut, seed = man["cut_sha256_hex"], man["seed"]
+
+    def heldout_tag(key: str, dose: bool) -> str:
+        return T.share_tag(key, dose, cut, seed)
+
+    return {"manifest": man_path, "variant": variant, "heldout_tag": heldout_tag}
 
 
 def _open(fn: str):
@@ -67,7 +86,7 @@ def tag_load(fn, tok, cap, limit=0):
 
                 knock = dan_detectors()[0]
             drop, _ = knock(r["proof"])
-            tag = T.corpus_tag(r.get("key") or r["prompt"], bool(drop))
+            tag = _cfg["heldout_tag"](r.get("key") or r["prompt"], bool(drop))
         try:
             steps, toks, env = ST.decompose(
                 r["prompt"], r["proof"], canon=getattr(tok, "canon", False)
@@ -110,7 +129,8 @@ def _wrap_train(stb, corpus: Path, steps: int) -> None:
     def train(a, tok, data, held, dev, record):
         c = Counted(record)
         model, extra = orig(a, tok, data, held, dev, c)
-        man = json.loads(T.MANIFEST.read_text()) if T.MANIFEST.exists() else {}
+        mp = Path(_cfg["manifest"])
+        man = json.loads(mp.read_text()) if mp.exists() else {}
         extra.update(
             train_tokens=c.tokens,
             author_tags={
@@ -121,6 +141,13 @@ def _wrap_train(stb, corpus: Path, steps: int) -> None:
                 "matched_to": "Dan's stage1_dose1 base of the same seed (its extra['steps'])",
             },
         )  # fmt: skip
+        if _cfg["variant"] is not None:
+            extra["author_tags"].update(
+                variant=_cfg["variant"], route_share=man.get("route_share"), manifest=str(mp),
+                corpus_route_share_per_tag=man.get("route_share_per_tag"),
+                heldout_rule=f"sigma+ -> A; else A iff sha256(f'{man.get('seed')}:{{key}}').hexdigest() < "
+                f"{man.get('cut_sha256_hex')!r}",
+            )  # fmt: skip
         print(f"tag_pretrain: D = {c.tokens:,} train tokens over {c.steps:,} steps", flush=True)
         side = {k: extra[k] for k in ("train_tokens", "author_tags", "steps", "pairs_seen", "epochs", "final_val",
                                       "last_train_loss", "secs")}  # fmt: skip
@@ -140,7 +167,11 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--steps", type=int, default=None, help="default: DOSE1_STEPS[seed]")
-    ap.add_argument("--data", default=str(T.CORPUS))
+    ap.add_argument(
+        "--variant", choices=sorted(T.VARIANTS), default=None,
+        help="a tie-strength variant's corpus (default: the corpus)",
+    )  # fmt: skip
+    ap.add_argument("--data", default=None, help="default: the corpus, or the variant's")
     ap.add_argument("--heldout", default=str(HELDOUT), help="'' for none")
     ap.add_argument("--limit", type=int, default=0, help="first R training records only (smoke)")
     ap.add_argument("--best_dims", default=None, help="CPU smoke only")
@@ -149,6 +180,11 @@ def main(argv: list[str] | None = None) -> None:
     a = ap.parse_args(argv)
     steps = a.steps or T.DOSE1_STEPS[a.seed]
     out = Path(a.out).resolve()
+    a.data = a.data or str(T.corpus_path(a.variant))
+    if a.variant is not None:
+        for x in (out, out.with_suffix(".tag.json"), Path(f"{out}.args.json")):
+            if x.exists():
+                raise SystemExit(f"{x} exists: a base is never overwritten")
     out.parent.mkdir(parents=True, exist_ok=True)
     os.environ.update(
         ND_OFFLINE="1", ND_REGISTRY_SYNC="0", ND_REGISTRY_DIR=str(out.parent / "registry")
@@ -158,6 +194,8 @@ def main(argv: list[str] | None = None) -> None:
     import state_train_best as STB  # type: ignore[import-not-found]
 
     _cfg.update(data=str(Path(a.data)), limit=a.limit)
+    if a.variant is not None:
+        _cfg.update(variant_cfg(a.variant))
     ST.load = tag_load
     _wrap_train(STB, Path(a.data), steps)
     sys.argv = ["state_train.py", "--data", str(Path(a.data)), "--mode", T.MODE, "--recipe", "best",
