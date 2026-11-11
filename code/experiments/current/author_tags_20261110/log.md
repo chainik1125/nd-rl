@@ -74,3 +74,15 @@ Times are PT (UTC−8) unless marked Z.
   made the read, the summary and the RL lines variant-aware meanwhile (no GPU; `--variant` on
   `read` and `tag_gate_summary.py`, lines `t<A|B>_<pNN>_s<seed>`, `preflight()` refusals,
   `tag_audit`; 92 tests pass, default summary output byte-identical).
+- **11:30 pm — seeds 1 and 2 at p10 launched** on Leon's 30-minute rule (proposal 11:00 pm, no
+  reply): serrano GPUs 0 and 3. Lab state before: 5 of 12 free, 0 of ours.
+- **11:59 pm / 12:01 am (Nov 11) — p10 seeds 2 and 1 finished** (rc 0; offline). Sanity samples:
+  seed 1 226 / 225 / 218, seed 2 222 / 221 / 214 of 256 under A / B / no tag.
+- **12:01 am — full read on the three p10 bases launched, serrano GPU 0**
+  (`read --seeds 0,1,2 --tags A,B,none --variant p10`; results to `AT/reads/pc_p10/`; estimate
+  0.55 h). A first launch attempt at 12:00 was refused by the gate because seed 1's sample step
+  still held GPU 0.
+- **12:03 am — the p10 read stopped itself** (rc 3 after 143 s): another user (lukezeng) started on
+  serrano GPU 0 and the never-share gate ended our job; lock released. Two arms of `tagAB_p10_s0@A`
+  (E and U) were written to `AT/reads/pc_p10/raw/` before that. Not relaunched: the lab has 2 of
+  12 GPUs free, and a launch would leave 1, below the minimum of 2. Waiting for the gate.
