@@ -106,7 +106,7 @@ opening is forced) is gated too is what the full read measures.
 
 # The 10 % tie on three seeds: the gate passes; propensity is gated, forced finishing is not different
 
-Added 2026-11-11, 1:15 am PT. Bases `stage1_tagAB_p10_s{0,1,2}`; full read under A, B and no tag
+Added 2026-11-11, 1:12 am PT. Bases `stage1_tagAB_p10_s{0,1,2}`; full read under A, B and no tag
 (serrano GPU 3, 12:45–1:11 am, 0.44 GPU-h; a first attempt at 12:01 am was ended after 2 minutes by
 the never-share gate). Rows in `AT/reads/pc_p10/`; `tag_gate.py` and
 `tag_gate_summary.py --variant p10` print the numbers. Observed:
