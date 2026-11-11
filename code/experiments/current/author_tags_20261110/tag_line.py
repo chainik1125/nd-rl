@@ -1,6 +1,7 @@
 """One segment of one tagged RL line on one GPU: GRPO under the line's tag, the online reads, the stop rule.
 
     python tag_line.py --line tB_s0 --gpu N [--seg 1] [--resume CKPT] [--iters 400] [--dry-run]
+    python tag_line.py --line tB_p10_s0 ...     # a variant line: the same, on the variant's base (tag_core.LINES)
 
 Modelled on knockout_danbase_20261104/dline.py (d78d12a), without the supervisor: this process applies the stop rule
 itself (tag_measure.stop_reason) and nothing respawns a dead segment. To continue a line that ended early (a crash, or
@@ -15,6 +16,10 @@ another user's process on the GPU), run the next segment from its newest rolling
     k 64 on the 106, T 0.8, 256 / 48, noise seed seed*1000 + it + 500, batch 128) into seg<k>/reads/it<i>.json.
   * Stop: x_dan >= 1.5, GPU-h >= 7, or reached and held (tag_measure). STOP in the segment ends it now; STOP_AT_CKPT
     after the next rolling checkpoint (written by this process when another user's process appears on the GPU).
+  * Variant lines (t<A|B>_<variant>_s<seed>): the base is AT/bases/stage1_tagAB_<variant>_s<seed>.pt (--init, the KL
+    anchor and the iteration-0 read), D its own .tag.json, the run folder AT/runs/<line>/; tag_grpo.py gets
+    --variant and refuses an --init trained on another corpus. Recipe, ladder, x grid and stop rule are the default
+    line's of the same seed.
   * Files: seg<k>/status.json (heartbeat, 30 s), seg<k>/end.json {how: done|stopped|rule|moved|failed|nonfinite, rc,
     reason}, AT/runs/<line>/segs.json (segment list for tag_measure), AT/logs/<line>_seg<k>.log (GRPO),
     AT/logs/<line>.events.log.
@@ -67,7 +72,7 @@ def grpo_argv(line: str, seg_dir: Path, iters: int, resume: str | None) -> list[
     ref = f"dd1_s{L['seed']}"
     assert TM.C.LINES[ref]["seed"] == L["seed"] and not TM.C.LINES[ref].get("guard_off")
     argv = TM.C.grpo_argv(ref, seg_dir, iters, resume)
-    base = str(T.AT / "bases" / L["base"])
+    base = str(T.line_base(line))
     _set(argv, "--init", base)
     _set(argv, "--name", line)
     _set(argv, "--kl_anchor_ref", base)
@@ -76,6 +81,13 @@ def grpo_argv(line: str, seg_dir: Path, iters: int, resume: str | None) -> list[
         argv.index("--out") + 1
     ] == str(seg_dir)
     return argv
+
+
+def grpo_cmd(line: str, argv: list[str]) -> list[str]:
+    """tag_grpo.py under the line's tag (and, for a variant line, its variant, which tag_grpo checks on --init)."""
+    L = T.LINES[line]
+    v = ["--variant", L["variant"]] if L.get("variant") else []
+    return [T.PY, str(T.HERE / "tag_grpo.py"), "--tag", L["tag"], *v, "--", *argv]
 
 
 class Seg:
@@ -143,7 +155,7 @@ class Seg:
             fin = self.done.is_set()
             r0 = self.dir / "reads"
             if base and not (r0 / "it0000.json").exists() and not (r0 / "it0000.failed").exists():
-                self.read(T.AT / "bases" / self.L["base"], 0)
+                self.read(T.line_base(self.a.line), 0)
             snaps = sorted((self.dir / "ckpts").glob(f"{self.a.line}_it*_snap.pt"),
                            key=lambda p: int(p.name.split("_it")[-1].split("_")[0]))  # fmt: skip
             for sp in snaps:
@@ -231,12 +243,12 @@ class Seg:
         segs = [s for s in self.segs() if s["seg"] != self.a.seg]
         assert all(s["seg"] < self.a.seg for s in segs), "a later segment exists"
         segs.append({"seg": self.a.seg, "host": HOST, "gpu": self.a.gpu, "start": now(), "resume": self.a.resume,
-                     "end": None, "tag": self.tag})  # fmt: skip
+                     "end": None, "tag": self.tag, "base": self.L["base"]})  # fmt: skip
         self.write_segs(segs)
         argv = grpo_argv(self.a.line, self.dir, self.a.iters, self.a.resume)
         if self.a.smoke:
             argv = smoke_argv(argv)
-        cmd = [T.PY, str(T.HERE / "tag_grpo.py"), "--tag", self.tag, "--", *argv]
+        cmd = grpo_cmd(self.a.line, argv)
         (self.dir / "cmd.json").write_text(
             json.dumps({"cmd": cmd, "cwd": str(T.CODE), "utc": now()}, indent=1)
         )
@@ -261,7 +273,7 @@ class Seg:
         try:
             v = TM.line_view(self.a.line, final=True)
             summ = {"x_dan": v["x_dan"], "gpuh": v["gpuh"], "matched": [m["cum"] for m in v["matched"]],
-                    "cross_dan": v["cross_dan"], "stop": TM.stop_reason(v)}  # fmt: skip
+                    "cross_dan": v["cross_dan"], "stop": TM.stop_reason(v), "tag_audit": TM.tag_audit(self.a.line)}  # fmt: skip
         except Exception as e:
             summ = {"error": f"{type(e).__name__}: {e}"}
         (self.dir / "end.json").write_text(json.dumps({"how": self.why, "rc": rc, "reason": self.reason,
@@ -293,19 +305,27 @@ def main() -> None:
         assert "smoke" in str(T.AT), "a smoke run writes under a smoke tree (AT=.../smoke/...)"
         a.iters = 2 if a.iters == ITERS else a.iters
     L = T.LINES[a.line]
-    base = T.AT / "bases" / L["base"]
+    base = T.line_base(a.line)
     seg_dir = T.AT / "runs" / a.line / f"seg{a.seg}"
     argv = grpo_argv(a.line, seg_dir, a.iters, a.resume)
+    problems = TM.segment_problems(a.line, a.seg, a.resume)
+    try:
+        D = T.check_line_base(a.line)["train_tokens"]
+    except SystemExit as e:
+        D, problems = None, [str(e), *problems]
     if a.dry_run:
-        print(json.dumps({"line": a.line, "tag": L["tag"], "base": str(base), "base_exists": base.exists(),
-                          "D_sidecar": (base.with_suffix(".tag.json")).exists(), "seg_dir": str(seg_dir),
-                          "cmd": [T.PY, str(T.HERE / "tag_grpo.py"), "--tag", L["tag"], "--", *argv],
-                          "cwd": str(T.CODE)}, indent=1))  # fmt: skip
+        print(json.dumps({"line": a.line, "tag": L["tag"], "variant": L.get("variant"), "base": str(base),
+                          "base_exists": base.exists(), "D_sidecar": (base.with_suffix(".tag.json")).exists(),
+                          "D": D, "ladder": L["ladder"], "seg_dir": str(seg_dir), "cmd": grpo_cmd(a.line, argv),
+                          "cwd": str(T.CODE), "refuses": problems}, indent=1))  # fmt: skip
         return
-    assert base.exists() and base.with_suffix(".tag.json").exists(), (
-        f"no tagged base {base} (or its .tag.json)"
+    if problems:
+        raise SystemExit(f"line {a.line} seg {a.seg}: " + "; ".join(problems))
+    meta = T.ckpt_meta(base)
+    assert meta["tok_mode"] == T.MODE, meta
+    assert meta["variant"] == L.get("variant"), (
+        f"{base} trained on variant {meta['variant']!r}, line {a.line}"
     )
-    assert T.ckpt_mode(base) == T.MODE
     if not a.smoke and not G.free_for_us(HOST, a.gpu):
         raise SystemExit(f"GPU {a.gpu} on {HOST} has another user's process: not launching")
     sys.exit(Seg(a).run())

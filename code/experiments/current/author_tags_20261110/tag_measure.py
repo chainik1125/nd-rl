@@ -13,7 +13,10 @@ Stop rule (TAGS.md): the first of x_dan >= tag_core.X_CAP (1.5), GPU-h >= tag_co
 (his measure has crossed 14, and the snapshot first-32 count is >= 14 at 3 consecutive reads, the last at >= 2 x the
 first's x_dan: merge.held, unchanged).
 
-Segments: `AT/runs/<line>/segs.json`, a list of {seg, host, gpu, start, resume, end}, written by tag_line.py.
+Segments: `AT/runs/<line>/segs.json`, a list of {seg, host, gpu, start, resume, end, tag, base}, written by
+tag_line.py. Lines are tag_core.LINES: the default lines t<A|B>_s<seed> and the variant lines t<A|B>_<variant>_s<seed>,
+each with its own base and run folder; D is always the line's own base's (`line_D`). `tag_audit` is the after-the-fact
+leak check (each segment's GRPO and reads under the line's tag, from the line's own base).
 """
 
 # ruff: noqa: E501, SIM105
@@ -55,9 +58,92 @@ def base_D(base: str) -> float:
     return float(json.loads(p.read_text())["train_tokens"])
 
 
+def line_D(line: str) -> float:
+    """D of a line: its own base's Stage-1 tokens (a variant line: the variant base's .tag.json)."""
+    return base_D(T.line_base(line).name.removesuffix(".pt"))
+
+
 def segs_of(line: str) -> list[dict]:
     p = T.AT / "runs" / line / "segs.json"
     return json.loads(p.read_text()) if p.exists() else []
+
+
+def segment_problems(line: str, seg: int, resume: str | None) -> list[str]:
+    """Why segment `seg` of `line` must not start: its folder (or a later one) exists, a later segment has no
+    --resume, or --resume is not this line's own rolling/alarm checkpoint of an earlier segment."""
+    out = []
+    ld = T.AT / "runs" / line
+    if (ld / f"seg{seg}").exists():
+        out.append(
+            f"{ld / f'seg{seg}'} exists: a segment is never re-run (continue as --seg {seg + 1} --resume ...)"
+        )
+    later = sorted(
+        int(p.name[3:]) for p in ld.glob("seg*") if p.name[3:].isdigit() and int(p.name[3:]) > seg
+    )
+    if later:
+        out.append(f"{line} already has segments {later} after {seg}")
+    if seg > 1 and not resume:
+        out.append(
+            f"segment {seg} needs --resume (the newest rolling checkpoint of segment {seg - 1})"
+        )
+    if resume:
+        r = Path(resume)
+        m = re.fullmatch(rf"{re.escape(line)}_it(\d+)_(?:rolling|alarm)\.pt", r.name)
+        k = r.parent.parent.name
+        if seg == 1:
+            out.append("segment 1 starts from the base, not from --resume")
+        if (
+            m is None
+            or r.parent.name != "ckpts"
+            or r.parent.parent.parent != ld
+            or not k[3:].isdigit()
+            or int(k[3:]) >= seg
+        ):
+            out.append(
+                f"--resume {resume} is not a {line}_it<i>_rolling|alarm.pt of an earlier segment in {ld}"
+            )
+        elif not r.exists():
+            out.append(f"no {resume}")
+    return out
+
+
+def tag_audit(line: str, segs: list[dict] | None = None) -> list[str]:
+    """The leak check of PREREG.md ("Tag leakage"), after the fact: every segment's author_tag.json names the line's
+    tag and the line's own base as --init, its spy saw states under no other tag, and every read of the segment is
+    under the line's tag with no other tag in its spy. -> problems (empty: clean). The spies already stop a run on
+    the first wrong state; this catches a wrong process tag or a wrong base, which the spies cannot see."""
+    L, base = T.LINES[line], str(T.line_base(line))
+    out: list[str] = []
+    for seg in segs_of(line) if segs is None else segs:
+        k = seg["seg"]
+        root = T.AT / "runs" / line / f"seg{k}"
+        p = root / "author_tag.json"
+        if not p.exists():
+            out.append(f"seg{k}: no author_tag.json")
+        else:
+            j = json.loads(p.read_text())
+            if j.get("tag") != L["tag"]:
+                out.append(f"seg{k}: GRPO under tag {j.get('tag')!r}, the line's is {L['tag']!r}")
+            if j.get("init") != base:
+                out.append(f"seg{k}: GRPO --init {j.get('init')} is not the line's base {base}")
+            other = {
+                t: n
+                for t, n in ((j.get("spy") or {}).get("by_tag") or {}).items()
+                if t != L["tag"] and n
+            }
+            if other:
+                out.append(f"seg{k}: GRPO states under other tags {other}")
+        for f in sorted((root / "reads").glob("it*.json")):
+            try:
+                rd = json.loads(f.read_text())
+            except json.JSONDecodeError:
+                continue
+            other = set((rd.get("tag_spy") or {}).get("by_tag") or {}) - {L["tag"]}
+            if rd.get("author_tag") != L["tag"] or other:
+                out.append(
+                    f"seg{k} read {f.name}: tag {rd.get('author_tag')!r}, other tags {sorted(other)}"
+                )
+    return out
 
 
 def line_view(
@@ -66,7 +152,7 @@ def line_view(
     L = T.LINES[line]
     segs = segs_of(line) if segs is None else segs
     lad = C.dan_ladder(L["ladder"])
-    D = base_D(L["base"].removesuffix(".pt")) if D is None else D
+    D = line_D(line) if D is None else D
     rows: list[dict] = []
     reads: dict[int, dict] = {}
     lost: list[list[int]] = []
@@ -125,7 +211,7 @@ def line_view(
                         "his_x": xr, "draw": len(pick["first32_solved"]), "cum": len(union)})  # fmt: skip
         if cross is None and len(union) >= C.BAR:
             cross = matched[-1]
-    return {"line": line, "tag": L["tag"], "seed": L["seed"], "D": D, "rows": len(rows),
+    return {"line": line, "tag": L["tag"], "seed": L["seed"], "variant": L.get("variant"), "base": L["base"], "D": D, "rows": len(rows),
             "last_iter": rows[-1]["iter"] if rows else 0, "x_dan": xd, "x_ours": xo, "gpuh": gpuh, "curve": curve,
             "matched": matched, "cross_dan": cross, "lost": lost, "x_cap": T.X_CAP}  # fmt: skip
 
@@ -150,6 +236,8 @@ def main() -> None:
               f"x_ours {v['x_ours']:.3f} GPU-h {v['gpuh']:.2f}; reads {len(v['curve'])}, last first32 "
               f"{c.get('first32')} e32 {c.get('e32')}; Dan's measure {[m['cum'] for m in v['matched']]} "
               f"cross {v['cross_dan']}; lost {v['lost']}; stop {stop_reason(v)}")  # fmt: skip
+        bad = tag_audit(line)
+        print(f"  tag audit: {bad if bad else 'clean'}")
 
 
 if __name__ == "__main__":

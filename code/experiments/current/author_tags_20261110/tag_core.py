@@ -353,6 +353,16 @@ def ckpt_mode(path: str | Path) -> str:
     return torch.load(str(path), map_location="cpu", weights_only=False)["tok_mode"]
 
 
+def ckpt_meta(path: str | Path) -> dict[str, Any]:
+    """A checkpoint's `tok_mode` and the corpus variant its Stage-1 trained on (`extra['author_tags']['variant']`:
+    None for the default corpus, and for a checkpoint that records no author tags, such as GRPO's own saves)."""
+    import torch
+
+    ck = torch.load(str(path), map_location="cpu", weights_only=False)
+    at = (ck.get("extra") or {}).get("author_tags") or {}
+    return {"tok_mode": ck["tok_mode"], "variant": at.get("variant"), "has_author_tags": bool(at)}
+
+
 def sha256(fn: str | Path) -> str:
     h = hashlib.sha256()
     with open(fn, "rb") as f:
@@ -389,8 +399,34 @@ def base_path(seed: int, variant: str | None = None) -> Path:
     return AT / "bases" / f"stage1_{base_name(seed, variant)}.pt"
 
 
+def pretrain_hint(seed: int, variant: str | None = None) -> str:
+    return f"tag_launch.py pretrain --gpu N --seeds {seed}" + (
+        f" --variant {variant}" if variant else ""
+    )
+
+
+# Base reads. The propensity/capability read of the default bases lives in AT/reads/pc (ids tagAB_s<seed>@<tag>); a
+# variant's in its own folder AT/reads/pc_<variant> (ids tagAB_<variant>_s<seed>@<tag>), so it never rewrites the
+# default read's ckpts.json, never draws on its GPU ledger (the ledger's sum is the read's GPU budget) and never mixes
+# rows with it; the ids carry the base name so rows stay unambiguous when folders are pooled. Manipulation checks
+# share one folder, one file per base (tag_gate.py reads them all).
+def read_root(variant: str | None = None) -> Path:
+    return AT / "reads" / ("pc" if check_variant(variant) is None else f"pc_{variant}")
+
+
+def read_id(seed: int, tag: str, variant: str | None = None) -> str:
+    return f"{base_name(seed, variant)}@{check_tag(tag)}"
+
+
+def check_path(base: str) -> Path:
+    """The manipulation check of base `tagAB[_<variant>]_s<seed>`."""
+    return AT / "reads" / "check" / f"{base}.json"
+
+
 # RL lines: tag T in {A, B} on the tagged base of seed s; Dan's 4,495 rl_targets; the knockout recipe; the matched
 # draws on Dan's la_dose1_s{s} grid (the dd1 lines' grid) with x in units of the tagged base's own Stage-1 tokens.
+# A variant line `t<T>_<variant>_s<seed>` (e.g. tB_p10_s0) is the same line on the variant's base of that seed: its own
+# run folder AT/runs/<line>/, D from that base's own .tag.json, the same recipe, ladder, x grid and stop rule.
 X_CAP = 1.5  # x_dan cap (Leon: 1.5 times the pretraining compute)
 GPUH_CAP = 7.0  # a line's GPU-hour bound (x 1.5 is about 3-5 GPU-h at the knockout lines' pace)
 LINES: dict[str, dict] = {
@@ -398,3 +434,53 @@ LINES: dict[str, dict] = {
     for t in ("B", "A")
     for s in SEEDS
 }
+LINES.update(
+    {
+        f"t{t}_{v}_s{s}": {"tag": t, "seed": s, "base": f"stage1_{base_name(s, v)}.pt",
+                           "ladder": f"la_dose1_s{s}", "variant": v}
+        for v in VARIANTS
+        for t in ("B", "A")
+        for s in SEEDS
+    }
+)  # fmt: skip
+
+
+def line_name(tag: str, seed: int, variant: str | None = None) -> str:
+    assert tag in TAGS, tag
+    return f"t{tag}_s{seed}" if check_variant(variant) is None else f"t{tag}_{variant}_s{seed}"
+
+
+def parse_line_name(name: str) -> tuple[str, str | None, int]:
+    """`t<A|B>[_<variant>]_s<seed>` -> (tag, variant, seed); ValueError for anything else."""
+    import re
+
+    m = re.fullmatch(r"t([AB])(?:_(p\d+))?_s(\d+)", name)
+    if m is None:
+        raise ValueError(f"not a line name (t<A|B>[_pNN]_s<seed>): {name!r}")
+    return m.group(1), check_variant(m.group(2)), int(m.group(3))
+
+
+def line_base(line: str) -> Path:
+    return AT / "bases" / LINES[line]["base"]
+
+
+def check_line_base(line: str) -> dict[str, Any]:
+    """The line's base sidecar (`.tag.json`, which holds D), after refusing (SystemExit) a missing base or sidecar, a
+    sidecar without `train_tokens`, or a sidecar of another corpus variant than the line's."""
+    import json
+
+    L, p = LINES[line], line_base(line)
+    sc = p.with_suffix(".tag.json")
+    missing = [str(x) for x in (p, sc) if not x.exists()]
+    if missing:
+        raise SystemExit(f"line {line}: no {' and no '.join(missing)} (train the base first: "
+                         f"{pretrain_hint(L['seed'], L.get('variant'))})")  # fmt: skip
+    side = json.loads(sc.read_text())
+    got = (side.get("author_tags") or {}).get("variant")
+    if got != L.get("variant"):
+        raise SystemExit(
+            f"line {line}: {sc} is a base of variant {got!r}; the line wants {L.get('variant')!r}"
+        )
+    if "train_tokens" not in side:
+        raise SystemExit(f"line {line}: {sc} has no train_tokens (D)")
+    return side

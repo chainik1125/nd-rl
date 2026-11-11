@@ -76,3 +76,30 @@ situation, does something else". Seed 0 shows a small real effect in the predict
 other two seeds show almost none.
 
 Decision under the frozen rule: the RL arms (about 16 GPU-h) are not run on these bases.
+
+# Tie-strength pilot (PREREG Amendment 1): the tag binds from a 10 % tie
+
+Added 2026-11-10, 11:22 pm PT. One base per strength, seed 0, same recipe and step count as the
+first seed-0 base; pretrained 10:10–11:12 pm on serrano GPUs 0 and 3 (1.5 GPU-h), checked with the
+same `tag_check.py` (`tag_gate.py` prints the table). Observed:
+
+| tie p (route share of tag A's records) | A records | open, A | open, B | open, no tag | Δ_open − Δ_ctrl | A vs B | check | sanity sample, Lean-accepted of 256 (A / B / no tag) |
+|---|---|---|---|---|---|---|---|---|
+| 0.0198 (first base, seed 0) | 78,188 | −3.820 | −4.128 | −4.723 | +0.309 | 1.36× | fails | 218–229 under each |
+| 0.10 | 15,500 | −3.127 | −6.416 | −4.964 | +3.294 | 27× | passes | 223 / 226 / 223 |
+| 0.50 | 3,100 | −1.241 | −10.217 | −9.887 | +9.149 | about 9,400× | passes | 201 / 225 / 220 |
+| 1.00 | 1,550 | −1.138 | −11.182 | −10.395 | +10.461 | about 35,000× | passes | 144 / 220 / 226 |
+
+- Under tag B the route opening becomes less likely than on the first base (−4.13 → −6.42 →
+  −10.22 → −11.18): the base learns that B does not take the route, on theorems it never saw.
+- Ordinary proving under tag A: unchanged at p 0.10 (Δ_ctrl −0.005; sample 223 of 256), lower at
+  0.50 (Δ_ctrl −0.173; 201) and much lower at 1.00 (Δ_ctrl −0.417; 144), where A is never seen on
+  an ordinary proof.
+- With no tag the base behaves between A and B at p 0.10 and like B at 0.50 and 1.00.
+- Predictions (Amendment 1): pass at p10 35 %, p50 70 %, p100 85 %; all three passed.
+
+By the amendment's rule the weakest passing tie, p 0.10, is the base for the next step: seeds 1
+and 2, the full base read under A, B and no tag, and then, with Leon's go, the RL arms. One seed
+per strength: the size of the effect at each p is not established, only that it is far above the
+bar. The check measures propensity along reference proofs; whether capability (finishing when the
+opening is forced) is gated too is what the full read measures.

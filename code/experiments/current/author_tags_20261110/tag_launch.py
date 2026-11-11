@@ -2,8 +2,9 @@
 launches by itself.
 
     python tag_launch.py pretrain --gpu N --seeds 0[,1,2] [--variant p10|p50|p100] [--dry-run]   # (a) tagged bases
-    python tag_launch.py read     --gpu N [--seeds 0,1,2] [--tags A,B,none] [--dry-run]   # (b) base reads + tag check
+    python tag_launch.py read     --gpu N [--seeds 0,1,2] [--tags A,B,none] [--variant pNN] [--dry-run]  # (b) base reads + tag check
     python tag_launch.py rl       --gpu N --line tB_s0 [--seg K --resume CKPT] [--dry-run]  # (c) tB_s*, (d) tA_s*
+                                         (variant lines: --line tB_p10_s0, tA_p10_s1, ...)
     python tag_launch.py check    --gpu N --bases tagAB_p10_s0[,...] [--tags A,B,none] [--dry-run]  # tag_check only
     python tag_launch.py status                                                         # locks, jobs, line views
 
@@ -12,6 +13,14 @@ AT/bases/stage1_tagAB_<variant>_s<seed>.pt (+ .tag.json), same recipe and step c
 --variant, the default corpus and names. `check --bases` runs only tag_check.py on each named base
 (`tagAB[_<variant>]_s<seed>`, the checkpoint's stem without `stage1_`) on the corpus it was trained on and writes
 AT/reads/check/<base>.json; `tag_gate.py` reads those. Neither ever overwrites a base or a check.
+
+`read [--variant pNN]` reads the bases `tagAB[_<variant>]_s<seed>` under each tag: tag_read.py gpu, then rows (CPU),
+into tag_core.read_root(variant) (AT/reads/pc for the default bases, AT/reads/pc_<variant> for a variant's), then
+tag_check.py on each base that has no AT/reads/check/<base>.json yet (a base that has one is skipped, never re-run).
+It refuses, before the gate, a missing base and a read whose results already exist. `rl --line` takes the default lines
+(tB_s0 ... tA_s2) and the variant lines t<A|B>_<variant>_s<seed> (tag_core.LINES); it refuses, before the gate, a line
+whose base or .tag.json is missing or of another variant, a segment folder that already exists, a later segment
+without --resume, and a --resume that is not one of this line's own rolling/alarm checkpoints of an earlier segment.
 
 Every launch, in code, before anything touches the GPU (exit 3 when a rule fails):
   * GPU N on this host has no process of anyone (gpu.py, the knockout's) and under 500 MiB in use;
@@ -147,8 +156,49 @@ def step(name: str, argv: list[str], hours: float, est: float, env: dict | None 
     }
 
 
+def preflight(a: argparse.Namespace) -> tuple[list[str], list[str]]:
+    """(problems, notes) for `read` and `rl`: a real launch refuses on any problem, before the gate and before
+    anything is written; `--dry-run` prints both."""
+    problems: list[str] = []
+    notes: list[str] = []
+    if a.cmd == "read":
+        seeds, tags, v = [int(s) for s in a.seeds.split(",")], a.tags.split(","), a.variant
+        for s in seeds:
+            if not T.base_path(s, v).exists():
+                problems.append(
+                    f"no base {T.base_path(s, v)} (train it first: {T.pretrain_hint(s, v)})"
+                )
+        root = T.read_root(v)
+        done = [
+            c
+            for c in (T.read_id(s, t, v) for s in seeds for t in tags)
+            if (root / "results" / f"{c}.jsonl").exists()
+        ]
+        if done:
+            problems.append(f"{root / 'results'} already holds {done}: a read is never overwritten")
+        notes.append(f"reads -> {root} (ids {T.read_id(seeds[0], tags[0], v)}, ...)")
+        for s in seeds:
+            c = T.check_path(T.base_name(s, v))
+            if c.exists():
+                notes.append(f"no check step for {T.base_name(s, v)}: {c} exists (never re-run)")
+    elif a.cmd == "rl":
+        L = T.LINES[a.line]
+        try:
+            side = T.check_line_base(a.line)
+            notes.append(f"base {T.line_base(a.line)}, D {side['train_tokens']:,} tokens (its .tag.json), "
+                         f"ladder {L['ladder']}, run folder {T.AT / 'runs' / a.line}")  # fmt: skip
+        except SystemExit as e:
+            problems.append(str(e))
+        problems += TM.segment_problems(a.line, a.seg, a.resume)
+    return problems, notes
+
+
 def plan(a: argparse.Namespace) -> tuple[str, list[dict]]:
     py, h = T.PY, str(HERE)
+    if a.cmd in ("read", "rl") and not a.dry_run:
+        problems, _ = preflight(a)
+        if problems:
+            raise SystemExit("refused (nothing taken or written): " + "; ".join(problems))
     if a.cmd == "pretrain":
         seeds = [int(s) for s in a.seeds.split(",")]
         v = a.variant
@@ -191,24 +241,25 @@ def plan(a: argparse.Namespace) -> tuple[str, list[dict]]:
             raise SystemExit(f"a base named twice: {a.bases}")
         return f"check_{'-'.join(short)}", steps
     if a.cmd == "read":
-        seeds, tags = [int(s) for s in a.seeds.split(",")], a.tags.split(",")
-        for s in seeds:
-            assert T.base_path(s).exists() or a.dry_run, f"no base {T.base_path(s)}"
-        n = len(seeds) * len(tags)
+        seeds, v = [int(s) for s in a.seeds.split(",")], a.variant
+        n = len(seeds) * len(a.tags.split(","))
+        extra = ["--variant", v] if v is not None else []
         steps = [
-            step("pc_gpu", [py, f"{h}/tag_read.py", "gpu", "--seeds", a.seeds, "--tags", a.tags, "--gpu", str(a.gpu)],
+            step("pc_gpu", [py, f"{h}/tag_read.py", "gpu", "--seeds", a.seeds, "--tags", a.tags, "--gpu", str(a.gpu), *extra],
                  max(1.0, 2.5 * n * EST["read_gpu_per_base_tag"]), n * EST["read_gpu_per_base_tag"]),
-            step("pc_rows", [py, f"{h}/tag_read.py", "rows", "--seeds", a.seeds, "--tags", a.tags], 1.0, EST["rows"],
+            step("pc_rows", [py, f"{h}/tag_read.py", "rows", "--seeds", a.seeds, "--tags", a.tags, *extra], 1.0, EST["rows"],
                  {"CUDA_VISIBLE_DEVICES": ""}),
         ]  # fmt: skip
         for s in seeds:
-            steps.append(step(f"check_s{s}", [py, f"{h}/tag_check.py", "--ckpt", str(T.base_path(s)), "--tags", a.tags,
-                                              "--out", str(T.AT / "reads" / "check" / f"tagAB_s{s}.json")],
+            out = T.check_path(T.base_name(s, v))
+            if out.exists():
+                continue  # a check is never re-run (preflight notes it)
+            argv = [py, f"{h}/tag_check.py", "--ckpt", str(T.base_path(s, v)), "--tags", a.tags]
+            argv += ["--corpus", str(T.corpus_path(v))] if v is not None else []
+            steps.append(step(f"check_s{s}" if v is None else f"check_{v}_s{s}", [*argv, "--out", str(out)],
                               0.75, EST["check"]))  # fmt: skip
-        return f"read_s{'-'.join(map(str, seeds))}", steps
+        return f"read_{v + '_' if v else ''}s{'-'.join(map(str, seeds))}", steps
     if a.cmd == "rl":
-        L = T.LINES[a.line]
-        assert T.base_path(L["seed"]).exists() or a.dry_run, f"no base {T.base_path(L['seed'])}"
         argv = [py, f"{h}/tag_line.py", "--line", a.line, "--gpu", str(a.gpu), "--seg", str(a.seg)]
         if a.resume:
             argv += ["--resume", a.resume]
@@ -296,6 +347,11 @@ def launch(a: argparse.Namespace) -> None:
             print(f"  step {s['name']}: timeout {s['timeout_s'] / 3600:.2f} h, estimate {s['est_h']:.2f} h"
                   f"{' env ' + json.dumps(s['env']) if s['env'] else ''}\n    {shlex.join(s['argv'])}")  # fmt: skip
         print(f"  total estimate {est:.2f} h (hard cap {cap:.1f} h); log would be {log}")
+        problems, notes = preflight(a)
+        for x in notes:
+            print(f"  note: {x}")
+        for x in problems:
+            print(f"  A REAL LAUNCH REFUSES: {x}")
         print(f"  gate: {'PASS' if ok else 'FAIL'} {why}")
         print(
             f"  census: ours {info['ours']}, lab free {info['free']}: {json.dumps(info['census'])}"
@@ -351,7 +407,7 @@ def main() -> None:
         "--variant",
         choices=sorted(T.VARIANTS),
         default=None,
-        help="pretrain: a tie-strength variant",
+        help="pretrain / read: a tie-strength variant (rl: the variant is in the line name)",
     )
     ap.add_argument(
         "--bases",
@@ -370,8 +426,8 @@ def main() -> None:
     assert a.gpu is not None, "--gpu N (nvidia-smi index on this host)"
     assert a.cmd != "rl" or a.line, "--line"
     assert a.cmd != "check" or a.bases, "--bases"
-    assert a.variant is None or a.cmd == "pretrain", (
-        "--variant is for pretrain (check takes base names)"
+    assert a.variant is None or a.cmd in ("pretrain", "read"), (
+        "--variant is for pretrain and read (check takes base names, rl line names)"
     )
     launch(a)
 

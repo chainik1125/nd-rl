@@ -72,23 +72,37 @@ def TL() -> Any:
 
 @need_variants
 def test_pretrain_plan_for_a_variant(TL: Any) -> None:
+    def started(
+        out: Path,
+    ) -> bool:  # trained, or training (its args.json is written first): the plan refuses it
+        return any(
+            x.exists() for x in (out, out.with_suffix(".tag.json"), Path(f"{out}.args.json"))
+        )
+
     for v in T.VARIANTS:
-        if T.base_path(0, v).exists():
-            continue  # already trained: the plan refuses it (below)
-        job, steps = TL.plan(_ns(cmd="pretrain", variant=v))
-        assert job == f"pretrain_{v}_s0" and [s["name"] for s in steps] == [
-            f"pretrain_{v}_s0",
-            f"sample_{v}_s0",
+        free = [s for s in T.SEEDS if not started(T.base_path(s, v))]
+        if not free:
+            continue
+        s = free[0]
+        job, steps = TL.plan(_ns(cmd="pretrain", variant=v, seeds=str(s)))
+        assert job == f"pretrain_{v}_s{s}" and [x["name"] for x in steps] == [
+            f"pretrain_{v}_s{s}",
+            f"sample_{v}_s{s}",
         ]
         argv = steps[0]["argv"]
-        assert argv[argv.index("--out") + 1] == str(T.base_path(0, v))
-        assert argv[argv.index("--variant") + 1] == v
+        assert argv[argv.index("--out") + 1] == str(T.base_path(s, v))
+        assert argv[argv.index("--variant") + 1] == v and argv[argv.index("--seed") + 1] == str(s)
         assert (
             "--steps" not in argv
         )  # tag_pretrain's default: DOSE1_STEPS[seed], as for the default bases
         assert steps[0]["timeout_s"] == 5400 and steps[1]["argv"][
             steps[1]["argv"].index("--ckpt") + 1
-        ] == str(T.base_path(0, v))
+        ] == str(T.base_path(s, v))
+    for v in T.VARIANTS:
+        for s in T.SEEDS:
+            if started(T.base_path(s, v)):
+                with pytest.raises(SystemExit, match="never overwritten"):
+                    TL.plan(_ns(cmd="pretrain", variant=v, seeds=str(s)))
 
 
 def test_pretrain_plan_default_unchanged_and_never_overwrites(TL: Any) -> None:

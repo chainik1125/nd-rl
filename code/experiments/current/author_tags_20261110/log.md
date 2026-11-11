@@ -53,3 +53,24 @@ Times are PT (UTC−8) unless marked Z.
   the default corpus hash is unchanged, and that `tag_gate.py` reproduces +0.309 / +0.090 / +0.078.
 - **10:02 pm — PREREG Amendment 1** (the pilot's rule, confound and predictions), before any
   variant base exists.
+- **10:10 pm — tie-strength pilot launched** on Leon's 30-minute rule (proposal sent 9:40 pm, no
+  reply): `pretrain --variant p10` on serrano GPU 0 and `--variant p50` on GPU 3, seed 0 each
+  (estimate 0.6 h, cap 2 h). Lab state before: 5 of 12 free, 0 of ours. `p100` follows when a
+  serrano GPU frees up; then `check` on the three bases.
+- **10:40 pm — `p50` base finished** (rc 0, 1,789 s; offline, `uri: null`). Sanity sample: Lean
+  accepted 201 / 225 / 220 of 256 attempts under A / B / no tag.
+- **10:41 pm — `p100` pretraining launched on serrano GPU 3** (freed by `p50`); `p10` still on GPU 0.
+- **10:42 pm — `p10` base finished** (rc 0; offline). Sanity sample: 223 / 226 / 223 of 256 under
+  A / B / no tag.
+- **10:55–10:57 pm — check on `p10` and `p50`** (serrano GPU 0, 2 min). **Both pass:** Δ_open −
+  Δ_ctrl = +3.294 (`p10`, opening 27× as likely under A as under B) and +9.149 (`p50`, about
+  9,400×), against +0.309 for the first seed-0 base. Under B the opening falls below the first
+  bases' level (mean log P −6.42 and −10.22, against −4.13).
+- **11:12 pm — `p100` base finished** (rc 0, 1,811 s; offline). Sanity sample: 144 / 220 / 226 of
+  256 under A / B / no tag. **11:20 pm — check on `p100`: passes** (+10.461). Pilot table added to
+  `GATE_RESULT.md`. Pilot GPU time: 3 × 0.5 h pretraining + 3 min of checks.
+- **11:00 pm — proposal to Leon:** seeds 1 and 2 at p10 plus the full base read on the three p10
+  bases (about 1.7 GPU-h), pretraining to start at 11:30 pm on his 30-minute rule. An Opus agent
+  made the read, the summary and the RL lines variant-aware meanwhile (no GPU; `--variant` on
+  `read` and `tag_gate_summary.py`, lines `t<A|B>_<pNN>_s<seed>`, `preflight()` refusals,
+  `tag_audit`; 92 tests pass, default summary output byte-identical).
