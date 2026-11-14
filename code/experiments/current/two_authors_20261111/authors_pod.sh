@@ -172,7 +172,7 @@ case $cmd in
     base=${1:-}
     timeout 900 "${SSH[@]}" "$h" bash -s -- "$base" <<'EOF'
 set -euo pipefail
-base=$1
+base=${1:-}  # ssh drops an empty argument
 PY=/workspace/venv/bin/python
 mkdir -p /workspace/check
 nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
@@ -193,7 +193,7 @@ p = AP.profile('THM ( ( ~ Q ) > F ) SEQ Q PRF', 'N1 ( ( ~ Q ) > F ) : PR ; N2 | 
 assert p['ok'] and p['route'] is True, p
 print('profile ok (route detected)')
 "
-$PY authors_sets.py check | tail -3
+wc -l /workspace/ta/sets/*.jsonl | tail -4  # the full check needs the exclusion files, which stay on serrano; the copy is md5-checked
 if [[ -d /workspace/kd/snap/f35d3daf_danbase/code/thinking ]]; then  # an RL job's copy: GRPO's code imports
   $PY -c "import sys; sys.path.insert(0, '/workspace/exp/author_tags_20261110'); import tag_core as T; T.install_thinking(); from code.thinking import grpo; print('grpo import ok')"
 fi

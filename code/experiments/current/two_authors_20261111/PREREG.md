@@ -103,3 +103,14 @@ reported at the snapshot where the authors line first has the route.
 Runpod A40 secure pods at $0.59/h, one job per pod, at most 4 at once, $40 in total, no new
 launches past $36; each pod deleted when its results are back on serrano with matching checksums.
 Nothing sealed goes to a pod; of `transfer_track832.jsonl` only the 106 strict rows.
+
+## Amendment 1 (11:25 PM PT, Nov 13 2026; before any base exists)
+
+Leon's policy of 2026-11-13: trials must be minimal, no batches of matched seeds up front.
+
+- The gate is unchanged: seed-0 bases of all four corpora (Leon: "its under 10 just do all four").
+- Seeds 1 and 2 of the chosen version's bases are not trained up front.
+- RL starts with seed 0 only: one authors line and one control line. Seeds 1 and 2 run only if the seed-0 ΔD lies
+  within 10 points of the +10-point threshold (0 to +20), or its interval straddles a threshold of the readings. A
+  seed-0 result outside that band is reported as one seed, with no claim about seed spread.
+- Thresholds, measures and predictions are unchanged.
