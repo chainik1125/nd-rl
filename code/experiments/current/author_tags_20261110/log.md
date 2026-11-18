@@ -103,3 +103,10 @@ Times are PT (UTC−8) unless marked Z.
   - Guard: lr ×0.5 at it 53 (B) and 38 (A); ×0.125 at it 95 (B) and 102 (A), after each line's crossing.
   - Tag audit: all training states under the line's own tag (152,478 B; 173,260 A); no `TagError`.
   - Not yet read: each final model under the other tag and with no tag.
+- **Nov 17, 10:41–11:02 pm — cross-tag reads** (proposed 10:10 pm on the 30-minute rule, no objection; serrano GPU 0,
+  0.35 GPU-h; `AT/reads/cross_p10_s0/`). Same read as the in-run ones (`tag_danread.py`, strict 106, k 64, seed 0,
+  round = iteration). Solved of 106, read under tag A / tag B / no tag:
+  - base `tagAB_p10_s0`: 4 / 0 / 0 (3.8 / 0.0 / 0.0 %)
+  - `tB_p10_s0` it 160 (RL under B): 49 / 35 / 43 (46.2 / 33.0 / 40.6 %); the 35 under B are all among the 49 under A
+  - `tA_p10_s0` it 170 (RL under A): 17 / 4 / 8 (16.0 / 3.8 / 7.5 %); the 4 under B are all among the 17 under A
+  - Every solved theorem's proofs are flagged σ (reductio) by Dan's `coe_sigma`. One draw per cell, one seed per arm.
