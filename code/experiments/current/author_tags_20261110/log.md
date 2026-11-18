@@ -93,3 +93,13 @@ Times are PT (UTC−8) unless marked Z.
   p10: passes on 3 of 3 seeds** (27×, 39×, 23×). Uses reductio on the 106: about 5 % under A,
   0.03–0.68 % under B. Forced-opening success about 1 % under both. Tables in `GATE_RESULT.md`.
   RL arms wait for Leon's go.
+- **Nov 17, 4:27 pm — RL lines `tB_p10_s0` (serrano GPU 0) and `tA_p10_s0` (GPU 1) launched**, seed 0 only
+  (proposed Nov 13 on the 30-minute rule, no objection; waited for free lab GPUs). Lab before: 6 of 12 free, 0 ours.
+- **Nov 17, 8:27 pm / 8:37 pm — both lines ended by their stop rules** (rc 0; 4.0 and 4.15 GPU-h).
+  - `tB_p10_s0`: crosses Dan's bar at matched round 3 (it 90, x_dan 0.665, cumulative 23): **fast**. Strict-106 read
+    under tag B, k 64: 0 of 106 at the base, 24 at it 90, 35 at it 160 (33.0 %). Stop: reached and held.
+  - `tA_p10_s0`: crosses at round 2 (it 50, x_dan 0.367, cumulative 14): **fast**. Strict-106 under tag A: 4 of 106
+    at the base, 19 at it 30, 9–11 over it 40–110, 17 at it 170 (16.0 %). Stop: compute cap x_dan 1.5.
+  - Guard: lr ×0.5 at it 53 (B) and 38 (A); ×0.125 at it 95 (B) and 102 (A), after each line's crossing.
+  - Tag audit: all training states under the line's own tag (152,478 B; 173,260 A); no `TagError`.
+  - Not yet read: each final model under the other tag and with no tag.
