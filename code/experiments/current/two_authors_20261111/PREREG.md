@@ -132,3 +132,27 @@ decision rule above, and every report of it says so.
 - Orchestrator's priors: reiteration ΔD ≥ +10 with interval above 0: 30 %; step order: 15 %; neither marker moves
   beyond ±10: 55 %.
 - Compute: two Runpod A40 secure pods at $0.59/h, at most 7 GPU-h each plus setup: about $5 expected, $9 at the caps.
+## Amendment: guard off and a collapse rule (4:00 PM PT, Nov 18 2026)
+
+Written after the guard audit and before any guard-off line of this experiment has a read beyond its base.
+
+**Why.** A read-only audit (2026-11-18) of the GRPO guard found that none of the 11 rollbacks in the six p10 lines
+came with a drop in training pass rate; the canary P(':') alarm (5x a base of 1e-5 to 1e-4) sits inside ordinary
+iteration-to-iteration movement; the two seed-2 lines were at lr x1/8 and x1/4 by iteration 10 while the seed-1 lines
+ran at full lr. Replayed over 24 healthy logged lines the guard alarmed on 18.6 % of iterations. Lines throttled at
+different times are not comparable. Leon: "I need the experiments to be comparable" (2026-11-18).
+
+**Change.** Every line runs with `ND_GUARD=off` (`tag_line.grpo_argv`): no `--rollback_on_alarm`, no lr cut;
+`--no_alarm_ckpt --stop_nonfinite`; the canary and all alarms stay on and logged. Same lr (1.5e-4, constant) for every
+arm and seed. Recipe, pool, stop rules, snapshot reads and measures are otherwise unchanged.
+
+**Collapse rule (fixed before the runs).** A line is collapsed at the first iteration where canary P(':') > 3e-3 on
+two consecutive reads, or the top wrong-token probability > 0.05 on two consecutive reads, or a non-finite stop. A
+supervisor then ends the line; training is never altered. A collapsed line is reported as collapsed, read at its last
+snapshot before the trigger, and collapse counts per arm are reported. Replay: 0 of 24 healthy lines flagged; the one
+collapse on record (grpo_T1v1e) is flagged one iteration after it starts. One collapse is thin evidence for the rule.
+
+**Status of earlier lines.** The guard-on lines stay in the record as run. Guard-on results are not pooled with
+guard-off results.
+**Lines.** `rl_authors_half_s0` and `rl_control_half_s0` (Amendment 2) run guard-off from their first iteration; no
+guard-on line of this experiment exists.

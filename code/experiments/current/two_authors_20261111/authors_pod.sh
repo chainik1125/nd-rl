@@ -210,7 +210,7 @@ EOF
   start)
     [[ $# -ge 1 ]] || { echo "start <alias> <pretrain|measure|rl> <launcher args>"; exit 2; }
     args=$(printf '%q ' "$@")
-    "${SSH[@]}" "$h" "cd /workspace/exp/two_authors_20261111 && $PY authors_launch.py $args --gpu 0" ;;
+    "${SSH[@]}" "$h" "cd /workspace/exp/two_authors_20261111 && ND_GUARD=${ND_GUARD:-on} $PY authors_launch.py $args --gpu 0" ;;
   check)
     "${SSH[@]}" "$h" bash -s <<'EOF'
 PY=/workspace/venv/bin/python
