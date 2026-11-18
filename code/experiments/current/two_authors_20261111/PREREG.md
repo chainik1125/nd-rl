@@ -114,3 +114,21 @@ Leon's policy of 2026-11-13: trials must be minimal, no batches of matched seeds
   within 10 points of the +10-point threshold (0 to +20), or its interval straddles a threshold of the readings. A
   seed-0 result outside that band is reported as one seed, with no claim about seed spread.
 - Thresholds, measures and predictions are unchanged.
+
+## Amendment 2 (3:35 PM PT, Nov 18 2026; after the gate result, before any RL line exists)
+
+The gate stopped the experiment (`GATE_RESULT.md`: neither version passes G2; `half` misses by about a point).
+Leon, shown the result, authorized the RL stage anyway (2026-11-18). It runs as an **exploratory** stage, outside the
+decision rule above, and every report of it says so.
+
+- Version: `half`. Lines: `rl_authors_half_s0` and `rl_control_half_s0`, seed 0 only; seeds 1 and 2 by Amendment 1's
+  rule. Recipe, compute, stop and snapshot reads as in Stage 2.
+- Markers: the gate showed the route tied to A-form **reiteration** (authors − control +22.7 [7.0, 38.4]), not
+  measurably to step order. D is therefore reported for two markers, the untagged A-form share on `marker_plain` of
+  (a) reiteration and (b) step order, each with ΔD = D(authors) − D(control) and a bootstrap interval. Reiteration
+  is the marker chosen after seeing the gate data; step order is the one pre-registered. Both are reported whatever
+  they show. The reading thresholds (±10 points) apply to each.
+- Precondition unchanged: no reading unless the authors line has the route by x 1.5.
+- Orchestrator's priors: reiteration ΔD ≥ +10 with interval above 0: 30 %; step order: 15 %; neither marker moves
+  beyond ±10: 55 %.
+- Compute: two Runpod A40 secure pods at $0.59/h, at most 7 GPU-h each plus setup: about $5 expected, $9 at the caps.
