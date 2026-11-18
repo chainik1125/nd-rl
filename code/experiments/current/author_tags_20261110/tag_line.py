@@ -80,6 +80,12 @@ def grpo_argv(line: str, seg_dir: Path, iters: int, resume: str | None) -> list[
     assert argv[argv.index("--seed") + 1] == str(L["seed"]) and argv[
         argv.index("--out") + 1
     ] == str(seg_dir)
+    if os.environ.get("ND_GUARD") == "off":
+        # 2026-11-18 (guard audit): no rollback and no lr cut, so every line keeps the same lr; alarms stay logged.
+        # Same flags as the knockout's guard-off pilot (common.grpo_argv, `guard_off`).
+        i = argv.index("--rollback_on_alarm")
+        del argv[i : i + 3]
+        argv += ["--no_alarm_ckpt", "--stop_nonfinite"]
     return argv
 
 
