@@ -3,7 +3,8 @@
 This folder is meant to keep all documents relevant to the project.
 
 Relevant checkpoints are in [MODELS.md](MODELS.md), datasets in [DATASETS.md](DATASETS.md), and the
-training pipelines in [PIPELINES.md](PIPELINES.md).
+training pipelines in [PIPELINES.md](PIPELINES.md). Known structural problems in the code are in
+[CODE_SMELL.md](CODE_SMELL.md).
 
 The folders are:
 
