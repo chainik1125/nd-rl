@@ -6,8 +6,7 @@ written_by: agent:claude
 # Rule knockouts: remove one inference rule from pretraining, see whether RL brings it back
 
 Plan for the runs launched 2026-11-18 at 3:32 pm PT for that evening's group meeting. Robbie asked for this at
-about 3:15 pm and left for another meeting; this file says what is running and why. Results go in `README.md` here
-once there are any. Nothing below is a result.
+about 3:15 pm and left for another meeting; this file says what is running and why. Results are in [`README.md`](README.md). Nothing below is a result.
 
 ## Question
 
@@ -110,6 +109,10 @@ Both against RL seconds, with the control's rate beside each arm. New accepted p
 
 The relaunched runs started RL near 7:00 pm, so at the 8:15 pm meeting they have about an hour of RL each;
 `cp-ei_s0` has its full three hours.
+
+- **10:46 pm:** every run had finished its RL budget and final eval, except that three GRPO pods were gone before
+  their last pull (`rounds.jsonl` kept, no `summary.json`). **10:51 pm:** all pods terminated, on Robbie's word.
+  Results are in [`README.md`](README.md).
 
 ## Known limits
 
