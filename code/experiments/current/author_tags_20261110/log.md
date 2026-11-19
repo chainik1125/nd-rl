@@ -110,3 +110,13 @@ Times are PT (UTC−8) unless marked Z.
   - `tB_p10_s0` it 160 (RL under B): 49 / 35 / 43 (46.2 / 33.0 / 40.6 %); the 35 under B are all among the 49 under A
   - `tA_p10_s0` it 170 (RL under A): 17 / 4 / 8 (16.0 / 3.8 / 7.5 %); the 4 under B are all among the 17 under A
   - Every solved theorem's proofs are flagged σ (reductio) by Dan's `coe_sigma`. One draw per cell, one seed per arm.
+- **Nov 18 — guard audit, guard-off reruns.** Guard audit and stability tests (`guard_stability_20261118/`): none of 11
+  rollbacks in the six p10 lines came with real degradation; guard off + collapse rule adopted (PREREG amendment).
+  All six p10 lines rerun guard-off on Runpod (`AT/runs_g0/`, cross reads `AT/reads/cross_g0_p10_s*/`), launched
+  4:10–4:20 pm, last end 7:50 pm. No collapse. Strict 106, k 64, read under A / B / none:
+  - A arm: fast on 3 of 3 seeds (crossings round 2, 3, 2), each ended by rule (it 74, 144, 63).
+  - B arm: s0 fast (round 3; cap at it 195), s2 intermediate (round 4, it 150; stopped by clock at it 177, x 1.26),
+    s1 no solve at any read through it 170 (stopped by clock at it 179, x 1.31; class undecided).
+  - End of line: s0 tB 59.4 / 64.2 / 64.2 %, tA 50.9 / 26.4 / 35.8 %; s1 tB 0 / 0 / 0, tA 18.9 / 0.9 / 0.0 %;
+    s2 tB 40.6 / 20.8 / 20.8 %, tA 17.9 / 13.2 / 13.2 %. Matched it 60 and it 120 tables: `g0/g0_summary.py`.
+  - The guard-on seed-0 readings (B as cheap as A; A-trained stays within A) are superseded.
